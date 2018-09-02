@@ -1,0 +1,26 @@
+= JVM Library to translate GraphQL queries and mutations to Neo4j's Cypher
+
+This is an early stage alpha implementation written in Kotlin.
+
+The basic usage should be:
+
+[source,kotlin]
+----
+val schema =
+        """
+        type Person {
+            name: String
+            age: Int
+        }
+        type Query {
+            person : [Person]
+            personByName(name:String) : Person
+        }"""
+
+val query = """ { p:personByName(name:"Joe") { age } } """
+
+val schema = SchemaBuilder.buildSchema(idl)
+val (cypher, params) = Translator(schema).translate(query, params)
+
+cypher == "MATCH (p:Person) WHERE p.name = 'Joe' RETURN p {.age}"
+----
