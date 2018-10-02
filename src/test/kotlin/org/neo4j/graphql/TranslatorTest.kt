@@ -9,9 +9,14 @@ class TranslatorTest {
 
     val schema =
             """type Person {
-                name: String
-                age: Int
-                    }
+                  name: String
+                  age: Int
+                  livesIn : Location @relation(name:"LIVES_IN", direction:"OUT")
+                  livedIn : [Location] @relation(name:"LIVED_IN", direction:"OUT")
+                }
+                type Location {
+                   name: String
+                }
                 enum E { pi, e }
                     type Query {
                         person : [Person]
@@ -24,6 +29,20 @@ class TranslatorTest {
         val query = " { person { name age } } "
         val (cypher, _) = Translator(SchemaBuilder.buildSchema(schema)).translate(query)
         assertEquals("MATCH (person:Person) RETURN person {.name,.age}", cypher.first())
+    }
+
+    @Test
+    fun nestedQuery() {
+        val query = " { person { name age livesIn { name } } } "
+        val (cypher, _) = Translator(SchemaBuilder.buildSchema(schema)).translate(query)
+        assertEquals("MATCH (person:Person) RETURN person {.name,.age,livesIn:[(person)-[:LIVES_IN]->(livesInLocation) | livesInLocation {.name}][0]}", cypher.first())
+    }
+
+    @Test
+    fun nestedQueryMulti() {
+        val query = " { person { name age livedIn { name } } } "
+        val (cypher, _) = Translator(SchemaBuilder.buildSchema(schema)).translate(query)
+        assertEquals("MATCH (person:Person) RETURN person {.name,.age,livedIn:[(person)-[:LIVED_IN]->(livedInLocation) | livedInLocation {.name}]}", cypher.first())
     }
 
     @Test
