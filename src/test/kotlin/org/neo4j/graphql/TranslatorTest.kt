@@ -59,11 +59,53 @@ class TranslatorTest {
     }
 
     @Test
+    fun nestedQuerySliceOffset() {
+        val query = " { person { livedIn(offset:3) { name } } } "
+        val (cypher, _) = Translator(SchemaBuilder.buildSchema(schema)).translate(query)
+        assertEquals("MATCH (person:Person) RETURN person {livedIn:[(person)-[:LIVED_IN]->(livedInLocation:Location) | livedInLocation {.name}][3..]}", cypher.first())
+    }
+    @Test
+    fun nestedQuerySliceFirstOffset() {
+        val query = " { person { livedIn(first:2,offset:3) { name } } } "
+        val (cypher, _) = Translator(SchemaBuilder.buildSchema(schema)).translate(query)
+        assertEquals("MATCH (person:Person) RETURN person {livedIn:[(person)-[:LIVED_IN]->(livedInLocation:Location) | livedInLocation {.name}][3..5]}", cypher.first())
+    }
+
+    @Test
+    fun nestedQuerySliceFirst() {
+        val query = " { person { livedIn(first:2) { name } } } "
+        val (cypher, _) = Translator(SchemaBuilder.buildSchema(schema)).translate(query)
+        assertEquals("MATCH (person:Person) RETURN person {livedIn:[(person)-[:LIVED_IN]->(livedInLocation:Location) | livedInLocation {.name}][0..2]}", cypher.first())
+    }
+
+    @Test
     fun simpleQueryWhere() {
         val query = """ { person:personByName(name:"Joe") { age } } """
         val (cypher, _) = Translator(SchemaBuilder.buildSchema(schema)).translate(query)
         assertEquals("MATCH (person:Person) WHERE person.name = 'Joe' RETURN person {.age}", cypher.first())
     }
+
+    @Test
+    fun simpleQueryFirstOffset() {
+        val query = """ { person:person(first:2,offset:3) { age } } """
+        val (cypher, _) = Translator(SchemaBuilder.buildSchema(schema)).translate(query)
+        assertEquals("MATCH (person:Person) RETURN person {.age} SKIP 3 LIMIT 2", cypher.first())
+    }
+
+    @Test
+    fun simpleQueryFirst() {
+        val query = """ { person:person(first:2) { age } } """
+        val (cypher, _) = Translator(SchemaBuilder.buildSchema(schema)).translate(query)
+        assertEquals("MATCH (person:Person) RETURN person {.age} LIMIT 2", cypher.first())
+    }
+
+    @Test
+    fun simpleQueryOffset() {
+        val query = """ { person:person(offset:3) { age } } """
+        val (cypher, _) = Translator(SchemaBuilder.buildSchema(schema)).translate(query)
+        assertEquals("MATCH (person:Person) RETURN person {.age} SKIP 3", cypher.first())
+    }
+
     @Test
     fun renderValues() {
         val query = """query(${"$"}_param:String) { p:values(_param:${"$"}_param) { age } } """

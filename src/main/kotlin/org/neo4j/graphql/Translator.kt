@@ -31,12 +31,14 @@ class Translator(val schema: GraphQLSchema) {
         val variable = queryField.aliasOrName()
         val mapProjection = projectFields(variable, queryField, type)
         val where = where(variable, queryType, queryField.arguments)
-        return "MATCH ($variable:$label)$where RETURN $mapProjection"
+        val skipLimit = format(skipLimit(queryField.arguments))
+        return "MATCH ($variable:$label)$where RETURN $mapProjection$skipLimit"
     }
 
     private fun where(variable: String, field: GraphQLFieldDefinition, arguments: MutableList<Argument>) : String {
-        if (arguments.isEmpty()) return ""
-        val predicates = arguments.map { it.name to it.value.toCypherString() }.toMap()
+        val whereArgs = arguments.filterNot { it.name.toLowerCase() in listOf("first", "offset") }
+        if (whereArgs.isEmpty()) return ""
+        val predicates = whereArgs.map { it.name to it.value.toCypherString() }.toMap()
         val defaults = field.arguments.filter { it.defaultValue  != null && !predicates.containsKey(it.name) }.map { it.name to toCypherString(it.defaultValue, it.type) }
         return " WHERE "+(predicates + defaults).map { (k,v) -> "$variable.$k = $v"}.joinToString(" AND ")
     }
@@ -73,8 +75,35 @@ class Translator(val schema: GraphQLSchema) {
         val childPattern = "$childVariable:$innerType"
         val where = where(childVariable,fieldDefinition,field.arguments)
         val comprehension = "[($variable)$inArrow-[:${relType}]-$outArrow($childPattern)$where | ${projectFields(childVariable, field, fieldObjectType)}]"
-        return if (fieldType.isList()) comprehension else comprehension+"[0]"
+        val skipLimit = skipLimit(field.arguments)
+        val slice = slice(skipLimit,fieldType.isList())
+        return comprehension + slice
     }
+
+    private fun slice(skipLimit: Pair<Int, Int>, list: Boolean = false) =
+            if (list) {
+                if (skipLimit.first == 0 && skipLimit.second == -1) ""
+                    else if (skipLimit.second == -1) "[${skipLimit.first}..]"
+                else "[${skipLimit.first}..${skipLimit.first + skipLimit.second}]"
+            } else "[${skipLimit.first}]"
+
+    private fun format(skipLimit: Pair<Int, Int>) =
+        if (skipLimit.first > 0) {
+            if (skipLimit.second > -1) " SKIP ${skipLimit.first} LIMIT ${skipLimit.second}"
+            else " SKIP ${skipLimit.first}"
+        } else {
+            if (skipLimit.second > -1) " LIMIT ${skipLimit.second}"
+            else ""
+        }
+
+    private fun skipLimit(arguments: List<Argument>): Pair<Int, Int> {
+        val limit = numericArgument(arguments, "first", -1).toInt()
+        val skip = numericArgument(arguments, "offset").toInt()
+        return skip to limit
+    }
+
+    private fun numericArgument(arguments: List<Argument>, name: String, defaultValue: Number = 0) =
+            (arguments.find { it.name.toLowerCase() == name }?.value?.toJavaValue() as Number?) ?: defaultValue
 
     private fun GraphQLType.isList() = this is GraphQLList || (this is GraphQLNonNull && this.wrappedType is GraphQLList)
 
