@@ -24,3 +24,22 @@ val (cypher, params) = Translator(schema).translate(query, params)
 
 cypher == "MATCH (p:Person) WHERE p.name = 'Joe' RETURN p {.age}"
 ----
+
+== Features
+
+* parse SDL schema
+* resolve query fields via result types
+* handle arguments as equality comparisons for top level and nested fields
+* handle relationships via @relation directive on schema fields
+* handle first, offset arguments
+* argument types: string, int, float, array
+* parameter support
+* aliases
+
+== Next
+
+* sorting
+* filters
+* @relationship types
+* @cypher for fields
+* auto-generate mutations
