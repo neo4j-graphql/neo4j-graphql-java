@@ -30,6 +30,12 @@ class TranslatorTest {
         val (cypher, _) = Translator(SchemaBuilder.buildSchema(schema)).translate(query)
         assertEquals("MATCH (person:Person) RETURN person {.name,.age}", cypher.first())
     }
+    @Test
+    fun multiQuery() {
+        val query = " { p1: person { name } p2: person { name } } "
+        val (cypher, _) = Translator(SchemaBuilder.buildSchema(schema)).translate(query)
+        assertEquals(listOf("p1","p2").map{"MATCH ($it:Person) RETURN $it {.name}"}, cypher)
+    }
 
     @Test
     fun nestedQuery() {
