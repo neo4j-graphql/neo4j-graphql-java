@@ -39,7 +39,11 @@ cypher == "MATCH (p:Person) WHERE p.name = 'Joe' RETURN p {.age}"
 == Next
 
 * sorting
+* interfaces
+* inline and named fragments
+* input types
+* @cypher for fields
 * filters
 * @relationship types
-* @cypher for fields
 * auto-generate mutations
+* unions
