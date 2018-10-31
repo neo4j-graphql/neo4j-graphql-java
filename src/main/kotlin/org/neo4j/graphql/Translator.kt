@@ -70,7 +70,9 @@ class Translator(val schema: GraphQLSchema) {
         val relDirection = relDirective.getArgument("direction").value.toJavaValue()
         val (inArrow, outArrow) = if (relDirection.toString() == "IN") "<" to "" else "" to ">"
         val childVariable = field.name + fieldObjectType.name
-        val comprehension = "[($variable)$inArrow-[:${relType}]-$outArrow($childVariable) | ${projectFields(childVariable, field, fieldObjectType)}]"
+        val childPattern = "$childVariable:$innerType"
+        val where = where(childVariable,fieldDefinition,field.arguments)
+        val comprehension = "[($variable)$inArrow-[:${relType}]-$outArrow($childPattern)$where | ${projectFields(childVariable, field, fieldObjectType)}]"
         return if (fieldType.isList()) comprehension else comprehension+"[0]"
     }
 

@@ -41,14 +41,21 @@ class TranslatorTest {
     fun nestedQuery() {
         val query = " { person { name age livesIn { name } } } "
         val (cypher, _) = Translator(SchemaBuilder.buildSchema(schema)).translate(query)
-        assertEquals("MATCH (person:Person) RETURN person {.name,.age,livesIn:[(person)-[:LIVES_IN]->(livesInLocation) | livesInLocation {.name}][0]}", cypher.first())
+        assertEquals("MATCH (person:Person) RETURN person {.name,.age,livesIn:[(person)-[:LIVES_IN]->(livesInLocation:Location) | livesInLocation {.name}][0]}", cypher.first())
+    }
+
+    @Test
+    fun nestedQueryParameter() {
+        val query = """ { person { name age livesIn(name:"Berlin") { name } } } """
+        val (cypher, _) = Translator(SchemaBuilder.buildSchema(schema)).translate(query)
+        assertEquals("MATCH (person:Person) RETURN person {.name,.age,livesIn:[(person)-[:LIVES_IN]->(livesInLocation:Location) WHERE livesInLocation.name = 'Berlin' | livesInLocation {.name}][0]}", cypher.first())
     }
 
     @Test
     fun nestedQueryMulti() {
         val query = " { person { name age livedIn { name } } } "
         val (cypher, _) = Translator(SchemaBuilder.buildSchema(schema)).translate(query)
-        assertEquals("MATCH (person:Person) RETURN person {.name,.age,livedIn:[(person)-[:LIVED_IN]->(livedInLocation) | livedInLocation {.name}]}", cypher.first())
+        assertEquals("MATCH (person:Person) RETURN person {.name,.age,livedIn:[(person)-[:LIVED_IN]->(livedInLocation:Location) | livedInLocation {.name}]}", cypher.first())
     }
 
     @Test
