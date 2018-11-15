@@ -13,7 +13,7 @@ class MovieSchemaTest {
 
     fun testTranslation(graphQLQuery: String, expectedCypherQuery:String, params: Map<String,Any> = emptyMap()) {
         val query = Translator(SchemaBuilder.buildSchema(schema)).translate(graphQLQuery, emptyMap(), config = Translator.Config(topLevelWhere = false)).first()
-        assertEquals(expectedCypherQuery.normalizeWhitespace(), query.first.normalizeWhitespace())
+        assertEquals(expectedCypherQuery.normalizeWhitespace(), query.query.normalizeWhitespace())
     }
     fun String.normalizeWhitespace()  = this.replace("\\s+".toRegex()," ")
 

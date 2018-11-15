@@ -14,19 +14,25 @@ class Translator(val schema: GraphQLSchema) {
         val EMPTY_RESULT = ""  to emptyMap<String,Any>()
     }
     data class Config( val topLevelWhere: Boolean = true)
+    data class Cypher( val query: String, val params : Map<String,Any?> = emptyMap()) {
+        companion object {
+            val EMPTY = Cypher("")
+        }
+        fun with(p: Map<String,Any?>) = this.copy(params = this.params + p)
+    }
 
-    fun translate(query: String, params: Map<String, Any> = emptyMap(), config: Config = Config()) : List<Pair<String,Map<String,Any?>>> {
+    fun translate(query: String, params: Map<String, Any> = emptyMap(), config: Config = Config()) : List<Cypher> {
         val ast = parse(query) // todo preparsedDocumentProvider
         val queries = ast.definitions.filterIsInstance<OperationDefinition>()
                 .filter { it.operation == OperationDefinition.Operation.QUERY } // todo variabledefinitions, directives, name
                 .flatMap { it.selectionSet.selections }
                 .filterIsInstance<Field>() // FragmentSpread, InlineFragment
                 .map { println(it);it }
-                .map { toQuery(it, config).let { it.first to params + it.second }} // arguments, alias, directives, selectionSet
+                .map { toQuery(it, config).with(params) } // arguments, alias, directives, selectionSet
         return queries
     }
 
-    private fun toQuery(queryField: Field, config:Config = Config()): Pair<String, Map<String,Any?>> {
+    private fun toQuery(queryField: Field, config:Config = Config()): Cypher {
         val name = queryField.name
         val queryType = schema.queryType.fieldDefinitions.filter { it.name == name }.firstOrNull() ?: throw IllegalArgumentException("Unknown Query $name available queries: " + schema.queryType.fieldDefinitions.map { it.name }.joinToString())
         val returnType = inner(queryType.type)
@@ -35,17 +41,19 @@ class Translator(val schema: GraphQLSchema) {
         val label = type.name.quote()
         val variable = queryField.aliasOrName().decapitalize()
         val mapProjection = projectFields(variable, queryField, type)
-        val where = if (config.topLevelWhere) where(variable, queryType, queryField.arguments) else EMPTY_RESULT
-        val properties = if (config.topLevelWhere) EMPTY_RESULT else properties(variable, queryType, queryField.arguments)
+        val where = if (config.topLevelWhere) where(variable, queryType, queryField.arguments) else Cypher.EMPTY
+        val properties = if (config.topLevelWhere) Cypher.EMPTY else properties(variable, queryType, queryField.arguments)
         val skipLimit = format(skipLimit(queryField.arguments))
-        return "MATCH ($variable:$label${properties.first})${where.first} RETURN ${mapProjection.first} AS $variable$skipLimit" to (mapProjection.second + properties.second + where.second)
+        return Cypher("MATCH ($variable:$label${properties.query})${where.query} RETURN ${mapProjection.query} AS $variable$skipLimit" ,
+                (mapProjection.params + properties.params + where.params))
     }
 
-    private fun where(variable: String, field: GraphQLFieldDefinition, arguments: MutableList<Argument>) : Pair<String,Map<String,Any?>> {
+    private fun where(variable: String, field: GraphQLFieldDefinition, arguments: MutableList<Argument>) : Cypher {
         val all = prepareArguments(field, arguments)
-        if (all.isEmpty()) return EMPTY_RESULT
-        return " WHERE "+all.map { (k,v) -> "$variable.$k = \$${paramName(variable, k, v)}"}.joinToString(" AND ") to
+        if (all.isEmpty()) return Cypher("")
+        return Cypher(" WHERE "+all.map { (k,v) -> "$variable.$k = \$${paramName(variable, k, v)}"}.joinToString(" AND ") ,
                 all.map { (k,v) -> paramName(variable, k, v) to v }.toMap()
+        )
     }
 
     private fun paramName(variable: String, argName: String, value: Any?) = when (value) {
@@ -53,10 +61,10 @@ class Translator(val schema: GraphQLSchema) {
         else -> "$variable${argName.capitalize()}"
     }
 
-    private fun properties(variable: String, field: GraphQLFieldDefinition, arguments: MutableList<Argument>) : Pair<String,Map<String,Any?>> {
+    private fun properties(variable: String, field: GraphQLFieldDefinition, arguments: MutableList<Argument>) : Cypher {
         val all = prepareArguments(field, arguments)
-        return all.map { (k,v) -> "$k:\$${paramName(variable, k, v)}"}.joinToString(" , "," {","}") to
-               all.map { (k,v) -> paramName(variable, k, v) to v }.toMap()
+        return Cypher(all.map { (k,v) -> "$k:\$${paramName(variable, k, v)}"}.joinToString(" , "," {","}") ,
+               all.map { (k,v) -> paramName(variable, k, v) to v }.toMap())
     }
 
     private fun prepareArguments(field: GraphQLFieldDefinition, arguments: MutableList<Argument>): Map<String, Any?> {
@@ -67,27 +75,27 @@ class Translator(val schema: GraphQLSchema) {
         return predicates + defaults
     }
 
-    private fun projectFields(variable: String, field: Field, type: GraphQLType): Pair<String,Map<String,Any?>> {
+    private fun projectFields(variable: String, field: Field, type: GraphQLType): Cypher {
         // todo handle non-object case
         val objectType = type as GraphQLObjectType
         val properties = field.selectionSet.selections
                 .filterIsInstance<Field>()
                 .map { resolveField(variable, it, objectType) }
 
-        val projection = properties.map { it.first }.joinToString(",", "{ ", " }")
-        val params = properties.map{ it.second }.reduce{ res,map -> res + map }
-        return "$variable $projection" to params
+        val projection = properties.map { it.query }.joinToString(",", "{ ", " }")
+        val params = properties.map{ it.params }.reduce{ res,map -> res + map }
+        return Cypher("$variable $projection",params)
     }
 
-    private fun resolveField(variable: String, field: Field, type: GraphQLObjectType) : Pair<String,Map<String,Any?>> {
+    private fun resolveField(variable: String, field: Field, type: GraphQLObjectType) : Cypher {
         val fieldDefinition = type.getFieldDefinition(field.name)
         return if (inner(fieldDefinition.type) is GraphQLObjectType) {
             val patternComprehensions = projectRelationship(variable, field, fieldDefinition)
-            (field.aliasOrName() + ":" + patternComprehensions.first) to patternComprehensions.second
-        } else ("." + field.aliasOrName()) to emptyMap()
+            Cypher(field.aliasOrName() + ":" + patternComprehensions.query, patternComprehensions.params)
+        } else Cypher("." + field.aliasOrName())
     }
 
-    private fun projectRelationship(variable: String, field: Field, fieldDefinition: GraphQLFieldDefinition): Pair<String,Map<String,Any?>> {
+    private fun projectRelationship(variable: String, field: Field, fieldDefinition: GraphQLFieldDefinition): Cypher {
         val fieldType = fieldDefinition.type
         val innerType = inner(fieldType).name
         val fieldObjectType = schema.getType(innerType)
@@ -100,10 +108,10 @@ class Translator(val schema: GraphQLSchema) {
         val childPattern = "$childVariable:$innerType"
         val where = where(childVariable,fieldDefinition,field.arguments)
         val fieldProjection = projectFields(childVariable, field, fieldObjectType)
-        val comprehension = "[($variable)$inArrow-[:${relType}]-$outArrow($childPattern)${where.first} | ${fieldProjection.first}]"
+        val comprehension = "[($variable)$inArrow-[:${relType}]-$outArrow($childPattern)${where.query} | ${fieldProjection.query}]"
         val skipLimit = skipLimit(field.arguments)
         val slice = slice(skipLimit,fieldType.isList())
-        return comprehension + slice to (where.second + fieldProjection.second)
+        return Cypher(comprehension + slice, (where.params + fieldProjection.params))
     }
 
     private fun slice(skipLimit: Pair<Int, Int>, list: Boolean = false) =

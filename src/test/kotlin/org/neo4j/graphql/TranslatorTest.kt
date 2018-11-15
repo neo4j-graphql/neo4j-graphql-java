@@ -36,7 +36,7 @@ class TranslatorTest {
     @Test
     fun multiQuery() {
         val query = " { p1: person { name } p2: person { name } } "
-        val queries = Translator(SchemaBuilder.buildSchema(schema)).translate(query).map { it.first }
+        val queries = Translator(SchemaBuilder.buildSchema(schema)).translate(query).map { it.query }
         assertEquals(listOf("p1","p2").map{"MATCH ($it:Person) RETURN $it { .name } AS $it"}, queries)
     }
 
@@ -115,8 +115,8 @@ class TranslatorTest {
 
     private fun assertQuery(query: String, expected: String, params : Map<String,Any> = emptyMap()) {
         val result = Translator(SchemaBuilder.buildSchema(schema)).translate(query).first()
-        assertEquals(expected, result.first)
-        assertTrue("${params} IN ${result.second}",result.second.entries.containsAll(params.entries))
+        assertEquals(expected, result.query)
+        assertTrue("${params} IN ${result.params}",result.params.entries.containsAll(params.entries))
     }
 
     @Test(expected = IllegalArgumentException::class) // todo better test
