@@ -1,5 +1,6 @@
 package org.neo4j.graphql
 
+import graphql.language.VariableReference
 import org.antlr.v4.runtime.misc.ParseCancellationException
 import org.junit.Test
 
@@ -24,111 +25,109 @@ class TranslatorTest {
                         values(_param:String,_string:String="Joe",_int:Int=42, _float:Float=3.14, _array:[Int]=[1,2,3],_enum:E=pi, _boolean:Boolean=false,_null:String=null) : Person
                      }"""
 
+
+
     @Test
     fun simpleQuery() {
         val query = " { person { name age } } "
-        val (cypher, _) = Translator(SchemaBuilder.buildSchema(schema)).translate(query)
-        assertEquals("MATCH (person:Person) RETURN person { .name,.age } AS person", cypher.first())
+        val expected = "MATCH (person:Person) RETURN person { .name,.age } AS person"
+        assertQuery(query, expected)
     }
     @Test
     fun multiQuery() {
         val query = " { p1: person { name } p2: person { name } } "
-        val (cypher, _) = Translator(SchemaBuilder.buildSchema(schema)).translate(query)
-        assertEquals(listOf("p1","p2").map{"MATCH ($it:Person) RETURN $it { .name } AS $it"}, cypher)
+        val queries = Translator(SchemaBuilder.buildSchema(schema)).translate(query).map { it.first }
+        assertEquals(listOf("p1","p2").map{"MATCH ($it:Person) RETURN $it { .name } AS $it"}, queries)
     }
 
     @Test
     fun nestedQuery() {
         val query = " { person { name age livesIn { name } } } "
-        val (cypher, _) = Translator(SchemaBuilder.buildSchema(schema)).translate(query)
-        assertEquals("MATCH (person:Person) RETURN person { .name,.age,livesIn:[(person)-[:LIVES_IN]->(livesInLocation:Location) | livesInLocation { .name }][0] } AS person", cypher.first())
+        assertQuery(query, "MATCH (person:Person) RETURN person { .name,.age,livesIn:[(person)-[:LIVES_IN]->(livesInLocation:Location) | livesInLocation { .name }][0] } AS person")
     }
 
     @Test
     fun nestedQueryParameter() {
         val query = """ { person { name age livesIn(name:"Berlin") { name } } } """
-        val (cypher, _) = Translator(SchemaBuilder.buildSchema(schema)).translate(query)
-        assertEquals("MATCH (person:Person) RETURN person { .name,.age,livesIn:[(person)-[:LIVES_IN]->(livesInLocation:Location) WHERE livesInLocation.name = 'Berlin' | livesInLocation { .name }][0] } AS person", cypher.first())
+        assertQuery(query, "MATCH (person:Person) RETURN person { .name,.age,livesIn:[(person)-[:LIVES_IN]->(livesInLocation:Location) WHERE livesInLocation.name = \$livesInLocationName | livesInLocation { .name }][0] } AS person",
+                mapOf("livesInLocationName" to "Berlin"))
     }
 
     @Test
     fun nestedQueryMulti() {
         val query = " { person { name age livedIn { name } } } "
-        val (cypher, _) = Translator(SchemaBuilder.buildSchema(schema)).translate(query)
-        assertEquals("MATCH (person:Person) RETURN person { .name,.age,livedIn:[(person)-[:LIVED_IN]->(livedInLocation:Location) | livedInLocation { .name }] } AS person", cypher.first())
+        assertQuery(query, "MATCH (person:Person) RETURN person { .name,.age,livedIn:[(person)-[:LIVED_IN]->(livedInLocation:Location) | livedInLocation { .name }] } AS person")
     }
 
     @Test
     fun nestedQuerySliceOffset() {
         val query = " { person { livedIn(offset:3) { name } } } "
-        val (cypher, _) = Translator(SchemaBuilder.buildSchema(schema)).translate(query)
-        assertEquals("MATCH (person:Person) RETURN person { livedIn:[(person)-[:LIVED_IN]->(livedInLocation:Location) | livedInLocation { .name }][3..] } AS person", cypher.first())
+        assertQuery(query, "MATCH (person:Person) RETURN person { livedIn:[(person)-[:LIVED_IN]->(livedInLocation:Location) | livedInLocation { .name }][3..] } AS person")
     }
     @Test
     fun nestedQuerySliceFirstOffset() {
         val query = " { person { livedIn(first:2,offset:3) { name } } } "
-        val (cypher, _) = Translator(SchemaBuilder.buildSchema(schema)).translate(query)
-        assertEquals("MATCH (person:Person) RETURN person { livedIn:[(person)-[:LIVED_IN]->(livedInLocation:Location) | livedInLocation { .name }][3..5] } AS person", cypher.first())
+        assertQuery(query, "MATCH (person:Person) RETURN person { livedIn:[(person)-[:LIVED_IN]->(livedInLocation:Location) | livedInLocation { .name }][3..5] } AS person")
     }
 
     @Test
     fun nestedQuerySliceFirst() {
         val query = " { person { livedIn(first:2) { name } } } "
-        val (cypher, _) = Translator(SchemaBuilder.buildSchema(schema)).translate(query)
-        assertEquals("MATCH (person:Person) RETURN person { livedIn:[(person)-[:LIVED_IN]->(livedInLocation:Location) | livedInLocation { .name }][0..2] } AS person", cypher.first())
+        assertQuery(query, "MATCH (person:Person) RETURN person { livedIn:[(person)-[:LIVED_IN]->(livedInLocation:Location) | livedInLocation { .name }][0..2] } AS person")
     }
 
     @Test
     fun simpleQueryWhere() {
         val query = """ { person:personByName(name:"Joe") { age } } """
-        val (cypher, _) = Translator(SchemaBuilder.buildSchema(schema)).translate(query)
-        assertEquals("MATCH (person:Person) WHERE person.name = 'Joe' RETURN person { .age } AS person", cypher.first())
+        assertQuery(query, "MATCH (person:Person) WHERE person.name = \$personName RETURN person { .age } AS person", mapOf("personName" to "Joe"))
     }
 
     @Test
     fun simpleQueryFirstOffset() {
         val query = """ { person:person(first:2,offset:3) { age } } """
-        val (cypher, _) = Translator(SchemaBuilder.buildSchema(schema)).translate(query)
-        assertEquals("MATCH (person:Person) RETURN person { .age } AS person SKIP 3 LIMIT 2", cypher.first())
+        assertQuery(query, "MATCH (person:Person) RETURN person { .age } AS person SKIP 3 LIMIT 2")
     }
 
     @Test
     fun simpleQueryFirst() {
         val query = """ { person:person(first:2) { age } } """
-        val (cypher, _) = Translator(SchemaBuilder.buildSchema(schema)).translate(query)
-        assertEquals("MATCH (person:Person) RETURN person { .age } AS person LIMIT 2", cypher.first())
+        assertQuery(query, "MATCH (person:Person) RETURN person { .age } AS person LIMIT 2")
     }
 
     @Test
     fun simpleQueryOffset() {
         val query = """ { person:person(offset:3) { age } } """
-        val (cypher, _) = Translator(SchemaBuilder.buildSchema(schema)).translate(query)
-        assertEquals("MATCH (person:Person) RETURN person { .age } AS person SKIP 3", cypher.first())
+        assertQuery(query, "MATCH (person:Person) RETURN person { .age } AS person SKIP 3")
     }
 
     @Test
     fun renderValues() {
-        val query = """query(${"$"}_param:String) { p:values(_param:${"$"}_param) { age } } """
-        val (cypher, _) = Translator(SchemaBuilder.buildSchema(schema)).translate(query)
-        assertEquals("MATCH (p:Person) WHERE p._param = ${"$"}_param AND p._string = 'Joe' AND p._int = 42 AND p._float = 3.14 AND p._array = [1, 2, 3] AND p._enum = 'pi' AND p._boolean = false RETURN p { .age } AS p", cypher.first())
+        val query = "query(\$_param:String) { p:values(_param:\$_param) { age } }"
+        assertQuery(query, "MATCH (p:Person) WHERE p._param = \$_param AND p._string = \$p_string AND p._int = \$p_int AND p._float = \$p_float AND p._array = \$p_array AND p._enum = \$p_enum AND p._boolean = \$p_boolean RETURN p { .age } AS p",
+                mapOf("p_string" to "Joe","p_int" to 42, "p_float" to 3.14, "p_array" to listOf(1,2,3), "p_enum" to "pi","p_boolean" to false))
     }
 
     @Test
     fun simpleQueryAlias() {
         val query = " { foo:person { n:name } } "
-        val (cypher, _) = Translator(SchemaBuilder.buildSchema(schema)).translate(query)
-        assertEquals("MATCH (foo:Person) RETURN foo { .n } AS foo", cypher.first())
+        assertQuery(query, "MATCH (foo:Person) RETURN foo { .n } AS foo")
+    }
+
+    private fun assertQuery(query: String, expected: String, params : Map<String,Any> = emptyMap()) {
+        val result = Translator(SchemaBuilder.buildSchema(schema)).translate(query).first()
+        assertEquals(expected, result.first)
+        assertTrue("${params} IN ${result.second}",result.second.entries.containsAll(params.entries))
     }
 
     @Test(expected = IllegalArgumentException::class) // todo better test
     fun unknownType() {
         val query = " { company { name } } "
-        val (cypher, _) = Translator(SchemaBuilder.buildSchema(schema)).translate(query)
+        Translator(SchemaBuilder.buildSchema(schema)).translate(query)
     }
 
     @Test(expected = ParseCancellationException::class)
     fun mutation() {
         val query = " { createPerson() } "
-        val (cypher, _) = Translator(SchemaBuilder.buildSchema(schema)).translate(query)
+        Translator(SchemaBuilder.buildSchema(schema)).translate(query)
     }
 }

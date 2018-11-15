@@ -10,20 +10,23 @@ import graphql.schema.idl.SchemaParser
 import org.antlr.v4.runtime.misc.ParseCancellationException
 
 class Translator(val schema: GraphQLSchema) {
+    companion object {
+        val EMPTY_RESULT = ""  to emptyMap<String,Any>()
+    }
     data class Config( val topLevelWhere: Boolean = true)
 
-    fun translate(query: String, params: Map<String, Any> = emptyMap(), config: Config = Config()) : Pair<List<String>,Map<String,Any>> {
+    fun translate(query: String, params: Map<String, Any> = emptyMap(), config: Config = Config()) : List<Pair<String,Map<String,Any?>>> {
         val ast = parse(query) // todo preparsedDocumentProvider
         val queries = ast.definitions.filterIsInstance<OperationDefinition>()
                 .filter { it.operation == OperationDefinition.Operation.QUERY } // todo variabledefinitions, directives, name
                 .flatMap { it.selectionSet.selections }
                 .filterIsInstance<Field>() // FragmentSpread, InlineFragment
                 .map { println(it);it }
-                .map { toQuery(it, config) } // arguments, alias, directives, selectionSet
-        return queries to params
+                .map { toQuery(it, config).let { it.first to params + it.second }} // arguments, alias, directives, selectionSet
+        return queries
     }
 
-    private fun toQuery(queryField: Field, config:Config = Config()): String {
+    private fun toQuery(queryField: Field, config:Config = Config()): Pair<String, Map<String,Any?>> {
         val name = queryField.name
         val queryType = schema.queryType.fieldDefinitions.filter { it.name == name }.firstOrNull() ?: throw IllegalArgumentException("Unknown Query $name available queries: " + schema.queryType.fieldDefinitions.map { it.name }.joinToString())
         val returnType = inner(queryType.type)
@@ -32,48 +35,59 @@ class Translator(val schema: GraphQLSchema) {
         val label = type.name.quote()
         val variable = queryField.aliasOrName().decapitalize()
         val mapProjection = projectFields(variable, queryField, type)
-        val where = if (config.topLevelWhere) where(variable, queryType, queryField.arguments) else ""
-        val properties = if (config.topLevelWhere) "" else properties(variable, queryType, queryField.arguments)
+        val where = if (config.topLevelWhere) where(variable, queryType, queryField.arguments) else EMPTY_RESULT
+        val properties = if (config.topLevelWhere) EMPTY_RESULT else properties(variable, queryType, queryField.arguments)
         val skipLimit = format(skipLimit(queryField.arguments))
-        return "MATCH ($variable:$label$properties)$where RETURN $mapProjection AS $variable$skipLimit"
+        return "MATCH ($variable:$label${properties.first})${where.first} RETURN ${mapProjection.first} AS $variable$skipLimit" to (mapProjection.second + properties.second + where.second)
     }
 
-    private fun where(variable: String, field: GraphQLFieldDefinition, arguments: MutableList<Argument>) : String {
+    private fun where(variable: String, field: GraphQLFieldDefinition, arguments: MutableList<Argument>) : Pair<String,Map<String,Any?>> {
+        val all = prepareArguments(field, arguments)
+        if (all.isEmpty()) return EMPTY_RESULT
+        return " WHERE "+all.map { (k,v) -> "$variable.$k = \$${paramName(variable, k, v)}"}.joinToString(" AND ") to
+                all.map { (k,v) -> paramName(variable, k, v) to v }.toMap()
+    }
+
+    private fun paramName(variable: String, argName: String, value: Any?) = when (value) {
+        is VariableReference ->  value.name
+        else -> "$variable${argName.capitalize()}"
+    }
+
+    private fun properties(variable: String, field: GraphQLFieldDefinition, arguments: MutableList<Argument>) : Pair<String,Map<String,Any?>> {
+        val all = prepareArguments(field, arguments)
+        return all.map { (k,v) -> "$k:\$${paramName(variable, k, v)}"}.joinToString(" , "," {","}") to
+               all.map { (k,v) -> paramName(variable, k, v) to v }.toMap()
+    }
+
+    private fun prepareArguments(field: GraphQLFieldDefinition, arguments: MutableList<Argument>): Map<String, Any?> {
         val whereArgs = arguments.filterNot { it.name.toLowerCase() in listOf("first", "offset") }
-        if (whereArgs.isEmpty()) return ""
-        val predicates = whereArgs.map { it.name to it.value.toCypherString() }.toMap()
-        val defaults = field.arguments.filter { it.defaultValue  != null && !predicates.containsKey(it.name) }.map { it.name to toCypherString(it.defaultValue, it.type) }
-        return " WHERE "+(predicates + defaults).map { (k,v) -> "$variable.$k = $v"}.joinToString(" AND ")
+        if (whereArgs.isEmpty()) return emptyMap()
+        val predicates = whereArgs.map { it.name to it.value.toJavaValue() }.toMap() // .toCypherString()
+        val defaults = field.arguments.filter { it.defaultValue != null && !predicates.containsKey(it.name) }.map { it.name to it.defaultValue } // toCypherString(it.defaultValue, it.type)
+        return predicates + defaults
     }
 
-    private fun properties(variable: String, field: GraphQLFieldDefinition, arguments: MutableList<Argument>) : String {
-        val whereArgs = arguments.filterNot { it.name.toLowerCase() in listOf("first", "offset") }
-        if (whereArgs.isEmpty()) return ""
-        val predicates = whereArgs.map { it.name to it.value.toCypherString() }.toMap()
-        val defaults = field.arguments.filter { it.defaultValue  != null && !predicates.containsKey(it.name) }.map { it.name to toCypherString(it.defaultValue, it.type) }
-        return(predicates + defaults).map { (k,v) -> "$k:$v"}.joinToString(" , "," {","}")
-    }
-
-    private fun projectFields(variable: String, field: Field, type: GraphQLType): String {
+    private fun projectFields(variable: String, field: Field, type: GraphQLType): Pair<String,Map<String,Any?>> {
         // todo handle non-object case
         val objectType = type as GraphQLObjectType
         val properties = field.selectionSet.selections
                 .filterIsInstance<Field>()
                 .map { resolveField(variable, it, objectType) }
-                .joinToString(",", "{ ", " }")
-        val mapProjection = "$variable $properties"
-        return mapProjection
+
+        val projection = properties.map { it.first }.joinToString(",", "{ ", " }")
+        val params = properties.map{ it.second }.reduce{ res,map -> res + map }
+        return "$variable $projection" to params
     }
 
-    private fun resolveField(variable: String, field: Field, type: GraphQLObjectType) : String {
+    private fun resolveField(variable: String, field: Field, type: GraphQLObjectType) : Pair<String,Map<String,Any?>> {
         val fieldDefinition = type.getFieldDefinition(field.name)
         return if (inner(fieldDefinition.type) is GraphQLObjectType) {
             val patternComprehensions = projectRelationship(variable, field, fieldDefinition)
-            field.aliasOrName() + ":" + patternComprehensions
-        } else "." + field.aliasOrName()
+            (field.aliasOrName() + ":" + patternComprehensions.first) to patternComprehensions.second
+        } else ("." + field.aliasOrName()) to emptyMap()
     }
 
-    private fun projectRelationship(variable: String, field: Field, fieldDefinition: GraphQLFieldDefinition): String {
+    private fun projectRelationship(variable: String, field: Field, fieldDefinition: GraphQLFieldDefinition): Pair<String,Map<String,Any?>> {
         val fieldType = fieldDefinition.type
         val innerType = inner(fieldType).name
         val fieldObjectType = schema.getType(innerType)
@@ -85,10 +99,11 @@ class Translator(val schema: GraphQLSchema) {
         val childVariable = field.name + fieldObjectType.name
         val childPattern = "$childVariable:$innerType"
         val where = where(childVariable,fieldDefinition,field.arguments)
-        val comprehension = "[($variable)$inArrow-[:${relType}]-$outArrow($childPattern)$where | ${projectFields(childVariable, field, fieldObjectType)}]"
+        val fieldProjection = projectFields(childVariable, field, fieldObjectType)
+        val comprehension = "[($variable)$inArrow-[:${relType}]-$outArrow($childPattern)${where.first} | ${fieldProjection.first}]"
         val skipLimit = skipLimit(field.arguments)
         val slice = slice(skipLimit,fieldType.isList())
-        return comprehension + slice
+        return comprehension + slice to (where.second + fieldProjection.second)
     }
 
     private fun slice(skipLimit: Pair<Int, Int>, list: Boolean = false) =
@@ -149,7 +164,7 @@ class Translator(val schema: GraphQLSchema) {
         is BooleanValue -> this.isValue
         is FloatValue -> this.value
         is IntValue -> this.value
-        is VariableReference -> "$"+this.name
+        is VariableReference -> this
         is ArrayValue -> this.values.map { it.toJavaValue() }.toList()
         else -> throw IllegalStateException("Unhandled value "+this)
     }
