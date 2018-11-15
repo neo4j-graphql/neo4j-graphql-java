@@ -127,6 +127,17 @@ class TranslatorTest {
         assertQuery(query, "MATCH (foo:Person) RETURN foo { .n } AS foo")
     }
 
+    @Test
+    fun namedFragment() {
+        val query = " query { person { ...name } } fragment name on Person { name } "
+        assertQuery(query, "MATCH (person:Person) RETURN person { .name } AS person")
+    }
+    @Test
+    fun inlineFragment() {
+        val query = " query { person { ... on Person { name } } }"
+        assertQuery(query, "MATCH (person:Person) RETURN person { .name } AS person")
+    }
+
     private fun assertQuery(query: String, expected: String, params : Map<String,Any> = emptyMap()) {
         val result = Translator(SchemaBuilder.buildSchema(schema)).translate(query).first()
         assertEquals(expected, result.query)

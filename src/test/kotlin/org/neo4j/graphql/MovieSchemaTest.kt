@@ -12,7 +12,7 @@ class MovieSchemaTest {
     val schema = InputStreamReader(javaClass.getResourceAsStream("/movies-test-schema.graphql")).readText()
 
     fun testTranslation(graphQLQuery: String, expectedCypherQuery:String, params: Map<String,Any> = emptyMap()) {
-        val query = Translator(SchemaBuilder.buildSchema(schema)).translate(graphQLQuery, emptyMap(), config = Translator.Config(topLevelWhere = false)).first()
+        val query = Translator(SchemaBuilder.buildSchema(schema)).translate(graphQLQuery, emptyMap(), context = Translator.Context(topLevelWhere = false)).first()
         assertEquals(expectedCypherQuery.normalizeWhitespace(), query.query.normalizeWhitespace())
     }
     fun String.normalizeWhitespace()  = this.replace("\\s+".toRegex()," ")
