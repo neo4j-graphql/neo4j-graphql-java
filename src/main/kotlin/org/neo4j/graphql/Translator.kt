@@ -41,14 +41,26 @@ class Translator(val schema: GraphQLSchema) {
         val label = type.name.quote()
         val variable = queryField.aliasOrName().decapitalize()
         val mapProjection = projectFields(variable, queryField, type)
-        val where = if (config.topLevelWhere) where(variable, queryType, queryField.arguments) else Cypher.EMPTY
-        val properties = if (config.topLevelWhere) Cypher.EMPTY else properties(variable, queryType, queryField.arguments)
+        val where = if (config.topLevelWhere) where(variable, queryType, propertyArguments(queryField)) else Cypher.EMPTY
+        val properties = if (config.topLevelWhere) Cypher.EMPTY else properties(variable, queryType, propertyArguments(queryField))
         val skipLimit = format(skipLimit(queryField.arguments))
-        return Cypher("MATCH ($variable:$label${properties.query})${where.query} RETURN ${mapProjection.query} AS $variable$skipLimit" ,
+        val ordering = orderBy(variable, queryField.arguments)
+        return Cypher("MATCH ($variable:$label${properties.query})${where.query} RETURN ${mapProjection.query} AS $variable$ordering$skipLimit" ,
                 (mapProjection.params + properties.params + where.params))
     }
 
-    private fun where(variable: String, field: GraphQLFieldDefinition, arguments: MutableList<Argument>) : Cypher {
+    private fun propertyArguments(queryField: Field) =
+            queryField.arguments.filterNot { listOf("first", "offset", "orderBy", "filter").contains(it.name) }
+
+    private fun orderBy(variable: String, args: MutableList<Argument>): String {
+        val arg = args.find { it.name == "orderBy" && it.value is ArrayValue }
+        return if (arg == null) ""
+        else " ORDER BY "+ (arg.value as ArrayValue).values.map { it.toJavaValue().toString().split("_") }
+                .map { "$variable.${it[0]} ${it[1].toUpperCase()}"  }
+                .joinToString(", ")
+    }
+
+    private fun where(variable: String, field: GraphQLFieldDefinition, arguments: List<Argument>) : Cypher {
         val all = prepareArguments(field, arguments)
         if (all.isEmpty()) return Cypher("")
         return Cypher(" WHERE "+all.map { (k,v) -> "$variable.$k = \$${paramName(variable, k, v)}"}.joinToString(" AND ") ,
@@ -61,16 +73,15 @@ class Translator(val schema: GraphQLSchema) {
         else -> "$variable${argName.capitalize()}"
     }
 
-    private fun properties(variable: String, field: GraphQLFieldDefinition, arguments: MutableList<Argument>) : Cypher {
+    private fun properties(variable: String, field: GraphQLFieldDefinition, arguments: List<Argument>) : Cypher {
         val all = prepareArguments(field, arguments)
         return Cypher(all.map { (k,v) -> "$k:\$${paramName(variable, k, v)}"}.joinToString(" , "," {","}") ,
                all.map { (k,v) -> paramName(variable, k, v) to v }.toMap())
     }
 
-    private fun prepareArguments(field: GraphQLFieldDefinition, arguments: MutableList<Argument>): Map<String, Any?> {
-        val whereArgs = arguments.filterNot { it.name.toLowerCase() in listOf("first", "offset") }
-        if (whereArgs.isEmpty()) return emptyMap()
-        val predicates = whereArgs.map { it.name to it.value.toJavaValue() }.toMap() // .toCypherString()
+    private fun prepareArguments(field: GraphQLFieldDefinition, arguments: List<Argument>): Map<String, Any?> {
+        if (arguments.isEmpty()) return emptyMap()
+        val predicates = arguments.map { it.name to it.value.toJavaValue() }.toMap() // .toCypherString()
         val defaults = field.arguments.filter { it.defaultValue != null && !predicates.containsKey(it.name) }.map { it.name to it.defaultValue } // toCypherString(it.defaultValue, it.type)
         return predicates + defaults
     }
@@ -106,7 +117,7 @@ class Translator(val schema: GraphQLSchema) {
         val (inArrow, outArrow) = if (relDirection.toString() == "IN") "<" to "" else "" to ">"
         val childVariable = field.name + fieldObjectType.name
         val childPattern = "$childVariable:$innerType"
-        val where = where(childVariable,fieldDefinition,field.arguments)
+        val where = where(childVariable,fieldDefinition,propertyArguments(field))
         val fieldProjection = projectFields(childVariable, field, fieldObjectType)
         val comprehension = "[($variable)$inArrow-[:${relType}]-$outArrow($childPattern)${where.query} | ${fieldProjection.query}]"
         val skipLimit = skipLimit(field.arguments)

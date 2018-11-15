@@ -18,12 +18,14 @@ class TranslatorTest {
                 type Location {
                    name: String
                 }
+                enum _PersonOrdering { name_asc, name_desc, age_asc, age_desc }
                 enum E { pi, e }
                     type Query {
                         person : [Person]
                         personByName(name:String) : Person
                         values(_param:String,_string:String="Joe",_int:Int=42, _float:Float=3.14, _array:[Int]=[1,2,3],_enum:E=pi, _boolean:Boolean=false,_null:String=null) : Person
-                     }"""
+                     }
+                """
 
 
 
@@ -86,6 +88,18 @@ class TranslatorTest {
     fun simpleQueryFirstOffset() {
         val query = """ { person:person(first:2,offset:3) { age } } """
         assertQuery(query, "MATCH (person:Person) RETURN person { .age } AS person SKIP 3 LIMIT 2")
+    }
+
+    @Test
+    fun orderByQuerySingle() {
+        val query = """ { person:person(orderBy:[name_asc]) { age } } """
+        assertQuery(query, "MATCH (person:Person) RETURN person { .age } AS person ORDER BY person.name ASC")
+    }
+
+    @Test
+    fun orderByQueryTwo() {
+        val query = """ { person:person(orderBy:[age_desc, name_asc]) { age } } """
+        assertQuery(query, "MATCH (person:Person) RETURN person { .age } AS person ORDER BY person.age DESC, person.name ASC")
     }
 
     @Test
