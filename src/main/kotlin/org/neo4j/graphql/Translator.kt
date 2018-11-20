@@ -130,41 +130,55 @@ class Translator(val schema: GraphQLSchema) {
             projectFragment(fragment.typeCondition.name, type, variable, ctx, fragment.selectionSet)
 
 
-    private fun projectRelationship(variable: String, field: Field, fieldDefinition: GraphQLFieldDefinition, parent:GraphQLObjectType, ctx:Context): Cypher {
-        val fieldType = fieldDefinition.type
-        val innerType = inner(fieldType).name
-        val fieldObjectType = inner(fieldType) as GraphQLObjectType // schema.getType(innerType) as GraphQLObjectType
+    private fun projectRelationship(variable: String, field: Field, fieldDefinition: GraphQLFieldDefinition, parent: GraphQLObjectType, ctx: Context): Cypher {
         val parentIsRelationship = parent.definition.directivesByName.containsKey("relation")
-        // todo combine both if rel-entity
-        if (!parentIsRelationship) {
-            val (relDirective, relFromType) = fieldObjectType.definition.getDirective("relation")?.let { it to true }
-                    ?: fieldDefinition.definition.getDirective("relation")?.let { it to false }
-                    ?: throw IllegalStateException("Field $field needs an @relation directive")
+        return when (parentIsRelationship) {
+            true -> projectRelationshipParent(variable, field, fieldDefinition, parent, ctx)
+            else -> projectRichAndRegularRelationship(variable, field, fieldDefinition, ctx)
+        }
+    }
 
-            val (relType, outgoing, endField) = relDetails(relDirective)
-            val (inArrow, outArrow) = arrows(outgoing)
+    private fun projectRichAndRegularRelationship(variable: String, field: Field, fieldDefinition: GraphQLFieldDefinition, ctx: Context): Cypher {
+        val fieldType = fieldDefinition.type
+        val fieldObjectType = inner(fieldType) as GraphQLObjectType
+        // todo combine both nestings if rel-entity
+        val (relDirective, relFromType) = fieldObjectType.definition.getDirective("relation")?.let { it to true }
+                ?: fieldDefinition.definition.getDirective("relation")?.let { it to false }
+                ?: throw IllegalStateException("Field $field needs an @relation directive")
 
-            val childVariable = variable + field.name.capitalize() // + fieldObjectType.name
-            val endNodePattern = if (relFromType) {
+        val (relType, outgoing, endField) = relDetails(relDirective)
+        val (inArrow, outArrow) = arrows(outgoing)
+
+        val childVariable = variable + field.name.capitalize()
+
+        val endNodePattern = when {
+            relFromType -> {
                 val label = inner(fieldObjectType.getFieldDefinition(endField).type).name
                 "$childVariable${endField.capitalize()}:$label"
-            } else "$childVariable:$innerType"
-            val relPattern = if (relFromType) "$childVariable:${relType}" else ":${relType}"
-            val where = where(childVariable, fieldDefinition, propertyArguments(field))
-            val fieldProjection = projectFields(childVariable, field, fieldObjectType, ctx)
-
-            val comprehension = "[($variable)$inArrow-[$relPattern]-$outArrow($endNodePattern)${where.query} | ${fieldProjection.query}]"
-            val skipLimit = skipLimit(field.arguments)
-            val slice = slice(skipLimit, fieldType.isList())
-            return Cypher(comprehension + slice, (where.params + fieldProjection.params))
-        } else {
-            val relDirective = parent.definition.directivesByName.getValue("relation")
-            val (relType, outgoing, endField) = relDetails(relDirective)
-
-            val fieldProjection = projectFields(variable+endField.capitalize(), field, fieldObjectType, ctx)
-
-            return Cypher(fieldProjection.query)
+            }
+            else -> "$childVariable:${fieldObjectType.name}"
         }
+
+        val relPattern = if (relFromType) "$childVariable:${relType}" else ":${relType}"
+
+        val where = where(childVariable, fieldDefinition, propertyArguments(field))
+        val fieldProjection = projectFields(childVariable, field, fieldObjectType, ctx)
+
+        val comprehension = "[($variable)$inArrow-[$relPattern]-$outArrow($endNodePattern)${where.query} | ${fieldProjection.query}]"
+        val skipLimit = skipLimit(field.arguments)
+        val slice = slice(skipLimit, fieldType.isList())
+        return Cypher(comprehension + slice, (where.params + fieldProjection.params))
+    }
+
+    private fun projectRelationshipParent(variable: String, field: Field, fieldDefinition: GraphQLFieldDefinition, parent: GraphQLObjectType, ctx: Context): Cypher {
+        val fieldType = fieldDefinition.type
+        val fieldObjectType = inner(fieldType) as GraphQLObjectType
+        val relDirective = parent.definition.directivesByName.getValue("relation")
+        val (_, _, endField) = relDetails(relDirective)
+
+        val fieldProjection = projectFields(variable + endField.capitalize(), field, fieldObjectType, ctx)
+
+        return Cypher(fieldProjection.query)
     }
 
     private fun arrows(outgoing: Boolean?): Pair<String, String> {
