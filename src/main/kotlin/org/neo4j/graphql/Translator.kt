@@ -189,8 +189,8 @@ class Translator(val schema: GraphQLSchema) {
             "OUT" -> true
             else -> throw IllegalStateException("Unknown direction ${relDirective.argumentString("direction")}")
         }
-        val endField = if (outgoing == true) relDirective.argumentString("end")
-        else relDirective.argumentString("end")
+        val endField = if (outgoing == true) relDirective.argumentString("to")
+        else relDirective.argumentString("from")
         return Triple(relType, outgoing, endField)
     }
 
@@ -290,8 +290,8 @@ object SchemaBuilder {
                 EnumSet.of(Introspection.DirectiveLocation.FIELD,Introspection.DirectiveLocation.OBJECT),
                 listOf(GraphQLArgument("name",Scalars.GraphQLString),
                         GraphQLArgument("direction","relationship direction",Scalars.GraphQLString,"OUT"),
-                        GraphQLArgument("start","start field name",Scalars.GraphQLString,"start"),
-                        GraphQLArgument("end","end field name",Scalars.GraphQLString,"end")),false,false,true))
+                        GraphQLArgument("from","from field name",Scalars.GraphQLString,"from"),
+                        GraphQLArgument("to","to field name",Scalars.GraphQLString,"to")),false,false,true))
         return schemaGenerator.makeExecutableSchema(typeDefinitionRegistry, runtimeWiring).transform { bc -> bc.additionalDirectives(directives).build() }
     }
 }

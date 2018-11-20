@@ -18,11 +18,11 @@ class TranslatorTest {
                   died : Death
                 }
                 type Birth @relation(name:"BORN") {
-                   start: Person
-                   end: Location
+                   from: Person
+                   to: Location
                    date: String
                 }
-                type Death @relation(name:"DIED",start:"who",end:"where") {
+                type Death @relation(name:"DIED",from:"who",to:"where") {
                    who: Person
                    where: Location
                    date: String
@@ -69,8 +69,8 @@ class TranslatorTest {
 
     @Test
     fun richRelationship() {
-        val query = " { person { name born { date end { name } } } } "
-        assertQuery(query, "MATCH (person:Person) RETURN person { .name,born:[(person)-[personBorn:BORN]->(personBornEnd:Location) | personBorn { .date,end:personBornEnd { .name } }][0] } AS person")
+        val query = " { person { name born { date to { name } } } } "
+        assertQuery(query, "MATCH (person:Person) RETURN person { .name,born:[(person)-[personBorn:BORN]->(personBornTo:Location) | personBorn { .date,to:personBornTo { .name } }][0] } AS person")
     }
 
     @Test
@@ -81,13 +81,13 @@ class TranslatorTest {
 
     @Test
     fun richRelationship2ndHop() {
-        val query = " { person { name born { date end { name founded { name } } } } } "
-        assertQuery(query, "MATCH (person:Person) RETURN person { .name,born:[(person)-[personBorn:BORN]->(personBornEnd:Location) | personBorn { .date,end:personBornEnd { .name,founded:[(personBornEnd)<-[:FOUNDED]-(personBornEndFounded:Person) | personBornEndFounded { .name }][0] } }][0] } AS person")
+        val query = " { person { name born { date to { name founded { name } } } } } "
+        assertQuery(query, "MATCH (person:Person) RETURN person { .name,born:[(person)-[personBorn:BORN]->(personBornTo:Location) | personBorn { .date,to:personBornTo { .name,founded:[(personBornTo)<-[:FOUNDED]-(personBornToFounded:Person) | personBornToFounded { .name }][0] } }][0] } AS person")
     }
     @Test
     fun richRelationship3rdHop() {
-        val query = " { person { name born { date end { name founded { name born { date end { name } } } } } } } "
-        assertQuery(query, "MATCH (person:Person) RETURN person { .name,born:[(person)-[personBorn:BORN]->(personBornEnd:Location) | personBorn { .date,end:personBornEnd { .name,founded:[(personBornEnd)<-[:FOUNDED]-(personBornEndFounded:Person) | personBornEndFounded { .name,born:[(personBornEndFounded)-[personBornEndFoundedBorn:BORN]->(personBornEndFoundedBornEnd:Location) | personBornEndFoundedBorn { .date,end:personBornEndFoundedBornEnd { .name } }][0] }][0] } }][0] } AS person")
+        val query = " { person { name born { date to { name founded { name born { date to { name } } } } } } } "
+        assertQuery(query, "MATCH (person:Person) RETURN person { .name,born:[(person)-[personBorn:BORN]->(personBornTo:Location) | personBorn { .date,to:personBornTo { .name,founded:[(personBornTo)<-[:FOUNDED]-(personBornToFounded:Person) | personBornToFounded { .name,born:[(personBornToFounded)-[personBornToFoundedBorn:BORN]->(personBornToFoundedBornTo:Location) | personBornToFoundedBorn { .date,to:personBornToFoundedBornTo { .name } }][0] }][0] } }][0] } AS person")
     }
 
     @Test
