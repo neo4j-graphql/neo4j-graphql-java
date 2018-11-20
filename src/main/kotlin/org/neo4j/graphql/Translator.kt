@@ -1,6 +1,7 @@
 package org.neo4j.graphql
 
 import graphql.Scalars
+import graphql.introspection.Introspection
 import graphql.language.*
 import graphql.parser.Parser
 import graphql.schema.*
@@ -8,6 +9,7 @@ import graphql.schema.idl.RuntimeWiring
 import graphql.schema.idl.SchemaGenerator
 import graphql.schema.idl.SchemaParser
 import org.antlr.v4.runtime.misc.ParseCancellationException
+import java.util.*
 
 class Translator(val schema: GraphQLSchema) {
     data class Context(val topLevelWhere: Boolean = true, val fragments : Map<String,FragmentDefinition> = emptyMap())
@@ -173,18 +175,22 @@ class Translator(val schema: GraphQLSchema) {
         }
     }
 
+    private fun Directive.argumentString(name:String) : String {
+        return this.getArgument(name)?.value?.toJavaValue()?.toString()
+                ?: schema.getDirective(this.name).getArgument(name)?.defaultValue?.toString()
+        ?: throw IllegalStateException("No default value for ${this.name}.${name}")
+    }
+
     private fun relDetails(relDirective: Directive): Triple<String,Boolean?,String> {
-        val arguments = relDirective.argumentsByName
-        val relType = arguments.getValue("name").value.toJavaValue().toString()
-        val relDirection = arguments.get("direction")?.value?.toJavaValue()
-                ?: schema.getDirective("relation").getArgument("direction").defaultValue
-        val outgoing =  when (relDirection.toString()) {
+        val relType = relDirective.argumentString("name")
+        val outgoing =  when (relDirective.argumentString("direction")) {
             "IN" -> false
             "BOTH" -> null
             "OUT" -> true
-            else -> throw IllegalStateException("Unknown direction $relDirection")
+            else -> throw IllegalStateException("Unknown direction ${relDirective.argumentString("direction")}")
         }
-        val endField = if (outgoing == true) "end" else "start"
+        val endField = if (outgoing == true) relDirective.argumentString("end")
+        else relDirective.argumentString("end")
         return Triple(relType, outgoing, endField)
     }
 
@@ -280,7 +286,12 @@ object SchemaBuilder {
                 .build()
 
         val schemaGenerator = SchemaGenerator()
-        val directives = setOf(GraphQLDirective.newDirective().name("relation").argument { it.name("name").type(Scalars.GraphQLString).also { it.name("direction").type(Scalars.GraphQLString).defaultValue("OUT") } }.build())
+        val directives = setOf(GraphQLDirective("relation", "relation directive",
+                EnumSet.of(Introspection.DirectiveLocation.FIELD,Introspection.DirectiveLocation.OBJECT),
+                listOf(GraphQLArgument("name",Scalars.GraphQLString),
+                        GraphQLArgument("direction","relationship direction",Scalars.GraphQLString,"OUT"),
+                        GraphQLArgument("start","start field name",Scalars.GraphQLString,"start"),
+                        GraphQLArgument("end","end field name",Scalars.GraphQLString,"end")),false,false,true))
         return schemaGenerator.makeExecutableSchema(typeDefinitionRegistry, runtimeWiring).transform { bc -> bc.additionalDirectives(directives).build() }
     }
 }

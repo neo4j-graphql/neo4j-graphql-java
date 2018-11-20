@@ -15,10 +15,16 @@ class TranslatorTest {
                   livesIn : Location @relation(name:"LIVES_IN", direction:"OUT")
                   livedIn : [Location] @relation(name:"LIVED_IN", direction:"OUT")
                   born : Birth
+                  died : Death
                 }
                 type Birth @relation(name:"BORN") {
                    start: Person
                    end: Location
+                   date: String
+                }
+                type Death @relation(name:"DIED",start:"who",end:"where") {
+                   who: Person
+                   where: Location
                    date: String
                 }
                 type Location {
@@ -65,6 +71,12 @@ class TranslatorTest {
     fun richRelationship() {
         val query = " { person { name born { date end { name } } } } "
         assertQuery(query, "MATCH (person:Person) RETURN person { .name,born:[(person)-[personBorn:BORN]->(personBornEnd:Location) | personBorn { .date,end:personBornEnd { .name } }][0] } AS person")
+    }
+
+    @Test
+    fun richRelationshipCustomFieldNames() {
+        val query = " { person { name died { date where { name } } } } "
+        assertQuery(query, "MATCH (person:Person) RETURN person { .name,died:[(person)-[personDied:DIED]->(personDiedWhere:Location) | personDied { .date,where:personDiedWhere { .name } }][0] } AS person")
     }
 
     @Test
