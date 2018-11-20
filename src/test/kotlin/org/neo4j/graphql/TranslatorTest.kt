@@ -3,6 +3,7 @@ package org.neo4j.graphql
 import org.antlr.v4.runtime.misc.ParseCancellationException
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Ignore
 import org.junit.Test
 
 class TranslatorTest {
@@ -51,49 +52,60 @@ class TranslatorTest {
     @Test
     fun nestedQuery() {
         val query = " { person { name age livesIn { name } } } "
-        assertQuery(query, "MATCH (person:Person) RETURN person { .name,.age,livesIn:[(person)-[:LIVES_IN]->(livesIn:Location) | livesIn { .name }][0] } AS person")
+        assertQuery(query, "MATCH (person:Person) RETURN person { .name,.age,livesIn:[(person)-[:LIVES_IN]->(personLivesIn:Location) | personLivesIn { .name }][0] } AS person")
     }
 
     @Test
     fun nestedQuery2ndHop() {
         val query = " { person { name age livesIn { name founded {name}} } } "
-        assertQuery(query, "MATCH (person:Person) RETURN person { .name,.age,livesIn:[(person)-[:LIVES_IN]->(livesIn:Location) | livesIn { .name,founded:[(livesIn)<-[:FOUNDED]-(founded:Person) | founded { .name }][0] }][0] } AS person")
+        assertQuery(query, "MATCH (person:Person) RETURN person { .name,.age,livesIn:[(person)-[:LIVES_IN]->(personLivesIn:Location) | personLivesIn { .name,founded:[(personLivesIn)<-[:FOUNDED]-(personLivesInFounded:Person) | personLivesInFounded { .name }][0] }][0] } AS person")
     }
 
     @Test
     fun richRelationship() {
         val query = " { person { name born { date end { name } } } } "
-        assertQuery(query, "MATCH (person:Person) RETURN person { .name,born:[(person)-[born:BORN]->(bornEnd:Location) | born { .date,end:bornEnd { .name } }][0] } AS person")
+        assertQuery(query, "MATCH (person:Person) RETURN person { .name,born:[(person)-[personBorn:BORN]->(personBornEnd:Location) | personBorn { .date,end:personBornEnd { .name } }][0] } AS person")
+    }
+
+    @Test
+    fun richRelationship2ndHop() {
+        val query = " { person { name born { date end { name founded { name } } } } } "
+        assertQuery(query, "MATCH (person:Person) RETURN person { .name,born:[(person)-[personBorn:BORN]->(personBornEnd:Location) | personBorn { .date,end:personBornEnd { .name,founded:[(personBornEnd)<-[:FOUNDED]-(personBornEndFounded:Person) | personBornEndFounded { .name }][0] } }][0] } AS person")
+    }
+    @Test
+    fun richRelationship3rdHop() {
+        val query = " { person { name born { date end { name founded { name born { date end { name } } } } } } } "
+        assertQuery(query, "MATCH (person:Person) RETURN person { .name,born:[(person)-[personBorn:BORN]->(personBornEnd:Location) | personBorn { .date,end:personBornEnd { .name,founded:[(personBornEnd)<-[:FOUNDED]-(personBornEndFounded:Person) | personBornEndFounded { .name,born:[(personBornEndFounded)-[personBornEndFoundedBorn:BORN]->(personBornEndFoundedBornEnd:Location) | personBornEndFoundedBorn { .date,end:personBornEndFoundedBornEnd { .name } }][0] }][0] } }][0] } AS person")
     }
 
     @Test
     fun nestedQueryParameter() {
         val query = """ { person { name age livesIn(name:"Berlin") { name } } } """
-        assertQuery(query, "MATCH (person:Person) RETURN person { .name,.age,livesIn:[(person)-[:LIVES_IN]->(livesIn:Location) WHERE livesIn.name = \$livesInName | livesIn { .name }][0] } AS person",
-                mapOf("livesInName" to "Berlin"))
+        assertQuery(query, "MATCH (person:Person) RETURN person { .name,.age,livesIn:[(person)-[:LIVES_IN]->(personLivesIn:Location) WHERE personLivesIn.name = \$personLivesInName | personLivesIn { .name }][0] } AS person",
+                mapOf("personLivesInName" to "Berlin"))
     }
 
     @Test
     fun nestedQueryMulti() {
         val query = " { person { name age livedIn { name } } } "
-        assertQuery(query, "MATCH (person:Person) RETURN person { .name,.age,livedIn:[(person)-[:LIVED_IN]->(livedIn:Location) | livedIn { .name }] } AS person")
+        assertQuery(query, "MATCH (person:Person) RETURN person { .name,.age,livedIn:[(person)-[:LIVED_IN]->(personLivedIn:Location) | personLivedIn { .name }] } AS person")
     }
 
     @Test
     fun nestedQuerySliceOffset() {
         val query = " { person { livedIn(offset:3) { name } } } "
-        assertQuery(query, "MATCH (person:Person) RETURN person { livedIn:[(person)-[:LIVED_IN]->(livedIn:Location) | livedIn { .name }][3..] } AS person")
+        assertQuery(query, "MATCH (person:Person) RETURN person { livedIn:[(person)-[:LIVED_IN]->(personLivedIn:Location) | personLivedIn { .name }][3..] } AS person")
     }
     @Test
     fun nestedQuerySliceFirstOffset() {
         val query = " { person { livedIn(first:2,offset:3) { name } } } "
-        assertQuery(query, "MATCH (person:Person) RETURN person { livedIn:[(person)-[:LIVED_IN]->(livedIn:Location) | livedIn { .name }][3..5] } AS person")
+        assertQuery(query, "MATCH (person:Person) RETURN person { livedIn:[(person)-[:LIVED_IN]->(personLivedIn:Location) | personLivedIn { .name }][3..5] } AS person")
     }
 
     @Test
     fun nestedQuerySliceFirst() {
         val query = " { person { livedIn(first:2) { name } } } "
-        assertQuery(query, "MATCH (person:Person) RETURN person { livedIn:[(person)-[:LIVED_IN]->(livedIn:Location) | livedIn { .name }][0..2] } AS person")
+        assertQuery(query, "MATCH (person:Person) RETURN person { livedIn:[(person)-[:LIVED_IN]->(personLivedIn:Location) | personLivedIn { .name }][0..2] } AS person")
     }
 
     @Test

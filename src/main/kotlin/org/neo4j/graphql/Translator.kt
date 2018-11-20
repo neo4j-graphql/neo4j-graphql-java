@@ -102,7 +102,7 @@ class Translator(val schema: GraphQLSchema) {
     }
 
     private fun projectField(variable: String, field: Field, type: GraphQLObjectType, ctx:Context) : Cypher {
-        val fieldDefinition = type.getFieldDefinition(field.name)
+        val fieldDefinition = type.getFieldDefinition(field.name) ?: throw IllegalStateException("No field ${field.name} in ${type.name}")
         return if (inner(fieldDefinition.type) is GraphQLObjectType) {
             val patternComprehensions = projectRelationship(variable, field, fieldDefinition, type, ctx)
             Cypher(field.aliasOrName() + ":" + patternComprehensions.query, patternComprehensions.params)
@@ -143,7 +143,7 @@ class Translator(val schema: GraphQLSchema) {
             val (relType, outgoing, endField) = relDetails(relDirective)
             val (inArrow, outArrow) = arrows(outgoing)
 
-            val childVariable = field.name // + fieldObjectType.name
+            val childVariable = variable + field.name.capitalize() // + fieldObjectType.name
             val endNodePattern = if (relFromType) {
                 val label = inner(fieldObjectType.getFieldDefinition(endField).type).name
                 "$childVariable${endField.capitalize()}:$label"
