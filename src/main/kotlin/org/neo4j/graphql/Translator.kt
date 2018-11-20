@@ -25,7 +25,6 @@ class Translator(val schema: GraphQLSchema) {
                 .filter { it.operation == OperationDefinition.Operation.QUERY } // todo variabledefinitions, directives, name
                 .flatMap { it.selectionSet.selections }
                 .filterIsInstance<Field>() // FragmentSpread, InlineFragment
-                .map { println(it);it }
                 .map { toQuery(it, ctx).with(params) } // arguments, alias, directives, selectionSet
         return queries
     }
