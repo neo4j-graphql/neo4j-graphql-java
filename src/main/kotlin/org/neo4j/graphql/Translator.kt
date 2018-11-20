@@ -104,7 +104,7 @@ class Translator(val schema: GraphQLSchema) {
     private fun projectField(variable: String, field: Field, type: GraphQLObjectType, ctx:Context) : Cypher {
         val fieldDefinition = type.getFieldDefinition(field.name)
         return if (inner(fieldDefinition.type) is GraphQLObjectType) {
-            val patternComprehensions = projectRelationship(variable, field, fieldDefinition, ctx)
+            val patternComprehensions = projectRelationship(variable, field, fieldDefinition, type, ctx)
             Cypher(field.aliasOrName() + ":" + patternComprehensions.query, patternComprehensions.params)
         } else Cypher("." + field.aliasOrName())
     }
@@ -129,23 +129,64 @@ class Translator(val schema: GraphQLSchema) {
             projectFragment(fragment.typeCondition.name, type, variable, ctx, fragment.selectionSet)
 
 
-    private fun projectRelationship(variable: String, field: Field, fieldDefinition: GraphQLFieldDefinition, ctx:Context): Cypher {
+    private fun projectRelationship(variable: String, field: Field, fieldDefinition: GraphQLFieldDefinition, parent:GraphQLObjectType, ctx:Context): Cypher {
         val fieldType = fieldDefinition.type
         val innerType = inner(fieldType).name
-        val fieldObjectType = schema.getType(innerType)
-        val relDirective = fieldDefinition.definition.getDirective("relation")
-                ?: throw IllegalStateException("Field $field needs an @relation directive")
-        val relType = relDirective.getArgument("name").value.toJavaValue()
-        val relDirection = relDirective.getArgument("direction").value.toJavaValue()
-        val (inArrow, outArrow) = if (relDirection.toString() == "IN") "<" to "" else "" to ">"
-        val childVariable = field.name + fieldObjectType.name
-        val childPattern = "$childVariable:$innerType"
-        val where = where(childVariable,fieldDefinition,propertyArguments(field))
-        val fieldProjection = projectFields(childVariable, field, fieldObjectType, ctx)
-        val comprehension = "[($variable)$inArrow-[:${relType}]-$outArrow($childPattern)${where.query} | ${fieldProjection.query}]"
-        val skipLimit = skipLimit(field.arguments)
-        val slice = slice(skipLimit,fieldType.isList())
-        return Cypher(comprehension + slice, (where.params + fieldProjection.params))
+        val fieldObjectType = inner(fieldType) as GraphQLObjectType // schema.getType(innerType) as GraphQLObjectType
+        val parentIsRelationship = parent.definition.directivesByName.containsKey("relation")
+        // todo combine both if rel-entity
+        if (!parentIsRelationship) {
+            val (relDirective, relFromType) = fieldObjectType.definition.getDirective("relation")?.let { it to true }
+                    ?: fieldDefinition.definition.getDirective("relation")?.let { it to false }
+                    ?: throw IllegalStateException("Field $field needs an @relation directive")
+
+            val (relType, outgoing, endField) = relDetails(relDirective)
+            val (inArrow, outArrow) = arrows(outgoing)
+
+            val childVariable = field.name // + fieldObjectType.name
+            val endNodePattern = if (relFromType) {
+                val label = inner(fieldObjectType.getFieldDefinition(endField).type).name
+                "$childVariable${endField.capitalize()}:$label"
+            } else "$childVariable:$innerType"
+            val relPattern = if (relFromType) "$childVariable:${relType}" else ":${relType}"
+            val where = where(childVariable, fieldDefinition, propertyArguments(field))
+            val fieldProjection = projectFields(childVariable, field, fieldObjectType, ctx)
+
+            val comprehension = "[($variable)$inArrow-[$relPattern]-$outArrow($endNodePattern)${where.query} | ${fieldProjection.query}]"
+            val skipLimit = skipLimit(field.arguments)
+            val slice = slice(skipLimit, fieldType.isList())
+            return Cypher(comprehension + slice, (where.params + fieldProjection.params))
+        } else {
+            val relDirective = parent.definition.directivesByName.getValue("relation")
+            val (relType, outgoing, endField) = relDetails(relDirective)
+
+            val fieldProjection = projectFields(variable+endField.capitalize(), field, fieldObjectType, ctx)
+
+            return Cypher(fieldProjection.query)
+        }
+    }
+
+    private fun arrows(outgoing: Boolean?): Pair<String, String> {
+        return when (outgoing) {
+            false -> "<" to ""
+            true -> "" to ">"
+            null -> "" to ""
+        }
+    }
+
+    private fun relDetails(relDirective: Directive): Triple<String,Boolean?,String> {
+        val arguments = relDirective.argumentsByName
+        val relType = arguments.getValue("name").value.toJavaValue().toString()
+        val relDirection = arguments.get("direction")?.value?.toJavaValue()
+                ?: schema.getDirective("relation").getArgument("direction").defaultValue
+        val outgoing =  when (relDirection.toString()) {
+            "IN" -> false
+            "BOTH" -> null
+            "OUT" -> true
+            else -> throw IllegalStateException("Unknown direction $relDirection")
+        }
+        val endField = if (outgoing == true) "end" else "start"
+        return Triple(relType, outgoing, endField)
     }
 
     private fun slice(skipLimit: Pair<Int, Int>, list: Boolean = false) =
@@ -240,7 +281,7 @@ object SchemaBuilder {
                 .build()
 
         val schemaGenerator = SchemaGenerator()
-        val directives = setOf(GraphQLDirective.newDirective().name("relation").argument { it.name("name").type(Scalars.GraphQLString).also { it.name("direction").type(Scalars.GraphQLString) } }.build())
+        val directives = setOf(GraphQLDirective.newDirective().name("relation").argument { it.name("name").type(Scalars.GraphQLString).also { it.name("direction").type(Scalars.GraphQLString).defaultValue("OUT") } }.build())
         return schemaGenerator.makeExecutableSchema(typeDefinitionRegistry, runtimeWiring).transform { bc -> bc.additionalDirectives(directives).build() }
     }
 }

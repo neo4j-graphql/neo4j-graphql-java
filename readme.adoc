@@ -34,16 +34,19 @@ cypher == "MATCH (p:Person) WHERE p.name = 'Joe' RETURN p {.age}"
 * handle first, offset arguments
 * argument types: string, int, float, array
 * parameter support
+* parametrization
 * aliases
+* inline and named fragments
+* sorting (top-level)
 
 == Next
 
-* sorting
+* @relationship types
+* filters
+* sorting (nested)
 * interfaces
-* inline and named fragments
 * input types
 * @cypher for fields
-* filters
-* @relationship types
+* auto-generate queries
 * auto-generate mutations
 * unions
