@@ -38,11 +38,11 @@ cypher == "MATCH (p:Person) WHERE p.name = 'Joe' RETURN p {.age}"
 * aliases
 * inline and named fragments
 * sorting (top-level)
+* @relationship types
+* filters
 
 == Next
 
-* @relationship types
-* filters
 * sorting (nested)
 * interfaces
 * input types
