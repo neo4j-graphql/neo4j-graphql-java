@@ -3,7 +3,6 @@ package org.neo4j.graphql
 import org.antlr.v4.runtime.misc.ParseCancellationException
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
-import org.junit.Ignore
 import org.junit.Test
 
 class TranslatorTest {
@@ -33,11 +32,11 @@ class TranslatorTest {
                 }
                 enum _PersonOrdering { name_asc, name_desc, age_asc, age_desc }
                 enum E { pi, e }
-                    type Query {
-                        person : [Person]
-                        personByName(name:String) : Person
-                        values(_param:String,_string:String="Joe",_int:Int=42, _float:Float=3.14, _array:[Int]=[1,2,3],_enum:E=pi, _boolean:Boolean=false,_null:String=null) : Person
-                     }
+                type Query {
+                    person : [Person]
+                    personByName(name:String) : Person
+                    values(_param:String,_string:String="Joe",_int:Int=42, _float:Float=3.14, _array:[Int]=[1,2,3],_enum:E=pi, _boolean:Boolean=false,_null:String=null) : Person
+                 }
                 """
 
 

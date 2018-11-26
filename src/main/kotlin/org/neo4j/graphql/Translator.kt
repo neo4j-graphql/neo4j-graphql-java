@@ -34,13 +34,13 @@ class Translator(val schema: GraphQLSchema) {
     private fun toQuery(queryField: Field, ctx:Context = Context()): Cypher {
         val name = queryField.name
         val queryType = schema.queryType.fieldDefinitions.filter { it.name == name }.firstOrNull() ?: throw IllegalArgumentException("Unknown Query $name available queries: " + schema.queryType.fieldDefinitions.map { it.name }.joinToString())
-        val returnType = inner(queryType.type)
+        val returnType = queryType.type.inner()
 //        println(returnType)
         val type = schema.getType(returnType.name)
         val label = type.name.quote()
         val variable = queryField.aliasOrName().decapitalize()
         val mapProjection = projectFields(variable, queryField, type, ctx)
-        val where = if (ctx.topLevelWhere) where(variable, queryType, propertyArguments(queryField)) else Cypher.EMPTY
+        val where = if (ctx.topLevelWhere) where(variable, queryType,  type, propertyArguments(queryField)) else Cypher.EMPTY
         val properties = if (ctx.topLevelWhere) Cypher.EMPTY else properties(variable, queryType, propertyArguments(queryField))
         val skipLimit = format(skipLimit(queryField.arguments))
         val ordering = orderBy(variable, queryField.arguments)
@@ -49,7 +49,7 @@ class Translator(val schema: GraphQLSchema) {
     }
 
     private fun propertyArguments(queryField: Field) =
-            queryField.arguments.filterNot { listOf("first", "offset", "orderBy", "filter").contains(it.name) }
+            queryField.arguments.filterNot { listOf("first", "offset", "orderBy").contains(it.name) }
 
     private fun orderBy(variable: String, args: MutableList<Argument>): String {
         val arg = args.find { it.name == "orderBy" && it.value is ArrayValue }
@@ -59,17 +59,29 @@ class Translator(val schema: GraphQLSchema) {
                 .joinToString(", ")
     }
 
-    private fun where(variable: String, field: GraphQLFieldDefinition, arguments: List<Argument>) : Cypher {
+    private fun where(variable: String, field: GraphQLFieldDefinition, type: GraphQLType, arguments: List<Argument>) : Cypher {
         val all = prepareArguments(field, arguments)
         if (all.isEmpty()) return Cypher("")
-        return Cypher(" WHERE "+all.map { (k,v) -> "$variable.$k = \$${paramName(variable, k, v)}"}.joinToString(" AND ") ,
-                all.map { (k,v) -> paramName(variable, k, v) to v }.toMap()
+        val (filterExpressions, filterParams) =
+            filterExpressions(all.get("filter"), type as GraphQLObjectType)
+                    .map { it.toExpression(variable, schema) }
+                    .let { expressions ->
+                        expressions.map { it.first } to expressions.fold(emptyMap<String,Any?>()) { res, exp -> res + exp.second }
+                    }
+        val noFilter = all.filterKeys { it != "filter" }
+        // todo turn it into a Predicate too
+        val eqExpression = noFilter.map { (k, v) -> "$variable.$k = \$${paramName(variable, k, v)}" }
+        val expression = (eqExpression + filterExpressions).joinNonEmpty(" AND ")
+        return Cypher(" WHERE $expression", filterParams + noFilter.map { (k,v) -> paramName(variable, k, v) to v }.toMap()
         )
     }
 
-    private fun paramName(variable: String, argName: String, value: Any?) = when (value) {
-        is VariableReference ->  value.name
-        else -> "$variable${argName.capitalize()}"
+    private fun filterExpressions(value: Any?, type: GraphQLObjectType): List<Predicate> {
+        // todo variable/parameter
+        return if (value is Map<*,*>) {
+            CompoundPredicate(value.map { (k, v) -> toExpression(k.toString(), v, type) }, "AND").parts
+        }
+        else emptyList()
     }
 
     private fun properties(variable: String, field: GraphQLFieldDefinition, arguments: List<Argument>) : Cypher {
@@ -104,7 +116,7 @@ class Translator(val schema: GraphQLSchema) {
 
     private fun projectField(variable: String, field: Field, type: GraphQLObjectType, ctx:Context) : Cypher {
         val fieldDefinition = type.getFieldDefinition(field.name) ?: throw IllegalStateException("No field ${field.name} in ${type.name}")
-        return if (inner(fieldDefinition.type) is GraphQLObjectType) {
+        return if (fieldDefinition.type.inner() is GraphQLObjectType) {
             val patternComprehensions = projectRelationship(variable, field, fieldDefinition, type, ctx)
             Cypher(field.aliasOrName() + ":" + patternComprehensions.query, patternComprehensions.params)
         } else Cypher("." + field.aliasOrName())
@@ -140,7 +152,7 @@ class Translator(val schema: GraphQLSchema) {
 
     private fun projectRichAndRegularRelationship(variable: String, field: Field, fieldDefinition: GraphQLFieldDefinition, ctx: Context): Cypher {
         val fieldType = fieldDefinition.type
-        val fieldObjectType = inner(fieldType) as GraphQLObjectType
+        val fieldObjectType = fieldType.inner() as GraphQLObjectType
         // todo combine both nestings if rel-entity
         val (relDirective, relFromType) = fieldObjectType.definition.getDirective("relation")?.let { it to true }
                 ?: fieldDefinition.definition.getDirective("relation")?.let { it to false }
@@ -153,7 +165,7 @@ class Translator(val schema: GraphQLSchema) {
 
         val endNodePattern = when {
             relFromType -> {
-                val label = inner(fieldObjectType.getFieldDefinition(endField).type).name
+                val label = fieldObjectType.getFieldDefinition(endField).type.inner().name
                 "$childVariable${endField.capitalize()}:$label"
             }
             else -> "$childVariable:${fieldObjectType.name}"
@@ -161,7 +173,7 @@ class Translator(val schema: GraphQLSchema) {
 
         val relPattern = if (relFromType) "$childVariable:${relType}" else ":${relType}"
 
-        val where = where(childVariable, fieldDefinition, propertyArguments(field))
+        val where = where(childVariable, fieldDefinition, fieldObjectType, propertyArguments(field))
         val fieldProjection = projectFields(childVariable, field, fieldObjectType, ctx)
 
         val comprehension = "[($variable)$inArrow-[$relPattern]-$outArrow($endNodePattern)${where.query} | ${fieldProjection.query}]"
@@ -172,7 +184,7 @@ class Translator(val schema: GraphQLSchema) {
 
     private fun projectRelationshipParent(variable: String, field: Field, fieldDefinition: GraphQLFieldDefinition, parent: GraphQLObjectType, ctx: Context): Cypher {
         val fieldType = fieldDefinition.type
-        val fieldObjectType = inner(fieldType) as GraphQLObjectType
+        val fieldObjectType = fieldType.inner() as GraphQLObjectType
         val relDirective = parent.definition.directivesByName.getValue("relation")
         val (_, _, endField) = relDetails(relDirective)
 
@@ -181,32 +193,7 @@ class Translator(val schema: GraphQLSchema) {
         return Cypher(fieldProjection.query)
     }
 
-    private fun arrows(outgoing: Boolean?): Pair<String, String> {
-        return when (outgoing) {
-            false -> "<" to ""
-            true -> "" to ">"
-            null -> "" to ""
-        }
-    }
-
-    private fun Directive.argumentString(name:String) : String {
-        return this.getArgument(name)?.value?.toJavaValue()?.toString()
-                ?: schema.getDirective(this.name).getArgument(name)?.defaultValue?.toString()
-        ?: throw IllegalStateException("No default value for ${this.name}.${name}")
-    }
-
-    private fun relDetails(relDirective: Directive): Triple<String,Boolean?,String> {
-        val relType = relDirective.argumentString("name")
-        val outgoing =  when (relDirective.argumentString("direction")) {
-            "IN" -> false
-            "BOTH" -> null
-            "OUT" -> true
-            else -> throw IllegalStateException("Unknown direction ${relDirective.argumentString("direction")}")
-        }
-        val endField = if (outgoing == true) relDirective.argumentString("to")
-        else relDirective.argumentString("from")
-        return Triple(relType, outgoing, endField)
-    }
+    private fun relDetails(relDirective: Directive) = relDetails(relDirective, schema)
 
     private fun slice(skipLimit: Pair<Int, Int>, list: Boolean = false) =
             if (list) {
@@ -233,48 +220,10 @@ class Translator(val schema: GraphQLSchema) {
     private fun numericArgument(arguments: List<Argument>, name: String, defaultValue: Number = 0) =
             (arguments.find { it.name.toLowerCase() == name }?.value?.toJavaValue() as Number?) ?: defaultValue
 
-    private fun GraphQLType.isList() = this is GraphQLList || (this is GraphQLNonNull && this.wrappedType is GraphQLList)
-
-    private fun Field.aliasOrName() = (this.alias ?: this.name).quote()
-
-    private fun String.quote() = this // do we actually need this? if (isJavaIdentifier()) this else '`'+this+'`'
-
-    private fun String.isJavaIdentifier() =
-            this[0].isJavaIdentifierStart() &&
-                    this.substring(1).all { it.isJavaIdentifierPart() }
 
     private fun toCypherString(value:Any, type: GraphQLType ): String = when (value) {
         is String -> "'"+value+"'"
         else -> value.toString()
-    }
-    private fun Value.toCypherString(): String = when (this) {
-        is StringValue -> "'"+this.value+"'"
-        is EnumValue -> "'"+this.name+"'"
-        is NullValue -> "null"
-        is BooleanValue -> this.isValue.toString()
-        is FloatValue -> this.value.toString()
-        is IntValue -> this.value.toString()
-        is VariableReference -> "$"+this.name
-        is ArrayValue -> this.values.map { it.toCypherString() }.joinToString(",","[","]")
-        else -> throw IllegalStateException("Unhandled value "+this)
-    }
-
-    private fun Value.toJavaValue(): Any? = when (this) {
-        is StringValue -> this.value
-        is EnumValue -> this.name
-        is NullValue -> null
-        is BooleanValue -> this.isValue
-        is FloatValue -> this.value
-        is IntValue -> this.value
-        is VariableReference -> this
-        is ArrayValue -> this.values.map { it.toJavaValue() }.toList()
-        else -> throw IllegalStateException("Unhandled value "+this)
-    }
-
-    private fun inner(t: GraphQLType) : GraphQLType = when(t) {
-         is GraphQLList -> inner(t.wrappedType)
-         is GraphQLNonNull -> inner(t.wrappedType)
-         else -> t
     }
 
     private fun parse(query:String): Document {
