@@ -19,7 +19,7 @@ class MovieSchemaTest {
 
     @Test fun `testsimple  Cypher  query`() {
         val  graphQLQuery  =  """{  Movie(title: "River  Runs  Through  It,  A")  {  title }  }"""
-        val expectedCypherQuery  =  """MATCH  (movie:Movie {title:${"$"}title})  RETURN  movie  {  .title  } AS  movie""";
+        val expectedCypherQuery  =  """MATCH  (movie:Movie {title:${"$"}movieTitle})  RETURN  movie  {  .title  } AS  movie"""
 
         testTranslation(graphQLQuery, expectedCypherQuery, mapOf(
             "title" to  "River Runs Through It, A",
