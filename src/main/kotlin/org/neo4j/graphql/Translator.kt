@@ -71,7 +71,7 @@ class Translator(val schema: GraphQLSchema) {
         val noFilter = all.filterKeys { it != "filter" }
         // todo turn it into a Predicate too
         val eqExpression = noFilter.map { (k, v) -> "$variable.$k = \$${paramName(variable, k, v)}" }
-        val expression = (eqExpression + filterExpressions).joinNonEmpty(" AND ")
+        val expression = (eqExpression + filterExpressions).joinNonEmpty(" AND ") // TODO talk to Will ,"(",")")
         return Cypher(" WHERE $expression", filterParams + noFilter.map { (k,v) -> paramName(variable, k, v) to v }.toMap()
         )
     }
