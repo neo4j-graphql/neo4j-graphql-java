@@ -6,8 +6,10 @@
 
     <groupId>org.neo4j</groupId>
     <artifactId>neo4j-graphql-java</artifactId>
+    <name>Neo4j GraphQL Java</name>
     <description>GraphQL to Cypher Mapping</description>
-    <version>1.0.0</version>
+    <version>1.0.0-M01</version>
+    <url>http://github.com/neo4j-contrib/neo4j-tinkerpop-api</url>
 
     <licenses>
         <license>
@@ -20,7 +22,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
-        <kotlin.version>1.2.61</kotlin.version>
+        <kotlin.version>1.3.11</kotlin.version>
         <kotlin.compiler.jvmTarget>${java.version}</kotlin.compiler.jvmTarget>
         <neo4j.version>3.4.1</neo4j.version>
         <driver.version>1.6.2</driver.version>
@@ -63,18 +65,13 @@
             <groupId>org.neo4j</groupId>
             <artifactId>server-api</artifactId>
             <version>${neo4j.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.antlr</groupId>
-            <artifactId>antlr4-runtime</artifactId>
-            <version>4.5.1</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.codehaus.jackson</groupId>
             <artifactId>jackson-mapper-asl</artifactId>
             <version>1.9.13</version>
-            <scope>provided</scope>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.graphql-java</groupId>
@@ -99,34 +96,6 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <repositories>
-        <repository>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <id>bintray.kotlin.eap</id>
-            <name>Bintray Kotlin EAP Repository</name>
-            <url>http://dl.bintray.com/kotlin/kotlin-eap</url>
-        </repository>
-    </repositories>
-
-    <pluginRepositories>
-        <pluginRepository>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <id>bintray.kotlin.eap</id>
-            <name>Bintray Kotlin EAP Repository</name>
-            <url>http://dl.bintray.com/kotlin/kotlin-eap</url>
-        </pluginRepository>
-    </pluginRepositories>
 
     <build>
         <plugins>

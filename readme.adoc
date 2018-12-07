@@ -2,6 +2,23 @@
 
 This is an early stage alpha implementation written in Kotlin.
 
+== How does it work
+
+This library
+
+1. parses a GraphQL schema and
+2. uses the information of the annotated schema to translate _GraphQL_ queries and parameters into _Cypher_ queries and parameters.
+
+Those Cypher queries can then executed, e.g via the Neo4j-Java-Driver (or other JVM drivers) against the graph database and the results can be returned directly to the caller.
+
+The request, result and error handling is not part of this library, but we provide demo programs on how to use it in different languages.
+
+NOTE: All the supported features are listed below, detailed docs will be added.
+
+== Usage
+
+You can use the library as dependency: `org.neo4j:neo4j-graphql-java:1.0.0-M01` in any JVM program.
+
 The basic usage should be:
 
 [source,kotlin]
@@ -22,10 +39,66 @@ val query = """ { p:personByName(name:"Joe") { age } } """
 val schema = SchemaBuilder.buildSchema(idl)
 val (cypher, params) = Translator(schema).translate(query, params)
 
-cypher == "MATCH (p:Person) WHERE p.name = 'Joe' RETURN p {.age}"
+cypher == "MATCH (p:Person) WHERE p.name = $pName RETURN p {.age} as p"
 ----
 
+== Demo
+
+Here is a minimalistic example in Groovy using the Neo4j-Java driver and Spark-Java as webserver.
+It is running against a Neo4j instance at `bolt://localhost` (username: `neo4j`, password: `password`) containing the `:play movies` graph.
+
+[source,groovy]
+----
+include::docs/Server.groovy[]
+----
+
+Run the example with:
+
+----
+groovy docs/Server.groovy
+----
+
+and use http://localhost:4567/graphql as your GraphQL URL.
+
+It uses a schema of:
+
+[source,graphql]
+----
+type Person {
+  name: String
+  born: Int
+  actedIn: [Movie] @relation(name:"ACTED_IN")
+}
+type Movie {
+  title: String
+  released: Int
+  tagline: String
+}
+type Query {
+    person : [Person]
+}
+----
+
+And can run queries like:
+
+[source,graphql]
+----
+{
+  person(first:3) {
+    name
+    born
+    actedIn(first:2) {
+      title
+    }
+  }
+}
+----
+
+image::docs/graphiql.jpg[]
+
 == Features
+
+=== Current
 
 * parse SDL schema
 * resolve query fields via result types
@@ -37,11 +110,8 @@ cypher == "MATCH (p:Person) WHERE p.name = 'Joe' RETURN p {.age}"
 * parametrization
 * aliases
 * inline and named fragments
-* sorting (top-level)
-* @relationship types
-* filters
 
-== Next
+=== Next
 
 * sorting (nested)
 * interfaces
@@ -50,3 +120,158 @@ cypher == "MATCH (p:Person) WHERE p.name = 'Joe' RETURN p {.age}"
 * auto-generate queries
 * auto-generate mutations
 * unions
+* scalars
+* date(time), spatial
+
+== Documentation
+
+=== Parse SDL schema
+
+Currently schemas with object types, enums and Query types are parsed and handled.
+It supports the built-in scalars for GraphQL.
+
+=== Resolve query Fields via Result Types
+
+For _query fields_ that result in object types (even if wrapped in list/non-null), the appropriate object type is found in the schema and used to translate the query.
+
+e.g.
+
+[source,graphql]
+----
+type Query {
+  person: [Person]
+}
+# query "person" is resolved to and via "Person"
+
+type Person {
+  name : String
+}
+----
+
+=== Handle Arguments as Equality Comparisons for Top Level and Nested Fields
+
+If you add a simple argument to your top-level query or nested related fields, those will be translated to direct equality comparisons.
+
+[source,graphql]
+----
+person(name:"Joe", age:42) {
+   name
+}
+----
+
+to
+
+[source,cypher]
+----
+MATCH (person:Person) WHERE person.name = 'Joe' AND person.age = 42 RETURN person { .name } AS person
+----
+
+Only that the literal values are turned into parameters.
+
+=== Handle Relationships via @relation Directive on Schema Fields
+
+If you want to represent a relationship from the graph in GraphQL you have to add an `@relation` directive that contains the relationship-type and the direction.
+Default relationship-type is 'OUT'.
+So you can use different domain names in your GraphQL fields that are independent of your graph model.
+
+[source,graphql]
+----
+type Person {
+  name : String
+  actedIn: [Movie]
+}
+----
+
+----
+person(name:"Keanu Reeves") {
+  name
+  actedIn {
+    title
+  }
+}
+----
+
+
+=== Handle first, offset Arguments
+
+To support pagination `first` is translated to `LIMIT` in Cypher and `offset` into `SKIP`
+For nested queries these are converted into slices for arrays.
+
+=== Argument Types: string, int, float, array
+
+The default Neo4j types are handled both as argument types as well as field types.
+
+NOTE: Datetime and spatial not yet.
+
+=== Parameter Support
+
+We handle passed in GraphQL parameters, these are resolved correctly when used within the GraphQL query.
+
+
+=== Parametrization
+
+As we don't want to have literal values in our Cypher queries, all of them are translated into parameters.
+
+[source,graphql]
+----
+person(name:"Joe", age:42, first:10) {
+   name
+}
+----
+
+to
+
+[source,cypher]
+----
+MATCH (person:Person) WHERE person.name = $personName AND person.age = $personAge RETURN person { .name } AS person LIMIT $first
+----
+
+Those parameters are returned as part of the `Cypher` type that's returned from the `translate()` method.
+
+=== Aliases
+
+We support query aliases, they are used as Cypher aliases too, so you get them back as keys in your result records.
+
+=== Inline and Named Fragments
+
+This is more of a technical feature, both types of fragments are resolved internally.
+
+=== Sorting (top-level)
+
+We support sorting via an `orderBy` argument, which takes an Enum or String value of `fieldName_asc` or `fieldName_desc`.
+
+NOTE: Those enums are not yet automatically generated.
+
+=== @relationship on Types
+
+To represent rich relationship types with properties, a @relation directive is supported on an object Type
+
+
+=== Filters
+
+Filters are a powerful way of selecting a subset of data.
+Inspired by the https://www.graph.cool/docs/reference/graphql-api/query-api-nia9nushae[graph.cool/Prisma filter approach], our filters work the same way.
+
+NOTE: we'll create more detailed docs, for now the prisma docs on that topic are pretty good.
+
+
+We use nested input types for arbitrary filtering on query types and fields
+
+----
+{ Company(filter: { AND: { name_contains: "Ne", country_in ["SE"]}}) { name } }
+----
+
+You can also apply nested filter on relations, which use suffixes like `("",not,some, none, single, every)`
+
+----
+{ Company(filter: {
+    employees_none { name_contains: "Jan"},
+    employees_some: { gender_in : [female]},
+    company_not: null })
+    {
+      name
+    }
+}
+----
+
+NOTE: Those nested input types are not yet generated, we use leniency in the parser.

@@ -1,5 +1,9 @@
 ## Filter Test TCK
 
+```schema
+
+```
+
 ```graphql
 { person(filter: { gender: male }) { name }}
 ```

@@ -16,7 +16,7 @@ fun GraphQLType.isList() = this is GraphQLList || (this is GraphQLNonNull && thi
 
 fun Field.aliasOrName() = (this.alias ?: this.name).quote()
 
-fun String.quote() = this // do we actually need this? if (isJavaIdentifier()) this else '`'+this+'`'
+fun String.quote() = if (isJavaIdentifier()) this else '`'+this+'`'
 
 fun String.isJavaIdentifier() =
         this[0].isJavaIdentifierStart() &&

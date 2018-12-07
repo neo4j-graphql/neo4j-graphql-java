@@ -12,7 +12,7 @@ import org.antlr.v4.runtime.misc.ParseCancellationException
 import java.util.*
 
 class Translator(val schema: GraphQLSchema) {
-    data class Context(val topLevelWhere: Boolean = true, val fragments : Map<String,FragmentDefinition> = emptyMap())
+    data class Context @JvmOverloads constructor(val topLevelWhere: Boolean = true, val fragments : Map<String,FragmentDefinition> = emptyMap())
     data class Cypher( val query: String, val params : Map<String,Any?> = emptyMap()) {
         companion object {
             val EMPTY = Cypher("")
@@ -20,7 +20,7 @@ class Translator(val schema: GraphQLSchema) {
         fun with(p: Map<String,Any?>) = this.copy(params = this.params + p)
     }
 
-    fun translate(query: String, params: Map<String, Any> = emptyMap(), context: Context = Context()) : List<Cypher> {
+    @JvmOverloads fun translate(query: String, params: Map<String, Any> = emptyMap(), context: Context = Context()) : List<Cypher> {
         val ast = parse(query) // todo preparsedDocumentProvider
         val ctx = context.copy(fragments = ast.definitions.filterIsInstance<FragmentDefinition>().map { it.name to it }.toMap())
         val queries = ast.definitions.filterIsInstance<OperationDefinition>()
@@ -239,7 +239,7 @@ class Translator(val schema: GraphQLSchema) {
 
 
 object SchemaBuilder {
-    fun buildSchema(sdl: String) : GraphQLSchema {
+    @JvmStatic fun buildSchema(sdl: String) : GraphQLSchema {
         val schemaParser = SchemaParser()
         val typeDefinitionRegistry = schemaParser.parse(sdl)
 
