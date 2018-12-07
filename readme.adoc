@@ -15,6 +15,23 @@ The request, result and error handling is not part of this library, but we provi
 
 NOTE: All the supported features are listed below, detailed docs will be added.
 
+== FAQ
+
+=== How does this relate to the other neo4j graphql libraries?
+
+Similar to `neo4j-graphql-js` this library focusses on query translation, just for the *JVM* instead of Node.js.
+It does not provide a server or other facilities but is meant to be used as a dependency included for a single purpose.
+
+If this library is feature complete we plan to replace the code in the current Neo4j server plugin `neo4j-graphql` with a single call to this library.
+The server plugin would still handle request-response and error-handling, and perhaps some schema management but be slimmed down to a tiny piece.
+
+=== How does this related to graphql-java
+
+This library uses GraphQL Java under the hood for parsing of schema and queries, and managing the GraphQL state and context.
+But not for nested field resolvers or data fetching.
+
+If you wanted to you could combine graphql-java resolvers with this library to have a part of your schema handled by Neo4j.
+
 == Usage
 
 You can use the library as dependency: `org.neo4j:neo4j-graphql-java:1.0.0-M01` in any JVM program.
@@ -49,8 +66,49 @@ It is running against a Neo4j instance at `bolt://localhost` (username: `neo4j`,
 
 [source,groovy]
 ----
-include::docs/Server.groovy[]
+// Simplistic GraphQL Server using SparkJava
+@Grapes([
+  @Grab('com.sparkjava:spark-core:2.7.2'),
+  @Grab('org.neo4j.driver:neo4j-java-driver:1.7.2'),
+  @Grab('org.neo4j:neo4j-graphql-java:1.0.0-M01'),
+  @Grab('com.google.code.gson:gson:2.8.5')
+])
+
+import spark.*
+import static spark.Spark.*
+import com.google.gson.Gson
+import org.neo4j.graphql.*
+import org.neo4j.driver.v1.*
+
+schema = """
+type Person {
+  name: String
+  born: Int
+  actedIn: [Movie] @relation(name:"ACTED_IN")
+}
+type Movie {
+  title: String
+  released: Int
+  tagline: String
+}
+type Query {
+    person : [Person]
+}
+"""
+
+gson = new Gson()
+render = (ResponseTransformer)gson.&toJson
+def query(value) { gson.fromJson(value,Map.class)["query"] }
+
+graphql = new Translator(SchemaBuilder.buildSchema(schema))
+def translate(query) { graphql.translate(query) }
+
+driver = GraphDatabase.driver("bolt://localhost",AuthTokens.basic("neo4j","password"))
+def run(cypher) { driver.session().withCloseable { it.run(cypher.query, Values.value(cypher.params)).list{ it.asMap() }}}
+
+post("/graphql","application/json", { req, res ->  run(translate(query(req.body())).first()) }, render);
 ----
+// include::docs/Server.groovy[]
 
 Run the example with:
 
@@ -178,10 +236,11 @@ So you can use different domain names in your GraphQL fields that are independen
 ----
 type Person {
   name : String
-  actedIn: [Movie]
+  actedIn: [Movie] @relation(name:"ACTED_IN", direction:"OUT")
 }
 ----
 
+[source,graphql]
 ----
 person(name:"Keanu Reeves") {
   name
@@ -191,11 +250,24 @@ person(name:"Keanu Reeves") {
 }
 ----
 
+NOTE: We use Neo4j's _pattern comprehensions_ to represent nested graph patterns in Cypher.
 
 === Handle first, offset Arguments
 
 To support pagination `first` is translated to `LIMIT` in Cypher and `offset` into `SKIP`
 For nested queries these are converted into slices for arrays.
+
+[source,graphql]
+----
+person(offset: 5, first:10) {
+  name
+}
+----
+
+[source,cypher]
+----
+MATCH (person:Person) RETURN person { .name }  AS person SKIP 5 LIMIT 10
+----
 
 === Argument Types: string, int, float, array
 
@@ -206,7 +278,6 @@ NOTE: Datetime and spatial not yet.
 === Parameter Support
 
 We handle passed in GraphQL parameters, these are resolved correctly when used within the GraphQL query.
-
 
 === Parametrization
 
@@ -232,6 +303,16 @@ Those parameters are returned as part of the `Cypher` type that's returned from 
 
 We support query aliases, they are used as Cypher aliases too, so you get them back as keys in your result records.
 
+For example:
+
+[source,graphql]
+----
+query {
+  jane: person(name:"Jane") { name, age }
+  joe: person(name:"Joe") { name, age }
+}
+----
+
 === Inline and Named Fragments
 
 This is more of a technical feature, both types of fragments are resolved internally.
@@ -240,12 +321,63 @@ This is more of a technical feature, both types of fragments are resolved intern
 
 We support sorting via an `orderBy` argument, which takes an Enum or String value of `fieldName_asc` or `fieldName_desc`.
 
-NOTE: Those enums are not yet automatically generated.
+[source,graphql]
+----
+query {
+  person(orderBy:[name_asc, age_desc]) {
+     name
+     age
+  }
+}
+----
+
+[source,cypher]
+----
+MATCH (person:Person)
+RETURN person { .name, .age } AS person
+
+ORDER BY person.name ASC, person.age DESC
+----
+
+
+NOTE: Those enums are not yet automatically generated. And we don't support ordering yet on nested, related fields.
 
 === @relationship on Types
 
-To represent rich relationship types with properties, a @relation directive is supported on an object Type
+To represent rich relationship types with properties, a `@relation` directive is supported on an object type.
 
+In our example it would be the `Role` type.
+
+[source,graphql]
+----
+type Role @role(name:"ACTED_IN", start:"actor", end:"movie") {
+   actor: Person
+   movie: Movie
+   roles: [String]
+}
+type Person {
+  name: String
+  born: Int
+  roles: [Role]
+}
+type Movie {
+  title: String
+  released: Int
+  characters: [Role]
+}
+----
+
+[source,graphql]
+----
+person(name:"Keanu Reeves") {
+   roles {
+      roles
+      movie {
+        title
+      }
+   }
+}
+----
 
 === Filters
 
@@ -257,12 +389,14 @@ NOTE: we'll create more detailed docs, for now the prisma docs on that topic are
 
 We use nested input types for arbitrary filtering on query types and fields
 
+[source,graphql]
 ----
 { Company(filter: { AND: { name_contains: "Ne", country_in ["SE"]}}) { name } }
 ----
 
 You can also apply nested filter on relations, which use suffixes like `("",not,some, none, single, every)`
 
+[source,graphql]
 ----
 { Company(filter: {
     employees_none { name_contains: "Jan"},
