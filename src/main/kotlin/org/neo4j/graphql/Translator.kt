@@ -12,7 +12,7 @@ import org.antlr.v4.runtime.misc.ParseCancellationException
 import java.util.*
 
 class Translator(val schema: GraphQLSchema) {
-    data class Context @JvmOverloads constructor(val topLevelWhere: Boolean = true, val fragments : Map<String,FragmentDefinition> = emptyMap())
+    data class Context @JvmOverloads constructor(val topLevelWhere: Boolean = true, val fragments : Map<String,FragmentDefinition> = emptyMap(),val temporal : Boolean = false)
     data class Cypher( val query: String, val params : Map<String,Any?> = emptyMap()) {
         companion object {
             val EMPTY = Cypher("")
