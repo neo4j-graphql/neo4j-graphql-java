@@ -1,18 +1,36 @@
 package org.neo4j.graphql
 
 import graphql.language.*
-import graphql.schema.GraphQLList
-import graphql.schema.GraphQLNonNull
-import graphql.schema.GraphQLSchema
-import graphql.schema.GraphQLType
+import graphql.schema.*
 
 fun GraphQLType.inner() : GraphQLType = when(this) {
     is GraphQLList -> this.wrappedType.inner()
     is GraphQLNonNull -> this.wrappedType.inner()
     else -> this
 }
+val SCALAR_TYPES = listOf("String","ID","Boolean","Int","Float")
+
+fun Type.isScalar() = this.inner().name()?.let { SCALAR_TYPES.contains(it) } ?: false
+fun Type.name() : String? = if (this.inner() is TypeName) (this.inner() as TypeName).name else null
+
+fun Type.inner() : Type = when(this) {
+    is ListType -> this.type.inner()
+    is NonNullType -> this.type.inner()
+    else -> this
+}
+fun Type.render(nonNull:Boolean = true) : String = when(this) {
+    is ListType -> "[${this.type.render()}]"
+    is NonNullType -> this.type.render()+ (if (nonNull) "!" else "")
+    is TypeName -> this.name
+    else -> throw IllegalStateException("Can't render $this")
+}
 
 fun GraphQLType.isList() = this is GraphQLList || (this is GraphQLNonNull && this.wrappedType is GraphQLList)
+fun GraphQLType.isScalar() = this.inner().let { it is GraphQLScalarType || it.name.startsWith("_Neo4j") }
+fun GraphQLType.isRelationship() = this.inner().let { it is GraphQLObjectType } // && relationship directive
+
+fun GraphQLObjectType.hasRelationship(name:String) = this.getFieldDefinition(name)?.isRelationship() ?: false
+fun GraphQLFieldDefinition.isRelationship() = this.type.isRelationship()
 
 fun Field.aliasOrName() = (this.alias ?: this.name).quote()
 

@@ -8,11 +8,18 @@ import graphql.schema.*
 import graphql.schema.idl.RuntimeWiring
 import graphql.schema.idl.SchemaGenerator
 import graphql.schema.idl.SchemaParser
+import graphql.schema.idl.TypeDefinitionRegistry
 import org.antlr.v4.runtime.misc.ParseCancellationException
+import java.lang.RuntimeException
 import java.util.*
 
 class Translator(val schema: GraphQLSchema) {
-    data class Context @JvmOverloads constructor(val topLevelWhere: Boolean = true, val fragments : Map<String,FragmentDefinition> = emptyMap(),val temporal : Boolean = false)
+    data class Context @JvmOverloads constructor(val topLevelWhere: Boolean = true,
+                                                 val fragments : Map<String,FragmentDefinition> = emptyMap(),
+                                                 val temporal : Boolean = false,
+                                                 val query: CRUDConfig = CRUDConfig(),
+                                                 val mutation: CRUDConfig = CRUDConfig())
+    data class CRUDConfig(val enabled:Boolean = true, val exclude: List<String> = emptyList())
     data class Cypher( val query: String, val params : Map<String,Any?> = emptyMap()) {
         companion object {
             val EMPTY = Cypher("")
@@ -239,9 +246,9 @@ class Translator(val schema: GraphQLSchema) {
 
 
 object SchemaBuilder {
-    @JvmStatic fun buildSchema(sdl: String) : GraphQLSchema {
+    @JvmStatic fun buildSchema(sdl: String, ctx: Translator.Context = Translator.Context() ) : GraphQLSchema {
         val schemaParser = SchemaParser()
-        val typeDefinitionRegistry = schemaParser.parse(sdl)
+        val typeDefinitionRegistry = augmentSchema(schemaParser.parse(sdl), schemaParser, ctx)
 
         val runtimeWiring = RuntimeWiring.newRuntimeWiring()
                 .type("Query")
@@ -249,12 +256,58 @@ object SchemaBuilder {
                 .build()
 
         val schemaGenerator = SchemaGenerator()
+        return schemaGenerator.makeExecutableSchema(typeDefinitionRegistry, runtimeWiring)
+                .transform { bc -> bc.additionalDirectives(additionalDirectives()).build() }
+                .transform { sc -> sc.build() } // todo add new queries, filters, enums etc.
+    }
+
+    private fun additionalDirectives(): Set<GraphQLDirective> {
         val directives = setOf(GraphQLDirective("relation", "relation directive",
-                EnumSet.of(Introspection.DirectiveLocation.FIELD,Introspection.DirectiveLocation.OBJECT),
-                listOf(GraphQLArgument("name",Scalars.GraphQLString),
-                        GraphQLArgument("direction","relationship direction",Scalars.GraphQLString,"OUT"),
-                        GraphQLArgument("from","from field name",Scalars.GraphQLString,"from"),
-                        GraphQLArgument("to","to field name",Scalars.GraphQLString,"to")),false,false,true))
-        return schemaGenerator.makeExecutableSchema(typeDefinitionRegistry, runtimeWiring).transform { bc -> bc.additionalDirectives(directives).build() }
+                EnumSet.of(Introspection.DirectiveLocation.FIELD, Introspection.DirectiveLocation.OBJECT),
+                listOf(GraphQLArgument("name", Scalars.GraphQLString),
+                        GraphQLArgument("direction", "relationship direction", Scalars.GraphQLString, "OUT"),
+                        GraphQLArgument("from", "from field name", Scalars.GraphQLString, "from"),
+                        GraphQLArgument("to", "to field name", Scalars.GraphQLString, "to")), false, false, true))
+        return directives
+    }
+
+    private fun augmentSchema(typeDefinitionRegistry: TypeDefinitionRegistry, schemaParser: SchemaParser, ctx: Translator.Context): TypeDefinitionRegistry {
+
+        val augmentations = typeDefinitionRegistry.types().values.filterIsInstance<ObjectTypeDefinition>().map { augmentedSchema(ctx, it) }
+
+        val augmentedTypesSdl = augmentations.flatMap { listOf(it.filterType, it.ordering, it.inputType).filter { it.isNotBlank() } }.joinToString("\n")
+        typeDefinitionRegistry.merge(schemaParser.parse(augmentedTypesSdl))
+
+        val schemaDefinition = typeDefinitionRegistry.schemaDefinition().orElseGet { SchemaDefinition() }
+        if (!typeDefinitionRegistry.schemaDefinition().isPresent) typeDefinitionRegistry.add(schemaDefinition).ifPresent { throw RuntimeException(it.toSpecification().toString()) }
+
+        val operations = schemaDefinition.operationTypeDefinitions.associate { it.name to typeDefinitionRegistry.getType(it.type).get() as ObjectTypeDefinition }.toMap()
+
+        val queryDefinition = operations.getOrElse("query") {
+            ObjectTypeDefinition("Query").also {
+                schemaDefinition.operationTypeDefinitions.add(OperationTypeDefinition("query",TypeName(it.name)))
+                typeDefinitionRegistry.add(it)
+            }
+        }
+        val mutationDefinition = operations.getOrElse("mutation") {
+                ObjectTypeDefinition("Mutation").also { schemaDefinition.operationTypeDefinitions.add(OperationTypeDefinition("mutation",TypeName(it.name)))
+                typeDefinitionRegistry.add(it)
+            }
+        }
+
+        augmentations.filter { it.query.isNotBlank() }.map { it.query }.let {
+            if (!it.isEmpty()) {
+                val newQueries = schemaParser.parse("type AugmentedQuery { ${it.joinToString("\n")} }").getType("AugmentedQuery").get() as ObjectTypeDefinition
+                queryDefinition.fieldDefinitions.addAll(newQueries.fieldDefinitions)
+            }
+        }
+        augmentations.flatMap { listOf(it.create,it.update,it.delete).filter{ it.isNotBlank() }}.let {
+            if (!it.isEmpty()) {
+                val newQueries = schemaParser.parse("type AugmentedMutation { ${it.joinToString("\n")} }").getType("AugmentedMutation").get() as ObjectTypeDefinition
+                mutationDefinition.fieldDefinitions.addAll(newQueries.fieldDefinitions)
+            }
+        }
+
+        return typeDefinitionRegistry
     }
 }

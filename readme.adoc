@@ -154,6 +154,39 @@ And can run queries like:
 
 image::docs/graphiql.jpg[]
 
+You can also test it with `curl`
+
+----
+curl -XPOST http://localhost:4567/graphql -d'{"query":"{person {name}}"}'
+----
+
+== Advanced Queries
+
+----
+{
+  person(filter: {name_starts_with: "L"}, orderBy: "born_asc", first: 5, offset: 2) {
+    name
+    born
+    actedIn(first: 1) {
+      title
+    }
+  }
+}
+----
+
+----
+{
+  person(filter: {name_starts_with: "J", born_gte: 1970}, first:2) {
+    name
+    born
+    actedIn(first:1) {
+      title
+      released
+    }
+  }
+}
+----
+
 == Features
 
 === Current

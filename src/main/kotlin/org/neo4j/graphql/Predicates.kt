@@ -2,6 +2,7 @@ package org.neo4j.graphql
 
 import graphql.Scalars
 import graphql.language.Directive
+import graphql.language.Type
 import graphql.schema.*
 import org.neo4j.graphql.Predicate.Companion.resolvePredicate
 
@@ -46,8 +47,6 @@ fun toExpression(name: String, value: Any?, type: GraphQLObjectType): Predicate 
         else {
             resolvePredicate(name, value, type)
         }
-
-fun GraphQLObjectType.hasRelationship(name:String) = this.getFieldDefinition(name)?.let { it.type is GraphQLObjectType } ?: false
 
 fun GraphQLObjectType.relationshipFor(name:String, schema: GraphQLSchema) : RelationshipInfo {
     val field = this.getFieldDefinition(name)
@@ -195,6 +194,14 @@ enum class Operators(val suffix:String, val op:String, val not :Boolean = false)
                 else if (type is GraphQLEnumType || type is GraphQLObjectType || type is GraphQLTypeReference) listOf(EQ, NEQ, IN, NIN)
                 else listOf(EQ, NEQ, IN, NIN,LT,LTE,GT,GTE) +
                         if (type == Scalars.GraphQLString || type == Scalars.GraphQLID) listOf(C,NC, SW, NSW,EW,NEW) else emptyList()
+
+        fun forType(type: Type) : List<Operators> =
+                if (type.name() == "Boolean") listOf(EQ, NEQ)
+                // todo list types
+                // todo proper enum + object types and reference types
+                else if (!type.isScalar()) listOf(EQ, NEQ, IN, NIN)
+                else listOf(EQ, NEQ, IN, NIN,LT,LTE,GT,GTE) +
+                        if (type.name() == "String" || type.name() == "ID") listOf(C,NC, SW, NSW,EW,NEW) else emptyList()
 
     }
 

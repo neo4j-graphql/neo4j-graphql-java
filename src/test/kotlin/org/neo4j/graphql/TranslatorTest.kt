@@ -30,7 +30,7 @@ class TranslatorTest {
                    name: String
                    founded: Person @relation(name:"FOUNDED", direction:"IN")
                 }
-                enum _PersonOrdering { name_asc, name_desc, age_asc, age_desc }
+                # enum _PersonOrdering { name_asc, name_desc, age_asc, age_desc }
                 enum E { pi, e }
                 type Query {
                     person : [Person]
