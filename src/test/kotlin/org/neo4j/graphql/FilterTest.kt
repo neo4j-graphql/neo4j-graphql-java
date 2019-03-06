@@ -1,5 +1,7 @@
 package org.neo4j.graphql
 
+import demo.org.neo4j.graphql.TckTest
+import demo.org.neo4j.graphql.TckTest.Companion.assertQuery
 import org.codehaus.jackson.map.ObjectMapper
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -33,53 +35,14 @@ type Query {
 
         val expected = "MATCH (person:Person) WHERE person.gender = \$filterPersonGender RETURN person { .name } AS person"
         val query = "{ person(filter: { gender: male }) { name }}"
-        assertQuery(query, expected, mapOf("filterPersonGender" to "male"))
-    }
-
-    private fun assertQuery(query: String, expected: String, params : Map<String,Any?> = emptyMap()) {
-        val result = Translator(SchemaBuilder.buildSchema(schema)).translate(query).first()
-        assertEquals(expected, result.query)
-        assertTrue("${params} IN ${result.params}", result.params.entries.containsAll(params.entries))
+        assertQuery(schema, query, expected, mapOf("filterPersonGender" to "male"))
     }
 
     @Test
     fun testTck() {
-        val pairs = loadQueryPairsFrom("filter-test.md")
-        val failed = pairs.map { try { assertQuery(it.first,it.second, it.third); null } catch(ae:Throwable) { ae.message } }
-              .filterNotNull()
-        failed.forEach(::println)
         val EXPECTED_FAILURES = 59
-        assertEquals("${failed.size} failed of ${pairs.size}", EXPECTED_FAILURES, failed.size)
+        val fileName = "filter-test.md"
+        TckTest(schema).testTck(fileName, EXPECTED_FAILURES)
     }
 
-    private fun loadQueryPairsFrom(fileName: String): MutableList<Triple<String, String, Map<String, Any?>>> {
-        val lines = File(javaClass.getResource("/$fileName").toURI())
-                .readLines()
-                .filterNot { it.startsWith("#") || it.isBlank() }
-        var cypher: String? = null
-        var graphql: String? = null
-        var params: String? = null
-        val testData = mutableListOf<Triple<String, String, Map<String,Any?>>>()
-        // TODO possibly turn stream into type/data pairs adding to the last element in a reduce and add a new element when context changes
-        for (line in lines) {
-            when (line) {
-                "```graphql" -> graphql = ""
-                "```cypher" -> cypher = ""
-                "```params" -> params = ""
-                "```" ->
-                    if (graphql != null && cypher != null) {
-                        testData.add(Triple(graphql.trim(),cypher.trim(),params?.let { ObjectMapper().readValue(params,Map::class.java) as Map<String,Any?> } ?: emptyMap()))
-                        params = null
-                        cypher = null
-                        params = null
-                    }
-                else ->
-                    if (cypher != null) cypher += " " + line.trim()
-                    else if (params != null) params += line.trim()
-                    else if (graphql != null) graphql += " " + line.trim()
-            }
-    //            println("line '$line' GQL '$graphql' Cypher '$cypher'")
-        }
-        return testData
-    }
 }

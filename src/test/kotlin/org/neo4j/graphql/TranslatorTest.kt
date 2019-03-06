@@ -165,7 +165,7 @@ class TranslatorTest {
     @Test
     fun simpleQueryAlias() {
         val query = " { foo:person { n:name } } "
-        assertQuery(query, "MATCH (foo:Person) RETURN foo { .n } AS foo")
+        assertQuery(query, "MATCH (foo:Person) RETURN foo { n:foo.name } AS foo")
     }
 
     @Test

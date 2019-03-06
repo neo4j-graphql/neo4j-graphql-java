@@ -113,7 +113,7 @@ data class ExpressionPredicate(val name:String, val op: Operators, val value:Any
     val not = if (op.not) "NOT " else ""
     override fun toExpression(variable: String, schema: GraphQLSchema) : Pair<String,Map<String,Any?>> {
         val paramName : String = "filter" + paramName(variable, name, value).capitalize()
-        return "$not${variable}.$name ${op.op} \$${paramName}" to mapOf(paramName to value)
+        return "$not${variable}.${name.quote()} ${op.op} \$${paramName}" to mapOf(paramName to value)
     }
 }
 
@@ -136,7 +136,7 @@ data class RelationPredicate(val name: String, val op: Operators, val value: Map
         val cond = other + "_Cond"
         val relGraphQLObjectType = schema.getType(rel.label) as GraphQLObjectType
         val (pred, params) = CompoundPredicate(value.map { it -> resolvePredicate(it.key.toString(), it.value,relGraphQLObjectType)}).toExpression(other, schema)
-        return "$not $prefix(${cond} IN [($variable)$left-[:${rel.type}]-$right($other) | $pred] WHERE ${cond})" to params
+        return "$not $prefix(${cond} IN [($variable)$left-[:${rel.type.quote()}]-$right($other) | $pred] WHERE ${cond})" to params
     }
 }
 

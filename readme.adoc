@@ -201,15 +201,15 @@ curl -XPOST http://localhost:4567/graphql -d'{"query":"{person {name}}"}'
 * parametrization
 * aliases
 * inline and named fragments
+* auto-generate queries
 
 === Next
 
+* auto-generate mutations
 * sorting (nested)
 * interfaces
 * input types
 * @cypher for fields
-* auto-generate queries
-* auto-generate mutations
 * unions
 * scalars
 * date(time), spatial

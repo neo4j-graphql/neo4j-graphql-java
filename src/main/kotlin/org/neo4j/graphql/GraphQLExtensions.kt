@@ -33,6 +33,10 @@ fun GraphQLObjectType.hasRelationship(name:String) = this.getFieldDefinition(nam
 fun GraphQLFieldDefinition.isRelationship() = this.type.isRelationship()
 
 fun Field.aliasOrName() = (this.alias ?: this.name).quote()
+fun Field.propertyName(fieldDefinition: GraphQLFieldDefinition) = (fieldDefinition.propertyDirectiveName() ?: this.name).quote()
+
+fun GraphQLFieldDefinition.propertyDirectiveName() =
+        this.definition.getDirective("property")?.getArgument("name")?.value?.toJavaValue()?.toString()
 
 fun String.quote() = if (isJavaIdentifier()) this else '`'+this+'`'
 
