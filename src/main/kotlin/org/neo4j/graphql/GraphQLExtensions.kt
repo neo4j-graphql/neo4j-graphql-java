@@ -38,6 +38,12 @@ fun Field.propertyName(fieldDefinition: GraphQLFieldDefinition) = (fieldDefiniti
 fun GraphQLFieldDefinition.propertyDirectiveName() =
         this.definition.getDirective("property")?.getArgument("name")?.value?.toJavaValue()?.toString()
 
+fun GraphQLFieldDefinition.cypherDirective(): Translator.Cypher? =
+        this.definition.getDirective("cypher")?.let {
+            Translator.Cypher(it.getArgument("statement").value.toJavaValue().toString(),
+                    it.getArgument("params")?.value?.toJavaValue() as Map<String,Any?>? ?: emptyMap())
+        }
+
 fun String.quote() = if (isJavaIdentifier()) this else '`'+this+'`'
 
 fun String.isJavaIdentifier() =
@@ -67,8 +73,8 @@ fun Value.toJavaValue(): Any? = when (this) {
     is EnumValue -> this.name
     is NullValue -> null
     is BooleanValue -> this.isValue
-    is FloatValue -> this.value
-    is IntValue -> this.value
+    is FloatValue -> this.value.toDouble()
+    is IntValue -> this.value.longValueExact()
     is VariableReference -> this
     is ArrayValue -> this.values.map { it.toJavaValue() }.toList()
     is ObjectValue -> this.objectFields.map { it.name to it.value.toJavaValue() }.toMap()

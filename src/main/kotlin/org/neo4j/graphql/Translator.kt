@@ -25,6 +25,7 @@ class Translator(val schema: GraphQLSchema) {
             val EMPTY = Cypher("")
         }
         fun with(p: Map<String,Any?>) = this.copy(params = this.params + p)
+        fun escapedQuery() = query.replace("\"","\\\"").replace("'","\\'")
     }
 
     @JvmOverloads fun translate(query: String, params: Map<String, Any> = emptyMap(), context: Context = Context()) : List<Cypher> {
@@ -67,7 +68,7 @@ class Translator(val schema: GraphQLSchema) {
     }
 
     private fun where(variable: String, field: GraphQLFieldDefinition, type: GraphQLType, arguments: List<Argument>) : Cypher {
-        val all = prepareArguments(field, arguments)
+        val all = preparePredicateArguments(field, arguments)
         if (all.isEmpty()) return Cypher("")
         val (filterExpressions, filterParams) =
             filterExpressions(all.find{ it.name == "filter" }?.value, type as GraphQLObjectType)
@@ -92,17 +93,25 @@ class Translator(val schema: GraphQLSchema) {
     }
 
     private fun properties(variable: String, field: GraphQLFieldDefinition, arguments: List<Argument>) : Cypher {
-        val all = prepareArguments(field, arguments)
+        val all = preparePredicateArguments(field, arguments)
         return Cypher(all.map { (k,p, v) -> "${p.quote()}:\$${paramName(variable, k, v)}"}.joinToString(" , "," {","}") ,
                all.map { (k,p,v) -> paramName(variable, k, v) to v }.toMap())
     }
 
     data class CypherArgument(val name:String, val propertyName:String, val value:Any?)
 
-    private fun prepareArguments(field: GraphQLFieldDefinition, arguments: List<Argument>): List<CypherArgument> {
+    private fun preparePredicateArguments(field: GraphQLFieldDefinition, arguments: List<Argument>): List<CypherArgument> {
         if (arguments.isEmpty()) return emptyList()
         val resultObjectType = schema.getType(field.type.inner().name) as GraphQLObjectType
         val predicates = arguments.map { it.name to CypherArgument(it.name, resultObjectType.getFieldDefinition(it.name)?.propertyDirectiveName() ?: it.name, it.value.toJavaValue()) }.toMap()
+        val defaults = field.arguments.filter { it.defaultValue != null && !predicates.containsKey(it.name) }
+                .map { CypherArgument(it.name, it.name, it.defaultValue) }
+        return predicates.values + defaults
+    }
+
+    private fun prepareFieldArguments(field: GraphQLFieldDefinition, arguments: List<Argument>): List<CypherArgument> {
+        // if (arguments.isEmpty()) return emptyList()
+        val predicates = arguments.map { it.name to CypherArgument(it.name, it.name, it.value.toJavaValue()) }.toMap()
         val defaults = field.arguments.filter { it.defaultValue != null && !predicates.containsKey(it.name) }
                 .map { CypherArgument(it.name, it.name, it.defaultValue) }
         return predicates.values + defaults
@@ -127,14 +136,25 @@ class Translator(val schema: GraphQLSchema) {
 
     private fun projectField(variable: String, field: Field, type: GraphQLObjectType, ctx:Context) : Cypher {
         val fieldDefinition = type.getFieldDefinition(field.name) ?: throw IllegalStateException("No field ${field.name} in ${type.name}")
-        return if (fieldDefinition.type.inner() is GraphQLObjectType) {
-            val patternComprehensions = projectRelationship(variable, field, fieldDefinition, type, ctx)
-            Cypher(field.aliasOrName() + ":" + patternComprehensions.query, patternComprehensions.params)
-        } else
-            if (field.aliasOrName() == field.propertyName(fieldDefinition))
-                Cypher("." + field.propertyName(fieldDefinition))
-            else
-                Cypher(field.aliasOrName() + ":" + variable+"."+field.propertyName(fieldDefinition))
+        val cypherDirective = fieldDefinition.cypherDirective()
+        return cypherDirective?.let { cypherFieldDirective(variable, fieldDefinition, field, it) } ?:
+            if (fieldDefinition.type.inner() is GraphQLObjectType) {
+                val patternComprehensions = projectRelationship(variable, field, fieldDefinition, type, ctx)
+                Cypher(field.aliasOrName() + ":" + patternComprehensions.query, patternComprehensions.params)
+            } else
+                if (field.aliasOrName() == field.propertyName(fieldDefinition))
+                    Cypher("." + field.propertyName(fieldDefinition))
+                else
+                    Cypher(field.aliasOrName() + ":" + variable + "." + field.propertyName(fieldDefinition))
+    }
+
+    private fun cypherFieldDirective(variable: String, fieldDefinition: GraphQLFieldDefinition, field: Field, cypherDirective: Cypher): Cypher {
+        val suffix = if (fieldDefinition.type.isList()) "Many" else "Single"
+        val args = prepareFieldArguments(fieldDefinition, field.arguments)
+        val argParams = args.map { '$' + it.name + " AS " + it.name }.joinNonEmpty(",", ",")
+        val query = "WITH \$this AS this $argParams " + cypherDirective.escapedQuery()
+        val argString = (listOf("this:" + variable) + args.map { it.name + ':' + '$' + paramName(variable, it.name, it.value) }).joinToString(",", "{", "}")
+        return Cypher(field.aliasOrName() + ":apoc.cypher.runFirstColumn$suffix('$query',$argString)", args.associate { paramName(variable, it.name, it.value) to it.value })
     }
 
     fun projectNamedFragments(variable: String, fragmentSpread: FragmentSpread, type: GraphQLObjectType, ctx: Context) =
