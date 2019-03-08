@@ -47,13 +47,22 @@ class Translator(val schema: GraphQLSchema) {
         val type = schema.getType(returnType.name)
         val label = type.name.quote()
         val variable = queryField.aliasOrName().decapitalize()
+        val cypherDirective = queryType.cypherDirective()
         val mapProjection = projectFields(variable, queryField, type, ctx)
-        val where = if (ctx.topLevelWhere) where(variable, queryType,  type, propertyArguments(queryField)) else Cypher.EMPTY
-        val properties = if (ctx.topLevelWhere) Cypher.EMPTY else properties(variable, queryType, propertyArguments(queryField))
         val skipLimit = format(skipLimit(queryField.arguments))
         val ordering = orderBy(variable, queryField.arguments)
-        return Cypher("MATCH ($variable:$label${properties.query})${where.query} RETURN ${mapProjection.query} AS $variable$ordering$skipLimit" ,
-                (mapProjection.params + properties.params + where.params))
+        if (cypherDirective != null) {
+            // todo filters and such from nested fields
+            val (query, params) = cypherDirective(variable, queryType, queryField, cypherDirective, emptyList())
+            return Cypher("UNWIND $query AS $variable RETURN ${mapProjection.query} AS $variable$ordering$skipLimit" ,
+                    (params + mapProjection.params))
+
+        } else {
+            val where = if (ctx.topLevelWhere) where(variable, queryType, type, propertyArguments(queryField)) else Cypher.EMPTY
+            val properties = if (ctx.topLevelWhere) Cypher.EMPTY else properties(variable, queryType, propertyArguments(queryField))
+            return Cypher("MATCH ($variable:$label${properties.query})${where.query} RETURN ${mapProjection.query} AS $variable$ordering$skipLimit" ,
+                    (mapProjection.params + properties.params + where.params))
+        }
     }
 
     private fun propertyArguments(queryField: Field) =
@@ -149,12 +158,16 @@ class Translator(val schema: GraphQLSchema) {
     }
 
     private fun cypherFieldDirective(variable: String, fieldDefinition: GraphQLFieldDefinition, field: Field, cypherDirective: Cypher): Cypher {
+        val (query,params) = cypherDirective(variable, fieldDefinition, field, cypherDirective, listOf(CypherArgument("this", "this", variable)))
+        return Cypher(field.aliasOrName() +":"  + query, params)
+    }
+    private fun cypherDirective(variable: String, fieldDefinition: GraphQLFieldDefinition, field: Field, cypherDirective: Cypher, additionalArgs: List<CypherArgument>): Cypher {
         val suffix = if (fieldDefinition.type.isList()) "Many" else "Single"
-        val args = prepareFieldArguments(fieldDefinition, field.arguments)
-        val argParams = args.map { '$' + it.name + " AS " + it.name }.joinNonEmpty(",", ",")
-        val query = "WITH \$this AS this $argParams " + cypherDirective.escapedQuery()
-        val argString = (listOf("this:" + variable) + args.map { it.name + ':' + '$' + paramName(variable, it.name, it.value) }).joinToString(",", "{", "}")
-        return Cypher(field.aliasOrName() + ":apoc.cypher.runFirstColumn$suffix('$query',$argString)", args.associate { paramName(variable, it.name, it.value) to it.value })
+        val args = additionalArgs + prepareFieldArguments(fieldDefinition, field.arguments)
+        val argParams = args.map { '$' + it.name + " AS " + it.name }.joinNonEmpty(",")
+        val query = (if (argParams.isEmpty()) "" else "WITH $argParams ") + cypherDirective.escapedQuery()
+        val argString = (args.map { it.name + ':' + if (it.name == "this") it.value else ('$' + paramName(variable, it.name, it.value)) }).joinToString(",", "{", "}")
+        return Cypher("apoc.cypher.runFirstColumn$suffix('$query',$argString)", args.filter { it.name != "this" }.associate { paramName(variable, it.name, it.value) to it.value })
     }
 
     fun projectNamedFragments(variable: String, fragmentSpread: FragmentSpread, type: GraphQLObjectType, ctx: Context) =
