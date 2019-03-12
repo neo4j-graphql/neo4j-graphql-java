@@ -28,33 +28,11 @@ class MovieSchemaTest {
         ))
     }
 
+    @Test fun testTck() {
+        TckTest(schema).testTck("movie-test.md",0, false)
+    }
+
 /*
-@Test fun `testsimple  Cypher  query`() {  val  graphQLQuery  =  """{  Movie(title: "River  Runs  Through  It,  A")  {  title }  }""",  expectedCypherQuery  =  """MATCH  (movie:Movie {title:${"$"}title})  RETURN  movie  {  .title  } AS  movie  SKIP  ${"$"}offset""";
-
-    testTranslation(graphQLQuery, expectedCypherQuery, mapOf(
-      "title" to  "River Runs Through It, A",
-      "first" to -1,
-      "offset" to 0
-    ))
-}
-
-fun `testSimple skip limit`() {
-  val graphQLQuery = """{
-  Movie("title" to  "River Runs Through It, A", first: 1, offset: 0) {
-    title
-    year
-  }
-}
-  """val expectedCypherQuery =
-      """MATCH (movie:Movie {title:${"$"}title}) RETURN movie { .title , .year } AS movie SKIP ${"$"}offset LIMIT ${"$"}first""";
-
-    testTranslation(graphQLQuery, expectedCypherQuery, mapOf(
-      "title" to  "River Runs Through It, A",
-      first: 1,
-      "offset" to 0
-    ))
-}
-
 fun `testCypher projection skip limit`() {
   val graphQLQuery = """{
     Movie(title: "River Runs Through It, A") {
