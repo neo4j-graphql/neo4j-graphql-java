@@ -21,6 +21,13 @@ type Query {
     p2: [Person] @cypher(statement:"MATCH (p:Person) RETURN p")
     p3(name:String): Person @cypher(statement:"MATCH (p:Person) WHERE p.name = name RETURN p LIMIT 1")
 }
+type Mutation {
+    createPerson(name:String): Person @cypher(statement:"CREATE (p:Person) SET p.name = name RETURN p")
+}
+schema {
+ query: Query
+ mutation: Mutation
+}
 """
 
     @Test
@@ -33,7 +40,6 @@ type Query {
 
     @Test
     fun renderCypherFieldDirectiveWithParamsDefaults() {
-
         val expected = """MATCH (person:Person) RETURN person { age:apoc.cypher.runFirstColumnMany('WITH ${"$"}this AS this,${'$'}mult AS mult RETURN this.age * mult as age',{this:person,mult:${'$'}personMult}) } AS person"""
         val query = """{ person { age }}"""
         assertQuery(query, expected, mapOf("personMult" to 13))
@@ -65,6 +71,14 @@ type Query {
         val query = """query(${'$'}pname:String) { p3(name:${'$'}pname) { id }}"""
         assertQuery(query, expected, mapOf("pname" to VariableReference("pname")))
     }
+
+    @Test
+    fun renderCypherMutationDirective() {
+        val expected = """CALL apoc.cypher.doIt('WITH ${'$'}name AS name CREATE (p:Person) SET p.name = name RETURN p',{name:${'$'}personName}) YIELD value WITH value[head(keys(value))] AS person RETURN person { .id } AS person"""
+        val query = """mutation { person: createPerson(name:"Joe") { id }}"""
+        assertQuery(query, expected, mapOf("personName" to "Joe"))
+    }
+
 
     @Test @Ignore
     fun testTck() {

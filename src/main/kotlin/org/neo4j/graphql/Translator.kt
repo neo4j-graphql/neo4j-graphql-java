@@ -32,38 +32,51 @@ class Translator(val schema: GraphQLSchema) {
         val ast = parse(query) // todo preparsedDocumentProvider
         val ctx = context.copy(fragments = ast.definitions.filterIsInstance<FragmentDefinition>().map { it.name to it }.toMap())
         val queries = ast.definitions.filterIsInstance<OperationDefinition>()
-                .filter { it.operation == OperationDefinition.Operation.QUERY } // todo variabledefinitions, directives, name
+                .filter { it.operation == OperationDefinition.Operation.QUERY || it.operation == OperationDefinition.Operation.MUTATION } // todo variabledefinitions, directives, name
                 .flatMap { it.selectionSet.selections }
                 .filterIsInstance<Field>() // FragmentSpread, InlineFragment
                 .map { toQuery(it, ctx).with(params) } // arguments, alias, directives, selectionSet
         return queries
     }
 
-    private fun toQuery(queryField: Field, ctx:Context = Context()): Cypher {
-        val name = queryField.name
-        val queryType = schema.queryType.fieldDefinitions.filter { it.name == name }.firstOrNull() ?: throw IllegalArgumentException("Unknown Query $name available queries: " + schema.queryType.fieldDefinitions.map { it.name }.joinToString())
-        val returnType = queryType.type.inner()
+    private fun toQuery(field: Field, ctx:Context = Context()): Cypher {
+        val name = field.name
+        val queryType = schema.queryType.fieldDefinitions.filter { it.name == name }.firstOrNull()
+        val mutationType = schema.mutationType.fieldDefinitions.filter { it.name == name }.firstOrNull()
+        val fieldDefinition = queryType ?: mutationType
+            ?: throw IllegalArgumentException("Unknown Query $name available queries: " + schema.queryType.fieldDefinitions.map { it.name }.joinToString())
+        val isQuery = queryType != null
+        val returnType = fieldDefinition.type.inner()
 //        println(returnType)
         val type = schema.getType(returnType.name)
         val label = type.name.quote()
-        val variable = queryField.aliasOrName().decapitalize()
-        val cypherDirective = queryType.cypherDirective()
-        val mapProjection = projectFields(variable, queryField, type, ctx)
-        val skipLimit = format(skipLimit(queryField.arguments))
-        val ordering = orderBy(variable, queryField.arguments)
+        val variable = field.aliasOrName().decapitalize()
+        val cypherDirective = fieldDefinition.cypherDirective()
+        val mapProjection = projectFields(variable, field, type, ctx)
+        val skipLimit = format(skipLimit(field.arguments))
+        val ordering = orderBy(variable, field.arguments)
         if (cypherDirective != null) {
             // todo filters and such from nested fields
-            val (query, params) = cypherDirective(variable, queryType, queryField, cypherDirective, emptyList())
-            return Cypher("UNWIND $query AS $variable RETURN ${mapProjection.query} AS $variable$ordering$skipLimit" ,
-                    (params + mapProjection.params))
+            return cypherQueryOrMutation(variable, fieldDefinition, field, cypherDirective, mapProjection, ordering, skipLimit, isQuery)
 
         } else {
-            val where = if (ctx.topLevelWhere) where(variable, queryType, type, propertyArguments(queryField)) else Cypher.EMPTY
-            val properties = if (ctx.topLevelWhere) Cypher.EMPTY else properties(variable, queryType, propertyArguments(queryField))
+            val where = if (ctx.topLevelWhere) where(variable, fieldDefinition, type, propertyArguments(field)) else Cypher.EMPTY
+            val properties = if (ctx.topLevelWhere) Cypher.EMPTY else properties(variable, fieldDefinition, propertyArguments(field))
             return Cypher("MATCH ($variable:$label${properties.query})${where.query} RETURN ${mapProjection.query} AS $variable$ordering$skipLimit" ,
                     (mapProjection.params + properties.params + where.params))
         }
     }
+
+    private fun cypherQueryOrMutation(variable: String, fieldDefinition: GraphQLFieldDefinition, field: Field, cypherDirective: Cypher, mapProjection: Cypher, ordering: String, skipLimit: String, isQuery: Boolean) =
+            if (isQuery) {
+                val (query, params) = cypherDirective(variable, fieldDefinition, field, cypherDirective, emptyList())
+                Cypher("UNWIND $query AS $variable RETURN ${mapProjection.query} AS $variable$ordering$skipLimit",
+                        (params + mapProjection.params))
+            } else {
+                val (query, params) = cypherDirectiveQuery(variable, fieldDefinition, field, cypherDirective, emptyList())
+                Cypher("CALL apoc.cypher.doIt($query) YIELD value WITH value[head(keys(value))] AS $variable RETURN ${mapProjection.query} AS $variable$ordering$skipLimit",
+                        (params + mapProjection.params))
+            }
 
     private fun propertyArguments(queryField: Field) =
             queryField.arguments.filterNot { listOf("first", "offset", "orderBy").contains(it.name) }
@@ -163,11 +176,17 @@ class Translator(val schema: GraphQLSchema) {
     }
     private fun cypherDirective(variable: String, fieldDefinition: GraphQLFieldDefinition, field: Field, cypherDirective: Cypher, additionalArgs: List<CypherArgument>): Cypher {
         val suffix = if (fieldDefinition.type.isList()) "Many" else "Single"
+        val (query, args) = cypherDirectiveQuery(variable, fieldDefinition, field, cypherDirective, additionalArgs)
+        return Cypher("apoc.cypher.runFirstColumn$suffix($query)", args)
+    }
+
+    private fun cypherDirectiveQuery(variable: String, fieldDefinition: GraphQLFieldDefinition, field: Field, cypherDirective: Cypher, additionalArgs: List<CypherArgument>): Cypher {
+        val suffix = if (fieldDefinition.type.isList()) "Many" else "Single"
         val args = additionalArgs + prepareFieldArguments(fieldDefinition, field.arguments)
         val argParams = args.map { '$' + it.name + " AS " + it.name }.joinNonEmpty(",")
         val query = (if (argParams.isEmpty()) "" else "WITH $argParams ") + cypherDirective.escapedQuery()
         val argString = (args.map { it.name + ':' + if (it.name == "this") it.value else ('$' + paramName(variable, it.name, it.value)) }).joinToString(",", "{", "}")
-        return Cypher("apoc.cypher.runFirstColumn$suffix('$query',$argString)", args.filter { it.name != "this" }.associate { paramName(variable, it.name, it.value) to it.value })
+        return Cypher("'$query',$argString", args.filter { it.name != "this" }.associate { paramName(variable, it.name, it.value) to it.value })
     }
 
     fun projectNamedFragments(variable: String, fragmentSpread: FragmentSpread, type: GraphQLObjectType, ctx: Context) =
@@ -329,23 +348,29 @@ object SchemaBuilder {
 
         val queryDefinition = operations.getOrElse("query") {
             ObjectTypeDefinition("Query").also {
-                schemaDefinition.operationTypeDefinitions.add(OperationTypeDefinition("query",TypeName(it.name)))
+                schemaDefinition.operationTypeDefinitions.add(OperationTypeDefinition("query", TypeName(it.name)))
                 typeDefinitionRegistry.add(it)
             }
         }
         val mutationDefinition = operations.getOrElse("mutation") {
-                ObjectTypeDefinition("Mutation").also { schemaDefinition.operationTypeDefinitions.add(OperationTypeDefinition("mutation",TypeName(it.name)))
-                typeDefinitionRegistry.add(it)
+                ObjectTypeDefinition("Mutation").also {
+                    schemaDefinition.operationTypeDefinitions.add(OperationTypeDefinition("mutation", TypeName(it.name)))
+                    typeDefinitionRegistry.add(it)
             }
         }
-
-        augmentations.filter { it.query.isNotBlank() }.map { it.query }.let {
+        // todo better filter
+        augmentations
+                .filter { it.query.isNotBlank() && queryDefinition.fieldDefinitions.none { fd -> it.query.startsWith(fd.name+"(") } }
+                .map { it.query }.let {
             if (!it.isEmpty()) {
                 val newQueries = schemaParser.parse("type AugmentedQuery { ${it.joinToString("\n")} }").getType("AugmentedQuery").get() as ObjectTypeDefinition
                 queryDefinition.fieldDefinitions.addAll(newQueries.fieldDefinitions)
             }
         }
-        augmentations.flatMap { listOf(it.create,it.update,it.delete).filter{ it.isNotBlank() }}.let {
+        augmentations
+                .flatMap { listOf(it.create,it.update,it.delete)
+                    .filter{ it.isNotBlank() && mutationDefinition.fieldDefinitions.none { fd -> it.startsWith(fd.name+"(") } }}
+                .let {
             if (!it.isEmpty()) {
                 val newQueries = schemaParser.parse("type AugmentedMutation { ${it.joinToString("\n")} }").getType("AugmentedMutation").get() as ObjectTypeDefinition
                 mutationDefinition.fieldDefinitions.addAll(newQueries.fieldDefinitions)
