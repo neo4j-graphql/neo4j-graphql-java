@@ -159,8 +159,16 @@ class Translator(val schema: GraphQLSchema) {
     private fun projectField(variable: String, field: Field, type: GraphQLObjectType, ctx:Context) : Cypher {
         val fieldDefinition = type.getFieldDefinition(field.name) ?: throw IllegalStateException("No field ${field.name} in ${type.name}")
         val cypherDirective = fieldDefinition.cypherDirective()
-        return cypherDirective?.let { cypherFieldDirective(variable, fieldDefinition, field, it) } ?:
-            if (fieldDefinition.type.inner() is GraphQLObjectType) {
+        val isObjectField = fieldDefinition.type.inner() is GraphQLObjectType
+        return cypherDirective?.let {
+            val directive = cypherDirective(variable, fieldDefinition, field, it, listOf(CypherArgument("this", "this", variable)))
+            if (isObjectField) {
+                val patternComprehensions = projectListComprehension(variable, field, fieldDefinition, ctx,directive)
+                Cypher(field.aliasOrName() + ":" + patternComprehensions.query, patternComprehensions.params)
+            } else
+            Cypher(field.aliasOrName() +":"  + directive.query, directive.params)
+
+        } ?: if (isObjectField) {
                 val patternComprehensions = projectRelationship(variable, field, fieldDefinition, type, ctx)
                 Cypher(field.aliasOrName() + ":" + patternComprehensions.query, patternComprehensions.params)
             } else
@@ -170,10 +178,6 @@ class Translator(val schema: GraphQLSchema) {
                     Cypher(field.aliasOrName() + ":" + variable + "." + field.propertyName(fieldDefinition))
     }
 
-    private fun cypherFieldDirective(variable: String, fieldDefinition: GraphQLFieldDefinition, field: Field, cypherDirective: Cypher): Cypher {
-        val (query,params) = cypherDirective(variable, fieldDefinition, field, cypherDirective, listOf(CypherArgument("this", "this", variable)))
-        return Cypher(field.aliasOrName() +":"  + query, params)
-    }
     private fun cypherDirective(variable: String, fieldDefinition: GraphQLFieldDefinition, field: Field, cypherDirective: Cypher, additionalArgs: List<CypherArgument>): Cypher {
         val suffix = if (fieldDefinition.type.isList()) "Many" else "Single"
         val (query, args) = cypherDirectiveQuery(variable, fieldDefinition, field, cypherDirective, additionalArgs)
@@ -181,7 +185,6 @@ class Translator(val schema: GraphQLSchema) {
     }
 
     private fun cypherDirectiveQuery(variable: String, fieldDefinition: GraphQLFieldDefinition, field: Field, cypherDirective: Cypher, additionalArgs: List<CypherArgument>): Cypher {
-        val suffix = if (fieldDefinition.type.isList()) "Many" else "Single"
         val args = additionalArgs + prepareFieldArguments(fieldDefinition, field.arguments)
         val argParams = args.map { '$' + it.name + " AS " + it.name }.joinNonEmpty(",")
         val query = (if (argParams.isEmpty()) "" else "WITH $argParams ") + cypherDirective.escapedQuery()
@@ -217,6 +220,20 @@ class Translator(val schema: GraphQLSchema) {
         }
     }
 
+    private fun projectListComprehension(variable: String, field: Field, fieldDefinition: GraphQLFieldDefinition, ctx: Context, expression:Cypher): Cypher {
+        val fieldType = fieldDefinition.type
+        val fieldObjectType = fieldType.inner() as GraphQLObjectType
+        val childVariable = variable + field.name.capitalize()
+
+        // val where = where(childVariable, fieldDefinition, fieldObjectType, propertyArguments(field))
+        val fieldProjection = projectFields(childVariable, field, fieldObjectType, ctx)
+
+        val comprehension = "[$childVariable IN ${expression.query} | ${fieldProjection.query}]"
+        val skipLimit = skipLimit(field.arguments)
+        val slice = slice(skipLimit, fieldType.isList())
+        return Cypher(comprehension + slice, (expression.params + fieldProjection.params)) // + where.params
+
+    }
     private fun projectRichAndRegularRelationship(variable: String, field: Field, fieldDefinition: GraphQLFieldDefinition, ctx: Context): Cypher {
         val fieldType = fieldDefinition.type
         val fieldObjectType = fieldType.inner() as GraphQLObjectType

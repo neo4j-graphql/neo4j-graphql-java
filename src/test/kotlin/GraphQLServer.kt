@@ -28,7 +28,7 @@ type Movie {
 }
 """
 
-fun main(args: Array<String>) {
+fun main() {
     val gson = Gson()
     fun render(value:Any) =  gson.toJson(value)
     fun query(value:String) = (gson.fromJson(value, Map::class.java)["query"] as String).also { println(it) }

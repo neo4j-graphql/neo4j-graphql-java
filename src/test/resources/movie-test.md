@@ -6,7 +6,7 @@
 
 ```
 
-### Basic Test
+### Basic Query with Parameter
 
 ```graphql
 {  Movie(title: "River Runs Through It, A")  {  title }  }
@@ -20,7 +20,7 @@ WHERE  movie.title = $movieTitle
 RETURN movie { .title } AS movie
 ```
 
-### Testing Paging
+### Paging
 
 ```graphql
 {
@@ -42,7 +42,7 @@ RETURN movie { .title , .year } AS movie
 SKIP $offset LIMIT $first
 ```
 
-### Testing Projection
+### Relationship Expansion
 
 ```graphql
 {
@@ -65,7 +65,7 @@ WHERE movie.title = $movieTitle
 RETURN movie { .title,actors:[(movie)<-[:ACTED_IN]-(movieActors:Actor) | movieActors { .name }] } AS movie 
 ```
 
-### Testing Projection with sub-paging
+### Projection with sub-paging
 
 ```graphql
 {
@@ -86,4 +86,25 @@ RETURN movie { .title,actors:[(movie)<-[:ACTED_IN]-(movieActors:Actor) | movieAc
 MATCH (movie:Movie)  
 WHERE movie.title = $movieTitle 
 RETURN movie { .title,actors:[(movie)<-[:ACTED_IN]-(movieActors:Actor) | movieActors { .name }][0..3] } AS movie 
+```
+### Subquery Cypher Directive
+
+```graphql
+{
+    Movie {
+      title
+      similar {
+        title
+      }
+    }
+  }
+```
+
+```params
+{}
+```
+
+```cypher
+MATCH (movie:Movie)  
+RETURN movie { .title,similar:[movieSimilar IN apoc.cypher.runFirstColumnMany('WITH $this AS this,$first AS first,$offset AS offset MATCH (this)--(:Genre)--(o:Movie) RETURN o',{this:movie,first:$movieFirst,offset:$movieOffset}) | movieSimilar { .title }] } AS movie 
 ```
