@@ -39,7 +39,7 @@ fun main() {
     val graphql = Translator(graphQLSchema)
     fun translate(query:String) = graphql.translate(query)
 
-    val driver = GraphDatabase.driver("bolt://localhost",AuthTokens.basic("neo4j","password"))
+    val driver = GraphDatabase.driver("bolt://localhost",AuthTokens.basic("neo4j","test"))
     fun run(cypher:Translator.Cypher) = driver.session().use {
         println(cypher.query)
         println(cypher.params)
@@ -64,7 +64,7 @@ fun main() {
 
     fun handler(req: Request, res: Response) = query(req.body()).let { query ->
         if (query.contains("__schema"))
-            build.execute(query).let { println(it.errors);it.getData<Any>() }
+            build.execute(query).let { println(render(it));it }
         else run(translate(query).first()) }
 
     Spark.post("/graphql","application/json", ::handler, ::render)
