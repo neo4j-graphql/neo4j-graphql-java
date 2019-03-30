@@ -1,13 +1,15 @@
 package demo.org.neo4j.graphql
 
+import org.antlr.v4.runtime.RecognitionException
+import org.antlr.v4.runtime.misc.ParseCancellationException
 import org.codehaus.jackson.map.ObjectMapper
 import org.junit.Assert
 import org.neo4j.graphql.SchemaBuilder
 import org.neo4j.graphql.Translator
 import java.io.File
+import java.lang.RuntimeException
 
 class TckTest(val schema:String) {
-
 
     fun loadQueryPairsFrom(fileName: String): MutableList<Triple<String, String, Map<String, Any?>>> {
         val lines = File(javaClass.getResource("/$fileName").toURI())
@@ -25,8 +27,8 @@ class TckTest(val schema:String) {
                 "```params" -> params = ""
                 "```" ->
                     if (graphql != null && cypher != null) {
-                        testData.add(Triple(graphql.trim(),cypher.trim(),params?.let { ObjectMapper().readValue(params,Map::class.java) as Map<String,Any?> } ?: emptyMap()))
-                        params = null
+                        testData.add(Triple(graphql.trim(),cypher.trim(),params?.let { MAPPER.readValue(params,Map::class.java) as Map<String,Any?> } ?: emptyMap()))
+                        graphql = null
                         cypher = null
                         params = null
                     }
@@ -46,7 +48,12 @@ class TckTest(val schema:String) {
             try {
                 assertQuery(schema, it.first, it.second, it.third); null
             } catch (ae: Throwable) {
-                if (fail) throw ae else ae.message
+                if (fail) when (ae) {
+                    is ParseCancellationException -> throw RuntimeException((ae.cause!! as RecognitionException).let { "expected: ${it.expectedTokens} offending ${it.offendingToken}" } )
+                    else -> throw ae
+                }
+
+                else ae.message ?: ae.toString()
             }
         }
                 .filterNotNull()
@@ -56,10 +63,15 @@ class TckTest(val schema:String) {
     }
 
     companion object {
+        val MAPPER = ObjectMapper()
+
         fun assertQuery(schema:String, query: String, expected: String, params : Map<String,Any?> = emptyMap()) {
             val result = Translator(SchemaBuilder.buildSchema(schema)).translate(query).first()
+            println(result.query)
             Assert.assertEquals(expected.replace(Regex("\\s+")," "), result.query)
-            Assert.assertTrue("${params} IN ${result.params}", result.params.entries.containsAll(params.entries))
+            Assert.assertTrue("${params} IN ${result.params}", fixNumbers(result.params).entries.containsAll(fixNumbers(params).entries))
         }
+
+        private fun fixNumbers(params: Map<String, Any?>) = params.mapValues{ (_,v) -> when(v) { is Float -> v.toDouble(); is Int -> v.toLong(); else -> v } }
     }
 }

@@ -55,16 +55,20 @@ fun GraphQLObjectType.relationshipFor(name:String, schema: GraphQLSchema) : Rela
     // label
     // out
 
-    val (relDirective, relFromType) = fieldObjectType.definition.getDirective("relation")?.let { it to true }
+    // TODO direction is depending on source/target type
+
+    val (relDirective, isRelFromType) = fieldObjectType.definition.getDirective("relation")?.let { it to true }
             ?: field.definition.getDirective("relation")?.let { it to false }
             ?: throw IllegalStateException("Field $field needs an @relation directive")
 
-    val (relType, outgoing, endField) = relDetails(relDirective, schema)
 
-    return RelationshipInfo(fieldObjectType, relDirective, relType,  outgoing,endField, relFromType)
+    val relInfo = relDetails(fieldObjectType, relDirective, schema)
+
+    val inverse = isRelFromType && fieldObjectType.getFieldDefinition(relInfo.startField).name != this.name
+    return if (inverse) relInfo.copy(out = relInfo.out?.let { !it }, startField = relInfo.endField, endField = relInfo.startField) else relInfo
 }
 
-fun relDetails(relDirective: Directive, schema: GraphQLSchema): Triple<String,Boolean?,String> {
+fun relDetails(source: GraphQLObjectType, relDirective: Directive, schema: GraphQLSchema): RelationshipInfo {
     val relType = relDirective.argumentString("name", schema)
     val outgoing =  when (relDirective.argumentString("direction", schema)) {
         "IN" -> false
@@ -72,9 +76,7 @@ fun relDetails(relDirective: Directive, schema: GraphQLSchema): Triple<String,Bo
         "OUT" -> true
         else -> throw IllegalStateException("Unknown direction ${relDirective.argumentString("direction",schema)}")
     }
-    val endField = if (outgoing == true) relDirective.argumentString("to", schema)
-    else relDirective.argumentString("from", schema)
-    return Triple(relType, outgoing, endField)
+    return RelationshipInfo(source, relDirective, relType, outgoing, relDirective.argumentString("from", schema), relDirective.argumentString("to", schema))
 }
 
 fun arrows(outgoing: Boolean?): Pair<String, String> {
@@ -86,7 +88,7 @@ fun arrows(outgoing: Boolean?): Pair<String, String> {
 }
 
 
-data class RelationshipInfo(val objectType:GraphQLObjectType, val directive:Directive, val type:String, val out:Boolean?, val endField: String? = null, val relFromType: Boolean = false) {
+data class RelationshipInfo(val objectType:GraphQLObjectType, val directive:Directive, val type:String, val out:Boolean?, val startField: String? = null,val endField: String? = null, val isRelFromType: Boolean = false) {
     val arrows = arrows(out)
     val label = objectType.name
 }

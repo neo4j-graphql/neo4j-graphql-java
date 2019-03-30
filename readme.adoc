@@ -207,6 +207,7 @@ curl -XPOST http://localhost:4567/graphql -d'{"query":"{person {name}}"}'
 
 === Next
 
+* skip limit params
 * sorting (nested)
 * interfaces
 * input types

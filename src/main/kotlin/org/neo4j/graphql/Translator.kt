@@ -78,6 +78,7 @@ class Translator(val schema: GraphQLSchema) {
                         (params + mapProjection.params))
             }
 
+
     private fun propertyArguments(queryField: Field) =
             queryField.arguments.filterNot { listOf("first", "offset", "orderBy").contains(it.name) }
 
@@ -90,7 +91,7 @@ class Translator(val schema: GraphQLSchema) {
     }
 
     private fun where(variable: String, field: GraphQLFieldDefinition, type: GraphQLType, arguments: List<Argument>) : Cypher {
-        val all = preparePredicateArguments(field, arguments)
+        val all = preparePredicateArguments(field, arguments).filterNot { listOf("first", "offset", "orderBy").contains(it.name) }
         if (all.isEmpty()) return Cypher("")
         val (filterExpressions, filterParams) =
             filterExpressions(all.find{ it.name == "filter" }?.value, type as GraphQLObjectType)
@@ -216,7 +217,7 @@ class Translator(val schema: GraphQLSchema) {
         val parentIsRelationship = parent.definition.directivesByName.containsKey("relation")
         return when (parentIsRelationship) {
             true -> projectRelationshipParent(variable, field, fieldDefinition, parent, ctx)
-            else -> projectRichAndRegularRelationship(variable, field, fieldDefinition, ctx)
+            else -> projectRichAndRegularRelationship(variable, field, fieldDefinition, parent, ctx)
         }
     }
 
@@ -234,28 +235,31 @@ class Translator(val schema: GraphQLSchema) {
         return Cypher(comprehension + slice, (expression.params + fieldProjection.params)) // + where.params
 
     }
-    private fun projectRichAndRegularRelationship(variable: String, field: Field, fieldDefinition: GraphQLFieldDefinition, ctx: Context): Cypher {
+    private fun projectRichAndRegularRelationship(variable: String, field: Field, fieldDefinition: GraphQLFieldDefinition, parent: GraphQLObjectType, ctx: Context): Cypher {
         val fieldType = fieldDefinition.type
         val fieldObjectType = fieldType.inner() as GraphQLObjectType
         // todo combine both nestings if rel-entity
-        val (relDirective, relFromType) = fieldObjectType.definition.getDirective("relation")?.let { it to true }
+        val (relDirective, isRelFromType) = fieldObjectType.definition.getDirective("relation")?.let { it to true }
                 ?: fieldDefinition.definition.getDirective("relation")?.let { it to false }
                 ?: throw IllegalStateException("Field $field needs an @relation directive")
 
-        val (relType, outgoing, endField) = relDetails(relDirective)
-        val (inArrow, outArrow) = arrows(outgoing)
+        var relInfo = relDetails(fieldObjectType, relDirective)
+        val inverse = isRelFromType && fieldObjectType.getFieldDefinition(relInfo.startField).type.inner().name != parent.name
+        if (inverse) relInfo = relInfo.copy(out = relInfo.out?.let { !it }, startField = relInfo.endField, endField = relInfo.startField)
+
+        val (inArrow, outArrow) = relInfo.arrows
 
         val childVariable = variable + field.name.capitalize()
 
         val endNodePattern = when {
-            relFromType -> {
-                val label = fieldObjectType.getFieldDefinition(endField).type.inner().name
-                "$childVariable${endField.capitalize()}:$label"
+            isRelFromType -> {
+                val label = fieldObjectType.getFieldDefinition(relInfo.endField!!).type.inner().name
+                "$childVariable${relInfo.endField!!.capitalize()}:$label"
             }
             else -> "$childVariable:${fieldObjectType.name}"
         }
 
-        val relPattern = if (relFromType) "$childVariable:${relType}" else ":${relType}"
+        val relPattern = if (isRelFromType) "$childVariable:${relInfo.type}" else ":${relInfo.type}"
 
         val where = where(childVariable, fieldDefinition, fieldObjectType, propertyArguments(field))
         val fieldProjection = projectFields(childVariable, field, fieldObjectType, ctx)
@@ -270,14 +274,17 @@ class Translator(val schema: GraphQLSchema) {
         val fieldType = fieldDefinition.type
         val fieldObjectType = fieldType.inner() as GraphQLObjectType
         val relDirective = parent.definition.directivesByName.getValue("relation")
-        val (_, _, endField) = relDetails(relDirective)
+        var relInfo = relDetails(fieldObjectType, relDirective)
 
-        val fieldProjection = projectFields(variable + endField.capitalize(), field, fieldObjectType, ctx)
+        val inverse = parent.getFieldDefinition(relInfo.endField!!).type.inner().name != fieldObjectType.name
+        if (inverse) relInfo = relInfo.copy(out = relInfo.out?.let { !it }, startField = relInfo.endField, endField = relInfo.startField)
+
+        val fieldProjection = projectFields(variable + relInfo.endField!!.capitalize(), field, fieldObjectType, ctx)
 
         return Cypher(fieldProjection.query)
     }
 
-    private fun relDetails(relDirective: Directive) = relDetails(relDirective, schema)
+    private fun relDetails(target:GraphQLObjectType, relDirective: Directive) = relDetails(target, relDirective, schema)
 
     private fun slice(skipLimit: Pair<Int, Int>, list: Boolean = false) =
             if (list) {

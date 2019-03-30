@@ -29,33 +29,10 @@ class MovieSchemaTest {
     }
 
     @Test fun testTck() {
-        TckTest(schema).testTck("movie-test.md",0, false)
+        TckTest(schema).testTck("movie-test.md",0, true)
     }
 
 /*
-fun `testCypher projection skip limit`() {
-  val graphQLQuery = """{
-    Movie(title: "River Runs Through It, A") {
-      title
-      actors {
-        name
-      }
-      similar(first: 3) {
-        title
-      }
-    }
-  }"""
-val expectedCypherQuery =
-      """MATCH (movie:Movie {title:${"$"}title}) RETURN movie { .title ,actors: [(movie)<-[:ACTED_IN]-(movie_actors:Actor) | movie_actors { .name }] ,similar: [ movie_similar IN apoc.cypher.runFirstColumn("WITH {this} AS this MATCH (this)--(:Genre)--(o:Movie) RETURN o", mapOf(this: movie, first: 3, offset: 0}, true) | movie_similar { .title }][..3] } AS movie SKIP ${"$"}offset""";
-
-    testTranslation(graphQLQuery, expectedCypherQuery, mapOf(
-      "title" to  "River Runs Through It, A",
-      """1_first": 3,
-      "first" to -1,
-      "offset" to 0
-    ))
-}
-
 fun `testHandle Query with name not aligning to type`() {
   val graphQLQuery = """{
   MoviesByYear(year: 2010) {
@@ -73,81 +50,6 @@ val expectedCypherQuery =
     ))
 }
 
-fun `testQuery without arguments, non-null type`() {
-  val graphQLQuery = """query {
-  Movie {
-    movieId
-  }
-}"""
-val expectedCypherQuery =
-      """MATCH (movie:Movie {}) RETURN movie { .movieId } AS movie SKIP ${"$"}offset""";
-
-    testTranslation(graphQLQuery, expectedCypherQuery, mapOf(
-      "first" to -1,
-      "offset" to 0
-    ))
-}
-
-fun `testQuery single object`() {
-  val graphQLQuery = """
-  {
-    MovieById(movieId: "18") {
-      title
-    }
-  }"""
-val expectedCypherQuery =
-      """MATCH (movie:Movie {movieId:${"$"}movieId}) RETURN movie { .title } AS movie SKIP ${"$"}offset""";
-
-    testTranslation(graphQLQuery, expectedCypherQuery, mapOf(
-      movieId: "18",
-      "first" to -1,
-      "offset" to 0
-    ))
-}
-
-fun `testQuery single object relation`() {
-  val graphQLQuery = """
-    {
-      MovieById(movieId: "3100") {
-        title
-        filmedIn {
-          name
-        }
-      }
-    }
-  """
-val expectedCypherQuery =
-      """MATCH (movie:Movie {movieId:${"$"}movieId}) RETURN movie { .title ,filmedIn: head([(movie)-[:FILMED_IN]->(movie_filmedIn:State) | movie_filmedIn { .name }]) } AS movie SKIP ${"$"}offset""";
-
-    testTranslation(graphQLQuery, expectedCypherQuery, mapOf(
-      movieId: "3100",
-      "first" to -1,
-      "offset" to 0
-    ))
-}
-
-fun `testQuery single object and array of objects relations`() {
-  val graphQLQuery = """
-    {
-      MovieById(movieId: "3100") {
-        title
-        actors {
-          name
-        }
-        filmedIn{
-          name
-        }
-      }
-    }"""
-val expectedCypherQuery =
-      """MATCH (movie:Movie {movieId:${"$"}movieId}) RETURN movie { .title ,actors: [(movie)<-[:ACTED_IN]-(movie_actors:Actor) | movie_actors { .name }] ,filmedIn: head([(movie)-[:FILMED_IN]->(movie_filmedIn:State) | movie_filmedIn { .name }]) } AS movie SKIP ${"$"}offset""";
-
-    testTranslation(graphQLQuery, expectedCypherQuery, mapOf(
-      movieId: "3100",
-      "first" to -1,
-      "offset" to 0
-    ))
-}
 
 fun `testDeeply nested object query`() {
   val graphQLQuery = """
@@ -449,34 +351,6 @@ fun `testHandle @cypher directive on Query Type`() {
   }
 }
   """
-val expectedCypherQuery = """WITH apoc.cypher.runFirstColumn("MATCH (g:Genre) WHERE toLower(g.name) CONTAINS toLower(${"$"}substring) RETURN g", mapOf(substring:${"$"}substring}, True) AS x UNWIND x AS genre
-    RETURN genre { .name ,movies: [(genre)<-[:IN_GENRE]-(genre_movies:Movie{}) | genre_movies { .title }][..3] } AS genre SKIP ${"$"}offset""";
-
-    testTranslation(graphQLQuery, expectedCypherQuery, mapOf(
-      substring: "Action",
-      "first" to -1,
-      offset: 0,
-      """1_first": 3
-    ))
-}
-
-test.cb("Handle @cypher directive on Mutation type`() {
-  val graphQLQuery = """mutation someMutation {
-  CreateGenre(name: "Wildlife Documentary") {
-    name
-  }
-}"""
-val expectedCypherQuery = """CALL apoc.cypher.doIt("CREATE (g:Genre) SET g.name = ${"$"}name RETURN g", mapOf(name:${"$"}name}) YIELD value
-    WITH apoc.map.values(value, [keys(value)[0]])[0] AS genre
-    RETURN genre { .name } AS genre SKIP ${"$"}offset""";
-
-  t.plan(2);
-  testTranslation(graphQLQuery, expectedCypherQuery, mapOf(
-    name: "Wildlife Documentary",
-    "first" to -1,
-    "offset" to 0
-  }
-}
 
 test.cb("Create node mutation`() {
   val graphQLQuery = """	mutation someMutation {
@@ -1387,35 +1261,6 @@ val expectedCypherQuery,
   );
 }
 
-fun `testquery using inline fragment`() {
-  val graphQLQuery = """
-  {
-    Movie(title: "River Runs Through It, A") {
-      title
-      ratings {
-        rating
-        User {
-          ... on User {
-            name
-            userId
-          }
-        }
-      }
-    }
-  }
-  """
-val expectedCypherQuery = """MATCH (movie:Movie {title:${"$"}title}) RETURN movie { .title ,ratings: [(movie)<-[movie_ratings_relation:RATED]-(:User) | movie_ratings_relation { .rating ,User: head([(:Movie)<-[movie_ratings_relation]-(movie_ratings_User:User) | movie_ratings_User { .name , .userId }]) }] } AS movie SKIP ${"$"}offset""";
-
-  t.plan(1);
-
-  return augmentedSchemaCypherTestRunner(
-    t,
-    graphQLQuery,
-    {}
-val expectedCypherQuery,
-    {}
-  );
-}
 
  */
 
