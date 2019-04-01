@@ -173,10 +173,22 @@ class TranslatorTest {
         val query = " query { person { ...name } } fragment name on Person { name } "
         assertQuery(query, "MATCH (person:Person) RETURN person { .name } AS person")
     }
+
+    @Test
+    fun namedFragmentMultiField() {
+        val query = "  fragment details on Person { name, age } query { person { ...details } }"
+        assertQuery(query, "MATCH (person:Person) RETURN person { .name,.age } AS person")
+    }
     @Test
     fun inlineFragment() {
         val query = " query { person { ... on Person { name } } }"
         assertQuery(query, "MATCH (person:Person) RETURN person { .name } AS person")
+    }
+
+    @Test
+    fun inlineFragmentMultiFields() {
+        val query = " query { person { ... on Person { name,age } } }"
+        assertQuery(query, "MATCH (person:Person) RETURN person { .name,.age } AS person")
     }
 
     private fun assertQuery(query: String, expected: String, params : Map<String,Any> = emptyMap()) {
