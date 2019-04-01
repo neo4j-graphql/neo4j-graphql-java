@@ -17,7 +17,7 @@ fun augmentedSchema(ctx: Translator.Context, type: ObjectTypeDefinition): Augmen
         Augmentation().copy(create = """create$typeName($fieldArgs) : $typeName """)
                 .let { aug ->
                     if (idField != null) aug.copy(
-                            delete = """delete$typeName($idFieldArg) : Boolean """,
+                            delete = """delete$typeName($idFieldArg) : $typeName """,
                             update = """update$typeName($fieldArgs) : $typeName """)
                     else aug
                 }

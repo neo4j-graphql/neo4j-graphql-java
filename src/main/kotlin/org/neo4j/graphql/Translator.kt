@@ -60,10 +60,32 @@ class Translator(val schema: GraphQLSchema) {
             return cypherQueryOrMutation(variable, fieldDefinition, field, cypherDirective, mapProjection, ordering, skipLimit, isQuery)
 
         } else {
-            val where = if (ctx.topLevelWhere) where(variable, fieldDefinition, type, propertyArguments(field)) else Cypher.EMPTY
-            val properties = if (ctx.topLevelWhere) Cypher.EMPTY else properties(variable, fieldDefinition, propertyArguments(field))
-            return Cypher("MATCH ($variable:$label${properties.query})${where.query} RETURN ${mapProjection.query} AS $variable$ordering$skipLimit" ,
-                    (mapProjection.params + properties.params + where.params))
+            if (isQuery) {
+                val where = if (ctx.topLevelWhere) where(variable, fieldDefinition, type, propertyArguments(field)) else Cypher.EMPTY
+                val properties = if (ctx.topLevelWhere) Cypher.EMPTY else properties(variable, fieldDefinition, propertyArguments(field))
+                return Cypher("MATCH ($variable:$label${properties.query})${where.query} RETURN ${mapProjection.query} AS $variable$ordering$skipLimit",
+                        (mapProjection.params + properties.params + where.params))
+            } else {
+                // todo extract method or better object
+                val properties = properties(variable, fieldDefinition, propertyArguments(field))
+                val idProperty = fieldDefinition.arguments.find { it.type.inner() == Scalars.GraphQLID }
+                val returnStatement = " WITH $variable RETURN ${mapProjection.query} AS $variable$ordering$skipLimit";
+                return when (name) {
+                    "create"+type.name -> Cypher("CREATE ($variable:$label${properties.query})"+returnStatement, (mapProjection.params + properties.params))
+                    "update"+type.name -> {
+                        val setProperties = setProperties(variable, fieldDefinition, propertyArguments(field))
+                        Cypher("MATCH ($variable:$label {${idProperty!!.name.quote()}:\$${paramName(variable, idProperty.name, properties.params[idProperty.name])}}) "+setProperties.query + returnStatement,
+                                (mapProjection.params + setProperties.params))
+                    }
+                    "delete"+type.name -> {
+                        val paramName = paramName(variable, idProperty!!.name, properties.params[idProperty.name]) // todo currently wrong, needs to be paramName
+                        Cypher("MATCH ($variable:$label {${idProperty.name.quote()}:\$$paramName}) " +
+                           "WITH $variable as toDelete, ${mapProjection.query} AS $variable $ordering$skipLimit DETACH DELETE toDelete RETURN $variable",
+                                (mapProjection.params + mapOf(paramName to properties.params[paramName])))
+                    }
+                    else -> throw IllegalArgumentException("Unknown Mutation "+name)
+                }
+            }
         }
     }
 
@@ -118,7 +140,12 @@ class Translator(val schema: GraphQLSchema) {
     private fun properties(variable: String, field: GraphQLFieldDefinition, arguments: List<Argument>) : Cypher {
         val all = preparePredicateArguments(field, arguments)
         return Cypher(all.map { (k,p, v) -> "${p.quote()}:\$${paramName(variable, k, v)}"}.joinToString(" , "," {","}") ,
-               all.map { (k,p,v) -> paramName(variable, k, v) to v }.toMap())
+               all.map { (k,_,v) -> paramName(variable, k, v) to v }.toMap())
+    }
+    private fun setProperties(variable: String, field: GraphQLFieldDefinition, arguments: List<Argument>) : Cypher {
+        val all = preparePredicateArguments(field, arguments)
+        return Cypher(all.map { (k,p, v) -> "${variable.quote()}.${p.quote()}=\$${paramName(variable, k, v)}"}.joinToString(","," SET "," ") ,
+               all.map { (k,_,v) -> paramName(variable, k, v) to v }.toMap())
     }
 
     data class CypherArgument(val name:String, val propertyName:String, val value:Any?)

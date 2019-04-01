@@ -14,6 +14,8 @@ class AugmentationTest {
         type Person2 { name: String, age: [Int] }
         type Person3 { name: String!}
         type Person4 { id:ID!, name: String}
+        type Person5 { id:ID!, movies:[Movie]}
+        type Movie { id:ID! }
     """)
 
     @Test
@@ -33,7 +35,7 @@ class AugmentationTest {
         augmentedSchema(ctx, typeFor("Person4")).let {
             assertEquals("createPerson4(id:ID!, name:String) : Person4 ",it.create)
             assertEquals("updatePerson4(id:ID!, name:String) : Person4 ",it.update)
-            assertEquals("deletePerson4(id:ID!) : Boolean ",it.delete)
+            assertEquals("deletePerson4(id:ID!) : Person4 ",it.delete)
             assertEquals("",it.query)
         }
 
@@ -101,6 +103,7 @@ class AugmentationTest {
         assertEquals("input _Person3Input { name:String } ", augmentedSchema(ctx, typeFor("Person3")).inputType)
         assertEquals("input _Person4Input { id:ID, name:String } ", augmentedSchema(ctx, typeFor("Person4")).inputType)
     }
+
     @Test
     fun testOrderings() {
         val ctx = Translator.Context(mutation = Translator.CRUDConfig(enabled = false), query = Translator.CRUDConfig(enabled = true, exclude = listOf("Person0")))
@@ -116,6 +119,35 @@ class AugmentationTest {
         assertEquals("enum _Person2Ordering { name_asc ,name_desc,age_asc ,age_desc } ", augmentedSchema(ctx, typeFor("Person2")).ordering)
         assertEquals("enum _Person3Ordering { name_asc ,name_desc } ", augmentedSchema(ctx, typeFor("Person3")).ordering)
         assertEquals("enum _Person4Ordering { id_asc ,id_desc,name_asc ,name_desc } ", augmentedSchema(ctx, typeFor("Person4")).ordering)
+    }
+
+    @Test
+    fun testMutations() {
+        val ctx = Translator.Context(mutation = Translator.CRUDConfig(enabled = true, exclude = listOf("Person0","Person1","Person2","Person3")), query = Translator.CRUDConfig(enabled = false))
+        assertEquals("",augmentedSchema(ctx, typeFor("Person0")).ordering)
+        assertEquals("",augmentedSchema(ctx, typeFor("Person1")).filterType)
+        assertEquals("",augmentedSchema(ctx, typeFor("Person2")).query)
+        assertEquals("",augmentedSchema(ctx, typeFor("Person3")).inputType)
+
+        augmentedSchema(ctx, typeFor("Person4")).let {
+            assertEquals("",it.ordering)
+            assertEquals("",it.filterType)
+            assertEquals("createPerson4(id:ID!, name:String) : Person4 ",it.create)
+            assertEquals("updatePerson4(id:ID!, name:String) : Person4 ",it.update)
+            assertEquals("deletePerson4(id:ID!) : Person4 ",it.delete)
+        }
+    }
+
+    @Test
+    fun testMutationForRelations() {
+        val ctx = Translator.Context(mutation = Translator.CRUDConfig(enabled = true, exclude = listOf("Person0","Person1","Person2","Person3", "Person4")), query = Translator.CRUDConfig(enabled = false))
+        augmentedSchema(ctx, typeFor("Person5")).let {
+            assertEquals("",it.ordering)
+            assertEquals("",it.filterType)
+            assertEquals("createPerson5(id:ID!) : Person5 ",it.create)
+            assertEquals("updatePerson5(id:ID!) : Person5 ",it.update)
+            assertEquals("deletePerson5(id:ID!) : Person5 ",it.delete)
+        }
     }
 
     private fun typeFor(name: String) = types.getType(name).get() as ObjectTypeDefinition
