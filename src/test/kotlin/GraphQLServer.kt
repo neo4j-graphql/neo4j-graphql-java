@@ -17,12 +17,12 @@ import java.math.BigInteger
 
 val schema = """
 type Person {
-  name: String
+  name: ID!
   born: Int
   actedIn: [Movie] @relation(name:"ACTED_IN")
 }
 type Movie {
-  title: String
+  title: ID!
   released: Int
   tagline: String
 }
