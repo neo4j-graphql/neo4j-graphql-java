@@ -88,7 +88,7 @@ schema {
     }
 
 
-    @Test @Ignore
+    @Test
     fun testTck() {
         TckTest(schema).testTck("cypher-directive-test.md", 0)
     }
