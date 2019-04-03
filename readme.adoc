@@ -2,6 +2,8 @@
 
 This is a beta GraphQL transpiler written in Kotlin.
 
+License: Apache 2.
+
 == How does it work
 
 This library
@@ -402,7 +404,7 @@ In our example it would be the `Role` type.
 
 [source,graphql]
 ----
-type Role @role(name:"ACTED_IN", start:"actor", end:"movie") {
+type Role @relation(name:"ACTED_IN", start:"actor", end:"movie") {
    actor: Person
    movie: Movie
    roles: [String]
