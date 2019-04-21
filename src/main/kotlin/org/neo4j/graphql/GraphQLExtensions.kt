@@ -10,15 +10,15 @@ fun GraphQLType.inner() : GraphQLType = when(this) {
 }
 val SCALAR_TYPES = listOf("String","ID","Boolean","Int","Float")
 
-fun Type.isScalar() = this.inner().name()?.let { SCALAR_TYPES.contains(it) } ?: false
-fun Type.name() : String? = if (this.inner() is TypeName) (this.inner() as TypeName).name else null
+fun Type<Type<*>>.isScalar() = this.inner().name()?.let { SCALAR_TYPES.contains(it) } ?: false
+fun Type<Type<*>>.name() : String? = if (this.inner() is TypeName) (this.inner() as TypeName).name else null
 
-fun Type.inner() : Type = when(this) {
+fun Type<Type<*>>.inner() : Type<Type<*>> = when(this) {
     is ListType -> this.type.inner()
     is NonNullType -> this.type.inner()
     else -> this
 }
-fun Type.render(nonNull:Boolean = true) : String = when(this) {
+fun Type<Type<*>>.render(nonNull:Boolean = true) : String = when(this) {
     is ListType -> "[${this.type.render()}]"
     is NonNullType -> this.type.render()+ (if (nonNull) "!" else "")
     is TypeName -> this.name
@@ -56,7 +56,7 @@ fun Directive.argumentString(name:String, schema:GraphQLSchema) : String {
             ?: throw IllegalStateException("No default value for ${this.name}.${name}")
 }
 
-fun Value.toCypherString(): String = when (this) {
+fun Value<Value<*>>.toCypherString(): String = when (this) {
     is StringValue -> "'"+this.value+"'"
     is EnumValue -> "'"+this.name+"'"
     is NullValue -> "null"
@@ -68,7 +68,7 @@ fun Value.toCypherString(): String = when (this) {
     else -> throw IllegalStateException("Unhandled value "+this)
 }
 
-fun Value.toJavaValue(): Any? = when (this) {
+fun Value<Value<*>>.toJavaValue(): Any? = when (this) {
     is StringValue -> this.value
     is EnumValue -> this.name
     is NullValue -> null

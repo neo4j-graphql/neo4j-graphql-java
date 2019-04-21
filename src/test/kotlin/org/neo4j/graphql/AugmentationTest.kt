@@ -46,15 +46,15 @@ class AugmentationTest {
         assertEquals("",augmentedSchema(ctx, typeFor("Person0")).query)
 
         augmentedSchema(ctx, typeFor("Person1")).let {
-            assertEquals("person1(name:String , _id: Int, filter:_Person1Filter, orderBy:_Person1Ordering, first:Int, offset:Int) : [Person1] ",it.query)
+            assertEquals("person1(name:String, _id: Int, filter:_Person1Filter, orderBy:_Person1Ordering, first:Int, offset:Int) : [Person1] ",it.query)
             assertEquals("",it.update)
             assertEquals("",it.delete)
             assertEquals("",it.create)
         }
 
-        assertEquals("person2(name:String, age:[Int] , _id: Int, filter:_Person2Filter, orderBy:_Person2Ordering, first:Int, offset:Int) : [Person2] ", augmentedSchema(ctx, typeFor("Person2")).query)
-        assertEquals("person3(name:String , _id: Int, filter:_Person3Filter, orderBy:_Person3Ordering, first:Int, offset:Int) : [Person3] ", augmentedSchema(ctx, typeFor("Person3")).query)
-        assertEquals("person4(id:ID, name:String , _id: Int, filter:_Person4Filter, orderBy:_Person4Ordering, first:Int, offset:Int) : [Person4] ", augmentedSchema(ctx, typeFor("Person4")).query)
+        assertEquals("person2(name:String, age:[Int], _id: Int, filter:_Person2Filter, orderBy:_Person2Ordering, first:Int, offset:Int) : [Person2] ", augmentedSchema(ctx, typeFor("Person2")).query)
+        assertEquals("person3(name:String, _id: Int, filter:_Person3Filter, orderBy:_Person3Ordering, first:Int, offset:Int) : [Person3] ", augmentedSchema(ctx, typeFor("Person3")).query)
+        assertEquals("person4(id:ID, name:String, _id: Int, filter:_Person4Filter, orderBy:_Person4Ordering, first:Int, offset:Int) : [Person4] ", augmentedSchema(ctx, typeFor("Person4")).query)
     }
 
     @Test

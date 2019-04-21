@@ -1,6 +1,6 @@
 package org.neo4j.graphql
 
-import org.antlr.v4.runtime.misc.ParseCancellationException
+import graphql.parser.InvalidSyntaxException
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -11,8 +11,8 @@ class TranslatorTest {
             """type Person {
                   name: String
                   age: Int
-                  livesIn : Location @relation(name:"LIVES_IN", direction:"OUT")
-                  livedIn : [Location] @relation(name:"LIVED_IN", direction:"OUT")
+                  livesIn : Location @relation(name:"LIVES_IN", direction: OUT)
+                  livedIn : [Location] @relation(name:"LIVED_IN", direction: OUT)
                   born : Birth
                   died : Death
                 }
@@ -28,7 +28,7 @@ class TranslatorTest {
                 }
                 type Location {
                    name: String
-                   founded: Person @relation(name:"FOUNDED", direction:"IN")
+                   founded: Person @relation(name:"FOUNDED", direction: IN)
                 }
                 # enum _PersonOrdering { name_asc, name_desc, age_asc, age_desc }
                 enum E { pi, e }
@@ -158,7 +158,15 @@ class TranslatorTest {
     @Test
     fun renderValues() {
         val query = "query(\$_param:String) { p:values(_param:\$_param) { age } }"
-        assertQuery(query, "MATCH (p:Person) WHERE p._param = \$_param AND p._string = \$p_string AND p._int = \$p_int AND p._float = \$p_float AND p._array = \$p_array AND p._enum = \$p_enum AND p._boolean = \$p_boolean RETURN p { .age } AS p",
+        //in new graphql args seem to be ordered alphabetically on schema creation
+        assertQuery(query, "MATCH (p:Person) WHERE p._param = \$_param " +
+                "AND p._array = \$p_array " +
+                "AND p._boolean = \$p_boolean " +
+                "AND p._enum = \$p_enum " +
+                "AND p._float = \$p_float " +
+                "AND p._int = \$p_int " +
+                "AND p._string = \$p_string " +
+                "RETURN p { .age } AS p",
                 mapOf("p_string" to "Joe","p_int" to 42, "p_float" to 3.14, "p_array" to listOf(1,2,3), "p_enum" to "pi","p_boolean" to false))
     }
 
@@ -203,7 +211,7 @@ class TranslatorTest {
         Translator(SchemaBuilder.buildSchema(schema)).translate(query)
     }
 
-    @Test(expected = ParseCancellationException::class)
+    @Test(expected = InvalidSyntaxException::class)
     fun mutation() {
         val query = " { createPerson() } "
         Translator(SchemaBuilder.buildSchema(schema)).translate(query)
