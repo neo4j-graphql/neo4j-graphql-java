@@ -176,7 +176,32 @@ class TranslatorTest {
             } }"""
         assertQuery(query, "MATCH (user:User) WHERE user.name = \$userName RETURN user { .name," +
                 "referredBy:[(user)-[userReferredBy:REFERRED_BY]->(userReferredByReferredBy:User) | userReferredBy { .referralDate,referredBy:userReferredByReferredBy { .name } }][0]," +
-                "referred:[(user)<-[userReferred:REFERRED_BY]-(userReferredReferredBy:User) | userReferred { .referralDate,user:userReferredReferredBy { .name } }] } AS user",
+                "referred:[(user)<-[userReferred:REFERRED_BY]-(userReferredUser:User) | userReferred { .referralDate,user:userReferredUser { .name } }] } AS user",
+                mapOf("userName" to "Jane"), schema)
+    }
+
+    @Test
+    fun relationWithSameTypes_changedDirection() {
+        val schema = """
+            type User {
+              name:String
+              referredBy: Referral @relation(direction: OUT)
+              referred:[Referral] @relation(direction: IN)
+            }
+            type Referral @relation (name:"REFERRED_BY", from:"referredBy", to: "user", direction: IN ) {
+              user:User
+              referredBy:User
+              referralDate:String
+            }
+            """
+        val query = """ {user(name:"Jane") {
+            name
+            referredBy { referralDate referredBy {name} }
+            referred { referralDate user {name} }
+            } }"""
+        assertQuery(query, "MATCH (user:User) WHERE user.name = \$userName RETURN user { .name," +
+                "referredBy:[(user)-[userReferredBy:REFERRED_BY]->(userReferredByReferredBy:User) | userReferredBy { .referralDate,referredBy:userReferredByReferredBy { .name } }][0]," +
+                "referred:[(user)<-[userReferred:REFERRED_BY]-(userReferredUser:User) | userReferred { .referralDate,user:userReferredUser { .name } }] } AS user",
                 mapOf("userName" to "Jane"), schema)
     }
 
