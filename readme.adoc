@@ -404,7 +404,7 @@ In our example it would be the `Role` type.
 
 [source,graphql]
 ----
-type Role @relation(name:"ACTED_IN", start:"actor", end:"movie") {
+type Role @relation(name:"ACTED_IN", from:"actor", to:"movie") {
    actor: Person
    movie: Movie
    roles: [String]
