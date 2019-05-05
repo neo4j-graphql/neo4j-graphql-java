@@ -8,7 +8,7 @@
     <artifactId>neo4j-graphql-java</artifactId>
     <name>Neo4j GraphQL Java</name>
     <description>GraphQL to Cypher Mapping</description>
-    <version>1.0.0-M02</version>
+    <version>1.0.0-M03</version>
     <url>http://github.com/neo4j-contrib/neo4j-tinkerpop-api</url>
 
     <licenses>
@@ -88,7 +88,7 @@
         <dependency>
             <groupId>com.graphql-java</groupId>
             <artifactId>graphql-java</artifactId>
-            <version>5.0</version>
+            <version>12.0</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

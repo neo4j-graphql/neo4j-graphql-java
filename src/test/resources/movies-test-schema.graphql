@@ -7,13 +7,13 @@ type Movie {
   plot: String
   poster: String
   imdbRating: Float
-  genres: [Genre] @relation(name: "IN_GENRE", direction: "OUT")
+  genres: [Genre] @relation(name: "IN_GENRE", direction: OUT)
   similar(first: Int = 3, offset: Int = 0): [Movie] @cypher(statement: "MATCH (this)--(:Genre)--(o:Movie) RETURN o")
   mostSimilar: Movie @cypher(statement: "RETURN this")
   degree: Int @cypher(statement: "RETURN SIZE((this)--())")
-  actors(first: Int = 3, offset: Int = 0, name: String): [Actor] @relation(name: "ACTED_IN", direction:"IN")
+  actors(first: Int = 3, offset: Int = 0, name: String): [Actor] @relation(name: "ACTED_IN", direction:IN)
   avgStars: Float
-  filmedIn: State @relation(name: "FILMED_IN", direction:"OUT")
+  filmedIn: State @relation(name: "FILMED_IN", direction: OUT)
   scaleRating(scale: Int = 3): Float @cypher(statement: "RETURN $scale * this.imdbRating")
   scaleRatingFloat(scale: Float = 1.5): Float @cypher(statement: "RETURN $scale * this.imdbRating")
   actorMovies: [Movie] @cypher(statement: "MATCH (this)-[:ACTED_IN*2]-(other:Movie) RETURN other")
@@ -22,7 +22,7 @@ type Movie {
 type Genre {
   _id: String!
   name: String
-  movies(first: Int = 3, offset: Int = 0): [Movie] @relation(name: "IN_GENRE", direction: "IN")
+  movies(first: Int = 3, offset: Int = 0): [Movie] @relation(name: "IN_GENRE", direction: IN)
   highestRatedMovie: Movie @cypher(statement: "MATCH (m:Movie)-[:IN_GENRE]->(this) RETURN m ORDER BY m.imdbRating DESC LIMIT 1")
 }
 type State {
@@ -36,7 +36,7 @@ type Actor # implements Person
 {
   userId: ID!
   name: String
-  movies: [Movie] @relation(name: "ACTED_IN", direction:"OUT")
+  movies: [Movie] @relation(name: "ACTED_IN", direction:OUT)
 }
 type User # implements Person
 {

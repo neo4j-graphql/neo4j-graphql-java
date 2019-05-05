@@ -197,7 +197,7 @@ enum class Operators(val suffix:String, val op:String, val not :Boolean = false)
                 else listOf(EQ, NEQ, IN, NIN,LT,LTE,GT,GTE) +
                         if (type == Scalars.GraphQLString || type == Scalars.GraphQLID) listOf(C,NC, SW, NSW,EW,NEW) else emptyList()
 
-        fun forType(type: Type) : List<Operators> =
+        fun forType(type: Type<Type<*>>) : List<Operators> =
                 if (type.name() == "Boolean") listOf(EQ, NEQ)
                 // todo list types
                 // todo proper enum + object types and reference types

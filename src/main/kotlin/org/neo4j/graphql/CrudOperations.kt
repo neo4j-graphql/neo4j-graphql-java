@@ -10,6 +10,7 @@ fun augmentedSchema(ctx: Translator.Context, type: ObjectTypeDefinition): Augmen
     val typeName = type.name
     val idField = type.fieldDefinitions.find { it.type.name() == "ID" }
     val scalarFields = type.fieldDefinitions.filter { it.type.isScalar() }.sortedByDescending { it == idField }
+    val has_idField = type.fieldDefinitions.find { it.name.equals("_id") } != null
     val idFieldArg = idField?.let { it.name + ":" + it.type.render() }
 
     val result = if (ctx.mutation.enabled && !ctx.mutation.exclude.contains(typeName) && scalarFields.isNotEmpty()) {
@@ -28,7 +29,7 @@ fun augmentedSchema(ctx: Translator.Context, type: ObjectTypeDefinition): Augmen
         result.copy(inputType = """input _${typeName}Input { $fieldArgs } """,
                 ordering = """enum _${typeName}Ordering { ${scalarFields.map { it.name + "_asc ," + it.name + "_desc" }.joinToString(",")} } """,
                 filterType = filterType(typeName, scalarFields), // TODO
-                query = """${typeName.decapitalize()}(${fieldArgs} , _id: Int, filter:_${typeName}Filter, orderBy:_${typeName}Ordering, first:Int, offset:Int) : [$typeName] """)
+                query = """${typeName.decapitalize()}(${fieldArgs}, ${if (has_idField) "" else "_id: Int, "}filter:_${typeName}Filter, orderBy:_${typeName}Ordering, first:Int, offset:Int) : [$typeName] """)
     } else result
 }
 

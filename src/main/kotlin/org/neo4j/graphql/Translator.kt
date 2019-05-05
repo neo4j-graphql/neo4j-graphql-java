@@ -1,17 +1,17 @@
 package org.neo4j.graphql
 
 import graphql.Scalars
-import graphql.introspection.Introspection
 import graphql.language.*
 import graphql.parser.Parser
-import graphql.schema.*
+import graphql.schema.GraphQLFieldDefinition
+import graphql.schema.GraphQLObjectType
+import graphql.schema.GraphQLSchema
+import graphql.schema.GraphQLType
 import graphql.schema.idl.RuntimeWiring
 import graphql.schema.idl.SchemaGenerator
 import graphql.schema.idl.SchemaParser
 import graphql.schema.idl.TypeDefinitionRegistry
 import org.antlr.v4.runtime.misc.ParseCancellationException
-import java.lang.RuntimeException
-import java.util.*
 
 class Translator(val schema: GraphQLSchema) {
     data class Context @JvmOverloads constructor(val topLevelWhere: Boolean = true,
@@ -359,74 +359,78 @@ class Translator(val schema: GraphQLSchema) {
 object SchemaBuilder {
     @JvmStatic fun buildSchema(sdl: String, ctx: Translator.Context = Translator.Context() ) : GraphQLSchema {
         val schemaParser = SchemaParser()
-        val typeDefinitionRegistry = augmentSchema(schemaParser.parse(sdl), schemaParser, ctx)
+        val baseTypeDefinitionRegistry = schemaParser.parse(sdl)
+        val augmentedTypeDefinitionRegistry = augmentSchema(baseTypeDefinitionRegistry, schemaParser, ctx)
 
         val runtimeWiring = RuntimeWiring.newRuntimeWiring()
-                .type("Query")
-                { it.dataFetcher("hello") { env -> "Hello ${env.getArgument<Any>("what")}!" } }
+                .type("Query") { it.dataFetcher("hello") { env -> "Hello ${env.getArgument<Any>("what")}!" } }
                 .build()
 
         val schemaGenerator = SchemaGenerator()
-        return schemaGenerator.makeExecutableSchema(typeDefinitionRegistry, runtimeWiring)
-                .transform { bc -> bc.additionalDirectives(additionalDirectives()).build() }
+        return schemaGenerator.makeExecutableSchema(augmentedTypeDefinitionRegistry, runtimeWiring)
                 .transform { sc -> sc.build() } // todo add new queries, filters, enums etc.
     }
 
-    private fun additionalDirectives(): Set<GraphQLDirective> {
-        val directives = setOf(
-                GraphQLDirective.newDirective().name("property").description("additional metadata per field")
-                        .argument{ b -> b.name("name").description("name of the graph property").type(Scalars.GraphQLString)}.build(),
-                GraphQLDirective("relation", "relation directive",
-                EnumSet.of(Introspection.DirectiveLocation.FIELD, Introspection.DirectiveLocation.OBJECT),
-                listOf(GraphQLArgument("name", Scalars.GraphQLString),
-                        GraphQLArgument("direction", "relationship direction", Scalars.GraphQLString, "OUT"),
-                        GraphQLArgument("from", "from field name", Scalars.GraphQLString, "from"),
-                        GraphQLArgument("to", "to field name", Scalars.GraphQLString, "to")), false, false, true))
-        return directives
-    }
-
     private fun augmentSchema(typeDefinitionRegistry: TypeDefinitionRegistry, schemaParser: SchemaParser, ctx: Translator.Context): TypeDefinitionRegistry {
+        val directivesSdl = """
+            enum RelationDirection {
+               IN
+               OUT
+            }
+            directive @relation(name:String, direction: RelationDirection = OUT, from: String = "from", to: String = "to") on FIELD_DEFINITION | OBJECT
+            directive @cypher(statement:String) on FIELD_DEFINITION
+            directive @property(name:String) on FIELD_DEFINITION
+        """
+        typeDefinitionRegistry.merge(schemaParser.parse(directivesSdl))
 
         val augmentations = typeDefinitionRegistry.types().values.filterIsInstance<ObjectTypeDefinition>().map { augmentedSchema(ctx, it) }
 
         val augmentedTypesSdl = augmentations.flatMap { listOf(it.filterType, it.ordering, it.inputType).filter { it.isNotBlank() } }.joinToString("\n")
         typeDefinitionRegistry.merge(schemaParser.parse(augmentedTypesSdl))
 
-        val schemaDefinition = typeDefinitionRegistry.schemaDefinition().orElseGet { SchemaDefinition() }
-        if (!typeDefinitionRegistry.schemaDefinition().isPresent) typeDefinitionRegistry.add(schemaDefinition).ifPresent { throw RuntimeException(it.toSpecification().toString()) }
+        val schemaDefinition = typeDefinitionRegistry.schemaDefinition().orElseGet { SchemaDefinition.newSchemaDefinition().build() }
+        val operations = schemaDefinition.operationTypeDefinitions
+                .associate { it.name to typeDefinitionRegistry.getType(it.typeName).orElseThrow({ RuntimeException("Could not find type: " + it.typeName) }) as ObjectTypeDefinition }
+                .toMap()
 
-        val operations = schemaDefinition.operationTypeDefinitions.associate { it.name to typeDefinitionRegistry.getType(it.type).get() as ObjectTypeDefinition }.toMap()
 
         val queryDefinition = operations.getOrElse("query") {
-            ObjectTypeDefinition("Query").also {
-                schemaDefinition.operationTypeDefinitions.add(OperationTypeDefinition("query", TypeName(it.name)))
-                typeDefinitionRegistry.add(it)
+            typeDefinitionRegistry.getType("Query", ObjectTypeDefinition::class.java).orElseGet {
+                ObjectTypeDefinition("Query").also { typeDefinitionRegistry.add(it) }
             }
         }
-        val mutationDefinition = operations.getOrElse("mutation") {
-                ObjectTypeDefinition("Mutation").also {
-                    schemaDefinition.operationTypeDefinitions.add(OperationTypeDefinition("mutation", TypeName(it.name)))
-                    typeDefinitionRegistry.add(it)
-            }
-        }
-        // todo better filter
         augmentations
-                .filter { it.query.isNotBlank() && queryDefinition.fieldDefinitions.none { fd -> it.query.startsWith(fd.name+"(") } }
+                .filter { it.query.isNotBlank() && queryDefinition.fieldDefinitions.none { fd -> it.query.startsWith(fd.name + "(") } }
                 .map { it.query }.let {
-            if (!it.isEmpty()) {
-                val newQueries = schemaParser.parse("type AugmentedQuery { ${it.joinToString("\n")} }").getType("AugmentedQuery").get() as ObjectTypeDefinition
-                queryDefinition.fieldDefinitions.addAll(newQueries.fieldDefinitions)
+                    if (!it.isEmpty()) {
+                        val newQueries = schemaParser.parse("type AugmentedQuery { ${it.joinToString("\n")} }").getType("AugmentedQuery").get() as ObjectTypeDefinition
+                        typeDefinitionRegistry.remove(queryDefinition)
+                        typeDefinitionRegistry.add(queryDefinition.transform { qdb -> newQueries.fieldDefinitions.forEach { qdb.fieldDefinition(it) } })
+                    }
+                }
+
+        val mutationDefinition = operations.getOrElse("mutation") {
+            typeDefinitionRegistry.getType("Mutation", ObjectTypeDefinition::class.java).orElseGet {
+                ObjectTypeDefinition("Mutation").also { typeDefinitionRegistry.add(it) }
             }
         }
-        augmentations
-                .flatMap { listOf(it.create,it.update,it.delete)
-                    .filter{ it.isNotBlank() && mutationDefinition.fieldDefinitions.none { fd -> it.startsWith(fd.name+"(") } }}
+        augmentations.flatMap {listOf(it.create, it.update, it.delete)
+                .filter { it.isNotBlank() && mutationDefinition.fieldDefinitions.none { fd -> it.startsWith(fd.name + "(") } }}
                 .let {
-            if (!it.isEmpty()) {
-                val newQueries = schemaParser.parse("type AugmentedMutation { ${it.joinToString("\n")} }").getType("AugmentedMutation").get() as ObjectTypeDefinition
-                mutationDefinition.fieldDefinitions.addAll(newQueries.fieldDefinitions)
-            }
+                    if (!it.isEmpty()) {
+                        val newQueries = schemaParser.parse("type AugmentedMutation { ${it.joinToString("\n")} }").getType("AugmentedMutation").get() as ObjectTypeDefinition
+                        typeDefinitionRegistry.remove(mutationDefinition)
+                        typeDefinitionRegistry.add(mutationDefinition.transform { mdb -> newQueries.fieldDefinitions.forEach { mdb.fieldDefinition(it) } })
+                    }
+                }
+
+        val newSchemaDef = schemaDefinition.transform {
+            it.operationTypeDefinition(OperationTypeDefinition("query", TypeName(queryDefinition.name)))
+                    .operationTypeDefinition(OperationTypeDefinition("mutation", TypeName(mutationDefinition.name))).build()
         }
+
+        typeDefinitionRegistry.remove(schemaDefinition)
+        typeDefinitionRegistry.add(newSchemaDef)
 
         return typeDefinitionRegistry
     }
