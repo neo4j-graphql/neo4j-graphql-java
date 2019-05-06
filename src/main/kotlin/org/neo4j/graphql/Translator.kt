@@ -41,7 +41,7 @@ class Translator(val schema: GraphQLSchema) {
         val queryType = schema.queryType.fieldDefinitions.filter { it.name == name }.firstOrNull()
         val mutationType = schema.mutationType.fieldDefinitions.filter { it.name == name }.firstOrNull()
         val fieldDefinition = queryType ?: mutationType
-            ?: throw IllegalArgumentException("Unknown Query $name available queries: " + schema.queryType.fieldDefinitions.map { it.name }.joinToString())
+            ?: throw IllegalArgumentException("Unknown Query $name available queries: " + (schema.queryType.fieldDefinitions + schema.mutationType.fieldDefinitions).map { it.name }.joinToString())
         val isQuery = queryType != null
         val returnType = fieldDefinition.type.inner()
 //        println(returnType)
@@ -66,9 +66,15 @@ class Translator(val schema: GraphQLSchema) {
                 // todo extract method or better object
                 val properties = properties(variable, fieldDefinition, propertyArguments(field))
                 val idProperty = fieldDefinition.arguments.find { it.type.inner() == Scalars.GraphQLID }
-                val returnStatement = " WITH $variable RETURN ${mapProjection.query} AS $variable$ordering$skipLimit";
+                val returnStatement = "WITH $variable RETURN ${mapProjection.query} AS $variable$ordering$skipLimit";
                 return when (name) {
-                    "create"+type.name -> Cypher("CREATE ($variable:$label${properties.query})"+returnStatement, (mapProjection.params + properties.params))
+                    "create"+type.name -> Cypher("CREATE ($variable:$label${properties.query}) "+returnStatement, (mapProjection.params + properties.params))
+                    "merge"+type.name -> {
+                        val setProperties = setProperties(variable, fieldDefinition, propertyArguments(field), listOf(idProperty!!.name))
+                        Cypher("MERGE ($variable:$label {${idProperty!!.name.quote()}:\$${paramName(variable, idProperty.name, properties.params[idProperty.name])}})"
+                                + setProperties.query + returnStatement,
+                                (mapProjection.params + properties.params))
+                    }
                     "update"+type.name -> {
                         val setProperties = setProperties(variable, fieldDefinition, propertyArguments(field))
                         Cypher("MATCH ($variable:$label {${idProperty!!.name.quote()}:\$${paramName(variable, idProperty.name, properties.params[idProperty.name])}}) "+setProperties.query + returnStatement,
@@ -139,8 +145,13 @@ class Translator(val schema: GraphQLSchema) {
         return Cypher(all.map { (k,p, v) -> "${p.quote()}:\$${paramName(variable, k, v)}"}.joinToString(" , "," {","}") ,
                all.map { (k,_,v) -> paramName(variable, k, v) to v }.toMap())
     }
-    private fun setProperties(variable: String, field: GraphQLFieldDefinition, arguments: List<Argument>) : Cypher {
-        val all = preparePredicateArguments(field, arguments)
+    private fun setProperties(variable: String, field: GraphQLFieldDefinition, arguments: List<Argument>,
+                              excludeProperties: List<String> = emptyList()) : Cypher {
+        val all = if (excludeProperties.isNotEmpty()) {
+            preparePredicateArguments(field, arguments).filter { !excludeProperties.contains(it.name) }
+        } else {
+            preparePredicateArguments(field, arguments)
+        }
         return Cypher(all.map { (k,p, v) -> "${variable.quote()}.${p.quote()}=\$${paramName(variable, k, v)}"}.joinToString(","," SET "," ") ,
                all.map { (k,_,v) -> paramName(variable, k, v) to v }.toMap())
     }
@@ -417,7 +428,7 @@ object SchemaBuilder {
                 ObjectTypeDefinition("Mutation").also { typeDefinitionRegistry.add(it) }
             }
         }
-        augmentations.flatMap {listOf(it.create, it.update, it.delete)
+        augmentations.flatMap {listOf(it.create, it.update, it.delete, it.merge)
                 .filter { it.isNotBlank() && mutationDefinition.fieldDefinitions.none { fd -> it.startsWith(fd.name + "(") } }}
                 .let {
                     if (!it.isEmpty()) {

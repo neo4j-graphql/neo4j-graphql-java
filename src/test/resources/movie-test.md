@@ -339,3 +339,23 @@ RETURN movie { .title,actors:[(movie)<-[:ACTED_IN]-(movieActors:Actor) |
                  IN apoc.cypher.runFirstColumnMany('WITH $this AS this,$first AS first,$offset AS offset MATCH (this)--(:Genre)--(o:Movie) RETURN o',{this:movieActorsMoviesActorsMovies,first:$movieActorsMoviesActorsMoviesFirst,offset:$movieActorsMoviesActorsMoviesOffset}) | 
                    movieActorsMoviesActorsMoviesSimilar { .title,.year }][0..3] }] }] }] }] } AS movie
 ```
+
+### Should merge an actor by the userId
+
+```graphql
+mutation {
+  actor: mergeActor(userId: "1", name: "Andrea") {
+    name
+  }
+}
+```
+
+```params
+{"actorUserId": "1", "actorName": "Andrea"}
+```
+
+```cypher
+MERGE (actor:Actor {userId:$actorUserId}) SET actor.name=$actorName
+WITH actor
+RETURN actor { .name } AS actor
+```

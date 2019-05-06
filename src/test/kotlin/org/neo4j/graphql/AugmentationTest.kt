@@ -23,8 +23,10 @@ class AugmentationTest {
         val ctx = Translator.Context(query = Translator.CRUDConfig(enabled = false), mutation = Translator.CRUDConfig(enabled = true, exclude = listOf("Person0")))
         assertEquals("",augmentedSchema(ctx, typeFor("Person0")).create)
 
+        // TODO a.s why merge and update are empty?
         augmentedSchema(ctx, typeFor("Person1")).let {
             assertEquals("createPerson1(name:String) : Person1 ",it.create)
+            assertEquals("",it.merge)
             assertEquals("",it.update)
             assertEquals("",it.delete)
             assertEquals("",it.query)
@@ -34,6 +36,7 @@ class AugmentationTest {
         assertEquals("createPerson3(name:String!) : Person3 ", augmentedSchema(ctx, typeFor("Person3")).create)
         augmentedSchema(ctx, typeFor("Person4")).let {
             assertEquals("createPerson4(id:ID!, name:String) : Person4 ",it.create)
+            assertEquals("mergePerson4(id:ID!, name:String) : Person4 ",it.merge)
             assertEquals("updatePerson4(id:ID!, name:String) : Person4 ",it.update)
             assertEquals("deletePerson4(id:ID!) : Person4 ",it.delete)
             assertEquals("",it.query)
@@ -47,6 +50,7 @@ class AugmentationTest {
 
         augmentedSchema(ctx, typeFor("Person1")).let {
             assertEquals("person1(name:String, _id: Int, filter:_Person1Filter, orderBy:_Person1Ordering, first:Int, offset:Int) : [Person1] ",it.query)
+            assertEquals("",it.merge)
             assertEquals("",it.update)
             assertEquals("",it.delete)
             assertEquals("",it.create)
@@ -66,6 +70,7 @@ class AugmentationTest {
             assertEquals("input _Person1Filter { AND:[_Person1Filter!], OR:[_Person1Filter!], NOT:[_Person1Filter!], name:String, name_not:String, name_in:String, " +
                     "name_not_in:String, name_lt:String, name_lte:String, name_gt:String, name_gte:String, name_contains:String, name_not_contains:String, " +
                     "name_starts_with:String, name_not_starts_with:String, name_ends_with:String, name_not_ends_with:String } ",it.filterType)
+            assertEquals("",it.merge)
             assertEquals("",it.update)
             assertEquals("",it.delete)
             assertEquals("",it.create)
@@ -94,6 +99,7 @@ class AugmentationTest {
 
         augmentedSchema(ctx, typeFor("Person1")).let {
             assertEquals("input _Person1Input { name:String } ",it.inputType)
+            assertEquals("",it.merge)
             assertEquals("",it.update)
             assertEquals("",it.delete)
             assertEquals("",it.create)
@@ -111,6 +117,7 @@ class AugmentationTest {
 
         augmentedSchema(ctx, typeFor("Person1")).let {
             assertEquals("enum _Person1Ordering { name_asc ,name_desc } ",it.ordering)
+            assertEquals("",it.merge)
             assertEquals("",it.update)
             assertEquals("",it.delete)
             assertEquals("",it.create)
@@ -133,6 +140,7 @@ class AugmentationTest {
             assertEquals("",it.ordering)
             assertEquals("",it.filterType)
             assertEquals("createPerson4(id:ID!, name:String) : Person4 ",it.create)
+            assertEquals("mergePerson4(id:ID!, name:String) : Person4 ",it.merge)
             assertEquals("updatePerson4(id:ID!, name:String) : Person4 ",it.update)
             assertEquals("deletePerson4(id:ID!) : Person4 ",it.delete)
         }
@@ -145,6 +153,7 @@ class AugmentationTest {
             assertEquals("",it.ordering)
             assertEquals("",it.filterType)
             assertEquals("createPerson5(id:ID!) : Person5 ",it.create)
+            assertEquals("mergePerson5(id:ID!) : Person5 ",it.merge)
             assertEquals("updatePerson5(id:ID!) : Person5 ",it.update)
             assertEquals("deletePerson5(id:ID!) : Person5 ",it.delete)
         }
