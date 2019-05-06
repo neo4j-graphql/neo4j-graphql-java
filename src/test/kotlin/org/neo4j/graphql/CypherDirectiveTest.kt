@@ -15,7 +15,10 @@ type Person {
     id: ID
     name: String @cypher(statement:"RETURN this.name")
     age(mult:Int=13) : [Int] @cypher(statement:"RETURN this.age * mult as age")
-    friends: [Person] @cypher(statement:"MATCH (this)-[:KNOWS]-(o) RETURN o")
+    friends: [Person] @cypher(statement:""${'"'}
+    MATCH (this)-[:KNOWS]-(o)
+    RETURN o
+    ""${'"'})
 }
 type Query {
     person : [Person]
@@ -41,7 +44,9 @@ schema {
 
     @Test
     fun renderCypherFieldDirectiveNested() {
-        val expected = """MATCH (person:Person) RETURN person { friends:[personFriends IN apoc.cypher.runFirstColumnMany('WITH ${"$"}this AS this MATCH (this)-[:KNOWS]-(o) RETURN o',{this:person}) | personFriends { .id }] } AS person"""
+        val expected = """MATCH (person:Person) RETURN person { friends:[personFriends IN apoc.cypher.runFirstColumnMany('WITH ${"$"}this AS this  MATCH (this)-[:KNOWS]-(o)
+            | RETURN o
+            | ',{this:person}) | personFriends { .id }] } AS person""".trimMargin()
         val query = """{ person { friends { id } }}"""
         assertQuery(query, expected, emptyMap())
     }
