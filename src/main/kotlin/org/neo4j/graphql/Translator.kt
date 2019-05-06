@@ -271,7 +271,11 @@ class Translator(val schema: GraphQLSchema) {
                 ?: throw IllegalStateException("Field $field needs an @relation directive")
 
         var relInfo = relDetails(fieldObjectType, relDirective)
-        val inverse = isRelFromType && fieldObjectType.getFieldDefinition(relInfo.startField).type.inner().name != parent.name
+        val fieldRelationDirection = fieldDefinition.getDirective("relation")?.getArgument("direction")?.value?:"OUT"
+        val relationDirection = relDirective.getArgument("direction")?.value?.let {(it as EnumValue).name}?:"OUT"
+        val inverse = isRelFromType && ((fieldObjectType.getFieldDefinition(relInfo.startField).type.inner().name != parent.name) ||
+                (fieldObjectType.getFieldDefinition(relInfo.startField).type == fieldObjectType.getFieldDefinition(relInfo.endField).type &&
+                        fieldRelationDirection != relationDirection))
         if (inverse) relInfo = relInfo.copy(out = relInfo.out?.let { !it }, startField = relInfo.endField, endField = relInfo.startField)
 
         val (inArrow, outArrow) = relInfo.arrows
