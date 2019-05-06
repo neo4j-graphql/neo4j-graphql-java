@@ -27,7 +27,7 @@ fun Type<Type<*>>.render(nonNull:Boolean = true) : String = when(this) {
 
 fun GraphQLType.isList() = this is GraphQLList || (this is GraphQLNonNull && this.wrappedType is GraphQLList)
 fun GraphQLType.isScalar() = this.inner().let { it is GraphQLScalarType || it.name.startsWith("_Neo4j") }
-fun GraphQLType.isRelationship() = this.inner().let { it is GraphQLObjectType } // && relationship directive
+fun GraphQLType.isRelationship() = this.inner().let { it is GraphQLObjectType }
 
 fun GraphQLObjectType.hasRelationship(name:String) = this.getFieldDefinition(name)?.isRelationship() ?: false
 fun GraphQLFieldDefinition.isRelationship() = this.type.isRelationship()
@@ -50,9 +50,10 @@ fun String.isJavaIdentifier() =
         this[0].isJavaIdentifierStart() &&
                 this.substring(1).all { it.isJavaIdentifierPart() }
 
-fun Directive.argumentString(name:String, schema:GraphQLSchema) : String {
+fun Directive.argumentString(name:String, schema:GraphQLSchema, defaultValue: String? = null) : String {
     return this.getArgument(name)?.value?.toJavaValue()?.toString()
             ?: schema.getDirective(this.name).getArgument(name)?.defaultValue?.toString()
+            ?: defaultValue
             ?: throw IllegalStateException("No default value for ${this.name}.${name}")
 }
 

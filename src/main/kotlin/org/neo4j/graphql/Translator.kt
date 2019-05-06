@@ -3,10 +3,7 @@ package org.neo4j.graphql
 import graphql.Scalars
 import graphql.language.*
 import graphql.parser.Parser
-import graphql.schema.GraphQLFieldDefinition
-import graphql.schema.GraphQLObjectType
-import graphql.schema.GraphQLSchema
-import graphql.schema.GraphQLType
+import graphql.schema.*
 import graphql.schema.idl.RuntimeWiring
 import graphql.schema.idl.SchemaGenerator
 import graphql.schema.idl.SchemaParser
@@ -52,7 +49,7 @@ class Translator(val schema: GraphQLSchema) {
         val label = type.name.quote()
         val variable = field.aliasOrName().decapitalize()
         val cypherDirective = fieldDefinition.cypherDirective()
-        val mapProjection = projectFields(variable, field, type, ctx)
+        val mapProjection = projectFields(variable, field, type, ctx,null)
         val skipLimit = format(skipLimit(field.arguments))
         val ordering = orderBy(variable, field.arguments)
         if (cypherDirective != null) {
@@ -167,14 +164,14 @@ class Translator(val schema: GraphQLSchema) {
         return predicates.values + defaults
     }
 
-    private fun projectFields(variable: String, field: Field, type: GraphQLType, ctx: Context): Cypher {
+    private fun projectFields(variable: String, field: Field, type: GraphQLType, ctx: Context,variableSuffix: String?): Cypher {
         // todo handle non-object case
         val objectType = type as GraphQLObjectType
         val properties = field.selectionSet.selections.flatMap {
             when (it) {
-                is Field -> listOf(projectField(variable, it, objectType, ctx))
-                is InlineFragment -> projectInlineFragment(variable, it, objectType, ctx)
-                is FragmentSpread -> projectNamedFragments(variable, it, objectType, ctx)
+                is Field -> listOf(projectField(variable, it, objectType, ctx, variableSuffix))
+                is InlineFragment -> projectInlineFragment(variable, it, objectType, ctx,variableSuffix)
+                is FragmentSpread -> projectNamedFragments(variable, it, objectType, ctx,variableSuffix)
                 else -> emptyList()
             }
         }
@@ -184,20 +181,20 @@ class Translator(val schema: GraphQLSchema) {
         return Cypher("$variable $projection",params)
     }
 
-    private fun projectField(variable: String, field: Field, type: GraphQLObjectType, ctx:Context) : Cypher {
+    private fun projectField(variable: String, field: Field, type: GraphQLObjectType, ctx:Context, variableSuffix: String?) : Cypher {
         val fieldDefinition = type.getFieldDefinition(field.name) ?: throw IllegalStateException("No field ${field.name} in ${type.name}")
         val cypherDirective = fieldDefinition.cypherDirective()
         val isObjectField = fieldDefinition.type.inner() is GraphQLObjectType
         return cypherDirective?.let {
             val directive = cypherDirective(variable, fieldDefinition, field, it, listOf(CypherArgument("this", "this", variable)))
             if (isObjectField) {
-                val patternComprehensions = projectListComprehension(variable, field, fieldDefinition, ctx,directive)
+                val patternComprehensions = projectListComprehension(variable, field, fieldDefinition, ctx,directive,variableSuffix)
                 Cypher(field.aliasOrName() + ":" + patternComprehensions.query, patternComprehensions.params)
             } else
             Cypher(field.aliasOrName() +":"  + directive.query, directive.params)
 
         } ?: if (isObjectField) {
-                val patternComprehensions = projectRelationship(variable, field, fieldDefinition, type, ctx)
+                val patternComprehensions = projectRelationship(variable, field, fieldDefinition, type, ctx, variableSuffix)
                 Cypher(field.aliasOrName() + ":" + patternComprehensions.query, patternComprehensions.params)
             } else
                 if (field.aliasOrName() == field.propertyName(fieldDefinition))
@@ -220,41 +217,41 @@ class Translator(val schema: GraphQLSchema) {
         return Cypher("'$query',$argString", args.filter { it.name != "this" }.associate { paramName(variable, it.name, it.value) to it.value })
     }
 
-    fun projectNamedFragments(variable: String, fragmentSpread: FragmentSpread, type: GraphQLObjectType, ctx: Context) =
+    fun projectNamedFragments(variable: String, fragmentSpread: FragmentSpread, type: GraphQLObjectType, ctx: Context,variableSuffix: String?) =
             ctx.fragments.getValue(fragmentSpread.name).let {
-                projectFragment(it.typeCondition.name, type, variable, ctx, it.selectionSet)
+                projectFragment(it.typeCondition.name, type, variable, ctx, variableSuffix, it.selectionSet)
             }
 
-    private fun projectFragment(fragmentTypeName: String?, type: GraphQLObjectType, variable: String, ctx: Context, selectionSet: SelectionSet): List<Cypher> {
+    private fun projectFragment(fragmentTypeName: String?, type: GraphQLObjectType, variable: String, ctx: Context,variableSuffix: String?, selectionSet: SelectionSet): List<Cypher> {
         val fragmentType = schema.getType(fragmentTypeName)!! as GraphQLObjectType
         if (fragmentType == type) {
             // these are the nested fields of the fragment
             // it could be that we have to adapt the variable name too, and perhaps add some kind of rename
-            return selectionSet.selections.filterIsInstance<Field>().map { projectField(variable, it, fragmentType, ctx) }
+            return selectionSet.selections.filterIsInstance<Field>().map { projectField(variable, it, fragmentType, ctx, variableSuffix) }
         } else {
             return emptyList()
         }
     }
 
-    fun projectInlineFragment(variable: String, fragment: InlineFragment, type: GraphQLObjectType, ctx: Context) =
-            projectFragment(fragment.typeCondition.name, type, variable, ctx, fragment.selectionSet)
+    fun projectInlineFragment(variable: String, fragment: InlineFragment, type: GraphQLObjectType, ctx: Context,variableSuffix: String?) =
+            projectFragment(fragment.typeCondition.name, type, variable, ctx, variableSuffix, fragment.selectionSet)
 
 
-    private fun projectRelationship(variable: String, field: Field, fieldDefinition: GraphQLFieldDefinition, parent: GraphQLObjectType, ctx: Context): Cypher {
+    private fun projectRelationship(variable: String, field: Field, fieldDefinition: GraphQLFieldDefinition, parent: GraphQLObjectType, ctx: Context,variableSuffix: String?): Cypher {
         val parentIsRelationship = parent.definition.directivesByName.containsKey("relation")
         return when (parentIsRelationship) {
-            true -> projectRelationshipParent(variable, field, fieldDefinition, parent, ctx)
+            true -> projectRelationshipParent(variable, field, fieldDefinition, parent, ctx, variableSuffix)
             else -> projectRichAndRegularRelationship(variable, field, fieldDefinition, parent, ctx)
         }
     }
 
-    private fun projectListComprehension(variable: String, field: Field, fieldDefinition: GraphQLFieldDefinition, ctx: Context, expression:Cypher): Cypher {
+    private fun projectListComprehension(variable: String, field: Field, fieldDefinition: GraphQLFieldDefinition, ctx: Context, expression:Cypher, variableSuffix: String?): Cypher {
         val fieldType = fieldDefinition.type
         val fieldObjectType = fieldType.inner() as GraphQLObjectType
         val childVariable = variable + field.name.capitalize()
 
         // val where = where(childVariable, fieldDefinition, fieldObjectType, propertyArguments(field))
-        val fieldProjection = projectFields(childVariable, field, fieldObjectType, ctx)
+        val fieldProjection = projectFields(childVariable, field, fieldObjectType, ctx, variableSuffix)
 
         val comprehension = "[$childVariable IN ${expression.query} | ${fieldProjection.query}]"
         val skipLimit = skipLimit(field.arguments)
@@ -266,34 +263,32 @@ class Translator(val schema: GraphQLSchema) {
         val fieldType = fieldDefinition.type
         val fieldObjectType = fieldType.inner() as GraphQLObjectType
         // todo combine both nestings if rel-entity
-        val (relDirective, isRelFromType) = fieldObjectType.definition.getDirective("relation")?.let { it to true }
-                ?: fieldDefinition.definition.getDirective("relation")?.let { it to false }
+        val relDirectiveObject = fieldObjectType.definition.getDirective("relation")?.let { relDetails(fieldObjectType, it) }
+        val relDirectiveField = fieldDefinition.definition.getDirective("relation")?.let { relDetails(fieldObjectType, it) }
+
+        val (relInfo0, isRelFromType) =
+                relDirectiveObject?.let { it to true }
+                ?: relDirectiveField?.let { it to false }
                 ?: throw IllegalStateException("Field $field needs an @relation directive")
 
-        var relInfo = relDetails(fieldObjectType, relDirective)
-        val fieldRelationDirection = fieldDefinition.getDirective("relation")?.getArgument("direction")?.value?:"OUT"
-        val relationDirection = relDirective.getArgument("direction")?.value?.let {(it as EnumValue).name}?:"OUT"
-        val inverse = isRelFromType && ((fieldObjectType.getFieldDefinition(relInfo.startField).type.inner().name != parent.name) ||
-                (fieldObjectType.getFieldDefinition(relInfo.startField).type == fieldObjectType.getFieldDefinition(relInfo.endField).type &&
-                        fieldRelationDirection != relationDirection))
-        if (inverse) relInfo = relInfo.copy(out = relInfo.out?.let { !it }, startField = relInfo.endField, endField = relInfo.startField)
+        val relInfo = if (isRelFromType) relationshipInfoInCorrectDirection(fieldObjectType, relInfo0, parent, relDirectiveField) else relInfo0
 
         val (inArrow, outArrow) = relInfo.arrows
 
         val childVariable = variable + field.name.capitalize()
 
-        val endNodePattern = when {
+        val (endNodePattern,variableSuffix) = when {
             isRelFromType -> {
                 val label = fieldObjectType.getFieldDefinition(relInfo.endField!!).type.inner().name
-                "$childVariable${relInfo.endField!!.capitalize()}:$label"
+                ("$childVariable${relInfo.endField.capitalize()}:$label" to relInfo.endField)
             }
-            else -> "$childVariable:${fieldObjectType.name}"
+            else -> ("$childVariable:${fieldObjectType.name}" to null)
         }
 
         val relPattern = if (isRelFromType) "$childVariable:${relInfo.type}" else ":${relInfo.type}"
 
         val where = where(childVariable, fieldDefinition, fieldObjectType, propertyArguments(field))
-        val fieldProjection = projectFields(childVariable, field, fieldObjectType, ctx)
+        val fieldProjection = projectFields(childVariable, field, fieldObjectType, ctx, variableSuffix)
 
         val comprehension = "[($variable)$inArrow-[$relPattern]-$outArrow($endNodePattern)${where.query} | ${fieldProjection.query}]"
         val skipLimit = skipLimit(field.arguments)
@@ -301,16 +296,19 @@ class Translator(val schema: GraphQLSchema) {
         return Cypher(comprehension + slice, (where.params + fieldProjection.params))
     }
 
-    private fun projectRelationshipParent(variable: String, field: Field, fieldDefinition: GraphQLFieldDefinition, parent: GraphQLObjectType, ctx: Context): Cypher {
+    private fun relationshipInfoInCorrectDirection(fieldObjectType: GraphQLObjectType, relInfo0: RelationshipInfo, parent: GraphQLObjectType, relDirectiveField: RelationshipInfo?): RelationshipInfo {
+        val startField = fieldObjectType.getFieldDefinition(relInfo0.startField)
+        val endField = fieldObjectType.getFieldDefinition(relInfo0.endField)
+        val startFieldTypeName = startField.type.inner().name
+        val inverse = startFieldTypeName != parent.name || startField.type == endField.type && relDirectiveField?.out != relInfo0.out
+        return if (inverse) relInfo0.copy(out = relInfo0.out?.not(), startField = relInfo0.endField, endField = relInfo0.startField) else relInfo0
+    }
+
+    private fun projectRelationshipParent(variable: String, field: Field, fieldDefinition: GraphQLFieldDefinition, parent: GraphQLObjectType, ctx: Context, variableSuffix: String?): Cypher {
         val fieldType = fieldDefinition.type
         val fieldObjectType = fieldType.inner() as GraphQLObjectType
-        val relDirective = parent.definition.directivesByName.getValue("relation")
-        var relInfo = relDetails(fieldObjectType, relDirective)
 
-        val inverse = parent.getFieldDefinition(relInfo.endField!!).type.inner().name != fieldObjectType.name
-        if (inverse) relInfo = relInfo.copy(out = relInfo.out?.let { !it }, startField = relInfo.endField, endField = relInfo.startField)
-
-        val fieldProjection = projectFields(variable + relInfo.endField!!.capitalize(), field, fieldObjectType, ctx)
+        val fieldProjection = projectFields(variable + variableSuffix!!.capitalize(), field, fieldObjectType, ctx, variableSuffix)
 
         return Cypher(fieldProjection.query)
     }
@@ -380,6 +378,7 @@ object SchemaBuilder {
             enum RelationDirection {
                IN
                OUT
+               BOTH
             }
             directive @relation(name:String, direction: RelationDirection = OUT, from: String = "from", to: String = "to") on FIELD_DEFINITION | OBJECT
             directive @cypher(statement:String) on FIELD_DEFINITION

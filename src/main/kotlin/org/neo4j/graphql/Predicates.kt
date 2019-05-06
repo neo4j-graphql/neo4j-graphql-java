@@ -69,7 +69,7 @@ fun GraphQLObjectType.relationshipFor(name:String, schema: GraphQLSchema) : Rela
 }
 
 fun relDetails(source: GraphQLObjectType, relDirective: Directive, schema: GraphQLSchema): RelationshipInfo {
-    val relType = relDirective.argumentString("name", schema)
+    val relType = relDirective.argumentString("name", schema,"")
     val outgoing =  when (relDirective.argumentString("direction", schema)) {
         "IN" -> false
         "BOTH" -> null

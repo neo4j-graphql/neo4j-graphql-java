@@ -290,7 +290,7 @@ So you can use different domain names in your GraphQL fields that are independen
 ----
 type Person {
   name : String
-  actedIn: [Movie] @relation(name:"ACTED_IN", direction:"OUT")
+  actedIn: [Movie] @relation(name:"ACTED_IN", direction:OUT)
 }
 ----
 
