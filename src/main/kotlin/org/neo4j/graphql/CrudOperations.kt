@@ -3,7 +3,7 @@ package org.neo4j.graphql
 import graphql.language.FieldDefinition
 import graphql.language.ObjectTypeDefinition
 
-data class Augmentation(val create: String = "", val update: String = "", val delete: String = "",
+data class Augmentation(val create: String = "", val merge: String = "", val update: String = "", val delete: String = "",
                         val inputType: String = "", val ordering: String = "", val filterType: String = "", val query: String = "")
 
 fun augmentedSchema(ctx: Translator.Context, type: ObjectTypeDefinition): Augmentation {
@@ -19,6 +19,7 @@ fun augmentedSchema(ctx: Translator.Context, type: ObjectTypeDefinition): Augmen
                 .let { aug ->
                     if (idField != null) aug.copy(
                             delete = """delete$typeName($idFieldArg) : $typeName """,
+                            merge = """merge$typeName($fieldArgs) : $typeName """,
                             update = """update$typeName($fieldArgs) : $typeName """)
                     else aug
                 }
