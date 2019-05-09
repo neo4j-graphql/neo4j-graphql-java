@@ -20,11 +20,15 @@ type Movie {
   MATCH (this)-[:ACTED_IN*2]-(other:Movie)
   RETURN other
   """)
+  publishedBy: Publisher @relation(name: "PUBLISHED_BY", direction: OUT)
   ratings: [Rated]
+}
+type Publisher {
+  name: ID!
 }
 type Genre {
   _id: String!
-  name: String
+  name: ID!
   movies(first: Int = 3, offset: Int = 0): [Movie] @relation(name: "IN_GENRE", direction: IN)
   highestRatedMovie: Movie @cypher(statement: "MATCH (m:Movie)-[:IN_GENRE]->(this) RETURN m ORDER BY m.imdbRating DESC LIMIT 1")
 }
@@ -47,6 +51,7 @@ type User # implements Person
   name: String
   rated(rating: Int): [Rated]
   friends(since: Int): [FriendOf]
+  knows: [User] @relation(name: "KNOWS", direction:OUT)
 }
 type FriendOf {
   from: User

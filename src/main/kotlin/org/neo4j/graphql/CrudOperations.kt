@@ -1,12 +1,13 @@
 package org.neo4j.graphql
 
 import graphql.language.FieldDefinition
+import graphql.language.ListType
 import graphql.language.ObjectTypeDefinition
 
 data class Augmentation(val create: String = "", val merge: String = "", val update: String = "", val delete: String = "",
                         val inputType: String = "", val ordering: String = "", val filterType: String = "", val query: String = "")
 
-fun augmentedSchema(ctx: Translator.Context, type: ObjectTypeDefinition): Augmentation {
+fun createNodeMutation(ctx: Translator.Context, type: ObjectTypeDefinition): Augmentation {
     val typeName = type.name
     val idField = type.fieldDefinitions.find { it.type.name() == "ID" }
     val scalarFields = type.fieldDefinitions.filter { it.type.isScalar() }.sortedByDescending { it == idField }
@@ -32,6 +33,25 @@ fun augmentedSchema(ctx: Translator.Context, type: ObjectTypeDefinition): Augmen
                 filterType = filterType(typeName, scalarFields), // TODO
                 query = """${typeName.decapitalize()}(${fieldArgs}, ${if (has_idField) "" else "_id: Int, "}filter:_${typeName}Filter, orderBy:_${typeName}Ordering, first:Int, offset:Int) : [$typeName] """)
     } else result
+}
+
+fun createRelationshipMutation(ctx: Translator.Context, source: ObjectTypeDefinition, target: ObjectTypeDefinition): Augmentation? {
+    val sourceTypeName = source.name
+    return if (!ctx.mutation.enabled || ctx.mutation.exclude.contains(sourceTypeName)) {
+        null
+    } else {
+        val targetField = source.getFieldByType(target.name) ?: return null
+        val sourceIdField = source.fieldDefinitions.find { it.isID() }
+        val targetIdField = target.fieldDefinitions.find { it.isID() }
+        if (sourceIdField == null || targetIdField == null) {
+            return null
+        }
+        val targetFieldName = targetField.name.capitalize()
+        val targetIDStr = if (targetField.isList()) "[ID!]!" else "ID!"
+        Augmentation(
+                create = "add$sourceTypeName$targetFieldName(${sourceIdField.name}:ID!, ${targetField.name}:$targetIDStr) : $sourceTypeName",
+                delete = "delete$sourceTypeName$targetFieldName(${sourceIdField.name}:ID!, ${targetField.name}:$targetIDStr) : $sourceTypeName")
+    }
 }
 
 private fun filterType(name: String?, fieldArgs: List<FieldDefinition>) : String {

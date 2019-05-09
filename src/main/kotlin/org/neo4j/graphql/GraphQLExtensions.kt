@@ -1,5 +1,6 @@
 package org.neo4j.graphql
 
+import graphql.Scalars
 import graphql.language.*
 import graphql.schema.*
 
@@ -85,3 +86,14 @@ fun paramName(variable: String, argName: String, value: Any?) = when (value) {
     is VariableReference ->  value.name
     else -> "$variable${argName.capitalize()}"
 }
+
+fun FieldDefinition.isID(): Boolean = this.type.name() == "ID"
+fun FieldDefinition.isList(): Boolean = this.type is ListType
+fun GraphQLFieldDefinition.isID(): Boolean = this.type.inner() == Scalars.GraphQLID
+fun ObjectTypeDefinition.getFieldByType(typeName: String): FieldDefinition? = this.fieldDefinitions
+        .filter { it.type.inner().name() == typeName }
+        .firstOrNull()
+
+fun GraphQLDirective.getRelationshipType(): String = this.getArgument("name").value.toString()
+fun GraphQLDirective.getRelationshipDirection(): String = this.getArgument("direction")?.value?.toString() ?: "OUT"
+
