@@ -28,6 +28,17 @@ class MovieSchemaTest {
         ))
     }
 
+    @Test fun testOrderBy() {
+        val  graphQLQuery  =  """{  Movie(orderBy:year_desc, first:10)  {  title }  }"""
+        val expectedCypherQuery  =  """MATCH  (movie:Movie) RETURN  movie  {  .title  } AS  movie ORDER BY movie.year DESC LIMIT 10"""
+
+        val params = mapOf(
+            "first" to 10
+        )
+        val query = Translator(SchemaBuilder.buildSchema(schema)).translate(graphQLQuery).first()
+        assertEquals(expectedCypherQuery.normalizeWhitespace(), query.query.normalizeWhitespace())
+    }
+
     @Test fun testTck() {
         TckTest(schema).testTck("movie-test.md",0, true)
     }

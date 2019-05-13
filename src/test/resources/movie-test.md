@@ -359,3 +359,26 @@ MERGE (actor:Actor {userId:$actorUserId}) SET actor.name=$actorName
 WITH actor
 RETURN actor { .name } AS actor
 ```
+
+## Order By
+
+### Descending, top level
+
+```graphql
+{ Movie(year: 2010, orderBy:title_desc, first: 10) {
+      title
+    }
+}
+```
+
+```params
+{"movieYear":  2010 }
+```
+
+```cypher
+MATCH (movie:Movie) 
+WHERE movie.year = $movieYear 
+RETURN movie { .title } AS movie 
+ORDER BY movie.title DESC  
+LIMIT 10
+```

@@ -108,9 +108,15 @@ class Translator(val schema: GraphQLSchema) {
             queryField.arguments.filterNot { listOf("first", "offset", "orderBy").contains(it.name) }
 
     private fun orderBy(variable: String, args: MutableList<Argument>): String {
-        val arg = args.find { it.name == "orderBy" && it.value is ArrayValue }
-        return if (arg == null) ""
-        else " ORDER BY "+ (arg.value as ArrayValue).values.map { it.toJavaValue().toString().split("_") }
+        val arg = args.find { it.name == "orderBy"}
+        val values = arg?.value?.let { when (it) {
+            is ArrayValue -> it.values.map { it.toJavaValue().toString() }
+            is EnumValue -> listOf(it.name)
+            is StringValue -> listOf(it.value)
+            else -> null
+        }}
+        return if (values == null) ""
+        else " ORDER BY "+ values.map { it.split("_") }
                 .map { "$variable.${it[0]} ${it[1].toUpperCase()}"  }
                 .joinToString(", ")
     }
