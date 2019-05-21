@@ -9,6 +9,8 @@ import graphql.schema.idl.SchemaGenerator
 import graphql.schema.idl.SchemaParser
 import graphql.schema.idl.TypeDefinitionRegistry
 import org.antlr.v4.runtime.misc.ParseCancellationException
+import java.math.BigDecimal
+import java.math.BigInteger
 
 class Translator(val schema: GraphQLSchema) {
     data class Context @JvmOverloads constructor(val topLevelWhere: Boolean = true,
@@ -50,15 +52,26 @@ class Translator(val schema: GraphQLSchema) {
         }
     }
 
-    @JvmOverloads fun translate(query: String, params: Map<String, Any> = emptyMap(), context: Context = Context()) : List<Cypher> {
+    @JvmOverloads fun translate(query: String, params: Map<String, Any?> = emptyMap(), context: Context = Context()) : List<Cypher> {
         val ast = parse(query) // todo preparsedDocumentProvider
         val ctx = context.copy(fragments = ast.definitions.filterIsInstance<FragmentDefinition>().map { it.name to it }.toMap())
         val queries = ast.definitions.filterIsInstance<OperationDefinition>()
                 .filter { it.operation == OperationDefinition.Operation.QUERY || it.operation == OperationDefinition.Operation.MUTATION } // todo variabledefinitions, directives, name
                 .flatMap { it.selectionSet.selections }
                 .filterIsInstance<Field>() // FragmentSpread, InlineFragment
-                .map { toQuery(it, ctx).with(params) } // arguments, alias, directives, selectionSet
+                .map {
+                    val cypher = toQuery(it, ctx)
+                    val resolvedParams = cypher.params.mapValues { toBoltValue(it.value, params) }
+                    cypher.with(resolvedParams) // was cypher.with(params)
+                } // arguments, alias, directives, selectionSet
         return queries
+    }
+
+    private fun toBoltValue(value: Any?, params: Map<String, Any?>) = when (value) {
+        is VariableReference -> params.get(value.name)
+        is BigInteger -> value.longValueExact()
+        is BigDecimal -> value.toDouble()
+        else -> value
     }
 
     private fun toQuery(field: Field, ctx:Context = Context()): Cypher {
