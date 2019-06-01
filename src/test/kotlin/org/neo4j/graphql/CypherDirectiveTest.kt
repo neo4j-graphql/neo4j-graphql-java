@@ -82,7 +82,7 @@ schema {
     fun renderCypherQueryDirectiveParamsArgs() {
         val expected = """UNWIND apoc.cypher.runFirstColumnSingle('WITH ${'$'}name AS name MATCH (p:Person) WHERE p.name = name RETURN p LIMIT 1',{name:${'$'}pname}) AS p3 RETURN p3 { .id } AS p3"""
         val query = """query(${'$'}pname:String) { p3(name:${'$'}pname) { id }}"""
-        assertQuery(query, expected, mapOf("pname" to VariableReference("pname")))
+        assertQuery(query, expected, mapOf("pname" to "foo"),mapOf("pname" to "foo"))
     }
 
     @Test
@@ -98,8 +98,8 @@ schema {
         TckTest(schema).testTck("cypher-directive-test.md", 0)
     }
 
-    private fun assertQuery(query: String, expected: String, params : Map<String,Any?> = emptyMap()) {
-        val result = Translator(SchemaBuilder.buildSchema(schema)).translate(query).first()
+    private fun assertQuery(query: String, expected: String, params : Map<String,Any?> = emptyMap(),queryParams : Map<String,Any?> = emptyMap()) {
+        val result = Translator(SchemaBuilder.buildSchema(schema)).translate(query, queryParams).first()
         assertEquals(expected, result.query)
         assertTrue("${params} IN ${result.params}", params.all { val v=result.params[it.key]; when (v) { is Node<*> -> v.isEqualTo(it.value as Node<*>) else -> v == it.value}})
     }
