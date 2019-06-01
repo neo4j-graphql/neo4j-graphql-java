@@ -360,6 +360,122 @@ WITH actor
 RETURN actor { .name } AS actor
 ```
 
+### Should auto generate `add` relationship mutations for arrays
+
+```graphql
+mutation {
+  add: addMovieGenres(movieId: 1, genres: ["Action", "Fantasy"]) {
+    title
+  }
+}
+```
+
+```params
+{"movieId": 1, "genres": ["Action", "Fantasy"]}
+```
+
+```cypher
+MATCH (from:Movie {movieId:$movieId})
+MATCH (to:Genre)
+WHERE to.name IN $genres
+MERGE (from)-[r:IN_GENRE]->(to)
+WITH DISTINCT from
+RETURN from { .title } AS movie
+```
+
+### Should auto generate `delete` relationship mutations for arrays
+
+```graphql
+mutation {
+  del: deleteMovieGenres(movieId: 1, genres: ["Action", "Fantasy"]) {
+    title
+  }
+}
+```
+
+```params
+{"movieId": 1, "genres": ["Action", "Fantasy"]}
+```
+
+```cypher
+MATCH (from:Movie {movieId:$movieId})
+MATCH (to:Genre)
+WHERE to.name IN $genres
+MATCH (from)-[r:IN_GENRE]->(to)
+DELETE r
+WITH DISTINCT from
+RETURN from { .title } AS movie
+```
+
+### Should auto generate `add` relationship mutations
+
+```graphql
+mutation {
+  add: addMoviePublishedBy(movieId: 1, publishedBy: "Company") {
+    title
+  }
+}
+```
+
+```params
+{"movieId": 1, "publishedBy": "Company"}
+```
+
+```cypher
+MATCH (from:Movie {movieId:$movieId})
+MATCH (to:Publisher)
+WHERE to.name = $publishedBy
+MERGE (from)-[r:PUBLISHED_BY]->(to)
+WITH DISTINCT from
+RETURN from { .title } AS movie
+```
+
+### Should auto generate `delete` relationship mutations
+
+```graphql
+mutation {
+  del: deleteMoviePublishedBy(movieId: 1, publishedBy: "Company") {
+    title
+  }
+}
+```
+
+```params
+{"movieId": 1, "publishedBy": "Company"}
+```
+
+```cypher
+MATCH (from:Movie {movieId:$movieId})
+MATCH (to:Publisher)
+WHERE to.name = $publishedBy
+MATCH (from)-[r:PUBLISHED_BY]->(to)
+DELETE r
+WITH DISTINCT from
+RETURN from { .title } AS movie
+```
+
+### Should auto generate `add` recursive relationship mutations for arrays
+
+```graphql
+mutation {
+  add: addUserKnows(userId: 1, knows: [10, 23]) {
+    name
+  }
+}
+```
+
+```params
+{"userId": 1, "knows": [10, 23]}
+```
+
+```cypher
+MATCH (from:User {userId:$userId})
+MATCH (to:User)
+WHERE to.userId IN $knows
+MERGE (from)-[r:KNOWS]->(to)
+WITH DISTINCT from
+RETURN from { .name } AS user
+```
 ## Order By
 
 ### Descending, top level

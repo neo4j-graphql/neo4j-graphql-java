@@ -18,11 +18,36 @@ class Translator(val schema: GraphQLSchema) {
                                                  val mutation: CRUDConfig = CRUDConfig())
     data class CRUDConfig(val enabled:Boolean = true, val exclude: List<String> = emptyList())
     data class Cypher( val query: String, val params : Map<String,Any?> = emptyMap()) {
-        companion object {
-            val EMPTY = Cypher("")
-        }
         fun with(p: Map<String,Any?>) = this.copy(params = this.params + p)
         fun escapedQuery() = query.replace("\"","\\\"").replace("'","\\'")
+        companion object {
+            val EMPTY = Cypher("")
+
+            private fun findRelNodeId(objectType: GraphQLObjectType) = objectType.fieldDefinitions.find { it.isID() }!!
+
+            private fun createRelStatement(source: GraphQLType, target: GraphQLFieldDefinition,
+                                           keyword: String = "MERGE"): String {
+                val innerTarget = target.type.inner()
+                val relationshipDirective = target.getDirective("relation")
+                        ?: throw IllegalArgumentException("Missing @relation directive for relation ${target.name}")
+                val targetFilterType = if (target.type.isList()) "IN" else "="
+                val sourceId = findRelNodeId(source as GraphQLObjectType)
+                val targetId = findRelNodeId(innerTarget as GraphQLObjectType)
+                val (left, right) = if (relationshipDirective.getRelationshipDirection() == "OUT") ("" to ">") else ("<" to "")
+                return "MATCH (from:${source.name.quote()} {${sourceId.name.quote()}:$${sourceId.name}}) " +
+                    "MATCH (to:${innerTarget.name.quote()}) WHERE to.${targetId.name.quote()} $targetFilterType $${target.name} " +
+                    "$keyword (from)$left-[r:${relationshipDirective.getRelationshipType().quote()}]-$right(to) "
+            }
+
+            fun createRelationship(source: GraphQLType, target: GraphQLFieldDefinition): Cypher {
+                return Cypher(createRelStatement(source, target))
+            }
+
+            fun deleteRelationship(source: GraphQLType, target: GraphQLFieldDefinition): Cypher {
+                return Cypher(createRelStatement(source, target, "MATCH") +
+                    "DELETE r ")
+            }
+        }
     }
 
     @JvmOverloads fun translate(query: String, params: Map<String, Any> = emptyMap(), context: Context = Context()) : List<Cypher> {
@@ -38,8 +63,8 @@ class Translator(val schema: GraphQLSchema) {
 
     private fun toQuery(field: Field, ctx:Context = Context()): Cypher {
         val name = field.name
-        val queryType = schema.queryType.fieldDefinitions.filter { it.name == name }.firstOrNull()
-        val mutationType = schema.mutationType.fieldDefinitions.filter { it.name == name }.firstOrNull()
+        val queryType = schema.queryType.getFieldDefinition(name)
+        val mutationType = schema.mutationType.getFieldDefinition(name)
         val fieldDefinition = queryType ?: mutationType
             ?: throw IllegalArgumentException("Unknown Query $name available queries: " + (schema.queryType.fieldDefinitions + schema.mutationType.fieldDefinitions).map { it.name }.joinToString())
         val isQuery = queryType != null
@@ -63,7 +88,7 @@ class Translator(val schema: GraphQLSchema) {
                 return Cypher("MATCH ($variable:$label${properties.query})${where.query} RETURN ${mapProjection.query} AS $variable$ordering$skipLimit",
                         (mapProjection.params + properties.params + where.params))
             } else {
-                // todo extract method or better object
+                // TODO add into Cypher companion object as did for the relationships
                 val properties = properties(variable, fieldDefinition, propertyArguments(field))
                 val idProperty = fieldDefinition.arguments.find { it.type.inner() == Scalars.GraphQLID }
                 val returnStatement = "WITH $variable RETURN ${mapProjection.query} AS $variable$ordering$skipLimit";
@@ -86,10 +111,46 @@ class Translator(val schema: GraphQLSchema) {
                            "WITH $variable as toDelete, ${mapProjection.query} AS $variable $ordering$skipLimit DETACH DELETE toDelete RETURN $variable",
                                 (mapProjection.params + mapOf(paramName to properties.params[paramName])))
                     }
-                    else -> throw IllegalArgumentException("Unknown Mutation "+name)
+                    else -> checkRelationships(fieldDefinition, field, ordering, skipLimit, ctx)
                 }
             }
         }
+    }
+
+    private fun checkRelationships(sourceFieldDefinition: GraphQLFieldDefinition, field: Field, ordering: String, skipLimit: String, ctx: Context): Cypher {
+        val source = sourceFieldDefinition.type as GraphQLObjectType
+        val targetFieldDefinition = filterTarget(source, field, sourceFieldDefinition)
+
+        val sourceVariable = "from"
+        val mapProjection = projectFields(sourceVariable, field, source, ctx, null)
+        val returnStatement = "WITH DISTINCT $sourceVariable RETURN ${mapProjection.query} AS ${source.name.decapitalize().quote()}$ordering$skipLimit"
+        val properties = properties("", sourceFieldDefinition, propertyArguments(field)).params
+                .mapKeys { it.key.decapitalize() }
+
+        val targetFieldName = targetFieldDefinition.name
+        val addMutationName = "add${source.name}${targetFieldName.capitalize()}"
+        val deleteMutationName = "delete${source.name}${targetFieldName.capitalize()}"
+        return when (field.name) {
+            addMutationName -> {
+                Cypher.createRelationship(source, targetFieldDefinition)
+            }
+            deleteMutationName -> {
+                Cypher.deleteRelationship(source, targetFieldDefinition)
+            }
+            else -> throw IllegalArgumentException("Unknown Mutation ${sourceFieldDefinition.name}")
+        }.let {
+            it.copy(query = it.query + returnStatement, params = properties)
+        }
+    }
+
+    private fun filterTarget(source: GraphQLObjectType, field: Field, graphQLFieldDefinition: GraphQLFieldDefinition): GraphQLFieldDefinition {
+        return source.fieldDefinitions
+                .filter {
+                    it.name.isNotBlank() && (field.name == "add${source.name}${it.name.capitalize()}"
+                            || field.name == "delete${source.name}${it.name.capitalize()}")
+                }
+                .map { it }
+                .firstOrNull() ?: throw IllegalArgumentException("Unknown Mutation ${graphQLFieldDefinition.name}")
     }
 
     private fun cypherQueryOrMutation(variable: String, fieldDefinition: GraphQLFieldDefinition, field: Field, cypherDirective: Cypher, mapProjection: Cypher, ordering: String, skipLimit: String, isQuery: Boolean) =
@@ -403,7 +464,12 @@ object SchemaBuilder {
         """
         typeDefinitionRegistry.merge(schemaParser.parse(directivesSdl))
 
-        val augmentations = typeDefinitionRegistry.types().values.filterIsInstance<ObjectTypeDefinition>().map { augmentedSchema(ctx, it) }
+        val objectTypeDefinitions = typeDefinitionRegistry.types().values.filterIsInstance<ObjectTypeDefinition>()
+        val nodeMutations = objectTypeDefinitions.map { createNodeMutation(ctx, it) }
+        val relMutations = objectTypeDefinitions.flatMap { source ->
+            createRelationshipMutations(source, objectTypeDefinitions, ctx)
+        }
+        val augmentations = nodeMutations + relMutations
 
         val augmentedTypesSdl = augmentations.flatMap { listOf(it.filterType, it.ordering, it.inputType).filter { it.isNotBlank() } }.joinToString("\n")
         typeDefinitionRegistry.merge(schemaParser.parse(augmentedTypesSdl))
@@ -454,4 +520,17 @@ object SchemaBuilder {
 
         return typeDefinitionRegistry
     }
+
+    private fun createRelationshipMutations(source: ObjectTypeDefinition,
+                                            objectTypeDefinitions: List<ObjectTypeDefinition>,
+                                            ctx: Translator.Context): List<Augmentation> = source.fieldDefinitions
+            .filter { !it.type.inner().isScalar() && it.getDirective("relation") != null }
+            .mapNotNull { targetField ->
+                objectTypeDefinitions
+                        .filter { it.name == targetField.type.inner().name() }
+                        .firstOrNull()
+                        ?.let { target ->
+                            createRelationshipMutation(ctx, source, target)
+                        }
+            }
 }

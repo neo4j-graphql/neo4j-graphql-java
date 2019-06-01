@@ -1,5 +1,8 @@
 package org.neo4j.graphql
 
+import graphql.Scalars
+import graphql.language.FieldDefinition
+import graphql.schema.GraphQLFieldDefinition
 import java.io.PrintWriter
 import java.io.StringWriter
 
