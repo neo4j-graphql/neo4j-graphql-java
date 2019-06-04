@@ -174,20 +174,23 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.0.1</version>
+                <groupId>org.jetbrains.dokka</groupId>
+                <artifactId>dokka-maven-plugin</artifactId>
+                <version>0.9.17</version>
                 <executions>
                     <execution>
-                        <id>attach-javadocs</id>
+                        <phase>prepare-package</phase>
                         <goals>
-                            <goal>jar</goal>
+                            <goal>dokka</goal>
+                            <goal>javadoc</goal>
+                            <goal>javadocJar</goal>
                         </goals>
                     </execution>
                 </executions>
                 <configuration>
-
-                    <doclint>none</doclint>
+                    <includes>
+                        <file>packages.md</file>
+                    </includes>
                 </configuration>
             </plugin>
 
