@@ -569,6 +569,7 @@ type Person {
    id:ID!
    name: String
    age: Int
+   movies: [Movie]
 }
 ----
 
@@ -581,13 +582,11 @@ It would auto-generate quite a lot of things:
 * a `_PersonFilter` for the `filter` argument, which is a deeply nested input object (see <<filters>>)
 * mutations for:
 ** createPerson: `createPerson(id:ID!, name:String, age: Int) : Person`
+** mergePerson:  `mergePerson(id:ID!,  name:String, age:Int) : Person`
 ** updatePerson: `updatePerson(id:ID!, name:String, age:Int) : Person`
 ** deletePerson: `deletePerson(id:ID!) : Person`
-
-////
-** addPersonMovie
-** deletePersonMovie
-////
+** addPersonMovies: `addPersonMovies(id:ID!,movies:[ID!]!) : Person`
+** deletePersonMovies: `deletePersonMovies(id:ID!,movies:[ID!]!) : Person`
 
 You can then use those in your GraphQL queries like this:
 
