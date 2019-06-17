@@ -1,19 +1,79 @@
 package org.neo4j.graphql
 
+import graphql.language.Field
+import graphql.schema.GraphQLFieldDefinition
+import graphql.schema.GraphQLType
 import java.time.*
 import java.time.temporal.Temporal
 
-fun temporalTypeDefinitions(config: Translator.Context, types: Set<Class<Temporal>>) =
-        when {
-            config.temporal -> temporalTypeDefinitions.filter { types.contains(it.type) }
-                    .flatMap { listOf(it.output.second to it.input.second) }
-                    .joinToString("\n")
-            else -> ""
-        }
+fun neo4jTypesSdl() = neo4jTypeDefinitions.map { "${it.output.second} ${it.input.second}" }
+        .joinToString("\n")
+
+const val NEO4j_FORMATTED_PROPERTY_KEY = "formatted"
 
 data class TypeDefinition(val name: String, val type: Class<out Temporal>, val output:Pair<String,String>, val input:Pair<String,String>)
 
-val temporalTypeDefinitions  = listOf(
+
+data class Neo4jConverter(val parse: String = "") {
+    fun parseValue(strArg: String): String {
+        if (parse.isNullOrBlank()) {
+            return "\$$strArg"
+        }
+        return "$parse(\$$strArg)"
+    }
+}
+
+fun getNeo4jTypeConverter(type: GraphQLType): Neo4jConverter {
+    return if (type.isNeo4jType()) {
+        val neo4jType = neo4jTypeDefinitions.find { type.name == it.input.first || type.name == it.output.first }
+                ?: throw RuntimeException("Type ${type.name} not found")
+        return Neo4jConverter(neo4jType.name.toLowerCase())
+    } else {
+        Neo4jConverter()
+    }
+}
+
+data class Neo4jQueryConversion(val name: String, val propertyName: String, val converter: Neo4jConverter = Neo4jConverter()) {
+    companion object {
+        fun forQuery(argument: Translator.CypherArgument, field: Field, fieldDefinition: GraphQLFieldDefinition): Neo4jQueryConversion {
+            val isNeo4jType = fieldDefinition.isNeo4jType()
+            val name = argument.name
+            return when (isNeo4jType) {
+                true -> {
+                    if (name == NEO4j_FORMATTED_PROPERTY_KEY) {
+                        Neo4jQueryConversion(field.name + NEO4j_FORMATTED_PROPERTY_KEY.capitalize(), field.name, getNeo4jTypeConverter(fieldDefinition.type.inner()))
+                    } else {
+                        Neo4jQueryConversion(field.name + name.capitalize(), field.name + ".$name")
+                    }
+                }
+                false -> Neo4jQueryConversion(name, argument.propertyName)
+            }
+        }
+
+
+        fun forMutation(argument: Translator.CypherArgument, fieldDefinition: GraphQLFieldDefinition): Neo4jQueryConversion {
+            val isNeo4jType = fieldDefinition.type.isNeo4jType()
+            val name = argument.name
+            return when (isNeo4jType) {
+                true -> {
+                    val converter = getNeo4jTypeConverter(fieldDefinition.type)
+                    when (argument.value) {
+                        is Map<*, *> -> if (argument.value.contains(NEO4j_FORMATTED_PROPERTY_KEY)) {
+                            Neo4jQueryConversion("$name.$NEO4j_FORMATTED_PROPERTY_KEY", name, converter)
+                        } else {
+                            Neo4jQueryConversion(name, name, converter)
+                        }
+                        else -> Neo4jQueryConversion(name, name, converter)
+                    } 
+                }
+                false -> Neo4jQueryConversion(argument.name, argument.name)
+            }
+        }
+    }
+}
+
+
+val neo4jTypeDefinitions  = listOf(
         TypeDefinition(
         "LocalTime", OffsetTime::class.java,
                 "_Neo4jTime" to """
