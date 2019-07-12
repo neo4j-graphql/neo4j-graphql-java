@@ -7,7 +7,7 @@ import graphql.schema.*
 import org.neo4j.graphql.Predicate.Companion.resolvePredicate
 
 interface Predicate {
-    fun toExpression(variable: String, schema: GraphQLSchema) : Pair<String,Map<String,Any?>>
+    fun toExpression(variable: String, schema: GraphQLSchema): Pair<String, Map<String, Any?>>
 
     companion object {
         fun resolvePredicate(name: String, value: Any?, type: GraphQLObjectType): Predicate {
@@ -39,8 +39,8 @@ fun toExpression(name: String, value: Any?, type: GraphQLObjectType): Predicate 
         if (name == "AND" || name == "OR")
             if (value is Iterable<*>) {
                 CompoundPredicate(value.map { toExpression("AND", it, type) }, name)
-            } else if (value is Map<*,*>){
-                CompoundPredicate(value.map { (k,v) -> toExpression(k.toString(), v, type) }, name)
+            } else if (value is Map<*, *>) {
+                CompoundPredicate(value.map { (k, v) -> toExpression(k.toString(), v, type) }, name)
             } else {
                 throw IllegalArgumentException("Unexpected value for filter: $value")
             }
@@ -48,7 +48,7 @@ fun toExpression(name: String, value: Any?, type: GraphQLObjectType): Predicate 
             resolvePredicate(name, value, type)
         }
 
-fun GraphQLObjectType.relationshipFor(name:String, schema: GraphQLSchema) : RelationshipInfo {
+fun GraphQLObjectType.relationshipFor(name: String, schema: GraphQLSchema): RelationshipInfo {
     val field = this.getFieldDefinition(name)
     val fieldObjectType = schema.getType(field.type.inner().name) as GraphQLObjectType
     // direction
@@ -69,12 +69,12 @@ fun GraphQLObjectType.relationshipFor(name:String, schema: GraphQLSchema) : Rela
 }
 
 fun relDetails(source: GraphQLObjectType, relDirective: Directive, schema: GraphQLSchema): RelationshipInfo {
-    val relType = relDirective.argumentString("name", schema,"")
-    val outgoing =  when (relDirective.argumentString("direction", schema)) {
+    val relType = relDirective.argumentString("name", schema, "")
+    val outgoing = when (relDirective.argumentString("direction", schema)) {
         "IN" -> false
         "BOTH" -> null
         "OUT" -> true
-        else -> throw IllegalStateException("Unknown direction ${relDirective.argumentString("direction",schema)}")
+        else -> throw IllegalStateException("Unknown direction ${relDirective.argumentString("direction", schema)}")
     }
     return RelationshipInfo(source, relDirective, relType, outgoing, relDirective.argumentString("from", schema), relDirective.argumentString("to", schema))
 }
@@ -88,56 +88,56 @@ fun arrows(outgoing: Boolean?): Pair<String, String> {
 }
 
 
-data class RelationshipInfo(val objectType:GraphQLObjectType, val directive:Directive, val type:String, val out:Boolean?, val startField: String? = null,val endField: String? = null, val isRelFromType: Boolean = false) {
+data class RelationshipInfo(val objectType: GraphQLObjectType, val directive: Directive, val type: String, val out: Boolean?, val startField: String? = null, val endField: String? = null, val isRelFromType: Boolean = false) {
     val arrows = arrows(out)
     val label = objectType.name
 }
 
-data class CompoundPredicate(val parts : List<Predicate>, val op : String = "AND") : Predicate {
-    override fun toExpression(variable: String, schema: GraphQLSchema) : Pair<String,Map<String,Any?>> =
-            parts.map { it.toExpression(variable,schema) }
-                 .let { expressions ->
-                        expressions.map { it.first }.joinNonEmpty(" "+op+" ","(",")") to
-                        expressions.fold(emptyMap<String,Any?>()) { res, exp -> res + exp.second }
-                    }
+data class CompoundPredicate(val parts: List<Predicate>, val op: String = "AND") : Predicate {
+    override fun toExpression(variable: String, schema: GraphQLSchema): Pair<String, Map<String, Any?>> =
+            parts.map { it.toExpression(variable, schema) }
+                .let { expressions ->
+                    expressions.map { it.first }.joinNonEmpty(" " + op + " ", "(", ")") to
+                            expressions.fold(emptyMap<String, Any?>()) { res, exp -> res + exp.second }
+                }
 }
 
-data class IsNullPredicate(val name:String, val op: Operators, val type: GraphQLObjectType) : Predicate {
-    override fun toExpression(variable: String, schema: GraphQLSchema) : Pair<String,Map<String,Any?>> {
+data class IsNullPredicate(val name: String, val op: Operators, val type: GraphQLObjectType) : Predicate {
+    override fun toExpression(variable: String, schema: GraphQLSchema): Pair<String, Map<String, Any?>> {
         val rel = type.relationshipFor(name, schema)
-        val (left,right) = rel.arrows
+        val (left, right) = rel.arrows
         val not = if (op.not) "" else "NOT "
         return "$not($variable)$left-[:${rel.type}]-$right()" to emptyMap()
     }
 }
 
-data class ExpressionPredicate(val name:String, val op: Operators, val value:Any?) : Predicate {
+data class ExpressionPredicate(val name: String, val op: Operators, val value: Any?) : Predicate {
     val not = if (op.not) "NOT " else ""
-    override fun toExpression(variable: String, schema: GraphQLSchema) : Pair<String,Map<String,Any?>> {
-        val paramName : String = "filter" + paramName(variable, name, value).capitalize()
+    override fun toExpression(variable: String, schema: GraphQLSchema): Pair<String, Map<String, Any?>> {
+        val paramName: String = "filter" + paramName(variable, name, value).capitalize()
         return "$not${variable}.${name.quote()} ${op.op} \$${paramName}" to mapOf(paramName to value)
     }
 }
 
 
-data class RelationPredicate(val name: String, val op: Operators, val value: Map<*,*>, val type: GraphQLObjectType) : Predicate {
+data class RelationPredicate(val name: String, val op: Operators, val value: Map<*, *>, val type: GraphQLObjectType) : Predicate {
     val not = if (op.not) "NOT" else ""
     // (type)-[:TYPE]->(related) | pred] = 0/1/ > 0 | =
     // ALL/ANY/NONE/SINGLE(p in (type)-[:TYPE]->() WHERE pred(last(nodes(p)))
     // ALL/ANY/NONE/SINGLE(x IN [(type)-[:TYPE]->(o) | pred(o)] WHERE x)
 
-    override fun toExpression(variable: String, schema: GraphQLSchema) : Pair<String,Map<String,Any?>> {
+    override fun toExpression(variable: String, schema: GraphQLSchema): Pair<String, Map<String, Any?>> {
         val prefix = when (op) {
             Operators.EQ -> "ALL"
             Operators.NEQ -> "ALL" // bc of not
             else -> op.op
         }
         val rel = type.relationshipFor(name, schema)
-        val (left,right) = rel.arrows
-        val other = variable+"_"+rel.label
+        val (left, right) = rel.arrows
+        val other = variable + "_" + rel.label
         val cond = other + "_Cond"
         val relGraphQLObjectType = schema.getType(rel.label) as GraphQLObjectType
-        val (pred, params) = CompoundPredicate(value.map { it -> resolvePredicate(it.key.toString(), it.value,relGraphQLObjectType)}).toExpression(other, schema)
+        val (pred, params) = CompoundPredicate(value.map { it -> resolvePredicate(it.key.toString(), it.value, relGraphQLObjectType) }).toExpression(other, schema)
         return "$not $prefix(${cond} IN [($variable)$left-[:${rel.type.quote()}]-$right($other) | $pred] WHERE ${cond})" to params
     }
 }
@@ -145,29 +145,29 @@ data class RelationPredicate(val name: String, val op: Operators, val value: Map
 abstract class UnaryOperator
 class IsNullOperator : UnaryOperator()
 
-enum class Operators(val suffix:String, val op:String, val not :Boolean = false) {
-    EQ("","="),
+enum class Operators(val suffix: String, val op: String, val not: Boolean = false) {
+    EQ("", "="),
     IS_NULL("", ""),
     IS_NOT_NULL("", "", true),
-    NEQ("not","=", true),
-    GTE("gte",">="),
-    GT("gt",">"),
-    LTE("lte","<="),
-    LT("lt","<"),
+    NEQ("not", "=", true),
+    GTE("gte", ">="),
+    GT("gt", ">"),
+    LTE("lte", "<="),
+    LT("lt", "<"),
 
-    NIN("not_in","IN", true),
-    IN("in","IN"),
-    NC("not_contains","CONTAINS", true),
-    NSW("not_starts_with","STARTS WITH", true),
-    NEW("not_ends_with","ENDS WITH", true),
-    C("contains","CONTAINS"),
-    SW("starts_with","STARTS WITH"),
-    EW("ends_with","ENDS WITH"),
+    NIN("not_in", "IN", true),
+    IN("in", "IN"),
+    NC("not_contains", "CONTAINS", true),
+    NSW("not_starts_with", "STARTS WITH", true),
+    NEW("not_ends_with", "ENDS WITH", true),
+    C("contains", "CONTAINS"),
+    SW("starts_with", "STARTS WITH"),
+    EW("ends_with", "ENDS WITH"),
 
-    SOME("some","ANY"),
-    NONE("none","NONE"),
-    ALL("every","ALL"),
-    SINGLE("single","SINGLE")
+    SOME("some", "ANY"),
+    NONE("none", "NONE"),
+    ALL("every", "ALL"),
+    SINGLE("single", "SINGLE")
     ;
 
     val list = op == "IN"
@@ -177,7 +177,7 @@ enum class Operators(val suffix:String, val op:String, val not :Boolean = false)
         val allNames = ops.map { it.suffix }
         val allOps = ops.map { it.op }
 
-        fun resolve(field: String, value: Any?) : Pair<String, Operators> {
+        fun resolve(field: String, value: Any?): Pair<String, Operators> {
             val fieldOperator = ops.find { field.endsWith("_" + it.suffix) }
             val unaryOperator = if (value is UnaryOperator) unaryOperatorOf(field, value) else Operators.EQ
             val op = fieldOperator ?: unaryOperator
@@ -191,19 +191,19 @@ enum class Operators(val suffix:String, val op:String, val not :Boolean = false)
                     else -> throw IllegalArgumentException("Unknown unary operator $value")
                 }
 
-        fun forType(type: GraphQLInputType) : List<Operators> =
+        fun forType(type: GraphQLInputType): List<Operators> =
                 if (type == Scalars.GraphQLBoolean) listOf(EQ, NEQ)
                 else if (type is GraphQLEnumType || type is GraphQLObjectType || type is GraphQLTypeReference) listOf(EQ, NEQ, IN, NIN)
-                else listOf(EQ, NEQ, IN, NIN,LT,LTE,GT,GTE) +
-                        if (type == Scalars.GraphQLString || type == Scalars.GraphQLID) listOf(C,NC, SW, NSW,EW,NEW) else emptyList()
+                else listOf(EQ, NEQ, IN, NIN, LT, LTE, GT, GTE) +
+                        if (type == Scalars.GraphQLString || type == Scalars.GraphQLID) listOf(C, NC, SW, NSW, EW, NEW) else emptyList()
 
-        fun forType(type: Type<Type<*>>) : List<Operators> =
+        fun forType(type: Type<Type<*>>): List<Operators> =
                 if (type.name() == "Boolean") listOf(EQ, NEQ)
                 // todo list types
                 // todo proper enum + object types and reference types
                 else if (!type.isScalar()) listOf(EQ, NEQ, IN, NIN)
-                else listOf(EQ, NEQ, IN, NIN,LT,LTE,GT,GTE) +
-                        if (type.name() == "String" || type.name() == "ID") listOf(C,NC, SW, NSW,EW,NEW) else emptyList()
+                else listOf(EQ, NEQ, IN, NIN, LT, LTE, GT, GTE) +
+                        if (type.name() == "String" || type.name() == "ID") listOf(C, NC, SW, NSW, EW, NEW) else emptyList()
 
     }
 

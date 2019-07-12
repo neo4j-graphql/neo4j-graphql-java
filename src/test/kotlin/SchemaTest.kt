@@ -15,9 +15,9 @@ fun main(args: Array<String>) {
     val typeDefinitionRegistry = schemaParser.parse(schema)
 
     val runtimeWiring = newRuntimeWiring()
-            .type("Query")
-            { it.dataFetcher("hello") { env -> "Hello ${env.getArgument<Any>("what")}!" } }
-            .build()
+        .type("Query")
+        { it.dataFetcher("hello") { env -> "Hello ${env.getArgument<Any>("what")}!" } }
+        .build()
 
     val schemaGenerator = SchemaGenerator()
     val graphQLSchema = schemaGenerator.makeExecutableSchema(typeDefinitionRegistry, runtimeWiring)

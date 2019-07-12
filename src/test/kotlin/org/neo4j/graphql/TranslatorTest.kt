@@ -40,18 +40,18 @@ class TranslatorTest {
                 """
 
 
-
     @Test
     fun simpleQuery() {
         val query = " { person { name age } } "
         val expected = "MATCH (person:Person) RETURN person { .name,.age } AS person"
         assertQuery(query, expected)
     }
+
     @Test
     fun multiQuery() {
         val query = " { p1: person { name } p2: person { name } } "
         val queries = Translator(SchemaBuilder.buildSchema(schema)).translate(query).map { it.query }
-        assertEquals(listOf("p1","p2").map{"MATCH ($it:Person) RETURN $it { .name } AS $it"}, queries)
+        assertEquals(listOf("p1", "p2").map { "MATCH ($it:Person) RETURN $it { .name } AS $it" }, queries)
     }
 
     @Test
@@ -83,6 +83,7 @@ class TranslatorTest {
         val query = " { person { name born { date to { name founded { name } } } } } "
         assertQuery(query, "MATCH (person:Person) RETURN person { .name,born:[(person)-[personBorn:BORN]->(personBornTo:Location) | personBorn { .date,to:personBornTo { .name,founded:[(personBornTo)<-[:FOUNDED]-(personBornToFounded:Person) | personBornToFounded { .name }][0] } }][0] } AS person")
     }
+
     @Test
     fun richRelationship3rdHop() {
         val query = " { person { name born { date to { name founded { name born { date to { name } } } } } } } "
@@ -107,6 +108,7 @@ class TranslatorTest {
         val query = " { person { livedIn(offset:3) { name } } } "
         assertQuery(query, "MATCH (person:Person) RETURN person { livedIn:[(person)-[:LIVED_IN]->(personLivedIn:Location) | personLivedIn { .name }][3..] } AS person")
     }
+
     @Test
     fun nestedQuerySliceFirstOffset() {
         val query = " { person { livedIn(first:2,offset:3) { name } } } "
@@ -217,7 +219,7 @@ class TranslatorTest {
                 "AND p._int = \$p_int " +
                 "AND p._string = \$p_string " +
                 "RETURN p { .age } AS p",
-                mapOf("p_string" to "Joe","p_int" to 42, "p_float" to 3.14, "p_array" to listOf(1,2,3), "p_enum" to "pi","p_boolean" to false))
+                mapOf("p_string" to "Joe", "p_int" to 42, "p_float" to 3.14, "p_array" to listOf(1, 2, 3), "p_enum" to "pi", "p_boolean" to false))
     }
 
     @Test
@@ -237,6 +239,7 @@ class TranslatorTest {
         val query = "  fragment details on Person { name, age } query { person { ...details } }"
         assertQuery(query, "MATCH (person:Person) RETURN person { .name,.age } AS person")
     }
+
     @Test
     fun inlineFragment() {
         val query = " query { person { ... on Person { name } } }"
@@ -252,7 +255,7 @@ class TranslatorTest {
     private fun assertQuery(query: String, expected: String, params: Map<String, Any> = emptyMap(), schema: String = this.schema) {
         val result = Translator(SchemaBuilder.buildSchema(schema)).translate(query).first()
         assertEquals(expected, result.query)
-        assertTrue("${params} IN ${result.params}",result.params.entries.containsAll(params.entries))
+        assertTrue("${params} IN ${result.params}", result.params.entries.containsAll(params.entries))
     }
 
     @Test(expected = IllegalArgumentException::class) // todo better test

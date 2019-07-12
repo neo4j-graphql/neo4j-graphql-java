@@ -25,6 +25,7 @@ class ParserTest {
         assertEquals(true, typeDefinitionRegistry.getType("_MovieFilter").isPresent)
 
     }
+
     @Test
     fun parseFilter2() {
         val schemaParser = SchemaParser()

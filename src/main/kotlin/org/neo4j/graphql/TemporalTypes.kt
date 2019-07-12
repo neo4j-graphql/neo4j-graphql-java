@@ -6,16 +6,16 @@ import java.time.temporal.Temporal
 fun temporalTypeDefinitions(config: Translator.Context, types: Set<Class<Temporal>>) =
         when {
             config.temporal -> temporalTypeDefinitions.filter { types.contains(it.type) }
-                    .flatMap { listOf(it.output.second to it.input.second) }
-                    .joinToString("\n")
+                .flatMap { listOf(it.output.second to it.input.second) }
+                .joinToString("\n")
             else -> ""
         }
 
-data class TypeDefinition(val name: String, val type: Class<out Temporal>, val output:Pair<String,String>, val input:Pair<String,String>)
+data class TypeDefinition(val name: String, val type: Class<out Temporal>, val output: Pair<String, String>, val input: Pair<String, String>)
 
-val temporalTypeDefinitions  = listOf(
+val temporalTypeDefinitions = listOf(
         TypeDefinition(
-        "LocalTime", OffsetTime::class.java,
+                "LocalTime", OffsetTime::class.java,
                 "_Neo4jTime" to """
         type _Neo4jTime {
             hour: Int
@@ -28,7 +28,7 @@ val temporalTypeDefinitions  = listOf(
             formatted: String
         }
         """,
-        "_Neo4jTimeInput" to """
+                "_Neo4jTimeInput" to """
         input _Neo4jTimeInput {
             hour: Int
             minute: Int
@@ -42,7 +42,7 @@ val temporalTypeDefinitions  = listOf(
         """),
         TypeDefinition(
                 "Date", LocalDate::class.java,
-        "_Neo4jDate" to """
+                "_Neo4jDate" to """
         type _Neo4jDate {
             year: Int
             month: Int
@@ -50,7 +50,7 @@ val temporalTypeDefinitions  = listOf(
             formatted: String
         }
         """,
-        "_Neo4jDateInput" to """
+                "_Neo4jDateInput" to """
         input _Neo4jDateInput {
             year: Int
             month: Int
@@ -59,8 +59,8 @@ val temporalTypeDefinitions  = listOf(
         }
         """),
         TypeDefinition(
-                "DateTime",LocalDateTime::class.java,
-        "_Neo4jDateTime" to """
+                "DateTime", LocalDateTime::class.java,
+                "_Neo4jDateTime" to """
         type _Neo4jDateTime {
             year: Int
             month: Int
@@ -75,7 +75,7 @@ val temporalTypeDefinitions  = listOf(
             formatted: String
         }
         """,
-        "_Neo4jDateTimeInput" to """
+                "_Neo4jDateTimeInput" to """
         input _Neo4jDateTimeInput {
             year: Int
             month: Int
@@ -103,7 +103,7 @@ val temporalTypeDefinitions  = listOf(
             formatted: String
         }
         """,
-        "_Neo4jLocalTimeInput" to """
+                "_Neo4jLocalTimeInput" to """
         input _Neo4jLocalTimeInput {
             hour: Int
             minute: Int
@@ -115,8 +115,8 @@ val temporalTypeDefinitions  = listOf(
         }
         """),
         TypeDefinition(
-            "LocalDateTime", OffsetDateTime::class.java,
-        "_Neo4jLocalDateTime" to """
+                "LocalDateTime", OffsetDateTime::class.java,
+                "_Neo4jLocalDateTime" to """
         type _Neo4jLocalDateTime {
             year: Int
             month: Int
@@ -130,7 +130,7 @@ val temporalTypeDefinitions  = listOf(
             formatted: String
         }
         """,
-        "_Neo4jLocalDateTimeInput" to """
+                "_Neo4jLocalDateTimeInput" to """
         input _Neo4jLocalDateTimeInput {
             year: Int
             month: Int

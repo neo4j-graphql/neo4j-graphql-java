@@ -2,11 +2,7 @@ package org.neo4j.graphql
 
 import demo.org.neo4j.graphql.TckTest
 import demo.org.neo4j.graphql.TckTest.Companion.assertQuery
-import org.codehaus.jackson.map.ObjectMapper
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.io.File
 
 class FilterTest {
 
