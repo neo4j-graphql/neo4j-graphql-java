@@ -1043,3 +1043,31 @@ MATCH (person:Person)
 WHERE (person.height > 1.8)
 RETURN person { .name } AS person
 ----
+
+### filter by native id
+
+```graphql
+{ person(filter: { nativeId: 1 }) { name }}
+```
+```params
+{"filterPersonNativeId":1}
+```
+```cypher
+MATCH (person:Person)
+WHERE ID(person) = $filterPersonNativeId
+RETURN person { .name } AS person
+```
+
+### filter by list of native IDs
+
+```graphql
+{ person(filter: { nativeId_in: [1,2] }) { name }}
+```
+```params
+{"filterPersonNativeId": [1,2]}
+```
+```cypher
+MATCH (person:Person)
+WHERE ID(person) IN $filterPersonNativeId
+RETURN person { .name } AS person
+```

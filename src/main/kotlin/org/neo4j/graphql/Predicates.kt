@@ -1,7 +1,6 @@
 package org.neo4j.graphql
 
 import graphql.Scalars
-import graphql.language.Directive
 import graphql.language.Type
 import graphql.schema.*
 import org.neo4j.graphql.Predicate.Companion.resolvePredicate
@@ -19,7 +18,7 @@ interface Predicate {
                     else -> throw IllegalArgumentException("Input for $fieldName must be an filter-InputType")
                 }
             } else {
-                ExpressionPredicate(fieldName, op, value)
+                ExpressionPredicate(fieldName, op, value, type.getFieldDefinition(fieldName))
             }
         }
 
@@ -49,51 +48,6 @@ fun toExpression(name: String, value: Any?, type: GraphQLObjectType): Predicate 
             resolvePredicate(name, value, type)
         }
 
-fun GraphQLObjectType.relationshipFor(name: String, schema: GraphQLSchema): RelationshipInfo {
-    val field = this.getFieldDefinition(name)
-    val fieldObjectType = schema.getType(field.type.inner().name) as GraphQLObjectType
-    // direction
-    // label
-    // out
-
-    // TODO direction is depending on source/target type
-
-    val (relDirective, isRelFromType) = fieldObjectType.definition.getDirective("relation")?.let { it to true }
-            ?: field.definition.getDirective("relation")?.let { it to false }
-            ?: throw IllegalStateException("Field $field needs an @relation directive")
-
-
-    val relInfo = relDetails(fieldObjectType, relDirective, schema)
-
-    val inverse = isRelFromType && fieldObjectType.getFieldDefinition(relInfo.startField).name != this.name
-    return if (inverse) relInfo.copy(out = relInfo.out?.let { !it }, startField = relInfo.endField, endField = relInfo.startField) else relInfo
-}
-
-fun relDetails(source: GraphQLObjectType, relDirective: Directive, schema: GraphQLSchema): RelationshipInfo {
-    val relType = relDirective.argumentString("name", schema, "")
-    val outgoing = when (relDirective.argumentString("direction", schema)) {
-        "IN" -> false
-        "BOTH" -> null
-        "OUT" -> true
-        else -> throw IllegalStateException("Unknown direction ${relDirective.argumentString("direction", schema)}")
-    }
-    return RelationshipInfo(source, relDirective, relType, outgoing, relDirective.argumentString("from", schema), relDirective.argumentString("to", schema))
-}
-
-fun arrows(outgoing: Boolean?): Pair<String, String> {
-    return when (outgoing) {
-        false -> "<" to ""
-        true -> "" to ">"
-        null -> "" to ""
-    }
-}
-
-
-data class RelationshipInfo(val objectType: GraphQLObjectType, val directive: Directive, val type: String, val out: Boolean?, val startField: String? = null, val endField: String? = null, val isRelFromType: Boolean = false) {
-    val arrows = arrows(out)
-    val label: String = objectType.name
-}
-
 data class CompoundPredicate(val parts: List<Predicate>, val op: String = "AND") : Predicate {
     override fun toExpression(variable: String, schema: GraphQLSchema): Pair<String, Map<String, Any?>> =
             parts.map { it.toExpression(variable, schema) }
@@ -103,25 +57,26 @@ data class CompoundPredicate(val parts: List<Predicate>, val op: String = "AND")
                 }
 }
 
-data class IsNullPredicate(val name: String, val op: Operators, val type: GraphQLObjectType) : Predicate {
+data class IsNullPredicate(val fieldName: String, val op: Operators, val type: GraphQLObjectType) : Predicate {
     override fun toExpression(variable: String, schema: GraphQLSchema): Pair<String, Map<String, Any?>> {
-        val rel = type.relationshipFor(name, schema)
+        val rel = type.relationshipFor(fieldName, schema)
         val (left, right) = rel.arrows
         val not = if (op.not) "" else "NOT "
-        return "$not($variable)$left-[:${rel.type}]-$right()" to emptyMap()
+        return "$not($variable)$left-[:${rel.relType}]-$right()" to emptyMap()
     }
 }
 
-data class ExpressionPredicate(val name: String, val op: Operators, val value: Any?) : Predicate {
+data class ExpressionPredicate(val name: String, val op: Operators, val value: Any?, val fieldDefinition: GraphQLFieldDefinition) : Predicate {
     val not = if (op.not) "NOT " else ""
     override fun toExpression(variable: String, schema: GraphQLSchema): Pair<String, Map<String, Any?>> {
         val paramName: String = "filter" + paramName(variable, name, value).capitalize()
-        return "$not$variable.${name.quote()} ${op.op} \$$paramName" to mapOf(paramName to value)
+        val field = if (fieldDefinition.isNativeId()) "ID($variable)" else "$variable.${name.quote()}"
+        return "$not$field ${op.op} \$$paramName" to mapOf(paramName to value)
     }
 }
 
 
-data class RelationPredicate(val name: String, val op: Operators, val value: Map<*, *>, val type: GraphQLObjectType) : Predicate {
+data class RelationPredicate(val fieldName: String, val op: Operators, val value: Map<*, *>, val type: GraphQLObjectType) : Predicate {
     val not = if (op.not) "NOT" else ""
     // (type)-[:TYPE]->(related) | pred] = 0/1/ > 0 | =
     // ALL/ANY/NONE/SINGLE(p in (type)-[:TYPE]->() WHERE pred(last(nodes(p)))
@@ -133,13 +88,13 @@ data class RelationPredicate(val name: String, val op: Operators, val value: Map
             Operators.NEQ -> "ALL" // bc of not
             else -> op.op
         }
-        val rel = type.relationshipFor(name, schema)
+        val rel = type.relationshipFor(fieldName, schema)
         val (left, right) = rel.arrows
-        val other = variable + "_" + rel.label
+        val other = variable + "_" + rel.type
         val cond = other + "_Cond"
-        val relGraphQLObjectType = schema.getType(rel.label) as GraphQLObjectType
+        val relGraphQLObjectType = schema.getType(rel.type) as GraphQLObjectType
         val (pred, params) = CompoundPredicate(value.map { resolvePredicate(it.key.toString(), it.value, relGraphQLObjectType) }).toExpression(other, schema)
-        return "$not $prefix($cond IN [($variable)$left-[:${rel.type.quote()}]-$right($other) | $pred] WHERE $cond)" to params
+        return "$not $prefix($cond IN [($variable)$left-[:${rel.relType.quote()}]-$right($other) | $pred] WHERE $cond)" to params
     }
 }
 
