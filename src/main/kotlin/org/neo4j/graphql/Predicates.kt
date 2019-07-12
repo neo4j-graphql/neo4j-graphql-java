@@ -13,9 +13,11 @@ interface Predicate {
         fun resolvePredicate(name: String, value: Any?, type: GraphQLObjectType): Predicate {
             val (fieldName, op) = Operators.resolve(name, value)
             return if (type.hasRelationship(fieldName)) {
-                if (value is Map<*, *>) RelationPredicate(fieldName, op, value, type)
-                else if (value is IsNullOperator) IsNullPredicate(fieldName, op, type)
-                else throw IllegalArgumentException("Input for $fieldName must be an filter-InputType")
+                when (value) {
+                    is Map<*, *> -> RelationPredicate(fieldName, op, value, type)
+                    is IsNullOperator -> IsNullPredicate(fieldName, op, type)
+                    else -> throw IllegalArgumentException("Input for $fieldName must be an filter-InputType")
+                }
             } else {
                 ExpressionPredicate(fieldName, op, value)
             }
@@ -23,12 +25,13 @@ interface Predicate {
 
         private fun isParam(value: String) = value.startsWith("{") && value.endsWith("}") || value.startsWith("\$")
 
-        fun formatAnyValueCypher(value: Any?): String =
+        @Suppress("unused")
+        private fun formatAnyValueCypher(value: Any?): String =
                 when (value) {
                     null -> "null"
-                    is String -> if (isParam(value)) value else "\"${value}\""
+                    is String -> if (isParam(value)) value else "\"$value\""
                     is Map<*, *> -> "{" + value.map { it.key.toString() + ":" + formatAnyValueCypher(it.value) }.joinToString(",") + "}"
-                    is Iterable<*> -> "[" + value.map { formatAnyValueCypher(it) }.joinToString(",") + "]"
+                    is Iterable<*> -> "[" + value.joinToString(",") { formatAnyValueCypher(it) } + "]"
                     else -> value.toString()
 
                 }
@@ -37,12 +40,10 @@ interface Predicate {
 
 fun toExpression(name: String, value: Any?, type: GraphQLObjectType): Predicate =
         if (name == "AND" || name == "OR")
-            if (value is Iterable<*>) {
-                CompoundPredicate(value.map { toExpression("AND", it, type) }, name)
-            } else if (value is Map<*, *>) {
-                CompoundPredicate(value.map { (k, v) -> toExpression(k.toString(), v, type) }, name)
-            } else {
-                throw IllegalArgumentException("Unexpected value for filter: $value")
+            when (value) {
+                is Iterable<*> -> CompoundPredicate(value.map { toExpression("AND", it, type) }, name)
+                is Map<*, *> -> CompoundPredicate(value.map { (k, v) -> toExpression(k.toString(), v, type) }, name)
+                else -> throw IllegalArgumentException("Unexpected value for filter: $value")
             }
         else {
             resolvePredicate(name, value, type)
@@ -90,15 +91,15 @@ fun arrows(outgoing: Boolean?): Pair<String, String> {
 
 data class RelationshipInfo(val objectType: GraphQLObjectType, val directive: Directive, val type: String, val out: Boolean?, val startField: String? = null, val endField: String? = null, val isRelFromType: Boolean = false) {
     val arrows = arrows(out)
-    val label = objectType.name
+    val label: String = objectType.name
 }
 
 data class CompoundPredicate(val parts: List<Predicate>, val op: String = "AND") : Predicate {
     override fun toExpression(variable: String, schema: GraphQLSchema): Pair<String, Map<String, Any?>> =
             parts.map { it.toExpression(variable, schema) }
                 .let { expressions ->
-                    expressions.map { it.first }.joinNonEmpty(" " + op + " ", "(", ")") to
-                            expressions.fold(emptyMap<String, Any?>()) { res, exp -> res + exp.second }
+                    expressions.map { it.first }.joinNonEmpty(" $op ", "(", ")") to
+                            expressions.fold(emptyMap()) { res, exp -> res + exp.second }
                 }
 }
 
@@ -115,7 +116,7 @@ data class ExpressionPredicate(val name: String, val op: Operators, val value: A
     val not = if (op.not) "NOT " else ""
     override fun toExpression(variable: String, schema: GraphQLSchema): Pair<String, Map<String, Any?>> {
         val paramName: String = "filter" + paramName(variable, name, value).capitalize()
-        return "$not${variable}.${name.quote()} ${op.op} \$${paramName}" to mapOf(paramName to value)
+        return "$not$variable.${name.quote()} ${op.op} \$$paramName" to mapOf(paramName to value)
     }
 }
 
@@ -137,14 +138,15 @@ data class RelationPredicate(val name: String, val op: Operators, val value: Map
         val other = variable + "_" + rel.label
         val cond = other + "_Cond"
         val relGraphQLObjectType = schema.getType(rel.label) as GraphQLObjectType
-        val (pred, params) = CompoundPredicate(value.map { it -> resolvePredicate(it.key.toString(), it.value, relGraphQLObjectType) }).toExpression(other, schema)
-        return "$not $prefix(${cond} IN [($variable)$left-[:${rel.type.quote()}]-$right($other) | $pred] WHERE ${cond})" to params
+        val (pred, params) = CompoundPredicate(value.map { resolvePredicate(it.key.toString(), it.value, relGraphQLObjectType) }).toExpression(other, schema)
+        return "$not $prefix($cond IN [($variable)$left-[:${rel.type.quote()}]-$right($other) | $pred] WHERE $cond)" to params
     }
 }
 
 abstract class UnaryOperator
 class IsNullOperator : UnaryOperator()
 
+@Suppress("unused")
 enum class Operators(val suffix: String, val op: String, val not: Boolean = false) {
     EQ("", "="),
     IS_NULL("", ""),
@@ -173,13 +175,13 @@ enum class Operators(val suffix: String, val op: String, val not: Boolean = fals
     val list = op == "IN"
 
     companion object {
-        val ops = enumValues<Operators>().sortedWith(Comparator.comparingInt<Operators> { it.suffix.length }).reversed()
+        private val ops = enumValues<Operators>().sortedWith(Comparator.comparingInt { it.suffix.length }).reversed()
         val allNames = ops.map { it.suffix }
         val allOps = ops.map { it.op }
 
         fun resolve(field: String, value: Any?): Pair<String, Operators> {
             val fieldOperator = ops.find { field.endsWith("_" + it.suffix) }
-            val unaryOperator = if (value is UnaryOperator) unaryOperatorOf(field, value) else Operators.EQ
+            val unaryOperator = if (value is UnaryOperator) unaryOperatorOf(field, value) else EQ
             val op = fieldOperator ?: unaryOperator
             val name = if (op.suffix.isEmpty()) field else field.substring(0, field.length - op.suffix.length - 1)
             return name to op

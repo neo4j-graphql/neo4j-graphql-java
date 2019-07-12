@@ -36,9 +36,9 @@ type Query {
 
     @Test
     fun testTck() {
-        val EXPECTED_FAILURES = 59
+        val expectedFailures = 59
         val fileName = "filter-test.md"
-        TckTest(schema).testTck(fileName, EXPECTED_FAILURES)
+        TckTest(schema).testTck(fileName, expectedFailures)
     }
 
 }

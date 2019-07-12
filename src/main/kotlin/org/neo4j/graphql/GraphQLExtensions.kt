@@ -44,11 +44,12 @@ fun GraphQLFieldDefinition.propertyDirectiveName() =
 
 fun GraphQLFieldDefinition.cypherDirective(): Translator.Cypher? =
         this.definition.getDirective("cypher")?.let {
+            @Suppress("UNCHECKED_CAST")
             Translator.Cypher(it.getArgument("statement").value.toJavaValue().toString(),
                     it.getArgument("params")?.value?.toJavaValue() as Map<String, Any?>? ?: emptyMap())
         }
 
-fun String.quote() = if (isJavaIdentifier()) this else '`' + this + '`'
+fun String.quote() = if (isJavaIdentifier()) this else "`$this`"
 
 fun String.isJavaIdentifier() =
         this[0].isJavaIdentifierStart() &&
@@ -58,7 +59,7 @@ fun Directive.argumentString(name: String, schema: GraphQLSchema, defaultValue: 
     return this.getArgument(name)?.value?.toJavaValue()?.toString()
             ?: schema.getDirective(this.name).getArgument(name)?.defaultValue?.toString()
             ?: defaultValue
-            ?: throw IllegalStateException("No default value for ${this.name}.${name}")
+            ?: throw IllegalStateException("No default value for ${this.name}.$name")
 }
 
 fun Value<Value<*>>.toCypherString(): String = when (this) {
@@ -69,8 +70,8 @@ fun Value<Value<*>>.toCypherString(): String = when (this) {
     is FloatValue -> this.value.toString()
     is IntValue -> this.value.toString()
     is VariableReference -> "$" + this.name
-    is ArrayValue -> this.values.map { it.toCypherString() }.joinToString(",", "[", "]")
-    else -> throw IllegalStateException("Unhandled value " + this)
+    is ArrayValue -> this.values.joinToString(",", "[", "]") { it.toCypherString() }
+    else -> throw IllegalStateException("Unhandled value $this")
 }
 
 fun Value<Value<*>>.toJavaValue(): Any? = when (this) {
@@ -83,10 +84,10 @@ fun Value<Value<*>>.toJavaValue(): Any? = when (this) {
     is VariableReference -> this
     is ArrayValue -> this.values.map { it.toJavaValue() }.toList()
     is ObjectValue -> this.objectFields.map { it.name to it.value.toJavaValue() }.toMap()
-    else -> throw IllegalStateException("Unhandled value " + this)
+    else -> throw IllegalStateException("Unhandled value $this")
 }
 
-fun paramName(variable: String, argName: String, value: Any?) = when (value) {
+fun paramName(variable: String, argName: String, value: Any?): String = when (value) {
     is VariableReference -> value.name
     else -> "$variable${argName.capitalize()}"
 }
@@ -95,8 +96,7 @@ fun FieldDefinition.isID(): Boolean = this.type.name() == "ID"
 fun FieldDefinition.isList(): Boolean = this.type is ListType
 fun GraphQLFieldDefinition.isID(): Boolean = this.type.inner() == Scalars.GraphQLID
 fun ObjectTypeDefinition.getFieldByType(typeName: String): FieldDefinition? = this.fieldDefinitions
-    .filter { it.type.inner().name() == typeName }
-    .firstOrNull()
+    .firstOrNull { it.type.inner().name() == typeName }
 
 fun GraphQLDirective.getRelationshipType(): String = this.getArgument("name").value.toString()
 fun GraphQLDirective.getRelationshipDirection(): String = this.getArgument("direction")?.value?.toString() ?: "OUT"

@@ -26,10 +26,11 @@ type Query {
         assertQuery(query, expected, mapOf("personId" to "32", "personName" to "Jane"))
     }
 
+    @Suppress("SameParameterValue")
     private fun assertQuery(query: String, expected: String, params: Map<String, Any?> = emptyMap()) {
         val result = Translator(SchemaBuilder.buildSchema(schema)).translate(query).first()
         assertEquals(expected, result.query)
-        assertTrue("${params} IN ${result.params}", result.params.entries.containsAll(params.entries))
+        assertTrue("$params IN ${result.params}", result.params.entries.containsAll(params.entries))
     }
 
     @Test

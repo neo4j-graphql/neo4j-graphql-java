@@ -101,8 +101,8 @@ schema {
     private fun assertQuery(query: String, expected: String, params: Map<String, Any?> = emptyMap(), queryParams: Map<String, Any?> = emptyMap()) {
         val result = Translator(SchemaBuilder.buildSchema(schema)).translate(query, queryParams).first()
         assertEquals(expected, result.query)
-        assertTrue("${params} IN ${result.params}", params.all {
-            val v = result.params[it.key]; when (v) {
+        assertTrue("$params IN ${result.params}", params.all {
+            when (val v = result.params[it.key]) {
             is Node<*> -> v.isEqualTo(it.value as Node<*>)
             else -> v == it.value
         }

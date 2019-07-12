@@ -13,7 +13,7 @@ import spark.Request
 import spark.Response
 import spark.Spark
 
-val schema = """
+const val schema = """
 type Person {
   name: ID!
   born: Int
@@ -32,8 +32,9 @@ fun main() {
     fun parseBody(value: String) = gson.fromJson(value, Map::class.java)
 
     fun query(payload: Map<*, *>) = (payload["query"]!! as String).also { println(it) }
-    fun params(payload: Map<*, *>): Map<String, Any?> = payload.get("variables")
+    fun params(payload: Map<*, *>): Map<String, Any?> = payload["variables"]
         .let {
+            @Suppress("UNCHECKED_CAST")
             when (it) {
                 is String -> if (it.isBlank()) emptyMap<String, Any?>() else gson.fromJson(it, Map::class.java)
                 is Map<*, *> -> it
@@ -62,7 +63,7 @@ fun main() {
     }
 
 
-    fun handler(req: Request, res: Response) = req.body().let { body ->
+    fun handler(req: Request, @Suppress("UNUSED_PARAMETER") res: Response) = req.body().let { body ->
         val payload = parseBody(body)
         val query = query(payload)
         if (query.contains("__schema"))

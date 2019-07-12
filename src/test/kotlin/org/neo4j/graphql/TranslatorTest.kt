@@ -255,7 +255,7 @@ class TranslatorTest {
     private fun assertQuery(query: String, expected: String, params: Map<String, Any> = emptyMap(), schema: String = this.schema) {
         val result = Translator(SchemaBuilder.buildSchema(schema)).translate(query).first()
         assertEquals(expected, result.query)
-        assertTrue("${params} IN ${result.params}", result.params.entries.containsAll(params.entries))
+        assertTrue("$params IN ${result.params}", result.params.entries.containsAll(params.entries))
     }
 
     @Test(expected = IllegalArgumentException::class) // todo better test

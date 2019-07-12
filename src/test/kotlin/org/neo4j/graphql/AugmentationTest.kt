@@ -10,7 +10,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
 class AugmentationTest {
-    val types = SchemaParser().parse("""
+    private val types = SchemaParser().parse("""
         type Person0 { name: String }
         type Person1 { name: String }
         type Person2 { name: String, age: [Int] }

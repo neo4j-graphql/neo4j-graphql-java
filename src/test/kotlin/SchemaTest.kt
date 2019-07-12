@@ -6,7 +6,7 @@ import graphql.schema.idl.SchemaGenerator
 import graphql.schema.idl.SchemaParser
 import kotlin.test.assertEquals
 
-fun main(args: Array<String>) {
+fun main() {
     val schema = """type Query {
                         hello(what:String = "World"): String
                     }"""
