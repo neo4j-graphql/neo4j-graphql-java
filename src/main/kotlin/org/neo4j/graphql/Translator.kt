@@ -470,16 +470,7 @@ object SchemaBuilder {
     }
 
     private fun augmentSchema(typeDefinitionRegistry: TypeDefinitionRegistry, schemaParser: SchemaParser, ctx: Translator.Context): TypeDefinitionRegistry {
-        val directivesSdl = """
-            enum RelationDirection {
-               IN
-               OUT
-               BOTH
-            }
-            directive @relation(name:String, direction: RelationDirection = OUT, from: String = "from", to: String = "to") on FIELD_DEFINITION | OBJECT
-            directive @cypher(statement:String) on FIELD_DEFINITION
-            directive @property(name:String) on FIELD_DEFINITION
-        """
+        val directivesSdl = javaClass.getResource("/neo4j_directives.graphql").readText()
         typeDefinitionRegistry.merge(schemaParser.parse(directivesSdl))
 
         val objectTypeDefinitions = typeDefinitionRegistry.types().values.filterIsInstance<ObjectTypeDefinition>()

@@ -65,7 +65,15 @@ val (cypher, params) = Translator(schema).translate(query, params)
 cypher == "MATCH (p:Person) WHERE p.name = $pName RETURN p {.age} as p"
 ----
 
-You find more usage examples in the link:src/test/resources[TCK scripts].
+You find more usage examples in the:
+
+* link:src/test/resources/movie-tests.adoc[Movie TCK]
+* link:src/test/resources/filter-tests.adoc[Filter TCK]
+* link:src/test/resources/cypher-directive-tests.adoc[Cypher Directive TCK]
+* link:src/test/resources/property-tests.adoc[Property TCK]
+* link:src/test/resources/translator-tests1.adoc[Translator 1 TCK]
+* link:src/test/resources/translator-tests2.adoc[Translator 2 TCK]
+* link:src/test/resources/translator-tests3.adoc[Translator 3 TCK]
 
 == Demo
 
