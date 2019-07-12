@@ -4,11 +4,9 @@ import org.junit.Test
 
 class FilterTest {
 
-    private val testSuite = AsciiDocTestSuite("filter-tests.adoc")
-
     @Test
     fun testTck() {
-        testSuite.runSuite(59)
+        AsciiDocTestSuite("filter-tests.adoc").runSuite(59)
     }
 
 }
