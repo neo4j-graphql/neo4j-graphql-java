@@ -1,13 +1,23 @@
 package demo.org.neo4j.graphql
 
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 import org.neo4j.graphql.AsciiDocTestSuite
 
+@RunWith(Parameterized::class)
+class MovieSchemaTest(val test: AsciiDocTestSuite.TestRun) {
 
-class MovieSchemaTest {
+    companion object {
+        @JvmStatic
+        @Parameterized.Parameters
+        fun data(): Collection<AsciiDocTestSuite.TestRun> {
+            return AsciiDocTestSuite("movie-tests.adoc").tests
+        }
+    }
 
     @Test
     fun testTck() {
-        AsciiDocTestSuite("movie-tests.adoc").runSuite(0, true)
+        test.run();
     }
 }

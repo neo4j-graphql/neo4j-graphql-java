@@ -1,14 +1,22 @@
 package org.neo4j.graphql
 
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 
-class CypherDirectiveTest {
+@RunWith(Parameterized::class)
+class CypherDirectiveTest(val test: AsciiDocTestSuite.TestRun) {
 
-
-    private val testSuite = AsciiDocTestSuite("cypher-directive-tests.adoc")
+    companion object {
+        @JvmStatic
+        @Parameterized.Parameters
+        fun data(): Collection<AsciiDocTestSuite.TestRun> {
+            return AsciiDocTestSuite("cypher-directive-tests.adoc").tests
+        }
+    }
 
     @Test
     fun testTck() {
-        testSuite.runSuite()
+        test.run();
     }
 }

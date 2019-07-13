@@ -25,7 +25,7 @@ type Query {
 }
 ----
 
-== Filter Queries
+== Filter in _Enum_
 
 === Filter enum _eq_
 
@@ -35,10 +35,12 @@ type Query {
 { person(filter: { gender: male }) { name }}
 ----
 
-.Params
+.Cypher Params
 [source,json]
 ----
-{"filterPersonGender":"male"}
+{
+  "filterPersonGender":"male"
+}
 ----
 
 .Cypher
@@ -57,10 +59,12 @@ RETURN person { .name } AS person
 { person(filter: { gender_not: male }) { name }}
 ----
 
-.Params
+.Cypher Params
 [source,json]
 ----
-{"filterPersonGender":"male"}
+{
+  "filterPersonGender":"male"
+}
 ----
 
 .Cypher
@@ -79,7 +83,7 @@ RETURN person { .name } AS person
 { person(filter: { gender_not_in: [male] }) { name }}
 ----
 
-.Params
+.Cypher Params
 [source,json]
 ----
 {"filterPersonGender":["male"]}
@@ -101,31 +105,927 @@ RETURN person { .name } AS person
 { person(filter: { gender_in: [male] }) { name }}
 ----
 
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonGender": [
+    "male"
+  ]
+}
+----
+
 .Cypher
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE (person.gender IN ["male"])
+WHERE person.gender IN $filterPersonGender
 RETURN person { .name } AS person
 ----
+
+== Filter on _ID_
+
+=== Filter id _eq_
+
+.Query
+[source,graphql]
+----
+{ person(filter: { id: "jane" }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonId": "jane"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.id = $filterPersonId
+RETURN person { .name } AS person
+----
+
+=== Filter id _starts_with_
+
+.Query
+[source,graphql]
+----
+{ person(filter: { id_starts_with: "ja" }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonId": "ja"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.id STARTS WITH $filterPersonId
+RETURN person { .name } AS person
+----
+
+=== Filter id _not_starts_with_
+
+.Query
+[source,graphql]
+----
+{ person(filter: { id_not_starts_with: "ja" }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonId": "ja"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE NOT person.id STARTS WITH $filterPersonId
+RETURN person { .name } AS person
+----
+
+=== Filter id _ends_with_
+
+.Query
+[source,graphql]
+----
+{ person(filter: { id_ends_with: "ne" }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonId": "ne"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.id ENDS WITH $filterPersonId
+RETURN person { .name } AS person
+----
+
+=== Filter id _not_ends_with_
+
+.Query
+[source,graphql]
+----
+{ person(filter: { id_not_ends_with: "ne" }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonId": "ne"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE NOT person.id ENDS WITH $filterPersonId
+RETURN person { .name } AS person
+----
+
+=== Filter id _contains_
+
+.Query
+[source,graphql]
+----
+{ person(filter: { id_contains: "an" }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonId": "an"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.id CONTAINS $filterPersonId
+RETURN person { .name } AS person
+----
+
+=== Filter id _not_contains_
+
+.Query
+[source,graphql]
+----
+{ person(filter: { id_not_contains: "an" }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonId": "an"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE NOT person.id CONTAINS $filterPersonId
+RETURN person { .name } AS person
+----
+
+=== Filter id _in_
+
+.Query
+[source,graphql]
+----
+{ person(filter: { id_in: ["jane"] }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonId": ["jane"]
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.id IN $filterPersonId
+RETURN person { .name } AS person
+----
+
+=== Filter id _not_in_
+
+.Query
+[source,graphql]
+----
+{ person(filter: { id_not_in: ["joe"] }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonId": ["joe"]
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE NOT person.id IN $filterPersonId
+RETURN person { .name } AS person
+----
+
+=== Filter id _not_
+
+.Query
+[source,graphql]
+----
+{ person(filter: { id_not: "joe" }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonId": "joe"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE NOT person.id = $filterPersonId
+RETURN person { .name } AS person
+----
+
+== Filter on _Int_
+
+=== Filter number _eq_
+
+.Query
+[source,graphql]
+----
+{ person(filter: { age: 38 }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonAge": 38
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.age = $filterPersonAge
+RETURN person { .name } AS person
+----
+
+=== Filter number _in_
+
+.Query
+[source,graphql]
+----
+{ person(filter: { age_in: [38] }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonAge": [38]
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.age IN $filterPersonAge
+RETURN person { .name } AS person
+----
+
+=== Filter number _not_in_
+
+.Query
+[source,graphql]
+----
+{ person(filter: { age_not_in: [38] }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonAge": [38]
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE NOT person.age IN $filterPersonAge
+RETURN person { .name } AS person
+----
+
+=== Filter number _lte_
+
+.Query
+[source,graphql]
+----
+{ person(filter: { age_lte: 40 }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonAge": 40
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.age <= $filterPersonAge
+RETURN person { .name } AS person
+----
+
+=== Filter number _lt_
+
+.Query
+[source,graphql]
+----
+{ person(filter: { age_lt: 40 }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonAge": 40
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.age < $filterPersonAge
+RETURN person { .name } AS person
+----
+
+=== Filter number _gt_
+
+.Query
+[source,graphql]
+----
+{ person(filter: { age_gt: 40 }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonAge": 40
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.age > $filterPersonAge
+RETURN person { .name } AS person
+----
+
+=== Filter number _gte_
+
+.Query
+[source,graphql]
+----
+{ person(filter: { age_gte: 40 }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonAge": 40
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.age >= $filterPersonAge
+RETURN person { .name } AS person
+----
+
+== Filter on _Float_
+
+=== Filter float _eq_
+
+.Query
+[source,graphql]
+----
+{ person(filter: { height: 1.75 }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonHeight": 1.75
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.height = $filterPersonHeight
+RETURN person { .name } AS person
+----
+
+=== Filter float _not_
+
+.Query
+[source,graphql]
+----
+{ person(filter: { height_not: 1.75 }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonHeight": 1.75
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE NOT person.height = $filterPersonHeight
+RETURN person { .name } AS person
+----
+
+=== Filter float _in_
+
+.Query
+[source,graphql]
+----
+{ person(filter: { height_in: [1.75] }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonHeight": [1.75]
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.height IN $filterPersonHeight
+RETURN person { .name } AS person
+----
+
+=== Filter float _not_in_
+
+.Query
+[source,graphql]
+----
+{ person(filter: { height_not_in: [1.75] }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonHeight": [1.75]
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE NOT person.height IN $filterPersonHeight
+RETURN person { .name } AS person
+----
+
+=== Filter float _lte_
+
+.Query
+[source,graphql]
+----
+{ person(filter: { height_lte: 1.80 }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonHeight": 1.8
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.height <= $filterPersonHeight
+RETURN person { .name } AS person
+----
+
+=== Filter float _lt_
+
+.Query
+[source,graphql]
+----
+{ person(filter: { height_lt: 1.80 }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonHeight": 1.8
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.height < $filterPersonHeight
+RETURN person { .name } AS person
+----
+
+=== Filter float _gte_
+
+.Query
+[source,graphql]
+----
+{ person(filter: { height_gte: 1.80 }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonHeight": 1.8
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.height >= $filterPersonHeight
+RETURN person { .name } AS person
+----
+
+=== Filter float _gt_
+
+.Query
+[source,graphql]
+----
+{ person(filter: { height_gt: 1.80 }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonHeight": 1.8
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.height > $filterPersonHeight
+RETURN person { .name } AS person
+----
+
+== Filter on _String_
 
 === Filter string _eq_
 
 .Query
 [source,graphql]
 ----
-query filterQuery($name: String) { person(filter: {name : $name}) { name }}
+{ person(filter: { name: "Jane" }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonName": "Jane"
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE (person.name = {name})
+WHERE person.name = $filterPersonName
 RETURN person { .name } AS person
 ----
 
+=== Filter string _starts_with_
+
+.Query
+[source,graphql]
+----
+{ person(filter: { name_starts_with: "Ja" }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonName": "Ja"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.name STARTS WITH $filterPersonName
+RETURN person { .name } AS person
+----
+
+=== Filter string _not_starts_with_
+
+.Query
+[source,graphql]
+----
+{ person(filter: { name_not_starts_with: "Ja" }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonName": "Ja"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE NOT person.name STARTS WITH $filterPersonName
+RETURN person { .name } AS person
+----
+
+=== Filter string _ends_with_
+
+.Query
+[source,graphql]
+----
+{ person(filter: { name_ends_with: "ne" }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonName": "ne"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.name ENDS WITH $filterPersonName
+RETURN person { .name } AS person
+----
+
+=== Filter string _not_ends_with_
+
+.Query
+[source,graphql]
+----
+{ person(filter: { name_not_ends_with: "ne" }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonName": "ne"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE NOT person.name ENDS WITH $filterPersonName
+RETURN person { .name } AS person
+----
+
+=== Filter string _contains_
+
+.Query
+[source,graphql]
+----
+{ person(filter: { name_contains: "an" }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonName": "an"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.name CONTAINS $filterPersonName
+RETURN person { .name } AS person
+----
+
+=== Filter string _not_contains_
+
+.Query
+[source,graphql]
+----
+{ person(filter: { name_not_contains: "an" }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonName": "an"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE NOT person.name CONTAINS $filterPersonName
+RETURN person { .name } AS person
+----
+
+=== Filter string _in_
+
+.Query
+[source,graphql]
+----
+{ person(filter: { name_in: ["Jane"] }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonName": ["Jane"]
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.name IN $filterPersonName
+RETURN person { .name } AS person
+----
+
+=== Filter string _not_in_
+
+.Query
+[source,graphql]
+----
+{ person(filter: { name_not_in: ["Joe"] }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonName": ["Joe"]
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE NOT person.name IN $filterPersonName
+RETURN person { .name } AS person
+----
+
+=== Filter string _not_
+
+.Query
+[source,graphql]
+----
+{ person(filter: { name_not: "Joe" }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonName": "Joe"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE NOT person.name = $filterPersonName
+RETURN person { .name } AS person
+----
+
+== Filter on _Boolean_
+
+=== Filter boolean _eq_
+
+.Query
+[source,graphql]
+----
+{ person(filter: { fun: true }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonFun": true
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.fun = $filterPersonFun
+RETURN person { .name } AS person
+----
+
+=== Filter boolean _not_
+
+.Query
+[source,graphql]
+----
+{ person(filter: { fun_not: true }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonFun": true
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE NOT person.fun = $filterPersonFun
+RETURN person { .name } AS person
+----
+
+== Null Filtering
+
 === Filter _null_
+
+CAUTION: Not yet implemented
 
 .Query
 [source,graphql]
@@ -143,6 +1043,8 @@ RETURN person { .name } AS person
 
 === Filter _not null_
 
+CAUTION: Is not working
+
 .Query
 [source,graphql]
 ----
@@ -157,163 +1059,106 @@ WHERE ((person)-[:WORKS_AT]->())
 RETURN person { .name } AS person
 ----
 
-=== Filter id _eq_
+
+== Logical Filter
+
+=== Filter _AND_
 
 .Query
 [source,graphql]
 ----
-{ person(filter: { id: "jane" }) { name }}
+{ person(filter: { AND: [{ fun: true, name: "Jane"}]  }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonFun": true,
+  "filterPersonName": "Jane"
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE (person.id = "jane")
+WHERE ((person.fun = $filterPersonFun AND person.name = $filterPersonName))
 RETURN person { .name } AS person
 ----
 
-=== Filter id _starts_with_
+---
 
 .Query
 [source,graphql]
 ----
-{ person(filter: { id_starts_with: "ja" }) { name }}
+{ person(filter: { AND: [{ fun: true},{name: "Jane"}]  }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonFun": true,
+  "filterPersonName": "Jane"
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE (person.id STARTS WITH "ja")
+WHERE ((person.fun = $filterPersonFun) AND (person.name = $filterPersonName))
 RETURN person { .name } AS person
 ----
 
-=== Filter id _not_starts_with_
+=== Filter _OR_
 
 .Query
 [source,graphql]
 ----
-{ person(filter: { id_not_starts_with: "ja" }) { name }}
+{ person(filter: { OR: [{ fun: false, name_not: "Jane"}]  }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonFun": false,
+  "filterPersonName": "Jane"
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE (NOT person.id STARTS WITH "ja")
+WHERE ((person.fun = $filterPersonFun AND NOT person.name = $filterPersonName))
 RETURN person { .name } AS person
 ----
 
-=== Filter id _ends_with_
+---
 
 .Query
 [source,graphql]
 ----
-{ person(filter: { id_ends_with: "ne" }) { name }}
+{ person(filter: { OR: [{ fun: true},{name_in: ["Jane"]}]  }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonFun": true,
+  "filterPersonName": ["Jane"]
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE (person.id ENDS WITH "ne")
-RETURN person { .name } AS person
-----
-
-=== Filter id _not_ends_with_
-
-.Query
-[source,graphql]
-----
-{ person(filter: { id_not_ends_with: "ne" }) { name }}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (person:Person)
-WHERE (NOT person.id ENDS WITH "ne")
-RETURN person { .name } AS person
-----
-
-=== Filter id _contains_
-
-.Query
-[source,graphql]
-----
-{ person(filter: { id_contains: "an" }) { name }}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (person:Person)
-WHERE (person.id CONTAINS "an")
-RETURN person { .name } AS person
-----
-
-=== Filter id _not_contains_
-
-.Query
-[source,graphql]
-----
-{ person(filter: { id_not_contains: "an" }) { name }}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (person:Person)
-WHERE (NOT person.id CONTAINS "an")
-RETURN person { .name } AS person
-----
-
-=== Filter id _in_
-
-.Query
-[source,graphql]
-----
-{ person(filter: { id_in: ["jane"] }) { name }}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (person:Person)
-WHERE (person.id IN ["jane"])
-RETURN person { .name } AS person
-----
-
-=== Filter id _not_in_
-
-.Query
-[source,graphql]
-----
-{ person(filter: { id_not_in: ["joe"] }) { name }}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (person:Person)
-WHERE (NOT person.id IN ["joe"])
-RETURN person { .name } AS person
-----
-
-=== Filter id _not_
-
-.Query
-[source,graphql]
-----
-{ person(filter: { id_not: "joe" }) { name }}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (person:Person)
-WHERE (NOT person.id = "joe")
+WHERE ((person.fun = $filterPersonFun) OR (person.name IN $filterPersonName))
 RETURN person { .name } AS person
 ----
 
@@ -325,287 +1170,175 @@ RETURN person { .name } AS person
 { person(filter: { OR: [{ AND: [{fun: true},{height:1.75}]},{name_in: ["Jane"]}]  }) { name }}
 ----
 
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonFun": true,
+  "filterPersonHeight": 1.75,
+  "filterPersonName": [
+    "Jane"
+  ]
+}
+----
+
 .Cypher
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE (((((person.fun = true) AND (person.height = 1.75))) OR (person.name IN ["Jane"])))
+WHERE ((((person.fun = $filterPersonFun) AND (person.height = $filterPersonHeight))) OR (person.name IN $filterPersonName))
 RETURN person { .name } AS person
 ----
 
-=== Filter number _eq_
+== Predicate functions
+
+=== Filter _some_ (cypher _ANY_)
 
 .Query
 [source,graphql]
 ----
-{ person(filter: { age: 38 }) { name }}
+{ p: company(filter: { employees_some : { name : "Jane" } }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterP_PersonName": "Jane"
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person)
-WHERE (person.age = 38)
-RETURN person { .name } AS person
+MATCH (p:Company)
+WHERE ANY(p_Person_Cond IN [(p)<-[:WORKS_AT]-(p_Person) | (p_Person.name = $filterP_PersonName)] WHERE p_Person_Cond)
+RETURN p { .name } AS p
 ----
 
-==== Filter number _in_
+---
 
 .Query
 [source,graphql]
 ----
-{ person(filter: { age_in: [38] }) { name }}
+{ p: company(filter: { employees_some : { name : "Jill" } }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterP_PersonName": "Jill"
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person)
-WHERE (person.age IN [38])
-RETURN person { .name } AS person
+MATCH (p:Company)
+WHERE ANY(p_Person_Cond IN [(p)<-[:WORKS_AT]-(p_Person) | (p_Person.name = $filterP_PersonName)] WHERE p_Person_Cond)
+RETURN p { .name } AS p
 ----
 
-==== Filter number _not_in_
+=== Filter _every_ (cypher _ALL_)
 
 .Query
 [source,graphql]
 ----
-{ person(filter: { age_not_in: [38] }) { name }}
+{ p: company(filter: { employees_every : { name : "Jill" } }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterP_PersonName": "Jill"
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person)
-WHERE (NOT person.age IN [38])
-RETURN person { .name } AS person
+MATCH (p:Company)
+WHERE ALL(p_Person_Cond IN [(p)<-[:WORKS_AT]-(p_Person) | (p_Person.name = $filterP_PersonName)] WHERE p_Person_Cond)
+RETURN p { .name } AS p
 ----
 
-==== Filter number _lte_
+=== Filter _none_ (cypher _NONE_)
 
 .Query
 [source,graphql]
 ----
-{ person(filter: { age_lte: 40 }) { name }}
+{ p: company(filter: { employees_none : { name : "Jane" } }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterP_PersonName": "Jane"
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person)
-WHERE (person.age <= 40)
-RETURN person { .name } AS person
+MATCH (p:Company)
+WHERE NONE(p_Person_Cond IN [(p)<-[:WORKS_AT]-(p_Person) | (p_Person.name = $filterP_PersonName)] WHERE p_Person_Cond)
+RETURN p { .name } AS p
 ----
 
-==== Filter number _lt_
+---
 
 .Query
 [source,graphql]
 ----
-{ person(filter: { age_lt: 40 }) { name }}
+{ p: company(filter: { employees_none : { name : "Jill" } }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterP_PersonName": "Jill"
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person)
-WHERE (person.age < 40)
-RETURN person { .name } AS person
+MATCH (p:Company)
+WHERE NONE(p_Person_Cond IN [(p)<-[:WORKS_AT]-(p_Person) | (p_Person.name = $filterP_PersonName)] WHERE p_Person_Cond)
+RETURN p { .name } AS p
 ----
 
-==== Filter number _gt_
+=== Filter _single_ (cypher _SINGLE_)
 
 .Query
 [source,graphql]
 ----
-{ person(filter: { age_gt: 40 }) { name }}
+{ p: company(filter: { employees_single : { name : "Jill" } }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterP_PersonName": "Jill"
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person)
-WHERE (person.age > 40)
-RETURN person { .name } AS person
+MATCH (p:Company)
+WHERE SINGLE(p_Person_Cond IN [(p)<-[:WORKS_AT]-(p_Person) | (p_Person.name = $filterP_PersonName)] WHERE p_Person_Cond)
+RETURN p { .name } AS p
 ----
 
-==== Filter number _gte_
+== Cascaded Filtering
 
-.Query
-[source,graphql]
-----
-{ person(filter: { age_gte: 40 }) { name }}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (person:Person)
-WHERE (person.age >= 40)
-RETURN person { .name } AS person
-----
-
-==== Filter string _eq_
-
-.Query
-[source,graphql]
-----
-{ person(filter: { name: "Jane" }) { name }}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (person:Person)
-WHERE (person.name = "Jane")
-RETURN person { .name } AS person
-----
-
-==== Filter string _starts_with_
-
-.Query
-[source,graphql]
-----
-{ person(filter: { name_starts_with: "Ja" }) { name }}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (person:Person)
-WHERE (person.name STARTS WITH "Ja")
-RETURN person { .name } AS person
-----
-
-==== Filter string _not_starts_with_
-
-.Query
-[source,graphql]
-----
-{ person(filter: { name_not_starts_with: "Ja" }) { name }}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (person:Person)
-WHERE (NOT person.name STARTS WITH "Ja")
-RETURN person { .name } AS person
-----
-
-==== Filter string _ends_with_
-
-.Query
-[source,graphql]
-----
-{ person(filter: { name_ends_with: "ne" }) { name }}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (person:Person)
-WHERE (person.name ENDS WITH "ne")
-RETURN person { .name } AS person
-----
-
-==== Filter string _not_ends_with_
-
-.Query
-[source,graphql]
-----
-{ person(filter: { name_not_ends_with: "ne" }) { name }}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (person:Person)
-WHERE (NOT person.name ENDS WITH "ne")
-RETURN person { .name } AS person
-----
-
-==== Filter string _contains_
-
-.Query
-[source,graphql]
-----
-{ person(filter: { name_contains: "an" }) { name }}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (person:Person)
-WHERE (person.name CONTAINS "an")
-RETURN person { .name } AS person
-----
-
-==== Filter string _not_contains_
-
-.Query
-[source,graphql]
-----
-{ person(filter: { name_not_contains: "an" }) { name }}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (person:Person)
-WHERE (NOT person.name CONTAINS "an")
-RETURN person { .name } AS person
-----
-
-==== Filter string _in_
-
-.Query
-[source,graphql]
-----
-{ person(filter: { name_in: ["Jane"] }) { name }}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (person:Person)
-WHERE (person.name IN ["Jane"])
-RETURN person { .name } AS person
-----
-
-==== Filter string _not_in_
-
-.Query
-[source,graphql]
-----
-{ person(filter: { name_not_in: ["Joe"] }) { name }}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (person:Person)
-WHERE (NOT person.name IN ["Joe"])
-RETURN person { .name } AS person
-----
-
-==== Filter string _not_
-
-.Query
-[source,graphql]
-----
-{ person(filter: { name_not: "Joe" }) { name }}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (person:Person)
-WHERE (NOT person.name = "Joe")
-RETURN person { .name } AS person
-----
-
-==== Filter deep string _eq_
+=== Cascaded filter string _eq_
 
 .Query
 [source,graphql]
@@ -613,15 +1346,25 @@ RETURN person { .name } AS person
 { person(filter: { company : { name : "ACME" } }) { name }}
 ----
 
+.Cypher Params
+[source,json]
+----
+{
+  "filterPerson_CompanyName": "ACME"
+}
+----
+
 .Cypher
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE (ALL(person_Company_Cond IN [(person)-[:WORKS_AT]->(person_Company) | (person_Company.name = "ACME")] WHERE person_Company_Cond))
+WHERE ALL(person_Company_Cond IN [(person)-[:WORKS_AT]->(person_Company) | (person_Company.name = $filterPerson_CompanyName)] WHERE person_Company_Cond)
 RETURN person { .name } AS person
 ----
 
-==== Filter deep _not_ string _eq_
+=== Cascaded filter _not_ string _eq_
+
+CAUTION: Is not working
 
 .Query
 [source,graphql]
@@ -629,68 +1372,54 @@ RETURN person { .name } AS person
 { person(filter: { company_not : { name : "ACME" } }) { name }}
 ----
 
-.Cypher
-[source,cypher]
+.Cypher Params
+[source,json]
 ----
-MATCH (person:Person)
-WHERE (NOT ALL(person_Company_Cond IN [(person)-[:WORKS_AT]->(person_Company) | (person_Company.name = "ACME")] WHERE person_Company_Cond))
-RETURN person { .name } AS person
-----
-
-==== Filter _AND_
-
-.Query
-[source,graphql]
-----
-{ person(filter: { AND: [{ fun: true, name: "Jane"}]  }) { name }}
+{
+  "filterPerson_CompanyName": "ACME"
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE (((person.fun = true AND  person.name = "Jane")))
+WHERE NOT ALL(person_Company_Cond IN [(person)-[:WORKS_AT]->(person_Company) | (person_Company.name = $filterPerson_CompanyName)] WHERE person_Company_Cond)
 RETURN person { .name } AS person
 ----
 
-==== Filter _AND_ alternative 1
+=== Cascaded filter string _in_
 
 .Query
 [source,graphql]
 ----
-{ person(filter: { AND: [{ fun: true},{name: "Jane"}]  }) { name }}
+{ p: company(filter: { employees : { name_in : ["Jane","Joe"] } }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterP_PersonName": ["Jane","Joe"]
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person)
-WHERE (((person.fun = true) AND (person.name = "Jane")))
-RETURN person { .name } AS person
+MATCH (p:Company)
+WHERE ALL(p_Person_Cond IN [(p)<-[:WORKS_AT]-(p_Person) | (p_Person.name IN $filterP_PersonName)] WHERE p_Person_Cond)
+RETURN p { .name } AS p
 ----
 
-==== Filter with alias
+=== Cascaded logical operator filter
 
-.Query
-[source,graphql]
-----
-{ p: Company { employees(filter: { name: "Jane" }) { name }}}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (company:Company)
-RETURN graphql.labels(company) AS _labels,
-[ (company)<-[:WORKS_AT]-(company_employees:Person) WHERE (company_employees.name = "Jane") | company_employees {_labels : graphql.labels(company_employees), .name}] AS employees
-----
-
-==== Filter _OR_
+CAUTION: Is not working
 
 .Query
 [source,graphql]
 ----
-{ p: Company { employees(filter: { OR: [{ name: "Jane" },{name:"Joe"}]}) { name }}}
+{ p: company { employees(filter: { OR: [{ name: "Jane" },{name:"Joe"}]}) { name }}}
 ----
 
 .Cypher
@@ -701,206 +1430,11 @@ RETURN graphql.labels(company) AS _labels,
 [ (company)<-[:WORKS_AT]-(company_employees:Person) WHERE (((company_employees.name = "Jane") OR (company_employees.name = "Joe"))) | company_employees {_labels : graphql.labels(company_employees), .name}] AS employees
 ----
 
-==== Filter variable
+== Use of Variables
 
-.Query
-[source,graphql]
-----
-query filterQuery($filter: _PersonFilter) { person(filter: $filter) { name }}
-----
+=== Filter as variable
 
-.Cypher
-[source,cypher]
-----
-MATCH (person:Person)
-WHERE (person.name = "Jane")
-RETURN person { .name } AS person
-----
-
-==== Filter _OR_ alternative 1
-
-.Query
-[source,graphql]
-----
-{ person(filter: { OR: [{ fun: false, name_not: "Jane"}]  }) { name }}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (person:Person)
-WHERE (((person.fun = false AND NOT person.name = "Jane")))
-RETURN person { .name } AS person
-----
-
-==== Filter _OR_ alternative 2
-
-.Query
-[source,graphql]
-----
-{ person(filter: { OR: [{ fun: true},{name_in: ["Jane"]}]  }) { name }}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (person:Person)
-WHERE (((person.fun = true) OR (person.name IN ["Jane"])))
-RETURN person { .name } AS person
-----
-
-==== Filter deep string _in_
-
-.Query
-[source,graphql]
-----
-{ p: Company(filter: { employees : { name_in : ["Jane","Joe"] } }) { name }}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (company:Company)
-WHERE (ALL(company_Person_Cond IN [(company)<-[:WORKS_AT]-(company_Person) | (company_Person.name IN ["Jane","Joe"])] WHERE company_Person_Cond))
-RETURN graphql.labels(company) AS _labels,
-company.name AS name
-----
-
-==== Filter _some_
-
-.Query
-[source,graphql]
-----
-{ p: Company(filter: { employees_some : { name : "Jane" } }) { name }}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (company:Company)
-WHERE (ANY(company_Person_Cond IN [(company)<-[:WORKS_AT]-(company_Person) | (company_Person.name = "Jane")] WHERE company_Person_Cond))
-RETURN graphql.labels(company) AS _labels,
-company.name AS name
-----
-
-==== Filter _every_
-
-.Query
-[source,graphql]
-----
-{ p: Company(filter: { employees_every : { name : "Jill" } }) { name }}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (company:Company)
-WHERE (ALL(company_Person_Cond IN [(company)<-[:WORKS_AT]-(company_Person) | (company_Person.name = "Jill")] WHERE company_Person_Cond))
-RETURN graphql.labels(company) AS _labels,
-company.name AS name
-----
-
-==== Filter _some_ 2
-
-.Query
-[source,graphql]
-----
-{ p: Company(filter: { employees_some : { name : "Jill" } }) { name }}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (company:Company)
-WHERE (ANY(company_Person_Cond IN [(company)<-[:WORKS_AT]-(company_Person) | (company_Person.name = "Jill")] WHERE company_Person_Cond))
-RETURN graphql.labels(company) AS _labels,
-company.name AS name
-----
-
-==== Filter _none_
-
-.Query
-[source,graphql]
-----
-{ p: Company(filter: { employees_none : { name : "Jane" } }) { name }}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (company:Company)
-WHERE (NONE(company_Person_Cond IN [(company)<-[:WORKS_AT]-(company_Person) | (company_Person.name = "Jane")] WHERE company_Person_Cond))
-RETURN graphql.labels(company) AS _labels,
-company.name AS name
-----
-
-==== Filter _none_ 2
-
-.Query
-[source,graphql]
-----
-{ p: Company(filter: { employees_none : { name : "Jill" } }) { name }}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (company:Company)
-WHERE (NONE(company_Person_Cond IN [(company)<-[:WORKS_AT]-(company_Person) | (company_Person.name = "Jill")] WHERE company_Person_Cond))
-RETURN graphql.labels(company) AS _labels,
-company.name AS name
-----
-
-==== Filter _single_
-
-.Query
-[source,graphql]
-----
-{ p: Company(filter: { employees_single : { name : "Jill" } }) { name }}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (company:Company)
-WHERE (SINGLE(company_Person_Cond IN [(company)<-[:WORKS_AT]-(company_Person) | (company_Person.name = "Jill")] WHERE company_Person_Cond))
-RETURN graphql.labels(company) AS _labels,
-company.name AS name
-----
-
-==== Filter boolean _eq_
-
-.Query
-[source,graphql]
-----
-{ person(filter: { fun: true }) { name }}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (person:Person)
-WHERE (person.fun = true)
-RETURN person { .name } AS person
-----
-
-==== Filter boolean _not_
-
-.Query
-[source,graphql]
-----
-{ person(filter: { fun_not: true }) { name }}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (person:Person)
-WHERE (NOT person.fun = true)
-RETURN person { .name } AS person
-----
-
-==== Filter variable  pass through
+CAUTION: Is not working
 
 .Query
 [source,graphql]
@@ -916,130 +1450,75 @@ WHERE (((person.name = "Jane" AND  ALL(person_Company_Cond IN [(person)-[:WORKS_
 RETURN person { .name } AS person
 ----
 
-==== Filter float _eq_
+---
+
+CAUTION: Is not working
 
 .Query
 [source,graphql]
 ----
-{ person(filter: { height: 1.75 }) { name }}
+query filterQuery($filter: _PersonFilter) { person(filter: $filter) { name }}
 ----
 
 .Cypher
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE (person.height = 1.75)
+WHERE (person.name = "Jane")
 RETURN person { .name } AS person
 ----
 
-==== Filter float _not_
+=== Variable pass through
 
 .Query
 [source,graphql]
 ----
-{ person(filter: { height_not: 1.75 }) { name }}
+query filterQuery($name: String) { person(filter: {name : $name}) { name }}
+----
+
+.Request params
+[source,json,request=true]
+----
+{"name":"Jane"}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterName": "Jane"
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE (NOT person.height = 1.75)
+WHERE person.name = $filterName
 RETURN person { .name } AS person
 ----
 
-==== Filter float _in_
+== Aliasing
+
+=== Filter with alias
 
 .Query
 [source,graphql]
 ----
-{ person(filter: { height_in: [1.75] }) { name }}
+{ p: company { employees(filter: { name: "Jane" }) { name }}}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPEmployeesName": "Jane"
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person)
-WHERE (person.height IN [1.75])
-RETURN person { .name } AS person
-----
-
-==== Filter float _not_in_
-
-.Query
-[source,graphql]
-----
-{ person(filter: { height_not_in: [1.75] }) { name }}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (person:Person)
-WHERE (NOT person.height IN [1.75])
-RETURN person { .name } AS person
-----
-
-==== Filter float _lte_
-
-.Query
-[source,graphql]
-----
-{ person(filter: { height_lte: 1.80 }) { name }}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (person:Person)
-WHERE (person.height <= 1.8)
-RETURN person { .name } AS person
-----
-
-==== Filter float _lt_
-
-.Query
-[source,graphql]
-----
-{ person(filter: { height_lt: 1.80 }) { name }}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (person:Person)
-WHERE (person.height < 1.8)
-RETURN person { .name } AS person
-----
-
-==== Filter float _gte_
-
-.Query
-[source,graphql]
-----
-{ person(filter: { height_gte: 1.80 }) { name }}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (person:Person)
-WHERE (person.height >= 1.8)
-RETURN person { .name } AS person
-----
-
-==== Filter float _gt_
-
-.Query
-[source,graphql]
-----
-{ person(filter: { height_gt: 1.80 }) { name }}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (person:Person)
-WHERE (person.height > 1.8)
-RETURN person { .name } AS person
+MATCH (p:Company)
+RETURN p { employees:[(p)<-[:WORKS_AT]-(pEmployees:Person) WHERE pEmployees.name = $filterPEmployeesName | pEmployees { .name }] } AS p
 ----

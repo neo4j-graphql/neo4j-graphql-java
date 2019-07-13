@@ -354,10 +354,13 @@ RETURN movie { .title,actors:[(movie)<-[:ACTED_IN]-(movieActors:Actor) | movieAc
 }
 ----
 
-.Params
+.Cypher Params
 [source,json]
 ----
-{}
+{
+  "movieFirst": 3,
+  "movieOffset": 0
+}
 ----
 
 .Cypher
@@ -384,10 +387,13 @@ apoc.cypher.runFirstColumnMany('WITH $this AS this,$first AS first,$offset AS of
 }
 ----
 
-.Params
+.Cypher Params
 [source,json]
 ----
-{}
+{
+  "movieFirst": 3,
+  "movieOffset": 0
+}
 ----
 
 .Cypher
