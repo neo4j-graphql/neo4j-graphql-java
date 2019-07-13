@@ -23,9 +23,12 @@ class Translator(val schema: GraphQLSchema) {
             val mutation: CRUDConfig = CRUDConfig())
 
     data class CRUDConfig(val enabled: Boolean = true, val exclude: List<String> = emptyList())
-    data class Cypher(val query: String, val params: Map<String, Any?> = emptyMap()) {
+    data class Cypher(val query: String, val params: Map<String, Any?> = emptyMap(), var aliasOrName: String? = null) {
         fun with(p: Map<String, Any?>) = this.copy(params = this.params + p)
         fun escapedQuery() = query.replace("\"", "\\\"").replace("'", "\\'")
+        fun withName(aliasOrName: String) {
+            this.aliasOrName = aliasOrName
+        }
 
         companion object {
             val EMPTY = Cypher("")
@@ -67,6 +70,7 @@ class Translator(val schema: GraphQLSchema) {
             .filterIsInstance<Field>() // FragmentSpread, InlineFragment
             .map { it ->
                 val cypher = toQuery(it, ctx)
+                cypher.withName(it.aliasOrName())
                 val resolvedParams = cypher.params.mapValues { toBoltValue(it.value, params) }
                 cypher.with(resolvedParams) // was cypher.with(params)
             }
@@ -211,7 +215,9 @@ class Translator(val schema: GraphQLSchema) {
                     }
         val noFilter = all.filter { it.name != "filter" }
         // todo turn it into a Predicate too
-        val eqExpression = noFilter.map { (k, p, v) -> "$variable.${p.quote()} = \$${paramName(variable, k, v)}" }
+        val eqExpression = noFilter.map { (k, p, v) ->
+            (if (type.getFieldDefinition(k)?.isNativeId() == true) "ID($variable)" else "$variable.${p.quote()}") + " = \$${paramName(variable, k, v)}"
+        }
         val expression = (eqExpression + filterExpressions).joinNonEmpty(" AND ") // TODO talk to Will ,"(",")")
         return Cypher(" WHERE $expression", filterParams + noFilter.map { (k, _, v) -> paramName(variable, k, v) to v }.toMap()
         )
@@ -298,6 +304,7 @@ class Translator(val schema: GraphQLSchema) {
                 val patternComprehensions = projectRelationship(variable, field, fieldDefinition, type, ctx, variableSuffix)
                 Cypher(field.aliasOrName() + ":" + patternComprehensions.query, patternComprehensions.params)
             }
+            fieldDefinition.isNativeId() -> Cypher("${field.aliasOrName()}:ID($variable)")
             field.aliasOrName() == field.propertyName(fieldDefinition) -> Cypher("." + field.propertyName(fieldDefinition))
             else -> Cypher(field.aliasOrName() + ":" + variable + "." + field.propertyName(fieldDefinition))
         }

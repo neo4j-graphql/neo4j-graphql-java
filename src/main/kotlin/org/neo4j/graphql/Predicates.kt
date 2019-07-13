@@ -19,13 +19,13 @@ interface Predicate {
                     else -> throw IllegalArgumentException("Input for $fieldName must be an filter-InputType")
                 }
             } else {
-                ExpressionPredicate(fieldName, op, value)
+                ExpressionPredicate(fieldName, op, value, type.getFieldDefinition(fieldName))
             }
         }
 
         private fun isParam(value: String) = value.startsWith("{") && value.endsWith("}") || value.startsWith("\$")
 
-        @Suppress("unused")
+        @Suppress("unused", "SimplifiableCallChain")
         private fun formatAnyValueCypher(value: Any?): String =
                 when (value) {
                     null -> "null"
@@ -112,11 +112,12 @@ data class IsNullPredicate(val name: String, val op: Operators, val type: GraphQ
     }
 }
 
-data class ExpressionPredicate(val name: String, val op: Operators, val value: Any?) : Predicate {
+data class ExpressionPredicate(val name: String, val op: Operators, val value: Any?, val fieldDefinition: GraphQLFieldDefinition) : Predicate {
     val not = if (op.not) "NOT " else ""
     override fun toExpression(variable: String, schema: GraphQLSchema): Pair<String, Map<String, Any?>> {
         val paramName: String = "filter" + paramName(variable, name, value).capitalize()
-        return "$not$variable.${name.quote()} ${op.op} \$$paramName" to mapOf(paramName to value)
+        val field = if (fieldDefinition.isNativeId()) "ID($variable)" else "$variable.${name.quote()}"
+        return "$not$field ${op.op} \$$paramName" to mapOf(paramName to value)
     }
 }
 

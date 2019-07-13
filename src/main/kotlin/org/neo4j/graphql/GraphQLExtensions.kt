@@ -42,6 +42,8 @@ fun Field.propertyName(fieldDefinition: GraphQLFieldDefinition) = (fieldDefiniti
 fun GraphQLFieldDefinition.propertyDirectiveName() =
         this.definition.getDirective("property")?.getArgument("name")?.value?.toJavaValue()?.toString()
 
+fun GraphQLFieldDefinition.isNativeId() = this.definition.getDirective("nativeId") != null
+
 fun GraphQLFieldDefinition.cypherDirective(): Translator.Cypher? =
         this.definition.getDirective("cypher")?.let {
             @Suppress("UNCHECKED_CAST")
