@@ -386,10 +386,24 @@ MATCH (person:Person) WHERE person.name = $personName RETURN person { .age } AS 
 query($_param:String) { p:values(_param:$_param) { age } }
 ----
 
+.Request params
+[source,json,request=true]
+----
+{"_param":"foo"}
+----
+
 .Cypher params
 [source,json]
 ----
-{"p_string":"Joe","p_int":42,"p_float":3.14,"p_array":[1,2,3],"p_enum":"pi","p_boolean":false}
+{
+  "_param": "foo",
+  "p_string": "Joe",
+  "p_int": 42,
+  "p_float": 3.14,
+  "p_array": [ 1, 2, 3 ],
+  "p_enum": "pi",
+  "p_boolean": false
+}
 ----
 
 .Cypher

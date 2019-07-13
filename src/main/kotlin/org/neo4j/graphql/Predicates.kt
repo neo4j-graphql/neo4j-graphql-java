@@ -24,7 +24,7 @@ interface Predicate {
 
         private fun isParam(value: String) = value.startsWith("{") && value.endsWith("}") || value.startsWith("\$")
 
-        @Suppress("unused")
+        @Suppress("unused", "SimplifiableCallChain")
         private fun formatAnyValueCypher(value: Any?): String =
                 when (value) {
                     null -> "null"

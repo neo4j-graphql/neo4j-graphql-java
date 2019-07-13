@@ -1,12 +1,22 @@
 package org.neo4j.graphql
 
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 
-class FilterTest {
+@RunWith(Parameterized::class)
+class FilterTest(val test: AsciiDocTestSuite.TestRun) {
+
+    companion object {
+        @JvmStatic
+        @Parameterized.Parameters
+        fun data(): Collection<AsciiDocTestSuite.TestRun> {
+            return AsciiDocTestSuite("filter-tests.adoc").tests
+        }
+    }
 
     @Test
     fun testTck() {
-        AsciiDocTestSuite("filter-tests.adoc").runSuite(59)
+        test.run();
     }
-
 }

@@ -1,20 +1,37 @@
 package org.neo4j.graphql
 
-import org.antlr.v4.runtime.RecognitionException
-import org.antlr.v4.runtime.misc.ParseCancellationException
 import org.codehaus.jackson.map.ObjectMapper
 import org.junit.Assert
+import org.junit.Assume
 import java.io.File
 
 class AsciiDocTestSuite(private val fileName: String) {
 
-    class TestRun(val request: String,
-            val cypher: String,
-            val cypherParams: Map<String, Any?> = emptyMap(),
-            val requestParams: Map<String, Any?> = emptyMap())
+    class TestRun(
+            private val suite: AsciiDocTestSuite,
+            private val title: String?,
+            private val request: String,
+            private val cypher: String,
+            private val cypherParams: Map<String, Any?> = emptyMap(),
+            private val requestParams: Map<String, Any?> = emptyMap(),
+            private val ignore: Boolean) {
+
+        fun run() {
+            println(title)
+            try {
+                suite.runTest(this.request, this.cypher, this.cypherParams, this.requestParams)
+            } catch (e: Throwable) {
+                if (ignore) {
+                    Assume.assumeFalse(e.message, true)
+                } else {
+                    throw e
+                }
+            }
+        }
+    }
 
     val schema: String
-    private val tests: List<TestRun>
+    val tests: List<TestRun>
 
     init {
         this.tests = mutableListOf()
@@ -25,8 +42,10 @@ class AsciiDocTestSuite(private val fileName: String) {
         var graphql: String? = null
         var requestParams: String? = null
         var cypherParams: String? = null
+        var title: String? = null
         var schema: String? = null
         var inside = false
+        var ignore = false
         // TODO possibly turn stream into type/data pairs adding to the last element in a reduce and add a new element when context changes
         for (line in lines) {
             when (line) {
@@ -38,18 +57,26 @@ class AsciiDocTestSuite(private val fileName: String) {
                 "----" -> {
                     if (graphql?.isNotBlank() == true && cypher?.isNotBlank() == true) {
                         this.tests.add(TestRun(
+                                this,
+                                title,
                                 graphql.trim(),
                                 cypher.trim(),
                                 cypherParams?.parseJsonMap() ?: emptyMap(),
-                                requestParams?.parseJsonMap() ?: emptyMap()))
+                                requestParams?.parseJsonMap() ?: emptyMap(),
+                                ignore))
                         graphql = null
                         cypher = null
                         cypherParams = null
                         requestParams = null
+                        ignore = false
                     }
                     inside = !inside
                 }
                 else -> {
+                    if (line.startsWith("=== "))
+                        title = line.substring(4)
+                    if (line.startsWith("CAUTION:"))
+                        ignore = true
                     if (inside) when {
                         cypher != null -> cypher += " " + line.trim()
                         cypherParams != null -> cypherParams += line.trim()
@@ -64,27 +91,6 @@ class AsciiDocTestSuite(private val fileName: String) {
         this.schema = schema ?: throw IllegalStateException("no schema found")
     }
 
-    fun runSuite(expectedFailures: Int = 0, fail: Boolean = false) {
-        val failed = tests.mapNotNull { it ->
-            try {
-                runTest(it); null
-            } catch (ae: Throwable) {
-                if (fail) when (ae) {
-                    is ParseCancellationException -> throw RuntimeException((ae.cause!! as RecognitionException).let { "expected: ${it.expectedTokens} offending ${it.offendingToken}" })
-                    else -> throw ae
-                }
-                else ae.message ?: ae.toString()
-            }
-        }
-        failed.forEach(::println)
-        println("""Succeeded in "$fileName": ${tests.size - failed.size} of ${tests.size}""")
-        Assert.assertEquals("${failed.size} failed of ${tests.size}", expectedFailures, failed.size)
-    }
-
-    fun runTest(test: TestRun) {
-        runTest(test.request, test.cypher, test.cypherParams, test.requestParams)
-    }
-
     @Suppress("SameParameterValue")
     fun runTest(graphQLQuery: String,
             expectedCypherQuery: String,
@@ -92,8 +98,8 @@ class AsciiDocTestSuite(private val fileName: String) {
             requestParams: Map<String, Any?> = emptyMap()) {
         val result = translate(graphQLQuery, requestParams)
         println(result.query)
-        Assert.assertEquals(expectedCypherQuery.replace(Regex("\\s+"), " "), result.query)
-        Assert.assertTrue("${cypherParams} IN ${result.params}", fixNumbers(result.params).entries.containsAll(fixNumbers(cypherParams).entries))
+        Assert.assertEquals(expectedCypherQuery.normalize(), result.query.normalize())
+        Assert.assertEquals("$cypherParams IN ${result.params}", fixNumbers(cypherParams), fixNumbers(result.params))
     }
 
     fun translate(query: String, requestParams: Map<String, Any?> = emptyMap()): Translator.Cypher {
@@ -101,7 +107,7 @@ class AsciiDocTestSuite(private val fileName: String) {
     }
 
     companion object {
-        val MAPPER = ObjectMapper()
+        private val MAPPER = ObjectMapper()
 
         private fun fixNumber(v: Any?): Any? = when (v) {
             is Float -> v.toDouble(); is Int -> v.toLong(); else -> v
@@ -117,6 +123,8 @@ class AsciiDocTestSuite(private val fileName: String) {
             @Suppress("UNCHECKED_CAST")
             MAPPER.readValue(this, Map::class.java) as Map<String, Any?>
         }
+
+        private fun String.normalize(): String = this.replace(Regex("\\s+"), " ")
     }
 
 }

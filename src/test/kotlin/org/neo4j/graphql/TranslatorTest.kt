@@ -1,27 +1,24 @@
 package org.neo4j.graphql
 
-import graphql.parser.InvalidSyntaxException
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 
-class TranslatorTest {
+@RunWith(Parameterized::class)
+class TranslatorTest(val test: AsciiDocTestSuite.TestRun) {
 
-    private val testSuite = AsciiDocTestSuite("translator-tests1.adoc")
+    companion object {
+        @JvmStatic
+        @Parameterized.Parameters
+        fun data(): Collection<AsciiDocTestSuite.TestRun> {
+            return AsciiDocTestSuite("translator-tests1.adoc").tests +
+                    AsciiDocTestSuite("translator-tests2.adoc").tests +
+                    AsciiDocTestSuite("translator-tests3.adoc").tests
+        }
+    }
 
     @Test
     fun testTck() {
-        testSuite.runSuite(0)
-        AsciiDocTestSuite("translator-tests2.adoc").runSuite()
-        AsciiDocTestSuite("translator-tests3.adoc").runSuite()
-    }
-
-
-    @Test(expected = IllegalArgumentException::class) // todo better test
-    fun unknownType() {
-        testSuite.translate(" { company { name } } ")
-    }
-
-    @Test(expected = InvalidSyntaxException::class)
-    fun mutation() {
-        testSuite.translate(" { createPerson() } ")
+        test.run();
     }
 }

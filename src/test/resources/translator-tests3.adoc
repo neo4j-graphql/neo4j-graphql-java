@@ -19,7 +19,7 @@ type Referral @relation (name:"REFERRED_BY", from:"referredBy", to: "user", dire
 
 == Tests
 
-=== relation with same types _ changed direction
+=== relation with same types changed direction
 
 .Request
 [source,graphql]
