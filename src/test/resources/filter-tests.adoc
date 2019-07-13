@@ -25,7 +25,7 @@ type Query {
 }
 ----
 
-== Filter in _Enum_
+== Filter on _Enum_
 
 === Filter enum _eq_
 
