@@ -387,7 +387,7 @@ RETURN person { .name } AS person
 ----
 MATCH (person:Person)
 WHERE ID(person) = $filterPersonNativeId
-RETURN person { .name,nativeId:ID(person) } AS person
+RETURN person { .name, nativeId:ID(person) } AS person
 ----
 
 === filter _@nativeId_ _in_
@@ -409,7 +409,7 @@ RETURN person { .name,nativeId:ID(person) } AS person
 ----
 MATCH (person:Person)
 WHERE ID(person) IN $filterPersonNativeId
-RETURN person { .name,nativeId:ID(person) } AS person
+RETURN person { .name, nativeId:ID(person) } AS person
 ----
 
 === filter _@nativeId_ _not_in_
@@ -431,7 +431,7 @@ RETURN person { .name,nativeId:ID(person) } AS person
 ----
 MATCH (person:Person)
 WHERE NOT ID(person) IN $filterPersonNativeId
-RETURN person { .name,nativeId:ID(person) } AS person
+RETURN person { .name, nativeId:ID(person) } AS person
 ----
 
 === filter _@nativeId_ _not_
@@ -453,7 +453,7 @@ RETURN person { .name,nativeId:ID(person) } AS person
 ----
 MATCH (person:Person)
 WHERE NOT ID(person) = $filterPersonNativeId
-RETURN person { .name,nativeId:ID(person) } AS person
+RETURN person { .name, nativeId:ID(person) } AS person
 ----
 
 == Filter on _Int_

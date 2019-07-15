@@ -75,7 +75,7 @@ MATCH (person:Person) RETURN person { .age } AS person ORDER BY person.name ASC
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person) RETURN person { .name,born:[(person)-[personBorn:BORN]->(personBornTo:Location) | personBorn { .date,to:personBornTo { .name } }][0] } AS person
+MATCH (person:Person) RETURN person { .name, born:[(person)-[personBorn:BORN]->(personBornTo:Location) | personBorn { .date, to:personBornTo { .name } }][0] } AS person
 ----
 
 === nested query multi
@@ -95,7 +95,7 @@ MATCH (person:Person) RETURN person { .name,born:[(person)-[personBorn:BORN]->(p
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person) RETURN person { .name,.age,livedIn:[(person)-[:LIVED_IN]->(personLivedIn:Location) | personLivedIn { .name }] } AS person
+MATCH (person:Person) RETURN person { .name, .age, livedIn:[(person)-[:LIVED_IN]->(personLivedIn:Location) | personLivedIn { .name }] } AS person
 ----
 
 === inline fragment
@@ -155,7 +155,7 @@ MATCH (person:Person) RETURN person { .age } AS person SKIP 3
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person) RETURN person { .name,.age,livesIn:[(person)-[:LIVES_IN]->(personLivesIn:Location) | personLivesIn { .name }][0] } AS person
+MATCH (person:Person) RETURN person { .name, .age, livesIn:[(person)-[:LIVES_IN]->(personLivesIn:Location) | personLivesIn { .name }][0] } AS person
 ----
 
 === simple query
@@ -175,7 +175,7 @@ MATCH (person:Person) RETURN person { .name,.age,livesIn:[(person)-[:LIVES_IN]->
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person) RETURN person { .name,.age } AS person
+MATCH (person:Person) RETURN person { .name, .age } AS person
 ----
 
 === named fragment
@@ -215,7 +215,7 @@ MATCH (person:Person) RETURN person { .name } AS person
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person) RETURN person { .name,died:[(person)-[personDied:DIED]->(personDiedWhere:Location) | personDied { .date,where:personDiedWhere { .name } }][0] } AS person
+MATCH (person:Person) RETURN person { .name, died:[(person)-[personDied:DIED]->(personDiedWhere:Location) | personDied { .date, where:personDiedWhere { .name } }][0] } AS person
 ----
 
 === rich relationship 2 nd hop
@@ -235,7 +235,7 @@ MATCH (person:Person) RETURN person { .name,died:[(person)-[personDied:DIED]->(p
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person) RETURN person { .name,born:[(person)-[personBorn:BORN]->(personBornTo:Location) | personBorn { .date,to:personBornTo { .name,founded:[(personBornTo)<-[:FOUNDED]-(personBornToFounded:Person) | personBornToFounded { .name }][0] } }][0] } AS person
+MATCH (person:Person) RETURN person { .name, born:[(person)-[personBorn:BORN]->(personBornTo:Location) | personBorn { .date, to:personBornTo { .name, founded:[(personBornTo)<-[:FOUNDED]-(personBornToFounded:Person) | personBornToFounded { .name }][0] } }][0] } AS person
 ----
 
 === rich relationship 3 rd hop
@@ -255,7 +255,7 @@ MATCH (person:Person) RETURN person { .name,born:[(person)-[personBorn:BORN]->(p
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person) RETURN person { .name,born:[(person)-[personBorn:BORN]->(personBornTo:Location) | personBorn { .date,to:personBornTo { .name,founded:[(personBornTo)<-[:FOUNDED]-(personBornToFounded:Person) | personBornToFounded { .name,born:[(personBornToFounded)-[personBornToFoundedBorn:BORN]->(personBornToFoundedBornTo:Location) | personBornToFoundedBorn { .date,to:personBornToFoundedBornTo { .name } }][0] }][0] } }][0] } AS person
+MATCH (person:Person) RETURN person { .name, born:[(person)-[personBorn:BORN]->(personBornTo:Location) | personBorn { .date, to:personBornTo { .name, founded:[(personBornTo)<-[:FOUNDED]-(personBornToFounded:Person) | personBornToFounded { .name, born:[(personBornToFounded)-[personBornToFoundedBorn:BORN]->(personBornToFoundedBornTo:Location) | personBornToFoundedBorn { .date, to:personBornToFoundedBornTo { .name } }][0] }][0] } }][0] } AS person
 ----
 
 === nested query parameter
@@ -275,7 +275,7 @@ MATCH (person:Person) RETURN person { .name,born:[(person)-[personBorn:BORN]->(p
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person) RETURN person { .name,.age,livesIn:[(person)-[:LIVES_IN]->(personLivesIn:Location) WHERE personLivesIn.name = $personLivesInName | personLivesIn { .name }][0] } AS person
+MATCH (person:Person) RETURN person { .name, .age, livesIn:[(person)-[:LIVES_IN]->(personLivesIn:Location) WHERE personLivesIn.name = $personLivesInName | personLivesIn { .name }][0] } AS person
 ----
 
 === order by query two
@@ -315,7 +315,7 @@ MATCH (person:Person) RETURN person { .age } AS person ORDER BY person.age DESC,
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person) RETURN person { .name,.age } AS person
+MATCH (person:Person) RETURN person { .name, .age } AS person
 ----
 
 === simple query alias
@@ -474,7 +474,7 @@ line 1:35 token recognition error at: ' '
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person) RETURN person { .name,.age,livesIn:[(person)-[:LIVES_IN]->(personLivesIn:Location) | personLivesIn { .name,founded:[(personLivesIn)<-[:FOUNDED]-(personLivesInFounded:Person) | personLivesInFounded { .name }][0] }][0] } AS person
+MATCH (person:Person) RETURN person { .name, .age, livesIn:[(person)-[:LIVES_IN]->(personLivesIn:Location) | personLivesIn { .name, founded:[(personLivesIn)<-[:FOUNDED]-(personLivesInFounded:Person) | personLivesInFounded { .name }][0] }][0] } AS person
 ----
 
 line 1:12 token recognition error at: ' '
@@ -495,7 +495,7 @@ line 1:12 token recognition error at: ' '
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person) RETURN person { .name,.age } AS person
+MATCH (person:Person) RETURN person { .name, .age } AS person
 ----
 
 === simple query first offset

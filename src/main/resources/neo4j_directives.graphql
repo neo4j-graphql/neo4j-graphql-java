@@ -7,3 +7,5 @@ directive @relation(name:String, direction: RelationDirection = OUT, from: Strin
 directive @cypher(statement:String) on FIELD_DEFINITION
 directive @property(name:String) on FIELD_DEFINITION
 directive @nativeId on FIELD_DEFINITION
+directive @dynamic(prefix:String = "properties.") on FIELD_DEFINITION
+scalar Object

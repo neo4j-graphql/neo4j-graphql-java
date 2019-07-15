@@ -4,6 +4,14 @@ import graphql.Scalars
 import graphql.language.Directive
 import graphql.language.Type
 import graphql.schema.*
+import org.neo4j.graphql.DirectiveConstants.Companion.RELATION
+import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_DIRECTION
+import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_DIRECTION_BOTH
+import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_DIRECTION_IN
+import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_DIRECTION_OUT
+import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_FROM
+import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_NAME
+import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_TO
 import org.neo4j.graphql.Predicate.Companion.resolvePredicate
 
 interface Predicate {
@@ -58,8 +66,8 @@ fun GraphQLObjectType.relationshipFor(name: String, schema: GraphQLSchema): Rela
 
     // TODO direction is depending on source/target type
 
-    val (relDirective, isRelFromType) = fieldObjectType.definition.getDirective("relation")?.let { it to true }
-            ?: field.definition.getDirective("relation")?.let { it to false }
+    val (relDirective, isRelFromType) = fieldObjectType.definition.getDirective(RELATION)?.let { it to true }
+            ?: field.definition.getDirective(RELATION)?.let { it to false }
             ?: throw IllegalStateException("Field $field needs an @relation directive")
 
 
@@ -70,14 +78,16 @@ fun GraphQLObjectType.relationshipFor(name: String, schema: GraphQLSchema): Rela
 }
 
 fun relDetails(source: GraphQLObjectType, relDirective: Directive, schema: GraphQLSchema): RelationshipInfo {
-    val relType = relDirective.argumentString("name", schema, "")
-    val outgoing = when (relDirective.argumentString("direction", schema)) {
-        "IN" -> false
-        "BOTH" -> null
-        "OUT" -> true
-        else -> throw IllegalStateException("Unknown direction ${relDirective.argumentString("direction", schema)}")
+    val relType = relDirective.argumentString(RELATION_NAME, schema, "")
+    val outgoing = when (relDirective.argumentString(RELATION_DIRECTION, schema)) {
+        RELATION_DIRECTION_IN -> false
+        RELATION_DIRECTION_BOTH -> null
+        RELATION_DIRECTION_OUT -> true
+        else -> throw IllegalStateException("Unknown direction ${relDirective.argumentString(RELATION_DIRECTION, schema)}")
     }
-    return RelationshipInfo(source, relDirective, relType, outgoing, relDirective.argumentString("from", schema), relDirective.argumentString("to", schema))
+    return RelationshipInfo(source, relDirective, relType, outgoing,
+            relDirective.argumentString(RELATION_FROM, schema),
+            relDirective.argumentString(RELATION_TO, schema))
 }
 
 fun arrows(outgoing: Boolean?): Pair<String, String> {

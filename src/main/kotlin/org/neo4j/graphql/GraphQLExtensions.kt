@@ -3,6 +3,17 @@ package org.neo4j.graphql
 import graphql.Scalars
 import graphql.language.*
 import graphql.schema.*
+import org.neo4j.graphql.DirectiveConstants.Companion.CYPHER
+import org.neo4j.graphql.DirectiveConstants.Companion.CYPHER_STATEMENT
+import org.neo4j.graphql.DirectiveConstants.Companion.DYNAMIC
+import org.neo4j.graphql.DirectiveConstants.Companion.DYNAMIC_PREFIX
+import org.neo4j.graphql.DirectiveConstants.Companion.NATIVE_ID
+import org.neo4j.graphql.DirectiveConstants.Companion.PROPERTY
+import org.neo4j.graphql.DirectiveConstants.Companion.PROPERTY_NAME
+import org.neo4j.graphql.DirectiveConstants.Companion.RELATION
+import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_DIRECTION
+import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_DIRECTION_OUT
+import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_NAME
 
 fun GraphQLType.inner(): GraphQLType = when (this) {
     is GraphQLList -> this.wrappedType.inner()
@@ -10,7 +21,7 @@ fun GraphQLType.inner(): GraphQLType = when (this) {
     else -> this
 }
 
-val SCALAR_TYPES = listOf("String", "ID", "Boolean", "Int", "Float")
+val SCALAR_TYPES = listOf("String", "ID", "Boolean", "Int", "Float", "Object")
 
 fun Type<Type<*>>.isScalar() = this.inner().name()?.let { SCALAR_TYPES.contains(it) } ?: false
 fun Type<Type<*>>.name(): String? = if (this.inner() is TypeName) (this.inner() as TypeName).name else null
@@ -40,14 +51,21 @@ fun Field.propertyName(fieldDefinition: GraphQLFieldDefinition) = (fieldDefiniti
         ?: this.name).quote()
 
 fun GraphQLFieldDefinition.propertyDirectiveName() =
-        this.definition.getDirective("property")?.getArgument("name")?.value?.toJavaValue()?.toString()
+        this.definition.getDirective(PROPERTY)?.getArgument(PROPERTY_NAME)?.value?.toJavaValue()?.toString()
 
-fun GraphQLFieldDefinition.isNativeId() = this.definition.getDirective("nativeId") != null
+fun GraphQLFieldDefinition.isNativeId() = this.definition.getDirective(NATIVE_ID) != null
+
+fun GraphQLFieldDefinition.dynamicPrefix(schema: GraphQLSchema): String? {
+    val directive = this.definition.getDirective(DYNAMIC)
+    return if (directive != null) {
+        directive.argumentString(DYNAMIC_PREFIX, schema)
+    } else null
+}
 
 fun GraphQLFieldDefinition.cypherDirective(): Translator.Cypher? =
-        this.definition.getDirective("cypher")?.let {
+        this.definition.getDirective(CYPHER)?.let {
             @Suppress("UNCHECKED_CAST")
-            Translator.Cypher(it.getArgument("statement").value.toJavaValue().toString(),
+            Translator.Cypher(it.getArgument(CYPHER_STATEMENT).value.toJavaValue().toString(),
                     it.getArgument("params")?.value?.toJavaValue() as Map<String, Any?>? ?: emptyMap())
         }
 
@@ -95,11 +113,13 @@ fun paramName(variable: String, argName: String, value: Any?): String = when (va
 }
 
 fun FieldDefinition.isID(): Boolean = this.type.name() == "ID"
+fun FieldDefinition.isNativeId() = this.getDirective("nativeId") != null
+
 fun FieldDefinition.isList(): Boolean = this.type is ListType
 fun GraphQLFieldDefinition.isID(): Boolean = this.type.inner() == Scalars.GraphQLID
 fun ObjectTypeDefinition.getFieldByType(typeName: String): FieldDefinition? = this.fieldDefinitions
     .firstOrNull { it.type.inner().name() == typeName }
+fun ObjectTypeDefinition.isRealtionType(): Boolean = this.getDirective(RELATION) != null
 
-fun GraphQLDirective.getRelationshipType(): String = this.getArgument("name").value.toString()
-fun GraphQLDirective.getRelationshipDirection(): String = this.getArgument("direction")?.value?.toString() ?: "OUT"
-
+fun GraphQLDirective.getRelationshipType(): String = this.getArgument(RELATION_NAME).value.toString()
+fun GraphQLDirective.getRelationshipDirection(): String = this.getArgument(RELATION_DIRECTION)?.value?.toString() ?: RELATION_DIRECTION_OUT

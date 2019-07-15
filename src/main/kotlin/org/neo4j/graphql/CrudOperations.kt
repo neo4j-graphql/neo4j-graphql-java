@@ -2,11 +2,16 @@ package org.neo4j.graphql
 
 import graphql.language.FieldDefinition
 import graphql.language.ObjectTypeDefinition
+import org.neo4j.graphql.DirectiveConstants.Companion.RELATION
+import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_NAME
 
 data class Augmentation(val create: String = "", val merge: String = "", val update: String = "", val delete: String = "",
         val inputType: String = "", val ordering: String = "", val filterType: String = "", val query: String = "")
 
-fun createNodeMutation(ctx: Translator.Context, type: ObjectTypeDefinition): Augmentation {
+fun createNodeMutation(ctx: Translator.Context, type: ObjectTypeDefinition): Augmentation? {
+    if (type.isRealtionType()) {
+        return null
+    }
     val typeName = type.name
     val idField = type.fieldDefinitions.find { it.type.name() == "ID" }
     val scalarFields = type.fieldDefinitions.filter { it.type.isScalar() }.sortedByDescending { it == idField }
@@ -34,7 +39,13 @@ fun createNodeMutation(ctx: Translator.Context, type: ObjectTypeDefinition): Aug
     } else result
 }
 
-fun createRelationshipMutation(ctx: Translator.Context, source: ObjectTypeDefinition, target: ObjectTypeDefinition): Augmentation? {
+
+fun createRelationshipMutation(
+        ctx: Translator.Context,
+        source: ObjectTypeDefinition,
+        target: ObjectTypeDefinition,
+        relationTypes: Map<String, ObjectTypeDefinition>? = emptyMap()
+): Augmentation? {
     val sourceTypeName = source.name
     return if (!ctx.mutation.enabled || ctx.mutation.exclude.contains(sourceTypeName)) {
         null
@@ -47,10 +58,33 @@ fun createRelationshipMutation(ctx: Translator.Context, source: ObjectTypeDefini
         }
         val targetFieldName = targetField.name.capitalize()
         val targetIDStr = if (targetField.isList()) "[ID!]!" else "ID!"
+        val relationType = targetField
+            .getDirective(RELATION)
+            ?.getArgument(RELATION_NAME)
+            ?.value?.toJavaValue()?.toString()
+            .let { relationTypes?.get(it) }
+        val fieldArgs = if (relationType != null) {
+            val scalarFields = relationType.fieldDefinitions.filter { it.type.isScalar() && !it.isID() }
+            scalarFields.joinToString(", ", ", ") { it.name + ":" + it.type.render() }
+        } else ""
         Augmentation(
-                create = "add$sourceTypeName$targetFieldName(${sourceIdField.name}:ID!, ${targetField.name}:$targetIDStr) : $sourceTypeName",
+                create = "add$sourceTypeName$targetFieldName(${sourceIdField.name}:ID!, ${targetField.name}:$targetIDStr$fieldArgs) : $sourceTypeName",
                 delete = "delete$sourceTypeName$targetFieldName(${sourceIdField.name}:ID!, ${targetField.name}:$targetIDStr) : $sourceTypeName")
     }
+}
+
+fun createRelationshipTypeMutation(ctx: Translator.Context, type: ObjectTypeDefinition): Augmentation? {
+    if (!type.isRealtionType()) {
+        return null
+    }
+    val typeName = type.name
+    if (!ctx.mutation.enabled || ctx.mutation.exclude.contains(typeName)) {
+        return null
+    }
+    val idField = type.fieldDefinitions.find { it.isNativeId()}
+    val scalarFields = type.fieldDefinitions.filter { it.type.isScalar() }.sortedByDescending { it == idField }
+    // TODO
+    return null;
 }
 
 private fun filterType(name: String?, fieldArgs: List<FieldDefinition>): String {
