@@ -1,17 +1,8 @@
 package org.neo4j.graphql
 
 import graphql.Scalars
-import graphql.language.Directive
 import graphql.language.Type
 import graphql.schema.*
-import org.neo4j.graphql.DirectiveConstants.Companion.RELATION
-import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_DIRECTION
-import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_DIRECTION_BOTH
-import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_DIRECTION_IN
-import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_DIRECTION_OUT
-import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_FROM
-import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_NAME
-import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_TO
 import org.neo4j.graphql.Predicate.Companion.resolvePredicate
 
 interface Predicate {
@@ -57,53 +48,6 @@ fun toExpression(name: String, value: Any?, type: GraphQLObjectType): Predicate 
             resolvePredicate(name, value, type)
         }
 
-fun GraphQLObjectType.relationshipFor(name: String, schema: GraphQLSchema): RelationshipInfo {
-    val field = this.getFieldDefinition(name)
-    val fieldObjectType = schema.getType(field.type.inner().name) as GraphQLObjectType
-    // direction
-    // label
-    // out
-
-    // TODO direction is depending on source/target type
-
-    val (relDirective, isRelFromType) = fieldObjectType.definition.getDirective(RELATION)?.let { it to true }
-            ?: field.definition.getDirective(RELATION)?.let { it to false }
-            ?: throw IllegalStateException("Field $field needs an @relation directive")
-
-
-    val relInfo = relDetails(fieldObjectType, relDirective, schema)
-
-    val inverse = isRelFromType && fieldObjectType.getFieldDefinition(relInfo.startField).name != this.name
-    return if (inverse) relInfo.copy(out = relInfo.out?.let { !it }, startField = relInfo.endField, endField = relInfo.startField) else relInfo
-}
-
-fun relDetails(source: GraphQLObjectType, relDirective: Directive, schema: GraphQLSchema): RelationshipInfo {
-    val relType = relDirective.argumentString(RELATION_NAME, schema, "")
-    val outgoing = when (relDirective.argumentString(RELATION_DIRECTION, schema)) {
-        RELATION_DIRECTION_IN -> false
-        RELATION_DIRECTION_BOTH -> null
-        RELATION_DIRECTION_OUT -> true
-        else -> throw IllegalStateException("Unknown direction ${relDirective.argumentString(RELATION_DIRECTION, schema)}")
-    }
-    return RelationshipInfo(source, relDirective, relType, outgoing,
-            relDirective.argumentString(RELATION_FROM, schema),
-            relDirective.argumentString(RELATION_TO, schema))
-}
-
-fun arrows(outgoing: Boolean?): Pair<String, String> {
-    return when (outgoing) {
-        false -> "<" to ""
-        true -> "" to ">"
-        null -> "" to ""
-    }
-}
-
-
-data class RelationshipInfo(val objectType: GraphQLObjectType, val directive: Directive, val type: String, val out: Boolean?, val startField: String? = null, val endField: String? = null, val isRelFromType: Boolean = false) {
-    val arrows = arrows(out)
-    val label: String = objectType.name
-}
-
 data class CompoundPredicate(val parts: List<Predicate>, val op: String = "AND") : Predicate {
     override fun toExpression(variable: String, schema: GraphQLSchema): Pair<String, Map<String, Any?>> =
             parts.map { it.toExpression(variable, schema) }
@@ -113,12 +57,12 @@ data class CompoundPredicate(val parts: List<Predicate>, val op: String = "AND")
                 }
 }
 
-data class IsNullPredicate(val name: String, val op: Operators, val type: GraphQLObjectType) : Predicate {
+data class IsNullPredicate(val fieldName: String, val op: Operators, val type: GraphQLObjectType) : Predicate {
     override fun toExpression(variable: String, schema: GraphQLSchema): Pair<String, Map<String, Any?>> {
-        val rel = type.relationshipFor(name, schema)
+        val rel = type.relationshipFor(fieldName, schema)
         val (left, right) = rel.arrows
         val not = if (op.not) "" else "NOT "
-        return "$not($variable)$left-[:${rel.type}]-$right()" to emptyMap()
+        return "$not($variable)$left-[:${rel.relType}]-$right()" to emptyMap()
     }
 }
 
@@ -132,7 +76,7 @@ data class ExpressionPredicate(val name: String, val op: Operators, val value: A
 }
 
 
-data class RelationPredicate(val name: String, val op: Operators, val value: Map<*, *>, val type: GraphQLObjectType) : Predicate {
+data class RelationPredicate(val fieldName: String, val op: Operators, val value: Map<*, *>, val type: GraphQLObjectType) : Predicate {
     val not = if (op.not) "NOT" else ""
     // (type)-[:TYPE]->(related) | pred] = 0/1/ > 0 | =
     // ALL/ANY/NONE/SINGLE(p in (type)-[:TYPE]->() WHERE pred(last(nodes(p)))
@@ -144,13 +88,13 @@ data class RelationPredicate(val name: String, val op: Operators, val value: Map
             Operators.NEQ -> "ALL" // bc of not
             else -> op.op
         }
-        val rel = type.relationshipFor(name, schema)
+        val rel = type.relationshipFor(fieldName, schema)
         val (left, right) = rel.arrows
-        val other = variable + "_" + rel.label
+        val other = variable + "_" + rel.type
         val cond = other + "_Cond"
-        val relGraphQLObjectType = schema.getType(rel.label) as GraphQLObjectType
+        val relGraphQLObjectType = schema.getType(rel.type) as GraphQLObjectType
         val (pred, params) = CompoundPredicate(value.map { resolvePredicate(it.key.toString(), it.value, relGraphQLObjectType) }).toExpression(other, schema)
-        return "$not $prefix($cond IN [($variable)$left-[:${rel.type.quote()}]-$right($other) | $pred] WHERE $cond)" to params
+        return "$not $prefix($cond IN [($variable)$left-[:${rel.relType.quote()}]-$right($other) | $pred] WHERE $cond)" to params
     }
 }
 

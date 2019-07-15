@@ -13,7 +13,9 @@ import org.neo4j.graphql.DirectiveConstants.Companion.PROPERTY_NAME
 import org.neo4j.graphql.DirectiveConstants.Companion.RELATION
 import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_DIRECTION
 import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_DIRECTION_OUT
+import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_FROM
 import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_NAME
+import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_TO
 
 fun GraphQLType.inner(): GraphQLType = when (this) {
     is GraphQLList -> this.wrappedType.inner()
@@ -42,8 +44,92 @@ fun Type<Type<*>>.render(nonNull: Boolean = true): String = when (this) {
 fun GraphQLType.isList() = this is GraphQLList || (this is GraphQLNonNull && this.wrappedType is GraphQLList)
 fun GraphQLType.isScalar() = this.inner().let { it is GraphQLScalarType || it.name.startsWith("_Neo4j") }
 fun GraphQLType.isRelationship() = this.inner().let { it is GraphQLObjectType }
+fun GraphQLType.isRelationshipType() = this.inner().let { it is GraphQLObjectType && it.getDirective("relation") != null }
 
 fun GraphQLObjectType.hasRelationship(name: String) = this.getFieldDefinition(name)?.isRelationship() ?: false
+fun GraphQLObjectType.getRelationshipName() = this.getDirective("relation")?.getArgument("name")?.value?.toString()
+fun ObjectTypeDefinition.relationship(defaultValueProvider: (directiveName: String, arg: String) -> String?): RelationshipInfo? {
+    val relDirective = this.getDirective("relation") ?: return null
+    val directiveResolver: (name: String, defaultValue: String?) -> String = { param, defaultValue ->
+        relDirective.getArgument(param)?.value?.toJavaValue()?.toString()
+                ?: defaultValueProvider(relDirective.name, param)
+                ?: defaultValue
+                ?: throw IllegalStateException("No default value for ${relDirective.name}.$param")
+    }
+    val relType = directiveResolver("name", "")
+    val startField = directiveResolver("from", null)
+    val endField = directiveResolver("to", null)
+    return RelationshipInfo(this.name, relType, null, startField, endField)
+}
+
+fun GraphQLObjectType.relationship(schema: GraphQLSchema): RelationshipInfo? {
+    return this.definition.relationship { directiveName, arg -> schema.getDirective(directiveName)?.getArgument(arg)?.defaultValue?.toString() }
+}
+
+fun GraphQLObjectType.relationshipFor(name: String, schema: GraphQLSchema): RelationshipInfo {
+    return this.relationshipFor(name, schema::getType, schema::getDirective)
+}
+
+fun GraphQLObjectType.relationshipFor(name: String, typeResolver: (String) -> GraphQLType, definitionProvider: (String) -> GraphQLDirective): RelationshipInfo {
+    val field = this.getFieldDefinition(name)
+    val fieldObjectType = typeResolver(field.type.inner().name) as GraphQLObjectType
+    // direction
+    // label
+    // out
+
+    // TODO direction is depending on source/target type
+
+    val (relDirective, isRelFromType) = fieldObjectType.definition.getDirective(RELATION)?.let { it to true }
+            ?: field.definition.getDirective(RELATION)?.let { it to false }
+            ?: throw IllegalStateException("Field $field needs an @relation directive")
+
+
+    val relInfo = relDetails(fieldObjectType.name) { argName, defaultValue ->
+        relDirective.getArgument(argName)?.value?.toJavaValue()?.toString()
+                ?: definitionProvider(relDirective.name).getArgument(argName)?.defaultValue?.toString()
+                ?: defaultValue
+                ?: throw IllegalStateException("No default value for ${relDirective.name}.$argName")
+    }
+
+    val inverse = isRelFromType && fieldObjectType.getFieldDefinition(relInfo.startField).name != this.name
+    return if (inverse) relInfo.copy(out = relInfo.out?.let { !it }, startField = relInfo.endField, endField = relInfo.startField) else relInfo
+}
+
+fun relDetails(type: String,
+        directiveResolver: (name: String, defaultValue: String?) -> String): RelationshipInfo {
+    val relType = directiveResolver(RELATION_NAME, "")
+    val outgoing = when (directiveResolver(RELATION_DIRECTION, null)) {
+        DirectiveConstants.RELATION_DIRECTION_IN -> false
+        DirectiveConstants.RELATION_DIRECTION_BOTH -> null
+        RELATION_DIRECTION_OUT -> true
+        else -> throw IllegalStateException("Unknown direction ${directiveResolver(RELATION_DIRECTION, null)}")
+    }
+    return RelationshipInfo(type,
+            relType,
+            outgoing,
+            directiveResolver(RELATION_FROM, null),
+            directiveResolver(RELATION_TO, null))
+}
+
+fun arrows(outgoing: Boolean?): Pair<String, String> {
+    return when (outgoing) {
+        false -> "<" to ""
+        true -> "" to ">"
+        null -> "" to ""
+    }
+}
+
+data class RelationshipInfo(
+        val type: String,
+        val relType: String,
+        val out: Boolean?,
+        val startField: String? = null,
+        val endField: String? = null,
+        val isRelFromType: Boolean = false
+) {
+    val arrows = arrows(out)
+}
+
 fun GraphQLFieldDefinition.isRelationship() = this.type.isRelationship()
 
 fun Field.aliasOrName() = (this.alias ?: this.name).quote()
@@ -59,6 +145,13 @@ fun GraphQLFieldDefinition.dynamicPrefix(schema: GraphQLSchema): String? {
     val directive = this.definition.getDirective(DYNAMIC)
     return if (directive != null) {
         directive.argumentString(DYNAMIC_PREFIX, schema)
+    } else null
+}
+
+fun GraphQLFieldDefinition.dynamicPrefix(): String? {
+    val directive = this.definition.getDirective("dynamic")
+    return if (directive != null) {
+        directive.getArgument("prefix")?.value?.toString() ?: "properties."
     } else null
 }
 
@@ -114,7 +207,6 @@ fun paramName(variable: String, argName: String, value: Any?): String = when (va
 
 fun FieldDefinition.isID(): Boolean = this.type.name() == "ID"
 fun FieldDefinition.isNativeId() = this.getDirective("nativeId") != null
-
 fun FieldDefinition.isList(): Boolean = this.type is ListType
 fun GraphQLFieldDefinition.isID(): Boolean = this.type.inner() == Scalars.GraphQLID
 fun ObjectTypeDefinition.getFieldByType(typeName: String): FieldDefinition? = this.fieldDefinitions

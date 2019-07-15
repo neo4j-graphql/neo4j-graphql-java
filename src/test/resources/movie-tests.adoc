@@ -7,6 +7,7 @@
 [source,graphql,schema=true]
 ----
 type Movie {
+  nativeId: Int @nativeId
   _id: String
   movieId: ID!
   title: String
@@ -41,6 +42,7 @@ type Genre {
   highestRatedMovie: Movie @cypher(statement: "MATCH (m:Movie)-[:IN_GENRE]->(this) RETURN m ORDER BY m.imdbRating DESC LIMIT 1")
 }
 type State {
+  nativeId: ID @nativeId
   name: String
 }
 # interface Person {
@@ -67,6 +69,7 @@ type FriendOf {
   to: User
 }
 type Rated @relation(name:"RATED") {
+  id: ID! @nativeId
   from: User
   rating: Int
   to: Movie
@@ -91,6 +94,7 @@ type Query {
   Movie(_id: String, movieId: ID, title: String, year: Int, plot: String, poster: String, imdbRating: Float, first: Int, offset: Int, orderBy: _MovieOrdering): [Movie]
   MoviesByYear(year: Int): [Movie]
   MovieById(movieId: ID!): Movie
+  MovieByNativeId(nativeId: Int!): Movie
   MovieBy_Id(_id: String!): Movie
   GenresBySubstring(substring: String): [Genre] @cypher(statement: "MATCH (g:Genre) WHERE toLower(g.name) CONTAINS toLower($substring) RETURN g")
   Books: [Book]
@@ -110,6 +114,7 @@ type Mutation {
 ----
 query {
   Movie {
+    nativeId
     movieId
   }
 }
@@ -125,7 +130,7 @@ query {
 [source,cypher]
 ----
 MATCH (movie:Movie)
-RETURN movie { .movieId } AS movie
+RETURN movie { nativeId:ID(movie),.movieId } AS movie
 ----
 
 === Query Single Object
@@ -154,6 +159,32 @@ RETURN movie { .movieId } AS movie
 MATCH (movieById:Movie)
 WHERE movieById.movieId = $movieByIdMovieId
 RETURN movieById { .title } AS movieById
+----
+
+=== Query Single Object by native Id
+
+.Query
+[source,graphql]
+----
+{
+  MovieByNativeId(nativeId: 1) {
+    title
+  }
+}
+----
+
+.Params
+[source,json]
+----
+{"movieByNativeIdNativeId":1}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (movieByNativeId:Movie)
+WHERE ID(movieByNativeId) = $movieByNativeIdNativeId
+RETURN movieByNativeId { .title } AS movieByNativeId
 ----
 
 === Basic Query with Parameter
@@ -806,4 +837,61 @@ LIMIT 10
 [source,cypher]
 ----
 MATCH  (movie:Movie) RETURN  movie  {  .title  } AS  movie ORDER BY movie.year DESC LIMIT 10
+----
+
+
+=== Find all relations
+
+.Query
+[source,graphql]
+----
+{ rated(id:1){
+    rating
+ }
+}
+----
+
+.Params
+[source,json]
+----
+{ "ratedId": 1}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH ()-[rated:RATED]->()
+WHERE ID(rated) = $ratedId
+RETURN rated { .rating } AS rated
+----
+
+=== Mutate relation
+
+.Query
+[source,graphql]
+----
+mutation {
+ updateRated(id:1, rating: 5){
+    rating
+ }
+}
+----
+
+.Params
+[source,json]
+----
+{
+  "updateRatedId": 1,
+  "updateRatedRating": 5
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH ()-[updateRated:RATED]->()
+WHERE ID(updateRated) = $updateRatedId
+SET updateRated.rating=$updateRatedRating
+WITH updateRated
+RETURN updateRated { .rating } AS updateRated
 ----

@@ -97,7 +97,7 @@ class Translator(val schema: GraphQLSchema) {
         val returnType = fieldDefinition.type.inner()
 //        println(returnType)
         val type = schema.getType(returnType.name)
-        val label = type.name.quote()
+        val label = if (type.isRelationshipType() && type is GraphQLObjectType) type.getRelationshipName()?.quote() else type.name.quote()
         val variable = field.aliasOrName().decapitalize()
         val cypherDirective = fieldDefinition.cypherDirective()
         val mapProjection = projectFields(variable, field, type, ctx, null)
@@ -111,8 +111,11 @@ class Translator(val schema: GraphQLSchema) {
             if (isQuery) {
                 val where = if (ctx.topLevelWhere) where(variable, fieldDefinition, type, propertyArguments(field)) else Cypher.EMPTY
                 val properties = if (ctx.topLevelWhere) Cypher.EMPTY else properties(variable, fieldDefinition, propertyArguments(field))
-                return Cypher("MATCH ($variable:$label${properties.query})${where.query} RETURN ${mapProjection.query} AS $variable$ordering$skipLimit",
-                        (mapProjection.params + properties.params + where.params))
+                return if (type.isRelationshipType()) {
+                    Cypher("MATCH ()-[$variable:$label${properties.query}]->()${where.query} RETURN ${mapProjection.query} AS $variable$ordering$skipLimit", (mapProjection.params + properties.params + where.params))
+                } else {
+                    Cypher("MATCH ($variable:$label${properties.query})${where.query} RETURN ${mapProjection.query} AS $variable$ordering$skipLimit", (mapProjection.params + properties.params + where.params))
+                }
             } else {
                 // TODO add into Cypher companion object as did for the relationships
                 val properties = properties(variable, fieldDefinition, propertyArguments(field))
@@ -407,8 +410,8 @@ class Translator(val schema: GraphQLSchema) {
         val fieldType = fieldDefinition.type
         val fieldObjectType = fieldType.inner() as GraphQLObjectType
         // todo combine both nestings if rel-entity
-        val relDirectiveObject = fieldObjectType.definition.getDirective(RELATION)?.let { relDetails(fieldObjectType, it) }
-        val relDirectiveField = fieldDefinition.definition.getDirective(RELATION)?.let { relDetails(fieldObjectType, it) }
+        val relDirectiveObject = fieldObjectType.definition.getDirective(RELATION)?.let { relDetails(fieldObjectType.name, it) }
+        val relDirectiveField = fieldDefinition.definition.getDirective(RELATION)?.let { relDetails(fieldObjectType.name, it) }
 
         val (relInfo0, isRelFromType) =
                 relDirectiveObject?.let { it to true }
@@ -429,7 +432,7 @@ class Translator(val schema: GraphQLSchema) {
             else -> ("$childVariable:${fieldObjectType.name}" to null)
         }
 
-        val relPattern = if (isRelFromType) "$childVariable:${relInfo.type}" else ":${relInfo.type}"
+        val relPattern = if (isRelFromType) "$childVariable:${relInfo.relType}" else ":${relInfo.relType}"
 
         val where = where(childVariable, fieldDefinition, fieldObjectType, propertyArguments(field))
         val fieldProjection = projectFields(childVariable, field, fieldObjectType, ctx, variableSuffix)
@@ -458,7 +461,8 @@ class Translator(val schema: GraphQLSchema) {
         return Cypher(fieldProjection.query)
     }
 
-    private fun relDetails(target: GraphQLObjectType, relDirective: Directive) = relDetails(target, relDirective, schema)
+    private fun relDetails(type: String, relDirective: Directive) =
+            relDetails(type) { name, defaultValue -> relDirective.argumentString(name, schema, defaultValue) }
 
     private fun slice(skipLimit: Pair<Int, Int>, list: Boolean = false) =
             if (list) {
@@ -520,7 +524,7 @@ object SchemaBuilder {
         typeDefinitionRegistry.merge(schemaParser.parse(directivesSdl))
 
         val objectTypeDefinitions = typeDefinitionRegistry.types().values.filterIsInstance<ObjectTypeDefinition>()
-        val nodeMutations = objectTypeDefinitions.map { createNodeMutation(ctx, it) }.filterNotNull()
+        val nodeMutations = objectTypeDefinitions.map { createNodeMutation(ctx, typeDefinitionRegistry, it) }.filterNotNull()
         val relMutations = objectTypeDefinitions.flatMap { source ->
             createRelationshipMutations(source, objectTypeDefinitions, ctx)
         }
