@@ -102,7 +102,7 @@ mutation {
 .Cypher
 [source,cypher]
 ----
-MATCH (updatePerson:Person {id:$updatePersonId})
+MATCH (updatePerson:Person { id:$updatePersonId })
 SET updatePerson = {
   id: $updatePersonId,
   `properties.foo`: $updatePersonJsonFoo,
@@ -137,7 +137,7 @@ mutation {
 .Cypher
 [source,cypher]
 ----
-MERGE (mergePerson:Person {id:$mergePersonId})
+MERGE (mergePerson:Person { id:$mergePersonId })
 SET mergePerson += {
   id: $mergePersonId,
   `properties.foo`: $mergePersonJsonFoo,

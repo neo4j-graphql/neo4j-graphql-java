@@ -90,9 +90,9 @@ data class RelationPredicate(val fieldName: String, val op: Operators, val value
         }
         val rel = type.relationshipFor(fieldName, schema)
         val (left, right) = rel.arrows
-        val other = variable + "_" + rel.type
+        val other = variable + "_" + rel.typeName
         val cond = other + "_Cond"
-        val relGraphQLObjectType = schema.getType(rel.type) as GraphQLObjectType
+        val relGraphQLObjectType = schema.getType(rel.typeName) as GraphQLObjectType
         val (pred, params) = CompoundPredicate(value.map { resolvePredicate(it.key.toString(), it.value, relGraphQLObjectType) }).toExpression(other, schema)
         return "$not $prefix($cond IN [($variable)$left-[:${rel.relType.quote()}]-$right($other) | $pred] WHERE $cond)" to params
     }

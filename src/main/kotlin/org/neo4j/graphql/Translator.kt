@@ -4,10 +4,7 @@ import graphql.Scalars
 import graphql.language.*
 import graphql.parser.Parser
 import graphql.scalars.`object`.ObjectScalar
-import graphql.schema.GraphQLFieldDefinition
-import graphql.schema.GraphQLObjectType
-import graphql.schema.GraphQLSchema
-import graphql.schema.GraphQLType
+import graphql.schema.*
 import graphql.schema.idl.RuntimeWiring
 import graphql.schema.idl.SchemaGenerator
 import graphql.schema.idl.SchemaParser
@@ -103,6 +100,7 @@ class Translator(val schema: GraphQLSchema) {
         val mapProjection = projectFields(variable, field, type, ctx, null)
         val skipLimit = format(skipLimit(field.arguments))
         val ordering = orderBy(variable, field.arguments)
+        val relation = (type as? GraphQLObjectType)?.relationship(schema)
         if (cypherDirective != null) {
             // todo filters and such from nested fields
             return cypherQueryOrMutation(variable, fieldDefinition, field, cypherDirective, mapProjection, ordering, skipLimit, isQuery)
@@ -112,6 +110,7 @@ class Translator(val schema: GraphQLSchema) {
                 val where = if (ctx.topLevelWhere) where(variable, fieldDefinition, type, propertyArguments(field)) else Cypher.EMPTY
                 val properties = if (ctx.topLevelWhere) Cypher.EMPTY else properties(variable, fieldDefinition, propertyArguments(field))
                 return if (type.isRelationshipType()) {
+
                     Cypher("MATCH ()-[$variable:$label${properties.query}]->()${where.query} RETURN ${mapProjection.query} AS $variable$ordering$skipLimit", (mapProjection.params + properties.params + where.params))
                 } else {
                     Cypher("MATCH ($variable:$label${properties.query})${where.query} RETURN ${mapProjection.query} AS $variable$ordering$skipLimit", (mapProjection.params + properties.params + where.params))
@@ -123,19 +122,58 @@ class Translator(val schema: GraphQLSchema) {
 
                 // Create
                 if (name == "create" + type.name) {
-                    return Cypher("CREATE ($variable:$label${properties.query}) " + returnStatement, (mapProjection.params + properties.params))
+                    if (type.isRelationship() && relation != null) {
+                        val arguments = field.arguments.map { it.name to it }.toMap()
+                        val typeResolver: (String?) -> ObjectTypeDefinition? = { s -> (schema.getType(s) as? GraphQLObjectType)?.definition }
+
+                        val startFieldIds = relation.getStartFieldIds(typeResolver)
+                        val startField = startFieldIds.firstOrNull { arguments.containsKey(it.argumentName) }
+
+                        val endFieldIds = relation.getEndFieldIds(typeResolver)
+                        val endField = endFieldIds.firstOrNull { arguments.containsKey(it.argumentName) }
+
+                        if (startField == null || endField == null) {
+                            throw java.lang.IllegalArgumentException("To create a relationship " +
+                                    "one of the start IDs ${startFieldIds.map { it.argumentName }} " +
+                                    "and one of the end IDs ${endFieldIds.map { it.argumentName }} " +
+                                    "are required")
+                        }
+                        val params = mapOf(
+                                (relation.startField + startField.argumentName.capitalize()).quote() to arguments[startField.argumentName]?.value?.toJavaValue(),
+                                (relation.endField + endField.argumentName.capitalize()).quote() to arguments[endField.argumentName]?.value?.toJavaValue()
+                        )
+                        val q1 = getSelectQuery(relation.startField!!,
+                                startField.declaringType.name,
+                                fieldDefinition.getArgument(startField.argumentName),
+                                startField.field.isNativeId(),
+                                params)
+                        val q2 = getSelectQuery(relation.endField!!,
+                                endField.declaringType.name,
+                                fieldDefinition.getArgument(endField.argumentName),
+                                endField.field.isNativeId(),
+                                params)
+
+                       val properties2 = properties(variable, fieldDefinition, propertyArguments(field)
+                            .filter { startField.argumentName != it.name && endField.argumentName != it.name})
+
+                        "MATCH $q1 " +
+                                "MATCH $q2 " +
+                                "CREATE (${relation.startField})$left-[r:${relation.relType.quote()}]-$right(${relation.endField}) "
+
+
+//                        field.arguments.fiter{it.name.startW}
+//                        return "MATCH (from:${source.name.quote()} {${sourceId.name.quote()}:$${sourceId.name}}) " +
+//                                "MATCH (to:${innerTarget.name.quote()}) WHERE to.${targetId.name.quote()} $targetFilterType $${target.name} " +
+//                                "$keyword (from)$left-[r:${relationshipDirective.getRelationshipType().quote()}]-$right(to) "
+                                return Cypher("CREATE ($variable:$label${properties.query}) " + returnStatement, (mapProjection.params + properties.params))
+                    } else {
+                        return Cypher("CREATE ($variable:$label${properties.query}) " + returnStatement, (mapProjection.params + properties.params))
+                    }
                 }
 
                 val idProperty = fieldDefinition.arguments.find { it.type.inner() == Scalars.GraphQLID }
                 val isNativeId = idProperty != null && (type as? GraphQLObjectType)?.getFieldDefinition(idProperty.name)?.isNativeId() == true
-                val select = when {
-                    idProperty != null -> if (isNativeId) {
-                        "($variable:$label) WHERE ID($variable) = $${paramName(variable, idProperty.name, properties.params[idProperty.name])} "
-                    } else {
-                        "($variable:$label {${idProperty.name.quote()}:$${paramName(variable, idProperty.name, properties.params[idProperty.name])}}) "
-                    }
-                    else -> ""
-                }
+                val select = getSelectQuery(variable, label, idProperty, isNativeId, properties.params)
 
                 // Delete
                 if (name == "delete" + type.name) {
@@ -158,6 +196,17 @@ class Translator(val schema: GraphQLSchema) {
                 // Relationships
                 return checkRelationships(fieldDefinition, field, ordering, skipLimit, ctx)
             }
+        }
+    }
+
+    private fun getSelectQuery(variable: String, label: String?, idProperty: GraphQLArgument?, isNativeId: Boolean, params: Map<String, Any?>): String {
+        return when {
+            idProperty != null -> if (isNativeId) {
+                "($variable:$label) WHERE ID($variable) = $${paramName(variable, idProperty.name, params[idProperty.name])} "
+            } else {
+                "($variable:$label { ${idProperty.name.quote()}: $${paramName(variable, idProperty.name, params[idProperty.name])} }) "
+            }
+            else -> ""
         }
     }
 
@@ -358,10 +407,10 @@ class Translator(val schema: GraphQLSchema) {
 
     private fun cypherDirectiveQuery(variable: String, fieldDefinition: GraphQLFieldDefinition, field: Field, cypherDirective: Cypher, additionalArgs: List<CypherArgument>): Cypher {
         val args = additionalArgs + prepareFieldArguments(fieldDefinition, field.arguments)
-        val argParams = args.map { '$' + it.name + " AS " + it.name }.joinNonEmpty(",")
+        val argParams = args.map { '$' + it.name + " AS " + it.name }.joinNonEmpty(", ")
         val query = (if (argParams.isEmpty()) "" else "WITH $argParams ") + cypherDirective.escapedQuery()
-        val argString = (args.map { it.name + ':' + if (it.name == "this") it.value else ('$' + paramName(variable, it.name, it.value)) }).joinToString(",", "{", "}")
-        return Cypher("'$query',$argString", args.filter { it.name != "this" }.associate { paramName(variable, it.name, it.value) to it.value })
+        val argString = (args.map { it.name + ':' + if (it.name == "this") it.value else ('$' + paramName(variable, it.name, it.value)) }).joinToString(", ", "{ ", " }")
+        return Cypher("'$query', $argString", args.filter { it.name != "this" }.associate { paramName(variable, it.name, it.value) to it.value })
     }
 
     private fun projectNamedFragments(variable: String, fragmentSpread: FragmentSpread, type: GraphQLObjectType, ctx: Context, variableSuffix: String?) =
@@ -410,8 +459,8 @@ class Translator(val schema: GraphQLSchema) {
         val fieldType = fieldDefinition.type
         val fieldObjectType = fieldType.inner() as GraphQLObjectType
         // todo combine both nestings if rel-entity
-        val relDirectiveObject = fieldObjectType.definition.getDirective(RELATION)?.let { relDetails(fieldObjectType.name, it) }
-        val relDirectiveField = fieldDefinition.definition.getDirective(RELATION)?.let { relDetails(fieldObjectType.name, it) }
+        val relDirectiveObject = fieldObjectType.definition.getDirective(RELATION)?.let { relDetails(fieldObjectType.definition, it) }
+        val relDirectiveField = fieldDefinition.definition.getDirective(RELATION)?.let { relDetails(fieldObjectType.definition, it) }
 
         val (relInfo0, isRelFromType) =
                 relDirectiveObject?.let { it to true }
@@ -461,7 +510,7 @@ class Translator(val schema: GraphQLSchema) {
         return Cypher(fieldProjection.query)
     }
 
-    private fun relDetails(type: String, relDirective: Directive) =
+    private fun relDetails(type: ObjectTypeDefinition, relDirective: Directive) =
             relDetails(type) { name, defaultValue -> relDirective.argumentString(name, schema, defaultValue) }
 
     private fun slice(skipLimit: Pair<Int, Int>, list: Boolean = false) =
@@ -524,10 +573,16 @@ object SchemaBuilder {
         typeDefinitionRegistry.merge(schemaParser.parse(directivesSdl))
 
         val objectTypeDefinitions = typeDefinitionRegistry.types().values.filterIsInstance<ObjectTypeDefinition>()
-        val nodeMutations = objectTypeDefinitions.map { createNodeMutation(ctx, typeDefinitionRegistry, it) }.filterNotNull()
+        val nodeMutations = objectTypeDefinitions.map { createNodeMutation(ctx, it) }
+        val relationTypes = objectTypeDefinitions
+            .filter { it.getDirective(RELATION) != null }
+            .map { it.getDirective(RELATION).getArgument(RELATION_NAME).value.toJavaValue().toString() to it }
+            .toMap()
+
         val relMutations = objectTypeDefinitions.flatMap { source ->
-            createRelationshipMutations(source, objectTypeDefinitions, ctx)
-        }
+            createRelationshipMutations(source, objectTypeDefinitions, relationTypes, ctx)
+        } + relationTypes.values.map { createRelationshipTypeMutation(ctx, it, typeDefinitionRegistry) }.filterNotNull()
+
         val augmentations = nodeMutations + relMutations
 
         val augmentedTypesSdl = augmentations.flatMap { it -> listOf(it.filterType, it.ordering, it.inputType).filter { it.isNotBlank() } }.joinToString("\n")
@@ -586,20 +641,16 @@ object SchemaBuilder {
     private fun createRelationshipMutations(
             source: ObjectTypeDefinition,
             objectTypeDefinitions: List<ObjectTypeDefinition>,
+            relationTypes: Map<String, ObjectTypeDefinition>?,
             ctx: Translator.Context): List<Augmentation> {
-        val relationTypes = objectTypeDefinitions
-            .filter { it.getDirective(RELATION) != null }
-            .map { it.getDirective(RELATION).getArgument(RELATION_NAME).value.toJavaValue().toString() to it }
-            .toMap()
-        val typeMutations = relationTypes.values.map { createRelationshipTypeMutation(ctx, it) }.filterNotNull()
-        return typeMutations +
-                source.fieldDefinitions
-                    .filter { !it.type.inner().isScalar() && it.getDirective(RELATION) != null }
-                    .mapNotNull { targetField ->
-                        objectTypeDefinitions.firstOrNull { it.name == targetField.type.inner().name() }
-                            ?.let { target ->
-                                createRelationshipMutation(ctx, source, target, relationTypes)
-                            }
+
+        return source.fieldDefinitions
+            .filter { !it.type.inner().isScalar() && it.getDirective(RELATION) != null }
+            .mapNotNull { targetField ->
+                objectTypeDefinitions.firstOrNull { it.name == targetField.type.inner().name() }
+                    ?.let { target ->
+                        createRelationshipMutation(ctx, source, target, relationTypes)
                     }
+            }
     }
 }
