@@ -102,7 +102,7 @@ mutation {
 .Cypher
 [source,cypher]
 ----
-MATCH (updatePerson:Person { id:$updatePersonId })
+MATCH (updatePerson:Person { id: $updatePersonId })
 SET updatePerson = {
   id: $updatePersonId,
   `properties.foo`: $updatePersonJsonFoo,
@@ -137,7 +137,7 @@ mutation {
 .Cypher
 [source,cypher]
 ----
-MERGE (mergePerson:Person { id:$mergePersonId })
+MERGE (mergePerson:Person { id: $mergePersonId })
 SET mergePerson += {
   id: $mergePersonId,
   `properties.foo`: $mergePersonJsonFoo,
@@ -145,4 +145,106 @@ SET mergePerson += {
 }
 WITH mergePerson
 RETURN mergePerson { .id } AS mergePerson
+----
+
+
+=== create relation with dynamic properties
+
+.Request
+[source,graphql]
+----
+mutation {
+  createKnows(source_id:2, knows_id: 3, json: {foo: "bar"}) {
+    id,
+    json
+  }
+}
+----
+
+.Cypher params
+[source,json]
+----
+{
+  "sourceSource_id": 2,
+  "knowsKnows_id": 3,
+  "createKnowsJsonFoo": "bar"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (source:Person { source_id: $sourceSource_id })
+MATCH (knows:Person { knows_id: $knowsKnows_id })
+CREATE (source)-[createKnows:KNOWS {`prefix.foo`:$createKnowsJsonFoo}]->(knows)
+WITH createKnows
+RETURN createKnows {
+  id:ID(createKnows),
+  json:apoc.map.fromPairs([key IN keys(createKnows) WHERE key STARTS WITH "prefix."| [substring(key,7), createKnows[key]]])
+} AS createKnows
+----
+
+=== update relation with dynamic properties
+
+.Request
+[source,graphql]
+----
+mutation {
+  updateKnows(id:2, json: {foo: "bar"}) {
+    json
+  }
+}
+----
+
+.Cypher params
+[source,json]
+----
+{
+  "updateKnowsId": 2,
+  "updateKnowsJsonFoo": "bar"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH ()-[updateKnows:KNOWS]->()
+WHERE ID(updateKnows) = $updateKnowsId
+SET updateKnows = { `prefix.foo`: $updateKnowsJsonFoo }
+WITH updateKnows
+RETURN updateKnows {
+  json:apoc.map.fromPairs([key IN keys(updateKnows) WHERE key STARTS WITH "prefix."| [substring(key,7), updateKnows[key]]])
+} AS updateKnows
+----
+
+=== update relation with dynamic properties
+
+.Request
+[source,graphql]
+----
+mutation {
+  mergeKnows(id:2, json: {foo: "bar"}) {
+    json
+  }
+}
+----
+
+.Cypher params
+[source,json]
+----
+{
+  "mergeKnowsId": 2,
+  "mergeKnowsJsonFoo": "bar"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH ()-[mergeKnows:KNOWS]->()
+WHERE ID(mergeKnows) = $mergeKnowsId
+SET mergeKnows += { `prefix.foo`: $mergeKnowsJsonFoo }
+WITH mergeKnows RETURN mergeKnows {
+  json:apoc.map.fromPairs([key IN keys(mergeKnows) WHERE key STARTS WITH "prefix."| [substring(key,7), mergeKnows[key]]])
+} AS mergeKnows
 ----

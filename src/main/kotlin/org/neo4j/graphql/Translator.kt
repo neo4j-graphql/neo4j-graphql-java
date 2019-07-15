@@ -124,48 +124,16 @@ class Translator(val schema: GraphQLSchema) {
                 if (name == "create" + type.name) {
                     if (type.isRelationship() && relation != null) {
                         val arguments = field.arguments.map { it.name to it }.toMap()
-                        val typeResolver: (String?) -> ObjectTypeDefinition? = { s -> (schema.getType(s) as? GraphQLObjectType)?.definition }
+                        val (startSelect, startArgument)  = getRelationSelect(true, relation, fieldDefinition, arguments)
+                        val (endSelect, endArgument)  = getRelationSelect(false, relation, fieldDefinition, arguments)
 
-                        val startFieldIds = relation.getStartFieldIds(typeResolver)
-                        val startField = startFieldIds.firstOrNull { arguments.containsKey(it.argumentName) }
+                        val createProperties = properties(variable, fieldDefinition, propertyArguments(field)
+                            .filter { startArgument != it.name && endArgument != it.name })
 
-                        val endFieldIds = relation.getEndFieldIds(typeResolver)
-                        val endField = endFieldIds.firstOrNull { arguments.containsKey(it.argumentName) }
-
-                        if (startField == null || endField == null) {
-                            throw java.lang.IllegalArgumentException("To create a relationship " +
-                                    "one of the start IDs ${startFieldIds.map { it.argumentName }} " +
-                                    "and one of the end IDs ${endFieldIds.map { it.argumentName }} " +
-                                    "are required")
-                        }
-                        val params = mapOf(
-                                (relation.startField + startField.argumentName.capitalize()).quote() to arguments[startField.argumentName]?.value?.toJavaValue(),
-                                (relation.endField + endField.argumentName.capitalize()).quote() to arguments[endField.argumentName]?.value?.toJavaValue()
-                        )
-                        val q1 = getSelectQuery(relation.startField!!,
-                                startField.declaringType.name,
-                                fieldDefinition.getArgument(startField.argumentName),
-                                startField.field.isNativeId(),
-                                params)
-                        val q2 = getSelectQuery(relation.endField!!,
-                                endField.declaringType.name,
-                                fieldDefinition.getArgument(endField.argumentName),
-                                endField.field.isNativeId(),
-                                params)
-
-                       val properties2 = properties(variable, fieldDefinition, propertyArguments(field)
-                            .filter { startField.argumentName != it.name && endField.argumentName != it.name})
-
-                        "MATCH $q1 " +
-                                "MATCH $q2 " +
-                                "CREATE (${relation.startField})$left-[r:${relation.relType.quote()}]-$right(${relation.endField}) "
-
-
-//                        field.arguments.fiter{it.name.startW}
-//                        return "MATCH (from:${source.name.quote()} {${sourceId.name.quote()}:$${sourceId.name}}) " +
-//                                "MATCH (to:${innerTarget.name.quote()}) WHERE to.${targetId.name.quote()} $targetFilterType $${target.name} " +
-//                                "$keyword (from)$left-[r:${relationshipDirective.getRelationshipType().quote()}]-$right(to) "
-                                return Cypher("CREATE ($variable:$label${properties.query}) " + returnStatement, (mapProjection.params + properties.params))
+                        return Cypher("MATCH ${startSelect.query} " +
+                                "MATCH ${endSelect.query} " +
+                                "CREATE (${relation.startField})-[$variable:${relation.relType.quote()} ${createProperties.query}]->(${relation.endField})" +
+                                " $returnStatement", startSelect.params + endSelect.params + createProperties.params)
                     } else {
                         return Cypher("CREATE ($variable:$label${properties.query}) " + returnStatement, (mapProjection.params + properties.params))
                     }
@@ -173,7 +141,14 @@ class Translator(val schema: GraphQLSchema) {
 
                 val idProperty = fieldDefinition.arguments.find { it.type.inner() == Scalars.GraphQLID }
                 val isNativeId = idProperty != null && (type as? GraphQLObjectType)?.getFieldDefinition(idProperty.name)?.isNativeId() == true
-                val select = getSelectQuery(variable, label, idProperty, isNativeId, properties.params)
+                val select = if (relation != null) {
+                    "MATCH ()-[$variable:$label]->() WHERE ID($variable) = $${paramName(variable, idProperty!!.name, properties.params[idProperty.name])}"
+                } else {
+                    when {
+                        name.startsWith("merge") -> "MERGE "
+                        else -> "MATCH "
+                    } + getSelectQuery(variable, label, idProperty, isNativeId, properties.params)
+                }
 
                 // Delete
                 if (name == "delete" + type.name) {
@@ -185,18 +160,33 @@ class Translator(val schema: GraphQLSchema) {
 
                 // Merge or Update
                 if (name == "merge" + type.name || name == "update" + type.name) {
-                    val (op, replace) = when {
-                        name.startsWith("merge") -> "MERGE " to false
-                        else -> "MATCH " to true
-                    }
+                    val replace = !name.startsWith("merge")
                     val setProperties = setProperties(variable, fieldDefinition, propertyArguments(field), if (isNativeId) listOf(idProperty!!.name) else emptyList(), replace)
-                    return Cypher(op + select + setProperties.query + returnStatement, (mapProjection.params + properties.params))
+                    return Cypher(select + setProperties.query + returnStatement, (mapProjection.params + properties.params))
                 }
 
                 // Relationships
                 return checkRelationships(fieldDefinition, field, ordering, skipLimit, ctx)
             }
         }
+    }
+
+    private fun getRelationSelect(
+            start: Boolean,
+            relation: RelationshipInfo,
+            fieldDefinition: GraphQLFieldDefinition,
+            arguments: Map<String, Argument>): Pair<Cypher, String> {
+        val typeResolver: (String?) -> ObjectTypeDefinition? = { s -> (schema.getType(s) as? GraphQLObjectType)?.definition }
+        val relFieldName = if (start) relation.startField else relation.endField
+        val idFields = relation.getRelatedIdFields(relFieldName, typeResolver)
+        val field = idFields.firstOrNull { arguments.containsKey(it.argumentName) }
+                ?: throw java.lang.IllegalArgumentException("No ID for the ${if (start) "start" else "end"} Type provided, one of ${idFields.map { it.argumentName }} is required")
+        val params = mapOf((relFieldName + field.argumentName.capitalize()).quote() to arguments[field.argumentName]?.value?.toJavaValue())
+        val cypher = getSelectQuery(relFieldName!!, field.declaringType.name, fieldDefinition.getArgument(field.argumentName),
+                field.field.isNativeId(),
+                params
+        )
+        return Cypher(cypher, params) to field.argumentName
     }
 
     private fun getSelectQuery(variable: String, label: String?, idProperty: GraphQLArgument?, isNativeId: Boolean, params: Map<String, Any?>): String {

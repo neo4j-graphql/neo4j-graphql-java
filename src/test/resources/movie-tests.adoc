@@ -645,7 +645,7 @@ mutation {
 .Cypher
 [source,cypher]
 ----
-MERGE (actor:Actor { userId:$actorUserId })
+MERGE (actor:Actor { userId: $actorUserId })
 SET actor += { userId: $actorUserId, name: $actorName }
 WITH actor
 RETURN actor { .name } AS actor
@@ -915,15 +915,21 @@ mutation {
 .Params
 [source,json]
 ----
-{ "ratedId": 1}
+{
+  "fromFrom_userId": "1",
+  "toTo_nativeId": 2,
+  "createRatedRating": 5
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH ()-[rated:RATED]->()
-WHERE ID(rated) = $ratedId
-RETURN rated { .rating } AS rated
+MATCH (from:User { from_userId: $fromFrom_userId })
+MATCH (to:Movie) WHERE ID(to) = $toTo_nativeId
+CREATE (from)-[createRated:RATED {rating:$createRatedRating}]->(to)
+WITH createRated
+RETURN createRated { id:ID(createRated) } AS createRated
 ----
 
 === Mutate relation
@@ -952,7 +958,7 @@ mutation {
 ----
 MATCH ()-[updateRated:RATED]->()
 WHERE ID(updateRated) = $updateRatedId
-SET updateRated.rating=$updateRatedRating
+SET updateRated = { rating: $updateRatedRating }
 WITH updateRated
 RETURN updateRated { .rating } AS updateRated
 ----

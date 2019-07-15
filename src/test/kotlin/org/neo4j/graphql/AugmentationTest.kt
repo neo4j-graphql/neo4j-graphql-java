@@ -77,7 +77,7 @@ class AugmentationTest {
             assertEquals("", it.query)
         }
         createRelationshipTypeMutation(ctx, typeFor("Knows4"), types)?.let {
-            assertEquals("createKnows4(source_id: ID, knows_id: ID, json:Object) : Knows4 ", it.create) // No ids available
+            assertEquals("createKnows4(source_id:ID!, knows_id:ID!, json:Object) : Knows4 ", it.create) // No ids available
             assertEquals("mergeKnows4(id:ID!, json:Object) : Knows4 ", it.merge)
             assertEquals("updateKnows4(id:ID!, json:Object) : Knows4 ", it.update)
             assertEquals("deleteKnows4(id:ID!) : Knows4 ", it.delete)
