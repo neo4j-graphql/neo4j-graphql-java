@@ -2,7 +2,9 @@ package org.neo4j.graphql
 
 import graphql.Scalars
 import graphql.language.*
+import graphql.language.TypeDefinition
 import graphql.schema.*
+import graphql.schema.idl.TypeDefinitionRegistry
 import org.neo4j.graphql.DirectiveConstants.Companion.CYPHER
 import org.neo4j.graphql.DirectiveConstants.Companion.CYPHER_STATEMENT
 import org.neo4j.graphql.DirectiveConstants.Companion.DYNAMIC
@@ -45,8 +47,14 @@ fun GraphQLType.isList() = this is GraphQLList || (this is GraphQLNonNull && thi
 fun GraphQLType.isScalar() = this.inner().let { it is GraphQLScalarType || it.name.startsWith("_Neo4j") }
 fun GraphQLType.isRelationship() = this.inner().let { it is GraphQLObjectType }
 fun GraphQLType.isRelationshipType() = this.inner().let { it is GraphQLObjectType && it.getDirective(RELATION) != null }
+fun GraphQLType.label(includeAll: Boolean = false) = when {
+    this.isRelationshipType() && this is GraphQLObjectType -> this.getRelationshipName()?.quote() ?: this.name.quote()
+    else -> when {
+        includeAll && this is GraphQLObjectType -> (listOf(this.name) + this.interfaces.map { it.name }).map { it.quote() }.joinToString(":")
+        else -> this.name.quote()
+    }
+}
 
-fun GraphQLObjectType.hasRelationship(name: String) = this.getFieldDefinition(name)?.isRelationship() ?: false
 fun GraphQLObjectType.getRelationshipName() = this.getDirective(RELATION)?.getArgument(RELATION_NAME)?.value?.toString()
 fun ObjectTypeDefinition.relationship(defaultValueProvider: (directiveName: String, arg: String) -> String?): RelationshipInfo? {
     val relDirective = this.getDirective(RELATION) ?: return null
@@ -59,43 +67,35 @@ fun ObjectTypeDefinition.relationship(defaultValueProvider: (directiveName: Stri
     val relType = directiveResolver(RELATION_NAME, "")
     val startField = directiveResolver(RELATION_FROM, null)
     val endField = directiveResolver(RELATION_TO, null)
-    return RelationshipInfo(this, relType, null, startField, endField)
+    return RelationshipInfo(ObjectDefinitionNodeFacade(this), relType, null, startField, endField)
 }
 
 fun GraphQLObjectType.relationship(schema: GraphQLSchema): RelationshipInfo? {
     return this.definition.relationship { directiveName, arg -> schema.getDirective(directiveName)?.getArgument(arg)?.defaultValue?.toString() }
 }
 
-fun GraphQLObjectType.relationshipFor(name: String, schema: GraphQLSchema): RelationshipInfo {
-    return this.relationshipFor(name, schema::getType, schema::getDirective)
-}
-
-fun GraphQLObjectType.relationshipFor(name: String, typeResolver: (String) -> GraphQLType, definitionProvider: (String) -> GraphQLDirective): RelationshipInfo {
-    val field = this.getFieldDefinition(name)
-    val fieldObjectType = typeResolver(field.type.inner().name) as GraphQLObjectType
-    // direction
-    // label
-    // out
-
-    // TODO direction is depending on source/target type
-
-    val (relDirective, isRelFromType) = fieldObjectType.definition.getDirective(RELATION)?.let { it to true }
-            ?: field.definition.getDirective(RELATION)?.let { it to false }
-            ?: throw IllegalStateException("Field $field needs an @relation directive")
-
-
-    val relInfo = relDetails(fieldObjectType.definition) { argName, defaultValue ->
-        relDirective.getArgument(argName)?.value?.toJavaValue()?.toString()
-                ?: definitionProvider(relDirective.name).getArgument(argName)?.defaultValue?.toString()
-                ?: defaultValue
-                ?: throw IllegalStateException("No default value for ${relDirective.name}.$argName")
+fun GraphQLType.getNodeType(): NodeGraphQlFacade? {
+    return when (this) {
+        is GraphQLObjectType -> ObjectNodeFacade(this)
+        is GraphQLInterfaceType -> InterfaceNodeFacade(this)
+        else -> null
     }
-
-    val inverse = isRelFromType && fieldObjectType.getFieldDefinition(relInfo.startField).name != this.name
-    return if (inverse) relInfo.copy(out = relInfo.out?.let { !it }, startField = relInfo.endField, endField = relInfo.startField) else relInfo
 }
 
-fun relDetails(type: ObjectTypeDefinition,
+fun GraphQLSchema.getNodeType(name: String?): NodeGraphQlFacade? = this.getType(name)?.getNodeType()
+
+fun TypeDefinition<*>.getNodeType(): NodeDefinitionFacade? {
+    return when (this) {
+        is ObjectTypeDefinition -> ObjectDefinitionNodeFacade(this)
+        is InterfaceTypeDefinition -> InterfaceDefinitionNodeFacade(this)
+        else -> null
+    }
+}
+
+fun TypeDefinitionRegistry.getNodeType(name: String?): NodeFacade? = this.getType(name).orElse(null)?.getNodeType()
+
+
+fun relDetails(type: NodeFacade,
         directiveResolver: (name: String, defaultValue: String?) -> String): RelationshipInfo {
     val relType = directiveResolver(RELATION_NAME, "")
     val outgoing = when (directiveResolver(RELATION_DIRECTION, null)) {
@@ -120,7 +120,7 @@ fun arrows(outgoing: Boolean?): Pair<String, String> {
 }
 
 data class RelationshipInfo(
-        val type: ObjectTypeDefinition,
+        val type: NodeFacade,
         val relType: String,
         val out: Boolean?,
         val startField: String? = null,
@@ -130,29 +130,25 @@ data class RelationshipInfo(
     data class RelatedField(
             val argumentName: String,
             val field: FieldDefinition,
-            val declaringType: ObjectTypeDefinition
+            val declaringType: NodeFacade
     )
 
     val arrows = arrows(out)
 
-    val typeName: String get() = this.type.name
+    val typeName: String get() = this.type.name()
 
-    fun getStartFieldIds(typeResolver: (String?) -> ObjectTypeDefinition?) = getRelatedIdFields(this.startField, typeResolver)
+    fun getStartFieldIds(typeResolver: (String?) -> NodeFacade?) = getRelatedIdFields(this.startField, typeResolver)
 
-    fun getEndFieldIds(typeResolver: (String?) -> ObjectTypeDefinition?) = getRelatedIdFields(this.endField, typeResolver)
+    fun getEndFieldIds(typeResolver: (String?) -> NodeFacade?) = getRelatedIdFields(this.endField, typeResolver)
 
-    fun getRelatedIdFields(relFieldName: String?, typeResolver: (String?) -> ObjectTypeDefinition?): List<RelatedField> {
-
+    fun getRelatedIdFields(relFieldName: String?, typeResolver: (String?) -> NodeFacade?): List<RelatedField> {
         if (relFieldName == null) return emptyList()
-        val relFieldDefinition = type.fieldDefinitions.find { it.name == relFieldName }
-                ?: throw IllegalArgumentException("field $relFieldName does not exists on ${type.name}")
+        val relFieldDefinition = type.fieldDefinitions().find { it.name == relFieldName }
+                ?: throw IllegalArgumentException("field $relFieldName does not exists on ${type.name()}")
         val relType = typeResolver(relFieldDefinition.type.name())
                 ?: throw IllegalArgumentException("type ${relFieldDefinition.type.name()} not found")
-        return (relType as? ObjectTypeDefinition)
-            ?.fieldDefinitions
-            ?.filter { it.isID() || it.isNativeId() }
-            ?.map { RelatedField("${relFieldName}_${it.name}", it, relType) }
-                ?: emptyList()
+        return relType.fieldDefinitions().filter { it.isID() || it.isNativeId() }
+            .map { RelatedField("${relFieldName}_${it.name}", it, relType) }
     }
 }
 
@@ -163,16 +159,12 @@ fun Field.propertyName(fieldDefinition: GraphQLFieldDefinition) = (fieldDefiniti
         ?: this.name).quote()
 
 fun GraphQLFieldDefinition.propertyDirectiveName() =
-        this.definition.getDirective(PROPERTY)?.getArgument(PROPERTY_NAME)?.value?.toJavaValue()?.toString()
+        definition.getDirective(PROPERTY)?.getArgument(PROPERTY_NAME)?.value?.toJavaValue()?.toString()
 
-fun GraphQLFieldDefinition.isNativeId() = this.definition.getDirective(NATIVE_ID) != null
+fun GraphQLFieldDefinition.isNativeId() = definition.getDirective(NATIVE_ID) != null
 
-fun GraphQLFieldDefinition.dynamicPrefix(schema: GraphQLSchema): String? {
-    val directive = this.definition.getDirective(DYNAMIC)
-    return if (directive != null) {
-        directive.argumentString(DYNAMIC_PREFIX, schema)
-    } else null
-}
+fun GraphQLFieldDefinition.dynamicPrefix(schema: GraphQLSchema): String? =
+        definition.getDirective(DYNAMIC)?.argumentString(DYNAMIC_PREFIX, schema)
 
 fun GraphQLFieldDefinition.cypherDirective(): Translator.Cypher? =
         this.definition.getDirective(CYPHER)?.let {

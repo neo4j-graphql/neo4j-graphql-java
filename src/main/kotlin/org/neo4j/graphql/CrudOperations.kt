@@ -9,26 +9,32 @@ import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_NAME
 data class Augmentation(val create: String = "", val merge: String = "", val update: String = "", val delete: String = "",
         val inputType: String = "", val ordering: String = "", val filterType: String = "", val query: String = "")
 
-fun createNodeMutation(ctx: Translator.Context, type: ObjectTypeDefinition): Augmentation {
+fun createNodeMutation(ctx: Translator.Context, type: NodeDefinitionFacade): Augmentation {
     if (type.isRealtionType()) {
         return Augmentation()
     }
-    val typeName = type.name
-    val idField = type.fieldDefinitions.find { it.type.name() == "ID" }
-    val scalarFields = type.fieldDefinitions.filter { it.type.isScalar() }.sortedByDescending { it == idField }
-    val hasIdField = type.fieldDefinitions.find { it.name == "_id" } != null
+    val typeName = type.name()
+    val idField = type.fieldDefinitions().find { it.type.name() == "ID" }
+    val scalarFields = type.fieldDefinitions().filter { it.type.isScalar() }.sortedByDescending { it == idField }
+    val hasIdField = type.fieldDefinitions().find { it.name == "_id" } != null
     val idFieldArg = idField?.let { it.name + ":" + it.type.render() }
 
     val result = if (ctx.mutation.enabled && !ctx.mutation.exclude.contains(typeName) && scalarFields.isNotEmpty()) {
         val fieldArgs = scalarFields.joinToString(", ") { it.name + ":" + it.type.render() }
-        Augmentation().copy(create = """create$typeName($fieldArgs) : $typeName """)
-            .let { aug ->
-                if (idField != null) aug.copy(
-                        delete = """delete$typeName($idFieldArg) : $typeName """,
-                        merge = """merge$typeName($fieldArgs) : $typeName """,
-                        update = """update$typeName($fieldArgs) : $typeName """)
-                else aug
-            }
+
+        var create = ""
+        var delete = ""
+        var merge = ""
+        var update = ""
+        if (type is ObjectDefinitionNodeFacade) {
+            create = """create$typeName($fieldArgs) : $typeName """
+        }
+        if (idField != null) {
+            delete = """delete$typeName($idFieldArg) : $typeName """
+            merge = """merge$typeName($fieldArgs) : $typeName """
+            update = """update$typeName($fieldArgs) : $typeName """
+        }
+        Augmentation(create = create, delete = delete, merge = merge, update = update)
     } else Augmentation()
 
     return if (ctx.query.enabled && !ctx.query.exclude.contains(typeName) && scalarFields.isNotEmpty()) {
@@ -99,7 +105,7 @@ fun createRelationshipTypeMutation(
         var merge = ""
         var update = ""
 
-        val typeResolver: (String?) -> ObjectTypeDefinition? = { name -> typeDefinitionRegistry.getType(name).orElseGet(null) as? ObjectTypeDefinition }
+        val typeResolver: (String?) -> NodeFacade? = { name -> typeDefinitionRegistry.getNodeType(name) }
         val startIdFields = relation.getStartFieldIds(typeResolver)
         val endIdFields = relation.getEndFieldIds(typeResolver)
         if (startIdFields.isNotEmpty() && endIdFields.isNotEmpty()) {

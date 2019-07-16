@@ -45,17 +45,17 @@ type State {
   nativeId: ID @nativeId
   name: String
 }
-# interface Person {
-#  userId: ID!
-#  name: String
-#}
-type Actor # implements Person
+interface Person {
+  userId: ID!
+  name: String
+}
+type Actor implements Person
 {
   userId: ID!
   name: String
   movies: [Movie] @relation(name: "ACTED_IN", direction:OUT)
 }
-type User # implements Person
+type User implements Person
 {
   userId: ID!
   name: String
@@ -101,6 +101,7 @@ type Query {
 }
 type Mutation {
   createGenre(name:String): Genre @cypher(statement:"CREATE (g:Genre) SET g.name = name RETURN g")
+  changePerson(name: String): Person
 }
 # scalar DateTime
 ----
@@ -961,4 +962,39 @@ WHERE ID(updateRated) = $updateRatedId
 SET updateRated = { rating: $updateRatedRating }
 WITH updateRated
 RETURN updateRated { .rating } AS updateRated
+----
+
+=== create object with multiple lables
+
+.Query
+[source,graphql]
+----
+mutation {
+ createUser(userId:1){
+    userId,
+    __typename
+ }
+}
+----
+
+.Params
+[source,json]
+----
+{
+  "createUserUserId": 1,
+  "createUserValidTypes": [
+    "User"
+  ]
+}
+----
+
+.Cypher
+[source,cypher]
+----
+CREATE (createUser:User:Person {userId:$createUserUserId})
+WITH createUser
+RETURN createUser {
+  .userId,
+  __typename: head( [ label in labels(createUser) WHERE label in $createUserValidTypes ] )
+} AS createUser
 ----

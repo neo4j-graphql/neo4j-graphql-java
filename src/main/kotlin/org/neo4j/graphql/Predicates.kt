@@ -9,7 +9,7 @@ interface Predicate {
     fun toExpression(variable: String, schema: GraphQLSchema): Pair<String, Map<String, Any?>>
 
     companion object {
-        fun resolvePredicate(name: String, value: Any?, type: GraphQLObjectType): Predicate {
+        fun resolvePredicate(name: String, value: Any?, type: NodeGraphQlFacade): Predicate {
             val (fieldName, op) = Operators.resolve(name, value)
             return if (type.hasRelationship(fieldName)) {
                 when (value) {
@@ -18,7 +18,7 @@ interface Predicate {
                     else -> throw IllegalArgumentException("Input for $fieldName must be an filter-InputType")
                 }
             } else {
-                ExpressionPredicate(fieldName, op, value, type.getFieldDefinition(fieldName))
+                ExpressionPredicate(fieldName, op, value, type.getFieldDefinition(fieldName)!!)
             }
         }
 
@@ -37,7 +37,7 @@ interface Predicate {
     }
 }
 
-fun toExpression(name: String, value: Any?, type: GraphQLObjectType): Predicate =
+fun toExpression(name: String, value: Any?, type: NodeGraphQlFacade): Predicate =
         if (name == "AND" || name == "OR")
             when (value) {
                 is Iterable<*> -> CompoundPredicate(value.map { toExpression("AND", it, type) }, name)
@@ -57,9 +57,9 @@ data class CompoundPredicate(val parts: List<Predicate>, val op: String = "AND")
                 }
 }
 
-data class IsNullPredicate(val fieldName: String, val op: Operators, val type: GraphQLObjectType) : Predicate {
+data class IsNullPredicate(val fieldName: String, val op: Operators, val type: NodeGraphQlFacade) : Predicate {
     override fun toExpression(variable: String, schema: GraphQLSchema): Pair<String, Map<String, Any?>> {
-        val rel = type.relationshipFor(fieldName, schema)
+        val rel = type.relationshipFor(fieldName, schema) ?: throw IllegalArgumentException("Not a relation")
         val (left, right) = rel.arrows
         val not = if (op.not) "" else "NOT "
         return "$not($variable)$left-[:${rel.relType}]-$right()" to emptyMap()
@@ -76,7 +76,7 @@ data class ExpressionPredicate(val name: String, val op: Operators, val value: A
 }
 
 
-data class RelationPredicate(val fieldName: String, val op: Operators, val value: Map<*, *>, val type: GraphQLObjectType) : Predicate {
+data class RelationPredicate(val fieldName: String, val op: Operators, val value: Map<*, *>, val type: NodeGraphQlFacade) : Predicate {
     val not = if (op.not) "NOT" else ""
     // (type)-[:TYPE]->(related) | pred] = 0/1/ > 0 | =
     // ALL/ANY/NONE/SINGLE(p in (type)-[:TYPE]->() WHERE pred(last(nodes(p)))
@@ -88,12 +88,13 @@ data class RelationPredicate(val fieldName: String, val op: Operators, val value
             Operators.NEQ -> "ALL" // bc of not
             else -> op.op
         }
-        val rel = type.relationshipFor(fieldName, schema)
+        val rel = type.relationshipFor(fieldName, schema) ?: throw IllegalArgumentException("Not a relation")
         val (left, right) = rel.arrows
         val other = variable + "_" + rel.typeName
         val cond = other + "_Cond"
-        val relGraphQLObjectType = schema.getType(rel.typeName) as GraphQLObjectType
-        val (pred, params) = CompoundPredicate(value.map { resolvePredicate(it.key.toString(), it.value, relGraphQLObjectType) }).toExpression(other, schema)
+        val relNodeType = schema.getNodeType(rel.typeName)
+                ?: throw IllegalArgumentException("${rel.typeName} not found")
+        val (pred, params) = CompoundPredicate(value.map { resolvePredicate(it.key.toString(), it.value, relNodeType) }).toExpression(other, schema)
         return "$not $prefix($cond IN [($variable)$left-[:${rel.relType.quote()}]-$right($other) | $pred] WHERE $cond)" to params
     }
 }

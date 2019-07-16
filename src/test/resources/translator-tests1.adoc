@@ -23,7 +23,15 @@ type Death @relation(name:"DIED",from:"who",to:"where") {
   where: Location
   date: String
 }
-type Location {
+interface Location {
+  name: String
+  founded: Person @relation(name:"FOUNDED", direction: IN)
+}
+type City implements Location {
+  name: String
+  founded: Person @relation(name:"FOUNDED", direction: IN)
+}
+type Village implements Location {
   name: String
   founded: Person @relation(name:"FOUNDED", direction: IN)
 }
@@ -536,4 +544,33 @@ MATCH (person:Person) RETURN person { .age } AS person SKIP 3 LIMIT 2
 [source,cypher]
 ----
 MATCH (person:Person) RETURN person { livedIn:[(person)-[:LIVED_IN]->(personLivedIn:Location) | personLivedIn { .name }][3..5] } AS person
+----
+
+=== nested query slice first offset
+
+.Request
+[source,graphql]
+----
+{ location { name __typename } }
+----
+
+.Cypher params
+[source,json]
+----
+{
+  "locationValidTypes": [
+    "City",
+    "Village"
+  ]
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (location:Location)
+RETURN location {
+  .name,
+  __typename: head( [ label in labels(location) WHERE label in $locationValidTypes ] )
+} AS location
 ----
