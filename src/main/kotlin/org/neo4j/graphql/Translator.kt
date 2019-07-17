@@ -22,9 +22,12 @@ class Translator(val schema: GraphQLSchema) {
             val fragments: Map<String, FragmentDefinition> = emptyMap(),
             val temporal: Boolean = false,
             val query: CRUDConfig = CRUDConfig(),
-            val mutation: CRUDConfig = CRUDConfig())
+            val mutation: CRUDConfig = CRUDConfig(),
+            val params: Map<String, Any?> = emptyMap(),
+            var objectFilterProvider: ((variable: String, type: NodeGraphQlFacade) -> Cypher?)? = null)
 
     data class CRUDConfig(val enabled: Boolean = true, val exclude: List<String> = emptyList())
+
     data class Cypher(val query: String, val params: Map<String, Any?> = emptyMap(), var list: Boolean = true) {
         fun with(p: Map<String, Any?>) = this.copy(params = this.params + p)
         fun escapedQuery() = query.replace("\"", "\\\"").replace("'", "\\'")
@@ -105,7 +108,7 @@ class Translator(val schema: GraphQLSchema) {
 
         } else {
             if (isQuery) {
-                val where = if (ctx.topLevelWhere) where(variable, fieldDefinition, type.getNodeType()!!, propertyArguments(field)) else Cypher.EMPTY
+                val where = if (ctx.topLevelWhere) where(variable, fieldDefinition, type.getNodeType()!!, propertyArguments(field), ctx) else Cypher.EMPTY
                 val properties = if (ctx.topLevelWhere) Cypher.EMPTY else properties(variable, fieldDefinition, propertyArguments(field))
                 return if (type.isRelationshipType()) {
                     Cypher("MATCH ()-[$variable:${type.label()}${properties.query}]->()${where.query} RETURN ${mapProjection.query} AS $variable$ordering${skipLimit.query}",
@@ -279,9 +282,11 @@ class Translator(val schema: GraphQLSchema) {
         else " ORDER BY " + values.map { it.split("_") }.joinToString(", ") { "$variable.${it[0]} ${it[1].toUpperCase()}" }
     }
 
-    private fun where(variable: String, field: GraphQLFieldDefinition, type: NodeGraphQlFacade, arguments: List<Argument>): Cypher {
+    private fun where(variable: String, field: GraphQLFieldDefinition, type: NodeGraphQlFacade, arguments: List<Argument>, ctx: Context): Cypher {
+        val (objectFilterExpression, objectFilterParams) = ctx.objectFilterProvider?.invoke(variable, type)
+            ?.let { listOf(it.query) to it.params }?: (emptyList<String>() to emptyMap())
+//
         val all = preparePredicateArguments(field, arguments).filterNot { listOf("first", "offset", "orderBy").contains(it.name) }
-        if (all.isEmpty()) return Cypher("")
         val (filterExpressions, filterParams) =
                 filterExpressions(all.find { it.name == "filter" }?.value, type)
                     .map { it.toExpression(variable, schema) }
@@ -293,9 +298,8 @@ class Translator(val schema: GraphQLSchema) {
         val eqExpression = noFilter.map { (k, p, v) ->
             (if (type.getFieldDefinition(k)?.isNativeId() == true) "ID($variable)" else "$variable.${p.quote()}") + " = \$${paramName(variable, k, v)}"
         }
-        val expression = (eqExpression + filterExpressions).joinNonEmpty(" AND ") // TODO talk to Will ,"(",")")
-        return Cypher(" WHERE $expression", filterParams + noFilter.map { (k, _, v) -> paramName(variable, k, v) to v }.toMap()
-        )
+        val expression = (objectFilterExpression + eqExpression + filterExpressions).joinNonEmpty(" AND ", " WHERE ") // TODO talk to Will ,"(",")")
+        return Cypher(expression, objectFilterParams + (filterParams + noFilter.map { (k, _, v) -> paramName(variable, k, v) to v }.toMap()))
     }
 
     private fun filterExpressions(value: Any?, type: NodeGraphQlFacade): List<Predicate> {
@@ -498,7 +502,7 @@ class Translator(val schema: GraphQLSchema) {
 
         val relPattern = if (isRelFromType) "$childVariable:${relInfo.relType}" else ":${relInfo.relType}"
 
-        val where = where(childVariable, fieldDefinition, nodeType, propertyArguments(field))
+        val where = where(childVariable, fieldDefinition, nodeType, propertyArguments(field), ctx)
         val fieldProjection = projectFields(childVariable, field, graphQLType, ctx, variableSuffix)
 
         val comprehension = "[($variable)$inArrow-[$relPattern]-$outArrow($endNodePattern)${where.query} | ${fieldProjection.query}]"

@@ -16,10 +16,10 @@ class AsciiDocTestSuite(private val fileName: String) {
             private val requestParams: Map<String, Any?> = emptyMap(),
             private val ignore: Boolean) {
 
-        fun run() {
+        fun run(contextModifier: (Translator.Context) -> Translator.Context = { it }) {
             println(title)
             try {
-                suite.runTest(this.request, this.cypher, this.cypherParams, this.requestParams)
+                suite.runTest(this.request, this.cypher, this.cypherParams, this.requestParams, contextModifier)
             } catch (e: Throwable) {
                 if (ignore) {
                     Assume.assumeFalse(e.message, true)
@@ -95,15 +95,20 @@ class AsciiDocTestSuite(private val fileName: String) {
     fun runTest(graphQLQuery: String,
             expectedCypherQuery: String,
             cypherParams: Map<String, Any?> = emptyMap(),
-            requestParams: Map<String, Any?> = emptyMap()) {
-        val result = translate(graphQLQuery, requestParams)
+            requestParams: Map<String, Any?> = emptyMap(),
+            contextModifier: (Translator.Context) -> Translator.Context = { it }) {
+        val result = translate(graphQLQuery, requestParams, contextModifier)
         println(result.query)
         Assert.assertEquals(expectedCypherQuery.normalize(), result.query.normalize())
         Assert.assertEquals("$cypherParams IN ${result.params}", fixNumbers(cypherParams), fixNumbers(result.params))
     }
 
-    fun translate(query: String, requestParams: Map<String, Any?> = emptyMap()): Translator.Cypher {
-        return Translator(SchemaBuilder.buildSchema(schema)).translate(query, requestParams).first()
+    fun translate(query: String,
+            requestParams: Map<String, Any?> = emptyMap(),
+            contextModifier: (Translator.Context) -> Translator.Context = { it }): Translator.Cypher {
+        return Translator(SchemaBuilder.buildSchema(schema))
+            .translate(query, requestParams, contextModifier.invoke(Translator.Context(params = requestParams)))
+            .first()
     }
 
     companion object {
