@@ -42,7 +42,7 @@ fun createNodeMutation(ctx: Translator.Context, type: NodeDefinitionFacade): Aug
         result.copy(inputType = """input _${typeName}Input { $fieldArgs } """,
                 ordering = """enum _${typeName}Ordering { ${scalarFields.joinToString(",") { it.name + "_asc ," + it.name + "_desc" }} } """,
                 filterType = filterType(typeName, scalarFields), // TODO
-                query = """${typeName.decapitalize()}($fieldArgs, ${if (hasIdField) "" else "_id: Int, "}filter:_${typeName}Filter, orderBy:_${typeName}Ordering, first:Int, offset:Int) : [$typeName] """)
+                query = """${typeName.decapitalize()}($fieldArgs, ${if (hasIdField) "" else "_id: Int, "}filter:_${typeName}Filter, orderBy:_${typeName}Ordering, first:Int, offset:Int) : [$typeName!] """)
     } else result
 }
 
@@ -137,7 +137,7 @@ fun createRelationshipTypeMutation(
         result.copy(inputType = """input _${typeName}Input { $fieldArgs } """,
                 ordering = """enum _${typeName}Ordering { ${scalarFields.joinToString(",") { it.name + "_asc ," + it.name + "_desc" }} } """,
                 filterType = filterType(typeName, scalarFields), // TODO
-                query = """${typeName.decapitalize()}($fieldArgs, filter:_${typeName}Filter, orderBy:_${typeName}Ordering, first:Int, offset:Int) : [$typeName] """)
+                query = """${typeName.decapitalize()}($fieldArgs, filter:_${typeName}Filter, orderBy:_${typeName}Ordering, first:Int, offset:Int) : [$typeName!] """)
     } else result
 }
 

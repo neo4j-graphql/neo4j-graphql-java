@@ -25,12 +25,9 @@ class Translator(val schema: GraphQLSchema) {
             val mutation: CRUDConfig = CRUDConfig())
 
     data class CRUDConfig(val enabled: Boolean = true, val exclude: List<String> = emptyList())
-    data class Cypher(val query: String, val params: Map<String, Any?> = emptyMap(), var aliasOrName: String? = null) {
+    data class Cypher(val query: String, val params: Map<String, Any?> = emptyMap(), var list: Boolean = true) {
         fun with(p: Map<String, Any?>) = this.copy(params = this.params + p)
         fun escapedQuery() = query.replace("\"", "\\\"").replace("'", "\\'")
-        fun withName(aliasOrName: String) {
-            this.aliasOrName = aliasOrName
-        }
 
         companion object {
             val EMPTY = Cypher("")
@@ -72,7 +69,6 @@ class Translator(val schema: GraphQLSchema) {
             .filterIsInstance<Field>() // FragmentSpread, InlineFragment
             .map { it ->
                 val cypher = toQuery(it, ctx)
-                cypher.withName(it.aliasOrName())
                 val resolvedParams = cypher.params.mapValues { toBoltValue(it.value, params) }
                 cypher.with(resolvedParams) // was cypher.with(params)
             }
@@ -92,6 +88,7 @@ class Translator(val schema: GraphQLSchema) {
         val fieldDefinition = queryType ?: mutationType
         ?: throw IllegalArgumentException("Unknown Query $name available queries: " + (schema.queryType.fieldDefinitions + schema.mutationType.fieldDefinitions).joinToString { it.name })
         val isQuery = queryType != null
+        val isList = fieldDefinition.type.isList()
         val returnType = fieldDefinition.type.inner()
 //        println(returnType)
         val type = schema.getType(returnType.name)
@@ -104,15 +101,20 @@ class Translator(val schema: GraphQLSchema) {
         if (cypherDirective != null) {
             // todo filters and such from nested fields
             return cypherQueryOrMutation(variable, fieldDefinition, field, cypherDirective, mapProjection, ordering, skipLimit, isQuery)
+                .copy(list = isList)
 
         } else {
             if (isQuery) {
                 val where = if (ctx.topLevelWhere) where(variable, fieldDefinition, type.getNodeType()!!, propertyArguments(field)) else Cypher.EMPTY
                 val properties = if (ctx.topLevelWhere) Cypher.EMPTY else properties(variable, fieldDefinition, propertyArguments(field))
                 return if (type.isRelationshipType()) {
-                    Cypher("MATCH ()-[$variable:${type.label()}${properties.query}]->()${where.query} RETURN ${mapProjection.query} AS $variable$ordering$skipLimit", (mapProjection.params + properties.params + where.params))
+                    Cypher("MATCH ()-[$variable:${type.label()}${properties.query}]->()${where.query} RETURN ${mapProjection.query} AS $variable$ordering$skipLimit",
+                            (mapProjection.params + properties.params + where.params),
+                            isList)
                 } else {
-                    Cypher("MATCH ($variable:${type.label()}${properties.query})${where.query} RETURN ${mapProjection.query} AS $variable$ordering$skipLimit", (mapProjection.params + properties.params + where.params))
+                    Cypher("MATCH ($variable:${type.label()}${properties.query})${where.query} RETURN ${mapProjection.query} AS $variable$ordering$skipLimit",
+                            (mapProjection.params + properties.params + where.params),
+                            isList)
                 }
             } else {
                 // TODO add into Cypher companion object as did for the relationships
@@ -129,12 +131,15 @@ class Translator(val schema: GraphQLSchema) {
                         val createProperties = properties(variable, fieldDefinition, propertyArguments(field)
                             .filter { startArgument != it.name && endArgument != it.name })
 
-                        return Cypher("MATCH ${startSelect.query} " +
-                                "MATCH ${endSelect.query} " +
+                        return Cypher("MATCH ${startSelect.query}  MATCH ${endSelect.query} " +
                                 "CREATE (${relation.startField})-[$variable:${relation.relType.quote()} ${createProperties.query}]->(${relation.endField})" +
-                                " $returnStatement", startSelect.params + endSelect.params + createProperties.params)
+                                " $returnStatement",
+                                startSelect.params + endSelect.params + createProperties.params,
+                                isList)
                     } else {
-                        return Cypher("CREATE ($variable:${type.label(true)}${properties.query}) " + returnStatement, (mapProjection.params + properties.params))
+                        return Cypher("CREATE ($variable:${type.label(true)}${properties.query}) " + returnStatement,
+                                (mapProjection.params + properties.params),
+                                isList)
                     }
                 }
 
@@ -154,18 +159,22 @@ class Translator(val schema: GraphQLSchema) {
                     val paramName = paramName(variable, idProperty!!.name, properties.params[idProperty.name]) // todo currently wrong, needs to be paramName
                     return Cypher("MATCH " + select +
                             "WITH $variable as toDelete, ${mapProjection.query} AS $variable $ordering$skipLimit DETACH DELETE toDelete RETURN $variable",
-                            (mapProjection.params + mapOf(paramName to properties.params[paramName])))
+                            (mapProjection.params + mapOf(paramName to properties.params[paramName])),
+                            isList)
                 }
 
                 // Merge or Update
                 if (name == "merge" + type.name || name == "update" + type.name) {
                     val replace = !name.startsWith("merge")
                     val setProperties = setProperties(variable, fieldDefinition, propertyArguments(field), if (isNativeId) listOf(idProperty!!.name) else emptyList(), replace)
-                    return Cypher(select + setProperties.query + returnStatement, (mapProjection.params + properties.params))
+                    return Cypher(select + setProperties.query + returnStatement,
+                            (mapProjection.params + properties.params),
+                            isList)
                 }
 
                 // Relationships
                 return checkRelationships(fieldDefinition, field, ordering, skipLimit, ctx)
+                    .copy(list = isList)
             }
         }
     }

@@ -88,19 +88,19 @@ class AugmentationTest {
         assertEquals("", createNodeMutation(ctx, nodeTypeFor("Person0")).query)
 
         createNodeMutation(ctx, nodeTypeFor("Person1")).let {
-            assertEquals("person1(name:String, _id: Int, filter:_Person1Filter, orderBy:_Person1Ordering, first:Int, offset:Int) : [Person1] ", it.query)
+            assertEquals("person1(name:String, _id: Int, filter:_Person1Filter, orderBy:_Person1Ordering, first:Int, offset:Int) : [Person1!] ", it.query)
             assertEquals("", it.merge)
             assertEquals("", it.update)
             assertEquals("", it.delete)
             assertEquals("", it.create)
         }
 
-        assertEquals("person2(name:String, age:[Int], _id: Int, filter:_Person2Filter, orderBy:_Person2Ordering, first:Int, offset:Int) : [Person2] ", createNodeMutation(ctx, nodeTypeFor("Person2")).query)
-        assertEquals("person3(name:String, _id: Int, filter:_Person3Filter, orderBy:_Person3Ordering, first:Int, offset:Int) : [Person3] ", createNodeMutation(ctx, nodeTypeFor("Person3")).query)
-        assertEquals("person4(id:ID, name:String, _id: Int, filter:_Person4Filter, orderBy:_Person4Ordering, first:Int, offset:Int) : [Person4] ", createNodeMutation(ctx, nodeTypeFor("Person4")).query)
+        assertEquals("person2(name:String, age:[Int], _id: Int, filter:_Person2Filter, orderBy:_Person2Ordering, first:Int, offset:Int) : [Person2!] ", createNodeMutation(ctx, nodeTypeFor("Person2")).query)
+        assertEquals("person3(name:String, _id: Int, filter:_Person3Filter, orderBy:_Person3Ordering, first:Int, offset:Int) : [Person3!] ", createNodeMutation(ctx, nodeTypeFor("Person3")).query)
+        assertEquals("person4(id:ID, name:String, _id: Int, filter:_Person4Filter, orderBy:_Person4Ordering, first:Int, offset:Int) : [Person4!] ", createNodeMutation(ctx, nodeTypeFor("Person4")).query)
 
         createRelationshipTypeMutation(ctx, typeFor("Knows4"), types)?.let {
-            assertEquals("knows4(id:ID, json:Object, filter:_Knows4Filter, orderBy:_Knows4Ordering, first:Int, offset:Int) : [Knows4] ", it.query) // No ids available
+            assertEquals("knows4(id:ID, json:Object, filter:_Knows4Filter, orderBy:_Knows4Ordering, first:Int, offset:Int) : [Knows4!] ", it.query) // No ids available
         }
     }
 

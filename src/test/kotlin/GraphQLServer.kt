@@ -56,7 +56,11 @@ fun main() {
         try {
             // todo fix parameter mapping in translator
             val result = it.run(cypher.query, Values.value(cypher.params))
-            result.keys().map { key -> key to result.list().map { row -> row.get(key).asObject() } }.toMap(LinkedHashMap())
+            if (cypher.list){
+                result.keys().map { key -> key to result.list().map { row -> row.get(key).asObject() } }.toMap(LinkedHashMap())
+            } else {
+                result.keys().map { key -> key to result.list().map { row -> row.get(key).asObject() }.firstOrNull() }.toMap(LinkedHashMap())
+            }
         } catch (e: Exception) {
             e.printStackTrace()
         }
