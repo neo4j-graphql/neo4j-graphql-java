@@ -227,7 +227,9 @@ RETURN movie { .title } AS movie
 [source,json]
 ----
 {
-  "movieTitle": "River Runs Through It, A"
+  "movieTitle": "River Runs Through It, A",
+  "movieOffset": 1,
+  "movieFirst": 1
 }
 ----
 
@@ -238,7 +240,7 @@ RETURN movie { .title } AS movie
 MATCH (movie:Movie) 
 WHERE movie.title = $movieTitle 
 RETURN movie { .title, .year } AS movie 
-SKIP 1 LIMIT 1
+SKIP $movieOffset LIMIT $movieFirst
 ----
 
 === Query Single Relation
@@ -364,12 +366,12 @@ RETURN movie {
 }
 ----
 
-=== todo ,"actorsFirst":3
 .Params
 [source,json]
 ----
 {
-  "movieTitle": "River Runs Through It, A"
+  "movieTitle": "River Runs Through It, A",
+  "movieActorsFirst": 3
 }
 ----
 
@@ -380,7 +382,7 @@ MATCH (movie:Movie)
 WHERE movie.title = $movieTitle 
 RETURN movie {
   .title,
-  actors:[(movie)<-[:ACTED_IN]-(movieActors:Actor) | movieActors { .name }][0..3]
+  actors:[(movie)<-[:ACTED_IN]-(movieActors:Actor) | movieActors { .name }][0..$movieActorsFirst]
 } AS movie
 ----
 
@@ -445,7 +447,8 @@ RETURN movie {
 ----
 {
   "movieFirst": 3,
-  "movieOffset": 0
+  "movieOffset": 0,
+  "movieSimilarFirst": 3
 }
 ----
 
@@ -462,7 +465,7 @@ RETURN movie {
       offset:$movieOffset
     }) | movieSimilar {
       .title
-    }][0..3]
+    }][0..$movieSimilarFirst]
 } AS movie
 ----
 
@@ -485,7 +488,8 @@ RETURN movie {
 [source,json]
 ----
 {
-  "genresBySubstringSubstring": "Action"
+  "genresBySubstringSubstring": "Action",
+  "genresBySubstringMoviesFirst": 3
 }
 ----
 
@@ -495,7 +499,7 @@ RETURN movie {
 UNWIND apoc.cypher.runFirstColumnMany('WITH $substring AS substring MATCH (g:Genre) WHERE toLower(g.name) CONTAINS toLower($substring) RETURN g', { substring:$genresBySubstringSubstring }) AS genresBySubstring
 RETURN genresBySubstring {
   .name,
-  movies:[(genresBySubstring)<-[:IN_GENRE]-(genresBySubstringMovies:Movie) | genresBySubstringMovies { .title }][0..3]
+  movies:[(genresBySubstring)<-[:IN_GENRE]-(genresBySubstringMovies:Movie) | genresBySubstringMovies { .title }][0..$genresBySubstringMoviesFirst]
 } AS genresBySubstring
 ----
 
@@ -603,7 +607,8 @@ RETURN movie {
   "movieTitle": "River Runs Through It, A", 
   "movieActorsMoviesActorsName": "Tom Hanks", 
   "movieActorsMoviesActorsMoviesFirst": 3, 
-  "movieActorsMoviesActorsMoviesOffset": 0
+  "movieActorsMoviesActorsMoviesOffset": 0,
+  "movieActorsMoviesActorsMoviesSimilarFirst": 3
 }
 ----
 
@@ -619,7 +624,7 @@ RETURN movie { .title, actors:[(movie)<-[:ACTED_IN]-(movieActors:Actor) |
              movieActorsMoviesActors { .name, movies:[(movieActorsMoviesActors)-[:ACTED_IN]->(movieActorsMoviesActorsMovies:Movie) |
                movieActorsMoviesActorsMovies { .title, .year, similar:[movieActorsMoviesActorsMoviesSimilar
                  IN apoc.cypher.runFirstColumnMany('WITH $this AS this, $first AS first, $offset AS offset MATCH (this)--(:Genre)--(o:Movie) RETURN o', { this:movieActorsMoviesActorsMovies, first:$movieActorsMoviesActorsMoviesFirst, offset:$movieActorsMoviesActorsMoviesOffset }) |
-                   movieActorsMoviesActorsMoviesSimilar { .title, .year }][0..3] }] }] }] }] } AS movie
+                   movieActorsMoviesActorsMoviesSimilar { .title, .year }][0..$movieActorsMoviesActorsMoviesSimilarFirst] }] }] }] }] } AS movie
 ----
 
 === Should merge an actor by the userId
@@ -841,7 +846,8 @@ RETURN from { .name } AS user
 [source,json]
 ----
 {
-  "movieYear": 2010
+  "movieYear": 2010,
+  "movieFirst": 10
 }
 ----
 
@@ -852,7 +858,7 @@ MATCH (movie:Movie)
 WHERE movie.year = $movieYear 
 RETURN movie { .title } AS movie 
 ORDER BY movie.title DESC  
-LIMIT 10
+LIMIT $movieFirst
 ----
 
 === Descending, number
@@ -866,13 +872,17 @@ LIMIT 10
 .Params
 [source,json]
 ----
-{}
+{
+  "movieFirst": 10
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH  (movie:Movie) RETURN  movie  {  .title  } AS  movie ORDER BY movie.year DESC LIMIT 10
+MATCH  (movie:Movie)
+RETURN  movie  {  .title  } AS  movie
+ORDER BY movie.year DESC LIMIT $movieFirst
 ----
 
 

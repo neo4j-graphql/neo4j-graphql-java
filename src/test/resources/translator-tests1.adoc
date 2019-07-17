@@ -137,13 +137,49 @@ MATCH (person:Person) RETURN person { .name } AS person
 .Cypher params
 [source,json]
 ----
-{}
+{
+  "personOffset": 3
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person) RETURN person { .age } AS person SKIP 3
+MATCH (person:Person) RETURN person { .age } AS person SKIP $personOffset
+----
+
+=== query offset as variable
+
+.Request
+[source,graphql]
+----
+query getPersons($offset: Int){
+  person(offset: $offset) {
+    age
+  }
+}
+----
+
+.Request params
+[source,json,request=true]
+----
+{
+  "offset": 10
+}
+----
+
+.Cypher params
+[source,json]
+----
+{
+  "personOffset": 10
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person) RETURN person { .age } AS person SKIP $personOffset
 ----
 
 === nested query
@@ -357,13 +393,15 @@ MATCH (foo:Person) RETURN foo { n:foo.name } AS foo
 .Cypher params
 [source,json]
 ----
-{}
+{
+  "personFirst": 2
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person) RETURN person { .age } AS person LIMIT 2
+MATCH (person:Person) RETURN person { .age } AS person LIMIT $personFirst
 ----
 
 === simple query where
@@ -434,13 +472,15 @@ SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further detail
 .Cypher params
 [source,json]
 ----
-{}
+{
+  "personLivedInOffset": 3
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person) RETURN person { livedIn:[(person)-[:LIVED_IN]->(personLivedIn:Location) | personLivedIn { .name }][3..] } AS person
+MATCH (person:Person) RETURN person { livedIn:[(person)-[:LIVED_IN]->(personLivedIn:Location) | personLivedIn { .name }][$personLivedInOffset..] } AS person
 ----
 
 === nested query slice first
@@ -454,13 +494,15 @@ MATCH (person:Person) RETURN person { livedIn:[(person)-[:LIVED_IN]->(personLive
 .Cypher params
 [source,json]
 ----
-{}
+{
+  "personLivedInFirst": 2
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person) RETURN person { livedIn:[(person)-[:LIVED_IN]->(personLivedIn:Location) | personLivedIn { .name }][0..2] } AS person
+MATCH (person:Person) RETURN person { livedIn:[(person)-[:LIVED_IN]->(personLivedIn:Location) | personLivedIn { .name }][0..$personLivedInFirst] } AS person
 ----
 
 line 1:15 token recognition error at: ' '
@@ -517,13 +559,16 @@ MATCH (person:Person) RETURN person { .name, .age } AS person
 .Cypher params
 [source,json]
 ----
-{}
+{
+  "personFirst": 2,
+  "personOffset": 3
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person) RETURN person { .age } AS person SKIP 3 LIMIT 2
+MATCH (person:Person) RETURN person { .age } AS person SKIP $personOffset LIMIT $personFirst
 ----
 
 === nested query slice first offset
@@ -537,13 +582,21 @@ MATCH (person:Person) RETURN person { .age } AS person SKIP 3 LIMIT 2
 .Cypher params
 [source,json]
 ----
-{}
+{
+  "personLivedInOffset": 3,
+  "personLivedInFirst": 2
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person) RETURN person { livedIn:[(person)-[:LIVED_IN]->(personLivedIn:Location) | personLivedIn { .name }][3..5] } AS person
+MATCH (person:Person)
+RETURN person {
+  livedIn:[(person)-[:LIVED_IN]->(personLivedIn:Location) | personLivedIn {
+    .name
+  }][$personLivedInOffset.. $personLivedInOffset + $personLivedInFirst]
+} AS person
 ----
 
 === nested query slice first offset

@@ -95,7 +95,7 @@ class Translator(val schema: GraphQLSchema) {
         val variable = field.aliasOrName().decapitalize()
         val cypherDirective = fieldDefinition.cypherDirective()
         val mapProjection = projectFields(variable, field, type, ctx, null)
-        val skipLimit = format(skipLimit(field.arguments))
+        val skipLimit = SkipLimit(variable, field.arguments).format()
         val ordering = orderBy(variable, field.arguments)
         val relation = (type as? GraphQLObjectType)?.relationship(schema)
         if (cypherDirective != null) {
@@ -108,18 +108,18 @@ class Translator(val schema: GraphQLSchema) {
                 val where = if (ctx.topLevelWhere) where(variable, fieldDefinition, type.getNodeType()!!, propertyArguments(field)) else Cypher.EMPTY
                 val properties = if (ctx.topLevelWhere) Cypher.EMPTY else properties(variable, fieldDefinition, propertyArguments(field))
                 return if (type.isRelationshipType()) {
-                    Cypher("MATCH ()-[$variable:${type.label()}${properties.query}]->()${where.query} RETURN ${mapProjection.query} AS $variable$ordering$skipLimit",
-                            (mapProjection.params + properties.params + where.params),
+                    Cypher("MATCH ()-[$variable:${type.label()}${properties.query}]->()${where.query} RETURN ${mapProjection.query} AS $variable$ordering${skipLimit.query}",
+                            (mapProjection.params + properties.params + where.params + skipLimit.params),
                             isList)
                 } else {
-                    Cypher("MATCH ($variable:${type.label()}${properties.query})${where.query} RETURN ${mapProjection.query} AS $variable$ordering$skipLimit",
-                            (mapProjection.params + properties.params + where.params),
+                    Cypher("MATCH ($variable:${type.label()}${properties.query})${where.query} RETURN ${mapProjection.query} AS $variable$ordering${skipLimit.query}",
+                            (mapProjection.params + properties.params + where.params + skipLimit.params),
                             isList)
                 }
             } else {
                 // TODO add into Cypher companion object as did for the relationships
                 val properties = properties(variable, fieldDefinition, propertyArguments(field))
-                val returnStatement = "WITH $variable RETURN ${mapProjection.query} AS $variable$ordering$skipLimit"
+                val returnStatement = "WITH $variable RETURN ${mapProjection.query} AS $variable$ordering${skipLimit.query}"
 
                 // Create
                 if (type is GraphQLObjectType && name == "create" + type.name) {
@@ -134,11 +134,11 @@ class Translator(val schema: GraphQLSchema) {
                         return Cypher("MATCH ${startSelect.query}  MATCH ${endSelect.query} " +
                                 "CREATE (${relation.startField})-[$variable:${relation.relType.quote()} ${createProperties.query}]->(${relation.endField})" +
                                 " $returnStatement",
-                                startSelect.params + endSelect.params + createProperties.params,
+                                startSelect.params + endSelect.params + createProperties.params + skipLimit.params,
                                 isList)
                     } else {
                         return Cypher("CREATE ($variable:${type.label(true)}${properties.query}) " + returnStatement,
-                                (mapProjection.params + properties.params),
+                                (mapProjection.params + properties.params + skipLimit.params),
                                 isList)
                     }
                 }
@@ -158,8 +158,8 @@ class Translator(val schema: GraphQLSchema) {
                 if (name == "delete" + type.name) {
                     val paramName = paramName(variable, idProperty!!.name, properties.params[idProperty.name]) // todo currently wrong, needs to be paramName
                     return Cypher("MATCH " + select +
-                            "WITH $variable as toDelete, ${mapProjection.query} AS $variable $ordering$skipLimit DETACH DELETE toDelete RETURN $variable",
-                            (mapProjection.params + mapOf(paramName to properties.params[paramName])),
+                            "WITH $variable as toDelete, ${mapProjection.query} AS $variable $ordering${skipLimit.query} DETACH DELETE toDelete RETURN $variable",
+                            (mapProjection.params + mapOf(paramName to properties.params[paramName]) + skipLimit.params),
                             isList)
                 }
 
@@ -214,13 +214,13 @@ class Translator(val schema: GraphQLSchema) {
         }
     }
 
-    private fun checkRelationships(sourceFieldDefinition: GraphQLFieldDefinition, field: Field, ordering: String, skipLimit: String, ctx: Context): Cypher {
+    private fun checkRelationships(sourceFieldDefinition: GraphQLFieldDefinition, field: Field, ordering: String, skipLimit: Cypher, ctx: Context): Cypher {
         val source = sourceFieldDefinition.type as GraphQLObjectType
         val targetFieldDefinition = filterTarget(source, field, sourceFieldDefinition)
 
         val sourceVariable = "from"
         val mapProjection = projectFields(sourceVariable, field, source, ctx, null)
-        val returnStatement = "WITH DISTINCT $sourceVariable RETURN ${mapProjection.query} AS ${source.name.decapitalize().quote()}$ordering$skipLimit"
+        val returnStatement = "WITH DISTINCT $sourceVariable RETURN ${mapProjection.query} AS ${source.name.decapitalize().quote()}$ordering${skipLimit.query}"
         val properties = properties("", sourceFieldDefinition, propertyArguments(field)).params
             .mapKeys { it.key.decapitalize() }
 
@@ -236,7 +236,7 @@ class Translator(val schema: GraphQLSchema) {
             }
             else -> throw IllegalArgumentException("Unknown Mutation ${sourceFieldDefinition.name}")
         }.let {
-            it.copy(query = it.query + returnStatement, params = properties)
+            it.copy(query = it.query + returnStatement, params = properties + skipLimit.params)
         }
     }
 
@@ -250,15 +250,15 @@ class Translator(val schema: GraphQLSchema) {
             .firstOrNull() ?: throw IllegalArgumentException("Unknown Mutation ${graphQLFieldDefinition.name}")
     }
 
-    private fun cypherQueryOrMutation(variable: String, fieldDefinition: GraphQLFieldDefinition, field: Field, cypherDirective: Cypher, mapProjection: Cypher, ordering: String, skipLimit: String, isQuery: Boolean) =
+    private fun cypherQueryOrMutation(variable: String, fieldDefinition: GraphQLFieldDefinition, field: Field, cypherDirective: Cypher, mapProjection: Cypher, ordering: String, skipLimit: Cypher, isQuery: Boolean) =
             if (isQuery) {
                 val (query, params) = cypherDirective(variable, fieldDefinition, field, cypherDirective, emptyList())
-                Cypher("UNWIND $query AS $variable RETURN ${mapProjection.query} AS $variable$ordering$skipLimit",
-                        (params + mapProjection.params))
+                Cypher("UNWIND $query AS $variable RETURN ${mapProjection.query} AS $variable$ordering${skipLimit.query}",
+                        (params + mapProjection.params + skipLimit.params))
             } else {
                 val (query, params) = cypherDirectiveQuery(variable, fieldDefinition, field, cypherDirective, emptyList())
-                Cypher("CALL apoc.cypher.doIt($query) YIELD value WITH value[head(keys(value))] AS $variable RETURN ${mapProjection.query} AS $variable$ordering$skipLimit",
-                        (params + mapProjection.params))
+                Cypher("CALL apoc.cypher.doIt($query) YIELD value WITH value[head(keys(value))] AS $variable RETURN ${mapProjection.query} AS $variable$ordering${skipLimit.query}",
+                        (params + mapProjection.params + skipLimit.params))
             }
 
 
@@ -461,9 +461,9 @@ class Translator(val schema: GraphQLSchema) {
         val fieldProjection = projectFields(childVariable, field, fieldObjectType, ctx, variableSuffix)
 
         val comprehension = "[$childVariable IN ${expression.query} | ${fieldProjection.query}]"
-        val skipLimit = skipLimit(field.arguments)
-        val slice = slice(skipLimit, fieldType.isList())
-        return Cypher(comprehension + slice, (expression.params + fieldProjection.params)) // + where.params
+        val skipLimit = SkipLimit(childVariable, field.arguments)
+        val slice = skipLimit.slice(fieldType.isList())
+        return Cypher(comprehension + slice.query, (expression.params + fieldProjection.params + slice.params)) // + where.params
 
     }
 
@@ -502,9 +502,9 @@ class Translator(val schema: GraphQLSchema) {
         val fieldProjection = projectFields(childVariable, field, graphQLType, ctx, variableSuffix)
 
         val comprehension = "[($variable)$inArrow-[$relPattern]-$outArrow($endNodePattern)${where.query} | ${fieldProjection.query}]"
-        val skipLimit = skipLimit(field.arguments)
-        val slice = slice(skipLimit, fieldType.isList())
-        return Cypher(comprehension + slice, (where.params + fieldProjection.params))
+        val skipLimit = SkipLimit(childVariable, field.arguments)
+        val slice = skipLimit.slice(fieldType.isList())
+        return Cypher(comprehension + slice.query, (where.params + fieldProjection.params + slice.params))
     }
 
     private fun relationshipInfoInCorrectDirection(fieldObjectType: NodeGraphQlFacade, relInfo0: RelationshipInfo, parent: NodeGraphQlFacade, relDirectiveField: RelationshipInfo?): RelationshipInfo {
@@ -528,30 +528,54 @@ class Translator(val schema: GraphQLSchema) {
     private fun relDetails(type: NodeFacade, relDirective: Directive) =
             relDetails(type) { name, defaultValue -> relDirective.argumentString(name, schema, defaultValue) }
 
-    private fun slice(skipLimit: Pair<Int, Int>, list: Boolean = false) =
-            if (list) {
-                if (skipLimit.first == 0 && skipLimit.second == -1) ""
-                else if (skipLimit.second == -1) "[${skipLimit.first}..]"
-                else "[${skipLimit.first}..${skipLimit.first + skipLimit.second}]"
-            } else "[${skipLimit.first}]"
+    class SkipLimit(variable: String,
+            arguments: List<Argument>,
+            private val skip: CypherArgument? = convertArgument(variable, arguments, "offset"),
+            private val limit: CypherArgument? = convertArgument(variable, arguments, "first")) {
 
-    private fun format(skipLimit: Pair<Int, Int>) =
-            if (skipLimit.first > 0) {
-                if (skipLimit.second > -1) " SKIP ${skipLimit.first} LIMIT ${skipLimit.second}"
-                else " SKIP ${skipLimit.first}"
+        fun format(): Cypher {
+            return if (skip != null) {
+                if (limit != null) Cypher(" SKIP $${skip.propertyName} LIMIT $${limit.propertyName}", mapOf(
+                        skip.propertyName to skip.value,
+                        limit.propertyName to limit.value)
+                )
+                else Cypher(" SKIP $${skip.propertyName}", mapOf(skip.propertyName to skip.value))
             } else {
-                if (skipLimit.second > -1) " LIMIT ${skipLimit.second}"
-                else ""
+                if (limit != null) Cypher(" LIMIT $${limit.propertyName}", mapOf(limit.propertyName to limit.value))
+                else Cypher("")
+            }
+        }
+
+        fun slice(list: Boolean = false): Cypher {
+            if (!list) {
+                return if (skip != null) {
+                    Cypher("[$${skip.propertyName}]", mapOf(skip.propertyName to skip.value))
+                } else {
+                    Cypher("[0]")
+                }
             }
 
-    private fun skipLimit(arguments: List<Argument>): Pair<Int, Int> {
-        val limit = numericArgument(arguments, "first", -1).toInt()
-        val skip = numericArgument(arguments, "offset").toInt()
-        return skip to limit
-    }
+            return when (limit) {
+                null -> when {
+                    skip != null -> Cypher("[$${skip.propertyName}..]", mapOf(skip.propertyName to skip.value))
+                    else -> Cypher("")
+                }
+                else -> when {
+                    skip != null -> Cypher("[$${skip.propertyName}.. $${skip.propertyName} + $${limit.propertyName}]", mapOf(
+                            skip.propertyName to skip.value,
+                            limit.propertyName to limit.value))
+                    else -> Cypher("[0..$${limit.propertyName}]", mapOf(limit.propertyName to limit.value))
+                }
+            }
+        }
 
-    private fun numericArgument(arguments: List<Argument>, name: String, defaultValue: Number = 0) =
-            (arguments.find { it.name.toLowerCase() == name }?.value?.toJavaValue() as Number?) ?: defaultValue
+        companion object {
+            private fun convertArgument(variable: String, arguments: List<Argument>, name: String): CypherArgument? {
+                val argument = arguments.find { it.name.toLowerCase() == name } ?: return null
+                return CypherArgument(name, paramName(variable, argument.name, argument), argument.value?.toJavaValue())
+            }
+        }
+    }
 
 
     private fun parse(query: String): Document {
