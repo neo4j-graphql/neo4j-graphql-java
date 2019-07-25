@@ -2,8 +2,11 @@ package org.neo4j.graphql
 
 import graphql.Scalars
 import graphql.language.*
+import graphql.language.OperationDefinition.Operation.MUTATION
+import graphql.language.OperationDefinition.Operation.QUERY
 import graphql.parser.Parser
 import graphql.schema.*
+import graphql.schema.DataFetchingEnvironmentImpl.newDataFetchingEnvironment
 import org.antlr.v4.runtime.misc.ParseCancellationException
 import org.neo4j.graphql.DirectiveConstants.Companion.RELATION
 import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_DIRECTION_OUT
@@ -63,14 +66,17 @@ class Translator(
         val ast = parse(query) // todo preparsedDocumentProvider
         val ctx = context.copy(fragments = ast.definitions.filterIsInstance<FragmentDefinition>().map { it.name to it }.toMap())
         return ast.definitions.filterIsInstance<OperationDefinition>()
-            .filter { it.operation == OperationDefinition.Operation.QUERY || it.operation == OperationDefinition.Operation.MUTATION } // todo variableDefinitions, directives, name
-            .flatMap { it.selectionSet.selections }
-            .filterIsInstance<Field>() // FragmentSpread, InlineFragment
-            .map { it ->
-                val cypher = toQuery(it, ctx)
-                val resolvedParams = cypher.params.mapValues { toBoltValue(it.value, params) }
-                cypher.with(resolvedParams) // was cypher.with(params)
+            .filter { it.operation == QUERY || it.operation == MUTATION } // todo variableDefinitions, directives, name
+            .flatMap {
+                it.selectionSet.selections
+                    .filterIsInstance<Field>() // FragmentSpread, InlineFragment
+                    .map { field ->
+                        val cypher = toQuery(it.operation, field, ctx)
+                        val resolvedParams = cypher.params.mapValues { toBoltValue(it.value, params) }
+                        cypher.with(resolvedParams) // was cypher.with(params)
+                    }
             }
+
     }
 
     private fun toBoltValue(value: Any?, params: Map<String, Any?>) = when (value) {
@@ -80,13 +86,37 @@ class Translator(
         else -> value
     }
 
-    private fun toQuery(field: Field, ctx: Context = Context()): Cypher {
+    private fun toQuery(op: OperationDefinition.Operation, field: Field, ctx: Context = Context()): Cypher {
         val name = field.name
-        val queryType = schema.queryType.getFieldDefinition(name)
-        val mutationType = schema.mutationType.getFieldDefinition(name)
-        val fieldDefinition = queryType ?: mutationType
-        ?: throw IllegalArgumentException("Unknown Query $name available queries: " + (schema.queryType.fieldDefinitions + schema.mutationType.fieldDefinitions).joinToString { it.name })
-        val isQuery = queryType != null
+        val operationObjectType: GraphQLObjectType
+        val fieldDefinition: GraphQLFieldDefinition
+        when (op) {
+            QUERY -> {
+                operationObjectType = schema.queryType
+                fieldDefinition = operationObjectType.getFieldDefinition(name)
+                        ?: throw IllegalArgumentException("Unknown Query $name available queries: " + (operationObjectType.fieldDefinitions).joinToString { it.name })
+            }
+            MUTATION -> {
+                operationObjectType = schema.mutationType
+                fieldDefinition = operationObjectType.getFieldDefinition(name)
+                        ?: throw IllegalArgumentException("Unknown Mutation $name available mutations: " + (operationObjectType.fieldDefinitions).joinToString { it.name })
+            }
+            else -> throw IllegalArgumentException("$op is not supported")
+        }
+        val dataFetcher = schema.codeRegistry.getDataFetcher(operationObjectType, fieldDefinition)
+                ?: throw IllegalArgumentException("no data fetcher found for ${op.name.toLowerCase()} $name")
+
+
+        val f = dataFetcher.get(newDataFetchingEnvironment()
+            .source(field)
+            .graphQLSchema(schema)
+            .context(ctx)
+            .fieldDefinition(fieldDefinition)
+            .build())
+        if (f is Cypher)
+            return f
+
+        val isQuery = op == QUERY
         val isList = fieldDefinition.type.isList()
         val returnType = fieldDefinition.type.inner()
 //        println(returnType)
@@ -187,7 +217,7 @@ class Translator(
         val relFieldName = if (start) relation.startField else relation.endField
         val idField = relation.getRelatedIdField(relFieldName, metaProvider)
                 ?: throw java.lang.IllegalArgumentException("No ID for the ${if (start) "start" else "end"} Type provided")
-        if (arguments[idField.argumentName] == null ){
+        if (arguments[idField.argumentName] == null) {
             throw java.lang.IllegalArgumentException("No ID for the ${if (start) "start" else "end"} Type provided, ${idField.argumentName} is required")
         }
         val params = mapOf((relFieldName + idField.argumentName.capitalize()).quote() to arguments[idField.argumentName]?.value?.toJavaValue())

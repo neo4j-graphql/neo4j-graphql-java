@@ -104,7 +104,6 @@ mutation {
 ----
 MATCH (updatePerson:Person { id: $updatePersonId })
 SET updatePerson = {
-  id: $updatePersonId,
   `properties.foo`: $updatePersonJsonFoo,
   `properties.x`: $updatePersonJsonX
 }
@@ -139,7 +138,6 @@ mutation {
 ----
 MERGE (mergePerson:Person { id: $mergePersonId })
 SET mergePerson += {
-  id: $mergePersonId,
   `properties.foo`: $mergePersonJsonFoo,
   `properties.x`: $mergePersonJsonX
 }
@@ -176,7 +174,7 @@ mutation {
 ----
 MATCH (source:Person { source_id: $sourceSource_id })
 MATCH (knows:Person { knows_id: $knowsKnows_id })
-CREATE (source)-[createKnows:KNOWS {`prefix.foo`:$createKnowsJsonFoo}]->(knows)
+CREATE (source)-[createKnows:KNOWS { `prefix.foo`: $createKnowsJsonFoo }]->(knows)
 WITH createKnows
 RETURN createKnows {
   _id:ID(createKnows),

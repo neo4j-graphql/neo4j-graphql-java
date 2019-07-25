@@ -1,10 +1,9 @@
 package org.neo4j.graphql.handler
 
 import graphql.language.*
-import graphql.schema.GraphQLInterfaceType
-import graphql.schema.GraphQLObjectType
 import graphql.schema.idl.TypeDefinitionRegistry
 import org.neo4j.graphql.*
+import org.neo4j.graphql.Translator.*
 
 
 class ProjectionHandler(
@@ -17,7 +16,11 @@ class ProjectionHandler(
     private val isList = fieldDefinition.type.isList()
     private val metaProvider = TypeRegistryMetaProvider(typeDefinitionRegistry)
 
-    override fun generateCypher(variable: String, field: Field, projectionProvider: () -> Translator.Cypher, ctx: Translator.Context): Translator.Cypher {
+    init {
+        projectionRepository.add(this)
+    }
+
+    override fun generateCypher(variable: String, field: Field, projectionProvider: () -> Cypher, ctx: Context): Cypher {
         val where = where(variable, propertyArguments(field), ctx)
         val mapProjection = projectionProvider.invoke()
         val ordering = orderBy(variable, field.arguments)
@@ -28,20 +31,20 @@ class ProjectionHandler(
         } else {
             "($variable:${label()})"
         }
-        return Translator.Cypher("MATCH $select${where.query}" +
+        return Cypher("MATCH $select${where.query}" +
                 " RETURN ${mapProjection.query} AS $variable$ordering${skipLimit.query}",
                 (where.params + mapProjection.params + skipLimit.params),
                 isList)
     }
 
-    private fun where(variable: String, arguments: List<Argument>, ctx: Translator.Context): Translator.Cypher {
+    private fun where(variable: String, arguments: List<Argument>, ctx: Context): Cypher {
         return where(variable, fieldDefinition, type, arguments, ctx);
     }
 
-    private fun where(variable: String, field: FieldDefinition, type: NodeFacade, arguments: List<Argument>, ctx: Translator.Context): Translator.Cypher {
+    private fun where(variable: String, field: FieldDefinition, type: NodeFacade, arguments: List<Argument>, ctx: Context): Cypher {
         val (objectFilterExpression, objectFilterParams) = ctx.objectFilterProvider?.invoke(variable, type)
             ?.let { listOf(it.query) to it.params } ?: (emptyList<String>() to emptyMap())
-//
+
         val all = preparePredicateArguments(field, arguments).filterNot { listOf("first", "offset", "orderBy").contains(it.name) }
         val (filterExpressions, filterParams) =
                 filterExpressions(all.find { it.name == "filter" }?.value, type)
@@ -55,31 +58,31 @@ class ProjectionHandler(
             (if (type.getFieldDefinition(k)?.isNativeId() == true) "ID($variable)" else "$variable.${p.quote()}") + " = \$${paramName(variable, k, v)}"
         }
         val expression = (objectFilterExpression + eqExpression + filterExpressions).joinNonEmpty(" AND ", " WHERE ")
-        return Translator.Cypher(expression, objectFilterParams + (filterParams + noFilter.map { (k, _, v) -> paramName(variable, k, v) to v }.toMap()))
+        return Cypher(expression, objectFilterParams + (filterParams + noFilter.map { (k, _, v) -> paramName(variable, k, v) to v }.toMap()))
     }
 
     @Deprecated(message = "get other type")
-    private fun preparePredicateArguments(field: FieldDefinition, arguments: List<Argument>): List<Translator.CypherArgument> {
+    private fun preparePredicateArguments(field: FieldDefinition, arguments: List<Argument>): List<CypherArgument> {
         if (arguments.isEmpty()) return emptyList()
-        val resultObjectType = metaProvider.getNodeType(field.name)
+        val resultObjectType = metaProvider.getNodeType(field.type.name())
                 ?: throw IllegalArgumentException("${field.name} cannot be converted to a NodeGraphQlFacade")
         val predicates = arguments.map {
             val fieldDefinition = resultObjectType.getFieldDefinition(it.name)
             val dynamicPrefix = fieldDefinition?.dynamicPrefix(metaProvider)
-            val result = mutableListOf<Translator.CypherArgument>()
+            val result = mutableListOf<CypherArgument>()
             if (dynamicPrefix != null && it.value is ObjectValue) {
                 for (argField in (it.value as ObjectValue).objectFields) {
-                    result += Translator.CypherArgument(it.name + argField.name.capitalize(), dynamicPrefix + argField.name, argField.value.toJavaValue())
+                    result += CypherArgument(it.name + argField.name.capitalize(), dynamicPrefix + argField.name, argField.value.toJavaValue())
                 }
 
             } else {
-                result += Translator.CypherArgument(it.name, fieldDefinition?.propertyDirectiveName()
+                result += CypherArgument(it.name, fieldDefinition?.propertyDirectiveName()
                         ?: it.name, it.value.toJavaValue())
             }
             it.name to result
         }.toMap()
         val defaults = field.inputValueDefinitions.filter { it.defaultValue != null && !predicates.containsKey(it.name) }
-            .map { Translator.CypherArgument(it.name, it.name, it.defaultValue) }
+            .map { CypherArgument(it.name, it.name, it.defaultValue) }
         return predicates.values.flatten() + defaults
     }
 
@@ -106,7 +109,7 @@ class ProjectionHandler(
 
     //    TODO clean up
 
-    public fun projectFields(variable: String, field: Field, nodeType: NodeFacade, ctx: Translator.Context, variableSuffix: String?): Translator.Cypher {
+    public fun projectFields(variable: String, field: Field, nodeType: NodeFacade, ctx: Context, variableSuffix: String?): Cypher {
         val properties = field.selectionSet.selections.flatMap {
             when (it) {
                 is Field -> listOf(projectField(variable, it, nodeType, ctx, variableSuffix))
@@ -118,74 +121,74 @@ class ProjectionHandler(
 
         val projection = properties.joinToString(", ", "{ ", " }") { it.query }
         val params = properties.map { it.params }.fold(emptyMap<String, Any?>()) { res, map -> res + map }
-        return Translator.Cypher("$variable $projection", params)
+        return Cypher("$variable $projection", params)
     }
 
-    private fun projectField(variable: String, field: Field, type: NodeFacade, ctx: Translator.Context, variableSuffix: String?): Translator.Cypher {
+    private fun projectField(variable: String, field: Field, type: NodeFacade, ctx: Context, variableSuffix: String?): Cypher {
         if (field.name == "__typename") {
             val paramName = paramName(variable, "validTypes", null)
             val validTypeLabels = metaProvider.getValidTypeLabels(type)
-            return Translator.Cypher("${field.aliasOrName()}: head( [ label in labels($variable) WHERE label in $$paramName ] )",
+            return Cypher("${field.aliasOrName()}: head( [ label in labels($variable) WHERE label in $$paramName ] )",
                     mapOf(paramName to validTypeLabels))
         }
         val fieldDefinition = type.getFieldDefinition(field.name)
                 ?: throw IllegalStateException("No field ${field.name} in ${type.name()}")
         val cypherDirective = fieldDefinition.cypherDirective()
-        val isObjectField = fieldDefinition.type.inner() is GraphQLObjectType || fieldDefinition.type.inner() is GraphQLInterfaceType
+        val isObjectField = metaProvider.getNodeType(fieldDefinition.type.name()) != null
         return cypherDirective?.let {
-            val directive = cypherDirective(variable, fieldDefinition, field, it, listOf(Translator.CypherArgument("this", "this", variable)))
+            val directive = cypherDirective(variable, fieldDefinition, field, it, listOf(CypherArgument("this", "this", variable)))
             if (isObjectField) {
                 val patternComprehensions = projectListComprehension(variable, field, fieldDefinition, ctx, directive, variableSuffix)
-                Translator.Cypher(field.aliasOrName() + ":" + patternComprehensions.query, patternComprehensions.params)
+                Cypher(field.aliasOrName() + ":" + patternComprehensions.query, patternComprehensions.params)
             } else
-                Translator.Cypher(field.aliasOrName() + ":" + directive.query, directive.params)
+                Cypher(field.aliasOrName() + ":" + directive.query, directive.params)
 
         } ?: when {
             isObjectField -> {
                 val patternComprehensions = projectRelationship(variable, field, fieldDefinition, type, ctx, variableSuffix)
-                Translator.Cypher(field.aliasOrName() + ":" + patternComprehensions.query, patternComprehensions.params)
+                Cypher(field.aliasOrName() + ":" + patternComprehensions.query, patternComprehensions.params)
             }
-            fieldDefinition.isNativeId() -> Translator.Cypher("${field.aliasOrName()}:ID($variable)")
+            fieldDefinition.isNativeId() -> Cypher("${field.aliasOrName()}:ID($variable)")
             else -> {
                 val dynamicPrefix = fieldDefinition.dynamicPrefix(metaProvider)
                 when {
-                    dynamicPrefix != null -> Translator.Cypher("${field.aliasOrName()}:apoc.map.fromPairs([key IN keys($variable) WHERE key STARTS WITH \"$dynamicPrefix\"| [substring(key,${dynamicPrefix.length}), $variable[key]]])")
-                    field.aliasOrName() == field.propertyName(fieldDefinition) -> Translator.Cypher("." + field.propertyName(fieldDefinition))
-                    else -> Translator.Cypher(field.aliasOrName() + ":" + variable + "." + field.propertyName(fieldDefinition))
+                    dynamicPrefix != null -> Cypher("${field.aliasOrName()}:apoc.map.fromPairs([key IN keys($variable) WHERE key STARTS WITH \"$dynamicPrefix\"| [substring(key,${dynamicPrefix.length}), $variable[key]]])")
+                    field.aliasOrName() == field.propertyName(fieldDefinition) -> Cypher("." + field.propertyName(fieldDefinition))
+                    else -> Cypher(field.aliasOrName() + ":" + variable + "." + field.propertyName(fieldDefinition))
                 }
             }
         }
     }
 
-    private fun cypherDirective(variable: String, fieldDefinition: FieldDefinition, field: Field, cypherDirective: Translator.Cypher, additionalArgs: List<Translator.CypherArgument>): Translator.Cypher {
+    private fun cypherDirective(variable: String, fieldDefinition: FieldDefinition, field: Field, cypherDirective: Cypher, additionalArgs: List<CypherArgument>): Cypher {
         val suffix = if (fieldDefinition.type.isList()) "Many" else "Single"
         val (query, args) = cypherDirectiveQuery(variable, fieldDefinition, field, cypherDirective, additionalArgs)
-        return Translator.Cypher("apoc.cypher.runFirstColumn$suffix($query)", args)
+        return Cypher("apoc.cypher.runFirstColumn$suffix($query)", args)
     }
 
-    private fun cypherDirectiveQuery(variable: String, fieldDefinition: FieldDefinition, field: Field, cypherDirective: Translator.Cypher, additionalArgs: List<Translator.CypherArgument>): Translator.Cypher {
+    private fun cypherDirectiveQuery(variable: String, fieldDefinition: FieldDefinition, field: Field, cypherDirective: Cypher, additionalArgs: List<CypherArgument>): Cypher {
         val args = additionalArgs + prepareFieldArguments(fieldDefinition, field.arguments)
         val argParams = args.map { '$' + it.name + " AS " + it.name }.joinNonEmpty(", ")
         val query = (if (argParams.isEmpty()) "" else "WITH $argParams ") + cypherDirective.escapedQuery()
         val argString = (args.map { it.name + ':' + if (it.name == "this") it.value else ('$' + paramName(variable, it.name, it.value)) }).joinToString(", ", "{ ", " }")
-        return Translator.Cypher("'$query', $argString", args.filter { it.name != "this" }.associate { paramName(variable, it.name, it.value) to it.value })
+        return Cypher("'$query', $argString", args.filter { it.name != "this" }.associate { paramName(variable, it.name, it.value) to it.value })
     }
 
-    private fun prepareFieldArguments(field: FieldDefinition, arguments: List<Argument>): List<Translator.CypherArgument> {
+    private fun prepareFieldArguments(field: FieldDefinition, arguments: List<Argument>): List<CypherArgument> {
         // if (arguments.isEmpty()) return emptyList()
-        val predicates = arguments.map { it.name to Translator.CypherArgument(it.name, it.name, it.value.toJavaValue()) }.toMap()
+        val predicates = arguments.map { it.name to CypherArgument(it.name, it.name, it.value.toJavaValue()) }.toMap()
         val defaults = field.inputValueDefinitions.filter { it.defaultValue != null && !predicates.containsKey(it.name) }
-            .map { Translator.CypherArgument(it.name, it.name, it.defaultValue) }
+            .map { CypherArgument(it.name, it.name, it.defaultValue) }
         return predicates.values + defaults
     }
 
 
-    private fun projectNamedFragments(variable: String, fragmentSpread: FragmentSpread, type: NodeFacade, ctx: Translator.Context, variableSuffix: String?) =
+    private fun projectNamedFragments(variable: String, fragmentSpread: FragmentSpread, type: NodeFacade, ctx: Context, variableSuffix: String?) =
             ctx.fragments.getValue(fragmentSpread.name).let {
                 projectFragment(it.typeCondition.name, type, variable, ctx, variableSuffix, it.selectionSet)
             }
 
-    private fun projectFragment(fragmentTypeName: String?, type: NodeFacade, variable: String, ctx: Translator.Context, variableSuffix: String?, selectionSet: SelectionSet): List<Translator.Cypher> {
+    private fun projectFragment(fragmentTypeName: String?, type: NodeFacade, variable: String, ctx: Context, variableSuffix: String?, selectionSet: SelectionSet): List<Cypher> {
         val fragmentType = metaProvider.getNodeType(fragmentTypeName)
         return if (fragmentType == type) {
             // these are the nested fields of the fragment
@@ -196,19 +199,19 @@ class ProjectionHandler(
         }
     }
 
-    private fun projectInlineFragment(variable: String, fragment: InlineFragment, type: NodeFacade, ctx: Translator.Context, variableSuffix: String?) =
+    private fun projectInlineFragment(variable: String, fragment: InlineFragment, type: NodeFacade, ctx: Context, variableSuffix: String?) =
             projectFragment(fragment.typeCondition.name, type, variable, ctx, variableSuffix, fragment.selectionSet)
 
 
-    private fun projectRelationship(variable: String, field: Field, fieldDefinition: FieldDefinition, parent: NodeFacade, ctx: Translator.Context, variableSuffix: String?): Translator.Cypher {
+    private fun projectRelationship(variable: String, field: Field, fieldDefinition: FieldDefinition, parent: NodeFacade, ctx: Context, variableSuffix: String?): Cypher {
         return when (parent.getDirective(DirectiveConstants.RELATION) != null) {
             true -> projectRelationshipParent(variable, field, fieldDefinition, ctx, variableSuffix)
             else -> projectRichAndRegularRelationship(variable, field, fieldDefinition, parent, ctx)
         }
     }
 
-    private fun projectListComprehension(variable: String, field: Field, fieldDefinition: FieldDefinition, ctx: Translator.Context, expression: Translator.Cypher, variableSuffix: String?): Translator.Cypher {
-        val fieldObjectType = metaProvider.getNodeType(fieldDefinition.name) ?: return Translator.Cypher.EMPTY
+    private fun projectListComprehension(variable: String, field: Field, fieldDefinition: FieldDefinition, ctx: Context, expression: Cypher, variableSuffix: String?): Cypher {
+        val fieldObjectType = metaProvider.getNodeType(fieldDefinition.name) ?: return Cypher.EMPTY
         val fieldType = fieldDefinition.type
         val childVariable = variable + field.name.capitalize()
 
@@ -216,9 +219,9 @@ class ProjectionHandler(
         val fieldProjection = projectFields(childVariable, field, fieldObjectType, ctx, variableSuffix)
 
         val comprehension = "[$childVariable IN ${expression.query} | ${fieldProjection.query}]"
-        val skipLimit = Translator.SkipLimit(childVariable, field.arguments)
+        val skipLimit = SkipLimit(childVariable, field.arguments)
         val slice = skipLimit.slice(fieldType.isList())
-        return Translator.Cypher(comprehension + slice.query, (expression.params + fieldProjection.params + slice.params)) // + where.params
+        return Cypher(comprehension + slice.query, (expression.params + fieldProjection.params + slice.params)) // + where.params
 
     }
 
@@ -226,20 +229,20 @@ class ProjectionHandler(
         val startField = fieldObjectType.getFieldDefinition(relInfo0.startField)!!
         val endField = fieldObjectType.getFieldDefinition(relInfo0.endField)!!
         val startFieldTypeName = startField.type.inner().name()
-        val inverse = startFieldTypeName != parent.name() || startField.type == endField.type && relDirectiveField?.out != relInfo0.out
+        val inverse = startFieldTypeName != parent.name() || startField.type.name() == endField.type.name() && relDirectiveField?.out != relInfo0.out
         return if (inverse) relInfo0.copy(out = relInfo0.out?.not(), startField = relInfo0.endField, endField = relInfo0.startField) else relInfo0
     }
 
-    private fun projectRelationshipParent(variable: String, field: Field, fieldDefinition: FieldDefinition, ctx: Translator.Context, variableSuffix: String?): Translator.Cypher {
-        val fieldObjectType = metaProvider.getNodeType(fieldDefinition.name) ?: return Translator.Cypher.EMPTY
+    private fun projectRelationshipParent(variable: String, field: Field, fieldDefinition: FieldDefinition, ctx: Context, variableSuffix: String?): Cypher {
+        val fieldObjectType = metaProvider.getNodeType(fieldDefinition.type.name()) ?: return Cypher.EMPTY
 
         val fieldProjection = projectFields(variable + (variableSuffix?.capitalize()
                 ?: ""), field, fieldObjectType, ctx, variableSuffix)
 
-        return Translator.Cypher(fieldProjection.query)
+        return Cypher(fieldProjection.query)
     }
 
-    private fun projectRichAndRegularRelationship(variable: String, field: Field, fieldDefinition: FieldDefinition, parent: NodeFacade, ctx: Translator.Context): Translator.Cypher {
+    private fun projectRichAndRegularRelationship(variable: String, field: Field, fieldDefinition: FieldDefinition, parent: NodeFacade, ctx: Context): Cypher {
         val fieldType = fieldDefinition.type
         val fieldTypeName = fieldDefinition.type.name()!!
         val nodeType = metaProvider.getNodeType(fieldTypeName)
@@ -275,9 +278,9 @@ class ProjectionHandler(
         val fieldProjection = projectFields(childVariable, field, nodeType, ctx, variableSuffix)
 
         val comprehension = "[($variable)$inArrow-[$relPattern]-$outArrow($endNodePattern)${where.query} | ${fieldProjection.query}]"
-        val skipLimit = Translator.SkipLimit(childVariable, field.arguments)
+        val skipLimit = SkipLimit(childVariable, field.arguments)
         val slice = skipLimit.slice(fieldType.isList())
-        return Translator.Cypher(comprehension + slice.query, (where.params + fieldProjection.params + slice.params))
+        return Cypher(comprehension + slice.query, (where.params + fieldProjection.params + slice.params))
     }
 
     protected fun relDetails(type: NodeFacade, relDirective: Directive) =
@@ -293,49 +296,49 @@ class ProjectionHandler(
 
     class SkipLimit(variable: String,
             arguments: List<Argument>,
-            private val skip: Translator.CypherArgument? = convertArgument(variable, arguments, "offset"),
-            private val limit: Translator.CypherArgument? = convertArgument(variable, arguments, "first")) {
+            private val skip: CypherArgument? = convertArgument(variable, arguments, "offset"),
+            private val limit: CypherArgument? = convertArgument(variable, arguments, "first")) {
 
-        fun format(): Translator.Cypher {
+        fun format(): Cypher {
             return if (skip != null) {
-                if (limit != null) Translator.Cypher(" SKIP $${skip.propertyName} LIMIT $${limit.propertyName}", mapOf(
+                if (limit != null) Cypher(" SKIP $${skip.propertyName} LIMIT $${limit.propertyName}", mapOf(
                         skip.propertyName to skip.value,
                         limit.propertyName to limit.value)
                 )
-                else Translator.Cypher(" SKIP $${skip.propertyName}", mapOf(skip.propertyName to skip.value))
+                else Cypher(" SKIP $${skip.propertyName}", mapOf(skip.propertyName to skip.value))
             } else {
-                if (limit != null) Translator.Cypher(" LIMIT $${limit.propertyName}", mapOf(limit.propertyName to limit.value))
-                else Translator.Cypher("")
+                if (limit != null) Cypher(" LIMIT $${limit.propertyName}", mapOf(limit.propertyName to limit.value))
+                else Cypher.EMPTY
             }
         }
 
-        fun slice(list: Boolean = false): Translator.Cypher {
+        fun slice(list: Boolean = false): Cypher {
             if (!list) {
                 return if (skip != null) {
-                    Translator.Cypher("[$${skip.propertyName}]", mapOf(skip.propertyName to skip.value))
+                    Cypher("[$${skip.propertyName}]", mapOf(skip.propertyName to skip.value))
                 } else {
-                    Translator.Cypher("[0]")
+                    Cypher("[0]")
                 }
             }
 
             return when (limit) {
                 null -> when {
-                    skip != null -> Translator.Cypher("[$${skip.propertyName}..]", mapOf(skip.propertyName to skip.value))
-                    else -> Translator.Cypher("")
+                    skip != null -> Cypher("[$${skip.propertyName}..]", mapOf(skip.propertyName to skip.value))
+                    else -> Cypher.EMPTY
                 }
                 else -> when {
-                    skip != null -> Translator.Cypher("[$${skip.propertyName}.. $${skip.propertyName} + $${limit.propertyName}]", mapOf(
+                    skip != null -> Cypher("[$${skip.propertyName}.. $${skip.propertyName} + $${limit.propertyName}]", mapOf(
                             skip.propertyName to skip.value,
                             limit.propertyName to limit.value))
-                    else -> Translator.Cypher("[0..$${limit.propertyName}]", mapOf(limit.propertyName to limit.value))
+                    else -> Cypher("[0..$${limit.propertyName}]", mapOf(limit.propertyName to limit.value))
                 }
             }
         }
 
         companion object {
-            private fun convertArgument(variable: String, arguments: List<Argument>, name: String): Translator.CypherArgument? {
+            private fun convertArgument(variable: String, arguments: List<Argument>, name: String): CypherArgument? {
                 val argument = arguments.find { it.name.toLowerCase() == name } ?: return null
-                return Translator.CypherArgument(name, paramName(variable, argument.name, argument), argument.value?.toJavaValue())
+                return CypherArgument(name, paramName(variable, argument.name, argument), argument.value?.toJavaValue())
             }
         }
     }

@@ -1,6 +1,8 @@
 package org.neo4j.graphql.handler
 
 import graphql.language.*
+import graphql.schema.DataFetcher
+import graphql.schema.DataFetchingEnvironment
 import graphql.schema.idl.TypeDefinitionRegistry
 import org.neo4j.graphql.*
 
@@ -9,7 +11,7 @@ abstract class BaseDataFetcher(
         val fieldDefinition: FieldDefinition,
         val typeDefinitionRegistry: TypeDefinitionRegistry,
         val projectionRepository: ProjectionRepository
-) {
+) : DataFetcher<Translator.Cypher> {
 
     val propertyFields: MutableMap<String, (Value<Value<*>>) -> List<Translator.CypherArgument>?> = mutableMapOf()
     val defaultFields: MutableMap<String, Value<Value<*>>> = mutableMapOf()
@@ -22,7 +24,7 @@ abstract class BaseDataFetcher(
             .filterNot { listOf("first", "offset", "orderBy", "_id").contains(it.name) }
             .mapNotNull {
                 if (it.defaultValue != null) {
-                    defaultFields.put(it.name, it.defaultValue)
+                    defaultFields[it.name] = it.defaultValue
                 }
                 fieldsOfType[it.name]
             }
@@ -47,6 +49,10 @@ abstract class BaseDataFetcher(
                 }
                 propertyFields.put(field.name, callback)
             }
+    }
+
+    override fun get(environment: DataFetchingEnvironment?): Translator.Cypher {
+        return toQuery(environment?.getSource() as Field, environment.getContext() as Translator.Context)
     }
 
     fun toQuery(field: Field, ctx: Translator.Context): Translator.Cypher {
@@ -75,12 +81,10 @@ abstract class BaseDataFetcher(
     fun label(includeAll: Boolean = false) = type.label(includeAll)
 
 
-
-
     protected fun properties(variable: String, arguments: List<Argument>): Translator.Cypher {
         val all = preparePredicateArguments(arguments)
         return Translator.Cypher(
-                all.joinToString(" , ", " {", "}") { (argName, propertyName, value) -> "${propertyName.quote()}:\$${paramName(variable, argName, value)}" },
+                all.joinToString(", ", " { ", " }") { (argName, propertyName, value) -> "${propertyName.quote()}: \$${paramName(variable, argName, value)}" },
                 all.map { (argName, _, value) -> paramName(variable, argName, value) to value }.toMap())
     }
 
@@ -97,7 +101,7 @@ abstract class BaseDataFetcher(
         return predicates.values.flatten() + defaults
     }
 
-    companion object{
+    companion object {
         fun getSelectQuery(
                 variable: String,
                 label: String?,
@@ -111,9 +115,9 @@ abstract class BaseDataFetcher(
                     val queryParams = mapOf(paramName to idProperty.value.toJavaValue())
                     if (isNativeId) {
                         if (isRelation) {
-                            Translator.Cypher("($variable:$label) WHERE ID($variable) = $$paramName", queryParams)
+                            Translator.Cypher("()-[$variable:$label]->() WHERE ID($variable) = $$paramName", queryParams)
                         } else {
-                            Translator.Cypher("()-[$variable:$label]-() WHERE ID($variable) = $$paramName", queryParams)
+                            Translator.Cypher("($variable:$label) WHERE ID($variable) = $$paramName", queryParams)
                         }
                     } else {
                         // TODO handle @property aliasing

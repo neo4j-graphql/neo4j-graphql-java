@@ -11,7 +11,7 @@ interface NodeFacade {
     fun interfaces(): List<String>
     fun fieldDefinitions(): List<FieldDefinition>
     fun getDirective(directiveName: String): Directive?
-    fun getFieldDefinition(name: String?): FieldDefinition? = fieldDefinitions().first { it.name == name }
+    fun getFieldDefinition(name: String?): FieldDefinition? = fieldDefinitions().firstOrNull() { it.name == name }
     fun hasRelationship(name: String): Boolean {
         val fieldDefinition = this.getFieldDefinition(name) ?: return false
         return fieldDefinition.type?.isScalar() == false // TODO
@@ -45,7 +45,7 @@ interface NodeFacade {
 
     fun label(includeAll: Boolean = false) = when {
         this.isRealtionType() ->
-            getDirective(DirectiveConstants.RELATION)?.getArgument(DirectiveConstants.RELATION_NAME)?.value?.toString()?.quote()
+            getDirective(DirectiveConstants.RELATION)?.getArgument(DirectiveConstants.RELATION_NAME)?.value?.toJavaValue()?.toString()?.quote()
                     ?: name().quote()
         else -> when {
             includeAll -> (listOf(name()) + interfaces()).map { it.quote() }.joinToString(":")

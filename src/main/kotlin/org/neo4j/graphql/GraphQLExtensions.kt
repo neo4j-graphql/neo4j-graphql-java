@@ -13,6 +13,8 @@ import org.neo4j.graphql.DirectiveConstants.Companion.PROPERTY
 import org.neo4j.graphql.DirectiveConstants.Companion.PROPERTY_NAME
 import org.neo4j.graphql.DirectiveConstants.Companion.RELATION
 import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_DIRECTION
+import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_DIRECTION_BOTH
+import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_DIRECTION_IN
 import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_DIRECTION_OUT
 import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_FROM
 import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_NAME
@@ -100,8 +102,8 @@ fun relDetails(type: NodeFacade,
         directiveResolver: (name: String, defaultValue: String?) -> String?): RelationshipInfo {
     val relType = directiveResolver(RELATION_NAME, "")!!
     val outgoing = when (directiveResolver(RELATION_DIRECTION, null)) {
-        DirectiveConstants.RELATION_DIRECTION_IN -> false
-        DirectiveConstants.RELATION_DIRECTION_BOTH -> null
+        RELATION_DIRECTION_IN -> false
+        RELATION_DIRECTION_BOTH -> null
         RELATION_DIRECTION_OUT -> true
         else -> throw IllegalStateException("Unknown direction ${directiveResolver(RELATION_DIRECTION, null)}")
     }
@@ -207,7 +209,7 @@ fun Directive.argumentString(name: String, schema: GraphQLSchema, defaultValue: 
 fun Directive.argumentString(name: String, typeDefinitionRegistry: TypeDefinitionRegistry, defaultValue: String? = null): String {
     return this.getArgument(name)?.value?.toJavaValue()?.toString()
             ?: typeDefinitionRegistry.getDirectiveDefinition(this.name)
-                .map { getArgument(name)?.value?.toJavaValue()?.toString() }
+                .map { it.inputValueDefinitions.find { it.name == name }?.defaultValue?.toJavaValue()?.toString() }
                 .orElse(defaultValue)
             ?: defaultValue
             ?: throw IllegalStateException("No default value for ${this.name}.$name")

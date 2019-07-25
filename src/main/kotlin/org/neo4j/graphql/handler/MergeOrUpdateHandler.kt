@@ -30,7 +30,7 @@ class MergeOrUpdateHandler(
 
         val op = if (merge) "+" else ""
         val select = getSelectQuery(variable, label(), idArg, idField.isNativeId(), isRealtion)
-        return Translator.Cypher(select.query +
+        return Translator.Cypher((if (merge && !idField.isNativeId()) "MERGE " else "MATCH ") + select.query +
                 " SET $variable $op= " + properties.query +
                 " WITH $variable" +
                 " RETURN ${mapProjection.query} AS $variable",

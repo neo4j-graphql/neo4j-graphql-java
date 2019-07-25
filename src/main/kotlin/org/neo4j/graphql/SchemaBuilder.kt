@@ -8,6 +8,7 @@ import graphql.schema.idl.RuntimeWiring
 import graphql.schema.idl.SchemaGenerator
 import graphql.schema.idl.SchemaParser
 import graphql.schema.idl.TypeDefinitionRegistry
+import org.neo4j.graphql.handler.BaseDataFetcher
 import org.neo4j.graphql.handler.ProjectionRepository
 
 object SchemaBuilder {
@@ -15,11 +16,10 @@ object SchemaBuilder {
     fun buildSchema(sdl: String, ctx: Translator.Context = Translator.Context()): GraphQLSchema {
         val schemaParser = SchemaParser()
         val baseTypeDefinitionRegistry = schemaParser.parse(sdl)
-        val augmentedTypeDefinitionRegistry = augmentSchema(baseTypeDefinitionRegistry, schemaParser, ctx)
-
         val builder = RuntimeWiring.newRuntimeWiring()
             .scalar(ObjectScalar())
-            .type("Query") { it.dataFetcher("hello") { env -> "Hello ${env.getArgument<Any>("what")}!" } }
+        val augmentedTypeDefinitionRegistry = augmentSchema(baseTypeDefinitionRegistry, schemaParser, ctx, builder)
+
         baseTypeDefinitionRegistry
             .getTypes(InterfaceTypeDefinition::class.java)
             .forEach { typeDefinition -> builder.type(typeDefinition.name) { it.typeResolver { null } } }
@@ -34,7 +34,8 @@ object SchemaBuilder {
     private fun augmentSchema(
             typeDefinitionRegistry: TypeDefinitionRegistry,
             schemaParser: SchemaParser,
-            ctx: Translator.Context): TypeDefinitionRegistry {
+            ctx: Translator.Context,
+            builder: RuntimeWiring.Builder): TypeDefinitionRegistry {
         val directivesSdl = javaClass.getResource("/neo4j_directives.graphql").readText()
         typeDefinitionRegistry.merge(schemaParser.parse(directivesSdl))
 
@@ -68,47 +69,11 @@ object SchemaBuilder {
             .toMap()
 
 
-        val queryDefinition = operations.getOrElse("query") {
-            typeDefinitionRegistry.getType("Query", ObjectTypeDefinition::class.java).orElseGet {
-                ObjectTypeDefinition("Query").also { typeDefinitionRegistry.add(it) }
-            }
-        }
-        augmentations
-            .mapNotNull { it.query }
-            .filter { queryDefinition.fieldDefinitions.none { fd -> it.fieldDefinition.name == fd.name } }
-            .distinctBy { it.fieldDefinition.name }
-            .let { queries ->
-                if (queries.isNotEmpty()) {
-                    typeDefinitionRegistry.remove(queryDefinition)
-                    typeDefinitionRegistry.add(queryDefinition.transform { qdb ->
-                        queries.forEach { query ->
-                            qdb.fieldDefinition(query.fieldDefinition)
-                        }
-                    })
-                }
-            }
+        val queries = augmentations.mapNotNull { it.query }
+        val queryDefinition = mergeOperations("Query", operations, typeDefinitionRegistry, queries, builder)
 
-        val mutationDefinition = operations.getOrElse("mutation") {
-            typeDefinitionRegistry.getType("Mutation", ObjectTypeDefinition::class.java).orElseGet {
-                ObjectTypeDefinition("Mutation").also { typeDefinitionRegistry.add(it) }
-            }
-        }
-
-        augmentations
-            .flatMap { listOf(it.create, it.update, it.delete, it.merge) }
-            .filterNotNull()
-            .filter { mutationDefinition.fieldDefinitions.none { fd -> it.fieldDefinition.name == fd.name } }
-            .distinctBy { it.fieldDefinition.name }
-            .let { queries ->
-                if (queries.isNotEmpty()) {
-                    typeDefinitionRegistry.remove(mutationDefinition)
-                    typeDefinitionRegistry.add(mutationDefinition.transform { qdb ->
-                        queries.forEach { query ->
-                            qdb.fieldDefinition(query.fieldDefinition)
-                        }
-                    })
-                }
-            }
+        val mutations = augmentations.flatMap { listOf(it.create, it.update, it.delete, it.merge) }
+        val mutationDefinition = mergeOperations("Mutation", operations, typeDefinitionRegistry, mutations, builder)
 
         val newSchemaDef = schemaDefinition.transform {
             it.operationTypeDefinition(OperationTypeDefinition("query", TypeName(queryDefinition.name)))
@@ -119,6 +84,39 @@ object SchemaBuilder {
         typeDefinitionRegistry.add(newSchemaDef)
 
         return typeDefinitionRegistry
+    }
+
+    /**
+     * add the given operations to the corresponding ObjectTypeDefinition
+     */
+    private fun mergeOperations(
+            name: String,
+            operations: Map<String, ObjectTypeDefinition>,
+            typeDefinitionRegistry: TypeDefinitionRegistry,
+            dataFetcher: List<BaseDataFetcher?>,
+            builder: RuntimeWiring.Builder)
+            : ObjectTypeDefinition {
+        val objectTypeDefinition = operations.getOrElse(name.toLowerCase()) {
+            typeDefinitionRegistry.getType(name, ObjectTypeDefinition::class.java).orElseGet {
+                ObjectTypeDefinition(name).also { typeDefinitionRegistry.add(it) }
+            }
+        }
+        dataFetcher
+            .filterNotNull()
+            .filter { objectTypeDefinition.fieldDefinitions.none { fd -> it.fieldDefinition.name == fd.name } }
+            .distinctBy { it.fieldDefinition.name }
+            .let { queries ->
+                if (queries.isNotEmpty()) {
+                    typeDefinitionRegistry.remove(objectTypeDefinition)
+                    typeDefinitionRegistry.add(objectTypeDefinition.transform { qdb ->
+                        queries.forEach { df ->
+                            qdb.fieldDefinition(df.fieldDefinition)
+                            builder.type(name) { it.dataFetcher(df.fieldDefinition.name, df) }
+                        }
+                    })
+                }
+            }
+        return objectTypeDefinition
     }
 
     private fun createRelationshipMutations(
