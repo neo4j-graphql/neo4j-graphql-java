@@ -3,18 +3,18 @@ package org.neo4j.graphql.handler
 import graphql.language.Field
 import graphql.language.FieldDefinition
 import graphql.schema.idl.TypeDefinitionRegistry
-import org.neo4j.graphql.NodeDefinitionFacade
+import org.neo4j.graphql.NodeFacade
 import org.neo4j.graphql.Translator
 import org.neo4j.graphql.isNativeId
 
 class MergeOrUpdateHandler(
-        type: NodeDefinitionFacade,
+        type: NodeFacade,
         val merge: Boolean,
         val idField: FieldDefinition,
         fieldDefinition: FieldDefinition,
         typeDefinitionRegistry: TypeDefinitionRegistry,
         projectionRepository: ProjectionRepository,
-        val isRealtion: Boolean = type.isRealtionType()
+        val isRealtion: Boolean = type.isRelationType()
 ) : BaseDataFetcher(type, fieldDefinition, typeDefinitionRegistry, projectionRepository) {
 
     init {
@@ -29,7 +29,7 @@ class MergeOrUpdateHandler(
         val mapProjection = projectionProvider.invoke()
 
         val op = if (merge) "+" else ""
-        val select = getSelectQuery(variable, label(), idArg, idField.isNativeId(), isRealtion)
+        val select = getSelectQuery(variable, label(), idArg, idField, isRealtion)
         return Translator.Cypher((if (merge && !idField.isNativeId()) "MERGE " else "MATCH ") + select.query +
                 " SET $variable $op= " + properties.query +
                 " WITH $variable" +

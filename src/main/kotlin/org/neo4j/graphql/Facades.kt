@@ -1,23 +1,22 @@
 package org.neo4j.graphql
 
-import graphql.language.*
-import graphql.language.TypeDefinition
-import graphql.schema.GraphQLFieldDefinition
-import graphql.schema.GraphQLInterfaceType
-import graphql.schema.GraphQLObjectType
+import graphql.language.Directive
+import graphql.language.FieldDefinition
+import graphql.language.InterfaceTypeDefinition
+import graphql.language.ObjectTypeDefinition
 
 interface NodeFacade {
     fun name(): String
     fun interfaces(): List<String>
     fun fieldDefinitions(): List<FieldDefinition>
     fun getDirective(directiveName: String): Directive?
-    fun getFieldDefinition(name: String?): FieldDefinition? = fieldDefinitions().firstOrNull() { it.name == name }
-    fun hasRelationship(name: String): Boolean {
+    fun getFieldDefinition(name: String?): FieldDefinition? = fieldDefinitions().firstOrNull { it.name == name }
+    fun hasRelationship(name: String, metaProvider: MetaProvider): Boolean {
         val fieldDefinition = this.getFieldDefinition(name) ?: return false
-        return fieldDefinition.type?.isScalar() == false // TODO
+        return metaProvider.getNodeType(fieldDefinition.type.name()) != null
     }
 
-    fun isRealtionType(): Boolean = this.getDirective(DirectiveConstants.RELATION) != null
+    fun isRelationType(): Boolean = this.getDirective(DirectiveConstants.RELATION) != null
 
     fun relationshipFor(name: String, metaProvider: MetaProvider): RelationshipInfo? {
         val field = this.getFieldDefinition(name)
@@ -44,11 +43,11 @@ interface NodeFacade {
     }
 
     fun label(includeAll: Boolean = false) = when {
-        this.isRealtionType() ->
+        this.isRelationType() ->
             getDirective(DirectiveConstants.RELATION)?.getArgument(DirectiveConstants.RELATION_NAME)?.value?.toJavaValue()?.toString()?.quote()
                     ?: name().quote()
         else -> when {
-            includeAll -> (listOf(name()) + interfaces()).map { it.quote() }.joinToString(":")
+            includeAll -> (listOf(name()) + interfaces()).joinToString(":") { it.quote() }
             else -> name().quote()
         }
     }
@@ -65,52 +64,16 @@ interface NodeFacade {
     }
 }
 
-
-interface NodeGraphQlFacade : NodeFacade {
-    fun getValidTypeLabels(metaProvider: MetaProvider): List<String>
-    fun getGraphQLFieldDefinition(name: String?): GraphQLFieldDefinition?
-    override fun hasRelationship(name: String): Boolean = this.getGraphQLFieldDefinition(name)?.isRelationship()
-            ?: false
-}
-
-interface NodeDefinitionFacade : NodeFacade {
-    fun getType(): TypeDefinition<*>
-}
-
-data class ObjectNodeFacade(private val delegate: GraphQLObjectType) : NodeGraphQlFacade {
-    override fun getGraphQLFieldDefinition(name: String?): GraphQLFieldDefinition? = delegate.getFieldDefinition(name)
-
-    override fun name(): String = this.delegate.name
-    override fun getValidTypeLabels(metaProvider: MetaProvider): List<String> = listOf(delegate.label())
-    override fun fieldDefinitions(): List<FieldDefinition> = this.delegate.fieldDefinitions.map { it.definition }
-    override fun getDirective(directiveName: String): Directive? = this.delegate.definition.getDirective(directiveName)
-    override fun getFieldDefinition(name: String?): FieldDefinition? = this.delegate.getFieldDefinition(name)?.definition
-    override fun interfaces(): List<String> = delegate.interfaces.mapNotNull { it.name }
-}
-
-data class ObjectDefinitionNodeFacade(private val delegate: ObjectTypeDefinition) : NodeDefinitionFacade {
+data class ObjectDefinitionNodeFacade(private val delegate: ObjectTypeDefinition) : NodeFacade {
     override fun name(): String = this.delegate.name
     override fun fieldDefinitions(): List<FieldDefinition> = this.delegate.fieldDefinitions
     override fun getDirective(directiveName: String): Directive? = this.delegate.getDirective(directiveName)
-    override fun getType() = this.delegate
-    override fun interfaces(): List<String> = delegate.implements.mapNotNull { name() }
+    override fun interfaces(): List<String> = delegate.implements.mapNotNull { it.name() }
 }
 
-data class InterfaceNodeFacade(private val delegate: GraphQLInterfaceType) : NodeGraphQlFacade {
-    override fun getGraphQLFieldDefinition(name: String?): GraphQLFieldDefinition? = delegate.getFieldDefinition(name)
-
-    override fun name(): String = this.delegate.name
-    override fun getValidTypeLabels(metaProvider: MetaProvider): List<String> = metaProvider.getValidTypeLabels(this)
-    override fun fieldDefinitions(): List<FieldDefinition> = this.delegate.fieldDefinitions.map { it.definition }
-    override fun getDirective(directiveName: String): Directive? = this.delegate.definition.getDirective(directiveName)
-    override fun getFieldDefinition(name: String?): FieldDefinition? = this.delegate.getFieldDefinition(name).definition
-    override fun interfaces(): List<String> = emptyList()
-}
-
-data class InterfaceDefinitionNodeFacade(private val delegate: InterfaceTypeDefinition) : NodeDefinitionFacade {
+data class InterfaceDefinitionNodeFacade(private val delegate: InterfaceTypeDefinition) : NodeFacade {
     override fun name(): String = this.delegate.name
     override fun fieldDefinitions(): List<FieldDefinition> = this.delegate.fieldDefinitions
     override fun getDirective(directiveName: String): Directive? = this.delegate.getDirective(directiveName)
-    override fun getType() = this.delegate
     override fun interfaces(): List<String> = emptyList()
 }

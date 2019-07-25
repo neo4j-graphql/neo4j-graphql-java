@@ -1,6 +1,5 @@
 package org.neo4j.graphql
 
-import graphql.Scalars
 import graphql.language.*
 import graphql.language.TypeDefinition
 import graphql.schema.*
@@ -44,10 +43,15 @@ fun Type<Type<*>>.render(nonNull: Boolean = true): String = when (this) {
     else -> throw IllegalStateException("Can't render $this")
 }
 
-fun GraphQLType.isList() = this is GraphQLList || (this is GraphQLNonNull && this.wrappedType is GraphQLList)
+fun Type<Type<*>>.optional(): Type<*> = when (this) {
+    is ListType -> this
+    is NonNullType -> this.type
+    is TypeName -> this
+    else -> throw IllegalStateException("Can't nonNull $this")
+}
+
 fun Type<*>.isList() = this is ListType || (this is NonNullType && this.type is ListType)
 
-fun GraphQLType.isScalar() = this.inner().let { it is GraphQLScalarType || it.name.startsWith("_Neo4j") }
 fun GraphQLType.isRelationship() = this.inner().let { it is GraphQLObjectType }
 fun GraphQLType.isRelationshipType() = this.inner().let { it is GraphQLObjectType && it.getDirective(RELATION) != null }
 fun GraphQLType.label(includeAll: Boolean = false) = when {
@@ -59,44 +63,14 @@ fun GraphQLType.label(includeAll: Boolean = false) = when {
 }
 
 fun GraphQLObjectType.getRelationshipName() = this.getDirective(RELATION)?.getArgument(RELATION_NAME)?.value?.toString()
-fun ObjectTypeDefinition.relationship(defaultValueProvider: (directiveName: String, arg: String) -> String?): RelationshipInfo? {
-    val relDirective = this.getDirective(RELATION) ?: return null
-    val directiveResolver: (name: String, defaultValue: String?) -> String = { param, defaultValue ->
-        relDirective.getArgument(param)?.value?.toJavaValue()?.toString()
-                ?: defaultValueProvider(relDirective.name, param)
-                ?: defaultValue
-                ?: throw IllegalStateException("No default value for ${relDirective.name}.$param")
-    }
-    val relType = directiveResolver(RELATION_NAME, "")
-    val startField = directiveResolver(RELATION_FROM, null)
-    val endField = directiveResolver(RELATION_TO, null)
-    return RelationshipInfo(ObjectDefinitionNodeFacade(this), relType, null, startField, endField)
-}
 
-fun GraphQLObjectType.relationship(schema: GraphQLSchema): RelationshipInfo? {
-    return this.definition.relationship { directiveName, arg -> schema.getDirective(directiveName)?.getArgument(arg)?.defaultValue?.toString() }
-}
-
-fun GraphQLType.getNodeType(): NodeGraphQlFacade? {
-    return when (this) {
-        is GraphQLObjectType -> ObjectNodeFacade(this)
-        is GraphQLInterfaceType -> InterfaceNodeFacade(this)
-        else -> null
-    }
-}
-
-fun GraphQLSchema.getNodeType(name: String?): NodeGraphQlFacade? = this.getType(name)?.getNodeType()
-
-fun TypeDefinition<*>.getNodeType(): NodeDefinitionFacade? {
+fun TypeDefinition<*>.getNodeType(): NodeFacade? {
     return when (this) {
         is ObjectTypeDefinition -> ObjectDefinitionNodeFacade(this)
         is InterfaceTypeDefinition -> InterfaceDefinitionNodeFacade(this)
         else -> null
     }
 }
-
-fun TypeDefinitionRegistry.getNodeType(name: String?): NodeFacade? = this.getType(name).orElse(null)?.getNodeType()
-
 
 fun relDetails(type: NodeFacade,
         directiveResolver: (name: String, defaultValue: String?) -> String?): RelationshipInfo {
@@ -170,23 +144,10 @@ fun Field.propertyName(fieldDefinition: GraphQLFieldDefinition) = (fieldDefiniti
 fun GraphQLFieldDefinition.propertyDirectiveName() =
         definition.getDirective(PROPERTY)?.getArgument(PROPERTY_NAME)?.value?.toJavaValue()?.toString()
 
-fun GraphQLFieldDefinition.isNativeId() = definition.isNativeId()
-
 fun FieldDefinition.dynamicPrefix(metaProvider: MetaProvider): String? = metaProvider.getDirectiveArgument(getDirective(DYNAMIC), DYNAMIC_PREFIX, null)
-
-@Deprecated(message = "cleanup")
-fun GraphQLFieldDefinition.dynamicPrefix(metaProvider: MetaProvider): String? = metaProvider.getDirectiveArgument(definition.getDirective(DYNAMIC), DYNAMIC_PREFIX, null)
 
 fun FieldDefinition.cypherDirective(): Translator.Cypher? =
         this.getDirective(CYPHER)?.let {
-            @Suppress("UNCHECKED_CAST")
-            Translator.Cypher(it.getArgument(CYPHER_STATEMENT).value.toJavaValue().toString(),
-                    it.getArgument("params")?.value?.toJavaValue() as Map<String, Any?>? ?: emptyMap())
-        }
-
-@Deprecated(message = "cleanup")
-fun GraphQLFieldDefinition.cypherDirective(): Translator.Cypher? =
-        this.definition.getDirective(CYPHER)?.let {
             @Suppress("UNCHECKED_CAST")
             Translator.Cypher(it.getArgument(CYPHER_STATEMENT).value.toJavaValue().toString(),
                     it.getArgument("params")?.value?.toJavaValue() as Map<String, Any?>? ?: emptyMap())
@@ -197,14 +158,6 @@ fun String.quote() = if (isJavaIdentifier()) this else "`$this`"
 fun String.isJavaIdentifier() =
         this[0].isJavaIdentifierStart() &&
                 this.substring(1).all { it.isJavaIdentifierPart() }
-
-@Deprecated(message = "cleanup")
-fun Directive.argumentString(name: String, schema: GraphQLSchema, defaultValue: String? = null): String {
-    return this.getArgument(name)?.value?.toJavaValue()?.toString()
-            ?: schema.getDirective(this.name).getArgument(name)?.defaultValue?.toString()
-            ?: defaultValue
-            ?: throw IllegalStateException("No default value for ${this.name}.$name")
-}
 
 fun Directive.argumentString(name: String, typeDefinitionRegistry: TypeDefinitionRegistry, defaultValue: String? = null): String {
     return this.getArgument(name)?.value?.toJavaValue()?.toString()
@@ -253,12 +206,5 @@ fun FieldDefinition.propertyDirectiveName() =
 
 
 fun FieldDefinition.isList(): Boolean = this.type is ListType
-fun GraphQLFieldDefinition.isID(): Boolean = this.type.inner() == Scalars.GraphQLID
 fun ObjectTypeDefinition.getFieldByType(typeName: String): FieldDefinition? = this.fieldDefinitions
     .firstOrNull { it.type.inner().name() == typeName }
-
-fun ObjectTypeDefinition.isRealtionType(): Boolean = this.getDirective(RELATION) != null
-
-fun GraphQLDirective.getRelationshipType(): String = this.getArgument(RELATION_NAME).value.toString()
-fun GraphQLDirective.getRelationshipDirection(): String = this.getArgument(RELATION_DIRECTION)?.value?.toString()
-        ?: RELATION_DIRECTION_OUT

@@ -13,9 +13,9 @@ interface Predicate {
     fun toExpression(variable: String, metaProvider: MetaProvider): Translator.Cypher
 
     companion object {
-        fun resolvePredicate(name: String, value: Any?, type: NodeFacade): Predicate {
+        fun resolvePredicate(name: String, value: Any?, type: NodeFacade, metaProvider: MetaProvider): Predicate {
             val (fieldName, op) = Operators.resolve(name, value)
-            return if (type.hasRelationship(fieldName)) {
+            return if (type.hasRelationship(fieldName, metaProvider)) {
                 when (value) {
                     is Map<*, *> -> RelationPredicate(fieldName, op, value, type)
                     is IsNullOperator -> IsNullPredicate(fieldName, op, type)
@@ -41,15 +41,15 @@ interface Predicate {
     }
 }
 
-fun toExpression(name: String, value: Any?, type: NodeFacade): Predicate =
+fun toExpression(name: String, value: Any?, type: NodeFacade, metaProvider: MetaProvider): Predicate =
         if (name == "AND" || name == "OR")
             when (value) {
-                is Iterable<*> -> CompoundPredicate(value.map { toExpression("AND", it, type) }, name)
-                is Map<*, *> -> CompoundPredicate(value.map { (k, v) -> toExpression(k.toString(), v, type) }, name)
+                is Iterable<*> -> CompoundPredicate(value.map { toExpression("AND", it, type, metaProvider) }, name)
+                is Map<*, *> -> CompoundPredicate(value.map { (k, v) -> toExpression(k.toString(), v, type, metaProvider) }, name)
                 else -> throw IllegalArgumentException("Unexpected value for filter: $value")
             }
         else {
-            resolvePredicate(name, value, type)
+            resolvePredicate(name, value, type, metaProvider)
         }
 
 data class CompoundPredicate(val parts: List<Predicate>, val op: String = "AND") : Predicate {
@@ -100,7 +100,7 @@ data class RelationPredicate(val fieldName: String, val op: Operators, val value
         val cond = other + "_Cond"
         val relNodeType = metaProvider.getNodeType(rel.typeName)
                 ?: throw IllegalArgumentException("${rel.typeName} not found")
-        val (pred, params) = CompoundPredicate(value.map { resolvePredicate(it.key.toString(), it.value, relNodeType) }).toExpression(other, metaProvider)
+        val (pred, params) = CompoundPredicate(value.map { resolvePredicate(it.key.toString(), it.value, relNodeType, metaProvider) }).toExpression(other, metaProvider)
         return Translator.Cypher("$not $prefix($cond IN [($variable)$left-[:${rel.relType.quote()}]-$right($other) | $pred] WHERE $cond)", params)
     }
 }

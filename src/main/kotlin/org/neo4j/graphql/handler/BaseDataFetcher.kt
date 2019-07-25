@@ -7,7 +7,7 @@ import graphql.schema.idl.TypeDefinitionRegistry
 import org.neo4j.graphql.*
 
 abstract class BaseDataFetcher(
-        val type: NodeDefinitionFacade,
+        val type: NodeFacade,
         val fieldDefinition: FieldDefinition,
         val typeDefinitionRegistry: TypeDefinitionRegistry,
         val projectionRepository: ProjectionRepository
@@ -83,6 +83,9 @@ abstract class BaseDataFetcher(
 
     protected fun properties(variable: String, arguments: List<Argument>): Translator.Cypher {
         val all = preparePredicateArguments(arguments)
+        if (all.isEmpty()) {
+            return Translator.Cypher.EMPTY
+        }
         return Translator.Cypher(
                 all.joinToString(", ", " { ", " }") { (argName, propertyName, value) -> "${propertyName.quote()}: \$${paramName(variable, argName, value)}" },
                 all.map { (argName, _, value) -> paramName(variable, argName, value) to value }.toMap())
@@ -106,14 +109,14 @@ abstract class BaseDataFetcher(
                 variable: String,
                 label: String?,
                 idProperty: Argument?,
-                isNativeId: Boolean,
+                idField: FieldDefinition,
                 isRelation: Boolean,
                 paramName: String? = idProperty?.let { paramName(variable, idProperty.name, idProperty.value) }
         ): Translator.Cypher {
             return when {
                 idProperty != null && paramName != null -> {
                     val queryParams = mapOf(paramName to idProperty.value.toJavaValue())
-                    if (isNativeId) {
+                    if (idField.isNativeId()) {
                         if (isRelation) {
                             Translator.Cypher("()-[$variable:$label]->() WHERE ID($variable) = $$paramName", queryParams)
                         } else {
@@ -121,11 +124,54 @@ abstract class BaseDataFetcher(
                         }
                     } else {
                         // TODO handle @property aliasing
-                        Translator.Cypher("($variable:$label { ${idProperty.name.quote()}: $$paramName })", queryParams)
+                        if (idProperty.value is ArrayValue) {
+                            Translator.Cypher("($variable:$label) WHERE  $variable.${idField.name.quote()} IN $$paramName", queryParams)
+                        } else {
+                            Translator.Cypher("($variable:$label { ${idField.name.quote()}: $$paramName })", queryParams)
+                        }
                     }
                 }
                 else -> Translator.Cypher.EMPTY
             }
         }
     }
+
+    fun cypherDirective(variable: String, fieldDefinition: FieldDefinition, field: Field, cypherDirective: Translator.Cypher, additionalArgs: List<Translator.CypherArgument>): Translator.Cypher {
+        val suffix = if (fieldDefinition.type.isList()) "Many" else "Single"
+        val (query, args) = cypherDirectiveQuery(variable, fieldDefinition, field, cypherDirective, additionalArgs)
+        return Translator.Cypher("apoc.cypher.runFirstColumn$suffix($query)", args)
+    }
+
+    fun cypherDirectiveQuery(variable: String, fieldDefinition: FieldDefinition, field: Field, cypherDirective: Translator.Cypher, additionalArgs: List<Translator.CypherArgument>): Translator.Cypher {
+        val args = additionalArgs + prepareFieldArguments(fieldDefinition, field.arguments)
+        val argParams = args.map { '$' + it.name + " AS " + it.name }.joinNonEmpty(", ")
+        val query = (if (argParams.isEmpty()) "" else "WITH $argParams ") + cypherDirective.escapedQuery()
+        val argString = (args.map { it.name + ':' + if (it.name == "this") it.value else ('$' + paramName(variable, it.name, it.value)) }).joinToString(", ", "{ ", " }")
+        return Translator.Cypher("'$query', $argString", args.filter { it.name != "this" }.associate { paramName(variable, it.name, it.value) to it.value })
+    }
+
+    fun prepareFieldArguments(field: FieldDefinition, arguments: List<Argument>): List<Translator.CypherArgument> {
+        // if (arguments.isEmpty()) return emptyList()
+        val predicates = arguments.map { it.name to Translator.CypherArgument(it.name, it.name, it.value.toJavaValue()) }.toMap()
+        val defaults = field.inputValueDefinitions.filter { it.defaultValue != null && !predicates.containsKey(it.name) }
+            .map { Translator.CypherArgument(it.name, it.name, it.defaultValue.toJavaValue()) }
+        return predicates.values + defaults
+    }
+
+    fun orderBy(variable: String, args: MutableList<Argument>): String {
+        val arg = args.find { it.name == "orderBy" }
+        val values = arg?.value?.let { it ->
+            when (it) {
+                is ArrayValue -> it.values.map { it.toJavaValue().toString() }
+                is EnumValue -> listOf(it.name)
+                is StringValue -> listOf(it.value)
+                else -> null
+            }
+        }
+        return if (values == null) ""
+        else " ORDER BY " + values
+            .map { it.split("_") }
+            .joinToString(", ") { "$variable.${it[0]} ${it[1].toUpperCase()}" }
+    }
+
 }

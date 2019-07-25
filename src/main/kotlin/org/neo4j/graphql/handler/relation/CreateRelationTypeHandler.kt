@@ -9,7 +9,7 @@ import org.neo4j.graphql.Translator
 import org.neo4j.graphql.handler.ProjectionRepository
 import org.neo4j.graphql.quote
 
-class CreateRelationHandler(
+class CreateRelationTypeHandler(
         type: NodeFacade,
         relation: RelationshipInfo,
         startId: RelationshipInfo.RelatedField,
@@ -19,13 +19,13 @@ class CreateRelationHandler(
         projectionRepository: ProjectionRepository)
     : BaseRelationHandler(type, relation, startId, endId, fieldDefinition, typeDefinitionRegistry, projectionRepository) {
 
+
     override fun generateCypher(
             variable: String,
             field: Field,
             projectionProvider: () -> Translator.Cypher,
             ctx: Translator.Context
     ): Translator.Cypher {
-
         val properties = properties(variable, field.arguments)
         val mapProjection = projectionProvider.invoke()
 
@@ -35,8 +35,8 @@ class CreateRelationHandler(
 
         return Translator.Cypher("MATCH ${startSelect.query}" +
                 " MATCH ${endSelect.query}" +
-                " MERGE (${relation.startField})-[:${relation.relType.quote()}${properties.query}]->(${relation.endField})" +
-                " WITH DISTINCT ${relation.startField} AS $variable" +
+                " CREATE (${relation.startField})-[$variable:${relation.relType.quote()}${properties.query}]->(${relation.endField})" +
+                " WITH $variable" +
                 " RETURN ${mapProjection.query} AS $variable",
                 startSelect.params + endSelect.params + properties.params,
                 false)

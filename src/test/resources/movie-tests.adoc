@@ -93,7 +93,6 @@ type Query {
   Movie(_id: String, movieId: ID, title: String, year: Int, plot: String, poster: String, imdbRating: Float, first: Int, offset: Int, orderBy: _MovieOrdering): [Movie]
   MoviesByYear(year: Int): [Movie]
   MovieById(movieId: ID!): Movie
-  MovieByNativeId(nativeId: Int!): Movie
   MovieBy_Id(_id: String!): Movie
   GenresBySubstring(substring: String): [Genre] @cypher(statement: "MATCH (g:Genre) WHERE toLower(g.name) CONTAINS toLower($substring) RETURN g")
   Books: [Book]
@@ -114,7 +113,6 @@ type Mutation {
 ----
 query {
   Movie {
-    nativeId
     movieId
   }
 }
@@ -130,7 +128,7 @@ query {
 [source,cypher]
 ----
 MATCH (movie:Movie)
-RETURN movie { nativeId:ID(movie), .movieId } AS movie
+RETURN movie { .movieId } AS movie
 ----
 
 === Query Single Object
@@ -159,32 +157,6 @@ RETURN movie { nativeId:ID(movie), .movieId } AS movie
 MATCH (movieById:Movie)
 WHERE movieById.movieId = $movieByIdMovieId
 RETURN movieById { .title } AS movieById
-----
-
-=== Query Single Object by native Id
-
-.Query
-[source,graphql]
-----
-{
-  MovieByNativeId(nativeId: 1) {
-    title
-  }
-}
-----
-
-.Params
-[source,json]
-----
-{"movieByNativeIdNativeId":1}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (movieByNativeId:Movie)
-WHERE ID(movieByNativeId) = $movieByNativeIdNativeId
-RETURN movieByNativeId { .title } AS movieByNativeId
 ----
 
 === Basic Query with Parameter
@@ -651,7 +623,7 @@ mutation {
 [source,cypher]
 ----
 MERGE (actor:Actor { userId: $actorUserId })
-SET actor += { userId: $actorUserId, name: $actorName }
+SET actor += { name: $actorName }
 WITH actor
 RETURN actor { .name } AS actor
 ----
@@ -672,8 +644,8 @@ mutation {
 [source,json]
 ----
 {
-  "movieId": 1, 
-  "genres": [
+  "fromMovieId": 1,
+  "toGenres": [
     "Action", 
     "Fantasy"
   ]
@@ -683,12 +655,11 @@ mutation {
 .Cypher
 [source,cypher]
 ----
-MATCH (from:Movie {movieId:$movieId})
-MATCH (to:Genre)
-WHERE to.name IN $genres
-MERGE (from)-[r:IN_GENRE]->(to)
-WITH DISTINCT from
-RETURN from { .title } AS movie
+MATCH (from:Movie { movieId: $fromMovieId })
+MATCH (to:Genre) WHERE to.name IN $toGenres
+MERGE (from)-[:IN_GENRE]->(to)
+WITH DISTINCT from AS add
+RETURN add { .title } AS add
 ----
 
 === Should auto generate `delete` relationship mutations for arrays
@@ -707,8 +678,8 @@ mutation {
 [source,json]
 ----
 {
-  "movieId": 1, 
-  "genres": [
+  "fromMovieId": 1,
+  "toGenres": [
     "Action", 
     "Fantasy"
   ]
@@ -718,13 +689,12 @@ mutation {
 .Cypher
 [source,cypher]
 ----
-MATCH (from:Movie {movieId:$movieId})
-MATCH (to:Genre)
-WHERE to.name IN $genres
+MATCH (from:Movie { movieId: $fromMovieId })
+MATCH (to:Genre) WHERE to.name IN $toGenres
 MATCH (from)-[r:IN_GENRE]->(to)
 DELETE r
-WITH DISTINCT from
-RETURN from { .title } AS movie
+WITH DISTINCT from AS del
+RETURN del { .title } AS del
 ----
 
 === Should auto generate `add` relationship mutations
@@ -743,20 +713,19 @@ mutation {
 [source,json]
 ----
 {
-  "movieId": 1, 
-  "publishedBy": "Company"
+  "fromMovieId": 1,
+  "toPublishedBy": "Company"
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (from:Movie {movieId:$movieId})
-MATCH (to:Publisher)
-WHERE to.name = $publishedBy
-MERGE (from)-[r:PUBLISHED_BY]->(to)
-WITH DISTINCT from
-RETURN from { .title } AS movie
+MATCH (from:Movie { movieId: $fromMovieId })
+MATCH (to:Publisher { name: $toPublishedBy })
+MERGE (from)-[:PUBLISHED_BY]->(to)
+WITH DISTINCT from AS add
+RETURN add { .title } AS add
 ----
 
 === Should auto generate `delete` relationship mutations
@@ -775,21 +744,20 @@ mutation {
 [source,json]
 ----
 {
-  "movieId": 1, 
-  "publishedBy": "Company"
+  "fromMovieId": 1,
+  "toPublishedBy": "Company"
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (from:Movie {movieId:$movieId})
-MATCH (to:Publisher)
-WHERE to.name = $publishedBy
+MATCH (from:Movie { movieId: $fromMovieId })
+MATCH (to:Publisher { name: $toPublishedBy })
 MATCH (from)-[r:PUBLISHED_BY]->(to)
 DELETE r
-WITH DISTINCT from
-RETURN from { .title } AS movie
+WITH DISTINCT from AS del
+RETURN del { .title } AS del
 ----
 
 === Should auto generate `add` recursive relationship mutations for arrays
@@ -808,8 +776,8 @@ mutation {
 [source,json]
 ----
 {
-  "userId": 1, 
-  "knows": [
+  "fromUserId": 1,
+  "toKnows": [
     10, 
     23
   ]
@@ -819,12 +787,11 @@ mutation {
 .Cypher
 [source,cypher]
 ----
-MATCH (from:User {userId:$userId})
-MATCH (to:User)
-WHERE to.userId IN $knows
-MERGE (from)-[r:KNOWS]->(to)
-WITH DISTINCT from
-RETURN from { .name } AS user
+MATCH (from:User { userId: $fromUserId })
+MATCH (to:User) WHERE to.userId IN $toKnows
+MERGE (from)-[:KNOWS]->(to)
+WITH DISTINCT from AS add
+RETURN add { .name } AS add
 ----
 
 == Order By
@@ -890,7 +857,7 @@ ORDER BY movie.year DESC LIMIT $movieFirst
 .Query
 [source,graphql]
 ----
-{ rated(id:1){
+{ rated(_id:1){
     rating
  }
 }
@@ -899,14 +866,14 @@ ORDER BY movie.year DESC LIMIT $movieFirst
 .Params
 [source,json]
 ----
-{ "ratedId": 1}
+{ "rated_id": 1}
 ----
 
 .Cypher
 [source,cypher]
 ----
 MATCH ()-[rated:RATED]->()
-WHERE ID(rated) = $ratedId
+WHERE ID(rated) = $rated_id
 RETURN rated { .rating } AS rated
 ----
 
@@ -916,8 +883,8 @@ RETURN rated { .rating } AS rated
 [source,graphql]
 ----
 mutation {
-  createRated(from_userId: "1", to_nativeId: 2, rating: 5) {
-    id
+  createRated(from_userId: "1", to_movieId: "2", rating: 5) {
+    _id
  }
 }
 ----
@@ -927,7 +894,7 @@ mutation {
 ----
 {
   "fromFrom_userId": "1",
-  "toTo_nativeId": 2,
+  "toTo_movieId": "2",
   "createRatedRating": 5
 }
 ----
@@ -935,11 +902,11 @@ mutation {
 .Cypher
 [source,cypher]
 ----
-MATCH (from:User { from_userId: $fromFrom_userId })
-MATCH (to:Movie) WHERE ID(to) = $toTo_nativeId
-CREATE (from)-[createRated:RATED {rating:$createRatedRating}]->(to)
+MATCH (from:User { userId: $fromFrom_userId })
+MATCH (to:Movie { movieId: $toTo_movieId })
+CREATE (from)-[createRated:RATED { rating: $createRatedRating }]->(to)
 WITH createRated
-RETURN createRated { id:ID(createRated) } AS createRated
+RETURN createRated { _id:ID(createRated) } AS createRated
 ----
 
 === Mutate relation
@@ -948,7 +915,7 @@ RETURN createRated { id:ID(createRated) } AS createRated
 [source,graphql]
 ----
 mutation {
- updateRated(id:1, rating: 5){
+ updateRated(_id:1, rating: 5){
     rating
  }
 }
@@ -958,7 +925,7 @@ mutation {
 [source,json]
 ----
 {
-  "updateRatedId": 1, 
+  "updateRated_id": 1,
   "updateRatedRating": 5
 }
 ----
@@ -967,7 +934,7 @@ mutation {
 [source,cypher]
 ----
 MATCH ()-[updateRated:RATED]->()
-WHERE ID(updateRated) = $updateRatedId
+WHERE ID(updateRated) = $updateRated_id
 SET updateRated = { rating: $updateRatedRating }
 WITH updateRated
 RETURN updateRated { .rating } AS updateRated
@@ -1000,14 +967,13 @@ mutation {
 .Cypher
 [source,cypher]
 ----
-CREATE (createUser:User:Person {userId:$createUserUserId})
+CREATE (createUser:User:Person { userId: $createUserUserId })
 WITH createUser
 RETURN createUser {
   .userId,
   __typename: head( [ label in labels(createUser) WHERE label in $createUserValidTypes ] )
 } AS createUser
 ----
-
 
 === create relation
 
@@ -1025,9 +991,9 @@ mutation {
 [source,json]
 ----
 {
-  "createUserUserId": 1,
-  "createUserValidTypes": [
-    "User"
+  "fromName": "Action",
+  "toMovies": [
+    "m1"
   ]
 }
 ----
@@ -1035,10 +1001,9 @@ mutation {
 .Cypher
 [source,cypher]
 ----
-CREATE (createUser:User:Person {userId:$createUserUserId})
-WITH createUser
-RETURN createUser {
-  .userId,
-  __typename: head( [ label in labels(createUser) WHERE label in $createUserValidTypes ] )
-} AS createUser
+MATCH (from:Genre { name: $fromName })
+MATCH (to:Movie) WHERE to.movieId IN $toMovies
+MERGE (from)-[:IN_GENRE]->(to)
+WITH DISTINCT from AS addGenreMovies
+RETURN addGenreMovies { .name } AS addGenreMovies
 ----

@@ -4,9 +4,6 @@ import graphql.language.Directive
 import graphql.language.DirectiveDefinition
 import graphql.language.InterfaceTypeDefinition
 import graphql.language.ObjectTypeDefinition
-import graphql.schema.GraphQLInterfaceType
-import graphql.schema.GraphQLObjectType
-import graphql.schema.GraphQLSchema
 import graphql.schema.idl.TypeDefinitionRegistry
 
 interface MetaProvider {
@@ -47,33 +44,6 @@ class TypeRegistryMetaProvider(private val typeRegistry: TypeDefinitionRegistry)
                 ?: getDirectiveDefinition(directive.name)?.inputValueDefinitions?.first { it.name == name }?.defaultValue?.toJavaValue()?.toString()
                 ?: defaultValue
                 ?: throw IllegalStateException("No default value for ${directive.name}.$name")
-    }
-
-}
-
-class SchemaMetaProvider(private val schema: GraphQLSchema) : MetaProvider {
-    override fun getValidTypeLabels(node: NodeFacade): List<String> {
-        val type = schema.getType(node.name())
-        if (type is GraphQLObjectType) {
-            return listOf(type.getNodeType()!!.label())
-        }
-        if (type is GraphQLInterfaceType) {
-            return schema.getImplementations(type)
-                .mapNotNull { it.getNodeType()?.label() }
-        }
-        return emptyList()
-    }
-
-    override fun getDirectiveArgument(directive: Directive?, name: String, defaultValue: String?): String? {
-        if (directive == null) return null
-        return directive.getArgument(name)?.value?.toJavaValue()?.toString()
-                ?: schema.getDirective(directive.name)?.getArgument(name)?.defaultValue?.toString()
-                ?: defaultValue
-                ?: throw IllegalStateException("No default value for ${directive.name}.$name")
-    }
-
-    override fun getNodeType(name: String?): NodeFacade? {
-        return schema.getType(name)?.getNodeType()
     }
 
 }

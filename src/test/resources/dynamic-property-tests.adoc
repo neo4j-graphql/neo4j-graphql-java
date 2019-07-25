@@ -172,8 +172,8 @@ mutation {
 .Cypher
 [source,cypher]
 ----
-MATCH (source:Person { source_id: $sourceSource_id })
-MATCH (knows:Person { knows_id: $knowsKnows_id })
+MATCH (source:Person { id: $sourceSource_id })
+MATCH (knows:Person { id: $knowsKnows_id })
 CREATE (source)-[createKnows:KNOWS { `prefix.foo`: $createKnowsJsonFoo }]->(knows)
 WITH createKnows
 RETURN createKnows {

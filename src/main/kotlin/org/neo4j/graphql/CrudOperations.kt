@@ -6,6 +6,7 @@ import org.neo4j.graphql.DirectiveConstants.Companion.RELATION
 import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_NAME
 import org.neo4j.graphql.handler.*
 import org.neo4j.graphql.handler.relation.CreateRelationHandler
+import org.neo4j.graphql.handler.relation.CreateRelationTypeHandler
 import org.neo4j.graphql.handler.relation.DeleteRelationHandler
 
 data class Augmentation(
@@ -16,11 +17,11 @@ data class Augmentation(
         var inputType: InputObjectTypeDefinition? = null,
         var ordering: EnumTypeDefinition? = null,
         var filterType: InputObjectTypeDefinition? = null,
-        var query: ProjectionHandler? = null)
+        var query: BaseDataFetcher? = null)
 
 fun createNodeMutation(
         ctx: Translator.Context,
-        type: NodeDefinitionFacade,
+        type: NodeFacade,
         typeDefinitionRegistry: TypeDefinitionRegistry,
         projectionRepository: ProjectionRepository)
         : Augmentation {
@@ -31,7 +32,7 @@ fun createNodeMutation(
         return Augmentation()
     }
 
-    val isRelation = type.isRealtionType()
+    val isRelation = type.isRelationType()
 
     val result = Augmentation()
     if (ctx.mutation.enabled && !ctx.mutation.exclude.contains(typeName)) {
@@ -47,26 +48,28 @@ fun createNodeMutation(
                         .filter { it.name != startIdField.argumentName }
                         .filter { it.name != endIdField.argumentName }
 
-                    result.create = CreateRelationHandler(type,
+                    val builder = createFieldDefinition("create", typeName, emptyList())
+                        .inputValueDefinition(input(startIdField.argumentName, startIdField.field.type))
+                        .inputValueDefinition(input(endIdField.argumentName, endIdField.field.type))
+                    createArgs.forEach { builder.inputValueDefinition(input(it.name, it.type)) }
+
+                    result.create = CreateRelationTypeHandler(type,
                             relation,
                             startIdField,
                             endIdField,
-                            createFieldDefinition("create", typeName, createArgs)
-                                .inputValueDefinition(input(startIdField.argumentName, startIdField.field.type))
-                                .inputValueDefinition(input(endIdField.argumentName, endIdField.field.type))
-                                .build(),
+                            builder.build(),
                             typeDefinitionRegistry,
                             projectionRepository)
 
                 }
             } else {
                 result.create = CreateTypeHandler(type,
-                        createFieldDefinition("create", typeName, scalarFields) { it.isNativeId() }.build(),
+                        createFieldDefinition("create", typeName, scalarFields.filter { !it.isNativeId() }).build(),
                         typeDefinitionRegistry,
                         projectionRepository)
             }
         }
-        if (idField != null && (!isRelation || idField.isNativeId())) {
+        if (idField != null) {
 
             result.delete = DeleteHandler(type,
                     idField,
@@ -77,19 +80,21 @@ fun createNodeMutation(
                     typeDefinitionRegistry,
                     projectionRepository)
 
-            result.merge = MergeOrUpdateHandler(type,
-                    true,
-                    idField,
-                    createFieldDefinition("merge", typeName, scalarFields).build(),
-                    typeDefinitionRegistry,
-                    projectionRepository)
+            if (scalarFields.any { !it.isID() }) {
+                result.merge = MergeOrUpdateHandler(type,
+                        true,
+                        idField,
+                        createFieldDefinition("merge", typeName, scalarFields).build(),
+                        typeDefinitionRegistry,
+                        projectionRepository)
 
-            result.update = MergeOrUpdateHandler(type,
-                    false,
-                    idField,
-                    createFieldDefinition("update", typeName, scalarFields).build(),
-                    typeDefinitionRegistry,
-                    projectionRepository)
+                result.update = MergeOrUpdateHandler(type,
+                        false,
+                        idField,
+                        createFieldDefinition("update", typeName, scalarFields).build(),
+                        typeDefinitionRegistry,
+                        projectionRepository)
+            }
         }
     }
     if (ctx.query.enabled && !ctx.query.exclude.contains(typeName)) {
@@ -110,7 +115,7 @@ fun createNodeMutation(
 
         result.filterType = filterType
         result.ordering = ordering
-        result.query = ProjectionHandler(type,
+        result.query = QueryHandler(type,
                 FieldDefinition
                     .newFieldDefinition()
                     .name(typeName.decapitalize())
@@ -123,6 +128,8 @@ fun createNodeMutation(
                     .build(),
                 typeDefinitionRegistry,
                 projectionRepository)
+        // TODO abg
+        projectionRepository.add(ProjectionHandler(type, (result.query as QueryHandler).fieldDefinition, typeDefinitionRegistry, projectionRepository))
     }
     return result
 }
@@ -156,14 +163,18 @@ fun createRelationshipMutation(
         ?.getArgument(RELATION_NAME)
         ?.value?.toJavaValue()?.toString()
         .let { relationTypes?.get(it) }
-    val fieldArgs = if (relationType != null) {
-        val scalarFields = relationType.fieldDefinitions.filter { it.type.isScalar() && !it.isID() }
-        scalarFields.joinToString(", ", ", ") { it.name + ":" + it.type.render() }
-    } else ""
+
+    val sourceNodeType = source.getNodeType()!!
+    val targetNodeType = target.getNodeType()!!
+    val metaProvider = TypeRegistryMetaProvider(typeDefinitionRegistry)
+    val relation = sourceNodeType.relationshipFor(targetField.name, metaProvider)
+            ?: throw IllegalArgumentException("could not resolve relation for " + source.name + "::" + targetField.name)
 
     val result = Augmentation()
-    result.delete = DeleteRelationHandler(source.getNodeType()!!, // TODO pass directly to method
-            sourceIdField,
+    result.delete = DeleteRelationHandler(sourceNodeType, // TODO pass directly to method
+            relation,
+            RelationshipInfo.RelatedField(sourceIdField.name, sourceIdField, sourceNodeType),
+            RelationshipInfo.RelatedField(targetField.name, targetIdField, targetNodeType),
             FieldDefinition.newFieldDefinition()
                 .name("delete$sourceTypeName$targetFieldName")
                 .inputValueDefinition(input(sourceIdField.name, idType))
@@ -173,29 +184,26 @@ fun createRelationshipMutation(
             typeDefinitionRegistry,
             projectionRepository)
 
-//    val metaProvider = TypeRegistryMetaProvider(typeDefinitionRegistry) // TODO move out
-//    val relation = type.relationship(metaProvider)!!
-//    val startIdField = relation.getStartFieldId(metaProvider)
-//    val endIdField = relation.getEndFieldId(metaProvider)
-//    if (startIdField != null && endIdField != null) {
-//        val createArgs = scalarFields
-//            .filter { !it.isNativeId() }
-//            .filter { it.name != startIdField.argumentName }
-//            .filter { it.name != endIdField.argumentName }
-//
-//        result.create = CreateRelationHandler(type,
-//                relation,
-//                startIdField,
-//                endIdField,
-//                createFieldDefinition("create", typeName, createArgs).build(),
-//                typeDefinitionRegistry,
-//                projectionRepository)
-//    }
 
-    return result;
-//    Augmentation(
-//            create = "add$sourceTypeName$targetFieldName(${sourceIdField.name}:ID!, ${targetField.name}:$targetIDStr$fieldArgs) : $sourceTypeName",
-//            delete = "delete$sourceTypeName$targetFieldName(${sourceIdField.name}:ID!, ${targetField.name}:$targetIDStr) : $sourceTypeName")
+    val type = FieldDefinition.newFieldDefinition()
+        .name("add$sourceTypeName$targetFieldName")
+        .inputValueDefinition(input(sourceIdField.name, idType))
+        .inputValueDefinition(input(targetField.name, targetIDType))
+        .type(NonNullType(TypeName(sourceTypeName)))
+
+    relationType
+        ?.fieldDefinitions
+        ?.filter { it.type.isScalar() && !it.isID() }
+        ?.forEach { type.inputValueDefinition(input(it.name, it.type)) }
+
+    result.create = CreateRelationHandler(sourceNodeType, // TODO pass directly to method
+            relation,
+            RelationshipInfo.RelatedField(sourceIdField.name, sourceIdField, sourceNodeType),
+            RelationshipInfo.RelatedField(targetField.name, targetIdField, targetNodeType),
+            type.build(),
+            typeDefinitionRegistry,
+            projectionRepository)
+    return result
 }
 
 private fun filterType(name: String?, fieldArgs: List<FieldDefinition>): InputObjectTypeDefinition {
@@ -211,9 +219,7 @@ private fun filterType(name: String?, fieldArgs: List<FieldDefinition>): InputOb
             .forType(field.type)
             .forEach { op -> builder.inputValueDefinition(input(op.fieldName(field.name), field.type.inner())) }
     }
-    return builder
-        .inputValueDefinitions(getInputValueDefinitions(fieldArgs) { true })
-        .build()
+    return builder.build()
 }
 
 private fun input(name: String, type: Type<*>): InputValueDefinition {
@@ -234,7 +240,7 @@ private fun createFieldDefinition(
 
 private fun getInputValueDefinitions(scalarFields: List<FieldDefinition>, forceOptionalProvider: (field: FieldDefinition) -> Boolean): List<InputValueDefinition> {
     return scalarFields
-        .map { input(it.name, if (forceOptionalProvider.invoke(it)) it.type.inner() else it.type) }
+        .map { input(it.name, if (forceOptionalProvider.invoke(it)) it.type.optional() else it.type) }
 }
 
 

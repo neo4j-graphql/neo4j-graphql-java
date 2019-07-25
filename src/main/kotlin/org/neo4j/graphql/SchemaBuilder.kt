@@ -9,7 +9,9 @@ import graphql.schema.idl.SchemaGenerator
 import graphql.schema.idl.SchemaParser
 import graphql.schema.idl.TypeDefinitionRegistry
 import org.neo4j.graphql.handler.BaseDataFetcher
+import org.neo4j.graphql.handler.CypherDirectiveHandler
 import org.neo4j.graphql.handler.ProjectionRepository
+import org.neo4j.graphql.handler.QueryHandler
 
 object SchemaBuilder {
     @JvmStatic
@@ -63,17 +65,44 @@ object SchemaBuilder {
             .filterNotNull()
             .forEach { typeDefinitionRegistry.add(it as SDLDefinition<*>) }
 
-        val schemaDefinition = typeDefinitionRegistry.schemaDefinition().orElseGet { SchemaDefinition.newSchemaDefinition().build() }
-        val operations = schemaDefinition.operationTypeDefinitions
-            .associate { it.name to typeDefinitionRegistry.getType(it.typeName).orElseThrow { RuntimeException("Could not find type: " + it.typeName) } as ObjectTypeDefinition }
-            .toMap()
+        val schemaDefinition = typeDefinitionRegistry
+            .schemaDefinition()
+            .orElseGet { SchemaDefinition.newSchemaDefinition().build() }
 
+        var queryDefinition = getOrCreateObjectTypeDefinition("Query", schemaDefinition, typeDefinitionRegistry)
+        for (fieldDefinition in queryDefinition.fieldDefinitions) {
+            builder.type(queryDefinition.name) {
+                val cypherDirective = fieldDefinition.cypherDirective()
+                val type: NodeFacade = typeDefinitionRegistry.getType(fieldDefinition.type.name())
+                    .orElseThrow { IllegalStateException("cannot find type " + fieldDefinition.type.name()) }
+                    .getNodeType()!!
+                val baseDataFetcher = if (cypherDirective != null) {
+                    CypherDirectiveHandler(type, true, cypherDirective, fieldDefinition, typeDefinitionRegistry, projectionRepository)
+                } else {
+                    QueryHandler(type, fieldDefinition, typeDefinitionRegistry, projectionRepository)
+                }
+                it.dataFetcher(fieldDefinition.name, baseDataFetcher)
+            }
+        }
 
         val queries = augmentations.mapNotNull { it.query }
-        val queryDefinition = mergeOperations("Query", operations, typeDefinitionRegistry, queries, builder)
+        queryDefinition = mergeOperations(queryDefinition, typeDefinitionRegistry, queries, builder)
 
+        var mutationDefinition = getOrCreateObjectTypeDefinition("Mutation", schemaDefinition, typeDefinitionRegistry)
+        for (fieldDefinition in mutationDefinition.fieldDefinitions) {
+            val cypherDirective: Translator.Cypher? = fieldDefinition.cypherDirective()
+            if (cypherDirective != null) {
+                builder.type(mutationDefinition.name) {
+                    val type: NodeFacade = typeDefinitionRegistry.getType(fieldDefinition.type.name())
+                        .orElseThrow { IllegalStateException("cannot find type " + fieldDefinition.type.name()) }
+                        .getNodeType()!!
+                    val baseDataFetcher = CypherDirectiveHandler(type, false, cypherDirective, fieldDefinition, typeDefinitionRegistry, projectionRepository)
+                    it.dataFetcher(fieldDefinition.name, baseDataFetcher)
+                }
+            }
+        }
         val mutations = augmentations.flatMap { listOf(it.create, it.update, it.delete, it.merge) }
-        val mutationDefinition = mergeOperations("Mutation", operations, typeDefinitionRegistry, mutations, builder)
+        mutationDefinition = mergeOperations(mutationDefinition, typeDefinitionRegistry, mutations, builder)
 
         val newSchemaDef = schemaDefinition.transform {
             it.operationTypeDefinition(OperationTypeDefinition("query", TypeName(queryDefinition.name)))
@@ -82,7 +111,6 @@ object SchemaBuilder {
 
         typeDefinitionRegistry.remove(schemaDefinition)
         typeDefinitionRegistry.add(newSchemaDef)
-
         return typeDefinitionRegistry
     }
 
@@ -90,17 +118,12 @@ object SchemaBuilder {
      * add the given operations to the corresponding ObjectTypeDefinition
      */
     private fun mergeOperations(
-            name: String,
-            operations: Map<String, ObjectTypeDefinition>,
+            objectTypeDefinition: ObjectTypeDefinition,
             typeDefinitionRegistry: TypeDefinitionRegistry,
             dataFetcher: List<BaseDataFetcher?>,
             builder: RuntimeWiring.Builder)
             : ObjectTypeDefinition {
-        val objectTypeDefinition = operations.getOrElse(name.toLowerCase()) {
-            typeDefinitionRegistry.getType(name, ObjectTypeDefinition::class.java).orElseGet {
-                ObjectTypeDefinition(name).also { typeDefinitionRegistry.add(it) }
-            }
-        }
+
         dataFetcher
             .filterNotNull()
             .filter { objectTypeDefinition.fieldDefinitions.none { fd -> it.fieldDefinition.name == fd.name } }
@@ -111,12 +134,30 @@ object SchemaBuilder {
                     typeDefinitionRegistry.add(objectTypeDefinition.transform { qdb ->
                         queries.forEach { df ->
                             qdb.fieldDefinition(df.fieldDefinition)
-                            builder.type(name) { it.dataFetcher(df.fieldDefinition.name, df) }
+                            builder.type(objectTypeDefinition.name) { it.dataFetcher(df.fieldDefinition.name, df) }
                         }
                     })
                 }
             }
         return objectTypeDefinition
+    }
+
+    private fun getOrCreateObjectTypeDefinition(
+            name: String,
+            schemaDefinition: SchemaDefinition,
+            typeDefinitionRegistry: TypeDefinitionRegistry): ObjectTypeDefinition {
+        val operationGroup = name.toLowerCase()
+        return schemaDefinition.operationTypeDefinitions
+            .firstOrNull { it.name == operationGroup }
+            ?.let {
+                typeDefinitionRegistry
+                    .getType(it.typeName, ObjectTypeDefinition::class.java)
+                    .orElseThrow { RuntimeException("Could not find type: " + it.typeName) } as ObjectTypeDefinition
+            }
+                ?: typeDefinitionRegistry.getType(name, ObjectTypeDefinition::class.java)
+                    .orElseGet {
+                        ObjectTypeDefinition(name).also { typeDefinitionRegistry.add(it) }
+                    }
     }
 
     private fun createRelationshipMutations(
