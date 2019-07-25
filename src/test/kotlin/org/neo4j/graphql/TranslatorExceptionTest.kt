@@ -1,19 +1,25 @@
 package org.neo4j.graphql
 
 import graphql.parser.InvalidSyntaxException
-import org.junit.Test
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
 
 class TranslatorExceptionTest {
 
     private val testSuite = AsciiDocTestSuite("translator-tests1.adoc")
 
-    @Test(expected = IllegalArgumentException::class) // todo better test
+    @Test
     fun unknownType() {
-        testSuite.translate(" { company { name } } ")
+        // todo better test
+        Assertions.assertThrows(IllegalArgumentException::class.java) {
+            testSuite.translate(" { company { name } } ")
+        }
     }
 
-    @Test(expected = InvalidSyntaxException::class)
+    @Test
     fun mutation() {
-        testSuite.translate(" { createPerson() } ")
+        Assertions.assertThrows(InvalidSyntaxException::class.java) {
+            testSuite.translate(" { createPerson() } ")
+        }
     }
 }

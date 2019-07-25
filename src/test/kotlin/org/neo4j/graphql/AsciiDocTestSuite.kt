@@ -1,15 +1,16 @@
 package org.neo4j.graphql
 
 import org.codehaus.jackson.map.ObjectMapper
-import org.junit.Assert
-import org.junit.Assume
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assumptions
+import org.junit.jupiter.api.DynamicTest
 import java.io.File
 
-class AsciiDocTestSuite(private val fileName: String) {
+class AsciiDocTestSuite(fileName: String) {
 
     class TestRun(
             private val suite: AsciiDocTestSuite,
-            private val title: String?,
+            val title: String?,
             private val request: String,
             private val cypher: String,
             private val cypherParams: Map<String, Any?> = emptyMap(),
@@ -22,7 +23,7 @@ class AsciiDocTestSuite(private val fileName: String) {
                 suite.runTest(this.request, this.cypher, this.cypherParams, this.requestParams, contextModifier)
             } catch (e: Throwable) {
                 if (ignore) {
-                    Assume.assumeFalse(e.message, true)
+                    Assumptions.assumeFalse(true, e.message)
                 } else {
                     throw e
                 }
@@ -99,8 +100,8 @@ class AsciiDocTestSuite(private val fileName: String) {
             contextModifier: (Translator.Context) -> Translator.Context = { it }) {
         val result = translate(graphQLQuery, requestParams, contextModifier)
         println(result.query)
-        Assert.assertEquals(expectedCypherQuery.normalize(), result.query.normalize())
-        Assert.assertEquals("$cypherParams IN ${result.params}", fixNumbers(cypherParams), fixNumbers(result.params))
+        Assertions.assertEquals(expectedCypherQuery.normalize(), result.query.normalize())
+        Assertions.assertEquals(fixNumbers(cypherParams), fixNumbers(result.params)) { "$cypherParams IN ${result.params}" }
     }
 
     fun translate(query: String,
@@ -109,6 +110,10 @@ class AsciiDocTestSuite(private val fileName: String) {
         return Translator(SchemaBuilder.buildSchema(schema))
             .translate(query, requestParams, contextModifier.invoke(Translator.Context(params = requestParams)))
             .first()
+    }
+
+    fun run(contextModifier: (Translator.Context) -> Translator.Context = { it }): List<DynamicTest> {
+        return tests.map { DynamicTest.dynamicTest(it.title) { it.run(contextModifier) } }
     }
 
     companion object {

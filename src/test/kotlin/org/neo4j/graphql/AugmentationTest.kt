@@ -2,7 +2,7 @@ package demo.org.neo4j.graphql
 
 import graphql.language.*
 import graphql.schema.idl.SchemaParser
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import org.neo4j.graphql.Translator
 import org.neo4j.graphql.createNodeMutation
 import org.neo4j.graphql.createRelationshipMutation
@@ -14,6 +14,8 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
 class AugmentationTest {
+     // TODO move tests into ASCII DOC, parse both schemas and compare / assert on object level
+
     private val types = SchemaParser().parse("""
         type Person0 { name: String }
         type Person1 { name: String }

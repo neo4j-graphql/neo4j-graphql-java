@@ -7,7 +7,7 @@
 .Code for applying custom filters
 [source,kotlin,indent=0]
 ----
-include::../kotlin/org/neo4j/graphql/ObjectFilterTest.kt[tags=example]
+include::../kotlin/org/neo4j/graphql/CypherTest.kt[tags=example]
 ----
 
 == Schema
