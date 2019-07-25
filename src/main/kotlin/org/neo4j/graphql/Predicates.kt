@@ -1,15 +1,19 @@
 package org.neo4j.graphql
 
 import graphql.Scalars
+import graphql.language.FieldDefinition
 import graphql.language.Type
-import graphql.schema.*
+import graphql.schema.GraphQLEnumType
+import graphql.schema.GraphQLInputType
+import graphql.schema.GraphQLObjectType
+import graphql.schema.GraphQLTypeReference
 import org.neo4j.graphql.Predicate.Companion.resolvePredicate
 
 interface Predicate {
-    fun toExpression(variable: String, schema: GraphQLSchema): Pair<String, Map<String, Any?>>
+    fun toExpression(variable: String, metaProvider: MetaProvider): Translator.Cypher
 
     companion object {
-        fun resolvePredicate(name: String, value: Any?, type: NodeGraphQlFacade): Predicate {
+        fun resolvePredicate(name: String, value: Any?, type: NodeFacade): Predicate {
             val (fieldName, op) = Operators.resolve(name, value)
             return if (type.hasRelationship(fieldName)) {
                 when (value) {
@@ -37,7 +41,7 @@ interface Predicate {
     }
 }
 
-fun toExpression(name: String, value: Any?, type: NodeGraphQlFacade): Predicate =
+fun toExpression(name: String, value: Any?, type: NodeFacade): Predicate =
         if (name == "AND" || name == "OR")
             when (value) {
                 is Iterable<*> -> CompoundPredicate(value.map { toExpression("AND", it, type) }, name)
@@ -49,53 +53,55 @@ fun toExpression(name: String, value: Any?, type: NodeGraphQlFacade): Predicate 
         }
 
 data class CompoundPredicate(val parts: List<Predicate>, val op: String = "AND") : Predicate {
-    override fun toExpression(variable: String, schema: GraphQLSchema): Pair<String, Map<String, Any?>> =
-            parts.map { it.toExpression(variable, schema) }
+    override fun toExpression(variable: String, metaProvider: MetaProvider): Translator.Cypher =
+            parts.map { it.toExpression(variable, metaProvider) }
                 .let { expressions ->
-                    expressions.map { it.first }.joinNonEmpty(" $op ", "(", ")") to
-                            expressions.fold(emptyMap()) { res, exp -> res + exp.second }
+                    Translator.Cypher(
+                            expressions.map { it.query }.joinNonEmpty(" $op ", "(", ")"),
+                            expressions.fold(emptyMap()) { res, exp -> res + exp.params }
+                    )
                 }
 }
 
-data class IsNullPredicate(val fieldName: String, val op: Operators, val type: NodeGraphQlFacade) : Predicate {
-    override fun toExpression(variable: String, schema: GraphQLSchema): Pair<String, Map<String, Any?>> {
-        val rel = type.relationshipFor(fieldName, schema) ?: throw IllegalArgumentException("Not a relation")
+data class IsNullPredicate(val fieldName: String, val op: Operators, val type: NodeFacade) : Predicate {
+    override fun toExpression(variable: String, metaProvider: MetaProvider): Translator.Cypher {
+        val rel = type.relationshipFor(fieldName, metaProvider) ?: throw IllegalArgumentException("Not a relation")
         val (left, right) = rel.arrows
         val not = if (op.not) "" else "NOT "
-        return "$not($variable)$left-[:${rel.relType}]-$right()" to emptyMap()
+        return Translator.Cypher("$not($variable)$left-[:${rel.relType}]-$right()")
     }
 }
 
-data class ExpressionPredicate(val name: String, val op: Operators, val value: Any?, val fieldDefinition: GraphQLFieldDefinition) : Predicate {
+data class ExpressionPredicate(val name: String, val op: Operators, val value: Any?, val fieldDefinition: FieldDefinition) : Predicate {
     val not = if (op.not) "NOT " else ""
-    override fun toExpression(variable: String, schema: GraphQLSchema): Pair<String, Map<String, Any?>> {
+    override fun toExpression(variable: String, metaProvider: MetaProvider): Translator.Cypher {
         val paramName: String = "filter" + paramName(variable, name, value).capitalize()
         val field = if (fieldDefinition.isNativeId()) "ID($variable)" else "$variable.${name.quote()}"
-        return "$not$field ${op.op} \$$paramName" to mapOf(paramName to value)
+        return Translator.Cypher("$not$field ${op.op} \$$paramName", mapOf(paramName to value))
     }
 }
 
 
-data class RelationPredicate(val fieldName: String, val op: Operators, val value: Map<*, *>, val type: NodeGraphQlFacade) : Predicate {
+data class RelationPredicate(val fieldName: String, val op: Operators, val value: Map<*, *>, val type: NodeFacade) : Predicate {
     val not = if (op.not) "NOT" else ""
     // (type)-[:TYPE]->(related) | pred] = 0/1/ > 0 | =
     // ALL/ANY/NONE/SINGLE(p in (type)-[:TYPE]->() WHERE pred(last(nodes(p)))
     // ALL/ANY/NONE/SINGLE(x IN [(type)-[:TYPE]->(o) | pred(o)] WHERE x)
 
-    override fun toExpression(variable: String, schema: GraphQLSchema): Pair<String, Map<String, Any?>> {
+    override fun toExpression(variable: String, metaProvider: MetaProvider): Translator.Cypher {
         val prefix = when (op) {
             Operators.EQ -> "ALL"
             Operators.NEQ -> "ALL" // bc of not
             else -> op.op
         }
-        val rel = type.relationshipFor(fieldName, schema) ?: throw IllegalArgumentException("Not a relation")
+        val rel = type.relationshipFor(fieldName, metaProvider) ?: throw IllegalArgumentException("Not a relation")
         val (left, right) = rel.arrows
         val other = variable + "_" + rel.typeName
         val cond = other + "_Cond"
-        val relNodeType = schema.getNodeType(rel.typeName)
+        val relNodeType = metaProvider.getNodeType(rel.typeName)
                 ?: throw IllegalArgumentException("${rel.typeName} not found")
-        val (pred, params) = CompoundPredicate(value.map { resolvePredicate(it.key.toString(), it.value, relNodeType) }).toExpression(other, schema)
-        return "$not $prefix($cond IN [($variable)$left-[:${rel.relType.quote()}]-$right($other) | $pred] WHERE $cond)" to params
+        val (pred, params) = CompoundPredicate(value.map { resolvePredicate(it.key.toString(), it.value, relNodeType) }).toExpression(other, metaProvider)
+        return Translator.Cypher("$not $prefix($cond IN [($variable)$left-[:${rel.relType.quote()}]-$right($other) | $pred] WHERE $cond)", params)
     }
 }
 

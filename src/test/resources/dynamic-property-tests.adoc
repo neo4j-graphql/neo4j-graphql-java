@@ -14,7 +14,7 @@ type Person {
   knownByRel: [Knows] @relation(name: "KNOWS", direction: IN)
 }
 type Knows @relation(name:"KNOWS", from: "source", to: "knows"){
-  id: ID! @nativeId
+  _id: ID!
   source: Person!
   knows: Person!
   json: Object @dynamic(prefix: "prefix.")
@@ -155,7 +155,7 @@ RETURN mergePerson { .id } AS mergePerson
 ----
 mutation {
   createKnows(source_id:2, knows_id: 3, json: {foo: "bar"}) {
-    id,
+    _id,
     json
   }
 }
@@ -179,7 +179,7 @@ MATCH (knows:Person { knows_id: $knowsKnows_id })
 CREATE (source)-[createKnows:KNOWS {`prefix.foo`:$createKnowsJsonFoo}]->(knows)
 WITH createKnows
 RETURN createKnows {
-  id:ID(createKnows),
+  _id:ID(createKnows),
   json:apoc.map.fromPairs([key IN keys(createKnows) WHERE key STARTS WITH "prefix."| [substring(key,7), createKnows[key]]])
 } AS createKnows
 ----
@@ -190,7 +190,7 @@ RETURN createKnows {
 [source,graphql]
 ----
 mutation {
-  updateKnows(id:2, json: {foo: "bar"}) {
+  updateKnows(_id:2, json: {foo: "bar"}) {
     json
   }
 }
@@ -200,7 +200,7 @@ mutation {
 [source,json]
 ----
 {
-  "updateKnowsId": 2,
+  "updateKnows_id": 2,
   "updateKnowsJsonFoo": "bar"
 }
 ----
@@ -209,7 +209,7 @@ mutation {
 [source,cypher]
 ----
 MATCH ()-[updateKnows:KNOWS]->()
-WHERE ID(updateKnows) = $updateKnowsId
+WHERE ID(updateKnows) = $updateKnows_id
 SET updateKnows = { `prefix.foo`: $updateKnowsJsonFoo }
 WITH updateKnows
 RETURN updateKnows {
@@ -223,7 +223,7 @@ RETURN updateKnows {
 [source,graphql]
 ----
 mutation {
-  mergeKnows(id:2, json: {foo: "bar"}) {
+  mergeKnows(_id:2, json: {foo: "bar"}) {
     json
   }
 }
@@ -233,7 +233,7 @@ mutation {
 [source,json]
 ----
 {
-  "mergeKnowsId": 2,
+  "mergeKnows_id": 2,
   "mergeKnowsJsonFoo": "bar"
 }
 ----
@@ -242,7 +242,7 @@ mutation {
 [source,cypher]
 ----
 MATCH ()-[mergeKnows:KNOWS]->()
-WHERE ID(mergeKnows) = $mergeKnowsId
+WHERE ID(mergeKnows) = $mergeKnows_id
 SET mergeKnows += { `prefix.foo`: $mergeKnowsJsonFoo }
 WITH mergeKnows RETURN mergeKnows {
   json:apoc.map.fromPairs([key IN keys(mergeKnows) WHERE key STARTS WITH "prefix."| [substring(key,7), mergeKnows[key]]])

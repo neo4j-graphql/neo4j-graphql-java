@@ -53,7 +53,7 @@ val schema =
         # Optional if you use generated queries
         type Query {
             person : [Person]
-            personByName(name:String) : Person
+            personByName(name:ID) : Person
         }"""
 
 val query = """ { p:personByName(name:"Joe") { age } } """
@@ -74,6 +74,46 @@ You find more usage examples in the:
 * link:src/test/resources/translator-tests1.adoc[Translator 1 TCK]
 * link:src/test/resources/translator-tests2.adoc[Translator 2 TCK]
 * link:src/test/resources/translator-tests3.adoc[Translator 3 TCK]
+
+== Usage of ID
+
+Each type is expect to have exactly one filed of type `ID` defined.
+If the field is named `_id`, it is interpreted as the database internal graph ID.
+
+So there are 3 cases:
+
+.Case 1: Only the _ID_ field exists
+[source,graphql]
+----
+type User {
+  email: ID!
+  name: String!
+}
+----
+
+.Case 2: Only the _ID_ field exists interpreted as internal ID
+[source,graphql]
+----
+type User {
+  _id: ID!
+  email: String!
+  name: String!
+}
+----
+
+.Case 3: An _ID_ field exists but the internal ID is propagated as well
+[source,graphql]
+----
+type User {
+  _id: Int!
+  email: ID!
+  name: String!
+}
+----
+
+IMPORTANT: For the auto generated queries and mutations the `ID` field is used primarily.
+
+TIP: You should create an unique index on the `ID` fields
 
 == Demo
 

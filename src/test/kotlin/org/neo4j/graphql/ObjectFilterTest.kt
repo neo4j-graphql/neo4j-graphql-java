@@ -19,7 +19,7 @@ class ObjectFilterTest(val test: AsciiDocTestSuite.TestRun) {
     fun testTck() {
         test.run { ctx ->
             // tag::example[]
-            val objectFilterProvider: (variable: String, type: NodeGraphQlFacade) -> Translator.Cypher? = { variable, type ->
+            val objectFilterProvider: (variable: String, type: NodeFacade) -> Translator.Cypher? = { variable, type ->
                 (type.getDirective("filter")
                     ?.getArgument("statement")
                     ?.value?.toJavaValue() as? String)

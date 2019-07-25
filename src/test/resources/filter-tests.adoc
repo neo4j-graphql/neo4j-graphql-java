@@ -8,7 +8,6 @@
 ----
 enum Gender { female, male }
 type Person {
-  nativeId : Int @nativeId
   id : ID!
   name: String
   age: Int
@@ -366,95 +365,95 @@ WHERE NOT person.id = $filterPersonId
 RETURN person { .name } AS person
 ----
 
-== Filter on _@nativeId_
-
-=== filter _@nativeId_ _eq_
-
-.Query
-[source,graphql]
-----
-{ person(filter: { nativeId: 1 }) { name, nativeId }}
-----
-
-.Params
-[source,json]
-----
-{"filterPersonNativeId":1}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (person:Person)
-WHERE ID(person) = $filterPersonNativeId
-RETURN person { .name, nativeId:ID(person) } AS person
-----
-
-=== filter _@nativeId_ _in_
-
-.Query
-[source,graphql]
-----
-{ person(filter: { nativeId_in: [1,2] }) { name, nativeId }}
-----
-
-.Params
-[source,json]
-----
-{"filterPersonNativeId": [1,2]}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (person:Person)
-WHERE ID(person) IN $filterPersonNativeId
-RETURN person { .name, nativeId:ID(person) } AS person
-----
-
-=== filter _@nativeId_ _not_in_
-
-.Query
-[source,graphql]
-----
-{ person(filter: { nativeId_not_in: [1,2] }) { name, nativeId }}
-----
-
-.Params
-[source,json]
-----
-{"filterPersonNativeId": [1,2]}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (person:Person)
-WHERE NOT ID(person) IN $filterPersonNativeId
-RETURN person { .name, nativeId:ID(person) } AS person
-----
-
-=== filter _@nativeId_ _not_
-
-.Query
-[source,graphql]
-----
-{ person(filter: { nativeId_not: 1 }) { name, nativeId }}
-----
-
-.Params
-[source,json]
-----
-{"filterPersonNativeId": 1}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (person:Person)
-WHERE NOT ID(person) = $filterPersonNativeId
-RETURN person { .name, nativeId:ID(person) } AS person
-----
+//== Filter on _@nativeId_
+//
+//=== filter _@nativeId_ _eq_
+//
+//.Query
+//[source,graphql]
+//----
+//{ person(filter: { nativeId: 1 }) { name, nativeId }}
+//----
+//
+//.Params
+//[source,json]
+//----
+//{"filterPersonNativeId":1}
+//----
+//
+//.Cypher
+//[source,cypher]
+//----
+//MATCH (person:Person)
+//WHERE ID(person) = $filterPersonNativeId
+//RETURN person { .name, nativeId:ID(person) } AS person
+//----
+//
+//=== filter _@nativeId_ _in_
+//
+//.Query
+//[source,graphql]
+//----
+//{ person(filter: { nativeId_in: [1,2] }) { name, nativeId }}
+//----
+//
+//.Params
+//[source,json]
+//----
+//{"filterPersonNativeId": [1,2]}
+//----
+//
+//.Cypher
+//[source,cypher]
+//----
+//MATCH (person:Person)
+//WHERE ID(person) IN $filterPersonNativeId
+//RETURN person { .name, nativeId:ID(person) } AS person
+//----
+//
+//=== filter _@nativeId_ _not_in_
+//
+//.Query
+//[source,graphql]
+//----
+//{ person(filter: { nativeId_not_in: [1,2] }) { name, nativeId }}
+//----
+//
+//.Params
+//[source,json]
+//----
+//{"filterPersonNativeId": [1,2]}
+//----
+//
+//.Cypher
+//[source,cypher]
+//----
+//MATCH (person:Person)
+//WHERE NOT ID(person) IN $filterPersonNativeId
+//RETURN person { .name, nativeId:ID(person) } AS person
+//----
+//
+//=== filter _@nativeId_ _not_
+//
+//.Query
+//[source,graphql]
+//----
+//{ person(filter: { nativeId_not: 1 }) { name, nativeId }}
+//----
+//
+//.Params
+//[source,json]
+//----
+//{"filterPersonNativeId": 1}
+//----
+//
+//.Cypher
+//[source,cypher]
+//----
+//MATCH (person:Person)
+//WHERE NOT ID(person) = $filterPersonNativeId
+//RETURN person { .name, nativeId:ID(person) } AS person
+//----
 
 == Filter on _Int_
 

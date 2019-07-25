@@ -9,7 +9,6 @@ import org.neo4j.graphql.DirectiveConstants.Companion.CYPHER
 import org.neo4j.graphql.DirectiveConstants.Companion.CYPHER_STATEMENT
 import org.neo4j.graphql.DirectiveConstants.Companion.DYNAMIC
 import org.neo4j.graphql.DirectiveConstants.Companion.DYNAMIC_PREFIX
-import org.neo4j.graphql.DirectiveConstants.Companion.NATIVE_ID
 import org.neo4j.graphql.DirectiveConstants.Companion.PROPERTY
 import org.neo4j.graphql.DirectiveConstants.Companion.PROPERTY_NAME
 import org.neo4j.graphql.DirectiveConstants.Companion.RELATION
@@ -44,6 +43,8 @@ fun Type<Type<*>>.render(nonNull: Boolean = true): String = when (this) {
 }
 
 fun GraphQLType.isList() = this is GraphQLList || (this is GraphQLNonNull && this.wrappedType is GraphQLList)
+fun Type<*>.isList() = this is ListType || (this is NonNullType && this.type is ListType)
+
 fun GraphQLType.isScalar() = this.inner().let { it is GraphQLScalarType || it.name.startsWith("_Neo4j") }
 fun GraphQLType.isRelationship() = this.inner().let { it is GraphQLObjectType }
 fun GraphQLType.isRelationshipType() = this.inner().let { it is GraphQLObjectType && it.getDirective(RELATION) != null }
@@ -96,8 +97,8 @@ fun TypeDefinitionRegistry.getNodeType(name: String?): NodeFacade? = this.getTyp
 
 
 fun relDetails(type: NodeFacade,
-        directiveResolver: (name: String, defaultValue: String?) -> String): RelationshipInfo {
-    val relType = directiveResolver(RELATION_NAME, "")
+        directiveResolver: (name: String, defaultValue: String?) -> String?): RelationshipInfo {
+    val relType = directiveResolver(RELATION_NAME, "")!!
     val outgoing = when (directiveResolver(RELATION_DIRECTION, null)) {
         DirectiveConstants.RELATION_DIRECTION_IN -> false
         DirectiveConstants.RELATION_DIRECTION_BOTH -> null
@@ -137,35 +138,51 @@ data class RelationshipInfo(
 
     val typeName: String get() = this.type.name()
 
-    fun getStartFieldIds(typeResolver: (String?) -> NodeFacade?) = getRelatedIdFields(this.startField, typeResolver)
+    fun getStartFieldId(metaProvider: MetaProvider) = getRelatedIdField(this.startField, metaProvider)
 
-    fun getEndFieldIds(typeResolver: (String?) -> NodeFacade?) = getRelatedIdFields(this.endField, typeResolver)
+    fun getEndFieldId(metaProvider: MetaProvider) = getRelatedIdField(this.endField, metaProvider)
 
-    fun getRelatedIdFields(relFieldName: String?, typeResolver: (String?) -> NodeFacade?): List<RelatedField> {
-        if (relFieldName == null) return emptyList()
+    fun getRelatedIdField(relFieldName: String?, metaProvider: MetaProvider): RelatedField? {
+        if (relFieldName == null) return null
         val relFieldDefinition = type.fieldDefinitions().find { it.name == relFieldName }
                 ?: throw IllegalArgumentException("field $relFieldName does not exists on ${type.name()}")
-        val relType = typeResolver(relFieldDefinition.type.name())
+        val relType = metaProvider.getNodeType(relFieldDefinition.type.name())
                 ?: throw IllegalArgumentException("type ${relFieldDefinition.type.name()} not found")
-        return relType.fieldDefinitions().filter { it.isID() || it.isNativeId() }
+        return relType.fieldDefinitions().filter { it.isID() }
             .map { RelatedField("${relFieldName}_${it.name}", it, relType) }
+            .firstOrNull()
     }
 }
 
 fun GraphQLFieldDefinition.isRelationship() = this.type.isRelationship()
 
 fun Field.aliasOrName() = (this.alias ?: this.name).quote()
+fun Field.propertyName(fieldDefinition: FieldDefinition) = (fieldDefinition.propertyDirectiveName()
+        ?: this.name).quote()
+
+@Deprecated(message = "cleanup")
 fun Field.propertyName(fieldDefinition: GraphQLFieldDefinition) = (fieldDefinition.propertyDirectiveName()
         ?: this.name).quote()
+
 
 fun GraphQLFieldDefinition.propertyDirectiveName() =
         definition.getDirective(PROPERTY)?.getArgument(PROPERTY_NAME)?.value?.toJavaValue()?.toString()
 
-fun GraphQLFieldDefinition.isNativeId() = definition.getDirective(NATIVE_ID) != null
+fun GraphQLFieldDefinition.isNativeId() = definition.isNativeId()
 
-fun GraphQLFieldDefinition.dynamicPrefix(schema: GraphQLSchema): String? =
-        definition.getDirective(DYNAMIC)?.argumentString(DYNAMIC_PREFIX, schema)
+fun FieldDefinition.dynamicPrefix(metaProvider: MetaProvider): String? = metaProvider.getDirectiveArgument(getDirective(DYNAMIC), DYNAMIC_PREFIX, null)
 
+@Deprecated(message = "cleanup")
+fun GraphQLFieldDefinition.dynamicPrefix(metaProvider: MetaProvider): String? = metaProvider.getDirectiveArgument(definition.getDirective(DYNAMIC), DYNAMIC_PREFIX, null)
+
+fun FieldDefinition.cypherDirective(): Translator.Cypher? =
+        this.getDirective(CYPHER)?.let {
+            @Suppress("UNCHECKED_CAST")
+            Translator.Cypher(it.getArgument(CYPHER_STATEMENT).value.toJavaValue().toString(),
+                    it.getArgument("params")?.value?.toJavaValue() as Map<String, Any?>? ?: emptyMap())
+        }
+
+@Deprecated(message = "cleanup")
 fun GraphQLFieldDefinition.cypherDirective(): Translator.Cypher? =
         this.definition.getDirective(CYPHER)?.let {
             @Suppress("UNCHECKED_CAST")
@@ -179,9 +196,19 @@ fun String.isJavaIdentifier() =
         this[0].isJavaIdentifierStart() &&
                 this.substring(1).all { it.isJavaIdentifierPart() }
 
+@Deprecated(message = "cleanup")
 fun Directive.argumentString(name: String, schema: GraphQLSchema, defaultValue: String? = null): String {
     return this.getArgument(name)?.value?.toJavaValue()?.toString()
             ?: schema.getDirective(this.name).getArgument(name)?.defaultValue?.toString()
+            ?: defaultValue
+            ?: throw IllegalStateException("No default value for ${this.name}.$name")
+}
+
+fun Directive.argumentString(name: String, typeDefinitionRegistry: TypeDefinitionRegistry, defaultValue: String? = null): String {
+    return this.getArgument(name)?.value?.toJavaValue()?.toString()
+            ?: typeDefinitionRegistry.getDirectiveDefinition(this.name)
+                .map { getArgument(name)?.value?.toJavaValue()?.toString() }
+                .orElse(defaultValue)
             ?: defaultValue
             ?: throw IllegalStateException("No default value for ${this.name}.$name")
 }
@@ -217,7 +244,11 @@ fun paramName(variable: String, argName: String, value: Any?): String = when (va
 }
 
 fun FieldDefinition.isID(): Boolean = this.type.name() == "ID"
-fun FieldDefinition.isNativeId() = this.getDirective("nativeId") != null
+fun FieldDefinition.isNativeId() = this.name == "_id"
+
+fun FieldDefinition.propertyDirectiveName() =
+        getDirective(PROPERTY)?.getArgument(PROPERTY_NAME)?.value?.toJavaValue()?.toString()
+
 
 fun FieldDefinition.isList(): Boolean = this.type is ListType
 fun GraphQLFieldDefinition.isID(): Boolean = this.type.inner() == Scalars.GraphQLID

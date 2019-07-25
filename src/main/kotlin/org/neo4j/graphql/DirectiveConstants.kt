@@ -17,8 +17,6 @@ class DirectiveConstants {
         const val PROPERTY = "property"
         const val PROPERTY_NAME = "name"
 
-        const val NATIVE_ID = "nativeId"
-
         const val DYNAMIC = "dynamic"
         const val DYNAMIC_PREFIX = "prefix"
     }

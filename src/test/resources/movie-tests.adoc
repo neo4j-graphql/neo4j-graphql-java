@@ -7,8 +7,7 @@
 [source,graphql,schema=true]
 ----
 type Movie {
-  nativeId: Int @nativeId
-  _id: String
+  _id: Int
   movieId: ID!
   title: String
   year: Int
@@ -30,7 +29,7 @@ type Movie {
   RETURN other
   """)
   publishedBy: Publisher @relation(name: "PUBLISHED_BY", direction: OUT)
-  ratings: [Rated]
+  ratings: [Rated] @relation(name:"RATED")
 }
 type Publisher {
   name: ID!
@@ -42,7 +41,7 @@ type Genre {
   highestRatedMovie: Movie @cypher(statement: "MATCH (m:Movie)-[:IN_GENRE]->(this) RETURN m ORDER BY m.imdbRating DESC LIMIT 1")
 }
 type State {
-  nativeId: ID @nativeId
+  _id: ID!
   name: String
 }
 interface Person {
@@ -69,7 +68,7 @@ type FriendOf {
   to: User
 }
 type Rated @relation(name:"RATED") {
-  id: ID! @nativeId
+  _id: ID!
   from: User
   rating: Int
   to: Movie
@@ -974,7 +973,7 @@ WITH updateRated
 RETURN updateRated { .rating } AS updateRated
 ----
 
-=== create object with multiple lables
+=== create object with multiple labels
 
 .Query
 [source,graphql]
@@ -983,6 +982,41 @@ mutation {
  createUser(userId:1){
     userId,
     __typename
+ }
+}
+----
+
+.Params
+[source,json]
+----
+{
+  "createUserUserId": 1,
+  "createUserValidTypes": [
+    "User"
+  ]
+}
+----
+
+.Cypher
+[source,cypher]
+----
+CREATE (createUser:User:Person {userId:$createUserUserId})
+WITH createUser
+RETURN createUser {
+  .userId,
+  __typename: head( [ label in labels(createUser) WHERE label in $createUserValidTypes ] )
+} AS createUser
+----
+
+
+=== create relation
+
+.Query
+[source,graphql]
+----
+mutation {
+ addGenreMovies(name:"Action", movies: ["m1"]){
+    name
  }
 }
 ----
