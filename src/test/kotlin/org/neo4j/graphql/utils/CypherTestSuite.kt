@@ -21,7 +21,10 @@ class CypherTestSuite(fileName: String) : AsciiDocTestSuite() {
         fun run(contextModifier: (Translator.Context) -> Translator.Context = { it }) {
             println(title)
             try {
-                suite.runTest(this.request, this.cypher, this.cypherParams, this.requestParams, contextModifier)
+                val result = suite.translate(this.request, this.requestParams, contextModifier)
+                println(result.query)
+                Assertions.assertEquals(this.cypher.normalize(), result.query.normalize())
+                Assertions.assertEquals(fixNumbers(this.cypherParams), fixNumbers(result.params)) { "${this.cypherParams} IN ${result.params}" }
             } catch (e: Throwable) {
                 if (ignore) {
                     Assumptions.assumeFalse(true, e.message)
@@ -49,18 +52,6 @@ class CypherTestSuite(fileName: String) : AsciiDocTestSuite() {
                     it.ignore
             )
         }
-    }
-
-    @Suppress("SameParameterValue")
-    fun runTest(graphQLQuery: String,
-            expectedCypherQuery: String,
-            cypherParams: Map<String, Any?> = emptyMap(),
-            requestParams: Map<String, Any?> = emptyMap(),
-            contextModifier: (Translator.Context) -> Translator.Context = { it }) {
-        val result = translate(graphQLQuery, requestParams, contextModifier)
-        println(result.query)
-        Assertions.assertEquals(expectedCypherQuery.normalize(), result.query.normalize())
-        Assertions.assertEquals(fixNumbers(cypherParams), fixNumbers(result.params)) { "$cypherParams IN ${result.params}" }
     }
 
     fun translate(query: String,

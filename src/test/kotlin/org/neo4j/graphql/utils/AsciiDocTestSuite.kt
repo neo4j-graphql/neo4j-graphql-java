@@ -8,12 +8,12 @@ open class AsciiDocTestSuite {
     class ParsedBlock(var title: String? = null, var ignore: Boolean = false, val codeBlocks: MutableMap<String, StringBuilder> = mutableMapOf())
 
     companion object {
-        private val MAPPER = ObjectMapper()
+        val MAPPER = ObjectMapper()
 
         fun parse(fileName: String, blocks: LinkedHashSet<String>): ParsedFile {
             val lines = File(AsciiDocTestSuite::class.java.getResource("/$fileName").toURI())
                 .readLines()
-                .filterNot { it.startsWith("#") || it.isBlank() || it.startsWith("//") }
+                .filterNot { it.startsWith("#") || it.startsWith("//") }
             val terminatorElement = blocks.last()
             val tests: MutableList<ParsedBlock> = mutableListOf()
 
@@ -47,8 +47,8 @@ open class AsciiDocTestSuite {
                     line.startsWith("=== ") -> testSet.title = line.substring(4)
                     line.startsWith("CAUTION:") -> testSet.ignore = true
                     inside -> when {
-                        current != null -> current.append(" ").append(line.trim())
-                        schema != null -> schema += line.trim() + "\n"
+                        current != null -> current.append(line).append("\n")
+                        schema != null -> schema += line + "\n"
                     }
                 }
             }
