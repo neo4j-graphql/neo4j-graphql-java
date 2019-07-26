@@ -660,3 +660,5 @@ mutation {
   }
 }
 ----
+
+You find more examples in the link:src/test/resources/augmentation-tests.adoc[Augmentation Tests]
