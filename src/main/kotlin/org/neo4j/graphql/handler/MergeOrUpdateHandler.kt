@@ -2,9 +2,10 @@ package org.neo4j.graphql.handler
 
 import graphql.language.Field
 import graphql.language.FieldDefinition
-import graphql.schema.idl.TypeDefinitionRegistry
+import org.neo4j.graphql.MetaProvider
 import org.neo4j.graphql.NodeFacade
 import org.neo4j.graphql.Translator
+import org.neo4j.graphql.handler.projection.ProjectionRepository
 import org.neo4j.graphql.isNativeId
 
 class MergeOrUpdateHandler(
@@ -12,10 +13,10 @@ class MergeOrUpdateHandler(
         val merge: Boolean,
         val idField: FieldDefinition,
         fieldDefinition: FieldDefinition,
-        typeDefinitionRegistry: TypeDefinitionRegistry,
+        metaProvider: MetaProvider,
         projectionRepository: ProjectionRepository,
         val isRealtion: Boolean = type.isRelationType()
-) : BaseDataFetcher(type, fieldDefinition, typeDefinitionRegistry, projectionRepository) {
+) : BaseDataFetcher(type, fieldDefinition, metaProvider, projectionRepository) {
 
     init {
         defaultFields.clear()

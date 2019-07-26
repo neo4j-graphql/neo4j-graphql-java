@@ -2,23 +2,24 @@ package org.neo4j.graphql.handler
 
 import graphql.language.Field
 import graphql.language.FieldDefinition
-import graphql.schema.idl.TypeDefinitionRegistry
+import org.neo4j.graphql.MetaProvider
 import org.neo4j.graphql.NodeFacade
 import org.neo4j.graphql.Translator
+import org.neo4j.graphql.handler.projection.ProjectionRepository
 
 class CypherDirectiveHandler(
         type: NodeFacade,
-        val isQuery: Boolean,
-        val cypherDirective: Translator.Cypher,
+        private val isQuery: Boolean,
+        private val cypherDirective: Translator.Cypher,
         fieldDefinition: FieldDefinition,
-        typeDefinitionRegistry: TypeDefinitionRegistry,
+        metaProvider: MetaProvider,
         projectionRepository: ProjectionRepository)
-    : BaseDataFetcher(type, fieldDefinition, typeDefinitionRegistry, projectionRepository) {
+    : BaseDataFetcher(type, fieldDefinition, metaProvider, projectionRepository) {
 
     override fun generateCypher(variable: String, field: Field, projectionProvider: () -> Translator.Cypher, ctx: Translator.Context): Translator.Cypher {
         val mapProjection = projectionProvider.invoke()
         val ordering = orderBy(variable, field.arguments)
-        val skipLimit = ProjectionHandler.SkipLimit(variable, field.arguments).format()
+        val skipLimit = SkipLimit(variable, field.arguments).format()
 
         return if (isQuery) {
             val (query, params) = cypherDirective(variable, fieldDefinition, field, cypherDirective, emptyList())

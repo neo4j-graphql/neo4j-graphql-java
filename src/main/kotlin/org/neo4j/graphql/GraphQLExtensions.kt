@@ -2,15 +2,12 @@ package org.neo4j.graphql
 
 import graphql.language.*
 import graphql.language.TypeDefinition
-import graphql.schema.*
-import graphql.schema.idl.TypeDefinitionRegistry
 import org.neo4j.graphql.DirectiveConstants.Companion.CYPHER
 import org.neo4j.graphql.DirectiveConstants.Companion.CYPHER_STATEMENT
 import org.neo4j.graphql.DirectiveConstants.Companion.DYNAMIC
 import org.neo4j.graphql.DirectiveConstants.Companion.DYNAMIC_PREFIX
 import org.neo4j.graphql.DirectiveConstants.Companion.PROPERTY
 import org.neo4j.graphql.DirectiveConstants.Companion.PROPERTY_NAME
-import org.neo4j.graphql.DirectiveConstants.Companion.RELATION
 import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_DIRECTION
 import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_DIRECTION_BOTH
 import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_DIRECTION_IN
@@ -19,28 +16,14 @@ import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_FROM
 import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_NAME
 import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_TO
 
-fun GraphQLType.inner(): GraphQLType = when (this) {
-    is GraphQLList -> this.wrappedType.inner()
-    is GraphQLNonNull -> this.wrappedType.inner()
-    else -> this
-}
-
 val SCALAR_TYPES = listOf("String", "ID", "Boolean", "Int", "Float", "Object")
 
 fun Type<Type<*>>.isScalar() = this.inner().name()?.let { SCALAR_TYPES.contains(it) } ?: false
 fun Type<Type<*>>.name(): String? = if (this.inner() is TypeName) (this.inner() as TypeName).name else null
-
 fun Type<Type<*>>.inner(): Type<Type<*>> = when (this) {
     is ListType -> this.type.inner()
     is NonNullType -> this.type.inner()
     else -> this
-}
-
-fun Type<Type<*>>.render(nonNull: Boolean = true): String = when (this) {
-    is ListType -> "[${this.type.render()}]"
-    is NonNullType -> this.type.render() + (if (nonNull) "!" else "")
-    is TypeName -> this.name
-    else -> throw IllegalStateException("Can't render $this")
 }
 
 fun Type<Type<*>>.optional(): Type<*> = when (this) {
@@ -51,18 +34,6 @@ fun Type<Type<*>>.optional(): Type<*> = when (this) {
 }
 
 fun Type<*>.isList() = this is ListType || (this is NonNullType && this.type is ListType)
-
-fun GraphQLType.isRelationship() = this.inner().let { it is GraphQLObjectType }
-fun GraphQLType.isRelationshipType() = this.inner().let { it is GraphQLObjectType && it.getDirective(RELATION) != null }
-fun GraphQLType.label(includeAll: Boolean = false) = when {
-    this.isRelationshipType() && this is GraphQLObjectType -> this.getRelationshipName()?.quote() ?: this.name.quote()
-    else -> when {
-        includeAll && this is GraphQLObjectType -> (listOf(this.name) + this.interfaces.map { it.name }).map { it.quote() }.joinToString(":")
-        else -> this.name.quote()
-    }
-}
-
-fun GraphQLObjectType.getRelationshipName() = this.getDirective(RELATION)?.getArgument(RELATION_NAME)?.value?.toString()
 
 fun TypeDefinition<*>.getNodeType(): NodeFacade? {
     return when (this) {
@@ -88,14 +59,6 @@ fun relDetails(type: NodeFacade,
             directiveResolver(RELATION_TO, null))
 }
 
-fun arrows(outgoing: Boolean?): Pair<String, String> {
-    return when (outgoing) {
-        false -> "<" to ""
-        true -> "" to ">"
-        null -> "" to ""
-    }
-}
-
 data class RelationshipInfo(
         val type: NodeFacade,
         val relType: String,
@@ -110,7 +73,11 @@ data class RelationshipInfo(
             val declaringType: NodeFacade
     )
 
-    val arrows = arrows(out)
+    val arrows = when (out) {
+        false -> "<" to ""
+        true -> "" to ">"
+        null -> "" to ""
+    }
 
     val typeName: String get() = this.type.name()
 
@@ -118,7 +85,7 @@ data class RelationshipInfo(
 
     fun getEndFieldId(metaProvider: MetaProvider) = getRelatedIdField(this.endField, metaProvider)
 
-    fun getRelatedIdField(relFieldName: String?, metaProvider: MetaProvider): RelatedField? {
+    private fun getRelatedIdField(relFieldName: String?, metaProvider: MetaProvider): RelatedField? {
         if (relFieldName == null) return null
         val relFieldDefinition = type.fieldDefinitions().find { it.name == relFieldName }
                 ?: throw IllegalArgumentException("field $relFieldName does not exists on ${type.name()}")
@@ -130,19 +97,9 @@ data class RelationshipInfo(
     }
 }
 
-fun GraphQLFieldDefinition.isRelationship() = this.type.isRelationship()
-
 fun Field.aliasOrName() = (this.alias ?: this.name).quote()
 fun Field.propertyName(fieldDefinition: FieldDefinition) = (fieldDefinition.propertyDirectiveName()
         ?: this.name).quote()
-
-@Deprecated(message = "cleanup")
-fun Field.propertyName(fieldDefinition: GraphQLFieldDefinition) = (fieldDefinition.propertyDirectiveName()
-        ?: this.name).quote()
-
-
-fun GraphQLFieldDefinition.propertyDirectiveName() =
-        definition.getDirective(PROPERTY)?.getArgument(PROPERTY_NAME)?.value?.toJavaValue()?.toString()
 
 fun FieldDefinition.dynamicPrefix(metaProvider: MetaProvider): String? = metaProvider.getDirectiveArgument(getDirective(DYNAMIC), DYNAMIC_PREFIX, null)
 
@@ -158,15 +115,6 @@ fun String.quote() = if (isJavaIdentifier()) this else "`$this`"
 fun String.isJavaIdentifier() =
         this[0].isJavaIdentifierStart() &&
                 this.substring(1).all { it.isJavaIdentifierPart() }
-
-fun Directive.argumentString(name: String, typeDefinitionRegistry: TypeDefinitionRegistry, defaultValue: String? = null): String {
-    return this.getArgument(name)?.value?.toJavaValue()?.toString()
-            ?: typeDefinitionRegistry.getDirectiveDefinition(this.name)
-                .map { it.inputValueDefinitions.find { it.name == name }?.defaultValue?.toJavaValue()?.toString() }
-                .orElse(defaultValue)
-            ?: defaultValue
-            ?: throw IllegalStateException("No default value for ${this.name}.$name")
-}
 
 fun Value<Value<*>>.toCypherString(): String = when (this) {
     is StringValue -> "'" + this.value + "'"

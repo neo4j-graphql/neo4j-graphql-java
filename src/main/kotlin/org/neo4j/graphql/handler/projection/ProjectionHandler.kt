@@ -1,81 +1,13 @@
-package org.neo4j.graphql.handler
+package org.neo4j.graphql.handler.projection
 
 import graphql.language.*
-import graphql.schema.idl.TypeDefinitionRegistry
 import org.neo4j.graphql.*
 import org.neo4j.graphql.Translator.*
 
 
-class ProjectionHandler(
-        type: NodeFacade,
-        fieldDefinition: FieldDefinition,
-        typeDefinitionRegistry: TypeDefinitionRegistry,
-        projectionRepository: ProjectionRepository
-) : BaseDataFetcher(type, fieldDefinition, typeDefinitionRegistry, projectionRepository) {
+class ProjectionHandler(metaProvider: MetaProvider) : ProjectionBase(metaProvider) {
 
-    private val metaProvider = TypeRegistryMetaProvider(typeDefinitionRegistry)
-
-    init {
-        projectionRepository.add(this)
-    }
-
-    override fun generateCypher(variable: String, field: Field, projectionProvider: () -> Cypher, ctx: Context): Cypher {
-        // not required
-        return Cypher.EMPTY
-    }
-
-    private fun where(variable: String, field: FieldDefinition, type: NodeFacade, arguments: List<Argument>, ctx: Context): Cypher {
-        val (objectFilterExpression, objectFilterParams) = ctx.objectFilterProvider?.invoke(variable, type)
-            ?.let { listOf(it.query) to it.params } ?: (emptyList<String>() to emptyMap())
-
-        val all = preparePredicateArguments(field, arguments).filterNot { listOf("first", "offset", "orderBy").contains(it.name) }
-        val (filterExpressions, filterParams) =
-                filterExpressions(all.find { it.name == "filter" }?.value, type)
-                    .map { it.toExpression(variable, metaProvider) }
-                    .let { expressions ->
-                        expressions.map { it.query } to expressions.fold(emptyMap<String, Any?>()) { res, exp -> res + exp.params }
-                    }
-        val noFilter = all.filter { it.name != "filter" }
-        // todo turn it into a Predicate too
-        val eqExpression = noFilter.map { (k, p, v) ->
-            (if (type.getFieldDefinition(k)?.isNativeId() == true) "ID($variable)" else "$variable.${p.quote()}") + " = \$${paramName(variable, k, v)}"
-        }
-        val expression = (objectFilterExpression + eqExpression + filterExpressions).joinNonEmpty(" AND ", " WHERE ")
-        return Cypher(expression, objectFilterParams + (filterParams + noFilter.map { (k, _, v) -> paramName(variable, k, v) to v }.toMap()))
-    }
-
-    @Deprecated(message = "get other type")
-    private fun preparePredicateArguments(field: FieldDefinition, arguments: List<Argument>): List<CypherArgument> {
-        if (arguments.isEmpty()) return emptyList()
-        val resultObjectType = metaProvider.getNodeType(field.type.name())
-                ?: throw IllegalArgumentException("${field.name} cannot be converted to a NodeGraphQlFacade")
-        val predicates = arguments.map {
-            val fieldDefinition = resultObjectType.getFieldDefinition(it.name)
-            val dynamicPrefix = fieldDefinition?.dynamicPrefix(metaProvider)
-            val result = mutableListOf<CypherArgument>()
-            if (dynamicPrefix != null && it.value is ObjectValue) {
-                for (argField in (it.value as ObjectValue).objectFields) {
-                    result += CypherArgument(it.name + argField.name.capitalize(), dynamicPrefix + argField.name, argField.value.toJavaValue())
-                }
-
-            } else {
-                result += CypherArgument(it.name, fieldDefinition?.propertyDirectiveName()
-                        ?: it.name, it.value.toJavaValue())
-            }
-            it.name to result
-        }.toMap()
-        val defaults = field.inputValueDefinitions.filter { it.defaultValue != null && !predicates.containsKey(it.name) }
-            .map { CypherArgument(it.name, it.name, it.defaultValue) }
-        return predicates.values.flatten() + defaults
-    }
-
-    private fun propertyArguments(queryField: Field) =
-            // TODO constants
-            queryField.arguments.filterNot { listOf("first", "offset", "orderBy").contains(it.name) }
-
-    //    TODO clean up
-
-    public fun projectFields(variable: String, field: Field, nodeType: NodeFacade, ctx: Context, variableSuffix: String?): Cypher {
+    fun projectFields(variable: String, field: Field, nodeType: NodeFacade, ctx: Context, variableSuffix: String?): Cypher {
         val properties = field.selectionSet.selections.flatMap {
             when (it) {
                 is Field -> listOf(projectField(variable, it, nodeType, ctx, variableSuffix))
@@ -226,64 +158,6 @@ class ProjectionHandler(
         return Cypher(comprehension + slice.query, (where.params + fieldProjection.params + slice.params))
     }
 
-    protected fun relDetails(type: NodeFacade, relDirective: Directive) =
-            relDetails(type) { name, defaultValue -> relDirective.argumentString(name, typeDefinitionRegistry, defaultValue) }
-
-
-    private fun filterExpressions(value: Any?, type: NodeFacade): List<Predicate> {
-        // todo variable/parameter
-        return if (value is Map<*, *>) {
-            CompoundPredicate(value.map { (k, v) -> toExpression(k.toString(), v, type, metaProvider) }, "AND").parts
-        } else emptyList()
-    }
-
-    class SkipLimit(variable: String,
-            arguments: List<Argument>,
-            private val skip: CypherArgument? = convertArgument(variable, arguments, "offset"),
-            private val limit: CypherArgument? = convertArgument(variable, arguments, "first")) {
-
-        fun format(): Cypher {
-            return if (skip != null) {
-                if (limit != null) Cypher(" SKIP $${skip.propertyName} LIMIT $${limit.propertyName}", mapOf(
-                        skip.propertyName to skip.value,
-                        limit.propertyName to limit.value)
-                )
-                else Cypher(" SKIP $${skip.propertyName}", mapOf(skip.propertyName to skip.value))
-            } else {
-                if (limit != null) Cypher(" LIMIT $${limit.propertyName}", mapOf(limit.propertyName to limit.value))
-                else Cypher.EMPTY
-            }
-        }
-
-        fun slice(list: Boolean = false): Cypher {
-            if (!list) {
-                return if (skip != null) {
-                    Cypher("[$${skip.propertyName}]", mapOf(skip.propertyName to skip.value))
-                } else {
-                    Cypher("[0]")
-                }
-            }
-
-            return when (limit) {
-                null -> when {
-                    skip != null -> Cypher("[$${skip.propertyName}..]", mapOf(skip.propertyName to skip.value))
-                    else -> Cypher.EMPTY
-                }
-                else -> when {
-                    skip != null -> Cypher("[$${skip.propertyName}.. $${skip.propertyName} + $${limit.propertyName}]", mapOf(
-                            skip.propertyName to skip.value,
-                            limit.propertyName to limit.value))
-                    else -> Cypher("[0..$${limit.propertyName}]", mapOf(limit.propertyName to limit.value))
-                }
-            }
-        }
-
-        companion object {
-            private fun convertArgument(variable: String, arguments: List<Argument>, name: String): CypherArgument? {
-                val argument = arguments.find { it.name.toLowerCase() == name } ?: return null
-                return CypherArgument(name, paramName(variable, argument.name, argument), argument.value?.toJavaValue())
-            }
-        }
-    }
-
+    private fun relDetails(type: NodeFacade, relDirective: Directive) =
+            relDetails(type) { name, defaultValue -> metaProvider.getDirectiveArgument(relDirective, name, defaultValue) }
 }

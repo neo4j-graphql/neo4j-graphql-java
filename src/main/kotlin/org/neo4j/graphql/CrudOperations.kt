@@ -1,10 +1,11 @@
 package org.neo4j.graphql
 
 import graphql.language.*
-import graphql.schema.idl.TypeDefinitionRegistry
 import org.neo4j.graphql.DirectiveConstants.Companion.RELATION
 import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_NAME
 import org.neo4j.graphql.handler.*
+import org.neo4j.graphql.handler.projection.ProjectionHandler
+import org.neo4j.graphql.handler.projection.ProjectionRepository
 import org.neo4j.graphql.handler.relation.CreateRelationHandler
 import org.neo4j.graphql.handler.relation.CreateRelationTypeHandler
 import org.neo4j.graphql.handler.relation.DeleteRelationHandler
@@ -22,7 +23,7 @@ data class Augmentation(
 fun createNodeMutation(
         ctx: Translator.Context,
         type: NodeFacade,
-        typeDefinitionRegistry: TypeDefinitionRegistry,
+        metaProvider: MetaProvider,
         projectionRepository: ProjectionRepository)
         : Augmentation {
     val typeName = type.name()
@@ -38,7 +39,6 @@ fun createNodeMutation(
     if (ctx.mutation.enabled && !ctx.mutation.exclude.contains(typeName)) {
         if (type is ObjectDefinitionNodeFacade) {
             if (isRelation) {
-                val metaProvider = TypeRegistryMetaProvider(typeDefinitionRegistry) // TODO move out
                 val relation = type.relationship(metaProvider)!!
                 val startIdField = relation.getStartFieldId(metaProvider)
                 val endIdField = relation.getEndFieldId(metaProvider)
@@ -58,14 +58,14 @@ fun createNodeMutation(
                             startIdField,
                             endIdField,
                             builder.build(),
-                            typeDefinitionRegistry,
+                            metaProvider,
                             projectionRepository)
 
                 }
             } else {
                 result.create = CreateTypeHandler(type,
                         createFieldDefinition("create", typeName, scalarFields.filter { !it.isNativeId() }).build(),
-                        typeDefinitionRegistry,
+                        metaProvider,
                         projectionRepository)
             }
         }
@@ -77,7 +77,7 @@ fun createNodeMutation(
                         .description(Description("Deletes $typeName and returns its ID on successful deletion", null, false))
                         .type(idField.type.inner())
                         .build(),
-                    typeDefinitionRegistry,
+                    metaProvider,
                     projectionRepository)
 
             if (scalarFields.any { !it.isID() }) {
@@ -85,14 +85,14 @@ fun createNodeMutation(
                         true,
                         idField,
                         createFieldDefinition("merge", typeName, scalarFields).build(),
-                        typeDefinitionRegistry,
+                        metaProvider,
                         projectionRepository)
 
                 result.update = MergeOrUpdateHandler(type,
                         false,
                         idField,
                         createFieldDefinition("update", typeName, scalarFields).build(),
-                        typeDefinitionRegistry,
+                        metaProvider,
                         projectionRepository)
             }
         }
@@ -126,10 +126,9 @@ fun createNodeMutation(
                     .inputValueDefinition(input("offset", TypeName("Int")))
                     .type(NonNullType(ListType(NonNullType(TypeName(typeName)))))
                     .build(),
-                typeDefinitionRegistry,
+                metaProvider,
                 projectionRepository)
-        // TODO abg
-        projectionRepository.add(ProjectionHandler(type, (result.query as QueryHandler).fieldDefinition, typeDefinitionRegistry, projectionRepository))
+        projectionRepository.add(type.name(), ProjectionHandler(metaProvider))
     }
     return result
 }
@@ -138,7 +137,7 @@ fun createRelationshipMutation(
         ctx: Translator.Context,
         source: ObjectTypeDefinition,
         target: ObjectTypeDefinition,
-        typeDefinitionRegistry: TypeDefinitionRegistry,
+        metaProvider: MetaProvider,
         projectionRepository: ProjectionRepository,
         relationTypes: Map<String, ObjectTypeDefinition>? = emptyMap()
 ): Augmentation? {
@@ -166,7 +165,6 @@ fun createRelationshipMutation(
 
     val sourceNodeType = source.getNodeType()!!
     val targetNodeType = target.getNodeType()!!
-    val metaProvider = TypeRegistryMetaProvider(typeDefinitionRegistry)
     val relation = sourceNodeType.relationshipFor(targetField.name, metaProvider)
             ?: throw IllegalArgumentException("could not resolve relation for " + source.name + "::" + targetField.name)
 
@@ -181,7 +179,7 @@ fun createRelationshipMutation(
                 .inputValueDefinition(input(targetField.name, targetIDType))
                 .type(NonNullType(TypeName(sourceTypeName)))
                 .build(),
-            typeDefinitionRegistry,
+            metaProvider,
             projectionRepository)
 
 
@@ -201,7 +199,7 @@ fun createRelationshipMutation(
             RelationshipInfo.RelatedField(sourceIdField.name, sourceIdField, sourceNodeType),
             RelationshipInfo.RelatedField(targetField.name, targetIdField, targetNodeType),
             type.build(),
-            typeDefinitionRegistry,
+            metaProvider,
             projectionRepository)
     return result
 }

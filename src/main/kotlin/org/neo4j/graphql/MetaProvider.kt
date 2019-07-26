@@ -28,9 +28,9 @@ class TypeRegistryMetaProvider(private val typeRegistry: TypeDefinitionRegistry)
     }
 
     private fun getDirectiveDefinition(name: String?): DirectiveDefinition? {
-        when (name) {
-            null -> return null
-            else -> return typeRegistry.getDirectiveDefinition(name).orElse(null)
+        return when (name) {
+            null -> null
+            else -> typeRegistry.getDirectiveDefinition(name).orElse(null)
         }
     }
 

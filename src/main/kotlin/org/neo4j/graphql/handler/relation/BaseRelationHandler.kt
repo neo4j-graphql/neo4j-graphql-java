@@ -2,13 +2,9 @@ package org.neo4j.graphql.handler.relation
 
 import graphql.language.Argument
 import graphql.language.FieldDefinition
-import graphql.schema.idl.TypeDefinitionRegistry
-import org.neo4j.graphql.NodeFacade
-import org.neo4j.graphql.RelationshipInfo
-import org.neo4j.graphql.Translator
+import org.neo4j.graphql.*
 import org.neo4j.graphql.handler.BaseDataFetcher
-import org.neo4j.graphql.handler.ProjectionRepository
-import org.neo4j.graphql.quote
+import org.neo4j.graphql.handler.projection.ProjectionRepository
 
 abstract class BaseRelationHandler(
         type: NodeFacade,
@@ -16,9 +12,9 @@ abstract class BaseRelationHandler(
         val startId: RelationshipInfo.RelatedField,
         val endId: RelationshipInfo.RelatedField,
         fieldDefinition: FieldDefinition,
-        typeDefinitionRegistry: TypeDefinitionRegistry,
+        metaProvider: MetaProvider,
         projectionRepository: ProjectionRepository)
-    : BaseDataFetcher(type, fieldDefinition, typeDefinitionRegistry, projectionRepository) {
+    : BaseDataFetcher(type, fieldDefinition, metaProvider, projectionRepository) {
 
     init {
         propertyFields.remove(startId.argumentName)
