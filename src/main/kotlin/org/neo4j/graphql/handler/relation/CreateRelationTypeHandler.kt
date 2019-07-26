@@ -4,7 +4,7 @@ import graphql.language.Field
 import graphql.language.FieldDefinition
 import org.neo4j.graphql.*
 
-class CreateRelationTypeHandler(
+class CreateRelationTypeHandler private constructor(
         type: NodeFacade,
         relation: RelationshipInfo,
         startId: RelationshipInfo.RelatedField,
@@ -13,6 +13,31 @@ class CreateRelationTypeHandler(
         metaProvider: MetaProvider)
     : BaseRelationHandler(type, relation, startId, endId, fieldDefinition, metaProvider) {
 
+    companion object {
+        fun build(type: ObjectDefinitionNodeFacade, metaProvider: MetaProvider): CreateRelationTypeHandler? {
+            val scalarFields = type.scalarFields()
+            if (scalarFields.isEmpty()) {
+                return null
+            }
+            val relation = type.relationship(metaProvider)!!
+            val startIdField = relation.getStartFieldId(metaProvider)
+            val endIdField = relation.getEndFieldId(metaProvider)
+            if (startIdField == null || endIdField == null) {
+                return null
+            }
+            val createArgs = scalarFields
+                .filter { !it.isNativeId() }
+                .filter { it.name != startIdField.argumentName }
+                .filter { it.name != endIdField.argumentName }
+
+            val builder = createFieldDefinition("create", type.name(), emptyList())
+                .inputValueDefinition(input(startIdField.argumentName, startIdField.field.type))
+                .inputValueDefinition(input(endIdField.argumentName, endIdField.field.type))
+            createArgs.forEach { builder.inputValueDefinition(input(it.name, it.type)) }
+
+            return CreateRelationTypeHandler(type, relation, startIdField, endIdField, builder.build(), metaProvider)
+        }
+    }
 
     override fun generateCypher(
             variable: String,

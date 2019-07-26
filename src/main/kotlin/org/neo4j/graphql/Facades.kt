@@ -16,6 +16,8 @@ interface NodeFacade {
         return metaProvider.getNodeType(fieldDefinition.type.name()) != null
     }
 
+    fun scalarFields(): List<FieldDefinition> = fieldDefinitions().filter { it.type.isScalar() }.sortedByDescending { it.isID() }
+
     fun isRelationType(): Boolean = this.getDirective(DirectiveConstants.RELATION) != null
 
     fun relationshipFor(name: String, metaProvider: MetaProvider): RelationshipInfo? {

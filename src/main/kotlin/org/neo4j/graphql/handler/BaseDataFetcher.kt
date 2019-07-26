@@ -130,5 +130,26 @@ abstract class BaseDataFetcher(
                 else -> Translator.Cypher.EMPTY
             }
         }
+
+        fun input(name: String, type: Type<*>): InputValueDefinition {
+            return InputValueDefinition.newInputValueDefinition().name(name).type(type).build()
+        }
+
+        fun createFieldDefinition(
+                prefix: String,
+                typeName: String,
+                scalarFields: List<FieldDefinition>,
+                forceOptionalProvider: (field: FieldDefinition) -> Boolean = { false }
+        ): FieldDefinition.Builder {
+            return FieldDefinition.newFieldDefinition()
+                .name("$prefix$typeName")
+                .inputValueDefinitions(getInputValueDefinitions(scalarFields, forceOptionalProvider))
+                .type(NonNullType(TypeName(typeName)))
+        }
+
+        fun getInputValueDefinitions(scalarFields: List<FieldDefinition>, forceOptionalProvider: (field: FieldDefinition) -> Boolean): List<InputValueDefinition> {
+            return scalarFields
+                .map { input(it.name, if (forceOptionalProvider.invoke(it)) it.type.optional() else it.type) }
+        }
     }
 }

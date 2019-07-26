@@ -2,19 +2,29 @@ package org.neo4j.graphql.handler
 
 import graphql.language.Field
 import graphql.language.FieldDefinition
-import org.neo4j.graphql.MetaProvider
-import org.neo4j.graphql.NodeFacade
-import org.neo4j.graphql.Translator
-import org.neo4j.graphql.isNativeId
+import org.neo4j.graphql.*
 
-class MergeOrUpdateHandler(
+class MergeOrUpdateHandler private constructor(
         type: NodeFacade,
-        val merge: Boolean,
-        val idField: FieldDefinition,
+        private val merge: Boolean,
+        private val idField: FieldDefinition,
         fieldDefinition: FieldDefinition,
         metaProvider: MetaProvider,
         private val isRealtion: Boolean = type.isRelationType()
 ) : BaseDataFetcher(type, fieldDefinition, metaProvider) {
+
+    companion object {
+        fun build(type: NodeFacade, merge: Boolean, metaProvider: MetaProvider): MergeOrUpdateHandler? {
+            val idField = type.fieldDefinitions().find { it.isID() } ?: return null
+            val scalarFields = type.scalarFields()
+            if (scalarFields.none { !it.isID() }) {
+                // nothing to update (except ID)
+                return null
+            }
+            val fieldDefinition = createFieldDefinition(if (merge) "merge" else "update", type.name(), scalarFields).build()
+            return MergeOrUpdateHandler(type, merge, idField, fieldDefinition, metaProvider)
+        }
+    }
 
     init {
         defaultFields.clear()

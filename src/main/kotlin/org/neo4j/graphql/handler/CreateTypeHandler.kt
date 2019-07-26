@@ -2,15 +2,24 @@ package org.neo4j.graphql.handler
 
 import graphql.language.Field
 import graphql.language.FieldDefinition
-import org.neo4j.graphql.MetaProvider
-import org.neo4j.graphql.NodeFacade
-import org.neo4j.graphql.Translator
+import org.neo4j.graphql.*
 
-class CreateTypeHandler(
+class CreateTypeHandler private constructor(
         type: NodeFacade,
         fieldDefinition: FieldDefinition,
         metaProvider: MetaProvider
 ) : BaseDataFetcher(type, fieldDefinition, metaProvider) {
+
+    companion object {
+        fun build(type: ObjectDefinitionNodeFacade, metaProvider: MetaProvider): CreateTypeHandler? {
+            val scalarFields = type.scalarFields()
+            if (scalarFields.isEmpty()) {
+                return null
+            }
+            val fieldDefinition = createFieldDefinition("create", type.name(), scalarFields.filter { !it.isNativeId() }).build()
+            return CreateTypeHandler(type, fieldDefinition, metaProvider)
+        }
+    }
 
     override fun generateCypher(variable: String, field: Field, projectionProvider: () -> Translator.Cypher, ctx: Translator.Context): Translator.Cypher {
         val properties = properties(variable, field.arguments)

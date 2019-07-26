@@ -9,7 +9,6 @@ import graphql.schema.idl.SchemaGenerator
 import graphql.schema.idl.SchemaParser
 import graphql.schema.idl.TypeDefinitionRegistry
 import org.neo4j.graphql.handler.BaseDataFetcher
-import org.neo4j.graphql.handler.CypherDirectiveHandler
 import org.neo4j.graphql.handler.QueryHandler
 
 object SchemaBuilder {
@@ -28,8 +27,8 @@ object SchemaBuilder {
         val runtimeWiring = builder.build()
 
         val schemaGenerator = SchemaGenerator()
+        // todo add new queries, filters, enums etc.
         return schemaGenerator.makeExecutableSchema(augmentedTypeDefinitionRegistry, runtimeWiring)
-            .transform { sc -> sc.build() } // todo add new queries, filters, enums etc.
     }
 
     private fun augmentSchema(
@@ -70,17 +69,8 @@ object SchemaBuilder {
 
         var queryDefinition = getOrCreateObjectTypeDefinition("Query", schemaDefinition, typeDefinitionRegistry)
         for (fieldDefinition in queryDefinition.fieldDefinitions) {
-            builder.type(queryDefinition.name) {
-                val cypherDirective = fieldDefinition.cypherDirective()
-                val type: NodeFacade = typeDefinitionRegistry.getType(fieldDefinition.type.name())
-                    .orElseThrow { IllegalStateException("cannot find type " + fieldDefinition.type.name()) }
-                    .getNodeType()!!
-                val baseDataFetcher = if (cypherDirective != null) {
-                    CypherDirectiveHandler(type, true, cypherDirective, fieldDefinition, metaProvider)
-                } else {
-                    QueryHandler(type, fieldDefinition, metaProvider)
-                }
-                it.dataFetcher(fieldDefinition.name, baseDataFetcher)
+            QueryHandler.build(fieldDefinition, true, metaProvider)?.let {
+                builder.type(queryDefinition.name) { runtimeWiring -> runtimeWiring.dataFetcher(fieldDefinition.name, it) }
             }
         }
 
@@ -89,15 +79,8 @@ object SchemaBuilder {
 
         var mutationDefinition = getOrCreateObjectTypeDefinition("Mutation", schemaDefinition, typeDefinitionRegistry)
         for (fieldDefinition in mutationDefinition.fieldDefinitions) {
-            val cypherDirective: Translator.Cypher? = fieldDefinition.cypherDirective()
-            if (cypherDirective != null) {
-                builder.type(mutationDefinition.name) {
-                    val type: NodeFacade = typeDefinitionRegistry.getType(fieldDefinition.type.name())
-                        .orElseThrow { IllegalStateException("cannot find type " + fieldDefinition.type.name()) }
-                        .getNodeType()!!
-                    val baseDataFetcher = CypherDirectiveHandler(type, false, cypherDirective, fieldDefinition, metaProvider)
-                    it.dataFetcher(fieldDefinition.name, baseDataFetcher)
-                }
+            QueryHandler.build(fieldDefinition, false, metaProvider)?.let {
+                builder.type(mutationDefinition.name) { runtimeWiring -> runtimeWiring.dataFetcher(fieldDefinition.name, it) }
             }
         }
         val mutations = augmentations.flatMap { listOf(it.create, it.update, it.delete, it.merge) }
