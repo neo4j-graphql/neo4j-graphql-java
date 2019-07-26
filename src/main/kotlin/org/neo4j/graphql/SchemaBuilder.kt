@@ -11,7 +11,6 @@ import graphql.schema.idl.TypeDefinitionRegistry
 import org.neo4j.graphql.handler.BaseDataFetcher
 import org.neo4j.graphql.handler.CypherDirectiveHandler
 import org.neo4j.graphql.handler.QueryHandler
-import org.neo4j.graphql.handler.projection.ProjectionRepository
 
 object SchemaBuilder {
     @JvmStatic
@@ -41,8 +40,6 @@ object SchemaBuilder {
         val directivesSdl = javaClass.getResource("/neo4j_directives.graphql").readText()
         typeDefinitionRegistry.merge(schemaParser.parse(directivesSdl))
 
-        val projectionRepository = ProjectionRepository()
-
         val interfaceTypeDefinitions = typeDefinitionRegistry.types().values.filterIsInstance<InterfaceTypeDefinition>()
         val objectTypeDefinitions = typeDefinitionRegistry.types().values.filterIsInstance<ObjectTypeDefinition>()
 
@@ -50,15 +47,15 @@ object SchemaBuilder {
 
         val metaProvider = TypeRegistryMetaProvider(typeDefinitionRegistry)
 
-        val nodeMutations = nodeDefinitions.map { createNodeMutation(ctx, it.getNodeType()!!, metaProvider, projectionRepository) }
+        val nodeMutations = nodeDefinitions.map { createNodeMutation(ctx, it.getNodeType()!!, metaProvider) }
         val relationTypes = objectTypeDefinitions
             .filter { it.getDirective(DirectiveConstants.RELATION) != null }
             .map { it.getDirective(DirectiveConstants.RELATION).getArgument(DirectiveConstants.RELATION_NAME).value.toJavaValue().toString() to it }
             .toMap()
 
         val relMutations = objectTypeDefinitions.flatMap { source ->
-            createRelationshipMutations(source, objectTypeDefinitions, relationTypes, metaProvider, projectionRepository, ctx)
-        } + relationTypes.values.map { createNodeMutation(ctx, it.getNodeType()!!, metaProvider, projectionRepository) }
+            createRelationshipMutations(source, objectTypeDefinitions, relationTypes, metaProvider, ctx)
+        } + relationTypes.values.map { createNodeMutation(ctx, it.getNodeType()!!, metaProvider) }
 
         val augmentations = nodeMutations + relMutations
 
@@ -79,9 +76,9 @@ object SchemaBuilder {
                     .orElseThrow { IllegalStateException("cannot find type " + fieldDefinition.type.name()) }
                     .getNodeType()!!
                 val baseDataFetcher = if (cypherDirective != null) {
-                    CypherDirectiveHandler(type, true, cypherDirective, fieldDefinition, metaProvider, projectionRepository)
+                    CypherDirectiveHandler(type, true, cypherDirective, fieldDefinition, metaProvider)
                 } else {
-                    QueryHandler(type, fieldDefinition, metaProvider, projectionRepository)
+                    QueryHandler(type, fieldDefinition, metaProvider)
                 }
                 it.dataFetcher(fieldDefinition.name, baseDataFetcher)
             }
@@ -98,7 +95,7 @@ object SchemaBuilder {
                     val type: NodeFacade = typeDefinitionRegistry.getType(fieldDefinition.type.name())
                         .orElseThrow { IllegalStateException("cannot find type " + fieldDefinition.type.name()) }
                         .getNodeType()!!
-                    val baseDataFetcher = CypherDirectiveHandler(type, false, cypherDirective, fieldDefinition, metaProvider, projectionRepository)
+                    val baseDataFetcher = CypherDirectiveHandler(type, false, cypherDirective, fieldDefinition, metaProvider)
                     it.dataFetcher(fieldDefinition.name, baseDataFetcher)
                 }
             }
@@ -167,7 +164,6 @@ object SchemaBuilder {
             objectTypeDefinitions: List<ObjectTypeDefinition>,
             relationTypes: Map<String, ObjectTypeDefinition>?,
             metaProvider: MetaProvider,
-            projectionRepository: ProjectionRepository,
             ctx: Translator.Context): List<Augmentation> {
 
         return source.fieldDefinitions
@@ -175,7 +171,7 @@ object SchemaBuilder {
             .mapNotNull { targetField ->
                 objectTypeDefinitions.firstOrNull { it.name == targetField.type.inner().name() }
                     ?.let { target ->
-                        createRelationshipMutation(ctx, source, target, metaProvider, projectionRepository, relationTypes)
+                        createRelationshipMutation(ctx, source, target, metaProvider, relationTypes)
                     }
             }
     }

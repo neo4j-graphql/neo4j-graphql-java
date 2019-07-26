@@ -5,15 +5,13 @@ import graphql.language.FieldDefinition
 import org.neo4j.graphql.MetaProvider
 import org.neo4j.graphql.NodeFacade
 import org.neo4j.graphql.Translator
-import org.neo4j.graphql.handler.projection.ProjectionRepository
 import org.neo4j.graphql.isList
 
 class QueryHandler(
         type: NodeFacade,
         fieldDefinition: FieldDefinition,
-        metaProvider: MetaProvider,
-        projectionRepository: ProjectionRepository)
-    : BaseDataFetcher(type, fieldDefinition, metaProvider, projectionRepository) {
+        metaProvider: MetaProvider)
+    : BaseDataFetcher(type, fieldDefinition, metaProvider) {
 
     private val isList = fieldDefinition.type.isList()
 

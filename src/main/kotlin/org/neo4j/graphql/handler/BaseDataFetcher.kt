@@ -5,13 +5,11 @@ import graphql.schema.DataFetcher
 import graphql.schema.DataFetchingEnvironment
 import org.neo4j.graphql.*
 import org.neo4j.graphql.handler.projection.ProjectionBase
-import org.neo4j.graphql.handler.projection.ProjectionRepository
 
 abstract class BaseDataFetcher(
         val type: NodeFacade,
         val fieldDefinition: FieldDefinition,
-        metaProvider: MetaProvider,
-        val projectionRepository: ProjectionRepository
+        metaProvider: MetaProvider
 ) : ProjectionBase(metaProvider), DataFetcher<Translator.Cypher> {
 
     val propertyFields: MutableMap<String, (Value<Value<*>>) -> List<Translator.CypherArgument>?> = mutableMapOf()
@@ -62,8 +60,7 @@ abstract class BaseDataFetcher(
                 variable,
                 field,
                 {
-                    projectionRepository.getHandler(type.name())?.projectFields(variable, field, type, ctx, null)
-                            ?: Translator.Cypher.EMPTY
+                    projectFields(variable, field, type, ctx, null)
                 },
                 ctx)
     }

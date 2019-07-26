@@ -4,7 +4,6 @@ import graphql.language.Argument
 import graphql.language.FieldDefinition
 import org.neo4j.graphql.*
 import org.neo4j.graphql.handler.BaseDataFetcher
-import org.neo4j.graphql.handler.projection.ProjectionRepository
 
 abstract class BaseRelationHandler(
         type: NodeFacade,
@@ -12,9 +11,8 @@ abstract class BaseRelationHandler(
         val startId: RelationshipInfo.RelatedField,
         val endId: RelationshipInfo.RelatedField,
         fieldDefinition: FieldDefinition,
-        metaProvider: MetaProvider,
-        projectionRepository: ProjectionRepository)
-    : BaseDataFetcher(type, fieldDefinition, metaProvider, projectionRepository) {
+        metaProvider: MetaProvider)
+    : BaseDataFetcher(type, fieldDefinition, metaProvider) {
 
     init {
         propertyFields.remove(startId.argumentName)

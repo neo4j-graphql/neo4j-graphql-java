@@ -3,7 +3,6 @@ package org.neo4j.graphql.handler.relation
 import graphql.language.Field
 import graphql.language.FieldDefinition
 import org.neo4j.graphql.*
-import org.neo4j.graphql.handler.projection.ProjectionRepository
 
 class CreateRelationHandler(
         type: NodeFacade,
@@ -11,9 +10,8 @@ class CreateRelationHandler(
         startId: RelationshipInfo.RelatedField,
         endId: RelationshipInfo.RelatedField,
         fieldDefinition: FieldDefinition,
-        metaProvider: MetaProvider,
-        projectionRepository: ProjectionRepository)
-    : BaseRelationHandler(type, relation, startId, endId, fieldDefinition, metaProvider, projectionRepository) {
+        metaProvider: MetaProvider)
+    : BaseRelationHandler(type, relation, startId, endId, fieldDefinition, metaProvider) {
 
     override fun generateCypher(
             variable: String,

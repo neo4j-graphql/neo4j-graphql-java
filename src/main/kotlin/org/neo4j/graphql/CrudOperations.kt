@@ -4,8 +4,6 @@ import graphql.language.*
 import org.neo4j.graphql.DirectiveConstants.Companion.RELATION
 import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_NAME
 import org.neo4j.graphql.handler.*
-import org.neo4j.graphql.handler.projection.ProjectionHandler
-import org.neo4j.graphql.handler.projection.ProjectionRepository
 import org.neo4j.graphql.handler.relation.CreateRelationHandler
 import org.neo4j.graphql.handler.relation.CreateRelationTypeHandler
 import org.neo4j.graphql.handler.relation.DeleteRelationHandler
@@ -20,12 +18,7 @@ data class Augmentation(
         var filterType: InputObjectTypeDefinition? = null,
         var query: BaseDataFetcher? = null)
 
-fun createNodeMutation(
-        ctx: Translator.Context,
-        type: NodeFacade,
-        metaProvider: MetaProvider,
-        projectionRepository: ProjectionRepository)
-        : Augmentation {
+fun createNodeMutation(ctx: Translator.Context, type: NodeFacade, metaProvider: MetaProvider): Augmentation {
     val typeName = type.name()
     val idField = type.fieldDefinitions().find { it.isID() }
     val scalarFields = type.fieldDefinitions().filter { it.type.isScalar() }.sortedByDescending { it == idField }
@@ -58,15 +51,13 @@ fun createNodeMutation(
                             startIdField,
                             endIdField,
                             builder.build(),
-                            metaProvider,
-                            projectionRepository)
+                            metaProvider)
 
                 }
             } else {
                 result.create = CreateTypeHandler(type,
                         createFieldDefinition("create", typeName, scalarFields.filter { !it.isNativeId() }).build(),
-                        metaProvider,
-                        projectionRepository)
+                        metaProvider)
             }
         }
         if (idField != null) {
@@ -77,23 +68,20 @@ fun createNodeMutation(
                         .description(Description("Deletes $typeName and returns its ID on successful deletion", null, false))
                         .type(idField.type.inner())
                         .build(),
-                    metaProvider,
-                    projectionRepository)
+                    metaProvider)
 
             if (scalarFields.any { !it.isID() }) {
                 result.merge = MergeOrUpdateHandler(type,
                         true,
                         idField,
                         createFieldDefinition("merge", typeName, scalarFields).build(),
-                        metaProvider,
-                        projectionRepository)
+                        metaProvider)
 
                 result.update = MergeOrUpdateHandler(type,
                         false,
                         idField,
                         createFieldDefinition("update", typeName, scalarFields).build(),
-                        metaProvider,
-                        projectionRepository)
+                        metaProvider)
             }
         }
     }
@@ -126,9 +114,8 @@ fun createNodeMutation(
                     .inputValueDefinition(input("offset", TypeName("Int")))
                     .type(NonNullType(ListType(NonNullType(TypeName(typeName)))))
                     .build(),
-                metaProvider,
-                projectionRepository)
-        projectionRepository.add(type.name(), ProjectionHandler(metaProvider))
+                metaProvider)
+//        projectionRepository.add(type.name(), ProjectionHandler(metaProvider))
     }
     return result
 }
@@ -138,7 +125,6 @@ fun createRelationshipMutation(
         source: ObjectTypeDefinition,
         target: ObjectTypeDefinition,
         metaProvider: MetaProvider,
-        projectionRepository: ProjectionRepository,
         relationTypes: Map<String, ObjectTypeDefinition>? = emptyMap()
 ): Augmentation? {
     val sourceTypeName = source.name
@@ -179,8 +165,7 @@ fun createRelationshipMutation(
                 .inputValueDefinition(input(targetField.name, targetIDType))
                 .type(NonNullType(TypeName(sourceTypeName)))
                 .build(),
-            metaProvider,
-            projectionRepository)
+            metaProvider)
 
 
     val type = FieldDefinition.newFieldDefinition()
@@ -199,8 +184,7 @@ fun createRelationshipMutation(
             RelationshipInfo.RelatedField(sourceIdField.name, sourceIdField, sourceNodeType),
             RelationshipInfo.RelatedField(targetField.name, targetIdField, targetNodeType),
             type.build(),
-            metaProvider,
-            projectionRepository)
+            metaProvider)
     return result
 }
 

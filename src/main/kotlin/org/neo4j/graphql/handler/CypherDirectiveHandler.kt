@@ -5,16 +5,14 @@ import graphql.language.FieldDefinition
 import org.neo4j.graphql.MetaProvider
 import org.neo4j.graphql.NodeFacade
 import org.neo4j.graphql.Translator
-import org.neo4j.graphql.handler.projection.ProjectionRepository
 
 class CypherDirectiveHandler(
         type: NodeFacade,
         private val isQuery: Boolean,
         private val cypherDirective: Translator.Cypher,
         fieldDefinition: FieldDefinition,
-        metaProvider: MetaProvider,
-        projectionRepository: ProjectionRepository)
-    : BaseDataFetcher(type, fieldDefinition, metaProvider, projectionRepository) {
+        metaProvider: MetaProvider)
+    : BaseDataFetcher(type, fieldDefinition, metaProvider) {
 
     override fun generateCypher(variable: String, field: Field, projectionProvider: () -> Translator.Cypher, ctx: Translator.Context): Translator.Cypher {
         val mapProjection = projectionProvider.invoke()
