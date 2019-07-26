@@ -3,10 +3,11 @@ package org.neo4j.graphql
 import graphql.parser.InvalidSyntaxException
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.neo4j.graphql.utils.CypherTestSuite
 
 class TranslatorExceptionTest {
 
-    private val testSuite = AsciiDocTestSuite("translator-tests1.adoc")
+    private val testSuite = CypherTestSuite("translator-tests1.adoc")
 
     @Test
     fun unknownType() {
