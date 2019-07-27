@@ -61,7 +61,7 @@ abstract class BaseRelationHandler(
     }
 
 
-    fun getRelationSelect(start: Boolean, arguments: Map<String, Argument>): Translator.Cypher {
+    fun getRelationSelect(start: Boolean, arguments: Map<String, Argument>): Cypher {
         val relFieldName: String
         val idField: RelationshipInfo.RelatedField
         if (start) {

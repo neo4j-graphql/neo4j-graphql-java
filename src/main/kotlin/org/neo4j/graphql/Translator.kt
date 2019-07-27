@@ -23,15 +23,6 @@ class Translator(val schema: GraphQLSchema) {
 
     data class CRUDConfig(val enabled: Boolean = true, val exclude: List<String> = emptyList())
 
-    data class Cypher(val query: String, val params: Map<String, Any?> = emptyMap(), var list: Boolean = true) {
-        fun with(p: Map<String, Any?>) = this.copy(params = this.params + p)
-        fun escapedQuery() = query.replace("\"", "\\\"").replace("'", "\\'")
-
-        companion object {
-            val EMPTY = Cypher("")
-        }
-    }
-
     /**
      * @param name the name used by the graphQL query
      * @param propertyName the name used in neo4j

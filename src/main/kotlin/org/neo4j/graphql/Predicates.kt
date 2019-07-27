@@ -10,7 +10,7 @@ import graphql.schema.GraphQLTypeReference
 import org.neo4j.graphql.Predicate.Companion.resolvePredicate
 
 interface Predicate {
-    fun toExpression(variable: String, metaProvider: MetaProvider): Translator.Cypher
+    fun toExpression(variable: String, metaProvider: MetaProvider): Cypher
 
     companion object {
         fun resolvePredicate(name: String, value: Any?, type: NodeFacade, metaProvider: MetaProvider): Predicate {
@@ -53,10 +53,10 @@ fun toExpression(name: String, value: Any?, type: NodeFacade, metaProvider: Meta
         }
 
 data class CompoundPredicate(val parts: List<Predicate>, val op: String = "AND") : Predicate {
-    override fun toExpression(variable: String, metaProvider: MetaProvider): Translator.Cypher =
+    override fun toExpression(variable: String, metaProvider: MetaProvider): Cypher =
             parts.map { it.toExpression(variable, metaProvider) }
                 .let { expressions ->
-                    Translator.Cypher(
+                    Cypher(
                             expressions.map { it.query }.joinNonEmpty(" $op ", "(", ")"),
                             expressions.fold(emptyMap()) { res, exp -> res + exp.params }
                     )
@@ -64,20 +64,20 @@ data class CompoundPredicate(val parts: List<Predicate>, val op: String = "AND")
 }
 
 data class IsNullPredicate(val fieldName: String, val op: Operators, val type: NodeFacade) : Predicate {
-    override fun toExpression(variable: String, metaProvider: MetaProvider): Translator.Cypher {
+    override fun toExpression(variable: String, metaProvider: MetaProvider): Cypher {
         val rel = type.relationshipFor(fieldName, metaProvider) ?: throw IllegalArgumentException("Not a relation")
         val (left, right) = rel.arrows
         val not = if (op.not) "" else "NOT "
-        return Translator.Cypher("$not($variable)$left-[:${rel.relType}]-$right()")
+        return Cypher("$not($variable)$left-[:${rel.relType}]-$right()")
     }
 }
 
 data class ExpressionPredicate(val name: String, val op: Operators, val value: Any?, val fieldDefinition: FieldDefinition) : Predicate {
     val not = if (op.not) "NOT " else ""
-    override fun toExpression(variable: String, metaProvider: MetaProvider): Translator.Cypher {
+    override fun toExpression(variable: String, metaProvider: MetaProvider): Cypher {
         val paramName: String = "filter" + paramName(variable, name, value).capitalize()
         val field = if (fieldDefinition.isNativeId()) "ID($variable)" else "$variable.${name.quote()}"
-        return Translator.Cypher("$not$field ${op.op} \$$paramName", mapOf(paramName to value))
+        return Cypher("$not$field ${op.op} \$$paramName", mapOf(paramName to value))
     }
 }
 
@@ -88,7 +88,7 @@ data class RelationPredicate(val fieldName: String, val op: Operators, val value
     // ALL/ANY/NONE/SINGLE(p in (type)-[:TYPE]->() WHERE pred(last(nodes(p)))
     // ALL/ANY/NONE/SINGLE(x IN [(type)-[:TYPE]->(o) | pred(o)] WHERE x)
 
-    override fun toExpression(variable: String, metaProvider: MetaProvider): Translator.Cypher {
+    override fun toExpression(variable: String, metaProvider: MetaProvider): Cypher {
         val prefix = when (op) {
             Operators.EQ -> "ALL"
             Operators.NEQ -> "ALL" // bc of not
@@ -101,7 +101,7 @@ data class RelationPredicate(val fieldName: String, val op: Operators, val value
         val relNodeType = metaProvider.getNodeType(rel.typeName)
                 ?: throw IllegalArgumentException("${rel.typeName} not found")
         val (pred, params) = CompoundPredicate(value.map { resolvePredicate(it.key.toString(), it.value, relNodeType, metaProvider) }).toExpression(other, metaProvider)
-        return Translator.Cypher("$not $prefix($cond IN [($variable)$left-[:${rel.relType.quote()}]-$right($other) | $pred] WHERE $cond)", params)
+        return Cypher("$not $prefix($cond IN [($variable)$left-[:${rel.relType.quote()}]-$right($other) | $pred] WHERE $cond)", params)
     }
 }
 

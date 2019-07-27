@@ -3,6 +3,7 @@ package org.neo4j.graphql.utils
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assumptions
 import org.junit.jupiter.api.DynamicTest
+import org.neo4j.graphql.Cypher
 import org.neo4j.graphql.SchemaBuilder
 import org.neo4j.graphql.Translator
 
@@ -56,7 +57,7 @@ class CypherTestSuite(fileName: String) : AsciiDocTestSuite() {
 
     fun translate(query: String,
             requestParams: Map<String, Any?> = emptyMap(),
-            contextModifier: (Translator.Context) -> Translator.Context = { it }): Translator.Cypher {
+            contextModifier: (Translator.Context) -> Translator.Context = { it }): Cypher {
         return Translator(SchemaBuilder.buildSchema(schema))
             .translate(query, requestParams, contextModifier.invoke(Translator.Context(params = requestParams)))
             .first()

@@ -10,7 +10,7 @@ abstract class BaseDataFetcher(
         val type: NodeFacade,
         val fieldDefinition: FieldDefinition,
         metaProvider: MetaProvider
-) : ProjectionBase(metaProvider), DataFetcher<Translator.Cypher> {
+) : ProjectionBase(metaProvider), DataFetcher<Cypher> {
 
     val propertyFields: MutableMap<String, (Value<Value<*>>) -> List<Translator.CypherArgument>?> = mutableMapOf()
     val defaultFields: MutableMap<String, Value<Value<*>>> = mutableMapOf()
@@ -50,7 +50,7 @@ abstract class BaseDataFetcher(
             }
     }
 
-    override fun get(environment: DataFetchingEnvironment?): Translator.Cypher {
+    override fun get(environment: DataFetchingEnvironment?): Cypher {
         val field = environment?.getSource() as Field
         val ctx = environment.getContext() as Translator.Context
         if (field.name != fieldDefinition.name)
@@ -67,9 +67,9 @@ abstract class BaseDataFetcher(
 
     protected abstract fun generateCypher(variable: String,
             field: Field,
-            projectionProvider: () -> Translator.Cypher,
+            projectionProvider: () -> Cypher,
             ctx: Translator.Context
-    ): Translator.Cypher
+    ): Cypher
 
 
     fun allLabels(): String = type.allLabels()
@@ -77,12 +77,12 @@ abstract class BaseDataFetcher(
     fun label(includeAll: Boolean = false) = type.label(includeAll)
 
 
-    protected fun properties(variable: String, arguments: List<Argument>): Translator.Cypher {
+    protected fun properties(variable: String, arguments: List<Argument>): Cypher {
         val all = preparePredicateArguments(arguments)
         if (all.isEmpty()) {
-            return Translator.Cypher.EMPTY
+            return Cypher.EMPTY
         }
-        return Translator.Cypher(
+        return Cypher(
                 all.joinToString(", ", " { ", " }") { (argName, propertyName, value) -> "${propertyName.quote()}: \$${paramName(variable, argName, value)}" },
                 all.map { (argName, _, value) -> paramName(variable, argName, value) to value }.toMap())
     }
@@ -108,26 +108,26 @@ abstract class BaseDataFetcher(
                 idField: FieldDefinition,
                 isRelation: Boolean,
                 paramName: String? = idProperty?.let { paramName(variable, idProperty.name, idProperty.value) }
-        ): Translator.Cypher {
+        ): Cypher {
             return when {
                 idProperty != null && paramName != null -> {
                     val queryParams = mapOf(paramName to idProperty.value.toJavaValue())
                     if (idField.isNativeId()) {
                         if (isRelation) {
-                            Translator.Cypher("()-[$variable:$label]->() WHERE ID($variable) = $$paramName", queryParams)
+                            Cypher("()-[$variable:$label]->() WHERE ID($variable) = $$paramName", queryParams)
                         } else {
-                            Translator.Cypher("($variable:$label) WHERE ID($variable) = $$paramName", queryParams)
+                            Cypher("($variable:$label) WHERE ID($variable) = $$paramName", queryParams)
                         }
                     } else {
                         // TODO handle @property aliasing
                         if (idProperty.value is ArrayValue) {
-                            Translator.Cypher("($variable:$label) WHERE  $variable.${idField.name.quote()} IN $$paramName", queryParams)
+                            Cypher("($variable:$label) WHERE  $variable.${idField.name.quote()} IN $$paramName", queryParams)
                         } else {
-                            Translator.Cypher("($variable:$label { ${idField.name.quote()}: $$paramName })", queryParams)
+                            Cypher("($variable:$label { ${idField.name.quote()}: $$paramName })", queryParams)
                         }
                     }
                 }
-                else -> Translator.Cypher.EMPTY
+                else -> Cypher.EMPTY
             }
         }
 

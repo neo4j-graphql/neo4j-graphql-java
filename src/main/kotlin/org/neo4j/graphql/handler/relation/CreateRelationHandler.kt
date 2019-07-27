@@ -41,9 +41,9 @@ class CreateRelationHandler private constructor(
     override fun generateCypher(
             variable: String,
             field: Field,
-            projectionProvider: () -> Translator.Cypher,
+            projectionProvider: () -> Cypher,
             ctx: Translator.Context
-    ): Translator.Cypher {
+    ): Cypher {
 
         val properties = properties(variable, field.arguments)
         val mapProjection = projectionProvider.invoke()
@@ -52,7 +52,7 @@ class CreateRelationHandler private constructor(
         val startSelect = getRelationSelect(true, arguments)
         val endSelect = getRelationSelect(false, arguments)
 
-        return Translator.Cypher("MATCH ${startSelect.query}" +
+        return Cypher("MATCH ${startSelect.query}" +
                 " MATCH ${endSelect.query}" +
                 " MERGE (${relation.startField})-[:${relation.relType.quote()}${properties.query}]->(${relation.endField})" +
                 " WITH DISTINCT ${relation.startField} AS $variable" +

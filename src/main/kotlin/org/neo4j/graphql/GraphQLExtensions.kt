@@ -103,11 +103,11 @@ fun Field.propertyName(fieldDefinition: FieldDefinition) = (fieldDefinition.prop
 
 fun FieldDefinition.dynamicPrefix(metaProvider: MetaProvider): String? = metaProvider.getDirectiveArgument(getDirective(DYNAMIC), DYNAMIC_PREFIX, null)
 
-fun FieldDefinition.cypherDirective(): Translator.Cypher? =
+fun FieldDefinition.cypherDirective(): Cypher? =
         this.getDirective(CYPHER)?.let {
             @Suppress("UNCHECKED_CAST")
-            Translator.Cypher(it.getArgument(CYPHER_STATEMENT).value.toJavaValue().toString(),
-                    it.getArgument("params")?.value?.toJavaValue() as Map<String, Any?>? ?: emptyMap())
+            (Cypher(it.getArgument(CYPHER_STATEMENT).value.toJavaValue().toString(),
+                    it.getArgument("params")?.value?.toJavaValue() as Map<String, Any?>? ?: emptyMap()))
         }
 
 fun String.quote() = if (isJavaIdentifier()) this else "`$this`"

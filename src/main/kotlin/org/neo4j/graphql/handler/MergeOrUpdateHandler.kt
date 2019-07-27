@@ -31,7 +31,7 @@ class MergeOrUpdateHandler private constructor(
         propertyFields.remove(idField.name) // id should not be updated
     }
 
-    override fun generateCypher(variable: String, field: Field, projectionProvider: () -> Translator.Cypher, ctx: Translator.Context): Translator.Cypher {
+    override fun generateCypher(variable: String, field: Field, projectionProvider: () -> Cypher, ctx: Translator.Context): Cypher {
         val idArg = field.arguments.first { it.name == idField.name }
 
         val properties = properties(variable, field.arguments)
@@ -39,7 +39,7 @@ class MergeOrUpdateHandler private constructor(
 
         val op = if (merge) "+" else ""
         val select = getSelectQuery(variable, label(), idArg, idField, isRealtion)
-        return Translator.Cypher((if (merge && !idField.isNativeId()) "MERGE " else "MATCH ") + select.query +
+        return Cypher((if (merge && !idField.isNativeId()) "MERGE " else "MATCH ") + select.query +
                 " SET $variable $op= " + properties.query +
                 " WITH $variable" +
                 " RETURN ${mapProjection.query} AS $variable",

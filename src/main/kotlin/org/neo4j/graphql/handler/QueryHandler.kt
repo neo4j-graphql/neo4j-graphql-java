@@ -45,7 +45,7 @@ class QueryHandler private constructor(
         }
     }
 
-    override fun generateCypher(variable: String, field: Field, projectionProvider: () -> Translator.Cypher, ctx: Translator.Context): Translator.Cypher {
+    override fun generateCypher(variable: String, field: Field, projectionProvider: () -> Cypher, ctx: Translator.Context): Cypher {
 
         val mapProjection = projectionProvider.invoke()
         val ordering = orderBy(variable, field.arguments)
@@ -57,7 +57,7 @@ class QueryHandler private constructor(
             "($variable:${label()})"
         }
         val where = where(variable, fieldDefinition, type, propertyArguments(field), ctx)
-        return Translator.Cypher("MATCH $select${where.query}" +
+        return Cypher("MATCH $select${where.query}" +
                 " RETURN ${mapProjection.query} AS $variable$ordering${skipLimit.query}",
                 (where.params + mapProjection.params + skipLimit.params),
                 isList)

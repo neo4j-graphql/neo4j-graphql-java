@@ -7,6 +7,7 @@ import graphql.GraphQL
 import org.neo4j.driver.v1.AuthTokens
 import org.neo4j.driver.v1.GraphDatabase
 import org.neo4j.driver.v1.Values
+import org.neo4j.graphql.Cypher
 import org.neo4j.graphql.SchemaBuilder
 import org.neo4j.graphql.Translator
 import spark.Request
@@ -50,7 +51,7 @@ fun main() {
     fun translate(query: String, params: Map<String, Any?>) = graphql.translate(query, params)
 
     val driver = GraphDatabase.driver("bolt://localhost", AuthTokens.basic("neo4j", "test"))
-    fun run(cypher: Translator.Cypher) = driver.session().use {
+    fun run(cypher: Cypher) = driver.session().use {
         println(cypher.query)
         println(cypher.params)
         try {

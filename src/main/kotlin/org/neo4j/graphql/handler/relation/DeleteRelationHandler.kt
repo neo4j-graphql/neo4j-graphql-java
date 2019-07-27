@@ -28,14 +28,14 @@ class DeleteRelationHandler private constructor(
     override fun generateCypher(
             variable: String,
             field: Field,
-            projectionProvider: () -> Translator.Cypher,
-            ctx: Translator.Context): Translator.Cypher {
+            projectionProvider: () -> Cypher,
+            ctx: Translator.Context): Cypher {
         val mapProjection = projectionProvider.invoke()
         val arguments = field.arguments.map { it.name to it }.toMap()
         val startSelect = getRelationSelect(true, arguments)
         val endSelect = getRelationSelect(false, arguments)
 
-        return Translator.Cypher("MATCH ${startSelect.query}" +
+        return Cypher("MATCH ${startSelect.query}" +
                 " MATCH ${endSelect.query}" +
                 " MATCH (${relation.startField})-[r:${relation.relType.quote()}]->(${relation.endField})" +
                 " DELETE r" +

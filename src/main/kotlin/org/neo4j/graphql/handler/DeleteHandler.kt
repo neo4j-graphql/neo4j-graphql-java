@@ -30,11 +30,11 @@ class DeleteHandler private constructor(
         }
     }
 
-    override fun generateCypher(variable: String, field: Field, projectionProvider: () -> Translator.Cypher, ctx: Translator.Context): Translator.Cypher {
+    override fun generateCypher(variable: String, field: Field, projectionProvider: () -> Cypher, ctx: Translator.Context): Cypher {
         val idArg = field.arguments.first { it.name == idField.name }
 
         val select = getSelectQuery(variable, label(), idArg, idField, isRealtion)
-        return Translator.Cypher("MATCH " + select.query +
+        return Cypher("MATCH " + select.query +
                 " WITH $variable as toDelete" +
                 " DETACH DELETE toDelete" +
                 " RETURN {${idArg.name.quote()}} AS $variable",

@@ -32,7 +32,7 @@ class CypherTests {
     @TestFactory
     fun `object-filter-tests`() = CypherTestSuite("object-filter-tests.adoc").run { ctx ->
         // tag::example[]
-        val objectFilterProvider: (variable: String, type: NodeFacade) -> Translator.Cypher? = { variable, type ->
+        val objectFilterProvider: (variable: String, type: NodeFacade) -> Cypher? = { variable, type ->
             (type.getDirective("filter")
                 ?.getArgument("statement")
                 ?.value?.toJavaValue() as? String)
@@ -43,7 +43,7 @@ class CypherTests {
                         .filterNotNull()
                         .map { ctxVar -> ctxVar to ctx.params[ctxVar] }
                         .toMap()
-                    Translator.Cypher(query, params)
+                    Cypher(query, params)
                 }
         }
         // end::example[]
