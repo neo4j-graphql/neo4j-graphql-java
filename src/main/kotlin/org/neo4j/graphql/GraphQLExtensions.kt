@@ -15,6 +15,7 @@ import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_DIRECTION_OUT
 import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_FROM
 import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_NAME
 import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_TO
+import org.neo4j.graphql.handler.projection.ProjectionBase
 
 val SCALAR_TYPES = listOf("String", "ID", "Boolean", "Int", "Float", "Object")
 
@@ -147,7 +148,7 @@ fun paramName(variable: String, argName: String, value: Any?): String = when (va
 }
 
 fun FieldDefinition.isID(): Boolean = this.type.name() == "ID"
-fun FieldDefinition.isNativeId() = this.name == "_id"
+fun FieldDefinition.isNativeId() = this.name == ProjectionBase.NATIVE_ID
 
 fun FieldDefinition.propertyDirectiveName() =
         getDirective(PROPERTY)?.getArgument(PROPERTY_NAME)?.value?.toJavaValue()?.toString()

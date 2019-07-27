@@ -19,8 +19,7 @@ abstract class BaseDataFetcher(
         val fieldsOfType = type.fieldDefinitions().map { it.name to it }.toMap()
         fieldDefinition
             .inputValueDefinitions
-            // TODO constants
-            .filterNot { listOf("first", "offset", "orderBy", "_id").contains(it.name) }
+            .filterNot { listOf(FIRST, OFFSET, ORDER_BY, NATIVE_ID).contains(it.name) }
             .mapNotNull {
                 if (it.defaultValue != null) {
                     defaultFields[it.name] = it.defaultValue

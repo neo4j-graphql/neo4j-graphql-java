@@ -4,9 +4,16 @@ import graphql.language.*
 import org.neo4j.graphql.*
 
 open class ProjectionBase(val metaProvider: MetaProvider) {
+    companion object {
+        const val NATIVE_ID = "_id"
+        const val ORDER_BY = "orderBy"
+        const val FIRST  = "first"
+        const val OFFSET   = "offset"
+        const val FILTER    = "filter"
+    }
 
     fun orderBy(variable: String, args: MutableList<Argument>): String {
-        val arg = args.find { it.name == "orderBy" }
+        val arg = args.find { it.name == ORDER_BY }
         val values = arg?.value?.let { it ->
             when (it) {
                 is ArrayValue -> it.values.map { it.toJavaValue().toString() }
@@ -25,15 +32,14 @@ open class ProjectionBase(val metaProvider: MetaProvider) {
         val (objectFilterExpression, objectFilterParams) = ctx.objectFilterProvider?.invoke(variable, type)
             ?.let { listOf(it.query) to it.params } ?: (emptyList<String>() to emptyMap())
 
-        // TODO constants
-        val all = preparePredicateArguments(field, arguments).filterNot { listOf("first", "offset", "orderBy").contains(it.name) }
+        val all = preparePredicateArguments(field, arguments).filterNot { listOf(FIRST, OFFSET, ORDER_BY).contains(it.name) }
         val (filterExpressions, filterParams) =
-                filterExpressions(all.find { it.name == "filter" }?.value, type)
+                filterExpressions(all.find { it.name == FILTER }?.value, type)
                     .map { it.toExpression(variable, metaProvider) }
                     .let { expressions ->
                         expressions.map { it.query } to expressions.fold(emptyMap<String, Any?>()) { res, exp -> res + exp.params }
                     }
-        val noFilter = all.filter { it.name != "filter" }
+        val noFilter = all.filter { it.name != FILTER }
         // todo turn it into a Predicate too
         val eqExpression = noFilter.map { (k, p, v) ->
             (if (type.getFieldDefinition(k)?.isNativeId() == true) "ID($variable)" else "$variable.${p.quote()}") + " = \$${paramName(variable, k, v)}"
@@ -50,8 +56,7 @@ open class ProjectionBase(val metaProvider: MetaProvider) {
     }
 
     fun propertyArguments(queryField: Field) =
-            // TODO constants
-            queryField.arguments.filterNot { listOf("first", "offset", "orderBy").contains(it.name) }
+            queryField.arguments.filterNot { listOf(FIRST, OFFSET, ORDER_BY).contains(it.name) }
 
     private fun preparePredicateArguments(field: FieldDefinition, arguments: List<Argument>): List<Translator.CypherArgument> {
         if (arguments.isEmpty()) return emptyList()
@@ -254,8 +259,8 @@ open class ProjectionBase(val metaProvider: MetaProvider) {
 
     class SkipLimit(variable: String,
             arguments: List<Argument>,
-            private val skip: Translator.CypherArgument? = convertArgument(variable, arguments, "offset"),
-            private val limit: Translator.CypherArgument? = convertArgument(variable, arguments, "first")) {
+            private val skip: Translator.CypherArgument? = convertArgument(variable, arguments, OFFSET),
+            private val limit: Translator.CypherArgument? = convertArgument(variable, arguments, FIRST)) {
 
         fun format(): Cypher {
             return if (skip != null) {

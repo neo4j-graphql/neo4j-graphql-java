@@ -8,6 +8,7 @@ import graphql.schema.GraphQLInputType
 import graphql.schema.GraphQLObjectType
 import graphql.schema.GraphQLTypeReference
 import org.neo4j.graphql.Predicate.Companion.resolvePredicate
+import org.neo4j.graphql.handler.projection.ProjectionBase
 
 interface Predicate {
     fun toExpression(variable: String, metaProvider: MetaProvider): Cypher
@@ -75,7 +76,7 @@ data class IsNullPredicate(val fieldName: String, val op: Operators, val type: N
 data class ExpressionPredicate(val name: String, val op: Operators, val value: Any?, val fieldDefinition: FieldDefinition) : Predicate {
     val not = if (op.not) "NOT " else ""
     override fun toExpression(variable: String, metaProvider: MetaProvider): Cypher {
-        val paramName: String = "filter" + paramName(variable, name, value).capitalize()
+        val paramName: String = ProjectionBase.FILTER + paramName(variable, name, value).capitalize()
         val field = if (fieldDefinition.isNativeId()) "ID($variable)" else "$variable.${name.quote()}"
         return Cypher("$not$field ${op.op} \$$paramName", mapOf(paramName to value))
     }
