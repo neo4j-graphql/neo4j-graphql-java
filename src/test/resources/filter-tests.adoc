@@ -17,6 +17,7 @@ type Person {
   company: Company @relation(name:"WORKS_AT")
 }
 type Company {
+  _id: ID
   name: String
   employees: [Person] @relation(name:"WORKS_AT", direction: IN)
 }
@@ -365,95 +366,95 @@ WHERE NOT person.id = $filterPersonId
 RETURN person { .name } AS person
 ----
 
-//== Filter on _@nativeId_
-//
-//=== filter _@nativeId_ _eq_
-//
-//.Query
-//[source,graphql]
-//----
-//{ person(filter: { nativeId: 1 }) { name, nativeId }}
-//----
-//
-//.Params
-//[source,json]
-//----
-//{"filterPersonNativeId":1}
-//----
-//
-//.Cypher
-//[source,cypher]
-//----
-//MATCH (person:Person)
-//WHERE ID(person) = $filterPersonNativeId
-//RETURN person { .name, nativeId:ID(person) } AS person
-//----
-//
-//=== filter _@nativeId_ _in_
-//
-//.Query
-//[source,graphql]
-//----
-//{ person(filter: { nativeId_in: [1,2] }) { name, nativeId }}
-//----
-//
-//.Params
-//[source,json]
-//----
-//{"filterPersonNativeId": [1,2]}
-//----
-//
-//.Cypher
-//[source,cypher]
-//----
-//MATCH (person:Person)
-//WHERE ID(person) IN $filterPersonNativeId
-//RETURN person { .name, nativeId:ID(person) } AS person
-//----
-//
-//=== filter _@nativeId_ _not_in_
-//
-//.Query
-//[source,graphql]
-//----
-//{ person(filter: { nativeId_not_in: [1,2] }) { name, nativeId }}
-//----
-//
-//.Params
-//[source,json]
-//----
-//{"filterPersonNativeId": [1,2]}
-//----
-//
-//.Cypher
-//[source,cypher]
-//----
-//MATCH (person:Person)
-//WHERE NOT ID(person) IN $filterPersonNativeId
-//RETURN person { .name, nativeId:ID(person) } AS person
-//----
-//
-//=== filter _@nativeId_ _not_
-//
-//.Query
-//[source,graphql]
-//----
-//{ person(filter: { nativeId_not: 1 }) { name, nativeId }}
-//----
-//
-//.Params
-//[source,json]
-//----
-//{"filterPersonNativeId": 1}
-//----
-//
-//.Cypher
-//[source,cypher]
-//----
-//MATCH (person:Person)
-//WHERE NOT ID(person) = $filterPersonNativeId
-//RETURN person { .name, nativeId:ID(person) } AS person
-//----
+== Filter on _@nativeId_
+
+=== filter _@nativeId_ _eq_
+
+.Query
+[source,graphql]
+----
+{ company(filter: { _id: 1 }) { name, _id }}
+----
+
+.Params
+[source,json]
+----
+{"filterCompany_id":1}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (company:Company)
+WHERE id(company) = $filterCompany_id
+RETURN company { .name, _id:id(company) } AS company
+----
+
+=== filter _@nativeId_ _in_
+
+.Query
+[source,graphql]
+----
+{ company(filter: { _id_in: [1,2] }) { name, _id }}
+----
+
+.Params
+[source,json]
+----
+{"filterCompany_id": [1,2]}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (company:Company)
+WHERE id(company) IN $filterCompany_id
+RETURN company { .name, _id:id(company) } AS company
+----
+
+=== filter _@nativeId_ _not_in_
+
+.Query
+[source,graphql]
+----
+{ company(filter: { _id_not_in: [1,2] }) { name, _id }}
+----
+
+.Params
+[source,json]
+----
+{"filterCompany_id": [1,2]}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (company:Company)
+WHERE NOT id(company) IN $filterCompany_id
+RETURN company { .name, _id:id(company) } AS company
+----
+
+=== filter _@nativeId_ _not_
+
+.Query
+[source,graphql]
+----
+{ company(filter: { _id_not: 1 }) { name, _id }}
+----
+
+.Params
+[source,json]
+----
+{"filterCompany_id": 1}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (company:Company)
+WHERE NOT id(company) = $filterCompany_id
+RETURN company { .name, _id:id(company) } AS company
+----
 
 == Filter on _Int_
 
