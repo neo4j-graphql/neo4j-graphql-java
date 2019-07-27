@@ -386,8 +386,8 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (company:Company)
-WHERE id(company) = $filterCompany_id
-RETURN company { .name, _id:id(company) } AS company
+WHERE ID(company) = $filterCompany_id
+RETURN company { .name, _id:ID(company) } AS company
 ----
 
 === filter _@nativeId_ _in_
@@ -408,8 +408,8 @@ RETURN company { .name, _id:id(company) } AS company
 [source,cypher]
 ----
 MATCH (company:Company)
-WHERE id(company) IN $filterCompany_id
-RETURN company { .name, _id:id(company) } AS company
+WHERE ID(company) IN $filterCompany_id
+RETURN company { .name, _id:ID(company) } AS company
 ----
 
 === filter _@nativeId_ _not_in_
@@ -430,8 +430,8 @@ RETURN company { .name, _id:id(company) } AS company
 [source,cypher]
 ----
 MATCH (company:Company)
-WHERE NOT id(company) IN $filterCompany_id
-RETURN company { .name, _id:id(company) } AS company
+WHERE NOT ID(company) IN $filterCompany_id
+RETURN company { .name, _id:ID(company) } AS company
 ----
 
 === filter _@nativeId_ _not_
@@ -452,8 +452,8 @@ RETURN company { .name, _id:id(company) } AS company
 [source,cypher]
 ----
 MATCH (company:Company)
-WHERE NOT id(company) = $filterCompany_id
-RETURN company { .name, _id:id(company) } AS company
+WHERE NOT ID(company) = $filterCompany_id
+RETURN company { .name, _id:ID(company) } AS company
 ----
 
 == Filter on _Int_
