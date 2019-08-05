@@ -44,6 +44,7 @@ type Actor # implements Person
   userId: ID!
   name: String
   movies: [Movie] @relation(name: "ACTED_IN", direction:OUT)
+  born: _Neo4jDateTime
 }
 type User # implements Person
 {
@@ -52,6 +53,7 @@ type User # implements Person
   rated(rating: Int): [Rated]
   friends(since: Int): [FriendOf]
   knows: [User] @relation(name: "KNOWS", direction:OUT)
+  born: _Neo4jDateTime
 }
 type FriendOf {
   from: User
@@ -86,6 +88,7 @@ type Query {
   MovieBy_Id(_id: String!): Movie
   GenresBySubstring(substring: String): [Genre] @cypher(statement: "MATCH (g:Genre) WHERE toLower(g.name) CONTAINS toLower($substring) RETURN g")
   Books: [Book]
+  User: [User]
 }
 type Mutation {
   createGenre(name:String): Genre @cypher(statement:"CREATE (g:Genre) SET g.name = name RETURN g")

@@ -73,6 +73,12 @@ class TckTest(val schema:String) {
         }
 
         private fun fixNumber(v: Any?): Any? = when(v) { is Float -> v.toDouble(); is Int -> v.toLong(); else -> v }
-        private fun fixNumbers(params: Map<String, Any?>) = params.mapValues{ (_,v) -> when(v) { is List<*> -> v.map { fixNumber(it) }; else -> fixNumber(v) } }
+        private fun fixNumbers(params: Map<String, Any?>) = params.mapValues{ (_,v) ->
+            when(v) {
+                is List<*> -> v.map { fixNumber(it) }
+                is Map<*, *> -> v.mapValues { fixNumber(it.value) }
+                else -> fixNumber(v)
+            }
+        }
     }
 }

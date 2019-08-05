@@ -15,7 +15,6 @@ import java.math.BigInteger
 class Translator(val schema: GraphQLSchema) {
     data class Context @JvmOverloads constructor(val topLevelWhere: Boolean = true,
                                                  val fragments : Map<String,FragmentDefinition> = emptyMap(),
-                                                 val temporal : Boolean = false,
                                                  val query: CRUDConfig = CRUDConfig(),
                                                  val mutation: CRUDConfig = CRUDConfig())
     data class CRUDConfig(val enabled:Boolean = true, val exclude: List<String> = emptyList())
@@ -96,7 +95,7 @@ class Translator(val schema: GraphQLSchema) {
 
         } else {
             if (isQuery) {
-                val where = if (ctx.topLevelWhere) where(variable, fieldDefinition, type, propertyArguments(field)) else Cypher.EMPTY
+                val where = if (ctx.topLevelWhere) where(variable, fieldDefinition, type.inner(), propertyArguments(field), field) else Cypher.EMPTY
                 val properties = if (ctx.topLevelWhere) Cypher.EMPTY else properties(variable, fieldDefinition, propertyArguments(field))
                 return Cypher("MATCH ($variable:$label${properties.query})${where.query} RETURN ${mapProjection.query} AS $variable$ordering$skipLimit",
                         (mapProjection.params + properties.params + where.params))
@@ -195,9 +194,18 @@ class Translator(val schema: GraphQLSchema) {
                 .joinToString(", ")
     }
 
-    private fun where(variable: String, field: GraphQLFieldDefinition, type: GraphQLType, arguments: List<Argument>) : Cypher {
-        val all = preparePredicateArguments(field, arguments).filterNot { listOf("first", "offset", "orderBy").contains(it.name) }
-        if (all.isEmpty()) return Cypher("")
+    private fun where(variable: String, fieldDefinition: GraphQLFieldDefinition, type: GraphQLType, arguments: List<Argument>, field: Field) : Cypher {
+        val neo4jTypeFilters = whereNeo4jTypes(type, field, variable)
+
+        val all = preparePredicateArguments(fieldDefinition, arguments)
+                .map {
+                    val (nameSuffix, propertyNameSuffix, innerNeo4jConstruct) = Neo4jQueryConversion
+                            .forQuery(it, field, fieldDefinition)
+                    it.let { CypherArgument(nameSuffix, propertyNameSuffix, it.value, innerNeo4jConstruct) }
+                }
+                .filterNot { listOf("first", "offset", "orderBy").contains(it.name) }
+        if (all.isEmpty()) return neo4jTypeFilters.let { if (it.query.isNotBlank()) Cypher(" WHERE " + it.query, it.params) else Cypher.EMPTY }
+
         val (filterExpressions, filterParams) =
             filterExpressions(all.find{ it.name == "filter" }?.value, type as GraphQLObjectType)
                     .map { it.toExpression(variable, schema) }
@@ -206,11 +214,47 @@ class Translator(val schema: GraphQLSchema) {
                     }
         val noFilter = all.filter { it.name != "filter" }
         // todo turn it into a Predicate too
-        val eqExpression = noFilter.map { (k, p, v) -> "$variable.${p.quote()} = \$${paramName(variable, k, v)}" }
+        val eqExpression = noFilter.map { "$variable.${it.toCypherString(variable, false)}" }
         val expression = (eqExpression + filterExpressions).joinNonEmpty(" AND ") // TODO talk to Will ,"(",")")
-        return Cypher(" WHERE $expression", filterParams + noFilter.map { (k,_,v) -> paramName(variable, k, v) to v }.toMap()
+
+        val (neo4jTypeExpression, neo4jTypeParams) = neo4jTypeFilters
+        return Cypher(query = " WHERE $expression$neo4jTypeExpression",
+                params = filterParams + noFilter.map { (k, p,v) -> paramName(variable, k, v) to v }.toMap()
+                        + neo4jTypeParams
+
         )
     }
+
+    private fun whereNeo4jTypes(type: GraphQLType, field: Field, variable: String) =
+            (type as GraphQLObjectType).fieldDefinitions
+                    .filter { it.type.isNeo4jType() }
+                    .map { neo4jType ->
+                        neo4jType to field.selectionSet.selections
+                                .filterIsInstance<Field>()
+                                .filter { it.name == neo4jType.name || it.alias == neo4jType.name }
+                    }
+                    .groupBy({ it.first }, { it.second }) // create a map of <FieldWithNeo4jType, List<Field>> so we group the data by the type
+                    .mapValues { it.value.flatten() }
+                    .flatMap { entry -> // for each FieldWithNeo4jType of type query we create the where condition
+                        val typeName = entry.key.type.name
+                        val fields = entry.value
+                        schema.queryType.getFieldDefinition(typeName) // for each FieldWithNeo4jType we get the detail of the field definition
+                                ?.let { innerFieldDefinition ->
+                                    fields.map {where(variable, innerFieldDefinition, innerFieldDefinition.type.inner(), propertyArguments(it), it) }
+                                }
+                                .orEmpty()
+                    }
+                    .fold(Cypher.EMPTY) { x, y -> Cypher(x.query + y.query, x.params + y.params) } // now we merge the queries and the params
+                    .let {
+                        val query = if (it.query.isNotBlank()) {
+                            it.query.replace("WHERE", "AND") // we replace all the WHERE with the AND and skip the first
+                                    .substring(5)
+                                    .padStart(1)
+                        } else {
+                            it.query
+                        }
+                        Cypher(query, it.params)
+                    }
 
     private fun filterExpressions(value: Any?, type: GraphQLObjectType): List<Predicate> {
         // todo variable/parameter
@@ -222,8 +266,14 @@ class Translator(val schema: GraphQLSchema) {
 
     private fun properties(variable: String, field: GraphQLFieldDefinition, arguments: List<Argument>) : Cypher {
         val all = preparePredicateArguments(field, arguments)
-        return Cypher(all.map { (k,p, v) -> "${p.quote()}:\$${paramName(variable, k, v)}"}.joinToString(" , "," {","}") ,
-               all.map { (k,_,v) -> paramName(variable, k, v) to v }.toMap())
+        val query = flattenArgumentsMap(all, field)
+                .values
+                .map { it.toCypherString(variable) }
+                .joinToString(", ", " {", "}")
+        val params = all
+                .map { (k, _, v, s) -> paramName(variable, k, v) to v }
+                .toMap()
+        return Cypher(query, params)
     }
     private fun setProperties(variable: String, field: GraphQLFieldDefinition, arguments: List<Argument>,
                               excludeProperties: List<String> = emptyList()) : Cypher {
@@ -232,24 +282,58 @@ class Translator(val schema: GraphQLSchema) {
         } else {
             preparePredicateArguments(field, arguments)
         }
-        return Cypher(all.map { (k,p, v) -> "${variable.quote()}.${p.quote()}=\$${paramName(variable, k, v)}"}.joinToString(","," SET "," ") ,
-               all.map { (k,_,v) -> paramName(variable, k, v) to v }.toMap())
+        val query = flattenArgumentsMap(all, field)
+                .values
+                .map { "$variable.${it.toCypherString(variable, false)}" }
+                .joinToString(",", " SET ", " ")
+        val params = all
+                .map { (k, p, v) -> paramName(variable, k, v) to v }.toMap()
+        return Cypher(query, params)
     }
 
-    data class CypherArgument(val name:String, val propertyName:String, val value:Any?)
+    data class CypherArgument(val name: String, val propertyName: String, val value: Any?, val converter: Neo4jConverter = Neo4jConverter()) {
+        fun toCypherString(variable: String, asJson: Boolean = true): String {
+            val separator = when (asJson) {
+                true -> ": "
+                false -> " = "
+            }
+            return "$propertyName$separator${converter.parseValue(paramName(variable, name, value))}"
+        }
+    }
 
     private fun preparePredicateArguments(field: GraphQLFieldDefinition, arguments: List<Argument>): List<CypherArgument> {
         if (arguments.isEmpty()) return emptyList()
         val resultObjectType = schema.getType(field.type.inner().name) as GraphQLObjectType
-        val predicates = arguments.map { it.name to CypherArgument(it.name, resultObjectType.getFieldDefinition(it.name)?.propertyDirectiveName() ?: it.name, it.value.toJavaValue()) }.toMap()
-        val defaults = field.arguments.filter { it.defaultValue != null && !predicates.containsKey(it.name) }
-                .map { CypherArgument(it.name, it.name, it.defaultValue) }
+        val predicates = argumentsToMap(arguments, resultObjectType)
+        val defaults = field.arguments
+                .filter { it.defaultValue != null && !predicates.containsKey(it.name) }
+                .map { CypherArgument(it.name.quote(), it.name.quote(), it.defaultValue) }
         return predicates.values + defaults
+    }
+
+    private fun flattenArgumentsMap(arguments: List<CypherArgument>, field: GraphQLFieldDefinition): Map<String, CypherArgument> {
+        return arguments
+                .map { argument ->
+                    val fieldDefinition = (field.type.inner() as GraphQLObjectType).getFieldDefinition(argument.name)
+                    val (name, propertyNameSuffix, converter) = Neo4jQueryConversion
+                            .forMutation(argument, fieldDefinition)
+                    argument.name to CypherArgument(name, propertyNameSuffix, argument.value, converter)
+                }.toMap()
+    }
+
+    private fun argumentsToMap(arguments: List<Argument>, resultObjectType: GraphQLObjectType? = null): Map<String, CypherArgument> {
+        return arguments
+                .map { argument ->
+                    val propertyName = (resultObjectType?.getFieldDefinition(argument.name)?.propertyDirectiveName()
+                            ?: argument.name).quote()
+                    argument.name to CypherArgument(argument.name.quote(), propertyName, argument.value.toJavaValue())
+                }
+                .toMap()
     }
 
     private fun prepareFieldArguments(field: GraphQLFieldDefinition, arguments: List<Argument>): List<CypherArgument> {
         // if (arguments.isEmpty()) return emptyList()
-        val predicates = arguments.map { it.name to CypherArgument(it.name, it.name, it.value.toJavaValue()) }.toMap()
+        val predicates = argumentsToMap(arguments)
         val defaults = field.arguments.filter { it.defaultValue != null && !predicates.containsKey(it.name) }
                 .map { CypherArgument(it.name, it.name, it.defaultValue) }
         return predicates.values + defaults
@@ -285,13 +369,18 @@ class Translator(val schema: GraphQLSchema) {
             Cypher(field.aliasOrName() +":"  + directive.query, directive.params)
 
         } ?: if (isObjectField) {
-                val patternComprehensions = projectRelationship(variable, field, fieldDefinition, type, ctx, variableSuffix)
+                val patternComprehensions = if (fieldDefinition.type.isNeo4jType()) {
+                    projectNeo4jObjectType(variable, field)
+                } else {
+                    projectRelationship(variable, field, fieldDefinition, type, ctx, variableSuffix)
+                }
                 Cypher(field.aliasOrName() + ":" + patternComprehensions.query, patternComprehensions.params)
-            } else
+            } else {
                 if (field.aliasOrName() == field.propertyName(fieldDefinition))
                     Cypher("." + field.propertyName(fieldDefinition))
                 else
                     Cypher(field.aliasOrName() + ":" + variable + "." + field.propertyName(fieldDefinition))
+            }
     }
 
     private fun cypherDirective(variable: String, fieldDefinition: GraphQLFieldDefinition, field: Field, cypherDirective: Cypher, additionalArgs: List<CypherArgument>): Cypher {
@@ -336,6 +425,21 @@ class Translator(val schema: GraphQLSchema) {
         }
     }
 
+    private fun projectNeo4jObjectType(variable: String, field: Field): Cypher {
+        val fieldProjection = field.selectionSet.selections
+                .filterIsInstance<Field>()
+                .map {
+                    val value = when (it.name) {
+                        NEO4j_FORMATTED_PROPERTY_KEY -> "$variable.${field.name}"
+                        else -> "$variable.${field.name}.${it.name}"
+                    }
+                    "${it.name}: $value"
+                }
+                .joinToString(", ")
+
+        return Cypher(" { $fieldProjection }")
+    }
+
     private fun projectListComprehension(variable: String, field: Field, fieldDefinition: GraphQLFieldDefinition, ctx: Context, expression:Cypher, variableSuffix: String?): Cypher {
         val fieldType = fieldDefinition.type
         val fieldObjectType = fieldType.inner() as GraphQLObjectType
@@ -378,7 +482,7 @@ class Translator(val schema: GraphQLSchema) {
 
         val relPattern = if (isRelFromType) "$childVariable:${relInfo.type}" else ":${relInfo.type}"
 
-        val where = where(childVariable, fieldDefinition, fieldObjectType, propertyArguments(field))
+        val where = where(childVariable, fieldDefinition, fieldObjectType, propertyArguments(field), field)
         val fieldProjection = projectFields(childVariable, field, fieldObjectType, ctx, variableSuffix)
 
         val comprehension = "[($variable)$inArrow-[$relPattern]-$outArrow($endNodePattern)${where.query} | ${fieldProjection.query}]"
@@ -476,6 +580,8 @@ object SchemaBuilder {
             directive @property(name:String) on FIELD_DEFINITION
         """
         typeDefinitionRegistry.merge(schemaParser.parse(directivesSdl))
+        typeDefinitionRegistry.merge(schemaParser.parse(neo4jTypesSdl()))
+
 
         val objectTypeDefinitions = typeDefinitionRegistry.types().values.filterIsInstance<ObjectTypeDefinition>()
         val nodeMutations = objectTypeDefinitions.map { createNodeMutation(ctx, it) }

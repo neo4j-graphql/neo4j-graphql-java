@@ -355,7 +355,7 @@ mutation {
 ```
 
 ```cypher
-MERGE (actor:Actor {userId:$actorUserId}) SET actor.name=$actorName
+MERGE (actor:Actor {userId:$actorUserId}) SET actor.name = $actorName
 WITH actor
 RETURN actor { .name } AS actor
 ```
@@ -497,4 +497,172 @@ WHERE movie.year = $movieYear
 RETURN movie { .title } AS movie 
 ORDER BY movie.title DESC  
 LIMIT 10
+```
+
+## Neo4j Data Types queryies
+
+
+### User born extraction
+
+```graphql
+query {
+  User {
+    born {
+      formatted
+      year
+    }
+  }
+}
+```
+
+```params
+{}
+```
+
+```cypher
+MATCH (user:User)
+RETURN user { born: { formatted: user.born, year: user.born.year } } AS user
+```
+
+### User born query filter with multiple fields
+
+```graphql
+query {
+  User {
+    born(formatted: "2015-06-24T12:50:35.556000000+01:00", year: 2015) {
+      year
+    }
+  }
+}
+```
+
+```params
+{"userBornFormatted": "2015-06-24T12:50:35.556000000+01:00", "userBornYear": 2015}
+```
+
+```cypher
+MATCH (user:User)
+WHERE user.born = datetime($userBornFormatted) AND user.born.year = $userBornYear
+RETURN user { born: { year: user.born.year } } AS user
+```
+
+### Merge Actor with born field formatted
+
+```graphql
+mutation {
+  actor: mergeActor(userId: "1", name: "Andrea", born: { formatted: "2015-06-24T12:50:35.556000000+01:00" }) {
+    name
+  }
+}
+```
+
+```params
+{"actorUserId": "1", "actorName": "Andrea", "actorBorn": { "formatted": "2015-06-24T12:50:35.556000000+01:00" }}
+```
+
+```cypher
+MERGE (actor:Actor {userId:$actorUserId}) SET actor.name = $actorName,actor.born = datetime($actorBorn.formatted)
+WITH actor
+RETURN actor { .name } AS actor
+```
+
+
+### Create Actor with born field formatted
+
+```graphql
+mutation {
+  actor: createActor(userId: "1", name: "Andrea", born: { formatted: "2015-06-24T12:50:35.556000000+01:00" }) {
+    name
+  }
+}
+```
+
+```params
+{"actorUserId": "1", "actorName": "Andrea", "actorBorn": { "formatted": "2015-06-24T12:50:35.556000000+01:00" }}
+```
+
+```cypher
+CREATE (actor:Actor {userId: $actorUserId, name: $actorName, born: datetime($actorBorn.formatted)})
+WITH actor
+RETURN actor { .name } AS actor
+```
+
+### Merge Actor with born field object
+
+```graphql
+mutation {
+  actor: mergeActor(userId: "1", name: "Andrea", born: { year: 2018
+                                                         month: 11
+                                                         day: 23
+                                                         hour: 10
+                                                         minute: 30
+                                                         second: 1
+                                                         millisecond: 2
+                                                         microsecond: 3
+                                                         nanosecond: 4
+                                                         timezone: "America/Los_Angeles" }) {
+    name
+  }
+}
+```
+
+```params
+{"actorUserId": "1", "actorName": "Andrea", "actorBorn": { "year": 2018,
+                                                           "month": 11,
+                                                           "day": 23,
+                                                           "hour": 10,
+                                                           "minute": 30,
+                                                           "second": 1,
+                                                           "millisecond": 2,
+                                                           "microsecond": 3,
+                                                           "nanosecond": 4,
+                                                           "timezone": "America/Los_Angeles" }}
+```
+
+```cypher
+MERGE (actor:Actor {userId:$actorUserId}) SET actor.name = $actorName,actor.born = datetime($actorBorn)
+WITH actor
+RETURN actor { .name } AS actor
+```
+
+### Create Actor with born field object
+
+```graphql
+mutation {
+  actor: createActor(userId: "1", name: "Andrea", born: { year: 2018
+                                                         month: 11
+                                                         day: 23
+                                                         hour: 10
+                                                         minute: 30
+                                                         second: 1
+                                                         millisecond: 2
+                                                         microsecond: 3
+                                                         nanosecond: 4
+                                                         timezone: "America/Los_Angeles" }) {
+    name
+    born {
+      year
+      month
+    }
+  }
+}
+```
+
+```params
+{"actorUserId": "1", "actorName": "Andrea", "actorBorn": { "year": 2018,
+                                                           "month": 11,
+                                                           "day": 23,
+                                                           "hour": 10,
+                                                           "minute": 30,
+                                                           "second": 1,
+                                                           "millisecond": 2,
+                                                           "microsecond": 3,
+                                                           "nanosecond": 4,
+                                                           "timezone": "America/Los_Angeles" }}
+```
+
+```cypher
+CREATE (actor:Actor {userId: $actorUserId, name: $actorName, born: datetime($actorBorn)})
+WITH actor
+RETURN actor { .name,born: { year: actor.born.year, month: actor.born.month } } AS actor
 ```
