@@ -200,16 +200,10 @@ class Translator(val schema: GraphQLSchema) {
     }
 
     private fun where(variable: String, fieldDefinition: GraphQLFieldDefinition, type: GraphQLType, arguments: List<Argument>, field: Field): Cypher {
-        val neo4jTypeFilters = whereNeo4jTypes(type, field, variable)
-
         val all = preparePredicateArguments(fieldDefinition, arguments)
-            .map {
-                val (nameSuffix, propertyNameSuffix, innerNeo4jConstruct) = Neo4jQueryConversion
-                    .forQuery(it, field, fieldDefinition)
-                CypherArgument(nameSuffix, propertyNameSuffix, it.value, innerNeo4jConstruct)
-            }
             .filterNot { listOf("first", "offset", "orderBy").contains(it.name) }
-        if (all.isEmpty()) return neo4jTypeFilters.let { if (it.query.isNotBlank()) Cypher(" WHERE " + it.query, it.params) else Cypher.EMPTY }
+            .plus(predicateForNeo4jTypes(type, field))
+        if (all.isEmpty()) return Cypher("")
         val (filterExpressions, filterParams) =
                 filterExpressions(all.find { it.name == "filter" }?.value, type as GraphQLObjectType)
                     .map { it.toExpression(variable, schema) }
@@ -221,13 +215,12 @@ class Translator(val schema: GraphQLSchema) {
         val eqExpression = noFilter.map { "$variable.${it.toCypherString(variable, false)}" }
         val expression = (eqExpression + filterExpressions).joinNonEmpty(" AND ") // TODO talk to Will ,"(",")")
 
-        val (neo4jTypeExpression, neo4jTypeParams) = neo4jTypeFilters
-        return Cypher(query = " WHERE $expression$neo4jTypeExpression",
-                params = filterParams + noFilter.map { (k, _, v) -> paramName(variable, k, v) to v }.toMap() + neo4jTypeParams
+        return Cypher(query = " WHERE $expression",
+                params = filterParams + noFilter.map { (k, _, v) -> paramName(variable, k, v) to v }.toMap()
         )
     }
 
-    private fun whereNeo4jTypes(type: GraphQLType, field: Field, variable: String) =
+    private fun predicateForNeo4jTypes(type: GraphQLType, field: Field): Collection<CypherArgument> =
             (type as GraphQLObjectType).fieldDefinitions
                 .filter { it.type.isNeo4jType() }
                 .map { neo4jType ->
@@ -241,22 +234,17 @@ class Translator(val schema: GraphQLSchema) {
                     // for each FieldWithNeo4jType of type query we create the where condition
                     val typeName = entry.key.type.name
                     val fields = entry.value
-                    schema.queryType.getFieldDefinition(typeName) // for each FieldWithNeo4jType we get the detail of the field definition
-                        ?.let { innerFieldDefinition ->
-                            fields.map { where(variable, innerFieldDefinition, innerFieldDefinition.type.inner(), propertyArguments(it), it) }
-                        }
-                        .orEmpty()
-                }
-                .fold(Cypher.EMPTY) { x, y -> Cypher(x.query + y.query, x.params + y.params) } // now we merge the queries and the params
-                .let {
-                    val query = if (it.query.isNotBlank()) {
-                        it.query.replace("WHERE", "AND") // we replace all the WHERE with the AND and skip the first
-                            .substring(5)
-                            .padStart(1)
-                    } else {
-                        it.query
+                    val neo4jType = (schema.getType(typeName) as? GraphQLObjectType)
+                            ?: throw IllegalArgumentException("type $typeName not defined")
+                    fields.flatMap { f ->
+                        argumentsToMap(f.arguments, neo4jType)
+                            .values
+                            .map { arg ->
+                                val (nameSuffix, propertyNameSuffix, innerNeo4jConstruct) = Neo4jQueryConversion
+                                    .forQuery(arg, f, neo4jType)
+                                CypherArgument(nameSuffix, propertyNameSuffix, arg.value, innerNeo4jConstruct)
+                            }
                     }
-                    Cypher(query, it.params)
                 }
 
     private fun filterExpressions(value: Any?, type: GraphQLObjectType): List<Predicate> {
@@ -580,7 +568,9 @@ object SchemaBuilder {
         typeDefinitionRegistry.merge(schemaParser.parse(neo4jTypesSdl()))
 
 
-        val objectTypeDefinitions = typeDefinitionRegistry.types().values.filterIsInstance<ObjectTypeDefinition>()
+        val objectTypeDefinitions = typeDefinitionRegistry.types().values
+            .filterIsInstance<ObjectTypeDefinition>()
+            .filter { !it.isNeo4jType() }
         val nodeMutations = objectTypeDefinitions.map { createNodeMutation(ctx, it) }
         val relMutations = objectTypeDefinitions.flatMap { source ->
             createRelationshipMutations(source, objectTypeDefinitions, ctx)
@@ -590,7 +580,9 @@ object SchemaBuilder {
         val augmentedTypesSdl = augmentations
             .flatMap { it -> listOf(it.filterType, it.ordering, it.inputType).filter { it.isNotBlank() } }
             .joinToString("\n")
-        typeDefinitionRegistry.merge(schemaParser.parse(augmentedTypesSdl))
+        if (augmentedTypesSdl.isNotBlank()) {
+            typeDefinitionRegistry.merge(schemaParser.parse(augmentedTypesSdl))
+        }
 
         val schemaDefinition = typeDefinitionRegistry.schemaDefinition().orElseGet { SchemaDefinition.newSchemaDefinition().build() }
         val operations = schemaDefinition.operationTypeDefinitions

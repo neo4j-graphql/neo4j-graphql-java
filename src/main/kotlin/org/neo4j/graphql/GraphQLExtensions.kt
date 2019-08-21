@@ -32,6 +32,7 @@ fun GraphQLType.isList() = this is GraphQLList || (this is GraphQLNonNull && thi
 fun GraphQLType.isScalar() = this.inner().let { it is GraphQLScalarType || it.name.startsWith("_Neo4j") }
 fun GraphQLType.isRelationship() = this.inner().let { it is GraphQLObjectType }
 fun GraphQLType.isNeo4jType(): Boolean = this.inner().name.startsWith("_Neo4j")
+fun ObjectTypeDefinition.isNeo4jType(): Boolean = this.name.startsWith("_Neo4j")
 
 fun GraphQLObjectType.hasRelationship(name: String) = this.getFieldDefinition(name)?.isRelationship() ?: false
 fun GraphQLFieldDefinition.isRelationship() = this.type.isRelationship()

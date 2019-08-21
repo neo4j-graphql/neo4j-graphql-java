@@ -1,0 +1,851 @@
+:toc:
+
+= Augmentation Tests
+
+== Schema
+
+[source,graphql,schema=true]
+----
+type Person0 { name: String }
+type Person1 { name: String }
+type Person2 { name: String, age: [Int] }
+type Person3 { name: String!}
+type Person4 { id:ID!, name: String}
+type Person5 { id:ID!, movies:[Movie]}
+type Movie { id:ID!, publishedBy: Publisher }
+type Publisher { name:ID! }
+----
+
+== Augmentation
+
+=== Disable Queries
+
+.Configuration
+[source,json]
+----
+{
+  "query": {
+    "enabled": false
+  },
+  "mutation": {
+    "enabled": true,
+    "exclude": [
+      "Person0"
+    ]
+  }
+}
+----
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type Movie {
+  id: ID!
+  publishedBy: Publisher
+}
+
+type Mutation {
+  createMovie(id: ID!): Movie
+  deleteMovie(id: ID!): Movie
+  mergeMovie(id: ID!): Movie
+  updateMovie(id: ID!): Movie
+  createPerson1(name: String): Person1
+  createPerson2(age: [Int], name: String): Person2
+  createPerson3(name: String!): Person3
+  createPerson4(id: ID!, name: String): Person4
+  deletePerson4(id: ID!): Person4
+  mergePerson4(id: ID!, name: String): Person4
+  updatePerson4(id: ID!, name: String): Person4
+  createPerson5(id: ID!): Person5
+  deletePerson5(id: ID!): Person5
+  mergePerson5(id: ID!): Person5
+  updatePerson5(id: ID!): Person5
+  createPublisher(name: ID!): Publisher
+  deletePublisher(name: ID!): Publisher
+  mergePublisher(name: ID!): Publisher
+  updatePublisher(name: ID!): Publisher
+}
+
+type Person0 {
+  name: String
+}
+
+type Person1 {
+  name: String
+}
+
+type Person2 {
+  age: [Int]
+  name: String
+}
+
+type Person3 {
+  name: String!
+}
+
+type Person4 {
+  id: ID!
+  name: String
+}
+
+type Person5 {
+  id: ID!
+  movies: [Movie]
+}
+
+type Publisher {
+  name: ID!
+}
+
+type Query {
+}
+
+type _Neo4jDate {
+  day: Int
+  formatted: String
+  month: Int
+  year: Int
+}
+
+type _Neo4jDateTime {
+  day: Int
+  formatted: String
+  hour: Int
+  microsecond: Int
+  millisecond: Int
+  minute: Int
+  month: Int
+  nanosecond: Int
+  second: Int
+  timezone: String
+  year: Int
+}
+
+type _Neo4jLocalDateTime {
+  day: Int
+  formatted: String
+  hour: Int
+  microsecond: Int
+  millisecond: Int
+  minute: Int
+  month: Int
+  nanosecond: Int
+  second: Int
+  year: Int
+}
+
+type _Neo4jLocalTime {
+  formatted: String
+  hour: Int
+  microsecond: Int
+  millisecond: Int
+  minute: Int
+  nanosecond: Int
+  second: Int
+}
+
+type _Neo4jTime {
+  formatted: String
+  hour: Int
+  microsecond: Int
+  millisecond: Int
+  minute: Int
+  nanosecond: Int
+  second: Int
+  timezone: String
+}
+
+enum RelationDirection {
+  BOTH
+  IN
+  OUT
+}
+
+input _Neo4jDateInput {
+  day: Int
+  formatted: String
+  month: Int
+  year: Int
+}
+
+input _Neo4jDateTimeInput {
+  day: Int
+  formatted: String
+  hour: Int
+  microsecond: Int
+  millisecond: Int
+  minute: Int
+  month: Int
+  nanosecond: Int
+  second: Int
+  timezone: String
+  year: Int
+}
+
+input _Neo4jLocalDateTimeInput {
+  day: Int
+  formatted: String
+  hour: Int
+  microsecond: Int
+  millisecond: Int
+  minute: Int
+  month: Int
+  nanosecond: Int
+  second: Int
+  year: Int
+}
+
+input _Neo4jLocalTimeInput {
+  formatted: String
+  hour: Int
+  microsecond: Int
+  millisecond: Int
+  minute: Int
+  nanosecond: Int
+  second: Int
+}
+
+input _Neo4jTimeInput {
+  formatted: String
+  hour: Int
+  microsecond: Int
+  millisecond: Int
+  minute: Int
+  nanosecond: Int
+  second: Int
+  timezone: String
+}
+
+----
+
+=== Disable Mutations
+
+.Configuration
+[source,json]
+----
+{
+  "query": {
+    "enabled": true,
+    "exclude": [
+      "Person0"
+    ]
+  },
+  "mutation": {
+    "enabled": false
+  }
+}
+----
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type Movie {
+  id: ID!
+  publishedBy: Publisher
+}
+
+type Mutation {
+}
+
+type Person0 {
+  name: String
+}
+
+type Person1 {
+  name: String
+}
+
+type Person2 {
+  age: [Int]
+  name: String
+}
+
+type Person3 {
+  name: String!
+}
+
+type Person4 {
+  id: ID!
+  name: String
+}
+
+type Person5 {
+  id: ID!
+  movies: [Movie]
+}
+
+type Publisher {
+  name: ID!
+}
+
+type Query {
+  movie(_id: Int, filter: _MovieFilter, first: Int, id: ID, offset: Int, orderBy: _MovieOrdering): [Movie]
+  person1(_id: Int, filter: _Person1Filter, first: Int, name: String, offset: Int, orderBy: _Person1Ordering): [Person1]
+  person2(_id: Int, age: [Int], filter: _Person2Filter, first: Int, name: String, offset: Int, orderBy: _Person2Ordering): [Person2]
+  person3(_id: Int, filter: _Person3Filter, first: Int, name: String, offset: Int, orderBy: _Person3Ordering): [Person3]
+  person4(_id: Int, filter: _Person4Filter, first: Int, id: ID, name: String, offset: Int, orderBy: _Person4Ordering): [Person4]
+  person5(_id: Int, filter: _Person5Filter, first: Int, id: ID, offset: Int, orderBy: _Person5Ordering): [Person5]
+  publisher(_id: Int, filter: _PublisherFilter, first: Int, name: ID, offset: Int, orderBy: _PublisherOrdering): [Publisher]
+}
+
+type _Neo4jDate {
+  day: Int
+  formatted: String
+  month: Int
+  year: Int
+}
+
+type _Neo4jDateTime {
+  day: Int
+  formatted: String
+  hour: Int
+  microsecond: Int
+  millisecond: Int
+  minute: Int
+  month: Int
+  nanosecond: Int
+  second: Int
+  timezone: String
+  year: Int
+}
+
+type _Neo4jLocalDateTime {
+  day: Int
+  formatted: String
+  hour: Int
+  microsecond: Int
+  millisecond: Int
+  minute: Int
+  month: Int
+  nanosecond: Int
+  second: Int
+  year: Int
+}
+
+type _Neo4jLocalTime {
+  formatted: String
+  hour: Int
+  microsecond: Int
+  millisecond: Int
+  minute: Int
+  nanosecond: Int
+  second: Int
+}
+
+type _Neo4jTime {
+  formatted: String
+  hour: Int
+  microsecond: Int
+  millisecond: Int
+  minute: Int
+  nanosecond: Int
+  second: Int
+  timezone: String
+}
+
+enum RelationDirection {
+  BOTH
+  IN
+  OUT
+}
+
+enum _MovieOrdering {
+  id_asc
+  id_desc
+}
+
+enum _Person1Ordering {
+  name_asc
+  name_desc
+}
+
+enum _Person2Ordering {
+  age_asc
+  age_desc
+  name_asc
+  name_desc
+}
+
+enum _Person3Ordering {
+  name_asc
+  name_desc
+}
+
+enum _Person4Ordering {
+  id_asc
+  id_desc
+  name_asc
+  name_desc
+}
+
+enum _Person5Ordering {
+  id_asc
+  id_desc
+}
+
+enum _PublisherOrdering {
+  name_asc
+  name_desc
+}
+
+input _MovieFilter {
+  AND: [_MovieFilter!]
+  NOT: [_MovieFilter!]
+  OR: [_MovieFilter!]
+  id: ID
+  id_contains: ID
+  id_ends_with: ID
+  id_gt: ID
+  id_gte: ID
+  id_in: ID
+  id_lt: ID
+  id_lte: ID
+  id_not: ID
+  id_not_contains: ID
+  id_not_ends_with: ID
+  id_not_in: ID
+  id_not_starts_with: ID
+  id_starts_with: ID
+}
+
+input _MovieInput {
+  id: ID
+}
+
+input _Neo4jDateInput {
+  day: Int
+  formatted: String
+  month: Int
+  year: Int
+}
+
+input _Neo4jDateTimeInput {
+  day: Int
+  formatted: String
+  hour: Int
+  microsecond: Int
+  millisecond: Int
+  minute: Int
+  month: Int
+  nanosecond: Int
+  second: Int
+  timezone: String
+  year: Int
+}
+
+input _Neo4jLocalDateTimeInput {
+  day: Int
+  formatted: String
+  hour: Int
+  microsecond: Int
+  millisecond: Int
+  minute: Int
+  month: Int
+  nanosecond: Int
+  second: Int
+  year: Int
+}
+
+input _Neo4jLocalTimeInput {
+  formatted: String
+  hour: Int
+  microsecond: Int
+  millisecond: Int
+  minute: Int
+  nanosecond: Int
+  second: Int
+}
+
+input _Neo4jTimeInput {
+  formatted: String
+  hour: Int
+  microsecond: Int
+  millisecond: Int
+  minute: Int
+  nanosecond: Int
+  second: Int
+  timezone: String
+}
+
+input _Person1Filter {
+  AND: [_Person1Filter!]
+  NOT: [_Person1Filter!]
+  OR: [_Person1Filter!]
+  name: String
+  name_contains: String
+  name_ends_with: String
+  name_gt: String
+  name_gte: String
+  name_in: String
+  name_lt: String
+  name_lte: String
+  name_not: String
+  name_not_contains: String
+  name_not_ends_with: String
+  name_not_in: String
+  name_not_starts_with: String
+  name_starts_with: String
+}
+
+input _Person1Input {
+  name: String
+}
+
+input _Person2Filter {
+  AND: [_Person2Filter!]
+  NOT: [_Person2Filter!]
+  OR: [_Person2Filter!]
+  age: [Int]
+  age_gt: [Int]
+  age_gte: [Int]
+  age_in: [Int]
+  age_lt: [Int]
+  age_lte: [Int]
+  age_not: [Int]
+  age_not_in: [Int]
+  name: String
+  name_contains: String
+  name_ends_with: String
+  name_gt: String
+  name_gte: String
+  name_in: String
+  name_lt: String
+  name_lte: String
+  name_not: String
+  name_not_contains: String
+  name_not_ends_with: String
+  name_not_in: String
+  name_not_starts_with: String
+  name_starts_with: String
+}
+
+input _Person2Input {
+  age: [Int]
+  name: String
+}
+
+input _Person3Filter {
+  AND: [_Person3Filter!]
+  NOT: [_Person3Filter!]
+  OR: [_Person3Filter!]
+  name: String
+  name_contains: String
+  name_ends_with: String
+  name_gt: String
+  name_gte: String
+  name_in: String
+  name_lt: String
+  name_lte: String
+  name_not: String
+  name_not_contains: String
+  name_not_ends_with: String
+  name_not_in: String
+  name_not_starts_with: String
+  name_starts_with: String
+}
+
+input _Person3Input {
+  name: String
+}
+
+input _Person4Filter {
+  AND: [_Person4Filter!]
+  NOT: [_Person4Filter!]
+  OR: [_Person4Filter!]
+  id: ID
+  id_contains: ID
+  id_ends_with: ID
+  id_gt: ID
+  id_gte: ID
+  id_in: ID
+  id_lt: ID
+  id_lte: ID
+  id_not: ID
+  id_not_contains: ID
+  id_not_ends_with: ID
+  id_not_in: ID
+  id_not_starts_with: ID
+  id_starts_with: ID
+  name: String
+  name_contains: String
+  name_ends_with: String
+  name_gt: String
+  name_gte: String
+  name_in: String
+  name_lt: String
+  name_lte: String
+  name_not: String
+  name_not_contains: String
+  name_not_ends_with: String
+  name_not_in: String
+  name_not_starts_with: String
+  name_starts_with: String
+}
+
+input _Person4Input {
+  id: ID
+  name: String
+}
+
+input _Person5Filter {
+  AND: [_Person5Filter!]
+  NOT: [_Person5Filter!]
+  OR: [_Person5Filter!]
+  id: ID
+  id_contains: ID
+  id_ends_with: ID
+  id_gt: ID
+  id_gte: ID
+  id_in: ID
+  id_lt: ID
+  id_lte: ID
+  id_not: ID
+  id_not_contains: ID
+  id_not_ends_with: ID
+  id_not_in: ID
+  id_not_starts_with: ID
+  id_starts_with: ID
+}
+
+input _Person5Input {
+  id: ID
+}
+
+input _PublisherFilter {
+  AND: [_PublisherFilter!]
+  NOT: [_PublisherFilter!]
+  OR: [_PublisherFilter!]
+  name: ID
+  name_contains: ID
+  name_ends_with: ID
+  name_gt: ID
+  name_gte: ID
+  name_in: ID
+  name_lt: ID
+  name_lte: ID
+  name_not: ID
+  name_not_contains: ID
+  name_not_ends_with: ID
+  name_not_in: ID
+  name_not_starts_with: ID
+  name_starts_with: ID
+}
+
+input _PublisherInput {
+  name: ID
+}
+
+----
+
+
+=== Filter on Relation Mutations
+
+.Configuration
+[source,json]
+----
+{
+  "query": {
+    "enabled": false
+  },
+  "mutation": {
+    "enabled": true,
+    "exclude": [
+      "Person0",
+      "Person1",
+      "Person2",
+      "Person3",
+      "Person4"
+    ]
+  }
+}
+----
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type Movie {
+  id: ID!
+  publishedBy: Publisher
+}
+
+type Mutation {
+  createMovie(id: ID!): Movie
+  deleteMovie(id: ID!): Movie
+  mergeMovie(id: ID!): Movie
+  updateMovie(id: ID!): Movie
+  createPerson5(id: ID!): Person5
+  deletePerson5(id: ID!): Person5
+  mergePerson5(id: ID!): Person5
+  updatePerson5(id: ID!): Person5
+  createPublisher(name: ID!): Publisher
+  deletePublisher(name: ID!): Publisher
+  mergePublisher(name: ID!): Publisher
+  updatePublisher(name: ID!): Publisher
+}
+
+type Person0 {
+  name: String
+}
+
+type Person1 {
+  name: String
+}
+
+type Person2 {
+  age: [Int]
+  name: String
+}
+
+type Person3 {
+  name: String!
+}
+
+type Person4 {
+  id: ID!
+  name: String
+}
+
+type Person5 {
+  id: ID!
+  movies: [Movie]
+}
+
+type Publisher {
+  name: ID!
+}
+
+type Query {
+}
+
+type _Neo4jDate {
+  day: Int
+  formatted: String
+  month: Int
+  year: Int
+}
+
+type _Neo4jDateTime {
+  day: Int
+  formatted: String
+  hour: Int
+  microsecond: Int
+  millisecond: Int
+  minute: Int
+  month: Int
+  nanosecond: Int
+  second: Int
+  timezone: String
+  year: Int
+}
+
+type _Neo4jLocalDateTime {
+  day: Int
+  formatted: String
+  hour: Int
+  microsecond: Int
+  millisecond: Int
+  minute: Int
+  month: Int
+  nanosecond: Int
+  second: Int
+  year: Int
+}
+
+type _Neo4jLocalTime {
+  formatted: String
+  hour: Int
+  microsecond: Int
+  millisecond: Int
+  minute: Int
+  nanosecond: Int
+  second: Int
+}
+
+type _Neo4jTime {
+  formatted: String
+  hour: Int
+  microsecond: Int
+  millisecond: Int
+  minute: Int
+  nanosecond: Int
+  second: Int
+  timezone: String
+}
+
+enum RelationDirection {
+  BOTH
+  IN
+  OUT
+}
+
+input _Neo4jDateInput {
+  day: Int
+  formatted: String
+  month: Int
+  year: Int
+}
+
+input _Neo4jDateTimeInput {
+  day: Int
+  formatted: String
+  hour: Int
+  microsecond: Int
+  millisecond: Int
+  minute: Int
+  month: Int
+  nanosecond: Int
+  second: Int
+  timezone: String
+  year: Int
+}
+
+input _Neo4jLocalDateTimeInput {
+  day: Int
+  formatted: String
+  hour: Int
+  microsecond: Int
+  millisecond: Int
+  minute: Int
+  month: Int
+  nanosecond: Int
+  second: Int
+  year: Int
+}
+
+input _Neo4jLocalTimeInput {
+  formatted: String
+  hour: Int
+  microsecond: Int
+  millisecond: Int
+  minute: Int
+  nanosecond: Int
+  second: Int
+}
+
+input _Neo4jTimeInput {
+  formatted: String
+  hour: Int
+  microsecond: Int
+  millisecond: Int
+  minute: Int
+  nanosecond: Int
+  second: Int
+  timezone: String
+}
+
+----
