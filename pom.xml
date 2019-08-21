@@ -8,7 +8,7 @@
     <artifactId>neo4j-graphql-java</artifactId>
     <name>Neo4j GraphQL Java</name>
     <description>GraphQL to Cypher Mapping</description>
-    <version>1.0.0-M03</version>
+    <version>1.0.0-M03-SNAPSHOT</version>
     <url>http://github.com/neo4j-graphql/neo4j-graphql-java</url>
 
     <licenses>

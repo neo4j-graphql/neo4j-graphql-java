@@ -6,7 +6,7 @@ import graphql.schema.idl.SchemaGenerator
 import graphql.schema.idl.SchemaParser
 import kotlin.test.assertEquals
 
-fun main(args: Array<String>) {
+fun main() {
     val schema = """type Query {
                         hello(what:String = "World"): String
                     }"""
@@ -15,9 +15,9 @@ fun main(args: Array<String>) {
     val typeDefinitionRegistry = schemaParser.parse(schema)
 
     val runtimeWiring = newRuntimeWiring()
-            .type("Query")
-            { it.dataFetcher("hello") { env -> "Hello ${env.getArgument<Any>("what")}!" } }
-            .build()
+        .type("Query")
+        { it.dataFetcher("hello") { env -> "Hello ${env.getArgument<Any>("what")}!" } }
+        .build()
 
     val schemaGenerator = SchemaGenerator()
     val graphQLSchema = schemaGenerator.makeExecutableSchema(typeDefinitionRegistry, runtimeWiring)

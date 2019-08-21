@@ -2,11 +2,7 @@ package org.neo4j.graphql
 
 import demo.org.neo4j.graphql.TckTest
 import demo.org.neo4j.graphql.TckTest.Companion.assertQuery
-import org.codehaus.jackson.map.ObjectMapper
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.io.File
 
 class FilterTest {
 
@@ -40,9 +36,9 @@ type Query {
 
     @Test
     fun testTck() {
-        val EXPECTED_FAILURES = 59
+        val expectedFailures = 59
         val fileName = "filter-test.md"
-        TckTest(schema).testTck(fileName, EXPECTED_FAILURES)
+        TckTest(schema).testTck(fileName, expectedFailures)
     }
 
 }

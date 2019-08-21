@@ -2,10 +2,8 @@ package org.neo4j.graphql
 
 import demo.org.neo4j.graphql.TckTest
 import graphql.language.Node
-import graphql.language.VariableReference
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
-import org.junit.Ignore
 import org.junit.Test
 
 class CypherDirectiveTest {
@@ -72,17 +70,19 @@ schema {
         val query = """{ p2 { id }}"""
         assertQuery(query, expected, emptyMap())
     }
+
     @Test
     fun renderCypherQueryDirectiveParams() {
         val expected = """UNWIND apoc.cypher.runFirstColumnSingle('WITH ${'$'}name AS name MATCH (p:Person) WHERE p.name = name RETURN p LIMIT 1',{name:${'$'}p3Name}) AS p3 RETURN p3 { .id } AS p3"""
         val query = """{ p3(name:"Jane") { id }}"""
         assertQuery(query, expected, mapOf("p3Name" to "Jane"))
     }
+
     @Test
     fun renderCypherQueryDirectiveParamsArgs() {
         val expected = """UNWIND apoc.cypher.runFirstColumnSingle('WITH ${'$'}name AS name MATCH (p:Person) WHERE p.name = name RETURN p LIMIT 1',{name:${'$'}pname}) AS p3 RETURN p3 { .id } AS p3"""
         val query = """query(${'$'}pname:String) { p3(name:${'$'}pname) { id }}"""
-        assertQuery(query, expected, mapOf("pname" to "foo"),mapOf("pname" to "foo"))
+        assertQuery(query, expected, mapOf("pname" to "foo"), mapOf("pname" to "foo"))
     }
 
     @Test
@@ -98,9 +98,14 @@ schema {
         TckTest(schema).testTck("cypher-directive-test.md", 0)
     }
 
-    private fun assertQuery(query: String, expected: String, params : Map<String,Any?> = emptyMap(),queryParams : Map<String,Any?> = emptyMap()) {
+    private fun assertQuery(query: String, expected: String, params: Map<String, Any?> = emptyMap(), queryParams: Map<String, Any?> = emptyMap()) {
         val result = Translator(SchemaBuilder.buildSchema(schema)).translate(query, queryParams).first()
         assertEquals(expected, result.query)
-        assertTrue("${params} IN ${result.params}", params.all { val v=result.params[it.key]; when (v) { is Node<*> -> v.isEqualTo(it.value as Node<*>) else -> v == it.value}})
+        assertTrue("$params IN ${result.params}", params.all {
+            when (val v = result.params[it.key]) {
+            is Node<*> -> v.isEqualTo(it.value as Node<*>)
+            else -> v == it.value
+        }
+        })
     }
 }
