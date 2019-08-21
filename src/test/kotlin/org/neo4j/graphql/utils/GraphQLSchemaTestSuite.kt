@@ -13,7 +13,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assumptions
 import org.junit.jupiter.api.DynamicTest
 import org.neo4j.graphql.SchemaBuilder
-import org.neo4j.graphql.Translator
+import org.neo4j.graphql.SchemaConfig
 import java.util.regex.Pattern
 
 class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite() {
@@ -52,7 +52,7 @@ class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite() {
     class TestRun(
             private val suite: GraphQLSchemaTestSuite,
             val title: String?,
-            private val config: Translator.Context,
+            private val config: SchemaConfig,
             private val targetSchema: String,
             private val ignore: Boolean) {
 
@@ -104,7 +104,7 @@ class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite() {
             TestRun(this,
                     it.title,
                     MAPPER.readValue(it.codeBlocks["[source,json]"]?.toString()
-                            ?: throw IllegalStateException("missing config ${it.title}"), Translator.Context::class.java),
+                            ?: throw IllegalStateException("missing config ${it.title}"), SchemaConfig::class.java),
                     it.codeBlocks["[source,graphql]"]?.trim()?.toString()
                             ?: throw IllegalStateException("missing graphql for ${it.title}"),
                     it.ignore

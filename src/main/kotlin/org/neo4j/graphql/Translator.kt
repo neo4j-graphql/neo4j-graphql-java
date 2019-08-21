@@ -7,57 +7,14 @@ import graphql.schema.GraphQLFieldDefinition
 import graphql.schema.GraphQLObjectType
 import graphql.schema.GraphQLSchema
 import graphql.schema.GraphQLType
-import graphql.schema.idl.RuntimeWiring
-import graphql.schema.idl.SchemaGenerator
-import graphql.schema.idl.SchemaParser
-import graphql.schema.idl.TypeDefinitionRegistry
 import org.antlr.v4.runtime.misc.ParseCancellationException
 import java.math.BigDecimal
 import java.math.BigInteger
 
 class Translator(val schema: GraphQLSchema) {
-    data class Context @JvmOverloads constructor(val topLevelWhere: Boolean = true,
-            val fragments: Map<String, FragmentDefinition> = emptyMap(),
-            val query: CRUDConfig = CRUDConfig(),
-            val mutation: CRUDConfig = CRUDConfig())
-
-    data class CRUDConfig(val enabled: Boolean = true, val exclude: List<String> = emptyList())
-    data class Cypher(val query: String, val params: Map<String, Any?> = emptyMap()) {
-        fun with(p: Map<String, Any?>) = this.copy(params = this.params + p)
-        fun escapedQuery() = query.replace("\"", "\\\"").replace("'", "\\'")
-
-        companion object {
-            val EMPTY = Cypher("")
-
-            private fun findRelNodeId(objectType: GraphQLObjectType) = objectType.fieldDefinitions.find { it.isID() }!!
-
-            private fun createRelStatement(source: GraphQLType, target: GraphQLFieldDefinition,
-                    keyword: String = "MERGE"): String {
-                val innerTarget = target.type.inner()
-                val relationshipDirective = target.getDirective("relation")
-                        ?: throw IllegalArgumentException("Missing @relation directive for relation ${target.name}")
-                val targetFilterType = if (target.type.isList()) "IN" else "="
-                val sourceId = findRelNodeId(source as GraphQLObjectType)
-                val targetId = findRelNodeId(innerTarget as GraphQLObjectType)
-                val (left, right) = if (relationshipDirective.getRelationshipDirection() == "OUT") ("" to ">") else ("<" to "")
-                return "MATCH (from:${source.name.quote()} {${sourceId.name.quote()}:$${sourceId.name}}) " +
-                        "MATCH (to:${innerTarget.name.quote()}) WHERE to.${targetId.name.quote()} $targetFilterType $${target.name} " +
-                        "$keyword (from)$left-[r:${relationshipDirective.getRelationshipType().quote()}]-$right(to) "
-            }
-
-            fun createRelationship(source: GraphQLType, target: GraphQLFieldDefinition): Cypher {
-                return Cypher(createRelStatement(source, target))
-            }
-
-            fun deleteRelationship(source: GraphQLType, target: GraphQLFieldDefinition): Cypher {
-                return Cypher(createRelStatement(source, target, "MATCH") +
-                        "DELETE r ")
-            }
-        }
-    }
 
     @JvmOverloads
-    fun translate(query: String, params: Map<String, Any?> = emptyMap(), context: Context = Context()): List<Cypher> {
+    fun translate(query: String, params: Map<String, Any?> = emptyMap(), context: QueryContext = QueryContext()): List<Cypher> {
         val ast = parse(query) // todo preparsedDocumentProvider
         val ctx = context.copy(fragments = ast.definitions.filterIsInstance<FragmentDefinition>().map { it.name to it }.toMap())
         return ast.definitions.filterIsInstance<OperationDefinition>()
@@ -78,7 +35,7 @@ class Translator(val schema: GraphQLSchema) {
         else -> value
     }
 
-    private fun toQuery(field: Field, ctx: Context = Context()): Cypher {
+    private fun toQuery(field: Field, ctx: QueryContext = QueryContext()): Cypher {
         val name = field.name
         val queryType = schema.queryType.getFieldDefinition(name)
         val mutationType = schema.mutationType.getFieldDefinition(name)
@@ -134,7 +91,7 @@ class Translator(val schema: GraphQLSchema) {
         }
     }
 
-    private fun checkRelationships(sourceFieldDefinition: GraphQLFieldDefinition, field: Field, ordering: String, skipLimit: String, ctx: Context): Cypher {
+    private fun checkRelationships(sourceFieldDefinition: GraphQLFieldDefinition, field: Field, ordering: String, skipLimit: String, ctx: QueryContext): Cypher {
         val source = sourceFieldDefinition.type as GraphQLObjectType
         val targetFieldDefinition = filterTarget(source, field, sourceFieldDefinition)
 
@@ -326,7 +283,7 @@ class Translator(val schema: GraphQLSchema) {
         return predicates.values + defaults
     }
 
-    private fun projectFields(variable: String, field: Field, type: GraphQLType, ctx: Context, variableSuffix: String?): Cypher {
+    private fun projectFields(variable: String, field: Field, type: GraphQLType, ctx: QueryContext, variableSuffix: String?): Cypher {
         // todo handle non-object case
         val objectType = type as GraphQLObjectType
         val properties = field.selectionSet.selections.flatMap {
@@ -343,7 +300,7 @@ class Translator(val schema: GraphQLSchema) {
         return Cypher("$variable $projection", params)
     }
 
-    private fun projectField(variable: String, field: Field, type: GraphQLObjectType, ctx: Context, variableSuffix: String?): Cypher {
+    private fun projectField(variable: String, field: Field, type: GraphQLObjectType, ctx: QueryContext, variableSuffix: String?): Cypher {
         val fieldDefinition = type.getFieldDefinition(field.name)
                 ?: throw IllegalStateException("No field ${field.name} in ${type.name}")
         val cypherDirective = fieldDefinition.cypherDirective()
@@ -387,12 +344,12 @@ class Translator(val schema: GraphQLSchema) {
         return Cypher("'$query',$argString", args.filter { it.name != "this" }.associate { paramName(variable, it.name, it.value) to it.value })
     }
 
-    private fun projectNamedFragments(variable: String, fragmentSpread: FragmentSpread, type: GraphQLObjectType, ctx: Context, variableSuffix: String?) =
+    private fun projectNamedFragments(variable: String, fragmentSpread: FragmentSpread, type: GraphQLObjectType, ctx: QueryContext, variableSuffix: String?) =
             ctx.fragments.getValue(fragmentSpread.name).let {
                 projectFragment(it.typeCondition.name, type, variable, ctx, variableSuffix, it.selectionSet)
             }
 
-    private fun projectFragment(fragmentTypeName: String?, type: GraphQLObjectType, variable: String, ctx: Context, variableSuffix: String?, selectionSet: SelectionSet): List<Cypher> {
+    private fun projectFragment(fragmentTypeName: String?, type: GraphQLObjectType, variable: String, ctx: QueryContext, variableSuffix: String?, selectionSet: SelectionSet): List<Cypher> {
         val fragmentType = schema.getType(fragmentTypeName)!! as GraphQLObjectType
         return if (fragmentType == type) {
             // these are the nested fields of the fragment
@@ -403,11 +360,11 @@ class Translator(val schema: GraphQLSchema) {
         }
     }
 
-    private fun projectInlineFragment(variable: String, fragment: InlineFragment, type: GraphQLObjectType, ctx: Context, variableSuffix: String?) =
+    private fun projectInlineFragment(variable: String, fragment: InlineFragment, type: GraphQLObjectType, ctx: QueryContext, variableSuffix: String?) =
             projectFragment(fragment.typeCondition.name, type, variable, ctx, variableSuffix, fragment.selectionSet)
 
 
-    private fun projectRelationship(variable: String, field: Field, fieldDefinition: GraphQLFieldDefinition, parent: GraphQLObjectType, ctx: Context, variableSuffix: String?): Cypher {
+    private fun projectRelationship(variable: String, field: Field, fieldDefinition: GraphQLFieldDefinition, parent: GraphQLObjectType, ctx: QueryContext, variableSuffix: String?): Cypher {
         return when (parent.definition.directivesByName.containsKey("relation")) {
             true -> projectRelationshipParent(variable, field, fieldDefinition, ctx, variableSuffix)
             else -> projectRichAndRegularRelationship(variable, field, fieldDefinition, parent, ctx)
@@ -428,7 +385,7 @@ class Translator(val schema: GraphQLSchema) {
         return Cypher(" { $fieldProjection }")
     }
 
-    private fun projectListComprehension(variable: String, field: Field, fieldDefinition: GraphQLFieldDefinition, ctx: Context, expression: Cypher, variableSuffix: String?): Cypher {
+    private fun projectListComprehension(variable: String, field: Field, fieldDefinition: GraphQLFieldDefinition, ctx: QueryContext, expression: Cypher, variableSuffix: String?): Cypher {
         val fieldType = fieldDefinition.type
         val fieldObjectType = fieldType.inner() as GraphQLObjectType
         val childVariable = variable + field.name.capitalize()
@@ -443,7 +400,7 @@ class Translator(val schema: GraphQLSchema) {
 
     }
 
-    private fun projectRichAndRegularRelationship(variable: String, field: Field, fieldDefinition: GraphQLFieldDefinition, parent: GraphQLObjectType, ctx: Context): Cypher {
+    private fun projectRichAndRegularRelationship(variable: String, field: Field, fieldDefinition: GraphQLFieldDefinition, parent: GraphQLObjectType, ctx: QueryContext): Cypher {
         val fieldType = fieldDefinition.type
         val fieldObjectType = fieldType.inner() as GraphQLObjectType
         // todo combine both nestings if rel-entity
@@ -488,7 +445,7 @@ class Translator(val schema: GraphQLSchema) {
         return if (inverse) relInfo0.copy(out = relInfo0.out?.not(), startField = relInfo0.endField, endField = relInfo0.startField) else relInfo0
     }
 
-    private fun projectRelationshipParent(variable: String, field: Field, fieldDefinition: GraphQLFieldDefinition, ctx: Context, variableSuffix: String?): Cypher {
+    private fun projectRelationshipParent(variable: String, field: Field, fieldDefinition: GraphQLFieldDefinition, ctx: QueryContext, variableSuffix: String?): Cypher {
         val fieldType = fieldDefinition.type
         val fieldObjectType = fieldType.inner() as GraphQLObjectType
 
@@ -534,117 +491,4 @@ class Translator(val schema: GraphQLSchema) {
             throw e
         }
     }
-}
-
-
-object SchemaBuilder {
-    @JvmStatic
-    fun buildSchema(sdl: String, ctx: Translator.Context = Translator.Context()): GraphQLSchema {
-        val schemaParser = SchemaParser()
-        val baseTypeDefinitionRegistry = schemaParser.parse(sdl)
-        val augmentedTypeDefinitionRegistry = augmentSchema(baseTypeDefinitionRegistry, schemaParser, ctx)
-
-        val runtimeWiring = RuntimeWiring.newRuntimeWiring()
-            .type("Query") { it.dataFetcher("hello") { env -> "Hello ${env.getArgument<Any>("what")}!" } }
-            .build()
-
-        val schemaGenerator = SchemaGenerator()
-        return schemaGenerator.makeExecutableSchema(augmentedTypeDefinitionRegistry, runtimeWiring)
-            .transform { sc -> sc.build() } // todo add new queries, filters, enums etc.
-    }
-
-    private fun augmentSchema(typeDefinitionRegistry: TypeDefinitionRegistry, schemaParser: SchemaParser, ctx: Translator.Context): TypeDefinitionRegistry {
-        val directivesSdl = """
-            enum RelationDirection {
-               IN
-               OUT
-               BOTH
-            }
-            directive @relation(name:String, direction: RelationDirection = OUT, from: String = "from", to: String = "to") on FIELD_DEFINITION | OBJECT
-            directive @cypher(statement:String) on FIELD_DEFINITION
-            directive @property(name:String) on FIELD_DEFINITION
-        """
-        typeDefinitionRegistry.merge(schemaParser.parse(directivesSdl))
-        typeDefinitionRegistry.merge(schemaParser.parse(neo4jTypesSdl()))
-
-
-        val objectTypeDefinitions = typeDefinitionRegistry.types().values
-            .filterIsInstance<ObjectTypeDefinition>()
-            .filter { !it.isNeo4jType() }
-        val nodeMutations = objectTypeDefinitions.map { createNodeMutation(ctx, it) }
-        val relMutations = objectTypeDefinitions.flatMap { source ->
-            createRelationshipMutations(source, objectTypeDefinitions, ctx)
-        }
-        val augmentations = nodeMutations + relMutations
-
-        val augmentedTypesSdl = augmentations
-            .flatMap { it -> listOf(it.filterType, it.ordering, it.inputType).filter { it.isNotBlank() } }
-            .joinToString("\n")
-        if (augmentedTypesSdl.isNotBlank()) {
-            typeDefinitionRegistry.merge(schemaParser.parse(augmentedTypesSdl))
-        }
-
-        val schemaDefinition = typeDefinitionRegistry.schemaDefinition().orElseGet { SchemaDefinition.newSchemaDefinition().build() }
-        val operations = schemaDefinition.operationTypeDefinitions
-            .associate { it.name to typeDefinitionRegistry.getType(it.typeName).orElseThrow { RuntimeException("Could not find type: " + it.typeName) } as ObjectTypeDefinition }
-            .toMap()
-
-
-        val queryDefinition = operations.getOrElse("query") {
-            typeDefinitionRegistry.getType("Query", ObjectTypeDefinition::class.java).orElseGet {
-                ObjectTypeDefinition("Query").also { typeDefinitionRegistry.add(it) }
-            }
-        }
-        augmentations
-            .filter { it.query.isNotBlank() && queryDefinition.fieldDefinitions.none { fd -> it.query.startsWith(fd.name + "(") } }
-            .map { it.query }.let { it ->
-                if (it.isNotEmpty()) {
-                    val newQueries = schemaParser
-                        .parse("type AugmentedQuery { ${it.joinToString("\n")} }")
-                        .getType("AugmentedQuery").get() as ObjectTypeDefinition
-                    typeDefinitionRegistry.remove(queryDefinition)
-                    typeDefinitionRegistry.add(queryDefinition.transform { qdb -> newQueries.fieldDefinitions.forEach { qdb.fieldDefinition(it) } })
-                }
-            }
-
-        val mutationDefinition = operations.getOrElse("mutation") {
-            typeDefinitionRegistry.getType("Mutation", ObjectTypeDefinition::class.java).orElseGet {
-                ObjectTypeDefinition("Mutation").also { typeDefinitionRegistry.add(it) }
-            }
-        }
-        augmentations.flatMap { it ->
-            listOf(it.create, it.update, it.delete, it.merge)
-                .filter { it.isNotBlank() && mutationDefinition.fieldDefinitions.none { fd -> it.startsWith(fd.name + "(") } }
-        }
-            .let { it ->
-                if (it.isNotEmpty()) {
-                    val newQueries = schemaParser
-                        .parse("type AugmentedMutation { ${it.joinToString("\n")} }")
-                        .getType("AugmentedMutation").get() as ObjectTypeDefinition
-                    typeDefinitionRegistry.remove(mutationDefinition)
-                    typeDefinitionRegistry.add(mutationDefinition.transform { mdb -> newQueries.fieldDefinitions.forEach { mdb.fieldDefinition(it) } })
-                }
-            }
-
-        val newSchemaDef = schemaDefinition.transform {
-            it.operationTypeDefinition(OperationTypeDefinition("query", TypeName(queryDefinition.name)))
-                .operationTypeDefinition(OperationTypeDefinition("mutation", TypeName(mutationDefinition.name))).build()
-        }
-
-        typeDefinitionRegistry.remove(schemaDefinition)
-        typeDefinitionRegistry.add(newSchemaDef)
-
-        return typeDefinitionRegistry
-    }
-
-    private fun createRelationshipMutations(source: ObjectTypeDefinition,
-            objectTypeDefinitions: List<ObjectTypeDefinition>,
-            ctx: Translator.Context): List<Augmentation> = source.fieldDefinitions
-        .filter { !it.type.inner().isScalar() && it.getDirective("relation") != null }
-        .mapNotNull { targetField ->
-            objectTypeDefinitions.firstOrNull { it.name == targetField.type.inner().name() }
-                ?.let { target ->
-                    createRelationshipMutation(ctx, source, target)
-                }
-        }
 }

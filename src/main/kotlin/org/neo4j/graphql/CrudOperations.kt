@@ -6,7 +6,7 @@ import graphql.language.ObjectTypeDefinition
 data class Augmentation(val create: String = "", val merge: String = "", val update: String = "", val delete: String = "",
         val inputType: String = "", val ordering: String = "", val filterType: String = "", val query: String = "")
 
-fun createNodeMutation(ctx: Translator.Context, type: ObjectTypeDefinition): Augmentation {
+fun createNodeMutation(ctx: SchemaConfig, type: ObjectTypeDefinition): Augmentation {
     val typeName = type.name
     val idField = type.fieldDefinitions.find { it.type.name() == "ID" }
     val scalarFields = type.fieldDefinitions.filter { it.type.isScalar() }.sortedByDescending { it == idField }
@@ -34,7 +34,7 @@ fun createNodeMutation(ctx: Translator.Context, type: ObjectTypeDefinition): Aug
     } else result
 }
 
-fun createRelationshipMutation(ctx: Translator.Context, source: ObjectTypeDefinition, target: ObjectTypeDefinition): Augmentation? {
+fun createRelationshipMutation(ctx: SchemaConfig, source: ObjectTypeDefinition, target: ObjectTypeDefinition): Augmentation? {
     val sourceTypeName = source.name
     return if (!ctx.mutation.enabled || ctx.mutation.exclude.contains(sourceTypeName)) {
         null

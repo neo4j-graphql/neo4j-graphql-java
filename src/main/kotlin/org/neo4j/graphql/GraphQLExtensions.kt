@@ -44,11 +44,11 @@ fun Field.propertyName(fieldDefinition: GraphQLFieldDefinition) = (fieldDefiniti
 fun GraphQLFieldDefinition.propertyDirectiveName() =
         this.definition.getDirective("property")?.getArgument("name")?.value?.toJavaValue()?.toString()
 
-fun GraphQLFieldDefinition.cypherDirective(): Translator.Cypher? =
+fun GraphQLFieldDefinition.cypherDirective(): Cypher? =
         this.definition.getDirective("cypher")?.let {
             @Suppress("UNCHECKED_CAST")
-            Translator.Cypher(it.getArgument("statement").value.toJavaValue().toString(),
-                    it.getArgument("params")?.value?.toJavaValue() as Map<String, Any?>? ?: emptyMap())
+            (Cypher(it.getArgument("statement").value.toJavaValue().toString(),
+                it.getArgument("params")?.value?.toJavaValue() as Map<String, Any?>? ?: emptyMap()))
         }
 
 fun String.quote() = if (isJavaIdentifier()) this else "`$this`"
