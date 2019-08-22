@@ -26,6 +26,18 @@ object SchemaBuilder {
 
         AugmentationProcessor(typeDefinitionRegistry, config, builder).augmentSchema()
 
+        typeDefinitionRegistry
+            .getTypes(InterfaceTypeDefinition::class.java)
+            .forEach { typeDefinition ->
+                builder.type(typeDefinition.name) {
+                    it.typeResolver { env ->
+                        (env.getObject() as? Map<String, Any>)
+                            ?.let { data -> data[ProjectionBase.TYPE_NAME] as? String }
+                            ?.let { typeName -> env.schema.getObjectType(typeName) }
+                    }
+                }
+            }
+
         val runtimeWiring = builder.build()
 
         // todo add new queries, filters, enums etc.

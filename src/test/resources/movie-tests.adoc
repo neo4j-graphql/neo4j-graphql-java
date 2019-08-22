@@ -43,18 +43,18 @@ type Genre {
 type State {
   name: String
 }
-#interface Person {
-#  userId: ID!
-#  name: String
-#}
-type Actor # implements Person
+interface Person {
+  userId: ID!
+  name: String
+}
+type Actor implements Person
 {
   userId: ID!
   name: String
   movies: [Movie] @relation(name: "ACTED_IN", direction:OUT)
   born: _Neo4jDateTime
 }
-type User # implements Person
+type User implements Person
 {
   userId: ID!
   name: String
@@ -100,6 +100,7 @@ type Query {
 }
 type Mutation {
   createGenre(name:String): Genre @cypher(statement:"CREATE (g:Genre) SET g.name = name RETURN g")
+  changePerson(name: String): Person
 }
 # scalar DateTime
 ----
@@ -371,8 +372,8 @@ RETURN movie {
 [source,json]
 ----
 {
-  "movieFirst":3,
-  "movieOffset":0
+  "movieFirst": 3,
+  "movieOffset": 0
 }
 ----
 
@@ -412,7 +413,7 @@ RETURN movie {
 [source,json]
 ----
 {
-  "movieFirst":3,
+  "movieFirst": 3,
   "movieOffset":0
 }
 ----
@@ -675,7 +676,7 @@ mutation {
 {
   "fromMovieId": 1,
   "toGenres": [
-    "Action",
+    "Action", 
     "Fantasy"
   ]
 }
@@ -773,7 +774,7 @@ mutation {
 {
   "fromUserId": 1,
   "toKnows": [
-    10,
+    10, 
     23
   ]
 }
@@ -819,8 +820,42 @@ ORDER BY movie.title DESC
 LIMIT 10
 ----
 
-== Neo4j Data Types queryies
+=== create object with multiple labels
 
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+ createUser(userId:1){
+    userId,
+    __typename
+ }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "createUserUserId": 1,
+  "createUserValidTypes": [
+    "User"
+  ]
+}
+----
+
+.Cypher
+[source,cypher]
+----
+CREATE (createUser:User:Person { userId: $createUserUserId })
+WITH createUser
+RETURN createUser {
+  .userId,
+  __typename: head( [ label IN labels(createUser) WHERE label IN $createUserValidTypes ] )
+} AS createUser
+----
+
+== Neo4j Data Types queryies
 
 === User born extraction
 
@@ -927,13 +962,23 @@ mutation {
 .Cypher Params
 [source,json]
 ----
-{"actorUserId": "1", "actorName": "Andrea", "actorBorn": { "formatted": "2015-06-24T12:50:35.556000000+01:00" }}
+{
+  "actorUserId": "1",
+  "actorName": "Andrea",
+  "actorBorn": {
+    "formatted": "2015-06-24T12:50:35.556000000+01:00"
+  }
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
-CREATE (actor:Actor {userId: $actorUserId, name: $actorName, born: datetime($actorBorn.formatted)})
+CREATE (actor:Actor:Person {
+  userId: $actorUserId,
+  name: $actorName,
+  born: datetime($actorBorn.formatted)
+})
 WITH actor
 RETURN actor { .name } AS actor
 ----
@@ -1029,7 +1074,11 @@ mutation {
 .Cypher
 [source,cypher]
 ----
-CREATE (actor:Actor {userId: $actorUserId, name: $actorName, born: datetime($actorBorn)})
+CREATE (actor:Actor:Person {
+  userId: $actorUserId,
+  name: $actorName,
+  born: datetime($actorBorn)
+})
 WITH actor
 RETURN actor { .name,born: { year: actor.born.year, month: actor.born.month } } AS actor
 ----

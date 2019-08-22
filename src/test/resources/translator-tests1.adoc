@@ -13,19 +13,32 @@ type Person {
   born : Birth
   died : Death
 }
-type Birth @relation(name:"BORN") {
+interface Temporal {
+  date: String
+}
+type Birth implements Temporal @relation(name:"BORN") {
   from: Person
   to: Location
   date: String
 }
-type Death @relation(name:"DIED",from:"who",to:"where") {
+type Death implements Temporal @relation(name:"DIED",from:"who",to:"where") {
   who: Person
   where: Location
   date: String
 }
-type Location {
+interface Location {
   name: String
   founded: Person @relation(name:"FOUNDED", direction: IN)
+}
+type City implements Location {
+  name: String
+  founded: Person @relation(name:"FOUNDED", direction: IN)
+  cityArg: String
+}
+type Village implements Location {
+  name: String
+  founded: Person @relation(name:"FOUNDED", direction: IN)
+  villageArg: String
 }
 # enum _PersonOrdering { name_asc, name_desc, age_asc, age_desc }
 enum E { pi, e }
@@ -619,13 +632,17 @@ RETURN person {
 .GraphQL-Query
 [source,graphql]
 ----
-{ location { name } }
+{ location { name __typename } }
 ----
 
 .Cypher params
 [source,json]
 ----
 {
+  "locationValidTypes": [
+    "City",
+    "Village"
+  ]
 }
 ----
 
@@ -634,13 +651,12 @@ RETURN person {
 ----
 MATCH (location:Location)
 RETURN location {
-  .name
+  .name,
+  __typename: head( [ label in labels(location) WHERE label in $locationValidTypes ] )
 } AS location
 ----
 
 === introspection
-
-CAUTION: Not yet implemented
 
 .GraphQL-Query
 [source,graphql]
@@ -678,8 +694,6 @@ RETURN person {
 ----
 
 === inline fragments on interfaces
-
-CAUTION: Not yet implemented
 
 .GraphQL-Query
 [source,graphql]
@@ -719,8 +733,6 @@ RETURN location {
 ----
 
 === fragments on interfaces
-
-CAUTION: Not yet implemented
 
 .GraphQL-Query
 [source,graphql]
