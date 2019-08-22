@@ -35,7 +35,7 @@ interface Predicate {
                     null -> "null"
                     is String -> if (isParam(value)) value else "\"$value\""
                     is Map<*, *> -> "{" + value.map { it.key.toString() + ":" + formatAnyValueCypher(it.value) }.joinToString(",") + "}"
-                    is Iterable<*> -> "[" + value.joinToString(",") { formatAnyValueCypher(it) } + "]"
+                    is Iterable<*> -> "[" + value.map { formatAnyValueCypher(it) }.joinToString (",") + "]"
                     else -> value.toString()
 
                 }

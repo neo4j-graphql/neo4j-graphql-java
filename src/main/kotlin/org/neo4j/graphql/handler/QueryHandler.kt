@@ -54,7 +54,7 @@ class QueryHandler private constructor(
         } else {
             "($variable:${label()})"
         }
-        val where = where(variable, fieldDefinition, type, propertyArguments(field), field, env)
+        val where = where(variable, fieldDefinition, type, propertyArguments(field), field)
         return Cypher("MATCH $select${where.query}" +
                 " RETURN ${mapProjection.query} AS $variable$ordering${skipLimit}",
                 (where.params + mapProjection.params))

@@ -275,7 +275,7 @@ This is a migration of the tests located at https://github.com/neo4j-graphql/neo
 
 === simple Cypher query
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 {
@@ -299,7 +299,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel` {title:$title}) RETURN `movie
 
 === Simple skip limit
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 {
@@ -325,7 +325,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel` {title:$title}) RETURN `movie
 
 === Cypher projection skip limit
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 {
@@ -355,7 +355,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel` {title:$title}) RETURN `movie
 
 === Handle Query with name not aligning to type
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 {
@@ -380,7 +380,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel` {year:$year}) RETURN `movie` 
 
 === Query without arguments, non-null type
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 query {
@@ -404,7 +404,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel`) RETURN `movie` { .movieId } 
 
 === Query single object
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 
@@ -429,7 +429,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel` {movieId:$movieId}) RETURN `m
 
 === Query single object relation
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 
@@ -458,7 +458,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel` {movieId:$movieId}) RETURN `m
 
 === Query single object and array of objects relations
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 
@@ -489,7 +489,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel` {movieId:$movieId}) RETURN `m
 
 === Deeply nested object query
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 
@@ -531,7 +531,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel` {title:$title}) RETURN `movie
 
 === Handle meta field at beginning of selection set
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 
@@ -557,7 +557,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel` {title:$title}) RETURN `movie
 
 === Handle meta field at end of selection set
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 
@@ -584,7 +584,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel` {title:$title}) RETURN `movie
 
 === Handle meta field in middle of selection set
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 
@@ -612,7 +612,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel` {title:$title}) RETURN `movie
 
 === Handle @cypher directive without any params for sub-query
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 {
@@ -640,7 +640,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel` {title:$title}) RETURN `movie
 
 === Pass @cypher directive default params to sub-query
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 {
@@ -665,7 +665,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel` {title:$title}) RETURN `movie
 
 === Pass @cypher directive params to sub-query
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 {
@@ -690,7 +690,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel` {title:$title}) RETURN `movie
 
 === Query for Neo4js internal _id
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 {
@@ -716,7 +716,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel`) WHERE ID(`movie`)=0 RETURN `
 
 === Query for Neo4js internal _id and another param before _id
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 {
@@ -742,7 +742,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel` {title:$title}) WHERE ID(`mov
 
 === Query for Neo4js internal _id and another param after _id
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 {
@@ -768,7 +768,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel` {year:$year}) WHERE ID(`movie
 
 === Query for Neo4js internal _id by dedicated Query MovieBy_Id(_id: String!)
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 {
@@ -794,7 +794,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel`) WHERE ID(`movie`)=0 RETURN `
 
 === Query for null value translates to 'IS NULL' WHERE clause
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 {
@@ -819,7 +819,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel`) WHERE movie.poster IS NULL R
 
 === Query for null value combined with internal ID and another param
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 {
@@ -844,7 +844,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel` {year:$year}) WHERE ID(`movie
 
 === Cypher subquery filters
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 
@@ -875,7 +875,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel` {title:$title}) RETURN `movie
 
 === Cypher subquery filters with paging
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 
@@ -906,7 +906,7 @@ MATCH (`movie`:`Movie`:`user-id`:`newMovieLabel` {title:$title}) RETURN `movie` 
 
 === Handle @cypher directive on Query Type
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 
@@ -935,7 +935,7 @@ WITH apoc.cypher.runFirstColumn("MATCH (g:Genre) WHERE toLower(g.name) CONTAINS 
 
 === Add relationship mutation
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 mutation someMutation {
@@ -976,7 +976,7 @@ mutation someMutation {
 
 === Add relationship mutation with GraphQL variables
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 mutation someMutation($from: _MovieInput!) {
@@ -1017,7 +1017,7 @@ mutation someMutation($from: _MovieInput!) {
 
 === Add relationship mutation with relationship property
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 mutation someMutation {
@@ -1082,7 +1082,7 @@ mutation someMutation {
 
 === Add reflexive relationship mutation with relationship property
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 mutation {
@@ -1179,7 +1179,7 @@ mutation {
 
 === Remove relationship mutation
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 mutation someMutation {
@@ -1220,7 +1220,7 @@ mutation someMutation {
 
 === Remove reflexive relationship mutation
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 mutation {
@@ -1298,7 +1298,7 @@ mutation {
 
 === Handle GraphQL variables in nested selection - first/offset
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 query ($year: Int!, $first: Int!) {
@@ -1327,7 +1327,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel` {year:$year}) RETURN `movie` 
 
 === Handle GraphQL variables in nest selection - @cypher param (not first/offset)
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 query ($year: Int = 2016, $first: Int = 2, $scale:Int) {
@@ -1358,7 +1358,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel` {year:$year}) RETURN `movie` 
 
 === Return internal node id for _id field
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 {
@@ -1389,7 +1389,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel` {year:$year}) RETURN `movie` 
 
 === Treat enum as a scalar
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 
@@ -1414,7 +1414,7 @@ MATCH (`book`:`Book`) RETURN `book` { .genre } AS `book`
 
 === Handle query fragment
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 
@@ -1447,7 +1447,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel` {title:$title}) RETURN `movie
 
 === Handle multiple query fragments
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 
@@ -1485,7 +1485,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel` {title:$title}) RETURN `movie
 
 === nested fragments
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 
@@ -1519,7 +1519,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel` {year:$year}) RETURN `movie` 
 
 === fragments on relations
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 
@@ -1551,7 +1551,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel` {year:$year}) RETURN `movie` 
 
 === nested fragments on relations
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 
@@ -1587,7 +1587,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel` {year:$year}) RETURN `movie` 
 
 === orderBy test - descending, top level - augmented schema
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 {
@@ -1615,7 +1615,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel` {year:$year}) WITH `movie` OR
 
 === query for relationship properties
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 {
@@ -1645,7 +1645,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel` {title:$title}) RETURN `movie
 
 === query reflexive relation nested in non-reflexive relation
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 query {
@@ -1719,7 +1719,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel`) RETURN `movie` { .movieId , 
 
 === query non-reflexive relation nested in reflexive relation
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 query {
@@ -1792,7 +1792,7 @@ MATCH (`user`:`User`) RETURN `user` {_id: ID(`user`), .name ,friends: {from: [(`
 
 === query relation type with argument
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 query {
@@ -1823,7 +1823,7 @@ MATCH (`user`:`User`) RETURN `user` {_id: ID(`user`), .name ,rated: [(`user`)-[`
 
 === query reflexive relation type with arguments
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 query {
@@ -1863,7 +1863,7 @@ MATCH (`user`:`User`) RETURN `user` { .userId , .name ,friends: {from: [(`user`)
 
 === query using inline fragment
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 
@@ -1898,7 +1898,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel` {title:$title}) RETURN `movie
 
 === Create node with temporal properties
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 mutation {
@@ -2022,7 +2022,7 @@ mutation {
 
 === Query node with temporal properties using temporal arguments
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 query {
@@ -2144,7 +2144,7 @@ MATCH (`temporalNode`:`TemporalNode`) WHERE `temporalNode`.datetime.year = $date
 
 === Nested Query with temporal property arguments
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 query {
@@ -2309,7 +2309,7 @@ MATCH (`temporalNode`:`TemporalNode`) WHERE `temporalNode`.datetime.year = $date
 
 === Update temporal and non-temporal properties on node using temporal property node selection
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 mutation {
@@ -2402,7 +2402,7 @@ MATCH (`temporalNode`:`TemporalNode`) WHERE `temporalNode`.datetime.year = $para
 
 === Update temporal list property on node using temporal property node selection
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 mutation {
@@ -2461,7 +2461,7 @@ MATCH (`temporalNode`:`TemporalNode`) WHERE `temporalNode`.datetime.year = $para
 
 === Delete node using temporal property node selection
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 mutation {
@@ -2552,7 +2552,7 @@ RETURN `temporalNode`
 
 === Add relationship mutation using temporal property node selection
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 mutation {
@@ -2715,7 +2715,7 @@ mutation {
 
 === Remove relationship mutation using temporal property node selection
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 mutation {
@@ -2880,7 +2880,7 @@ mutation {
 
 === Query relationship with temporal properties
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 query {
@@ -2915,7 +2915,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel`) RETURN `movie` {_id: ID(`mov
 
 === Add relationship mutation with temporal properties
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 mutation {
@@ -3070,7 +3070,7 @@ mutation {
 
 === Add relationship mutation with list properties
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 mutation {
@@ -3155,7 +3155,7 @@ mutation {
 
 === Add reflexive relationship mutation with temporal properties
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 mutation {
@@ -3372,7 +3372,7 @@ mutation {
 
 === Remove relationship mutation for relation type field
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 mutation {
@@ -3428,7 +3428,7 @@ mutation {
 
 === Query nested temporal properties on reflexive relationship using temporal arguments
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 query {
@@ -3678,7 +3678,7 @@ MATCH (`user`:`User`) RETURN `user` { .userId , .name ,friends: {from: [(`user`)
 
 === Query nested temporal properties on relationships using temporal arguments
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 query {
@@ -3865,7 +3865,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel`) RETURN `movie` {_id: ID(`mov
 
 === Query nested list properties on relationship
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 query {
@@ -4027,7 +4027,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel`) RETURN `movie` {_id: ID(`mov
 
 === UUID value generated if no id value provided
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 mutation {
@@ -4054,7 +4054,7 @@ mutation {
 
 === Create node with list arguments
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 mutation {
@@ -4116,7 +4116,7 @@ mutation {
 
 === Cypher array queries
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 
@@ -4141,7 +4141,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel`) WHERE `movie`.`year` IN $yea
 
 === Cypher array sub queries
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 
@@ -4169,7 +4169,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel`) WHERE `movie`.`year` IN $yea
 
 === Create node with non-null field
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 mutation {
@@ -4198,7 +4198,7 @@ mutation {
 
 === Query node with ignored field
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 query {
@@ -4223,7 +4223,7 @@ MATCH (`state`:`State`) RETURN `state` { .name } AS `state`
 
 === Deeply nested orderBy
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 query {
@@ -4253,7 +4253,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel`) WITH `movie` ORDER BY movie.
 
 === Optimize performance - not requesting attributes with @cypher directive - early ORDER BY
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 {
@@ -4278,7 +4278,7 @@ MATCH (`user`:`User`) WITH `user` ORDER BY user.name DESC RETURN `user` {_id: ID
 
 === Optimize performance - attributes with @cypher directive requested - no optimization
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 {
@@ -4304,7 +4304,7 @@ MATCH (`user`:`User`) RETURN `user` {_id: ID(`user`), .name ,currentUserId: apoc
 
 === Query using enum orderBy
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 query {
@@ -4329,7 +4329,7 @@ MATCH (`book`:`Book`) WITH `book` ORDER BY book.genre ASC RETURN `book` {_id: ID
 
 === Query using temporal orderBy
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 query {
@@ -4357,7 +4357,7 @@ MATCH (`temporalNode`:`TemporalNode`) WITH `temporalNode` ORDER BY temporalNode.
 
 === Deeply nested query using temporal orderBy
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 query {
@@ -4423,7 +4423,7 @@ MATCH (`temporalNode`:`TemporalNode`) WITH `temporalNode` ORDER BY temporalNode.
 
 === Handle @cypher field with String payload using cypherParams
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 query {
@@ -4449,7 +4449,7 @@ MATCH (`user`:`User`) RETURN `user` { .userId ,currentUserId: apoc.cypher.runFir
 
 === Handle nested @cypher fields that use cypherParams
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 query {
@@ -4497,7 +4497,7 @@ MATCH (`user`:`User`) RETURN `user` { .userId ,currentUserId: apoc.cypher.runFir
 
 === Handle @cypher query using cypherParams with String payload
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 query {
@@ -4519,7 +4519,7 @@ WITH apoc.cypher.runFirstColumn("RETURN $cypherParams.currentUserId AS currentUs
 
 === Handle @cypher query using cypherParams with Object payload
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 query {
@@ -4543,7 +4543,7 @@ WITH apoc.cypher.runFirstColumn("RETURN { userId: $cypherParams.currentUserId }"
 
 === Handle @cypher query with Boolean payload
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 query {
@@ -4565,7 +4565,7 @@ WITH apoc.cypher.runFirstColumn("RETURN true", {offset:$offset, first:$first, cy
 
 === Handle @cypher query with Int payload
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 query {
@@ -4587,7 +4587,7 @@ WITH apoc.cypher.runFirstColumn("RETURN 1", {offset:$offset, first:$first, cyphe
 
 === Handle @cypher query with Float payload
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 query {
@@ -4609,7 +4609,7 @@ WITH apoc.cypher.runFirstColumn("RETURN 3.14", {offset:$offset, first:$first, cy
 
 === Handle @cypher query with String list payload
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 query {
@@ -4631,7 +4631,7 @@ WITH apoc.cypher.runFirstColumn("UNWIND ['hello', 'world'] AS stringList RETURN 
 
 === Handle @cypher query with Int list payload
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 query {
@@ -4653,7 +4653,7 @@ WITH apoc.cypher.runFirstColumn("UNWIND [1, 2, 3] AS intList RETURN intList", {o
 
 === Handle @cypher query with Temporal payload
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 query {
@@ -4687,7 +4687,7 @@ WITH apoc.cypher.runFirstColumn("WITH datetime() AS now RETURN { year: now.year,
 
 === Handle @cypher mutation using cypherParams with String payload
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 mutation {
@@ -4711,7 +4711,7 @@ CALL apoc.cypher.doIt("RETURN $cypherParams.currentUserId", {first:$first, offse
 
 === Handle @cypher mutation using cypherParams with Object payload
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 mutation {
@@ -4737,7 +4737,7 @@ CALL apoc.cypher.doIt("RETURN { userId: $cypherParams.currentUserId }", {first:$
 
 === Handle @cypher mutation with String list payload
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 mutation {
@@ -4761,7 +4761,7 @@ CALL apoc.cypher.doIt("UNWIND ['hello', 'world'] AS stringList RETURN stringList
 
 === Handle @cypher mutation with Temporal payload
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 mutation {
@@ -4797,7 +4797,7 @@ CALL apoc.cypher.doIt("WITH datetime() AS now RETURN { year: now.year, month: no
 
 === Handle nested @cypher fields using parameterized arguments and cypherParams
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 query someQuery(
@@ -4834,7 +4834,7 @@ MATCH (`movie`:`Movie`:`u_user-id`:`newMovieLabel`) RETURN `movie` {_id: ID(`mov
 
 === Handle @cypher mutation with input type argument
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 mutation someMutation($strArg: String, $strInputArg: strInput) {
@@ -4858,7 +4858,7 @@ CALL apoc.cypher.doIt("RETURN $strInputArg.strArg", {strArg:$strArg, strInputArg
 
 === Handle @cypher query with parameterized input type argument
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 query someQuery ($strArg: String, $strInputArg: strInput) {
@@ -4880,7 +4880,7 @@ WITH apoc.cypher.runFirstColumn("RETURN $strInputArg.strArg", {offset:$offset, f
 
 === Handle @cypher field on root query type with scalar payload, no args
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 query {
@@ -4904,7 +4904,7 @@ MATCH (`temporalNode`:`TemporalNode`) RETURN `temporalNode` {computedTimestamp: 
 
 === Handle @cypher field with parameterized value for field of input type argument
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 query someQuery(

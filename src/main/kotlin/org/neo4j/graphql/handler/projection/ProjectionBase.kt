@@ -25,10 +25,11 @@ open class ProjectionBase(val metaProvider: MetaProvider) {
         return if (values == null) ""
         else " ORDER BY " + values
             .map { it.split("_") }
-            .joinToString(", ") { "$variable.${it[0]} ${it[1].toUpperCase()}" }
+            .map { "$variable.${it[0]} ${it[1].toUpperCase()}" }
+            .joinToString(", ")
     }
 
-    fun where(variable: String, fieldDefinition: FieldDefinition, type: NodeFacade, arguments: List<Argument>, field: Field, env: DataFetchingEnvironment): Cypher {
+    fun where(variable: String, fieldDefinition: FieldDefinition, type: NodeFacade, arguments: List<Argument>, field: Field): Cypher {
 
         val all = preparePredicateArguments(fieldDefinition, arguments)
             .filterNot { listOf(FIRST, OFFSET, ORDER_BY).contains(it.name) }
@@ -72,7 +73,7 @@ open class ProjectionBase(val metaProvider: MetaProvider) {
                                     .forQuery(arg, f, neo4jType)
                                 Translator.CypherArgument(nameSuffix, propertyNameSuffix, arg.value, innerNeo4jConstruct)
                             }
-        }
+                    }
                 }
 
     private fun argumentsToMap(arguments: List<Argument>, resultObjectType: NodeFacade? = null): Map<String, Translator.CypherArgument> {
@@ -102,7 +103,7 @@ open class ProjectionBase(val metaProvider: MetaProvider) {
         val predicates = arguments.map {
             val fieldDefinition = resultObjectType.getFieldDefinition(it.name)
             it.name to Translator.CypherArgument(it.name,
-                    (fieldDefinition?.propertyDirectiveName()?: it.name).quote(), it.value.toJavaValue())
+                    (fieldDefinition?.propertyDirectiveName() ?: it.name).quote(), it.value.toJavaValue())
         }.toMap()
         val defaults = field.inputValueDefinitions.filter { it.defaultValue?.toJavaValue() != null && !predicates.containsKey(it.name) }
             .map { Translator.CypherArgument(it.name, it.name, it.defaultValue?.toJavaValue()) }
@@ -119,7 +120,9 @@ open class ProjectionBase(val metaProvider: MetaProvider) {
 
     fun projectFields(variable: String, field: Field, nodeType: NodeFacade, env: DataFetchingEnvironment, variableSuffix: String?): Cypher {
         val queries = projectSelectionSet(variable, field.selectionSet, nodeType, env, variableSuffix)
-        val projection = queries.joinToString(", ", "{ ", " }") { it.query }
+        val projection = queries
+            .map { it.query }
+            .joinToString(", ", "{ ", " }")
         val params = queries
             .map { it.params }
             .fold(emptyMap<String, Any?>()) { res, map -> res + map }
@@ -132,7 +135,7 @@ open class ProjectionBase(val metaProvider: MetaProvider) {
         //  a{.name},
         //  CASE WHEN a:Location THEN a { .foo } ELSE {} END
         //  ])
-        return selectionSet.selections.flatMapTo(mutableListOf<Cypher>()) {
+        return selectionSet.selections.flatMapTo(mutableListOf()) {
             when (it) {
                 is Field -> listOf(projectField(variable, it, nodeType, env, variableSuffix))
                 is InlineFragment -> projectInlineFragment(variable, it, env, variableSuffix)
@@ -175,13 +178,15 @@ open class ProjectionBase(val metaProvider: MetaProvider) {
 
     private fun projectNeo4jObjectType(variable: String, field: Field): Cypher {
         val fieldProjection = field.selectionSet.selections
-            .filterIsInstance<Field>().joinToString(", ") {
+            .filterIsInstance<Field>()
+            .map {
                 val value = when (it.name) {
                     NEO4j_FORMATTED_PROPERTY_KEY -> "$variable.${field.name}"
                     else -> "$variable.${field.name}.${it.name}"
                 }
                 "${it.name}: $value"
             }
+            .joinToString(", ")
 
         return Cypher(" { $fieldProjection }")
     }
@@ -283,7 +288,7 @@ open class ProjectionBase(val metaProvider: MetaProvider) {
 
         val relPattern = if (isRelFromType) "$childVariable:${relInfo.relType}" else ":${relInfo.relType}"
 
-        val where = where(childVariable, fieldDefinition, nodeType, propertyArguments(field), field, env)
+        val where = where(childVariable, fieldDefinition, nodeType, propertyArguments(field), field)
         val fieldProjection = projectFields(childVariable, field, nodeType, env, variableSuffix)
 
         val comprehension = "[($variable)$inArrow-[$relPattern]-$outArrow($endNodePattern)${where.query} | ${fieldProjection.query}]"
@@ -295,7 +300,7 @@ open class ProjectionBase(val metaProvider: MetaProvider) {
     private fun relDetails(type: NodeFacade, relDirective: Directive) =
             relDetails(type) { name, defaultValue -> metaProvider.getDirectiveArgument(relDirective, name, defaultValue) }
 
-    fun slice(skipLimit: Pair<Int, Int>, list: Boolean = false) =
+    private fun slice(skipLimit: Pair<Int, Int>, list: Boolean = false) =
             if (list) {
                 if (skipLimit.first == 0 && skipLimit.second == -1) ""
                 else if (skipLimit.second == -1) "[${skipLimit.first}..]"

@@ -17,7 +17,7 @@ interface NodeFacade {
     }
 
     fun relevantFields(): List<FieldDefinition> = fieldDefinitions()
-        .filter { it.type.isScalar() || it.isNeo4jType()}
+        .filter { it.type.isScalar() || it.isNeo4jType() }
         .sortedByDescending { it.isID() }
 
     fun isRelationType(): Boolean = this.getDirective(DirectiveConstants.RELATION) != null
@@ -51,7 +51,9 @@ interface NodeFacade {
             getDirective(DirectiveConstants.RELATION)?.getArgument(DirectiveConstants.RELATION_NAME)?.value?.toJavaValue()?.toString()?.quote()
                     ?: name().quote()
         else -> when {
-            includeAll -> (listOf(name()) + interfaces()).joinToString(":") { it.quote() }
+            includeAll -> (listOf(name()) + interfaces())
+                .map { it.quote() }
+                .joinToString(":")
             else -> name().quote()
         }
     }
