@@ -618,7 +618,7 @@ mutation {
 [source,cypher]
 ----
 MERGE (actor:Actor { userId: $actorUserId })
-SET actor.name = $actorName
+SET actor += { name: $actorName }
 WITH actor
 RETURN actor { .name } AS actor
 ----
@@ -639,8 +639,8 @@ mutation {
 [source,json]
 ----
 {
-  "movieId": 1,
-  "genres": [
+  "fromMovieId": 1,
+  "toGenres": [
     "Action", 
     "Fantasy"
   ]
@@ -650,12 +650,11 @@ mutation {
 .Cypher
 [source,cypher]
 ----
-MATCH (from:Movie { movieId: $movieId })
-MATCH (to:Genre)
-WHERE to.name IN $genres
-MERGE (from)-[r:IN_GENRE]->(to)
-WITH DISTINCT from
-RETURN from { .title } AS movie
+MATCH (from:Movie { movieId: $fromMovieId })
+MATCH (to:Genre) WHERE to.name IN $toGenres
+MERGE (from)-[:IN_GENRE]->(to)
+WITH DISTINCT from AS add
+RETURN add { .title } AS add
 ----
 
 === Should auto generate `delete` relationship mutations for arrays
@@ -673,19 +672,24 @@ mutation {
 .Params
 [source,json]
 ----
-{"movieId": 1, "genres": ["Action", "Fantasy"]}
+{
+  "fromMovieId": 1,
+  "toGenres": [
+    "Action",
+    "Fantasy"
+  ]
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (from:Movie {movieId:$movieId})
-MATCH (to:Genre)
-WHERE to.name IN $genres
+MATCH (from:Movie { movieId: $fromMovieId })
+MATCH (to:Genre) WHERE to.name IN $toGenres
 MATCH (from)-[r:IN_GENRE]->(to)
 DELETE r
-WITH DISTINCT from
-RETURN from { .title } AS movie
+WITH DISTINCT from AS del
+RETURN del { .title } AS del
 ----
 
 === Should auto generate `add` relationship mutations
@@ -703,18 +707,20 @@ mutation {
 .Params
 [source,json]
 ----
-{"movieId": 1, "publishedBy": "Company"}
+{
+  "fromMovieId": 1,
+  "toPublishedBy": "Company"
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (from:Movie {movieId:$movieId})
-MATCH (to:Publisher)
-WHERE to.name = $publishedBy
-MERGE (from)-[r:PUBLISHED_BY]->(to)
-WITH DISTINCT from
-RETURN from { .title } AS movie
+MATCH (from:Movie { movieId: $fromMovieId })
+MATCH (to:Publisher { name: $toPublishedBy })
+MERGE (from)-[:PUBLISHED_BY]->(to)
+WITH DISTINCT from AS add
+RETURN add { .title } AS add
 ----
 
 === Should auto generate `delete` relationship mutations
@@ -732,19 +738,21 @@ mutation {
 .Params
 [source,json]
 ----
-{"movieId": 1, "publishedBy": "Company"}
+{
+  "fromMovieId": 1,
+  "toPublishedBy": "Company"
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (from:Movie {movieId:$movieId})
-MATCH (to:Publisher)
-WHERE to.name = $publishedBy
+MATCH (from:Movie { movieId: $fromMovieId })
+MATCH (to:Publisher { name: $toPublishedBy })
 MATCH (from)-[r:PUBLISHED_BY]->(to)
 DELETE r
-WITH DISTINCT from
-RETURN from { .title } AS movie
+WITH DISTINCT from AS del
+RETURN del { .title } AS del
 ----
 
 === Should auto generate `add` recursive relationship mutations for arrays
@@ -762,18 +770,23 @@ mutation {
 .Params
 [source,json]
 ----
-{"userId": 1, "knows": [10, 23]}
+{
+  "fromUserId": 1,
+  "toKnows": [
+    10,
+    23
+  ]
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (from:User {userId:$userId})
-MATCH (to:User)
-WHERE to.userId IN $knows
-MERGE (from)-[r:KNOWS]->(to)
-WITH DISTINCT from
-RETURN from { .name } AS user
+MATCH (from:User { userId: $fromUserId })
+MATCH (to:User) WHERE to.userId IN $toKnows
+MERGE (from)-[:KNOWS]->(to)
+WITH DISTINCT from AS add
+RETURN add { .name } AS add
 ----
 
 == Order By
@@ -880,13 +893,20 @@ mutation {
 .Params
 [source,json]
 ----
-{"actorUserId": "1", "actorName": "Andrea", "actorBorn": { "formatted": "2015-06-24T12:50:35.556000000+01:00" }}
+{
+  "actorUserId": "1",
+  "actorName": "Andrea",
+  "actorBorn": {
+    "formatted": "2015-06-24T12:50:35.556000000+01:00"
+  }
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
-MERGE (actor:Actor {userId:$actorUserId}) SET actor.name = $actorName,actor.born = datetime($actorBorn.formatted)
+MERGE (actor:Actor {userId:$actorUserId})
+SET actor += { name: $actorName, born: datetime($actorBorn.formatted) }
 WITH actor
 RETURN actor { .name } AS actor
 ----
@@ -957,7 +977,11 @@ mutation {
 .Cypher
 [source,cypher]
 ----
-MERGE (actor:Actor {userId:$actorUserId}) SET actor.name = $actorName,actor.born = datetime($actorBorn)
+MERGE (actor:Actor {userId:$actorUserId})
+SET actor += {
+  name: $actorName,
+  born: datetime($actorBorn)
+}
 WITH actor
 RETURN actor { .name } AS actor
 ----
