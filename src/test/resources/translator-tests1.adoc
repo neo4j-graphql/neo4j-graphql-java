@@ -142,19 +142,19 @@ MATCH (person:Person) RETURN person { .name } AS person
 .Cypher params
 [source,json]
 ----
-{}
+{
+  "personOffset": 3
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
 MATCH (person:Person)
-RETURN person { .age } AS person SKIP 3
+RETURN person { .age } AS person SKIP $personOffset
 ----
 
 === query offset as variable
-
-CAUTION: Not yet implemented
 
 .GraphQL-Query
 [source,graphql]
@@ -411,14 +411,16 @@ MATCH (foo:Person) RETURN foo { n:foo.name } AS foo
 .Cypher params
 [source,json]
 ----
-{}
+{
+  "personFirst": 2
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
 MATCH (person:Person)
-RETURN person { .age } AS person LIMIT 2
+RETURN person { .age } AS person LIMIT $personFirst
 ----
 
 === simple query where
@@ -498,6 +500,7 @@ SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further detail
 [source,json]
 ----
 {
+  "personLivedInOffset": 3
 }
 ----
 
@@ -508,7 +511,8 @@ MATCH (person:Person)
 RETURN person {
   livedIn:[(person)-[:LIVED_IN]->(personLivedIn:Location) | personLivedIn {
     .name
-  }][3..] } AS person
+  }][$personLivedInOffset..]
+} AS person
 ----
 
 === nested query slice first
@@ -523,6 +527,7 @@ RETURN person {
 [source,json]
 ----
 {
+  "personLivedInFirst": 2
 }
 ----
 
@@ -533,7 +538,8 @@ MATCH (person:Person)
 RETURN person {
   livedIn:[(person)-[:LIVED_IN]->(personLivedIn:Location) | personLivedIn {
     .name
-  }][0..2] } AS person
+  }][0..$personLivedInFirst]
+} AS person
 ----
 
 line 1:15 token recognition error at: ' '
@@ -591,6 +597,8 @@ MATCH (person:Person) RETURN person { .name, .age } AS person
 [source,json]
 ----
 {
+  "personFirst": 2,
+  "personOffset": 3
 }
 ----
 
@@ -598,8 +606,7 @@ MATCH (person:Person) RETURN person { .name, .age } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-RETURN person { .age } AS person
-SKIP 3 LIMIT 2
+RETURN person { .age } AS person SKIP $personOffset LIMIT $personFirst
 ----
 
 === nested query slice first offset
@@ -614,6 +621,8 @@ SKIP 3 LIMIT 2
 [source,json]
 ----
 {
+  "personLivedInOffset": 3,
+  "personLivedInFirst": 2
 }
 ----
 
@@ -624,7 +633,7 @@ MATCH (person:Person)
 RETURN person {
   livedIn:[(person)-[:LIVED_IN]->(personLivedIn:Location) | personLivedIn {
     .name
-  }][3..5]
+  }][$personLivedInOffset.. $personLivedInOffset + $personLivedInFirst]
 } AS person
 ----
 
