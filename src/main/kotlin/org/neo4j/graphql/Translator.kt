@@ -187,7 +187,7 @@ class Translator(val schema: GraphQLSchema) {
 
     private fun orderBy(variable: String, args: MutableList<Argument>): String {
         val arg = args.find { it.name == "orderBy" }
-        val values = arg?.value?.let { it ->
+        val values = arg?.value?.let {
             when (it) {
                 is ArrayValue -> it.values.map { it.toJavaValue().toString() }
                 is EnumValue -> listOf(it.name)
@@ -196,7 +196,10 @@ class Translator(val schema: GraphQLSchema) {
             }
         }
         return if (values == null) ""
-        else " ORDER BY " + values.map { it.split("_") }.joinToString(", ") { "$variable.${it[0]} ${it[1].toUpperCase()}" }
+        else " ORDER BY " + values
+            .map { it.split("_") }
+            .map { "$variable.${it[0]} ${it[1].toUpperCase()}" }
+            .joinToString(", ")
     }
 
     private fun where(variable: String, fieldDefinition: GraphQLFieldDefinition, type: GraphQLType, arguments: List<Argument>, field: Field): Cypher {
@@ -258,7 +261,8 @@ class Translator(val schema: GraphQLSchema) {
         val all = preparePredicateArguments(field, arguments)
         val query = flattenArgumentsMap(all, field)
             .values
-            .joinToString(", ", " {", "}") { it.toCypherString(variable) }
+            .map { it.toCypherString(variable) }
+            .joinToString(", ", " {", "}")
         val params = all.map { (k, _, v, _) -> paramName(variable, k, v) to v }
             .toMap()
         return Cypher(query, params)
@@ -273,7 +277,8 @@ class Translator(val schema: GraphQLSchema) {
         }
         val query = flattenArgumentsMap(all, field)
             .values
-            .joinToString(",", " SET ", " ") { "$variable.${it.toCypherString(variable, false)}" }
+            .map { "$variable.${it.toCypherString(variable, false)}" }
+            .joinToString(",", " SET ", " ")
         val params = all
             .map { (k, _, v) -> paramName(variable, k, v) to v }.toMap()
         return Cypher(query, params)
@@ -338,7 +343,7 @@ class Translator(val schema: GraphQLSchema) {
             }
         }
 
-        val projection = properties.joinToString(",", "{ ", " }") { it.query }
+        val projection = properties.map { it.query }.joinToString(",", "{ ", " }")
         val params = properties.map { it.params }.fold(emptyMap<String, Any?>()) { res, map -> res + map }
         return Cypher("$variable $projection", params)
     }
@@ -417,13 +422,14 @@ class Translator(val schema: GraphQLSchema) {
     private fun projectNeo4jObjectType(variable: String, field: Field): Cypher {
         val fieldProjection = field.selectionSet.selections
             .filterIsInstance<Field>()
-            .joinToString(", ") {
+            .map {
                 val value = when (it.name) {
                     NEO4j_FORMATTED_PROPERTY_KEY -> "$variable.${field.name}"
                     else -> "$variable.${field.name}.${it.name}"
                 }
                 "${it.name}: $value"
             }
+            .joinToString(", ")
 
         return Cypher(" { $fieldProjection }")
     }
@@ -612,11 +618,11 @@ object SchemaBuilder {
                 ObjectTypeDefinition("Mutation").also { typeDefinitionRegistry.add(it) }
             }
         }
-        augmentations.flatMap { it ->
+        augmentations.flatMap {
             listOf(it.create, it.update, it.delete, it.merge)
                 .filter { it.isNotBlank() && mutationDefinition.fieldDefinitions.none { fd -> it.startsWith(fd.name + "(") } }
         }
-            .let { it ->
+            .let {
                 if (it.isNotEmpty()) {
                     val newQueries = schemaParser
                         .parse("type AugmentedMutation { ${it.joinToString("\n")} }")

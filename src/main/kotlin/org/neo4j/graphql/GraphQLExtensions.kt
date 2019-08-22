@@ -72,7 +72,7 @@ fun Value<Value<*>>.toCypherString(): String = when (this) {
     is FloatValue -> this.value.toString()
     is IntValue -> this.value.toString()
     is VariableReference -> "$" + this.name
-    is ArrayValue -> this.values.joinToString(",", "[", "]") { it.toCypherString() }
+    is ArrayValue -> this.values.map{ it.toCypherString() }.joinToString(",", "[", "]")
     else -> throw IllegalStateException("Unhandled value $this")
 }
 
