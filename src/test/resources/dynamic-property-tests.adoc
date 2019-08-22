@@ -1,0 +1,248 @@
+:toc:
+
+= Property Tests
+
+== Schema
+
+[source,graphql,schema=true]
+----
+type Person {
+  id : ID!
+  json: DynamicProperties @dynamic
+  knows: [Person] @relation(name: "KNOWS", direction: OUT)
+  knownBy: [Person] @relation(name: "KNOWS", direction: IN)
+  knowsRel: [Knows] @relation(name: "KNOWS", direction: OUT)
+  knownByRel: [Knows] @relation(name: "KNOWS", direction: IN)
+}
+type Knows @relation(name:"KNOWS", from: "source", to: "knows"){
+  _id: ID!
+  source: Person!
+  knows: Person!
+  json: DynamicProperties @dynamic(prefix: "prefix.")
+}
+----
+
+== Tests
+
+=== load dynamic properties
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  person(id:"32") {
+    json
+    knows {
+      json
+    }
+    knownBy {
+      json
+    }
+    knowsRel {
+      json
+    }
+    knownByRel {
+      json
+    }
+  }
+}
+----
+
+.Cypher params
+[source,json]
+----
+{
+  "personId": "32"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.id = $personId
+RETURN person {
+  json:apoc.map.fromPairs([key IN keys(person) WHERE key STARTS WITH "properties."| [substring(key,11), person[key]]]),
+  knows:[(person)-[:KNOWS]->(personKnows:Person) | personKnows {
+    json:apoc.map.fromPairs([key IN keys(personKnows) WHERE key STARTS WITH "properties."| [substring(key,11), personKnows[key]]])
+  }],
+  knownBy:[(person)<-[:KNOWS]-(personKnownBy:Person) | personKnownBy {
+    json:apoc.map.fromPairs([key IN keys(personKnownBy) WHERE key STARTS WITH "properties."| [substring(key,11), personKnownBy[key]]])
+  }],
+  knowsRel:[(person)-[personKnowsRel:KNOWS]->(personKnowsRelKnows:Person) | personKnowsRel {
+    json:apoc.map.fromPairs([key IN keys(personKnowsRel) WHERE key STARTS WITH "prefix."| [substring(key,7), personKnowsRel[key]]])
+  }],
+  knownByRel:[(person)<-[personKnownByRel:KNOWS]-(personKnownByRelSource:Person) | personKnownByRel {
+    json:apoc.map.fromPairs([key IN keys(personKnownByRel) WHERE key STARTS WITH "prefix."| [substring(key,7), personKnownByRel[key]]])
+  }]
+} AS person
+----
+
+=== update dynamic properties
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  updatePerson(id:32, json: {foo: "bar", x: 42}) {
+    id
+  }
+}
+----
+
+.Cypher params
+[source,json]
+----
+{
+  "updatePersonId": 32,
+  "updatePersonJsonFoo": "bar",
+  "updatePersonJsonX": 42
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (updatePerson:Person { id: $updatePersonId })
+SET updatePerson = {
+  `properties.foo`: $updatePersonJsonFoo,
+  `properties.x`: $updatePersonJsonX
+}
+WITH updatePerson
+RETURN updatePerson { .id } AS updatePerson
+----
+
+=== merge dynamic properties
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  mergePerson(id:32, json: {foo: "bar", x: 42}) {
+    id
+  }
+}
+----
+
+.Cypher params
+[source,json]
+----
+{
+  "mergePersonId": 32,
+  "mergePersonJsonFoo": "bar",
+  "mergePersonJsonX": 42
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MERGE (mergePerson:Person { id: $mergePersonId })
+SET mergePerson += {
+  `properties.foo`: $mergePersonJsonFoo,
+  `properties.x`: $mergePersonJsonX
+}
+WITH mergePerson
+RETURN mergePerson { .id } AS mergePerson
+----
+
+=== create relation with dynamic properties
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  createKnows(source_id:2, knows_id: 3, json: {foo: "bar"}) {
+    _id,
+    json
+  }
+}
+----
+
+.Cypher params
+[source,json]
+----
+{
+  "sourceSource_id": 2,
+  "knowsKnows_id": 3,
+  "createKnowsJsonFoo": "bar"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (source:Person { id: $sourceSource_id })
+MATCH (knows:Person { id: $knowsKnows_id })
+CREATE (source)-[createKnows:KNOWS { `prefix.foo`: $createKnowsJsonFoo }]->(knows)
+WITH createKnows
+RETURN createKnows {
+  _id:ID(createKnows),
+  json:apoc.map.fromPairs([key IN keys(createKnows) WHERE key STARTS WITH "prefix."| [substring(key,7), createKnows[key]]])
+} AS createKnows
+----
+
+=== update relation with dynamic properties
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  updateKnows(_id:2, json: {foo: "bar"}) {
+    json
+  }
+}
+----
+
+.Cypher params
+[source,json]
+----
+{
+  "updateKnows_id": 2,
+  "updateKnowsJsonFoo": "bar"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH ()-[updateKnows:KNOWS]->()
+WHERE ID(updateKnows) = $updateKnows_id
+SET updateKnows = { `prefix.foo`: $updateKnowsJsonFoo }
+WITH updateKnows
+RETURN updateKnows {
+  json:apoc.map.fromPairs([key IN keys(updateKnows) WHERE key STARTS WITH "prefix."| [substring(key,7), updateKnows[key]]])
+} AS updateKnows
+----
+
+=== update relation with dynamic properties
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  mergeKnows(_id:2, json: {foo: "bar"}) {
+    json
+  }
+}
+----
+
+.Cypher params
+[source,json]
+----
+{
+  "mergeKnows_id": 2,
+  "mergeKnowsJsonFoo": "bar"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH ()-[mergeKnows:KNOWS]->()
+WHERE ID(mergeKnows) = $mergeKnows_id
+SET mergeKnows += { `prefix.foo`: $mergeKnowsJsonFoo }
+WITH mergeKnows RETURN mergeKnows {
+  json:apoc.map.fromPairs([key IN keys(mergeKnows) WHERE key STARTS WITH "prefix."| [substring(key,7), mergeKnows[key]]])
+} AS mergeKnows
+----

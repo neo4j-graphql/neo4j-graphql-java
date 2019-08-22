@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.neo4j.graphql.utils.CypherTestSuite
 
-class TranslatorExceptionTest {
+class TranslatorExceptionTests {
 
     private val testSuite = CypherTestSuite("translator-tests1.adoc")
 

@@ -13,7 +13,9 @@ class QueryHandler private constructor(
     companion object {
         fun build(type: NodeFacade, filterTypeName: String, orderingTypename: String, metaProvider: MetaProvider): BaseDataFetcher? {
             val typeName = type.name()
-            val relevantFields = type.relevantFields()
+            val relevantFields = type
+                .relevantFields()
+                .filter { it.dynamicPrefix(metaProvider) == null } // TODO currently we do not support filtering on dynamic properties
 
             val fieldDefinition = FieldDefinition
                 .newFieldDefinition()

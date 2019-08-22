@@ -23,6 +23,7 @@ object SchemaBuilder {
         val typeDefinitionRegistry = schemaParser.parse(sdl)
 
         val builder = RuntimeWiring.newRuntimeWiring()
+            .scalar(DynamicProperties.INSTANCE)
 
         AugmentationProcessor(typeDefinitionRegistry, config, builder).augmentSchema()
 
@@ -236,14 +237,14 @@ object SchemaBuilder {
                 mutationDefinition = mergeOperation(mutationDefinition, MergeOrUpdateHandler.build(type, false, metaProvider))
             }
             if (schemaConfig.query.enabled && !schemaConfig.query.exclude.contains(typeName)) {
-                addInputType(typeName, relevantFields =  relevantFields)
+                addInputType(typeName, relevantFields = relevantFields)
                 val filterName = addFilterType(typeName, type.fieldDefinitions())
                 val orderingName = addOrdering(typeName, relevantFields)
                 queryDefinition = mergeOperation(queryDefinition, QueryHandler.build(type, filterName, orderingName, metaProvider))
             }
         }
 
-        private fun addInputType(typeName: String, inputName :String = "_${typeName}Input", relevantFields: List<FieldDefinition>): String {
+        private fun addInputType(typeName: String, inputName: String = "_${typeName}Input", relevantFields: List<FieldDefinition>): String {
             if (typeDefinitionRegistry.getType(inputName).isPresent) {
                 return inputName
             }
@@ -281,29 +282,31 @@ object SchemaBuilder {
                 .name(filterName)
             listOf("AND", "OR", "NOT")
                 .forEach { builder.inputValueDefinition(BaseDataFetcher.input(it, ListType(NonNullType(TypeName(filterName))))) }
-            fieldArgs.forEach { field ->
-                val typeDefinition = typeDefinitionRegistry.getType(field.type).orElse(null)
-                val type = if (field.type.isScalar() || typeDefinition is EnumTypeDefinition || field.isNeo4jType()) {
-                    field.type.inner().inputType()
-                } else {
-                    val objectName = field.type.name()
-                    val subFilterName = addFilterType(objectName,
-                            metaProvider.getNodeType(objectName)
-                                ?.fieldDefinitions()
-                                    ?: throw IllegalArgumentException("type $objectName not found"),
-                            handled)
-                    TypeName(subFilterName)
-                }
-                Operators.forType(field.type, typeDefinition)
-                    .forEach { op ->
-                        val filterType = if (op.list){
-                            ListType(type)
-                        } else {
-                            type
-                        }
-                        builder.inputValueDefinition(BaseDataFetcher.input(op.fieldName(field.name), filterType))
+            fieldArgs
+                .filter { it.dynamicPrefix(metaProvider) == null } // TODO currently we do not support filtering on dynamic properties
+                .forEach { field ->
+                    val typeDefinition = typeDefinitionRegistry.getType(field.type).orElse(null)
+                    val type = if (field.type.isScalar() || typeDefinition is EnumTypeDefinition || field.isNeo4jType()) {
+                        field.type.inner().inputType()
+                    } else {
+                        val objectName = field.type.name()
+                        val subFilterName = addFilterType(objectName,
+                                metaProvider.getNodeType(objectName)
+                                    ?.fieldDefinitions()
+                                        ?: throw IllegalArgumentException("type $objectName not found"),
+                                handled)
+                        TypeName(subFilterName)
                     }
-            }
+                    Operators.forType(field.type, typeDefinition)
+                        .forEach { op ->
+                            val filterType = if (op.list) {
+                                ListType(type)
+                            } else {
+                                type
+                            }
+                            builder.inputValueDefinition(BaseDataFetcher.input(op.fieldName(field.name), filterType))
+                        }
+                }
             typeDefinitionRegistry.add(builder.build())
             return filterName
         }

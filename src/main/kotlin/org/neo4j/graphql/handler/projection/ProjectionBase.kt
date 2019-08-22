@@ -108,12 +108,23 @@ open class ProjectionBase(val metaProvider: MetaProvider) {
                 ?: throw IllegalArgumentException("${field.name} cannot be converted to a NodeGraphQlFacade")
         val predicates = arguments.map {
             val fieldDefinition = resultObjectType.getFieldDefinition(it.name)
-            it.name to Translator.CypherArgument(it.name,
-                    (fieldDefinition?.propertyDirectiveName() ?: it.name).quote(), it.value.toJavaValue())
+            val dynamicPrefix = fieldDefinition?.dynamicPrefix(metaProvider)
+            val result = mutableListOf<Translator.CypherArgument>()
+            if (dynamicPrefix != null && it.value is ObjectValue) {
+                for (argField in (it.value as ObjectValue).objectFields) {
+                    result += Translator.CypherArgument(it.name + argField.name.capitalize(), dynamicPrefix + argField.name, argField.value.toJavaValue())
+                }
+
+            } else {
+                result += Translator.CypherArgument(it.name,
+                        (fieldDefinition?.propertyDirectiveName() ?: it.name).quote(),
+                        it.value.toJavaValue())
+            }
+            it.name to result
         }.toMap()
         val defaults = field.inputValueDefinitions.filter { it.defaultValue?.toJavaValue() != null && !predicates.containsKey(it.name) }
             .map { Translator.CypherArgument(it.name, it.name, it.defaultValue?.toJavaValue()) }
-        return predicates.values + defaults
+        return predicates.values.flatten() + defaults
     }
 
     private fun prepareFieldArguments(field: FieldDefinition, arguments: List<Argument>): List<Translator.CypherArgument> {
@@ -197,7 +208,9 @@ open class ProjectionBase(val metaProvider: MetaProvider) {
             }
             fieldDefinition.isNativeId() -> Cypher("${field.aliasOrName()}:ID($variable)")
             else -> {
+                val dynamicPrefix = fieldDefinition.dynamicPrefix(metaProvider)
                 when {
+                    dynamicPrefix != null -> Cypher("${field.aliasOrName()}:apoc.map.fromPairs([key IN keys($variable) WHERE key STARTS WITH \"$dynamicPrefix\"| [substring(key,${dynamicPrefix.length}), $variable[key]]])")
                     field.aliasOrName() == field.propertyName(fieldDefinition) -> Cypher("." + field.propertyName(fieldDefinition))
                     else -> Cypher(field.aliasOrName() + ":" + variable + "." + field.propertyName(fieldDefinition))
                 }
