@@ -14,7 +14,9 @@ fun createNodeMutation(ctx: Translator.Context, type: ObjectTypeDefinition): Aug
     val idFieldArg = idField?.let { it.name + ":" + it.type.render() }
 
     val result = if (ctx.mutation.enabled && !ctx.mutation.exclude.contains(typeName) && scalarFields.isNotEmpty()) {
-        val fieldArgs = scalarFields.joinToString(", ") { it.name + ":" + it.type.render() }
+        val fieldArgs = scalarFields
+            .map { it.name + ":" + it.type.render() }
+            .joinToString(", ")
         Augmentation().copy(create = """create$typeName($fieldArgs) : $typeName """)
             .let { aug ->
                 if (idField != null) aug.copy(
@@ -26,9 +28,11 @@ fun createNodeMutation(ctx: Translator.Context, type: ObjectTypeDefinition): Aug
     } else Augmentation()
 
     return if (ctx.query.enabled && !ctx.query.exclude.contains(typeName) && scalarFields.isNotEmpty()) {
-        val fieldArgs = scalarFields.joinToString(", ") { it.name + ":" + it.type.render(false) }
+        val fieldArgs = scalarFields
+            .map { it.name + ":" + it.type.render(false) }
+            .joinToString(", ")
         result.copy(inputType = """input _${typeName}Input { $fieldArgs } """,
-                ordering = """enum _${typeName}Ordering { ${scalarFields.joinToString(",") { it.name + "_asc ," + it.name + "_desc" }} } """,
+                ordering = """enum _${typeName}Ordering { ${scalarFields.map { it.name + "_asc ," + it.name + "_desc" }.joinToString(",")} } """,
                 filterType = filterType(typeName, scalarFields), // TODO
                 query = """${typeName.decapitalize()}($fieldArgs, ${if (hasIdField) "" else "_id: Int, "}filter:_${typeName}Filter, orderBy:_${typeName}Ordering, first:Int, offset:Int) : [$typeName] """)
     } else result

@@ -7,7 +7,8 @@ import java.time.*
 import java.time.temporal.Temporal
 
 fun neo4jTypesSdl() = neo4jTypeDefinitions
-    .joinToString("\n") { "${it.output.second} ${it.input.second}" }
+    .map { "${it.output.second} ${it.input.second}" }
+    .joinToString("\n")
 
 const val NEO4j_FORMATTED_PROPERTY_KEY = "formatted"
 
