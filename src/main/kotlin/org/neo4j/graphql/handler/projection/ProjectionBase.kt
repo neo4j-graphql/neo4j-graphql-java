@@ -6,6 +6,7 @@ import org.neo4j.graphql.*
 
 open class ProjectionBase(val metaProvider: MetaProvider) {
     companion object {
+        const val NATIVE_ID = "_id"
         const val ORDER_BY = "orderBy"
         const val FIRST = "first"
         const val OFFSET = "offset"
@@ -45,7 +46,10 @@ open class ProjectionBase(val metaProvider: MetaProvider) {
         val noFilter = all.filter { it.name != FILTER }
         // todo turn it into a Predicate too
         val eqExpression = noFilter.map {
-            "$variable.${it.toCypherString(variable, false)}"
+            if (type.getFieldDefinition(it.name)?.isNativeId() == true)
+                "ID($variable) = \$${paramName(variable, it.propertyName, it.value)}"
+            else
+                "$variable.${it.toCypherString(variable, false)}"
         }
         val expression = (eqExpression + filterExpressions).joinNonEmpty(" AND ", " WHERE ")
         return Cypher(expression, (filterParams + noFilter.map { (k, _, v) -> paramName(variable, k, v) to v }.toMap()))
@@ -191,6 +195,7 @@ open class ProjectionBase(val metaProvider: MetaProvider) {
                 }
                 Cypher(field.aliasOrName() + ":" + patternComprehensions.query, patternComprehensions.params)
             }
+            fieldDefinition.isNativeId() -> Cypher("${field.aliasOrName()}:ID($variable)")
             else -> {
                 when {
                     field.aliasOrName() == field.propertyName(fieldDefinition) -> Cypher("." + field.propertyName(fieldDefinition))

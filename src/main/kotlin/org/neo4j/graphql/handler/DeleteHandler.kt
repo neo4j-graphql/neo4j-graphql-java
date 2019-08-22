@@ -14,7 +14,8 @@ class DeleteHandler private constructor(
         type: NodeFacade,
         private val idField: FieldDefinition,
         fieldDefinition: FieldDefinition,
-        metaProvider: MetaProvider
+        metaProvider: MetaProvider,
+        private val isRelation: Boolean = type.isRelationType()
 ) : BaseDataFetcher(type, fieldDefinition, metaProvider) {
 
     companion object {
@@ -38,7 +39,7 @@ class DeleteHandler private constructor(
         val idArg = field.arguments.first { it.name == idField.name }
         val mapProjection = projectionProvider.invoke()
 
-        val select = getSelectQuery(variable, label(), idArg, idField)
+        val select = getSelectQuery(variable, label(), idArg, idField, isRelation)
         return Cypher("MATCH " + select.query +
                 " WITH $variable as toDelete, " +
                 "${mapProjection.query} AS $variable" +

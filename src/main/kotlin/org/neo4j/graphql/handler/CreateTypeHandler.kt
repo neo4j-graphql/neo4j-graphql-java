@@ -3,10 +3,7 @@ package org.neo4j.graphql.handler
 import graphql.language.Field
 import graphql.language.FieldDefinition
 import graphql.schema.DataFetchingEnvironment
-import org.neo4j.graphql.Cypher
-import org.neo4j.graphql.MetaProvider
-import org.neo4j.graphql.NodeFacade
-import org.neo4j.graphql.ObjectDefinitionNodeFacade
+import org.neo4j.graphql.*
 
 class CreateTypeHandler private constructor(
         type: NodeFacade,
@@ -20,7 +17,7 @@ class CreateTypeHandler private constructor(
             if (relevantFields.isEmpty()) {
                 return null
             }
-            val fieldDefinition = createFieldDefinition("create", type.name(), relevantFields, false).build()
+            val fieldDefinition = createFieldDefinition("create", type.name(), relevantFields.filter { !it.isNativeId() }, false).build()
             return CreateTypeHandler(type, fieldDefinition, metaProvider)
         }
     }

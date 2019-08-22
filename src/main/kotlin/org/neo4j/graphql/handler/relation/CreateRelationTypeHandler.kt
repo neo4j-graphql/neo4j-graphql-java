@@ -27,6 +27,7 @@ class CreateRelationTypeHandler private constructor(
                 return null
             }
             val createArgs = relevantFields
+                .filter { !it.isNativeId() }
                 .filter { it.name != startIdField.argumentName }
                 .filter { it.name != endIdField.argumentName }
 

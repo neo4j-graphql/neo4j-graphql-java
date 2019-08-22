@@ -417,7 +417,8 @@ MATCH (foo:Person) RETURN foo { n:foo.name } AS foo
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person) RETURN person { .age } AS person LIMIT 2
+MATCH (person:Person)
+RETURN person { .age } AS person LIMIT 2
 ----
 
 === simple query where

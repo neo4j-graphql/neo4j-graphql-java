@@ -370,8 +370,6 @@ RETURN person { .name } AS person
 
 === filter _@nativeId_ _eq_
 
-CAUTION: Not yet implemented
-
 .GraphQL-Query
 [source,graphql]
 ----
@@ -393,8 +391,6 @@ RETURN company { .name, _id:ID(company) } AS company
 ----
 
 === filter _@nativeId_ _in_
-
-CAUTION: Not yet implemented
 
 .GraphQL-Query
 [source,graphql]
@@ -418,8 +414,6 @@ RETURN company { .name, _id:ID(company) } AS company
 
 === filter _@nativeId_ _not_in_
 
-CAUTION: Not yet implemented
-
 .GraphQL-Query
 [source,graphql]
 ----
@@ -441,8 +435,6 @@ RETURN company { .name, _id:ID(company) } AS company
 ----
 
 === filter _@nativeId_ _not_
-
-CAUTION: Not yet implemented
 
 .GraphQL-Query
 [source,graphql]
@@ -1437,8 +1429,6 @@ RETURN p { .name } AS p
 
 === Filter object _null_
 
-CAUTION: Not yet implemented
-
 .GraphQL-Query
 [source,graphql]
 ----
@@ -1460,8 +1450,6 @@ RETURN p { .name } AS p
 ----
 
 === Filter object _not_null_
-
-CAUTION: Not yet implemented
 
 .GraphQL-Query
 [source,graphql]
