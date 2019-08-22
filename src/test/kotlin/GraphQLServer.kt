@@ -10,6 +10,7 @@ import org.neo4j.driver.v1.Values
 import org.neo4j.graphql.Cypher
 import org.neo4j.graphql.SchemaBuilder
 import org.neo4j.graphql.Translator
+import org.neo4j.graphql.isList
 import spark.Request
 import spark.Response
 import spark.Spark
@@ -46,9 +47,9 @@ fun main() {
 
     val graphQLSchema = SchemaBuilder.buildSchema(schema)
     println(graphQLSchema)
-    val build = GraphQL.newGraphQL(graphQLSchema).build()
-    val graphql = Translator(graphQLSchema)
-    fun translate(query: String, params: Map<String, Any?>) = graphql.translate(query, params)
+    val schema = GraphQL.newGraphQL(graphQLSchema).build()
+    val translator = Translator(graphQLSchema)
+    fun translate(query: String, params: Map<String, Any?>) = translator.translate(query, params)
 
     val driver = GraphDatabase.driver("bolt://localhost", AuthTokens.basic("neo4j", "test"))
     fun run(cypher: Cypher) = driver.session().use {
@@ -57,7 +58,11 @@ fun main() {
         try {
             // todo fix parameter mapping in translator
             val result = it.run(cypher.query, Values.value(cypher.params))
-            result.keys().map { key -> key to result.list().map { row -> row.get(key).asObject() } }.toMap(LinkedHashMap())
+            if (cypher.type?.isList() == true) {
+                result.keys().map { key -> key to result.list().map { row -> row.get(key).asObject() } }.toMap(LinkedHashMap())
+            } else {
+                result.keys().map { key -> key to result.list().map { row -> row.get(key).asObject() }.firstOrNull() }.toMap(LinkedHashMap())
+            }
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -68,7 +73,7 @@ fun main() {
         val payload = parseBody(body)
         val query = query(payload)
         if (query.contains("__schema"))
-            build.execute(query).let { println(render(it));it }
+            schema.execute(query).let { println(render(it));it }
         else run(translate(query, params(payload)).first())
     }
 
