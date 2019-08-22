@@ -18,7 +18,7 @@ type Query {
 
 === rename property
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 { person(id:"32",name:"Jane") { name }}

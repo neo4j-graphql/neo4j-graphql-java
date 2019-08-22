@@ -30,13 +30,13 @@ schema {
 
 === Simple Cypher Directive on Field
 
-.Query
+.GraphQL-Query
 [source,graphql]
 ----
 { person { name }}
 ----
 
-.Params
+.Cypher Params
 [source,json]
 ----
 {}
@@ -52,13 +52,13 @@ RETURN person { name:apoc.cypher.runFirstColumnSingle('WITH $this AS this RETURN
 
 === render cypher query directive params args
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 query($pname:String) { p3(name:$pname) { id }}
 ----
 
-.Request params
+.Query variables
 [source,json,request=true]
 ----
 {"pname":"foo"}
@@ -78,13 +78,13 @@ UNWIND apoc.cypher.runFirstColumnSingle('WITH $name AS name MATCH (p:Person) WHE
 
 === render cypher field directive with params defaults
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 { person { age }}
 ----
 
-.Request params
+.Query variables
 [source,json,request=true]
 ----
 {}
@@ -104,13 +104,13 @@ MATCH (person:Person) RETURN person { age:apoc.cypher.runFirstColumnMany('WITH $
 
 === render cypher query directive
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 { p2 { id }}
 ----
 
-.Request params
+.Query variables
 [source,json,request=true]
 ----
 {}
@@ -130,13 +130,13 @@ UNWIND apoc.cypher.runFirstColumnMany('MATCH (p:Person) RETURN p', { }) AS p2 RE
 
 === render cypher mutation directive
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 mutation { person: createPerson(name:"Joe") { id }}
 ----
 
-.Request params
+.Query variables
 [source,json,request=true]
 ----
 {}
@@ -156,13 +156,13 @@ CALL apoc.cypher.doIt('WITH $name AS name CREATE (p:Person) SET p.name = name RE
 
 === render cypher field directive with params
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 { person { age(mult:25) }}
 ----
 
-.Request params
+.Query variables
 [source,json,request=true]
 ----
 {}
@@ -182,13 +182,13 @@ MATCH (person:Person) RETURN person { age:apoc.cypher.runFirstColumnMany('WITH $
 
 === render cypher field directive nested
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 { person { friends { id } }}
 ----
 
-.Request params
+.Query variables
 [source,json,request=true]
 ----
 {}
@@ -210,13 +210,13 @@ RETURN person { friends:[personFriends IN
 
 === render cypher query directive params
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 { p3(name:"Jane") { id }}
 ----
 
-.Request params
+.Query variables
 [source,json,request=true]
 ----
 {}
@@ -236,13 +236,13 @@ UNWIND apoc.cypher.runFirstColumnSingle('WITH $name AS name MATCH (p:Person) WHE
 
 === render cypher field directive scalar
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 { person { name }}
 ----
 
-.Request params
+.Query variables
 [source,json,request=true]
 ----
 {}

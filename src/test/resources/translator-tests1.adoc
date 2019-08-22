@@ -40,7 +40,7 @@ type Query {
 
 === order by query single
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
  { person:person(orderBy:[name_asc]) { age } }
@@ -60,7 +60,7 @@ MATCH (person:Person) RETURN person { .age } AS person ORDER BY person.name ASC
 
 === rich relationship
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
  { person { name born { date to { name } } } }
@@ -80,7 +80,7 @@ MATCH (person:Person) RETURN person { .name, born:[(person)-[personBorn:BORN]->(
 
 === nested query multi
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
  { person { name age livedIn { name } } }
@@ -100,7 +100,7 @@ MATCH (person:Person) RETURN person { .name, .age, livedIn:[(person)-[:LIVED_IN]
 
 === inline fragment
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
  query { person { ... on Person { name } } }
@@ -120,7 +120,7 @@ MATCH (person:Person) RETURN person { .name } AS person
 
 === simple query offset
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
  { person:person(offset:3) { age } }
@@ -143,7 +143,7 @@ RETURN person { .age } AS person SKIP 3
 
 CAUTION: Not yet implemented
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 query getPersons($offset: Int){
@@ -153,7 +153,7 @@ query getPersons($offset: Int){
 }
 ----
 
-.Request params
+.Query variables
 [source,json,request=true]
 ----
 {
@@ -177,7 +177,7 @@ MATCH (person:Person) RETURN person { .age } AS person SKIP $personOffset
 
 === nested query
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
  { person { name age livesIn { name } } }
@@ -197,7 +197,7 @@ MATCH (person:Person) RETURN person { .name, .age, livesIn:[(person)-[:LIVES_IN]
 
 === simple query
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
  { person { name age } }
@@ -217,7 +217,7 @@ MATCH (person:Person) RETURN person { .name, .age } AS person
 
 === named fragment
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
  query { person { ...name } } fragment name on Person { name }
@@ -237,7 +237,7 @@ MATCH (person:Person) RETURN person { .name } AS person
 
 === rich relationship custom field names
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
  { person { name died { date where { name } } } }
@@ -257,7 +257,7 @@ MATCH (person:Person) RETURN person { .name, died:[(person)-[personDied:DIED]->(
 
 === rich relationship 2nd hop
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
  { person { name born { date to { name founded { name } } } } }
@@ -289,7 +289,7 @@ RETURN person {
 
 === rich relationship 3 rd hop
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
  { person { name born { date to { name founded { name born { date to { name } } } } } } }
@@ -309,7 +309,7 @@ MATCH (person:Person) RETURN person { .name, born:[(person)-[personBorn:BORN]->(
 
 === nested query parameter
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
  { person { name age livesIn(name:"Berlin") { name } } }
@@ -329,7 +329,7 @@ MATCH (person:Person) RETURN person { .name, .age, livesIn:[(person)-[:LIVES_IN]
 
 === order by query two
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
  { person:person(orderBy:[age_desc, name_asc]) { age } }
@@ -349,7 +349,7 @@ MATCH (person:Person) RETURN person { .age } AS person ORDER BY person.age DESC,
 
 === named fragment multi field
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
   fragment details on Person { name, age } query { person { ...details } }
@@ -369,7 +369,7 @@ MATCH (person:Person) RETURN person { .name, .age } AS person
 
 === simple query alias
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
  { foo:person { n:name } }
@@ -389,7 +389,7 @@ MATCH (foo:Person) RETURN foo { n:foo.name } AS foo
 
 === simple query first
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
  { person:person(first:2) { age } }
@@ -409,7 +409,7 @@ MATCH (person:Person) RETURN person { .age } AS person LIMIT 2
 
 === simple query where
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
  { person:personByName(name:"Joe") { age } }
@@ -429,13 +429,13 @@ MATCH (person:Person) WHERE person.name = $personName RETURN person { .age } AS 
 
 === render values
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 query($_param:String) { p:values(_param:$_param) { age } }
 ----
 
-.Request params
+.Query variables
 [source,json,request=true]
 ----
 {"_param":"foo"}
@@ -474,7 +474,7 @@ SLF4J: Defaulting to no-operation (NOP) logger implementation
 SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.
 === nested query slice offset
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
  { person { livedIn(offset:3) { name } } }
@@ -499,7 +499,7 @@ RETURN person {
 
 === nested query slice first
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
  { person { livedIn(first:2) { name } } }
@@ -526,7 +526,7 @@ line 1:15 token recognition error at: ' '
 line 1:35 token recognition error at: ' '
 === nested query 2 nd hop
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
  { person { name age livesIn { name founded {name}} } }
@@ -547,7 +547,7 @@ MATCH (person:Person) RETURN person { .name, .age, livesIn:[(person)-[:LIVES_IN]
 line 1:12 token recognition error at: ' '
 === inline fragment multi fields
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
  query { person { ... on Person { name,age } } }
@@ -567,7 +567,7 @@ MATCH (person:Person) RETURN person { .name, .age } AS person
 
 === simple query first offset
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
  { person:person(first:2,offset:3) { age } }
@@ -590,7 +590,7 @@ SKIP 3 LIMIT 2
 
 === nested query slice first offset
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
  { person { livedIn(first:2,offset:3) { name } } }
@@ -616,7 +616,7 @@ RETURN person {
 
 === nested query slice first offset
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 { location { name } }
@@ -642,7 +642,7 @@ RETURN location {
 
 CAUTION: Not yet implemented
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 {
@@ -681,7 +681,7 @@ RETURN person {
 
 CAUTION: Not yet implemented
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 {
@@ -722,7 +722,7 @@ RETURN location {
 
 CAUTION: Not yet implemented
 
-.Request
+.GraphQL-Query
 [source,graphql]
 ----
 query {

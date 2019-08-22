@@ -108,7 +108,7 @@ type Mutation {
 
 === Top Level Query
 
-.Query
+.GraphQL-Query
 [source,graphql]
 ----
 query {
@@ -118,7 +118,7 @@ query {
 }
 ----
 
-.Params
+.Cypher Params
 [source,json]
 ----
 {}
@@ -133,7 +133,7 @@ RETURN movie { .movieId } AS movie
 
 === Query Single Object
 
-.Query
+.GraphQL-Query
 [source,graphql]
 ----
 {
@@ -143,7 +143,7 @@ RETURN movie { .movieId } AS movie
 }
 ----
 
-.Params
+.Cypher Params
 [source,json]
 ----
 {
@@ -161,12 +161,12 @@ RETURN movieById { .title } AS movieById
 
 === Basic Query with Parameter
 
-.Query
+.GraphQL-Query
 [source,graphql]
 ----
 {  Movie(title: "River Runs Through It, A")  {  title }  }
 ----
-.Params
+.Cypher Params
 [source,json]
 ----
 {
@@ -183,7 +183,7 @@ RETURN movie { .title } AS movie
 
 === Paging
 
-.Query
+.GraphQL-Query
 [source,graphql]
 ----
 {
@@ -194,7 +194,7 @@ RETURN movie { .title } AS movie
 }
 ----
 
-.Params
+.Cypher Params
 [source,json]
 ----
 {"movieTitle": "River Runs Through It, A"}
@@ -212,7 +212,7 @@ SKIP 1 LIMIT 1
 
 === Query Single Relation
 
-.Query
+.GraphQL-Query
 [source,graphql]
 ----
 {
@@ -225,7 +225,7 @@ SKIP 1 LIMIT 1
 }
 ----
 
-.Params
+.Cypher Params
 [source,json]
 ----
 {
@@ -247,7 +247,7 @@ RETURN movieById {
 
 === Query Single Object and Array of Object Relations
 
-.Query
+.GraphQL-Query
 [source,graphql]
 ----
 {
@@ -263,7 +263,7 @@ RETURN movieById {
 }
 ----
 
-.Params
+.Cypher Params
 [source,json]
 ----
 {
@@ -286,7 +286,7 @@ RETURN movieById {
 
 === Relationship Expansion
 
-.Query
+.GraphQL-Query
 [source,graphql]
 ----
 {
@@ -299,7 +299,7 @@ RETURN movieById {
 }
 ----
 
-.Params
+.Cypher Params
 [source,json]
 ----
 {
@@ -320,7 +320,7 @@ RETURN movie {
 
 === Projection with sub-paging
 
-.Query
+.GraphQL-Query
 [source,graphql]
 ----
 {
@@ -333,7 +333,7 @@ RETURN movie {
 }
 ----
 
-.Params
+.Cypher Params
 [source,json]
 ----
 {
@@ -354,7 +354,7 @@ RETURN movie {
 
 === Subquery Cypher Directive
 
-.Query
+.GraphQL-Query
 [source,graphql]
 ----
 {
@@ -395,7 +395,7 @@ RETURN movie {
 
 === Subquery Cypher Directive Paging
 
-.Query
+.GraphQL-Query
 [source,graphql]
 ----
 {
@@ -436,7 +436,7 @@ RETURN movie {
 
 === Handle Cypher Directive on Query Type
 
-.Query
+.GraphQL-Query
 [source,graphql]
 ----
 {
@@ -449,7 +449,7 @@ RETURN movie {
 }
 ----
 
-.Params
+.Cypher Params
 [source,json]
 ----
 {
@@ -469,7 +469,7 @@ RETURN genresBySubstring {
 
 === Handle Cypher directive on Mutation type
 
-.Query
+.GraphQL-Query
 [source,graphql]
 ----
 mutation someMutation {
@@ -479,7 +479,7 @@ mutation someMutation {
 }
 ----
 
-.Params
+.Cypher Params
 [source,json]
 ----
 {
@@ -497,7 +497,7 @@ RETURN createGenre { .name } AS createGenre
 
 === Query using Inline Fragment
 
-.Query
+.GraphQL-Query
 [source,graphql]
 ----
 {
@@ -516,7 +516,7 @@ RETURN createGenre { .name } AS createGenre
 }
 ----
 
-.Params
+.Cypher Params
 [source,json]
 ----
 {
@@ -540,7 +540,7 @@ RETURN movie {
 
 === Deeply nested object query
 
-.Query
+.GraphQL-Query
 [source,graphql]
 ----
 {
@@ -567,7 +567,7 @@ RETURN movie {
 }
 ----
 
-.Params
+.Cypher Params
 [source,json]
 ----
 {
@@ -595,7 +595,7 @@ RETURN movie { .title, actors:[(movie)<-[:ACTED_IN]-(movieActors:Actor) |
 
 === Should merge an actor by the userId
 
-.Query
+.GraphQL-Query
 [source,graphql]
 ----
 mutation {
@@ -605,7 +605,7 @@ mutation {
 }
 ----
 
-.Params
+.Cypher Params
 [source,json]
 ----
 {
@@ -625,7 +625,7 @@ RETURN actor { .name } AS actor
 
 === Should auto generate `add` relationship mutations for arrays
 
-.Query
+.GraphQL-Query
 [source,graphql]
 ----
 mutation {
@@ -635,7 +635,7 @@ mutation {
 }
 ----
 
-.Params
+.Cypher Params
 [source,json]
 ----
 {
@@ -660,7 +660,7 @@ RETURN from { .title } AS movie
 
 === Should auto generate `delete` relationship mutations for arrays
 
-.Query
+.GraphQL-Query
 [source,graphql]
 ----
 mutation {
@@ -670,7 +670,7 @@ mutation {
 }
 ----
 
-.Params
+.Cypher Params
 [source,json]
 ----
 {"movieId": 1, "genres": ["Action", "Fantasy"]}
@@ -690,7 +690,7 @@ RETURN from { .title } AS movie
 
 === Should auto generate `add` relationship mutations
 
-.Query
+.GraphQL-Query
 [source,graphql]
 ----
 mutation {
@@ -700,7 +700,7 @@ mutation {
 }
 ----
 
-.Params
+.Cypher Params
 [source,json]
 ----
 {"movieId": 1, "publishedBy": "Company"}
@@ -719,7 +719,7 @@ RETURN from { .title } AS movie
 
 === Should auto generate `delete` relationship mutations
 
-.Query
+.GraphQL-Query
 [source,graphql]
 ----
 mutation {
@@ -729,7 +729,7 @@ mutation {
 }
 ----
 
-.Params
+.Cypher Params
 [source,json]
 ----
 {"movieId": 1, "publishedBy": "Company"}
@@ -749,7 +749,7 @@ RETURN from { .title } AS movie
 
 === Should auto generate `add` recursive relationship mutations for arrays
 
-.Query
+.GraphQL-Query
 [source,graphql]
 ----
 mutation {
@@ -759,7 +759,7 @@ mutation {
 }
 ----
 
-.Params
+.Cypher Params
 [source,json]
 ----
 {"userId": 1, "knows": [10, 23]}
@@ -780,7 +780,7 @@ RETURN from { .name } AS user
 
 === Descending, top level
 
-.Query
+.GraphQL-Query
 [source,graphql]
 ----
 {
@@ -790,7 +790,7 @@ RETURN from { .name } AS user
 }
 ----
 
-.Params
+.Cypher Params
 [source,json]
 ----
 {"movieYear":  2010 }
@@ -811,7 +811,7 @@ LIMIT 10
 
 === User born extraction
 
-.Query
+.GraphQL-Query
 [source,graphql]
 ----
 query {
@@ -824,7 +824,7 @@ query {
 }
 ----
 
-.Params
+.Cypher Params
 [source,json]
 ----
 {}
@@ -839,7 +839,7 @@ RETURN user { born: { formatted: user.born, year: user.born.year } } AS user
 
 === User born query filter with multiple fields
 
-.Query
+.GraphQL-Query
 [source,graphql]
 ----
 query {
@@ -851,7 +851,7 @@ query {
 }
 ----
 
-.Params
+.Cypher Params
 [source,json]
 ----
 {"userBornFormatted": "2015-06-24T12:50:35.556000000+01:00", "userBornYear": 2015}
@@ -867,7 +867,7 @@ RETURN user { born: { year: user.born.year } } AS user
 
 === Merge Actor with born field formatted
 
-.Query
+.GraphQL-Query
 [source,graphql]
 ----
 mutation {
@@ -877,7 +877,7 @@ mutation {
 }
 ----
 
-.Params
+.Cypher Params
 [source,json]
 ----
 {"actorUserId": "1", "actorName": "Andrea", "actorBorn": { "formatted": "2015-06-24T12:50:35.556000000+01:00" }}
@@ -894,7 +894,7 @@ RETURN actor { .name } AS actor
 
 === Create Actor with born field formatted
 
-.Query
+.GraphQL-Query
 [source,graphql]
 ----
 mutation {
@@ -904,7 +904,7 @@ mutation {
 }
 ----
 
-.Params
+.Cypher Params
 [source,json]
 ----
 {"actorUserId": "1", "actorName": "Andrea", "actorBorn": { "formatted": "2015-06-24T12:50:35.556000000+01:00" }}
@@ -920,7 +920,7 @@ RETURN actor { .name } AS actor
 
 === Merge Actor with born field object
 
-.Query
+.GraphQL-Query
 [source,graphql]
 ----
 mutation {
@@ -939,7 +939,7 @@ mutation {
 }
 ----
 
-.Params
+.Cypher Params
 [source,json]
 ----
 {"actorUserId": "1", "actorName": "Andrea", "actorBorn": { "year": 2018,
@@ -964,7 +964,7 @@ RETURN actor { .name } AS actor
 
 === Create Actor with born field object
 
-.Query
+.GraphQL-Query
 [source,graphql]
 ----
 mutation {
@@ -987,7 +987,7 @@ mutation {
 }
 ----
 
-.Params
+.Cypher Params
 [source,json]
 ----
 {"actorUserId": "1", "actorName": "Andrea", "actorBorn": { "year": 2018,
