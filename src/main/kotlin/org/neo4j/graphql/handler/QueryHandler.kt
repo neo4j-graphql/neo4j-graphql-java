@@ -47,7 +47,7 @@ class QueryHandler private constructor(
 
         val mapProjection = projectionProvider.invoke()
         val ordering = orderBy(variable, field.arguments)
-        val skipLimit = format(skipLimit(field.arguments))
+        val skipLimit = SkipLimit(variable, field.arguments).format()
 
         val select = if (type.isRelationType()) {
             "()-[$variable:${label()}]->()"
@@ -56,7 +56,7 @@ class QueryHandler private constructor(
         }
         val where = where(variable, fieldDefinition, type, propertyArguments(field), field)
         return Cypher("MATCH $select${where.query}" +
-                " RETURN ${mapProjection.query} AS $variable$ordering${skipLimit}",
-                (where.params + mapProjection.params))
+                " RETURN ${mapProjection.query} AS $variable$ordering${skipLimit.query}",
+                (where.params + mapProjection.params + skipLimit.params))
     }
 }

@@ -266,9 +266,9 @@ open class ProjectionBase(val metaProvider: MetaProvider) {
         val fieldProjection = projectFields(childVariable, field, fieldObjectType, env, variableSuffix)
 
         val comprehension = "[$childVariable IN ${expression.query} | ${fieldProjection.query}]"
-        val skipLimit = skipLimit(field.arguments)
-        val slice = slice(skipLimit, fieldType.isList())
-        return Cypher(comprehension + slice, (expression.params + fieldProjection.params)) // + where.params
+        val skipLimit = SkipLimit(childVariable, field.arguments)
+        val slice = skipLimit.slice(fieldType.isList())
+        return Cypher(comprehension + slice.query, (expression.params + fieldProjection.params + slice.params)) // + where.params
 
     }
 
@@ -321,36 +321,60 @@ open class ProjectionBase(val metaProvider: MetaProvider) {
         val fieldProjection = projectFields(childVariable, field, nodeType, env, variableSuffix)
 
         val comprehension = "[($variable)$inArrow-[$relPattern]-$outArrow($endNodePattern)${where.query} | ${fieldProjection.query}]"
-        val skipLimit = skipLimit(field.arguments)
-        val slice = slice(skipLimit, fieldType.isList())
-        return Cypher(comprehension + slice, (where.params + fieldProjection.params))
+        val skipLimit = SkipLimit(childVariable, field.arguments)
+        val slice = skipLimit.slice(fieldType.isList())
+        return Cypher(comprehension + slice.query, (where.params + fieldProjection.params + slice.params))
     }
 
     private fun relDetails(type: NodeFacade, relDirective: Directive) =
             relDetails(type) { name, defaultValue -> metaProvider.getDirectiveArgument(relDirective, name, defaultValue) }
 
-    private fun slice(skipLimit: Pair<Int, Int>, list: Boolean = false) =
-            if (list) {
-                if (skipLimit.first == 0 && skipLimit.second == -1) ""
-                else if (skipLimit.second == -1) "[${skipLimit.first}..]"
-                else "[${skipLimit.first}..${skipLimit.first + skipLimit.second}]"
-            } else "[${skipLimit.first}]"
+    class SkipLimit(variable: String,
+            arguments: List<Argument>,
+            private val skip: Translator.CypherArgument? = convertArgument(variable, arguments, OFFSET),
+            private val limit: Translator.CypherArgument? = convertArgument(variable, arguments, FIRST)) {
 
-    fun format(skipLimit: Pair<Int, Int>) =
-            if (skipLimit.first > 0) {
-                if (skipLimit.second > -1) " SKIP ${skipLimit.first} LIMIT ${skipLimit.second}"
-                else " SKIP ${skipLimit.first}"
+        fun format(): Cypher {
+            return if (skip != null) {
+                if (limit != null) Cypher(" SKIP $${skip.propertyName} LIMIT $${limit.propertyName}", mapOf(
+                        skip.propertyName to skip.value,
+                        limit.propertyName to limit.value)
+                )
+                else Cypher(" SKIP $${skip.propertyName}", mapOf(skip.propertyName to skip.value))
             } else {
-                if (skipLimit.second > -1) " LIMIT ${skipLimit.second}"
-                else ""
+                if (limit != null) Cypher(" LIMIT $${limit.propertyName}", mapOf(limit.propertyName to limit.value))
+                else Cypher.EMPTY
+            }
+        }
+
+        fun slice(list: Boolean = false): Cypher {
+            if (!list) {
+                return if (skip != null) {
+                    Cypher("[$${skip.propertyName}]", mapOf(skip.propertyName to skip.value))
+                } else {
+                    Cypher("[0]")
+                }
             }
 
-    fun skipLimit(arguments: List<Argument>): Pair<Int, Int> {
-        val limit = numericArgument(arguments, "first", -1).toInt()
-        val skip = numericArgument(arguments, "offset").toInt()
-        return skip to limit
-    }
+            return when (limit) {
+                null -> when {
+                    skip != null -> Cypher("[$${skip.propertyName}..]", mapOf(skip.propertyName to skip.value))
+                    else -> Cypher.EMPTY
+                }
+                else -> when {
+                    skip != null -> Cypher("[$${skip.propertyName}.. $${skip.propertyName} + $${limit.propertyName}]", mapOf(
+                            skip.propertyName to skip.value,
+                            limit.propertyName to limit.value))
+                    else -> Cypher("[0..$${limit.propertyName}]", mapOf(limit.propertyName to limit.value))
+                }
+            }
+        }
 
-    private fun numericArgument(arguments: List<Argument>, name: String, defaultValue: Number = 0) =
-            (arguments.find { it.name.toLowerCase() == name }?.value?.toJavaValue() as Number?) ?: defaultValue
+        companion object {
+            private fun convertArgument(variable: String, arguments: List<Argument>, name: String): Translator.CypherArgument? {
+                val argument = arguments.find { it.name.toLowerCase() == name } ?: return null
+                return Translator.CypherArgument(name, paramName(variable, argument.name, argument), argument.value?.toJavaValue())
+            }
+        }
+    }
 }
