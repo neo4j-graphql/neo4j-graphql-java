@@ -6,17 +6,18 @@ import graphql.schema.GraphQLType
 import java.time.*
 import java.time.temporal.Temporal
 
-fun neo4jTypesSdl() = neo4jTypeDefinitions.map { "${it.output.second} ${it.input.second}" }
-        .joinToString("\n")
+fun neo4jTypesSdl() = neo4jTypeDefinitions
+    .map { "${it.output.second} ${it.input.second}" }
+    .joinToString("\n")
 
 const val NEO4j_FORMATTED_PROPERTY_KEY = "formatted"
 
-data class TypeDefinition(val name: String, val type: Class<out Temporal>, val output:Pair<String,String>, val input:Pair<String,String>)
+data class TypeDefinition(val name: String, val type: Class<out Temporal>, val output: Pair<String, String>, val input: Pair<String, String>)
 
 
 data class Neo4jConverter(val parse: String = "") {
     fun parseValue(strArg: String): String {
-        if (parse.isNullOrBlank()) {
+        if (parse.isBlank()) {
             return "\$$strArg"
         }
         return "$parse(\$$strArg)"
@@ -64,7 +65,7 @@ data class Neo4jQueryConversion(val name: String, val propertyName: String, val 
                             Neo4jQueryConversion(name, name, converter)
                         }
                         else -> Neo4jQueryConversion(name, name, converter)
-                    } 
+                    }
                 }
                 false -> Neo4jQueryConversion(argument.name, argument.name)
             }
@@ -73,9 +74,9 @@ data class Neo4jQueryConversion(val name: String, val propertyName: String, val 
 }
 
 
-val neo4jTypeDefinitions  = listOf(
+val neo4jTypeDefinitions = listOf(
         TypeDefinition(
-        "LocalTime", OffsetTime::class.java,
+                "LocalTime", OffsetTime::class.java,
                 "_Neo4jTime" to """
         type _Neo4jTime {
             hour: Int
@@ -88,7 +89,7 @@ val neo4jTypeDefinitions  = listOf(
             formatted: String
         }
         """,
-        "_Neo4jTimeInput" to """
+                "_Neo4jTimeInput" to """
         input _Neo4jTimeInput {
             hour: Int
             minute: Int
@@ -102,7 +103,7 @@ val neo4jTypeDefinitions  = listOf(
         """),
         TypeDefinition(
                 "Date", LocalDate::class.java,
-        "_Neo4jDate" to """
+                "_Neo4jDate" to """
         type _Neo4jDate {
             year: Int
             month: Int
@@ -110,7 +111,7 @@ val neo4jTypeDefinitions  = listOf(
             formatted: String
         }
         """,
-        "_Neo4jDateInput" to """
+                "_Neo4jDateInput" to """
         input _Neo4jDateInput {
             year: Int
             month: Int
@@ -119,8 +120,8 @@ val neo4jTypeDefinitions  = listOf(
         }
         """),
         TypeDefinition(
-                "DateTime",LocalDateTime::class.java,
-        "_Neo4jDateTime" to """
+                "DateTime", LocalDateTime::class.java,
+                "_Neo4jDateTime" to """
         type _Neo4jDateTime {
             year: Int
             month: Int
@@ -135,7 +136,7 @@ val neo4jTypeDefinitions  = listOf(
             formatted: String
         }
         """,
-        "_Neo4jDateTimeInput" to """
+                "_Neo4jDateTimeInput" to """
         input _Neo4jDateTimeInput {
             year: Int
             month: Int
@@ -163,7 +164,7 @@ val neo4jTypeDefinitions  = listOf(
             formatted: String
         }
         """,
-        "_Neo4jLocalTimeInput" to """
+                "_Neo4jLocalTimeInput" to """
         input _Neo4jLocalTimeInput {
             hour: Int
             minute: Int
@@ -175,8 +176,8 @@ val neo4jTypeDefinitions  = listOf(
         }
         """),
         TypeDefinition(
-            "LocalDateTime", OffsetDateTime::class.java,
-        "_Neo4jLocalDateTime" to """
+                "LocalDateTime", OffsetDateTime::class.java,
+                "_Neo4jLocalDateTime" to """
         type _Neo4jLocalDateTime {
             year: Int
             month: Int
@@ -190,7 +191,7 @@ val neo4jTypeDefinitions  = listOf(
             formatted: String
         }
         """,
-        "_Neo4jLocalDateTimeInput" to """
+                "_Neo4jLocalDateTimeInput" to """
         input _Neo4jLocalDateTimeInput {
             year: Int
             month: Int
