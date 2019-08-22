@@ -6,13 +6,14 @@
 
 [source,graphql,schema=true]
 ----
-type Person0 { name: String }
-type Person1 { name: String }
-type Person2 { name: String, age: [Int] }
-type Person3 { name: String!}
-type Person4 { id:ID!, name: String}
-type Person5 { id:ID!, movies:[Movie]}
-type Movie { id:ID!, publishedBy: Publisher }
+interface HasMovies { movies:[Movie] }
+type Person0 { name: String, born: _Neo4jTime }
+type Person1 { name: String, born: _Neo4jDate }
+type Person2 { name: String, age: [Int], born: _Neo4jDateTime }
+type Person3 { name: String!, born: _Neo4jLocalTime }
+type Person4 { id:ID!, name: String, born: _Neo4jLocalDateTime }
+type Person5 implements HasMovies { id:ID!, movies:[Movie]}
+type Movie { id:ID!, publishedBy: Publisher}
 type Publisher { name:ID! }
 ----
 
@@ -44,6 +45,10 @@ schema {
   mutation: Mutation
 }
 
+interface HasMovies {
+  movies(first: Int, offset: Int): [Movie]
+}
+
 type Movie {
   id: ID!
   publishedBy: Publisher
@@ -52,13 +57,17 @@ type Movie {
 type Mutation {
   createMovie(id: ID!): Movie!
   deleteMovie(id: ID!): Movie
-  createPerson1(name: String): Person1!
-  createPerson2(age: [Int], name: String): Person2!
-  createPerson3(name: String!): Person3!
-  createPerson4(id: ID!, name: String): Person4!
+  createPerson1(born: _Neo4jDateInput, name: String): Person1!
+
+  createPerson2(age: [Int], born: _Neo4jDateTimeInput, name: String): Person2!
+
+  createPerson3(born: _Neo4jLocalTimeInput, name: String!): Person3!
+
+  createPerson4(born: _Neo4jLocalDateTimeInput, id: ID!, name: String): Person4!
   deletePerson4(id: ID!): Person4
-  mergePerson4(id: ID!, name: String): Person4!
-  updatePerson4(id: ID!, name: String): Person4
+  mergePerson4(born: _Neo4jLocalDateTimeInput, id: ID!, name: String): Person4!
+  updatePerson4(born: _Neo4jLocalDateTimeInput, id: ID!, name: String): Person4
+
   createPerson5(id: ID!): Person5!
   deletePerson5(id: ID!): Person5
   createPublisher(name: ID!): Publisher!
@@ -66,28 +75,33 @@ type Mutation {
 }
 
 type Person0 {
+  born: _Neo4jTime
   name: String
 }
 
 type Person1 {
+  born: _Neo4jDate
   name: String
 }
 
 type Person2 {
   age: [Int]
+  born: _Neo4jDateTime
   name: String
 }
 
 type Person3 {
+  born: _Neo4jLocalTime
   name: String!
 }
 
 type Person4 {
+  born: _Neo4jLocalDateTime
   id: ID!
   name: String
 }
 
-type Person5 {
+type Person5 implements HasMovies {
   id: ID!
   movies(first: Int, offset: Int): [Movie]
 }
@@ -215,6 +229,9 @@ input _Neo4jTimeInput {
   timezone: String
 }
 
+directive @relation(name:String, direction: RelationDirection = OUT, from: String = "from", to: String = "to") on FIELD_DEFINITION | OBJECT
+directive @cypher(statement:String) on FIELD_DEFINITION
+directive @property(name:String) on FIELD_DEFINITION
 ----
 
 === Disable Mutations
@@ -243,6 +260,10 @@ schema {
   mutation: Mutation
 }
 
+interface HasMovies {
+  movies(first: Int, offset: Int):[Movie]
+}
+
 type Movie {
   id: ID!
   publishedBy: Publisher
@@ -252,28 +273,33 @@ type Mutation {
 }
 
 type Person0 {
+  born: _Neo4jTime
   name: String
 }
 
 type Person1 {
+  born: _Neo4jDate
   name: String
 }
 
 type Person2 {
   age: [Int]
+  born: _Neo4jDateTime
   name: String
 }
 
 type Person3 {
+  born: _Neo4jLocalTime
   name: String!
 }
 
 type Person4 {
+  born: _Neo4jLocalDateTime
   id: ID!
   name: String
 }
 
-type Person5 {
+type Person5 implements HasMovies {
   id: ID!
   movies(first: Int, offset: Int): [Movie]
 }
@@ -284,10 +310,10 @@ type Publisher {
 
 type Query {
   movie(filter: _MovieFilter, first: Int, id: ID, offset: Int, orderBy: _MovieOrdering): [Movie!]!
-  person1(filter: _Person1Filter, first: Int, name: String, offset: Int, orderBy: _Person1Ordering): [Person1!]!
-  person2(age: [Int], filter: _Person2Filter, first: Int, name: String, offset: Int, orderBy: _Person2Ordering): [Person2!]!
-  person3(filter: _Person3Filter, first: Int, name: String, offset: Int, orderBy: _Person3Ordering): [Person3!]!
-  person4(filter: _Person4Filter, first: Int, id: ID, name: String, offset: Int, orderBy: _Person4Ordering): [Person4!]!
+  person1(born: _Neo4jDateInput, filter: _Person1Filter, first: Int, name: String, offset: Int, orderBy: _Person1Ordering): [Person1!]!
+  person2(age: [Int], born: _Neo4jDateTimeInput, filter: _Person2Filter, first: Int, name: String, offset: Int, orderBy: _Person2Ordering): [Person2!]!
+  person3(born: _Neo4jLocalTimeInput, filter: _Person3Filter, first: Int, name: String, offset: Int, orderBy: _Person3Ordering): [Person3!]!
+  person4(born: _Neo4jLocalDateTimeInput, filter: _Person4Filter, first: Int, id: ID, name: String, offset: Int, orderBy: _Person4Ordering): [Person4!]!
   person5(filter: _Person5Filter, first: Int, id: ID, offset: Int, orderBy: _Person5Ordering): [Person5!]!
   publisher(filter: _PublisherFilter, first: Int, name: ID, offset: Int, orderBy: _PublisherOrdering): [Publisher!]!
 }
@@ -347,18 +373,14 @@ type _Neo4jTime {
   timezone: String
 }
 
-enum RelationDirection {
-  BOTH
-  IN
-  OUT
-}
-
 enum _MovieOrdering {
   id_asc
   id_desc
 }
 
 enum _Person1Ordering {
+  born_asc
+  born_desc
   name_asc
   name_desc
 }
@@ -366,16 +388,22 @@ enum _Person1Ordering {
 enum _Person2Ordering {
   age_asc
   age_desc
+  born_asc
+  born_desc
   name_asc
   name_desc
 }
 
 enum _Person3Ordering {
+  born_asc
+  born_desc
   name_asc
   name_desc
 }
 
 enum _Person4Ordering {
+  born_asc
+  born_desc
   id_asc
   id_desc
   name_asc
@@ -480,6 +508,10 @@ input _Person1Filter {
   AND: [_Person1Filter!]
   NOT: [_Person1Filter!]
   OR: [_Person1Filter!]
+  born: _Neo4jDateInput
+  born_in: [_Neo4jDateInput]
+  born_not: _Neo4jDateInput
+  born_not_in: [_Neo4jDateInput]
   name: String
   name_contains: String
   name_ends_with: String
@@ -497,6 +529,7 @@ input _Person1Filter {
 }
 
 input _Person1Input {
+  born: _Neo4jDateInput
   name: String
 }
 
@@ -512,6 +545,10 @@ input _Person2Filter {
   age_lte: Int
   age_not: Int
   age_not_in: [Int]
+  born: _Neo4jDateTimeInput
+  born_in: [_Neo4jDateTimeInput]
+  born_not: _Neo4jDateTimeInput
+  born_not_in: [_Neo4jDateTimeInput]
   name: String
   name_contains: String
   name_ends_with: String
@@ -530,6 +567,7 @@ input _Person2Filter {
 
 input _Person2Input {
   age: [Int]
+  born: _Neo4jDateTimeInput
   name: String
 }
 
@@ -537,6 +575,10 @@ input _Person3Filter {
   AND: [_Person3Filter!]
   NOT: [_Person3Filter!]
   OR: [_Person3Filter!]
+  born: _Neo4jLocalTimeInput
+  born_in: [_Neo4jLocalTimeInput]
+  born_not: _Neo4jLocalTimeInput
+  born_not_in: [_Neo4jLocalTimeInput]
   name: String
   name_contains: String
   name_ends_with: String
@@ -554,6 +596,7 @@ input _Person3Filter {
 }
 
 input _Person3Input {
+  born: _Neo4jLocalTimeInput
   name: String
 }
 
@@ -561,6 +604,10 @@ input _Person4Filter {
   AND: [_Person4Filter!]
   NOT: [_Person4Filter!]
   OR: [_Person4Filter!]
+  born: _Neo4jLocalDateTimeInput
+  born_in: [_Neo4jLocalDateTimeInput]
+  born_not: _Neo4jLocalDateTimeInput
+  born_not_in: [_Neo4jLocalDateTimeInput]
   id: ID
   id_contains: ID
   id_ends_with: ID
@@ -592,6 +639,7 @@ input _Person4Filter {
 }
 
 input _Person4Input {
+  born: _Neo4jLocalDateTimeInput
   id: ID
   name: String
 }
@@ -648,6 +696,16 @@ input _PublisherFilter {
 input _PublisherInput {
   name: ID
 }
+
+enum RelationDirection {
+  IN
+  OUT
+  BOTH
+}
+
+directive @relation(name:String, direction: RelationDirection = OUT, from: String = "from", to: String = "to") on FIELD_DEFINITION | OBJECT
+directive @cypher(statement:String) on FIELD_DEFINITION
+directive @property(name:String) on FIELD_DEFINITION
 ----
 
 
@@ -681,13 +739,17 @@ schema {
   mutation: Mutation
 }
 
+interface HasMovies {
+  movies(first: Int, offset: Int): [Movie]
+}
+
 type Movie {
   id: ID!
   publishedBy: Publisher
 }
 
 type Mutation {
-  createMovie(id: ID!): Movie!
+   createMovie(id: ID!): Movie!
   deleteMovie(id: ID!): Movie
   createPerson5(id: ID!): Person5!
   deletePerson5(id: ID!): Person5
@@ -696,28 +758,33 @@ type Mutation {
 }
 
 type Person0 {
+  born: _Neo4jTime
   name: String
 }
 
 type Person1 {
+  born: _Neo4jDate
   name: String
 }
 
 type Person2 {
   age: [Int]
+  born: _Neo4jDateTime
   name: String
 }
 
 type Person3 {
+  born: _Neo4jLocalTime
   name: String!
 }
 
 type Person4 {
+  born: _Neo4jLocalDateTime
   id: ID!
   name: String
 }
 
-type Person5 {
+type Person5 implements HasMovies {
   id: ID!
   movies(first: Int, offset: Int): [Movie]
 }
@@ -784,12 +851,6 @@ type _Neo4jTime {
   timezone: String
 }
 
-enum RelationDirection {
-  BOTH
-  IN
-  OUT
-}
-
 input _Neo4jDateInput {
   day: Int
   formatted: String
@@ -844,4 +905,13 @@ input _Neo4jTimeInput {
   second: Int
   timezone: String
 }
+
+enum RelationDirection {
+  IN
+  OUT
+  BOTH
+}
+directive @relation(name:String, direction: RelationDirection = OUT, from: String = "from", to: String = "to") on FIELD_DEFINITION | OBJECT
+directive @cypher(statement:String) on FIELD_DEFINITION
+directive @property(name:String) on FIELD_DEFINITION
 ----

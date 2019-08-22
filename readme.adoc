@@ -53,7 +53,7 @@ val schema =
         # Optional if you use generated queries
         type Query {
             person : [Person]
-            personByName(name:String) : Person
+            personByName(name:ID) : Person
         }"""
 
 val query = """ { p:personByName(name:"Joe") { age } } """
@@ -229,12 +229,12 @@ This example doesn't handle introspection queries but the one in the test direct
 * auto-generate mutation fields for all objects to create, update, delete
 * @cypher directive for top level queries and mutations, supports arguments
 * date(time)
+* interfaces
 
 === Next
 
 * skip limit params
 * sorting (nested)
-* interfaces
 * input types
 * unions
 * scalars
