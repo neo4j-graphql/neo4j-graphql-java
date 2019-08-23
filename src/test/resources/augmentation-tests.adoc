@@ -50,25 +50,19 @@ type Movie {
 }
 
 type Mutation {
-  createMovie(id: ID!): Movie
+  createMovie(id: ID!): Movie!
   deleteMovie(id: ID!): Movie
-  mergeMovie(id: ID!): Movie
-  updateMovie(id: ID!): Movie
-  createPerson1(name: String): Person1
-  createPerson2(age: [Int], name: String): Person2
-  createPerson3(name: String!): Person3
-  createPerson4(id: ID!, name: String): Person4
+  createPerson1(name: String): Person1!
+  createPerson2(age: [Int], name: String): Person2!
+  createPerson3(name: String!): Person3!
+  createPerson4(id: ID!, name: String): Person4!
   deletePerson4(id: ID!): Person4
-  mergePerson4(id: ID!, name: String): Person4
+  mergePerson4(id: ID!, name: String): Person4!
   updatePerson4(id: ID!, name: String): Person4
-  createPerson5(id: ID!): Person5
+  createPerson5(id: ID!): Person5!
   deletePerson5(id: ID!): Person5
-  mergePerson5(id: ID!): Person5
-  updatePerson5(id: ID!): Person5
-  createPublisher(name: ID!): Publisher
+  createPublisher(name: ID!): Publisher!
   deletePublisher(name: ID!): Publisher
-  mergePublisher(name: ID!): Publisher
-  updatePublisher(name: ID!): Publisher
 }
 
 type Person0 {
@@ -95,7 +89,7 @@ type Person4 {
 
 type Person5 {
   id: ID!
-  movies: [Movie]
+  movies(first: Int, offset: Int): [Movie]
 }
 
 type Publisher {
@@ -281,7 +275,7 @@ type Person4 {
 
 type Person5 {
   id: ID!
-  movies: [Movie]
+  movies(first: Int, offset: Int): [Movie]
 }
 
 type Publisher {
@@ -289,13 +283,13 @@ type Publisher {
 }
 
 type Query {
-  movie(_id: Int, filter: _MovieFilter, first: Int, id: ID, offset: Int, orderBy: _MovieOrdering): [Movie]
-  person1(_id: Int, filter: _Person1Filter, first: Int, name: String, offset: Int, orderBy: _Person1Ordering): [Person1]
-  person2(_id: Int, age: [Int], filter: _Person2Filter, first: Int, name: String, offset: Int, orderBy: _Person2Ordering): [Person2]
-  person3(_id: Int, filter: _Person3Filter, first: Int, name: String, offset: Int, orderBy: _Person3Ordering): [Person3]
-  person4(_id: Int, filter: _Person4Filter, first: Int, id: ID, name: String, offset: Int, orderBy: _Person4Ordering): [Person4]
-  person5(_id: Int, filter: _Person5Filter, first: Int, id: ID, offset: Int, orderBy: _Person5Ordering): [Person5]
-  publisher(_id: Int, filter: _PublisherFilter, first: Int, name: ID, offset: Int, orderBy: _PublisherOrdering): [Publisher]
+  movie(filter: _MovieFilter, first: Int, id: ID, offset: Int, orderBy: _MovieOrdering): [Movie!]!
+  person1(filter: _Person1Filter, first: Int, name: String, offset: Int, orderBy: _Person1Ordering): [Person1!]!
+  person2(age: [Int], filter: _Person2Filter, first: Int, name: String, offset: Int, orderBy: _Person2Ordering): [Person2!]!
+  person3(filter: _Person3Filter, first: Int, name: String, offset: Int, orderBy: _Person3Ordering): [Person3!]!
+  person4(filter: _Person4Filter, first: Int, id: ID, name: String, offset: Int, orderBy: _Person4Ordering): [Person4!]!
+  person5(filter: _Person5Filter, first: Int, id: ID, offset: Int, orderBy: _Person5Ordering): [Person5!]!
+  publisher(filter: _PublisherFilter, first: Int, name: ID, offset: Int, orderBy: _PublisherOrdering): [Publisher!]!
 }
 
 type _Neo4jDate {
@@ -407,15 +401,20 @@ input _MovieFilter {
   id_ends_with: ID
   id_gt: ID
   id_gte: ID
-  id_in: ID
+  id_in: [ID]
   id_lt: ID
   id_lte: ID
   id_not: ID
   id_not_contains: ID
   id_not_ends_with: ID
-  id_not_in: ID
+  id_not_in: [ID]
   id_not_starts_with: ID
   id_starts_with: ID
+  publishedBy: _PublisherFilter
+  publishedBy_none: _PublisherFilter
+  publishedBy_not: _PublisherFilter
+  publishedBy_single: _PublisherFilter
+  publishedBy_some: _PublisherFilter
 }
 
 input _MovieInput {
@@ -486,13 +485,13 @@ input _Person1Filter {
   name_ends_with: String
   name_gt: String
   name_gte: String
-  name_in: String
+  name_in: [String]
   name_lt: String
   name_lte: String
   name_not: String
   name_not_contains: String
   name_not_ends_with: String
-  name_not_in: String
+  name_not_in: [String]
   name_not_starts_with: String
   name_starts_with: String
 }
@@ -505,26 +504,26 @@ input _Person2Filter {
   AND: [_Person2Filter!]
   NOT: [_Person2Filter!]
   OR: [_Person2Filter!]
-  age: [Int]
-  age_gt: [Int]
-  age_gte: [Int]
+  age: Int
+  age_gt: Int
+  age_gte: Int
   age_in: [Int]
-  age_lt: [Int]
-  age_lte: [Int]
-  age_not: [Int]
+  age_lt: Int
+  age_lte: Int
+  age_not: Int
   age_not_in: [Int]
   name: String
   name_contains: String
   name_ends_with: String
   name_gt: String
   name_gte: String
-  name_in: String
+  name_in: [String]
   name_lt: String
   name_lte: String
   name_not: String
   name_not_contains: String
   name_not_ends_with: String
-  name_not_in: String
+  name_not_in: [String]
   name_not_starts_with: String
   name_starts_with: String
 }
@@ -543,13 +542,13 @@ input _Person3Filter {
   name_ends_with: String
   name_gt: String
   name_gte: String
-  name_in: String
+  name_in: [String]
   name_lt: String
   name_lte: String
   name_not: String
   name_not_contains: String
   name_not_ends_with: String
-  name_not_in: String
+  name_not_in: [String]
   name_not_starts_with: String
   name_starts_with: String
 }
@@ -567,13 +566,13 @@ input _Person4Filter {
   id_ends_with: ID
   id_gt: ID
   id_gte: ID
-  id_in: ID
+  id_in: [ID]
   id_lt: ID
   id_lte: ID
   id_not: ID
   id_not_contains: ID
   id_not_ends_with: ID
-  id_not_in: ID
+  id_not_in: [ID]
   id_not_starts_with: ID
   id_starts_with: ID
   name: String
@@ -581,13 +580,13 @@ input _Person4Filter {
   name_ends_with: String
   name_gt: String
   name_gte: String
-  name_in: String
+  name_in: [String]
   name_lt: String
   name_lte: String
   name_not: String
   name_not_contains: String
   name_not_ends_with: String
-  name_not_in: String
+  name_not_in: [String]
   name_not_starts_with: String
   name_starts_with: String
 }
@@ -606,15 +605,20 @@ input _Person5Filter {
   id_ends_with: ID
   id_gt: ID
   id_gte: ID
-  id_in: ID
+  id_in: [ID]
   id_lt: ID
   id_lte: ID
   id_not: ID
   id_not_contains: ID
   id_not_ends_with: ID
-  id_not_in: ID
+  id_not_in: [ID]
   id_not_starts_with: ID
   id_starts_with: ID
+  movies: _MovieFilter
+  movies_none: _MovieFilter
+  movies_not: _MovieFilter
+  movies_single: _MovieFilter
+  movies_some: _MovieFilter
 }
 
 input _Person5Input {
@@ -630,13 +634,13 @@ input _PublisherFilter {
   name_ends_with: ID
   name_gt: ID
   name_gte: ID
-  name_in: ID
+  name_in: [ID]
   name_lt: ID
   name_lte: ID
   name_not: ID
   name_not_contains: ID
   name_not_ends_with: ID
-  name_not_in: ID
+  name_not_in: [ID]
   name_not_starts_with: ID
   name_starts_with: ID
 }
@@ -644,7 +648,6 @@ input _PublisherFilter {
 input _PublisherInput {
   name: ID
 }
-
 ----
 
 
@@ -684,18 +687,12 @@ type Movie {
 }
 
 type Mutation {
-  createMovie(id: ID!): Movie
+  createMovie(id: ID!): Movie!
   deleteMovie(id: ID!): Movie
-  mergeMovie(id: ID!): Movie
-  updateMovie(id: ID!): Movie
-  createPerson5(id: ID!): Person5
+  createPerson5(id: ID!): Person5!
   deletePerson5(id: ID!): Person5
-  mergePerson5(id: ID!): Person5
-  updatePerson5(id: ID!): Person5
-  createPublisher(name: ID!): Publisher
+  createPublisher(name: ID!): Publisher!
   deletePublisher(name: ID!): Publisher
-  mergePublisher(name: ID!): Publisher
-  updatePublisher(name: ID!): Publisher
 }
 
 type Person0 {
@@ -722,7 +719,7 @@ type Person4 {
 
 type Person5 {
   id: ID!
-  movies: [Movie]
+  movies(first: Int, offset: Int): [Movie]
 }
 
 type Publisher {
@@ -847,5 +844,4 @@ input _Neo4jTimeInput {
   second: Int
   timezone: String
 }
-
 ----

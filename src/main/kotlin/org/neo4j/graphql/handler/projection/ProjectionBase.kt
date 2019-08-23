@@ -135,7 +135,7 @@ open class ProjectionBase(val metaProvider: MetaProvider) {
         //  a{.name},
         //  CASE WHEN a:Location THEN a { .foo } ELSE {} END
         //  ])
-        return selectionSet.selections.flatMapTo(mutableListOf()) {
+        return selectionSet.selections.flatMapTo(mutableListOf<Cypher>()) {
             when (it) {
                 is Field -> listOf(projectField(variable, it, nodeType, env, variableSuffix))
                 is InlineFragment -> projectInlineFragment(variable, it, env, variableSuffix)
