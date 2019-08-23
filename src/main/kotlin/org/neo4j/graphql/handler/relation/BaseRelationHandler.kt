@@ -81,7 +81,7 @@ abstract class BaseRelationHandler(
             throw java.lang.IllegalArgumentException("No ID for the ${if (start) "start" else "end"} Type provided, ${idField.argumentName} is required")
         }
         return getSelectQuery(relFieldName, idField.declaringType.label(), arguments[idField.argumentName],
-                idField.field, (relFieldName + idField.argumentName.capitalize()).quote())
+                idField.field, false, (relFieldName + idField.argumentName.capitalize()).quote())
     }
 
 }

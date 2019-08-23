@@ -13,6 +13,7 @@ import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_DIRECTION_OUT
 import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_FROM
 import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_NAME
 import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_TO
+import org.neo4j.graphql.handler.projection.ProjectionBase
 
 val SCALAR_TYPES = listOf("String", "ID", "Boolean", "Int", "Float")
 
@@ -130,7 +131,7 @@ fun Value<Value<*>>.toCypherString(): String = when (this) {
     is FloatValue -> this.value.toString()
     is IntValue -> this.value.toString()
     is VariableReference -> "$" + this.name
-    is ArrayValue -> this.values.map{ it.toCypherString() }.joinToString(",", "[", "]")
+    is ArrayValue -> this.values.map { it.toCypherString() }.joinToString(",", "[", "]")
     else -> throw IllegalStateException("Unhandled value $this")
 }
 
@@ -153,6 +154,8 @@ fun paramName(variable: String, argName: String, value: Any?): String = when (va
 }
 
 fun FieldDefinition.isID(): Boolean = this.type.name() == "ID"
+fun FieldDefinition.isNativeId() = this.name == ProjectionBase.NATIVE_ID
+
 fun FieldDefinition.isList(): Boolean = this.type.isList()
 fun ObjectTypeDefinition.getFieldByType(typeName: String): FieldDefinition? = this.fieldDefinitions
     .firstOrNull { it.type.inner().name() == typeName }

@@ -19,7 +19,7 @@ abstract class BaseDataFetcher(
         val fieldsOfType = type.fieldDefinitions().map { it.name to it }.toMap()
         fieldDefinition
             .inputValueDefinitions
-            .filterNot { listOf(FIRST, OFFSET, ORDER_BY).contains(it.name) }
+            .filterNot { listOf(FIRST, OFFSET, ORDER_BY, NATIVE_ID).contains(it.name) }
             .mapNotNull {
                 if (it.defaultValue != null) {
                     defaultFields[it.name] = it.defaultValue
@@ -102,16 +102,25 @@ abstract class BaseDataFetcher(
                 label: String?,
                 idProperty: Argument?,
                 idField: FieldDefinition,
+                isRelation: Boolean,
                 paramName: String? = idProperty?.let { paramName(variable, idProperty.name, idProperty.value) }
         ): Cypher {
             return when {
                 idProperty != null && paramName != null -> {
                     val queryParams = mapOf(paramName to idProperty.value.toJavaValue())
-                    // TODO handle @property aliasing
-                    if (idProperty.value is ArrayValue) {
-                        Cypher("($variable:$label) WHERE  $variable.${idField.name.quote()} IN $$paramName", queryParams)
+                    if (idField.isNativeId()) {
+                        if (isRelation) {
+                            Cypher("()-[$variable:$label]->() WHERE ID($variable) = $$paramName", queryParams)
+                        } else {
+                            Cypher("($variable:$label) WHERE ID($variable) = $$paramName", queryParams)
+                        }
                     } else {
-                        Cypher("($variable:$label { ${idField.name.quote()}: $$paramName })", queryParams)
+                        // TODO handle @property aliasing
+                        if (idProperty.value is ArrayValue) {
+                            Cypher("($variable:$label) WHERE  $variable.${idField.name.quote()} IN $$paramName", queryParams)
+                        } else {
+                            Cypher("($variable:$label { ${idField.name.quote()}: $$paramName })", queryParams)
+                        }
                     }
                 }
                 else -> Cypher.EMPTY

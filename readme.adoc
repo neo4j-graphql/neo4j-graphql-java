@@ -338,6 +338,46 @@ The default Neo4j types are handled both as argument types as well as field type
 
 NOTE: Datetime and spatial not yet.
 
+=== Usage of ID
+
+Each type is expect to have exactly one filed of type `ID` defined.
+If the field is named `_id`, it is interpreted as the database internal graph ID.
+
+So there are 3 cases:
+
+.Case 1: Only the _ID_ field exists
+[source,graphql]
+----
+type User {
+  email: ID!
+  name: String!
+}
+----
+
+.Case 2: Only the _ID_ field exists interpreted as internal ID
+[source,graphql]
+----
+type User {
+  _id: ID!
+  email: String!
+  name: String!
+}
+----
+
+.Case 3: An _ID_ field exists but the internal ID is propagated as well
+[source,graphql]
+----
+type User {
+  _id: Int!
+  email: ID!
+  name: String!
+}
+----
+
+IMPORTANT: For the auto generated queries and mutations the `ID` field is used primarily.
+
+TIP: You should create an unique index on the `ID` fields
+
 === Parameter Support
 
 We handle passed in GraphQL parameters, these are resolved correctly when used within the GraphQL query.
