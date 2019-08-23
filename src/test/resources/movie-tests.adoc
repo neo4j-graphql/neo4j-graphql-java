@@ -851,7 +851,7 @@ CREATE (createUser:User:Person { userId: $createUserUserId })
 WITH createUser
 RETURN createUser {
   .userId,
-  __typename: head( [ label in labels(createUser) WHERE label in $createUserValidTypes ] )
+  __typename: head( [ label IN labels(createUser) WHERE label IN $createUserValidTypes ] )
 } AS createUser
 ----
 

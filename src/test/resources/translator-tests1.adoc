@@ -652,7 +652,7 @@ RETURN person {
 MATCH (location:Location)
 RETURN location {
   .name,
-  __typename: head( [ label in labels(location) WHERE label in $locationValidTypes ] )
+  __typename: head( [ label IN labels(location) WHERE label IN $locationValidTypes ] )
 } AS location
 ----
 
@@ -686,7 +686,7 @@ RETURN location {
 MATCH (person:Person)
 RETURN person {
   .name,
-  __typename: head( [ label in labels(person) WHERE label in $personValidTypes ] ),
+  __typename: head( [ label IN labels(person) WHERE label IN $personValidTypes ] ),
   born:[(person)-[personBorn:BORN]->(personBornTo:Location) | personBorn {
     __typename: 'Birth'
   }][0]
@@ -726,7 +726,7 @@ RETURN person {
 MATCH (location:Location)
 RETURN location {
   .name,
-  __typename: head( [ label in labels(location) WHERE label in $locationValidTypes ] ),
+  __typename: head( [ label IN labels(location) WHERE label IN $locationValidTypes ] ),
   .cityArg,
   .villageArg
 } AS location
@@ -768,7 +768,7 @@ fragment details on Location {
 MATCH (location:Location)
 RETURN location {
   .name,
-  __typename: head( [ label in labels(location) WHERE label in $locationValidTypes ] ),
+  __typename: head( [ label IN labels(location) WHERE label IN $locationValidTypes ] ),
   .cityArg,
   .villageArg
 } AS location
