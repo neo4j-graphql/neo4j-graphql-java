@@ -2,6 +2,7 @@ package org.neo4j.graphql
 
 import graphql.language.Field
 import graphql.schema.GraphQLFieldDefinition
+import graphql.schema.GraphQLObjectType
 import graphql.schema.GraphQLType
 import java.time.*
 import java.time.temporal.Temporal
@@ -36,13 +37,13 @@ fun getNeo4jTypeConverter(type: GraphQLType): Neo4jConverter {
 
 data class Neo4jQueryConversion(val name: String, val propertyName: String, val converter: Neo4jConverter = Neo4jConverter()) {
     companion object {
-        fun forQuery(argument: Translator.CypherArgument, field: Field, fieldDefinition: GraphQLFieldDefinition): Neo4jQueryConversion {
-            val isNeo4jType = fieldDefinition.isNeo4jType()
+        fun forQuery(argument: Translator.CypherArgument, field: Field, type: GraphQLObjectType): Neo4jQueryConversion {
+            val isNeo4jType = type.isNeo4jType()
             val name = argument.name
             return when (isNeo4jType) {
                 true -> {
                     if (name == NEO4j_FORMATTED_PROPERTY_KEY) {
-                        Neo4jQueryConversion(field.name + NEO4j_FORMATTED_PROPERTY_KEY.capitalize(), field.name, getNeo4jTypeConverter(fieldDefinition.type.inner()))
+                        Neo4jQueryConversion(field.name + NEO4j_FORMATTED_PROPERTY_KEY.capitalize(), field.name, getNeo4jTypeConverter(type))
                     } else {
                         Neo4jQueryConversion(field.name + name.capitalize(), field.name + ".$name")
                     }
