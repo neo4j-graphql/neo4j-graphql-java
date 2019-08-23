@@ -3,6 +3,8 @@ package org.neo4j.graphql.utils
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assumptions
 import org.junit.jupiter.api.DynamicTest
+import org.neo4j.graphql.Cypher
+import org.neo4j.graphql.QueryContext
 import org.neo4j.graphql.SchemaBuilder
 import org.neo4j.graphql.Translator
 
@@ -18,10 +20,10 @@ class CypherTestSuite(fileName: String) : AsciiDocTestSuite() {
             private val requestParams: Map<String, Any?> = emptyMap(),
             private val ignore: Boolean) {
 
-        fun run(contextProvider: ((requestParams: Map<String, Any?>) -> Translator.Context?)?) {
+        fun run(contextProvider: ((requestParams: Map<String, Any?>) -> QueryContext?)?) {
             println(title)
             try {
-                val ctx = contextProvider?.let { it(requestParams) } ?: Translator.Context()
+                val ctx = contextProvider?.let { it(requestParams) } ?: QueryContext()
                 val result = suite.translate(request, requestParams, ctx)
                 println(result.query)
                 Assertions.assertEquals(this.cypher.normalize(), result.query.normalize())
@@ -58,13 +60,13 @@ class CypherTestSuite(fileName: String) : AsciiDocTestSuite() {
         }
     }
 
-    fun translate(query: String, requestParams: Map<String, Any?> = emptyMap(), ctx: Translator.Context = Translator.Context()): Translator.Cypher {
+    fun translate(query: String, requestParams: Map<String, Any?> = emptyMap(), ctx: QueryContext = QueryContext()): Cypher {
         return Translator(SchemaBuilder.buildSchema(schema))
             .translate(query, requestParams, ctx)
             .first()
     }
 
-    fun run(contextProvider: ((requestParams: Map<String, Any?>) -> Translator.Context)? = null): List<DynamicTest> {
+    fun run(contextProvider: ((requestParams: Map<String, Any?>) -> QueryContext)? = null): List<DynamicTest> {
         return tests.map { DynamicTest.dynamicTest(it.title) { it.run(contextProvider) } }
     }
 }
