@@ -107,6 +107,7 @@ type Mutation {
   createPerson3(born: _Neo4jLocalTimeInput, name: String!): Person3!
 
   createPerson4(born: _Neo4jLocalDateTimeInput, id: ID!, name: String): Person4!
+
   deletePerson4(id: ID!): Person4
   mergePerson4(born: _Neo4jLocalDateTimeInput, id: ID!, name: String): Person4!
   updatePerson4(born: _Neo4jLocalDateTimeInput, id: ID!, name: String): Person4

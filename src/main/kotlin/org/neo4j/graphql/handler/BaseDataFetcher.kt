@@ -28,17 +28,17 @@ abstract class BaseDataFetcher(
             }
             .forEach { field: FieldDefinition ->
                 val callback = if (field.isNeo4jType()) {
-                            { value: Value<Value<*>> ->
-                                val (name, propertyName, converter) = Neo4jQueryConversion
-                                    .forMutation(value, field)
-                                listOf(Translator.CypherArgument(name, propertyName, value.toJavaValue(), converter, propertyName))
-                            }
-                        } else {
-                            val propertyName = field.propertyDirectiveName() ?: field.name
-                            { value: Value<Value<*>> ->
-                                listOf(Translator.CypherArgument(field.name, propertyName.quote(), value.toJavaValue()))
-                            }
-                        }
+                    { value: Value<Value<*>> ->
+                        val (name, propertyName, converter) = Neo4jQueryConversion
+                            .forMutation(value, field)
+                        listOf(Translator.CypherArgument(name, propertyName, value.toJavaValue(), converter, propertyName))
+                    }
+                } else {
+                    val propertyName = field.propertyDirectiveName() ?: field.name
+                    { value: Value<Value<*>> ->
+                        listOf(Translator.CypherArgument(field.name, propertyName.quote(), value.toJavaValue()))
+                    }
+                }
                 propertyFields[field.name] = callback
             }
     }
@@ -56,6 +56,7 @@ abstract class BaseDataFetcher(
                     projectFields(variable, field, type, env, null)
                 },
                 env)
+            .copy(type = fieldDefinition.type)
     }
 
     protected abstract fun generateCypher(variable: String,
@@ -78,7 +79,7 @@ abstract class BaseDataFetcher(
         val query = all
             .joinToString(", ", " { ", " }") { it.toCypherString(variable) }
         val params = all
-            .map {  paramName(variable, it.cypherParam, it.value) to it.value }
+            .map { paramName(variable, it.cypherParam, it.value) to it.value }
             .toMap()
         return Cypher(query, params)
     }
