@@ -10,6 +10,8 @@ open class ProjectionBase(val metaProvider: MetaProvider) {
         const val FIRST = "first"
         const val OFFSET = "offset"
         const val FILTER = "filter"
+
+        const val TYPE_NAME = "__typename"
     }
 
     fun orderBy(variable: String, args: MutableList<Argument>): String {
@@ -135,17 +137,39 @@ open class ProjectionBase(val metaProvider: MetaProvider) {
         //  a{.name},
         //  CASE WHEN a:Location THEN a { .foo } ELSE {} END
         //  ])
-        return selectionSet.selections.flatMapTo(mutableListOf<Cypher>()) {
+        var hasTypeName = false
+        val projections = selectionSet.selections.flatMapTo(mutableListOf<Cypher>()) {
             when (it) {
-                is Field -> listOf(projectField(variable, it, nodeType, env, variableSuffix))
+                is Field -> {
+                    hasTypeName = hasTypeName || (it.name == TYPE_NAME)
+                    listOf(projectField(variable, it, nodeType, env, variableSuffix))
+                }
                 is InlineFragment -> projectInlineFragment(variable, it, env, variableSuffix)
                 is FragmentSpread -> projectNamedFragments(variable, it, env, variableSuffix)
                 else -> emptyList()
             }
         }
+        if (nodeType is InterfaceDefinitionNodeFacade
+            && !hasTypeName
+            && (env.getLocalContext() as? QueryContext)?.queryTypeOfInterfaces == true
+        ) {
+            // for interfaces the typename is required to determine the correct implementation
+            projections.add(projectField(variable, Field(TYPE_NAME), nodeType, env, variableSuffix))
+        }
+        return projections
     }
 
     private fun projectField(variable: String, field: Field, type: NodeFacade, env: DataFetchingEnvironment, variableSuffix: String?): Cypher {
+        if (field.name == TYPE_NAME) {
+            return if (type.isRelationType()) {
+                Cypher("${field.aliasOrName()}: '${type.name()}'")
+            } else {
+                val paramName = paramName(variable, "validTypes", null)
+                val validTypeLabels = metaProvider.getValidTypeLabels(type)
+                Cypher("${field.aliasOrName()}: head( [ label IN labels($variable) WHERE label IN $$paramName ] )",
+                        mapOf(paramName to validTypeLabels))
+            }
+        }
         val fieldDefinition = type.getFieldDefinition(field.name)
                 ?: throw IllegalStateException("No field ${field.name} in ${type.name()}")
         val cypherDirective = fieldDefinition.cypherDirective()

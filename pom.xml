@@ -8,7 +8,7 @@
     <artifactId>neo4j-graphql-java</artifactId>
     <name>Neo4j GraphQL Java</name>
     <description>GraphQL to Cypher Mapping</description>
-    <version>1.0.0-M03-SNAPSHOT</version>
+    <version>1.0.0-M04-SNAPSHOT</version>
     <url>http://github.com/neo4j-graphql/neo4j-graphql-java</url>
 
     <licenses>
@@ -22,7 +22,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
-        <kotlin.version>1.3.21</kotlin.version>
+        <kotlin.version>1.3.41</kotlin.version>
         <kotlin.compiler.jvmTarget>${java.version}</kotlin.compiler.jvmTarget>
         <neo4j.version>3.5.6</neo4j.version>
         <driver.version>1.7.2</driver.version>
