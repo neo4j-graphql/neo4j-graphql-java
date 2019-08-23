@@ -7,7 +7,7 @@
 [source,graphql,schema=true]
 ----
 type Movie {
-  _id: String
+  _id: Int
   movieId: ID!
   title: String
   year: Int
@@ -29,7 +29,7 @@ type Movie {
   RETURN other
   """)
   publishedBy: Publisher @relation(name: "PUBLISHED_BY", direction: OUT)
-  ratings: [Rated]
+  ratings: [Rated] @relation(name:"RATED")
 }
 type Publisher {
   name: ID!
@@ -41,6 +41,7 @@ type Genre {
   highestRatedMovie: Movie @cypher(statement: "MATCH (m:Movie)-[:IN_GENRE]->(this) RETURN m ORDER BY m.imdbRating DESC LIMIT 1")
 }
 type State {
+  _id: ID!
   name: String
 }
 interface Person {
@@ -69,6 +70,7 @@ type FriendOf {
   to: User
 }
 type Rated @relation(name:"RATED") {
+  _id: ID!
   from: User
   rating: Int
   to: Movie
@@ -820,6 +822,94 @@ ORDER BY movie.title DESC
 LIMIT 10
 ----
 
+=== Find all relations
+
+.GraphQL-Query
+[source,graphql]
+----
+{ rated(_id:1){
+    rating
+ }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{ "rated_id": 1}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH ()-[rated:RATED]->()
+WHERE ID(rated) = $rated_id
+RETURN rated { .rating } AS rated
+----
+
+=== Create relation
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  createRated(from_userId: "1", to_movieId: "2", rating: 5) {
+    _id
+ }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "fromFrom_userId": "1",
+  "toTo_movieId": "2",
+  "createRatedRating": 5
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (from:User { userId: $fromFrom_userId })
+MATCH (to:Movie { movieId: $toTo_movieId })
+CREATE (from)-[createRated:RATED { rating: $createRatedRating }]->(to)
+WITH createRated
+RETURN createRated { _id:ID(createRated) } AS createRated
+----
+
+=== Mutate relation
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+ updateRated(_id:1, rating: 5){
+    rating
+ }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "updateRated_id": 1,
+  "updateRatedRating": 5
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH ()-[updateRated:RATED]->()
+WHERE ID(updateRated) = $updateRated_id
+SET updateRated = { rating: $updateRatedRating }
+WITH updateRated
+RETURN updateRated { .rating } AS updateRated
+----
+
 === create object with multiple labels
 
 .GraphQL-Query
@@ -853,6 +943,39 @@ RETURN createUser {
   .userId,
   __typename: head( [ label IN labels(createUser) WHERE label IN $createUserValidTypes ] )
 } AS createUser
+----
+
+=== create relation
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+ addGenreMovies(name:"Action", movies: ["m1"]){
+    name
+ }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "fromName": "Action",
+  "toMovies": [
+    "m1"
+  ]
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (from:Genre { name: $fromName })
+MATCH (to:Movie) WHERE to.movieId IN $toMovies
+MERGE (from)-[:IN_GENRE]->(to)
+WITH DISTINCT from AS addGenreMovies
+RETURN addGenreMovies { .name } AS addGenreMovies
 ----
 
 == Neo4j Data Types queryies
