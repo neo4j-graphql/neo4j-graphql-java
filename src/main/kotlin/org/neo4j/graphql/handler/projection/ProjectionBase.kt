@@ -166,7 +166,7 @@ open class ProjectionBase(val metaProvider: MetaProvider) {
             } else {
                 val paramName = paramName(variable, "validTypes", null)
                 val validTypeLabels = metaProvider.getValidTypeLabels(type)
-                Cypher("${field.aliasOrName()}: head( [ label in labels($variable) WHERE label in $$paramName ] )",
+                Cypher("${field.aliasOrName()}: head( [ label IN labels($variable) WHERE label IN $$paramName ] )",
                         mapOf(paramName to validTypeLabels))
             }
         }
