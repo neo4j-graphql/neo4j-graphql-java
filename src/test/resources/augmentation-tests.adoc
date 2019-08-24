@@ -19,6 +19,7 @@ type Knows0 @relation(name:"KNOWS", from: "source", to: "knows"){
   id: ID!
   source: Person0!
   knows: Person0!
+  json: DynamicProperties @dynamic(prefix: "prefix.")
 }
 type Knows1 @relation(name:"KNOWS", from: "source", to: "knows"){
   id: ID!
@@ -29,6 +30,7 @@ type Knows4 @relation(name:"KNOWS", from: "source", to: "knows"){
   _id: ID!
   source: Person4!
   knows: Person4!
+  json: DynamicProperties @dynamic(prefix: "prefix.")
 }
 ----
 
@@ -66,6 +68,7 @@ interface HasMovies {
 
 type Knows0 @relation(direction : OUT, from : "source", name : "KNOWS", to : "knows") {
   id: ID!
+  json: DynamicProperties @dynamic(prefix : "prefix.")
   knows: Person0!
   source: Person0!
 }
@@ -78,6 +81,7 @@ type Knows1 @relation(direction : OUT, from : "source", name : "KNOWS", to : "kn
 
 type Knows4 @relation(direction : OUT, from : "source", name : "KNOWS", to : "knows") {
   _id: ID!
+  json: DynamicProperties @dynamic(prefix : "prefix.")
   knows: Person4!
   source: Person4!
 }
@@ -89,10 +93,15 @@ type Movie {
 
 type Mutation {
   deleteKnows0(id: ID!): Knows0
+  mergeKnows0(id: ID!, json: DynamicProperties): Knows0!
+  updateKnows0(id: ID!, json: DynamicProperties): Knows0
+
   deleteKnows1(id: ID!): Knows1
 
-  createKnows4(knows_id: ID!, source_id: ID!): Knows4!
+  createKnows4(json: DynamicProperties, knows_id: ID!, source_id: ID!): Knows4!
   deleteKnows4(_id: ID!): Knows4
+  mergeKnows4(_id: ID!, json: DynamicProperties): Knows4!
+  updateKnows4(_id: ID!, json: DynamicProperties): Knows4
 
   createMovie(id: ID!): Movie!
   deleteMovie(id: ID!): Movie
@@ -280,6 +289,8 @@ enum RelationDirection {
 directive @relation(name:String, direction: RelationDirection = OUT, from: String = "from", to: String = "to") on FIELD_DEFINITION | OBJECT
 directive @cypher(statement:String) on FIELD_DEFINITION
 directive @property(name:String) on FIELD_DEFINITION
+directive @dynamic(prefix:String = "properties.") on FIELD_DEFINITION
+scalar DynamicProperties
 ----
 
 === Disable Mutations
@@ -314,6 +325,7 @@ interface HasMovies {
 
 type Knows0 @relation(direction : OUT, from : "source", name : "KNOWS", to : "knows") {
   id: ID!
+  json: DynamicProperties @dynamic(prefix : "prefix.")
   knows: Person0!
   source: Person0!
 }
@@ -326,6 +338,7 @@ type Knows1 @relation(direction : OUT, from : "source", name : "KNOWS", to : "kn
 
 type Knows4 @relation(direction : OUT, from : "source", name : "KNOWS", to : "knows") {
   _id: ID!
+  json: DynamicProperties @dynamic(prefix : "prefix.")
   knows: Person4!
   source: Person4!
 }
@@ -445,6 +458,8 @@ type _Neo4jTime {
 enum _Knows0Ordering {
   id_asc
   id_desc
+  json_asc
+  json_desc
 }
 
 enum _Knows1Ordering {
@@ -455,6 +470,8 @@ enum _Knows1Ordering {
 enum _Knows4Ordering {
   _id_asc
   _id_desc
+  json_asc
+  json_desc
 }
 
 enum _MovieOrdering {
@@ -536,6 +553,7 @@ input _Knows0Filter {
 
 input _Knows0Input {
   id: ID
+  json: DynamicProperties
 }
 
 input _Knows1Filter {
@@ -604,6 +622,7 @@ input _Knows4Filter {
 
 input _Knows4Input {
   _id: ID
+  json: DynamicProperties
 }
 
 input _MovieFilter {
@@ -916,6 +935,8 @@ enum RelationDirection {
 directive @relation(name:String, direction: RelationDirection = OUT, from: String = "from", to: String = "to") on FIELD_DEFINITION | OBJECT
 directive @cypher(statement:String) on FIELD_DEFINITION
 directive @property(name:String) on FIELD_DEFINITION
+directive @dynamic(prefix:String = "properties.") on FIELD_DEFINITION
+scalar DynamicProperties
 ----
 
 
@@ -955,6 +976,7 @@ interface HasMovies {
 
 type Knows0 @relation(direction : OUT, from : "source", name : "KNOWS", to : "knows") {
   id: ID!
+  json: DynamicProperties @dynamic(prefix : "prefix.")
   knows: Person0!
   source: Person0!
 }
@@ -967,6 +989,7 @@ type Knows1 @relation(direction : OUT, from : "source", name : "KNOWS", to : "kn
 
 type Knows4 @relation(direction : OUT, from : "source", name : "KNOWS", to : "knows") {
   _id: ID!
+  json: DynamicProperties @dynamic(prefix : "prefix.")
   knows: Person4!
   source: Person4!
 }
@@ -978,11 +1001,15 @@ type Movie {
 
 type Mutation {
   deleteKnows0(id: ID!): Knows0
+  mergeKnows0(id: ID!, json: DynamicProperties): Knows0!
+  updateKnows0(id: ID!, json: DynamicProperties): Knows0
 
   deleteKnows1(id: ID!): Knows1
 
-  createKnows4(knows_id: ID!, source_id: ID!): Knows4!
+  createKnows4(json: DynamicProperties, knows_id: ID!, source_id: ID!): Knows4!
   deleteKnows4(_id: ID!): Knows4
+  mergeKnows4(_id: ID!, json: DynamicProperties): Knows4!
+  updateKnows4(_id: ID!, json: DynamicProperties): Knows4
 
   createMovie(id: ID!): Movie!
   deleteMovie(id: ID!): Movie
@@ -1158,4 +1185,6 @@ enum RelationDirection {
 directive @relation(name:String, direction: RelationDirection = OUT, from: String = "from", to: String = "to") on FIELD_DEFINITION | OBJECT
 directive @cypher(statement:String) on FIELD_DEFINITION
 directive @property(name:String) on FIELD_DEFINITION
+directive @dynamic(prefix:String = "properties.") on FIELD_DEFINITION
+scalar DynamicProperties
 ----

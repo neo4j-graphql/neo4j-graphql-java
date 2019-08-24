@@ -27,21 +27,39 @@ abstract class BaseDataFetcher(
                 fieldsOfType[it.name]
             }
             .forEach { field: FieldDefinition ->
-                val callback = if (field.isNeo4jType()) {
-                    { value: Value<Value<*>> ->
-                        val (name, propertyName, converter) = Neo4jQueryConversion
-                            .forMutation(value, field)
-                        listOf(Translator.CypherArgument(name, propertyName, value.toJavaValue(), converter, propertyName))
-                    }
-                } else {
-                    val propertyName = field.propertyDirectiveName() ?: field.name
-                    { value: Value<Value<*>> ->
-                        listOf(Translator.CypherArgument(field.name, propertyName.quote(), value.toJavaValue()))
-                    }
+                val dynamicPrefix = field.dynamicPrefix(metaProvider)
+                propertyFields[field.name] = when {
+                    dynamicPrefix != null -> dynamicPrefixCallback(field, dynamicPrefix)
+                    field.isNeo4jType() -> neo4jTypeCallback(field)
+                    else -> defaultCallback(field)
                 }
-                propertyFields[field.name] = callback
             }
     }
+
+    private fun defaultCallback(field: FieldDefinition) =
+            { value: Value<Value<*>> ->
+                val propertyName = field.propertyDirectiveName() ?: field.name
+                listOf(Translator.CypherArgument(field.name, propertyName.quote(), value.toJavaValue()))
+            }
+
+    private fun neo4jTypeCallback(field: FieldDefinition) =
+            { value: Value<Value<*>> ->
+                val (name, propertyName, converter) = Neo4jQueryConversion
+                        .forMutation(value, field)
+                listOf(Translator.CypherArgument(name, propertyName, value.toJavaValue(), converter, propertyName))
+            }
+
+    private fun dynamicPrefixCallback(field: FieldDefinition, dynamicPrefix: String) =
+            { value: Value<Value<*>> ->
+                // maps each property of the map to the node
+                (value as? ObjectValue)?.objectFields?.map { argField ->
+                    Translator.CypherArgument(
+                            (field.name + argField.name.capitalize()),
+                            (dynamicPrefix + argField.name).quote(),
+                            argField.value.toJavaValue()
+                    )
+                }
+            }
 
     override fun get(env: DataFetchingEnvironment?): Cypher {
         val field = env?.mergedField?.singleField

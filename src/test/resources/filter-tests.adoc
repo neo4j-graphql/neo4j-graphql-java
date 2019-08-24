@@ -1116,8 +1116,6 @@ RETURN person { .name } AS person
 
 === Filter _null_
 
-CAUTION: Not yet implemented
-
 .GraphQL-Query
 [source,graphql]
 ----
@@ -1128,13 +1126,11 @@ CAUTION: Not yet implemented
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE (NOT (person)-[:WORKS_AT]->())
+WHERE NOT (person)-[:WORKS_AT]->()
 RETURN person { .name } AS person
 ----
 
 === Filter _not null_
-
-CAUTION: Is not working
 
 .GraphQL-Query
 [source,graphql]
@@ -1146,7 +1142,7 @@ CAUTION: Is not working
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE ((person)-[:WORKS_AT]->())
+WHERE (person)-[:WORKS_AT]->()
 RETURN person { .name } AS person
 ----
 
@@ -1583,7 +1579,7 @@ WHERE (((person.name = "Jane" AND  ALL(person_Company_Cond IN [(person)-[:WORKS_
 RETURN person { .name } AS person
 ----
 
----
+'''
 
 CAUTION: Is not working
 

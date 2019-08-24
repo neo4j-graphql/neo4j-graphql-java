@@ -12,6 +12,7 @@ import graphql.schema.idl.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assumptions
 import org.junit.jupiter.api.DynamicTest
+import org.neo4j.graphql.DynamicProperties
 import org.neo4j.graphql.SchemaBuilder
 import org.neo4j.graphql.SchemaConfig
 import java.util.regex.Pattern
@@ -72,6 +73,7 @@ class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite() {
                     .getTypes(InterfaceTypeDefinition::class.java)
                     .forEach { typeDefinition -> runtimeWiring.type(typeDefinition.name) { it.typeResolver { null } } }
                 val expected = schemaGenerator.makeExecutableSchema(reg, runtimeWiring
+                    .scalar(DynamicProperties.INSTANCE)
                     .build())
 
                 diff(expected, augmentedSchema)

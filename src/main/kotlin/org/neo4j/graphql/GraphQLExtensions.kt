@@ -4,6 +4,8 @@ import graphql.language.*
 import graphql.language.TypeDefinition
 import org.neo4j.graphql.DirectiveConstants.Companion.CYPHER
 import org.neo4j.graphql.DirectiveConstants.Companion.CYPHER_STATEMENT
+import org.neo4j.graphql.DirectiveConstants.Companion.DYNAMIC
+import org.neo4j.graphql.DirectiveConstants.Companion.DYNAMIC_PREFIX
 import org.neo4j.graphql.DirectiveConstants.Companion.PROPERTY
 import org.neo4j.graphql.DirectiveConstants.Companion.PROPERTY_NAME
 import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_DIRECTION
@@ -15,7 +17,7 @@ import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_NAME
 import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_TO
 import org.neo4j.graphql.handler.projection.ProjectionBase
 
-val SCALAR_TYPES = listOf("String", "ID", "Boolean", "Int", "Float")
+val SCALAR_TYPES = listOf("String", "ID", "Boolean", "Int", "Float", "DynamicProperties")
 
 fun Type<Type<*>>.isScalar() = this.inner().name()?.let { SCALAR_TYPES.contains(it) } ?: false
 fun Type<Type<*>>.name(): String? = if (this.inner() is TypeName) (this.inner() as TypeName).name else null
@@ -109,6 +111,8 @@ fun Field.propertyName(fieldDefinition: FieldDefinition) = (fieldDefinition.prop
 
 fun FieldDefinition.propertyDirectiveName() =
         getDirective(PROPERTY)?.getArgument(PROPERTY_NAME)?.value?.toJavaValue()?.toString()
+
+fun FieldDefinition.dynamicPrefix(metaProvider: MetaProvider): String? = metaProvider.getDirectiveArgument(getDirective(DYNAMIC), DYNAMIC_PREFIX, null)
 
 fun FieldDefinition.cypherDirective(): Cypher? =
         this.getDirective(CYPHER)?.let {
