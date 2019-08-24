@@ -1,4 +1,4 @@
-package demo.org.neo4j.graphql
+package org.neo4j.graphql
 
 import graphql.schema.idl.SchemaParser
 import org.junit.jupiter.api.Test

@@ -14,7 +14,9 @@ import org.junit.jupiter.api.Assumptions
 import org.junit.jupiter.api.DynamicTest
 import org.neo4j.graphql.SchemaBuilder
 import org.neo4j.graphql.SchemaConfig
+import java.io.File
 import java.util.regex.Pattern
+import javax.ws.rs.core.UriBuilder
 
 class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite() {
     val schema: String
@@ -52,6 +54,8 @@ class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite() {
     class TestRun(
             private val suite: GraphQLSchemaTestSuite,
             val title: String?,
+            var file: File,
+            val line: Int,
             private val config: SchemaConfig,
             private val targetSchema: String,
             private val ignore: Boolean) {
@@ -103,6 +107,8 @@ class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite() {
         tests = result.tests.map {
             TestRun(this,
                     it.title,
+                    result.file,
+                    it.line,
                     MAPPER.readValue(it.codeBlocks["[source,json]"]?.toString()
                             ?: throw IllegalStateException("missing config ${it.title}"), SchemaConfig::class.java),
                     it.codeBlocks["[source,graphql]"]?.trim()?.toString()
@@ -113,7 +119,11 @@ class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite() {
     }
 
     fun run(): List<DynamicTest> {
-        return tests.map { DynamicTest.dynamicTest(it.title) { it.run() } }
+        return tests.map {
+            DynamicTest.dynamicTest(
+                    it.title,
+                    UriBuilder.fromUri(it.file.toURI()).queryParam("line", it.line).build()) { it.run() }
+        }
     }
 
     companion object {

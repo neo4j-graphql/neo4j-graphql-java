@@ -4,16 +4,25 @@ import org.codehaus.jackson.map.ObjectMapper
 import java.io.File
 
 open class AsciiDocTestSuite {
-    class ParsedFile(var schema: String, val tests: MutableList<ParsedBlock>)
-    class ParsedBlock(var title: String? = null, var ignore: Boolean = false, val codeBlocks: MutableMap<String, StringBuilder> = mutableMapOf())
+    class ParsedFile(
+            var schema: String,
+            var file: File,
+            val tests: MutableList<ParsedBlock>
+    )
+
+    class ParsedBlock(
+            var title: String? = null,
+            var line: Int = 0,
+            var ignore: Boolean = false,
+            val codeBlocks: MutableMap<String, StringBuilder> = mutableMapOf()
+    )
 
     companion object {
         val MAPPER = ObjectMapper()
 
         fun parse(fileName: String, blocks: LinkedHashSet<String>): ParsedFile {
-            val lines = File(AsciiDocTestSuite::class.java.getResource("/$fileName").toURI())
-                .readLines()
-                .filterNot { it.startsWith("#") || it.startsWith("//") }
+            val file = File(AsciiDocTestSuite::class.java.getResource("/$fileName").toURI())
+            val lines = file.readLines()
             val terminatorElement = blocks.last()
             val tests: MutableList<ParsedBlock> = mutableListOf()
 
@@ -24,7 +33,10 @@ open class AsciiDocTestSuite {
 
             var testSet = ParsedBlock()
             var inside = false
-            for (line in lines) {
+            for ((lineNr, line) in lines.withIndex()) {
+                if (line.startsWith("#") || line.startsWith("//")) {
+                    continue
+                }
                 when {
                     line == "[source,graphql,schema=true]" -> schema = ""
                     blocks.contains(line) -> {
@@ -44,7 +56,10 @@ open class AsciiDocTestSuite {
                         }
                         inside = !inside
                     }
-                    line.startsWith("=== ") -> testSet.title = line.substring(4)
+                    line.startsWith("=== ") -> {
+                        testSet.title = line.substring(4)
+                        testSet.line = lineNr + 1
+                    }
                     line.startsWith("CAUTION:") -> testSet.ignore = true
                     inside -> when {
                         current != null -> current.append(line).append("\n")
@@ -52,7 +67,7 @@ open class AsciiDocTestSuite {
                     }
                 }
             }
-            return ParsedFile(schema ?: throw IllegalStateException("no schema found"), tests)
+            return ParsedFile(schema ?: throw IllegalStateException("no schema found"), file, tests)
         }
 
         private fun fixNumber(v: Any?): Any? = when (v) {

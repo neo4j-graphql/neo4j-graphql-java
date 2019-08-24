@@ -1,4 +1,4 @@
-package demo.org.neo4j.graphql
+package org.neo4j.graphql
 
 import org.junit.jupiter.api.TestFactory
 import org.neo4j.graphql.utils.GraphQLSchemaTestSuite
