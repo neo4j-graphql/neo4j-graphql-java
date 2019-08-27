@@ -82,6 +82,10 @@ It is running against a Neo4j instance at `bolt://localhost` (username: `neo4j`,
 
 (You can also use a link:src/test/kotlin/GraphQLServer.kt[Kotlin based server example].)
 
+In case you wand to bind the neo4j driver directly to the graphql schema you can
+link:src/test/kotlin/DataFetcherInterceptorDemo.kt[use the DataFetchingInterceptor to
+intercept the cypher queries].
+
 [source,groovy]
 ----
 // Simplistic GraphQL Server using SparkJava
