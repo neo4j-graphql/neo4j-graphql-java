@@ -67,22 +67,17 @@ abstract class BaseDataFetcher(
     override fun get(env: DataFetchingEnvironment?): Cypher {
         val field = env?.mergedField?.singleField
                 ?: throw IllegalAccessException("expect one filed in environment.mergedField")
-        if (field.name != fieldDefinition.name)
-            throw IllegalArgumentException("Handler for ${fieldDefinition.name} cannot handle ${field.name}")
+        require(field.name == fieldDefinition.name) { "Handler for ${fieldDefinition.name} cannot handle ${field.name}" }
         val variable = field.aliasOrName().decapitalize()
         return generateCypher(
                 variable,
                 field,
-                {
-                    projectFields(variable, field, type, env, null)
-                },
                 env)
             .copy(type = fieldDefinition.type)
     }
 
     protected abstract fun generateCypher(variable: String,
             field: Field,
-            projectionProvider: () -> Cypher,
             env: DataFetchingEnvironment
     ): Cypher
 

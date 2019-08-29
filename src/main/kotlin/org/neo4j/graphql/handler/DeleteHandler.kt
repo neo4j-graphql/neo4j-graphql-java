@@ -57,9 +57,9 @@ class DeleteHandler private constructor(
         }
     }
 
-    override fun generateCypher(variable: String, field: Field, projectionProvider: () -> Cypher, env: DataFetchingEnvironment): Cypher {
+    override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Cypher {
         val idArg = field.arguments.first { it.name == idField.name }
-        val mapProjection = projectionProvider.invoke()
+        val mapProjection = projectFields(variable, field, type, env, null)
 
         val select = getSelectQuery(variable, label(), idArg, idField, isRelation)
         return Cypher("MATCH " + select.query +

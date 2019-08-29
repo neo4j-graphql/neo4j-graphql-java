@@ -65,16 +65,15 @@ class QueryHandler private constructor(
         }
 
         private fun getRelevantFields(type: GraphQLFieldsContainer): List<GraphQLFieldDefinition> {
-            val relevantFields = type
+            return type
                 .relevantFields()
                 .filter { it.dynamicPrefix() == null } // TODO currently we do not support filtering on dynamic properties
-            return relevantFields
         }
     }
 
-    override fun generateCypher(variable: String, field: Field, projectionProvider: () -> Cypher, env: DataFetchingEnvironment): Cypher {
+    override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Cypher {
 
-        val mapProjection = projectionProvider.invoke()
+        val mapProjection = projectFields(variable, field, type, env, null)
         val ordering = orderBy(variable, field.arguments)
         val skipLimit = SkipLimit(variable, field.arguments).format()
 

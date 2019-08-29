@@ -69,9 +69,9 @@ class CreateTypeHandler private constructor(
 
     }
 
-    override fun generateCypher(variable: String, field: Field, projectionProvider: () -> Cypher, env: DataFetchingEnvironment): Cypher {
+    override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Cypher {
         val properties = properties(variable, field.arguments)
-        val mapProjection = projectionProvider.invoke()
+        val mapProjection = projectFields(variable, field, type, env, null)
         return Cypher("CREATE ($variable:${allLabels()}${properties.query})" +
                 " WITH $variable" +
                 " RETURN ${mapProjection.query} AS $variable",

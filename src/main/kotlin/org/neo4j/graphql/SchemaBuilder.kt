@@ -28,11 +28,11 @@ object SchemaBuilder {
     @JvmOverloads
     fun buildSchema(sdl: String, config: SchemaConfig = SchemaConfig(), dataFetchingInterceptor: DataFetchingInterceptor? = null): GraphQLSchema {
         val schemaParser = SchemaParser()
-        val typeDefinitionRegistry = schemaParser.parse(sdl)
-        mergeNeo4jEnhancements(typeDefinitionRegistry)
+        val typeDefinitionRegistry = schemaParser.parse(sdl).merge(getNeo4jEnhancements())
         if (!typeDefinitionRegistry.getType(QUERY).isPresent) {
             typeDefinitionRegistry.add(ObjectTypeDefinition.newObjectTypeDefinition().name(QUERY).build())
         }
+
         val builder = RuntimeWiring.newRuntimeWiring()
             .scalar(DynamicProperties.INSTANCE)
         typeDefinitionRegistry
@@ -54,6 +54,16 @@ object SchemaBuilder {
         targetSchema = addDataFetcher(targetSchema, dataFetchingInterceptor, handler)
         return targetSchema
     }
+
+//    @JvmStatic
+//    @JvmOverloads
+//    fun enhanceSchema(builder: GraphQLSchema.Builder, config: SchemaConfig = SchemaConfig(), dataFetchingInterceptor: DataFetchingInterceptor? = null): GraphQLSchema {
+//        mergeNeo4jEnhancements(builder)
+//        val handler = getHandler(config)
+//
+//        var targetSchema = augmentSchema(sourceSchema, handler)
+//        targetSchema = addDataFetcher(targetSchema, dataFetchingInterceptor, handler)
+//    }
 
     private fun getHandler(schemaConfig: SchemaConfig): List<AugmentationHandler> {
         val handler = mutableListOf<AugmentationHandler>(
@@ -169,9 +179,18 @@ object SchemaBuilder {
         }
     }
 
-    private fun mergeNeo4jEnhancements(typeDefinitionRegistry: TypeDefinitionRegistry) {
+    private fun mergeNeo4jEnhancements(builder: GraphQLSchema.Builder) {
+        val typeDefinitionRegistry = getNeo4jEnhancements()
+        val wiring = RuntimeWiring.newRuntimeWiring().scalar(DynamicProperties.INSTANCE).build()
+        val schema = SchemaGenerator().makeExecutableSchema(typeDefinitionRegistry, wiring)
+
+        schema.directives.forEach { builder.additionalDirective(it) }
+        schema.additionalTypes.forEach { builder.additionalType(it) }
+    }
+
+    private fun getNeo4jEnhancements(): TypeDefinitionRegistry {
         val directivesSdl = javaClass.getResource("/neo4j.graphql").readText()
-        typeDefinitionRegistry.merge(SchemaParser().parse(directivesSdl))
+        val typeDefinitionRegistry = SchemaParser().parse(directivesSdl)
         neo4jTypeDefinitions
             .forEach {
                 val type = typeDefinitionRegistry.getType(it.typeDefinition)
@@ -179,6 +198,7 @@ object SchemaBuilder {
                         as ObjectTypeDefinition
                 addInputType(typeDefinitionRegistry, it.inputDefinition, type.fieldDefinitions)
             }
+        return typeDefinitionRegistry
     }
 
     private fun addInputType(typeDefinitionRegistry: TypeDefinitionRegistry, inputName: String, relevantFields: List<FieldDefinition>): String {
@@ -196,42 +216,5 @@ object SchemaBuilder {
             .build()
         typeDefinitionRegistry.add(inputType)
         return inputName
-    }
-
-    @JvmStatic
-    fun mergeNeo4jEnhancements(builder: GraphQLSchema.Builder) {
-        val schemaParser = SchemaParser()
-        val directivesSdl = javaClass.getResource("/neo4j.graphql").readText()
-        val typeDefinitionRegistry = schemaParser.parse(directivesSdl)
-        val wiring = RuntimeWiring.newRuntimeWiring().scalar(DynamicProperties.INSTANCE).build()
-        val schema = SchemaGenerator().makeExecutableSchema(typeDefinitionRegistry, wiring)
-        schema.directives.forEach { builder.additionalDirective(it) }
-        schema.additionalTypes.forEach { builder.additionalType(it) }
-        neo4jTypeDefinitions
-            .forEach {
-                val type = (schema.getType(it.typeDefinition) as? GraphQLObjectType)
-                        ?: throw IllegalStateException("type ${it.typeDefinition} not found")
-
-                builder.additionalType(getInputType(it.inputDefinition, type.fieldDefinitions))
-            }
-    }
-
-    private fun getInputType(inputName: String, relevantFields: List<GraphQLFieldDefinition>): GraphQLInputObjectType {
-        return GraphQLInputObjectType.newInputObject()
-            .name(inputName)
-            .fields(getInputValueDefinitions(relevantFields))
-            .build()
-    }
-
-    private fun getInputValueDefinitions(relevantFields: List<GraphQLFieldDefinition>): List<GraphQLInputObjectField> {
-        return relevantFields.map {
-            val type = (it.type as? GraphQLNonNull)?.wrappedType ?: it.type
-            GraphQLInputObjectField
-                .newInputObjectField()
-                .name(it.name)
-                .type(type as? GraphQLInputType
-                        ?: throw IllegalArgumentException("${type.name} is not allowed for input"))
-                .build()
-        }
     }
 }

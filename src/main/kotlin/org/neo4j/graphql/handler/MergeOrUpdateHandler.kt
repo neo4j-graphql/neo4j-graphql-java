@@ -71,11 +71,11 @@ class MergeOrUpdateHandler private constructor(
         propertyFields.remove(idField.name) // id should not be updated
     }
 
-    override fun generateCypher(variable: String, field: Field, projectionProvider: () -> Cypher, env: DataFetchingEnvironment): Cypher {
+    override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Cypher {
         val idArg = field.arguments.first { it.name == idField.name }
 
         val properties = properties(variable, field.arguments)
-        val mapProjection = projectionProvider.invoke()
+        val mapProjection = projectFields(variable, field, type, env, null)
 
         val op = if (merge) "+" else ""
         val select = getSelectQuery(variable, label(), idArg, idField, isRelation)

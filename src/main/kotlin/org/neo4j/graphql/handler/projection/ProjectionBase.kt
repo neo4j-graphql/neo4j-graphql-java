@@ -25,6 +25,7 @@ open class ProjectionBase {
                 else -> null
             }
         }
+        @Suppress("SimplifiableCallChain")
         return if (values == null) ""
         else " ORDER BY " + values
             .map { it.split("_") }
@@ -134,6 +135,7 @@ open class ProjectionBase {
 
     fun projectFields(variable: String, field: Field, nodeType: GraphQLFieldsContainer, env: DataFetchingEnvironment, variableSuffix: String?): Cypher {
         val queries = projectSelectionSet(variable, field.selectionSet, nodeType, env, variableSuffix)
+        @Suppress("SimplifiableCallChain")
         val projection = queries
             .map { it.query }
             .joinToString(", ", "{ ", " }")
@@ -216,6 +218,7 @@ open class ProjectionBase {
     }
 
     private fun projectNeo4jObjectType(variable: String, field: Field): Cypher {
+        @Suppress("SimplifiableCallChain")
         val fieldProjection = field.selectionSet.selections
             .filterIsInstance<Field>()
             .map {

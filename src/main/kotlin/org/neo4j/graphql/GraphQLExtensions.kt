@@ -18,9 +18,6 @@ import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_NAME
 import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_TO
 import org.neo4j.graphql.handler.projection.ProjectionBase
 
-val SCALAR_TYPES = listOf("String", "ID", "Boolean", "Int", "Float", "DynamicProperties")
-
-fun Type<Type<*>>.isScalar() = this.inner().name()?.let { SCALAR_TYPES.contains(it) } ?: false
 fun Type<Type<*>>.name(): String? = if (this.inner() is TypeName) (this.inner() as TypeName).name else null
 fun Type<Type<*>>.inner(): Type<Type<*>> = when (this) {
     is ListType -> this.type.inner()
@@ -74,6 +71,7 @@ fun GraphQLFieldsContainer.getValidTypeLabels(schema: GraphQLSchema): List<Strin
     return emptyList()
 }
 
+@Suppress("SimplifiableCallChain")
 fun GraphQLFieldsContainer.label(includeAll: Boolean = false) = when {
     this.isRelationType() ->
         (this as? GraphQLDirectiveContainer)
@@ -168,7 +166,7 @@ data class RelationshipInfo(
 }
 
 fun Field.aliasOrName() = (this.alias ?: this.name).quote()
-fun GraphQLType.innerName() = inner().name
+fun GraphQLType.innerName(): String = inner().name
 
 fun GraphQLFieldDefinition.propertyName() = getDirectiveArgument(PROPERTY, PROPERTY_NAME, this.name)!!
 
@@ -197,6 +195,7 @@ fun String.isJavaIdentifier() =
         this[0].isJavaIdentifierStart() &&
                 this.substring(1).all { it.isJavaIdentifierPart() }
 
+@Suppress("SimplifiableCallChain")
 fun Value<Value<*>>.toCypherString(): String = when (this) {
     is StringValue -> "'" + this.value + "'"
     is EnumValue -> "'" + this.name + "'"
@@ -234,6 +233,3 @@ fun paramName(variable: String, argName: String, value: Any?): String = when (va
 
 fun GraphQLFieldDefinition.isID() = this.type.inner() == Scalars.GraphQLID
 fun GraphQLFieldDefinition.isNativeId() = this.name == ProjectionBase.NATIVE_ID
-
-fun GraphQLFieldsContainer.getFieldByType(typeName: String) = this.fieldDefinitions
-    .firstOrNull { it.type.inner().name == typeName }

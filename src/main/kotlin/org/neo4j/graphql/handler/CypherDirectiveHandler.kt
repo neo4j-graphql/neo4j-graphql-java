@@ -17,10 +17,7 @@ class CypherDirectiveHandler(
         }
 
         override fun createDataFetcher(rootType: GraphQLObjectType, fieldDefinition: GraphQLFieldDefinition): DataFetcher<Cypher>? {
-            val cypherDirective = fieldDefinition.cypherDirective()
-            if (cypherDirective == null) {
-                return null
-            }
+            val cypherDirective = fieldDefinition.cypherDirective() ?: return null
             // TODO cypher directives can also return scalars
             val type = fieldDefinition.type.inner() as? GraphQLFieldsContainer
                     ?: return null
@@ -29,8 +26,8 @@ class CypherDirectiveHandler(
         }
     }
 
-    override fun generateCypher(variable: String, field: Field, projectionProvider: () -> Cypher, env: DataFetchingEnvironment): Cypher {
-        val mapProjection = projectionProvider.invoke()
+    override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Cypher {
+        val mapProjection = projectFields(variable, field, type, env, null)
         val ordering = orderBy(variable, field.arguments)
         val skipLimit = SkipLimit(variable, field.arguments).format()
 

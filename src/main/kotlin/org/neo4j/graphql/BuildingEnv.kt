@@ -10,16 +10,6 @@ class BuildingEnv(val types: MutableMap<String, GraphQLType>) {
         .map { it.getDirectiveArgument<String>(DirectiveConstants.RELATION, DirectiveConstants.RELATION_NAME, null)!! to it.name }
         .toMap()
 
-    fun getInnerFieldsContainer(type: GraphQLType): GraphQLFieldsContainer {
-        var innerType = type.inner()
-        if (innerType is GraphQLTypeReference) {
-            innerType = types[innerType.name]
-                    ?: throw IllegalArgumentException("${innerType.name} is unknown")
-        }
-        return innerType as? GraphQLFieldsContainer
-                ?: throw IllegalArgumentException("${innerType.name} is neither an object nor an interface")
-    }
-
     fun buildFieldDefinition(
             prefix: String,
             resultType: GraphQLOutputType,
@@ -33,7 +23,7 @@ class BuildingEnv(val types: MutableMap<String, GraphQLType>) {
         }
         return GraphQLFieldDefinition.newFieldDefinition()
             .name("$prefix${resultType.name}")
-            .argument(getInputValueDefinitions(scalarFields, forceOptionalProvider))
+            .arguments(getInputValueDefinitions(scalarFields, forceOptionalProvider))
             .type(type.ref() as GraphQLOutputType)
     }
 
@@ -50,21 +40,6 @@ class BuildingEnv(val types: MutableMap<String, GraphQLType>) {
             }
             input(field.name, type)
         }
-    }
-
-    private fun getInputType(type: GraphQLType): GraphQLInputType {
-        val inner = type.inner()
-        if (inner is GraphQLInputType) {
-            return type as GraphQLInputType
-        }
-        if (inner.isNeo4jType()) {
-            return neo4jTypeDefinitions
-                .find { it.typeDefinition == inner.name }
-                ?.let { types[it.inputDefinition] } as? GraphQLInputType
-                    ?: throw IllegalArgumentException("Cannot find input type for ${inner.name}")
-        }
-        return type as? GraphQLInputType
-                ?: throw IllegalArgumentException("${type.name} is not allowed for input")
     }
 
     fun input(name: String, type: GraphQLType): GraphQLArgument {
@@ -174,14 +149,18 @@ class BuildingEnv(val types: MutableMap<String, GraphQLType>) {
         return inputType
     }
 
-    fun getInputType(inputName: String, relevantFields: List<GraphQLFieldDefinition>): GraphQLInputObjectType {
+    fun getTypeForRelation(nameOfRelation: String): GraphQLObjectType? {
+        return typesForRelation[nameOfRelation]?.let { types[it] } as? GraphQLObjectType
+    }
+
+    private fun getInputType(inputName: String, relevantFields: List<GraphQLFieldDefinition>): GraphQLInputObjectType {
         return GraphQLInputObjectType.newInputObject()
             .name(inputName)
             .fields(getInputValueDefinitions(relevantFields))
             .build()
     }
 
-    fun getInputValueDefinitions(relevantFields: List<GraphQLFieldDefinition>): List<GraphQLInputObjectField> {
+    private fun getInputValueDefinitions(relevantFields: List<GraphQLFieldDefinition>): List<GraphQLInputObjectField> {
         return relevantFields.map {
             val type = (it.type as? GraphQLNonNull)?.wrappedType ?: it.type
             GraphQLInputObjectField
@@ -192,7 +171,29 @@ class BuildingEnv(val types: MutableMap<String, GraphQLType>) {
         }
     }
 
-    fun getTypeForRelation(nameOfRelation: String): GraphQLObjectType? {
-        return typesForRelation[nameOfRelation]?.let { types[it] } as? GraphQLObjectType
+    private fun getInnerFieldsContainer(type: GraphQLType): GraphQLFieldsContainer {
+        var innerType = type.inner()
+        if (innerType is GraphQLTypeReference) {
+            innerType = types[innerType.name]
+                    ?: throw IllegalArgumentException("${innerType.name} is unknown")
+        }
+        return innerType as? GraphQLFieldsContainer
+                ?: throw IllegalArgumentException("${innerType.name} is neither an object nor an interface")
     }
+
+    private fun getInputType(type: GraphQLType): GraphQLInputType {
+        val inner = type.inner()
+        if (inner is GraphQLInputType) {
+            return type as GraphQLInputType
+        }
+        if (inner.isNeo4jType()) {
+            return neo4jTypeDefinitions
+                .find { it.typeDefinition == inner.name }
+                ?.let { types[it.inputDefinition] } as? GraphQLInputType
+                    ?: throw IllegalArgumentException("Cannot find input type for ${inner.name}")
+        }
+        return type as? GraphQLInputType
+                ?: throw IllegalArgumentException("${type.name} is not allowed for input")
+    }
+
 }

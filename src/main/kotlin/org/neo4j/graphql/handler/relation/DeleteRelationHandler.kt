@@ -43,9 +43,8 @@ class DeleteRelationHandler private constructor(
     override fun generateCypher(
             variable: String,
             field: Field,
-            projectionProvider: () -> Cypher,
             env: DataFetchingEnvironment): Cypher {
-        val mapProjection = projectionProvider.invoke()
+        val mapProjection = projectFields(variable, field, type, env, null)
         val arguments = field.arguments.map { it.name to it }.toMap()
         val startSelect = getRelationSelect(true, arguments)
         val endSelect = getRelationSelect(false, arguments)

@@ -53,12 +53,11 @@ class CreateRelationHandler private constructor(
     override fun generateCypher(
             variable: String,
             field: Field,
-            projectionProvider: () -> Cypher,
             env: DataFetchingEnvironment
     ): Cypher {
 
         val properties = properties(variable, field.arguments)
-        val mapProjection = projectionProvider.invoke()
+        val mapProjection = projectFields(variable, field, type, env, null)
 
         val arguments = field.arguments.map { it.name to it }.toMap()
         val startSelect = getRelationSelect(true, arguments)
