@@ -1,25 +1,72 @@
 package org.neo4j.graphql.handler
 
 import graphql.language.Field
-import graphql.language.FieldDefinition
-import graphql.schema.DataFetchingEnvironment
+import graphql.schema.*
 import org.neo4j.graphql.*
 
 class CreateTypeHandler private constructor(
-        type: NodeFacade,
-        fieldDefinition: FieldDefinition,
-        metaProvider: MetaProvider
-) : BaseDataFetcher(type, fieldDefinition, metaProvider) {
+        type: GraphQLFieldsContainer,
+        fieldDefinition: GraphQLFieldDefinition
+) : BaseDataFetcher(type, fieldDefinition) {
 
-    companion object {
-        fun build(type: ObjectDefinitionNodeFacade, metaProvider: MetaProvider): CreateTypeHandler? {
-            val relevantFields = type.relevantFields()
-            if (relevantFields.isEmpty()) {
+    class Factory(schemaConfig: SchemaConfig) : AugmentationHandler(schemaConfig) {
+        override fun augmentType(type: GraphQLFieldsContainer, buildingEnv: BuildingEnv) {
+            if (!canHandle(type)) {
+                return
+            }
+            val relevantFields = getRelevantFields(type)
+            val fieldDefinition = buildingEnv
+                .buildFieldDefinition("create", type, relevantFields, nullableResult = false)
+                .build()
+
+            buildingEnv.addOperation(MUTATION, fieldDefinition)
+        }
+
+        override fun createDataFetcher(rootType: GraphQLObjectType, fieldDefinition: GraphQLFieldDefinition): DataFetcher<Cypher>? {
+            if (rootType.name != MUTATION){
                 return null
             }
-            val fieldDefinition = createFieldDefinition("create", type.name(), relevantFields.filter { !it.isNativeId() }, false).build()
-            return CreateTypeHandler(type, fieldDefinition, metaProvider)
+            if (fieldDefinition.cypherDirective() != null) {
+                return null
+            }
+            val type = fieldDefinition.type.inner() as? GraphQLObjectType
+                    ?: return null
+            if (!canHandle(type)) {
+                return null
+            }
+            return when {
+                fieldDefinition.name == "create${type.name}" -> CreateTypeHandler(type, fieldDefinition)
+                else -> null
+            }
         }
+
+        private fun getRelevantFields(type: GraphQLFieldsContainer): List<GraphQLFieldDefinition> {
+            return type
+                .relevantFields()
+                .filter { !it.isNativeId() }
+        }
+
+        private fun canHandle(type: GraphQLFieldsContainer): Boolean {
+            val typeName = type.name
+            if (!schemaConfig.mutation.enabled || schemaConfig.mutation.exclude.contains(typeName)) {
+                return false
+            }
+            if (type !is GraphQLObjectType) {
+                return false
+            }
+            if ((type as GraphQLDirectiveContainer).isRelationType()) {
+                // relations are handled by the CreateRelationTypeHandler
+                return false
+            }
+
+            if (getRelevantFields(type).isEmpty()) {
+                // nothing to create
+                // TODO or should we support just creating empty nodes?
+                return false
+            }
+            return true
+        }
+
     }
 
     override fun generateCypher(variable: String, field: Field, projectionProvider: () -> Cypher, env: DataFetchingEnvironment): Cypher {

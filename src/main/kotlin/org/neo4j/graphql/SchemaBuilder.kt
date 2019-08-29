@@ -1,9 +1,8 @@
 package org.neo4j.graphql
 
+import graphql.Scalars
 import graphql.language.*
-import graphql.language.TypeDefinition
-import graphql.schema.DataFetcher
-import graphql.schema.GraphQLSchema
+import graphql.schema.*
 import graphql.schema.idl.RuntimeWiring
 import graphql.schema.idl.SchemaGenerator
 import graphql.schema.idl.SchemaParser
@@ -15,6 +14,9 @@ import org.neo4j.graphql.handler.relation.CreateRelationTypeHandler
 import org.neo4j.graphql.handler.relation.DeleteRelationHandler
 
 object SchemaBuilder {
+    private const val MUTATION = "Mutation"
+    private const val SUBSCRIPTION = "Subscription"
+    private const val QUERY = "Query"
 
     /**
      * @param sdl the schema to augment
@@ -27,300 +29,209 @@ object SchemaBuilder {
     fun buildSchema(sdl: String, config: SchemaConfig = SchemaConfig(), dataFetchingInterceptor: DataFetchingInterceptor? = null): GraphQLSchema {
         val schemaParser = SchemaParser()
         val typeDefinitionRegistry = schemaParser.parse(sdl)
-
+        mergeNeo4jEnhancements(typeDefinitionRegistry)
+        if (!typeDefinitionRegistry.getType(QUERY).isPresent) {
+            typeDefinitionRegistry.add(ObjectTypeDefinition.newObjectTypeDefinition().name(QUERY).build())
+        }
         val builder = RuntimeWiring.newRuntimeWiring()
             .scalar(DynamicProperties.INSTANCE)
-
-        AugmentationProcessor(typeDefinitionRegistry, config, dataFetchingInterceptor, builder).augmentSchema()
-
         typeDefinitionRegistry
             .getTypes(InterfaceTypeDefinition::class.java)
             .forEach { typeDefinition ->
                 builder.type(typeDefinition.name) {
                     it.typeResolver { env ->
                         (env.getObject() as? Map<String, Any>)
-                            ?.let { data -> data.get(ProjectionBase.TYPE_NAME) as? String }
+                            ?.let { data -> data[ProjectionBase.TYPE_NAME] as? String }
                             ?.let { typeName -> env.schema.getObjectType(typeName) }
                     }
                 }
             }
+        val sourceSchema = SchemaGenerator().makeExecutableSchema(typeDefinitionRegistry, builder.build())
 
-        val runtimeWiring = builder.build()
+        val handler = getHandler(config)
 
-        // todo add new queries, filters, enums etc.
-        return SchemaGenerator().makeExecutableSchema(typeDefinitionRegistry, runtimeWiring)
+        var targetSchema = augmentSchema(sourceSchema, handler)
+        targetSchema = addDataFetcher(targetSchema, dataFetchingInterceptor, handler)
+        return targetSchema
     }
 
-    private class AugmentationProcessor(
-            val typeDefinitionRegistry: TypeDefinitionRegistry,
-            val schemaConfig: SchemaConfig,
-            val dataFetchingInterceptor: DataFetchingInterceptor?,
-            val wiringBuilder: RuntimeWiring.Builder
-    ) {
-        private val metaProvider = TypeRegistryMetaProvider(typeDefinitionRegistry)
-        private var schemaDefinition: SchemaDefinition
-        private var queryDefinition: ObjectTypeDefinition
-        private var mutationDefinition: ObjectTypeDefinition
-
-        init {
-            this.schemaDefinition = typeDefinitionRegistry
-                .schemaDefinition()
-                .orElseGet { SchemaDefinition.newSchemaDefinition().build() }
-            this.queryDefinition = getOrCreateObjectTypeDefinition("Query")
-            this.mutationDefinition = getOrCreateObjectTypeDefinition("Mutation")
+    private fun getHandler(schemaConfig: SchemaConfig): List<AugmentationHandler> {
+        val handler = mutableListOf<AugmentationHandler>(
+                CypherDirectiveHandler.Factory(schemaConfig)
+        )
+        if (schemaConfig.query.enabled) {
+            handler.add(QueryHandler.Factory(schemaConfig))
         }
-
-        fun augmentSchema() {
-            mergeNeo4jEnhancements()
-
-            val interfaceTypeDefinitions = typeDefinitionRegistry.types().values
-                .filterIsInstance<InterfaceTypeDefinition>()
-                .map { enhanceRelations(it, InterfaceTypeDefinition.CHILD_DEFINITIONS) }
-            val objectTypeDefinitions = typeDefinitionRegistry.types().values
-                .filterIsInstance<ObjectTypeDefinition>()
-                .filter { !it.isNeo4jType() }
-                .map { enhanceRelations(it, ObjectTypeDefinition.CHILD_FIELD_DEFINITIONS) }
-
-            wireDefinedOperations(queryDefinition, true)
-            wireDefinedOperations(mutationDefinition, false)
-
-            val relationTypes = objectTypeDefinitions
-                .filter { it.getDirective(DirectiveConstants.RELATION) != null }
-                .map { it.getDirective(DirectiveConstants.RELATION).getArgument(DirectiveConstants.RELATION_NAME).value.toJavaValue().toString() to it }
-                .toMap()
-
-            val nodeDefinitions: List<TypeDefinition<*>> = interfaceTypeDefinitions + objectTypeDefinitions
-            nodeDefinitions.forEach { createNodeMutation(it.getNodeType()!!) }
-
-            objectTypeDefinitions.forEach { createRelationshipMutations(it, objectTypeDefinitions, relationTypes) }
-            relationTypes.values.forEach { createNodeMutation(it.getNodeType()!!) }
-
-            recreateSchema()
+        if (schemaConfig.mutation.enabled) {
+            handler += listOf(
+                    MergeOrUpdateHandler.Factory(schemaConfig),
+                    DeleteHandler.Factory(schemaConfig),
+                    CreateTypeHandler.Factory(schemaConfig),
+                    DeleteRelationHandler.Factory(schemaConfig),
+                    CreateRelationTypeHandler.Factory(schemaConfig),
+                    CreateRelationHandler.Factory(schemaConfig)
+            )
         }
+        return handler
+    }
 
-        private fun recreateSchema() {
-            val newSchemaDef = schemaDefinition.transform {
-                it.operationTypeDefinition(OperationTypeDefinition("query", TypeName(queryDefinition.name)))
-                    .operationTypeDefinition(OperationTypeDefinition("mutation", TypeName(mutationDefinition.name))).build()
+    private fun augmentSchema(sourceSchema: GraphQLSchema, handler: List<AugmentationHandler>): GraphQLSchema {
+        val types = sourceSchema.typeMap.toMutableMap()
+        val env = BuildingEnv(types)
+
+        types.values
+            .filterIsInstance<GraphQLFieldsContainer>()
+            .filter {
+                !it.name.startsWith("__")
+                        && !it.isNeo4jType()
+                        && it.name != QUERY
+                        && it.name != MUTATION
+                        && it.name != SUBSCRIPTION
+            }
+            .forEach { type ->
+                handler.forEach { h -> h.augmentType(type, env) }
             }
 
-            typeDefinitionRegistry.remove(schemaDefinition)
-            typeDefinitionRegistry.add(newSchemaDef)
-            schemaDefinition = newSchemaDef
-        }
-
-        private fun mergeNeo4jEnhancements() {
-            val directivesSdl = javaClass.getResource("/neo4j.graphql").readText()
-            typeDefinitionRegistry.merge(SchemaParser().parse(directivesSdl))
-            neo4jTypeDefinitions
-                .forEach {
-                    val type = typeDefinitionRegistry.getType(it.typeDefinition)
-                        .orElseThrow { IllegalStateException("type ${it.typeDefinition} not found") }
-                            as ObjectTypeDefinition
-                    addInputType(it.inputDefinition, it.inputDefinition, type.fieldDefinitions)
+        types.replaceAll { _, sourceType ->
+            when {
+                sourceType.name.startsWith("__") -> sourceType
+                sourceType is GraphQLObjectType -> sourceType.transform { builder ->
+                    builder.clearFields().clearInterfaces()
+                    // to prevent duplicated types in schema
+                    sourceType.interfaces.forEach { builder.withInterface(GraphQLTypeReference(it.name)) }
+                    sourceType.fieldDefinitions.forEach { f -> builder.field(enhanceRelations(f)) }
                 }
-        }
-
-        private fun wireDefinedOperations(queryDefinition: ObjectTypeDefinition, isQuery: Boolean) {
-            for (fieldDefinition in queryDefinition.fieldDefinitions) {
-                QueryHandler.build(fieldDefinition, isQuery, metaProvider)?.let {
-                    addDataFetcher(queryDefinition.name, fieldDefinition.name, it)
+                sourceType is GraphQLInterfaceType -> sourceType.transform { builder ->
+                    builder.clearFields()
+                    sourceType.fieldDefinitions.forEach { f -> builder.field(enhanceRelations(f)) }
                 }
+                else -> sourceType
             }
         }
 
-        fun addDataFetcher(type: String, name: String, dataFetcher: DataFetcher<Cypher>) {
-            val df: DataFetcher<*> = dataFetchingInterceptor?.let {
-                DataFetcher { env ->
-                    dataFetchingInterceptor.fetchData(env, dataFetcher)
-                }
-            } ?: dataFetcher
-            wiringBuilder.type(type) { runtimeWiring -> runtimeWiring.dataFetcher(name, df) }
-        }
+        return GraphQLSchema
+            .newSchema(sourceSchema)
+            .clearAdditionalTypes()
+            .query(types[QUERY] as? GraphQLObjectType)
+            .mutation(types[MUTATION] as? GraphQLObjectType)
+            .additionalTypes(types.values.toSet())
+            .build()
+    }
 
-        /**
-         * add the given operation to the corresponding ObjectTypeDefinition
-         */
-        private fun mergeOperation(objectTypeDefinition: ObjectTypeDefinition, dataFetcher: BaseDataFetcher?)
-                : ObjectTypeDefinition {
-            if (dataFetcher == null) {
-                return objectTypeDefinition
-            }
-            if (objectTypeDefinition.fieldDefinitions.any { fd -> dataFetcher.fieldDefinition.name == fd.name }) {
-                return objectTypeDefinition // definition already exists
-            }
-            typeDefinitionRegistry.remove(objectTypeDefinition)
-            val transformedTypeDefinition = objectTypeDefinition.transform { qdb ->
-                qdb.fieldDefinition(dataFetcher.fieldDefinition)
-                addDataFetcher(objectTypeDefinition.name, dataFetcher.fieldDefinition.name, dataFetcher)
-            }
-            typeDefinitionRegistry.add(transformedTypeDefinition)
-            return transformedTypeDefinition
-        }
+    private fun enhanceRelations(fd: GraphQLFieldDefinition): GraphQLFieldDefinition {
+        return fd.transform {
+            // to prevent duplicated types in schema
+            it.type(fd.type.ref() as GraphQLOutputType)
 
-        private fun getOrCreateObjectTypeDefinition(name: String): ObjectTypeDefinition {
-            val operationGroup = name.toLowerCase()
-            return schemaDefinition.operationTypeDefinitions
-                .firstOrNull { it.name == operationGroup }
-                ?.let {
-                    typeDefinitionRegistry
-                        .getType(it.typeName, ObjectTypeDefinition::class.java)
-                        .orElseThrow { RuntimeException("Could not find type: ${it.typeName} in schema") } as ObjectTypeDefinition
-                }
-                    ?: typeDefinitionRegistry.getType(name, ObjectTypeDefinition::class.java)
-                        .orElseGet {
-                            ObjectTypeDefinition(name).also { typeDefinitionRegistry.add(it) }
+            if (!fd.isRelationship() || !fd.type.isList()) {
+                return@transform
+            }
+
+            if (fd.getArgument(ProjectionBase.FIRST) == null) {
+                it.argument { a -> a.name(ProjectionBase.FIRST).type(Scalars.GraphQLInt) }
+            }
+            if (fd.getArgument(ProjectionBase.OFFSET) == null) {
+                it.argument { a -> a.name(ProjectionBase.OFFSET).type(Scalars.GraphQLInt) }
+            }
+            // TODO implement ordering
+//                if (fd.getArgument(ProjectionBase.ORDER_BY) == null) {
+//                    val typeName = fd.type.name()!!
+//                    val orderingType = addOrdering(typeName, metaProvider.getNodeType(typeName)!!.fieldDefinitions().filter { it.type.isScalar() })
+//                    it.argument { a -> a.name(ProjectionBase.ORDER_BY).type(orderingType) }
+//                }
+        }
+    }
+
+    private fun addDataFetcher(sourceSchema: GraphQLSchema, dataFetchingInterceptor: DataFetchingInterceptor?, handler: List<AugmentationHandler>): GraphQLSchema {
+        val codeRegistryBuilder = GraphQLCodeRegistry.newCodeRegistry(sourceSchema.codeRegistry)
+        addDataFetcher(sourceSchema.queryType, dataFetchingInterceptor, handler, codeRegistryBuilder)
+        addDataFetcher(sourceSchema.mutationType, dataFetchingInterceptor, handler, codeRegistryBuilder)
+        return sourceSchema.transform { it.codeRegistry(codeRegistryBuilder.build()) }
+    }
+
+    private fun addDataFetcher(
+            rootType: GraphQLObjectType?,
+            dataFetchingInterceptor: DataFetchingInterceptor?,
+            handler: List<AugmentationHandler>,
+            codeRegistryBuilder: GraphQLCodeRegistry.Builder) {
+        if (rootType == null) return
+        rootType.fieldDefinitions.forEach { field ->
+            handler.forEach { h ->
+                h.createDataFetcher(rootType, field)?.let { dataFetcher ->
+                    val df: DataFetcher<*> = dataFetchingInterceptor?.let {
+                        DataFetcher { env ->
+                            dataFetchingInterceptor.fetchData(env, dataFetcher)
                         }
-        }
-
-        private fun createRelationshipMutations(
-                source: ObjectTypeDefinition,
-                objectTypeDefinitions: List<ObjectTypeDefinition>,
-                relationTypes: Map<String, ObjectTypeDefinition>?) {
-            if (!schemaConfig.mutation.enabled || schemaConfig.mutation.exclude.contains(source.name)) {
-                return
-            }
-            source.fieldDefinitions
-                .filter { !it.type.inner().isScalar() && it.getDirective(DirectiveConstants.RELATION) != null }
-                .mapNotNull { targetField ->
-                    objectTypeDefinitions.firstOrNull { it.name == targetField.type.inner().name() }
-                        ?.let { target ->
-                            mutationDefinition = mergeOperation(mutationDefinition, DeleteRelationHandler.build(source, target, metaProvider))
-                            mutationDefinition = mergeOperation(mutationDefinition, CreateRelationHandler.build(source, target, relationTypes, metaProvider))
-                        }
+                    } ?: dataFetcher
+                    codeRegistryBuilder.dataFetcher(rootType, field, df)
                 }
-        }
-
-
-        private fun <T : SDLDefinition<*>> enhanceRelations(source: T, childName: String): T {
-            var enhanced: T = source
-            val fieldDefinitions = enhanced.namedChildren.children[childName]
-                    ?: return enhanced
-            for ((index, fd) in fieldDefinitions.withIndex()) {
-                if (fd !is FieldDefinition
-                    || !typeDefinitionRegistry.types().containsKey(fd.type.inner().name())
-                    || !fd.isList()) {
-                    continue
-                }
-                @Suppress("UNCHECKED_CAST")
-                enhanced = enhanced.withNewChildren(enhanced.namedChildren.transform { b1 ->
-                    b1.replaceChild(childName, index, fd.transform { builder ->
-                        if (fd.inputValueDefinitions.none { it.name == ProjectionBase.FIRST }) {
-                            builder.inputValueDefinition(BaseDataFetcher.input(ProjectionBase.FIRST, TypeName("Int")))
-                        }
-                        if (fd.inputValueDefinitions.none { it.name == ProjectionBase.OFFSET }) {
-                            builder.inputValueDefinition(BaseDataFetcher.input(ProjectionBase.OFFSET, TypeName("Int")))
-                        }
-                        // TODO implement ordering
-//                        if (fd.inputValueDefinitions.none { it.name == ProjectionBase.ORDER_BY }) {
-//                            val typeName = fd.type.name()!!
-//                            val orderingName = addOrdering(typeName, metaProvider.getNodeType(typeName)!!.fieldDefinitions().filter { it.type.isScalar() })
-//                            builder.inputValueDefinition(BaseDataFetcher.input(ProjectionBase.ORDER_BY, TypeName(orderingName)))
-//                        }
-                    })
-                }) as T
-            }
-            if (source != enhanced) {
-                typeDefinitionRegistry.remove(source)
-                typeDefinitionRegistry.add(enhanced)
-            }
-            return enhanced
-        }
-
-        private fun createNodeMutation(type: NodeFacade) {
-            val typeName = type.name()
-            val idField = type.fieldDefinitions().find { it.isID() }
-            val relevantFields = type.fieldDefinitions()
-                .filter { it.type.isScalar() || it.type.isNeo4jType() }
-                .sortedByDescending { it == idField }
-            if (relevantFields.isEmpty()) {
-                return
-            }
-            if (schemaConfig.mutation.enabled && !schemaConfig.mutation.exclude.contains(typeName)) {
-                if (type is ObjectDefinitionNodeFacade) {
-                    mutationDefinition = if (type.isRelationType()) {
-                        mergeOperation(mutationDefinition, CreateRelationTypeHandler.build(type, metaProvider))
-                    } else {
-                        mergeOperation(mutationDefinition, CreateTypeHandler.build(type, metaProvider))
-                    }
-                }
-                mutationDefinition = mergeOperation(mutationDefinition, DeleteHandler.build(type, metaProvider))
-                mutationDefinition = mergeOperation(mutationDefinition, MergeOrUpdateHandler.build(type, true, metaProvider))
-                mutationDefinition = mergeOperation(mutationDefinition, MergeOrUpdateHandler.build(type, false, metaProvider))
-            }
-            if (schemaConfig.query.enabled && !schemaConfig.query.exclude.contains(typeName)) {
-                addInputType(typeName, relevantFields = relevantFields)
-                val filterName = addFilterType(typeName, type.fieldDefinitions())
-                val orderingName = addOrdering(typeName, relevantFields)
-                queryDefinition = mergeOperation(queryDefinition, QueryHandler.build(type, filterName, orderingName, metaProvider))
             }
         }
+    }
 
-        private fun addInputType(typeName: String, inputName: String = "_${typeName}Input", relevantFields: List<FieldDefinition>): String {
-            if (typeDefinitionRegistry.getType(inputName).isPresent) {
-                return inputName
+    private fun mergeNeo4jEnhancements(typeDefinitionRegistry: TypeDefinitionRegistry) {
+        val directivesSdl = javaClass.getResource("/neo4j.graphql").readText()
+        typeDefinitionRegistry.merge(SchemaParser().parse(directivesSdl))
+        neo4jTypeDefinitions
+            .forEach {
+                val type = typeDefinitionRegistry.getType(it.typeDefinition)
+                    .orElseThrow { IllegalStateException("type ${it.typeDefinition} not found") }
+                        as ObjectTypeDefinition
+                addInputType(typeDefinitionRegistry, it.inputDefinition, type.fieldDefinitions)
             }
-            val inputType = InputObjectTypeDefinition.newInputObjectDefinition()
-                .name(inputName)
-                .inputValueDefinitions(BaseDataFetcher.getInputValueDefinitions(relevantFields) { true })
-                .build()
-            typeDefinitionRegistry.add(inputType)
+    }
+
+    private fun addInputType(typeDefinitionRegistry: TypeDefinitionRegistry, inputName: String, relevantFields: List<FieldDefinition>): String {
+        if (typeDefinitionRegistry.getType(inputName).isPresent) {
             return inputName
         }
+        val inputType = InputObjectTypeDefinition.newInputObjectDefinition()
+            .name(inputName)
+            .inputValueDefinitions(relevantFields.map {
+                InputValueDefinition.newInputValueDefinition()
+                    .name(it.name)
+                    .type(it.type)
+                    .build()
+            })
+            .build()
+        typeDefinitionRegistry.add(inputType)
+        return inputName
+    }
 
-        private fun addOrdering(typeName: String, relevantFields: List<FieldDefinition>): String {
-            val orderingName = "_${typeName}Ordering"
-            if (typeDefinitionRegistry.getType(orderingName).isPresent) {
-                return orderingName
+    @JvmStatic
+    fun mergeNeo4jEnhancements(builder: GraphQLSchema.Builder) {
+        val schemaParser = SchemaParser()
+        val directivesSdl = javaClass.getResource("/neo4j.graphql").readText()
+        val typeDefinitionRegistry = schemaParser.parse(directivesSdl)
+        val wiring = RuntimeWiring.newRuntimeWiring().scalar(DynamicProperties.INSTANCE).build()
+        val schema = SchemaGenerator().makeExecutableSchema(typeDefinitionRegistry, wiring)
+        schema.directives.forEach { builder.additionalDirective(it) }
+        schema.additionalTypes.forEach { builder.additionalType(it) }
+        neo4jTypeDefinitions
+            .forEach {
+                val type = (schema.getType(it.typeDefinition) as? GraphQLObjectType)
+                        ?: throw IllegalStateException("type ${it.typeDefinition} not found")
+
+                builder.additionalType(getInputType(it.inputDefinition, type.fieldDefinitions))
             }
-            val ordering = EnumTypeDefinition.newEnumTypeDefinition()
-                .name(orderingName)
-                .enumValueDefinitions(relevantFields.flatMap { fd ->
-                    listOf("_asc", "_desc")
-                        .map { EnumValueDefinition.newEnumValueDefinition().name(fd.name + it).build() }
-                })
+    }
+
+    private fun getInputType(inputName: String, relevantFields: List<GraphQLFieldDefinition>): GraphQLInputObjectType {
+        return GraphQLInputObjectType.newInputObject()
+            .name(inputName)
+            .fields(getInputValueDefinitions(relevantFields))
+            .build()
+    }
+
+    private fun getInputValueDefinitions(relevantFields: List<GraphQLFieldDefinition>): List<GraphQLInputObjectField> {
+        return relevantFields.map {
+            val type = (it.type as? GraphQLNonNull)?.wrappedType ?: it.type
+            GraphQLInputObjectField
+                .newInputObjectField()
+                .name(it.name)
+                .type(type as? GraphQLInputType
+                        ?: throw IllegalArgumentException("${type.name} is not allowed for input"))
                 .build()
-            typeDefinitionRegistry.add(ordering)
-            return orderingName
-        }
-
-        private fun addFilterType(name: String?, fieldArgs: List<FieldDefinition>, handled: MutableSet<String> = mutableSetOf()): String {
-            val filterName = "_${name}Filter"
-            if (typeDefinitionRegistry.getType(filterName).isPresent || handled.contains(filterName)) {
-                return filterName
-            }
-            handled.add(filterName)
-            val builder = InputObjectTypeDefinition.newInputObjectDefinition()
-                .name(filterName)
-            listOf("AND", "OR", "NOT")
-                .forEach { builder.inputValueDefinition(BaseDataFetcher.input(it, ListType(NonNullType(TypeName(filterName))))) }
-            fieldArgs
-                .filter { it.dynamicPrefix(metaProvider) == null } // TODO currently we do not support filtering on dynamic properties
-                .forEach { field ->
-                    val typeDefinition = typeDefinitionRegistry.getType(field.type).orElse(null)
-                    val type = if (field.type.isScalar() || typeDefinition is EnumTypeDefinition || field.isNeo4jType()) {
-                        field.type.inner().inputType()
-                    } else {
-                        val objectName = field.type.name()
-                        val subFilterName = addFilterType(objectName,
-                                metaProvider.getNodeType(objectName)
-                                    ?.fieldDefinitions()
-                                        ?: throw IllegalArgumentException("type $objectName not found"),
-                                handled)
-                        TypeName(subFilterName)
-                    }
-                    Operators.forType(field.type, typeDefinition)
-                        .forEach { op ->
-                            val filterType = if (op.list) {
-                                ListType(type)
-                            } else {
-                                type
-                            }
-                            builder.inputValueDefinition(BaseDataFetcher.input(op.fieldName(field.name), filterType))
-                        }
-                }
-            typeDefinitionRegistry.add(builder.build())
-            return filterName
         }
     }
 }

@@ -1,33 +1,36 @@
 package org.neo4j.graphql.handler
 
-import graphql.language.*
+import graphql.language.Argument
+import graphql.language.ArrayValue
+import graphql.language.Field
+import graphql.language.ObjectValue
 import graphql.schema.DataFetcher
 import graphql.schema.DataFetchingEnvironment
+import graphql.schema.GraphQLFieldDefinition
+import graphql.schema.GraphQLFieldsContainer
 import org.neo4j.graphql.*
 import org.neo4j.graphql.handler.projection.ProjectionBase
 
 abstract class BaseDataFetcher(
-        val type: NodeFacade,
-        val fieldDefinition: FieldDefinition,
-        metaProvider: MetaProvider
-) : ProjectionBase(metaProvider), DataFetcher<Cypher> {
+        val type: GraphQLFieldsContainer,
+        val fieldDefinition: GraphQLFieldDefinition
+) : ProjectionBase(), DataFetcher<Cypher> {
 
-    val propertyFields: MutableMap<String, (Value<Value<*>>) -> List<Translator.CypherArgument>?> = mutableMapOf()
-    val defaultFields: MutableMap<String, Value<Value<*>>> = mutableMapOf()
+    val propertyFields: MutableMap<String, (Any) -> List<Translator.CypherArgument>?> = mutableMapOf()
+    val defaultFields: MutableMap<String, Any> = mutableMapOf()
 
     init {
-        val fieldsOfType = type.fieldDefinitions().map { it.name to it }.toMap()
         fieldDefinition
-            .inputValueDefinitions
+            .arguments
             .filterNot { listOf(FIRST, OFFSET, ORDER_BY, NATIVE_ID).contains(it.name) }
-            .mapNotNull {
-                if (it.defaultValue != null) {
-                    defaultFields[it.name] = it.defaultValue
+            .onEach { arg ->
+                if (arg.defaultValue != null) {
+                    defaultFields[arg.name] = arg.defaultValue
                 }
-                fieldsOfType[it.name]
             }
-            .forEach { field: FieldDefinition ->
-                val dynamicPrefix = field.dynamicPrefix(metaProvider)
+            .mapNotNull { type.getFieldDefinition(it.name) }
+            .forEach { field ->
+                val dynamicPrefix = field.dynamicPrefix()
                 propertyFields[field.name] = when {
                     dynamicPrefix != null -> dynamicPrefixCallback(field, dynamicPrefix)
                     field.isNeo4jType() -> neo4jTypeCallback(field)
@@ -36,21 +39,21 @@ abstract class BaseDataFetcher(
             }
     }
 
-    private fun defaultCallback(field: FieldDefinition) =
-            { value: Value<Value<*>> ->
-                val propertyName = field.propertyDirectiveName() ?: field.name
+    private fun defaultCallback(field: GraphQLFieldDefinition) =
+            { value: Any ->
+                val propertyName = field.propertyName()
                 listOf(Translator.CypherArgument(field.name, propertyName.quote(), value.toJavaValue()))
             }
 
-    private fun neo4jTypeCallback(field: FieldDefinition) =
-            { value: Value<Value<*>> ->
+    private fun neo4jTypeCallback(field: GraphQLFieldDefinition) =
+            { value: Any ->
                 val (name, propertyName, converter) = Neo4jQueryConversion
-                        .forMutation(value, field)
+                    .forMutation(value, field)
                 listOf(Translator.CypherArgument(name, propertyName, value.toJavaValue(), converter, propertyName))
             }
 
-    private fun dynamicPrefixCallback(field: FieldDefinition, dynamicPrefix: String) =
-            { value: Value<Value<*>> ->
+    private fun dynamicPrefixCallback(field: GraphQLFieldDefinition, dynamicPrefix: String) =
+            { value: Any ->
                 // maps each property of the map to the node
                 (value as? ObjectValue)?.objectFields?.map { argField ->
                     Translator.CypherArgument(
@@ -84,7 +87,7 @@ abstract class BaseDataFetcher(
     ): Cypher
 
 
-    fun allLabels(): String = type.allLabels()
+    fun allLabels(): String = type.label(includeAll = true)
 
     fun label(includeAll: Boolean = false) = type.label(includeAll)
 
@@ -111,7 +114,7 @@ abstract class BaseDataFetcher(
 
         val defaults = defaultFields
             .filter { !predicates.containsKey(it.key) }
-            .flatMap { propertyFields[it.key]?.invoke(it.value) ?: emptyList() }
+            .flatMap { (argName, defaultValue) -> propertyFields[argName]?.invoke(defaultValue) ?: emptyList() }
         return predicates.values.flatten() + defaults
     }
 
@@ -120,7 +123,7 @@ abstract class BaseDataFetcher(
                 variable: String,
                 label: String?,
                 idProperty: Argument?,
-                idField: FieldDefinition,
+                idField: GraphQLFieldDefinition,
                 isRelation: Boolean,
                 paramName: String? = idProperty?.let { paramName(variable, idProperty.name, idProperty.value) }
         ): Cypher {
@@ -144,34 +147,6 @@ abstract class BaseDataFetcher(
                 }
                 else -> Cypher.EMPTY
             }
-        }
-
-        fun input(name: String, type: Type<*>): InputValueDefinition {
-            return InputValueDefinition.newInputValueDefinition().name(name).type(type).build()
-        }
-
-        fun createFieldDefinition(
-                prefix: String,
-                typeName: String,
-                scalarFields: List<FieldDefinition>,
-                nullableResult: Boolean,
-                forceOptionalProvider: (field: FieldDefinition) -> Boolean = { false }
-        ): FieldDefinition.Builder {
-            var type: Type<*> = TypeName(typeName)
-            if (!nullableResult) {
-                type = NonNullType(type)
-            }
-            return FieldDefinition.newFieldDefinition()
-                .name("$prefix$typeName")
-                .inputValueDefinitions(getInputValueDefinitions(scalarFields, forceOptionalProvider))
-                .type(type)
-        }
-
-        fun getInputValueDefinitions(
-                relevantFields: List<FieldDefinition>,
-                forceOptionalProvider: (field: FieldDefinition) -> Boolean): List<InputValueDefinition> {
-            return relevantFields
-                .map { input(it.name, if (forceOptionalProvider.invoke(it)) it.type.inputType().optional() else it.type.inputType()) }
         }
     }
 }

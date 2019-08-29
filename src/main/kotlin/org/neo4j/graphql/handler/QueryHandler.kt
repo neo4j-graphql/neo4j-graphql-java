@@ -1,47 +1,74 @@
 package org.neo4j.graphql.handler
 
-import graphql.language.*
-import graphql.schema.DataFetchingEnvironment
+import graphql.Scalars
+import graphql.language.Field
+import graphql.schema.*
 import org.neo4j.graphql.*
 
 class QueryHandler private constructor(
-        type: NodeFacade,
-        fieldDefinition: FieldDefinition,
-        metaProvider: MetaProvider)
-    : BaseDataFetcher(type, fieldDefinition, metaProvider) {
+        type: GraphQLFieldsContainer,
+        fieldDefinition: GraphQLFieldDefinition)
+    : BaseDataFetcher(type, fieldDefinition) {
 
-    companion object {
-        fun build(type: NodeFacade, filterTypeName: String, orderingTypename: String, metaProvider: MetaProvider): BaseDataFetcher? {
-            val typeName = type.name()
-            val relevantFields = type
-                .relevantFields()
-                .filter { it.dynamicPrefix(metaProvider) == null } // TODO currently we do not support filtering on dynamic properties
+    class Factory(schemaConfig: SchemaConfig) : AugmentationHandler(schemaConfig) {
+        override fun augmentType(type: GraphQLFieldsContainer, buildingEnv: BuildingEnv) {
+            if (!canHandle(type)) {
+                return
+            }
+            val typeName = type.name
+            val relevantFields = getRelevantFields(type)
 
-            val fieldDefinition = FieldDefinition
+            // TODO not just generate the input type but use it as well
+            buildingEnv.addInputType("_${typeName}Input", type.relevantFields())
+            val filterTypeName = buildingEnv.addFilterType(type)
+            val orderingTypeName = buildingEnv.addOrdering(type)
+            val builder = GraphQLFieldDefinition
                 .newFieldDefinition()
                 .name(typeName.decapitalize())
-                .inputValueDefinitions(getInputValueDefinitions(relevantFields) { true })
-                .inputValueDefinition(input(FILTER, TypeName(filterTypeName)))
-                .inputValueDefinition(input(ORDER_BY, TypeName(orderingTypename)))
-                .inputValueDefinition(input(FIRST, TypeName("Int")))
-                .inputValueDefinition(input(OFFSET, TypeName("Int")))
-                .type(NonNullType(ListType(NonNullType(TypeName(typeName)))))
-                .build()
-            return QueryHandler(type, fieldDefinition, metaProvider)
+                .arguments(buildingEnv.getInputValueDefinitions(relevantFields) { true })
+                .argument(input(FILTER, GraphQLTypeReference(filterTypeName)))
+                .argument(input(FIRST, Scalars.GraphQLInt))
+                .argument(input(OFFSET, Scalars.GraphQLInt))
+                .type(GraphQLNonNull(GraphQLList(GraphQLNonNull(GraphQLTypeReference(type.name)))))
+            if (orderingTypeName != null) {
+                builder.argument(input(ORDER_BY, GraphQLTypeReference(orderingTypeName)))
+            }
+            val def = builder.build()
+            buildingEnv.addOperation(QUERY, def)
         }
 
-        fun build(fieldDefinition: FieldDefinition,
-                isQuery: Boolean,
-                metaProvider: MetaProvider,
-                type: NodeFacade = metaProvider.getNodeType(fieldDefinition.type.name())
-                        ?: throw IllegalStateException("cannot find type " + fieldDefinition.type.name())
-        ): BaseDataFetcher? {
-            val cypherDirective = fieldDefinition.cypherDirective()
-            return when {
-                cypherDirective != null -> CypherDirectiveHandler(type, isQuery, cypherDirective, fieldDefinition, metaProvider)
-                isQuery -> QueryHandler(type, fieldDefinition, metaProvider)
-                else -> null
+        override fun createDataFetcher(rootType: GraphQLObjectType, fieldDefinition: GraphQLFieldDefinition): DataFetcher<Cypher>? {
+            if (rootType.name != QUERY) {
+                return null
             }
+            val cypherDirective = fieldDefinition.cypherDirective()
+            if (cypherDirective != null) {
+                return null
+            }
+            val type = fieldDefinition.type.inner() as? GraphQLFieldsContainer
+                    ?: return null
+            if (!canHandle(type)) {
+                return null
+            }
+            return QueryHandler(type, fieldDefinition)
+        }
+
+        private fun canHandle(type: GraphQLFieldsContainer): Boolean {
+            val typeName = type.innerName()
+            if (!schemaConfig.query.enabled || schemaConfig.query.exclude.contains(typeName)) {
+                return false
+            }
+            if (getRelevantFields(type).isEmpty()) {
+                return false
+            }
+            return true
+        }
+
+        private fun getRelevantFields(type: GraphQLFieldsContainer): List<GraphQLFieldDefinition> {
+            val relevantFields = type
+                .relevantFields()
+                .filter { it.dynamicPrefix() == null } // TODO currently we do not support filtering on dynamic properties
+            return relevantFields
         }
     }
 

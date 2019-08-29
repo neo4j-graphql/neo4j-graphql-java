@@ -1,22 +1,17 @@
 package org.neo4j.graphql
 
 import graphql.Scalars
-import graphql.language.*
-import graphql.language.TypeDefinition
-import graphql.schema.GraphQLEnumType
-import graphql.schema.GraphQLInputType
-import graphql.schema.GraphQLObjectType
-import graphql.schema.GraphQLTypeReference
+import graphql.schema.*
 import org.neo4j.graphql.Predicate.Companion.resolvePredicate
 import org.neo4j.graphql.handler.projection.ProjectionBase
 
 interface Predicate {
-    fun toExpression(variable: String, metaProvider: MetaProvider): Cypher
+    fun toExpression(variable: String): Cypher
 
     companion object {
-        fun resolvePredicate(name: String, value: Any?, type: NodeFacade, metaProvider: MetaProvider): Predicate {
+        fun resolvePredicate(name: String, value: Any?, type: GraphQLFieldsContainer): Predicate {
             val (fieldName, op) = Operators.resolve(name, value)
-            return if (type.hasRelationship(fieldName, metaProvider)) {
+            return if (type.hasRelationship(fieldName)) {
                 when (value) {
                     is Map<*, *> -> RelationPredicate(fieldName, op, value, type)
                     null -> IsNullPredicate(fieldName, op, type)
@@ -35,27 +30,27 @@ interface Predicate {
                     null -> "null"
                     is String -> if (isParam(value)) value else "\"$value\""
                     is Map<*, *> -> "{" + value.map { it.key.toString() + ":" + formatAnyValueCypher(it.value) }.joinToString(",") + "}"
-                    is Iterable<*> -> "[" + value.map { formatAnyValueCypher(it) }.joinToString (",") + "]"
+                    is Iterable<*> -> "[" + value.map { formatAnyValueCypher(it) }.joinToString(",") + "]"
                     else -> value.toString()
 
                 }
     }
 }
 
-fun toExpression(name: String, value: Any?, type: NodeFacade, metaProvider: MetaProvider): Predicate =
+fun toExpression(name: String, value: Any?, type: GraphQLFieldsContainer): Predicate =
         if (name == "AND" || name == "OR")
             when (value) {
-                is Iterable<*> -> CompoundPredicate(value.map { toExpression("AND", it, type, metaProvider) }, name)
-                is Map<*, *> -> CompoundPredicate(value.map { (k, v) -> toExpression(k.toString(), v, type, metaProvider) }, name)
+                is Iterable<*> -> CompoundPredicate(value.map { toExpression("AND", it, type) }, name)
+                is Map<*, *> -> CompoundPredicate(value.map { (k, v) -> toExpression(k.toString(), v, type) }, name)
                 else -> throw IllegalArgumentException("Unexpected value for filter: $value")
             }
         else {
-            resolvePredicate(name, value, type, metaProvider)
+            resolvePredicate(name, value, type)
         }
 
 data class CompoundPredicate(val parts: List<Predicate>, val op: String = "AND") : Predicate {
-    override fun toExpression(variable: String, metaProvider: MetaProvider): Cypher =
-            parts.map { it.toExpression(variable, metaProvider) }
+    override fun toExpression(variable: String): Cypher =
+            parts.map { it.toExpression(variable) }
                 .let { expressions ->
                     Cypher(
                             expressions.map { it.query }.joinNonEmpty(" $op ", "(", ")"),
@@ -64,18 +59,18 @@ data class CompoundPredicate(val parts: List<Predicate>, val op: String = "AND")
                 }
 }
 
-data class IsNullPredicate(val fieldName: String, val op: Operators, val type: NodeFacade) : Predicate {
-    override fun toExpression(variable: String, metaProvider: MetaProvider): Cypher {
-        val rel = type.relationshipFor(fieldName, metaProvider) ?: throw IllegalArgumentException("Not a relation")
+data class IsNullPredicate(val fieldName: String, val op: Operators, val type: GraphQLFieldsContainer) : Predicate {
+    override fun toExpression(variable: String): Cypher {
+        val rel = type.relationshipFor(fieldName) ?: throw IllegalArgumentException("Not a relation")
         val (left, right) = rel.arrows
         val not = if (op.not) "" else "NOT "
         return Cypher("$not($variable)$left-[:${rel.relType}]-$right()")
     }
 }
 
-data class ExpressionPredicate(val name: String, val op: Operators, val value: Any?, val fieldDefinition: FieldDefinition) : Predicate {
+data class ExpressionPredicate(val name: String, val op: Operators, val value: Any?, val fieldDefinition: GraphQLFieldDefinition) : Predicate {
     val not = if (op.not) "NOT " else ""
-    override fun toExpression(variable: String, metaProvider: MetaProvider): Cypher {
+    override fun toExpression(variable: String): Cypher {
         val paramName: String = ProjectionBase.FILTER + paramName(variable, name, value).capitalize()
         val field = if (fieldDefinition.isNativeId()) "ID($variable)" else "$variable.${name.quote()}"
         return Cypher("$not$field ${op.op} \$$paramName", mapOf(paramName to value))
@@ -83,25 +78,23 @@ data class ExpressionPredicate(val name: String, val op: Operators, val value: A
 }
 
 
-data class RelationPredicate(val fieldName: String, val op: Operators, val value: Map<*, *>, val type: NodeFacade) : Predicate {
+data class RelationPredicate(val fieldName: String, val op: Operators, val value: Map<*, *>, val type: GraphQLFieldsContainer) : Predicate {
     val not = if (op.not) "NOT" else ""
     // (type)-[:TYPE]->(related) | pred] = 0/1/ > 0 | =
     // ALL/ANY/NONE/SINGLE(p in (type)-[:TYPE]->() WHERE pred(last(nodes(p)))
     // ALL/ANY/NONE/SINGLE(x IN [(type)-[:TYPE]->(o) | pred(o)] WHERE x)
 
-    override fun toExpression(variable: String, metaProvider: MetaProvider): Cypher {
+    override fun toExpression(variable: String): Cypher {
         val prefix = when (op) {
             Operators.EQ -> "ALL"
             Operators.NEQ -> "ALL" // bc of not
             else -> op.op
         }
-        val rel = type.relationshipFor(fieldName, metaProvider) ?: throw IllegalArgumentException("Not a relation")
+        val rel = type.relationshipFor(fieldName) ?: throw IllegalArgumentException("Not a relation")
         val (left, right) = rel.arrows
         val other = variable + "_" + rel.typeName
         val cond = other + "_Cond"
-        val relNodeType = metaProvider.getNodeType(rel.typeName)
-                ?: throw IllegalArgumentException("${rel.typeName} not found")
-        val (pred, params) = CompoundPredicate(value.map { resolvePredicate(it.key.toString(), it.value, relNodeType, metaProvider) }).toExpression(other, metaProvider)
+        val (pred, params) = CompoundPredicate(value.map { resolvePredicate(it.key.toString(), it.value, rel.type) }).toExpression(other)
         return Cypher("$not $prefix($cond IN [($variable)$left-[:${rel.relType.quote()}]-$right($other) | $pred] WHERE $cond)", params)
     }
 }
@@ -162,15 +155,17 @@ enum class Operators(val suffix: String, val op: String, val not: Boolean = fals
                 else listOf(EQ, NEQ, IN, NIN, LT, LTE, GT, GTE) +
                         if (type == Scalars.GraphQLString || type == Scalars.GraphQLID) listOf(C, NC, SW, NSW, EW, NEW) else emptyList()
 
-        fun forType(type: Type<Type<*>>, typeDef: TypeDefinition<*>): List<Operators> =
-                if (type.name() == "Boolean") listOf(EQ, NEQ)
-                else if (type.isNeo4jType()) listOf(EQ, NEQ, IN, NIN)
-                else if (typeDef is ObjectTypeDefinition || typeDef is InterfaceTypeDefinition) listOf(IS_NULL, IS_NOT_NULL, SOME, NONE, SINGLE)
-                else if (typeDef is EnumTypeDefinition) listOf(EQ, NEQ, IN, NIN)
-                // todo list types
-                else if (!type.isScalar()) listOf(EQ, NEQ, IN, NIN)
-                else listOf(EQ, NEQ, IN, NIN, LT, LTE, GT, GTE) +
-                        if (type.name() == "String" || type.name() == "ID") listOf(C, NC, SW, NSW, EW, NEW) else emptyList()
+        fun forType(type: GraphQLType): List<Operators> =
+                when {
+                    type == Scalars.GraphQLBoolean -> listOf(EQ, NEQ)
+                    type.isNeo4jType() -> listOf(EQ, NEQ, IN, NIN)
+                    type is GraphQLFieldsContainer || type is GraphQLInputObjectType -> listOf(IS_NULL, IS_NOT_NULL, SOME, NONE, SINGLE)
+                    type is GraphQLEnumType -> listOf(EQ, NEQ, IN, NIN)
+                    // todo list types
+                    !type.isScalar() -> listOf(EQ, NEQ, IN, NIN)
+                    else -> listOf(EQ, NEQ, IN, NIN, LT, LTE, GT, GTE) +
+                            if (type.name == "String" || type.name == "ID") listOf(C, NC, SW, NSW, EW, NEW) else emptyList()
+                }
 
     }
 

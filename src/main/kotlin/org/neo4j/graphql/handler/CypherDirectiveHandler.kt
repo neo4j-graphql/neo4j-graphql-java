@@ -1,19 +1,33 @@
 package org.neo4j.graphql.handler
 
 import graphql.language.Field
-import graphql.language.FieldDefinition
-import graphql.schema.DataFetchingEnvironment
-import org.neo4j.graphql.Cypher
-import org.neo4j.graphql.MetaProvider
-import org.neo4j.graphql.NodeFacade
+import graphql.schema.*
+import org.neo4j.graphql.*
 
 class CypherDirectiveHandler(
-        type: NodeFacade,
+        type: GraphQLFieldsContainer,
         private val isQuery: Boolean,
         private val cypherDirective: Cypher,
-        fieldDefinition: FieldDefinition,
-        metaProvider: MetaProvider)
-    : BaseDataFetcher(type, fieldDefinition, metaProvider) {
+        fieldDefinition: GraphQLFieldDefinition)
+    : BaseDataFetcher(type, fieldDefinition) {
+
+    class Factory(schemaConfig: SchemaConfig) : AugmentationHandler(schemaConfig) {
+        override fun augmentType(type: GraphQLFieldsContainer, buildingEnv: BuildingEnv) {
+            return
+        }
+
+        override fun createDataFetcher(rootType: GraphQLObjectType, fieldDefinition: GraphQLFieldDefinition): DataFetcher<Cypher>? {
+            val cypherDirective = fieldDefinition.cypherDirective()
+            if (cypherDirective == null) {
+                return null
+            }
+            // TODO cypher directives can also return scalars
+            val type = fieldDefinition.type.inner() as? GraphQLFieldsContainer
+                    ?: return null
+            val isQuery = rootType.name == QUERY
+            return CypherDirectiveHandler(type, isQuery, cypherDirective, fieldDefinition)
+        }
+    }
 
     override fun generateCypher(variable: String, field: Field, projectionProvider: () -> Cypher, env: DataFetchingEnvironment): Cypher {
         val mapProjection = projectionProvider.invoke()

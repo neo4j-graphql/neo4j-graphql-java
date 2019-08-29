@@ -1,9 +1,9 @@
 package org.neo4j.graphql
 
 import graphql.language.Field
-import graphql.language.FieldDefinition
 import graphql.language.ObjectValue
-import graphql.language.Value
+import graphql.schema.GraphQLFieldDefinition
+import graphql.schema.GraphQLFieldsContainer
 import java.time.*
 import java.time.temporal.Temporal
 
@@ -37,13 +37,13 @@ fun getNeo4jTypeConverter(name: String): Neo4jConverter {
 
 data class Neo4jQueryConversion(val name: String, val propertyName: String, val converter: Neo4jConverter = Neo4jConverter()) {
     companion object {
-        fun forQuery(argument: Translator.CypherArgument, field: Field, type: NodeFacade): Neo4jQueryConversion {
+        fun forQuery(argument: Translator.CypherArgument, field: Field, type: GraphQLFieldsContainer): Neo4jQueryConversion {
             val isNeo4jType = type.isNeo4jType()
             val name = argument.name
             return when (isNeo4jType) {
                 true -> {
                     if (name == NEO4j_FORMATTED_PROPERTY_KEY) {
-                        Neo4jQueryConversion(field.name + NEO4j_FORMATTED_PROPERTY_KEY.capitalize(), field.name, getNeo4jTypeConverter(type.name()))
+                        Neo4jQueryConversion(field.name + NEO4j_FORMATTED_PROPERTY_KEY.capitalize(), field.name, getNeo4jTypeConverter(type.name))
                     } else {
                         Neo4jQueryConversion(field.name + name.capitalize(), field.name + ".$name")
                     }
@@ -53,13 +53,13 @@ data class Neo4jQueryConversion(val name: String, val propertyName: String, val 
         }
 
 
-        fun forMutation(value: Value<Value<*>>, fieldDefinition: FieldDefinition): Neo4jQueryConversion {
-            val isNeo4jType = fieldDefinition.type.isNeo4jType()
+        fun forMutation(value: Any, fieldDefinition: GraphQLFieldDefinition): Neo4jQueryConversion {
+            val isNeo4jType = fieldDefinition.isNeo4jType()
             val name = fieldDefinition.name
             if (!isNeo4jType) {
                 Neo4jQueryConversion(name, name)
             }
-            val converter = getNeo4jTypeConverter(fieldDefinition.type.name()!!)
+            val converter = getNeo4jTypeConverter(fieldDefinition.type.inner().name)
             val objectValue = (value as? ObjectValue)
                 ?.objectFields
                 ?.map { it.name to it.value }
