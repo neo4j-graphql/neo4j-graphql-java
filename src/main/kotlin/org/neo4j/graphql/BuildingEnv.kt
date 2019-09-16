@@ -124,14 +124,20 @@ class BuildingEnv(val types: MutableMap<String, GraphQLType>) {
         val sortingFields = type.fieldDefinitions
             .filter { it.type.isScalar() || it.isNeo4jType() }
             .sortedByDescending { it.isID() }
-        if (sortingFields.isEmpty()){
+        if (sortingFields.isEmpty()) {
             return null
         }
         existingOrderingType = GraphQLEnumType.newEnum()
             .name(orderingName)
             .values(sortingFields.flatMap { fd ->
                 listOf("_asc", "_desc")
-                    .map { GraphQLEnumValueDefinition.newEnumValueDefinition().name(fd.name + it).build() }
+                    .map {
+                        GraphQLEnumValueDefinition
+                            .newEnumValueDefinition()
+                            .name(fd.name + it)
+                            .value(fd.name + it)
+                            .build()
+                    }
             })
             .build()
         types[orderingName] = existingOrderingType

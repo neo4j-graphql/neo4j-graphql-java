@@ -7,6 +7,7 @@ data class Cypher @JvmOverloads constructor(val query: String, val params: Map<S
     fun escapedQuery() = query.replace("\"", "\\\"").replace("'", "\\'")
 
     companion object {
+        @JvmStatic
         val EMPTY = Cypher("")
     }
 }

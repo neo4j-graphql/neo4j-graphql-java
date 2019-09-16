@@ -294,7 +294,7 @@ open class ProjectionBase {
     }
 
     private fun projectRelationshipParent(variable: String, field: Field, fieldDefinition: GraphQLFieldDefinition, env: DataFetchingEnvironment, variableSuffix: String?): Cypher {
-        val fieldObjectType = fieldDefinition.type as? GraphQLFieldsContainer ?: return Cypher.EMPTY
+        val fieldObjectType = fieldDefinition.type.inner() as? GraphQLFieldsContainer ?: return Cypher.EMPTY
         return projectFields(variable + (variableSuffix?.capitalize()
                 ?: ""), field, fieldObjectType, env, variableSuffix)
     }

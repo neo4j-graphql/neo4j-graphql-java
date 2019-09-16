@@ -1,7 +1,10 @@
 package org.neo4j.graphql.handler.relation
 
 import graphql.language.Field
-import graphql.schema.*
+import graphql.schema.DataFetcher
+import graphql.schema.DataFetchingEnvironment
+import graphql.schema.GraphQLFieldDefinition
+import graphql.schema.GraphQLFieldsContainer
 import org.neo4j.graphql.*
 
 class CreateRelationHandler private constructor(
@@ -30,7 +33,7 @@ class CreateRelationHandler private constructor(
                             relationType
                                 ?.fieldDefinitions
                                 ?.filter { it.type.isScalar() && !it.isID() }
-                                ?.forEach { builder.argument(input(it.name, it.type as GraphQLScalarType)) }
+                                ?.forEach { builder.argument(input(it.name, it.type)) }
 
                             buildingEnv.addOperation(MUTATION, builder.build())
                         }

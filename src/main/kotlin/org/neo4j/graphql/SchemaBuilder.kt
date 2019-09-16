@@ -28,14 +28,21 @@ object SchemaBuilder {
     @JvmOverloads
     fun buildSchema(sdl: String, config: SchemaConfig = SchemaConfig(), dataFetchingInterceptor: DataFetchingInterceptor? = null): GraphQLSchema {
         val schemaParser = SchemaParser()
-        val typeDefinitionRegistry = schemaParser.parse(sdl).merge(getNeo4jEnhancements())
-        if (!typeDefinitionRegistry.getType(QUERY).isPresent) {
-            typeDefinitionRegistry.add(ObjectTypeDefinition.newObjectTypeDefinition().name(QUERY).build())
+        val typeDefinitionRegistry = schemaParser.parse(sdl)
+        return buildSchema(typeDefinitionRegistry, config, dataFetchingInterceptor)
+    }
+
+    @JvmStatic
+    @JvmOverloads
+    fun buildSchema(typeDefinitionRegistry: TypeDefinitionRegistry , config: SchemaConfig = SchemaConfig(), dataFetchingInterceptor: DataFetchingInterceptor? = null): GraphQLSchema {
+        val enhancedRegistry  = typeDefinitionRegistry.merge(getNeo4jEnhancements())
+        if (!enhancedRegistry.getType(QUERY).isPresent) {
+            enhancedRegistry.add(ObjectTypeDefinition.newObjectTypeDefinition().name(QUERY).build())
         }
 
-        val builder = RuntimeWiring.newRuntimeWiring()
-            .scalar(DynamicProperties.INSTANCE)
-        typeDefinitionRegistry
+        val builder = RuntimeWiring.newRuntimeWiring() .scalar(DynamicProperties.INSTANCE)
+
+        enhancedRegistry
             .getTypes(InterfaceTypeDefinition::class.java)
             .forEach { typeDefinition ->
                 builder.type(typeDefinition.name) {
@@ -46,7 +53,7 @@ object SchemaBuilder {
                     }
                 }
             }
-        val sourceSchema = SchemaGenerator().makeExecutableSchema(typeDefinitionRegistry, builder.build())
+        val sourceSchema = SchemaGenerator().makeExecutableSchema(enhancedRegistry, builder.build())
 
         val handler = getHandler(config)
 
@@ -54,16 +61,6 @@ object SchemaBuilder {
         targetSchema = addDataFetcher(targetSchema, dataFetchingInterceptor, handler)
         return targetSchema
     }
-
-//    @JvmStatic
-//    @JvmOverloads
-//    fun enhanceSchema(builder: GraphQLSchema.Builder, config: SchemaConfig = SchemaConfig(), dataFetchingInterceptor: DataFetchingInterceptor? = null): GraphQLSchema {
-//        mergeNeo4jEnhancements(builder)
-//        val handler = getHandler(config)
-//
-//        var targetSchema = augmentSchema(sourceSchema, handler)
-//        targetSchema = addDataFetcher(targetSchema, dataFetchingInterceptor, handler)
-//    }
 
     private fun getHandler(schemaConfig: SchemaConfig): List<AugmentationHandler> {
         val handler = mutableListOf<AugmentationHandler>(
@@ -177,15 +174,6 @@ object SchemaBuilder {
                 }
             }
         }
-    }
-
-    private fun mergeNeo4jEnhancements(builder: GraphQLSchema.Builder) {
-        val typeDefinitionRegistry = getNeo4jEnhancements()
-        val wiring = RuntimeWiring.newRuntimeWiring().scalar(DynamicProperties.INSTANCE).build()
-        val schema = SchemaGenerator().makeExecutableSchema(typeDefinitionRegistry, wiring)
-
-        schema.directives.forEach { builder.additionalDirective(it) }
-        schema.additionalTypes.forEach { builder.additionalType(it) }
     }
 
     private fun getNeo4jEnhancements(): TypeDefinitionRegistry {
