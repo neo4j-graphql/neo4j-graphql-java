@@ -16,16 +16,22 @@ import org.neo4j.graphql.handler.relation.DeleteRelationHandler
 
 object SchemaBuilder {
 
+    /**
+     * @param sdl the schema to augment
+     * @param config defines how the schema should get augmented
+     * @param dataFetchingInterceptor since this library registers dataFetcher for its augmented methods, these data
+     * fetchers may be called by other resolver. This interceptor will let you convert a cypher query into real data.
+     */
     @JvmStatic
     @JvmOverloads
-    fun buildSchema(sdl: String, config: SchemaConfig = SchemaConfig()): GraphQLSchema {
+    fun buildSchema(sdl: String, config: SchemaConfig = SchemaConfig(), dataFetchingInterceptor: DataFetchingInterceptor? = null): GraphQLSchema {
         val schemaParser = SchemaParser()
         val typeDefinitionRegistry = schemaParser.parse(sdl)
 
         val builder = RuntimeWiring.newRuntimeWiring()
             .scalar(DynamicProperties.INSTANCE)
 
-        AugmentationProcessor(typeDefinitionRegistry, config, builder).augmentSchema()
+        AugmentationProcessor(typeDefinitionRegistry, config, dataFetchingInterceptor, builder).augmentSchema()
 
         typeDefinitionRegistry
             .getTypes(InterfaceTypeDefinition::class.java)
@@ -33,7 +39,7 @@ object SchemaBuilder {
                 builder.type(typeDefinition.name) {
                     it.typeResolver { env ->
                         (env.getObject() as? Map<String, Any>)
-                            ?.let { data -> data[ProjectionBase.TYPE_NAME] as? String }
+                            ?.let { data -> data.get(ProjectionBase.TYPE_NAME) as? String }
                             ?.let { typeName -> env.schema.getObjectType(typeName) }
                     }
                 }
@@ -48,6 +54,7 @@ object SchemaBuilder {
     private class AugmentationProcessor(
             val typeDefinitionRegistry: TypeDefinitionRegistry,
             val schemaConfig: SchemaConfig,
+            val dataFetchingInterceptor: DataFetchingInterceptor?,
             val wiringBuilder: RuntimeWiring.Builder
     ) {
         private val metaProvider = TypeRegistryMetaProvider(typeDefinitionRegistry)
@@ -123,7 +130,12 @@ object SchemaBuilder {
         }
 
         fun addDataFetcher(type: String, name: String, dataFetcher: DataFetcher<Cypher>) {
-            wiringBuilder.type(type) { runtimeWiring -> runtimeWiring.dataFetcher(name, dataFetcher) }
+            val df: DataFetcher<*> = dataFetchingInterceptor?.let {
+                DataFetcher { env ->
+                    dataFetchingInterceptor.fetchData(env, dataFetcher)
+                }
+            } ?: dataFetcher
+            wiringBuilder.type(type) { runtimeWiring -> runtimeWiring.dataFetcher(name, df) }
         }
 
         /**
