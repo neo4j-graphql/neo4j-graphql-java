@@ -48,7 +48,7 @@ object SchemaBuilder {
                 builder.type(typeDefinition.name) {
                     it.typeResolver { env ->
                         (env.getObject() as? Map<String, Any>)
-                            ?.let { data -> data[ProjectionBase.TYPE_NAME] as? String }
+                            ?.let { data -> data.get(ProjectionBase.TYPE_NAME) as? String }
                             ?.let { typeName -> env.schema.getObjectType(typeName) }
                     }
                 }
