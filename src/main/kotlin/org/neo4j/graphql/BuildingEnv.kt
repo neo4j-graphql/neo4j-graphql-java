@@ -42,14 +42,6 @@ class BuildingEnv(val types: MutableMap<String, GraphQLType>) {
         }
     }
 
-    fun input(name: String, type: GraphQLType): GraphQLArgument {
-        return GraphQLArgument
-            .newArgument()
-            .name(name)
-            .type(getInputType(type).ref() as GraphQLInputType)
-            .build()
-    }
-
     /**
      * add the given operation to the corresponding rootType
      */
