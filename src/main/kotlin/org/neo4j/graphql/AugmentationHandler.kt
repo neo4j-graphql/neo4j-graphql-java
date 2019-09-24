@@ -11,7 +11,7 @@ abstract class AugmentationHandler(val schemaConfig: SchemaConfig) {
         const val MUTATION = "Mutation"
     }
 
-    abstract fun augmentType(type: GraphQLFieldsContainer, buildingEnv: BuildingEnv)
+    open fun augmentType(type: GraphQLFieldsContainer, buildingEnv: BuildingEnv) {}
 
     abstract fun createDataFetcher(rootType: GraphQLObjectType, fieldDefinition: GraphQLFieldDefinition): DataFetcher<Cypher>?
 

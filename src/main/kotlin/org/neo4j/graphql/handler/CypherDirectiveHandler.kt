@@ -12,9 +12,6 @@ class CypherDirectiveHandler(
     : BaseDataFetcher(type, fieldDefinition) {
 
     class Factory(schemaConfig: SchemaConfig) : AugmentationHandler(schemaConfig) {
-        override fun augmentType(type: GraphQLFieldsContainer, buildingEnv: BuildingEnv) {
-            return
-        }
 
         override fun createDataFetcher(rootType: GraphQLObjectType, fieldDefinition: GraphQLFieldDefinition): DataFetcher<Cypher>? {
             val cypherDirective = fieldDefinition.cypherDirective() ?: return null
