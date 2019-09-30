@@ -33,7 +33,7 @@ class BuildingEnv(val types: MutableMap<String, GraphQLType>) {
         return relevantFields.map { field ->
             var type = field.type as GraphQLType
             type = getInputType(type)
-            type = if (forceOptionalProvider.invoke(field)) {
+            type = if (forceOptionalProvider(field)) {
                 (type as? GraphQLNonNull)?.wrappedType ?: type
             } else {
                 type
