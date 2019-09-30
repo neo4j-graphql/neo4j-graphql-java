@@ -72,8 +72,12 @@ data class ExpressionPredicate(val name: String, val op: Operators, val value: A
     val not = if (op.not) "NOT " else ""
     override fun toExpression(variable: String): Cypher {
         val paramName: String = ProjectionBase.FILTER + paramName(variable, name, value).capitalize()
-        val field = if (fieldDefinition.isNativeId()) "ID($variable)" else "$variable.${name.quote()}"
-        return Cypher("$not$field ${op.op} \$$paramName", mapOf(paramName to value))
+        val query = if (fieldDefinition.isNativeId()) {
+            "${not}ID($variable) ${op.op} toInteger(\$$paramName)"
+        } else {
+            "$not$variable.${name.quote()} ${op.op} \$$paramName"
+        }
+        return Cypher(query, mapOf(paramName to value))
     }
 }
 

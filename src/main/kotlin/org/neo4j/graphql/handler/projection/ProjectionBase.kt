@@ -48,7 +48,7 @@ open class ProjectionBase {
         // todo turn it into a Predicate too
         val eqExpression = noFilter.map {
             if (type.getFieldDefinition(it.name)?.isNativeId() == true)
-                "ID($variable) = \$${paramName(variable, it.propertyName, it.value)}"
+                "ID($variable) = toInteger(\$${paramName(variable, it.propertyName, it.value)})"
             else
                 "$variable.${it.toCypherString(variable, false)}"
         }

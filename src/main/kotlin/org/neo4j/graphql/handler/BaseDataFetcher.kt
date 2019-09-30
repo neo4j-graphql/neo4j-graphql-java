@@ -127,9 +127,9 @@ abstract class BaseDataFetcher(
                     val queryParams = mapOf(paramName to idProperty.value.toJavaValue())
                     if (idField.isNativeId()) {
                         if (isRelation) {
-                            Cypher("()-[$variable:$label]->() WHERE ID($variable) = $$paramName", queryParams)
+                            Cypher("()-[$variable:$label]->() WHERE ID($variable) = toInteger($$paramName)", queryParams)
                         } else {
-                            Cypher("($variable:$label) WHERE ID($variable) = $$paramName", queryParams)
+                            Cypher("($variable:$label) WHERE ID($variable) = toInteger($$paramName)", queryParams)
                         }
                     } else {
                         // TODO handle @property aliasing
