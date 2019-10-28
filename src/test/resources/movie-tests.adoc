@@ -878,7 +878,7 @@ ORDER BY movie.year DESC LIMIT $movieFirst
 [source,cypher]
 ----
 MATCH ()-[rated:RATED]->()
-WHERE ID(rated) = $rated_id
+WHERE ID(rated) = toInteger($rated_id)
 RETURN rated { .rating } AS rated
 ----
 
@@ -939,7 +939,7 @@ mutation {
 [source,cypher]
 ----
 MATCH ()-[updateRated:RATED]->()
-WHERE ID(updateRated) = $updateRated_id
+WHERE ID(updateRated) = toInteger($updateRated_id)
 SET updateRated = { rating: $updateRatedRating }
 WITH updateRated
 RETURN updateRated { .rating } AS updateRated

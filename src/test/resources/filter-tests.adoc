@@ -386,7 +386,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (company:Company)
-WHERE ID(company) = $filterCompany_id
+WHERE ID(company) = toInteger($filterCompany_id)
 RETURN company { .name, _id:ID(company) } AS company
 ----
 
@@ -408,7 +408,7 @@ RETURN company { .name, _id:ID(company) } AS company
 [source,cypher]
 ----
 MATCH (company:Company)
-WHERE ID(company) IN $filterCompany_id
+WHERE ID(company) IN [id IN $filterCompany_id | toInteger(id)]
 RETURN company { .name, _id:ID(company) } AS company
 ----
 
@@ -430,7 +430,7 @@ RETURN company { .name, _id:ID(company) } AS company
 [source,cypher]
 ----
 MATCH (company:Company)
-WHERE NOT ID(company) IN $filterCompany_id
+WHERE NOT ID(company) IN [id IN $filterCompany_id | toInteger(id)]
 RETURN company { .name, _id:ID(company) } AS company
 ----
 
@@ -452,7 +452,7 @@ RETURN company { .name, _id:ID(company) } AS company
 [source,cypher]
 ----
 MATCH (company:Company)
-WHERE NOT ID(company) = $filterCompany_id
+WHERE NOT ID(company) = toInteger($filterCompany_id)
 RETURN company { .name, _id:ID(company) } AS company
 ----
 
