@@ -233,3 +233,4 @@ fun paramName(variable: String, argName: String, value: Any?): String = when (va
 
 fun GraphQLFieldDefinition.isID() = this.type.inner() == Scalars.GraphQLID
 fun GraphQLFieldDefinition.isNativeId() = this.name == ProjectionBase.NATIVE_ID
+fun GraphQLFieldsContainer.getIdField() = this.fieldDefinitions.find { it.isID() }

@@ -16,11 +16,11 @@ class DeleteHandler private constructor(
             if (!canHandle(type)) {
                 return
             }
-            val idField = type.fieldDefinitions.find { it.isID() } ?: return
+            val idField = type.getIdField() ?: return
 
             val fieldDefinition = buildingEnv
                 .buildFieldDefinition("delete", type, listOf(idField), nullableResult = true)
-                .description("Deletes ${type.name} and returns its ID on successful deletion")
+                .description("Deletes ${type.name} and returns the type itself")
                 .type(type.ref() as GraphQLOutputType)
                 .build()
             buildingEnv.addOperation(MUTATION, fieldDefinition)
@@ -38,7 +38,7 @@ class DeleteHandler private constructor(
             if (!canHandle(type)) {
                 return null
             }
-            val idField = type.fieldDefinitions.find { it.isID() } ?: return null
+            val idField = type.getIdField() ?: return null
             return when {
                 fieldDefinition.name == "delete${type.name}" -> DeleteHandler(type, idField, fieldDefinition)
                 else -> null
@@ -50,10 +50,7 @@ class DeleteHandler private constructor(
             if (!schemaConfig.mutation.enabled || schemaConfig.mutation.exclude.contains(typeName)) {
                 return false
             }
-            if (type.fieldDefinitions.find { it.isID() } == null) {
-                return false
-            }
-            return true
+            return type.getIdField() != null
         }
     }
 

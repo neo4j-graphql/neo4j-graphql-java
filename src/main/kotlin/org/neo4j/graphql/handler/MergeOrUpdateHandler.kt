@@ -42,7 +42,7 @@ class MergeOrUpdateHandler private constructor(
             if (!canHandle(type)) {
                 return null
             }
-            val idField = type.fieldDefinitions.find { it.isID() } ?: return null
+            val idField = type.getIdField() ?: return null
             return when {
                 fieldDefinition.name == "merge${type.name}" -> MergeOrUpdateHandler(type, true, idField, fieldDefinition)
                 fieldDefinition.name == "update${type.name}" -> MergeOrUpdateHandler(type, false, idField, fieldDefinition)
@@ -55,7 +55,7 @@ class MergeOrUpdateHandler private constructor(
             if (!schemaConfig.mutation.enabled || schemaConfig.mutation.exclude.contains(typeName)) {
                 return false
             }
-            if (type.fieldDefinitions.find { it.isID() } == null) {
+            if (type.getIdField() == null) {
                 return false
             }
             if (type.relevantFields().none { !it.isID() }) {
