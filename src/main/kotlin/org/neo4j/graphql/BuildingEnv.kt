@@ -54,18 +54,18 @@ class BuildingEnv(val types: MutableMap<String, GraphQLType>) {
                 .build()
         } else {
             val existingRootType = (rootType as? GraphQLObjectType
-                    ?: throw IllegalStateException("root type $rootTypeName is not an object type"))
+                    ?: throw IllegalStateException("root type $rootTypeName is not an object type but ${rootType.javaClass}"))
             if (existingRootType.getFieldDefinition(fieldDefinition.name) != null) {
-                return // definition already exists
+                return // definition already exists, we don't override it
             }
             existingRootType
                 .transform { builder -> builder.field(fieldDefinition) }
         }
     }
 
-    fun addFilterType(type: GraphQLFieldsContainer, handled: MutableSet<String> = mutableSetOf()): String {
+    fun addFilterType(type: GraphQLFieldsContainer, createdTypes: MutableSet<String> = mutableSetOf()): String {
         val filterName = "_${type.name}Filter"
-        if (handled.contains(filterName)) {
+        if (createdTypes.contains(filterName)) {
             return filterName
         }
         val existingFilterType = types[filterName]
@@ -73,7 +73,7 @@ class BuildingEnv(val types: MutableMap<String, GraphQLType>) {
             return (existingFilterType as? GraphQLInputType)?.name
                     ?: throw IllegalStateException("Filter type $filterName is already defined but not an input type")
         }
-        handled.add(filterName)
+        createdTypes.add(filterName)
         val builder = GraphQLInputObjectType.newInputObject()
             .name(filterName)
         listOf("AND", "OR", "NOT").forEach {
@@ -89,7 +89,7 @@ class BuildingEnv(val types: MutableMap<String, GraphQLType>) {
                     typeDefinition.isNeo4jType() -> getInputType(typeDefinition).name
                     typeDefinition.isScalar() -> typeDefinition.innerName()
                     typeDefinition is GraphQLEnumType -> typeDefinition.innerName()
-                    else -> addFilterType(getInnerFieldsContainer(typeDefinition), handled)
+                    else -> addFilterType(getInnerFieldsContainer(typeDefinition), createdTypes)
                 }
 
                 Operators.forType(types[filterType] ?: typeDefinition).forEach { op ->
@@ -160,6 +160,7 @@ class BuildingEnv(val types: MutableMap<String, GraphQLType>) {
 
     private fun getInputValueDefinitions(relevantFields: List<GraphQLFieldDefinition>): List<GraphQLInputObjectField> {
         return relevantFields.map {
+            // just make evrything optional
             val type = (it.type as? GraphQLNonNull)?.wrappedType ?: it.type
             GraphQLInputObjectField
                 .newInputObjectField()

@@ -27,9 +27,9 @@ abstract class BaseRelationHandler(
                 nullableResult: Boolean
         ): GraphQLFieldDefinition.Builder? {
 
-            val targetType = targetField.type.getInnerFieldsContainer();
-            val sourceIdField = source.fieldDefinitions.find { it.isID() }
-            val targetIdField = targetType.fieldDefinitions.find { it.isID() }
+            val targetType = targetField.type.getInnerFieldsContainer()
+            val sourceIdField = source.getIdField()
+            val targetIdField = targetType.getIdField()
             if (sourceIdField == null || targetIdField == null) {
                 return null
             }
@@ -59,7 +59,7 @@ abstract class BaseRelationHandler(
                 // TODO we do not mutate the node but the relation, I think this check should be different
                 return false
             }
-            if (type.fieldDefinitions.find { it.isID() } == null) {
+            if (type.getIdField() == null) {
                 return false
             }
             return true
@@ -70,7 +70,7 @@ abstract class BaseRelationHandler(
             if (targetField.getDirective(DirectiveConstants.RELATION) == null) {
                 return false
             }
-            if (type.fieldDefinitions.find { it.isID() } == null) {
+            if (type.getIdField() == null) {
                 return false
             }
             return true
@@ -103,9 +103,9 @@ abstract class BaseRelationHandler(
             }
             val relation = sourceType.relationshipFor(targetField.name) ?: return null
 
-            val targetType = targetField.type.getInnerFieldsContainer();
-            val sourceIdField = sourceType.fieldDefinitions.find { it.isID() }
-            val targetIdField = targetType.fieldDefinitions.find { it.isID() }
+            val targetType = targetField.type.getInnerFieldsContainer()
+            val sourceIdField = sourceType.getIdField()
+            val targetIdField = targetType.getIdField()
             if (sourceIdField == null || targetIdField == null) {
                 return null
             }
