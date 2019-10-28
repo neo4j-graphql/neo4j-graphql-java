@@ -1,10 +1,10 @@
 package org.neo4j.graphql.handler.projection
 
 import graphql.language.*
-import graphql.schema.DataFetchingEnvironment
+import graphql.schema.*
 import org.neo4j.graphql.*
 
-open class ProjectionBase(val metaProvider: MetaProvider) {
+open class ProjectionBase {
     companion object {
         const val NATIVE_ID = "_id"
         const val ORDER_BY = "orderBy"
@@ -25,6 +25,7 @@ open class ProjectionBase(val metaProvider: MetaProvider) {
                 else -> null
             }
         }
+        @Suppress("SimplifiableCallChain")
         return if (values == null) ""
         else " ORDER BY " + values
             .map { it.split("_") }
@@ -32,14 +33,14 @@ open class ProjectionBase(val metaProvider: MetaProvider) {
             .joinToString(", ")
     }
 
-    fun where(variable: String, fieldDefinition: FieldDefinition, type: NodeFacade, arguments: List<Argument>, field: Field): Cypher {
+    fun where(variable: String, fieldDefinition: GraphQLFieldDefinition, type: GraphQLFieldsContainer, arguments: List<Argument>, field: Field): Cypher {
 
         val all = preparePredicateArguments(fieldDefinition, arguments)
             .filterNot { listOf(FIRST, OFFSET, ORDER_BY).contains(it.name) }
             .plus(predicateForNeo4jTypes(type, field))
         val (filterExpressions, filterParams) =
                 filterExpressions(all.find { it.name == FILTER }?.value, type)
-                    .map { it.toExpression(variable, metaProvider) }
+                    .map { it.toExpression(variable) }
                     .let { expressions ->
                         expressions.map { it.query } to expressions.fold(emptyMap<String, Any?>()) { res, exp -> res + exp.params }
                     }
@@ -55,8 +56,8 @@ open class ProjectionBase(val metaProvider: MetaProvider) {
         return Cypher(expression, (filterParams + noFilter.map { (k, _, v) -> paramName(variable, k, v) to v }.toMap()))
     }
 
-    private fun predicateForNeo4jTypes(type: NodeFacade, field: Field): Collection<Translator.CypherArgument> =
-            type.fieldDefinitions()
+    private fun predicateForNeo4jTypes(type: GraphQLFieldsContainer, field: Field): Collection<Translator.CypherArgument> =
+            type.fieldDefinitions
                 .filter { it.isNeo4jType() }
                 .map { neo4jType ->
                     neo4jType to field.selectionSet.selections
@@ -65,78 +66,76 @@ open class ProjectionBase(val metaProvider: MetaProvider) {
                 }
                 .groupBy({ it.first }, { it.second }) // create a map of <FieldWithNeo4jType, List<Field>> so we group the data by the type
                 .mapValues { it.value.flatten() }
-                .flatMap { entry ->
+                .flatMap { (fieldDefinition , selection) ->
                     // for each FieldWithNeo4jType of type query we create the where condition
-                    val typeName = entry.key.type.name()
-                    val fields = entry.value
-                    val neo4jType = metaProvider.getNodeType(typeName)
-                            ?: throw IllegalArgumentException("type $typeName not defined in schema")
-                    fields.flatMap { f ->
-                        argumentsToMap(f.arguments, neo4jType)
+                    val neo4jType = fieldDefinition.type.getInnerFieldsContainer()
+                    selection.flatMap { field ->
+                        argumentsToMap(field.arguments, neo4jType)
                             .values
                             .map { arg ->
                                 val (nameSuffix, propertyNameSuffix, innerNeo4jConstruct) = Neo4jQueryConversion
-                                    .forQuery(arg, f, neo4jType)
+                                    .forQuery(arg, field, neo4jType)
                                 Translator.CypherArgument(nameSuffix, propertyNameSuffix, arg.value, innerNeo4jConstruct)
                             }
                     }
                 }
 
-    private fun argumentsToMap(arguments: List<Argument>, resultObjectType: NodeFacade? = null): Map<String, Translator.CypherArgument> {
+    private fun argumentsToMap(arguments: List<Argument>, resultObjectType: GraphQLFieldsContainer? = null): Map<String, Translator.CypherArgument> {
         return arguments
             .map { argument ->
-                val propertyName = (resultObjectType?.getFieldDefinition(argument.name)?.propertyDirectiveName()
+                val propertyName = (resultObjectType?.getFieldDefinition(argument.name)?.propertyName()
                         ?: argument.name).quote()
                 argument.name to Translator.CypherArgument(argument.name.quote(), propertyName, argument.value.toJavaValue())
             }
             .toMap()
     }
 
-    private fun filterExpressions(value: Any?, type: NodeFacade): List<Predicate> {
+    private fun filterExpressions(value: Any?, type: GraphQLFieldsContainer): List<Predicate> {
         // todo variable/parameter
         return if (value is Map<*, *>) {
-            CompoundPredicate(value.map { (k, v) -> toExpression(k.toString(), v, type, metaProvider) }, "AND").parts
+            CompoundPredicate(value.map { (k, v) -> toExpression(k.toString(), v, type) }, "AND").parts
         } else emptyList()
     }
 
     fun propertyArguments(queryField: Field) =
             queryField.arguments.filterNot { listOf(FIRST, OFFSET, ORDER_BY).contains(it.name) }
 
-    private fun preparePredicateArguments(field: FieldDefinition, arguments: List<Argument>): List<Translator.CypherArgument> {
+    private fun preparePredicateArguments(field: GraphQLFieldDefinition, arguments: List<Argument>): List<Translator.CypherArgument> {
         if (arguments.isEmpty()) return emptyList()
-        val resultObjectType = metaProvider.getNodeType(field.type.name())
-                ?: throw IllegalArgumentException("Result of ${field.name} i.e. ${field.type.name()} is neither and object type nor interface in the schema")
+        val resultObjectType = field.type.getInnerFieldsContainer()
         val predicates = arguments.map {
             val fieldDefinition = resultObjectType.getFieldDefinition(it.name)
-            val dynamicPrefix = fieldDefinition?.dynamicPrefix(metaProvider)
+            val dynamicPrefix = fieldDefinition?.dynamicPrefix()
             val result = mutableListOf<Translator.CypherArgument>()
             if (dynamicPrefix != null && it.value is ObjectValue) {
                 for (argField in (it.value as ObjectValue).objectFields) {
+                    result += Translator.CypherArgument(it.name + argField.name.capitalize(), dynamicPrefix + argField.name, argField.value.toJavaValue())
                     result += Translator.CypherArgument(it.name + argField.name.capitalize(), dynamicPrefix + argField.name, argField.value.toJavaValue())
                 }
 
             } else {
                 result += Translator.CypherArgument(it.name,
-                        (fieldDefinition?.propertyDirectiveName() ?: it.name).quote(),
+                        (fieldDefinition?.propertyName() ?: it.name).quote(),
                         it.value.toJavaValue())
             }
             it.name to result
         }.toMap()
-        val defaults = field.inputValueDefinitions.filter { it.defaultValue?.toJavaValue() != null && !predicates.containsKey(it.name) }
+        val defaults = field.arguments.filter { it.defaultValue?.toJavaValue() != null && !predicates.containsKey(it.name) }
             .map { Translator.CypherArgument(it.name, it.name, it.defaultValue?.toJavaValue()) }
         return predicates.values.flatten() + defaults
     }
 
-    private fun prepareFieldArguments(field: FieldDefinition, arguments: List<Argument>): List<Translator.CypherArgument> {
+    private fun prepareFieldArguments(field: GraphQLFieldDefinition, arguments: List<Argument>): List<Translator.CypherArgument> {
         // if (arguments.isEmpty()) return emptyList()
         val predicates = arguments.map { it.name to Translator.CypherArgument(it.name, it.name, it.value.toJavaValue()) }.toMap()
-        val defaults = field.inputValueDefinitions.filter { it.defaultValue != null && !predicates.containsKey(it.name) }
+        val defaults = field.arguments.filter { it.defaultValue != null && !predicates.containsKey(it.name) }
             .map { Translator.CypherArgument(it.name, it.name, it.defaultValue.toJavaValue()) }
         return predicates.values + defaults
     }
 
-    fun projectFields(variable: String, field: Field, nodeType: NodeFacade, env: DataFetchingEnvironment, variableSuffix: String?): Cypher {
+    fun projectFields(variable: String, field: Field, nodeType: GraphQLFieldsContainer, env: DataFetchingEnvironment, variableSuffix: String?): Cypher {
         val queries = projectSelectionSet(variable, field.selectionSet, nodeType, env, variableSuffix)
+        @Suppress("SimplifiableCallChain")
         val projection = queries
             .map { it.query }
             .joinToString(", ", "{ ", " }")
@@ -146,7 +145,7 @@ open class ProjectionBase(val metaProvider: MetaProvider) {
         return Cypher("$variable $projection", params)
     }
 
-    private fun projectSelectionSet(variable: String, selectionSet: SelectionSet, nodeType: NodeFacade, env: DataFetchingEnvironment, variableSuffix: String?): List<Cypher> {
+    private fun projectSelectionSet(variable: String, selectionSet: SelectionSet, nodeType: GraphQLFieldsContainer, env: DataFetchingEnvironment, variableSuffix: String?): List<Cypher> {
         // TODO just render fragments on valid types (Labels) by using cypher like this:
         // apoc.map.mergeList([
         //  a{.name},
@@ -164,7 +163,7 @@ open class ProjectionBase(val metaProvider: MetaProvider) {
                 else -> emptyList()
             }
         }
-        if (nodeType is InterfaceDefinitionNodeFacade
+        if (nodeType is GraphQLInterfaceType
             && !hasTypeName
             && (env.getLocalContext() as? QueryContext)?.queryTypeOfInterfaces == true
         ) {
@@ -174,21 +173,21 @@ open class ProjectionBase(val metaProvider: MetaProvider) {
         return projections
     }
 
-    private fun projectField(variable: String, field: Field, type: NodeFacade, env: DataFetchingEnvironment, variableSuffix: String?): Cypher {
+    private fun projectField(variable: String, field: Field, type: GraphQLFieldsContainer, env: DataFetchingEnvironment, variableSuffix: String?): Cypher {
         if (field.name == TYPE_NAME) {
             return if (type.isRelationType()) {
-                Cypher("${field.aliasOrName()}: '${type.name()}'")
+                Cypher("${field.aliasOrName()}: '${type.name}'")
             } else {
                 val paramName = paramName(variable, "validTypes", null)
-                val validTypeLabels = metaProvider.getValidTypeLabels(type)
+                val validTypeLabels = type.getValidTypeLabels(env.graphQLSchema)
                 Cypher("${field.aliasOrName()}: head( [ label IN labels($variable) WHERE label IN $$paramName ] )",
                         mapOf(paramName to validTypeLabels))
             }
         }
         val fieldDefinition = type.getFieldDefinition(field.name)
-                ?: throw IllegalStateException("No field ${field.name} in ${type.name()}")
+                ?: throw IllegalStateException("No field ${field.name} in ${type.name}")
         val cypherDirective = fieldDefinition.cypherDirective()
-        val isObjectField = metaProvider.getNodeType(fieldDefinition.type.name()) != null
+        val isObjectField = fieldDefinition.type.inner() is GraphQLFieldsContainer
         return cypherDirective?.let {
             val directive = cypherDirective(variable, fieldDefinition, field, it, listOf(Translator.CypherArgument("this", "this", variable)))
             if (isObjectField) {
@@ -199,7 +198,7 @@ open class ProjectionBase(val metaProvider: MetaProvider) {
 
         } ?: when {
             isObjectField -> {
-                val patternComprehensions = if (fieldDefinition.type.isNeo4jType()) {
+                val patternComprehensions = if (fieldDefinition.isNeo4jType()) {
                     projectNeo4jObjectType(variable, field)
                 } else {
                     projectRelationship(variable, field, fieldDefinition, type, env, variableSuffix)
@@ -208,17 +207,18 @@ open class ProjectionBase(val metaProvider: MetaProvider) {
             }
             fieldDefinition.isNativeId() -> Cypher("${field.aliasOrName()}:ID($variable)")
             else -> {
-                val dynamicPrefix = fieldDefinition.dynamicPrefix(metaProvider)
+                val dynamicPrefix = fieldDefinition.dynamicPrefix()
                 when {
                     dynamicPrefix != null -> Cypher("${field.aliasOrName()}:apoc.map.fromPairs([key IN keys($variable) WHERE key STARTS WITH '$dynamicPrefix'| [substring(key,${dynamicPrefix.length}), $variable[key]]])")
-                    field.aliasOrName() == field.propertyName(fieldDefinition) -> Cypher("." + field.propertyName(fieldDefinition))
-                    else -> Cypher(field.aliasOrName() + ":" + variable + "." + field.propertyName(fieldDefinition))
+                    field.aliasOrName() == fieldDefinition.propertyName() -> Cypher("." + fieldDefinition.propertyName().quote())
+                    else -> Cypher(field.aliasOrName() + ":" + variable + "." + fieldDefinition.propertyName().quote())
                 }
             }
         }
     }
 
     private fun projectNeo4jObjectType(variable: String, field: Field): Cypher {
+        @Suppress("SimplifiableCallChain")
         val fieldProjection = field.selectionSet.selections
             .filterIsInstance<Field>()
             .map {
@@ -233,13 +233,13 @@ open class ProjectionBase(val metaProvider: MetaProvider) {
         return Cypher(" { $fieldProjection }")
     }
 
-    fun cypherDirective(variable: String, fieldDefinition: FieldDefinition, field: Field, cypherDirective: Cypher, additionalArgs: List<Translator.CypherArgument>): Cypher {
+    fun cypherDirective(variable: String, fieldDefinition: GraphQLFieldDefinition, field: Field, cypherDirective: Cypher, additionalArgs: List<Translator.CypherArgument>): Cypher {
         val suffix = if (fieldDefinition.type.isList()) "Many" else "Single"
         val (query, args) = cypherDirectiveQuery(variable, fieldDefinition, field, cypherDirective, additionalArgs)
         return Cypher("apoc.cypher.runFirstColumn$suffix($query)", args)
     }
 
-    fun cypherDirectiveQuery(variable: String, fieldDefinition: FieldDefinition, field: Field, cypherDirective: Cypher, additionalArgs: List<Translator.CypherArgument>): Cypher {
+    fun cypherDirectiveQuery(variable: String, fieldDefinition: GraphQLFieldDefinition, field: Field, cypherDirective: Cypher, additionalArgs: List<Translator.CypherArgument>): Cypher {
         val args = additionalArgs + prepareFieldArguments(fieldDefinition, field.arguments)
         val argParams = args.map { '$' + it.name + " AS " + it.name }.joinNonEmpty(", ")
         val query = (if (argParams.isEmpty()) "" else "WITH $argParams ") + cypherDirective.escapedQuery()
@@ -256,22 +256,22 @@ open class ProjectionBase(val metaProvider: MetaProvider) {
             projectFragment(fragment.typeCondition.name, variable, env, variableSuffix, fragment.selectionSet)
 
     private fun projectFragment(fragmentTypeName: String?, variable: String, env: DataFetchingEnvironment, variableSuffix: String?, selectionSet: SelectionSet): List<Cypher> {
-        val fragmentType = metaProvider.getNodeType(fragmentTypeName) ?: return emptyList()
+        val fragmentType = env.graphQLSchema.getType(fragmentTypeName) as? GraphQLFieldsContainer ?: return emptyList()
         // these are the nested fields of the fragment
         // it could be that we have to adapt the variable name too, and perhaps add some kind of rename
         return projectSelectionSet(variable, selectionSet, fragmentType, env, variableSuffix)
     }
 
 
-    private fun projectRelationship(variable: String, field: Field, fieldDefinition: FieldDefinition, parent: NodeFacade, env: DataFetchingEnvironment, variableSuffix: String?): Cypher {
-        return when (parent.getDirective(DirectiveConstants.RELATION) != null) {
+    private fun projectRelationship(variable: String, field: Field, fieldDefinition: GraphQLFieldDefinition, parent: GraphQLFieldsContainer, env: DataFetchingEnvironment, variableSuffix: String?): Cypher {
+        return when (parent.isRelationType()) {
             true -> projectRelationshipParent(variable, field, fieldDefinition, env, variableSuffix)
             else -> projectRichAndRegularRelationship(variable, field, fieldDefinition, parent, env)
         }
     }
 
-    private fun projectListComprehension(variable: String, field: Field, fieldDefinition: FieldDefinition, env: DataFetchingEnvironment, expression: Cypher, variableSuffix: String?): Cypher {
-        val fieldObjectType = metaProvider.getNodeType(fieldDefinition.type.name()) ?: return Cypher.EMPTY
+    private fun projectListComprehension(variable: String, field: Field, fieldDefinition: GraphQLFieldDefinition, env: DataFetchingEnvironment, expression: Cypher, variableSuffix: String?): Cypher {
+        val fieldObjectType = fieldDefinition.type.getInnerFieldsContainer()
         val fieldType = fieldDefinition.type
         val childVariable = variable + field.name.capitalize()
 
@@ -285,28 +285,26 @@ open class ProjectionBase(val metaProvider: MetaProvider) {
 
     }
 
-    private fun relationshipInfoInCorrectDirection(fieldObjectType: NodeFacade, relInfo0: RelationshipInfo, parent: NodeFacade, relDirectiveField: RelationshipInfo?): RelationshipInfo {
+    private fun relationshipInfoInCorrectDirection(fieldObjectType: GraphQLFieldsContainer, relInfo0: RelationshipInfo, parent: GraphQLFieldsContainer, relDirectiveField: RelationshipInfo?): RelationshipInfo {
         val startField = fieldObjectType.getFieldDefinition(relInfo0.startField)!!
         val endField = fieldObjectType.getFieldDefinition(relInfo0.endField)!!
-        val startFieldTypeName = startField.type.inner().name()
-        val inverse = startFieldTypeName != parent.name() || startField.type.name() == endField.type.name() && relDirectiveField?.out != relInfo0.out
+        val startFieldTypeName = startField.type.inner().name
+        val inverse = startFieldTypeName != parent.name || startField.type.name == endField.type.name && relDirectiveField?.out != relInfo0.out
         return if (inverse) relInfo0.copy(out = relInfo0.out?.not(), startField = relInfo0.endField, endField = relInfo0.startField) else relInfo0
     }
 
-    private fun projectRelationshipParent(variable: String, field: Field, fieldDefinition: FieldDefinition, env: DataFetchingEnvironment, variableSuffix: String?): Cypher {
-        val fieldObjectType = metaProvider.getNodeType(fieldDefinition.type.name()) ?: return Cypher.EMPTY
+    private fun projectRelationshipParent(variable: String, field: Field, fieldDefinition: GraphQLFieldDefinition, env: DataFetchingEnvironment, variableSuffix: String?): Cypher {
+        val fieldObjectType = fieldDefinition.type.inner() as? GraphQLFieldsContainer ?: return Cypher.EMPTY
         return projectFields(variable + (variableSuffix?.capitalize()
                 ?: ""), field, fieldObjectType, env, variableSuffix)
     }
 
-    private fun projectRichAndRegularRelationship(variable: String, field: Field, fieldDefinition: FieldDefinition, parent: NodeFacade, env: DataFetchingEnvironment): Cypher {
+    private fun projectRichAndRegularRelationship(variable: String, field: Field, fieldDefinition: GraphQLFieldDefinition, parent: GraphQLFieldsContainer, env: DataFetchingEnvironment): Cypher {
         val fieldType = fieldDefinition.type
-        val fieldTypeName = fieldDefinition.type.name()!!
-        val nodeType = metaProvider.getNodeType(fieldTypeName)
-                ?: throw IllegalArgumentException("$fieldTypeName cannot be converted to a NodeGraphQlFacade")
+        val nodeType = fieldType.getInnerFieldsContainer()
 
         // todo combine both nestings if rel-entity
-        val relDirectiveObject = nodeType.getDirective(DirectiveConstants.RELATION)?.let { relDetails(nodeType, it) }
+        val relDirectiveObject = (nodeType as? GraphQLDirectiveContainer)?.getDirective(DirectiveConstants.RELATION)?.let { relDetails(nodeType, it) }
         val relDirectiveField = fieldDefinition.getDirective(DirectiveConstants.RELATION)?.let { relDetails(nodeType, it) }
 
         val (relInfo0, isRelFromType) =
@@ -322,10 +320,10 @@ open class ProjectionBase(val metaProvider: MetaProvider) {
 
         val (endNodePattern, variableSuffix) = when {
             isRelFromType -> {
-                val label = nodeType.getFieldDefinition(relInfo.endField!!)!!.type.inner().name()
+                val label = nodeType.getFieldDefinition(relInfo.endField!!)!!.type.inner().name
                 ("$childVariable${relInfo.endField.capitalize()}:$label" to relInfo.endField)
             }
-            else -> ("$childVariable:${nodeType.name()}" to null)
+            else -> ("$childVariable:${nodeType.name}" to null)
         }
 
         val relPattern = if (isRelFromType) "$childVariable:${relInfo.relType}" else ":${relInfo.relType}"
@@ -339,8 +337,8 @@ open class ProjectionBase(val metaProvider: MetaProvider) {
         return Cypher(comprehension + slice.query, (where.params + fieldProjection.params + slice.params))
     }
 
-    private fun relDetails(type: NodeFacade, relDirective: Directive) =
-            relDetails(type) { name, defaultValue -> metaProvider.getDirectiveArgument(relDirective, name, defaultValue) }
+    private fun relDetails(type: GraphQLFieldsContainer, relDirective: GraphQLDirective) =
+            relDetails(type) { name, defaultValue -> relDirective.getArgument(name, defaultValue) }
 
     class SkipLimit(variable: String,
             arguments: List<Argument>,

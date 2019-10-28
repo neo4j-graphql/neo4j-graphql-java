@@ -195,6 +195,7 @@
                 </executions>
                 <configuration>
                     <includes>
+                        <!-- TODO what to do with this part? -->
                         <file>packages.md</file>
                     </includes>
                 </configuration>

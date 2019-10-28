@@ -67,7 +67,8 @@ open class AsciiDocTestSuite {
                     }
                 }
             }
-            return ParsedFile(schema ?: throw IllegalStateException("no schema found"), file, tests)
+            return ParsedFile(schema ?: throw IllegalStateException("no schema found"),
+                    File("src/test/resources/$fileName").absoluteFile, tests)
         }
 
         private fun fixNumber(v: Any?): Any? = when (v) {

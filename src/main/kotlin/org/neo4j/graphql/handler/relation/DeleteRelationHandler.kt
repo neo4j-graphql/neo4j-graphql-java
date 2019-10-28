@@ -1,37 +1,50 @@
 package org.neo4j.graphql.handler.relation
 
 import graphql.language.Field
-import graphql.language.FieldDefinition
-import graphql.language.ObjectTypeDefinition
+import graphql.schema.DataFetcher
 import graphql.schema.DataFetchingEnvironment
+import graphql.schema.GraphQLFieldDefinition
+import graphql.schema.GraphQLFieldsContainer
 import org.neo4j.graphql.*
 
 class DeleteRelationHandler private constructor(
-        type: NodeFacade,
+        type: GraphQLFieldsContainer,
         relation: RelationshipInfo,
         startId: RelationshipInfo.RelatedField,
         endId: RelationshipInfo.RelatedField,
-        fieldDefinition: FieldDefinition,
-        metaProvider: MetaProvider)
-    : BaseRelationHandler(type, relation, startId, endId, fieldDefinition, metaProvider) {
+        fieldDefinition: GraphQLFieldDefinition)
+    : BaseRelationHandler(type, relation, startId, endId, fieldDefinition) {
 
-    companion object {
-        fun build(source: ObjectTypeDefinition,
-                target: ObjectTypeDefinition,
-                metaProvider: MetaProvider): DeleteRelationHandler? {
-
-            return build("delete", source, target, metaProvider, true) { sourceNodeType, relation, startIdField, endIdField, _, fieldDefinitionBuilder ->
-                DeleteRelationHandler(sourceNodeType, relation, startIdField, endIdField, fieldDefinitionBuilder.build(), metaProvider)
+    class Factory(schemaConfig: SchemaConfig) : BaseRelationFactory("delete", schemaConfig) {
+        override fun augmentType(type: GraphQLFieldsContainer, buildingEnv: BuildingEnv) {
+            if (!canHandleType(type)) {
+                return
             }
+            type.fieldDefinitions
+                .filter { canHandleField(it) }
+                .mapNotNull { targetField ->
+                    buildFieldDefinition(type, targetField, true)
+                        ?.let { builder -> buildingEnv.addOperation(MUTATION, builder.build()) }
+                }
         }
+
+        override fun createDataFetcher(
+                sourceType: GraphQLFieldsContainer,
+                relation: RelationshipInfo,
+                startIdField: RelationshipInfo.RelatedField,
+                endIdField: RelationshipInfo.RelatedField,
+                fieldDefinition: GraphQLFieldDefinition
+        ): DataFetcher<Cypher>? {
+            return DeleteRelationHandler(sourceType, relation, startIdField, endIdField, fieldDefinition)
+        }
+
     }
 
     override fun generateCypher(
             variable: String,
             field: Field,
-            projectionProvider: () -> Cypher,
             env: DataFetchingEnvironment): Cypher {
-        val mapProjection = projectionProvider.invoke()
+        val mapProjection = projectFields(variable, field, type, env, null)
         val arguments = field.arguments.map { it.name to it }.toMap()
         val startSelect = getRelationSelect(true, arguments)
         val endSelect = getRelationSelect(false, arguments)

@@ -316,7 +316,6 @@ scalar DynamicProperties
 ----
 schema {
   query: Query
-  mutation: Mutation
 }
 
 interface HasMovies {
@@ -346,9 +345,6 @@ type Knows4 @relation(direction : OUT, from : "source", name : "KNOWS", to : "kn
 type Movie {
   id: ID!
   publishedBy: Publisher @relation(direction : OUT, from : "from", name : "PUBLISHED_BY", to : "to")
-}
-
-type Mutation {
 }
 
 type Person0 {

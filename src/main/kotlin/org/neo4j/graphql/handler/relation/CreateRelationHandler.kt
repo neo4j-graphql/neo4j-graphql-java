@@ -1,53 +1,66 @@
 package org.neo4j.graphql.handler.relation
 
 import graphql.language.Field
-import graphql.language.FieldDefinition
-import graphql.language.ObjectTypeDefinition
+import graphql.schema.DataFetcher
 import graphql.schema.DataFetchingEnvironment
+import graphql.schema.GraphQLFieldDefinition
+import graphql.schema.GraphQLFieldsContainer
 import org.neo4j.graphql.*
 
 class CreateRelationHandler private constructor(
-        type: NodeFacade,
+        type: GraphQLFieldsContainer,
         relation: RelationshipInfo,
         startId: RelationshipInfo.RelatedField,
         endId: RelationshipInfo.RelatedField,
-        fieldDefinition: FieldDefinition,
-        metaProvider: MetaProvider)
-    : BaseRelationHandler(type, relation, startId, endId, fieldDefinition, metaProvider) {
+        fieldDefinition: GraphQLFieldDefinition)
+    : BaseRelationHandler(type, relation, startId, endId, fieldDefinition) {
 
-    companion object {
-        fun build(source: ObjectTypeDefinition,
-                target: ObjectTypeDefinition,
-                relationTypes: Map<String, ObjectTypeDefinition>?,
-                metaProvider: MetaProvider): CreateRelationHandler? {
-
-            return build("add", source, target, metaProvider, false) { sourceNodeType, relation, startIdField, endIdField, targetField, fieldDefinitionBuilder ->
-
-                val relationType = targetField
-                    .getDirective(DirectiveConstants.RELATION)
-                    ?.getArgument(DirectiveConstants.RELATION_NAME)
-                    ?.value?.toJavaValue()?.toString()
-                    .let { relationTypes?.get(it) }
-
-                relationType
-                    ?.fieldDefinitions
-                    ?.filter { it.type.isScalar() && !it.isID() }
-                    ?.forEach { fieldDefinitionBuilder.inputValueDefinition(input(it.name, it.type)) }
-
-                CreateRelationHandler(sourceNodeType, relation, startIdField, endIdField, fieldDefinitionBuilder.build(), metaProvider)
+    class Factory(schemaConfig: SchemaConfig) : BaseRelationFactory("add", schemaConfig) {
+        override fun augmentType(type: GraphQLFieldsContainer, buildingEnv: BuildingEnv) {
+            if (!canHandleType(type)) {
+                return
             }
+            type.fieldDefinitions
+                .filter { canHandleField(it) }
+                .mapNotNull { targetField ->
+                    buildFieldDefinition(type, targetField, nullableResult = false)
+                        ?.let { builder ->
+
+                            val relationType = targetField
+                                .getDirectiveArgument<String>(DirectiveConstants.RELATION, DirectiveConstants.RELATION_NAME, null)
+                                ?.let { buildingEnv.getTypeForRelation(it) }
+
+                            relationType
+                                ?.fieldDefinitions
+                                ?.filter { it.type.isScalar() && !it.isID() }
+                                ?.forEach { builder.argument(input(it.name, it.type)) }
+
+                            buildingEnv.addOperation(MUTATION, builder.build())
+                        }
+
+                }
         }
+
+        override fun createDataFetcher(
+                sourceType: GraphQLFieldsContainer,
+                relation: RelationshipInfo,
+                startIdField: RelationshipInfo.RelatedField,
+                endIdField: RelationshipInfo.RelatedField,
+                fieldDefinition: GraphQLFieldDefinition
+        ): DataFetcher<Cypher>? {
+            return CreateRelationHandler(sourceType, relation, startIdField, endIdField, fieldDefinition)
+        }
+
     }
 
     override fun generateCypher(
             variable: String,
             field: Field,
-            projectionProvider: () -> Cypher,
             env: DataFetchingEnvironment
     ): Cypher {
 
         val properties = properties(variable, field.arguments)
-        val mapProjection = projectionProvider.invoke()
+        val mapProjection = projectFields(variable, field, type, env, null)
 
         val arguments = field.arguments.map { it.name to it }.toMap()
         val startSelect = getRelationSelect(true, arguments)

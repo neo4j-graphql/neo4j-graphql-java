@@ -1,13 +1,8 @@
 package demo
 
 import graphql.GraphQL
-import graphql.language.ListType
-import graphql.language.NonNullType
-import graphql.language.Type
 import graphql.language.VariableReference
-import graphql.schema.DataFetcher
-import graphql.schema.DataFetchingEnvironment
-import graphql.schema.GraphQLSchema
+import graphql.schema.*
 import org.intellij.lang.annotations.Language
 import org.neo4j.driver.v1.AuthTokens
 import org.neo4j.driver.v1.GraphDatabase
@@ -58,10 +53,10 @@ fun toBoltValue(value: Any?, params: Map<String, Any?>) = when (value) {
     else -> value
 }
 
-private fun isListType(type: Type<*>?): Boolean {
+private fun isListType(type: GraphQLType?): Boolean {
     return when (type) {
-        is ListType -> true
-        is NonNullType -> isListType(type.type)
+        is GraphQLType -> true
+        is GraphQLNonNull -> isListType(type.wrappedType)
         else -> false
     }
 }
