@@ -34,13 +34,13 @@ object SchemaBuilder {
 
     @JvmStatic
     @JvmOverloads
-    fun buildSchema(typeDefinitionRegistry: TypeDefinitionRegistry , config: SchemaConfig = SchemaConfig(), dataFetchingInterceptor: DataFetchingInterceptor? = null): GraphQLSchema {
-        val enhancedRegistry  = typeDefinitionRegistry.merge(getNeo4jEnhancements())
+    fun buildSchema(typeDefinitionRegistry: TypeDefinitionRegistry, config: SchemaConfig = SchemaConfig(), dataFetchingInterceptor: DataFetchingInterceptor? = null): GraphQLSchema {
+        val enhancedRegistry = typeDefinitionRegistry.merge(getNeo4jEnhancements())
         if (!enhancedRegistry.getType(QUERY).isPresent) {
             enhancedRegistry.add(ObjectTypeDefinition.newObjectTypeDefinition().name(QUERY).build())
         }
 
-        val builder = RuntimeWiring.newRuntimeWiring() .scalar(DynamicProperties.INSTANCE)
+        val builder = RuntimeWiring.newRuntimeWiring().scalar(DynamicProperties.INSTANCE)
 
         enhancedRegistry
             .getTypes(InterfaceTypeDefinition::class.java)

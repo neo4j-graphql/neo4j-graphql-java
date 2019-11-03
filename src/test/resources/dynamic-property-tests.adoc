@@ -207,7 +207,7 @@ mutation {
 [source,cypher]
 ----
 MATCH ()-[updateKnows:KNOWS]->()
-WHERE ID(updateKnows) = $updateKnows_id
+WHERE ID(updateKnows) = toInteger($updateKnows_id)
 SET updateKnows = { `prefix.foo`: $updateKnowsJsonFoo }
 WITH updateKnows
 RETURN updateKnows {
@@ -240,7 +240,7 @@ mutation {
 [source,cypher]
 ----
 MATCH ()-[mergeKnows:KNOWS]->()
-WHERE ID(mergeKnows) = $mergeKnows_id
+WHERE ID(mergeKnows) = toInteger($mergeKnows_id)
 SET mergeKnows += { `prefix.foo`: $mergeKnowsJsonFoo }
 WITH mergeKnows RETURN mergeKnows {
   json:apoc.map.fromPairs([key IN keys(mergeKnows) WHERE key STARTS WITH 'prefix.'| [substring(key,7), mergeKnows[key]]])

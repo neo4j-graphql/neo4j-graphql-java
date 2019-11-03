@@ -73,7 +73,11 @@ data class ExpressionPredicate(val name: String, val op: Operators, val value: A
     override fun toExpression(variable: String): Cypher {
         val paramName: String = ProjectionBase.FILTER + paramName(variable, name, value).capitalize()
         val query = if (fieldDefinition.isNativeId()) {
-            "${not}ID($variable) ${op.op} toInteger(\$$paramName)"
+            if (op.list){
+                "${not}ID($variable) ${op.op} [id IN \$$paramName | toInteger(id)]"
+            } else {
+                "${not}ID($variable) ${op.op} toInteger(\$$paramName)"
+            }
         } else {
             "$not$variable.${name.quote()} ${op.op} \$$paramName"
         }
