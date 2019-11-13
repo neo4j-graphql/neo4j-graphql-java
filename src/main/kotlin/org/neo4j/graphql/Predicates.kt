@@ -71,7 +71,7 @@ data class IsNullPredicate(val fieldName: String, val op: Operators, val type: G
 data class ExpressionPredicate(val name: String, val op: Operators, val value: Any?, val fieldDefinition: GraphQLFieldDefinition) : Predicate {
     val not = if (op.not) "NOT " else ""
     override fun toExpression(variable: String): Cypher {
-        val paramName: String = ProjectionBase.FILTER + paramName(variable, name, value).capitalize()
+        val paramName: String = ProjectionBase.FILTER + paramName(variable, name, value).capitalize() + "_" + op.name
         val query = if (fieldDefinition.isNativeId()) {
             if (op.list){
                 "${not}ID($variable) ${op.op} [id IN \$$paramName | toInteger(id)]"

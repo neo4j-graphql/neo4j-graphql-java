@@ -40,7 +40,7 @@ type Query {
 [source,json]
 ----
 {
-  "filterPersonGender":"male"
+  "filterPersonGender_EQ":"male"
 }
 ----
 
@@ -48,7 +48,7 @@ type Query {
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE person.gender = $filterPersonGender
+WHERE person.gender = $filterPersonGender_EQ
 RETURN person { .name } AS person
 ----
 
@@ -64,7 +64,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonGender":"male"
+  "filterPersonGender_NEQ":"male"
 }
 ----
 
@@ -72,7 +72,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE NOT person.gender = $filterPersonGender
+WHERE NOT person.gender = $filterPersonGender_NEQ
 RETURN person { .name } AS person
 ----
 
@@ -87,14 +87,14 @@ RETURN person { .name } AS person
 .Cypher Params
 [source,json]
 ----
-{"filterPersonGender":["male"]}
+{"filterPersonGender_NIN":["male"]}
 ----
 
 .Cypher
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE NOT person.gender IN $filterPersonGender
+WHERE NOT person.gender IN $filterPersonGender_NIN
 RETURN person { .name } AS person
 ----
 
@@ -110,7 +110,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonGender": [
+  "filterPersonGender_IN": [
     "male"
   ]
 }
@@ -120,7 +120,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE person.gender IN $filterPersonGender
+WHERE person.gender IN $filterPersonGender_IN
 RETURN person { .name } AS person
 ----
 
@@ -138,7 +138,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonId": "jane"
+  "filterPersonId_EQ": "jane"
 }
 ----
 
@@ -146,7 +146,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE person.id = $filterPersonId
+WHERE person.id = $filterPersonId_EQ
 RETURN person { .name } AS person
 ----
 
@@ -162,7 +162,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonId": "ja"
+  "filterPersonId_SW": "ja"
 }
 ----
 
@@ -170,7 +170,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE person.id STARTS WITH $filterPersonId
+WHERE person.id STARTS WITH $filterPersonId_SW
 RETURN person { .name } AS person
 ----
 
@@ -186,7 +186,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonId": "ja"
+  "filterPersonId_NSW": "ja"
 }
 ----
 
@@ -194,7 +194,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE NOT person.id STARTS WITH $filterPersonId
+WHERE NOT person.id STARTS WITH $filterPersonId_NSW
 RETURN person { .name } AS person
 ----
 
@@ -210,7 +210,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonId": "ne"
+  "filterPersonId_EW": "ne"
 }
 ----
 
@@ -218,7 +218,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE person.id ENDS WITH $filterPersonId
+WHERE person.id ENDS WITH $filterPersonId_EW
 RETURN person { .name } AS person
 ----
 
@@ -234,7 +234,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonId": "ne"
+  "filterPersonId_NEW": "ne"
 }
 ----
 
@@ -242,7 +242,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE NOT person.id ENDS WITH $filterPersonId
+WHERE NOT person.id ENDS WITH $filterPersonId_NEW
 RETURN person { .name } AS person
 ----
 
@@ -258,7 +258,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonId": "an"
+  "filterPersonId_C": "an"
 }
 ----
 
@@ -266,7 +266,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE person.id CONTAINS $filterPersonId
+WHERE person.id CONTAINS $filterPersonId_C
 RETURN person { .name } AS person
 ----
 
@@ -282,7 +282,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonId": "an"
+  "filterPersonId_NC": "an"
 }
 ----
 
@@ -290,7 +290,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE NOT person.id CONTAINS $filterPersonId
+WHERE NOT person.id CONTAINS $filterPersonId_NC
 RETURN person { .name } AS person
 ----
 
@@ -306,7 +306,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonId": ["jane"]
+  "filterPersonId_IN": ["jane"]
 }
 ----
 
@@ -314,7 +314,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE person.id IN $filterPersonId
+WHERE person.id IN $filterPersonId_IN
 RETURN person { .name } AS person
 ----
 
@@ -330,7 +330,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonId": ["joe"]
+  "filterPersonId_NIN": ["joe"]
 }
 ----
 
@@ -338,7 +338,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE NOT person.id IN $filterPersonId
+WHERE NOT person.id IN $filterPersonId_NIN
 RETURN person { .name } AS person
 ----
 
@@ -354,7 +354,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonId": "joe"
+  "filterPersonId_NEQ": "joe"
 }
 ----
 
@@ -362,7 +362,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE NOT person.id = $filterPersonId
+WHERE NOT person.id = $filterPersonId_NEQ
 RETURN person { .name } AS person
 ----
 
@@ -379,14 +379,14 @@ RETURN person { .name } AS person
 .Cypher Params
 [source,json]
 ----
-{"filterCompany_id":1}
+{"filterCompany_id_EQ":1}
 ----
 
 .Cypher
 [source,cypher]
 ----
 MATCH (company:Company)
-WHERE ID(company) = toInteger($filterCompany_id)
+WHERE ID(company) = toInteger($filterCompany_id_EQ)
 RETURN company { .name, _id:ID(company) } AS company
 ----
 
@@ -401,14 +401,14 @@ RETURN company { .name, _id:ID(company) } AS company
 .Cypher Params
 [source,json]
 ----
-{"filterCompany_id": [1,2]}
+{"filterCompany_id_IN": [1,2]}
 ----
 
 .Cypher
 [source,cypher]
 ----
 MATCH (company:Company)
-WHERE ID(company) IN [id IN $filterCompany_id | toInteger(id)]
+WHERE ID(company) IN [id IN $filterCompany_id_IN | toInteger(id)]
 RETURN company { .name, _id:ID(company) } AS company
 ----
 
@@ -423,14 +423,14 @@ RETURN company { .name, _id:ID(company) } AS company
 .Cypher Params
 [source,json]
 ----
-{"filterCompany_id": [1,2]}
+{"filterCompany_id_NIN": [1,2]}
 ----
 
 .Cypher
 [source,cypher]
 ----
 MATCH (company:Company)
-WHERE NOT ID(company) IN [id IN $filterCompany_id | toInteger(id)]
+WHERE NOT ID(company) IN [id IN $filterCompany_id_NIN | toInteger(id)]
 RETURN company { .name, _id:ID(company) } AS company
 ----
 
@@ -445,14 +445,14 @@ RETURN company { .name, _id:ID(company) } AS company
 .Cypher Params
 [source,json]
 ----
-{"filterCompany_id": 1}
+{"filterCompany_id_NEQ": 1}
 ----
 
 .Cypher
 [source,cypher]
 ----
 MATCH (company:Company)
-WHERE NOT ID(company) = toInteger($filterCompany_id)
+WHERE NOT ID(company) = toInteger($filterCompany_id_NEQ)
 RETURN company { .name, _id:ID(company) } AS company
 ----
 
@@ -470,7 +470,7 @@ RETURN company { .name, _id:ID(company) } AS company
 [source,json]
 ----
 {
-  "filterPersonAge": 38
+  "filterPersonAge_EQ": 38
 }
 ----
 
@@ -478,7 +478,7 @@ RETURN company { .name, _id:ID(company) } AS company
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE person.age = $filterPersonAge
+WHERE person.age = $filterPersonAge_EQ
 RETURN person { .name } AS person
 ----
 
@@ -494,7 +494,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonAge": [38]
+  "filterPersonAge_IN": [38]
 }
 ----
 
@@ -502,7 +502,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE person.age IN $filterPersonAge
+WHERE person.age IN $filterPersonAge_IN
 RETURN person { .name } AS person
 ----
 
@@ -518,7 +518,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonAge": [38]
+  "filterPersonAge_NIN": [38]
 }
 ----
 
@@ -526,7 +526,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE NOT person.age IN $filterPersonAge
+WHERE NOT person.age IN $filterPersonAge_NIN
 RETURN person { .name } AS person
 ----
 
@@ -542,7 +542,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonAge": 40
+  "filterPersonAge_LTE": 40
 }
 ----
 
@@ -550,7 +550,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE person.age <= $filterPersonAge
+WHERE person.age <= $filterPersonAge_LTE
 RETURN person { .name } AS person
 ----
 
@@ -566,7 +566,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonAge": 40
+  "filterPersonAge_LT": 40
 }
 ----
 
@@ -574,7 +574,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE person.age < $filterPersonAge
+WHERE person.age < $filterPersonAge_LT
 RETURN person { .name } AS person
 ----
 
@@ -590,7 +590,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonAge": 40
+  "filterPersonAge_GT": 40
 }
 ----
 
@@ -598,7 +598,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE person.age > $filterPersonAge
+WHERE person.age > $filterPersonAge_GT
 RETURN person { .name } AS person
 ----
 
@@ -614,7 +614,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonAge": 40
+  "filterPersonAge_GTE": 40
 }
 ----
 
@@ -622,7 +622,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE person.age >= $filterPersonAge
+WHERE person.age >= $filterPersonAge_GTE
 RETURN person { .name } AS person
 ----
 
@@ -640,7 +640,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonHeight": 1.75
+  "filterPersonHeight_EQ": 1.75
 }
 ----
 
@@ -648,7 +648,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE person.height = $filterPersonHeight
+WHERE person.height = $filterPersonHeight_EQ
 RETURN person { .name } AS person
 ----
 
@@ -664,7 +664,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonHeight": 1.75
+  "filterPersonHeight_NEQ": 1.75
 }
 ----
 
@@ -672,7 +672,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE NOT person.height = $filterPersonHeight
+WHERE NOT person.height = $filterPersonHeight_NEQ
 RETURN person { .name } AS person
 ----
 
@@ -688,7 +688,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonHeight": [1.75]
+  "filterPersonHeight_IN": [1.75]
 }
 ----
 
@@ -696,7 +696,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE person.height IN $filterPersonHeight
+WHERE person.height IN $filterPersonHeight_IN
 RETURN person { .name } AS person
 ----
 
@@ -712,7 +712,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonHeight": [1.75]
+  "filterPersonHeight_NIN": [1.75]
 }
 ----
 
@@ -720,7 +720,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE NOT person.height IN $filterPersonHeight
+WHERE NOT person.height IN $filterPersonHeight_NIN
 RETURN person { .name } AS person
 ----
 
@@ -736,7 +736,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonHeight": 1.8
+  "filterPersonHeight_LTE": 1.8
 }
 ----
 
@@ -744,7 +744,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE person.height <= $filterPersonHeight
+WHERE person.height <= $filterPersonHeight_LTE
 RETURN person { .name } AS person
 ----
 
@@ -760,7 +760,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonHeight": 1.8
+  "filterPersonHeight_LT": 1.8
 }
 ----
 
@@ -768,7 +768,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE person.height < $filterPersonHeight
+WHERE person.height < $filterPersonHeight_LT
 RETURN person { .name } AS person
 ----
 
@@ -784,7 +784,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonHeight": 1.8
+  "filterPersonHeight_GTE": 1.8
 }
 ----
 
@@ -792,7 +792,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE person.height >= $filterPersonHeight
+WHERE person.height >= $filterPersonHeight_GTE
 RETURN person { .name } AS person
 ----
 
@@ -808,7 +808,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonHeight": 1.8
+  "filterPersonHeight_GT": 1.8
 }
 ----
 
@@ -816,7 +816,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE person.height > $filterPersonHeight
+WHERE person.height > $filterPersonHeight_GT
 RETURN person { .name } AS person
 ----
 
@@ -834,7 +834,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonName": "Jane"
+  "filterPersonName_EQ": "Jane"
 }
 ----
 
@@ -842,7 +842,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE person.name = $filterPersonName
+WHERE person.name = $filterPersonName_EQ
 RETURN person { .name } AS person
 ----
 
@@ -858,7 +858,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonName": "Ja"
+  "filterPersonName_SW": "Ja"
 }
 ----
 
@@ -866,7 +866,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE person.name STARTS WITH $filterPersonName
+WHERE person.name STARTS WITH $filterPersonName_SW
 RETURN person { .name } AS person
 ----
 
@@ -882,7 +882,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonName": "Ja"
+  "filterPersonName_NSW": "Ja"
 }
 ----
 
@@ -890,7 +890,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE NOT person.name STARTS WITH $filterPersonName
+WHERE NOT person.name STARTS WITH $filterPersonName_NSW
 RETURN person { .name } AS person
 ----
 
@@ -906,7 +906,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonName": "ne"
+  "filterPersonName_EW": "ne"
 }
 ----
 
@@ -914,7 +914,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE person.name ENDS WITH $filterPersonName
+WHERE person.name ENDS WITH $filterPersonName_EW
 RETURN person { .name } AS person
 ----
 
@@ -930,7 +930,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonName": "ne"
+  "filterPersonName_NEW": "ne"
 }
 ----
 
@@ -938,7 +938,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE NOT person.name ENDS WITH $filterPersonName
+WHERE NOT person.name ENDS WITH $filterPersonName_NEW
 RETURN person { .name } AS person
 ----
 
@@ -954,7 +954,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonName": "an"
+  "filterPersonName_C": "an"
 }
 ----
 
@@ -962,7 +962,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE person.name CONTAINS $filterPersonName
+WHERE person.name CONTAINS $filterPersonName_C
 RETURN person { .name } AS person
 ----
 
@@ -978,7 +978,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonName": "an"
+  "filterPersonName_NC": "an"
 }
 ----
 
@@ -986,7 +986,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE NOT person.name CONTAINS $filterPersonName
+WHERE NOT person.name CONTAINS $filterPersonName_NC
 RETURN person { .name } AS person
 ----
 
@@ -1002,7 +1002,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonName": ["Jane"]
+  "filterPersonName_IN": ["Jane"]
 }
 ----
 
@@ -1010,7 +1010,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE person.name IN $filterPersonName
+WHERE person.name IN $filterPersonName_IN
 RETURN person { .name } AS person
 ----
 
@@ -1026,7 +1026,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonName": ["Joe"]
+  "filterPersonName_NIN": ["Joe"]
 }
 ----
 
@@ -1034,7 +1034,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE NOT person.name IN $filterPersonName
+WHERE NOT person.name IN $filterPersonName_NIN
 RETURN person { .name } AS person
 ----
 
@@ -1050,7 +1050,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonName": "Joe"
+  "filterPersonName_NEQ": "Joe"
 }
 ----
 
@@ -1058,7 +1058,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE NOT person.name = $filterPersonName
+WHERE NOT person.name = $filterPersonName_NEQ
 RETURN person { .name } AS person
 ----
 
@@ -1076,7 +1076,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonFun": true
+  "filterPersonFun_EQ": true
 }
 ----
 
@@ -1084,7 +1084,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE person.fun = $filterPersonFun
+WHERE person.fun = $filterPersonFun_EQ
 RETURN person { .name } AS person
 ----
 
@@ -1100,7 +1100,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonFun": true
+  "filterPersonFun_NEQ": true
 }
 ----
 
@@ -1108,7 +1108,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE NOT person.fun = $filterPersonFun
+WHERE NOT person.fun = $filterPersonFun_NEQ
 RETURN person { .name } AS person
 ----
 
@@ -1161,8 +1161,8 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonFun": true,
-  "filterPersonName": "Jane"
+  "filterPersonFun_EQ": true,
+  "filterPersonName_EQ": "Jane"
 }
 ----
 
@@ -1170,7 +1170,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE ((person.fun = $filterPersonFun AND person.name = $filterPersonName))
+WHERE ((person.fun = $filterPersonFun_EQ AND person.name = $filterPersonName_EQ))
 RETURN person { .name } AS person
 ----
 
@@ -1186,8 +1186,8 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonFun": true,
-  "filterPersonName": "Jane"
+  "filterPersonFun_EQ": true,
+  "filterPersonName_EQ": "Jane"
 }
 ----
 
@@ -1195,7 +1195,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE ((person.fun = $filterPersonFun) AND (person.name = $filterPersonName))
+WHERE ((person.fun = $filterPersonFun_EQ) AND (person.name = $filterPersonName_EQ))
 RETURN person { .name } AS person
 ----
 
@@ -1211,8 +1211,8 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonFun": false,
-  "filterPersonName": "Jane"
+  "filterPersonFun_EQ": false,
+  "filterPersonName_NEQ": "Jane"
 }
 ----
 
@@ -1220,7 +1220,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE ((person.fun = $filterPersonFun AND NOT person.name = $filterPersonName))
+WHERE ((person.fun = $filterPersonFun_EQ AND NOT person.name = $filterPersonName_NEQ))
 RETURN person { .name } AS person
 ----
 
@@ -1236,8 +1236,8 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonFun": true,
-  "filterPersonName": ["Jane"]
+  "filterPersonFun_EQ": true,
+  "filterPersonName_IN": ["Jane"]
 }
 ----
 
@@ -1245,7 +1245,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE ((person.fun = $filterPersonFun) OR (person.name IN $filterPersonName))
+WHERE ((person.fun = $filterPersonFun_EQ) OR (person.name IN $filterPersonName_IN))
 RETURN person { .name } AS person
 ----
 
@@ -1261,9 +1261,9 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonFun": true,
-  "filterPersonHeight": 1.75,
-  "filterPersonName": [
+  "filterPersonFun_EQ": true,
+  "filterPersonHeight_EQ": 1.75,
+  "filterPersonName_IN": [
     "Jane"
   ]
 }
@@ -1273,7 +1273,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE ((((person.fun = $filterPersonFun) AND (person.height = $filterPersonHeight))) OR (person.name IN $filterPersonName))
+WHERE ((((person.fun = $filterPersonFun_EQ) AND (person.height = $filterPersonHeight_EQ))) OR (person.name IN $filterPersonName_IN))
 RETURN person { .name } AS person
 ----
 
@@ -1291,7 +1291,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterP_PersonName": "Jane"
+  "filterP_PersonName_EQ": "Jane"
 }
 ----
 
@@ -1299,7 +1299,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (p:Company)
-WHERE ANY(p_Person_Cond IN [(p)<-[:WORKS_AT]-(p_Person) | (p_Person.name = $filterP_PersonName)] WHERE p_Person_Cond)
+WHERE ANY(p_Person_Cond IN [(p)<-[:WORKS_AT]-(p_Person) | (p_Person.name = $filterP_PersonName_EQ)] WHERE p_Person_Cond)
 RETURN p { .name } AS p
 ----
 
@@ -1315,7 +1315,7 @@ RETURN p { .name } AS p
 [source,json]
 ----
 {
-  "filterP_PersonName": "Jill"
+  "filterP_PersonName_EQ": "Jill"
 }
 ----
 
@@ -1323,7 +1323,7 @@ RETURN p { .name } AS p
 [source,cypher]
 ----
 MATCH (p:Company)
-WHERE ANY(p_Person_Cond IN [(p)<-[:WORKS_AT]-(p_Person) | (p_Person.name = $filterP_PersonName)] WHERE p_Person_Cond)
+WHERE ANY(p_Person_Cond IN [(p)<-[:WORKS_AT]-(p_Person) | (p_Person.name = $filterP_PersonName_EQ)] WHERE p_Person_Cond)
 RETURN p { .name } AS p
 ----
 
@@ -1339,7 +1339,7 @@ RETURN p { .name } AS p
 [source,json]
 ----
 {
-  "filterP_PersonName": "Jill"
+  "filterP_PersonName_EQ": "Jill"
 }
 ----
 
@@ -1347,7 +1347,7 @@ RETURN p { .name } AS p
 [source,cypher]
 ----
 MATCH (p:Company)
-WHERE ALL(p_Person_Cond IN [(p)<-[:WORKS_AT]-(p_Person) | (p_Person.name = $filterP_PersonName)] WHERE p_Person_Cond)
+WHERE ALL(p_Person_Cond IN [(p)<-[:WORKS_AT]-(p_Person) | (p_Person.name = $filterP_PersonName_EQ)] WHERE p_Person_Cond)
 RETURN p { .name } AS p
 ----
 
@@ -1363,7 +1363,7 @@ RETURN p { .name } AS p
 [source,json]
 ----
 {
-  "filterP_PersonName": "Jane"
+  "filterP_PersonName_EQ": "Jane"
 }
 ----
 
@@ -1371,7 +1371,7 @@ RETURN p { .name } AS p
 [source,cypher]
 ----
 MATCH (p:Company)
-WHERE NONE(p_Person_Cond IN [(p)<-[:WORKS_AT]-(p_Person) | (p_Person.name = $filterP_PersonName)] WHERE p_Person_Cond)
+WHERE NONE(p_Person_Cond IN [(p)<-[:WORKS_AT]-(p_Person) | (p_Person.name = $filterP_PersonName_EQ)] WHERE p_Person_Cond)
 RETURN p { .name } AS p
 ----
 
@@ -1387,7 +1387,7 @@ RETURN p { .name } AS p
 [source,json]
 ----
 {
-  "filterP_PersonName": "Jill"
+  "filterP_PersonName_EQ": "Jill"
 }
 ----
 
@@ -1395,7 +1395,7 @@ RETURN p { .name } AS p
 [source,cypher]
 ----
 MATCH (p:Company)
-WHERE NONE(p_Person_Cond IN [(p)<-[:WORKS_AT]-(p_Person) | (p_Person.name = $filterP_PersonName)] WHERE p_Person_Cond)
+WHERE NONE(p_Person_Cond IN [(p)<-[:WORKS_AT]-(p_Person) | (p_Person.name = $filterP_PersonName_EQ)] WHERE p_Person_Cond)
 RETURN p { .name } AS p
 ----
 
@@ -1411,7 +1411,7 @@ RETURN p { .name } AS p
 [source,json]
 ----
 {
-  "filterP_PersonName": "Jill"
+  "filterP_PersonName_EQ": "Jill"
 }
 ----
 
@@ -1419,7 +1419,7 @@ RETURN p { .name } AS p
 [source,cypher]
 ----
 MATCH (p:Company)
-WHERE SINGLE(p_Person_Cond IN [(p)<-[:WORKS_AT]-(p_Person) | (p_Person.name = $filterP_PersonName)] WHERE p_Person_Cond)
+WHERE SINGLE(p_Person_Cond IN [(p)<-[:WORKS_AT]-(p_Person) | (p_Person.name = $filterP_PersonName_EQ)] WHERE p_Person_Cond)
 RETURN p { .name } AS p
 ----
 
@@ -1479,7 +1479,7 @@ RETURN p { .name } AS p
 [source,json]
 ----
 {
-  "filterPerson_CompanyName": "ACME"
+  "filterPerson_CompanyName_EQ": "ACME"
 }
 ----
 
@@ -1487,7 +1487,7 @@ RETURN p { .name } AS p
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE ALL(person_Company_Cond IN [(person)-[:WORKS_AT]->(person_Company) | (person_Company.name = $filterPerson_CompanyName)] WHERE person_Company_Cond)
+WHERE ALL(person_Company_Cond IN [(person)-[:WORKS_AT]->(person_Company) | (person_Company.name = $filterPerson_CompanyName_EQ)] WHERE person_Company_Cond)
 RETURN person { .name } AS person
 ----
 
@@ -1529,7 +1529,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterP_PersonName": ["Jane","Joe"]
+  "filterP_PersonName_IN": ["Jane","Joe"]
 }
 ----
 
@@ -1537,7 +1537,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (p:Company)
-WHERE ALL(p_Person_Cond IN [(p)<-[:WORKS_AT]-(p_Person) | (p_Person.name IN $filterP_PersonName)] WHERE p_Person_Cond)
+WHERE ALL(p_Person_Cond IN [(p)<-[:WORKS_AT]-(p_Person) | (p_Person.name IN $filterP_PersonName_IN)] WHERE p_Person_Cond)
 RETURN p { .name } AS p
 ----
 
@@ -1615,7 +1615,7 @@ query filterQuery($name: String) { person(filter: {name : $name}) { name }}
 [source,json]
 ----
 {
-  "filterName": "Jane"
+  "filterName_EQ": "Jane"
 }
 ----
 
@@ -1623,7 +1623,7 @@ query filterQuery($name: String) { person(filter: {name : $name}) { name }}
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE person.name = $filterName
+WHERE person.name = $filterName_EQ
 RETURN person { .name } AS person
 ----
 
@@ -1641,7 +1641,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPEmployeesName": "Jane"
+  "filterPEmployeesName_EQ": "Jane"
 }
 ----
 
@@ -1649,5 +1649,5 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (p:Company)
-RETURN p { employees:[(p)<-[:WORKS_AT]-(pEmployees:Person) WHERE pEmployees.name = $filterPEmployeesName | pEmployees { .name }] } AS p
+RETURN p { employees:[(p)<-[:WORKS_AT]-(pEmployees:Person) WHERE pEmployees.name = $filterPEmployeesName_EQ | pEmployees { .name }] } AS p
 ----
