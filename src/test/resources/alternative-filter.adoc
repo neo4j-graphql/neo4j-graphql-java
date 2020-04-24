@@ -1,0 +1,351 @@
+:toc:
+= Translator Tests
+
+== Schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+  released: Int
+  tagline: String
+  actor: [Person!]! @relation(name:"ACTED_IN", direction: IN)
+  reviews: [Review!]!
+  reviewedBy: [Person!]! @relation(name:"REVIEWED", direction: IN)
+  producedBy: [Person!]! @relation(name:"PRODUCED", direction: IN)
+  writtenBy: [Person!]! @relation(name:"WROTE", direction: IN)
+  directedBy: [Person!]! @relation(name:"DIRECTED", direction: IN)
+}
+type Person {
+  name: String!
+  born: Int
+  actedIn: [Movie!]! @relation(name: "ACTED_IN", direction:OUT)
+  roles: [Role!]!
+  reviewedMovies: [Movie!]! @relation(name: "REVIEWED", direction:OUT)
+  reviews: [Review!]!
+  producedMovies: [Movie!]! @relation(name: "PRODUCED", direction:OUT)
+  writtenMovies: [Movie!]! @relation(name: "WROTE", direction:OUT)
+  directedMovies: [Movie!]! @relation(name: "DIRECTED", direction:OUT)
+  follows: [Person!]! @relation(name: "FOLLOWS", direction:OUT)
+  followedBy: [Person!]! @relation(name: "FOLLOWS", direction:IN)
+}
+type Role @relation(name:"ACTED_IN", from:"actor", to:"movie") {
+  actor: Person!
+  movie: Movie!
+  roles: String
+}
+type Review @relation(name:"REVIEWED", to: "movie") {
+  from: Person!
+  movie: Movie!
+  rating: Int
+  summary: String
+}
+----
+
+== Tests
+
+=== Filter at same level (some)
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movie(filter: {
+    actor_some:{
+      name: "Halle Berry"
+    }
+    reviewedBy_some:{
+      name: "Jessica Thompson"
+    }
+  }) {
+    title
+  }
+}
+
+----
+
+.Cypher params
+[source,json]
+----
+{
+  "movie_actor_some_name": "Halle Berry",
+  "movie_reviewedBy_some_name": "Jessica Thompson"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH
+(movie:Movie),
+(movie)<-[:ACTED_IN]-(movie_actor_some:Person),
+(movie)<-[:REVIEWED]-(movie_reviewedBy_some:Person)
+WHERE
+  movie_actor_some.name = $movie_actor_some_name
+  AND movie_reviewedBy_some.name = $movie_reviewedBy_some_name
+RETURN DISTINCT movie { .title }
+----
+
+=== Filter at same level (some + every)
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movie(filter: {
+    actor_some:{
+      name: "Halle Berry"
+    }
+    reviewedBy_every:{
+      name: "Jessica Thompson"
+    }
+  }) {
+    title
+  }
+}
+
+----
+
+.Cypher params
+[source,json]
+----
+{
+  "movie_actor_some_name": "Halle Berry",
+  "movie_reviewedBy_every_name": "Jessica Thompson"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH
+(movie:Movie),
+(movie)<-[:ACTED_IN]-(movie_actor_some:Person),
+(movie)<-[:REVIEWED]-(movie_reviewedBy_every:Person)
+WHERE
+  movie_actor_some.name = $movie_actor_some_name
+  AND movie_reviewedBy_every.name = $movie_reviewedBy_every_name
+WITH
+  DISTINCT movie,
+  size((movie)<-[:REVIEWED]-(:Person)) as movie_reviewedBy_every_total,
+  count(DISTINCT movie_reviewedBy_every) as movie_reviewedBy_every_count
+WHERE
+  movie_reviewedBy_every_total = movie_reviewedBy_every_count
+RETURN DISTINCT movie { .title }
+----
+
+=== Filter at same level (every)
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movie(filter: {
+    directedBy_every: {
+      name: "Clint Eastwood"
+    }
+    reviewedBy_every:{
+      name: "Jessica Thompson"
+    }
+  }) {
+    title
+  }
+}
+----
+
+.Cypher params
+[source,json]
+----
+{
+  "movie_actor_every_name":  "Clint Eastwood",
+  "movie_reviewedBy_every_name": "Jessica Thompson"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH
+(movie:Movie),
+(movie)<-[:DIRECTED]-(movie_directedBy_every:Person),
+(movie)<-[:REVIEWED]-(movie_reviewedBy_every:Person)
+WHERE
+  movie_directedBy_every.name = $movie_actor_every_name
+  AND movie_reviewedBy_every.name = $movie_reviewedBy_every_name
+WITH
+  DISTINCT movie,
+  size((movie)<-[:DIRECTED]-(:Person)) as movie_directedBy_every_total,
+  count(DISTINCT movie_directedBy_every) as movie_directedBy_every_count,
+  size((movie)<-[:REVIEWED]-(:Person)) as movie_reviewedBy_every_total,
+  count(DISTINCT movie_reviewedBy_every) as movie_reviewedBy_every_count
+WHERE
+  movie_directedBy_every_total = movie_directedBy_every_count
+  AND movie_reviewedBy_every_total = movie_reviewedBy_every_count
+RETURN DISTINCT movie { .title }
+----
+
+=== Filter at different level (every)
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movie(filter: {
+    directedBy_every:{
+      OR:[
+        {
+          AND:[{name: "Lilly Wachowski"},{name: "Lana Wachowski"},{name: "Tom Tykwer"}]
+        },
+      	{name: "Clint Eastwood"}
+      ]
+    }
+    reviewedBy_every:{
+      name: "Jessica Thompson"
+    }
+  }) {
+    title
+  }
+}
+----
+
+.Cypher params
+[source,json]
+----
+{
+  "movie_directedBy_every_or1_and1_name":  "Lilly Wachowski",
+  "movie_directedBy_every_or1_and2_name":  "Lana Wachowski",
+  "movie_directedBy_every_or1_and3_name":  "Tom Tykwer",
+  "movie_directedBy_every_or2_name":  "Clint Eastwood",
+  "movie_reviewedBy_every_name": "Jessica Thompson"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH
+(movie:Movie),
+(movie)<-[:REVIEWED]-(movie_reviewedBy_every:Person)
+WHERE
+	movie_reviewedBy_every.name = $movie_reviewedBy_every_name
+
+OPTIONAL MATCH
+  (movie)<-[:DIRECTED]-(movie_directedBy_every_or1_and1:Person),
+  (movie)<-[:DIRECTED]-(movie_directedBy_every_or1_and2:Person),
+  (movie)<-[:DIRECTED]-(movie_directedBy_every_or1_and3:Person)
+  WHERE
+	movie_directedBy_every_or1_and1.name = $movie_directedBy_every_or1_and1_name
+    AND movie_directedBy_every_or1_and2.name = $movie_directedBy_every_or1_and2_name
+    AND movie_directedBy_every_or1_and3.name = $movie_directedBy_every_or1_and3_name
+
+OPTIONAL MATCH
+  (movie)<-[:DIRECTED]-(movie_directedBy_every_or2:Person)
+  WHERE
+	movie_directedBy_every_or2.name = $movie_directedBy_every_or2_name
+
+WITH
+	DISTINCT movie,
+
+    size((movie)<-[:DIRECTED]-(:Person)) as movie_directedBy_every_total,
+	count(DISTINCT movie_directedBy_every_or1_and1) + count(DISTINCT movie_directedBy_every_or1_and2) + count(DISTINCT movie_directedBy_every_or1_and3) as movie_directedBy_every_or1_count,
+    count(movie_directedBy_every_or2) as movie_directedBy_every_or2_count,
+
+    size((movie)<-[:REVIEWED]-(:Person)) as movie_reviewedBy_every_total,
+    count(DISTINCT movie_reviewedBy_every) as movie_reviewedBy_every_count
+
+WHERE
+((movie_directedBy_every_total = movie_directedBy_every_total AND movie_directedBy_every_total = 3) OR
+(movie_directedBy_every_or2_count = movie_directedBy_every_total AND movie_directedBy_every_total = 1)) AND
+movie_reviewedBy_every_total = movie_reviewedBy_every_count
+RETURN DISTINCT movie { .title }
+----
+
+=== Filter at different level (every)
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movie(filter: {
+    directedBy_every:{
+      name: "Clint Eastwood"
+    }
+    reviewedBy_some:{
+      name: "Jessica Thompson"
+      followedBy:{
+        reviewedMovies:{
+          OR: []
+          released_gte: 2000
+        }
+      }
+    }
+  }) {
+    title
+  }
+}
+----
+
+.Cypher params
+[source,json]
+----
+{
+  "movie_directedBy_every_name":  "Clint Eastwood",
+  "movie_reviewedBy_some_name": "Jessica Thompson",
+  "movie_reviewedBy_some_followedBy_reviewedMovies_released_gte": 2000
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH
+(movie:Movie),
+(movie)<-[:DIRECTED]-(movie_directedBy_every:Person),
+(movie)<-[:REVIEWED]-(movie_reviewedBy_some:Person),
+(movie_reviewedBy_some)<-[:FOLLOWS]-(movie_reviewedBy_some_followedBy:Person),
+(movie_reviewedBy_some_followedBy)-[:REVIEWED]->(movie_reviewedBy_some_followedBy_reviewedMovies:Movie)
+WHERE
+  movie_directedBy_every.name = $movie_directedBy_every_name
+  AND movie_reviewedBy_some.name = $movie_reviewedBy_some_name
+  AND movie_reviewedBy_some_followedBy_reviewedMovies.released >= $movie_reviewedBy_some_followedBy_reviewedMovies_released_gte
+WITH
+  DISTINCT movie,
+  size((movie)<-[:DIRECTED]-(:Person)) as movie_directedBy_every_total,
+  count(DISTINCT movie_directedBy_every) as movie_directedBy_every_count
+RETURN DISTINCT movie { .title }, movie_directedBy_every_count, movie_directedBy_every_total
+----
+
+=== Filter at different level (every)
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movie(filter: {
+    directedBy_every:{
+      name: "Clint Eastwood"
+    }
+    reviewedBy_some:{
+      name: "Jessica Thompson"
+      followedBy:{
+        reviewedMovies:{
+          OR: []
+          released_gte: 2000
+        }
+      }
+    }
+  }) {
+    title
+  }
+}
+----
+
+.Cypher params
+[source,json]
+----
+{
+  "movie_directedBy_every_name":  "Clint Eastwood",
+  "movie_reviewedBy_some_name": "Jessica Thompson",
+  "movie_reviewedBy_some_followedBy_reviewedMovies_released_gte": 2000
+}
+----
