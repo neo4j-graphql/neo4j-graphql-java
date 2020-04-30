@@ -76,15 +76,25 @@ type Review @relation(name:"REVIEWED", to: "movie") {
 .Cypher
 [source,cypher]
 ----
-MATCH
-(movie:Movie),
-(movie)<-[:ACTED_IN]-(movie_actor_some:Person),
-(movie)<-[:REVIEWED]-(movie_reviewedBy_some:Person)
-WHERE
-  movie_actor_some.name = $movie_actor_some_name
-  AND movie_reviewedBy_some.name = $movie_reviewedBy_some_name
+MATCH (movie:Movie)
+WITH DISTINCT movie
+
+MATCH (movie)<-[:ACTED_IN]-(movie_actor_some:Person)
+WHERE movie_actor_some.name = $movie_actor_some_name
+WITH DISTINCT movie
+
+MATCH (movie)<-[:REVIEWED]-(movie_reviewedBy_some:Person)
+WHERE movie_reviewedBy_some.name = $movie_reviewedBy_some_name
+
 RETURN DISTINCT movie { .title }
 ----
+
+.Movie Example result
+|===
+|title
+
+|Cloud Atlas
+|===
 
 === Filter at same level (some + every)
 
@@ -118,21 +128,32 @@ RETURN DISTINCT movie { .title }
 .Cypher
 [source,cypher]
 ----
-MATCH
-(movie:Movie),
-(movie)<-[:ACTED_IN]-(movie_actor_some:Person),
-(movie)<-[:REVIEWED]-(movie_reviewedBy_every:Person)
-WHERE
-  movie_actor_some.name = $movie_actor_some_name
-  AND movie_reviewedBy_every.name = $movie_reviewedBy_every_name
-WITH
-  DISTINCT movie,
+MATCH (movie:Movie)
+WITH DISTINCT movie
+
+MATCH (movie)<-[:ACTED_IN]-(movie_actor_some:Person)
+WHERE movie_actor_some.name = $movie_actor_some_name
+WITH DISTINCT movie
+
+MATCH (movie)<-[:REVIEWED]-(movie_reviewedBy_every:Person)
+WHERE movie_reviewedBy_every.name = $movie_reviewedBy_every_name
+WITH DISTINCT
+  movie,
   size((movie)<-[:REVIEWED]-(:Person)) as movie_reviewedBy_every_total,
   count(DISTINCT movie_reviewedBy_every) as movie_reviewedBy_every_count
 WHERE
   movie_reviewedBy_every_total = movie_reviewedBy_every_count
+
 RETURN DISTINCT movie { .title }
 ----
+
+.Movie Example result
+|===
+|title
+
+|Cloud Atlas
+|===
+
 
 === Filter at same level (every)
 
@@ -165,24 +186,34 @@ RETURN DISTINCT movie { .title }
 .Cypher
 [source,cypher]
 ----
-MATCH
-(movie:Movie),
-(movie)<-[:DIRECTED]-(movie_directedBy_every:Person),
-(movie)<-[:REVIEWED]-(movie_reviewedBy_every:Person)
-WHERE
-  movie_directedBy_every.name = $movie_actor_every_name
-  AND movie_reviewedBy_every.name = $movie_reviewedBy_every_name
-WITH
-  DISTINCT movie,
+MATCH (movie:Movie)
+WITH movie
+
+MATCH (movie)<-[:DIRECTED]-(movie_directedBy_every:Person)
+WHERE movie_directedBy_every.name = $movie_actor_every_name
+WITH movie,
   size((movie)<-[:DIRECTED]-(:Person)) as movie_directedBy_every_total,
-  count(DISTINCT movie_directedBy_every) as movie_directedBy_every_count,
+  count(DISTINCT movie_directedBy_every) as movie_directedBy_every_count
+WHERE
+  movie_directedBy_every_total = movie_directedBy_every_count
+
+MATCH (movie)<-[:REVIEWED]-(movie_reviewedBy_every:Person)
+WHERE movie_reviewedBy_every.name = $movie_reviewedBy_every_name
+WITH movie,
   size((movie)<-[:REVIEWED]-(:Person)) as movie_reviewedBy_every_total,
   count(DISTINCT movie_reviewedBy_every) as movie_reviewedBy_every_count
 WHERE
-  movie_directedBy_every_total = movie_directedBy_every_count
-  AND movie_reviewedBy_every_total = movie_reviewedBy_every_count
+  movie_reviewedBy_every_total = movie_reviewedBy_every_count
 RETURN DISTINCT movie { .title }
 ----
+
+.Movie Example result
+|===
+|title
+
+|Unforgiven
+|===
+
 
 === Filter at different level (every)
 
@@ -223,11 +254,8 @@ RETURN DISTINCT movie { .title }
 .Cypher
 [source,cypher]
 ----
-MATCH
-(movie:Movie),
-(movie)<-[:REVIEWED]-(movie_reviewedBy_every:Person)
-WHERE
-	movie_reviewedBy_every.name = $movie_reviewedBy_every_name
+MATCH (movie:Movie)
+WITH movie
 
 OPTIONAL MATCH
   (movie)<-[:DIRECTED]-(movie_directedBy_every_or1_and1:Person),
@@ -244,21 +272,35 @@ OPTIONAL MATCH
 	movie_directedBy_every_or2.name = $movie_directedBy_every_or2_name
 
 WITH
-	DISTINCT movie,
+	movie,
 
     size((movie)<-[:DIRECTED]-(:Person)) as movie_directedBy_every_total,
 	count(DISTINCT movie_directedBy_every_or1_and1) + count(DISTINCT movie_directedBy_every_or1_and2) + count(DISTINCT movie_directedBy_every_or1_and3) as movie_directedBy_every_or1_count,
-    count(movie_directedBy_every_or2) as movie_directedBy_every_or2_count,
-
-    size((movie)<-[:REVIEWED]-(:Person)) as movie_reviewedBy_every_total,
-    count(DISTINCT movie_reviewedBy_every) as movie_reviewedBy_every_count
-
+    count(movie_directedBy_every_or2) as movie_directedBy_every_or2_count
 WHERE
 ((movie_directedBy_every_total = movie_directedBy_every_total AND movie_directedBy_every_total = 3) OR
-(movie_directedBy_every_or2_count = movie_directedBy_every_total AND movie_directedBy_every_total = 1)) AND
-movie_reviewedBy_every_total = movie_reviewedBy_every_count
+(movie_directedBy_every_or2_count = movie_directedBy_every_total AND movie_directedBy_every_total = 1))
+
+WITH movie
+MATCH (movie)<-[:REVIEWED]-(movie_reviewedBy_every:Person)
+WHERE movie_reviewedBy_every.name = $movie_reviewedBy_every_name
+WITH movie,
+    size((movie)<-[:REVIEWED]-(:Person)) as movie_reviewedBy_every_total,
+    count(DISTINCT movie_reviewedBy_every) as movie_reviewedBy_every_count
+WHERE
+    movie_reviewedBy_every_total = movie_reviewedBy_every_count
+
 RETURN DISTINCT movie { .title }
 ----
+
+.Movie Example result
+|===
+|title
+
+|Unforgiven
+
+|Cloud Atlas
+|===
 
 === Filter at different level (every)
 
@@ -274,7 +316,6 @@ RETURN DISTINCT movie { .title }
       name: "Jessica Thompson"
       followedBy:{
         reviewedMovies:{
-          OR: []
           released_gte: 2000
         }
       }
@@ -299,53 +340,35 @@ RETURN DISTINCT movie { .title }
 [source,cypher]
 ----
 MATCH
-(movie:Movie),
-(movie)<-[:DIRECTED]-(movie_directedBy_every:Person),
-(movie)<-[:REVIEWED]-(movie_reviewedBy_some:Person),
-(movie_reviewedBy_some)<-[:FOLLOWS]-(movie_reviewedBy_some_followedBy:Person),
-(movie_reviewedBy_some_followedBy)-[:REVIEWED]->(movie_reviewedBy_some_followedBy_reviewedMovies:Movie)
-WHERE
-  movie_directedBy_every.name = $movie_directedBy_every_name
-  AND movie_reviewedBy_some.name = $movie_reviewedBy_some_name
-  AND movie_reviewedBy_some_followedBy_reviewedMovies.released >= $movie_reviewedBy_some_followedBy_reviewedMovies_released_gte
-WITH
-  DISTINCT movie,
+(movie:Movie)
+
+WITH movie
+
+MATCH (movie)<-[:DIRECTED]-(movie_directedBy_every:Person)
+WHERE movie_directedBy_every.name = $movie_directedBy_every_name
+WITH movie,
   size((movie)<-[:DIRECTED]-(:Person)) as movie_directedBy_every_total,
   count(DISTINCT movie_directedBy_every) as movie_directedBy_every_count
-RETURN DISTINCT movie { .title }, movie_directedBy_every_count, movie_directedBy_every_total
+WHERE movie_directedBy_every_total = movie_directedBy_every_count
+WITH movie
+
+MATCH (movie)<-[:REVIEWED]-(movie_reviewedBy_some:Person)
+WHERE movie_reviewedBy_some.name = $movie_reviewedBy_some_name
+WITH movie, movie_reviewedBy_some
+
+MATCH
+  (movie_reviewedBy_some)<-[:FOLLOWS]-(movie_reviewedBy_some_followedBy:Person),
+  (movie_reviewedBy_some_followedBy)-[:REVIEWED]->(movie_reviewedBy_some_followedBy_reviewedMovies:Movie)
+WHERE movie_reviewedBy_some_followedBy_reviewedMovies.released >= $movie_reviewedBy_some_followedBy_reviewedMovies_released_gte
+WITH movie
+
+RETURN DISTINCT movie { .title }
 ----
 
-=== Filter at different level (every)
+.Movie Example result
+|===
+|title
 
-.GraphQL-Query
-[source,graphql]
-----
-{
-  movie(filter: {
-    directedBy_every:{
-      name: "Clint Eastwood"
-    }
-    reviewedBy_some:{
-      name: "Jessica Thompson"
-      followedBy:{
-        reviewedMovies:{
-          OR: []
-          released_gte: 2000
-        }
-      }
-    }
-  }) {
-    title
-  }
-}
-----
+|Unforgiven
 
-.Cypher params
-[source,json]
-----
-{
-  "movie_directedBy_every_name":  "Clint Eastwood",
-  "movie_reviewedBy_some_name": "Jessica Thompson",
-  "movie_reviewedBy_some_followedBy_reviewedMovies_released_gte": 2000
-}
-----
+|===
