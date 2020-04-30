@@ -57,6 +57,7 @@ type Review @relation(name:"REVIEWED", to: "movie") {
     reviewedBy_some:{
       name: "Jessica Thompson"
     }
+    released_gt: 1900
   }) {
     title
   }
@@ -69,7 +70,8 @@ type Review @relation(name:"REVIEWED", to: "movie") {
 ----
 {
   "movie_actor_some_name": "Halle Berry",
-  "movie_reviewedBy_some_name": "Jessica Thompson"
+  "movie_reviewedBy_some_name": "Jessica Thompson",
+  "movie_released_gt": 1900
 }
 ----
 
@@ -77,14 +79,16 @@ type Review @relation(name:"REVIEWED", to: "movie") {
 [source,cypher]
 ----
 MATCH (movie:Movie)
-WITH DISTINCT movie
+WHERE movie.released > $movie_released_gt
+WITH movie
 
 MATCH (movie)<-[:ACTED_IN]-(movie_actor_some:Person)
 WHERE movie_actor_some.name = $movie_actor_some_name
-WITH DISTINCT movie
+WITH movie
 
 MATCH (movie)<-[:REVIEWED]-(movie_reviewedBy_some:Person)
 WHERE movie_reviewedBy_some.name = $movie_reviewedBy_some_name
+WITH movie
 
 RETURN DISTINCT movie { .title }
 ----
@@ -128,22 +132,23 @@ RETURN DISTINCT movie { .title }
 .Cypher
 [source,cypher]
 ----
-MATCH (movie:Movie)
-WITH DISTINCT movie
+MATCH (movie:`Movie`)
+WITH movie
 
-MATCH (movie)<-[:ACTED_IN]-(movie_actor_some:Person)
-WHERE movie_actor_some.name = $movie_actor_some_name
-WITH DISTINCT movie
-
-MATCH (movie)<-[:REVIEWED]-(movie_reviewedBy_every:Person)
-WHERE movie_reviewedBy_every.name = $movie_reviewedBy_every_name
-WITH DISTINCT
-  movie,
-  size((movie)<-[:REVIEWED]-(:Person)) as movie_reviewedBy_every_total,
-  count(DISTINCT movie_reviewedBy_every) as movie_reviewedBy_every_count
+MATCH (movie)<-[:`ACTED_IN`]-(movie_actor_some:`Person`)
 WHERE
-  movie_reviewedBy_every_total = movie_reviewedBy_every_count
+    movie_actor_some.name = $movie_actor_some_name
+WITH movie
 
+MATCH (movie)<-[:`REVIEWED`]-(movie_reviewedBy_every:`Person`)
+WHERE
+    movie_reviewedBy_every.name = $movie_reviewedBy_every_name
+WITH movie,
+    size((movie)<-[:`REVIEWED`]-(:`Person`)) AS movie_reviewedBy_every_total,
+    count(DISTINCT movie_reviewedBy_every) AS movie_reviewedBy_every_count
+WHERE
+    movie_reviewedBy_every_total = movie_reviewedBy_every_count
+WITH movie
 RETURN DISTINCT movie { .title }
 ----
 
@@ -178,7 +183,7 @@ RETURN DISTINCT movie { .title }
 [source,json]
 ----
 {
-  "movie_actor_every_name":  "Clint Eastwood",
+  "movie_directedBy_every_name":  "Clint Eastwood",
   "movie_reviewedBy_every_name": "Jessica Thompson"
 }
 ----
@@ -186,24 +191,28 @@ RETURN DISTINCT movie { .title }
 .Cypher
 [source,cypher]
 ----
-MATCH (movie:Movie)
+MATCH (movie:`Movie`)
 WITH movie
 
-MATCH (movie)<-[:DIRECTED]-(movie_directedBy_every:Person)
-WHERE movie_directedBy_every.name = $movie_actor_every_name
+MATCH (movie)<-[:`DIRECTED`]-(movie_directedBy_every:`Person`)
+WHERE movie_directedBy_every.name = $movie_directedBy_every_name
 WITH movie,
-  size((movie)<-[:DIRECTED]-(:Person)) as movie_directedBy_every_total,
-  count(DISTINCT movie_directedBy_every) as movie_directedBy_every_count
+    size((movie)<-[:`DIRECTED`]-(:`Person`)) AS movie_directedBy_every_total,
+    count(DISTINCT movie_directedBy_every) AS movie_directedBy_every_count
 WHERE
-  movie_directedBy_every_total = movie_directedBy_every_count
+    movie_directedBy_every_total = movie_directedBy_every_count
+WITH movie
 
-MATCH (movie)<-[:REVIEWED]-(movie_reviewedBy_every:Person)
-WHERE movie_reviewedBy_every.name = $movie_reviewedBy_every_name
-WITH movie,
-  size((movie)<-[:REVIEWED]-(:Person)) as movie_reviewedBy_every_total,
-  count(DISTINCT movie_reviewedBy_every) as movie_reviewedBy_every_count
+MATCH (movie)<-[:`REVIEWED`]-(movie_reviewedBy_every:`Person`)
 WHERE
-  movie_reviewedBy_every_total = movie_reviewedBy_every_count
+    movie_reviewedBy_every.name = $movie_reviewedBy_every_name
+WITH movie,
+    size((movie)<-[:`REVIEWED`]-(:`Person`)) AS movie_reviewedBy_every_total,
+    count(DISTINCT movie_reviewedBy_every) AS movie_reviewedBy_every_count
+WHERE
+    movie_reviewedBy_every_total = movie_reviewedBy_every_count
+WITH movie
+
 RETURN DISTINCT movie { .title }
 ----
 
@@ -215,7 +224,7 @@ RETURN DISTINCT movie { .title }
 |===
 
 
-=== Filter at different level (every)
+=== Filter with `OR` and `AND`
 
 .GraphQL-Query
 [source,graphql]
@@ -254,7 +263,7 @@ RETURN DISTINCT movie { .title }
 .Cypher
 [source,cypher]
 ----
-MATCH (movie:Movie)
+MATCH (movie:`Movie`)
 WITH movie
 
 OPTIONAL MATCH
@@ -274,21 +283,22 @@ OPTIONAL MATCH
 WITH
 	movie,
 
-    size((movie)<-[:DIRECTED]-(:Person)) as movie_directedBy_every_total,
-	count(DISTINCT movie_directedBy_every_or1_and1) + count(DISTINCT movie_directedBy_every_or1_and2) + count(DISTINCT movie_directedBy_every_or1_and3) as movie_directedBy_every_or1_count,
+    size((movie)<-[:DIRECTED]-(:Person)) AS movie_directedBy_every_total,
+	count(DISTINCT movie_directedBy_every_or1_and1) + count(DISTINCT movie_directedBy_every_or1_and2) + count(DISTINCT movie_directedBy_every_or1_and3) AS movie_directedBy_every_or1_count,
     count(movie_directedBy_every_or2) as movie_directedBy_every_or2_count
 WHERE
 ((movie_directedBy_every_total = movie_directedBy_every_total AND movie_directedBy_every_total = 3) OR
 (movie_directedBy_every_or2_count = movie_directedBy_every_total AND movie_directedBy_every_total = 1))
-
 WITH movie
-MATCH (movie)<-[:REVIEWED]-(movie_reviewedBy_every:Person)
+
+MATCH (movie)<-[:`REVIEWED`]-(movie_reviewedBy_every:`Person`)
 WHERE movie_reviewedBy_every.name = $movie_reviewedBy_every_name
 WITH movie,
-    size((movie)<-[:REVIEWED]-(:Person)) as movie_reviewedBy_every_total,
-    count(DISTINCT movie_reviewedBy_every) as movie_reviewedBy_every_count
+    size((movie)<-[:`REVIEWED`]-(:`Person`)) AS movie_reviewedBy_every_total,
+    count(DISTINCT movie_reviewedBy_every) AS movie_reviewedBy_every_count
 WHERE
     movie_reviewedBy_every_total = movie_reviewedBy_every_count
+WITH movie
 
 RETURN DISTINCT movie { .title }
 ----
@@ -314,8 +324,8 @@ RETURN DISTINCT movie { .title }
     }
     reviewedBy_some:{
       name: "Jessica Thompson"
-      followedBy:{
-        reviewedMovies:{
+      followedBy_some:{
+        reviewedMovies_some:{
           released_gte: 2000
         }
       }
@@ -332,34 +342,34 @@ RETURN DISTINCT movie { .title }
 {
   "movie_directedBy_every_name":  "Clint Eastwood",
   "movie_reviewedBy_some_name": "Jessica Thompson",
-  "movie_reviewedBy_some_followedBy_reviewedMovies_released_gte": 2000
+  "movie_reviewedBy_some_followedBy_some_reviewedMovies_some_released_gte": 2000
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH
-(movie:Movie)
-
+MATCH (movie:`Movie`)
 WITH movie
 
-MATCH (movie)<-[:DIRECTED]-(movie_directedBy_every:Person)
+MATCH (movie)<-[:`DIRECTED`]-(movie_directedBy_every:`Person`)
 WHERE movie_directedBy_every.name = $movie_directedBy_every_name
 WITH movie,
-  size((movie)<-[:DIRECTED]-(:Person)) as movie_directedBy_every_total,
-  count(DISTINCT movie_directedBy_every) as movie_directedBy_every_count
+  size((movie)<-[:`DIRECTED`]-(:`Person`)) AS movie_directedBy_every_total,
+  count(DISTINCT movie_directedBy_every) AS movie_directedBy_every_count
 WHERE movie_directedBy_every_total = movie_directedBy_every_count
 WITH movie
 
-MATCH (movie)<-[:REVIEWED]-(movie_reviewedBy_some:Person)
+MATCH (movie)<-[:`REVIEWED`]-(movie_reviewedBy_some:`Person`)
 WHERE movie_reviewedBy_some.name = $movie_reviewedBy_some_name
 WITH movie, movie_reviewedBy_some
 
+MATCH (movie_reviewedBy_some)<-[:`FOLLOWS`]-(movie_reviewedBy_some_followedBy_some:`Person`)
+WITH movie, movie_reviewedBy_some_followedBy_some
+
 MATCH
-  (movie_reviewedBy_some)<-[:FOLLOWS]-(movie_reviewedBy_some_followedBy:Person),
-  (movie_reviewedBy_some_followedBy)-[:REVIEWED]->(movie_reviewedBy_some_followedBy_reviewedMovies:Movie)
-WHERE movie_reviewedBy_some_followedBy_reviewedMovies.released >= $movie_reviewedBy_some_followedBy_reviewedMovies_released_gte
+  (movie_reviewedBy_some_followedBy_some)-[:`REVIEWED`]->(movie_reviewedBy_some_followedBy_some_reviewedMovies_some:`Movie`)
+WHERE movie_reviewedBy_some_followedBy_some_reviewedMovies_some.released >= $movie_reviewedBy_some_followedBy_some_reviewedMovies_some_released_gte
 WITH movie
 
 RETURN DISTINCT movie { .title }
