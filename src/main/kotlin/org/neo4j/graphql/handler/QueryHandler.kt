@@ -91,17 +91,17 @@ class QueryHandler private constructor(
             val rootNode = org.neo4j.opencypherdsl.Cypher.node(label()).named(variable)
             val c = org.neo4j.opencypherdsl.Cypher
                 .match(rootNode)
-            var c2: StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere? = null;
+            var c2: StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere? = null
             val filterParams = mutableMapOf<String, Any?>()
             for (argument in field.arguments) {
                 if (argument.name == FILTER) {
                     val queryInfo = parseQueryValue(argument.value as ObjectValue, type)
                     c2 = parseFilter(
                             queryInfo,
-                            rootNode, rootNode, variable, c, type, argument.value,
-                            filterParams,
-                            listOf(rootNode.requiredSymbolicName),
-                            emptyList()
+                            rootNode,
+                            variable,
+                            c, type, argument.value, filterParams, linkedSetOf(rootNode.requiredSymbolicName),
+                            null
                     )
                 } else {
                     throw OptimizedQueryException()
@@ -131,32 +131,39 @@ class QueryHandler private constructor(
      */
     private fun parseFilter(
             queryInfo: Info,
-            parent: Node,
             current: Node,
             variable: String,
             cypher: StatementBuilder.OngoingReadingWithoutWhere,
             type: GraphQLFieldsContainer,
             value: Value<Value<*>>?,
             filterParams: MutableMap<String, Any?>,
-            withPassThrough: List<Expression>,
-            additionalWiths: List<Expression>
-
+            parentPassThroughWiths: Collection<SymbolicName>,
+            additionalFilter: ((StatementBuilder.ExposesWith) -> StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere)?
     ): StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere {
         if (value is ObjectValue) {
 
             val c = addConditions(current, variable, queryInfo.conditions, cypher, filterParams)
-            var c2 = withClauseWithOptionalDistinct(c ?: cypher, withPassThrough + additionalWiths)
+            var c2 = if (additionalFilter != null) {
+                additionalFilter(c ?: cypher)
+            } else {
+                val withs = if (queryInfo.quantifier.isNotEmpty() && parentPassThroughWiths.firstOrNull { it == current.requiredSymbolicName } == null) {
+                    parentPassThroughWiths + current.requiredSymbolicName
+                } else {
+                    parentPassThroughWiths
+                }
+                withClauseWithOptionalDistinct(c ?: cypher, withs)
+            }
 
-            val mpt2 = withPassThrough.toMutableList()
+            val levelPassThroughWiths = parentPassThroughWiths.toCollection(LinkedHashSet())
             for ((index, relFilter) in queryInfo.quantifier.withIndex()) {
-                val (op, objectField, relField) = relFilter;
+                val (op, objectField, relField) = relFilter
                 if (objectField.value !is ObjectValue) {
                     // TODO
                     throw OptimizedQueryException()
                 }
 
-                val bar = parseQueryValue(objectField.value as ObjectValue, relField.type.getInnerFieldsContainer())
-                if (bar.conditions.isEmpty() && bar.quantifier.isEmpty()) {
+                val nestedQueryInfo = parseQueryValue(objectField.value as ObjectValue, relField.type.getInnerFieldsContainer())
+                if (nestedQueryInfo.conditions.isEmpty() && nestedQueryInfo.quantifier.isEmpty()) {
                     continue
                 }
                 val rel = type.relationshipFor(relField.name)!!
@@ -165,57 +172,57 @@ class QueryHandler private constructor(
                 val relNode = org.neo4j.opencypherdsl.Cypher.node(label)
                 val relVariable = relNode.named(relVariableName)
 
+
+                if (index + 1 == queryInfo.quantifier.size) {
+                    levelPassThroughWiths.retainAll(parentPassThroughWiths)
+                } else {
+                    levelPassThroughWiths.add(current.requiredSymbolicName)
+                }
+
                 @Suppress("DEPRECATION")
                 when (op) {
                     RelationOp.ANY, RelationOp.SOME -> {
                         val c3 = createRelation(rel, c2, current, relVariable)
-
-                        val a = if (bar.quantifier.isNotEmpty()) {
-                            listOf(relVariable.requiredSymbolicName)
-                        } else {
-                            emptyList()
-                        }
-                        // TODO
-                        val pair = if (index + 1 == queryInfo.quantifier.size) {
-                            (mpt2 to a)
-                        } else {
-                            mpt2.addAll(a)
-                            (mpt2 to emptyList())
-                        }
-
-//                        val c4: StatementBuilder.OngoingReadingWithWhere? = addConditions(relVariable, relVariableName, bar.conditions, c3, filterParams)
-//                        val pt = pair.first + pair.second
-//                        c2 = withClauseWithOptionalDistinct(c4 ?: c3, pt.toTypedArray())
-
-                        c2 = parseFilter(bar, current, relVariable, relVariableName, c3, rel.type, objectField.value, filterParams, pair.first, pair.second)
+                        c2 = parseFilter(
+                                nestedQueryInfo,
+                                relVariable,
+                                relVariableName,
+                                c3,
+                                rel.type,
+                                objectField.value,
+                                filterParams,
+                                levelPassThroughWiths,
+                                null)
                     }
                     RelationOp.ALL, RelationOp.EVERY -> {
                         val c3 = createRelation(rel, c2, current, relVariable)
-
-                        val totalRel = createRelation(rel, current, relNode)
-                        val totalVar = relVariableName + "_total"
-                        val total = Functions.size(totalRel).`as`(totalVar)
-                        val countVar = relVariableName + "_count"
-                        val count = Functions.countDistinct(relVariable).`as`(countVar)
-
-                        val a = if (bar.quantifier.isNotEmpty()) {
-                            listOf(relVariable.requiredSymbolicName)
-                        } else {
-                            emptyList()
-                        }
-                        val pair = if (index + 1 == queryInfo.quantifier.size) {
-                            (mpt2 to a + listOf(total, count))
-                        } else {
-                            mpt2.addAll(a)
-                            (mpt2 to listOf(total, count))
-                        }
-
                         c2 = parseFilter(
-                                bar, current, relVariable, relVariableName, c3, rel.type, objectField.value,
-                                filterParams, pair.first, pair.second
-                        )
-                        val where = c2.where(name(totalVar).isEqualTo(name(countVar)))
-                        c2 = withClauseWithOptionalDistinct(where, pair.first)
+                                nestedQueryInfo,
+                                relVariable,
+                                relVariableName,
+                                c3,
+                                rel.type,
+                                objectField.value,
+                                filterParams,
+                                levelPassThroughWiths) { exposesWith ->
+
+                            val totalRel = createRelation(rel, current, relNode)
+                            val totalVar = relVariableName + "_total"
+                            val total = Functions.size(totalRel).`as`(totalVar)
+                            val countVar = relVariableName + "_count"
+                            val count = Functions.countDistinct(relVariable).`as`(countVar)
+                            var additionalWiths = emptyList<SymbolicName>()
+                            if (nestedQueryInfo.quantifier.isNotEmpty()) {
+                                additionalWiths = listOf(relVariable.requiredSymbolicName)
+                            }
+
+                            val where = withClauseWithOptionalDistinct(
+                                    exposesWith,
+                                    levelPassThroughWiths + additionalWiths + listOf(total, count)
+                            )
+                                .where(name(totalVar).isEqualTo(name(countVar)))
+                            withClauseWithOptionalDistinct(where, levelPassThroughWiths + additionalWiths)
+                        }
                     }
                     RelationOp.SINGLE -> throw OptimizedQueryException()
                     RelationOp.NONE -> throw OptimizedQueryException()
@@ -231,7 +238,7 @@ class QueryHandler private constructor(
 
     private fun withClauseWithOptionalDistinct(
             exposesWith: StatementBuilder.ExposesWith,
-            withs: List<Expression>): StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere =
+            withs: Collection<Expression>): StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere =
             when (withs.size) {
                 1 -> exposesWith.withDistinct(*withs.toTypedArray())
                 else -> exposesWith.with(*withs.toTypedArray())
@@ -246,7 +253,7 @@ class QueryHandler private constructor(
     ): StatementBuilder.OngoingReadingWithWhere? {
         var c: StatementBuilder.OngoingReadingWithWhere? = null
         for (conditionField in conditions) {
-            val (predicate, objectField, field) = conditionField;
+            val (predicate, objectField, field) = conditionField
             val prop = node.property(field.name)
             val parameter = org.neo4j.opencypherdsl.Cypher.parameter(variablePrefix + "_" + objectField.name)
             val condition = predicate.conditionCreator(prop, parameter)
@@ -270,14 +277,14 @@ class QueryHandler private constructor(
                 null -> start.relationshipBetween(end, rel.relType)
             }
 
-    fun parseQueryValue(objectValue: ObjectValue, type: GraphQLFieldsContainer): Info {
+    private fun parseQueryValue(objectValue: ObjectValue, type: GraphQLFieldsContainer): Info {
         val conditions = mutableListOf<ConditionField>()
         val quantifier = mutableListOf<RelFilter>()
-        val queriedFields = objectValue.objectFields.map { it.name to it }.toMap(mutableMapOf());
-        val or: List<Value<*>>? = queriedFields.remove("OR")?.value?.let {
+        val queriedFields = objectValue.objectFields.mapIndexed { index, field -> field.name to (index to field) }.toMap(mutableMapOf())
+        val or: List<Value<*>>? = queriedFields.remove("OR")?.second?.value?.let {
             (it as ArrayValue).values ?: throw IllegalAccessException("OR is expected to be a list")
         }
-        val and: List<Value<*>>? = queriedFields.remove("AND")?.value?.let {
+        val and: List<Value<*>>? = queriedFields.remove("AND")?.second?.value?.let {
             (it as ArrayValue).values ?: throw IllegalAccessException("AND is expected to be a list")
         }
         for (definedField in type.fieldDefinitions) {
@@ -285,16 +292,16 @@ class QueryHandler private constructor(
                 RelationOp.values()
                     .map { it to definedField.name + it.suffix }
                     .mapNotNull {
-                        val objectField = queriedFields.remove(it.second) ?: return@mapNotNull null
-                        RelFilter(it.first, objectField, definedField)
+                        val (index, objectField) = queriedFields.remove(it.second) ?: return@mapNotNull null
+                        RelFilter(it.first, objectField, definedField, index)
                     }
                     .forEach { quantifier.add(it) }
             } else {
                 Predicate.values()
                     .map { it to definedField.name + it.suffix }
                     .mapNotNull {
-                        val objectField = queriedFields.remove(it.second) ?: return@mapNotNull null
-                        ConditionField(it.first, objectField, definedField)
+                        val (index, objectField) = queriedFields.remove(it.second) ?: return@mapNotNull null
+                        ConditionField(it.first, objectField, definedField, index)
                     }
                     .forEach { conditions.add(it) }
             }
@@ -302,7 +309,7 @@ class QueryHandler private constructor(
         if (queriedFields.isNotEmpty()) {
             throw OptimizedQueryException("queried unknown fields: " + queriedFields.keys)
         }
-        return Info(conditions, quantifier, or, and)
+        return Info(conditions.sortedBy(ConditionField::index), quantifier.sortedBy(RelFilter::index), or, and)
     }
 
     data class Info(
@@ -315,13 +322,15 @@ class QueryHandler private constructor(
     data class RelFilter(
             val op: RelationOp,
             val queryField: ObjectField,
-            val fieldDefinition: GraphQLFieldDefinition
+            val fieldDefinition: GraphQLFieldDefinition,
+            val index: Int
     )
 
     data class ConditionField(
             val predicate: Predicate,
             val queryField: ObjectField,
-            val fieldDefinition: GraphQLFieldDefinition
+            val fieldDefinition: GraphQLFieldDefinition,
+            val index: Int
     )
 
     enum class RelationOp(val suffix: String) {

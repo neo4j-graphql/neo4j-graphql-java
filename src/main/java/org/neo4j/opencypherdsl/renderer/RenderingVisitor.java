@@ -117,7 +117,7 @@ class RenderingVisitor extends ReflectiveVisitor {
 	protected void postLeave(Visitable visitable) {
 
 		if (needsSeparator()) {
-			separator = ", ";
+			separator = ", \n\t";
 		}
 
 		if (visitable instanceof TypedSubtree) {
@@ -139,7 +139,7 @@ class RenderingVisitor extends ReflectiveVisitor {
 	}
 
 	void enter(Where where) {
-		builder.append(" WHERE ");
+		builder.append(" \nWHERE ");
 	}
 
 	void enter(Create create) {
@@ -163,15 +163,15 @@ class RenderingVisitor extends ReflectiveVisitor {
 	}
 
 	void enter(Return returning) {
-		builder.append("RETURN ");
+		builder.append("\nRETURN ");
 	}
 
 	void enter(With with) {
-		builder.append("WITH ");
+		builder.append("\nWITH ");
 	}
 
 	void leave(With with) {
-		builder.append(" ");
+		builder.append(" \n");
 	}
 
 	void enter(Delete delete) {
@@ -249,6 +249,9 @@ class RenderingVisitor extends ReflectiveVisitor {
 		}
 		if (type != Operator.Type.PREFIX && operator != Operator.EXPONENTIATION) {
 			builder.append(" ");
+		}
+		if (operator == Operator.OR || operator == Operator.AND || operator == Operator.XOR) {
+			builder.append("\n\t");
 		}
 		builder.append(operator.getRepresentation());
 		if (type != Operator.Type.POSTFIX && operator != Operator.EXPONENTIATION) {
