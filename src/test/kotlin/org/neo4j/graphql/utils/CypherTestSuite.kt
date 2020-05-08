@@ -20,6 +20,7 @@ class CypherTestSuite(fileName: String) : AsciiDocTestSuite() {
             val line: Int,
             private val request: String,
             private val cypher: String,
+            private val config: QueryContext?,
             private val cypherParams: Map<String, Any?> = emptyMap(),
             private val requestParams: Map<String, Any?> = emptyMap(),
             private val ignore: Boolean) {
@@ -27,9 +28,22 @@ class CypherTestSuite(fileName: String) : AsciiDocTestSuite() {
         fun run(contextProvider: ((requestParams: Map<String, Any?>) -> QueryContext?)?) {
             println(title)
             try {
-                val ctx = contextProvider?.let { it(requestParams) } ?: QueryContext()
+                val ctx = contextProvider?.let { it(requestParams) } ?: config ?: QueryContext()
                 val result = suite.translate(request, requestParams, ctx)
+
+                println("Generated query")
+                println("---------------")
                 println(result.query)
+
+                var queryWithReplacedParams = result.query;
+                result.params.forEach { (key, value) ->
+                    queryWithReplacedParams = queryWithReplacedParams.replace("$$key", if (value is String) "'$value'" else value.toString())
+                }
+                println()
+                println("Generated query with params replaced")
+                println("------------------------------------")
+                println(queryWithReplacedParams)
+
                 Assertions.assertEquals(this.cypher.normalize(), result.query.normalize())
                 Assertions.assertEquals(fixNumbers(cypherParams), fixNumbers(result.params)) {
                     "expected: ${MAPPER.writeValueAsString(cypherParams)}\n" +
@@ -48,7 +62,13 @@ class CypherTestSuite(fileName: String) : AsciiDocTestSuite() {
     val tests: List<TestRun>
 
     init {
-        val result = parse(fileName, linkedSetOf("[source,graphql]", "[source,json,request=true]", "[source,json]", "[source,cypher]"))
+        val result = parse(fileName, linkedSetOf(
+                "[source,graphql]",
+                "[source,json,request=true]",
+                "[source,json,config=true]",
+                "[source,json]",
+                "[source,cypher]"
+        ))
         schema = result.schema
         tests = result.tests.map {
             TestRun(this,
@@ -59,6 +79,7 @@ class CypherTestSuite(fileName: String) : AsciiDocTestSuite() {
                             ?: throw IllegalStateException("missing graphql for ${it.title}"),
                     it.codeBlocks["[source,cypher]"]?.trim()?.toString()
                             ?: throw IllegalStateException("missing cypher query for ${it.title}"),
+                    it.codeBlocks["[source,json,config=true]"]?.let { config -> return@let MAPPER.readValue(config.toString(), QueryContext::class.java) },
                     it.codeBlocks["[source,json]"]?.toString()?.parseJsonMap() ?: emptyMap(),
                     it.codeBlocks["[source,json,request=true]"]?.toString()?.parseJsonMap() ?: emptyMap(),
                     it.ignore

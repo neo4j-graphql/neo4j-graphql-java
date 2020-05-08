@@ -46,6 +46,12 @@ type Review @relation(name:"REVIEWED", to: "movie") {
 
 === Filter at same level (some)
 
+.Query configuration
+[source,json,config=true]
+----
+{  "optimizedQuery": true }
+----
+
 .GraphQL-Query
 [source,graphql]
 ----
@@ -62,7 +68,6 @@ type Review @relation(name:"REVIEWED", to: "movie") {
     title
   }
 }
-
 ----
 
 .Cypher params
@@ -78,19 +83,19 @@ type Review @relation(name:"REVIEWED", to: "movie") {
 .Cypher
 [source,cypher]
 ----
-MATCH (movie:Movie)
+MATCH (movie:`Movie`)
 WHERE movie.released > $movie_released_gt
-WITH movie
+WITH DISTINCT movie
 
-MATCH (movie)<-[:ACTED_IN]-(movie_actor_some:Person)
+MATCH (movie)<-[:`ACTED_IN`]-(movie_actor_some:`Person`)
 WHERE movie_actor_some.name = $movie_actor_some_name
-WITH movie
+WITH DISTINCT movie
 
-MATCH (movie)<-[:REVIEWED]-(movie_reviewedBy_some:Person)
+MATCH (movie)<-[:`REVIEWED`]-(movie_reviewedBy_some:`Person`)
 WHERE movie_reviewedBy_some.name = $movie_reviewedBy_some_name
-WITH movie
+WITH DISTINCT movie
 
-RETURN DISTINCT movie { .title }
+RETURN DISTINCT movie { .title } AS movie
 ----
 
 .Movie Example result
@@ -101,6 +106,13 @@ RETURN DISTINCT movie { .title }
 |===
 
 === Filter at same level (some + every)
+
+.Query configuration
+[source,json,config=true]
+----
+{  "optimizedQuery": true }
+----
+
 
 .GraphQL-Query
 [source,graphql]
@@ -133,12 +145,12 @@ RETURN DISTINCT movie { .title }
 [source,cypher]
 ----
 MATCH (movie:`Movie`)
-WITH movie
+WITH DISTINCT movie
 
 MATCH (movie)<-[:`ACTED_IN`]-(movie_actor_some:`Person`)
 WHERE
     movie_actor_some.name = $movie_actor_some_name
-WITH movie
+WITH DISTINCT movie
 
 MATCH (movie)<-[:`REVIEWED`]-(movie_reviewedBy_every:`Person`)
 WHERE
@@ -148,8 +160,9 @@ WITH movie,
     count(DISTINCT movie_reviewedBy_every) AS movie_reviewedBy_every_count
 WHERE
     movie_reviewedBy_every_total = movie_reviewedBy_every_count
-WITH movie
-RETURN DISTINCT movie { .title }
+WITH DISTINCT movie
+
+RETURN DISTINCT movie { .title } AS movie
 ----
 
 .Movie Example result
@@ -161,6 +174,12 @@ RETURN DISTINCT movie { .title }
 
 
 === Filter at same level (every)
+
+.Query configuration
+[source,json,config=true]
+----
+{  "optimizedQuery": true }
+----
 
 .GraphQL-Query
 [source,graphql]
@@ -192,7 +211,7 @@ RETURN DISTINCT movie { .title }
 [source,cypher]
 ----
 MATCH (movie:`Movie`)
-WITH movie
+WITH DISTINCT movie
 
 MATCH (movie)<-[:`DIRECTED`]-(movie_directedBy_every:`Person`)
 WHERE movie_directedBy_every.name = $movie_directedBy_every_name
@@ -201,7 +220,7 @@ WITH movie,
     count(DISTINCT movie_directedBy_every) AS movie_directedBy_every_count
 WHERE
     movie_directedBy_every_total = movie_directedBy_every_count
-WITH movie
+WITH DISTINCT movie
 
 MATCH (movie)<-[:`REVIEWED`]-(movie_reviewedBy_every:`Person`)
 WHERE
@@ -211,9 +230,9 @@ WITH movie,
     count(DISTINCT movie_reviewedBy_every) AS movie_reviewedBy_every_count
 WHERE
     movie_reviewedBy_every_total = movie_reviewedBy_every_count
-WITH movie
+WITH DISTINCT movie
 
-RETURN DISTINCT movie { .title }
+RETURN DISTINCT movie { .title } AS movie
 ----
 
 .Movie Example result
@@ -225,6 +244,14 @@ RETURN DISTINCT movie { .title }
 
 
 === Filter with `OR` and `AND`
+
+CAUTION: *Not yet implemented*
+
+.Query configuration
+[source,json,config=true]
+----
+{  "optimizedQuery": true }
+----
 
 .GraphQL-Query
 [source,graphql]
@@ -300,7 +327,7 @@ WHERE
     movie_reviewedBy_every_total = movie_reviewedBy_every_count
 WITH movie
 
-RETURN DISTINCT movie { .title }
+RETURN DISTINCT movie { .title } AS movie
 ----
 
 .Movie Example result
@@ -313,6 +340,12 @@ RETURN DISTINCT movie { .title }
 |===
 
 === Filter at different level (every)
+
+.Query configuration
+[source,json,config=true]
+----
+{  "optimizedQuery": true }
+----
 
 .GraphQL-Query
 [source,graphql]
@@ -350,7 +383,7 @@ RETURN DISTINCT movie { .title }
 [source,cypher]
 ----
 MATCH (movie:`Movie`)
-WITH movie
+WITH DISTINCT movie
 
 MATCH (movie)<-[:`DIRECTED`]-(movie_directedBy_every:`Person`)
 WHERE movie_directedBy_every.name = $movie_directedBy_every_name
@@ -358,7 +391,7 @@ WITH movie,
   size((movie)<-[:`DIRECTED`]-(:`Person`)) AS movie_directedBy_every_total,
   count(DISTINCT movie_directedBy_every) AS movie_directedBy_every_count
 WHERE movie_directedBy_every_total = movie_directedBy_every_count
-WITH movie
+WITH DISTINCT movie
 
 MATCH (movie)<-[:`REVIEWED`]-(movie_reviewedBy_some:`Person`)
 WHERE movie_reviewedBy_some.name = $movie_reviewedBy_some_name
@@ -370,9 +403,9 @@ WITH movie, movie_reviewedBy_some_followedBy_some
 MATCH
   (movie_reviewedBy_some_followedBy_some)-[:`REVIEWED`]->(movie_reviewedBy_some_followedBy_some_reviewedMovies_some:`Movie`)
 WHERE movie_reviewedBy_some_followedBy_some_reviewedMovies_some.released >= $movie_reviewedBy_some_followedBy_some_reviewedMovies_some_released_gte
-WITH movie
+WITH DISTINCT movie
 
-RETURN DISTINCT movie { .title }
+RETURN DISTINCT movie { .title } AS movie
 ----
 
 .Movie Example result
