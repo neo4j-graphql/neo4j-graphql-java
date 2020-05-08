@@ -99,6 +99,7 @@ class QueryHandler private constructor(
                     c2 = parseFilter(
                             queryInfo,
                             rootNode,
+                            false,
                             variable,
                             c, type, argument.value, filterParams, linkedSetOf(rootNode.requiredSymbolicName),
                             null
@@ -132,6 +133,7 @@ class QueryHandler private constructor(
     private fun parseFilter(
             queryInfo: Info,
             current: Node,
+            useDistinct: Boolean,
             variable: String,
             cypher: StatementBuilder.OngoingReadingWithoutWhere,
             type: GraphQLFieldsContainer,
@@ -151,7 +153,7 @@ class QueryHandler private constructor(
                 } else {
                     parentPassThroughWiths
                 }
-                withClauseWithOptionalDistinct(c ?: cypher, withs)
+                withClauseWithOptionalDistinct(c ?: cypher, withs, useDistinct)
             }
 
             val levelPassThroughWiths = parentPassThroughWiths.toCollection(LinkedHashSet())
@@ -181,11 +183,12 @@ class QueryHandler private constructor(
 
                 @Suppress("DEPRECATION")
                 when (op) {
-                    RelationOp.ANY, RelationOp.SOME -> {
+                    RelationOp.SINGLE, RelationOp.ANY, RelationOp.SOME -> {
                         val c3 = createRelation(rel, c2, current, relVariable)
                         c2 = parseFilter(
                                 nestedQueryInfo,
                                 relVariable,
+                                true,
                                 relVariableName,
                                 c3,
                                 rel.type,
@@ -199,6 +202,7 @@ class QueryHandler private constructor(
                         c2 = parseFilter(
                                 nestedQueryInfo,
                                 relVariable,
+                                true,
                                 relVariableName,
                                 c3,
                                 rel.type,
@@ -224,9 +228,8 @@ class QueryHandler private constructor(
                             withClauseWithOptionalDistinct(where, levelPassThroughWiths + additionalWiths)
                         }
                     }
-                    RelationOp.SINGLE -> throw OptimizedQueryException()
                     RelationOp.NONE -> throw OptimizedQueryException()
-                    RelationOp.EXISTS -> throw OptimizedQueryException()
+                    RelationOp.EQ -> throw OptimizedQueryException()
                 }
             }
             return c2
@@ -238,9 +241,10 @@ class QueryHandler private constructor(
 
     private fun withClauseWithOptionalDistinct(
             exposesWith: StatementBuilder.ExposesWith,
-            withs: Collection<Expression>): StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere =
-            when (withs.size) {
-                1 -> exposesWith.withDistinct(*withs.toTypedArray())
+            withs: Collection<Expression>,
+            useDistinct: Boolean = true): StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere =
+            when {
+                useDistinct && withs.size == 1 -> exposesWith.withDistinct(*withs.toTypedArray())
                 else -> exposesWith.with(*withs.toTypedArray())
             }
 
@@ -293,7 +297,12 @@ class QueryHandler private constructor(
                     .map { it to definedField.name + it.suffix }
                     .mapNotNull {
                         val (index, objectField) = queriedFields.remove(it.second) ?: return@mapNotNull null
-                        RelFilter(it.first, objectField, definedField, index)
+                        val op = if (it.first == RelationOp.EQ) {
+                            if (definedField.isList()) RelationOp.EVERY else RelationOp.SOME
+                        } else {
+                            it.first
+                        }
+                        RelFilter(op, objectField, definedField, index)
                     }
                     .forEach { quantifier.add(it) }
             } else {
@@ -342,9 +351,11 @@ class QueryHandler private constructor(
 
         @Deprecated(message = "use EVERY", replaceWith = ReplaceWith("EVERY"))
         ALL("_all"),
+
+        @Deprecated(message = "use EQ for n..1 relations", replaceWith = ReplaceWith("EQ"))
         SINGLE("_single"),
         NONE("_none"),
-        EXISTS("")
+        EQ("")
     }
 
     enum class Predicate(val suffix: String, val conditionCreator: (Expression, Expression) -> Condition) {

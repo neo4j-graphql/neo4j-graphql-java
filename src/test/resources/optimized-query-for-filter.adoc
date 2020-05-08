@@ -85,7 +85,7 @@ type Review @relation(name:"REVIEWED", to: "movie") {
 ----
 MATCH (movie:`Movie`)
 WHERE movie.released > $movie_released_gt
-WITH DISTINCT movie
+WITH movie
 
 MATCH (movie)<-[:`ACTED_IN`]-(movie_actor_some:`Person`)
 WHERE movie_actor_some.name = $movie_actor_some_name
@@ -145,7 +145,7 @@ RETURN DISTINCT movie { .title } AS movie
 [source,cypher]
 ----
 MATCH (movie:`Movie`)
-WITH DISTINCT movie
+WITH movie
 
 MATCH (movie)<-[:`ACTED_IN`]-(movie_actor_some:`Person`)
 WHERE
@@ -211,7 +211,7 @@ RETURN DISTINCT movie { .title } AS movie
 [source,cypher]
 ----
 MATCH (movie:`Movie`)
-WITH DISTINCT movie
+WITH movie
 
 MATCH (movie)<-[:`DIRECTED`]-(movie_directedBy_every:`Person`)
 WHERE movie_directedBy_every.name = $movie_directedBy_every_name
@@ -383,7 +383,7 @@ RETURN DISTINCT movie { .title } AS movie
 [source,cypher]
 ----
 MATCH (movie:`Movie`)
-WITH DISTINCT movie
+WITH movie
 
 MATCH (movie)<-[:`DIRECTED`]-(movie_directedBy_every:`Person`)
 WHERE movie_directedBy_every.name = $movie_directedBy_every_name
