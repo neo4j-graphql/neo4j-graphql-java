@@ -535,15 +535,27 @@ input _Knows0Filter {
   id_not_in: [ID]
   id_not_starts_with: ID
   id_starts_with: ID
+
+  #Filters only those `Knows0` for which the `knows`-relationship matches this filter. If `null` is passed to this field, only those `Knows0` will be filtered which has no `knows`-relations
   knows: _Person0Filter
+  #@deprecated Use the `knows_not`-field
   knows_none: _Person0Filter
+  #Filters only those `Knows0` for which the `knows`-relationship does not match this filter. If `null` is passed to this field, only those `Knows0` will be filtered which has any `knows`-relation
   knows_not: _Person0Filter
+  #@deprecated Use the `knows`-field directly (without any suffix)
   knows_single: _Person0Filter
+  #@deprecated Use the `knows`-field directly (without any suffix)
   knows_some: _Person0Filter
+
+  #Filters only those `Knows0` for which the `source`-relationship matches this filter. If `null` is passed to this field, only those `Knows0` will be filtered which has no `source`-relations
   source: _Person0Filter
+  #@deprecated Use the `source_not`-field
   source_none: _Person0Filter
+  #Filters only those `Knows0` for which the `source`-relationship does not match this filter. If `null` is passed to this field, only those `Knows0` will be filtered which has any `source`-relation
   source_not: _Person0Filter
+  #@deprecated Use the `source`-field directly (without any suffix)
   source_single: _Person0Filter
+  #@deprecated Use the `source`-field directly (without any suffix)
   source_some: _Person0Filter
 }
 
@@ -570,15 +582,27 @@ input _Knows1Filter {
   id_not_in: [ID]
   id_not_starts_with: ID
   id_starts_with: ID
+
+  #Filters only those `Knows1` for which the `knows`-relationship matches this filter. If `null` is passed to this field, only those `Knows1` will be filtered which has no `knows`-relations
   knows: _Person0Filter
+  #@deprecated Use the `knows_not`-field
   knows_none: _Person0Filter
+  #Filters only those `Knows1` for which the `knows`-relationship does not match this filter. If `null` is passed to this field, only those `Knows1` will be filtered which has any `knows`-relation
   knows_not: _Person0Filter
+  #@deprecated Use the `knows`-field directly (without any suffix)
   knows_single: _Person0Filter
+  #@deprecated Use the `knows`-field directly (without any suffix)
   knows_some: _Person0Filter
+
+  #Filters only those `Knows1` for which the `source`-relationship matches this filter. If `null` is passed to this field, only those `Knows1` will be filtered which has no `source`-relations
   source: _Person0Filter
+  #@deprecated Use the `source_not`-field
   source_none: _Person0Filter
+  #Filters only those `Knows1` for which the `source`-relationship does not match this filter. If `null` is passed to this field, only those `Knows1` will be filtered which has any `source`-relation
   source_not: _Person0Filter
+  #@deprecated Use the `source`-field directly (without any suffix)
   source_single: _Person0Filter
+  #@deprecated Use the `source`-field directly (without any suffix)
   source_some: _Person0Filter
 }
 
@@ -604,15 +628,27 @@ input _Knows4Filter {
   _id_not_in: [ID]
   _id_not_starts_with: ID
   _id_starts_with: ID
+
+  #Filters only those `Knows4` for which the `knows`-relationship matches this filter. If `null` is passed to this field, only those `Knows4` will be filtered which has no `knows`-relations
   knows: _Person4Filter
+  #@deprecated Use the `knows_not`-field
   knows_none: _Person4Filter
+  #Filters only those `Knows4` for which the `knows`-relationship does not match this filter. If `null` is passed to this field, only those `Knows4` will be filtered which has any `knows`-relation
   knows_not: _Person4Filter
+  #@deprecated Use the `knows`-field directly (without any suffix)
   knows_single: _Person4Filter
+  #@deprecated Use the `knows`-field directly (without any suffix)
   knows_some: _Person4Filter
+
+  #Filters only those `Knows4` for which the `source`-relationship matches this filter. If `null` is passed to this field, only those `Knows4` will be filtered which has no `source`-relations
   source: _Person4Filter
+  #@deprecated Use the `source_not`-field
   source_none: _Person4Filter
+  #Filters only those `Knows4` for which the `source`-relationship does not match this filter. If `null` is passed to this field, only those `Knows4` will be filtered which has any `source`-relation
   source_not: _Person4Filter
+  #@deprecated Use the `source`-field directly (without any suffix)
   source_single: _Person4Filter
+  #@deprecated Use the `source`-field directly (without any suffix)
   source_some: _Person4Filter
 }
 
@@ -639,10 +675,16 @@ input _MovieFilter {
   id_not_in: [ID]
   id_not_starts_with: ID
   id_starts_with: ID
+
+  #Filters only those `Movie` for which the `publishedBy`-relationship matches this filter. If `null` is passed to this field, only those `Movie` will be filtered which has no `publishedBy`-relations
   publishedBy: _PublisherFilter
+  #@deprecated Use the `publishedBy_not`-field
   publishedBy_none: _PublisherFilter
+  #Filters only those `Movie` for which the `publishedBy`-relationship does not match this filter. If `null` is passed to this field, only those `Movie` will be filtered which has any `publishedBy`-relation
   publishedBy_not: _PublisherFilter
+  #@deprecated Use the `publishedBy`-field directly (without any suffix)
   publishedBy_single: _PublisherFilter
+  #@deprecated Use the `publishedBy`-field directly (without any suffix)
   publishedBy_some: _PublisherFilter
 }
 
@@ -887,10 +929,17 @@ input _Person5Filter {
   id_not_in: [ID]
   id_not_starts_with: ID
   id_starts_with: ID
+  #Filters only those `Person5` for which all `movies`-relationship matches this filter. If `null` is passed to this field, only those `Person5` will be filtered which has no `movies`-relations
   movies: _MovieFilter
+  #Filters only those `Person5` for which all `movies`-relationships matches this filter
+  movies_every: _MovieFilter
+  #Filters only those `Person5` for which none of the `movies`-relationships matches this filter
   movies_none: _MovieFilter
+  #Filters only those `Person5` for which all `movies`-relationship does not match this filter. If `null` is passed to this field, only those `Person5` will be filtered which has any `movies`-relation
   movies_not: _MovieFilter
+  #Filters only those `Person5` for which exactly one `movies`-relationship matches this filter
   movies_single: _MovieFilter
+  #Filters only those `Person5` for which at least one `movies`-relationship matches this filter
   movies_some: _MovieFilter
 }
 

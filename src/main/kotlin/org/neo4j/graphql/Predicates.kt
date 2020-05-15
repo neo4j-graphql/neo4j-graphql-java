@@ -4,6 +4,8 @@ import graphql.Scalars
 import graphql.schema.*
 import org.neo4j.graphql.Predicate.Companion.resolvePredicate
 import org.neo4j.graphql.handler.projection.ProjectionBase
+import org.neo4j.opencypherdsl.Condition
+import org.neo4j.opencypherdsl.Expression
 
 interface Predicate {
     fun toExpression(variable: String): Cypher
@@ -110,10 +112,53 @@ data class RelationPredicate(val fieldName: String, val op: Operators, val value
 abstract class UnaryOperator
 class IsNullOperator : UnaryOperator()
 
-@Suppress("unused")
+enum class RelationOperator(val suffix: String) {
+    SOME("_some"),
+
+    EVERY("_every"),
+
+    SINGLE("_single"),
+    NONE("_none"),
+
+    EQ(""),
+    NOT("_not");
+
+    fun fieldName(fieldName: String) = fieldName + suffix
+}
+
+enum class FieldOperator(val suffix: String, val conditionCreator: (Expression, Expression) -> Condition) {
+    // TODO
+    //  IS_NULL("", { lhs, _ -> lhs.isNull }),
+    //  IS_NOT_NULL("_not", { lhs, _ -> lhs.isNotNull }),
+
+    EQ("", { lhs, rhs -> lhs.isEqualTo(rhs) }),
+    NEQ("_not", { lhs, rhs -> lhs.isNotEqualTo(rhs) }),
+
+    GTE("_gte", { lhs, rhs -> lhs.gte(rhs) }),
+    GT("_gt", { lhs, rhs -> lhs.gt(rhs) }),
+    LTE("_lte", { lhs, rhs -> lhs.lte(rhs) }),
+    LT("_lt", { lhs, rhs -> lhs.lt(rhs) }),
+
+    IN("_in", { lhs, rhs -> lhs.`in`(rhs) }),
+    NIN("_not_in", { lhs, rhs -> lhs.`in`(rhs).not() }),
+
+    C("_contains", { lhs, rhs -> lhs.contains(rhs) }),
+    NC("_not_contains", { lhs, rhs -> lhs.contains(rhs).not() }),
+
+    SW("_starts_with", { lhs, rhs -> lhs.startsWith(rhs) }),
+    NSW("_not_starts_with", { lhs, rhs -> lhs.startsWith(rhs).not() }),
+
+    EW("_ends_with", { lhs, rhs -> lhs.endsWith(rhs) }),
+    NEW("_not_ends_with", { lhs, rhs -> lhs.endsWith(rhs).not() }),
+}
+
 enum class Operators(val suffix: String, val op: String, val not: Boolean = false) {
     EQ("", "="),
+
+    @Deprecated(message = "", replaceWith = ReplaceWith(expression = "RelationOp.EQ", imports = ["org.neo4j.graphql.handler.QueryHandler.RelationOp"]))
     IS_NULL("", ""),
+
+    @Deprecated(message = "", replaceWith = ReplaceWith(expression = "RelationOp.NOT", imports = ["org.neo4j.graphql.handler.QueryHandler.RelationOp"]))
     IS_NOT_NULL("not", "", true),
     NEQ("not", "=", true),
     GTE("gte", ">="),
@@ -130,20 +175,22 @@ enum class Operators(val suffix: String, val op: String, val not: Boolean = fals
     SW("starts_with", "STARTS WITH"),
     EW("ends_with", "ENDS WITH"),
 
+    @Deprecated(message = "", replaceWith = ReplaceWith(expression = "RelationOp.SOME", imports = ["org.neo4j.graphql.handler.QueryHandler.RelationOp"]))
     SOME("some", "ANY"),
-    ANY("some", "ANY"),
+
+    @Deprecated(message = "", replaceWith = ReplaceWith(expression = "RelationOp.NONE", imports = ["org.neo4j.graphql.handler.QueryHandler.RelationOp"]))
     NONE("none", "NONE"),
-    EVERY("every", "ALL"),
+
+    @Deprecated(message = "", replaceWith = ReplaceWith(expression = "RelationOp.EVERY", imports = ["org.neo4j.graphql.handler.QueryHandler.RelationOp"]))
     ALL("every", "ALL"),
-    SINGLE("single", "SINGLE")
-    ;
+
+    @Deprecated(message = "", replaceWith = ReplaceWith(expression = "RelationOp.SINGLE", imports = ["org.neo4j.graphql.handler.QueryHandler.RelationOp"]))
+    SINGLE("single", "SINGLE");
 
     val list = op == "IN"
 
     companion object {
         private val ops = enumValues<Operators>().sortedWith(Comparator.comparingInt { it.suffix.length }).reversed()
-        val allNames = ops.map { it.suffix }
-        val allOps = ops.map { it.op }
 
         fun resolve(field: String, value: Any?): Pair<String, Operators> {
             val fieldOperator = ops.find { field.endsWith("_" + it.suffix) }
@@ -158,12 +205,6 @@ enum class Operators(val suffix: String, val op: String, val not: Boolean = fals
                     is IsNullOperator -> if (field.endsWith("_not")) IS_NOT_NULL else IS_NULL
                     else -> throw IllegalArgumentException("Unknown unary operator $value")
                 }
-
-        fun forType(type: GraphQLInputType): List<Operators> =
-                if (type == Scalars.GraphQLBoolean) listOf(EQ, NEQ)
-                else if (type is GraphQLEnumType || type is GraphQLObjectType || type is GraphQLTypeReference) listOf(EQ, NEQ, IN, NIN)
-                else listOf(EQ, NEQ, IN, NIN, LT, LTE, GT, GTE) +
-                        if (type == Scalars.GraphQLString || type == Scalars.GraphQLID) listOf(C, NC, SW, NSW, EW, NEW) else emptyList()
 
         fun forType(type: GraphQLType): List<Operators> =
                 when {

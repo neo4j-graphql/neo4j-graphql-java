@@ -36,7 +36,7 @@ fun GraphQLType.isScalar() = this.inner().let { it is GraphQLScalarType || it.na
 fun GraphQLType.isNeo4jType() = this.inner().name?.startsWith("_Neo4j") == true
 fun GraphQLFieldDefinition.isNeo4jType(): Boolean = this.type.isNeo4jType()
 
-fun GraphQLFieldDefinition.isRelationship() = this.type.inner().let { it is GraphQLFieldsContainer }
+fun GraphQLFieldDefinition.isRelationship() = !type.isNeo4jType()  && this.type.inner().let { it is GraphQLFieldsContainer }
 
 fun GraphQLFieldsContainer.hasRelationship(name: String) = this.getFieldDefinition(name)?.isRelationship() ?: false
 fun GraphQLDirectiveContainer.isRelationType() = getDirective(DirectiveConstants.RELATION) != null

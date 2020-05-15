@@ -183,7 +183,7 @@ class QueryHandler private constructor(
 
                 @Suppress("DEPRECATION")
                 when (op) {
-                    RelationOp.SINGLE, RelationOp.ANY, RelationOp.SOME -> {
+                    RelationOperator.SINGLE, RelationOperator.SOME -> {
                         val c3 = createRelation(rel, c2, current, relVariable)
                         c2 = parseFilter(
                                 nestedQueryInfo,
@@ -197,7 +197,7 @@ class QueryHandler private constructor(
                                 levelPassThroughWiths,
                                 null)
                     }
-                    RelationOp.ALL, RelationOp.EVERY -> {
+                    RelationOperator.EVERY -> {
                         val c3 = createRelation(rel, c2, current, relVariable)
                         c2 = parseFilter(
                                 nestedQueryInfo,
@@ -228,8 +228,9 @@ class QueryHandler private constructor(
                             withClauseWithOptionalDistinct(where, levelPassThroughWiths + additionalWiths)
                         }
                     }
-                    RelationOp.NONE -> throw OptimizedQueryException()
-                    RelationOp.EQ -> throw OptimizedQueryException()
+                    RelationOperator.NONE -> throw OptimizedQueryException()
+                    RelationOperator.NOT -> throw OptimizedQueryException()
+                    RelationOperator.EQ -> throw OptimizedQueryException()
                 }
             }
             return c2
@@ -293,24 +294,24 @@ class QueryHandler private constructor(
         }
         for (definedField in type.fieldDefinitions) {
             if (definedField.isRelationship()) {
-                RelationOp.values()
+                RelationOperator.values()
                     .map { it to definedField.name + it.suffix }
-                    .mapNotNull {
-                        val (index, objectField) = queriedFields.remove(it.second) ?: return@mapNotNull null
-                        val op = if (it.first == RelationOp.EQ) {
-                            if (definedField.isList()) RelationOp.EVERY else RelationOp.SOME
+                    .mapNotNull { (queryOp, queryFieldName) ->
+                        val (index, objectField) = queriedFields.remove(queryFieldName) ?: return@mapNotNull null
+                        val op = if (queryOp == RelationOperator.EQ) {
+                            if (definedField.isList()) RelationOperator.EVERY else RelationOperator.SOME
                         } else {
-                            it.first
+                            queryOp
                         }
                         RelFilter(op, objectField, definedField, index)
                     }
                     .forEach { quantifier.add(it) }
             } else {
-                Predicate.values()
+                FieldOperator.values()
                     .map { it to definedField.name + it.suffix }
-                    .mapNotNull {
-                        val (index, objectField) = queriedFields.remove(it.second) ?: return@mapNotNull null
-                        ConditionField(it.first, objectField, definedField, index)
+                    .mapNotNull { (predicate, queryFieldName) ->
+                        val (index, objectField) = queriedFields.remove(queryFieldName) ?: return@mapNotNull null
+                        ConditionField(predicate, objectField, definedField, index)
                     }
                     .forEach { conditions.add(it) }
             }
@@ -329,58 +330,16 @@ class QueryHandler private constructor(
     )
 
     data class RelFilter(
-            val op: RelationOp,
+            val op: RelationOperator,
             val queryField: ObjectField,
             val fieldDefinition: GraphQLFieldDefinition,
             val index: Int
     )
 
     data class ConditionField(
-            val predicate: Predicate,
+            val predicate: FieldOperator,
             val queryField: ObjectField,
             val fieldDefinition: GraphQLFieldDefinition,
             val index: Int
     )
-
-    enum class RelationOp(val suffix: String) {
-        SOME("_some"),
-
-        @Deprecated(message = "use SOME", replaceWith = ReplaceWith("SOME"))
-        ANY("_any"),
-        EVERY("_every"),
-
-        @Deprecated(message = "use EVERY", replaceWith = ReplaceWith("EVERY"))
-        ALL("_all"),
-
-        @Deprecated(message = "use EQ for n..1 relations", replaceWith = ReplaceWith("EQ"))
-        SINGLE("_single"),
-        NONE("_none"),
-        EQ("")
-    }
-
-    enum class Predicate(val suffix: String, val conditionCreator: (Expression, Expression) -> Condition) {
-        // TODO
-        //  IS_NULL("", { lhs, _ -> lhs.isNull }),
-        //  IS_NOT_NULL("_not", { lhs, _ -> lhs.isNotNull }),
-
-        EQ("", { lhs, rhs -> lhs.isEqualTo(rhs) }),
-        NEQ("_not", { lhs, rhs -> lhs.isNotEqualTo(rhs) }),
-
-        GTE("_gte", { lhs, rhs -> lhs.gte(rhs) }),
-        GT("_gt", { lhs, rhs -> lhs.gt(rhs) }),
-        LTE("_lte", { lhs, rhs -> lhs.lte(rhs) }),
-        LT("_lt", { lhs, rhs -> lhs.lt(rhs) }),
-
-        IN("_in", { lhs, rhs -> lhs.`in`(rhs) }),
-        NIN("_not_in", { lhs, rhs -> lhs.`in`(rhs).not() }),
-
-        C("_contains", { lhs, rhs -> lhs.contains(rhs) }),
-        NC("_not_contains", { lhs, rhs -> lhs.contains(rhs).not() }),
-
-        SW("_starts_with", { lhs, rhs -> lhs.startsWith(rhs) }),
-        NSW("_not_starts_with", { lhs, rhs -> lhs.startsWith(rhs).not() }),
-
-        EW("_ends_with", { lhs, rhs -> lhs.endsWith(rhs) }),
-        NEW("_not_ends_with", { lhs, rhs -> lhs.endsWith(rhs).not() }),
-    }
 }

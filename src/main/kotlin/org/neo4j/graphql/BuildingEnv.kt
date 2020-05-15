@@ -92,18 +92,61 @@ class BuildingEnv(val types: MutableMap<String, GraphQLType>) {
                     else -> addFilterType(getInnerFieldsContainer(typeDefinition), createdTypes)
                 }
 
-                Operators.forType(types[filterType] ?: typeDefinition).forEach { op ->
-                    val wrappedType: GraphQLInputType = when {
-                        op.list -> GraphQLList(GraphQLTypeReference(filterType))
-                        else -> GraphQLTypeReference(filterType)
+                if (field.isRelationship()) {
+                    val list = field.type.isList()
+                    addFilterField(builder, field, RelationOperator.EQ, filterType,
+                            "Filters only those `${type.name}` for which ${if (list) "all" else "the"} `${field.name}`-relationship matches this filter. " +
+                                    "If `null` is passed to this field, only those `${type.name}` will be filtered which has no `${field.name}`-relations")
+
+                    addFilterField(builder, field, RelationOperator.NOT, filterType,
+                            "Filters only those `${type.name}` for which ${if (list) "all" else "the"} `${field.name}`-relationship does not match this filter. " +
+                                    "If `null` is passed to this field, only those `${type.name}` will be filtered which has any `${field.name}`-relation")
+                    if (field.type.isList()) {
+                        // n..m
+                        addFilterField(builder, field, RelationOperator.EVERY, filterType,
+                                "Filters only those `${type.name}` for which all `${field.name}`-relationships matches this filter")
+                        addFilterField(builder, field, RelationOperator.SOME, filterType,
+                                "Filters only those `${type.name}` for which at least one `${field.name}`-relationship matches this filter")
+                        addFilterField(builder, field, RelationOperator.SINGLE, filterType,
+                                "Filters only those `${type.name}` for which exactly one `${field.name}`-relationship matches this filter")
+                        addFilterField(builder, field, RelationOperator.NONE, filterType,
+                                "Filters only those `${type.name}` for which none of the `${field.name}`-relationships matches this filter")
+                    } else {
+                        // n..1
+                        addFilterField(builder, field, RelationOperator.SINGLE, filterType, "@deprecated Use the `${field.name}`-field directly (without any suffix)")
+                        addFilterField(builder, field, RelationOperator.SOME, filterType, "@deprecated Use the `${field.name}`-field directly (without any suffix)")
+                        addFilterField(builder, field, RelationOperator.NONE, filterType, "@deprecated Use the `${field.name}${RelationOperator.NOT.suffix}`-field")
                     }
-                    builder.field(GraphQLInputObjectField.newInputObjectField()
-                        .name(op.fieldName(field.name))
-                        .type(wrappedType))
+                } else {
+                    Operators.forType(types[filterType] ?: typeDefinition).forEach { op ->
+                        addFilterField(builder, field, op, filterType)
+                    }
                 }
+
             }
         types[filterName] = builder.build()
         return filterName
+    }
+
+    private fun addFilterField(builder: GraphQLInputObjectType.Builder, field: GraphQLFieldDefinition, op: RelationOperator, filterType: String, description: String? = null) {
+        addFilterField(builder, op.fieldName(field.name), false, filterType, description)
+    }
+
+    private fun addFilterField(builder: GraphQLInputObjectType.Builder, field: GraphQLFieldDefinition, op: Operators, filterType: String, description: String? = null) {
+        addFilterField(builder, op.fieldName(field.name), op.list, filterType, description)
+    }
+
+    private fun addFilterField(builder: GraphQLInputObjectType.Builder, fieldName: String, isList: Boolean, filterType: String, description: String? = null) {
+        val wrappedType: GraphQLInputType = when {
+            isList -> GraphQLList(GraphQLTypeReference(filterType))
+            else -> GraphQLTypeReference(filterType)
+        }
+        val inputField = GraphQLInputObjectField.newInputObjectField()
+            .name(fieldName)
+            .description(description)
+            .type(wrappedType)
+        builder.field(inputField)
+
     }
 
     fun addOrdering(type: GraphQLFieldsContainer): String? {
