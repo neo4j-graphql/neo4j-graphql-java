@@ -94,7 +94,7 @@ class BuildingEnv(val types: MutableMap<String, GraphQLType>) {
 
                 if (field.isRelationship()) {
                     val list = field.type.isList()
-                    addFilterField(builder, field, RelationOperator.EQ, filterType,
+                    addFilterField(builder, field, RelationOperator.EQ_OR_NOT_EXISTS, filterType,
                             "Filters only those `${type.name}` for which ${if (list) "all" else "the"} `${field.name}`-relationship matches this filter. " +
                                     "If `null` is passed to this field, only those `${type.name}` will be filtered which has no `${field.name}`-relations")
 
@@ -118,9 +118,8 @@ class BuildingEnv(val types: MutableMap<String, GraphQLType>) {
                         addFilterField(builder, field, RelationOperator.NONE, filterType, "@deprecated Use the `${field.name}${RelationOperator.NOT.suffix}`-field")
                     }
                 } else {
-                    Operators.forType(types[filterType] ?: typeDefinition).forEach { op ->
-                        addFilterField(builder, field, op, filterType)
-                    }
+                    FieldOperator.forType(types[filterType] ?: typeDefinition)
+                        .forEach { op -> addFilterField(builder, field, op, filterType) }
                 }
 
             }
@@ -132,7 +131,7 @@ class BuildingEnv(val types: MutableMap<String, GraphQLType>) {
         addFilterField(builder, op.fieldName(field.name), false, filterType, description)
     }
 
-    private fun addFilterField(builder: GraphQLInputObjectType.Builder, field: GraphQLFieldDefinition, op: Operators, filterType: String, description: String? = null) {
+    private fun addFilterField(builder: GraphQLInputObjectType.Builder, field: GraphQLFieldDefinition, op: FieldOperator, filterType: String, description: String? = null) {
         addFilterField(builder, op.fieldName(field.name), op.list, filterType, description)
     }
 

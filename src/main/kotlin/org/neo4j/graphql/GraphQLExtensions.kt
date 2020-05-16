@@ -72,17 +72,17 @@ fun GraphQLFieldsContainer.getValidTypeLabels(schema: GraphQLSchema): List<Strin
 }
 
 @Suppress("SimplifiableCallChain")
-fun GraphQLFieldsContainer.label(includeAll: Boolean = false) = when {
+fun GraphQLFieldsContainer.label(includeAll: Boolean = false, quote: Boolean = true) = when {
     this.isRelationType() ->
         (this as? GraphQLDirectiveContainer)
             ?.getDirective(DirectiveConstants.RELATION)
-            ?.getArgument(RELATION_NAME)?.value?.toJavaValue()?.toString()?.quote()
-                ?: this.name.quote()
+            ?.getArgument(RELATION_NAME)?.value?.toJavaValue()?.toString()?.let { if (quote) it.quote() else it  }
+                ?: this.name.let { if (quote) it.quote() else it  }
     else -> when {
         includeAll -> (listOf(name) + ((this as? GraphQLObjectType)?.interfaces?.map { it.name } ?: emptyList()))
             .map { it.quote() }
             .joinToString(":")
-        else -> name.quote()
+        else -> name.let { if (quote) it.quote() else it  }
     }
 }
 

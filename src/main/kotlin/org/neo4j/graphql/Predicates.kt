@@ -6,22 +6,31 @@ import org.neo4j.graphql.Predicate.Companion.resolvePredicate
 import org.neo4j.graphql.handler.projection.ProjectionBase
 import org.neo4j.opencypherdsl.Condition
 import org.neo4j.opencypherdsl.Expression
+import org.slf4j.LoggerFactory
 
 interface Predicate {
     fun toExpression(variable: String): Cypher
 
     companion object {
         fun resolvePredicate(name: String, value: Any?, type: GraphQLFieldsContainer): Predicate {
-            val (fieldName, op) = Operators.resolve(name, value)
-            return if (type.hasRelationship(fieldName)) {
-                when (value) {
-                    is Map<*, *> -> RelationPredicate(fieldName, op, value, type)
-                    null -> IsNullPredicate(fieldName, op, type)
-                    else -> throw IllegalArgumentException("Input for $fieldName must be an filter-InputType")
+            for (definedField in type.fieldDefinitions) {
+                if (definedField.isRelationship()) {
+                    val op = RelationOperator.values().find { name == definedField.name + it.suffix }
+                    if (op != null) {
+                        return when (value) {
+                            is Map<*, *> -> RelationPredicate(definedField.name, op, value, type)
+                            null -> IsNullPredicate(definedField.name, op, type)
+                            else -> throw IllegalArgumentException("Input for ${definedField.name} must be an filter-InputType")
+                        }
+                    }
+                } else {
+                    val op = FieldOperator.resolve(name, definedField.name, value)
+                    if (op != null) {
+                        return ExpressionPredicate(definedField.name, op, value, definedField)
+                    }
                 }
-            } else {
-                ExpressionPredicate(fieldName, op, value, type.getFieldDefinition(fieldName)!!)
             }
+            throw IllegalArgumentException("Queried field $name could not be resolved")
         }
 
         private fun isParam(value: String) = value.startsWith("{") && value.endsWith("}") || value.startsWith("\$")
@@ -61,16 +70,16 @@ data class CompoundPredicate(val parts: List<Predicate>, val op: String = "AND")
                 }
 }
 
-data class IsNullPredicate(val fieldName: String, val op: Operators, val type: GraphQLFieldsContainer) : Predicate {
+data class IsNullPredicate(val fieldName: String, val op: RelationOperator, val type: GraphQLFieldsContainer) : Predicate {
     override fun toExpression(variable: String): Cypher {
         val rel = type.relationshipFor(fieldName) ?: throw IllegalArgumentException("Not a relation")
         val (left, right) = rel.arrows
-        val not = if (op.not) "" else "NOT "
+        val not = if (op == RelationOperator.NOT) "" else "NOT "
         return Cypher("$not($variable)$left-[:${rel.relType}]-$right()")
     }
 }
 
-data class ExpressionPredicate(val name: String, val op: Operators, val value: Any?, val fieldDefinition: GraphQLFieldDefinition) : Predicate {
+data class ExpressionPredicate(val name: String, val op: FieldOperator, val value: Any?, val fieldDefinition: GraphQLFieldDefinition) : Predicate {
     val not = if (op.not) "NOT " else ""
     override fun toExpression(variable: String): Cypher {
         val paramName: String = ProjectionBase.FILTER + paramName(variable, name, value).capitalize() + "_" + op.name
@@ -88,17 +97,33 @@ data class ExpressionPredicate(val name: String, val op: Operators, val value: A
 }
 
 
-data class RelationPredicate(val fieldName: String, val op: Operators, val value: Map<*, *>, val type: GraphQLFieldsContainer) : Predicate {
-    val not = if (op.not) "NOT" else ""
+data class RelationPredicate(val fieldName: String, val op: RelationOperator, val value: Map<*, *>, val type: GraphQLFieldsContainer) : Predicate {
+    companion object {
+        private val LOGGER = LoggerFactory.getLogger(RelationPredicate::class.java)
+    }
+
+    val not = if (op == RelationOperator.NOT) "NOT" else ""
     // (type)-[:TYPE]->(related) | pred] = 0/1/ > 0 | =
     // ALL/ANY/NONE/SINGLE(p in (type)-[:TYPE]->() WHERE pred(last(nodes(p)))
     // ALL/ANY/NONE/SINGLE(x IN [(type)-[:TYPE]->(o) | pred(o)] WHERE x)
 
     override fun toExpression(variable: String): Cypher {
         val prefix = when (op) {
-            Operators.EQ -> "ALL"
-            Operators.NEQ -> "ALL" // bc of not
+            RelationOperator.EQ_OR_NOT_EXISTS -> "ALL"
+            RelationOperator.NOT -> "ALL" // bc of not
             else -> op.op
+        }
+        if (type.getFieldDefinition(fieldName).isList()) {
+            if (op == RelationOperator.EQ_OR_NOT_EXISTS) {
+                LOGGER.info("$fieldName on type ${type.name} was used for filtering, consider using ${fieldName}${RelationOperator.EVERY.suffix} instead")
+            }
+        } else {
+            @Suppress("NON_EXHAUSTIVE_WHEN")
+            when (op) {
+                RelationOperator.SINGLE -> LOGGER.warn("Using $fieldName${RelationOperator.SINGLE.suffix} on type ${type.name} is deprecated, use ${fieldName} directly")
+                RelationOperator.SOME -> LOGGER.warn("Using $fieldName${RelationOperator.SOME.suffix} on type ${type.name} is deprecated, use ${fieldName} directly")
+                RelationOperator.NONE -> LOGGER.warn("Using $fieldName${RelationOperator.NONE.suffix} on type ${type.name} is deprecated, use ${fieldName}${RelationOperator.NOT.suffix} instead")
+            }
         }
         val rel = type.relationshipFor(fieldName) ?: throw IllegalArgumentException("Not a relation")
         val (left, right) = rel.arrows
@@ -109,108 +134,45 @@ data class RelationPredicate(val fieldName: String, val op: Operators, val value
     }
 }
 
-abstract class UnaryOperator
-class IsNullOperator : UnaryOperator()
+enum class FieldOperator(val suffix: String, val op: String, val conditionCreator: (Expression, Expression) -> Condition, val not: Boolean = false) {
+    EQ("", "=", { lhs, rhs -> lhs.isEqualTo(rhs) }),
+    IS_NULL("", "", { lhs, _ -> lhs.isNull }),
+    IS_NOT_NULL("_not", "", { lhs, _ -> lhs.isNotNull }, true),
+    NEQ("_not", "=", { lhs, rhs -> lhs.isNotEqualTo(rhs) }, true),
+    GTE("_gte", ">=", { lhs, rhs -> lhs.gte(rhs) }),
+    GT("_gt", ">", { lhs, rhs -> lhs.gt(rhs) }),
+    LTE("_lte", "<=", { lhs, rhs -> lhs.lte(rhs) }),
+    LT("_lt", "<", { lhs, rhs -> lhs.lt(rhs) }),
 
-enum class RelationOperator(val suffix: String) {
-    SOME("_some"),
-
-    EVERY("_every"),
-
-    SINGLE("_single"),
-    NONE("_none"),
-
-    EQ(""),
-    NOT("_not");
-
-    fun fieldName(fieldName: String) = fieldName + suffix
-}
-
-enum class FieldOperator(val suffix: String, val conditionCreator: (Expression, Expression) -> Condition) {
-    // TODO
-    //  IS_NULL("", { lhs, _ -> lhs.isNull }),
-    //  IS_NOT_NULL("_not", { lhs, _ -> lhs.isNotNull }),
-
-    EQ("", { lhs, rhs -> lhs.isEqualTo(rhs) }),
-    NEQ("_not", { lhs, rhs -> lhs.isNotEqualTo(rhs) }),
-
-    GTE("_gte", { lhs, rhs -> lhs.gte(rhs) }),
-    GT("_gt", { lhs, rhs -> lhs.gt(rhs) }),
-    LTE("_lte", { lhs, rhs -> lhs.lte(rhs) }),
-    LT("_lt", { lhs, rhs -> lhs.lt(rhs) }),
-
-    IN("_in", { lhs, rhs -> lhs.`in`(rhs) }),
-    NIN("_not_in", { lhs, rhs -> lhs.`in`(rhs).not() }),
-
-    C("_contains", { lhs, rhs -> lhs.contains(rhs) }),
-    NC("_not_contains", { lhs, rhs -> lhs.contains(rhs).not() }),
-
-    SW("_starts_with", { lhs, rhs -> lhs.startsWith(rhs) }),
-    NSW("_not_starts_with", { lhs, rhs -> lhs.startsWith(rhs).not() }),
-
-    EW("_ends_with", { lhs, rhs -> lhs.endsWith(rhs) }),
-    NEW("_not_ends_with", { lhs, rhs -> lhs.endsWith(rhs).not() }),
-}
-
-enum class Operators(val suffix: String, val op: String, val not: Boolean = false) {
-    EQ("", "="),
-
-    @Deprecated(message = "", replaceWith = ReplaceWith(expression = "RelationOp.EQ", imports = ["org.neo4j.graphql.handler.QueryHandler.RelationOp"]))
-    IS_NULL("", ""),
-
-    @Deprecated(message = "", replaceWith = ReplaceWith(expression = "RelationOp.NOT", imports = ["org.neo4j.graphql.handler.QueryHandler.RelationOp"]))
-    IS_NOT_NULL("not", "", true),
-    NEQ("not", "=", true),
-    GTE("gte", ">="),
-    GT("gt", ">"),
-    LTE("lte", "<="),
-    LT("lt", "<"),
-
-    NIN("not_in", "IN", true),
-    IN("in", "IN"),
-    NC("not_contains", "CONTAINS", true),
-    NSW("not_starts_with", "STARTS WITH", true),
-    NEW("not_ends_with", "ENDS WITH", true),
-    C("contains", "CONTAINS"),
-    SW("starts_with", "STARTS WITH"),
-    EW("ends_with", "ENDS WITH"),
-
-    @Deprecated(message = "", replaceWith = ReplaceWith(expression = "RelationOp.SOME", imports = ["org.neo4j.graphql.handler.QueryHandler.RelationOp"]))
-    SOME("some", "ANY"),
-
-    @Deprecated(message = "", replaceWith = ReplaceWith(expression = "RelationOp.NONE", imports = ["org.neo4j.graphql.handler.QueryHandler.RelationOp"]))
-    NONE("none", "NONE"),
-
-    @Deprecated(message = "", replaceWith = ReplaceWith(expression = "RelationOp.EVERY", imports = ["org.neo4j.graphql.handler.QueryHandler.RelationOp"]))
-    ALL("every", "ALL"),
-
-    @Deprecated(message = "", replaceWith = ReplaceWith(expression = "RelationOp.SINGLE", imports = ["org.neo4j.graphql.handler.QueryHandler.RelationOp"]))
-    SINGLE("single", "SINGLE");
+    NIN("_not_in", "IN", { lhs, rhs -> lhs.`in`(rhs).not() }, true),
+    IN("_in", "IN", { lhs, rhs -> lhs.`in`(rhs) }),
+    NC("_not_contains", "CONTAINS", { lhs, rhs -> lhs.contains(rhs).not() }, true),
+    NSW("_not_starts_with", "STARTS WITH", { lhs, rhs -> lhs.startsWith(rhs).not() }, true),
+    NEW("_not_ends_with", "ENDS WITH", { lhs, rhs -> lhs.endsWith(rhs).not() }, true),
+    C("_contains", "CONTAINS", { lhs, rhs -> lhs.contains(rhs) }),
+    SW("_starts_with", "STARTS WITH", { lhs, rhs -> lhs.startsWith(rhs) }),
+    EW("_ends_with", "ENDS WITH", { lhs, rhs -> lhs.endsWith(rhs) });
 
     val list = op == "IN"
 
     companion object {
-        private val ops = enumValues<Operators>().sortedWith(Comparator.comparingInt { it.suffix.length }).reversed()
 
-        fun resolve(field: String, value: Any?): Pair<String, Operators> {
-            val fieldOperator = ops.find { field.endsWith("_" + it.suffix) }
-            val unaryOperator = if (value is UnaryOperator) unaryOperatorOf(field, value) else EQ
-            val op = fieldOperator ?: unaryOperator
-            val name = if (op.suffix.isEmpty()) field else field.substring(0, field.length - op.suffix.length - 1)
-            return name to op
+        fun resolve(queriedField: String, field: String, value: Any?): FieldOperator? {
+            if (value == null) {
+                return listOf(IS_NULL, IS_NOT_NULL).find { queriedField == field + it.suffix } ?: return null
+            }
+            val fieldOperator = enumValues<FieldOperator>()
+                .filterNot { it == IS_NULL || it == IS_NOT_NULL }
+                .find { queriedField == field + it.suffix } ?: return null
+            val op = fieldOperator
+            return op
         }
 
-        private fun unaryOperatorOf(field: String, value: Any?): Operators =
-                when (value) {
-                    is IsNullOperator -> if (field.endsWith("_not")) IS_NOT_NULL else IS_NULL
-                    else -> throw IllegalArgumentException("Unknown unary operator $value")
-                }
-
-        fun forType(type: GraphQLType): List<Operators> =
+        fun forType(type: GraphQLType): List<FieldOperator> =
                 when {
                     type == Scalars.GraphQLBoolean -> listOf(EQ, NEQ)
                     type.isNeo4jType() -> listOf(EQ, NEQ, IN, NIN)
-                    type is GraphQLFieldsContainer || type is GraphQLInputObjectType -> listOf(IS_NULL, IS_NOT_NULL, SOME, NONE, SINGLE)
+                    type is GraphQLFieldsContainer || type is GraphQLInputObjectType -> throw IllegalArgumentException("This operators are not for relations, use the RelationOperator instead")
                     type is GraphQLEnumType -> listOf(EQ, NEQ, IN, NIN)
                     // todo list types
                     !type.isScalar() -> listOf(EQ, NEQ, IN, NIN)
@@ -220,5 +182,20 @@ enum class Operators(val suffix: String, val op: String, val not: Boolean = fals
 
     }
 
-    fun fieldName(fieldName: String) = if (this.suffix.isBlank()) fieldName else fieldName + "_" + suffix
+    fun fieldName(fieldName: String) = fieldName + suffix
+}
+
+enum class RelationOperator(val suffix: String, val op: String) {
+    SOME("_some", "ANY"),
+
+    EVERY("_every", "ALL"),
+
+    SINGLE("_single", "SINGLE"),
+    NONE("_none", "NONE"),
+
+    // `eq` if queried with an object, `not exists` if  queried with null
+    EQ_OR_NOT_EXISTS("", ""),
+    NOT("_not", "");
+
+    fun fieldName(fieldName: String) = fieldName + suffix
 }
