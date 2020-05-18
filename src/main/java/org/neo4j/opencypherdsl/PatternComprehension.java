@@ -63,7 +63,7 @@ public final class PatternComprehension implements Expression {
 	/**
 	 * Provides the final step of defining a pattern comprehension.
 	 */
-	public interface OngoingDefinitionWithoutReturn {
+	public interface OngoingDefinitionWithoutReturn extends StatementBuilder.ExposesConditions<OngoingDefinitionWithoutReturn> {
 
 		/**
 		 * @param variables the elements to be returned from the pattern
@@ -86,20 +86,32 @@ public final class PatternComprehension implements Expression {
 	 */
 	private static class Builder implements OngoingDefinitionWithPattern {
 		private final RelationshipPattern pattern;
-		private Where where;
+		private final DefaultStatementBuilder.ConditionBuilder conditionBuilder = new DefaultStatementBuilder.ConditionBuilder();
 
 		private Builder(RelationshipPattern pattern) {
 			this.pattern = pattern;
 		}
 
 		public OngoingDefinitionWithoutReturn where(Condition condition) {
-			this.where = new Where(condition);
+			conditionBuilder.where(condition);
+			return this;
+		}
+
+		@Override
+		public OngoingDefinitionWithoutReturn and(Condition condition) {
+			conditionBuilder.and(condition);
+			return this;
+		}
+
+		@Override
+		public OngoingDefinitionWithoutReturn or(Condition condition) {
+			conditionBuilder.or(condition);
 			return this;
 		}
 
 		@Override
 		public PatternComprehension returning(Expression... expressions) {
-
+			Where where = conditionBuilder.buildCondition().map(Where::new).orElse(null);
 			return new PatternComprehension(pattern, where, listOrSingleExpression(expressions));
 		}
 	}

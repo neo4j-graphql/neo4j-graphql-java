@@ -101,7 +101,7 @@ class BuildingEnv(val types: MutableMap<String, GraphQLType>) {
                     addFilterField(builder, field, RelationOperator.NOT, filterType,
                             "Filters only those `${type.name}` for which ${if (list) "all" else "the"} `${field.name}`-relationship does not match this filter. " +
                                     "If `null` is passed to this field, only those `${type.name}` will be filtered which has any `${field.name}`-relation")
-                    if (field.type.isList()) {
+                    if (list) {
                         // n..m
                         addFilterField(builder, field, RelationOperator.EVERY, filterType,
                                 "Filters only those `${type.name}` for which all `${field.name}`-relationships matches this filter")
