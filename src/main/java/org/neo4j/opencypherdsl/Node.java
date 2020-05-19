@@ -38,7 +38,7 @@ import static org.apiguardian.api.API.Status.EXPERIMENTAL;
  * @since 1.0
  */
 @API(status = EXPERIMENTAL, since = "1.0")
-public final class Node implements PatternElement, Named, ExposesRelationships<Relationship> {
+public final class Node implements PatternElement, Named, ExposesRelationships<Relationship>, PropertyContainer<Node> {
 
 	static Node create(String primaryLabel, String... additionalLabels) {
 
@@ -113,25 +113,13 @@ public final class Node implements PatternElement, Named, ExposesRelationships<R
 		return new Node(newSymbolicName, properties, labels);
 	}
 
-	/**
-	 * Creates a a copy of this node with additional properties. Creates a node without properties when no properties
-	 * * are passed to this method.
-	 *
-	 * @param newProperties the new properties
-	 * @return The new node.
-	 */
+	@Override
 	public Node properties(MapExpression<?> newProperties) {
 
 		return new Node(this.symbolicName, newProperties == null ? null : new Properties(newProperties), labels);
 	}
 
-	/**
-	 * Creates a a copy of this node with additional properties. Creates a node without properties when no properties
-	 * are passed to this method.
-	 *
-	 * @param keysAndValues A list of key and values. Must be an even number, with alternating {@link String} and {@link Expression}.
-	 * @return The new node.
-	 */
+	@Override
 	public Node properties(Object... keysAndValues) {
 
 		MapExpression<?> newProperties = null;
@@ -172,15 +160,7 @@ public final class Node implements PatternElement, Named, ExposesRelationships<R
 		return Optional.ofNullable(symbolicName);
 	}
 
-	/**
-	 * Creates a new {@link Property} associated with this property container.
-	 * <p>
-	 * Note: The property container does not track property creation and there is no possibility to enumerate all
-	 * properties that have been created for this node.
-	 *
-	 * @param name property name, must not be {@literal null} or empty.
-	 * @return a new {@link Property} associated with this {@link Node}.
-	 */
+	@Override
 	public Property property(String name) {
 
 		return Property.create(this, name);
@@ -201,7 +181,7 @@ public final class Node implements PatternElement, Named, ExposesRelationships<R
 
 	@Override
 	public Relationship relationshipFrom(Node other, String... types) {
-		return Relationship.create(this, Direction.RTR, other, types);
+		return Relationship.create(this, Direction.RTL, other, types);
 	}
 
 	@Override

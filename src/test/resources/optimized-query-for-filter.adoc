@@ -106,6 +106,74 @@ RETURN DISTINCT movie { .title } AS movie
 |Cloud Atlas
 |===
 
+=== Filter for relation
+
+CAUTION: *Not yet implemented*
+
+.Query configuration
+[source,json,config=true]
+----
+{  "optimizedQuery": true }
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movie(filter: {
+    actor_some:{
+      name: "Halle Berry"
+    }
+    reviews_some:{
+      from: {
+        name: "Jessica Thompson"
+      }
+      rating_gt: 2
+    }
+    released_gt: 1900
+  }) {
+    title
+  }
+}
+----
+
+.Cypher params
+[source,json]
+----
+{
+  "movie_actor_some_name": "Halle Berry",
+  "movie_reviews_some_rating": 2,
+  "movie_reviews_some_from_name": "Jessica Thompson",
+  "movie_released_gt": 1900
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (movie:`Movie`)
+WHERE movie.released > $movie_released_gt
+WITH movie
+
+MATCH (movie)<-[:`ACTED_IN`]-(movie_actor_some:`Person`)
+WHERE movie_actor_some.name = $movie_actor_some_name
+WITH DISTINCT movie
+
+MATCH (movie)<-[review:`REVIEWED`]-(movie_reviews_some_from:`Person`)
+WHERE review.rating > $movie_reviews_some_rating
+  AND  movie_reviews_some_from.name = $movie_reviews_some_from_name
+WITH DISTINCT movie
+
+RETURN DISTINCT movie { .title } AS movie
+----
+
+.Movie Example result
+|===
+|title
+
+|Cloud Atlas
+|===
+
 === Filter at same level (some + every)
 
 .Query configuration
@@ -259,12 +327,17 @@ CAUTION: *Not yet implemented*
 ----
 {
   movie(filter: {
-    directedBy_every:{
+    directedBy_some:{
       OR:[
         {
           AND:[{name: "Lilly Wachowski"},{name: "Lana Wachowski"},{name: "Tom Tykwer"}]
         },
-      	{name: "Clint Eastwood"}
+      	{ name: "Clint Eastwood"}
+        {
+          producedMovies_some: {
+            OR: [{ released_gt: 2000 }, { released_lt: 1990 }]
+          }
+        }
       ]
     }
     reviewedBy_every:{
@@ -294,29 +367,38 @@ CAUTION: *Not yet implemented*
 MATCH (movie:`Movie`)
 WITH movie
 
-OPTIONAL MATCH
-  (movie)<-[:DIRECTED]-(movie_directedBy_every_or1_and1:Person),
-  (movie)<-[:DIRECTED]-(movie_directedBy_every_or1_and2:Person),
-  (movie)<-[:DIRECTED]-(movie_directedBy_every_or1_and3:Person)
-  WHERE
-	movie_directedBy_every_or1_and1.name = $movie_directedBy_every_or1_and1_name
-    AND movie_directedBy_every_or1_and2.name = $movie_directedBy_every_or1_and2_name
-    AND movie_directedBy_every_or1_and3.name = $movie_directedBy_every_or1_and3_name
+OPTIONAL MATCH (movie)<-[:DIRECTED]-(movie_directedBy_every_or1_and1:Person)
+  WHERE movie_directedBy_every_or1_and1.name = $movie_directedBy_every_or1_and1_name
+WITH movie, count(DISTINCT movie_directedBy_every_or1_and1) AS movie_directedBy_every_or1_and1_count
 
-OPTIONAL MATCH
-  (movie)<-[:DIRECTED]-(movie_directedBy_every_or2:Person)
-  WHERE
-	movie_directedBy_every_or2.name = $movie_directedBy_every_or2_name
+OPTIONAL MATCH (movie)<-[:DIRECTED]-(movie_directedBy_every_or1_and2:Person)
+  WHERE movie_directedBy_every_or1_and2.name = $movie_directedBy_every_or1_and2_name
+WITH movie, movie_directedBy_every_or1_and1_count, count(DISTINCT movie_directedBy_every_or1_and2) AS movie_directedBy_every_or1_and2_count
+
+OPTIONAL MATCH (movie)<-[:DIRECTED]-(movie_directedBy_every_or1_and3:Person)
+  WHERE movie_directedBy_every_or1_and3.name = $movie_directedBy_every_or1_and3_name
+WITH movie, movie_directedBy_every_or1_and1_count,movie_directedBy_every_or1_and2_count, count(DISTINCT movie_directedBy_every_or1_and3) AS movie_directedBy_every_or1_and3_count
+
+OPTIONAL MATCH (movie)<-[:DIRECTED]-(movie_directedBy_every_or2:Person)
+  WHERE	movie_directedBy_every_or2.name = $movie_directedBy_every_or2_name
+WITH
+  movie,
+  movie_directedBy_every_or1_and1_count,
+  movie_directedBy_every_or1_and2_count,
+  movie_directedBy_every_or1_and3_count,
+  count(movie_directedBy_every_or2) as movie_directedBy_every_or2_count
 
 WITH
-	movie,
-
-    size((movie)<-[:DIRECTED]-(:Person)) AS movie_directedBy_every_total,
-	count(DISTINCT movie_directedBy_every_or1_and1) + count(DISTINCT movie_directedBy_every_or1_and2) + count(DISTINCT movie_directedBy_every_or1_and3) AS movie_directedBy_every_or1_count,
-    count(movie_directedBy_every_or2) as movie_directedBy_every_or2_count
+  movie_directedBy_every_or1_and1_count +  movie_directedBy_every_or1_and2_count + movie_directedBy_every_or1_and3_count AS movie_directedBy_every_or1_count,
+  size((movie)<-[:DIRECTED]-(:Person)) AS movie_directedBy_every_total
 WHERE
-((movie_directedBy_every_total = movie_directedBy_every_total AND movie_directedBy_every_total = 3) OR
-(movie_directedBy_every_or2_count = movie_directedBy_every_total AND movie_directedBy_every_total = 1))
+((movie_directedBy_every_or1_and1_count >= 1
+  AND movie_directedBy_every_or1_and2_count >= 1
+  AND movie_directedBy_every_or1_and3_count >= 1
+  AND movie_directedBy_every_total AND movie_directedBy_every_total = movie_directedBy_every_or1_and1_count + movie_directedBy_every_or1_and2_count + movie_directedBy_every_or1_and3_count
+)
+OR (movie_directedBy_every_or2_count >= 1
+  AND movie_directedBy_every_total = movie_directedBy_every_or2_count))
 WITH movie
 
 MATCH (movie)<-[:`REVIEWED`]-(movie_reviewedBy_every:`Person`)

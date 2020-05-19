@@ -12,9 +12,6 @@ import org.neo4j.opencypherdsl.Node
 import org.slf4j.LoggerFactory
 
 class OptimizedFilterHandler(val type: GraphQLFieldsContainer) {
-    companion object {
-        private val LOGGER = LoggerFactory.getLogger(OptimizedFilterHandler::class.java)
-    }
 
     fun generateFilterQuery(variable: String, field: Field): Pair<StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere?, MutableMap<String, Any?>> {
         if (type.isRelationType()) {
@@ -28,9 +25,10 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer) {
 
         for (argument in field.arguments) {
             if (argument.name == ProjectionBase.FILTER) {
-                val queryInfo = parseQuery(argument.value as ObjectValue, type)
-                withWithoutWhere = parseFilter(queryInfo, false, rootNode, variable, readingWithoutWhere,
-                        type, argument.value, filterParams, linkedSetOf(rootNode.requiredSymbolicName), null)
+                val parsedQuery = ParsedQuery(argument.value as ObjectValue, type)
+                withWithoutWhere = NestingLevelHandler(parsedQuery, false, rootNode, variable, null, { readingWithoutWhere },
+                        type, argument.value, filterParams, linkedSetOf(rootNode.requiredSymbolicName))
+                    .parseFilter()
             } else {
                 throw OptimizedQueryException()
             }
@@ -39,97 +37,140 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer) {
     }
 
     /**
-     * 1. MATCH (parent)-[]-(current)
-     * 2. WHERE MATCH all predicates for current
-     * 3. WITH x
-     * 4. Handle all quantifier (ALL / NONE / SINGLE / ANY)
-     * 5. Handle OR / AND
-     *
-     * @param  parsedQuery the internal representation of the pares query for this nesting level
+     * @param parsedQuery the internal representation of the pares query for this nesting level
      * @param useDistinct should the current node be distinct (if true: renders WITH DISTINCT currentNode)
      * @param current the current node
      * @param variablePrefix the prefix to prepend to new variables
-     * @param readingWithoutWhere the query to extend
+     * @param readingWithoutWhereFactory the query to extend
      * @param type the type of <code>current</code>
      * @param value the value passed to the graphQL field
      * @param filterParams the map to store required filter params into
      * @param parentPassThroughWiths all the nodes, required to be passsed throug via WITH
-     * @param additionalFilter additional filters to be applied to the where
      */
-    private fun parseFilter(
-            parsedQuery: ParsedQuery,
-            useDistinct: Boolean,
-            current: Node,
-            variablePrefix: String,
-            readingWithoutWhere: StatementBuilder.OngoingReadingWithoutWhere,
-            type: GraphQLFieldsContainer,
-            value: Value<Value<*>>?,
-            filterParams: MutableMap<String, Any?>,
-            parentPassThroughWiths: Collection<SymbolicName>,
-            additionalFilter: ((StatementBuilder.ExposesWith) -> StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere)?
-    ): StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere {
-        if (value is ObjectValue) {
+    class NestingLevelHandler(
+            private val parsedQuery: ParsedQuery,
+            private val useDistinct: Boolean,
+            private val current: PropertyContainer<*>,
+            private val variablePrefix: String,
+            private val relationship: ((target: Node) -> Relationship)?,
+            private val readingWithoutWhereFactory: () -> StatementBuilder.OngoingReading,
+            private val type: GraphQLFieldsContainer,
+            private val value: Value<*>?,
+            private val filterParams: MutableMap<String, Any?>,
+            private val parentPassThroughWiths: Collection<Expression>
+    ) {
 
-            val readingWithWhere = addConditions<StatementBuilder.OngoingReadingWithWhere>(current, variablePrefix, parsedQuery.fieldPredicates, filterParams) { where, condition ->
-                where?.and(condition) ?: readingWithoutWhere.where(condition)
+        /**
+         * @param additionalFilter additional filters to be applied to the where
+         */
+        fun parseFilter(additionalFilter: ((StatementBuilder.ExposesWith) -> StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere)? = null): StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere {
+            if (value !is ObjectValue) {
+                throw OptimizedQueryException()
             }
-            var query = if (additionalFilter != null) {
-                additionalFilter(readingWithWhere ?: readingWithoutWhere)
+            // WHERE MATCH all predicates for current
+            // WITH x
+            var query = addWhere(additionalFilter)
+
+            // Handle all quantifier (ALL / NONE / SINGLE / ANY)
+            query = handleRelation(query)
+
+            // Handle OR / AND
+            return handleCombinations(query)
+        }
+
+        private fun addWhere(
+                additionalFilter: ((StatementBuilder.ExposesWith) -> StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere)? = null
+        ): StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere {
+            val reading = readingWithoutWhereFactory()
+            if (parsedQuery.fieldPredicates.isEmpty()) {
+                if (reading is StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere) {
+                    return reading
+                }
+            }
+            if (reading !is StatementBuilder.OngoingReadingWithoutWhere) {
+                throw IllegalStateException("cannot handle " + reading::class.java)
+            }
+
+            // WHERE MATCH all predicates for current
+            val readingWithWhere = addConditions<StatementBuilder.OngoingReadingWithWhere>(current, variablePrefix, parsedQuery.fieldPredicates, filterParams) { where, condition ->
+                where?.and(condition) ?: reading.where(condition)
+            }
+            return if (additionalFilter != null) {
+                additionalFilter(readingWithWhere ?: reading)
             } else {
                 val withs = if (parsedQuery.relationPredicates.isNotEmpty() && parentPassThroughWiths.firstOrNull { it == current.requiredSymbolicName } == null) {
                     parentPassThroughWiths + current.requiredSymbolicName
                 } else {
                     parentPassThroughWiths
                 }
-                withClauseWithOptionalDistinct(readingWithWhere ?: readingWithoutWhere, withs, useDistinct)
+                withClauseWithOptionalDistinct(readingWithWhere ?: reading, withs, useDistinct)
             }
+        }
 
+        private fun handleRelation(passedQuery: StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere): StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere {
+            var query = passedQuery
+
+            // WITHs to pass through for this depth
             val levelPassThroughWiths = parentPassThroughWiths.toCollection(LinkedHashSet())
             for ((index, relFilter) in parsedQuery.relationPredicates.withIndex()) {
-                val (op, objectField, relField) = relFilter
-                if (objectField.value !is ObjectValue) {
-                    if (objectField.value is NullValue) {
-                        query = handleExists(relFilter, type, current, query, levelPassThroughWiths)
-                        continue
-                    } else {
-                        throw OptimizedQueryException()
-                    }
-                }
 
-                val nestedParsedQuery = parseQuery(objectField.value as ObjectValue, relField.type.getInnerFieldsContainer())
-                if (nestedParsedQuery.fieldPredicates.isEmpty() && nestedParsedQuery.relationPredicates.isEmpty()) {
-                    continue
-                }
+                val (op, objectField, relField) = relFilter
                 val rel = type.relationshipFor(relField.name)!!
                 val label = (relField.type.inner() as? GraphQLObjectType)?.label(quote = false)!!
-                val relVariableName = variablePrefix + "_" + objectField.name
                 val relNode = Cypher.node(label)
+
+                if (objectField.value is NullValue) {
+                    // EXISTS + NOT EXISTS
+                    if (current !is Node) {
+                        throw OptimizedQueryException()
+                    }
+
+                    val relation = createRelation(rel, current, relNode)
+                    val where = when (op) {
+                        RelationOperator.NOT -> query.where(relation)
+                        RelationOperator.EQ_OR_NOT_EXISTS -> query.where(Conditions.not(relation))
+                        else -> throw OptimizedQueryException()
+                    }
+                    query = withClauseWithOptionalDistinct(where, levelPassThroughWiths)
+                    continue
+                }
+                if (objectField.value !is ObjectValue) {
+                    throw OptimizedQueryException()
+                }
+
+                val nestedParsedQuery = ParsedQuery(objectField.value as ObjectValue, relField.type.getInnerFieldsContainer())
+                val hasPredicates = nestedParsedQuery.fieldPredicates.isNotEmpty() || nestedParsedQuery.relationPredicates.isNotEmpty()
+//                if (!hasPredicates) {
+//                    continue
+//                }
+
+                val relVariableName = variablePrefix + "_" + objectField.name
                 val relVariable = relNode.named(relVariableName)
 
-
-                if (index + 1 == parsedQuery.relationPredicates.size) {
-                    levelPassThroughWiths.retainAll(levelPassThroughWiths)
-                } else {
+                if (index + 1 < parsedQuery.relationPredicates.size) {
+                    // if there are additional relationPredicates, we need to pass through the current
                     levelPassThroughWiths.add(current.requiredSymbolicName)
                 }
 
-                // convenience lambda to nest parsing
-                val parseFilter = { additionalFilter: ((StatementBuilder.ExposesWith) -> StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere)? ->
-                    parseFilter(nestedParsedQuery, true,
-                            relVariable,
-                            relVariableName,
-                            createRelation(rel, query, current, relVariable),
-                            rel.type,
-                            objectField.value,
-                            filterParams,
-                            levelPassThroughWiths,
-                            additionalFilter)
+                val nestedRelationship = { target: Node ->
+                    createRelation(rel, current as? Node ?: throw OptimizedQueryException(), target)
                 }
+                val nestingLevelHandler = NestingLevelHandler(
+                        nestedParsedQuery,
+                        true,
+                        relVariable,
+                        relVariableName,
+                        nestedRelationship,
+                        { if (hasPredicates) query.match(nestedRelationship(relVariable)) else query },
+                        rel.type,
+                        objectField.value,
+                        filterParams,
+                        levelPassThroughWiths)
 
                 // used as additional filter to handle SINGLE and EVERY use cases
                 val totalAndCountFilter = { whereClause: (withWithoutWhere: StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere, totalVar: SymbolicName, countVar: SymbolicName) -> StatementBuilder.OrderableOngoingReadingAndWithWithWhere ->
                     { exposesWith: StatementBuilder.ExposesWith ->
-                        val totalRel = createRelation(rel, current, relNode)
+                        val totalRel = createRelation(rel, current as? Node ?: throw OptimizedQueryException(), relNode)
                         val totalVar = relVariableName + "_total"
                         val total = Functions.size(totalRel).`as`(totalVar)
                         val countVar = relVariableName + "_count"
@@ -148,19 +189,19 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer) {
                     }
                 }
 
-                @Suppress("DEPRECATION")
                 when (op) {
-                    RelationOperator.SOME -> query = parseFilter(null)
-                    RelationOperator.EVERY -> query = parseFilter(totalAndCountFilter({ withWithoutWhere, total, count ->
+                    RelationOperator.SOME -> query = nestingLevelHandler.parseFilter()
+                    RelationOperator.EVERY -> query = nestingLevelHandler.parseFilter(totalAndCountFilter({ withWithoutWhere, total, count ->
                         withWithoutWhere.where(total.isEqualTo(count))
                     }))
-                    RelationOperator.SINGLE -> query = parseFilter(totalAndCountFilter({ withWithoutWhere, total, count ->
+                    RelationOperator.SINGLE -> query = nestingLevelHandler.parseFilter(totalAndCountFilter({ withWithoutWhere, total, count ->
                         withWithoutWhere
                             .where(total.isEqualTo(count))
                             .and(total.isEqualTo(Cypher.literalOf(1)))
                     }))
                     RelationOperator.NONE -> {
-                        val patternWithoutWhere = Cypher.listBasedOn(createRelation(rel, current, relVariable))
+                        val patternWithoutWhere = Cypher.listBasedOn(createRelation(rel, current as? Node
+                                ?: throw OptimizedQueryException(), relVariable))
                         if (nestedParsedQuery.and.isNullOrEmpty() && nestedParsedQuery.or.isNullOrEmpty() && nestedParsedQuery.relationPredicates.isNullOrEmpty()) {
                             if (nestedParsedQuery.fieldPredicates.isNotEmpty()) {
                                 val patternWithoutReturn = addConditions<PatternComprehension.OngoingDefinitionWithoutReturn>(
@@ -179,92 +220,145 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer) {
                 }
             }
             return query
-        } else {
+        }
+
+        private fun handleCombinations(passedQuery: StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere): StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere {
+            if ( parsedQuery.or.isNullOrEmpty() && parsedQuery.and.isNullOrEmpty()){
+                return passedQuery
+            }
             throw OptimizedQueryException()
+//            var query = passedQuery
+//            val levelPassThroughWiths = parentPassThroughWiths.toCollection(LinkedHashSet())
+//            var condition: Condition? = null
+//            var orTotal: Expression? = null
+//            var andTotal: Expression? = null
+//            val combinationHandler = { index: Int, value: Value<*>, combinationType: String ->
+//                val nestedParsedQuery = ParsedQuery(value as ObjectValue, type)
+//                val prefix = "${variablePrefix}_$combinationType${index + 1}"
+//                val count = Cypher.name(prefix + "_count")
+//                val currentNode = (current as? Node)?.named(prefix) ?: throw OptimizedQueryException()
+//                val nestingLevelHandler = NestingLevelHandler(nestedParsedQuery,
+//                        true,
+//                        currentNode,
+//                        prefix,
+//                        relationship,
+//                        {
+//                            if (nestedParsedQuery.fieldPredicates.isEmpty() && nestedParsedQuery.relationPredicates.isEmpty()){
+//                                query
+//                            } else {
+//                                val r = relationship?.invoke(currentNode) ?: throw OptimizedQueryException()
+//                                query.optionalMatch(r)
+//                            }
+//                        },
+//                        type, value, filterParams, levelPassThroughWiths)
+//                query = nestingLevelHandler.parseFilter({
+//                    withClauseWithOptionalDistinct(it, levelPassThroughWiths + Functions.countDistinct(Cypher.name(prefix)).`as`(count.value))
+//                })
+//                levelPassThroughWiths += count
+//                val newCond = count.gte(Cypher.literalOf(1))
+//                condition = when (combinationType) {
+//                    "or" -> {
+////                        orTotal = orTotal?.add(count) ?: count
+//                        condition?.or(newCond)
+//                    }
+//                    "and" -> {
+////                        andTotal = andTotal?.add(count) ?: count
+//                        condition?.and(newCond)
+//                    }
+//                    else -> throw IllegalArgumentException("$combinationType is not supported")
+//                } ?: newCond
+//            }
+//            parsedQuery.or?.withIndex()?.forEach { (idx, value) -> combinationHandler(idx, value, "or") }
+//            parsedQuery.and?.withIndex()?.forEach { (idx, value) -> combinationHandler(idx, value, "and") }
+//            if (condition == null) {
+//                return query
+//            }
+//            val withs = listOfNotNull(
+//                    orTotal?.`as`(variablePrefix + "_or_count"),
+//                    andTotal?.`as`(variablePrefix + "_and_count")
+//            )
+//            return withClauseWithOptionalDistinct(query.where(condition), parentPassThroughWiths + withs)
         }
+
+        private fun withClauseWithOptionalDistinct(
+                exposesWith: StatementBuilder.ExposesWith,
+                withs: Collection<Expression>,
+                useDistinct: Boolean = true): StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere =
+                when {
+                    useDistinct && withs.size == 1 -> exposesWith.withDistinct(*withs.toTypedArray())
+                    else -> exposesWith.with(*withs.toTypedArray())
+                }
+
+        private fun <WithWhere> addConditions(
+                propertyContainer: PropertyContainer<*>,
+                variablePrefix: String,
+                conditions: List<Predicate<FieldOperator>>,
+                filterParams: MutableMap<String, Any?>,
+                conditionAdder: (where: WithWhere?, condition: Condition) -> WithWhere
+        ): WithWhere? {
+            var where: WithWhere? = null
+            for (conditionField in conditions) {
+                val (predicate, objectField, field) = conditionField
+                val prop = propertyContainer.property(field.name)
+                val parameter = Cypher.parameter(variablePrefix + "_" + objectField.name)
+                val condition = predicate.conditionCreator(prop, parameter)
+                filterParams[parameter.name] = objectField.value.toJavaValue()
+                where = conditionAdder(where, condition)
+            }
+            return where
+        }
+
+
+        private fun createRelation(rel: RelationshipInfo, start: Node, end: Node): Relationship =
+                when (rel.out) {
+                    false -> start.relationshipFrom(end, rel.relType)
+                    true -> start.relationshipTo(end, rel.relType)
+                    null -> start.relationshipBetween(end, rel.relType)
+                }
     }
 
-    private fun handleExists(
-            relFilter: Predicate<RelationOperator>,
-            type: GraphQLFieldsContainer,
-            current: Node,
-            query: StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere,
-            levelPassThroughWiths: LinkedHashSet<SymbolicName>
-    ): StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere {
-        val (op, _, relField) = relFilter
-        val rel = type.relationshipFor(relField.name)!!
-        val label = (relField.type.inner() as? GraphQLObjectType)?.label(quote = false)!!
-        val relNode = Cypher.node(label)
-        val relation = createRelation(rel, current, relNode)
-        val where = when (op) {
-            RelationOperator.NOT -> query.where(relation)
-            RelationOperator.EQ_OR_NOT_EXISTS -> query.where(Conditions.not(relation))
-            else -> throw OptimizedQueryException()
-        }
-        return withClauseWithOptionalDistinct(where, levelPassThroughWiths)
-    }
+    companion object {
+        private val LOGGER = LoggerFactory.getLogger(OptimizedFilterHandler::class.java)
 
-    private fun withClauseWithOptionalDistinct(
-            exposesWith: StatementBuilder.ExposesWith,
-            withs: Collection<Expression>,
-            useDistinct: Boolean = true): StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere =
-            when {
-                useDistinct && withs.size == 1 -> exposesWith.withDistinct(*withs.toTypedArray())
-                else -> exposesWith.with(*withs.toTypedArray())
+        data class Predicate<T>(
+                val op: T,
+                val queryField: ObjectField,
+                val fieldDefinition: GraphQLFieldDefinition,
+                val index: Int)
+
+        class ParsedQuery(objectValue: ObjectValue, type: GraphQLFieldsContainer) {
+            val fieldPredicates = mutableListOf<Predicate<FieldOperator>>()
+            val relationPredicates = mutableListOf<Predicate<RelationOperator>>()
+            val or: List<Value<*>>?
+            val and: List<Value<*>>?
+
+            init {
+                val queriedFields = objectValue.objectFields
+                    .mapIndexed { index, field -> field.name to (index to field) }
+                    .toMap(mutableMapOf())
+                or = queriedFields.remove("OR")?.second?.value?.let {
+                    return@let (it as ArrayValue).values
+                            ?: throw IllegalArgumentException("OR is expected to be a list")
+                }
+                and = queriedFields.remove("AND")?.second?.value?.let {
+                    return@let (it as ArrayValue).values
+                            ?: throw IllegalArgumentException("AND is expected to be a list")
+                }
+                for (definedField in type.fieldDefinitions) {
+                    if (definedField.isRelationship()) {
+                        collectRelationPredicates(type, definedField, queriedFields)
+                    } else {
+                        collectFieldPredicates(definedField, queriedFields)
+                    }
+                }
+                if (queriedFields.isNotEmpty()) {
+                    throw OptimizedQueryException("queried unknown fields: " + queriedFields.keys)
+                }
+                fieldPredicates.sortedBy(Predicate<FieldOperator>::index)
+                relationPredicates.sortedBy(Predicate<RelationOperator>::index)
             }
 
-    private fun <WithWhere> addConditions(
-            node: Node,
-            variablePrefix: String,
-            conditions: List<Predicate<FieldOperator>>,
-            filterParams: MutableMap<String, Any?>,
-            conditionAdder: (where: WithWhere?, condition: Condition) -> WithWhere
-    ): WithWhere? {
-        var where: WithWhere? = null
-        for (conditionField in conditions) {
-            val (predicate, objectField, field) = conditionField
-            val prop = node.property(field.name)
-            val parameter = Cypher.parameter(variablePrefix + "_" + objectField.name)
-            val condition = predicate.conditionCreator(prop, parameter)
-            filterParams[parameter.name] = objectField.value.toJavaValue()
-            where = conditionAdder(where, condition)
-        }
-        return where
-    }
-
-
-    private fun createRelation(
-            rel: RelationshipInfo,
-            query: StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere,
-            start: Node,
-            end: Node
-    ): StatementBuilder.OngoingReadingWithoutWhere = query.match(createRelation(rel, start, end))
-
-
-    private fun createRelation(rel: RelationshipInfo, start: Node, end: Node): Relationship =
-            when (rel.out) {
-                false -> start.relationshipFrom(end, rel.relType)
-                true -> start.relationshipTo(end, rel.relType)
-                null -> start.relationshipBetween(end, rel.relType)
-            }
-
-
-    private fun parseQuery(objectValue: ObjectValue, type: GraphQLFieldsContainer): ParsedQuery {
-        val fieldPredicates = mutableListOf<Predicate<FieldOperator>>()
-        val relationPredicates = mutableListOf<Predicate<RelationOperator>>()
-        val queriedFields = objectValue.objectFields
-            .mapIndexed { index, field -> field.name to (index to field) }
-            .toMap(mutableMapOf())
-
-        val or: List<Value<*>>? = queriedFields.remove("OR")?.second?.value?.let {
-            (it as ArrayValue).values ?: throw IllegalArgumentException("OR is expected to be a list")
-        }
-        val and: List<Value<*>>? = queriedFields.remove("AND")?.second?.value?.let {
-            (it as ArrayValue).values ?: throw IllegalArgumentException("AND is expected to be a list")
-        }
-
-        for (definedField in type.fieldDefinitions) {
-            if (definedField.isRelationship()) {
+            private fun collectRelationPredicates(type: GraphQLFieldsContainer, definedField: GraphQLFieldDefinition, queriedFields: MutableMap<String, Pair<Int, ObjectField>>) {
                 RelationOperator.values()
                     .map { it to definedField.name + it.suffix }
                     .mapNotNull { (queryOp, queryFieldName) ->
@@ -311,7 +405,9 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer) {
                         Predicate(op, objectField, definedField, index)
                     }
                     .forEach { relationPredicates.add(it) }
-            } else {
+            }
+
+            private fun collectFieldPredicates(definedField: GraphQLFieldDefinition, queriedFields: MutableMap<String, Pair<Int, ObjectField>>) {
                 FieldOperator.values()
                     .map { it to definedField.name + it.suffix }
                     .mapNotNull { (predicate, queryFieldName) ->
@@ -321,27 +417,7 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer) {
                     .forEach { fieldPredicates.add(it) }
             }
         }
-        if (queriedFields.isNotEmpty()) {
-            throw OptimizedQueryException("queried unknown fields: " + queriedFields.keys)
-        }
-        return ParsedQuery(
-                fieldPredicates.sortedBy(Predicate<FieldOperator>::index),
-                relationPredicates.sortedBy(Predicate<RelationOperator>::index),
-                or,
-                and)
     }
 
-    data class ParsedQuery(
-            val fieldPredicates: List<Predicate<FieldOperator>>,
-            val relationPredicates: List<Predicate<RelationOperator>>,
-            val or: List<Value<*>>?,
-            val and: List<Value<*>>?
-    )
-
-    data class Predicate<T>(
-            val op: T,
-            val queryField: ObjectField,
-            val fieldDefinition: GraphQLFieldDefinition,
-            val index: Int)
 
 }

@@ -36,7 +36,7 @@ import static org.apiguardian.api.API.Status.EXPERIMENTAL;
  * @since 1.0
  */
 @API(status = EXPERIMENTAL, since = "1.0")
-public final class Relationship implements RelationshipPattern, Named {
+public final class Relationship implements RelationshipPattern, Named, PropertyContainer<Relationship> {
 
 	/**
 	 * While the direction in the schema package is centered around the node, the direction here is the direction between two nodes.
@@ -51,7 +51,7 @@ public final class Relationship implements RelationshipPattern, Named {
 		/**
 		 * Right to left
 		 */
-		RTR("<-", "-"),
+		RTL("<-", "-"),
 		/**
 		 * None
 		 */
@@ -173,13 +173,7 @@ public final class Relationship implements RelationshipPattern, Named {
 		return new Relationship(this.left, this.details.min(minimum).max(maximum), this.right);
 	}
 
-	/**
-	 * Creates a a copy of this relationship with additional properties. Creates a relationship without properties when no properties
-	 * are passed to this method.
-	 *
-	 * @param newProperties the new properties (can be {@literal null} to remove exiting properties).
-	 * @return The new relationship.
-	 */
+	@Override
 	public Relationship properties(MapExpression<?> newProperties) {
 
 		if (newProperties == null && this.details.getProperties() == null) {
@@ -188,13 +182,7 @@ public final class Relationship implements RelationshipPattern, Named {
 		return new Relationship(this.left, this.details.with(newProperties == null ? null : new Properties(newProperties)), this.right);
 	}
 
-	/**
-	 * Creates a a copy of this relationship with additional properties. Creates a relationship without properties when no properties
-	 * are passed to this method.
-	 *
-	 * @param keysAndValues A list of key and values. Must be an even number, with alternating {@link String} and {@link Expression}.
-	 * @return The new relationship.
-	 */
+	@Override
 	public Relationship properties(Object... keysAndValues) {
 
 		MapExpression<?> newProperties = null;
@@ -255,16 +243,7 @@ public final class Relationship implements RelationshipPattern, Named {
 		return MapProjection.create(this.getRequiredSymbolicName(), entries);
 	}
 
-	/**
-	 * Creates a new {@link Property} associated with this property container.
-	 * <p>
-	 * Note: The property container does not track property creation and there is no possibility to enumerate all
-	 * properties that have been created for this relationship.
-	 *
-	 * @param name property name, must not be {@literal null} or empty.
-	 * @return a new {@link Property} associated with this {@link Relationship}.
-	 * @since 1.0.1
-	 */
+	@Override
 	public Property property(String name) {
 
 		return Property.create(this, name);

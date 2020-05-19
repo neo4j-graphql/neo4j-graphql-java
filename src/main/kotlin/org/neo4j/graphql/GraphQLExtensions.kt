@@ -46,13 +46,18 @@ fun GraphQLFieldsContainer.relationshipFor(name: String): RelationshipInfo? {
             ?: throw IllegalArgumentException("$name is not defined on ${this.name}")
     val fieldObjectType = field.type.inner() as? GraphQLFieldsContainer ?: return null
 
+    val (relDirective, isRelFromType) = if (isRelationType()){
+        (this as? GraphQLDirectiveContainer)
+            ?.getDirective(DirectiveConstants.RELATION)?.let { it to false }
+                ?: throw IllegalStateException("Field $field needs an @relation directive")
+    } else {
+        (fieldObjectType as? GraphQLDirectiveContainer)
+            ?.getDirective(DirectiveConstants.RELATION)?.let { it to true }
+                ?: field.getDirective(DirectiveConstants.RELATION)?.let { it to false }
+                ?: throw IllegalStateException("Field $field needs an @relation directive")
+    }
+
     // TODO direction is depending on source/target type
-
-    val (relDirective, isRelFromType) = (fieldObjectType as? GraphQLDirectiveContainer)
-        ?.getDirective(DirectiveConstants.RELATION)?.let { it to true }
-            ?: field.getDirective(DirectiveConstants.RELATION)?.let { it to false }
-            ?: throw IllegalStateException("Field $field needs an @relation directive")
-
 
     val relInfo = relDetails(fieldObjectType) { argName, defaultValue -> relDirective.getArgument(argName, defaultValue) }
 
