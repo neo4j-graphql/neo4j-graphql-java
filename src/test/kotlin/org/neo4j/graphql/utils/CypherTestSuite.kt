@@ -31,18 +31,20 @@ class CypherTestSuite(fileName: String) : AsciiDocTestSuite() {
                 val ctx = contextProvider?.let { it(requestParams) } ?: config ?: QueryContext()
                 val result = suite.translate(request, requestParams, ctx)
 
-                println("Generated query")
-                println("---------------")
-                println(result.query)
+                if (DEBUG) {
+                    println("Generated query")
+                    println("---------------")
+                    println(result.query)
 
-                var queryWithReplacedParams = result.query;
-                result.params.forEach { (key, value) ->
-                    queryWithReplacedParams = queryWithReplacedParams.replace("$$key", if (value is String) "'$value'" else value.toString())
+                    var queryWithReplacedParams = result.query
+                    result.params.forEach { (key, value) ->
+                        queryWithReplacedParams = queryWithReplacedParams.replace("$$key", if (value is String) "'$value'" else value.toString())
+                    }
+                    println()
+                    println("Generated query with params replaced")
+                    println("------------------------------------")
+                    println(queryWithReplacedParams)
                 }
-                println()
-                println("Generated query with params replaced")
-                println("------------------------------------")
-                println(queryWithReplacedParams)
 
                 Assertions.assertEquals(this.cypher.normalize(), result.query.normalize())
                 Assertions.assertEquals(fixNumbers(cypherParams), fixNumbers(result.params)) {
@@ -98,5 +100,9 @@ class CypherTestSuite(fileName: String) : AsciiDocTestSuite() {
             DynamicTest.dynamicTest(it.title,
                     UriBuilder.fromUri(it.file.toURI()).queryParam("line", it.line).build()) { it.run(contextProvider) }
         }
+    }
+
+    companion object {
+        val DEBUG = false
     }
 }

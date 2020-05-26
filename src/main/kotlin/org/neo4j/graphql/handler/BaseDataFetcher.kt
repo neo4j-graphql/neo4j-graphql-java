@@ -82,9 +82,9 @@ abstract class BaseDataFetcher(
     ): Cypher
 
 
-    fun allLabels(): String = type.label(includeAll = true)
+    fun allLabels(): String = type.allLabels()
 
-    fun label(includeAll: Boolean = false) = type.label(includeAll)
+    fun label(includeAll: Boolean = false) = if (includeAll) type.allLabels() else type.quotedLabel()
 
 
     protected fun properties(variable: String, arguments: List<Argument>): Cypher {

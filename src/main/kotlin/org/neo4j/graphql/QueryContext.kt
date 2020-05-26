@@ -7,7 +7,15 @@ data class QueryContext @JvmOverloads constructor(
         var queryTypeOfInterfaces: Boolean = false,
 
         /**
-         * If true an alternative approach for query translation will be used.
+         * If set alternative approaches for query translation will be used
          */
-        var optimizedQuery: Boolean = false
-)
+        var optimizedQuery: Set<OptimizationStrategy>? = null
+
+) {
+    enum class OptimizationStrategy {
+        /**
+         * If used, filter queries will be converted to cypher matches
+         */
+        FILTER_AS_MATCH
+    }
+}

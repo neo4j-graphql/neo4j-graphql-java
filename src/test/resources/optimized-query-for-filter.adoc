@@ -50,7 +50,7 @@ type Review @relation(name:"REVIEWED", to: "movie") {
 .Query configuration
 [source,json,config=true]
 ----
-{  "optimizedQuery": true }
+{  "optimizedQuery":  ["FILTER_AS_MATCH"] }
 ----
 
 .GraphQL-Query
@@ -96,7 +96,7 @@ MATCH (movie)<-[:`REVIEWED`]-(movie_reviewedBy_some:`Person`)
 WHERE movie_reviewedBy_some.name = $movie_reviewedBy_some_name
 WITH DISTINCT movie
 
-RETURN DISTINCT movie { .title } AS movie
+RETURN movie { .title } AS movie
 ----
 
 .Movie Example result
@@ -113,7 +113,7 @@ CAUTION: *Not yet implemented*
 .Query configuration
 [source,json,config=true]
 ----
-{  "optimizedQuery": true }
+{  "optimizedQuery":  ["FILTER_AS_MATCH"] }
 ----
 
 .GraphQL-Query
@@ -164,7 +164,7 @@ WHERE review.rating > $movie_reviews_some_rating
   AND  movie_reviews_some_from.name = $movie_reviews_some_from_name
 WITH DISTINCT movie
 
-RETURN DISTINCT movie { .title } AS movie
+RETURN movie { .title } AS movie
 ----
 
 .Movie Example result
@@ -179,7 +179,7 @@ RETURN DISTINCT movie { .title } AS movie
 .Query configuration
 [source,json,config=true]
 ----
-{  "optimizedQuery": true }
+{  "optimizedQuery":  ["FILTER_AS_MATCH"] }
 ----
 
 
@@ -231,7 +231,7 @@ WHERE
     movie_reviewedBy_every_total = movie_reviewedBy_every_count
 WITH DISTINCT movie
 
-RETURN DISTINCT movie { .title } AS movie
+RETURN movie { .title } AS movie
 ----
 
 .Movie Example result
@@ -247,7 +247,7 @@ RETURN DISTINCT movie { .title } AS movie
 .Query configuration
 [source,json,config=true]
 ----
-{  "optimizedQuery": true }
+{  "optimizedQuery":  ["FILTER_AS_MATCH"] }
 ----
 
 .GraphQL-Query
@@ -301,7 +301,7 @@ WHERE
     movie_reviewedBy_every_total = movie_reviewedBy_every_count
 WITH DISTINCT movie
 
-RETURN DISTINCT movie { .title } AS movie
+RETURN movie { .title } AS movie
 ----
 
 .Movie Example result
@@ -319,7 +319,7 @@ CAUTION: *Not yet implemented*
 .Query configuration
 [source,json,config=true]
 ----
-{  "optimizedQuery": true }
+{  "optimizedQuery":  ["FILTER_AS_MATCH"] }
 ----
 
 .GraphQL-Query
@@ -408,9 +408,9 @@ WITH movie,
     count(DISTINCT movie_reviewedBy_every) AS movie_reviewedBy_every_count
 WHERE
     movie_reviewedBy_every_total = movie_reviewedBy_every_count
-WITH movie
+WITH DISTINCT movie
 
-RETURN DISTINCT movie { .title } AS movie
+RETURN movie { .title } AS movie
 ----
 
 .Movie Example result
@@ -427,7 +427,7 @@ RETURN DISTINCT movie { .title } AS movie
 .Query configuration
 [source,json,config=true]
 ----
-{  "optimizedQuery": true }
+{  "optimizedQuery":  ["FILTER_AS_MATCH"] }
 ----
 
 .GraphQL-Query
@@ -488,7 +488,7 @@ MATCH
 WHERE movie_reviewedBy_some_followedBy_some_reviewedMovies_some.released >= $movie_reviewedBy_some_followedBy_some_reviewedMovies_some_released_gte
 WITH DISTINCT movie
 
-RETURN DISTINCT movie { .title } AS movie
+RETURN movie { .title } AS movie
 ----
 
 .Movie Example result
@@ -504,7 +504,7 @@ RETURN DISTINCT movie { .title } AS movie
 .Query configuration
 [source,json,config=true]
 ----
-{  "optimizedQuery": true }
+{  "optimizedQuery":  ["FILTER_AS_MATCH"] }
 ----
 
 .GraphQL-Query
@@ -544,7 +544,7 @@ WHERE (movie_directedBy_single_total = movie_directedBy_single_count
 
 WITH DISTINCT movie
 
-RETURN DISTINCT movie { .title } AS movie
+RETURN movie { .title } AS movie
 ----
 
 .Movie Example result
@@ -561,7 +561,7 @@ RETURN DISTINCT movie { .title } AS movie
 .Query configuration
 [source,json,config=true]
 ----
-{  "optimizedQuery": true }
+{  "optimizedQuery":  ["FILTER_AS_MATCH"] }
 ----
 
 .GraphQL-Query
@@ -595,7 +595,7 @@ MATCH (movie)<-[:`DIRECTED`]-(movie_directedBySingle:`Person`)
 WHERE movie_directedBySingle.name = $movie_directedBySingle_name
 WITH DISTINCT movie
 
-RETURN DISTINCT movie { .title } AS movie
+RETURN movie { .title } AS movie
 ----
 
 .Movie Example result
@@ -612,7 +612,7 @@ RETURN DISTINCT movie { .title } AS movie
 .Query configuration
 [source,json,config=true]
 ----
-{  "optimizedQuery": true }
+{  "optimizedQuery":  ["FILTER_AS_MATCH"] }
 ----
 
 .GraphQL-Query
@@ -642,11 +642,16 @@ RETURN DISTINCT movie { .title } AS movie
 ----
 MATCH (movie:`Movie`)
 WITH movie
-WHERE size([(movie)<-[:`DIRECTED`]-(movie_directedBy_none:`Person`) WHERE movie_directedBy_none.name = $movie_directedBy_none_name | true]) = 0
 
+OPTIONAL MATCH (movie)<-[:`DIRECTED`]-(movie_directedBy_none:`Person`)
+WHERE movie_directedBy_none.name = $movie_directedBy_none_name
+WITH movie,
+	count(DISTINCT movie_directedBy_none) AS movie_directedBy_none_count
+
+WHERE movie_directedBy_none_count = 0
 WITH DISTINCT movie
 
-RETURN DISTINCT movie { .title } AS movie
+RETURN movie { .title } AS movie
 ----
 
 .Movie Example result
@@ -693,7 +698,7 @@ RETURN DISTINCT movie { .title } AS movie
 .Query configuration
 [source,json,config=true]
 ----
-{  "optimizedQuery": true }
+{  "optimizedQuery":  ["FILTER_AS_MATCH"] }
 ----
 
 .GraphQL-Query
@@ -723,12 +728,16 @@ RETURN DISTINCT movie { .title } AS movie
 ----
 MATCH (movie:`Movie`)
 WITH movie
-WHERE size([(movie)<-[:`DIRECTED`]-(movie_directedBySingle_not:`Person`)
-WHERE movie_directedBySingle_not.name = $movie_directedBySingle_not_name | true]) = 0
+
+OPTIONAL MATCH (movie)<-[:`DIRECTED`]-(movie_directedBySingle_not:`Person`)
+WHERE movie_directedBySingle_not.name = $movie_directedBySingle_not_name
+WITH movie,
+	count(DISTINCT movie_directedBySingle_not) AS movie_directedBySingle_not_count
+WHERE movie_directedBySingle_not_count = 0
 
 WITH DISTINCT movie
 
-RETURN DISTINCT movie { .title } AS movie
+RETURN movie { .title } AS movie
 ----
 
 .Movie Example result
@@ -775,7 +784,7 @@ RETURN DISTINCT movie { .title } AS movie
 .Query configuration
 [source,json,config=true]
 ----
-{  "optimizedQuery": true }
+{  "optimizedQuery":  ["FILTER_AS_MATCH"] }
 ----
 
 .GraphQL-Query
@@ -805,7 +814,7 @@ WITH movie
 WHERE (movie)<-[:`REVIEWED`]-(:`Person`)
 WITH DISTINCT movie
 
-RETURN DISTINCT movie { .title } AS movie
+RETURN movie { .title } AS movie
 ----
 
 .Movie Example result
@@ -825,7 +834,7 @@ RETURN DISTINCT movie { .title } AS movie
 .Query configuration
 [source,json,config=true]
 ----
-{  "optimizedQuery": true }
+{  "optimizedQuery":  ["FILTER_AS_MATCH"] }
 ----
 
 .GraphQL-Query
@@ -855,7 +864,7 @@ WHERE NOT (movie)<-[:`REVIEWED`]-(:`Person`)
 
 WITH DISTINCT movie
 
-RETURN DISTINCT movie { .title } AS movie
+RETURN movie { .title } AS movie
 ----
 
 .Movie Example result

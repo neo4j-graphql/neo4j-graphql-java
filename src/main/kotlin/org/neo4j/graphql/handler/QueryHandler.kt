@@ -80,13 +80,12 @@ class QueryHandler private constructor(
         val ordering = orderBy(variable, field.arguments)
         val skipLimit = SkipLimit(variable, field.arguments).format()
 
-        if ((env.getContext() as? QueryContext)?.optimizedQuery == true) {
+        if ((env.getContext() as? QueryContext)?.optimizedQuery?.contains(QueryContext.OptimizationStrategy.FILTER_AS_MATCH) == true) {
 
             val (partialQuery, filterParams) = OptimizedFilterHandler(type).generateFilterQuery(variable, field)
             val statement = partialQuery
-                ?.returningDistinct(PassThrough("${mapProjection.query} AS $variable$ordering${skipLimit.query}"))
-                ?.build()
-                    ?: throw OptimizedQueryException()
+                .returning(PassThrough("${mapProjection.query} AS $variable$ordering${skipLimit.query}"))
+                .build()
             val query = Renderer.getDefaultRenderer().render(statement)
             return Cypher(query, filterParams + mapProjection.params + skipLimit.params)
 
