@@ -1,6 +1,8 @@
 package org.neo4j.graphql
 
 import graphql.Scalars
+import graphql.language.NullValue
+import graphql.language.Value
 import graphql.schema.*
 import org.neo4j.graphql.Predicate.Companion.resolvePredicate
 import org.neo4j.graphql.handler.projection.ProjectionBase
@@ -118,11 +120,13 @@ data class RelationPredicate(val fieldName: String, val op: RelationOperator, va
                 LOGGER.info("$fieldName on type ${type.name} was used for filtering, consider using ${fieldName}${RelationOperator.EVERY.suffix} instead")
             }
         } else {
-            @Suppress("NON_EXHAUSTIVE_WHEN")
             when (op) {
-                RelationOperator.SINGLE -> LOGGER.warn("Using $fieldName${RelationOperator.SINGLE.suffix} on type ${type.name} is deprecated, use ${fieldName} directly")
-                RelationOperator.SOME -> LOGGER.warn("Using $fieldName${RelationOperator.SOME.suffix} on type ${type.name} is deprecated, use ${fieldName} directly")
+                RelationOperator.SINGLE -> LOGGER.warn("Using $fieldName${RelationOperator.SINGLE.suffix} on type ${type.name} is deprecated, use $fieldName directly")
+                RelationOperator.SOME -> LOGGER.warn("Using $fieldName${RelationOperator.SOME.suffix} on type ${type.name} is deprecated, use $fieldName directly")
                 RelationOperator.NONE -> LOGGER.warn("Using $fieldName${RelationOperator.NONE.suffix} on type ${type.name} is deprecated, use ${fieldName}${RelationOperator.NOT.suffix} instead")
+                else -> {
+                    // nothing to log
+                }
             }
         }
         val rel = type.relationshipFor(fieldName) ?: throw IllegalArgumentException("Not a relation")
@@ -198,4 +202,74 @@ enum class RelationOperator(val suffix: String, val op: String) {
     NOT("_not", "");
 
     fun fieldName(fieldName: String) = fieldName + suffix
+
+    fun harmonize(type: GraphQLFieldsContainer, field: GraphQLFieldDefinition, value: Value<*>, queryFieldName: String) = when (field.type.isList()) {
+        true -> when (this) {
+            NOT -> when (value) {
+                is NullValue -> NOT
+                else -> NONE
+            }
+            EQ_OR_NOT_EXISTS -> when (value) {
+                is NullValue -> EQ_OR_NOT_EXISTS
+                else -> {
+                    LOGGER.debug("$queryFieldName on type ${type.name} was used for filtering, consider using ${field.name}${EVERY.suffix} instead")
+                    EVERY
+                }
+            }
+            else -> this
+        }
+        false -> when (this) {
+            SINGLE -> {
+                LOGGER.debug("Using $queryFieldName on type ${type.name} is deprecated, use ${field.name} directly")
+                SOME
+            }
+            SOME -> {
+                LOGGER.debug("Using $queryFieldName on type ${type.name} is deprecated, use ${field.name} directly")
+                SOME
+            }
+            NONE -> {
+                LOGGER.debug("Using $queryFieldName on type ${type.name} is deprecated, use ${field.name}${NOT.suffix} instead")
+                NONE
+            }
+            NOT -> when (value) {
+                is NullValue -> NOT
+                else -> NONE
+            }
+            EQ_OR_NOT_EXISTS -> when (value) {
+                is NullValue -> EQ_OR_NOT_EXISTS
+                else -> SOME
+            }
+            else -> this
+        }
+    }
+
+    companion object {
+        private val LOGGER = LoggerFactory.getLogger(RelationOperator::class.java)
+
+        fun createRelationFilterFields(type: GraphQLFieldsContainer, field: GraphQLFieldDefinition, filterType: String, builder: GraphQLInputObjectType.Builder) {
+            val list = field.type.isList()
+
+            val addFilterField = { op: RelationOperator, description: String ->
+                builder.addFilterField(op.fieldName(field.name), false, filterType, description)
+            }
+
+            addFilterField(EQ_OR_NOT_EXISTS, "Filters only those `${type.name}` for which ${if (list) "all" else "the"} `${field.name}`-relationship matches this filter. " +
+                    "If `null` is passed to this field, only those `${type.name}` will be filtered which has no `${field.name}`-relations")
+
+            addFilterField(NOT, "Filters only those `${type.name}` for which ${if (list) "all" else "the"} `${field.name}`-relationship does not match this filter. " +
+                    "If `null` is passed to this field, only those `${type.name}` will be filtered which has any `${field.name}`-relation")
+            if (list) {
+                // n..m
+                addFilterField(EVERY, "Filters only those `${type.name}` for which all `${field.name}`-relationships matches this filter")
+                addFilterField(SOME, "Filters only those `${type.name}` for which at least one `${field.name}`-relationship matches this filter")
+                addFilterField(SINGLE, "Filters only those `${type.name}` for which exactly one `${field.name}`-relationship matches this filter")
+                addFilterField(NONE, "Filters only those `${type.name}` for which none of the `${field.name}`-relationships matches this filter")
+            } else {
+                // n..1
+                addFilterField(SINGLE, "@deprecated Use the `${field.name}`-field directly (without any suffix)")
+                addFilterField(SOME, "@deprecated Use the `${field.name}`-field directly (without any suffix)")
+                addFilterField(NONE, "@deprecated Use the `${field.name}${NOT.suffix}`-field")
+            }
+        }
+    }
 }

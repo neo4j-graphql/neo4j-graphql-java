@@ -17,6 +17,8 @@ import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_FROM
 import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_NAME
 import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_TO
 import org.neo4j.graphql.handler.projection.ProjectionBase
+import org.neo4j.opencypherdsl.Node
+import org.neo4j.opencypherdsl.Relationship
 
 fun Type<Type<*>>.name(): String? = if (this.inner() is TypeName) (this.inner() as TypeName).name else null
 fun Type<Type<*>>.inner(): Type<Type<*>> = when (this) {
@@ -171,6 +173,13 @@ data class RelationshipInfo(
             .map { RelatedField("${relFieldName}_${it.name}", it, relType) }
             .firstOrNull()
     }
+
+    fun createRelation(start: Node, end: Node): Relationship =
+            when (this.out) {
+                false -> start.relationshipFrom(end, this.relType)
+                true -> start.relationshipTo(end, this.relType)
+                null -> start.relationshipBetween(end, this.relType)
+            }
 }
 
 fun Field.aliasOrName() = (this.alias ?: this.name).quote()
@@ -242,3 +251,15 @@ fun paramName(variable: String, argName: String, value: Any?): String = when (va
 fun GraphQLFieldDefinition.isID() = this.type.inner() == Scalars.GraphQLID
 fun GraphQLFieldDefinition.isNativeId() = this.name == ProjectionBase.NATIVE_ID
 fun GraphQLFieldsContainer.getIdField() = this.fieldDefinitions.find { it.isID() }
+
+fun GraphQLInputObjectType.Builder.addFilterField(fieldName: String, isList: Boolean, filterType: String, description: String? = null) {
+    val wrappedType: GraphQLInputType = when {
+        isList -> GraphQLList(GraphQLTypeReference(filterType))
+        else -> GraphQLTypeReference(filterType)
+    }
+    val inputField = GraphQLInputObjectField.newInputObjectField()
+        .name(fieldName)
+        .description(description)
+        .type(wrappedType)
+    this.field(inputField)
+}
