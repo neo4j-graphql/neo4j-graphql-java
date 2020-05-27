@@ -16,6 +16,8 @@ typealias WhereClauseFactory = (
         names: List<SymbolicName>
 ) -> StatementBuilder.OrderableOngoingReadingAndWithWithWhere
 
+typealias ConditionBuilder = (StatementBuilder.ExposesWith) -> StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere
+
 class OptimizedFilterHandler(val type: GraphQLFieldsContainer) {
 
     fun generateFilterQuery(variable: String, field: Field): Pair<StatementBuilder.OngoingReading, MutableMap<String, Any?>> {
@@ -54,7 +56,7 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer) {
     class NestingLevelHandler(
             private val parsedQuery: ParsedQuery,
             private val useDistinct: Boolean,
-            private val current: PropertyContainer<*>,
+            private val current: PropertyContainer,
             private val variablePrefix: String,
             private val matchQueryWithoutWhere: StatementBuilder.OngoingReading,
             private val type: GraphQLFieldsContainer,
@@ -67,15 +69,15 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer) {
                 ?: throw OptimizedQueryException("Only filtering on nodes is currently supported by the OptimizedFilterHandler. Please provide a test case to help adding further cases.")
 
         /**
-         * @param additionalFilter additional filters to be applied to the where
+         * @param additionalConditions additional conditions to be applied to the where
          */
-        fun parseFilter(additionalFilter: ((StatementBuilder.ExposesWith) -> StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere)? = null): StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere {
+        fun parseFilter(additionalConditions: ConditionBuilder? = null): StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere {
             if (value !is ObjectValue) {
                 throw IllegalArgumentException("Only object values are supported by the OptimizedFilterHandler")
             }
             // WHERE MATCH all predicates for current
             // WITH x
-            var query = addWhere(additionalFilter)
+            var query = addWhere(additionalConditions)
 
             // Handle all quantifier (ALL / NONE / SINGLE / ANY)
             query = handleQuantifier(query)
@@ -84,9 +86,7 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer) {
             return handleCombinations(query)
         }
 
-        private fun addWhere(
-                additionalFilter: ((StatementBuilder.ExposesWith) -> StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere)? = null
-        ): StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere {
+        private fun addWhere(additionalConditions: ConditionBuilder? = null): StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere {
             if (parsedQuery.fieldPredicates.isEmpty()) {
                 if (matchQueryWithoutWhere is StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere) {
                     return matchQueryWithoutWhere
@@ -100,8 +100,8 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer) {
             val matchQueryWithWhere = addConditions<StatementBuilder.OngoingReadingWithWhere>(current, variablePrefix, parsedQuery.fieldPredicates, filterParams) { where, condition ->
                 where?.and(condition) ?: matchQueryWithoutWhere.where(condition)
             }
-            return if (additionalFilter != null) {
-                additionalFilter(matchQueryWithWhere ?: matchQueryWithoutWhere)
+            return if (additionalConditions != null) {
+                additionalConditions(matchQueryWithWhere ?: matchQueryWithoutWhere)
             } else {
                 val withs = if (parsedQuery.relationPredicates.isNotEmpty() && parentPassThroughWiths.firstOrNull { it == current.requiredSymbolicName } == null) {
                     parentPassThroughWiths + current.requiredSymbolicName
@@ -174,9 +174,8 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer) {
 
             val totalFilter = { totalFilter(relFilter, relVariableName) }
             val countFilter = { countFilter(relVariable, relVariableName) }
-            // used as additional filter to handle SINGLE and EVERY use cases
-            val commonFilter = { filter: List<Pair<SymbolicName, AliasedExpression>>, whereClauseFactory: WhereClauseFactory ->
-                commonFilter(nestedParsedQuery, relVariable, levelPassThroughWiths, filter, whereClauseFactory)
+            val additionalConditions = { filter: List<Pair<SymbolicName, AliasedExpression>>, whereClauseFactory: WhereClauseFactory ->
+                createAdditionalConditions(nestedParsedQuery, relVariable, levelPassThroughWiths, filter, whereClauseFactory)
             }
 
             val nestingLevelHandler = NestingLevelHandler(nestedParsedQuery, true, relVariable, relVariableName,
@@ -185,17 +184,17 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer) {
             when (relFilter.op) {
                 RelationOperator.SOME -> queryWithoutWhere = nestingLevelHandler.parseFilter()
                 RelationOperator.EVERY -> queryWithoutWhere = nestingLevelHandler.parseFilter(
-                        commonFilter(listOf(totalFilter(), countFilter()), { withWithoutWhere, (total, count) ->
+                        additionalConditions(listOf(totalFilter(), countFilter()), { withWithoutWhere, (total, count) ->
                             withWithoutWhere.where(total.isEqualTo(count))
                         }))
                 RelationOperator.SINGLE -> queryWithoutWhere = nestingLevelHandler.parseFilter(
-                        commonFilter(listOf(totalFilter(), countFilter()), { withWithoutWhere, (total, count) ->
+                        additionalConditions(listOf(totalFilter(), countFilter()), { withWithoutWhere, (total, count) ->
                             withWithoutWhere
                                 .where(total.isEqualTo(count))
                                 .and(total.isEqualTo(Cypher.literalOf(1)))
                         }))
                 RelationOperator.NONE -> queryWithoutWhere = nestingLevelHandler.parseFilter(
-                        commonFilter(listOf(countFilter()), { withWithoutWhere, (count) ->
+                        additionalConditions(listOf(countFilter()), { withWithoutWhere, (count) ->
                             withWithoutWhere
                                 .where(count.isEqualTo(Cypher.literalOf(0)))
                         }))
@@ -224,13 +223,13 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer) {
             return Cypher.name(countVar) to count
         }
 
-        private fun commonFilter(
+        private fun createAdditionalConditions(
                 query: ParsedQuery,
                 relVariable: Node,
                 passThroughWiths: LinkedHashSet<Expression>,
                 filter: List<Pair<SymbolicName, AliasedExpression>>,
                 whereClauseFactory: WhereClauseFactory
-        ): (StatementBuilder.ExposesWith) -> StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere {
+        ): ConditionBuilder {
             return { exposesWith: StatementBuilder.ExposesWith ->
                 var additionalWiths = emptyList<SymbolicName>()
                 if (query.relationPredicates.isNotEmpty()) {
@@ -256,7 +255,7 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer) {
         }
 
         private fun <WithWhere> addConditions(
-                propertyContainer: PropertyContainer<*>,
+                propertyContainer: PropertyContainer,
                 variablePrefix: String,
                 conditions: List<Predicate<FieldOperator>>,
                 filterParams: MutableMap<String, Any?>,
