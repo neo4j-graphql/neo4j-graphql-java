@@ -4,6 +4,9 @@ import graphql.Scalars
 import graphql.language.Field
 import graphql.schema.*
 import org.neo4j.graphql.*
+import org.neo4j.graphql.handler.filter.OptimizedFilterHandler
+import org.neo4j.opencypherdsl.PassThrough
+import org.neo4j.opencypherdsl.renderer.Renderer
 
 class QueryHandler private constructor(
         type: GraphQLFieldsContainer,
@@ -76,6 +79,17 @@ class QueryHandler private constructor(
         val mapProjection = projectFields(variable, field, type, env, null)
         val ordering = orderBy(variable, field.arguments)
         val skipLimit = SkipLimit(variable, field.arguments).format()
+
+        if ((env.getContext() as? QueryContext)?.optimizedQuery?.contains(QueryContext.OptimizationStrategy.FILTER_AS_MATCH) == true) {
+
+            val (partialQuery, filterParams) = OptimizedFilterHandler(type).generateFilterQuery(variable, field)
+            val statement = partialQuery
+                .returning(PassThrough("${mapProjection.query} AS $variable$ordering${skipLimit.query}"))
+                .build()
+            val query = Renderer.getDefaultRenderer().render(statement)
+            return Cypher(query, filterParams + mapProjection.params + skipLimit.params)
+
+        }
 
         val select = if (type.isRelationType()) {
             "()-[$variable:${label()}]->()"

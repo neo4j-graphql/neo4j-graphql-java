@@ -92,15 +92,13 @@ class BuildingEnv(val types: MutableMap<String, GraphQLType>) {
                     else -> addFilterType(getInnerFieldsContainer(typeDefinition), createdTypes)
                 }
 
-                Operators.forType(types[filterType] ?: typeDefinition).forEach { op ->
-                    val wrappedType: GraphQLInputType = when {
-                        op.list -> GraphQLList(GraphQLTypeReference(filterType))
-                        else -> GraphQLTypeReference(filterType)
-                    }
-                    builder.field(GraphQLInputObjectField.newInputObjectField()
-                        .name(op.fieldName(field.name))
-                        .type(wrappedType))
+                if (field.isRelationship()) {
+                    RelationOperator.createRelationFilterFields(type, field, filterType, builder)
+                } else {
+                    FieldOperator.forType(types[filterType] ?: typeDefinition)
+                        .forEach { op -> builder.addFilterField(op.fieldName(field.name), op.list, filterType) }
                 }
+
             }
         types[filterName] = builder.build()
         return filterName

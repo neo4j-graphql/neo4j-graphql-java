@@ -1,0 +1,906 @@
+:toc:
+= Translator Tests
+
+== Schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+  released: Int
+  tagline: String
+  actor: [Person!]! @relation(name:"ACTED_IN", direction: IN)
+  reviews: [Review!]!
+  reviewedBy: [Person!]! @relation(name:"REVIEWED", direction: IN)
+  producedBy: [Person!]! @relation(name:"PRODUCED", direction: IN)
+  writtenBy: [Person!]! @relation(name:"WROTE", direction: IN)
+  directedBy: [Person!]! @relation(name:"DIRECTED", direction: IN)
+  directedBySingle: Person @relation(name:"DIRECTED", direction: IN)
+}
+type Person {
+  name: String!
+  born: Int
+  actedIn: [Movie!]! @relation(name: "ACTED_IN", direction:OUT)
+  roles: [Role!]!
+  reviewedMovies: [Movie!]! @relation(name: "REVIEWED", direction:OUT)
+  reviews: [Review!]!
+  producedMovies: [Movie!]! @relation(name: "PRODUCED", direction:OUT)
+  writtenMovies: [Movie!]! @relation(name: "WROTE", direction:OUT)
+  directedMovies: [Movie!]! @relation(name: "DIRECTED", direction:OUT)
+  follows: [Person!]! @relation(name: "FOLLOWS", direction:OUT)
+  followedBy: [Person!]! @relation(name: "FOLLOWS", direction:IN)
+}
+type Role @relation(name:"ACTED_IN", from:"actor", to:"movie") {
+  actor: Person!
+  movie: Movie!
+  roles: String
+}
+type Review @relation(name:"REVIEWED", to: "movie") {
+  from: Person!
+  movie: Movie!
+  rating: Int
+  summary: String
+}
+----
+
+== Tests
+
+=== Filter at same level (some)
+
+.Query configuration
+[source,json,config=true]
+----
+{  "optimizedQuery":  ["FILTER_AS_MATCH"] }
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movie(filter: {
+    actor_some:{
+      name: "Halle Berry"
+    }
+    reviewedBy_some:{
+      name: "Jessica Thompson"
+    }
+    released_gt: 1900
+  }) {
+    title
+  }
+}
+----
+
+.Cypher params
+[source,json]
+----
+{
+  "movie_actor_some_name": "Halle Berry",
+  "movie_reviewedBy_some_name": "Jessica Thompson",
+  "movie_released_gt": 1900
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (movie:`Movie`)
+WHERE movie.released > $movie_released_gt
+WITH movie
+
+MATCH (movie)<-[:`ACTED_IN`]-(movie_actor_some:`Person`)
+WHERE movie_actor_some.name = $movie_actor_some_name
+WITH DISTINCT movie
+
+MATCH (movie)<-[:`REVIEWED`]-(movie_reviewedBy_some:`Person`)
+WHERE movie_reviewedBy_some.name = $movie_reviewedBy_some_name
+WITH DISTINCT movie
+
+RETURN movie { .title } AS movie
+----
+
+.Movie Example result
+|===
+|title
+
+|Cloud Atlas
+|===
+
+=== Filter for relation
+
+CAUTION: *Not yet implemented*
+
+.Query configuration
+[source,json,config=true]
+----
+{  "optimizedQuery":  ["FILTER_AS_MATCH"] }
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movie(filter: {
+    actor_some:{
+      name: "Halle Berry"
+    }
+    reviews_some:{
+      from: {
+        name: "Jessica Thompson"
+      }
+      rating_gt: 2
+    }
+    released_gt: 1900
+  }) {
+    title
+  }
+}
+----
+
+.Cypher params
+[source,json]
+----
+{
+  "movie_actor_some_name": "Halle Berry",
+  "movie_reviews_some_rating": 2,
+  "movie_reviews_some_from_name": "Jessica Thompson",
+  "movie_released_gt": 1900
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (movie:`Movie`)
+WHERE movie.released > $movie_released_gt
+WITH movie
+
+MATCH (movie)<-[:`ACTED_IN`]-(movie_actor_some:`Person`)
+WHERE movie_actor_some.name = $movie_actor_some_name
+WITH DISTINCT movie
+
+MATCH (movie)<-[review:`REVIEWED`]-(movie_reviews_some_from:`Person`)
+WHERE review.rating > $movie_reviews_some_rating
+  AND  movie_reviews_some_from.name = $movie_reviews_some_from_name
+WITH DISTINCT movie
+
+RETURN movie { .title } AS movie
+----
+
+.Movie Example result
+|===
+|title
+
+|Cloud Atlas
+|===
+
+=== Filter at same level (some + every)
+
+.Query configuration
+[source,json,config=true]
+----
+{  "optimizedQuery":  ["FILTER_AS_MATCH"] }
+----
+
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movie(filter: {
+    actor_some:{
+      name: "Halle Berry"
+    }
+    reviewedBy_every:{
+      name: "Jessica Thompson"
+    }
+  }) {
+    title
+  }
+}
+
+----
+
+.Cypher params
+[source,json]
+----
+{
+  "movie_actor_some_name": "Halle Berry",
+  "movie_reviewedBy_every_name": "Jessica Thompson"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (movie:`Movie`)
+WITH movie
+
+MATCH (movie)<-[:`ACTED_IN`]-(movie_actor_some:`Person`)
+WHERE
+    movie_actor_some.name = $movie_actor_some_name
+WITH DISTINCT movie
+
+MATCH (movie)<-[:`REVIEWED`]-(movie_reviewedBy_every:`Person`)
+WHERE
+    movie_reviewedBy_every.name = $movie_reviewedBy_every_name
+WITH movie,
+    size((movie)<-[:`REVIEWED`]-(:`Person`)) AS movie_reviewedBy_every_total,
+    count(DISTINCT movie_reviewedBy_every) AS movie_reviewedBy_every_count
+WHERE
+    movie_reviewedBy_every_total = movie_reviewedBy_every_count
+WITH DISTINCT movie
+
+RETURN movie { .title } AS movie
+----
+
+.Movie Example result
+|===
+|title
+
+|Cloud Atlas
+|===
+
+
+=== Filter at same level (every)
+
+.Query configuration
+[source,json,config=true]
+----
+{  "optimizedQuery":  ["FILTER_AS_MATCH"] }
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movie(filter: {
+    directedBy_every: {
+      name: "Clint Eastwood"
+    }
+    reviewedBy_every:{
+      name: "Jessica Thompson"
+    }
+  }) {
+    title
+  }
+}
+----
+
+.Cypher params
+[source,json]
+----
+{
+  "movie_directedBy_every_name":  "Clint Eastwood",
+  "movie_reviewedBy_every_name": "Jessica Thompson"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (movie:`Movie`)
+WITH movie
+
+MATCH (movie)<-[:`DIRECTED`]-(movie_directedBy_every:`Person`)
+WHERE movie_directedBy_every.name = $movie_directedBy_every_name
+WITH movie,
+    size((movie)<-[:`DIRECTED`]-(:`Person`)) AS movie_directedBy_every_total,
+    count(DISTINCT movie_directedBy_every) AS movie_directedBy_every_count
+WHERE
+    movie_directedBy_every_total = movie_directedBy_every_count
+WITH DISTINCT movie
+
+MATCH (movie)<-[:`REVIEWED`]-(movie_reviewedBy_every:`Person`)
+WHERE
+    movie_reviewedBy_every.name = $movie_reviewedBy_every_name
+WITH movie,
+    size((movie)<-[:`REVIEWED`]-(:`Person`)) AS movie_reviewedBy_every_total,
+    count(DISTINCT movie_reviewedBy_every) AS movie_reviewedBy_every_count
+WHERE
+    movie_reviewedBy_every_total = movie_reviewedBy_every_count
+WITH DISTINCT movie
+
+RETURN movie { .title } AS movie
+----
+
+.Movie Example result
+|===
+|title
+
+|Unforgiven
+|===
+
+
+=== Filter with `OR` and `AND`
+
+CAUTION: *Not yet implemented*
+
+.Query configuration
+[source,json,config=true]
+----
+{  "optimizedQuery":  ["FILTER_AS_MATCH"] }
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movie(filter: {
+    directedBy_some:{
+      OR:[
+        {
+          AND:[{name: "Lilly Wachowski"},{name: "Lana Wachowski"},{name: "Tom Tykwer"}]
+        },
+      	{ name: "Clint Eastwood"}
+        {
+          producedMovies_some: {
+            OR: [{ released_gt: 2000 }, { released_lt: 1990 }]
+          }
+        }
+      ]
+    }
+    reviewedBy_every:{
+      name: "Jessica Thompson"
+    }
+  }) {
+    title
+  }
+}
+----
+
+.Cypher params
+[source,json]
+----
+{
+  "movie_directedBy_every_or1_and1_name":  "Lilly Wachowski",
+  "movie_directedBy_every_or1_and2_name":  "Lana Wachowski",
+  "movie_directedBy_every_or1_and3_name":  "Tom Tykwer",
+  "movie_directedBy_every_or2_name":  "Clint Eastwood",
+  "movie_reviewedBy_every_name": "Jessica Thompson"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (movie:`Movie`)
+WITH movie
+
+OPTIONAL MATCH (movie)<-[:DIRECTED]-(movie_directedBy_every_or1_and1:Person)
+  WHERE movie_directedBy_every_or1_and1.name = $movie_directedBy_every_or1_and1_name
+WITH movie, count(DISTINCT movie_directedBy_every_or1_and1) AS movie_directedBy_every_or1_and1_count
+
+OPTIONAL MATCH (movie)<-[:DIRECTED]-(movie_directedBy_every_or1_and2:Person)
+  WHERE movie_directedBy_every_or1_and2.name = $movie_directedBy_every_or1_and2_name
+WITH movie, movie_directedBy_every_or1_and1_count, count(DISTINCT movie_directedBy_every_or1_and2) AS movie_directedBy_every_or1_and2_count
+
+OPTIONAL MATCH (movie)<-[:DIRECTED]-(movie_directedBy_every_or1_and3:Person)
+  WHERE movie_directedBy_every_or1_and3.name = $movie_directedBy_every_or1_and3_name
+WITH movie, movie_directedBy_every_or1_and1_count,movie_directedBy_every_or1_and2_count, count(DISTINCT movie_directedBy_every_or1_and3) AS movie_directedBy_every_or1_and3_count
+
+OPTIONAL MATCH (movie)<-[:DIRECTED]-(movie_directedBy_every_or2:Person)
+  WHERE	movie_directedBy_every_or2.name = $movie_directedBy_every_or2_name
+WITH
+  movie,
+  movie_directedBy_every_or1_and1_count,
+  movie_directedBy_every_or1_and2_count,
+  movie_directedBy_every_or1_and3_count,
+  count(movie_directedBy_every_or2) as movie_directedBy_every_or2_count
+
+WITH
+  movie_directedBy_every_or1_and1_count +  movie_directedBy_every_or1_and2_count + movie_directedBy_every_or1_and3_count AS movie_directedBy_every_or1_count,
+  size((movie)<-[:DIRECTED]-(:Person)) AS movie_directedBy_every_total
+WHERE
+((movie_directedBy_every_or1_and1_count >= 1
+  AND movie_directedBy_every_or1_and2_count >= 1
+  AND movie_directedBy_every_or1_and3_count >= 1
+  AND movie_directedBy_every_total AND movie_directedBy_every_total = movie_directedBy_every_or1_and1_count + movie_directedBy_every_or1_and2_count + movie_directedBy_every_or1_and3_count
+)
+OR (movie_directedBy_every_or2_count >= 1
+  AND movie_directedBy_every_total = movie_directedBy_every_or2_count))
+WITH movie
+
+MATCH (movie)<-[:`REVIEWED`]-(movie_reviewedBy_every:`Person`)
+WHERE movie_reviewedBy_every.name = $movie_reviewedBy_every_name
+WITH movie,
+    size((movie)<-[:`REVIEWED`]-(:`Person`)) AS movie_reviewedBy_every_total,
+    count(DISTINCT movie_reviewedBy_every) AS movie_reviewedBy_every_count
+WHERE
+    movie_reviewedBy_every_total = movie_reviewedBy_every_count
+WITH DISTINCT movie
+
+RETURN movie { .title } AS movie
+----
+
+.Movie Example result
+|===
+|title
+
+|Unforgiven
+
+|Cloud Atlas
+|===
+
+=== Filter at different level (every)
+
+.Query configuration
+[source,json,config=true]
+----
+{  "optimizedQuery":  ["FILTER_AS_MATCH"] }
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movie(filter: {
+    directedBy_every:{
+      name: "Clint Eastwood"
+    }
+    reviewedBy_some:{
+      name: "Jessica Thompson"
+      followedBy_some:{
+        reviewedMovies_some:{
+          released_gte: 2000
+        }
+      }
+    }
+  }) {
+    title
+  }
+}
+----
+
+.Cypher params
+[source,json]
+----
+{
+  "movie_directedBy_every_name":  "Clint Eastwood",
+  "movie_reviewedBy_some_name": "Jessica Thompson",
+  "movie_reviewedBy_some_followedBy_some_reviewedMovies_some_released_gte": 2000
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (movie:`Movie`)
+WITH movie
+
+MATCH (movie)<-[:`DIRECTED`]-(movie_directedBy_every:`Person`)
+WHERE movie_directedBy_every.name = $movie_directedBy_every_name
+WITH movie,
+  size((movie)<-[:`DIRECTED`]-(:`Person`)) AS movie_directedBy_every_total,
+  count(DISTINCT movie_directedBy_every) AS movie_directedBy_every_count
+WHERE movie_directedBy_every_total = movie_directedBy_every_count
+WITH DISTINCT movie
+
+MATCH (movie)<-[:`REVIEWED`]-(movie_reviewedBy_some:`Person`)
+WHERE movie_reviewedBy_some.name = $movie_reviewedBy_some_name
+WITH movie, movie_reviewedBy_some
+
+MATCH (movie_reviewedBy_some)<-[:`FOLLOWS`]-(movie_reviewedBy_some_followedBy_some:`Person`)
+WITH movie, movie_reviewedBy_some_followedBy_some
+
+MATCH
+  (movie_reviewedBy_some_followedBy_some)-[:`REVIEWED`]->(movie_reviewedBy_some_followedBy_some_reviewedMovies_some:`Movie`)
+WHERE movie_reviewedBy_some_followedBy_some_reviewedMovies_some.released >= $movie_reviewedBy_some_followedBy_some_reviewedMovies_some_released_gte
+WITH DISTINCT movie
+
+RETURN movie { .title } AS movie
+----
+
+.Movie Example result
+|===
+|title
+
+|Unforgiven
+
+|===
+
+=== Filter single (n..m)
+
+.Query configuration
+[source,json,config=true]
+----
+{  "optimizedQuery":  ["FILTER_AS_MATCH"] }
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movie(filter: {
+    directedBy_single:{
+      name: "Rob Reiner"
+    }
+  }) {
+    title
+  }
+}
+----
+
+.Cypher params
+[source,json]
+----
+{
+  "movie_directedBy_single_name":"Rob Reiner"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (movie:`Movie`)
+WITH movie
+MATCH (movie)<-[:`DIRECTED`]-(movie_directedBy_single:`Person`)
+WHERE movie_directedBy_single.name = $movie_directedBy_single_name
+WITH movie,
+	size((movie)<-[:`DIRECTED`]-(:`Person`)) AS movie_directedBy_single_total,
+	count(DISTINCT movie_directedBy_single) AS movie_directedBy_single_count
+WHERE (movie_directedBy_single_total = movie_directedBy_single_count
+	AND movie_directedBy_single_total = 1)
+
+WITH DISTINCT movie
+
+RETURN movie { .title } AS movie
+----
+
+.Movie Example result
+|===
+|title
+
+|A Few Good Men
+|Stand By Me
+|When Harry Met Sally
+|===
+
+=== Filter single (n..1)
+
+.Query configuration
+[source,json,config=true]
+----
+{  "optimizedQuery":  ["FILTER_AS_MATCH"] }
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movie(filter: {
+    directedBySingle:{
+      name: "Rob Reiner"
+    }
+  }) {
+    title
+  }
+}
+----
+
+.Cypher params
+[source,json]
+----
+{
+  "movie_directedBySingle_name":"Rob Reiner"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (movie:`Movie`)
+WITH movie
+MATCH (movie)<-[:`DIRECTED`]-(movie_directedBySingle:`Person`)
+WHERE movie_directedBySingle.name = $movie_directedBySingle_name
+WITH DISTINCT movie
+
+RETURN movie { .title } AS movie
+----
+
+.Movie Example result
+|===
+|title
+
+|A Few Good Men
+|Stand By Me
+|When Harry Met Sally
+|===
+
+=== Filter none (n..m)
+
+.Query configuration
+[source,json,config=true]
+----
+{  "optimizedQuery":  ["FILTER_AS_MATCH"] }
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movie(filter: {
+    directedBy_none:{
+      name: "Lilly Wachowski"
+    }
+  }) {
+    title
+  }
+}
+----
+
+.Cypher params
+[source,json]
+----
+{
+  "movie_directedBy_none_name":"Lilly Wachowski"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (movie:`Movie`)
+WITH movie
+
+OPTIONAL MATCH (movie)<-[:`DIRECTED`]-(movie_directedBy_none:`Person`)
+WHERE movie_directedBy_none.name = $movie_directedBy_none_name
+WITH movie,
+	count(DISTINCT movie_directedBy_none) AS movie_directedBy_none_count
+
+WHERE movie_directedBy_none_count = 0
+WITH DISTINCT movie
+
+RETURN movie { .title } AS movie
+----
+
+.Movie Example result
+|===
+|title
+
+|The Devil's Advocate
+|A Few Good Men
+|Top Gun
+|Jerry Maguire
+|Stand By Me
+|As Good as It Gets
+|What Dreams May Come
+|Snow Falling on Cedars
+|You've Got Mail
+|Sleepless in Seattle
+|Joe Versus the Volcano
+|When Harry Met Sally
+|That Thing You Do
+|The Replacements
+|RescueDawn
+|The Birdcage
+|Unforgiven
+|Johnny Mnemonic
+|The Da Vinci Code
+|V for Vendetta
+|Ninja Assassin
+|The Green Mile
+|Frost/Nixon
+|Hoffa
+|Apollo 13
+|Twister
+|Cast Away
+|One Flew Over the Cuckoo's Nest
+|Something's Gotta Give
+|Bicentennial Man
+|Charlie Wilson's War
+|The Polar Express
+|A League of Their Own
+|===
+
+=== Filter none (n..1)
+
+.Query configuration
+[source,json,config=true]
+----
+{  "optimizedQuery":  ["FILTER_AS_MATCH"] }
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movie(filter: {
+    directedBySingle_not:{
+      name: "Lilly Wachowski"
+    }
+  }) {
+    title
+  }
+}
+----
+
+.Cypher params
+[source,json]
+----
+{
+  "movie_directedBySingle_not_name":"Lilly Wachowski"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (movie:`Movie`)
+WITH movie
+
+OPTIONAL MATCH (movie)<-[:`DIRECTED`]-(movie_directedBySingle_not:`Person`)
+WHERE movie_directedBySingle_not.name = $movie_directedBySingle_not_name
+WITH movie,
+	count(DISTINCT movie_directedBySingle_not) AS movie_directedBySingle_not_count
+WHERE movie_directedBySingle_not_count = 0
+
+WITH DISTINCT movie
+
+RETURN movie { .title } AS movie
+----
+
+.Movie Example result
+|===
+|title
+
+|The Devil's Advocate
+|A Few Good Men
+|Top Gun
+|Jerry Maguire
+|Stand By Me
+|As Good as It Gets
+|What Dreams May Come
+|Snow Falling on Cedars
+|You've Got Mail
+|Sleepless in Seattle
+|Joe Versus the Volcano
+|When Harry Met Sally
+|That Thing You Do
+|The Replacements
+|RescueDawn
+|The Birdcage
+|Unforgiven
+|Johnny Mnemonic
+|The Da Vinci Code
+|V for Vendetta
+|Ninja Assassin
+|The Green Mile
+|Frost/Nixon
+|Hoffa
+|Apollo 13
+|Twister
+|Cast Away
+|One Flew Over the Cuckoo's Nest
+|Something's Gotta Give
+|Bicentennial Man
+|Charlie Wilson's War
+|The Polar Express
+|A League of Their Own
+|===
+
+=== Filter exists
+
+.Query configuration
+[source,json,config=true]
+----
+{  "optimizedQuery":  ["FILTER_AS_MATCH"] }
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movie(filter: {
+    reviewedBy_not: null
+  }) {
+    title
+  }
+}
+----
+
+.Cypher params
+[source,json]
+----
+{}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (movie:`Movie`)
+WITH movie
+
+WHERE (movie)<-[:`REVIEWED`]-(:`Person`)
+WITH DISTINCT movie
+
+RETURN movie { .title } AS movie
+----
+
+.Movie Example result
+|===
+|title
+
+|The Replacements
+|Jerry Maguire
+|Unforgiven
+|The Birdcage
+|The Da Vinci Code
+|Cloud Atlas
+|===
+
+=== Filter not exists
+
+.Query configuration
+[source,json,config=true]
+----
+{  "optimizedQuery":  ["FILTER_AS_MATCH"] }
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movie(filter: {
+    reviewedBy: null
+  }) {
+    title
+  }
+}
+----
+
+.Cypher params
+[source,json]
+----
+{}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (movie:`Movie`)
+WITH movie
+WHERE NOT (movie)<-[:`REVIEWED`]-(:`Person`)
+
+WITH DISTINCT movie
+
+RETURN movie { .title } AS movie
+----
+
+.Movie Example result
+|===
+|title
+
+|The Matrix
+|The Matrix Reloaded
+|The Matrix Revolutions
+|The Devil's Advocate
+|A Few Good Men
+|Top Gun
+|Stand By Me
+|As Good as It Gets
+|What Dreams May Come
+|Snow Falling on Cedars
+|You've Got Mail
+|Sleepless in Seattle
+|Joe Versus the Volcano
+|When Harry Met Sally
+|That Thing You Do
+|RescueDawn
+|Johnny Mnemonic
+|V for Vendetta
+|Speed Racer
+|Ninja Assassin
+|The Green Mile
+|Frost/Nixon
+|Hoffa
+|Apollo 13
+|Twister
+|Cast Away
+|One Flew Over the Cuckoo's Nest
+|Something's Gotta Give
+|Bicentennial Man
+|Charlie Wilson's War
+|The Polar Express
+|A League of Their Own
+|===

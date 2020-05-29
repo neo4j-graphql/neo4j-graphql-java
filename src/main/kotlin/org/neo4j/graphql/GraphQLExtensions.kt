@@ -17,6 +17,8 @@ import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_FROM
 import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_NAME
 import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_TO
 import org.neo4j.graphql.handler.projection.ProjectionBase
+import org.neo4j.opencypherdsl.Node
+import org.neo4j.opencypherdsl.Relationship
 
 fun Type<Type<*>>.name(): String? = if (this.inner() is TypeName) (this.inner() as TypeName).name else null
 fun Type<Type<*>>.inner(): Type<Type<*>> = when (this) {
@@ -36,7 +38,7 @@ fun GraphQLType.isScalar() = this.inner().let { it is GraphQLScalarType || it.na
 fun GraphQLType.isNeo4jType() = this.inner().name?.startsWith("_Neo4j") == true
 fun GraphQLFieldDefinition.isNeo4jType(): Boolean = this.type.isNeo4jType()
 
-fun GraphQLFieldDefinition.isRelationship() = this.type.inner().let { it is GraphQLFieldsContainer }
+fun GraphQLFieldDefinition.isRelationship() = !type.isNeo4jType() && this.type.inner().let { it is GraphQLFieldsContainer }
 
 fun GraphQLFieldsContainer.hasRelationship(name: String) = this.getFieldDefinition(name)?.isRelationship() ?: false
 fun GraphQLDirectiveContainer.isRelationType() = getDirective(DirectiveConstants.RELATION) != null
@@ -46,13 +48,18 @@ fun GraphQLFieldsContainer.relationshipFor(name: String): RelationshipInfo? {
             ?: throw IllegalArgumentException("$name is not defined on ${this.name}")
     val fieldObjectType = field.type.inner() as? GraphQLFieldsContainer ?: return null
 
+    val (relDirective, isRelFromType) = if (isRelationType()) {
+        (this as? GraphQLDirectiveContainer)
+            ?.getDirective(DirectiveConstants.RELATION)?.let { it to false }
+                ?: throw IllegalStateException("Type ${this.name} needs an @relation directive")
+    } else {
+        (fieldObjectType as? GraphQLDirectiveContainer)
+            ?.getDirective(DirectiveConstants.RELATION)?.let { it to true }
+                ?: field.getDirective(DirectiveConstants.RELATION)?.let { it to false }
+                ?: throw IllegalStateException("Field $field needs an @relation directive")
+    }
+
     // TODO direction is depending on source/target type
-
-    val (relDirective, isRelFromType) = (fieldObjectType as? GraphQLDirectiveContainer)
-        ?.getDirective(DirectiveConstants.RELATION)?.let { it to true }
-            ?: field.getDirective(DirectiveConstants.RELATION)?.let { it to false }
-            ?: throw IllegalStateException("Field $field needs an @relation directive")
-
 
     val relInfo = relDetails(fieldObjectType) { argName, defaultValue -> relDirective.getArgument(argName, defaultValue) }
 
@@ -62,28 +69,31 @@ fun GraphQLFieldsContainer.relationshipFor(name: String): RelationshipInfo? {
 
 fun GraphQLFieldsContainer.getValidTypeLabels(schema: GraphQLSchema): List<String> {
     if (this is GraphQLObjectType) {
-        return listOf(this.label())
+        return listOf(this.quotedLabel())
     }
     if (this is GraphQLInterfaceType) {
         return schema.getImplementations(this)
-            .mapNotNull { it.label() }
+            .mapNotNull { it.quotedLabel() }
     }
     return emptyList()
 }
 
-@Suppress("SimplifiableCallChain")
-fun GraphQLFieldsContainer.label(includeAll: Boolean = false) = when {
+fun GraphQLFieldsContainer.label(): String = when {
     this.isRelationType() ->
         (this as? GraphQLDirectiveContainer)
             ?.getDirective(DirectiveConstants.RELATION)
-            ?.getArgument(RELATION_NAME)?.value?.toJavaValue()?.toString()?.quote()
-                ?: this.name.quote()
-    else -> when {
-        includeAll -> (listOf(name) + ((this as? GraphQLObjectType)?.interfaces?.map { it.name } ?: emptyList()))
-            .map { it.quote() }
-            .joinToString(":")
-        else -> name.quote()
-    }
+            ?.getArgument(RELATION_NAME)?.value?.toJavaValue()?.toString()
+                ?: this.name
+    else -> name
+}
+
+fun GraphQLFieldsContainer.quotedLabel() = this.label().quote()
+
+fun GraphQLFieldsContainer.allLabels() = when {
+    this.isRelationType() -> this.quotedLabel()
+    else -> (listOf(name) + ((this as? GraphQLObjectType)?.interfaces?.map { it.name } ?: emptyList()))
+        .map { it.quote() }
+        .joinToString(":")
 }
 
 fun GraphQLFieldsContainer.relevantFields() = fieldDefinitions
@@ -163,6 +173,13 @@ data class RelationshipInfo(
             .map { RelatedField("${relFieldName}_${it.name}", it, relType) }
             .firstOrNull()
     }
+
+    fun createRelation(start: Node, end: Node): Relationship =
+            when (this.out) {
+                false -> start.relationshipFrom(end, this.relType)
+                true -> start.relationshipTo(end, this.relType)
+                null -> start.relationshipBetween(end, this.relType)
+            }
 }
 
 fun Field.aliasOrName() = (this.alias ?: this.name).quote()
@@ -234,3 +251,15 @@ fun paramName(variable: String, argName: String, value: Any?): String = when (va
 fun GraphQLFieldDefinition.isID() = this.type.inner() == Scalars.GraphQLID
 fun GraphQLFieldDefinition.isNativeId() = this.name == ProjectionBase.NATIVE_ID
 fun GraphQLFieldsContainer.getIdField() = this.fieldDefinitions.find { it.isID() }
+
+fun GraphQLInputObjectType.Builder.addFilterField(fieldName: String, isList: Boolean, filterType: String, description: String? = null) {
+    val wrappedType: GraphQLInputType = when {
+        isList -> GraphQLList(GraphQLTypeReference(filterType))
+        else -> GraphQLTypeReference(filterType)
+    }
+    val inputField = GraphQLInputObjectField.newInputObjectField()
+        .name(fieldName)
+        .description(description)
+        .type(wrappedType)
+    this.field(inputField)
+}

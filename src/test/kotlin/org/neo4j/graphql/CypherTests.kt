@@ -2,7 +2,6 @@ package org.neo4j.graphql
 
 import org.junit.jupiter.api.TestFactory
 import org.neo4j.graphql.utils.CypherTestSuite
-import org.neo4j.graphql.utils.GraphQLSchemaTestSuite
 
 class CypherTests {
 
@@ -29,4 +28,7 @@ class CypherTests {
 
     @TestFactory
     fun `translator-tests3`() = CypherTestSuite("translator-tests3.adoc").run()
+
+    @TestFactory
+    fun `optimized-query-for-filter`() = CypherTestSuite("optimized-query-for-filter.adoc").run()
 }
