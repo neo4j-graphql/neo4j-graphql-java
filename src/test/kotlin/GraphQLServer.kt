@@ -7,10 +7,7 @@ import graphql.GraphQL
 import org.neo4j.driver.v1.AuthTokens
 import org.neo4j.driver.v1.GraphDatabase
 import org.neo4j.driver.v1.Values
-import org.neo4j.graphql.Cypher
-import org.neo4j.graphql.SchemaBuilder
-import org.neo4j.graphql.Translator
-import org.neo4j.graphql.isList
+import org.neo4j.graphql.*
 import spark.Request
 import spark.Response
 import spark.Spark
@@ -49,7 +46,12 @@ fun main() {
     println(graphQLSchema)
     val schema = GraphQL.newGraphQL(graphQLSchema).build()
     val translator = Translator(graphQLSchema)
-    fun translate(query: String, params: Map<String, Any?>) = translator.translate(query, params)
+    fun translate(query: String, params: Map<String, Any?>) = try {
+        val ctx = QueryContext(optimizedQuery = setOf(QueryContext.OptimizationStrategy.FILTER_AS_MATCH))
+        translator.translate(query, params, ctx)
+    } catch (e: OptimizedQueryException) {
+        translator.translate(query, params)
+    }
 
     val driver = GraphDatabase.driver("bolt://localhost", AuthTokens.basic("neo4j", "test"))
     fun run(cypher: Cypher) = driver.session().use {
