@@ -2,7 +2,7 @@
 @Grapes([
   @Grab('com.sparkjava:spark-core:2.7.2'),
   @Grab('org.neo4j.driver:neo4j-java-driver:1.7.2'),
-  @Grab('org.neo4j:neo4j-graphql-java:1.0.0-M01'),
+  @Grab('org.neo4j:neo4j-graphql-java:1.0.0'),
   @Grab('com.google.code.gson:gson:2.8.5')
 ])
 
@@ -14,12 +14,12 @@ import org.neo4j.driver.v1.*
 
 schema = """
 type Person {
-  name: String
+  name: ID!
   born: Int
   actedIn: [Movie] @relation(name:"ACTED_IN")
 }
 type Movie {
-  title: String
+  title: ID!
   released: Int
   tagline: String
 }
