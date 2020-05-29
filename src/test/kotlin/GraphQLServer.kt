@@ -1,10 +1,13 @@
 package demo
 
 // Simplistic GraphQL Server using SparkJava
+// curl -H content-type:application/json -d'{"query": "{ movie { title, released }}"}' http://localhost:4567/graphql
+// GraphiQL: https://neo4j-graphql.github.io/graphiql4all/index.html?graphqlEndpoint=http%3A%2F%2Flocalhost%3A4567%2Fgraphql&query=query%20%7B%0A%20%20movie%20%7B%20title%7D%0A%7D
 
 import com.google.gson.Gson
 import graphql.GraphQL
 import org.neo4j.driver.v1.AuthTokens
+import org.neo4j.driver.v1.Config
 import org.neo4j.driver.v1.GraphDatabase
 import org.neo4j.driver.v1.Values
 import org.neo4j.graphql.*
@@ -53,7 +56,7 @@ fun main() {
         translator.translate(query, params)
     }
 
-    val driver = GraphDatabase.driver("bolt://localhost", AuthTokens.basic("neo4j", "test"))
+    val driver = GraphDatabase.driver("bolt://localhost", AuthTokens.basic("neo4j", "test"), Config.build().withoutEncryption().build())
     fun run(cypher: Cypher) = driver.session().use {
         println(cypher.query)
         println(cypher.params)
@@ -70,6 +73,12 @@ fun main() {
         }
     }
 
+    // CORS
+    Spark.before("/*") { req, res ->
+        res.header("Access-Control-Allow-Origin", "*");
+        res.header("Access-Control-Allow-Headers", "*");
+        res.type("application/json");
+    }
 
     fun handler(req: Request, @Suppress("UNUSED_PARAMETER") res: Response) = req.body().let { body ->
         val payload = parseBody(body)
@@ -79,6 +88,7 @@ fun main() {
         else run(translate(query, params(payload)).first())
     }
 
+    Spark.options("/graphql") { _, _ -> "OK" }
     Spark.post("/graphql", "application/json", ::handler, ::render)
 }
 

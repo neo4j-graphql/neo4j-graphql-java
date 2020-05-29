@@ -21,7 +21,7 @@ class DeleteRelationHandler private constructor(
                 return
             }
             type.fieldDefinitions
-                .filter { canHandleField(it) }
+                .filterg { canHandleField(it) }
                 .mapNotNull { targetField ->
                     buildFieldDefinition(type, targetField, true)
                         ?.let { builder -> buildingEnv.addOperation(MUTATION, builder.build()) }

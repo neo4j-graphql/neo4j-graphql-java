@@ -1,7 +1,10 @@
 = JVM Library to translate GraphQL queries and mutations to Neo4j's Cypher
 :version: 1.0.0
+:toc:
+:toclevels: 1
+:toc-title: Quick Links
 
-This is a GraphQL transpiler written in Kotlin.
+This is a https://graphql.org[GraphQL] to https://neo4j.com/developer/cypher[Cypher] transpiler written in Kotlin.
 
 License: Apache 2.
 
@@ -16,17 +19,19 @@ Those Cypher queries can then executed, e.g via the Neo4j-Java-Driver (or other 
 
 The request, result and error handling is not part of this library, but we provide demo programs on how to use it in different languages.
 
-NOTE: All the <<features|supported features>> are listed and explained below, more detailed docs will be added in time.
+NOTE: All the <<features,supported features>> are listed and explained below, more detailed docs will be added in time.
 
 == FAQ
 
 === How does this relate to the other neo4j graphql libraries?
 
-Similar to `neo4j-graphql-js` this library focuses on query translation, just for the *JVM* instead of Node.js.
+https://grandstack.io[The GRANDstack^] is a full-stack package that integrates React frontends via GraphQL through `neo4j-graphql-js` with Neo4j.
+
+Similar to https://grandstack.io/docs/neo4j-graphql-js-quickstart[`neo4j-graphql-js`] this library focuses on query translation, just for the *JVM* instead of Node.js.
 It does not provide a server (except as examples) or other facilities but is meant to be used as a dependency included for a single purpose.
 
-If this library is feature complete we plan to replace the code in the current Neo4j server plugin `neo4j-graphql` with a single call to this library.
-The server plugin would still handle request-response and error-handling, and perhaps some schema management but be slimmed down to a tiny piece.
+We plan to replace the code in the current Neo4j server plugin `neo4j-graphql` with a single call to this library.
+The server plugin could still exist as an example that shows how to handle request-response and error-handling, and perhaps some minimal schema management but be slimmed down to a tiny piece of code.
 
 === How does this related to graphql-java
 
@@ -36,6 +41,8 @@ But *not for nested field resolvers or data fetching*.
 If you wanted, you could combine `graphql-java` resolvers with this library to have a part of your schema handled by Neo4j.
 
 Thanks a lot to the maintainers of `graphql-java` for the awesome library.
+
+NOTE: We also use `neo4j-opencypher-dsl` provided graciously by the spring-data-neo4j-rx project to generate parts of the cypher queries.
 
 == Usage
 
@@ -61,8 +68,6 @@ val query = """ { p:personByName(name:"Joe") { age } } """
 
 val schema = SchemaBuilder.buildSchema(idl)
 val ctx = QueryContext()
-// SETUP otimizer strategy
-//    ctx.optimizedQuery = setOf(QueryContext.OptimizationStrategy.FILTER_AS_MATCH)
 val (cypher, params) = Translator(schema).translate(query, params, ctx)
 
 // generated Cypher
@@ -83,7 +88,7 @@ You find more usage examples in the:
 == Demo
 
 Here is a minimalistic example in Groovy using the Neo4j-Java driver and Spark-Java as webserver.
-It is running against a Neo4j instance at `bolt://localhost` (username: `neo4j`, password: `password`) containing the `:play movies` graph.
+It is running against a Neo4j instance at `bolt://localhost` (username: `neo4j`, password: `s3cr3t`) containing the `:play movies` graph.
 
 (You can also use a link:src/test/kotlin/GraphQLServer.kt[Kotlin based server example].)
 
@@ -97,8 +102,8 @@ intercept the cypher queries].
 @Grapes([
   @Grab('com.sparkjava:spark-core:2.7.2'),
   @Grab('org.neo4j.driver:neo4j-java-driver:1.7.2'),
-  @Grab('org.neo4j:neo4j-graphql-java:{version}'),
-  @Grab('com.google.code.gson:gson:2.8.5')
+  @Grab('com.google.code.gson:gson:2.8.5'),
+  @Grab('org.neo4j:neo4j-graphql-java:{version}')
 ])
 
 import spark.*
@@ -130,8 +135,9 @@ def query(value) { gson.fromJson(value,Map.class)["query"] }
 graphql = new Translator(SchemaBuilder.buildSchema(schema))
 def translate(query) { graphql.translate(query) }
 
-driver = GraphDatabase.driver("bolt://localhost",AuthTokens.basic("neo4j","password"))
-def run(cypher) { driver.session().withCloseable { it.run(cypher.query, Values.value(cypher.params)).list{ it.asMap() }}}
+driver = GraphDatabase.driver("bolt://localhost",AuthTokens.basic("neo4j","s3cr3t"))
+def run(cypher) { driver.session().withCloseable {
+     it.run(cypher.query, Values.value(cypher.params)).list{ it.asMap() }}}
 
 post("/graphql","application/json", { req, res ->  run(translate(query(req.body())).first()) }, render);
 ----
@@ -187,7 +193,7 @@ You can also test it with `curl`
 curl -XPOST http://localhost:4567/graphql -d'{"query":"{person {name}}"}'
 ----
 
-This example doesn't handle introspection queries but the one in the test directory does.
+This example doesn't handle introspection queries, but the one in the test directory does.
 
 == Advanced Queries
 
@@ -239,6 +245,7 @@ This example doesn't handle introspection queries but the one in the test direct
 * @cypher directive for top level queries and mutations, supports arguments
 * date(time)
 * interfaces
+* complex filter parameters, with optional query optimization strategy
 
 === Next
 
@@ -253,16 +260,16 @@ This example doesn't handle introspection queries but the one in the test direct
 
 === Parse SDL schema
 
-Currently schemas with object types, enums, fragments and Query types are parsed and handled.
-We support @relation directives on fields and types for rich relationships
-We support @cypher directives on fields and top-level query and mutation fields.
-The configurable augmentation auto-generates queries and mutations (create,update,delete) for all types.
-It supports the built-in scalars for GraphQL.
-For arguments we support input types in many places and filters as known from GraphCool/Prisma.
+* Currently schemas with object types, enums, fragments and Query types are parsed and handled.
+* `@relation` directives on fields and types for rich relationships
+* `@cypher` directives on fields and top-level query and mutation fields.
+* The configurable augmentation auto-generates queries and mutations (create,update,delete) for all types.
+* Supports the built-in scalars for GraphQL.
+* For arguments input types in many places and filters from GraphCool/Prisma.
 
 === Resolve query Fields via Result Types
 
-For _query fields_ that result in object types (even if wrapped in list/non-null), the appropriate object type is found in the schema and used to translate the query.
+For _query fields_ that result in object types (even if wrapped in list/non-null), the appropriate object type is determined via the schema and used to translate the query.
 
 e.g.
 
@@ -289,19 +296,19 @@ person(name:"Joe", age:42) {
 }
 ----
 
-to
+to an equivalent of
 
 [source,cypher]
 ----
 MATCH (person:Person) WHERE person.name = 'Joe' AND person.age = 42 RETURN person { .name } AS person
 ----
 
-Only that the literal values are turned into parameters.
+The literal values are turned into Cypher query parameters.
 
 === Handle Relationships via @relation Directive on Schema Fields
 
-If you want to represent a relationship from the graph in GraphQL you have to add an `@relation` directive that contains the relationship-type and the direction.
-Default relationship-type is 'OUT'.
+If you want to represent a relationship from the graph in GraphQL you have to add a `@relation` directive which contains the relationship-type and the direction.
+The default relationship-type is 'OUT'.
 So you can use different domain names in your GraphQL fields that are independent of your graph model.
 
 [source,graphql]
@@ -323,6 +330,7 @@ person(name:"Keanu Reeves") {
 ----
 
 NOTE: We use Neo4j's _pattern comprehensions_ to represent nested graph patterns in Cypher.
+This will be updated to subqueries from 4.1
 
 === Handle first, offset Arguments
 
@@ -343,13 +351,13 @@ MATCH (person:Person) RETURN person { .name }  AS person SKIP 5 LIMIT 10
 
 === Argument Types: string, int, float, array
 
-The default Neo4j types are handled both as argument types as well as field types.
+The default Neo4j Cypher types are handled both as argument types as well as field types.
 
-NOTE: Datetime and spatial not yet.
+NOTE: Spatial is not yet covered.
 
 === Usage of ID
 
-Each type is expect to have exactly one filed of type `ID` defined.
+Each type is expected to have exactly one filed of type `ID` defined.
 If the field is named `_id`, it is interpreted as the database internal graph ID.
 
 So there are 3 cases:
@@ -383,17 +391,17 @@ type User {
 }
 ----
 
-IMPORTANT: For the auto generated queries and mutations the `ID` field is used primarily.
+IMPORTANT: For the auto generated queries and mutations the `ID` field is used as _primary key_.
 
-TIP: You should create an unique index on the `ID` fields
+TIP: You should create a unique constraint on the `ID` fields
 
 === Parameter Support
 
-We handle passed in GraphQL parameters, these are resolved correctly when used within the GraphQL query.
+GraphQL parameters are passed onto Cypher, these are resolved correctly when used within the GraphQL query.
 
 === Parametrization
 
-As we don't want to have literal values in our Cypher queries, all of them are translated into parameters.
+For query injection prevention and caching purposes, literal values are translated into parameters.
 
 [source,graphql]
 ----
@@ -406,7 +414,10 @@ to
 
 [source,cypher]
 ----
-MATCH (person:Person) WHERE person.name = $personName AND person.age = $personAge RETURN person { .name } AS person LIMIT $first
+MATCH (person:Person)
+WHERE person.name = $personName AND person.age = $personAge
+RETURN person { .name } AS person
+LIMIT $first
 ----
 
 Those parameters are returned as part of the `Cypher` type that's returned from the `translate()` method.
@@ -452,7 +463,7 @@ ORDER BY person.name ASC, person.age DESC
 ----
 
 
-NOTE: Those enums are not yet automatically generated. And we don't support ordering yet on nested, related fields.
+NOTE: We don't yet support ordering on nested relationship fields.
 
 === @relationship on Types
 
@@ -495,12 +506,11 @@ person(name:"Keanu Reeves") {
 === Filters
 
 Filters are a powerful way of selecting a subset of data.
-Inspired by the https://www.graph.cool/docs/reference/graphql-api/query-api-nia9nushae[graph.cool/Prisma filter approach], our filters work the same way.
+Inspired by the https://www.graph.cool/docs/reference/graphql-api/query-api-nia9nushae[graph.cool/Prisma filter approach^], our filters work the same way.
 
-NOTE: we'll create more detailed docs, for now the prisma docs on that topic are pretty good.
+These filters are documented in detail in the https://grandstack.io/docs/graphql-filtering [GRANDstack docs^].
 
-
-We use nested input types for arbitrary filtering on query types and fields
+We use nested input types for arbitrary filtering on query types and fields.
 
 [source,graphql]
 ----
@@ -520,8 +530,6 @@ You can also apply nested filter on relations, which use suffixes like `("",not,
     }
 }
 ----
-
-NOTE: Those nested input types are not yet generated, we use leniency in the parser.
 
 ==== Optimized Filters
 
@@ -574,8 +582,10 @@ query {
 === @cypher Directives
 
 With `@cypher` directives you can add the power of Cypher to your GraphQL API.
-It allows you, without code to compute field values using complex queries.
-You can also write your own, custom top-level queries and mutations using Cypher.
+
+It allows you, without code to *compute field values* using complex queries.
+
+You can also write your own, *custom top-level queries and mutations* using Cypher.
 
 Arguments on the field are passed to the Cypher statement as parameters.
 Input types are supported, they appear as `Map` type in your Cypher statement.
@@ -590,19 +600,22 @@ NOTE: Those Cypher directive queries are only included in the generated Cypher s
 type Movie {
   title: String
   released: Int
-  similar(limit:Int=10): [Movie] @cypher(statement:"
+  similar(limit:Int=10): [Movie] @cypher(statement:
+        """
         MATCH (this)-->(:Genre)<--(sim)
         WITH sim, count(*) as c ORDER BY c DESC LIMIT $limit
-        RETURN sim")
+        RETURN sim
+        """)
 }
 ----
 
-Here the `this` variable is bound to the current movie and you can use it to navigate the graph and collect data.
+Here the `this` variable is bound to the current movie.
+You can use it to navigate the graph and collect data.
 The `limit` variable is passed to the query as parameter.
 
 ==== On Queries
 
-Similarly you can use the `@cypher` directive with a top level query.
+Similarly, you can use the `@cypher` directive with a top-level query.
 
 .@cypher directive on query
 [source,graphql]
@@ -612,7 +625,7 @@ type Query {
 }
 ----
 
-Of course you can also return arrays from your query, the statements on query fields should be read-only queries.
+You can also return arrays from your query, the statements on query fields should be read-only queries.
 
 ==== On Mutations
 
@@ -630,14 +643,14 @@ You can use more complex statements for creating these entities or even subgraph
 
 NOTE: The common CRUD mutations and queries are auto-generated, see below.
 
-=== Auto Generate Queries and Mutations
+=== Auto Generated Queries and Mutations
 
-To reduce the amount of boilerplate code a user has to write we auto-generate top-level CRUD queries and mutations for all types.
+To reduce the amount of boilerplate code you have to write we auto-generate top-level CRUD queries and mutations for all types.
 
 This is configurable via the API, you can:
 
 * disable auto-generation (for mutations/queries)
-* disable it per type
+* disable per type
 * disable mutations per operation (create,delete,update)
 
 For a schema like this:
