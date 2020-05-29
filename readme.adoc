@@ -1,7 +1,7 @@
 = JVM Library to translate GraphQL queries and mutations to Neo4j's Cypher
 :version: 1.0.0
 
-This is a beta GraphQL transpiler written in Kotlin.
+This is a GraphQL transpiler written in Kotlin.
 
 License: Apache 2.
 
