@@ -9,25 +9,26 @@ import org.neo4j.graphql.handler.projection.ProjectionBase
 import org.neo4j.opencypherdsl.*
 import org.neo4j.opencypherdsl.Cypher
 import org.neo4j.opencypherdsl.Node
+import org.neo4j.opencypherdsl.StatementBuilder.*
 
 
 typealias WhereClauseFactory = (
-        queryWithoutWhere: StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere,
+        queryWithoutWhere: OrderableOngoingReadingAndWithWithoutWhere,
         names: List<SymbolicName>
-) -> StatementBuilder.OrderableOngoingReadingAndWithWithWhere
+) -> OrderableOngoingReadingAndWithWithWhere
 
-typealias ConditionBuilder = (StatementBuilder.ExposesWith) -> StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere
+typealias ConditionBuilder = (ExposesWith) -> OrderableOngoingReadingAndWithWithoutWhere
 
 class OptimizedFilterHandler(val type: GraphQLFieldsContainer) {
 
-    fun generateFilterQuery(variable: String, field: Field): Pair<StatementBuilder.OngoingReading, MutableMap<String, Any?>> {
+    fun generateFilterQuery(variable: String, field: Field): Pair<OngoingReading, MutableMap<String, Any?>> {
         if (type.isRelationType()) {
             throw OptimizedQueryException("Optimization for relationship entity type is not implemented. Please provide a test case to help adding further cases.")
         }
         val rootNode = Cypher.node(type.label()).named(variable)
 
         val readingWithoutWhere = Cypher.match(rootNode)
-        var withWithoutWhere: StatementBuilder.OngoingReading? = null
+        var withWithoutWhere: OngoingReading? = null
         val filterParams = mutableMapOf<String, Any?>()
 
         for (argument in field.arguments) {
@@ -58,7 +59,7 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer) {
             private val useDistinct: Boolean,
             private val current: PropertyContainer,
             private val variablePrefix: String,
-            private val matchQueryWithoutWhere: StatementBuilder.OngoingReading,
+            private val matchQueryWithoutWhere: OngoingReading,
             private val type: GraphQLFieldsContainer,
             private val value: Value<*>?,
             private val filterParams: MutableMap<String, Any?>,
@@ -71,7 +72,7 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer) {
         /**
          * @param additionalConditions additional conditions to be applied to the where
          */
-        fun parseFilter(additionalConditions: ConditionBuilder? = null): StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere {
+        fun parseFilter(additionalConditions: ConditionBuilder? = null): OrderableOngoingReadingAndWithWithoutWhere {
             if (value !is ObjectValue) {
                 throw IllegalArgumentException("Only object values are supported by the OptimizedFilterHandler")
             }
@@ -86,24 +87,24 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer) {
             return handleCombinations(query)
         }
 
-        private fun addWhere(additionalConditions: ConditionBuilder? = null): StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere {
+        private fun addWhere(additionalConditions: ConditionBuilder? = null): OrderableOngoingReadingAndWithWithoutWhere {
             if (parsedQuery.fieldPredicates.isEmpty()) {
-                if (matchQueryWithoutWhere is StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere) {
+                if (matchQueryWithoutWhere is OrderableOngoingReadingAndWithWithoutWhere) {
                     return matchQueryWithoutWhere
                 }
             }
-            if (matchQueryWithoutWhere !is StatementBuilder.OngoingReadingWithoutWhere) {
+            if (matchQueryWithoutWhere !is OngoingReadingWithoutWhere) {
                 throw IllegalStateException("Expect to have a query without where, but we got " + matchQueryWithoutWhere::class.java + " which cannot be handled")
             }
 
             // WHERE MATCH all predicates for current
-            val matchQueryWithWhere = addConditions<StatementBuilder.OngoingReadingWithWhere>(current, variablePrefix, parsedQuery.fieldPredicates, filterParams) { where, condition ->
+            val matchQueryWithWhere = addConditions<OngoingReadingWithWhere>(current, variablePrefix, parsedQuery.fieldPredicates, filterParams) { where, condition ->
                 where?.and(condition) ?: matchQueryWithoutWhere.where(condition)
             }
             return if (additionalConditions != null) {
                 additionalConditions(matchQueryWithWhere ?: matchQueryWithoutWhere)
             } else {
-                val withs = if (parsedQuery.relationPredicates.isNotEmpty() && parentPassThroughWiths.firstOrNull { it == current.requiredSymbolicName } == null) {
+                val withs = if (parsedQuery.relationPredicates.isNotEmpty() && parentPassThroughWiths.none { it == current.requiredSymbolicName }) {
                     parentPassThroughWiths + current.requiredSymbolicName
                 } else {
                     parentPassThroughWiths
@@ -112,7 +113,7 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer) {
             }
         }
 
-        private fun handleQuantifier(passedQuery: StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere): StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere {
+        private fun handleQuantifier(passedQuery: OrderableOngoingReadingAndWithWithoutWhere): OrderableOngoingReadingAndWithWithoutWhere {
             var query = passedQuery
 
             // WITHs to pass through for this depth
@@ -142,7 +143,7 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer) {
             return query
         }
 
-        private fun handleExist(query: StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere, relFilter: RelationPredicate, levelPassThroughWiths: LinkedHashSet<Expression>): StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere {
+        private fun handleExist(query: OrderableOngoingReadingAndWithWithoutWhere, relFilter: RelationPredicate, levelPassThroughWiths: LinkedHashSet<Expression>): OrderableOngoingReadingAndWithWithoutWhere {
             val relation = relFilter.createRelation(currentNode())
             val where = when (relFilter.op) {
                 RelationOperator.NOT -> query.where(relation)
@@ -153,10 +154,10 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer) {
         }
 
         private fun handleQuantifierPredicates(
-                query: StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere,
+                query: OrderableOngoingReadingAndWithWithoutWhere,
                 relFilter: RelationPredicate,
                 levelPassThroughWiths: LinkedHashSet<Expression>
-        ): StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere {
+        ): OrderableOngoingReadingAndWithWithoutWhere {
             val objectField = relFilter.queryField
             val nestedParsedQuery = ParsedQuery(objectField.value as ObjectValue, relFilter.fieldDefinition.type.getInnerFieldsContainer())
             val hasPredicates = nestedParsedQuery.fieldPredicates.isNotEmpty() || nestedParsedQuery.relationPredicates.isNotEmpty()
@@ -164,7 +165,7 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer) {
             var queryWithoutWhere = query
             val relVariableName = variablePrefix + "_" + objectField.name
             val relVariable = relFilter.relNode.named(relVariableName)
-            val readingWithoutWhere: StatementBuilder.OngoingReading = when (relFilter.op) {
+            val readingWithoutWhere: OngoingReading = when (relFilter.op) {
                 RelationOperator.NONE -> queryWithoutWhere.optionalMatch(relFilter.relationshipInfo.createRelation(currentNode(), relVariable))
                 else -> when (hasPredicates) {
                     true -> queryWithoutWhere.match(relFilter.relationshipInfo.createRelation(currentNode(), relVariable))
@@ -203,7 +204,7 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer) {
             return queryWithoutWhere
         }
 
-        private fun handleCombinations(passedQuery: StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere): StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere {
+        private fun handleCombinations(passedQuery: OrderableOngoingReadingAndWithWithoutWhere): OrderableOngoingReadingAndWithWithoutWhere {
             if (parsedQuery.or.isNullOrEmpty() && parsedQuery.and.isNullOrEmpty()) {
                 return passedQuery
             }
@@ -230,7 +231,7 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer) {
                 filter: List<Pair<SymbolicName, AliasedExpression>>,
                 whereClauseFactory: WhereClauseFactory
         ): ConditionBuilder {
-            return { exposesWith: StatementBuilder.ExposesWith ->
+            return { exposesWith: ExposesWith ->
                 var additionalWiths = emptyList<SymbolicName>()
                 if (query.relationPredicates.isNotEmpty()) {
                     additionalWiths = listOf(relVariable.requiredSymbolicName)
@@ -247,7 +248,7 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer) {
         }
 
         private fun withClauseWithOptionalDistinct(
-                exposesWith: StatementBuilder.ExposesWith,
+                exposesWith: ExposesWith,
                 withs: Collection<Expression>,
                 useDistinct: Boolean = true) = when {
             useDistinct && withs.size == 1 -> exposesWith.withDistinct(*withs.toTypedArray())
