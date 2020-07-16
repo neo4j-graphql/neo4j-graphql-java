@@ -98,7 +98,9 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer) {
             }
 
             // WHERE MATCH all predicates for current
-            val matchQueryWithWhere = addConditions<OngoingReadingWithWhere>(current, variablePrefix, parsedQuery.fieldPredicates, filterParams) { where, condition ->
+            val matchQueryWithWhere = addConditions<OngoingReadingWithWhere>(
+                    current, variablePrefix, parsedQuery.fieldPredicates, filterParams, appendObjectFieldName = false
+            ) { where, condition ->
                 where?.and(condition) ?: matchQueryWithoutWhere.where(condition)
             }
             return if (additionalConditions != null) {
@@ -260,15 +262,32 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer) {
                 variablePrefix: String,
                 conditions: List<Predicate<FieldOperator>>,
                 filterParams: MutableMap<String, Any?>,
+                appendObjectFieldName: Boolean,
                 conditionAdder: (where: WithWhere?, condition: Condition) -> WithWhere
         ): WithWhere? {
             var where: WithWhere? = null
             for (conditionField in conditions) {
-                val prop = propertyContainer.property(conditionField.fieldDefinition.name)
-                val parameter = Cypher.parameter(variablePrefix + "_" + conditionField.queryField.name)
-                val condition = conditionField.op.conditionCreator(prop, parameter)
-                filterParams[parameter.name] = conditionField.queryField.value.toJavaValue()
-                where = conditionAdder(where, condition)
+                if (conditionField.fieldDefinition.type.isNeo4jType()
+                    && conditionField.queryField.value is ObjectValue
+                    && !conditionField.op.distance
+                ) {
+                    val nestedConditions = (conditionField.queryField.value as ObjectValue).objectFields
+                        .mapIndexed { index, objectField -> Predicate(conditionField.op, objectField, conditionField.fieldDefinition, index) }
+                    addConditions(propertyContainer, variablePrefix + "_" + conditionField.queryField.name,
+                            nestedConditions, filterParams, true, conditionAdder)
+                } else {
+                    val parameter = Cypher.parameter(variablePrefix + "_" + conditionField.queryField.name)
+                    var name = conditionField.fieldDefinition.name
+                    if (appendObjectFieldName) {
+                        name += "." + conditionField.queryField.name
+                    }
+                    val prop = propertyContainer.property(name)
+                    val condition = conditionField.op.conditionCreator(prop, parameter)
+                    if (conditionField.op.requireParam) {
+                        filterParams[parameter.name] = conditionField.queryField.value.toJavaValue()
+                    }
+                    where = conditionAdder(where, condition)
+                }
             }
             return where
         }
@@ -340,8 +359,16 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer) {
                         FieldOperator.values()
                             .map { it to definedField.name + it.suffix }
                             .mapNotNull { (predicate, queryFieldName) ->
-                                queriedFields.remove(queryFieldName)?.let { (index, objectField) ->
-                                    Predicate(predicate, objectField, definedField, index)
+                                queriedFields[queryFieldName]?.let { (index, objectField) ->
+                                    if (predicate.requireParam xor (objectField.value !is NullValue)) {
+                                        // if we got a value but the predicate requires none
+                                        // or we got a no value but the predicate requires one
+                                        // we skip this operator
+                                        null
+                                    } else {
+                                        queriedFields.remove(queryFieldName)
+                                        Predicate(predicate, objectField, definedField, index)
+                                    }
                                 }
                             }
                             .forEach { fieldPredicates.add(it) }

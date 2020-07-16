@@ -35,7 +35,8 @@ fun GraphQLType.inner(): GraphQLType = when (this) {
 
 fun GraphQLType.isList() = this is GraphQLList || (this is GraphQLNonNull && this.wrappedType is GraphQLList)
 fun GraphQLType.isScalar() = this.inner().let { it is GraphQLScalarType || it.name.startsWith("_Neo4j") }
-fun GraphQLType.isNeo4jType() = this.inner().name?.startsWith("_Neo4j") == true
+fun GraphQLType.isNeo4jType() = this.innerName().startsWith("_Neo4j")
+fun GraphQLType.isNeo4jSpatialType() = this.innerName().startsWith("_Neo4jPoint")
 fun GraphQLFieldDefinition.isNeo4jType(): Boolean = this.type.isNeo4jType()
 
 fun GraphQLFieldDefinition.isRelationship() = !type.isNeo4jType() && this.type.inner().let { it is GraphQLFieldsContainer }

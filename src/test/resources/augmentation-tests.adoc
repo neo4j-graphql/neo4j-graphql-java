@@ -7,7 +7,7 @@
 [source,graphql,schema=true]
 ----
 interface HasMovies { movies:[Movie] }
-type Person0 { name: String, born: _Neo4jTime }
+type Person0 { name: String, born: _Neo4jTime, location: _Neo4jPoint }
 type Person1 { name: String, born: _Neo4jDate }
 type Person2 { name: String, age: [Int], born: _Neo4jDateTime }
 type Person3 { name: String!, born: _Neo4jLocalTime }
@@ -31,6 +31,14 @@ type Knows4 @relation(name:"KNOWS", from: "source", to: "knows"){
   source: Person4!
   knows: Person4!
   json: DynamicProperties @dynamic(prefix: "prefix.")
+}
+
+type Query {
+  PersonByLocation(location: _Neo4jPointInput): [Person0!]!
+}
+
+schema {
+  query: Query
 }
 ----
 
@@ -92,18 +100,21 @@ type Movie {
 }
 
 type Mutation {
+  #Deletes Knows0 and returns the type itself
   deleteKnows0(id: ID!): Knows0
   mergeKnows0(id: ID!, json: DynamicProperties): Knows0!
   updateKnows0(id: ID!, json: DynamicProperties): Knows0
-
+  #Deletes Knows1 and returns the type itself
   deleteKnows1(id: ID!): Knows1
 
   createKnows4(json: DynamicProperties, knows_id: ID!, source_id: ID!): Knows4!
+  #Deletes Knows4 and returns the type itself
   deleteKnows4(_id: ID!): Knows4
   mergeKnows4(_id: ID!, json: DynamicProperties): Knows4!
   updateKnows4(_id: ID!, json: DynamicProperties): Knows4
 
   createMovie(id: ID!): Movie!
+  #Deletes Movie and returns the type itself
   deleteMovie(id: ID!): Movie
 
   addMoviePublishedBy(id: ID!, publishedBy: ID!): Movie!
@@ -116,23 +127,26 @@ type Mutation {
   createPerson3(born: _Neo4jLocalTimeInput, name: String!): Person3!
 
   createPerson4(born: _Neo4jLocalDateTimeInput, id: ID!, name: String): Person4!
-
+  #Deletes Person4 and returns the type itself
   deletePerson4(id: ID!): Person4
   mergePerson4(born: _Neo4jLocalDateTimeInput, id: ID!, name: String): Person4!
   updatePerson4(born: _Neo4jLocalDateTimeInput, id: ID!, name: String): Person4
 
   createPerson5(id: ID!): Person5!
+  #Deletes Person5 and returns the type itself
   deletePerson5(id: ID!): Person5
 
   addPerson5Movies(id: ID!, movies: [ID!]!): Person5!
   deletePerson5Movies(id: ID!, movies: [ID!]!): Person5
 
   createPublisher(name: ID!): Publisher!
+  #Deletes Publisher and returns the type itself
   deletePublisher(name: ID!): Publisher
 }
 
 type Person0 {
   born: _Neo4jTime
+  location: _Neo4jPoint
   name: String
 }
 
@@ -168,6 +182,7 @@ type Publisher {
 }
 
 type Query {
+  PersonByLocation(first: Int, location: _Neo4jPointInput, offset: Int): [Person0!]!
 }
 
 type _Neo4jDate {
@@ -214,6 +229,42 @@ type _Neo4jLocalTime {
   second: Int
 }
 
+type _Neo4jPoint {
+  # The coordinate reference systems (CRS)
+  # -------------------------------------
+  # posible values:
+  # * `wgs-84`: A 2D geographic point in the WGS 84 CRS is specified in one of two ways:
+  #   * longitude and latitude (if these are specified, and the crs is not, then the crs is assumed to be WGS-84)
+  #   * x and y (in this case the crs must be specified, or will be assumed to be Cartesian)
+  # * `wgs-84-3d`: A 3D geographic point in the WGS 84 CRS is specified one of in two ways:
+  #   * longitude, latitude and either height or z (if these are specified, and the crs is not, then the crs is assumed to be WGS-84-3D)
+  #   * x, y and z (in this case the crs must be specified, or will be assumed to be Cartesian-3D)
+  # * `cartesian`: A 2D point in the Cartesian CRS is specified with a map containing x and y coordinate values
+  # * `cartesian-3d`: A 3D point in the Cartesian CRS is specified with a map containing x, y and z coordinate values
+  crs: String
+  # The third element of the Coordinate for geographic CRS, meters above the ellipsoid defined by the datum (WGS-84)
+  height: Float
+  # The second element of the Coordinate for geographic CRS, degrees North of the equator
+  # Range -90.0 to 90.0
+  latitude: Float
+  # The first element of the Coordinate for geographic CRS, degrees East of the prime meridian
+  # Range -180.0 to 180.0
+  longitude: Float
+  # The internal Neo4j ID for the CRS
+  # One of:
+  # * `4326`: represents CRS `wgs-84`
+  # * `4979`: represents CRS `wgs-84-3d`
+  # * `7203`: represents CRS `cartesian`
+  # * `9157`: represents CRS `cartesian-3d`
+  srid: Int
+  # The first element of the Coordinate
+  x: Float
+  # The second element of the Coordinate
+  y: Float
+  # The third element of the Coordinate
+  z: Float
+}
+
 type _Neo4jTime {
   formatted: String
   hour: Int
@@ -224,6 +275,14 @@ type _Neo4jTime {
   second: Int
   timezone: String
 }
+
+enum RelationDirection {
+  BOTH
+  IN
+  OUT
+}
+
+scalar DynamicProperties
 
 input _Neo4jDateInput {
   day: Int
@@ -269,6 +328,17 @@ input _Neo4jLocalTimeInput {
   second: Int
 }
 
+input _Neo4jPointInput {
+  crs: String
+  height: Float
+  latitude: Float
+  longitude: Float
+  srid: Int
+  x: Float
+  y: Float
+  z: Float
+}
+
 input _Neo4jTimeInput {
   formatted: String
   hour: Int
@@ -280,17 +350,10 @@ input _Neo4jTimeInput {
   timezone: String
 }
 
-enum RelationDirection {
-  BOTH
-  IN
-  OUT
-}
-
 directive @relation(name:String, direction: RelationDirection = OUT, from: String = "from", to: String = "to") on FIELD_DEFINITION | OBJECT
 directive @cypher(statement:String) on FIELD_DEFINITION
 directive @property(name:String) on FIELD_DEFINITION
 directive @dynamic(prefix:String = "properties.") on FIELD_DEFINITION
-scalar DynamicProperties
 ----
 
 === Disable Mutations
@@ -349,6 +412,7 @@ type Movie {
 
 type Person0 {
   born: _Neo4jTime
+  location: _Neo4jPoint
   name: String
 }
 
@@ -393,6 +457,7 @@ type Query {
   person3(born: _Neo4jLocalTimeInput, filter: _Person3Filter, first: Int, name: String, offset: Int, orderBy: _Person3Ordering): [Person3!]!
   person4(born: _Neo4jLocalDateTimeInput, filter: _Person4Filter, first: Int, id: ID, name: String, offset: Int, orderBy: _Person4Ordering): [Person4!]!
   person5(filter: _Person5Filter, first: Int, id: ID, offset: Int, orderBy: _Person5Ordering): [Person5!]!
+  PersonByLocation(first: Int, location: _Neo4jPointInput, offset: Int): [Person0!]!
   publisher(filter: _PublisherFilter, first: Int, name: ID, offset: Int, orderBy: _PublisherOrdering): [Publisher!]!
 }
 
@@ -440,6 +505,42 @@ type _Neo4jLocalTime {
   second: Int
 }
 
+type _Neo4jPoint {
+  # The coordinate reference systems (CRS)
+  # -------------------------------------
+  # posible values:
+  # * `wgs-84`: A 2D geographic point in the WGS 84 CRS is specified in one of two ways:
+  #   * longitude and latitude (if these are specified, and the crs is not, then the crs is assumed to be WGS-84)
+  #   * x and y (in this case the crs must be specified, or will be assumed to be Cartesian)
+  # * `wgs-84-3d`: A 3D geographic point in the WGS 84 CRS is specified one of in two ways:
+  #   * longitude, latitude and either height or z (if these are specified, and the crs is not, then the crs is assumed to be WGS-84-3D)
+  #   * x, y and z (in this case the crs must be specified, or will be assumed to be Cartesian-3D)
+  # * `cartesian`: A 2D point in the Cartesian CRS is specified with a map containing x and y coordinate values
+  # * `cartesian-3d`: A 3D point in the Cartesian CRS is specified with a map containing x, y and z coordinate values
+  crs: String
+  # The third element of the Coordinate for geographic CRS, meters above the ellipsoid defined by the datum (WGS-84)
+  height: Float
+  # The second element of the Coordinate for geographic CRS, degrees North of the equator
+  # Range -90.0 to 90.0
+  latitude: Float
+  # The first element of the Coordinate for geographic CRS, degrees East of the prime meridian
+  # Range -180.0 to 180.0
+  longitude: Float
+  # The internal Neo4j ID for the CRS
+  # One of:
+  # * `4326`: represents CRS `wgs-84`
+  # * `4979`: represents CRS `wgs-84-3d`
+  # * `7203`: represents CRS `cartesian`
+  # * `9157`: represents CRS `cartesian-3d`
+  srid: Int
+  # The first element of the Coordinate
+  x: Float
+  # The second element of the Coordinate
+  y: Float
+  # The third element of the Coordinate
+  z: Float
+}
+
 type _Neo4jTime {
   formatted: String
   hour: Int
@@ -449,6 +550,12 @@ type _Neo4jTime {
   nanosecond: Int
   second: Int
   timezone: String
+}
+
+enum RelationDirection {
+  BOTH
+  IN
+  OUT
 }
 
 enum _Knows0Ordering {
@@ -516,6 +623,8 @@ enum _PublisherOrdering {
   name_asc
   name_desc
 }
+
+scalar DynamicProperties
 
 input _Knows0Filter {
   AND: [_Knows0Filter!]
@@ -736,6 +845,22 @@ input _Neo4jLocalTimeInput {
   second: Int
 }
 
+input _Neo4jPointDistanceFilter {
+  distance: Float
+  point: _Neo4jPointInput
+}
+
+input _Neo4jPointInput {
+  crs: String
+  height: Float
+  latitude: Float
+  longitude: Float
+  srid: Int
+  x: Float
+  y: Float
+  z: Float
+}
+
 input _Neo4jTimeInput {
   formatted: String
   hour: Int
@@ -755,6 +880,13 @@ input _Person0Filter {
   born_in: [_Neo4jTimeInput]
   born_not: _Neo4jTimeInput
   born_not_in: [_Neo4jTimeInput]
+  location: _Neo4jPointInput
+  location_distance: _Neo4jPointDistanceFilter
+  location_distance_gt: _Neo4jPointDistanceFilter
+  location_distance_gte: _Neo4jPointDistanceFilter
+  location_distance_lt: _Neo4jPointDistanceFilter
+  location_distance_lte: _Neo4jPointDistanceFilter
+  location_not: _Neo4jPointInput
   name: String
   name_contains: String
   name_ends_with: String
@@ -971,17 +1103,10 @@ input _PublisherInput {
   name: ID
 }
 
-enum RelationDirection {
-  IN
-  OUT
-  BOTH
-}
-
 directive @relation(name:String, direction: RelationDirection = OUT, from: String = "from", to: String = "to") on FIELD_DEFINITION | OBJECT
 directive @cypher(statement:String) on FIELD_DEFINITION
 directive @property(name:String) on FIELD_DEFINITION
 directive @dynamic(prefix:String = "properties.") on FIELD_DEFINITION
-scalar DynamicProperties
 ----
 
 
@@ -1045,35 +1170,42 @@ type Movie {
 }
 
 type Mutation {
+  #Deletes Knows0 and returns the type itself
   deleteKnows0(id: ID!): Knows0
   mergeKnows0(id: ID!, json: DynamicProperties): Knows0!
   updateKnows0(id: ID!, json: DynamicProperties): Knows0
 
+  #Deletes Knows1 and returns the type itself
   deleteKnows1(id: ID!): Knows1
 
   createKnows4(json: DynamicProperties, knows_id: ID!, source_id: ID!): Knows4!
+  #Deletes Knows4 and returns the type itself
   deleteKnows4(_id: ID!): Knows4
   mergeKnows4(_id: ID!, json: DynamicProperties): Knows4!
   updateKnows4(_id: ID!, json: DynamicProperties): Knows4
 
   createMovie(id: ID!): Movie!
+  #Deletes Movie and returns the type itself
   deleteMovie(id: ID!): Movie
 
   addMoviePublishedBy(id: ID!, publishedBy: ID!): Movie!
   deleteMoviePublishedBy(id: ID!, publishedBy: ID!): Movie
 
   createPerson5(id: ID!): Person5!
+  #Deletes Person5 and returns the type itself
   deletePerson5(id: ID!): Person5
 
   addPerson5Movies(id: ID!, movies: [ID!]!): Person5!
   deletePerson5Movies(id: ID!, movies: [ID!]!): Person5
 
   createPublisher(name: ID!): Publisher!
+  #Deletes Publisher and returns the type itself
   deletePublisher(name: ID!): Publisher
 }
 
 type Person0 {
   born: _Neo4jTime
+  location: _Neo4jPoint
   name: String
 }
 
@@ -1109,6 +1241,7 @@ type Publisher {
 }
 
 type Query {
+  PersonByLocation(first: Int, location: _Neo4jPointInput, offset: Int): [Person0!]!
 }
 
 type _Neo4jDate {
@@ -1155,6 +1288,42 @@ type _Neo4jLocalTime {
   second: Int
 }
 
+type _Neo4jPoint {
+  # The coordinate reference systems (CRS)
+  # -------------------------------------
+  # posible values:
+  # * `wgs-84`: A 2D geographic point in the WGS 84 CRS is specified in one of two ways:
+  #   * longitude and latitude (if these are specified, and the crs is not, then the crs is assumed to be WGS-84)
+  #   * x and y (in this case the crs must be specified, or will be assumed to be Cartesian)
+  # * `wgs-84-3d`: A 3D geographic point in the WGS 84 CRS is specified one of in two ways:
+  #   * longitude, latitude and either height or z (if these are specified, and the crs is not, then the crs is assumed to be WGS-84-3D)
+  #   * x, y and z (in this case the crs must be specified, or will be assumed to be Cartesian-3D)
+  # * `cartesian`: A 2D point in the Cartesian CRS is specified with a map containing x and y coordinate values
+  # * `cartesian-3d`: A 3D point in the Cartesian CRS is specified with a map containing x, y and z coordinate values
+  crs: String
+  # The third element of the Coordinate for geographic CRS, meters above the ellipsoid defined by the datum (WGS-84)
+  height: Float
+  # The second element of the Coordinate for geographic CRS, degrees North of the equator
+  # Range -90.0 to 90.0
+  latitude: Float
+  # The first element of the Coordinate for geographic CRS, degrees East of the prime meridian
+  # Range -180.0 to 180.0
+  longitude: Float
+  # The internal Neo4j ID for the CRS
+  # One of:
+  # * `4326`: represents CRS `wgs-84`
+  # * `4979`: represents CRS `wgs-84-3d`
+  # * `7203`: represents CRS `cartesian`
+  # * `9157`: represents CRS `cartesian-3d`
+  srid: Int
+  # The first element of the Coordinate
+  x: Float
+  # The second element of the Coordinate
+  y: Float
+  # The third element of the Coordinate
+  z: Float
+}
+
 type _Neo4jTime {
   formatted: String
   hour: Int
@@ -1165,6 +1334,14 @@ type _Neo4jTime {
   second: Int
   timezone: String
 }
+
+enum RelationDirection {
+  BOTH
+  IN
+  OUT
+}
+
+scalar DynamicProperties
 
 input _Neo4jDateInput {
   day: Int
@@ -1210,6 +1387,17 @@ input _Neo4jLocalTimeInput {
   second: Int
 }
 
+input _Neo4jPointInput {
+  crs: String
+  height: Float
+  latitude: Float
+  longitude: Float
+  srid: Int
+  x: Float
+  y: Float
+  z: Float
+}
+
 input _Neo4jTimeInput {
   formatted: String
   hour: Int
@@ -1221,15 +1409,8 @@ input _Neo4jTimeInput {
   timezone: String
 }
 
-enum RelationDirection {
-  IN
-  OUT
-  BOTH
-}
-
 directive @relation(name:String, direction: RelationDirection = OUT, from: String = "from", to: String = "to") on FIELD_DEFINITION | OBJECT
 directive @cypher(statement:String) on FIELD_DEFINITION
 directive @property(name:String) on FIELD_DEFINITION
 directive @dynamic(prefix:String = "properties.") on FIELD_DEFINITION
-scalar DynamicProperties
 ----

@@ -15,6 +15,7 @@ type Person {
   fun: Boolean
   gender: Gender
   company: Company @relation(name:"WORKS_AT")
+  location: _Neo4jPoint
 }
 type Company {
   _id: ID
@@ -1109,6 +1110,279 @@ RETURN person { .name } AS person
 ----
 MATCH (person:Person)
 WHERE NOT person.fun = $filterPersonFun_NEQ
+RETURN person { .name } AS person
+----
+
+== Filter on spatial
+
+=== Filter spatial _eq_
+
+.GraphQL-Query
+[source,graphql]
+----
+{ person(filter: { location: {longitude: 1, latitude: 2} }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonLocation_EQ_longitude":1,
+  "filterPersonLocation_EQ_latitude":2
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person: Person)
+WHERE (person.location.longitude = $filterPersonLocation_EQ_longitude
+  AND person.location.latitude = $filterPersonLocation_EQ_latitude)
+RETURN person { .name } AS person
+----
+
+=== Filter spatial _not_
+
+.GraphQL-Query
+[source,graphql]
+----
+{ person(filter: { location_not: {longitude: 1, latitude: 2} }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonLocation_NEQ_longitude":1,
+  "filterPersonLocation_NEQ_latitude":2
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person: Person)
+WHERE (NOT person.location.longitude = $filterPersonLocation_NEQ_longitude
+  AND NOT person.location.latitude = $filterPersonLocation_NEQ_latitude)
+RETURN person { .name } AS person
+----
+
+=== Filter spatial _null_
+
+.GraphQL-Query
+[source,graphql]
+----
+{ person(filter: { location: null }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person: Person)
+WHERE person.location IS NULL
+RETURN person { .name } AS person
+----
+
+=== Filter spatial _not_null_
+
+.GraphQL-Query
+[source,graphql]
+----
+{ person(filter: { location_not: null }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person: Person)
+WHERE person.location IS NOT NULL
+RETURN person { .name } AS person
+----
+
+=== Filter spatial _distance eq_
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  person(filter:{ location_distance: { distance: 3, point: {longitude: 1, latitude:2, height: 3}}}){
+    name
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonLocation_DISTANCE": {
+    "distance": 3,
+    "point": {
+      "longitude": 1,
+      "latitude": 2,
+      "height": 3
+    }
+  }
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE distance(person.location, point($filterPersonLocation_DISTANCE.point)) = $filterPersonLocation_DISTANCE.distance
+RETURN person { .name } AS person
+----
+
+=== Filter spatial _distance lt_
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  person(filter:{ location_distance_lt: { distance: 3, point: {longitude: 1, latitude:2, height: 3}}}){
+    name
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonLocation_DISTANCE_LT": {
+    "distance": 3,
+    "point": {
+      "longitude": 1,
+      "latitude": 2,
+      "height": 3
+    }
+  }
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE distance(person.location, point($filterPersonLocation_DISTANCE_LT.point)) < $filterPersonLocation_DISTANCE_LT.distance
+RETURN person { .name } AS person
+----
+
+=== Filter spatial _distance lte_
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  person(filter:{ location_distance_lte: { distance: 3, point: {longitude: 1, latitude:2, height: 3}}}){
+    name
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonLocation_DISTANCE_LTE": {
+    "distance": 3,
+    "point": {
+      "longitude": 1,
+      "latitude": 2,
+      "height": 3
+    }
+  }
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE distance(person.location, point($filterPersonLocation_DISTANCE_LTE.point)) <= $filterPersonLocation_DISTANCE_LTE.distance
+RETURN person { .name } AS person
+----
+
+=== Filter spatial _distance gt_
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  person(filter:{ location_distance_gt: { distance: 3, point: {longitude: 1, latitude:2, height: 3}}}){
+    name
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonLocation_DISTANCE_GT": {
+    "distance": 3,
+    "point": {
+      "longitude": 1,
+      "latitude": 2,
+      "height": 3
+    }
+  }
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE distance(person.location, point($filterPersonLocation_DISTANCE_GT.point)) > $filterPersonLocation_DISTANCE_GT.distance
+RETURN person { .name } AS person
+----
+
+=== Filter spatial _distance gte_
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  person(filter:{ location_distance_gte: { distance: 3, point: {longitude: 1, latitude:2, height: 3}}}){
+    name
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonLocation_DISTANCE_GTE": {
+    "distance": 3,
+    "point": {
+      "longitude": 1,
+      "latitude": 2,
+      "height": 3
+    }
+  }
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE distance(person.location, point($filterPersonLocation_DISTANCE_GTE.point)) >= $filterPersonLocation_DISTANCE_GTE.distance
 RETURN person { .name } AS person
 ----
 
