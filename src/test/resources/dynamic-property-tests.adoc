@@ -105,6 +105,7 @@ mutation {
 ----
 MATCH (updatePerson:Person { id: $updatePersonId })
 SET updatePerson = {
+  id: $updatePersonId,
   `properties.foo`: $updatePersonJsonFoo,
   `properties.x`: $updatePersonJsonX
 }
