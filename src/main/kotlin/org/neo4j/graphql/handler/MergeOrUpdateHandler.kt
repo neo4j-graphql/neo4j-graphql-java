@@ -31,7 +31,7 @@ class MergeOrUpdateHandler private constructor(
         }
 
         override fun createDataFetcher(rootType: GraphQLObjectType, fieldDefinition: GraphQLFieldDefinition): DataFetcher<Cypher>? {
-            if (rootType.name != MUTATION){
+            if (rootType.name != MUTATION) {
                 return null
             }
             if (fieldDefinition.cypherDirective() != null) {
@@ -67,8 +67,13 @@ class MergeOrUpdateHandler private constructor(
     }
 
     init {
-        defaultFields.clear()
-        propertyFields.remove(idField.name) // id should not be updated
+        defaultFields.clear() // for marge or updates we do not reset to defaults
+        if (idField.isNativeId() || merge) {
+            // native id cannot be updated
+            // if the ID is not a native ID and we are in the update mode, we do not remove it from the properties
+            // b/c otherwise the id field will be unset
+            propertyFields.remove(idField.name)
+        }
     }
 
     override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Cypher {
