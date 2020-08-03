@@ -115,8 +115,8 @@
         </dependency>
         <dependency>
             <groupId>org.neo4j</groupId>
-            <artifactId>neo4j-opencypher-dsl</artifactId>
-            <version>1.1.0</version>
+            <artifactId>neo4j-cypher-dsl</artifactId>
+            <version>2020.0.1</version>
         </dependency>
     </dependencies>
 

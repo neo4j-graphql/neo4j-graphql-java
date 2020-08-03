@@ -4,12 +4,16 @@ import graphql.Scalars
 import graphql.language.NullValue
 import graphql.language.Value
 import graphql.schema.*
+import org.neo4j.cypherdsl.core.Condition
+import org.neo4j.cypherdsl.core.Expression
+import org.neo4j.cypherdsl.core.Functions
+import org.neo4j.cypherdsl.core.Functions.point
+import org.neo4j.cypherdsl.core.Parameter
 import org.neo4j.graphql.Predicate.Companion.resolvePredicate
 import org.neo4j.graphql.handler.projection.ProjectionBase
-import org.neo4j.opencypherdsl.*
 import org.slf4j.LoggerFactory
 
-typealias CypherDSL = org.neo4j.opencypherdsl.Cypher
+typealias CypherDSL = org.neo4j.cypherdsl.core.Cypher
 
 interface Predicate {
     fun toExpression(variable: String): Cypher

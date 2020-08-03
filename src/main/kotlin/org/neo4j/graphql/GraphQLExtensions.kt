@@ -3,6 +3,8 @@ package org.neo4j.graphql
 import graphql.Scalars
 import graphql.language.*
 import graphql.schema.*
+import org.neo4j.cypherdsl.core.Node
+import org.neo4j.cypherdsl.core.Relationship
 import org.neo4j.graphql.DirectiveConstants.Companion.CYPHER
 import org.neo4j.graphql.DirectiveConstants.Companion.CYPHER_STATEMENT
 import org.neo4j.graphql.DirectiveConstants.Companion.DYNAMIC
@@ -17,8 +19,6 @@ import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_FROM
 import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_NAME
 import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_TO
 import org.neo4j.graphql.handler.projection.ProjectionBase
-import org.neo4j.opencypherdsl.Node
-import org.neo4j.opencypherdsl.Relationship
 
 fun Type<Type<*>>.name(): String? = if (this.inner() is TypeName) (this.inner() as TypeName).name else null
 fun Type<Type<*>>.inner(): Type<Type<*>> = when (this) {

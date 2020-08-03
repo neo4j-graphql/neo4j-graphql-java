@@ -1,4 +1,4 @@
-package org.neo4j.opencypherdsl
+package org.neo4j.cypherdsl.core
 
 import java.util.*
 

@@ -4,12 +4,12 @@ import graphql.language.*
 import graphql.schema.GraphQLFieldDefinition
 import graphql.schema.GraphQLFieldsContainer
 import graphql.schema.GraphQLObjectType
+import org.neo4j.cypherdsl.core.*
+import org.neo4j.cypherdsl.core.Cypher
+import org.neo4j.cypherdsl.core.Node
+import org.neo4j.cypherdsl.core.StatementBuilder.*
 import org.neo4j.graphql.*
 import org.neo4j.graphql.handler.projection.ProjectionBase
-import org.neo4j.opencypherdsl.*
-import org.neo4j.opencypherdsl.Cypher
-import org.neo4j.opencypherdsl.Node
-import org.neo4j.opencypherdsl.StatementBuilder.*
 
 
 typealias WhereClauseFactory = (
