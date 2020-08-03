@@ -83,6 +83,7 @@ You find more usage examples in the:
 * link:src/test/resources/translator-tests1.adoc[Translator 1 TCK]
 * link:src/test/resources/translator-tests2.adoc[Translator 2 TCK]
 * link:src/test/resources/translator-tests3.adoc[Translator 3 TCK]
+* link:src/test/resources/translator-tests-custom-scalars.adoc[Translator custom scalars TCK]
 * link:src/test/resources/optimized-query-for-filter.adoc[Alternative Filter TCK]
 
 == Demo
@@ -246,6 +247,7 @@ This example doesn't handle introspection queries, but the one in the test direc
 * date(time)
 * interfaces
 * complex filter parameters, with optional query optimization strategy
+* scalars
 
 === Next
 
@@ -253,7 +255,6 @@ This example doesn't handle introspection queries, but the one in the test direc
 * sorting (nested)
 * input types
 * unions
-* scalars
 * spatial
 
 == Documentation
