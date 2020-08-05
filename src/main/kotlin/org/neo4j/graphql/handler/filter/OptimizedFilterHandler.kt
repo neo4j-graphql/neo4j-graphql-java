@@ -98,11 +98,8 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer) {
             }
 
             // WHERE MATCH all predicates for current
-            val matchQueryWithWhere = addConditions<OngoingReadingWithWhere>(
-                    current, variablePrefix, parsedQuery.fieldPredicates, filterParams, appendObjectFieldName = false
-            ) { where, condition ->
-                where?.and(condition) ?: matchQueryWithoutWhere.where(condition)
-            }
+            val matchQueryWithWhere = addConditions(matchQueryWithoutWhere)
+
             return if (additionalConditions != null) {
                 additionalConditions(matchQueryWithWhere ?: matchQueryWithoutWhere)
             } else {
@@ -257,41 +254,23 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer) {
             else -> exposesWith.with(*withs.toTypedArray())
         }
 
-        private fun <WithWhere> addConditions(
-                propertyContainer: PropertyContainer,
-                variablePrefix: String,
-                conditions: List<Predicate<FieldOperator>>,
-                filterParams: MutableMap<String, Any?>,
-                appendObjectFieldName: Boolean,
-                conditionAdder: (where: WithWhere?, condition: Condition) -> WithWhere
-        ): WithWhere? {
-            var where: WithWhere? = null
-            for (conditionField in conditions) {
-                if (conditionField.fieldDefinition.type.isNeo4jType()
-                    && conditionField.queryField.value is ObjectValue
-                    && !conditionField.op.distance
-                ) {
-                    val nestedConditions = (conditionField.queryField.value as ObjectValue).objectFields
-                        .mapIndexed { index, objectField -> Predicate(conditionField.op, objectField, conditionField.fieldDefinition, index) }
-                    addConditions(propertyContainer, variablePrefix + "_" + conditionField.queryField.name,
-                            nestedConditions, filterParams, true, conditionAdder)
-                } else {
-                    val parameter = Cypher.parameter(variablePrefix + "_" + conditionField.queryField.name)
-                    var name = conditionField.fieldDefinition.name
-                    if (appendObjectFieldName) {
-                        name += "." + conditionField.queryField.name
-                    }
-                    val prop = propertyContainer.property(name)
-                    val condition = conditionField.op.conditionCreator(prop, parameter)
-                    if (conditionField.op.requireParam) {
-                        filterParams[parameter.name] = conditionField.queryField.value.toJavaValue()
-                    }
-                    where = conditionAdder(where, condition)
+        private fun addConditions(where: OngoingReadingWithoutWhere): OngoingReadingWithWhere? {
+            var matchQueryWithWhere: OngoingReadingWithWhere? = null
+            for (predicate in parsedQuery.fieldPredicates) {
+                val (conditions, params) = predicate.op.resolveCondition(
+                        variablePrefix,
+                        predicate.queryField.name,
+                        current,
+                        predicate.fieldDefinition,
+                        predicate.queryField.value
+                )
+                filterParams += params
+                for (condition in conditions) {
+                    matchQueryWithWhere = matchQueryWithWhere?.and(condition) ?: where.where(condition)
                 }
             }
-            return where
+            return matchQueryWithWhere
         }
-
     }
 
     companion object {

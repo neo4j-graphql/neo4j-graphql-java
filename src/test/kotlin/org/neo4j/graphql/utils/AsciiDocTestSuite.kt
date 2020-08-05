@@ -74,7 +74,8 @@ open class AsciiDocTestSuite {
         private fun fixNumber(v: Any?): Any? = when (v) {
             is Float -> v.toDouble()
             is Int -> v.toLong()
-            is List<*> -> v.map { fixNumber(it) }
+            is Iterable<*> -> v.map { fixNumber(it) }
+            is Sequence<*> -> v.map { fixNumber(it) }
             is Map<*, *> -> v.mapValues { fixNumber(it.value) }
             else -> v
         }

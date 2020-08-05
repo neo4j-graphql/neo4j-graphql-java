@@ -2,13 +2,11 @@ package org.neo4j.graphql
 
 import graphql.Scalars
 import graphql.language.NullValue
+import graphql.language.ObjectValue
 import graphql.language.Value
 import graphql.schema.*
-import org.neo4j.cypherdsl.core.Condition
-import org.neo4j.cypherdsl.core.Expression
-import org.neo4j.cypherdsl.core.Functions
+import org.neo4j.cypherdsl.core.*
 import org.neo4j.cypherdsl.core.Functions.point
-import org.neo4j.cypherdsl.core.Parameter
 import org.neo4j.graphql.Predicate.Companion.resolvePredicate
 import org.neo4j.graphql.handler.projection.ProjectionBase
 import org.slf4j.LoggerFactory
@@ -21,35 +19,35 @@ interface Predicate {
     companion object {
         fun resolvePredicate(name: String, value: Any?, type: GraphQLFieldsContainer): Predicate {
             for (definedField in type.fieldDefinitions) {
-                if (definedField.isRelationship()) {
-                    val op = RelationOperator.values().find { name == definedField.name + it.suffix }
-                    if (op != null) {
-                        return when (value) {
-                            is Map<*, *> -> RelationPredicate(definedField.name, op, value, type)
-                            null -> IsNullRelationPredicate(definedField.name, op, type)
-                            else -> throw IllegalArgumentException("Input for ${definedField.name} must be an filter-InputType")
-                        }
+                return if (definedField.isRelationship()) {
+                    val op = RelationOperator.values().find { name == definedField.name + it.suffix } ?: continue
+                    when (value) {
+                        is Map<*, *> -> RelationPredicate(definedField.name, op, value, type)
+                        null -> IsNullRelationPredicate(definedField.name, op, type)
+                        else -> throw IllegalArgumentException("Input for ${definedField.name} must be an filter-InputType")
                     }
                 } else {
-                    val op = FieldOperator.resolve(name, definedField, value)
-                    if (op != null) {
-                        if (definedField.type.isNeo4jType()) {
-                            if (op.distance) {
-                                return DistancePredicate(definedField.name, op, value, definedField)
-                            }
-                            return when (value) {
-                                is Map<*, *> -> CompoundPredicate(value.entries.map { (key, value) ->
-                                    ExpressionPredicate(definedField.name, key as String, op, value, definedField)
-                                })
-                                null -> IsNullFieldPredicate(definedField.name, op, type)
-                                else -> throw IllegalArgumentException("Input for ${definedField.name} must be an filter-InputType")
-                            }
-                        }
-                        return ExpressionPredicate(definedField.name, null, op, value, definedField)
+                    val op = FieldOperator.resolve(name, definedField, value) ?: continue
+                    when {
+                        definedField.type.isNeo4jType() -> resolveNeo4jTypePredicate(type, definedField, op, value)
+                        else -> ExpressionPredicate(definedField.name, op, value, definedField)
                     }
                 }
             }
             throw IllegalArgumentException("Queried field $name could not be resolved")
+        }
+
+        private fun resolveNeo4jTypePredicate(type: GraphQLFieldsContainer, field: GraphQLFieldDefinition, op: FieldOperator, value: Any?): Predicate {
+            if (op.distance) {
+                return DistancePredicate(field.name, op, value, field)
+            }
+            return when (value) {
+                is Map<*, *> -> CompoundPredicate(value.entries.map { (key, value) ->
+                    ExpressionPredicate(field.name, op, value, field, ".$key")
+                })
+                null -> IsNullFieldPredicate(field.name, op, type)
+                else -> throw IllegalArgumentException("Input for ${field.name} must be an filter-InputType")
+            }
         }
 
         private fun isParam(value: String) = value.startsWith("{") && value.endsWith("}") || value.startsWith("\$")
@@ -107,14 +105,14 @@ data class IsNullFieldPredicate(val fieldName: String, val op: FieldOperator, va
 
 data class ExpressionPredicate(
         val name: String,
-        val nestedField: String? = null,
         val op: FieldOperator,
         val value: Any?,
-        val fieldDefinition: GraphQLFieldDefinition
+        val fieldDefinition: GraphQLFieldDefinition,
+        val nestedField: String = ""
 ) : Predicate {
     val not = if (op.not) "NOT " else ""
     override fun toExpression(variable: String): Cypher {
-        var paramName: String = ProjectionBase.FILTER + paramName(variable, name, value).capitalize() + "_" + op.name
+        val paramName: String = ProjectionBase.FILTER + paramName(variable, name, value).capitalize() + "_" + op.name + nestedField.replace('.','_')
         val query = if (fieldDefinition.isNativeId()) {
             if (op.list) {
                 "${not}ID($variable) ${op.op} [id IN \$$paramName | toInteger(id)]"
@@ -122,11 +120,7 @@ data class ExpressionPredicate(
                 "${not}ID($variable) ${op.op} toInteger(\$$paramName)"
             }
         } else {
-            val appendField = if (nestedField != null) {
-                paramName += "_$nestedField"
-                ".$nestedField"
-            } else ""
-            "$not$variable.${name.quote()}${appendField} ${op.op} \$$paramName"
+            "$not$variable.${name.quote()}${nestedField} ${op.op} \$$paramName"
         }
         return Cypher(query, mapOf(paramName to value))
     }
@@ -183,7 +177,7 @@ data class RelationPredicate(val fieldName: String, val op: RelationOperator, va
 enum class FieldOperator(
         val suffix: String,
         val op: String,
-        val conditionCreator: (Expression, Parameter) -> Condition,
+        private val conditionCreator: (Expression, Parameter) -> Condition,
         val not: Boolean = false,
         val requireParam: Boolean = true,
         val distance: Boolean = false
@@ -213,6 +207,41 @@ enum class FieldOperator(
     DISTANCE_GTE(NEO4j_POINT_DISTANCE_FILTER_SUFFIX + "_gte", ">=", { lhs, rhs -> distanceOp(lhs, rhs, GTE) }, distance = true);
 
     val list = op == "IN"
+
+    fun resolveCondition(variablePrefix: String, queriedField: String, propertyContainer: PropertyContainer, field: GraphQLFieldDefinition, value: Any): Pair<List<Condition>, Map<String, Any?>> {
+        return if (field.type.isNeo4jType() && value is ObjectValue && !distance) {
+            resolveNeo4jTypeConditions(variablePrefix, queriedField, propertyContainer, field, value)
+        } else {
+            resolveCondition(variablePrefix, queriedField, propertyContainer.property(field.name), value)
+        }
+    }
+
+    private fun resolveNeo4jTypeConditions(variablePrefix: String, queriedField: String, propertyContainer: PropertyContainer, field: GraphQLFieldDefinition, value: ObjectValue): Pair<MutableList<Condition>, MutableMap<String, Any?>> {
+        val conditions = mutableListOf<Condition>()
+        val params = mutableMapOf<String, Any?>()
+        for (objectField in value.objectFields) {
+            val (childConditions, childParams) = resolveCondition(
+                    variablePrefix + "_" + queriedField,
+                    objectField.name,
+                    propertyContainer.property(field.name + "." + objectField.name),
+                    objectField.value
+            )
+            conditions += childConditions
+            params += childParams
+        }
+        return conditions to params
+    }
+
+    private fun resolveCondition(variablePrefix: String, queriedField: String, property: Property, value: Any): Pair<List<Condition>, Map<String, Any?>> {
+        val parameter = org.neo4j.cypherdsl.core.Cypher.parameter(variablePrefix + "_" + queriedField)
+        val condition = conditionCreator(property, parameter)
+        val params = if (requireParam) {
+            mapOf(parameter.name to value.toJavaValue())
+        } else {
+            emptyMap<String, Any?>()
+        }
+        return listOf(condition) to params
+    }
 
     companion object {
 
@@ -250,7 +279,6 @@ enum class FieldOperator(
                     else -> listOf(EQ, NEQ, IN, NIN, LT, LTE, GT, GTE) +
                             if (type.name == "String" || type.name == "ID") listOf(C, NC, SW, NSW, EW, NEW) else emptyList()
                 }
-
     }
 
     fun fieldName(fieldName: String) = fieldName + suffix
