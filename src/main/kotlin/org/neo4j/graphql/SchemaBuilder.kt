@@ -13,6 +13,7 @@ import org.neo4j.graphql.handler.projection.ProjectionBase
 import org.neo4j.graphql.handler.relation.CreateRelationHandler
 import org.neo4j.graphql.handler.relation.CreateRelationTypeHandler
 import org.neo4j.graphql.handler.relation.DeleteRelationHandler
+import java.util.concurrent.ConcurrentHashMap
 
 object SchemaBuilder {
     private const val MUTATION = "Mutation"
@@ -74,7 +75,7 @@ object SchemaBuilder {
 
         val handler = getHandler(config)
 
-        var targetSchema = augmentSchema(sourceSchema, handler)
+        var targetSchema = augmentSchema(sourceSchema, handler, config)
         targetSchema = addDataFetcher(targetSchema, dataFetchingInterceptor, handler)
         return targetSchema
     }
@@ -99,8 +100,8 @@ object SchemaBuilder {
         return handler
     }
 
-    private fun augmentSchema(sourceSchema: GraphQLSchema, handler: List<AugmentationHandler>): GraphQLSchema {
-        val types = sourceSchema.typeMap.toMutableMap()
+    private fun augmentSchema(sourceSchema: GraphQLSchema, handler: List<AugmentationHandler>, config: SchemaConfig): GraphQLSchema {
+        val types = sourceSchema.typeMap.toMap(ConcurrentHashMap())
         val env = BuildingEnv(types)
 
         types.values
@@ -123,11 +124,11 @@ object SchemaBuilder {
                     builder.clearFields().clearInterfaces()
                     // to prevent duplicated types in schema
                     sourceType.interfaces.forEach { builder.withInterface(GraphQLTypeReference(it.name)) }
-                    sourceType.fieldDefinitions.forEach { f -> builder.field(enhanceRelations(f)) }
+                    sourceType.fieldDefinitions.forEach { f -> builder.field(enhanceRelations(f, env, config)) }
                 }
                 sourceType is GraphQLInterfaceType -> sourceType.transform { builder ->
                     builder.clearFields()
-                    sourceType.fieldDefinitions.forEach { f -> builder.field(enhanceRelations(f)) }
+                    sourceType.fieldDefinitions.forEach { f -> builder.field(enhanceRelations(f, env, config)) }
                 }
                 else -> sourceType
             }
@@ -142,27 +143,29 @@ object SchemaBuilder {
             .build()
     }
 
-    private fun enhanceRelations(fd: GraphQLFieldDefinition): GraphQLFieldDefinition {
-        return fd.transform {
+    private fun enhanceRelations(fd: GraphQLFieldDefinition, env: BuildingEnv, config: SchemaConfig): GraphQLFieldDefinition {
+        return fd.transform { fieldBuilder ->
             // to prevent duplicated types in schema
-            it.type(fd.type.ref() as GraphQLOutputType)
+            fieldBuilder.type(fd.type.ref() as GraphQLOutputType)
 
             if (!fd.isRelationship() || !fd.type.isList()) {
                 return@transform
             }
 
             if (fd.getArgument(ProjectionBase.FIRST) == null) {
-                it.argument { a -> a.name(ProjectionBase.FIRST).type(Scalars.GraphQLInt) }
+                fieldBuilder.argument { a -> a.name(ProjectionBase.FIRST).type(Scalars.GraphQLInt) }
             }
             if (fd.getArgument(ProjectionBase.OFFSET) == null) {
-                it.argument { a -> a.name(ProjectionBase.OFFSET).type(Scalars.GraphQLInt) }
+                fieldBuilder.argument { a -> a.name(ProjectionBase.OFFSET).type(Scalars.GraphQLInt) }
             }
-            // TODO implement ordering
-//                if (fd.getArgument(ProjectionBase.ORDER_BY) == null) {
-//                    val typeName = fd.type.name()!!
-//                    val orderingType = addOrdering(typeName, metaProvider.getNodeType(typeName)!!.fieldDefinitions().filter { it.type.isScalar() })
-//                    it.argument { a -> a.name(ProjectionBase.ORDER_BY).type(orderingType) }
-//                }
+            if (fd.getArgument(ProjectionBase.ORDER_BY) == null && fd.type.isList()) {
+                (fd.type.inner() as? GraphQLFieldsContainer)?.let { fieldType ->
+                    env.addOrdering(fieldType)?.let { orderingTypeName ->
+                        val orderType = GraphQLList(GraphQLNonNull(GraphQLTypeReference(orderingTypeName)))
+                        fieldBuilder.argument { a -> a.name(ProjectionBase.ORDER_BY).type(orderType) }
+                    }
+                }
+            }
         }
     }
 

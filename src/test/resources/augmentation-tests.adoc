@@ -71,7 +71,7 @@ schema {
 }
 
 interface HasMovies {
-  movies(first: Int, offset: Int): [Movie]
+  movies(first: Int, offset: Int, orderBy: [_MovieOrdering!]): [Movie]
 }
 
 type Knows0 @relation(direction : OUT, from : "source", name : "KNOWS", to : "knows") {
@@ -174,7 +174,7 @@ type Person4 {
 
 type Person5 implements HasMovies {
   id: ID!
-  movies(first: Int, offset: Int): [Movie] @relation(direction : OUT, from : "from", name : "LIKES", to : "to")
+  movies(first: Int, offset: Int, orderBy: [_MovieOrdering!]): [Movie] @relation(direction : OUT, from : "from", name : "LIKES", to : "to")
 }
 
 type Publisher {
@@ -182,7 +182,7 @@ type Publisher {
 }
 
 type Query {
-  PersonByLocation(first: Int, location: _Neo4jPointInput, offset: Int): [Person0!]!
+  PersonByLocation(first: Int, location: _Neo4jPointInput, offset: Int, orderBy: [_Person0Ordering!]): [Person0!]!
 }
 
 type _Neo4jDate {
@@ -280,6 +280,20 @@ enum RelationDirection {
   BOTH
   IN
   OUT
+}
+
+enum _MovieOrdering {
+  id_asc
+  id_desc
+}
+
+enum _Person0Ordering {
+  born_asc
+  born_desc
+  location_asc
+  location_desc
+  name_asc
+  name_desc
 }
 
 scalar DynamicProperties
@@ -382,7 +396,7 @@ schema {
 }
 
 interface HasMovies {
-  movies(first: Int, offset: Int):[Movie]
+  movies(first: Int, offset: Int, orderBy: [_MovieOrdering!]): [Movie]
 }
 
 type Knows0 @relation(direction : OUT, from : "source", name : "KNOWS", to : "knows") {
@@ -440,7 +454,7 @@ type Person4 {
 
 type Person5 implements HasMovies {
   id: ID!
-  movies(first: Int, offset: Int): [Movie] @relation(direction : OUT, from : "from", name : "LIKES", to : "to")
+  movies(first: Int, offset: Int, orderBy: [_MovieOrdering!]): [Movie] @relation(direction : OUT, from : "from", name : "LIKES", to : "to")
 }
 
 type Publisher {
@@ -448,17 +462,17 @@ type Publisher {
 }
 
 type Query {
-  knows0(filter: _Knows0Filter, first: Int, id: ID, offset: Int, orderBy: _Knows0Ordering): [Knows0!]!
-  knows1(filter: _Knows1Filter, first: Int, id: ID, offset: Int, orderBy: _Knows1Ordering): [Knows1!]!
-  knows4(_id: ID, filter: _Knows4Filter, first: Int, offset: Int, orderBy: _Knows4Ordering): [Knows4!]!
-  movie(filter: _MovieFilter, first: Int, id: ID, offset: Int, orderBy: _MovieOrdering): [Movie!]!
-  person1(born: _Neo4jDateInput, filter: _Person1Filter, first: Int, name: String, offset: Int, orderBy: _Person1Ordering): [Person1!]!
-  person2(age: [Int], born: _Neo4jDateTimeInput, filter: _Person2Filter, first: Int, name: String, offset: Int, orderBy: _Person2Ordering): [Person2!]!
-  person3(born: _Neo4jLocalTimeInput, filter: _Person3Filter, first: Int, name: String, offset: Int, orderBy: _Person3Ordering): [Person3!]!
-  person4(born: _Neo4jLocalDateTimeInput, filter: _Person4Filter, first: Int, id: ID, name: String, offset: Int, orderBy: _Person4Ordering): [Person4!]!
-  person5(filter: _Person5Filter, first: Int, id: ID, offset: Int, orderBy: _Person5Ordering): [Person5!]!
-  PersonByLocation(first: Int, location: _Neo4jPointInput, offset: Int): [Person0!]!
-  publisher(filter: _PublisherFilter, first: Int, name: ID, offset: Int, orderBy: _PublisherOrdering): [Publisher!]!
+  knows0(filter: _Knows0Filter, first: Int, id: ID, offset: Int, orderBy: [_Knows0Ordering!]): [Knows0!]!
+  knows1(filter: _Knows1Filter, first: Int, id: ID, offset: Int, orderBy: [_Knows1Ordering!]): [Knows1!]!
+  knows4(_id: ID, filter: _Knows4Filter, first: Int, offset: Int, orderBy: [_Knows4Ordering!]): [Knows4!]!
+  movie(filter: _MovieFilter, first: Int, id: ID, offset: Int, orderBy: [_MovieOrdering!]): [Movie!]!
+  person1(born: _Neo4jDateInput, filter: _Person1Filter, first: Int, name: String, offset: Int, orderBy: [_Person1Ordering!]): [Person1!]!
+  person2(age: [Int], born: _Neo4jDateTimeInput, filter: _Person2Filter, first: Int, name: String, offset: Int, orderBy: [_Person2Ordering!]): [Person2!]!
+  person3(born: _Neo4jLocalTimeInput, filter: _Person3Filter, first: Int, name: String, offset: Int, orderBy: [_Person3Ordering!]): [Person3!]!
+  person4(born: _Neo4jLocalDateTimeInput, filter: _Person4Filter, first: Int, id: ID, name: String, offset: Int, orderBy: [_Person4Ordering!]): [Person4!]!
+  person5(filter: _Person5Filter, first: Int, id: ID, offset: Int, orderBy: [_Person5Ordering!]): [Person5!]!
+  PersonByLocation(first: Int, location: _Neo4jPointInput, offset: Int, orderBy: [_Person0Ordering!]): [Person0!]!
+  publisher(filter: _PublisherFilter, first: Int, name: ID, offset: Int, orderBy: [_PublisherOrdering!]): [Publisher!]!
 }
 
 type _Neo4jDate {
@@ -580,6 +594,15 @@ enum _Knows4Ordering {
 enum _MovieOrdering {
   id_asc
   id_desc
+}
+
+enum _Person0Ordering {
+  born_asc
+  born_desc
+  location_asc
+  location_desc
+  name_asc
+  name_desc
 }
 
 enum _Person1Ordering {
@@ -1141,7 +1164,7 @@ schema {
 }
 
 interface HasMovies {
-  movies(first: Int, offset: Int): [Movie]
+  movies(first: Int, offset: Int, orderBy: [_MovieOrdering!]): [Movie]
 }
 
 type Knows0 @relation(direction : OUT, from : "source", name : "KNOWS", to : "knows") {
@@ -1174,7 +1197,6 @@ type Mutation {
   deleteKnows0(id: ID!): Knows0
   mergeKnows0(id: ID!, json: DynamicProperties): Knows0!
   updateKnows0(id: ID!, json: DynamicProperties): Knows0
-
   #Deletes Knows1 and returns the type itself
   deleteKnows1(id: ID!): Knows1
 
@@ -1233,7 +1255,7 @@ type Person4 {
 
 type Person5 implements HasMovies {
   id: ID!
-  movies(first: Int, offset: Int): [Movie] @relation(direction : OUT, from : "from", name : "LIKES", to : "to")
+  movies(first: Int, offset: Int, orderBy: [_MovieOrdering!]): [Movie] @relation(direction : OUT, from : "from", name : "LIKES", to : "to")
 }
 
 type Publisher {
@@ -1241,7 +1263,7 @@ type Publisher {
 }
 
 type Query {
-  PersonByLocation(first: Int, location: _Neo4jPointInput, offset: Int): [Person0!]!
+  PersonByLocation(first: Int, location: _Neo4jPointInput, offset: Int, orderBy: [_Person0Ordering!]): [Person0!]!
 }
 
 type _Neo4jDate {
@@ -1339,6 +1361,20 @@ enum RelationDirection {
   BOTH
   IN
   OUT
+}
+
+enum _MovieOrdering {
+  id_asc
+  id_desc
+}
+
+enum _Person0Ordering {
+  born_asc
+  born_desc
+  location_asc
+  location_desc
+  name_asc
+  name_desc
 }
 
 scalar DynamicProperties

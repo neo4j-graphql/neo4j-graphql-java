@@ -15,6 +15,7 @@ import org.junit.jupiter.api.DynamicTest
 import org.neo4j.graphql.DynamicProperties
 import org.neo4j.graphql.SchemaBuilder
 import org.neo4j.graphql.SchemaConfig
+import org.opentest4j.AssertionFailedError
 import java.io.File
 import java.util.regex.Pattern
 import javax.ws.rs.core.UriBuilder
@@ -62,13 +63,11 @@ class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite() {
             private val ignore: Boolean) {
 
         fun run() {
-            println(title)
+            var augmentedSchema: GraphQLSchema? = null
+            var expectedSchema: GraphQLSchema? = null
             try {
-                val augmentedSchema = SchemaBuilder.buildSchema(suite.schema, config)
+                augmentedSchema = SchemaBuilder.buildSchema(suite.schema, config)
                 val schemaParser = SchemaParser()
-
-                println("Augmented Schema:")
-                println(suite.schemaPrinter.print(augmentedSchema))
 
                 val reg = schemaParser.parse(targetSchema)
                 val schemaGenerator = SchemaGenerator()
@@ -76,17 +75,21 @@ class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite() {
                 reg
                     .getTypes(InterfaceTypeDefinition::class.java)
                     .forEach { typeDefinition -> runtimeWiring.type(typeDefinition.name) { it.typeResolver { null } } }
-                val expected = schemaGenerator.makeExecutableSchema(reg, runtimeWiring
+                expectedSchema = schemaGenerator.makeExecutableSchema(reg, runtimeWiring
                     .scalar(DynamicProperties.INSTANCE)
                     .build())
 
-                diff(expected, augmentedSchema)
-                diff(augmentedSchema, expected)
+                diff(expectedSchema, augmentedSchema)
+                diff(augmentedSchema, expectedSchema)
             } catch (e: Throwable) {
                 if (ignore) {
                     Assumptions.assumeFalse(true, e.message)
                 } else {
-                    throw e
+                    throw AssertionFailedError("augmented schema differs for '$title'",
+                            expectedSchema?.let { suite.schemaPrinter.print(it) } ?: targetSchema,
+                            suite.schemaPrinter.print(augmentedSchema),
+                            e)
+
                 }
             }
         }

@@ -34,7 +34,8 @@ class QueryHandler private constructor(
                 .argument(input(OFFSET, Scalars.GraphQLInt))
                 .type(GraphQLNonNull(GraphQLList(GraphQLNonNull(GraphQLTypeReference(type.name)))))
             if (orderingTypeName != null) {
-                builder.argument(input(ORDER_BY, GraphQLTypeReference(orderingTypeName)))
+                val orderType = GraphQLList(GraphQLNonNull(GraphQLTypeReference(orderingTypeName)))
+                builder.argument(input(ORDER_BY, orderType))
             }
             val def = builder.build()
             buildingEnv.addOperation(QUERY, def)
