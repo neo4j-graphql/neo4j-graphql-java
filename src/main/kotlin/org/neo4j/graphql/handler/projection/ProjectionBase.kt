@@ -66,7 +66,7 @@ open class ProjectionBase {
                 }
                 .groupBy({ it.first }, { it.second }) // create a map of <FieldWithNeo4jType, List<Field>> so we group the data by the type
                 .mapValues { it.value.flatten() }
-                .flatMap { (fieldDefinition , selection) ->
+                .flatMap { (fieldDefinition, selection) ->
                     // for each FieldWithNeo4jType of type query we create the where condition
                     val neo4jType = fieldDefinition.type.getInnerFieldsContainer()
                     selection.flatMap { field ->
@@ -135,6 +135,7 @@ open class ProjectionBase {
 
     fun projectFields(variable: String, field: Field, nodeType: GraphQLFieldsContainer, env: DataFetchingEnvironment, variableSuffix: String?): Cypher {
         val queries = projectSelectionSet(variable, field.selectionSet, nodeType, env, variableSuffix)
+
         @Suppress("SimplifiableCallChain")
         val projection = queries
             .map { it.query }
@@ -346,45 +347,68 @@ open class ProjectionBase {
             private val limit: Translator.CypherArgument? = convertArgument(variable, arguments, FIRST)) {
 
         fun format(): Cypher {
-            return if (skip != null) {
-                if (limit != null) Cypher(" SKIP $${skip.propertyName} LIMIT $${limit.propertyName}", mapOf(
-                        skip.propertyName to skip.value,
-                        limit.propertyName to limit.value)
-                )
-                else Cypher(" SKIP $${skip.propertyName}", mapOf(skip.propertyName to skip.value))
-            } else {
-                if (limit != null) Cypher(" LIMIT $${limit.propertyName}", mapOf(limit.propertyName to limit.value))
-                else Cypher.EMPTY
+            if (skip == null && limit == null) {
+                return Cypher.EMPTY
             }
+            val params = mutableMapOf<String, Any?>()
+
+            val (skip, skipArg) = parse(skip, " SKIP ")
+            skipArg?.let { arg -> params[arg.propertyName] = arg.value }
+
+            val (limit, limitArg) = parse(limit, " LIMIT ")
+            limitArg?.let { arg -> params[arg.propertyName] = arg.value }
+
+            return Cypher("$skip$limit", params)
         }
 
         fun slice(list: Boolean = false): Cypher {
-            if (!list) {
-                return if (skip != null) {
-                    Cypher("[$${skip.propertyName}]", mapOf(skip.propertyName to skip.value))
-                } else {
-                    Cypher("[0]")
-                }
+            if (list && limit == null && skip == null) {
+                return Cypher.EMPTY
             }
 
-            return when (limit) {
-                null -> when {
-                    skip != null -> Cypher("[$${skip.propertyName}..]", mapOf(skip.propertyName to skip.value))
-                    else -> Cypher.EMPTY
+            val params = mutableMapOf<String, Any?>()
+
+            val (start, startArg) = parse(skip, "", "0")
+            startArg?.let { arg -> params[arg.propertyName] = arg.value }
+
+            val end = when {
+
+                limit?.value is Number -> when {
+                    skip?.value is Number -> "..${skip.value.toLong() + limit.value.toLong()}"
+                    skip != null -> "..$start + ${limit.value}"
+                    else -> "..${limit.value.toLong()}"
                 }
-                else -> when {
-                    skip != null -> Cypher("[$${skip.propertyName}.. $${skip.propertyName} + $${limit.propertyName}]", mapOf(
-                            skip.propertyName to skip.value,
-                            limit.propertyName to limit.value))
-                    else -> Cypher("[0..$${limit.propertyName}]", mapOf(limit.propertyName to limit.value))
+
+                limit != null -> { // limit is a variable
+                    params[limit.propertyName] = limit.value
+                    when {
+                        skip != null -> "..$start + $${limit.propertyName}"
+                        else -> "..$${limit.propertyName}"
+                    }
                 }
+                list -> ".."
+                else -> ""
             }
+            return Cypher("[$start$end]", params)
         }
+
 
         companion object {
             private fun convertArgument(variable: String, arguments: List<Argument>, name: String): Translator.CypherArgument? {
                 val argument = arguments.find { it.name.toLowerCase() == name } ?: return null
                 return Translator.CypherArgument(name, paramName(variable, argument.name, argument), argument.value?.toJavaValue())
+            }
+
+            private fun parse(arg: Translator.CypherArgument?, prefix: String, defaultValue: String = ""): Pair<String, Translator.CypherArgument?> {
+                return if (arg != null) {
+                    if (arg.value is Number) {
+                        "$prefix${arg.value.toLong()}" to null
+                    } else {
+                        "$prefix$${arg.propertyName}" to arg
+                    }
+                } else {
+                    defaultValue to null
+                }
             }
         }
     }
