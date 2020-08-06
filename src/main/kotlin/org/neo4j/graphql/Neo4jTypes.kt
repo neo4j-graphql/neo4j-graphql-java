@@ -4,14 +4,13 @@ import graphql.language.Field
 import graphql.language.ObjectValue
 import graphql.schema.GraphQLFieldDefinition
 import graphql.schema.GraphQLFieldsContainer
-import java.time.*
-import java.time.temporal.Temporal
 
 const val NEO4j_FORMATTED_PROPERTY_KEY = "formatted"
+const val NEO4j_POINT_DISTANCE_FILTER = "_Neo4jPointDistanceFilter"
+const val NEO4j_POINT_DISTANCE_FILTER_SUFFIX = "_distance"
 
 data class TypeDefinition(
         val name: String,
-        val type: Class<out Temporal>,
         val typeDefinition: String,
         val inputDefinition: String = typeDefinition + "Input"
 )
@@ -75,9 +74,10 @@ data class Neo4jQueryConversion(val name: String, val propertyName: String, val 
 }
 
 val neo4jTypeDefinitions = listOf(
-        TypeDefinition("LocalTime", OffsetTime::class.java, "_Neo4jTime"),
-        TypeDefinition("Date", LocalDate::class.java, "_Neo4jDate"),
-        TypeDefinition("DateTime", LocalDateTime::class.java, "_Neo4jDateTime"),
-        TypeDefinition("Time", Instant::class.java, "_Neo4jLocalTime"),
-        TypeDefinition("LocalDateTime", OffsetDateTime::class.java, "_Neo4jLocalDateTime")
+        TypeDefinition("LocalTime", "_Neo4jTime"),
+        TypeDefinition("Date", "_Neo4jDate"),
+        TypeDefinition("DateTime", "_Neo4jDateTime"),
+        TypeDefinition("Time", "_Neo4jLocalTime"),
+        TypeDefinition("LocalDateTime", "_Neo4jLocalDateTime"),
+        TypeDefinition("Point", "_Neo4jPoint")
 )

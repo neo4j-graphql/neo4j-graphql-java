@@ -3,10 +3,10 @@ package org.neo4j.graphql.handler
 import graphql.Scalars
 import graphql.language.Field
 import graphql.schema.*
+import org.neo4j.cypherdsl.core.PassThrough
+import org.neo4j.cypherdsl.core.renderer.Renderer
 import org.neo4j.graphql.*
 import org.neo4j.graphql.handler.filter.OptimizedFilterHandler
-import org.neo4j.opencypherdsl.PassThrough
-import org.neo4j.opencypherdsl.renderer.Renderer
 
 class QueryHandler private constructor(
         type: GraphQLFieldsContainer,

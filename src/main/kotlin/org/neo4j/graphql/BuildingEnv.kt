@@ -1,5 +1,6 @@
 package org.neo4j.graphql
 
+import graphql.Scalars
 import graphql.schema.*
 
 class BuildingEnv(val types: MutableMap<String, GraphQLType>) {
@@ -95,13 +96,26 @@ class BuildingEnv(val types: MutableMap<String, GraphQLType>) {
                 if (field.isRelationship()) {
                     RelationOperator.createRelationFilterFields(type, field, filterType, builder)
                 } else {
-                    FieldOperator.forType(types[filterType] ?: typeDefinition)
-                        .forEach { op -> builder.addFilterField(op.fieldName(field.name), op.list, filterType) }
+                    val graphQLType = types[filterType] ?: typeDefinition
+                    FieldOperator.forType(graphQLType)
+                        .forEach { op -> builder.addFilterField(op.fieldName(field.name), op.list, filterType, field.description) }
+                    if (graphQLType.isNeo4jSpatialType()) {
+                        val distanceFilterType = getSpatialDistanceFilter(graphQLType)
+                        FieldOperator.forType(distanceFilterType)
+                            .forEach { op -> builder.addFilterField(op.fieldName(field.name + NEO4j_POINT_DISTANCE_FILTER_SUFFIX), op.list, NEO4j_POINT_DISTANCE_FILTER) }
+                    }
                 }
 
             }
         types[filterName] = builder.build()
         return filterName
+    }
+
+    private fun getSpatialDistanceFilter(pointType: GraphQLType): GraphQLInputType {
+        return addInputType(NEO4j_POINT_DISTANCE_FILTER, listOf(
+                GraphQLFieldDefinition.newFieldDefinition().name("distance").type(GraphQLNonNull(Scalars.GraphQLFloat)).build(),
+                GraphQLFieldDefinition.newFieldDefinition().name("point").type(GraphQLNonNull(pointType)).build()
+        ))
     }
 
     fun addOrdering(type: GraphQLFieldsContainer): String? {
@@ -163,6 +177,7 @@ class BuildingEnv(val types: MutableMap<String, GraphQLType>) {
             GraphQLInputObjectField
                 .newInputObjectField()
                 .name(it.name)
+                .description(it.description)
                 .type(getInputType(type).ref() as GraphQLInputType)
                 .build()
         }

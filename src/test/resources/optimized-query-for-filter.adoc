@@ -29,6 +29,7 @@ type Person {
   directedMovies: [Movie!]! @relation(name: "DIRECTED", direction:OUT)
   follows: [Person!]! @relation(name: "FOLLOWS", direction:OUT)
   followedBy: [Person!]! @relation(name: "FOLLOWS", direction:IN)
+  location: _Neo4jPoint
 }
 type Role @relation(name:"ACTED_IN", from:"actor", to:"movie") {
   actor: Person!
@@ -904,3 +905,148 @@ RETURN movie { .title } AS movie
 |The Polar Express
 |A League of Their Own
 |===
+
+=== Filter spatial not null
+
+.Query configuration
+[source,json,config=true]
+----
+{  "optimizedQuery":  ["FILTER_AS_MATCH"] }
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  person(filter:{ location_not: null}){
+    name
+  }
+}
+----
+
+.Cypher params
+[source,json]
+----
+{}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:`Person`)
+WHERE person.location IS NOT NULL
+WITH person
+RETURN person { .name } AS person
+----
+
+=== Filter spatial null
+
+.Query configuration
+[source,json,config=true]
+----
+{  "optimizedQuery":  ["FILTER_AS_MATCH"] }
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  person(filter:{ location: null}){
+    name
+  }
+}
+----
+
+.Cypher params
+[source,json]
+----
+{}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:`Person`)
+WHERE person.location IS NULL
+WITH person
+RETURN person { .name } AS person
+----
+
+=== Filter spatial not
+
+.Query configuration
+[source,json,config=true]
+----
+{  "optimizedQuery":  ["FILTER_AS_MATCH"] }
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  person(filter:{ location_not: {longitude: 3, latitude: 3}}){
+    name
+  }
+}
+----
+
+.Cypher params
+[source,json]
+----
+{
+  "person_location_not_longitude": 3,
+  "person_location_not_latitude": 3
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:`Person`)
+WHERE (person.location.longitude <> $person_location_not_longitude
+  AND person.location.latitude <> $person_location_not_latitude)
+WITH person
+RETURN person { .name } AS person
+----
+
+=== Filter spatial distance
+
+.Query configuration
+[source,json,config=true]
+----
+{  "optimizedQuery":  ["FILTER_AS_MATCH"] }
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  person(filter:{ location_distance_lt: { distance: 3, point: {longitude: 1, latitude:2, height: 3}}}){
+    name
+  }
+}
+----
+
+.Cypher params
+[source,json]
+----
+{
+  "person_location_distance_lt": {
+    "distance": 3,
+    "point": {
+      "longitude": 1,
+      "latitude": 2,
+      "height": 3
+    }
+  }
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:`Person`)
+WHERE distance(person.location, point($person_location_distance_lt.point)) < $person_location_distance_lt.distance
+WITH person
+RETURN person { .name } AS person
+----

@@ -63,3 +63,46 @@ type _Neo4jLocalDateTime {
   nanosecond: Int
   formatted: String
 }
+
+type _Neo4jPoint{
+  # The first element of the Coordinate
+  x: Float
+
+  # The second element of the Coordinate
+  y: Float
+
+  # The third element of the Coordinate
+  z: Float
+
+  # The first element of the Coordinate for geographic CRS, degrees East of the prime meridian
+  # Range -180.0 to 180.0
+  longitude: Float
+
+  # The second element of the Coordinate for geographic CRS, degrees North of the equator
+  # Range -90.0 to 90.0
+  latitude: Float
+
+  # The third element of the Coordinate for geographic CRS, meters above the ellipsoid defined by the datum (WGS-84)
+  height: Float
+
+  # The coordinate reference systems (CRS)
+  # -------------------------------------
+  # posible values:
+  # * `wgs-84`: A 2D geographic point in the WGS 84 CRS is specified in one of two ways:
+  #   * longitude and latitude (if these are specified, and the crs is not, then the crs is assumed to be WGS-84)
+  #   * x and y (in this case the crs must be specified, or will be assumed to be Cartesian)
+  # * `wgs-84-3d`: A 3D geographic point in the WGS 84 CRS is specified one of in two ways:
+  #   * longitude, latitude and either height or z (if these are specified, and the crs is not, then the crs is assumed to be WGS-84-3D)
+  #   * x, y and z (in this case the crs must be specified, or will be assumed to be Cartesian-3D)
+  # * `cartesian`: A 2D point in the Cartesian CRS is specified with a map containing x and y coordinate values
+  # * `cartesian-3d`: A 3D point in the Cartesian CRS is specified with a map containing x, y and z coordinate values
+  crs: String
+
+  # The internal Neo4j ID for the CRS
+  # One of:
+  # * `4326`: represents CRS `wgs-84`
+  # * `4979`: represents CRS `wgs-84-3d`
+  # * `7203`: represents CRS `cartesian`
+  # * `9157`: represents CRS `cartesian-3d`
+  srid: Int
+}

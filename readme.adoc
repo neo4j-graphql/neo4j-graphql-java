@@ -248,6 +248,7 @@ This example doesn't handle introspection queries, but the one in the test direc
 * interfaces
 * complex filter parameters, with optional query optimization strategy
 * scalars
+* spatial
 
 === Next
 
@@ -255,7 +256,6 @@ This example doesn't handle introspection queries, but the one in the test direc
 * sorting (nested)
 * input types
 * unions
-* spatial
 
 == Documentation
 
@@ -309,7 +309,7 @@ The literal values are turned into Cypher query parameters.
 === Handle Relationships via @relation Directive on Schema Fields
 
 If you want to represent a relationship from the graph in GraphQL you have to add a `@relation` directive which contains the relationship-type and the direction.
-The default relationship-type is 'OUT'.
+The default direction for a relationship is 'OUT'.  Other values are 'IN' and 'BOTH'.
 So you can use different domain names in your GraphQL fields that are independent of your graph model.
 
 [source,graphql]
@@ -466,7 +466,7 @@ ORDER BY person.name ASC, person.age DESC
 
 NOTE: We don't yet support ordering on nested relationship fields.
 
-=== @relationship on Types
+=== Handle Rich Relationships via @relation Directive on Schema Types
 
 To represent rich relationship types with properties, a `@relation` directive is supported on an object type.
 

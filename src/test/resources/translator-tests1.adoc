@@ -12,6 +12,7 @@ type Person {
   livedIn : [Location] @relation(name:"LIVED_IN", direction: OUT)
   born : Birth
   died : Death
+  location: _Neo4jPoint
 }
 interface Temporal {
   date: String
@@ -782,4 +783,98 @@ RETURN location {
   .cityArg,
   .villageArg
 } AS location
+----
+
+=== query spatial types
+
+.GraphQL-Query
+[source,graphql]
+----
+query {
+  person(location:{longitude: 1, latitude: 2 }){
+    name
+    location {
+      crs
+      longitude
+      latitude
+      height
+    }
+  }
+}
+----
+
+.Cypher params
+[source,json]
+----
+{
+  "personLocationLongitude": 1,
+  "personLocationLatitude": 2
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person: Person)
+WHERE person.location.longitude = $personLocationLongitude
+AND  person.location.latitude = $personLocationLatitude
+RETURN person {
+  .name,
+  location: {
+    crs: person.location.crs,
+    longitude: person.location.longitude,
+    latitude: person.location.latitude,
+    height: person.location.height
+  }
+} AS person
+----
+
+=== mutate spatial types
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation{
+  createPerson(name:"Test2", location:{x: 1, y: 2, z: 3, crs: "wgs-84-3d"}){
+    name
+    location{
+      crs
+      srid
+      latitude
+      longitude
+      height
+    }
+  }
+}
+----
+
+.Cypher params
+[source,json]
+----
+{
+  "createPersonName": "Test2",
+  "createPersonLocation": {
+    "x":1,
+    "y":2,
+    "z": 3,
+    "crs": "wgs-84-3d"
+  }
+}
+----
+
+.Cypher
+[source,cypher]
+----
+CREATE (createPerson:Person { name: $createPersonName, location: point($createPersonLocation) })
+WITH createPerson
+RETURN createPerson {
+  .name,
+  location: {
+    crs: createPerson.location.crs,
+    srid: createPerson.location.srid,
+    latitude: createPerson.location.latitude,
+    longitude: createPerson.location.longitude,
+    height: createPerson.location.height
+  }
+} AS createPerson
 ----

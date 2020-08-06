@@ -66,7 +66,7 @@ open class ProjectionBase {
                 }
                 .groupBy({ it.first }, { it.second }) // create a map of <FieldWithNeo4jType, List<Field>> so we group the data by the type
                 .mapValues { it.value.flatten() }
-                .flatMap { (fieldDefinition , selection) ->
+                .flatMap { (fieldDefinition, selection) ->
                     // for each FieldWithNeo4jType of type query we create the where condition
                     val neo4jType = fieldDefinition.type.getInnerFieldsContainer()
                     selection.flatMap { field ->
@@ -107,12 +107,18 @@ open class ProjectionBase {
             val fieldDefinition = resultObjectType.getFieldDefinition(it.name)
             val dynamicPrefix = fieldDefinition?.dynamicPrefix()
             val result = mutableListOf<Translator.CypherArgument>()
-            if (dynamicPrefix != null && it.value is ObjectValue) {
+            val prefix = when {
+                dynamicPrefix != null -> dynamicPrefix
+                fieldDefinition?.type?.isNeo4jSpatialType() == true -> fieldDefinition.propertyName().quote() + "."
+                else -> null
+            }
+            if (prefix != null && it.value is ObjectValue) {
                 for (argField in (it.value as ObjectValue).objectFields) {
-                    result += Translator.CypherArgument(it.name + argField.name.capitalize(), dynamicPrefix + argField.name, argField.value.toJavaValue())
-                    result += Translator.CypherArgument(it.name + argField.name.capitalize(), dynamicPrefix + argField.name, argField.value.toJavaValue())
+                    result += Translator.CypherArgument(it.name + argField.name.capitalize(), prefix + argField.name, argField.value.toJavaValue())
                 }
-
+                // TODO handle VariableReference
+                // but to get this working we need to pass the request params to this method, since we need to know what
+                // fields of the Point got queried
             } else {
                 result += Translator.CypherArgument(it.name,
                         (fieldDefinition?.propertyName() ?: it.name).quote(),
@@ -135,6 +141,7 @@ open class ProjectionBase {
 
     fun projectFields(variable: String, field: Field, nodeType: GraphQLFieldsContainer, env: DataFetchingEnvironment, variableSuffix: String?): Cypher {
         val queries = projectSelectionSet(variable, field.selectionSet, nodeType, env, variableSuffix)
+
         @Suppress("SimplifiableCallChain")
         val projection = queries
             .map { it.query }
