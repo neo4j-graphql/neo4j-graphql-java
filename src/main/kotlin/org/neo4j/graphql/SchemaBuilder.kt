@@ -4,6 +4,7 @@ import graphql.Scalars
 import graphql.language.*
 import graphql.schema.*
 import graphql.schema.idl.RuntimeWiring
+import graphql.schema.idl.ScalarInfo.STANDARD_SCALAR_DEFINITIONS
 import graphql.schema.idl.SchemaGenerator
 import graphql.schema.idl.SchemaParser
 import graphql.schema.idl.TypeDefinitionRegistry
@@ -40,7 +41,23 @@ object SchemaBuilder {
             enhancedRegistry.add(ObjectTypeDefinition.newObjectTypeDefinition().name(QUERY).build())
         }
 
-        val builder = RuntimeWiring.newRuntimeWiring().scalar(DynamicProperties.INSTANCE)
+        val builder = RuntimeWiring.newRuntimeWiring()
+        typeDefinitionRegistry.scalars()
+            .filterNot { entry -> STANDARD_SCALAR_DEFINITIONS.containsKey(entry.key) }
+            .forEach { (name, definition) ->
+                val scalar = when (name) {
+                    "DynamicProperties" -> DynamicProperties.INSTANCE
+                    else -> GraphQLScalarType.newScalar()
+                        .name(name)
+                        .description(definition.description?.getContent() ?: "Scalar $name")
+                        .withDirectives(*definition.directives.filterIsInstance<GraphQLDirective>().toTypedArray())
+                        .definition(definition)
+                        .coercing(NoOpCoercing)
+                        .build()
+                }
+                builder.scalar(scalar)
+            }
+
 
         enhancedRegistry
             .getTypes(InterfaceTypeDefinition::class.java)

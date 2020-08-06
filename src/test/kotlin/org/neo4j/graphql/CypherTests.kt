@@ -30,5 +30,8 @@ class CypherTests {
     fun `translator-tests3`() = CypherTestSuite("translator-tests3.adoc").run()
 
     @TestFactory
+    fun `translator-tests-custom-scalars`() = CypherTestSuite("translator-tests-custom-scalars.adoc").run()
+
+    @TestFactory
     fun `optimized-query-for-filter`() = CypherTestSuite("optimized-query-for-filter.adoc").run()
 }
