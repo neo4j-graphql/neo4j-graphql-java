@@ -246,6 +246,7 @@ This example doesn't handle introspection queries, but the one in the test direc
 * date(time)
 * interfaces
 * complex filter parameters, with optional query optimization strategy
+* spatial
 
 === Next
 
@@ -254,7 +255,6 @@ This example doesn't handle introspection queries, but the one in the test direc
 * input types
 * unions
 * scalars
-* spatial
 
 == Documentation
 

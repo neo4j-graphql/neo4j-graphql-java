@@ -72,16 +72,15 @@ open class AsciiDocTestSuite {
         }
 
         private fun fixNumber(v: Any?): Any? = when (v) {
-            is Float -> v.toDouble(); is Int -> v.toLong(); else -> v
+            is Float -> v.toDouble()
+            is Int -> v.toLong()
+            is Iterable<*> -> v.map { fixNumber(it) }
+            is Sequence<*> -> v.map { fixNumber(it) }
+            is Map<*, *> -> v.mapValues { fixNumber(it.value) }
+            else -> v
         }
 
-        fun fixNumbers(params: Map<String, Any?>) = params.mapValues { (_, v) ->
-            when (v) {
-                is List<*> -> v.map { fixNumber(it) }
-                is Map<*, *> -> v.mapValues { fixNumber(it.value) }
-                else -> fixNumber(v)
-            }
-        }
+        fun fixNumbers(params: Map<String, Any?>) = params.mapValues { (_, v) -> fixNumber(v) }
 
         fun String.parseJsonMap(): Map<String, Any?> = this.let {
             @Suppress("UNCHECKED_CAST")
