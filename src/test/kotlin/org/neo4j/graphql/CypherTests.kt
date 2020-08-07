@@ -15,6 +15,9 @@ class CypherTests {
     fun `filter-tests`() = CypherTestSuite("filter-tests.adoc").run()
 
     @TestFactory
+    fun `relationship-tests`() = CypherTestSuite("relationship-tests.adoc").run()
+
+    @TestFactory
     fun `movie-tests`() = CypherTestSuite("movie-tests.adoc").run()
 
     @TestFactory

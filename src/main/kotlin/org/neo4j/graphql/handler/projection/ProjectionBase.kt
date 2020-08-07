@@ -344,9 +344,6 @@ open class ProjectionBase {
         return Cypher(comprehension + slice.query, (where.params + fieldProjection.params + slice.params))
     }
 
-    private fun relDetails(type: GraphQLFieldsContainer, relDirective: GraphQLDirective) =
-            relDetails(type) { name, defaultValue -> relDirective.getArgument(name, defaultValue) }
-
     class SkipLimit(variable: String,
             arguments: List<Argument>,
             private val skip: Translator.CypherArgument? = convertArgument(variable, arguments, OFFSET),
