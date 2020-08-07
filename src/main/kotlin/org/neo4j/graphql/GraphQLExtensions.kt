@@ -49,9 +49,13 @@ fun GraphQLFieldsContainer.relationshipFor(name: String): RelationshipInfo? {
             ?: throw IllegalArgumentException("$name is not defined on ${this.name}")
     val fieldObjectType = field.type.inner() as? GraphQLFieldsContainer ?: return null
 
-    val (relDirective, isRelFromType) = if (isRelationType()) {
+    val (relDirective, inverse) = if (isRelationType()) {
+        val typeName = this.name
         (this as? GraphQLDirectiveContainer)
-            ?.getDirective(DirectiveConstants.RELATION)?.let { it to false }
+            ?.getDirective(DirectiveConstants.RELATION)?.let {
+                // do inverse mapping, if the current type  is the `to` mapping of the relation
+                it to (fieldObjectType.getFieldDefinition(it.getArgument(RELATION_TO, null))?.name == typeName)
+            }
                 ?: throw IllegalStateException("Type ${this.name} needs an @relation directive")
     } else {
         (fieldObjectType as? GraphQLDirectiveContainer)
@@ -60,11 +64,8 @@ fun GraphQLFieldsContainer.relationshipFor(name: String): RelationshipInfo? {
                 ?: throw IllegalStateException("Field $field needs an @relation directive")
     }
 
-    // TODO direction is depending on source/target type
+    val relInfo = relDetails(fieldObjectType, relDirective)
 
-    val relInfo = relDetails(fieldObjectType) { argName, defaultValue -> relDirective.getArgument(argName, defaultValue) }
-
-    val inverse = isRelFromType && fieldObjectType.getFieldDefinition(relInfo.startField)?.name != this.name
     return if (inverse) relInfo.copy(out = relInfo.out?.let { !it }, startField = relInfo.endField, endField = relInfo.startField) else relInfo
 }
 
@@ -121,21 +122,19 @@ fun GraphQLType.ref(): GraphQLType = when (this) {
     else -> GraphQLTypeReference(name)
 }
 
-fun relDetails(type: GraphQLFieldsContainer,
-        // TODO simplify uasage (no more callback)
-        directiveResolver: (name: String, defaultValue: String?) -> String?): RelationshipInfo {
-    val relType = directiveResolver(RELATION_NAME, "")!!
-    val outgoing = when (directiveResolver(RELATION_DIRECTION, null)) {
+fun relDetails(type: GraphQLFieldsContainer, relDirective: GraphQLDirective): RelationshipInfo {
+    val relType = relDirective.getArgument(RELATION_NAME, "")!!
+    val outgoing = when (relDirective.getArgument<String>(RELATION_DIRECTION, null)) {
         RELATION_DIRECTION_IN -> false
         RELATION_DIRECTION_BOTH -> null
         RELATION_DIRECTION_OUT -> true
-        else -> throw IllegalStateException("Unknown direction ${directiveResolver(RELATION_DIRECTION, null)}")
+        else -> throw IllegalStateException("Unknown direction ${relDirective.getArgument<String>(RELATION_DIRECTION, null)}")
     }
     return RelationshipInfo(type,
             relType,
             outgoing,
-            directiveResolver(RELATION_FROM, null),
-            directiveResolver(RELATION_TO, null))
+            relDirective.getArgument<String>(RELATION_FROM, null),
+            relDirective.getArgument<String>(RELATION_TO, null))
 }
 
 data class RelationshipInfo(

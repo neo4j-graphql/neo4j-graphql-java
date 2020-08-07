@@ -51,7 +51,7 @@ class DeleteRelationHandler private constructor(
 
         return Cypher("MATCH ${startSelect.query}" +
                 " MATCH ${endSelect.query}" +
-                " MATCH (${relation.startField})-[r:${relation.relType.quote()}]->(${relation.endField})" +
+                " MATCH (${relation.startField})${relation.arrows.first}-[r:${relation.relType.quote()}]-${relation.arrows.second}(${relation.endField})" +
                 " DELETE r" +
                 " WITH DISTINCT ${relation.startField} AS $variable" +
                 " RETURN ${mapProjection.query} AS $variable",

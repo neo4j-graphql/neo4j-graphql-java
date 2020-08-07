@@ -1008,7 +1008,7 @@ mutation {
 ----
 MATCH (from:Genre { name: $fromName })
 MATCH (to:Movie) WHERE to.movieId IN $toMovies
-MERGE (from)-[:IN_GENRE]->(to)
+MERGE (from)<-[:IN_GENRE]-(to)
 WITH DISTINCT from AS addGenreMovies
 RETURN addGenreMovies { .name } AS addGenreMovies
 ----

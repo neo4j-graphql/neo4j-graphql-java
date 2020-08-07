@@ -68,7 +68,7 @@ class CreateRelationHandler private constructor(
 
         return Cypher("MATCH ${startSelect.query}" +
                 " MATCH ${endSelect.query}" +
-                " MERGE (${relation.startField})-[:${relation.relType.quote()}${properties.query}]->(${relation.endField})" +
+                " MERGE (${relation.startField})${relation.arrows.first}-[:${relation.relType.quote()}${properties.query}]-${relation.arrows.second}(${relation.endField})" +
                 " WITH DISTINCT ${relation.startField} AS $variable" +
                 " RETURN ${mapProjection.query} AS $variable",
                 startSelect.params + endSelect.params + properties.params)
