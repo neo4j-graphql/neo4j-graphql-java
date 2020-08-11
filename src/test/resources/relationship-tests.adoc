@@ -1,6 +1,6 @@
 :toc:
 
-= Movie Test TCK
+= Relationship Tests TCK
 
 == Schema
 
