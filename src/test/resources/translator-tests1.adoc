@@ -34,7 +34,7 @@ interface Location {
 type City implements Location {
   name: String
   founded: Person @relation(name:"FOUNDED", direction: IN)
-  cityArg: String
+  city_arg: String
 }
 type Village implements Location {
   name: String
@@ -359,6 +359,28 @@ MATCH (person:Person) RETURN person { .name, .age, livesIn:[(person)-[:LIVES_IN]
 [source,cypher]
 ----
 MATCH (person:Person) RETURN person { .age } AS person ORDER BY person.age DESC, person.name ASC
+----
+
+=== order by with underscore
+
+.GraphQL-Query
+[source,graphql]
+----
+ { location(orderBy:[city_arg_desc]) { name } }
+----
+
+.Cypher params
+[source,json]
+----
+{}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (location: Location)
+RETURN location { .name } AS location
+ORDER BY location.city_arg DESC
 ----
 
 === named fragment multi field
@@ -714,7 +736,7 @@ RETURN person {
     name
     __typename
     ... on City {
-      cityArg
+      city_arg
     }
     ... on Village {
       villageArg
@@ -738,7 +760,7 @@ MATCH (location:Location)
 RETURN location {
   .name,
   __typename: head( [ label IN labels(location) WHERE label IN $locationValidTypes ] ),
-  .cityArg,
+  .city_arg,
   .villageArg
 } AS location
 ----
@@ -757,7 +779,7 @@ fragment details on Location {
   name
   __typename
   ... on City {
-    cityArg
+    city_arg
   }
   ... on Village {
     villageArg
@@ -780,7 +802,7 @@ MATCH (location:Location)
 RETURN location {
   .name,
   __typename: head( [ label IN labels(location) WHERE label IN $locationValidTypes ] ),
-  .cityArg,
+  .city_arg,
   .villageArg
 } AS location
 ----
