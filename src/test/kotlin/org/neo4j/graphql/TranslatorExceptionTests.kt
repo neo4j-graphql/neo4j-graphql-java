@@ -13,14 +13,24 @@ class TranslatorExceptionTests {
     fun unknownType() {
         // todo better test
         Assertions.assertThrows(IllegalArgumentException::class.java) {
-            testSuite.translate(" { company { name } } ")
+            testSuite.translate("""
+            {
+              company {
+                name
+              }
+            }
+            """.trimIndent())
         }
     }
 
     @Test
     fun mutation() {
         Assertions.assertThrows(InvalidSyntaxException::class.java) {
-            testSuite.translate(" { createPerson() } ")
+            testSuite.translate("""
+            {
+              createPerson()
+            }
+            """.trimIndent())
         }
     }
 }

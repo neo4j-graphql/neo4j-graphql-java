@@ -291,7 +291,7 @@ RETURN team {
 [source,graphql]
 ----
 {
-  player{
+  player {
     id
     memberships {
       team {
@@ -315,8 +315,8 @@ RETURN team {
 MATCH (player: Player)
 RETURN player {
   .id,
-  memberships: [(player)<-[playerMemberships: MEMBER_OF]-(playerMembershipsPlayer: Player) | playerMemberships {
-    team: playerMembershipsPlayer { .id },
+  memberships: [(player)-[playerMemberships: MEMBER_OF]->(playerMembershipsTeam: Team) | playerMemberships {
+    team: playerMembershipsTeam { .id },
     .prop
   }]
 } AS player

@@ -5,6 +5,8 @@ import graphql.language.ObjectValue
 import graphql.schema.GraphQLFieldDefinition
 import graphql.schema.GraphQLFieldsContainer
 
+import graphql.schema.GraphQLTypeUtil.simplePrint
+
 const val NEO4j_FORMATTED_PROPERTY_KEY = "formatted"
 const val NEO4j_POINT_DISTANCE_FILTER = "_Neo4jPointDistanceFilter"
 const val NEO4j_POINT_DISTANCE_FILTER_SUFFIX = "_distance"
@@ -58,7 +60,7 @@ data class Neo4jQueryConversion(val name: String, val propertyName: String, val 
             if (!isNeo4jType) {
                 Neo4jQueryConversion(name, name)
             }
-            val converter = getNeo4jTypeConverter(fieldDefinition.type.inner().name)
+            val converter = getNeo4jTypeConverter(simplePrint(fieldDefinition.type.inner()))
             val objectValue = (value as? ObjectValue)
                 ?.objectFields
                 ?.map { it.name to it.value }

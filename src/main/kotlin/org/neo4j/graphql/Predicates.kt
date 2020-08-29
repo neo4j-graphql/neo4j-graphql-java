@@ -11,6 +11,8 @@ import org.neo4j.graphql.Predicate.Companion.resolvePredicate
 import org.neo4j.graphql.handler.projection.ProjectionBase
 import org.slf4j.LoggerFactory
 
+import graphql.schema.GraphQLTypeUtil.simplePrint
+
 typealias CypherDSL = org.neo4j.cypherdsl.core.Cypher
 
 interface Predicate {
@@ -151,7 +153,7 @@ data class RelationPredicate(val fieldName: String, val op: RelationOperator, va
             RelationOperator.NOT -> "ALL" // bc of not
             else -> op.op
         }
-        if (type.getFieldDefinition(fieldName).isList()) {
+        if (type.getFieldDefinition(fieldName).type.isList()) {
             if (op == RelationOperator.EQ_OR_NOT_EXISTS) {
                 LOGGER.info("$fieldName on type ${type.name} was used for filtering, consider using ${fieldName}${RelationOperator.EVERY.suffix} instead")
             }
@@ -277,7 +279,7 @@ enum class FieldOperator(
                     // todo list types
                     !type.isScalar() -> listOf(EQ, NEQ, IN, NIN)
                     else -> listOf(EQ, NEQ, IN, NIN, LT, LTE, GT, GTE) +
-                            if (type.name == "String" || type.name == "ID") listOf(C, NC, SW, NSW, EW, NEW) else emptyList()
+                            if (simplePrint(type) == "String" || simplePrint(type) == "ID") listOf(C, NC, SW, NSW, EW, NEW) else emptyList()
                 }
     }
 

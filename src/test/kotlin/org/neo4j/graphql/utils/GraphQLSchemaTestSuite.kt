@@ -1,10 +1,7 @@
 package org.neo4j.graphql.utils
 
 import graphql.language.InterfaceTypeDefinition
-import graphql.schema.GraphQLFieldDefinition
-import graphql.schema.GraphQLObjectType
-import graphql.schema.GraphQLSchema
-import graphql.schema.GraphQLType
+import graphql.schema.*
 import graphql.schema.diff.DiffSet
 import graphql.schema.diff.SchemaDiff
 import graphql.schema.diff.reporting.CapturingReporter
@@ -19,19 +16,20 @@ import java.io.File
 import java.util.regex.Pattern
 import javax.ws.rs.core.UriBuilder
 
+import graphql.schema.GraphQLTypeUtil.simplePrint
+
 class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite() {
     val schema: String
     val schemaPrinter = SchemaPrinter(SchemaPrinter.Options.defaultOptions()
         .includeDirectives(true)
         .includeScalarTypes(true)
-        .includeExtendedScalarTypes(true)
-        .includeSchemaDefintion(true)
+        .includeSchemaDefinition(true)
         .includeIntrospectionTypes(false)
-        .setComparators(DefaultSchemaPrinterComparatorRegistry.newComparators()
+        .setComparators(DefaultGraphqlTypeComparatorRegistry.newComparators()
             .addComparator({ env ->
                 env.parentType(GraphQLObjectType::class.java)
-                env.elementType(GraphQLFieldDefinition::class.java)
-            }, GraphQLFieldDefinition::class.java, fun(o1: GraphQLFieldDefinition, o2: GraphQLFieldDefinition): Int {
+                env.elementType(GraphQLOutputType::class.java)
+            }, GraphQLOutputType::class.java, fun(o1: GraphQLOutputType, o2: GraphQLOutputType): Int {
                 val (op1, name1) = o1.splitName()
                 val (op2, name2) = o2.splitName()
                 if (op1 == null && op2 == null) {
@@ -131,11 +129,11 @@ class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite() {
     companion object {
         private val METHOD_PATTERN = Pattern.compile("(add|delete|update|merge|create)(.*)")
         fun GraphQLType.splitName(): Pair<String?, String> {
-            val m = METHOD_PATTERN.matcher(this.name)
+            val m = METHOD_PATTERN.matcher(simplePrint(this))
             return if (m.find()) {
                 m.group(1) to m.group(2).toLowerCase()
             } else {
-                null to this.name.toLowerCase()
+                null to simplePrint(this).toLowerCase()
             }
         }
     }
