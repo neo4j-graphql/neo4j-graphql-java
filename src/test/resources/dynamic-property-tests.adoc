@@ -104,8 +104,7 @@ mutation {
 [source,cypher]
 ----
 MATCH (updatePerson:Person { id: $updatePersonId })
-SET updatePerson = {
-  id: $updatePersonId,
+SET updatePerson += {
   `properties.foo`: $updatePersonJsonFoo,
   `properties.x`: $updatePersonJsonX
 }
@@ -209,7 +208,7 @@ mutation {
 ----
 MATCH ()-[updateKnows:KNOWS]->()
 WHERE ID(updateKnows) = toInteger($updateKnows_id)
-SET updateKnows = { `prefix.foo`: $updateKnowsJsonFoo }
+SET updateKnows += { `prefix.foo`: $updateKnowsJsonFoo }
 WITH updateKnows
 RETURN updateKnows {
   json:apoc.map.fromPairs([key IN keys(updateKnows) WHERE key STARTS WITH 'prefix.'| [substring(key,7), updateKnows[key]]])
