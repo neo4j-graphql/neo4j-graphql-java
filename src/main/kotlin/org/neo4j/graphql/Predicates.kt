@@ -11,8 +11,6 @@ import org.neo4j.graphql.Predicate.Companion.resolvePredicate
 import org.neo4j.graphql.handler.projection.ProjectionBase
 import org.slf4j.LoggerFactory
 
-import graphql.schema.GraphQLTypeUtil.simplePrint
-
 typealias CypherDSL = org.neo4j.cypherdsl.core.Cypher
 
 interface Predicate {
@@ -114,7 +112,7 @@ data class ExpressionPredicate(
 ) : Predicate {
     val not = if (op.not) "NOT " else ""
     override fun toExpression(variable: String): Cypher {
-        val paramName: String = ProjectionBase.FILTER + paramName(variable, name, value).capitalize() + "_" + op.name + nestedField.replace('.','_')
+        val paramName: String = ProjectionBase.FILTER + paramName(variable, name, value).capitalize() + "_" + op.name + nestedField.replace('.', '_')
         val query = if (fieldDefinition.isNativeId()) {
             if (op.list) {
                 "${not}ID($variable) ${op.op} [id IN \$$paramName | toInteger(id)]"
@@ -256,7 +254,7 @@ enum class FieldOperator(
         fun resolve(queriedField: String, field: GraphQLFieldDefinition, value: Any?): FieldOperator? {
             val fieldName = field.name
             if (value == null) {
-                return listOf(IS_NULL, IS_NOT_NULL).find { queriedField == fieldName + it.suffix } ?: return null
+                return listOf(IS_NULL, IS_NOT_NULL).find { queriedField == fieldName + it.suffix }
             }
             val ops = enumValues<FieldOperator>().filterNot { it == IS_NULL || it == IS_NOT_NULL }
             return ops.find { queriedField == fieldName + it.suffix }
@@ -265,7 +263,6 @@ enum class FieldOperator(
                     } else {
                         null
                     }
-                    ?: return null
         }
 
         fun forType(type: GraphQLType): List<FieldOperator> =
@@ -279,7 +276,7 @@ enum class FieldOperator(
                     // todo list types
                     !type.isScalar() -> listOf(EQ, NEQ, IN, NIN)
                     else -> listOf(EQ, NEQ, IN, NIN, LT, LTE, GT, GTE) +
-                            if (simplePrint(type) == "String" || simplePrint(type) == "ID") listOf(C, NC, SW, NSW, EW, NEW) else emptyList()
+                            if (type.name() == "String" || type.name() == "ID") listOf(C, NC, SW, NSW, EW, NEW) else emptyList()
                 }
     }
 

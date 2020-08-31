@@ -305,7 +305,7 @@ RETURN team {
 [source,graphql]
 ----
 {
-  player {
+  player{
     id
     memberships {
       team {

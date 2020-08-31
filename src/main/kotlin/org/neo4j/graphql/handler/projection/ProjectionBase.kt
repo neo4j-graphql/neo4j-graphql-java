@@ -4,8 +4,6 @@ import graphql.language.*
 import graphql.schema.*
 import org.neo4j.graphql.*
 
-import graphql.schema.GraphQLTypeUtil.simplePrint
-
 open class ProjectionBase {
     companion object {
         const val NATIVE_ID = "_id"
@@ -297,8 +295,10 @@ open class ProjectionBase {
     private fun relationshipInfoInCorrectDirection(fieldObjectType: GraphQLFieldsContainer, relInfo0: RelationshipInfo, parent: GraphQLFieldsContainer, relDirectiveField: RelationshipInfo?): RelationshipInfo {
         val startField = fieldObjectType.getFieldDefinition(relInfo0.startField)!!
         val endField = fieldObjectType.getFieldDefinition(relInfo0.endField)!!
-        val startFieldTypeName = simplePrint(startField.type.inner())
-        val inverse = startFieldTypeName != parent.name || simplePrint(startField.type) == simplePrint(endField.type) && relDirectiveField?.out != relInfo0.out
+        val startFieldTypeName = startField.type.innerName()
+        val inverse = startFieldTypeName != parent.name
+                || startFieldTypeName == endField.type.innerName()
+                && relDirectiveField?.out != relInfo0.out
         return if (inverse) relInfo0.copy(out = relInfo0.out?.not(), startField = relInfo0.endField, endField = relInfo0.startField) else relInfo0
     }
 
@@ -329,7 +329,7 @@ open class ProjectionBase {
 
         val (endNodePattern, variableSuffix) = when {
             isRelFromType -> {
-                val label = simplePrint(nodeType.getFieldDefinition(relInfo.endField!!)!!.type.inner())
+                val label = nodeType.getFieldDefinition(relInfo.endField!!)!!.type.innerName()
                 ("$childVariable${relInfo.endField.capitalize()}:$label" to relInfo.endField)
             }
             else -> ("$childVariable:${nodeType.name}" to null)

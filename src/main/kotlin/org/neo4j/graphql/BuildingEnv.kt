@@ -89,7 +89,7 @@ class BuildingEnv(val types: MutableMap<String, GraphQLNamedType>) {
             .forEach { field ->
                 val typeDefinition = field.type.inner()
                 val filterType = when {
-                    typeDefinition.isNeo4jType() -> simplePrint(getInputType(typeDefinition))
+                    typeDefinition.isNeo4jType() -> getInputType(typeDefinition).requiredName()
                     typeDefinition.isScalar() -> typeDefinition.innerName()
                     typeDefinition is GraphQLEnumType -> typeDefinition.innerName()
                     else -> addFilterType(getInnerFieldsContainer(typeDefinition), createdTypes)
@@ -124,7 +124,7 @@ class BuildingEnv(val types: MutableMap<String, GraphQLNamedType>) {
         val orderingName = "_${type.name}Ordering"
         var existingOrderingType = types[orderingName]
         if (existingOrderingType != null) {
-            return simplePrint(existingOrderingType as? GraphQLInputType)
+            return (existingOrderingType as? GraphQLInputType)?.requiredName()
                     ?: throw IllegalStateException("Ordering type $type.name is already defined but not an input type")
         }
         val sortingFields = type.fieldDefinitions
@@ -192,7 +192,7 @@ class BuildingEnv(val types: MutableMap<String, GraphQLNamedType>) {
                     ?: throw IllegalArgumentException("${innerType.name} is unknown")
         }
         return innerType as? GraphQLFieldsContainer
-                ?: throw IllegalArgumentException("${simplePrint(innerType)} is neither an object nor an interface")
+                ?: throw IllegalArgumentException("${innerType.name()} is neither an object nor an interface")
     }
 
     private fun getInputType(type: GraphQLType): GraphQLInputType {
@@ -202,12 +202,12 @@ class BuildingEnv(val types: MutableMap<String, GraphQLNamedType>) {
         }
         if (inner.isNeo4jType()) {
             return neo4jTypeDefinitions
-                .find { it.typeDefinition == simplePrint(inner) }
+                .find { it.typeDefinition == inner.name() }
                 ?.let { types[it.inputDefinition] } as? GraphQLInputType
-                    ?: throw IllegalArgumentException("Cannot find input type for ${simplePrint(inner)}")
+                    ?: throw IllegalArgumentException("Cannot find input type for ${inner.name()}")
         }
         return type as? GraphQLInputType
-                ?: throw IllegalArgumentException("${simplePrint(type)} is not allowed for input")
+                ?: throw IllegalArgumentException("${type.name()} is not allowed for input")
     }
 
 }

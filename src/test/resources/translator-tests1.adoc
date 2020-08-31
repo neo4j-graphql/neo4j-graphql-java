@@ -77,17 +77,7 @@ MATCH (person:Person) RETURN person { .age } AS person ORDER BY person.name ASC
 .GraphQL-Query
 [source,graphql]
 ----
- {
-   person {
-     name
-     born {
-       date
-       to {
-         name
-       }
-     }
-   }
- }
+{ person { name born { date to { name } } } }
 ----
 
 .Cypher params
@@ -107,15 +97,7 @@ MATCH (person:Person) RETURN person { .name, born:[(person)-[personBorn:BORN]->(
 .GraphQL-Query
 [source,graphql]
 ----
- {
-   person {
-     name
-     age
-     livedIn {
-       name
-     }
-   }
- }
+{ person { name age livedIn { name } } }
 ----
 
 .Cypher params
@@ -212,15 +194,7 @@ MATCH (person:Person) RETURN person { .age } AS person SKIP $personOffset
 .GraphQL-Query
 [source,graphql]
 ----
- {
-   person {
-     name
-     age
-     livesIn {
-       name
-     }
-   }
- }
+{ person { name age livesIn { name } } }
 ----
 
 .Cypher params
@@ -240,11 +214,7 @@ MATCH (person:Person) RETURN person { .name, .age, livesIn:[(person)-[:LIVES_IN]
 .GraphQL-Query
 [source,graphql]
 ----
- { person {
-     name
-     age
-   }
- }
+{ person { name age } }
 ----
 
 .Cypher params
@@ -284,17 +254,7 @@ MATCH (person:Person) RETURN person { .name } AS person
 .GraphQL-Query
 [source,graphql]
 ----
- {
-   person {
-     name
-     died {
-       date
-       where {
-         name
-       }
-     }
-   }
- }
+{ person { name died { date where { name } } } }
 ----
 
 .Cypher params
@@ -314,20 +274,7 @@ MATCH (person:Person) RETURN person { .name, died:[(person)-[personDied:DIED]->(
 .GraphQL-Query
 [source,graphql]
 ----
- {
-   person {
-     name
-     born {
-       date
-       to {
-         name
-         founded {
-           name
-         }
-       }
-     }
-   }
- }
+{ person { name born { date to { name founded { name } } } } }
 ----
 
 .Cypher params
@@ -359,26 +306,7 @@ RETURN person {
 .GraphQL-Query
 [source,graphql]
 ----
- {
-   person {
-     name
-     born {
-       date
-       to {
-         name
-         founded {
-           name
-           born {
-             date
-             to {
-               name
-             }
-           }
-         }
-       }
-     }
-   }
- }
+{ person { name born { date to { name founded { name born { date to { name } } } } } } }
 ----
 
 .Cypher params
@@ -398,15 +326,7 @@ MATCH (person:Person) RETURN person { .name, born:[(person)-[personBorn:BORN]->(
 .GraphQL-Query
 [source,graphql]
 ----
- {
-   person {
-     name
-     age
-     livesIn(name:"Berlin") {
-       name
-     }
-   }
- }
+{ person { name age livesIn(name:"Berlin") { name } } }
 ----
 
 .Cypher params
@@ -577,13 +497,7 @@ SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further detail
 .GraphQL-Query
 [source,graphql]
 ----
- {
-   person {
-     livedIn(offset:3) {
-       name
-     }
-   }
- }
+{ person { livedIn(offset:3) { name } } }
 ----
 
 .Cypher params
@@ -610,13 +524,7 @@ RETURN person {
 .GraphQL-Query
 [source,graphql]
 ----
- {
-   person {
-     livedIn(first:2) {
-       name
-     }
-   }
- }
+ { person { livedIn(first:2) { name } } }
 ----
 
 .Cypher params
@@ -638,25 +546,12 @@ RETURN person {
 } AS person
 ----
 
-line 1:15 token recognition error at: ' '
-line 1:35 token recognition error at: ' '
 === nested query 2 nd hop
 
 .GraphQL-Query
 [source,graphql]
 ----
- {
-   person {
-     name
-     age
-     livesIn {
-       name
-       founded {
-         name
-       }
-     }
-   }
- }
+ { person { name age livesIn { name founded {name}} } }
 ----
 
 .Cypher params
@@ -671,7 +566,6 @@ line 1:35 token recognition error at: ' '
 MATCH (person:Person) RETURN person { .name, .age, livesIn:[(person)-[:LIVES_IN]->(personLivesIn:Location) | personLivesIn { .name, founded:[(personLivesIn)<-[:FOUNDED]-(personLivesInFounded:Person) | personLivesInFounded { .name }][0] }][0] } AS person
 ----
 
-line 1:12 token recognition error at: ' '
 === inline fragment multi fields
 
 .GraphQL-Query
@@ -721,13 +615,7 @@ RETURN person { .age } AS person SKIP $personOffset LIMIT $personFirst
 .GraphQL-Query
 [source,graphql]
 ----
- {
-   person {
-     livedIn(first:2,offset:3) {
-       name
-     }
-   }
- }
+{ person { livedIn(first:2,offset:3) { name } } }
 ----
 
 .Cypher params
