@@ -2,107 +2,108 @@ package org.neo4j.graphql.utils
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assumptions
+import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.DynamicTest
 import org.neo4j.graphql.Cypher
 import org.neo4j.graphql.QueryContext
 import org.neo4j.graphql.SchemaBuilder
 import org.neo4j.graphql.Translator
-import java.io.File
-import javax.ws.rs.core.UriBuilder
+import java.util.*
+import java.util.concurrent.FutureTask
+import java.util.stream.Stream
 
-class CypherTestSuite(fileName: String) : AsciiDocTestSuite() {
-    val schema: String
+class CypherTestSuite(fileName: String) : AsciiDocTestSuite(fileName) {
 
-    class TestRun(
-            private val suite: CypherTestSuite,
-            val title: String?,
-            var file: File,
-            val line: Int,
-            private val request: String,
-            private val cypher: String,
-            private val config: QueryContext?,
-            private val cypherParams: Map<String, Any?> = emptyMap(),
-            private val requestParams: Map<String, Any?> = emptyMap(),
-            private val ignore: Boolean) {
-
-        fun run(contextProvider: ((requestParams: Map<String, Any?>) -> QueryContext?)?) {
-            println(title)
-            try {
-                val ctx = contextProvider?.let { it(requestParams) } ?: config ?: QueryContext()
-                val result = suite.translate(request, requestParams, ctx)
-
-                if (DEBUG) {
-                    println("Generated query")
-                    println("---------------")
-                    println(result.query)
-
-                    var queryWithReplacedParams = result.query
-                    result.params.forEach { (key, value) ->
-                        queryWithReplacedParams = queryWithReplacedParams.replace("$$key", if (value is String) "'$value'" else value.toString())
-                    }
-                    println()
-                    println("Generated query with params replaced")
-                    println("------------------------------------")
-                    println(queryWithReplacedParams)
-                }
-
-                Assertions.assertEquals(this.cypher.normalize(), result.query.normalize())
-                Assertions.assertEquals(fixNumbers(cypherParams), fixNumbers(result.params)) {
-                    "expected: ${MAPPER.writeValueAsString(cypherParams)}\n" +
-                            "Actual ${MAPPER.writeValueAsString(result.params)}"
-                }
-            } catch (e: Throwable) {
-                if (ignore) {
-                    Assumptions.assumeFalse(true, e.message)
-                } else {
-                    throw e
-                }
-            }
-        }
-    }
-
-    val tests: List<TestRun>
-
-    init {
-        val result = parse(fileName, linkedSetOf(
+    fun run(): Stream<DynamicNode> {
+        return parse(linkedSetOf(
                 "[source,graphql]",
                 "[source,json,request=true]",
                 "[source,json,config=true]",
                 "[source,json]",
                 "[source,cypher]"
         ))
-        schema = result.schema
-        tests = result.tests.map {
-            TestRun(this,
-                    it.title,
-                    result.file,
-                    it.line,
-                    it.codeBlocks["[source,graphql]"]?.trim()?.toString()
-                            ?: throw IllegalStateException("missing graphql for ${it.title}"),
-                    it.codeBlocks["[source,cypher]"]?.trim()?.toString()
-                            ?: throw IllegalStateException("missing cypher query for ${it.title}"),
-                    it.codeBlocks["[source,json,config=true]"]?.let { config -> return@let MAPPER.readValue(config.toString(), QueryContext::class.java) },
-                    it.codeBlocks["[source,json]"]?.toString()?.parseJsonMap() ?: emptyMap(),
-                    it.codeBlocks["[source,json,request=true]"]?.toString()?.parseJsonMap() ?: emptyMap(),
-                    it.ignore
-            )
+    }
+
+    override fun testFactory(title: String, schema: String, codeBlocks: Map<String, ParsedBlock>, ignore: Boolean): List<DynamicNode> {
+        val cypherBlock = codeBlocks["[source,cypher]"]
+
+        if (ignore) {
+            return Collections.singletonList(DynamicTest.dynamicTest("Test Cypher", cypherBlock?.uri) {
+                Assumptions.assumeFalse(true)
+            })
+        }
+
+        val result = createTransformationTask(title, schema, codeBlocks)
+
+        val tests = mutableListOf<DynamicNode>()
+        if (DEBUG) {
+            tests.add(printGeneratedQuery(result))
+            tests.add(printReplacedParameter(result))
+        }
+
+        tests.add(testCypher(title, cypherBlock, result))
+        tests.add(testCypherParams(codeBlocks, result))
+
+        return tests
+    }
+
+    private fun createTransformationTask(title: String, schema: String, codeBlocks: Map<String, ParsedBlock>): () -> Cypher {
+        val transformationTask = FutureTask {
+            val requestBlock = codeBlocks["[source,graphql]"]
+            val request = requestBlock?.code?.trim()?.toString()
+                    ?: throw IllegalStateException("missing graphql for $title")
+
+            val requestParamsBlock = codeBlocks["[source,json,request=true]"]
+            val requestParams = requestParamsBlock?.code?.toString()?.parseJsonMap() ?: emptyMap()
+
+            val configBlock = codeBlocks["[source,json,config=true]"]
+            val config = configBlock?.code?.let<StringBuilder, QueryContext?> { config -> return@let MAPPER.readValue<QueryContext>(config.toString(), QueryContext::class.java) }
+
+            val ctx = config ?: QueryContext()
+            Translator(SchemaBuilder.buildSchema(schema))
+                .translate(request, requestParams, ctx)
+                .first()
+        }
+        return {
+            transformationTask.run()
+            transformationTask.get()
         }
     }
 
-    fun translate(query: String, requestParams: Map<String, Any?> = emptyMap(), ctx: QueryContext = QueryContext()): Cypher {
-        return Translator(SchemaBuilder.buildSchema(schema))
-            .translate(query, requestParams, ctx)
-            .first()
+    private fun printGeneratedQuery(result: () -> Cypher): DynamicTest = DynamicTest.dynamicTest("Generated query") {
+        println(result().query)
     }
 
-    fun run(contextProvider: ((requestParams: Map<String, Any?>) -> QueryContext)? = null): List<DynamicTest> {
-        return tests.map {
-            DynamicTest.dynamicTest(it.title,
-                    UriBuilder.fromUri(it.file.toURI()).queryParam("line", it.line).build()) { it.run(contextProvider) }
+    private fun printReplacedParameter(result: () -> Cypher): DynamicTest = DynamicTest.dynamicTest("Generated query with params replaced") {
+        var queryWithReplacedParams = result().query
+        result().params.forEach { (key, value) ->
+            queryWithReplacedParams = queryWithReplacedParams.replace("$$key", if (value is String) "'$value'" else value.toString())
+        }
+        println()
+        println("Generated query with params replaced")
+        println("------------------------------------")
+        println(queryWithReplacedParams)
+    }
+
+    private fun testCypher(title: String, cypherBlock: ParsedBlock?, result: () -> Cypher): DynamicTest = DynamicTest.dynamicTest("Test Cypher", cypherBlock?.uri) {
+        val cypher = cypherBlock?.code?.trim()?.toString()
+                ?: throw IllegalStateException("missing cypher query for $title")
+        Assertions.assertEquals(cypher.normalize(), result().query.normalize())
+    }
+
+    private fun testCypherParams(codeBlocks: Map<String, ParsedBlock>, result: () -> Cypher): DynamicTest {
+        val cypherParamsBlock = codeBlocks["[source,json]"]
+        return DynamicTest.dynamicTest("Test Cypher Params", cypherParamsBlock?.uri) {
+            val resultParams = result().params
+            val cypherParams = cypherParamsBlock?.code?.toString()?.parseJsonMap() ?: emptyMap()
+            Assertions.assertEquals(fixNumbers(cypherParams), fixNumbers(resultParams)) {
+                "\nExpected : ${MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(cypherParams)}\n" +
+                        "Actual   :${MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(resultParams)}"
+            }
         }
     }
 
     companion object {
-        val DEBUG = false
+        const val DEBUG = false
     }
 }

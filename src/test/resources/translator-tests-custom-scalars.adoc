@@ -73,7 +73,7 @@ mutation {
 ----
 MATCH (updateMovie: Movie)
 WHERE ID(updateMovie) = toInteger($updateMovie_id)
-SET updateMovie = { released: $updateMovieReleased }
+SET updateMovie += { released: $updateMovieReleased }
 WITH updateMovie
 RETURN updateMovie { .title, .released } AS updateMovie
 ----
@@ -137,7 +137,7 @@ mutation {
 ----
 MATCH (updateMovie: Movie)
 WHERE ID(updateMovie) = toInteger($updateMovie_id)
-SET updateMovie = { released: $updateMovieReleased }
+SET updateMovie += { released: $updateMovieReleased }
 WITH updateMovie
 RETURN updateMovie { .title, .released } AS updateMovie
 ----

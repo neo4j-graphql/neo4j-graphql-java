@@ -1044,7 +1044,7 @@ mutation {
 ----
 MATCH ()-[updateRated:RATED]->()
 WHERE ID(updateRated) = toInteger($updateRated_id)
-SET updateRated = { rating: $updateRatedRating }
+SET updateRated += { rating: $updateRatedRating }
 WITH updateRated
 RETURN updateRated { .rating } AS updateRated
 ----
