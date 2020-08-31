@@ -148,8 +148,8 @@ open class ProjectionBase {
         return predicates.values + defaults
     }
 
-    fun projectFields(variable: String, field: Field, nodeType: GraphQLFieldsContainer, env: DataFetchingEnvironment, variableSuffix: String?, neo4jFieldsToPass: Set<String> = emptySet()): Cypher {
-        val queries = projectSelection(variable, field.selectionSet.selections, nodeType, env, variableSuffix, neo4jFieldsToPass)
+    fun projectFields(variable: String, field: Field, nodeType: GraphQLFieldsContainer, env: DataFetchingEnvironment, variableSuffix: String?, propertiesToSkipDeepProjection: Set<String> = emptySet()): Cypher {
+        val queries = projectSelection(variable, field.selectionSet.selections, nodeType, env, variableSuffix, propertiesToSkipDeepProjection)
         @Suppress("SimplifiableCallChain")
         val projection = queries
             .map { it.query }
@@ -160,7 +160,7 @@ open class ProjectionBase {
         return Cypher("$variable $projection", params)
     }
 
-    private fun projectSelection(variable: String, selection: List<Selection<*>>, nodeType: GraphQLFieldsContainer, env: DataFetchingEnvironment, variableSuffix: String?, neo4jFieldsToPass: Set<String> = emptySet()): List<Cypher> {
+    private fun projectSelection(variable: String, selection: List<Selection<*>>, nodeType: GraphQLFieldsContainer, env: DataFetchingEnvironment, variableSuffix: String?, propertiesToSkipDeepProjection: Set<String> = emptySet()): List<Cypher> {
         // TODO just render fragments on valid types (Labels) by using cypher like this:
         // apoc.map.mergeList([
         //  a{.name},
@@ -171,7 +171,7 @@ open class ProjectionBase {
             when (it) {
                 is Field -> {
                     hasTypeName = hasTypeName || (it.name == TYPE_NAME)
-                    listOf(projectField(variable, it, nodeType, env, variableSuffix, neo4jFieldsToPass))
+                    listOf(projectField(variable, it, nodeType, env, variableSuffix, propertiesToSkipDeepProjection))
                 }
                 is InlineFragment -> projectInlineFragment(variable, it, env, variableSuffix)
                 is FragmentSpread -> projectNamedFragments(variable, it, env, variableSuffix)
@@ -188,7 +188,7 @@ open class ProjectionBase {
         return projections
     }
 
-    private fun projectField(variable: String, field: Field, type: GraphQLFieldsContainer, env: DataFetchingEnvironment, variableSuffix: String?, neo4jFieldsToPass: Set<String> = emptySet()): Cypher {
+    private fun projectField(variable: String, field: Field, type: GraphQLFieldsContainer, env: DataFetchingEnvironment, variableSuffix: String?, propertiesToSkipDeepProjection: Set<String> = emptySet()): Cypher {
         if (field.name == TYPE_NAME) {
             return if (type.isRelationType()) {
                 Cypher("${field.aliasOrName()}: '${type.name}'")
@@ -214,7 +214,10 @@ open class ProjectionBase {
         } ?: when {
             isObjectField -> {
                 val patternComprehensions = if (fieldDefinition.isNeo4jType()) {
-                    if (neo4jFieldsToPass.contains(fieldDefinition.innerName())) {
+                    if (propertiesToSkipDeepProjection.contains(fieldDefinition.innerName())) {
+                        // if the property has an internal type like Date or DateTime and we want to compute on this
+                        // type (e.g sorting), we need to pass out the whole property and do the concrete projection
+                        // after the outer computation is done
                         Cypher(variable + "." + fieldDefinition.propertyName().quote())
                     } else {
                         projectNeo4jObjectType(variable, field)
@@ -361,9 +364,9 @@ open class ProjectionBase {
             val sortArgs = orderBy.joinToString(", ", transform = { (property, direction) -> if (direction == Sort.ASC) "'^$property'" else "'$property'" })
             comprehension = "apoc.coll.sortMulti($comprehension, [$sortArgs])"
             if (sortByNeo4jTypeFields.isNotEmpty()) {
-                val neo4jFiledSelection = field.selectionSet.selections
+                val neo4jFieldSelection = field.selectionSet.selections
                     .filter { selection -> sortByNeo4jTypeFields.contains((selection as? Field)?.name) }
-                val deferredProjection = projectSelection("sortedElement", neo4jFiledSelection, nodeType, env, variableSuffix)
+                val deferredProjection = projectSelection("sortedElement", neo4jFieldSelection, nodeType, env, variableSuffix)
                     .map { cypher -> cypher.query }
                     .joinNonEmpty(", ")
                 comprehension = "[sortedElement IN $comprehension | sortedElement { .*, $deferredProjection }]"

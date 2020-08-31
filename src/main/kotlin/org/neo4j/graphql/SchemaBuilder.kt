@@ -13,7 +13,6 @@ import org.neo4j.graphql.handler.projection.ProjectionBase
 import org.neo4j.graphql.handler.relation.CreateRelationHandler
 import org.neo4j.graphql.handler.relation.CreateRelationTypeHandler
 import org.neo4j.graphql.handler.relation.DeleteRelationHandler
-import java.util.concurrent.ConcurrentHashMap
 
 object SchemaBuilder {
     private const val MUTATION = "Mutation"
@@ -101,7 +100,7 @@ object SchemaBuilder {
     }
 
     private fun augmentSchema(sourceSchema: GraphQLSchema, handler: List<AugmentationHandler>, config: SchemaConfig): GraphQLSchema {
-        val types = sourceSchema.typeMap.toMap(ConcurrentHashMap())
+        val types = sourceSchema.typeMap.toMutableMap()
         val env = BuildingEnv(types)
 
         types.values
@@ -117,22 +116,26 @@ object SchemaBuilder {
                 handler.forEach { h -> h.augmentType(type, env) }
             }
 
-        types.replaceAll { _, sourceType ->
+        // since new types my be added to `types` we copy the map, to safely modify the entries and later add these
+        // modified entries back to the `types`
+        val adjustedTypes = types.toMutableMap()
+        adjustedTypes.replaceAll { _, sourceType ->
             when {
                 sourceType.name.startsWith("__") -> sourceType
                 sourceType is GraphQLObjectType -> sourceType.transform { builder ->
                     builder.clearFields().clearInterfaces()
                     // to prevent duplicated types in schema
                     sourceType.interfaces.forEach { builder.withInterface(GraphQLTypeReference(it.name)) }
-                    sourceType.fieldDefinitions.forEach { f -> builder.field(enhanceRelations(f, env, config)) }
+                    sourceType.fieldDefinitions.forEach { f -> builder.field(enhanceRelations(f, env)) }
                 }
                 sourceType is GraphQLInterfaceType -> sourceType.transform { builder ->
                     builder.clearFields()
-                    sourceType.fieldDefinitions.forEach { f -> builder.field(enhanceRelations(f, env, config)) }
+                    sourceType.fieldDefinitions.forEach { f -> builder.field(enhanceRelations(f, env)) }
                 }
                 else -> sourceType
             }
         }
+        types.putAll(adjustedTypes)
 
         return GraphQLSchema
             .newSchema(sourceSchema)
@@ -143,7 +146,7 @@ object SchemaBuilder {
             .build()
     }
 
-    private fun enhanceRelations(fd: GraphQLFieldDefinition, env: BuildingEnv, config: SchemaConfig): GraphQLFieldDefinition {
+    private fun enhanceRelations(fd: GraphQLFieldDefinition, env: BuildingEnv): GraphQLFieldDefinition {
         return fd.transform { fieldBuilder ->
             // to prevent duplicated types in schema
             fieldBuilder.type(fd.type.ref() as GraphQLOutputType)

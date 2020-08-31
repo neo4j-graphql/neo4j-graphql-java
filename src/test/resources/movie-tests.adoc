@@ -869,7 +869,7 @@ ORDER BY movie.year DESC LIMIT $movieFirst
     title
     actors(orderBy:name_desc) {
       name
-      movies(orderBy:[title_asc, title_desc]) {
+      movies(orderBy:[title_asc, plot_desc]) {
         title
       }
     }
@@ -893,7 +893,7 @@ RETURN movie {
     .name,
     movies: apoc.coll.sortMulti([(movieActors)-[:ACTED_IN]->(movieActorsMovies:Movie) | movieActorsMovies {
       .title
-    }], ['^title','title'])
+    }], ['^title','plot'])
   }], ['name'])
 } AS movie
 ORDER BY movie.title DESC
@@ -911,7 +911,7 @@ ORDER BY movie.title DESC
     knows(orderBy: born_asc) {
       name
       born {formatted}
-      knows(first: 2, offset: 1, orderBy: [born_desc, born_desc]) {
+      knows(first: 2, offset: 1, orderBy: [born_asc, born_desc]) {
         name
         born {formatted}
       }
@@ -944,7 +944,7 @@ RETURN user {
     knows: [sortedElement IN apoc.coll.sortMulti([(userKnows)-[:KNOWS]->(userKnowsKnows:User) | userKnowsKnows {
       .name,
       born: userKnowsKnows.born
-    }], ['born','born']) | sortedElement {
+    }], ['^born','born']) | sortedElement {
       .*,
       born: {
         formatted: toString(sortedElement.born)
