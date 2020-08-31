@@ -2,35 +2,43 @@ package org.neo4j.graphql
 
 import graphql.parser.InvalidSyntaxException
 import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Test
-import org.neo4j.graphql.utils.CypherTestSuite
+import org.junit.jupiter.api.DynamicNode
+import org.junit.jupiter.api.DynamicTest
+import org.junit.jupiter.api.TestFactory
+import org.neo4j.graphql.utils.AsciiDocTestSuite
+import java.util.stream.Stream
 
-class TranslatorExceptionTests {
+class TranslatorExceptionTests : AsciiDocTestSuite("translator-tests1.adoc") {
 
-    private val testSuite = CypherTestSuite("translator-tests1.adoc")
-
-    @Test
-    fun unknownType() {
-        // todo better test
-        Assertions.assertThrows(IllegalArgumentException::class.java) {
-            testSuite.translate("""
-            {
-              company {
-                name
-              }
-            }
-            """.trimIndent())
-        }
+    @TestFactory
+    fun createTests(): Stream<DynamicNode> {
+        return parse(linkedSetOf())
     }
 
-    @Test
-    fun mutation() {
-        Assertions.assertThrows(InvalidSyntaxException::class.java) {
-            testSuite.translate("""
-            {
-              createPerson()
-            }
-            """.trimIndent())
-        }
+    override fun schemaTestFactory(schema: String): List<DynamicNode> {
+        val translator = Translator(SchemaBuilder.buildSchema(schema));
+        return listOf(
+                DynamicTest.dynamicTest("unknownType") {
+                    Assertions.assertThrows(IllegalArgumentException::class.java) {
+                        translator.translate("""
+                        {
+                          company {
+                            name
+                          }
+                        }
+                        """)
+                    }
+                },
+                DynamicTest.dynamicTest("mutation") {
+                    Assertions.assertThrows(InvalidSyntaxException::class.java) {
+                        translator.translate("""
+                        {
+                          createPerson()
+                        }
+                        """.trimIndent())
+                    }
+                }
+
+        )
     }
 }

@@ -25,6 +25,20 @@ type Membership @relation(from: "player", to: "team", name: "MEMBER_OF") {
  team: Team!
  prop: String
 }
+
+type Category {
+    name: ID!
+    parentCategory: Category @relation(name: "HAS_PARENT", direction: OUT, from: "child", to: "parent")
+    childCategories: [Category!] @relation(name: "HAS_PARENT", direction: IN, from: "parent", to: "child")
+    parentCategoryAssignment: CategoryAssignment @relation(name: "HAS_PARENT", direction: OUT)
+    childCategoryAssignments: [CategoryAssignment!] @relation(name: "HAS_PARENT", direction: IN)
+}
+
+type CategoryAssignment @relation(from: "child", to: "parent", name: "HAS_PARENT") {
+  parent: Category!
+  child: Category!
+  prop: String
+}
 ----
 
 == Mutations
@@ -320,4 +334,304 @@ RETURN player {
     .prop
   }]
 } AS player
+----
+
+== Recursive bidirectional relations
+
+=== Mutation
+
+==== add incoming relationship
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation{
+  addCategoryParentCategory(name: "child", parentCategory: "parent", prop: "foo"){
+    name
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+    "childName":"child",
+    "parentParentCategory":"parent"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (child: Category { name: $childName })
+MATCH (parent: Category { name: $parentParentCategory })
+MERGE (child)-[: HAS_PARENT]->(parent)
+WITH DISTINCT child AS addCategoryParentCategory
+RETURN addCategoryParentCategory { .name } AS addCategoryParentCategory
+----
+
+==== delete incoming relationship
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation{
+  deleteCategoryParentCategory(name:"child", parentCategory: "parent") {
+    name
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "childName":"child",
+  "parentParentCategory":"parent"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (child: Category { name: $childName })
+MATCH (parent: Category { name: $parentParentCategory })
+MATCH (child)-[r: HAS_PARENT]->(parent)
+DELETE r
+WITH DISTINCT child AS deleteCategoryParentCategory
+RETURN deleteCategoryParentCategory { .name } AS deleteCategoryParentCategory
+----
+
+==== add outgoing relationship
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation{
+  addCategoryChildCategories(name: "parent", childCategories: ["child1", "child2"], prop: "foo") {
+    name
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "parentName" : "parent",
+  "childChildCategories" : [ "child1", "child2" ]
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (parent: Category { name: $parentName })
+MATCH (child: Category)
+WHERE child.name IN $childChildCategories
+MERGE (parent)<-[: HAS_PARENT]-(child)
+WITH DISTINCT parent AS addCategoryChildCategories
+RETURN addCategoryChildCategories { .name } AS addCategoryChildCategories
+----
+
+==== delete outgoing relationship
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation{
+  deleteCategoryChildCategories(name: "parent", childCategories:["child1", "child2"] ) {
+    name
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "parentName" : "parent",
+  "childChildCategories" : [ "child1", "child2" ]
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (parent: Category { name: $parentName })
+MATCH (child: Category) WHERE child.name IN $childChildCategories
+MATCH (parent)<-[r: HAS_PARENT]-(child)
+DELETE r
+WITH DISTINCT parent AS deleteCategoryChildCategories
+RETURN deleteCategoryChildCategories { .name } AS deleteCategoryChildCategories
+----
+
+==== create relationship
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation{
+  createCategoryAssignment(parent_name: "parent", child_name: "child", prop: "foo"){
+    prop
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "childChild_name" : "child",
+  "parentParent_name" : "parent",
+  "createCategoryAssignmentProp" : "foo"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (child: Category { name: $childChild_name })
+MATCH (parent: Category { name: $parentParent_name })
+CREATE (child)-[createCategoryAssignment: HAS_PARENT { prop: $createCategoryAssignmentProp }]->(parent)
+WITH createCategoryAssignment
+RETURN createCategoryAssignment { .prop } AS createCategoryAssignment
+----
+
+=== Queries
+
+==== query incoming node
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  category{
+    name
+    childCategories{name}
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (category: Category)
+RETURN category {
+  .name,
+  childCategories: [(category)<-[: HAS_PARENT]-(categoryChildCategories: Category) | categoryChildCategories {
+    .name
+  }]
+} AS category
+----
+
+==== query outgoing node
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  category{
+    name
+    parentCategory{name}
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (category: Category)
+RETURN category {
+  .name,
+  parentCategory: [(category)-[: HAS_PARENT]->(categoryParentCategory: Category) | categoryParentCategory {
+    .name
+  }][0]
+} AS category
+----
+
+==== query incoming relation
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  category{
+    name
+    childCategoryAssignments{
+      child {name}
+      prop
+    }
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (category: Category)
+RETURN category {
+  .name,
+  childCategoryAssignments: [(category)<-[categoryChildCategoryAssignments: HAS_PARENT]-(categoryChildCategoryAssignmentsChild: Category) | categoryChildCategoryAssignments {
+    child: categoryChildCategoryAssignmentsChild {
+      .name
+    },
+    .prop
+}] } AS category
+----
+
+==== query outgoing relation
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  category {
+    name
+    parentCategoryAssignment {
+      parent {name}
+      prop
+    }
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (category: Category)
+RETURN category {
+  .name,
+  parentCategoryAssignment: [(category)-[categoryParentCategoryAssignment: HAS_PARENT]->(categoryParentCategoryAssignmentParent: Category) | categoryParentCategoryAssignment {
+    parent: categoryParentCategoryAssignmentParent {
+      .name
+    },
+    .prop
+  }][0]
+} AS category
 ----

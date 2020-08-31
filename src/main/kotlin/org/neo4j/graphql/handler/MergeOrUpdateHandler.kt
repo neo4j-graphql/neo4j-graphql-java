@@ -67,13 +67,8 @@ class MergeOrUpdateHandler private constructor(
     }
 
     init {
-        defaultFields.clear() // for marge or updates we do not reset to defaults
-        if (idField.isNativeId() || merge) {
-            // native id cannot be updated
-            // if the ID is not a native ID and we are in the update mode, we do not remove it from the properties
-            // b/c otherwise the id field will be unset
-            propertyFields.remove(idField.name)
-        }
+        defaultFields.clear() // for merge or updates we do not reset to defaults
+        propertyFields.remove(idField.name) // id should not be updated
     }
 
     override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Cypher {
@@ -82,10 +77,9 @@ class MergeOrUpdateHandler private constructor(
         val properties = properties(variable, field.arguments)
         val mapProjection = projectFields(variable, field, type, env, null)
 
-        val op = if (merge) "+" else ""
         val select = getSelectQuery(variable, label(), idArg, idField, isRelation)
         return Cypher((if (merge && !idField.isNativeId()) "MERGE " else "MATCH ") + select.query +
-                " SET $variable $op= " + properties.query +
+                " SET $variable += " + properties.query +
                 " WITH $variable" +
                 " RETURN ${mapProjection.query} AS $variable",
                 select.params + properties.params + mapProjection.params)

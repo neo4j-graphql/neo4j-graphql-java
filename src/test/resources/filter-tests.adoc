@@ -1448,7 +1448,7 @@ WHERE ((person.fun = $filterPersonFun_EQ AND person.name = $filterPersonName_EQ)
 RETURN person { .name } AS person
 ----
 
----
+'''
 
 .GraphQL-Query
 [source,graphql]
@@ -1498,7 +1498,7 @@ WHERE ((person.fun = $filterPersonFun_EQ AND NOT person.name = $filterPersonName
 RETURN person { .name } AS person
 ----
 
----
+'''
 
 .GraphQL-Query
 [source,graphql]
@@ -1577,7 +1577,7 @@ WHERE ANY(p_Person_Cond IN [(p)<-[:WORKS_AT]-(p_Person) | (p_Person.name = $filt
 RETURN p { .name } AS p
 ----
 
----
+'''
 
 .GraphQL-Query
 [source,graphql]
@@ -1649,7 +1649,7 @@ WHERE NONE(p_Person_Cond IN [(p)<-[:WORKS_AT]-(p_Person) | (p_Person.name = $fil
 RETURN p { .name } AS p
 ----
 
----
+'''
 
 .GraphQL-Query
 [source,graphql]
