@@ -2,7 +2,7 @@
 @Grapes([
   @Grab('com.sparkjava:spark-core:2.7.2'),
   @Grab('org.neo4j.driver:neo4j-java-driver:1.7.2'),
-  @Grab('org.neo4j:neo4j-graphql-java:1.0.1'),
+  @Grab('org.neo4j:neo4j-graphql-java:1.1.0'),
   @Grab('com.google.code.gson:gson:2.8.5')
 ])
 
