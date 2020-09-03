@@ -214,7 +214,7 @@ open class ProjectionBase {
         } ?: when {
             isObjectField -> {
                 val patternComprehensions = if (fieldDefinition.isNeo4jType()) {
-                    if (propertiesToSkipDeepProjection.contains(fieldDefinition.innerName())) {
+                    if (propertiesToSkipDeepProjection.contains(fieldDefinition.name)) {
                         // if the property has an internal type like Date or DateTime and we want to compute on this
                         // type (e.g sorting), we need to pass out the whole property and do the concrete projection
                         // after the outer computation is done
