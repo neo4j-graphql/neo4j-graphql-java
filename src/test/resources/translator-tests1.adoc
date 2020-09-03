@@ -408,7 +408,10 @@ MATCH (person:Person) RETURN person { .name, .age } AS person
 .GraphQL-Query
 [source,graphql]
 ----
-{ foo:person {n:name } }
+ { foo:person {
+     n:name
+   }
+ }
 ----
 
 .Cypher params

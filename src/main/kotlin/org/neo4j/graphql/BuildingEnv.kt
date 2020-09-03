@@ -3,8 +3,6 @@ package org.neo4j.graphql
 import graphql.Scalars
 import graphql.schema.*
 
-import graphql.schema.GraphQLTypeUtil.simplePrint
-
 class BuildingEnv(val types: MutableMap<String, GraphQLNamedType>) {
 
     private val typesForRelation = types.values
@@ -25,7 +23,7 @@ class BuildingEnv(val types: MutableMap<String, GraphQLNamedType>) {
             type = GraphQLNonNull(type)
         }
         return GraphQLFieldDefinition.newFieldDefinition()
-            .name("$prefix${simplePrint(resultType)}")
+            .name("$prefix${resultType.name()}")
             .arguments(getInputValueDefinitions(scalarFields, forceOptionalProvider))
             .type(type.ref() as GraphQLOutputType)
     }
@@ -73,7 +71,7 @@ class BuildingEnv(val types: MutableMap<String, GraphQLNamedType>) {
         }
         val existingFilterType = types[filterName]
         if (existingFilterType != null) {
-            return simplePrint(existingFilterType as? GraphQLInputType)
+            return (existingFilterType as? GraphQLInputType)?.name()
                     ?: throw IllegalStateException("Filter type $filterName is already defined but not an input type")
         }
         createdTypes.add(filterName)
