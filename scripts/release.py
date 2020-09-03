@@ -13,7 +13,7 @@ def main(token, tag_name, file_names):
     print(release_json)
     release_id = release_json["id"]
 
-    for file_name in file_names
+    for file_name in file_names:
         with open(file_name, "rb") as file_name_handle:
             upload_url = "https://uploads.github.com/repos/neo4j-graphql/neo4j-graphql-java/releases/{release_id}/assets?name={file_name}".format(
                 release_id=release_id, file_name=file_name.split("/")[-1]
