@@ -34,7 +34,7 @@ interface Location {
 type City implements Location {
   name: String
   founded: Person @relation(name:"FOUNDED", direction: IN)
-  cityArg: String
+  city_Arg: String
 }
 type Village implements Location {
   name: String
@@ -361,6 +361,28 @@ MATCH (person:Person) RETURN person { .name, .age, livesIn:[(person)-[:LIVES_IN]
 MATCH (person:Person) RETURN person { .age } AS person ORDER BY person.age DESC, person.name ASC
 ----
 
+=== order by with underscore
+
+.GraphQL-Query
+[source,graphql]
+----
+ { location(orderBy:[city_Arg_desc]) { name } }
+----
+
+.Cypher params
+[source,json]
+----
+{}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (location: Location)
+RETURN location { .name } AS location
+ORDER BY location.city_Arg DESC
+----
+
 === named fragment multi field
 
 .GraphQL-Query
@@ -386,10 +408,7 @@ MATCH (person:Person) RETURN person { .name, .age } AS person
 .GraphQL-Query
 [source,graphql]
 ----
- { foo:person {
-     n:name
-   }
- }
+{ foo:person {n:name } }
 ----
 
 .Cypher params
@@ -524,7 +543,7 @@ RETURN person {
 .GraphQL-Query
 [source,graphql]
 ----
- { person { livedIn(first:2) { name } } }
+{ person { livedIn(first:2) { name } } }
 ----
 
 .Cypher params
@@ -551,7 +570,7 @@ RETURN person {
 .GraphQL-Query
 [source,graphql]
 ----
- { person { name age livesIn { name founded {name}} } }
+{ person { name age livesIn { name founded {name}} } }
 ----
 
 .Cypher params
@@ -571,7 +590,7 @@ MATCH (person:Person) RETURN person { .name, .age, livesIn:[(person)-[:LIVES_IN]
 .GraphQL-Query
 [source,graphql]
 ----
- query { person { ... on Person { name,age } } }
+query { person { ... on Person { name,age } } }
 ----
 
 .Cypher params
@@ -714,7 +733,7 @@ RETURN person {
     name
     __typename
     ... on City {
-      cityArg
+      city_Arg
     }
     ... on Village {
       villageArg
@@ -738,7 +757,7 @@ MATCH (location:Location)
 RETURN location {
   .name,
   __typename: head( [ label IN labels(location) WHERE label IN $locationValidTypes ] ),
-  .cityArg,
+  .city_Arg,
   .villageArg
 } AS location
 ----
@@ -757,7 +776,7 @@ fragment details on Location {
   name
   __typename
   ... on City {
-    cityArg
+    city_Arg
   }
   ... on Village {
     villageArg
@@ -780,7 +799,7 @@ MATCH (location:Location)
 RETURN location {
   .name,
   __typename: head( [ label IN labels(location) WHERE label IN $locationValidTypes ] ),
-  .cityArg,
+  .city_Arg,
   .villageArg
 } AS location
 ----

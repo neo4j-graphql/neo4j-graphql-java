@@ -104,6 +104,6 @@ class CypherTestSuite(fileName: String) : AsciiDocTestSuite(fileName) {
     }
 
     companion object {
-        const val DEBUG = false
+        val DEBUG = System.getProperty("neo4j-graphql-java.debug", "false") == "true"
     }
 }

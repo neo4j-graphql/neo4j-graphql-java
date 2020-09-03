@@ -47,6 +47,7 @@ type State {
 interface Person {
   userId: ID!
   name: String
+  born: _Neo4jDateTime
 }
 type Actor implements Person
 {
@@ -62,6 +63,7 @@ type User implements Person
   rated(rating: Int): [Rated]
   friends(since: Int): [FriendOf]
   knows: [User] @relation(name: "KNOWS", direction:OUT)
+  knowsPerson: [Person] @relation(name: "KNOWS", direction:OUT)
   born: _Neo4jDateTime
 }
 type FriendOf {
@@ -857,6 +859,107 @@ RETURN  movie  {  .title  } AS  movie
 ORDER BY movie.year DESC LIMIT $movieFirst
 ----
 
+=== Deeply nested orderBy
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  Movie(orderBy:title_desc) {
+    title
+    actors(orderBy:name_desc) {
+      name
+      movies(orderBy:[title_asc, plot_desc]) {
+        title
+      }
+    }
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (movie:Movie)
+RETURN movie {
+  .title,
+  actors: apoc.coll.sortMulti([(movie)<-[:ACTED_IN]-(movieActors:Actor) | movieActors {
+    .name,
+    movies: apoc.coll.sortMulti([(movieActors)-[:ACTED_IN]->(movieActorsMovies:Movie) | movieActorsMovies {
+      .title
+    }], ['^title','plot'])
+  }], ['name'])
+} AS movie
+ORDER BY movie.title DESC
+----
+
+=== Deeply nested query using temporal orderBy
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  User(orderBy: born_desc){
+    name
+    born {formatted}
+    knows(orderBy: born_asc) {
+      name
+      born {formatted}
+      knows(first: 2, offset: 1, orderBy: [born_asc, born_desc]) {
+        name
+        born {formatted}
+      }
+    }
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "userKnowsKnowsOffset": 1,
+  "userKnowsKnowsFirst": 2
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (user:User)
+RETURN user {
+  .name,
+  born: {
+    formatted: toString(user.born)
+  },
+  knows: [sortedElement IN apoc.coll.sortMulti([(user)-[:KNOWS]->(userKnows:User) | userKnows {
+    .name,
+    born: userKnows.born,
+    knows: [sortedElement IN apoc.coll.sortMulti([(userKnows)-[:KNOWS]->(userKnowsKnows:User) | userKnowsKnows {
+      .name,
+      born: userKnowsKnows.born
+    }], ['^born','born']) | sortedElement {
+      .*,
+      born: {
+        formatted: toString(sortedElement.born)
+      }
+    }][$userKnowsKnowsOffset.. $userKnowsKnowsOffset + $userKnowsKnowsFirst]
+  }], ['^born']) | sortedElement {
+    .*,
+    born: {
+      formatted: toString(sortedElement.born)
+    }
+  }]
+} AS user
+ORDER BY user.born DESC
+----
+
 === Find all relations
 
 .GraphQL-Query
@@ -881,6 +984,7 @@ MATCH ()-[rated:RATED]->()
 WHERE ID(rated) = toInteger($rated_id)
 RETURN rated { .rating } AS rated
 ----
+== Relations
 
 === Create relation
 
@@ -944,8 +1048,40 @@ SET updateRated += { rating: $updateRatedRating }
 WITH updateRated
 RETURN updateRated { .rating } AS updateRated
 ----
+=== create relation
 
-=== create object with multiple labels
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+ addGenreMovies(name:"Action", movies: ["m1"]){
+    name
+ }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "fromName": "Action",
+  "toMovies": [
+    "m1"
+  ]
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (from:Genre { name: $fromName })
+MATCH (to:Movie) WHERE to.movieId IN $toMovies
+MERGE (from)<-[:IN_GENRE]-(to)
+WITH DISTINCT from AS addGenreMovies
+RETURN addGenreMovies { .name } AS addGenreMovies
+----
+
+== create object with multiple labels
 
 .GraphQL-Query
 [source,graphql]
@@ -980,39 +1116,6 @@ RETURN createUser {
 } AS createUser
 ----
 
-=== create relation
-
-.GraphQL-Query
-[source,graphql]
-----
-mutation {
- addGenreMovies(name:"Action", movies: ["m1"]){
-    name
- }
-}
-----
-
-.Cypher Params
-[source,json]
-----
-{
-  "fromName": "Action",
-  "toMovies": [
-    "m1"
-  ]
-}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (from:Genre { name: $fromName })
-MATCH (to:Movie) WHERE to.movieId IN $toMovies
-MERGE (from)<-[:IN_GENRE]-(to)
-WITH DISTINCT from AS addGenreMovies
-RETURN addGenreMovies { .name } AS addGenreMovies
-----
-
 == Neo4j Data Types queryies
 
 === User born extraction
@@ -1040,7 +1143,7 @@ query {
 [source,cypher]
 ----
 MATCH (user:User)
-RETURN user { born: { formatted: user.born, year: user.born.year } } AS user
+RETURN user { born: { formatted: toString(user.born), year: user.born.year } } AS user
 ----
 
 === User born query filter with multiple fields

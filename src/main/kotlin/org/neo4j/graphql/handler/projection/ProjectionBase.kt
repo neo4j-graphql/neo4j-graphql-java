@@ -16,21 +16,30 @@ open class ProjectionBase {
     }
 
     fun orderBy(variable: String, args: MutableList<Argument>): String {
-        val arg = args.find { it.name == ORDER_BY }
-        val values = arg?.value?.let { it ->
-            when (it) {
-                is ArrayValue -> it.values.map { it.toJavaValue().toString() }
-                is EnumValue -> listOf(it.name)
-                is StringValue -> listOf(it.value)
-                else -> null
-            }
+        val values = getOrderByArgs(args)
+        if (values.isEmpty()) {
+            return ""
         }
-        @Suppress("SimplifiableCallChain")
-        return if (values == null) ""
-        else " ORDER BY " + values
-            .map { it.split("_") }
-            .map { "$variable.${it[0]} ${it[1].toUpperCase()}" }
-            .joinToString(", ")
+        return " ORDER BY " + values.joinToString(", ", transform = { (property, direction) -> "$variable.${property.quote()} $direction" })
+    }
+
+    private fun getOrderByArgs(args: MutableList<Argument>): List<Pair<String, Sort>> {
+        val arg = args.find { it.name == ORDER_BY }
+        return arg?.value
+            ?.let { it ->
+                when (it) {
+                    is ArrayValue -> it.values.map { it.toJavaValue().toString() }
+                    is EnumValue -> listOf(it.name)
+                    is StringValue -> listOf(it.value)
+                    else -> null
+                }
+            }
+            ?.map {
+                val index = it.lastIndexOf('_')
+                val property = it.substring(0, index)
+                val direction = Sort.valueOf(it.substring(index + 1).toUpperCase())
+                property to direction
+            } ?: emptyList()
     }
 
     fun where(variable: String, fieldDefinition: GraphQLFieldDefinition, type: GraphQLFieldsContainer, arguments: List<Argument>, field: Field): Cypher {
@@ -139,9 +148,8 @@ open class ProjectionBase {
         return predicates.values + defaults
     }
 
-    fun projectFields(variable: String, field: Field, nodeType: GraphQLFieldsContainer, env: DataFetchingEnvironment, variableSuffix: String?): Cypher {
-        val queries = projectSelectionSet(variable, field.selectionSet, nodeType, env, variableSuffix)
-
+    fun projectFields(variable: String, field: Field, nodeType: GraphQLFieldsContainer, env: DataFetchingEnvironment, variableSuffix: String?, propertiesToSkipDeepProjection: Set<String> = emptySet()): Cypher {
+        val queries = projectSelection(variable, field.selectionSet.selections, nodeType, env, variableSuffix, propertiesToSkipDeepProjection)
         @Suppress("SimplifiableCallChain")
         val projection = queries
             .map { it.query }
@@ -152,18 +160,18 @@ open class ProjectionBase {
         return Cypher("$variable $projection", params)
     }
 
-    private fun projectSelectionSet(variable: String, selectionSet: SelectionSet, nodeType: GraphQLFieldsContainer, env: DataFetchingEnvironment, variableSuffix: String?): List<Cypher> {
+    private fun projectSelection(variable: String, selection: List<Selection<*>>, nodeType: GraphQLFieldsContainer, env: DataFetchingEnvironment, variableSuffix: String?, propertiesToSkipDeepProjection: Set<String> = emptySet()): List<Cypher> {
         // TODO just render fragments on valid types (Labels) by using cypher like this:
         // apoc.map.mergeList([
         //  a{.name},
         //  CASE WHEN a:Location THEN a { .foo } ELSE {} END
         //  ])
         var hasTypeName = false
-        val projections = selectionSet.selections.flatMapTo(mutableListOf<Cypher>()) {
+        val projections = selection.flatMapTo(mutableListOf<Cypher>()) {
             when (it) {
                 is Field -> {
                     hasTypeName = hasTypeName || (it.name == TYPE_NAME)
-                    listOf(projectField(variable, it, nodeType, env, variableSuffix))
+                    listOf(projectField(variable, it, nodeType, env, variableSuffix, propertiesToSkipDeepProjection))
                 }
                 is InlineFragment -> projectInlineFragment(variable, it, env, variableSuffix)
                 is FragmentSpread -> projectNamedFragments(variable, it, env, variableSuffix)
@@ -180,7 +188,7 @@ open class ProjectionBase {
         return projections
     }
 
-    private fun projectField(variable: String, field: Field, type: GraphQLFieldsContainer, env: DataFetchingEnvironment, variableSuffix: String?): Cypher {
+    private fun projectField(variable: String, field: Field, type: GraphQLFieldsContainer, env: DataFetchingEnvironment, variableSuffix: String?, propertiesToSkipDeepProjection: Set<String> = emptySet()): Cypher {
         if (field.name == TYPE_NAME) {
             return if (type.isRelationType()) {
                 Cypher("${field.aliasOrName()}: '${type.name}'")
@@ -206,7 +214,14 @@ open class ProjectionBase {
         } ?: when {
             isObjectField -> {
                 val patternComprehensions = if (fieldDefinition.isNeo4jType()) {
-                    projectNeo4jObjectType(variable, field)
+                    if (propertiesToSkipDeepProjection.contains(fieldDefinition.innerName())) {
+                        // if the property has an internal type like Date or DateTime and we want to compute on this
+                        // type (e.g sorting), we need to pass out the whole property and do the concrete projection
+                        // after the outer computation is done
+                        Cypher(variable + "." + fieldDefinition.propertyName().quote())
+                    } else {
+                        projectNeo4jObjectType(variable, field)
+                    }
                 } else {
                     projectRelationship(variable, field, fieldDefinition, type, env, variableSuffix)
                 }
@@ -230,7 +245,7 @@ open class ProjectionBase {
             .filterIsInstance<Field>()
             .map {
                 val value = when (it.name) {
-                    NEO4j_FORMATTED_PROPERTY_KEY -> "$variable.${field.name}"
+                    NEO4j_FORMATTED_PROPERTY_KEY -> "toString($variable.${field.name})"
                     else -> "$variable.${field.name}.${it.name}"
                 }
                 "${it.name}: $value"
@@ -266,7 +281,7 @@ open class ProjectionBase {
         val fragmentType = env.graphQLSchema.getType(fragmentTypeName) as? GraphQLFieldsContainer ?: return emptyList()
         // these are the nested fields of the fragment
         // it could be that we have to adapt the variable name too, and perhaps add some kind of rename
-        return projectSelectionSet(variable, selectionSet, fragmentType, env, variableSuffix)
+        return projectSelection(variable, selectionSet.selections, fragmentType, env, variableSuffix)
     }
 
 
@@ -338,9 +353,27 @@ open class ProjectionBase {
         val relPattern = if (isRelFromType) "$childVariable:${relInfo.relType}" else ":${relInfo.relType}"
 
         val where = where(childVariable, fieldDefinition, nodeType, propertyArguments(field), field)
-        val fieldProjection = projectFields(childVariable, field, nodeType, env, variableSuffix)
 
-        val comprehension = "[($variable)$inArrow-[$relPattern]-$outArrow($endNodePattern)${where.query} | ${fieldProjection.query}]"
+        val orderBy = getOrderByArgs(field.arguments)
+        val sortByNeo4jTypeFields = orderBy
+            .filter { (property, _) -> nodeType.getFieldDefinition(property)?.isNeo4jType() == true }
+            .map { (property, _) -> property }
+            .toSet()
+
+        val fieldProjection = projectFields(childVariable, field, nodeType, env, variableSuffix, sortByNeo4jTypeFields)
+        var comprehension = "[($variable)$inArrow-[$relPattern]-$outArrow($endNodePattern)${where.query} | ${fieldProjection.query}]"
+        if (orderBy.isNotEmpty()) {
+            val sortArgs = orderBy.joinToString(", ", transform = { (property, direction) -> if (direction == Sort.ASC) "'^$property'" else "'$property'" })
+            comprehension = "apoc.coll.sortMulti($comprehension, [$sortArgs])"
+            if (sortByNeo4jTypeFields.isNotEmpty()) {
+                val neo4jFieldSelection = field.selectionSet.selections
+                    .filter { selection -> sortByNeo4jTypeFields.contains((selection as? Field)?.name) }
+                val deferredProjection = projectSelection("sortedElement", neo4jFieldSelection, nodeType, env, variableSuffix)
+                    .map { cypher -> cypher.query }
+                    .joinNonEmpty(", ")
+                comprehension = "[sortedElement IN $comprehension | sortedElement { .*, $deferredProjection }]"
+            }
+        }
         val skipLimit = SkipLimit(childVariable, field.arguments)
         val slice = skipLimit.slice(fieldType.isList())
         return Cypher(comprehension + slice.query, (where.params + fieldProjection.params + slice.params))
@@ -393,5 +426,10 @@ open class ProjectionBase {
                 return Translator.CypherArgument(name, paramName(variable, argument.name, argument), argument.value?.toJavaValue())
             }
         }
+    }
+
+    enum class Sort {
+        ASC,
+        DESC
     }
 }
