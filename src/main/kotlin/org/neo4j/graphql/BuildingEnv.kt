@@ -3,7 +3,9 @@ package org.neo4j.graphql
 import graphql.Scalars
 import graphql.schema.*
 
-class BuildingEnv(val types: MutableMap<String, GraphQLType>) {
+import graphql.schema.GraphQLTypeUtil.simplePrint
+
+class BuildingEnv(val types: MutableMap<String, GraphQLNamedType>) {
 
     private val typesForRelation = types.values
         .filterIsInstance<GraphQLObjectType>()
@@ -23,7 +25,7 @@ class BuildingEnv(val types: MutableMap<String, GraphQLType>) {
             type = GraphQLNonNull(type)
         }
         return GraphQLFieldDefinition.newFieldDefinition()
-            .name("$prefix${resultType.name}")
+            .name("$prefix${simplePrint(resultType)}")
             .arguments(getInputValueDefinitions(scalarFields, forceOptionalProvider))
             .type(type.ref() as GraphQLOutputType)
     }
@@ -71,7 +73,7 @@ class BuildingEnv(val types: MutableMap<String, GraphQLType>) {
         }
         val existingFilterType = types[filterName]
         if (existingFilterType != null) {
-            return (existingFilterType as? GraphQLInputType)?.name
+            return simplePrint(existingFilterType as? GraphQLInputType)
                     ?: throw IllegalStateException("Filter type $filterName is already defined but not an input type")
         }
         createdTypes.add(filterName)
@@ -87,7 +89,7 @@ class BuildingEnv(val types: MutableMap<String, GraphQLType>) {
             .forEach { field ->
                 val typeDefinition = field.type.inner()
                 val filterType = when {
-                    typeDefinition.isNeo4jType() -> getInputType(typeDefinition).name
+                    typeDefinition.isNeo4jType() -> getInputType(typeDefinition).requiredName()
                     typeDefinition.isScalar() -> typeDefinition.innerName()
                     typeDefinition is GraphQLEnumType -> typeDefinition.innerName()
                     else -> addFilterType(getInnerFieldsContainer(typeDefinition), createdTypes)
@@ -122,7 +124,7 @@ class BuildingEnv(val types: MutableMap<String, GraphQLType>) {
         val orderingName = "_${type.name}Ordering"
         var existingOrderingType = types[orderingName]
         if (existingOrderingType != null) {
-            return (existingOrderingType as? GraphQLInputType)?.name
+            return (existingOrderingType as? GraphQLInputType)?.requiredName()
                     ?: throw IllegalStateException("Ordering type $type.name is already defined but not an input type")
         }
         val sortingFields = type.fieldDefinitions
@@ -190,7 +192,7 @@ class BuildingEnv(val types: MutableMap<String, GraphQLType>) {
                     ?: throw IllegalArgumentException("${innerType.name} is unknown")
         }
         return innerType as? GraphQLFieldsContainer
-                ?: throw IllegalArgumentException("${innerType.name} is neither an object nor an interface")
+                ?: throw IllegalArgumentException("${innerType.name()} is neither an object nor an interface")
     }
 
     private fun getInputType(type: GraphQLType): GraphQLInputType {
@@ -200,12 +202,12 @@ class BuildingEnv(val types: MutableMap<String, GraphQLType>) {
         }
         if (inner.isNeo4jType()) {
             return neo4jTypeDefinitions
-                .find { it.typeDefinition == inner.name }
+                .find { it.typeDefinition == inner.name() }
                 ?.let { types[it.inputDefinition] } as? GraphQLInputType
-                    ?: throw IllegalArgumentException("Cannot find input type for ${inner.name}")
+                    ?: throw IllegalArgumentException("Cannot find input type for ${inner.name()}")
         }
         return type as? GraphQLInputType
-                ?: throw IllegalArgumentException("${type.name} is not allowed for input")
+                ?: throw IllegalArgumentException("${type.name()} is not allowed for input")
     }
 
 }

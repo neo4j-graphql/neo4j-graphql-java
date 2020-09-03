@@ -33,8 +33,11 @@ fun GraphQLType.inner(): GraphQLType = when (this) {
     else -> this
 }
 
+fun GraphQLType.name(): String? = (this as? GraphQLNamedType)?.name
+fun GraphQLType.requiredName(): String = requireNotNull(name()) { -> "name is required but cannot be determined for " + this.javaClass }
+
 fun GraphQLType.isList() = this is GraphQLList || (this is GraphQLNonNull && this.wrappedType is GraphQLList)
-fun GraphQLType.isScalar() = this.inner().let { it is GraphQLScalarType || it.name.startsWith("_Neo4j") }
+fun GraphQLType.isScalar() = this.inner().let { it is GraphQLScalarType || it.innerName().startsWith("_Neo4j") }
 fun GraphQLType.isNeo4jType() = this.innerName().startsWith("_Neo4j")
 fun GraphQLType.isNeo4jSpatialType() = this.innerName().startsWith("_Neo4jPoint")
 fun GraphQLFieldDefinition.isNeo4jType(): Boolean = this.type.isNeo4jType()
@@ -119,7 +122,7 @@ fun GraphQLType.ref(): GraphQLType = when (this) {
     is GraphQLScalarType -> this
     is GraphQLEnumType -> this
     is GraphQLTypeReference -> this
-    else -> GraphQLTypeReference(name)
+    else -> GraphQLTypeReference(name())
 }
 
 fun relDetails(type: GraphQLFieldsContainer, relDirective: GraphQLDirective): RelationshipInfo {
@@ -183,7 +186,8 @@ data class RelationshipInfo(
 }
 
 fun Field.aliasOrName() = (this.alias ?: this.name).quote()
-fun GraphQLType.innerName(): String = inner().name
+fun GraphQLType.innerName(): String = inner().name()
+        ?: throw IllegalStateException("inner name cannot be retrieved for " + this.javaClass)
 
 fun GraphQLFieldDefinition.propertyName() = getDirectiveArgument(PROPERTY, PROPERTY_NAME, this.name)!!
 

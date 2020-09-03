@@ -112,7 +112,7 @@ data class ExpressionPredicate(
 ) : Predicate {
     val not = if (op.not) "NOT " else ""
     override fun toExpression(variable: String): Cypher {
-        val paramName: String = ProjectionBase.FILTER + paramName(variable, name, value).capitalize() + "_" + op.name + nestedField.replace('.','_')
+        val paramName: String = ProjectionBase.FILTER + paramName(variable, name, value).capitalize() + "_" + op.name + nestedField.replace('.', '_')
         val query = if (fieldDefinition.isNativeId()) {
             if (op.list) {
                 "${not}ID($variable) ${op.op} [id IN \$$paramName | toInteger(id)]"
@@ -151,7 +151,7 @@ data class RelationPredicate(val fieldName: String, val op: RelationOperator, va
             RelationOperator.NOT -> "ALL" // bc of not
             else -> op.op
         }
-        if (type.getFieldDefinition(fieldName).isList()) {
+        if (type.getFieldDefinition(fieldName).type.isList()) {
             if (op == RelationOperator.EQ_OR_NOT_EXISTS) {
                 LOGGER.info("$fieldName on type ${type.name} was used for filtering, consider using ${fieldName}${RelationOperator.EVERY.suffix} instead")
             }
@@ -254,7 +254,7 @@ enum class FieldOperator(
         fun resolve(queriedField: String, field: GraphQLFieldDefinition, value: Any?): FieldOperator? {
             val fieldName = field.name
             if (value == null) {
-                return listOf(IS_NULL, IS_NOT_NULL).find { queriedField == fieldName + it.suffix } ?: return null
+                return listOf(IS_NULL, IS_NOT_NULL).find { queriedField == fieldName + it.suffix }
             }
             val ops = enumValues<FieldOperator>().filterNot { it == IS_NULL || it == IS_NOT_NULL }
             return ops.find { queriedField == fieldName + it.suffix }
@@ -263,7 +263,6 @@ enum class FieldOperator(
                     } else {
                         null
                     }
-                    ?: return null
         }
 
         fun forType(type: GraphQLType): List<FieldOperator> =
@@ -277,7 +276,7 @@ enum class FieldOperator(
                     // todo list types
                     !type.isScalar() -> listOf(EQ, NEQ, IN, NIN)
                     else -> listOf(EQ, NEQ, IN, NIN, LT, LTE, GT, GTE) +
-                            if (type.name == "String" || type.name == "ID") listOf(C, NC, SW, NSW, EW, NEW) else emptyList()
+                            if (type.name() == "String" || type.name() == "ID") listOf(C, NC, SW, NSW, EW, NEW) else emptyList()
                 }
     }
 

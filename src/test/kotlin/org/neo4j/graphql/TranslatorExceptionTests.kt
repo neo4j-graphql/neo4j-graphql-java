@@ -16,16 +16,26 @@ class TranslatorExceptionTests : AsciiDocTestSuite("translator-tests1.adoc") {
     }
 
     override fun schemaTestFactory(schema: String): List<DynamicNode> {
-        val translator = Translator(SchemaBuilder.buildSchema(schema));
+        val translator = Translator(SchemaBuilder.buildSchema(schema))
         return listOf(
                 DynamicTest.dynamicTest("unknownType") {
                     Assertions.assertThrows(IllegalArgumentException::class.java) {
-                        translator.translate(" { company { name } } ")
+                        translator.translate("""
+                        {
+                          company {
+                            name
+                          }
+                        }
+                        """)
                     }
                 },
                 DynamicTest.dynamicTest("mutation") {
                     Assertions.assertThrows(InvalidSyntaxException::class.java) {
-                        translator.translate(" { createPerson() } ")
+                        translator.translate("""
+                        {
+                          createPerson()
+                        }
+                        """.trimIndent())
                     }
                 }
 

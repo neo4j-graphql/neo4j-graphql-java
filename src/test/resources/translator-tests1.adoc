@@ -499,12 +499,12 @@ query($_param:String) { p:values(_param:$_param) { age } }
 ----
 MATCH (p:Person)
 WHERE p._param = $_param
-  AND p._array = $p_array
-  AND p._boolean = $p_boolean
-  AND p._enum = $p_enum
-  AND p._float = $p_float
-  AND p._int = $p_int
   AND p._string = $p_string
+  AND p._int = $p_int
+  AND p._float = $p_float
+  AND p._array = $p_array
+  AND p._enum = $p_enum
+  AND p._boolean = $p_boolean
 RETURN p { .age } AS p
 ----
 

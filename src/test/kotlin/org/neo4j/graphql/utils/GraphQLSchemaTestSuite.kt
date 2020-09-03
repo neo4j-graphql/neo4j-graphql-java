@@ -1,14 +1,15 @@
 package org.neo4j.graphql.utils
 
 import graphql.language.InterfaceTypeDefinition
-import graphql.schema.GraphQLFieldDefinition
-import graphql.schema.GraphQLObjectType
 import graphql.schema.GraphQLSchema
 import graphql.schema.GraphQLType
 import graphql.schema.diff.DiffSet
 import graphql.schema.diff.SchemaDiff
 import graphql.schema.diff.reporting.CapturingReporter
-import graphql.schema.idl.*
+import graphql.schema.idl.RuntimeWiring
+import graphql.schema.idl.SchemaGenerator
+import graphql.schema.idl.SchemaParser
+import graphql.schema.idl.SchemaPrinter
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assumptions
 import org.junit.jupiter.api.DynamicNode
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.DynamicTest
 import org.neo4j.graphql.DynamicProperties
 import org.neo4j.graphql.SchemaBuilder
 import org.neo4j.graphql.SchemaConfig
+import org.neo4j.graphql.requiredName
 import org.opentest4j.AssertionFailedError
 import java.util.*
 import java.util.regex.Pattern
@@ -76,40 +78,16 @@ class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite(fileName) {
         private val SCHEMA_PRINTER = SchemaPrinter(SchemaPrinter.Options.defaultOptions()
             .includeDirectives(true)
             .includeScalarTypes(true)
-            .includeExtendedScalarTypes(true)
-            .includeSchemaDefintion(true)
+            .includeSchemaDefinition(true)
             .includeIntrospectionTypes(false)
-            .setComparators(DefaultSchemaPrinterComparatorRegistry.newComparators()
-                .addComparator({ env ->
-                    env.parentType(GraphQLObjectType::class.java)
-                    env.elementType(GraphQLFieldDefinition::class.java)
-                }, GraphQLFieldDefinition::class.java, fun(o1: GraphQLFieldDefinition, o2: GraphQLFieldDefinition): Int {
-                    val (op1, name1) = o1.splitName()
-                    val (op2, name2) = o2.splitName()
-                    if (op1 == null && op2 == null) {
-                        return name1.compareTo(name2)
-                    }
-                    if (op1 == null) {
-                        return -1
-                    }
-                    if (op2 == null) {
-                        return 1
-                    }
-                    val prio1 = name1.compareTo(name2)
-                    if (prio1 == 0) {
-                        return op1.compareTo(op2)
-                    }
-                    return prio1
-                })
-                .build())
         )
 
         fun GraphQLType.splitName(): Pair<String?, String> {
-            val m = METHOD_PATTERN.matcher(this.name)
+            val m = METHOD_PATTERN.matcher(this.requiredName())
             return if (m.find()) {
                 m.group(1) to m.group(2).toLowerCase()
             } else {
-                null to this.name.toLowerCase()
+                null to this.requiredName().toLowerCase()
             }
         }
 

@@ -58,7 +58,7 @@ data class Neo4jQueryConversion(val name: String, val propertyName: String, val 
             if (!isNeo4jType) {
                 Neo4jQueryConversion(name, name)
             }
-            val converter = getNeo4jTypeConverter(fieldDefinition.type.inner().name)
+            val converter = getNeo4jTypeConverter(fieldDefinition.type.innerName())
             val objectValue = (value as? ObjectValue)
                 ?.objectFields
                 ?.map { it.name to it.value }
