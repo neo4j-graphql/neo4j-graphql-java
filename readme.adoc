@@ -88,6 +88,8 @@ You find more usage examples in the:
 
 == Demo
 
+IMPORTANT: For complex examples take a look at our link:examples/readme.adoc[example projects]
+
 Here is a minimalistic example in Groovy using the Neo4j-Java driver and Spark-Java as webserver.
 It is running against a Neo4j instance at `bolt://localhost` (username: `neo4j`, password: `s3cr3t`) containing the `:play movies` graph.
 
