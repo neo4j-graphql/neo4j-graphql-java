@@ -1,7 +1,10 @@
-neo4j:
-  username: neo4j
-  password: test
-  uri: bolt://localhost:7687
+org:
+  neo4j:
+    driver:
+      uri: bolt://localhost:7687
+      authentication:
+        username: neo4j
+        password: test
 graphql:
   packages:
     - "org.neo4j.graphql.examples.graphqlspringboot.controller"

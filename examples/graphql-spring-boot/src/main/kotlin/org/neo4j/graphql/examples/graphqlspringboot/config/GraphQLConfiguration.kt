@@ -35,7 +35,7 @@ open class GraphQLConfiguration {
      */
     @Bean
     open fun neo4jSchema(
-            @Value("classpath:schema.graphqls") graphQl: Resource,
+            @Value("classpath:schema.graphql") graphQl: Resource,
             @Autowired(required = false) dataFetchingInterceptor: DataFetchingInterceptor
     ): GraphQLSchema {
         val schema = graphQl.inputStream.bufferedReader().use { it.readText() }

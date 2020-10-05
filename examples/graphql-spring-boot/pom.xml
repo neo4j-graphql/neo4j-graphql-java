@@ -29,8 +29,8 @@
 		<!-- neo4j driver + the neo4j-graphql-java library -->
 		<dependency>
 			<groupId>org.neo4j.driver</groupId>
-			<artifactId>neo4j-java-driver</artifactId>
-			<version>1.7.2</version>
+			<artifactId>neo4j-java-driver-spring-boot-starter</artifactId>
+			<version>4.1.1.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.neo4j</groupId>

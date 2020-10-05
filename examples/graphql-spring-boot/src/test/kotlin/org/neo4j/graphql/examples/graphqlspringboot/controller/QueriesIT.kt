@@ -2,7 +2,7 @@ package org.neo4j.graphql.examples.graphqlspringboot.controller
 
 import com.expediagroup.graphql.types.GraphQLRequest
 import org.junit.jupiter.api.Test
-import org.neo4j.graphql.examples.graphqlspringboot.config.Neo4jProperties
+import org.neo4j.driver.springframework.boot.autoconfigure.Neo4jDriverProperties
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -17,10 +17,13 @@ import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import java.net.URI
 
+/**
+ * Integration test of example
+ */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EnableAutoConfiguration
 @Testcontainers
-internal class QueriesTest(
+internal class QueriesIT(
         @Autowired private val testClient: WebTestClient
 ) {
     @Test
@@ -111,8 +114,13 @@ internal class QueriesTest(
         @Bean
         @ConfigurationProperties(prefix = "ignore")
         @Primary
-        open fun properties(): Neo4jProperties {
-            return Neo4jProperties(URI.create(neo4jServer.boltUrl), "neo4j", neo4jServer.adminPassword)
+        open fun properties(): Neo4jDriverProperties {
+            val properties = Neo4jDriverProperties()
+            properties.uri = URI.create(neo4jServer.boltUrl)
+            properties.authentication = Neo4jDriverProperties.Authentication()
+            properties.authentication.username = "neo4j"
+            properties.authentication.password = neo4jServer.adminPassword
+            return properties
         }
 
     }
