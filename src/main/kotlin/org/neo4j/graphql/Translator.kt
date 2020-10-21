@@ -46,7 +46,7 @@ class Translator(val schema: GraphQLSchema) {
                 operationDefinition.selectionSet.selections
                     .filterIsInstance<Field>() // FragmentSpread, InlineFragment
                     .map { field ->
-                        val cypher = toQuery(operationDefinition.operation, field, fragments, ctx)
+                        val cypher = toQuery(operationDefinition.operation, field, fragments, params, ctx)
                         val resolvedParams = cypher.params.mapValues { toBoltValue(it.value, params) }
                         cypher.with(resolvedParams) // was cypher.with(params)
                     }
@@ -60,7 +60,12 @@ class Translator(val schema: GraphQLSchema) {
         else -> value
     }
 
-    private fun toQuery(op: OperationDefinition.Operation, field: Field, fragments: Map<String, FragmentDefinition?>, ctx: QueryContext = QueryContext()): Cypher {
+    private fun toQuery(op: OperationDefinition.Operation,
+            field: Field,
+            fragments: Map<String, FragmentDefinition?>,
+            variables: Map<String, Any?>,
+            ctx: QueryContext = QueryContext()
+    ): Cypher {
         val name = field.name
         val operationObjectType: GraphQLObjectType
         val fieldDefinition: GraphQLFieldDefinition
@@ -88,6 +93,7 @@ class Translator(val schema: GraphQLSchema) {
             .context(ctx)
             .localContext(ctx)
             .fieldDefinition(fieldDefinition)
+            .variables(variables)
             .build()) as? Cypher
                 ?: throw java.lang.IllegalStateException("not supported")
     }

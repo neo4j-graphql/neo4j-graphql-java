@@ -42,13 +42,19 @@ open class ProjectionBase {
             } ?: emptyList()
     }
 
-    fun where(variable: String, fieldDefinition: GraphQLFieldDefinition, type: GraphQLFieldsContainer, arguments: List<Argument>, field: Field): Cypher {
+    fun where(
+            variable: String,
+            fieldDefinition: GraphQLFieldDefinition,
+            type: GraphQLFieldsContainer, arguments: List<Argument>,
+            field: Field,
+            env: DataFetchingEnvironment
+    ): Cypher {
 
         val all = preparePredicateArguments(fieldDefinition, arguments)
             .filterNot { listOf(FIRST, OFFSET, ORDER_BY).contains(it.name) }
             .plus(predicateForNeo4jTypes(type, field))
         val (filterExpressions, filterParams) =
-                filterExpressions(all.find { it.name == FILTER }?.value, type)
+                filterExpressions(all.find { it.name == FILTER }?.value, type, env.variables)
                     .map { it.toExpression(variable) }
                     .let { expressions ->
                         expressions.map { it.query } to expressions.fold(emptyMap<String, Any?>()) { res, exp -> res + exp.params }
@@ -99,11 +105,16 @@ open class ProjectionBase {
             .toMap()
     }
 
-    private fun filterExpressions(value: Any?, type: GraphQLFieldsContainer): List<Predicate> {
-        // todo variable/parameter
-        return if (value is Map<*, *>) {
-            CompoundPredicate(value.map { (k, v) -> toExpression(k.toString(), v, type) }, "AND").parts
-        } else emptyList()
+    private fun filterExpressions(value: Any?, type: GraphQLFieldsContainer, variables: MutableMap<String, Any>): List<Predicate> {
+        return when (value) {
+            is Map<*, *> -> {
+                CompoundPredicate(value.map { (k, v) -> toExpression(k.toString(), v, type) }, "AND").parts
+            }
+            is VariableReference -> {
+                variables[value.name]?.let { filterExpressions(it, type, variables) } ?: emptyList()
+            }
+            else -> emptyList()
+        }
     }
 
     fun propertyArguments(queryField: Field) =
@@ -352,7 +363,7 @@ open class ProjectionBase {
 
         val relPattern = if (isRelFromType) "$childVariable:${relInfo.relType}" else ":${relInfo.relType}"
 
-        val where = where(childVariable, fieldDefinition, nodeType, propertyArguments(field), field)
+        val where = where(childVariable, fieldDefinition, nodeType, propertyArguments(field), field, env)
 
         val orderBy = getOrderByArgs(field.arguments)
         val sortByNeo4jTypeFields = orderBy
