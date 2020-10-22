@@ -3,7 +3,10 @@ package org.neo4j.graphql
 import graphql.Scalars
 import graphql.schema.*
 
-class BuildingEnv(val types: MutableMap<String, GraphQLNamedType>) {
+class BuildingEnv(
+        val types: MutableMap<String, GraphQLNamedType>,
+        private val sourceSchema: GraphQLSchema
+) {
 
     private val typesForRelation = types.values
         .filterIsInstance<GraphQLObjectType>()
@@ -43,10 +46,18 @@ class BuildingEnv(val types: MutableMap<String, GraphQLNamedType>) {
         }
     }
 
+    fun addQueryField(fieldDefinition: GraphQLFieldDefinition) {
+        addOperation(sourceSchema.queryTypeName(), fieldDefinition)
+    }
+
+    fun addMutationField(fieldDefinition: GraphQLFieldDefinition) {
+        addOperation(sourceSchema.mutationTypeName(), fieldDefinition)
+    }
+
     /**
      * add the given operation to the corresponding rootType
      */
-    fun addOperation(rootTypeName: String, fieldDefinition: GraphQLFieldDefinition) {
+    private fun addOperation(rootTypeName: String, fieldDefinition: GraphQLFieldDefinition) {
         val rootType = types[rootTypeName]
         types[rootTypeName] = if (rootType == null) {
             val builder = GraphQLObjectType.newObject()

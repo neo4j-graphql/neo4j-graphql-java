@@ -76,8 +76,8 @@ abstract class BaseRelationHandler(
             return true
         }
 
-        final override fun createDataFetcher(rootType: GraphQLObjectType, fieldDefinition: GraphQLFieldDefinition): DataFetcher<Cypher>? {
-            if (rootType.name != MUTATION) {
+        final override fun createDataFetcher(operationType: OperationType, fieldDefinition: GraphQLFieldDefinition): DataFetcher<Cypher>? {
+            if (operationType != OperationType.MUTATION) {
                 return null
             }
             if (fieldDefinition.cypherDirective() != null) {
