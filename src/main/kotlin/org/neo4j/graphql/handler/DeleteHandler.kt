@@ -23,11 +23,11 @@ class DeleteHandler private constructor(
                 .description("Deletes ${type.name} and returns the type itself")
                 .type(type.ref() as GraphQLOutputType)
                 .build()
-            buildingEnv.addOperation(MUTATION, fieldDefinition)
+            buildingEnv.addMutationField(fieldDefinition)
         }
 
-        override fun createDataFetcher(rootType: GraphQLObjectType, fieldDefinition: GraphQLFieldDefinition): DataFetcher<Cypher>? {
-            if (rootType.name != MUTATION){
+        override fun createDataFetcher(operationType: OperationType, fieldDefinition: GraphQLFieldDefinition): DataFetcher<Cypher>? {
+            if (operationType != OperationType.MUTATION){
                 return null
             }
             if (fieldDefinition.cypherDirective() != null) {

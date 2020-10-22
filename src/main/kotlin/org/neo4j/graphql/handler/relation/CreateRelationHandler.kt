@@ -35,7 +35,7 @@ class CreateRelationHandler private constructor(
                                 ?.filter { it.type.isScalar() && !it.isID() }
                                 ?.forEach { builder.argument(input(it.name, it.type)) }
 
-                            buildingEnv.addOperation(MUTATION, builder.build())
+                            buildingEnv.addMutationField(builder.build())
                         }
 
                 }

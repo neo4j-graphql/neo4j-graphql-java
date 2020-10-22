@@ -38,11 +38,11 @@ class QueryHandler private constructor(
                 builder.argument(input(ORDER_BY, orderType))
             }
             val def = builder.build()
-            buildingEnv.addOperation(QUERY, def)
+            buildingEnv.addQueryField(def)
         }
 
-        override fun createDataFetcher(rootType: GraphQLObjectType, fieldDefinition: GraphQLFieldDefinition): DataFetcher<Cypher>? {
-            if (rootType.name != QUERY) {
+        override fun createDataFetcher(operationType: OperationType, fieldDefinition: GraphQLFieldDefinition): DataFetcher<Cypher>? {
+            if (operationType != OperationType.QUERY) {
                 return null
             }
             val cypherDirective = fieldDefinition.cypherDirective()

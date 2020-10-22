@@ -1,7 +1,10 @@
 package org.neo4j.graphql.handler
 
 import graphql.language.Field
-import graphql.schema.*
+import graphql.schema.DataFetcher
+import graphql.schema.DataFetchingEnvironment
+import graphql.schema.GraphQLFieldDefinition
+import graphql.schema.GraphQLFieldsContainer
 import org.neo4j.graphql.*
 
 class MergeOrUpdateHandler private constructor(
@@ -22,16 +25,16 @@ class MergeOrUpdateHandler private constructor(
             val mergeField = buildingEnv
                 .buildFieldDefinition("merge", type, relevantFields, nullableResult = false)
                 .build()
-            buildingEnv.addOperation(MUTATION, mergeField)
+            buildingEnv.addMutationField(mergeField)
 
             val updateField = buildingEnv
                 .buildFieldDefinition("update", type, relevantFields, nullableResult = true)
                 .build()
-            buildingEnv.addOperation(MUTATION, updateField)
+            buildingEnv.addMutationField(updateField)
         }
 
-        override fun createDataFetcher(rootType: GraphQLObjectType, fieldDefinition: GraphQLFieldDefinition): DataFetcher<Cypher>? {
-            if (rootType.name != MUTATION) {
+        override fun createDataFetcher(operationType: OperationType, fieldDefinition: GraphQLFieldDefinition): DataFetcher<Cypher>? {
+            if (operationType != OperationType.MUTATION) {
                 return null
             }
             if (fieldDefinition.cypherDirective() != null) {
