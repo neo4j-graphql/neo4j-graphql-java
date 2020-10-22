@@ -8,6 +8,7 @@ import graphql.schema.idl.ScalarInfo.STANDARD_SCALAR_DEFINITIONS
 import graphql.schema.idl.SchemaGenerator
 import graphql.schema.idl.SchemaParser
 import graphql.schema.idl.TypeDefinitionRegistry
+import org.neo4j.graphql.AugmentationHandler.OperationType
 import org.neo4j.graphql.handler.*
 import org.neo4j.graphql.handler.projection.ProjectionBase
 import org.neo4j.graphql.handler.relation.CreateRelationHandler
@@ -15,9 +16,6 @@ import org.neo4j.graphql.handler.relation.CreateRelationTypeHandler
 import org.neo4j.graphql.handler.relation.DeleteRelationHandler
 
 object SchemaBuilder {
-    private const val MUTATION = "Mutation"
-    private const val SUBSCRIPTION = "Subscription"
-    private const val QUERY = "Query"
 
     /**
      * @param sdl the schema to augment
@@ -37,9 +35,7 @@ object SchemaBuilder {
     @JvmOverloads
     fun buildSchema(typeDefinitionRegistry: TypeDefinitionRegistry, config: SchemaConfig = SchemaConfig(), dataFetchingInterceptor: DataFetchingInterceptor? = null): GraphQLSchema {
         val enhancedRegistry = typeDefinitionRegistry.merge(getNeo4jEnhancements())
-        if (!enhancedRegistry.getType(QUERY).isPresent) {
-            enhancedRegistry.add(ObjectTypeDefinition.newObjectTypeDefinition().name(QUERY).build())
-        }
+        ensureRootQueryTypeExists(enhancedRegistry)
 
         val builder = RuntimeWiring.newRuntimeWiring()
         typeDefinitionRegistry.scalars()
@@ -74,9 +70,32 @@ object SchemaBuilder {
 
         val handler = getHandler(config)
 
-        var targetSchema = augmentSchema(sourceSchema, handler, config)
+        var targetSchema = augmentSchema(sourceSchema, handler)
         targetSchema = addDataFetcher(targetSchema, dataFetchingInterceptor, handler)
         return targetSchema
+    }
+
+    private fun ensureRootQueryTypeExists(enhancedRegistry: TypeDefinitionRegistry) {
+        val queryCreator: (SchemaDefinition.Builder) -> Unit = { t: SchemaDefinition.Builder ->
+            t.operationTypeDefinition(OperationTypeDefinition
+                .newOperationTypeDefinition()
+                .name("query")
+                .typeName(TypeName("Query"))
+                .build())
+        }
+        val queryDefinition = ObjectTypeDefinition.newObjectTypeDefinition().name("Query").build()
+
+        val schemaDefinition = enhancedRegistry.schemaDefinition().orElse(null)
+        if (schemaDefinition == null) {
+            enhancedRegistry.add(queryDefinition)
+            val newSchemaDefinition = SchemaDefinition.newSchemaDefinition()
+            queryCreator(newSchemaDefinition)
+            enhancedRegistry.add(newSchemaDefinition.build())
+        } else if (schemaDefinition.operationTypeDefinitions?.find { it.name == "query" } == null) {
+            enhancedRegistry.add(queryDefinition)
+            enhancedRegistry.remove(schemaDefinition)
+            enhancedRegistry.add(schemaDefinition.transform(queryCreator))
+        }
     }
 
     private fun getHandler(schemaConfig: SchemaConfig): List<AugmentationHandler> {
@@ -99,18 +118,20 @@ object SchemaBuilder {
         return handler
     }
 
-    private fun augmentSchema(sourceSchema: GraphQLSchema, handler: List<AugmentationHandler>, config: SchemaConfig): GraphQLSchema {
+    private fun augmentSchema(sourceSchema: GraphQLSchema, handler: List<AugmentationHandler>): GraphQLSchema {
         val types = sourceSchema.typeMap.toMutableMap()
-        val env = BuildingEnv(types)
-
+        val env = BuildingEnv(types, sourceSchema)
+        val queryTypeName = sourceSchema.queryTypeName()
+        val mutationTypeName = sourceSchema.mutationTypeName()
+        val subscriptionTypeName = sourceSchema.subscriptionTypeName()
         types.values
             .filterIsInstance<GraphQLFieldsContainer>()
             .filter {
                 !it.name.startsWith("__")
                         && !it.isNeo4jType()
-                        && it.name != QUERY
-                        && it.name != MUTATION
-                        && it.name != SUBSCRIPTION
+                        && it.name != queryTypeName
+                        && it.name != mutationTypeName
+                        && it.name != subscriptionTypeName
             }
             .forEach { type ->
                 handler.forEach { h -> h.augmentType(type, env) }
@@ -140,8 +161,8 @@ object SchemaBuilder {
         return GraphQLSchema
             .newSchema(sourceSchema)
             .clearAdditionalTypes()
-            .query(types[QUERY] as? GraphQLObjectType)
-            .mutation(types[MUTATION] as? GraphQLObjectType)
+            .query(types[queryTypeName] as? GraphQLObjectType)
+            .mutation(types[mutationTypeName] as? GraphQLObjectType)
             .additionalTypes(types.values.toSet())
             .build()
     }
@@ -174,20 +195,21 @@ object SchemaBuilder {
 
     private fun addDataFetcher(sourceSchema: GraphQLSchema, dataFetchingInterceptor: DataFetchingInterceptor?, handler: List<AugmentationHandler>): GraphQLSchema {
         val codeRegistryBuilder = GraphQLCodeRegistry.newCodeRegistry(sourceSchema.codeRegistry)
-        addDataFetcher(sourceSchema.queryType, dataFetchingInterceptor, handler, codeRegistryBuilder)
-        addDataFetcher(sourceSchema.mutationType, dataFetchingInterceptor, handler, codeRegistryBuilder)
+        addDataFetcher(sourceSchema.queryType, OperationType.QUERY, dataFetchingInterceptor, handler, codeRegistryBuilder)
+        addDataFetcher(sourceSchema.mutationType, OperationType.MUTATION, dataFetchingInterceptor, handler, codeRegistryBuilder)
         return sourceSchema.transform { it.codeRegistry(codeRegistryBuilder.build()) }
     }
 
     private fun addDataFetcher(
             rootType: GraphQLObjectType?,
+            operationType: OperationType,
             dataFetchingInterceptor: DataFetchingInterceptor?,
             handler: List<AugmentationHandler>,
             codeRegistryBuilder: GraphQLCodeRegistry.Builder) {
         if (rootType == null) return
         rootType.fieldDefinitions.forEach { field ->
             handler.forEach { h ->
-                h.createDataFetcher(rootType, field)?.let { dataFetcher ->
+                h.createDataFetcher(operationType, field)?.let { dataFetcher ->
                     val df: DataFetcher<*> = dataFetchingInterceptor?.let {
                         DataFetcher { env ->
                             dataFetchingInterceptor.fetchData(env, dataFetcher)

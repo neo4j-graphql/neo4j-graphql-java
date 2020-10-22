@@ -1,7 +1,10 @@
 package org.neo4j.graphql.handler
 
 import graphql.language.Field
-import graphql.schema.*
+import graphql.schema.DataFetcher
+import graphql.schema.DataFetchingEnvironment
+import graphql.schema.GraphQLFieldDefinition
+import graphql.schema.GraphQLFieldsContainer
 import org.neo4j.graphql.*
 
 class CypherDirectiveHandler(
@@ -13,12 +16,12 @@ class CypherDirectiveHandler(
 
     class Factory(schemaConfig: SchemaConfig) : AugmentationHandler(schemaConfig) {
 
-        override fun createDataFetcher(rootType: GraphQLObjectType, fieldDefinition: GraphQLFieldDefinition): DataFetcher<Cypher>? {
+        override fun createDataFetcher(operationType: OperationType, fieldDefinition: GraphQLFieldDefinition): DataFetcher<Cypher>? {
             val cypherDirective = fieldDefinition.cypherDirective() ?: return null
             // TODO cypher directives can also return scalars
             val type = fieldDefinition.type.inner() as? GraphQLFieldsContainer
                     ?: return null
-            val isQuery = rootType.name == QUERY
+            val isQuery = operationType == OperationType.QUERY
             return CypherDirectiveHandler(type, isQuery, cypherDirective, fieldDefinition)
         }
     }
