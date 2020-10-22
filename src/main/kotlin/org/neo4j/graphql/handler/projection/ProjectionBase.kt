@@ -47,14 +47,14 @@ open class ProjectionBase {
             fieldDefinition: GraphQLFieldDefinition,
             type: GraphQLFieldsContainer, arguments: List<Argument>,
             field: Field,
-            env: DataFetchingEnvironment
+            variables: Map<String, Any>
     ): Cypher {
 
         val all = preparePredicateArguments(fieldDefinition, arguments)
             .filterNot { listOf(FIRST, OFFSET, ORDER_BY).contains(it.name) }
             .plus(predicateForNeo4jTypes(type, field))
         val (filterExpressions, filterParams) =
-                filterExpressions(all.find { it.name == FILTER }?.value, type, env.variables)
+                filterExpressions(all.find { it.name == FILTER }?.value, type, variables)
                     .map { it.toExpression(variable) }
                     .let { expressions ->
                         expressions.map { it.query } to expressions.fold(emptyMap<String, Any?>()) { res, exp -> res + exp.params }
@@ -105,7 +105,7 @@ open class ProjectionBase {
             .toMap()
     }
 
-    private fun filterExpressions(value: Any?, type: GraphQLFieldsContainer, variables: MutableMap<String, Any>): List<Predicate> {
+    private fun filterExpressions(value: Any?, type: GraphQLFieldsContainer, variables: Map<String, Any>): List<Predicate> {
         return when (value) {
             is Map<*, *> -> {
                 CompoundPredicate(value.map { (k, v) -> toExpression(k.toString(), v, type) }, "AND").parts
@@ -363,7 +363,7 @@ open class ProjectionBase {
 
         val relPattern = if (isRelFromType) "$childVariable:${relInfo.relType}" else ":${relInfo.relType}"
 
-        val where = where(childVariable, fieldDefinition, nodeType, propertyArguments(field), field, env)
+        val where = where(childVariable, fieldDefinition, nodeType, propertyArguments(field), field, env.variables)
 
         val orderBy = getOrderByArgs(field.arguments)
         val sortByNeo4jTypeFields = orderBy
