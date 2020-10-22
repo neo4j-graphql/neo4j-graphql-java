@@ -65,6 +65,7 @@ open class AsciiDocTestSuite(private val fileName: String) {
                                 ignore)
                         currentDocumentLevel?.tests?.add(tests)
                         codeBlocks = mutableMapOf()
+                        ignore = false
                     }
                     inside = !inside
                 }
