@@ -1872,37 +1872,39 @@ RETURN p {
 
 === Filter as variable
 
-CAUTION: Is not working
-
 .GraphQL-Query
 [source,graphql]
 ----
 query filterQuery($filter: _PersonFilter) { person(filter: $filter) { name }}
 ----
 
+.Query variables
+[source,json,request=true]
+----
+{
+  "filter": {
+    "name": "Jane",
+    "company": {
+      "name_ends_with": "ME"
+    }
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonName_EQ" : "Jane",
+  "filterPerson_CompanyName_EW" : "ME"
+}
+----
+
 .Cypher
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE (((person.name = "Jane" AND  ALL(person_Company_Cond IN [(person)-[:WORKS_AT]->(person_Company) | (person_Company.name ENDS WITH "ME")] WHERE person_Company_Cond))))
-RETURN person { .name } AS person
-----
-
-'''
-
-CAUTION: Is not working
-
-.GraphQL-Query
-[source,graphql]
-----
-query filterQuery($filter: _PersonFilter) { person(filter: $filter) { name }}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (person:Person)
-WHERE (person.name = "Jane")
+WHERE person.name = $filterPersonName_EQ AND ALL(person_Company_Cond IN [(person)-[: WORKS_AT]->(person_Company) | (person_Company.name ENDS WITH $filterPerson_CompanyName_EW)] WHERE person_Company_Cond)
 RETURN person { .name } AS person
 ----
 
