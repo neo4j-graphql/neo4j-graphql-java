@@ -76,26 +76,27 @@ object SchemaBuilder {
     }
 
     private fun ensureRootQueryTypeExists(enhancedRegistry: TypeDefinitionRegistry) {
-        val queryCreator: (SchemaDefinition.Builder) -> Unit = { t: SchemaDefinition.Builder ->
-            t.operationTypeDefinition(OperationTypeDefinition
+        var schemaDefinition = enhancedRegistry.schemaDefinition().orElse(null)
+        if (schemaDefinition?.operationTypeDefinitions?.find { it.name == "query" } != null){
+            return
+        }
+
+        enhancedRegistry.add(ObjectTypeDefinition.newObjectTypeDefinition().name("Query").build())
+
+        if (schemaDefinition != null) {
+            // otherwise adding a transform schema would fail
+            enhancedRegistry.remove(schemaDefinition)
+        } else {
+            schemaDefinition = SchemaDefinition.newSchemaDefinition().build()
+        }
+
+        enhancedRegistry.add(schemaDefinition.transform {
+            it.operationTypeDefinition(OperationTypeDefinition
                 .newOperationTypeDefinition()
                 .name("query")
                 .typeName(TypeName("Query"))
                 .build())
-        }
-        val queryDefinition = ObjectTypeDefinition.newObjectTypeDefinition().name("Query").build()
-
-        val schemaDefinition = enhancedRegistry.schemaDefinition().orElse(null)
-        if (schemaDefinition == null) {
-            enhancedRegistry.add(queryDefinition)
-            val newSchemaDefinition = SchemaDefinition.newSchemaDefinition()
-            queryCreator(newSchemaDefinition)
-            enhancedRegistry.add(newSchemaDefinition.build())
-        } else if (schemaDefinition.operationTypeDefinitions?.find { it.name == "query" } == null) {
-            enhancedRegistry.add(queryDefinition)
-            enhancedRegistry.remove(schemaDefinition)
-            enhancedRegistry.add(schemaDefinition.transform(queryCreator))
-        }
+        })
     }
 
     private fun getHandler(schemaConfig: SchemaConfig): List<AugmentationHandler> {
