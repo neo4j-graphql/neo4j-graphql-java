@@ -1,0 +1,19 @@
+type Team {
+  id: ID!
+  name: String!
+  players: [Player!]! @relation(from: "team", to: "player", name: "MEMBER_OF", direction: IN)
+  memberships: [Membership!]!
+}
+
+type Player {
+  id: ID!
+  name: String!
+  teams: [Team!] @relation(from: "player", to: "team", name: "MEMBER_OF")
+  memberships: [Membership!]!
+}
+
+type Membership @relation(from: "player", to: "team", name: "MEMBER_OF") {
+  player: Player!
+  team: Team!
+  prop: String
+}

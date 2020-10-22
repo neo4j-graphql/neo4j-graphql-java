@@ -1,0 +1,3 @@
+= Examples
+
+* link:graphql-spring-boot/readme.adoc[spring boot integration]
