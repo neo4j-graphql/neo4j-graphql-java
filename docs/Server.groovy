@@ -36,8 +36,7 @@ def query(value) { gson.fromJson(value,Map.class)["query"] }
 graphql = new Translator(SchemaBuilder.buildSchema(schema))
 def translate(query) { graphql.translate(query) }
 
-driver = GraphDatabase.driver("neo4j://localhost",AuthTokens.basic("neo4j","password"),
-                              Config.builder().withoutEncryption().build())
+driver = GraphDatabase.driver("neo4j://localhost",AuthTokens.basic("neo4j","password"))
 
 def run(cypher) { driver.session().withCloseable {
     it.run(cypher.query, Values.value(cypher.params)).list{ it.asMap() }}}
