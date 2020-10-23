@@ -249,7 +249,7 @@ fun Value<*>.toJavaValue(): Any? = when (this) {
 
 fun paramName(variable: String, argName: String, value: Any?): String = when (value) {
     is VariableReference -> value.name
-    else -> "$variable${argName.capitalize()}"
+    else -> "$variable${argName.capitalize()}".decapitalize()
 }
 
 fun GraphQLFieldDefinition.isID() = this.type.inner() == Scalars.GraphQLID

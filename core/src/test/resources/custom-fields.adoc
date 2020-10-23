@@ -31,13 +31,22 @@ schema {
   query: QueryType
 }
 type QueryType {
-  person(name:String) : Person @cypher(statement:"MATCH (p:Person { name:{name} }) RETURN p")
+  Person(name:String) : Person @cypher(statement:"MATCH (p:Person { name:{name} }) RETURN p")
   getOrderPosition(sid:ID!) : [OrderPosition] @cypher(statement:"MATCH (op:OrderPosition {sid: {sid}}) RETURN op")
 }
 
 type MutationType {
   createPerson(name:String) : Person @cypher(statement:"CREATE (p:Person { name: \"Test\"+{name} }) RETURN p")
   setOrderPositionAmount(sid:ID!, amount:Int) : [OrderPosition] @cypher(statement:"MATCH (op:OrderPosition {sid:{sid}}) SET op.amount = {amount} RETURN op")
+}
+----
+
+== Schema Configuration
+
+[source,json,schema-config=true]
+----
+{
+  "capitalizeQueryFields": true
 }
 ----
 
@@ -95,14 +104,14 @@ CREATE (:Person {name:'Jane'}), (:Person {name:'John'})
 .GraphQL-Query
 [source,graphql]
 ----
-query { person(name:"Jane") {name} }
+query { Person(name:"Jane") {name} }
 ----
 
 .GraphQL-Response
 [source,json,response=true]
 ----
 {
-  "person" : {
+  "Person" : {
     "name" : "Jane"
   }
 }
@@ -119,8 +128,8 @@ query { person(name:"Jane") {name} }
 .Cypher
 [source,cypher]
 ----
-UNWIND apoc.cypher.runFirstColumnSingle('WITH $name AS name MATCH (p: Person { name: { name }}) RETURN p', { name: $personName }) AS person
-RETURN person { .name } AS person
+UNWIND apoc.cypher.runFirstColumnSingle('WITH $name AS name MATCH (p: Person { name: { name } }) RETURN p', { name: $personName }) AS Person
+RETURN Person { .name } AS Person
 ----
 
 == Query non nullable value
@@ -128,14 +137,14 @@ RETURN person { .name } AS person
 .GraphQL-Query
 [source,graphql]
 ----
-query { person(name:"Jane") {name, label} }
+query { Person(name:"Jane") {name, label} }
 ----
 
 .GraphQL-Response
 [source,json,response=true]
 ----
 {
-  "person" : {
+  "Person" : {
     "name" : "Jane",
     "label" : "jane"
   }
@@ -153,11 +162,11 @@ query { person(name:"Jane") {name, label} }
 .Cypher
 [source,cypher]
 ----
-UNWIND apoc.cypher.runFirstColumnSingle('WITH $name AS name MATCH (p: Person { name: { name } }) RETURN p', { name: $personName }) AS person
-RETURN person {
+UNWIND apoc.cypher.runFirstColumnSingle('WITH $name AS name MATCH (p: Person { name: { name } }) RETURN p', { name: $personName }) AS Person
+RETURN Person {
   .name,
-  label: apoc.cypher.runFirstColumnSingle('WITH $this AS this RETURN toLower(this.name) as label', { this: person })
-} AS person
+  label: apoc.cypher.runFirstColumnSingle('WITH $this AS this RETURN toLower(this.name) as label', { this: Person })
+} AS Person
 ----
 
 == Query nullable value
@@ -165,14 +174,14 @@ RETURN person {
 .GraphQL-Query
 [source,graphql]
 ----
-query { person(name:"Jane") {name, nullable} }
+query { Person(name:"Jane") {name, nullable} }
 ----
 
 .GraphQL-Response
 [source,json,response=true]
 ----
 {
-  "person" : {
+  "Person" : {
     "nullable" : null,
     "name" : "Jane"
   }
@@ -190,11 +199,11 @@ query { person(name:"Jane") {name, nullable} }
 .Cypher
 [source,cypher]
 ----
-UNWIND apoc.cypher.runFirstColumnSingle('WITH $name AS name MATCH (p: Person { name: { name } }) RETURN p', { name: $personName }) AS person
-RETURN person {
+UNWIND apoc.cypher.runFirstColumnSingle('WITH $name AS name MATCH (p: Person { name: { name } }) RETURN p', { name: $personName }) AS Person
+RETURN Person {
   .name,
-  nullable: apoc.cypher.runFirstColumnSingle('WITH $this AS this RETURN null', { this: person })
-} AS person
+  nullable: apoc.cypher.runFirstColumnSingle('WITH $this AS this RETURN null', { this: Person })
+} AS Person
 ----
 
 == Query field by getter
@@ -202,14 +211,14 @@ RETURN person {
 .GraphQL-Query
 [source,graphql]
 ----
-query { orderPosition { amount } }
+query { OrderPosition { amount } }
 ----
 
 .GraphQL-Response
 [source,json,response=true]
 ----
 {
-  "orderPosition" : [ ]
+  "OrderPosition" : [ ]
 }
 ----
 
@@ -222,6 +231,6 @@ query { orderPosition { amount } }
 .Cypher
 [source,cypher]
 ----
-MATCH (orderPosition: OrderPosition)
-RETURN orderPosition { .amount } AS orderPosition
+MATCH (OrderPosition: OrderPosition)
+RETURN OrderPosition { .amount } AS OrderPosition
 ----
