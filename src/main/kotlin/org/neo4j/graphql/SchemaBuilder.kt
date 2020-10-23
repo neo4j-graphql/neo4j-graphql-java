@@ -223,7 +223,8 @@ object SchemaBuilder {
     }
 
     private fun getNeo4jEnhancements(): TypeDefinitionRegistry {
-        val directivesSdl = javaClass.getResource("/neo4j.graphql").readText()
+        val directivesSdl = javaClass.getResource("/neo4j_types.graphql").readText() +
+                javaClass.getResource("/lib_directives.graphql").readText()
         val typeDefinitionRegistry = SchemaParser().parse(directivesSdl)
         neo4jTypeDefinitions
             .forEach {
