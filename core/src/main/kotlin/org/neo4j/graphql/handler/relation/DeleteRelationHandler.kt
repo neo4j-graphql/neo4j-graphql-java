@@ -54,7 +54,7 @@ class DeleteRelationHandler private constructor(
                 " MATCH (${relation.startField})${relation.arrows.first}-[r:${relation.relType.quote()}]-${relation.arrows.second}(${relation.endField})" +
                 " DELETE r" +
                 " WITH DISTINCT ${relation.startField} AS $variable" +
-                " RETURN ${mapProjection.query} AS $variable",
+                " RETURN ${mapProjection.query} AS ${field.aliasOrName()}",
                 startSelect.params + endSelect.params)
     }
 

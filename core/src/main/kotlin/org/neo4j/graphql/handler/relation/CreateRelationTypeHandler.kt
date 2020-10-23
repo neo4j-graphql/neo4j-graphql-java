@@ -109,7 +109,7 @@ class CreateRelationTypeHandler private constructor(
                 " MATCH ${endSelect.query}" +
                 " CREATE (${relation.startField})-[$variable:${relation.relType.quote()}${properties.query}]->(${relation.endField})" +
                 " WITH $variable" +
-                " RETURN ${mapProjection.query} AS $variable",
+                " RETURN ${mapProjection.query} AS ${field.aliasOrName()}",
                 startSelect.params + endSelect.params + properties.params)
     }
 }

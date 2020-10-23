@@ -133,7 +133,7 @@ query {
 [source,cypher]
 ----
 MATCH (movie:Movie)
-RETURN movie { .movieId } AS movie
+RETURN movie { .movieId } AS Movie
 ----
 
 === Query Single Object
@@ -161,7 +161,7 @@ RETURN movie { .movieId } AS movie
 ----
 MATCH (movieById:Movie)
 WHERE movieById.movieId = $movieByIdMovieId
-RETURN movieById { .title } AS movieById
+RETURN movieById { .title } AS MovieById
 ----
 
 === Basic Query with Parameter
@@ -183,7 +183,7 @@ RETURN movieById { .title } AS movieById
 ----
 MATCH (movie:Movie)
 WHERE  movie.title = $movieTitle
-RETURN movie { .title } AS movie
+RETURN movie { .title } AS Movie
 ----
 
 === Paging
@@ -215,7 +215,7 @@ RETURN movie { .title } AS movie
 ----
 MATCH (movie:Movie)
 WHERE movie.title = $movieTitle
-RETURN movie { .title, .year } AS movie
+RETURN movie { .title, .year } AS Movie
 SKIP $movieOffset LIMIT $movieFirst
 ----
 
@@ -251,7 +251,7 @@ WHERE movieById.movieId = $movieByIdMovieId
 RETURN movieById {
   .title,
   filmedIn:[(movieById)-[:FILMED_IN]->(movieByIdFilmedIn:State) | movieByIdFilmedIn { .name }][0]
-} AS movieById
+} AS MovieById
 ----
 
 === Query Single Object and Array of Object Relations
@@ -290,7 +290,7 @@ RETURN movieById {
   .title,
   actors:[(movieById)<-[:ACTED_IN]-(movieByIdActors:Actor) | movieByIdActors { .name }],
   filmedIn:[(movieById)-[:FILMED_IN]->(movieByIdFilmedIn:State) | movieByIdFilmedIn { .name }][0]
-} AS movieById
+} AS MovieById
 ----
 
 === Relationship Expansion
@@ -324,7 +324,7 @@ WHERE movie.title = $movieTitle
 RETURN movie {
   .title,
   actors:[(movie)<-[:ACTED_IN]-(movieActors:Actor) | movieActors { .name }]
-} AS movie
+} AS Movie
 ----
 
 === Projection with sub-paging
@@ -359,7 +359,7 @@ WHERE movie.title = $movieTitle
 RETURN movie {
   .title,
   actors:[(movie)<-[:ACTED_IN]-(movieActors:Actor) | movieActors { .name }][0..$movieActorsFirst]
-} AS movie
+} AS Movie
 ----
 
 === Subquery Cypher Directive
@@ -400,7 +400,7 @@ RETURN movie {
       }) | movieSimilar {
         .title
       }]
-} AS movie
+} AS Movie
 ----
 
 === Subquery Cypher Directive Paging
@@ -442,7 +442,7 @@ RETURN movie {
     }) | movieSimilar {
       .title
     }][0..$movieSimilarFirst]
-} AS movie
+} AS Movie
 ----
 
 === Handle Cypher Directive on Query Type
@@ -476,7 +476,7 @@ UNWIND apoc.cypher.runFirstColumnMany('WITH $substring AS substring MATCH (g:Gen
 RETURN genresBySubstring {
   .name,
   movies:[(genresBySubstring)<-[:IN_GENRE]-(genresBySubstringMovies:Movie) | genresBySubstringMovies { .title }][0..$genresBySubstringMoviesFirst]
-} AS genresBySubstring
+} AS GenresBySubstring
 ----
 
 === Handle Cypher directive on Mutation type
@@ -547,7 +547,7 @@ RETURN movie {
     .rating,
     from:movieRatingsFrom { .name, .userId }
   }]
-} AS movie
+} AS Movie
 ----
 
 === Deeply nested object query
@@ -603,7 +603,7 @@ RETURN movie { .title, actors:[(movie)<-[:ACTED_IN]-(movieActors:Actor) |
              movieActorsMoviesActors { .name, movies:[(movieActorsMoviesActors)-[:ACTED_IN]->(movieActorsMoviesActorsMovies:Movie) |
                movieActorsMoviesActorsMovies { .title, .year, similar:[movieActorsMoviesActorsMoviesSimilar
                  IN apoc.cypher.runFirstColumnMany('WITH $this AS this, $first AS first, $offset AS offset MATCH (this)--(:Genre)--(o:Movie) RETURN o', { this:movieActorsMoviesActorsMovies, first:$movieActorsMoviesActorsMoviesFirst, offset:$movieActorsMoviesActorsMoviesOffset }) |
-                   movieActorsMoviesActorsMoviesSimilar { .title, .year }][0..$movieActorsMoviesActorsMoviesSimilarFirst] }] }] }] }] } AS movie
+                   movieActorsMoviesActorsMoviesSimilar { .title, .year }][0..$movieActorsMoviesActorsMoviesSimilarFirst] }] }] }] }] } AS Movie
 ----
 
 === Should merge an actor by the userId
@@ -830,7 +830,7 @@ RETURN add { .name } AS add
 ----
 MATCH (movie:Movie)
 WHERE movie.year = $movieYear
-RETURN movie { .title } AS movie
+RETURN movie { .title } AS Movie
 ORDER BY movie.title DESC
 LIMIT $movieFirst
 ----
@@ -855,7 +855,7 @@ LIMIT $movieFirst
 [source,cypher]
 ----
 MATCH  (movie:Movie)
-RETURN  movie  {  .title  } AS  movie
+RETURN  movie  {  .title  } AS  Movie
 ORDER BY movie.year DESC LIMIT $movieFirst
 ----
 
@@ -895,7 +895,7 @@ RETURN movie {
       .title
     }], ['^title','plot'])
   }], ['name'])
-} AS movie
+} AS Movie
 ORDER BY movie.title DESC
 ----
 
@@ -956,7 +956,7 @@ RETURN user {
       formatted: toString(sortedElement.born)
     }
   }]
-} AS user
+} AS User
 ORDER BY user.born DESC
 ----
 
@@ -1143,7 +1143,7 @@ query {
 [source,cypher]
 ----
 MATCH (user:User)
-RETURN user { born: { formatted: toString(user.born), year: user.born.year } } AS user
+RETURN user { born: { formatted: toString(user.born), year: user.born.year } } AS User
 ----
 
 === User born query filter with multiple fields
@@ -1171,7 +1171,7 @@ query {
 ----
 MATCH (user:User)
 WHERE user.born = datetime($userBornFormatted) AND user.born.year = $userBornYear
-RETURN user { born: { year: user.born.year } } AS user
+RETURN user { born: { year: user.born.year } } AS User
 ----
 
 === Merge Actor with born field formatted

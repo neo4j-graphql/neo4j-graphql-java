@@ -63,7 +63,7 @@ class DeleteHandler private constructor(
                 " WITH $variable as toDelete, " +
                 "${mapProjection.query} AS $variable" +
                 " DETACH DELETE toDelete" +
-                " RETURN $variable",
+                " RETURN ${field.aliasOrName()}",
                 select.params + mapProjection.params)
     }
 

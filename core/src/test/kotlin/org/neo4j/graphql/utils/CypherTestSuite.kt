@@ -9,6 +9,7 @@ import org.neo4j.harness.TestServerBuilders
 import java.io.File
 import java.util.*
 import java.util.concurrent.FutureTask
+import kotlin.streams.toList
 
 class CypherTestSuite(fileName: String) : AsciiDocTestSuite(
         fileName,

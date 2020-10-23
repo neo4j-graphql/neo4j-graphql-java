@@ -74,7 +74,7 @@ class CreateTypeHandler private constructor(
         val mapProjection = projectFields(variable, field, type, env, null)
         return Cypher("CREATE ($variable:${allLabels()}${properties.query})" +
                 " WITH $variable" +
-                " RETURN ${mapProjection.query} AS $variable",
+                " RETURN ${mapProjection.query} AS ${field.aliasOrName()}",
                 (mapProjection.params + properties.params))
     }
 

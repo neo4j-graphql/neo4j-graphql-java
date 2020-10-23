@@ -34,13 +34,13 @@ class CypherDirectiveHandler(
         return if (isQuery) {
             val (query, params) = cypherDirective(variable, fieldDefinition, field, cypherDirective, emptyList())
             Cypher("UNWIND $query AS $variable" +
-                    " RETURN ${mapProjection.query} AS $variable$ordering${skipLimit.query}",
+                    " RETURN ${mapProjection.query} AS ${field.aliasOrName()}$ordering${skipLimit.query}",
                     (params + mapProjection.params + skipLimit.params))
         } else {
             val (query, params) = cypherDirectiveQuery(variable, fieldDefinition, field, cypherDirective, emptyList())
             Cypher("CALL apoc.cypher.doIt($query) YIELD value" +
                     " WITH value[head(keys(value))] AS $variable" +
-                    " RETURN ${mapProjection.query} AS $variable$ordering${skipLimit.query}",
+                    " RETURN ${mapProjection.query} AS ${field.aliasOrName()}$ordering${skipLimit.query}",
                     (params + mapProjection.params + skipLimit.params))
         }
     }
