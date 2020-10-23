@@ -70,7 +70,7 @@ class CreateRelationHandler private constructor(
                 " MATCH ${endSelect.query}" +
                 " MERGE (${relation.startField})${relation.arrows.first}-[:${relation.relType.quote()}${properties.query}]-${relation.arrows.second}(${relation.endField})" +
                 " WITH DISTINCT ${relation.startField} AS $variable" +
-                " RETURN ${mapProjection.query} AS $variable",
+                " RETURN ${mapProjection.query} AS ${field.aliasOrName()}",
                 startSelect.params + endSelect.params + properties.params)
     }
 }

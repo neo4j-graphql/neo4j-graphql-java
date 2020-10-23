@@ -85,7 +85,7 @@ class QueryHandler private constructor(
 
             val (partialQuery, filterParams) = OptimizedFilterHandler(type).generateFilterQuery(variable, field)
             val statement = partialQuery
-                .returning(PassThrough("${mapProjection.query} AS $variable$ordering${skipLimit.query}"))
+                .returning(PassThrough("${mapProjection.query} AS ${field.aliasOrName()}$ordering${skipLimit.query}"))
                 .build()
             val query = Renderer.getDefaultRenderer().render(statement)
             return Cypher(query, filterParams + mapProjection.params + skipLimit.params)
@@ -100,7 +100,7 @@ class QueryHandler private constructor(
         val where = where(variable, fieldDefinition, type, propertyArguments(field), field, env.variables)
         return Cypher(
                 """MATCH $select${where.query}
-                  |RETURN ${mapProjection.query} AS $variable$ordering${skipLimit.query}""".trimMargin(),
+                  |RETURN ${mapProjection.query} AS ${field.aliasOrName()}$ordering${skipLimit.query}""".trimMargin(),
                 (where.params + mapProjection.params + skipLimit.params))
     }
 }

@@ -128,8 +128,8 @@ query { Person(name:"Jane") {name} }
 .Cypher
 [source,cypher]
 ----
-UNWIND apoc.cypher.runFirstColumnSingle('WITH $name AS name MATCH (p: Person { name: { name } }) RETURN p', { name: $personName }) AS Person
-RETURN Person { .name } AS Person
+UNWIND apoc.cypher.runFirstColumnSingle('WITH $name AS name MATCH (p: Person { name: { name } }) RETURN p', { name: $personName }) AS person
+RETURN person { .name } AS Person
 ----
 
 == Query non nullable value
@@ -162,10 +162,10 @@ query { Person(name:"Jane") {name, label} }
 .Cypher
 [source,cypher]
 ----
-UNWIND apoc.cypher.runFirstColumnSingle('WITH $name AS name MATCH (p: Person { name: { name } }) RETURN p', { name: $personName }) AS Person
-RETURN Person {
+UNWIND apoc.cypher.runFirstColumnSingle('WITH $name AS name MATCH (p: Person { name: { name } }) RETURN p', { name: $personName }) AS person
+RETURN person {
   .name,
-  label: apoc.cypher.runFirstColumnSingle('WITH $this AS this RETURN toLower(this.name) as label', { this: Person })
+  label: apoc.cypher.runFirstColumnSingle('WITH $this AS this RETURN toLower(this.name) as label', { this: person })
 } AS Person
 ----
 
@@ -199,10 +199,10 @@ query { Person(name:"Jane") {name, nullable} }
 .Cypher
 [source,cypher]
 ----
-UNWIND apoc.cypher.runFirstColumnSingle('WITH $name AS name MATCH (p: Person { name: { name } }) RETURN p', { name: $personName }) AS Person
-RETURN Person {
+UNWIND apoc.cypher.runFirstColumnSingle('WITH $name AS name MATCH (p: Person { name: { name } }) RETURN p', { name: $personName }) AS person
+RETURN person {
   .name,
-  nullable: apoc.cypher.runFirstColumnSingle('WITH $this AS this RETURN null', { this: Person })
+  nullable: apoc.cypher.runFirstColumnSingle('WITH $this AS this RETURN null', { this: person })
 } AS Person
 ----
 
@@ -231,6 +231,6 @@ query { OrderPosition { amount } }
 .Cypher
 [source,cypher]
 ----
-MATCH (OrderPosition: OrderPosition)
-RETURN OrderPosition { .amount } AS OrderPosition
+MATCH (orderPosition: OrderPosition)
+RETURN orderPosition { .amount } AS OrderPosition
 ----

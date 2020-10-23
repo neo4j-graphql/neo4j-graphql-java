@@ -68,7 +68,7 @@ abstract class BaseDataFetcher(
         val field = env?.mergedField?.singleField
                 ?: throw IllegalAccessException("expect one filed in environment.mergedField")
         require(field.name == fieldDefinition.name) { "Handler for ${fieldDefinition.name} cannot handle ${field.name}" }
-        val variable = field.aliasOrName()
+        val variable = field.aliasOrName().decapitalize()
         return generateCypher(
                 variable,
                 field,

@@ -84,7 +84,7 @@ class MergeOrUpdateHandler private constructor(
         return Cypher((if (merge && !idField.isNativeId()) "MERGE " else "MATCH ") + select.query +
                 " SET $variable += " + properties.query +
                 " WITH $variable" +
-                " RETURN ${mapProjection.query} AS $variable",
+                " RETURN ${mapProjection.query} AS ${field.aliasOrName()}",
                 select.params + properties.params + mapProjection.params)
     }
 }
