@@ -12,7 +12,7 @@ class TranslatorExceptionTests : AsciiDocTestSuite("translator-tests1.adoc") {
 
     @TestFactory
     fun createTests(): Stream<DynamicNode> {
-        return parse(linkedSetOf())
+        return generateTests()
     }
 
     override fun schemaTestFactory(schema: String): List<DynamicNode> {

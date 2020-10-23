@@ -45,6 +45,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.neo4j.procedure</groupId>
+            <artifactId>apoc</artifactId>
+            <version>${neo4j-apoc.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>server-api</artifactId>
             <version>${neo4j.version}</version>
@@ -65,6 +71,12 @@
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
             <version>5.5.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
             <scope>test</scope>
         </dependency>
         <dependency>

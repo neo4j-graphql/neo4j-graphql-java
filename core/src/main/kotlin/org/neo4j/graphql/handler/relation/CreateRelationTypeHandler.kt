@@ -37,11 +37,11 @@ class CreateRelationTypeHandler private constructor(
 
             createArgs.forEach { builder.argument(input(it.name, it.type)) }
 
-            buildingEnv.addOperation(MUTATION, builder.build())
+            buildingEnv.addMutationField(builder.build())
         }
 
-        override fun createDataFetcher(rootType: GraphQLObjectType, fieldDefinition: GraphQLFieldDefinition): DataFetcher<Cypher>? {
-            if (rootType.name != MUTATION) {
+        override fun createDataFetcher(operationType: OperationType, fieldDefinition: GraphQLFieldDefinition): DataFetcher<Cypher>? {
+            if (operationType != OperationType.MUTATION) {
                 return null
             }
             if (fieldDefinition.cypherDirective() != null) {

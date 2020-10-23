@@ -38,11 +38,11 @@ class QueryHandler private constructor(
                 builder.argument(input(ORDER_BY, orderType))
             }
             val def = builder.build()
-            buildingEnv.addOperation(QUERY, def)
+            buildingEnv.addQueryField(def)
         }
 
-        override fun createDataFetcher(rootType: GraphQLObjectType, fieldDefinition: GraphQLFieldDefinition): DataFetcher<Cypher>? {
-            if (rootType.name != QUERY) {
+        override fun createDataFetcher(operationType: OperationType, fieldDefinition: GraphQLFieldDefinition): DataFetcher<Cypher>? {
+            if (operationType != OperationType.QUERY) {
                 return null
             }
             val cypherDirective = fieldDefinition.cypherDirective()
@@ -97,7 +97,7 @@ class QueryHandler private constructor(
         } else {
             "($variable:${label()})"
         }
-        val where = where(variable, fieldDefinition, type, propertyArguments(field), field)
+        val where = where(variable, fieldDefinition, type, propertyArguments(field), field, env.variables)
         return Cypher(
                 """MATCH $select${where.query}
                   |RETURN ${mapProjection.query} AS $variable$ordering${skipLimit.query}""".trimMargin(),

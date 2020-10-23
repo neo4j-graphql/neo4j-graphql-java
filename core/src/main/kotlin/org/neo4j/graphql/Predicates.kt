@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory
 typealias CypherDSL = org.neo4j.cypherdsl.core.Cypher
 
 interface Predicate {
-    fun toExpression(variable: String): Cypher
+    fun toExpression(variable: String, paramQualifier: String = ""): Cypher
 
     companion object {
         fun resolvePredicate(name: String, value: Any?, type: GraphQLFieldsContainer): Predicate {
@@ -77,18 +77,24 @@ fun toExpression(name: String, value: Any?, type: GraphQLFieldsContainer): Predi
         }
 
 data class CompoundPredicate(val parts: List<Predicate>, val op: String = "AND") : Predicate {
-    override fun toExpression(variable: String): Cypher =
-            parts.map { it.toExpression(variable) }
-                .let { expressions ->
-                    Cypher(
-                            expressions.map { it.query }.joinNonEmpty(" $op ", "(", ")"),
-                            expressions.fold(emptyMap()) { res, exp -> res + exp.params }
-                    )
-                }
+    override fun toExpression(variable: String, paramQualifier: String): Cypher {
+        val predicates = if (parts.size > 1)
+            parts.mapIndexed { index, predicate -> predicate.toExpression(variable, paramQualifier + "_" + op + (index + 1)) }
+        else {
+            parts.map { predicate -> predicate.toExpression(variable, paramQualifier) }
+        }
+        return predicates
+            .let { expressions ->
+                Cypher(
+                        expressions.map { it.query }.joinNonEmpty(" $op ", "(", ")"),
+                        expressions.fold(emptyMap()) { res, exp -> res + exp.params }
+                )
+            }
+    }
 }
 
 data class IsNullRelationPredicate(val fieldName: String, val op: RelationOperator, val type: GraphQLFieldsContainer) : Predicate {
-    override fun toExpression(variable: String): Cypher {
+    override fun toExpression(variable: String, paramQualifier: String): Cypher {
         val rel = type.relationshipFor(fieldName) ?: throw IllegalArgumentException("Not a relation")
         val (left, right) = rel.arrows
         val not = if (op == RelationOperator.NOT) "" else "NOT "
@@ -97,7 +103,7 @@ data class IsNullRelationPredicate(val fieldName: String, val op: RelationOperat
 }
 
 data class IsNullFieldPredicate(val fieldName: String, val op: FieldOperator, val type: GraphQLFieldsContainer) : Predicate {
-    override fun toExpression(variable: String): Cypher {
+    override fun toExpression(variable: String, paramQualifier: String): Cypher {
         val check = if (op == FieldOperator.IS_NOT_NULL) "IS NOT NULL" else "IS NULL"
         return Cypher("$variable.$fieldName $check")
     }
@@ -111,8 +117,8 @@ data class ExpressionPredicate(
         val nestedField: String = ""
 ) : Predicate {
     val not = if (op.not) "NOT " else ""
-    override fun toExpression(variable: String): Cypher {
-        val paramName: String = ProjectionBase.FILTER + paramName(variable, name, value).capitalize() + "_" + op.name + nestedField.replace('.', '_')
+    override fun toExpression(variable: String, paramQualifier: String): Cypher {
+        val paramName: String = ProjectionBase.FILTER + paramName(variable, name, value).capitalize() + paramQualifier + "_" + op.name + nestedField.replace('.', '_')
         val query = if (fieldDefinition.isNativeId()) {
             if (op.list) {
                 "${not}ID($variable) ${op.op} [id IN \$$paramName | toInteger(id)]"
@@ -127,8 +133,8 @@ data class ExpressionPredicate(
 }
 
 data class DistancePredicate(val name: String, val op: FieldOperator, val value: Any?, val fieldDefinition: GraphQLFieldDefinition) : Predicate {
-    override fun toExpression(variable: String): Cypher {
-        val paramName: String = ProjectionBase.FILTER + paramName(variable, name, value).capitalize() + "_" + op.name
+    override fun toExpression(variable: String, paramQualifier: String): Cypher {
+        val paramName: String = ProjectionBase.FILTER + paramName(variable, name, value).capitalize() + paramQualifier + "_" + op.name
         val query = "distance($variable.${name.quote()}, point(\$$paramName.point)) ${op.op} \$$paramName.distance"
         return Cypher(query, mapOf(paramName to value))
     }
@@ -145,7 +151,7 @@ data class RelationPredicate(val fieldName: String, val op: RelationOperator, va
     // ALL/ANY/NONE/SINGLE(p in (type)-[:TYPE]->() WHERE pred(last(nodes(p)))
     // ALL/ANY/NONE/SINGLE(x IN [(type)-[:TYPE]->(o) | pred(o)] WHERE x)
 
-    override fun toExpression(variable: String): Cypher {
+    override fun toExpression(variable: String, paramQualifier: String): Cypher {
         val prefix = when (op) {
             RelationOperator.EQ_OR_NOT_EXISTS -> "ALL"
             RelationOperator.NOT -> "ALL" // bc of not

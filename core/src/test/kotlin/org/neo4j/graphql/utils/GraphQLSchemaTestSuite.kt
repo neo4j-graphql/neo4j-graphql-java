@@ -21,27 +21,27 @@ import org.neo4j.graphql.requiredName
 import org.opentest4j.AssertionFailedError
 import java.util.*
 import java.util.regex.Pattern
-import java.util.stream.Stream
 
-class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite(fileName) {
+class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite(
+        fileName,
+        listOf("[source,json]", "[source,graphql]")
+) {
 
-    fun run(): Stream<DynamicNode> {
-        return parse(linkedSetOf("[source,json]", "[source,graphql]"))
-    }
-
-    override fun testFactory(title: String, schema: String, codeBlocks: Map<String, ParsedBlock>, ignore: Boolean): List<DynamicNode> {
+    override fun testFactory(title: String, globalBlocks: Map<String, ParsedBlock>, codeBlocks: Map<String, ParsedBlock>, ignore: Boolean): List<DynamicNode> {
         val targetSchemaBlock = codeBlocks["[source,graphql]"]
         val compareSchemaTest = DynamicTest.dynamicTest("compare schema", targetSchemaBlock?.uri, {
             val configBlock = codeBlocks["[source,json]"]
-            val config = MAPPER.readValue(configBlock?.code?.toString()
+            val config = MAPPER.readValue(configBlock?.code()
                     ?: throw IllegalStateException("missing config $title"), SchemaConfig::class.java)
 
-            val targetSchema = targetSchemaBlock?.code?.trim()?.toString()
+            val targetSchema = targetSchemaBlock?.code()
                     ?: throw IllegalStateException("missing graphql for $title")
 
             var augmentedSchema: GraphQLSchema? = null
             var expectedSchema: GraphQLSchema? = null
             try {
+                val schema = globalBlocks[SCHEMA_MARKER]?.code()
+                        ?: throw IllegalStateException("Schema should be defined")
                 augmentedSchema = SchemaBuilder.buildSchema(schema, config)
                 val schemaParser = SchemaParser()
 
@@ -61,9 +61,13 @@ class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite(fileName) {
                 if (ignore) {
                     Assumptions.assumeFalse(true, e.message)
                 } else {
+                    val actualSchema = SCHEMA_PRINTER.print(augmentedSchema)
+                    targetSchemaBlock.adjustedCode = actualSchema + "\n" +
+                            // this is added since the SCHEMA_PRINTER is not able to print global directives
+                            javaClass.getResource("/lib_directives.graphql").readText()
                     throw AssertionFailedError("augmented schema differs for '$title'",
                             expectedSchema?.let { SCHEMA_PRINTER.print(it) } ?: targetSchema,
-                            SCHEMA_PRINTER.print(augmentedSchema),
+                            actualSchema,
                             e)
 
                 }
