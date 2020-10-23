@@ -267,3 +267,8 @@ fun GraphQLInputObjectType.Builder.addFilterField(fieldName: String, isList: Boo
         .type(wrappedType)
     this.field(inputField)
 }
+
+
+fun GraphQLSchema.queryTypeName() = this.queryType?.name ?: "Query"
+fun GraphQLSchema.mutationTypeName() = this.mutationType?.name ?: "Mutation"
+fun GraphQLSchema.subscriptionTypeName() = this.subscriptionType?.name ?: "Subscription"

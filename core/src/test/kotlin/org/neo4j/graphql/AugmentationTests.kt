@@ -7,4 +7,7 @@ class AugmentationTests {
 
     @TestFactory
     fun `augmentation-tests`() = GraphQLSchemaTestSuite("augmentation-tests.adoc").run()
+
+    @TestFactory
+    fun `schema-operations-tests`() = GraphQLSchemaTestSuite("schema-operations-tests.adoc").run()
 }
