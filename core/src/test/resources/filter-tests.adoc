@@ -27,6 +27,43 @@ type Query {
 }
 ----
 
+== Test Data
+
+[source,cypher,test-data=true]
+----
+CREATE (c:Company {name: 'ACME'})
+WITH c
+UNWIND [
+  {id:       'jane',
+   name:     'Jane',
+   age:      38,
+   gender:   'female',
+   fun:      true,
+   height:   1.75,
+   location: point({longitude: 1, latitude: 2, height: 3})
+  },
+  {id: 'joe', name: 'Joe', age: 42, gender: 'male', fun: false, height: 1.85}
+] AS props
+CREATE (p:Person)-[:WORKS_AT]->(c)
+SET p = props;
+
+CREATE (c:Company {name: 'ACME2'})
+WITH c
+UNWIND [{
+  id:       'jill',
+  name:     'Jill',
+  age:      32,
+  gender:   'female',
+  fun:      true,
+  height:   1.65,
+  location: point({longitude: 2, latitude: 3, height: 3})
+}]
+AS props
+
+CREATE (p:Person)-[:WORKS_AT]->(c)
+SET p = props
+----
+
 == Filter on _Enum_
 
 === Filter enum _eq_
@@ -35,6 +72,16 @@ type Query {
 [source,graphql]
 ----
 { person(filter: { gender: male }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Joe"
+  } ]
+}
 ----
 
 .Cypher Params
@@ -61,6 +108,18 @@ RETURN person { .name } AS person
 { person(filter: { gender_not: male }) { name }}
 ----
 
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  }, {
+    "name" : "Jill"
+  } ]
+}
+----
+
 .Cypher Params
 [source,json]
 ----
@@ -85,6 +144,18 @@ RETURN person { .name } AS person
 { person(filter: { gender_not_in: [male] }) { name }}
 ----
 
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  }, {
+    "name" : "Jill"
+  } ]
+}
+----
+
 .Cypher Params
 [source,json]
 ----
@@ -105,6 +176,16 @@ RETURN person { .name } AS person
 [source,graphql]
 ----
 { person(filter: { gender_in: [male] }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Joe"
+  } ]
+}
 ----
 
 .Cypher Params
@@ -135,6 +216,16 @@ RETURN person { .name } AS person
 { person(filter: { id: "jane" }) { name }}
 ----
 
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  } ]
+}
+----
+
 .Cypher Params
 [source,json]
 ----
@@ -157,6 +248,16 @@ RETURN person { .name } AS person
 [source,graphql]
 ----
 { person(filter: { id_starts_with: "ja" }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  } ]
+}
 ----
 
 .Cypher Params
@@ -183,6 +284,18 @@ RETURN person { .name } AS person
 { person(filter: { id_not_starts_with: "ja" }) { name }}
 ----
 
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Joe"
+  }, {
+    "name" : "Jill"
+  } ]
+}
+----
+
 .Cypher Params
 [source,json]
 ----
@@ -205,6 +318,16 @@ RETURN person { .name } AS person
 [source,graphql]
 ----
 { person(filter: { id_ends_with: "ne" }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  } ]
+}
 ----
 
 .Cypher Params
@@ -231,6 +354,18 @@ RETURN person { .name } AS person
 { person(filter: { id_not_ends_with: "ne" }) { name }}
 ----
 
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Joe"
+  }, {
+    "name" : "Jill"
+  } ]
+}
+----
+
 .Cypher Params
 [source,json]
 ----
@@ -253,6 +388,16 @@ RETURN person { .name } AS person
 [source,graphql]
 ----
 { person(filter: { id_contains: "an" }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  } ]
+}
 ----
 
 .Cypher Params
@@ -279,6 +424,18 @@ RETURN person { .name } AS person
 { person(filter: { id_not_contains: "an" }) { name }}
 ----
 
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Joe"
+  }, {
+    "name" : "Jill"
+  } ]
+}
+----
+
 .Cypher Params
 [source,json]
 ----
@@ -301,6 +458,16 @@ RETURN person { .name } AS person
 [source,graphql]
 ----
 { person(filter: { id_in: ["jane"] }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  } ]
+}
 ----
 
 .Cypher Params
@@ -327,6 +494,18 @@ RETURN person { .name } AS person
 { person(filter: { id_not_in: ["joe"] }) { name }}
 ----
 
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  }, {
+    "name" : "Jill"
+  } ]
+}
+----
+
 .Cypher Params
 [source,json]
 ----
@@ -349,6 +528,18 @@ RETURN person { .name } AS person
 [source,graphql]
 ----
 { person(filter: { id_not: "joe" }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  }, {
+    "name" : "Jill"
+  } ]
+}
 ----
 
 .Cypher Params
@@ -467,6 +658,16 @@ RETURN company { .name, _id:ID(company) } AS company
 { person(filter: { age: 38 }) { name }}
 ----
 
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  } ]
+}
+----
+
 .Cypher Params
 [source,json]
 ----
@@ -489,6 +690,16 @@ RETURN person { .name } AS person
 [source,graphql]
 ----
 { person(filter: { age_in: [38] }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  } ]
+}
 ----
 
 .Cypher Params
@@ -515,6 +726,18 @@ RETURN person { .name } AS person
 { person(filter: { age_not_in: [38] }) { name }}
 ----
 
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Joe"
+  }, {
+    "name" : "Jill"
+  } ]
+}
+----
+
 .Cypher Params
 [source,json]
 ----
@@ -537,6 +760,18 @@ RETURN person { .name } AS person
 [source,graphql]
 ----
 { person(filter: { age_lte: 40 }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  }, {
+    "name" : "Jill"
+  } ]
+}
 ----
 
 .Cypher Params
@@ -563,6 +798,18 @@ RETURN person { .name } AS person
 { person(filter: { age_lt: 40 }) { name }}
 ----
 
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  }, {
+    "name" : "Jill"
+  } ]
+}
+----
+
 .Cypher Params
 [source,json]
 ----
@@ -587,6 +834,16 @@ RETURN person { .name } AS person
 { person(filter: { age_gt: 40 }) { name }}
 ----
 
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Joe"
+  } ]
+}
+----
+
 .Cypher Params
 [source,json]
 ----
@@ -609,6 +866,16 @@ RETURN person { .name } AS person
 [source,graphql]
 ----
 { person(filter: { age_gte: 40 }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Joe"
+  } ]
+}
 ----
 
 .Cypher Params
@@ -637,6 +904,16 @@ RETURN person { .name } AS person
 { person(filter: { height: 1.75 }) { name }}
 ----
 
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  } ]
+}
+----
+
 .Cypher Params
 [source,json]
 ----
@@ -659,6 +936,18 @@ RETURN person { .name } AS person
 [source,graphql]
 ----
 { person(filter: { height_not: 1.75 }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Joe"
+  }, {
+    "name" : "Jill"
+  } ]
+}
 ----
 
 .Cypher Params
@@ -685,6 +974,16 @@ RETURN person { .name } AS person
 { person(filter: { height_in: [1.75] }) { name }}
 ----
 
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  } ]
+}
+----
+
 .Cypher Params
 [source,json]
 ----
@@ -707,6 +1006,18 @@ RETURN person { .name } AS person
 [source,graphql]
 ----
 { person(filter: { height_not_in: [1.75] }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Joe"
+  }, {
+    "name" : "Jill"
+  } ]
+}
 ----
 
 .Cypher Params
@@ -733,6 +1044,18 @@ RETURN person { .name } AS person
 { person(filter: { height_lte: 1.80 }) { name }}
 ----
 
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  }, {
+    "name" : "Jill"
+  } ]
+}
+----
+
 .Cypher Params
 [source,json]
 ----
@@ -755,6 +1078,18 @@ RETURN person { .name } AS person
 [source,graphql]
 ----
 { person(filter: { height_lt: 1.80 }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  }, {
+    "name" : "Jill"
+  } ]
+}
 ----
 
 .Cypher Params
@@ -781,6 +1116,16 @@ RETURN person { .name } AS person
 { person(filter: { height_gte: 1.80 }) { name }}
 ----
 
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Joe"
+  } ]
+}
+----
+
 .Cypher Params
 [source,json]
 ----
@@ -803,6 +1148,16 @@ RETURN person { .name } AS person
 [source,graphql]
 ----
 { person(filter: { height_gt: 1.80 }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Joe"
+  } ]
+}
 ----
 
 .Cypher Params
@@ -831,6 +1186,16 @@ RETURN person { .name } AS person
 { person(filter: { name: "Jane" }) { name }}
 ----
 
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  } ]
+}
+----
+
 .Cypher Params
 [source,json]
 ----
@@ -853,6 +1218,16 @@ RETURN person { .name } AS person
 [source,graphql]
 ----
 { person(filter: { name_starts_with: "Ja" }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  } ]
+}
 ----
 
 .Cypher Params
@@ -879,6 +1254,18 @@ RETURN person { .name } AS person
 { person(filter: { name_not_starts_with: "Ja" }) { name }}
 ----
 
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Joe"
+  }, {
+    "name" : "Jill"
+  } ]
+}
+----
+
 .Cypher Params
 [source,json]
 ----
@@ -901,6 +1288,16 @@ RETURN person { .name } AS person
 [source,graphql]
 ----
 { person(filter: { name_ends_with: "ne" }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  } ]
+}
 ----
 
 .Cypher Params
@@ -927,6 +1324,18 @@ RETURN person { .name } AS person
 { person(filter: { name_not_ends_with: "ne" }) { name }}
 ----
 
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Joe"
+  }, {
+    "name" : "Jill"
+  } ]
+}
+----
+
 .Cypher Params
 [source,json]
 ----
@@ -949,6 +1358,16 @@ RETURN person { .name } AS person
 [source,graphql]
 ----
 { person(filter: { name_contains: "an" }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  } ]
+}
 ----
 
 .Cypher Params
@@ -975,6 +1394,18 @@ RETURN person { .name } AS person
 { person(filter: { name_not_contains: "an" }) { name }}
 ----
 
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Joe"
+  }, {
+    "name" : "Jill"
+  } ]
+}
+----
+
 .Cypher Params
 [source,json]
 ----
@@ -997,6 +1428,16 @@ RETURN person { .name } AS person
 [source,graphql]
 ----
 { person(filter: { name_in: ["Jane"] }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  } ]
+}
 ----
 
 .Cypher Params
@@ -1023,6 +1464,18 @@ RETURN person { .name } AS person
 { person(filter: { name_not_in: ["Joe"] }) { name }}
 ----
 
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  }, {
+    "name" : "Jill"
+  } ]
+}
+----
+
 .Cypher Params
 [source,json]
 ----
@@ -1045,6 +1498,18 @@ RETURN person { .name } AS person
 [source,graphql]
 ----
 { person(filter: { name_not: "Joe" }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  }, {
+    "name" : "Jill"
+  } ]
+}
 ----
 
 .Cypher Params
@@ -1073,6 +1538,18 @@ RETURN person { .name } AS person
 { person(filter: { fun: true }) { name }}
 ----
 
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  }, {
+    "name" : "Jill"
+  } ]
+}
+----
+
 .Cypher Params
 [source,json]
 ----
@@ -1095,6 +1572,16 @@ RETURN person { .name } AS person
 [source,graphql]
 ----
 { person(filter: { fun_not: true }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Joe"
+  } ]
+}
 ----
 
 .Cypher Params
@@ -1123,6 +1610,16 @@ RETURN person { .name } AS person
 { person(filter: { location: {longitude: 1, latitude: 2} }) { name }}
 ----
 
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  } ]
+}
+----
+
 .Cypher Params
 [source,json]
 ----
@@ -1147,6 +1644,16 @@ RETURN person { .name } AS person
 [source,graphql]
 ----
 { person(filter: { location_not: {longitude: 1, latitude: 2} }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jill"
+  } ]
+}
 ----
 
 .Cypher Params
@@ -1175,6 +1682,16 @@ RETURN person { .name } AS person
 { person(filter: { location: null }) { name }}
 ----
 
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Joe"
+  } ]
+}
+----
+
 .Cypher Params
 [source,json]
 ----
@@ -1195,6 +1712,18 @@ RETURN person { .name } AS person
 [source,graphql]
 ----
 { person(filter: { location_not: null }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  }, {
+    "name" : "Jill"
+  } ]
+}
 ----
 
 .Cypher Params
@@ -1220,6 +1749,14 @@ RETURN person { .name } AS person
   person(filter:{ location_distance: { distance: 3, point: {longitude: 1, latitude:2, height: 3}}}){
     name
   }
+}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ ]
 }
 ----
 
@@ -1258,6 +1795,16 @@ RETURN person { .name } AS person
 }
 ----
 
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  } ]
+}
+----
+
 .Cypher Params
 [source,json]
 ----
@@ -1290,6 +1837,16 @@ RETURN person { .name } AS person
   person(filter:{ location_distance_lte: { distance: 3, point: {longitude: 1, latitude:2, height: 3}}}){
     name
   }
+}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  } ]
 }
 ----
 
@@ -1328,6 +1885,16 @@ RETURN person { .name } AS person
 }
 ----
 
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jill"
+  } ]
+}
+----
+
 .Cypher Params
 [source,json]
 ----
@@ -1360,6 +1927,16 @@ RETURN person { .name } AS person
   person(filter:{ location_distance_gte: { distance: 3, point: {longitude: 1, latitude:2, height: 3}}}){
     name
   }
+}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jill"
+  } ]
 }
 ----
 
@@ -1396,6 +1973,14 @@ RETURN person { .name } AS person
 { person(filter: { company: null }) { name }}
 ----
 
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ ]
+}
+----
+
 .Cypher
 [source,cypher]
 ----
@@ -1410,6 +1995,20 @@ RETURN person { .name } AS person
 [source,graphql]
 ----
 { person(filter: { company_not: null }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  }, {
+    "name" : "Joe"
+  }, {
+    "name" : "Jill"
+  } ]
+}
 ----
 
 .Cypher
@@ -1429,6 +2028,16 @@ RETURN person { .name } AS person
 [source,graphql]
 ----
 { person(filter: { AND: [{ fun: true, name: "Jane"}]  }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  } ]
+}
 ----
 
 .Cypher Params
@@ -1454,6 +2063,16 @@ RETURN person { .name } AS person
 [source,graphql]
 ----
 { person(filter: { AND: [{ fun: true},{name: "Jane"}]  }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  } ]
+}
 ----
 
 .Cypher Params
@@ -1483,6 +2102,16 @@ RETURN person { .name } AS person
 { person(filter: { OR: [{ fun: false, name_not: "Jane"}]  }) { name }}
 ----
 
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Joe"
+  } ]
+}
+----
+
 .Cypher Params
 [source,json]
 ----
@@ -1506,6 +2135,18 @@ RETURN person { .name } AS person
 [source,graphql]
 ----
 { person(filter: { OR: [{ name: "Jane"}, { name: "Joe"}]  }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  }, {
+    "name" : "Joe"
+  } ]
+}
 ----
 
 .Cypher Params
@@ -1533,6 +2174,18 @@ RETURN person { .name } AS person
 { person(filter: { OR: [{ fun: true},{name_in: ["Jane"]}]  }) { name }}
 ----
 
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  }, {
+    "name" : "Jill"
+  } ]
+}
+----
+
 .Cypher Params
 [source,json]
 ----
@@ -1556,6 +2209,16 @@ RETURN person { .name } AS person
 [source,graphql]
 ----
 { person(filter: { OR: [{ AND: [{fun: true},{height:1.75}]},{name_in: ["Jane"]}]  }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  } ]
+}
 ----
 
 .Cypher Params
@@ -1588,6 +2251,16 @@ RETURN person { .name } AS person
 { p: company(filter: { employees_some : { name : "Jane" } }) { name }}
 ----
 
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "p" : [ {
+    "name" : "ACME"
+  } ]
+}
+----
+
 .Cypher Params
 [source,json]
 ----
@@ -1610,6 +2283,16 @@ RETURN p { .name } AS p
 [source,graphql]
 ----
 { p: company(filter: { employees_some : { name : "Jill" } }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "p" : [ {
+    "name" : "ACME2"
+  } ]
+}
 ----
 
 .Cypher Params
@@ -1636,6 +2319,16 @@ RETURN p { .name } AS p
 { p: company(filter: { employees_every : { name : "Jill" } }) { name }}
 ----
 
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "p" : [ {
+    "name" : "ACME2"
+  } ]
+}
+----
+
 .Cypher Params
 [source,json]
 ----
@@ -1658,6 +2351,16 @@ RETURN p { .name } AS p
 [source,graphql]
 ----
 { p: company(filter: { employees_none : { name : "Jane" } }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "p" : [ {
+    "name" : "ACME2"
+  } ]
+}
 ----
 
 .Cypher Params
@@ -1684,6 +2387,16 @@ RETURN p { .name } AS p
 { p: company(filter: { employees_none : { name : "Jill" } }) { name }}
 ----
 
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "p" : [ {
+    "name" : "ACME"
+  } ]
+}
+----
+
 .Cypher Params
 [source,json]
 ----
@@ -1706,6 +2419,16 @@ RETURN p { .name } AS p
 [source,graphql]
 ----
 { p: company(filter: { employees_single : { name : "Jill" } }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "p" : [ {
+    "name" : "ACME2"
+  } ]
+}
 ----
 
 .Cypher Params
@@ -1732,6 +2455,14 @@ RETURN p { .name } AS p
 { p: person(filter: { company : null }) { name }}
 ----
 
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "p" : [ ]
+}
+----
+
 .Cypher Params
 [source,json]
 ----
@@ -1754,6 +2485,20 @@ RETURN p { .name } AS p
 { p: person(filter: { company_not : null }) { name }}
 ----
 
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "p" : [ {
+    "name" : "Jane"
+  }, {
+    "name" : "Joe"
+  }, {
+    "name" : "Jill"
+  } ]
+}
+----
+
 .Cypher Params
 [source,json]
 ----
@@ -1774,6 +2519,18 @@ RETURN p { .name } AS p
 [source,graphql]
 ----
 { person(filter: { company : { name : "ACME" } }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  }, {
+    "name" : "Joe"
+  } ]
+}
 ----
 
 .Cypher Params
@@ -1800,6 +2557,16 @@ RETURN person { .name } AS person
 { person(filter: { company_not : { name : "ACME" } }) { name }}
 ----
 
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jill"
+  } ]
+}
+----
+
 .Cypher Params
 [source,json]
 ----
@@ -1824,6 +2591,16 @@ RETURN person { .name } AS person
 { p: company(filter: { employees : { name_in : ["Jane","Joe"] } }) { name }}
 ----
 
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "p" : [ {
+    "name" : "ACME"
+  } ]
+}
+----
+
 .Cypher Params
 [source,json]
 ----
@@ -1846,6 +2623,22 @@ RETURN p { .name } AS p
 [source,graphql]
 ----
 { p: company { employees(filter: { OR: [{ name: "Jane" },{name:"Joe"}]}) { name }}}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "p" : [ {
+    "employees" : [ {
+      "name" : "Joe"
+    }, {
+      "name" : "Jane"
+    } ]
+  }, {
+    "employees" : [ ]
+  } ]
+}
 ----
 
 .Cypher Params
@@ -1876,6 +2669,16 @@ RETURN p {
 [source,graphql]
 ----
 query filterQuery($filter: _PersonFilter) { person(filter: $filter) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  } ]
+}
 ----
 
 .Query variables
@@ -1916,6 +2719,16 @@ RETURN person { .name } AS person
 query filterQuery($name: String) { person(filter: {name : $name}) { name }}
 ----
 
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  } ]
+}
+----
+
 .Query variables
 [source,json,request=true]
 ----
@@ -1946,6 +2759,20 @@ RETURN person { .name } AS person
 [source,graphql]
 ----
 { p: company { employees(filter: { name: "Jane" }) { name }}}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "p" : [ {
+    "employees" : [ {
+      "name" : "Jane"
+    } ]
+  }, {
+    "employees" : [ ]
+  } ]
+}
 ----
 
 .Cypher Params

@@ -23,7 +23,7 @@ schema {
 === Test schema
 
 .Configuration
-[source,json]
+[source,json,schema-config=true]
 ----
 {}
 ----
