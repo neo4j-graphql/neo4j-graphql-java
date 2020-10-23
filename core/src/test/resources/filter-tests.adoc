@@ -1127,8 +1127,8 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonLocation_EQ_longitude":1,
-  "filterPersonLocation_EQ_latitude":2
+  "filterPersonLocation_AND1_EQ_longitude" : 1,
+  "filterPersonLocation_AND2_EQ_latitude" : 2
 }
 ----
 
@@ -1136,8 +1136,8 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person: Person)
-WHERE (person.location.longitude = $filterPersonLocation_EQ_longitude
-  AND person.location.latitude = $filterPersonLocation_EQ_latitude)
+WHERE (person.location.longitude = $filterPersonLocation_AND1_EQ_longitude
+    AND person.location.latitude = $filterPersonLocation_AND2_EQ_latitude)
 RETURN person { .name } AS person
 ----
 
@@ -1153,8 +1153,8 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonLocation_NEQ_longitude":1,
-  "filterPersonLocation_NEQ_latitude":2
+  "filterPersonLocation_AND1_NEQ_longitude":1,
+  "filterPersonLocation_AND2_NEQ_latitude":2
 }
 ----
 
@@ -1162,8 +1162,8 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person: Person)
-WHERE (NOT person.location.longitude = $filterPersonLocation_NEQ_longitude
-  AND NOT person.location.latitude = $filterPersonLocation_NEQ_latitude)
+WHERE (NOT person.location.longitude = $filterPersonLocation_AND1_NEQ_longitude
+  AND NOT person.location.latitude = $filterPersonLocation_AND2_NEQ_latitude)
 RETURN person { .name } AS person
 ----
 
@@ -1435,8 +1435,8 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonFun_EQ": true,
-  "filterPersonName_EQ": "Jane"
+  "filterPersonFun_AND1_EQ": true,
+  "filterPersonName_AND2_EQ": "Jane"
 }
 ----
 
@@ -1444,7 +1444,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE ((person.fun = $filterPersonFun_EQ AND person.name = $filterPersonName_EQ))
+WHERE ((person.fun = $filterPersonFun_AND1_EQ AND person.name = $filterPersonName_AND2_EQ))
 RETURN person { .name } AS person
 ----
 
@@ -1460,8 +1460,8 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonFun_EQ": true,
-  "filterPersonName_EQ": "Jane"
+  "filterPersonFun_AND1_EQ" : true,
+  "filterPersonName_AND2_EQ" : "Jane"
 }
 ----
 
@@ -1469,11 +1469,13 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE ((person.fun = $filterPersonFun_EQ) AND (person.name = $filterPersonName_EQ))
+WHERE ((person.fun = $filterPersonFun_AND1_EQ) AND (person.name = $filterPersonName_AND2_EQ))
 RETURN person { .name } AS person
 ----
 
 === Filter _OR_
+
+==== Multiple fields
 
 .GraphQL-Query
 [source,graphql]
@@ -1485,8 +1487,8 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonFun_EQ": false,
-  "filterPersonName_NEQ": "Jane"
+  "filterPersonFun_AND1_EQ" : false,
+  "filterPersonName_AND2_NEQ" : "Jane"
 }
 ----
 
@@ -1494,11 +1496,36 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE ((person.fun = $filterPersonFun_EQ AND NOT person.name = $filterPersonName_NEQ))
+WHERE ((person.fun = $filterPersonFun_AND1_EQ AND NOT person.name = $filterPersonName_AND2_NEQ))
 RETURN person { .name } AS person
 ----
 
-'''
+==== Same field multiple values
+
+.GraphQL-Query
+[source,graphql]
+----
+{ person(filter: { OR: [{ name: "Jane"}, { name: "Joe"}]  }) { name }}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonName_OR1_EQ" : "Jane",
+  "filterPersonName_OR2_EQ" : "Joe"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE ((person.name = $filterPersonName_OR1_EQ) OR (person.name = $filterPersonName_OR2_EQ))
+RETURN person { .name } AS person
+----
+
+==== Multiple fields + array
 
 .GraphQL-Query
 [source,graphql]
@@ -1510,8 +1537,8 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonFun_EQ": true,
-  "filterPersonName_IN": ["Jane"]
+  "filterPersonFun_OR1_EQ" : true,
+  "filterPersonName_OR2_IN" : [ "Jane" ]
 }
 ----
 
@@ -1519,7 +1546,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE ((person.fun = $filterPersonFun_EQ) OR (person.name IN $filterPersonName_IN))
+WHERE ((person.fun = $filterPersonFun_OR1_EQ) OR (person.name IN $filterPersonName_OR2_IN))
 RETURN person { .name } AS person
 ----
 
@@ -1535,9 +1562,9 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonFun_EQ": true,
-  "filterPersonHeight_EQ": 1.75,
-  "filterPersonName_IN": [
+  "filterPersonFun_OR1_AND1_EQ" : true,
+  "filterPersonHeight_OR1_AND2_EQ" : 1.75,
+  "filterPersonName_OR2_IN" : [
     "Jane"
   ]
 }
@@ -1547,7 +1574,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE ((((person.fun = $filterPersonFun_EQ) AND (person.height = $filterPersonHeight_EQ))) OR (person.name IN $filterPersonName_IN))
+WHERE ((((person.fun = $filterPersonFun_OR1_AND1_EQ) AND (person.height = $filterPersonHeight_OR1_AND2_EQ))) OR (person.name IN $filterPersonName_OR2_IN))
 RETURN person { .name } AS person
 ----
 
@@ -1767,8 +1794,6 @@ RETURN person { .name } AS person
 
 === Cascaded filter object _not_ string _eq_
 
-CAUTION: Is not working
-
 .GraphQL-Query
 [source,graphql]
 ----
@@ -1779,7 +1804,7 @@ CAUTION: Is not working
 [source,json]
 ----
 {
-  "filterPerson_CompanyName": "ACME"
+  "filterPerson_CompanyName_EQ": "ACME"
 }
 ----
 
@@ -1787,7 +1812,7 @@ CAUTION: Is not working
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE NOT ALL(person_Company_Cond IN [(person)-[:WORKS_AT]->(person_Company) | (person_Company.name = $filterPerson_CompanyName)] WHERE person_Company_Cond)
+WHERE NOT ALL(person_Company_Cond IN [(person)-[:WORKS_AT]->(person_Company) | (person_Company.name = $filterPerson_CompanyName_EQ)] WHERE person_Company_Cond)
 RETURN person { .name } AS person
 ----
 
@@ -1817,20 +1842,30 @@ RETURN p { .name } AS p
 
 === Cascaded logical operator filter on object
 
-CAUTION: Is not working
-
 .GraphQL-Query
 [source,graphql]
 ----
 { p: company { employees(filter: { OR: [{ name: "Jane" },{name:"Joe"}]}) { name }}}
 ----
 
+.Cypher Params
+[source,json]
+----
+{
+  "filterPEmployeesName_OR1_EQ" : "Jane",
+  "filterPEmployeesName_OR2_EQ" : "Joe"
+}
+----
+
 .Cypher
 [source,cypher]
 ----
-MATCH (company:Company)
-RETURN graphql.labels(company) AS _labels,
-[ (company)<-[:WORKS_AT]-(company_employees:Person) WHERE (((company_employees.name = "Jane") OR (company_employees.name = "Joe"))) | company_employees {_labels : graphql.labels(company_employees), .name}] AS employees
+MATCH (p:Company)
+RETURN p {
+    employees: [(p)<-[:WORKS_AT]-(pEmployees:Person) WHERE ((pEmployees.name = $filterPEmployeesName_OR1_EQ) OR (pEmployees.name = $filterPEmployeesName_OR2_EQ)) | pEmployees {
+        .name
+    }]
+} AS p
 ----
 
 == Use of Variables
