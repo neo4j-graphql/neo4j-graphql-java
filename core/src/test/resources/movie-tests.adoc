@@ -182,7 +182,7 @@ RETURN movieById { .title } AS movieById
 [source,cypher]
 ----
 MATCH (movie:Movie)
-WHERE  movie.title = $movieTitle  
+WHERE  movie.title = $movieTitle
 RETURN movie { .title } AS movie
 ----
 
@@ -213,9 +213,9 @@ RETURN movie { .title } AS movie
 .Cypher
 [source,cypher]
 ----
-MATCH (movie:Movie) 
-WHERE movie.title = $movieTitle 
-RETURN movie { .title, .year } AS movie 
+MATCH (movie:Movie)
+WHERE movie.title = $movieTitle
+RETURN movie { .title, .year } AS movie
 SKIP $movieOffset LIMIT $movieFirst
 ----
 
@@ -246,8 +246,8 @@ SKIP $movieOffset LIMIT $movieFirst
 .Cypher
 [source,cypher]
 ----
-MATCH (movieById:Movie) 
-WHERE movieById.movieId = $movieByIdMovieId 
+MATCH (movieById:Movie)
+WHERE movieById.movieId = $movieByIdMovieId
 RETURN movieById {
   .title,
   filmedIn:[(movieById)-[:FILMED_IN]->(movieByIdFilmedIn:State) | movieByIdFilmedIn { .name }][0]
@@ -284,8 +284,8 @@ RETURN movieById {
 .Cypher
 [source,cypher]
 ----
-MATCH (movieById:Movie) 
-WHERE movieById.movieId = $movieByIdMovieId 
+MATCH (movieById:Movie)
+WHERE movieById.movieId = $movieByIdMovieId
 RETURN movieById {
   .title,
   actors:[(movieById)<-[:ACTED_IN]-(movieByIdActors:Actor) | movieByIdActors { .name }],
@@ -319,8 +319,8 @@ RETURN movieById {
 .Cypher
 [source,cypher]
 ----
-MATCH (movie:Movie)  
-WHERE movie.title = $movieTitle 
+MATCH (movie:Movie)
+WHERE movie.title = $movieTitle
 RETURN movie {
   .title,
   actors:[(movie)<-[:ACTED_IN]-(movieActors:Actor) | movieActors { .name }]
@@ -354,8 +354,8 @@ RETURN movie {
 .Cypher
 [source,cypher]
 ----
-MATCH (movie:Movie)  
-WHERE movie.title = $movieTitle 
+MATCH (movie:Movie)
+WHERE movie.title = $movieTitle
 RETURN movie {
   .title,
   actors:[(movie)<-[:ACTED_IN]-(movieActors:Actor) | movieActors { .name }][0..$movieActorsFirst]
@@ -389,7 +389,7 @@ RETURN movie {
 .Cypher
 [source,cypher]
 ----
-MATCH (movie:Movie)  
+MATCH (movie:Movie)
 RETURN movie {
   .title,
   similar:[movieSimilar
@@ -583,9 +583,9 @@ RETURN movie {
 [source,json]
 ----
 {
-  "movieTitle": "River Runs Through It, A", 
-  "movieActorsMoviesActorsName": "Tom Hanks", 
-  "movieActorsMoviesActorsMoviesFirst": 3, 
+  "movieTitle": "River Runs Through It, A",
+  "movieActorsMoviesActorsName": "Tom Hanks",
+  "movieActorsMoviesActorsMoviesFirst": 3,
   "movieActorsMoviesActorsMoviesOffset": 0,
   "movieActorsMoviesActorsMoviesSimilarFirst": 3
 }
@@ -622,7 +622,7 @@ mutation {
 [source,json]
 ----
 {
-  "actorUserId": "1", 
+  "actorUserId": "1",
   "actorName": "Andrea"
 }
 ----
@@ -654,7 +654,7 @@ mutation {
 {
   "fromMovieId": 1,
   "toGenres": [
-    "Action", 
+    "Action",
     "Fantasy"
   ]
 }
@@ -688,7 +688,7 @@ mutation {
 {
   "fromMovieId": 1,
   "toGenres": [
-    "Action", 
+    "Action",
     "Fantasy"
   ]
 }
@@ -786,7 +786,7 @@ mutation {
 {
   "fromUserId": 1,
   "toKnows": [
-    10, 
+    10,
     23
   ]
 }
@@ -828,10 +828,10 @@ RETURN add { .name } AS add
 .Cypher
 [source,cypher]
 ----
-MATCH (movie:Movie) 
-WHERE movie.year = $movieYear 
-RETURN movie { .title } AS movie 
-ORDER BY movie.title DESC  
+MATCH (movie:Movie)
+WHERE movie.year = $movieYear
+RETURN movie { .title } AS movie
+ORDER BY movie.title DESC
 LIMIT $movieFirst
 ----
 

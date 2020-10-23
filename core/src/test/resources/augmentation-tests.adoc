@@ -47,7 +47,7 @@ schema {
 === Disable Queries
 
 .Configuration
-[source,json]
+[source,json,schema-config=true]
 ----
 {
   "query": {
@@ -373,7 +373,7 @@ directive @dynamic(prefix:String = "properties.") on FIELD_DEFINITION
 === Disable Mutations
 
 .Configuration
-[source,json]
+[source,json,schema-config=true]
 ----
 {
   "query": {
@@ -1136,7 +1136,7 @@ directive @dynamic(prefix:String = "properties.") on FIELD_DEFINITION
 === Filter on Relation Mutations
 
 .Configuration
-[source,json]
+[source,json,schema-config=true]
 ----
 {
   "query": {
