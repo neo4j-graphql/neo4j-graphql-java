@@ -145,7 +145,10 @@ class CypherTestSuite(fileName: String) : AsciiDocTestSuite(
             .newServer()
             .use { server ->
                 if (testData.code().isNotBlank()) {
-                    testData.code().split(";").forEach { server.graph().execute(it) }
+                    testData.code()
+                            .split(";")
+                            .filter { it.isNotBlank() }
+                            .forEach { server.graph().execute(it) }
                 }
 
                 val (cypher, params, type) = result()

@@ -13,7 +13,7 @@ class MergeOrUpdateHandler private constructor(
         private val idField: GraphQLFieldDefinition,
         fieldDefinition: GraphQLFieldDefinition,
         private val isRelation: Boolean = type.isRelationType()
-) : BaseDataFetcher(type, fieldDefinition) {
+) : BaseDataFetcherForContainer(type, fieldDefinition) {
 
     class Factory(schemaConfig: SchemaConfig) : AugmentationHandler(schemaConfig) {
         override fun augmentType(type: GraphQLFieldsContainer, buildingEnv: BuildingEnv) {
@@ -23,7 +23,7 @@ class MergeOrUpdateHandler private constructor(
 
             val relevantFields = type.relevantFields()
             val mergeField = buildingEnv
-                .buildFieldDefinition("merge", type, relevantFields, nullableResult = false)
+                    .buildFieldDefinition("merge", type, relevantFields, nullableResult = false)
                 .build()
             buildingEnv.addMutationField(mergeField)
 

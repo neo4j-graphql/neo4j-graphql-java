@@ -11,7 +11,7 @@ import org.neo4j.graphql.handler.filter.OptimizedFilterHandler
 class QueryHandler private constructor(
         type: GraphQLFieldsContainer,
         fieldDefinition: GraphQLFieldDefinition)
-    : BaseDataFetcher(type, fieldDefinition) {
+    : BaseDataFetcherForContainer(type, fieldDefinition) {
 
     class Factory(schemaConfig: SchemaConfig) : AugmentationHandler(schemaConfig) {
         override fun augmentType(type: GraphQLFieldsContainer, buildingEnv: BuildingEnv) {
