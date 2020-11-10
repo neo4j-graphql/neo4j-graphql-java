@@ -381,8 +381,8 @@ RETURN movie {
 [source,json]
 ----
 {
-  "movieFirst": 3,
-  "movieOffset": 0
+  "movieSimilarFirst" : 3,
+  "movieSimilarOffset" : 0
 }
 ----
 
@@ -395,8 +395,8 @@ RETURN movie {
   similar:[movieSimilar
     IN apoc.cypher.runFirstColumnMany('WITH $this AS this, $first AS first, $offset AS offset MATCH (this)--(:Genre)--(o:Movie) RETURN o', {
         this:movie,
-        first:$movieFirst,
-        offset:$movieOffset
+        first:$movieSimilarFirst,
+        offset:$movieSimilarOffset
       }) | movieSimilar {
         .title
       }]
@@ -422,9 +422,8 @@ RETURN movie {
 [source,json]
 ----
 {
-  "movieFirst": 3,
-  "movieOffset": 0,
-  "movieSimilarFirst": 3
+  "movieSimilarFirst" : 3,
+  "movieSimilarOffset" : 0
 }
 ----
 
@@ -437,8 +436,8 @@ RETURN movie {
   similar:[movieSimilar
     IN apoc.cypher.runFirstColumnMany('WITH $this AS this, $first AS first, $offset AS offset MATCH (this)--(:Genre)--(o:Movie) RETURN o', {
       this:movie,
-      first:$movieFirst,
-      offset:$movieOffset
+      first:$movieSimilarFirst,
+      offset:$movieSimilarOffset
     }) | movieSimilar {
       .title
     }][0..$movieSimilarFirst]
@@ -583,11 +582,10 @@ RETURN movie {
 [source,json]
 ----
 {
-  "movieTitle": "River Runs Through It, A",
-  "movieActorsMoviesActorsName": "Tom Hanks",
-  "movieActorsMoviesActorsMoviesFirst": 3,
-  "movieActorsMoviesActorsMoviesOffset": 0,
-  "movieActorsMoviesActorsMoviesSimilarFirst": 3
+  "movieTitle" : "River Runs Through It, A",
+  "movieActorsMoviesActorsName" : "Tom Hanks",
+  "movieActorsMoviesActorsMoviesSimilarFirst" : 3,
+  "movieActorsMoviesActorsMoviesSimilarOffset" : 0
 }
 ----
 
@@ -602,7 +600,7 @@ RETURN movie { .title, actors:[(movie)<-[:ACTED_IN]-(movieActors:Actor) |
            WHERE movieActorsMoviesActors.name = $movieActorsMoviesActorsName |
              movieActorsMoviesActors { .name, movies:[(movieActorsMoviesActors)-[:ACTED_IN]->(movieActorsMoviesActorsMovies:Movie) |
                movieActorsMoviesActorsMovies { .title, .year, similar:[movieActorsMoviesActorsMoviesSimilar
-                 IN apoc.cypher.runFirstColumnMany('WITH $this AS this, $first AS first, $offset AS offset MATCH (this)--(:Genre)--(o:Movie) RETURN o', { this:movieActorsMoviesActorsMovies, first:$movieActorsMoviesActorsMoviesFirst, offset:$movieActorsMoviesActorsMoviesOffset }) |
+                 IN apoc.cypher.runFirstColumnMany('WITH $this AS this, $first AS first, $offset AS offset MATCH (this)--(:Genre)--(o:Movie) RETURN o', { this:movieActorsMoviesActorsMovies, first:$movieActorsMoviesActorsMoviesSimilarFirst, offset:$movieActorsMoviesActorsMoviesSimilarOffset }) |
                    movieActorsMoviesActorsMoviesSimilar { .title, .year }][0..$movieActorsMoviesActorsMoviesSimilarFirst] }] }] }] }] } AS Movie
 ----
 
