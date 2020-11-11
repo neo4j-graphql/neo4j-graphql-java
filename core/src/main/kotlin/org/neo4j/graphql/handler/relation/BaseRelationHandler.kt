@@ -4,7 +4,7 @@ import graphql.Scalars
 import graphql.language.Argument
 import graphql.schema.*
 import org.neo4j.graphql.*
-import org.neo4j.graphql.handler.BaseDataFetcher
+import org.neo4j.graphql.handler.BaseDataFetcherForContainer
 
 abstract class BaseRelationHandler(
         type: GraphQLFieldsContainer,
@@ -12,7 +12,7 @@ abstract class BaseRelationHandler(
         private val startId: RelationshipInfo.RelatedField,
         private val endId: RelationshipInfo.RelatedField,
         fieldDefinition: GraphQLFieldDefinition)
-    : BaseDataFetcher(type, fieldDefinition) {
+    : BaseDataFetcherForContainer(type, fieldDefinition) {
 
     init {
         propertyFields.remove(startId.argumentName)

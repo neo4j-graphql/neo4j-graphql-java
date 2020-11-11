@@ -8,26 +8,25 @@ import graphql.schema.GraphQLFieldsContainer
 import org.neo4j.graphql.*
 
 class CypherDirectiveHandler(
-        type: GraphQLFieldsContainer,
+        private val type: GraphQLFieldsContainer?,
         private val isQuery: Boolean,
         private val cypherDirective: Cypher,
         fieldDefinition: GraphQLFieldDefinition)
-    : BaseDataFetcher(type, fieldDefinition) {
+    : BaseDataFetcher(fieldDefinition) {
 
     class Factory(schemaConfig: SchemaConfig) : AugmentationHandler(schemaConfig) {
 
         override fun createDataFetcher(operationType: OperationType, fieldDefinition: GraphQLFieldDefinition): DataFetcher<Cypher>? {
             val cypherDirective = fieldDefinition.cypherDirective() ?: return null
-            // TODO cypher directives can also return scalars
             val type = fieldDefinition.type.inner() as? GraphQLFieldsContainer
-                    ?: return null
             val isQuery = operationType == OperationType.QUERY
             return CypherDirectiveHandler(type, isQuery, cypherDirective, fieldDefinition)
         }
     }
 
     override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Cypher {
-        val mapProjection = projectFields(variable, field, type, env, null)
+        val mapProjection = type?.let { projectFields(variable, field, it, env, null) }
+                ?: Cypher(variable)
         val ordering = orderBy(variable, field.arguments)
         val skipLimit = SkipLimit(variable, field.arguments).format()
 

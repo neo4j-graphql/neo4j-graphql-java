@@ -7,4 +7,7 @@ class IssuesTests {
 
     @TestFactory
     fun `github #147`() = CypherTestSuite("issues/gh-147.adoc").generateTests()
+
+    @TestFactory
+    fun `github #85`() = CypherTestSuite("issues/gh-85.adoc").generateTests()
 }
