@@ -1,17 +1,14 @@
 // Simplistic GraphQL Server using SparkJava
 @Grapes([
-  @Grab('com.sparkjava:spark-core:2.7.2'),
-  @Grab('org.neo4j.driver:neo4j-java-driver:4.1.1'),
-  @Grab('org.neo4j:neo4j-graphql-java:1.1.0'),
-  @Grab('com.google.code.gson:gson:2.8.5'),
-  @Grab('org.slf4j:slf4j-simple:1.7.30')
+        @Grab('com.sparkjava:spark-core:2.7.2'),
+        @Grab('org.neo4j.driver:neo4j-java-driver:4.1.1'),
+        @Grab('org.neo4j:neo4j-graphql-java:1.1.0'),
+        @Grab('com.google.code.gson:gson:2.8.5'),
+        @Grab('org.slf4j:slf4j-simple:1.7.30')
 ])
-
-import spark.*
-import static spark.Spark.*
 import com.google.gson.Gson
-import org.neo4j.graphql.*
-import org.neo4j.driver.*
+
+import static spark.Spark.*
 
 schema = """
 type Person {
@@ -30,16 +27,21 @@ type Query {
 """
 
 gson = new Gson()
-render = (ResponseTransformer)gson.&toJson
-def query(value) { gson.fromJson(value,Map.class)["query"] }
+render = (ResponseTransformer) gson.&toJson
+
+def query(value) { gson.fromJson(value, Map.class)["query"] }
 
 graphql = new Translator(SchemaBuilder.buildSchema(schema))
+
 def translate(query) { graphql.translate(query) }
 
-driver = GraphDatabase.driver("neo4j://localhost",AuthTokens.basic("neo4j","password"))
+driver = GraphDatabase.driver("neo4j://localhost", AuthTokens.basic("neo4j", "password"))
 
-def run(cypher) { driver.session().withCloseable {
-    it.run(cypher.query, Values.value(cypher.params)).list{ it.asMap() }}}
+def run(cypher) {
+    driver.session().withCloseable {
+        it.run(cypher.query, Values.value(cypher.params)).list { it.asMap() }
+    }
+}
 
-post("/graphql","application/json",
-        { req, res ->  run(translate(query(req.body())).first()) }, render);
+post("/graphql", "application/json",
+        { req, res -> run(translate(query(req.body())).first()) }, render);

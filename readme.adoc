@@ -467,7 +467,6 @@ RETURN person { .name, .age } AS person
 ORDER BY person.name ASC, person.age DESC
 ----
 
-
 NOTE: We don't yet support ordering on nested relationship fields.
 
 === Handle Rich Relationships via @relation Directive on Schema Types
@@ -583,7 +582,6 @@ query {
 }
 ----
 
-
 === @cypher Directives
 
 With `@cypher` directives you can add the power of Cypher to your GraphQL API.
@@ -670,7 +668,6 @@ type Person {
 }
 ----
 
-
 It would auto-generate quite a lot of things:
 
 * a query: `person(id:ID, name:String , age: Int, _id: Int, filter:_PersonFilter, orderBy:_PersonOrdering, first:Int, offset:Int) : [Person]`
@@ -697,7 +694,6 @@ query { person(age:42, orderBy:name_asc) {
 ----
 
 or
-
 
 [source,graphql]
 ----

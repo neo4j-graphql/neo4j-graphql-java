@@ -1,102 +1,102 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<parent>
-		<groupId>org.neo4j</groupId>
-		<artifactId>neo4j-graphql-java-examples</artifactId>
-		<version>1.1-SNAPSHOT</version>
-	</parent>
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.neo4j</groupId>
+        <artifactId>neo4j-graphql-java-examples</artifactId>
+        <version>1.1-SNAPSHOT</version>
+    </parent>
 
-	<groupId>org.neo4j.graphql.examples</groupId>
-	<artifactId>graphql-spring-boot</artifactId>
+    <groupId>org.neo4j.graphql.examples</groupId>
+    <artifactId>graphql-spring-boot</artifactId>
 
-	<name>Example - graphql-spring-boot</name>
-	<description>Example for using neo4j-graphql-java with Spring Boot</description>
+    <name>Example - graphql-spring-boot</name>
+    <description>Example for using neo4j-graphql-java with Spring Boot</description>
 
-	<properties>
-		<testcontainers.version>1.14.3</testcontainers.version>
-	</properties>
+    <properties>
+        <testcontainers.version>1.14.3</testcontainers.version>
+    </properties>
 
-	<dependencies>
-		<!-- spring dependencies -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-configuration-processor</artifactId>
-			<optional>true</optional>
-		</dependency>
+    <dependencies>
+        <!-- spring dependencies -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
 
-		<!-- neo4j driver + the neo4j-graphql-java library -->
-		<dependency>
-			<groupId>org.neo4j.driver</groupId>
-			<artifactId>neo4j-java-driver-spring-boot-starter</artifactId>
-			<version>4.1.1.0</version>
-		</dependency>
-		<dependency>
-			<groupId>org.neo4j</groupId>
-			<artifactId>neo4j-graphql-java</artifactId>
-			<version>1.1-SNAPSHOT</version>
-		</dependency>
+        <!-- neo4j driver + the neo4j-graphql-java library -->
+        <dependency>
+            <groupId>org.neo4j.driver</groupId>
+            <artifactId>neo4j-java-driver-spring-boot-starter</artifactId>
+            <version>4.1.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.neo4j</groupId>
+            <artifactId>neo4j-graphql-java</artifactId>
+            <version>1.1-SNAPSHOT</version>
+        </dependency>
 
-		<!-- a spring graphql library -->
-		<dependency>
-			<groupId>com.expediagroup</groupId>
-			<artifactId>graphql-kotlin-spring-server</artifactId>
-			<version>3.6.2</version>
-		</dependency>
+        <!-- a spring graphql library -->
+        <dependency>
+            <groupId>com.expediagroup</groupId>
+            <artifactId>graphql-kotlin-spring-server</artifactId>
+            <version>3.6.2</version>
+        </dependency>
 
-		<!-- Kotlin dependencies -->
-		<dependency>
-			<groupId>com.fasterxml.jackson.module</groupId>
-			<artifactId>jackson-module-kotlin</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.jetbrains.kotlin</groupId>
-			<artifactId>kotlin-reflect</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.jetbrains.kotlin</groupId>
-			<artifactId>kotlin-stdlib-jdk8</artifactId>
-		</dependency>
+        <!-- Kotlin dependencies -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.module</groupId>
+            <artifactId>jackson-module-kotlin</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-reflect</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-stdlib-jdk8</artifactId>
+        </dependency>
 
-		<!-- Test dependencies -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.testcontainers</groupId>
-			<artifactId>neo4j</artifactId>
-			<version>${testcontainers.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.testcontainers</groupId>
-			<artifactId>junit-jupiter</artifactId>
-			<version>${testcontainers.version}</version>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
+        <!-- Test dependencies -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>neo4j</artifactId>
+            <version>${testcontainers.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${testcontainers.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-dependencies</artifactId>
-				<version>2.3.3.RELEASE</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>2.3.3.RELEASE</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
-		</plugins>
-	</build>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 </project>

@@ -16,14 +16,14 @@ class CreateTypeHandler private constructor(
             }
             val relevantFields = getRelevantFields(type)
             val fieldDefinition = buildingEnv
-                    .buildFieldDefinition("create", type, relevantFields, nullableResult = false)
-                    .build()
+                .buildFieldDefinition("create", type, relevantFields, nullableResult = false)
+                .build()
 
             buildingEnv.addMutationField(fieldDefinition)
         }
 
         override fun createDataFetcher(operationType: OperationType, fieldDefinition: GraphQLFieldDefinition): DataFetcher<Cypher>? {
-            if (operationType != OperationType.MUTATION){
+            if (operationType != OperationType.MUTATION) {
                 return null
             }
             if (fieldDefinition.cypherDirective() != null) {

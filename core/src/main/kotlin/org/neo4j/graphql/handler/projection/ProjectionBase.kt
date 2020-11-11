@@ -161,6 +161,7 @@ open class ProjectionBase {
 
     fun projectFields(variable: String, field: Field, nodeType: GraphQLFieldsContainer, env: DataFetchingEnvironment, variableSuffix: String?, propertiesToSkipDeepProjection: Set<String> = emptySet()): Cypher {
         val queries = projectSelection(variable, field.selectionSet.selections, nodeType, env, variableSuffix, propertiesToSkipDeepProjection)
+
         @Suppress("SimplifiableCallChain")
         val projection = queries
             .map { it.query }

@@ -23,7 +23,7 @@ class MergeOrUpdateHandler private constructor(
 
             val relevantFields = type.relevantFields()
             val mergeField = buildingEnv
-                    .buildFieldDefinition("merge", type, relevantFields, nullableResult = false)
+                .buildFieldDefinition("merge", type, relevantFields, nullableResult = false)
                 .build()
             buildingEnv.addMutationField(mergeField)
 

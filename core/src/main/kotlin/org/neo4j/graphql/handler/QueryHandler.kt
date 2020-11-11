@@ -27,7 +27,7 @@ class QueryHandler private constructor(
             val orderingTypeName = buildingEnv.addOrdering(type)
             val builder = GraphQLFieldDefinition
                 .newFieldDefinition()
-                .name( if (schemaConfig.capitalizeQueryFields) typeName else typeName.decapitalize())
+                .name(if (schemaConfig.capitalizeQueryFields) typeName else typeName.decapitalize())
                 .arguments(buildingEnv.getInputValueDefinitions(relevantFields) { true })
                 .argument(input(FILTER, GraphQLTypeReference(filterTypeName)))
                 .argument(input(FIRST, Scalars.GraphQLInt))

@@ -17,22 +17,22 @@ abstract class BaseDataFetcherForContainer(
 
     init {
         fieldDefinition
-                .arguments
-                .filterNot { listOf(FIRST, OFFSET, ORDER_BY, NATIVE_ID).contains(it.name) }
-                .onEach { arg ->
-                    if (arg.defaultValue != null) {
-                        defaultFields[arg.name] = arg.defaultValue
-                    }
+            .arguments
+            .filterNot { listOf(FIRST, OFFSET, ORDER_BY, NATIVE_ID).contains(it.name) }
+            .onEach { arg ->
+                if (arg.defaultValue != null) {
+                    defaultFields[arg.name] = arg.defaultValue
                 }
-                .mapNotNull { type.getFieldDefinition(it.name) }
-                .forEach { field ->
-                    val dynamicPrefix = field.dynamicPrefix()
-                    propertyFields[field.name] = when {
-                        dynamicPrefix != null -> dynamicPrefixCallback(field, dynamicPrefix)
-                        field.isNeo4jType() -> neo4jTypeCallback(field)
-                        else -> defaultCallback(field)
-                    }
+            }
+            .mapNotNull { type.getFieldDefinition(it.name) }
+            .forEach { field ->
+                val dynamicPrefix = field.dynamicPrefix()
+                propertyFields[field.name] = when {
+                    dynamicPrefix != null -> dynamicPrefixCallback(field, dynamicPrefix)
+                    field.isNeo4jType() -> neo4jTypeCallback(field)
+                    else -> defaultCallback(field)
                 }
+            }
     }
 
     private fun defaultCallback(field: GraphQLFieldDefinition) =
@@ -44,7 +44,7 @@ abstract class BaseDataFetcherForContainer(
     private fun neo4jTypeCallback(field: GraphQLFieldDefinition) =
             { value: Any ->
                 val (name, propertyName, converter) = Neo4jQueryConversion
-                        .forMutation(value, field)
+                    .forMutation(value, field)
                 listOf(Translator.CypherArgument(name, propertyName, value.toJavaValue(), converter, propertyName))
             }
 
@@ -72,23 +72,23 @@ abstract class BaseDataFetcherForContainer(
             return Cypher.EMPTY
         }
         val query = all
-                .joinToString(", ", " { ", " }") { it.toCypherString(variable) }
+            .joinToString(", ", " { ", " }") { it.toCypherString(variable) }
         val params = all
-                .map { paramName(variable, it.cypherParam, it.value) to it.value }
-                .toMap()
+            .map { paramName(variable, it.cypherParam, it.value) to it.value }
+            .toMap()
         return Cypher(query, params)
     }
 
     private fun preparePredicateArguments(arguments: List<Argument>): List<Translator.CypherArgument> {
         val predicates = arguments
-                .mapNotNull { argument ->
-                    propertyFields[argument.name]?.invoke(argument.value)?.let { argument.name to it }
-                }
-                .toMap()
+            .mapNotNull { argument ->
+                propertyFields[argument.name]?.invoke(argument.value)?.let { argument.name to it }
+            }
+            .toMap()
 
         val defaults = defaultFields
-                .filter { !predicates.containsKey(it.key) }
-                .flatMap { (argName, defaultValue) -> propertyFields[argName]?.invoke(defaultValue) ?: emptyList() }
+            .filter { !predicates.containsKey(it.key) }
+            .flatMap { (argName, defaultValue) -> propertyFields[argName]?.invoke(defaultValue) ?: emptyList() }
         return predicates.values.flatten() + defaults
     }
 
