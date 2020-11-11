@@ -161,6 +161,7 @@ open class ProjectionBase {
 
     fun projectFields(variable: String, field: Field, nodeType: GraphQLFieldsContainer, env: DataFetchingEnvironment, variableSuffix: String?, propertiesToSkipDeepProjection: Set<String> = emptySet()): Cypher {
         val queries = projectSelection(variable, field.selectionSet.selections, nodeType, env, variableSuffix, propertiesToSkipDeepProjection)
+
         @Suppress("SimplifiableCallChain")
         val projection = queries
             .map { it.query }
@@ -215,7 +216,7 @@ open class ProjectionBase {
         val cypherDirective = fieldDefinition.cypherDirective()
         val isObjectField = fieldDefinition.type.inner() is GraphQLFieldsContainer
         return cypherDirective?.let {
-            val directive = cypherDirective(variable + field.aliasOrName().capitalize(), fieldDefinition, field, it, listOf(Translator.CypherArgument("this", "this", variable)))
+            val directive = cypherDirective(field.contextualize(variable), fieldDefinition, field, it, listOf(Translator.CypherArgument("this", "this", variable)))
             if (isObjectField) {
                 val patternComprehensions = projectListComprehension(variable, field, fieldDefinition, env, directive, variableSuffix)
                 Cypher(field.aliasOrName() + ":" + patternComprehensions.query, patternComprehensions.params)
@@ -306,7 +307,7 @@ open class ProjectionBase {
     private fun projectListComprehension(variable: String, field: Field, fieldDefinition: GraphQLFieldDefinition, env: DataFetchingEnvironment, expression: Cypher, variableSuffix: String?): Cypher {
         val fieldObjectType = fieldDefinition.type.getInnerFieldsContainer()
         val fieldType = fieldDefinition.type
-        val childVariable = variable + field.name.capitalize()
+        val childVariable = field.contextualize(variable)
 
         // val where = where(childVariable, fieldDefinition, fieldObjectType, propertyArguments(field))
         val fieldProjection = projectFields(childVariable, field, fieldObjectType, env, variableSuffix)
@@ -351,7 +352,7 @@ open class ProjectionBase {
 
         val (inArrow, outArrow) = relInfo.arrows
 
-        val childVariable = variable + field.name.capitalize()
+        val childVariable = field.contextualize(variable)
 
         val (endNodePattern, variableSuffix) = when {
             isRelFromType -> {

@@ -186,6 +186,8 @@ data class RelationshipInfo(
 }
 
 fun Field.aliasOrName() = (this.alias ?: this.name).quote()
+fun Field.contextualize(variable: String) = variable + (this.alias ?: this.name).capitalize()
+
 fun GraphQLType.innerName(): String = inner().name()
         ?: throw IllegalStateException("inner name cannot be retrieved for " + this.javaClass)
 
