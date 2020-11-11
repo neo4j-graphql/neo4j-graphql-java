@@ -1,6 +1,6 @@
 :toc:
 
-= Github Issue #147
+= Github Issue #147: Filtering on Directive in Combination with Filtering on Type Field 
 
 == Schema
 
