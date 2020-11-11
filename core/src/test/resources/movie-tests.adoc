@@ -171,6 +171,7 @@ RETURN movieById { .title } AS MovieById
 ----
 {  Movie(title: "River Runs Through It, A")  {  title }  }
 ----
+
 .Cypher Params
 [source,json]
 ----
@@ -178,6 +179,7 @@ RETURN movieById { .title } AS MovieById
   "movieTitle": "River Runs Through It, A"
 }
 ----
+
 .Cypher
 [source,cypher]
 ----
@@ -208,7 +210,6 @@ RETURN movie { .title } AS Movie
   "movieFirst": 1
 }
 ----
-
 
 .Cypher
 [source,cypher]
@@ -241,7 +242,6 @@ SKIP $movieOffset LIMIT $movieFirst
   "movieByIdMovieId": "3100"
 }
 ----
-
 
 .Cypher
 [source,cypher]
@@ -279,7 +279,6 @@ RETURN movieById {
   "movieByIdMovieId": "3100"
 }
 ----
-
 
 .Cypher
 [source,cypher]
@@ -982,6 +981,7 @@ MATCH ()-[rated:RATED]->()
 WHERE ID(rated) = toInteger($rated_id)
 RETURN rated { .rating } AS rated
 ----
+
 == Relations
 
 === Create relation
@@ -1046,6 +1046,7 @@ SET updateRated += { rating: $updateRatedRating }
 WITH updateRated
 RETURN updateRated { .rating } AS updateRated
 ----
+
 === create relation
 
 .GraphQL-Query
@@ -1204,7 +1205,6 @@ SET actor += { name: $actorName, born: datetime($actorBorn.formatted) }
 WITH actor
 RETURN actor { .name } AS actor
 ----
-
 
 === Create Actor with born field formatted
 

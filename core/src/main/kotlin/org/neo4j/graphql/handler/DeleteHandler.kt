@@ -19,7 +19,7 @@ class DeleteHandler private constructor(
             val idField = type.getIdField() ?: return
 
             val fieldDefinition = buildingEnv
-                    .buildFieldDefinition("delete", type, listOf(idField), nullableResult = true)
+                .buildFieldDefinition("delete", type, listOf(idField), nullableResult = true)
                 .description("Deletes ${type.name} and returns the type itself")
                 .type(type.ref() as GraphQLOutputType)
                 .build()
@@ -27,7 +27,7 @@ class DeleteHandler private constructor(
         }
 
         override fun createDataFetcher(operationType: OperationType, fieldDefinition: GraphQLFieldDefinition): DataFetcher<Cypher>? {
-            if (operationType != OperationType.MUTATION){
+            if (operationType != OperationType.MUTATION) {
                 return null
             }
             if (fieldDefinition.cypherDirective() != null) {

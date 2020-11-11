@@ -77,7 +77,7 @@ object SchemaBuilder {
 
     private fun ensureRootQueryTypeExists(enhancedRegistry: TypeDefinitionRegistry) {
         var schemaDefinition = enhancedRegistry.schemaDefinition().orElse(null)
-        if (schemaDefinition?.operationTypeDefinitions?.find { it.name == "query" } != null){
+        if (schemaDefinition?.operationTypeDefinitions?.find { it.name == "query" } != null) {
             return
         }
 

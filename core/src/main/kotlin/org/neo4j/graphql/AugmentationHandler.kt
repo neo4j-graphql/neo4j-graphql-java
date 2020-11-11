@@ -5,7 +5,7 @@ import graphql.schema.GraphQLFieldDefinition
 import graphql.schema.GraphQLFieldsContainer
 
 abstract class AugmentationHandler(val schemaConfig: SchemaConfig) {
-    enum class OperationType{
+    enum class OperationType {
         QUERY,
         MUTATION
     }

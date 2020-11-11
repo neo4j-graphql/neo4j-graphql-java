@@ -88,7 +88,7 @@ open class AsciiDocTestSuite(
 
                             currentBlock?.start = offset + line.length + 1
 
-                        } else if (currentBlock != null ) {
+                        } else if (currentBlock != null) {
 
                             currentBlock.end = offset
                             when (currentBlock.marker) {
@@ -126,14 +126,14 @@ open class AsciiDocTestSuite(
                 offset += line.length + 1 // +1 b/c of newline
             }
 
-            if (GENERATE_TEST_FILE_DIFF){
+            if (GENERATE_TEST_FILE_DIFF) {
                 // this test prints out the adjusted test file
                 root?.afterTests?.add(DynamicTest.dynamicTest("Adjusted Tests", srcLocation, this@AsciiDocTestSuite::printAdjustedTestFile))
             }
             return root?.generateTests() ?: Stream.empty()
         }
 
-        private fun createTests(title: String?,  lineNr: Int, ignore: Boolean) {
+        private fun createTests(title: String?, lineNr: Int, ignore: Boolean) {
             val tests = testFactory(
                     title ?: throw IllegalStateException("Title should be defined (line $lineNr)"),
                     globalCodeBlocks,

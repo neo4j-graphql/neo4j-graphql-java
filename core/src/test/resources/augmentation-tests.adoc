@@ -1132,7 +1132,6 @@ directive @property(name:String) on FIELD_DEFINITION
 directive @dynamic(prefix:String = "properties.") on FIELD_DEFINITION
 ----
 
-
 === Filter on Relation Mutations
 
 .Configuration

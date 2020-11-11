@@ -16,7 +16,7 @@ abstract class BaseDataFetcher(val fieldDefinition: GraphQLFieldDefinition) : Pr
         require(field.name == fieldDefinition.name) { "Handler for ${fieldDefinition.name} cannot handle ${field.name}" }
         val variable = field.aliasOrName().decapitalize()
         return generateCypher(variable, field, env)
-                .copy(type = fieldDefinition.type)
+            .copy(type = fieldDefinition.type)
     }
 
     protected abstract fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Cypher

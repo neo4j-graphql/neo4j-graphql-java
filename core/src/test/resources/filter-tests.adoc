@@ -2019,7 +2019,6 @@ WHERE (person)-[:WORKS_AT]->()
 RETURN person { .name } AS person
 ----
 
-
 == Logical Filter
 
 === Filter _AND_
