@@ -1,0 +1,74 @@
+:toc:
+
+= Github Issue #85
+
+== Schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String
+  ratings: [Rated] @relation(name:"RATED")
+}
+interface Person {
+  name: String
+}
+type User implements Person {
+  name: String
+  rated(rating: Int): [Rated]
+}
+type Rated @relation(name:"RATED") {
+  from: User
+  rating: Int
+  to: Movie
+}
+type Mutation {
+  rateMovie(user:ID!, movie:ID!, rating:Int!): Int
+  @cypher(statement:"MATCH (p:Person {name: $user }),(m:Movie {title: $movie }) MERGE (p)-[r:RATED]->(m) SET r.rating= $rating RETURN r.rating as rating")
+}
+----
+
+== Test Data
+
+[source,cypher,test-data=true]
+----
+CREATE (:User:Person{ name: 'Andreas' });
+CREATE (:Movie{ title: 'Forrest Gump' });
+----
+
+== Mutation
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+    r: rateMovie(movie:"Forrest Gump", user:"Andreas", rating: 5)
+}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "r" : 5
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "rMovie" : "Forrest Gump",
+  "rUser" : "Andreas",
+  "rRating" : 5
+}
+----
+
+.Cypher
+[source,cypher]
+----
+CALL apoc.cypher.doIt('WITH $movie AS movie, $user AS user, $rating AS rating MATCH (p: Person { name: $user }), (m: Movie { title: $movie }) MERGE (p)-[r: RATED]->(m) SET r.rating= $rating RETURN r.rating as rating', { movie: $rMovie, user: $rUser, rating: $rRating })
+YIELD value
+WITH value[head(keys(value))] AS r
+RETURN r AS r
+----

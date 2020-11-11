@@ -9,7 +9,7 @@ class DeleteHandler private constructor(
         private val idField: GraphQLFieldDefinition,
         fieldDefinition: GraphQLFieldDefinition,
         private val isRelation: Boolean = type.isRelationType()
-) : BaseDataFetcher(type, fieldDefinition) {
+) : BaseDataFetcherForContainer(type, fieldDefinition) {
 
     class Factory(schemaConfig: SchemaConfig) : AugmentationHandler(schemaConfig) {
         override fun augmentType(type: GraphQLFieldsContainer, buildingEnv: BuildingEnv) {
@@ -19,7 +19,7 @@ class DeleteHandler private constructor(
             val idField = type.getIdField() ?: return
 
             val fieldDefinition = buildingEnv
-                .buildFieldDefinition("delete", type, listOf(idField), nullableResult = true)
+                    .buildFieldDefinition("delete", type, listOf(idField), nullableResult = true)
                 .description("Deletes ${type.name} and returns the type itself")
                 .type(type.ref() as GraphQLOutputType)
                 .build()

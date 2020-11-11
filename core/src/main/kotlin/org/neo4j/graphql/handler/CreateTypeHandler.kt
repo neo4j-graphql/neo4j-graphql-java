@@ -7,7 +7,7 @@ import org.neo4j.graphql.*
 class CreateTypeHandler private constructor(
         type: GraphQLFieldsContainer,
         fieldDefinition: GraphQLFieldDefinition
-) : BaseDataFetcher(type, fieldDefinition) {
+) : BaseDataFetcherForContainer(type, fieldDefinition) {
 
     class Factory(schemaConfig: SchemaConfig) : AugmentationHandler(schemaConfig) {
         override fun augmentType(type: GraphQLFieldsContainer, buildingEnv: BuildingEnv) {
@@ -16,8 +16,8 @@ class CreateTypeHandler private constructor(
             }
             val relevantFields = getRelevantFields(type)
             val fieldDefinition = buildingEnv
-                .buildFieldDefinition("create", type, relevantFields, nullableResult = false)
-                .build()
+                    .buildFieldDefinition("create", type, relevantFields, nullableResult = false)
+                    .build()
 
             buildingEnv.addMutationField(fieldDefinition)
         }
