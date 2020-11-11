@@ -93,13 +93,15 @@ UNWIND apoc.cypher.runFirstColumnSingle('WITH $name AS name MATCH (p:Person) WHE
 .Cypher params
 [source,json]
 ----
-{"personMult":13}
+{
+  "personAgeMult" : 13
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person) RETURN person { age:apoc.cypher.runFirstColumnMany('WITH $this AS this, $mult AS mult RETURN this.age * mult as age', { this:person, mult:$personMult }) } AS person
+MATCH (person:Person) RETURN person { age:apoc.cypher.runFirstColumnMany('WITH $this AS this, $mult AS mult RETURN this.age * mult as age', { this:person, mult:$personAgeMult }) } AS person
 ----
 
 === render cypher query directive
@@ -171,13 +173,15 @@ CALL apoc.cypher.doIt('WITH $name AS name CREATE (p:Person) SET p.name = name RE
 .Cypher params
 [source,json]
 ----
-{"personMult":25}
+{
+  "personAgeMult" : 25
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person) RETURN person { age:apoc.cypher.runFirstColumnMany('WITH $this AS this, $mult AS mult RETURN this.age * mult as age', { this:person, mult:$personMult }) } AS person
+MATCH (person:Person) RETURN person { age:apoc.cypher.runFirstColumnMany('WITH $this AS this, $mult AS mult RETURN this.age * mult as age', { this:person, mult:$personAgeMult }) } AS person
 ----
 
 === render cypher field directive nested

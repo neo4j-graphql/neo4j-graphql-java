@@ -215,7 +215,7 @@ open class ProjectionBase {
         val cypherDirective = fieldDefinition.cypherDirective()
         val isObjectField = fieldDefinition.type.inner() is GraphQLFieldsContainer
         return cypherDirective?.let {
-            val directive = cypherDirective(variable, fieldDefinition, field, it, listOf(Translator.CypherArgument("this", "this", variable)))
+            val directive = cypherDirective(variable + field.aliasOrName().capitalize(), fieldDefinition, field, it, listOf(Translator.CypherArgument("this", "this", variable)))
             if (isObjectField) {
                 val patternComprehensions = projectListComprehension(variable, field, fieldDefinition, env, directive, variableSuffix)
                 Cypher(field.aliasOrName() + ":" + patternComprehensions.query, patternComprehensions.params)
