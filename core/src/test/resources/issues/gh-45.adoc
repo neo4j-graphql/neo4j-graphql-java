@@ -1,0 +1,82 @@
+:toc:
+
+= Github Issue #45: A schema for tree-like structure fails with duplicate fields
+
+== Schema
+
+[source,graphql,schema=true]
+----
+type Category {
+    id: ID!
+    name: String
+    parentCategory: Category @relation(name: "PARENT_CATEGORY", direction: OUT)
+    subCategories: [Category] @relation(name: "PARENT_CATEGORY", direction: IN)
+}
+----
+
+== Add Parent
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  addCategoryParentCategory(id: "1", parentCategory: "2") {
+    id
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "fromId" : "1",
+  "toParentCategory" : "2"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (from: Category { id: $fromId })
+MATCH (to: Category { id: $toParentCategory })
+MERGE (from)-[: PARENT_CATEGORY]->(to)
+WITH DISTINCT from AS addCategoryParentCategory
+RETURN addCategoryParentCategory {
+    .id
+} AS addCategoryParentCategory
+----
+
+== Add sub categories
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  addCategorySubCategories(id: "2", subCategories: ["3", "4"]) {
+    id
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "fromId" : "2",
+  "toSubCategories" : [ "3", "4" ]
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (from: Category { id: $fromId })
+MATCH (to: Category)
+WHERE to.id IN $toSubCategories
+MERGE (from)<-[: PARENT_CATEGORY]-(to)
+WITH DISTINCT from AS addCategorySubCategories
+RETURN addCategorySubCategories {
+    .id
+} AS addCategorySubCategories
+----
