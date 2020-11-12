@@ -1,10 +1,17 @@
 // Simplistic GraphQL Server using SparkJava
 @Grapes([
+<<<<<<< HEAD
         @Grab('com.sparkjava:spark-core:2.7.2'),
         @Grab('org.neo4j.driver:neo4j-java-driver:4.1.1'),
         @Grab('org.neo4j:neo4j-graphql-java:1.1.0'),
         @Grab('com.google.code.gson:gson:2.8.5'),
         @Grab('org.slf4j:slf4j-simple:1.7.30')
+=======
+  @Grab('com.sparkjava:spark-core:2.7.2'),
+  @Grab('org.neo4j.driver:neo4j-java-driver:1.7.2'),
+  @Grab('org.neo4j:neo4j-graphql-java:1.2.0'),
+  @Grab('com.google.code.gson:gson:2.8.5')
+>>>>>>> Release 1.2.0
 ])
 import com.google.gson.Gson
 
