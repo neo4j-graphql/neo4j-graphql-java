@@ -648,13 +648,14 @@ NOTE: The common CRUD mutations and queries are auto-generated, see below.
 
 === Auto Generated Queries and Mutations
 
-To reduce the amount of boilerplate code you have to write we auto-generate top-level CRUD queries and mutations for all types.
+To reduce the amount of boilerplate code you have to write, we auto-generate generate top-level CRUD queries and mutations for all types.
 
 This is configurable via the API, you can:
 
 * disable auto-generation (for mutations/queries)
 * disable per type
 * disable mutations per operation (create,delete,update)
+* configure capitalization of top level generated fields
 
 For a schema like this:
 
@@ -707,3 +708,4 @@ mutation {
 ----
 
 You find more examples in the link:core/src/test/resources/augmentation-tests.adoc[Augmentation Tests]
+and the link:core/src/test/resources/custom-fields.adoc[Custom queries and mutations Tests]
