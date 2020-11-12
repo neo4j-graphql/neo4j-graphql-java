@@ -14,16 +14,10 @@
     <name>Neo4j GraphQL Java</name>
     <description>GraphQL to Cypher Mapping</description>
 
-    <properties>
-        <neo4j.version>3.5.6</neo4j.version>
-        <driver.version>1.7.2</driver.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.neo4j.driver</groupId>
             <artifactId>neo4j-java-driver</artifactId>
-            <version>${driver.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -70,7 +64,6 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>5.5.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -98,4 +91,13 @@
         </dependency>
     </dependencies>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.neo4j</groupId>
+                <artifactId>neo4j-kernel</artifactId>
+                <version>${neo4j.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 </project>

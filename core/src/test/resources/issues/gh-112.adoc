@@ -1,0 +1,140 @@
+:toc:
+
+= Github Issue #112: deleting bidirectional relationships
+
+== Schema
+
+[source,graphql,schema=true]
+----
+type User
+{
+  name: String!
+  uuid: ID!
+  associates: [User!] @relation(name:"ASSOCIATES_WITH", direction:BOTH)
+}
+----
+
+== Test Data
+
+[source,cypher,test-data=true]
+----
+CREATE
+    (pete:User{ name: 'Pete', uuid: '1' }),
+    (fred:User{ name: 'Fred', uuid: '2' }),
+    (harry:User{ name: 'Harry', uuid: '3' }),
+    (pete)<-[:ASSOCIATES_WITH]-(fred),
+    (fred)<-[:ASSOCIATES_WITH]-(harry)
+----
+
+== Query
+
+.GraphQL-Query
+[source,graphql]
+----
+query {
+  user(uuid: $uuid) {
+    uuid
+    name
+    associates { name uuid }
+  }
+}
+----
+
+.Query variables
+[source,json,request=true]
+----
+{
+  "uuid": "2"
+}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "user" : [ {
+    "associates" : [ {
+      "name" : "Harry",
+      "uuid" : "3"
+    }, {
+      "name" : "Pete",
+      "uuid" : "1"
+    } ],
+    "name" : "Fred",
+    "uuid" : "2"
+  } ]
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "uuid" : "2"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (user: User)
+WHERE user.uuid = $uuid
+RETURN user {
+    .uuid,
+    .name,
+    associates: [(user)-[: ASSOCIATES_WITH]-(userAssociates: User) | userAssociates {
+        .name,
+        .uuid
+    }]
+} AS user
+----
+
+== Delete relation no matter of direction
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  deleteUserAssociates(uuid: "2", associates: ["1", "3"]) {
+    name
+    associates { name uuid }
+  }
+}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "deleteUserAssociates" : {
+    "associates" : [ ],
+    "name" : "Fred"
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "fromUuid" : "2",
+  "toAssociates" : [ "1", "3" ]
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (from: User { uuid: $fromUuid })
+MATCH (to: User) WHERE to.uuid IN $toAssociates
+MATCH (from)-[r: ASSOCIATES_WITH]-(to)
+DELETE r
+WITH DISTINCT from AS deleteUserAssociates
+RETURN deleteUserAssociates {
+    .name,
+    associates: [(deleteUserAssociates)-[: ASSOCIATES_WITH]-(deleteUserAssociatesAssociates: User) | deleteUserAssociatesAssociates {
+        .name,
+        .uuid
+    }]
+} AS deleteUserAssociates
+----
