@@ -1,13 +1,23 @@
 package demo.org.neo4j.graphql
 
+import org.junit.jupiter.api.DynamicContainer
+import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.TestFactory
 import org.neo4j.graphql.utils.CypherTestSuite
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.util.stream.Stream
 
 class IssuesTests {
 
     @TestFactory
-    fun `github #147`() = CypherTestSuite("issues/gh-147.adoc").generateTests()
-
-    @TestFactory
-    fun `github #85`() = CypherTestSuite("issues/gh-85.adoc").generateTests()
+    fun `test issues`(): Stream<DynamicNode>? = Files
+        .list(Paths.get("src/test/resources/issues"))
+        .map {
+            DynamicContainer.dynamicContainer(
+                    it.fileName.toString(),
+                    it.toUri(),
+                    CypherTestSuite("issues/${it.fileName}").generateTests()
+            )
+        }
 }

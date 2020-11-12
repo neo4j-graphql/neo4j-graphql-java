@@ -37,8 +37,6 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer) {
                 withWithoutWhere = NestingLevelHandler(parsedQuery, false, rootNode, variable, readingWithoutWhere,
                         type, argument.value, filterParams, linkedSetOf(rootNode.requiredSymbolicName))
                     .parseFilter()
-            } else {
-                throw OptimizedQueryException("Querying without filter is not subject to the OptimizedFilterHandler")
             }
         }
         return (withWithoutWhere ?: readingWithoutWhere) to filterParams
