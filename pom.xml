@@ -73,26 +73,6 @@
         </dependency>
     </dependencies>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.neo4j.driver</groupId>
-                <artifactId>neo4j-java-driver</artifactId>
-                <version>${driver.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.junit.jupiter</groupId>
-                <artifactId>junit-jupiter</artifactId>
-                <version>5.5.1</version>
-            </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-api</artifactId>
-                <version>1.7.30</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
     <build>
         <sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>
         <testSourceDirectory>${project.basedir}/src/test/kotlin</testSourceDirectory>
@@ -160,7 +140,7 @@
             <plugin>
                 <groupId>org.jetbrains.dokka</groupId>
                 <artifactId>dokka-maven-plugin</artifactId>
-                <version>0.9.17</version>
+                <version>1.4.10.2</version>
                 <executions>
                     <execution>
                         <phase>prepare-package</phase>
@@ -171,12 +151,6 @@
                         </goals>
                     </execution>
                 </executions>
-                <configuration>
-                    <includes>
-                        <!-- TODO what to do with this part? -->
-                        <file>packages.md</file>
-                    </includes>
-                </configuration>
             </plugin>
 
             <plugin>
@@ -223,7 +197,7 @@
                     <plugin>
                         <groupId>org.jetbrains.dokka</groupId>
                         <artifactId>dokka-maven-plugin</artifactId>
-                        <version>0.9.17</version>
+                        <version>1.4.10.2</version>
                         <executions>
                             <execution>
                                 <phase>prepare-package</phase>
@@ -234,11 +208,6 @@
                                 </goals>
                             </execution>
                         </executions>
-                        <configuration>
-                            <includes>
-                                <file>packages.md</file>
-                            </includes>
-                        </configuration>
                     </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
