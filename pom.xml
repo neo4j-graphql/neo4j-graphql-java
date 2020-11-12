@@ -25,9 +25,9 @@
         <java.version>1.8</java.version>
         <kotlin.version>1.4.10</kotlin.version>
         <kotlin.compiler.jvmTarget>${java.version}</kotlin.compiler.jvmTarget>
-        <neo4j.version>3.5.6</neo4j.version>
+        <neo4j.version>3.5.23</neo4j.version>
         <neo4j-apoc.version>3.5.0.15</neo4j-apoc.version>
-        <driver.version>1.7.2</driver.version>
+        <driver.version>1.7.5</driver.version>
     </properties>
 
     <modules>
@@ -72,6 +72,26 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.neo4j.driver</groupId>
+                <artifactId>neo4j-java-driver</artifactId>
+                <version>${driver.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter</artifactId>
+                <version>5.5.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>1.7.30</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <build>
         <sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>
