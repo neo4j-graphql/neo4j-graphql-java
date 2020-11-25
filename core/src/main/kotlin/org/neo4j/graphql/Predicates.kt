@@ -126,7 +126,7 @@ data class ExpressionPredicate(
                 "${not}ID($variable) ${op.op} toInteger(\$$paramName)"
             }
         } else {
-            "$not$variable.${name.quote()}${nestedField} ${op.op} \$$paramName"
+            "$not$variable.${fieldDefinition.propertyName().quote()}${nestedField} ${op.op} \$$paramName"
         }
         return Cypher(query, mapOf(paramName to value))
     }
