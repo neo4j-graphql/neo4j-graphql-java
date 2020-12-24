@@ -382,6 +382,40 @@ WHERE NOT person.id ENDS WITH $filterPersonId_NEW
 RETURN person { .name } AS person
 ----
 
+=== Filter id _matches_
+
+.GraphQL-Query
+[source,graphql]
+----
+{ person(filter: { id_matches:"ja.*" }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  } ]
+}
+----
+
+.Cypher Params
+[source,json]
+----
+  {
+      "filterPersonId_MA": "ja.*"
+  }
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.id =~ $filterPersonId_MA
+RETURN person { .name } AS person
+----
+
 === Filter id _contains_
 
 .GraphQL-Query
@@ -1349,6 +1383,39 @@ RETURN person { .name } AS person
 ----
 MATCH (person:Person)
 WHERE NOT person.name ENDS WITH $filterPersonName_NEW
+RETURN person { .name } AS person
+----
+
+=== Filter string _matches_
+.GraphQL-Query
+[source,graphql]
+----
+{ person(filter: { name_matches: "Ja.*" }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  } ]
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonName_MA": "Ja.*"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.name =~ $filterPersonName_MA
 RETURN person { .name } AS person
 ----
 

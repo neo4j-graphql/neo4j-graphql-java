@@ -655,6 +655,7 @@ input _Knows0Filter {
   OR: [_Knows0Filter!]
   id: ID
   id_contains: ID
+  id_matches: ID
   id_ends_with: ID
   id_gt: ID
   id_gte: ID
@@ -702,6 +703,7 @@ input _Knows1Filter {
   OR: [_Knows1Filter!]
   id: ID
   id_contains: ID
+  id_matches: ID
   id_ends_with: ID
   id_gt: ID
   id_gte: ID
@@ -748,6 +750,7 @@ input _Knows4Filter {
   OR: [_Knows4Filter!]
   _id: ID
   _id_contains: ID
+  _id_matches: ID
   _id_ends_with: ID
   _id_gt: ID
   _id_gte: ID
@@ -795,6 +798,7 @@ input _MovieFilter {
   OR: [_MovieFilter!]
   id: ID
   id_contains: ID
+  id_matches: ID
   id_ends_with: ID
   id_gt: ID
   id_gte: ID
@@ -912,6 +916,7 @@ input _Person0Filter {
   location_not: _Neo4jPointInput
   name: String
   name_contains: String
+  name_matches: String
   name_ends_with: String
   name_gt: String
   name_gte: String
@@ -936,6 +941,7 @@ input _Person1Filter {
   born_not_in: [_Neo4jDateInput]
   name: String
   name_contains: String
+  name_matches: String
   name_ends_with: String
   name_gt: String
   name_gte: String
@@ -973,6 +979,7 @@ input _Person2Filter {
   born_not_in: [_Neo4jDateTimeInput]
   name: String
   name_contains: String
+  name_matches: String
   name_ends_with: String
   name_gt: String
   name_gte: String
@@ -1003,6 +1010,7 @@ input _Person3Filter {
   born_not_in: [_Neo4jLocalTimeInput]
   name: String
   name_contains: String
+  name_matches: String
   name_ends_with: String
   name_gt: String
   name_gte: String
@@ -1032,6 +1040,7 @@ input _Person4Filter {
   born_not_in: [_Neo4jLocalDateTimeInput]
   id: ID
   id_contains: ID
+  id_matches: ID
   id_ends_with: ID
   id_gt: ID
   id_gte: ID
@@ -1046,6 +1055,7 @@ input _Person4Filter {
   id_starts_with: ID
   name: String
   name_contains: String
+  name_matches: String
   name_ends_with: String
   name_gt: String
   name_gte: String
@@ -1072,6 +1082,7 @@ input _Person5Filter {
   OR: [_Person5Filter!]
   id: ID
   id_contains: ID
+  id_matches: ID
   id_ends_with: ID
   id_gt: ID
   id_gte: ID
@@ -1108,6 +1119,7 @@ input _PublisherFilter {
   OR: [_PublisherFilter!]
   name: ID
   name_contains: ID
+  name_matches: ID
   name_ends_with: ID
   name_gt: ID
   name_gte: ID
