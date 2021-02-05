@@ -1,0 +1,44 @@
+:toc:
+
+= Github Issue #163: problem with optimized FILTER_AS_MATCH strategy
+
+== Schema
+
+[source,graphql,schema=true]
+----
+type Person {
+    name: String
+}
+----
+
+== Issue
+
+.Query configuration
+[source,json,query-config=true]
+----
+{  "optimizedQuery":  ["FILTER_AS_MATCH"] }
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query {
+  person(name:"test") {
+    name
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "personName" : "test"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person: `Person`) where person.name = $personName RETURN person { .name } AS person
+----
