@@ -58,17 +58,20 @@ mutation {
 [source,json]
 ----
 {
-  "rMovie" : "Forrest Gump",
-  "rUser" : "Andreas",
-  "rRating" : 5
+  "r_movie" : "Forrest Gump",
+  "r_rating" : 5,
+  "r_user" : "Andreas"
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-CALL apoc.cypher.doIt('WITH $movie AS movie, $user AS user, $rating AS rating MATCH (p: Person { name: $user }), (m: Movie { title: $movie }) MERGE (p)-[r: RATED]->(m) SET r.rating= $rating RETURN r.rating as rating', { movie: $rMovie, user: $rUser, rating: $rRating })
-YIELD value
+CALL apoc.cypher.doIt('WITH $movie AS movie, $user AS user, $rating AS rating MATCH (p:Person {name: $user }),(m:Movie {title: $movie }) MERGE (p)-[r:RATED]->(m) SET r.rating= $rating RETURN r.rating as rating',  {
+	movie: $r_movie,
+	user: $r_user,
+	rating: $r_rating
+}) YIELD value
 WITH value[head(keys(value))] AS r
 RETURN r AS r
 ----

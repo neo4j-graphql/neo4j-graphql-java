@@ -52,7 +52,7 @@ type Knows @relation(name:"KNOWS", from: "source", to: "knows"){
 [source,json]
 ----
 {
-  "personId": "32"
+  "person_id" : "32"
 }
 ----
 
@@ -60,21 +60,21 @@ type Knows @relation(name:"KNOWS", from: "source", to: "knows"){
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE person.id = $personId
+WHERE person.id = $person_id
 RETURN person {
-  json:apoc.map.fromPairs([key IN keys(person) WHERE key STARTS WITH 'properties.'| [substring(key,11), person[key]]]),
-  knows:[(person)-[:KNOWS]->(personKnows:Person) | personKnows {
-    json:apoc.map.fromPairs([key IN keys(personKnows) WHERE key STARTS WITH 'properties.'| [substring(key,11), personKnows[key]]])
-  }],
-  knownBy:[(person)<-[:KNOWS]-(personKnownBy:Person) | personKnownBy {
-    json:apoc.map.fromPairs([key IN keys(personKnownBy) WHERE key STARTS WITH 'properties.'| [substring(key,11), personKnownBy[key]]])
-  }],
-  knowsRel:[(person)-[personKnowsRel:KNOWS]->(personKnowsRelKnows:Person) | personKnowsRel {
-    json:apoc.map.fromPairs([key IN keys(personKnowsRel) WHERE key STARTS WITH 'prefix.'| [substring(key,7), personKnowsRel[key]]])
-  }],
-  knownByRel:[(person)<-[personKnownByRel:KNOWS]-(personKnownByRelSource:Person) | personKnownByRel {
-    json:apoc.map.fromPairs([key IN keys(personKnownByRel) WHERE key STARTS WITH 'prefix.'| [substring(key,7), personKnownByRel[key]]])
-  }]
+	json: apoc.map.fromPairs([key IN keys(person) WHERE key STARTS WITH 'properties.' | [substring(key, 11), person[key]]]),
+	knows: [(person)-[:KNOWS]->(personKnows:Person) | personKnows {
+		json: apoc.map.fromPairs([key IN keys(personKnows) WHERE key STARTS WITH 'properties.' | [substring(key, 11), personKnows[key]]])
+	}],
+	knownBy: [(person)<-[:KNOWS]-(personKnownBy:Person) | personKnownBy {
+		json: apoc.map.fromPairs([key IN keys(personKnownBy) WHERE key STARTS WITH 'properties.' | [substring(key, 11), personKnownBy[key]]])
+	}],
+	knowsRel: [(person)-[personKnowsRel:KNOWS]->(personKnowsRelKnows:Person) | personKnowsRel {
+		json: apoc.map.fromPairs([key IN keys(personKnowsRel) WHERE key STARTS WITH 'prefix.' | [substring(key, 7), personKnowsRel[key]]])
+	}],
+	knownByRel: [(person)<-[personKnownByRel:KNOWS]-(personKnownByRelSource:Person) | personKnownByRel {
+		json: apoc.map.fromPairs([key IN keys(personKnownByRel) WHERE key STARTS WITH 'prefix.' | [substring(key, 7), personKnownByRel[key]]])
+	}]
 } AS person
 ----
 
@@ -94,22 +94,26 @@ mutation {
 [source,json]
 ----
 {
-  "updatePersonId": 32,
-  "updatePersonJsonFoo": "bar",
-  "updatePersonJsonX": 42
+  "updatePerson_id" : 32,
+  "updatePerson_jsonFoo" : "bar",
+  "updatePerson_jsonX" : 42
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (updatePerson:Person { id: $updatePersonId })
-SET updatePerson += {
-  `properties.foo`: $updatePersonJsonFoo,
-  `properties.x`: $updatePersonJsonX
+MATCH (updatePerson:Person  {
+	id: $updatePerson_id
+})
+SET updatePerson +=  {
+	`properties.foo`: $updatePerson_jsonFoo,
+	`properties.x`: $updatePerson_jsonX
 }
 WITH updatePerson
-RETURN updatePerson { .id } AS updatePerson
+RETURN updatePerson {
+	.id
+} AS updatePerson
 ----
 
 === merge dynamic properties
@@ -128,22 +132,26 @@ mutation {
 [source,json]
 ----
 {
-  "mergePersonId": 32,
-  "mergePersonJsonFoo": "bar",
-  "mergePersonJsonX": 42
+  "mergePerson_id" : 32,
+  "mergePerson_jsonFoo" : "bar",
+  "mergePerson_jsonX" : 42
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MERGE (mergePerson:Person { id: $mergePersonId })
-SET mergePerson += {
-  `properties.foo`: $mergePersonJsonFoo,
-  `properties.x`: $mergePersonJsonX
+MERGE (mergePerson:Person  {
+	id: $mergePerson_id
+})
+SET mergePerson +=  {
+	`properties.foo`: $mergePerson_jsonFoo,
+	`properties.x`: $mergePerson_jsonX
 }
 WITH mergePerson
-RETURN mergePerson { .id } AS mergePerson
+RETURN mergePerson {
+	.id
+} AS mergePerson
 ----
 
 === create relation with dynamic properties
@@ -163,22 +171,28 @@ mutation {
 [source,json]
 ----
 {
-  "sourceSource_id": 2,
-  "knowsKnows_id": 3,
-  "createKnowsJsonFoo": "bar"
+  "createKnows_jsonFoo" : "bar",
+  "knows_knows_id" : 3,
+  "source_source_id" : 2
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (source:Person { id: $sourceSource_id })
-MATCH (knows:Person { id: $knowsKnows_id })
-CREATE (source)-[createKnows:KNOWS { `prefix.foo`: $createKnowsJsonFoo }]->(knows)
+MATCH (source:Person  {
+	id: $source_source_id
+})
+MATCH (knows:Person  {
+	id: $knows_knows_id
+})
+CREATE (source)-[createKnows:KNOWS  {
+	`prefix.foo`: $createKnows_jsonFoo
+}]->(knows)
 WITH createKnows
 RETURN createKnows {
-  _id:ID(createKnows),
-  json:apoc.map.fromPairs([key IN keys(createKnows) WHERE key STARTS WITH 'prefix.'| [substring(key,7), createKnows[key]]])
+	_id: id(createKnows),
+	json: apoc.map.fromPairs([key IN keys(createKnows) WHERE key STARTS WITH 'prefix.' | [substring(key, 7), createKnows[key]]])
 } AS createKnows
 ----
 
@@ -198,8 +212,8 @@ mutation {
 [source,json]
 ----
 {
-  "updateKnows_id": 2,
-  "updateKnowsJsonFoo": "bar"
+  "updateKnows__id" : 2,
+  "updateKnows_jsonFoo" : "bar"
 }
 ----
 
@@ -207,11 +221,13 @@ mutation {
 [source,cypher]
 ----
 MATCH ()-[updateKnows:KNOWS]->()
-WHERE ID(updateKnows) = toInteger($updateKnows_id)
-SET updateKnows += { `prefix.foo`: $updateKnowsJsonFoo }
+WHERE id(updateKnows) = toInteger($updateKnows__id)
+SET updateKnows +=  {
+	`prefix.foo`: $updateKnows_jsonFoo
+}
 WITH updateKnows
 RETURN updateKnows {
-  json:apoc.map.fromPairs([key IN keys(updateKnows) WHERE key STARTS WITH 'prefix.'| [substring(key,7), updateKnows[key]]])
+	json: apoc.map.fromPairs([key IN keys(updateKnows) WHERE key STARTS WITH 'prefix.' | [substring(key, 7), updateKnows[key]]])
 } AS updateKnows
 ----
 
@@ -231,8 +247,8 @@ mutation {
 [source,json]
 ----
 {
-  "mergeKnows_id": 2,
-  "mergeKnowsJsonFoo": "bar"
+  "mergeKnows__id" : 2,
+  "mergeKnows_jsonFoo" : "bar"
 }
 ----
 
@@ -240,9 +256,12 @@ mutation {
 [source,cypher]
 ----
 MATCH ()-[mergeKnows:KNOWS]->()
-WHERE ID(mergeKnows) = toInteger($mergeKnows_id)
-SET mergeKnows += { `prefix.foo`: $mergeKnowsJsonFoo }
-WITH mergeKnows RETURN mergeKnows {
-  json:apoc.map.fromPairs([key IN keys(mergeKnows) WHERE key STARTS WITH 'prefix.'| [substring(key,7), mergeKnows[key]]])
+WHERE id(mergeKnows) = toInteger($mergeKnows__id)
+SET mergeKnows +=  {
+	`prefix.foo`: $mergeKnows_jsonFoo
+}
+WITH mergeKnows
+RETURN mergeKnows {
+	json: apoc.map.fromPairs([key IN keys(mergeKnows) WHERE key STARTS WITH 'prefix.' | [substring(key, 7), mergeKnows[key]]])
 } AS mergeKnows
 ----

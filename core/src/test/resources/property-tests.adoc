@@ -28,11 +28,19 @@ type Query {
 .Cypher params
 [source,json]
 ----
-{"personId":"32","personName":"Jane"}
+{
+  "person_id" : "32",
+  "person_name" : "Jane"
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person) WHERE person.`an-id` = $personId AND person.` a name ` = $personName RETURN person { name:person.` a name ` } AS person
+MATCH (person:Person)
+WHERE (person.`an-id` = $person_id
+	AND person.` a name ` = $person_name)
+RETURN person {
+	name: person.` a name `
+} AS person
 ----

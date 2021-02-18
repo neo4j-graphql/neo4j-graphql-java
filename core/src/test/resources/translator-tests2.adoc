@@ -35,11 +35,29 @@ type Referral @relation (name:"REFERRED_BY", from:"user", to: "referredBy" ) {
 .Cypher params
 [source,json]
 ----
-{"userName":"Jane"}
+{
+  "user_name" : "Jane"
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (user:User) WHERE user.name = $userName RETURN user { .name, referredBy:[(user)-[userReferredBy:REFERRED_BY]->(userReferredByReferredBy:User) | userReferredBy { .referralDate, referredBy:userReferredByReferredBy { .name } }][0], referred:[(user)<-[userReferred:REFERRED_BY]-(userReferredUser:User) | userReferred { .referralDate, user:userReferredUser { .name } }] } AS user
+MATCH (user:User)
+WHERE user.name = $user_name
+RETURN user {
+	.name,
+	referredBy: [(user)-[userReferredBy:REFERRED_BY]->(userReferredByReferredBy:User) | userReferredBy {
+		.referralDate,
+		referredBy: userReferredByReferredBy {
+			.name
+		}
+	}][0],
+	referred: [(user)<-[userReferred:REFERRED_BY]-(userReferredUser:User) | userReferred {
+		.referralDate,
+		user: userReferredUser {
+			.name
+		}
+	}]
+} AS user
 ----

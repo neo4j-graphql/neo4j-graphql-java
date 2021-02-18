@@ -3,8 +3,8 @@ package org.neo4j.graphql.handler
 import graphql.Scalars
 import graphql.language.Field
 import graphql.schema.*
-import org.neo4j.cypherdsl.core.PassThrough
-import org.neo4j.cypherdsl.core.renderer.Renderer
+import org.neo4j.cypherdsl.core.Cypher.*
+import org.neo4j.cypherdsl.core.Statement
 import org.neo4j.graphql.*
 import org.neo4j.graphql.handler.filter.OptimizedFilterHandler
 
@@ -75,32 +75,36 @@ class QueryHandler private constructor(
         }
     }
 
-    override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Cypher {
+    override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement {
 
-        val mapProjection = projectFields(variable, field, type, env, null)
-        val ordering = orderBy(variable, field.arguments)
-        val skipLimit = SkipLimit(variable, field.arguments).format()
-
-        if ((env.getContext() as? QueryContext)?.optimizedQuery?.contains(QueryContext.OptimizationStrategy.FILTER_AS_MATCH) == true) {
-
-            val (partialQuery, filterParams) = OptimizedFilterHandler(type).generateFilterQuery(variable, field)
-            val statement = partialQuery
-                .returning(PassThrough("${mapProjection.query} AS ${field.aliasOrName()}$ordering${skipLimit.query}"))
-                .build()
-            val query = Renderer.getDefaultRenderer().render(statement)
-            return Cypher(query, filterParams + mapProjection.params + skipLimit.params)
-
+        val (propertyContainer, match) = when {
+            type.isRelationType() -> anyNode().relationshipTo(anyNode(), type.label()).named(variable)
+                .let { rel -> rel to match(rel) }
+            else -> node(type.label()).named(variable)
+                .let { node -> node to match(node) }
         }
 
-        val select = if (type.isRelationType()) {
-            "()-[$variable:${label()}]->()"
+        val ongoingReading = if ((env.getContext() as? QueryContext)?.optimizedQuery?.contains(QueryContext.OptimizationStrategy.FILTER_AS_MATCH) == true) {
+
+            OptimizedFilterHandler(type).generateFilterQuery(variable, field, match, propertyContainer)
+
         } else {
-            "($variable:${label()})"
+
+            val where = where(propertyContainer, fieldDefinition, type, field, env.variables)
+            match.where(where)
         }
-        val where = where(variable, fieldDefinition, type, propertyArguments(field), field, env.variables)
-        return Cypher(
-                """MATCH $select${where.query}
-                  |RETURN ${mapProjection.query} AS ${field.aliasOrName()}$ordering${skipLimit.query}""".trimMargin(),
-                (where.params + mapProjection.params + skipLimit.params))
+
+        val ordering = orderBy(propertyContainer, field.arguments)
+        val skipLimit = SkipLimit(variable, field.arguments)
+
+        val projectionEntries = projectFields(propertyContainer, field, type, env)
+        val mapProjection = propertyContainer.project(projectionEntries).`as`(field.aliasOrName())
+        val resultWithSkipLimit = ongoingReading.returning(mapProjection)
+            .let {
+                val orderedResult = ordering?.let { o -> it.orderBy(*o.toTypedArray()) } ?: it
+                skipLimit.format(orderedResult)
+            }
+
+        return resultWithSkipLimit.build()
     }
 }

@@ -3,6 +3,8 @@ package org.neo4j.graphql.handler.relation
 import graphql.Scalars
 import graphql.language.Argument
 import graphql.schema.*
+import org.neo4j.cypherdsl.core.Condition
+import org.neo4j.cypherdsl.core.Node
 import org.neo4j.graphql.*
 import org.neo4j.graphql.handler.BaseDataFetcherForContainer
 
@@ -124,7 +126,7 @@ abstract class BaseRelationHandler(
 
     }
 
-    fun getRelationSelect(start: Boolean, arguments: Map<String, Argument>): Cypher {
+    fun getRelationSelect(start: Boolean, arguments: Map<String, Argument>): Pair<Node, Condition> {
         val relFieldName: String
         val idField: RelationshipInfo.RelatedField
         if (start) {
@@ -135,10 +137,12 @@ abstract class BaseRelationHandler(
             idField = endId
         }
         if (!arguments.containsKey(idField.argumentName)) {
-            throw java.lang.IllegalArgumentException("No ID for the ${if (start) "start" else "end"} Type provided, ${idField.argumentName} is required")
+            throw IllegalArgumentException("No ID for the ${if (start) "start" else "end"} Type provided, ${idField.argumentName} is required")
         }
-        return getSelectQuery(relFieldName, idField.declaringType.quotedLabel(), arguments[idField.argumentName],
-                idField.field, false, (relFieldName + idField.argumentName.capitalize()).quote())
+        val (rel, where) = getSelectQuery(relFieldName, idField.declaringType.label(), arguments[idField.argumentName],
+                idField.field, false)
+        return (rel as? Node
+                ?: throw IllegalStateException("Expected type to be of type node")) to where
     }
 
 }

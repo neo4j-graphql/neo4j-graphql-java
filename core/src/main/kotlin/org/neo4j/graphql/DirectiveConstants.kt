@@ -1,13 +1,12 @@
 package org.neo4j.graphql
 
 class DirectiveConstants {
+
     companion object {
+
         const val RELATION = "relation"
         const val RELATION_NAME = "name"
         const val RELATION_DIRECTION = "direction"
-        const val RELATION_DIRECTION_IN = "IN"
-        const val RELATION_DIRECTION_OUT = "OUT"
-        const val RELATION_DIRECTION_BOTH = "BOTH"
         const val RELATION_FROM = "from"
         const val RELATION_TO = "to"
 

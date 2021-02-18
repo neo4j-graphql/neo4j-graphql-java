@@ -27,7 +27,7 @@ open class Neo4jConfiguration {
 
                 val cypher = delegate.get(env)
 
-                return driver.session().writeTransaction<Any> { tx ->
+                return driver.session().writeTransaction { tx ->
                     val boltParams = cypher.params.mapValues { toBoltValue(it.value, env.variables) }
                     val result = tx.run(cypher.query, boltParams)
                     val key = result.keys().stream().findFirst().orElse(null)

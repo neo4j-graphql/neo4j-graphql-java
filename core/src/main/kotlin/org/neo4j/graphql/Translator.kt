@@ -15,26 +15,6 @@ import java.math.BigInteger
 
 class Translator(val schema: GraphQLSchema) {
 
-    /**
-     * @param name the name used by the graphQL query
-     * @param propertyName the name used in neo4j
-     * @param value the value to set the neo4j property to
-     */
-    data class CypherArgument(
-            val name: String,
-            val propertyName: String,
-            val value: Any?,
-            val converter: Neo4jConverter = Neo4jConverter(),
-            val cypherParam: String = name) {
-        fun toCypherString(variable: String, asJson: Boolean = true): String {
-            val separator = when (asJson) {
-                true -> ": "
-                false -> " = "
-            }
-            return "$propertyName$separator${converter.parseValue(paramName(variable, name, value))}"
-        }
-    }
-
     @JvmOverloads
     @Throws(OptimizedQueryException::class)
     fun translate(query: String, params: Map<String, Any?> = emptyMap(), ctx: QueryContext = QueryContext()): List<Cypher> {

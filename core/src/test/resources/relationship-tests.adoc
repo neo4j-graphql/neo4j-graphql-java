@@ -59,20 +59,24 @@ mutation{
 [source,json]
 ----
 {
-  "teamId":1,
-  "playerPlayers":[2]
+  "player_players" : [ 2 ],
+  "team_id" : 1
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (team: Team { id: $teamId })
-MATCH (player: Player)
-WHERE player.id IN $playerPlayers
-MERGE (team)<-[: MEMBER_OF]-(player)
+MATCH (team:Team  {
+	id: $team_id
+})
+MATCH (player:Player)
+WHERE player.id IN $player_players
+MERGE (team)<-[:MEMBER_OF]-(player)
 WITH DISTINCT team AS addTeamPlayers
-RETURN addTeamPlayers { .id } AS addTeamPlayers
+RETURN addTeamPlayers {
+	.id
+} AS addTeamPlayers
 ----
 
 === delete incoming relationship
@@ -91,20 +95,24 @@ mutation{
 [source,json]
 ----
 {
-  "teamId":1,
-  "playerPlayers":[2]
+  "player_players" : [ 2 ],
+  "team_id" : 1
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (team: Team { id: $teamId })
-MATCH (player: Player) WHERE player.id IN $playerPlayers
-MATCH (team)<-[r: MEMBER_OF]-(player)
-DELETE r
+MATCH (team:Team  {
+	id: $team_id
+})
+MATCH (player:Player)
+WHERE player.id IN $player_players
+MATCH (team)<-[r:MEMBER_OF]-(player) DELETE r
 WITH DISTINCT team AS deleteTeamPlayers
-RETURN deleteTeamPlayers { .id } AS deleteTeamPlayers
+RETURN deleteTeamPlayers {
+	.id
+} AS deleteTeamPlayers
 ----
 
 === add outgoing relationship
@@ -123,19 +131,24 @@ mutation{
 [source,json]
 ----
 {
-  "playerId":1,
-  "teamTeams":[2]
+  "player_id" : 1,
+  "team_teams" : [ 2 ]
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (player: Player { id: $playerId })
-MATCH (team: Team) WHERE team.id IN $teamTeams
-MERGE (player)-[: MEMBER_OF]->(team)
+MATCH (player:Player  {
+	id: $player_id
+})
+MATCH (team:Team)
+WHERE team.id IN $team_teams
+MERGE (player)-[:MEMBER_OF]->(team)
 WITH DISTINCT player AS addPlayerTeams
-RETURN addPlayerTeams { .id } AS addPlayerTeams
+RETURN addPlayerTeams {
+	.id
+} AS addPlayerTeams
 ----
 
 === delete outgoing relationship
@@ -154,20 +167,24 @@ mutation{
 [source,json]
 ----
 {
-  "playerId":1,
-  "teamTeams":[2]
+  "player_id" : 1,
+  "team_teams" : [ 2 ]
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (player: Player { id: $playerId })
-MATCH (team: Team) WHERE team.id IN $teamTeams
-MATCH (player)-[r: MEMBER_OF]->(team)
-DELETE r
+MATCH (player:Player  {
+	id: $player_id
+})
+MATCH (team:Team)
+WHERE team.id IN $team_teams
+MATCH (player)-[r:MEMBER_OF]->(team) DELETE r
 WITH DISTINCT player AS deletePlayerTeams
-RETURN deletePlayerTeams { .id } AS deletePlayerTeams
+RETURN deletePlayerTeams {
+	.id
+} AS deletePlayerTeams
 ----
 
 === create relationship
@@ -186,20 +203,28 @@ mutation{
 [source,json]
 ----
 {
-  "playerPlayer_id":1,
-  "teamTeam_id":2,
-  "createMembershipProp":"foo"
+  "createMembership_prop" : "foo",
+  "player_player_id" : 1,
+  "team_team_id" : 2
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (player: Player { id: $playerPlayer_id })
-MATCH (team: Team { id: $teamTeam_id })
-CREATE (player)-[createMembership: MEMBER_OF { prop: $createMembershipProp }]->(team)
+MATCH (player:Player  {
+	id: $player_player_id
+})
+MATCH (team:Team  {
+	id: $team_team_id
+})
+CREATE (player)-[createMembership:MEMBER_OF  {
+	prop: $createMembership_prop
+}]->(team)
 WITH createMembership
-RETURN createMembership { .prop } AS createMembership
+RETURN createMembership {
+	.prop
+} AS createMembership
 ----
 
 == Queries
@@ -356,19 +381,25 @@ mutation{
 [source,json]
 ----
 {
-    "childName":"child",
-    "parentParentCategory":"parent"
+  "child_name" : "child",
+  "parent_parentCategory" : "parent"
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (child: Category { name: $childName })
-MATCH (parent: Category { name: $parentParentCategory })
-MERGE (child)-[: HAS_PARENT]->(parent)
+MATCH (child:Category  {
+	name: $child_name
+})
+MATCH (parent:Category  {
+	name: $parent_parentCategory
+})
+MERGE (child)-[:HAS_PARENT]->(parent)
 WITH DISTINCT child AS addCategoryParentCategory
-RETURN addCategoryParentCategory { .name } AS addCategoryParentCategory
+RETURN addCategoryParentCategory {
+	.name
+} AS addCategoryParentCategory
 ----
 
 ==== delete incoming relationship
@@ -387,20 +418,25 @@ mutation{
 [source,json]
 ----
 {
-  "childName":"child",
-  "parentParentCategory":"parent"
+  "child_name" : "child",
+  "parent_parentCategory" : "parent"
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (child: Category { name: $childName })
-MATCH (parent: Category { name: $parentParentCategory })
-MATCH (child)-[r: HAS_PARENT]->(parent)
-DELETE r
+MATCH (child:Category  {
+	name: $child_name
+})
+MATCH (parent:Category  {
+	name: $parent_parentCategory
+})
+MATCH (child)-[r:HAS_PARENT]->(parent) DELETE r
 WITH DISTINCT child AS deleteCategoryParentCategory
-RETURN deleteCategoryParentCategory { .name } AS deleteCategoryParentCategory
+RETURN deleteCategoryParentCategory {
+	.name
+} AS deleteCategoryParentCategory
 ----
 
 ==== add outgoing relationship
@@ -419,20 +455,24 @@ mutation{
 [source,json]
 ----
 {
-  "parentName" : "parent",
-  "childChildCategories" : [ "child1", "child2" ]
+  "child_childCategories" : [ "child1", "child2" ],
+  "parent_name" : "parent"
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (parent: Category { name: $parentName })
-MATCH (child: Category)
-WHERE child.name IN $childChildCategories
-MERGE (parent)<-[: HAS_PARENT]-(child)
+MATCH (parent:Category  {
+	name: $parent_name
+})
+MATCH (child:Category)
+WHERE child.name IN $child_childCategories
+MERGE (parent)<-[:HAS_PARENT]-(child)
 WITH DISTINCT parent AS addCategoryChildCategories
-RETURN addCategoryChildCategories { .name } AS addCategoryChildCategories
+RETURN addCategoryChildCategories {
+	.name
+} AS addCategoryChildCategories
 ----
 
 ==== delete outgoing relationship
@@ -451,20 +491,24 @@ mutation{
 [source,json]
 ----
 {
-  "parentName" : "parent",
-  "childChildCategories" : [ "child1", "child2" ]
+  "child_childCategories" : [ "child1", "child2" ],
+  "parent_name" : "parent"
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (parent: Category { name: $parentName })
-MATCH (child: Category) WHERE child.name IN $childChildCategories
-MATCH (parent)<-[r: HAS_PARENT]-(child)
-DELETE r
+MATCH (parent:Category  {
+	name: $parent_name
+})
+MATCH (child:Category)
+WHERE child.name IN $child_childCategories
+MATCH (parent)<-[r:HAS_PARENT]-(child) DELETE r
 WITH DISTINCT parent AS deleteCategoryChildCategories
-RETURN deleteCategoryChildCategories { .name } AS deleteCategoryChildCategories
+RETURN deleteCategoryChildCategories {
+	.name
+} AS deleteCategoryChildCategories
 ----
 
 ==== create relationship
@@ -483,20 +527,28 @@ mutation{
 [source,json]
 ----
 {
-  "childChild_name" : "child",
-  "parentParent_name" : "parent",
-  "createCategoryAssignmentProp" : "foo"
+  "child_child_name" : "child",
+  "createCategoryAssignment_prop" : "foo",
+  "parent_parent_name" : "parent"
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (child: Category { name: $childChild_name })
-MATCH (parent: Category { name: $parentParent_name })
-CREATE (child)-[createCategoryAssignment: HAS_PARENT { prop: $createCategoryAssignmentProp }]->(parent)
+MATCH (child:Category  {
+	name: $child_child_name
+})
+MATCH (parent:Category  {
+	name: $parent_parent_name
+})
+CREATE (child)-[createCategoryAssignment:HAS_PARENT  {
+	prop: $createCategoryAssignment_prop
+}]->(parent)
 WITH createCategoryAssignment
-RETURN createCategoryAssignment { .prop } AS createCategoryAssignment
+RETURN createCategoryAssignment {
+	.prop
+} AS createCategoryAssignment
 ----
 
 === Queries

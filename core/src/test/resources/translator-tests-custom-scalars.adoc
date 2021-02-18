@@ -33,17 +33,23 @@ mutation {
 [source,json]
 ----
 {
-  "createMovieTitle": "Forrest Gump",
-  "createMovieReleased": 1994
+  "createMovie_released" : 1994,
+  "createMovie_title" : "Forrest Gump"
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-CREATE (createMovie:Movie { title: $createMovieTitle, released: $createMovieReleased })
+CREATE (createMovie:Movie  {
+	title: $createMovie_title,
+	released: $createMovie_released
+})
 WITH createMovie
-RETURN createMovie { .title, .released } AS createMovie
+RETURN createMovie {
+	.title,
+	.released
+} AS createMovie
 ----
 
 === Update
@@ -63,19 +69,24 @@ mutation {
 [source,json]
 ----
 {
-  "updateMovie_id": 1,
-  "updateMovieReleased": 1995
+  "updateMovie__id" : 1,
+  "updateMovie_released" : 1995
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (updateMovie: Movie)
-WHERE ID(updateMovie) = toInteger($updateMovie_id)
-SET updateMovie += { released: $updateMovieReleased }
+MATCH (updateMovie:Movie)
+WHERE id(updateMovie) = toInteger($updateMovie__id)
+SET updateMovie +=  {
+	released: $updateMovie_released
+}
 WITH updateMovie
-RETURN updateMovie { .title, .released } AS updateMovie
+RETURN updateMovie {
+	.title,
+	.released
+} AS updateMovie
 ----
 
 === Merge
@@ -95,19 +106,24 @@ mutation {
 [source,json]
 ----
 {
-  "mergeMovie_id": 1,
-  "mergeMovieReleased": 1995
+  "mergeMovie__id" : 1,
+  "mergeMovie_released" : 1995
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (mergeMovie: Movie)
-WHERE ID(mergeMovie) = toInteger($mergeMovie_id)
-SET mergeMovie += { released: $mergeMovieReleased }
+MATCH (mergeMovie:Movie)
+WHERE id(mergeMovie) = toInteger($mergeMovie__id)
+SET mergeMovie +=  {
+	released: $mergeMovie_released
+}
 WITH mergeMovie
-RETURN mergeMovie { .title, .released } AS mergeMovie
+RETURN mergeMovie {
+	.title,
+	.released
+} AS mergeMovie
 ----
 
 === Merge null
@@ -127,19 +143,24 @@ mutation {
 [source,json]
 ----
 {
-  "updateMovie_id": 1,
-  "updateMovieReleased": null
+  "updateMovie__id" : 1,
+  "updateMovie_released" : null
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (updateMovie: Movie)
-WHERE ID(updateMovie) = toInteger($updateMovie_id)
-SET updateMovie += { released: $updateMovieReleased }
+MATCH (updateMovie:Movie)
+WHERE id(updateMovie) = toInteger($updateMovie__id)
+SET updateMovie +=  {
+	released: $updateMovie_released
+}
 WITH updateMovie
-RETURN updateMovie { .title, .released } AS updateMovie
+RETURN updateMovie {
+	.title,
+	.released
+} AS updateMovie
 ----
 
 === Find
@@ -159,16 +180,19 @@ RETURN updateMovie { .title, .released } AS updateMovie
 [source,json]
 ----
 {
-  "movieReleased": 1994
+  "movie_released" : 1994
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (movie: Movie)
-WHERE movie.released = $movieReleased
-RETURN movie { .title, .released } AS movie
+MATCH (movie:Movie)
+WHERE movie.released = $movie_released
+RETURN movie {
+	.title,
+	.released
+} AS movie
 ----
 
 === Filter
@@ -188,15 +212,18 @@ RETURN movie { .title, .released } AS movie
 [source,json]
 ----
 {
-  "filterMovieReleased_GTE": 1994
+  "filter_movie_released_gte" : 1994
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (movie: Movie)
-WHERE movie.released >= $filterMovieReleased_GTE
-RETURN movie { .title, .released } AS movie
+MATCH (movie:Movie)
+WHERE movie.released >= $filter_movie_released_gte
+RETURN movie {
+	.title,
+	.released
+} AS movie
 ----
 

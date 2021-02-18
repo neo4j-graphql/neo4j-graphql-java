@@ -17,7 +17,7 @@ fun initBoundSchema(schema: String): GraphQLSchema {
     val driver = GraphDatabase.driver("bolt://localhost", AuthTokens.basic("neo4j", "test"))
 
     val dataFetchingInterceptor = object : DataFetchingInterceptor {
-        override fun fetchData(env: DataFetchingEnvironment, delegate: DataFetcher<Cypher>): Any? {
+        override fun fetchData(env: DataFetchingEnvironment, delegate: DataFetcher<Cypher>): Any {
             val cypher = delegate.get(env)
             return driver.session().use { session ->
                 val result = session.run(cypher.query, cypher.params.mapValues { toBoltValue(it.value, env.variables) })

@@ -5,6 +5,10 @@ import graphql.schema.DataFetcher
 import graphql.schema.DataFetchingEnvironment
 import graphql.schema.GraphQLFieldDefinition
 import graphql.schema.GraphQLFieldsContainer
+import org.neo4j.cypherdsl.core.Node
+import org.neo4j.cypherdsl.core.Relationship
+import org.neo4j.cypherdsl.core.Statement
+import org.neo4j.cypherdsl.core.StatementBuilder.OngoingMatchAndUpdate
 import org.neo4j.graphql.*
 
 class MergeOrUpdateHandler private constructor(
@@ -46,9 +50,9 @@ class MergeOrUpdateHandler private constructor(
                 return null
             }
             val idField = type.getIdField() ?: return null
-            return when {
-                fieldDefinition.name == "merge${type.name}" -> MergeOrUpdateHandler(type, true, idField, fieldDefinition)
-                fieldDefinition.name == "update${type.name}" -> MergeOrUpdateHandler(type, false, idField, fieldDefinition)
+            return when (fieldDefinition.name) {
+                "merge${type.name}" -> MergeOrUpdateHandler(type, true, idField, fieldDefinition)
+                "update${type.name}" -> MergeOrUpdateHandler(type, false, idField, fieldDefinition)
                 else -> null
             }
         }
@@ -74,17 +78,38 @@ class MergeOrUpdateHandler private constructor(
         propertyFields.remove(idField.name) // id should not be updated
     }
 
-    override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Cypher {
+    override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement {
         val idArg = field.arguments.first { it.name == idField.name }
 
-        val properties = properties(variable, field.arguments)
-        val mapProjection = projectFields(variable, field, type, env, null)
+        val (propertyContainer, where) = getSelectQuery(variable, type.label(), idArg, idField, isRelation)
 
-        val select = getSelectQuery(variable, label(), idArg, idField, isRelation)
-        return Cypher((if (merge && !idField.isNativeId()) "MERGE " else "MATCH ") + select.query +
-                " SET $variable += " + properties.query +
-                " WITH $variable" +
-                " RETURN ${mapProjection.query} AS ${field.aliasOrName()}",
-                select.params + properties.params + mapProjection.params)
+        val select = if (isRelation) {
+            val rel = propertyContainer as? Relationship
+                    ?: throw IllegalStateException("Expect a Relationship but got ${propertyContainer.javaClass.name}")
+            if (merge && !idField.isNativeId()) {
+                org.neo4j.cypherdsl.core.Cypher.merge(rel)
+                // where is skipped since it does not make sense on merge
+            } else {
+                org.neo4j.cypherdsl.core.Cypher.match(rel).where(where)
+            }
+        } else {
+            val node = propertyContainer as? Node
+                    ?: throw IllegalStateException("Expect a Node but got ${propertyContainer.javaClass.name}")
+            if (merge && !idField.isNativeId()) {
+                org.neo4j.cypherdsl.core.Cypher.merge(node)
+                // where is skipped since it does not make sense on merge
+            } else {
+                org.neo4j.cypherdsl.core.Cypher.match(node).where(where)
+            }
+        }
+        val properties = properties(variable, field.arguments)
+        val mapProjection = projectFields(propertyContainer,field, type, env)
+        val update: OngoingMatchAndUpdate = select
+            .mutate(propertyContainer, org.neo4j.cypherdsl.core.Cypher.mapOf(*properties))
+
+        return update
+            .with(propertyContainer)
+            .returning(propertyContainer.project(mapProjection).`as`(field.aliasOrName()))
+            .build()
     }
 }
