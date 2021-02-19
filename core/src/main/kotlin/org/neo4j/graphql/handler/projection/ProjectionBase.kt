@@ -82,7 +82,7 @@ open class ProjectionBase {
             }
             ?.let { parseFilter(it as ObjectValue, type) }
             ?.let {
-                val filterCondition = handleQuery(FILTER + "_" + variable, "", propertyContainer, it, type)
+                val filterCondition = handleQuery(normalizeName(FILTER ,variable), "", propertyContainer, it, type)
                 result.and(filterCondition)
             }
                 ?: result
@@ -109,7 +109,7 @@ open class ProjectionBase {
                 throw IllegalArgumentException("Only object values are supported for filtering on queried relation ${predicate.queryField}, but got ${objectField.value.javaClass.name}")
             }
 
-            val cond = name("${variablePrefix}_${predicate.relationshipInfo.typeName}_Cond")
+            val cond = name(normalizeName(variablePrefix, predicate.relationshipInfo.typeName, "Cond"))
             when (predicate.op) {
                 RelationOperator.SOME -> Predicates.any(cond)
                 RelationOperator.SINGLE -> Predicates.single(cond)
@@ -118,7 +118,7 @@ open class ProjectionBase {
                 RelationOperator.NONE -> Predicates.none(cond)
                 else -> null
             }?.let {
-                val targetNode = predicate.relNode.named("${variablePrefix}_${predicate.relationshipInfo.typeName}")
+                val targetNode = predicate.relNode.named(normalizeName(variablePrefix,predicate.relationshipInfo.typeName))
                 val parsedQuery2 = parseFilter(objectField.value as ObjectValue, type)
                 val condition = handleQuery(targetNode.requiredSymbolicName.value, "", targetNode, parsedQuery2, type)
                 var where = it
@@ -143,14 +143,14 @@ open class ProjectionBase {
         fun handleLogicalOperators(values: List<Value<*>>?, classifier: String): List<Condition> {
             return when {
                 values?.isNotEmpty() == true -> when {
-                    values.size > 1 -> values.mapIndexed { index, value -> handleLogicalOperator(value, "_${classifier}${index + 1}") }
+                    values.size > 1 -> values.mapIndexed { index, value -> handleLogicalOperator(value, "${classifier}${index + 1}") }
                     else -> values.map { value -> handleLogicalOperator(value, "") }
                 }
                 else -> emptyList()
             }
         }
-        handleLogicalOperators(parsedQuery.and, "AND").forEach { result = result.and(it) }
-        handleLogicalOperators(parsedQuery.or, "OR").forEach { result = result.or(it) }
+        handleLogicalOperators(parsedQuery.and, "And").forEach { result = result.and(it) }
+        handleLogicalOperators(parsedQuery.or, "Or").forEach { result = result.or(it) }
 
         return result
     }

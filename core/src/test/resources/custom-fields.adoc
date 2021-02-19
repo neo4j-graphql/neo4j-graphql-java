@@ -79,7 +79,7 @@ mutation { createPerson(name:"Jill") {name} }
 [source,json]
 ----
 {
-  "createPerson_name" : "Jill"
+  "createPersonName" : "Jill"
 }
 ----
 
@@ -87,7 +87,7 @@ mutation { createPerson(name:"Jill") {name} }
 [source,cypher]
 ----
 CALL apoc.cypher.doIt('WITH $name AS name CREATE (p:Person { name: \"Test\"+{name} }) RETURN p',  {
-	name: $createPerson_name
+	name: $createPersonName
 }) YIELD value
 WITH value[head(keys(value))] AS createPerson
 RETURN createPerson {
@@ -124,7 +124,7 @@ query { Person(name:"Jane") {name} }
 [source,json]
 ----
 {
-  "person_name" : "Jane"
+  "personName" : "Jane"
 }
 ----
 
@@ -132,7 +132,7 @@ query { Person(name:"Jane") {name} }
 [source,cypher]
 ----
 UNWIND apoc.cypher.runFirstColumnSingle('WITH $name AS name MATCH (p:Person { name:{name} }) RETURN p',  {
-	name: $person_name
+	name: $personName
 }) AS person
 RETURN person {
 	.name
@@ -162,7 +162,7 @@ query { Person(name:"Jane") {name, label} }
 [source,json]
 ----
 {
-  "person_name" : "Jane"
+  "personName" : "Jane"
 }
 ----
 
@@ -170,7 +170,7 @@ query { Person(name:"Jane") {name, label} }
 [source,cypher]
 ----
 UNWIND apoc.cypher.runFirstColumnSingle('WITH $name AS name MATCH (p:Person { name:{name} }) RETURN p',  {
-	name: $person_name
+	name: $personName
 }) AS person
 RETURN person {
 	.name,
@@ -203,7 +203,7 @@ query { Person(name:"Jane") {name, nullable} }
 [source,json]
 ----
 {
-  "person_name" : "Jane"
+  "personName" : "Jane"
 }
 ----
 
@@ -211,7 +211,7 @@ query { Person(name:"Jane") {name, nullable} }
 [source,cypher]
 ----
 UNWIND apoc.cypher.runFirstColumnSingle('WITH $name AS name MATCH (p:Person { name:{name} }) RETURN p',  {
-	name: $person_name
+	name: $personName
 }) AS person
 RETURN person {
 	.name,

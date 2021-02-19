@@ -36,7 +36,7 @@ type Referral @relation (name:"REFERRED_BY", from:"referredBy", to: "user", dire
 [source,json]
 ----
 {
-  "user_name" : "Jane"
+  "userName" : "Jane"
 }
 ----
 
@@ -44,7 +44,7 @@ type Referral @relation (name:"REFERRED_BY", from:"referredBy", to: "user", dire
 [source,cypher]
 ----
 MATCH (user:User)
-WHERE user.name = $user_name
+WHERE user.name = $userName
 RETURN user {
 	.name,
 	referredBy: [(user)-[userReferredBy:REFERRED_BY]->(userReferredByReferredBy:User) | userReferredBy {

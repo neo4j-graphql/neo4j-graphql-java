@@ -59,8 +59,8 @@ mutation{
 [source,json]
 ----
 {
-  "player_players" : [ 2 ],
-  "team_id" : 1
+  "playerPlayers" : [ 2 ],
+  "teamId" : 1
 }
 ----
 
@@ -68,10 +68,10 @@ mutation{
 [source,cypher]
 ----
 MATCH (team:Team  {
-	id: $team_id
+	id: $teamId
 })
 MATCH (player:Player)
-WHERE player.id IN $player_players
+WHERE player.id IN $playerPlayers
 MERGE (team)<-[:MEMBER_OF]-(player)
 WITH DISTINCT team AS addTeamPlayers
 RETURN addTeamPlayers {
@@ -95,8 +95,8 @@ mutation{
 [source,json]
 ----
 {
-  "player_players" : [ 2 ],
-  "team_id" : 1
+  "playerPlayers" : [ 2 ],
+  "teamId" : 1
 }
 ----
 
@@ -104,10 +104,10 @@ mutation{
 [source,cypher]
 ----
 MATCH (team:Team  {
-	id: $team_id
+	id: $teamId
 })
 MATCH (player:Player)
-WHERE player.id IN $player_players
+WHERE player.id IN $playerPlayers
 MATCH (team)<-[r:MEMBER_OF]-(player) DELETE r
 WITH DISTINCT team AS deleteTeamPlayers
 RETURN deleteTeamPlayers {
@@ -131,8 +131,8 @@ mutation{
 [source,json]
 ----
 {
-  "player_id" : 1,
-  "team_teams" : [ 2 ]
+  "playerId" : 1,
+  "teamTeams" : [ 2 ]
 }
 ----
 
@@ -140,10 +140,10 @@ mutation{
 [source,cypher]
 ----
 MATCH (player:Player  {
-	id: $player_id
+	id: $playerId
 })
 MATCH (team:Team)
-WHERE team.id IN $team_teams
+WHERE team.id IN $teamTeams
 MERGE (player)-[:MEMBER_OF]->(team)
 WITH DISTINCT player AS addPlayerTeams
 RETURN addPlayerTeams {
@@ -167,8 +167,8 @@ mutation{
 [source,json]
 ----
 {
-  "player_id" : 1,
-  "team_teams" : [ 2 ]
+  "playerId" : 1,
+  "teamTeams" : [ 2 ]
 }
 ----
 
@@ -176,10 +176,10 @@ mutation{
 [source,cypher]
 ----
 MATCH (player:Player  {
-	id: $player_id
+	id: $playerId
 })
 MATCH (team:Team)
-WHERE team.id IN $team_teams
+WHERE team.id IN $teamTeams
 MATCH (player)-[r:MEMBER_OF]->(team) DELETE r
 WITH DISTINCT player AS deletePlayerTeams
 RETURN deletePlayerTeams {
@@ -203,9 +203,9 @@ mutation{
 [source,json]
 ----
 {
-  "createMembership_prop" : "foo",
-  "player_player_id" : 1,
-  "team_team_id" : 2
+  "createMembershipProp" : "foo",
+  "playerPlayer_id" : 1,
+  "teamTeam_id" : 2
 }
 ----
 
@@ -213,13 +213,13 @@ mutation{
 [source,cypher]
 ----
 MATCH (player:Player  {
-	id: $player_player_id
+	id: $playerPlayer_id
 })
 MATCH (team:Team  {
-	id: $team_team_id
+	id: $teamTeam_id
 })
 CREATE (player)-[createMembership:MEMBER_OF  {
-	prop: $createMembership_prop
+	prop: $createMembershipProp
 }]->(team)
 WITH createMembership
 RETURN createMembership {
@@ -381,8 +381,8 @@ mutation{
 [source,json]
 ----
 {
-  "child_name" : "child",
-  "parent_parentCategory" : "parent"
+  "childName" : "child",
+  "parentParentCategory" : "parent"
 }
 ----
 
@@ -390,10 +390,10 @@ mutation{
 [source,cypher]
 ----
 MATCH (child:Category  {
-	name: $child_name
+	name: $childName
 })
 MATCH (parent:Category  {
-	name: $parent_parentCategory
+	name: $parentParentCategory
 })
 MERGE (child)-[:HAS_PARENT]->(parent)
 WITH DISTINCT child AS addCategoryParentCategory
@@ -418,8 +418,8 @@ mutation{
 [source,json]
 ----
 {
-  "child_name" : "child",
-  "parent_parentCategory" : "parent"
+  "childName" : "child",
+  "parentParentCategory" : "parent"
 }
 ----
 
@@ -427,10 +427,10 @@ mutation{
 [source,cypher]
 ----
 MATCH (child:Category  {
-	name: $child_name
+	name: $childName
 })
 MATCH (parent:Category  {
-	name: $parent_parentCategory
+	name: $parentParentCategory
 })
 MATCH (child)-[r:HAS_PARENT]->(parent) DELETE r
 WITH DISTINCT child AS deleteCategoryParentCategory
@@ -455,8 +455,8 @@ mutation{
 [source,json]
 ----
 {
-  "child_childCategories" : [ "child1", "child2" ],
-  "parent_name" : "parent"
+  "childChildCategories" : [ "child1", "child2" ],
+  "parentName" : "parent"
 }
 ----
 
@@ -464,10 +464,10 @@ mutation{
 [source,cypher]
 ----
 MATCH (parent:Category  {
-	name: $parent_name
+	name: $parentName
 })
 MATCH (child:Category)
-WHERE child.name IN $child_childCategories
+WHERE child.name IN $childChildCategories
 MERGE (parent)<-[:HAS_PARENT]-(child)
 WITH DISTINCT parent AS addCategoryChildCategories
 RETURN addCategoryChildCategories {
@@ -491,8 +491,8 @@ mutation{
 [source,json]
 ----
 {
-  "child_childCategories" : [ "child1", "child2" ],
-  "parent_name" : "parent"
+  "childChildCategories" : [ "child1", "child2" ],
+  "parentName" : "parent"
 }
 ----
 
@@ -500,10 +500,10 @@ mutation{
 [source,cypher]
 ----
 MATCH (parent:Category  {
-	name: $parent_name
+	name: $parentName
 })
 MATCH (child:Category)
-WHERE child.name IN $child_childCategories
+WHERE child.name IN $childChildCategories
 MATCH (parent)<-[r:HAS_PARENT]-(child) DELETE r
 WITH DISTINCT parent AS deleteCategoryChildCategories
 RETURN deleteCategoryChildCategories {
@@ -527,9 +527,9 @@ mutation{
 [source,json]
 ----
 {
-  "child_child_name" : "child",
-  "createCategoryAssignment_prop" : "foo",
-  "parent_parent_name" : "parent"
+  "childChild_name" : "child",
+  "createCategoryAssignmentProp" : "foo",
+  "parentParent_name" : "parent"
 }
 ----
 
@@ -537,13 +537,13 @@ mutation{
 [source,cypher]
 ----
 MATCH (child:Category  {
-	name: $child_child_name
+	name: $childChild_name
 })
 MATCH (parent:Category  {
-	name: $parent_parent_name
+	name: $parentParent_name
 })
 CREATE (child)-[createCategoryAssignment:HAS_PARENT  {
-	prop: $createCategoryAssignment_prop
+	prop: $createCategoryAssignmentProp
 }]->(parent)
 WITH createCategoryAssignment
 RETURN createCategoryAssignment {

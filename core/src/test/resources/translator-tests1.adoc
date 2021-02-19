@@ -144,7 +144,7 @@ MATCH (person:Person) RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "person_offset" : 3
+  "personOffset" : 3
 }
 ----
 
@@ -154,7 +154,7 @@ MATCH (person:Person) RETURN person { .name } AS person
 MATCH (person:Person)
 RETURN person {
 	.age
-} AS person SKIP $person_offset
+} AS person SKIP $personOffset
 ----
 
 === query offset as variable
@@ -342,7 +342,7 @@ MATCH (person:Person) RETURN person { .name, born:[(person)-[personBorn:BORN]->(
 [source,json]
 ----
 {
-  "personLivesIn_name" : "Berlin"
+  "personLivesInName" : "Berlin"
 }
 ----
 
@@ -353,7 +353,7 @@ MATCH (person:Person)
 RETURN person {
 	.name,
 	.age,
-	livesIn: [(person)-[:LIVES_IN]->(personLivesIn:Location) WHERE personLivesIn.name = $personLivesIn_name | personLivesIn {
+	livesIn: [(person)-[:LIVES_IN]->(personLivesIn:Location) WHERE personLivesIn.name = $personLivesInName | personLivesIn {
 		.name
 	}][0]
 } AS person
@@ -456,7 +456,7 @@ MATCH (foo:Person) RETURN foo { n:foo.name } AS foo
 [source,json]
 ----
 {
-  "person_first" : 2
+  "personFirst" : 2
 }
 ----
 
@@ -466,7 +466,7 @@ MATCH (foo:Person) RETURN foo { n:foo.name } AS foo
 MATCH (person:Person)
 RETURN person {
 	.age
-} AS person LIMIT $person_first
+} AS person LIMIT $personFirst
 ----
 
 === simple query where
@@ -481,7 +481,7 @@ RETURN person {
 [source,json]
 ----
 {
-  "person_name" : "Joe"
+  "personName" : "Joe"
 }
 ----
 
@@ -489,7 +489,7 @@ RETURN person {
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE person.name = $person_name
+WHERE person.name = $personName
 RETURN person {
 	.age
 } AS person
@@ -507,7 +507,7 @@ RETURN person {
 [source,json]
 ----
 {
-  "personLivedIn_offset" : 3
+  "personLivedInOffset" : 3
 }
 ----
 
@@ -518,7 +518,7 @@ MATCH (person:Person)
 RETURN person {
 	livedIn: [(person)-[:LIVED_IN]->(personLivedIn:Location) | personLivedIn {
 		.name
-	}][$personLivedIn_offset..]
+	}][$personLivedInOffset..]
 } AS person
 ----
 
@@ -534,7 +534,7 @@ RETURN person {
 [source,json]
 ----
 {
-  "personLivedIn_first" : 2
+  "personLivedInFirst" : 2
 }
 ----
 
@@ -545,7 +545,7 @@ MATCH (person:Person)
 RETURN person {
 	livedIn: [(person)-[:LIVED_IN]->(personLivedIn:Location) | personLivedIn {
 		.name
-	}][0..$personLivedIn_first]
+	}][0..$personLivedInFirst]
 } AS person
 ----
 
@@ -601,8 +601,8 @@ MATCH (person:Person) RETURN person { .name, .age } AS person
 [source,json]
 ----
 {
-  "person_first" : 2,
-  "person_offset" : 3
+  "personFirst" : 2,
+  "personOffset" : 3
 }
 ----
 
@@ -612,7 +612,7 @@ MATCH (person:Person) RETURN person { .name, .age } AS person
 MATCH (person:Person)
 RETURN person {
 	.age
-} AS person SKIP $person_offset LIMIT $person_first
+} AS person SKIP $personOffset LIMIT $personFirst
 ----
 
 === nested query slice first offset
@@ -627,8 +627,8 @@ RETURN person {
 [source,json]
 ----
 {
-  "personLivedIn_first" : 2,
-  "personLivedIn_offset" : 3
+  "personLivedInFirst" : 2,
+  "personLivedInOffset" : 3
 }
 ----
 
@@ -639,7 +639,7 @@ MATCH (person:Person)
 RETURN person {
 	livedIn: [(person)-[:LIVED_IN]->(personLivedIn:Location) | personLivedIn {
 		.name
-	}][$personLivedIn_offset..($personLivedIn_offset + $personLivedIn_first)]
+	}][$personLivedInOffset..($personLivedInOffset + $personLivedInFirst)]
 } AS person
 ----
 
@@ -655,7 +655,7 @@ RETURN person {
 [source,json]
 ----
 {
-  "location_validTypes" : [ "City", "Village" ]
+  "locationValidTypes" : [ "City", "Village" ]
 }
 ----
 
@@ -665,7 +665,7 @@ RETURN person {
 MATCH (location:Location)
 RETURN location {
 	.name,
-	__typename: head([label IN labels(location) WHERE label IN $location_validTypes])
+	__typename: head([label IN labels(location) WHERE label IN $locationValidTypes])
 } AS location
 ----
 
@@ -689,7 +689,7 @@ RETURN location {
 [source,json]
 ----
 {
-  "person_validTypes" : [ "Person" ]
+  "personValidTypes" : [ "Person" ]
 }
 ----
 
@@ -699,7 +699,7 @@ RETURN location {
 MATCH (person:Person)
 RETURN person {
 	.name,
-	__typename: head([label IN labels(person) WHERE label IN $person_validTypes]),
+	__typename: head([label IN labels(person) WHERE label IN $personValidTypes]),
 	born: [(person)-[personBorn:BORN]->(personBornTo:Location) | personBorn {
 		__typename: 'Birth'
 	}][0]
@@ -729,7 +729,7 @@ RETURN person {
 [source,json]
 ----
 {
-  "location_validTypes" : [ "City", "Village" ]
+  "locationValidTypes" : [ "City", "Village" ]
 }
 ----
 
@@ -739,7 +739,7 @@ RETURN person {
 MATCH (location:Location)
 RETURN location {
 	.name,
-	__typename: head([label IN labels(location) WHERE label IN $location_validTypes]),
+	__typename: head([label IN labels(location) WHERE label IN $locationValidTypes]),
 	.city_Arg,
 	.villageArg
 } AS location
@@ -771,7 +771,7 @@ fragment details on Location {
 [source,json]
 ----
 {
-  "location_validTypes" : [ "City", "Village" ]
+  "locationValidTypes" : [ "City", "Village" ]
 }
 ----
 
@@ -781,7 +781,7 @@ fragment details on Location {
 MATCH (location:Location)
 RETURN location {
 	.name,
-	__typename: head([label IN labels(location) WHERE label IN $location_validTypes]),
+	__typename: head([label IN labels(location) WHERE label IN $locationValidTypes]),
 	.city_Arg,
 	.villageArg
 } AS location
@@ -809,8 +809,8 @@ query {
 [source,json]
 ----
 {
-  "person_location_AND1_longitude" : 1,
-  "person_location_AND2_latitude" : 2
+  "personLocationAnd1Longitude" : 1,
+  "personLocationAnd2Latitude" : 2
 }
 ----
 
@@ -818,8 +818,8 @@ query {
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE (person.location.longitude = $person_location_AND1_longitude
-	AND person.location.latitude = $person_location_AND2_latitude)
+WHERE (person.location.longitude = $personLocationAnd1Longitude
+	AND person.location.latitude = $personLocationAnd2Latitude)
 RETURN person {
 	.name,
 	location:  {
@@ -854,13 +854,13 @@ mutation{
 [source,json]
 ----
 {
-  "createPerson_location" : {
+  "createPersonLocation" : {
     "x" : 1,
     "y" : 2,
     "z" : 3,
     "crs" : "wgs-84-3d"
   },
-  "createPerson_name" : "Test2"
+  "createPersonName" : "Test2"
 }
 ----
 
@@ -868,8 +868,8 @@ mutation{
 [source,cypher]
 ----
 CREATE (createPerson:Person  {
-	name: $createPerson_name,
-	location: point($createPerson_location)
+	name: $createPersonName,
+	location: point($createPersonLocation)
 })
 WITH createPerson
 RETURN createPerson {

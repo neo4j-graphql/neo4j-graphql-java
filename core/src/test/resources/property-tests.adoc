@@ -29,8 +29,8 @@ type Query {
 [source,json]
 ----
 {
-  "person_id" : "32",
-  "person_name" : "Jane"
+  "personId" : "32",
+  "personName" : "Jane"
 }
 ----
 
@@ -38,8 +38,8 @@ type Query {
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE (person.`an-id` = $person_id
-	AND person.` a name ` = $person_name)
+WHERE (person.`an-id` = $personId
+	AND person.` a name ` = $personName)
 RETURN person {
 	name: person.` a name `
 } AS person

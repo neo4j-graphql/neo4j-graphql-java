@@ -94,7 +94,7 @@ UNWIND apoc.cypher.runFirstColumnSingle('WITH $name AS name MATCH (p:Person) WHE
 [source,json]
 ----
 {
-  "personAge_mult" : 13
+  "personAgeMult" : 13
 }
 ----
 
@@ -105,7 +105,7 @@ MATCH (person:Person)
 RETURN person {
 	age: apoc.cypher.runFirstColumnMany('WITH $this AS this, $mult AS mult RETURN this.age * mult as age',  {
 		this: person,
-		mult: $personAge_mult
+		mult: $personAgeMult
 	})
 } AS person
 ----
@@ -154,7 +154,7 @@ mutation { person: createPerson(name:"Joe") { id }}
 [source,json]
 ----
 {
-  "person_name" : "Joe"
+  "personName" : "Joe"
 }
 ----
 
@@ -162,7 +162,7 @@ mutation { person: createPerson(name:"Joe") { id }}
 [source,cypher]
 ----
 CALL apoc.cypher.doIt('WITH $name AS name CREATE (p:Person) SET p.name = name RETURN p',  {
-	name: $person_name
+	name: $personName
 }) YIELD value
 WITH value[head(keys(value))] AS person
 RETURN person {
@@ -188,7 +188,7 @@ RETURN person {
 [source,json]
 ----
 {
-  "personAge_mult" : 25
+  "personAgeMult" : 25
 }
 ----
 
@@ -199,7 +199,7 @@ MATCH (person:Person)
 RETURN person {
 	age: apoc.cypher.runFirstColumnMany('WITH $this AS this, $mult AS mult RETURN this.age * mult as age',  {
 		this: person,
-		mult: $personAge_mult
+		mult: $personAgeMult
 	})
 } AS person
 ----
@@ -250,7 +250,7 @@ RETURN person { friends:[personFriends IN
 [source,json]
 ----
 {
-  "p3_name" : "Jane"
+  "p3Name" : "Jane"
 }
 ----
 
@@ -258,7 +258,7 @@ RETURN person { friends:[personFriends IN
 [source,cypher]
 ----
 UNWIND apoc.cypher.runFirstColumnSingle('WITH $name AS name MATCH (p:Person) WHERE p.name = name RETURN p LIMIT 1',  {
-	name: $p3_name
+	name: $p3Name
 }) AS p3
 RETURN p3 {
 	.id

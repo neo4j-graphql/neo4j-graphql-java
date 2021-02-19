@@ -26,8 +26,8 @@ fun queryParameter(value: Any?, vararg parts: String?): Parameter<Any> {
     return org.neo4j.cypherdsl.core.Cypher.parameter(name).withValue(value?.toJavaValue())
 }
 
-//fun normalizeName(vararg parts: String?) = parts.mapNotNull { it?.capitalize() }.filter { it.isNotBlank() }.joinToString("").decapitalize()
-fun normalizeName(vararg parts: String?) = parts.filterNot { it.isNullOrBlank() }.joinToString("_")
+fun normalizeName(vararg parts: String?) = parts.mapNotNull { it?.capitalize() }.filter { it.isNotBlank() }.joinToString("").decapitalize()
+//fun normalizeName(vararg parts: String?) = parts.filterNot { it.isNullOrBlank() }.joinToString("_")
 
 fun PropertyContainer.id(): FunctionInvocation = when (this) {
     is Node -> Functions.id(this)
@@ -35,8 +35,4 @@ fun PropertyContainer.id(): FunctionInvocation = when (this) {
     else -> throw IllegalArgumentException("Id can only be retrieved for Nodes or Relationships")
 }
 
-fun String.isJavaIdentifier() =
-        this[0].isJavaIdentifierStart() &&
-                this.substring(1).all { it.isJavaIdentifierPart() }
-
-fun String.quote() = if (isJavaIdentifier()) this else "`$this`"
+fun String.toCamelCase(): String = Regex("[\\W_]([a-z])").replace(this) { it.groupValues[1].toUpperCase() }

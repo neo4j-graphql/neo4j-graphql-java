@@ -33,8 +33,8 @@ mutation {
 [source,json]
 ----
 {
-  "createMovie_released" : 1994,
-  "createMovie_title" : "Forrest Gump"
+  "createMovieReleased" : 1994,
+  "createMovieTitle" : "Forrest Gump"
 }
 ----
 
@@ -42,8 +42,8 @@ mutation {
 [source,cypher]
 ----
 CREATE (createMovie:Movie  {
-	title: $createMovie_title,
-	released: $createMovie_released
+	title: $createMovieTitle,
+	released: $createMovieReleased
 })
 WITH createMovie
 RETURN createMovie {
@@ -69,8 +69,8 @@ mutation {
 [source,json]
 ----
 {
-  "updateMovie__id" : 1,
-  "updateMovie_released" : 1995
+  "updateMovieReleased" : 1995,
+  "updateMovie_id" : 1
 }
 ----
 
@@ -78,9 +78,9 @@ mutation {
 [source,cypher]
 ----
 MATCH (updateMovie:Movie)
-WHERE id(updateMovie) = toInteger($updateMovie__id)
+WHERE id(updateMovie) = toInteger($updateMovie_id)
 SET updateMovie +=  {
-	released: $updateMovie_released
+	released: $updateMovieReleased
 }
 WITH updateMovie
 RETURN updateMovie {
@@ -106,8 +106,8 @@ mutation {
 [source,json]
 ----
 {
-  "mergeMovie__id" : 1,
-  "mergeMovie_released" : 1995
+  "mergeMovieReleased" : 1995,
+  "mergeMovie_id" : 1
 }
 ----
 
@@ -115,9 +115,9 @@ mutation {
 [source,cypher]
 ----
 MATCH (mergeMovie:Movie)
-WHERE id(mergeMovie) = toInteger($mergeMovie__id)
+WHERE id(mergeMovie) = toInteger($mergeMovie_id)
 SET mergeMovie +=  {
-	released: $mergeMovie_released
+	released: $mergeMovieReleased
 }
 WITH mergeMovie
 RETURN mergeMovie {
@@ -143,8 +143,8 @@ mutation {
 [source,json]
 ----
 {
-  "updateMovie__id" : 1,
-  "updateMovie_released" : null
+  "updateMovieReleased" : null,
+  "updateMovie_id" : 1
 }
 ----
 
@@ -152,9 +152,9 @@ mutation {
 [source,cypher]
 ----
 MATCH (updateMovie:Movie)
-WHERE id(updateMovie) = toInteger($updateMovie__id)
+WHERE id(updateMovie) = toInteger($updateMovie_id)
 SET updateMovie +=  {
-	released: $updateMovie_released
+	released: $updateMovieReleased
 }
 WITH updateMovie
 RETURN updateMovie {
@@ -180,7 +180,7 @@ RETURN updateMovie {
 [source,json]
 ----
 {
-  "movie_released" : 1994
+  "movieReleased" : 1994
 }
 ----
 
@@ -188,7 +188,7 @@ RETURN updateMovie {
 [source,cypher]
 ----
 MATCH (movie:Movie)
-WHERE movie.released = $movie_released
+WHERE movie.released = $movieReleased
 RETURN movie {
 	.title,
 	.released
@@ -212,7 +212,7 @@ RETURN movie {
 [source,json]
 ----
 {
-  "filter_movie_released_gte" : 1994
+  "filterMovieReleasedGte" : 1994
 }
 ----
 
@@ -220,7 +220,7 @@ RETURN movie {
 [source,cypher]
 ----
 MATCH (movie:Movie)
-WHERE movie.released >= $filter_movie_released_gte
+WHERE movie.released >= $filterMovieReleasedGte
 RETURN movie {
 	.title,
 	.released

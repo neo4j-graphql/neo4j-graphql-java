@@ -52,7 +52,7 @@ type Knows @relation(name:"KNOWS", from: "source", to: "knows"){
 [source,json]
 ----
 {
-  "person_id" : "32"
+  "personId" : "32"
 }
 ----
 
@@ -60,7 +60,7 @@ type Knows @relation(name:"KNOWS", from: "source", to: "knows"){
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE person.id = $person_id
+WHERE person.id = $personId
 RETURN person {
 	json: apoc.map.fromPairs([key IN keys(person) WHERE key STARTS WITH 'properties.' | [substring(key, 11), person[key]]]),
 	knows: [(person)-[:KNOWS]->(personKnows:Person) | personKnows {
@@ -94,9 +94,9 @@ mutation {
 [source,json]
 ----
 {
-  "updatePerson_id" : 32,
-  "updatePerson_jsonFoo" : "bar",
-  "updatePerson_jsonX" : 42
+  "updatePersonId" : 32,
+  "updatePersonJsonFoo" : "bar",
+  "updatePersonJsonX" : 42
 }
 ----
 
@@ -104,11 +104,11 @@ mutation {
 [source,cypher]
 ----
 MATCH (updatePerson:Person  {
-	id: $updatePerson_id
+	id: $updatePersonId
 })
 SET updatePerson +=  {
-	`properties.foo`: $updatePerson_jsonFoo,
-	`properties.x`: $updatePerson_jsonX
+	`properties.foo`: $updatePersonJsonFoo,
+	`properties.x`: $updatePersonJsonX
 }
 WITH updatePerson
 RETURN updatePerson {
@@ -132,9 +132,9 @@ mutation {
 [source,json]
 ----
 {
-  "mergePerson_id" : 32,
-  "mergePerson_jsonFoo" : "bar",
-  "mergePerson_jsonX" : 42
+  "mergePersonId" : 32,
+  "mergePersonJsonFoo" : "bar",
+  "mergePersonJsonX" : 42
 }
 ----
 
@@ -142,11 +142,11 @@ mutation {
 [source,cypher]
 ----
 MERGE (mergePerson:Person  {
-	id: $mergePerson_id
+	id: $mergePersonId
 })
 SET mergePerson +=  {
-	`properties.foo`: $mergePerson_jsonFoo,
-	`properties.x`: $mergePerson_jsonX
+	`properties.foo`: $mergePersonJsonFoo,
+	`properties.x`: $mergePersonJsonX
 }
 WITH mergePerson
 RETURN mergePerson {
@@ -171,9 +171,9 @@ mutation {
 [source,json]
 ----
 {
-  "createKnows_jsonFoo" : "bar",
-  "knows_knows_id" : 3,
-  "source_source_id" : 2
+  "createKnowsJsonFoo" : "bar",
+  "knowsKnows_id" : 3,
+  "sourceSource_id" : 2
 }
 ----
 
@@ -181,13 +181,13 @@ mutation {
 [source,cypher]
 ----
 MATCH (source:Person  {
-	id: $source_source_id
+	id: $sourceSource_id
 })
 MATCH (knows:Person  {
-	id: $knows_knows_id
+	id: $knowsKnows_id
 })
 CREATE (source)-[createKnows:KNOWS  {
-	`prefix.foo`: $createKnows_jsonFoo
+	`prefix.foo`: $createKnowsJsonFoo
 }]->(knows)
 WITH createKnows
 RETURN createKnows {
@@ -212,8 +212,8 @@ mutation {
 [source,json]
 ----
 {
-  "updateKnows__id" : 2,
-  "updateKnows_jsonFoo" : "bar"
+  "updateKnowsJsonFoo" : "bar",
+  "updateKnows_id" : 2
 }
 ----
 
@@ -221,9 +221,9 @@ mutation {
 [source,cypher]
 ----
 MATCH ()-[updateKnows:KNOWS]->()
-WHERE id(updateKnows) = toInteger($updateKnows__id)
+WHERE id(updateKnows) = toInteger($updateKnows_id)
 SET updateKnows +=  {
-	`prefix.foo`: $updateKnows_jsonFoo
+	`prefix.foo`: $updateKnowsJsonFoo
 }
 WITH updateKnows
 RETURN updateKnows {
@@ -247,8 +247,8 @@ mutation {
 [source,json]
 ----
 {
-  "mergeKnows__id" : 2,
-  "mergeKnows_jsonFoo" : "bar"
+  "mergeKnowsJsonFoo" : "bar",
+  "mergeKnows_id" : 2
 }
 ----
 
@@ -256,9 +256,9 @@ mutation {
 [source,cypher]
 ----
 MATCH ()-[mergeKnows:KNOWS]->()
-WHERE id(mergeKnows) = toInteger($mergeKnows__id)
+WHERE id(mergeKnows) = toInteger($mergeKnows_id)
 SET mergeKnows +=  {
-	`prefix.foo`: $mergeKnows_jsonFoo
+	`prefix.foo`: $mergeKnowsJsonFoo
 }
 WITH mergeKnows
 RETURN mergeKnows {

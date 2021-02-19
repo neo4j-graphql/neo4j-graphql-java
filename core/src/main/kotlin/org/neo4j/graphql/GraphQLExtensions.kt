@@ -164,7 +164,12 @@ data class RelationshipInfo(
         val relType = relFieldDefinition.type.inner() as? GraphQLFieldsContainer
                 ?: throw IllegalArgumentException("type ${relFieldDefinition.type.innerName()} not found")
         return relType.fieldDefinitions.filter { it.isID() }
-            .map { RelatedField(normalizeName(relFieldName, it.name), it, relType) }
+            .map {
+                // TODO b/c we need to stay backwards kompatible this is not caml case but with underscore
+                //val filedName = normalizeName(relFieldName, it.name)
+                val filedName = "${relFieldName}_${it.name}"
+                RelatedField(filedName, it, relType)
+            }
             .firstOrNull()
     }
 

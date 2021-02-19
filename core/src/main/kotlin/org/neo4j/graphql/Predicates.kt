@@ -75,7 +75,7 @@ enum class FieldOperator(
             )
         }  else {
             value.objectFields.forEachIndexed { index, objectField ->
-                val parameter = queryParameter(value, variablePrefix, queriedField, if (value.objectFields.size > 1) "AND${index + 1}" else null, suffix, objectField.name)
+                val parameter = queryParameter(value, variablePrefix, queriedField, if (value.objectFields.size > 1) "And${index + 1}" else null, suffix, objectField.name)
                     .withValue(objectField.value.toJavaValue())
 
                 conditions += neo4jTypeConverter.createCondition(objectField, field, parameter, conditionCreator, propertyContainer)

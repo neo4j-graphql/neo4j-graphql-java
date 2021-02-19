@@ -150,7 +150,7 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer) : ProjectionBase(
             val hasPredicates = nestedParsedQuery.fieldPredicates.isNotEmpty() || nestedParsedQuery.relationPredicates.isNotEmpty()
 
             var queryWithoutWhere = query
-            val relVariableName = normalizeName(variablePrefix, objectField.name)
+            val relVariableName = normalizeName(variablePrefix, relFilter.normalizedName)
             val relVariable = relFilter.relNode.named(relVariableName)
             val readingWithoutWhere: OngoingReading = when (relFilter.op) {
                 RelationOperator.NONE -> queryWithoutWhere.optionalMatch(relFilter.relationshipInfo.createRelation(currentNode(), relVariable))
@@ -200,13 +200,13 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer) : ProjectionBase(
 
         private fun totalFilter(relationPredicate: RelationPredicate, relVariableName: String): Pair<SymbolicName, AliasedExpression> {
             val totalRel = relationPredicate.relationshipInfo.createRelation(currentNode(), relationPredicate.relNode)
-            val totalVar = normalizeName(relVariableName, "total")
+            val totalVar = normalizeName(relVariableName, "Total")
             val total = Functions.size(totalRel).`as`(totalVar)
             return Cypher.name(totalVar) to total
         }
 
         private fun countFilter(relVariable: Node, relVariableName: String): Pair<SymbolicName, AliasedExpression> {
-            val countVar = normalizeName(relVariableName, "count")
+            val countVar = normalizeName(relVariableName, "Count")
             val count = Functions.countDistinct(relVariable).`as`(countVar)
             return Cypher.name(countVar) to count
         }

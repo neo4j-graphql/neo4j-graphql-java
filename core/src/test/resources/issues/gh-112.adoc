@@ -117,8 +117,8 @@ mutation {
 [source,json]
 ----
 {
-  "from_uuid" : "2",
-  "to_associates" : [ "1", "3" ]
+  "fromUuid" : "2",
+  "toAssociates" : [ "1", "3" ]
 }
 ----
 
@@ -126,10 +126,10 @@ mutation {
 [source,cypher]
 ----
 MATCH (from:User  {
-	uuid: $from_uuid
+	uuid: $fromUuid
 })
 MATCH (to:User)
-WHERE to.uuid IN $to_associates
+WHERE to.uuid IN $toAssociates
 MATCH (from)-[r:ASSOCIATES_WITH]-(to) DELETE r
 WITH DISTINCT from AS deleteUserAssociates
 RETURN deleteUserAssociates {

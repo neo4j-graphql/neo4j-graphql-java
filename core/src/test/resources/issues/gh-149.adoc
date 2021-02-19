@@ -33,7 +33,7 @@ query {
 [source,json]
 ----
 {
-  "person_first" : 10
+  "personFirst" : 10
 }
 ----
 
@@ -43,5 +43,5 @@ query {
 MATCH (person:Person)
 RETURN person {
 	.name
-} AS person LIMIT $person_first
+} AS person LIMIT $personFirst
 ----

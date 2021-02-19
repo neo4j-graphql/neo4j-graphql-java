@@ -30,8 +30,8 @@ mutation {
 [source,json]
 ----
 {
-  "from_id" : "1",
-  "to_parentCategory" : "2"
+  "fromId" : "1",
+  "toParentCategory" : "2"
 }
 ----
 
@@ -39,10 +39,10 @@ mutation {
 [source,cypher]
 ----
 MATCH (from:Category  {
-	id: $from_id
+	id: $fromId
 })
 MATCH (to:Category  {
-	id: $to_parentCategory
+	id: $toParentCategory
 })
 MERGE (from)-[:PARENT_CATEGORY]->(to)
 WITH DISTINCT from AS addCategoryParentCategory
@@ -67,8 +67,8 @@ mutation {
 [source,json]
 ----
 {
-  "from_id" : "2",
-  "to_subCategories" : [ "3", "4" ]
+  "fromId" : "2",
+  "toSubCategories" : [ "3", "4" ]
 }
 ----
 
@@ -76,10 +76,10 @@ mutation {
 [source,cypher]
 ----
 MATCH (from:Category  {
-	id: $from_id
+	id: $fromId
 })
 MATCH (to:Category)
-WHERE to.id IN $to_subCategories
+WHERE to.id IN $toSubCategories
 MERGE (from)<-[:PARENT_CATEGORY]-(to)
 WITH DISTINCT from AS addCategorySubCategories
 RETURN addCategorySubCategories {

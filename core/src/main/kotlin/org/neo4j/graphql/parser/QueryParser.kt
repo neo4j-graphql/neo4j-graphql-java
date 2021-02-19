@@ -28,6 +28,7 @@ class ParsedQuery(
 abstract class Predicate<T>(
         val op: T,
         val queryField: ObjectField,
+        val normalizedName: String,
         val index: Int)
 
 class FieldPredicate(
@@ -35,12 +36,12 @@ class FieldPredicate(
         queryField: ObjectField,
         val fieldDefinition: GraphQLFieldDefinition,
         index: Int
-) : Predicate<FieldOperator>(op, queryField, index) {
+) : Predicate<FieldOperator>(op, queryField, normalizeName(fieldDefinition.name, op.suffix.toCamelCase()), index) {
 
     fun createCondition(propertyContainer: PropertyContainer, variablePrefix: String, variableSuffix: String) =
             op.resolveCondition(
                     variablePrefix,
-                    queryField.name,
+                    normalizedName,
                     propertyContainer,
                     fieldDefinition,
                     queryField.value,
@@ -55,7 +56,7 @@ class RelationPredicate(
         queryField: ObjectField,
         val fieldDefinition: GraphQLFieldDefinition,
         index: Int
-) : Predicate<RelationOperator>(op, queryField, index) {
+) : Predicate<RelationOperator>(op, queryField, normalizeName(fieldDefinition.name, op.suffix.toCamelCase()), index) {
 
     val relationshipInfo = type.relationshipFor(fieldDefinition.name)!!
     val relNode: Node = CypherDSL.node((fieldDefinition.type.inner() as? GraphQLObjectType)?.label()!!)
