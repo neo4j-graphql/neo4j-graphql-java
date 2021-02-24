@@ -205,7 +205,7 @@ enum class FieldOperator(
     C("_contains", "CONTAINS", { lhs, rhs -> lhs.contains(rhs) }),
     SW("_starts_with", "STARTS WITH", { lhs, rhs -> lhs.startsWith(rhs) }),
     EW("_ends_with", "ENDS WITH", { lhs, rhs -> lhs.endsWith(rhs) }),
-    MA("_matches", "=~", {lhs, rhs -> lhs.matches(rhs) }),
+    MATCHES("_matches", "=~", {lhs, rhs -> lhs.matches(rhs) }),
 
 
     DISTANCE(NEO4j_POINT_DISTANCE_FILTER_SUFFIX, "=", { lhs, rhs -> distanceOp(lhs, rhs, EQ) }, distance = true),
@@ -284,7 +284,7 @@ enum class FieldOperator(
                     // todo list types
                     !type.isScalar() -> listOf(EQ, NEQ, IN, NIN)
                     else -> listOf(EQ, NEQ, IN, NIN, LT, LTE, GT, GTE) +
-                            if (type.name() == "String" || type.name() == "ID") listOf(C, NC, SW, NSW, EW, NEW, MA) else emptyList()
+                            if (type.name() == "String" || type.name() == "ID") listOf(C, NC, SW, NSW, EW, NEW, MATCHES) else emptyList()
                 }
     }
 

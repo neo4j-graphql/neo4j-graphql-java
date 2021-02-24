@@ -404,7 +404,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
   {
-      "filterPersonId_MA": "ja.*"
+      "filterPersonId_MATCHES": "ja.*"
   }
 ----
 
@@ -412,7 +412,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE person.id =~ $filterPersonId_MA
+WHERE person.id =~ $filterPersonId_MATCHES
 RETURN person { .name } AS person
 ----
 
@@ -1407,7 +1407,7 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "filterPersonName_MA": "Ja.*"
+  "filterPersonName_MATCHES": "Ja.*"
 }
 ----
 
@@ -1415,7 +1415,7 @@ RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE person.name =~ $filterPersonName_MA
+WHERE person.name =~ $filterPersonName_MATCHES
 RETURN person { .name } AS person
 ----
 
