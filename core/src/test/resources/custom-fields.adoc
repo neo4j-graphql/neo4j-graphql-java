@@ -1,0 +1,236 @@
+:toc:
+
+= Custom queries and mutations
+
+== Schema
+
+[source,graphql,schema=true]
+----
+type Person {
+  name: String
+  label: String! @cypher(statement: "RETURN toLower(this.name) as label")
+  nullable: String @cypher(statement: "RETURN null")
+}
+
+type Order {
+  sid: ID!
+  name: String
+  description: String
+  date: Int
+  position: [OrderPosition] @relation(name:"PART_OF",direction:IN)
+}
+
+type OrderPosition {
+  amount: Int
+  order: Order @relation(name:"PART_OF")
+  sid: ID!
+}
+
+schema {
+  mutation: MutationType
+  query: QueryType
+}
+type QueryType {
+  Person(name:String) : Person @cypher(statement:"MATCH (p:Person { name:{name} }) RETURN p")
+  getOrderPosition(sid:ID!) : [OrderPosition] @cypher(statement:"MATCH (op:OrderPosition {sid: {sid}}) RETURN op")
+}
+
+type MutationType {
+  createPerson(name:String) : Person @cypher(statement:"CREATE (p:Person { name: \"Test\"+{name} }) RETURN p")
+  setOrderPositionAmount(sid:ID!, amount:Int) : [OrderPosition] @cypher(statement:"MATCH (op:OrderPosition {sid:{sid}}) SET op.amount = {amount} RETURN op")
+}
+----
+
+== Schema Configuration
+
+[source,json,schema-config=true]
+----
+{
+  "capitalizeQueryFields": true
+}
+----
+
+== Test Data
+
+[source,cypher,test-data=true]
+----
+CREATE (:Person {name:'Jane'}), (:Person {name:'John'})
+----
+
+== Mutation conflicts with auto-generated field
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation { createPerson(name:"Jill") {name} }
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "createPerson" : {
+    "name" : "TestJill"
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "createPersonName" : "Jill"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+CALL apoc.cypher.doIt('WITH $name AS name CREATE (p: Person { name: \"Test\"+{ name }}) RETURN p', { name: $createPersonName })
+YIELD value
+WITH value[head(keys(value))] AS createPerson
+RETURN createPerson { .name } AS createPerson
+----
+
+== Test Data
+
+[source,cypher,test-data=true]
+----
+CREATE (:Person {name:'Jane'}), (:Person {name:'John'})
+----
+
+== Query conflicts with auto-generated field
+
+.GraphQL-Query
+[source,graphql]
+----
+query { Person(name:"Jane") {name} }
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "Person" : {
+    "name" : "Jane"
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "personName" : "Jane"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+UNWIND apoc.cypher.runFirstColumnSingle('WITH $name AS name MATCH (p: Person { name: { name } }) RETURN p', { name: $personName }) AS person
+RETURN person { .name } AS Person
+----
+
+== Query non nullable value
+
+.GraphQL-Query
+[source,graphql]
+----
+query { Person(name:"Jane") {name, label} }
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "Person" : {
+    "name" : "Jane",
+    "label" : "jane"
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "personName" : "Jane"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+UNWIND apoc.cypher.runFirstColumnSingle('WITH $name AS name MATCH (p: Person { name: { name } }) RETURN p', { name: $personName }) AS person
+RETURN person {
+  .name,
+  label: apoc.cypher.runFirstColumnSingle('WITH $this AS this RETURN toLower(this.name) as label', { this: person })
+} AS Person
+----
+
+== Query nullable value
+
+.GraphQL-Query
+[source,graphql]
+----
+query { Person(name:"Jane") {name, nullable} }
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "Person" : {
+    "nullable" : null,
+    "name" : "Jane"
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "personName" : "Jane"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+UNWIND apoc.cypher.runFirstColumnSingle('WITH $name AS name MATCH (p: Person { name: { name } }) RETURN p', { name: $personName }) AS person
+RETURN person {
+  .name,
+  nullable: apoc.cypher.runFirstColumnSingle('WITH $this AS this RETURN null', { this: person })
+} AS Person
+----
+
+== Query field by getter
+
+.GraphQL-Query
+[source,graphql]
+----
+query { OrderPosition { amount } }
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "OrderPosition" : [ ]
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{ }
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (orderPosition: OrderPosition)
+RETURN orderPosition { .amount } AS OrderPosition
+----

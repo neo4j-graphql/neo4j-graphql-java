@@ -5,11 +5,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.neo4j</groupId>
-    <artifactId>neo4j-graphql-java</artifactId>
-    <name>Neo4j GraphQL Java</name>
+    <artifactId>neo4j-graphql-java-parent</artifactId>
+    <name>Neo4j GraphQL Java Parent</name>
     <description>GraphQL to Cypher Mapping</description>
-    <version>1.0.0-M04-SNAPSHOT</version>
+    <version>1.2.1</version>
     <url>http://github.com/neo4j-graphql/neo4j-graphql-java</url>
+    <packaging>pom</packaging>
 
     <licenses>
         <license>
@@ -22,11 +23,17 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
-        <kotlin.version>1.3.41</kotlin.version>
+        <kotlin.version>1.4.30</kotlin.version>
         <kotlin.compiler.jvmTarget>${java.version}</kotlin.compiler.jvmTarget>
-        <neo4j.version>3.5.6</neo4j.version>
-        <driver.version>1.7.2</driver.version>
+        <neo4j.version>3.5.23</neo4j.version>
+        <neo4j-apoc.version>3.5.0.15</neo4j-apoc.version>
+        <driver.version>1.7.5</driver.version>
     </properties>
+
+    <modules>
+        <module>core</module>
+        <module>examples</module>
+    </modules>
 
     <organization>
         <name>Neo Technology</name>
@@ -39,6 +46,11 @@
             <name>Michael Hunger</name>
             <email>michael@neo4j.com</email>
         </developer>
+        <developer>
+            <id>Andy2003</id>
+            <name>Andreas Berger</name>
+            <email>andreas@berger-ecommerce.com</email>
+        </developer>
     </developers>
 
     <scm>
@@ -47,61 +59,7 @@
         <url>git@github.com:neo4j-graphql/neo4j-graphql-java.git</url>
     </scm>
 
-
     <dependencies>
-        <dependency>
-            <groupId>org.neo4j.driver</groupId>
-            <artifactId>neo4j-java-driver</artifactId>
-            <version>${driver.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.sparkjava</groupId>
-            <artifactId>spark-core</artifactId>
-            <version>2.7.2</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.8.5</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.neo4j.test</groupId>
-            <artifactId>neo4j-harness</artifactId>
-            <version>${neo4j.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.neo4j</groupId>
-            <artifactId>server-api</artifactId>
-            <version>${neo4j.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.codehaus.jackson</groupId>
-            <artifactId>jackson-mapper-asl</artifactId>
-            <version>1.9.13</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.graphql-java</groupId>
-            <artifactId>graphql-java</artifactId>
-            <version>12.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <version>5.5.1</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.assertj</groupId>
-            <artifactId>assertj-core</artifactId>
-            <version>3.12.2</version>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib-jdk8</artifactId>
@@ -116,8 +74,8 @@
     </dependencies>
 
     <build>
-        <sourceDirectory>src/main/kotlin</sourceDirectory>
-        <testSourceDirectory>src/test/kotlin</testSourceDirectory>
+        <sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>
+        <testSourceDirectory>${project.basedir}/src/test/kotlin</testSourceDirectory>
         <plugins>
             <plugin>
                 <groupId>org.jetbrains.kotlin</groupId>
@@ -182,7 +140,7 @@
             <plugin>
                 <groupId>org.jetbrains.dokka</groupId>
                 <artifactId>dokka-maven-plugin</artifactId>
-                <version>0.9.17</version>
+                <version>1.4.10.2</version>
                 <executions>
                     <execution>
                         <phase>prepare-package</phase>
@@ -193,12 +151,6 @@
                         </goals>
                     </execution>
                 </executions>
-                <configuration>
-                    <includes>
-                        <!-- TODO what to do with this part? -->
-                        <file>packages.md</file>
-                    </includes>
-                </configuration>
             </plugin>
 
             <plugin>
@@ -245,7 +197,7 @@
                     <plugin>
                         <groupId>org.jetbrains.dokka</groupId>
                         <artifactId>dokka-maven-plugin</artifactId>
-                        <version>0.9.17</version>
+                        <version>1.4.10.2</version>
                         <executions>
                             <execution>
                                 <phase>prepare-package</phase>
@@ -256,11 +208,6 @@
                                 </goals>
                             </execution>
                         </executions>
-                        <configuration>
-                            <includes>
-                                <file>packages.md</file>
-                            </includes>
-                        </configuration>
                     </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>

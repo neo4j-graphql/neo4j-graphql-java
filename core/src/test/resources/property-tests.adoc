@@ -1,0 +1,38 @@
+:toc:
+
+= Property Tests
+
+== Schema
+
+[source,graphql,schema=true]
+----
+type Person {
+  id : ID! @property(name:"an-id")
+  name: String @property(name:" a name ")
+}
+type Query {
+  person : [Person]
+}
+----
+
+== Tests
+
+=== rename property
+
+.GraphQL-Query
+[source,graphql]
+----
+{ person(id:"32",name:"Jane") { name }}
+----
+
+.Cypher params
+[source,json]
+----
+{"personId":"32","personName":"Jane"}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person) WHERE person.`an-id` = $personId AND person.` a name ` = $personName RETURN person { name:person.` a name ` } AS person
+----

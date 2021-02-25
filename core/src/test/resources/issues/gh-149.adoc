@@ -1,0 +1,44 @@
+:toc:
+
+= Github Issue #149: OptimizationStrategy FILTER_AS_MATCH breaks offset/first input attributes for queries
+
+== Schema
+
+[source,graphql,schema=true]
+----
+interface Person {
+    name: ID!
+}
+----
+
+== Issue
+
+.Query configuration
+[source,json,query-config=true]
+----
+{  "optimizedQuery":  ["FILTER_AS_MATCH"] }
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query {
+  person(first:10) {
+    name
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "personFirst" : 10
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person: `Person`) RETURN person { .name } AS person LIMIT $personFirst
+----

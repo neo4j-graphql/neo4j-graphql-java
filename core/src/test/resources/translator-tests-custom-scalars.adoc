@@ -1,0 +1,202 @@
+:toc:
+
+= Translator Tests
+
+== Schema
+
+[source,graphql,schema=true]
+----
+scalar Date
+type Movie {
+  _id: ID!
+  title: String!
+  released: Date
+}
+----
+
+== Tests
+
+=== Create
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  createMovie(title:"Forrest Gump", released: 1994) {
+    title
+    released
+  }
+}
+----
+
+.Cypher params
+[source,json]
+----
+{
+  "createMovieTitle": "Forrest Gump",
+  "createMovieReleased": 1994
+}
+----
+
+.Cypher
+[source,cypher]
+----
+CREATE (createMovie:Movie { title: $createMovieTitle, released: $createMovieReleased })
+WITH createMovie
+RETURN createMovie { .title, .released } AS createMovie
+----
+
+=== Update
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  updateMovie(_id: 1, released: 1995) {
+    title
+    released
+  }
+}
+----
+
+.Cypher params
+[source,json]
+----
+{
+  "updateMovie_id": 1,
+  "updateMovieReleased": 1995
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (updateMovie: Movie)
+WHERE ID(updateMovie) = toInteger($updateMovie_id)
+SET updateMovie += { released: $updateMovieReleased }
+WITH updateMovie
+RETURN updateMovie { .title, .released } AS updateMovie
+----
+
+=== Merge
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  mergeMovie(_id: 1, released: 1995) {
+    title
+    released
+  }
+}
+----
+
+.Cypher params
+[source,json]
+----
+{
+  "mergeMovie_id": 1,
+  "mergeMovieReleased": 1995
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (mergeMovie: Movie)
+WHERE ID(mergeMovie) = toInteger($mergeMovie_id)
+SET mergeMovie += { released: $mergeMovieReleased }
+WITH mergeMovie
+RETURN mergeMovie { .title, .released } AS mergeMovie
+----
+
+=== Merge null
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  updateMovie(_id: 1, released: null) {
+    title
+    released
+  }
+}
+----
+
+.Cypher params
+[source,json]
+----
+{
+  "updateMovie_id": 1,
+  "updateMovieReleased": null
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (updateMovie: Movie)
+WHERE ID(updateMovie) = toInteger($updateMovie_id)
+SET updateMovie += { released: $updateMovieReleased }
+WITH updateMovie
+RETURN updateMovie { .title, .released } AS updateMovie
+----
+
+=== Find
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movie(released: 1994) {
+    title
+    released
+  }
+}
+----
+
+.Cypher params
+[source,json]
+----
+{
+  "movieReleased": 1994
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (movie: Movie)
+WHERE movie.released = $movieReleased
+RETURN movie { .title, .released } AS movie
+----
+
+=== Filter
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movie(filter:{released_gte: 1994}) {
+    title
+    released
+  }
+}
+----
+
+.Cypher params
+[source,json]
+----
+{
+  "filterMovieReleased_GTE": 1994
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (movie: Movie)
+WHERE movie.released >= $filterMovieReleased_GTE
+RETURN movie { .title, .released } AS movie
+----
+

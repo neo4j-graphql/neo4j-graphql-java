@@ -1,0 +1,637 @@
+:toc:
+
+= Relationship Tests TCK
+
+== Schema
+
+[source,graphql,schema=true]
+----
+type Team {
+  id: ID!
+  name: String!
+  players: [Player!]! @relation(from: "team", to: "player", name: "MEMBER_OF", direction: IN)
+  memberships: [Membership!]!
+}
+
+type Player {
+  id: ID!
+  name: String!
+  teams: [Team!] @relation(from: "player", to: "team", name: "MEMBER_OF")
+  memberships: [Membership!]!
+}
+
+type Membership @relation(from: "player", to: "team", name: "MEMBER_OF") {
+ player: Player!
+ team: Team!
+ prop: String
+}
+
+type Category {
+    name: ID!
+    parentCategory: Category @relation(name: "HAS_PARENT", direction: OUT, from: "child", to: "parent")
+    childCategories: [Category!] @relation(name: "HAS_PARENT", direction: IN, from: "parent", to: "child")
+    parentCategoryAssignment: CategoryAssignment @relation(name: "HAS_PARENT", direction: OUT)
+    childCategoryAssignments: [CategoryAssignment!] @relation(name: "HAS_PARENT", direction: IN)
+}
+
+type CategoryAssignment @relation(from: "child", to: "parent", name: "HAS_PARENT") {
+  parent: Category!
+  child: Category!
+  prop: String
+}
+----
+
+== Mutations
+
+=== add incoming relationship
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation{
+  addTeamPlayers(id:1, players: [2]){
+    id
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "teamId":1,
+  "playerPlayers":[2]
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (team: Team { id: $teamId })
+MATCH (player: Player)
+WHERE player.id IN $playerPlayers
+MERGE (team)<-[: MEMBER_OF]-(player)
+WITH DISTINCT team AS addTeamPlayers
+RETURN addTeamPlayers { .id } AS addTeamPlayers
+----
+
+=== delete incoming relationship
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation{
+  deleteTeamPlayers(id:1, players: [2]){
+    id
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "teamId":1,
+  "playerPlayers":[2]
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (team: Team { id: $teamId })
+MATCH (player: Player) WHERE player.id IN $playerPlayers
+MATCH (team)<-[r: MEMBER_OF]-(player)
+DELETE r
+WITH DISTINCT team AS deleteTeamPlayers
+RETURN deleteTeamPlayers { .id } AS deleteTeamPlayers
+----
+
+=== add outgoing relationship
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation{
+  addPlayerTeams(id:1, teams: [2]){
+    id
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "playerId":1,
+  "teamTeams":[2]
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (player: Player { id: $playerId })
+MATCH (team: Team) WHERE team.id IN $teamTeams
+MERGE (player)-[: MEMBER_OF]->(team)
+WITH DISTINCT player AS addPlayerTeams
+RETURN addPlayerTeams { .id } AS addPlayerTeams
+----
+
+=== delete outgoing relationship
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation{
+  deletePlayerTeams(id:1, teams: [2]){
+    id
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "playerId":1,
+  "teamTeams":[2]
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (player: Player { id: $playerId })
+MATCH (team: Team) WHERE team.id IN $teamTeams
+MATCH (player)-[r: MEMBER_OF]->(team)
+DELETE r
+WITH DISTINCT player AS deletePlayerTeams
+RETURN deletePlayerTeams { .id } AS deletePlayerTeams
+----
+
+=== create relationship
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation{
+  createMembership(player_id: 1, team_id: 2, prop: "foo"){
+    prop
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "playerPlayer_id":1,
+  "teamTeam_id":2,
+  "createMembershipProp":"foo"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (player: Player { id: $playerPlayer_id })
+MATCH (team: Team { id: $teamTeam_id })
+CREATE (player)-[createMembership: MEMBER_OF { prop: $createMembershipProp }]->(team)
+WITH createMembership
+RETURN createMembership { .prop } AS createMembership
+----
+
+== Queries
+
+=== query incoming node
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  team{
+    id
+    players { id }
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (team: Team)
+RETURN team {
+  .id,
+  players: [(team)<-[: MEMBER_OF]-(teamPlayers: Player) | teamPlayers { .id }]
+} AS team
+----
+
+=== query outgoing node
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  player{
+    id
+    teams { id }
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (player: Player)
+RETURN player {
+  .id,
+  teams: [(player)-[: MEMBER_OF]->(playerTeams: Team) | playerTeams { .id }]
+} AS player
+----
+
+=== query incoming relation
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  team{
+    id
+    memberships {
+      player {
+        id
+      }
+      prop
+    }
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (team: Team)
+RETURN team {
+  .id,
+  memberships: [(team)<-[teamMemberships: MEMBER_OF]-(teamMembershipsPlayer: Player) | teamMemberships {
+    player: teamMembershipsPlayer { .id },
+    .prop
+  }]
+} AS team
+----
+
+=== query outgoing relation
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  player{
+    id
+    memberships {
+      team {
+        id
+      }
+      prop
+    }
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (player: Player)
+RETURN player {
+  .id,
+  memberships: [(player)-[playerMemberships: MEMBER_OF]->(playerMembershipsTeam: Team) | playerMemberships {
+    team: playerMembershipsTeam { .id },
+    .prop
+  }]
+} AS player
+----
+
+== Recursive bidirectional relations
+
+=== Mutation
+
+==== add incoming relationship
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation{
+  addCategoryParentCategory(name: "child", parentCategory: "parent", prop: "foo"){
+    name
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+    "childName":"child",
+    "parentParentCategory":"parent"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (child: Category { name: $childName })
+MATCH (parent: Category { name: $parentParentCategory })
+MERGE (child)-[: HAS_PARENT]->(parent)
+WITH DISTINCT child AS addCategoryParentCategory
+RETURN addCategoryParentCategory { .name } AS addCategoryParentCategory
+----
+
+==== delete incoming relationship
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation{
+  deleteCategoryParentCategory(name:"child", parentCategory: "parent") {
+    name
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "childName":"child",
+  "parentParentCategory":"parent"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (child: Category { name: $childName })
+MATCH (parent: Category { name: $parentParentCategory })
+MATCH (child)-[r: HAS_PARENT]->(parent)
+DELETE r
+WITH DISTINCT child AS deleteCategoryParentCategory
+RETURN deleteCategoryParentCategory { .name } AS deleteCategoryParentCategory
+----
+
+==== add outgoing relationship
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation{
+  addCategoryChildCategories(name: "parent", childCategories: ["child1", "child2"], prop: "foo") {
+    name
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "parentName" : "parent",
+  "childChildCategories" : [ "child1", "child2" ]
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (parent: Category { name: $parentName })
+MATCH (child: Category)
+WHERE child.name IN $childChildCategories
+MERGE (parent)<-[: HAS_PARENT]-(child)
+WITH DISTINCT parent AS addCategoryChildCategories
+RETURN addCategoryChildCategories { .name } AS addCategoryChildCategories
+----
+
+==== delete outgoing relationship
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation{
+  deleteCategoryChildCategories(name: "parent", childCategories:["child1", "child2"] ) {
+    name
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "parentName" : "parent",
+  "childChildCategories" : [ "child1", "child2" ]
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (parent: Category { name: $parentName })
+MATCH (child: Category) WHERE child.name IN $childChildCategories
+MATCH (parent)<-[r: HAS_PARENT]-(child)
+DELETE r
+WITH DISTINCT parent AS deleteCategoryChildCategories
+RETURN deleteCategoryChildCategories { .name } AS deleteCategoryChildCategories
+----
+
+==== create relationship
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation{
+  createCategoryAssignment(parent_name: "parent", child_name: "child", prop: "foo"){
+    prop
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "childChild_name" : "child",
+  "parentParent_name" : "parent",
+  "createCategoryAssignmentProp" : "foo"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (child: Category { name: $childChild_name })
+MATCH (parent: Category { name: $parentParent_name })
+CREATE (child)-[createCategoryAssignment: HAS_PARENT { prop: $createCategoryAssignmentProp }]->(parent)
+WITH createCategoryAssignment
+RETURN createCategoryAssignment { .prop } AS createCategoryAssignment
+----
+
+=== Queries
+
+==== query incoming node
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  category{
+    name
+    childCategories{name}
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (category: Category)
+RETURN category {
+  .name,
+  childCategories: [(category)<-[: HAS_PARENT]-(categoryChildCategories: Category) | categoryChildCategories {
+    .name
+  }]
+} AS category
+----
+
+==== query outgoing node
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  category{
+    name
+    parentCategory{name}
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (category: Category)
+RETURN category {
+  .name,
+  parentCategory: [(category)-[: HAS_PARENT]->(categoryParentCategory: Category) | categoryParentCategory {
+    .name
+  }][0]
+} AS category
+----
+
+==== query incoming relation
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  category{
+    name
+    childCategoryAssignments{
+      child {name}
+      prop
+    }
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (category: Category)
+RETURN category {
+  .name,
+  childCategoryAssignments: [(category)<-[categoryChildCategoryAssignments: HAS_PARENT]-(categoryChildCategoryAssignmentsChild: Category) | categoryChildCategoryAssignments {
+    child: categoryChildCategoryAssignmentsChild {
+      .name
+    },
+    .prop
+}] } AS category
+----
+
+==== query outgoing relation
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  category {
+    name
+    parentCategoryAssignment {
+      parent {name}
+      prop
+    }
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (category: Category)
+RETURN category {
+  .name,
+  parentCategoryAssignment: [(category)-[categoryParentCategoryAssignment: HAS_PARENT]->(categoryParentCategoryAssignmentParent: Category) | categoryParentCategoryAssignment {
+    parent: categoryParentCategoryAssignmentParent {
+      .name
+    },
+    .prop
+  }][0]
+} AS category
+----

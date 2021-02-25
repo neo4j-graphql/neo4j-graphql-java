@@ -1,0 +1,1343 @@
+:toc:
+
+= Movie Test TCK
+
+== Schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  _id: Int
+  movieId: ID!
+  title: String
+  year: Int
+  released: Int # was DateTime
+  plot: String
+  poster: String
+  imdbRating: Float
+  genres: [Genre] @relation(name: "IN_GENRE", direction: OUT)
+  similar(first: Int = 3, offset: Int = 0): [Movie] @cypher(statement: "MATCH (this)--(:Genre)--(o:Movie) RETURN o")
+  mostSimilar: Movie @cypher(statement: "RETURN this")
+  degree: Int @cypher(statement: "RETURN SIZE((this)--())")
+  actors(first: Int = 3, offset: Int = 0, name: String): [Actor] @relation(name: "ACTED_IN", direction:IN)
+  avgStars: Float
+  filmedIn: State @relation(name: "FILMED_IN", direction: OUT)
+  scaleRating(scale: Int = 3): Float @cypher(statement: "RETURN $scale * this.imdbRating")
+  scaleRatingFloat(scale: Float = 1.5): Float @cypher(statement: "RETURN $scale * this.imdbRating")
+  actorMovies: [Movie] @cypher(statement: """
+  MATCH (this)-[:ACTED_IN*2]-(other:Movie)
+  RETURN other
+  """)
+  publishedBy: Publisher @relation(name: "PUBLISHED_BY", direction: OUT)
+  ratings: [Rated] @relation(name:"RATED")
+}
+type Publisher {
+  name: ID!
+}
+type Genre {
+  _id: String!
+  name: ID!
+  movies(first: Int = 3, offset: Int = 0): [Movie] @relation(name: "IN_GENRE", direction: IN)
+  highestRatedMovie: Movie @cypher(statement: "MATCH (m:Movie)-[:IN_GENRE]->(this) RETURN m ORDER BY m.imdbRating DESC LIMIT 1")
+}
+type State {
+  _id: ID!
+  name: String
+}
+interface Person {
+  userId: ID!
+  name: String
+  born: _Neo4jDateTime
+}
+type Actor implements Person
+{
+  userId: ID!
+  name: String
+  movies: [Movie] @relation(name: "ACTED_IN", direction:OUT)
+  born: _Neo4jDateTime
+}
+type User implements Person
+{
+  userId: ID!
+  name: String
+  rated(rating: Int): [Rated]
+  friends(since: Int): [FriendOf]
+  knows: [User] @relation(name: "KNOWS", direction:OUT)
+  knowsPerson: [Person] @relation(name: "KNOWS", direction:OUT)
+  born: _Neo4jDateTime
+}
+type FriendOf {
+  from: User
+  since: Int
+  to: User
+}
+type Rated @relation(name:"RATED") {
+  _id: ID!
+  from: User
+  rating: Int
+  to: Movie
+}
+enum BookGenre {
+  Mystery,
+  Science,
+  Math
+}
+type Book {
+  genre: BookGenre
+}
+enum _MovieOrdering {
+  title_desc,
+  title_asc
+}
+enum _GenreOrdering {
+  name_desc,
+  name_asc
+}
+type Query {
+  Movie(_id: String, movieId: ID, title: String, year: Int, plot: String, poster: String, imdbRating: Float, first: Int, offset: Int, orderBy: _MovieOrdering): [Movie]
+  MoviesByYear(year: Int): [Movie]
+  MovieById(movieId: ID!): Movie
+  MovieBy_Id(_id: String!): Movie
+  GenresBySubstring(substring: String): [Genre] @cypher(statement: "MATCH (g:Genre) WHERE toLower(g.name) CONTAINS toLower($substring) RETURN g")
+  Books: [Book]
+  User: [User]
+}
+type Mutation {
+  createGenre(name:String): Genre @cypher(statement:"CREATE (g:Genre) SET g.name = name RETURN g")
+  changePerson(name: String): Person
+}
+# scalar DateTime
+----
+
+== Queries
+
+=== Top Level Query
+
+.GraphQL-Query
+[source,graphql]
+----
+query {
+  Movie {
+    movieId
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (movie:Movie)
+RETURN movie { .movieId } AS Movie
+----
+
+=== Query Single Object
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  MovieById(movieId: "18") {
+    title
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "movieByIdMovieId": "18"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (movieById:Movie)
+WHERE movieById.movieId = $movieByIdMovieId
+RETURN movieById { .title } AS MovieById
+----
+
+=== Basic Query with Parameter
+
+.GraphQL-Query
+[source,graphql]
+----
+{  Movie(title: "River Runs Through It, A")  {  title }  }
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "movieTitle": "River Runs Through It, A"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (movie:Movie)
+WHERE  movie.title = $movieTitle
+RETURN movie { .title } AS Movie
+----
+
+=== Paging
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  Movie(title: "River Runs Through It, A", first: 1, offset: 1) {
+    title
+    year
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "movieTitle": "River Runs Through It, A",
+  "movieOffset": 1,
+  "movieFirst": 1
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (movie:Movie)
+WHERE movie.title = $movieTitle
+RETURN movie { .title, .year } AS Movie
+SKIP $movieOffset LIMIT $movieFirst
+----
+
+=== Query Single Relation
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  MovieById(movieId: "3100") {
+    title
+    filmedIn {
+      name
+    }
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "movieByIdMovieId": "3100"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (movieById:Movie)
+WHERE movieById.movieId = $movieByIdMovieId
+RETURN movieById {
+  .title,
+  filmedIn:[(movieById)-[:FILMED_IN]->(movieByIdFilmedIn:State) | movieByIdFilmedIn { .name }][0]
+} AS MovieById
+----
+
+=== Query Single Object and Array of Object Relations
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  MovieById(movieId: "3100") {
+    title
+    actors {
+      name
+    }
+    filmedIn{
+      name
+    }
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "movieByIdMovieId": "3100"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (movieById:Movie)
+WHERE movieById.movieId = $movieByIdMovieId
+RETURN movieById {
+  .title,
+  actors:[(movieById)<-[:ACTED_IN]-(movieByIdActors:Actor) | movieByIdActors { .name }],
+  filmedIn:[(movieById)-[:FILMED_IN]->(movieByIdFilmedIn:State) | movieByIdFilmedIn { .name }][0]
+} AS MovieById
+----
+
+=== Relationship Expansion
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  Movie(title: "River Runs Through It, A") {
+    title
+    actors {
+      name
+    }
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "movieTitle": "River Runs Through It, A"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (movie:Movie)
+WHERE movie.title = $movieTitle
+RETURN movie {
+  .title,
+  actors:[(movie)<-[:ACTED_IN]-(movieActors:Actor) | movieActors { .name }]
+} AS Movie
+----
+
+=== Projection with sub-paging
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  Movie(title: "River Runs Through It, A") {
+    title
+    actors(first:3) {
+      name
+    }
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "movieTitle": "River Runs Through It, A",
+  "movieActorsFirst": 3
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (movie:Movie)
+WHERE movie.title = $movieTitle
+RETURN movie {
+  .title,
+  actors:[(movie)<-[:ACTED_IN]-(movieActors:Actor) | movieActors { .name }][0..$movieActorsFirst]
+} AS Movie
+----
+
+=== Subquery Cypher Directive
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  Movie {
+    title
+    similar {
+      title
+    }
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "movieSimilarFirst" : 3,
+  "movieSimilarOffset" : 0
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (movie:Movie)
+RETURN movie {
+  .title,
+  similar:[movieSimilar
+    IN apoc.cypher.runFirstColumnMany('WITH $this AS this, $first AS first, $offset AS offset MATCH (this)--(:Genre)--(o:Movie) RETURN o', {
+        this:movie,
+        first:$movieSimilarFirst,
+        offset:$movieSimilarOffset
+      }) | movieSimilar {
+        .title
+      }]
+} AS Movie
+----
+
+=== Subquery Cypher Directive Paging
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  Movie {
+    title
+    similar(first:3) {
+      title
+    }
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "movieSimilarFirst" : 3,
+  "movieSimilarOffset" : 0
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (movie:Movie)
+RETURN movie {
+  .title,
+  similar:[movieSimilar
+    IN apoc.cypher.runFirstColumnMany('WITH $this AS this, $first AS first, $offset AS offset MATCH (this)--(:Genre)--(o:Movie) RETURN o', {
+      this:movie,
+      first:$movieSimilarFirst,
+      offset:$movieSimilarOffset
+    }) | movieSimilar {
+      .title
+    }][0..$movieSimilarFirst]
+} AS Movie
+----
+
+=== Handle Cypher Directive on Query Type
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  GenresBySubstring(substring:"Action") {
+    name
+    movies(first: 3) {
+      title
+    }
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "genresBySubstringSubstring": "Action",
+  "genresBySubstringMoviesFirst": 3
+}
+----
+
+.Cypher
+[source,cypher]
+----
+UNWIND apoc.cypher.runFirstColumnMany('WITH $substring AS substring MATCH (g:Genre) WHERE toLower(g.name) CONTAINS toLower($substring) RETURN g', { substring:$genresBySubstringSubstring }) AS genresBySubstring
+RETURN genresBySubstring {
+  .name,
+  movies:[(genresBySubstring)<-[:IN_GENRE]-(genresBySubstringMovies:Movie) | genresBySubstringMovies { .title }][0..$genresBySubstringMoviesFirst]
+} AS GenresBySubstring
+----
+
+=== Handle Cypher directive on Mutation type
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation someMutation {
+  createGenre(name: "Wildlife Documentary") {
+    name
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "createGenreName": "Wildlife Documentary"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+CALL apoc.cypher.doIt('WITH $name AS name CREATE (g:Genre) SET g.name = name RETURN g', { name:$createGenreName }) YIELD value
+WITH value[head(keys(value))] AS createGenre
+RETURN createGenre { .name } AS createGenre
+----
+
+=== Query using Inline Fragment
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  Movie(title: "River Runs Through It, A") {
+    title
+    ratings {
+      rating
+      from {
+        ... on User {
+          name
+          userId
+        }
+      }
+    }
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "movieTitle": "River Runs Through It, A"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (movie:Movie)
+WHERE movie.title = $movieTitle
+RETURN movie {
+  .title,
+  ratings:[(movie)<-[movieRatings:RATED]-(movieRatingsFrom:User) | movieRatings {
+    .rating,
+    from:movieRatingsFrom { .name, .userId }
+  }]
+} AS Movie
+----
+
+=== Deeply nested object query
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  Movie(title: "River Runs Through It, A") {
+    title
+    actors {
+      name
+      movies {
+        title
+        actors(name: "Tom Hanks") {
+          name
+          movies {
+            title
+            year
+            similar(first: 3) {
+              title
+              year
+            }
+          }
+        }
+      }
+    }
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "movieTitle" : "River Runs Through It, A",
+  "movieActorsMoviesActorsName" : "Tom Hanks",
+  "movieActorsMoviesActorsMoviesSimilarFirst" : 3,
+  "movieActorsMoviesActorsMoviesSimilarOffset" : 0
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (movie:Movie)
+WHERE movie.title = $movieTitle
+RETURN movie { .title, actors:[(movie)<-[:ACTED_IN]-(movieActors:Actor) |
+       movieActors { .name, movies:[(movieActors)-[:ACTED_IN]->(movieActorsMovies:Movie) |
+         movieActorsMovies { .title, actors:[(movieActorsMovies)<-[:ACTED_IN]-(movieActorsMoviesActors:Actor)
+           WHERE movieActorsMoviesActors.name = $movieActorsMoviesActorsName |
+             movieActorsMoviesActors { .name, movies:[(movieActorsMoviesActors)-[:ACTED_IN]->(movieActorsMoviesActorsMovies:Movie) |
+               movieActorsMoviesActorsMovies { .title, .year, similar:[movieActorsMoviesActorsMoviesSimilar
+                 IN apoc.cypher.runFirstColumnMany('WITH $this AS this, $first AS first, $offset AS offset MATCH (this)--(:Genre)--(o:Movie) RETURN o', { this:movieActorsMoviesActorsMovies, first:$movieActorsMoviesActorsMoviesSimilarFirst, offset:$movieActorsMoviesActorsMoviesSimilarOffset }) |
+                   movieActorsMoviesActorsMoviesSimilar { .title, .year }][0..$movieActorsMoviesActorsMoviesSimilarFirst] }] }] }] }] } AS Movie
+----
+
+=== Should merge an actor by the userId
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  actor: mergeActor(userId: "1", name: "Andrea") {
+    name
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "actorUserId": "1",
+  "actorName": "Andrea"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MERGE (actor:Actor { userId: $actorUserId })
+SET actor += { name: $actorName }
+WITH actor
+RETURN actor { .name } AS actor
+----
+
+=== Should auto generate `add` relationship mutations for arrays
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  add: addMovieGenres(movieId: 1, genres: ["Action", "Fantasy"]) {
+    title
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "fromMovieId": 1,
+  "toGenres": [
+    "Action",
+    "Fantasy"
+  ]
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (from:Movie { movieId: $fromMovieId })
+MATCH (to:Genre) WHERE to.name IN $toGenres
+MERGE (from)-[:IN_GENRE]->(to)
+WITH DISTINCT from AS add
+RETURN add { .title } AS add
+----
+
+=== Should auto generate `delete` relationship mutations for arrays
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  del: deleteMovieGenres(movieId: 1, genres: ["Action", "Fantasy"]) {
+    title
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "fromMovieId": 1,
+  "toGenres": [
+    "Action",
+    "Fantasy"
+  ]
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (from:Movie { movieId: $fromMovieId })
+MATCH (to:Genre) WHERE to.name IN $toGenres
+MATCH (from)-[r:IN_GENRE]->(to)
+DELETE r
+WITH DISTINCT from AS del
+RETURN del { .title } AS del
+----
+
+=== Should auto generate `add` relationship mutations
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  add: addMoviePublishedBy(movieId: 1, publishedBy: "Company") {
+    title
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "fromMovieId": 1,
+  "toPublishedBy": "Company"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (from:Movie { movieId: $fromMovieId })
+MATCH (to:Publisher { name: $toPublishedBy })
+MERGE (from)-[:PUBLISHED_BY]->(to)
+WITH DISTINCT from AS add
+RETURN add { .title } AS add
+----
+
+=== Should auto generate `delete` relationship mutations
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  del: deleteMoviePublishedBy(movieId: 1, publishedBy: "Company") {
+    title
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "fromMovieId": 1,
+  "toPublishedBy": "Company"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (from:Movie { movieId: $fromMovieId })
+MATCH (to:Publisher { name: $toPublishedBy })
+MATCH (from)-[r:PUBLISHED_BY]->(to)
+DELETE r
+WITH DISTINCT from AS del
+RETURN del { .title } AS del
+----
+
+=== Should auto generate `add` recursive relationship mutations for arrays
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  add: addUserKnows(userId: 1, knows: [10, 23]) {
+    name
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "fromUserId": 1,
+  "toKnows": [
+    10,
+    23
+  ]
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (from:User { userId: $fromUserId })
+MATCH (to:User) WHERE to.userId IN $toKnows
+MERGE (from)-[:KNOWS]->(to)
+WITH DISTINCT from AS add
+RETURN add { .name } AS add
+----
+
+== Order By
+
+=== Descending, top level
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  Movie(year: 2010, orderBy:title_desc, first: 10) {
+    title
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "movieYear": 2010,
+  "movieFirst": 10
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (movie:Movie)
+WHERE movie.year = $movieYear
+RETURN movie { .title } AS Movie
+ORDER BY movie.title DESC
+LIMIT $movieFirst
+----
+
+=== Descending, number
+
+.GraphQL-Query
+[source,graphql]
+----
+{  Movie(orderBy:year_desc, first:10)  {  title }  }
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "movieFirst": 10
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH  (movie:Movie)
+RETURN  movie  {  .title  } AS  Movie
+ORDER BY movie.year DESC LIMIT $movieFirst
+----
+
+=== Deeply nested orderBy
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  Movie(orderBy:title_desc) {
+    title
+    actors(orderBy:name_desc) {
+      name
+      movies(orderBy:[title_asc, plot_desc]) {
+        title
+      }
+    }
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (movie:Movie)
+RETURN movie {
+  .title,
+  actors: apoc.coll.sortMulti([(movie)<-[:ACTED_IN]-(movieActors:Actor) | movieActors {
+    .name,
+    movies: apoc.coll.sortMulti([(movieActors)-[:ACTED_IN]->(movieActorsMovies:Movie) | movieActorsMovies {
+      .title
+    }], ['^title','plot'])
+  }], ['name'])
+} AS Movie
+ORDER BY movie.title DESC
+----
+
+=== Deeply nested query using temporal orderBy
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  User(orderBy: born_desc){
+    name
+    born {formatted}
+    knows(orderBy: born_asc) {
+      name
+      born {formatted}
+      knows(first: 2, offset: 1, orderBy: [born_asc, born_desc]) {
+        name
+        born {formatted}
+      }
+    }
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "userKnowsKnowsOffset": 1,
+  "userKnowsKnowsFirst": 2
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (user:User)
+RETURN user {
+  .name,
+  born: {
+    formatted: toString(user.born)
+  },
+  knows: [sortedElement IN apoc.coll.sortMulti([(user)-[:KNOWS]->(userKnows:User) | userKnows {
+    .name,
+    born: userKnows.born,
+    knows: [sortedElement IN apoc.coll.sortMulti([(userKnows)-[:KNOWS]->(userKnowsKnows:User) | userKnowsKnows {
+      .name,
+      born: userKnowsKnows.born
+    }], ['^born','born']) | sortedElement {
+      .*,
+      born: {
+        formatted: toString(sortedElement.born)
+      }
+    }][$userKnowsKnowsOffset.. $userKnowsKnowsOffset + $userKnowsKnowsFirst]
+  }], ['^born']) | sortedElement {
+    .*,
+    born: {
+      formatted: toString(sortedElement.born)
+    }
+  }]
+} AS User
+ORDER BY user.born DESC
+----
+
+=== Find all relations
+
+.GraphQL-Query
+[source,graphql]
+----
+{ rated(_id:1){
+    rating
+ }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{ "rated_id": 1}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH ()-[rated:RATED]->()
+WHERE ID(rated) = toInteger($rated_id)
+RETURN rated { .rating } AS rated
+----
+
+== Relations
+
+=== Create relation
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  createRated(from_userId: "1", to_movieId: "2", rating: 5) {
+    _id
+ }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "fromFrom_userId": "1",
+  "toTo_movieId": "2",
+  "createRatedRating": 5
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (from:User { userId: $fromFrom_userId })
+MATCH (to:Movie { movieId: $toTo_movieId })
+CREATE (from)-[createRated:RATED { rating: $createRatedRating }]->(to)
+WITH createRated
+RETURN createRated { _id:ID(createRated) } AS createRated
+----
+
+=== Mutate relation
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+ updateRated(_id:1, rating: 5){
+    rating
+ }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "updateRated_id": 1,
+  "updateRatedRating": 5
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH ()-[updateRated:RATED]->()
+WHERE ID(updateRated) = toInteger($updateRated_id)
+SET updateRated += { rating: $updateRatedRating }
+WITH updateRated
+RETURN updateRated { .rating } AS updateRated
+----
+
+=== create relation
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+ addGenreMovies(name:"Action", movies: ["m1"]){
+    name
+ }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "fromName": "Action",
+  "toMovies": [
+    "m1"
+  ]
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (from:Genre { name: $fromName })
+MATCH (to:Movie) WHERE to.movieId IN $toMovies
+MERGE (from)<-[:IN_GENRE]-(to)
+WITH DISTINCT from AS addGenreMovies
+RETURN addGenreMovies { .name } AS addGenreMovies
+----
+
+== create object with multiple labels
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+ createUser(userId:1){
+    userId,
+    __typename
+ }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "createUserUserId": 1,
+  "createUserValidTypes": [
+    "User"
+  ]
+}
+----
+
+.Cypher
+[source,cypher]
+----
+CREATE (createUser:User:Person { userId: $createUserUserId })
+WITH createUser
+RETURN createUser {
+  .userId,
+  __typename: head( [ label IN labels(createUser) WHERE label IN $createUserValidTypes ] )
+} AS createUser
+----
+
+== Neo4j Data Types queryies
+
+=== User born extraction
+
+.GraphQL-Query
+[source,graphql]
+----
+query {
+  User {
+    born {
+      formatted
+      year
+    }
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (user:User)
+RETURN user { born: { formatted: toString(user.born), year: user.born.year } } AS User
+----
+
+=== User born query filter with multiple fields
+
+.GraphQL-Query
+[source,graphql]
+----
+query {
+  User {
+    born(formatted: "2015-06-24T12:50:35.556000000+01:00", year: 2015) {
+      year
+    }
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{"userBornFormatted": "2015-06-24T12:50:35.556000000+01:00", "userBornYear": 2015}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (user:User)
+WHERE user.born = datetime($userBornFormatted) AND user.born.year = $userBornYear
+RETURN user { born: { year: user.born.year } } AS User
+----
+
+=== Merge Actor with born field formatted
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  actor: mergeActor(userId: "1", name: "Andrea", born: { formatted: "2015-06-24T12:50:35.556000000+01:00" }) {
+    name
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "actorUserId": "1",
+  "actorName": "Andrea",
+  "actorBorn": {
+    "formatted": "2015-06-24T12:50:35.556000000+01:00"
+  }
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MERGE (actor:Actor {userId:$actorUserId})
+SET actor += { name: $actorName, born: datetime($actorBorn.formatted) }
+WITH actor
+RETURN actor { .name } AS actor
+----
+
+=== Create Actor with born field formatted
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  actor: createActor(userId: "1", name: "Andrea", born: { formatted: "2015-06-24T12:50:35.556000000+01:00" }) {
+    name
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "actorUserId": "1",
+  "actorName": "Andrea",
+  "actorBorn": {
+    "formatted": "2015-06-24T12:50:35.556000000+01:00"
+  }
+}
+----
+
+.Cypher
+[source,cypher]
+----
+CREATE (actor:Actor:Person {
+  userId: $actorUserId,
+  name: $actorName,
+  born: datetime($actorBorn.formatted)
+})
+WITH actor
+RETURN actor { .name } AS actor
+----
+
+=== Merge Actor with born field object
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  actor: mergeActor(userId: "1", name: "Andrea", born: { year: 2018
+                                                         month: 11
+                                                         day: 23
+                                                         hour: 10
+                                                         minute: 30
+                                                         second: 1
+                                                         millisecond: 2
+                                                         microsecond: 3
+                                                         nanosecond: 4
+                                                         timezone: "America/Los_Angeles" }) {
+    name
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{"actorUserId": "1", "actorName": "Andrea", "actorBorn": { "year": 2018,
+                                                           "month": 11,
+                                                           "day": 23,
+                                                           "hour": 10,
+                                                           "minute": 30,
+                                                           "second": 1,
+                                                           "millisecond": 2,
+                                                           "microsecond": 3,
+                                                           "nanosecond": 4,
+                                                           "timezone": "America/Los_Angeles" }}
+----
+
+.Cypher
+[source,cypher]
+----
+MERGE (actor:Actor {userId:$actorUserId})
+SET actor += {
+  name: $actorName,
+  born: datetime($actorBorn)
+}
+WITH actor
+RETURN actor { .name } AS actor
+----
+
+=== Create Actor with born field object
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  actor: createActor(userId: "1", name: "Andrea", born: { year: 2018
+                                                         month: 11
+                                                         day: 23
+                                                         hour: 10
+                                                         minute: 30
+                                                         second: 1
+                                                         millisecond: 2
+                                                         microsecond: 3
+                                                         nanosecond: 4
+                                                         timezone: "America/Los_Angeles" }) {
+    name
+    born {
+      year
+      month
+    }
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{"actorUserId": "1", "actorName": "Andrea", "actorBorn": { "year": 2018,
+                                                           "month": 11,
+                                                           "day": 23,
+                                                           "hour": 10,
+                                                           "minute": 30,
+                                                           "second": 1,
+                                                           "millisecond": 2,
+                                                           "microsecond": 3,
+                                                           "nanosecond": 4,
+                                                           "timezone": "America/Los_Angeles" }}
+----
+
+.Cypher
+[source,cypher]
+----
+CREATE (actor:Actor:Person {
+  userId: $actorUserId,
+  name: $actorName,
+  born: datetime($actorBorn)
+})
+WITH actor
+RETURN actor { .name,born: { year: actor.born.year, month: actor.born.month } } AS actor
+----
