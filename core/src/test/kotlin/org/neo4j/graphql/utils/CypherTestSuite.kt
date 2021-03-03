@@ -154,19 +154,15 @@ class CypherTestSuite(fileName: String) : AsciiDocTestSuite(
                         .forEach { server.graph().execute(it) }
                 }
 
-                val (cypher, params, type) = result()
+                val (cypher, params, type, variable) = result()
                 val dbResult = server.graph().execute(cypher, params)
 
-                val values = dbResult.columns().map { key ->
-                    key to dbResult.stream()
-                        .map { it[key] }
-                        .let {
-                            when {
-                                type?.isList() == true -> it.toList()
-                                else -> it.findFirst().orElse(null)
-                            }
-                        }
-                }.toMap(LinkedHashMap())
+                val values = mutableMapOf(variable to dbResult.stream().map { it[variable] }.let {
+                    when {
+                        type?.isList() == true -> it.toList()
+                        else -> it.findFirst().orElse(null)
+                    }
+                })
 
                 if (response.code.isEmpty()) {
                     val actualCode = MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(values)

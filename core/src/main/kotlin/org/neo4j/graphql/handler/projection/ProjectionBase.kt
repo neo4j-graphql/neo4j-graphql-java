@@ -10,7 +10,6 @@ import org.neo4j.cypherdsl.core.Node
 import org.neo4j.cypherdsl.core.StatementBuilder.TerminalExposesLimit
 import org.neo4j.cypherdsl.core.StatementBuilder.TerminalExposesSkip
 import org.neo4j.graphql.*
-import org.neo4j.graphql.Cypher
 import org.neo4j.graphql.parser.ParsedQuery
 import org.neo4j.graphql.parser.QueryParser.parseArguments
 import org.neo4j.graphql.parser.QueryParser.parseFilter
@@ -272,13 +271,13 @@ open class ProjectionBase {
         return mapOf(*projections.toTypedArray())
     }
 
-    fun cypherDirective(variable: String, fieldDefinition: GraphQLFieldDefinition, field: Field, cypherDirective: Cypher, thisValue: Any? = null): Expression {
+    fun cypherDirective(variable: String, fieldDefinition: GraphQLFieldDefinition, field: Field, cypherDirective: String, thisValue: Any? = null): Expression {
         val suffix = if (fieldDefinition.type.isList()) "Many" else "Single"
         val args = cypherDirectiveQuery(variable, fieldDefinition, field, cypherDirective, thisValue)
         return call("apoc.cypher.runFirstColumn$suffix").withArgs(*args).asFunction()
     }
 
-    fun cypherDirectiveQuery(variable: String, fieldDefinition: GraphQLFieldDefinition, field: Field, cypherDirective: Cypher, thisValue: Any? = null): Array<Expression> {
+    fun cypherDirectiveQuery(variable: String, fieldDefinition: GraphQLFieldDefinition, field: Field, cypherDirective: String, thisValue: Any? = null): Array<Expression> {
         val args = mutableMapOf<String, Any?>()
         if (thisValue != null) args["this"] = thisValue
         field.arguments.forEach { args[it.name] = it.value }
@@ -287,7 +286,7 @@ open class ProjectionBase {
             .forEach { args[it.name] = it.defaultValue }
 
         val argParams = args.map { (name, _) -> "$$name AS $name" }.joinNonEmpty(", ")
-        val query = (if (argParams.isEmpty()) "" else "WITH $argParams ") + cypherDirective.query
+        val query = (if (argParams.isEmpty()) "" else "WITH $argParams ") + cypherDirective
         val argExpressions = args.flatMap { (name, value) -> listOf(name, if (name == "this") value else queryParameter(value, variable, name)) }
         return arrayOf(literalOf<String>(query), mapOf(*argExpressions.toTypedArray()))
     }
