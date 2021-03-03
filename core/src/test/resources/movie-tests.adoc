@@ -1536,10 +1536,9 @@ RETURN deleteState AS deleteState
 mutation{
   deleteRated(_id: 1){
     rating
-# TODO this does not work correctly
-#    from {
-#      name
-#    }
+    from {
+      name
+    }
   }
 }
 ----
@@ -1558,7 +1557,10 @@ mutation{
 MATCH ()-[deleteRated:RATED]->()
 WHERE id(deleteRated) = toInteger($deleteRated_id)
 WITH deleteRated AS toDelete, deleteRated {
-	.rating
+	.rating,
+	from: head([(from:User)-[deleteRated]->() | from {
+		.name
+	}])
 } AS deleteRated DETACH DELETE toDelete
 RETURN deleteRated AS deleteRated
 ----

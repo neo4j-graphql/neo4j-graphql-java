@@ -130,10 +130,10 @@ abstract class BaseRelationHandler(
         val relFieldName: String
         val idField: RelationshipInfo.RelatedField
         if (start) {
-            relFieldName = relation.startField!!
+            relFieldName = relation.startField
             idField = startId
         } else {
-            relFieldName = relation.endField!!
+            relFieldName = relation.endField
             idField = endId
         }
         if (!arguments.containsKey(idField.argumentName)) {

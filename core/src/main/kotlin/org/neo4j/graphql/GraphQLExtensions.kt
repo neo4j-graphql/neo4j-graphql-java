@@ -98,13 +98,10 @@ fun GraphQLFieldsContainer.relevantFields() = fieldDefinitions
 
 fun GraphQLFieldsContainer.relationship(): RelationshipInfo? {
     val relDirective = (this as? GraphQLDirectiveContainer)?.getDirective(DirectiveConstants.RELATION) ?: return null
-    val directiveResolver: (name: String, defaultValue: String?) -> String? = { argName, defaultValue ->
-        relDirective.getArgument(argName, defaultValue)
-    }
-    val relType = directiveResolver(RELATION_NAME, "")!!
-    val startField = directiveResolver(RELATION_FROM, null)
-    val endField = directiveResolver(RELATION_TO, null)
-    val direction = directiveResolver(RELATION_DIRECTION, null)?.let { RelationDirection.valueOf(it) }
+    val relType = relDirective.getArgument(RELATION_NAME, "")!!
+    val startField = relDirective.getMandatoryArgument<String>(RELATION_FROM)
+    val endField = relDirective.getMandatoryArgument<String>(RELATION_TO)
+    val direction = relDirective.getArgument<String>(RELATION_DIRECTION)?.let { RelationDirection.valueOf(it) }
             ?: RelationDirection.OUT
     return RelationshipInfo(this, relType, direction, startField, endField)
 }
@@ -127,29 +124,23 @@ fun relDetails(type: GraphQLFieldsContainer, relDirective: GraphQLDirective): Re
     return RelationshipInfo(type,
             relType,
             direction,
-            relDirective.getArgument<String>(RELATION_FROM, null),
-            relDirective.getArgument<String>(RELATION_TO, null))
+            relDirective.getMandatoryArgument(RELATION_FROM),
+            relDirective.getMandatoryArgument(RELATION_TO)
+    )
 }
 
 data class RelationshipInfo(
         val type: GraphQLFieldsContainer,
         val relType: String,
         val direction: RelationDirection,
-        val startField: String? = null,
-        val endField: String? = null,
-        val isRelFromType: Boolean = false
+        val startField: String,
+        val endField: String
 ) {
     data class RelatedField(
             val argumentName: String,
             val field: GraphQLFieldDefinition,
             val declaringType: GraphQLFieldsContainer
     )
-
-    val arrows = when (direction) {
-        RelationDirection.IN -> "<" to ""
-        RelationDirection.OUT -> "" to ">"
-        RelationDirection.BOTH -> "" to ""
-    }
 
     val typeName: String get() = this.type.name
 
@@ -197,7 +188,10 @@ fun GraphQLType.getInnerFieldsContainer() = inner() as? GraphQLFieldsContainer
 fun <T> GraphQLDirectiveContainer.getDirectiveArgument(directiveName: String, argumentName: String, defaultValue: T?): T? =
         getDirective(directiveName)?.getArgument(argumentName, defaultValue) ?: defaultValue
 
-fun <T> GraphQLDirective.getArgument(argumentName: String, defaultValue: T?): T? {
+fun <T> GraphQLDirective.getMandatoryArgument(argumentName: String, defaultValue: T? = null): T = this.getArgument(argumentName, defaultValue)
+        ?: throw IllegalStateException(argumentName + " is required for @${this.name}")
+
+fun <T> GraphQLDirective.getArgument(argumentName: String, defaultValue: T? = null): T? {
     val argument = getArgument(argumentName)
     @Suppress("UNCHECKED_CAST")
     return argument?.value as T?
