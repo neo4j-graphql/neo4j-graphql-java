@@ -47,7 +47,6 @@ enum E { pi, e }
 type Query {
   person : [Person]
   personByName(name:String) : Person
-  values(_param:String,_string:String="Joe",_int:Int=42, _float:Float=3.14, _array:[Int]=[1,2,3],_enum:E=pi, _boolean:Boolean=false,_null:String=null) : Person
 }
 ----
 
@@ -145,7 +144,7 @@ MATCH (person:Person) RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "personOffset": 3
+  "personOffset" : 3
 }
 ----
 
@@ -153,7 +152,9 @@ MATCH (person:Person) RETURN person { .name } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-RETURN person { .age } AS person SKIP $personOffset
+RETURN person {
+	.age
+} AS person SKIP $personOffset
 ----
 
 === query offset as variable
@@ -180,14 +181,17 @@ query getPersons($offset: Int){
 [source,json]
 ----
 {
-  "personOffset": 10
+  "offset" : 10
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person) RETURN person { .age } AS person SKIP $personOffset
+MATCH (person:Person)
+RETURN person {
+	.age
+} AS person SKIP $offset
 ----
 
 === nested query
@@ -227,7 +231,11 @@ MATCH (person:Person) RETURN person { .name, .age, livesIn:[(person)-[:LIVES_IN]
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person) RETURN person { .name, .age } AS person
+MATCH (person:Person)
+RETURN person {
+	.name,
+	.age
+} AS person
 ----
 
 === named fragment
@@ -333,13 +341,22 @@ MATCH (person:Person) RETURN person { .name, born:[(person)-[personBorn:BORN]->(
 .Cypher params
 [source,json]
 ----
-{"personLivesInName":"Berlin"}
+{
+  "personLivesInName" : "Berlin"
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person) RETURN person { .name, .age, livesIn:[(person)-[:LIVES_IN]->(personLivesIn:Location) WHERE personLivesIn.name = $personLivesInName | personLivesIn { .name }][0] } AS person
+MATCH (person:Person)
+RETURN person {
+	.name,
+	.age,
+	livesIn: [(person)-[:LIVES_IN]->(personLivesIn:Location) WHERE personLivesIn.name = $personLivesInName | personLivesIn {
+		.name
+	}][0]
+} AS person
 ----
 
 === order by query two
@@ -439,7 +456,7 @@ MATCH (foo:Person) RETURN foo { n:foo.name } AS foo
 [source,json]
 ----
 {
-  "personFirst": 2
+  "personFirst" : 2
 }
 ----
 
@@ -447,7 +464,9 @@ MATCH (foo:Person) RETURN foo { n:foo.name } AS foo
 [source,cypher]
 ----
 MATCH (person:Person)
-RETURN person { .age } AS person LIMIT $personFirst
+RETURN person {
+	.age
+} AS person LIMIT $personFirst
 ----
 
 === simple query where
@@ -461,60 +480,21 @@ RETURN person { .age } AS person LIMIT $personFirst
 .Cypher params
 [source,json]
 ----
-{"personName":"Joe"}
-----
-
-.Cypher
-[source,cypher]
-----
-MATCH (person:Person) WHERE person.name = $personName RETURN person { .age } AS person
-----
-
-=== render values
-
-.GraphQL-Query
-[source,graphql]
-----
-query($_param:String) { p:values(_param:$_param) { age } }
-----
-
-.Query variables
-[source,json,request=true]
-----
-{"_param":"foo"}
-----
-
-.Cypher params
-[source,json]
-----
 {
-  "_param": "foo",
-  "p_string": "Joe",
-  "p_int": 42,
-  "p_float": 3.14,
-  "p_array": [ 1, 2, 3 ],
-  "p_enum": "pi",
-  "p_boolean": false
+  "personName" : "Joe"
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (p:Person)
-WHERE p._param = $_param
-  AND p._string = $p_string
-  AND p._int = $p_int
-  AND p._float = $p_float
-  AND p._array = $p_array
-  AND p._enum = $p_enum
-  AND p._boolean = $p_boolean
-RETURN p { .age } AS p
+MATCH (person:Person)
+WHERE person.name = $personName
+RETURN person {
+	.age
+} AS person
 ----
 
-SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".
-SLF4J: Defaulting to no-operation (NOP) logger implementation
-SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.
 === nested query slice offset
 
 .GraphQL-Query
@@ -527,7 +507,7 @@ SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further detail
 [source,json]
 ----
 {
-  "personLivedInOffset": 3
+  "personLivedInOffset" : 3
 }
 ----
 
@@ -536,9 +516,9 @@ SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further detail
 ----
 MATCH (person:Person)
 RETURN person {
-  livedIn:[(person)-[:LIVED_IN]->(personLivedIn:Location) | personLivedIn {
-    .name
-  }][$personLivedInOffset..]
+	livedIn: [(person)-[:LIVED_IN]->(personLivedIn:Location) | personLivedIn {
+		.name
+	}][$personLivedInOffset..]
 } AS person
 ----
 
@@ -554,7 +534,7 @@ RETURN person {
 [source,json]
 ----
 {
-  "personLivedInFirst": 2
+  "personLivedInFirst" : 2
 }
 ----
 
@@ -563,9 +543,9 @@ RETURN person {
 ----
 MATCH (person:Person)
 RETURN person {
-  livedIn:[(person)-[:LIVED_IN]->(personLivedIn:Location) | personLivedIn {
-    .name
-  }][0..$personLivedInFirst]
+	livedIn: [(person)-[:LIVED_IN]->(personLivedIn:Location) | personLivedIn {
+		.name
+	}][0..$personLivedInFirst]
 } AS person
 ----
 
@@ -621,8 +601,8 @@ MATCH (person:Person) RETURN person { .name, .age } AS person
 [source,json]
 ----
 {
-  "personFirst": 2,
-  "personOffset": 3
+  "personFirst" : 2,
+  "personOffset" : 3
 }
 ----
 
@@ -630,7 +610,9 @@ MATCH (person:Person) RETURN person { .name, .age } AS person
 [source,cypher]
 ----
 MATCH (person:Person)
-RETURN person { .age } AS person SKIP $personOffset LIMIT $personFirst
+RETURN person {
+	.age
+} AS person SKIP $personOffset LIMIT $personFirst
 ----
 
 === nested query slice first offset
@@ -645,8 +627,8 @@ RETURN person { .age } AS person SKIP $personOffset LIMIT $personFirst
 [source,json]
 ----
 {
-  "personLivedInOffset": 3,
-  "personLivedInFirst": 2
+  "personLivedInFirst" : 2,
+  "personLivedInOffset" : 3
 }
 ----
 
@@ -655,9 +637,9 @@ RETURN person { .age } AS person SKIP $personOffset LIMIT $personFirst
 ----
 MATCH (person:Person)
 RETURN person {
-  livedIn:[(person)-[:LIVED_IN]->(personLivedIn:Location) | personLivedIn {
-    .name
-  }][$personLivedInOffset.. $personLivedInOffset + $personLivedInFirst]
+	livedIn: [(person)-[:LIVED_IN]->(personLivedIn:Location) | personLivedIn {
+		.name
+	}][$personLivedInOffset..($personLivedInOffset + $personLivedInFirst)]
 } AS person
 ----
 
@@ -673,10 +655,7 @@ RETURN person {
 [source,json]
 ----
 {
-  "locationValidTypes": [
-    "City",
-    "Village"
-  ]
+  "locationValidTypes" : [ "City", "Village" ]
 }
 ----
 
@@ -685,8 +664,8 @@ RETURN person {
 ----
 MATCH (location:Location)
 RETURN location {
-  .name,
-  __typename: head( [ label IN labels(location) WHERE label IN $locationValidTypes ] )
+	.name,
+	__typename: head([label IN labels(location) WHERE label IN $locationValidTypes])
 } AS location
 ----
 
@@ -710,7 +689,7 @@ RETURN location {
 [source,json]
 ----
 {
-  "personValidTypes":["Person"]
+  "personValidTypes" : [ "Person" ]
 }
 ----
 
@@ -719,11 +698,11 @@ RETURN location {
 ----
 MATCH (person:Person)
 RETURN person {
-  .name,
-  __typename: head( [ label IN labels(person) WHERE label IN $personValidTypes ] ),
-  born:[(person)-[personBorn:BORN]->(personBornTo:Location) | personBorn {
-    __typename: 'Birth'
-  }][0]
+	.name,
+	__typename: head([label IN labels(person) WHERE label IN $personValidTypes]),
+	born: [(person)-[personBorn:BORN]->(personBornTo:Location) | personBorn {
+		__typename: 'Birth'
+	}][0]
 } AS person
 ----
 
@@ -750,7 +729,7 @@ RETURN person {
 [source,json]
 ----
 {
-  "locationValidTypes":["City","Village"]
+  "locationValidTypes" : [ "City", "Village" ]
 }
 ----
 
@@ -759,10 +738,10 @@ RETURN person {
 ----
 MATCH (location:Location)
 RETURN location {
-  .name,
-  __typename: head( [ label IN labels(location) WHERE label IN $locationValidTypes ] ),
-  .city_Arg,
-  .villageArg
+	.name,
+	__typename: head([label IN labels(location) WHERE label IN $locationValidTypes]),
+	.city_Arg,
+	.villageArg
 } AS location
 ----
 
@@ -792,7 +771,7 @@ fragment details on Location {
 [source,json]
 ----
 {
-  "locationValidTypes":["City","Village"]
+  "locationValidTypes" : [ "City", "Village" ]
 }
 ----
 
@@ -801,10 +780,10 @@ fragment details on Location {
 ----
 MATCH (location:Location)
 RETURN location {
-  .name,
-  __typename: head( [ label IN labels(location) WHERE label IN $locationValidTypes ] ),
-  .city_Arg,
-  .villageArg
+	.name,
+	__typename: head([label IN labels(location) WHERE label IN $locationValidTypes]),
+	.city_Arg,
+	.villageArg
 } AS location
 ----
 
@@ -830,25 +809,25 @@ query {
 [source,json]
 ----
 {
-  "personLocationLongitude": 1,
-  "personLocationLatitude": 2
+  "personLocationAnd1Longitude" : 1,
+  "personLocationAnd2Latitude" : 2
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (person: Person)
-WHERE person.location.longitude = $personLocationLongitude
-AND  person.location.latitude = $personLocationLatitude
+MATCH (person:Person)
+WHERE (person.location.longitude = $personLocationAnd1Longitude
+	AND person.location.latitude = $personLocationAnd2Latitude)
 RETURN person {
-  .name,
-  location: {
-    crs: person.location.crs,
-    longitude: person.location.longitude,
-    latitude: person.location.latitude,
-    height: person.location.height
-  }
+	.name,
+	location:  {
+		crs: person.location.crs,
+		longitude: person.location.longitude,
+		latitude: person.location.latitude,
+		height: person.location.height
+	}
 } AS person
 ----
 
@@ -875,29 +854,32 @@ mutation{
 [source,json]
 ----
 {
-  "createPersonName": "Test2",
-  "createPersonLocation": {
-    "x":1,
-    "y":2,
-    "z": 3,
-    "crs": "wgs-84-3d"
-  }
+  "createPersonLocation" : {
+    "x" : 1,
+    "y" : 2,
+    "z" : 3,
+    "crs" : "wgs-84-3d"
+  },
+  "createPersonName" : "Test2"
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-CREATE (createPerson:Person { name: $createPersonName, location: point($createPersonLocation) })
+CREATE (createPerson:Person  {
+	name: $createPersonName,
+	location: point($createPersonLocation)
+})
 WITH createPerson
 RETURN createPerson {
-  .name,
-  location: {
-    crs: createPerson.location.crs,
-    srid: createPerson.location.srid,
-    latitude: createPerson.location.latitude,
-    longitude: createPerson.location.longitude,
-    height: createPerson.location.height
-  }
+	.name,
+	location:  {
+		crs: createPerson.location.crs,
+		srid: createPerson.location.srid,
+		latitude: createPerson.location.latitude,
+		longitude: createPerson.location.longitude,
+		height: createPerson.location.height
+	}
 } AS createPerson
 ----

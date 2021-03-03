@@ -5,6 +5,8 @@ import graphql.schema.DataFetcher
 import graphql.schema.DataFetchingEnvironment
 import graphql.schema.GraphQLFieldDefinition
 import graphql.schema.GraphQLFieldsContainer
+import org.neo4j.cypherdsl.core.Statement
+import org.neo4j.cypherdsl.core.StatementBuilder.OngoingUpdate
 import org.neo4j.graphql.*
 
 class CreateRelationHandler private constructor(
@@ -47,30 +49,29 @@ class CreateRelationHandler private constructor(
                 startIdField: RelationshipInfo.RelatedField,
                 endIdField: RelationshipInfo.RelatedField,
                 fieldDefinition: GraphQLFieldDefinition
-        ): DataFetcher<Cypher>? {
+        ): DataFetcher<Cypher> {
             return CreateRelationHandler(sourceType, relation, startIdField, endIdField, fieldDefinition)
         }
 
     }
 
-    override fun generateCypher(
-            variable: String,
-            field: Field,
-            env: DataFetchingEnvironment
-    ): Cypher {
+    override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement {
 
         val properties = properties(variable, field.arguments)
-        val mapProjection = projectFields(variable, field, type, env, null)
 
         val arguments = field.arguments.map { it.name to it }.toMap()
-        val startSelect = getRelationSelect(true, arguments)
-        val endSelect = getRelationSelect(false, arguments)
+        val (startNode, startWhere) = getRelationSelect(true, arguments)
+        val (endNode, endWhere) = getRelationSelect(false, arguments)
 
-        return Cypher("MATCH ${startSelect.query}" +
-                " MATCH ${endSelect.query}" +
-                " MERGE (${relation.startField})${relation.arrows.first}-[:${relation.relType.quote()}${properties.query}]-${relation.arrows.second}(${relation.endField})" +
-                " WITH DISTINCT ${relation.startField} AS $variable" +
-                " RETURN ${mapProjection.query} AS ${field.aliasOrName()}",
-                startSelect.params + endSelect.params + properties.params)
+        val mapProjection = projectFields(startNode, field, type, env)
+
+        val update: OngoingUpdate = org.neo4j.cypherdsl.core.Cypher.match(startNode).where(startWhere)
+            .match(endNode).where(endWhere)
+            .merge(relation.createRelation(startNode, endNode).withProperties(*properties))
+        val withAlias = startNode.`as`(variable)
+        return update
+            .withDistinct(withAlias)
+            .returning(withAlias.asName().project(mapProjection).`as`(field.aliasOrName()))
+            .build()
     }
 }

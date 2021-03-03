@@ -2,6 +2,10 @@ package org.neo4j.graphql.handler
 
 import graphql.language.Field
 import graphql.schema.*
+import org.neo4j.cypherdsl.core.Node
+import org.neo4j.cypherdsl.core.Relationship
+import org.neo4j.cypherdsl.core.Statement
+import org.neo4j.cypherdsl.core.StatementBuilder.OngoingUpdate
 import org.neo4j.graphql.*
 
 class DeleteHandler private constructor(
@@ -39,8 +43,8 @@ class DeleteHandler private constructor(
                 return null
             }
             val idField = type.getIdField() ?: return null
-            return when {
-                fieldDefinition.name == "delete${type.name}" -> DeleteHandler(type, idField, fieldDefinition)
+            return when (fieldDefinition.name) {
+                "delete${type.name}" -> DeleteHandler(type, idField, fieldDefinition)
                 else -> null
             }
         }
@@ -54,17 +58,30 @@ class DeleteHandler private constructor(
         }
     }
 
-    override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Cypher {
+    override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement {
         val idArg = field.arguments.first { it.name == idField.name }
-        val mapProjection = projectFields(variable, field, type, env, null)
 
-        val select = getSelectQuery(variable, label(), idArg, idField, isRelation)
-        return Cypher("MATCH " + select.query +
-                " WITH $variable as toDelete, " +
-                "${mapProjection.query} AS $variable" +
-                " DETACH DELETE toDelete" +
-                " RETURN ${field.aliasOrName()}",
-                select.params + mapProjection.params)
+        val (propertyContainer, where) = getSelectQuery(variable, type.label(), idArg, idField, isRelation)
+        val select = if (isRelation) {
+            val rel = propertyContainer as? Relationship
+                    ?: throw IllegalStateException("Expect a Relationship but got ${propertyContainer.javaClass.name}")
+            org.neo4j.cypherdsl.core.Cypher.match(rel)
+                .where(where)
+        } else {
+            val node = propertyContainer as? Node
+                    ?: throw IllegalStateException("Expect a Node but got ${propertyContainer.javaClass.name}")
+            org.neo4j.cypherdsl.core.Cypher.match(node)
+                .where(where)
+        }
+        val deletedElement = propertyContainer.requiredSymbolicName.`as`("toDelete")
+        val mapProjection = projectFields(propertyContainer, field, type, env)
+
+        val projection = propertyContainer.project(mapProjection).`as`(variable)
+        val update: OngoingUpdate = select.with(deletedElement, projection)
+            .detachDelete(deletedElement)
+        return update
+            .returning(projection.asName().`as`(field.aliasOrName()))
+            .build()
     }
 
 }

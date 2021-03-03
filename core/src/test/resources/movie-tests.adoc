@@ -152,7 +152,7 @@ RETURN movie { .movieId } AS Movie
 [source,json]
 ----
 {
-  "movieByIdMovieId": "18"
+  "movieByIdMovieId" : "18"
 }
 ----
 
@@ -161,7 +161,9 @@ RETURN movie { .movieId } AS Movie
 ----
 MATCH (movieById:Movie)
 WHERE movieById.movieId = $movieByIdMovieId
-RETURN movieById { .title } AS MovieById
+RETURN movieById {
+	.title
+} AS MovieById
 ----
 
 === Basic Query with Parameter
@@ -176,7 +178,7 @@ RETURN movieById { .title } AS MovieById
 [source,json]
 ----
 {
-  "movieTitle": "River Runs Through It, A"
+  "movieTitle" : "River Runs Through It, A"
 }
 ----
 
@@ -184,8 +186,10 @@ RETURN movieById { .title } AS MovieById
 [source,cypher]
 ----
 MATCH (movie:Movie)
-WHERE  movie.title = $movieTitle
-RETURN movie { .title } AS Movie
+WHERE movie.title = $movieTitle
+RETURN movie {
+	.title
+} AS Movie
 ----
 
 === Paging
@@ -205,9 +209,9 @@ RETURN movie { .title } AS Movie
 [source,json]
 ----
 {
-  "movieTitle": "River Runs Through It, A",
-  "movieOffset": 1,
-  "movieFirst": 1
+  "movieFirst" : 1,
+  "movieOffset" : 1,
+  "movieTitle" : "River Runs Through It, A"
 }
 ----
 
@@ -216,8 +220,10 @@ RETURN movie { .title } AS Movie
 ----
 MATCH (movie:Movie)
 WHERE movie.title = $movieTitle
-RETURN movie { .title, .year } AS Movie
-SKIP $movieOffset LIMIT $movieFirst
+RETURN movie {
+	.title,
+	.year
+} AS Movie SKIP $movieOffset LIMIT $movieFirst
 ----
 
 === Query Single Relation
@@ -239,7 +245,7 @@ SKIP $movieOffset LIMIT $movieFirst
 [source,json]
 ----
 {
-  "movieByIdMovieId": "3100"
+  "movieByIdMovieId" : "3100"
 }
 ----
 
@@ -249,8 +255,10 @@ SKIP $movieOffset LIMIT $movieFirst
 MATCH (movieById:Movie)
 WHERE movieById.movieId = $movieByIdMovieId
 RETURN movieById {
-  .title,
-  filmedIn:[(movieById)-[:FILMED_IN]->(movieByIdFilmedIn:State) | movieByIdFilmedIn { .name }][0]
+	.title,
+	filmedIn: [(movieById)-[:FILMED_IN]->(movieByIdFilmedIn:State) | movieByIdFilmedIn {
+		.name
+	}][0]
 } AS MovieById
 ----
 
@@ -276,7 +284,7 @@ RETURN movieById {
 [source,json]
 ----
 {
-  "movieByIdMovieId": "3100"
+  "movieByIdMovieId" : "3100"
 }
 ----
 
@@ -286,9 +294,13 @@ RETURN movieById {
 MATCH (movieById:Movie)
 WHERE movieById.movieId = $movieByIdMovieId
 RETURN movieById {
-  .title,
-  actors:[(movieById)<-[:ACTED_IN]-(movieByIdActors:Actor) | movieByIdActors { .name }],
-  filmedIn:[(movieById)-[:FILMED_IN]->(movieByIdFilmedIn:State) | movieByIdFilmedIn { .name }][0]
+	.title,
+	actors: [(movieById)<-[:ACTED_IN]-(movieByIdActors:Actor) | movieByIdActors {
+		.name
+	}],
+	filmedIn: [(movieById)-[:FILMED_IN]->(movieByIdFilmedIn:State) | movieByIdFilmedIn {
+		.name
+	}][0]
 } AS MovieById
 ----
 
@@ -311,7 +323,7 @@ RETURN movieById {
 [source,json]
 ----
 {
-  "movieTitle": "River Runs Through It, A"
+  "movieTitle" : "River Runs Through It, A"
 }
 ----
 
@@ -321,8 +333,10 @@ RETURN movieById {
 MATCH (movie:Movie)
 WHERE movie.title = $movieTitle
 RETURN movie {
-  .title,
-  actors:[(movie)<-[:ACTED_IN]-(movieActors:Actor) | movieActors { .name }]
+	.title,
+	actors: [(movie)<-[:ACTED_IN]-(movieActors:Actor) | movieActors {
+		.name
+	}]
 } AS Movie
 ----
 
@@ -345,8 +359,8 @@ RETURN movie {
 [source,json]
 ----
 {
-  "movieTitle": "River Runs Through It, A",
-  "movieActorsFirst": 3
+  "movieActorsFirst" : 3,
+  "movieTitle" : "River Runs Through It, A"
 }
 ----
 
@@ -356,8 +370,10 @@ RETURN movie {
 MATCH (movie:Movie)
 WHERE movie.title = $movieTitle
 RETURN movie {
-  .title,
-  actors:[(movie)<-[:ACTED_IN]-(movieActors:Actor) | movieActors { .name }][0..$movieActorsFirst]
+	.title,
+	actors: [(movie)<-[:ACTED_IN]-(movieActors:Actor) | movieActors {
+		.name
+	}][0..$movieActorsFirst]
 } AS Movie
 ----
 
@@ -390,15 +406,14 @@ RETURN movie {
 ----
 MATCH (movie:Movie)
 RETURN movie {
-  .title,
-  similar:[movieSimilar
-    IN apoc.cypher.runFirstColumnMany('WITH $this AS this, $first AS first, $offset AS offset MATCH (this)--(:Genre)--(o:Movie) RETURN o', {
-        this:movie,
-        first:$movieSimilarFirst,
-        offset:$movieSimilarOffset
-      }) | movieSimilar {
-        .title
-      }]
+	.title,
+	similar: [movieSimilar IN apoc.cypher.runFirstColumnMany('WITH $this AS this, $first AS first, $offset AS offset MATCH (this)--(:Genre)--(o:Movie) RETURN o',  {
+		this: movie,
+		first: $movieSimilarFirst,
+		offset: $movieSimilarOffset
+	}) | movieSimilar {
+		.title
+	}]
 } AS Movie
 ----
 
@@ -431,15 +446,14 @@ RETURN movie {
 ----
 MATCH (movie:Movie)
 RETURN movie {
-  .title,
-  similar:[movieSimilar
-    IN apoc.cypher.runFirstColumnMany('WITH $this AS this, $first AS first, $offset AS offset MATCH (this)--(:Genre)--(o:Movie) RETURN o', {
-      this:movie,
-      first:$movieSimilarFirst,
-      offset:$movieSimilarOffset
-    }) | movieSimilar {
-      .title
-    }][0..$movieSimilarFirst]
+	.title,
+	similar: [movieSimilar IN apoc.cypher.runFirstColumnMany('WITH $this AS this, $first AS first, $offset AS offset MATCH (this)--(:Genre)--(o:Movie) RETURN o',  {
+		this: movie,
+		first: $movieSimilarFirst,
+		offset: $movieSimilarOffset
+	}) | movieSimilar {
+		.title
+	}][0..$movieSimilarFirst]
 } AS Movie
 ----
 
@@ -462,18 +476,22 @@ RETURN movie {
 [source,json]
 ----
 {
-  "genresBySubstringSubstring": "Action",
-  "genresBySubstringMoviesFirst": 3
+  "genresBySubstringMoviesFirst" : 3,
+  "genresBySubstringSubstring" : "Action"
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-UNWIND apoc.cypher.runFirstColumnMany('WITH $substring AS substring MATCH (g:Genre) WHERE toLower(g.name) CONTAINS toLower($substring) RETURN g', { substring:$genresBySubstringSubstring }) AS genresBySubstring
+UNWIND apoc.cypher.runFirstColumnMany('WITH $substring AS substring MATCH (g:Genre) WHERE toLower(g.name) CONTAINS toLower($substring) RETURN g',  {
+	substring: $genresBySubstringSubstring
+}) AS genresBySubstring
 RETURN genresBySubstring {
-  .name,
-  movies:[(genresBySubstring)<-[:IN_GENRE]-(genresBySubstringMovies:Movie) | genresBySubstringMovies { .title }][0..$genresBySubstringMoviesFirst]
+	.name,
+	movies: [(genresBySubstring)<-[:IN_GENRE]-(genresBySubstringMovies:Movie) | genresBySubstringMovies {
+		.title
+	}][0..$genresBySubstringMoviesFirst]
 } AS GenresBySubstring
 ----
 
@@ -493,16 +511,20 @@ mutation someMutation {
 [source,json]
 ----
 {
-  "createGenreName": "Wildlife Documentary"
+  "createGenreName" : "Wildlife Documentary"
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-CALL apoc.cypher.doIt('WITH $name AS name CREATE (g:Genre) SET g.name = name RETURN g', { name:$createGenreName }) YIELD value
+CALL apoc.cypher.doIt('WITH $name AS name CREATE (g:Genre) SET g.name = name RETURN g',  {
+	name: $createGenreName
+}) YIELD value
 WITH value[head(keys(value))] AS createGenre
-RETURN createGenre { .name } AS createGenre
+RETURN createGenre {
+	.name
+} AS createGenre
 ----
 
 === Query using Inline Fragment
@@ -530,7 +552,7 @@ RETURN createGenre { .name } AS createGenre
 [source,json]
 ----
 {
-  "movieTitle": "River Runs Through It, A"
+  "movieTitle" : "River Runs Through It, A"
 }
 ----
 
@@ -540,11 +562,14 @@ RETURN createGenre { .name } AS createGenre
 MATCH (movie:Movie)
 WHERE movie.title = $movieTitle
 RETURN movie {
-  .title,
-  ratings:[(movie)<-[movieRatings:RATED]-(movieRatingsFrom:User) | movieRatings {
-    .rating,
-    from:movieRatingsFrom { .name, .userId }
-  }]
+	.title,
+	ratings: [(movie)<-[movieRatings:RATED]-(movieRatingsFrom:User) | movieRatings {
+		.rating,
+		from: movieRatingsFrom {
+			.name,
+			.userId
+		}
+	}]
 } AS Movie
 ----
 
@@ -581,10 +606,10 @@ RETURN movie {
 [source,json]
 ----
 {
-  "movieTitle" : "River Runs Through It, A",
-  "movieActorsMoviesActorsName" : "Tom Hanks",
   "movieActorsMoviesActorsMoviesSimilarFirst" : 3,
-  "movieActorsMoviesActorsMoviesSimilarOffset" : 0
+  "movieActorsMoviesActorsMoviesSimilarOffset" : 0,
+  "movieActorsMoviesActorsName" : "Tom Hanks",
+  "movieTitle" : "River Runs Through It, A"
 }
 ----
 
@@ -593,14 +618,30 @@ RETURN movie {
 ----
 MATCH (movie:Movie)
 WHERE movie.title = $movieTitle
-RETURN movie { .title, actors:[(movie)<-[:ACTED_IN]-(movieActors:Actor) |
-       movieActors { .name, movies:[(movieActors)-[:ACTED_IN]->(movieActorsMovies:Movie) |
-         movieActorsMovies { .title, actors:[(movieActorsMovies)<-[:ACTED_IN]-(movieActorsMoviesActors:Actor)
-           WHERE movieActorsMoviesActors.name = $movieActorsMoviesActorsName |
-             movieActorsMoviesActors { .name, movies:[(movieActorsMoviesActors)-[:ACTED_IN]->(movieActorsMoviesActorsMovies:Movie) |
-               movieActorsMoviesActorsMovies { .title, .year, similar:[movieActorsMoviesActorsMoviesSimilar
-                 IN apoc.cypher.runFirstColumnMany('WITH $this AS this, $first AS first, $offset AS offset MATCH (this)--(:Genre)--(o:Movie) RETURN o', { this:movieActorsMoviesActorsMovies, first:$movieActorsMoviesActorsMoviesSimilarFirst, offset:$movieActorsMoviesActorsMoviesSimilarOffset }) |
-                   movieActorsMoviesActorsMoviesSimilar { .title, .year }][0..$movieActorsMoviesActorsMoviesSimilarFirst] }] }] }] }] } AS Movie
+RETURN movie {
+	.title,
+	actors: [(movie)<-[:ACTED_IN]-(movieActors:Actor) | movieActors {
+		.name,
+		movies: [(movieActors)-[:ACTED_IN]->(movieActorsMovies:Movie) | movieActorsMovies {
+			.title,
+			actors: [(movieActorsMovies)<-[:ACTED_IN]-(movieActorsMoviesActors:Actor) WHERE movieActorsMoviesActors.name = $movieActorsMoviesActorsName | movieActorsMoviesActors {
+				.name,
+				movies: [(movieActorsMoviesActors)-[:ACTED_IN]->(movieActorsMoviesActorsMovies:Movie) | movieActorsMoviesActorsMovies {
+					.title,
+					.year,
+					similar: [movieActorsMoviesActorsMoviesSimilar IN apoc.cypher.runFirstColumnMany('WITH $this AS this, $first AS first, $offset AS offset MATCH (this)--(:Genre)--(o:Movie) RETURN o',  {
+						this: movieActorsMoviesActorsMovies,
+						first: $movieActorsMoviesActorsMoviesSimilarFirst,
+						offset: $movieActorsMoviesActorsMoviesSimilarOffset
+					}) | movieActorsMoviesActorsMoviesSimilar {
+						.title,
+						.year
+					}][0..$movieActorsMoviesActorsMoviesSimilarFirst]
+				}]
+			}]
+		}]
+	}]
+} AS Movie
 ----
 
 === Should merge an actor by the userId
@@ -619,18 +660,24 @@ mutation {
 [source,json]
 ----
 {
-  "actorUserId": "1",
-  "actorName": "Andrea"
+  "actorName" : "Andrea",
+  "actorUserId" : "1"
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MERGE (actor:Actor { userId: $actorUserId })
-SET actor += { name: $actorName }
+MERGE (actor:Actor  {
+	userId: $actorUserId
+})
+SET actor +=  {
+	name: $actorName
+}
 WITH actor
-RETURN actor { .name } AS actor
+RETURN actor {
+	.name
+} AS actor
 ----
 
 === Should auto generate `add` relationship mutations for arrays
@@ -649,22 +696,24 @@ mutation {
 [source,json]
 ----
 {
-  "fromMovieId": 1,
-  "toGenres": [
-    "Action",
-    "Fantasy"
-  ]
+  "fromMovieId" : 1,
+  "toGenres" : [ "Action", "Fantasy" ]
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (from:Movie { movieId: $fromMovieId })
-MATCH (to:Genre) WHERE to.name IN $toGenres
+MATCH (from:Movie  {
+	movieId: $fromMovieId
+})
+MATCH (to:Genre)
+WHERE to.name IN $toGenres
 MERGE (from)-[:IN_GENRE]->(to)
 WITH DISTINCT from AS add
-RETURN add { .title } AS add
+RETURN add {
+	.title
+} AS add
 ----
 
 === Should auto generate `delete` relationship mutations for arrays
@@ -683,23 +732,24 @@ mutation {
 [source,json]
 ----
 {
-  "fromMovieId": 1,
-  "toGenres": [
-    "Action",
-    "Fantasy"
-  ]
+  "fromMovieId" : 1,
+  "toGenres" : [ "Action", "Fantasy" ]
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (from:Movie { movieId: $fromMovieId })
-MATCH (to:Genre) WHERE to.name IN $toGenres
-MATCH (from)-[r:IN_GENRE]->(to)
-DELETE r
+MATCH (from:Movie  {
+	movieId: $fromMovieId
+})
+MATCH (to:Genre)
+WHERE to.name IN $toGenres
+MATCH (from)-[r:IN_GENRE]->(to) DELETE r
 WITH DISTINCT from AS del
-RETURN del { .title } AS del
+RETURN del {
+	.title
+} AS del
 ----
 
 === Should auto generate `add` relationship mutations
@@ -718,19 +768,25 @@ mutation {
 [source,json]
 ----
 {
-  "fromMovieId": 1,
-  "toPublishedBy": "Company"
+  "fromMovieId" : 1,
+  "toPublishedBy" : "Company"
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (from:Movie { movieId: $fromMovieId })
-MATCH (to:Publisher { name: $toPublishedBy })
+MATCH (from:Movie  {
+	movieId: $fromMovieId
+})
+MATCH (to:Publisher  {
+	name: $toPublishedBy
+})
 MERGE (from)-[:PUBLISHED_BY]->(to)
 WITH DISTINCT from AS add
-RETURN add { .title } AS add
+RETURN add {
+	.title
+} AS add
 ----
 
 === Should auto generate `delete` relationship mutations
@@ -749,20 +805,25 @@ mutation {
 [source,json]
 ----
 {
-  "fromMovieId": 1,
-  "toPublishedBy": "Company"
+  "fromMovieId" : 1,
+  "toPublishedBy" : "Company"
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (from:Movie { movieId: $fromMovieId })
-MATCH (to:Publisher { name: $toPublishedBy })
-MATCH (from)-[r:PUBLISHED_BY]->(to)
-DELETE r
+MATCH (from:Movie  {
+	movieId: $fromMovieId
+})
+MATCH (to:Publisher  {
+	name: $toPublishedBy
+})
+MATCH (from)-[r:PUBLISHED_BY]->(to) DELETE r
 WITH DISTINCT from AS del
-RETURN del { .title } AS del
+RETURN del {
+	.title
+} AS del
 ----
 
 === Should auto generate `add` recursive relationship mutations for arrays
@@ -781,22 +842,24 @@ mutation {
 [source,json]
 ----
 {
-  "fromUserId": 1,
-  "toKnows": [
-    10,
-    23
-  ]
+  "fromUserId" : 1,
+  "toKnows" : [ 10, 23 ]
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (from:User { userId: $fromUserId })
-MATCH (to:User) WHERE to.userId IN $toKnows
+MATCH (from:User  {
+	userId: $fromUserId
+})
+MATCH (to:User)
+WHERE to.userId IN $toKnows
 MERGE (from)-[:KNOWS]->(to)
 WITH DISTINCT from AS add
-RETURN add { .name } AS add
+RETURN add {
+	.name
+} AS add
 ----
 
 == Order By
@@ -817,8 +880,8 @@ RETURN add { .name } AS add
 [source,json]
 ----
 {
-  "movieYear": 2010,
-  "movieFirst": 10
+  "movieFirst" : 10,
+  "movieYear" : 2010
 }
 ----
 
@@ -827,9 +890,9 @@ RETURN add { .name } AS add
 ----
 MATCH (movie:Movie)
 WHERE movie.year = $movieYear
-RETURN movie { .title } AS Movie
-ORDER BY movie.title DESC
-LIMIT $movieFirst
+RETURN movie {
+	.title
+} AS Movie ORDER BY movie.title DESC LIMIT $movieFirst
 ----
 
 === Descending, number
@@ -844,16 +907,17 @@ LIMIT $movieFirst
 [source,json]
 ----
 {
-  "movieFirst": 10
+  "movieFirst" : 10
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH  (movie:Movie)
-RETURN  movie  {  .title  } AS  Movie
-ORDER BY movie.year DESC LIMIT $movieFirst
+MATCH (movie:Movie)
+RETURN movie {
+	.title
+} AS Movie ORDER BY movie.year DESC LIMIT $movieFirst
 ----
 
 === Deeply nested orderBy
@@ -921,8 +985,8 @@ ORDER BY movie.title DESC
 [source,json]
 ----
 {
-  "userKnowsKnowsOffset": 1,
-  "userKnowsKnowsFirst": 2
+  "userKnowsKnowsFirst" : 2,
+  "userKnowsKnowsOffset" : 1
 }
 ----
 
@@ -931,30 +995,29 @@ ORDER BY movie.title DESC
 ----
 MATCH (user:User)
 RETURN user {
-  .name,
-  born: {
-    formatted: toString(user.born)
-  },
-  knows: [sortedElement IN apoc.coll.sortMulti([(user)-[:KNOWS]->(userKnows:User) | userKnows {
-    .name,
-    born: userKnows.born,
-    knows: [sortedElement IN apoc.coll.sortMulti([(userKnows)-[:KNOWS]->(userKnowsKnows:User) | userKnowsKnows {
-      .name,
-      born: userKnowsKnows.born
-    }], ['^born','born']) | sortedElement {
-      .*,
-      born: {
-        formatted: toString(sortedElement.born)
-      }
-    }][$userKnowsKnowsOffset.. $userKnowsKnowsOffset + $userKnowsKnowsFirst]
-  }], ['^born']) | sortedElement {
-    .*,
-    born: {
-      formatted: toString(sortedElement.born)
-    }
-  }]
-} AS User
-ORDER BY user.born DESC
+	.name,
+	born:  {
+		formatted: toString(user.born)
+	},
+	knows: [sortedElement IN apoc.coll.sortMulti([(user)-[:KNOWS]->(userKnows:User) | userKnows {
+		.name,
+		born: userKnows.born,
+		knows: [sortedElement IN apoc.coll.sortMulti([(userKnows)-[:KNOWS]->(userKnowsKnows:User) | userKnowsKnows {
+			.name,
+			born: userKnowsKnows.born
+		}], ['^born', 'born']) | sortedElement {
+			.*,
+			born:  {
+				formatted: toString(sortedElement.born)
+			}
+		}][$userKnowsKnowsOffset..($userKnowsKnowsOffset + $userKnowsKnowsFirst)]
+	}], ['^born']) | sortedElement {
+		.*,
+		born:  {
+			formatted: toString(sortedElement.born)
+		}
+	}]
+} AS User ORDER BY user.born DESC
 ----
 
 === Find all relations
@@ -971,15 +1034,19 @@ ORDER BY user.born DESC
 .Cypher Params
 [source,json]
 ----
-{ "rated_id": 1}
+{
+  "rated_id" : 1
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
 MATCH ()-[rated:RATED]->()
-WHERE ID(rated) = toInteger($rated_id)
-RETURN rated { .rating } AS rated
+WHERE id(rated) = toInteger($rated_id)
+RETURN rated {
+	.rating
+} AS rated
 ----
 
 == Relations
@@ -1000,20 +1067,28 @@ mutation {
 [source,json]
 ----
 {
-  "fromFrom_userId": "1",
-  "toTo_movieId": "2",
-  "createRatedRating": 5
+  "createRatedRating" : 5,
+  "fromFrom_userId" : "1",
+  "toTo_movieId" : "2"
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (from:User { userId: $fromFrom_userId })
-MATCH (to:Movie { movieId: $toTo_movieId })
-CREATE (from)-[createRated:RATED { rating: $createRatedRating }]->(to)
+MATCH (from:User  {
+	userId: $fromFrom_userId
+})
+MATCH (to:Movie  {
+	movieId: $toTo_movieId
+})
+CREATE (from)-[createRated:RATED  {
+	rating: $createRatedRating
+}]->(to)
 WITH createRated
-RETURN createRated { _id:ID(createRated) } AS createRated
+RETURN createRated {
+	_id: id(createRated)
+} AS createRated
 ----
 
 === Mutate relation
@@ -1032,8 +1107,8 @@ mutation {
 [source,json]
 ----
 {
-  "updateRated_id": 1,
-  "updateRatedRating": 5
+  "updateRatedRating" : 5,
+  "updateRated_id" : 1
 }
 ----
 
@@ -1041,10 +1116,14 @@ mutation {
 [source,cypher]
 ----
 MATCH ()-[updateRated:RATED]->()
-WHERE ID(updateRated) = toInteger($updateRated_id)
-SET updateRated += { rating: $updateRatedRating }
+WHERE id(updateRated) = toInteger($updateRated_id)
+SET updateRated +=  {
+	rating: $updateRatedRating
+}
 WITH updateRated
-RETURN updateRated { .rating } AS updateRated
+RETURN updateRated {
+	.rating
+} AS updateRated
 ----
 
 === create relation
@@ -1063,21 +1142,24 @@ mutation {
 [source,json]
 ----
 {
-  "fromName": "Action",
-  "toMovies": [
-    "m1"
-  ]
+  "fromName" : "Action",
+  "toMovies" : [ "m1" ]
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (from:Genre { name: $fromName })
-MATCH (to:Movie) WHERE to.movieId IN $toMovies
+MATCH (from:Genre  {
+	name: $fromName
+})
+MATCH (to:Movie)
+WHERE to.movieId IN $toMovies
 MERGE (from)<-[:IN_GENRE]-(to)
 WITH DISTINCT from AS addGenreMovies
-RETURN addGenreMovies { .name } AS addGenreMovies
+RETURN addGenreMovies {
+	.name
+} AS addGenreMovies
 ----
 
 == create object with multiple labels
@@ -1097,21 +1179,21 @@ mutation {
 [source,json]
 ----
 {
-  "createUserUserId": 1,
-  "createUserValidTypes": [
-    "User"
-  ]
+  "createUserUserId" : 1,
+  "createUserValidTypes" : [ "User" ]
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-CREATE (createUser:User:Person { userId: $createUserUserId })
+CREATE (createUser:User:Person  {
+	userId: $createUserUserId
+})
 WITH createUser
 RETURN createUser {
-  .userId,
-  __typename: head( [ label IN labels(createUser) WHERE label IN $createUserValidTypes ] )
+	.userId,
+	__typename: head([label IN labels(createUser) WHERE label IN $createUserValidTypes])
 } AS createUser
 ----
 
@@ -1151,8 +1233,8 @@ RETURN user { born: { formatted: toString(user.born), year: user.born.year } } A
 [source,graphql]
 ----
 query {
-  User {
-    born(formatted: "2015-06-24T12:50:35.556000000+01:00", year: 2015) {
+  User(born: {formatted: "2015-06-24T12:50:35.556000000+01:00", year: 2015 }) {
+    born {
       year
     }
   }
@@ -1162,15 +1244,23 @@ query {
 .Cypher Params
 [source,json]
 ----
-{"userBornFormatted": "2015-06-24T12:50:35.556000000+01:00", "userBornYear": 2015}
+{
+  "userBornAnd1Formatted" : "2015-06-24T12:50:35.556000000+01:00",
+  "userBornAnd2Year" : 2015
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
 MATCH (user:User)
-WHERE user.born = datetime($userBornFormatted) AND user.born.year = $userBornYear
-RETURN user { born: { year: user.born.year } } AS User
+WHERE (user.born = datetime($userBornAnd1Formatted)
+	AND user.born.year = $userBornAnd2Year)
+RETURN user {
+	born:  {
+		year: user.born.year
+	}
+} AS User
 ----
 
 === Merge Actor with born field formatted
@@ -1189,21 +1279,28 @@ mutation {
 [source,json]
 ----
 {
-  "actorUserId": "1",
-  "actorName": "Andrea",
-  "actorBorn": {
-    "formatted": "2015-06-24T12:50:35.556000000+01:00"
-  }
+  "actorBorn" : {
+    "formatted" : "2015-06-24T12:50:35.556000000+01:00"
+  },
+  "actorName" : "Andrea",
+  "actorUserId" : "1"
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MERGE (actor:Actor {userId:$actorUserId})
-SET actor += { name: $actorName, born: datetime($actorBorn.formatted) }
+MERGE (actor:Actor  {
+	userId: $actorUserId
+})
+SET actor +=  {
+	name: $actorName,
+	born: datetime($actorBorn.formatted)
+}
 WITH actor
-RETURN actor { .name } AS actor
+RETURN actor {
+	.name
+} AS actor
 ----
 
 === Create Actor with born field formatted
@@ -1222,24 +1319,26 @@ mutation {
 [source,json]
 ----
 {
-  "actorUserId": "1",
-  "actorName": "Andrea",
-  "actorBorn": {
-    "formatted": "2015-06-24T12:50:35.556000000+01:00"
-  }
+  "actorBorn" : {
+    "formatted" : "2015-06-24T12:50:35.556000000+01:00"
+  },
+  "actorName" : "Andrea",
+  "actorUserId" : "1"
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-CREATE (actor:Actor:Person {
-  userId: $actorUserId,
-  name: $actorName,
-  born: datetime($actorBorn.formatted)
+CREATE (actor:Actor:Person  {
+	userId: $actorUserId,
+	name: $actorName,
+	born: datetime($actorBorn.formatted)
 })
 WITH actor
-RETURN actor { .name } AS actor
+RETURN actor {
+	.name
+} AS actor
 ----
 
 === Merge Actor with born field object
@@ -1266,28 +1365,38 @@ mutation {
 .Cypher Params
 [source,json]
 ----
-{"actorUserId": "1", "actorName": "Andrea", "actorBorn": { "year": 2018,
-                                                           "month": 11,
-                                                           "day": 23,
-                                                           "hour": 10,
-                                                           "minute": 30,
-                                                           "second": 1,
-                                                           "millisecond": 2,
-                                                           "microsecond": 3,
-                                                           "nanosecond": 4,
-                                                           "timezone": "America/Los_Angeles" }}
+{
+  "actorBorn" : {
+    "year" : 2018,
+    "month" : 11,
+    "day" : 23,
+    "hour" : 10,
+    "minute" : 30,
+    "second" : 1,
+    "millisecond" : 2,
+    "microsecond" : 3,
+    "nanosecond" : 4,
+    "timezone" : "America/Los_Angeles"
+  },
+  "actorName" : "Andrea",
+  "actorUserId" : "1"
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
-MERGE (actor:Actor {userId:$actorUserId})
-SET actor += {
-  name: $actorName,
-  born: datetime($actorBorn)
+MERGE (actor:Actor  {
+	userId: $actorUserId
+})
+SET actor +=  {
+	name: $actorName,
+	born: datetime($actorBorn)
 }
 WITH actor
-RETURN actor { .name } AS actor
+RETURN actor {
+	.name
+} AS actor
 ----
 
 === Create Actor with born field object
@@ -1318,26 +1427,138 @@ mutation {
 .Cypher Params
 [source,json]
 ----
-{"actorUserId": "1", "actorName": "Andrea", "actorBorn": { "year": 2018,
-                                                           "month": 11,
-                                                           "day": 23,
-                                                           "hour": 10,
-                                                           "minute": 30,
-                                                           "second": 1,
-                                                           "millisecond": 2,
-                                                           "microsecond": 3,
-                                                           "nanosecond": 4,
-                                                           "timezone": "America/Los_Angeles" }}
+{
+  "actorBorn" : {
+    "year" : 2018,
+    "month" : 11,
+    "day" : 23,
+    "hour" : 10,
+    "minute" : 30,
+    "second" : 1,
+    "millisecond" : 2,
+    "microsecond" : 3,
+    "nanosecond" : 4,
+    "timezone" : "America/Los_Angeles"
+  },
+  "actorName" : "Andrea",
+  "actorUserId" : "1"
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
-CREATE (actor:Actor:Person {
-  userId: $actorUserId,
-  name: $actorName,
-  born: datetime($actorBorn)
+CREATE (actor:Actor:Person  {
+	userId: $actorUserId,
+	name: $actorName,
+	born: datetime($actorBorn)
 })
 WITH actor
-RETURN actor { .name,born: { year: actor.born.year, month: actor.born.month } } AS actor
+RETURN actor {
+	.name,
+	born:  {
+		year: actor.born.year,
+		month: actor.born.month
+	}
+} AS actor
+----
+
+== Deletion
+
+=== delete node by id
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation{
+  deleteMovie(movieId:"id"){
+    title
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "deleteMovieMovieId" : "id"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (deleteMovie:Movie  {
+	movieId: $deleteMovieMovieId
+})
+WITH deleteMovie AS toDelete, deleteMovie {
+	.title
+} AS deleteMovie DETACH DELETE toDelete
+RETURN deleteMovie AS deleteMovie
+----
+
+=== delete node by native id
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation{
+  deleteState(_id: 1){
+    name
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "deleteState_id" : 1
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (deleteState:State)
+WHERE id(deleteState) = toInteger($deleteState_id)
+WITH deleteState AS toDelete, deleteState {
+	.name
+} AS deleteState DETACH DELETE toDelete
+RETURN deleteState AS deleteState
+----
+
+=== delete relation by native id
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation{
+  deleteRated(_id: 1){
+    rating
+# TODO this does not work correctly
+#    from {
+#      name
+#    }
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "deleteRated_id" : 1
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH ()-[deleteRated:RATED]->()
+WHERE id(deleteRated) = toInteger($deleteRated_id)
+WITH deleteRated AS toDelete, deleteRated {
+	.rating
+} AS deleteRated DETACH DELETE toDelete
+RETURN deleteRated AS deleteRated
 ----

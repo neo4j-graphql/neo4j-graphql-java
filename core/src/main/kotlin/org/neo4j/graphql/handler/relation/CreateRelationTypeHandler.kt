@@ -2,6 +2,9 @@ package org.neo4j.graphql.handler.relation
 
 import graphql.language.Field
 import graphql.schema.*
+import org.neo4j.cypherdsl.core.Cypher.name
+import org.neo4j.cypherdsl.core.Statement
+import org.neo4j.cypherdsl.core.StatementBuilder
 import org.neo4j.graphql.*
 
 class CreateRelationTypeHandler private constructor(
@@ -93,23 +96,21 @@ class CreateRelationTypeHandler private constructor(
 
     }
 
-    override fun generateCypher(
-            variable: String,
-            field: Field,
-            env: DataFetchingEnvironment
-    ): Cypher {
+    override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement {
         val properties = properties(variable, field.arguments)
-        val mapProjection = projectFields(variable, field, type, env, null)
 
         val arguments = field.arguments.map { it.name to it }.toMap()
-        val startSelect = getRelationSelect(true, arguments)
-        val endSelect = getRelationSelect(false, arguments)
+        val (startNode, startWhere) = getRelationSelect(true, arguments)
+        val (endNode, endWhere) = getRelationSelect(false, arguments)
+        val relName = name(variable)
+        val mapProjection = projectFields(startNode, relName, field, type, env)
 
-        return Cypher("MATCH ${startSelect.query}" +
-                " MATCH ${endSelect.query}" +
-                " CREATE (${relation.startField})-[$variable:${relation.relType.quote()}${properties.query}]->(${relation.endField})" +
-                " WITH $variable" +
-                " RETURN ${mapProjection.query} AS ${field.aliasOrName()}",
-                startSelect.params + endSelect.params + properties.params)
+        val update: StatementBuilder.OngoingUpdate = org.neo4j.cypherdsl.core.Cypher.match(startNode).where(startWhere)
+            .match(endNode).where(endWhere)
+            .create(relation.createRelation(startNode, endNode).withProperties(*properties).named(relName))
+        return update
+            .with(relName)
+            .returning(relName.project(mapProjection).`as`(field.aliasOrName()))
+            .build()
     }
 }

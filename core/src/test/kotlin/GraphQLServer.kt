@@ -75,9 +75,9 @@ fun main() {
 
     // CORS
     Spark.before("/*") { req, res ->
-        res.header("Access-Control-Allow-Origin", "*");
-        res.header("Access-Control-Allow-Headers", "*");
-        res.type("application/json");
+        res.header("Access-Control-Allow-Origin", "*")
+        res.header("Access-Control-Allow-Headers", "*")
+        res.type("application/json")
     }
 
     fun handler(req: Request, @Suppress("UNUSED_PARAMETER") res: Response) = req.body().let { body ->

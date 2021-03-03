@@ -38,12 +38,16 @@ mutation {
 .Cypher
 [source,cypher]
 ----
-MATCH (from: Category { id: $fromId })
-MATCH (to: Category { id: $toParentCategory })
-MERGE (from)-[: PARENT_CATEGORY]->(to)
+MATCH (from:Category  {
+	id: $fromId
+})
+MATCH (to:Category  {
+	id: $toParentCategory
+})
+MERGE (from)-[:PARENT_CATEGORY]->(to)
 WITH DISTINCT from AS addCategoryParentCategory
 RETURN addCategoryParentCategory {
-    .id
+	.id
 } AS addCategoryParentCategory
 ----
 
@@ -71,12 +75,14 @@ mutation {
 .Cypher
 [source,cypher]
 ----
-MATCH (from: Category { id: $fromId })
-MATCH (to: Category)
+MATCH (from:Category  {
+	id: $fromId
+})
+MATCH (to:Category)
 WHERE to.id IN $toSubCategories
-MERGE (from)<-[: PARENT_CATEGORY]-(to)
+MERGE (from)<-[:PARENT_CATEGORY]-(to)
 WITH DISTINCT from AS addCategorySubCategories
 RETURN addCategorySubCategories {
-    .id
+	.id
 } AS addCategorySubCategories
 ----
