@@ -40,5 +40,8 @@ query {
 .Cypher
 [source,cypher]
 ----
-MATCH (person: `Person`) RETURN person { .name } AS person LIMIT $personFirst
+MATCH (person:Person)
+RETURN person {
+	.name
+} AS person LIMIT $personFirst
 ----

@@ -6,6 +6,7 @@ import org.junit.jupiter.api.DynamicContainer
 import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.DynamicTest
 import java.io.File
+import java.io.FileWriter
 import java.net.URI
 import java.util.*
 import java.util.regex.Pattern
@@ -126,7 +127,10 @@ open class AsciiDocTestSuite(
                 offset += line.length + 1 // +1 b/c of newline
             }
 
-            if (GENERATE_TEST_FILE_DIFF) {
+            if (UPDATE_TEST_FILE) {
+                // this test prints out the adjusted test file
+                root?.afterTests?.add(DynamicTest.dynamicTest("Write updated Testfile", srcLocation, this@AsciiDocTestSuite::writeAdjustedTestFile))
+            } else if (GENERATE_TEST_FILE_DIFF) {
                 // this test prints out the adjusted test file
                 root?.afterTests?.add(DynamicTest.dynamicTest("Adjusted Tests", srcLocation, this@AsciiDocTestSuite::printAdjustedTestFile))
             }
@@ -162,7 +166,23 @@ open class AsciiDocTestSuite(
 
     }
 
+    private fun writeAdjustedTestFile() {
+        val content = generateAdjustedFileContent()
+        FileWriter(File("src/test/resources/", fileName)).use {
+            it.write(content)
+        }
+    }
+
     private fun printAdjustedTestFile() {
+        val rebuildTest = generateAdjustedFileContent()
+        if (!Objects.equals(rebuildTest, fileContent.toString())) {
+            // This special exception will be handled by intellij so that you can diff directly with the file
+            throw FileComparisonFailure(null, rebuildTest, fileContent.toString(),
+                    null, File("src/test/resources/", fileName).absolutePath)
+        }
+    }
+
+    private fun generateAdjustedFileContent(): String {
         knownBlocks.sortWith(compareByDescending<ParsedBlock> { it.start }
             .thenByDescending { testCaseMarkers.indexOf(it.marker) })
         val rebuildTest = StringBuffer(fileContent)
@@ -174,11 +194,7 @@ open class AsciiDocTestSuite(
                 rebuildTest.replace(start, block.end!!, block.adjustedCode + "\n")
             }
         }
-        if (!Objects.equals(rebuildTest.toString(), fileContent.toString())) {
-            // This special exception will be handled by intellij so that you can diff directly with the file
-            throw FileComparisonFailure(null, rebuildTest.toString(), fileContent.toString(),
-                    null, File("src/test/resources/", fileName).absolutePath)
-        }
+        return rebuildTest.toString()
     }
 
     fun startBlock(marker: String, lineIndex: Int, blocks: MutableMap<String, ParsedBlock>): ParsedBlock {
@@ -199,7 +215,7 @@ open class AsciiDocTestSuite(
 
     protected fun getOrCreateBlock(codeBlocks: Map<String, ParsedBlock>, marker: String, headline: String): ParsedBlock? {
         var block = codeBlocks[marker]
-        if (block == null && GENERATE_TEST_FILE_DIFF) {
+        if (block == null && (GENERATE_TEST_FILE_DIFF || UPDATE_TEST_FILE)) {
             val insertPoints = testCaseMarkers.indexOf(marker).let { testCaseMarkers.subList(0, it).asReversed() }
             val insertPoint = insertPoints.mapNotNull { codeBlocks[it] }.firstOrNull()
                     ?: throw IllegalArgumentException("none of the insert points $insertPoints found")
@@ -212,6 +228,7 @@ open class AsciiDocTestSuite(
 
     companion object {
         val GENERATE_TEST_FILE_DIFF = System.getProperty("neo4j-graphql-java.generate-test-file-diff", "true") == "true"
+        val UPDATE_TEST_FILE = System.getProperty("neo4j-graphql-java.update-test-file", "false") == "true"
         val MAPPER = ObjectMapper()
         val HEADLINE_PATTERN: Pattern = Pattern.compile("^(=+) (.*)$")
 

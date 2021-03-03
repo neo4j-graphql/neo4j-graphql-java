@@ -101,7 +101,13 @@ UNWIND apoc.cypher.runFirstColumnSingle('WITH $name AS name MATCH (p:Person) WHE
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person) RETURN person { age:apoc.cypher.runFirstColumnMany('WITH $this AS this, $mult AS mult RETURN this.age * mult as age', { this:person, mult:$personAgeMult }) } AS person
+MATCH (person:Person)
+RETURN person {
+	age: apoc.cypher.runFirstColumnMany('WITH $this AS this, $mult AS mult RETURN this.age * mult as age',  {
+		this: person,
+		mult: $personAgeMult
+	})
+} AS person
 ----
 
 === render cypher query directive
@@ -147,13 +153,21 @@ mutation { person: createPerson(name:"Joe") { id }}
 .Cypher params
 [source,json]
 ----
-{"personName":"Joe"}
+{
+  "personName" : "Joe"
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
-CALL apoc.cypher.doIt('WITH $name AS name CREATE (p:Person) SET p.name = name RETURN p', { name:$personName }) YIELD value WITH value[head(keys(value))] AS person RETURN person { .id } AS person
+CALL apoc.cypher.doIt('WITH $name AS name CREATE (p:Person) SET p.name = name RETURN p',  {
+	name: $personName
+}) YIELD value
+WITH value[head(keys(value))] AS person
+RETURN person {
+	.id
+} AS person
 ----
 
 === render cypher field directive with params
@@ -181,7 +195,13 @@ CALL apoc.cypher.doIt('WITH $name AS name CREATE (p:Person) SET p.name = name RE
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person) RETURN person { age:apoc.cypher.runFirstColumnMany('WITH $this AS this, $mult AS mult RETURN this.age * mult as age', { this:person, mult:$personAgeMult }) } AS person
+MATCH (person:Person)
+RETURN person {
+	age: apoc.cypher.runFirstColumnMany('WITH $this AS this, $mult AS mult RETURN this.age * mult as age',  {
+		this: person,
+		mult: $personAgeMult
+	})
+} AS person
 ----
 
 === render cypher field directive nested
@@ -229,13 +249,20 @@ RETURN person { friends:[personFriends IN
 .Cypher params
 [source,json]
 ----
-{"p3Name":"Jane"}
+{
+  "p3Name" : "Jane"
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
-UNWIND apoc.cypher.runFirstColumnSingle('WITH $name AS name MATCH (p:Person) WHERE p.name = name RETURN p LIMIT 1', { name:$p3Name }) AS p3 RETURN p3 { .id } AS p3
+UNWIND apoc.cypher.runFirstColumnSingle('WITH $name AS name MATCH (p:Person) WHERE p.name = name RETURN p LIMIT 1',  {
+	name: $p3Name
+}) AS p3
+RETURN p3 {
+	.id
+} AS p3
 ----
 
 === render cypher field directive scalar

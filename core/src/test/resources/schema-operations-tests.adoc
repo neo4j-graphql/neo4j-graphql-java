@@ -167,6 +167,7 @@ input _LocationFilter {
   OR: [_LocationFilter!]
   name: String
   name_contains: String
+  name_matches: String
   name_ends_with: String
   name_gt: String
   name_gte: String
@@ -257,6 +258,7 @@ input _PersonFilter {
   OR: [_PersonFilter!]
   name: String
   name_contains: String
+  name_matches: String
   name_ends_with: String
   name_gt: String
   name_gte: String
@@ -432,6 +434,7 @@ input _LocationFilter {
   OR: [_LocationFilter!]
   name: String
   name_contains: String
+  name_matches: String
   name_ends_with: String
   name_gt: String
   name_gte: String
@@ -522,6 +525,7 @@ input _PersonFilter {
   OR: [_PersonFilter!]
   name: String
   name_contains: String
+  name_matches: String
   name_ends_with: String
   name_gt: String
   name_gte: String

@@ -2,6 +2,8 @@ package org.neo4j.graphql.handler
 
 import graphql.language.Field
 import graphql.schema.*
+import org.neo4j.cypherdsl.core.Statement
+import org.neo4j.cypherdsl.core.StatementBuilder
 import org.neo4j.graphql.*
 
 class CreateTypeHandler private constructor(
@@ -69,13 +71,19 @@ class CreateTypeHandler private constructor(
 
     }
 
-    override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Cypher {
+    override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement {
+
+        val additionalTypes = (type as? GraphQLObjectType)?.interfaces?.map { it.name } ?: emptyList()
+        val node = org.neo4j.cypherdsl.core.Cypher.node(type.name, *additionalTypes.toTypedArray()).named(variable)
+
         val properties = properties(variable, field.arguments)
-        val mapProjection = projectFields(variable, field, type, env, null)
-        return Cypher("CREATE ($variable:${allLabels()}${properties.query})" +
-                " WITH $variable" +
-                " RETURN ${mapProjection.query} AS ${field.aliasOrName()}",
-                (mapProjection.params + properties.params))
+        val mapProjection = projectFields(node, field, type, env)
+
+        val update: StatementBuilder.OngoingUpdate = org.neo4j.cypherdsl.core.Cypher.create(node.withProperties(*properties))
+        return update
+            .with(node)
+            .returning(node.project(mapProjection).`as`(field.aliasOrName()))
+            .build()
     }
 
 }

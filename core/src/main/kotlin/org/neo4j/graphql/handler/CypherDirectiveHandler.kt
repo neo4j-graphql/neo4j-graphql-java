@@ -5,12 +5,14 @@ import graphql.schema.DataFetcher
 import graphql.schema.DataFetchingEnvironment
 import graphql.schema.GraphQLFieldDefinition
 import graphql.schema.GraphQLFieldsContainer
+import org.neo4j.cypherdsl.core.Functions
+import org.neo4j.cypherdsl.core.Statement
 import org.neo4j.graphql.*
 
 class CypherDirectiveHandler(
         private val type: GraphQLFieldsContainer?,
         private val isQuery: Boolean,
-        private val cypherDirective: Cypher,
+        private val cypherDirective: String,
         fieldDefinition: GraphQLFieldDefinition)
     : BaseDataFetcher(fieldDefinition) {
 
@@ -24,23 +26,33 @@ class CypherDirectiveHandler(
         }
     }
 
-    override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Cypher {
-        val mapProjection = type?.let { projectFields(variable, field, it, env, null) }
-                ?: Cypher(variable)
-        val ordering = orderBy(variable, field.arguments)
-        val skipLimit = SkipLimit(variable, field.arguments).format()
+    override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement {
 
-        return if (isQuery) {
-            val (query, params) = cypherDirective(variable, fieldDefinition, field, cypherDirective, emptyList())
-            Cypher("UNWIND $query AS $variable" +
-                    " RETURN ${mapProjection.query} AS ${field.aliasOrName()}$ordering${skipLimit.query}",
-                    (params + mapProjection.params + skipLimit.params))
+        val query = if (isQuery) {
+            val nestedQuery = cypherDirective(variable, fieldDefinition, field, cypherDirective)
+            org.neo4j.cypherdsl.core.Cypher.unwind(nestedQuery).`as`(variable)
         } else {
-            val (query, params) = cypherDirectiveQuery(variable, fieldDefinition, field, cypherDirective, emptyList())
-            Cypher("CALL apoc.cypher.doIt($query) YIELD value" +
-                    " WITH value[head(keys(value))] AS $variable" +
-                    " RETURN ${mapProjection.query} AS ${field.aliasOrName()}$ordering${skipLimit.query}",
-                    (params + mapProjection.params + skipLimit.params))
+            val args = cypherDirectiveQuery(variable, fieldDefinition, field, cypherDirective)
+
+            val value = org.neo4j.cypherdsl.core.Cypher.name("value")
+            org.neo4j.cypherdsl.core.Cypher.call("apoc.cypher.doIt")
+                .withArgs(*args)
+                .yield(value)
+                .with(org.neo4j.cypherdsl.core.Cypher.property(value, Functions.head(org.neo4j.cypherdsl.core.Cypher.call("keys").withArgs(value).asFunction())).`as`(variable))
         }
+        val node = org.neo4j.cypherdsl.core.Cypher.anyNode(variable)
+        val readingWithWhere = if (type != null) {
+            val projectionEntries = projectFields(node, field, type, env)
+            query.returning(node.project(projectionEntries).`as`(field.aliasOrName()))
+        } else {
+            query.returning(node.`as`(field.aliasOrName()))
+        }
+        val ordering = orderBy(node, field.arguments)
+        val skipLimit = SkipLimit(variable, field.arguments)
+
+        val resultWithSkipLimit = readingWithWhere
+            .let { if (ordering != null) skipLimit.format(it.orderBy(*ordering.toTypedArray())) else skipLimit.format(it) }
+
+        return resultWithSkipLimit.build()
     }
 }

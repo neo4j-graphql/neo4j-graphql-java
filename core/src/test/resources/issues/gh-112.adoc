@@ -125,16 +125,18 @@ mutation {
 .Cypher
 [source,cypher]
 ----
-MATCH (from: User { uuid: $fromUuid })
-MATCH (to: User) WHERE to.uuid IN $toAssociates
-MATCH (from)-[r: ASSOCIATES_WITH]-(to)
-DELETE r
+MATCH (from:User  {
+	uuid: $fromUuid
+})
+MATCH (to:User)
+WHERE to.uuid IN $toAssociates
+MATCH (from)-[r:ASSOCIATES_WITH]-(to) DELETE r
 WITH DISTINCT from AS deleteUserAssociates
 RETURN deleteUserAssociates {
-    .name,
-    associates: [(deleteUserAssociates)-[: ASSOCIATES_WITH]-(deleteUserAssociatesAssociates: User) | deleteUserAssociatesAssociates {
-        .name,
-        .uuid
-    }]
+	.name,
+	associates: [(deleteUserAssociates)-[:ASSOCIATES_WITH]-(deleteUserAssociatesAssociates:User) | deleteUserAssociatesAssociates {
+		.name,
+		.uuid
+	}]
 } AS deleteUserAssociates
 ----
