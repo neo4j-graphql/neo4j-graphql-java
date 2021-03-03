@@ -421,17 +421,19 @@ RETURN person {
 .Cypher Params
 [source,json]
 ----
-  {
-      "filterPersonId_MATCHES": "ja.*"
-  }
+{
+  "filterPersonIdMatches" : "ja.*"
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE person.id =~ $filterPersonId_MATCHES
-RETURN person { .name } AS person
+WHERE person.id =~ $filterPersonIdMatches
+RETURN person {
+	.name
+} AS person
 ----
 
 === Filter id _contains_
@@ -1495,7 +1497,7 @@ RETURN person {
 [source,json]
 ----
 {
-  "filterPersonName_MATCHES": "Ja.*"
+  "filterPersonNameMatches" : "Ja.*"
 }
 ----
 
@@ -1503,8 +1505,10 @@ RETURN person {
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE person.name =~ $filterPersonName_MATCHES
-RETURN person { .name } AS person
+WHERE person.name =~ $filterPersonNameMatches
+RETURN person {
+	.name
+} AS person
 ----
 
 === Filter string _contains_
