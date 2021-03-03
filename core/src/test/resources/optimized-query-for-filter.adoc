@@ -77,28 +77,27 @@ type Review @relation(name:"REVIEWED", to: "movie") {
 [source,json]
 ----
 {
-  "movie_actor_some_name": "Halle Berry",
-  "movie_reviewedBy_some_name": "Jessica Thompson",
-  "movie_released_gt": 1900
+  "movieActorSomeName" : "Halle Berry",
+  "movieReleasedGt" : 1900,
+  "movieReviewedBySomeName" : "Jessica Thompson"
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (movie:`Movie`)
-WHERE movie.released > $movie_released_gt
+MATCH (movie:Movie)
+WHERE movie.released > $movieReleasedGt
 WITH movie
-
-MATCH (movie)<-[:`ACTED_IN`]-(movie_actor_some:`Person`)
-WHERE movie_actor_some.name = $movie_actor_some_name
+MATCH (movie)<-[:ACTED_IN]-(movieActorSome:Person)
+WHERE movieActorSome.name = $movieActorSomeName
 WITH DISTINCT movie
-
-MATCH (movie)<-[:`REVIEWED`]-(movie_reviewedBy_some:`Person`)
-WHERE movie_reviewedBy_some.name = $movie_reviewedBy_some_name
+MATCH (movie)<-[:REVIEWED]-(movieReviewedBySome:Person)
+WHERE movieReviewedBySome.name = $movieReviewedBySomeName
 WITH DISTINCT movie
-
-RETURN movie { .title } AS movie
+RETURN movie {
+	.title
+} AS movie
 ----
 
 .Movie Example result
@@ -153,15 +152,15 @@ CAUTION: *Not yet implemented*
 .Cypher
 [source,cypher]
 ----
-MATCH (movie:`Movie`)
+MATCH (movie:Movie)
 WHERE movie.released > $movie_released_gt
 WITH movie
 
-MATCH (movie)<-[:`ACTED_IN`]-(movie_actor_some:`Person`)
+MATCH (movie)<-[:ACTED_IN]-(movie_actor_some:Person)
 WHERE movie_actor_some.name = $movie_actor_some_name
 WITH DISTINCT movie
 
-MATCH (movie)<-[review:`REVIEWED`]-(movie_reviews_some_from:`Person`)
+MATCH (movie)<-[review:REVIEWED]-(movie_reviews_some_from:Person)
 WHERE review.rating > $movie_reviews_some_rating
   AND  movie_reviews_some_from.name = $movie_reviews_some_from_name
 WITH DISTINCT movie
@@ -206,33 +205,27 @@ RETURN movie { .title } AS movie
 [source,json]
 ----
 {
-  "movie_actor_some_name": "Halle Berry",
-  "movie_reviewedBy_every_name": "Jessica Thompson"
+  "movieActorSomeName" : "Halle Berry",
+  "movieReviewedByEveryName" : "Jessica Thompson"
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (movie:`Movie`)
+MATCH (movie:Movie)
 WITH movie
-
-MATCH (movie)<-[:`ACTED_IN`]-(movie_actor_some:`Person`)
-WHERE
-    movie_actor_some.name = $movie_actor_some_name
+MATCH (movie)<-[:ACTED_IN]-(movieActorSome:Person)
+WHERE movieActorSome.name = $movieActorSomeName
 WITH DISTINCT movie
-
-MATCH (movie)<-[:`REVIEWED`]-(movie_reviewedBy_every:`Person`)
-WHERE
-    movie_reviewedBy_every.name = $movie_reviewedBy_every_name
-WITH movie,
-    size((movie)<-[:`REVIEWED`]-(:`Person`)) AS movie_reviewedBy_every_total,
-    count(DISTINCT movie_reviewedBy_every) AS movie_reviewedBy_every_count
-WHERE
-    movie_reviewedBy_every_total = movie_reviewedBy_every_count
+MATCH (movie)<-[:REVIEWED]-(movieReviewedByEvery:Person)
+WHERE movieReviewedByEvery.name = $movieReviewedByEveryName
+WITH movie, size((movie)<-[:REVIEWED]-(:Person)) AS movieReviewedByEveryTotal, count(DISTINCT movieReviewedByEvery) AS movieReviewedByEveryCount
+WHERE movieReviewedByEveryTotal = movieReviewedByEveryCount
 WITH DISTINCT movie
-
-RETURN movie { .title } AS movie
+RETURN movie {
+	.title
+} AS movie
 ----
 
 .Movie Example result
@@ -271,37 +264,29 @@ RETURN movie { .title } AS movie
 [source,json]
 ----
 {
-  "movie_directedBy_every_name":  "Clint Eastwood",
-  "movie_reviewedBy_every_name": "Jessica Thompson"
+  "movieDirectedByEveryName" : "Clint Eastwood",
+  "movieReviewedByEveryName" : "Jessica Thompson"
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (movie:`Movie`)
+MATCH (movie:Movie)
 WITH movie
-
-MATCH (movie)<-[:`DIRECTED`]-(movie_directedBy_every:`Person`)
-WHERE movie_directedBy_every.name = $movie_directedBy_every_name
-WITH movie,
-    size((movie)<-[:`DIRECTED`]-(:`Person`)) AS movie_directedBy_every_total,
-    count(DISTINCT movie_directedBy_every) AS movie_directedBy_every_count
-WHERE
-    movie_directedBy_every_total = movie_directedBy_every_count
+MATCH (movie)<-[:DIRECTED]-(movieDirectedByEvery:Person)
+WHERE movieDirectedByEvery.name = $movieDirectedByEveryName
+WITH movie, size((movie)<-[:DIRECTED]-(:Person)) AS movieDirectedByEveryTotal, count(DISTINCT movieDirectedByEvery) AS movieDirectedByEveryCount
+WHERE movieDirectedByEveryTotal = movieDirectedByEveryCount
 WITH DISTINCT movie
-
-MATCH (movie)<-[:`REVIEWED`]-(movie_reviewedBy_every:`Person`)
-WHERE
-    movie_reviewedBy_every.name = $movie_reviewedBy_every_name
-WITH movie,
-    size((movie)<-[:`REVIEWED`]-(:`Person`)) AS movie_reviewedBy_every_total,
-    count(DISTINCT movie_reviewedBy_every) AS movie_reviewedBy_every_count
-WHERE
-    movie_reviewedBy_every_total = movie_reviewedBy_every_count
+MATCH (movie)<-[:REVIEWED]-(movieReviewedByEvery:Person)
+WHERE movieReviewedByEvery.name = $movieReviewedByEveryName
+WITH movie, size((movie)<-[:REVIEWED]-(:Person)) AS movieReviewedByEveryTotal, count(DISTINCT movieReviewedByEvery) AS movieReviewedByEveryCount
+WHERE movieReviewedByEveryTotal = movieReviewedByEveryCount
 WITH DISTINCT movie
-
-RETURN movie { .title } AS movie
+RETURN movie {
+	.title
+} AS movie
 ----
 
 .Movie Example result
@@ -311,7 +296,7 @@ RETURN movie { .title } AS movie
 |Unforgiven
 |===
 
-=== Filter with `OR` and `AND`
+=== Filter with OR and AND
 
 CAUTION: *Not yet implemented*
 
@@ -363,7 +348,7 @@ CAUTION: *Not yet implemented*
 .Cypher
 [source,cypher]
 ----
-MATCH (movie:`Movie`)
+MATCH (movie:Movie)
 WITH movie
 
 OPTIONAL MATCH (movie)<-[:DIRECTED]-(movie_directedBy_every_or1_and1:Person)
@@ -400,10 +385,10 @@ OR (movie_directedBy_every_or2_count >= 1
   AND movie_directedBy_every_total = movie_directedBy_every_or2_count))
 WITH movie
 
-MATCH (movie)<-[:`REVIEWED`]-(movie_reviewedBy_every:`Person`)
+MATCH (movie)<-[:REVIEWED]-(movie_reviewedBy_every:Person)
 WHERE movie_reviewedBy_every.name = $movie_reviewedBy_every_name
 WITH movie,
-    size((movie)<-[:`REVIEWED`]-(:`Person`)) AS movie_reviewedBy_every_total,
+    size((movie)<-[:REVIEWED]-(:Person)) AS movie_reviewedBy_every_total,
     count(DISTINCT movie_reviewedBy_every) AS movie_reviewedBy_every_count
 WHERE
     movie_reviewedBy_every_total = movie_reviewedBy_every_count
@@ -455,39 +440,33 @@ RETURN movie { .title } AS movie
 [source,json]
 ----
 {
-  "movie_directedBy_every_name":  "Clint Eastwood",
-  "movie_reviewedBy_some_name": "Jessica Thompson",
-  "movie_reviewedBy_some_followedBy_some_reviewedMovies_some_released_gte": 2000
+  "movieDirectedByEveryName" : "Clint Eastwood",
+  "movieReviewedBySomeFollowedBySomeReviewedMoviesSomeReleasedGte" : 2000,
+  "movieReviewedBySomeName" : "Jessica Thompson"
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (movie:`Movie`)
+MATCH (movie:Movie)
 WITH movie
-
-MATCH (movie)<-[:`DIRECTED`]-(movie_directedBy_every:`Person`)
-WHERE movie_directedBy_every.name = $movie_directedBy_every_name
-WITH movie,
-  size((movie)<-[:`DIRECTED`]-(:`Person`)) AS movie_directedBy_every_total,
-  count(DISTINCT movie_directedBy_every) AS movie_directedBy_every_count
-WHERE movie_directedBy_every_total = movie_directedBy_every_count
+MATCH (movie)<-[:DIRECTED]-(movieDirectedByEvery:Person)
+WHERE movieDirectedByEvery.name = $movieDirectedByEveryName
+WITH movie, size((movie)<-[:DIRECTED]-(:Person)) AS movieDirectedByEveryTotal, count(DISTINCT movieDirectedByEvery) AS movieDirectedByEveryCount
+WHERE movieDirectedByEveryTotal = movieDirectedByEveryCount
 WITH DISTINCT movie
-
-MATCH (movie)<-[:`REVIEWED`]-(movie_reviewedBy_some:`Person`)
-WHERE movie_reviewedBy_some.name = $movie_reviewedBy_some_name
-WITH movie, movie_reviewedBy_some
-
-MATCH (movie_reviewedBy_some)<-[:`FOLLOWS`]-(movie_reviewedBy_some_followedBy_some:`Person`)
-WITH movie, movie_reviewedBy_some_followedBy_some
-
-MATCH
-  (movie_reviewedBy_some_followedBy_some)-[:`REVIEWED`]->(movie_reviewedBy_some_followedBy_some_reviewedMovies_some:`Movie`)
-WHERE movie_reviewedBy_some_followedBy_some_reviewedMovies_some.released >= $movie_reviewedBy_some_followedBy_some_reviewedMovies_some_released_gte
+MATCH (movie)<-[:REVIEWED]-(movieReviewedBySome:Person)
+WHERE movieReviewedBySome.name = $movieReviewedBySomeName
+WITH movie, movieReviewedBySome
+MATCH (movieReviewedBySome)<-[:FOLLOWS]-(movieReviewedBySomeFollowedBySome:Person)
+WITH movie, movieReviewedBySomeFollowedBySome
+MATCH (movieReviewedBySomeFollowedBySome)-[:REVIEWED]->(movieReviewedBySomeFollowedBySomeReviewedMoviesSome:Movie)
+WHERE movieReviewedBySomeFollowedBySomeReviewedMoviesSome.released >= $movieReviewedBySomeFollowedBySomeReviewedMoviesSomeReleasedGte
 WITH DISTINCT movie
-
-RETURN movie { .title } AS movie
+RETURN movie {
+	.title
+} AS movie
 ----
 
 .Movie Example result
@@ -524,26 +503,24 @@ RETURN movie { .title } AS movie
 [source,json]
 ----
 {
-  "movie_directedBy_single_name":"Rob Reiner"
+  "movieDirectedBySingleName" : "Rob Reiner"
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (movie:`Movie`)
+MATCH (movie:Movie)
 WITH movie
-MATCH (movie)<-[:`DIRECTED`]-(movie_directedBy_single:`Person`)
-WHERE movie_directedBy_single.name = $movie_directedBy_single_name
-WITH movie,
-	size((movie)<-[:`DIRECTED`]-(:`Person`)) AS movie_directedBy_single_total,
-	count(DISTINCT movie_directedBy_single) AS movie_directedBy_single_count
-WHERE (movie_directedBy_single_total = movie_directedBy_single_count
-	AND movie_directedBy_single_total = 1)
-
+MATCH (movie)<-[:DIRECTED]-(movieDirectedBySingle:Person)
+WHERE movieDirectedBySingle.name = $movieDirectedBySingleName
+WITH movie, size((movie)<-[:DIRECTED]-(:Person)) AS movieDirectedBySingleTotal, count(DISTINCT movieDirectedBySingle) AS movieDirectedBySingleCount
+WHERE (movieDirectedBySingleTotal = movieDirectedBySingleCount
+	AND movieDirectedBySingleTotal = 1)
 WITH DISTINCT movie
-
-RETURN movie { .title } AS movie
+RETURN movie {
+	.title
+} AS movie
 ----
 
 .Movie Example result
@@ -581,20 +558,21 @@ RETURN movie { .title } AS movie
 [source,json]
 ----
 {
-  "movie_directedBySingle_name":"Rob Reiner"
+  "movieDirectedBySingleSomeName" : "Rob Reiner"
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (movie:`Movie`)
+MATCH (movie:Movie)
 WITH movie
-MATCH (movie)<-[:`DIRECTED`]-(movie_directedBySingle:`Person`)
-WHERE movie_directedBySingle.name = $movie_directedBySingle_name
+MATCH (movie)<-[:DIRECTED]-(movieDirectedBySingleSome:Person)
+WHERE movieDirectedBySingleSome.name = $movieDirectedBySingleSomeName
 WITH DISTINCT movie
-
-RETURN movie { .title } AS movie
+RETURN movie {
+	.title
+} AS movie
 ----
 
 .Movie Example result
@@ -632,25 +610,23 @@ RETURN movie { .title } AS movie
 [source,json]
 ----
 {
-  "movie_directedBy_none_name":"Lilly Wachowski"
+  "movieDirectedByNoneName" : "Lilly Wachowski"
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (movie:`Movie`)
+MATCH (movie:Movie)
 WITH movie
-
-OPTIONAL MATCH (movie)<-[:`DIRECTED`]-(movie_directedBy_none:`Person`)
-WHERE movie_directedBy_none.name = $movie_directedBy_none_name
-WITH movie,
-	count(DISTINCT movie_directedBy_none) AS movie_directedBy_none_count
-
-WHERE movie_directedBy_none_count = 0
+OPTIONAL MATCH (movie)<-[:DIRECTED]-(movieDirectedByNone:Person)
+WHERE movieDirectedByNone.name = $movieDirectedByNoneName
+WITH movie, count(DISTINCT movieDirectedByNone) AS movieDirectedByNoneCount
+WHERE movieDirectedByNoneCount = 0
 WITH DISTINCT movie
-
-RETURN movie { .title } AS movie
+RETURN movie {
+	.title
+} AS movie
 ----
 
 .Movie Example result
@@ -718,25 +694,23 @@ RETURN movie { .title } AS movie
 [source,json]
 ----
 {
-  "movie_directedBySingle_not_name":"Lilly Wachowski"
+  "movieDirectedBySingleNoneName" : "Lilly Wachowski"
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (movie:`Movie`)
+MATCH (movie:Movie)
 WITH movie
-
-OPTIONAL MATCH (movie)<-[:`DIRECTED`]-(movie_directedBySingle_not:`Person`)
-WHERE movie_directedBySingle_not.name = $movie_directedBySingle_not_name
-WITH movie,
-	count(DISTINCT movie_directedBySingle_not) AS movie_directedBySingle_not_count
-WHERE movie_directedBySingle_not_count = 0
-
+OPTIONAL MATCH (movie)<-[:DIRECTED]-(movieDirectedBySingleNone:Person)
+WHERE movieDirectedBySingleNone.name = $movieDirectedBySingleNoneName
+WITH movie, count(DISTINCT movieDirectedBySingleNone) AS movieDirectedBySingleNoneCount
+WHERE movieDirectedBySingleNoneCount = 0
 WITH DISTINCT movie
-
-RETURN movie { .title } AS movie
+RETURN movie {
+	.title
+} AS movie
 ----
 
 .Movie Example result
@@ -807,13 +781,13 @@ RETURN movie { .title } AS movie
 .Cypher
 [source,cypher]
 ----
-MATCH (movie:`Movie`)
+MATCH (movie:Movie)
 WITH movie
-
-WHERE (movie)<-[:`REVIEWED`]-(:`Person`)
+WHERE (movie)<-[:REVIEWED]-(:Person)
 WITH DISTINCT movie
-
-RETURN movie { .title } AS movie
+RETURN movie {
+	.title
+} AS movie
 ----
 
 .Movie Example result
@@ -857,13 +831,13 @@ RETURN movie { .title } AS movie
 .Cypher
 [source,cypher]
 ----
-MATCH (movie:`Movie`)
+MATCH (movie:Movie)
 WITH movie
-WHERE NOT (movie)<-[:`REVIEWED`]-(:`Person`)
-
+WHERE NOT (movie)<-[:REVIEWED]-(:Person)
 WITH DISTINCT movie
-
-RETURN movie { .title } AS movie
+RETURN movie {
+	.title
+} AS movie
 ----
 
 .Movie Example result
@@ -931,10 +905,12 @@ RETURN movie { .title } AS movie
 .Cypher
 [source,cypher]
 ----
-MATCH (person:`Person`)
+MATCH (person:Person)
 WHERE person.location IS NOT NULL
 WITH person
-RETURN person { .name } AS person
+RETURN person {
+	.name
+} AS person
 ----
 
 === Filter spatial null
@@ -964,10 +940,12 @@ RETURN person { .name } AS person
 .Cypher
 [source,cypher]
 ----
-MATCH (person:`Person`)
+MATCH (person:Person)
 WHERE person.location IS NULL
 WITH person
-RETURN person { .name } AS person
+RETURN person {
+	.name
+} AS person
 ----
 
 === Filter spatial not
@@ -992,19 +970,21 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "person_location_not_longitude": 3,
-  "person_location_not_latitude": 3
+  "personLocationNotAnd1Longitude" : 3,
+  "personLocationNotAnd2Latitude" : 3
 }
 ----
 
 .Cypher
 [source,cypher]
 ----
-MATCH (person:`Person`)
-WHERE (person.location.longitude <> $person_location_not_longitude
-  AND person.location.latitude <> $person_location_not_latitude)
+MATCH (person:Person)
+WHERE (NOT (person.location.longitude = $personLocationNotAnd1Longitude)
+	AND NOT (person.location.latitude = $personLocationNotAnd2Latitude))
 WITH person
-RETURN person { .name } AS person
+RETURN person {
+	.name
+} AS person
 ----
 
 === Filter spatial distance
@@ -1029,12 +1009,12 @@ RETURN person { .name } AS person
 [source,json]
 ----
 {
-  "person_location_distance_lt": {
-    "distance": 3,
-    "point": {
-      "longitude": 1,
-      "latitude": 2,
-      "height": 3
+  "personLocationDistanceLt" : {
+    "distance" : 3,
+    "point" : {
+      "longitude" : 1,
+      "latitude" : 2,
+      "height" : 3
     }
   }
 }
@@ -1043,8 +1023,10 @@ RETURN person { .name } AS person
 .Cypher
 [source,cypher]
 ----
-MATCH (person:`Person`)
-WHERE distance(person.location, point($person_location_distance_lt.point)) < $person_location_distance_lt.distance
+MATCH (person:Person)
+WHERE distance(person.location, point($personLocationDistanceLt.point)) < $personLocationDistanceLt.distance
 WITH person
-RETURN person { .name } AS person
+RETURN person {
+	.name
+} AS person
 ----

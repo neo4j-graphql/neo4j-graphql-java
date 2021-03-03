@@ -97,13 +97,19 @@ fragment name on Actor { name }
 .Cypher
 [source,cypher]
 ----
-MATCH (person: Person)
+MATCH (person:Person)
 WHERE person.name = $personName
 RETURN person {
-  .born,
-  namedColleagues: [personNamedColleagues IN apoc.cypher.runFirstColumnMany('WITH $this AS this, $name AS name WITH $this AS this MATCH (this)-[: ACTED_IN]->()<-[: ACTED_IN]-(other) WHERE other.name CONTAINS $name RETURN other', { this: person, name: $personNamedColleaguesName }) | personNamedColleagues {
-    .name
-  }],
-  score: apoc.cypher.runFirstColumnSingle('WITH $this AS this, $value AS value RETURN $value', { this: person, value: $personScoreValue })
+	.born,
+	namedColleagues: [personNamedColleagues IN apoc.cypher.runFirstColumnMany('WITH $this AS this, $name AS name WITH $this AS this MATCH (this)-[:ACTED_IN]->()<-[:ACTED_IN]-(other) WHERE other.name CONTAINS $name RETURN other',  {
+		this: person,
+		name: $personNamedColleaguesName
+	}) | personNamedColleagues {
+		.name
+	}],
+	score: apoc.cypher.runFirstColumnSingle('WITH $this AS this, $value AS value RETURN $value',  {
+		this: person,
+		value: $personScoreValue
+	})
 } AS person
 ----

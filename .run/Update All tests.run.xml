@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Update All tests" type="JUnit" factoryName="JUnit">
+    <module name="neo4j-graphql-java" />
+    <option name="PACKAGE_NAME" value="" />
+    <option name="MAIN_CLASS_NAME" value="" />
+    <option name="METHOD_NAME" value="" />
+    <option name="TEST_OBJECT" value="uniqueId" />
+    <option name="VM_PARAMETERS" value="-ea -Dneo4j-graphql-java.update-test-file=true" />
+    <uniqueIds>
+      <uniqueId value="[engine:junit-jupiter]/[class:org.neo4j.graphql.CypherTests]" />
+    </uniqueIds>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

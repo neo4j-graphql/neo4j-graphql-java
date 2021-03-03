@@ -5,6 +5,8 @@ import graphql.language.ArrayValue
 import graphql.language.ObjectValue
 import graphql.schema.GraphQLFieldDefinition
 import graphql.schema.GraphQLFieldsContainer
+import org.neo4j.cypherdsl.core.*
+import org.neo4j.cypherdsl.core.Cypher.*
 import org.neo4j.graphql.*
 
 abstract class BaseDataFetcherForContainer(
@@ -12,7 +14,7 @@ abstract class BaseDataFetcherForContainer(
         fieldDefinition: GraphQLFieldDefinition
 ) : BaseDataFetcher(fieldDefinition) {
 
-    val propertyFields: MutableMap<String, (Any) -> List<Translator.CypherArgument>?> = mutableMapOf()
+    val propertyFields: MutableMap<String, (Any) -> List<PropertyAccessor>?> = mutableMapOf()
     val defaultFields: MutableMap<String, Any> = mutableMapOf()
 
     init {
@@ -38,48 +40,31 @@ abstract class BaseDataFetcherForContainer(
     private fun defaultCallback(field: GraphQLFieldDefinition) =
             { value: Any ->
                 val propertyName = field.propertyName()
-                listOf(Translator.CypherArgument(field.name, propertyName.quote(), value.toJavaValue()))
+                listOf(PropertyAccessor(propertyName) { variable -> queryParameter(value, variable, field.name) })
             }
 
-    private fun neo4jTypeCallback(field: GraphQLFieldDefinition) =
-            { value: Any ->
-                val (name, propertyName, converter) = Neo4jQueryConversion
-                    .forMutation(value, field)
-                listOf(Translator.CypherArgument(name, propertyName, value.toJavaValue(), converter, propertyName))
-            }
+    private fun neo4jTypeCallback(field: GraphQLFieldDefinition): (Any) -> List<PropertyAccessor> {
+        val converter = getNeo4jTypeConverter(field)
+        return { value: Any -> listOf(converter.getMutationExpression(value, field)) }
+    }
 
     private fun dynamicPrefixCallback(field: GraphQLFieldDefinition, dynamicPrefix: String) =
             { value: Any ->
                 // maps each property of the map to the node
                 (value as? ObjectValue)?.objectFields?.map { argField ->
-                    Translator.CypherArgument(
-                            (field.name + argField.name.capitalize()),
-                            (dynamicPrefix + argField.name).quote(),
-                            argField.value.toJavaValue()
-                    )
+                    PropertyAccessor(
+                            "$dynamicPrefix${argField.name}"
+                    ) { variable -> queryParameter(argField.value, variable, "${field.name}${argField.name.capitalize()}") }
                 }
             }
 
 
-    fun allLabels(): String = type.allLabels()
+    protected fun properties(variable: String, arguments: List<Argument>): Array<Any> =
+            preparePredicateArguments(arguments)
+                .flatMap { listOf(it.propertyName, it.toExpression(variable)) }
+                .toTypedArray()
 
-    fun label(includeAll: Boolean = false) = if (includeAll) type.allLabels() else type.quotedLabel()
-
-
-    protected fun properties(variable: String, arguments: List<Argument>): Cypher {
-        val all = preparePredicateArguments(arguments)
-        if (all.isEmpty()) {
-            return Cypher.EMPTY
-        }
-        val query = all
-            .joinToString(", ", " { ", " }") { it.toCypherString(variable) }
-        val params = all
-            .map { paramName(variable, it.cypherParam, it.value) to it.value }
-            .toMap()
-        return Cypher(query, params)
-    }
-
-    private fun preparePredicateArguments(arguments: List<Argument>): List<Translator.CypherArgument> {
+    private fun preparePredicateArguments(arguments: List<Argument>): List<PropertyAccessor> {
         val predicates = arguments
             .mapNotNull { argument ->
                 propertyFields[argument.name]?.invoke(argument.value)?.let { argument.name to it }
@@ -98,29 +83,48 @@ abstract class BaseDataFetcherForContainer(
                 label: String?,
                 idProperty: Argument?,
                 idField: GraphQLFieldDefinition,
-                isRelation: Boolean,
-                paramName: String? = idProperty?.let { paramName(variable, idProperty.name, idProperty.value) }
-        ): Cypher {
+                isRelation: Boolean
+        ): Pair<PropertyContainer, Condition> {
             return when {
-                idProperty != null && paramName != null -> {
-                    val queryParams = mapOf(paramName to idProperty.value.toJavaValue())
+                idProperty != null -> {
+                    val idParam = queryParameter(idProperty.value, variable, idProperty.name)
                     if (idField.isNativeId()) {
-                        if (isRelation) {
-                            Cypher("()-[$variable:$label]->() WHERE ID($variable) = toInteger($$paramName)", queryParams)
+                        val (propContainer, func) = if (isRelation) {
+                            val variableName = name(variable)
+                            val rel = anyNode().relationshipTo(anyNode(), label).named(variableName)
+                            rel to Functions.id(rel)
                         } else {
-                            Cypher("($variable:$label) WHERE ID($variable) = toInteger($$paramName)", queryParams)
+                            val node = node(label).named(variable)
+                            node to Functions.id(node)
                         }
+                        val where = func.isEqualTo(call("toInteger").withArgs(idParam).asFunction())
+                        propContainer to where
                     } else {
+                        val node = node(label).named(variable)
                         // TODO handle @property aliasing
                         if (idProperty.value is ArrayValue) {
-                            Cypher("($variable:$label) WHERE  $variable.${idField.name.quote()} IN $$paramName", queryParams)
+                            node to node.property(idField.name).`in`(idParam)
                         } else {
-                            Cypher("($variable:$label { ${idField.name.quote()}: $$paramName })", queryParams)
+                            node.withProperties(idField.name, idParam) to Conditions.noCondition()
                         }
                     }
                 }
-                else -> Cypher.EMPTY
+                else -> throw IllegalArgumentException("Could not generate selection for ${if (isRelation) "Relation" else "Node"} $label b/c of missing ID field")
             }
+        }
+    }
+
+    /**
+     * @param propertyName the name used in neo4j
+     * @param accessorFactory an factory for crating an expression to access the property
+     */
+    class PropertyAccessor(
+            val propertyName: String,
+            private val accessorFactory: (variable: String) -> Expression
+    ) {
+
+        fun toExpression(variable: String): Expression {
+            return accessorFactory(variable)
         }
     }
 }

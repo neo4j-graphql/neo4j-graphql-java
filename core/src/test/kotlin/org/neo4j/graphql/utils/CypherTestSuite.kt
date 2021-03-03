@@ -6,6 +6,7 @@ import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.DynamicTest
 import org.neo4j.graphql.*
 import org.neo4j.harness.TestServerBuilders
+import org.opentest4j.AssertionFailedError
 import java.io.File
 import java.util.*
 import java.util.concurrent.FutureTask
@@ -63,7 +64,7 @@ class CypherTestSuite(fileName: String) : AsciiDocTestSuite(
         val transformationTask = FutureTask {
 
             val schemaConfig = (codeBlocks[SCHEMA_CONFIG_MARKER] ?: globalBlocks[SCHEMA_CONFIG_MARKER])?.code()
-                ?.let { return@let MAPPER.readValue<SchemaConfig>(it, SchemaConfig::class.java) }
+                ?.let { return@let MAPPER.readValue(it, SchemaConfig::class.java) }
                     ?: SchemaConfig()
             val schema = SchemaBuilder.buildSchema(schemaString, schemaConfig)
 
@@ -74,7 +75,7 @@ class CypherTestSuite(fileName: String) : AsciiDocTestSuite(
             val requestParams = codeBlocks[GRAPHQL_VARIABLES_MARKER]?.code()?.parseJsonMap() ?: emptyMap()
 
             val queryContext = codeBlocks[QUERY_CONFIG_MARKER]?.code()
-                ?.let<String, QueryContext?> { config -> return@let MAPPER.readValue<QueryContext>(config, QueryContext::class.java) }
+                ?.let<String, QueryContext?> { config -> return@let MAPPER.readValue(config, QueryContext::class.java) }
                     ?: QueryContext()
 
             Translator(schema)
@@ -108,9 +109,11 @@ class CypherTestSuite(fileName: String) : AsciiDocTestSuite(
         val expected = cypher.normalize()
         val actual = result().query.normalize()
         if (!Objects.equals(expected, actual)) {
-            cypherBlock.adjustedCode = actual
+            cypherBlock.adjustedCode = result().query
         }
-        Assertions.assertThat(actual).isEqualTo(expected)
+        if (actual != expected) {
+            throw AssertionFailedError("Cypher does not match", cypher, result().query)
+        }
     }
 
     private fun testCypherParams(codeBlocks: Map<String, ParsedBlock>, result: () -> Cypher): DynamicTest {

@@ -5,6 +5,8 @@ import graphql.schema.DataFetcher
 import graphql.schema.DataFetchingEnvironment
 import graphql.schema.GraphQLFieldDefinition
 import graphql.schema.GraphQLFieldsContainer
+import org.neo4j.cypherdsl.core.Statement
+import org.neo4j.cypherdsl.core.StatementBuilder
 import org.neo4j.graphql.*
 
 class DeleteRelationHandler private constructor(
@@ -34,28 +36,30 @@ class DeleteRelationHandler private constructor(
                 startIdField: RelationshipInfo.RelatedField,
                 endIdField: RelationshipInfo.RelatedField,
                 fieldDefinition: GraphQLFieldDefinition
-        ): DataFetcher<Cypher>? {
+        ): DataFetcher<Cypher> {
             return DeleteRelationHandler(sourceType, relation, startIdField, endIdField, fieldDefinition)
         }
 
     }
 
-    override fun generateCypher(
-            variable: String,
-            field: Field,
-            env: DataFetchingEnvironment): Cypher {
-        val mapProjection = projectFields(variable, field, type, env, null)
+    override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement {
         val arguments = field.arguments.map { it.name to it }.toMap()
-        val startSelect = getRelationSelect(true, arguments)
-        val endSelect = getRelationSelect(false, arguments)
+        val (startNode, startWhere) = getRelationSelect(true, arguments)
+        val (endNode, endWhere) = getRelationSelect(false, arguments)
+        val relName = org.neo4j.cypherdsl.core.Cypher.name("r")
 
-        return Cypher("MATCH ${startSelect.query}" +
-                " MATCH ${endSelect.query}" +
-                " MATCH (${relation.startField})${relation.arrows.first}-[r:${relation.relType.quote()}]-${relation.arrows.second}(${relation.endField})" +
-                " DELETE r" +
-                " WITH DISTINCT ${relation.startField} AS $variable" +
-                " RETURN ${mapProjection.query} AS ${field.aliasOrName()}",
-                startSelect.params + endSelect.params)
+        val update: StatementBuilder.OngoingUpdate = org.neo4j.cypherdsl.core.Cypher
+            .match(startNode).where(startWhere)
+            .match(endNode).where(endWhere)
+            .match(relation.createRelation(startNode, endNode).named(relName))
+            .delete(relName)
+
+        val withAlias = startNode.`as`(variable)
+        val mapProjection = projectFields(startNode, withAlias.asName(), field, type, env)
+        return update
+            .withDistinct(withAlias)
+            .returning(withAlias.asName().project(mapProjection).`as`(field.aliasOrName()))
+            .build()
     }
 
 }
