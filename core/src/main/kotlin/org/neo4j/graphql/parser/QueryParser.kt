@@ -66,9 +66,10 @@ class RelationPredicate(
     fun createExistsCondition(propertyContainer: PropertyContainer): Condition {
         val relation = createRelation(propertyContainer as? Node
                 ?: throw IllegalStateException("""propertyContainer is expected to be a Node but was ${propertyContainer.javaClass.name}"""))
+       val  condition = CypherDSL.match(relation).asCondition()
         return when (op) {
-            RelationOperator.NOT -> relation.asCondition()
-            RelationOperator.EQ_OR_NOT_EXISTS -> Conditions.not(relation)
+            RelationOperator.NOT -> condition
+            RelationOperator.EQ_OR_NOT_EXISTS -> condition.not()
             else -> throw IllegalStateException("$op should not be set for Null value")
         }
 

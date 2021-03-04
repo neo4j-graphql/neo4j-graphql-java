@@ -68,7 +68,9 @@ RETURN person {
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE (person)-[:knows]->(:Person)
+WHERE EXISTS {
+	MATCH (person)-[:knows]->(:Person)
+}
 RETURN person {
 	.name
 } AS person
@@ -96,7 +98,9 @@ RETURN person {
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE NOT (person)-[:knows]->(:Person)
+WHERE NOT (EXISTS {
+	MATCH (person)-[:knows]->(:Person)
+})
 RETURN person {
 	.name
 } AS person
