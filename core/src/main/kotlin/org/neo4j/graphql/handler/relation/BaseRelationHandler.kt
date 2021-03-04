@@ -8,6 +8,9 @@ import org.neo4j.cypherdsl.core.Node
 import org.neo4j.graphql.*
 import org.neo4j.graphql.handler.BaseDataFetcherForContainer
 
+/**
+ * This is a base class for all handler acting on relations / edges
+ */
 abstract class BaseRelationHandler(
         type: GraphQLFieldsContainer,
         val relation: RelationshipInfo,

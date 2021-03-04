@@ -6,6 +6,10 @@ import org.neo4j.cypherdsl.core.Statement
 import org.neo4j.cypherdsl.core.StatementBuilder
 import org.neo4j.graphql.*
 
+/**
+ * This class handles all the logic related to the creation of nodes.
+ * This includes the augmentation of the create&lt;Node&gt;-mutator and the related cypher generation
+ */
 class CreateTypeHandler private constructor(
         type: GraphQLFieldsContainer,
         fieldDefinition: GraphQLFieldDefinition

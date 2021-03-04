@@ -15,6 +15,9 @@ import org.neo4j.graphql.handler.relation.CreateRelationHandler
 import org.neo4j.graphql.handler.relation.CreateRelationTypeHandler
 import org.neo4j.graphql.handler.relation.DeleteRelationHandler
 
+/**
+ * Contains factory methods to generate an augmented graphql schema
+ */
 object SchemaBuilder {
 
     /**
@@ -31,6 +34,12 @@ object SchemaBuilder {
         return buildSchema(typeDefinitionRegistry, config, dataFetchingInterceptor)
     }
 
+    /**
+     * @param typeDefinitionRegistry a registry containing all the types, that should be augmented
+     * @param config defines how the schema should get augmented
+     * @param dataFetchingInterceptor since this library registers dataFetcher for its augmented methods, these data
+     * fetchers may be called by other resolver. This interceptor will let you convert a cypher query into real data.
+     */
     @JvmStatic
     @JvmOverloads
     fun buildSchema(typeDefinitionRegistry: TypeDefinitionRegistry, config: SchemaConfig = SchemaConfig(), dataFetchingInterceptor: DataFetchingInterceptor? = null): GraphQLSchema {

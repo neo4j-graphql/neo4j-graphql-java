@@ -8,6 +8,10 @@ import org.neo4j.cypherdsl.core.Statement
 import org.neo4j.cypherdsl.core.StatementBuilder.OngoingUpdate
 import org.neo4j.graphql.*
 
+/**
+ * This class handles all the logic related to the deletion of nodes.
+ * This includes the augmentation of the delete&lt;Node&gt;-mutator and the related cypher generation
+ */
 class DeleteHandler private constructor(
         type: GraphQLFieldsContainer,
         private val idField: GraphQLFieldDefinition,

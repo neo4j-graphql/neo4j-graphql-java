@@ -11,6 +11,9 @@ import org.neo4j.graphql.Cypher
 import org.neo4j.graphql.aliasOrName
 import org.neo4j.graphql.handler.projection.ProjectionBase
 
+/**
+ * The is a base class for the implementation of graphql data fetcher used in this project
+ */
 abstract class BaseDataFetcher(val fieldDefinition: GraphQLFieldDefinition) : ProjectionBase(), DataFetcher<Cypher> {
 
     override fun get(env: DataFetchingEnvironment?): Cypher {

@@ -15,7 +15,9 @@ import org.neo4j.graphql.parser.ParsedQuery
 import org.neo4j.graphql.parser.QueryParser.parseArguments
 import org.neo4j.graphql.parser.QueryParser.parseFilter
 
-
+/**
+ * This class contains the logic for projecting nodes and relations
+ */
 open class ProjectionBase {
     companion object {
         const val NATIVE_ID = "_id"
