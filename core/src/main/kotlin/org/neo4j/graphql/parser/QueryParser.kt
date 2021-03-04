@@ -91,7 +91,7 @@ object QueryParser {
     /**
      * This parser takes an filter object an transform it to the internal [ParsedQuery]-representation
      */
-    fun parseFilter(objectValue: ObjectValue, type: GraphQLFieldsContainer): ParsedQuery {
+    fun parseFilter(objectValue: ObjectValue, type: GraphQLFieldsContainer, variables: Map<String, Any>): ParsedQuery {
         // Map of all queried fields
         // we remove all matching fields from this map, so we can ensure that only known fields got queried
         val queriedFields = objectValue.objectFields
@@ -108,13 +108,13 @@ object QueryParser {
                     ?: throw IllegalArgumentException("AND on type `${type.name}` is expected to be a list")
         }
 
-        return createParsedQuery(queriedFields, type, null, or, and)
+        return createParsedQuery(queriedFields, type, variables, null, or, and)
     }
 
     /**
      * This parser takes all non-filter arguments of a graphql-field an transform it to the internal [ParsedQuery]-representation
      */
-    fun parseArguments(arguments: List<Argument>, fieldDefinition: GraphQLFieldDefinition, type: GraphQLFieldsContainer): ParsedQuery {
+    fun parseArguments(arguments: List<Argument>, fieldDefinition: GraphQLFieldDefinition, type: GraphQLFieldsContainer, variables: Map<String, Any>): ParsedQuery {
         // TODO we should check if the argument is defined on the field definition and throw an error otherwise
         // Map of all queried fields
         // we remove all matching fields from this map, so we can ensure that only known fields got queried
@@ -130,13 +130,14 @@ object QueryParser {
                 queriedFields[argument.name] = index++ to ObjectField(argument.name, argument.defaultValue.asGraphQLValue())
             }
 
-        return createParsedQuery(queriedFields, type, fieldDefinition)
+        return createParsedQuery(queriedFields, type, variables, fieldDefinition)
     }
 
 
     private fun createParsedQuery(
             queriedFields: MutableMap<String, Pair<Int, ObjectField>>,
             type: GraphQLFieldsContainer,
+            variables: Map<String, Any>,
             fieldDefinition: GraphQLFieldDefinition? = null,
             or: List<Value<Value<*>>>? = null,
             and: List<Value<Value<*>>>? = null
@@ -160,7 +161,7 @@ object QueryParser {
                     .map { it to definedField.name + it.suffix }
                     .mapNotNull { (predicate, queryFieldName) ->
                         queriedFields[queryFieldName]?.let { (index, objectField) ->
-                            if (predicate.requireParam xor (objectField.value !is NullValue)) {
+                            if (predicate.requireParam xor (!objectField.value.isNullValue(variables))) {
                                 // if we got a value but the predicate requires none
                                 // or we got a no value but the predicate requires one
                                 // we skip this operator
@@ -186,6 +187,9 @@ object QueryParser {
         )
     }
 }
+
+private fun Value<*>.isNullValue(variables: Map<String, Any>): Boolean =
+        this is NullValue || (this is VariableReference && variables[this.name] == null)
 
 
 

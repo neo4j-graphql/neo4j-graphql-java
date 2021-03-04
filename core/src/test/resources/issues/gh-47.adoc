@@ -1,0 +1,136 @@
+:toc:
+
+= Github Issue #47: lack of filtering for null values
+
+== Schema
+
+[source,graphql,schema=true]
+----
+interface Company {
+    name: String
+}
+----
+
+== Filter null
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  company (name: null) {
+    name
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{ }
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (company:Company)
+WHERE company.name IS NULL
+RETURN company {
+	.name
+} AS company
+----
+
+== Filter not null
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  company (name_not: null) {
+    name
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{ }
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (company:Company)
+WHERE company.name IS NOT NULL
+RETURN company {
+	.name
+} AS company
+----
+
+== Filter null via variable
+
+.GraphQL-Query
+[source,graphql]
+----
+query filter($name: String) {
+  company (name: $name) {
+    name
+  }
+}
+----
+
+.Query variables
+[source,json,request=true]
+----
+{"name": null}
+----
+
+.Cypher Params
+[source,json]
+----
+{ }
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (company:Company)
+WHERE company.name IS NULL
+RETURN company {
+	.name
+} AS company
+----
+
+== Filter not null via variable
+
+.GraphQL-Query
+[source,graphql]
+----
+query filter($name: String) {
+  company (name_not: $name) {
+    name
+  }
+}
+----
+
+.Query variables
+[source,json,request=true]
+----
+{"name": null}
+----
+
+.Cypher Params
+[source,json]
+----
+{ }
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (company:Company)
+WHERE company.name IS NOT NULL
+RETURN company {
+	.name
+} AS company
+----

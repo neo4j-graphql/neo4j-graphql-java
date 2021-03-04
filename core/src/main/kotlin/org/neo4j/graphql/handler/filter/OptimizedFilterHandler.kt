@@ -34,7 +34,7 @@ typealias ConditionBuilder = (ExposesWith) -> OrderableOngoingReadingAndWithWith
  */
 class OptimizedFilterHandler(val type: GraphQLFieldsContainer) : ProjectionBase() {
 
-    fun generateFilterQuery(variable: String, fieldDefinition: GraphQLFieldDefinition, field: Field, readingWithoutWhere: OngoingReadingWithoutWhere, rootNode: PropertyContainer): OngoingReading {
+    fun generateFilterQuery(variable: String, fieldDefinition: GraphQLFieldDefinition, field: Field, readingWithoutWhere: OngoingReadingWithoutWhere, rootNode: PropertyContainer, variables: Map<String, Any>): OngoingReading {
         if (type.isRelationType()) {
             throw OptimizedQueryException("Optimization for relationship entity type is not implemented. Please provide a test case to help adding further cases.")
         }
@@ -43,16 +43,16 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer) : ProjectionBase(
 
         val filteredArguments = field.arguments.filterNot { setOf(FIRST, OFFSET, ORDER_BY, FILTER).contains(it.name) }
         if (filteredArguments.isNotEmpty()) {
-            val parsedQuery = QueryParser.parseArguments(filteredArguments, fieldDefinition, type)
-            val condition = handleQuery(variable, "", rootNode, parsedQuery, type)
+            val parsedQuery = QueryParser.parseArguments(filteredArguments, fieldDefinition, type, variables)
+            val condition = handleQuery(variable, "", rootNode, parsedQuery, type, variables)
             ongoingReading = readingWithoutWhere.where(condition)
         }
         for (argument in field.arguments) {
             if (argument.name == FILTER) {
-                val parsedQuery = parseFilter(argument.value as ObjectValue, type)
+                val parsedQuery = parseFilter(argument.value as ObjectValue, type, variables)
                 ongoingReading = NestingLevelHandler(parsedQuery, false, rootNode, variable, ongoingReading
                         ?: readingWithoutWhere,
-                        type, argument.value, linkedSetOf(rootNode.requiredSymbolicName))
+                        type, argument.value, linkedSetOf(rootNode.requiredSymbolicName), variables)
                     .parseFilter()
             }
         }
@@ -77,7 +77,8 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer) : ProjectionBase(
             private val matchQueryWithoutWhere: OngoingReading,
             private val type: GraphQLFieldsContainer,
             private val value: Value<*>?,
-            private val parentPassThroughWiths: Collection<Expression>
+            private val parentPassThroughWiths: Collection<Expression>,
+            private val variables: Map<String, Any>
     ) {
 
         private fun currentNode() = current as? Node
@@ -164,7 +165,7 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer) : ProjectionBase(
                 levelPassThroughWiths: LinkedHashSet<Expression>
         ): OrderableOngoingReadingAndWithWithoutWhere {
             val objectField = relFilter.queryField
-            val nestedParsedQuery = parseFilter(objectField.value as ObjectValue, relFilter.fieldDefinition.type.getInnerFieldsContainer())
+            val nestedParsedQuery = parseFilter(objectField.value as ObjectValue, relFilter.fieldDefinition.type.getInnerFieldsContainer(), variables)
             val hasPredicates = nestedParsedQuery.fieldPredicates.isNotEmpty() || nestedParsedQuery.relationPredicates.isNotEmpty()
 
             var queryWithoutWhere = query
@@ -185,7 +186,7 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer) : ProjectionBase(
             }
 
             val nestingLevelHandler = NestingLevelHandler(nestedParsedQuery, true, relVariable, relVariableName,
-                    readingWithoutWhere, relFilter.relationshipInfo.type, objectField.value, levelPassThroughWiths)
+                    readingWithoutWhere, relFilter.relationshipInfo.type, objectField.value, levelPassThroughWiths, variables)
 
             when (relFilter.op) {
                 RelationOperator.SOME -> queryWithoutWhere = nestingLevelHandler.parseFilter()

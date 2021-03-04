@@ -72,8 +72,8 @@ open class ProjectionBase {
 
         val filteredArguments = field.arguments.filterNot { setOf(FIRST, OFFSET, ORDER_BY, FILTER).contains(it.name) }
 
-        val parsedQuery = parseArguments(filteredArguments, fieldDefinition, type)
-        val result = handleQuery(variable, "", propertyContainer, parsedQuery, type)
+        val parsedQuery = parseArguments(filteredArguments, fieldDefinition, type, variables)
+        val result = handleQuery(variable, "", propertyContainer, parsedQuery, type, variables)
 
         return field.arguments.find { FILTER == it.name }
             ?.let { arg ->
@@ -83,9 +83,9 @@ open class ProjectionBase {
                     else -> throw IllegalArgumentException("")
                 }
             }
-            ?.let { parseFilter(it as ObjectValue, type) }
+            ?.let { parseFilter(it as ObjectValue, type, variables) }
             ?.let {
-                val filterCondition = handleQuery(normalizeName(FILTER, variable), "", propertyContainer, it, type)
+                val filterCondition = handleQuery(normalizeName(FILTER, variable), "", propertyContainer, it, type, variables)
                 result.and(filterCondition)
             }
                 ?: result
@@ -96,7 +96,8 @@ open class ProjectionBase {
             variableSuffix: String,
             propertyContainer: PropertyContainer,
             parsedQuery: ParsedQuery,
-            type: GraphQLFieldsContainer
+            type: GraphQLFieldsContainer,
+            variables: Map<String, Any>
     ): Condition {
         var result = parsedQuery.getFieldConditions(propertyContainer, variablePrefix, variableSuffix)
 
@@ -122,8 +123,8 @@ open class ProjectionBase {
                 else -> null
             }?.let {
                 val targetNode = predicate.relNode.named(normalizeName(variablePrefix, predicate.relationshipInfo.typeName))
-                val parsedQuery2 = parseFilter(objectField.value as ObjectValue, type)
-                val condition = handleQuery(targetNode.requiredSymbolicName.value, "", targetNode, parsedQuery2, type)
+                val parsedQuery2 = parseFilter(objectField.value as ObjectValue, type, variables)
+                val condition = handleQuery(targetNode.requiredSymbolicName.value, "", targetNode, parsedQuery2, type, variables)
                 var where = it
                     .`in`(listBasedOn(predicate.relationshipInfo.createRelation(propertyContainer as Node, targetNode)).returning(condition))
                     .where(cond.asCondition())
@@ -135,19 +136,19 @@ open class ProjectionBase {
             }
         }
 
-        fun handleLogicalOperator(value: Value<*>, classifier: String): Condition {
+        fun handleLogicalOperator(value: Value<*>, classifier: String, variables: Map<String, Any>): Condition {
             val objectValue = value as? ObjectValue
                     ?: throw IllegalArgumentException("Only object values are supported for logical operations, but got ${value.javaClass.name}")
 
-            val parsedNestedQuery = parseFilter(objectValue, type)
-            return handleQuery(variablePrefix + classifier, variableSuffix, propertyContainer, parsedNestedQuery, type)
+            val parsedNestedQuery = parseFilter(objectValue, type, variables)
+            return handleQuery(variablePrefix + classifier, variableSuffix, propertyContainer, parsedNestedQuery, type, variables)
         }
 
         fun handleLogicalOperators(values: List<Value<*>>?, classifier: String): List<Condition> {
             return when {
                 values?.isNotEmpty() == true -> when {
-                    values.size > 1 -> values.mapIndexed { index, value -> handleLogicalOperator(value, "${classifier}${index + 1}") }
-                    else -> values.map { value -> handleLogicalOperator(value, "") }
+                    values.size > 1 -> values.mapIndexed { index, value -> handleLogicalOperator(value, "${classifier}${index + 1}", variables) }
+                    else -> values.map { value -> handleLogicalOperator(value, "", variables) }
                 }
                 else -> emptyList()
             }

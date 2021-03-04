@@ -92,7 +92,7 @@ class QueryHandler private constructor(
 
         val ongoingReading = if ((env.getContext() as? QueryContext)?.optimizedQuery?.contains(QueryContext.OptimizationStrategy.FILTER_AS_MATCH) == true) {
 
-            OptimizedFilterHandler(type).generateFilterQuery(variable, fieldDefinition, field, match, propertyContainer)
+            OptimizedFilterHandler(type).generateFilterQuery(variable, fieldDefinition, field, match, propertyContainer, env.variables)
 
         } else {
 

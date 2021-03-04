@@ -204,11 +204,72 @@ RETURN person {
 }
 ----
 
+=== Filter enum _null_
+
+.GraphQL-Query
+[source,graphql]
+----
+{ person(filter: { gender: null }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ ]
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{ }
+----
+
 .Cypher
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE person.gender IN $filterPersonGenderIn
+WHERE person.gender IS NULL
+RETURN person {
+	.name
+} AS person
+----
+
+=== Filter enum _not_null_
+
+.GraphQL-Query
+[source,graphql]
+----
+{ person(filter: { gender_not: null }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  }, {
+    "name" : "Joe"
+  }, {
+    "name" : "Jill"
+  } ]
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{ }
+----
+
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.gender IS NOT NULL
 RETURN person {
 	.name
 } AS person
@@ -992,6 +1053,76 @@ RETURN person {
 } AS person
 ----
 
+=== Filter number _null_
+
+.GraphQL-Query
+[source,graphql]
+----
+{ person(filter: { age: null }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ ]
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{ }
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.age IS NULL
+RETURN person {
+	.name
+} AS person
+----
+
+=== Filter number _not_null_
+
+.GraphQL-Query
+[source,graphql]
+----
+{ person(filter: { age_not: null }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  }, {
+    "name" : "Joe"
+  }, {
+    "name" : "Jill"
+  } ]
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{ }
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.age IS NOT NULL
+RETURN person {
+	.name
+} AS person
+----
+
 == Filter on _Float_
 
 === Filter float _eq_
@@ -1285,6 +1416,76 @@ RETURN person {
 ----
 MATCH (person:Person)
 WHERE person.height > $filterPersonHeightGt
+RETURN person {
+	.name
+} AS person
+----
+
+=== Filter float _null_
+
+.GraphQL-Query
+[source,graphql]
+----
+{ person(filter: { height: null }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ ]
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{ }
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.height IS NULL
+RETURN person {
+	.name
+} AS person
+----
+
+=== Filter float _not_null_
+
+.GraphQL-Query
+[source,graphql]
+----
+{ person(filter: { height_not: null }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  }, {
+    "name" : "Joe"
+  }, {
+    "name" : "Jill"
+  } ]
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{ }
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.height IS NOT NULL
 RETURN person {
 	.name
 } AS person
@@ -1697,6 +1898,76 @@ RETURN person {
 } AS person
 ----
 
+=== Filter string _null_
+
+.GraphQL-Query
+[source,graphql]
+----
+{ person(filter: { name: null }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ ]
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{ }
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.name IS NULL
+RETURN person {
+	.name
+} AS person
+----
+
+=== Filter string _not_null_
+
+.GraphQL-Query
+[source,graphql]
+----
+{ person(filter: { name_not: null }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  }, {
+    "name" : "Joe"
+  }, {
+    "name" : "Jill"
+  } ]
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{ }
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.name IS NOT NULL
+RETURN person {
+	.name
+} AS person
+----
+
 == Filter on _Boolean_
 
 === Filter boolean _eq_
@@ -1768,6 +2039,76 @@ RETURN person {
 ----
 MATCH (person:Person)
 WHERE NOT (person.fun = $filterPersonFunNot)
+RETURN person {
+	.name
+} AS person
+----
+
+=== Filter boolean _null_
+
+.GraphQL-Query
+[source,graphql]
+----
+{ person(filter: { fun: null }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ ]
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{ }
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.fun IS NULL
+RETURN person {
+	.name
+} AS person
+----
+
+=== Filter boolean _not_null_
+
+.GraphQL-Query
+[source,graphql]
+----
+{ person(filter: { fun_not: null }) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  }, {
+    "name" : "Joe"
+  }, {
+    "name" : "Jill"
+  } ]
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{ }
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.fun IS NOT NULL
 RETURN person {
 	.name
 } AS person
@@ -2152,7 +2493,7 @@ RETURN person {
 
 == Null Filtering
 
-=== Filter _null_
+=== Filter _null_ on relation
 
 .GraphQL-Query
 [source,graphql]
@@ -2180,7 +2521,7 @@ RETURN person {
 } AS person
 ----
 
-=== Filter _not null_
+=== Filter _not null_ on relation
 
 .GraphQL-Query
 [source,graphql]
@@ -2999,6 +3340,88 @@ query filterQuery($name: String) { person(filter: {name : $name}) { name }}
 ----
 MATCH (person:Person)
 WHERE person.name = $name
+RETURN person {
+	.name
+} AS person
+----
+
+=== Handle _null_ via variable
+
+.GraphQL-Query
+[source,graphql]
+----
+query filterQuery($name: String) { person(filter: {name : $name}) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ ]
+}
+----
+
+.Query variables
+[source,json,request=true]
+----
+{"name": null}
+----
+
+.Cypher Params
+[source,json]
+----
+{ }
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.name IS NULL
+RETURN person {
+	.name
+} AS person
+----
+
+=== Handle _not_null_ via variable
+
+.GraphQL-Query
+[source,graphql]
+----
+query filterQuery($name: String) { person(filter: {name_not : $name}) { name }}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "person" : [ {
+    "name" : "Jane"
+  }, {
+    "name" : "Joe"
+  }, {
+    "name" : "Jill"
+  } ]
+}
+----
+
+.Query variables
+[source,json,request=true]
+----
+{"name": null}
+----
+
+.Cypher Params
+[source,json]
+----
+{ }
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.name IS NOT NULL
 RETURN person {
 	.name
 } AS person
