@@ -1,4 +1,4 @@
-package demo.org.neo4j.graphql
+package org.neo4j.graphql
 
 import org.junit.jupiter.api.DynamicContainer
 import org.junit.jupiter.api.DynamicNode

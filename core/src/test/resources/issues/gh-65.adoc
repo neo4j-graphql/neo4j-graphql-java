@@ -1,0 +1,76 @@
+:toc:
+
+= Github Issue #65: Filtering on children through parent fields generates logically invalid cypher
+
+== Schema
+
+[source,graphql,schema=true]
+----
+type SurveyTemplate{
+  uid: ID!
+  responses: [SurveyResponse] @relation(name: "SURVEY_RESPONSE", direction: OUT)
+}
+
+type SurveyResponse{
+  uid: ID!
+  surveyTemplate: SurveyTemplate @relation(name: "SURVEY_RESPONSE", direction: IN)
+}
+----
+
+== Test Data
+
+[source,cypher,test-data=true]
+----
+CREATE (tA:SurveyTemplate{ uid: 'a' })
+CREATE (tB:SurveyTemplate{ uid: 'b' })
+CREATE (tC:SurveyTemplate{ uid: 'c' })
+CREATE (rX:SurveyResponse{ uid: 'x' })
+CREATE (rY:SurveyResponse{ uid: 'y' })
+CREATE (rZ:SurveyResponse{ uid: 'z' })
+CREATE (tA)-[:SURVEY_RESPONSE]->(rX)
+CREATE (tA)-[:SURVEY_RESPONSE]->(rY)
+CREATE (tB)-[:SURVEY_RESPONSE]->(rX);
+----
+
+== Issue
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  surveyResponse(filter: {surveyTemplate: {uid: "a"}}){
+    uid
+  }
+}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "surveyResponse" : [ {
+    "uid" : "x"
+  }, {
+    "uid" : "y"
+  } ]
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterSurveyResponseSurveyTemplateUid" : "a"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (surveyResponse:SurveyResponse)
+WHERE any(filterSurveyResponseSurveyTemplateCond IN [(surveyResponse)<-[:SURVEY_RESPONSE]-(filterSurveyResponseSurveyTemplate:SurveyTemplate) | filterSurveyResponseSurveyTemplate.uid = $filterSurveyResponseSurveyTemplateUid]
+WHERE filterSurveyResponseSurveyTemplateCond)
+RETURN surveyResponse {
+	.uid
+} AS surveyResponse
+----
