@@ -1,0 +1,141 @@
+:toc:
+
+= Github Issue #169: Default values for sorting and paging on fields should be respected
+
+== Schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  actors(first: Int = 3, offset: Int = 0, name: String, orderBy: [_ActorOrdering!] = [name_desc]): [Actor] @relation(name: "ACTED_IN", direction:IN)
+}
+type Actor {
+  name: String
+}
+
+type Query {
+  test(first: Int = 3, offset: Int = 0, orderBy: [_ActorOrdering!] = [name_asc]): [Actor!]!
+}
+
+enum _ActorOrdering {
+  name_asc
+  name_desc
+}
+----
+
+== Test default values on relation field
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movie {
+    actors {
+      name
+    }
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "movieActorsFirst" : 3,
+  "movieActorsOffset" : 0
+}
+----
+
+== Test customized values on relation field
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movie {
+    actors(first: 5, offset: 2, orderBy: [name_asc]) {
+      name
+    }
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "movieActorsFirst" : 5,
+  "movieActorsOffset" : 2
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (movie:Movie)
+RETURN movie {
+	actors: apoc.coll.sortMulti([(movie)<-[:ACTED_IN]-(movieActors:Actor) | movieActors {
+		.name
+	}], ['^name'])[$movieActorsOffset..($movieActorsOffset + $movieActorsFirst)]
+} AS movie
+----
+
+== Test default values on root field
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  test {
+    name
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "testFirst" : 3,
+  "testOffset" : 0
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (test:Actor)
+RETURN test {
+	.name
+} AS test ORDER BY test.name ASC SKIP $testOffset LIMIT $testFirst
+----
+
+== Test customized values on root field
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  test(first: 5, offset: 2, orderBy: [name_desc]) {
+    name
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "testFirst" : 5,
+  "testOffset" : 2
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (test:Actor)
+RETURN test {
+	.name
+} AS test ORDER BY test.name DESC SKIP $testOffset LIMIT $testFirst
+----
