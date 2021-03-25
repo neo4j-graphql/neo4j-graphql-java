@@ -62,11 +62,13 @@ class QueryHandler private constructor(
             if (!schemaConfig.query.enabled || schemaConfig.query.exclude.contains(typeName)) {
                 return false
             }
-            if (getRelevantFields(type).isEmpty()) {
+            if (getRelevantFields(type).isEmpty() && !hasRelationships(type)) {
                 return false
             }
             return true
         }
+
+        private fun hasRelationships(type: GraphQLFieldsContainer): Boolean = type.fieldDefinitions.any { it.isRelationship() }
 
         private fun getRelevantFields(type: GraphQLFieldsContainer): List<GraphQLFieldDefinition> {
             return type
@@ -94,8 +96,8 @@ class QueryHandler private constructor(
             match.where(where)
         }
 
-        val ordering = orderBy(propertyContainer, field.arguments)
-        val skipLimit = SkipLimit(variable, field.arguments)
+        val ordering = orderBy(propertyContainer, field.arguments, fieldDefinition)
+        val skipLimit = SkipLimit(variable, field.arguments, fieldDefinition)
 
         val projectionEntries = projectFields(propertyContainer, field, type, env)
         val mapProjection = propertyContainer.project(projectionEntries).`as`(field.aliasOrName())

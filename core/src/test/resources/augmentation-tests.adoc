@@ -462,6 +462,7 @@ type Publisher {
 }
 
 type Query {
+  hasMovies(filter: _HasMoviesFilter, first: Int, offset: Int): [HasMovies!]!
   knows0(filter: _Knows0Filter, first: Int, id: ID, offset: Int, orderBy: [_Knows0Ordering!]): [Knows0!]!
   knows1(filter: _Knows1Filter, first: Int, id: ID, offset: Int, orderBy: [_Knows1Ordering!]): [Knows1!]!
   knows4(_id: ID, filter: _Knows4Filter, first: Int, offset: Int, orderBy: [_Knows4Ordering!]): [Knows4!]!
@@ -648,6 +649,26 @@ enum _PublisherOrdering {
 }
 
 scalar DynamicProperties
+
+input _HasMoviesFilter {
+  AND: [_HasMoviesFilter!]
+  NOT: [_HasMoviesFilter!]
+  OR: [_HasMoviesFilter!]
+  "Filters only those `HasMovies` for which all `movies`-relationship matches this filter. If `null` is passed to this field, only those `HasMovies` will be filtered which has no `movies`-relations"
+  movies: _MovieFilter
+  "Filters only those `HasMovies` for which all `movies`-relationships matches this filter"
+  movies_every: _MovieFilter
+  "Filters only those `HasMovies` for which none of the `movies`-relationships matches this filter"
+  movies_none: _MovieFilter
+  "Filters only those `HasMovies` for which all `movies`-relationship does not match this filter. If `null` is passed to this field, only those `HasMovies` will be filtered which has any `movies`-relation"
+  movies_not: _MovieFilter
+  "Filters only those `HasMovies` for which exactly one `movies`-relationship matches this filter"
+  movies_single: _MovieFilter
+  "Filters only those `HasMovies` for which at least one `movies`-relationship matches this filter"
+  movies_some: _MovieFilter
+}
+
+input _HasMoviesInput
 
 input _Knows0Filter {
   AND: [_Knows0Filter!]

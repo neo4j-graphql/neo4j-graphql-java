@@ -27,8 +27,8 @@ open class ProjectionBase {
         const val TYPE_NAME = "__typename"
     }
 
-    fun orderBy(node: PropertyContainer, args: MutableList<Argument>): List<SortItem>? {
-        val values = getOrderByArgs(args)
+    fun orderBy(node: PropertyContainer, args: MutableList<Argument>, fieldDefinition: GraphQLFieldDefinition?): List<SortItem>? {
+        val values = getOrderByArgs(args, fieldDefinition)
         if (values.isEmpty()) {
             return null
         }
@@ -39,9 +39,10 @@ open class ProjectionBase {
             }
     }
 
-    private fun getOrderByArgs(args: MutableList<Argument>): List<Pair<String, Sort>> {
-        val arg = args.find { it.name == ORDER_BY }
-        return arg?.value
+    private fun getOrderByArgs(args: MutableList<Argument>, fieldDefinition: GraphQLFieldDefinition?): List<Pair<String, Sort>> {
+        val orderBy = args.find { it.name == ORDER_BY }?.value
+                ?: fieldDefinition?.getArgument(ORDER_BY)?.defaultValue?.asGraphQLValue()
+        return orderBy
             ?.let { it ->
                 when (it) {
                     is ArrayValue -> it.values.map { it.toJavaValue().toString() }
@@ -324,7 +325,7 @@ open class ProjectionBase {
         val fieldProjection = projectFields(anyNode(childVariable), childVariable, field, fieldObjectType, env, variableSuffix)
 
         val comprehension = listWith(childVariable).`in`(expression).returning(childVariable.project(fieldProjection))
-        val skipLimit = SkipLimit(childVariableName, field.arguments)
+        val skipLimit = SkipLimit(childVariableName, field.arguments, fieldDefinition)
         return skipLimit.slice(fieldType.isList(), comprehension)
     }
 
@@ -402,8 +403,8 @@ open class ProjectionBase {
             else -> node(nodeType.name).named(childVariableName) to null
         }
 
-        val skipLimit = SkipLimit(childVariable, field.arguments)
-        val orderBy = getOrderByArgs(field.arguments)
+        val skipLimit = SkipLimit(childVariable, field.arguments, fieldDefinition)
+        val orderBy = getOrderByArgs(field.arguments, fieldDefinition)
         val sortByNeo4jTypeFields = orderBy
             .filter { (property, _) -> nodeType.getFieldDefinition(property)?.isNeo4jType() == true }
             .map { (property, _) -> property }
@@ -440,8 +441,9 @@ open class ProjectionBase {
 
     class SkipLimit(variable: String,
             arguments: List<Argument>,
-            private val skip: Parameter<*>? = convertArgument(variable, arguments, OFFSET),
-            private val limit: Parameter<*>? = convertArgument(variable, arguments, FIRST)) {
+            fieldDefinition: GraphQLFieldDefinition?,
+            private val skip: Parameter<*>? = convertArgument(variable, arguments, fieldDefinition, OFFSET),
+            private val limit: Parameter<*>? = convertArgument(variable, arguments, fieldDefinition, FIRST)) {
 
 
         fun <T> format(returning: T): StatementBuilder.BuildableStatement where T : TerminalExposesSkip, T : TerminalExposesLimit {
@@ -459,9 +461,12 @@ open class ProjectionBase {
                 }
 
         companion object {
-            private fun convertArgument(variable: String, arguments: List<Argument>, name: String): Parameter<*>? {
-                val argument = arguments.find { it.name.toLowerCase() == name } ?: return null
-                return queryParameter(argument.value, variable, argument.name)
+            private fun convertArgument(variable: String, arguments: List<Argument>, fieldDefinition: GraphQLFieldDefinition?, name: String): Parameter<*>? {
+                val value = arguments
+                    .find { it.name.toLowerCase() == name }?.value
+                        ?: fieldDefinition?.getArgument(name)?.defaultValue
+                        ?: return null
+                return queryParameter(value, variable, name)
             }
         }
     }

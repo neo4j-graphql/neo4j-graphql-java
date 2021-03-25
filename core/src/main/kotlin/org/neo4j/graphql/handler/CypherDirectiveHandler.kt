@@ -47,8 +47,8 @@ class CypherDirectiveHandler(
         } else {
             query.returning(node.`as`(field.aliasOrName()))
         }
-        val ordering = orderBy(node, field.arguments)
-        val skipLimit = SkipLimit(variable, field.arguments)
+        val ordering = orderBy(node, field.arguments, fieldDefinition)
+        val skipLimit = SkipLimit(variable, field.arguments, fieldDefinition)
 
         val resultWithSkipLimit = readingWithWhere
             .let { if (ordering != null) skipLimit.format(it.orderBy(*ordering.toTypedArray())) else skipLimit.format(it) }
