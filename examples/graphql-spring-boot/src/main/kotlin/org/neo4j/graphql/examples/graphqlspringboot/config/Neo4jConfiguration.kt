@@ -30,13 +30,12 @@ open class Neo4jConfiguration {
                 return driver.session().writeTransaction { tx ->
                     val boltParams = cypher.params.mapValues { toBoltValue(it.value, env.variables) }
                     val result = tx.run(cypher.query, boltParams)
-                    val key = result.keys().stream().findFirst().orElse(null)
                     if (isListType(cypher.type)) {
                         result.list()
-                            .map { record -> record.get(key).asObject() }
+                            .map { record -> record.get(cypher.variable).asObject() }
                     } else {
                         result.list()
-                            .map { record -> record.get(key).asObject() }
+                            .map { record -> record.get(cypher.variable).asObject() }
                             .firstOrNull() ?: emptyMap<String, Any>()
                     }
                 }

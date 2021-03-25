@@ -15,7 +15,7 @@ import org.neo4j.graphql.*
 class CypherDirectiveHandler(
         private val type: GraphQLFieldsContainer?,
         private val isQuery: Boolean,
-        private val cypherDirective: Cypher,
+        private val cypherDirective: String,
         fieldDefinition: GraphQLFieldDefinition)
     : BaseDataFetcher(fieldDefinition) {
 

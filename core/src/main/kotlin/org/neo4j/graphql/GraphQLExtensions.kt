@@ -200,8 +200,7 @@ fun <T> GraphQLDirective.getArgument(argumentName: String, defaultValue: T? = nu
             ?: throw IllegalStateException("No default value for @${this.name}::$argumentName")
 }
 
-fun GraphQLFieldDefinition.cypherDirective(): Cypher? = getDirectiveArgument<String>(CYPHER, CYPHER_STATEMENT, null)
-    ?.let { statement -> Cypher(statement) }
+fun GraphQLFieldDefinition.cypherDirective(): String? = getDirectiveArgument<String>(CYPHER, CYPHER_STATEMENT, null)
 
 fun Any.toJavaValue() = when (this) {
     is Value<*> -> this.toJavaValue()

@@ -14,6 +14,7 @@ import org.neo4j.graphql.*
 import spark.Request
 import spark.Response
 import spark.Spark
+import java.util.*
 
 const val schema = """
 type Person {
@@ -63,11 +64,13 @@ fun main() {
         try {
             // todo fix parameter mapping in translator
             val result = it.run(cypher.query, Values.value(cypher.params))
-            if (cypher.type?.isList() == true) {
-                result.keys().map { key -> key to result.list().map { row -> row.get(key).asObject() } }.toMap(LinkedHashMap())
+            val value = if (cypher.type?.isList() == true) {
+                result.list().map { row -> row.get(cypher.variable).asObject() }
             } else {
-                result.keys().map { key -> key to result.list().map { row -> row.get(key).asObject() }.firstOrNull() }.toMap(LinkedHashMap())
+                result.list().map { record -> record.get(cypher.variable).asObject() }
+                    .firstOrNull() ?: emptyMap<String, Any>()
             }
+            Collections.singletonMap(cypher.variable, value)
         } catch (e: Exception) {
             e.printStackTrace()
         }

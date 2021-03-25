@@ -21,12 +21,11 @@ fun initBoundSchema(schema: String): GraphQLSchema {
             val cypher = delegate.get(env)
             return driver.session().use { session ->
                 val result = session.run(cypher.query, cypher.params.mapValues { toBoltValue(it.value, env.variables) })
-                val key = result.keys().stream().findFirst().orElse(null)
                 if (isListType(cypher.type)) {
-                    result.list().map { record -> record.get(key).asObject() }
+                    result.list().map { record -> record.get(cypher.variable).asObject() }
 
                 } else {
-                    result.list().map { record -> record.get(key).asObject() }
+                    result.list().map { record -> record.get(cypher.variable).asObject() }
                         .firstOrNull() ?: emptyMap<String, Any>()
                 }
             }

@@ -29,7 +29,7 @@ abstract class BaseDataFetcher(val fieldDefinition: GraphQLFieldDefinition) : Pr
             .withPrettyPrint(true)
             .build()
         ).render(statement)
-        return Cypher(query, statement.parameters, fieldDefinition.type)
+        return Cypher(query, statement.parameters, fieldDefinition.type, variable = variable)
     }
 
     protected abstract fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement
