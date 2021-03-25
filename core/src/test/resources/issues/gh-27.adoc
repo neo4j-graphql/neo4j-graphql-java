@@ -1,0 +1,136 @@
+:toc:
+
+= Github Issue #27: Filtering on multi-relationship existence
+
+== Schema
+
+[source,graphql,schema=true]
+----
+type Person {
+	name: String!
+	friends: [Person!]! @relation(name:"knows",direction:OUT)
+	pets: [Pet!] @relation(name:"knows",direction:OUT)
+}
+
+type Pet {
+	name: String!
+}
+----
+
+== query friends name not null
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  person (filter: { friends: { name_not: null } }) {
+    name
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{ }
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE all(filterPersonPersonCond IN [(person)-[:knows]->(filterPersonPerson:Person) | filterPersonPerson.name IS NOT NULL]
+WHERE filterPersonPersonCond)
+RETURN person {
+	.name
+} AS person
+----
+
+== query friends not null
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  person (filter: { friends_not: null }) {
+    name
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{ }
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE EXISTS {
+	MATCH (person)-[:knows]->(:Person)
+}
+RETURN person {
+	.name
+} AS person
+----
+
+== query friends null
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  person (filter: { friends: null }) {
+    name
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{ }
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE NOT (EXISTS {
+	MATCH (person)-[:knows]->(:Person)
+})
+RETURN person {
+	.name
+} AS person
+----
+
+== query friends name not null
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  person (filter: { friends: { name_not: null } }) {
+    name
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{ }
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE all(filterPersonPersonCond IN [(person)-[:knows]->(filterPersonPerson:Person) | filterPersonPerson.name IS NOT NULL]
+WHERE filterPersonPersonCond)
+RETURN person {
+	.name
+} AS person
+----

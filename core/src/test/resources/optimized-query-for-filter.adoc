@@ -783,7 +783,9 @@ RETURN movie {
 ----
 MATCH (movie:Movie)
 WITH movie
-WHERE (movie)<-[:REVIEWED]-(:Person)
+WHERE EXISTS {
+	MATCH (movie)<-[:REVIEWED]-(:Person)
+}
 WITH DISTINCT movie
 RETURN movie {
 	.title
@@ -833,7 +835,9 @@ RETURN movie {
 ----
 MATCH (movie:Movie)
 WITH movie
-WHERE NOT (movie)<-[:REVIEWED]-(:Person)
+WHERE NOT (EXISTS {
+	MATCH (movie)<-[:REVIEWED]-(:Person)
+})
 WITH DISTINCT movie
 RETURN movie {
 	.title
