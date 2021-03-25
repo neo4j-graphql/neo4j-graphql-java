@@ -82,7 +82,7 @@ open class ProjectionBase {
             }
             ?.let { parseFilter(it as ObjectValue, type) }
             ?.let {
-                val filterCondition = handleQuery(normalizeName(FILTER ,variable), "", propertyContainer, it, type)
+                val filterCondition = handleQuery(normalizeName(FILTER, variable), "", propertyContainer, it, type)
                 result.and(filterCondition)
             }
                 ?: result
@@ -118,7 +118,7 @@ open class ProjectionBase {
                 RelationOperator.NONE -> Predicates.none(cond)
                 else -> null
             }?.let {
-                val targetNode = predicate.relNode.named(normalizeName(variablePrefix,predicate.relationshipInfo.typeName))
+                val targetNode = predicate.relNode.named(normalizeName(variablePrefix, predicate.relationshipInfo.typeName))
                 val parsedQuery2 = parseFilter(objectField.value as ObjectValue, type)
                 val condition = handleQuery(targetNode.requiredSymbolicName.value, "", targetNode, parsedQuery2, type)
                 var where = it
@@ -338,12 +338,42 @@ open class ProjectionBase {
         return if (inverse) relInfo0.copy(direction = relInfo0.direction.invert(), startField = relInfo0.endField, endField = relInfo0.startField) else relInfo0
     }
 
-    private fun projectRelationshipParent(node: PropertyContainer, variable: SymbolicName, field: Field, fieldDefinition: GraphQLFieldDefinition, parent: GraphQLFieldsContainer, env: DataFetchingEnvironment, variableSuffix: String?): Expression {
+    private fun projectRelationshipParent(propertyContainer: PropertyContainer, variable: SymbolicName, field: Field, fieldDefinition: GraphQLFieldDefinition, parent: GraphQLFieldsContainer, env: DataFetchingEnvironment, variableSuffix: String?): Expression {
         val fieldObjectType = fieldDefinition.type.inner() as? GraphQLFieldsContainer
                 ?: throw IllegalArgumentException("field ${fieldDefinition.name} of type ${parent.name} is not an object (fields container) and can not be handled as relationship")
-        val projectionEntries = projectFields(anyNode(variable), name(variable.value + (variableSuffix?.capitalize()
-                ?: "")), field, fieldObjectType, env, variableSuffix)
-        return node.project(projectionEntries)
+        return when (propertyContainer) {
+            is Node -> {
+                val projectionEntries = projectFields(propertyContainer, name(variable.value + (variableSuffix?.capitalize()
+                        ?: "")), field, fieldObjectType, env, variableSuffix)
+                propertyContainer.project(projectionEntries)
+            }
+            is Relationship -> projectNodeFromRichRelationship(parent, fieldDefinition, variable, field, env)
+            else -> throw IllegalArgumentException("${propertyContainer.javaClass.name} cannot be handled for field ${fieldDefinition.name} of type ${parent.name}")
+        }
+    }
+
+    private fun projectNodeFromRichRelationship(
+            parent: GraphQLFieldsContainer,
+            fieldDefinition: GraphQLFieldDefinition,
+            variable: SymbolicName,
+            field: Field,
+            env: DataFetchingEnvironment
+    ): Expression {
+        val relInfo = parent.relationship()
+                ?: throw IllegalStateException(parent.name + " is not an relation type")
+
+        val node = CypherDSL.node(fieldDefinition.type.name()).named(fieldDefinition.name)
+        val (start, end, target) = when (fieldDefinition.name) {
+            relInfo.startField -> Triple(node, anyNode(), node)
+            relInfo.endField -> Triple(anyNode(), node, node)
+            else -> throw IllegalArgumentException("type ${parent.name} does not have a matching field with name ${fieldDefinition.name}")
+        }
+        val rel = when (relInfo.direction) {
+            RelationDirection.IN -> start.relationshipFrom(end).named(variable)
+            RelationDirection.OUT -> start.relationshipTo(end).named(variable)
+            RelationDirection.BOTH -> start.relationshipBetween(end).named(variable)
+        }
+        return head(CypherDSL.listBasedOn(rel).returning(target.project(projectFields(target, field, fieldDefinition.type as GraphQLFieldsContainer, env))))
     }
 
     private fun projectRichAndRegularRelationship(variable: SymbolicName, field: Field, fieldDefinition: GraphQLFieldDefinition, parent: GraphQLFieldsContainer, env: DataFetchingEnvironment): Expression {
@@ -366,7 +396,7 @@ open class ProjectionBase {
 
         val (endNodePattern, variableSuffix) = when {
             isRelFromType -> {
-                val label = nodeType.getFieldDefinition(relInfo.endField!!)!!.type.innerName()
+                val label = nodeType.getFieldDefinition(relInfo.endField)!!.type.innerName()
                 node(label).named("$childVariable${relInfo.endField.capitalize()}") to relInfo.endField
             }
             else -> node(nodeType.name).named(childVariableName) to null

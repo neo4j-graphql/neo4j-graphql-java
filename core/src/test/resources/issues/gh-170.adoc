@@ -1,0 +1,84 @@
+:toc:
+
+= Github Issue #170: wrong mapping starting query from rich relationship
+
+== Schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String
+  ratings: [Rated] @relation(name:"RATED")
+}
+interface Person {
+  name: String
+}
+type User {
+  name: String
+  rated(rating: Int): [Rated]
+}
+type Rated @relation(name:"RATED", from: "user", to: "movie") {
+  user: User
+  rating: Int
+  movie: Movie
+}
+----
+
+[source,cypher,test-data=true]
+----
+CREATE
+    (u:User{ name: 'Andreas' }),
+    (m1:Movie{ title: 'Forrest Gump' }),
+    (m2:Movie{ title: 'Apollo 13' }),
+    (m3:Movie{ title: 'Harry Potter' }),
+    (u)-[:RATED{ rating: 2}]->(m1),
+    (u)-[:RATED{ rating: 3}]->(m2),
+    (u)-[:RATED{ rating: 4}]->(m3);
+----
+
+== Query
+
+.GraphQL-Query
+[source,graphql]
+----
+query {
+    r: rated( rating_gte : 3) {
+      rating
+      movie {
+        title
+      }
+    }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "rRatingGte" : 3
+}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "r" : [
+    { "rating": 3 ,"movie" :  { "title" : "Apollo 13" } },
+    { "rating": 4 ,"movie" :  { "title" : "Harry Potter" } }
+  ]
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH ()-[r:RATED]->()
+WHERE r.rating >= $rRatingGte
+RETURN r {
+	.rating,
+	movie: head([()-[r]->(movie:Movie) | movie {
+		.title
+	}])
+} AS r
+----
