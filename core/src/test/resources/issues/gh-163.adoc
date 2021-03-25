@@ -1,0 +1,97 @@
+:toc:
+
+= Github Issue #163: problem with optimized FILTER_AS_MATCH strategy
+
+== Schema
+
+[source,graphql,schema=true]
+----
+type Person {
+  name: String
+  born: Int
+  actedIn: [Movie!]! @relation(name: "ACTED_IN", direction:OUT)
+}
+
+type Movie {
+  title: String!
+}
+----
+
+== Query without filter
+
+.Query configuration
+[source,json,query-config=true]
+----
+{  "optimizedQuery":  ["FILTER_AS_MATCH"] }
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query {
+  person(name:"test") {
+    name
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "personName" : "test"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.name = $personName
+RETURN person {
+	.name
+} AS person
+----
+
+== Query with simple conditions and filter
+
+.Query configuration
+[source,json,query-config=true]
+----
+{  "optimizedQuery":  ["FILTER_AS_MATCH"] }
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query {
+  person(name:"test", filter: { born_gt: 1970, actedIn_none: { title: "Unforgiven" }}) {
+    name
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "personActedInNoneTitle" : "Unforgiven",
+  "personBornGt" : 1970
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.born > $personBornGt
+WITH person
+OPTIONAL MATCH (person)-[:ACTED_IN]->(personActedInNone:Movie)
+WHERE personActedInNone.title = $personActedInNoneTitle
+WITH person, count(DISTINCT personActedInNone) AS personActedInNoneCount
+WHERE personActedInNoneCount = 0
+WITH DISTINCT person
+RETURN person {
+	.name
+} AS person
+----

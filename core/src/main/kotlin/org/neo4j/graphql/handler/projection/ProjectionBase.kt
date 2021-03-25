@@ -88,7 +88,7 @@ open class ProjectionBase {
                 ?: result
     }
 
-    private fun handleQuery(
+    protected fun handleQuery(
             variablePrefix: String,
             variableSuffix: String,
             propertyContainer: PropertyContainer,
