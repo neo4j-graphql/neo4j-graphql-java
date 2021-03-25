@@ -8,6 +8,10 @@ import org.neo4j.cypherdsl.core.Statement
 import org.neo4j.graphql.*
 import org.neo4j.graphql.handler.filter.OptimizedFilterHandler
 
+/**
+ * This class handles all the logic related to the querying of nodes and relations.
+ * This includes the augmentation of the query-fields and the related cypher generation
+ */
 class QueryHandler private constructor(
         type: GraphQLFieldsContainer,
         fieldDefinition: GraphQLFieldDefinition)

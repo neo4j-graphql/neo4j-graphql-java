@@ -7,6 +7,10 @@ import org.neo4j.cypherdsl.core.Statement
 import org.neo4j.cypherdsl.core.StatementBuilder
 import org.neo4j.graphql.*
 
+/**
+ * This class handles all the logic related to the creation of relations.
+ * This includes the augmentation of the create&lt;Edge&gt;-mutator and the related cypher generation
+ */
 class CreateRelationTypeHandler private constructor(
         type: GraphQLFieldsContainer,
         relation: RelationshipInfo,

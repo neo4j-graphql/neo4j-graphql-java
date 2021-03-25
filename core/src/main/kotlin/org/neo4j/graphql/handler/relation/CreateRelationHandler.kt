@@ -9,6 +9,10 @@ import org.neo4j.cypherdsl.core.Statement
 import org.neo4j.cypherdsl.core.StatementBuilder.OngoingUpdate
 import org.neo4j.graphql.*
 
+/**
+ * This class handles all the logic related to the creation of relations starting from an existing node.
+ * This includes the augmentation of the add&lt;Edge&gt;-mutator and the related cypher generation
+ */
 class CreateRelationHandler private constructor(
         type: GraphQLFieldsContainer,
         relation: RelationshipInfo,

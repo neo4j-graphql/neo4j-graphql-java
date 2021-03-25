@@ -9,6 +9,10 @@ import org.neo4j.cypherdsl.core.Statement
 import org.neo4j.cypherdsl.core.StatementBuilder
 import org.neo4j.graphql.*
 
+/**
+ * This class handles all the logic related to the deletion of relations starting from an existing node.
+ * This includes the augmentation of the delete&lt;Edge&gt;-mutator and the related cypher generation
+ */
 class DeleteRelationHandler private constructor(
         type: GraphQLFieldsContainer,
         relation: RelationshipInfo,

@@ -11,6 +11,10 @@ import org.neo4j.cypherdsl.core.Statement
 import org.neo4j.cypherdsl.core.StatementBuilder.OngoingMatchAndUpdate
 import org.neo4j.graphql.*
 
+/**
+ * This class handles all the logic related to the updating of nodes.
+ * This includes the augmentation of the update&lt;Node&gt; and merge&lt;Node&gt;-mutator and the related cypher generation
+ */
 class MergeOrUpdateHandler private constructor(
         type: GraphQLFieldsContainer,
         private val merge: Boolean,

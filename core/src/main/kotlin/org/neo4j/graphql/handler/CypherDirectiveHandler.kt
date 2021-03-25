@@ -9,6 +9,9 @@ import org.neo4j.cypherdsl.core.Functions
 import org.neo4j.cypherdsl.core.Statement
 import org.neo4j.graphql.*
 
+/**
+ * This class handles all logic related to custom Cypher queries declared by fields with a @cypher directive
+ */
 class CypherDirectiveHandler(
         private val type: GraphQLFieldsContainer?,
         private val isQuery: Boolean,

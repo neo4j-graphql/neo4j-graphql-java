@@ -9,6 +9,9 @@ import org.neo4j.cypherdsl.core.*
 import org.neo4j.cypherdsl.core.Cypher.*
 import org.neo4j.graphql.*
 
+/**
+ * This is a base class for all Node or Relation related data fetcher.
+ */
 abstract class BaseDataFetcherForContainer(
         val type: GraphQLFieldsContainer,
         fieldDefinition: GraphQLFieldDefinition

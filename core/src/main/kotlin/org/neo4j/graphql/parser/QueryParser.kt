@@ -11,6 +11,9 @@ import org.neo4j.graphql.handler.projection.ProjectionBase
 
 typealias CypherDSL = org.neo4j.cypherdsl.core.Cypher
 
+/**
+ * An internal representation of all the filtering passed to an graphql field
+ */
 class ParsedQuery(
         val fieldPredicates: List<FieldPredicate>,
         val relationPredicates: List<RelationPredicate>,
@@ -31,6 +34,9 @@ abstract class Predicate<T>(
         val normalizedName: String,
         val index: Int)
 
+/**
+ * Predicates on a nodes' or relations' property
+ */
 class FieldPredicate(
         op: FieldOperator,
         queryField: ObjectField,
@@ -49,6 +55,10 @@ class FieldPredicate(
             )
 
 }
+
+/**
+ * Predicate for a relation
+ */
 
 class RelationPredicate(
         type: GraphQLFieldsContainer,
@@ -78,7 +88,9 @@ class RelationPredicate(
 
 object QueryParser {
 
-
+    /**
+     * This parser takes an filter object an transform it to the internal [ParsedQuery]-representation
+     */
     fun parseFilter(objectValue: ObjectValue, type: GraphQLFieldsContainer): ParsedQuery {
         // Map of all queried fields
         // we remove all matching fields from this map, so we can ensure that only known fields got queried
@@ -99,6 +111,9 @@ object QueryParser {
         return createParsedQuery(queriedFields, type, null, or, and)
     }
 
+    /**
+     * This parser takes all non-filter arguments of a graphql-field an transform it to the internal [ParsedQuery]-representation
+     */
     fun parseArguments(arguments: List<Argument>, fieldDefinition: GraphQLFieldDefinition, type: GraphQLFieldsContainer): ParsedQuery {
         // TODO we should check if the argument is defined on the field definition and throw an error otherwise
         // Map of all queried fields

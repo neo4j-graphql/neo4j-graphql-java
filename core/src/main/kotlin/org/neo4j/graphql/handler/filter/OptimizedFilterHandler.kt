@@ -24,6 +24,14 @@ typealias WhereClauseFactory = (
 
 typealias ConditionBuilder = (ExposesWith) -> OrderableOngoingReadingAndWithWithoutWhere
 
+/**
+ * This its a specialized handler that uses an alternative approach for filtering. By using multiple MATCH clauses,
+ * this can facilitate the use of optimizations within the neo4j database, which can lead to significant performance
+ * improvements for large data sets.
+ *
+ * If this handler cannot generate an optimization for the passed filter, an [OptimizedQueryException] will be
+ * thrown, so the calling site can fall back to the non-optimized logic
+ */
 class OptimizedFilterHandler(val type: GraphQLFieldsContainer) : ProjectionBase() {
 
     fun generateFilterQuery(variable: String, fieldDefinition: GraphQLFieldDefinition, field: Field, readingWithoutWhere: OngoingReadingWithoutWhere, rootNode: PropertyContainer): OngoingReading {
