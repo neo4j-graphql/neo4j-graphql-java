@@ -29,10 +29,9 @@ class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite(
 
     override fun testFactory(title: String, globalBlocks: Map<String, ParsedBlock>, codeBlocks: Map<String, ParsedBlock>, ignore: Boolean): List<DynamicNode> {
         val targetSchemaBlock = codeBlocks[GRAPHQL_MARKER]
-        val compareSchemaTest = DynamicTest.dynamicTest("compare schema", targetSchemaBlock?.uri, {
+        val compareSchemaTest = DynamicTest.dynamicTest("compare schema", targetSchemaBlock?.uri) {
             val configBlock = codeBlocks[SCHEMA_CONFIG_MARKER]
-            val config = MAPPER.readValue(configBlock?.code()
-                    ?: throw IllegalStateException("missing config $title"), SchemaConfig::class.java)
+            val config = configBlock?.code()?.let { MAPPER.readValue(it, SchemaConfig::class.java) } ?: SchemaConfig()
 
             val targetSchema = targetSchemaBlock?.code()
                     ?: throw IllegalStateException("missing graphql for $title")
@@ -72,7 +71,7 @@ class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite(
 
                 }
             }
-        })
+        }
         return Collections.singletonList(compareSchemaTest)
     }
 

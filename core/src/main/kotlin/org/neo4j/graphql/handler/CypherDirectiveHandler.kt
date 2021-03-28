@@ -50,7 +50,7 @@ class CypherDirectiveHandler(
         } else {
             query.returning(node.`as`(field.aliasOrName()))
         }
-        val ordering = orderBy(node, field.arguments, fieldDefinition)
+        val ordering = orderBy(node, field.arguments, fieldDefinition, env.variables)
         val skipLimit = SkipLimit(variable, field.arguments, fieldDefinition)
 
         val resultWithSkipLimit = readingWithWhere

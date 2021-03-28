@@ -41,7 +41,7 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer) : ProjectionBase(
 
         var ongoingReading: OngoingReading? = null
 
-        val filteredArguments = field.arguments.filterNot { setOf(FIRST, OFFSET, ORDER_BY, FILTER).contains(it.name) }
+        val filteredArguments = field.arguments.filterNot { SPECIAL_FIELDS.contains(it.name) }
         if (filteredArguments.isNotEmpty()) {
             val parsedQuery = QueryParser.parseArguments(filteredArguments, fieldDefinition, type, variables)
             val condition = handleQuery(variable, "", rootNode, parsedQuery, type, variables)

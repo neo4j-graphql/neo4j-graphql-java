@@ -1,0 +1,306 @@
+:toc:
+
+= Schema Simple
+
+Tests that the provided typeDefs return the correct schema.
+
+== Inputs
+
+[source,graphql,schema=true]
+----
+type Movie {
+    id: ID
+    actorCount: Int
+    averageRating: Float
+    isActive: Boolean
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+  "queryOptionStyle": "INPUT_TYPE"
+}
+----
+
+== Output
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type Movie {
+  actorCount: Int
+  averageRating: Float
+  id: ID
+  isActive: Boolean
+}
+
+type Mutation {
+  createMovie(actorCount: Int, averageRating: Float, id: ID, isActive: Boolean): Movie!
+  "Deletes Movie and returns the type itself"
+  deleteMovie(id: ID): Movie
+  mergeMovie(actorCount: Int, averageRating: Float, id: ID, isActive: Boolean): Movie!
+  updateMovie(actorCount: Int, averageRating: Float, id: ID, isActive: Boolean): Movie
+}
+
+type Query {
+  movie(actorCount: Int, averageRating: Float, filter: _MovieFilter, id: ID, isActive: Boolean, options: MovieOptions): [Movie!]!
+}
+
+type _Neo4jDate {
+  day: Int
+  formatted: String
+  month: Int
+  year: Int
+}
+
+type _Neo4jDateTime {
+  day: Int
+  formatted: String
+  hour: Int
+  microsecond: Int
+  millisecond: Int
+  minute: Int
+  month: Int
+  nanosecond: Int
+  second: Int
+  timezone: String
+  year: Int
+}
+
+type _Neo4jLocalDateTime {
+  day: Int
+  formatted: String
+  hour: Int
+  microsecond: Int
+  millisecond: Int
+  minute: Int
+  month: Int
+  nanosecond: Int
+  second: Int
+  year: Int
+}
+
+type _Neo4jLocalTime {
+  formatted: String
+  hour: Int
+  microsecond: Int
+  millisecond: Int
+  minute: Int
+  nanosecond: Int
+  second: Int
+}
+
+type _Neo4jPoint {
+  """
+   The coordinate reference systems (CRS)
+   -------------------------------------
+   posible values:
+   * `wgs-84`: A 2D geographic point in the WGS 84 CRS is specified in one of two ways:
+     * longitude and latitude (if these are specified, and the crs is not, then the crs is assumed to be WGS-84)
+     * x and y (in this case the crs must be specified, or will be assumed to be Cartesian)
+   * `wgs-84-3d`: A 3D geographic point in the WGS 84 CRS is specified one of in two ways:
+     * longitude, latitude and either height or z (if these are specified, and the crs is not, then the crs is assumed to be WGS-84-3D)
+     * x, y and z (in this case the crs must be specified, or will be assumed to be Cartesian-3D)
+   * `cartesian`: A 2D point in the Cartesian CRS is specified with a map containing x and y coordinate values
+   * `cartesian-3d`: A 3D point in the Cartesian CRS is specified with a map containing x, y and z coordinate values
+  """
+  crs: String
+  " The third element of the Coordinate for geographic CRS, meters above the ellipsoid defined by the datum (WGS-84)"
+  height: Float
+  """
+   The second element of the Coordinate for geographic CRS, degrees North of the equator
+   Range -90.0 to 90.0
+  """
+  latitude: Float
+  """
+   The first element of the Coordinate for geographic CRS, degrees East of the prime meridian
+   Range -180.0 to 180.0
+  """
+  longitude: Float
+  """
+   The internal Neo4j ID for the CRS
+   One of:
+   * `4326`: represents CRS `wgs-84`
+   * `4979`: represents CRS `wgs-84-3d`
+   * `7203`: represents CRS `cartesian`
+   * `9157`: represents CRS `cartesian-3d`
+  """
+  srid: Int
+  " The first element of the Coordinate"
+  x: Float
+  " The second element of the Coordinate"
+  y: Float
+  " The third element of the Coordinate"
+  z: Float
+}
+
+type _Neo4jTime {
+  formatted: String
+  hour: Int
+  microsecond: Int
+  millisecond: Int
+  minute: Int
+  nanosecond: Int
+  second: Int
+  timezone: String
+}
+
+enum RelationDirection {
+  BOTH
+  IN
+  OUT
+}
+
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+scalar DynamicProperties
+
+input MovieOptions {
+  "Defines the maximum amount of records returned"
+  limit: Int
+  "Defines the amount of records to be skipped"
+  skip: Int
+  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [MovieSort!]
+}
+
+"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+input MovieSort {
+  actorCount: SortDirection
+  averageRating: SortDirection
+  id: SortDirection
+  isActive: SortDirection
+}
+
+input _MovieFilter {
+  AND: [_MovieFilter!]
+  NOT: [_MovieFilter!]
+  OR: [_MovieFilter!]
+  actorCount: Int
+  actorCount_gt: Int
+  actorCount_gte: Int
+  actorCount_in: [Int]
+  actorCount_lt: Int
+  actorCount_lte: Int
+  actorCount_not: Int
+  actorCount_not_in: [Int]
+  averageRating: Float
+  averageRating_gt: Float
+  averageRating_gte: Float
+  averageRating_in: [Float]
+  averageRating_lt: Float
+  averageRating_lte: Float
+  averageRating_not: Float
+  averageRating_not_in: [Float]
+  id: ID
+  id_contains: ID
+  id_ends_with: ID
+  id_gt: ID
+  id_gte: ID
+  id_in: [ID]
+  id_lt: ID
+  id_lte: ID
+  id_matches: ID
+  id_not: ID
+  id_not_contains: ID
+  id_not_ends_with: ID
+  id_not_in: [ID]
+  id_not_starts_with: ID
+  id_starts_with: ID
+  isActive: Boolean
+  isActive_not: Boolean
+}
+
+input _MovieInput {
+  actorCount: Int
+  averageRating: Float
+  id: ID
+  isActive: Boolean
+}
+
+input _Neo4jDateInput {
+  day: Int
+  formatted: String
+  month: Int
+  year: Int
+}
+
+input _Neo4jDateTimeInput {
+  day: Int
+  formatted: String
+  hour: Int
+  microsecond: Int
+  millisecond: Int
+  minute: Int
+  month: Int
+  nanosecond: Int
+  second: Int
+  timezone: String
+  year: Int
+}
+
+input _Neo4jLocalDateTimeInput {
+  day: Int
+  formatted: String
+  hour: Int
+  microsecond: Int
+  millisecond: Int
+  minute: Int
+  month: Int
+  nanosecond: Int
+  second: Int
+  year: Int
+}
+
+input _Neo4jLocalTimeInput {
+  formatted: String
+  hour: Int
+  microsecond: Int
+  millisecond: Int
+  minute: Int
+  nanosecond: Int
+  second: Int
+}
+
+input _Neo4jPointInput {
+  crs: String
+  height: Float
+  latitude: Float
+  longitude: Float
+  srid: Int
+  x: Float
+  y: Float
+  z: Float
+}
+
+input _Neo4jTimeInput {
+  formatted: String
+  hour: Int
+  microsecond: Int
+  millisecond: Int
+  minute: Int
+  nanosecond: Int
+  second: Int
+  timezone: String
+}
+
+directive @relation(name:String, direction: RelationDirection = OUT, from: String = "from", to: String = "to") on FIELD_DEFINITION | OBJECT
+directive @cypher(statement:String) on FIELD_DEFINITION
+directive @property(name:String) on FIELD_DEFINITION
+directive @dynamic(prefix:String = "properties.") on FIELD_DEFINITION
+
+----

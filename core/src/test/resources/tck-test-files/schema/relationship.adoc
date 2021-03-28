@@ -1,0 +1,337 @@
+:toc:
+
+= Schema Relationship
+
+Tests that the provided typeDefs return the correct schema (with relationships).
+
+== Inputs
+
+[source,graphql,schema=true]
+----
+type Actor {
+    name: String
+}
+
+type Movie {
+    id: ID
+    actors: [Actor]! @relation(name: "ACTED_IN", direction: IN)
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+  "queryOptionStyle": "INPUT_TYPE"
+}
+----
+
+== Output
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type Actor {
+  name: String
+}
+
+type Movie {
+  actors(filter: _ActorFilter, options: ActorOptions): [Actor]! @relation(direction : IN, from : "from", name : "ACTED_IN", to : "to")
+  id: ID
+}
+
+type Mutation {
+  createActor(name: String): Actor!
+  createMovie(id: ID): Movie!
+  "Deletes Movie and returns the type itself"
+  deleteMovie(id: ID): Movie
+}
+
+type Query {
+  actor(filter: _ActorFilter, name: String, options: ActorOptions): [Actor!]!
+  movie(filter: _MovieFilter, id: ID, options: MovieOptions): [Movie!]!
+}
+
+type _Neo4jDate {
+  day: Int
+  formatted: String
+  month: Int
+  year: Int
+}
+
+type _Neo4jDateTime {
+  day: Int
+  formatted: String
+  hour: Int
+  microsecond: Int
+  millisecond: Int
+  minute: Int
+  month: Int
+  nanosecond: Int
+  second: Int
+  timezone: String
+  year: Int
+}
+
+type _Neo4jLocalDateTime {
+  day: Int
+  formatted: String
+  hour: Int
+  microsecond: Int
+  millisecond: Int
+  minute: Int
+  month: Int
+  nanosecond: Int
+  second: Int
+  year: Int
+}
+
+type _Neo4jLocalTime {
+  formatted: String
+  hour: Int
+  microsecond: Int
+  millisecond: Int
+  minute: Int
+  nanosecond: Int
+  second: Int
+}
+
+type _Neo4jPoint {
+  """
+   The coordinate reference systems (CRS)
+   -------------------------------------
+   posible values:
+   * `wgs-84`: A 2D geographic point in the WGS 84 CRS is specified in one of two ways:
+     * longitude and latitude (if these are specified, and the crs is not, then the crs is assumed to be WGS-84)
+     * x and y (in this case the crs must be specified, or will be assumed to be Cartesian)
+   * `wgs-84-3d`: A 3D geographic point in the WGS 84 CRS is specified one of in two ways:
+     * longitude, latitude and either height or z (if these are specified, and the crs is not, then the crs is assumed to be WGS-84-3D)
+     * x, y and z (in this case the crs must be specified, or will be assumed to be Cartesian-3D)
+   * `cartesian`: A 2D point in the Cartesian CRS is specified with a map containing x and y coordinate values
+   * `cartesian-3d`: A 3D point in the Cartesian CRS is specified with a map containing x, y and z coordinate values
+  """
+  crs: String
+  " The third element of the Coordinate for geographic CRS, meters above the ellipsoid defined by the datum (WGS-84)"
+  height: Float
+  """
+   The second element of the Coordinate for geographic CRS, degrees North of the equator
+   Range -90.0 to 90.0
+  """
+  latitude: Float
+  """
+   The first element of the Coordinate for geographic CRS, degrees East of the prime meridian
+   Range -180.0 to 180.0
+  """
+  longitude: Float
+  """
+   The internal Neo4j ID for the CRS
+   One of:
+   * `4326`: represents CRS `wgs-84`
+   * `4979`: represents CRS `wgs-84-3d`
+   * `7203`: represents CRS `cartesian`
+   * `9157`: represents CRS `cartesian-3d`
+  """
+  srid: Int
+  " The first element of the Coordinate"
+  x: Float
+  " The second element of the Coordinate"
+  y: Float
+  " The third element of the Coordinate"
+  z: Float
+}
+
+type _Neo4jTime {
+  formatted: String
+  hour: Int
+  microsecond: Int
+  millisecond: Int
+  minute: Int
+  nanosecond: Int
+  second: Int
+  timezone: String
+}
+
+enum RelationDirection {
+  BOTH
+  IN
+  OUT
+}
+
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+scalar DynamicProperties
+
+input ActorOptions {
+  "Defines the maximum amount of records returned"
+  limit: Int
+  "Defines the amount of records to be skipped"
+  skip: Int
+  "Specify one or more ActorSort objects to sort Actors by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [ActorSort!]
+}
+
+"Fields to sort Actors by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+input ActorSort {
+  name: SortDirection
+}
+
+input MovieOptions {
+  "Defines the maximum amount of records returned"
+  limit: Int
+  "Defines the amount of records to be skipped"
+  skip: Int
+  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [MovieSort!]
+}
+
+"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+input MovieSort {
+  id: SortDirection
+}
+
+input _ActorFilter {
+  AND: [_ActorFilter!]
+  NOT: [_ActorFilter!]
+  OR: [_ActorFilter!]
+  name: String
+  name_contains: String
+  name_ends_with: String
+  name_gt: String
+  name_gte: String
+  name_in: [String]
+  name_lt: String
+  name_lte: String
+  name_matches: String
+  name_not: String
+  name_not_contains: String
+  name_not_ends_with: String
+  name_not_in: [String]
+  name_not_starts_with: String
+  name_starts_with: String
+}
+
+input _ActorInput {
+  name: String
+}
+
+input _MovieFilter {
+  AND: [_MovieFilter!]
+  NOT: [_MovieFilter!]
+  OR: [_MovieFilter!]
+  "Filters only those `Movie` for which all `actors`-relationship matches this filter. If `null` is passed to this field, only those `Movie` will be filtered which has no `actors`-relations"
+  actors: _ActorFilter
+  "Filters only those `Movie` for which all `actors`-relationships matches this filter"
+  actors_every: _ActorFilter
+  "Filters only those `Movie` for which none of the `actors`-relationships matches this filter"
+  actors_none: _ActorFilter
+  "Filters only those `Movie` for which all `actors`-relationship does not match this filter. If `null` is passed to this field, only those `Movie` will be filtered which has any `actors`-relation"
+  actors_not: _ActorFilter
+  "Filters only those `Movie` for which exactly one `actors`-relationship matches this filter"
+  actors_single: _ActorFilter
+  "Filters only those `Movie` for which at least one `actors`-relationship matches this filter"
+  actors_some: _ActorFilter
+  id: ID
+  id_contains: ID
+  id_ends_with: ID
+  id_gt: ID
+  id_gte: ID
+  id_in: [ID]
+  id_lt: ID
+  id_lte: ID
+  id_matches: ID
+  id_not: ID
+  id_not_contains: ID
+  id_not_ends_with: ID
+  id_not_in: [ID]
+  id_not_starts_with: ID
+  id_starts_with: ID
+}
+
+input _MovieInput {
+  id: ID
+}
+
+input _Neo4jDateInput {
+  day: Int
+  formatted: String
+  month: Int
+  year: Int
+}
+
+input _Neo4jDateTimeInput {
+  day: Int
+  formatted: String
+  hour: Int
+  microsecond: Int
+  millisecond: Int
+  minute: Int
+  month: Int
+  nanosecond: Int
+  second: Int
+  timezone: String
+  year: Int
+}
+
+input _Neo4jLocalDateTimeInput {
+  day: Int
+  formatted: String
+  hour: Int
+  microsecond: Int
+  millisecond: Int
+  minute: Int
+  month: Int
+  nanosecond: Int
+  second: Int
+  year: Int
+}
+
+input _Neo4jLocalTimeInput {
+  formatted: String
+  hour: Int
+  microsecond: Int
+  millisecond: Int
+  minute: Int
+  nanosecond: Int
+  second: Int
+}
+
+input _Neo4jPointInput {
+  crs: String
+  height: Float
+  latitude: Float
+  longitude: Float
+  srid: Int
+  x: Float
+  y: Float
+  z: Float
+}
+
+input _Neo4jTimeInput {
+  formatted: String
+  hour: Int
+  microsecond: Int
+  millisecond: Int
+  minute: Int
+  nanosecond: Int
+  second: Int
+  timezone: String
+}
+
+directive @relation(name:String, direction: RelationDirection = OUT, from: String = "from", to: String = "to") on FIELD_DEFINITION | OBJECT
+directive @cypher(statement:String, passThrough: Boolean = false) on FIELD_DEFINITION
+directive @property(name:String) on FIELD_DEFINITION
+directive @dynamic(prefix:String = "properties.") on FIELD_DEFINITION
+
+----

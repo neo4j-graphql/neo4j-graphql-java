@@ -125,7 +125,7 @@ object QueryParser {
         fieldDefinition.arguments
             .filter { it.defaultValue != null }
             .filterNot { queriedFields.containsKey(it.name) }
-            .filterNot { setOf(ProjectionBase.FIRST, ProjectionBase.OFFSET, ProjectionBase.ORDER_BY, ProjectionBase.FILTER).contains(it.name) }
+            .filterNot { ProjectionBase.SPECIAL_FIELDS.contains(it.name) }
             .forEach { argument ->
                 queriedFields[argument.name] = index++ to ObjectField(argument.name, argument.defaultValue.asGraphQLValue())
             }

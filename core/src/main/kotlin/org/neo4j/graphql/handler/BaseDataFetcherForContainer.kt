@@ -23,7 +23,7 @@ abstract class BaseDataFetcherForContainer(
     init {
         fieldDefinition
             .arguments
-            .filterNot { listOf(FIRST, OFFSET, ORDER_BY, NATIVE_ID).contains(it.name) }
+            .filterNot { listOf(FIRST, OFFSET, ORDER_BY, NATIVE_ID, OPTIONS).contains(it.name) }
             .onEach { arg ->
                 if (arg.defaultValue != null) {
                     defaultFields[arg.name] = arg.defaultValue

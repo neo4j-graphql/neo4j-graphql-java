@@ -81,7 +81,19 @@ class CypherTests {
             )
         }
 
+
+    @TestFactory
+    fun `new cypher tck tests`(): Stream<DynamicNode>? = Files
+        .list(Paths.get("src/test/resources/tck-test-files/cypher"))
+        .map {
+            DynamicContainer.dynamicContainer(
+                    it.fileName.toString(),
+                    it.toUri(),
+                    CypherTestSuite("tck-test-files/cypher/${it.fileName}", neo4j).generateTests()
+            )
+        }
+
     companion object {
-       private val INTEGRATION_TESTS = System.getProperty("neo4j-graphql-java.integration-tests", "false") == "true"
+        private val INTEGRATION_TESTS = System.getProperty("neo4j-graphql-java.integration-tests", "false") == "true"
     }
 }

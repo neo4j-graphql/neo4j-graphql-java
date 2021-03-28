@@ -2,6 +2,7 @@ package org.neo4j.graphql
 
 import graphql.Scalars
 import graphql.schema.*
+import org.neo4j.graphql.handler.projection.ProjectionBase
 
 class BuildingEnv(
         val types: MutableMap<String, GraphQLNamedType>,
@@ -127,6 +128,61 @@ class BuildingEnv(
                 GraphQLFieldDefinition.newFieldDefinition().name("distance").type(GraphQLNonNull(Scalars.GraphQLFloat)).build(),
                 GraphQLFieldDefinition.newFieldDefinition().name("point").type(GraphQLNonNull(pointType)).build()
         ))
+    }
+
+    fun addOptions(type: GraphQLFieldsContainer): String {
+        val optionsName = "${type.name}Options"
+        val optionsType = types[optionsName]
+        if (optionsType != null) {
+            return (optionsType as? GraphQLInputType)?.requiredName()
+                    ?: throw IllegalStateException("Ordering type $type.name is already defined but not an input type")
+        }
+        val sortTypeName = addSortInputType(type)
+        val optionsTypeBuilder =  GraphQLInputObjectType.newInputObject().name(optionsName)
+        if (sortTypeName != null) {
+            optionsTypeBuilder.field(GraphQLInputObjectField.newInputObjectField()
+                .name(ProjectionBase.SORT)
+                .type(GraphQLList(GraphQLNonNull(GraphQLTypeReference(sortTypeName))))
+                .description("Specify one or more $sortTypeName objects to sort ${type.name}s by. The sorts will be applied in the order in which they are arranged in the array.")
+                .build())
+        }
+        optionsTypeBuilder.field(GraphQLInputObjectField.newInputObjectField()
+                .name(ProjectionBase.LIMIT)
+                .type(Scalars.GraphQLInt)
+                .description("Defines the maximum amount of records returned")
+                .build())
+            .field(GraphQLInputObjectField.newInputObjectField()
+                .name(ProjectionBase.SKIP)
+                .type(Scalars.GraphQLInt)
+                .description("Defines the amount of records to be skipped")
+                .build())
+            .build()
+        types[optionsName] = optionsTypeBuilder.build()
+        return optionsName
+    }
+
+    private fun addSortInputType(type: GraphQLFieldsContainer): String? {
+        val sortTypeName = "${type.name}Sort"
+        val sortType = types[sortTypeName]
+        if (sortType != null) {
+            return (sortType as? GraphQLInputType)?.requiredName()
+                    ?: throw IllegalStateException("Ordering type $type.name is already defined but not an input type")
+        }
+        val relevantFields = type.relevantFields()
+        if (relevantFields.isEmpty()){
+            return null
+        }
+        val builder = GraphQLInputObjectType.newInputObject()
+            .name(sortTypeName)
+            .description("Fields to sort ${type.name}s by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object.")
+        for (relevantField in relevantFields) {
+            builder.field(GraphQLInputObjectField.newInputObjectField()
+                .name(relevantField.name)
+                .type(GraphQLTypeReference("SortDirection"))
+                .build())
+        }
+        types[sortTypeName] = builder.build()
+        return sortTypeName
     }
 
     fun addOrdering(type: GraphQLFieldsContainer): String? {
