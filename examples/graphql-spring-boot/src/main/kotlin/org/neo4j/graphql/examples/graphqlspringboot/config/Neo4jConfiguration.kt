@@ -25,17 +25,17 @@ open class Neo4jConfiguration {
         return object : DataFetchingInterceptor {
             override fun fetchData(env: DataFetchingEnvironment, delegate: DataFetcher<Cypher>): Any? {
 
-                val cypher = delegate.get(env)
+                val (cypher, params, type, variable) = delegate.get(env)
 
                 return driver.session().writeTransaction { tx ->
-                    val boltParams = cypher.params.mapValues { toBoltValue(it.value, env.variables) }
-                    val result = tx.run(cypher.query, boltParams)
-                    if (isListType(cypher.type)) {
+                    val boltParams = params.mapValues { toBoltValue(it.value) }
+                    val result = tx.run(cypher, boltParams)
+                    if (isListType(type)) {
                         result.list()
-                            .map { record -> record.get(cypher.variable).asObject() }
+                            .map { record -> record.get(variable).asObject() }
                     } else {
                         result.list()
-                            .map { record -> record.get(cypher.variable).asObject() }
+                            .map { record -> record.get(variable).asObject() }
                             .firstOrNull() ?: emptyMap<String, Any>()
                     }
                 }
@@ -44,8 +44,7 @@ open class Neo4jConfiguration {
     }
 
     companion object {
-        private fun toBoltValue(value: Any?, params: Map<String, Any?>) = when (value) {
-            is VariableReference -> params[value.name]
+        private fun toBoltValue(value: Any?) = when (value) {
             is BigInteger -> value.longValueExact()
             is BigDecimal -> value.toDouble()
             else -> value

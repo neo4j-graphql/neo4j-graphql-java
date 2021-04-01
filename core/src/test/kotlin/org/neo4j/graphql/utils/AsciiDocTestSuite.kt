@@ -1,7 +1,7 @@
 package org.neo4j.graphql.utils
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.intellij.rt.execution.junit.FileComparisonFailure
-import org.codehaus.jackson.map.ObjectMapper
 import org.junit.jupiter.api.DynamicContainer
 import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.DynamicTest
@@ -269,7 +269,7 @@ open class AsciiDocTestSuite(
             }
         }
 
-        private fun fixNumber(v: Any?): Any? = when (v) {
+        fun fixNumber(v: Any?): Any? = when (v) {
             is Float -> v.toDouble()
             is Int -> v.toLong()
             is Iterable<*> -> v.map { fixNumber(it) }

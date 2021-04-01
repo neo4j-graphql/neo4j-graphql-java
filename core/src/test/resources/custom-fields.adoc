@@ -31,13 +31,13 @@ schema {
   query: QueryType
 }
 type QueryType {
-  Person(name:String) : Person @cypher(statement:"MATCH (p:Person { name:{name} }) RETURN p")
-  getOrderPosition(sid:ID!) : [OrderPosition] @cypher(statement:"MATCH (op:OrderPosition {sid: {sid}}) RETURN op")
+  Person(name:String) : Person @cypher(statement:"MATCH (p:Person { name: $name }) RETURN p")
+  getOrderPosition(sid:ID!) : [OrderPosition] @cypher(statement:"MATCH (op:OrderPosition {sid: $sid}) RETURN op")
 }
 
 type MutationType {
-  createPerson(name:String) : Person @cypher(statement:"CREATE (p:Person { name: \"Test\"+{name} }) RETURN p")
-  setOrderPositionAmount(sid:ID!, amount:Int) : [OrderPosition] @cypher(statement:"MATCH (op:OrderPosition {sid:{sid}}) SET op.amount = {amount} RETURN op")
+  createPerson(name:String) : Person @cypher(statement:"CREATE (p:Person { name: \"Test\"+$name }) RETURN p")
+  setOrderPositionAmount(sid:ID!, amount:Int) : [OrderPosition] @cypher(statement:"MATCH (op:OrderPosition {sid:{sid}}) SET op.amount = $amount RETURN op")
 }
 ----
 
@@ -86,7 +86,7 @@ mutation { createPerson(name:"Jill") {name} }
 .Cypher
 [source,cypher]
 ----
-CALL apoc.cypher.doIt('WITH $name AS name CREATE (p:Person { name: \"Test\"+{name} }) RETURN p',  {
+CALL apoc.cypher.doIt('WITH $name AS name CREATE (p:Person { name: \"Test\"+$name }) RETURN p',  {
 	name: $createPersonName
 }) YIELD value
 WITH value[head(keys(value))] AS createPerson
@@ -131,7 +131,7 @@ query { Person(name:"Jane") {name} }
 .Cypher
 [source,cypher]
 ----
-UNWIND apoc.cypher.runFirstColumnSingle('WITH $name AS name MATCH (p:Person { name:{name} }) RETURN p',  {
+UNWIND apoc.cypher.runFirstColumnSingle('WITH $name AS name MATCH (p:Person { name: $name }) RETURN p',  {
 	name: $personName
 }) AS person
 RETURN person {
@@ -169,7 +169,7 @@ query { Person(name:"Jane") {name, label} }
 .Cypher
 [source,cypher]
 ----
-UNWIND apoc.cypher.runFirstColumnSingle('WITH $name AS name MATCH (p:Person { name:{name} }) RETURN p',  {
+UNWIND apoc.cypher.runFirstColumnSingle('WITH $name AS name MATCH (p:Person { name: $name }) RETURN p',  {
 	name: $personName
 }) AS person
 RETURN person {
@@ -210,7 +210,7 @@ query { Person(name:"Jane") {name, nullable} }
 .Cypher
 [source,cypher]
 ----
-UNWIND apoc.cypher.runFirstColumnSingle('WITH $name AS name MATCH (p:Person { name:{name} }) RETURN p',  {
+UNWIND apoc.cypher.runFirstColumnSingle('WITH $name AS name MATCH (p:Person { name: $name }) RETURN p',  {
 	name: $personName
 }) AS person
 RETURN person {
