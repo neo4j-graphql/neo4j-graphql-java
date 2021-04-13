@@ -3206,7 +3206,7 @@ RETURN p {
 .GraphQL-Query
 [source,graphql]
 ----
-{ p: company { employees(filter: { OR: [{ name: "Jane" },{name:"Joe"}]}) { name }}}
+{ p: company { employees(filter: { OR: [{ name: "Jane" },{name:"Joe"}]}, orderBy: name_desc) { name }}}
 ----
 
 .GraphQL-Response
@@ -3239,10 +3239,10 @@ RETURN p {
 ----
 MATCH (p:Company)
 RETURN p {
-	employees: [(p)<-[:WORKS_AT]-(pEmployees:Person) WHERE (pEmployees.name = $filterPEmployeesOr1Name
-	OR pEmployees.name = $filterPEmployeesOr2Name) | pEmployees {
+	employees: apoc.coll.sortMulti([(p)<-[:WORKS_AT]-(pEmployees:Person) WHERE (pEmployees.name = $filterPEmployeesOr1Name
+		OR pEmployees.name = $filterPEmployeesOr2Name) | pEmployees {
 		.name
-	}]
+	}], ['name'])
 } AS p
 ----
 

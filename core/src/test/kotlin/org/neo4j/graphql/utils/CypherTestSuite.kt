@@ -1,5 +1,10 @@
 package org.neo4j.graphql.utils
 
+import graphql.ExecutionInput
+import graphql.GraphQL
+import graphql.schema.DataFetcher
+import graphql.schema.DataFetchingEnvironment
+import graphql.schema.GraphQLSchema
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Assumptions
 import org.junit.jupiter.api.DynamicNode
@@ -44,9 +49,8 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
         if (neo4j != null) {
             val testData = globalBlocks[TEST_DATA_MARKER]
             val response = getOrCreateBlock(codeBlocks, GRAPHQL_RESPONSE_MARKER, "GraphQL-Response")
-
             if (testData != null && response != null) {
-                tests.add(integrationTest(testData, response, result))
+                tests.add(integrationTest(title, globalBlocks, codeBlocks, testData, response))
             }
         }
 
@@ -56,17 +60,27 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
         return tests
     }
 
-    private fun createTransformationTask(title: String, globalBlocks: Map<String, ParsedBlock>, codeBlocks: Map<String, ParsedBlock>): () -> Cypher {
+    private fun createSchema(
+            globalBlocks: Map<String, ParsedBlock>,
+            codeBlocks: Map<String, ParsedBlock>,
+            dataFetchingInterceptor: DataFetchingInterceptor? = null
+    ): GraphQLSchema {
         val schemaString = globalBlocks[SCHEMA_MARKER]?.code()
                 ?: throw IllegalStateException("Schema should be defined")
+        val schemaConfig = (codeBlocks[SCHEMA_CONFIG_MARKER] ?: globalBlocks[SCHEMA_CONFIG_MARKER])?.code()
+            ?.let { return@let MAPPER.readValue(it, SchemaConfig::class.java) }
+                ?: SchemaConfig()
+        return SchemaBuilder.buildSchema(schemaString, schemaConfig, dataFetchingInterceptor)
+    }
 
+    private fun createTransformationTask(
+            title: String,
+            globalBlocks: Map<String, ParsedBlock>,
+            codeBlocks: Map<String, ParsedBlock>
+    ): () -> Cypher {
         val transformationTask = FutureTask {
 
-            val schemaConfig = (codeBlocks[SCHEMA_CONFIG_MARKER] ?: globalBlocks[SCHEMA_CONFIG_MARKER])?.code()
-                ?.let { return@let MAPPER.readValue(it, SchemaConfig::class.java) }
-                    ?: SchemaConfig()
-            val schema = SchemaBuilder.buildSchema(schemaString, schemaConfig)
-
+            val schema = createSchema(globalBlocks, codeBlocks)
 
             val request = codeBlocks[GRAPHQL_MARKER]?.code()
                     ?: throw IllegalStateException("missing graphql for $title")
@@ -139,37 +153,72 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
         }
     }
 
-    private fun integrationTest(testData: ParsedBlock, response: ParsedBlock, result: () -> Cypher): DynamicNode = DynamicTest.dynamicTest("Integration Test", response.uri) {
-        neo4j?.defaultDatabaseService()?.let { db ->
-            db.executeTransactionally("MATCH (n) DETACH DELETE n")
-            if (testData.code().isNotBlank()) {
-                testData.code()
-                    .split(";")
-                    .filter { it.isNotBlank() }
-                    .forEach { db.executeTransactionally(it) }
-            }
-            val (cypher, params, type, variable) = result()
-            val values = db.executeTransactionally(cypher, params) { result ->
-                mutableMapOf(variable to result.stream().map { it[variable] }.let {
-                    when {
-                        type?.isList() == true -> it.toList()
-                        else -> it.findFirst().orElse(null)
+    private fun setupDataFetchingInterceptor(testData: ParsedBlock): DataFetchingInterceptor {
+        return object : DataFetchingInterceptor {
+            override fun fetchData(env: DataFetchingEnvironment, delegate: DataFetcher<Cypher>): Any? = neo4j
+                ?.defaultDatabaseService()?.let { db ->
+                    db.executeTransactionally("MATCH (n) DETACH DELETE n")
+                    if (testData.code().isNotBlank()) {
+                        testData.code()
+                            .split(";")
+                            .filter { it.isNotBlank() }
+                            .forEach { db.executeTransactionally(it) }
                     }
-                })
-            }
+                    val (cypher, params, type, variable) = delegate.get(env)
+                    return db.executeTransactionally(cypher, params) { result ->
+                        result.stream().map { it[variable] }.let {
+                            when {
+                                type?.isList() == true -> it.toList()
+                                else -> it.findFirst().orElse(null)
+                            }
+                        }
 
-            if (response.code.isEmpty()) {
+                    }
+                }
+        }
+    }
+
+    private fun integrationTest(
+            title: String,
+            globalBlocks: Map<String, ParsedBlock>,
+            codeBlocks: Map<String, ParsedBlock>,
+            testData: ParsedBlock,
+            response: ParsedBlock
+    ): DynamicNode = DynamicTest.dynamicTest("Integration Test", response.uri) {
+        val dataFetchingInterceptor = setupDataFetchingInterceptor(testData)
+        val request = codeBlocks[GRAPHQL_MARKER]?.code()
+                ?: throw IllegalStateException("missing graphql for $title")
+
+
+        val requestParams = codeBlocks[GRAPHQL_VARIABLES_MARKER]?.code()?.parseJsonMap() ?: emptyMap()
+
+        val queryContext = codeBlocks[QUERY_CONFIG_MARKER]?.code()
+            ?.let<String, QueryContext?> { config -> return@let MAPPER.readValue(config, QueryContext::class.java) }
+                ?: QueryContext()
+
+
+        val schema = createSchema(globalBlocks, codeBlocks, dataFetchingInterceptor)
+        val graphql = GraphQL.newGraphQL(schema).build()
+        val result = graphql.execute(ExecutionInput.newExecutionInput()
+            .query(request)
+            .variables(requestParams)
+            .context(queryContext)
+            .build())
+        Assertions.assertThat(result.errors).isEmpty()
+
+        val values = result?.getData<Any>()
+
+        if (response.code.isEmpty()) {
+            val actualCode = MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(values)
+            response.adjustedCode = actualCode
+        } else {
+            val expected = fixNumbers(response.code().parseJsonMap())
+            val actual = fixNumber(values)
+            if (!Objects.equals(expected, actual)) {
                 val actualCode = MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(values)
                 response.adjustedCode = actualCode
-            } else {
-                val expected = fixNumbers(response.code().parseJsonMap())
-                val actual = fixNumber(values)
-                if (!Objects.equals(expected, actual)) {
-                    val actualCode = MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(values)
-                    response.adjustedCode = actualCode
-                }
-                Assertions.assertThat(actual).isEqualTo(expected)
             }
+            Assertions.assertThat(actual).isEqualTo(expected)
         }
     }
 

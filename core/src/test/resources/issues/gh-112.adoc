@@ -31,7 +31,7 @@ CREATE
 .GraphQL-Query
 [source,graphql]
 ----
-query {
+query user( $uuid: ID ){
   user(uuid: $uuid) {
     uuid
     name
