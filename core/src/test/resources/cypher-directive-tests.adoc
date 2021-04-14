@@ -11,15 +11,30 @@ type Person {
   name: String @cypher(statement:"RETURN this.name")
   age(mult:Int=13) : [Int] @cypher(statement:"RETURN this.age * mult as age")
   friends: [Person] @cypher(statement:"MATCH (this)-[:KNOWS]-(o) RETURN o")
+  data: UserData @cypher(statement: "MATCH (this)-[:CREATED_MAP]->(m:Map) WITH collect({id: m.id, name: m.name}) AS mapsCreated, this RETURN {firstName: this.firstName, lastName: this.lastName, organization: this.organization, mapsCreated: mapsCreated}", passThrough:true)
 }
 type Query {
   person : [Person]
   p2: [Person] @cypher(statement:"MATCH (p:Person) RETURN p")
   p3(name:String): Person @cypher(statement:"MATCH (p:Person) WHERE p.name = name RETURN p LIMIT 1")
+  getUser(userId: ID): UserData @cypher(statement: "MATCH (u:User{id: {userId}})-[:CREATED_MAP]->(m:Map) WITH collect({id: m.id, name: m.name}) AS mapsCreated, u RETURN {firstName: u.firstName, lastName: u.lastName, organization: u.organization, mapsCreated: mapsCreated}", passThrough:true)
 }
 type Mutation {
   createPerson(name:String): Person @cypher(statement:"CREATE (p:Person) SET p.name = name RETURN p")
 }
+
+type UserData {
+  firstName: String
+  lastName: String
+  organization: String
+  mapsCreated: [MapsCreated]
+}
+
+type MapsCreated {
+  id: String
+  name: String
+}
+
 schema {
   query: Query
   mutation: Mutation
@@ -291,3 +306,73 @@ RETURN p3 {
 MATCH (person:Person) RETURN person { name:apoc.cypher.runFirstColumnSingle('WITH $this AS this RETURN this.name', { this:person }) } AS person
 ----
 
+=== pass through directives' result in query
+
+.GraphQL-Query
+[source,graphql]
+----
+query queriesRootQuery {
+  user: getUser(userId: "123") {
+    firstName lastName organization
+    mapsCreated { id }
+  }
+}
+----
+
+.Query variables
+[source,json,request=true]
+----
+{}
+----
+
+.Cypher params
+[source,json]
+----
+{
+  "userUserId" : "123"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+UNWIND apoc.cypher.runFirstColumnSingle('WITH $userId AS userId MATCH (u:User{id: {userId}})-[:CREATED_MAP]->(m:Map) WITH collect({id: m.id, name: m.name}) AS mapsCreated, u RETURN {firstName: u.firstName, lastName: u.lastName, organization: u.organization, mapsCreated: mapsCreated}',  {
+	userId: $userUserId
+}) AS user
+RETURN user AS user
+----
+
+
+=== pass through directives result in field
+
+.GraphQL-Query
+[source,graphql]
+----
+query queriesRootQuery {
+  person { id, data }
+}
+----
+
+.Query variables
+[source,json,request=true]
+----
+{}
+----
+
+.Cypher params
+[source,json]
+----
+{}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+RETURN person {
+	.id,
+	data: apoc.cypher.runFirstColumnSingle('WITH $this AS this MATCH (this)-[:CREATED_MAP]->(m:Map) WITH collect({id: m.id, name: m.name}) AS mapsCreated, this RETURN {firstName: this.firstName, lastName: this.lastName, organization: this.organization, mapsCreated: mapsCreated}',  {
+		this: person
+	})
+} AS person
+----

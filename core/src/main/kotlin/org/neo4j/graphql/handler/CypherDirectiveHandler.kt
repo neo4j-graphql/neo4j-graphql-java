@@ -15,7 +15,7 @@ import org.neo4j.graphql.*
 class CypherDirectiveHandler(
         private val type: GraphQLFieldsContainer?,
         private val isQuery: Boolean,
-        private val cypherDirective: String,
+        private val cypherDirective: CypherDirective,
         fieldDefinition: GraphQLFieldDefinition)
     : BaseDataFetcher(fieldDefinition) {
 
@@ -44,7 +44,7 @@ class CypherDirectiveHandler(
                 .with(org.neo4j.cypherdsl.core.Cypher.property(value, Functions.head(org.neo4j.cypherdsl.core.Cypher.call("keys").withArgs(value).asFunction())).`as`(variable))
         }
         val node = org.neo4j.cypherdsl.core.Cypher.anyNode(variable)
-        val readingWithWhere = if (type != null) {
+        val readingWithWhere = if (type != null && !cypherDirective.passThrough) {
             val projectionEntries = projectFields(node, field, type, env)
             query.returning(node.project(projectionEntries).`as`(field.aliasOrName()))
         } else {

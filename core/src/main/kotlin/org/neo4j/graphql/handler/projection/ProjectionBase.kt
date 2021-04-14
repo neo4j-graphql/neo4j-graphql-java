@@ -214,7 +214,7 @@ open class ProjectionBase {
         val isObjectField = fieldDefinition.type.inner() is GraphQLFieldsContainer
         if (cypherDirective != null) {
             val query = cypherDirective(field.contextualize(variable), fieldDefinition, field, cypherDirective, propertyContainer.requiredSymbolicName)
-            projections += if (isObjectField) {
+            projections += if (isObjectField && !cypherDirective.passThrough) {
                 projectListComprehension(variable, field, fieldDefinition, env, query, variableSuffix)
             } else {
                 query
@@ -275,13 +275,13 @@ open class ProjectionBase {
         return mapOf(*projections.toTypedArray())
     }
 
-    fun cypherDirective(variable: String, fieldDefinition: GraphQLFieldDefinition, field: Field, cypherDirective: String, thisValue: Any? = null): Expression {
+    fun cypherDirective(variable: String, fieldDefinition: GraphQLFieldDefinition, field: Field, cypherDirective: CypherDirective, thisValue: Any? = null): Expression {
         val suffix = if (fieldDefinition.type.isList()) "Many" else "Single"
         val args = cypherDirectiveQuery(variable, fieldDefinition, field, cypherDirective, thisValue)
         return call("apoc.cypher.runFirstColumn$suffix").withArgs(*args).asFunction()
     }
 
-    fun cypherDirectiveQuery(variable: String, fieldDefinition: GraphQLFieldDefinition, field: Field, cypherDirective: String, thisValue: Any? = null): Array<Expression> {
+    fun cypherDirectiveQuery(variable: String, fieldDefinition: GraphQLFieldDefinition, field: Field, cypherDirective: CypherDirective, thisValue: Any? = null): Array<Expression> {
         val args = mutableMapOf<String, Any?>()
         if (thisValue != null) args["this"] = thisValue
         field.arguments.forEach { args[it.name] = it.value }
@@ -290,7 +290,7 @@ open class ProjectionBase {
             .forEach { args[it.name] = it.defaultValue }
 
         val argParams = args.map { (name, _) -> "$$name AS $name" }.joinNonEmpty(", ")
-        val query = (if (argParams.isEmpty()) "" else "WITH $argParams ") + cypherDirective
+        val query = (if (argParams.isEmpty()) "" else "WITH $argParams ") + cypherDirective.statement
         val argExpressions = args.flatMap { (name, value) -> listOf(name, if (name == "this") value else queryParameter(value, variable, name)) }
         return arrayOf(literalOf<String>(query), mapOf(*argExpressions.toTypedArray()))
     }

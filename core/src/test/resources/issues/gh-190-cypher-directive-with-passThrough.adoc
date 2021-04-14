@@ -1,0 +1,84 @@
+:toc:
+
+= Github Issue #190: cypher directive with passThrough
+
+== Schema
+
+[source,graphql,schema=true]
+----
+type Query {
+  ## queriesRootQuery
+  getUser(userId: ID): UserData
+    @cypher(statement: "MATCH (u:User{id: $userId})-[:CREATED_MAP]->(m:Map) WITH collect({id: m.id, name: m.name}) AS mapsCreated, u RETURN {name: u.name, mapsCreated: mapsCreated}", passThrough:true)
+}
+
+type UserData {
+  name: String
+  mapsCreated: [MapsCreated]
+}
+
+type MapsCreated {
+  id: String
+  name: String
+}
+----
+
+[source,cypher,test-data=true]
+----
+CREATE
+    (u1:User{ id: 'u1', name: 'user 1' }),
+    (u2:User{ id: 'u2', name: 'user 2' }),
+    (m1:Map{ id: 'm1', name: 'v1' }),
+    (m2:Map{ id: 'm2', name: 'v2' }),
+    (m3:Map{ id: 'm3', name: 'v3' }),
+    (u1)-[:CREATED_MAP]->(m1),
+    (u1)-[:CREATED_MAP]->(m2),
+    (u2)-[:CREATED_MAP]->(m3);
+----
+
+== Tests
+
+=== Query projected data
+
+.GraphQL-Query
+[source,graphql]
+----
+query getUser {
+  user: getUser(userId: "u1") {
+    name
+    mapsCreated { id }
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "userUserId" : "u1"
+}
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "user" : {
+    "name" : "user 1",
+    "mapsCreated" : [ {
+      "id" : "m1"
+    }, {
+      "id" : "m2"
+    } ]
+  }
+}
+----
+
+.Cypher
+[source,cypher]
+----
+UNWIND apoc.cypher.runFirstColumnSingle('WITH $userId AS userId MATCH (u:User{id: $userId})-[:CREATED_MAP]->(m:Map) WITH collect({id: m.id, name: m.name}) AS mapsCreated, u RETURN {name: u.name, mapsCreated: mapsCreated}',  {
+	userId: $userUserId
+}) AS user
+RETURN user AS user
+----
