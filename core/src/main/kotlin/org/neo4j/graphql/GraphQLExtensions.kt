@@ -7,6 +7,7 @@ import org.neo4j.cypherdsl.core.Node
 import org.neo4j.cypherdsl.core.Relationship
 import org.neo4j.cypherdsl.core.SymbolicName
 import org.neo4j.graphql.DirectiveConstants.Companion.CYPHER
+import org.neo4j.graphql.DirectiveConstants.Companion.CYPHER_PASS_THROUGH
 import org.neo4j.graphql.DirectiveConstants.Companion.CYPHER_STATEMENT
 import org.neo4j.graphql.DirectiveConstants.Companion.DYNAMIC
 import org.neo4j.graphql.DirectiveConstants.Companion.DYNAMIC_PREFIX
@@ -200,7 +201,12 @@ fun <T> GraphQLDirective.getArgument(argumentName: String, defaultValue: T? = nu
             ?: throw IllegalStateException("No default value for @${this.name}::$argumentName")
 }
 
-fun GraphQLFieldDefinition.cypherDirective(): String? = getDirectiveArgument<String>(CYPHER, CYPHER_STATEMENT, null)
+fun GraphQLFieldDefinition.cypherDirective() :CypherDirective?= getDirective(CYPHER)?.let { CypherDirective(
+        it.getMandatoryArgument(CYPHER_STATEMENT),
+        it.getMandatoryArgument(CYPHER_PASS_THROUGH, false)
+) }
+
+data class CypherDirective(val statement: String, val passThrough: Boolean)
 
 fun Any.toJavaValue() = when (this) {
     is Value<*> -> this.toJavaValue()

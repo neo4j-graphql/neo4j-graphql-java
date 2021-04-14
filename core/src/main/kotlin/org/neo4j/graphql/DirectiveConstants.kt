@@ -12,6 +12,7 @@ class DirectiveConstants {
 
         const val CYPHER = "cypher"
         const val CYPHER_STATEMENT = "statement"
+        const val CYPHER_PASS_THROUGH = "passThrough"
 
         const val PROPERTY = "property"
         const val PROPERTY_NAME = "name"
