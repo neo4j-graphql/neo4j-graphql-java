@@ -1,19 +1,17 @@
 package org.neo4j.graphql.utils
 
-import apoc.cypher.CypherFunctions
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Assumptions
 import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.DynamicTest
 import org.neo4j.graphql.*
-import org.neo4j.harness.Neo4jBuilders
+import org.neo4j.harness.Neo4j
 import org.opentest4j.AssertionFailedError
-import java.nio.file.Path
 import java.util.*
 import java.util.concurrent.FutureTask
 import kotlin.streams.toList
 
-class CypherTestSuite(fileName: String) : AsciiDocTestSuite(
+class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTestSuite(
         fileName,
         listOf(
                 SCHEMA_CONFIG_MARKER,
@@ -43,7 +41,7 @@ class CypherTestSuite(fileName: String) : AsciiDocTestSuite(
             tests.add(printGeneratedQuery(result))
             tests.add(printReplacedParameter(result))
         }
-        if (INTEGRATION_TESTS) {
+        if (neo4j != null) {
             val testData = globalBlocks[TEST_DATA_MARKER]
             val response = getOrCreateBlock(codeBlocks, GRAPHQL_RESPONSE_MARKER, "GraphQL-Response")
 
@@ -142,48 +140,41 @@ class CypherTestSuite(fileName: String) : AsciiDocTestSuite(
     }
 
     private fun integrationTest(testData: ParsedBlock, response: ParsedBlock, result: () -> Cypher): DynamicNode = DynamicTest.dynamicTest("Integration Test", response.uri) {
-        Neo4jBuilders
-            .newInProcessBuilder(Path.of("target/test-db"))
-            .withProcedure(apoc.cypher.Cypher::class.java)
-            .withFunction(CypherFunctions::class.java)
-            .also { builder ->
-                if (testData.code().isNotBlank()) {
-                    testData.code()
-                        .split(";")
-                        .filter { it.isNotBlank() }
-                        .forEach { builder.withFixture(it) }
-                }
+        neo4j?.defaultDatabaseService()?.let { db ->
+            db.executeTransactionally("MATCH (n) DETACH DELETE n")
+            if (testData.code().isNotBlank()) {
+                testData.code()
+                    .split(";")
+                    .filter { it.isNotBlank() }
+                    .forEach { db.executeTransactionally(it) }
             }
-            .build()
-            .use { neo4j ->
-                val (cypher, params, type, variable) = result()
-                val values = neo4j.defaultDatabaseService().executeTransactionally(cypher, params) { result ->
-                    mutableMapOf(variable to result.stream().map { it[variable] }.let {
-                        when {
-                            type?.isList() == true -> it.toList()
-                            else -> it.findFirst().orElse(null)
-                        }
-                    })
-                }
+            val (cypher, params, type, variable) = result()
+            val values = db.executeTransactionally(cypher, params) { result ->
+                mutableMapOf(variable to result.stream().map { it[variable] }.let {
+                    when {
+                        type?.isList() == true -> it.toList()
+                        else -> it.findFirst().orElse(null)
+                    }
+                })
+            }
 
-                if (response.code.isEmpty()) {
+            if (response.code.isEmpty()) {
+                val actualCode = MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(values)
+                response.adjustedCode = actualCode
+            } else {
+                val expected = fixNumbers(response.code().parseJsonMap())
+                val actual = fixNumber(values)
+                if (!Objects.equals(expected, actual)) {
                     val actualCode = MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(values)
                     response.adjustedCode = actualCode
-                } else {
-                    val expected = fixNumbers(response.code().parseJsonMap())
-                    val actual = fixNumber(values)
-                    if (!Objects.equals(expected, actual)) {
-                        val actualCode = MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(values)
-                        response.adjustedCode = actualCode
-                    }
-                    Assertions.assertThat(actual).isEqualTo(expected)
                 }
+                Assertions.assertThat(actual).isEqualTo(expected)
             }
+        }
     }
 
     companion object {
         private val DEBUG = System.getProperty("neo4j-graphql-java.debug", "false") == "true"
-        private val INTEGRATION_TESTS = System.getProperty("neo4j-graphql-java.integration-tests", "false") == "true"
 
         private const val TEST_DATA_MARKER = "[source,cypher,test-data=true]"
         private const val CYPHER_MARKER = "[source,cypher]"
