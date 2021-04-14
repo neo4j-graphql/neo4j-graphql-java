@@ -396,7 +396,7 @@ schema {
 }
 
 interface HasMovies {
-  movies(first: Int, offset: Int, orderBy: [_MovieOrdering!]): [Movie]
+  movies(filter: _MovieFilter, first: Int, offset: Int, orderBy: [_MovieOrdering!]): [Movie]
 }
 
 type Knows0 @relation(direction : OUT, from : "source", name : "KNOWS", to : "knows") {
@@ -454,7 +454,7 @@ type Person4 {
 
 type Person5 implements HasMovies {
   id: ID!
-  movies(first: Int, offset: Int, orderBy: [_MovieOrdering!]): [Movie] @relation(direction : OUT, from : "from", name : "LIKES", to : "to")
+  movies(filter: _MovieFilter, first: Int, offset: Int, orderBy: [_MovieOrdering!]): [Movie] @relation(direction : OUT, from : "from", name : "LIKES", to : "to")
 }
 
 type Publisher {

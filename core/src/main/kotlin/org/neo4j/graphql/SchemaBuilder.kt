@@ -79,7 +79,7 @@ object SchemaBuilder {
 
         val handler = getHandler(config)
 
-        var targetSchema = augmentSchema(sourceSchema, handler)
+        var targetSchema = augmentSchema(sourceSchema, handler, config)
         targetSchema = addDataFetcher(targetSchema, dataFetchingInterceptor, handler)
         return targetSchema
     }
@@ -128,7 +128,7 @@ object SchemaBuilder {
         return handler
     }
 
-    private fun augmentSchema(sourceSchema: GraphQLSchema, handler: List<AugmentationHandler>): GraphQLSchema {
+    private fun augmentSchema(sourceSchema: GraphQLSchema, handler: List<AugmentationHandler>, schemaConfig: SchemaConfig): GraphQLSchema {
         val types = sourceSchema.typeMap.toMutableMap()
         val env = BuildingEnv(types, sourceSchema)
         val queryTypeName = sourceSchema.queryTypeName()
@@ -157,11 +157,11 @@ object SchemaBuilder {
                     builder.clearFields().clearInterfaces()
                     // to prevent duplicated types in schema
                     sourceType.interfaces.forEach { builder.withInterface(GraphQLTypeReference(it.name)) }
-                    sourceType.fieldDefinitions.forEach { f -> builder.field(enhanceRelations(f, env)) }
+                    sourceType.fieldDefinitions.forEach { f -> builder.field(enhanceRelations(f, env, schemaConfig)) }
                 }
                 sourceType is GraphQLInterfaceType -> sourceType.transform { builder ->
                     builder.clearFields()
-                    sourceType.fieldDefinitions.forEach { f -> builder.field(enhanceRelations(f, env)) }
+                    sourceType.fieldDefinitions.forEach { f -> builder.field(enhanceRelations(f, env, schemaConfig)) }
                 }
                 else -> sourceType
             }
@@ -177,7 +177,7 @@ object SchemaBuilder {
             .build()
     }
 
-    private fun enhanceRelations(fd: GraphQLFieldDefinition, env: BuildingEnv): GraphQLFieldDefinition {
+    private fun enhanceRelations(fd: GraphQLFieldDefinition, env: BuildingEnv, schemaConfig: SchemaConfig): GraphQLFieldDefinition {
         return fd.transform { fieldBuilder ->
             // to prevent duplicated types in schema
             fieldBuilder.type(fd.type.ref() as GraphQLOutputType)
@@ -192,13 +192,20 @@ object SchemaBuilder {
             if (fd.getArgument(ProjectionBase.OFFSET) == null) {
                 fieldBuilder.argument { a -> a.name(ProjectionBase.OFFSET).type(Scalars.GraphQLInt) }
             }
-            if (fd.getArgument(ProjectionBase.ORDER_BY) == null && fd.type.isList()) {
-                (fd.type.inner() as? GraphQLFieldsContainer)?.let { fieldType ->
-                    env.addOrdering(fieldType)?.let { orderingTypeName ->
-                        val orderType = GraphQLList(GraphQLNonNull(GraphQLTypeReference(orderingTypeName)))
-                        fieldBuilder.argument { a -> a.name(ProjectionBase.ORDER_BY).type(orderType) }
-                    }
+
+            val fieldType = fd.type.inner() as? GraphQLFieldsContainer ?: return@transform
+
+            if (fd.getArgument(ProjectionBase.ORDER_BY) == null) {
+                env.addOrdering(fieldType)?.let { orderingTypeName ->
+                    val orderType = GraphQLList(GraphQLNonNull(GraphQLTypeReference(orderingTypeName)))
+                    fieldBuilder.argument { a -> a.name(ProjectionBase.ORDER_BY).type(orderType) }
+
                 }
+            }
+
+            if (schemaConfig.query.enabled && !schemaConfig.query.exclude.contains(fieldType.name) && fd.getArgument(ProjectionBase.FILTER) == null) {
+                val filterTypeName = env.addFilterType(fieldType)
+                fieldBuilder.argument(input(ProjectionBase.FILTER, GraphQLTypeReference(filterTypeName)))
             }
         }
     }
