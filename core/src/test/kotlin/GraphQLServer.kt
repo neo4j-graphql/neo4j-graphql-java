@@ -4,17 +4,21 @@ package demo
 // curl -H content-type:application/json -d'{"query": "{ movie { title, released }}"}' http://localhost:4567/graphql
 // GraphiQL: https://neo4j-graphql.github.io/graphiql4all/index.html?graphqlEndpoint=http%3A%2F%2Flocalhost%3A4567%2Fgraphql&query=query%20%7B%0A%20%20movie%20%7B%20title%7D%0A%7D
 
-import com.google.gson.Gson
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.sun.net.httpserver.HttpExchange
+import com.sun.net.httpserver.HttpServer
+import graphql.ExecutionInput
 import graphql.GraphQL
-import org.neo4j.driver.v1.AuthTokens
-import org.neo4j.driver.v1.Config
-import org.neo4j.driver.v1.GraphDatabase
-import org.neo4j.driver.v1.Values
+import graphql.schema.DataFetcher
+import graphql.schema.DataFetchingEnvironment
+import org.neo4j.driver.AuthTokens
+import org.neo4j.driver.Config
+import org.neo4j.driver.GraphDatabase
+import org.neo4j.driver.Values
 import org.neo4j.graphql.*
-import spark.Request
-import spark.Response
-import spark.Spark
-import java.util.*
+import java.net.InetSocketAddress
+import kotlin.streams.toList
+
 
 const val schema = """
 type Person {
@@ -29,69 +33,85 @@ type Movie {
 }
 """
 
+val mapper = ObjectMapper()
+
 fun main() {
-    val gson = Gson()
-    fun render(value: Any) = gson.toJson(value)
-    fun parseBody(value: String) = gson.fromJson(value, Map::class.java)
 
     fun query(payload: Map<*, *>) = (payload["query"]!! as String).also { println(it) }
     fun params(payload: Map<*, *>): Map<String, Any?> = payload["variables"]
         .let {
             @Suppress("UNCHECKED_CAST")
             when (it) {
-                is String -> if (it.isBlank()) emptyMap<String, Any?>() else gson.fromJson(it, Map::class.java)
+                is String -> if (it.isBlank()) emptyMap<String, Any?>() else mapper.readValue(it, Map::class.java)
                 is Map<*, *> -> it
                 else -> emptyMap<String, Any?>()
             } as Map<String, Any?>
         }.also { println(it) }
 
+    val driver = GraphDatabase.driver("bolt://localhost", AuthTokens.basic("neo4j", "test"), Config.builder().withoutEncryption().build())
 
-    val graphQLSchema = SchemaBuilder.buildSchema(schema)
-    println(graphQLSchema)
-    val schema = GraphQL.newGraphQL(graphQLSchema).build()
-    val translator = Translator(graphQLSchema)
-    fun translate(query: String, params: Map<String, Any?>) = try {
-        val ctx = QueryContext(optimizedQuery = setOf(QueryContext.OptimizationStrategy.FILTER_AS_MATCH))
-        translator.translate(query, params, ctx)
-    } catch (e: OptimizedQueryException) {
-        translator.translate(query, params)
-    }
-
-    val driver = GraphDatabase.driver("bolt://localhost", AuthTokens.basic("neo4j", "test"), Config.build().withoutEncryption().build())
-    fun run(cypher: Cypher) = driver.session().use {
-        println(cypher.query)
-        println(cypher.params)
-        try {
-            // todo fix parameter mapping in translator
-            val result = it.run(cypher.query, Values.value(cypher.params))
-            val value = if (cypher.type?.isList() == true) {
-                result.list().map { row -> row.get(cypher.variable).asObject() }
-            } else {
-                result.list().map { record -> record.get(cypher.variable).asObject() }
-                    .firstOrNull() ?: emptyMap<String, Any>()
+    val graphQLSchema = SchemaBuilder.buildSchema(schema, dataFetchingInterceptor = object : DataFetchingInterceptor {
+        override fun fetchData(env: DataFetchingEnvironment, delegate: DataFetcher<Cypher>): Any? {
+            val (cypher, params, type, variable) = delegate.get(env)
+            println(cypher)
+            println(params)
+            return driver.session().use { session ->
+                try {
+                    val result = session.run(cypher, Values.value(params))
+                    when {
+                        type?.isList() == true -> result.stream().map { it[variable].asObject() }.toList()
+                        else -> result.stream().map { it[variable].asObject() }.findFirst().orElse(emptyMap<String, Any>())
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
-            Collections.singletonMap(cypher.variable, value)
-        } catch (e: Exception) {
-            e.printStackTrace()
+        }
+    })
+
+    val schema = GraphQL.newGraphQL(graphQLSchema).build()
+
+    val server: HttpServer = HttpServer.create(InetSocketAddress(4567), 0)
+
+    server.createContext("/graphql") { req ->
+        when {
+            req.requestMethod == "OPTIONS" -> req.sendResponse(null)
+            req.requestMethod == "POST" && req.requestHeaders["Content-Type"]?.contains("application/json") == true -> {
+                val payload = mapper.readValue(req.requestBody, Map::class.java)
+                val query = query(payload)
+                val response = if (query.contains("__schema")) {
+                    schema.execute(query).let { println(mapper.writeValueAsString(it));it }
+                } else {
+                    try {
+                        schema.execute(ExecutionInput
+                            .newExecutionInput()
+                            .query(query)
+                            .context(QueryContext(optimizedQuery = setOf(QueryContext.OptimizationStrategy.FILTER_AS_MATCH)))
+                            .variables(params(payload))
+                            .build())
+                    } catch (e: OptimizedQueryException) {
+                        schema.execute(ExecutionInput
+                            .newExecutionInput()
+                            .query(query)
+                            .variables(params(payload))
+                            .build())
+                    }
+                }
+                req.sendResponse(response)
+            }
         }
     }
+    server.start()
 
-    // CORS
-    Spark.before("/*") { req, res ->
-        res.header("Access-Control-Allow-Origin", "*")
-        res.header("Access-Control-Allow-Headers", "*")
-        res.type("application/json")
-    }
+}
 
-    fun handler(req: Request, @Suppress("UNUSED_PARAMETER") res: Response) = req.body().let { body ->
-        val payload = parseBody(body)
-        val query = query(payload)
-        if (query.contains("__schema"))
-            schema.execute(query).let { println(render(it));it }
-        else run(translate(query, params(payload)).first())
-    }
-
-    Spark.options("/graphql") { _, _ -> "OK" }
-    Spark.post("/graphql", "application/json", ::handler, ::render)
+private fun HttpExchange.sendResponse(data: Any?) {
+    val responseString = data?.let { mapper.writeValueAsString(it) }
+    //  CORS
+    this.responseHeaders.add("Access-Control-Allow-Origin", "*")
+    this.responseHeaders.add("Access-Control-Allow-Headers", "*")
+    this.responseHeaders.add("Content-Type", "application/json")
+    this.sendResponseHeaders(200, responseString?.length?.toLong() ?: 0)
+    if (responseString != null) this.responseBody.use { it.write(responseString.toByteArray()) }
 }
 

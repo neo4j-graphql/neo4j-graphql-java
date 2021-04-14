@@ -1,11 +1,11 @@
 package demo
 
 import graphql.GraphQL
-import graphql.language.VariableReference
 import graphql.schema.*
 import org.intellij.lang.annotations.Language
-import org.neo4j.driver.v1.AuthTokens
-import org.neo4j.driver.v1.GraphDatabase
+import org.neo4j.driver.AuthTokens
+import org.neo4j.driver.Driver
+import org.neo4j.driver.GraphDatabase
 import org.neo4j.graphql.Cypher
 import org.neo4j.graphql.DataFetchingInterceptor
 import org.neo4j.graphql.SchemaBuilder
@@ -14,19 +14,19 @@ import java.math.BigInteger
 
 
 fun initBoundSchema(schema: String): GraphQLSchema {
-    val driver = GraphDatabase.driver("bolt://localhost", AuthTokens.basic("neo4j", "test"))
+    val driver: Driver = GraphDatabase.driver("bolt://localhost", AuthTokens.basic("neo4j", "test"))
 
     val dataFetchingInterceptor = object : DataFetchingInterceptor {
         override fun fetchData(env: DataFetchingEnvironment, delegate: DataFetcher<Cypher>): Any {
-            val cypher = delegate.get(env)
+            val (cypher, params, type, variable) = delegate.get(env)
             return driver.session().use { session ->
-                val result = session.run(cypher.query, cypher.params.mapValues { toBoltValue(it.value, env.variables) })
-                if (isListType(cypher.type)) {
-                    result.list().map { record -> record.get(cypher.variable).asObject() }
+                val result = session.run(cypher, params.mapValues { toBoltValue(it.value) })
+                if (isListType(type)) {
+                    result.list().map { record -> record.get(variable).asObject() }
 
                 } else {
-                    result.list().map { record -> record.get(cypher.variable).asObject() }
-                        .firstOrNull() ?: emptyMap<String, Any>()
+                    result.list().map { record -> record.get(variable).asObject() }.firstOrNull()
+                            ?: emptyMap<String, Any>()
                 }
             }
         }
@@ -45,8 +45,7 @@ fun main() {
     val movies = graphql.execute("{ movie { title }}")
 }
 
-fun toBoltValue(value: Any?, params: Map<String, Any?>) = when (value) {
-    is VariableReference -> params[value.name]
+fun toBoltValue(value: Any?) = when (value) {
     is BigInteger -> value.longValueExact()
     is BigDecimal -> value.toDouble()
     else -> value

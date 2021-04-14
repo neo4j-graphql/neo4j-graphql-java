@@ -22,9 +22,6 @@ type Company {
   name: String
   employees: [Person] @relation(name:"WORKS_AT", direction: IN)
 }
-type Query {
-  person : [Person]
-}
 ----
 
 == Test Data
