@@ -42,7 +42,7 @@ CREATE
 [source,graphql]
 ----
 query {
-    r: rated( rating_gte : 3) {
+    r: rated( filter: {rating_gte : 3}) {
       rating
       movie {
         title
@@ -55,7 +55,7 @@ query {
 [source,json]
 ----
 {
-  "rRatingGte" : 3
+  "filterRRatingGte" : 3
 }
 ----
 
@@ -74,7 +74,7 @@ query {
 [source,cypher]
 ----
 MATCH ()-[r:RATED]->()
-WHERE r.rating >= $rRatingGte
+WHERE r.rating >= $filterRRatingGte
 RETURN r {
 	.rating,
 	movie: head([()-[r]->(movie:Movie) | movie {
