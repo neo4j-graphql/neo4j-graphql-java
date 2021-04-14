@@ -6,6 +6,7 @@ import graphql.schema.DataFetcher
 import graphql.schema.DataFetchingEnvironment
 import graphql.schema.GraphQLSchema
 import org.assertj.core.api.Assertions
+import org.assertj.core.api.InstanceOfAssertFactories
 import org.junit.jupiter.api.Assumptions
 import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.DynamicTest
@@ -14,6 +15,7 @@ import org.neo4j.harness.Neo4j
 import org.opentest4j.AssertionFailedError
 import java.util.*
 import java.util.concurrent.FutureTask
+import java.util.function.Consumer
 import kotlin.streams.toList
 
 class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTestSuite(
@@ -23,6 +25,7 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
                 GRAPHQL_MARKER,
                 GRAPHQL_VARIABLES_MARKER,
                 GRAPHQL_RESPONSE_MARKER,
+                GRAPHQL_RESPONSE_IGNORE_ORDER_MARKER,
                 QUERY_CONFIG_MARKER,
                 CYPHER_PARAMS_MARKER,
                 CYPHER_MARKER
@@ -48,9 +51,15 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
         }
         if (neo4j != null) {
             val testData = globalBlocks[TEST_DATA_MARKER]
-            val response = getOrCreateBlock(codeBlocks, GRAPHQL_RESPONSE_MARKER, "GraphQL-Response")
+            var response = codeBlocks[GRAPHQL_RESPONSE_IGNORE_ORDER_MARKER]
+            var ignoreOrder = false;
+            if (response != null) {
+                ignoreOrder = true;
+            } else {
+                response = getOrCreateBlock(codeBlocks, GRAPHQL_RESPONSE_MARKER, "GraphQL-Response")
+            }
             if (testData != null && response != null) {
-                tests.add(integrationTest(title, globalBlocks, codeBlocks, testData, response))
+                tests.add(integrationTest(title, globalBlocks, codeBlocks, testData, response, ignoreOrder))
             }
         }
 
@@ -183,7 +192,8 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
             globalBlocks: Map<String, ParsedBlock>,
             codeBlocks: Map<String, ParsedBlock>,
             testData: ParsedBlock,
-            response: ParsedBlock
+            response: ParsedBlock,
+            ignoreOrder: Boolean
     ): DynamicNode = DynamicTest.dynamicTest("Integration Test", response.uri) {
         val dataFetchingInterceptor = setupDataFetchingInterceptor(testData)
         val request = codeBlocks[GRAPHQL_MARKER]?.code()
@@ -218,7 +228,27 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
                 val actualCode = MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(values)
                 response.adjustedCode = actualCode
             }
-            Assertions.assertThat(actual).isEqualTo(expected)
+            if (ignoreOrder) {
+                assertEqualIgnoreOrder(expected, actual)
+            } else {
+                Assertions.assertThat(actual).isEqualTo(expected)
+            }
+        }
+    }
+
+    private fun assertEqualIgnoreOrder(expected: Any?, actual: Any?) {
+        when (expected) {
+            is Map<*, *> -> Assertions.assertThat(actual).asInstanceOf(InstanceOfAssertFactories.MAP)
+                .hasSize(expected.size)
+                .containsOnlyKeys(*expected.keys.toTypedArray())
+                .satisfies { it.forEach { (key, value) -> assertEqualIgnoreOrder(expected[key], value) } }
+            is Collection<*> -> {
+                val assertions: List<Consumer<Any>> = expected.map{ e -> Consumer<Any> { a -> assertEqualIgnoreOrder(e, a) } }
+                Assertions.assertThat(actual).asInstanceOf(InstanceOfAssertFactories.LIST)
+                    .hasSize(expected.size)
+                    .satisfiesExactlyInAnyOrder(*assertions.toTypedArray())
+            }
+            else -> Assertions.assertThat(actual).isEqualTo(expected)
         }
     }
 
@@ -230,6 +260,7 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
         private const val GRAPHQL_MARKER = "[source,graphql]"
         private const val GRAPHQL_VARIABLES_MARKER = "[source,json,request=true]"
         private const val GRAPHQL_RESPONSE_MARKER = "[source,json,response=true]"
+        private const val GRAPHQL_RESPONSE_IGNORE_ORDER_MARKER = "[source,json,response=true,ignore-order]"
         private const val QUERY_CONFIG_MARKER = "[source,json,query-config=true]"
         private const val CYPHER_PARAMS_MARKER = "[source,json]"
     }

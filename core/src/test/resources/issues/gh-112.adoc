@@ -49,7 +49,7 @@ query user( $uuid: ID ){
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "user" : [ {
@@ -77,15 +77,15 @@ query user( $uuid: ID ){
 .Cypher
 [source,cypher]
 ----
-MATCH (user: User)
+MATCH (user:User)
 WHERE user.uuid = $uuid
 RETURN user {
-    .uuid,
-    .name,
-    associates: [(user)-[: ASSOCIATES_WITH]-(userAssociates: User) | userAssociates {
-        .name,
-        .uuid
-    }]
+	.uuid,
+	.name,
+	associates: [(user)-[:ASSOCIATES_WITH]-(userAssociates:User) | userAssociates {
+		.name,
+		.uuid
+	}]
 } AS user
 ----
 

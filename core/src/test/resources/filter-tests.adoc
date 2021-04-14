@@ -72,7 +72,7 @@ SET p = props
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -108,7 +108,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -146,7 +146,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -184,7 +184,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -210,7 +210,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ ]
@@ -242,7 +242,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -283,7 +283,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -319,7 +319,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -355,7 +355,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -393,7 +393,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -429,7 +429,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -467,7 +467,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -503,7 +503,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -539,7 +539,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -577,7 +577,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -613,7 +613,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -651,7 +651,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -801,7 +801,7 @@ RETURN company {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -837,7 +837,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -873,7 +873,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -911,7 +911,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -949,7 +949,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -987,7 +987,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -1023,7 +1023,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -1059,7 +1059,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ ]
@@ -1091,7 +1091,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -1131,7 +1131,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -1167,7 +1167,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -1205,7 +1205,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -1241,7 +1241,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -1279,7 +1279,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -1317,7 +1317,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -1355,7 +1355,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -1391,7 +1391,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -1427,7 +1427,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ ]
@@ -1459,7 +1459,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -1499,7 +1499,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -1535,7 +1535,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -1571,7 +1571,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -1609,7 +1609,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -1645,7 +1645,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -1682,7 +1682,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -1718,7 +1718,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -1754,7 +1754,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -1792,7 +1792,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -1828,7 +1828,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -1866,7 +1866,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -1904,7 +1904,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ ]
@@ -1936,7 +1936,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -1976,7 +1976,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -2014,7 +2014,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -2050,7 +2050,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ ]
@@ -2082,7 +2082,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -2122,7 +2122,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -2160,7 +2160,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -2198,7 +2198,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -2230,7 +2230,7 @@ RETURN person { .name } AS person
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -2268,7 +2268,7 @@ RETURN person { .name } AS person
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ ]
@@ -2313,7 +2313,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -2360,7 +2360,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -2407,7 +2407,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -2454,7 +2454,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -2499,7 +2499,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ ]
@@ -2527,7 +2527,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -2563,7 +2563,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -2601,7 +2601,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -2641,7 +2641,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -2679,7 +2679,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -2719,7 +2719,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -2759,7 +2759,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -2801,7 +2801,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "p" : [ {
@@ -2838,7 +2838,7 @@ RETURN p {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "p" : [ {
@@ -2875,7 +2875,7 @@ RETURN p {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "p" : [ {
@@ -2912,7 +2912,7 @@ RETURN p {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "p" : [ {
@@ -2949,7 +2949,7 @@ RETURN p {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "p" : [ {
@@ -2986,7 +2986,7 @@ RETURN p {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "p" : [ {
@@ -3023,7 +3023,7 @@ RETURN p {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "p" : [ ]
@@ -3057,7 +3057,7 @@ RETURN p {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "p" : [ {
@@ -3097,7 +3097,7 @@ RETURN p {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -3136,7 +3136,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -3173,7 +3173,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "p" : [ {
@@ -3206,11 +3206,11 @@ RETURN p {
 .GraphQL-Query
 [source,graphql]
 ----
-{ p: company { employees(filter: { OR: [{ name: "Jane" },{name:"Joe"}]}, orderBy: name_desc) { name }}}
+{ p: company { employees(filter: { OR: [{ name: "Jane" },{name:"Joe"}]}) { name }}}
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "p" : [ {
@@ -3239,10 +3239,10 @@ RETURN p {
 ----
 MATCH (p:Company)
 RETURN p {
-	employees: apoc.coll.sortMulti([(p)<-[:WORKS_AT]-(pEmployees:Person) WHERE (pEmployees.name = $filterPEmployeesOr1Name
-		OR pEmployees.name = $filterPEmployeesOr2Name) | pEmployees {
+	employees: [(p)<-[:WORKS_AT]-(pEmployees:Person) WHERE (pEmployees.name = $filterPEmployeesOr1Name
+	OR pEmployees.name = $filterPEmployeesOr2Name) | pEmployees {
 		.name
-	}], ['name'])
+	}]
 } AS p
 ----
 
@@ -3257,7 +3257,7 @@ query filterQuery($filter: _PersonFilter) { person(filter: $filter) { name }}
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -3309,7 +3309,7 @@ query filterQuery($name: String) { person(filter: {name : $name}) { name }}
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -3351,7 +3351,7 @@ query filterQuery($name: String) { person(filter: {name : $name}) { name }}
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ ]
@@ -3389,7 +3389,7 @@ query filterQuery($name: String) { person(filter: {name_not : $name}) { name }}
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "person" : [ {
@@ -3435,7 +3435,7 @@ RETURN person {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "p" : [ {

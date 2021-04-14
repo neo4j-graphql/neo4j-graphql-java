@@ -32,7 +32,20 @@ open class AsciiDocTestSuite(
      */
     private val knownBlocks: MutableList<ParsedBlock> = mutableListOf()
 
-    fun generateTests(): Stream<DynamicNode> = FileParser().parse()
+    fun generateTests(): Stream<DynamicNode> {
+        val stream = FileParser().parse()
+        return if (FLATTEN_TESTS) flatten(stream, "$fileName:") else stream
+    }
+
+    private fun flatten(stream: Stream<out DynamicNode>, name: String): Stream<DynamicNode> {
+        return stream.flatMap {
+            when (it) {
+                is DynamicContainer -> flatten(it.children, "$name[${it.displayName}]")
+                is DynamicTest -> Stream.of(DynamicTest.dynamicTest("$name[${it.displayName}]", it.executable))
+                else -> throw IllegalArgumentException("unknown type ${it.javaClass.name}")
+            }
+        }
+    }
 
     class ParsedBlock(
             val marker: String,
@@ -227,6 +240,10 @@ open class AsciiDocTestSuite(
     }
 
     companion object {
+        /**
+         * to find broken tests easy by its console output, enable this feature
+         */
+        val FLATTEN_TESTS = System.getProperty("neo4j-graphql-java.flatten-tests", "false") == "true"
         val GENERATE_TEST_FILE_DIFF = System.getProperty("neo4j-graphql-java.generate-test-file-diff", "true") == "true"
         val UPDATE_TEST_FILE = System.getProperty("neo4j-graphql-java.update-test-file", "false") == "true"
         val MAPPER = ObjectMapper()
