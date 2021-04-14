@@ -27,14 +27,13 @@ class Translator(val schema: GraphQLSchema) {
                     .filterIsInstance<Field>() // FragmentSpread, InlineFragment
                     .map { field ->
                         val cypher = toQuery(operationDefinition.operation, field, fragments, params, ctx)
-                        val resolvedParams = cypher.params.mapValues { toBoltValue(it.value, params) }
-                        cypher.with(resolvedParams) // was cypher.with(params)
+                        val resolvedParams = cypher.params.mapValues { toBoltValue(it.value) }
+                        cypher.with(resolvedParams)
                     }
             }
     }
 
-    private fun toBoltValue(value: Any?, params: Map<String, Any?>) = when (value) {
-        is VariableReference -> params[value.name]
+    private fun toBoltValue(value: Any?) = when (value) {
         is BigInteger -> value.longValueExact()
         is BigDecimal -> value.toDouble()
         else -> value

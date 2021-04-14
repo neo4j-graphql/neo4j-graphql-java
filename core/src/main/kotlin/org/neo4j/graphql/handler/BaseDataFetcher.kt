@@ -1,6 +1,7 @@
 package org.neo4j.graphql.handler
 
 import graphql.language.Field
+import graphql.language.VariableReference
 import graphql.schema.DataFetcher
 import graphql.schema.DataFetchingEnvironment
 import graphql.schema.GraphQLFieldDefinition
@@ -29,7 +30,12 @@ abstract class BaseDataFetcher(val fieldDefinition: GraphQLFieldDefinition) : Pr
             .withPrettyPrint(true)
             .build()
         ).render(statement)
-        return Cypher(query, statement.parameters, fieldDefinition.type, variable = field.aliasOrName())
+
+        val params = statement.parameters.mapValues { (_, value) ->
+            (value as? VariableReference)?.let { env.variables[it.name] } ?: value
+        }
+
+        return Cypher(query, params, fieldDefinition.type, variable = field.aliasOrName())
     }
 
     protected abstract fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement
