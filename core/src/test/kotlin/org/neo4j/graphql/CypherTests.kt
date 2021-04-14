@@ -1,5 +1,6 @@
 package org.neo4j.graphql
 
+import apoc.coll.Coll
 import apoc.cypher.CypherFunctions
 import org.junit.jupiter.api.*
 import org.neo4j.graphql.utils.CypherTestSuite
@@ -22,6 +23,8 @@ class CypherTests {
                 .newInProcessBuilder(Path.of("target/test-db"))
                 .withProcedure(apoc.cypher.Cypher::class.java)
                 .withFunction(CypherFunctions::class.java)
+                .withProcedure(Coll::class.java)
+                .withFunction(Coll::class.java)
                 .build()
         }
     }

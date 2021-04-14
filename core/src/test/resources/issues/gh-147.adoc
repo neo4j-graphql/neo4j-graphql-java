@@ -60,7 +60,9 @@ query {
     person(name: "Kevin Bacon") {
         born
         ... on Actor {
+            __typename
             namedColleagues(name: "Meg") {
+                __typename
                 ... name
             }
         }
@@ -75,11 +77,13 @@ fragment name on Actor { name }
 ----
 {
   "person" : [ {
+    "born" : 1958,
+    "__typename" : "Actor",
     "namedColleagues" : [ {
+      "__typename" : "Actor",
       "name" : "Meg Ryan"
     } ],
-    "score" : 7,
-    "born" : 1958
+    "score" : 7
   } ]
 }
 ----
@@ -90,7 +94,9 @@ fragment name on Actor { name }
 {
   "personName" : "Kevin Bacon",
   "personNamedColleaguesName" : "Meg",
-  "personScoreValue" : 7
+  "personNamedColleaguesValidTypes" : [ "Actor" ],
+  "personScoreValue" : 7,
+  "personValidTypes" : [ "Actor" ]
 }
 ----
 
@@ -101,10 +107,12 @@ MATCH (person:Person)
 WHERE person.name = $personName
 RETURN person {
 	.born,
+	__typename: head([label IN labels(person) WHERE label IN $personValidTypes]),
 	namedColleagues: [personNamedColleagues IN apoc.cypher.runFirstColumnMany('WITH $this AS this, $name AS name WITH $this AS this MATCH (this)-[:ACTED_IN]->()<-[:ACTED_IN]-(other) WHERE other.name CONTAINS $name RETURN other',  {
 		this: person,
 		name: $personNamedColleaguesName
 	}) | personNamedColleagues {
+		__typename: head([label IN labels(personNamedColleagues) WHERE label IN $personNamedColleaguesValidTypes]),
 		.name
 	}],
 	score: apoc.cypher.runFirstColumnSingle('WITH $this AS this, $value AS value RETURN $value',  {
