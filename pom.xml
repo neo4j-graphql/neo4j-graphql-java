@@ -159,6 +159,18 @@
                 <version>3.0.0-M5</version>
             </plugin>
 
+            <plugin>
+                <groupId>com.amashchenko.maven.plugin</groupId>
+                <artifactId>gitflow-maven-plugin</artifactId>
+                <version>1.16.0</version>
+                <configuration>
+                    <skipTag>true</skipTag>
+                    <pushRemote>false</pushRemote>
+                    <gitFlowConfig>
+                        <developmentBranch>master</developmentBranch>
+                    </gitFlowConfig>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
