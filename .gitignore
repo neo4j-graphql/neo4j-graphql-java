@@ -1,4 +1,10 @@
 .DS_Store
+.vscode
+.project
+.classpath
+.factorypath
+.springBeans
+.settings
 dependency-reduced-pom.xml
 *.iml
 target
