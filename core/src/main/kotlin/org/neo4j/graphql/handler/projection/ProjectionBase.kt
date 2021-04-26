@@ -19,17 +19,35 @@ import org.neo4j.graphql.parser.QueryParser.parseFilter
  */
 open class ProjectionBase {
     companion object {
+        /*
+         * old arguments, subject to be removed in future releases
+         */
+
         const val NATIVE_ID = "_id"
         const val ORDER_BY = "orderBy"
         const val FIRST = "first"
         const val OFFSET = "offset"
         const val FILTER = "filter"
 
+        /*
+         * new arguments compatible with @neo4j/graphql
+         */
+
+        const val OPTIONS = "options"
+        const val LIMIT = "limit"
+        const val SKIP = "skip"
+        const val SORT = "sort"
+
         const val TYPE_NAME = "__typename"
+
+        /**
+         * Fields with special treatments
+         */
+        val SPECIAL_FIELDS = setOf(FIRST, OFFSET, ORDER_BY, FILTER, OPTIONS)
     }
 
-    fun orderBy(node: PropertyContainer, args: MutableList<Argument>, fieldDefinition: GraphQLFieldDefinition?): List<SortItem>? {
-        val values = getOrderByArgs(args, fieldDefinition)
+    fun orderBy(node: PropertyContainer, args: MutableList<Argument>, fieldDefinition: GraphQLFieldDefinition?, variables: Map<String, Any>): List<SortItem>? {
+        val values = getOrderByArgs(args, fieldDefinition, variables)
         if (values.isEmpty()) {
             return null
         }
@@ -40,24 +58,38 @@ open class ProjectionBase {
             }
     }
 
-    private fun getOrderByArgs(args: MutableList<Argument>, fieldDefinition: GraphQLFieldDefinition?): List<Pair<String, Sort>> {
-        val orderBy = args.find { it.name == ORDER_BY }?.value
-                ?: fieldDefinition?.getArgument(ORDER_BY)?.defaultValue?.asGraphQLValue()
-        return orderBy
-            ?.let { it ->
-                when (it) {
-                    is ArrayValue -> it.values.map { it.toJavaValue().toString() }
-                    is EnumValue -> listOf(it.name)
-                    is StringValue -> listOf(it.value)
-                    else -> null
+    private fun getOrderByArgs(args: MutableList<Argument>, fieldDefinition: GraphQLFieldDefinition?, variables: Map<String, Any>): List<Pair<String, Sort>> {
+        val options = args.find { it.name == OPTIONS }?.value as? ObjectValue
+        val defaultOptions = (fieldDefinition?.getArgument(OPTIONS)?.type as? GraphQLInputObjectType)
+        return if (options != null || defaultOptions != null) {
+            val sortArray = (options?.objectFields?.find { it.name == SORT }?.value
+                ?.let { value -> (value as? VariableReference)?.let { variables[it.name] } ?: value }?.toJavaValue()
+                    ?: defaultOptions?.getField(SORT)?.defaultValue?.toJavaValue()
+                    ) as? List<*> ?: return emptyList()
+            sortArray
+                .mapNotNull { it as? Map<*, *> }
+                .flatMap { it.entries }
+                .filter { (key, sort) -> key is String && sort is String }
+                .map { (key, sort) -> key as String to Sort.valueOf(sort as String) }
+        } else {
+            val orderBy = args.find { it.name == ORDER_BY }?.value
+                    ?: fieldDefinition?.getArgument(ORDER_BY)?.defaultValue?.asGraphQLValue()
+            orderBy
+                ?.let { it ->
+                    when (it) {
+                        is ArrayValue -> it.values.map { it.toJavaValue().toString() }
+                        is EnumValue -> listOf(it.name)
+                        is StringValue -> listOf(it.value)
+                        else -> null
+                    }
                 }
-            }
-            ?.map {
-                val index = it.lastIndexOf('_')
-                val property = it.substring(0, index)
-                val direction = Sort.valueOf(it.substring(index + 1).toUpperCase())
-                property to direction
-            } ?: emptyList()
+                ?.map {
+                    val index = it.lastIndexOf('_')
+                    val property = it.substring(0, index)
+                    val direction = Sort.valueOf(it.substring(index + 1).toUpperCase())
+                    property to direction
+                } ?: emptyList()
+        }
     }
 
     fun where(
@@ -69,7 +101,7 @@ open class ProjectionBase {
     ): Condition {
         val variable = propertyContainer.requiredSymbolicName.value
 
-        val filteredArguments = field.arguments.filterNot { setOf(FIRST, OFFSET, ORDER_BY, FILTER).contains(it.name) }
+        val filteredArguments = field.arguments.filterNot { SPECIAL_FIELDS.contains(it.name) }
 
         val parsedQuery = parseArguments(filteredArguments, fieldDefinition, type, variables)
         val result = handleQuery(variable, "", propertyContainer, parsedQuery, type, variables)
@@ -406,7 +438,7 @@ open class ProjectionBase {
         }
 
         val skipLimit = SkipLimit(childVariable, field.arguments, fieldDefinition)
-        val orderBy = getOrderByArgs(field.arguments, fieldDefinition)
+        val orderBy = getOrderByArgs(field.arguments, fieldDefinition, env.variables)
         val sortByNeo4jTypeFields = orderBy
             .filter { (property, _) -> nodeType.getFieldDefinition(property)?.isNeo4jType() == true }
             .map { (property, _) -> property }
@@ -441,12 +473,22 @@ open class ProjectionBase {
         return skipLimit.slice(fieldType.isList(), comprehension)
     }
 
-    class SkipLimit(variable: String,
-            arguments: List<Argument>,
-            fieldDefinition: GraphQLFieldDefinition?,
-            private val skip: Parameter<*>? = convertArgument(variable, arguments, fieldDefinition, OFFSET),
-            private val limit: Parameter<*>? = convertArgument(variable, arguments, fieldDefinition, FIRST)) {
+    class SkipLimit(variable: String, arguments: List<Argument>, fieldDefinition: GraphQLFieldDefinition?) {
 
+        private val skip: Parameter<*>?
+        private val limit: Parameter<*>?
+
+        init {
+            val options = arguments.find { it.name == OPTIONS }?.value as? ObjectValue
+            val defaultOptions = (fieldDefinition?.getArgument(OPTIONS)?.type as? GraphQLInputObjectType)
+            if (options != null || defaultOptions != null) {
+                this.skip = convertOptionField(variable, options, defaultOptions, SKIP)
+                this.limit = convertOptionField(variable, options, defaultOptions, LIMIT)
+            } else {
+                this.skip = convertArgument(variable, arguments, fieldDefinition, OFFSET)
+                this.limit = convertArgument(variable, arguments, fieldDefinition, FIRST)
+            }
+        }
 
         fun <T> format(returning: T): StatementBuilder.BuildableStatement where T : TerminalExposesSkip, T : TerminalExposesLimit {
             val result = skip?.let { returning.skip(it) } ?: returning
@@ -467,6 +509,13 @@ open class ProjectionBase {
                 val value = arguments
                     .find { it.name.toLowerCase() == name }?.value
                         ?: fieldDefinition?.getArgument(name)?.defaultValue
+                        ?: return null
+                return queryParameter(value, variable, name)
+            }
+
+            private fun convertOptionField(variable: String, options: ObjectValue?, defaultOptions: GraphQLInputObjectType?, name: String): Parameter<*>? {
+                val value = options?.objectFields?.find { it.name == name }?.value
+                        ?: defaultOptions?.getField(name)?.defaultValue
                         ?: return null
                 return queryParameter(value, variable, name)
             }

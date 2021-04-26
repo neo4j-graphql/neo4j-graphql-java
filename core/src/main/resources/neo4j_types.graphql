@@ -4,6 +4,13 @@ enum RelationDirection {
   BOTH
 }
 
+enum SortDirection {
+  """Sort by field values in ascending order."""
+  ASC
+  """Sort by field values in descending order."""
+  DESC
+}
+
 scalar DynamicProperties
 
 type _Neo4jTime {

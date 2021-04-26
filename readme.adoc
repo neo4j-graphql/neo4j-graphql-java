@@ -25,6 +25,15 @@ NOTE: All the <<features,supported features>> are listed and explained below, mo
 
 For complex examples take a look at our link:examples/readme.adoc[example projects]
 
+
+== API compatibility to @neo4j/graphql
+
+Since the javascript pendant of this library (neo4j-graphql-js) has majored into a neo4j product, we want to migrate our augmented schema, to match as much as possible to the one of the https://github.com/neo4j/graphql-tracker-temp[`@neo4j/graphql`].
+Therefore, we created a https://github.com/neo4j-graphql/neo4j-graphql-java/issues?q=label%3AAPI-Alignment[list of issues to track progress].
+
+We will try to make the migration as smooth as possible. For this purpose we will support the old, and the new way of schema augmentation until the next major release.
+To already test the new features, you can enable them via link:core/src/main/kotlin/org/neo4j/graphql/SchemaConfig.kt[some setting in the `SchemaConfig`]
+
 == FAQ
 
 === How does this relate to the other neo4j graphql libraries?
@@ -46,7 +55,7 @@ If you wanted, you could combine `graphql-java` resolvers with this library to h
 
 Thanks a lot to the maintainers of `graphql-java` for the awesome library.
 
-NOTE: We also use `neo4j-opencypher-dsl` provided graciously by the spring-data-neo4j-rx project to generate parts of the cypher queries.
+NOTE: We also use `neo4j-opencypher-dsl` provided graciously by the spring-data-neo4j-rx project to generate our cypher queries.
 
 == Usage
 

@@ -186,21 +186,30 @@ object SchemaBuilder {
                 return@transform
             }
 
-            if (fd.getArgument(ProjectionBase.FIRST) == null) {
-                fieldBuilder.argument { a -> a.name(ProjectionBase.FIRST).type(Scalars.GraphQLInt) }
-            }
-            if (fd.getArgument(ProjectionBase.OFFSET) == null) {
-                fieldBuilder.argument { a -> a.name(ProjectionBase.OFFSET).type(Scalars.GraphQLInt) }
-            }
-
             val fieldType = fd.type.inner() as? GraphQLFieldsContainer ?: return@transform
 
-            if (fd.getArgument(ProjectionBase.ORDER_BY) == null) {
-                env.addOrdering(fieldType)?.let { orderingTypeName ->
-                    val orderType = GraphQLList(GraphQLNonNull(GraphQLTypeReference(orderingTypeName)))
-                    fieldBuilder.argument { a -> a.name(ProjectionBase.ORDER_BY).type(orderType) }
+            if (schemaConfig.queryOptionStyle == SchemaConfig.InputStyle.INPUT_TYPE){
 
+                val optionsTypeName = env.addOptions(fieldType)
+                val optionsType = GraphQLTypeReference(optionsTypeName)
+                fieldBuilder.argument(input(ProjectionBase.OPTIONS, optionsType))
+
+            } else {
+
+                if (fd.getArgument(ProjectionBase.FIRST) == null) {
+                    fieldBuilder.argument { a -> a.name(ProjectionBase.FIRST).type(Scalars.GraphQLInt) }
                 }
+                if (fd.getArgument(ProjectionBase.OFFSET) == null) {
+                    fieldBuilder.argument { a -> a.name(ProjectionBase.OFFSET).type(Scalars.GraphQLInt) }
+                }
+                if (fd.getArgument(ProjectionBase.ORDER_BY) == null) {
+                    env.addOrdering(fieldType)?.let { orderingTypeName ->
+                        val orderType = GraphQLList(GraphQLNonNull(GraphQLTypeReference(orderingTypeName)))
+                        fieldBuilder.argument { a -> a.name(ProjectionBase.ORDER_BY).type(orderType) }
+
+                    }
+                }
+
             }
 
             if (schemaConfig.query.enabled && !schemaConfig.query.exclude.contains(fieldType.name) && fd.getArgument(ProjectionBase.FILTER) == null) {

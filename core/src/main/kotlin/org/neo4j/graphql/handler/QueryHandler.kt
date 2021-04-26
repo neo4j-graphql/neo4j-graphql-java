@@ -28,18 +28,28 @@ class QueryHandler private constructor(
             // TODO not just generate the input type but use it as well
             buildingEnv.addInputType("_${typeName}Input", type.relevantFields())
             val filterTypeName = buildingEnv.addFilterType(type)
-            val orderingTypeName = buildingEnv.addOrdering(type)
+
             val builder = GraphQLFieldDefinition
                 .newFieldDefinition()
                 .name(if (schemaConfig.capitalizeQueryFields) typeName else typeName.decapitalize())
                 .arguments(buildingEnv.getInputValueDefinitions(relevantFields) { true })
                 .argument(input(FILTER, GraphQLTypeReference(filterTypeName)))
-                .argument(input(FIRST, Scalars.GraphQLInt))
-                .argument(input(OFFSET, Scalars.GraphQLInt))
                 .type(GraphQLNonNull(GraphQLList(GraphQLNonNull(GraphQLTypeReference(type.name)))))
-            if (orderingTypeName != null) {
-                val orderType = GraphQLList(GraphQLNonNull(GraphQLTypeReference(orderingTypeName)))
-                builder.argument(input(ORDER_BY, orderType))
+
+            if (schemaConfig.queryOptionStyle == SchemaConfig.InputStyle.INPUT_TYPE) {
+                val optionsTypeName = buildingEnv.addOptions(type)
+                val optionsType = GraphQLTypeReference(optionsTypeName)
+                builder.argument(input(OPTIONS, optionsType))
+            } else {
+                builder
+                    .argument(input(FIRST, Scalars.GraphQLInt))
+                    .argument(input(OFFSET, Scalars.GraphQLInt))
+
+                val orderingTypeName = buildingEnv.addOrdering(type)
+                if (orderingTypeName != null) {
+                    val orderType = GraphQLList(GraphQLNonNull(GraphQLTypeReference(orderingTypeName)))
+                    builder.argument(input(ORDER_BY, orderType))
+                }
             }
             val def = builder.build()
             buildingEnv.addQueryField(def)
@@ -100,7 +110,7 @@ class QueryHandler private constructor(
             match.where(where)
         }
 
-        val ordering = orderBy(propertyContainer, field.arguments, fieldDefinition)
+        val ordering = orderBy(propertyContainer, field.arguments, fieldDefinition, env.variables)
         val skipLimit = SkipLimit(variable, field.arguments, fieldDefinition)
 
         val projectionEntries = projectFields(propertyContainer, field, type, env)

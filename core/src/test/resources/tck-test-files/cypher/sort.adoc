@@ -1,0 +1,328 @@
+:toc:
+
+= Cypher pagination tests
+
+Tests for queries including reserved arguments `skip` and `limit`.
+
+
+== Inputs
+
+[source,graphql,schema=true]
+----
+type Movie {
+    id: ID
+    title: String
+    genres: [Genre!] @relation(name: "HAS_GENRE", direction: OUT)
+}
+
+type Genre {
+    id: ID
+    name: String
+}
+
+input GenreOptions {
+  limit: Int
+  skip: Int
+  sort: [GenreSort!] = [{name: ASC}]
+}
+
+input GenreSort {
+    id: SortDirection
+    name: SortDirection
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+  "queryOptionStyle": "INPUT_TYPE"
+}
+----
+
+== For query
+
+=== Simple Sort
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+    movie(options: { sort: [{ id: DESC }] }) {
+        title
+    }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (movie:Movie)
+RETURN movie {
+	.title
+} AS movie ORDER BY movie.id DESC
+----
+
+=== Multi Sort
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+    movie(options: { sort: [{ id: DESC }, { title: ASC }] }) {
+        title
+    }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (movie:Movie)
+RETURN movie {
+	.title
+} AS movie ORDER BY movie.id DESC, movie.title ASC
+----
+
+=== Sort with skip limit & with other variables
+
+.GraphQL-Query
+[source,graphql]
+----
+query($title: String, $skip: Int, $limit: Int, $sort: [MovieSort!]) {
+    movie(
+        options: {
+            sort: $sort
+            skip: $skip
+            limit: $limit
+        }
+        title: $title
+    ) {
+        title
+    }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+    "skip": 0,
+    "limit": 0,
+    "title" : "some title",
+    "sort": [{ "id": "DESC" }, { "title": "ASC" }]
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "limit" : 0,
+  "skip" : 0,
+  "title" : "some title"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (movie:Movie)
+WHERE movie.title = $title
+RETURN movie {
+	.title
+} AS movie ORDER BY movie.id DESC, movie.title ASC SKIP $skip LIMIT $limit
+----
+
+=== Default values
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+    genre {
+        name
+    }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (genre:Genre)
+RETURN genre {
+	.name
+} AS genre ORDER BY genre.name ASC
+----
+
+== For projection
+
+=== Simple Sort
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+    movie {
+        genres(options: { sort: [{ name: DESC }] }) {
+            name
+        }
+    }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (movie:Movie)
+RETURN movie {
+	genres: apoc.coll.sortMulti([(movie)-[:HAS_GENRE]->(movieGenres:Genre) | movieGenres {
+		.name
+	}], ['name'])
+} AS movie
+----
+
+=== Multi Sort
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+    movie {
+        genres(options: { sort: [{ id: DESC }, { name: ASC }] }) {
+            name
+        }
+    }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (movie:Movie)
+RETURN movie {
+	genres: apoc.coll.sortMulti([(movie)-[:HAS_GENRE]->(movieGenres:Genre) | movieGenres {
+		.name
+	}], ['id', '^name'])
+} AS movie
+----
+
+=== Sort with skip limit & with other variables
+
+.GraphQL-Query
+[source,graphql]
+----
+query($name: String, $skip: Int, $limit: Int, $sort: [GenreSort!]) {
+    movie {
+        genres(
+            options: {
+                sort: $sort
+                skip: $skip
+                limit: $limit
+            }
+            name: $name
+        ) {
+            name
+        }
+        title
+    }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+    "skip": 1,
+    "limit": 2,
+    "name" : "some name",
+    "sort": [{ "id": "DESC" }, { "name": "ASC" }]
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "limit" : 2,
+  "name" : "some name",
+  "skip" : 1
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (movie:Movie)
+RETURN movie {
+	genres: apoc.coll.sortMulti([(movie)-[:HAS_GENRE]->(movieGenres:Genre) WHERE movieGenres.name = $name | movieGenres {
+		.name
+	}], ['id', '^name'])[$skip..($skip + $limit)],
+	.title
+} AS movie
+----
+
+=== Default values
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+    movie {
+        title
+        genres {
+            name
+        }
+    }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (movie:Movie)
+RETURN movie {
+	.title,
+	genres: apoc.coll.sortMulti([(movie)-[:HAS_GENRE]->(movieGenres:Genre) | movieGenres {
+		.name
+	}], ['^name'])
+} AS movie
+----
