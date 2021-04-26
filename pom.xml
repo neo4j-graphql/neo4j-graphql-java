@@ -169,6 +169,10 @@
                     <gitFlowConfig>
                         <developmentBranch>master</developmentBranch>
                     </gitFlowConfig>
+                    <releaseMergeFFOnly>true</releaseMergeFFOnly>
+                    <commitMessages>
+                        <releaseStartMessage>Update versions for release @{version}</releaseStartMessage>
+                    </commitMessages>
                 </configuration>
             </plugin>
         </plugins>
@@ -268,7 +272,7 @@
                                 <goals>
                                     <goal>exec</goal>
                                 </goals>
-                                <phase>compile</phase>
+                                <phase>process-resources</phase>
                                 <configuration>
                                     <executable>sed</executable>
                                     <arguments>
