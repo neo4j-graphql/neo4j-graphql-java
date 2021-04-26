@@ -249,6 +249,41 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <id>update-doc</id>
+            <activation>
+                <os>
+                    <family>unix</family>
+                </os>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>3.0.0</version>
+                        <executions>
+                            <execution>
+                                <id>update_readme</id>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <phase>compile</phase>
+                                <configuration>
+                                    <executable>sed</executable>
+                                    <arguments>
+                                        <argument>-i</argument>
+                                        <argument>s/\(:version:\) \(.*\)/\1 ${project.version}/g</argument>
+                                        <argument>readme.adoc</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                        <inherited>false</inherited>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 
 </project>
