@@ -1,6 +1,6 @@
 package org.neo4j.graphql.examples.graphqlspringboot.controller
 
-import com.expediagroup.graphql.spring.operations.Query
+import com.expediagroup.graphql.server.operations.Query
 import org.springframework.stereotype.Component
 
 @Component

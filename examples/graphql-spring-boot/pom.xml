@@ -15,7 +15,9 @@
     <description>Example for using neo4j-graphql-java with Spring Boot</description>
 
     <properties>
-        <testcontainers.version>1.14.3</testcontainers.version>
+        <testcontainers.version>1.15.3</testcontainers.version>
+        <graphql-kotlin.version>4.0.1</graphql-kotlin.version>
+        <spring-boot.version>2.3.10.RELEASE</spring-boot.version>
     </properties>
 
     <dependencies>
@@ -30,7 +32,7 @@
         <dependency>
             <groupId>org.neo4j.driver</groupId>
             <artifactId>neo4j-java-driver-spring-boot-starter</artifactId>
-            <version>4.1.1.0</version>
+            <version>4.2.4.0</version>
         </dependency>
         <dependency>
             <groupId>org.neo4j</groupId>
@@ -42,7 +44,7 @@
         <dependency>
             <groupId>com.expediagroup</groupId>
             <artifactId>graphql-kotlin-spring-server</artifactId>
-            <version>3.6.2</version>
+            <version>${graphql-kotlin.version}</version>
         </dependency>
 
         <!-- Kotlin dependencies -->
@@ -84,7 +86,7 @@
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
-                <version>2.3.3.RELEASE</version>
+                <version>${spring-boot.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -96,6 +98,15 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring-boot.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                            <goal>build-info</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

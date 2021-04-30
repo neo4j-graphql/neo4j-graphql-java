@@ -1,6 +1,6 @@
 package org.neo4j.graphql.examples.graphqlspringboot.controller
 
-import com.expediagroup.graphql.types.GraphQLRequest
+import com.expediagroup.graphql.server.types.GraphQLRequest
 import org.junit.jupiter.api.Test
 import org.neo4j.driver.springframework.boot.autoconfigure.Neo4jDriverProperties
 import org.springframework.beans.factory.annotation.Autowired
@@ -104,7 +104,7 @@ internal class QueriesIT(
 
     companion object {
         @Container
-        private val neo4jServer = Neo4jContainer<Nothing>()
+        private val neo4jServer = Neo4jContainer<Nothing>("neo4j:4.2.4")
 
     }
 

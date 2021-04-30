@@ -1,12 +1,12 @@
 package org.neo4j.graphql.examples.graphqlspringboot.config
 
-import com.expediagroup.graphql.SchemaGeneratorConfig
-import com.expediagroup.graphql.TopLevelObject
-import com.expediagroup.graphql.extensions.print
+import com.expediagroup.graphql.generator.SchemaGeneratorConfig
+import com.expediagroup.graphql.generator.TopLevelObject
+import com.expediagroup.graphql.generator.extensions.print
 import com.expediagroup.graphql.generator.SchemaGenerator
-import com.expediagroup.graphql.spring.operations.Mutation
-import com.expediagroup.graphql.spring.operations.Query
-import com.expediagroup.graphql.spring.operations.Subscription
+import com.expediagroup.graphql.server.operations.Mutation
+import com.expediagroup.graphql.server.operations.Query
+import com.expediagroup.graphql.server.operations.Subscription
 import graphql.schema.GraphQLObjectType
 import graphql.schema.GraphQLSchema
 import org.neo4j.graphql.DataFetchingInterceptor
