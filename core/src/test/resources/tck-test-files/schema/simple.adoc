@@ -23,7 +23,8 @@ type Movie {
 ----
 {
   "queryOptionStyle": "INPUT_TYPE",
-  "useWhereFilter": true
+  "useWhereFilter": true,
+  "pluralizeFields": true
 }
 ----
 
@@ -53,7 +54,7 @@ type Mutation {
 }
 
 type Query {
-  movie(options: MovieOptions, where: MovieWhere): [Movie!]!
+  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
 }
 
 type _Neo4jDate {

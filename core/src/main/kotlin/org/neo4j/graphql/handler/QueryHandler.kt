@@ -3,6 +3,7 @@ package org.neo4j.graphql.handler
 import graphql.Scalars
 import graphql.language.Field
 import graphql.schema.*
+import org.atteo.evo.inflector.English
 import org.neo4j.cypherdsl.core.Cypher.*
 import org.neo4j.cypherdsl.core.Statement
 import org.neo4j.graphql.*
@@ -34,9 +35,13 @@ class QueryHandler private constructor(
                         input(FILTER, GraphQLTypeReference(filterTypeName))
             }
 
+            var fieldName = if (schemaConfig.capitalizeQueryFields) typeName else typeName.decapitalize()
+            if (schemaConfig.pluralizeFields) {
+                fieldName = English.plural(fieldName)
+            }
             val builder = GraphQLFieldDefinition
                 .newFieldDefinition()
-                .name(if (schemaConfig.capitalizeQueryFields) typeName else typeName.decapitalize())
+                .name(fieldName)
                 .arguments(arguments)
                 .type(GraphQLNonNull(GraphQLList(GraphQLNonNull(GraphQLTypeReference(type.name)))))
 

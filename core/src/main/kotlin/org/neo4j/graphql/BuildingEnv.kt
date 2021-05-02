@@ -2,6 +2,7 @@ package org.neo4j.graphql
 
 import graphql.Scalars
 import graphql.schema.*
+import org.atteo.evo.inflector.English
 import org.neo4j.graphql.handler.projection.ProjectionBase
 
 class BuildingEnv(
@@ -144,7 +145,7 @@ class BuildingEnv(
             optionsTypeBuilder.field(GraphQLInputObjectField.newInputObjectField()
                 .name(ProjectionBase.SORT)
                 .type(GraphQLList(GraphQLNonNull(GraphQLTypeReference(sortTypeName))))
-                .description("Specify one or more $sortTypeName objects to sort ${type.name}s by. The sorts will be applied in the order in which they are arranged in the array.")
+                .description("Specify one or more $sortTypeName objects to sort ${English.plural(type.name)} by. The sorts will be applied in the order in which they are arranged in the array.")
                 .build())
         }
         optionsTypeBuilder.field(GraphQLInputObjectField.newInputObjectField()

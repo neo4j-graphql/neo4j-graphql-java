@@ -39,7 +39,8 @@ input GenreSort {
 ----
 {
   "queryOptionStyle": "INPUT_TYPE",
-  "useWhereFilter": true
+  "useWhereFilter": true,
+  "pluralizeFields": true
 }
 ----
 
@@ -51,7 +52,7 @@ input GenreSort {
 [source,graphql]
 ----
 {
-    movie(options: { sort: [{ id: DESC }] }) {
+    movies(options: { sort: [{ id: DESC }] }) {
         title
     }
 }
@@ -66,10 +67,10 @@ input GenreSort {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (movie:Movie)
-RETURN movie {
+MATCH (movies:Movie)
+RETURN movies {
 	.title
-} AS movie ORDER BY movie.id DESC
+} AS movies ORDER BY movies.id DESC
 ----
 
 === Multi Sort
@@ -78,7 +79,7 @@ RETURN movie {
 [source,graphql]
 ----
 {
-    movie(options: { sort: [{ id: DESC }, { title: ASC }] }) {
+    movies(options: { sort: [{ id: DESC }, { title: ASC }] }) {
         title
     }
 }
@@ -93,10 +94,10 @@ RETURN movie {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (movie:Movie)
-RETURN movie {
+MATCH (movies:Movie)
+RETURN movies {
 	.title
-} AS movie ORDER BY movie.id DESC, movie.title ASC
+} AS movies ORDER BY movies.id DESC, movies.title ASC
 ----
 
 === Sort with skip limit & with other variables
@@ -105,7 +106,7 @@ RETURN movie {
 [source,graphql]
 ----
 query($title: String, $skip: Int, $limit: Int, $sort: [MovieSort!]) {
-    movie(
+    movies(
         options: {
             sort: $sort
             skip: $skip
@@ -144,11 +145,11 @@ query($title: String, $skip: Int, $limit: Int, $sort: [MovieSort!]) {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (movie:Movie)
-WHERE movie.title = $title
-RETURN movie {
+MATCH (movies:Movie)
+WHERE movies.title = $title
+RETURN movies {
 	.title
-} AS movie ORDER BY movie.id DESC, movie.title ASC SKIP $skip LIMIT $limit
+} AS movies ORDER BY movies.id DESC, movies.title ASC SKIP $skip LIMIT $limit
 ----
 
 === Default values
@@ -157,7 +158,7 @@ RETURN movie {
 [source,graphql]
 ----
 {
-    genre {
+    genres {
         name
     }
 }
@@ -172,10 +173,10 @@ RETURN movie {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (genre:Genre)
-RETURN genre {
+MATCH (genres:Genre)
+RETURN genres {
 	.name
-} AS genre ORDER BY genre.name ASC
+} AS genres ORDER BY genres.name ASC
 ----
 
 == For projection
@@ -186,7 +187,7 @@ RETURN genre {
 [source,graphql]
 ----
 {
-    movie {
+    movies {
         genres(options: { sort: [{ name: DESC }] }) {
             name
         }
@@ -203,12 +204,12 @@ RETURN genre {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (movie:Movie)
-RETURN movie {
-	genres: apoc.coll.sortMulti([(movie)-[:HAS_GENRE]->(movieGenres:Genre) | movieGenres {
+MATCH (movies:Movie)
+RETURN movies {
+	genres: apoc.coll.sortMulti([(movies)-[:HAS_GENRE]->(moviesGenres:Genre) | moviesGenres {
 		.name
 	}], ['name'])
-} AS movie
+} AS movies
 ----
 
 === Multi Sort
@@ -217,7 +218,7 @@ RETURN movie {
 [source,graphql]
 ----
 {
-    movie {
+    movies {
         genres(options: { sort: [{ id: DESC }, { name: ASC }] }) {
             name
         }
@@ -234,12 +235,12 @@ RETURN movie {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (movie:Movie)
-RETURN movie {
-	genres: apoc.coll.sortMulti([(movie)-[:HAS_GENRE]->(movieGenres:Genre) | movieGenres {
+MATCH (movies:Movie)
+RETURN movies {
+	genres: apoc.coll.sortMulti([(movies)-[:HAS_GENRE]->(moviesGenres:Genre) | moviesGenres {
 		.name
 	}], ['id', '^name'])
-} AS movie
+} AS movies
 ----
 
 === Sort with skip limit & with other variables
@@ -248,7 +249,7 @@ RETURN movie {
 [source,graphql]
 ----
 query($name: String, $skip: Int, $limit: Int, $sort: [GenreSort!]) {
-    movie {
+    movies {
         genres(
             options: {
                 sort: $sort
@@ -290,13 +291,13 @@ query($name: String, $skip: Int, $limit: Int, $sort: [GenreSort!]) {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (movie:Movie)
-RETURN movie {
-	genres: apoc.coll.sortMulti([(movie)-[:HAS_GENRE]->(movieGenres:Genre) WHERE movieGenres.name = $name | movieGenres {
+MATCH (movies:Movie)
+RETURN movies {
+	genres: apoc.coll.sortMulti([(movies)-[:HAS_GENRE]->(moviesGenres:Genre) WHERE moviesGenres.name = $name | moviesGenres {
 		.name
 	}], ['id', '^name'])[$skip..($skip + $limit)],
 	.title
-} AS movie
+} AS movies
 ----
 
 === Default values
@@ -305,7 +306,7 @@ RETURN movie {
 [source,graphql]
 ----
 {
-    movie {
+    movies {
         title
         genres {
             name
@@ -323,11 +324,11 @@ RETURN movie {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (movie:Movie)
-RETURN movie {
+MATCH (movies:Movie)
+RETURN movies {
 	.title,
-	genres: apoc.coll.sortMulti([(movie)-[:HAS_GENRE]->(movieGenres:Genre) | movieGenres {
+	genres: apoc.coll.sortMulti([(movies)-[:HAS_GENRE]->(moviesGenres:Genre) | moviesGenres {
 		.name
 	}], ['^name'])
-} AS movie
+} AS movies
 ----

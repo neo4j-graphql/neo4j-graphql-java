@@ -10,6 +10,11 @@ data class SchemaConfig @JvmOverloads constructor(
         val capitalizeQueryFields: Boolean = false,
 
         /**
+         * if true, the generated fields for query or mutation will use the plural of the types name
+         */
+        val pluralizeFields: Boolean = false,
+
+        /**
          * Defines the way the input for queries and mutations are generated
          */
         val queryOptionStyle: InputStyle = InputStyle.ARGUMENT_PER_FIELD,
