@@ -22,7 +22,8 @@ type Movie {
 [source,json,schema-config=true]
 ----
 {
-  "queryOptionStyle": "INPUT_TYPE"
+  "queryOptionStyle": "INPUT_TYPE",
+  "useWhereFilter": true
 }
 ----
 
@@ -52,7 +53,7 @@ type Mutation {
 }
 
 type Query {
-  movie(actorCount: Int, averageRating: Float, filter: _MovieFilter, id: ID, isActive: Boolean, options: MovieOptions): [Movie!]!
+  movie(options: MovieOptions, where: MovieWhere): [Movie!]!
 }
 
 type _Neo4jDate {
@@ -186,10 +187,10 @@ input MovieSort {
   isActive: SortDirection
 }
 
-input _MovieFilter {
-  AND: [_MovieFilter!]
-  NOT: [_MovieFilter!]
-  OR: [_MovieFilter!]
+input MovieWhere {
+  AND: [MovieWhere!]
+  NOT: [MovieWhere!]
+  OR: [MovieWhere!]
   actorCount: Int
   actorCount_gt: Int
   actorCount_gte: Int
@@ -223,13 +224,6 @@ input _MovieFilter {
   id_starts_with: ID
   isActive: Boolean
   isActive_not: Boolean
-}
-
-input _MovieInput {
-  actorCount: Int
-  averageRating: Float
-  id: ID
-  isActive: Boolean
 }
 
 input _Neo4jDateInput {
@@ -299,7 +293,18 @@ input _Neo4jTimeInput {
 }
 
 directive @relation(name:String, direction: RelationDirection = OUT, from: String = "from", to: String = "to") on FIELD_DEFINITION | OBJECT
-directive @cypher(statement:String) on FIELD_DEFINITION
+
+directive @cypher(
+
+  # a cypher statement fields or top level queries and mutations. The current node is passed to the statement as `this`
+  statement:String,
+
+  # if true, passes the sole responsibility for the nested query result for the field to your Cypher query.
+  # You will have to provide all data/structure required by client queries.
+  # Otherwise, we assume if you return object-types that you will return the appropriate nodes from your statement.
+  passThrough: Boolean = false
+) on FIELD_DEFINITION
+
 directive @property(name:String) on FIELD_DEFINITION
 directive @dynamic(prefix:String = "properties.") on FIELD_DEFINITION
 

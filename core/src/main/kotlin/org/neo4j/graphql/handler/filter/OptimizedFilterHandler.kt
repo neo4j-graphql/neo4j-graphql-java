@@ -32,7 +32,7 @@ typealias ConditionBuilder = (ExposesWith) -> OrderableOngoingReadingAndWithWith
  * If this handler cannot generate an optimization for the passed filter, an [OptimizedQueryException] will be
  * thrown, so the calling site can fall back to the non-optimized logic
  */
-class OptimizedFilterHandler(val type: GraphQLFieldsContainer) : ProjectionBase() {
+class OptimizedFilterHandler(val type: GraphQLFieldsContainer, schemaConfig: SchemaConfig) : ProjectionBase(schemaConfig) {
 
     fun generateFilterQuery(variable: String, fieldDefinition: GraphQLFieldDefinition, field: Field, readingWithoutWhere: OngoingReadingWithoutWhere, rootNode: PropertyContainer, variables: Map<String, Any>): OngoingReading {
         if (type.isRelationType()) {
@@ -41,23 +41,23 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer) : ProjectionBase(
 
         var ongoingReading: OngoingReading? = null
 
-        val filteredArguments = field.arguments.filterNot { SPECIAL_FIELDS.contains(it.name) }
-        if (filteredArguments.isNotEmpty()) {
-            val parsedQuery = QueryParser.parseArguments(filteredArguments, fieldDefinition, type, variables)
-            val condition = handleQuery(variable, "", rootNode, parsedQuery, type, variables)
-            ongoingReading = readingWithoutWhere.where(condition)
+        if (!schemaConfig.useWhereFilter) {
+            val filteredArguments = field.arguments.filterNot { SPECIAL_FIELDS.contains(it.name) }
+            if (filteredArguments.isNotEmpty()) {
+                val parsedQuery = QueryParser.parseArguments(filteredArguments, fieldDefinition, type, variables)
+                val condition = handleQuery(variable, "", rootNode, parsedQuery, type, variables)
+                ongoingReading = readingWithoutWhere.where(condition)
+            }
         }
-        for (argument in field.arguments) {
-            if (argument.name == FILTER) {
+        return field.arguments.find { filterFieldName() == it.name }
+            ?.let { argument ->
                 val parsedQuery = parseFilter(argument.value as ObjectValue, type, variables)
-                ongoingReading = NestingLevelHandler(parsedQuery, false, rootNode, variable, ongoingReading
+                NestingLevelHandler(parsedQuery, false, rootNode, variable, ongoingReading
                         ?: readingWithoutWhere,
                         type, argument.value, linkedSetOf(rootNode.requiredSymbolicName), variables)
                     .parseFilter()
             }
-        }
-
-        return ongoingReading ?: readingWithoutWhere
+                ?: readingWithoutWhere
     }
 
     /**

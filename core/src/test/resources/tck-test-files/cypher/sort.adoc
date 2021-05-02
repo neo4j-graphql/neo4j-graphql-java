@@ -38,7 +38,8 @@ input GenreSort {
 [source,json,schema-config=true]
 ----
 {
-  "queryOptionStyle": "INPUT_TYPE"
+  "queryOptionStyle": "INPUT_TYPE",
+  "useWhereFilter": true
 }
 ----
 
@@ -110,7 +111,9 @@ query($title: String, $skip: Int, $limit: Int, $sort: [MovieSort!]) {
             skip: $skip
             limit: $limit
         }
-        title: $title
+        where: {
+            title: $title
+        }
     ) {
         title
     }
@@ -252,7 +255,9 @@ query($name: String, $skip: Int, $limit: Int, $sort: [GenreSort!]) {
                 skip: $skip
                 limit: $limit
             }
-            name: $name
+            where: {
+                name: $name
+            }
         ) {
             name
         }

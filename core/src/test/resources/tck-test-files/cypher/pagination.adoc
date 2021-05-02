@@ -34,7 +34,8 @@ input ActorOptions {
 [source,json,schema-config=true]
 ----
 {
-  "queryOptionStyle": "INPUT_TYPE"
+  "queryOptionStyle": "INPUT_TYPE",
+  "useWhereFilter": true
 }
 ----
 
@@ -174,7 +175,10 @@ RETURN movie {
 [source,graphql]
 ----
 query($skip: Int, $limit: Int, $title: String) {
-    movie(options: { limit: $limit, skip: $skip }, title: $title) {
+    movie(
+        options: { limit: $limit, skip: $skip },
+        where: { title: $title }
+    ) {
         title
     }
 }
@@ -410,7 +414,10 @@ RETURN actor {
 query($skip: Int, $limit: Int, $title: String) {
     actor {
         name
-        movies (options: { limit: $limit, skip: $skip }, title: $title) {
+        movies (
+          options: { limit: $limit, skip: $skip },
+          where: { title: $title }
+        ) {
           title
         }
     }

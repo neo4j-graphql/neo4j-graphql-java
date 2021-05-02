@@ -18,8 +18,9 @@ class CreateRelationHandler private constructor(
         relation: RelationshipInfo,
         startId: RelationshipInfo.RelatedField,
         endId: RelationshipInfo.RelatedField,
-        fieldDefinition: GraphQLFieldDefinition)
-    : BaseRelationHandler(type, relation, startId, endId, fieldDefinition) {
+        fieldDefinition: GraphQLFieldDefinition,
+        schemaConfig: SchemaConfig
+) : BaseRelationHandler(type, relation, startId, endId, fieldDefinition, schemaConfig) {
 
     class Factory(schemaConfig: SchemaConfig) : BaseRelationFactory("add", schemaConfig) {
         override fun augmentType(type: GraphQLFieldsContainer, buildingEnv: BuildingEnv) {
@@ -54,7 +55,7 @@ class CreateRelationHandler private constructor(
                 endIdField: RelationshipInfo.RelatedField,
                 fieldDefinition: GraphQLFieldDefinition
         ): DataFetcher<Cypher> {
-            return CreateRelationHandler(sourceType, relation, startIdField, endIdField, fieldDefinition)
+            return CreateRelationHandler(sourceType, relation, startIdField, endIdField, fieldDefinition, schemaConfig)
         }
 
     }
