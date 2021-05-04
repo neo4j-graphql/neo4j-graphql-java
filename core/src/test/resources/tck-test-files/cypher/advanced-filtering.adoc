@@ -614,9 +614,12 @@ RETURN this { .budget } as this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE EXISTS((this)-[:IN_GENRE]->(:Genre)) AND ALL(this_genres IN [(this)-[:IN_GENRE]->(this_genres:Genre) | this_genres] WHERE this_genres.name = $this_genres_name)
-RETURN this { .actorCount } as this
+MATCH (movie:Movie)
+WHERE all(whereMovieGenreCond IN [(movie)-[:IN_GENRE]->(whereMovieGenre:Genre) | whereMovieGenre.name = $whereMovieGenreName]
+WHERE whereMovieGenreCond)
+RETURN movie {
+	.actorCount
+} AS movie
 ----
 
 === Relationship NOT
@@ -643,7 +646,10 @@ RETURN this { .actorCount } as this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE EXISTS((this)-[:IN_GENRE]->(:Genre)) AND NONE(this_genres_NOT IN [(this)-[:IN_GENRE]->(this_genres_NOT:Genre) | this_genres_NOT] WHERE this_genres_NOT.name = $this_genres_NOT_name)
-RETURN this { .actorCount } as this
+MATCH (movie:Movie)
+WHERE none(whereMovieGenreCond IN [(movie)-[:IN_GENRE]->(whereMovieGenre:Genre) | whereMovieGenre.name = $whereMovieGenreName]
+WHERE whereMovieGenreCond)
+RETURN movie {
+	.actorCount
+} AS movie
 ----

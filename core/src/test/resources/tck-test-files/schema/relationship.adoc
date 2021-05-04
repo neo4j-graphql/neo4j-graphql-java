@@ -44,7 +44,7 @@ type Actor {
 }
 
 type Movie {
-  actors(filter: ActorWhere, options: ActorOptions): [Actor]! @relation(direction : IN, from : "from", name : "ACTED_IN", to : "to")
+  actors(options: ActorOptions, where: ActorWhere): [Actor]! @relation(direction : IN, from : "from", name : "ACTED_IN", to : "to")
   id: ID
 }
 
