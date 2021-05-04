@@ -35,7 +35,8 @@ input ActorOptions {
 ----
 {
   "queryOptionStyle": "INPUT_TYPE",
-  "useWhereFilter": true
+  "useWhereFilter": true,
+  "pluralizeFields": true
 }
 ----
 
@@ -47,7 +48,7 @@ input ActorOptions {
 [source,graphql]
 ----
 {
-    movie(options: { skip: 1 }) {
+    movies(options: { skip: 1 }) {
         title
     }
 }
@@ -57,17 +58,17 @@ input ActorOptions {
 [source,json]
 ----
 {
-  "movieSkip" : 1
+  "moviesSkip" : 1
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (movie:Movie)
-RETURN movie {
+MATCH (movies:Movie)
+RETURN movies {
 	.title
-} AS movie SKIP $movieSkip
+} AS movies SKIP $moviesSkip
 ----
 
 === Limit
@@ -76,7 +77,7 @@ RETURN movie {
 [source,graphql]
 ----
 {
-    movie(options: { limit: 1 }) {
+    movies(options: { limit: 1 }) {
         title
     }
 }
@@ -86,17 +87,17 @@ RETURN movie {
 [source,json]
 ----
 {
-  "movieLimit" : 1
+  "moviesLimit" : 1
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (movie:Movie)
-RETURN movie {
+MATCH (movies:Movie)
+RETURN movies {
 	.title
-} AS movie LIMIT $movieLimit
+} AS movies LIMIT $moviesLimit
 ----
 
 === Skip + Limit
@@ -105,7 +106,7 @@ RETURN movie {
 [source,graphql]
 ----
 {
-    movie(options: { limit: 1, skip: 2  }) {
+    movies(options: { limit: 1, skip: 2  }) {
         title
     }
 }
@@ -115,18 +116,18 @@ RETURN movie {
 [source,json]
 ----
 {
-  "movieLimit" : 1,
-  "movieSkip" : 2
+  "moviesLimit" : 1,
+  "moviesSkip" : 2
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (movie:Movie)
-RETURN movie {
+MATCH (movies:Movie)
+RETURN movies {
 	.title
-} AS movie SKIP $movieSkip LIMIT $movieLimit
+} AS movies SKIP $moviesSkip LIMIT $moviesLimit
 ----
 
 === Skip + Limit as variables
@@ -135,7 +136,7 @@ RETURN movie {
 [source,graphql]
 ----
 query($skip: Int, $limit: Int) {
-    movie(options: { limit: $limit, skip: $skip }) {
+    movies(options: { limit: $limit, skip: $skip }) {
         title
     }
 }
@@ -163,10 +164,10 @@ query($skip: Int, $limit: Int) {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (movie:Movie)
-RETURN movie {
+MATCH (movies:Movie)
+RETURN movies {
 	.title
-} AS movie SKIP $skip LIMIT $limit
+} AS movies SKIP $skip LIMIT $limit
 ----
 
 === Skip + Limit with other variables
@@ -175,7 +176,7 @@ RETURN movie {
 [source,graphql]
 ----
 query($skip: Int, $limit: Int, $title: String) {
-    movie(
+    movies(
         options: { limit: $limit, skip: $skip },
         where: { title: $title }
     ) {
@@ -207,11 +208,11 @@ query($skip: Int, $limit: Int, $title: String) {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (movie:Movie)
-WHERE movie.title = $title
-RETURN movie {
+MATCH (movies:Movie)
+WHERE movies.title = $title
+RETURN movies {
 	.title
-} AS movie SKIP $skip LIMIT $limit
+} AS movies SKIP $skip LIMIT $limit
 ----
 
 === Default values
@@ -220,7 +221,7 @@ RETURN movie {
 [source,graphql]
 ----
 {
-    actor {
+    actors {
         name
     }
 }
@@ -230,18 +231,18 @@ RETURN movie {
 [source,json]
 ----
 {
-  "actorLimit" : 10,
-  "actorSkip" : 0
+  "actorsLimit" : 10,
+  "actorsSkip" : 0
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (actor:Actor)
-RETURN actor {
+MATCH (actors:Actor)
+RETURN actors {
 	.name
-} AS actor SKIP $actorSkip LIMIT $actorLimit
+} AS actors SKIP $actorsSkip LIMIT $actorsLimit
 ----
 
 == For projection
@@ -252,7 +253,7 @@ RETURN actor {
 [source,graphql]
 ----
 {
-    actor {
+    actors {
         name
         movies (options: { skip: 1 }) {
           title
@@ -265,22 +266,22 @@ RETURN actor {
 [source,json]
 ----
 {
-  "actorLimit" : 10,
-  "actorMoviesSkip" : 1,
-  "actorSkip" : 0
+  "actorsLimit" : 10,
+  "actorsMoviesSkip" : 1,
+  "actorsSkip" : 0
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (actor:Actor)
-RETURN actor {
+MATCH (actors:Actor)
+RETURN actors {
 	.name,
-	movies: [(actor)-[:ACTS_IN]->(actorMovies:Movie) | actorMovies {
+	movies: [(actors)-[:ACTS_IN]->(actorsMovies:Movie) | actorsMovies {
 		.title
-	}][$actorMoviesSkip..]
-} AS actor SKIP $actorSkip LIMIT $actorLimit
+	}][$actorsMoviesSkip..]
+} AS actors SKIP $actorsSkip LIMIT $actorsLimit
 ----
 
 === Limit
@@ -289,7 +290,7 @@ RETURN actor {
 [source,graphql]
 ----
 {
-    actor {
+    actors {
         name
         movies (options: { limit: 1 }) {
           title
@@ -302,22 +303,22 @@ RETURN actor {
 [source,json]
 ----
 {
-  "actorLimit" : 10,
-  "actorMoviesLimit" : 1,
-  "actorSkip" : 0
+  "actorsLimit" : 10,
+  "actorsMoviesLimit" : 1,
+  "actorsSkip" : 0
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (actor:Actor)
-RETURN actor {
+MATCH (actors:Actor)
+RETURN actors {
 	.name,
-	movies: [(actor)-[:ACTS_IN]->(actorMovies:Movie) | actorMovies {
+	movies: [(actors)-[:ACTS_IN]->(actorsMovies:Movie) | actorsMovies {
 		.title
-	}][0..$actorMoviesLimit]
-} AS actor SKIP $actorSkip LIMIT $actorLimit
+	}][0..$actorsMoviesLimit]
+} AS actors SKIP $actorsSkip LIMIT $actorsLimit
 ----
 
 === Skip + Limit
@@ -326,7 +327,7 @@ RETURN actor {
 [source,graphql]
 ----
 {
-    actor {
+    actors {
         name
         movies (options: { limit: 1, skip: 2 }) {
           title
@@ -339,23 +340,23 @@ RETURN actor {
 [source,json]
 ----
 {
-  "actorLimit" : 10,
-  "actorMoviesLimit" : 1,
-  "actorMoviesSkip" : 2,
-  "actorSkip" : 0
+  "actorsLimit" : 10,
+  "actorsMoviesLimit" : 1,
+  "actorsMoviesSkip" : 2,
+  "actorsSkip" : 0
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (actor:Actor)
-RETURN actor {
+MATCH (actors:Actor)
+RETURN actors {
 	.name,
-	movies: [(actor)-[:ACTS_IN]->(actorMovies:Movie) | actorMovies {
+	movies: [(actors)-[:ACTS_IN]->(actorsMovies:Movie) | actorsMovies {
 		.title
-	}][$actorMoviesSkip..($actorMoviesSkip + $actorMoviesLimit)]
-} AS actor SKIP $actorSkip LIMIT $actorLimit
+	}][$actorsMoviesSkip..($actorsMoviesSkip + $actorsMoviesLimit)]
+} AS actors SKIP $actorsSkip LIMIT $actorsLimit
 ----
 
 === Skip + Limit as variables
@@ -364,7 +365,7 @@ RETURN actor {
 [source,graphql]
 ----
 query($skip: Int, $limit: Int) {
-    actor {
+    actors {
         name
         movies (options: { limit: $limit, skip: $skip }) {
           title
@@ -387,8 +388,8 @@ query($skip: Int, $limit: Int) {
 [source,json]
 ----
 {
-  "actorLimit" : 10,
-  "actorSkip" : 0,
+  "actorsLimit" : 10,
+  "actorsSkip" : 0,
   "limit" : 0,
   "skip" : 0
 }
@@ -397,13 +398,13 @@ query($skip: Int, $limit: Int) {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (actor:Actor)
-RETURN actor {
+MATCH (actors:Actor)
+RETURN actors {
 	.name,
-	movies: [(actor)-[:ACTS_IN]->(actorMovies:Movie) | actorMovies {
+	movies: [(actors)-[:ACTS_IN]->(actorsMovies:Movie) | actorsMovies {
 		.title
 	}][$skip..($skip + $limit)]
-} AS actor SKIP $actorSkip LIMIT $actorLimit
+} AS actors SKIP $actorsSkip LIMIT $actorsLimit
 ----
 
 === Skip + Limit with other variables
@@ -412,7 +413,7 @@ RETURN actor {
 [source,graphql]
 ----
 query($skip: Int, $limit: Int, $title: String) {
-    actor {
+    actors {
         name
         movies (
           options: { limit: $limit, skip: $skip },
@@ -439,8 +440,8 @@ query($skip: Int, $limit: Int, $title: String) {
 [source,json]
 ----
 {
-  "actorLimit" : 10,
-  "actorSkip" : 0,
+  "actorsLimit" : 10,
+  "actorsSkip" : 0,
   "limit" : 1,
   "skip" : 2,
   "title" : "some title"
@@ -450,13 +451,13 @@ query($skip: Int, $limit: Int, $title: String) {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (actor:Actor)
-RETURN actor {
+MATCH (actors:Actor)
+RETURN actors {
 	.name,
-	movies: [(actor)-[:ACTS_IN]->(actorMovies:Movie) WHERE actorMovies.title = $title | actorMovies {
+	movies: [(actors)-[:ACTS_IN]->(actorsMovies:Movie) WHERE actorsMovies.title = $title | actorsMovies {
 		.title
 	}][$skip..($skip + $limit)]
-} AS actor SKIP $actorSkip LIMIT $actorLimit
+} AS actors SKIP $actorsSkip LIMIT $actorsLimit
 ----
 
 === Default values
@@ -465,7 +466,7 @@ RETURN actor {
 [source,graphql]
 ----
 {
-    movie {
+    movies {
         title
         actors {
             name
@@ -478,19 +479,19 @@ RETURN actor {
 [source,json]
 ----
 {
-  "movieActorsLimit" : 10,
-  "movieActorsSkip" : 0
+  "moviesActorsLimit" : 10,
+  "moviesActorsSkip" : 0
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (movie:Movie)
-RETURN movie {
+MATCH (movies:Movie)
+RETURN movies {
 	.title,
-	actors: [(movie)<-[:ACTS_IN]-(movieActors:Actor) | movieActors {
+	actors: [(movies)<-[:ACTS_IN]-(moviesActors:Actor) | moviesActors {
 		.name
-	}][$movieActorsSkip..($movieActorsSkip + $movieActorsLimit)]
-} AS movie
+	}][$moviesActorsSkip..($moviesActorsSkip + $moviesActorsLimit)]
+} AS movies
 ----
