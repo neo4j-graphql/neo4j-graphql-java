@@ -6,7 +6,8 @@ import org.neo4j.graphql.handler.projection.ProjectionBase
 
 class BuildingEnv(
         val types: MutableMap<String, GraphQLNamedType>,
-        private val sourceSchema: GraphQLSchema
+        private val sourceSchema: GraphQLSchema,
+        val schemaConfig: SchemaConfig
 ) {
 
     private val typesForRelation = types.values
@@ -77,7 +78,7 @@ class BuildingEnv(
     }
 
     fun addFilterType(type: GraphQLFieldsContainer, createdTypes: MutableSet<String> = mutableSetOf()): String {
-        val filterName = "_${type.name}Filter"
+        val filterName = if (schemaConfig.useWhereFilter) type.name + "Where" else "_${type.name}Filter"
         if (createdTypes.contains(filterName)) {
             return filterName
         }
@@ -138,7 +139,7 @@ class BuildingEnv(
                     ?: throw IllegalStateException("Ordering type $type.name is already defined but not an input type")
         }
         val sortTypeName = addSortInputType(type)
-        val optionsTypeBuilder =  GraphQLInputObjectType.newInputObject().name(optionsName)
+        val optionsTypeBuilder = GraphQLInputObjectType.newInputObject().name(optionsName)
         if (sortTypeName != null) {
             optionsTypeBuilder.field(GraphQLInputObjectField.newInputObjectField()
                 .name(ProjectionBase.SORT)
@@ -147,10 +148,10 @@ class BuildingEnv(
                 .build())
         }
         optionsTypeBuilder.field(GraphQLInputObjectField.newInputObjectField()
-                .name(ProjectionBase.LIMIT)
-                .type(Scalars.GraphQLInt)
-                .description("Defines the maximum amount of records returned")
-                .build())
+            .name(ProjectionBase.LIMIT)
+            .type(Scalars.GraphQLInt)
+            .description("Defines the maximum amount of records returned")
+            .build())
             .field(GraphQLInputObjectField.newInputObjectField()
                 .name(ProjectionBase.SKIP)
                 .type(Scalars.GraphQLInt)
@@ -169,7 +170,7 @@ class BuildingEnv(
                     ?: throw IllegalStateException("Ordering type $type.name is already defined but not an input type")
         }
         val relevantFields = type.relevantFields()
-        if (relevantFields.isEmpty()){
+        if (relevantFields.isEmpty()) {
             return null
         }
         val builder = GraphQLInputObjectType.newInputObject()

@@ -18,8 +18,9 @@ class DeleteRelationHandler private constructor(
         relation: RelationshipInfo,
         startId: RelationshipInfo.RelatedField,
         endId: RelationshipInfo.RelatedField,
-        fieldDefinition: GraphQLFieldDefinition)
-    : BaseRelationHandler(type, relation, startId, endId, fieldDefinition) {
+        fieldDefinition: GraphQLFieldDefinition,
+        schemaConfig: SchemaConfig
+) : BaseRelationHandler(type, relation, startId, endId, fieldDefinition, schemaConfig) {
 
     class Factory(schemaConfig: SchemaConfig) : BaseRelationFactory("delete", schemaConfig) {
         override fun augmentType(type: GraphQLFieldsContainer, buildingEnv: BuildingEnv) {
@@ -41,7 +42,7 @@ class DeleteRelationHandler private constructor(
                 endIdField: RelationshipInfo.RelatedField,
                 fieldDefinition: GraphQLFieldDefinition
         ): DataFetcher<Cypher> {
-            return DeleteRelationHandler(sourceType, relation, startIdField, endIdField, fieldDefinition)
+            return DeleteRelationHandler(sourceType, relation, startIdField, endIdField, fieldDefinition, schemaConfig)
         }
 
     }

@@ -16,8 +16,9 @@ abstract class BaseRelationHandler(
         val relation: RelationshipInfo,
         private val startId: RelationshipInfo.RelatedField,
         private val endId: RelationshipInfo.RelatedField,
-        fieldDefinition: GraphQLFieldDefinition)
-    : BaseDataFetcherForContainer(type, fieldDefinition) {
+        fieldDefinition: GraphQLFieldDefinition,
+        schemaConfig: SchemaConfig)
+    : BaseDataFetcherForContainer(type, fieldDefinition, schemaConfig) {
 
     init {
         propertyFields.remove(startId.argumentName)

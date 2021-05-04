@@ -9,13 +9,14 @@ import org.neo4j.cypherdsl.core.Statement
 import org.neo4j.cypherdsl.core.renderer.Configuration
 import org.neo4j.cypherdsl.core.renderer.Renderer
 import org.neo4j.graphql.Cypher
+import org.neo4j.graphql.SchemaConfig
 import org.neo4j.graphql.aliasOrName
 import org.neo4j.graphql.handler.projection.ProjectionBase
 
 /**
  * The is a base class for the implementation of graphql data fetcher used in this project
  */
-abstract class BaseDataFetcher(val fieldDefinition: GraphQLFieldDefinition) : ProjectionBase(), DataFetcher<Cypher> {
+abstract class BaseDataFetcher(val fieldDefinition: GraphQLFieldDefinition, schemaConfig: SchemaConfig) : ProjectionBase(schemaConfig), DataFetcher<Cypher> {
 
     override fun get(env: DataFetchingEnvironment?): Cypher {
         val field = env?.mergedField?.singleField

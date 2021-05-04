@@ -14,8 +14,9 @@ import org.neo4j.graphql.handler.filter.OptimizedFilterHandler
  */
 class QueryHandler private constructor(
         type: GraphQLFieldsContainer,
-        fieldDefinition: GraphQLFieldDefinition)
-    : BaseDataFetcherForContainer(type, fieldDefinition) {
+        fieldDefinition: GraphQLFieldDefinition,
+        schemaConfig: SchemaConfig
+) : BaseDataFetcherForContainer(type, fieldDefinition, schemaConfig) {
 
     class Factory(schemaConfig: SchemaConfig) : AugmentationHandler(schemaConfig) {
         override fun augmentType(type: GraphQLFieldsContainer, buildingEnv: BuildingEnv) {
@@ -25,15 +26,18 @@ class QueryHandler private constructor(
             val typeName = type.name
             val relevantFields = getRelevantFields(type)
 
-            // TODO not just generate the input type but use it as well
-            buildingEnv.addInputType("_${typeName}Input", type.relevantFields())
             val filterTypeName = buildingEnv.addFilterType(type)
+            val arguments = if (schemaConfig.useWhereFilter) {
+                listOf(input(WHERE, GraphQLTypeReference(filterTypeName)))
+            } else {
+                buildingEnv.getInputValueDefinitions(relevantFields, { true }) +
+                        input(FILTER, GraphQLTypeReference(filterTypeName))
+            }
 
             val builder = GraphQLFieldDefinition
                 .newFieldDefinition()
                 .name(if (schemaConfig.capitalizeQueryFields) typeName else typeName.decapitalize())
-                .arguments(buildingEnv.getInputValueDefinitions(relevantFields) { true })
-                .argument(input(FILTER, GraphQLTypeReference(filterTypeName)))
+                .arguments(arguments)
                 .type(GraphQLNonNull(GraphQLList(GraphQLNonNull(GraphQLTypeReference(type.name)))))
 
             if (schemaConfig.queryOptionStyle == SchemaConfig.InputStyle.INPUT_TYPE) {
@@ -68,7 +72,7 @@ class QueryHandler private constructor(
             if (!canHandle(type)) {
                 return null
             }
-            return QueryHandler(type, fieldDefinition)
+            return QueryHandler(type, fieldDefinition, schemaConfig)
         }
 
         private fun canHandle(type: GraphQLFieldsContainer): Boolean {
@@ -102,7 +106,7 @@ class QueryHandler private constructor(
 
         val ongoingReading = if ((env.getContext() as? QueryContext)?.optimizedQuery?.contains(QueryContext.OptimizationStrategy.FILTER_AS_MATCH) == true) {
 
-            OptimizedFilterHandler(type).generateFilterQuery(variable, fieldDefinition, field, match, propertyContainer, env.variables)
+            OptimizedFilterHandler(type, schemaConfig).generateFilterQuery(variable, fieldDefinition, field, match, propertyContainer, env.variables)
 
         } else {
 

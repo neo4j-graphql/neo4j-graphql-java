@@ -3,14 +3,22 @@ package org.neo4j.graphql
 data class SchemaConfig @JvmOverloads constructor(
         val query: CRUDConfig = CRUDConfig(),
         val mutation: CRUDConfig = CRUDConfig(),
+
         /**
          * if true, the top level fields of the Query-type will be capitalized
          */
         val capitalizeQueryFields: Boolean = false,
+
         /**
          * Defines the way the input for queries and mutations are generated
          */
         val queryOptionStyle: InputStyle = InputStyle.ARGUMENT_PER_FIELD,
+
+        /**
+         * if enabled the `filter` argument will be named `where` and the input type will be named `<typeName>Where`.
+         * additionally the separated filter arguments will no longer be generated.
+         */
+        val useWhereFilter: Boolean = false,
 ) {
     data class CRUDConfig(val enabled: Boolean = true, val exclude: List<String> = emptyList())
 

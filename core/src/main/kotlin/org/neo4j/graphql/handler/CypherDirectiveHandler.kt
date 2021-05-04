@@ -16,8 +16,9 @@ class CypherDirectiveHandler(
         private val type: GraphQLFieldsContainer?,
         private val isQuery: Boolean,
         private val cypherDirective: CypherDirective,
-        fieldDefinition: GraphQLFieldDefinition)
-    : BaseDataFetcher(fieldDefinition) {
+        fieldDefinition: GraphQLFieldDefinition,
+        schemaConfig: SchemaConfig)
+    : BaseDataFetcher(fieldDefinition, schemaConfig) {
 
     class Factory(schemaConfig: SchemaConfig) : AugmentationHandler(schemaConfig) {
 
@@ -25,7 +26,7 @@ class CypherDirectiveHandler(
             val cypherDirective = fieldDefinition.cypherDirective() ?: return null
             val type = fieldDefinition.type.inner() as? GraphQLFieldsContainer
             val isQuery = operationType == OperationType.QUERY
-            return CypherDirectiveHandler(type, isQuery, cypherDirective, fieldDefinition)
+            return CypherDirectiveHandler(type, isQuery, cypherDirective, fieldDefinition, schemaConfig)
         }
     }
 

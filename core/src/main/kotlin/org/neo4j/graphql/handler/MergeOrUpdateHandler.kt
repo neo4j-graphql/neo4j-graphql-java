@@ -20,8 +20,9 @@ class MergeOrUpdateHandler private constructor(
         private val merge: Boolean,
         private val idField: GraphQLFieldDefinition,
         fieldDefinition: GraphQLFieldDefinition,
+        schemaConfig: SchemaConfig,
         private val isRelation: Boolean = type.isRelationType()
-) : BaseDataFetcherForContainer(type, fieldDefinition) {
+) : BaseDataFetcherForContainer(type, fieldDefinition, schemaConfig) {
 
     class Factory(schemaConfig: SchemaConfig) : AugmentationHandler(schemaConfig) {
         override fun augmentType(type: GraphQLFieldsContainer, buildingEnv: BuildingEnv) {
@@ -55,8 +56,8 @@ class MergeOrUpdateHandler private constructor(
             }
             val idField = type.getIdField() ?: return null
             return when (fieldDefinition.name) {
-                "merge${type.name}" -> MergeOrUpdateHandler(type, true, idField, fieldDefinition)
-                "update${type.name}" -> MergeOrUpdateHandler(type, false, idField, fieldDefinition)
+                "merge${type.name}" -> MergeOrUpdateHandler(type, true, idField, fieldDefinition, schemaConfig)
+                "update${type.name}" -> MergeOrUpdateHandler(type, false, idField, fieldDefinition, schemaConfig)
                 else -> null
             }
         }
@@ -107,7 +108,7 @@ class MergeOrUpdateHandler private constructor(
             }
         }
         val properties = properties(variable, field.arguments)
-        val mapProjection = projectFields(propertyContainer,field, type, env)
+        val mapProjection = projectFields(propertyContainer, field, type, env)
         val update: OngoingMatchAndUpdate = select
             .mutate(propertyContainer, org.neo4j.cypherdsl.core.Cypher.mapOf(*properties))
 

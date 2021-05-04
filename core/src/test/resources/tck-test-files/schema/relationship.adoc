@@ -24,7 +24,8 @@ type Movie {
 [source,json,schema-config=true]
 ----
 {
-  "queryOptionStyle": "INPUT_TYPE"
+  "queryOptionStyle": "INPUT_TYPE",
+  "useWhereFilter": true
 }
 ----
 
@@ -43,7 +44,7 @@ type Actor {
 }
 
 type Movie {
-  actors(filter: _ActorFilter, options: ActorOptions): [Actor]! @relation(direction : IN, from : "from", name : "ACTED_IN", to : "to")
+  actors(options: ActorOptions, where: ActorWhere): [Actor]! @relation(direction : IN, from : "from", name : "ACTED_IN", to : "to")
   id: ID
 }
 
@@ -55,8 +56,8 @@ type Mutation {
 }
 
 type Query {
-  actor(filter: _ActorFilter, name: String, options: ActorOptions): [Actor!]!
-  movie(filter: _MovieFilter, id: ID, options: MovieOptions): [Movie!]!
+  actor(options: ActorOptions, where: ActorWhere): [Actor!]!
+  movie(options: MovieOptions, where: MovieWhere): [Movie!]!
 }
 
 type _Neo4jDate {
@@ -187,24 +188,10 @@ input ActorSort {
   name: SortDirection
 }
 
-input MovieOptions {
-  "Defines the maximum amount of records returned"
-  limit: Int
-  "Defines the amount of records to be skipped"
-  skip: Int
-  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [MovieSort!]
-}
-
-"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
-input MovieSort {
-  id: SortDirection
-}
-
-input _ActorFilter {
-  AND: [_ActorFilter!]
-  NOT: [_ActorFilter!]
-  OR: [_ActorFilter!]
+input ActorWhere {
+  AND: [ActorWhere!]
+  NOT: [ActorWhere!]
+  OR: [ActorWhere!]
   name: String
   name_contains: String
   name_ends_with: String
@@ -222,26 +209,36 @@ input _ActorFilter {
   name_starts_with: String
 }
 
-input _ActorInput {
-  name: String
+input MovieOptions {
+  "Defines the maximum amount of records returned"
+  limit: Int
+  "Defines the amount of records to be skipped"
+  skip: Int
+  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [MovieSort!]
 }
 
-input _MovieFilter {
-  AND: [_MovieFilter!]
-  NOT: [_MovieFilter!]
-  OR: [_MovieFilter!]
+"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+input MovieSort {
+  id: SortDirection
+}
+
+input MovieWhere {
+  AND: [MovieWhere!]
+  NOT: [MovieWhere!]
+  OR: [MovieWhere!]
   "Filters only those `Movie` for which all `actors`-relationship matches this filter. If `null` is passed to this field, only those `Movie` will be filtered which has no `actors`-relations"
-  actors: _ActorFilter
+  actors: ActorWhere
   "Filters only those `Movie` for which all `actors`-relationships matches this filter"
-  actors_every: _ActorFilter
+  actors_every: ActorWhere
   "Filters only those `Movie` for which none of the `actors`-relationships matches this filter"
-  actors_none: _ActorFilter
+  actors_none: ActorWhere
   "Filters only those `Movie` for which all `actors`-relationship does not match this filter. If `null` is passed to this field, only those `Movie` will be filtered which has any `actors`-relation"
-  actors_not: _ActorFilter
+  actors_not: ActorWhere
   "Filters only those `Movie` for which exactly one `actors`-relationship matches this filter"
-  actors_single: _ActorFilter
+  actors_single: ActorWhere
   "Filters only those `Movie` for which at least one `actors`-relationship matches this filter"
-  actors_some: _ActorFilter
+  actors_some: ActorWhere
   id: ID
   id_contains: ID
   id_ends_with: ID
@@ -257,10 +254,6 @@ input _MovieFilter {
   id_not_in: [ID]
   id_not_starts_with: ID
   id_starts_with: ID
-}
-
-input _MovieInput {
-  id: ID
 }
 
 input _Neo4jDateInput {
@@ -330,7 +323,18 @@ input _Neo4jTimeInput {
 }
 
 directive @relation(name:String, direction: RelationDirection = OUT, from: String = "from", to: String = "to") on FIELD_DEFINITION | OBJECT
-directive @cypher(statement:String, passThrough: Boolean = false) on FIELD_DEFINITION
+
+directive @cypher(
+
+  # a cypher statement fields or top level queries and mutations. The current node is passed to the statement as `this`
+  statement:String,
+
+  # if true, passes the sole responsibility for the nested query result for the field to your Cypher query.
+  # You will have to provide all data/structure required by client queries.
+  # Otherwise, we assume if you return object-types that you will return the appropriate nodes from your statement.
+  passThrough: Boolean = false
+) on FIELD_DEFINITION
+
 directive @property(name:String) on FIELD_DEFINITION
 directive @dynamic(prefix:String = "properties.") on FIELD_DEFINITION
 

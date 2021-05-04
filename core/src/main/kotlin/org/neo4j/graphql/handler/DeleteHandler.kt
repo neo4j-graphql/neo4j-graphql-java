@@ -16,8 +16,9 @@ class DeleteHandler private constructor(
         type: GraphQLFieldsContainer,
         private val idField: GraphQLFieldDefinition,
         fieldDefinition: GraphQLFieldDefinition,
+        schemaConfig: SchemaConfig,
         private val isRelation: Boolean = type.isRelationType()
-) : BaseDataFetcherForContainer(type, fieldDefinition) {
+) : BaseDataFetcherForContainer(type, fieldDefinition, schemaConfig) {
 
     class Factory(schemaConfig: SchemaConfig) : AugmentationHandler(schemaConfig) {
         override fun augmentType(type: GraphQLFieldsContainer, buildingEnv: BuildingEnv) {
@@ -48,7 +49,7 @@ class DeleteHandler private constructor(
             }
             val idField = type.getIdField() ?: return null
             return when (fieldDefinition.name) {
-                "delete${type.name}" -> DeleteHandler(type, idField, fieldDefinition)
+                "delete${type.name}" -> DeleteHandler(type, idField, fieldDefinition, schemaConfig)
                 else -> null
             }
         }

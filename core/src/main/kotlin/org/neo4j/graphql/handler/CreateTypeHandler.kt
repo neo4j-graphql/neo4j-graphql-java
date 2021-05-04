@@ -12,8 +12,9 @@ import org.neo4j.graphql.*
  */
 class CreateTypeHandler private constructor(
         type: GraphQLFieldsContainer,
-        fieldDefinition: GraphQLFieldDefinition
-) : BaseDataFetcherForContainer(type, fieldDefinition) {
+        fieldDefinition: GraphQLFieldDefinition,
+        schemaConfig: SchemaConfig
+) : BaseDataFetcherForContainer(type, fieldDefinition, schemaConfig) {
 
     class Factory(schemaConfig: SchemaConfig) : AugmentationHandler(schemaConfig) {
         override fun augmentType(type: GraphQLFieldsContainer, buildingEnv: BuildingEnv) {
@@ -41,7 +42,7 @@ class CreateTypeHandler private constructor(
                 return null
             }
             return when {
-                fieldDefinition.name == "create${type.name}" -> CreateTypeHandler(type, fieldDefinition)
+                fieldDefinition.name == "create${type.name}" -> CreateTypeHandler(type, fieldDefinition, schemaConfig)
                 else -> null
             }
         }

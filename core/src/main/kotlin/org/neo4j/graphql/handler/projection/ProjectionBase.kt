@@ -17,7 +17,10 @@ import org.neo4j.graphql.parser.QueryParser.parseFilter
 /**
  * This class contains the logic for projecting nodes and relations
  */
-open class ProjectionBase {
+open class ProjectionBase(
+        protected val schemaConfig: SchemaConfig
+) {
+
     companion object {
         /*
          * old arguments, subject to be removed in future releases
@@ -37,6 +40,7 @@ open class ProjectionBase {
         const val LIMIT = "limit"
         const val SKIP = "skip"
         const val SORT = "sort"
+        const val WHERE = "where"
 
         const val TYPE_NAME = "__typename"
 
@@ -45,6 +49,8 @@ open class ProjectionBase {
          */
         val SPECIAL_FIELDS = setOf(FIRST, OFFSET, ORDER_BY, FILTER, OPTIONS)
     }
+
+    fun filterFieldName() = if (schemaConfig.useWhereFilter) WHERE else FILTER
 
     fun orderBy(node: PropertyContainer, args: MutableList<Argument>, fieldDefinition: GraphQLFieldDefinition?, variables: Map<String, Any>): List<SortItem>? {
         val values = getOrderByArgs(args, fieldDefinition, variables)
@@ -101,12 +107,15 @@ open class ProjectionBase {
     ): Condition {
         val variable = propertyContainer.requiredSymbolicName.value
 
-        val filteredArguments = field.arguments.filterNot { SPECIAL_FIELDS.contains(it.name) }
+        val result = if (!schemaConfig.useWhereFilter) {
+            val filteredArguments = field.arguments.filterNot { SPECIAL_FIELDS.contains(it.name) }
 
-        val parsedQuery = parseArguments(filteredArguments, fieldDefinition, type, variables)
-        val result = handleQuery(variable, "", propertyContainer, parsedQuery, type, variables)
-
-        return field.arguments.find { FILTER == it.name }
+            val parsedQuery = parseArguments(filteredArguments, fieldDefinition, type, variables)
+            handleQuery(variable, "", propertyContainer, parsedQuery, type, variables)
+        } else {
+            Conditions.noCondition()
+        }
+        return field.arguments.find { filterFieldName() == it.name }
             ?.let { arg ->
                 when (arg.value) {
                     is ObjectValue -> arg.value as ObjectValue
@@ -116,7 +125,7 @@ open class ProjectionBase {
             }
             ?.let { parseFilter(it as ObjectValue, type, variables) }
             ?.let {
-                val filterCondition = handleQuery(normalizeName(FILTER, variable), "", propertyContainer, it, type, variables)
+                val filterCondition = handleQuery(normalizeName(filterFieldName(), variable), "", propertyContainer, it, type, variables)
                 result.and(filterCondition)
             }
                 ?: result
@@ -154,8 +163,9 @@ open class ProjectionBase {
                 else -> null
             }?.let {
                 val targetNode = predicate.relNode.named(normalizeName(variablePrefix, predicate.relationshipInfo.typeName))
-                val parsedQuery2 = parseFilter(objectField.value as ObjectValue, type, variables)
-                val condition = handleQuery(targetNode.requiredSymbolicName.value, "", targetNode, parsedQuery2, type, variables)
+                val relType = predicate.relationshipInfo.type
+                val parsedQuery2 = parseFilter(objectField.value as ObjectValue, relType, variables)
+                val condition = handleQuery(targetNode.requiredSymbolicName.value, "", targetNode, parsedQuery2, relType, variables)
                 var where = it
                     .`in`(listBasedOn(predicate.relationshipInfo.createRelation(propertyContainer as Node, targetNode)).returning(condition))
                     .where(cond.asCondition())
@@ -473,15 +483,15 @@ open class ProjectionBase {
         return skipLimit.slice(fieldType.isList(), comprehension)
     }
 
-    class SkipLimit(variable: String, arguments: List<Argument>, fieldDefinition: GraphQLFieldDefinition?) {
+    inner class SkipLimit(variable: String, arguments: List<Argument>, fieldDefinition: GraphQLFieldDefinition?) {
 
         private val skip: Parameter<*>?
         private val limit: Parameter<*>?
 
         init {
-            val options = arguments.find { it.name == OPTIONS }?.value as? ObjectValue
-            val defaultOptions = (fieldDefinition?.getArgument(OPTIONS)?.type as? GraphQLInputObjectType)
-            if (options != null || defaultOptions != null) {
+            if (schemaConfig.queryOptionStyle == SchemaConfig.InputStyle.INPUT_TYPE) {
+                val options = arguments.find { it.name == OPTIONS }?.value as? ObjectValue
+                val defaultOptions = (fieldDefinition?.getArgument(OPTIONS)?.type as? GraphQLInputObjectType)
                 this.skip = convertOptionField(variable, options, defaultOptions, SKIP)
                 this.limit = convertOptionField(variable, options, defaultOptions, LIMIT)
             } else {
@@ -504,21 +514,19 @@ open class ProjectionBase {
                             ?: subList(expression, literalOf<Number>(0), limit)
                 }
 
-        companion object {
-            private fun convertArgument(variable: String, arguments: List<Argument>, fieldDefinition: GraphQLFieldDefinition?, name: String): Parameter<*>? {
-                val value = arguments
-                    .find { it.name.toLowerCase() == name }?.value
-                        ?: fieldDefinition?.getArgument(name)?.defaultValue
-                        ?: return null
-                return queryParameter(value, variable, name)
-            }
+        private fun convertArgument(variable: String, arguments: List<Argument>, fieldDefinition: GraphQLFieldDefinition?, name: String): Parameter<*>? {
+            val value = arguments
+                .find { it.name.toLowerCase() == name }?.value
+                    ?: fieldDefinition?.getArgument(name)?.defaultValue
+                    ?: return null
+            return queryParameter(value, variable, name)
+        }
 
-            private fun convertOptionField(variable: String, options: ObjectValue?, defaultOptions: GraphQLInputObjectType?, name: String): Parameter<*>? {
-                val value = options?.objectFields?.find { it.name == name }?.value
-                        ?: defaultOptions?.getField(name)?.defaultValue
-                        ?: return null
-                return queryParameter(value, variable, name)
-            }
+        private fun convertOptionField(variable: String, options: ObjectValue?, defaultOptions: GraphQLInputObjectType?, name: String): Parameter<*>? {
+            val value = options?.objectFields?.find { it.name == name }?.value
+                    ?: defaultOptions?.getField(name)?.defaultValue
+                    ?: return null
+            return queryParameter(value, variable, name)
         }
     }
 

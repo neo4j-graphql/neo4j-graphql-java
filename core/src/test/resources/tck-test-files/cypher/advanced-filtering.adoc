@@ -1,0 +1,655 @@
+:toc:
+
+= Cypher Advanced Filtering
+
+Tests advanced filtering.
+
+== Inputs
+
+[source,graphql,schema=true]
+----
+type Movie {
+    _id: ID
+    id: ID
+    title: String
+    actorCount: Int
+# TODO support BigInt
+#    budget: BigInt
+    genres: [Genre] @relation(name: "IN_GENRE", direction: OUT)
+}
+
+type Genre {
+  name: String
+  movies: [Movie] @relation(name: "IN_GENRE", direction: IN)
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+  "queryOptionStyle": "INPUT_TYPE",
+  "useWhereFilter": true
+}
+----
+
+== Tests
+
+=== IN
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+    movie(where: { id_in: ["123"] }) {
+        id
+    }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "whereMovieIdIn" : [ "123" ]
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (movie:Movie)
+WHERE movie.id IN $whereMovieIdIn
+RETURN movie {
+	.id
+} AS movie
+----
+
+=== REGEX
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+    movie(where: { id_matches: "(?i)123.*" }) {
+        id
+    }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "whereMovieIdMatches" : "(?i)123.*"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (movie:Movie)
+WHERE movie.id =~ $whereMovieIdMatches
+RETURN movie {
+	.id
+} AS movie
+----
+
+=== NOT
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+    movie(where: { id_not: "123" }) {
+        id
+    }
+}
+----
+
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "whereMovieIdNot" : "123"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (movie:Movie)
+WHERE NOT (movie.id = $whereMovieIdNot)
+RETURN movie {
+	.id
+} AS movie
+----
+
+=== NOT_IN
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+    movie(where: { id_not_in: ["123"] }) {
+        id
+    }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "whereMovieIdNotIn" : [ "123" ]
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (movie:Movie)
+WHERE NOT (movie.id IN $whereMovieIdNotIn)
+RETURN movie {
+	.id
+} AS movie
+----
+
+=== CONTAINS
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+    movie(where: { id_contains: "123" }) {
+        id
+    }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "whereMovieIdContains" : "123"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (movie:Movie)
+WHERE movie.id CONTAINS $whereMovieIdContains
+RETURN movie {
+	.id
+} AS movie
+----
+
+=== NOT_CONTAINS
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+    movie(where: { id_not_contains: "123" }) {
+        id
+    }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "whereMovieIdNotContains" : "123"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (movie:Movie)
+WHERE NOT (movie.id CONTAINS $whereMovieIdNotContains)
+RETURN movie {
+	.id
+} AS movie
+----
+
+=== STARTS_WITH
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+    movie(where: { id_starts_with: "123" }) {
+        id
+    }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "whereMovieIdStartsWith" : "123"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (movie:Movie)
+WHERE movie.id STARTS WITH $whereMovieIdStartsWith
+RETURN movie {
+	.id
+} AS movie
+----
+
+=== NOT_STARTS_WITH
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+    movie(where: { id_not_starts_with: "123" }) {
+        id
+    }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "whereMovieIdNotStartsWith" : "123"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (movie:Movie)
+WHERE NOT (movie.id STARTS WITH $whereMovieIdNotStartsWith)
+RETURN movie {
+	.id
+} AS movie
+----
+
+=== ENDS_WITH
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+    movie(where: { id_ends_with: "123" }) {
+        id
+    }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "whereMovieIdEndsWith" : "123"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (movie:Movie)
+WHERE movie.id ENDS WITH $whereMovieIdEndsWith
+RETURN movie {
+	.id
+} AS movie
+----
+
+=== NOT_ENDS_WITH
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+    movie(where: { id_not_ends_with: "123" }) {
+        id
+    }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "whereMovieIdNotEndsWith" : "123"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (movie:Movie)
+WHERE NOT (movie.id ENDS WITH $whereMovieIdNotEndsWith)
+RETURN movie {
+	.id
+} AS movie
+----
+
+=== LT
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+    movie(where: { actorCount_lt: 123 }) {
+        actorCount
+    }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "whereMovieActorCountLt" : 123
+}
+----
+
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (movie:Movie)
+WHERE movie.actorCount < $whereMovieActorCountLt
+RETURN movie {
+	.actorCount
+} AS movie
+----
+
+=== LT BigInt
+
+CAUTION: *Not yet implemented*
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+    movie(where: { budget_lt: 9223372036854775807 }) {
+        budget
+    }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+    "this_budget_LT": {
+        "low": -1,
+        "high": 2147483647
+    }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.budget < $this_budget_LT
+RETURN this { .budget } as this
+----
+
+=== LTE
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+    movie(where: { actorCount_lte: 123 }) {
+        actorCount
+    }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "whereMovieActorCountLte" : 123
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (movie:Movie)
+WHERE movie.actorCount <= $whereMovieActorCountLte
+RETURN movie {
+	.actorCount
+} AS movie
+----
+
+=== LTE BigInt
+
+CAUTION: *Not yet implemented*
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+    movie(where: { budget_lte: 9223372036854775807 }) {
+        budget
+    }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+    "this_budget_LTE": {
+        "low": -1,
+        "high": 2147483647
+    }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.budget <= $this_budget_LTE
+RETURN this { .budget } as this
+----
+
+=== GT
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+    movie(where: { actorCount_gt: 123 }) {
+        actorCount
+    }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "whereMovieActorCountGt" : 123
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (movie:Movie)
+WHERE movie.actorCount > $whereMovieActorCountGt
+RETURN movie {
+	.actorCount
+} AS movie
+----
+
+=== GT BigInt
+
+CAUTION: *Not yet implemented*
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+    movie(where: { budget_gt: 9223372036854775000 }) {
+        budget
+    }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+    "this_budget_GT": {
+        "low": -808,
+        "high": 2147483647
+    }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.budget > $this_budget_GT
+RETURN this { .budget } as this
+----
+
+=== GTE
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+    movie(where: { actorCount_gte: 123 }) {
+        actorCount
+    }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "whereMovieActorCountGte" : 123
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (movie:Movie)
+WHERE movie.actorCount >= $whereMovieActorCountGte
+RETURN movie {
+	.actorCount
+} AS movie
+----
+
+=== GTE BigInt
+
+CAUTION: *Not yet implemented*
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+    movie(where: { budget_gte: 9223372036854775000 }) {
+        budget
+    }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+    "this_budget_GTE": {
+        "low": -808,
+        "high": 2147483647
+    }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.budget >= $this_budget_GTE
+RETURN this { .budget } as this
+----
+
+=== Relationship equality
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+    movie(where: { genres: { name: "some genre" } }) {
+        actorCount
+    }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "whereMovieGenreName" : "some genre"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (movie:Movie)
+WHERE all(whereMovieGenreCond IN [(movie)-[:IN_GENRE]->(whereMovieGenre:Genre) | whereMovieGenre.name = $whereMovieGenreName]
+WHERE whereMovieGenreCond)
+RETURN movie {
+	.actorCount
+} AS movie
+----
+
+=== Relationship NOT
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+    movie(where: { genres_not: { name: "some genre" } }) {
+        actorCount
+    }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "whereMovieGenreName" : "some genre"
+}
+----
+
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (movie:Movie)
+WHERE none(whereMovieGenreCond IN [(movie)-[:IN_GENRE]->(whereMovieGenre:Genre) | whereMovieGenre.name = $whereMovieGenreName]
+WHERE whereMovieGenreCond)
+RETURN movie {
+	.actorCount
+} AS movie
+----

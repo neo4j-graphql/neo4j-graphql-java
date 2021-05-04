@@ -14,8 +14,9 @@ import org.neo4j.graphql.*
  */
 abstract class BaseDataFetcherForContainer(
         val type: GraphQLFieldsContainer,
-        fieldDefinition: GraphQLFieldDefinition
-) : BaseDataFetcher(fieldDefinition) {
+        fieldDefinition: GraphQLFieldDefinition,
+        schemaConfig: SchemaConfig
+) : BaseDataFetcher(fieldDefinition, schemaConfig) {
 
     val propertyFields: MutableMap<String, (Any) -> List<PropertyAccessor>?> = mutableMapOf()
     val defaultFields: MutableMap<String, Any> = mutableMapOf()
