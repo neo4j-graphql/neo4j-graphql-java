@@ -251,10 +251,17 @@ RETURN createMembership {
 .Cypher
 [source,cypher]
 ----
-MATCH (team: Team)
+MATCH (team:Team)
+CALL {
+	WITH team
+	MATCH (team)<-[:MEMBER_OF]-(teamPlayers:Player)
+	RETURN collect(teamPlayers {
+		.id
+	}) AS teamPlayers
+}
 RETURN team {
-  .id,
-  players: [(team)<-[: MEMBER_OF]-(teamPlayers: Player) | teamPlayers { .id }]
+	.id,
+	players: teamPlayers
 } AS team
 ----
 
@@ -280,10 +287,17 @@ RETURN team {
 .Cypher
 [source,cypher]
 ----
-MATCH (player: Player)
+MATCH (player:Player)
+CALL {
+	WITH player
+	MATCH (player)-[:MEMBER_OF]->(playerTeams:Team)
+	RETURN collect(playerTeams {
+		.id
+	}) AS playerTeams
+}
 RETURN player {
-  .id,
-  teams: [(player)-[: MEMBER_OF]->(playerTeams: Team) | playerTeams { .id }]
+	.id,
+	teams: playerTeams
 } AS player
 ----
 
@@ -314,13 +328,20 @@ RETURN player {
 .Cypher
 [source,cypher]
 ----
-MATCH (team: Team)
+MATCH (team:Team)
+CALL {
+	WITH team
+	MATCH (team)<-[teamMemberships:MEMBER_OF]-(teamMembershipsPlayer:Player)
+	RETURN collect(teamMemberships {
+		player: teamMembershipsPlayer {
+			.id
+		},
+		.prop
+	}) AS teamMemberships
+}
 RETURN team {
-  .id,
-  memberships: [(team)<-[teamMemberships: MEMBER_OF]-(teamMembershipsPlayer: Player) | teamMemberships {
-    player: teamMembershipsPlayer { .id },
-    .prop
-  }]
+	.id,
+	memberships: teamMemberships
 } AS team
 ----
 
@@ -351,13 +372,20 @@ RETURN team {
 .Cypher
 [source,cypher]
 ----
-MATCH (player: Player)
+MATCH (player:Player)
+CALL {
+	WITH player
+	MATCH (player)-[playerMemberships:MEMBER_OF]->(playerMembershipsTeam:Team)
+	RETURN collect(playerMemberships {
+		team: playerMembershipsTeam {
+			.id
+		},
+		.prop
+	}) AS playerMemberships
+}
 RETURN player {
-  .id,
-  memberships: [(player)-[playerMemberships: MEMBER_OF]->(playerMembershipsTeam: Team) | playerMemberships {
-    team: playerMembershipsTeam { .id },
-    .prop
-  }]
+	.id,
+	memberships: playerMemberships
 } AS player
 ----
 
@@ -575,12 +603,17 @@ RETURN createCategoryAssignment {
 .Cypher
 [source,cypher]
 ----
-MATCH (category: Category)
+MATCH (category:Category)
+CALL {
+	WITH category
+	MATCH (category)<-[:HAS_PARENT]-(categoryChildCategories:Category)
+	RETURN collect(categoryChildCategories {
+		.name
+	}) AS categoryChildCategories
+}
 RETURN category {
-  .name,
-  childCategories: [(category)<-[: HAS_PARENT]-(categoryChildCategories: Category) | categoryChildCategories {
-    .name
-  }]
+	.name,
+	childCategories: categoryChildCategories
 } AS category
 ----
 
@@ -606,12 +639,17 @@ RETURN category {
 .Cypher
 [source,cypher]
 ----
-MATCH (category: Category)
+MATCH (category:Category)
+CALL {
+	WITH category
+	MATCH (category)-[:HAS_PARENT]->(categoryParentCategory:Category)
+	RETURN categoryParentCategory {
+		.name
+	} AS categoryParentCategory LIMIT 1
+}
 RETURN category {
-  .name,
-  parentCategory: [(category)-[: HAS_PARENT]->(categoryParentCategory: Category) | categoryParentCategory {
-    .name
-  }][0]
+	.name,
+	parentCategory: categoryParentCategory
 } AS category
 ----
 
@@ -640,15 +678,21 @@ RETURN category {
 .Cypher
 [source,cypher]
 ----
-MATCH (category: Category)
+MATCH (category:Category)
+CALL {
+	WITH category
+	MATCH (category)<-[categoryChildCategoryAssignments:HAS_PARENT]-(categoryChildCategoryAssignmentsChild:Category)
+	RETURN collect(categoryChildCategoryAssignments {
+		child: categoryChildCategoryAssignmentsChild {
+			.name
+		},
+		.prop
+	}) AS categoryChildCategoryAssignments
+}
 RETURN category {
-  .name,
-  childCategoryAssignments: [(category)<-[categoryChildCategoryAssignments: HAS_PARENT]-(categoryChildCategoryAssignmentsChild: Category) | categoryChildCategoryAssignments {
-    child: categoryChildCategoryAssignmentsChild {
-      .name
-    },
-    .prop
-}] } AS category
+	.name,
+	childCategoryAssignments: categoryChildCategoryAssignments
+} AS category
 ----
 
 ==== query outgoing relation
@@ -676,14 +720,19 @@ RETURN category {
 .Cypher
 [source,cypher]
 ----
-MATCH (category: Category)
+MATCH (category:Category)
+CALL {
+	WITH category
+	MATCH (category)-[categoryParentCategoryAssignment:HAS_PARENT]->(categoryParentCategoryAssignmentParent:Category)
+	RETURN categoryParentCategoryAssignment {
+		parent: categoryParentCategoryAssignmentParent {
+			.name
+		},
+		.prop
+	} AS categoryParentCategoryAssignment LIMIT 1
+}
 RETURN category {
-  .name,
-  parentCategoryAssignment: [(category)-[categoryParentCategoryAssignment: HAS_PARENT]->(categoryParentCategoryAssignmentParent: Category) | categoryParentCategoryAssignment {
-    parent: categoryParentCategoryAssignmentParent {
-      .name
-    },
-    .prop
-  }][0]
+	.name,
+	parentCategoryAssignment: categoryParentCategoryAssignment
 } AS category
 ----

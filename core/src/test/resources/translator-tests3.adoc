@@ -45,19 +45,29 @@ type Referral @relation (name:"REFERRED_BY", from:"referredBy", to: "user", dire
 ----
 MATCH (user:User)
 WHERE user.name = $userName
-RETURN user {
-	.name,
-	referredBy: [(user)-[userReferredBy:REFERRED_BY]->(userReferredByReferredBy:User) | userReferredBy {
+CALL {
+	WITH user
+	MATCH (user)-[userReferredBy:REFERRED_BY]->(userReferredByReferredBy:User)
+	RETURN userReferredBy {
 		.referralDate,
 		referredBy: userReferredByReferredBy {
 			.name
 		}
-	}][0],
-	referred: [(user)<-[userReferred:REFERRED_BY]-(userReferredUser:User) | userReferred {
+	} AS userReferredBy LIMIT 1
+}
+CALL {
+	WITH user
+	MATCH (user)<-[userReferred:REFERRED_BY]-(userReferredUser:User)
+	RETURN collect(userReferred {
 		.referralDate,
 		user: userReferredUser {
 			.name
 		}
-	}]
+	}) AS userReferred
+}
+RETURN user {
+	.name,
+	referredBy: userReferredBy,
+	referred: userReferred
 } AS user
 ----

@@ -11,7 +11,6 @@ import graphql.schema.idl.TypeDefinitionRegistry
 import org.neo4j.cypherdsl.core.Node
 import org.neo4j.cypherdsl.core.Relationship
 import org.neo4j.cypherdsl.core.Statement
-import org.neo4j.cypherdsl.core.StatementBuilder.OngoingMatchAndUpdate
 import org.neo4j.graphql.*
 
 /**
@@ -114,12 +113,12 @@ class MergeOrUpdateHandler private constructor(private val merge: Boolean, schem
             }
         }
         val properties = properties(variable, field.arguments)
-        val mapProjection = projectFields(propertyContainer, field, type, env)
-        val update: OngoingMatchAndUpdate = select
-            .mutate(propertyContainer, org.neo4j.cypherdsl.core.Cypher.mapOf(*properties))
+        val (mapProjection, subQueries) = projectFields(propertyContainer, field, type, env)
 
-        return update
+        return select
+            .mutate(propertyContainer, org.neo4j.cypherdsl.core.Cypher.mapOf(*properties))
             .with(propertyContainer)
+            .withSubQueries(subQueries)
             .returning(propertyContainer.project(mapProjection).`as`(field.aliasOrName()))
             .build()
     }

@@ -19,7 +19,7 @@ type Actor implements Person {
     movies: [Movie] @relation(name:"ACTED_IN")
     score(value:Int!): Int @cypher(statement:"RETURN $value")
 
-    namedColleagues(name: String!): [Person] @cypher(statement: "WITH $this AS this MATCH (this)-[:ACTED_IN]->()<-[:ACTED_IN]-(other) WHERE other.name CONTAINS $name RETURN other")
+    namedColleagues(name: String!): [Person] @cypher(statement: "MATCH (this)-[:ACTED_IN]->()<-[:ACTED_IN]-(other) WHERE other.name CONTAINS $name RETURN other")
 }
 
 type Movie  {
@@ -105,19 +105,31 @@ fragment name on Actor { name }
 ----
 MATCH (person:Person)
 WHERE person.name = $personName
+CALL {
+	WITH person
+	CALL {
+		WITH person
+		WITH $personNamedColleaguesName AS name, person AS this
+		MATCH (this)-[:ACTED_IN]->()<-[:ACTED_IN]-(other) WHERE other.name CONTAINS name RETURN other AS personNamedColleagues
+	}
+	RETURN collect(personNamedColleagues {
+		__typename: head([label IN labels(personNamedColleagues) WHERE label IN $personNamedColleaguesValidTypes]),
+		.name
+	}) AS personNamedColleagues
+}
+CALL {
+	WITH person
+	CALL {
+		WITH person
+		WITH person AS this, $personScoreValue AS value
+		RETURN value AS personScore LIMIT 1
+	}
+	RETURN personScore AS personScore
+}
 RETURN person {
 	.born,
 	__typename: head([label IN labels(person) WHERE label IN $personValidTypes]),
-	namedColleagues: [personNamedColleagues IN apoc.cypher.runFirstColumnMany('WITH $this AS this, $name AS name WITH $this AS this MATCH (this)-[:ACTED_IN]->()<-[:ACTED_IN]-(other) WHERE other.name CONTAINS $name RETURN other',  {
-		this: person,
-		name: $personNamedColleaguesName
-	}) | personNamedColleagues {
-		__typename: head([label IN labels(personNamedColleagues) WHERE label IN $personNamedColleaguesValidTypes]),
-		.name
-	}],
-	score: apoc.cypher.runFirstColumnSingle('WITH $this AS this, $value AS value RETURN $value',  {
-		this: person,
-		value: $personScoreValue
-	})
+	namedColleagues: personNamedColleagues,
+	score: personScore
 } AS person
 ----

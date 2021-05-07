@@ -79,13 +79,18 @@ query user( $uuid: ID ){
 ----
 MATCH (user:User)
 WHERE user.uuid = $uuid
+CALL {
+	WITH user
+	MATCH (user)-[:ASSOCIATES_WITH]-(userAssociates:User)
+	RETURN collect(userAssociates {
+		.name,
+		.uuid
+	}) AS userAssociates
+}
 RETURN user {
 	.uuid,
 	.name,
-	associates: [(user)-[:ASSOCIATES_WITH]-(userAssociates:User) | userAssociates {
-		.name,
-		.uuid
-	}]
+	associates: userAssociates
 } AS user
 ----
 
@@ -132,11 +137,16 @@ MATCH (to:User)
 WHERE to.uuid IN $toAssociates
 MATCH (from)-[r:ASSOCIATES_WITH]-(to) DELETE r
 WITH DISTINCT from AS deleteUserAssociates
-RETURN deleteUserAssociates {
-	.name,
-	associates: [(deleteUserAssociates)-[:ASSOCIATES_WITH]-(deleteUserAssociatesAssociates:User) | deleteUserAssociatesAssociates {
+CALL {
+	WITH deleteUserAssociates
+	MATCH (deleteUserAssociates)-[:ASSOCIATES_WITH]-(deleteUserAssociatesAssociates:User)
+	RETURN collect(deleteUserAssociatesAssociates {
 		.name,
 		.uuid
-	}]
+	}) AS deleteUserAssociatesAssociates
+}
+RETURN deleteUserAssociates {
+	.name,
+	associates: deleteUserAssociatesAssociates
 } AS deleteUserAssociates
 ----

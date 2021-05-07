@@ -121,17 +121,12 @@ class QueryHandler private constructor(schemaConfig: SchemaConfig) : BaseDataFet
             match.where(where)
         }
 
-        val ordering = orderBy(propertyContainer, field.arguments, fieldDefinition, env.variables)
-        val skipLimit = SkipLimit(variable, field.arguments, fieldDefinition)
-
-        val projectionEntries = projectFields(propertyContainer, field, type, env)
+        val (projectionEntries, subQueries) = projectFields(propertyContainer, field, type, env)
         val mapProjection = propertyContainer.project(projectionEntries).`as`(field.aliasOrName())
-        val resultWithSkipLimit = ongoingReading.returning(mapProjection)
-            .let {
-                val orderedResult = ordering?.let { o -> it.orderBy(*o.toTypedArray()) } ?: it
-                skipLimit.format(orderedResult)
-            }
-
-        return resultWithSkipLimit.build()
+        return ongoingReading
+            .withSubQueries(subQueries)
+            .returning(mapProjection)
+            .skipLimitOrder(propertyContainer.requiredSymbolicName, fieldDefinition, field, env)
+            .build()
     }
 }

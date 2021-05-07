@@ -8,7 +8,6 @@ import graphql.schema.*
 import graphql.schema.idl.TypeDefinitionRegistry
 import org.neo4j.cypherdsl.core.Cypher.name
 import org.neo4j.cypherdsl.core.Statement
-import org.neo4j.cypherdsl.core.StatementBuilder
 import org.neo4j.graphql.*
 
 /**
@@ -139,13 +138,13 @@ class CreateRelationTypeHandler private constructor(schemaConfig: SchemaConfig) 
         val (startNode, startWhere) = getRelationSelect(true, arguments)
         val (endNode, endWhere) = getRelationSelect(false, arguments)
         val relName = name(variable)
-        val mapProjection = projectFields(startNode, relName, field, type, env)
+        val (mapProjection, subQueries) = projectFields(startNode, relName, field, type, env)
 
-        val update: StatementBuilder.OngoingUpdate = org.neo4j.cypherdsl.core.Cypher.match(startNode).where(startWhere)
+        return org.neo4j.cypherdsl.core.Cypher.match(startNode).where(startWhere)
             .match(endNode).where(endWhere)
             .create(relation.createRelation(startNode, endNode).withProperties(*properties).named(relName))
-        return update
             .with(relName)
+            .withSubQueries(subQueries)
             .returning(relName.project(mapProjection).`as`(field.aliasOrName()))
             .build()
     }

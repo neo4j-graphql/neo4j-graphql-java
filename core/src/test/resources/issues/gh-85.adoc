@@ -24,7 +24,7 @@ type Rated @relation(name:"RATED") {
 }
 type Mutation {
   rateMovie(user:ID!, movie:ID!, rating:Int!): Int
-  @cypher(statement:"MATCH (p:Person {name: $user }),(m:Movie {title: $movie }) MERGE (p)-[r:RATED]->(m) SET r.rating= $rating RETURN r.rating as rating")
+  @cypher(statement:"MATCH (p:Person {name: $user }),(m:Movie {title: $movie }) MERGE (p)-[r:RATED]->(m) SET r.rating= $rating RETURN r.rating")
 }
 ----
 
@@ -67,11 +67,9 @@ mutation {
 .Cypher
 [source,cypher]
 ----
-CALL apoc.cypher.doIt('WITH $movie AS movie, $user AS user, $rating AS rating MATCH (p:Person {name: $user }),(m:Movie {title: $movie }) MERGE (p)-[r:RATED]->(m) SET r.rating= $rating RETURN r.rating as rating',  {
-	movie: $rMovie,
-	user: $rUser,
-	rating: $rRating
-}) YIELD value
-WITH value[head(keys(value))] AS r
+CALL {
+	WITH $rMovie AS movie, $rRating AS rating, $rUser AS user
+	MATCH (p:Person {name: user }),(m:Movie {title: movie }) MERGE (p)-[r:RATED]->(m) SET r.rating= rating RETURN r.rating AS r LIMIT 1
+}
 RETURN r AS r
 ----

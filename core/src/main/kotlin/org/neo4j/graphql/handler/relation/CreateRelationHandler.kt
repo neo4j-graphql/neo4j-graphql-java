@@ -6,7 +6,6 @@ import graphql.schema.DataFetcher
 import graphql.schema.DataFetchingEnvironment
 import graphql.schema.idl.TypeDefinitionRegistry
 import org.neo4j.cypherdsl.core.Statement
-import org.neo4j.cypherdsl.core.StatementBuilder.OngoingUpdate
 import org.neo4j.graphql.*
 
 /**
@@ -68,14 +67,13 @@ class CreateRelationHandler private constructor(schemaConfig: SchemaConfig) : Ba
         val (startNode, startWhere) = getRelationSelect(true, arguments)
         val (endNode, endWhere) = getRelationSelect(false, arguments)
 
-        val mapProjection = projectFields(startNode, field, type, env)
-
-        val update: OngoingUpdate = org.neo4j.cypherdsl.core.Cypher.match(startNode).where(startWhere)
+        val withAlias = startNode.`as`(variable)
+        val (mapProjection, subQueries) = projectFields(startNode, withAlias.asName(), field, type, env)
+        return org.neo4j.cypherdsl.core.Cypher.match(startNode).where(startWhere)
             .match(endNode).where(endWhere)
             .merge(relation.createRelation(startNode, endNode).withProperties(*properties))
-        val withAlias = startNode.`as`(variable)
-        return update
             .withDistinct(withAlias)
+            .withSubQueries(subQueries)
             .returning(withAlias.asName().project(mapProjection).`as`(field.aliasOrName()))
             .build()
     }

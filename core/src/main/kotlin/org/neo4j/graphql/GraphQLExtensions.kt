@@ -16,6 +16,7 @@ import org.neo4j.graphql.DirectiveConstants.Companion.PROPERTY_NAME
 import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_NAME
 import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_TO
 import org.neo4j.graphql.handler.projection.ProjectionBase
+import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.math.BigInteger
 
@@ -155,12 +156,19 @@ fun <T> GraphQLDirective.getArgument(argumentName: String, defaultValue: T? = nu
             ?: throw IllegalStateException("No default value for @${this.name}::$argumentName")
 }
 
+private val LOGGER = LoggerFactory.getLogger(CypherDirective::class.java)
+
+
 fun GraphQLFieldDefinition.cypherDirective(): CypherDirective? = getDirective(CYPHER)?.let {
-    CypherDirective(
-            it.getMandatoryArgument(CYPHER_STATEMENT),
-            it.getMandatoryArgument(CYPHER_PASS_THROUGH, false)
-    )
-}
+    val originalStatement = it.getMandatoryArgument<String>(CYPHER_STATEMENT)
+    val rewrittenStatement = originalStatement.replace(Regex("\\\$([_a-zA-Z]\\w*)"), "$1")
+    if (originalStatement != rewrittenStatement) {
+        LoggerFactory.getLogger(CypherDirective::class.java)
+            .warn("The field arguments used in the directives statement must not contain parameters. The statement was replaced. Please adjust your GraphQl Schema.\n\tGot        : {}\n\tReplaced by: {}\n\tField      : {} ({})",
+                    originalStatement, rewrittenStatement, this.name, this.definition?.sourceLocation)
+    }
+    CypherDirective(rewrittenStatement, it.getMandatoryArgument(CYPHER_PASS_THROUGH, false))
+    }
 
 data class CypherDirective(val statement: String, val passThrough: Boolean)
 

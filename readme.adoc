@@ -602,7 +602,10 @@ It allows you, without code to *compute field values* using complex queries.
 
 You can also write your own, *custom top-level queries and mutations* using Cypher.
 
-Arguments on the field are passed to the Cypher statement as parameters.
+Arguments on the field are passed to the Cypher statement and can be used by name. They must not be prefixed by `$` since they are no longer parameters. Just use the same name as the fields' argument.
+The current node is passed to the statement as `this`.
+The statement should contain exactly one return expression without any alias.
+
 Input types are supported, they appear as `Map` type in your Cypher statement.
 
 NOTE: Those Cypher directive queries are only included in the generated Cypher statement if the field or query is included in the GraphQL query.
@@ -618,7 +621,7 @@ type Movie {
   similar(limit:Int=10): [Movie] @cypher(statement:
         """
         MATCH (this)-->(:Genre)<--(sim)
-        WITH sim, count(*) as c ORDER BY c DESC LIMIT $limit
+        WITH sim, count(*) as c ORDER BY c DESC LIMIT limit
         RETURN sim
         """)
 }
@@ -636,7 +639,7 @@ Similarly, you can use the `@cypher` directive with a top-level query.
 [source,graphql]
 ----
 type Query {
-   person(name:String) Person @cypher("MATCH (p:Person) WHERE p.name = $name RETURN p")
+   person(name:String) Person @cypher("MATCH (p:Person) WHERE p.name = name RETURN p")
 }
 ----
 
@@ -650,7 +653,7 @@ You can do the same for mutations, just with updating Cypher statements.
 [source,graphql]
 ----
 type Mutation {
-   createPerson(name:String, age:Int) Person @cypher("CREATE (p:Person) SET p.name = $name, p.age = $age RETURN p")
+   createPerson(name:String, age:Int) Person @cypher("CREATE (p:Person) SET p.name = name, p.age = age RETURN p")
 }
 ----
 

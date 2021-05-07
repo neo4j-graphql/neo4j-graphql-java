@@ -62,7 +62,7 @@
         <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j-cypher-dsl</artifactId>
-            <version>2021.0.2</version>
+            <version>2021.2.1</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
