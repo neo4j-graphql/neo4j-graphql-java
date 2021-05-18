@@ -1,7 +1,10 @@
 package org.neo4j.graphql
 
 import graphql.execution.MergedField
-import graphql.language.*
+import graphql.language.Document
+import graphql.language.Field
+import graphql.language.FragmentDefinition
+import graphql.language.OperationDefinition
 import graphql.language.OperationDefinition.Operation.MUTATION
 import graphql.language.OperationDefinition.Operation.QUERY
 import graphql.parser.Parser
@@ -19,7 +22,7 @@ class Translator(val schema: GraphQLSchema) {
     @Throws(OptimizedQueryException::class)
     fun translate(query: String, params: Map<String, Any?> = emptyMap(), ctx: QueryContext = QueryContext()): List<Cypher> {
         val ast = parse(query) // todo preparsedDocumentProvider
-        val fragments = ast.definitions.filterIsInstance<FragmentDefinition>().map { it.name to it }.toMap()
+        val fragments = ast.definitions.filterIsInstance<FragmentDefinition>().associateBy { it.name }
         return ast.definitions.filterIsInstance<OperationDefinition>()
             .filter { it.operation == QUERY || it.operation == MUTATION } // todo variableDefinitions, directives, name
             .flatMap { operationDefinition ->
@@ -67,6 +70,7 @@ class Translator(val schema: GraphQLSchema) {
 
         return dataFetcher.get(newDataFetchingEnvironment()
             .mergedField(MergedField.newMergedField(field).build())
+            .parentType(operationObjectType)
             .graphQLSchema(schema)
             .fragmentsByName(fragments)
             .context(ctx)

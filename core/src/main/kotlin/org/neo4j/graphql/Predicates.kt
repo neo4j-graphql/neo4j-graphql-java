@@ -1,11 +1,13 @@
 package org.neo4j.graphql
 
-import graphql.Scalars
-import graphql.language.NullValue
-import graphql.language.ObjectValue
-import graphql.language.Value
-import graphql.schema.*
-import org.neo4j.cypherdsl.core.*
+import graphql.language.*
+import graphql.language.TypeDefinition
+import graphql.schema.GraphQLFieldDefinition
+import graphql.schema.GraphQLFieldsContainer
+import org.neo4j.cypherdsl.core.Condition
+import org.neo4j.cypherdsl.core.Expression
+import org.neo4j.cypherdsl.core.Property
+import org.neo4j.cypherdsl.core.PropertyContainer
 import org.slf4j.LoggerFactory
 
 typealias CypherDSL = org.neo4j.cypherdsl.core.Cypher
@@ -35,13 +37,13 @@ enum class FieldOperator(
     C("_contains", "CONTAINS", { lhs, rhs -> lhs.contains(rhs) }),
     SW("_starts_with", "STARTS WITH", { lhs, rhs -> lhs.startsWith(rhs) }),
     EW("_ends_with", "ENDS WITH", { lhs, rhs -> lhs.endsWith(rhs) }),
-    MATCHES("_matches", "=~", {lhs, rhs -> lhs.matches(rhs) }),
+    MATCHES("_matches", "=~", { lhs, rhs -> lhs.matches(rhs) }),
 
 
     DISTANCE(NEO4j_POINT_DISTANCE_FILTER_SUFFIX, "=", { lhs, rhs -> lhs.isEqualTo(rhs) }, distance = true),
     DISTANCE_LT(NEO4j_POINT_DISTANCE_FILTER_SUFFIX + "_lt", "<", { lhs, rhs -> lhs.lt(rhs) }, distance = true),
-    DISTANCE_LTE(NEO4j_POINT_DISTANCE_FILTER_SUFFIX + "_lte", "<=", { lhs, rhs -> lhs.lte(rhs)  }, distance = true),
-    DISTANCE_GT(NEO4j_POINT_DISTANCE_FILTER_SUFFIX + "_gt", ">", { lhs, rhs -> lhs.gt(rhs)  }, distance = true),
+    DISTANCE_LTE(NEO4j_POINT_DISTANCE_FILTER_SUFFIX + "_lte", "<=", { lhs, rhs -> lhs.lte(rhs) }, distance = true),
+    DISTANCE_GT(NEO4j_POINT_DISTANCE_FILTER_SUFFIX + "_gt", ">", { lhs, rhs -> lhs.gt(rhs) }, distance = true),
     DISTANCE_GTE(NEO4j_POINT_DISTANCE_FILTER_SUFFIX + "_gte", ">=", { lhs, rhs -> lhs.gte(rhs) }, distance = true);
 
     val list = op == "IN"
@@ -68,14 +70,14 @@ enum class FieldOperator(
     private fun resolveNeo4jTypeConditions(variablePrefix: String, queriedField: String, propertyContainer: PropertyContainer, field: GraphQLFieldDefinition, value: ObjectValue, suffix: String?): List<Condition> {
         val neo4jTypeConverter = getNeo4jTypeConverter(field)
         val conditions = mutableListOf<Condition>()
-        if (distance){
+        if (distance) {
             val parameter = queryParameter(value, variablePrefix, queriedField, suffix)
             conditions += (neo4jTypeConverter as Neo4jPointConverter).createDistanceCondition(
                     propertyContainer.property(field.propertyName()),
                     parameter,
                     conditionCreator
             )
-        }  else {
+        } else {
             value.objectFields.forEachIndexed { index, objectField ->
                 val parameter = queryParameter(value, variablePrefix, queriedField, if (value.objectFields.size > 1) "And${index + 1}" else null, suffix, objectField.name)
                     .withValue(objectField.value.toJavaValue())
@@ -108,18 +110,18 @@ enum class FieldOperator(
                     }
         }
 
-        fun forType(type: GraphQLType): List<FieldOperator> =
+        fun forType(type: TypeDefinition<*>, isNeo4jType: Boolean): List<FieldOperator> =
                 when {
-                    type == Scalars.GraphQLBoolean -> listOf(EQ, NEQ)
-                    type.innerName() == NEO4j_POINT_DISTANCE_FILTER -> listOf(EQ, LT, LTE, GT, GTE)
+                    type.name == TypeBoolean.name -> listOf(EQ, NEQ)
+                    type.name == NEO4j_POINT_DISTANCE_FILTER -> listOf(EQ, LT, LTE, GT, GTE)
                     type.isNeo4jSpatialType() -> listOf(EQ, NEQ)
-                    type.isNeo4jType() -> listOf(EQ, NEQ, IN, NIN)
-                    type is GraphQLFieldsContainer || type is GraphQLInputObjectType -> throw IllegalArgumentException("This operators are not for relations, use the RelationOperator instead")
-                    type is GraphQLEnumType -> listOf(EQ, NEQ, IN, NIN)
+                    isNeo4jType -> listOf(EQ, NEQ, IN, NIN)
+                    type is ImplementingTypeDefinition<*> -> throw IllegalArgumentException("This operators are not for relations, use the RelationOperator instead")
+                    type is EnumTypeDefinition -> listOf(EQ, NEQ, IN, NIN)
                     // todo list types
-                    !type.isScalar() -> listOf(EQ, NEQ, IN, NIN)
+                    type !is ScalarTypeDefinition -> listOf(EQ, NEQ, IN, NIN)
                     else -> listOf(EQ, NEQ, IN, NIN, LT, LTE, GT, GTE) +
-                            if (type.name() == "String" || type.name() == "ID") listOf(C, NC, SW, NSW, EW, NEW, MATCHES) else emptyList()
+                            if (type.name == "String" || type.name == "ID") listOf(C, NC, SW, NSW, EW, NEW, MATCHES) else emptyList()
                 }
     }
 
@@ -183,11 +185,11 @@ enum class RelationOperator(val suffix: String, val op: String) {
     companion object {
         private val LOGGER = LoggerFactory.getLogger(RelationOperator::class.java)
 
-        fun createRelationFilterFields(type: GraphQLFieldsContainer, field: GraphQLFieldDefinition, filterType: String, builder: GraphQLInputObjectType.Builder) {
+        fun createRelationFilterFields(type: TypeDefinition<*>, field: FieldDefinition, filterType: String, builder: InputObjectTypeDefinition.Builder) {
             val list = field.type.isList()
 
             val addFilterField = { op: RelationOperator, description: String ->
-                builder.addFilterField(op.fieldName(field.name), false, filterType, description)
+                builder.addFilterField(op.fieldName(field.name), false, filterType, description.asDescription())
             }
 
             addFilterField(EQ_OR_NOT_EXISTS, "Filters only those `${type.name}` for which ${if (list) "all" else "the"} `${field.name}`-relationship matches this filter. " +

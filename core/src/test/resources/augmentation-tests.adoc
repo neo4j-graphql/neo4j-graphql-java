@@ -894,8 +894,8 @@ input _Neo4jLocalTimeInput {
 }
 
 input _Neo4jPointDistanceFilter {
-  distance: Float
-  point: _Neo4jPointInput
+  distance: Float!
+  point: _Neo4jPointInput!
 }
 
 input _Neo4jPointInput {

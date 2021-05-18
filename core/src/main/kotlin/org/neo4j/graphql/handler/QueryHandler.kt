@@ -1,8 +1,9 @@
 package org.neo4j.graphql.handler
 
-import graphql.Scalars
-import graphql.language.Field
-import graphql.schema.*
+import graphql.language.*
+import graphql.schema.DataFetcher
+import graphql.schema.DataFetchingEnvironment
+import graphql.schema.idl.TypeDefinitionRegistry
 import org.atteo.evo.inflector.English
 import org.neo4j.cypherdsl.core.Cypher.*
 import org.neo4j.cypherdsl.core.Statement
@@ -13,58 +14,56 @@ import org.neo4j.graphql.handler.filter.OptimizedFilterHandler
  * This class handles all the logic related to the querying of nodes and relations.
  * This includes the augmentation of the query-fields and the related cypher generation
  */
-class QueryHandler private constructor(
-        type: GraphQLFieldsContainer,
-        fieldDefinition: GraphQLFieldDefinition,
-        schemaConfig: SchemaConfig
-) : BaseDataFetcherForContainer(type, fieldDefinition, schemaConfig) {
+class QueryHandler private constructor(schemaConfig: SchemaConfig) : BaseDataFetcherForContainer(schemaConfig) {
 
-    class Factory(schemaConfig: SchemaConfig) : AugmentationHandler(schemaConfig) {
-        override fun augmentType(type: GraphQLFieldsContainer, buildingEnv: BuildingEnv) {
+    class Factory(schemaConfig: SchemaConfig,
+            typeDefinitionRegistry: TypeDefinitionRegistry,
+            neo4jTypeDefinitionRegistry: TypeDefinitionRegistry
+    ) : AugmentationHandler(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry) {
+
+        override fun augmentType(type: ImplementingTypeDefinition<*>) {
             if (!canHandle(type)) {
                 return
             }
             val typeName = type.name
             val relevantFields = getRelevantFields(type)
 
-            val filterTypeName = buildingEnv.addFilterType(type)
+            val filterTypeName = addFilterType(type)
             val arguments = if (schemaConfig.useWhereFilter) {
-                listOf(input(WHERE, GraphQLTypeReference(filterTypeName)))
+                listOf(input(WHERE, TypeName(filterTypeName)))
             } else {
-                buildingEnv.getInputValueDefinitions(relevantFields, { true }) +
-                        input(FILTER, GraphQLTypeReference(filterTypeName))
+                getInputValueDefinitions(relevantFields, { true }) +
+                        input(FILTER, TypeName(filterTypeName))
             }
 
             var fieldName = if (schemaConfig.capitalizeQueryFields) typeName else typeName.decapitalize()
             if (schemaConfig.pluralizeFields) {
                 fieldName = English.plural(fieldName)
             }
-            val builder = GraphQLFieldDefinition
+            val builder = FieldDefinition
                 .newFieldDefinition()
                 .name(fieldName)
-                .arguments(arguments)
-                .type(GraphQLNonNull(GraphQLList(GraphQLNonNull(GraphQLTypeReference(type.name)))))
+                .inputValueDefinitions(arguments.toMutableList())
+                .type(NonNullType(ListType(NonNullType(TypeName(type.name)))))
 
             if (schemaConfig.queryOptionStyle == SchemaConfig.InputStyle.INPUT_TYPE) {
-                val optionsTypeName = buildingEnv.addOptions(type)
-                val optionsType = GraphQLTypeReference(optionsTypeName)
-                builder.argument(input(OPTIONS, optionsType))
+                val optionsTypeName = addOptions(type)
+                builder.inputValueDefinition(input(OPTIONS, TypeName(optionsTypeName)))
             } else {
                 builder
-                    .argument(input(FIRST, Scalars.GraphQLInt))
-                    .argument(input(OFFSET, Scalars.GraphQLInt))
+                    .inputValueDefinition(input(FIRST, TypeInt))
+                    .inputValueDefinition(input(OFFSET, TypeInt))
 
-                val orderingTypeName = buildingEnv.addOrdering(type)
+                val orderingTypeName = addOrdering(type)
                 if (orderingTypeName != null) {
-                    val orderType = GraphQLList(GraphQLNonNull(GraphQLTypeReference(orderingTypeName)))
-                    builder.argument(input(ORDER_BY, orderType))
+                    builder.inputValueDefinition(input(ORDER_BY, ListType(NonNullType(TypeName(orderingTypeName)))))
                 }
             }
             val def = builder.build()
-            buildingEnv.addQueryField(def)
+            addQueryField(def)
         }
 
-        override fun createDataFetcher(operationType: OperationType, fieldDefinition: GraphQLFieldDefinition): DataFetcher<Cypher>? {
+        override fun createDataFetcher(operationType: OperationType, fieldDefinition: FieldDefinition): DataFetcher<Cypher>? {
             if (operationType != OperationType.QUERY) {
                 return null
             }
@@ -72,17 +71,16 @@ class QueryHandler private constructor(
             if (cypherDirective != null) {
                 return null
             }
-            val type = fieldDefinition.type.inner() as? GraphQLFieldsContainer
-                    ?: return null
+            val type = fieldDefinition.type.inner().resolve() as? ImplementingTypeDefinition<*> ?: return null
             if (!canHandle(type)) {
                 return null
             }
-            return QueryHandler(type, fieldDefinition, schemaConfig)
+            return QueryHandler(schemaConfig)
         }
 
-        private fun canHandle(type: GraphQLFieldsContainer): Boolean {
-            val typeName = type.innerName()
-            if (!schemaConfig.query.enabled || schemaConfig.query.exclude.contains(typeName)) {
+        private fun canHandle(type: ImplementingTypeDefinition<*>): Boolean {
+            val typeName = type.name
+            if (!schemaConfig.query.enabled || schemaConfig.query.exclude.contains(typeName) || isRootType(type)) {
                 return false
             }
             if (getRelevantFields(type).isEmpty() && !hasRelationships(type)) {
@@ -91,16 +89,18 @@ class QueryHandler private constructor(
             return true
         }
 
-        private fun hasRelationships(type: GraphQLFieldsContainer): Boolean = type.fieldDefinitions.any { it.isRelationship() }
+        private fun hasRelationships(type: ImplementingTypeDefinition<*>): Boolean = type.fieldDefinitions.any { it.isRelationship() }
 
-        private fun getRelevantFields(type: GraphQLFieldsContainer): List<GraphQLFieldDefinition> {
+        private fun getRelevantFields(type: ImplementingTypeDefinition<*>): List<FieldDefinition> {
             return type
-                .relevantFields()
+                .getScalarFields()
                 .filter { it.dynamicPrefix() == null } // TODO currently we do not support filtering on dynamic properties
         }
     }
 
     override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement {
+        val fieldDefinition = env.fieldDefinition
+        val type = env.typeAsContainer()
 
         val (propertyContainer, match) = when {
             type.isRelationType() -> anyNode().relationshipTo(anyNode(), type.label()).named(variable)

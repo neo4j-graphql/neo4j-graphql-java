@@ -1,10 +1,13 @@
 package org.neo4j.graphql.handler
 
 import graphql.language.Field
+import graphql.language.FieldDefinition
+import graphql.language.ImplementingTypeDefinition
 import graphql.schema.DataFetcher
 import graphql.schema.DataFetchingEnvironment
 import graphql.schema.GraphQLFieldDefinition
-import graphql.schema.GraphQLFieldsContainer
+import graphql.schema.GraphQLType
+import graphql.schema.idl.TypeDefinitionRegistry
 import org.neo4j.cypherdsl.core.Node
 import org.neo4j.cypherdsl.core.Relationship
 import org.neo4j.cypherdsl.core.Statement
@@ -15,62 +18,59 @@ import org.neo4j.graphql.*
  * This class handles all the logic related to the updating of nodes.
  * This includes the augmentation of the update&lt;Node&gt; and merge&lt;Node&gt;-mutator and the related cypher generation
  */
-class MergeOrUpdateHandler private constructor(
-        type: GraphQLFieldsContainer,
-        private val merge: Boolean,
-        private val idField: GraphQLFieldDefinition,
-        fieldDefinition: GraphQLFieldDefinition,
-        schemaConfig: SchemaConfig,
-        private val isRelation: Boolean = type.isRelationType()
-) : BaseDataFetcherForContainer(type, fieldDefinition, schemaConfig) {
+class MergeOrUpdateHandler private constructor(private val merge: Boolean, schemaConfig: SchemaConfig) : BaseDataFetcherForContainer(schemaConfig) {
 
-    class Factory(schemaConfig: SchemaConfig) : AugmentationHandler(schemaConfig) {
-        override fun augmentType(type: GraphQLFieldsContainer, buildingEnv: BuildingEnv) {
+    private lateinit var idField: GraphQLFieldDefinition
+    private var isRelation: Boolean = false
+
+    class Factory(schemaConfig: SchemaConfig,
+            typeDefinitionRegistry: TypeDefinitionRegistry,
+            neo4jTypeDefinitionRegistry: TypeDefinitionRegistry
+    ) : AugmentationHandler(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry) {
+
+        override fun augmentType(type: ImplementingTypeDefinition<*>) {
             if (!canHandle(type)) {
                 return
             }
 
-            val relevantFields = type.relevantFields()
-            val mergeField = buildingEnv
-                .buildFieldDefinition("merge", type, relevantFields, nullableResult = false)
+            val relevantFields = type.getScalarFields()
+            val mergeField = buildFieldDefinition("merge", type, relevantFields, nullableResult = false)
                 .build()
-            buildingEnv.addMutationField(mergeField)
+            addMutationField(mergeField)
 
-            val updateField = buildingEnv
-                .buildFieldDefinition("update", type, relevantFields, nullableResult = true)
+            val updateField = buildFieldDefinition("update", type, relevantFields, nullableResult = true)
                 .build()
-            buildingEnv.addMutationField(updateField)
+            addMutationField(updateField)
         }
 
-        override fun createDataFetcher(operationType: OperationType, fieldDefinition: GraphQLFieldDefinition): DataFetcher<Cypher>? {
+        override fun createDataFetcher(operationType: OperationType, fieldDefinition: FieldDefinition): DataFetcher<Cypher>? {
             if (operationType != OperationType.MUTATION) {
                 return null
             }
             if (fieldDefinition.cypherDirective() != null) {
                 return null
             }
-            val type = fieldDefinition.type.inner() as? GraphQLFieldsContainer
-                    ?: return null
+            val type = fieldDefinition.type.inner().resolve() as? ImplementingTypeDefinition<*> ?: return null
             if (!canHandle(type)) {
                 return null
             }
-            val idField = type.getIdField() ?: return null
+            type.getIdField() ?: return null
             return when (fieldDefinition.name) {
-                "merge${type.name}" -> MergeOrUpdateHandler(type, true, idField, fieldDefinition, schemaConfig)
-                "update${type.name}" -> MergeOrUpdateHandler(type, false, idField, fieldDefinition, schemaConfig)
+                "merge${type.name}" -> MergeOrUpdateHandler(true, schemaConfig)
+                "update${type.name}" -> MergeOrUpdateHandler(false, schemaConfig)
                 else -> null
             }
         }
 
-        private fun canHandle(type: GraphQLFieldsContainer): Boolean {
+        private fun canHandle(type: ImplementingTypeDefinition<*>): Boolean {
             val typeName = type.name
-            if (!schemaConfig.mutation.enabled || schemaConfig.mutation.exclude.contains(typeName)) {
+            if (!schemaConfig.mutation.enabled || schemaConfig.mutation.exclude.contains(typeName) || isRootType(type)) {
                 return false
             }
             if (type.getIdField() == null) {
                 return false
             }
-            if (type.relevantFields().none { !it.isID() }) {
+            if (type.getScalarFields().none { !it.type.inner().isID() }) {
                 // nothing to update (except ID)
                 return false
             }
@@ -78,9 +78,15 @@ class MergeOrUpdateHandler private constructor(
         }
     }
 
-    init {
+    override fun initDataFetcher(fieldDefinition: GraphQLFieldDefinition, parentType: GraphQLType) {
+        super.initDataFetcher(fieldDefinition, parentType)
+
+        idField = type.getIdField() ?: throw IllegalStateException("Cannot resolve id field for type ${type.name}")
+        isRelation = type.isRelationType()
+
         defaultFields.clear() // for merge or updates we do not reset to defaults
         propertyFields.remove(idField.name) // id should not be updated
+
     }
 
     override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement {

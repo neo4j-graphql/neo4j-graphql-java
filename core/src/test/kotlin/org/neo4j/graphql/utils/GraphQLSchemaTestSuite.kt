@@ -11,6 +11,7 @@ import graphql.schema.idl.SchemaGenerator
 import graphql.schema.idl.SchemaParser
 import graphql.schema.idl.SchemaPrinter
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assumptions
 import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.DynamicTest
@@ -60,6 +61,9 @@ class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite(
                 if (ignore) {
                     Assumptions.assumeFalse(true, e.message)
                 } else {
+                    if (augmentedSchema == null) {
+                        Assertions.fail<Throwable>(e)
+                    }
                     val actualSchema = SCHEMA_PRINTER.print(augmentedSchema)
                     targetSchemaBlock.adjustedCode = actualSchema + "\n" +
                             // this is added since the SCHEMA_PRINTER is not able to print global directives
