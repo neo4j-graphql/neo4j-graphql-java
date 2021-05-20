@@ -1,0 +1,10 @@
+org:
+  neo4j:
+    driver:
+      uri: bolt://demo.neo4jlabs.com:7687
+      authentication:
+        username: movies
+        password: movies
+      config :
+        encrypted : true
+database: movies

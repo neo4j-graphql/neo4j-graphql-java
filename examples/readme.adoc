@@ -1,3 +1,4 @@
 = Examples
 
-* link:graphql-spring-boot/readme.adoc[spring boot integration]
+* link:dgs-spring-boot/readme.adoc[Spring Boot integration with Netflix Domain Graph Service (DGS)] (recommended)
+* link:graphql-spring-boot/readme.adoc[Spring Boot integration with graphql-kotlin]

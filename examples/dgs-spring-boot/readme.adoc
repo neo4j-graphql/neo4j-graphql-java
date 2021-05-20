@@ -1,0 +1,36 @@
+= Example: Integration of Neo4j-GraphQL-Java into a Spring Boot application in combination with Netflix DGS
+
+== Overview
+
+This example uses the https://netflix.github.io/dgs/[Netflix DGS Framework (Domain Graph Service)]
+
+In the link:src/main/kotlin/org/neo4j/graphql/examples/dgsspringboot/config/Neo4jConfiguration.kt[Neo4jConfiguration]
+a DataFetchingInterceptor is created, which will be bound to all fields augmented by the neo4j-graphql-library.
+Its purpose is the execution of the cypher query and the transformation of the query result.
+
+In the link:src/main/kotlin/org/neo4j/graphql/examples/dgsspringboot/config/GraphQLConfiguration.kt[GraphQLConfiguration]
+the type definitions of link:src/main/resources/neo4j.graphql[schema] are loaded and augmented.
+
+In this example some fields of the enhanced type (neo4j) are extended with
+link:src/main/kotlin/org/neo4j/graphql/examples/dgsspringboot/datafetcher/AdditionalDataFetcher.kt[custom data fetcher] whose link:src/main/resources/schema/schema.graphqls[schema is separately defined].
+
+With This in place you can
+
+== Run the example
+
+1. link:src/main/resources/application.yaml[configure your neo4j db] or use a public one
+2. run the link:src/main/kotlin/org/neo4j/graphql/examples/dgsspringboot/DgsSpringBootApplication.kt[spring boot application]
+3. open http://localhost:8080/graphiql to run some graphql queries e.g. try:
+
+```graphql
+query{
+  other
+  movie (first: 3){
+    title
+    bar
+    javaData {
+      name
+    }
+  }
+}
+```

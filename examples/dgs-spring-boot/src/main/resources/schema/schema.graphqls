@@ -1,0 +1,12 @@
+extend type Movie {
+    bar: String @ignore
+    javaData: [JavaData!] @ignore
+}
+
+type JavaData {
+    name: String
+}
+
+extend type Query {
+    other: String
+}
