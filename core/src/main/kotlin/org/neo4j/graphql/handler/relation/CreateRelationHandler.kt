@@ -1,10 +1,10 @@
 package org.neo4j.graphql.handler.relation
 
 import graphql.language.Field
+import graphql.language.ImplementingTypeDefinition
 import graphql.schema.DataFetcher
 import graphql.schema.DataFetchingEnvironment
-import graphql.schema.GraphQLFieldDefinition
-import graphql.schema.GraphQLFieldsContainer
+import graphql.schema.idl.TypeDefinitionRegistry
 import org.neo4j.cypherdsl.core.Statement
 import org.neo4j.cypherdsl.core.StatementBuilder.OngoingUpdate
 import org.neo4j.graphql.*
@@ -13,20 +13,25 @@ import org.neo4j.graphql.*
  * This class handles all the logic related to the creation of relations starting from an existing node.
  * This includes the augmentation of the add&lt;Edge&gt;-mutator and the related cypher generation
  */
-class CreateRelationHandler private constructor(
-        type: GraphQLFieldsContainer,
-        relation: RelationshipInfo,
-        startId: RelationshipInfo.RelatedField,
-        endId: RelationshipInfo.RelatedField,
-        fieldDefinition: GraphQLFieldDefinition,
-        schemaConfig: SchemaConfig
-) : BaseRelationHandler(type, relation, startId, endId, fieldDefinition, schemaConfig) {
+class CreateRelationHandler private constructor(schemaConfig: SchemaConfig) : BaseRelationHandler("add", schemaConfig) {
 
-    class Factory(schemaConfig: SchemaConfig) : BaseRelationFactory("add", schemaConfig) {
-        override fun augmentType(type: GraphQLFieldsContainer, buildingEnv: BuildingEnv) {
+    class Factory(schemaConfig: SchemaConfig,
+            typeDefinitionRegistry: TypeDefinitionRegistry,
+            neo4jTypeDefinitionRegistry: TypeDefinitionRegistry
+    ) : BaseRelationFactory("add", schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry) {
+
+        override fun augmentType(type: ImplementingTypeDefinition<*>) {
+
             if (!canHandleType(type)) {
                 return
             }
+
+            val richRelationTypes = typeDefinitionRegistry.types().values
+                .filterIsInstance<ImplementingTypeDefinition<*>>()
+                .filter { it.getDirective(DirectiveConstants.RELATION) != null }
+                .associate { it.getDirectiveArgument<String>(DirectiveConstants.RELATION, DirectiveConstants.RELATION_NAME, null)!! to it.name }
+
+
             type.fieldDefinitions
                 .filter { canHandleField(it) }
                 .mapNotNull { targetField ->
@@ -35,36 +40,30 @@ class CreateRelationHandler private constructor(
 
                             val relationType = targetField
                                 .getDirectiveArgument<String>(DirectiveConstants.RELATION, DirectiveConstants.RELATION_NAME, null)
-                                ?.let { buildingEnv.getTypeForRelation(it) }
+                                ?.let { it -> (richRelationTypes[it]) }
+                                ?.let { typeDefinitionRegistry.getUnwrappedType(it) as? ImplementingTypeDefinition }
 
                             relationType
                                 ?.fieldDefinitions
-                                ?.filter { it.type.isScalar() && !it.isID() }
-                                ?.forEach { builder.argument(input(it.name, it.type)) }
+                                ?.filter { it.type.inner().isScalar() && !it.type.inner().isID() }
+                                ?.forEach { builder.inputValueDefinition(input(it.name, it.type)) }
 
-                            buildingEnv.addMutationField(builder.build())
+                            addMutationField(builder.build())
                         }
 
                 }
         }
 
-        override fun createDataFetcher(
-                sourceType: GraphQLFieldsContainer,
-                relation: RelationshipInfo,
-                startIdField: RelationshipInfo.RelatedField,
-                endIdField: RelationshipInfo.RelatedField,
-                fieldDefinition: GraphQLFieldDefinition
-        ): DataFetcher<Cypher> {
-            return CreateRelationHandler(sourceType, relation, startIdField, endIdField, fieldDefinition, schemaConfig)
+        override fun createDataFetcher(): DataFetcher<Cypher> {
+            return CreateRelationHandler(schemaConfig)
         }
-
     }
 
     override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement {
 
         val properties = properties(variable, field.arguments)
 
-        val arguments = field.arguments.map { it.name to it }.toMap()
+        val arguments = field.arguments.associateBy { it.name }
         val (startNode, startWhere) = getRelationSelect(true, arguments)
         val (endNode, endWhere) = getRelationSelect(false, arguments)
 

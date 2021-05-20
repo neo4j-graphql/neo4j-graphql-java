@@ -1,6 +1,5 @@
 package org.neo4j.graphql.examples.graphqlspringboot.config
 
-import graphql.language.VariableReference
 import graphql.schema.*
 import org.neo4j.driver.Driver
 import org.neo4j.graphql.Cypher

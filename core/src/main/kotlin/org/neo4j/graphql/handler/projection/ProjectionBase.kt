@@ -373,7 +373,12 @@ open class ProjectionBase(
         return skipLimit.slice(fieldType.isList(), comprehension)
     }
 
-    private fun relationshipInfoInCorrectDirection(fieldObjectType: GraphQLFieldsContainer, relInfo0: RelationshipInfo, parent: GraphQLFieldsContainer, relDirectiveField: RelationshipInfo?): RelationshipInfo {
+    private fun relationshipInfoInCorrectDirection(
+            fieldObjectType: GraphQLFieldsContainer,
+            relInfo0: RelationshipInfo<GraphQLFieldsContainer>,
+            parent: GraphQLFieldsContainer,
+            relDirectiveField: RelationshipInfo<GraphQLFieldsContainer>?
+    ): RelationshipInfo<GraphQLFieldsContainer> {
         val startField = fieldObjectType.getFieldDefinition(relInfo0.startField)!!
         val endField = fieldObjectType.getFieldDefinition(relInfo0.endField)!!
         val startFieldTypeName = startField.type.innerName()
@@ -413,11 +418,7 @@ open class ProjectionBase(
             relInfo.endField -> Triple(anyNode(), node, node)
             else -> throw IllegalArgumentException("type ${parent.name} does not have a matching field with name ${fieldDefinition.name}")
         }
-        val rel = when (relInfo.direction) {
-            RelationDirection.IN -> start.relationshipFrom(end).named(variable)
-            RelationDirection.OUT -> start.relationshipTo(end).named(variable)
-            RelationDirection.BOTH -> start.relationshipBetween(end).named(variable)
-        }
+        val rel = relInfo.createRelation(start, end, false,variable)
         return head(CypherDSL.listBasedOn(rel).returning(target.project(projectFields(target, field, fieldDefinition.type as GraphQLFieldsContainer, env))))
     }
 
@@ -426,8 +427,8 @@ open class ProjectionBase(
         val nodeType = fieldType.getInnerFieldsContainer()
 
         // todo combine both nestings if rel-entity
-        val relDirectiveObject = (nodeType as? GraphQLDirectiveContainer)?.getDirective(DirectiveConstants.RELATION)?.let { relDetails(nodeType, it) }
-        val relDirectiveField = fieldDefinition.getDirective(DirectiveConstants.RELATION)?.let { relDetails(nodeType, it) }
+        val relDirectiveObject = (nodeType as? GraphQLDirectiveContainer)?.getDirective(DirectiveConstants.RELATION)?.let { RelationshipInfo.create(nodeType, it) }
+        val relDirectiveField = fieldDefinition.getDirective(DirectiveConstants.RELATION)?.let { RelationshipInfo.create(nodeType, it) }
 
         val (relInfo0, isRelFromType) =
                 relDirectiveObject?.let { it to true }

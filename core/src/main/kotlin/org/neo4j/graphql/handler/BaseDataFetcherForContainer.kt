@@ -5,6 +5,7 @@ import graphql.language.ArrayValue
 import graphql.language.ObjectValue
 import graphql.schema.GraphQLFieldDefinition
 import graphql.schema.GraphQLFieldsContainer
+import graphql.schema.GraphQLType
 import org.neo4j.cypherdsl.core.*
 import org.neo4j.cypherdsl.core.Cypher.*
 import org.neo4j.graphql.*
@@ -12,16 +13,15 @@ import org.neo4j.graphql.*
 /**
  * This is a base class for all Node or Relation related data fetcher.
  */
-abstract class BaseDataFetcherForContainer(
-        val type: GraphQLFieldsContainer,
-        fieldDefinition: GraphQLFieldDefinition,
-        schemaConfig: SchemaConfig
-) : BaseDataFetcher(fieldDefinition, schemaConfig) {
+abstract class BaseDataFetcherForContainer(schemaConfig: SchemaConfig) : BaseDataFetcher(schemaConfig) {
 
+    lateinit var type: GraphQLFieldsContainer
     val propertyFields: MutableMap<String, (Any) -> List<PropertyAccessor>?> = mutableMapOf()
     val defaultFields: MutableMap<String, Any> = mutableMapOf()
 
-    init {
+    override fun initDataFetcher(fieldDefinition: GraphQLFieldDefinition, parentType: GraphQLType) {
+        type = fieldDefinition.type.inner() as? GraphQLFieldsContainer
+                ?: throw IllegalStateException("expect type of field ${parentType.name()}.${fieldDefinition.name} to be GraphQLFieldsContainer, but was ${fieldDefinition.type.name()}")
         fieldDefinition
             .arguments
             .filterNot { listOf(FIRST, OFFSET, ORDER_BY, NATIVE_ID, OPTIONS).contains(it.name) }

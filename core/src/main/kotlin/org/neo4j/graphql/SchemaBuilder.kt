@@ -1,6 +1,5 @@
 package org.neo4j.graphql
 
-import graphql.Scalars
 import graphql.language.*
 import graphql.schema.*
 import graphql.schema.idl.RuntimeWiring
@@ -16,37 +15,119 @@ import org.neo4j.graphql.handler.relation.CreateRelationTypeHandler
 import org.neo4j.graphql.handler.relation.DeleteRelationHandler
 
 /**
- * Contains factory methods to generate an augmented graphql schema
+ * A class for augmenting a type definition registry and generate the corresponding data fetcher.
+ * There are factory methods, that can be used to simplify augmenting a schema.
+ *
+ *
+ * Generating the schema is done by invoking the following methods:
+ * 1. [augmentTypes]
+ * 2. [registerScalars]
+ * 3. [registerTypeNameResolver]
+ * 4. [registerDataFetcher]
+ *
+ * Each of these steps can be called manually to enhance an existing [TypeDefinitionRegistry]
  */
-object SchemaBuilder {
+class SchemaBuilder(
+        val typeDefinitionRegistry: TypeDefinitionRegistry,
+        val schemaConfig: SchemaConfig = SchemaConfig()
+) {
+
+    companion object {
+        /**
+         * @param sdl the schema to augment
+         * @param config defines how the schema should get augmented
+         * @param dataFetchingInterceptor since this library registers dataFetcher for its augmented methods, these data
+         * fetchers may be called by other resolver. This interceptor will let you convert a cypher query into real data.
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun buildSchema(sdl: String, config: SchemaConfig = SchemaConfig(), dataFetchingInterceptor: DataFetchingInterceptor? = null): GraphQLSchema {
+            val schemaParser = SchemaParser()
+            val typeDefinitionRegistry = schemaParser.parse(sdl)
+            return buildSchema(typeDefinitionRegistry, config, dataFetchingInterceptor)
+        }
+
+        /**
+         * @param typeDefinitionRegistry a registry containing all the types, that should be augmented
+         * @param config defines how the schema should get augmented
+         * @param dataFetchingInterceptor since this library registers dataFetcher for its augmented methods, these data
+         * fetchers may be called by other resolver. This interceptor will let you convert a cypher query into real data.
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun buildSchema(typeDefinitionRegistry: TypeDefinitionRegistry, config: SchemaConfig = SchemaConfig(), dataFetchingInterceptor: DataFetchingInterceptor? = null): GraphQLSchema {
+
+            val builder = RuntimeWiring.newRuntimeWiring()
+            val codeRegistryBuilder = GraphQLCodeRegistry.newCodeRegistry()
+
+            val schemaBuilder = SchemaBuilder(typeDefinitionRegistry, config)
+            schemaBuilder.augmentTypes()
+            schemaBuilder.registerScalars(builder)
+            schemaBuilder.registerTypeNameResolver(builder)
+            schemaBuilder.registerDataFetcher(codeRegistryBuilder, dataFetchingInterceptor)
+
+            return SchemaGenerator().makeExecutableSchema(
+                    typeDefinitionRegistry,
+                    builder.codeRegistry(codeRegistryBuilder).build()
+            )
+        }
+    }
+
+    private val handler: List<AugmentationHandler>
+    private val neo4jTypeDefinitionRegistry: TypeDefinitionRegistry
+
+    init {
+        neo4jTypeDefinitionRegistry = getNeo4jEnhancements()
+        ensureRootQueryTypeExists(typeDefinitionRegistry)
+        handler = mutableListOf(
+                CypherDirectiveHandler.Factory(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry),
+                AugmentFieldHandler(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry)
+        )
+        if (schemaConfig.query.enabled) {
+            handler.add(QueryHandler.Factory(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry))
+        }
+        if (schemaConfig.mutation.enabled) {
+            handler += listOf(
+                    MergeOrUpdateHandler.Factory(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry),
+                    DeleteHandler.Factory(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry),
+                    CreateTypeHandler.Factory(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry),
+                    DeleteRelationHandler.Factory(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry),
+                    CreateRelationTypeHandler.Factory(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry),
+                    CreateRelationHandler.Factory(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry)
+            )
+        }
+    }
+
 
     /**
-     * @param sdl the schema to augment
-     * @param config defines how the schema should get augmented
-     * @param dataFetchingInterceptor since this library registers dataFetcher for its augmented methods, these data
-     * fetchers may be called by other resolver. This interceptor will let you convert a cypher query into real data.
+     * Generated additionally query and mutation fields according to the types present in the [typeDefinitionRegistry].
+     * This method will also augment relation fields, so filtering and sorting is available for them
      */
-    @JvmStatic
-    @JvmOverloads
-    fun buildSchema(sdl: String, config: SchemaConfig = SchemaConfig(), dataFetchingInterceptor: DataFetchingInterceptor? = null): GraphQLSchema {
-        val schemaParser = SchemaParser()
-        val typeDefinitionRegistry = schemaParser.parse(sdl)
-        return buildSchema(typeDefinitionRegistry, config, dataFetchingInterceptor)
+    fun augmentTypes() {
+        val queryTypeName = typeDefinitionRegistry.queryTypeName()
+        val mutationTypeName = typeDefinitionRegistry.mutationTypeName()
+        val subscriptionTypeName = typeDefinitionRegistry.subscriptionTypeName()
+
+        typeDefinitionRegistry.types().values
+            .filterIsInstance<ImplementingTypeDefinition<*>>()
+            .filter { it.name != queryTypeName && it.name != mutationTypeName && it.name != subscriptionTypeName }
+            .forEach { type -> handler.forEach { h -> h.augmentType(type) } }
+
+        // in a second run we enhance all the root fields
+        typeDefinitionRegistry.types().values
+            .filterIsInstance<ImplementingTypeDefinition<*>>()
+            .filter { it.name == queryTypeName || it.name == mutationTypeName || it.name == subscriptionTypeName }
+            .forEach { type -> handler.forEach { h -> h.augmentType(type) } }
+
+        // TODO copy over only the types used in the source schema
+        typeDefinitionRegistry.merge(neo4jTypeDefinitionRegistry)
     }
 
     /**
-     * @param typeDefinitionRegistry a registry containing all the types, that should be augmented
-     * @param config defines how the schema should get augmented
-     * @param dataFetchingInterceptor since this library registers dataFetcher for its augmented methods, these data
-     * fetchers may be called by other resolver. This interceptor will let you convert a cypher query into real data.
+     * Register scalars of this library in the [RuntimeWiring][@param builder]
+     * @param builder a builder to create a runtime wiring
      */
-    @JvmStatic
-    @JvmOverloads
-    fun buildSchema(typeDefinitionRegistry: TypeDefinitionRegistry, config: SchemaConfig = SchemaConfig(), dataFetchingInterceptor: DataFetchingInterceptor? = null): GraphQLSchema {
-        val enhancedRegistry = typeDefinitionRegistry.merge(getNeo4jEnhancements())
-        ensureRootQueryTypeExists(enhancedRegistry)
-
-        val builder = RuntimeWiring.newRuntimeWiring()
+    fun registerScalars(builder: RuntimeWiring.Builder) {
         typeDefinitionRegistry.scalars()
             .filterNot { entry -> GRAPHQL_SPECIFICATION_SCALARS_DEFINITIONS.containsKey(entry.key) }
             .forEach { (name, definition) ->
@@ -62,26 +143,60 @@ object SchemaBuilder {
                 }
                 builder.scalar(scalar)
             }
+    }
 
-
-        enhancedRegistry
+    /**
+     * Register type name resolver in the [RuntimeWiring][@param builder]
+     * @param builder a builder to create a runtime wiring
+     */
+    fun registerTypeNameResolver(builder: RuntimeWiring.Builder) {
+        typeDefinitionRegistry
             .getTypes(InterfaceTypeDefinition::class.java)
             .forEach { typeDefinition ->
                 builder.type(typeDefinition.name) {
                     it.typeResolver { env ->
                         (env.getObject() as? Map<String, Any>)
-                            ?.let { data -> data.get(ProjectionBase.TYPE_NAME) as? String }
+                            ?.let { data -> data[ProjectionBase.TYPE_NAME] as? String }
                             ?.let { typeName -> env.schema.getObjectType(typeName) }
                     }
                 }
             }
-        val sourceSchema = SchemaGenerator().makeExecutableSchema(enhancedRegistry, builder.build())
+    }
 
-        val handler = getHandler(config)
+    /**
+     * Register data fetcher in a [GraphQLCodeRegistry][@param codeRegistryBuilder].
+     * The data fetcher of this library generate a cypher query and if provided use the dataFetchingInterceptor to run this cypher against a neo4j db.
+     * @param codeRegistryBuilder a builder to create a code registry
+     * @param dataFetchingInterceptor a function to convert a cypher string into an object by calling the neo4j db
+     */
+    @JvmOverloads
+    fun registerDataFetcher(
+            codeRegistryBuilder: GraphQLCodeRegistry.Builder,
+            dataFetchingInterceptor: DataFetchingInterceptor?,
+            typeDefinitionRegistry: TypeDefinitionRegistry = this.typeDefinitionRegistry
+    ) {
+        addDataFetcher(typeDefinitionRegistry.queryTypeName(), OperationType.QUERY, dataFetchingInterceptor, codeRegistryBuilder)
+        addDataFetcher(typeDefinitionRegistry.mutationTypeName(), OperationType.MUTATION, dataFetchingInterceptor, codeRegistryBuilder)
+    }
 
-        var targetSchema = augmentSchema(sourceSchema, handler, config)
-        targetSchema = addDataFetcher(targetSchema, dataFetchingInterceptor, handler)
-        return targetSchema
+    private fun addDataFetcher(
+            parentType: String,
+            operationType: OperationType,
+            dataFetchingInterceptor: DataFetchingInterceptor?,
+            codeRegistryBuilder: GraphQLCodeRegistry.Builder) {
+        typeDefinitionRegistry.getType(parentType)?.unwrap()
+            ?.let { it as? ObjectTypeDefinition }
+            ?.fieldDefinitions
+            ?.forEach { field ->
+                handler.forEach { h ->
+                    h.createDataFetcher(operationType, field)?.let { dataFetcher ->
+                        val interceptedDataFetcher: DataFetcher<*> = dataFetchingInterceptor?.let {
+                            DataFetcher { env -> dataFetchingInterceptor.fetchData(env, dataFetcher) }
+                        } ?: dataFetcher
+                        codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(parentType, field.name), interceptedDataFetcher)
+                    }
+                }
+            }
     }
 
     private fun ensureRootQueryTypeExists(enhancedRegistry: TypeDefinitionRegistry) {
@@ -108,149 +223,9 @@ object SchemaBuilder {
         })
     }
 
-    private fun getHandler(schemaConfig: SchemaConfig): List<AugmentationHandler> {
-        val handler = mutableListOf<AugmentationHandler>(
-                CypherDirectiveHandler.Factory(schemaConfig)
-        )
-        if (schemaConfig.query.enabled) {
-            handler.add(QueryHandler.Factory(schemaConfig))
-        }
-        if (schemaConfig.mutation.enabled) {
-            handler += listOf(
-                    MergeOrUpdateHandler.Factory(schemaConfig),
-                    DeleteHandler.Factory(schemaConfig),
-                    CreateTypeHandler.Factory(schemaConfig),
-                    DeleteRelationHandler.Factory(schemaConfig),
-                    CreateRelationTypeHandler.Factory(schemaConfig),
-                    CreateRelationHandler.Factory(schemaConfig)
-            )
-        }
-        return handler
-    }
-
-    private fun augmentSchema(sourceSchema: GraphQLSchema, handler: List<AugmentationHandler>, schemaConfig: SchemaConfig): GraphQLSchema {
-        val types = sourceSchema.typeMap.toMutableMap()
-        val env = BuildingEnv(types, sourceSchema, schemaConfig)
-        val queryTypeName = sourceSchema.queryTypeName()
-        val mutationTypeName = sourceSchema.mutationTypeName()
-        val subscriptionTypeName = sourceSchema.subscriptionTypeName()
-        types.values
-            .filterIsInstance<GraphQLFieldsContainer>()
-            .filter {
-                !it.name.startsWith("__")
-                        && !it.isNeo4jType()
-                        && it.name != queryTypeName
-                        && it.name != mutationTypeName
-                        && it.name != subscriptionTypeName
-            }
-            .forEach { type ->
-                handler.forEach { h -> h.augmentType(type, env) }
-            }
-
-        // since new types my be added to `types` we copy the map, to safely modify the entries and later add these
-        // modified entries back to the `types`
-        val adjustedTypes = types.toMutableMap()
-        adjustedTypes.replaceAll { _, sourceType ->
-            when {
-                sourceType.name.startsWith("__") -> sourceType
-                sourceType is GraphQLObjectType -> sourceType.transform { builder ->
-                    builder.clearFields().clearInterfaces()
-                    // to prevent duplicated types in schema
-                    sourceType.interfaces.forEach { builder.withInterface(GraphQLTypeReference(it.name)) }
-                    sourceType.fieldDefinitions.forEach { f -> builder.field(enhanceRelations(f, env)) }
-                }
-                sourceType is GraphQLInterfaceType -> sourceType.transform { builder ->
-                    builder.clearFields()
-                    sourceType.fieldDefinitions.forEach { f -> builder.field(enhanceRelations(f, env)) }
-                }
-                else -> sourceType
-            }
-        }
-        types.putAll(adjustedTypes)
-
-        return GraphQLSchema
-            .newSchema(sourceSchema)
-            .clearAdditionalTypes()
-            .query(types[queryTypeName] as? GraphQLObjectType)
-            .mutation(types[mutationTypeName] as? GraphQLObjectType)
-            .additionalTypes(types.values.toSet())
-            .build()
-    }
-
-    private fun enhanceRelations(fd: GraphQLFieldDefinition, env: BuildingEnv): GraphQLFieldDefinition {
-        return fd.transform { fieldBuilder ->
-            // to prevent duplicated types in schema
-            fieldBuilder.type(fd.type.ref() as GraphQLOutputType)
-
-            if (!fd.isRelationship() || !fd.type.isList()) {
-                return@transform
-            }
-
-            val fieldType = fd.type.inner() as? GraphQLFieldsContainer ?: return@transform
-
-            if (env.schemaConfig.queryOptionStyle == SchemaConfig.InputStyle.INPUT_TYPE) {
-
-                val optionsTypeName = env.addOptions(fieldType)
-                val optionsType = GraphQLTypeReference(optionsTypeName)
-                fieldBuilder.argument(input(ProjectionBase.OPTIONS, optionsType))
-
-            } else {
-
-                if (fd.getArgument(ProjectionBase.FIRST) == null) {
-                    fieldBuilder.argument { a -> a.name(ProjectionBase.FIRST).type(Scalars.GraphQLInt) }
-                }
-                if (fd.getArgument(ProjectionBase.OFFSET) == null) {
-                    fieldBuilder.argument { a -> a.name(ProjectionBase.OFFSET).type(Scalars.GraphQLInt) }
-                }
-                if (fd.getArgument(ProjectionBase.ORDER_BY) == null) {
-                    env.addOrdering(fieldType)?.let { orderingTypeName ->
-                        val orderType = GraphQLList(GraphQLNonNull(GraphQLTypeReference(orderingTypeName)))
-                        fieldBuilder.argument { a -> a.name(ProjectionBase.ORDER_BY).type(orderType) }
-
-                    }
-                }
-
-            }
-
-            val filterFieldName = if (env.schemaConfig.useWhereFilter) ProjectionBase.WHERE else ProjectionBase.FILTER
-            if (env.schemaConfig.query.enabled && !env.schemaConfig.query.exclude.contains(fieldType.name) && fd.getArgument(filterFieldName) == null) {
-                val filterTypeName = env.addFilterType(fieldType)
-                fieldBuilder.argument(input(filterFieldName, GraphQLTypeReference(filterTypeName)))
-            }
-        }
-    }
-
-    private fun addDataFetcher(sourceSchema: GraphQLSchema, dataFetchingInterceptor: DataFetchingInterceptor?, handler: List<AugmentationHandler>): GraphQLSchema {
-        val codeRegistryBuilder = GraphQLCodeRegistry.newCodeRegistry(sourceSchema.codeRegistry)
-        addDataFetcher(sourceSchema.queryType, OperationType.QUERY, dataFetchingInterceptor, handler, codeRegistryBuilder)
-        addDataFetcher(sourceSchema.mutationType, OperationType.MUTATION, dataFetchingInterceptor, handler, codeRegistryBuilder)
-        return sourceSchema.transform { it.codeRegistry(codeRegistryBuilder.build()) }
-    }
-
-    private fun addDataFetcher(
-            rootType: GraphQLObjectType?,
-            operationType: OperationType,
-            dataFetchingInterceptor: DataFetchingInterceptor?,
-            handler: List<AugmentationHandler>,
-            codeRegistryBuilder: GraphQLCodeRegistry.Builder) {
-        if (rootType == null) return
-        rootType.fieldDefinitions.forEach { field ->
-            handler.forEach { h ->
-                h.createDataFetcher(operationType, field)?.let { dataFetcher ->
-                    val df: DataFetcher<*> = dataFetchingInterceptor?.let {
-                        DataFetcher { env ->
-                            dataFetchingInterceptor.fetchData(env, dataFetcher)
-                        }
-                    } ?: dataFetcher
-                    codeRegistryBuilder.dataFetcher(rootType, field, df)
-                }
-            }
-        }
-    }
-
     private fun getNeo4jEnhancements(): TypeDefinitionRegistry {
-        val directivesSdl = javaClass.getResource("/neo4j_types.graphql").readText() +
-                javaClass.getResource("/lib_directives.graphql").readText()
+        val directivesSdl = javaClass.getResource("/neo4j_types.graphql")?.readText() +
+                javaClass.getResource("/lib_directives.graphql")?.readText()
         val typeDefinitionRegistry = SchemaParser().parse(directivesSdl)
         neo4jTypeDefinitions
             .forEach {

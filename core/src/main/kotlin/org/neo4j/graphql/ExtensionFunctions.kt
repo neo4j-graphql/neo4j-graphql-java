@@ -1,21 +1,12 @@
 package org.neo4j.graphql
 
+import graphql.language.Description
 import graphql.language.VariableReference
-import graphql.schema.GraphQLArgument
-import graphql.schema.GraphQLInputType
-import graphql.schema.GraphQLType
 import org.neo4j.cypherdsl.core.*
+import java.util.*
 
 fun <T> Iterable<T>.joinNonEmpty(separator: CharSequence = ", ", prefix: CharSequence = "", postfix: CharSequence = "", limit: Int = -1, truncated: CharSequence = "...", transform: ((T) -> CharSequence)? = null): String {
     return if (iterator().hasNext()) joinTo(StringBuilder(), separator, prefix, postfix, limit, truncated, transform).toString() else ""
-}
-
-fun input(name: String, type: GraphQLType): GraphQLArgument {
-    return GraphQLArgument
-        .newArgument()
-        .name(name)
-        .type((type.ref() as? GraphQLInputType)
-                ?: throw IllegalArgumentException("${type.innerName()} is not allowed for input")).build()
 }
 
 fun queryParameter(value: Any?, vararg parts: String?): Parameter<Any> {
@@ -36,3 +27,7 @@ fun PropertyContainer.id(): FunctionInvocation = when (this) {
 }
 
 fun String.toCamelCase(): String = Regex("[\\W_]([a-z])").replace(this) { it.groupValues[1].toUpperCase() }
+
+fun <T> Optional<T>.unwrap(): T? = orElse(null)
+
+fun String.asDescription() = Description(this, null, this.contains("\n"))
