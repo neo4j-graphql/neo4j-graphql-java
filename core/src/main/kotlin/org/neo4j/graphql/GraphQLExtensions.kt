@@ -44,6 +44,8 @@ fun GraphQLType.requiredName(): String = requireNotNull(name()) { "name is requi
 fun GraphQLType.isList() = this is GraphQLList || (this is GraphQLNonNull && this.wrappedType is GraphQLList)
 fun GraphQLType.isNeo4jType() = this.innerName().startsWith("_Neo4j")
 
+fun TypeDefinition<*>.isNeo4jDateType() = this.name.startsWith("_Neo4j") && (this.name.contains("Date") || this.name.contains("Time"))
+
 fun GraphQLType.isNeo4jSpatialType() = this.innerName().startsWith("_Neo4jPoint")
 fun TypeDefinition<*>.isNeo4jSpatialType() = this.name.startsWith("_Neo4jPoint")
 

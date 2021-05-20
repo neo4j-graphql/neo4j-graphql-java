@@ -115,6 +115,7 @@ enum class FieldOperator(
                     type.name == TypeBoolean.name -> listOf(EQ, NEQ)
                     type.name == NEO4j_POINT_DISTANCE_FILTER -> listOf(EQ, LT, LTE, GT, GTE)
                     type.isNeo4jSpatialType() -> listOf(EQ, NEQ)
+                    type.isNeo4jDateType() -> listOf(EQ, NEQ, IN, NIN, LT, LTE, GT, GTE)
                     isNeo4jType -> listOf(EQ, NEQ, IN, NIN)
                     type is ImplementingTypeDefinition<*> -> throw IllegalArgumentException("This operators are not for relations, use the RelationOperator instead")
                     type is EnumTypeDefinition -> listOf(EQ, NEQ, IN, NIN)

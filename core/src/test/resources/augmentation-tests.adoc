@@ -923,7 +923,11 @@ input _Person0Filter {
   NOT: [_Person0Filter!]
   OR: [_Person0Filter!]
   born: _Neo4jTimeInput
+  born_gt: _Neo4jTimeInput
+  born_gte: _Neo4jTimeInput
   born_in: [_Neo4jTimeInput]
+  born_lt: _Neo4jTimeInput
+  born_lte: _Neo4jTimeInput
   born_not: _Neo4jTimeInput
   born_not_in: [_Neo4jTimeInput]
   location: _Neo4jPointInput
@@ -955,7 +959,11 @@ input _Person1Filter {
   NOT: [_Person1Filter!]
   OR: [_Person1Filter!]
   born: _Neo4jDateInput
+  born_gt: _Neo4jDateInput
+  born_gte: _Neo4jDateInput
   born_in: [_Neo4jDateInput]
+  born_lt: _Neo4jDateInput
+  born_lte: _Neo4jDateInput
   born_not: _Neo4jDateInput
   born_not_in: [_Neo4jDateInput]
   name: String
@@ -993,7 +1001,11 @@ input _Person2Filter {
   age_not: Int
   age_not_in: [Int]
   born: _Neo4jDateTimeInput
+  born_gt: _Neo4jDateTimeInput
+  born_gte: _Neo4jDateTimeInput
   born_in: [_Neo4jDateTimeInput]
+  born_lt: _Neo4jDateTimeInput
+  born_lte: _Neo4jDateTimeInput
   born_not: _Neo4jDateTimeInput
   born_not_in: [_Neo4jDateTimeInput]
   name: String
@@ -1024,7 +1036,11 @@ input _Person3Filter {
   NOT: [_Person3Filter!]
   OR: [_Person3Filter!]
   born: _Neo4jLocalTimeInput
+  born_gt: _Neo4jLocalTimeInput
+  born_gte: _Neo4jLocalTimeInput
   born_in: [_Neo4jLocalTimeInput]
+  born_lt: _Neo4jLocalTimeInput
+  born_lte: _Neo4jLocalTimeInput
   born_not: _Neo4jLocalTimeInput
   born_not_in: [_Neo4jLocalTimeInput]
   name: String
@@ -1054,7 +1070,11 @@ input _Person4Filter {
   NOT: [_Person4Filter!]
   OR: [_Person4Filter!]
   born: _Neo4jLocalDateTimeInput
+  born_gt: _Neo4jLocalDateTimeInput
+  born_gte: _Neo4jLocalDateTimeInput
   born_in: [_Neo4jLocalDateTimeInput]
+  born_lt: _Neo4jLocalDateTimeInput
+  born_lte: _Neo4jLocalDateTimeInput
   born_not: _Neo4jLocalDateTimeInput
   born_not_in: [_Neo4jLocalDateTimeInput]
   id: ID
