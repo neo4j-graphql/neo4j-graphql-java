@@ -30,7 +30,7 @@ abstract class BaseDataFetcherForContainer(schemaConfig: SchemaConfig) : BaseDat
                     defaultFields[arg.name] = arg.defaultValue
                 }
             }
-            .mapNotNull { type.getFieldDefinition(it.name) }
+            .mapNotNull { type.getRelevantFieldDefinition(it.name) }
             .forEach { field ->
                 val dynamicPrefix = field.dynamicPrefix()
                 propertyFields[field.name] = when {

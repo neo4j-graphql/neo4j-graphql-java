@@ -74,6 +74,9 @@ abstract class BaseRelationHandler(val prefix: String, schemaConfig: SchemaConfi
             if (!targetField.hasDirective(DirectiveConstants.RELATION)) {
                 return false
             }
+            if (targetField.isIgnored()) {
+                return false
+            }
             if (type.getIdField() == null) {
                 return false
             }
@@ -156,7 +159,7 @@ abstract class BaseRelationHandler(val prefix: String, schemaConfig: SchemaConfi
             .removePrefix(p)
             .decapitalize()
             .let {
-                type.getFieldDefinition(it) ?: throw IllegalStateException("Cannot find field $it on type ${type.name}")
+                type.getRelevantFieldDefinition(it) ?: throw IllegalStateException("Cannot find field $it on type ${type.name}")
             }
 
 

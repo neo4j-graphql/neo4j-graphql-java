@@ -29,7 +29,7 @@ class AugmentFieldHandler(
     }
 
     private fun augmentRelation(fieldBuilder: FieldDefinition.Builder, field: FieldDefinition) {
-        if (!field.isRelationship() || !field.type.isList()) {
+        if (!field.isRelationship() || !field.type.isList() || field.isIgnored()) {
             return
         }
 

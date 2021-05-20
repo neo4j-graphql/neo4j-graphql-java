@@ -2,14 +2,15 @@ package org.neo4j.graphql
 
 import apoc.coll.Coll
 import apoc.cypher.CypherFunctions
-import org.junit.jupiter.api.*
+import demo.org.neo4j.graphql.utils.TestUtils.createTestsInPath
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.TestFactory
+import org.junit.jupiter.api.TestInstance
 import org.neo4j.graphql.utils.CypherTestSuite
 import org.neo4j.harness.Neo4j
 import org.neo4j.harness.Neo4jBuilders
-import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
-import java.util.stream.Stream
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class CypherTests {
@@ -71,27 +72,10 @@ class CypherTests {
     fun `custom-fields`() = CypherTestSuite("custom-fields.adoc", neo4j).generateTests()
 
     @TestFactory
-    fun `test issues`(): Stream<DynamicNode>? = Files
-        .list(Paths.get("src/test/resources/issues"))
-        .map {
-            DynamicContainer.dynamicContainer(
-                    it.fileName.toString(),
-                    it.toUri(),
-                    CypherTestSuite("issues/${it.fileName}", neo4j).generateTests()
-            )
-        }
-
+    fun `test issues`() =  createTestsInPath("issues", { CypherTestSuite(it, neo4j).generateTests() })
 
     @TestFactory
-    fun `new cypher tck tests`(): Stream<DynamicNode>? = Files
-        .list(Paths.get("src/test/resources/tck-test-files/cypher"))
-        .map {
-            DynamicContainer.dynamicContainer(
-                    it.fileName.toString(),
-                    it.toUri(),
-                    CypherTestSuite("tck-test-files/cypher/${it.fileName}", neo4j).generateTests()
-            )
-        }
+    fun `new cypher tck tests`() = createTestsInPath("tck-test-files/cypher", { CypherTestSuite(it, neo4j).generateTests() })
 
     companion object {
         private val INTEGRATION_TESTS = System.getProperty("neo4j-graphql-java.integration-tests", "false") == "true"

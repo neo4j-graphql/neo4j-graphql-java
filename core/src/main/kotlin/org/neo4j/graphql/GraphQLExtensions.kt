@@ -53,7 +53,7 @@ fun GraphQLFieldDefinition.isRelationship() = !type.isNeo4jType() && this.type.i
 
 fun GraphQLFieldsContainer.isRelationType() = (this as? GraphQLDirectiveContainer)?.getDirective(DirectiveConstants.RELATION) != null
 fun GraphQLFieldsContainer.relationshipFor(name: String): RelationshipInfo<GraphQLFieldsContainer>? {
-    val field = getFieldDefinition(name)
+    val field = getRelevantFieldDefinition(name)
             ?: throw IllegalArgumentException("$name is not defined on ${this.name}")
     val fieldObjectType = field.type.inner() as? GraphQLImplementingType ?: return null
 
@@ -62,7 +62,7 @@ fun GraphQLFieldsContainer.relationshipFor(name: String): RelationshipInfo<Graph
         (this as? GraphQLDirectiveContainer)
             ?.getDirective(DirectiveConstants.RELATION)?.let {
                 // do inverse mapping, if the current type  is the `to` mapping of the relation
-                it to (fieldObjectType.getFieldDefinition(it.getArgument(RELATION_TO, null))?.name == typeName)
+                it to (fieldObjectType.getRelevantFieldDefinition(it.getArgument(RELATION_TO, null))?.name == typeName)
             }
                 ?: throw IllegalStateException("Type ${this.name} needs an @relation directive")
     } else {
@@ -184,7 +184,21 @@ fun Value<*>.toJavaValue(): Any? = when (this) {
 
 fun GraphQLFieldDefinition.isID() = this.type.inner() == Scalars.GraphQLID
 fun GraphQLFieldDefinition.isNativeId() = this.name == ProjectionBase.NATIVE_ID
-fun GraphQLFieldsContainer.getIdField() = this.fieldDefinitions.find { it.isID() }
+fun GraphQLFieldDefinition.isIgnored() =  getDirective(DirectiveConstants.IGNORE) != null
+fun FieldDefinition.isIgnored(): Boolean = hasDirective(DirectiveConstants.IGNORE)
+
+fun GraphQLFieldsContainer.getIdField() = this.getRelevantFieldDefinitions().find { it.isID() }
+
+/**
+ * Returns the field definitions which are not ignored
+ */
+fun GraphQLFieldsContainer.getRelevantFieldDefinitions() = this.fieldDefinitions.filterNot { it.isIgnored() }
+
+/**
+ * Returns the field definition if it is not ignored
+ */
+fun GraphQLFieldsContainer.getRelevantFieldDefinition(name: String?) = this.getFieldDefinition(name)?.takeIf { !it.isIgnored() }
+
 
 fun InputObjectTypeDefinition.Builder.addFilterField(fieldName: String, isList: Boolean, filterType: String, description: Description? = null) {
     val wrappedType: Type<*> = when {

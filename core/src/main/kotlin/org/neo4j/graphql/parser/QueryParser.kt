@@ -145,7 +145,7 @@ object QueryParser {
         // find all matching fields
         val fieldPredicates = mutableListOf<FieldPredicate>()
         val relationPredicates = mutableListOf<RelationPredicate>()
-        for (definedField in type.fieldDefinitions) {
+        for (definedField in type.getRelevantFieldDefinitions()) {
             if (definedField.isRelationship()) {
                 RelationOperator.values()
                     .map { it to definedField.name + it.suffix }

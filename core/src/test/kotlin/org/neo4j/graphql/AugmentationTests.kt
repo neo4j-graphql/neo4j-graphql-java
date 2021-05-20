@@ -1,12 +1,8 @@
 package org.neo4j.graphql
 
-import org.junit.jupiter.api.DynamicContainer
-import org.junit.jupiter.api.DynamicNode
+import demo.org.neo4j.graphql.utils.TestUtils.createTestsInPath
 import org.junit.jupiter.api.TestFactory
 import org.neo4j.graphql.utils.GraphQLSchemaTestSuite
-import java.nio.file.Files
-import java.nio.file.Paths
-import java.util.stream.Stream
 
 class AugmentationTests {
 
@@ -17,13 +13,5 @@ class AugmentationTests {
     fun `schema-operations-tests`() = GraphQLSchemaTestSuite("schema-operations-tests.adoc").generateTests()
 
     @TestFactory
-    fun `schema augmentation tests`(): Stream<DynamicNode>? = Files
-        .list(Paths.get("src/test/resources/tck-test-files/schema"))
-        .map {
-            DynamicContainer.dynamicContainer(
-                    it.fileName.toString(),
-                    it.toUri(),
-                    GraphQLSchemaTestSuite("tck-test-files/schema/${it.fileName}").generateTests()
-            )
-        }
+    fun `schema augmentation tests`() = createTestsInPath("tck-test-files/schema", { GraphQLSchemaTestSuite(it).generateTests() })
 }

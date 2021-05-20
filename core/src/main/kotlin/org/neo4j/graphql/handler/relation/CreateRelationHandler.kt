@@ -45,6 +45,7 @@ class CreateRelationHandler private constructor(schemaConfig: SchemaConfig) : Ba
 
                             relationType
                                 ?.fieldDefinitions
+                                ?.filterNot { it.isIgnored() }
                                 ?.filter { it.type.inner().isScalar() && !it.type.inner().isID() }
                                 ?.forEach { builder.inputValueDefinition(input(it.name, it.type)) }
 
