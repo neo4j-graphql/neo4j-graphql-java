@@ -136,6 +136,8 @@ fun <T> DirectivesContainer<*>.getDirectiveArgument(typeRegistry: TypeDefinition
             ?: defaultValue
 }
 
+fun DirectivesContainer<*>.getDirective(name: String): Directive? = directives.firstOrNull { it.name == name }
+
 @Suppress("UNCHECKED_CAST")
 fun <T> DirectivesContainer<*>.getMandatoryDirectiveArgument(typeRegistry: TypeDefinitionRegistry, directiveName: String, argumentName: String, defaultValue: T? = null): T =
         getDirectiveArgument(typeRegistry, directiveName, argumentName, defaultValue)

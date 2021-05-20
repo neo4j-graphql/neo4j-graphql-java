@@ -7,12 +7,12 @@ import graphql.language.FragmentDefinition
 import graphql.language.OperationDefinition
 import graphql.language.OperationDefinition.Operation.MUTATION
 import graphql.language.OperationDefinition.Operation.QUERY
+import graphql.parser.InvalidSyntaxException
 import graphql.parser.Parser
 import graphql.schema.DataFetchingEnvironmentImpl.newDataFetchingEnvironment
 import graphql.schema.GraphQLFieldDefinition
 import graphql.schema.GraphQLObjectType
 import graphql.schema.GraphQLSchema
-import org.antlr.v4.runtime.misc.ParseCancellationException
 import java.math.BigDecimal
 import java.math.BigInteger
 
@@ -85,7 +85,7 @@ class Translator(val schema: GraphQLSchema) {
         try {
             val parser = Parser()
             return parser.parseDocument(query)
-        } catch (e: ParseCancellationException) {
+        } catch (e: InvalidSyntaxException) {
             // todo proper structured error
             throw e
         }

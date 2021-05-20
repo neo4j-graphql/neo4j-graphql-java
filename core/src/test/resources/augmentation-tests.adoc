@@ -668,8 +668,6 @@ input _HasMoviesFilter {
   movies_some: _MovieFilter
 }
 
-input _HasMoviesInput
-
 input _Knows0Filter {
   AND: [_Knows0Filter!]
   NOT: [_Knows0Filter!]
