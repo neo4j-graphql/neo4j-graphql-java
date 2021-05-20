@@ -308,8 +308,6 @@ abstract class AugmentationHandler(
         null
     }
 
-    fun DirectivesContainer<*>.hasDirective(name: String): Boolean = getDirective(name) != null
-
     fun <T> DirectivesContainer<*>.getDirectiveArgument(directiveName: String, argumentName: String, defaultValue: T? = null): T? =
             getDirectiveArgument(neo4jTypeDefinitionRegistry, directiveName, argumentName, defaultValue)
 
