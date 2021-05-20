@@ -4,6 +4,7 @@ class DirectiveConstants {
 
     companion object {
 
+        const val IGNORE = "ignore"
         const val RELATION = "relation"
         const val RELATION_NAME = "name"
         const val RELATION_DIRECTION = "direction"

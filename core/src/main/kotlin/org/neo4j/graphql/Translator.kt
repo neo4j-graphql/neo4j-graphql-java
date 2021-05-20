@@ -54,13 +54,13 @@ class Translator(val schema: GraphQLSchema) {
         when (op) {
             QUERY -> {
                 operationObjectType = schema.queryType
-                fieldDefinition = operationObjectType.getFieldDefinition(name)
-                        ?: throw IllegalArgumentException("Unknown Query $name available queries: " + (operationObjectType.fieldDefinitions).joinToString { it.name })
+                fieldDefinition = operationObjectType.getRelevantFieldDefinition(name)
+                        ?: throw IllegalArgumentException("Unknown Query $name available queries: " + (operationObjectType.getRelevantFieldDefinitions()).joinToString { it.name })
             }
             MUTATION -> {
                 operationObjectType = schema.mutationType
-                fieldDefinition = operationObjectType.getFieldDefinition(name)
-                        ?: throw IllegalArgumentException("Unknown Mutation $name available mutations: " + (operationObjectType.fieldDefinitions).joinToString { it.name })
+                fieldDefinition = operationObjectType.getRelevantFieldDefinition(name)
+                        ?: throw IllegalArgumentException("Unknown Mutation $name available mutations: " + (operationObjectType.getRelevantFieldDefinitions()).joinToString { it.name })
             }
             else -> throw IllegalArgumentException("$op is not supported")
         }

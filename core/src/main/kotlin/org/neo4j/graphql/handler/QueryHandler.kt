@@ -89,7 +89,9 @@ class QueryHandler private constructor(schemaConfig: SchemaConfig) : BaseDataFet
             return true
         }
 
-        private fun hasRelationships(type: ImplementingTypeDefinition<*>): Boolean = type.fieldDefinitions.any { it.isRelationship() }
+        private fun hasRelationships(type: ImplementingTypeDefinition<*>): Boolean = type.fieldDefinitions
+            .filterNot { it.isIgnored() }
+            .any { it.isRelationship() }
 
         private fun getRelevantFields(type: ImplementingTypeDefinition<*>): List<FieldDefinition> {
             return type

@@ -13,3 +13,4 @@ directive @cypher(
 
 directive @property(name:String) on FIELD_DEFINITION
 directive @dynamic(prefix:String = "properties.") on FIELD_DEFINITION
+directive @ignore on FIELD_DEFINITION

@@ -104,7 +104,9 @@ class CreateRelationTypeHandler private constructor(schemaConfig: SchemaConfig) 
 
             val relType = relFieldDefinition.type.inner().resolve() as? ImplementingTypeDefinition<*>
                     ?: throw IllegalArgumentException("type ${relFieldDefinition.type.name()} not found")
-            return relType.fieldDefinitions.filter { it.type.inner().isID() }
+            return relType.fieldDefinitions
+                .filterNot { it.isIgnored() }
+                .filter { it.type.inner().isID() }
                 .map { RelatedField(normalizeFieldName(relFieldName, it.name), it) }
                 .firstOrNull()
         }
@@ -112,12 +114,12 @@ class CreateRelationTypeHandler private constructor(schemaConfig: SchemaConfig) 
     }
 
     private fun getRelatedIdField(info: RelationshipInfo<GraphQLFieldsContainer>, relFieldName: String): RelatedField {
-        val relFieldDefinition = info.type.getFieldDefinition(relFieldName)
+        val relFieldDefinition = info.type.getRelevantFieldDefinition(relFieldName)
                 ?: throw IllegalArgumentException("field $relFieldName does not exists on ${info.typeName}")
 
         val relType = relFieldDefinition.type.inner() as? GraphQLImplementingType
                 ?: throw IllegalArgumentException("type ${relFieldDefinition.type.name()} not found")
-        return relType.fieldDefinitions.filter { it.isID() }
+        return relType.getRelevantFieldDefinitions().filter { it.isID() }
             .map { RelatedField(normalizeFieldName(relFieldName, it.name), it, relType) }
             .firstOrNull()
                 ?: throw IllegalStateException("Cannot find id field for type ${info.typeName}")

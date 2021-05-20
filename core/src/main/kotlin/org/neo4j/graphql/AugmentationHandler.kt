@@ -125,6 +125,7 @@ abstract class AugmentationHandler(
                 .build())
         }
         type.fieldDefinitions
+            .filterNot { it.isIgnored() }
             .filter { it.dynamicPrefix() == null } // TODO currently we do not support filtering on dynamic properties
             .forEach { field ->
                 val typeDefinition = field.type.resolve()
@@ -272,11 +273,16 @@ abstract class AugmentationHandler(
     fun ImplementingTypeDefinition<*>.relationship(): RelationshipInfo<ImplementingTypeDefinition<*>>? = RelationshipInfo.create(this, neo4jTypeDefinitionRegistry)
 
     fun ImplementingTypeDefinition<*>.getScalarFields(): List<FieldDefinition> = fieldDefinitions
+        .filterNot { it.isIgnored() }
         .filter { it.type.inner().isScalar() || it.type.inner().isNeo4jType() }
         .sortedByDescending { it.type.inner().isID() }
 
-    fun ImplementingTypeDefinition<*>.getFieldDefinition(name: String) = this.fieldDefinitions.find { it.name == name }
-    fun ImplementingTypeDefinition<*>.getIdField() = this.fieldDefinitions.find { it.type.inner().isID() }
+    fun ImplementingTypeDefinition<*>.getFieldDefinition(name: String) = this.fieldDefinitions
+        .filterNot { it.isIgnored() }
+        .find { it.name == name }
+    fun ImplementingTypeDefinition<*>.getIdField() = this.fieldDefinitions
+        .filterNot { it.isIgnored() }
+        .find { it.type.inner().isID() }
 
     fun Type<*>.resolve(): TypeDefinition<*>? = getTypeFromAnyRegistry(name())
     fun Type<*>.isScalar(): Boolean = resolve() is ScalarTypeDefinition
@@ -295,7 +301,6 @@ abstract class AugmentationHandler(
             getDirectiveArgument(DirectiveConstants.DYNAMIC, DirectiveConstants.DYNAMIC_PREFIX, null)
     fun FieldDefinition.isRelationship(): Boolean =
             !type.inner().isNeo4jType() && type.resolve() is ImplementingTypeDefinition<*>
-
 
     fun TypeDefinitionRegistry.getUnwrappedType(name: String?): TypeDefinition<TypeDefinition<*>>? = getType(name)?.unwrap()
 

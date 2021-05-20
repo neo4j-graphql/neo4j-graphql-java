@@ -266,6 +266,7 @@ Otherwise, we assume if you return object-types that you will return the appropr
 * spatial
 * skip limit params
 * sorting (nested)
+* ignoring fields
 
 === Next
 

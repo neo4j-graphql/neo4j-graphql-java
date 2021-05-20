@@ -238,8 +238,9 @@ open class ProjectionBase(
 
     private fun projectField(propertyContainer: PropertyContainer, variable: SymbolicName, field: Field, type: GraphQLFieldsContainer, env: DataFetchingEnvironment, variableSuffix: String?, propertiesToSkipDeepProjection: Set<String> = emptySet()): List<Any> {
         val projections = mutableListOf<Any>()
-        projections += field.aliasOrName()
+
         if (field.name == TYPE_NAME) {
+            projections += field.aliasOrName()
             if (type.isRelationType()) {
                 projections += literalOf<Any>(type.name)
             } else {
@@ -250,8 +251,13 @@ open class ProjectionBase(
             }
             return projections
         }
+
         val fieldDefinition = type.getFieldDefinition(field.name)
                 ?: throw IllegalStateException("No field ${field.name} in ${type.name}")
+        if (fieldDefinition.isIgnored()) {
+            return projections
+        }
+        projections += field.aliasOrName()
         val cypherDirective = fieldDefinition.cypherDirective()
         val isObjectField = fieldDefinition.type.inner() is GraphQLFieldsContainer
         if (cypherDirective != null) {
@@ -379,8 +385,8 @@ open class ProjectionBase(
             parent: GraphQLFieldsContainer,
             relDirectiveField: RelationshipInfo<GraphQLFieldsContainer>?
     ): RelationshipInfo<GraphQLFieldsContainer> {
-        val startField = fieldObjectType.getFieldDefinition(relInfo0.startField)!!
-        val endField = fieldObjectType.getFieldDefinition(relInfo0.endField)!!
+        val startField = fieldObjectType.getRelevantFieldDefinition(relInfo0.startField)!!
+        val endField = fieldObjectType.getRelevantFieldDefinition(relInfo0.endField)!!
         val startFieldTypeName = startField.type.innerName()
         val inverse = startFieldTypeName != parent.name
                 || startFieldTypeName == endField.type.innerName()
@@ -418,7 +424,7 @@ open class ProjectionBase(
             relInfo.endField -> Triple(anyNode(), node, node)
             else -> throw IllegalArgumentException("type ${parent.name} does not have a matching field with name ${fieldDefinition.name}")
         }
-        val rel = relInfo.createRelation(start, end, false,variable)
+        val rel = relInfo.createRelation(start, end, false, variable)
         return head(CypherDSL.listBasedOn(rel).returning(target.project(projectFields(target, field, fieldDefinition.type as GraphQLFieldsContainer, env))))
     }
 
@@ -442,7 +448,7 @@ open class ProjectionBase(
 
         val (endNodePattern, variableSuffix) = when {
             isRelFromType -> {
-                val label = nodeType.getFieldDefinition(relInfo.endField)!!.type.innerName()
+                val label = nodeType.getRelevantFieldDefinition(relInfo.endField)!!.type.innerName()
                 node(label).named("$childVariable${relInfo.endField.capitalize()}") to relInfo.endField
             }
             else -> node(nodeType.name).named(childVariableName) to null
@@ -451,7 +457,7 @@ open class ProjectionBase(
         val skipLimit = SkipLimit(childVariable, field.arguments, fieldDefinition)
         val orderBy = getOrderByArgs(field.arguments, fieldDefinition, env.variables)
         val sortByNeo4jTypeFields = orderBy
-            .filter { (property, _) -> nodeType.getFieldDefinition(property)?.isNeo4jType() == true }
+            .filter { (property, _) -> nodeType.getRelevantFieldDefinition(property)?.isNeo4jType() == true }
             .map { (property, _) -> property }
             .toSet()
 

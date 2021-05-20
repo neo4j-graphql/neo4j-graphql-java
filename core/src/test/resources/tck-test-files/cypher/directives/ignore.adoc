@@ -1,0 +1,60 @@
+:toc:
+
+= @ignore directive
+
+Tests that the @ignore directive works as expected.
+
+
+== Inputs
+
+[source,graphql,schema=true]
+----
+type User {
+    id: ID!
+    username: String!
+    password: String!
+    nickname: String! @ignore
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+  "queryOptionStyle": "INPUT_TYPE",
+  "useWhereFilter": true,
+  "pluralizeFields": true
+}
+----
+
+== For query
+
+=== Ignore field for cypher
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+    users {
+        id
+        nickname
+    }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (users:User)
+RETURN users {
+	.id
+} AS users
+----

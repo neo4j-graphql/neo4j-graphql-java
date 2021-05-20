@@ -187,6 +187,7 @@ class SchemaBuilder(
         typeDefinitionRegistry.getType(parentType)?.unwrap()
             ?.let { it as? ObjectTypeDefinition }
             ?.fieldDefinitions
+            ?.filterNot { it.isIgnored() }
             ?.forEach { field ->
                 handler.forEach { h ->
                     h.createDataFetcher(operationType, field)?.let { dataFetcher ->
