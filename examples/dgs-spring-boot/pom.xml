@@ -101,27 +101,54 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
-
+            <plugin>
+                <groupId>org.neo4j</groupId>
+                <artifactId>neo4j-graphql-augmented-schema-generator-maven-plugin</artifactId>
+                <version>1.3.1-SNAPSHOT</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate-schema</goal>
+                        </goals>
+                        <configuration>
+                            <schemaConfig>
+                                <pluralizeFields>true</pluralizeFields>
+                                <useWhereFilter>true</useWhereFilter>
+                                <queryOptionStyle>INPUT_TYPE</queryOptionStyle>
+                                <mutation>
+                                    <enabled>false</enabled>
+                                </mutation>
+                            </schemaConfig>
+                            <outputDirectory>${project.build.directory}/augmented-schema</outputDirectory>
+                            <fileset>
+                                <directory>${project.basedir}/src/main/resources</directory>
+                                <include>*.graphql</include>
+                            </fileset>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>io.github.deweyjose</groupId>
                 <artifactId>graphqlcodegen-maven-plugin</artifactId>
-                <version>1.8</version>
+                <version>1.10</version>
                 <executions>
                     <execution>
                         <goals>
                             <goal>generate</goal>
                         </goals>
+                        <configuration>
+                            <schemaPaths>
+                                <param>src/main/resources/schema/schema.graphqls</param>
+                                <param>target/augmented-schema/neo4j.graphql</param>
+                            </schemaPaths>
+                            <language>kotlin</language>
+                            <generateClient>true</generateClient>
+                            <generateDataTypes>true</generateDataTypes>
+                            <packageName>org.neo4j.graphql.examples.dgsspringboot.types</packageName>
+                        </configuration>
                     </execution>
                 </executions>
-                <configuration>
-                    <schemaPaths>
-                        <param>src/main/resources/schema/schema.graphqls</param>
-                    </schemaPaths>
-                    <generateClient>true</generateClient>
-                    <generateInterfaces>true</generateInterfaces>
-                    <generateDataTypes>true</generateDataTypes>
-                    <packageName>org.neo4j.graphql.examples.dgsspringboot.types</packageName>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>

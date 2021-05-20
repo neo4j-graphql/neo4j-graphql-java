@@ -32,6 +32,7 @@
 
     <modules>
         <module>core</module>
+        <module>neo4j-graphql-augmented-schema-generator-maven-plugin</module>
         <module>examples</module>
     </modules>
 
