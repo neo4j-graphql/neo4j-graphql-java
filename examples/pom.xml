@@ -17,5 +17,6 @@
 
     <modules>
         <module>graphql-spring-boot</module>
+        <module>dgs-spring-boot</module>
     </modules>
 </project>

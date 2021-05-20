@@ -10,13 +10,13 @@ Its purpose is the execution of the cypher query and the transformation of the q
 
 In the link:src/main/kotlin/org/neo4j/graphql/examples/graphqlspringboot/config/GraphQLConfiguration.kt[GraphQLConfiguration]
 the link:src/main/resources/schema.graphql[schema] to be enhanced by the library is loaded as `neo4jSchema`.
-Additionally a `springSchema` is generated which is generated from the methods defined in
+Additionally, a `springSchema` is generated which is generated from the methods defined in
 link:src/main/kotlin/org/neo4j/graphql/examples/graphqlspringboot/controller/AdditionalQueries.kt[AdditionalQueries].
 
 The `springSchema` and the `neo4jSchema` are merged to a single graphql schema exposed by the app.
 
 == Run the example
 
-1. link:src/main/resources/application.yaml[configue your neo4j db]
+1. link:src/main/resources/application.yaml[configrue your neo4j db]
 2. run the link:src/main/kotlin/org/neo4j/graphql/examples/graphqlspringboot/GraphqlSpringBootApplication.kt[spring boot application]
 3. open http://localhost:8080/playground to run some graphql queries
