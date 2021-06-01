@@ -119,12 +119,8 @@ CALL {
 }
 CALL {
 	WITH person
-	CALL {
-		WITH person
-		WITH person AS this, $personScoreValue AS value
-		RETURN value AS personScore LIMIT 1
-	}
-	RETURN personScore AS personScore
+	WITH person AS this, $personScoreValue AS value
+	RETURN value AS personScore LIMIT 1
 }
 RETURN person {
 	.born,

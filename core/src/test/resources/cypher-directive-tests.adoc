@@ -64,12 +64,8 @@ schema {
 MATCH (person:Person)
 CALL {
 	WITH person
-	CALL {
-		WITH person
-		WITH person AS this
-		RETURN this.name AS personName LIMIT 1
-	}
-	RETURN personName AS personName
+	WITH person AS this
+	RETURN this.name AS personName LIMIT 1
 }
 RETURN person {
 	name: personName
@@ -353,12 +349,8 @@ RETURN p3 {
 MATCH (person:Person)
 CALL {
 	WITH person
-	CALL {
-		WITH person
-		WITH person AS this
-		RETURN this.name AS personName LIMIT 1
-	}
-	RETURN personName AS personName
+	WITH person AS this
+	RETURN this.name AS personName LIMIT 1
 }
 RETURN person {
 	name: personName
@@ -431,12 +423,8 @@ query queriesRootQuery {
 MATCH (person:Person)
 CALL {
 	WITH person
-	CALL {
-		WITH person
-		WITH person AS this
-		MATCH (this)-[:CREATED_MAP]->(m:Map) WITH collect({id: m.id, name: m.name}) AS mapsCreated, this RETURN {firstName: this.firstName, lastName: this.lastName, organization: this.organization, mapsCreated: mapsCreated} AS personData LIMIT 1
-	}
-	RETURN personData AS personData
+	WITH person AS this
+	MATCH (this)-[:CREATED_MAP]->(m:Map) WITH collect({id: m.id, name: m.name}) AS mapsCreated, this RETURN {firstName: this.firstName, lastName: this.lastName, organization: this.organization, mapsCreated: mapsCreated} AS personData LIMIT 1
 }
 RETURN person {
 	.id,

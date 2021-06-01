@@ -176,12 +176,8 @@ CALL {
 }
 CALL {
 	WITH person
-	CALL {
-		WITH person
-		WITH person AS this
-		RETURN toLower(this.name) AS personLabel LIMIT 1
-	}
-	RETURN personLabel AS personLabel
+	WITH person AS this
+	RETURN toLower(this.name) AS personLabel LIMIT 1
 }
 RETURN person {
 	.name,
@@ -225,12 +221,8 @@ CALL {
 }
 CALL {
 	WITH person
-	CALL {
-		WITH person
-		WITH person AS this
-		RETURN null AS personNullable LIMIT 1
-	}
-	RETURN personNullable AS personNullable
+	WITH person AS this
+	RETURN null AS personNullable LIMIT 1
 }
 RETURN person {
 	.name,

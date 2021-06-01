@@ -315,21 +315,24 @@ open class ProjectionBase(
         if (cypherDirective != null) {
             val ctxVariable = name(field.contextualize(variable))
             val innerSubQuery = cypherDirective(ctxVariable, fieldDefinition, field, cypherDirective, propertyContainer.requiredSymbolicName, env)
-
-            subQueries += with(propertyContainer.requiredSymbolicName)
-                .call(innerSubQuery)
-                .let { reading ->
-                    if (isObjectField && !cypherDirective.passThrough) {
-                        val fieldObjectType = fieldDefinition.type.getInnerFieldsContainer()
-                        val (fieldProjection, nestedSubQueries) = projectFields(anyNode(ctxVariable), ctxVariable, field, fieldObjectType, env, variableSuffix)
-                        reading
-                            .withSubQueries(nestedSubQueries)
-                            .returning(ctxVariable.project(fieldProjection).collect(fieldDefinition.type).`as`(ctxVariable))
-                    } else {
-                        reading.returning(ctxVariable.collect(fieldDefinition.type).`as`(ctxVariable))
-                    }
+            subQueries += if (isObjectField && !cypherDirective.passThrough) {
+                val fieldObjectType = fieldDefinition.type.getInnerFieldsContainer()
+                val (fieldProjection, nestedSubQueries) = projectFields(anyNode(ctxVariable), ctxVariable, field, fieldObjectType, env, variableSuffix)
+                with(propertyContainer.requiredSymbolicName)
+                    .call(innerSubQuery)
+                    .withSubQueries(nestedSubQueries)
+                    .returning(ctxVariable.project(fieldProjection).collect(fieldDefinition.type).`as`(ctxVariable))
+                    .build()
+            } else {
+                if (fieldDefinition.type.isList()) {
+                    with(propertyContainer.requiredSymbolicName)
+                        .call(innerSubQuery)
+                        .returning(ctxVariable.collect(fieldDefinition.type).`as`(ctxVariable))
+                        .build()
+                } else {
+                    innerSubQuery
                 }
-                .build()
+            }
             projections += ctxVariable
 
         } else when {
