@@ -3,7 +3,6 @@ package org.neo4j.graphql.parser
 import graphql.language.*
 import graphql.schema.GraphQLFieldDefinition
 import graphql.schema.GraphQLFieldsContainer
-import graphql.schema.GraphQLObjectType
 import org.neo4j.cypherdsl.core.*
 import org.neo4j.cypherdsl.core.Node
 import org.neo4j.graphql.*
@@ -69,14 +68,14 @@ class RelationPredicate(
 ) : Predicate<RelationOperator>(op, queryField, normalizeName(fieldDefinition.name, op.suffix.toCamelCase()), index) {
 
     val relationshipInfo = type.relationshipFor(fieldDefinition.name)!!
-    val relNode: Node = CypherDSL.node((fieldDefinition.type.inner() as? GraphQLObjectType)?.label()!!)
+    val relNode: Node = CypherDSL.node(fieldDefinition.type.getInnerFieldsContainer().label())
 
     fun createRelation(start: Node): Relationship = relationshipInfo.createRelation(start, relNode)
 
     fun createExistsCondition(propertyContainer: PropertyContainer): Condition {
         val relation = createRelation(propertyContainer as? Node
                 ?: throw IllegalStateException("""propertyContainer is expected to be a Node but was ${propertyContainer.javaClass.name}"""))
-       val  condition = CypherDSL.match(relation).asCondition()
+        val condition = CypherDSL.match(relation).asCondition()
         return when (op) {
             RelationOperator.NOT -> condition
             RelationOperator.EQ_OR_NOT_EXISTS -> condition.not()
