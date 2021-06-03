@@ -721,3 +721,42 @@ mutation {
 
 You find more examples in the link:core/src/test/resources/augmentation-tests.adoc[Augmentation Tests]
 and the link:core/src/test/resources/custom-fields.adoc[Custom queries and mutations Tests]
+
+== Build time schema augmentation
+
+Sometimes you need the possibility to generate the augmented schema at compile time. To achieve this, we provide a maven plugin which can be used as follows:
+
+[source,xml,subs="attributes,verbatim"]
+----
+<plugin>
+    <groupId>org.neo4j</groupId>
+    <artifactId>neo4j-graphql-augmented-schema-generator-maven-plugin</artifactId>
+    <version>{version}</version>
+    <executions>
+        <execution>
+            <goals>
+                <goal>generate-schema</goal>
+            </goals>
+            <configuration>
+                <schemaConfig> <!--1-->
+                    <pluralizeFields>true</pluralizeFields>
+                    <useWhereFilter>true</useWhereFilter>
+                    <queryOptionStyle>INPUT_TYPE</queryOptionStyle>
+                    <mutation>
+                        <enabled>false</enabled>
+                    </mutation>
+                </schemaConfig>
+                <outputDirectory>${project.build.directory}/augmented-schema</outputDirectory>
+                <fileset> <!--2-->
+                    <directory>${project.basedir}/src/main/resources</directory>
+                    <include>*.graphql</include>
+                </fileset>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+----
+<1> Use the same configuration as for your SchemaBuilder
+<2> Define the source schema for which you want to have an augmented schema generated
+
+Take a look at the link:./examples/dgs-spring-boot/readme.adoc[spring boot dsg] example for a use case of this plugin, where it is used in combination with a code generator to have a type save graphql API

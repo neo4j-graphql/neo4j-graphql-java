@@ -1,11 +1,18 @@
 package org.neo4j.graphql.examples.dgsspringboot.datafetcher
 
+import com.jayway.jsonpath.TypeRef
 import com.netflix.graphql.dgs.DgsQueryExecutor
+import com.netflix.graphql.dgs.client.codegen.GraphQLQueryRequest
+import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.neo4j.driver.Driver
 import org.neo4j.driver.springframework.boot.autoconfigure.Neo4jDriverProperties
+import org.neo4j.graphql.examples.dgsspringboot.types.DgsConstants
+import org.neo4j.graphql.examples.dgsspringboot.types.client.MoviesGraphQLQuery
+import org.neo4j.graphql.examples.dgsspringboot.types.client.MoviesProjectionRoot
+import org.neo4j.graphql.examples.dgsspringboot.types.types.Movie
 import org.skyscreamer.jsonassert.JSONAssert
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
@@ -47,25 +54,29 @@ internal class AdditionalDataFetcherTest(
 
     @Test
     fun testHybridDataFetcher() {
-        val response = dgsQueryExecutor.executeAndGetDocumentContext("""
-        query{
-          other
-          movie{
-            title    
-            bar
-            javaData {
-              name
-            }
-          }
-        }
-        """.trimIndent())
+
+        val graphQLQueryRequest = GraphQLQueryRequest(
+                // there is an issue with empty fields of input type (https://github.com/Netflix/dgs-codegen/issues/140)
+                MoviesGraphQLQuery(),
+                MoviesProjectionRoot().also { movie ->
+                    movie.title()
+                    movie.bar()
+                    movie.javaData().also { javaData ->
+                        javaData.name()
+                    }
+                }
+        )
+
+        val request = graphQLQueryRequest.serialize()
+        Assertions.assertThat(request).isEqualTo("query {movies{ title bar javaData   { name } } }")
+
+        val response = dgsQueryExecutor.executeAndGetDocumentContext(request)
 
         //language=JSON
         JSONAssert.assertEquals("""
         {
           "data": {
-            "other": "other",
-            "movie": [
+            "movies": [
               {
                 "title": "The Matrix",
                 "bar": "foo",
@@ -97,6 +108,9 @@ internal class AdditionalDataFetcherTest(
           }
         }
       """.trimIndent(), response.jsonString(), true)
+
+        val list = response.read("data.${DgsConstants.QUERY.Movies}", object : TypeRef<List<Movie>>() {})
+        Assertions.assertThat(list).hasSize(3)
     }
 
     @TestConfiguration
@@ -118,6 +132,5 @@ internal class AdditionalDataFetcherTest(
     companion object {
         @Container
         private val neo4jServer = Neo4jContainer<Nothing>("neo4j:4.2.4")
-
     }
 }

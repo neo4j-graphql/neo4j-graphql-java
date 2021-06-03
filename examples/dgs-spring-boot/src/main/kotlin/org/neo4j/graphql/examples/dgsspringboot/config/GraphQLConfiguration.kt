@@ -10,6 +10,7 @@ import graphql.schema.idl.SchemaParser
 import graphql.schema.idl.TypeDefinitionRegistry
 import org.neo4j.graphql.DataFetchingInterceptor
 import org.neo4j.graphql.SchemaBuilder
+import org.neo4j.graphql.SchemaConfig
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.io.Resource
@@ -34,7 +35,12 @@ open class GraphQLConfiguration {
     fun postConstruct() {
         val schema = graphQl.inputStream.bufferedReader().use { it.readText() }
         val typeDefinitionRegistry = SchemaParser().parse(schema)
-        schemaBuilder = SchemaBuilder(typeDefinitionRegistry)
+        schemaBuilder = SchemaBuilder(typeDefinitionRegistry, SchemaConfig(
+                pluralizeFields = true,
+                useWhereFilter = true,
+                queryOptionStyle = SchemaConfig.InputStyle.INPUT_TYPE,
+                mutation = SchemaConfig.CRUDConfig(enabled = false))
+        )
         schemaBuilder.augmentTypes()
     }
 
