@@ -57,6 +57,7 @@ class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite(
 
                 diff(expectedSchema, augmentedSchema)
                 diff(augmentedSchema, expectedSchema)
+                targetSchemaBlock.adjustedCode = SCHEMA_PRINTER.print(augmentedSchema)
             } catch (e: Throwable) {
                 if (ignore) {
                     Assumptions.assumeFalse(true, e.message)
@@ -65,9 +66,7 @@ class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite(
                         Assertions.fail<Throwable>(e)
                     }
                     val actualSchema = SCHEMA_PRINTER.print(augmentedSchema)
-                    targetSchemaBlock.adjustedCode = actualSchema + "\n" +
-                            // this is added since the SCHEMA_PRINTER is not able to print global directives
-                            javaClass.getResource("/lib_directives.graphql").readText()
+                    targetSchemaBlock.adjustedCode = actualSchema
                     throw AssertionFailedError("augmented schema differs for '$title'",
                             expectedSchema?.let { SCHEMA_PRINTER.print(it) } ?: targetSchema,
                             actualSchema,
@@ -84,7 +83,7 @@ class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite(
         private val METHOD_PATTERN = Pattern.compile("(add|delete|update|merge|create)(.*)")
 
         private val SCHEMA_PRINTER = SchemaPrinter(SchemaPrinter.Options.defaultOptions()
-            .includeDirectives(true)
+            .includeDirectives(false)
             .includeScalarTypes(true)
             .includeSchemaDefinition(true)
             .includeIntrospectionTypes(false)

@@ -38,7 +38,7 @@ schema {
 
 type CustomQueryType {
   location(filter: _LocationFilter, first: Int, name: String, offset: Int, orderBy: [_LocationOrdering!]): [Location!]!
-  person(name: String): Person @cypher(statement : "MATCH (p:Person { name:{name} }) RETURN p")
+  person(name: String): Person
 }
 
 type Location {
@@ -52,97 +52,6 @@ type Mutation {
 
 type Person {
   name: String
-}
-
-type _Neo4jDate {
-  day: Int
-  formatted: String
-  month: Int
-  year: Int
-}
-
-type _Neo4jDateTime {
-  day: Int
-  formatted: String
-  hour: Int
-  microsecond: Int
-  millisecond: Int
-  minute: Int
-  month: Int
-  nanosecond: Int
-  second: Int
-  timezone: String
-  year: Int
-}
-
-type _Neo4jLocalDateTime {
-  day: Int
-  formatted: String
-  hour: Int
-  microsecond: Int
-  millisecond: Int
-  minute: Int
-  month: Int
-  nanosecond: Int
-  second: Int
-  year: Int
-}
-
-type _Neo4jLocalTime {
-  formatted: String
-  hour: Int
-  microsecond: Int
-  millisecond: Int
-  minute: Int
-  nanosecond: Int
-  second: Int
-}
-
-type _Neo4jPoint {
-  # The coordinate reference systems (CRS)
-  # -------------------------------------
-  # posible values:
-  # * `wgs-84`: A 2D geographic point in the WGS 84 CRS is specified in one of two ways:
-  #   * longitude and latitude (if these are specified, and the crs is not, then the crs is assumed to be WGS-84)
-  #   * x and y (in this case the crs must be specified, or will be assumed to be Cartesian)
-  # * `wgs-84-3d`: A 3D geographic point in the WGS 84 CRS is specified one of in two ways:
-  #   * longitude, latitude and either height or z (if these are specified, and the crs is not, then the crs is assumed to be WGS-84-3D)
-  #   * x, y and z (in this case the crs must be specified, or will be assumed to be Cartesian-3D)
-  # * `cartesian`: A 2D point in the Cartesian CRS is specified with a map containing x and y coordinate values
-  # * `cartesian-3d`: A 3D point in the Cartesian CRS is specified with a map containing x, y and z coordinate values
-  crs: String
-  # The third element of the Coordinate for geographic CRS, meters above the ellipsoid defined by the datum (WGS-84)
-  height: Float
-  # The second element of the Coordinate for geographic CRS, degrees North of the equator
-  # Range -90.0 to 90.0
-  latitude: Float
-  # The first element of the Coordinate for geographic CRS, degrees East of the prime meridian
-  # Range -180.0 to 180.0
-  longitude: Float
-  # The internal Neo4j ID for the CRS
-  # One of:
-  # * `4326`: represents CRS `wgs-84`
-  # * `4979`: represents CRS `wgs-84-3d`
-  # * `7203`: represents CRS `cartesian`
-  # * `9157`: represents CRS `cartesian-3d`
-  srid: Int
-  # The first element of the Coordinate
-  x: Float
-  # The second element of the Coordinate
-  y: Float
-  # The third element of the Coordinate
-  z: Float
-}
-
-type _Neo4jTime {
-  formatted: String
-  hour: Int
-  microsecond: Int
-  millisecond: Int
-  minute: Int
-  nanosecond: Int
-  second: Int
-  timezone: String
 }
 
 enum RelationDirection {
@@ -167,89 +76,19 @@ input _LocationFilter {
   OR: [_LocationFilter!]
   name: String
   name_contains: String
-  name_matches: String
   name_ends_with: String
   name_gt: String
   name_gte: String
   name_in: [String]
   name_lt: String
   name_lte: String
+  name_matches: String
   name_not: String
   name_not_contains: String
   name_not_ends_with: String
   name_not_in: [String]
   name_not_starts_with: String
   name_starts_with: String
-}
-
-input _LocationInput {
-  name: String
-}
-
-input _Neo4jDateInput {
-  day: Int
-  formatted: String
-  month: Int
-  year: Int
-}
-
-input _Neo4jDateTimeInput {
-  day: Int
-  formatted: String
-  hour: Int
-  microsecond: Int
-  millisecond: Int
-  minute: Int
-  month: Int
-  nanosecond: Int
-  second: Int
-  timezone: String
-  year: Int
-}
-
-input _Neo4jLocalDateTimeInput {
-  day: Int
-  formatted: String
-  hour: Int
-  microsecond: Int
-  millisecond: Int
-  minute: Int
-  month: Int
-  nanosecond: Int
-  second: Int
-  year: Int
-}
-
-input _Neo4jLocalTimeInput {
-  formatted: String
-  hour: Int
-  microsecond: Int
-  millisecond: Int
-  minute: Int
-  nanosecond: Int
-  second: Int
-}
-
-input _Neo4jPointInput {
-  crs: String
-  height: Float
-  latitude: Float
-  longitude: Float
-  srid: Int
-  x: Float
-  y: Float
-  z: Float
-}
-
-input _Neo4jTimeInput {
-  formatted: String
-  hour: Int
-  microsecond: Int
-  millisecond: Int
-  minute: Int
-  nanosecond: Int
-  second: Int
-  timezone: String
 }
 
 input _PersonFilter {
@@ -258,13 +97,13 @@ input _PersonFilter {
   OR: [_PersonFilter!]
   name: String
   name_contains: String
-  name_matches: String
   name_ends_with: String
   name_gt: String
   name_gte: String
   name_in: [String]
   name_lt: String
   name_lte: String
+  name_matches: String
   name_not: String
   name_not_contains: String
   name_not_ends_with: String
@@ -272,15 +111,6 @@ input _PersonFilter {
   name_not_starts_with: String
   name_starts_with: String
 }
-
-input _PersonInput {
-  name: String
-}
-
-directive @relation(name:String, direction: RelationDirection = OUT, from: String = "from", to: String = "to") on FIELD_DEFINITION | OBJECT
-directive @cypher(statement:String) on FIELD_DEFINITION
-directive @property(name:String) on FIELD_DEFINITION
-directive @dynamic(prefix:String = "properties.") on FIELD_DEFINITION
 
 ----
 
@@ -305,7 +135,7 @@ schema {
 type CustomQueryType {
   Location(filter: _LocationFilter, first: Int, name: String, offset: Int, orderBy: [_LocationOrdering!]): [Location!]!
   Person(filter: _PersonFilter, first: Int, name: String, offset: Int, orderBy: [_PersonOrdering!]): [Person!]!
-  person(name: String): Person @cypher(statement : "MATCH (p:Person { name:{name} }) RETURN p")
+  person(name: String): Person
 }
 
 type Location {
@@ -319,97 +149,6 @@ type Mutation {
 
 type Person {
   name: String
-}
-
-type _Neo4jDate {
-  day: Int
-  formatted: String
-  month: Int
-  year: Int
-}
-
-type _Neo4jDateTime {
-  day: Int
-  formatted: String
-  hour: Int
-  microsecond: Int
-  millisecond: Int
-  minute: Int
-  month: Int
-  nanosecond: Int
-  second: Int
-  timezone: String
-  year: Int
-}
-
-type _Neo4jLocalDateTime {
-  day: Int
-  formatted: String
-  hour: Int
-  microsecond: Int
-  millisecond: Int
-  minute: Int
-  month: Int
-  nanosecond: Int
-  second: Int
-  year: Int
-}
-
-type _Neo4jLocalTime {
-  formatted: String
-  hour: Int
-  microsecond: Int
-  millisecond: Int
-  minute: Int
-  nanosecond: Int
-  second: Int
-}
-
-type _Neo4jPoint {
-  # The coordinate reference systems (CRS)
-  # -------------------------------------
-  # posible values:
-  # * `wgs-84`: A 2D geographic point in the WGS 84 CRS is specified in one of two ways:
-  #   * longitude and latitude (if these are specified, and the crs is not, then the crs is assumed to be WGS-84)
-  #   * x and y (in this case the crs must be specified, or will be assumed to be Cartesian)
-  # * `wgs-84-3d`: A 3D geographic point in the WGS 84 CRS is specified one of in two ways:
-  #   * longitude, latitude and either height or z (if these are specified, and the crs is not, then the crs is assumed to be WGS-84-3D)
-  #   * x, y and z (in this case the crs must be specified, or will be assumed to be Cartesian-3D)
-  # * `cartesian`: A 2D point in the Cartesian CRS is specified with a map containing x and y coordinate values
-  # * `cartesian-3d`: A 3D point in the Cartesian CRS is specified with a map containing x, y and z coordinate values
-  crs: String
-  # The third element of the Coordinate for geographic CRS, meters above the ellipsoid defined by the datum (WGS-84)
-  height: Float
-  # The second element of the Coordinate for geographic CRS, degrees North of the equator
-  # Range -90.0 to 90.0
-  latitude: Float
-  # The first element of the Coordinate for geographic CRS, degrees East of the prime meridian
-  # Range -180.0 to 180.0
-  longitude: Float
-  # The internal Neo4j ID for the CRS
-  # One of:
-  # * `4326`: represents CRS `wgs-84`
-  # * `4979`: represents CRS `wgs-84-3d`
-  # * `7203`: represents CRS `cartesian`
-  # * `9157`: represents CRS `cartesian-3d`
-  srid: Int
-  # The first element of the Coordinate
-  x: Float
-  # The second element of the Coordinate
-  y: Float
-  # The third element of the Coordinate
-  z: Float
-}
-
-type _Neo4jTime {
-  formatted: String
-  hour: Int
-  microsecond: Int
-  millisecond: Int
-  minute: Int
-  nanosecond: Int
-  second: Int
-  timezone: String
 }
 
 enum RelationDirection {
@@ -434,89 +173,19 @@ input _LocationFilter {
   OR: [_LocationFilter!]
   name: String
   name_contains: String
-  name_matches: String
   name_ends_with: String
   name_gt: String
   name_gte: String
   name_in: [String]
   name_lt: String
   name_lte: String
+  name_matches: String
   name_not: String
   name_not_contains: String
   name_not_ends_with: String
   name_not_in: [String]
   name_not_starts_with: String
   name_starts_with: String
-}
-
-input _LocationInput {
-  name: String
-}
-
-input _Neo4jDateInput {
-  day: Int
-  formatted: String
-  month: Int
-  year: Int
-}
-
-input _Neo4jDateTimeInput {
-  day: Int
-  formatted: String
-  hour: Int
-  microsecond: Int
-  millisecond: Int
-  minute: Int
-  month: Int
-  nanosecond: Int
-  second: Int
-  timezone: String
-  year: Int
-}
-
-input _Neo4jLocalDateTimeInput {
-  day: Int
-  formatted: String
-  hour: Int
-  microsecond: Int
-  millisecond: Int
-  minute: Int
-  month: Int
-  nanosecond: Int
-  second: Int
-  year: Int
-}
-
-input _Neo4jLocalTimeInput {
-  formatted: String
-  hour: Int
-  microsecond: Int
-  millisecond: Int
-  minute: Int
-  nanosecond: Int
-  second: Int
-}
-
-input _Neo4jPointInput {
-  crs: String
-  height: Float
-  latitude: Float
-  longitude: Float
-  srid: Int
-  x: Float
-  y: Float
-  z: Float
-}
-
-input _Neo4jTimeInput {
-  formatted: String
-  hour: Int
-  microsecond: Int
-  millisecond: Int
-  minute: Int
-  nanosecond: Int
-  second: Int
-  timezone: String
 }
 
 input _PersonFilter {
@@ -525,13 +194,13 @@ input _PersonFilter {
   OR: [_PersonFilter!]
   name: String
   name_contains: String
-  name_matches: String
   name_ends_with: String
   name_gt: String
   name_gte: String
   name_in: [String]
   name_lt: String
   name_lte: String
+  name_matches: String
   name_not: String
   name_not_contains: String
   name_not_ends_with: String
@@ -539,14 +208,5 @@ input _PersonFilter {
   name_not_starts_with: String
   name_starts_with: String
 }
-
-input _PersonInput {
-  name: String
-}
-
-directive @relation(name:String, direction: RelationDirection = OUT, from: String = "from", to: String = "to") on FIELD_DEFINITION | OBJECT
-directive @cypher(statement:String) on FIELD_DEFINITION
-directive @property(name:String) on FIELD_DEFINITION
-directive @dynamic(prefix:String = "properties.") on FIELD_DEFINITION
 
 ----
