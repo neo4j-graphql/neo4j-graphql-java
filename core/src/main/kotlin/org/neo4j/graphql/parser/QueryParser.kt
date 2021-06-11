@@ -20,9 +20,9 @@ class ParsedQuery(
         val and: List<Value<*>>? = null
 ) {
 
-    fun getFieldConditions(propertyContainer: PropertyContainer, variablePrefix: String, variableSuffix: String): Condition =
+    fun getFieldConditions(propertyContainer: PropertyContainer, variablePrefix: String, variableSuffix: String, schemaConfig: SchemaConfig): Condition =
             fieldPredicates
-                .flatMap { it.createCondition(propertyContainer, variablePrefix, variableSuffix) }
+                .flatMap { it.createCondition(propertyContainer, variablePrefix, variableSuffix, schemaConfig) }
                 .reduceOrNull { result, condition -> result.and(condition) }
                     ?: Conditions.noCondition()
 }
@@ -43,13 +43,14 @@ class FieldPredicate(
         index: Int
 ) : Predicate<FieldOperator>(op, queryField, normalizeName(fieldDefinition.name, op.suffix.toCamelCase()), index) {
 
-    fun createCondition(propertyContainer: PropertyContainer, variablePrefix: String, variableSuffix: String) =
+    fun createCondition(propertyContainer: PropertyContainer, variablePrefix: String, variableSuffix: String, schemaConfig: SchemaConfig) =
             op.resolveCondition(
                     variablePrefix,
                     normalizedName,
                     propertyContainer,
                     fieldDefinition,
                     queryField.value,
+                    schemaConfig,
                     variableSuffix
             )
 

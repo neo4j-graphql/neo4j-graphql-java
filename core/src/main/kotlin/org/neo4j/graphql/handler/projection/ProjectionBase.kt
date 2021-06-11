@@ -139,7 +139,7 @@ open class ProjectionBase(
             type: GraphQLFieldsContainer,
             variables: Map<String, Any>
     ): Condition {
-        var result = parsedQuery.getFieldConditions(propertyContainer, variablePrefix, variableSuffix)
+        var result = parsedQuery.getFieldConditions(propertyContainer, variablePrefix, variableSuffix, schemaConfig)
 
         for (predicate in parsedQuery.relationPredicates) {
             val objectField = predicate.queryField
@@ -269,6 +269,9 @@ open class ProjectionBase(
             }
 
         } else when {
+            schemaConfig.useTemporalScalars && fieldDefinition.isNeo4jTemporalType() -> {
+                projections += getNeo4jTypeConverter(fieldDefinition).projectField(variable, field, "")
+            }
             isObjectField -> {
                 if (fieldDefinition.isNeo4jType()) {
                     if (propertiesToSkipDeepProjection.contains(fieldDefinition.name)) {

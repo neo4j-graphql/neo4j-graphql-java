@@ -1,24 +1,20 @@
 package org.neo4j.graphql.utils
 
 import graphql.language.InterfaceTypeDefinition
+import graphql.language.ScalarTypeDefinition
+import graphql.schema.GraphQLScalarType
 import graphql.schema.GraphQLSchema
 import graphql.schema.GraphQLType
 import graphql.schema.diff.DiffSet
 import graphql.schema.diff.SchemaDiff
 import graphql.schema.diff.reporting.CapturingReporter
-import graphql.schema.idl.RuntimeWiring
-import graphql.schema.idl.SchemaGenerator
-import graphql.schema.idl.SchemaParser
-import graphql.schema.idl.SchemaPrinter
+import graphql.schema.idl.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assumptions
 import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.DynamicTest
-import org.neo4j.graphql.DynamicProperties
-import org.neo4j.graphql.SchemaBuilder
-import org.neo4j.graphql.SchemaConfig
-import org.neo4j.graphql.requiredName
+import org.neo4j.graphql.*
 import org.opentest4j.AssertionFailedError
 import java.util.*
 import java.util.regex.Pattern
@@ -51,9 +47,18 @@ class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite(
                 reg
                     .getTypes(InterfaceTypeDefinition::class.java)
                     .forEach { typeDefinition -> runtimeWiring.type(typeDefinition.name) { it.typeResolver { null } } }
-                expectedSchema = schemaGenerator.makeExecutableSchema(reg, runtimeWiring
-                    .scalar(DynamicProperties.INSTANCE)
-                    .build())
+                reg
+                    .scalars()
+                    .filterNot { entry -> ScalarInfo.GRAPHQL_SPECIFICATION_SCALARS_DEFINITIONS.containsKey(entry.key) }
+                    .forEach { (name, definition) ->
+                        runtimeWiring.scalar(GraphQLScalarType.newScalar()
+                            .name(name)
+                            .definition(definition)
+                            .coercing(NoOpCoercing)
+                            .build()
+                        )
+                    }
+                expectedSchema = schemaGenerator.makeExecutableSchema(reg, runtimeWiring.build())
 
                 diff(expectedSchema, augmentedSchema)
                 diff(augmentedSchema, expectedSchema)

@@ -14,41 +14,53 @@ typealias CypherDSL = org.neo4j.cypherdsl.core.Cypher
 
 enum class FieldOperator(
         val suffix: String,
-        val op: String,
         private val conditionCreator: (Expression, Expression) -> Condition,
         val not: Boolean = false,
         val requireParam: Boolean = true,
-        val distance: Boolean = false
+        val distance: Boolean = false,
+        val list: Boolean = false
 ) {
-    EQ("", "=", { lhs, rhs -> lhs.isEqualTo(rhs) }),
-    IS_NULL("", "", { lhs, _ -> lhs.isNull }, requireParam = false),
-    IS_NOT_NULL("_not", "", { lhs, _ -> lhs.isNotNull }, true, requireParam = false),
-    NEQ("_not", "=", { lhs, rhs -> lhs.isEqualTo(rhs).not() }, true),
-    GTE("_gte", ">=", { lhs, rhs -> lhs.gte(rhs) }),
-    GT("_gt", ">", { lhs, rhs -> lhs.gt(rhs) }),
-    LTE("_lte", "<=", { lhs, rhs -> lhs.lte(rhs) }),
-    LT("_lt", "<", { lhs, rhs -> lhs.lt(rhs) }),
+    EQ("", { lhs, rhs -> lhs.isEqualTo(rhs) }),
+    IS_NULL("", { lhs, _ -> lhs.isNull }, requireParam = false),
+    IS_NOT_NULL("_not", { lhs, _ -> lhs.isNotNull }, true, requireParam = false),
+    NEQ("_not", { lhs, rhs -> lhs.isEqualTo(rhs).not() }, not = true),
+    GTE("_gte", { lhs, rhs -> lhs.gte(rhs) }),
+    GT("_gt", { lhs, rhs -> lhs.gt(rhs) }),
+    LTE("_lte", { lhs, rhs -> lhs.lte(rhs) }),
+    LT("_lt", { lhs, rhs -> lhs.lt(rhs) }),
 
-    NIN("_not_in", "IN", { lhs, rhs -> lhs.`in`(rhs).not() }, true),
-    IN("_in", "IN", { lhs, rhs -> lhs.`in`(rhs) }),
-    NC("_not_contains", "CONTAINS", { lhs, rhs -> lhs.contains(rhs).not() }, true),
-    NSW("_not_starts_with", "STARTS WITH", { lhs, rhs -> lhs.startsWith(rhs).not() }, true),
-    NEW("_not_ends_with", "ENDS WITH", { lhs, rhs -> lhs.endsWith(rhs).not() }, true),
-    C("_contains", "CONTAINS", { lhs, rhs -> lhs.contains(rhs) }),
-    SW("_starts_with", "STARTS WITH", { lhs, rhs -> lhs.startsWith(rhs) }),
-    EW("_ends_with", "ENDS WITH", { lhs, rhs -> lhs.endsWith(rhs) }),
-    MATCHES("_matches", "=~", { lhs, rhs -> lhs.matches(rhs) }),
+    NIN("_not_in", { lhs, rhs -> lhs.`in`(rhs).not() }, not = true, list = true),
+    IN("_in", { lhs, rhs -> lhs.`in`(rhs) }, list = true),
+    NC("_not_contains", { lhs, rhs -> lhs.contains(rhs).not() }, not = true),
+    NSW("_not_starts_with", { lhs, rhs -> lhs.startsWith(rhs).not() }, not = true),
+    NEW("_not_ends_with", { lhs, rhs -> lhs.endsWith(rhs).not() }, not = true),
+    C("_contains", { lhs, rhs -> lhs.contains(rhs) }),
+    SW("_starts_with", { lhs, rhs -> lhs.startsWith(rhs) }),
+    EW("_ends_with", { lhs, rhs -> lhs.endsWith(rhs) }),
+    MATCHES("_matches", { lhs, rhs -> lhs.matches(rhs) }),
 
 
-    DISTANCE(NEO4j_POINT_DISTANCE_FILTER_SUFFIX, "=", { lhs, rhs -> lhs.isEqualTo(rhs) }, distance = true),
-    DISTANCE_LT(NEO4j_POINT_DISTANCE_FILTER_SUFFIX + "_lt", "<", { lhs, rhs -> lhs.lt(rhs) }, distance = true),
-    DISTANCE_LTE(NEO4j_POINT_DISTANCE_FILTER_SUFFIX + "_lte", "<=", { lhs, rhs -> lhs.lte(rhs) }, distance = true),
-    DISTANCE_GT(NEO4j_POINT_DISTANCE_FILTER_SUFFIX + "_gt", ">", { lhs, rhs -> lhs.gt(rhs) }, distance = true),
-    DISTANCE_GTE(NEO4j_POINT_DISTANCE_FILTER_SUFFIX + "_gte", ">=", { lhs, rhs -> lhs.gte(rhs) }, distance = true);
+    DISTANCE(NEO4j_POINT_DISTANCE_FILTER_SUFFIX, { lhs, rhs -> lhs.isEqualTo(rhs) }, distance = true),
+    DISTANCE_LT(NEO4j_POINT_DISTANCE_FILTER_SUFFIX + "_lt", { lhs, rhs -> lhs.lt(rhs) }, distance = true),
+    DISTANCE_LTE(NEO4j_POINT_DISTANCE_FILTER_SUFFIX + "_lte", { lhs, rhs -> lhs.lte(rhs) }, distance = true),
+    DISTANCE_GT(NEO4j_POINT_DISTANCE_FILTER_SUFFIX + "_gt", { lhs, rhs -> lhs.gt(rhs) }, distance = true),
+    DISTANCE_GTE(NEO4j_POINT_DISTANCE_FILTER_SUFFIX + "_gte", { lhs, rhs -> lhs.gte(rhs) }, distance = true);
 
-    val list = op == "IN"
-
-    fun resolveCondition(variablePrefix: String, queriedField: String, propertyContainer: PropertyContainer, field: GraphQLFieldDefinition?, value: Any, suffix: String? = null): List<Condition> {
+    fun resolveCondition(
+            variablePrefix: String,
+            queriedField: String,
+            propertyContainer: PropertyContainer,
+            field: GraphQLFieldDefinition?,
+            value: Any,
+            schemaConfig: SchemaConfig,
+            suffix: String? = null
+    ): List<Condition> {
+        if (schemaConfig.useTemporalScalars && field?.type?.isNeo4jTemporalType() == true) {
+            val neo4jTypeConverter = getNeo4jTypeConverter(field)
+            val parameter = queryParameter(value, variablePrefix, queriedField, null, suffix)
+                .withValue(value.toJavaValue())
+            return listOf(neo4jTypeConverter.createCondition(propertyContainer.property(field.name), parameter, conditionCreator))
+        }
         return if (field?.type?.isNeo4jType() == true && value is ObjectValue) {
             resolveNeo4jTypeConditions(variablePrefix, queriedField, propertyContainer, field, value, suffix)
         } else if (field?.isNativeId() == true) {
@@ -96,20 +108,6 @@ enum class FieldOperator(
 
     companion object {
 
-        fun resolve(queriedField: String, field: GraphQLFieldDefinition, value: Any?): FieldOperator? {
-            val fieldName = field.name
-            if (value == null) {
-                return listOf(IS_NULL, IS_NOT_NULL).find { queriedField == fieldName + it.suffix }
-            }
-            val ops = enumValues<FieldOperator>().filterNot { it == IS_NULL || it == IS_NOT_NULL }
-            return ops.find { queriedField == fieldName + it.suffix }
-                    ?: if (field.type.isNeo4jSpatialType()) {
-                        ops.find { queriedField == fieldName + NEO4j_POINT_DISTANCE_FILTER_SUFFIX + it.suffix }
-                    } else {
-                        null
-                    }
-        }
-
         fun forType(type: TypeDefinition<*>, isNeo4jType: Boolean): List<FieldOperator> =
                 when {
                     type.name == TypeBoolean.name -> listOf(EQ, NEQ)
@@ -128,17 +126,17 @@ enum class FieldOperator(
     fun fieldName(fieldName: String) = fieldName + suffix
 }
 
-enum class RelationOperator(val suffix: String, val op: String) {
-    SOME("_some", "ANY"),
+enum class RelationOperator(val suffix: String) {
+    SOME("_some"),
 
-    EVERY("_every", "ALL"),
+    EVERY("_every"),
 
-    SINGLE("_single", "SINGLE"),
-    NONE("_none", "NONE"),
+    SINGLE("_single"),
+    NONE("_none"),
 
     // `eq` if queried with an object, `not exists` if  queried with null
-    EQ_OR_NOT_EXISTS("", ""),
-    NOT("_not", "");
+    EQ_OR_NOT_EXISTS(""),
+    NOT("_not");
 
     fun fieldName(fieldName: String) = fieldName + suffix
 
