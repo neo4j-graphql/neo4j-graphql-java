@@ -24,6 +24,11 @@ data class SchemaConfig @JvmOverloads constructor(
          * additionally the separated filter arguments will no longer be generated.
          */
         val useWhereFilter: Boolean = false,
+
+        /**
+         * if enabled the `Date`, `Time`, `LocalTime`, `DateTime` and `LocalDateTime` are used as scalars
+         */
+        val useTemporalScalars: Boolean = false,
 ) {
     data class CRUDConfig(val enabled: Boolean = true, val exclude: List<String> = emptyList())
 

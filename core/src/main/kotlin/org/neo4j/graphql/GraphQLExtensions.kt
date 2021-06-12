@@ -43,11 +43,12 @@ fun GraphQLType.requiredName(): String = requireNotNull(name()) { "name is requi
 
 fun GraphQLType.isList() = this is GraphQLList || (this is GraphQLNonNull && this.wrappedType is GraphQLList)
 fun GraphQLType.isNeo4jType() = this.innerName().startsWith("_Neo4j")
+fun GraphQLType.isNeo4jTemporalType() = NEO4j_TEMPORAL_TYPES.contains(this.innerName())
 
-fun GraphQLType.isNeo4jSpatialType() = this.innerName().startsWith("_Neo4jPoint")
 fun TypeDefinition<*>.isNeo4jSpatialType() = this.name.startsWith("_Neo4jPoint")
 
 fun GraphQLFieldDefinition.isNeo4jType(): Boolean = this.type.isNeo4jType()
+fun GraphQLFieldDefinition.isNeo4jTemporalType(): Boolean = this.type.isNeo4jTemporalType()
 
 fun GraphQLFieldDefinition.isRelationship() = !type.isNeo4jType() && this.type.inner().let { it is GraphQLFieldsContainer }
 
@@ -184,7 +185,7 @@ fun Value<*>.toJavaValue(): Any? = when (this) {
 
 fun GraphQLFieldDefinition.isID() = this.type.inner() == Scalars.GraphQLID
 fun GraphQLFieldDefinition.isNativeId() = this.name == ProjectionBase.NATIVE_ID
-fun GraphQLFieldDefinition.isIgnored() =  getDirective(DirectiveConstants.IGNORE) != null
+fun GraphQLFieldDefinition.isIgnored() = getDirective(DirectiveConstants.IGNORE) != null
 fun FieldDefinition.isIgnored(): Boolean = hasDirective(DirectiveConstants.IGNORE)
 
 fun GraphQLFieldsContainer.getIdField() = this.getRelevantFieldDefinitions().find { it.isID() }

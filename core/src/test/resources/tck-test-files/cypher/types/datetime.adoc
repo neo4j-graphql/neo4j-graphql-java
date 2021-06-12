@@ -1,0 +1,231 @@
+:toc:
+
+= Schema DateTime
+
+Tests DateTime operations.
+
+== Schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+    id: ID
+    datetime: DateTime
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+  "queryOptionStyle": "INPUT_TYPE",
+  "useWhereFilter": true,
+  "pluralizeFields": true,
+  "useTemporalScalars": true
+}
+----
+
+== Test Data
+
+[source,cypher,test-data=true]
+----
+CREATE
+    (:Movie{ id: 'm1', datetime: datetime('1970-01-01T00:00:00.000Z') }),
+    (:Movie{ id: 'm2', datetime: datetime('1980-01-01T00:00:00.001Z') }),
+    (:Movie{ id: 'm3', datetime: datetime('1980-01-02T00:00:00.002Z') }),
+    (:Movie{ id: 'm4', datetime: datetime('2000-01-02T00:00:00.002Z') })
+----
+
+== Tests
+
+=== Simple Read
+
+.GraphQL-Query
+[source,graphql]
+----
+query {
+    movies(where: { datetime: "1970-01-01T00:00:00.000Z" }) {
+        id
+        datetime
+    }
+}
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "movies" : [ {
+    "id" : "m1",
+    "datetime" : "1970-01-01T00:00:00Z"
+  } ]
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "whereMoviesDatetime" : "1970-01-01T00:00:00.000Z"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (movies:Movie)
+WHERE movies.datetime = datetime($whereMoviesDatetime)
+RETURN movies {
+	.id,
+	datetime: toString(movies.datetime)
+} AS movies
+----
+
+=== Complex Read
+
+.GraphQL-Query
+[source,graphql]
+----
+query {
+    movies(
+        where: { AND: [{ datetime_gt: "1970-01-01T00:00:00.000Z" }, { datetime_lt: "2000-01-02T00:00:00.002Z" }]}
+        options: { sort: [ { datetime: DESC} ] }
+    ) {
+        id
+        datetime
+    }
+}
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "movies" : [ {
+    "id" : "m3",
+    "datetime" : "1980-01-02T00:00:00.002Z"
+  }, {
+    "id" : "m2",
+    "datetime" : "1980-01-01T00:00:00.001Z"
+  } ]
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "whereMoviesAnd1DatetimeGt" : "1970-01-01T00:00:00.000Z",
+  "whereMoviesAnd2DatetimeLt" : "2000-01-02T00:00:00.002Z"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (movies:Movie)
+WHERE (movies.datetime > datetime($whereMoviesAnd1DatetimeGt)
+	AND movies.datetime < datetime($whereMoviesAnd2DatetimeLt))
+RETURN movies {
+	.id,
+	datetime: toString(movies.datetime)
+} AS movies ORDER BY movies.datetime DESC
+----
+
+=== Simple Create
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+    createMovie(datetime: "1970-01-01T00:00:00.000Z", id: "m4") {
+        id
+        datetime
+    }
+}
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "createMovie" : {
+    "id" : "m4",
+    "datetime" : "1970-01-01T00:00:00Z"
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "createMovieDatetime" : "1970-01-01T00:00:00.000Z",
+  "createMovieId" : "m4"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CREATE (createMovie:Movie  {
+	datetime: datetime($createMovieDatetime),
+	id: $createMovieId
+})
+WITH createMovie
+RETURN createMovie {
+	.id,
+	datetime: toString(createMovie.datetime)
+} AS createMovie
+----
+
+=== Simple Update
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+    updateMovie(id: "m1", datetime: "2000-01-01T00:00:00.000Z") {
+        id
+        datetime
+    }
+}
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "updateMovie" : {
+    "id" : "m1",
+    "datetime" : "2000-01-01T00:00:00Z"
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "updateMovieDatetime" : "2000-01-01T00:00:00.000Z",
+  "updateMovieId" : "m1"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (updateMovie:Movie  {
+	id: $updateMovieId
+})
+SET updateMovie +=  {
+	datetime: datetime($updateMovieDatetime)
+}
+WITH updateMovie
+RETURN updateMovie {
+	.id,
+	datetime: toString(updateMovie.datetime)
+} AS updateMovie
+----
