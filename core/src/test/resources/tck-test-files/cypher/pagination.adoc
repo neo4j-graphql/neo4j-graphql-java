@@ -276,11 +276,17 @@ RETURN actors {
 [source,cypher]
 ----
 MATCH (actors:Actor)
+CALL {
+	WITH actors
+	MATCH (actors)-[:ACTS_IN]->(actorsMovies:Movie)
+	WITH actorsMovies SKIP $actorsMoviesSkip
+	RETURN collect(actorsMovies {
+		.title
+	}) AS actorsMovies
+}
 RETURN actors {
 	.name,
-	movies: [(actors)-[:ACTS_IN]->(actorsMovies:Movie) | actorsMovies {
-		.title
-	}][$actorsMoviesSkip..]
+	movies: actorsMovies
 } AS actors SKIP $actorsSkip LIMIT $actorsLimit
 ----
 
@@ -313,11 +319,17 @@ RETURN actors {
 [source,cypher]
 ----
 MATCH (actors:Actor)
+CALL {
+	WITH actors
+	MATCH (actors)-[:ACTS_IN]->(actorsMovies:Movie)
+	WITH actorsMovies LIMIT $actorsMoviesLimit
+	RETURN collect(actorsMovies {
+		.title
+	}) AS actorsMovies
+}
 RETURN actors {
 	.name,
-	movies: [(actors)-[:ACTS_IN]->(actorsMovies:Movie) | actorsMovies {
-		.title
-	}][0..$actorsMoviesLimit]
+	movies: actorsMovies
 } AS actors SKIP $actorsSkip LIMIT $actorsLimit
 ----
 
@@ -351,11 +363,17 @@ RETURN actors {
 [source,cypher]
 ----
 MATCH (actors:Actor)
+CALL {
+	WITH actors
+	MATCH (actors)-[:ACTS_IN]->(actorsMovies:Movie)
+	WITH actorsMovies SKIP $actorsMoviesSkip LIMIT $actorsMoviesLimit
+	RETURN collect(actorsMovies {
+		.title
+	}) AS actorsMovies
+}
 RETURN actors {
 	.name,
-	movies: [(actors)-[:ACTS_IN]->(actorsMovies:Movie) | actorsMovies {
-		.title
-	}][$actorsMoviesSkip..($actorsMoviesSkip + $actorsMoviesLimit)]
+	movies: actorsMovies
 } AS actors SKIP $actorsSkip LIMIT $actorsLimit
 ----
 
@@ -399,11 +417,17 @@ query($skip: Int, $limit: Int) {
 [source,cypher]
 ----
 MATCH (actors:Actor)
+CALL {
+	WITH actors
+	MATCH (actors)-[:ACTS_IN]->(actorsMovies:Movie)
+	WITH actorsMovies SKIP $skip LIMIT $limit
+	RETURN collect(actorsMovies {
+		.title
+	}) AS actorsMovies
+}
 RETURN actors {
 	.name,
-	movies: [(actors)-[:ACTS_IN]->(actorsMovies:Movie) | actorsMovies {
-		.title
-	}][$skip..($skip + $limit)]
+	movies: actorsMovies
 } AS actors SKIP $actorsSkip LIMIT $actorsLimit
 ----
 
@@ -452,11 +476,18 @@ query($skip: Int, $limit: Int, $title: String) {
 [source,cypher]
 ----
 MATCH (actors:Actor)
+CALL {
+	WITH actors
+	MATCH (actors)-[:ACTS_IN]->(actorsMovies:Movie)
+	WHERE actorsMovies.title = $title
+	WITH actorsMovies SKIP $skip LIMIT $limit
+	RETURN collect(actorsMovies {
+		.title
+	}) AS actorsMovies
+}
 RETURN actors {
 	.name,
-	movies: [(actors)-[:ACTS_IN]->(actorsMovies:Movie) WHERE actorsMovies.title = $title | actorsMovies {
-		.title
-	}][$skip..($skip + $limit)]
+	movies: actorsMovies
 } AS actors SKIP $actorsSkip LIMIT $actorsLimit
 ----
 
@@ -488,10 +519,16 @@ RETURN actors {
 [source,cypher]
 ----
 MATCH (movies:Movie)
+CALL {
+	WITH movies
+	MATCH (movies)<-[:ACTS_IN]-(moviesActors:Actor)
+	WITH moviesActors SKIP $moviesActorsSkip LIMIT $moviesActorsLimit
+	RETURN collect(moviesActors {
+		.name
+	}) AS moviesActors
+}
 RETURN movies {
 	.title,
-	actors: [(movies)<-[:ACTS_IN]-(moviesActors:Actor) | moviesActors {
-		.name
-	}][$moviesActorsSkip..($moviesActorsSkip + $moviesActorsLimit)]
+	actors: moviesActors
 } AS movies
 ----

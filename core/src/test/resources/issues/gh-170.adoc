@@ -75,10 +75,16 @@ query {
 ----
 MATCH ()-[r:RATED]->()
 WHERE r.rating >= $filterRRatingGte
+CALL {
+	WITH r
+	MATCH ()-[r]->(movie:Movie)
+	WITH movie LIMIT 1
+	RETURN movie {
+		.title
+	} AS movie
+}
 RETURN r {
 	.rating,
-	movie: head([()-[r]->(movie:Movie) | movie {
-		.title
-	}])
+	movie: movie
 } AS r
 ----

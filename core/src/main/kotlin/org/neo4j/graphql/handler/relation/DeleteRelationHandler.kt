@@ -6,10 +6,10 @@ import graphql.schema.DataFetcher
 import graphql.schema.DataFetchingEnvironment
 import graphql.schema.idl.TypeDefinitionRegistry
 import org.neo4j.cypherdsl.core.Statement
-import org.neo4j.cypherdsl.core.StatementBuilder
 import org.neo4j.graphql.Cypher
 import org.neo4j.graphql.SchemaConfig
 import org.neo4j.graphql.aliasOrName
+import org.neo4j.graphql.withSubQueries
 
 /**
  * This class handles all the logic related to the deletion of relations starting from an existing node.
@@ -45,16 +45,15 @@ class DeleteRelationHandler private constructor(schemaConfig: SchemaConfig) : Ba
         val (endNode, endWhere) = getRelationSelect(false, arguments)
         val relName = org.neo4j.cypherdsl.core.Cypher.name("r")
 
-        val update: StatementBuilder.OngoingUpdate = org.neo4j.cypherdsl.core.Cypher
+        val withAlias = startNode.`as`(variable)
+        val (mapProjection, subQueries) = projectFields(startNode, withAlias.asName(), field, type, env)
+
+        return org.neo4j.cypherdsl.core.Cypher
             .match(startNode).where(startWhere)
             .match(endNode).where(endWhere)
             .match(relation.createRelation(startNode, endNode).named(relName))
-            .delete(relName)
-
-        val withAlias = startNode.`as`(variable)
-        val mapProjection = projectFields(startNode, withAlias.asName(), field, type, env)
-        return update
-            .withDistinct(withAlias)
+            .delete(relName).withDistinct(withAlias)
+            .withSubQueries(subQueries)
             .returning(withAlias.asName().project(mapProjection).`as`(field.aliasOrName()))
             .build()
     }

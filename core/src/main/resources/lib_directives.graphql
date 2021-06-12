@@ -2,7 +2,12 @@ directive @relation(name:String, direction: RelationDirection = OUT, from: Strin
 
 directive @cypher(
 
-  # a cypher statement fields or top level queries and mutations. The current node is passed to the statement as `this`
+  # Arguments on the field are passed to the Cypher statement and can be used by name.
+  # They must not be prefixed by `$` since they are no longer parameters.
+  # Just use the same name as the fields' argument.
+  # The current node is passed to the statement as `this`.
+  # The statement should contain exactly one return expression without any alias.
+  # Input types are supported, they appear as `Map` type in your Cypher statement.
   statement:String,
 
   # if true, passes the sole responsibility for the nested query result for the field to your Cypher query.

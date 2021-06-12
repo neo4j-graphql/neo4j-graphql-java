@@ -77,8 +77,9 @@ query getUser {
 .Cypher
 [source,cypher]
 ----
-UNWIND apoc.cypher.runFirstColumnSingle('WITH $userId AS userId MATCH (u:User{id: $userId})-[:CREATED_MAP]->(m:Map) WITH collect({id: m.id, name: m.name}) AS mapsCreated, u RETURN {name: u.name, mapsCreated: mapsCreated}',  {
-	userId: $userUserId
-}) AS user
+CALL {
+	WITH $userUserId AS userId
+	MATCH (u:User{id: userId})-[:CREATED_MAP]->(m:Map) WITH collect({id: m.id, name: m.name}) AS mapsCreated, u RETURN {name: u.name, mapsCreated: mapsCreated} AS user LIMIT 1
+}
 RETURN user AS user
 ----

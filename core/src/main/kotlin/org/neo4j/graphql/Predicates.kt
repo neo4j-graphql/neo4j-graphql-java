@@ -14,7 +14,7 @@ typealias CypherDSL = org.neo4j.cypherdsl.core.Cypher
 
 enum class FieldOperator(
         val suffix: String,
-        val op: String,
+        op: String,
         private val conditionCreator: (Expression, Expression) -> Condition,
         val not: Boolean = false,
         val requireParam: Boolean = true,
@@ -128,17 +128,17 @@ enum class FieldOperator(
     fun fieldName(fieldName: String) = fieldName + suffix
 }
 
-enum class RelationOperator(val suffix: String, val op: String) {
-    SOME("_some", "ANY"),
+enum class RelationOperator(val suffix: String) {
+    SOME("_some"),
 
-    EVERY("_every", "ALL"),
+    EVERY("_every"),
 
-    SINGLE("_single", "SINGLE"),
-    NONE("_none", "NONE"),
+    SINGLE("_single"),
+    NONE("_none"),
 
     // `eq` if queried with an object, `not exists` if  queried with null
-    EQ_OR_NOT_EXISTS("", ""),
-    NOT("_not", "");
+    EQ_OR_NOT_EXISTS(""),
+    NOT("_not");
 
     fun fieldName(fieldName: String) = fieldName + suffix
 

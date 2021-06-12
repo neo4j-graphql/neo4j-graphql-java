@@ -12,7 +12,6 @@ import graphql.schema.idl.TypeDefinitionRegistry
 import org.neo4j.cypherdsl.core.Node
 import org.neo4j.cypherdsl.core.Relationship
 import org.neo4j.cypherdsl.core.Statement
-import org.neo4j.cypherdsl.core.StatementBuilder.OngoingUpdate
 import org.neo4j.graphql.*
 
 /**
@@ -91,12 +90,13 @@ class DeleteHandler private constructor(schemaConfig: SchemaConfig) : BaseDataFe
                 .where(where)
         }
         val deletedElement = propertyContainer.requiredSymbolicName.`as`("toDelete")
-        val mapProjection = projectFields(propertyContainer, field, type, env)
+        val (mapProjection, subQueries) = projectFields(propertyContainer, field, type, env)
 
         val projection = propertyContainer.project(mapProjection).`as`(variable)
-        val update: OngoingUpdate = select.with(deletedElement, projection)
+        return select
+            .withSubQueries(subQueries)
+            .with(deletedElement, projection)
             .detachDelete(deletedElement)
-        return update
             .returning(projection.asName().`as`(field.aliasOrName()))
             .build()
     }

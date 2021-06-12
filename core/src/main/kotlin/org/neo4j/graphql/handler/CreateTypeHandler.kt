@@ -9,7 +9,6 @@ import graphql.schema.DataFetchingEnvironment
 import graphql.schema.GraphQLObjectType
 import graphql.schema.idl.TypeDefinitionRegistry
 import org.neo4j.cypherdsl.core.Statement
-import org.neo4j.cypherdsl.core.StatementBuilder
 import org.neo4j.graphql.*
 
 /**
@@ -86,11 +85,11 @@ class CreateTypeHandler private constructor(schemaConfig: SchemaConfig) : BaseDa
         val node = org.neo4j.cypherdsl.core.Cypher.node(type.name, *additionalTypes.toTypedArray()).named(variable)
 
         val properties = properties(variable, field.arguments)
-        val mapProjection = projectFields(node, field, type, env)
+        val (mapProjection, subQueries) = projectFields(node, field, type, env)
 
-        val update: StatementBuilder.OngoingUpdate = org.neo4j.cypherdsl.core.Cypher.create(node.withProperties(*properties))
-        return update
+        return org.neo4j.cypherdsl.core.Cypher.create(node.withProperties(*properties))
             .with(node)
+            .withSubQueries(subQueries)
             .returning(node.project(mapProjection).`as`(field.aliasOrName()))
             .build()
     }

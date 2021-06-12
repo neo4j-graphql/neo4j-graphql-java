@@ -73,10 +73,16 @@ enum _ActorOrdering {
 [source,cypher]
 ----
 MATCH (movie:Movie)
-RETURN movie {
-	actors: apoc.coll.sortMulti([(movie)<-[:ACTED_IN]-(movieActors:Actor) | movieActors {
+CALL {
+	WITH movie
+	MATCH (movie)<-[:ACTED_IN]-(movieActors:Actor)
+	WITH movieActors ORDER BY movieActors.name ASC SKIP $movieActorsOffset LIMIT $movieActorsFirst
+	RETURN collect(movieActors {
 		.name
-	}], ['^name'])[$movieActorsOffset..($movieActorsOffset + $movieActorsFirst)]
+	}) AS movieActors
+}
+RETURN movie {
+	actors: movieActors
 } AS movie
 ----
 

@@ -2,6 +2,7 @@ package org.neo4j.graphql
 
 import graphql.language.Description
 import graphql.language.VariableReference
+import graphql.schema.GraphQLOutputType
 import org.neo4j.cypherdsl.core.*
 import java.util.*
 
@@ -16,6 +17,9 @@ fun queryParameter(value: Any?, vararg parts: String?): Parameter<Any> {
     }
     return org.neo4j.cypherdsl.core.Cypher.parameter(name).withValue(value?.toJavaValue())
 }
+
+fun Expression.collect(type: GraphQLOutputType) = if (type.isList()) Functions.collect(this) else this
+fun StatementBuilder.OngoingReading.withSubQueries(subQueries: List<Statement>) = subQueries.fold(this, { it, sub -> it.call(sub) })
 
 fun normalizeName(vararg parts: String?) = parts.mapNotNull { it?.capitalize() }.filter { it.isNotBlank() }.joinToString("").decapitalize()
 //fun normalizeName(vararg parts: String?) = parts.filterNot { it.isNullOrBlank() }.joinToString("_")

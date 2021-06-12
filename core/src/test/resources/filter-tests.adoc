@@ -3238,11 +3238,17 @@ RETURN p {
 [source,cypher]
 ----
 MATCH (p:Company)
-RETURN p {
-	employees: [(p)<-[:WORKS_AT]-(pEmployees:Person) WHERE (pEmployees.name = $filterPEmployeesOr1Name
-	OR pEmployees.name = $filterPEmployeesOr2Name) | pEmployees {
+CALL {
+	WITH p
+	MATCH (p)<-[:WORKS_AT]-(pEmployees:Person)
+	WHERE (pEmployees.name = $filterPEmployeesOr1Name
+		OR pEmployees.name = $filterPEmployeesOr2Name)
+	RETURN collect(pEmployees {
 		.name
-	}]
+	}) AS pEmployees
+}
+RETURN p {
+	employees: pEmployees
 } AS p
 ----
 
@@ -3460,9 +3466,15 @@ RETURN person {
 [source,cypher]
 ----
 MATCH (p:Company)
-RETURN p {
-	employees: [(p)<-[:WORKS_AT]-(pEmployees:Person) WHERE pEmployees.name = $filterPEmployeesName | pEmployees {
+CALL {
+	WITH p
+	MATCH (p)<-[:WORKS_AT]-(pEmployees:Person)
+	WHERE pEmployees.name = $filterPEmployeesName
+	RETURN collect(pEmployees {
 		.name
-	}]
+	}) AS pEmployees
+}
+RETURN p {
+	employees: pEmployees
 } AS p
 ----

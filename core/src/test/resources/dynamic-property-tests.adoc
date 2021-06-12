@@ -61,20 +61,40 @@ type Knows @relation(name:"KNOWS", from: "source", to: "knows"){
 ----
 MATCH (person:Person)
 WHERE person.id = $personId
+CALL {
+	WITH person
+	MATCH (person)-[:KNOWS]->(personKnows:Person)
+	RETURN collect(personKnows {
+		json: apoc.map.fromPairs([key IN keys(personKnows) WHERE key STARTS WITH 'properties.' | [substring(key, 11), personKnows[key]]])
+	}) AS personKnows
+}
+CALL {
+	WITH person
+	MATCH (person)<-[:KNOWS]-(personKnownBy:Person)
+	RETURN collect(personKnownBy {
+		json: apoc.map.fromPairs([key IN keys(personKnownBy) WHERE key STARTS WITH 'properties.' | [substring(key, 11), personKnownBy[key]]])
+	}) AS personKnownBy
+}
+CALL {
+	WITH person
+	MATCH (person)-[personKnowsRel:KNOWS]->(personKnowsRelKnows:Person)
+	RETURN collect(personKnowsRel {
+		json: apoc.map.fromPairs([key IN keys(personKnowsRel) WHERE key STARTS WITH 'prefix.' | [substring(key, 7), personKnowsRel[key]]])
+	}) AS personKnowsRel
+}
+CALL {
+	WITH person
+	MATCH (person)<-[personKnownByRel:KNOWS]-(personKnownByRelSource:Person)
+	RETURN collect(personKnownByRel {
+		json: apoc.map.fromPairs([key IN keys(personKnownByRel) WHERE key STARTS WITH 'prefix.' | [substring(key, 7), personKnownByRel[key]]])
+	}) AS personKnownByRel
+}
 RETURN person {
 	json: apoc.map.fromPairs([key IN keys(person) WHERE key STARTS WITH 'properties.' | [substring(key, 11), person[key]]]),
-	knows: [(person)-[:KNOWS]->(personKnows:Person) | personKnows {
-		json: apoc.map.fromPairs([key IN keys(personKnows) WHERE key STARTS WITH 'properties.' | [substring(key, 11), personKnows[key]]])
-	}],
-	knownBy: [(person)<-[:KNOWS]-(personKnownBy:Person) | personKnownBy {
-		json: apoc.map.fromPairs([key IN keys(personKnownBy) WHERE key STARTS WITH 'properties.' | [substring(key, 11), personKnownBy[key]]])
-	}],
-	knowsRel: [(person)-[personKnowsRel:KNOWS]->(personKnowsRelKnows:Person) | personKnowsRel {
-		json: apoc.map.fromPairs([key IN keys(personKnowsRel) WHERE key STARTS WITH 'prefix.' | [substring(key, 7), personKnowsRel[key]]])
-	}],
-	knownByRel: [(person)<-[personKnownByRel:KNOWS]-(personKnownByRelSource:Person) | personKnownByRel {
-		json: apoc.map.fromPairs([key IN keys(personKnownByRel) WHERE key STARTS WITH 'prefix.' | [substring(key, 7), personKnownByRel[key]]])
-	}]
+	knows: personKnows,
+	knownBy: personKnownBy,
+	knowsRel: personKnowsRel,
+	knownByRel: personKnownByRel
 } AS person
 ----
 
