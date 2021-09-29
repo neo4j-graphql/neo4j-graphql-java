@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.neo4j</groupId>
         <artifactId>neo4j-graphql-java-examples</artifactId>
-        <version>1.3.1-SNAPSHOT</version>
+        <version>1.4.0</version>
     </parent>
 
     <groupId>org.neo4j.graphql.examples</groupId>
@@ -40,7 +40,7 @@
         <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j-graphql-java</artifactId>
-            <version>1.3.1-SNAPSHOT</version>
+            <version>1.4.0</version>
         </dependency>
 
         <dependency>
@@ -104,7 +104,7 @@
             <plugin>
                 <groupId>org.neo4j</groupId>
                 <artifactId>neo4j-graphql-augmented-schema-generator-maven-plugin</artifactId>
-                <version>1.3.1-SNAPSHOT</version>
+                <version>1.4.0</version>
                 <executions>
                     <execution>
                         <goals>
