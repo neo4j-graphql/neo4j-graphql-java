@@ -8,7 +8,7 @@
     <artifactId>neo4j-graphql-java-parent</artifactId>
     <name>Neo4j GraphQL Java Parent</name>
     <description>GraphQL to Cypher Mapping</description>
-    <version>1.4.0</version>
+    <version>1.4.1-SNAPSHOT</version>
     <url>http://github.com/neo4j-graphql/neo4j-graphql-java</url>
     <packaging>pom</packaging>
 
