@@ -1,0 +1,64 @@
+:toc:
+
+= Cypher Directive Computing Relationship Type To Field Test
+
+== Schema
+
+[source,graphql,schema=true]
+----
+type Role @relation(name:"ACTED_IN", from:"actor", to:"movie") {
+   actor: Person
+   movie: Movie
+   type: String @cypher(statement:"""
+     RETURN type(this)
+     """)
+}
+
+type Person {
+  name: String
+  born: Int
+  roles: [Role]
+}
+
+type Movie {
+  title: String
+  released: Int
+  characters: [Role]
+}
+
+----
+
+== Queries
+
+=== Simple Cypher Directive on Field
+
+.GraphQL-Query
+[source,graphql]
+----
+query {
+  person {
+    roles {
+      type
+    }
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+RETURN person {
+	roles: [(person)-[personRoles:ACTED_IN]->(personRolesMovie:Movie) | personRoles {
+		type: apoc.cypher.runFirstColumnSingle('WITH $this AS this RETURN type(this)',  {
+			this: personRoles
+		})
+	}]
+} AS person
+----
