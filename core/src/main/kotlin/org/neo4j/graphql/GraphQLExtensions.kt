@@ -156,11 +156,10 @@ fun <T> GraphQLDirective.getArgument(argumentName: String, defaultValue: T? = nu
             ?: throw IllegalStateException("No default value for @${this.name}::$argumentName")
 }
 
-private val LOGGER = LoggerFactory.getLogger(CypherDirective::class.java)
-
-
 fun GraphQLFieldDefinition.cypherDirective(): CypherDirective? = getDirective(CYPHER)?.let {
     val originalStatement = it.getMandatoryArgument<String>(CYPHER_STATEMENT)
+    // Arguments on the field are passed to the Cypher statement and can be used by name.
+    // They must not be prefixed by $ since they are no longer parameters. Just use the same name as the fields' argument.
     val rewrittenStatement = originalStatement.replace(Regex("\\\$([_a-zA-Z]\\w*)"), "$1")
     if (originalStatement != rewrittenStatement) {
         LoggerFactory.getLogger(CypherDirective::class.java)
