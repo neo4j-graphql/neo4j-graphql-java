@@ -28,7 +28,7 @@ For complex examples take a look at our link:examples/readme.adoc[example projec
 
 == API compatibility to @neo4j/graphql
 
-Since the javascript pendant of this library (neo4j-graphql-js) has majored into a neo4j product, we want to migrate our augmented schema, to match as much as possible to the one of the https://github.com/neo4j/graphql-tracker-temp[`@neo4j/graphql`].
+Since the javascript pendant of this library (neo4j-graphql-js) has majored into a neo4j product, we want to migrate our augmented schema, to match as much as possible to the one of the https://github.com/neo4j/graphql[`@neo4j/graphql`].
 Therefore, we created a https://github.com/neo4j-graphql/neo4j-graphql-java/issues?q=label%3AAPI-Alignment[list of issues to track progress].
 
 We will try to make the migration as smooth as possible. For this purpose we will support the old, and the new way of schema augmentation until the next major release.
