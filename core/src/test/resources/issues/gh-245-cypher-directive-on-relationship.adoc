@@ -1,5 +1,4 @@
 :toc:
-:description: Asserts cypher directives can be used on rich relationships and the relationship itself can be used in the cypher query
 
 = Cypher Directive Computing Relationship Type To Field Test
 
