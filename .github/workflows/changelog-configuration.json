@@ -27,10 +27,14 @@
     {
       "title": "## Tests",
       "labels": ["test"]
+    },
+    {
+      "title": "## Updated dependencies",
+      "labels": ["dependencies"]
     }
   ],
   "ignore_labels": [
-    "ignore", "dependencies"
+    "ignore"
   ],
   "label_extractor": [  ],
   "duplicate_filter": null,

@@ -15,7 +15,7 @@
     <description>Example for using neo4j-graphql-java with Spring Boot and Netflix Domain Graph Service (DGS)</description>
 
     <properties>
-        <testcontainers.version>1.15.3</testcontainers.version>
+        <testcontainers.version>1.16.0</testcontainers.version>
         <spring-boot.version>2.3.10.RELEASE</spring-boot.version>
     </properties>
 
@@ -35,7 +35,7 @@
         <dependency>
             <groupId>org.neo4j.driver</groupId>
             <artifactId>neo4j-java-driver-spring-boot-starter</artifactId>
-            <version>4.2.4.0</version>
+            <version>4.2.7.0</version>
         </dependency>
         <dependency>
             <groupId>org.neo4j</groupId>
