@@ -9,7 +9,6 @@
 type Role @relation(name:"ACTED_IN", from:"actor", to:"movie") {
    actor: Person
    movie: Movie
-   roles: [String]
    type: String @cypher(statement:"""
      RETURN type(this)
      """)
@@ -19,19 +18,12 @@ type Person {
   name: String
   born: Int
   roles: [Role]
-  _all: String
-  _id: ID!
 }
 
 type Movie {
   title: String
   released: Int
   characters: [Role]
-  _all: String
-  _id: ID!
-  _labels: [String] @cypher(statement:"""
-  RETURN labels(this)
-  """)
 }
 
 ----
