@@ -72,6 +72,9 @@ class CypherTests {
     fun `custom-fields`() = CypherTestSuite("custom-fields.adoc", neo4j).generateTests()
 
     @TestFactory
+    fun `relationship-directive`() = CypherTestSuite("relationship-directive.adoc", neo4j).generateTests()
+
+    @TestFactory
     fun `test issues`() =  createTestsInPath("issues", { CypherTestSuite(it, neo4j).generateTests() })
 
     @TestFactory
