@@ -15,8 +15,8 @@
     <description>Example for using neo4j-graphql-java with Spring Boot</description>
 
     <properties>
-        <testcontainers.version>1.15.3</testcontainers.version>
-        <graphql-kotlin.version>4.1.1</graphql-kotlin.version>
+        <testcontainers.version>1.16.0</testcontainers.version>
+        <graphql-kotlin.version>5.1.1</graphql-kotlin.version>
         <spring-boot.version>2.3.10.RELEASE</spring-boot.version>
     </properties>
 
@@ -32,7 +32,7 @@
         <dependency>
             <groupId>org.neo4j.driver</groupId>
             <artifactId>neo4j-java-driver-spring-boot-starter</artifactId>
-            <version>4.2.4.0</version>
+            <version>4.2.7.0</version>
         </dependency>
         <dependency>
             <groupId>org.neo4j</groupId>

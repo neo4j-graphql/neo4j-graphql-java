@@ -510,7 +510,7 @@ open class ProjectionBase(
             }
         }
 
-        fun <T> format(returning: T): StatementBuilder.BuildableStatement where T : TerminalExposesSkip, T : TerminalExposesLimit {
+        fun <T> format(returning: T): StatementBuilder.BuildableStatement<ResultStatement> where T : TerminalExposesSkip, T : TerminalExposesLimit {
             val result = skip?.let { returning.skip(it) } ?: returning
             return limit?.let { result.limit(it) } ?: result
         }

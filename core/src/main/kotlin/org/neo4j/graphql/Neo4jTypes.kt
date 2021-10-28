@@ -23,7 +23,7 @@ class Neo4jTemporalConverter(name: String) : Neo4jSimpleConverter(name) {
         return Cypher.call("toString").withArgs(variable.property(field.name)).asFunction()
     }
 
-    override fun createCondition(property: Property, parameter: Parameter<Any>, conditionCreator: (Expression, Expression) -> Condition): Condition {
+    override fun createCondition(property: Property, parameter: Parameter<*>, conditionCreator: (Expression, Expression) -> Condition): Condition {
         return conditionCreator(property, toExpression(parameter))
     }
 }
@@ -33,7 +33,7 @@ class Neo4jTimeConverter(name: String) : Neo4jConverter(name) {
     override fun createCondition(
             objectField: ObjectField,
             field: GraphQLFieldDefinition,
-            parameter: Parameter<Any>,
+            parameter: Parameter<*>,
             conditionCreator: (Expression, Expression) -> Condition,
             propertyContainer: PropertyContainer
     ): Condition = if (objectField.name == NEO4j_FORMATTED_PROPERTY_KEY) {
@@ -65,7 +65,7 @@ class Neo4jTimeConverter(name: String) : Neo4jConverter(name) {
 
 class Neo4jPointConverter(name: String) : Neo4jConverter(name) {
 
-    fun createDistanceCondition(lhs: Expression, rhs: Parameter<Any>, conditionCreator: (Expression, Expression) -> Condition): Condition {
+    fun createDistanceCondition(lhs: Expression, rhs: Parameter<*>, conditionCreator: (Expression, Expression) -> Condition): Condition {
         val point = Functions.point(rhs.property("point"))
         val distance = rhs.property("distance")
         return conditionCreator(Functions.distance(lhs, point), distance)
@@ -86,14 +86,14 @@ open class Neo4jSimpleConverter(val name: String) {
 
     open fun createCondition(
             property: Property,
-            parameter: Parameter<Any>,
+            parameter: Parameter<*>,
             conditionCreator: (Expression, Expression) -> Condition
     ): Condition = conditionCreator(property, parameter)
 
     open fun createCondition(
             objectField: ObjectField,
             field: GraphQLFieldDefinition,
-            parameter: Parameter<Any>,
+            parameter: Parameter<*>,
             conditionCreator: (Expression, Expression) -> Condition,
             propertyContainer: PropertyContainer
     ): Condition = createCondition(propertyContainer.property(field.name, objectField.name), parameter, conditionCreator)

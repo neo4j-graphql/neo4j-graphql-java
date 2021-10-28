@@ -9,7 +9,7 @@ fun <T> Iterable<T>.joinNonEmpty(separator: CharSequence = ", ", prefix: CharSeq
     return if (iterator().hasNext()) joinTo(StringBuilder(), separator, prefix, postfix, limit, truncated, transform).toString() else ""
 }
 
-fun queryParameter(value: Any?, vararg parts: String?): Parameter<Any> {
+fun queryParameter(value: Any?, vararg parts: String?): Parameter<*> {
     val name = when (value) {
         is VariableReference -> value.name
         else -> normalizeName(*parts)
