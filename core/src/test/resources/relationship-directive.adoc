@@ -44,7 +44,7 @@ type Movie {
 [source,graphql]
 ----
 query {
-  person(first: 1) {
+  person {
     roles {
       type
     }
@@ -68,5 +68,5 @@ RETURN person {
 			this: personRoles
 		})
 	}]
-} AS person LIMIT $personFirst
+} AS person
 ----
