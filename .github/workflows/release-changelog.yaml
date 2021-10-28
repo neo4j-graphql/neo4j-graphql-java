@@ -1,9 +1,9 @@
 name: Build release changelog
 
 on:
-  push:
-    tags :
-      - '*'
+  release:
+    types:
+      - published
 jobs:
   build:
     name: Build Changelog
