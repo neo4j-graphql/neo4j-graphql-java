@@ -92,7 +92,7 @@ MATCH (person:Person) RETURN person { .age } AS person ORDER BY person.name ASC
 MATCH (person:Person)
 CALL {
 	WITH person
-	MATCH (person)-[personBorn:BORN]->(personBornTo:Location)
+	OPTIONAL MATCH (person)-[personBorn:BORN]->(personBornTo:Location)
 	RETURN personBorn {
 		.date,
 		to: personBornTo {
@@ -240,7 +240,7 @@ RETURN person {
 MATCH (person:Person)
 CALL {
 	WITH person
-	MATCH (person)-[:LIVES_IN]->(personLivesIn:Location)
+	OPTIONAL MATCH (person)-[:LIVES_IN]->(personLivesIn:Location)
 	RETURN personLivesIn {
 		.name
 	} AS personLivesIn LIMIT 1
@@ -316,7 +316,7 @@ MATCH (person:Person) RETURN person { .name } AS person
 MATCH (person:Person)
 CALL {
 	WITH person
-	MATCH (person)-[personDied:DIED]->(personDiedWhere:Location)
+	OPTIONAL MATCH (person)-[personDied:DIED]->(personDiedWhere:Location)
 	RETURN personDied {
 		.date,
 		where: personDiedWhere {
@@ -350,10 +350,10 @@ RETURN person {
 MATCH (person:Person)
 CALL {
 	WITH person
-	MATCH (person)-[personBorn:BORN]->(personBornTo:Location)
+	OPTIONAL MATCH (person)-[personBorn:BORN]->(personBornTo:Location)
 	CALL {
 		WITH personBornTo
-		MATCH (personBornTo)<-[:FOUNDED]-(personBornToFounded:Person)
+		OPTIONAL MATCH (personBornTo)<-[:FOUNDED]-(personBornToFounded:Person)
 		RETURN personBornToFounded {
 			.name
 		} AS personBornToFounded LIMIT 1
@@ -392,13 +392,13 @@ RETURN person {
 MATCH (person:Person)
 CALL {
 	WITH person
-	MATCH (person)-[personBorn:BORN]->(personBornTo:Location)
+	OPTIONAL MATCH (person)-[personBorn:BORN]->(personBornTo:Location)
 	CALL {
 		WITH personBornTo
-		MATCH (personBornTo)<-[:FOUNDED]-(personBornToFounded:Person)
+		OPTIONAL MATCH (personBornTo)<-[:FOUNDED]-(personBornToFounded:Person)
 		CALL {
 			WITH personBornToFounded
-			MATCH (personBornToFounded)-[personBornToFoundedBorn:BORN]->(personBornToFoundedBornTo:Location)
+			OPTIONAL MATCH (personBornToFounded)-[personBornToFoundedBorn:BORN]->(personBornToFoundedBornTo:Location)
 			RETURN personBornToFoundedBorn {
 				.date,
 				to: personBornToFoundedBornTo {
@@ -447,7 +447,7 @@ RETURN person {
 MATCH (person:Person)
 CALL {
 	WITH person
-	MATCH (person)-[:LIVES_IN]->(personLivesIn:Location)
+	OPTIONAL MATCH (person)-[:LIVES_IN]->(personLivesIn:Location)
 	WHERE personLivesIn.name = $personLivesInName
 	RETURN personLivesIn {
 		.name
@@ -682,10 +682,10 @@ RETURN person {
 MATCH (person:Person)
 CALL {
 	WITH person
-	MATCH (person)-[:LIVES_IN]->(personLivesIn:Location)
+	OPTIONAL MATCH (person)-[:LIVES_IN]->(personLivesIn:Location)
 	CALL {
 		WITH personLivesIn
-		MATCH (personLivesIn)<-[:FOUNDED]-(personLivesInFounded:Person)
+		OPTIONAL MATCH (personLivesIn)<-[:FOUNDED]-(personLivesInFounded:Person)
 		RETURN personLivesInFounded {
 			.name
 		} AS personLivesInFounded LIMIT 1
@@ -838,7 +838,7 @@ RETURN location {
 MATCH (person:Person)
 CALL {
 	WITH person
-	MATCH (person)-[personBorn:BORN]->(personBornTo:Location)
+	OPTIONAL MATCH (person)-[personBorn:BORN]->(personBornTo:Location)
 	RETURN personBorn {
 		__typename: 'Birth'
 	} AS personBorn LIMIT 1

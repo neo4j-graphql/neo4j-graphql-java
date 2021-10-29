@@ -47,7 +47,7 @@ MATCH (user:User)
 WHERE user.name = $userName
 CALL {
 	WITH user
-	MATCH (user)-[userReferredBy:REFERRED_BY]->(userReferredByReferredBy:User)
+	OPTIONAL MATCH (user)-[userReferredBy:REFERRED_BY]->(userReferredByReferredBy:User)
 	RETURN userReferredBy {
 		.referralDate,
 		referredBy: userReferredByReferredBy {

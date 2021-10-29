@@ -256,7 +256,7 @@ MATCH (movieById:Movie)
 WHERE movieById.movieId = $movieByIdMovieId
 CALL {
 	WITH movieById
-	MATCH (movieById)-[:FILMED_IN]->(movieByIdFilmedIn:State)
+	OPTIONAL MATCH (movieById)-[:FILMED_IN]->(movieByIdFilmedIn:State)
 	RETURN movieByIdFilmedIn {
 		.name
 	} AS movieByIdFilmedIn LIMIT 1
@@ -310,7 +310,7 @@ CALL {
 }
 CALL {
 	WITH movieById
-	MATCH (movieById)-[:FILMED_IN]->(movieByIdFilmedIn:State)
+	OPTIONAL MATCH (movieById)-[:FILMED_IN]->(movieByIdFilmedIn:State)
 	RETURN movieByIdFilmedIn {
 		.name
 	} AS movieByIdFilmedIn LIMIT 1

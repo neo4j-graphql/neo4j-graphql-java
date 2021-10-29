@@ -570,10 +570,14 @@ open class ProjectionBase(
             relationship = relationship.named(childVariableName)
         }
 
+        val with = with(variable)
         val where = where(anyNode(childVariableName), fieldDefinition, nodeType, field, env.variables)
-        var reading: OngoingReading = with(variable)
-            .match(relationship)
-            .where(where)
+
+        var reading: OngoingReading = when {
+            fieldDefinition.type.isList() -> with.match(relationship)
+            else -> with.optionalMatch(relationship)
+        }.where(where)
+
         val subQuery = if (fieldDefinition.type.isList()) {
             val ordering = orderBy(childVariableName, field.arguments, fieldDefinition, env.variables)
             val skipLimit = SkipLimit(childVariable, field.arguments, fieldDefinition)

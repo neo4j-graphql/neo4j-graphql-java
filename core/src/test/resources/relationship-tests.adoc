@@ -642,7 +642,7 @@ RETURN category {
 MATCH (category:Category)
 CALL {
 	WITH category
-	MATCH (category)-[:HAS_PARENT]->(categoryParentCategory:Category)
+	OPTIONAL MATCH (category)-[:HAS_PARENT]->(categoryParentCategory:Category)
 	RETURN categoryParentCategory {
 		.name
 	} AS categoryParentCategory LIMIT 1
@@ -723,7 +723,7 @@ RETURN category {
 MATCH (category:Category)
 CALL {
 	WITH category
-	MATCH (category)-[categoryParentCategoryAssignment:HAS_PARENT]->(categoryParentCategoryAssignmentParent:Category)
+	OPTIONAL MATCH (category)-[categoryParentCategoryAssignment:HAS_PARENT]->(categoryParentCategoryAssignmentParent:Category)
 	RETURN categoryParentCategoryAssignment {
 		parent: categoryParentCategoryAssignmentParent {
 			.name
