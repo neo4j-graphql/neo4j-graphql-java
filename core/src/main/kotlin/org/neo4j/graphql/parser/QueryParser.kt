@@ -3,7 +3,6 @@ package org.neo4j.graphql.parser
 import graphql.language.*
 import graphql.schema.GraphQLFieldDefinition
 import graphql.schema.GraphQLFieldsContainer
-import graphql.schema.GraphQLObjectType
 import org.neo4j.cypherdsl.core.*
 import org.neo4j.cypherdsl.core.Node
 import org.neo4j.graphql.*
@@ -21,9 +20,9 @@ class ParsedQuery(
         val and: List<Value<*>>? = null
 ) {
 
-    fun getFieldConditions(propertyContainer: PropertyContainer, variablePrefix: String, variableSuffix: String): Condition =
+    fun getFieldConditions(propertyContainer: PropertyContainer, variablePrefix: String, variableSuffix: String, schemaConfig: SchemaConfig): Condition =
             fieldPredicates
-                .flatMap { it.createCondition(propertyContainer, variablePrefix, variableSuffix) }
+                .flatMap { it.createCondition(propertyContainer, variablePrefix, variableSuffix, schemaConfig) }
                 .reduceOrNull { result, condition -> result.and(condition) }
                     ?: Conditions.noCondition()
 }
@@ -44,13 +43,14 @@ class FieldPredicate(
         index: Int
 ) : Predicate<FieldOperator>(op, queryField, normalizeName(fieldDefinition.name, op.suffix.toCamelCase()), index) {
 
-    fun createCondition(propertyContainer: PropertyContainer, variablePrefix: String, variableSuffix: String) =
+    fun createCondition(propertyContainer: PropertyContainer, variablePrefix: String, variableSuffix: String, schemaConfig: SchemaConfig) =
             op.resolveCondition(
                     variablePrefix,
                     normalizedName,
                     propertyContainer,
                     fieldDefinition,
                     queryField.value,
+                    schemaConfig,
                     variableSuffix
             )
 
@@ -69,14 +69,14 @@ class RelationPredicate(
 ) : Predicate<RelationOperator>(op, queryField, normalizeName(fieldDefinition.name, op.suffix.toCamelCase()), index) {
 
     val relationshipInfo = type.relationshipFor(fieldDefinition.name)!!
-    val relNode: Node = CypherDSL.node((fieldDefinition.type.inner() as? GraphQLObjectType)?.label()!!)
+    val relNode: Node = CypherDSL.node(fieldDefinition.type.getInnerFieldsContainer().label())
 
     fun createRelation(start: Node): Relationship = relationshipInfo.createRelation(start, relNode)
 
     fun createExistsCondition(propertyContainer: PropertyContainer): Condition {
         val relation = createRelation(propertyContainer as? Node
                 ?: throw IllegalStateException("""propertyContainer is expected to be a Node but was ${propertyContainer.javaClass.name}"""))
-       val  condition = CypherDSL.match(relation).asCondition()
+        val condition = CypherDSL.match(relation).asCondition()
         return when (op) {
             RelationOperator.NOT -> condition
             RelationOperator.EQ_OR_NOT_EXISTS -> condition.not()

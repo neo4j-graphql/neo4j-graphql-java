@@ -155,7 +155,7 @@ open class ProjectionBase(
             type: GraphQLFieldsContainer,
             variables: Map<String, Any>
     ): Condition {
-        var result = parsedQuery.getFieldConditions(propertyContainer, variablePrefix, variableSuffix)
+        var result = parsedQuery.getFieldConditions(propertyContainer, variablePrefix, variableSuffix, schemaConfig)
 
         for (predicate in parsedQuery.relationPredicates) {
             val objectField = predicate.queryField
@@ -314,18 +314,18 @@ open class ProjectionBase(
 
         if (cypherDirective != null) {
             val ctxVariable = name(field.contextualize(variable))
-            val innerSubQuery = cypherDirective(ctxVariable, fieldDefinition, field, cypherDirective, propertyContainer.requiredSymbolicName, env)
+            val innerSubQuery = cypherDirective(ctxVariable, fieldDefinition, field, cypherDirective, variable, env)
             subQueries += if (isObjectField && !cypherDirective.passThrough) {
                 val fieldObjectType = fieldDefinition.type.getInnerFieldsContainer()
                 val (fieldProjection, nestedSubQueries) = projectFields(anyNode(ctxVariable), ctxVariable, field, fieldObjectType, env, variableSuffix)
-                with(propertyContainer.requiredSymbolicName)
+                with(variable)
                     .call(innerSubQuery)
                     .withSubQueries(nestedSubQueries)
                     .returning(ctxVariable.project(fieldProjection).collect(fieldDefinition.type).`as`(ctxVariable))
                     .build()
             } else {
                 if (fieldDefinition.type.isList()) {
-                    with(propertyContainer.requiredSymbolicName)
+                    with(variable)
                         .call(innerSubQuery)
                         .returning(ctxVariable.collect(fieldDefinition.type).`as`(ctxVariable))
                         .build()
@@ -336,6 +336,9 @@ open class ProjectionBase(
             projections += ctxVariable
 
         } else when {
+            schemaConfig.useTemporalScalars && fieldDefinition.isNeo4jTemporalType() -> {
+                projections += getNeo4jTypeConverter(fieldDefinition).projectField(variable, field, "")
+            }
             isObjectField -> {
                 if (fieldDefinition.isNeo4jType()) {
                     projections += projectNeo4jObjectType(variable, field, fieldDefinition)

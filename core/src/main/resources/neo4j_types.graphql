@@ -110,3 +110,9 @@ type _Neo4jPoint{
   # * `9157`: represents CRS `cartesian-3d`
   srid: Int
 }
+
+scalar Date
+scalar Time
+scalar LocalTime
+scalar DateTime
+scalar LocalDateTime

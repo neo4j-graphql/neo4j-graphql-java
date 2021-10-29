@@ -35,7 +35,7 @@ abstract class BaseDataFetcherForContainer(schemaConfig: SchemaConfig) : BaseDat
                 val dynamicPrefix = field.dynamicPrefix()
                 propertyFields[field.name] = when {
                     dynamicPrefix != null -> dynamicPrefixCallback(field, dynamicPrefix)
-                    field.isNeo4jType() -> neo4jTypeCallback(field)
+                    field.isNeo4jType() || (schemaConfig.useTemporalScalars && field.isNeo4jTemporalType()) -> neo4jTypeCallback(field)
                     else -> defaultCallback(field)
                 }
             }

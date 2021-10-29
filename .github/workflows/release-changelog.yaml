@@ -1,0 +1,31 @@
+name: Build release changelog
+
+on:
+  release:
+    types:
+      - published
+jobs:
+  build:
+    name: Build Changelog
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+        with :
+          fetch-depth : 0
+      - name : Build Changelog
+        id : build_changelog
+        uses : mikepenz/release-changelog-builder-action@v1
+        with :
+          configuration : ".github/workflows/changelog-configuration.json"
+        env :
+          GITHUB_TOKEN : ${{ secrets.GITHUB_TOKEN }}
+      - name: update release
+        id: update_release
+        uses: tubone24/update_release@v1.2.0
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{steps.build_changelog.outputs.toTag}}
+        with:
+          release_name: Release ${{steps.build_changelog.outputs.toTag}}
+          body: ${{steps.build_changelog.outputs.changelog}}

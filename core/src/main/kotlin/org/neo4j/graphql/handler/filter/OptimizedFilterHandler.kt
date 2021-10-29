@@ -69,7 +69,7 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer, schemaConfig: Sch
      * @param value the value passed to the graphQL field
      * @param parentPassThroughWiths all the nodes, required to be passed through via WITH
      */
-    class NestingLevelHandler(
+    inner class NestingLevelHandler(
             private val parsedQuery: ParsedQuery,
             private val useDistinct: Boolean,
             private val current: PropertyContainer,
@@ -113,7 +113,7 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer, schemaConfig: Sch
             }
 
             // WHERE MATCH all predicates for current
-            val condition = parsedQuery.getFieldConditions(current, variablePrefix, "")
+            val condition = parsedQuery.getFieldConditions(current, variablePrefix, "", schemaConfig)
             val matchQueryWithWhere = matchQueryWithoutWhere.where(condition)
 
             return if (additionalConditions != null) {

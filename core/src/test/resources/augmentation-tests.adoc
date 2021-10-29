@@ -74,74 +74,64 @@ interface HasMovies {
   movies(first: Int, offset: Int, orderBy: [_MovieOrdering!]): [Movie]
 }
 
-type Knows0 @relation(direction : OUT, from : "source", name : "KNOWS", to : "knows") {
+type Knows0 {
   id: ID!
-  json: DynamicProperties @dynamic(prefix : "prefix.")
+  json: DynamicProperties
   knows: Person0!
   source: Person0!
 }
 
-type Knows1 @relation(direction : OUT, from : "source", name : "KNOWS", to : "knows") {
+type Knows1 {
   id: ID!
   knows: Person0!
   source: Person0!
 }
 
-type Knows4 @relation(direction : OUT, from : "source", name : "KNOWS", to : "knows") {
+type Knows4 {
   _id: ID!
-  json: DynamicProperties @dynamic(prefix : "prefix.")
+  json: DynamicProperties
   knows: Person4!
   source: Person4!
 }
 
 type Movie {
   id: ID!
-  publishedBy: Publisher @relation(direction : OUT, from : "from", name : "PUBLISHED_BY", to : "to")
+  publishedBy: Publisher
 }
 
 type Mutation {
-  #Deletes Knows0 and returns the type itself
-  deleteKnows0(id: ID!): Knows0
-  mergeKnows0(id: ID!, json: DynamicProperties): Knows0!
-  updateKnows0(id: ID!, json: DynamicProperties): Knows0
-  #Deletes Knows1 and returns the type itself
-  deleteKnows1(id: ID!): Knows1
-
-  createKnows4(json: DynamicProperties, knows_id: ID!, source_id: ID!): Knows4!
-  #Deletes Knows4 and returns the type itself
-  deleteKnows4(_id: ID!): Knows4
-  mergeKnows4(_id: ID!, json: DynamicProperties): Knows4!
-  updateKnows4(_id: ID!, json: DynamicProperties): Knows4
-
-  createMovie(id: ID!): Movie!
-  #Deletes Movie and returns the type itself
-  deleteMovie(id: ID!): Movie
-
   addMoviePublishedBy(id: ID!, publishedBy: ID!): Movie!
-  deleteMoviePublishedBy(id: ID!, publishedBy: ID!): Movie
-
-  createPerson1(born: _Neo4jDateInput, name: String): Person1!
-
-  createPerson2(age: [Int], born: _Neo4jDateTimeInput, name: String): Person2!
-
-  createPerson3(born: _Neo4jLocalTimeInput, name: String!): Person3!
-
-  createPerson4(born: _Neo4jLocalDateTimeInput, id: ID!, name: String): Person4!
-  #Deletes Person4 and returns the type itself
-  deletePerson4(id: ID!): Person4
-  mergePerson4(born: _Neo4jLocalDateTimeInput, id: ID!, name: String): Person4!
-  updatePerson4(born: _Neo4jLocalDateTimeInput, id: ID!, name: String): Person4
-
-  createPerson5(id: ID!): Person5!
-  #Deletes Person5 and returns the type itself
-  deletePerson5(id: ID!): Person5
-
   addPerson5Movies(id: ID!, movies: [ID!]!): Person5!
-  deletePerson5Movies(id: ID!, movies: [ID!]!): Person5
-
+  createKnows4(json: DynamicProperties, knows_id: ID!, source_id: ID!): Knows4!
+  createMovie(id: ID!): Movie!
+  createPerson1(born: _Neo4jDateInput, name: String): Person1!
+  createPerson2(age: [Int], born: _Neo4jDateTimeInput, name: String): Person2!
+  createPerson3(born: _Neo4jLocalTimeInput, name: String!): Person3!
+  createPerson4(born: _Neo4jLocalDateTimeInput, id: ID!, name: String): Person4!
+  createPerson5(id: ID!): Person5!
   createPublisher(name: ID!): Publisher!
-  #Deletes Publisher and returns the type itself
+  "Deletes Knows0 and returns the type itself"
+  deleteKnows0(id: ID!): Knows0
+  "Deletes Knows1 and returns the type itself"
+  deleteKnows1(id: ID!): Knows1
+  "Deletes Knows4 and returns the type itself"
+  deleteKnows4(_id: ID!): Knows4
+  "Deletes Movie and returns the type itself"
+  deleteMovie(id: ID!): Movie
+  deleteMoviePublishedBy(id: ID!, publishedBy: ID!): Movie
+  "Deletes Person4 and returns the type itself"
+  deletePerson4(id: ID!): Person4
+  "Deletes Person5 and returns the type itself"
+  deletePerson5(id: ID!): Person5
+  deletePerson5Movies(id: ID!, movies: [ID!]!): Person5
+  "Deletes Publisher and returns the type itself"
   deletePublisher(name: ID!): Publisher
+  mergeKnows0(id: ID!, json: DynamicProperties): Knows0!
+  mergeKnows4(_id: ID!, json: DynamicProperties): Knows4!
+  mergePerson4(born: _Neo4jLocalDateTimeInput, id: ID!, name: String): Person4!
+  updateKnows0(id: ID!, json: DynamicProperties): Knows0
+  updateKnows4(_id: ID!, json: DynamicProperties): Knows4
+  updatePerson4(born: _Neo4jLocalDateTimeInput, id: ID!, name: String): Person4
 }
 
 type Person0 {
@@ -174,7 +164,7 @@ type Person4 {
 
 type Person5 implements HasMovies {
   id: ID!
-  movies(first: Int, offset: Int, orderBy: [_MovieOrdering!]): [Movie] @relation(direction : OUT, from : "from", name : "LIKES", to : "to")
+  movies(first: Int, offset: Int, orderBy: [_MovieOrdering!]): [Movie]
 }
 
 type Publisher {
@@ -230,38 +220,46 @@ type _Neo4jLocalTime {
 }
 
 type _Neo4jPoint {
-  # The coordinate reference systems (CRS)
-  # -------------------------------------
-  # posible values:
-  # * `wgs-84`: A 2D geographic point in the WGS 84 CRS is specified in one of two ways:
-  #   * longitude and latitude (if these are specified, and the crs is not, then the crs is assumed to be WGS-84)
-  #   * x and y (in this case the crs must be specified, or will be assumed to be Cartesian)
-  # * `wgs-84-3d`: A 3D geographic point in the WGS 84 CRS is specified one of in two ways:
-  #   * longitude, latitude and either height or z (if these are specified, and the crs is not, then the crs is assumed to be WGS-84-3D)
-  #   * x, y and z (in this case the crs must be specified, or will be assumed to be Cartesian-3D)
-  # * `cartesian`: A 2D point in the Cartesian CRS is specified with a map containing x and y coordinate values
-  # * `cartesian-3d`: A 3D point in the Cartesian CRS is specified with a map containing x, y and z coordinate values
+  """
+   The coordinate reference systems (CRS)
+   -------------------------------------
+   posible values:
+   * `wgs-84`: A 2D geographic point in the WGS 84 CRS is specified in one of two ways:
+     * longitude and latitude (if these are specified, and the crs is not, then the crs is assumed to be WGS-84)
+     * x and y (in this case the crs must be specified, or will be assumed to be Cartesian)
+   * `wgs-84-3d`: A 3D geographic point in the WGS 84 CRS is specified one of in two ways:
+     * longitude, latitude and either height or z (if these are specified, and the crs is not, then the crs is assumed to be WGS-84-3D)
+     * x, y and z (in this case the crs must be specified, or will be assumed to be Cartesian-3D)
+   * `cartesian`: A 2D point in the Cartesian CRS is specified with a map containing x and y coordinate values
+   * `cartesian-3d`: A 3D point in the Cartesian CRS is specified with a map containing x, y and z coordinate values
+  """
   crs: String
-  # The third element of the Coordinate for geographic CRS, meters above the ellipsoid defined by the datum (WGS-84)
+  " The third element of the Coordinate for geographic CRS, meters above the ellipsoid defined by the datum (WGS-84)"
   height: Float
-  # The second element of the Coordinate for geographic CRS, degrees North of the equator
-  # Range -90.0 to 90.0
+  """
+   The second element of the Coordinate for geographic CRS, degrees North of the equator
+   Range -90.0 to 90.0
+  """
   latitude: Float
-  # The first element of the Coordinate for geographic CRS, degrees East of the prime meridian
-  # Range -180.0 to 180.0
+  """
+   The first element of the Coordinate for geographic CRS, degrees East of the prime meridian
+   Range -180.0 to 180.0
+  """
   longitude: Float
-  # The internal Neo4j ID for the CRS
-  # One of:
-  # * `4326`: represents CRS `wgs-84`
-  # * `4979`: represents CRS `wgs-84-3d`
-  # * `7203`: represents CRS `cartesian`
-  # * `9157`: represents CRS `cartesian-3d`
+  """
+   The internal Neo4j ID for the CRS
+   One of:
+   * `4326`: represents CRS `wgs-84`
+   * `4979`: represents CRS `wgs-84-3d`
+   * `7203`: represents CRS `cartesian`
+   * `9157`: represents CRS `cartesian-3d`
+  """
   srid: Int
-  # The first element of the Coordinate
+  " The first element of the Coordinate"
   x: Float
-  # The second element of the Coordinate
+  " The second element of the Coordinate"
   y: Float
-  # The third element of the Coordinate
+  " The third element of the Coordinate"
   z: Float
 }
 
@@ -353,21 +351,6 @@ input _Neo4jPointInput {
   z: Float
 }
 
-input _Neo4jTimeInput {
-  formatted: String
-  hour: Int
-  microsecond: Int
-  millisecond: Int
-  minute: Int
-  nanosecond: Int
-  second: Int
-  timezone: String
-}
-
-directive @relation(name:String, direction: RelationDirection = OUT, from: String = "from", to: String = "to") on FIELD_DEFINITION | OBJECT
-directive @cypher(statement:String) on FIELD_DEFINITION
-directive @property(name:String) on FIELD_DEFINITION
-directive @dynamic(prefix:String = "properties.") on FIELD_DEFINITION
 ----
 
 === Disable Mutations
@@ -399,29 +382,29 @@ interface HasMovies {
   movies(filter: _MovieFilter, first: Int, offset: Int, orderBy: [_MovieOrdering!]): [Movie]
 }
 
-type Knows0 @relation(direction : OUT, from : "source", name : "KNOWS", to : "knows") {
+type Knows0 {
   id: ID!
-  json: DynamicProperties @dynamic(prefix : "prefix.")
+  json: DynamicProperties
   knows: Person0!
   source: Person0!
 }
 
-type Knows1 @relation(direction : OUT, from : "source", name : "KNOWS", to : "knows") {
+type Knows1 {
   id: ID!
   knows: Person0!
   source: Person0!
 }
 
-type Knows4 @relation(direction : OUT, from : "source", name : "KNOWS", to : "knows") {
+type Knows4 {
   _id: ID!
-  json: DynamicProperties @dynamic(prefix : "prefix.")
+  json: DynamicProperties
   knows: Person4!
   source: Person4!
 }
 
 type Movie {
   id: ID!
-  publishedBy: Publisher @relation(direction : OUT, from : "from", name : "PUBLISHED_BY", to : "to")
+  publishedBy: Publisher
 }
 
 type Person0 {
@@ -454,7 +437,7 @@ type Person4 {
 
 type Person5 implements HasMovies {
   id: ID!
-  movies(filter: _MovieFilter, first: Int, offset: Int, orderBy: [_MovieOrdering!]): [Movie] @relation(direction : OUT, from : "from", name : "LIKES", to : "to")
+  movies(filter: _MovieFilter, first: Int, offset: Int, orderBy: [_MovieOrdering!]): [Movie]
 }
 
 type Publisher {
@@ -462,6 +445,7 @@ type Publisher {
 }
 
 type Query {
+  PersonByLocation(first: Int, location: _Neo4jPointInput, offset: Int, orderBy: [_Person0Ordering!]): [Person0!]!
   hasMovies(filter: _HasMoviesFilter, first: Int, offset: Int): [HasMovies!]!
   knows0(filter: _Knows0Filter, first: Int, id: ID, offset: Int, orderBy: [_Knows0Ordering!]): [Knows0!]!
   knows1(filter: _Knows1Filter, first: Int, id: ID, offset: Int, orderBy: [_Knows1Ordering!]): [Knows1!]!
@@ -472,7 +456,6 @@ type Query {
   person3(born: _Neo4jLocalTimeInput, filter: _Person3Filter, first: Int, name: String, offset: Int, orderBy: [_Person3Ordering!]): [Person3!]!
   person4(born: _Neo4jLocalDateTimeInput, filter: _Person4Filter, first: Int, id: ID, name: String, offset: Int, orderBy: [_Person4Ordering!]): [Person4!]!
   person5(filter: _Person5Filter, first: Int, id: ID, offset: Int, orderBy: [_Person5Ordering!]): [Person5!]!
-  PersonByLocation(first: Int, location: _Neo4jPointInput, offset: Int, orderBy: [_Person0Ordering!]): [Person0!]!
   publisher(filter: _PublisherFilter, first: Int, name: ID, offset: Int, orderBy: [_PublisherOrdering!]): [Publisher!]!
 }
 
@@ -521,38 +504,46 @@ type _Neo4jLocalTime {
 }
 
 type _Neo4jPoint {
-  # The coordinate reference systems (CRS)
-  # -------------------------------------
-  # posible values:
-  # * `wgs-84`: A 2D geographic point in the WGS 84 CRS is specified in one of two ways:
-  #   * longitude and latitude (if these are specified, and the crs is not, then the crs is assumed to be WGS-84)
-  #   * x and y (in this case the crs must be specified, or will be assumed to be Cartesian)
-  # * `wgs-84-3d`: A 3D geographic point in the WGS 84 CRS is specified one of in two ways:
-  #   * longitude, latitude and either height or z (if these are specified, and the crs is not, then the crs is assumed to be WGS-84-3D)
-  #   * x, y and z (in this case the crs must be specified, or will be assumed to be Cartesian-3D)
-  # * `cartesian`: A 2D point in the Cartesian CRS is specified with a map containing x and y coordinate values
-  # * `cartesian-3d`: A 3D point in the Cartesian CRS is specified with a map containing x, y and z coordinate values
+  """
+   The coordinate reference systems (CRS)
+   -------------------------------------
+   posible values:
+   * `wgs-84`: A 2D geographic point in the WGS 84 CRS is specified in one of two ways:
+     * longitude and latitude (if these are specified, and the crs is not, then the crs is assumed to be WGS-84)
+     * x and y (in this case the crs must be specified, or will be assumed to be Cartesian)
+   * `wgs-84-3d`: A 3D geographic point in the WGS 84 CRS is specified one of in two ways:
+     * longitude, latitude and either height or z (if these are specified, and the crs is not, then the crs is assumed to be WGS-84-3D)
+     * x, y and z (in this case the crs must be specified, or will be assumed to be Cartesian-3D)
+   * `cartesian`: A 2D point in the Cartesian CRS is specified with a map containing x and y coordinate values
+   * `cartesian-3d`: A 3D point in the Cartesian CRS is specified with a map containing x, y and z coordinate values
+  """
   crs: String
-  # The third element of the Coordinate for geographic CRS, meters above the ellipsoid defined by the datum (WGS-84)
+  " The third element of the Coordinate for geographic CRS, meters above the ellipsoid defined by the datum (WGS-84)"
   height: Float
-  # The second element of the Coordinate for geographic CRS, degrees North of the equator
-  # Range -90.0 to 90.0
+  """
+   The second element of the Coordinate for geographic CRS, degrees North of the equator
+   Range -90.0 to 90.0
+  """
   latitude: Float
-  # The first element of the Coordinate for geographic CRS, degrees East of the prime meridian
-  # Range -180.0 to 180.0
+  """
+   The first element of the Coordinate for geographic CRS, degrees East of the prime meridian
+   Range -180.0 to 180.0
+  """
   longitude: Float
-  # The internal Neo4j ID for the CRS
-  # One of:
-  # * `4326`: represents CRS `wgs-84`
-  # * `4979`: represents CRS `wgs-84-3d`
-  # * `7203`: represents CRS `cartesian`
-  # * `9157`: represents CRS `cartesian-3d`
+  """
+   The internal Neo4j ID for the CRS
+   One of:
+   * `4326`: represents CRS `wgs-84`
+   * `4979`: represents CRS `wgs-84-3d`
+   * `7203`: represents CRS `cartesian`
+   * `9157`: represents CRS `cartesian-3d`
+  """
   srid: Int
-  # The first element of the Coordinate
+  " The first element of the Coordinate"
   x: Float
-  # The second element of the Coordinate
+  " The second element of the Coordinate"
   y: Float
-  # The third element of the Coordinate
+  " The third element of the Coordinate"
   z: Float
 }
 
@@ -674,46 +665,39 @@ input _Knows0Filter {
   OR: [_Knows0Filter!]
   id: ID
   id_contains: ID
-  id_matches: ID
   id_ends_with: ID
   id_gt: ID
   id_gte: ID
   id_in: [ID]
   id_lt: ID
   id_lte: ID
+  id_matches: ID
   id_not: ID
   id_not_contains: ID
   id_not_ends_with: ID
   id_not_in: [ID]
   id_not_starts_with: ID
   id_starts_with: ID
-
-  #Filters only those `Knows0` for which the `knows`-relationship matches this filter. If `null` is passed to this field, only those `Knows0` will be filtered which has no `knows`-relations
+  "Filters only those `Knows0` for which the `knows`-relationship matches this filter. If `null` is passed to this field, only those `Knows0` will be filtered which has no `knows`-relations"
   knows: _Person0Filter
-  #@deprecated Use the `knows_not`-field
+  "@deprecated Use the `knows_not`-field"
   knows_none: _Person0Filter
-  #Filters only those `Knows0` for which the `knows`-relationship does not match this filter. If `null` is passed to this field, only those `Knows0` will be filtered which has any `knows`-relation
+  "Filters only those `Knows0` for which the `knows`-relationship does not match this filter. If `null` is passed to this field, only those `Knows0` will be filtered which has any `knows`-relation"
   knows_not: _Person0Filter
-  #@deprecated Use the `knows`-field directly (without any suffix)
+  "@deprecated Use the `knows`-field directly (without any suffix)"
   knows_single: _Person0Filter
-  #@deprecated Use the `knows`-field directly (without any suffix)
+  "@deprecated Use the `knows`-field directly (without any suffix)"
   knows_some: _Person0Filter
-
-  #Filters only those `Knows0` for which the `source`-relationship matches this filter. If `null` is passed to this field, only those `Knows0` will be filtered which has no `source`-relations
+  "Filters only those `Knows0` for which the `source`-relationship matches this filter. If `null` is passed to this field, only those `Knows0` will be filtered which has no `source`-relations"
   source: _Person0Filter
-  #@deprecated Use the `source_not`-field
+  "@deprecated Use the `source_not`-field"
   source_none: _Person0Filter
-  #Filters only those `Knows0` for which the `source`-relationship does not match this filter. If `null` is passed to this field, only those `Knows0` will be filtered which has any `source`-relation
+  "Filters only those `Knows0` for which the `source`-relationship does not match this filter. If `null` is passed to this field, only those `Knows0` will be filtered which has any `source`-relation"
   source_not: _Person0Filter
-  #@deprecated Use the `source`-field directly (without any suffix)
+  "@deprecated Use the `source`-field directly (without any suffix)"
   source_single: _Person0Filter
-  #@deprecated Use the `source`-field directly (without any suffix)
+  "@deprecated Use the `source`-field directly (without any suffix)"
   source_some: _Person0Filter
-}
-
-input _Knows0Input {
-  id: ID
-  json: DynamicProperties
 }
 
 input _Knows1Filter {
@@ -722,45 +706,39 @@ input _Knows1Filter {
   OR: [_Knows1Filter!]
   id: ID
   id_contains: ID
-  id_matches: ID
   id_ends_with: ID
   id_gt: ID
   id_gte: ID
   id_in: [ID]
   id_lt: ID
   id_lte: ID
+  id_matches: ID
   id_not: ID
   id_not_contains: ID
   id_not_ends_with: ID
   id_not_in: [ID]
   id_not_starts_with: ID
   id_starts_with: ID
-
-  #Filters only those `Knows1` for which the `knows`-relationship matches this filter. If `null` is passed to this field, only those `Knows1` will be filtered which has no `knows`-relations
+  "Filters only those `Knows1` for which the `knows`-relationship matches this filter. If `null` is passed to this field, only those `Knows1` will be filtered which has no `knows`-relations"
   knows: _Person0Filter
-  #@deprecated Use the `knows_not`-field
+  "@deprecated Use the `knows_not`-field"
   knows_none: _Person0Filter
-  #Filters only those `Knows1` for which the `knows`-relationship does not match this filter. If `null` is passed to this field, only those `Knows1` will be filtered which has any `knows`-relation
+  "Filters only those `Knows1` for which the `knows`-relationship does not match this filter. If `null` is passed to this field, only those `Knows1` will be filtered which has any `knows`-relation"
   knows_not: _Person0Filter
-  #@deprecated Use the `knows`-field directly (without any suffix)
+  "@deprecated Use the `knows`-field directly (without any suffix)"
   knows_single: _Person0Filter
-  #@deprecated Use the `knows`-field directly (without any suffix)
+  "@deprecated Use the `knows`-field directly (without any suffix)"
   knows_some: _Person0Filter
-
-  #Filters only those `Knows1` for which the `source`-relationship matches this filter. If `null` is passed to this field, only those `Knows1` will be filtered which has no `source`-relations
+  "Filters only those `Knows1` for which the `source`-relationship matches this filter. If `null` is passed to this field, only those `Knows1` will be filtered which has no `source`-relations"
   source: _Person0Filter
-  #@deprecated Use the `source_not`-field
+  "@deprecated Use the `source_not`-field"
   source_none: _Person0Filter
-  #Filters only those `Knows1` for which the `source`-relationship does not match this filter. If `null` is passed to this field, only those `Knows1` will be filtered which has any `source`-relation
+  "Filters only those `Knows1` for which the `source`-relationship does not match this filter. If `null` is passed to this field, only those `Knows1` will be filtered which has any `source`-relation"
   source_not: _Person0Filter
-  #@deprecated Use the `source`-field directly (without any suffix)
+  "@deprecated Use the `source`-field directly (without any suffix)"
   source_single: _Person0Filter
-  #@deprecated Use the `source`-field directly (without any suffix)
+  "@deprecated Use the `source`-field directly (without any suffix)"
   source_some: _Person0Filter
-}
-
-input _Knows1Input {
-  id: ID
 }
 
 input _Knows4Filter {
@@ -769,46 +747,39 @@ input _Knows4Filter {
   OR: [_Knows4Filter!]
   _id: ID
   _id_contains: ID
-  _id_matches: ID
   _id_ends_with: ID
   _id_gt: ID
   _id_gte: ID
   _id_in: [ID]
   _id_lt: ID
   _id_lte: ID
+  _id_matches: ID
   _id_not: ID
   _id_not_contains: ID
   _id_not_ends_with: ID
   _id_not_in: [ID]
   _id_not_starts_with: ID
   _id_starts_with: ID
-
-  #Filters only those `Knows4` for which the `knows`-relationship matches this filter. If `null` is passed to this field, only those `Knows4` will be filtered which has no `knows`-relations
+  "Filters only those `Knows4` for which the `knows`-relationship matches this filter. If `null` is passed to this field, only those `Knows4` will be filtered which has no `knows`-relations"
   knows: _Person4Filter
-  #@deprecated Use the `knows_not`-field
+  "@deprecated Use the `knows_not`-field"
   knows_none: _Person4Filter
-  #Filters only those `Knows4` for which the `knows`-relationship does not match this filter. If `null` is passed to this field, only those `Knows4` will be filtered which has any `knows`-relation
+  "Filters only those `Knows4` for which the `knows`-relationship does not match this filter. If `null` is passed to this field, only those `Knows4` will be filtered which has any `knows`-relation"
   knows_not: _Person4Filter
-  #@deprecated Use the `knows`-field directly (without any suffix)
+  "@deprecated Use the `knows`-field directly (without any suffix)"
   knows_single: _Person4Filter
-  #@deprecated Use the `knows`-field directly (without any suffix)
+  "@deprecated Use the `knows`-field directly (without any suffix)"
   knows_some: _Person4Filter
-
-  #Filters only those `Knows4` for which the `source`-relationship matches this filter. If `null` is passed to this field, only those `Knows4` will be filtered which has no `source`-relations
+  "Filters only those `Knows4` for which the `source`-relationship matches this filter. If `null` is passed to this field, only those `Knows4` will be filtered which has no `source`-relations"
   source: _Person4Filter
-  #@deprecated Use the `source_not`-field
+  "@deprecated Use the `source_not`-field"
   source_none: _Person4Filter
-  #Filters only those `Knows4` for which the `source`-relationship does not match this filter. If `null` is passed to this field, only those `Knows4` will be filtered which has any `source`-relation
+  "Filters only those `Knows4` for which the `source`-relationship does not match this filter. If `null` is passed to this field, only those `Knows4` will be filtered which has any `source`-relation"
   source_not: _Person4Filter
-  #@deprecated Use the `source`-field directly (without any suffix)
+  "@deprecated Use the `source`-field directly (without any suffix)"
   source_single: _Person4Filter
-  #@deprecated Use the `source`-field directly (without any suffix)
+  "@deprecated Use the `source`-field directly (without any suffix)"
   source_some: _Person4Filter
-}
-
-input _Knows4Input {
-  _id: ID
-  json: DynamicProperties
 }
 
 input _MovieFilter {
@@ -817,34 +788,29 @@ input _MovieFilter {
   OR: [_MovieFilter!]
   id: ID
   id_contains: ID
-  id_matches: ID
   id_ends_with: ID
   id_gt: ID
   id_gte: ID
   id_in: [ID]
   id_lt: ID
   id_lte: ID
+  id_matches: ID
   id_not: ID
   id_not_contains: ID
   id_not_ends_with: ID
   id_not_in: [ID]
   id_not_starts_with: ID
   id_starts_with: ID
-
-  #Filters only those `Movie` for which the `publishedBy`-relationship matches this filter. If `null` is passed to this field, only those `Movie` will be filtered which has no `publishedBy`-relations
+  "Filters only those `Movie` for which the `publishedBy`-relationship matches this filter. If `null` is passed to this field, only those `Movie` will be filtered which has no `publishedBy`-relations"
   publishedBy: _PublisherFilter
-  #@deprecated Use the `publishedBy_not`-field
+  "@deprecated Use the `publishedBy_not`-field"
   publishedBy_none: _PublisherFilter
-  #Filters only those `Movie` for which the `publishedBy`-relationship does not match this filter. If `null` is passed to this field, only those `Movie` will be filtered which has any `publishedBy`-relation
+  "Filters only those `Movie` for which the `publishedBy`-relationship does not match this filter. If `null` is passed to this field, only those `Movie` will be filtered which has any `publishedBy`-relation"
   publishedBy_not: _PublisherFilter
-  #@deprecated Use the `publishedBy`-field directly (without any suffix)
+  "@deprecated Use the `publishedBy`-field directly (without any suffix)"
   publishedBy_single: _PublisherFilter
-  #@deprecated Use the `publishedBy`-field directly (without any suffix)
+  "@deprecated Use the `publishedBy`-field directly (without any suffix)"
   publishedBy_some: _PublisherFilter
-}
-
-input _MovieInput {
-  id: ID
 }
 
 input _Neo4jDateInput {
@@ -935,13 +901,13 @@ input _Person0Filter {
   location_not: _Neo4jPointInput
   name: String
   name_contains: String
-  name_matches: String
   name_ends_with: String
   name_gt: String
   name_gte: String
   name_in: [String]
   name_lt: String
   name_lte: String
+  name_matches: String
   name_not: String
   name_not_contains: String
   name_not_ends_with: String
@@ -960,24 +926,19 @@ input _Person1Filter {
   born_not_in: [_Neo4jDateInput]
   name: String
   name_contains: String
-  name_matches: String
   name_ends_with: String
   name_gt: String
   name_gte: String
   name_in: [String]
   name_lt: String
   name_lte: String
+  name_matches: String
   name_not: String
   name_not_contains: String
   name_not_ends_with: String
   name_not_in: [String]
   name_not_starts_with: String
   name_starts_with: String
-}
-
-input _Person1Input {
-  born: _Neo4jDateInput
-  name: String
 }
 
 input _Person2Filter {
@@ -998,25 +959,19 @@ input _Person2Filter {
   born_not_in: [_Neo4jDateTimeInput]
   name: String
   name_contains: String
-  name_matches: String
   name_ends_with: String
   name_gt: String
   name_gte: String
   name_in: [String]
   name_lt: String
   name_lte: String
+  name_matches: String
   name_not: String
   name_not_contains: String
   name_not_ends_with: String
   name_not_in: [String]
   name_not_starts_with: String
   name_starts_with: String
-}
-
-input _Person2Input {
-  age: [Int]
-  born: _Neo4jDateTimeInput
-  name: String
 }
 
 input _Person3Filter {
@@ -1029,24 +984,19 @@ input _Person3Filter {
   born_not_in: [_Neo4jLocalTimeInput]
   name: String
   name_contains: String
-  name_matches: String
   name_ends_with: String
   name_gt: String
   name_gte: String
   name_in: [String]
   name_lt: String
   name_lte: String
+  name_matches: String
   name_not: String
   name_not_contains: String
   name_not_ends_with: String
   name_not_in: [String]
   name_not_starts_with: String
   name_starts_with: String
-}
-
-input _Person3Input {
-  born: _Neo4jLocalTimeInput
-  name: String
 }
 
 input _Person4Filter {
@@ -1059,13 +1009,13 @@ input _Person4Filter {
   born_not_in: [_Neo4jLocalDateTimeInput]
   id: ID
   id_contains: ID
-  id_matches: ID
   id_ends_with: ID
   id_gt: ID
   id_gte: ID
   id_in: [ID]
   id_lt: ID
   id_lte: ID
+  id_matches: ID
   id_not: ID
   id_not_contains: ID
   id_not_ends_with: ID
@@ -1074,13 +1024,13 @@ input _Person4Filter {
   id_starts_with: ID
   name: String
   name_contains: String
-  name_matches: String
   name_ends_with: String
   name_gt: String
   name_gte: String
   name_in: [String]
   name_lt: String
   name_lte: String
+  name_matches: String
   name_not: String
   name_not_contains: String
   name_not_ends_with: String
@@ -1089,47 +1039,37 @@ input _Person4Filter {
   name_starts_with: String
 }
 
-input _Person4Input {
-  born: _Neo4jLocalDateTimeInput
-  id: ID
-  name: String
-}
-
 input _Person5Filter {
   AND: [_Person5Filter!]
   NOT: [_Person5Filter!]
   OR: [_Person5Filter!]
   id: ID
   id_contains: ID
-  id_matches: ID
   id_ends_with: ID
   id_gt: ID
   id_gte: ID
   id_in: [ID]
   id_lt: ID
   id_lte: ID
+  id_matches: ID
   id_not: ID
   id_not_contains: ID
   id_not_ends_with: ID
   id_not_in: [ID]
   id_not_starts_with: ID
   id_starts_with: ID
-  #Filters only those `Person5` for which all `movies`-relationship matches this filter. If `null` is passed to this field, only those `Person5` will be filtered which has no `movies`-relations
+  "Filters only those `Person5` for which all `movies`-relationship matches this filter. If `null` is passed to this field, only those `Person5` will be filtered which has no `movies`-relations"
   movies: _MovieFilter
-  #Filters only those `Person5` for which all `movies`-relationships matches this filter
+  "Filters only those `Person5` for which all `movies`-relationships matches this filter"
   movies_every: _MovieFilter
-  #Filters only those `Person5` for which none of the `movies`-relationships matches this filter
+  "Filters only those `Person5` for which none of the `movies`-relationships matches this filter"
   movies_none: _MovieFilter
-  #Filters only those `Person5` for which all `movies`-relationship does not match this filter. If `null` is passed to this field, only those `Person5` will be filtered which has any `movies`-relation
+  "Filters only those `Person5` for which all `movies`-relationship does not match this filter. If `null` is passed to this field, only those `Person5` will be filtered which has any `movies`-relation"
   movies_not: _MovieFilter
-  #Filters only those `Person5` for which exactly one `movies`-relationship matches this filter
+  "Filters only those `Person5` for which exactly one `movies`-relationship matches this filter"
   movies_single: _MovieFilter
-  #Filters only those `Person5` for which at least one `movies`-relationship matches this filter
+  "Filters only those `Person5` for which at least one `movies`-relationship matches this filter"
   movies_some: _MovieFilter
-}
-
-input _Person5Input {
-  id: ID
 }
 
 input _PublisherFilter {
@@ -1138,13 +1078,13 @@ input _PublisherFilter {
   OR: [_PublisherFilter!]
   name: ID
   name_contains: ID
-  name_matches: ID
   name_ends_with: ID
   name_gt: ID
   name_gte: ID
   name_in: [ID]
   name_lt: ID
   name_lte: ID
+  name_matches: ID
   name_not: ID
   name_not_contains: ID
   name_not_ends_with: ID
@@ -1153,14 +1093,6 @@ input _PublisherFilter {
   name_starts_with: ID
 }
 
-input _PublisherInput {
-  name: ID
-}
-
-directive @relation(name:String, direction: RelationDirection = OUT, from: String = "from", to: String = "to") on FIELD_DEFINITION | OBJECT
-directive @cypher(statement:String) on FIELD_DEFINITION
-directive @property(name:String) on FIELD_DEFINITION
-directive @dynamic(prefix:String = "properties.") on FIELD_DEFINITION
 ----
 
 === Filter on Relation Mutations
@@ -1197,62 +1129,56 @@ interface HasMovies {
   movies(first: Int, offset: Int, orderBy: [_MovieOrdering!]): [Movie]
 }
 
-type Knows0 @relation(direction : OUT, from : "source", name : "KNOWS", to : "knows") {
+type Knows0 {
   id: ID!
-  json: DynamicProperties @dynamic(prefix : "prefix.")
+  json: DynamicProperties
   knows: Person0!
   source: Person0!
 }
 
-type Knows1 @relation(direction : OUT, from : "source", name : "KNOWS", to : "knows") {
+type Knows1 {
   id: ID!
   knows: Person0!
   source: Person0!
 }
 
-type Knows4 @relation(direction : OUT, from : "source", name : "KNOWS", to : "knows") {
+type Knows4 {
   _id: ID!
-  json: DynamicProperties @dynamic(prefix : "prefix.")
+  json: DynamicProperties
   knows: Person4!
   source: Person4!
 }
 
 type Movie {
   id: ID!
-  publishedBy: Publisher @relation(direction : OUT, from : "from", name : "PUBLISHED_BY", to : "to")
+  publishedBy: Publisher
 }
 
 type Mutation {
-  #Deletes Knows0 and returns the type itself
-  deleteKnows0(id: ID!): Knows0
-  mergeKnows0(id: ID!, json: DynamicProperties): Knows0!
-  updateKnows0(id: ID!, json: DynamicProperties): Knows0
-  #Deletes Knows1 and returns the type itself
-  deleteKnows1(id: ID!): Knows1
-
-  createKnows4(json: DynamicProperties, knows_id: ID!, source_id: ID!): Knows4!
-  #Deletes Knows4 and returns the type itself
-  deleteKnows4(_id: ID!): Knows4
-  mergeKnows4(_id: ID!, json: DynamicProperties): Knows4!
-  updateKnows4(_id: ID!, json: DynamicProperties): Knows4
-
-  createMovie(id: ID!): Movie!
-  #Deletes Movie and returns the type itself
-  deleteMovie(id: ID!): Movie
-
   addMoviePublishedBy(id: ID!, publishedBy: ID!): Movie!
-  deleteMoviePublishedBy(id: ID!, publishedBy: ID!): Movie
-
-  createPerson5(id: ID!): Person5!
-  #Deletes Person5 and returns the type itself
-  deletePerson5(id: ID!): Person5
-
   addPerson5Movies(id: ID!, movies: [ID!]!): Person5!
-  deletePerson5Movies(id: ID!, movies: [ID!]!): Person5
-
+  createKnows4(json: DynamicProperties, knows_id: ID!, source_id: ID!): Knows4!
+  createMovie(id: ID!): Movie!
+  createPerson5(id: ID!): Person5!
   createPublisher(name: ID!): Publisher!
-  #Deletes Publisher and returns the type itself
+  "Deletes Knows0 and returns the type itself"
+  deleteKnows0(id: ID!): Knows0
+  "Deletes Knows1 and returns the type itself"
+  deleteKnows1(id: ID!): Knows1
+  "Deletes Knows4 and returns the type itself"
+  deleteKnows4(_id: ID!): Knows4
+  "Deletes Movie and returns the type itself"
+  deleteMovie(id: ID!): Movie
+  deleteMoviePublishedBy(id: ID!, publishedBy: ID!): Movie
+  "Deletes Person5 and returns the type itself"
+  deletePerson5(id: ID!): Person5
+  deletePerson5Movies(id: ID!, movies: [ID!]!): Person5
+  "Deletes Publisher and returns the type itself"
   deletePublisher(name: ID!): Publisher
+  mergeKnows0(id: ID!, json: DynamicProperties): Knows0!
+  mergeKnows4(_id: ID!, json: DynamicProperties): Knows4!
+  updateKnows0(id: ID!, json: DynamicProperties): Knows0
+  updateKnows4(_id: ID!, json: DynamicProperties): Knows4
 }
 
 type Person0 {
@@ -1285,7 +1211,7 @@ type Person4 {
 
 type Person5 implements HasMovies {
   id: ID!
-  movies(first: Int, offset: Int, orderBy: [_MovieOrdering!]): [Movie] @relation(direction : OUT, from : "from", name : "LIKES", to : "to")
+  movies(first: Int, offset: Int, orderBy: [_MovieOrdering!]): [Movie]
 }
 
 type Publisher {
@@ -1341,38 +1267,46 @@ type _Neo4jLocalTime {
 }
 
 type _Neo4jPoint {
-  # The coordinate reference systems (CRS)
-  # -------------------------------------
-  # posible values:
-  # * `wgs-84`: A 2D geographic point in the WGS 84 CRS is specified in one of two ways:
-  #   * longitude and latitude (if these are specified, and the crs is not, then the crs is assumed to be WGS-84)
-  #   * x and y (in this case the crs must be specified, or will be assumed to be Cartesian)
-  # * `wgs-84-3d`: A 3D geographic point in the WGS 84 CRS is specified one of in two ways:
-  #   * longitude, latitude and either height or z (if these are specified, and the crs is not, then the crs is assumed to be WGS-84-3D)
-  #   * x, y and z (in this case the crs must be specified, or will be assumed to be Cartesian-3D)
-  # * `cartesian`: A 2D point in the Cartesian CRS is specified with a map containing x and y coordinate values
-  # * `cartesian-3d`: A 3D point in the Cartesian CRS is specified with a map containing x, y and z coordinate values
+  """
+   The coordinate reference systems (CRS)
+   -------------------------------------
+   posible values:
+   * `wgs-84`: A 2D geographic point in the WGS 84 CRS is specified in one of two ways:
+     * longitude and latitude (if these are specified, and the crs is not, then the crs is assumed to be WGS-84)
+     * x and y (in this case the crs must be specified, or will be assumed to be Cartesian)
+   * `wgs-84-3d`: A 3D geographic point in the WGS 84 CRS is specified one of in two ways:
+     * longitude, latitude and either height or z (if these are specified, and the crs is not, then the crs is assumed to be WGS-84-3D)
+     * x, y and z (in this case the crs must be specified, or will be assumed to be Cartesian-3D)
+   * `cartesian`: A 2D point in the Cartesian CRS is specified with a map containing x and y coordinate values
+   * `cartesian-3d`: A 3D point in the Cartesian CRS is specified with a map containing x, y and z coordinate values
+  """
   crs: String
-  # The third element of the Coordinate for geographic CRS, meters above the ellipsoid defined by the datum (WGS-84)
+  " The third element of the Coordinate for geographic CRS, meters above the ellipsoid defined by the datum (WGS-84)"
   height: Float
-  # The second element of the Coordinate for geographic CRS, degrees North of the equator
-  # Range -90.0 to 90.0
+  """
+   The second element of the Coordinate for geographic CRS, degrees North of the equator
+   Range -90.0 to 90.0
+  """
   latitude: Float
-  # The first element of the Coordinate for geographic CRS, degrees East of the prime meridian
-  # Range -180.0 to 180.0
+  """
+   The first element of the Coordinate for geographic CRS, degrees East of the prime meridian
+   Range -180.0 to 180.0
+  """
   longitude: Float
-  # The internal Neo4j ID for the CRS
-  # One of:
-  # * `4326`: represents CRS `wgs-84`
-  # * `4979`: represents CRS `wgs-84-3d`
-  # * `7203`: represents CRS `cartesian`
-  # * `9157`: represents CRS `cartesian-3d`
+  """
+   The internal Neo4j ID for the CRS
+   One of:
+   * `4326`: represents CRS `wgs-84`
+   * `4979`: represents CRS `wgs-84-3d`
+   * `7203`: represents CRS `cartesian`
+   * `9157`: represents CRS `cartesian-3d`
+  """
   srid: Int
-  # The first element of the Coordinate
+  " The first element of the Coordinate"
   x: Float
-  # The second element of the Coordinate
+  " The second element of the Coordinate"
   y: Float
-  # The third element of the Coordinate
+  " The third element of the Coordinate"
   z: Float
 }
 
@@ -1409,50 +1343,6 @@ enum _Person0Ordering {
 
 scalar DynamicProperties
 
-input _Neo4jDateInput {
-  day: Int
-  formatted: String
-  month: Int
-  year: Int
-}
-
-input _Neo4jDateTimeInput {
-  day: Int
-  formatted: String
-  hour: Int
-  microsecond: Int
-  millisecond: Int
-  minute: Int
-  month: Int
-  nanosecond: Int
-  second: Int
-  timezone: String
-  year: Int
-}
-
-input _Neo4jLocalDateTimeInput {
-  day: Int
-  formatted: String
-  hour: Int
-  microsecond: Int
-  millisecond: Int
-  minute: Int
-  month: Int
-  nanosecond: Int
-  second: Int
-  year: Int
-}
-
-input _Neo4jLocalTimeInput {
-  formatted: String
-  hour: Int
-  microsecond: Int
-  millisecond: Int
-  minute: Int
-  nanosecond: Int
-  second: Int
-}
-
 input _Neo4jPointInput {
   crs: String
   height: Float
@@ -1464,19 +1354,4 @@ input _Neo4jPointInput {
   z: Float
 }
 
-input _Neo4jTimeInput {
-  formatted: String
-  hour: Int
-  microsecond: Int
-  millisecond: Int
-  minute: Int
-  nanosecond: Int
-  second: Int
-  timezone: String
-}
-
-directive @relation(name:String, direction: RelationDirection = OUT, from: String = "from", to: String = "to") on FIELD_DEFINITION | OBJECT
-directive @cypher(statement:String) on FIELD_DEFINITION
-directive @property(name:String) on FIELD_DEFINITION
-directive @dynamic(prefix:String = "properties.") on FIELD_DEFINITION
 ----

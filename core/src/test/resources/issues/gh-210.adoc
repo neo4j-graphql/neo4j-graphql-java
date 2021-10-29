@@ -1,0 +1,67 @@
+:toc:
+
+= Github Issue #210: Nested filters are not working
+
+== Schema
+
+[source,graphql,schema=true]
+----
+interface Period {
+   id: String!
+   value: Int!
+   in: [Period] @relation(name: "IN_PERIOD", direction: OUT)
+}
+
+type Week implements Period {
+   id: String!
+   value: Int!
+   in: [Period] @relation(name: "IN_PERIOD", direction: OUT)
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+  "capitalizeQueryFields": true
+}
+----
+
+== Test
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+   Week(
+    filter: {
+      in: { value:2020 }
+    }
+  )
+  {
+    id
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterWeekPeriodValue" : 2020
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (week:Week)
+WHERE all(filterWeekPeriodCond IN [(week)-[:IN_PERIOD]->(filterWeekPeriod:Period) | filterWeekPeriod.value = $filterWeekPeriodValue]
+WHERE filterWeekPeriodCond)
+RETURN week {
+	.id
+} AS Week
+----
+

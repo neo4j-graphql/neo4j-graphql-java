@@ -25,7 +25,7 @@ With This in place you can
 ```graphql
 query{
   other
-  movie (first: 3){
+  movies (options: {limit: 3}){
     title
     bar
     javaData {
@@ -34,3 +34,7 @@ query{
   }
 }
 ```
+
+=== What's next
+
+Take a look into the link:src/test/kotlin/org/neo4j/graphql/examples/dgsspringboot/datafetcher/AdditionalDataFetcherTest.kt[Test-Case] to see, how the generated POJOs of your augmented schema can be used to request data
