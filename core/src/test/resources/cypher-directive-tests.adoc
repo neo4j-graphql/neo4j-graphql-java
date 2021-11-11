@@ -9,14 +9,14 @@
 type Person {
   id: ID
   name: String @cypher(statement:"RETURN this.name")
-  age(mult:Int=13) : [Int] @cypher(statement:"RETURN this.age * mult as age")
+  age(mult:Int=13) : [Int] @cypher(statement:"RETURN this.age * mult")
   friends: [Person] @cypher(statement:"MATCH (this)-[:KNOWS]-(o) RETURN o")
   data: UserData @cypher(statement: "MATCH (this)-[:CREATED_MAP]->(m:Map) WITH collect({id: m.id, name: m.name}) AS mapsCreated, this RETURN {firstName: this.firstName, lastName: this.lastName, organization: this.organization, mapsCreated: mapsCreated}", passThrough:true)
 }
 type Query {
   person : [Person]
   p2: [Person] @cypher(statement:"MATCH (p:Person) RETURN p")
-  p3(name:String): Person @cypher(statement:"MATCH (p:Person) WHERE p.name = name RETURN p LIMIT 1")
+  p3(name:String): Person @cypher(statement:"MATCH (p:Person) WHERE p.name = name RETURN p")
   getUser(userId: ID): UserData @cypher(statement: "MATCH (u:User{id: {userId}})-[:CREATED_MAP]->(m:Map) WITH collect({id: m.id, name: m.name}) AS mapsCreated, u RETURN {firstName: u.firstName, lastName: u.lastName, organization: u.organization, mapsCreated: mapsCreated}", passThrough:true)
 }
 type Mutation {
@@ -61,8 +61,15 @@ schema {
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person) 
-RETURN person { name:apoc.cypher.runFirstColumnSingle('WITH $this AS this RETURN this.name', { this:person }) } AS person
+MATCH (person:Person)
+CALL {
+	WITH person
+	WITH person AS this
+	RETURN this.name AS personName LIMIT 1
+}
+RETURN person {
+	name: personName
+} AS person
 ----
 
 === render cypher query directive params args
@@ -88,7 +95,13 @@ query($pname:String) { p3(name:$pname) { id }}
 .Cypher
 [source,cypher]
 ----
-UNWIND apoc.cypher.runFirstColumnSingle('WITH $name AS name MATCH (p:Person) WHERE p.name = name RETURN p LIMIT 1', { name:$pname }) AS p3 RETURN p3 { .id } AS p3
+CALL {
+	WITH $pname AS name
+	MATCH (p:Person) WHERE p.name = name RETURN p AS p3 LIMIT 1
+}
+RETURN p3 {
+	.id
+} AS p3
 ----
 
 === render cypher field directive with params defaults
@@ -117,11 +130,17 @@ UNWIND apoc.cypher.runFirstColumnSingle('WITH $name AS name MATCH (p:Person) WHE
 [source,cypher]
 ----
 MATCH (person:Person)
+CALL {
+	WITH person
+	CALL {
+		WITH person
+		WITH $personAgeMult AS mult, person AS this
+		RETURN this.age * mult AS personAge
+	}
+	RETURN collect(personAge) AS personAge
+}
 RETURN person {
-	age: apoc.cypher.runFirstColumnMany('WITH $this AS this, $mult AS mult RETURN this.age * mult as age',  {
-		this: person,
-		mult: $personAgeMult
-	})
+	age: personAge
 } AS person
 ----
 
@@ -148,7 +167,12 @@ RETURN person {
 .Cypher
 [source,cypher]
 ----
-UNWIND apoc.cypher.runFirstColumnMany('MATCH (p:Person) RETURN p', { }) AS p2 RETURN p2 { .id } AS p2
+CALL {
+	MATCH (p:Person) RETURN p AS p2
+}
+RETURN p2 {
+	.id
+} AS p2
 ----
 
 === render cypher mutation directive
@@ -176,10 +200,10 @@ mutation { person: createPerson(name:"Joe") { id }}
 .Cypher
 [source,cypher]
 ----
-CALL apoc.cypher.doIt('WITH $name AS name CREATE (p:Person) SET p.name = name RETURN p',  {
-	name: $personName
-}) YIELD value
-WITH value[head(keys(value))] AS person
+CALL {
+	WITH $personName AS name
+	CREATE (p:Person) SET p.name = name RETURN p AS person LIMIT 1
+}
 RETURN person {
 	.id
 } AS person
@@ -211,11 +235,17 @@ RETURN person {
 [source,cypher]
 ----
 MATCH (person:Person)
+CALL {
+	WITH person
+	CALL {
+		WITH person
+		WITH $personAgeMult AS mult, person AS this
+		RETURN this.age * mult AS personAge
+	}
+	RETURN collect(personAge) AS personAge
+}
 RETURN person {
-	age: apoc.cypher.runFirstColumnMany('WITH $this AS this, $mult AS mult RETURN this.age * mult as age',  {
-		this: person,
-		mult: $personAgeMult
-	})
+	age: personAge
 } AS person
 ----
 
@@ -243,8 +273,20 @@ RETURN person {
 [source,cypher]
 ----
 MATCH (person:Person)
-RETURN person { friends:[personFriends IN
-  apoc.cypher.runFirstColumnMany('WITH $this AS this  MATCH (this)-[:KNOWS]-(o) RETURN o', { this:person }) | personFriends { .id }] } AS person
+CALL {
+	WITH person
+	CALL {
+		WITH person
+		WITH person AS this
+		MATCH (this)-[:KNOWS]-(o) RETURN o AS personFriends
+	}
+	RETURN collect(personFriends {
+		.id
+	}) AS personFriends
+}
+RETURN person {
+	friends: personFriends
+} AS person
 ----
 
 === render cypher query directive params
@@ -272,9 +314,10 @@ RETURN person { friends:[personFriends IN
 .Cypher
 [source,cypher]
 ----
-UNWIND apoc.cypher.runFirstColumnSingle('WITH $name AS name MATCH (p:Person) WHERE p.name = name RETURN p LIMIT 1',  {
-	name: $p3Name
-}) AS p3
+CALL {
+	WITH $p3Name AS name
+	MATCH (p:Person) WHERE p.name = name RETURN p AS p3 LIMIT 1
+}
 RETURN p3 {
 	.id
 } AS p3
@@ -303,7 +346,15 @@ RETURN p3 {
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person) RETURN person { name:apoc.cypher.runFirstColumnSingle('WITH $this AS this RETURN this.name', { this:person }) } AS person
+MATCH (person:Person)
+CALL {
+	WITH person
+	WITH person AS this
+	RETURN this.name AS personName LIMIT 1
+}
+RETURN person {
+	name: personName
+} AS person
 ----
 
 === pass through directives' result in query
@@ -336,9 +387,10 @@ query queriesRootQuery {
 .Cypher
 [source,cypher]
 ----
-UNWIND apoc.cypher.runFirstColumnSingle('WITH $userId AS userId MATCH (u:User{id: {userId}})-[:CREATED_MAP]->(m:Map) WITH collect({id: m.id, name: m.name}) AS mapsCreated, u RETURN {firstName: u.firstName, lastName: u.lastName, organization: u.organization, mapsCreated: mapsCreated}',  {
-	userId: $userUserId
-}) AS user
+CALL {
+	WITH $userUserId AS userId
+	MATCH (u:User{id: {userId}})-[:CREATED_MAP]->(m:Map) WITH collect({id: m.id, name: m.name}) AS mapsCreated, u RETURN {firstName: u.firstName, lastName: u.lastName, organization: u.organization, mapsCreated: mapsCreated} AS user LIMIT 1
+}
 RETURN user AS user
 ----
 
@@ -369,10 +421,13 @@ query queriesRootQuery {
 [source,cypher]
 ----
 MATCH (person:Person)
+CALL {
+	WITH person
+	WITH person AS this
+	MATCH (this)-[:CREATED_MAP]->(m:Map) WITH collect({id: m.id, name: m.name}) AS mapsCreated, this RETURN {firstName: this.firstName, lastName: this.lastName, organization: this.organization, mapsCreated: mapsCreated} AS personData LIMIT 1
+}
 RETURN person {
 	.id,
-	data: apoc.cypher.runFirstColumnSingle('WITH $this AS this MATCH (this)-[:CREATED_MAP]->(m:Map) WITH collect({id: m.id, name: m.name}) AS mapsCreated, this RETURN {firstName: this.firstName, lastName: this.lastName, organization: this.organization, mapsCreated: mapsCreated}',  {
-		this: person
-	})
+	data: personData
 } AS person
 ----

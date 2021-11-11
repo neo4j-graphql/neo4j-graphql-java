@@ -163,7 +163,7 @@ MATCH (movieById:Movie)
 WHERE movieById.movieId = $movieByIdMovieId
 RETURN movieById {
 	.title
-} AS MovieById
+} AS MovieById LIMIT 1
 ----
 
 === Basic Query with Parameter
@@ -254,12 +254,17 @@ RETURN movie {
 ----
 MATCH (movieById:Movie)
 WHERE movieById.movieId = $movieByIdMovieId
+CALL {
+	WITH movieById
+	OPTIONAL MATCH (movieById)-[:FILMED_IN]->(movieByIdFilmedIn:State)
+	RETURN movieByIdFilmedIn {
+		.name
+	} AS movieByIdFilmedIn LIMIT 1
+}
 RETURN movieById {
 	.title,
-	filmedIn: [(movieById)-[:FILMED_IN]->(movieByIdFilmedIn:State) | movieByIdFilmedIn {
-		.name
-	}][0]
-} AS MovieById
+	filmedIn: movieByIdFilmedIn
+} AS MovieById LIMIT 1
 ----
 
 === Query Single Object and Array of Object Relations
@@ -295,15 +300,26 @@ RETURN movieById {
 ----
 MATCH (movieById:Movie)
 WHERE movieById.movieId = $movieByIdMovieId
+CALL {
+	WITH movieById
+	MATCH (movieById)<-[:ACTED_IN]-(movieByIdActors:Actor)
+	WITH movieByIdActors SKIP $movieByIdActorsOffset LIMIT $movieByIdActorsFirst
+	RETURN collect(movieByIdActors {
+		.name
+	}) AS movieByIdActors
+}
+CALL {
+	WITH movieById
+	OPTIONAL MATCH (movieById)-[:FILMED_IN]->(movieByIdFilmedIn:State)
+	RETURN movieByIdFilmedIn {
+		.name
+	} AS movieByIdFilmedIn LIMIT 1
+}
 RETURN movieById {
 	.title,
-	actors: [(movieById)<-[:ACTED_IN]-(movieByIdActors:Actor) | movieByIdActors {
-		.name
-	}][$movieByIdActorsOffset..($movieByIdActorsOffset + $movieByIdActorsFirst)],
-	filmedIn: [(movieById)-[:FILMED_IN]->(movieByIdFilmedIn:State) | movieByIdFilmedIn {
-		.name
-	}][0]
-} AS MovieById
+	actors: movieByIdActors,
+	filmedIn: movieByIdFilmedIn
+} AS MovieById LIMIT 1
 ----
 
 === Relationship Expansion
@@ -336,11 +352,17 @@ RETURN movieById {
 ----
 MATCH (movie:Movie)
 WHERE movie.title = $movieTitle
+CALL {
+	WITH movie
+	MATCH (movie)<-[:ACTED_IN]-(movieActors:Actor)
+	WITH movieActors SKIP $movieActorsOffset LIMIT $movieActorsFirst
+	RETURN collect(movieActors {
+		.name
+	}) AS movieActors
+}
 RETURN movie {
 	.title,
-	actors: [(movie)<-[:ACTED_IN]-(movieActors:Actor) | movieActors {
-		.name
-	}][$movieActorsOffset..($movieActorsOffset + $movieActorsFirst)]
+	actors: movieActors
 } AS Movie
 ----
 
@@ -374,11 +396,17 @@ RETURN movie {
 ----
 MATCH (movie:Movie)
 WHERE movie.title = $movieTitle
+CALL {
+	WITH movie
+	MATCH (movie)<-[:ACTED_IN]-(movieActors:Actor)
+	WITH movieActors SKIP $movieActorsOffset LIMIT $movieActorsFirst
+	RETURN collect(movieActors {
+		.name
+	}) AS movieActors
+}
 RETURN movie {
 	.title,
-	actors: [(movie)<-[:ACTED_IN]-(movieActors:Actor) | movieActors {
-		.name
-	}][$movieActorsOffset..($movieActorsOffset + $movieActorsFirst)]
+	actors: movieActors
 } AS Movie
 ----
 
@@ -410,15 +438,20 @@ RETURN movie {
 [source,cypher]
 ----
 MATCH (movie:Movie)
+CALL {
+	WITH movie
+	CALL {
+		WITH movie
+		WITH movie AS this
+		MATCH (this)--(:Genre)--(o:Movie) RETURN o AS movieSimilar SKIP $movieSimilarOffset LIMIT $movieSimilarFirst
+	}
+	RETURN collect(movieSimilar {
+		.title
+	}) AS movieSimilar
+}
 RETURN movie {
 	.title,
-	similar: [movieSimilar IN apoc.cypher.runFirstColumnMany('WITH $this AS this, $first AS first, $offset AS offset MATCH (this)--(:Genre)--(o:Movie) RETURN o',  {
-		this: movie,
-		first: $movieSimilarFirst,
-		offset: $movieSimilarOffset
-	}) | movieSimilar {
-		.title
-	}][$movieSimilarOffset..($movieSimilarOffset + $movieSimilarFirst)]
+	similar: movieSimilar
 } AS Movie
 ----
 
@@ -450,15 +483,20 @@ RETURN movie {
 [source,cypher]
 ----
 MATCH (movie:Movie)
+CALL {
+	WITH movie
+	CALL {
+		WITH movie
+		WITH movie AS this
+		MATCH (this)--(:Genre)--(o:Movie) RETURN o AS movieSimilar SKIP $movieSimilarOffset LIMIT $movieSimilarFirst
+	}
+	RETURN collect(movieSimilar {
+		.title
+	}) AS movieSimilar
+}
 RETURN movie {
 	.title,
-	similar: [movieSimilar IN apoc.cypher.runFirstColumnMany('WITH $this AS this, $first AS first, $offset AS offset MATCH (this)--(:Genre)--(o:Movie) RETURN o',  {
-		this: movie,
-		first: $movieSimilarFirst,
-		offset: $movieSimilarOffset
-	}) | movieSimilar {
-		.title
-	}][$movieSimilarOffset..($movieSimilarOffset + $movieSimilarFirst)]
+	similar: movieSimilar
 } AS Movie
 ----
 
@@ -490,14 +528,21 @@ RETURN movie {
 .Cypher
 [source,cypher]
 ----
-UNWIND apoc.cypher.runFirstColumnMany('WITH $substring AS substring MATCH (g:Genre) WHERE toLower(g.name) CONTAINS toLower($substring) RETURN g',  {
-	substring: $genresBySubstringSubstring
-}) AS genresBySubstring
+CALL {
+	WITH $genresBySubstringSubstring AS substring
+	MATCH (g:Genre) WHERE toLower(g.name) CONTAINS toLower(substring) RETURN g AS genresBySubstring
+}
+CALL {
+	WITH genresBySubstring
+	MATCH (genresBySubstring)<-[:IN_GENRE]-(genresBySubstringMovies:Movie)
+	WITH genresBySubstringMovies SKIP $genresBySubstringMoviesOffset LIMIT $genresBySubstringMoviesFirst
+	RETURN collect(genresBySubstringMovies {
+		.title
+	}) AS genresBySubstringMovies
+}
 RETURN genresBySubstring {
 	.name,
-	movies: [(genresBySubstring)<-[:IN_GENRE]-(genresBySubstringMovies:Movie) | genresBySubstringMovies {
-		.title
-	}][$genresBySubstringMoviesOffset..($genresBySubstringMoviesOffset + $genresBySubstringMoviesFirst)]
+	movies: genresBySubstringMovies
 } AS GenresBySubstring
 ----
 
@@ -524,10 +569,10 @@ mutation someMutation {
 .Cypher
 [source,cypher]
 ----
-CALL apoc.cypher.doIt('WITH $name AS name CREATE (g:Genre) SET g.name = name RETURN g',  {
-	name: $createGenreName
-}) YIELD value
-WITH value[head(keys(value))] AS createGenre
+CALL {
+	WITH $createGenreName AS name
+	CREATE (g:Genre) SET g.name = name RETURN g AS createGenre LIMIT 1
+}
 RETURN createGenre {
 	.name
 } AS createGenre
@@ -567,15 +612,20 @@ RETURN createGenre {
 ----
 MATCH (movie:Movie)
 WHERE movie.title = $movieTitle
-RETURN movie {
-	.title,
-	ratings: [(movie)<-[movieRatings:RATED]-(movieRatingsFrom:User) | movieRatings {
+CALL {
+	WITH movie
+	MATCH (movie)<-[movieRatings:RATED]-(movieRatingsFrom:User)
+	RETURN collect(movieRatings {
 		.rating,
 		from: movieRatingsFrom {
 			.name,
 			.userId
 		}
-	}]
+	}) AS movieRatings
+}
+RETURN movie {
+	.title,
+	ratings: movieRatings
 } AS Movie
 ----
 
@@ -628,29 +678,57 @@ RETURN movie {
 ----
 MATCH (movie:Movie)
 WHERE movie.title = $movieTitle
-RETURN movie {
-	.title,
-	actors: [(movie)<-[:ACTED_IN]-(movieActors:Actor) | movieActors {
-		.name,
-		movies: [(movieActors)-[:ACTED_IN]->(movieActorsMovies:Movie) | movieActorsMovies {
-			.title,
-			actors: [(movieActorsMovies)<-[:ACTED_IN]-(movieActorsMoviesActors:Actor) WHERE movieActorsMoviesActors.name = $movieActorsMoviesActorsName | movieActorsMoviesActors {
-				.name,
-				movies: [(movieActorsMoviesActors)-[:ACTED_IN]->(movieActorsMoviesActorsMovies:Movie) | movieActorsMoviesActorsMovies {
-					.title,
-					.year,
-					similar: [movieActorsMoviesActorsMoviesSimilar IN apoc.cypher.runFirstColumnMany('WITH $this AS this, $first AS first, $offset AS offset MATCH (this)--(:Genre)--(o:Movie) RETURN o',  {
-						this: movieActorsMoviesActorsMovies,
-						first: $movieActorsMoviesActorsMoviesSimilarFirst,
-						offset: $movieActorsMoviesActorsMoviesSimilarOffset
-					}) | movieActorsMoviesActorsMoviesSimilar {
+CALL {
+	WITH movie
+	MATCH (movie)<-[:ACTED_IN]-(movieActors:Actor)
+	WITH movieActors SKIP $movieActorsOffset LIMIT $movieActorsFirst
+	CALL {
+		WITH movieActors
+		MATCH (movieActors)-[:ACTED_IN]->(movieActorsMovies:Movie)
+		CALL {
+			WITH movieActorsMovies
+			MATCH (movieActorsMovies)<-[:ACTED_IN]-(movieActorsMoviesActors:Actor)
+			WHERE movieActorsMoviesActors.name = $movieActorsMoviesActorsName
+			WITH movieActorsMoviesActors SKIP $movieActorsMoviesActorsOffset LIMIT $movieActorsMoviesActorsFirst
+			CALL {
+				WITH movieActorsMoviesActors
+				MATCH (movieActorsMoviesActors)-[:ACTED_IN]->(movieActorsMoviesActorsMovies:Movie)
+				CALL {
+					WITH movieActorsMoviesActorsMovies
+					CALL {
+						WITH movieActorsMoviesActorsMovies
+						WITH movieActorsMoviesActorsMovies AS this
+						MATCH (this)--(:Genre)--(o:Movie) RETURN o AS movieActorsMoviesActorsMoviesSimilar SKIP $movieActorsMoviesActorsMoviesSimilarOffset LIMIT $movieActorsMoviesActorsMoviesSimilarFirst
+					}
+					RETURN collect(movieActorsMoviesActorsMoviesSimilar {
 						.title,
 						.year
-					}][$movieActorsMoviesActorsMoviesSimilarOffset..($movieActorsMoviesActorsMoviesSimilarOffset + $movieActorsMoviesActorsMoviesSimilarFirst)]
-				}]
-			}][$movieActorsMoviesActorsOffset..($movieActorsMoviesActorsOffset + $movieActorsMoviesActorsFirst)]
-		}]
-	}][$movieActorsOffset..($movieActorsOffset + $movieActorsFirst)]
+					}) AS movieActorsMoviesActorsMoviesSimilar
+				}
+				RETURN collect(movieActorsMoviesActorsMovies {
+					.title,
+					.year,
+					similar: movieActorsMoviesActorsMoviesSimilar
+				}) AS movieActorsMoviesActorsMovies
+			}
+			RETURN collect(movieActorsMoviesActors {
+				.name,
+				movies: movieActorsMoviesActorsMovies
+			}) AS movieActorsMoviesActors
+		}
+		RETURN collect(movieActorsMovies {
+			.title,
+			actors: movieActorsMoviesActors
+		}) AS movieActorsMovies
+	}
+	RETURN collect(movieActors {
+		.name,
+		movies: movieActorsMovies
+	}) AS movieActors
+}
+RETURN movie {
+	.title,
+	actors: movieActors
 } AS Movie
 ----
 
@@ -961,14 +1039,26 @@ RETURN movie {
 [source,cypher]
 ----
 MATCH (movie:Movie)
+CALL {
+	WITH movie
+	MATCH (movie)<-[:ACTED_IN]-(movieActors:Actor)
+	WITH movieActors ORDER BY movieActors.name DESC SKIP $movieActorsOffset LIMIT $movieActorsFirst
+	CALL {
+		WITH movieActors
+		MATCH (movieActors)-[:ACTED_IN]->(movieActorsMovies:Movie)
+		WITH movieActorsMovies ORDER BY movieActorsMovies.title ASC, movieActorsMovies.plot DESC
+		RETURN collect(movieActorsMovies {
+			.title
+		}) AS movieActorsMovies
+	}
+	RETURN collect(movieActors {
+		.name,
+		movies: movieActorsMovies
+	}) AS movieActors
+}
 RETURN movie {
 	.title,
-	actors: apoc.coll.sortMulti([(movie)<-[:ACTED_IN]-(movieActors:Actor) | movieActors {
-		.name,
-		movies: apoc.coll.sortMulti([(movieActors)-[:ACTED_IN]->(movieActorsMovies:Movie) | movieActorsMovies {
-			.title
-		}], ['^title', 'plot'])
-	}], ['name'])[$movieActorsOffset..($movieActorsOffset + $movieActorsFirst)]
+	actors: movieActors
 } AS Movie ORDER BY movie.title DESC
 ----
 
@@ -1006,29 +1096,35 @@ RETURN movie {
 [source,cypher]
 ----
 MATCH (user:User)
+CALL {
+	WITH user
+	MATCH (user)-[:KNOWS]->(userKnows:User)
+	WITH userKnows ORDER BY userKnows.born ASC
+	CALL {
+		WITH userKnows
+		MATCH (userKnows)-[:KNOWS]->(userKnowsKnows:User)
+		WITH userKnowsKnows ORDER BY userKnowsKnows.born ASC, userKnowsKnows.born DESC SKIP $userKnowsKnowsOffset LIMIT $userKnowsKnowsFirst
+		RETURN collect(userKnowsKnows {
+			.name,
+			born:  {
+				formatted: toString(userKnowsKnows.born)
+			}
+		}) AS userKnowsKnows
+	}
+	RETURN collect(userKnows {
+		.name,
+		born:  {
+			formatted: toString(userKnows.born)
+		},
+		knows: userKnowsKnows
+	}) AS userKnows
+}
 RETURN user {
 	.name,
 	born:  {
 		formatted: toString(user.born)
 	},
-	knows: [sortedElement IN apoc.coll.sortMulti([(user)-[:KNOWS]->(userKnows:User) | userKnows {
-		.name,
-		born: userKnows.born,
-		knows: [sortedElement IN apoc.coll.sortMulti([(userKnows)-[:KNOWS]->(userKnowsKnows:User) | userKnowsKnows {
-			.name,
-			born: userKnowsKnows.born
-		}], ['^born', 'born']) | sortedElement {
-			.*,
-			born:  {
-				formatted: toString(sortedElement.born)
-			}
-		}][$userKnowsKnowsOffset..($userKnowsKnowsOffset + $userKnowsKnowsFirst)]
-	}], ['^born']) | sortedElement {
-		.*,
-		born:  {
-			formatted: toString(sortedElement.born)
-		}
-	}]
+	knows: userKnows
 } AS User ORDER BY user.born DESC
 ----
 
@@ -1568,11 +1664,17 @@ mutation{
 ----
 MATCH ()-[deleteRated:RATED]->()
 WHERE id(deleteRated) = toInteger($deleteRated_id)
+CALL {
+	WITH deleteRated
+	MATCH (from:User)-[deleteRated]->()
+	WITH from LIMIT 1
+	RETURN from {
+		.name
+	} AS from
+}
 WITH deleteRated AS toDelete, deleteRated {
 	.rating,
-	from: head([(from:User)-[deleteRated]->() | from {
-		.name
-	}])
+	from: from
 } AS deleteRated DETACH DELETE toDelete
 RETURN deleteRated AS deleteRated
 ----

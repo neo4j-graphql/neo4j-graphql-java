@@ -54,11 +54,19 @@ query {
 [source,cypher]
 ----
 MATCH (person:Person)
+CALL {
+	WITH person
+	MATCH (person)-[personRoles:ACTED_IN]->(personRolesMovie:Movie)
+	CALL {
+		WITH personRoles
+		WITH personRoles AS this
+		RETURN type(this) AS personRolesType LIMIT 1
+	}
+	RETURN collect(personRoles {
+		type: personRolesType
+	}) AS personRoles
+}
 RETURN person {
-	roles: [(person)-[personRoles:ACTED_IN]->(personRolesMovie:Movie) | personRoles {
-		type: apoc.cypher.runFirstColumnSingle('WITH $this AS this RETURN type(this)',  {
-			this: personRoles
-		})
-	}]
+	roles: personRoles
 } AS person
 ----

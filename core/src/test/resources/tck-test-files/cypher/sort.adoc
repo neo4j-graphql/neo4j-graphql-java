@@ -205,10 +205,16 @@ RETURN genres {
 [source,cypher]
 ----
 MATCH (movies:Movie)
-RETURN movies {
-	genres: apoc.coll.sortMulti([(movies)-[:HAS_GENRE]->(moviesGenres:Genre) | moviesGenres {
+CALL {
+	WITH movies
+	MATCH (movies)-[:HAS_GENRE]->(moviesGenres:Genre)
+	WITH moviesGenres ORDER BY moviesGenres.name DESC
+	RETURN collect(moviesGenres {
 		.name
-	}], ['name'])
+	}) AS moviesGenres
+}
+RETURN movies {
+	genres: moviesGenres
 } AS movies
 ----
 
@@ -236,10 +242,16 @@ RETURN movies {
 [source,cypher]
 ----
 MATCH (movies:Movie)
-RETURN movies {
-	genres: apoc.coll.sortMulti([(movies)-[:HAS_GENRE]->(moviesGenres:Genre) | moviesGenres {
+CALL {
+	WITH movies
+	MATCH (movies)-[:HAS_GENRE]->(moviesGenres:Genre)
+	WITH moviesGenres ORDER BY moviesGenres.id DESC, moviesGenres.name ASC
+	RETURN collect(moviesGenres {
 		.name
-	}], ['id', '^name'])
+	}) AS moviesGenres
+}
+RETURN movies {
+	genres: moviesGenres
 } AS movies
 ----
 
@@ -292,10 +304,17 @@ query($name: String, $skip: Int, $limit: Int, $sort: [GenreSort!]) {
 [source,cypher]
 ----
 MATCH (movies:Movie)
-RETURN movies {
-	genres: apoc.coll.sortMulti([(movies)-[:HAS_GENRE]->(moviesGenres:Genre) WHERE moviesGenres.name = $name | moviesGenres {
+CALL {
+	WITH movies
+	MATCH (movies)-[:HAS_GENRE]->(moviesGenres:Genre)
+	WHERE moviesGenres.name = $name
+	WITH moviesGenres ORDER BY moviesGenres.id DESC, moviesGenres.name ASC SKIP $skip LIMIT $limit
+	RETURN collect(moviesGenres {
 		.name
-	}], ['id', '^name'])[$skip..($skip + $limit)],
+	}) AS moviesGenres
+}
+RETURN movies {
+	genres: moviesGenres,
 	.title
 } AS movies
 ----
@@ -325,10 +344,16 @@ RETURN movies {
 [source,cypher]
 ----
 MATCH (movies:Movie)
+CALL {
+	WITH movies
+	MATCH (movies)-[:HAS_GENRE]->(moviesGenres:Genre)
+	WITH moviesGenres ORDER BY moviesGenres.name ASC
+	RETURN collect(moviesGenres {
+		.name
+	}) AS moviesGenres
+}
 RETURN movies {
 	.title,
-	genres: apoc.coll.sortMulti([(movies)-[:HAS_GENRE]->(moviesGenres:Genre) | moviesGenres {
-		.name
-	}], ['^name'])
+	genres: moviesGenres
 } AS movies
 ----

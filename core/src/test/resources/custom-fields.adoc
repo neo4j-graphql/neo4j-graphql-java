@@ -8,7 +8,7 @@
 ----
 type Person {
   name: String
-  label: String! @cypher(statement: "RETURN toLower(this.name) as label")
+  label: String! @cypher(statement: "RETURN toLower(this.name)")
   nullable: String @cypher(statement: "RETURN null")
 }
 
@@ -86,10 +86,10 @@ mutation { createPerson(name:"Jill") {name} }
 .Cypher
 [source,cypher]
 ----
-CALL apoc.cypher.doIt('WITH $name AS name CREATE (p:Person { name: \"Test\"+$name }) RETURN p',  {
-	name: $createPersonName
-}) YIELD value
-WITH value[head(keys(value))] AS createPerson
+CALL {
+	WITH $createPersonName AS name
+	CREATE (p:Person { name: "Test"+name }) RETURN p AS createPerson LIMIT 1
+}
 RETURN createPerson {
 	.name
 } AS createPerson
@@ -131,9 +131,10 @@ query { Person(name:"Jane") {name} }
 .Cypher
 [source,cypher]
 ----
-UNWIND apoc.cypher.runFirstColumnSingle('WITH $name AS name MATCH (p:Person { name: $name }) RETURN p',  {
-	name: $personName
-}) AS person
+CALL {
+	WITH $personName AS name
+	MATCH (p:Person { name: name }) RETURN p AS person LIMIT 1
+}
 RETURN person {
 	.name
 } AS Person
@@ -169,14 +170,18 @@ query { Person(name:"Jane") {name, label} }
 .Cypher
 [source,cypher]
 ----
-UNWIND apoc.cypher.runFirstColumnSingle('WITH $name AS name MATCH (p:Person { name: $name }) RETURN p',  {
-	name: $personName
-}) AS person
+CALL {
+	WITH $personName AS name
+	MATCH (p:Person { name: name }) RETURN p AS person LIMIT 1
+}
+CALL {
+	WITH person
+	WITH person AS this
+	RETURN toLower(this.name) AS personLabel LIMIT 1
+}
 RETURN person {
 	.name,
-	label: apoc.cypher.runFirstColumnSingle('WITH $this AS this RETURN toLower(this.name) as label',  {
-		this: person
-	})
+	label: personLabel
 } AS Person
 ----
 
@@ -210,14 +215,18 @@ query { Person(name:"Jane") {name, nullable} }
 .Cypher
 [source,cypher]
 ----
-UNWIND apoc.cypher.runFirstColumnSingle('WITH $name AS name MATCH (p:Person { name: $name }) RETURN p',  {
-	name: $personName
-}) AS person
+CALL {
+	WITH $personName AS name
+	MATCH (p:Person { name: name }) RETURN p AS person LIMIT 1
+}
+CALL {
+	WITH person
+	WITH person AS this
+	RETURN null AS personNullable LIMIT 1
+}
 RETURN person {
 	.name,
-	nullable: apoc.cypher.runFirstColumnSingle('WITH $this AS this RETURN null',  {
-		this: person
-	})
+	nullable: personNullable
 } AS Person
 ----
 
