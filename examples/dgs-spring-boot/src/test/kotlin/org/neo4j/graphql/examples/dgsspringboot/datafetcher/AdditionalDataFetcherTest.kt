@@ -13,6 +13,9 @@ import org.neo4j.graphql.examples.dgsspringboot.types.DgsConstants
 import org.neo4j.graphql.examples.dgsspringboot.types.client.MoviesGraphQLQuery
 import org.neo4j.graphql.examples.dgsspringboot.types.client.MoviesProjectionRoot
 import org.neo4j.graphql.examples.dgsspringboot.types.types.Movie
+import org.neo4j.graphql.examples.dgsspringboot.types.types.MovieOptions
+import org.neo4j.graphql.examples.dgsspringboot.types.types.MovieSort
+import org.neo4j.graphql.examples.dgsspringboot.types.types.SortDirection
 import org.skyscreamer.jsonassert.JSONAssert
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
@@ -56,8 +59,9 @@ internal class AdditionalDataFetcherTest(
     fun testHybridDataFetcher() {
 
         val graphQLQueryRequest = GraphQLQueryRequest(
-                // there is an issue with empty fields of input type (https://github.com/Netflix/dgs-codegen/issues/140)
-                MoviesGraphQLQuery(),
+                MoviesGraphQLQuery.newRequest()
+                    .options(MovieOptions(sort = listOf(MovieSort(title = SortDirection.DESC))))
+                    .build(),
                 MoviesProjectionRoot().also { movie ->
                     movie.title()
                     movie.bar()
@@ -68,7 +72,7 @@ internal class AdditionalDataFetcherTest(
         )
 
         val request = graphQLQueryRequest.serialize()
-        Assertions.assertThat(request).isEqualTo("query {movies{ title bar javaData   { name } } }")
+        Assertions.assertThat(request).isEqualTo("query {movies(options: {sort:[{title:DESC }] }){ title bar javaData   { name } } }")
 
         val response = dgsQueryExecutor.executeAndGetDocumentContext(request)
 
@@ -78,11 +82,11 @@ internal class AdditionalDataFetcherTest(
           "data": {
             "movies": [
               {
-                "title": "The Matrix",
+                "title": "The Matrix Revolutions",
                 "bar": "foo",
                 "javaData": [
                   {
-                    "name": "test The Matrix"
+                    "name": "test The Matrix Revolutions"
                   }
                 ]
               },
@@ -96,11 +100,11 @@ internal class AdditionalDataFetcherTest(
                 ]
               },
               {
-                "title": "The Matrix Revolutions",
+                "title": "The Matrix",
                 "bar": "foo",
                 "javaData": [
                   {
-                    "name": "test The Matrix Revolutions"
+                    "name": "test The Matrix"
                   }
                 ]
               }
