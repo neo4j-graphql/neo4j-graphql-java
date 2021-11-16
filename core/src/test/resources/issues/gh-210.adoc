@@ -1,6 +1,6 @@
 :toc:
 
-= Github Issue #210: Nested filters are not working
+= GitHub Issue #210: Nested filters are not working
 
 == Schema
 

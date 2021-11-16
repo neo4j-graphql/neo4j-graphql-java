@@ -1,6 +1,6 @@
 :toc:
 
-= Github Issue #65: Filtering on children through parent fields generates logically invalid cypher
+= GitHub Issue #65: Filtering on children through parent fields generates logically invalid cypher
 
 == Schema
 

@@ -21,7 +21,7 @@ data class SchemaConfig @JvmOverloads constructor(
 
         /**
          * if enabled the `filter` argument will be named `where` and the input type will be named `<typeName>Where`.
-         * additionally the separated filter arguments will no longer be generated.
+         * additionally, the separated filter arguments will no longer be generated.
          */
         val useWhereFilter: Boolean = false,
 

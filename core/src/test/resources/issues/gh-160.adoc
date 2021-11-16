@@ -1,6 +1,6 @@
 :toc:
 
-= Github Issue #160: Incorrect query translation for @property
+= GitHub Issue #160: Incorrect query translation for @property
 
 == Schema
 

@@ -14,7 +14,7 @@ import org.neo4j.graphql.handler.BaseDataFetcherForContainer
 /**
  * This is a base class for all handler acting on relations / edges
  */
-abstract class BaseRelationHandler(val prefix: String, schemaConfig: SchemaConfig) : BaseDataFetcherForContainer(schemaConfig) {
+abstract class BaseRelationHandler(private val prefix: String, schemaConfig: SchemaConfig) : BaseDataFetcherForContainer(schemaConfig) {
 
     lateinit var relation: RelationshipInfo<GraphQLFieldsContainer>
     lateinit var startId: RelatedField
@@ -27,7 +27,7 @@ abstract class BaseRelationHandler(val prefix: String, schemaConfig: SchemaConfi
     )
 
     abstract class BaseRelationFactory(
-            val prefix: String,
+            private val prefix: String,
             schemaConfig: SchemaConfig,
             typeDefinitionRegistry: TypeDefinitionRegistry,
             neo4jTypeDefinitionRegistry: TypeDefinitionRegistry

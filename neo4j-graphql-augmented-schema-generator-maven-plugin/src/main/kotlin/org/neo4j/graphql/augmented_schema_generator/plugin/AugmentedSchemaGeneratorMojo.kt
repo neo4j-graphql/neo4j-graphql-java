@@ -13,7 +13,6 @@ import org.neo4j.graphql.SchemaConfig
 import java.io.File
 import java.nio.charset.Charset
 import javax.inject.Inject
-import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.readText
 
 /**
@@ -44,7 +43,6 @@ class AugmentedSchemaGeneratorMojo : AbstractMojo() {
     @Inject
     private lateinit var fileSetManager: FileSetManager
 
-    @ExperimentalPathApi
     @Throws(MojoExecutionException::class)
     override fun execute() {
         val includedFiles: Array<String> = fileSetManager.getIncludedFiles(fileset)

@@ -52,9 +52,9 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
         if (neo4j != null) {
             val testData = globalBlocks[TEST_DATA_MARKER]
             var response = codeBlocks[GRAPHQL_RESPONSE_IGNORE_ORDER_MARKER]
-            var ignoreOrder = false;
+            var ignoreOrder = false
             if (response != null) {
-                ignoreOrder = true;
+                ignoreOrder = true
             } else {
                 response = getOrCreateBlock(codeBlocks, GRAPHQL_RESPONSE_MARKER, "GraphQL-Response")
             }

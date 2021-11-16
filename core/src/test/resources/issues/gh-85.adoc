@@ -1,6 +1,6 @@
 :toc:
 
-= Github Issue #85: not-supported cypher directive with scalar result
+= GitHub Issue #85: not-supported cypher directive with scalar result
 
 == Schema
 

@@ -11,7 +11,7 @@ import org.neo4j.graphql.handler.projection.ProjectionBase
 typealias CypherDSL = org.neo4j.cypherdsl.core.Cypher
 
 /**
- * An internal representation of all the filtering passed to an graphql field
+ * An internal representation of all the filtering passed to a graphql field
  */
 class ParsedQuery(
         val fieldPredicates: List<FieldPredicate>,
@@ -107,7 +107,7 @@ object QueryParser {
     }
 
     /**
-     * This parser takes all non-filter arguments of a graphql-field an transform it to the internal [ParsedQuery]-representation
+     * This parser takes all non-filter arguments of a graphql-field and transform it to the internal [ParsedQuery]-representation
      */
     fun parseArguments(arguments: Map<String, Any>, fieldDefinition: GraphQLFieldDefinition, type: GraphQLFieldsContainer): ParsedQuery {
         // Map of all queried fields
@@ -155,7 +155,7 @@ object QueryParser {
                     .mapNotNull { (predicate, queryFieldName) ->
                         queriedFields[queryFieldName]?.let { (index, objectField) ->
                             if (predicate.requireParam xor (objectField != null)) {
-                                // if we got a value but the predicate requires none
+                                // if we got a value but the predicate requires none,
                                 // or we got a no value but the predicate requires one
                                 // we skip this operator
                                 null

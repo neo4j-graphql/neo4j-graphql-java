@@ -296,7 +296,7 @@ RETURN movie {
 |Unforgiven
 |===
 
-=== Filter with OR and AND
+=== Filter with `OR` and `AND`
 
 CAUTION: *Not yet implemented*
 

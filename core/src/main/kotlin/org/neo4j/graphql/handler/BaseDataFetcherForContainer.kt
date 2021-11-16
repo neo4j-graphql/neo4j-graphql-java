@@ -120,7 +120,7 @@ abstract class BaseDataFetcherForContainer(schemaConfig: SchemaConfig) : BaseDat
 
     /**
      * @param propertyName the name used in neo4j
-     * @param accessorFactory an factory for crating an expression to access the property
+     * @param accessorFactory a factory for crating an expression to access the property
      */
     class PropertyAccessor(
             val propertyName: String,

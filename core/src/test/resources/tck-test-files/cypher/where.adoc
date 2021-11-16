@@ -2,7 +2,7 @@
 
 = Cypher WHERE
 
-Tests for queries using options.where
+Tests for queries using `options::useWhereFilter`
 
 == Inputs
 

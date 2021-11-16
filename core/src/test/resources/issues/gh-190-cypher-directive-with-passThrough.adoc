@@ -1,6 +1,6 @@
 :toc:
 
-= Github Issue #190: cypher directive with passThrough
+= GitHub Issue #190: cypher directive with passThrough
 
 == Schema
 

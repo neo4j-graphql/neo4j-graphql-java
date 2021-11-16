@@ -1,6 +1,6 @@
 :toc:
 
-= Github Issue #45: A schema for tree-like structure fails with duplicate fields
+= GitHub Issue #45: A schema for tree-like structure fails with duplicate fields
 
 == Schema
 

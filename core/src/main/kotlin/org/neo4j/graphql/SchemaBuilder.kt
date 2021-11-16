@@ -230,7 +230,7 @@ class SchemaBuilder(
         enhancedRegistry.add(ObjectTypeDefinition.newObjectTypeDefinition().name("Query").build())
 
         if (schemaDefinition != null) {
-            // otherwise adding a transform schema would fail
+            // otherwise, adding a transform schema would fail
             enhancedRegistry.remove(schemaDefinition)
         } else {
             schemaDefinition = SchemaDefinition.newSchemaDefinition().build()
