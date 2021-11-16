@@ -268,7 +268,7 @@ open class ProjectionBase(
         }
         if (nodeType is GraphQLInterfaceType
             && !hasTypeName
-            && (env.getLocalContext() as? QueryContext)?.queryTypeOfInterfaces == true
+            && (env.getContext() as? QueryContext)?.queryTypeOfInterfaces == true
         ) {
             // for interfaces the typename is required to determine the correct implementation
             val (pro, sub) = projectField(propertyContainer, variable, Field(TYPE_NAME), nodeType, env, variableSuffix)

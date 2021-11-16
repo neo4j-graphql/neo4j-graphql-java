@@ -32,6 +32,16 @@ object DynamicProperties {
         return when (input) {
             !is Value<*> -> throw CoercingParseLiteralException("Expected AST type 'StringValue' but was '${input::class.java.simpleName}'.")
             is NullValue -> null
+            is ObjectValue -> input.objectFields.map { it.name to parseNested(it.value, variables) }.toMap()
+            else -> Assert.assertShouldNeverHappen("Only maps structures are expected")
+        }
+    }
+
+    @Throws(CoercingParseLiteralException::class)
+    private fun parseNested(input: Any, variables: Map<String, Any>): Any? {
+        return when (input) {
+            !is Value<*> -> throw CoercingParseLiteralException("Expected AST type 'StringValue' but was '${input::class.java.simpleName}'.")
+            is NullValue -> null
             is FloatValue -> input.value
             is StringValue -> input.value
             is IntValue -> input.value

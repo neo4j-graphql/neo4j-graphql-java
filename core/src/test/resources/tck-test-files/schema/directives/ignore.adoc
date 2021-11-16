@@ -43,8 +43,8 @@ type Mutation {
   createUser(id: ID!, password: String!, username: String!): User!
   "Deletes User and returns the type itself"
   deleteUser(id: ID!): User
-  mergeUser(id: ID!, password: String!, username: String!): User!
-  updateUser(id: ID!, password: String!, username: String!): User
+  mergeUser(id: ID!, password: String, username: String): User!
+  updateUser(id: ID!, password: String, username: String): User
 }
 
 type Query {

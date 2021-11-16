@@ -401,7 +401,7 @@ RETURN user AS user
 [source,graphql]
 ----
 query queriesRootQuery {
-  person { id, data }
+  person { id, data { firstName } }
 }
 ----
 

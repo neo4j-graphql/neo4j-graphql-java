@@ -11,11 +11,12 @@ import org.neo4j.cypherdsl.core.renderer.Configuration
 import org.neo4j.cypherdsl.core.renderer.Renderer
 import org.neo4j.graphql.Cypher
 import org.neo4j.graphql.SchemaConfig
+import org.neo4j.graphql.Translator
 import org.neo4j.graphql.aliasOrName
 import org.neo4j.graphql.handler.projection.ProjectionBase
 
 /**
- * The is a base class for the implementation of graphql data fetcher used in this project
+ * This is a base class for the implementation of graphql data fetcher used in this project
  */
 abstract class BaseDataFetcher(schemaConfig: SchemaConfig) : ProjectionBase(schemaConfig), DataFetcher<Cypher> {
 
@@ -38,8 +39,10 @@ abstract class BaseDataFetcher(schemaConfig: SchemaConfig) : ProjectionBase(sche
         val params = statement.parameters.mapValues { (_, value) ->
             (value as? VariableReference)?.let { env.variables[it.name] } ?: value
         }
-
         return Cypher(query, params, env.fieldDefinition.type, variable = field.aliasOrName())
+            .also {
+                (env.getLocalContext() as? Translator.CypherHolder)?.apply { this.cypher = it }
+            }
     }
 
     /**

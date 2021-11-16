@@ -31,15 +31,18 @@ type Death implements Temporal @relation(name:"DIED",from:"who",to:"where") {
 interface Location {
   name: String
   founded: Person @relation(name:"FOUNDED", direction: IN)
+  sort_Arg: String
 }
 type City implements Location {
   name: String
   founded: Person @relation(name:"FOUNDED", direction: IN)
+  sort_Arg: String
   city_Arg: String
 }
 type Village implements Location {
   name: String
   founded: Person @relation(name:"FOUNDED", direction: IN)
+  sort_Arg: String
   villageArg: String
 }
 # enum _PersonOrdering { name_asc, name_desc, age_asc, age_desc }
@@ -430,14 +433,14 @@ RETURN person {
 .GraphQL-Query
 [source,graphql]
 ----
-{ person { name age livesIn(name:"Berlin") { name } } }
+{ person { name age livedIn(name:"Berlin") { name } } }
 ----
 
 .Cypher params
 [source,json]
 ----
 {
-  "personLivesInName" : "Berlin"
+  "personLivedInName" : "Berlin"
 }
 ----
 
@@ -447,16 +450,16 @@ RETURN person {
 MATCH (person:Person)
 CALL {
 	WITH person
-	OPTIONAL MATCH (person)-[:LIVES_IN]->(personLivesIn:Location)
-	WHERE personLivesIn.name = $personLivesInName
-	RETURN personLivesIn {
+	MATCH (person)-[:LIVED_IN]->(personLivedIn:Location)
+	WHERE personLivedIn.name = $personLivedInName
+	RETURN collect(personLivedIn {
 		.name
-	} AS personLivesIn LIMIT 1
+	}) AS personLivedIn
 }
 RETURN person {
 	.name,
 	.age,
-	livesIn: personLivesIn
+	livedIn: personLivedIn
 } AS person
 ----
 
@@ -485,7 +488,7 @@ MATCH (person:Person) RETURN person { .age } AS person ORDER BY person.age DESC,
 .GraphQL-Query
 [source,graphql]
 ----
- { location(orderBy:[city_Arg_desc]) { name } }
+ { location(orderBy:[sort_Arg_desc]) { name } }
 ----
 
 .Cypher params
@@ -497,9 +500,10 @@ MATCH (person:Person) RETURN person { .age } AS person ORDER BY person.age DESC,
 .Cypher
 [source,cypher]
 ----
-MATCH (location: Location)
-RETURN location { .name } AS location
-ORDER BY location.city_Arg DESC
+MATCH (location:Location)
+RETURN location {
+	.name
+} AS location ORDER BY location.sort_Arg DESC
 ----
 
 === named fragment multi field
