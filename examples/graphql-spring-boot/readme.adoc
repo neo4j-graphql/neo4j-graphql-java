@@ -17,6 +17,6 @@ The `springSchema` and the `neo4jSchema` are merged to a single graphql schema e
 
 == Run the example
 
-1. link:src/main/resources/application.yaml[configrue your neo4j db]
+1. link:src/main/resources/application.yaml[configure your neo4j db]
 2. run the link:src/main/kotlin/org/neo4j/graphql/examples/graphqlspringboot/GraphqlSpringBootApplication.kt[spring boot application]
 3. open http://localhost:8080/playground to run some graphql queries

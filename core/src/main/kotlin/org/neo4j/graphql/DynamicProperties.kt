@@ -32,7 +32,7 @@ object DynamicProperties {
         return when (input) {
             !is Value<*> -> throw CoercingParseLiteralException("Expected AST type 'StringValue' but was '${input::class.java.simpleName}'.")
             is NullValue -> null
-            is ObjectValue -> input.objectFields.map { it.name to parseNested(it.value, variables) }.toMap()
+            is ObjectValue -> input.objectFields.associate { it.name to parseNested(it.value, variables) }
             else -> Assert.assertShouldNeverHappen("Only maps structures are expected")
         }
     }

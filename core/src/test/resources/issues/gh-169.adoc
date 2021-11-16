@@ -1,6 +1,6 @@
 :toc:
 
-= Github Issue #169: Default values for sorting and paging on fields should be respected
+= GitHub Issue #169: Default values for sorting and paging on fields should be respected
 
 == Schema
 

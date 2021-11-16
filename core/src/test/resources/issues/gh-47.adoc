@@ -1,6 +1,6 @@
 :toc:
 
-= Github Issue #47: lack of filtering for null values
+= GitHub Issue #47: lack of filtering for null values
 
 == Schema
 

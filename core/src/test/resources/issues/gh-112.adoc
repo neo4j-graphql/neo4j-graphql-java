@@ -1,6 +1,6 @@
 :toc:
 
-= Github Issue #112: deleting bidirectional relationships
+= GitHub Issue #112: deleting bidirectional relationships
 
 == Schema
 

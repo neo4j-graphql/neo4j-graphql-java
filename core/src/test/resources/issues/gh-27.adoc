@@ -1,6 +1,6 @@
 :toc:
 
-= Github Issue #27: Filtering on multi-relationship existence
+= GitHub Issue #27: Filtering on multi-relationship existence
 
 == Schema
 

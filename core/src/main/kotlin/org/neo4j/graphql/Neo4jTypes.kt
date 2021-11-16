@@ -73,8 +73,7 @@ open class Neo4jConverter(
         name: String,
         val prefixedName: String = "_Neo4j$name",
         val typeDefinition: TypeDefinition = TypeDefinition(name, prefixedName)
-) : Neo4jSimpleConverter(name) {
-}
+) : Neo4jSimpleConverter(name)
 
 open class Neo4jSimpleConverter(val name: String) {
     protected fun toExpression(parameter: Expression): Expression {
@@ -115,9 +114,7 @@ private val neo4jConverter = listOf(
         Neo4jTimeConverter("Time"),
         Neo4jTimeConverter("LocalDateTime"),
         Neo4jPointConverter("Point"),
-)
-    .map { it.prefixedName to it }
-    .toMap()
+).associateBy { it.prefixedName }
 
 private val neo4jScalarConverter = listOf(
         Neo4jTemporalConverter("LocalTime"),
@@ -125,9 +122,7 @@ private val neo4jScalarConverter = listOf(
         Neo4jTemporalConverter("DateTime"),
         Neo4jTemporalConverter("Time"),
         Neo4jTemporalConverter("LocalDateTime")
-)
-    .map { it.name to it }
-    .toMap()
+).associateBy { it.name }
 
 val NEO4j_TEMPORAL_TYPES = neo4jScalarConverter.keys
 

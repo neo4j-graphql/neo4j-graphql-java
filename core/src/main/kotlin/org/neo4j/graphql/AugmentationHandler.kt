@@ -162,7 +162,7 @@ abstract class AugmentationHandler(
                 } else {
                     FieldOperator.forType(typeDefinition, field.type.inner().isNeo4jType())
                         .forEach { op -> builder.addFilterField(op.fieldName(field.name), op.list, filterType, field.description) }
-                    if (typeDefinition.isNeo4jSpatialType() == true) {
+                    if (typeDefinition.isNeo4jSpatialType()) {
                         val distanceFilterType = getSpatialDistanceFilter(neo4jTypeDefinitionRegistry.getUnwrappedType(filterType) as TypeDefinition<*>)
                         FieldOperator.forType(distanceFilterType, true)
                             .forEach { op -> builder.addFilterField(op.fieldName(field.name + NEO4j_POINT_DISTANCE_FILTER_SUFFIX), op.list, NEO4j_POINT_DISTANCE_FILTER) }
@@ -301,7 +301,7 @@ abstract class AugmentationHandler(
 
     fun Type<*>.resolve(): TypeDefinition<*>? = getTypeFromAnyRegistry(name())
     fun Type<*>.isScalar(): Boolean = resolve() is ScalarTypeDefinition
-    fun Type<*>.isNeo4jType(): Boolean = name()
+    private fun Type<*>.isNeo4jType(): Boolean = name()
         ?.takeIf {
             !ScalarInfo.GRAPHQL_SPECIFICATION_SCALARS_DEFINITIONS.containsKey(it)
                     && it.startsWith("_Neo4j") // TODO remove this check by refactoring neo4j input types

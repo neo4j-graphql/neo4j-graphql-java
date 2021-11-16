@@ -1,6 +1,6 @@
 :toc:
 
-= Github Issue #163: problem with optimized FILTER_AS_MATCH strategy
+= GitHub Issue #163: problem with optimized FILTER_AS_MATCH strategy
 
 == Schema
 

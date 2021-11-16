@@ -34,3 +34,4 @@ fun String.asDescription() = Description(this, null, this.contains("\n"))
 fun String.capitalize(): String = replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
 fun String.decapitalize(): String = replaceFirstChar { it.lowercase(Locale.getDefault()) }
 fun String.toUpperCase(): String = uppercase(Locale.getDefault())
+fun String.toLowerCase(): String = lowercase(Locale.getDefault())

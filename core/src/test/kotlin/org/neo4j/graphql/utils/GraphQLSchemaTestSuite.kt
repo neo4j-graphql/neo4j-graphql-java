@@ -1,7 +1,6 @@
 package org.neo4j.graphql.utils
 
 import graphql.language.InterfaceTypeDefinition
-import graphql.language.ScalarTypeDefinition
 import graphql.schema.GraphQLScalarType
 import graphql.schema.GraphQLSchema
 import graphql.schema.GraphQLType
@@ -14,7 +13,10 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assumptions
 import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.DynamicTest
-import org.neo4j.graphql.*
+import org.neo4j.graphql.NoOpCoercing
+import org.neo4j.graphql.SchemaBuilder
+import org.neo4j.graphql.SchemaConfig
+import org.neo4j.graphql.requiredName
 import org.opentest4j.AssertionFailedError
 import java.util.*
 import java.util.regex.Pattern

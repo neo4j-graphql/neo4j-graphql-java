@@ -4421,7 +4421,7 @@ query {
 MATCH (`temporalNode`:`TemporalNode`) WITH `temporalNode` ORDER BY temporalNode.datetime DESC RETURN `temporalNode` {_id: ID(`temporalNode`),datetime: { year: `temporalNode`.datetime.year , month: `temporalNode`.datetime.month , day: `temporalNode`.datetime.day , hour: `temporalNode`.datetime.hour , minute: `temporalNode`.datetime.minute , second: `temporalNode`.datetime.second , millisecond: `temporalNode`.datetime.millisecond , microsecond: `temporalNode`.datetime.microsecond , nanosecond: `temporalNode`.datetime.nanosecond , timezone: `temporalNode`.datetime.timezone , formatted: toString(`temporalNode`.datetime) },temporalNodes: [sortedElement IN apoc.coll.sortMulti([(`temporalNode`)-[:`TEMPORAL`]->(`temporalNode_temporalNodes`:`TemporalNode`) | temporalNode_temporalNodes {_id: ID(`temporalNode_temporalNodes`),datetime: `temporalNode_temporalNodes`.datetime,time: `temporalNode_temporalNodes`.time,temporalNodes: [sortedElement IN apoc.coll.sortMulti([(`temporalNode_temporalNodes`)-[:`TEMPORAL`]->(`temporalNode_temporalNodes_temporalNodes`:`TemporalNode`) | temporalNode_temporalNodes_temporalNodes {_id: ID(`temporalNode_temporalNodes_temporalNodes`),datetime: `temporalNode_temporalNodes_temporalNodes`.datetime,time: `temporalNode_temporalNodes_temporalNodes`.time}], ['datetime','time']) | sortedElement { .*,  datetime: {year: sortedElement.datetime.year,formatted: toString(sortedElement.datetime)},time: {hour: sortedElement.time.hour}}][1..3] }], ['^datetime']) | sortedElement { .*,  datetime: {year: sortedElement.datetime.year,month: sortedElement.datetime.month,day: sortedElement.datetime.day,hour: sortedElement.datetime.hour,minute: sortedElement.datetime.minute,second: sortedElement.datetime.second,millisecond: sortedElement.datetime.millisecond,microsecond: sortedElement.datetime.microsecond,nanosecond: sortedElement.datetime.nanosecond,timezone: sortedElement.datetime.timezone,formatted: toString(sortedElement.datetime)},time: {hour: sortedElement.time.hour}}] } AS `temporalNode`
 ----
 
-=== Handle @cypher field with String payload using cypherParams
+=== Handle the @cypher field with String payload using cypherParams
 
 .GraphQL-Query
 [source,graphql]
@@ -4541,7 +4541,7 @@ query {
 WITH apoc.cypher.runFirstColumn("RETURN { userId: $cypherParams.currentUserId }", {offset:$offset, first:$first, cypherParams: $cypherParams}, True) AS x UNWIND x AS `currentUserId` RETURN `currentUserId` { .userId } AS `currentUserId`
 ----
 
-=== Handle @cypher query with Boolean payload
+=== Handle the @cypher query with Boolean payload
 
 .GraphQL-Query
 [source,graphql]
@@ -4563,7 +4563,7 @@ query {
 WITH apoc.cypher.runFirstColumn("RETURN true", {offset:$offset, first:$first, cypherParams: $cypherParams}, True) AS x UNWIND x AS `boolean` RETURN `boolean` 
 ----
 
-=== Handle @cypher query with Int payload
+=== Handle the @cypher query with Int payload
 
 .GraphQL-Query
 [source,graphql]
@@ -4585,7 +4585,7 @@ query {
 WITH apoc.cypher.runFirstColumn("RETURN 1", {offset:$offset, first:$first, cypherParams: $cypherParams}, True) AS x UNWIND x AS `int` RETURN `int` 
 ----
 
-=== Handle @cypher query with Float payload
+=== Handle the @cypher query with Float payload
 
 .GraphQL-Query
 [source,graphql]
@@ -4607,7 +4607,7 @@ query {
 WITH apoc.cypher.runFirstColumn("RETURN 3.14", {offset:$offset, first:$first, cypherParams: $cypherParams}, True) AS x UNWIND x AS `float` RETURN `float` 
 ----
 
-=== Handle @cypher query with String list payload
+=== Handle the @cypher query with String list payload
 
 .GraphQL-Query
 [source,graphql]
@@ -4629,7 +4629,7 @@ query {
 WITH apoc.cypher.runFirstColumn("UNWIND ['hello', 'world'] AS stringList RETURN stringList", {offset:$offset, first:$first, cypherParams: $cypherParams}, True) AS x UNWIND x AS `string` RETURN `string` 
 ----
 
-=== Handle @cypher query with Int list payload
+=== Handle the @cypher query with Int list payload
 
 .GraphQL-Query
 [source,graphql]
@@ -4651,7 +4651,7 @@ query {
 WITH apoc.cypher.runFirstColumn("UNWIND [1, 2, 3] AS intList RETURN intList", {offset:$offset, first:$first, cypherParams: $cypherParams}, True) AS x UNWIND x AS `int` RETURN `int` 
 ----
 
-=== Handle @cypher query with Temporal payload
+=== Handle the @cypher query with Temporal payload
 
 .GraphQL-Query
 [source,graphql]
@@ -4856,7 +4856,7 @@ CALL apoc.cypher.doIt("RETURN $strInputArg.strArg", {strArg:$strArg, strInputArg
     RETURN `string` 
 ----
 
-=== Handle @cypher query with parameterized input type argument
+=== Handle the @cypher query with parameterized input type argument
 
 .GraphQL-Query
 [source,graphql]
@@ -4878,7 +4878,7 @@ query someQuery ($strArg: String, $strInputArg: strInput) {
 WITH apoc.cypher.runFirstColumn("RETURN $strInputArg.strArg", {offset:$offset, first:$first, strArg:$strArg, strInputArg:$strInputArg, cypherParams: $cypherParams}, True) AS x UNWIND x AS `string` RETURN `string` 
 ----
 
-=== Handle @cypher field on root query type with scalar payload, no args
+=== Handle the @cypher field on root query type with scalar payload, no args
 
 .GraphQL-Query
 [source,graphql]
@@ -4902,7 +4902,7 @@ query {
 MATCH (`temporalNode`:`TemporalNode`) RETURN `temporalNode` {computedTimestamp: apoc.cypher.runFirstColumn("RETURN toString(datetime())", {this: temporalNode}, false)} AS `temporalNode`
 ----
 
-=== Handle @cypher field with parameterized value for field of input type argument
+=== Handle the @cypher field with parameterized value for field of input type argument
 
 .GraphQL-Query
 [source,graphql]

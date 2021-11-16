@@ -1,6 +1,6 @@
 :toc:
 
-= Github Issue #149: OptimizationStrategy FILTER_AS_MATCH breaks offset/first input attributes for queries
+= GitHub Issue #149: OptimizationStrategy FILTER_AS_MATCH breaks offset/first input attributes for queries
 
 == Schema
 

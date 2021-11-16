@@ -29,7 +29,7 @@ open class GraphQLConfiguration {
     @Autowired(required = false)
     lateinit var dataFetchingInterceptor: DataFetchingInterceptor
 
-    lateinit var schemaBuilder: SchemaBuilder
+    private lateinit var schemaBuilder: SchemaBuilder
 
     @PostConstruct
     fun postConstruct() {

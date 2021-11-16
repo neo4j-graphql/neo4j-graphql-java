@@ -1,6 +1,6 @@
 :toc:
 
-= Github Issue #170: wrong mapping starting query from rich relationship
+= GitHub Issue #170: wrong mapping starting query from rich relationship
 
 == Schema
 

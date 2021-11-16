@@ -21,7 +21,7 @@ typealias WhereClauseFactory = (
 typealias ConditionBuilder = (ExposesWith) -> OrderableOngoingReadingAndWithWithoutWhere
 
 /**
- * This its a specialized handler that uses an alternative approach for filtering. By using multiple MATCH clauses,
+ * This is a specialized handler that uses an alternative approach for filtering. By using multiple MATCH clauses,
  * this can facilitate the use of optimizations within the neo4j database, which can lead to significant performance
  * improvements for large data sets.
  *
