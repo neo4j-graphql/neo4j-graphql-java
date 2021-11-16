@@ -565,9 +565,11 @@ open class ProjectionBase(
 
         val (projectionEntries, sub) = projectFields(endNodePattern, name(childVariable), field, nodeType, env, variableSuffix)
 
+        val withPassThrough = mutableListOf(endNodePattern.requiredSymbolicName)
         var relationship = relInfo.createRelation(anyNode(variable), endNodePattern)
         if (isRelFromType) {
             relationship = relationship.named(childVariableName)
+            withPassThrough.add(childVariableName)
         }
 
         val with = with(variable)
@@ -582,8 +584,8 @@ open class ProjectionBase(
             val ordering = orderBy(childVariableName, field.arguments, fieldDefinition, env.variables)
             val skipLimit = SkipLimit(childVariable, field.arguments, fieldDefinition)
             reading = when {
-                ordering != null -> skipLimit.format(reading.with(childVariableName).orderBy(*ordering.toTypedArray()))
-                skipLimit.applies() -> skipLimit.format(reading.with(childVariableName))
+                ordering != null -> skipLimit.format(reading.with(*withPassThrough.toTypedArray()).orderBy(*ordering.toTypedArray()))
+                skipLimit.applies() -> skipLimit.format(reading.with(*withPassThrough.toTypedArray()))
                 else -> reading
             }
             reading.withSubQueries(sub).returning(collect(childVariableName.project(projectionEntries)).`as`(childVariableName))
