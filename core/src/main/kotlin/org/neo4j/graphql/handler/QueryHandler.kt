@@ -113,20 +113,20 @@ class QueryHandler private constructor(schemaConfig: SchemaConfig) : BaseDataFet
 
         val ongoingReading = if ((env.getContext() as? QueryContext)?.optimizedQuery?.contains(QueryContext.OptimizationStrategy.FILTER_AS_MATCH) == true) {
 
-            OptimizedFilterHandler(type, schemaConfig).generateFilterQuery(variable, fieldDefinition, field, match, propertyContainer, env.variables)
+            OptimizedFilterHandler(type, schemaConfig).generateFilterQuery(variable, fieldDefinition, env.arguments, match, propertyContainer, env.variables)
 
         } else {
 
-            val where = where(propertyContainer, fieldDefinition, type, field, env.variables)
+            val where = where(propertyContainer, fieldDefinition, type, env.arguments, env.variables)
             match.where(where)
         }
 
-        val (projectionEntries, subQueries) = projectFields(propertyContainer, field, type, env)
+        val (projectionEntries, subQueries) = projectFields(propertyContainer, type, env)
         val mapProjection = propertyContainer.project(projectionEntries).`as`(field.aliasOrName())
         return ongoingReading
             .withSubQueries(subQueries)
             .returning(mapProjection)
-            .skipLimitOrder(propertyContainer.requiredSymbolicName, fieldDefinition, field, env)
+            .skipLimitOrder(propertyContainer.requiredSymbolicName, fieldDefinition, env.arguments)
             .build()
     }
 }

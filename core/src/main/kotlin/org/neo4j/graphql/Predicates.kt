@@ -51,17 +51,17 @@ enum class FieldOperator(
             queriedField: String,
             propertyContainer: PropertyContainer,
             field: GraphQLFieldDefinition?,
-            value: Any,
+            value: Any?,
             schemaConfig: SchemaConfig,
             suffix: String? = null
     ): List<Condition> {
         if (schemaConfig.useTemporalScalars && field?.type?.isNeo4jTemporalType() == true) {
             val neo4jTypeConverter = getNeo4jTypeConverter(field)
             val parameter = queryParameter(value, variablePrefix, queriedField, null, suffix)
-                .withValue(value.toJavaValue())
+                .withValue(value)
             return listOf(neo4jTypeConverter.createCondition(propertyContainer.property(field.name), parameter, conditionCreator))
         }
-        return if (field?.type?.isNeo4jType() == true && value is ObjectValue) {
+        return if (field?.type?.isNeo4jType() == true && value is Map<*, *>) {
             resolveNeo4jTypeConditions(variablePrefix, queriedField, propertyContainer, field, value, suffix)
         } else if (field?.isNativeId() == true) {
             val id = propertyContainer.id()
@@ -79,28 +79,29 @@ enum class FieldOperator(
         }
     }
 
-    private fun resolveNeo4jTypeConditions(variablePrefix: String, queriedField: String, propertyContainer: PropertyContainer, field: GraphQLFieldDefinition, value: ObjectValue, suffix: String?): List<Condition> {
+    private fun resolveNeo4jTypeConditions(variablePrefix: String, queriedField: String, propertyContainer: PropertyContainer, field: GraphQLFieldDefinition, values: Map<*, *>, suffix: String?): List<Condition> {
         val neo4jTypeConverter = getNeo4jTypeConverter(field)
         val conditions = mutableListOf<Condition>()
         if (distance) {
-            val parameter = queryParameter(value, variablePrefix, queriedField, suffix)
+            val parameter = queryParameter(values, variablePrefix, queriedField, suffix)
             conditions += (neo4jTypeConverter as Neo4jPointConverter).createDistanceCondition(
                     propertyContainer.property(field.propertyName()),
                     parameter,
                     conditionCreator
             )
         } else {
-            value.objectFields.forEachIndexed { index, objectField ->
-                val parameter = queryParameter(value, variablePrefix, queriedField, if (value.objectFields.size > 1) "And${index + 1}" else null, suffix, objectField.name)
-                    .withValue(objectField.value.toJavaValue())
+            values.entries.forEachIndexed { index, (key, value) ->
+                val fieldName = key.toString()
+                val parameter = queryParameter(value, variablePrefix, queriedField, if (values.size > 1) "And${index + 1}" else null, suffix, fieldName)
+                    .withValue(value)
 
-                conditions += neo4jTypeConverter.createCondition(objectField, field, parameter, conditionCreator, propertyContainer)
+                conditions += neo4jTypeConverter.createCondition(fieldName, field, parameter, conditionCreator, propertyContainer)
             }
         }
         return conditions
     }
 
-    private fun resolveCondition(variablePrefix: String, queriedField: String, property: Property, value: Any, suffix: String?): List<Condition> {
+    private fun resolveCondition(variablePrefix: String, queriedField: String, property: Property, value: Any?, suffix: String?): List<Condition> {
         val parameter = queryParameter(value, variablePrefix, queriedField, suffix)
         val condition = conditionCreator(property, parameter)
         return listOf(condition)
@@ -140,14 +141,14 @@ enum class RelationOperator(val suffix: String) {
 
     fun fieldName(fieldName: String) = fieldName + suffix
 
-    fun harmonize(type: GraphQLFieldsContainer, field: GraphQLFieldDefinition, value: Value<*>, queryFieldName: String) = when (field.type.isList()) {
+    fun harmonize(type: GraphQLFieldsContainer, field: GraphQLFieldDefinition, value: Any?, queryFieldName: String) = when (field.type.isList()) {
         true -> when (this) {
             NOT -> when (value) {
-                is NullValue -> NOT
+                null -> NOT
                 else -> NONE
             }
             EQ_OR_NOT_EXISTS -> when (value) {
-                is NullValue -> EQ_OR_NOT_EXISTS
+                null -> EQ_OR_NOT_EXISTS
                 else -> {
                     LOGGER.debug("$queryFieldName on type ${type.name} was used for filtering, consider using ${field.name}${EVERY.suffix} instead")
                     EVERY
@@ -169,11 +170,11 @@ enum class RelationOperator(val suffix: String) {
                 NONE
             }
             NOT -> when (value) {
-                is NullValue -> NOT
+                null -> NOT
                 else -> NONE
             }
             EQ_OR_NOT_EXISTS -> when (value) {
-                is NullValue -> EQ_OR_NOT_EXISTS
+                null -> EQ_OR_NOT_EXISTS
                 else -> SOME
             }
             else -> this

@@ -136,9 +136,9 @@ query($title: String, $skip: Int, $limit: Int, $sort: [MovieSort!]) {
 [source,json]
 ----
 {
-  "limit" : 0,
-  "skip" : 0,
-  "title" : "some title"
+  "moviesLimit" : 0,
+  "moviesSkip" : 0,
+  "whereMoviesTitle" : "some title"
 }
 ----
 
@@ -146,10 +146,10 @@ query($title: String, $skip: Int, $limit: Int, $sort: [MovieSort!]) {
 [source,cypher]
 ----
 MATCH (movies:Movie)
-WHERE movies.title = $title
+WHERE movies.title = $whereMoviesTitle
 RETURN movies {
 	.title
-} AS movies ORDER BY movies.id DESC, movies.title ASC SKIP $skip LIMIT $limit
+} AS movies ORDER BY movies.id DESC, movies.title ASC SKIP $moviesSkip LIMIT $moviesLimit
 ----
 
 === Default values
@@ -294,9 +294,9 @@ query($name: String, $skip: Int, $limit: Int, $sort: [GenreSort!]) {
 [source,json]
 ----
 {
-  "limit" : 2,
-  "name" : "some name",
-  "skip" : 1
+  "moviesGenresLimit" : 2,
+  "moviesGenresSkip" : 1,
+  "whereMoviesGenresName" : "some name"
 }
 ----
 
@@ -307,8 +307,8 @@ MATCH (movies:Movie)
 CALL {
 	WITH movies
 	MATCH (movies)-[:HAS_GENRE]->(moviesGenres:Genre)
-	WHERE moviesGenres.name = $name
-	WITH moviesGenres ORDER BY moviesGenres.id DESC, moviesGenres.name ASC SKIP $skip LIMIT $limit
+	WHERE moviesGenres.name = $whereMoviesGenresName
+	WITH moviesGenres ORDER BY moviesGenres.id DESC, moviesGenres.name ASC SKIP $moviesGenresSkip LIMIT $moviesGenresLimit
 	RETURN collect(moviesGenres {
 		.name
 	}) AS moviesGenres

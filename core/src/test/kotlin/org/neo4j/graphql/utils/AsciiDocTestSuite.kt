@@ -7,6 +7,7 @@ import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.DynamicTest
 import java.io.File
 import java.io.FileWriter
+import java.math.BigInteger
 import java.net.URI
 import java.util.*
 import java.util.regex.Pattern
@@ -289,6 +290,7 @@ open class AsciiDocTestSuite(
         fun fixNumber(v: Any?): Any? = when (v) {
             is Float -> v.toDouble()
             is Int -> v.toLong()
+            is BigInteger -> v.toLong()
             is Iterable<*> -> v.map { fixNumber(it) }
             is Sequence<*> -> v.map { fixNumber(it) }
             is Map<*, *> -> v.mapValues { fixNumber(it.value) }

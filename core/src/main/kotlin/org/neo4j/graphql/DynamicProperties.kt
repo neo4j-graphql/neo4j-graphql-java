@@ -48,7 +48,7 @@ object DynamicProperties {
             is BooleanValue -> input.isValue
             is EnumValue -> input.name
             is VariableReference -> variables[input.name]
-            is ArrayValue -> input.values.map { v -> parse(v, variables) }
+            is ArrayValue -> input.values.map { v -> parseNested(v, variables) }
             is ObjectValue -> throw IllegalArgumentException("deep structures not supported for dynamic properties")
             else -> Assert.assertShouldNeverHappen("We have covered all Value types")
         }

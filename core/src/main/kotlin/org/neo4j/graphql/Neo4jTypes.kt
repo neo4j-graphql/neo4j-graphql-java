@@ -1,9 +1,7 @@
 package org.neo4j.graphql
 
-import graphql.language.Field
-import graphql.language.ObjectField
-import graphql.language.ObjectValue
 import graphql.schema.GraphQLFieldDefinition
+import graphql.schema.SelectedField
 import org.neo4j.cypherdsl.core.*
 import org.neo4j.cypherdsl.core.Cypher
 import org.neo4j.graphql.handler.BaseDataFetcherForContainer
@@ -19,7 +17,7 @@ data class TypeDefinition(
 )
 
 class Neo4jTemporalConverter(name: String) : Neo4jSimpleConverter(name) {
-    override fun projectField(variable: SymbolicName, field: Field, name: String): Any {
+    override fun projectField(variable: SymbolicName, field: SelectedField, name: String): Any {
         return Cypher.call("toString").withArgs(variable.property(field.name)).asFunction()
     }
 
@@ -31,28 +29,27 @@ class Neo4jTemporalConverter(name: String) : Neo4jSimpleConverter(name) {
 class Neo4jTimeConverter(name: String) : Neo4jConverter(name) {
 
     override fun createCondition(
-            objectField: ObjectField,
+            fieldName: String,
             field: GraphQLFieldDefinition,
             parameter: Parameter<*>,
             conditionCreator: (Expression, Expression) -> Condition,
             propertyContainer: PropertyContainer
-    ): Condition = if (objectField.name == NEO4j_FORMATTED_PROPERTY_KEY) {
+    ): Condition = if (fieldName == NEO4j_FORMATTED_PROPERTY_KEY) {
         val exp = toExpression(parameter)
         conditionCreator(propertyContainer.property(field.name), exp)
     } else {
-        super.createCondition(objectField, field, parameter, conditionCreator, propertyContainer)
+        super.createCondition(fieldName, field, parameter, conditionCreator, propertyContainer)
     }
 
-    override fun projectField(variable: SymbolicName, field: Field, name: String): Any = when (name) {
+    override fun projectField(variable: SymbolicName, field: SelectedField, name: String): Any = when (name) {
         NEO4j_FORMATTED_PROPERTY_KEY -> Cypher.call("toString").withArgs(variable.property(field.name)).asFunction()
         else -> super.projectField(variable, field, name)
     }
 
     override fun getMutationExpression(value: Any, field: GraphQLFieldDefinition): BaseDataFetcherForContainer.PropertyAccessor {
         val fieldName = field.name
-        return (value as? ObjectValue)
-            ?.objectFields
-            ?.find { it.name == NEO4j_FORMATTED_PROPERTY_KEY }
+        return (value as? Map<*, *>)
+            ?.get(NEO4j_FORMATTED_PROPERTY_KEY)
             ?.let {
                 BaseDataFetcherForContainer.PropertyAccessor(fieldName) { variable ->
                     val param = queryParameter(value, variable, fieldName)
@@ -91,14 +88,14 @@ open class Neo4jSimpleConverter(val name: String) {
     ): Condition = conditionCreator(property, parameter)
 
     open fun createCondition(
-            objectField: ObjectField,
+            fieldName: String,
             field: GraphQLFieldDefinition,
             parameter: Parameter<*>,
             conditionCreator: (Expression, Expression) -> Condition,
             propertyContainer: PropertyContainer
-    ): Condition = createCondition(propertyContainer.property(field.name, objectField.name), parameter, conditionCreator)
+    ): Condition = createCondition(propertyContainer.property(field.name, fieldName), parameter, conditionCreator)
 
-    open fun projectField(variable: SymbolicName, field: Field, name: String): Any = variable.property(field.name, name)
+    open fun projectField(variable: SymbolicName, field: SelectedField, name: String): Any = variable.property(field.name, name)
 
     open fun getMutationExpression(value: Any, field: GraphQLFieldDefinition): BaseDataFetcherForContainer.PropertyAccessor {
         return BaseDataFetcherForContainer.PropertyAccessor(field.name)

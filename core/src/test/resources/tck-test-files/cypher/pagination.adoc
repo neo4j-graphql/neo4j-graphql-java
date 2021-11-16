@@ -151,13 +151,12 @@ query($skip: Int, $limit: Int) {
 }
 ----
 
-
 .Expected Cypher params
 [source,json]
 ----
 {
-  "limit" : 0,
-  "skip" : 0
+  "moviesLimit" : 0,
+  "moviesSkip" : 0
 }
 ----
 
@@ -167,7 +166,7 @@ query($skip: Int, $limit: Int) {
 MATCH (movies:Movie)
 RETURN movies {
 	.title
-} AS movies SKIP $skip LIMIT $limit
+} AS movies SKIP $moviesSkip LIMIT $moviesLimit
 ----
 
 === Skip + Limit with other variables
@@ -199,9 +198,9 @@ query($skip: Int, $limit: Int, $title: String) {
 [source,json]
 ----
 {
-  "limit" : 1,
-  "skip" : 2,
-  "title" : "some title"
+  "moviesLimit" : 1,
+  "moviesSkip" : 2,
+  "whereMoviesTitle" : "some title"
 }
 ----
 
@@ -209,10 +208,10 @@ query($skip: Int, $limit: Int, $title: String) {
 [source,cypher]
 ----
 MATCH (movies:Movie)
-WHERE movies.title = $title
+WHERE movies.title = $whereMoviesTitle
 RETURN movies {
 	.title
-} AS movies SKIP $skip LIMIT $limit
+} AS movies SKIP $moviesSkip LIMIT $moviesLimit
 ----
 
 === Default values
@@ -401,15 +400,14 @@ query($skip: Int, $limit: Int) {
 }
 ----
 
-
 .Expected Cypher params
 [source,json]
 ----
 {
   "actorsLimit" : 10,
-  "actorsSkip" : 0,
-  "limit" : 0,
-  "skip" : 0
+  "actorsMoviesLimit" : 0,
+  "actorsMoviesSkip" : 0,
+  "actorsSkip" : 0
 }
 ----
 
@@ -420,7 +418,7 @@ MATCH (actors:Actor)
 CALL {
 	WITH actors
 	MATCH (actors)-[:ACTS_IN]->(actorsMovies:Movie)
-	WITH actorsMovies SKIP $skip LIMIT $limit
+	WITH actorsMovies SKIP $actorsMoviesSkip LIMIT $actorsMoviesLimit
 	RETURN collect(actorsMovies {
 		.title
 	}) AS actorsMovies
@@ -459,16 +457,15 @@ query($skip: Int, $limit: Int, $title: String) {
 }
 ----
 
-
 .Expected Cypher params
 [source,json]
 ----
 {
   "actorsLimit" : 10,
+  "actorsMoviesLimit" : 1,
+  "actorsMoviesSkip" : 2,
   "actorsSkip" : 0,
-  "limit" : 1,
-  "skip" : 2,
-  "title" : "some title"
+  "whereActorsMoviesTitle" : "some title"
 }
 ----
 
@@ -479,8 +476,8 @@ MATCH (actors:Actor)
 CALL {
 	WITH actors
 	MATCH (actors)-[:ACTS_IN]->(actorsMovies:Movie)
-	WHERE actorsMovies.title = $title
-	WITH actorsMovies SKIP $skip LIMIT $limit
+	WHERE actorsMovies.title = $whereActorsMoviesTitle
+	WITH actorsMovies SKIP $actorsMoviesSkip LIMIT $actorsMoviesLimit
 	RETURN collect(actorsMovies {
 		.title
 	}) AS actorsMovies

@@ -1,9 +1,5 @@
 package org.neo4j.graphql.handler.filter
 
-import graphql.language.Field
-import graphql.language.NullValue
-import graphql.language.ObjectValue
-import graphql.language.Value
 import graphql.schema.GraphQLFieldDefinition
 import graphql.schema.GraphQLFieldsContainer
 import org.neo4j.cypherdsl.core.*
@@ -34,7 +30,7 @@ typealias ConditionBuilder = (ExposesWith) -> OrderableOngoingReadingAndWithWith
  */
 class OptimizedFilterHandler(val type: GraphQLFieldsContainer, schemaConfig: SchemaConfig) : ProjectionBase(schemaConfig) {
 
-    fun generateFilterQuery(variable: String, fieldDefinition: GraphQLFieldDefinition, field: Field, readingWithoutWhere: OngoingReadingWithoutWhere, rootNode: PropertyContainer, variables: Map<String, Any>): OngoingReading {
+    fun generateFilterQuery(variable: String, fieldDefinition: GraphQLFieldDefinition, arguments: Map<String, Any>, readingWithoutWhere: OngoingReadingWithoutWhere, rootNode: PropertyContainer, variables: Map<String, Any>): OngoingReading {
         if (type.isRelationType()) {
             throw OptimizedQueryException("Optimization for relationship entity type is not implemented. Please provide a test case to help adding further cases.")
         }
@@ -42,19 +38,20 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer, schemaConfig: Sch
         var ongoingReading: OngoingReading? = null
 
         if (!schemaConfig.useWhereFilter) {
-            val filteredArguments = field.arguments.filterNot { SPECIAL_FIELDS.contains(it.name) }
+            val filteredArguments = arguments.filterKeys { !SPECIAL_FIELDS.contains(it) }
             if (filteredArguments.isNotEmpty()) {
-                val parsedQuery = QueryParser.parseArguments(filteredArguments, fieldDefinition, type, variables)
+                val parsedQuery = QueryParser.parseArguments(filteredArguments, fieldDefinition, type)
                 val condition = handleQuery(variable, "", rootNode, parsedQuery, type, variables)
                 ongoingReading = readingWithoutWhere.where(condition)
             }
         }
-        return field.arguments.find { filterFieldName() == it.name }
-            ?.let { argument ->
-                val parsedQuery = parseFilter(argument.value as ObjectValue, type, variables)
+        return arguments[filterFieldName()]
+            ?.let { it as Map<*, *> }
+            ?.let {
+                val parsedQuery = parseFilter(it, type)
                 NestingLevelHandler(parsedQuery, false, rootNode, variable, ongoingReading
                         ?: readingWithoutWhere,
-                        type, argument.value, linkedSetOf(rootNode.requiredSymbolicName), variables)
+                        type, it, linkedSetOf(rootNode.requiredSymbolicName), variables)
                     .parseFilter()
             }
                 ?: readingWithoutWhere
@@ -76,7 +73,7 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer, schemaConfig: Sch
             private val variablePrefix: String,
             private val matchQueryWithoutWhere: OngoingReading,
             private val type: GraphQLFieldsContainer,
-            private val value: Value<*>?,
+            private val value: Map<*, *>,
             private val parentPassThroughWiths: Collection<Expression>,
             private val variables: Map<String, Any>
     ) {
@@ -88,9 +85,6 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer, schemaConfig: Sch
          * @param additionalConditions additional conditions to be applied to the where
          */
         fun parseFilter(additionalConditions: ConditionBuilder? = null): OrderableOngoingReadingAndWithWithoutWhere {
-            if (value !is ObjectValue) {
-                throw IllegalArgumentException("Only object values are supported by the OptimizedFilterHandler")
-            }
             // WHERE MATCH all predicates for current
             // WITH x
             var query = addWhere(additionalConditions)
@@ -117,14 +111,14 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer, schemaConfig: Sch
             val matchQueryWithWhere = matchQueryWithoutWhere.where(condition)
 
             return if (additionalConditions != null) {
-                additionalConditions(matchQueryWithWhere ?: matchQueryWithoutWhere)
+                additionalConditions(matchQueryWithWhere)
             } else {
                 val withs = if (parsedQuery.relationPredicates.isNotEmpty() && parentPassThroughWiths.none { it == current.requiredSymbolicName }) {
                     parentPassThroughWiths + current.requiredSymbolicName
                 } else {
                     parentPassThroughWiths
                 }
-                withClauseWithOptionalDistinct(matchQueryWithWhere ?: matchQueryWithoutWhere, withs, useDistinct)
+                withClauseWithOptionalDistinct(matchQueryWithWhere, withs, useDistinct)
             }
         }
 
@@ -135,15 +129,15 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer, schemaConfig: Sch
             val levelPassThroughWiths = parentPassThroughWiths.toCollection(LinkedHashSet())
             for ((index, relFilter) in parsedQuery.relationPredicates.withIndex()) {
 
-                val objectField = relFilter.queryField
+                val value = relFilter.value
 
-                if (objectField.value is NullValue) {
+                if (value == null) {
                     // EXISTS + NOT EXISTS
                     val existsCondition = relFilter.createExistsCondition(currentNode())
                     query = withClauseWithOptionalDistinct(query.where(existsCondition), levelPassThroughWiths)
                     continue
                 }
-                if (objectField.value !is ObjectValue) {
+                if (value !is Map<*, *>) {
                     throw IllegalArgumentException("Only object values are supported by the OptimizedFilterHandler")
                 }
 
@@ -164,8 +158,8 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer, schemaConfig: Sch
                 relFilter: RelationPredicate,
                 levelPassThroughWiths: LinkedHashSet<Expression>
         ): OrderableOngoingReadingAndWithWithoutWhere {
-            val objectField = relFilter.queryField
-            val nestedParsedQuery = parseFilter(objectField.value as ObjectValue, relFilter.fieldDefinition.type.getInnerFieldsContainer(), variables)
+            val objectField = relFilter.value
+            val nestedParsedQuery = parseFilter(objectField as Map<*, *>, relFilter.fieldDefinition.type.getInnerFieldsContainer())
             val hasPredicates = nestedParsedQuery.fieldPredicates.isNotEmpty() || nestedParsedQuery.relationPredicates.isNotEmpty()
 
             var queryWithoutWhere = query
@@ -186,7 +180,7 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer, schemaConfig: Sch
             }
 
             val nestingLevelHandler = NestingLevelHandler(nestedParsedQuery, true, relVariable, relVariableName,
-                    readingWithoutWhere, relFilter.relationshipInfo.type, objectField.value, levelPassThroughWiths, variables)
+                    readingWithoutWhere, relFilter.relationshipInfo.type, objectField, levelPassThroughWiths, variables)
 
             when (relFilter.op) {
                 RelationOperator.SOME -> queryWithoutWhere = nestingLevelHandler.parseFilter()

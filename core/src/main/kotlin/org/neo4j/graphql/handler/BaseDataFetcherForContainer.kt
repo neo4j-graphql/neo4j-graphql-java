@@ -2,7 +2,6 @@ package org.neo4j.graphql.handler
 
 import graphql.language.Argument
 import graphql.language.ArrayValue
-import graphql.language.ObjectValue
 import graphql.schema.GraphQLFieldDefinition
 import graphql.schema.GraphQLFieldsContainer
 import graphql.schema.GraphQLType
@@ -42,7 +41,7 @@ abstract class BaseDataFetcherForContainer(schemaConfig: SchemaConfig) : BaseDat
     }
 
     private fun defaultCallback(field: GraphQLFieldDefinition) =
-            { value: Any ->
+            { value: Any? ->
                 val propertyName = field.propertyName()
                 listOf(PropertyAccessor(propertyName) { variable -> queryParameter(value, variable, field.name) })
             }
@@ -55,23 +54,24 @@ abstract class BaseDataFetcherForContainer(schemaConfig: SchemaConfig) : BaseDat
     private fun dynamicPrefixCallback(field: GraphQLFieldDefinition, dynamicPrefix: String) =
             { value: Any ->
                 // maps each property of the map to the node
-                (value as? ObjectValue)?.objectFields?.map { argField ->
+                (value as? Map<*, *>)?.map { (key, value) ->
                     PropertyAccessor(
-                            "$dynamicPrefix${argField.name}"
-                    ) { variable -> queryParameter(argField.value, variable, "${field.name}${argField.name.capitalize()}") }
+                            "$dynamicPrefix${key}"
+                    ) { variable -> queryParameter(value, variable, "${field.name}${(key as String).capitalize()}") }
                 }
             }
 
 
-    protected fun properties(variable: String, arguments: List<Argument>): Array<Any> =
+    protected fun properties(variable: String, arguments: Map<String, Any>): Array<Any> =
             preparePredicateArguments(arguments)
                 .flatMap { listOf(it.propertyName, it.toExpression(variable)) }
                 .toTypedArray()
 
-    private fun preparePredicateArguments(arguments: List<Argument>): List<PropertyAccessor> {
+    private fun preparePredicateArguments(arguments: Map<String, Any>): List<PropertyAccessor> {
         val predicates = arguments
-            .mapNotNull { argument ->
-                propertyFields[argument.name]?.invoke(argument.value)?.let { argument.name to it }
+            .entries
+            .mapNotNull { (key, value) ->
+                propertyFields[key]?.invoke(value)?.let { key to it }
             }
             .toMap()
 

@@ -84,8 +84,8 @@ class CreateTypeHandler private constructor(schemaConfig: SchemaConfig) : BaseDa
         val additionalTypes = (type as? GraphQLObjectType)?.interfaces?.map { it.name } ?: emptyList()
         val node = org.neo4j.cypherdsl.core.Cypher.node(type.name, *additionalTypes.toTypedArray()).named(variable)
 
-        val properties = properties(variable, field.arguments)
-        val (mapProjection, subQueries) = projectFields(node, field, type, env)
+        val properties = properties(variable, env.arguments)
+        val (mapProjection, subQueries) = projectFields(node, type, env)
 
         return org.neo4j.cypherdsl.core.Cypher.create(node.withProperties(*properties))
             .with(node)

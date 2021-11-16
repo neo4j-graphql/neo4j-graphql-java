@@ -1,11 +1,9 @@
 package org.neo4j.graphql.handler.projection
 
-import graphql.language.*
 import graphql.schema.*
 import org.neo4j.cypherdsl.core.*
 import org.neo4j.cypherdsl.core.Cypher.*
 import org.neo4j.cypherdsl.core.Functions.*
-import org.neo4j.cypherdsl.core.Node
 import org.neo4j.cypherdsl.core.StatementBuilder.*
 import org.neo4j.graphql.*
 import org.neo4j.graphql.parser.ParsedQuery
@@ -46,34 +44,45 @@ open class ProjectionBase(
          * Fields with special treatments
          */
         val SPECIAL_FIELDS = setOf(FIRST, OFFSET, ORDER_BY, FILTER, OPTIONS)
+
+        val TYPE_NAME_SELECTED_FIELD = object : SelectedField {
+            override fun getName(): String = TYPE_NAME
+            override fun getQualifiedName(): String = TYPE_NAME
+            override fun getFullyQualifiedName(): String = TYPE_NAME
+            override fun getObjectType(): GraphQLObjectType? = null
+            override fun getFieldDefinition(): GraphQLFieldDefinition? = null
+            override fun getArguments(): Map<String, Any> = emptyMap()
+            override fun getLevel(): Int = 0
+            override fun isConditional(): Boolean = false
+            override fun getAlias(): String? = null
+            override fun getResultKey(): String? = null
+            override fun getParentField(): SelectedField? = null
+            override fun getSelectionSet(): DataFetchingFieldSelectionSet? = null
+        }
     }
 
     fun filterFieldName() = if (schemaConfig.useWhereFilter) WHERE else FILTER
 
     private fun orderBy(
             node: SymbolicName,
-            args: MutableList<Argument>,
-            fieldDefinition: GraphQLFieldDefinition?,
-            variables: Map<String, Any>
+            args: Map<String, Any>,
+            fieldDefinition: GraphQLFieldDefinition?
     ): List<SortItem>? = if (schemaConfig.queryOptionStyle == SchemaConfig.InputStyle.INPUT_TYPE) {
-        extractSortFromOptions(node, args, fieldDefinition, variables)
+        extractSortFromOptions(node, args, fieldDefinition)
     } else {
         extractSortFromArgs(node, args, fieldDefinition)
     }
 
     private fun extractSortFromOptions(
             node: SymbolicName,
-            args: MutableList<Argument>,
-            fieldDefinition: GraphQLFieldDefinition?,
-            variables: Map<String, Any>
+            args: Map<String, Any>,
+            fieldDefinition: GraphQLFieldDefinition?
     ): List<SortItem>? {
-        val options = args.find { it.name == OPTIONS }?.value as? ObjectValue
+        val options = args[OPTIONS] as? Map<*, *>
         val defaultOptions = (fieldDefinition?.getArgument(OPTIONS)?.type as? GraphQLInputObjectType)
 
-        val sortArray = (options?.objectFields?.find { it.name == SORT }?.value
-            ?.let { value -> (value as? VariableReference)?.let { variables[it.name] } ?: value }?.toJavaValue()
-                ?: defaultOptions?.getField(SORT)?.defaultValue?.toJavaValue()
-                ) as? List<*> ?: return null
+        val sortArray = (options?.get(SORT) ?: defaultOptions?.getField(SORT)?.defaultValue?.toJavaValue())
+                as? List<*> ?: return null
 
         return sortArray
             .mapNotNull { it as? Map<*, *> }
@@ -86,19 +95,18 @@ open class ProjectionBase(
 
     private fun extractSortFromArgs(
             node: SymbolicName,
-            args: MutableList<Argument>,
+            args: Map<String, Any>,
             fieldDefinition: GraphQLFieldDefinition?
     ): List<SortItem>? {
 
-        val orderBy = args.find { it.name == ORDER_BY }?.value
-                ?: fieldDefinition?.getArgument(ORDER_BY)?.defaultValue?.asGraphQLValue()
+        val orderBy = args[ORDER_BY]
+                ?: fieldDefinition?.getArgument(ORDER_BY)?.defaultValue
         return orderBy
             ?.let { it ->
                 when (it) {
-                    is ArrayValue -> it.values.map { it.toJavaValue().toString() }
-                    is EnumValue -> listOf(it.name)
-                    is StringValue -> listOf(it.value)
-                    else -> null
+                    is List<*> -> it.map { it.toString() }
+                    is String -> listOf(it)
+                    else -> throw IllegalArgumentException("invalid type ${it.javaClass.name} for ${fieldDefinition?.name}.$ORDER_BY")
                 }
             }
             ?.map {
@@ -109,7 +117,6 @@ open class ProjectionBase(
             }
     }
 
-
     private fun createSort(node: SymbolicName, property: String, direction: String) =
             sort(node.property(property))
                 .let { if (Sort.valueOf((direction).toUpperCase()) == Sort.ASC) it.ascending() else it.descending() }
@@ -118,30 +125,29 @@ open class ProjectionBase(
             propertyContainer: PropertyContainer,
             fieldDefinition: GraphQLFieldDefinition,
             type: GraphQLFieldsContainer,
-            field: Field,
+            arguments: Map<String, Any>,
             variables: Map<String, Any>
     ): Condition {
         val variable = propertyContainer.requiredSymbolicName.value
 
         val result = if (!schemaConfig.useWhereFilter) {
-            val filteredArguments = field.arguments.filterNot { SPECIAL_FIELDS.contains(it.name) }
-
-            val parsedQuery = parseArguments(filteredArguments, fieldDefinition, type, variables)
+            val filteredArguments = arguments.filterKeys { !SPECIAL_FIELDS.contains(it) }
+            val parsedQuery = parseArguments(filteredArguments, fieldDefinition, type)
             handleQuery(variable, "", propertyContainer, parsedQuery, type, variables)
         } else {
             Conditions.noCondition()
         }
-        return field.arguments.find { filterFieldName() == it.name }
-            ?.let { arg ->
-                when (arg.value) {
-                    is ObjectValue -> arg.value as ObjectValue
-                    is VariableReference -> variables[arg.name]?.let { it.asGraphQLValue() }
+        val filterFieldName = filterFieldName()
+        return arguments[filterFieldName]
+            ?.let {
+                when (it) {
+                    is Map<*, *> -> it
                     else -> throw IllegalArgumentException("")
                 }
             }
-            ?.let { parseFilter(it as ObjectValue, type, variables) }
+            ?.let { parseFilter(it, type) }
             ?.let {
-                val filterCondition = handleQuery(normalizeName(filterFieldName(), variable), "", propertyContainer, it, type, variables)
+                val filterCondition = handleQuery(normalizeName(filterFieldName, variable), "", propertyContainer, it, type, variables)
                 result.and(filterCondition)
             }
                 ?: result
@@ -158,15 +164,15 @@ open class ProjectionBase(
         var result = parsedQuery.getFieldConditions(propertyContainer, variablePrefix, variableSuffix, schemaConfig)
 
         for (predicate in parsedQuery.relationPredicates) {
-            val objectField = predicate.queryField
+            val value = predicate.value
 
-            if (objectField.value is NullValue) {
+            if (value == null) {
                 val existsCondition = predicate.createExistsCondition(propertyContainer)
                 result = result.and(existsCondition)
                 continue
             }
-            if (objectField.value !is ObjectValue) {
-                throw IllegalArgumentException("Only object values are supported for filtering on queried relation ${predicate.queryField}, but got ${objectField.value.javaClass.name}")
+            if (value !is Map<*, *>) {
+                throw IllegalArgumentException("Only object values are supported for filtering on queried relation ${predicate.value}, but got ${value.javaClass.name}")
             }
 
             val cond = name(normalizeName(variablePrefix, predicate.relationshipInfo.typeName, "Cond"))
@@ -180,7 +186,7 @@ open class ProjectionBase(
             }?.let {
                 val targetNode = predicate.relNode.named(normalizeName(variablePrefix, predicate.relationshipInfo.typeName))
                 val relType = predicate.relationshipInfo.type
-                val parsedQuery2 = parseFilter(objectField.value as ObjectValue, relType, variables)
+                val parsedQuery2 = parseFilter(value, relType)
                 val condition = handleQuery(targetNode.requiredSymbolicName.value, "", targetNode, parsedQuery2, relType, variables)
                 var where = it
                     .`in`(listBasedOn(predicate.relationshipInfo.createRelation(propertyContainer as Node, targetNode)).returning(condition))
@@ -193,15 +199,15 @@ open class ProjectionBase(
             }
         }
 
-        fun handleLogicalOperator(value: Value<*>, classifier: String, variables: Map<String, Any>): Condition {
-            val objectValue = value as? ObjectValue
-                    ?: throw IllegalArgumentException("Only object values are supported for logical operations, but got ${value.javaClass.name}")
+        fun handleLogicalOperator(value: Any?, classifier: String, variables: Map<String, Any>): Condition {
+            val objectValue = value as? Map<*, *>
+                    ?: throw IllegalArgumentException("Only object values are supported for logical operations, but got ${value?.javaClass?.name}")
 
-            val parsedNestedQuery = parseFilter(objectValue, type, variables)
+            val parsedNestedQuery = parseFilter(objectValue, type)
             return handleQuery(variablePrefix + classifier, variableSuffix, propertyContainer, parsedNestedQuery, type, variables)
         }
 
-        fun handleLogicalOperators(values: List<Value<*>>?, classifier: String): List<Condition> {
+        fun handleLogicalOperators(values: List<*>?, classifier: String): List<Condition> {
             return when {
                 values?.isNotEmpty() == true -> when {
                     values.size > 1 -> values.mapIndexed { index, value -> handleLogicalOperator(value, "${classifier}${index + 1}", variables) }
@@ -218,29 +224,20 @@ open class ProjectionBase(
 
     fun projectFields(
             propertyContainer: PropertyContainer,
-            field: Field,
             nodeType: GraphQLFieldsContainer,
             env: DataFetchingEnvironment,
-            variableSuffix: String? = null
+            variable: SymbolicName = propertyContainer.requiredSymbolicName,
+            variableSuffix: String? = null,
+            selectionSet: DataFetchingFieldSelectionSet = env.selectionSet,
     ): Pair<List<Any>, List<Statement>> {
-        return projectFields(propertyContainer, propertyContainer.requiredSymbolicName, field, nodeType, env, variableSuffix)
-    }
-
-    fun projectFields(
-            propertyContainer: PropertyContainer,
-            variable: SymbolicName,
-            field: Field,
-            nodeType: GraphQLFieldsContainer,
-            env: DataFetchingEnvironment,
-            variableSuffix: String? = null
-    ): Pair<List<Any>, List<Statement>> {
-        return projectSelection(propertyContainer, variable, field.selectionSet.selections, nodeType, env, variableSuffix)
+        val selectedFields = selectionSet.immediateFields.distinct()
+        return projectSelection(propertyContainer, variable, selectedFields, nodeType, env, variableSuffix)
     }
 
     private fun projectSelection(
             propertyContainer: PropertyContainer,
             variable: SymbolicName,
-            selection: List<Selection<*>>,
+            selection: List<SelectedField>,
             nodeType: GraphQLFieldsContainer,
             env: DataFetchingEnvironment,
             variableSuffix: String?
@@ -250,28 +247,27 @@ open class ProjectionBase(
         //  a{.name},
         //  CASE WHEN a:Location THEN a { .foo } ELSE {} END
         //  ])
-        var hasTypeName = false
         val projections = mutableListOf<Any>()
         val subQueries = mutableListOf<Statement>()
+        val handledFields = mutableSetOf<String>()
         selection.forEach {
-            val (pro, sub) = when (it) {
-                is Field -> {
-                    hasTypeName = hasTypeName || (it.name == TYPE_NAME)
-                    projectField(propertyContainer, variable, it, nodeType, env, variableSuffix)
+            val (pro, sub) = if ((nodeType is GraphQLInterfaceType && nodeType.getFieldDefinition(it.name) != null) || it.name == TYPE_NAME) {
+                if (!handledFields.add(it.name)) {
+                    return@forEach
                 }
-                is InlineFragment -> projectInlineFragment(propertyContainer, variable, it, env, variableSuffix)
-                is FragmentSpread -> projectNamedFragments(propertyContainer, variable, it, env, variableSuffix)
-                else -> emptyList<Any>() to emptyList()
+                projectField(propertyContainer, variable, it, nodeType, env, variableSuffix)
+            } else {
+                projectField(propertyContainer, variable, it, it.objectType, env, variableSuffix)
             }
             projections.addAll(pro)
             subQueries += sub
         }
         if (nodeType is GraphQLInterfaceType
-            && !hasTypeName
+            && !handledFields.contains(TYPE_NAME)
             && (env.getContext() as? QueryContext)?.queryTypeOfInterfaces == true
         ) {
             // for interfaces the typename is required to determine the correct implementation
-            val (pro, sub) = projectField(propertyContainer, variable, Field(TYPE_NAME), nodeType, env, variableSuffix)
+            val (pro, sub) = projectField(propertyContainer, variable, TYPE_NAME_SELECTED_FIELD, nodeType, env, variableSuffix)
             projections.addAll(pro)
             subQueries += sub
         }
@@ -281,7 +277,7 @@ open class ProjectionBase(
     private fun projectField(
             propertyContainer: PropertyContainer,
             variable: SymbolicName,
-            field: Field,
+            field: SelectedField,
             type: GraphQLFieldsContainer,
             env: DataFetchingEnvironment,
             variableSuffix: String?
@@ -314,10 +310,10 @@ open class ProjectionBase(
 
         if (cypherDirective != null) {
             val ctxVariable = name(field.contextualize(variable))
-            val innerSubQuery = cypherDirective(ctxVariable, fieldDefinition, field, cypherDirective, variable, env)
+            val innerSubQuery = cypherDirective(ctxVariable, fieldDefinition, field.arguments, cypherDirective, variable)
             subQueries += if (isObjectField && !cypherDirective.passThrough) {
                 val fieldObjectType = fieldDefinition.type.getInnerFieldsContainer()
-                val (fieldProjection, nestedSubQueries) = projectFields(anyNode(ctxVariable), ctxVariable, field, fieldObjectType, env, variableSuffix)
+                val (fieldProjection, nestedSubQueries) = projectFields(anyNode(ctxVariable), fieldObjectType, env, ctxVariable, variableSuffix, field.selectionSet)
                 with(variable)
                     .call(innerSubQuery)
                     .withSubQueries(nestedSubQueries)
@@ -376,11 +372,10 @@ open class ProjectionBase(
         return projections to subQueries
     }
 
-    private fun projectNeo4jObjectType(variable: SymbolicName, field: Field, fieldDefinition: GraphQLFieldDefinition): Expression {
+    private fun projectNeo4jObjectType(variable: SymbolicName, field: SelectedField, fieldDefinition: GraphQLFieldDefinition): Expression {
         val converter = getNeo4jTypeConverter(fieldDefinition)
         val projections = mutableListOf<Any>()
-        field.selectionSet.selections
-            .filterIsInstance<Field>()
+        field.selectionSet.immediateFields
             .forEach {
                 projections += it.name
                 projections += converter.projectField(variable, field, it.name)
@@ -388,12 +383,12 @@ open class ProjectionBase(
         return mapOf(*projections.toTypedArray())
     }
 
-    fun cypherDirective(ctxVariable: SymbolicName, fieldDefinition: GraphQLFieldDefinition, field: Field, cypherDirective: CypherDirective, thisValue: SymbolicName?, env: DataFetchingEnvironment): ResultStatement {
+    fun cypherDirective(ctxVariable: SymbolicName, fieldDefinition: GraphQLFieldDefinition, arguments: Map<String, Any>, cypherDirective: CypherDirective, thisValue: SymbolicName?): ResultStatement {
         val args = sortedMapOf<String, Expression>()
         if (thisValue != null) args["this"] = thisValue.`as`("this")
-        field.arguments
-            .filterNot { SPECIAL_FIELDS.contains(it.name) }
-            .forEach { args[it.name] = queryParameter(it.value, ctxVariable.value, it.name).`as`(it.name) }
+        arguments
+            .filterNot { (name, _) -> SPECIAL_FIELDS.contains(name) }
+            .forEach { (name, value) -> args[name] = queryParameter(value, ctxVariable.value, name).`as`(name) }
         fieldDefinition.arguments
             .filterNot { SPECIAL_FIELDS.contains(it.name) }
             .filter { it.defaultValue != null && !args.containsKey(it.name) }
@@ -409,52 +404,27 @@ open class ProjectionBase(
 
         val expression = raw(cypherDirective.statement).`as`(ctxVariable)
         return (reading?.returningRaw(expression) ?: returningRaw(expression))
-            .skipLimitOrder(ctxVariable, fieldDefinition, field, env)
+            .skipLimitOrder(ctxVariable, fieldDefinition, arguments)
             .build()
     }
 
     fun OngoingReadingAndReturn.skipLimitOrder(
             ctxVariable: SymbolicName,
             fieldDefinition: GraphQLFieldDefinition,
-            field: Field,
-            env: DataFetchingEnvironment
+            arguments: Map<String, Any>
     ) = if (fieldDefinition.type.isList()) {
-        val ordering = orderBy(ctxVariable, field.arguments, fieldDefinition, env.variables)
+        val ordering = orderBy(ctxVariable, arguments, fieldDefinition)
         val orderedResult = ordering?.let { o -> this.orderBy(*o.toTypedArray()) } ?: this
-        val skipLimit = SkipLimit(ctxVariable.value, field.arguments, fieldDefinition)
+        val skipLimit = SkipLimit(ctxVariable.value, arguments, fieldDefinition)
         skipLimit.format(orderedResult)
     } else {
         this.limit(1)
     }
 
-    private fun projectNamedFragments(node: PropertyContainer, variable: SymbolicName, fragmentSpread: FragmentSpread, env: DataFetchingEnvironment, variableSuffix: String?) =
-            env.fragmentsByName.getValue(fragmentSpread.name).let {
-                projectFragment(node, it.typeCondition.name, variable, env, variableSuffix, it.selectionSet)
-            }
-
-    private fun projectInlineFragment(node: PropertyContainer, variable: SymbolicName, fragment: InlineFragment, env: DataFetchingEnvironment, variableSuffix: String?) =
-            projectFragment(node, fragment.typeCondition.name, variable, env, variableSuffix, fragment.selectionSet)
-
-    private fun projectFragment(
-            node: PropertyContainer,
-            fragmentTypeName: String?,
-            variable: SymbolicName,
-            env: DataFetchingEnvironment,
-            variableSuffix: String?,
-            selectionSet: SelectionSet
-    ): Pair<List<Any>, List<Statement>> {
-        val fragmentType = env.graphQLSchema.getType(fragmentTypeName) as? GraphQLFieldsContainer
-                ?: return emptyList<Any>() to emptyList()
-        // these are the nested fields of the fragment
-        // it could be that we have to adapt the variable name too, and perhaps add some kind of rename
-        return projectSelection(node, variable, selectionSet.selections, fragmentType, env, variableSuffix)
-    }
-
-
     private fun projectRelationship(
             node: PropertyContainer,
             variable: SymbolicName,
-            field: Field,
+            field: SelectedField,
             fieldDefinition: GraphQLFieldDefinition,
             parent: GraphQLFieldsContainer,
             env: DataFetchingEnvironment,
@@ -484,7 +454,7 @@ open class ProjectionBase(
     private fun projectRelationshipParent(
             propertyContainer: PropertyContainer,
             variable: SymbolicName,
-            field: Field,
+            field: SelectedField,
             fieldDefinition: GraphQLFieldDefinition,
             parent: GraphQLFieldsContainer,
             env: DataFetchingEnvironment,
@@ -494,8 +464,8 @@ open class ProjectionBase(
                 ?: throw IllegalArgumentException("field ${fieldDefinition.name} of type ${parent.name} is not an object (fields container) and can not be handled as relationship")
         return when (propertyContainer) {
             is Node -> {
-                val (projectionEntries, subQueries) = projectFields(propertyContainer, name(variable.value + (variableSuffix?.capitalize()
-                        ?: "")), field, fieldObjectType, env, variableSuffix)
+                val (projectionEntries, subQueries) = projectFields(propertyContainer, fieldObjectType, env, name(variable.value + (variableSuffix?.capitalize()
+                        ?: "")), variableSuffix, field.selectionSet)
                 propertyContainer.project(projectionEntries) to subQueries
             }
             is Relationship -> projectNodeFromRichRelationship(parent, fieldDefinition, variable, field, env)
@@ -507,7 +477,7 @@ open class ProjectionBase(
             parent: GraphQLFieldsContainer,
             fieldDefinition: GraphQLFieldDefinition,
             variable: SymbolicName,
-            field: Field,
+            field: SelectedField,
             env: DataFetchingEnvironment
     ): Pair<Expression, List<Statement>> {
         val relInfo = parent.relationship()
@@ -520,7 +490,7 @@ open class ProjectionBase(
             else -> throw IllegalArgumentException("type ${parent.name} does not have a matching field with name ${fieldDefinition.name}")
         }
         val rel = relInfo.createRelation(start, end, false, variable)
-        val (projectFields, subQueries) = projectFields(target, field, fieldDefinition.type as GraphQLFieldsContainer, env)
+        val (projectFields, subQueries) = projectFields(target, fieldDefinition.type as GraphQLFieldsContainer, env, target.requiredSymbolicName, selectionSet = field.selectionSet)
 
         val match = with(variable)
             .match(rel)
@@ -533,7 +503,7 @@ open class ProjectionBase(
 
     private fun projectRichAndRegularRelationship(
             variable: SymbolicName,
-            field: Field,
+            field: SelectedField,
             fieldDefinition: GraphQLFieldDefinition,
             parent: GraphQLFieldsContainer,
             env: DataFetchingEnvironment
@@ -563,7 +533,7 @@ open class ProjectionBase(
             else -> node(nodeType.name).named(childVariableName) to null
         }
 
-        val (projectionEntries, sub) = projectFields(endNodePattern, name(childVariable), field, nodeType, env, variableSuffix)
+        val (projectionEntries, sub) = projectFields(endNodePattern, nodeType, env, name(childVariable), variableSuffix, field.selectionSet)
 
         val withPassThrough = mutableListOf(endNodePattern.requiredSymbolicName)
         var relationship = relInfo.createRelation(anyNode(variable), endNodePattern)
@@ -573,7 +543,7 @@ open class ProjectionBase(
         }
 
         val with = with(variable)
-        val where = where(anyNode(childVariableName), fieldDefinition, nodeType, field, env.variables)
+        val where = where(anyNode(childVariableName), fieldDefinition, nodeType, field.arguments, env.variables)
 
         var reading: OngoingReading = when {
             fieldDefinition.type.isList() -> with.match(relationship)
@@ -581,7 +551,7 @@ open class ProjectionBase(
         }.where(where)
 
         val subQuery = if (fieldDefinition.type.isList()) {
-            val ordering = orderBy(childVariableName, field.arguments, fieldDefinition, env.variables)
+            val ordering = orderBy(childVariableName, field.arguments, fieldDefinition)
             val skipLimit = SkipLimit(childVariable, field.arguments, fieldDefinition)
             reading = when {
                 ordering != null -> skipLimit.format(reading.with(*withPassThrough.toTypedArray()).orderBy(*ordering.toTypedArray()))
@@ -595,14 +565,14 @@ open class ProjectionBase(
         return childVariableName to listOf<Statement>(subQuery.build())
     }
 
-    inner class SkipLimit(variable: String, arguments: List<Argument>, fieldDefinition: GraphQLFieldDefinition?) {
+    inner class SkipLimit(variable: String, arguments: Map<String, Any>, fieldDefinition: GraphQLFieldDefinition?) {
 
         private val skip: Parameter<*>?
         private val limit: Parameter<*>?
 
         init {
             if (schemaConfig.queryOptionStyle == SchemaConfig.InputStyle.INPUT_TYPE) {
-                val options = arguments.find { it.name == OPTIONS }?.value as? ObjectValue
+                val options = arguments[OPTIONS] as? Map<*, *>
                 val defaultOptions = (fieldDefinition?.getArgument(OPTIONS)?.type as? GraphQLInputObjectType)
                 this.skip = convertOptionField(variable, options, defaultOptions, SKIP)
                 this.limit = convertOptionField(variable, options, defaultOptions, LIMIT)
@@ -622,16 +592,15 @@ open class ProjectionBase(
             return limit?.let { result.limit(it) } ?: result
         }
 
-        private fun convertArgument(variable: String, arguments: List<Argument>, fieldDefinition: GraphQLFieldDefinition?, name: String): Parameter<*>? {
-            val value = arguments
-                .find { it.name.toLowerCase() == name }?.value
+        private fun convertArgument(variable: String, arguments: Map<String, Any>, fieldDefinition: GraphQLFieldDefinition?, name: String): Parameter<*>? {
+            val value = arguments[name]
                     ?: fieldDefinition?.getArgument(name)?.defaultValue
                     ?: return null
             return queryParameter(value, variable, name)
         }
 
-        private fun convertOptionField(variable: String, options: ObjectValue?, defaultOptions: GraphQLInputObjectType?, name: String): Parameter<*>? {
-            val value = options?.objectFields?.find { it.name == name }?.value
+        private fun convertOptionField(variable: String, options: Map<*, *>?, defaultOptions: GraphQLInputObjectType?, name: String): Parameter<*>? {
+            val value = options?.get(name)
                     ?: defaultOptions?.getField(name)?.defaultValue
                     ?: return null
             return queryParameter(value, variable, name)

@@ -6,10 +6,6 @@ import graphql.schema.GraphQLOutputType
 import org.neo4j.cypherdsl.core.*
 import java.util.*
 
-fun <T> Iterable<T>.joinNonEmpty(separator: CharSequence = ", ", prefix: CharSequence = "", postfix: CharSequence = "", limit: Int = -1, truncated: CharSequence = "...", transform: ((T) -> CharSequence)? = null): String {
-    return if (iterator().hasNext()) joinTo(StringBuilder(), separator, prefix, postfix, limit, truncated, transform).toString() else ""
-}
-
 fun queryParameter(value: Any?, vararg parts: String?): Parameter<*> {
     val name = when (value) {
         is VariableReference -> value.name
@@ -22,7 +18,6 @@ fun Expression.collect(type: GraphQLOutputType) = if (type.isList()) Functions.c
 fun StatementBuilder.OngoingReading.withSubQueries(subQueries: List<Statement>) = subQueries.fold(this, { it, sub -> it.call(sub) })
 
 fun normalizeName(vararg parts: String?) = parts.mapNotNull { it?.capitalize() }.filter { it.isNotBlank() }.joinToString("").decapitalize()
-//fun normalizeName(vararg parts: String?) = parts.filterNot { it.isNullOrBlank() }.joinToString("_")
 
 fun PropertyContainer.id(): FunctionInvocation = when (this) {
     is Node -> Functions.id(this)
@@ -35,3 +30,7 @@ fun String.toCamelCase(): String = Regex("[\\W_]([a-z])").replace(this) { it.gro
 fun <T> Optional<T>.unwrap(): T? = orElse(null)
 
 fun String.asDescription() = Description(this, null, this.contains("\n"))
+
+fun String.capitalize(): String = replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+fun String.decapitalize(): String = replaceFirstChar { it.lowercase(Locale.getDefault()) }
+fun String.toUpperCase(): String = uppercase(Locale.getDefault())

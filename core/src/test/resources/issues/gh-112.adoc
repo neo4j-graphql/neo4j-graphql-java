@@ -70,7 +70,7 @@ query user( $uuid: ID ){
 [source,json]
 ----
 {
-  "uuid" : "2"
+  "userUuid" : "2"
 }
 ----
 
@@ -78,7 +78,7 @@ query user( $uuid: ID ){
 [source,cypher]
 ----
 MATCH (user:User)
-WHERE user.uuid = $uuid
+WHERE user.uuid = $userUuid
 CALL {
 	WITH user
 	MATCH (user)-[:ASSOCIATES_WITH]-(userAssociates:User)

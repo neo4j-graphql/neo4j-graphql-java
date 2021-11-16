@@ -61,14 +61,14 @@ class CreateRelationHandler private constructor(schemaConfig: SchemaConfig) : Ba
 
     override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement {
 
-        val properties = properties(variable, field.arguments)
+        val properties = properties(variable, env.arguments)
 
         val arguments = field.arguments.associateBy { it.name }
         val (startNode, startWhere) = getRelationSelect(true, arguments)
         val (endNode, endWhere) = getRelationSelect(false, arguments)
 
         val withAlias = startNode.`as`(variable)
-        val (mapProjection, subQueries) = projectFields(startNode, withAlias.asName(), field, type, env)
+        val (mapProjection, subQueries) = projectFields(startNode, type, env, withAlias.asName())
         return org.neo4j.cypherdsl.core.Cypher.match(startNode).where(startWhere)
             .match(endNode).where(endWhere)
             .merge(relation.createRelation(startNode, endNode).withProperties(*properties))

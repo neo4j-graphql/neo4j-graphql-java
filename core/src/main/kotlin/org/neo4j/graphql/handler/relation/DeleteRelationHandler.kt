@@ -46,7 +46,7 @@ class DeleteRelationHandler private constructor(schemaConfig: SchemaConfig) : Ba
         val relName = org.neo4j.cypherdsl.core.Cypher.name("r")
 
         val withAlias = startNode.`as`(variable)
-        val (mapProjection, subQueries) = projectFields(startNode, withAlias.asName(), field, type, env)
+        val (mapProjection, subQueries) = projectFields(startNode, type, env, withAlias.asName())
 
         return org.neo4j.cypherdsl.core.Cypher
             .match(startNode).where(startWhere)

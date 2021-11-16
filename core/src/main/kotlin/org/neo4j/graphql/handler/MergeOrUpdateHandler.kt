@@ -115,8 +115,8 @@ class MergeOrUpdateHandler private constructor(private val merge: Boolean, schem
                 org.neo4j.cypherdsl.core.Cypher.match(node).where(where)
             }
         }
-        val properties = properties(variable, field.arguments)
-        val (mapProjection, subQueries) = projectFields(propertyContainer, field, type, env)
+        val properties = properties(variable, env.arguments)
+        val (mapProjection, subQueries) = projectFields(propertyContainer, type, env)
 
         return select
             .mutate(propertyContainer, org.neo4j.cypherdsl.core.Cypher.mapOf(*properties))

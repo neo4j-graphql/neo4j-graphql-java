@@ -171,8 +171,8 @@ mutation {
 [source,cypher]
 ----
 CREATE (createMovie:Movie  {
-	datetime: datetime($createMovieDatetime),
-	id: $createMovieId
+	id: $createMovieId,
+	datetime: datetime($createMovieDatetime)
 })
 WITH createMovie
 RETURN createMovie {
