@@ -42,7 +42,7 @@ CREATE
 {user( filter: {name_in: ["Jane", "Thomas"]}) {
   name
   referredBy { referralDate referredBy {name} }
-  referred { referralDate user {name} }
+  referred(orderBy: [referralDate_desc]) { referralDate user {name} }
 } }
 ----
 
@@ -108,6 +108,7 @@ CALL {
 CALL {
 	WITH user
 	MATCH (user)<-[userReferred:REFERRED_BY]-(userReferredUser:User)
+	WITH userReferredUser, userReferred ORDER BY userReferred.referralDate DESC
 	RETURN collect(userReferred {
 		.referralDate,
 		user: userReferredUser {
