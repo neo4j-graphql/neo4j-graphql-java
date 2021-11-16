@@ -694,7 +694,7 @@ RETURN person {
 [source,json]
 ----
 {
-  "filterCompany_id" : 1
+  "filterCompany_id" : "1"
 }
 ----
 
@@ -721,7 +721,7 @@ RETURN company {
 [source,json]
 ----
 {
-  "filterCompany_idIn" : [ 1, 2 ]
+  "filterCompany_idIn" : [ "1", "2" ]
 }
 ----
 
@@ -748,7 +748,7 @@ RETURN company {
 [source,json]
 ----
 {
-  "filterCompany_idNotIn" : [ 1, 2 ]
+  "filterCompany_idNotIn" : [ "1", "2" ]
 }
 ----
 
@@ -775,7 +775,7 @@ RETURN company {
 [source,json]
 ----
 {
-  "filterCompany_idNot" : 1
+  "filterCompany_idNot" : "1"
 }
 ----
 
@@ -2135,8 +2135,8 @@ RETURN person {
 [source,json]
 ----
 {
-  "filterPersonLocationAnd1Longitude" : 1,
-  "filterPersonLocationAnd2Latitude" : 2
+  "filterPersonLocationAnd1Longitude" : 1.0,
+  "filterPersonLocationAnd2Latitude" : 2.0
 }
 ----
 
@@ -2173,8 +2173,8 @@ RETURN person {
 [source,json]
 ----
 {
-  "filterPersonLocationNotAnd1Longitude" : 1,
-  "filterPersonLocationNotAnd2Latitude" : 2
+  "filterPersonLocationNotAnd1Longitude" : 1.0,
+  "filterPersonLocationNotAnd2Latitude" : 2.0
 }
 ----
 
@@ -2280,11 +2280,11 @@ RETURN person { .name } AS person
 ----
 {
   "filterPersonLocationDistance" : {
-    "distance" : 3,
+    "distance" : 3.0,
     "point" : {
-      "longitude" : 1,
-      "latitude" : 2,
-      "height" : 3
+      "longitude" : 1.0,
+      "latitude" : 2.0,
+      "height" : 3.0
     }
   }
 }
@@ -2327,11 +2327,11 @@ RETURN person {
 ----
 {
   "filterPersonLocationDistanceLt" : {
-    "distance" : 3,
+    "distance" : 3.0,
     "point" : {
-      "longitude" : 1,
-      "latitude" : 2,
-      "height" : 3
+      "longitude" : 1.0,
+      "latitude" : 2.0,
+      "height" : 3.0
     }
   }
 }
@@ -2374,11 +2374,11 @@ RETURN person {
 ----
 {
   "filterPersonLocationDistanceLte" : {
-    "distance" : 3,
+    "distance" : 3.0,
     "point" : {
-      "longitude" : 1,
-      "latitude" : 2,
-      "height" : 3
+      "longitude" : 1.0,
+      "latitude" : 2.0,
+      "height" : 3.0
     }
   }
 }
@@ -2421,11 +2421,11 @@ RETURN person {
 ----
 {
   "filterPersonLocationDistanceGt" : {
-    "distance" : 3,
+    "distance" : 3.0,
     "point" : {
-      "longitude" : 1,
-      "latitude" : 2,
-      "height" : 3
+      "longitude" : 1.0,
+      "latitude" : 2.0,
+      "height" : 3.0
     }
   }
 }
@@ -2468,11 +2468,11 @@ RETURN person {
 ----
 {
   "filterPersonLocationDistanceGte" : {
-    "distance" : 3,
+    "distance" : 3.0,
     "point" : {
-      "longitude" : 1,
-      "latitude" : 2,
-      "height" : 3
+      "longitude" : 1.0,
+      "latitude" : 2.0,
+      "height" : 3.0
     }
   }
 }
@@ -2585,8 +2585,8 @@ RETURN person {
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE (person.fun = $filterPersonFun
-	AND person.name = $filterPersonName)
+WHERE (person.name = $filterPersonName
+	AND person.fun = $filterPersonFun)
 RETURN person {
 	.name
 } AS person
@@ -2663,8 +2663,8 @@ RETURN person {
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE (person.fun = $filterPersonFun
-	AND NOT (person.name = $filterPersonNameNot))
+WHERE (NOT (person.name = $filterPersonNameNot)
+	AND person.fun = $filterPersonFun)
 RETURN person {
 	.name
 } AS person
@@ -3334,7 +3334,7 @@ query filterQuery($name: String) { person(filter: {name : $name}) { name }}
 [source,json]
 ----
 {
-  "name" : "Jane"
+  "filterPersonName" : "Jane"
 }
 ----
 
@@ -3342,7 +3342,7 @@ query filterQuery($name: String) { person(filter: {name : $name}) { name }}
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE person.name = $name
+WHERE person.name = $filterPersonName
 RETURN person {
 	.name
 } AS person

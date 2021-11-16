@@ -274,15 +274,15 @@ RETURN movie {
 ----
 MATCH (movie:Movie)
 WITH movie
-MATCH (movie)<-[:DIRECTED]-(movieDirectedByEvery:Person)
-WHERE movieDirectedByEvery.name = $movieDirectedByEveryName
-WITH movie, size((movie)<-[:DIRECTED]-(:Person)) AS movieDirectedByEveryTotal, count(DISTINCT movieDirectedByEvery) AS movieDirectedByEveryCount
-WHERE movieDirectedByEveryTotal = movieDirectedByEveryCount
-WITH DISTINCT movie
 MATCH (movie)<-[:REVIEWED]-(movieReviewedByEvery:Person)
 WHERE movieReviewedByEvery.name = $movieReviewedByEveryName
 WITH movie, size((movie)<-[:REVIEWED]-(:Person)) AS movieReviewedByEveryTotal, count(DISTINCT movieReviewedByEvery) AS movieReviewedByEveryCount
 WHERE movieReviewedByEveryTotal = movieReviewedByEveryCount
+WITH DISTINCT movie
+MATCH (movie)<-[:DIRECTED]-(movieDirectedByEvery:Person)
+WHERE movieDirectedByEvery.name = $movieDirectedByEveryName
+WITH movie, size((movie)<-[:DIRECTED]-(:Person)) AS movieDirectedByEveryTotal, count(DISTINCT movieDirectedByEvery) AS movieDirectedByEveryCount
+WHERE movieDirectedByEveryTotal = movieDirectedByEveryCount
 WITH DISTINCT movie
 RETURN movie {
 	.title
@@ -451,11 +451,6 @@ RETURN movie { .title } AS movie
 ----
 MATCH (movie:Movie)
 WITH movie
-MATCH (movie)<-[:DIRECTED]-(movieDirectedByEvery:Person)
-WHERE movieDirectedByEvery.name = $movieDirectedByEveryName
-WITH movie, size((movie)<-[:DIRECTED]-(:Person)) AS movieDirectedByEveryTotal, count(DISTINCT movieDirectedByEvery) AS movieDirectedByEveryCount
-WHERE movieDirectedByEveryTotal = movieDirectedByEveryCount
-WITH DISTINCT movie
 MATCH (movie)<-[:REVIEWED]-(movieReviewedBySome:Person)
 WHERE movieReviewedBySome.name = $movieReviewedBySomeName
 WITH movie, movieReviewedBySome
@@ -463,6 +458,11 @@ MATCH (movieReviewedBySome)<-[:FOLLOWS]-(movieReviewedBySomeFollowedBySome:Perso
 WITH movie, movieReviewedBySomeFollowedBySome
 MATCH (movieReviewedBySomeFollowedBySome)-[:REVIEWED]->(movieReviewedBySomeFollowedBySomeReviewedMoviesSome:Movie)
 WHERE movieReviewedBySomeFollowedBySomeReviewedMoviesSome.released >= $movieReviewedBySomeFollowedBySomeReviewedMoviesSomeReleasedGte
+WITH DISTINCT movie
+MATCH (movie)<-[:DIRECTED]-(movieDirectedByEvery:Person)
+WHERE movieDirectedByEvery.name = $movieDirectedByEveryName
+WITH movie, size((movie)<-[:DIRECTED]-(:Person)) AS movieDirectedByEveryTotal, count(DISTINCT movieDirectedByEvery) AS movieDirectedByEveryCount
+WHERE movieDirectedByEveryTotal = movieDirectedByEveryCount
 WITH DISTINCT movie
 RETURN movie {
 	.title
@@ -974,8 +974,8 @@ RETURN person {
 [source,json]
 ----
 {
-  "personLocationNotAnd1Longitude" : 3,
-  "personLocationNotAnd2Latitude" : 3
+  "personLocationNotAnd1Longitude" : 3.0,
+  "personLocationNotAnd2Latitude" : 3.0
 }
 ----
 
@@ -1014,11 +1014,11 @@ RETURN person {
 ----
 {
   "personLocationDistanceLt" : {
-    "distance" : 3,
+    "distance" : 3.0,
     "point" : {
-      "longitude" : 1,
-      "latitude" : 2,
-      "height" : 3
+      "longitude" : 1.0,
+      "latitude" : 2.0,
+      "height" : 3.0
     }
   }
 }

@@ -132,13 +132,13 @@ class CreateRelationTypeHandler private constructor(schemaConfig: SchemaConfig) 
     }
 
     override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement {
-        val properties = properties(variable, field.arguments)
+        val properties = properties(variable, env.arguments)
 
         val arguments = field.arguments.associateBy { it.name }
         val (startNode, startWhere) = getRelationSelect(true, arguments)
         val (endNode, endWhere) = getRelationSelect(false, arguments)
         val relName = name(variable)
-        val (mapProjection, subQueries) = projectFields(startNode, relName, field, type, env)
+        val (mapProjection, subQueries) = projectFields(startNode, type, env, relName)
 
         return org.neo4j.cypherdsl.core.Cypher.match(startNode).where(startWhere)
             .match(endNode).where(endWhere)
@@ -151,7 +151,7 @@ class CreateRelationTypeHandler private constructor(schemaConfig: SchemaConfig) 
 
     companion object {
         private fun normalizeFieldName(relFieldName: String?, name: String): String {
-            // TODO b/c we need to stay backwards compatible this is not caml case but with underscore
+            // TODO b/c we need to stay backwards compatible this is not camel-case but with underscore
             //val filedName = normalizeName(relFieldName, name)
             return "${relFieldName}_${name}"
         }

@@ -89,14 +89,16 @@ query($pname:String) { p3(name:$pname) { id }}
 .Cypher params
 [source,json]
 ----
-{"pname":"foo"}
+{
+  "p3Name" : "foo"
+}
 ----
 
 .Cypher
 [source,cypher]
 ----
 CALL {
-	WITH $pname AS name
+	WITH $p3Name AS name
 	MATCH (p:Person) WHERE p.name = name RETURN p AS p3 LIMIT 1
 }
 RETURN p3 {

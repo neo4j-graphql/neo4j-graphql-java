@@ -6,7 +6,7 @@
 
 [source,graphql,schema=true]
 ----
-interface Person {
+type Person {
     name: ID!
 }
 ----

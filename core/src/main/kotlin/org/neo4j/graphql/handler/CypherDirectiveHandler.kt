@@ -33,14 +33,14 @@ class CypherDirectiveHandler(schemaConfig: SchemaConfig) : BaseDataFetcher(schem
 
         val node = org.neo4j.cypherdsl.core.Cypher.anyNode(variable)
         val ctxVariable = node.requiredSymbolicName
-        val nestedQuery = cypherDirective(ctxVariable, fieldDefinition, field, cypherDirective, null, env)
+        val nestedQuery = cypherDirective(ctxVariable, fieldDefinition, env.arguments, cypherDirective, null)
 
         return org.neo4j.cypherdsl.core.Cypher.call(nestedQuery)
             .let { reading ->
                 if (type == null || cypherDirective.passThrough) {
                     reading.returning(ctxVariable.`as`(field.aliasOrName()))
                 } else {
-                    val (fieldProjection, nestedSubQueries) = projectFields(node, field, type, env)
+                    val (fieldProjection, nestedSubQueries) = projectFields(node, type, env)
                     reading
                         .withSubQueries(nestedSubQueries)
                         .returning(ctxVariable.project(fieldProjection).`as`(field.aliasOrName()))

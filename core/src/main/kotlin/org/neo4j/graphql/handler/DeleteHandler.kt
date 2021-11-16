@@ -90,7 +90,7 @@ class DeleteHandler private constructor(schemaConfig: SchemaConfig) : BaseDataFe
                 .where(where)
         }
         val deletedElement = propertyContainer.requiredSymbolicName.`as`("toDelete")
-        val (mapProjection, subQueries) = projectFields(propertyContainer, field, type, env)
+        val (mapProjection, subQueries) = projectFields(propertyContainer, type, env)
 
         val projection = propertyContainer.project(mapProjection).`as`(variable)
         return select

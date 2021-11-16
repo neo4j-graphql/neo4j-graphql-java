@@ -56,8 +56,8 @@ query($title: String, $isFavorite: Boolean) {
 [source,json]
 ----
 {
-  "isFavorite" : true,
-  "title" : "some title"
+  "whereMovieIsFavorite" : true,
+  "whereMovieTitle" : "some title"
 }
 ----
 
@@ -65,8 +65,8 @@ query($title: String, $isFavorite: Boolean) {
 [source,cypher]
 ----
 MATCH (movie:Movie)
-WHERE (movie.title = $title
-	AND movie.isFavorite = $isFavorite)
+WHERE (movie.title = $whereMovieTitle
+	AND movie.isFavorite = $whereMovieIsFavorite)
 RETURN movie {
 	.title
 } AS movie

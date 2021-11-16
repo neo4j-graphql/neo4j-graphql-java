@@ -1145,7 +1145,7 @@ RETURN user {
 [source,json]
 ----
 {
-  "rated_id" : 1
+  "rated_id" : "1"
 }
 ----
 
@@ -1289,7 +1289,7 @@ mutation {
 [source,json]
 ----
 {
-  "createUserUserId" : 1,
+  "createUserUserId" : "1",
   "createUserValidTypes" : [ "User" ]
 }
 ----
@@ -1355,8 +1355,8 @@ query {
 [source,json]
 ----
 {
-  "userBornAnd1Formatted" : "2015-06-24T12:50:35.556000000+01:00",
-  "userBornAnd2Year" : 2015
+  "userBornAnd1Year" : 2015,
+  "userBornAnd2Formatted" : "2015-06-24T12:50:35.556000000+01:00"
 }
 ----
 
@@ -1364,8 +1364,8 @@ query {
 [source,cypher]
 ----
 MATCH (user:User)
-WHERE (user.born = datetime($userBornAnd1Formatted)
-	AND user.born.year = $userBornAnd2Year)
+WHERE (user.born.year = $userBornAnd1Year
+	AND user.born = datetime($userBornAnd2Formatted))
 RETURN user {
 	born:  {
 		year: user.born.year

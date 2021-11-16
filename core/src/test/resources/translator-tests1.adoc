@@ -210,7 +210,7 @@ query getPersons($offset: Int){
 [source,json]
 ----
 {
-  "offset" : 10
+  "personOffset" : 10
 }
 ----
 
@@ -220,7 +220,7 @@ query getPersons($offset: Int){
 MATCH (person:Person)
 RETURN person {
 	.age
-} AS person SKIP $offset
+} AS person SKIP $personOffset
 ----
 
 === nested query
@@ -957,8 +957,8 @@ query {
 [source,json]
 ----
 {
-  "personLocationAnd1Longitude" : 1,
-  "personLocationAnd2Latitude" : 2
+  "personLocationAnd1Longitude" : 1.0,
+  "personLocationAnd2Latitude" : 2.0
 }
 ----
 
@@ -1003,9 +1003,9 @@ mutation{
 ----
 {
   "createPersonLocation" : {
-    "x" : 1,
-    "y" : 2,
-    "z" : 3,
+    "x" : 1.0,
+    "y" : 2.0,
+    "z" : 3.0,
     "crs" : "wgs-84-3d"
   },
   "createPersonName" : "Test2"
@@ -1030,4 +1030,48 @@ RETURN createPerson {
 		height: createPerson.location.height
 	}
 } AS createPerson
+----
+
+=== enforce typeName on interfaces
+
+.Query configuration
+[source,json,query-config=true]
+----
+{  "queryTypeOfInterfaces": true }
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  location {
+    name
+    ... on City {
+      city_Arg
+    }
+    ... on Village {
+      villageArg
+    }
+  }
+}
+----
+
+.Cypher params
+[source,json]
+----
+{
+  "locationValidTypes" : [ "City", "Village" ]
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (location:Location)
+RETURN location {
+	.name,
+	.city_Arg,
+	.villageArg,
+	__typename: head([label IN labels(location) WHERE label IN $locationValidTypes])
+} AS location
 ----

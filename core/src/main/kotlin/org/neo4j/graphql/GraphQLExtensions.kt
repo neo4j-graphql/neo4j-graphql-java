@@ -17,8 +17,6 @@ import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_NAME
 import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_TO
 import org.neo4j.graphql.handler.projection.ProjectionBase
 import org.slf4j.LoggerFactory
-import java.math.BigDecimal
-import java.math.BigInteger
 
 fun Type<*>.name(): String? = if (this.inner() is TypeName) (this.inner() as TypeName).name else null
 fun Type<*>.inner(): Type<*> = when (this) {
@@ -64,7 +62,7 @@ fun GraphQLFieldsContainer.relationshipFor(name: String): RelationshipInfo<Graph
         (this as? GraphQLDirectiveContainer)
             ?.getDirective(DirectiveConstants.RELATION)?.let {
                 // do inverse mapping, if the current type  is the `to` mapping of the relation
-                it to (fieldObjectType.getRelevantFieldDefinition(it.getArgument(RELATION_TO, null))?.name == typeName)
+                it to (fieldObjectType.getRelevantFieldDefinition(it.getArgument(RELATION_TO, null as String?))?.name == typeName)
             }
                 ?: throw IllegalStateException("Type ${this.name} needs an @relation directive")
     } else {
@@ -111,15 +109,16 @@ fun GraphQLType.ref(): GraphQLType = when (this) {
 }
 
 fun Field.aliasOrName(): String = (this.alias ?: this.name)
-fun Field.contextualize(variable: String) = variable + this.aliasOrName().capitalize()
-fun Field.contextualize(variable: SymbolicName) = variable.value + this.aliasOrName().capitalize()
+fun SelectedField.aliasOrName(): String = (this.alias ?: this.name)
+fun SelectedField.contextualize(variable: String) = variable + this.aliasOrName().capitalize()
+fun SelectedField.contextualize(variable: SymbolicName) = variable.value + this.aliasOrName().capitalize()
 
 fun GraphQLType.innerName(): String = inner().name()
         ?: throw IllegalStateException("inner name cannot be retrieved for " + this.javaClass)
 
 fun GraphQLFieldDefinition.propertyName() = getDirectiveArgument(PROPERTY, PROPERTY_NAME, this.name)!!
 
-fun GraphQLFieldDefinition.dynamicPrefix(): String? = getDirectiveArgument(DYNAMIC, DYNAMIC_PREFIX, null)
+fun GraphQLFieldDefinition.dynamicPrefix(): String? = getDirectiveArgument(DYNAMIC, DYNAMIC_PREFIX, null as String?)
 fun GraphQLType.getInnerFieldsContainer() = inner() as? GraphQLFieldsContainer
         ?: throw IllegalArgumentException("${this.innerName()} is neither an object nor an interface")
 
@@ -168,7 +167,7 @@ fun GraphQLFieldDefinition.cypherDirective(): CypherDirective? = getDirective(CY
                     originalStatement, rewrittenStatement, this.name, this.definition?.sourceLocation)
     }
     CypherDirective(rewrittenStatement, it.getMandatoryArgument(CYPHER_PASS_THROUGH, false))
-    }
+}
 
 data class CypherDirective(val statement: String, val passThrough: Boolean)
 
@@ -227,21 +226,6 @@ fun TypeDefinitionRegistry.queryTypeName() = this.getOperationType("query") ?: "
 fun TypeDefinitionRegistry.mutationTypeName() = this.getOperationType("mutation") ?: "Mutation"
 fun TypeDefinitionRegistry.subscriptionTypeName() = this.getOperationType("subscription") ?: "Subscription"
 fun TypeDefinitionRegistry.getOperationType(name: String) = this.schemaDefinition().unwrap()?.operationTypeDefinitions?.firstOrNull { it.name == name }?.typeName?.name
-
-fun Any?.asGraphQLValue(): Value<*> = when (this) {
-    null -> NullValue.newNullValue().build()
-    is Value<*> -> this
-    is Array<*> -> ArrayValue.newArrayValue().values(this.map { it.asGraphQLValue() }).build()
-    is Iterable<*> -> ArrayValue.newArrayValue().values(this.map { it.asGraphQLValue() }).build()
-    is Map<*, *> -> ObjectValue.newObjectValue().objectFields(this.map { entry -> ObjectField(entry.key as String, entry.value.asGraphQLValue()) }).build()
-    is Enum<*> -> EnumValue.newEnumValue().name(this.name).build()
-    is Int -> IntValue.newIntValue(BigInteger.valueOf(this.toLong())).build()
-    is Long -> IntValue.newIntValue(BigInteger.valueOf(this)).build()
-    is Number -> FloatValue.newFloatValue(BigDecimal.valueOf(this as Double)).build()
-    is Boolean -> BooleanValue.newBooleanValue(this).build()
-    is String -> StringValue.newStringValue(this).build()
-    else -> throw IllegalStateException("Cannot convert ${this.javaClass.name} into an graphql type")
-}
 
 fun DataFetchingEnvironment.typeAsContainer() = this.fieldDefinition.type.inner() as? GraphQLFieldsContainer
         ?: throw IllegalStateException("expect type of field ${this.logField()} to be GraphQLFieldsContainer, but was ${this.fieldDefinition.type.name()}")
