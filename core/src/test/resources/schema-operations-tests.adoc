@@ -37,7 +37,7 @@ schema {
 }
 
 type CustomQueryType {
-  location(filter: _LocationFilter, first: Int, name: String, offset: Int, orderBy: [_LocationOrdering!]): [Location!]!
+  location(filter: _LocationFilter, first: Int, name: String, name_contains: String, name_ends_with: String, name_gt: String, name_gte: String, name_in: [String!], name_lt: String, name_lte: String, name_matches: String, name_not: String, name_not_contains: String, name_not_ends_with: String, name_not_in: [String!], name_not_starts_with: String, name_starts_with: String, offset: Int, orderBy: [_LocationOrdering!]): [Location!]!
   person(name: String): Person
 }
 
@@ -133,8 +133,8 @@ schema {
 }
 
 type CustomQueryType {
-  Location(filter: _LocationFilter, first: Int, name: String, offset: Int, orderBy: [_LocationOrdering!]): [Location!]!
-  Person(filter: _PersonFilter, first: Int, name: String, offset: Int, orderBy: [_PersonOrdering!]): [Person!]!
+  Location(filter: _LocationFilter, first: Int, name: String, name_contains: String, name_ends_with: String, name_gt: String, name_gte: String, name_in: [String!], name_lt: String, name_lte: String, name_matches: String, name_not: String, name_not_contains: String, name_not_ends_with: String, name_not_in: [String!], name_not_starts_with: String, name_starts_with: String, offset: Int, orderBy: [_LocationOrdering!]): [Location!]!
+  Person(filter: _PersonFilter, first: Int, name: String, name_contains: String, name_ends_with: String, name_gt: String, name_gte: String, name_in: [String!], name_lt: String, name_lte: String, name_matches: String, name_not: String, name_not_contains: String, name_not_ends_with: String, name_not_in: [String!], name_not_starts_with: String, name_starts_with: String, offset: Int, orderBy: [_PersonOrdering!]): [Person!]!
   person(name: String): Person
 }
 

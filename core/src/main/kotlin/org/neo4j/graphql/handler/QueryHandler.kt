@@ -32,7 +32,7 @@ class QueryHandler private constructor(schemaConfig: SchemaConfig) : BaseDataFet
             val arguments = if (schemaConfig.useWhereFilter) {
                 listOf(input(WHERE, TypeName(filterTypeName)))
             } else {
-                getInputValueDefinitions(relevantFields, { true }) +
+                getInputValueDefinitions(relevantFields, true, { true }) +
                         input(FILTER, TypeName(filterTypeName))
             }
 

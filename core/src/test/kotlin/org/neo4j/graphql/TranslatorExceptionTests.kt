@@ -1,6 +1,5 @@
 package org.neo4j.graphql
 
-import graphql.parser.InvalidSyntaxException
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.DynamicTest
@@ -19,7 +18,7 @@ class TranslatorExceptionTests : AsciiDocTestSuite("translator-tests1.adoc") {
         val translator = Translator(SchemaBuilder.buildSchema(schema))
         return listOf(
                 DynamicTest.dynamicTest("unknownType") {
-                    Assertions.assertThrows(IllegalArgumentException::class.java) {
+                    Assertions.assertThrows(InvalidQueryException::class.java) {
                         translator.translate("""
                         {
                           company {
@@ -30,7 +29,7 @@ class TranslatorExceptionTests : AsciiDocTestSuite("translator-tests1.adoc") {
                     }
                 },
                 DynamicTest.dynamicTest("mutation") {
-                    Assertions.assertThrows(InvalidSyntaxException::class.java) {
+                    Assertions.assertThrows(InvalidQueryException::class.java) {
                         translator.translate("""
                         {
                           createPerson()

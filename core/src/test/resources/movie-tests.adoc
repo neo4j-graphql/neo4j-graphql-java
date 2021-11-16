@@ -87,7 +87,9 @@ type Book {
 }
 enum _MovieOrdering {
   title_desc,
-  title_asc
+  title_asc,
+  year_desc,
+  plot_desc
 }
 enum _GenreOrdering {
   name_desc,

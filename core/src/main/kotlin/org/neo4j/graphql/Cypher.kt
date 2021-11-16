@@ -4,5 +4,4 @@ import graphql.schema.GraphQLType
 
 data class Cypher @JvmOverloads constructor(val query: String, val params: Map<String, Any?> = emptyMap(), var type: GraphQLType? = null, val variable: String) {
     fun with(p: Map<String, Any?>) = this.copy(params = this.params + p)
-    fun escapedQuery() = query.replace("\"", "\\\"").replace("'", "\\'")
 }

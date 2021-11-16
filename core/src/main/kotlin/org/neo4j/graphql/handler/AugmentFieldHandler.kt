@@ -56,6 +56,16 @@ class AugmentFieldHandler(
                     fieldBuilder.inputValueDefinition(input(ProjectionBase.ORDER_BY, orderType))
                 }
             }
+            if (!schemaConfig.useWhereFilter && schemaConfig.query.enabled && !schemaConfig.query.exclude.contains(fieldType.name)) {
+                // legacy support
+                val relevantFields = fieldType
+                    .getScalarFields()
+                    .filter { scalarField -> field.inputValueDefinitions.find { it.name == scalarField.name } == null }
+                    .filter { it.dynamicPrefix() == null } // TODO currently we do not support filtering on dynamic properties
+                getInputValueDefinitions(relevantFields, true, { true }).forEach {
+                    fieldBuilder.inputValueDefinition(it)
+                }
+            }
         }
 
         val filterFieldName = if (schemaConfig.useWhereFilter) ProjectionBase.WHERE else ProjectionBase.FILTER

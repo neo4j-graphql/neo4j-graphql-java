@@ -33,11 +33,14 @@ class MergeOrUpdateHandler private constructor(private val merge: Boolean, schem
             }
 
             val relevantFields = type.getScalarFields()
-            val mergeField = buildFieldDefinition("merge", type, relevantFields, nullableResult = false)
+            val idField = type.getIdField()
+                    ?: throw IllegalStateException("Cannot resolve id field for type ${type.name}")
+
+            val mergeField = buildFieldDefinition("merge", type, relevantFields, nullableResult = false, forceOptionalProvider = { it != idField })
                 .build()
             addMutationField(mergeField)
 
-            val updateField = buildFieldDefinition("update", type, relevantFields, nullableResult = true)
+            val updateField = buildFieldDefinition("update", type, relevantFields, nullableResult = true, forceOptionalProvider = { it != idField })
                 .build()
             addMutationField(updateField)
         }
