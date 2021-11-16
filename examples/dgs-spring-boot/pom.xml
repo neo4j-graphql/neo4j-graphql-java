@@ -15,8 +15,8 @@
     <description>Example for using neo4j-graphql-java with Spring Boot and Netflix Domain Graph Service (DGS)</description>
 
     <properties>
-        <testcontainers.version>1.16.0</testcontainers.version>
-        <spring-boot.version>2.3.10.RELEASE</spring-boot.version>
+        <testcontainers.version>1.16.2</testcontainers.version>
+        <spring-boot.version>2.5.6</spring-boot.version>
     </properties>
 
     <dependencies>
@@ -46,7 +46,12 @@
         <dependency>
             <groupId>com.netflix.graphql.dgs</groupId>
             <artifactId>graphql-dgs-spring-boot-starter</artifactId>
-            <version>3.12.1</version>
+            <version>4.8.3</version>
+        </dependency>
+        <dependency>
+            <groupId>com.netflix.graphql.dgs.codegen</groupId>
+            <artifactId>graphql-dgs-codegen-client-core</artifactId>
+            <version>5.1.9</version>
         </dependency>
 
         <!-- Kotlin dependencies -->
@@ -100,6 +105,17 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring-boot.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.jetbrains.kotlin</groupId>
+                <artifactId>kotlin-maven-plugin</artifactId>
+                <configuration>
+                    <sourceDirs>
+                        <source>src/main/kotlin</source>
+                        <source>${project.build.directory}/generated-sources</source>
+                    </sourceDirs>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.neo4j</groupId>
@@ -131,7 +147,7 @@
             <plugin>
                 <groupId>io.github.deweyjose</groupId>
                 <artifactId>graphqlcodegen-maven-plugin</artifactId>
-                <version>1.10</version>
+                <version>1.14</version>
                 <executions>
                     <execution>
                         <goals>
@@ -146,23 +162,6 @@
                             <generateClient>true</generateClient>
                             <generateDataTypes>true</generateDataTypes>
                             <packageName>org.neo4j.graphql.examples.dgsspringboot.types</packageName>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>add-source</goal>
-                        </goals>
-                        <configuration>
-                            <sources>
-                                <source>${project.build.directory}/generated-sources</source>
-                            </sources>
                         </configuration>
                     </execution>
                 </executions>
