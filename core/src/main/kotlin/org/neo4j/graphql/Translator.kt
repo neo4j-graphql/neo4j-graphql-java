@@ -1,11 +1,8 @@
 package org.neo4j.graphql
 
-import graphql.ExceptionWhileDataFetching
-import graphql.ExecutionInput
-import graphql.GraphQL
-import graphql.InvalidSyntaxError
+import graphql.*
+import graphql.execution.NonNullableFieldWasNullError
 import graphql.schema.GraphQLSchema
-import graphql.validation.ValidationError
 
 class Translator(val schema: GraphQLSchema) {
 
@@ -27,8 +24,15 @@ class Translator(val schema: GraphQLSchema) {
         result.errors?.forEach {
             when (it) {
                 is ExceptionWhileDataFetching -> throw it.exception
-                is ValidationError -> throw InvalidQueryException(it)
-                is InvalidSyntaxError -> throw InvalidQueryException(it)
+
+                is TypeMismatchError, // expected since we return cypher here instead of the correct json
+                is NonNullableFieldWasNullError, // expected since the returned cypher does not match the shape of the graphql type
+                is SerializationError // expected since the returned cypher does not match the shape of the graphql type
+                -> {
+                    // ignore
+                }
+                // generic error handling
+                is GraphQLError -> throw InvalidQueryException(it)
             }
         }
 
