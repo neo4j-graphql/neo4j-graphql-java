@@ -19,26 +19,34 @@ abstract class BaseDataFetcherForContainer(schemaConfig: SchemaConfig) : BaseDat
     val defaultFields: MutableMap<String, Any> = mutableMapOf()
 
     override fun initDataFetcher(fieldDefinition: GraphQLFieldDefinition, parentType: GraphQLType) {
-        type = fieldDefinition.type.inner() as? GraphQLFieldsContainer
-                ?: throw IllegalStateException("expect type of field ${parentType.name()}.${fieldDefinition.name} to be GraphQLFieldsContainer, but was ${fieldDefinition.type.name()}")
-        fieldDefinition
-            .arguments
-            .filterNot { listOf(FIRST, OFFSET, ORDER_BY, NATIVE_ID, OPTIONS).contains(it.name) }
+        type = getType(fieldDefinition, parentType)
+
+        fieldDefinition.arguments.excludeOptions(schemaConfig)
+            .filter { schemaConfig.queryOptionStyle == SchemaConfig.InputStyle.ARGUMENT_PER_FIELD || NATIVE_ID != it.name }
             .onEach { arg ->
                 if (arg.argumentDefaultValue.isSet) {
                     arg.argumentDefaultValue.value?.let { defaultFields[arg.name] = it }
                 }
             }
             .mapNotNull { type.getRelevantFieldDefinition(it.name) }
-            .forEach { field ->
-                val dynamicPrefix = field.dynamicPrefix()
-                propertyFields[field.name] = when {
-                    dynamicPrefix != null -> dynamicPrefixCallback(field, dynamicPrefix)
-                    field.isNeo4jType() || (schemaConfig.useTemporalScalars && field.isNeo4jTemporalType()) -> neo4jTypeCallback(field)
-                    else -> defaultCallback(field)
-                }
-            }
+            .forEach { field -> addPropertyField(field) }
     }
+
+    protected fun addPropertyField(field: GraphQLFieldDefinition) {
+        val dynamicPrefix = field.dynamicPrefix()
+        propertyFields[field.name] = when {
+            dynamicPrefix != null -> dynamicPrefixCallback(field, dynamicPrefix)
+            field.isNeo4jType() || (schemaConfig.useTemporalScalars && field.isNeo4jTemporalType()) -> neo4jTypeCallback(field)
+            else -> defaultCallback(field)
+        }
+    }
+
+    /**
+     * Extracts the type to be handled by this DataFetcher
+     */
+    protected open fun getType(fieldDefinition: GraphQLFieldDefinition, parentType: GraphQLType): GraphQLFieldsContainer =
+            fieldDefinition.type.inner() as? GraphQLFieldsContainer
+                    ?: throw IllegalStateException("expect type of field ${parentType.name()}.${fieldDefinition.name} to be GraphQLFieldsContainer, but was ${fieldDefinition.type.name()}")
 
     private fun defaultCallback(field: GraphQLFieldDefinition) =
             { value: Any? ->

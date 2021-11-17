@@ -5,28 +5,35 @@ data class SchemaConfig @JvmOverloads constructor(
         val mutation: CRUDConfig = CRUDConfig(),
 
         /**
-         * if true, the top level fields of the Query-type will be capitalized
+         * If true, the top level fields of the Query-type will be capitalized
          */
         val capitalizeQueryFields: Boolean = false,
 
         /**
-         * if true, the generated fields for query or mutation will use the plural of the types name
+         * If true, the generated fields for query or mutation will use the plural of the types name.
+         * When [inputStyle] is set to [InputStyle.INPUT_TYPE], this setting will be ignored / set to `true`.
          */
         val pluralizeFields: Boolean = false,
 
         /**
-         * Defines the way the input for queries and mutations are generated
+         * Defines the way the input for query options (for paging and sorting) is handled
          */
         val queryOptionStyle: InputStyle = InputStyle.ARGUMENT_PER_FIELD,
 
         /**
-         * if enabled the `filter` argument will be named `where` and the input type will be named `<typeName>Where`.
+         * Defines the way the input arguments are handled, if the input style is set to [InputStyle.INPUT_TYPE]
+         * batch operations are used for mutations
+         */
+        val inputStyle: InputStyle = InputStyle.ARGUMENT_PER_FIELD,
+
+        /**
+         * If enabled the `filter` argument will be named `where` and the input type will be named `<typeName>Where`.
          * additionally, the separated filter arguments will no longer be generated.
          */
         val useWhereFilter: Boolean = false,
 
         /**
-         * if enabled the `Date`, `Time`, `LocalTime`, `DateTime` and `LocalDateTime` are used as scalars
+         * If enabled the `Date`, `Time`, `LocalTime`, `DateTime` and `LocalDateTime` are used as scalars
          */
         val useTemporalScalars: Boolean = false,
 ) {

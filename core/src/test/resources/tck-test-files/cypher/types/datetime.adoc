@@ -21,6 +21,7 @@ type Movie {
 ----
 {
   "queryOptionStyle": "INPUT_TYPE",
+  "inputStyle": "INPUT_TYPE",
   "useWhereFilter": true,
   "pluralizeFields": true,
   "useTemporalScalars": true
@@ -140,9 +141,8 @@ RETURN movies {
 [source,graphql]
 ----
 mutation {
-    createMovie(datetime: "1970-01-01T00:00:00.000Z", id: "m4") {
-        id
-        datetime
+    createMovies(input: [{ datetime: "1970-01-01T00:00:00.000Z", id: "m4" }]) {
+        movies { id datetime }
     }
 }
 ----
@@ -151,9 +151,13 @@ mutation {
 [source,json,response=true,ignore-order]
 ----
 {
-  "createMovie" : {
-    "id" : "m4",
-    "datetime" : "1970-01-01T00:00:00Z"
+  "createMovies" : {
+    "movies": [
+      {
+        "id" : "m4",
+        "datetime" : "1970-01-01T00:00:00Z"
+      }
+    ]
   }
 }
 ----
@@ -162,23 +166,27 @@ mutation {
 [source,json]
 ----
 {
-  "createMovieDatetime" : "1970-01-01T00:00:00.000Z",
-  "createMovieId" : "m4"
+  "createMoviesDatetime" : "1970-01-01T00:00:00.000Z",
+  "createMoviesId" : "m4"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-CREATE (createMovie:Movie  {
-	id: $createMovieId,
-	datetime: datetime($createMovieDatetime)
-})
-WITH createMovie
-RETURN createMovie {
-	.id,
-	datetime: toString(createMovie.datetime)
-} AS createMovie
+CALL {
+    CREATE (this0:Movie  {
+		id: $createMoviesId,
+		datetime: datetime($createMoviesDatetime)
+	})
+	RETURN this0
+}
+RETURN  {
+	movies: collect(this0 {
+		.id,
+		datetime: toString(this0.datetime)
+	})
+} AS createMovies
 ----
 
 === Simple Update
@@ -187,9 +195,11 @@ RETURN createMovie {
 [source,graphql]
 ----
 mutation {
-    updateMovie(id: "m1", datetime: "2000-01-01T00:00:00.000Z") {
-        id
-        datetime
+    updateMovies(update: { datetime: "2000-01-01T00:00:00.000Z" }) {
+        movies {
+            id
+            datetime
+        }
     }
 }
 ----

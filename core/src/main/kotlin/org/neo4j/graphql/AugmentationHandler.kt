@@ -45,6 +45,14 @@ abstract class AugmentationHandler(
             scalarFields: List<FieldDefinition>,
             nullableResult: Boolean,
             forceOptionalProvider: (field: FieldDefinition) -> Boolean = { false }
+    ): FieldDefinition.Builder =
+            buildFieldDefinition(prefix, resultType, nullableResult, getInputValueDefinitions(scalarFields, false, forceOptionalProvider))
+
+    protected fun buildFieldDefinition(
+            prefix: String,
+            resultType: ImplementingTypeDefinition<*>,
+            nullableResult: Boolean,
+            inputFields: List<InputValueDefinition>
     ): FieldDefinition.Builder {
         var type: Type<*> = TypeName(resultType.name)
         if (!nullableResult) {
@@ -52,14 +60,15 @@ abstract class AugmentationHandler(
         }
         return FieldDefinition.newFieldDefinition()
             .name("$prefix${resultType.name}")
-            .inputValueDefinitions(getInputValueDefinitions(scalarFields, false, forceOptionalProvider))
+            .inputValueDefinitions(inputFields)
             .type(type)
     }
 
     protected fun getInputValueDefinitions(
             relevantFields: List<FieldDefinition>,
             addFieldOperations: Boolean,
-            forceOptionalProvider: (field: FieldDefinition) -> Boolean): List<InputValueDefinition> {
+            forceOptionalProvider: (field: FieldDefinition) -> Boolean
+    ): List<InputValueDefinition> {
         return relevantFields.flatMap { field ->
             var type = getInputType(field.type)
             type = if (forceOptionalProvider(field)) {
@@ -253,7 +262,7 @@ abstract class AugmentationHandler(
         return orderingName
     }
 
-    private fun addInputType(inputName: String, relevantFields: List<InputValueDefinition>): InputObjectTypeDefinition {
+    protected fun addInputType(inputName: String, relevantFields: List<InputValueDefinition>): InputObjectTypeDefinition {
         var inputType = typeDefinitionRegistry.getType(inputName)?.unwrap()
         if (inputType != null) {
             return inputType as? InputObjectTypeDefinition
@@ -269,6 +278,28 @@ abstract class AugmentationHandler(
             .name(inputName)
             .inputValueDefinitions(relevantFields)
             .build()
+    }
+
+    protected fun addMutationResponse(prefix: String, type: TypeDefinition<*>): ObjectTypeDefinition {
+        val plural = English.plural(type.name).capitalize()
+        return addObjectType("${prefix.capitalize()}${plural}MutationResponse", listOf(FieldDefinition.newFieldDefinition()
+            .name(plural.decapitalize())
+            .type(NonNullType(ListType(NonNullType(TypeName(type.name)))))
+            .build()))
+    }
+
+    protected fun addObjectType(name: String, fields: List<FieldDefinition>): ObjectTypeDefinition {
+        var type = typeDefinitionRegistry.getType(name)?.unwrap()
+        if (type != null) {
+            return type as? ObjectTypeDefinition
+                    ?: throw IllegalStateException("Type $name is already defined but not an object type")
+        }
+        type = ObjectTypeDefinition.newObjectTypeDefinition()
+            .name(name)
+            .fieldDefinitions(fields)
+            .build()
+        typeDefinitionRegistry.add(type)
+        return type
     }
 
     private fun getInputType(type: Type<*>): Type<*> {

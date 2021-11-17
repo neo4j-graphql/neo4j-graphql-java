@@ -23,6 +23,7 @@ type Movie {
 ----
 {
   "queryOptionStyle": "INPUT_TYPE",
+  "inputStyle": "INPUT_TYPE",
   "useWhereFilter": true,
   "pluralizeFields": true
 }
@@ -38,6 +39,15 @@ schema {
   mutation: Mutation
 }
 
+type CreateMoviesMutationResponse {
+  movies: [Movie!]!
+}
+
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
 type Movie {
   actorCount: Int
   averageRating: Float
@@ -46,15 +56,17 @@ type Movie {
 }
 
 type Mutation {
-  createMovie(actorCount: Int, averageRating: Float, id: ID, isActive: Boolean): Movie!
-  "Deletes Movie and returns the type itself"
-  deleteMovie(id: ID): Movie
-  mergeMovie(actorCount: Int, averageRating: Float, id: ID, isActive: Boolean): Movie!
-  updateMovie(actorCount: Int, averageRating: Float, id: ID, isActive: Boolean): Movie
+  createMovies(input: [MovieCreateInput!]!): CreateMoviesMutationResponse!
+  deleteMovies(where: MovieWhere!): DeleteInfo!
+  updateMovies(update: MovieUpdateInput!, where: MovieWhere): UpdateMoviesMutationResponse!
 }
 
 type Query {
   movies(options: MovieOptions, where: MovieWhere): [Movie!]!
+}
+
+type UpdateMoviesMutationResponse {
+  movies: [Movie!]!
 }
 
 enum RelationDirection {
@@ -68,6 +80,13 @@ enum SortDirection {
   ASC
   "Sort by field values in descending order."
   DESC
+}
+
+input MovieCreateInput {
+  actorCount: Int
+  averageRating: Float
+  id: ID
+  isActive: Boolean
 }
 
 input MovieOptions {
@@ -85,6 +104,13 @@ input MovieSort {
   averageRating: SortDirection
   id: SortDirection
   isActive: SortDirection
+}
+
+input MovieUpdateInput {
+  actorCount: Int
+  averageRating: Float
+  id: ID
+  isActive: Boolean
 }
 
 input MovieWhere {

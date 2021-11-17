@@ -25,6 +25,7 @@ type Movie {
 ----
 {
   "queryOptionStyle": "INPUT_TYPE",
+  "inputStyle": "INPUT_TYPE",
   "useWhereFilter": true,
   "pluralizeFields": true
 }
@@ -44,21 +45,39 @@ type Actor {
   name: String
 }
 
+type CreateActorsMutationResponse {
+  actors: [Actor!]!
+}
+
+type CreateMoviesMutationResponse {
+  movies: [Movie!]!
+}
+
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
 type Movie {
   actors(options: ActorOptions, where: ActorWhere): [Actor]!
   id: ID
 }
 
 type Mutation {
-  createActor(name: String): Actor!
-  createMovie(id: ID): Movie!
-  "Deletes Movie and returns the type itself"
-  deleteMovie(id: ID): Movie
+  createActors(input: [ActorCreateInput!]!): CreateActorsMutationResponse!
+  createMovies(input: [MovieCreateInput!]!): CreateMoviesMutationResponse!
+  deleteActors(where: ActorWhere!): DeleteInfo!
+  deleteMovies(where: MovieWhere!): DeleteInfo!
+  updateActors(update: ActorUpdateInput!, where: ActorWhere): UpdateActorsMutationResponse!
 }
 
 type Query {
   actors(options: ActorOptions, where: ActorWhere): [Actor!]!
   movies(options: MovieOptions, where: MovieWhere): [Movie!]!
+}
+
+type UpdateActorsMutationResponse {
+  actors: [Actor!]!
 }
 
 enum RelationDirection {
@@ -74,6 +93,10 @@ enum SortDirection {
   DESC
 }
 
+input ActorCreateInput {
+  name: String
+}
+
 input ActorOptions {
   "Defines the maximum amount of records returned"
   limit: Int
@@ -86,6 +109,10 @@ input ActorOptions {
 "Fields to sort Actors by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
 input ActorSort {
   name: SortDirection
+}
+
+input ActorUpdateInput {
+  name: String
 }
 
 input ActorWhere {
@@ -107,6 +134,10 @@ input ActorWhere {
   name_not_in: [String]
   name_not_starts_with: String
   name_starts_with: String
+}
+
+input MovieCreateInput {
+  id: ID
 }
 
 input MovieOptions {

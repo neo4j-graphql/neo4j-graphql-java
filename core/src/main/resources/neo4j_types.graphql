@@ -116,3 +116,8 @@ scalar Time
 scalar LocalTime
 scalar DateTime
 scalar LocalDateTime
+
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}

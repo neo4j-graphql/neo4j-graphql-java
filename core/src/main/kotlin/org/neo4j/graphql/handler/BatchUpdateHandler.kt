@@ -10,13 +10,14 @@ import org.atteo.evo.inflector.English
 import org.neo4j.cypherdsl.core.Node
 import org.neo4j.cypherdsl.core.Relationship
 import org.neo4j.cypherdsl.core.Statement
+import org.neo4j.cypherdsl.core.StatementBuilder.OngoingMatchAndUpdate
 import org.neo4j.graphql.*
 
 /**
- * This class handles all the logic related to the deletion of nodes.
- * This includes the augmentation of the delete&lt;Node&gt;-mutator and the related cypher generation
+ * This class handles all the logic related to the updating of nodes.
+ * This includes the augmentation of the update&lt;Node&gt; and merge&lt;Node&gt;-mutator and the related cypher generation
  */
-class DeleteHandler private constructor(schemaConfig: SchemaConfig) : BaseDataFetcherForContainer(schemaConfig) {
+class BatchUpdateHandler private constructor(schemaConfig: SchemaConfig) : BaseDataFetcherForContainer(schemaConfig) {
 
     private lateinit var idField: GraphQLFieldDefinition
     private var isRelation: Boolean = false
@@ -30,27 +31,21 @@ class DeleteHandler private constructor(schemaConfig: SchemaConfig) : BaseDataFe
             if (!canHandle(type)) {
                 return
             }
-
-            val fieldDefinition = if (schemaConfig.queryOptionStyle == SchemaConfig.InputStyle.INPUT_TYPE) {
-                val filter = addFilterType(type)
-                val plural = English.plural(type.name).capitalize()
-
-                FieldDefinition.newFieldDefinition()
-                    .name("${"delete"}${plural}")
-                    .inputValueDefinitions(listOf(
-                            input(if (schemaConfig.useWhereFilter) WHERE else FILTER, NonNullType(TypeName(filter)))
-                    ))
-                    .type(NonNullType(TypeName("DeleteInfo")))
-                    .build()
-            } else {
-                val idField = type.getIdField() ?: return
-
-                buildFieldDefinition("delete", type, listOf(idField), nullableResult = true)
-                    .description("Deletes ${type.name} and returns the type itself".asDescription())
-                    .type(TypeName(type.name))
-                    .build()
-            }
-            addMutationField(fieldDefinition)
+            val relevantFields = type.getScalarFields()
+            val inputName = type.name + "UpdateInput"
+            val plural = English.plural(type.name).capitalize()
+            addInputType(inputName, getInputValueDefinitions(relevantFields, false, { true }))
+            val response = addMutationResponse("Update", type).name
+            val filter = addFilterType(type)
+            val updateField = FieldDefinition.newFieldDefinition()
+                .name("${"update"}${plural}")
+                .inputValueDefinitions(listOf(
+                        input(if (schemaConfig.useWhereFilter) WHERE else FILTER, TypeName(filter)),
+                        input("update", NonNullType(TypeName(inputName)))
+                ))
+                .type(NonNullType(TypeName(response)))
+                .build()
+            addMutationField(updateField)
         }
 
         override fun createDataFetcher(operationType: OperationType, fieldDefinition: FieldDefinition): DataFetcher<Cypher>? {
@@ -64,10 +59,8 @@ class DeleteHandler private constructor(schemaConfig: SchemaConfig) : BaseDataFe
             if (!canHandle(type)) {
                 return null
             }
-            if (schemaConfig.queryOptionStyle == SchemaConfig.InputStyle.INPUT_TYPE) {
-                if (fieldDefinition.name == "delete${English.plural(type.name)}") return DeleteHandler(schemaConfig)
-            } else {
-                if (fieldDefinition.name == "delete${type.name}") return DeleteHandler(schemaConfig)
+            if (fieldDefinition.name == "update${English.plural(type.name)}") {
+                return BatchUpdateHandler(schemaConfig)
             }
             return null
         }
@@ -77,41 +70,57 @@ class DeleteHandler private constructor(schemaConfig: SchemaConfig) : BaseDataFe
             if (!schemaConfig.mutation.enabled || schemaConfig.mutation.exclude.contains(typeName) || isRootType(type)) {
                 return false
             }
-            return type.getIdField() != null || schemaConfig.queryOptionStyle == SchemaConfig.InputStyle.INPUT_TYPE
+            if (type.getScalarFields().none { !it.type.inner().isID() }) {
+                // nothing to update (except ID)
+                return false
+            }
+            return true
         }
     }
 
     override fun initDataFetcher(fieldDefinition: GraphQLFieldDefinition, parentType: GraphQLType) {
         super.initDataFetcher(fieldDefinition, parentType)
+
         idField = type.getIdField() ?: throw IllegalStateException("Cannot resolve id field for type ${type.name}")
         isRelation = type.isRelationType()
+
+        defaultFields.clear() // for merge or updates we do not reset to defaults
+        propertyFields.remove(idField.name) // id should not be updated
+
     }
 
     override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement {
         val idArg = field.arguments.first { it.name == idField.name }
 
         val (propertyContainer, where) = getSelectQuery(variable, type.label(), idArg, idField, isRelation)
+        val merge = false // TODO
         val select = if (isRelation) {
             val rel = propertyContainer as? Relationship
                     ?: throw IllegalStateException("Expect a Relationship but got ${propertyContainer.javaClass.name}")
-            org.neo4j.cypherdsl.core.Cypher.match(rel)
-                .where(where)
+            if (merge && !idField.isNativeId()) {
+                org.neo4j.cypherdsl.core.Cypher.merge(rel)
+                // where is skipped since it does not make sense on merge
+            } else {
+                org.neo4j.cypherdsl.core.Cypher.match(rel).where(where)
+            }
         } else {
             val node = propertyContainer as? Node
                     ?: throw IllegalStateException("Expect a Node but got ${propertyContainer.javaClass.name}")
-            org.neo4j.cypherdsl.core.Cypher.match(node)
-                .where(where)
+            if (merge && !idField.isNativeId()) {
+                org.neo4j.cypherdsl.core.Cypher.merge(node)
+                // where is skipped since it does not make sense on merge
+            } else {
+                org.neo4j.cypherdsl.core.Cypher.match(node).where(where)
+            }
         }
-        val deletedElement = propertyContainer.requiredSymbolicName.`as`("toDelete")
+        val properties = properties(variable, env.arguments)
         val (mapProjection, subQueries) = projectFields(propertyContainer, type, env)
+        val update: OngoingMatchAndUpdate = select
+            .mutate(propertyContainer, org.neo4j.cypherdsl.core.Cypher.mapOf(*properties))
 
-        val projection = propertyContainer.project(mapProjection).`as`(variable)
-        return select
-            .withSubQueries(subQueries)
-            .with(deletedElement, projection)
-            .detachDelete(deletedElement)
-            .returning(projection.asName().`as`(field.aliasOrName()))
+        return update
+            .with(propertyContainer)
+            .returning(propertyContainer.project(mapProjection).`as`(field.aliasOrName()))
             .build()
     }
-
 }

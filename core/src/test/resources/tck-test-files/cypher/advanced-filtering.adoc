@@ -31,7 +31,8 @@ type Genre {
 ----
 {
   "queryOptionStyle": "INPUT_TYPE",
-  "useWhereFilter": true
+  "useWhereFilter": true,
+  "pluralizeFields": true
 }
 ----
 
@@ -43,7 +44,7 @@ type Genre {
 [source,graphql]
 ----
 {
-    movie(where: { id_in: ["123"] }) {
+    movies(where: { id_in: ["123"] }) {
         id
     }
 }
@@ -53,18 +54,18 @@ type Genre {
 [source,json]
 ----
 {
-  "whereMovieIdIn" : [ "123" ]
+  "whereMoviesIdIn" : [ "123" ]
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (movie:Movie)
-WHERE movie.id IN $whereMovieIdIn
-RETURN movie {
+MATCH (movies:Movie)
+WHERE movies.id IN $whereMoviesIdIn
+RETURN movies {
 	.id
-} AS movie
+} AS movies
 ----
 
 === REGEX
@@ -73,7 +74,7 @@ RETURN movie {
 [source,graphql]
 ----
 {
-    movie(where: { id_matches: "(?i)123.*" }) {
+    movies(where: { id_matches: "(?i)123.*" }) {
         id
     }
 }
@@ -83,18 +84,18 @@ RETURN movie {
 [source,json]
 ----
 {
-  "whereMovieIdMatches" : "(?i)123.*"
+  "whereMoviesIdMatches" : "(?i)123.*"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (movie:Movie)
-WHERE movie.id =~ $whereMovieIdMatches
-RETURN movie {
+MATCH (movies:Movie)
+WHERE movies.id =~ $whereMoviesIdMatches
+RETURN movies {
 	.id
-} AS movie
+} AS movies
 ----
 
 === NOT
@@ -103,7 +104,7 @@ RETURN movie {
 [source,graphql]
 ----
 {
-    movie(where: { id_not: "123" }) {
+    movies(where: { id_not: "123" }) {
         id
     }
 }
@@ -114,18 +115,18 @@ RETURN movie {
 [source,json]
 ----
 {
-  "whereMovieIdNot" : "123"
+  "whereMoviesIdNot" : "123"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (movie:Movie)
-WHERE NOT (movie.id = $whereMovieIdNot)
-RETURN movie {
+MATCH (movies:Movie)
+WHERE NOT (movies.id = $whereMoviesIdNot)
+RETURN movies {
 	.id
-} AS movie
+} AS movies
 ----
 
 === NOT_IN
@@ -134,7 +135,7 @@ RETURN movie {
 [source,graphql]
 ----
 {
-    movie(where: { id_not_in: ["123"] }) {
+    movies(where: { id_not_in: ["123"] }) {
         id
     }
 }
@@ -144,18 +145,18 @@ RETURN movie {
 [source,json]
 ----
 {
-  "whereMovieIdNotIn" : [ "123" ]
+  "whereMoviesIdNotIn" : [ "123" ]
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (movie:Movie)
-WHERE NOT (movie.id IN $whereMovieIdNotIn)
-RETURN movie {
+MATCH (movies:Movie)
+WHERE NOT (movies.id IN $whereMoviesIdNotIn)
+RETURN movies {
 	.id
-} AS movie
+} AS movies
 ----
 
 === CONTAINS
@@ -164,7 +165,7 @@ RETURN movie {
 [source,graphql]
 ----
 {
-    movie(where: { id_contains: "123" }) {
+    movies(where: { id_contains: "123" }) {
         id
     }
 }
@@ -174,18 +175,18 @@ RETURN movie {
 [source,json]
 ----
 {
-  "whereMovieIdContains" : "123"
+  "whereMoviesIdContains" : "123"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (movie:Movie)
-WHERE movie.id CONTAINS $whereMovieIdContains
-RETURN movie {
+MATCH (movies:Movie)
+WHERE movies.id CONTAINS $whereMoviesIdContains
+RETURN movies {
 	.id
-} AS movie
+} AS movies
 ----
 
 === NOT_CONTAINS
@@ -194,7 +195,7 @@ RETURN movie {
 [source,graphql]
 ----
 {
-    movie(where: { id_not_contains: "123" }) {
+    movies(where: { id_not_contains: "123" }) {
         id
     }
 }
@@ -204,18 +205,18 @@ RETURN movie {
 [source,json]
 ----
 {
-  "whereMovieIdNotContains" : "123"
+  "whereMoviesIdNotContains" : "123"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (movie:Movie)
-WHERE NOT (movie.id CONTAINS $whereMovieIdNotContains)
-RETURN movie {
+MATCH (movies:Movie)
+WHERE NOT (movies.id CONTAINS $whereMoviesIdNotContains)
+RETURN movies {
 	.id
-} AS movie
+} AS movies
 ----
 
 === STARTS_WITH
@@ -224,7 +225,7 @@ RETURN movie {
 [source,graphql]
 ----
 {
-    movie(where: { id_starts_with: "123" }) {
+    movies(where: { id_starts_with: "123" }) {
         id
     }
 }
@@ -234,18 +235,18 @@ RETURN movie {
 [source,json]
 ----
 {
-  "whereMovieIdStartsWith" : "123"
+  "whereMoviesIdStartsWith" : "123"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (movie:Movie)
-WHERE movie.id STARTS WITH $whereMovieIdStartsWith
-RETURN movie {
+MATCH (movies:Movie)
+WHERE movies.id STARTS WITH $whereMoviesIdStartsWith
+RETURN movies {
 	.id
-} AS movie
+} AS movies
 ----
 
 === NOT_STARTS_WITH
@@ -254,7 +255,7 @@ RETURN movie {
 [source,graphql]
 ----
 {
-    movie(where: { id_not_starts_with: "123" }) {
+    movies(where: { id_not_starts_with: "123" }) {
         id
     }
 }
@@ -264,18 +265,18 @@ RETURN movie {
 [source,json]
 ----
 {
-  "whereMovieIdNotStartsWith" : "123"
+  "whereMoviesIdNotStartsWith" : "123"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (movie:Movie)
-WHERE NOT (movie.id STARTS WITH $whereMovieIdNotStartsWith)
-RETURN movie {
+MATCH (movies:Movie)
+WHERE NOT (movies.id STARTS WITH $whereMoviesIdNotStartsWith)
+RETURN movies {
 	.id
-} AS movie
+} AS movies
 ----
 
 === ENDS_WITH
@@ -284,7 +285,7 @@ RETURN movie {
 [source,graphql]
 ----
 {
-    movie(where: { id_ends_with: "123" }) {
+    movies(where: { id_ends_with: "123" }) {
         id
     }
 }
@@ -294,18 +295,18 @@ RETURN movie {
 [source,json]
 ----
 {
-  "whereMovieIdEndsWith" : "123"
+  "whereMoviesIdEndsWith" : "123"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (movie:Movie)
-WHERE movie.id ENDS WITH $whereMovieIdEndsWith
-RETURN movie {
+MATCH (movies:Movie)
+WHERE movies.id ENDS WITH $whereMoviesIdEndsWith
+RETURN movies {
 	.id
-} AS movie
+} AS movies
 ----
 
 === NOT_ENDS_WITH
@@ -314,7 +315,7 @@ RETURN movie {
 [source,graphql]
 ----
 {
-    movie(where: { id_not_ends_with: "123" }) {
+    movies(where: { id_not_ends_with: "123" }) {
         id
     }
 }
@@ -324,18 +325,18 @@ RETURN movie {
 [source,json]
 ----
 {
-  "whereMovieIdNotEndsWith" : "123"
+  "whereMoviesIdNotEndsWith" : "123"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (movie:Movie)
-WHERE NOT (movie.id ENDS WITH $whereMovieIdNotEndsWith)
-RETURN movie {
+MATCH (movies:Movie)
+WHERE NOT (movies.id ENDS WITH $whereMoviesIdNotEndsWith)
+RETURN movies {
 	.id
-} AS movie
+} AS movies
 ----
 
 === LT
@@ -344,7 +345,7 @@ RETURN movie {
 [source,graphql]
 ----
 {
-    movie(where: { actorCount_lt: 123 }) {
+    movies(where: { actorCount_lt: 123 }) {
         actorCount
     }
 }
@@ -354,19 +355,18 @@ RETURN movie {
 [source,json]
 ----
 {
-  "whereMovieActorCountLt" : 123
+  "whereMoviesActorCountLt" : 123
 }
 ----
-
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (movie:Movie)
-WHERE movie.actorCount < $whereMovieActorCountLt
-RETURN movie {
+MATCH (movies:Movie)
+WHERE movies.actorCount < $whereMoviesActorCountLt
+RETURN movies {
 	.actorCount
-} AS movie
+} AS movies
 ----
 
 === LT BigInt
@@ -377,7 +377,7 @@ CAUTION: *Not yet implemented*
 [source,graphql]
 ----
 {
-    movie(where: { budget_lt: 9223372036854775807 }) {
+    movies(where: { budget_lt: 9223372036854775807 }) {
         budget
     }
 }
@@ -408,7 +408,7 @@ RETURN this { .budget } as this
 [source,graphql]
 ----
 {
-    movie(where: { actorCount_lte: 123 }) {
+    movies(where: { actorCount_lte: 123 }) {
         actorCount
     }
 }
@@ -418,18 +418,18 @@ RETURN this { .budget } as this
 [source,json]
 ----
 {
-  "whereMovieActorCountLte" : 123
+  "whereMoviesActorCountLte" : 123
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (movie:Movie)
-WHERE movie.actorCount <= $whereMovieActorCountLte
-RETURN movie {
+MATCH (movies:Movie)
+WHERE movies.actorCount <= $whereMoviesActorCountLte
+RETURN movies {
 	.actorCount
-} AS movie
+} AS movies
 ----
 
 === LTE BigInt
@@ -440,7 +440,7 @@ CAUTION: *Not yet implemented*
 [source,graphql]
 ----
 {
-    movie(where: { budget_lte: 9223372036854775807 }) {
+    movies(where: { budget_lte: 9223372036854775807 }) {
         budget
     }
 }
@@ -471,7 +471,7 @@ RETURN this { .budget } as this
 [source,graphql]
 ----
 {
-    movie(where: { actorCount_gt: 123 }) {
+    movies(where: { actorCount_gt: 123 }) {
         actorCount
     }
 }
@@ -481,18 +481,18 @@ RETURN this { .budget } as this
 [source,json]
 ----
 {
-  "whereMovieActorCountGt" : 123
+  "whereMoviesActorCountGt" : 123
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (movie:Movie)
-WHERE movie.actorCount > $whereMovieActorCountGt
-RETURN movie {
+MATCH (movies:Movie)
+WHERE movies.actorCount > $whereMoviesActorCountGt
+RETURN movies {
 	.actorCount
-} AS movie
+} AS movies
 ----
 
 === GT BigInt
@@ -503,7 +503,7 @@ CAUTION: *Not yet implemented*
 [source,graphql]
 ----
 {
-    movie(where: { budget_gt: 9223372036854775000 }) {
+    movies(where: { budget_gt: 9223372036854775000 }) {
         budget
     }
 }
@@ -534,7 +534,7 @@ RETURN this { .budget } as this
 [source,graphql]
 ----
 {
-    movie(where: { actorCount_gte: 123 }) {
+    movies(where: { actorCount_gte: 123 }) {
         actorCount
     }
 }
@@ -544,18 +544,18 @@ RETURN this { .budget } as this
 [source,json]
 ----
 {
-  "whereMovieActorCountGte" : 123
+  "whereMoviesActorCountGte" : 123
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (movie:Movie)
-WHERE movie.actorCount >= $whereMovieActorCountGte
-RETURN movie {
+MATCH (movies:Movie)
+WHERE movies.actorCount >= $whereMoviesActorCountGte
+RETURN movies {
 	.actorCount
-} AS movie
+} AS movies
 ----
 
 === GTE BigInt
@@ -566,7 +566,7 @@ CAUTION: *Not yet implemented*
 [source,graphql]
 ----
 {
-    movie(where: { budget_gte: 9223372036854775000 }) {
+    movies(where: { budget_gte: 9223372036854775000 }) {
         budget
     }
 }
@@ -597,7 +597,7 @@ RETURN this { .budget } as this
 [source,graphql]
 ----
 {
-    movie(where: { genres: { name: "some genre" } }) {
+    movies(where: { genres: { name: "some genre" } }) {
         actorCount
     }
 }
@@ -607,19 +607,19 @@ RETURN this { .budget } as this
 [source,json]
 ----
 {
-  "whereMovieGenreName" : "some genre"
+  "whereMoviesGenreName" : "some genre"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (movie:Movie)
-WHERE all(whereMovieGenreCond IN [(movie)-[:IN_GENRE]->(whereMovieGenre:Genre) | whereMovieGenre.name = $whereMovieGenreName]
-WHERE whereMovieGenreCond)
-RETURN movie {
+MATCH (movies:Movie)
+WHERE all(whereMoviesGenreCond IN [(movies)-[:IN_GENRE]->(whereMoviesGenre:Genre) | whereMoviesGenre.name = $whereMoviesGenreName]
+WHERE whereMoviesGenreCond)
+RETURN movies {
 	.actorCount
-} AS movie
+} AS movies
 ----
 
 === Relationship NOT
@@ -628,7 +628,7 @@ RETURN movie {
 [source,graphql]
 ----
 {
-    movie(where: { genres_not: { name: "some genre" } }) {
+    movies(where: { genres_not: { name: "some genre" } }) {
         actorCount
     }
 }
@@ -638,18 +638,17 @@ RETURN movie {
 [source,json]
 ----
 {
-  "whereMovieGenreName" : "some genre"
+  "whereMoviesGenreName" : "some genre"
 }
 ----
-
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (movie:Movie)
-WHERE none(whereMovieGenreCond IN [(movie)-[:IN_GENRE]->(whereMovieGenre:Genre) | whereMovieGenre.name = $whereMovieGenreName]
-WHERE whereMovieGenreCond)
-RETURN movie {
+MATCH (movies:Movie)
+WHERE none(whereMoviesGenreCond IN [(movies)-[:IN_GENRE]->(whereMoviesGenre:Genre) | whereMoviesGenre.name = $whereMoviesGenreName]
+WHERE whereMoviesGenreCond)
+RETURN movies {
 	.actorCount
-} AS movie
+} AS movies
 ----

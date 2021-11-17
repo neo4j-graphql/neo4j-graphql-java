@@ -24,6 +24,7 @@ type User {
 ----
 {
   "queryOptionStyle": "INPUT_TYPE",
+  "inputStyle": "INPUT_TYPE",
   "useWhereFilter": true,
   "pluralizeFields": true
 }
@@ -39,16 +40,27 @@ schema {
   mutation: Mutation
 }
 
+type CreateUsersMutationResponse {
+  users: [User!]!
+}
+
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
 type Mutation {
-  createUser(id: ID!, password: String!, username: String!): User!
-  "Deletes User and returns the type itself"
-  deleteUser(id: ID!): User
-  mergeUser(id: ID!, password: String, username: String): User!
-  updateUser(id: ID!, password: String, username: String): User
+  createUsers(input: [UserCreateInput!]!): CreateUsersMutationResponse!
+  deleteUsers(where: UserWhere!): DeleteInfo!
+  updateUsers(update: UserUpdateInput!, where: UserWhere): UpdateUsersMutationResponse!
 }
 
 type Query {
   users(options: UserOptions, where: UserWhere): [User!]!
+}
+
+type UpdateUsersMutationResponse {
+  users: [User!]!
 }
 
 type User {
@@ -71,6 +83,12 @@ enum SortDirection {
   DESC
 }
 
+input UserCreateInput {
+  id: ID!
+  password: String!
+  username: String!
+}
+
 input UserOptions {
   "Defines the maximum amount of records returned"
   limit: Int
@@ -85,6 +103,12 @@ input UserSort {
   id: SortDirection
   password: SortDirection
   username: SortDirection
+}
+
+input UserUpdateInput {
+  id: ID
+  password: String
+  username: String
 }
 
 input UserWhere {

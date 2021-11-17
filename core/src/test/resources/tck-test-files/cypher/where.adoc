@@ -28,7 +28,8 @@ type Movie {
 ----
 {
   "queryOptionStyle": "INPUT_TYPE",
-  "useWhereFilter": true
+  "useWhereFilter": true,
+  "pluralizeFields": true
 }
 ----
 

@@ -237,3 +237,9 @@ val TypeInt = TypeName("Int")
 val TypeFloat = TypeName("Float")
 val TypeBoolean = TypeName("Boolean")
 val TypeID = TypeName("ID")
+
+fun Iterable<GraphQLArgument>.excludeOptions(schemaConfig: SchemaConfig) = if (schemaConfig.queryOptionStyle == SchemaConfig.InputStyle.INPUT_TYPE) {
+    this.filterNot { listOf(ProjectionBase.FIRST, ProjectionBase.OFFSET, ProjectionBase.ORDER_BY).contains(it.name) }
+} else {
+    this.filterNot { it.name == ProjectionBase.OPTIONS }
+}
