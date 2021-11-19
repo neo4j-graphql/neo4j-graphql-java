@@ -5,7 +5,6 @@ import graphql.schema.*
 import graphql.schema.idl.TypeDefinitionRegistry
 import org.atteo.evo.inflector.English
 import org.neo4j.cypherdsl.core.Cypher.*
-import org.neo4j.cypherdsl.core.Functions
 import org.neo4j.cypherdsl.core.Node
 import org.neo4j.cypherdsl.core.Statement
 import org.neo4j.cypherdsl.core.StatementBuilder
@@ -15,15 +14,22 @@ import org.neo4j.graphql.*
  * This class handles all the logic related to the creation of multiple nodes.
  * This includes the augmentation of the create&lt;Node&gt;s-mutator and the related cypher generation
  */
-class BatchCreateNodeHandler private constructor(schemaConfig: SchemaConfig) : BaseDataFetcherForContainerBatch(schemaConfig) {
+class BatchCreateNodeHandler private constructor(schemaConfig: SchemaConfig, private val nestedResultField: String?) : BaseDataFetcherForContainerBatch(schemaConfig), SupportsStatistics {
+    companion object {
+        const val CREATE_INFO = "CreateInfo"
+        const val INPUT = "input"
+    }
 
-
-    private lateinit var targetArrayField: String
+    private lateinit var inputProperties: InputProperties
 
     class Factory(schemaConfig: SchemaConfig,
             typeDefinitionRegistry: TypeDefinitionRegistry,
             neo4jTypeDefinitionRegistry: TypeDefinitionRegistry
     ) : AugmentationHandler(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry) {
+
+        companion object {
+            const val METHOD_NAME_PREFIX = "create"
+        }
 
         override fun augmentType(type: ImplementingTypeDefinition<*>) {
             if (!canHandle(type)) {
@@ -31,36 +37,38 @@ class BatchCreateNodeHandler private constructor(schemaConfig: SchemaConfig) : B
             }
             val relevantFields = getRelevantFields(type)
             val inputName = type.name + "CreateInput"
-            addInputType(inputName, getInputValueDefinitions(relevantFields, false, { false }))
             val plural = English.plural(type.name).capitalize()
-            val response = addMutationResponse("Create", type).name
-            val fieldDefinition = FieldDefinition.newFieldDefinition()
-                .name("${"create"}${plural}")
+            addInputType(inputName, getInputValueDefinitions(relevantFields, addFieldOperations = false, forceOptionalProvider = { false }))
+
+            val response = if (schemaConfig.shouldWrapMutationResults) {
+                val statistics = if (schemaConfig.enableStatistics) NonNullType(TypeName(CREATE_INFO)) else null
+                NonNullType(TypeName(addMutationResponse("Create", type, statistics).name))
+            } else {
+                NonNullType(ListType(NonNullType(TypeName(type.name))))
+            }
+
+            val createField = FieldDefinition.newFieldDefinition()
+                .name("${METHOD_NAME_PREFIX}${plural}")
                 .inputValueDefinitions(listOf(input(INPUT, NonNullType(ListType(NonNullType(TypeName(inputName)))))))
-                .type(NonNullType(TypeName(response)))
+                .type(response)
                 .build()
 
-            addMutationField(fieldDefinition)
+            addMutationField(createField)
         }
 
         override fun createDataFetcher(operationType: OperationType, fieldDefinition: FieldDefinition): DataFetcher<Cypher>? {
-            if (operationType != OperationType.MUTATION) {
-                return null
-            }
-            if (fieldDefinition.cypherDirective() != null) {
-                return null
-            }
-            // here we got the Create*MutationResponse with one array field of the required type
-            val type = (fieldDefinition.type.inner().resolve() as ImplementingTypeDefinition)
-                .fieldDefinitions.singleOrNull()
-                ?.type?.inner()
-                ?.resolve() as? ImplementingTypeDefinition<*>
+            if (operationType != OperationType.MUTATION) return null
+            if (fieldDefinition.cypherDirective() != null) return null
+
+            val (type, nestedResultField) = getTypeAndOptionalWrapperField(fieldDefinition, METHOD_NAME_PREFIX)
                     ?: return null
 
             if (!canHandle(type)) {
                 return null
             }
-            if (fieldDefinition.name == "create${English.plural(type.name)}") return BatchCreateNodeHandler(schemaConfig)
+            if (fieldDefinition.name == METHOD_NAME_PREFIX + English.plural(type.name)) {
+                return BatchCreateNodeHandler(schemaConfig, nestedResultField)
+            }
             return null
         }
 
@@ -85,7 +93,6 @@ class BatchCreateNodeHandler private constructor(schemaConfig: SchemaConfig) : B
 
             if (getRelevantFields(type).isEmpty()) {
                 // nothing to create
-                // TODO or should we support just creating empty nodes?
                 return false
             }
             return true
@@ -93,23 +100,26 @@ class BatchCreateNodeHandler private constructor(schemaConfig: SchemaConfig) : B
 
     }
 
-    override fun initDataFetcher(fieldDefinition: GraphQLFieldDefinition, parentType: GraphQLType) {
-        targetArrayField = getResultArrayField(fieldDefinition).name
-        super.initDataFetcher(fieldDefinition, parentType)
-    }
-
     override fun getType(fieldDefinition: GraphQLFieldDefinition, parentType: GraphQLType): GraphQLFieldsContainer {
-        // here we got the Create*MutationResponse with one array field of the required type
-        return getResultArrayField(fieldDefinition)
-            .type.inner() as? GraphQLFieldsContainer // the type of the array item
-                ?: throw IllegalStateException("failed to extract correct type for ${parentType.name()}.${fieldDefinition.name}.")
+        return if (schemaConfig.shouldWrapMutationResults) {
+            (fieldDefinition.type.inner() as GraphQLFieldsContainer) //Create*MutationResponse
+                .getFieldDefinition(nestedResultField)
+                ?.takeIf { it.type.isList() }
+                ?.type?.inner() as? GraphQLFieldsContainer // the type of the array item
+                    ?: throw IllegalStateException("failed to extract correct type for ${parentType.name()}.${fieldDefinition.name}.")
+        } else {
+            (fieldDefinition.type.inner() as GraphQLFieldsContainer)
+        }
     }
 
-    private fun getResultArrayField(fieldDefinition: GraphQLFieldDefinition) =
-            (fieldDefinition.type.inner() as GraphQLFieldsContainer) //Create*MutationResponse
-                .fieldDefinitions.singleOrNull() // the one and only array field
-                ?.takeIf { it.type.isList() }
-                    ?: throw IllegalStateException("failed to extract array field for ${fieldDefinition.type.inner().name()}")
+    override fun initDataFetcher(fieldDefinition: GraphQLFieldDefinition, parentType: GraphQLType) {
+        super.initDataFetcher(fieldDefinition, parentType)
+
+        val input = fieldDefinition.getArgument(INPUT)
+                ?: throw IllegalStateException("${parentType.name()}.${fieldDefinition.name} expected to have an argument named $INPUT")
+        val inputType = input.type.inner() as GraphQLInputObjectType
+        inputProperties = InputProperties.fromInputType(schemaConfig, type, inputType)
+    }
 
     override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement {
 
@@ -122,7 +132,7 @@ class BatchCreateNodeHandler private constructor(schemaConfig: SchemaConfig) : B
         var queries: StatementBuilder.OngoingReadingWithoutWhere? = null
         val nodes = mutableListOf<Node>()
         inputs.forEachIndexed { index, value ->
-            val properties = properties(variable, value)
+            val properties = inputProperties.properties(variable + index, value)
             val node = node(type.name, *additionalTypes.toTypedArray()).named("this$index")
             val statement = create(node.withProperties(*properties)).returning(node).build()
             queries = queries?.call(statement) ?: call(statement)
@@ -140,13 +150,16 @@ class BatchCreateNodeHandler private constructor(schemaConfig: SchemaConfig) : B
             nodes[0] to queries!!
         }
 
-        val targetFieldSelection = env.selectionSet.getFields(targetArrayField).first().selectionSet
-        val (mapProjection, subQueries) = projectFields(node, type, env, selectionSet = targetFieldSelection)
+        val targetFieldSelection = env.selectionSet.getFields(nestedResultField).first().selectionSet
+        val (projectionEntries, subQueries) = projectFields(node, type, env, selectionSet = targetFieldSelection)
         return result
-            .returning(
-                    mapOf(targetArrayField, Functions.collect(node.project(mapProjection)))
-                        .`as`(field.aliasOrName()))
+            .withSubQueries(subQueries)
+            .returning(node.project(projectionEntries).`as`(variable))
             .build()
     }
 
+    override fun getDataField(): String = nestedResultField
+            ?: throw IllegalArgumentException("No nested result field defined, enable `SchemaConfig::wrapMutationResults` to wrap the result field")
+
+    override fun getStatisticsField(): String = AugmentationHandler.INFO_FIELD
 }

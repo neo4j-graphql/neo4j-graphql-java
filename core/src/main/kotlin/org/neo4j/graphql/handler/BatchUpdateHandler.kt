@@ -1,31 +1,36 @@
 package org.neo4j.graphql.handler
 
 import graphql.language.*
-import graphql.schema.DataFetcher
-import graphql.schema.DataFetchingEnvironment
-import graphql.schema.GraphQLFieldDefinition
-import graphql.schema.GraphQLType
+import graphql.schema.*
 import graphql.schema.idl.TypeDefinitionRegistry
 import org.atteo.evo.inflector.English
-import org.neo4j.cypherdsl.core.Node
-import org.neo4j.cypherdsl.core.Relationship
+import org.neo4j.cypherdsl.core.Cypher.mapOf
 import org.neo4j.cypherdsl.core.Statement
-import org.neo4j.cypherdsl.core.StatementBuilder.OngoingMatchAndUpdate
 import org.neo4j.graphql.*
+import org.neo4j.graphql.handler.filter.OptimizedFilterHandler
 
 /**
  * This class handles all the logic related to the updating of nodes.
  * This includes the augmentation of the update&lt;Node&gt; and merge&lt;Node&gt;-mutator and the related cypher generation
  */
-class BatchUpdateHandler private constructor(schemaConfig: SchemaConfig) : BaseDataFetcherForContainer(schemaConfig) {
+class BatchUpdateHandler private constructor(schemaConfig: SchemaConfig, private val nestedResultField: String?) : BaseDataFetcherForContainerBatch(schemaConfig), SupportsStatistics {
+    companion object {
+        const val UPDATE_INFO = "UpdateInfo"
+        const val UPDATE_INPUT_FIELD = "update"
+    }
 
-    private lateinit var idField: GraphQLFieldDefinition
     private var isRelation: Boolean = false
+    lateinit var updateProperties: InputProperties
+
 
     class Factory(schemaConfig: SchemaConfig,
             typeDefinitionRegistry: TypeDefinitionRegistry,
             neo4jTypeDefinitionRegistry: TypeDefinitionRegistry
     ) : AugmentationHandler(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry) {
+
+        companion object {
+            const val METHOD_NAME_PREFIX = "update"
+        }
 
         override fun augmentType(type: ImplementingTypeDefinition<*>) {
             if (!canHandle(type)) {
@@ -34,33 +39,40 @@ class BatchUpdateHandler private constructor(schemaConfig: SchemaConfig) : BaseD
             val relevantFields = type.getScalarFields()
             val inputName = type.name + "UpdateInput"
             val plural = English.plural(type.name).capitalize()
-            addInputType(inputName, getInputValueDefinitions(relevantFields, false, { true }))
-            val response = addMutationResponse("Update", type).name
+            addInputType(inputName, getInputValueDefinitions(relevantFields, addFieldOperations = false, forceOptionalProvider = { true }))
+
+            val response = if (schemaConfig.shouldWrapMutationResults) {
+                val statistics = if (schemaConfig.enableStatistics) NonNullType(TypeName(UPDATE_INFO)) else null
+                NonNullType(TypeName(addMutationResponse("Update", type, statistics).name))
+            } else {
+                NonNullType(ListType(NonNullType(TypeName(type.name))))
+            }
+
             val filter = addFilterType(type)
             val updateField = FieldDefinition.newFieldDefinition()
-                .name("${"update"}${plural}")
+                .name("${METHOD_NAME_PREFIX}${plural}")
                 .inputValueDefinitions(listOf(
                         input(if (schemaConfig.useWhereFilter) WHERE else FILTER, TypeName(filter)),
-                        input("update", NonNullType(TypeName(inputName)))
+                        input(UPDATE_INPUT_FIELD, NonNullType(TypeName(inputName)))
                 ))
-                .type(NonNullType(TypeName(response)))
+                .type(response)
                 .build()
             addMutationField(updateField)
         }
 
         override fun createDataFetcher(operationType: OperationType, fieldDefinition: FieldDefinition): DataFetcher<Cypher>? {
-            if (operationType != OperationType.MUTATION) {
-                return null
-            }
-            if (fieldDefinition.cypherDirective() != null) {
-                return null
-            }
-            val type = fieldDefinition.type.inner().resolve() as? ImplementingTypeDefinition<*> ?: return null
+            if (operationType != OperationType.MUTATION) return null
+            if (fieldDefinition.cypherDirective() != null) return null
+
+            val (type, nestedResultField) = getTypeAndOptionalWrapperField(fieldDefinition, METHOD_NAME_PREFIX)
+                    ?: return null
+
+
             if (!canHandle(type)) {
                 return null
             }
-            if (fieldDefinition.name == "update${English.plural(type.name)}") {
-                return BatchUpdateHandler(schemaConfig)
+            if (fieldDefinition.name == METHOD_NAME_PREFIX + English.plural(type.name)) {
+                return BatchUpdateHandler(schemaConfig, nestedResultField)
             }
             return null
         }
@@ -78,49 +90,67 @@ class BatchUpdateHandler private constructor(schemaConfig: SchemaConfig) : BaseD
         }
     }
 
+    override fun getType(fieldDefinition: GraphQLFieldDefinition, parentType: GraphQLType): GraphQLFieldsContainer {
+        return if (schemaConfig.shouldWrapMutationResults) {
+            (fieldDefinition.type.inner() as GraphQLFieldsContainer) //Update*MutationResponse
+                .getFieldDefinition(nestedResultField)
+                ?.takeIf { it.type.isList() }
+                ?.type?.inner() as? GraphQLFieldsContainer // the type of the array item
+                    ?: throw IllegalStateException("failed to extract correct type for ${parentType.name()}.${fieldDefinition.name}.")
+        } else {
+            (fieldDefinition.type.inner() as GraphQLFieldsContainer)
+        }
+    }
+
     override fun initDataFetcher(fieldDefinition: GraphQLFieldDefinition, parentType: GraphQLType) {
         super.initDataFetcher(fieldDefinition, parentType)
-
-        idField = type.getIdField() ?: throw IllegalStateException("Cannot resolve id field for type ${type.name}")
         isRelation = type.isRelationType()
 
-        defaultFields.clear() // for merge or updates we do not reset to defaults
-        propertyFields.remove(idField.name) // id should not be updated
-
+        val update = fieldDefinition.getArgument(UPDATE_INPUT_FIELD)
+                ?: throw IllegalStateException("${parentType.name()}.${fieldDefinition.name} expected to have an argument named ${UPDATE_INPUT_FIELD}")
+        val inputType = update.type.inner() as GraphQLInputObjectType
+        updateProperties = InputProperties.fromInputType(schemaConfig, type, inputType, fallbackToDefaults = false)
     }
 
     override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement {
-        val idArg = field.arguments.first { it.name == idField.name }
-
-        val (propertyContainer, where) = getSelectQuery(variable, type.label(), idArg, idField, isRelation)
-        val merge = false // TODO
-        val select = if (isRelation) {
-            val rel = propertyContainer as? Relationship
-                    ?: throw IllegalStateException("Expect a Relationship but got ${propertyContainer.javaClass.name}")
-            if (merge && !idField.isNativeId()) {
-                org.neo4j.cypherdsl.core.Cypher.merge(rel)
-                // where is skipped since it does not make sense on merge
-            } else {
-                org.neo4j.cypherdsl.core.Cypher.match(rel).where(where)
-            }
-        } else {
-            val node = propertyContainer as? Node
-                    ?: throw IllegalStateException("Expect a Node but got ${propertyContainer.javaClass.name}")
-            if (merge && !idField.isNativeId()) {
-                org.neo4j.cypherdsl.core.Cypher.merge(node)
-                // where is skipped since it does not make sense on merge
-            } else {
-                org.neo4j.cypherdsl.core.Cypher.match(node).where(where)
-            }
+        val fieldDefinition = env.fieldDefinition
+        val (propertyContainer, match) = when {
+            isRelation -> org.neo4j.cypherdsl.core.Cypher.anyNode().relationshipTo(org.neo4j.cypherdsl.core.Cypher.anyNode(), type.label()).named("this")
+                .let { rel -> rel to org.neo4j.cypherdsl.core.Cypher.match(rel) }
+            else -> org.neo4j.cypherdsl.core.Cypher.node(type.label()).named("this")
+                .let { node -> node to org.neo4j.cypherdsl.core.Cypher.match(node) }
         }
-        val properties = properties(variable, env.arguments)
-        val (mapProjection, subQueries) = projectFields(propertyContainer, type, env)
-        val update: OngoingMatchAndUpdate = select
-            .mutate(propertyContainer, org.neo4j.cypherdsl.core.Cypher.mapOf(*properties))
 
-        return update
+        val ongoingReading = if ((env.getContext() as? QueryContext)?.optimizedQuery?.contains(QueryContext.OptimizationStrategy.FILTER_AS_MATCH) == true) {
+
+            OptimizedFilterHandler(type, schemaConfig).generateFilterQuery(variable, fieldDefinition, env.arguments, match, propertyContainer, env.variables)
+
+        } else {
+
+            val where = where(propertyContainer, fieldDefinition, type, env.arguments, env.variables)
+            match.where(where)
+        }
+
+        @Suppress("UNCHECKED_CAST") val inputData = env.arguments[UPDATE_INPUT_FIELD] as Map<String, Any>
+        val properties = updateProperties.properties(variable, inputData)
+        val update = ongoingReading
+            .mutate(propertyContainer, mapOf(*properties))
             .with(propertyContainer)
-            .returning(propertyContainer.project(mapProjection).`as`(field.aliasOrName()))
+
+        val selectionSet = if (schemaConfig.shouldWrapMutationResults) {
+            env.selectionSet.getFields(nestedResultField).first().selectionSet
+        } else {
+            env.selectionSet
+        }
+        val (projectionEntries, subQueries) = projectFields(propertyContainer, type, env, selectionSet = selectionSet)
+        return update
+            .withSubQueries(subQueries)
+            .returning(propertyContainer.project(projectionEntries).`as`(variable))
             .build()
     }
+
+    override fun getDataField(): String = nestedResultField
+            ?: throw IllegalArgumentException("No nested result field defined, enable `SchemaConfig::wrapMutationResults` to wrap the result field")
+
+    override fun getStatisticsField(): String = AugmentationHandler.INFO_FIELD
 }

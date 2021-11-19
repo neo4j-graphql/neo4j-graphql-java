@@ -19,6 +19,7 @@ abstract class BaseRelationHandler(private val prefix: String, schemaConfig: Sch
     lateinit var relation: RelationshipInfo<GraphQLFieldsContainer>
     lateinit var startId: RelatedField
     lateinit var endId: RelatedField
+    lateinit var inputProperties: InputProperties
 
     data class RelatedField(
             val argumentName: String,
@@ -147,9 +148,7 @@ abstract class BaseRelationHandler(private val prefix: String, schemaConfig: Sch
         super.initDataFetcher(fieldDefinition, parentType)
 
         initRelation(fieldDefinition)
-
-        propertyFields.remove(startId.argumentName)
-        propertyFields.remove(endId.argumentName)
+        inputProperties = InputProperties.fromArguments(schemaConfig, type, fieldDefinition.arguments, exclude = listOf(startId.argumentName, endId.argumentName))
     }
 
     protected open fun initRelation(fieldDefinition: GraphQLFieldDefinition) {

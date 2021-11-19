@@ -21,6 +21,7 @@ class MergeOrUpdateHandler private constructor(private val merge: Boolean, schem
 
     private lateinit var idField: GraphQLFieldDefinition
     private var isRelation: Boolean = false
+    private lateinit var inputProperties: InputProperties
 
     class Factory(schemaConfig: SchemaConfig,
             typeDefinitionRegistry: TypeDefinitionRegistry,
@@ -85,10 +86,9 @@ class MergeOrUpdateHandler private constructor(private val merge: Boolean, schem
 
         idField = type.getIdField() ?: throw IllegalStateException("Cannot resolve id field for type ${type.name}")
         isRelation = type.isRelationType()
-
-        defaultFields.clear() // for merge or updates we do not reset to defaults
-        propertyFields.remove(idField.name) // id should not be updated
-
+        inputProperties = InputProperties.fromArguments(schemaConfig, type, fieldDefinition.arguments, fallbackToDefaults = false // for merge or updates we do not reset to defaults
+                , exclude = listOf(idField.name)  // id should not be updated
+        )
     }
 
     override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement {
@@ -115,7 +115,7 @@ class MergeOrUpdateHandler private constructor(private val merge: Boolean, schem
                 org.neo4j.cypherdsl.core.Cypher.match(node).where(where)
             }
         }
-        val properties = properties(variable, env.arguments)
+        val properties = inputProperties.properties(variable, env.arguments)
         val (mapProjection, subQueries) = projectFields(propertyContainer, type, env)
 
         return select

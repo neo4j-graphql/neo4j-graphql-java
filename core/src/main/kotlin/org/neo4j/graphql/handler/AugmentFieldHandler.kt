@@ -62,7 +62,7 @@ class AugmentFieldHandler(
                     .getScalarFields()
                     .filter { scalarField -> field.inputValueDefinitions.find { it.name == scalarField.name } == null }
                     .filter { it.dynamicPrefix() == null } // TODO currently we do not support filtering on dynamic properties
-                getInputValueDefinitions(relevantFields, true, { true }).forEach {
+                getInputValueDefinitions(relevantFields, addFieldOperations = true, forceOptionalProvider = { true }).forEach {
                     fieldBuilder.inputValueDefinition(it)
                 }
             }

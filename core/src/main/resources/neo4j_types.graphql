@@ -121,3 +121,18 @@ type DeleteInfo {
   nodesDeleted: Int!
   relationshipsDeleted: Int!
 }
+
+type UpdateInfo {
+  bookmark: String
+  propertiesSet: Int!
+  nodesCreated: Int!
+  nodesDeleted: Int!
+  relationshipsCreated: Int!
+  relationshipsDeleted: Int!
+}
+
+type CreateInfo {
+  bookmark: String
+  nodesCreated: Int!
+  relationshipsCreated: Int!
+}

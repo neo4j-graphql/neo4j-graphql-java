@@ -2,9 +2,7 @@ package org.neo4j.graphql.handler
 
 import graphql.language.Argument
 import graphql.language.ArrayValue
-import graphql.schema.GraphQLFieldDefinition
-import graphql.schema.GraphQLFieldsContainer
-import graphql.schema.GraphQLType
+import graphql.schema.*
 import org.neo4j.cypherdsl.core.*
 import org.neo4j.cypherdsl.core.Cypher.*
 import org.neo4j.graphql.*
@@ -15,30 +13,9 @@ import org.neo4j.graphql.*
 abstract class BaseDataFetcherForContainer(schemaConfig: SchemaConfig) : BaseDataFetcher(schemaConfig) {
 
     lateinit var type: GraphQLFieldsContainer
-    val propertyFields: MutableMap<String, (Any) -> List<PropertyAccessor>?> = mutableMapOf()
-    val defaultFields: MutableMap<String, Any> = mutableMapOf()
 
     override fun initDataFetcher(fieldDefinition: GraphQLFieldDefinition, parentType: GraphQLType) {
         type = getType(fieldDefinition, parentType)
-
-        fieldDefinition.arguments.excludeOptions(schemaConfig)
-            .filter { schemaConfig.queryOptionStyle == SchemaConfig.InputStyle.ARGUMENT_PER_FIELD || NATIVE_ID != it.name }
-            .onEach { arg ->
-                if (arg.argumentDefaultValue.isSet) {
-                    arg.argumentDefaultValue.value?.let { defaultFields[arg.name] = it }
-                }
-            }
-            .mapNotNull { type.getRelevantFieldDefinition(it.name) }
-            .forEach { field -> addPropertyField(field) }
-    }
-
-    protected fun addPropertyField(field: GraphQLFieldDefinition) {
-        val dynamicPrefix = field.dynamicPrefix()
-        propertyFields[field.name] = when {
-            dynamicPrefix != null -> dynamicPrefixCallback(field, dynamicPrefix)
-            field.isNeo4jType() || (schemaConfig.useTemporalScalars && field.isNeo4jTemporalType()) -> neo4jTypeCallback(field)
-            else -> defaultCallback(field)
-        }
     }
 
     /**
@@ -47,47 +24,6 @@ abstract class BaseDataFetcherForContainer(schemaConfig: SchemaConfig) : BaseDat
     protected open fun getType(fieldDefinition: GraphQLFieldDefinition, parentType: GraphQLType): GraphQLFieldsContainer =
             fieldDefinition.type.inner() as? GraphQLFieldsContainer
                     ?: throw IllegalStateException("expect type of field ${parentType.name()}.${fieldDefinition.name} to be GraphQLFieldsContainer, but was ${fieldDefinition.type.name()}")
-
-    private fun defaultCallback(field: GraphQLFieldDefinition) =
-            { value: Any? ->
-                val propertyName = field.propertyName()
-                listOf(PropertyAccessor(propertyName) { variable -> queryParameter(value, variable, field.name) })
-            }
-
-    private fun neo4jTypeCallback(field: GraphQLFieldDefinition): (Any) -> List<PropertyAccessor> {
-        val converter = getNeo4jTypeConverter(field)
-        return { value: Any -> listOf(converter.getMutationExpression(value, field)) }
-    }
-
-    private fun dynamicPrefixCallback(field: GraphQLFieldDefinition, dynamicPrefix: String) =
-            { value: Any ->
-                // maps each property of the map to the node
-                (value as? Map<*, *>)?.map { (key, value) ->
-                    PropertyAccessor(
-                            "$dynamicPrefix${key}"
-                    ) { variable -> queryParameter(value, variable, "${field.name}${(key as String).capitalize()}") }
-                }
-            }
-
-
-    protected fun properties(variable: String, arguments: Map<String, Any>): Array<Any> =
-            preparePredicateArguments(arguments)
-                .flatMap { listOf(it.propertyName, it.toExpression(variable)) }
-                .toTypedArray()
-
-    private fun preparePredicateArguments(arguments: Map<String, Any>): List<PropertyAccessor> {
-        val predicates = arguments
-            .entries
-            .mapNotNull { (key, value) ->
-                propertyFields[key]?.invoke(value)?.let { key to it }
-            }
-            .toMap()
-
-        val defaults = defaultFields
-            .filter { !predicates.containsKey(it.key) }
-            .flatMap { (argName, defaultValue) -> propertyFields[argName]?.invoke(defaultValue) ?: emptyList() }
-        return predicates.values.flatten() + defaults
-    }
 
     companion object {
         fun getSelectQuery(
@@ -138,5 +74,92 @@ abstract class BaseDataFetcherForContainer(schemaConfig: SchemaConfig) : BaseDat
         fun toExpression(variable: String): Expression {
             return accessorFactory(variable)
         }
+    }
+
+    class InputProperties private constructor(val schemaConfig: SchemaConfig) {
+        private val propertyFields: MutableMap<String, (Any) -> List<PropertyAccessor>?> = mutableMapOf()
+        private val defaultFields: MutableMap<String, Any> = mutableMapOf()
+
+        companion object {
+
+            fun fromArguments(schemaConfig: SchemaConfig, type: GraphQLFieldsContainer, arguments: List<GraphQLArgument>, fallbackToDefaults: Boolean = true, exclude: List<String> = emptyList()): InputProperties {
+                val inputProperties = InputProperties(schemaConfig)
+                arguments.excludeOptions(schemaConfig)
+                    .filter { schemaConfig.queryOptionStyle == SchemaConfig.InputStyle.ARGUMENT_PER_FIELD || NATIVE_ID != it.name }
+                    .filterNot { exclude.contains(it.name) }
+                    .onEach { arg ->
+                        if (fallbackToDefaults && arg.defaultValue != null) {
+                            inputProperties.defaultFields[arg.name] = arg.defaultValue
+                        }
+                    }
+                    .mapNotNull { type.getRelevantFieldDefinition(it.name) }
+                    .forEach { field -> inputProperties.addPropertyField(field) }
+                return inputProperties
+            }
+
+
+            fun fromInputType(schemaConfig: SchemaConfig, type: GraphQLFieldsContainer, inputType: GraphQLInputObjectType, fallbackToDefaults: Boolean = true): InputProperties {
+                val inputProperties = InputProperties(schemaConfig)
+                inputType.fieldDefinitions
+                    .onEach { field ->
+                        if (fallbackToDefaults && field.defaultValue != null) {
+                            inputProperties.defaultFields[field.name] = field.defaultValue
+                        }
+                    }
+                    .mapNotNull { type.getRelevantFieldDefinition(it.name) }
+                    .forEach { field -> inputProperties.addPropertyField(field) }
+                return inputProperties
+            }
+        }
+
+
+        fun addPropertyField(field: GraphQLFieldDefinition) {
+            val dynamicPrefix = field.dynamicPrefix()
+            propertyFields[field.name] = when {
+                dynamicPrefix != null -> dynamicPrefixCallback(field, dynamicPrefix)
+                field.isNeo4jType() || (schemaConfig.useTemporalScalars && field.isNeo4jTemporalType()) -> neo4jTypeCallback(field)
+                else -> defaultCallback(field)
+            }
+        }
+
+        fun properties(variable: String, arguments: Map<String, Any>): Array<Any> =
+                preparePredicateArguments(arguments)
+                    .flatMap { listOf(it.propertyName, it.toExpression(variable)) }
+                    .toTypedArray()
+
+        private fun preparePredicateArguments(arguments: Map<String, Any>): List<PropertyAccessor> {
+            val predicates = arguments
+                .entries
+                .mapNotNull { (key, value) ->
+                    propertyFields[key]?.invoke(value)?.let { key to it }
+                }
+                .toMap()
+
+            val defaults = defaultFields
+                .filter { !predicates.containsKey(it.key) }
+                .flatMap { (argName, defaultValue) -> propertyFields[argName]?.invoke(defaultValue) ?: emptyList() }
+            return predicates.values.flatten() + defaults
+        }
+
+        private fun neo4jTypeCallback(field: GraphQLFieldDefinition): (Any) -> List<PropertyAccessor> {
+            val converter = getNeo4jTypeConverter(field)
+            return { value: Any -> listOf(converter.getMutationExpression(value, field)) }
+        }
+
+        private fun defaultCallback(field: GraphQLFieldDefinition) =
+                { value: Any? ->
+                    val propertyName = field.propertyName()
+                    listOf(PropertyAccessor(propertyName) { variable -> queryParameter(value, variable, field.name) })
+                }
+
+        private fun dynamicPrefixCallback(field: GraphQLFieldDefinition, dynamicPrefix: String) =
+                { value: Any ->
+                    // maps each property of the map to the node
+                    (value as? Map<*, *>)?.map { (key, value) ->
+                        PropertyAccessor(
+                                "$dynamicPrefix${key}"
+                        ) { variable -> queryParameter(value, variable, "${field.name}${(key as String).capitalize()}") }
+                    }
+                }
     }
 }

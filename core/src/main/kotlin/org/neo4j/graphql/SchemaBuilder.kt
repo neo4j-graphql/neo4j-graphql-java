@@ -87,13 +87,13 @@ class SchemaBuilder(
             handler.add(QueryHandler.Factory(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry))
         }
         if (schemaConfig.mutation.enabled) {
-            if (schemaConfig.inputStyle == SchemaConfig.InputStyle.INPUT_TYPE) {
-                handler += listOf(
+            handler += if (schemaConfig.inputStyle == SchemaConfig.InputStyle.INPUT_TYPE) {
+                listOf(
                         BatchCreateNodeHandler.Factory(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry),
                         BatchUpdateHandler.Factory(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry),
                 )
             } else {
-                handler += listOf(
+                listOf(
                         CreateTypeHandler.Factory(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry),
                         MergeOrUpdateHandler.Factory(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry),
                 )
@@ -221,13 +221,41 @@ class SchemaBuilder(
             ?.forEach { field ->
                 handler.forEach { h ->
                     h.createDataFetcher(operationType, field)?.let { dataFetcher ->
-                        val interceptedDataFetcher: DataFetcher<*> = dataFetchingInterceptor?.let {
-                            DataFetcher { env -> dataFetchingInterceptor.fetchData(env, dataFetcher) }
-                        } ?: dataFetcher
+                        val interceptedDataFetcher: DataFetcher<*> = dataFetchingInterceptor
+                            ?.let { CypherResolver(it, dataFetcher) }
+                                ?: dataFetcher
                         codeRegistryBuilder.dataFetcher(FieldCoordinates.coordinates(parentType, field.name), interceptedDataFetcher)
                     }
                 }
             }
+    }
+
+    inner class CypherResolver(private val cypherResolver: DataFetchingInterceptor, private val delegate: DataFetcher<Cypher>) : DataFetcher<Any> {
+        override fun get(environment: DataFetchingEnvironment): Any? {
+            var data: Any? = null
+            var statistics: DataFetchingInterceptorWithStatistics.Statistics? = null
+
+            if (cypherResolver is DataFetchingInterceptorWithStatistics) {
+                cypherResolver.fetchDataWithStatistic(environment, delegate)?.let {
+                    data = it.data
+                    statistics = it.statistics
+                }
+            } else {
+                data = cypherResolver.fetchData(environment, delegate)
+            }
+
+            if (schemaConfig.shouldWrapMutationResults && delegate is SupportsWrapping) {
+                val result = mutableMapOf<String, Any?>()
+                result[delegate.getDataField()] = data
+
+                if (schemaConfig.enableStatistics && delegate is SupportsStatistics) {
+                    result[delegate.getStatisticsField()] = statistics
+                }
+                return result
+            } else {
+                return data
+            }
+        }
     }
 
     private fun ensureRootQueryTypeExists(enhancedRegistry: TypeDefinitionRegistry) {

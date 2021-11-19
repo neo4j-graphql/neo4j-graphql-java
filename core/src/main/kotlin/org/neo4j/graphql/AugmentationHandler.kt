@@ -19,6 +19,11 @@ abstract class AugmentationHandler(
         val typeDefinitionRegistry: TypeDefinitionRegistry,
         val neo4jTypeDefinitionRegistry: TypeDefinitionRegistry
 ) {
+
+    companion object {
+        const val INFO_FIELD = "info"
+    }
+
     enum class OperationType {
         QUERY,
         MUTATION
@@ -46,7 +51,7 @@ abstract class AugmentationHandler(
             nullableResult: Boolean,
             forceOptionalProvider: (field: FieldDefinition) -> Boolean = { false }
     ): FieldDefinition.Builder =
-            buildFieldDefinition(prefix, resultType, nullableResult, getInputValueDefinitions(scalarFields, false, forceOptionalProvider))
+            buildFieldDefinition(prefix, resultType, nullableResult, getInputValueDefinitions(scalarFields, addFieldOperations = false, forceOptionalProvider))
 
     protected fun buildFieldDefinition(
             prefix: String,
@@ -280,12 +285,21 @@ abstract class AugmentationHandler(
             .build()
     }
 
-    protected fun addMutationResponse(prefix: String, type: TypeDefinition<*>): ObjectTypeDefinition {
+    protected fun addMutationResponse(prefix: String, type: TypeDefinition<*>, info: Type<*>? = null): ObjectTypeDefinition {
         val plural = English.plural(type.name).capitalize()
-        return addObjectType("${prefix.capitalize()}${plural}MutationResponse", listOf(FieldDefinition.newFieldDefinition()
+        val nestedResultField = FieldDefinition.newFieldDefinition()
             .name(plural.decapitalize())
             .type(NonNullType(ListType(NonNullType(TypeName(type.name)))))
-            .build()))
+            .build()
+        val fields = mutableListOf(nestedResultField)
+        if (info != null) {
+            fields.add(FieldDefinition.newFieldDefinition()
+                .name(INFO_FIELD)
+                .type(info)
+                .build()
+            )
+        }
+        return addObjectType("${prefix.capitalize()}${plural}MutationResponse", fields)
     }
 
     protected fun addObjectType(name: String, fields: List<FieldDefinition>): ObjectTypeDefinition {
@@ -377,5 +391,43 @@ abstract class AugmentationHandler(
         }
         return input
             .build()
+    }
+
+    /**
+     * Given the following graphql schema:
+     * ```
+     * type Foo {}
+     *
+     * type FooUpdateResult {
+     *     foos: [Foo!]!
+     * }
+     *
+     * type Query {
+     *      updateFoos: FooUpdateResult!
+     * }
+     * ```
+     *
+     * this method will extract the nested result field `foos` and the type of the nested result field (`Foo`) if
+     * the [fieldDefinition] `updateFoos` and the [prefix] `update` is passed to this method
+     *
+     * @param fieldDefinition the field definition to extract the nested result field from
+     * @param prefix prefix used for the [fieldDefinition]
+     * @return the name of the nested result field and its inner type or null
+     */
+    protected fun getTypeAndOptionalWrapperField(fieldDefinition: FieldDefinition, prefix: String): Pair<ImplementingTypeDefinition<*>, String?>? {
+        if (!fieldDefinition.name.startsWith(prefix)) {
+            return null
+        }
+        val implementingTypeDefinition = fieldDefinition.type.inner().resolve() as? ImplementingTypeDefinition
+                ?: return null
+        if (!schemaConfig.shouldWrapMutationResults) {
+            return implementingTypeDefinition to null
+        }
+        val nestedResultField = fieldDefinition.name.removePrefix(prefix).decapitalize()
+        val type = implementingTypeDefinition.getFieldDefinition(nestedResultField)
+            ?.type?.inner()
+            ?.resolve() as? ImplementingTypeDefinition<*>
+                ?: return null
+        return type to nestedResultField
     }
 }

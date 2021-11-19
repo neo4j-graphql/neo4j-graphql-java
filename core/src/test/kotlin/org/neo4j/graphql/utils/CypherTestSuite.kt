@@ -162,9 +162,9 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
         }
     }
 
-    private fun setupDataFetchingInterceptor(testData: ParsedBlock): DataFetchingInterceptor {
-        return object : DataFetchingInterceptor {
-            override fun fetchData(env: DataFetchingEnvironment, delegate: DataFetcher<Cypher>): Any? = neo4j
+    private fun setupDataFetchingInterceptor(testData: ParsedBlock): DataFetchingInterceptorWithStatistics {
+        return object : DataFetchingInterceptorWithStatistics {
+            override fun fetchDataWithStatistic(env: DataFetchingEnvironment, delegate: DataFetcher<Cypher>): DataFetchingInterceptorWithStatistics.Result? = neo4j
                 ?.defaultDatabaseService()?.let { db ->
                     db.executeTransactionally("MATCH (n) DETACH DELETE n")
                     if (testData.code().isNotBlank()) {
@@ -175,13 +175,20 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
                     }
                     val (cypher, params, type, variable) = delegate.get(env)
                     return db.executeTransactionally(cypher, params) { result ->
-                        result.stream().map { it[variable] }.let {
+
+                        val data = result.stream().map { it[variable] }.let {
                             when {
                                 type?.isList() == true -> it.toList()
                                 else -> it.findFirst().orElse(null)
                             }
                         }
-
+                        return@executeTransactionally DataFetchingInterceptorWithStatistics.Result(data, object : DataFetchingInterceptorWithStatistics.Statistics {
+                            override fun getPropertiesSet(): Int = result.queryStatistics.propertiesSet
+                            override fun getNodesCreated(): Int = result.queryStatistics.nodesCreated
+                            override fun getNodesDeleted(): Int = result.queryStatistics.nodesDeleted
+                            override fun getRelationshipsCreated(): Int = result.queryStatistics.relationshipsCreated
+                            override fun getRelationshipsDeleted(): Int = result.queryStatistics.relationshipsDeleted
+                        })
                     }
                 }
         }
@@ -243,7 +250,7 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
                 .containsOnlyKeys(*expected.keys.toTypedArray())
                 .satisfies { it.forEach { (key, value) -> assertEqualIgnoreOrder(expected[key], value) } }
             is Collection<*> -> {
-                val assertions: List<Consumer<Any>> = expected.map{ e -> Consumer<Any> { a -> assertEqualIgnoreOrder(e, a) } }
+                val assertions: List<Consumer<Any>> = expected.map { e -> Consumer<Any> { a -> assertEqualIgnoreOrder(e, a) } }
                 Assertions.assertThat(actual).asInstanceOf(InstanceOfAssertFactories.LIST)
                     .hasSize(expected.size)
                     .satisfiesExactlyInAnyOrder(*assertions.toTypedArray())

@@ -61,7 +61,7 @@ class CreateRelationHandler private constructor(schemaConfig: SchemaConfig) : Ba
 
     override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement {
 
-        val properties = properties(variable, env.arguments)
+        val properties = inputProperties.properties(variable, env.arguments)
 
         val arguments = field.arguments.associateBy { it.name }
         val (startNode, startWhere) = getRelationSelect(true, arguments)

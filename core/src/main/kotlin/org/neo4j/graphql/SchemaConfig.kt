@@ -36,6 +36,22 @@ data class SchemaConfig @JvmOverloads constructor(
          * If enabled the `Date`, `Time`, `LocalTime`, `DateTime` and `LocalDateTime` are used as scalars
          */
         val useTemporalScalars: Boolean = false,
+
+        /**
+         * If enabled, the results of create- and update-mutations will get wrapped, so that there are two nested
+         * fields, one with the cypher result itself and a second containing query statistics. If this setting is
+         * enabled a [DataFetchingInterceptorWithStatistics] needs to be registered when augmenting the schema with the
+         * [SchemaBuilder.buildSchema].
+         *
+         * If this setting is enabled, [wrapMutationResults] is implicitly set to `true`.
+         */
+        val enableStatistics: Boolean = false,
+
+        /**
+         * If enabled, the results of create- and update-mutations will get wrapped, so that there is a nested field,
+         * with the cypher result itself. This is implicitly enabled if [enableStatistics] is set to `true`.
+         */
+        val wrapMutationResults: Boolean = false,
 ) {
     data class CRUDConfig(val enabled: Boolean = true, val exclude: List<String> = emptyList())
 
@@ -51,4 +67,6 @@ data class SchemaConfig @JvmOverloads constructor(
          */
         INPUT_TYPE,
     }
+
+    val shouldWrapMutationResults get() = wrapMutationResults || enableStatistics
 }

@@ -2,10 +2,7 @@ package org.neo4j.graphql.handler
 
 import graphql.language.Field
 import graphql.language.VariableReference
-import graphql.schema.DataFetcher
-import graphql.schema.DataFetchingEnvironment
-import graphql.schema.GraphQLFieldDefinition
-import graphql.schema.GraphQLType
+import graphql.schema.*
 import org.neo4j.cypherdsl.core.Statement
 import org.neo4j.cypherdsl.core.renderer.Configuration
 import org.neo4j.cypherdsl.core.renderer.Renderer
@@ -36,7 +33,15 @@ abstract class BaseDataFetcher(schemaConfig: SchemaConfig) : ProjectionBase(sche
         val params = statement.parameters.mapValues { (_, value) ->
             (value as? VariableReference)?.let { env.variables[it.name] } ?: value
         }
-        return Cypher(query, params, env.fieldDefinition.type, variable = field.aliasOrName())
+
+        val resultType: GraphQLType? = if (this is SupportsWrapping && schemaConfig.shouldWrapMutationResults) {
+            (env.fieldDefinition.type.inner() as GraphQLFieldsContainer)
+                .getFieldDefinition(getDataField()).type as? GraphQLType
+        } else {
+            env.fieldDefinition.type
+        }
+
+        return Cypher(query, params, resultType, variable = field.aliasOrName())
             .also {
                 (env.getLocalContext() as? Translator.CypherHolder)?.apply { this.cypher = it }
             }

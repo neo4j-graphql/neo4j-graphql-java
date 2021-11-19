@@ -24,7 +24,8 @@ type Movie {
   "inputStyle": "INPUT_TYPE",
   "useWhereFilter": true,
   "pluralizeFields": true,
-  "useTemporalScalars": true
+  "useTemporalScalars": true,
+  "enableStatistics": true
 }
 ----
 
@@ -152,12 +153,10 @@ mutation {
 ----
 {
   "createMovies" : {
-    "movies": [
-      {
-        "id" : "m4",
-        "datetime" : "1970-01-01T00:00:00Z"
-      }
-    ]
+    "movies" : [ {
+      "id" : "m4",
+      "datetime" : "1970-01-01T00:00:00Z"
+    } ]
   }
 }
 ----
@@ -166,8 +165,8 @@ mutation {
 [source,json]
 ----
 {
-  "createMoviesDatetime" : "1970-01-01T00:00:00.000Z",
-  "createMoviesId" : "m4"
+  "createMovies0Datetime" : "1970-01-01T00:00:00.000Z",
+  "createMovies0Id" : "m4"
 }
 ----
 
@@ -175,17 +174,15 @@ mutation {
 [source,cypher]
 ----
 CALL {
-    CREATE (this0:Movie  {
-		id: $createMoviesId,
-		datetime: datetime($createMoviesDatetime)
+	CREATE (this0:Movie  {
+		id: $createMovies0Id,
+		datetime: datetime($createMovies0Datetime)
 	})
 	RETURN this0
 }
-RETURN  {
-	movies: collect(this0 {
-		.id,
-		datetime: toString(this0.datetime)
-	})
+RETURN this0 {
+	.id,
+	datetime: toString(this0.datetime)
 } AS createMovies
 ----
 
@@ -208,9 +205,20 @@ mutation {
 [source,json,response=true,ignore-order]
 ----
 {
-  "updateMovie" : {
-    "id" : "m1",
-    "datetime" : "2000-01-01T00:00:00Z"
+  "updateMovies" : {
+    "movies" : [ {
+      "id" : "m1",
+      "datetime" : "2000-01-01T00:00:00Z"
+    }, {
+      "id" : "m2",
+      "datetime" : "2000-01-01T00:00:00Z"
+    }, {
+      "id" : "m3",
+      "datetime" : "2000-01-01T00:00:00Z"
+    }, {
+      "id" : "m4",
+      "datetime" : "2000-01-01T00:00:00Z"
+    } ]
   }
 }
 ----
@@ -219,23 +227,20 @@ mutation {
 [source,json]
 ----
 {
-  "updateMovieDatetime" : "2000-01-01T00:00:00.000Z",
-  "updateMovieId" : "m1"
+  "updateMoviesDatetime" : "2000-01-01T00:00:00.000Z"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (updateMovie:Movie  {
-	id: $updateMovieId
-})
-SET updateMovie +=  {
-	datetime: datetime($updateMovieDatetime)
+MATCH (this:Movie)
+SET this +=  {
+	datetime: datetime($updateMoviesDatetime)
 }
-WITH updateMovie
-RETURN updateMovie {
+WITH this
+RETURN this {
 	.id,
-	datetime: toString(updateMovie.datetime)
-} AS updateMovie
+	datetime: toString(this.datetime)
+} AS updateMovies
 ----

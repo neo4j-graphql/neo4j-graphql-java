@@ -4,9 +4,7 @@ import graphql.language.Field
 import graphql.language.FieldDefinition
 import graphql.language.ImplementingTypeDefinition
 import graphql.language.InterfaceTypeDefinition
-import graphql.schema.DataFetcher
-import graphql.schema.DataFetchingEnvironment
-import graphql.schema.GraphQLObjectType
+import graphql.schema.*
 import graphql.schema.idl.TypeDefinitionRegistry
 import org.neo4j.cypherdsl.core.Statement
 import org.neo4j.graphql.*
@@ -16,6 +14,8 @@ import org.neo4j.graphql.*
  * This includes the augmentation of the create&lt;Node&gt;-mutator and the related cypher generation
  */
 class CreateTypeHandler private constructor(schemaConfig: SchemaConfig) : BaseDataFetcherForContainer(schemaConfig) {
+
+    private lateinit var inputProperties: InputProperties
 
     class Factory(schemaConfig: SchemaConfig,
             typeDefinitionRegistry: TypeDefinitionRegistry,
@@ -79,12 +79,17 @@ class CreateTypeHandler private constructor(schemaConfig: SchemaConfig) : BaseDa
 
     }
 
+    override fun initDataFetcher(fieldDefinition: GraphQLFieldDefinition, parentType: GraphQLType) {
+        super.initDataFetcher(fieldDefinition, parentType)
+        inputProperties = InputProperties.fromArguments(schemaConfig, type, fieldDefinition.arguments)
+    }
+
     override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement {
 
         val additionalTypes = (type as? GraphQLObjectType)?.interfaces?.map { it.name } ?: emptyList()
         val node = org.neo4j.cypherdsl.core.Cypher.node(type.name, *additionalTypes.toTypedArray()).named(variable)
 
-        val properties = properties(variable, env.arguments)
+        val properties = inputProperties.properties(variable, env.arguments)
         val (mapProjection, subQueries) = projectFields(node, type, env)
 
         return org.neo4j.cypherdsl.core.Cypher.create(node.withProperties(*properties))
