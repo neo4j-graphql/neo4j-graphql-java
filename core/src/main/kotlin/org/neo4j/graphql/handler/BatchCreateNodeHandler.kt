@@ -14,7 +14,7 @@ import org.neo4j.graphql.*
  * This class handles all the logic related to the creation of multiple nodes.
  * This includes the augmentation of the create&lt;Node&gt;s-mutator and the related cypher generation
  */
-class BatchCreateNodeHandler private constructor(schemaConfig: SchemaConfig, private val nestedResultField: String?) : BaseDataFetcherForContainerBatch(schemaConfig), SupportsStatistics {
+class BatchCreateNodeHandler private constructor(schemaConfig: SchemaConfig, typeName: String, private val nestedResultField: String?) : BaseDataFetcherForContainerBatch(schemaConfig, typeName), HasNestedStatistics {
     companion object {
         const val CREATE_INFO = "CreateInfo"
         const val INPUT = "input"
@@ -67,7 +67,7 @@ class BatchCreateNodeHandler private constructor(schemaConfig: SchemaConfig, pri
                 return null
             }
             if (fieldDefinition.name == METHOD_NAME_PREFIX + English.plural(type.name)) {
-                return BatchCreateNodeHandler(schemaConfig, nestedResultField)
+                return BatchCreateNodeHandler(schemaConfig, type.name, nestedResultField)
             }
             return null
         }
@@ -100,20 +100,8 @@ class BatchCreateNodeHandler private constructor(schemaConfig: SchemaConfig, pri
 
     }
 
-    override fun getType(fieldDefinition: GraphQLFieldDefinition, parentType: GraphQLType): GraphQLFieldsContainer {
-        return if (schemaConfig.shouldWrapMutationResults) {
-            (fieldDefinition.type.inner() as GraphQLFieldsContainer) //Create*MutationResponse
-                .getFieldDefinition(nestedResultField)
-                ?.takeIf { it.type.isList() }
-                ?.type?.inner() as? GraphQLFieldsContainer // the type of the array item
-                    ?: throw IllegalStateException("failed to extract correct type for ${parentType.name()}.${fieldDefinition.name}.")
-        } else {
-            (fieldDefinition.type.inner() as GraphQLFieldsContainer)
-        }
-    }
-
-    override fun initDataFetcher(fieldDefinition: GraphQLFieldDefinition, parentType: GraphQLType) {
-        super.initDataFetcher(fieldDefinition, parentType)
+    override fun initDataFetcher(fieldDefinition: GraphQLFieldDefinition, parentType: GraphQLType, graphQLSchema: GraphQLSchema) {
+        super.initDataFetcher(fieldDefinition, parentType, graphQLSchema)
 
         val input = fieldDefinition.getArgument(INPUT)
                 ?: throw IllegalStateException("${parentType.name()}.${fieldDefinition.name} expected to have an argument named $INPUT")

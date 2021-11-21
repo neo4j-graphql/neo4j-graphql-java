@@ -39,8 +39,11 @@ input GenreSort {
 ----
 {
   "queryOptionStyle": "INPUT_TYPE",
+  "inputStyle": "INPUT_TYPE",
   "useWhereFilter": true,
-  "pluralizeFields": true
+  "pluralizeFields": true,
+  "useTemporalScalars": true,
+  "enableStatistics": true
 }
 ----
 

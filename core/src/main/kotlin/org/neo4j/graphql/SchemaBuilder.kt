@@ -91,16 +91,17 @@ class SchemaBuilder(
                 listOf(
                         BatchCreateNodeHandler.Factory(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry),
                         BatchUpdateHandler.Factory(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry),
+                        BatchDeleteHandler.Factory(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry),
                 )
             } else {
                 listOf(
                         CreateTypeHandler.Factory(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry),
                         MergeOrUpdateHandler.Factory(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry),
+                        DeleteHandler.Factory(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry),
+                        DeleteRelationHandler.Factory(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry),
                 )
             }
             handler += listOf(
-                    DeleteHandler.Factory(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry),
-                    DeleteRelationHandler.Factory(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry),
                     CreateRelationTypeHandler.Factory(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry),
                     CreateRelationHandler.Factory(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry)
             )
@@ -205,6 +206,9 @@ class SchemaBuilder(
             dataFetchingInterceptor: DataFetchingInterceptor?,
             typeDefinitionRegistry: TypeDefinitionRegistry = this.typeDefinitionRegistry
     ) {
+        if (schemaConfig.enableStatistics && dataFetchingInterceptor != null && dataFetchingInterceptor !is DataFetchingInterceptorWithStatistics) {
+            throw IllegalArgumentException("Either disable statistics in the SchemaConfig or provide a dataFetchingInterceptor of type ${DataFetchingInterceptorWithStatistics::javaClass.name}")
+        }
         addDataFetcher(typeDefinitionRegistry.queryTypeName(), OperationType.QUERY, dataFetchingInterceptor, codeRegistryBuilder)
         addDataFetcher(typeDefinitionRegistry.mutationTypeName(), OperationType.MUTATION, dataFetchingInterceptor, codeRegistryBuilder)
     }
@@ -244,16 +248,18 @@ class SchemaBuilder(
                 data = cypherResolver.fetchData(environment, delegate)
             }
 
-            if (schemaConfig.shouldWrapMutationResults && delegate is SupportsWrapping) {
-                val result = mutableMapOf<String, Any?>()
-                result[delegate.getDataField()] = data
+            return when {
+                schemaConfig.shouldWrapMutationResults && delegate is HasNestedData -> {
+                    val result = mutableMapOf<String, Any?>()
+                    result[delegate.getDataField()] = data
 
-                if (schemaConfig.enableStatistics && delegate is SupportsStatistics) {
-                    result[delegate.getStatisticsField()] = statistics
+                    if (schemaConfig.enableStatistics && delegate is HasNestedStatistics) {
+                        result[delegate.getStatisticsField()] = statistics
+                    }
+                    result
                 }
-                return result
-            } else {
-                return data
+                delegate is ReturnsStatistics -> return statistics
+                else -> data
             }
         }
     }

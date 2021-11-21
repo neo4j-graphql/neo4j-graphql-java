@@ -1,12 +1,11 @@
 package org.neo4j.graphql.handler
 
-import graphql.language.*
-import graphql.schema.DataFetcher
-import graphql.schema.DataFetchingEnvironment
-import graphql.schema.GraphQLFieldDefinition
-import graphql.schema.GraphQLType
+import graphql.language.Field
+import graphql.language.FieldDefinition
+import graphql.language.ImplementingTypeDefinition
+import graphql.language.TypeName
+import graphql.schema.*
 import graphql.schema.idl.TypeDefinitionRegistry
-import org.atteo.evo.inflector.English
 import org.neo4j.cypherdsl.core.Node
 import org.neo4j.cypherdsl.core.Relationship
 import org.neo4j.cypherdsl.core.Statement
@@ -30,26 +29,12 @@ class DeleteHandler private constructor(schemaConfig: SchemaConfig) : BaseDataFe
             if (!canHandle(type)) {
                 return
             }
+            val idField = type.getIdField() ?: return
 
-            val fieldDefinition = if (schemaConfig.queryOptionStyle == SchemaConfig.InputStyle.INPUT_TYPE) {
-                val filter = addFilterType(type)
-                val plural = English.plural(type.name).capitalize()
-
-                FieldDefinition.newFieldDefinition()
-                    .name("${"delete"}${plural}")
-                    .inputValueDefinitions(listOf(
-                            input(if (schemaConfig.useWhereFilter) WHERE else FILTER, NonNullType(TypeName(filter)))
-                    ))
-                    .type(NonNullType(TypeName("DeleteInfo")))
-                    .build()
-            } else {
-                val idField = type.getIdField() ?: return
-
-                buildFieldDefinition("delete", type, listOf(idField), nullableResult = true)
-                    .description("Deletes ${type.name} and returns the type itself".asDescription())
-                    .type(TypeName(type.name))
-                    .build()
-            }
+            val fieldDefinition = buildFieldDefinition("delete", type, listOf(idField), nullableResult = true)
+                .description("Deletes ${type.name} and returns the type itself".asDescription())
+                .type(TypeName(type.name))
+                .build()
             addMutationField(fieldDefinition)
         }
 
@@ -64,12 +49,11 @@ class DeleteHandler private constructor(schemaConfig: SchemaConfig) : BaseDataFe
             if (!canHandle(type)) {
                 return null
             }
-            if (schemaConfig.queryOptionStyle == SchemaConfig.InputStyle.INPUT_TYPE) {
-                if (fieldDefinition.name == "delete${English.plural(type.name)}") return DeleteHandler(schemaConfig)
-            } else {
-                if (fieldDefinition.name == "delete${type.name}") return DeleteHandler(schemaConfig)
+            type.getIdField() ?: return null
+            return when (fieldDefinition.name) {
+                "delete${type.name}" -> DeleteHandler(schemaConfig)
+                else -> null
             }
-            return null
         }
 
         private fun canHandle(type: ImplementingTypeDefinition<*>): Boolean {
@@ -77,12 +61,12 @@ class DeleteHandler private constructor(schemaConfig: SchemaConfig) : BaseDataFe
             if (!schemaConfig.mutation.enabled || schemaConfig.mutation.exclude.contains(typeName) || isRootType(type)) {
                 return false
             }
-            return type.getIdField() != null || schemaConfig.queryOptionStyle == SchemaConfig.InputStyle.INPUT_TYPE
+            return type.getIdField() != null
         }
     }
 
-    override fun initDataFetcher(fieldDefinition: GraphQLFieldDefinition, parentType: GraphQLType) {
-        super.initDataFetcher(fieldDefinition, parentType)
+    override fun initDataFetcher(fieldDefinition: GraphQLFieldDefinition, parentType: GraphQLType, graphQLSchema: GraphQLSchema) {
+        super.initDataFetcher(fieldDefinition, parentType, graphQLSchema)
         idField = type.getIdField() ?: throw IllegalStateException("Cannot resolve id field for type ${type.name}")
         isRelation = type.isRelationType()
     }

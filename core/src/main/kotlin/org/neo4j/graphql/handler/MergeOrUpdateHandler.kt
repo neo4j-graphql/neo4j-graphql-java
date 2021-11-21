@@ -3,10 +3,7 @@ package org.neo4j.graphql.handler
 import graphql.language.Field
 import graphql.language.FieldDefinition
 import graphql.language.ImplementingTypeDefinition
-import graphql.schema.DataFetcher
-import graphql.schema.DataFetchingEnvironment
-import graphql.schema.GraphQLFieldDefinition
-import graphql.schema.GraphQLType
+import graphql.schema.*
 import graphql.schema.idl.TypeDefinitionRegistry
 import org.neo4j.cypherdsl.core.Node
 import org.neo4j.cypherdsl.core.Relationship
@@ -81,8 +78,8 @@ class MergeOrUpdateHandler private constructor(private val merge: Boolean, schem
         }
     }
 
-    override fun initDataFetcher(fieldDefinition: GraphQLFieldDefinition, parentType: GraphQLType) {
-        super.initDataFetcher(fieldDefinition, parentType)
+    override fun initDataFetcher(fieldDefinition: GraphQLFieldDefinition, parentType: GraphQLType, graphQLSchema: GraphQLSchema) {
+        super.initDataFetcher(fieldDefinition, parentType, graphQLSchema)
 
         idField = type.getIdField() ?: throw IllegalStateException("Cannot resolve id field for type ${type.name}")
         isRelation = type.isRelationType()

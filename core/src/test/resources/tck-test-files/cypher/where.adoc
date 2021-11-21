@@ -28,7 +28,11 @@ type Movie {
 ----
 {
   "queryOptionStyle": "INPUT_TYPE",
-  "useWhereFilter": true
+  "inputStyle": "INPUT_TYPE",
+  "useWhereFilter": true,
+  "pluralizeFields": true,
+  "useTemporalScalars": true,
+  "enableStatistics": true
 }
 ----
 
@@ -40,7 +44,7 @@ type Movie {
 [source,graphql]
 ----
 query($title: String, $isFavorite: Boolean) {
-    movie(where: { title: $title, isFavorite: $isFavorite }) {
+    movies(where: { title: $title, isFavorite: $isFavorite }) {
         title
     }
 }
@@ -56,20 +60,20 @@ query($title: String, $isFavorite: Boolean) {
 [source,json]
 ----
 {
-  "whereMovieIsFavorite" : true,
-  "whereMovieTitle" : "some title"
+  "whereMoviesIsFavorite" : true,
+  "whereMoviesTitle" : "some title"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (movie:Movie)
-WHERE (movie.title = $whereMovieTitle
-	AND movie.isFavorite = $whereMovieIsFavorite)
-RETURN movie {
+MATCH (movies:Movie)
+WHERE (movies.title = $whereMoviesTitle
+	AND movies.isFavorite = $whereMoviesIsFavorite)
+RETURN movies {
 	.title
-} AS movie
+} AS movies
 ----
 
 === Simple AND
@@ -78,7 +82,7 @@ RETURN movie {
 [source,graphql]
 ----
 {
-    movie(where: { AND: [{ title: "some title" }] }) {
+    movies(where: { AND: [{ title: "some title" }] }) {
         title
     }
 }
@@ -88,18 +92,18 @@ RETURN movie {
 [source,json]
 ----
 {
-  "whereMovieTitle" : "some title"
+  "whereMoviesTitle" : "some title"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (movie:Movie)
-WHERE movie.title = $whereMovieTitle
-RETURN movie {
+MATCH (movies:Movie)
+WHERE movies.title = $whereMoviesTitle
+RETURN movies {
 	.title
-} AS movie
+} AS movies
 ----
 
 === Nested AND
@@ -108,7 +112,7 @@ RETURN movie {
 [source,graphql]
 ----
 {
-    movie(where: { AND: [{ AND: [{ title: "some title" }] }] }) {
+    movies(where: { AND: [{ AND: [{ title: "some title" }] }] }) {
         title
     }
 }
@@ -118,18 +122,18 @@ RETURN movie {
 [source,json]
 ----
 {
-  "whereMovieTitle" : "some title"
+  "whereMoviesTitle" : "some title"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (movie:Movie)
-WHERE movie.title = $whereMovieTitle
-RETURN movie {
+MATCH (movies:Movie)
+WHERE movies.title = $whereMoviesTitle
+RETURN movies {
 	.title
-} AS movie
+} AS movies
 ----
 
 === Super Nested AND
@@ -138,7 +142,7 @@ RETURN movie {
 [source,graphql]
 ----
 {
-    movie(where: { AND: [{ AND: [{ AND: [{ title: "some title" }] }] }] }) {
+    movies(where: { AND: [{ AND: [{ AND: [{ title: "some title" }] }] }] }) {
         title
     }
 }
@@ -148,18 +152,18 @@ RETURN movie {
 [source,json]
 ----
 {
-  "whereMovieTitle" : "some title"
+  "whereMoviesTitle" : "some title"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (movie:Movie)
-WHERE movie.title = $whereMovieTitle
-RETURN movie {
+MATCH (movies:Movie)
+WHERE movies.title = $whereMoviesTitle
+RETURN movies {
 	.title
-} AS movie
+} AS movies
 ----
 
 === Simple OR
@@ -168,7 +172,7 @@ RETURN movie {
 [source,graphql]
 ----
 {
-    movie(where: { OR: [{ title: "some title" }] }) {
+    movies(where: { OR: [{ title: "some title" }] }) {
         title
     }
 }
@@ -178,18 +182,18 @@ RETURN movie {
 [source,json]
 ----
 {
-  "whereMovieTitle" : "some title"
+  "whereMoviesTitle" : "some title"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (movie:Movie)
-WHERE movie.title = $whereMovieTitle
-RETURN movie {
+MATCH (movies:Movie)
+WHERE movies.title = $whereMoviesTitle
+RETURN movies {
 	.title
-} AS movie
+} AS movies
 ----
 
 === Nested OR
@@ -198,7 +202,7 @@ RETURN movie {
 [source,graphql]
 ----
 {
-    movie(where: { OR: [{ OR: [{ title: "some title" }] }] }) {
+    movies(where: { OR: [{ OR: [{ title: "some title" }] }] }) {
         title
     }
 }
@@ -208,18 +212,18 @@ RETURN movie {
 [source,json]
 ----
 {
-  "whereMovieTitle" : "some title"
+  "whereMoviesTitle" : "some title"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (movie:Movie)
-WHERE movie.title = $whereMovieTitle
-RETURN movie {
+MATCH (movies:Movie)
+WHERE movies.title = $whereMoviesTitle
+RETURN movies {
 	.title
-} AS movie
+} AS movies
 ----
 
 === Super Nested OR
@@ -228,7 +232,7 @@ RETURN movie {
 [source,graphql]
 ----
 {
-    movie(where: { OR: [{ OR: [{ OR: [{ title: "some title" }] }] }] }) {
+    movies(where: { OR: [{ OR: [{ OR: [{ title: "some title" }] }] }] }) {
         title
     }
 }
@@ -238,18 +242,18 @@ RETURN movie {
 [source,json]
 ----
 {
-  "whereMovieTitle" : "some title"
+  "whereMoviesTitle" : "some title"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (movie:Movie)
-WHERE movie.title = $whereMovieTitle
-RETURN movie {
+MATCH (movies:Movie)
+WHERE movies.title = $whereMoviesTitle
+RETURN movies {
 	.title
-} AS movie
+} AS movies
 ----
 
 === Simple IN
@@ -258,7 +262,7 @@ RETURN movie {
 [source,graphql]
 ----
 {
-    movie(where: { title_in: ["some title"] }) {
+    movies(where: { title_in: ["some title"] }) {
         title
     }
 }
@@ -268,16 +272,16 @@ RETURN movie {
 [source,json]
 ----
 {
-  "whereMovieTitleIn" : [ "some title" ]
+  "whereMoviesTitleIn" : [ "some title" ]
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (movie:Movie)
-WHERE movie.title IN $whereMovieTitleIn
-RETURN movie {
+MATCH (movies:Movie)
+WHERE movies.title IN $whereMoviesTitleIn
+RETURN movies {
 	.title
-} AS movie
+} AS movies
 ----

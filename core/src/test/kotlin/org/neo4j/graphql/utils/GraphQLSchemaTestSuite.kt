@@ -3,7 +3,6 @@ package org.neo4j.graphql.utils
 import graphql.language.InterfaceTypeDefinition
 import graphql.schema.GraphQLScalarType
 import graphql.schema.GraphQLSchema
-import graphql.schema.GraphQLType
 import graphql.schema.diff.DiffSet
 import graphql.schema.diff.SchemaDiff
 import graphql.schema.diff.reporting.CapturingReporter
@@ -16,10 +15,8 @@ import org.junit.jupiter.api.DynamicTest
 import org.neo4j.graphql.NoOpCoercing
 import org.neo4j.graphql.SchemaBuilder
 import org.neo4j.graphql.SchemaConfig
-import org.neo4j.graphql.requiredName
 import org.opentest4j.AssertionFailedError
 import java.util.*
-import java.util.regex.Pattern
 
 class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite(
         fileName,
@@ -87,7 +84,6 @@ class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite(
 
     companion object {
         private const val GRAPHQL_MARKER = "[source,graphql]"
-        private val METHOD_PATTERN = Pattern.compile("(add|delete|update|merge|create)(.*)")
 
         private val SCHEMA_PRINTER = SchemaPrinter(SchemaPrinter.Options.defaultOptions()
             .includeDirectives(false)
@@ -95,15 +91,6 @@ class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite(
             .includeSchemaDefinition(true)
             .includeIntrospectionTypes(false)
         )
-
-        fun GraphQLType.splitName(): Pair<String?, String> {
-            val m = METHOD_PATTERN.matcher(this.requiredName())
-            return if (m.find()) {
-                m.group(1) to m.group(2).toLowerCase()
-            } else {
-                null to this.requiredName().toLowerCase()
-            }
-        }
 
         fun diff(augmentedSchema: GraphQLSchema, expected: GraphQLSchema) {
             val diffSet = DiffSet.diffSet(augmentedSchema, expected)

@@ -14,14 +14,14 @@ abstract class BaseDataFetcherForContainer(schemaConfig: SchemaConfig) : BaseDat
 
     lateinit var type: GraphQLFieldsContainer
 
-    override fun initDataFetcher(fieldDefinition: GraphQLFieldDefinition, parentType: GraphQLType) {
-        type = getType(fieldDefinition, parentType)
+    override fun initDataFetcher(fieldDefinition: GraphQLFieldDefinition, parentType: GraphQLType, graphQLSchema: GraphQLSchema) {
+        type = getType(fieldDefinition, parentType, graphQLSchema)
     }
 
     /**
      * Extracts the type to be handled by this DataFetcher
      */
-    protected open fun getType(fieldDefinition: GraphQLFieldDefinition, parentType: GraphQLType): GraphQLFieldsContainer =
+    protected open fun getType(fieldDefinition: GraphQLFieldDefinition, parentType: GraphQLType, graphQLSchema: GraphQLSchema): GraphQLFieldsContainer =
             fieldDefinition.type.inner() as? GraphQLFieldsContainer
                     ?: throw IllegalStateException("expect type of field ${parentType.name()}.${fieldDefinition.name} to be GraphQLFieldsContainer, but was ${fieldDefinition.type.name()}")
 

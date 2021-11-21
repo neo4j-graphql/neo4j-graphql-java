@@ -25,7 +25,8 @@ type Movie {
   "queryOptionStyle": "INPUT_TYPE",
   "inputStyle": "INPUT_TYPE",
   "useWhereFilter": true,
-  "pluralizeFields": true
+  "pluralizeFields": true,
+  "enableStatistics": true
 }
 ----
 
@@ -39,7 +40,13 @@ schema {
   mutation: Mutation
 }
 
+type CreateInfo {
+  nodesCreated: Int!
+  relationshipsCreated: Int!
+}
+
 type CreateMoviesMutationResponse {
+  info: CreateInfo!
   movies: [Movie!]!
 }
 
@@ -65,7 +72,16 @@ type Query {
   movies(options: MovieOptions, where: MovieWhere): [Movie!]!
 }
 
+type UpdateInfo {
+  nodesCreated: Int!
+  nodesDeleted: Int!
+  propertiesSet: Int!
+  relationshipsCreated: Int!
+  relationshipsDeleted: Int!
+}
+
 type UpdateMoviesMutationResponse {
+  info: UpdateInfo!
   movies: [Movie!]!
 }
 

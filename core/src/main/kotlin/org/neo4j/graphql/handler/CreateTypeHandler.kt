@@ -79,8 +79,8 @@ class CreateTypeHandler private constructor(schemaConfig: SchemaConfig) : BaseDa
 
     }
 
-    override fun initDataFetcher(fieldDefinition: GraphQLFieldDefinition, parentType: GraphQLType) {
-        super.initDataFetcher(fieldDefinition, parentType)
+    override fun initDataFetcher(fieldDefinition: GraphQLFieldDefinition, parentType: GraphQLType, graphQLSchema: GraphQLSchema) {
+        super.initDataFetcher(fieldDefinition, parentType, graphQLSchema)
         inputProperties = InputProperties.fromArguments(schemaConfig, type, fieldDefinition.arguments)
     }
 

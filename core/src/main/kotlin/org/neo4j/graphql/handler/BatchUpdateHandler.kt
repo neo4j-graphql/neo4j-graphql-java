@@ -13,7 +13,7 @@ import org.neo4j.graphql.handler.filter.OptimizedFilterHandler
  * This class handles all the logic related to the updating of nodes.
  * This includes the augmentation of the update&lt;Node&gt; and merge&lt;Node&gt;-mutator and the related cypher generation
  */
-class BatchUpdateHandler private constructor(schemaConfig: SchemaConfig, private val nestedResultField: String?) : BaseDataFetcherForContainerBatch(schemaConfig), SupportsStatistics {
+class BatchUpdateHandler private constructor(schemaConfig: SchemaConfig, typeName: String, private val nestedResultField: String?) : BaseDataFetcherForContainerBatch(schemaConfig, typeName), HasNestedStatistics {
     companion object {
         const val UPDATE_INFO = "UpdateInfo"
         const val UPDATE_INPUT_FIELD = "update"
@@ -72,7 +72,7 @@ class BatchUpdateHandler private constructor(schemaConfig: SchemaConfig, private
                 return null
             }
             if (fieldDefinition.name == METHOD_NAME_PREFIX + English.plural(type.name)) {
-                return BatchUpdateHandler(schemaConfig, nestedResultField)
+                return BatchUpdateHandler(schemaConfig, type.name, nestedResultField)
             }
             return null
         }
@@ -90,20 +90,8 @@ class BatchUpdateHandler private constructor(schemaConfig: SchemaConfig, private
         }
     }
 
-    override fun getType(fieldDefinition: GraphQLFieldDefinition, parentType: GraphQLType): GraphQLFieldsContainer {
-        return if (schemaConfig.shouldWrapMutationResults) {
-            (fieldDefinition.type.inner() as GraphQLFieldsContainer) //Update*MutationResponse
-                .getFieldDefinition(nestedResultField)
-                ?.takeIf { it.type.isList() }
-                ?.type?.inner() as? GraphQLFieldsContainer // the type of the array item
-                    ?: throw IllegalStateException("failed to extract correct type for ${parentType.name()}.${fieldDefinition.name}.")
-        } else {
-            (fieldDefinition.type.inner() as GraphQLFieldsContainer)
-        }
-    }
-
-    override fun initDataFetcher(fieldDefinition: GraphQLFieldDefinition, parentType: GraphQLType) {
-        super.initDataFetcher(fieldDefinition, parentType)
+    override fun initDataFetcher(fieldDefinition: GraphQLFieldDefinition, parentType: GraphQLType, graphQLSchema: GraphQLSchema) {
+        super.initDataFetcher(fieldDefinition, parentType, graphQLSchema)
         isRelation = type.isRelationType()
 
         val update = fieldDefinition.getArgument(UPDATE_INPUT_FIELD)

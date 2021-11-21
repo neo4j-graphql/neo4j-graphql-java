@@ -20,7 +20,7 @@ abstract class BaseDataFetcher(schemaConfig: SchemaConfig) : ProjectionBase(sche
         val field = env.mergedField?.singleField
                 ?: throw IllegalAccessException("expect one filed in environment.mergedField")
         val variable = field.aliasOrName().decapitalize()
-        prepareDataFetcher(env.fieldDefinition, env.parentType)
+        prepareDataFetcher(env.fieldDefinition, env.parentType, env.graphQLSchema)
         val statement = generateCypher(variable, field, env)
 
         val query = Renderer.getRenderer(Configuration
@@ -34,7 +34,7 @@ abstract class BaseDataFetcher(schemaConfig: SchemaConfig) : ProjectionBase(sche
             (value as? VariableReference)?.let { env.variables[it.name] } ?: value
         }
 
-        val resultType: GraphQLType? = if (this is SupportsWrapping && schemaConfig.shouldWrapMutationResults) {
+        val resultType: GraphQLType? = if (this is HasNestedData && schemaConfig.shouldWrapMutationResults) {
             (env.fieldDefinition.type.inner() as GraphQLFieldsContainer)
                 .getFieldDefinition(getDataField()).type as? GraphQLType
         } else {
@@ -50,15 +50,15 @@ abstract class BaseDataFetcher(schemaConfig: SchemaConfig) : ProjectionBase(sche
     /**
      * called after the schema is generated but before the 1st call
      */
-    private fun prepareDataFetcher(fieldDefinition: GraphQLFieldDefinition, parentType: GraphQLType) {
+    private fun prepareDataFetcher(fieldDefinition: GraphQLFieldDefinition, parentType: GraphQLType, graphQLSchema: GraphQLSchema) {
         if (init) {
             return
         }
         init = true
-        initDataFetcher(fieldDefinition, parentType)
+        initDataFetcher(fieldDefinition, parentType, graphQLSchema)
     }
 
-    protected open fun initDataFetcher(fieldDefinition: GraphQLFieldDefinition, parentType: GraphQLType) {
+    protected open fun initDataFetcher(fieldDefinition: GraphQLFieldDefinition, parentType: GraphQLType, graphQLSchema: GraphQLSchema) {
     }
 
     protected abstract fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement

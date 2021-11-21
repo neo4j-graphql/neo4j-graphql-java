@@ -1,10 +1,7 @@
 package org.neo4j.graphql.handler.relation
 
 import graphql.language.*
-import graphql.schema.DataFetcher
-import graphql.schema.GraphQLFieldDefinition
-import graphql.schema.GraphQLFieldsContainer
-import graphql.schema.GraphQLType
+import graphql.schema.*
 import graphql.schema.idl.TypeDefinitionRegistry
 import org.neo4j.cypherdsl.core.Condition
 import org.neo4j.cypherdsl.core.Node
@@ -144,8 +141,8 @@ abstract class BaseRelationHandler(private val prefix: String, schemaConfig: Sch
         }
     }
 
-    override fun initDataFetcher(fieldDefinition: GraphQLFieldDefinition, parentType: GraphQLType) {
-        super.initDataFetcher(fieldDefinition, parentType)
+    override fun initDataFetcher(fieldDefinition: GraphQLFieldDefinition, parentType: GraphQLType, graphQLSchema: GraphQLSchema) {
+        super.initDataFetcher(fieldDefinition, parentType, graphQLSchema)
 
         initRelation(fieldDefinition)
         inputProperties = InputProperties.fromArguments(schemaConfig, type, fieldDefinition.arguments, exclude = listOf(startId.argumentName, endId.argumentName))
