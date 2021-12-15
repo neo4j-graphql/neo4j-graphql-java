@@ -16,7 +16,7 @@
 
     <properties>
         <testcontainers.version>1.16.2</testcontainers.version>
-        <spring-boot.version>2.5.6</spring-boot.version>
+        <spring-boot.version>2.6.1</spring-boot.version>
     </properties>
 
     <dependencies>
@@ -35,7 +35,7 @@
         <dependency>
             <groupId>org.neo4j.driver</groupId>
             <artifactId>neo4j-java-driver-spring-boot-starter</artifactId>
-            <version>4.2.7.0</version>
+            <version>4.3.6.0</version>
         </dependency>
         <dependency>
             <groupId>org.neo4j</groupId>
@@ -46,7 +46,7 @@
         <dependency>
             <groupId>com.netflix.graphql.dgs</groupId>
             <artifactId>graphql-dgs-spring-boot-starter</artifactId>
-            <version>4.8.3</version>
+            <version>4.9.10</version>
         </dependency>
         <dependency>
             <groupId>com.netflix.graphql.dgs.codegen</groupId>
