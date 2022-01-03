@@ -25,8 +25,8 @@ abstract class BaseDataFetcherForContainer(schemaConfig: SchemaConfig) : BaseDat
             .arguments
             .filterNot { listOf(FIRST, OFFSET, ORDER_BY, NATIVE_ID, OPTIONS).contains(it.name) }
             .onEach { arg ->
-                if (arg.defaultValue != null) {
-                    defaultFields[arg.name] = arg.defaultValue
+                if (arg.argumentDefaultValue.isSet) {
+                    arg.argumentDefaultValue.value?.let { defaultFields[arg.name] = it }
                 }
             }
             .mapNotNull { type.getRelevantFieldDefinition(it.name) }

@@ -92,7 +92,7 @@ fun GraphQLFieldsContainer.label(): String = when {
     this.isRelationType() ->
         (this as? GraphQLDirectiveContainer)
             ?.getDirective(DirectiveConstants.RELATION)
-            ?.getArgument(RELATION_NAME)?.value?.toJavaValue()?.toString()
+            ?.getArgument(RELATION_NAME)?.argumentValue?.value?.toJavaValue()?.toString()
                 ?: this.name
     else -> name
 }
@@ -150,10 +150,11 @@ fun <T> GraphQLDirective.getMandatoryArgument(argumentName: String, defaultValue
 fun <T> GraphQLDirective.getArgument(argumentName: String, defaultValue: T? = null): T? {
     val argument = getArgument(argumentName)
     @Suppress("UNCHECKED_CAST")
-    return argument?.value as T?
-            ?: argument.defaultValue as T?
-            ?: defaultValue
-            ?: throw IllegalStateException("No default value for @${this.name}::$argumentName")
+    return when {
+        argument.argumentValue.isSet && argument.argumentValue.value != null -> argument.argumentValue.value?.toJavaValue() as T?
+        argument.argumentDefaultValue.isSet -> argument.argumentDefaultValue.value?.toJavaValue() as T?
+        else -> defaultValue ?: throw IllegalStateException("No default value for @${this.name}::$argumentName")
+    }
 }
 
 fun GraphQLFieldDefinition.cypherDirective(): CypherDirective? = getDirective(CYPHER)?.let {

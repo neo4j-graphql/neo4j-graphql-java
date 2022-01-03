@@ -118,11 +118,11 @@ object QueryParser {
             .toMap(mutableMapOf())
         var index = queriedFields.size
         fieldDefinition.arguments
-            .filter { it.defaultValue != null }
+            .filter { it.argumentDefaultValue.value != null }
             .filterNot { queriedFields.containsKey(it.name) }
             .filterNot { ProjectionBase.SPECIAL_FIELDS.contains(it.name) }
             .forEach { argument ->
-                queriedFields[argument.name] = index++ to argument.defaultValue
+                queriedFields[argument.name] = index++ to argument.argumentDefaultValue.value
             }
 
         return createParsedQuery(queriedFields, type)
