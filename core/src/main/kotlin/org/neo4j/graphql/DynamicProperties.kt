@@ -20,7 +20,7 @@ object DynamicProperties {
             }
 
             @Throws(CoercingParseLiteralException::class)
-            override fun parseLiteral(o: Any): Any? {
+            override fun parseLiteral(o: Any): Any {
                 return parse(o, emptyMap())
             }
         })
@@ -28,10 +28,10 @@ object DynamicProperties {
 
 
     @Throws(CoercingParseLiteralException::class)
-    private fun parse(input: Any, variables: Map<String, Any>): Any? {
+    private fun parse(input: Any, variables: Map<String, Any>): Any {
         return when (input) {
             !is Value<*> -> throw CoercingParseLiteralException("Expected AST type 'StringValue' but was '${input::class.java.simpleName}'.")
-            is NullValue -> null
+            is NullValue -> throw CoercingParseLiteralException("Expected non null value.")
             is ObjectValue -> input.objectFields.associate { it.name to parseNested(it.value, variables) }
             else -> Assert.assertShouldNeverHappen("Only maps structures are expected")
         }

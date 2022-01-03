@@ -1,5 +1,6 @@
 package org.neo4j.graphql.handler.projection
 
+import graphql.Scalars.GraphQLString
 import graphql.schema.*
 import org.neo4j.cypherdsl.core.*
 import org.neo4j.cypherdsl.core.Cypher.*
@@ -49,8 +50,10 @@ open class ProjectionBase(
             override fun getName(): String = TYPE_NAME
             override fun getQualifiedName(): String = TYPE_NAME
             override fun getFullyQualifiedName(): String = TYPE_NAME
-            override fun getObjectType(): GraphQLObjectType? = null
-            override fun getFieldDefinition(): GraphQLFieldDefinition? = null
+            override fun getObjectTypes(): List<GraphQLObjectType> = emptyList()
+            override fun getObjectTypeNames(): List<String> = emptyList()
+            override fun getFieldDefinitions(): List<GraphQLFieldDefinition> = emptyList()
+            override fun getType(): GraphQLOutputType = GraphQLString
             override fun getArguments(): Map<String, Any> = emptyMap()
             override fun getLevel(): Int = 0
             override fun isConditional(): Boolean = false
@@ -81,7 +84,8 @@ open class ProjectionBase(
         val options = args[OPTIONS] as? Map<*, *>
         val defaultOptions = (fieldDefinition?.getArgument(OPTIONS)?.type as? GraphQLInputObjectType)
 
-        val sortArray = (options?.get(SORT) ?: defaultOptions?.getField(SORT)?.defaultValue?.toJavaValue())
+        val sortArray = (options?.get(SORT)
+                ?: defaultOptions?.getField(SORT)?.inputFieldDefaultValue?.value?.toJavaValue())
                 as? List<*> ?: return null
 
         return sortArray
@@ -100,7 +104,7 @@ open class ProjectionBase(
     ): List<SortItem>? {
 
         val orderBy = args[ORDER_BY]
-                ?: fieldDefinition?.getArgument(ORDER_BY)?.defaultValue
+                ?: fieldDefinition?.getArgument(ORDER_BY)?.argumentDefaultValue?.value
         return orderBy
             ?.let { it ->
                 when (it) {
@@ -257,7 +261,8 @@ open class ProjectionBase(
                 }
                 projectField(propertyContainer, variable, it, nodeType, env, variableSuffix)
             } else {
-                projectField(propertyContainer, variable, it, it.objectType, env, variableSuffix)
+                projectField(propertyContainer, variable, it, it.objectTypes.firstOrNull()
+                        ?: throw IllegalStateException("only one object type is supported"), env, variableSuffix)
             }
             projections.addAll(pro)
             subQueries += sub
@@ -391,8 +396,8 @@ open class ProjectionBase(
             .forEach { (name, value) -> args[name] = queryParameter(value, ctxVariable.value, name).`as`(name) }
         fieldDefinition.arguments
             .filterNot { SPECIAL_FIELDS.contains(it.name) }
-            .filter { it.defaultValue != null && !args.containsKey(it.name) }
-            .forEach { args[it.name] = queryParameter(it.defaultValue, ctxVariable.value, it.name).`as`(it.name) }
+            .filter { it.argumentDefaultValue.value != null && !args.containsKey(it.name) }
+            .forEach { args[it.name] = queryParameter(it.argumentDefaultValue.value, ctxVariable.value, it.name).`as`(it.name) }
 
         var reading: OrderableOngoingReadingAndWithWithoutWhere? = null
         if (thisValue != null) {
@@ -594,14 +599,14 @@ open class ProjectionBase(
 
         private fun convertArgument(variable: String, arguments: Map<String, Any>, fieldDefinition: GraphQLFieldDefinition?, name: String): Parameter<*>? {
             val value = arguments[name]
-                    ?: fieldDefinition?.getArgument(name)?.defaultValue
+                    ?: fieldDefinition?.getArgument(name)?.argumentDefaultValue?.value
                     ?: return null
             return queryParameter(value, variable, name)
         }
 
         private fun convertOptionField(variable: String, options: Map<*, *>?, defaultOptions: GraphQLInputObjectType?, name: String): Parameter<*>? {
             val value = options?.get(name)
-                    ?: defaultOptions?.getField(name)?.defaultValue
+                    ?: defaultOptions?.getField(name)?.inputFieldDefaultValue?.value
                     ?: return null
             return queryParameter(value, variable, name)
         }
