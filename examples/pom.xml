@@ -18,5 +18,6 @@
     <modules>
         <module>graphql-kotlin-spring-boot</module>
         <module>dgs-spring-boot</module>
+        <module>graphql-spring-boot</module>
     </modules>
 </project>
