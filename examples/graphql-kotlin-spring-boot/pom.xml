@@ -9,10 +9,10 @@
     </parent>
 
     <groupId>org.neo4j.graphql.examples</groupId>
-    <artifactId>graphql-spring-boot</artifactId>
+    <artifactId>graphql-kotlin-spring-boot</artifactId>
 
-    <name>Example - graphql-spring-boot</name>
-    <description>Example for using neo4j-graphql-java with Spring Boot</description>
+    <name>Example - graphql-kotlin-spring-boot</name>
+    <description>Example for using neo4j-graphql-java with GraphQL Kotlin and Spring Boot</description>
 
     <properties>
         <testcontainers.version>1.16.2</testcontainers.version>
