@@ -16,7 +16,7 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>graphql-spring-boot</module>
+        <module>graphql-kotlin-spring-boot</module>
         <module>dgs-spring-boot</module>
     </modules>
 </project>
