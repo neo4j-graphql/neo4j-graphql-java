@@ -20,9 +20,10 @@ import javax.ws.rs.core.UriBuilder
  * @param globalMarkers the markers for global blocks
  */
 open class AsciiDocTestSuite(
-        private val fileName: String,
-        private val testCaseMarkers: List<String> = emptyList(),
-        private val globalMarkers: List<String> = listOf(SCHEMA_MARKER)) {
+    private val fileName: String,
+    private val testCaseMarkers: List<String> = emptyList(),
+    private val globalMarkers: List<String> = listOf(SCHEMA_MARKER)
+) {
 
     private val srcLocation = File("src/test/resources/", fileName).toURI()
 
@@ -49,13 +50,14 @@ open class AsciiDocTestSuite(
     }
 
     class ParsedBlock(
-            val marker: String,
-            val uri: URI,
-            var headline: String? = null
+        val marker: String,
+        val uri: URI,
+        var headline: String? = null
     ) {
         var start: Int? = null
         var end: Int? = null
         var adjustedCode: String? = null
+        var reformattedCode: String? = null
         val code: StringBuilder = StringBuilder()
 
         fun code() = code.trim().toString()
@@ -92,7 +94,8 @@ open class AsciiDocTestSuite(
                 val headlineMatcher = HEADLINE_PATTERN.matcher(line)
 
                 when {
-                    !globalDone && globalMarkers.contains(line) -> currentBlock = startBlock(line, lineNr, globalCodeBlocks)
+                    !globalDone && globalMarkers.contains(line) -> currentBlock =
+                        startBlock(line, lineNr, globalCodeBlocks)
                     testCaseMarkers.contains(line) -> {
                         globalDone = true
                         currentBlock = startBlock(line, lineNr, codeBlocksOfTest)
@@ -143,20 +146,37 @@ open class AsciiDocTestSuite(
 
             if (UPDATE_TEST_FILE) {
                 // this test prints out the adjusted test file
-                root?.afterTests?.add(DynamicTest.dynamicTest("Write updated Testfile", srcLocation, this@AsciiDocTestSuite::writeAdjustedTestFile))
+                root?.afterTests?.add(
+                    DynamicTest.dynamicTest(
+                        "Write updated Testfile",
+                        srcLocation,
+                        this@AsciiDocTestSuite::writeAdjustedTestFile
+                    )
+                )
+            } else if (REFORMAT_TEST_FILE_DIFF) {
+                root?.afterTests?.add(
+                    DynamicTest.dynamicTest("Reformat Testfile", srcLocation, this@AsciiDocTestSuite::reformatTestFile)
+                )
             } else if (GENERATE_TEST_FILE_DIFF) {
                 // this test prints out the adjusted test file
-                root?.afterTests?.add(DynamicTest.dynamicTest("Adjusted Tests", srcLocation, this@AsciiDocTestSuite::printAdjustedTestFile))
+                root?.afterTests?.add(
+                    DynamicTest.dynamicTest(
+                        "Adjusted Tests",
+                        srcLocation,
+                        this@AsciiDocTestSuite::printAdjustedTestFile
+                    )
+                )
             }
             return root?.generateTests() ?: Stream.empty()
         }
 
         private fun createTests(title: String?, lineNr: Int, ignore: Boolean) {
             val tests = testFactory(
-                    title ?: throw IllegalStateException("Title should be defined (line $lineNr)"),
-                    globalCodeBlocks,
-                    codeBlocksOfTest,
-                    ignore)
+                title ?: throw IllegalStateException("Title should be defined (line $lineNr)"),
+                globalCodeBlocks,
+                codeBlocksOfTest,
+                ignore
+            )
             currentDocumentLevel?.tests?.add(tests)
             codeBlocksOfTest = mutableMapOf()
         }
@@ -169,9 +189,9 @@ open class AsciiDocTestSuite(
                 val parent = when {
                     depth > currentDepth -> currentDocumentLevel
                     depth == currentDepth -> currentDocumentLevel?.parent
-                            ?: throw IllegalStateException("cannot create sub-level on null")
+                        ?: throw IllegalStateException("cannot create sub-level on null")
                     else -> currentDocumentLevel?.parent?.parent
-                            ?: throw IllegalStateException("cannot create sub-level on null")
+                        ?: throw IllegalStateException("cannot create sub-level on null")
                 }
                 currentDocumentLevel = DocumentLevel(parent, title, uri)
             }
@@ -187,27 +207,40 @@ open class AsciiDocTestSuite(
         }
     }
 
+    private fun reformatTestFile() {
+        val content = generateAdjustedFileContent { it.reformattedCode }
+        FileWriter(File("src/test/resources/", fileName)).use {
+            it.write(content)
+        }
+    }
+
     private fun printAdjustedTestFile() {
         val rebuildTest = generateAdjustedFileContent()
         if (!Objects.equals(rebuildTest, fileContent.toString())) {
             // This special exception will be handled by intellij so that you can diff directly with the file
-            throw FileComparisonFailure(null, rebuildTest, fileContent.toString(),
-                    null, File("src/test/resources/", fileName).absolutePath)
+            throw FileComparisonFailure(
+                null, rebuildTest, fileContent.toString(),
+                null, File("src/test/resources/", fileName).absolutePath
+            )
         }
     }
 
-    private fun generateAdjustedFileContent(): String {
+    private fun generateAdjustedFileContent(extractor: (ParsedBlock) -> String? = { it.adjustedCode }): String {
         knownBlocks.sortWith(compareByDescending<ParsedBlock> { it.start }
             .thenByDescending { testCaseMarkers.indexOf(it.marker) })
         val rebuildTest = StringBuffer(fileContent)
-        knownBlocks.filter { it.adjustedCode != null }.forEach { block ->
-            val start = block.start ?: throw IllegalArgumentException("unknown start position")
-            if (block.end == null) {
-                rebuildTest.insert(start, ".${block.headline}\n${block.marker}\n----\n${block.adjustedCode}\n----\n\n")
-            } else {
-                rebuildTest.replace(start, block.end!!, block.adjustedCode + "\n")
+        knownBlocks.filter { extractor(it) != null }
+            .forEach { block ->
+                val start = block.start ?: throw IllegalArgumentException("unknown start position")
+                if (block.end == null) {
+                    rebuildTest.insert(
+                        start,
+                        ".${block.headline}\n${block.marker}\n----\n${extractor(block)}\n----\n\n"
+                    )
+                } else {
+                    rebuildTest.replace(start, block.end!!, extractor(block) + "\n")
+                }
             }
-        }
         return rebuildTest.toString()
     }
 
@@ -219,7 +252,12 @@ open class AsciiDocTestSuite(
         return block
     }
 
-    protected open fun testFactory(title: String, globalBlocks: Map<String, ParsedBlock>, codeBlocks: Map<String, ParsedBlock>, ignore: Boolean): List<DynamicNode> {
+    protected open fun testFactory(
+        title: String,
+        globalBlocks: Map<String, ParsedBlock>,
+        codeBlocks: Map<String, ParsedBlock>,
+        ignore: Boolean
+    ): List<DynamicNode> {
         return emptyList()
     }
 
@@ -227,12 +265,16 @@ open class AsciiDocTestSuite(
         return emptyList()
     }
 
-    protected fun getOrCreateBlock(codeBlocks: Map<String, ParsedBlock>, marker: String, headline: String): ParsedBlock? {
+    protected fun getOrCreateBlock(
+        codeBlocks: Map<String, ParsedBlock>,
+        marker: String,
+        headline: String
+    ): ParsedBlock? {
         var block = codeBlocks[marker]
         if (block == null && (GENERATE_TEST_FILE_DIFF || UPDATE_TEST_FILE)) {
             val insertPoints = testCaseMarkers.indexOf(marker).let { testCaseMarkers.subList(0, it).asReversed() }
             val insertPoint = insertPoints.mapNotNull { codeBlocks[it] }.firstOrNull()
-                    ?: throw IllegalArgumentException("none of the insert points $insertPoints found")
+                ?: throw IllegalArgumentException("none of the insert points $insertPoints found")
             block = ParsedBlock(marker, insertPoint.uri, headline)
             block.start = (insertPoint.end ?: throw IllegalStateException("no start for block defined")) + 6
             knownBlocks += block
@@ -246,6 +288,7 @@ open class AsciiDocTestSuite(
          */
         val FLATTEN_TESTS = System.getProperty("neo4j-graphql-java.flatten-tests", "false") == "true"
         val GENERATE_TEST_FILE_DIFF = System.getProperty("neo4j-graphql-java.generate-test-file-diff", "true") == "true"
+        val REFORMAT_TEST_FILE_DIFF = System.getProperty("neo4j-graphql-java.reformat", "false") == "true"
         val UPDATE_TEST_FILE = System.getProperty("neo4j-graphql-java.update-test-file", "false") == "true"
         val MAPPER = ObjectMapper()
         val HEADLINE_PATTERN: Pattern = Pattern.compile("^(=+) (.*)$")
@@ -254,9 +297,9 @@ open class AsciiDocTestSuite(
         const val SCHEMA_CONFIG_MARKER = "[source,json,schema-config=true]"
 
         class DocumentLevel(
-                val parent: DocumentLevel?,
-                val name: String,
-                private val testSourceUri: URI
+            val parent: DocumentLevel?,
+            val name: String,
+            private val testSourceUri: URI
         ) {
             private val children = mutableListOf<DocumentLevel>()
             val tests = mutableListOf<List<DynamicNode>>()
@@ -270,15 +313,26 @@ open class AsciiDocTestSuite(
                 val streamBuilder = Stream.builder<DynamicNode>()
                 if (tests.size > 1) {
                     if (children.isNotEmpty()) {
-                        streamBuilder.add(DynamicContainer.dynamicContainer(name, testSourceUri, children.stream().flatMap { it.generateTests() }))
+                        streamBuilder.add(
+                            DynamicContainer.dynamicContainer(
+                                name,
+                                testSourceUri,
+                                children.stream().flatMap { it.generateTests() })
+                        )
                     }
                     for ((index, test) in tests.withIndex()) {
-                        streamBuilder.add(DynamicContainer.dynamicContainer(name + " " + (index + 1), testSourceUri, test.stream()))
+                        streamBuilder.add(
+                            DynamicContainer.dynamicContainer(
+                                name + " " + (index + 1),
+                                testSourceUri,
+                                test.stream()
+                            )
+                        )
                     }
                 } else {
                     val nodes = Stream.concat(
-                            tests.stream().flatMap { it.stream() },
-                            children.stream().flatMap { it.generateTests() }
+                        tests.stream().flatMap { it.stream() },
+                        children.stream().flatMap { it.generateTests() }
                     )
                     streamBuilder.add(DynamicContainer.dynamicContainer(name, testSourceUri, nodes))
                 }

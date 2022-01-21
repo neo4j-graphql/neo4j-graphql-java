@@ -1,0 +1,1174 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/556
+
+== should compile type defs with no errors
+
+=== Source schema
+
+[source,graphql,schema=true]
+----
+type Journalist {
+  articles: [Article]! @relationship(type: "HAS_ARTICLE", direction: OUT, properties: "HasArticle")
+}
+
+interface HasArticle @relationshipProperties {
+  createdAt: DateTime! @timestamp
+}
+
+type Article {
+  id: ID! @id
+  blocks: [Block!]! @relationship(type: "HAS_BLOCK", direction: OUT, properties: "HasBlock")
+  images: [Image!] @relationship(type: "HAS_IMAGE", direction: OUT)
+}
+
+interface HasBlock @relationshipProperties {
+  order: Int!
+}
+
+interface Block {
+  id: ID @id
+}
+
+type TextBlock implements Block {
+  id: ID @id
+  text: String
+}
+
+type DividerBlock implements Block {
+  id: ID @id
+}
+
+type ImageBlock implements Block {
+  id: ID @id
+  images: [Image!]! @relationship(type: "HAS_IMAGE", direction: OUT)
+}
+
+interface Image {
+  featuredIn: [Article!]
+}
+
+type PDFImage implements Image {
+  featuredIn: [Article!] @relationship(type: "HAS_IMAGE", direction: IN)
+  url: String!
+}
+----
+
+=== Augmented schema
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+interface Block {
+  id: ID
+}
+
+interface HasArticle {
+  createdAt: DateTime!
+}
+
+interface HasBlock {
+  order: Int!
+}
+
+interface Image {
+  featuredIn: [Article!]
+}
+
+type Article {
+  blocks(options: QueryOptions, where: BlockWhere): [Block!]!
+  blocksConnection(sort: [ArticleBlocksConnectionSort!], where: ArticleBlocksConnectionWhere): ArticleBlocksConnection!
+  id: ID!
+  images(options: QueryOptions, where: ImageWhere): [Image!]
+  imagesConnection(where: ArticleImagesConnectionWhere): ArticleImagesConnection!
+}
+
+type ArticleAggregateSelection {
+  count: Int!
+  id: IDAggregateSelection!
+}
+
+type ArticleBlocksConnection {
+  edges: [ArticleBlocksRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ArticleBlocksRelationship implements HasBlock {
+  cursor: String!
+  node: Block!
+  order: Int!
+}
+
+type ArticleImagesConnection {
+  edges: [ArticleImagesRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ArticleImagesRelationship {
+  cursor: String!
+  node: Image!
+}
+
+type CreateArticlesMutationResponse {
+  articles: [Article!]!
+  info: CreateInfo!
+}
+
+type CreateDividerBlocksMutationResponse {
+  dividerBlocks: [DividerBlock!]!
+  info: CreateInfo!
+}
+
+type CreateImageBlocksMutationResponse {
+  imageBlocks: [ImageBlock!]!
+  info: CreateInfo!
+}
+
+type CreateInfo {
+  bookmark: String
+  nodesCreated: Int!
+  relationshipsCreated: Int!
+}
+
+type CreateJournalistsMutationResponse {
+  info: CreateInfo!
+  journalists: [Journalist!]!
+}
+
+type CreatePDFImagesMutationResponse {
+  info: CreateInfo!
+  pdfImages: [PDFImage!]!
+}
+
+type CreateTextBlocksMutationResponse {
+  info: CreateInfo!
+  textBlocks: [TextBlock!]!
+}
+
+type DateTimeAggregateSelection {
+  max: DateTime
+  min: DateTime
+}
+
+type DeleteInfo {
+  bookmark: String
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
+type DividerBlock implements Block {
+  id: ID
+}
+
+type DividerBlockAggregateSelection {
+  count: Int!
+  id: IDAggregateSelection!
+}
+
+type IDAggregateSelection {
+  longest: ID
+  shortest: ID
+}
+
+type ImageBlock implements Block {
+  id: ID
+  images(options: QueryOptions, where: ImageWhere): [Image!]!
+  imagesConnection(where: ImageBlockImagesConnectionWhere): ImageBlockImagesConnection!
+}
+
+type ImageBlockAggregateSelection {
+  count: Int!
+  id: IDAggregateSelection!
+}
+
+type ImageBlockImagesConnection {
+  edges: [ImageBlockImagesRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ImageBlockImagesRelationship {
+  cursor: String!
+  node: Image!
+}
+
+type ImageFeaturedInConnection {
+  edges: [ImageFeaturedInRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ImageFeaturedInRelationship {
+  cursor: String!
+  node: Article!
+}
+
+type Journalist {
+  articles(options: ArticleOptions, where: ArticleWhere): [Article]!
+  articlesAggregate(where: ArticleWhere): JournalistArticleArticlesAggregationSelection
+  articlesConnection(after: String, first: Int, sort: [JournalistArticlesConnectionSort!], where: JournalistArticlesConnectionWhere): JournalistArticlesConnection!
+}
+
+type JournalistAggregateSelection {
+  count: Int!
+}
+
+type JournalistArticleArticlesAggregationSelection {
+  count: Int!
+  edge: JournalistArticleArticlesEdgeAggregateSelection
+  node: JournalistArticleArticlesNodeAggregateSelection
+}
+
+type JournalistArticleArticlesEdgeAggregateSelection {
+  createdAt: DateTimeAggregateSelection!
+}
+
+type JournalistArticleArticlesNodeAggregateSelection {
+  id: IDAggregateSelection!
+}
+
+type JournalistArticlesConnection {
+  edges: [JournalistArticlesRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type JournalistArticlesRelationship implements HasArticle {
+  createdAt: DateTime!
+  cursor: String!
+  node: Article!
+}
+
+type Mutation {
+  createArticles(input: [ArticleCreateInput!]!): CreateArticlesMutationResponse!
+  createDividerBlocks(input: [DividerBlockCreateInput!]!): CreateDividerBlocksMutationResponse!
+  createImageBlocks(input: [ImageBlockCreateInput!]!): CreateImageBlocksMutationResponse!
+  createJournalists(input: [JournalistCreateInput!]!): CreateJournalistsMutationResponse!
+  createPDFImages(input: [PDFImageCreateInput!]!): CreatePDFImagesMutationResponse!
+  createTextBlocks(input: [TextBlockCreateInput!]!): CreateTextBlocksMutationResponse!
+  deleteArticles(delete: ArticleDeleteInput, where: ArticleWhere): DeleteInfo!
+  deleteDividerBlocks(where: DividerBlockWhere): DeleteInfo!
+  deleteImageBlocks(delete: ImageBlockDeleteInput, where: ImageBlockWhere): DeleteInfo!
+  deleteJournalists(delete: JournalistDeleteInput, where: JournalistWhere): DeleteInfo!
+  deletePDFImages(delete: PDFImageDeleteInput, where: PDFImageWhere): DeleteInfo!
+  deleteTextBlocks(where: TextBlockWhere): DeleteInfo!
+  updateArticles(connect: ArticleConnectInput, create: ArticleRelationInput, delete: ArticleDeleteInput, disconnect: ArticleDisconnectInput, update: ArticleUpdateInput, where: ArticleWhere): UpdateArticlesMutationResponse!
+  updateDividerBlocks(update: DividerBlockUpdateInput, where: DividerBlockWhere): UpdateDividerBlocksMutationResponse!
+  updateImageBlocks(connect: ImageBlockConnectInput, create: ImageBlockRelationInput, delete: ImageBlockDeleteInput, disconnect: ImageBlockDisconnectInput, update: ImageBlockUpdateInput, where: ImageBlockWhere): UpdateImageBlocksMutationResponse!
+  updateJournalists(connect: JournalistConnectInput, connectOrCreate: JournalistConnectOrCreateInput, create: JournalistRelationInput, delete: JournalistDeleteInput, disconnect: JournalistDisconnectInput, update: JournalistUpdateInput, where: JournalistWhere): UpdateJournalistsMutationResponse!
+  updatePDFImages(connect: PDFImageConnectInput, connectOrCreate: PDFImageConnectOrCreateInput, create: PDFImageRelationInput, delete: PDFImageDeleteInput, disconnect: PDFImageDisconnectInput, update: PDFImageUpdateInput, where: PDFImageWhere): UpdatePDFImagesMutationResponse!
+  updateTextBlocks(update: TextBlockUpdateInput, where: TextBlockWhere): UpdateTextBlocksMutationResponse!
+}
+
+type PDFImage implements Image {
+  featuredIn(options: ArticleOptions, where: ArticleWhere): [Article!]
+  featuredInAggregate(where: ArticleWhere): PDFImageArticleFeaturedInAggregationSelection
+  featuredInConnection(after: String, first: Int, sort: [ImageFeaturedInConnectionSort!], where: ImageFeaturedInConnectionWhere): ImageFeaturedInConnection!
+  url: String!
+}
+
+type PDFImageAggregateSelection {
+  count: Int!
+  url: StringAggregateSelection!
+}
+
+type PDFImageArticleFeaturedInAggregationSelection {
+  count: Int!
+  node: PDFImageArticleFeaturedInNodeAggregateSelection
+}
+
+type PDFImageArticleFeaturedInNodeAggregateSelection {
+  id: IDAggregateSelection!
+}
+
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  articles(options: ArticleOptions, where: ArticleWhere): [Article!]!
+  articlesAggregate(where: ArticleWhere): ArticleAggregateSelection!
+  articlesCount(where: ArticleWhere): Int!
+  dividerBlocks(options: DividerBlockOptions, where: DividerBlockWhere): [DividerBlock!]!
+  dividerBlocksAggregate(where: DividerBlockWhere): DividerBlockAggregateSelection!
+  dividerBlocksCount(where: DividerBlockWhere): Int!
+  imageBlocks(options: ImageBlockOptions, where: ImageBlockWhere): [ImageBlock!]!
+  imageBlocksAggregate(where: ImageBlockWhere): ImageBlockAggregateSelection!
+  imageBlocksCount(where: ImageBlockWhere): Int!
+  journalists(options: JournalistOptions, where: JournalistWhere): [Journalist!]!
+  journalistsAggregate(where: JournalistWhere): JournalistAggregateSelection!
+  journalistsCount(where: JournalistWhere): Int!
+  pdfImages(options: PDFImageOptions, where: PDFImageWhere): [PDFImage!]!
+  pdfImagesAggregate(where: PDFImageWhere): PDFImageAggregateSelection!
+  pdfImagesCount(where: PDFImageWhere): Int!
+  textBlocks(options: TextBlockOptions, where: TextBlockWhere): [TextBlock!]!
+  textBlocksAggregate(where: TextBlockWhere): TextBlockAggregateSelection!
+  textBlocksCount(where: TextBlockWhere): Int!
+}
+
+type StringAggregateSelection {
+  longest: String
+  shortest: String
+}
+
+type TextBlock implements Block {
+  id: ID
+  text: String
+}
+
+type TextBlockAggregateSelection {
+  count: Int!
+  id: IDAggregateSelection!
+  text: StringAggregateSelection!
+}
+
+type UpdateArticlesMutationResponse {
+  articles: [Article!]!
+  info: UpdateInfo!
+}
+
+type UpdateDividerBlocksMutationResponse {
+  dividerBlocks: [DividerBlock!]!
+  info: UpdateInfo!
+}
+
+type UpdateImageBlocksMutationResponse {
+  imageBlocks: [ImageBlock!]!
+  info: UpdateInfo!
+}
+
+type UpdateInfo {
+  bookmark: String
+  nodesCreated: Int!
+  nodesDeleted: Int!
+  relationshipsCreated: Int!
+  relationshipsDeleted: Int!
+}
+
+type UpdateJournalistsMutationResponse {
+  info: UpdateInfo!
+  journalists: [Journalist!]!
+}
+
+type UpdatePDFImagesMutationResponse {
+  info: UpdateInfo!
+  pdfImages: [PDFImage!]!
+}
+
+type UpdateTextBlocksMutationResponse {
+  info: UpdateInfo!
+  textBlocks: [TextBlock!]!
+}
+
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+"A date and time, represented as an ISO-8601 string"
+scalar DateTime
+
+input ArticleBlocksConnectFieldInput {
+  connect: BlockConnectInput
+  edge: HasBlockCreateInput!
+  where: BlockConnectWhere
+}
+
+input ArticleBlocksConnectionSort {
+  edge: HasBlockSort
+}
+
+input ArticleBlocksConnectionWhere {
+  AND: [ArticleBlocksConnectionWhere!]
+  OR: [ArticleBlocksConnectionWhere!]
+  edge: HasBlockWhere
+  edge_NOT: HasBlockWhere
+  node: BlockWhere
+  node_NOT: BlockWhere
+}
+
+input ArticleBlocksCreateFieldInput {
+  edge: HasBlockCreateInput!
+  node: BlockCreateInput!
+}
+
+input ArticleBlocksDeleteFieldInput {
+  delete: BlockDeleteInput
+  where: ArticleBlocksConnectionWhere
+}
+
+input ArticleBlocksDisconnectFieldInput {
+  disconnect: BlockDisconnectInput
+  where: ArticleBlocksConnectionWhere
+}
+
+input ArticleBlocksFieldInput {
+  connect: [ArticleBlocksConnectFieldInput!]
+  create: [ArticleBlocksCreateFieldInput!]
+}
+
+input ArticleBlocksUpdateConnectionInput {
+  edge: HasBlockUpdateInput
+  node: BlockUpdateInput
+}
+
+input ArticleBlocksUpdateFieldInput {
+  connect: [ArticleBlocksConnectFieldInput!]
+  create: [ArticleBlocksCreateFieldInput!]
+  delete: [ArticleBlocksDeleteFieldInput!]
+  disconnect: [ArticleBlocksDisconnectFieldInput!]
+  update: ArticleBlocksUpdateConnectionInput
+  where: ArticleBlocksConnectionWhere
+}
+
+input ArticleConnectInput {
+  blocks: [ArticleBlocksConnectFieldInput!]
+  images: [ArticleImagesConnectFieldInput!]
+}
+
+input ArticleConnectOrCreateWhere {
+  node: ArticleUniqueWhere!
+}
+
+input ArticleConnectWhere {
+  node: ArticleWhere!
+}
+
+input ArticleCreateInput {
+  blocks: ArticleBlocksFieldInput
+  images: ArticleImagesFieldInput
+}
+
+input ArticleDeleteInput {
+  blocks: [ArticleBlocksDeleteFieldInput!]
+  images: [ArticleImagesDeleteFieldInput!]
+}
+
+input ArticleDisconnectInput {
+  blocks: [ArticleBlocksDisconnectFieldInput!]
+  images: [ArticleImagesDisconnectFieldInput!]
+}
+
+input ArticleImagesConnectFieldInput {
+  connect: ImageConnectInput
+  where: ImageConnectWhere
+}
+
+input ArticleImagesConnectionWhere {
+  AND: [ArticleImagesConnectionWhere!]
+  OR: [ArticleImagesConnectionWhere!]
+  node: ImageWhere
+  node_NOT: ImageWhere
+}
+
+input ArticleImagesCreateFieldInput {
+  node: ImageCreateInput!
+}
+
+input ArticleImagesDeleteFieldInput {
+  delete: ImageDeleteInput
+  where: ArticleImagesConnectionWhere
+}
+
+input ArticleImagesDisconnectFieldInput {
+  disconnect: ImageDisconnectInput
+  where: ArticleImagesConnectionWhere
+}
+
+input ArticleImagesFieldInput {
+  connect: [ArticleImagesConnectFieldInput!]
+  create: [ArticleImagesCreateFieldInput!]
+}
+
+input ArticleImagesUpdateConnectionInput {
+  node: ImageUpdateInput
+}
+
+input ArticleImagesUpdateFieldInput {
+  connect: [ArticleImagesConnectFieldInput!]
+  create: [ArticleImagesCreateFieldInput!]
+  delete: [ArticleImagesDeleteFieldInput!]
+  disconnect: [ArticleImagesDisconnectFieldInput!]
+  update: ArticleImagesUpdateConnectionInput
+  where: ArticleImagesConnectionWhere
+}
+
+input ArticleOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more ArticleSort objects to sort Articles by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [ArticleSort]
+}
+
+input ArticleRelationInput {
+  blocks: [ArticleBlocksCreateFieldInput!]
+  images: [ArticleImagesCreateFieldInput!]
+}
+
+"Fields to sort Articles by. The order in which sorts are applied is not guaranteed when specifying many fields in one ArticleSort object."
+input ArticleSort {
+  id: SortDirection
+}
+
+input ArticleUniqueWhere {
+  id: ID
+}
+
+input ArticleUpdateInput {
+  blocks: [ArticleBlocksUpdateFieldInput!]
+  images: [ArticleImagesUpdateFieldInput!]
+}
+
+input ArticleWhere {
+  AND: [ArticleWhere!]
+  OR: [ArticleWhere!]
+  blocksConnection: ArticleBlocksConnectionWhere
+  blocksConnection_NOT: ArticleBlocksConnectionWhere
+  id: ID
+  id_CONTAINS: ID
+  id_ENDS_WITH: ID
+  id_IN: [ID]
+  id_NOT: ID
+  id_NOT_CONTAINS: ID
+  id_NOT_ENDS_WITH: ID
+  id_NOT_IN: [ID]
+  id_NOT_STARTS_WITH: ID
+  id_STARTS_WITH: ID
+  imagesConnection: ArticleImagesConnectionWhere
+  imagesConnection_NOT: ArticleImagesConnectionWhere
+}
+
+input BlockConnectInput {
+  _on: BlockImplementationsConnectInput
+}
+
+input BlockConnectWhere {
+  node: BlockWhere!
+}
+
+input BlockCreateInput {
+  DividerBlock: DividerBlockCreateInput
+  ImageBlock: ImageBlockCreateInput
+  TextBlock: TextBlockCreateInput
+}
+
+input BlockDeleteInput {
+  _on: BlockImplementationsDeleteInput
+}
+
+input BlockDisconnectInput {
+  _on: BlockImplementationsDisconnectInput
+}
+
+input BlockImplementationsConnectInput {
+  ImageBlock: [ImageBlockConnectInput!]
+}
+
+input BlockImplementationsDeleteInput {
+  ImageBlock: [ImageBlockDeleteInput!]
+}
+
+input BlockImplementationsDisconnectInput {
+  ImageBlock: [ImageBlockDisconnectInput!]
+}
+
+input BlockImplementationsUpdateInput {
+  DividerBlock: DividerBlockUpdateInput
+  ImageBlock: ImageBlockUpdateInput
+  TextBlock: TextBlockUpdateInput
+}
+
+input BlockImplementationsWhere {
+  DividerBlock: DividerBlockWhere
+  ImageBlock: ImageBlockWhere
+  TextBlock: TextBlockWhere
+}
+
+input BlockUpdateInput {
+  _on: BlockImplementationsUpdateInput
+}
+
+input BlockWhere {
+  _on: BlockImplementationsWhere
+  id: ID
+  id_CONTAINS: ID
+  id_ENDS_WITH: ID
+  id_IN: [ID]
+  id_NOT: ID
+  id_NOT_CONTAINS: ID
+  id_NOT_ENDS_WITH: ID
+  id_NOT_IN: [ID]
+  id_NOT_STARTS_WITH: ID
+  id_STARTS_WITH: ID
+}
+
+input DividerBlockCreateInput {
+  "Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/"
+  _emptyInput: Boolean
+}
+
+input DividerBlockOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more DividerBlockSort objects to sort DividerBlocks by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [DividerBlockSort]
+}
+
+"Fields to sort DividerBlocks by. The order in which sorts are applied is not guaranteed when specifying many fields in one DividerBlockSort object."
+input DividerBlockSort {
+  id: SortDirection
+}
+
+input DividerBlockUpdateInput {
+  "Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/"
+  _emptyInput: Boolean
+}
+
+input DividerBlockWhere {
+  AND: [DividerBlockWhere!]
+  OR: [DividerBlockWhere!]
+  id: ID
+  id_CONTAINS: ID
+  id_ENDS_WITH: ID
+  id_IN: [ID]
+  id_NOT: ID
+  id_NOT_CONTAINS: ID
+  id_NOT_ENDS_WITH: ID
+  id_NOT_IN: [ID]
+  id_NOT_STARTS_WITH: ID
+  id_STARTS_WITH: ID
+}
+
+input HasArticleSort {
+  createdAt: SortDirection
+}
+
+input HasArticleWhere {
+  AND: [HasArticleWhere!]
+  OR: [HasArticleWhere!]
+  createdAt: DateTime
+  createdAt_GT: DateTime
+  createdAt_GTE: DateTime
+  createdAt_IN: [DateTime]
+  createdAt_LT: DateTime
+  createdAt_LTE: DateTime
+  createdAt_NOT: DateTime
+  createdAt_NOT_IN: [DateTime]
+}
+
+input HasBlockCreateInput {
+  order: Int!
+}
+
+input HasBlockSort {
+  order: SortDirection
+}
+
+input HasBlockUpdateInput {
+  order: Int
+}
+
+input HasBlockWhere {
+  AND: [HasBlockWhere!]
+  OR: [HasBlockWhere!]
+  order: Int
+  order_GT: Int
+  order_GTE: Int
+  order_IN: [Int]
+  order_LT: Int
+  order_LTE: Int
+  order_NOT: Int
+  order_NOT_IN: [Int]
+}
+
+input ImageBlockConnectInput {
+  images: [ImageBlockImagesConnectFieldInput!]
+}
+
+input ImageBlockCreateInput {
+  images: ImageBlockImagesFieldInput
+}
+
+input ImageBlockDeleteInput {
+  images: [ImageBlockImagesDeleteFieldInput!]
+}
+
+input ImageBlockDisconnectInput {
+  images: [ImageBlockImagesDisconnectFieldInput!]
+}
+
+input ImageBlockImagesConnectFieldInput {
+  connect: ImageConnectInput
+  where: ImageConnectWhere
+}
+
+input ImageBlockImagesConnectionWhere {
+  AND: [ImageBlockImagesConnectionWhere!]
+  OR: [ImageBlockImagesConnectionWhere!]
+  node: ImageWhere
+  node_NOT: ImageWhere
+}
+
+input ImageBlockImagesCreateFieldInput {
+  node: ImageCreateInput!
+}
+
+input ImageBlockImagesDeleteFieldInput {
+  delete: ImageDeleteInput
+  where: ImageBlockImagesConnectionWhere
+}
+
+input ImageBlockImagesDisconnectFieldInput {
+  disconnect: ImageDisconnectInput
+  where: ImageBlockImagesConnectionWhere
+}
+
+input ImageBlockImagesFieldInput {
+  connect: [ImageBlockImagesConnectFieldInput!]
+  create: [ImageBlockImagesCreateFieldInput!]
+}
+
+input ImageBlockImagesUpdateConnectionInput {
+  node: ImageUpdateInput
+}
+
+input ImageBlockImagesUpdateFieldInput {
+  connect: [ImageBlockImagesConnectFieldInput!]
+  create: [ImageBlockImagesCreateFieldInput!]
+  delete: [ImageBlockImagesDeleteFieldInput!]
+  disconnect: [ImageBlockImagesDisconnectFieldInput!]
+  update: ImageBlockImagesUpdateConnectionInput
+  where: ImageBlockImagesConnectionWhere
+}
+
+input ImageBlockOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more ImageBlockSort objects to sort ImageBlocks by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [ImageBlockSort]
+}
+
+input ImageBlockRelationInput {
+  images: [ImageBlockImagesCreateFieldInput!]
+}
+
+"Fields to sort ImageBlocks by. The order in which sorts are applied is not guaranteed when specifying many fields in one ImageBlockSort object."
+input ImageBlockSort {
+  id: SortDirection
+}
+
+input ImageBlockUpdateInput {
+  images: [ImageBlockImagesUpdateFieldInput!]
+}
+
+input ImageBlockWhere {
+  AND: [ImageBlockWhere!]
+  OR: [ImageBlockWhere!]
+  id: ID
+  id_CONTAINS: ID
+  id_ENDS_WITH: ID
+  id_IN: [ID]
+  id_NOT: ID
+  id_NOT_CONTAINS: ID
+  id_NOT_ENDS_WITH: ID
+  id_NOT_IN: [ID]
+  id_NOT_STARTS_WITH: ID
+  id_STARTS_WITH: ID
+  imagesConnection: ImageBlockImagesConnectionWhere
+  imagesConnection_NOT: ImageBlockImagesConnectionWhere
+}
+
+input ImageConnectInput {
+  _on: ImageImplementationsConnectInput
+}
+
+input ImageConnectWhere {
+  node: ImageWhere!
+}
+
+input ImageCreateInput {
+  PDFImage: PDFImageCreateInput
+}
+
+input ImageDeleteInput {
+  _on: ImageImplementationsDeleteInput
+}
+
+input ImageDisconnectInput {
+  _on: ImageImplementationsDisconnectInput
+}
+
+input ImageFeaturedInConnectFieldInput {
+  connect: [ArticleConnectInput!]
+  where: ArticleConnectWhere
+}
+
+input ImageFeaturedInConnectOrCreateFieldInput {
+  onCreate: ImageFeaturedInConnectOrCreateFieldInputOnCreate!
+  where: ArticleConnectOrCreateWhere!
+}
+
+input ImageFeaturedInConnectOrCreateFieldInputOnCreate {
+  node: ArticleCreateInput!
+}
+
+input ImageFeaturedInConnectionSort {
+  node: ArticleSort
+}
+
+input ImageFeaturedInConnectionWhere {
+  AND: [ImageFeaturedInConnectionWhere!]
+  OR: [ImageFeaturedInConnectionWhere!]
+  node: ArticleWhere
+  node_NOT: ArticleWhere
+}
+
+input ImageFeaturedInCreateFieldInput {
+  node: ArticleCreateInput!
+}
+
+input ImageFeaturedInDeleteFieldInput {
+  delete: ArticleDeleteInput
+  where: ImageFeaturedInConnectionWhere
+}
+
+input ImageFeaturedInDisconnectFieldInput {
+  disconnect: ArticleDisconnectInput
+  where: ImageFeaturedInConnectionWhere
+}
+
+input ImageFeaturedInFieldInput {
+  connect: [ImageFeaturedInConnectFieldInput!]
+  connectOrCreate: [ImageFeaturedInConnectOrCreateFieldInput!]
+  create: [ImageFeaturedInCreateFieldInput!]
+}
+
+input ImageFeaturedInUpdateConnectionInput {
+  node: ArticleUpdateInput
+}
+
+input ImageFeaturedInUpdateFieldInput {
+  connect: [ImageFeaturedInConnectFieldInput!]
+  connectOrCreate: [ImageFeaturedInConnectOrCreateFieldInput!]
+  create: [ImageFeaturedInCreateFieldInput!]
+  delete: [ImageFeaturedInDeleteFieldInput!]
+  disconnect: [ImageFeaturedInDisconnectFieldInput!]
+  update: ImageFeaturedInUpdateConnectionInput
+  where: ImageFeaturedInConnectionWhere
+}
+
+input ImageImplementationsConnectInput {
+  PDFImage: [PDFImageConnectInput!]
+}
+
+input ImageImplementationsDeleteInput {
+  PDFImage: [PDFImageDeleteInput!]
+}
+
+input ImageImplementationsDisconnectInput {
+  PDFImage: [PDFImageDisconnectInput!]
+}
+
+input ImageImplementationsUpdateInput {
+  PDFImage: PDFImageUpdateInput
+}
+
+input ImageImplementationsWhere {
+  PDFImage: PDFImageWhere
+}
+
+input ImageUpdateInput {
+  _on: ImageImplementationsUpdateInput
+}
+
+input ImageWhere {
+  _on: ImageImplementationsWhere
+}
+
+input JournalistArticlesAggregateInput {
+  AND: [JournalistArticlesAggregateInput!]
+  OR: [JournalistArticlesAggregateInput!]
+  count: Int
+  count_GT: Int
+  count_GTE: Int
+  count_LT: Int
+  count_LTE: Int
+  edge: JournalistArticlesEdgeAggregationWhereInput
+  node: JournalistArticlesNodeAggregationWhereInput
+}
+
+input JournalistArticlesConnectFieldInput {
+  connect: [ArticleConnectInput!]
+  where: ArticleConnectWhere
+}
+
+input JournalistArticlesConnectOrCreateFieldInput {
+  onCreate: JournalistArticlesConnectOrCreateFieldInputOnCreate!
+  where: ArticleConnectOrCreateWhere!
+}
+
+input JournalistArticlesConnectOrCreateFieldInputOnCreate {
+  node: ArticleCreateInput!
+}
+
+input JournalistArticlesConnectionSort {
+  edge: HasArticleSort
+  node: ArticleSort
+}
+
+input JournalistArticlesConnectionWhere {
+  AND: [JournalistArticlesConnectionWhere!]
+  OR: [JournalistArticlesConnectionWhere!]
+  edge: HasArticleWhere
+  edge_NOT: HasArticleWhere
+  node: ArticleWhere
+  node_NOT: ArticleWhere
+}
+
+input JournalistArticlesCreateFieldInput {
+  node: ArticleCreateInput!
+}
+
+input JournalistArticlesDeleteFieldInput {
+  delete: ArticleDeleteInput
+  where: JournalistArticlesConnectionWhere
+}
+
+input JournalistArticlesDisconnectFieldInput {
+  disconnect: ArticleDisconnectInput
+  where: JournalistArticlesConnectionWhere
+}
+
+input JournalistArticlesEdgeAggregationWhereInput {
+  AND: [JournalistArticlesEdgeAggregationWhereInput!]
+  OR: [JournalistArticlesEdgeAggregationWhereInput!]
+  createdAt_EQUAL: DateTime
+  createdAt_GT: DateTime
+  createdAt_GTE: DateTime
+  createdAt_LT: DateTime
+  createdAt_LTE: DateTime
+  createdAt_MAX_EQUAL: DateTime
+  createdAt_MAX_GT: DateTime
+  createdAt_MAX_GTE: DateTime
+  createdAt_MAX_LT: DateTime
+  createdAt_MAX_LTE: DateTime
+  createdAt_MIN_EQUAL: DateTime
+  createdAt_MIN_GT: DateTime
+  createdAt_MIN_GTE: DateTime
+  createdAt_MIN_LT: DateTime
+  createdAt_MIN_LTE: DateTime
+}
+
+input JournalistArticlesFieldInput {
+  connect: [JournalistArticlesConnectFieldInput!]
+  connectOrCreate: [JournalistArticlesConnectOrCreateFieldInput!]
+  create: [JournalistArticlesCreateFieldInput!]
+}
+
+input JournalistArticlesNodeAggregationWhereInput {
+  AND: [JournalistArticlesNodeAggregationWhereInput!]
+  OR: [JournalistArticlesNodeAggregationWhereInput!]
+  id_EQUAL: ID
+}
+
+input JournalistArticlesUpdateConnectionInput {
+  node: ArticleUpdateInput
+}
+
+input JournalistArticlesUpdateFieldInput {
+  connect: [JournalistArticlesConnectFieldInput!]
+  connectOrCreate: [JournalistArticlesConnectOrCreateFieldInput!]
+  create: [JournalistArticlesCreateFieldInput!]
+  delete: [JournalistArticlesDeleteFieldInput!]
+  disconnect: [JournalistArticlesDisconnectFieldInput!]
+  update: JournalistArticlesUpdateConnectionInput
+  where: JournalistArticlesConnectionWhere
+}
+
+input JournalistConnectInput {
+  articles: [JournalistArticlesConnectFieldInput!]
+}
+
+input JournalistConnectOrCreateInput {
+  articles: [JournalistArticlesConnectOrCreateFieldInput!]
+}
+
+input JournalistCreateInput {
+  articles: JournalistArticlesFieldInput
+}
+
+input JournalistDeleteInput {
+  articles: [JournalistArticlesDeleteFieldInput!]
+}
+
+input JournalistDisconnectInput {
+  articles: [JournalistArticlesDisconnectFieldInput!]
+}
+
+input JournalistOptions {
+  limit: Int
+  offset: Int
+}
+
+input JournalistRelationInput {
+  articles: [JournalistArticlesCreateFieldInput!]
+}
+
+input JournalistUpdateInput {
+  articles: [JournalistArticlesUpdateFieldInput!]
+}
+
+input JournalistWhere {
+  AND: [JournalistWhere!]
+  OR: [JournalistWhere!]
+  articles: ArticleWhere
+  articlesAggregate: JournalistArticlesAggregateInput
+  articlesConnection: JournalistArticlesConnectionWhere
+  articlesConnection_NOT: JournalistArticlesConnectionWhere
+  articles_NOT: ArticleWhere
+}
+
+input PDFImageConnectInput {
+  featuredIn: [ImageFeaturedInConnectFieldInput!]
+}
+
+input PDFImageConnectOrCreateInput {
+  featuredIn: [ImageFeaturedInConnectOrCreateFieldInput!]
+}
+
+input PDFImageCreateInput {
+  featuredIn: ImageFeaturedInFieldInput
+  url: String!
+}
+
+input PDFImageDeleteInput {
+  featuredIn: [ImageFeaturedInDeleteFieldInput!]
+}
+
+input PDFImageDisconnectInput {
+  featuredIn: [ImageFeaturedInDisconnectFieldInput!]
+}
+
+input PDFImageFeaturedInAggregateInput {
+  AND: [PDFImageFeaturedInAggregateInput!]
+  OR: [PDFImageFeaturedInAggregateInput!]
+  count: Int
+  count_GT: Int
+  count_GTE: Int
+  count_LT: Int
+  count_LTE: Int
+  node: PDFImageFeaturedInNodeAggregationWhereInput
+}
+
+input PDFImageFeaturedInNodeAggregationWhereInput {
+  AND: [PDFImageFeaturedInNodeAggregationWhereInput!]
+  OR: [PDFImageFeaturedInNodeAggregationWhereInput!]
+  id_EQUAL: ID
+}
+
+input PDFImageOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more PDFImageSort objects to sort PDFImages by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [PDFImageSort]
+}
+
+input PDFImageRelationInput {
+  featuredIn: [ImageFeaturedInCreateFieldInput!]
+}
+
+"Fields to sort PDFImages by. The order in which sorts are applied is not guaranteed when specifying many fields in one PDFImageSort object."
+input PDFImageSort {
+  url: SortDirection
+}
+
+input PDFImageUpdateInput {
+  featuredIn: [ImageFeaturedInUpdateFieldInput!]
+  url: String
+}
+
+input PDFImageWhere {
+  AND: [PDFImageWhere!]
+  OR: [PDFImageWhere!]
+  featuredIn: ArticleWhere
+  featuredInAggregate: PDFImageFeaturedInAggregateInput
+  featuredInConnection: ImageFeaturedInConnectionWhere
+  featuredInConnection_NOT: ImageFeaturedInConnectionWhere
+  featuredIn_NOT: ArticleWhere
+  url: String
+  url_CONTAINS: String
+  url_ENDS_WITH: String
+  url_IN: [String]
+  url_NOT: String
+  url_NOT_CONTAINS: String
+  url_NOT_ENDS_WITH: String
+  url_NOT_IN: [String]
+  url_NOT_STARTS_WITH: String
+  url_STARTS_WITH: String
+}
+
+input QueryOptions {
+  limit: Int
+  offset: Int
+}
+
+input TextBlockCreateInput {
+  text: String
+}
+
+input TextBlockOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more TextBlockSort objects to sort TextBlocks by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [TextBlockSort]
+}
+
+"Fields to sort TextBlocks by. The order in which sorts are applied is not guaranteed when specifying many fields in one TextBlockSort object."
+input TextBlockSort {
+  id: SortDirection
+  text: SortDirection
+}
+
+input TextBlockUpdateInput {
+  text: String
+}
+
+input TextBlockWhere {
+  AND: [TextBlockWhere!]
+  OR: [TextBlockWhere!]
+  id: ID
+  id_CONTAINS: ID
+  id_ENDS_WITH: ID
+  id_IN: [ID]
+  id_NOT: ID
+  id_NOT_CONTAINS: ID
+  id_NOT_ENDS_WITH: ID
+  id_NOT_IN: [ID]
+  id_NOT_STARTS_WITH: ID
+  id_STARTS_WITH: ID
+  text: String
+  text_CONTAINS: String
+  text_ENDS_WITH: String
+  text_IN: [String]
+  text_NOT: String
+  text_NOT_CONTAINS: String
+  text_NOT_ENDS_WITH: String
+  text_NOT_IN: [String]
+  text_NOT_STARTS_WITH: String
+  text_STARTS_WITH: String
+}
+
+----

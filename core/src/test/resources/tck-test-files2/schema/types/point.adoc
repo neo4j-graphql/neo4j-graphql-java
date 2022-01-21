@@ -1,0 +1,168 @@
+:toc:
+
+= Point
+
+== Point
+
+=== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  filmedAt: Point!
+}
+----
+
+=== Augmented schema
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type CreateInfo {
+  bookmark: String
+  nodesCreated: Int!
+  relationshipsCreated: Int!
+}
+
+type CreateMoviesMutationResponse {
+  info: CreateInfo!
+  movies: [Movie!]!
+}
+
+type DeleteInfo {
+  bookmark: String
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
+type Movie {
+  filmedAt: Point!
+}
+
+type MovieAggregateSelection {
+  count: Int!
+}
+
+type Mutation {
+  createMovies(input: [MovieCreateInput!]!): CreateMoviesMutationResponse!
+  deleteMovies(where: MovieWhere): DeleteInfo!
+  updateMovies(update: MovieUpdateInput, where: MovieWhere): UpdateMoviesMutationResponse!
+}
+
+type Point {
+  """
+  The coordinate reference systems (CRS)
+  -------------------------------------
+  posible values:
+  * `wgs-84`: A 2D geographic point in the WGS 84 CRS is specified by: longitude and latitude
+  * `wgs-84-3d`: A 3D geographic point in the WGS 84 CRS is specified by longitude, latitude and height
+  """
+  crs: String!
+  "The third element of the Coordinate for geographic CRS, meters above the ellipsoid defined by the datum (WGS-84)"
+  height: Float
+  """
+  The second element of the Coordinate for geographic CRS, degrees North of the equator
+  Range -90.0 to 90.0
+  """
+  latitude: Float!
+  """
+  The first element of the Coordinate for geographic CRS, degrees East of the prime meridian
+  Range -180.0 to 180.0
+  """
+  longitude: Float!
+  """
+  The internal Neo4j ID for the CRS
+  One of:
+  * `4326`: represents CRS `wgs-84`
+  * `4979`: represents CRS `wgs-84-3d`
+  """
+  srid: Int!
+}
+
+type Query {
+  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
+  moviesAggregate(where: MovieWhere): MovieAggregateSelection!
+  moviesCount(where: MovieWhere): Int!
+}
+
+type UpdateInfo {
+  bookmark: String
+  nodesCreated: Int!
+  nodesDeleted: Int!
+  relationshipsCreated: Int!
+  relationshipsDeleted: Int!
+}
+
+type UpdateMoviesMutationResponse {
+  info: UpdateInfo!
+  movies: [Movie!]!
+}
+
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+input MovieCreateInput {
+  filmedAt: PointInput!
+}
+
+input MovieOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [MovieSort]
+}
+
+"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+input MovieSort {
+  filmedAt: SortDirection
+}
+
+input MovieUpdateInput {
+  filmedAt: PointInput
+}
+
+input MovieWhere {
+  AND: [MovieWhere!]
+  OR: [MovieWhere!]
+  filmedAt: PointInput
+  filmedAt_DISTANCE: PointDistance
+  filmedAt_GT: PointDistance
+  filmedAt_GTE: PointDistance
+  filmedAt_IN: [PointInput]
+  filmedAt_LT: PointDistance
+  filmedAt_LTE: PointDistance
+  filmedAt_NOT: PointInput
+  filmedAt_NOT_IN: [PointInput]
+}
+
+input PointDistance {
+  "The distance in metres to be used when comparing two points"
+  distance: Float!
+  point: PointInput!
+}
+
+input PointInput {
+  "The third element of the Coordinate for geographic CRS, meters above the ellipsoid defined by the datum (WGS-84)"
+  height: Float
+  """
+  The second element of the Coordinate for geographic CRS, degrees North of the equator
+  Range -90.0 to 90.0
+  """
+  latitude: Float!
+  """
+  The first element of the Coordinate for geographic CRS, degrees East of the prime meridian
+  Range -180.0 to 180.0
+  """
+  longitude: Float!
+}
+
+----

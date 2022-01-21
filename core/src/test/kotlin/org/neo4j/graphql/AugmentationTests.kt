@@ -14,4 +14,7 @@ class AugmentationTests {
 
     @TestFactory
     fun `schema augmentation tests`() = createTestsInPath("tck-test-files/schema", { GraphQLSchemaTestSuite(it).generateTests() })
+
+    @TestFactory
+    fun `schema augmentation tests v2`() = createTestsInPath("tck-test-files2/schema", { GraphQLSchemaTestSuite(it).generateTests() })
 }

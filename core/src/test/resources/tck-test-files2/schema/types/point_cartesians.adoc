@@ -1,0 +1,131 @@
+:toc:
+
+= Point
+
+== CartesianPoints
+
+=== Source schema
+
+[source,graphql,schema=true]
+----
+type Machine {
+  partLocations: [CartesianPoint!]!
+}
+----
+
+=== Augmented schema
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type CartesianPoint {
+  """
+  The coordinate reference systems (CRS)
+  -------------------------------------
+  possible values:
+  * `cartesian`: A 2D point in the Cartesian CRS is specified with a map containing x and y coordinate values
+  * `cartesian-3d`: A 3D point in the Cartesian CRS is specified with a map containing x, y and z coordinate values
+  """
+  crs: String!
+  """
+  The internal Neo4j ID for the CRS
+  One of:
+  * `7203`: represents CRS `cartesian`
+  * `9157`: represents CRS `cartesian-3d`
+  """
+  srid: Int!
+  "The first element of the Coordinate"
+  x: Float!
+  "The second element of the Coordinate"
+  y: Float!
+  "The third element of the Coordinate"
+  z: Float
+}
+
+type CreateInfo {
+  bookmark: String
+  nodesCreated: Int!
+  relationshipsCreated: Int!
+}
+
+type CreateMachinesMutationResponse {
+  info: CreateInfo!
+  machines: [Machine!]!
+}
+
+type DeleteInfo {
+  bookmark: String
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
+type Machine {
+  partLocations: [CartesianPoint!]!
+}
+
+type MachineAggregateSelection {
+  count: Int!
+}
+
+type Mutation {
+  createMachines(input: [MachineCreateInput!]!): CreateMachinesMutationResponse!
+  deleteMachines(where: MachineWhere): DeleteInfo!
+  updateMachines(update: MachineUpdateInput, where: MachineWhere): UpdateMachinesMutationResponse!
+}
+
+type Query {
+  machines(options: MachineOptions, where: MachineWhere): [Machine!]!
+  machinesAggregate(where: MachineWhere): MachineAggregateSelection!
+  machinesCount(where: MachineWhere): Int!
+}
+
+type UpdateInfo {
+  bookmark: String
+  nodesCreated: Int!
+  nodesDeleted: Int!
+  relationshipsCreated: Int!
+  relationshipsDeleted: Int!
+}
+
+type UpdateMachinesMutationResponse {
+  info: UpdateInfo!
+  machines: [Machine!]!
+}
+
+input CartesianPointInput {
+  "The first element of the Coordinate"
+  x: Float!
+  "The second element of the Coordinate"
+  y: Float!
+  "The third element of the Coordinate"
+  z: Float
+}
+
+input MachineCreateInput {
+  partLocations: [CartesianPointInput!]!
+}
+
+input MachineOptions {
+  limit: Int
+  offset: Int
+}
+
+input MachineUpdateInput {
+  partLocations: [CartesianPointInput!]
+}
+
+input MachineWhere {
+  AND: [MachineWhere!]
+  OR: [MachineWhere!]
+  partLocations: [CartesianPointInput!]
+  partLocations_INCLUDES: CartesianPointInput
+  partLocations_NOT: [CartesianPointInput!]
+  partLocations_NOT_INCLUDES: CartesianPointInput
+}
+
+----

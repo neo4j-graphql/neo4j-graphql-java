@@ -1,0 +1,155 @@
+:toc:
+
+= Custom-mutations
+
+== Custom Mutations
+
+=== Source schema
+
+[source,graphql,schema=true]
+----
+input ExampleInput {
+  id: ID
+}
+
+type Movie {
+  id: ID
+}
+
+type Query {
+  testQuery(input: ExampleInput): String
+  testCypherQuery(input: ExampleInput): String @cypher(statement: "")
+}
+
+type Mutation {
+  testMutation(input: ExampleInput): String
+  testCypherMutation(input: ExampleInput): String @cypher(statement: "")
+}
+
+type Subscription {
+  testSubscription(input: ExampleInput): String
+}
+----
+
+=== Augmented schema
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
+
+type CreateInfo {
+  bookmark: String
+  nodesCreated: Int!
+  relationshipsCreated: Int!
+}
+
+type CreateMoviesMutationResponse {
+  info: CreateInfo!
+  movies: [Movie!]!
+}
+
+type DeleteInfo {
+  bookmark: String
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
+type IDAggregateSelection {
+  longest: ID
+  shortest: ID
+}
+
+type Movie {
+  id: ID
+}
+
+type MovieAggregateSelection {
+  count: Int!
+  id: IDAggregateSelection!
+}
+
+type Mutation {
+  createMovies(input: [MovieCreateInput!]!): CreateMoviesMutationResponse!
+  deleteMovies(where: MovieWhere): DeleteInfo!
+  testCypherMutation(input: ExampleInput): String
+  testMutation(input: ExampleInput): String
+  updateMovies(update: MovieUpdateInput, where: MovieWhere): UpdateMoviesMutationResponse!
+}
+
+type Query {
+  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
+  moviesAggregate(where: MovieWhere): MovieAggregateSelection!
+  moviesCount(where: MovieWhere): Int!
+  testCypherQuery(input: ExampleInput): String
+  testQuery(input: ExampleInput): String
+}
+
+type Subscription {
+  testSubscription(input: ExampleInput): String
+}
+
+type UpdateInfo {
+  bookmark: String
+  nodesCreated: Int!
+  nodesDeleted: Int!
+  relationshipsCreated: Int!
+  relationshipsDeleted: Int!
+}
+
+type UpdateMoviesMutationResponse {
+  info: UpdateInfo!
+  movies: [Movie!]!
+}
+
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+input ExampleInput {
+  id: ID
+}
+
+input MovieCreateInput {
+  id: ID
+}
+
+input MovieOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [MovieSort]
+}
+
+"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+input MovieSort {
+  id: SortDirection
+}
+
+input MovieUpdateInput {
+  id: ID
+}
+
+input MovieWhere {
+  AND: [MovieWhere!]
+  OR: [MovieWhere!]
+  id: ID
+  id_CONTAINS: ID
+  id_ENDS_WITH: ID
+  id_IN: [ID]
+  id_NOT: ID
+  id_NOT_CONTAINS: ID
+  id_NOT_ENDS_WITH: ID
+  id_NOT_IN: [ID]
+  id_NOT_STARTS_WITH: ID
+  id_STARTS_WITH: ID
+}
+
+----
