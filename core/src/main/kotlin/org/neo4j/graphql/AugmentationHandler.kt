@@ -218,7 +218,7 @@ abstract class AugmentationHandler(
         return getOrCreateObjectType("${node.name}AggregateSelection") { fields, _ ->
             fields += field(Constants.COUNT, NonNullType(Constants.Types.Int))
             fields += node.fields
-                .filterIsInstance<PrimitiveField<*>>()
+                .filterIsInstance<PrimitiveField>()
                 .filterNot { it.typeMeta.type.isList() }
                 .mapNotNull { field ->
                     getOrCreateAggregationType(field.typeMeta.type)?.let { field(field.fieldName, NonNullType(it)) }
@@ -686,7 +686,7 @@ abstract class AugmentationHandler(
             return build
         }
 
-        fun String.wrapType(rel: RelationField<*>) = when {
+        fun String.wrapType(rel: RelationField) = when {
             rel.typeMeta.type.isList() -> ListType(this.asRequiredType())
             else -> this.asType()
         }

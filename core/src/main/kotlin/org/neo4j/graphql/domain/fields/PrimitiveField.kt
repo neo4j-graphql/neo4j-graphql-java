@@ -8,10 +8,10 @@ import org.neo4j.graphql.domain.TypeMeta
  * a cypher directive or relationship directive
  * String, Int, Float, ID, Boolean... (custom scalars).
  */
-open class PrimitiveField<OWNER: Any>(
+open class PrimitiveField(
     fieldName: String,
     typeMeta: TypeMeta,
-) : ScalarField<OWNER>(
+) : ScalarField(
     fieldName,
     typeMeta,
 ), ConstrainableField{

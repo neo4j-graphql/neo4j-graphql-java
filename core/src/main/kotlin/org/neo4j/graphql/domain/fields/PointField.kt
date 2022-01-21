@@ -2,10 +2,10 @@ package org.neo4j.graphql.domain.fields
 
 import org.neo4j.graphql.domain.TypeMeta
 
-class PointField<OWNER: Any>(
+class PointField(
     fieldName: String,
     typeMeta: TypeMeta,
-) : ScalarField<OWNER>(
+) : ScalarField(
     fieldName,
     typeMeta,
 ), ConstrainableField

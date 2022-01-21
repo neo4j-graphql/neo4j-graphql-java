@@ -193,7 +193,7 @@ enum class FieldOperator(
                         ) else emptyList()
             }
 
-        fun forField(field: BaseField<*>, schemaConfig: SchemaConfig): List<FieldOperator> {
+        fun forField(field: BaseField, schemaConfig: SchemaConfig): List<FieldOperator> {
             val result = mutableListOf<FieldOperator>()
             if (field is CustomScalarField) {
                 // Custom scalar fields only support basic equality

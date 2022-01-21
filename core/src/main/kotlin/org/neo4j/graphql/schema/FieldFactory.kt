@@ -21,7 +21,6 @@ import org.neo4j.graphql.DirectiveConstants.TIMESTAMP
 import org.neo4j.graphql.DirectiveConstants.UNIQUE
 import org.neo4j.graphql.DirectiveConstants.WRITE_ONLY
 import org.neo4j.graphql.domain.Interface
-import org.neo4j.graphql.domain.Relationship
 import org.neo4j.graphql.domain.RelationshipProperties
 import org.neo4j.graphql.domain.TypeMeta
 import org.neo4j.graphql.domain.directives.*
@@ -36,16 +35,16 @@ import kotlin.reflect.safeCast
  */
 object FieldFactory {
 
-    fun <OWNER: Any> creteFields(
+    fun createFields(
         obj: ImplementingTypeDefinition<*>,
         typeDefinitionRegistry: TypeDefinitionRegistry,
         relationshipPropertiesFactory: (name: String) -> RelationshipProperties?,
         interfaceFactory: (name: String) -> Interface?,
-    ): List<BaseField<OWNER>> {
+    ): List<BaseField> {
         val objInterfaces = obj.implements
             .mapNotNull { typeDefinitionRegistry.getTypeByName<InterfaceTypeDefinition>(it.name()) }
 
-        val result = mutableListOf<BaseField<OWNER>>()
+        val result = mutableListOf<BaseField>()
 
         obj.fieldDefinitions.mapNotNull { field ->
 
@@ -84,7 +83,7 @@ object FieldFactory {
             val fieldEnum = typeDefinitionRegistry.getTypeByName<EnumTypeDefinition>(typeMeta.type.name())
             val fieldObject = typeDefinitionRegistry.getTypeByName<ObjectTypeDefinition>(typeMeta.type.name())
 
-            val baseField: BaseField<OWNER>
+            val baseField: BaseField
 
             if (relationshipDirective != null) {
                 val properties = if (relationshipDirective.properties != null) {
@@ -94,36 +93,30 @@ object FieldFactory {
                     null
                 }
 
-                var connectionPrefix = obj.name
-                val relationshipTypeName = "${connectionPrefix}${field.name.capitalize()}Relationship"
-
-                val relationship = Relationship(
-                    relationshipTypeName,
-                    relationshipDirective.type,
-                    relationshipDirective.direction,
-                    description = null,
-                    properties
-                )
-
                 val interfaze = fieldInterface?.let { interfaceFactory(it.name) }
+                var connectionPrefix = obj.name
+                if (obj.implements.isNotEmpty()) {
+                    obj.implements
+                        .mapNotNull { typeDefinitionRegistry.getTypeByName<InterfaceTypeDefinition>(it.name()) }
+//                        .firstOrNull { it.getField(field.name) != null }
+                        // TODO REVIEW Darrell
+                        .firstOrNull { it.getField(field.name)?.type?.name() == field.type.name() }
+                        ?.let {
+                            connectionPrefix = it.name
+                        }
+                }
 
                 baseField = RelationField(
                     field.name,
                     typeMeta,
-                    relationship,
                     interfaze,
                     union = fieldUnion?.memberTypes?.map { it.name() } ?: emptyList(),
+                    relationshipDirective.type,
+                    relationshipDirective.direction,
+                    properties,
+                    connectionPrefix
                 )
 
-                if (obj.implements.isNotEmpty()) {
-                    obj.implements
-                        .mapNotNull { typeDefinitionRegistry.getTypeByName<InterfaceTypeDefinition>(it.name()) }
-                        .firstOrNull { it.getField(it.name) != null }
-                        ?.let {
-                            connectionPrefix = it.name
-                            baseField.inherited = true
-                        }
-                }
 
                 val connectionTypeName = "${connectionPrefix}${baseField.fieldName.capitalize()}Connection"
 
@@ -151,7 +144,6 @@ object FieldFactory {
                 }
                 result.add(connectionField)
 
-                baseField.connectionPrefix = connectionPrefix
                 baseField.connectionField = connectionField
 
             } else if (cypherDirective != null) {

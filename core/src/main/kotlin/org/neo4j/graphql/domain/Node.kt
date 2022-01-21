@@ -15,14 +15,14 @@ class Node(
     val name: String,
     val description: Description? = null,
     val comments: List<Comment> = emptyList(),
-    fields: List<BaseField<Node>>,
+    fields: List<BaseField>,
     val otherDirectives: List<Directive>,
     val interfaces: List<Interface>,
     val exclude: ExcludeDirective? = null,
     val nodeDirective: NodeDirective? = null,
     val fulltextDirective: FullTextDirective? = null,
     val auth: AuthDirective? = null,
-) : FieldContainer<BaseField<Node>, Node>(fields) {
+) : FieldContainer<BaseField, Node>(fields) {
 
     val plural: String by lazy { nodeDirective?.plural ?: English.plural(name).capitalize() }
 }

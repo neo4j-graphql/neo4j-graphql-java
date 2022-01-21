@@ -60,6 +60,7 @@ object Constants {
         setOf("ID", "String", "Float", "Int", BIG_INT, DATE_TIME, LOCAL_DATE_TIME, LOCAL_TIME, TIME, DURATION)
 
     const val OPTIONS = "options"
+    const val FULLTEXT = "fulltext"
     val OPTIONS_TYPE = TypeName("QueryOptions")
 
     const val WHERE = "where"

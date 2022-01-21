@@ -3,6 +3,7 @@ package org.neo4j.graphql.schema
 import graphql.language.Directive
 import graphql.language.ObjectTypeDefinition
 import graphql.schema.idl.TypeDefinitionRegistry
+import org.neo4j.graphql.Constants
 import org.neo4j.graphql.DirectiveConstants
 import org.neo4j.graphql.domain.Interface
 import org.neo4j.graphql.domain.Node
@@ -11,6 +12,9 @@ import org.neo4j.graphql.domain.directives.AuthDirective
 import org.neo4j.graphql.domain.directives.ExcludeDirective
 import org.neo4j.graphql.domain.directives.FullTextDirective
 import org.neo4j.graphql.domain.directives.NodeDirective
+import org.neo4j.graphql.domain.fields.BaseField
+import org.neo4j.graphql.domain.fields.PrimitiveField
+import org.neo4j.graphql.isList
 import org.neo4j.graphql.name
 
 /**
@@ -61,23 +65,51 @@ object NodeFactory {
             }
         }
 
+        val fields = FieldFactory.createFields(
+            definition,
+            typeDefinitionRegistry,
+            relationshipPropertiesFactory,
+            interfaceFactory
+        )
+
         return Node(
             definition.name,
             definition.description,
             definition.comments,
-            FieldFactory.creteFields<Node>(
-                definition,
-                typeDefinitionRegistry,
-                relationshipPropertiesFactory,
-                interfaceFactory
-            ),
+            fields,
             otherDirectives,
             interfaces,
             exclude,
             nodeDirective,
-            // TODO validate
-            fulltext,
+            fulltext?.validate(definition, fields),
             auth,
         )
+    }
+
+    private fun FullTextDirective.validate(
+        definition: ObjectTypeDefinition,
+        fields: List<BaseField>
+    ): FullTextDirective {
+        this.indexes.groupBy { it.name }.forEach { (name, indices) ->
+            if (indices.size > 1) {
+                throw IllegalArgumentException("Node '${definition.name}' @fulltext index contains duplicate name '$name'")
+            }
+        }
+
+        val stringFieldNames = fields.asSequence()
+            .filterIsInstance<PrimitiveField>()
+            .filterNot { it.typeMeta.type.isList() }
+            .filter { it.typeMeta.type.name() == Constants.Types.String.name }
+            .map { it.fieldName }
+            .toSet()
+
+        this.indexes.forEach { index ->
+            index.fields.forEach { fieldName ->
+                if (!stringFieldNames.contains(fieldName)) {
+                    throw IllegalArgumentException("Node '${definition.name}' @fulltext index contains invalid index '${index.name}' cannot use find String field '${fieldName}'")
+                }
+            }
+        }
+        return this
     }
 }

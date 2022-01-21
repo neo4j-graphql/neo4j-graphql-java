@@ -144,7 +144,7 @@ type CreateJournalistsMutationResponse {
 
 type CreatePDFImagesMutationResponse {
   info: CreateInfo!
-  pdfImages: [PDFImage!]!
+  pDFImages: [PDFImage!]!
 }
 
 type CreateTextBlocksMutationResponse {
@@ -309,9 +309,9 @@ type Query {
   journalists(options: JournalistOptions, where: JournalistWhere): [Journalist!]!
   journalistsAggregate(where: JournalistWhere): JournalistAggregateSelection!
   journalistsCount(where: JournalistWhere): Int!
-  pdfImages(options: PDFImageOptions, where: PDFImageWhere): [PDFImage!]!
-  pdfImagesAggregate(where: PDFImageWhere): PDFImageAggregateSelection!
-  pdfImagesCount(where: PDFImageWhere): Int!
+  pDFImages(options: PDFImageOptions, where: PDFImageWhere): [PDFImage!]!
+  pDFImagesAggregate(where: PDFImageWhere): PDFImageAggregateSelection!
+  pDFImagesCount(where: PDFImageWhere): Int!
   textBlocks(options: TextBlockOptions, where: TextBlockWhere): [TextBlock!]!
   textBlocksAggregate(where: TextBlockWhere): TextBlockAggregateSelection!
   textBlocksCount(where: TextBlockWhere): Int!
@@ -363,7 +363,7 @@ type UpdateJournalistsMutationResponse {
 
 type UpdatePDFImagesMutationResponse {
   info: UpdateInfo!
-  pdfImages: [PDFImage!]!
+  pDFImages: [PDFImage!]!
 }
 
 type UpdateTextBlocksMutationResponse {

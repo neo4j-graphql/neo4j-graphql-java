@@ -1,45 +1,53 @@
 package org.neo4j.graphql.domain.fields
 
+import org.neo4j.graphql.capitalize
 import org.neo4j.graphql.domain.*
 
 /**
  * Representation of the `@relationship` directive and its meta.
  */
-class RelationField<OWNER : Any>(
+class RelationField(
     fieldName: String,
     typeMeta: TypeMeta,
-    val relationship: Relationship,
     /**
      * If the type of the field is an interface
      */
     val interfaze: Interface?,
     var union: List<String>,
-) : BaseField<OWNER>(
+    /**
+     * The type of the neo4j relation
+     */
+    val relationType: String,
+    direction: Direction,
+    val properties: RelationshipProperties?,
+    /**
+     * The node or interface name. If the filed is defined in an interface, the prefix will have the interface's name
+     */
+    val connectionPrefix: String,
+) : BaseField(
     fieldName,
     typeMeta,
 ) {
 
-    var inherited: Boolean = false
-
-    /**
-     * the node or interface name
-     */
-    lateinit var connectionPrefix: String
+    val name: String get() = "${connectionPrefix}${fieldName.capitalize()}Relationship"
 
     /**
      * If the type of the field is an interface, this list contains all nodes implementing this interface
      */
     lateinit var unionNodes: List<Node>
 
-    lateinit var connectionField: ConnectionField<OWNER>
+    lateinit var connectionField: ConnectionField
 
     /**
      * The referenced node, if the relationship is not an interface nor a union
      */
     var node: Node? = null
 
-    val properties: RelationshipProperties? get() = relationship.properties
     val isInterface: Boolean get() = interfaze != null
     val isUnion: Boolean get() = union.isNotEmpty()
 
+
+    enum class Direction {
+        IN, OUT
+    }
 }

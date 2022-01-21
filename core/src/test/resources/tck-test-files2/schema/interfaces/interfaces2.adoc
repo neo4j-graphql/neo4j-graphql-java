@@ -1,0 +1,517 @@
+:toc:
+
+= Interfaces
+
+== Interfaces
+
+=== Source schema
+
+[source,graphql,schema=true]
+----
+interface MovieInterface {
+  id: ID
+  movies: [MovieInterface]
+}
+
+type AMovie implements MovieInterface {
+  id: ID
+  foo: String
+  movies: [AMovie] @relationship(type: "HAS_MOVIE", direction: OUT)
+}
+
+type BMovie implements MovieInterface {
+  id: ID
+  bar: String
+  movies: [BMovie] @relationship(type: "HAS_MOVIE", direction: OUT)
+}
+----
+
+=== Augmented schema
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+interface MovieInterface {
+  id: ID
+  movies: [MovieInterface]
+}
+
+type AMovie implements MovieInterface {
+  foo: String
+  id: ID
+  movies(options: AMovieOptions, where: AMovieWhere): [AMovie]
+  moviesAggregate(where: AMovieWhere): AMovieAMovieMoviesAggregationSelection
+  moviesConnection(after: String, first: Int, sort: [AMovieMoviesConnectionSort!], where: AMovieMoviesConnectionWhere): AMovieMoviesConnection!
+}
+
+type AMovieAMovieMoviesAggregationSelection {
+  count: Int!
+  node: AMovieAMovieMoviesNodeAggregateSelection
+}
+
+type AMovieAMovieMoviesNodeAggregateSelection {
+  foo: StringAggregateSelection!
+  id: IDAggregateSelection!
+}
+
+type AMovieAggregateSelection {
+  count: Int!
+  foo: StringAggregateSelection!
+  id: IDAggregateSelection!
+}
+
+type AMovieMoviesConnection {
+  edges: [AMovieMoviesRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type AMovieMoviesRelationship {
+  cursor: String!
+  node: AMovie!
+}
+
+type BMovie implements MovieInterface {
+  bar: String
+  id: ID
+  movies(options: BMovieOptions, where: BMovieWhere): [BMovie]
+  moviesAggregate(where: BMovieWhere): BMovieBMovieMoviesAggregationSelection
+  moviesConnection(after: String, first: Int, sort: [BMovieMoviesConnectionSort!], where: BMovieMoviesConnectionWhere): BMovieMoviesConnection!
+}
+
+type BMovieAggregateSelection {
+  bar: StringAggregateSelection!
+  count: Int!
+  id: IDAggregateSelection!
+}
+
+type BMovieBMovieMoviesAggregationSelection {
+  count: Int!
+  node: BMovieBMovieMoviesNodeAggregateSelection
+}
+
+type BMovieBMovieMoviesNodeAggregateSelection {
+  bar: StringAggregateSelection!
+  id: IDAggregateSelection!
+}
+
+type BMovieMoviesConnection {
+  edges: [BMovieMoviesRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type BMovieMoviesRelationship {
+  cursor: String!
+  node: BMovie!
+}
+
+type CreateAMoviesMutationResponse {
+  aMovies: [AMovie!]!
+  info: CreateInfo!
+}
+
+type CreateBMoviesMutationResponse {
+  bMovies: [BMovie!]!
+  info: CreateInfo!
+}
+
+type CreateInfo {
+  bookmark: String
+  nodesCreated: Int!
+  relationshipsCreated: Int!
+}
+
+type DeleteInfo {
+  bookmark: String
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
+type IDAggregateSelection {
+  longest: ID
+  shortest: ID
+}
+
+type Mutation {
+  createAMovies(input: [AMovieCreateInput!]!): CreateAMoviesMutationResponse!
+  createBMovies(input: [BMovieCreateInput!]!): CreateBMoviesMutationResponse!
+  deleteAMovies(delete: AMovieDeleteInput, where: AMovieWhere): DeleteInfo!
+  deleteBMovies(delete: BMovieDeleteInput, where: BMovieWhere): DeleteInfo!
+  updateAMovies(connect: AMovieConnectInput, create: AMovieRelationInput, delete: AMovieDeleteInput, disconnect: AMovieDisconnectInput, update: AMovieUpdateInput, where: AMovieWhere): UpdateAMoviesMutationResponse!
+  updateBMovies(connect: BMovieConnectInput, create: BMovieRelationInput, delete: BMovieDeleteInput, disconnect: BMovieDisconnectInput, update: BMovieUpdateInput, where: BMovieWhere): UpdateBMoviesMutationResponse!
+}
+
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  aMovies(options: AMovieOptions, where: AMovieWhere): [AMovie!]!
+  aMoviesAggregate(where: AMovieWhere): AMovieAggregateSelection!
+  aMoviesCount(where: AMovieWhere): Int!
+  bMovies(options: BMovieOptions, where: BMovieWhere): [BMovie!]!
+  bMoviesAggregate(where: BMovieWhere): BMovieAggregateSelection!
+  bMoviesCount(where: BMovieWhere): Int!
+}
+
+type StringAggregateSelection {
+  longest: String
+  shortest: String
+}
+
+type UpdateAMoviesMutationResponse {
+  aMovies: [AMovie!]!
+  info: UpdateInfo!
+}
+
+type UpdateBMoviesMutationResponse {
+  bMovies: [BMovie!]!
+  info: UpdateInfo!
+}
+
+type UpdateInfo {
+  bookmark: String
+  nodesCreated: Int!
+  nodesDeleted: Int!
+  relationshipsCreated: Int!
+  relationshipsDeleted: Int!
+}
+
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+input AMovieConnectInput {
+  movies: [AMovieMoviesConnectFieldInput!]
+}
+
+input AMovieConnectWhere {
+  node: AMovieWhere!
+}
+
+input AMovieCreateInput {
+  foo: String
+  id: ID
+  movies: AMovieMoviesFieldInput
+}
+
+input AMovieDeleteInput {
+  movies: [AMovieMoviesDeleteFieldInput!]
+}
+
+input AMovieDisconnectInput {
+  movies: [AMovieMoviesDisconnectFieldInput!]
+}
+
+input AMovieMoviesAggregateInput {
+  AND: [AMovieMoviesAggregateInput!]
+  OR: [AMovieMoviesAggregateInput!]
+  count: Int
+  count_GT: Int
+  count_GTE: Int
+  count_LT: Int
+  count_LTE: Int
+  node: AMovieMoviesNodeAggregationWhereInput
+}
+
+input AMovieMoviesConnectFieldInput {
+  connect: [AMovieConnectInput!]
+  where: AMovieConnectWhere
+}
+
+input AMovieMoviesConnectionSort {
+  node: AMovieSort
+}
+
+input AMovieMoviesConnectionWhere {
+  AND: [AMovieMoviesConnectionWhere!]
+  OR: [AMovieMoviesConnectionWhere!]
+  node: AMovieWhere
+  node_NOT: AMovieWhere
+}
+
+input AMovieMoviesCreateFieldInput {
+  node: AMovieCreateInput!
+}
+
+input AMovieMoviesDeleteFieldInput {
+  delete: AMovieDeleteInput
+  where: AMovieMoviesConnectionWhere
+}
+
+input AMovieMoviesDisconnectFieldInput {
+  disconnect: AMovieDisconnectInput
+  where: AMovieMoviesConnectionWhere
+}
+
+input AMovieMoviesFieldInput {
+  connect: [AMovieMoviesConnectFieldInput!]
+  create: [AMovieMoviesCreateFieldInput!]
+}
+
+input AMovieMoviesNodeAggregationWhereInput {
+  AND: [AMovieMoviesNodeAggregationWhereInput!]
+  OR: [AMovieMoviesNodeAggregationWhereInput!]
+  foo_AVERAGE_EQUAL: Float
+  foo_AVERAGE_GT: Float
+  foo_AVERAGE_GTE: Float
+  foo_AVERAGE_LT: Float
+  foo_AVERAGE_LTE: Float
+  foo_EQUAL: String
+  foo_GT: Int
+  foo_GTE: Int
+  foo_LONGEST_EQUAL: Int
+  foo_LONGEST_GT: Int
+  foo_LONGEST_GTE: Int
+  foo_LONGEST_LT: Int
+  foo_LONGEST_LTE: Int
+  foo_LT: Int
+  foo_LTE: Int
+  foo_SHORTEST_EQUAL: Int
+  foo_SHORTEST_GT: Int
+  foo_SHORTEST_GTE: Int
+  foo_SHORTEST_LT: Int
+  foo_SHORTEST_LTE: Int
+  id_EQUAL: ID
+}
+
+input AMovieMoviesUpdateConnectionInput {
+  node: AMovieUpdateInput
+}
+
+input AMovieMoviesUpdateFieldInput {
+  connect: [AMovieMoviesConnectFieldInput!]
+  create: [AMovieMoviesCreateFieldInput!]
+  delete: [AMovieMoviesDeleteFieldInput!]
+  disconnect: [AMovieMoviesDisconnectFieldInput!]
+  update: AMovieMoviesUpdateConnectionInput
+  where: AMovieMoviesConnectionWhere
+}
+
+input AMovieOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more AMovieSort objects to sort AMovies by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [AMovieSort]
+}
+
+input AMovieRelationInput {
+  movies: [AMovieMoviesCreateFieldInput!]
+}
+
+"Fields to sort AMovies by. The order in which sorts are applied is not guaranteed when specifying many fields in one AMovieSort object."
+input AMovieSort {
+  foo: SortDirection
+  id: SortDirection
+}
+
+input AMovieUpdateInput {
+  foo: String
+  id: ID
+  movies: [AMovieMoviesUpdateFieldInput!]
+}
+
+input AMovieWhere {
+  AND: [AMovieWhere!]
+  OR: [AMovieWhere!]
+  foo: String
+  foo_CONTAINS: String
+  foo_ENDS_WITH: String
+  foo_IN: [String]
+  foo_NOT: String
+  foo_NOT_CONTAINS: String
+  foo_NOT_ENDS_WITH: String
+  foo_NOT_IN: [String]
+  foo_NOT_STARTS_WITH: String
+  foo_STARTS_WITH: String
+  id: ID
+  id_CONTAINS: ID
+  id_ENDS_WITH: ID
+  id_IN: [ID]
+  id_NOT: ID
+  id_NOT_CONTAINS: ID
+  id_NOT_ENDS_WITH: ID
+  id_NOT_IN: [ID]
+  id_NOT_STARTS_WITH: ID
+  id_STARTS_WITH: ID
+  movies: AMovieWhere
+  moviesAggregate: AMovieMoviesAggregateInput
+  moviesConnection: AMovieMoviesConnectionWhere
+  moviesConnection_NOT: AMovieMoviesConnectionWhere
+  movies_NOT: AMovieWhere
+}
+
+input BMovieConnectInput {
+  movies: [BMovieMoviesConnectFieldInput!]
+}
+
+input BMovieConnectWhere {
+  node: BMovieWhere!
+}
+
+input BMovieCreateInput {
+  bar: String
+  id: ID
+  movies: BMovieMoviesFieldInput
+}
+
+input BMovieDeleteInput {
+  movies: [BMovieMoviesDeleteFieldInput!]
+}
+
+input BMovieDisconnectInput {
+  movies: [BMovieMoviesDisconnectFieldInput!]
+}
+
+input BMovieMoviesAggregateInput {
+  AND: [BMovieMoviesAggregateInput!]
+  OR: [BMovieMoviesAggregateInput!]
+  count: Int
+  count_GT: Int
+  count_GTE: Int
+  count_LT: Int
+  count_LTE: Int
+  node: BMovieMoviesNodeAggregationWhereInput
+}
+
+input BMovieMoviesConnectFieldInput {
+  connect: [BMovieConnectInput!]
+  where: BMovieConnectWhere
+}
+
+input BMovieMoviesConnectionSort {
+  node: BMovieSort
+}
+
+input BMovieMoviesConnectionWhere {
+  AND: [BMovieMoviesConnectionWhere!]
+  OR: [BMovieMoviesConnectionWhere!]
+  node: BMovieWhere
+  node_NOT: BMovieWhere
+}
+
+input BMovieMoviesCreateFieldInput {
+  node: BMovieCreateInput!
+}
+
+input BMovieMoviesDeleteFieldInput {
+  delete: BMovieDeleteInput
+  where: BMovieMoviesConnectionWhere
+}
+
+input BMovieMoviesDisconnectFieldInput {
+  disconnect: BMovieDisconnectInput
+  where: BMovieMoviesConnectionWhere
+}
+
+input BMovieMoviesFieldInput {
+  connect: [BMovieMoviesConnectFieldInput!]
+  create: [BMovieMoviesCreateFieldInput!]
+}
+
+input BMovieMoviesNodeAggregationWhereInput {
+  AND: [BMovieMoviesNodeAggregationWhereInput!]
+  OR: [BMovieMoviesNodeAggregationWhereInput!]
+  bar_AVERAGE_EQUAL: Float
+  bar_AVERAGE_GT: Float
+  bar_AVERAGE_GTE: Float
+  bar_AVERAGE_LT: Float
+  bar_AVERAGE_LTE: Float
+  bar_EQUAL: String
+  bar_GT: Int
+  bar_GTE: Int
+  bar_LONGEST_EQUAL: Int
+  bar_LONGEST_GT: Int
+  bar_LONGEST_GTE: Int
+  bar_LONGEST_LT: Int
+  bar_LONGEST_LTE: Int
+  bar_LT: Int
+  bar_LTE: Int
+  bar_SHORTEST_EQUAL: Int
+  bar_SHORTEST_GT: Int
+  bar_SHORTEST_GTE: Int
+  bar_SHORTEST_LT: Int
+  bar_SHORTEST_LTE: Int
+  id_EQUAL: ID
+}
+
+input BMovieMoviesUpdateConnectionInput {
+  node: BMovieUpdateInput
+}
+
+input BMovieMoviesUpdateFieldInput {
+  connect: [BMovieMoviesConnectFieldInput!]
+  create: [BMovieMoviesCreateFieldInput!]
+  delete: [BMovieMoviesDeleteFieldInput!]
+  disconnect: [BMovieMoviesDisconnectFieldInput!]
+  update: BMovieMoviesUpdateConnectionInput
+  where: BMovieMoviesConnectionWhere
+}
+
+input BMovieOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more BMovieSort objects to sort BMovies by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [BMovieSort]
+}
+
+input BMovieRelationInput {
+  movies: [BMovieMoviesCreateFieldInput!]
+}
+
+"Fields to sort BMovies by. The order in which sorts are applied is not guaranteed when specifying many fields in one BMovieSort object."
+input BMovieSort {
+  bar: SortDirection
+  id: SortDirection
+}
+
+input BMovieUpdateInput {
+  bar: String
+  id: ID
+  movies: [BMovieMoviesUpdateFieldInput!]
+}
+
+input BMovieWhere {
+  AND: [BMovieWhere!]
+  OR: [BMovieWhere!]
+  bar: String
+  bar_CONTAINS: String
+  bar_ENDS_WITH: String
+  bar_IN: [String]
+  bar_NOT: String
+  bar_NOT_CONTAINS: String
+  bar_NOT_ENDS_WITH: String
+  bar_NOT_IN: [String]
+  bar_NOT_STARTS_WITH: String
+  bar_STARTS_WITH: String
+  id: ID
+  id_CONTAINS: ID
+  id_ENDS_WITH: ID
+  id_IN: [ID]
+  id_NOT: ID
+  id_NOT_CONTAINS: ID
+  id_NOT_ENDS_WITH: ID
+  id_NOT_IN: [ID]
+  id_NOT_STARTS_WITH: ID
+  id_STARTS_WITH: ID
+  movies: BMovieWhere
+  moviesAggregate: BMovieMoviesAggregateInput
+  moviesConnection: BMovieMoviesConnectionWhere
+  moviesConnection_NOT: BMovieMoviesConnectionWhere
+  movies_NOT: BMovieWhere
+}
+
+----

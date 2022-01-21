@@ -11,12 +11,12 @@ class Interface(
     val name: String,
     val description: Description? = null,
     val comments: List<Comment> = emptyList(),
-    fields: List<BaseField<Interface>>,
+    fields: List<BaseField>,
     val otherDirectives: List<Directive>,
     val interfaces: List<Interface>,
     val exclude: ExcludeDirective? = null,
     val auth: AuthDirective? = null,
-) : FieldContainer<BaseField<Interface>, Interface>(fields) {
+) : FieldContainer<BaseField, Interface>(fields) {
 
     var implementations: List<Node> = emptyList()
 

@@ -6,11 +6,11 @@ import org.neo4j.graphql.name
 /**
  * Representation of the `@cypher` directive and its meta.
  */
-class CypherField<OWNER: Any>(
+class CypherField(
     fieldName: String,
     typeMeta: TypeMeta,
     val statement: String,
-) : BaseField<OWNER>(
+) : BaseField(
     fieldName, typeMeta
 ) {
     fun isSortable() = sortableFields.contains(typeMeta.type.name())

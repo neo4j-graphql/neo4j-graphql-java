@@ -1,16 +1,16 @@
 package org.neo4j.graphql.domain.fields
 
-import org.neo4j.graphql.domain.Relationship
+import org.neo4j.graphql.domain.RelationshipProperties
 import org.neo4j.graphql.domain.TypeMeta
 
-class ConnectionField<OWNER: Any>(
+class ConnectionField(
     fieldName: String,
     typeMeta: TypeMeta,
-    val relationshipField: RelationField<OWNER>
-) : BaseField<OWNER>(
+    val relationshipField: RelationField
+) : BaseField(
     fieldName,
     typeMeta,
 ) {
-    val relationship: Relationship get() = relationshipField.relationship
-    val relationshipTypeName: String get() = relationship.name
+    val relationshipTypeName: String get() = relationshipField.name
+    val properties: RelationshipProperties? get() = relationshipField.properties
 }

@@ -15,7 +15,7 @@ import org.neo4j.graphql.isRequired
 /**
  * Representation a ObjectTypeDefinitionNode field.
  */
-abstract class BaseField<OWNER : Any>(
+abstract class BaseField(
     var fieldName: String,
     var typeMeta: TypeMeta,
 ) {
@@ -30,22 +30,10 @@ abstract class BaseField<OWNER : Any>(
     var ignored: Boolean = false
     var dbPropertyName: String = fieldName
     var unique: UniqueDirective? = null
-    lateinit var owner: OWNER
+    lateinit var owner: Any
 
     override fun toString(): String {
         return "Field: $fieldName"
-    }
-
-    val interfaceDefinition: BaseField<Interface>? by lazy {
-        @Suppress("UNCHECKED_CAST")
-        when (owner) {
-            is Interface -> this as BaseField<Interface>
-            is Node -> (owner as Node).interfaces
-                .asSequence()
-                .flatMap { it.fields }
-                .firstOrNull { it.fieldName == fieldName }
-            else -> null
-        }
     }
 
     open val generated: Boolean get() = false

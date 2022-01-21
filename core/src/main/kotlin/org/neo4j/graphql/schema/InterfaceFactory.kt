@@ -41,7 +41,7 @@ object InterfaceFactory {
             definition.name,
             definition.description,
             definition.comments,
-            FieldFactory.creteFields(
+            FieldFactory.createFields(
                 definition,
                 typeDefinitionRegistry,
                 relationshipPropertiesFactory,

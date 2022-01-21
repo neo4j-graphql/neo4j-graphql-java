@@ -3,8 +3,8 @@ package org.neo4j.graphql.domain.fields
 import org.neo4j.graphql.domain.TypeMeta
 import org.neo4j.graphql.domain.directives.TimestampDirective
 
-class TemporalField<OWNER: Any>(fieldName: String, typeMeta: TypeMeta) :
-    PrimitiveField<OWNER>(fieldName, typeMeta),
+class TemporalField(fieldName: String, typeMeta: TypeMeta) :
+    PrimitiveField(fieldName, typeMeta),
     ConstrainableField
 {
     // TODO rename field to `generateTimestampOperations`
