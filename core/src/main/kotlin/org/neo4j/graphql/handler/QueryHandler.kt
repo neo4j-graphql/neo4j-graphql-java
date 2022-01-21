@@ -3,7 +3,6 @@ package org.neo4j.graphql.handler
 import graphql.language.*
 import graphql.schema.DataFetcher
 import graphql.schema.DataFetchingEnvironment
-import graphql.schema.idl.TypeDefinitionRegistry
 import org.atteo.evo.inflector.English
 import org.neo4j.cypherdsl.core.Cypher.*
 import org.neo4j.cypherdsl.core.Statement
@@ -16,10 +15,7 @@ import org.neo4j.graphql.handler.filter.OptimizedFilterHandler
  */
 class QueryHandler private constructor(schemaConfig: SchemaConfig) : BaseDataFetcherForContainer(schemaConfig) {
 
-    class Factory(schemaConfig: SchemaConfig,
-            typeDefinitionRegistry: TypeDefinitionRegistry,
-            neo4jTypeDefinitionRegistry: TypeDefinitionRegistry
-    ) : AugmentationHandler(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry) {
+    class Factory(ctx: AugmentationContext) : AugmentationHandler(ctx) {
 
         override fun augmentType(type: ImplementingTypeDefinition<*>) {
             if (!canHandle(type)) {
@@ -63,7 +59,10 @@ class QueryHandler private constructor(schemaConfig: SchemaConfig) : BaseDataFet
             addQueryField(def)
         }
 
-        override fun createDataFetcher(operationType: OperationType, fieldDefinition: FieldDefinition): DataFetcher<Cypher>? {
+        override fun createDataFetcher(
+            operationType: OperationType,
+            fieldDefinition: FieldDefinition
+        ): DataFetcher<Cypher>? {
             if (operationType != OperationType.QUERY) {
                 return null
             }
@@ -111,15 +110,23 @@ class QueryHandler private constructor(schemaConfig: SchemaConfig) : BaseDataFet
                 .let { node -> node to match(node) }
         }
 
-        val ongoingReading = if ((env.getContext() as? QueryContext)?.optimizedQuery?.contains(QueryContext.OptimizationStrategy.FILTER_AS_MATCH) == true) {
+        val ongoingReading =
+            if ((env.getContext() as? QueryContext)?.optimizedQuery?.contains(QueryContext.OptimizationStrategy.FILTER_AS_MATCH) == true) {
 
-            OptimizedFilterHandler(type, schemaConfig).generateFilterQuery(variable, fieldDefinition, env.arguments, match, propertyContainer, env.variables)
+                OptimizedFilterHandler(type, schemaConfig).generateFilterQuery(
+                    variable,
+                    fieldDefinition,
+                    env.arguments,
+                    match,
+                    propertyContainer,
+                    env.variables
+                )
 
-        } else {
+            } else {
 
-            val where = where(propertyContainer, fieldDefinition, type, env.arguments, env.variables)
-            match.where(where)
-        }
+                val where = where(propertyContainer, fieldDefinition, type, env.arguments, env.variables)
+                match.where(where)
+            }
 
         val (projectionEntries, subQueries) = projectFields(propertyContainer, type, env)
         val mapProjection = propertyContainer.project(projectionEntries).`as`(field.aliasOrName())

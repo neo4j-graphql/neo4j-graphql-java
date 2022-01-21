@@ -5,7 +5,6 @@ import graphql.language.FieldDefinition
 import graphql.language.ImplementingTypeDefinition
 import graphql.language.InterfaceTypeDefinition
 import graphql.schema.*
-import graphql.schema.idl.TypeDefinitionRegistry
 import org.neo4j.cypherdsl.core.Cypher.name
 import org.neo4j.cypherdsl.core.Statement
 import org.neo4j.graphql.*
@@ -14,12 +13,10 @@ import org.neo4j.graphql.*
  * This class handles all the logic related to the creation of relations.
  * This includes the augmentation of the create&lt;Edge&gt;-mutator and the related cypher generation
  */
-class CreateRelationTypeHandler private constructor(schemaConfig: SchemaConfig) : BaseRelationHandler("create", schemaConfig) {
+class CreateRelationTypeHandler private constructor(schemaConfig: SchemaConfig) :
+    BaseRelationHandler("create", schemaConfig) {
 
-    class Factory(schemaConfig: SchemaConfig,
-            typeDefinitionRegistry: TypeDefinitionRegistry,
-            neo4jTypeDefinitionRegistry: TypeDefinitionRegistry
-    ) : AugmentationHandler(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry) {
+    class Factory(ctx: AugmentationContext) : AugmentationHandler(ctx) {
 
         override fun augmentType(type: ImplementingTypeDefinition<*>) {
             if (!canHandle(type)) {
@@ -38,14 +35,17 @@ class CreateRelationTypeHandler private constructor(schemaConfig: SchemaConfig) 
                 .filter { it.name != endIdField.argumentName }
 
             val builder =
-                    buildFieldDefinition("create", type, createArgs, nullableResult = false)
-                        .inputValueDefinition(input(startIdField.argumentName, startIdField.field.type))
-                        .inputValueDefinition(input(endIdField.argumentName, endIdField.field.type))
+                buildFieldDefinition("create", type, createArgs, nullableResult = false)
+                    .inputValueDefinition(input(startIdField.argumentName, startIdField.field.type))
+                    .inputValueDefinition(input(endIdField.argumentName, endIdField.field.type))
 
             addMutationField(builder.build())
         }
 
-        override fun createDataFetcher(operationType: OperationType, fieldDefinition: FieldDefinition): DataFetcher<Cypher>? {
+        override fun createDataFetcher(
+            operationType: OperationType,
+            fieldDefinition: FieldDefinition
+        ): DataFetcher<Cypher>? {
             if (operationType != OperationType.MUTATION) {
                 return null
             }
@@ -92,17 +92,20 @@ class CreateRelationTypeHandler private constructor(schemaConfig: SchemaConfig) 
 
 
         data class RelatedField(
-                val argumentName: String,
-                val field: FieldDefinition,
+            val argumentName: String,
+            val field: FieldDefinition,
         )
 
-        private fun getRelatedIdField(info: RelationshipInfo<ImplementingTypeDefinition<*>>, relFieldName: String?): RelatedField? {
+        private fun getRelatedIdField(
+            info: RelationshipInfo<ImplementingTypeDefinition<*>>,
+            relFieldName: String?
+        ): RelatedField? {
             if (relFieldName == null) return null
             val relFieldDefinition = info.type.getFieldDefinition(relFieldName)
-                    ?: throw IllegalArgumentException("field $relFieldName does not exists on ${info.typeName}")
+                ?: throw IllegalArgumentException("field $relFieldName does not exists on ${info.typeName}")
 
             val relType = relFieldDefinition.type.inner().resolve() as? ImplementingTypeDefinition<*>
-                    ?: throw IllegalArgumentException("type ${relFieldDefinition.type.name()} not found")
+                ?: throw IllegalArgumentException("type ${relFieldDefinition.type.name()} not found")
             return relType.fieldDefinitions
                 .filterNot { it.isIgnored() }
                 .filter { it.type.inner().isID() }
@@ -114,19 +117,19 @@ class CreateRelationTypeHandler private constructor(schemaConfig: SchemaConfig) 
 
     private fun getRelatedIdField(info: RelationshipInfo<GraphQLFieldsContainer>, relFieldName: String): RelatedField {
         val relFieldDefinition = info.type.getRelevantFieldDefinition(relFieldName)
-                ?: throw IllegalArgumentException("field $relFieldName does not exists on ${info.typeName}")
+            ?: throw IllegalArgumentException("field $relFieldName does not exists on ${info.typeName}")
 
         val relType = relFieldDefinition.type.inner() as? GraphQLImplementingType
-                ?: throw IllegalArgumentException("type ${relFieldDefinition.type.name()} not found")
+            ?: throw IllegalArgumentException("type ${relFieldDefinition.type.name()} not found")
         return relType.getRelevantFieldDefinitions().filter { it.isID() }
             .map { RelatedField(normalizeFieldName(relFieldName, it.name), it, relType) }
             .firstOrNull()
-                ?: throw IllegalStateException("Cannot find id field for type ${info.typeName}")
+            ?: throw IllegalStateException("Cannot find id field for type ${info.typeName}")
     }
 
     override fun initRelation(fieldDefinition: GraphQLFieldDefinition) {
         relation = type.relationship()
-                ?: throw IllegalStateException("Cannot resolve relationship for type ${type.name}")
+            ?: throw IllegalStateException("Cannot resolve relationship for type ${type.name}")
         startId = getRelatedIdField(relation, relation.startField)
         endId = getRelatedIdField(relation, relation.endField)
     }

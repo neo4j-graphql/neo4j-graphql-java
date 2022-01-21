@@ -1,9 +1,10 @@
 package org.neo4j.graphql.schema
 
 import graphql.language.*
-import graphql.schema.DataFetcher
-import graphql.schema.idl.TypeDefinitionRegistry
 import org.neo4j.graphql.*
+import org.neo4j.graphql.AugmentationBase.Companion.addNonLibDirectives
+import org.neo4j.graphql.AugmentationBase.Companion.field
+import org.neo4j.graphql.AugmentationBase.Companion.inputValue
 import org.neo4j.graphql.Constants.FORBIDDEN_RELATIONSHIP_PROPERTY_DIRECTIVES
 import org.neo4j.graphql.Constants.RESERVED_INTERFACE_FIELDS
 import org.neo4j.graphql.DirectiveConstants.AUTH
@@ -16,18 +17,12 @@ import org.neo4j.graphql.domain.fields.*
 import org.neo4j.graphql.merge.TypeDefinitionRegistryMerger
 import java.util.concurrent.ConcurrentHashMap
 
-class Test(
-    typeDefinitionRegistry: TypeDefinitionRegistry,
-    neo4jTypeDefinitionRegistry: TypeDefinitionRegistry
-) : AugmentationHandler(SchemaConfig(), typeDefinitionRegistry, neo4jTypeDefinitionRegistry) {
+class Test(ctx: AugmentationContext) : BaseAugmentationV2(ctx) {
 
-    private val relationAugmentationTypesFactory = RelationAugmentationTypesFactory(
-        schemaConfig,
-        typeDefinitionRegistry,
-        neo4jTypeDefinitionRegistry
-    )
     private val relationshipFields = mutableMapOf<String, RelationshipProperties?>()
     private val interfaces = ConcurrentHashMap<String, Interface?>()
+
+    val typeDefinitionRegistry get() = ctx.typeDefinitionRegistry
 
     fun augment() {
         TypeDefinitionRegistryMerger.mergeExtensions(typeDefinitionRegistry)
@@ -92,7 +87,7 @@ class Test(
         typeDefinitionRegistry.getTypeByName<ObjectTypeDefinition>(node.name)?.let { typeDefinitionRegistry.remove(it) }
 
         fun addWhere(args: MutableList<InputValueDefinition>) {
-            relationAugmentationTypesFactory.addWhereType(node)
+            generateWhereIT(node)
                 ?.let { args += inputValue(Constants.WHERE, it.asType()) }
         }
 
@@ -116,7 +111,7 @@ class Test(
         }
 
         if (node.exclude?.operations?.contains(ExcludeDirective.ExcludeOperation.CREATE) != true) {
-            relationAugmentationTypesFactory.addCreateInputType(node)?.let { inputType ->
+            generateContainerCreateInputIT(node)?.let { inputType ->
                 val responseType = addResponseType("Create", node)
                 addMutationField("create" + node.plural, responseType.asRequiredType()) { args ->
                     args += inputValue(Constants.INPUT_FIELD, NonNullType(ListType(inputType.asRequiredType())))
@@ -127,7 +122,7 @@ class Test(
         if (node.exclude?.operations?.contains(ExcludeDirective.ExcludeOperation.DELETE) != true) {
             addMutationField("delete" + node.plural, Constants.Types.DeleteInfo.makeRequired()) { args ->
                 addWhere(args)
-                relationAugmentationTypesFactory.addRelationDeleteInputField(node.name, node.relationFields)
+                generateContainerDeleteInputIT(node)
                     ?.let { args += inputValue(Constants.DELETE_FIELD, it.asType()) }
             }
         }
@@ -136,22 +131,22 @@ class Test(
             val responseType = addResponseType("Update", node)
             addMutationField("update" + node.plural, responseType.asRequiredType()) { args ->
                 addWhere(args)
-                relationAugmentationTypesFactory.addUpdateInputType(node)
+                generateContainerUpdateIT(node)
                     ?.let { args += inputValue(Constants.UPDATE_FIELD, it.asType()) }
 
-                relationAugmentationTypesFactory.addRelationConnectInputField(node.name, node.relationFields)
+                generateContainerConnectInputIT(node)
                     ?.let { args += inputValue(Constants.CONNECT_FIELD, it.asType()) }
 
-                relationAugmentationTypesFactory.addRelationDisconnectInputField(node.name, node.relationFields)
+                generateContainerDisconnectInputIT(node)
                     ?.let { args += inputValue(Constants.DISCONNECT_FIELD, it.asType()) }
 
-                relationAugmentationTypesFactory.addRelationInputField(node.name, node.relationFields)
+                generateContainerRelationCreateInputIT(node)
                     ?.let { args += inputValue(Constants.CREATE_FIELD, it.asType()) }
 
-                relationAugmentationTypesFactory.addRelationDeleteInputField(node.name, node.relationFields)
+                generateContainerDeleteInputIT(node)
                     ?.let { args += inputValue(Constants.DELETE_FIELD, it.asType()) }
 
-                relationAugmentationTypesFactory.addRelationConnectOrCreateInputField(node.name, node.relationFields)
+                generateContainerConnectOrCreateInputIT(node)
                     ?.let { args += inputValue(Constants.CONNECT_OR_CREATE_FIELD, it.asType()) }
             }
         }
@@ -200,7 +195,7 @@ class Test(
                                 field
                             )
                         fields += field(field.fieldName + "Aggregate", aggr.asType()) {
-                            relationAugmentationTypesFactory.addWhereType(field)?.let {
+                            generateWhereIT(field)?.let {
                                 inputValueDefinition(inputValue(Constants.WHERE, it.asType()))
                             }
                         }
@@ -216,7 +211,7 @@ class Test(
             else -> field.typeMeta.type
         }
         if (field is RelationField) {
-            relationAugmentationTypesFactory.addWhereType(field)?.let {
+            generateWhereIT(field)?.let {
                 args += inputValue(Constants.WHERE, it.asType())
             }
             val optionType = when {
@@ -230,7 +225,7 @@ class Test(
             args += inputValue(Constants.OPTIONS, optionType)
         }
         if (field is ConnectionField) {
-            relationAugmentationTypesFactory.addConnectionWhereType(field)
+            generateConnectionWhereIT(field)
                 ?.let { args += inputValue(Constants.WHERE, it.asType()) }
             field.relationshipField.node?.let {
                 args += inputValue(Constants.FIRST, Constants.Types.Int)
@@ -308,7 +303,7 @@ class Test(
     }
 
 
-    // TODO move into org.neo4j.graphql.schema.RelationAugmentationTypesFactory
+    // TODO move into org.neo4j.graphql.schema.relations.RelationAugmentationTypesFactory
     private fun getConnectionSortType(field: ConnectionField) =
         getOrCreateInputObjectType(field.typeMeta.type.name() + "Sort") { fields, _ ->
             field.relationshipField.properties
@@ -337,13 +332,6 @@ class Test(
             }
         )
 
-
-    override fun createDataFetcher(
-        operationType: OperationType,
-        fieldDefinition: FieldDefinition
-    ): DataFetcher<Cypher>? {
-        TODO("Not yet implemented")
-    }
 
     private fun createModel(): Model {
         val queryTypeName = typeDefinitionRegistry.queryTypeName()
@@ -432,4 +420,56 @@ class Test(
         }
     }
 
+    private fun addFulltextQueryType(node: Node) = node.fulltextDirective?.indexes?.let { indexes ->
+        addInputObjectType("${node.name}Fulltext",
+            indexes.map { index ->
+                val indexType = addInputObjectType(
+                    "${node.name}${index.name.capitalize()}Fulltext",
+                    inputValue("phrase", NonNullType(Constants.Types.String)),
+                    // TODO normalize operation?
+                    inputValue("score_EQUAL", Constants.Types.Int),
+                )
+                inputValue(index.name, TypeName(indexType))
+            }
+        )
+    }
+
+    private fun addAggregationSelectionType(node: Node): String {
+        return getOrCreateObjectType("${node.name}AggregateSelection") { fields, _ ->
+            fields += field(Constants.COUNT, NonNullType(Constants.Types.Int))
+            fields += node.fields
+                .filterIsInstance<PrimitiveField>()
+                .filterNot { it.typeMeta.type.isList() }
+                .mapNotNull { field ->
+                    getOrCreateAggregationType(field.typeMeta.type)?.let { field(field.fieldName, NonNullType(it)) }
+                }
+        } ?: throw IllegalStateException("Expected at least the count field")
+    }
+
+    private fun getOrCreateAggregationType(type: Type<*>): Type<*>? {
+        val name = "${type.name()}AggregateSelection"
+        ctx.neo4jTypeDefinitionRegistry.getUnwrappedType(name) ?: return null
+        return TypeName(name)
+    }
+
+    private fun addOptions(node: Node) = getOrCreateInputObjectType("${node.name}Options") { fields, _ ->
+        fields += inputValue(Constants.LIMIT, Constants.Types.Int)
+        fields += inputValue(Constants.OFFSET, Constants.Types.Int)
+        addSort(node)?.let {
+            fields += inputValue(
+                Constants.SORT,
+                ListType(it.asType()) // TODO make required https://github.com/neo4j/graphql/issues/809
+            ) {
+                description("Specify one or more ${node.name}Sort objects to sort ${node.plural} by. The sorts will be applied in the order in which they are arranged in the array.".asDescription())
+            }
+        }
+    } ?: throw IllegalStateException("at least the paging fields should be present")
+
+
+    private fun addSort(node: Node) = getOrCreateInputObjectType("${node.name}Sort",
+        init = { description("Fields to sort ${node.plural} by. The order in which sorts are applied is not guaranteed when specifying many fields in one ${node.name}Sort object.".asDescription()) },
+        initFields = { fields, _ ->
+            node.sortableFields.forEach { fields += inputValue(it.fieldName, Constants.Types.SortDirection) }
+        }
+    )
 }

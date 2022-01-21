@@ -7,7 +7,6 @@ import graphql.language.InterfaceTypeDefinition
 import graphql.schema.DataFetcher
 import graphql.schema.DataFetchingEnvironment
 import graphql.schema.GraphQLObjectType
-import graphql.schema.idl.TypeDefinitionRegistry
 import org.neo4j.cypherdsl.core.Statement
 import org.neo4j.graphql.*
 
@@ -17,10 +16,7 @@ import org.neo4j.graphql.*
  */
 class CreateTypeHandler private constructor(schemaConfig: SchemaConfig) : BaseDataFetcherForContainer(schemaConfig) {
 
-    class Factory(schemaConfig: SchemaConfig,
-            typeDefinitionRegistry: TypeDefinitionRegistry,
-            neo4jTypeDefinitionRegistry: TypeDefinitionRegistry
-    ) : AugmentationHandler(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry) {
+    class Factory(ctx: AugmentationContext) : AugmentationHandler(ctx) {
 
         override fun augmentType(type: ImplementingTypeDefinition<*>) {
             if (!canHandle(type)) {
@@ -33,7 +29,10 @@ class CreateTypeHandler private constructor(schemaConfig: SchemaConfig) : BaseDa
             addMutationField(fieldDefinition)
         }
 
-        override fun createDataFetcher(operationType: OperationType, fieldDefinition: FieldDefinition): DataFetcher<Cypher>? {
+        override fun createDataFetcher(
+            operationType: OperationType,
+            fieldDefinition: FieldDefinition
+        ): DataFetcher<Cypher>? {
             if (operationType != OperationType.MUTATION) {
                 return null
             }

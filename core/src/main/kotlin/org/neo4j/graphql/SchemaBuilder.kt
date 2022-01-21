@@ -13,7 +13,6 @@ import org.neo4j.graphql.handler.projection.ProjectionBase
 import org.neo4j.graphql.handler.relation.CreateRelationHandler
 import org.neo4j.graphql.handler.relation.CreateRelationTypeHandler
 import org.neo4j.graphql.handler.relation.DeleteRelationHandler
-import org.neo4j.graphql.merge.TypeDefinitionRegistryMerger
 import org.neo4j.graphql.schema.Test
 
 /**
@@ -89,21 +88,23 @@ class SchemaBuilder(
     init {
         neo4jTypeDefinitionRegistry = getNeo4jEnhancements()
         ensureRootQueryTypeExists(typeDefinitionRegistry)
+        val ctx = AugmentationContext(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry)
+
         handler = mutableListOf(
-            CypherDirectiveHandler.Factory(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry),
-            AugmentFieldHandler(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry)
+            CypherDirectiveHandler.Factory(ctx),
+            AugmentFieldHandler(ctx)
         )
         if (schemaConfig.query.enabled) {
-            handler.add(QueryHandler.Factory(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry))
+            handler.add(QueryHandler.Factory(ctx))
         }
         if (schemaConfig.mutation.enabled) {
             handler += listOf(
-                MergeOrUpdateHandler.Factory(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry),
-                DeleteHandler.Factory(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry),
-                CreateTypeHandler.Factory(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry),
-                DeleteRelationHandler.Factory(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry),
-                CreateRelationTypeHandler.Factory(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry),
-                CreateRelationHandler.Factory(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry)
+                MergeOrUpdateHandler.Factory(ctx),
+                DeleteHandler.Factory(ctx),
+                CreateTypeHandler.Factory(ctx),
+                DeleteRelationHandler.Factory(ctx),
+                CreateRelationTypeHandler.Factory(ctx),
+                CreateRelationHandler.Factory(ctx)
             )
         }
     }
@@ -118,7 +119,8 @@ class SchemaBuilder(
         val mutationTypeName = typeDefinitionRegistry.mutationTypeName()
         val subscriptionTypeName = typeDefinitionRegistry.subscriptionTypeName()
 
-        Test(typeDefinitionRegistry, neo4jTypeDefinitionRegistry).augment()
+        val ctx = AugmentationContext(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry)
+        Test(ctx).augment()
 
 
 //        typeDefinitionRegistry.types().values

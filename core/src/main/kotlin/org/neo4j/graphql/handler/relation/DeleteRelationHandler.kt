@@ -4,23 +4,17 @@ import graphql.language.Field
 import graphql.language.ImplementingTypeDefinition
 import graphql.schema.DataFetcher
 import graphql.schema.DataFetchingEnvironment
-import graphql.schema.idl.TypeDefinitionRegistry
 import org.neo4j.cypherdsl.core.Statement
-import org.neo4j.graphql.Cypher
-import org.neo4j.graphql.SchemaConfig
-import org.neo4j.graphql.aliasOrName
-import org.neo4j.graphql.withSubQueries
+import org.neo4j.graphql.*
 
 /**
  * This class handles all the logic related to the deletion of relations starting from an existing node.
  * This includes the augmentation of the delete&lt;Edge&gt;-mutator and the related cypher generation
  */
-class DeleteRelationHandler private constructor(schemaConfig: SchemaConfig) : BaseRelationHandler("delete", schemaConfig) {
+class DeleteRelationHandler private constructor(schemaConfig: SchemaConfig) :
+    BaseRelationHandler("delete", schemaConfig) {
 
-    class Factory(schemaConfig: SchemaConfig,
-            typeDefinitionRegistry: TypeDefinitionRegistry,
-            neo4jTypeDefinitionRegistry: TypeDefinitionRegistry
-    ) : BaseRelationFactory("delete", schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry) {
+    class Factory(ctx: AugmentationContext) : BaseRelationFactory("delete", ctx) {
 
         override fun augmentType(type: ImplementingTypeDefinition<*>) {
 

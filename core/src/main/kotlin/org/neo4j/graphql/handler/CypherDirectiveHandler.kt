@@ -5,7 +5,6 @@ import graphql.language.FieldDefinition
 import graphql.schema.DataFetcher
 import graphql.schema.DataFetchingEnvironment
 import graphql.schema.GraphQLFieldsContainer
-import graphql.schema.idl.TypeDefinitionRegistry
 import org.neo4j.cypherdsl.core.Statement
 import org.neo4j.graphql.*
 
@@ -14,12 +13,12 @@ import org.neo4j.graphql.*
  */
 class CypherDirectiveHandler(schemaConfig: SchemaConfig) : BaseDataFetcher(schemaConfig) {
 
-    class Factory(schemaConfig: SchemaConfig,
-            typeDefinitionRegistry: TypeDefinitionRegistry,
-            neo4jTypeDefinitionRegistry: TypeDefinitionRegistry
-    ) : AugmentationHandler(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry) {
+    class Factory(ctx: AugmentationContext) : AugmentationHandler(ctx) {
 
-        override fun createDataFetcher(operationType: OperationType, fieldDefinition: FieldDefinition): DataFetcher<Cypher>? {
+        override fun createDataFetcher(
+            operationType: OperationType,
+            fieldDefinition: FieldDefinition
+        ): DataFetcher<Cypher>? {
             fieldDefinition.cypherDirective() ?: return null
             return CypherDirectiveHandler(schemaConfig)
         }
@@ -29,7 +28,7 @@ class CypherDirectiveHandler(schemaConfig: SchemaConfig) : BaseDataFetcher(schem
         val fieldDefinition = env.fieldDefinition
         val type = fieldDefinition.type.inner() as? GraphQLFieldsContainer
         val cypherDirective = fieldDefinition.cypherDirective()
-                ?: throw IllegalStateException("Expect field ${env.logField()} to have @cypher directive present")
+            ?: throw IllegalStateException("Expect field ${env.logField()} to have @cypher directive present")
 
         val node = org.neo4j.cypherdsl.core.Cypher.anyNode(variable)
         val ctxVariable = node.requiredSymbolicName

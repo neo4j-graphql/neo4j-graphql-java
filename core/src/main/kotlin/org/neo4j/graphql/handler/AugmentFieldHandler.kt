@@ -2,21 +2,17 @@ package org.neo4j.graphql.handler
 
 import graphql.language.*
 import graphql.schema.DataFetcher
-import graphql.schema.idl.TypeDefinitionRegistry
 import org.neo4j.graphql.*
 import org.neo4j.graphql.handler.projection.ProjectionBase
 
 /**
  * This class augments existing fields on a type and adds filtering and sorting to these fields.
  */
-class AugmentFieldHandler(
-        schemaConfig: SchemaConfig,
-        typeDefinitionRegistry: TypeDefinitionRegistry,
-        neo4jTypeDefinitionRegistry: TypeDefinitionRegistry
-) : AugmentationHandler(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry) {
+class AugmentFieldHandler(ctx: AugmentationContext) : AugmentationHandler(ctx) {
 
     override fun augmentType(type: ImplementingTypeDefinition<*>) {
-        val enhanceRelations = { type.fieldDefinitions.map { fieldDef -> fieldDef.transform { augmentRelation(it, fieldDef) } } }
+        val enhanceRelations =
+            { type.fieldDefinitions.map { fieldDef -> fieldDef.transform { augmentRelation(it, fieldDef) } } }
 
         val rewritten = when (type) {
             is ObjectTypeDefinition -> type.transform { it.fieldDefinitions(enhanceRelations()) }
@@ -56,7 +52,10 @@ class AugmentFieldHandler(
                     fieldBuilder.inputValueDefinition(input(ProjectionBase.ORDER_BY, orderType))
                 }
             }
-            if (!schemaConfig.useWhereFilter && schemaConfig.query.enabled && !schemaConfig.query.exclude.contains(fieldType.name)) {
+            if (!schemaConfig.useWhereFilter && schemaConfig.query.enabled && !schemaConfig.query.exclude.contains(
+                    fieldType.name
+                )
+            ) {
                 // legacy support
                 val relevantFields = fieldType
                     .getScalarFields()
@@ -76,6 +75,9 @@ class AugmentFieldHandler(
 
     }
 
-    override fun createDataFetcher(operationType: OperationType, fieldDefinition: FieldDefinition): DataFetcher<Cypher>? = null
+    override fun createDataFetcher(
+        operationType: OperationType,
+        fieldDefinition: FieldDefinition
+    ): DataFetcher<Cypher>? = null
 }
 

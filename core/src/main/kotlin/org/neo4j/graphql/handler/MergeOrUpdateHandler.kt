@@ -7,7 +7,6 @@ import graphql.schema.DataFetcher
 import graphql.schema.DataFetchingEnvironment
 import graphql.schema.GraphQLFieldDefinition
 import graphql.schema.GraphQLType
-import graphql.schema.idl.TypeDefinitionRegistry
 import org.neo4j.cypherdsl.core.Node
 import org.neo4j.cypherdsl.core.Relationship
 import org.neo4j.cypherdsl.core.Statement
@@ -17,15 +16,13 @@ import org.neo4j.graphql.*
  * This class handles all the logic related to the updating of nodes.
  * This includes the augmentation of the update&lt;Node&gt; and merge&lt;Node&gt;-mutator and the related cypher generation
  */
-class MergeOrUpdateHandler private constructor(private val merge: Boolean, schemaConfig: SchemaConfig) : BaseDataFetcherForContainer(schemaConfig) {
+class MergeOrUpdateHandler private constructor(private val merge: Boolean, schemaConfig: SchemaConfig) :
+    BaseDataFetcherForContainer(schemaConfig) {
 
     private lateinit var idField: GraphQLFieldDefinition
     private var isRelation: Boolean = false
 
-    class Factory(schemaConfig: SchemaConfig,
-            typeDefinitionRegistry: TypeDefinitionRegistry,
-            neo4jTypeDefinitionRegistry: TypeDefinitionRegistry
-    ) : AugmentationHandler(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry) {
+    class Factory(ctx: AugmentationContext) : AugmentationHandler(ctx) {
 
         override fun augmentType(type: ImplementingTypeDefinition<*>) {
             if (!canHandle(type)) {
@@ -34,18 +31,31 @@ class MergeOrUpdateHandler private constructor(private val merge: Boolean, schem
 
             val relevantFields = type.getScalarFields()
             val idField = type.getIdField()
-                    ?: throw IllegalStateException("Cannot resolve id field for type ${type.name}")
+                ?: throw IllegalStateException("Cannot resolve id field for type ${type.name}")
 
-            val mergeField = buildFieldDefinition("merge", type, relevantFields, nullableResult = false, forceOptionalProvider = { it != idField })
+            val mergeField = buildFieldDefinition(
+                "merge",
+                type,
+                relevantFields,
+                nullableResult = false,
+                forceOptionalProvider = { it != idField })
                 .build()
             addMutationField(mergeField)
 
-            val updateField = buildFieldDefinition("update", type, relevantFields, nullableResult = true, forceOptionalProvider = { it != idField })
+            val updateField = buildFieldDefinition(
+                "update",
+                type,
+                relevantFields,
+                nullableResult = true,
+                forceOptionalProvider = { it != idField })
                 .build()
             addMutationField(updateField)
         }
 
-        override fun createDataFetcher(operationType: OperationType, fieldDefinition: FieldDefinition): DataFetcher<Cypher>? {
+        override fun createDataFetcher(
+            operationType: OperationType,
+            fieldDefinition: FieldDefinition
+        ): DataFetcher<Cypher>? {
             if (operationType != OperationType.MUTATION) {
                 return null
             }
@@ -98,7 +108,7 @@ class MergeOrUpdateHandler private constructor(private val merge: Boolean, schem
 
         val select = if (isRelation) {
             val rel = propertyContainer as? Relationship
-                    ?: throw IllegalStateException("Expect a Relationship but got ${propertyContainer.javaClass.name}")
+                ?: throw IllegalStateException("Expect a Relationship but got ${propertyContainer.javaClass.name}")
             if (merge && !idField.isNativeId()) {
                 org.neo4j.cypherdsl.core.Cypher.merge(rel)
                 // where is skipped since it does not make sense on merge
@@ -107,7 +117,7 @@ class MergeOrUpdateHandler private constructor(private val merge: Boolean, schem
             }
         } else {
             val node = propertyContainer as? Node
-                    ?: throw IllegalStateException("Expect a Node but got ${propertyContainer.javaClass.name}")
+                ?: throw IllegalStateException("Expect a Node but got ${propertyContainer.javaClass.name}")
             if (merge && !idField.isNativeId()) {
                 org.neo4j.cypherdsl.core.Cypher.merge(node)
                 // where is skipped since it does not make sense on merge
