@@ -1,9 +1,11 @@
 package org.neo4j.graphql.schema.relations
 
-import org.neo4j.graphql.*
-import org.neo4j.graphql.AugmentationBase.Companion.inputValue
+import org.neo4j.graphql.AugmentationContext
+import org.neo4j.graphql.asType
+import org.neo4j.graphql.capitalize
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.fields.RelationField
+import org.neo4j.graphql.name
 
 /**
  * Augmentation for relations referencing a union

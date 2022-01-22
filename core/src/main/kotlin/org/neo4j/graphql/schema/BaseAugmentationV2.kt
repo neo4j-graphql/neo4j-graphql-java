@@ -2,10 +2,7 @@ package org.neo4j.graphql.schema
 
 import graphql.language.InputValueDefinition
 import graphql.language.ListType
-import graphql.language.TypeName
 import org.neo4j.graphql.*
-import org.neo4j.graphql.AugmentationBase.Companion.inputValue
-import org.neo4j.graphql.AugmentationBase.Companion.wrapType
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.RelationshipProperties
 import org.neo4j.graphql.domain.fields.*

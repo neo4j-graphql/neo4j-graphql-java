@@ -3,8 +3,6 @@ package org.neo4j.graphql.schema.relations
 import graphql.language.InputValueDefinition
 import graphql.language.ListType
 import org.neo4j.graphql.*
-import org.neo4j.graphql.AugmentationBase.Companion.inputValue
-import org.neo4j.graphql.AugmentationBase.Companion.wrapType
 import org.neo4j.graphql.domain.Interface
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.fields.RelationField

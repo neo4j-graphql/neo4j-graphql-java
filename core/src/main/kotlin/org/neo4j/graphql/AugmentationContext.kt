@@ -2,7 +2,6 @@ package org.neo4j.graphql
 
 import graphql.language.*
 import graphql.schema.idl.TypeDefinitionRegistry
-import org.neo4j.graphql.AugmentationBase.Companion.inputObjectType
 import org.neo4j.graphql.domain.fields.RelationField
 
 interface AugmentationBase {
@@ -67,128 +66,127 @@ interface AugmentationBase {
         initFields: (fields: MutableList<FieldDefinition>, name: String) -> Unit,
     ): String?
 
-    companion object {
-        fun objectType(init: ObjectTypeDefinition.Builder.() -> Unit): ObjectTypeDefinition {
-            val type = ObjectTypeDefinition.newObjectTypeDefinition()
-            type.init()
-            return type.build()
-        }
-
-        fun inputObjectType(
-            name: String,
-            vararg fields: InputValueDefinition,
-            init: (InputObjectTypeDefinition.Builder.() -> Unit)? = null
-        ): InputObjectTypeDefinition = inputObjectType(name, fields.asList(), init)
-
-        fun inputObjectType(
-            name: String,
-            fields: List<InputValueDefinition>,
-            init: (InputObjectTypeDefinition.Builder.() -> Unit)? = null
-        ): InputObjectTypeDefinition {
-            val type = InputObjectTypeDefinition.newInputObjectDefinition()
-            type.name(name)
-            type.inputValueDefinitions(fields)
-            init?.let { type.it() }
-            return type.build()
-        }
-
-        fun inputObjectType(
-            template: InputObjectTypeDefinition,
-            init: InputObjectTypeDefinition.Builder.() -> Unit
-        ): InputObjectTypeDefinition {
-            return template.transform(init)
-        }
-
-        fun objectType(
-            name: String,
-            vararg fields: FieldDefinition,
-            init: (ObjectTypeDefinition.Builder.() -> Unit)? = null
-        ): ObjectTypeDefinition = objectType(name, fields.asList(), init)
-
-        fun objectType(
-            name: String,
-            fields: List<FieldDefinition>,
-            init: (ObjectTypeDefinition.Builder.() -> Unit)? = null
-        ): ObjectTypeDefinition {
-            val type = ObjectTypeDefinition.newObjectTypeDefinition()
-            type.name(name)
-            type.fieldDefinitions(fields)
-            init?.let { type.it() }
-            return type.build()
-        }
-
-        fun interfaceType(
-            name: String,
-            fields: List<FieldDefinition>,
-            init: (InterfaceTypeDefinition.Builder.() -> Unit)? = null
-        ): InterfaceTypeDefinition {
-            val type = InterfaceTypeDefinition.newInterfaceTypeDefinition()
-            type.name(name)
-            type.definitions(fields)
-            init?.let { type.it() }
-            return type.build()
-        }
-
-        fun objectType(
-            template: ObjectTypeDefinition,
-            init: ObjectTypeDefinition.Builder.() -> Unit
-        ): ObjectTypeDefinition {
-            return template.transform(init)
-        }
-
-
-        fun inputValue(
-            name: String,
-            type: Type<*>,
-            init: (InputValueDefinition.Builder.() -> Unit)? = null
-        ): InputValueDefinition {
-            val input = InputValueDefinition.newInputValueDefinition()
-            input.name(name)
-            input.type(type)
-            init?.let { input.it() }
-            return input.build()
-        }
-
-        fun field(
-            name: String,
-            type: Type<*>,
-            args: List<InputValueDefinition> = emptyList(),
-            init: (FieldDefinition.Builder.() -> Unit)? = null
-        ): FieldDefinition {
-            val field = FieldDefinition.newFieldDefinition()
-            field.name(name)
-            field.type(type)
-            field.inputValueDefinitions(args)
-            init?.let { field.it() }
-            return field.build()
-        }
-
-        fun inputValue(
-            template: InputValueDefinition,
-            init: InputValueDefinition.Builder.() -> Unit
-        ): InputValueDefinition {
-            return template.transform(init)
-        }
-
-        fun ObjectTypeDefinition.Builder.description(text: String) = description(text.asDescription())
-
-        fun ObjectTypeDefinition.Builder.field(init: FieldDefinition.Builder.() -> Unit): FieldDefinition {
-            val type = FieldDefinition.newFieldDefinition()
-            type.init()
-            val build = type.build()
-            this.fieldDefinition(build)
-            return build
-        }
-
-        fun String.wrapType(rel: RelationField) = when {
-            rel.typeMeta.type.isList() -> ListType(this.asRequiredType())
-            else -> this.asType()
-        }
-
-        fun NodeDirectivesBuilder.addNonLibDirectives(directivesContainer: DirectivesContainer<*>) {
-            this.directives(directivesContainer.directives.filterNot { DirectiveConstants.LIB_DIRECTIVES.contains(it.name) })
-        }
+    fun objectType(init: ObjectTypeDefinition.Builder.() -> Unit): ObjectTypeDefinition {
+        val type = ObjectTypeDefinition.newObjectTypeDefinition()
+        type.init()
+        return type.build()
     }
+
+    fun inputObjectType(
+        name: String,
+        vararg fields: InputValueDefinition,
+        init: (InputObjectTypeDefinition.Builder.() -> Unit)? = null
+    ): InputObjectTypeDefinition = inputObjectType(name, fields.asList(), init)
+
+    fun inputObjectType(
+        name: String,
+        fields: List<InputValueDefinition>,
+        init: (InputObjectTypeDefinition.Builder.() -> Unit)? = null
+    ): InputObjectTypeDefinition {
+        val type = InputObjectTypeDefinition.newInputObjectDefinition()
+        type.name(name)
+        type.inputValueDefinitions(fields)
+        init?.let { type.it() }
+        return type.build()
+    }
+
+    fun inputObjectType(
+        template: InputObjectTypeDefinition,
+        init: InputObjectTypeDefinition.Builder.() -> Unit
+    ): InputObjectTypeDefinition {
+        return template.transform(init)
+    }
+
+    fun objectType(
+        name: String,
+        vararg fields: FieldDefinition,
+        init: (ObjectTypeDefinition.Builder.() -> Unit)? = null
+    ): ObjectTypeDefinition = objectType(name, fields.asList(), init)
+
+    fun objectType(
+        name: String,
+        fields: List<FieldDefinition>,
+        init: (ObjectTypeDefinition.Builder.() -> Unit)? = null
+    ): ObjectTypeDefinition {
+        val type = ObjectTypeDefinition.newObjectTypeDefinition()
+        type.name(name)
+        type.fieldDefinitions(fields)
+        init?.let { type.it() }
+        return type.build()
+    }
+
+    fun interfaceType(
+        name: String,
+        fields: List<FieldDefinition>,
+        init: (InterfaceTypeDefinition.Builder.() -> Unit)? = null
+    ): InterfaceTypeDefinition {
+        val type = InterfaceTypeDefinition.newInterfaceTypeDefinition()
+        type.name(name)
+        type.definitions(fields)
+        init?.let { type.it() }
+        return type.build()
+    }
+
+    fun objectType(
+        template: ObjectTypeDefinition,
+        init: ObjectTypeDefinition.Builder.() -> Unit
+    ): ObjectTypeDefinition {
+        return template.transform(init)
+    }
+
+
+    fun inputValue(
+        name: String,
+        type: Type<*>,
+        init: (InputValueDefinition.Builder.() -> Unit)? = null
+    ): InputValueDefinition {
+        val input = InputValueDefinition.newInputValueDefinition()
+        input.name(name)
+        input.type(type)
+        init?.let { input.it() }
+        return input.build()
+    }
+
+    fun field(
+        name: String,
+        type: Type<*>,
+        args: List<InputValueDefinition> = emptyList(),
+        init: (FieldDefinition.Builder.() -> Unit)? = null
+    ): FieldDefinition {
+        val field = FieldDefinition.newFieldDefinition()
+        field.name(name)
+        field.type(type)
+        field.inputValueDefinitions(args)
+        init?.let { field.it() }
+        return field.build()
+    }
+
+    fun inputValue(
+        template: InputValueDefinition,
+        init: InputValueDefinition.Builder.() -> Unit
+    ): InputValueDefinition {
+        return template.transform(init)
+    }
+
+    fun ObjectTypeDefinition.Builder.description(text: String) = description(text.asDescription())
+
+    fun ObjectTypeDefinition.Builder.field(init: FieldDefinition.Builder.() -> Unit): FieldDefinition {
+        val type = FieldDefinition.newFieldDefinition()
+        type.init()
+        val build = type.build()
+        this.fieldDefinition(build)
+        return build
+    }
+
+    fun String.wrapType(rel: RelationField) = when {
+        rel.typeMeta.type.isList() -> ListType(this.asRequiredType())
+        else -> this.asType()
+    }
+
+    fun NodeDirectivesBuilder.addNonLibDirectives(directivesContainer: DirectivesContainer<*>) {
+        this.directives(directivesContainer.directives.filterNot { DirectiveConstants.LIB_DIRECTIVES.contains(it.name) })
+    }
+
 }
 
 class AugmentationContext(
@@ -265,17 +263,17 @@ class AugmentationContext(
         return type.name
     }
 
-    override  fun addObjectType(
+    override fun addObjectType(
         name: String,
         fields: List<FieldDefinition>,
         init: (ObjectTypeDefinition.Builder.() -> Unit)?
     ): String {
         val type = typeDefinitionRegistry.getTypeByName(name)
-            ?: AugmentationBase.objectType(name, fields, init).also { typeDefinitionRegistry.add(it) }
+            ?: objectType(name, fields, init).also { typeDefinitionRegistry.add(it) }
         return type.name
     }
 
-    override  fun getOrCreateObjectType(
+    override fun getOrCreateObjectType(
         name: String,
         init: (ObjectTypeDefinition.Builder.() -> Unit)?,
         initFields: (fields: MutableList<FieldDefinition>, name: String) -> Unit,
@@ -287,7 +285,7 @@ class AugmentationContext(
                 val fields = mutableListOf<FieldDefinition>()
                 initFields(fields, name)
                 if (fields.isNotEmpty()) {
-                    AugmentationBase.objectType(name, fields, init).also { typeDefinitionRegistry.add(it) }
+                    objectType(name, fields, init).also { typeDefinitionRegistry.add(it) }
                 } else {
                     null
                 }
@@ -295,7 +293,7 @@ class AugmentationContext(
         }?.name
     }
 
-    override  fun getOrCreateInterfaceType(
+    override fun getOrCreateInterfaceType(
         name: String,
         init: (InterfaceTypeDefinition.Builder.() -> Unit)?,
         initFields: (fields: MutableList<FieldDefinition>, name: String) -> Unit,
@@ -307,7 +305,7 @@ class AugmentationContext(
                 val fields = mutableListOf<FieldDefinition>()
                 initFields(fields, name)
                 if (fields.isNotEmpty()) {
-                    AugmentationBase.interfaceType(name, fields, init).also { typeDefinitionRegistry.add(it) }
+                    interfaceType(name, fields, init).also { typeDefinitionRegistry.add(it) }
                 } else {
                     null
                 }
