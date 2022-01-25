@@ -46,9 +46,9 @@ type CreateMoviesMutationResponse {
   movies: [Movie!]!
 }
 
-type DateTimeAggregateSelection {
-  max: DateTime
-  min: DateTime
+type DateTimeAggregateSelectionNonNullable {
+  max: DateTime!
+  min: DateTime!
 }
 
 type DeleteInfo {
@@ -57,23 +57,23 @@ type DeleteInfo {
   relationshipsDeleted: Int!
 }
 
-type FloatAggregateSelection {
-  average: Float
-  max: Float
-  min: Float
-  sum: Float
+type FloatAggregateSelectionNonNullable {
+  average: Float!
+  max: Float!
+  min: Float!
+  sum: Float!
 }
 
-type IDAggregateSelection {
-  longest: ID
-  shortest: ID
+type IDAggregateSelectionNonNullable {
+  longest: ID!
+  shortest: ID!
 }
 
-type IntAggregateSelection {
-  average: Float
-  max: Int
-  min: Int
-  sum: Int
+type IntAggregateSelectionNonNullable {
+  average: Float!
+  max: Int!
+  min: Int!
+  sum: Int!
 }
 
 type Movie {
@@ -93,12 +93,12 @@ type Movie {
 }
 
 type MovieAggregateSelection {
-  actorCount: IntAggregateSelection!
-  averageRating: FloatAggregateSelection!
+  actorCount: IntAggregateSelectionNonNullable!
+  averageRating: FloatAggregateSelectionNonNullable!
   count: Int!
-  createdAt: DateTimeAggregateSelection!
-  id: IDAggregateSelection!
-  name: StringAggregateSelection!
+  createdAt: DateTimeAggregateSelectionNonNullable!
+  id: IDAggregateSelectionNonNullable!
+  name: StringAggregateSelectionNonNullable!
 }
 
 type Mutation {
@@ -140,12 +140,11 @@ type Point {
 type Query {
   movies(options: MovieOptions, where: MovieWhere): [Movie!]!
   moviesAggregate(where: MovieWhere): MovieAggregateSelection!
-  moviesCount(where: MovieWhere): Int!
 }
 
-type StringAggregateSelection {
-  longest: String
-  shortest: String
+type StringAggregateSelectionNonNullable {
+  longest: String!
+  shortest: String!
 }
 
 type UpdateInfo {

@@ -10,12 +10,12 @@
 ----
 type Actor {
   name: String
-  movies: [Movie] @relationship(type: "ACTED_IN", direction: OUT)
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
 }
 
 type Movie {
   id: ID
-  actors: [Actor]! @relationship(type: "ACTED_IN", direction: IN)
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
 }
 ----
 
@@ -30,7 +30,7 @@ schema {
 }
 
 type Actor {
-  movies(options: MovieOptions, where: MovieWhere): [Movie]
+  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
   moviesAggregate(where: MovieWhere): ActorMovieMoviesAggregationSelection
   moviesConnection(after: String, first: Int, sort: [ActorMoviesConnectionSort!], where: ActorMoviesConnectionWhere): ActorMoviesConnection!
   name: String
@@ -38,7 +38,7 @@ type Actor {
 
 type ActorAggregateSelection {
   count: Int!
-  name: StringAggregateSelection!
+  name: StringAggregateSelectionNullable!
 }
 
 type ActorMovieMoviesAggregationSelection {
@@ -47,7 +47,7 @@ type ActorMovieMoviesAggregationSelection {
 }
 
 type ActorMovieMoviesNodeAggregateSelection {
-  id: IDAggregateSelection!
+  id: IDAggregateSelectionNullable!
 }
 
 type ActorMoviesConnection {
@@ -83,13 +83,13 @@ type DeleteInfo {
   relationshipsDeleted: Int!
 }
 
-type IDAggregateSelection {
+type IDAggregateSelectionNullable {
   longest: ID
   shortest: ID
 }
 
 type Movie {
-  actors(options: ActorOptions, where: ActorWhere): [Actor]!
+  actors(options: ActorOptions, where: ActorWhere): [Actor!]!
   actorsAggregate(where: ActorWhere): MovieActorActorsAggregationSelection
   actorsConnection(after: String, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
   id: ID
@@ -101,7 +101,7 @@ type MovieActorActorsAggregationSelection {
 }
 
 type MovieActorActorsNodeAggregateSelection {
-  name: StringAggregateSelection!
+  name: StringAggregateSelectionNullable!
 }
 
 type MovieActorsConnection {
@@ -117,7 +117,7 @@ type MovieActorsRelationship {
 
 type MovieAggregateSelection {
   count: Int!
-  id: IDAggregateSelection!
+  id: IDAggregateSelectionNullable!
 }
 
 type Mutation {
@@ -140,13 +140,11 @@ type PageInfo {
 type Query {
   actors(options: ActorOptions, where: ActorWhere): [Actor!]!
   actorsAggregate(where: ActorWhere): ActorAggregateSelection!
-  actorsCount(where: ActorWhere): Int!
   movies(options: MovieOptions, where: MovieWhere): [Movie!]!
   moviesAggregate(where: MovieWhere): MovieAggregateSelection!
-  moviesCount(where: MovieWhere): Int!
 }
 
-type StringAggregateSelection {
+type StringAggregateSelectionNullable {
   longest: String
   shortest: String
 }

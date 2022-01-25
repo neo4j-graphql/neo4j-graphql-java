@@ -41,9 +41,9 @@ type DeleteInfo {
   relationshipsDeleted: Int!
 }
 
-type IDAggregateSelection {
-  longest: ID
-  shortest: ID
+type IDAggregateSelectionNonNullable {
+  longest: ID!
+  shortest: ID!
 }
 
 type Movie {
@@ -53,8 +53,8 @@ type Movie {
 
 type MovieAggregateSelection {
   count: Int!
-  id: IDAggregateSelection!
-  name: StringAggregateSelection!
+  id: IDAggregateSelectionNonNullable!
+  name: StringAggregateSelectionNonNullable!
 }
 
 type Mutation {
@@ -66,12 +66,11 @@ type Mutation {
 type Query {
   movies(options: MovieOptions, where: MovieWhere): [Movie!]!
   moviesAggregate(where: MovieWhere): MovieAggregateSelection!
-  moviesCount(where: MovieWhere): Int!
 }
 
-type StringAggregateSelection {
-  longest: String
-  shortest: String
+type StringAggregateSelectionNonNullable {
+  longest: String!
+  shortest: String!
 }
 
 type UpdateInfo {

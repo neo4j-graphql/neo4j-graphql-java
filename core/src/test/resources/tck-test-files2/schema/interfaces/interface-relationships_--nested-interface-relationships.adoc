@@ -138,24 +138,19 @@ type PageInfo {
 type Query {
   type1Interface1s(options: Type1Interface1Options, where: Type1Interface1Where): [Type1Interface1!]!
   type1Interface1sAggregate(where: Type1Interface1Where): Type1Interface1AggregateSelection!
-  type1Interface1sCount(where: Type1Interface1Where): Int!
   type1Interface2s(options: Type1Interface2Options, where: Type1Interface2Where): [Type1Interface2!]!
   type1Interface2sAggregate(where: Type1Interface2Where): Type1Interface2AggregateSelection!
-  type1Interface2sCount(where: Type1Interface2Where): Int!
   type1s(options: Type1Options, where: Type1Where): [Type1!]!
   type1sAggregate(where: Type1Where): Type1AggregateSelection!
-  type1sCount(where: Type1Where): Int!
   type2Interface1s(options: Type2Interface1Options, where: Type2Interface1Where): [Type2Interface1!]!
   type2Interface1sAggregate(where: Type2Interface1Where): Type2Interface1AggregateSelection!
-  type2Interface1sCount(where: Type2Interface1Where): Int!
   type2Interface2s(options: Type2Interface2Options, where: Type2Interface2Where): [Type2Interface2!]!
   type2Interface2sAggregate(where: Type2Interface2Where): Type2Interface2AggregateSelection!
-  type2Interface2sCount(where: Type2Interface2Where): Int!
 }
 
-type StringAggregateSelection {
-  longest: String
-  shortest: String
+type StringAggregateSelectionNonNullable {
+  longest: String!
+  shortest: String!
 }
 
 type Type1 {
@@ -166,7 +161,7 @@ type Type1 {
 
 type Type1AggregateSelection {
   count: Int!
-  field1: StringAggregateSelection!
+  field1: StringAggregateSelectionNonNullable!
 }
 
 type Type1Interface1 implements Interface1 {
@@ -177,7 +172,7 @@ type Type1Interface1 implements Interface1 {
 
 type Type1Interface1AggregateSelection {
   count: Int!
-  field1: StringAggregateSelection!
+  field1: StringAggregateSelectionNonNullable!
 }
 
 type Type1Interface1Connection {
@@ -197,7 +192,7 @@ type Type1Interface2 implements Interface2 {
 
 type Type1Interface2AggregateSelection {
   count: Int!
-  field2: StringAggregateSelection!
+  field2: StringAggregateSelectionNonNullable!
 }
 
 type Type2Interface1 implements Interface1 {
@@ -208,7 +203,7 @@ type Type2Interface1 implements Interface1 {
 
 type Type2Interface1AggregateSelection {
   count: Int!
-  field1: StringAggregateSelection!
+  field1: StringAggregateSelectionNonNullable!
 }
 
 type Type2Interface2 implements Interface2 {
@@ -217,7 +212,7 @@ type Type2Interface2 implements Interface2 {
 
 type Type2Interface2AggregateSelection {
   count: Int!
-  field2: StringAggregateSelection!
+  field2: StringAggregateSelectionNonNullable!
 }
 
 type UpdateInfo {
@@ -272,7 +267,6 @@ input Interface1ConnectWhere {
 input Interface1CreateInput {
   Type1Interface1: Type1Interface1CreateInput
   Type2Interface1: Type2Interface1CreateInput
-  interface2: Interface1Interface2FieldInput
 }
 
 input Interface1DeleteInput {
@@ -331,11 +325,6 @@ input Interface1Interface2DeleteFieldInput {
 
 input Interface1Interface2DisconnectFieldInput {
   where: Interface1Interface2ConnectionWhere
-}
-
-input Interface1Interface2FieldInput {
-  connect: [Interface1Interface2ConnectFieldInput!]
-  create: [Interface1Interface2CreateFieldInput!]
 }
 
 input Interface1Interface2UpdateConnectionInput {
@@ -455,7 +444,7 @@ input Type1Interface1CreateFieldInput {
 
 input Type1Interface1CreateInput {
   field1: String!
-  interface2: Interface1Interface2FieldInput
+  interface2: Type1Interface1Interface2FieldInput
 }
 
 input Type1Interface1DeleteFieldInput {
@@ -495,6 +484,11 @@ input Type1Interface1Interface2DeleteFieldInput {
 
 input Type1Interface1Interface2DisconnectFieldInput {
   where: Interface1Interface2ConnectionWhere
+}
+
+input Type1Interface1Interface2FieldInput {
+  connect: [Type1Interface1Interface2ConnectFieldInput!]
+  create: [Type1Interface1Interface2CreateFieldInput!]
 }
 
 input Type1Interface1Interface2UpdateConnectionInput {
@@ -640,7 +634,7 @@ input Type2Interface1ConnectInput {
 
 input Type2Interface1CreateInput {
   field1: String!
-  interface2: Interface1Interface2FieldInput
+  interface2: Type2Interface1Interface2FieldInput
 }
 
 input Type2Interface1DeleteInput {
@@ -665,6 +659,11 @@ input Type2Interface1Interface2DeleteFieldInput {
 
 input Type2Interface1Interface2DisconnectFieldInput {
   where: Interface1Interface2ConnectionWhere
+}
+
+input Type2Interface1Interface2FieldInput {
+  connect: [Type2Interface1Interface2ConnectFieldInput!]
+  create: [Type2Interface1Interface2CreateFieldInput!]
 }
 
 input Type2Interface1Interface2UpdateConnectionInput {

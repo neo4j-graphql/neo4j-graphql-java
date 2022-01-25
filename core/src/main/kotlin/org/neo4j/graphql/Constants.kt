@@ -4,6 +4,8 @@ import graphql.language.TypeName
 
 object Constants {
 
+    const val FULLTEXT_PHRASE = "phrase"
+    const val FULLTEXT_SCORE = "score"
     const val EMPTY_INPUT = "_emptyInput"
     const val LIMIT = "limit"
     const val OFFSET = "offset"

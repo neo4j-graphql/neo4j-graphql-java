@@ -376,3 +376,7 @@ fun TypeDefinitionRegistry.replace(definition: SDLDefinition<*>) {
     this.remove(definition)
     this.add(definition)
 }
+
+fun NodeDirectivesBuilder.addNonLibDirectives(directivesContainer: DirectivesContainer<*>) {
+    this.directives(directivesContainer.directives.filterNot { DirectiveConstants.LIB_DIRECTIVES.contains(it.name) })
+}

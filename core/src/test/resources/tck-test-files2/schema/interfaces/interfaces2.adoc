@@ -55,14 +55,14 @@ type AMovieAMovieMoviesAggregationSelection {
 }
 
 type AMovieAMovieMoviesNodeAggregateSelection {
-  foo: StringAggregateSelection!
-  id: IDAggregateSelection!
+  foo: StringAggregateSelectionNullable!
+  id: IDAggregateSelectionNullable!
 }
 
 type AMovieAggregateSelection {
   count: Int!
-  foo: StringAggregateSelection!
-  id: IDAggregateSelection!
+  foo: StringAggregateSelectionNullable!
+  id: IDAggregateSelectionNullable!
 }
 
 type AMovieMoviesConnection {
@@ -85,9 +85,9 @@ type BMovie implements MovieInterface {
 }
 
 type BMovieAggregateSelection {
-  bar: StringAggregateSelection!
+  bar: StringAggregateSelectionNullable!
   count: Int!
-  id: IDAggregateSelection!
+  id: IDAggregateSelectionNullable!
 }
 
 type BMovieBMovieMoviesAggregationSelection {
@@ -96,8 +96,8 @@ type BMovieBMovieMoviesAggregationSelection {
 }
 
 type BMovieBMovieMoviesNodeAggregateSelection {
-  bar: StringAggregateSelection!
-  id: IDAggregateSelection!
+  bar: StringAggregateSelectionNullable!
+  id: IDAggregateSelectionNullable!
 }
 
 type BMovieMoviesConnection {
@@ -133,7 +133,7 @@ type DeleteInfo {
   relationshipsDeleted: Int!
 }
 
-type IDAggregateSelection {
+type IDAggregateSelectionNullable {
   longest: ID
   shortest: ID
 }
@@ -158,13 +158,11 @@ type PageInfo {
 type Query {
   aMovies(options: AMovieOptions, where: AMovieWhere): [AMovie!]!
   aMoviesAggregate(where: AMovieWhere): AMovieAggregateSelection!
-  aMoviesCount(where: AMovieWhere): Int!
   bMovies(options: BMovieOptions, where: BMovieWhere): [BMovie!]!
   bMoviesAggregate(where: BMovieWhere): BMovieAggregateSelection!
-  bMoviesCount(where: BMovieWhere): Int!
 }
 
-type StringAggregateSelection {
+type StringAggregateSelectionNullable {
   longest: String
   shortest: String
 }

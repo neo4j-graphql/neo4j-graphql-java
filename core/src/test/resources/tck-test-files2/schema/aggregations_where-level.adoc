@@ -23,7 +23,7 @@ type User {
 
 type Post {
   title: String
-  likes: [User] @relationship(type: "LIKES", direction: IN, properties: "Likes")
+  likes: [User!]! @relationship(type: "LIKES", direction: IN, properties: "Likes")
 }
 
 interface Likes {
@@ -63,7 +63,7 @@ interface Likes {
   someTime: Time
 }
 
-type BigIntAggregateSelection {
+type BigIntAggregateSelectionNullable {
   average: BigInt
   max: BigInt
   min: BigInt
@@ -86,7 +86,7 @@ type CreateUsersMutationResponse {
   users: [User!]!
 }
 
-type DateTimeAggregateSelection {
+type DateTimeAggregateSelectionNullable {
   max: DateTime
   min: DateTime
 }
@@ -97,36 +97,36 @@ type DeleteInfo {
   relationshipsDeleted: Int!
 }
 
-type DurationAggregateSelection {
+type DurationAggregateSelectionNullable {
   max: Duration
   min: Duration
 }
 
-type FloatAggregateSelection {
+type FloatAggregateSelectionNullable {
   average: Float
   max: Float
   min: Float
   sum: Float
 }
 
-type IDAggregateSelection {
+type IDAggregateSelectionNullable {
   longest: ID
   shortest: ID
 }
 
-type IntAggregateSelection {
+type IntAggregateSelectionNullable {
   average: Float
   max: Int
   min: Int
   sum: Int
 }
 
-type LocalDateTimeAggregateSelection {
+type LocalDateTimeAggregateSelectionNullable {
   max: LocalDateTime
   min: LocalDateTime
 }
 
-type LocalTimeAggregateSelection {
+type LocalTimeAggregateSelectionNullable {
   max: LocalTime
   min: LocalTime
 }
@@ -149,7 +149,7 @@ type PageInfo {
 }
 
 type Post {
-  likes(options: UserOptions, where: UserWhere): [User]
+  likes(options: UserOptions, where: UserWhere): [User!]!
   likesAggregate(where: UserWhere): PostUserLikesAggregationSelection
   likesConnection(after: String, first: Int, sort: [PostLikesConnectionSort!], where: PostLikesConnectionWhere): PostLikesConnection!
   title: String
@@ -157,7 +157,7 @@ type Post {
 
 type PostAggregateSelection {
   count: Int!
-  title: StringAggregateSelection!
+  title: StringAggregateSelectionNullable!
 }
 
 type PostLikesConnection {
@@ -188,46 +188,44 @@ type PostUserLikesAggregationSelection {
 }
 
 type PostUserLikesEdgeAggregateSelection {
-  someBigInt: BigIntAggregateSelection!
-  someDateTime: DateTimeAggregateSelection!
-  someDuration: DurationAggregateSelection!
-  someFloat: FloatAggregateSelection!
-  someId: IDAggregateSelection!
-  someInt: IntAggregateSelection!
-  someLocalDateTime: LocalDateTimeAggregateSelection!
-  someLocalTime: LocalTimeAggregateSelection!
-  someString: StringAggregateSelection!
-  someTime: TimeAggregateSelection!
+  someBigInt: BigIntAggregateSelectionNullable!
+  someDateTime: DateTimeAggregateSelectionNullable!
+  someDuration: DurationAggregateSelectionNullable!
+  someFloat: FloatAggregateSelectionNullable!
+  someId: IDAggregateSelectionNullable!
+  someInt: IntAggregateSelectionNullable!
+  someLocalDateTime: LocalDateTimeAggregateSelectionNullable!
+  someLocalTime: LocalTimeAggregateSelectionNullable!
+  someString: StringAggregateSelectionNullable!
+  someTime: TimeAggregateSelectionNullable!
 }
 
 type PostUserLikesNodeAggregateSelection {
-  someBigInt: BigIntAggregateSelection!
-  someDateTime: DateTimeAggregateSelection!
-  someDuration: DurationAggregateSelection!
-  someFloat: FloatAggregateSelection!
-  someId: IDAggregateSelection!
-  someInt: IntAggregateSelection!
-  someLocalDateTime: LocalDateTimeAggregateSelection!
-  someLocalTime: LocalTimeAggregateSelection!
-  someString: StringAggregateSelection!
-  someTime: TimeAggregateSelection!
+  someBigInt: BigIntAggregateSelectionNullable!
+  someDateTime: DateTimeAggregateSelectionNullable!
+  someDuration: DurationAggregateSelectionNullable!
+  someFloat: FloatAggregateSelectionNullable!
+  someId: IDAggregateSelectionNullable!
+  someInt: IntAggregateSelectionNullable!
+  someLocalDateTime: LocalDateTimeAggregateSelectionNullable!
+  someLocalTime: LocalTimeAggregateSelectionNullable!
+  someString: StringAggregateSelectionNullable!
+  someTime: TimeAggregateSelectionNullable!
 }
 
 type Query {
   posts(options: PostOptions, where: PostWhere): [Post!]!
   postsAggregate(where: PostWhere): PostAggregateSelection!
-  postsCount(where: PostWhere): Int!
   users(options: UserOptions, where: UserWhere): [User!]!
   usersAggregate(where: UserWhere): UserAggregateSelection!
-  usersCount(where: UserWhere): Int!
 }
 
-type StringAggregateSelection {
+type StringAggregateSelectionNullable {
   longest: String
   shortest: String
 }
 
-type TimeAggregateSelection {
+type TimeAggregateSelectionNullable {
   max: Time
   min: Time
 }
@@ -265,16 +263,16 @@ type User {
 
 type UserAggregateSelection {
   count: Int!
-  someBigInt: BigIntAggregateSelection!
-  someDateTime: DateTimeAggregateSelection!
-  someDuration: DurationAggregateSelection!
-  someFloat: FloatAggregateSelection!
-  someId: IDAggregateSelection!
-  someInt: IntAggregateSelection!
-  someLocalDateTime: LocalDateTimeAggregateSelection!
-  someLocalTime: LocalTimeAggregateSelection!
-  someString: StringAggregateSelection!
-  someTime: TimeAggregateSelection!
+  someBigInt: BigIntAggregateSelectionNullable!
+  someDateTime: DateTimeAggregateSelectionNullable!
+  someDuration: DurationAggregateSelectionNullable!
+  someFloat: FloatAggregateSelectionNullable!
+  someId: IDAggregateSelectionNullable!
+  someInt: IntAggregateSelectionNullable!
+  someLocalDateTime: LocalDateTimeAggregateSelectionNullable!
+  someLocalTime: LocalTimeAggregateSelectionNullable!
+  someString: StringAggregateSelectionNullable!
+  someTime: TimeAggregateSelectionNullable!
 }
 
 enum SortDirection {

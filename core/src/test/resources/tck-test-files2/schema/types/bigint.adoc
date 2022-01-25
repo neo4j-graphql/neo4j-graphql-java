@@ -24,11 +24,11 @@ schema {
   mutation: Mutation
 }
 
-type BigIntAggregateSelection {
-  average: BigInt
-  max: BigInt
-  min: BigInt
-  sum: BigInt
+type BigIntAggregateSelectionNonNullable {
+  average: BigInt!
+  max: BigInt!
+  min: BigInt!
+  sum: BigInt!
 }
 
 type CreateFilesMutationResponse {
@@ -55,8 +55,8 @@ type File {
 
 type FileAggregateSelection {
   count: Int!
-  name: StringAggregateSelection!
-  size: BigIntAggregateSelection!
+  name: StringAggregateSelectionNonNullable!
+  size: BigIntAggregateSelectionNonNullable!
 }
 
 type Mutation {
@@ -68,12 +68,11 @@ type Mutation {
 type Query {
   files(options: FileOptions, where: FileWhere): [File!]!
   filesAggregate(where: FileWhere): FileAggregateSelection!
-  filesCount(where: FileWhere): Int!
 }
 
-type StringAggregateSelection {
-  longest: String
-  shortest: String
+type StringAggregateSelectionNonNullable {
+  longest: String!
+  shortest: String!
 }
 
 type UpdateFilesMutationResponse {

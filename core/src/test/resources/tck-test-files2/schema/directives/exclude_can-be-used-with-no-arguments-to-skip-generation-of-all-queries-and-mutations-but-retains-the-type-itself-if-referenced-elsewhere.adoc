@@ -58,7 +58,7 @@ type Movie {
 
 type MovieAggregateSelection {
   count: Int!
-  title: StringAggregateSelection!
+  title: StringAggregateSelectionNullable!
 }
 
 type Mutation {
@@ -71,10 +71,9 @@ type Query {
   customActorQuery: Actor
   movies(options: MovieOptions, where: MovieWhere): [Movie!]!
   moviesAggregate(where: MovieWhere): MovieAggregateSelection!
-  moviesCount(where: MovieWhere): Int!
 }
 
-type StringAggregateSelection {
+type StringAggregateSelectionNullable {
   longest: String
   shortest: String
 }

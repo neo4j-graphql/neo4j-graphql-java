@@ -1,6 +1,7 @@
 package org.neo4j.graphql
 
 import graphql.language.*
+import graphql.schema.FieldCoordinates
 import graphql.schema.idl.TypeDefinitionRegistry
 import org.neo4j.graphql.domain.fields.RelationField
 
@@ -13,20 +14,28 @@ interface AugmentationBase {
     ): String?
 
 
-    fun addQueryField(fieldDefinition: FieldDefinition)
+    fun addQueryField(fieldDefinition: FieldDefinition): FieldCoordinates
 
-    fun addQueryField(name: String, type: Type<*>, args: ((MutableList<InputValueDefinition>) -> Unit)?) {
+    fun addQueryField(
+        name: String,
+        type: Type<*>,
+        args: ((MutableList<InputValueDefinition>) -> Unit)?
+    ): FieldCoordinates {
         val argList = mutableListOf<InputValueDefinition>()
         args?.invoke(argList)
-        addQueryField(field(name, type, argList))
+        return addQueryField(field(name, type, argList))
     }
 
-    fun addMutationField(fieldDefinition: FieldDefinition)
+    fun addMutationField(fieldDefinition: FieldDefinition): FieldCoordinates
 
-    fun addMutationField(name: String, type: Type<*>, args: ((MutableList<InputValueDefinition>) -> Unit)?) {
+    fun addMutationField(
+        name: String,
+        type: Type<*>,
+        args: ((MutableList<InputValueDefinition>) -> Unit)?
+    ): FieldCoordinates {
         val argList = mutableListOf<InputValueDefinition>()
         args?.invoke(argList)
-        addMutationField(field(name, type, argList))
+        return addMutationField(field(name, type, argList))
     }
 
     fun addInputObjectType(
@@ -182,11 +191,6 @@ interface AugmentationBase {
         rel.typeMeta.type.isList() -> ListType(this.asRequiredType())
         else -> this.asType()
     }
-
-    fun NodeDirectivesBuilder.addNonLibDirectives(directivesContainer: DirectivesContainer<*>) {
-        this.directives(directivesContainer.directives.filterNot { DirectiveConstants.LIB_DIRECTIVES.contains(it.name) })
-    }
-
 }
 
 class AugmentationContext(
@@ -195,14 +199,15 @@ class AugmentationContext(
     val neo4jTypeDefinitionRegistry: TypeDefinitionRegistry
 ) : AugmentationBase {
 
-    private val currentlyCreating = mutableSetOf<String>()
+    private val currentlyCreatingInputType = mutableSetOf<String>()
+    private val currentlyCreatingObjectType = mutableSetOf<String>()
 
     override fun getOrCreateInputObjectType(
         name: String,
         init: (InputObjectTypeDefinition.Builder.() -> Unit)?,
         initFields: (fields: MutableList<InputValueDefinition>, name: String) -> Unit
     ): String? {
-        if (currentlyCreating.contains(name)) {
+        if (currentlyCreatingInputType.contains(name)) {
             return name
         }
         val type = typeDefinitionRegistry.getTypeByName<InterfaceTypeDefinition>(name)
@@ -210,9 +215,9 @@ class AugmentationContext(
             true -> type
             else -> {
                 val fields = mutableListOf<InputValueDefinition>()
-                currentlyCreating.add(name)
+                currentlyCreatingInputType.add(name)
                 initFields(fields, name)
-                currentlyCreating.remove(name)
+                currentlyCreatingInputType.remove(name)
                 if (fields.isNotEmpty()) {
                     inputObjectType(name, fields, init).also { typeDefinitionRegistry.add(it) }
                 } else {
@@ -222,18 +227,22 @@ class AugmentationContext(
         }?.name
     }
 
-    override fun addQueryField(fieldDefinition: FieldDefinition) {
-        addOperation(typeDefinitionRegistry.queryTypeName(), fieldDefinition)
+    override fun addQueryField(fieldDefinition: FieldDefinition): FieldCoordinates {
+        val queryTypeName = typeDefinitionRegistry.queryTypeName()
+        addOperation(queryTypeName, fieldDefinition)
+        return FieldCoordinates.coordinates(queryTypeName, fieldDefinition.name)
     }
 
-    override fun addMutationField(fieldDefinition: FieldDefinition) {
-        addOperation(typeDefinitionRegistry.mutationTypeName(), fieldDefinition)
+    override fun addMutationField(fieldDefinition: FieldDefinition): FieldCoordinates {
+        val mutationTypeName = typeDefinitionRegistry.mutationTypeName()
+        addOperation(mutationTypeName, fieldDefinition)
+        return FieldCoordinates.coordinates(mutationTypeName, fieldDefinition.name)
     }
 
     /**
      * add the given operation to the corresponding rootType
      */
-    fun addOperation(rootTypeName: String, fieldDefinition: FieldDefinition) {
+    private fun addOperation(rootTypeName: String, fieldDefinition: FieldDefinition) {
         val rootType = typeDefinitionRegistry.getType(rootTypeName)?.unwrap()
         if (rootType == null) {
             typeDefinitionRegistry.add(
@@ -278,12 +287,17 @@ class AugmentationContext(
         init: (ObjectTypeDefinition.Builder.() -> Unit)?,
         initFields: (fields: MutableList<FieldDefinition>, name: String) -> Unit,
     ): String? {
+        if (currentlyCreatingObjectType.contains(name)) {
+            return name
+        }
         val type = typeDefinitionRegistry.getTypeByName<ObjectTypeDefinition>(name)
         return when (type != null) {
             true -> type
             else -> {
                 val fields = mutableListOf<FieldDefinition>()
+                currentlyCreatingObjectType.add(name)
                 initFields(fields, name)
+                currentlyCreatingObjectType.remove(name)
                 if (fields.isNotEmpty()) {
                     objectType(name, fields, init).also { typeDefinitionRegistry.add(it) }
                 } else {

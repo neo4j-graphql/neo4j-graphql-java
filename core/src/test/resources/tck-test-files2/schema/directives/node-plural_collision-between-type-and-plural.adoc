@@ -53,10 +53,9 @@ type Mutation {
 type Query {
   techs(options: TechsOptions, where: TechsWhere): [Techs!]!
   techsAggregate(where: TechsWhere): TechsAggregateSelection!
-  techsCount(where: TechsWhere): Int!
 }
 
-type StringAggregateSelection {
+type StringAggregateSelectionNullable {
   longest: String
   shortest: String
 }
@@ -67,7 +66,7 @@ type Techs {
 
 type TechsAggregateSelection {
   count: Int!
-  value: StringAggregateSelection!
+  value: StringAggregateSelectionNullable!
 }
 
 type UpdateInfo {

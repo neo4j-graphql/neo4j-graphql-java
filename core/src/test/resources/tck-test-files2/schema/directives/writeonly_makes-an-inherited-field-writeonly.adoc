@@ -59,12 +59,11 @@ type Mutation {
 type Query {
   users(options: UserOptions, where: UserWhere): [User!]!
   usersAggregate(where: UserWhere): UserAggregateSelection!
-  usersCount(where: UserWhere): Int!
 }
 
-type StringAggregateSelection {
-  longest: String
-  shortest: String
+type StringAggregateSelectionNonNullable {
+  longest: String!
+  shortest: String!
 }
 
 type UpdateInfo {
@@ -86,8 +85,8 @@ type User implements UserInterface {
 
 type UserAggregateSelection {
   count: Int!
-  password: StringAggregateSelection!
-  username: StringAggregateSelection!
+  password: StringAggregateSelectionNonNullable!
+  username: StringAggregateSelectionNonNullable!
 }
 
 enum SortDirection {

@@ -48,8 +48,8 @@ type Movie {
 
 type MovieAggregateSelection {
   count: Int!
-  description: StringAggregateSelection!
-  title: StringAggregateSelection!
+  description: StringAggregateSelectionNullable!
+  title: StringAggregateSelectionNullable!
 }
 
 type Mutation {
@@ -61,10 +61,9 @@ type Mutation {
 type Query {
   movies(fulltext: MovieFulltext, options: MovieOptions, where: MovieWhere): [Movie!]!
   moviesAggregate(fulltext: MovieFulltext, where: MovieWhere): MovieAggregateSelection!
-  moviesCount(fulltext: MovieFulltext, where: MovieWhere): Int!
 }
 
-type StringAggregateSelection {
+type StringAggregateSelectionNullable {
   longest: String
   shortest: String
 }

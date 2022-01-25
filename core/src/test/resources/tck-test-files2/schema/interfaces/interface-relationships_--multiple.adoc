@@ -81,7 +81,7 @@ type ActorActedInRelationship implements ActedIn {
 
 type ActorAggregateSelection {
   count: Int!
-  name: StringAggregateSelection!
+  name: StringAggregateSelectionNonNullable!
 }
 
 type CreateActorsMutationResponse {
@@ -125,7 +125,7 @@ type Episode {
 
 type EpisodeAggregateSelection {
   count: Int!
-  runtime: IntAggregateSelection!
+  runtime: IntAggregateSelectionNonNullable!
 }
 
 type EpisodeSeriesConnection {
@@ -145,15 +145,15 @@ type EpisodeSeriesSeriesAggregationSelection {
 }
 
 type EpisodeSeriesSeriesNodeAggregateSelection {
-  episodeCount: IntAggregateSelection!
-  title: StringAggregateSelection!
+  episodeCount: IntAggregateSelectionNonNullable!
+  title: StringAggregateSelectionNonNullable!
 }
 
-type IntAggregateSelection {
-  average: Float
-  max: Int
-  min: Int
-  sum: Int
+type IntAggregateSelectionNonNullable {
+  average: Float!
+  max: Int!
+  min: Int!
+  sum: Int!
 }
 
 type Movie implements Production {
@@ -171,17 +171,17 @@ type MovieActorActorsAggregationSelection {
 }
 
 type MovieActorActorsEdgeAggregateSelection {
-  screenTime: IntAggregateSelection!
+  screenTime: IntAggregateSelectionNonNullable!
 }
 
 type MovieActorActorsNodeAggregateSelection {
-  name: StringAggregateSelection!
+  name: StringAggregateSelectionNonNullable!
 }
 
 type MovieAggregateSelection {
   count: Int!
-  runtime: IntAggregateSelection!
-  title: StringAggregateSelection!
+  runtime: IntAggregateSelectionNonNullable!
+  title: StringAggregateSelectionNonNullable!
 }
 
 type Mutation {
@@ -222,16 +222,12 @@ type ProductionActorsRelationship implements ActedIn {
 type Query {
   actors(options: ActorOptions, where: ActorWhere): [Actor!]!
   actorsAggregate(where: ActorWhere): ActorAggregateSelection!
-  actorsCount(where: ActorWhere): Int!
   episodes(options: EpisodeOptions, where: EpisodeWhere): [Episode!]!
   episodesAggregate(where: EpisodeWhere): EpisodeAggregateSelection!
-  episodesCount(where: EpisodeWhere): Int!
   movies(options: MovieOptions, where: MovieWhere): [Movie!]!
   moviesAggregate(where: MovieWhere): MovieAggregateSelection!
-  moviesCount(where: MovieWhere): Int!
   series(options: SeriesOptions, where: SeriesWhere): [Series!]!
   seriesAggregate(where: SeriesWhere): SeriesAggregateSelection!
-  seriesCount(where: SeriesWhere): Int!
 }
 
 type Series implements Production {
@@ -252,17 +248,17 @@ type SeriesActorActorsAggregationSelection {
 }
 
 type SeriesActorActorsEdgeAggregateSelection {
-  screenTime: IntAggregateSelection!
+  screenTime: IntAggregateSelectionNonNullable!
 }
 
 type SeriesActorActorsNodeAggregateSelection {
-  name: StringAggregateSelection!
+  name: StringAggregateSelectionNonNullable!
 }
 
 type SeriesAggregateSelection {
   count: Int!
-  episodeCount: IntAggregateSelection!
-  title: StringAggregateSelection!
+  episodeCount: IntAggregateSelectionNonNullable!
+  title: StringAggregateSelectionNonNullable!
 }
 
 type SeriesEpisodeEpisodesAggregationSelection {
@@ -271,7 +267,7 @@ type SeriesEpisodeEpisodesAggregationSelection {
 }
 
 type SeriesEpisodeEpisodesNodeAggregateSelection {
-  runtime: IntAggregateSelection!
+  runtime: IntAggregateSelectionNonNullable!
 }
 
 type SeriesEpisodesConnection {
@@ -285,9 +281,9 @@ type SeriesEpisodesRelationship {
   node: Episode!
 }
 
-type StringAggregateSelection {
-  longest: String
-  shortest: String
+type StringAggregateSelectionNonNullable {
+  longest: String!
+  shortest: String!
 }
 
 type UpdateActorsMutationResponse {

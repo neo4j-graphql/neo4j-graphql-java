@@ -68,7 +68,7 @@ type Node1 {
 
 type Node1AggregateSelection {
   count: Int!
-  property: StringAggregateSelection!
+  property: StringAggregateSelectionNonNullable!
 }
 
 type Node1Node2RelatedToAggregationSelection {
@@ -102,7 +102,7 @@ type Node2Node1RelatedToAggregationSelection {
 }
 
 type Node2Node1RelatedToNodeAggregateSelection {
-  property: StringAggregateSelection!
+  property: StringAggregateSelectionNonNullable!
 }
 
 type Node2RelatedToConnection {
@@ -127,15 +127,13 @@ type PageInfo {
 type Query {
   node1s(options: Node1Options, where: Node1Where): [Node1!]!
   node1sAggregate(where: Node1Where): Node1AggregateSelection!
-  node1sCount(where: Node1Where): Int!
   node2s(options: Node2Options, where: Node2Where): [Node2!]!
   node2sAggregate(where: Node2Where): Node2AggregateSelection!
-  node2sCount(where: Node2Where): Int!
 }
 
-type StringAggregateSelection {
-  longest: String
-  shortest: String
+type StringAggregateSelectionNonNullable {
+  longest: String!
+  shortest: String!
 }
 
 type UpdateInfo {

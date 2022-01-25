@@ -1,10 +1,11 @@
 package org.neo4j.graphql.schema
 
-import graphql.language.InputValueDefinition
-import graphql.language.ListType
+import graphql.language.*
 import org.neo4j.graphql.*
+import org.neo4j.graphql.domain.Interface
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.RelationshipProperties
+import org.neo4j.graphql.domain.directives.FullTextDirective
 import org.neo4j.graphql.domain.fields.*
 import org.neo4j.graphql.schema.relations.InterfaceRelationFieldAugmentations
 import org.neo4j.graphql.schema.relations.NodeRelationFieldAugmentations
@@ -12,7 +13,7 @@ import org.neo4j.graphql.schema.relations.RelationFieldBaseAugmentation
 import org.neo4j.graphql.schema.relations.UnionRelationFieldAugmentations
 import kotlin.reflect.KFunction1
 
-abstract class BaseAugmentationV2(
+open class BaseAugmentationV2(
     val ctx: AugmentationContext,
 ) : AugmentationBase by ctx {
 
@@ -96,6 +97,41 @@ abstract class BaseAugmentationV2(
         node.relationFields,
         RelationFieldBaseAugmentation::generateFieldRelationCreateIT
     )
+
+    fun generateOptionsIT(node: Node) = getOrCreateInputObjectType("${node.name}Options") { fields, _ ->
+        fields += inputValue(Constants.LIMIT, Constants.Types.Int)
+        fields += inputValue(Constants.OFFSET, Constants.Types.Int)
+        generateSortIT(node)?.let {
+            fields += inputValue(
+                Constants.SORT,
+                ListType(it.asType()) // TODO make required https://github.com/neo4j/graphql/issues/809
+            ) {
+                description("Specify one or more ${node.name}Sort objects to sort ${node.plural} by. The sorts will be applied in the order in which they are arranged in the array.".asDescription())
+            }
+        }
+    } ?: throw IllegalStateException("at least the paging fields should be present")
+
+
+    private fun generateSortIT(node: Node) = getOrCreateInputObjectType("${node.name}Sort",
+        init = { description("Fields to sort ${node.plural} by. The order in which sorts are applied is not guaranteed when specifying many fields in one ${node.name}Sort object.".asDescription()) },
+        initFields = { fields, _ ->
+            node.sortableFields.forEach { fields += inputValue(it.fieldName, Constants.Types.SortDirection) }
+        }
+    )
+
+    fun generateFulltextIT(node: Node) = getOrCreateInputObjectType("${node.name}Fulltext") { fields, _ ->
+        node.fulltextDirective?.indexes?.forEach { index ->
+            generateFulltextIndexIT(node, index)?.let { fields += inputValue(index.name, it.asType()) }
+        }
+    }
+
+    private fun generateFulltextIndexIT(node: Node, index: FullTextDirective.FullTextIndex) =
+        getOrCreateInputObjectType("${node.name}${index.name.capitalize()}Fulltext") { fields, _ ->
+            fields += inputValue(Constants.FULLTEXT_PHRASE, NonNullType(Constants.Types.String))
+            // TODO normalize operation?
+            fields += inputValue(Constants.FULLTEXT_SCORE + "_EQUAL", Constants.Types.Int)
+        }
+
 
     fun generateWhereIT(field: RelationField): String? =
         getTypeFromRelationField(field, RelationFieldBaseAugmentation::generateFieldWhereIT)
@@ -328,5 +364,173 @@ abstract class BaseAugmentationV2(
             else -> NodeRelationFieldAugmentations(ctx, rel)
         }
         return extractor(aug)
+    }
+
+    fun generateNodeOT(node: Node) = getOrCreateObjectType(node.name,
+        init = {
+            description(node.description)
+            comments(node.comments)
+            directives(node.otherDirectives)
+            implementz(node.interfaces.map { it.name.asType() })
+        },
+        initFields = { fields, _ ->
+            node.fields
+                .filterNot { it.writeonly }
+                .forEach { field ->
+                    fields += mapField(field)
+                    (field as? RelationField)?.node?.let { n ->
+                        val aggr =
+                            generateAggregationSelectionOT(
+                                node.name + n.name + field.fieldName.capitalize(),
+                                n,
+                                field
+                            )
+                        fields += field(field.fieldName + "Aggregate", aggr.asType()) {
+                            generateWhereIT(field)?.let {
+                                inputValueDefinition(inputValue(Constants.WHERE, it.asType()))
+                            }
+                        }
+                    }
+                }
+        }
+    )
+
+    fun generateInterfaceType(interfaze: Interface) {
+        ctx.typeDefinitionRegistry.replace(InterfaceTypeDefinition.newInterfaceTypeDefinition()
+            .apply {
+                name(interfaze.name)
+                description(interfaze.description)
+                comments(interfaze.comments)
+                directives(interfaze.otherDirectives)
+                implementz(interfaze.interfaces.map { it.name.asType() })
+                definitions(interfaze.fields.filterNot { it.writeonly }
+                    .map { mapField(it) })
+            }
+            .build()
+        )
+    }
+
+    private fun mapField(field: BaseField): FieldDefinition {
+        val args = field.arguments.toMutableList()
+        val type = when (field) {
+            is ConnectionField -> generateConnectionOT(field).wrapLike(field.typeMeta.type)
+            else -> field.typeMeta.type
+        }
+        if (field is RelationField) {
+            generateWhereIT(field)?.let {
+                args += inputValue(Constants.WHERE, it.asType())
+            }
+            val optionType = when {
+                field.isInterface -> Constants.Types.QueryOptions
+                field.isUnion -> Constants.Types.QueryOptions
+                else -> generateOptionsIT(
+                    field.node
+                        ?: throw IllegalArgumentException("no node on ${field.connectionPrefix}.${field.fieldName}")
+                ).asType()
+            }
+            args += inputValue(Constants.OPTIONS, optionType)
+        }
+        if (field is ConnectionField) {
+            generateConnectionWhereIT(field)
+                ?.let { args += inputValue(Constants.WHERE, it.asType()) }
+            field.relationshipField.node?.let {
+                args += inputValue(Constants.FIRST, Constants.Types.Int)
+                args += inputValue(Constants.AFTER, Constants.Types.String)
+            }
+            generateConnectionSortIT(field)
+                ?.let { args += inputValue(Constants.SORT, ListType(it.asRequiredType())) }
+        }
+        return field(field.fieldName, type) {
+            description(field.description)
+            comments(field.comments)
+            directives(field.otherDirectives)
+            inputValueDefinitions(args)
+        }
+    }
+
+
+    private fun generateConnectionOT(field: ConnectionField) =
+        getOrCreateObjectType(field.typeMeta.type.name()) { fields, _ ->
+            generateRelationshipOT(field).let {
+                fields += field(Constants.EDGES_FIELD, NonNullType(ListType(it.asRequiredType())))
+            }
+            fields += field(Constants.TOTAL_COUNT, NonNullType(Constants.Types.Int))
+            fields += field(Constants.PAGE_INFO, NonNullType(Constants.Types.PageInfo))
+        }
+            ?: throw IllegalStateException("Expected ${field.typeMeta.type.name()} to have fields")
+
+
+    private fun generateRelationshipOT(field: ConnectionField): String =
+        getOrCreateObjectType(field.relationshipTypeName,
+            init = {
+                field.properties?.let { implementz(it.interfaceName.asType()) }
+                (field.owner as? Node)?.interfaces?.forEach { interfaze ->
+                    interfaze.fields.filterIsInstance<ConnectionField>()
+                        .find { it.fieldName == field.fieldName }
+                        ?.let { generateRelationshipOT(it) }
+                        ?.let { implementz(it.asType()) }
+                }
+            },
+            initFields = { fields, _ ->
+                fields += field(Constants.CURSOR_FIELD, Constants.Types.String.makeRequired())
+                fields += field(Constants.NODE_FIELD, NonNullType(field.relationshipField.typeMeta.type.inner()))
+                fields += field.properties?.fields?.map { mapField(it) } ?: emptyList()
+            })
+            ?: throw IllegalStateException("Expected ${field.relationshipTypeName} to have fields")
+
+
+    private fun generateConnectionSortIT(field: ConnectionField) =
+        getOrCreateInputObjectType(field.typeMeta.type.name() + "Sort") { fields, _ ->
+            field.relationshipField.properties
+                ?.let { generatePropertySortIT(it) }
+                ?.let { fields += inputValue(Constants.EDGE_FIELD, it.asType()) }
+            field.relationshipField.node
+                ?.let { generateNodeSortIT(it) }
+                ?.let { fields += inputValue(Constants.NODE_FIELD, it.asType()) }
+        }
+
+    private fun generatePropertySortIT(properties: RelationshipProperties) =
+        getOrCreateInputObjectType(properties.interfaceName + "Sort") { fields, _ ->
+            properties.fields.forEach {
+                fields += inputValue(it.fieldName, Constants.Types.SortDirection)
+            }
+        }
+
+    private fun generateNodeSortIT(node: Node) =
+        getOrCreateInputObjectType(
+            node.name + "Sort",
+            init = { description("Fields to sort ${node.plural} by. The order in which sorts are applied is not guaranteed when specifying many fields in one ${node.name}Sort object.".asDescription()) },
+            initFields = { fields, _ ->
+                node.sortableFields.forEach {
+                    fields += inputValue(it.fieldName, Constants.Types.SortDirection)
+                }
+            }
+        )
+
+    private fun generateAggregationSelectionOT(baseTypeName: String, refNode: Node, rel: RelationField) =
+        getOrCreateObjectType("${baseTypeName}AggregationSelection") { fields, _ ->
+            fields += field(Constants.COUNT, Constants.Types.Int.makeRequired())
+            createAggregationField("${baseTypeName}NodeAggregateSelection", refNode.fields)
+                ?.let { fields += field(Constants.NODE_FIELD, it.asType()) }
+            createAggregationField("${baseTypeName}EdgeAggregateSelection", rel.properties?.fields ?: emptyList())
+                ?.let { fields += field(Constants.EDGE_FIELD, it.asType()) }
+        } ?: throw IllegalStateException("Expected at least the count field")
+
+    private fun createAggregationField(name: String, relFields: List<BaseField>) =
+        getOrCreateObjectType(name) { fields, _ ->
+            relFields
+                .filterIsInstance<PrimitiveField>()
+                .filterNot { it.typeMeta.type.isList() }
+                .forEach { field ->
+                    getAggregationSelectionLibraryType(field.typeMeta.type)
+                        ?.let { fields += field(field.fieldName, NonNullType(it)) }
+                }
+        }
+
+    protected fun getAggregationSelectionLibraryType(type: Type<*>): Type<*>? {
+        val suffix =  if (type.isRequired()) "NonNullable" else "Nullable"
+        val name = "${type.name()}AggregateSelection$suffix"
+        ctx.neo4jTypeDefinitionRegistry.getUnwrappedType(name) ?: return null
+        return TypeName(name)
     }
 }

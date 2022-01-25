@@ -14,7 +14,7 @@ type Actor {
 
 type Movie {
   id: ID
-  actors: [Actor]! @writeonly @relationship(type: "ACTED_IN", direction: IN)
+  actors: [Actor!]! @writeonly @relationship(type: "ACTED_IN", direction: IN)
 }
 ----
 
@@ -34,7 +34,7 @@ type Actor {
 
 type ActorAggregateSelection {
   count: Int!
-  name: StringAggregateSelection!
+  name: StringAggregateSelectionNullable!
 }
 
 type CreateActorsMutationResponse {
@@ -59,7 +59,7 @@ type DeleteInfo {
   relationshipsDeleted: Int!
 }
 
-type IDAggregateSelection {
+type IDAggregateSelectionNullable {
   longest: ID
   shortest: ID
 }
@@ -70,7 +70,7 @@ type Movie {
 
 type MovieAggregateSelection {
   count: Int!
-  id: IDAggregateSelection!
+  id: IDAggregateSelectionNullable!
 }
 
 type Mutation {
@@ -85,13 +85,11 @@ type Mutation {
 type Query {
   actors(options: ActorOptions, where: ActorWhere): [Actor!]!
   actorsAggregate(where: ActorWhere): ActorAggregateSelection!
-  actorsCount(where: ActorWhere): Int!
   movies(options: MovieOptions, where: MovieWhere): [Movie!]!
   moviesAggregate(where: MovieWhere): MovieAggregateSelection!
-  moviesCount(where: MovieWhere): Int!
 }
 
-type StringAggregateSelection {
+type StringAggregateSelectionNullable {
   longest: String
   shortest: String
 }

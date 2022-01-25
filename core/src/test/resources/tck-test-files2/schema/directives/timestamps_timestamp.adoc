@@ -36,9 +36,9 @@ type CreateMoviesMutationResponse {
   movies: [Movie!]!
 }
 
-type DateTimeAggregateSelection {
-  max: DateTime
-  min: DateTime
+type DateTimeAggregateSelectionNonNullable {
+  max: DateTime!
+  min: DateTime!
 }
 
 type DeleteInfo {
@@ -47,7 +47,7 @@ type DeleteInfo {
   relationshipsDeleted: Int!
 }
 
-type IDAggregateSelection {
+type IDAggregateSelectionNullable {
   longest: ID
   shortest: ID
 }
@@ -60,9 +60,9 @@ type Movie {
 
 type MovieAggregateSelection {
   count: Int!
-  createdAt: DateTimeAggregateSelection!
-  id: IDAggregateSelection!
-  updatedAt: DateTimeAggregateSelection!
+  createdAt: DateTimeAggregateSelectionNonNullable!
+  id: IDAggregateSelectionNullable!
+  updatedAt: DateTimeAggregateSelectionNonNullable!
 }
 
 type Mutation {
@@ -74,7 +74,6 @@ type Mutation {
 type Query {
   movies(options: MovieOptions, where: MovieWhere): [Movie!]!
   moviesAggregate(where: MovieWhere): MovieAggregateSelection!
-  moviesCount(where: MovieWhere): Int!
 }
 
 type UpdateInfo {

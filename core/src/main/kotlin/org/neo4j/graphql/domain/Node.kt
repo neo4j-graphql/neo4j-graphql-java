@@ -25,5 +25,7 @@ class Node(
 ) : FieldContainer<BaseField, Node>(fields) {
 
     val plural: String by lazy { nodeDirective?.plural ?: English.plural(name).capitalize() }
+
+    fun isOperationAllowed(op: ExcludeDirective.ExcludeOperation) = exclude?.operations?.contains(op) != true
 }
 

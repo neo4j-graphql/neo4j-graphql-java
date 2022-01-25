@@ -11,21 +11,21 @@
 interface Content {
   id: ID
   content: String
-  creator: User @relationship(type: "HAS_CONTENT", direction: IN)
+  creator: User! @relationship(type: "HAS_CONTENT", direction: IN)
 }
 
 type Comment implements Content {
   id: ID
   content: String
-  creator: User
-  post: Post @relationship(type: "HAS_COMMENT", direction: IN)
+  creator: User!
+  post: Post! @relationship(type: "HAS_COMMENT", direction: IN)
 }
 
 type Post implements Content {
   id: ID
   content: String
-  creator: User
-  comments: [Comment] @relationship(type: "HAS_COMMENT", direction: OUT)
+  creator: User!
+  comments: [Comment!]! @relationship(type: "HAS_COMMENT", direction: OUT)
 }
 
 type User {
@@ -47,26 +47,26 @@ schema {
 
 interface Content {
   content: String
-  creator(options: UserOptions, where: UserWhere): User
+  creator(options: UserOptions, where: UserWhere): User!
   creatorConnection(after: String, first: Int, sort: [ContentCreatorConnectionSort!], where: ContentCreatorConnectionWhere): ContentCreatorConnection!
   id: ID
 }
 
 type Comment implements Content {
   content: String
-  creator(options: UserOptions, where: UserWhere): User
+  creator(options: UserOptions, where: UserWhere): User!
   creatorAggregate(where: UserWhere): CommentUserCreatorAggregationSelection
   creatorConnection(after: String, first: Int, sort: [ContentCreatorConnectionSort!], where: ContentCreatorConnectionWhere): ContentCreatorConnection!
   id: ID
-  post(options: PostOptions, where: PostWhere): Post
+  post(options: PostOptions, where: PostWhere): Post!
   postAggregate(where: PostWhere): CommentPostPostAggregationSelection
   postConnection(after: String, first: Int, sort: [CommentPostConnectionSort!], where: CommentPostConnectionWhere): CommentPostConnection!
 }
 
 type CommentAggregateSelection {
-  content: StringAggregateSelection!
+  content: StringAggregateSelectionNullable!
   count: Int!
-  id: IDAggregateSelection!
+  id: IDAggregateSelectionNullable!
 }
 
 type CommentPostConnection {
@@ -81,8 +81,8 @@ type CommentPostPostAggregationSelection {
 }
 
 type CommentPostPostNodeAggregateSelection {
-  content: StringAggregateSelection!
-  id: IDAggregateSelection!
+  content: StringAggregateSelectionNullable!
+  id: IDAggregateSelectionNullable!
 }
 
 type CommentPostRelationship {
@@ -96,8 +96,8 @@ type CommentUserCreatorAggregationSelection {
 }
 
 type CommentUserCreatorNodeAggregateSelection {
-  id: IDAggregateSelection!
-  name: StringAggregateSelection!
+  id: IDAggregateSelectionNullable!
+  name: StringAggregateSelectionNullable!
 }
 
 type ContentCreatorConnection {
@@ -138,7 +138,7 @@ type DeleteInfo {
   relationshipsDeleted: Int!
 }
 
-type IDAggregateSelection {
+type IDAggregateSelectionNullable {
   longest: ID
   shortest: ID
 }
@@ -164,20 +164,20 @@ type PageInfo {
 }
 
 type Post implements Content {
-  comments(options: CommentOptions, where: CommentWhere): [Comment]
+  comments(options: CommentOptions, where: CommentWhere): [Comment!]!
   commentsAggregate(where: CommentWhere): PostCommentCommentsAggregationSelection
   commentsConnection(after: String, first: Int, sort: [PostCommentsConnectionSort!], where: PostCommentsConnectionWhere): PostCommentsConnection!
   content: String
-  creator(options: UserOptions, where: UserWhere): User
+  creator(options: UserOptions, where: UserWhere): User!
   creatorAggregate(where: UserWhere): PostUserCreatorAggregationSelection
   creatorConnection(after: String, first: Int, sort: [ContentCreatorConnectionSort!], where: ContentCreatorConnectionWhere): ContentCreatorConnection!
   id: ID
 }
 
 type PostAggregateSelection {
-  content: StringAggregateSelection!
+  content: StringAggregateSelectionNullable!
   count: Int!
-  id: IDAggregateSelection!
+  id: IDAggregateSelectionNullable!
 }
 
 type PostCommentCommentsAggregationSelection {
@@ -186,8 +186,8 @@ type PostCommentCommentsAggregationSelection {
 }
 
 type PostCommentCommentsNodeAggregateSelection {
-  content: StringAggregateSelection!
-  id: IDAggregateSelection!
+  content: StringAggregateSelectionNullable!
+  id: IDAggregateSelectionNullable!
 }
 
 type PostCommentsConnection {
@@ -207,23 +207,20 @@ type PostUserCreatorAggregationSelection {
 }
 
 type PostUserCreatorNodeAggregateSelection {
-  id: IDAggregateSelection!
-  name: StringAggregateSelection!
+  id: IDAggregateSelectionNullable!
+  name: StringAggregateSelectionNullable!
 }
 
 type Query {
   comments(options: CommentOptions, where: CommentWhere): [Comment!]!
   commentsAggregate(where: CommentWhere): CommentAggregateSelection!
-  commentsCount(where: CommentWhere): Int!
   posts(options: PostOptions, where: PostWhere): [Post!]!
   postsAggregate(where: PostWhere): PostAggregateSelection!
-  postsCount(where: PostWhere): Int!
   users(options: UserOptions, where: UserWhere): [User!]!
   usersAggregate(where: UserWhere): UserAggregateSelection!
-  usersCount(where: UserWhere): Int!
 }
 
-type StringAggregateSelection {
+type StringAggregateSelectionNullable {
   longest: String
   shortest: String
 }
@@ -260,8 +257,8 @@ type User {
 
 type UserAggregateSelection {
   count: Int!
-  id: IDAggregateSelection!
-  name: StringAggregateSelection!
+  id: IDAggregateSelectionNullable!
+  name: StringAggregateSelectionNullable!
 }
 
 type UserContentConnection {

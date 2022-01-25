@@ -46,7 +46,7 @@ type Deprecated {
 
 type DeprecatedAggregateSelection {
   count: Int!
-  deprecatedField: StringAggregateSelection!
+  deprecatedField: StringAggregateSelectionNullable!
 }
 
 type Mutation {
@@ -58,10 +58,9 @@ type Mutation {
 type Query {
   deprecateds(options: DeprecatedOptions, where: DeprecatedWhere): [Deprecated!]!
   deprecatedsAggregate(where: DeprecatedWhere): DeprecatedAggregateSelection!
-  deprecatedsCount(where: DeprecatedWhere): Int!
 }
 
-type StringAggregateSelection {
+type StringAggregateSelectionNullable {
   longest: String
   shortest: String
 }

@@ -129,15 +129,10 @@ object FieldFactory {
                     ),
                     relationshipField = baseField
                 ).apply {
-                    this.arguments = field.inputValueDefinitions
-                    this.description = field.description
-
                     this.dbPropertyName = aliasDirective?.property ?: field.name
                     this.otherDirectives = directives.values.toList()
                     this.arguments = field.inputValueDefinitions
                     this.auth = authDirective
-                    this.description = field.description
-                    this.comments = field.comments
                     this.readonly = readonlyDirective != null
                     this.writeonly = writeonlyDirective != null
                     this.unique = unique

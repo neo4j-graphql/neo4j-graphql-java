@@ -41,9 +41,9 @@ type DeleteInfo {
   relationshipsDeleted: Int!
 }
 
-type IDAggregateSelection {
-  longest: ID
-  shortest: ID
+type IDAggregateSelectionNonNullable {
+  longest: ID!
+  shortest: ID!
 }
 
 type Mutation {
@@ -55,12 +55,11 @@ type Mutation {
 type Query {
   users(options: UserOptions, where: UserWhere): [User!]!
   usersAggregate(where: UserWhere): UserAggregateSelection!
-  usersCount(where: UserWhere): Int!
 }
 
-type StringAggregateSelection {
-  longest: String
-  shortest: String
+type StringAggregateSelectionNonNullable {
+  longest: String!
+  shortest: String!
 }
 
 type UpdateInfo {
@@ -83,8 +82,8 @@ type User {
 
 type UserAggregateSelection {
   count: Int!
-  id: IDAggregateSelection!
-  username: StringAggregateSelection!
+  id: IDAggregateSelectionNonNullable!
+  username: StringAggregateSelectionNonNullable!
 }
 
 enum SortDirection {

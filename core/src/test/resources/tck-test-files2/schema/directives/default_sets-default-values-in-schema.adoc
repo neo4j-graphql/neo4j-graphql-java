@@ -51,9 +51,9 @@ type CreateUsersMutationResponse {
   users: [User!]!
 }
 
-type DateTimeAggregateSelection {
-  max: DateTime
-  min: DateTime
+type DateTimeAggregateSelectionNonNullable {
+  max: DateTime!
+  min: DateTime!
 }
 
 type DeleteInfo {
@@ -62,23 +62,23 @@ type DeleteInfo {
   relationshipsDeleted: Int!
 }
 
-type FloatAggregateSelection {
-  average: Float
-  max: Float
-  min: Float
-  sum: Float
+type FloatAggregateSelectionNonNullable {
+  average: Float!
+  max: Float!
+  min: Float!
+  sum: Float!
 }
 
-type IDAggregateSelection {
-  longest: ID
-  shortest: ID
+type IDAggregateSelectionNonNullable {
+  longest: ID!
+  shortest: ID!
 }
 
-type IntAggregateSelection {
-  average: Float
-  max: Int
-  min: Int
-  sum: Int
+type IntAggregateSelectionNonNullable {
+  average: Float!
+  max: Int!
+  min: Int!
+  sum: Int!
 }
 
 type Mutation {
@@ -90,12 +90,11 @@ type Mutation {
 type Query {
   users(options: UserOptions, where: UserWhere): [User!]!
   usersAggregate(where: UserWhere): UserAggregateSelection!
-  usersCount(where: UserWhere): Int!
 }
 
-type StringAggregateSelection {
-  longest: String
-  shortest: String
+type StringAggregateSelectionNonNullable {
+  longest: String!
+  shortest: String!
 }
 
 type UpdateInfo {
@@ -124,13 +123,13 @@ type User implements UserInterface {
 
 type UserAggregateSelection {
   count: Int!
-  fromInterface: StringAggregateSelection!
-  id: IDAggregateSelection!
-  name: StringAggregateSelection!
-  numberOfFriends: IntAggregateSelection!
-  rating: FloatAggregateSelection!
-  toBeOverridden: StringAggregateSelection!
-  verifiedDate: DateTimeAggregateSelection!
+  fromInterface: StringAggregateSelectionNonNullable!
+  id: IDAggregateSelectionNonNullable!
+  name: StringAggregateSelectionNonNullable!
+  numberOfFriends: IntAggregateSelectionNonNullable!
+  rating: FloatAggregateSelectionNonNullable!
+  toBeOverridden: StringAggregateSelectionNonNullable!
+  verifiedDate: DateTimeAggregateSelectionNonNullable!
 }
 
 enum SortDirection {

@@ -43,19 +43,19 @@ type DeleteInfo {
   relationshipsDeleted: Int!
 }
 
-type FloatAggregateSelection {
+type FloatAggregateSelectionNullable {
   average: Float
   max: Float
   min: Float
   sum: Float
 }
 
-type IDAggregateSelection {
+type IDAggregateSelectionNullable {
   longest: ID
   shortest: ID
 }
 
-type IntAggregateSelection {
+type IntAggregateSelectionNullable {
   average: Float
   max: Int
   min: Int
@@ -70,10 +70,10 @@ type Movie {
 }
 
 type MovieAggregateSelection {
-  actorCount: IntAggregateSelection!
-  averageRating: FloatAggregateSelection!
+  actorCount: IntAggregateSelectionNullable!
+  averageRating: FloatAggregateSelectionNullable!
   count: Int!
-  id: IDAggregateSelection!
+  id: IDAggregateSelectionNullable!
 }
 
 type Mutation {
@@ -85,7 +85,6 @@ type Mutation {
 type Query {
   movies(options: MovieOptions, where: MovieWhere): [Movie!]!
   moviesAggregate(where: MovieWhere): MovieAggregateSelection!
-  moviesCount(where: MovieWhere): Int!
 }
 
 type UpdateInfo {

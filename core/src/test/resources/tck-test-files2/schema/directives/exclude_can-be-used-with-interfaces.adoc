@@ -58,7 +58,7 @@ type Movie implements Production {
 
 type MovieAggregateSelection {
   count: Int!
-  title: StringAggregateSelection!
+  title: StringAggregateSelectionNullable!
 }
 
 type Mutation {
@@ -71,10 +71,8 @@ type Mutation {
 type Query {
   movies(options: MovieOptions, where: MovieWhere): [Movie!]!
   moviesAggregate(where: MovieWhere): MovieAggregateSelection!
-  moviesCount(where: MovieWhere): Int!
   series(options: SeriesOptions, where: SeriesWhere): [Series!]!
   seriesAggregate(where: SeriesWhere): SeriesAggregateSelection!
-  seriesCount(where: SeriesWhere): Int!
 }
 
 type Series implements Production {
@@ -83,10 +81,10 @@ type Series implements Production {
 
 type SeriesAggregateSelection {
   count: Int!
-  title: StringAggregateSelection!
+  title: StringAggregateSelectionNullable!
 }
 
-type StringAggregateSelection {
+type StringAggregateSelectionNullable {
   longest: String
   shortest: String
 }

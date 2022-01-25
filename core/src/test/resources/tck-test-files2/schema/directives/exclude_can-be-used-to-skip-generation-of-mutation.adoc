@@ -29,7 +29,7 @@ type Actor {
 
 type ActorAggregateSelection {
   count: Int!
-  name: StringAggregateSelection!
+  name: StringAggregateSelectionNullable!
 }
 
 type DeleteInfo {
@@ -46,10 +46,9 @@ type Mutation {
 type Query {
   actors(options: ActorOptions, where: ActorWhere): [Actor!]!
   actorsAggregate(where: ActorWhere): ActorAggregateSelection!
-  actorsCount(where: ActorWhere): Int!
 }
 
-type StringAggregateSelection {
+type StringAggregateSelectionNullable {
   longest: String
   shortest: String
 }

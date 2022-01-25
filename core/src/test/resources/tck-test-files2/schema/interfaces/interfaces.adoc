@@ -10,20 +10,20 @@
 ----
 interface MovieNode @auth(rules: [{allow: "*", operations: [READ]}]) {
   id: ID
-  movies: [Movie] @relationship(type: "HAS_MOVIE", direction: OUT)
+  movies: [Movie!]! @relationship(type: "HAS_MOVIE", direction: OUT)
   customQuery: [Movie] @cypher(statement: """
-    MATCH (m:Movie)
-    RETURN m
+  MATCH (m:Movie)
+  RETURN m
   """)
 }
 
 type Movie implements MovieNode @auth(rules: [{allow: "*", operations: [READ]}]) {
   id: ID
   nodes: [MovieNode]
-  movies: [Movie] @relationship(type: "HAS_MOVIE", direction: OUT)
+  movies: [Movie!]! @relationship(type: "HAS_MOVIE", direction: OUT)
   customQuery: [Movie] @cypher(statement: """
-    MATCH (m:Movie)
-    RETURN m
+  MATCH (m:Movie)
+  RETURN m
   """)
 }
 ----
@@ -41,7 +41,7 @@ schema {
 interface MovieNode {
   customQuery: [Movie]
   id: ID
-  movies(options: MovieOptions, where: MovieWhere): [Movie]
+  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
   moviesConnection(after: String, first: Int, sort: [MovieNodeMoviesConnectionSort!], where: MovieNodeMoviesConnectionWhere): MovieNodeMoviesConnection!
 }
 
@@ -62,7 +62,7 @@ type DeleteInfo {
   relationshipsDeleted: Int!
 }
 
-type IDAggregateSelection {
+type IDAggregateSelectionNullable {
   longest: ID
   shortest: ID
 }
@@ -70,7 +70,7 @@ type IDAggregateSelection {
 type Movie implements MovieNode {
   customQuery: [Movie]
   id: ID
-  movies(options: MovieOptions, where: MovieWhere): [Movie]
+  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
   moviesAggregate(where: MovieWhere): MovieMovieMoviesAggregationSelection
   moviesConnection(after: String, first: Int, sort: [MovieNodeMoviesConnectionSort!], where: MovieNodeMoviesConnectionWhere): MovieNodeMoviesConnection!
   nodes: [MovieNode]
@@ -78,7 +78,7 @@ type Movie implements MovieNode {
 
 type MovieAggregateSelection {
   count: Int!
-  id: IDAggregateSelection!
+  id: IDAggregateSelectionNullable!
 }
 
 type MovieMovieMoviesAggregationSelection {
@@ -87,7 +87,7 @@ type MovieMovieMoviesAggregationSelection {
 }
 
 type MovieMovieMoviesNodeAggregateSelection {
-  id: IDAggregateSelection!
+  id: IDAggregateSelectionNullable!
 }
 
 type MovieNodeMoviesConnection {
@@ -118,7 +118,6 @@ type PageInfo {
 type Query {
   movies(options: MovieOptions, where: MovieWhere): [Movie!]!
   moviesAggregate(where: MovieWhere): MovieAggregateSelection!
-  moviesCount(where: MovieWhere): Int!
 }
 
 type UpdateInfo {

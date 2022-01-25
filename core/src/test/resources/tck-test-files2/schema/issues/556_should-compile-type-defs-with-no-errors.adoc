@@ -9,7 +9,7 @@
 [source,graphql,schema=true]
 ----
 type Journalist {
-  articles: [Article]! @relationship(type: "HAS_ARTICLE", direction: OUT, properties: "HasArticle")
+  articles: [Article!]! @relationship(type: "HAS_ARTICLE", direction: OUT, properties: "HasArticle")
 }
 
 interface HasArticle @relationshipProperties {
@@ -19,7 +19,7 @@ interface HasArticle @relationshipProperties {
 type Article {
   id: ID! @id
   blocks: [Block!]! @relationship(type: "HAS_BLOCK", direction: OUT, properties: "HasBlock")
-  images: [Image!] @relationship(type: "HAS_IMAGE", direction: OUT)
+  images: [Image!]! @relationship(type: "HAS_IMAGE", direction: OUT)
 }
 
 interface HasBlock @relationshipProperties {
@@ -49,7 +49,7 @@ interface Image {
 }
 
 type PDFImage implements Image {
-  featuredIn: [Article!] @relationship(type: "HAS_IMAGE", direction: IN)
+  featuredIn: [Article!]! @relationship(type: "HAS_IMAGE", direction: IN)
   url: String!
 }
 ----
@@ -84,13 +84,13 @@ type Article {
   blocks(options: QueryOptions, where: BlockWhere): [Block!]!
   blocksConnection(sort: [ArticleBlocksConnectionSort!], where: ArticleBlocksConnectionWhere): ArticleBlocksConnection!
   id: ID!
-  images(options: QueryOptions, where: ImageWhere): [Image!]
+  images(options: QueryOptions, where: ImageWhere): [Image!]!
   imagesConnection(where: ArticleImagesConnectionWhere): ArticleImagesConnection!
 }
 
 type ArticleAggregateSelection {
   count: Int!
-  id: IDAggregateSelection!
+  id: IDAggregateSelectionNonNullable!
 }
 
 type ArticleBlocksConnection {
@@ -152,9 +152,9 @@ type CreateTextBlocksMutationResponse {
   textBlocks: [TextBlock!]!
 }
 
-type DateTimeAggregateSelection {
-  max: DateTime
-  min: DateTime
+type DateTimeAggregateSelectionNonNullable {
+  max: DateTime!
+  min: DateTime!
 }
 
 type DeleteInfo {
@@ -169,10 +169,15 @@ type DividerBlock implements Block {
 
 type DividerBlockAggregateSelection {
   count: Int!
-  id: IDAggregateSelection!
+  id: IDAggregateSelectionNullable!
 }
 
-type IDAggregateSelection {
+type IDAggregateSelectionNonNullable {
+  longest: ID!
+  shortest: ID!
+}
+
+type IDAggregateSelectionNullable {
   longest: ID
   shortest: ID
 }
@@ -185,7 +190,7 @@ type ImageBlock implements Block {
 
 type ImageBlockAggregateSelection {
   count: Int!
-  id: IDAggregateSelection!
+  id: IDAggregateSelectionNullable!
 }
 
 type ImageBlockImagesConnection {
@@ -211,7 +216,7 @@ type ImageFeaturedInRelationship {
 }
 
 type Journalist {
-  articles(options: ArticleOptions, where: ArticleWhere): [Article]!
+  articles(options: ArticleOptions, where: ArticleWhere): [Article!]!
   articlesAggregate(where: ArticleWhere): JournalistArticleArticlesAggregationSelection
   articlesConnection(after: String, first: Int, sort: [JournalistArticlesConnectionSort!], where: JournalistArticlesConnectionWhere): JournalistArticlesConnection!
 }
@@ -227,11 +232,11 @@ type JournalistArticleArticlesAggregationSelection {
 }
 
 type JournalistArticleArticlesEdgeAggregateSelection {
-  createdAt: DateTimeAggregateSelection!
+  createdAt: DateTimeAggregateSelectionNonNullable!
 }
 
 type JournalistArticleArticlesNodeAggregateSelection {
-  id: IDAggregateSelection!
+  id: IDAggregateSelectionNonNullable!
 }
 
 type JournalistArticlesConnection {
@@ -268,7 +273,7 @@ type Mutation {
 }
 
 type PDFImage implements Image {
-  featuredIn(options: ArticleOptions, where: ArticleWhere): [Article!]
+  featuredIn(options: ArticleOptions, where: ArticleWhere): [Article!]!
   featuredInAggregate(where: ArticleWhere): PDFImageArticleFeaturedInAggregationSelection
   featuredInConnection(after: String, first: Int, sort: [ImageFeaturedInConnectionSort!], where: ImageFeaturedInConnectionWhere): ImageFeaturedInConnection!
   url: String!
@@ -276,7 +281,7 @@ type PDFImage implements Image {
 
 type PDFImageAggregateSelection {
   count: Int!
-  url: StringAggregateSelection!
+  url: StringAggregateSelectionNonNullable!
 }
 
 type PDFImageArticleFeaturedInAggregationSelection {
@@ -285,7 +290,7 @@ type PDFImageArticleFeaturedInAggregationSelection {
 }
 
 type PDFImageArticleFeaturedInNodeAggregateSelection {
-  id: IDAggregateSelection!
+  id: IDAggregateSelectionNonNullable!
 }
 
 "Pagination information (Relay)"
@@ -299,25 +304,24 @@ type PageInfo {
 type Query {
   articles(options: ArticleOptions, where: ArticleWhere): [Article!]!
   articlesAggregate(where: ArticleWhere): ArticleAggregateSelection!
-  articlesCount(where: ArticleWhere): Int!
   dividerBlocks(options: DividerBlockOptions, where: DividerBlockWhere): [DividerBlock!]!
   dividerBlocksAggregate(where: DividerBlockWhere): DividerBlockAggregateSelection!
-  dividerBlocksCount(where: DividerBlockWhere): Int!
   imageBlocks(options: ImageBlockOptions, where: ImageBlockWhere): [ImageBlock!]!
   imageBlocksAggregate(where: ImageBlockWhere): ImageBlockAggregateSelection!
-  imageBlocksCount(where: ImageBlockWhere): Int!
   journalists(options: JournalistOptions, where: JournalistWhere): [Journalist!]!
   journalistsAggregate(where: JournalistWhere): JournalistAggregateSelection!
-  journalistsCount(where: JournalistWhere): Int!
   pDFImages(options: PDFImageOptions, where: PDFImageWhere): [PDFImage!]!
   pDFImagesAggregate(where: PDFImageWhere): PDFImageAggregateSelection!
-  pDFImagesCount(where: PDFImageWhere): Int!
   textBlocks(options: TextBlockOptions, where: TextBlockWhere): [TextBlock!]!
   textBlocksAggregate(where: TextBlockWhere): TextBlockAggregateSelection!
-  textBlocksCount(where: TextBlockWhere): Int!
 }
 
-type StringAggregateSelection {
+type StringAggregateSelectionNonNullable {
+  longest: String!
+  shortest: String!
+}
+
+type StringAggregateSelectionNullable {
   longest: String
   shortest: String
 }
@@ -329,8 +333,8 @@ type TextBlock implements Block {
 
 type TextBlockAggregateSelection {
   count: Int!
-  id: IDAggregateSelection!
-  text: StringAggregateSelection!
+  id: IDAggregateSelectionNullable!
+  text: StringAggregateSelectionNullable!
 }
 
 type UpdateArticlesMutationResponse {

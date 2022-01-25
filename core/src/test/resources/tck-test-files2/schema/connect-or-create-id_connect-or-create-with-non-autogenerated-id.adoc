@@ -48,9 +48,9 @@ type CreateUsersMutationResponse {
   users: [User!]!
 }
 
-type DateTimeAggregateSelection {
-  max: DateTime
-  min: DateTime
+type DateTimeAggregateSelectionNonNullable {
+  max: DateTime!
+  min: DateTime!
 }
 
 type DeleteInfo {
@@ -59,9 +59,9 @@ type DeleteInfo {
   relationshipsDeleted: Int!
 }
 
-type IDAggregateSelection {
-  longest: ID
-  shortest: ID
+type IDAggregateSelectionNonNullable {
+  longest: ID!
+  shortest: ID!
 }
 
 type Mutation {
@@ -91,10 +91,10 @@ type Post {
 }
 
 type PostAggregateSelection {
-  content: StringAggregateSelection!
+  content: StringAggregateSelectionNonNullable!
   count: Int!
-  createdAt: DateTimeAggregateSelection!
-  id: IDAggregateSelection!
+  createdAt: DateTimeAggregateSelectionNonNullable!
+  id: IDAggregateSelectionNonNullable!
 }
 
 type PostCreatorConnection {
@@ -114,22 +114,20 @@ type PostUserCreatorAggregationSelection {
 }
 
 type PostUserCreatorNodeAggregateSelection {
-  id: IDAggregateSelection!
-  name: StringAggregateSelection!
+  id: IDAggregateSelectionNonNullable!
+  name: StringAggregateSelectionNonNullable!
 }
 
 type Query {
   posts(options: PostOptions, where: PostWhere): [Post!]!
   postsAggregate(where: PostWhere): PostAggregateSelection!
-  postsCount(where: PostWhere): Int!
   users(options: UserOptions, where: UserWhere): [User!]!
   usersAggregate(where: UserWhere): UserAggregateSelection!
-  usersCount(where: UserWhere): Int!
 }
 
-type StringAggregateSelection {
-  longest: String
-  shortest: String
+type StringAggregateSelectionNonNullable {
+  longest: String!
+  shortest: String!
 }
 
 type UpdateInfo {
@@ -160,8 +158,8 @@ type User {
 
 type UserAggregateSelection {
   count: Int!
-  id: IDAggregateSelection!
-  name: StringAggregateSelection!
+  id: IDAggregateSelectionNonNullable!
+  name: StringAggregateSelectionNonNullable!
 }
 
 type UserPostPostsAggregationSelection {
@@ -170,9 +168,9 @@ type UserPostPostsAggregationSelection {
 }
 
 type UserPostPostsNodeAggregateSelection {
-  content: StringAggregateSelection!
-  createdAt: DateTimeAggregateSelection!
-  id: IDAggregateSelection!
+  content: StringAggregateSelectionNonNullable!
+  createdAt: DateTimeAggregateSelectionNonNullable!
+  id: IDAggregateSelectionNonNullable!
 }
 
 type UserPostsConnection {

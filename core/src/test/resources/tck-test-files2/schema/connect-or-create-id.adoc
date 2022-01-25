@@ -38,7 +38,7 @@ type Actor {
 
 type ActorAggregateSelection {
   count: Int!
-  name: StringAggregateSelection!
+  name: StringAggregateSelectionNonNullable!
 }
 
 type ActorMovieMoviesAggregationSelection {
@@ -47,8 +47,8 @@ type ActorMovieMoviesAggregationSelection {
 }
 
 type ActorMovieMoviesNodeAggregateSelection {
-  id: IDAggregateSelection!
-  title: StringAggregateSelection!
+  id: IDAggregateSelectionNonNullable!
+  title: StringAggregateSelectionNonNullable!
 }
 
 type ActorMoviesConnection {
@@ -84,9 +84,9 @@ type DeleteInfo {
   relationshipsDeleted: Int!
 }
 
-type IDAggregateSelection {
-  longest: ID
-  shortest: ID
+type IDAggregateSelectionNonNullable {
+  longest: ID!
+  shortest: ID!
 }
 
 type Movie {
@@ -96,8 +96,8 @@ type Movie {
 
 type MovieAggregateSelection {
   count: Int!
-  id: IDAggregateSelection!
-  title: StringAggregateSelection!
+  id: IDAggregateSelectionNonNullable!
+  title: StringAggregateSelectionNonNullable!
 }
 
 type Mutation {
@@ -120,15 +120,13 @@ type PageInfo {
 type Query {
   actors(options: ActorOptions, where: ActorWhere): [Actor!]!
   actorsAggregate(where: ActorWhere): ActorAggregateSelection!
-  actorsCount(where: ActorWhere): Int!
   movies(options: MovieOptions, where: MovieWhere): [Movie!]!
   moviesAggregate(where: MovieWhere): MovieAggregateSelection!
-  moviesCount(where: MovieWhere): Int!
 }
 
-type StringAggregateSelection {
-  longest: String
-  shortest: String
+type StringAggregateSelectionNonNullable {
+  longest: String!
+  shortest: String!
 }
 
 type UpdateActorsMutationResponse {

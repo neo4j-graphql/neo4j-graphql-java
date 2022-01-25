@@ -14,13 +14,13 @@ type Person {
   height: Float
   fun: Boolean
   gender: Gender
-  company: Company @relation(name:"WORKS_AT")
-  location: _Neo4jPoint
+#  company: Company @relation(name:"WORKS_AT")
+  location: Point
 }
 type Company {
   _id: ID
   name: String
-  employees: [Person] @relation(name:"WORKS_AT", direction: IN)
+#  employees: [Person] @relation(name:"WORKS_AT", direction: IN)
 }
 ----
 
@@ -1495,7 +1495,7 @@ RETURN person {
 .GraphQL-Query
 [source,graphql]
 ----
-{ person(filter: { name: "Jane" }) { name }}
+{ persons(where: { name: "Jane" }) { name }}
 ----
 
 .GraphQL-Response

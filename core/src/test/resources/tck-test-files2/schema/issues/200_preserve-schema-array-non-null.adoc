@@ -34,10 +34,10 @@ type Category {
 }
 
 type CategoryAggregateSelection {
-  categoryId: IDAggregateSelection!
+  categoryId: IDAggregateSelectionNonNullable!
   count: Int!
-  description: StringAggregateSelection!
-  name: StringAggregateSelection!
+  description: StringAggregateSelectionNonNullable!
+  name: StringAggregateSelectionNonNullable!
 }
 
 type CreateCategoriesMutationResponse {
@@ -57,9 +57,9 @@ type DeleteInfo {
   relationshipsDeleted: Int!
 }
 
-type IDAggregateSelection {
-  longest: ID
-  shortest: ID
+type IDAggregateSelectionNonNullable {
+  longest: ID!
+  shortest: ID!
 }
 
 type Mutation {
@@ -71,12 +71,11 @@ type Mutation {
 type Query {
   categories(options: CategoryOptions, where: CategoryWhere): [Category!]!
   categoriesAggregate(where: CategoryWhere): CategoryAggregateSelection!
-  categoriesCount(where: CategoryWhere): Int!
 }
 
-type StringAggregateSelection {
-  longest: String
-  shortest: String
+type StringAggregateSelectionNonNullable {
+  longest: String!
+  shortest: String!
 }
 
 type UpdateCategoriesMutationResponse {

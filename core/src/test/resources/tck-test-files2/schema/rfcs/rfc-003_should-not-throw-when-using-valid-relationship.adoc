@@ -1,0 +1,563 @@
+:toc:
+
+= schema/rfs/003
+
+== should not throw when using valid relationship
+
+=== Source schema
+
+[source,graphql,schema=true]
+----
+interface SourceInterface {
+  targets: [Target!]! @relationship(type: "HAS_TARGET", direction: OUT)
+  target1: Target! @relationship(type: "HAS_TARGET", direction: OUT)
+  target2: Target @relationship(type: "HAS_TARGET", direction: OUT)
+}
+
+type Source implements SourceInterface {
+  id: ID @id
+  targets: [Target!]!
+  target1: Target!
+  target2: Target
+}
+
+type Target {
+  id: ID @id
+}
+----
+
+=== Augmented schema
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+interface SourceInterface {
+  target1(options: TargetOptions, where: TargetWhere): Target!
+  target1Connection(after: String, first: Int, sort: [SourceInterfaceTarget1ConnectionSort!], where: SourceInterfaceTarget1ConnectionWhere): SourceInterfaceTarget1Connection!
+  target2(options: TargetOptions, where: TargetWhere): Target
+  target2Connection(after: String, first: Int, sort: [SourceInterfaceTarget2ConnectionSort!], where: SourceInterfaceTarget2ConnectionWhere): SourceInterfaceTarget2Connection!
+  targets(options: TargetOptions, where: TargetWhere): [Target!]!
+  targetsConnection(after: String, first: Int, sort: [SourceInterfaceTargetsConnectionSort!], where: SourceInterfaceTargetsConnectionWhere): SourceInterfaceTargetsConnection!
+}
+
+type CreateInfo {
+  bookmark: String
+  nodesCreated: Int!
+  relationshipsCreated: Int!
+}
+
+type CreateSourcesMutationResponse {
+  info: CreateInfo!
+  sources: [Source!]!
+}
+
+type CreateTargetsMutationResponse {
+  info: CreateInfo!
+  targets: [Target!]!
+}
+
+type DeleteInfo {
+  bookmark: String
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
+type IDAggregateSelectionNullable {
+  longest: ID
+  shortest: ID
+}
+
+type Mutation {
+  createSources(input: [SourceCreateInput!]!): CreateSourcesMutationResponse!
+  createTargets(input: [TargetCreateInput!]!): CreateTargetsMutationResponse!
+  deleteSources(delete: SourceDeleteInput, where: SourceWhere): DeleteInfo!
+  deleteTargets(where: TargetWhere): DeleteInfo!
+  updateSources(connect: SourceConnectInput, connectOrCreate: SourceConnectOrCreateInput, create: SourceRelationInput, delete: SourceDeleteInput, disconnect: SourceDisconnectInput, update: SourceUpdateInput, where: SourceWhere): UpdateSourcesMutationResponse!
+  updateTargets(update: TargetUpdateInput, where: TargetWhere): UpdateTargetsMutationResponse!
+}
+
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  sources(options: SourceOptions, where: SourceWhere): [Source!]!
+  sourcesAggregate(where: SourceWhere): SourceAggregateSelection!
+  targets(options: TargetOptions, where: TargetWhere): [Target!]!
+  targetsAggregate(where: TargetWhere): TargetAggregateSelection!
+}
+
+type Source implements SourceInterface {
+  id: ID
+  target1(options: TargetOptions, where: TargetWhere): Target!
+  target1Aggregate(where: TargetWhere): SourceTargetTarget1AggregationSelection
+  target1Connection(after: String, first: Int, sort: [SourceInterfaceTarget1ConnectionSort!], where: SourceInterfaceTarget1ConnectionWhere): SourceInterfaceTarget1Connection!
+  target2(options: TargetOptions, where: TargetWhere): Target
+  target2Aggregate(where: TargetWhere): SourceTargetTarget2AggregationSelection
+  target2Connection(after: String, first: Int, sort: [SourceInterfaceTarget2ConnectionSort!], where: SourceInterfaceTarget2ConnectionWhere): SourceInterfaceTarget2Connection!
+  targets(options: TargetOptions, where: TargetWhere): [Target!]!
+  targetsAggregate(where: TargetWhere): SourceTargetTargetsAggregationSelection
+  targetsConnection(after: String, first: Int, sort: [SourceInterfaceTargetsConnectionSort!], where: SourceInterfaceTargetsConnectionWhere): SourceInterfaceTargetsConnection!
+}
+
+type SourceAggregateSelection {
+  count: Int!
+  id: IDAggregateSelectionNullable!
+}
+
+type SourceInterfaceTarget1Connection {
+  edges: [SourceInterfaceTarget1Relationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type SourceInterfaceTarget1Relationship {
+  cursor: String!
+  node: Target!
+}
+
+type SourceInterfaceTarget2Connection {
+  edges: [SourceInterfaceTarget2Relationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type SourceInterfaceTarget2Relationship {
+  cursor: String!
+  node: Target!
+}
+
+type SourceInterfaceTargetsConnection {
+  edges: [SourceInterfaceTargetsRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type SourceInterfaceTargetsRelationship {
+  cursor: String!
+  node: Target!
+}
+
+type SourceTargetTarget1AggregationSelection {
+  count: Int!
+  node: SourceTargetTarget1NodeAggregateSelection
+}
+
+type SourceTargetTarget1NodeAggregateSelection {
+  id: IDAggregateSelectionNullable!
+}
+
+type SourceTargetTarget2AggregationSelection {
+  count: Int!
+  node: SourceTargetTarget2NodeAggregateSelection
+}
+
+type SourceTargetTarget2NodeAggregateSelection {
+  id: IDAggregateSelectionNullable!
+}
+
+type SourceTargetTargetsAggregationSelection {
+  count: Int!
+  node: SourceTargetTargetsNodeAggregateSelection
+}
+
+type SourceTargetTargetsNodeAggregateSelection {
+  id: IDAggregateSelectionNullable!
+}
+
+type Target {
+  id: ID
+}
+
+type TargetAggregateSelection {
+  count: Int!
+  id: IDAggregateSelectionNullable!
+}
+
+type UpdateInfo {
+  bookmark: String
+  nodesCreated: Int!
+  nodesDeleted: Int!
+  relationshipsCreated: Int!
+  relationshipsDeleted: Int!
+}
+
+type UpdateSourcesMutationResponse {
+  info: UpdateInfo!
+  sources: [Source!]!
+}
+
+type UpdateTargetsMutationResponse {
+  info: UpdateInfo!
+  targets: [Target!]!
+}
+
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+input SourceConnectInput {
+  target1: SourceInterfaceTarget1ConnectFieldInput
+  target2: SourceInterfaceTarget2ConnectFieldInput
+  targets: [SourceInterfaceTargetsConnectFieldInput!]
+}
+
+input SourceConnectOrCreateInput {
+  target1: SourceInterfaceTarget1ConnectOrCreateFieldInput
+  target2: SourceInterfaceTarget2ConnectOrCreateFieldInput
+  targets: [SourceInterfaceTargetsConnectOrCreateFieldInput!]
+}
+
+input SourceCreateInput {
+  target1: SourceInterfaceTarget1FieldInput
+  target2: SourceInterfaceTarget2FieldInput
+  targets: SourceInterfaceTargetsFieldInput
+}
+
+input SourceDeleteInput {
+  target1: SourceInterfaceTarget1DeleteFieldInput
+  target2: SourceInterfaceTarget2DeleteFieldInput
+  targets: [SourceInterfaceTargetsDeleteFieldInput!]
+}
+
+input SourceDisconnectInput {
+  target1: SourceInterfaceTarget1DisconnectFieldInput
+  target2: SourceInterfaceTarget2DisconnectFieldInput
+  targets: [SourceInterfaceTargetsDisconnectFieldInput!]
+}
+
+input SourceInterfaceTarget1ConnectFieldInput {
+  where: TargetConnectWhere
+}
+
+input SourceInterfaceTarget1ConnectOrCreateFieldInput {
+  onCreate: SourceInterfaceTarget1ConnectOrCreateFieldInputOnCreate!
+  where: TargetConnectOrCreateWhere!
+}
+
+input SourceInterfaceTarget1ConnectOrCreateFieldInputOnCreate {
+  node: TargetCreateInput!
+}
+
+input SourceInterfaceTarget1ConnectionSort {
+  node: TargetSort
+}
+
+input SourceInterfaceTarget1ConnectionWhere {
+  AND: [SourceInterfaceTarget1ConnectionWhere!]
+  OR: [SourceInterfaceTarget1ConnectionWhere!]
+  node: TargetWhere
+  node_NOT: TargetWhere
+}
+
+input SourceInterfaceTarget1CreateFieldInput {
+  node: TargetCreateInput!
+}
+
+input SourceInterfaceTarget1DeleteFieldInput {
+  where: SourceInterfaceTarget1ConnectionWhere
+}
+
+input SourceInterfaceTarget1DisconnectFieldInput {
+  where: SourceInterfaceTarget1ConnectionWhere
+}
+
+input SourceInterfaceTarget1FieldInput {
+  connect: SourceInterfaceTarget1ConnectFieldInput
+  connectOrCreate: SourceInterfaceTarget1ConnectOrCreateFieldInput
+  create: SourceInterfaceTarget1CreateFieldInput
+}
+
+input SourceInterfaceTarget1UpdateConnectionInput {
+  node: TargetUpdateInput
+}
+
+input SourceInterfaceTarget1UpdateFieldInput {
+  connect: SourceInterfaceTarget1ConnectFieldInput
+  connectOrCreate: SourceInterfaceTarget1ConnectOrCreateFieldInput
+  create: SourceInterfaceTarget1CreateFieldInput
+  delete: SourceInterfaceTarget1DeleteFieldInput
+  disconnect: SourceInterfaceTarget1DisconnectFieldInput
+  update: SourceInterfaceTarget1UpdateConnectionInput
+  where: SourceInterfaceTarget1ConnectionWhere
+}
+
+input SourceInterfaceTarget2ConnectFieldInput {
+  where: TargetConnectWhere
+}
+
+input SourceInterfaceTarget2ConnectOrCreateFieldInput {
+  onCreate: SourceInterfaceTarget2ConnectOrCreateFieldInputOnCreate!
+  where: TargetConnectOrCreateWhere!
+}
+
+input SourceInterfaceTarget2ConnectOrCreateFieldInputOnCreate {
+  node: TargetCreateInput!
+}
+
+input SourceInterfaceTarget2ConnectionSort {
+  node: TargetSort
+}
+
+input SourceInterfaceTarget2ConnectionWhere {
+  AND: [SourceInterfaceTarget2ConnectionWhere!]
+  OR: [SourceInterfaceTarget2ConnectionWhere!]
+  node: TargetWhere
+  node_NOT: TargetWhere
+}
+
+input SourceInterfaceTarget2CreateFieldInput {
+  node: TargetCreateInput!
+}
+
+input SourceInterfaceTarget2DeleteFieldInput {
+  where: SourceInterfaceTarget2ConnectionWhere
+}
+
+input SourceInterfaceTarget2DisconnectFieldInput {
+  where: SourceInterfaceTarget2ConnectionWhere
+}
+
+input SourceInterfaceTarget2FieldInput {
+  connect: SourceInterfaceTarget2ConnectFieldInput
+  connectOrCreate: SourceInterfaceTarget2ConnectOrCreateFieldInput
+  create: SourceInterfaceTarget2CreateFieldInput
+}
+
+input SourceInterfaceTarget2UpdateConnectionInput {
+  node: TargetUpdateInput
+}
+
+input SourceInterfaceTarget2UpdateFieldInput {
+  connect: SourceInterfaceTarget2ConnectFieldInput
+  connectOrCreate: SourceInterfaceTarget2ConnectOrCreateFieldInput
+  create: SourceInterfaceTarget2CreateFieldInput
+  delete: SourceInterfaceTarget2DeleteFieldInput
+  disconnect: SourceInterfaceTarget2DisconnectFieldInput
+  update: SourceInterfaceTarget2UpdateConnectionInput
+  where: SourceInterfaceTarget2ConnectionWhere
+}
+
+input SourceInterfaceTargetsConnectFieldInput {
+  where: TargetConnectWhere
+}
+
+input SourceInterfaceTargetsConnectOrCreateFieldInput {
+  onCreate: SourceInterfaceTargetsConnectOrCreateFieldInputOnCreate!
+  where: TargetConnectOrCreateWhere!
+}
+
+input SourceInterfaceTargetsConnectOrCreateFieldInputOnCreate {
+  node: TargetCreateInput!
+}
+
+input SourceInterfaceTargetsConnectionSort {
+  node: TargetSort
+}
+
+input SourceInterfaceTargetsConnectionWhere {
+  AND: [SourceInterfaceTargetsConnectionWhere!]
+  OR: [SourceInterfaceTargetsConnectionWhere!]
+  node: TargetWhere
+  node_NOT: TargetWhere
+}
+
+input SourceInterfaceTargetsCreateFieldInput {
+  node: TargetCreateInput!
+}
+
+input SourceInterfaceTargetsDeleteFieldInput {
+  where: SourceInterfaceTargetsConnectionWhere
+}
+
+input SourceInterfaceTargetsDisconnectFieldInput {
+  where: SourceInterfaceTargetsConnectionWhere
+}
+
+input SourceInterfaceTargetsFieldInput {
+  connect: [SourceInterfaceTargetsConnectFieldInput!]
+  connectOrCreate: [SourceInterfaceTargetsConnectOrCreateFieldInput!]
+  create: [SourceInterfaceTargetsCreateFieldInput!]
+}
+
+input SourceInterfaceTargetsUpdateConnectionInput {
+  node: TargetUpdateInput
+}
+
+input SourceInterfaceTargetsUpdateFieldInput {
+  connect: [SourceInterfaceTargetsConnectFieldInput!]
+  connectOrCreate: [SourceInterfaceTargetsConnectOrCreateFieldInput!]
+  create: [SourceInterfaceTargetsCreateFieldInput!]
+  delete: [SourceInterfaceTargetsDeleteFieldInput!]
+  disconnect: [SourceInterfaceTargetsDisconnectFieldInput!]
+  update: SourceInterfaceTargetsUpdateConnectionInput
+  where: SourceInterfaceTargetsConnectionWhere
+}
+
+input SourceOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more SourceSort objects to sort Sources by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [SourceSort]
+}
+
+input SourceRelationInput {
+  target1: SourceInterfaceTarget1CreateFieldInput
+  target2: SourceInterfaceTarget2CreateFieldInput
+  targets: [SourceInterfaceTargetsCreateFieldInput!]
+}
+
+"Fields to sort Sources by. The order in which sorts are applied is not guaranteed when specifying many fields in one SourceSort object."
+input SourceSort {
+  id: SortDirection
+}
+
+input SourceTarget1AggregateInput {
+  AND: [SourceTarget1AggregateInput!]
+  OR: [SourceTarget1AggregateInput!]
+  count: Int
+  count_GT: Int
+  count_GTE: Int
+  count_LT: Int
+  count_LTE: Int
+  node: SourceTarget1NodeAggregationWhereInput
+}
+
+input SourceTarget1NodeAggregationWhereInput {
+  AND: [SourceTarget1NodeAggregationWhereInput!]
+  OR: [SourceTarget1NodeAggregationWhereInput!]
+  id_EQUAL: ID
+}
+
+input SourceTarget2AggregateInput {
+  AND: [SourceTarget2AggregateInput!]
+  OR: [SourceTarget2AggregateInput!]
+  count: Int
+  count_GT: Int
+  count_GTE: Int
+  count_LT: Int
+  count_LTE: Int
+  node: SourceTarget2NodeAggregationWhereInput
+}
+
+input SourceTarget2NodeAggregationWhereInput {
+  AND: [SourceTarget2NodeAggregationWhereInput!]
+  OR: [SourceTarget2NodeAggregationWhereInput!]
+  id_EQUAL: ID
+}
+
+input SourceTargetsAggregateInput {
+  AND: [SourceTargetsAggregateInput!]
+  OR: [SourceTargetsAggregateInput!]
+  count: Int
+  count_GT: Int
+  count_GTE: Int
+  count_LT: Int
+  count_LTE: Int
+  node: SourceTargetsNodeAggregationWhereInput
+}
+
+input SourceTargetsNodeAggregationWhereInput {
+  AND: [SourceTargetsNodeAggregationWhereInput!]
+  OR: [SourceTargetsNodeAggregationWhereInput!]
+  id_EQUAL: ID
+}
+
+input SourceUpdateInput {
+  target1: SourceInterfaceTarget1UpdateFieldInput
+  target2: SourceInterfaceTarget2UpdateFieldInput
+  targets: [SourceInterfaceTargetsUpdateFieldInput!]
+}
+
+input SourceWhere {
+  AND: [SourceWhere!]
+  OR: [SourceWhere!]
+  id: ID
+  id_CONTAINS: ID
+  id_ENDS_WITH: ID
+  id_IN: [ID]
+  id_NOT: ID
+  id_NOT_CONTAINS: ID
+  id_NOT_ENDS_WITH: ID
+  id_NOT_IN: [ID]
+  id_NOT_STARTS_WITH: ID
+  id_STARTS_WITH: ID
+  target1: TargetWhere
+  target1Aggregate: SourceTarget1AggregateInput
+  target1Connection: SourceInterfaceTarget1ConnectionWhere
+  target1Connection_NOT: SourceInterfaceTarget1ConnectionWhere
+  target1_NOT: TargetWhere
+  target2: TargetWhere
+  target2Aggregate: SourceTarget2AggregateInput
+  target2Connection: SourceInterfaceTarget2ConnectionWhere
+  target2Connection_NOT: SourceInterfaceTarget2ConnectionWhere
+  target2_NOT: TargetWhere
+  targets: TargetWhere
+  targetsAggregate: SourceTargetsAggregateInput
+  targetsConnection: SourceInterfaceTargetsConnectionWhere
+  targetsConnection_NOT: SourceInterfaceTargetsConnectionWhere
+  targets_NOT: TargetWhere
+}
+
+input TargetConnectOrCreateWhere {
+  node: TargetUniqueWhere!
+}
+
+input TargetConnectWhere {
+  node: TargetWhere!
+}
+
+input TargetCreateInput {
+  "Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/"
+  _emptyInput: Boolean
+}
+
+input TargetOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more TargetSort objects to sort Targets by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [TargetSort]
+}
+
+"Fields to sort Targets by. The order in which sorts are applied is not guaranteed when specifying many fields in one TargetSort object."
+input TargetSort {
+  id: SortDirection
+}
+
+input TargetUniqueWhere {
+  id: ID
+}
+
+input TargetUpdateInput {
+  "Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/"
+  _emptyInput: Boolean
+}
+
+input TargetWhere {
+  AND: [TargetWhere!]
+  OR: [TargetWhere!]
+  id: ID
+  id_CONTAINS: ID
+  id_ENDS_WITH: ID
+  id_IN: [ID]
+  id_NOT: ID
+  id_NOT_CONTAINS: ID
+  id_NOT_ENDS_WITH: ID
+  id_NOT_IN: [ID]
+  id_NOT_STARTS_WITH: ID
+  id_STARTS_WITH: ID
+}
+
+----

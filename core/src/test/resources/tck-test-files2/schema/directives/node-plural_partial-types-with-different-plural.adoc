@@ -8,7 +8,7 @@
 
 [source,graphql,schema=true]
 ----
-type Tech @node(plural: "Techs") {
+type Tech @node(plural: "Technologies") {
   name: String
 }
 
@@ -53,10 +53,9 @@ type Mutation {
 type Query {
   technologies(options: TechOptions, where: TechWhere): [Tech!]!
   technologiesAggregate(where: TechWhere): TechAggregateSelection!
-  technologiesCount(where: TechWhere): Int!
 }
 
-type StringAggregateSelection {
+type StringAggregateSelectionNullable {
   longest: String
   shortest: String
 }
@@ -68,8 +67,8 @@ type Tech {
 
 type TechAggregateSelection {
   count: Int!
-  name: StringAggregateSelection!
-  value: StringAggregateSelection!
+  name: StringAggregateSelectionNullable!
+  value: StringAggregateSelectionNullable!
 }
 
 type UpdateInfo {

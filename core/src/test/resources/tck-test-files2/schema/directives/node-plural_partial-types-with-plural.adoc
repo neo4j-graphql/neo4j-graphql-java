@@ -12,7 +12,7 @@ type Tech @node(plural: "Techs") {
   name: String
 }
 
-extend type Tech {
+type Tech {
   value: String
 }
 ----
@@ -53,10 +53,9 @@ type Mutation {
 type Query {
   techs(options: TechOptions, where: TechWhere): [Tech!]!
   techsAggregate(where: TechWhere): TechAggregateSelection!
-  techsCount(where: TechWhere): Int!
 }
 
-type StringAggregateSelection {
+type StringAggregateSelectionNullable {
   longest: String
   shortest: String
 }
@@ -68,8 +67,8 @@ type Tech {
 
 type TechAggregateSelection {
   count: Int!
-  name: StringAggregateSelection!
-  value: StringAggregateSelection!
+  name: StringAggregateSelectionNullable!
+  value: StringAggregateSelectionNullable!
 }
 
 type UpdateInfo {

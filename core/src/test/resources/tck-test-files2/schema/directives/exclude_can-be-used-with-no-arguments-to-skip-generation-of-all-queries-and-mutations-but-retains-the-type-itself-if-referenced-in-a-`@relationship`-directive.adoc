@@ -14,7 +14,7 @@ type Actor @exclude {
 
 type Movie {
   title: String
-  actors: [Actor] @relationship(type: "ACTED_IN", direction: IN)
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
 }
 ----
 
@@ -50,7 +50,7 @@ type DeleteInfo {
 }
 
 type Movie {
-  actors(options: ActorOptions, where: ActorWhere): [Actor]
+  actors(options: ActorOptions, where: ActorWhere): [Actor!]!
   actorsAggregate(where: ActorWhere): MovieActorActorsAggregationSelection
   actorsConnection(after: String, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
   title: String
@@ -62,7 +62,7 @@ type MovieActorActorsAggregationSelection {
 }
 
 type MovieActorActorsNodeAggregateSelection {
-  name: StringAggregateSelection!
+  name: StringAggregateSelectionNullable!
 }
 
 type MovieActorsConnection {
@@ -78,7 +78,7 @@ type MovieActorsRelationship {
 
 type MovieAggregateSelection {
   count: Int!
-  title: StringAggregateSelection!
+  title: StringAggregateSelectionNullable!
 }
 
 type Mutation {
@@ -98,10 +98,9 @@ type PageInfo {
 type Query {
   movies(options: MovieOptions, where: MovieWhere): [Movie!]!
   moviesAggregate(where: MovieWhere): MovieAggregateSelection!
-  moviesCount(where: MovieWhere): Int!
 }
 
-type StringAggregateSelection {
+type StringAggregateSelectionNullable {
   longest: String
   shortest: String
 }

@@ -6,6 +6,9 @@
 
 === Source schema
 
+//TODO REVIEW Darrell generating invalid schema if interface is empty
+//   https://spec.graphql.org/June2018/#sec-Interfaces
+//   > An Interface type must define one or more fields.
 [source,graphql,schema=true]
 ----
 interface UserInterface {
@@ -51,7 +54,7 @@ type DeleteInfo {
   relationshipsDeleted: Int!
 }
 
-type IDAggregateSelection {
+type IDAggregateSelectionNullable {
   longest: ID
   shortest: ID
 }
@@ -65,7 +68,6 @@ type Mutation {
 type Query {
   users(options: UserOptions, where: UserWhere): [User!]!
   usersAggregate(where: UserWhere): UserAggregateSelection!
-  usersCount(where: UserWhere): Int!
 }
 
 type UpdateInfo {
@@ -87,7 +89,7 @@ type User implements UserInterface {
 
 type UserAggregateSelection {
   count: Int!
-  id: IDAggregateSelection!
+  id: IDAggregateSelectionNullable!
 }
 
 enum SortDirection {

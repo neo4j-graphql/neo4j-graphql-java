@@ -66,7 +66,7 @@ type ActorActedInRelationship implements ActedIn {
 
 type ActorAggregateSelection {
   count: Int!
-  name: StringAggregateSelection!
+  name: StringAggregateSelectionNonNullable!
 }
 
 type CreateActorsMutationResponse {
@@ -103,8 +103,8 @@ type Movie {
 
 type MovieAggregateSelection {
   count: Int!
-  isan: StringAggregateSelection!
-  title: StringAggregateSelection!
+  isan: StringAggregateSelectionNonNullable!
+  title: StringAggregateSelectionNonNullable!
 }
 
 type Mutation {
@@ -130,13 +130,10 @@ type PageInfo {
 type Query {
   actors(options: ActorOptions, where: ActorWhere): [Actor!]!
   actorsAggregate(where: ActorWhere): ActorAggregateSelection!
-  actorsCount(where: ActorWhere): Int!
   movies(options: MovieOptions, where: MovieWhere): [Movie!]!
   moviesAggregate(where: MovieWhere): MovieAggregateSelection!
-  moviesCount(where: MovieWhere): Int!
   series(options: SeriesOptions, where: SeriesWhere): [Series!]!
   seriesAggregate(where: SeriesWhere): SeriesAggregateSelection!
-  seriesCount(where: SeriesWhere): Int!
 }
 
 type Series {
@@ -146,13 +143,13 @@ type Series {
 
 type SeriesAggregateSelection {
   count: Int!
-  isan: StringAggregateSelection!
-  title: StringAggregateSelection!
+  isan: StringAggregateSelectionNonNullable!
+  title: StringAggregateSelectionNonNullable!
 }
 
-type StringAggregateSelection {
-  longest: String
-  shortest: String
+type StringAggregateSelectionNonNullable {
+  longest: String!
+  shortest: String!
 }
 
 type UpdateActorsMutationResponse {

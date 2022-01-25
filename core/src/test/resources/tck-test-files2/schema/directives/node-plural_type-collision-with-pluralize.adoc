@@ -53,10 +53,9 @@ type Mutation {
 type Query {
   users(options: UsersOptions, where: UsersWhere): [Users!]!
   usersAggregate(where: UsersWhere): UsersAggregateSelection!
-  usersCount(where: UsersWhere): Int!
 }
 
-type StringAggregateSelection {
+type StringAggregateSelectionNullable {
   longest: String
   shortest: String
 }
@@ -80,7 +79,7 @@ type Users {
 
 type UsersAggregateSelection {
   count: Int!
-  value: StringAggregateSelection!
+  value: StringAggregateSelectionNullable!
 }
 
 enum SortDirection {

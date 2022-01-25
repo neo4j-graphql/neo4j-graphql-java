@@ -33,60 +33,116 @@ type PageInfo {
   startCursor: String
 }
 
-type IDAggregateSelection {
+type IDAggregateSelectionNullable {
   shortest: ID
   longest: ID
 }
 
-type StringAggregateSelection {
+type IDAggregateSelectionNonNullable {
+  shortest: ID!
+  longest: ID!
+}
+
+type StringAggregateSelectionNullable {
   shortest: String
   longest: String
 }
 
-type FloatAggregateSelection {
+type StringAggregateSelectionNonNullable {
+  shortest: String!
+  longest: String!
+}
+
+type FloatAggregateSelectionNullable {
   average: Float
   max: Float
   min: Float
   sum: Float
 }
 
-type IntAggregateSelection {
+type FloatAggregateSelectionNonNullable {
+  average: Float!
+  max: Float!
+  min: Float!
+  sum: Float!
+}
+
+type IntAggregateSelectionNullable {
   average: Float
   max: Int
   min: Int
   sum: Int
 }
 
-type BigIntAggregateSelection {
+type IntAggregateSelectionNonNullable {
+  average: Float!
+  max: Int!
+  min: Int!
+  sum: Int!
+}
+
+type BigIntAggregateSelectionNullable {
   average: BigInt
   max: BigInt
   min: BigInt
   sum: BigInt
 }
 
-type DateTimeAggregateSelection {
+type BigIntAggregateSelectionNonNullable {
+  average: BigInt!
+  max: BigInt!
+  min: BigInt!
+  sum: BigInt!
+}
+
+type DateTimeAggregateSelectionNullable {
   max: DateTime
   min: DateTime
 }
 
-type LocalDateTimeAggregateSelection {
+type DateTimeAggregateSelectionNonNullable {
+  max: DateTime!
+  min: DateTime!
+}
+
+type LocalDateTimeAggregateSelectionNullable {
   max: LocalDateTime
   min: LocalDateTime
 }
 
-type LocalTimeAggregateSelection {
+type LocalDateTimeAggregateSelectionNonNullable {
+  max: LocalDateTime!
+  min: LocalDateTime!
+}
+
+type LocalTimeAggregateSelectionNullable {
   max: LocalTime
   min: LocalTime
 }
 
-type TimeAggregateSelection {
+type LocalTimeAggregateSelectionNonNullable {
+  max: LocalTime!
+  min: LocalTime!
+}
+
+type TimeAggregateSelectionNullable {
   max: Time
   min: Time
 }
 
-type DurationAggregateSelection {
+type TimeAggregateSelectionNonNullable {
+  max: Time!
+  min: Time!
+}
+
+type DurationAggregateSelectionNullable {
   max: Duration
   min: Duration
+}
+
+type DurationAggregateSelectionNonNullable {
+  max: Duration!
+  min: Duration!
 }
 
 type Point {

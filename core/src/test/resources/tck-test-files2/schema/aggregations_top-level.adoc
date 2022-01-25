@@ -33,7 +33,7 @@ schema {
   mutation: Mutation
 }
 
-type BigIntAggregateSelection {
+type BigIntAggregateSelectionNullable {
   average: BigInt
   max: BigInt
   min: BigInt
@@ -51,7 +51,7 @@ type CreateMoviesMutationResponse {
   movies: [Movie!]!
 }
 
-type DateTimeAggregateSelection {
+type DateTimeAggregateSelectionNullable {
   max: DateTime
   min: DateTime
 }
@@ -62,36 +62,36 @@ type DeleteInfo {
   relationshipsDeleted: Int!
 }
 
-type DurationAggregateSelection {
+type DurationAggregateSelectionNullable {
   max: Duration
   min: Duration
 }
 
-type FloatAggregateSelection {
+type FloatAggregateSelectionNullable {
   average: Float
   max: Float
   min: Float
   sum: Float
 }
 
-type IDAggregateSelection {
+type IDAggregateSelectionNullable {
   longest: ID
   shortest: ID
 }
 
-type IntAggregateSelection {
+type IntAggregateSelectionNullable {
   average: Float
   max: Int
   min: Int
   sum: Int
 }
 
-type LocalDateTimeAggregateSelection {
+type LocalDateTimeAggregateSelectionNullable {
   max: LocalDateTime
   min: LocalDateTime
 }
 
-type LocalTimeAggregateSelection {
+type LocalTimeAggregateSelectionNullable {
   max: LocalTime
   min: LocalTime
 }
@@ -112,17 +112,17 @@ type Movie {
 
 type MovieAggregateSelection {
   count: Int!
-  createdAt: DateTimeAggregateSelection!
-  id: IDAggregateSelection!
-  imdbRating: FloatAggregateSelection!
-  isbn: StringAggregateSelection!
-  screenTime: DurationAggregateSelection!
-  someBigInt: BigIntAggregateSelection!
-  someInt: IntAggregateSelection!
-  someLocalDateTime: LocalDateTimeAggregateSelection!
-  someLocalTime: LocalTimeAggregateSelection!
-  someTime: TimeAggregateSelection!
-  title: StringAggregateSelection!
+  createdAt: DateTimeAggregateSelectionNullable!
+  id: IDAggregateSelectionNullable!
+  imdbRating: FloatAggregateSelectionNullable!
+  isbn: StringAggregateSelectionNonNullable!
+  screenTime: DurationAggregateSelectionNullable!
+  someBigInt: BigIntAggregateSelectionNullable!
+  someInt: IntAggregateSelectionNullable!
+  someLocalDateTime: LocalDateTimeAggregateSelectionNullable!
+  someLocalTime: LocalTimeAggregateSelectionNullable!
+  someTime: TimeAggregateSelectionNullable!
+  title: StringAggregateSelectionNullable!
 }
 
 type Mutation {
@@ -134,15 +134,19 @@ type Mutation {
 type Query {
   movies(options: MovieOptions, where: MovieWhere): [Movie!]!
   moviesAggregate(where: MovieWhere): MovieAggregateSelection!
-  moviesCount(where: MovieWhere): Int!
 }
 
-type StringAggregateSelection {
+type StringAggregateSelectionNonNullable {
+  longest: String!
+  shortest: String!
+}
+
+type StringAggregateSelectionNullable {
   longest: String
   shortest: String
 }
 
-type TimeAggregateSelection {
+type TimeAggregateSelectionNullable {
   max: Time
   min: Time
 }
