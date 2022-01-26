@@ -26,6 +26,7 @@ type UserDemographics {
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Example 1

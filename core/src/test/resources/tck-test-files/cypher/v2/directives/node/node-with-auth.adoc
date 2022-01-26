@@ -29,6 +29,7 @@ extend type User @auth(rules: [{operations: [READ, UPDATE, DELETE, DISCONNECT, C
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Admin Deletes Post

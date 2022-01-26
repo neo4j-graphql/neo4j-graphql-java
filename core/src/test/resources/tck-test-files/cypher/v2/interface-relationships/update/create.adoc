@@ -36,6 +36,7 @@ type Actor {
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Update create an interface relationship

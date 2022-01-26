@@ -62,7 +62,7 @@ class QueryHandler private constructor(schemaConfig: SchemaConfig) : BaseDataFet
         override fun createDataFetcher(
             operationType: OperationType,
             fieldDefinition: FieldDefinition
-        ): DataFetcher<Cypher>? {
+        ): DataFetcher<OldCypher>? {
             if (operationType != OperationType.QUERY) {
                 return null
             }

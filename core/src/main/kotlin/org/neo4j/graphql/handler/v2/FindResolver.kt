@@ -1,22 +1,26 @@
 package org.neo4j.graphql.handler.v2
 
+import graphql.language.Field
 import graphql.language.ListType
 import graphql.language.NonNullType
-import graphql.schema.DataFetcher
 import graphql.schema.DataFetchingEnvironment
+import org.neo4j.cypherdsl.core.Cypher
+import org.neo4j.cypherdsl.core.Statement
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.ExcludeDirective
+import org.neo4j.graphql.handler.BaseDataFetcher
 import org.neo4j.graphql.schema.AugmentationHandlerV2
+import org.neo4j.graphql.translate.TopLevelMatchTranslator
 
 /**
  * This class handles all the logic related to the querying of nodes.
  * This includes the augmentation of the query-fields and the related cypher generation
  */
 class FindResolver private constructor(
-    val schemaConfig: SchemaConfig,
+    schemaConfig: SchemaConfig,
     val node: Node
-) : DataFetcher<Cypher> {
+) : BaseDataFetcher(schemaConfig) {
 
     class Factory(ctx: AugmentationContext) : AugmentationHandlerV2(ctx) {
 
@@ -35,8 +39,45 @@ class FindResolver private constructor(
         }
     }
 
-    override fun get(environment: DataFetchingEnvironment?): Cypher {
-        TODO("Not yet implemented")
+    override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement {
+        val fieldDefinition = env.fieldDefinition
+        val type = env.typeAsContainer()
+
+        val (propertyContainer, match) = when {
+            type.isRelationType() -> Cypher.anyNode()
+                .relationshipTo(Cypher.anyNode(), type.label()).named(variable)
+                .let { rel -> rel to Cypher.match(rel) }
+            else -> Cypher.node(type.label()).named(variable)
+                .let { node -> node to Cypher.match(node) }
+        }
+
+        val ongoingReading = TopLevelMatchTranslator(schemaConfig, env.variables).translateTopLevelMatch(node, variable, env.arguments)
+
+//        val ongoingReading =
+//            if ((env.getContext() as? QueryContext)?.optimizedQuery?.contains(QueryContext.OptimizationStrategy.FILTER_AS_MATCH) == true) {
+//
+//                OptimizedFilterHandler(type, schemaConfig).generateFilterQuery(
+//                    variable,
+//                    fieldDefinition,
+//                    env.arguments,
+//                    match,
+//                    propertyContainer,
+//                    env.variables
+//                )
+//
+//            } else {
+//
+//                val where = TopLevelMatchTranslator.where(propertyContainer, node, variable,  env.arguments, env.variables, schemaConfig)
+//                match.where(where)
+//            }
+
+        val (projectionEntries, subQueries) = projectFields(propertyContainer, type, env)
+        val mapProjection = propertyContainer.project(projectionEntries).`as`(field.aliasOrName())
+        return ongoingReading
+            .withSubQueries(subQueries)
+            .returning(mapProjection)
+            .skipLimitOrder(propertyContainer.requiredSymbolicName, fieldDefinition, env.arguments)
+            .build()
     }
 }
 

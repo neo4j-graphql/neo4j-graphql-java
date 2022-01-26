@@ -43,6 +43,7 @@ extend type Stakeholder @auth(rules: [{roles: ["view"]}])
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Example 1

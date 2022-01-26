@@ -28,6 +28,7 @@ extend type Post @auth(rules: [{allow: {creator: {id: "$jwt.sub"}}}])
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == One connection

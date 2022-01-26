@@ -10,7 +10,7 @@ import org.neo4j.graphql.schema.AugmentationHandlerV2
 class DeleteResolver private constructor(
     val schemaConfig: SchemaConfig,
     val node: Node
-) : DataFetcher<Cypher> {
+) : DataFetcher<OldCypher> {
 
     class Factory(ctx: AugmentationContext) : AugmentationHandlerV2(ctx) {
 
@@ -31,7 +31,7 @@ class DeleteResolver private constructor(
         }
     }
 
-    override fun get(environment: DataFetchingEnvironment?): Cypher {
+    override fun get(environment: DataFetchingEnvironment?): OldCypher {
         TODO("Not yet implemented")
     }
 }

@@ -27,6 +27,7 @@ interface Liked {
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == AVERAGE_EQUAL

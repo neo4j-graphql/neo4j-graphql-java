@@ -16,8 +16,7 @@ type Movie @fulltext(indexes: [{name: "MovieTitle", fields: ["title"]}]) {
 .Configuration
 [source,json,schema-config=true]
 ----
-{
-}
+{}
 ----
 == simple aggregate with single fulltext property
 

@@ -28,6 +28,7 @@ extend type Post @auth(rules: [{operations: [CREATE, CONNECT, DISCONNECT], bind:
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Connect Node

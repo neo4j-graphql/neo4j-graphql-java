@@ -27,6 +27,7 @@ type Actor @node(additionalLabels: ["Person", "Alien"]) {
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Additional Labels Aggregations

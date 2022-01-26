@@ -18,6 +18,7 @@ type Movie {
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Limit

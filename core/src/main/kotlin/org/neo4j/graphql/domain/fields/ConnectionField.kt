@@ -11,6 +11,6 @@ class ConnectionField(
     fieldName,
     typeMeta,
 ) {
-    val relationshipTypeName: String get() = relationshipField.name
+    val relationshipTypeName: String get() = relationshipField.relationshipTypeName
     val properties: RelationshipProperties? get() = relationshipField.properties
 }

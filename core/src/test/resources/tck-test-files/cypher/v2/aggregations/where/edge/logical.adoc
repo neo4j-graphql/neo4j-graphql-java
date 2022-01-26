@@ -26,6 +26,7 @@ interface Likes {
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == AND

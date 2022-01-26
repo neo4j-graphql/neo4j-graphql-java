@@ -25,6 +25,7 @@ type Movie @node(label: "$jwt.movielabel") {
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Create Movie with label Film

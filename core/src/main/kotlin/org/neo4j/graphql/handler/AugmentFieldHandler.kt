@@ -78,6 +78,6 @@ class AugmentFieldHandler(ctx: AugmentationContext) : AugmentationHandler(ctx) {
     override fun createDataFetcher(
         operationType: OperationType,
         fieldDefinition: FieldDefinition
-    ): DataFetcher<Cypher>? = null
+    ): DataFetcher<OldCypher>? = null
 }
 

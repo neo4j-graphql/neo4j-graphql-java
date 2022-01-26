@@ -35,6 +35,7 @@ type Text {
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Should replicate issue and return correct cypher

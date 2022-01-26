@@ -39,6 +39,7 @@ type Photo {
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Recursive Connect

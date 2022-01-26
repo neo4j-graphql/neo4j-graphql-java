@@ -27,6 +27,7 @@ interface ActedIn {
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Projecting node and relationship properties with no arguments

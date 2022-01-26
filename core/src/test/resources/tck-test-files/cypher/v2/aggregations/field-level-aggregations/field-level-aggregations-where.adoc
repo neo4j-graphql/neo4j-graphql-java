@@ -26,6 +26,7 @@ type Person {
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Count aggregation with colliding filter

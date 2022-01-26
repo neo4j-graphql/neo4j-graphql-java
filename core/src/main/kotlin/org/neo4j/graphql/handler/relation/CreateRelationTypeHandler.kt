@@ -45,7 +45,7 @@ class CreateRelationTypeHandler private constructor(schemaConfig: SchemaConfig) 
         override fun createDataFetcher(
             operationType: OperationType,
             fieldDefinition: FieldDefinition
-        ): DataFetcher<Cypher>? {
+        ): DataFetcher<OldCypher>? {
             if (operationType != OperationType.MUTATION) {
                 return null
             }

@@ -38,7 +38,7 @@ abstract class AugmentationHandler(val ctx: AugmentationContext) : AugmentationB
      * @param fieldDefinition the filed to create the data fetcher for
      * @return a data fetcher for the field or null if not applicable
      */
-    abstract fun createDataFetcher(operationType: OperationType, fieldDefinition: FieldDefinition): DataFetcher<Cypher>?
+    abstract fun createDataFetcher(operationType: OperationType, fieldDefinition: FieldDefinition): DataFetcher<OldCypher>?
 
     protected fun buildFieldDefinition(
         prefix: String,
@@ -138,7 +138,7 @@ abstract class AugmentationHandler(val ctx: AugmentationContext) : AugmentationB
                 }
 
                 if (field.isRelationship()) {
-                    RelationOperator.createRelationFilterFields(type, field, filterType, builder)
+                    RelationOperator.createRelationFilterFields(type, field, filterType, builder, schemaConfig)
                 } else {
                     FieldOperator.forType(typeDefinition, field.type.inner().isNeo4jType())
                         .forEach { op ->

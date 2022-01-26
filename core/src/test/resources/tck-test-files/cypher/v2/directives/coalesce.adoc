@@ -28,6 +28,7 @@ type User implements UserInterface {
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Simple coalesce

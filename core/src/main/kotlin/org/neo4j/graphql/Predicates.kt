@@ -54,47 +54,48 @@ enum class FieldOperator(
         variablePrefix: String,
         queriedField: String,
         propertyContainer: PropertyContainer,
-        field: GraphQLFieldDefinition?,
+        field: BaseField?,
         value: Any?,
         schemaConfig: SchemaConfig,
         suffix: String? = null
     ): List<Condition> {
-        if (schemaConfig.useTemporalScalars && field?.type?.isNeo4jTemporalType() == true) {
-            val neo4jTypeConverter = getNeo4jTypeConverter(field)
-            val parameter = queryParameter(value, variablePrefix, queriedField, null, suffix)
-                .withValue(value)
-            return listOf(
-                neo4jTypeConverter.createCondition(
-                    propertyContainer.property(field.name),
-                    parameter,
-                    conditionCreator
-                )
-            )
-        }
-        return if (field?.type?.isNeo4jType() == true && value is Map<*, *>) {
-            resolveNeo4jTypeConditions(variablePrefix, queriedField, propertyContainer, field, value, suffix)
-        } else if (field?.isNativeId() == true) {
-            val id = propertyContainer.id()
-            val parameter = queryParameter(value, variablePrefix, queriedField, suffix)
-            val condition = if (list) {
-                val idVar = CypherDSL.name("id")
-                conditionCreator(
-                    id,
-                    CypherDSL.listWith(idVar).`in`(parameter)
-                        .returning(CypherDSL.call("toInteger").withArgs(idVar).asFunction())
-                )
-            } else {
-                conditionCreator(id, CypherDSL.call("toInteger").withArgs(parameter).asFunction())
-            }
-            listOf(condition)
-        } else {
-            resolveCondition(
-                variablePrefix, queriedField, propertyContainer.property(
-                    field?.propertyName()
-                        ?: queriedField
-                ), value, suffix
-            )
-        }
+//        if (schemaConfig.useTemporalScalars && field?.type?.isNeo4jTemporalType() == true) {
+//            val neo4jTypeConverter = getNeo4jTypeConverter(field)
+//            val parameter = queryParameter(value, variablePrefix, queriedField, null, suffix)
+//                .withValue(value)
+//            return listOf(
+//                neo4jTypeConverter.createCondition(
+//                    propertyContainer.property(field.name),
+//                    parameter,
+//                    conditionCreator
+//                )
+//            )
+//        }
+//        return if (field?.type?.isNeo4jType() == true && value is Map<*, *>) {
+//            resolveNeo4jTypeConditions(variablePrefix, queriedField, propertyContainer, field, value, suffix)
+//        } else if (field?.isNativeId() == true) {
+//            val id = propertyContainer.id()
+//            val parameter = queryParameter(value, variablePrefix, queriedField, suffix)
+//            val condition = if (list) {
+//                val idVar = CypherDSL.name("id")
+//                conditionCreator(
+//                    id,
+//                    CypherDSL.listWith(idVar).`in`(parameter)
+//                        .returning(CypherDSL.call("toInteger").withArgs(idVar).asFunction())
+//                )
+//            } else {
+//                conditionCreator(id, CypherDSL.call("toInteger").withArgs(parameter).asFunction())
+//            }
+//            listOf(condition)
+//        } else {
+        return resolveCondition(
+            variablePrefix,
+            queriedField,
+            propertyContainer.property(field?.dbPropertyName ?: queriedField),
+            value,
+            suffix
+        )
+//        }
     }
 
     private fun resolveNeo4jTypeConditions(
@@ -248,10 +249,11 @@ enum class RelationOperator(val suffix: String) {
     EQ_OR_NOT_EXISTS(""),
     NOT("_not");
 
-    fun fieldName(fieldName: String) = fieldName + suffix
+    fun fieldName(fieldName: String, schemaConfig: SchemaConfig) =
+        fieldName + if (schemaConfig.capitaliseFilterOperations) suffix.uppercase() else suffix
 
-    fun harmonize(type: GraphQLFieldsContainer, field: GraphQLFieldDefinition, value: Any?, queryFieldName: String) =
-        when (field.type.isList()) {
+    fun harmonize(typeName: String, field: RelationField, value: Any?, queryFieldName: String) =
+        when (field.typeMeta.type.isList()) {
             true -> when (this) {
                 NOT -> when (value) {
                     null -> NOT
@@ -260,7 +262,7 @@ enum class RelationOperator(val suffix: String) {
                 EQ_OR_NOT_EXISTS -> when (value) {
                     null -> EQ_OR_NOT_EXISTS
                     else -> {
-                        LOGGER.debug("$queryFieldName on type ${type.name} was used for filtering, consider using ${field.name}${EVERY.suffix} instead")
+                        LOGGER.debug("$queryFieldName on type $typeName was used for filtering, consider using ${field.fieldName}${EVERY.suffix} instead")
                         EVERY
                     }
                 }
@@ -268,15 +270,15 @@ enum class RelationOperator(val suffix: String) {
             }
             false -> when (this) {
                 SINGLE -> {
-                    LOGGER.debug("Using $queryFieldName on type ${type.name} is deprecated, use ${field.name} directly")
+                    LOGGER.debug("Using $queryFieldName on type $typeName is deprecated, use ${field.fieldName} directly")
                     SOME
                 }
                 SOME -> {
-                    LOGGER.debug("Using $queryFieldName on type ${type.name} is deprecated, use ${field.name} directly")
+                    LOGGER.debug("Using $queryFieldName on type $typeName is deprecated, use ${field.fieldName} directly")
                     SOME
                 }
                 NONE -> {
-                    LOGGER.debug("Using $queryFieldName on type ${type.name} is deprecated, use ${field.name}${NOT.suffix} instead")
+                    LOGGER.debug("Using $queryFieldName on type $typeName is deprecated, use ${field.fieldName}${NOT.suffix} instead")
                     NONE
                 }
                 NOT -> when (value) {
@@ -298,12 +300,13 @@ enum class RelationOperator(val suffix: String) {
             type: TypeDefinition<*>,
             field: FieldDefinition,
             filterType: String,
-            builder: InputObjectTypeDefinition.Builder
+            builder: InputObjectTypeDefinition.Builder,
+            schemaConfig: SchemaConfig,
         ) {
             val list = field.type.isList()
 
             val addFilterField = { op: RelationOperator, description: String ->
-                builder.addFilterField(op.fieldName(field.name), false, filterType, description.asDescription())
+                builder.addFilterField(op.fieldName(field.name, schemaConfig), false, filterType, description.asDescription())
             }
 
             addFilterField(

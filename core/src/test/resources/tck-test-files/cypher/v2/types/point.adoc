@@ -18,6 +18,7 @@ type PointContainer {
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Simple Point create mutation

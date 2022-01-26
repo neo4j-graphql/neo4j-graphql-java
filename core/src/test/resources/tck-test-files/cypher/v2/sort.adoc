@@ -32,6 +32,7 @@ type Genre {
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Multi Sort

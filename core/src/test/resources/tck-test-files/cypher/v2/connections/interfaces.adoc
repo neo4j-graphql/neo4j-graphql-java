@@ -36,6 +36,7 @@ type Actor {
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Projecting interface node and relationship properties with common where argument

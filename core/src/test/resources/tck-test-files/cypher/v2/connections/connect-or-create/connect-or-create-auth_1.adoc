@@ -22,6 +22,7 @@ type Genre @auth(rules: [{operations: [CONNECT], roles: ["admin"]}]) {
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Create -> nested connectOrCreate

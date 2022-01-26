@@ -37,6 +37,7 @@ union Actor = LeadActor | Extra
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Nested Unions - Connect -> Connect

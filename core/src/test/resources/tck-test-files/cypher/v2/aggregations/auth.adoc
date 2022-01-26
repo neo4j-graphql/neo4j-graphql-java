@@ -24,6 +24,7 @@ extend type User @auth(rules: [{allow: {id: "$jwt.sub"}, where: {id: "$jwt.sub"}
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Count with WHERE

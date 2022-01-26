@@ -27,6 +27,7 @@ interface ActedIn {
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Connection can be selected and filtered following the creation of a multiple nodes

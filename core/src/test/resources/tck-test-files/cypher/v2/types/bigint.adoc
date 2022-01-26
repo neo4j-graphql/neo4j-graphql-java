@@ -18,6 +18,7 @@ type File {
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Querying with BigInt as string in AST

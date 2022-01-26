@@ -25,6 +25,7 @@ type Actor {
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Count Aggregation

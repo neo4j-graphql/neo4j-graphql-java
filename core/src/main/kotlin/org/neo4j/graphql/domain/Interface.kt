@@ -16,7 +16,7 @@ class Interface(
     val interfaces: List<Interface>,
     val exclude: ExcludeDirective? = null,
     val auth: AuthDirective? = null,
-) : FieldContainer<BaseField, Interface>(fields) {
+) : FieldContainer<BaseField>(fields) {
 
     var implementations: List<Node> = emptyList()
 

@@ -82,7 +82,7 @@ abstract class BaseRelationHandler(private val prefix: String, schemaConfig: Sch
         final override fun createDataFetcher(
             operationType: OperationType,
             fieldDefinition: FieldDefinition
-        ): DataFetcher<Cypher>? {
+        ): DataFetcher<OldCypher>? {
             if (operationType != OperationType.MUTATION) {
                 return null
             }
@@ -129,7 +129,7 @@ abstract class BaseRelationHandler(private val prefix: String, schemaConfig: Sch
             return false
         }
 
-        abstract fun createDataFetcher(): DataFetcher<Cypher>?
+        abstract fun createDataFetcher(): DataFetcher<OldCypher>?
 
         private fun getRelationFields(
             source: ImplementingTypeDefinition<*>,

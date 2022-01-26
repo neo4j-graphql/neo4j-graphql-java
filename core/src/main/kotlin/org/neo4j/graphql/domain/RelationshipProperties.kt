@@ -14,4 +14,4 @@ class RelationshipProperties(
      * the fields of the rich relation
      */
     fields: List<ScalarField>
-) : FieldContainer<ScalarField, RelationshipProperties>(fields)
+) : FieldContainer<ScalarField>(fields)

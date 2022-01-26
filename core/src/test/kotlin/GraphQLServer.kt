@@ -51,7 +51,7 @@ fun main() {
     val driver = GraphDatabase.driver("bolt://localhost", AuthTokens.basic("neo4j", "test"), Config.builder().withoutEncryption().build())
 
     val graphQLSchema = SchemaBuilder.buildSchema(schema, dataFetchingInterceptor = object : DataFetchingInterceptor {
-        override fun fetchData(env: DataFetchingEnvironment, delegate: DataFetcher<Cypher>): Any? {
+        override fun fetchData(env: DataFetchingEnvironment, delegate: DataFetcher<OldCypher>): Any? {
             val (cypher, params, type, variable) = delegate.get(env)
             println(cypher)
             println(params)

@@ -49,6 +49,7 @@ extend type User {
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Connect

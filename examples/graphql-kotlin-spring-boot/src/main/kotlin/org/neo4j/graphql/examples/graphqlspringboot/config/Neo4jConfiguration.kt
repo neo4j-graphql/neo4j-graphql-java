@@ -2,8 +2,8 @@ package org.neo4j.graphql.examples.graphqlspringboot.config
 
 import graphql.schema.*
 import org.neo4j.driver.Driver
-import org.neo4j.graphql.Cypher
 import org.neo4j.graphql.DataFetchingInterceptor
+import org.neo4j.graphql.OldCypher
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.math.BigDecimal
@@ -22,7 +22,7 @@ open class Neo4jConfiguration {
     @Bean
     open fun dataFetchingInterceptor(driver: Driver): DataFetchingInterceptor {
         return object : DataFetchingInterceptor {
-            override fun fetchData(env: DataFetchingEnvironment, delegate: DataFetcher<Cypher>): Any? {
+            override fun fetchData(env: DataFetchingEnvironment, delegate: DataFetcher<OldCypher>): Any? {
 
                 val (cypher, params, type, variable) = delegate.get(env)
 

@@ -27,6 +27,7 @@ interface ActedIn {
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Update a relationship property on a relationship between two specified nodes (update -> update)

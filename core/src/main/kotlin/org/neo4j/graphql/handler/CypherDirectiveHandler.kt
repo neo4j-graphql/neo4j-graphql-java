@@ -18,7 +18,7 @@ class CypherDirectiveHandler(schemaConfig: SchemaConfig) : BaseDataFetcher(schem
         override fun createDataFetcher(
             operationType: OperationType,
             fieldDefinition: FieldDefinition
-        ): DataFetcher<Cypher>? {
+        ): DataFetcher<OldCypher>? {
             fieldDefinition.cypherDirective() ?: return null
             return CypherDirectiveHandler(schemaConfig)
         }

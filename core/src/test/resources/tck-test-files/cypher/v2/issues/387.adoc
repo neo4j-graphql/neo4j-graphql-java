@@ -23,6 +23,7 @@ type Place {
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Should project custom scalars from custom Cypher correctly

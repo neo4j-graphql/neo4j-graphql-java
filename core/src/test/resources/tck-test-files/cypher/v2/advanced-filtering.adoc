@@ -27,6 +27,7 @@ type Genre {
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == CONTAINS
@@ -45,16 +46,18 @@ type Genre {
 [source,json]
 ----
 {
-  "this_id_CONTAINS": "123"
+  "whereMoviesIdContains" : "123"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE this.id CONTAINS $this_id_CONTAINS
-RETURN this { .id } as this
+MATCH (movies:Movie)
+WHERE movies.id CONTAINS $whereMoviesIdContains
+RETURN movies {
+	.id
+} AS movies
 ----
 
 == ENDS_WITH
@@ -73,16 +76,18 @@ RETURN this { .id } as this
 [source,json]
 ----
 {
-  "this_id_ENDS_WITH": "123"
+  "whereMoviesIdEndsWith" : "123"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE this.id ENDS WITH $this_id_ENDS_WITH
-RETURN this { .id } as this
+MATCH (movies:Movie)
+WHERE movies.id ENDS WITH $whereMoviesIdEndsWith
+RETURN movies {
+	.id
+} AS movies
 ----
 
 == GT
@@ -101,19 +106,18 @@ RETURN this { .id } as this
 [source,json]
 ----
 {
-  "this_actorCount_GT": {
-    "low": 123,
-    "high": 0
-  }
+  "whereMoviesActorCountGt" : 123
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE this.actorCount > $this_actorCount_GT
-RETURN this { .actorCount } as this
+MATCH (movies:Movie)
+WHERE movies.actorCount > $whereMoviesActorCountGt
+RETURN movies {
+	.actorCount
+} AS movies
 ----
 
 == GT BigInt
@@ -132,19 +136,18 @@ RETURN this { .actorCount } as this
 [source,json]
 ----
 {
-  "this_budget_GT": {
-    "low": -808,
-    "high": 2147483647
-  }
+  "whereMoviesBudgetGt" : 9223372036854775000
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE this.budget > $this_budget_GT
-RETURN this { .budget } as this
+MATCH (movies:Movie)
+WHERE movies.budget > $whereMoviesBudgetGt
+RETURN movies {
+	.budget
+} AS movies
 ----
 
 == GTE

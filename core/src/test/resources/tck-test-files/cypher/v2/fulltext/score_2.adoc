@@ -16,8 +16,7 @@ type Movie @fulltext(indexes: [{name: "MovieTitle", fields: ["title"], defaultTh
 .Configuration
 [source,json,schema-config=true]
 ----
-{
-}
+{}
 ----
 == simple match with fulltext property and defaultThreshold
 

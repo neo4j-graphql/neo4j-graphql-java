@@ -3,8 +3,8 @@ package org.neo4j.graphql.examples.dgsspringboot.config
 import graphql.schema.*
 import org.neo4j.driver.Driver
 import org.neo4j.driver.SessionConfig
-import org.neo4j.graphql.Cypher
 import org.neo4j.graphql.DataFetchingInterceptor
+import org.neo4j.graphql.OldCypher
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -24,7 +24,7 @@ open class Neo4jConfiguration {
     @Bean
     open fun dataFetchingInterceptor(driver: Driver, @Value("\${database}") database: String): DataFetchingInterceptor {
         return object : DataFetchingInterceptor {
-            override fun fetchData(env: DataFetchingEnvironment, delegate: DataFetcher<Cypher>): Any? {
+            override fun fetchData(env: DataFetchingEnvironment, delegate: DataFetcher<OldCypher>): Any? {
                 val (cypher, params, type, variable) = delegate.get(env)
 
                 return driver.session(SessionConfig.forDatabase(database)).writeTransaction { tx ->

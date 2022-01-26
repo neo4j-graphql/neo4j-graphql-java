@@ -23,6 +23,7 @@ type COMPANY {
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Can create a USER and COMPANYID is populated

@@ -11,7 +11,7 @@ import org.neo4j.graphql.schema.AugmentationHandlerV2
 class AggregateResolver private constructor(
     val schemaConfig: SchemaConfig,
     val node: Node
-) : DataFetcher<Cypher> {
+) : DataFetcher<OldCypher> {
 
     class Factory(ctx: AugmentationContext) : AugmentationHandlerV2(ctx) {
 
@@ -29,7 +29,7 @@ class AggregateResolver private constructor(
         }
     }
 
-    override fun get(environment: DataFetchingEnvironment?): Cypher {
+    override fun get(environment: DataFetchingEnvironment?): OldCypher {
         TODO("Not yet implemented")
     }
 }

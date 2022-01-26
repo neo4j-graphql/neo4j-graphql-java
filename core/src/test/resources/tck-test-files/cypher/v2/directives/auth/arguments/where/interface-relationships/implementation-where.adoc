@@ -47,6 +47,7 @@ extend type Post {
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Connect Node (from create)

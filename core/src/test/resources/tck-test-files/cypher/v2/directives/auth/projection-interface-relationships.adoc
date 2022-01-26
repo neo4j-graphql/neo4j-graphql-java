@@ -38,6 +38,7 @@ type Actor {
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Simple Interface Relationship Query for protected type

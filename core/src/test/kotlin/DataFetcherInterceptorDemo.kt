@@ -6,7 +6,7 @@ import org.intellij.lang.annotations.Language
 import org.neo4j.driver.AuthTokens
 import org.neo4j.driver.Driver
 import org.neo4j.driver.GraphDatabase
-import org.neo4j.graphql.Cypher
+import org.neo4j.graphql.OldCypher
 import org.neo4j.graphql.DataFetchingInterceptor
 import org.neo4j.graphql.SchemaBuilder
 import java.math.BigDecimal
@@ -17,7 +17,7 @@ fun initBoundSchema(schema: String): GraphQLSchema {
     val driver: Driver = GraphDatabase.driver("bolt://localhost", AuthTokens.basic("neo4j", "test"))
 
     val dataFetchingInterceptor = object : DataFetchingInterceptor {
-        override fun fetchData(env: DataFetchingEnvironment, delegate: DataFetcher<Cypher>): Any {
+        override fun fetchData(env: DataFetchingEnvironment, delegate: DataFetcher<OldCypher>): Any {
             val (cypher, params, type, variable) = delegate.get(env)
             return driver.session().use { session ->
                 val result = session.run(cypher, params.mapValues { toBoltValue(it.value) })

@@ -15,13 +15,13 @@ import org.neo4j.graphql.handler.projection.ProjectionBase
 /**
  * This is a base class for the implementation of graphql data fetcher used in this project
  */
-abstract class BaseDataFetcher(schemaConfig: SchemaConfig) : ProjectionBase(schemaConfig), DataFetcher<Cypher> {
+abstract class BaseDataFetcher(schemaConfig: SchemaConfig) : ProjectionBase(schemaConfig), DataFetcher<OldCypher> {
 
     private var init = false
 
-    override fun get(env: DataFetchingEnvironment): Cypher {
+    final override fun get(env: DataFetchingEnvironment): OldCypher {
         val field = env.mergedField?.singleField
-                ?: throw IllegalAccessException("expect one filed in environment.mergedField")
+                ?: throw IllegalAccessException("expect one field in environment.mergedField")
         val variable = field.aliasOrName().decapitalize()
         prepareDataFetcher(env.fieldDefinition, env.parentType)
         val statement = generateCypher(variable, field, env)
@@ -36,7 +36,7 @@ abstract class BaseDataFetcher(schemaConfig: SchemaConfig) : ProjectionBase(sche
         val params = statement.parameters.mapValues { (_, value) ->
             (value as? VariableReference)?.let { env.variables[it.name] } ?: value
         }
-        return Cypher(query, params, env.fieldDefinition.type, variable = field.aliasOrName())
+        return OldCypher(query, params, env.fieldDefinition.type, variable = field.aliasOrName())
             .also {
                 (env.getLocalContext() as? Translator.CypherHolder)?.apply { this.cypher = it }
             }

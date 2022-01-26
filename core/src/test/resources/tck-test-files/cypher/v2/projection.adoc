@@ -40,6 +40,7 @@ type Photo {
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Multi Create With Projection

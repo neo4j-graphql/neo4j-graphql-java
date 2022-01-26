@@ -30,6 +30,7 @@ type Actor {
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == edges and totalCount returned if pageInfo asked for

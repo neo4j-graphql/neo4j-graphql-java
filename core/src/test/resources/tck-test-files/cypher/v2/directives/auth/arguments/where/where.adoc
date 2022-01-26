@@ -40,6 +40,7 @@ extend type Post @auth(rules: [{operations: [READ, UPDATE, DELETE, CONNECT, DISC
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Connect Node (from create)

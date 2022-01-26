@@ -1,7 +1,10 @@
 package org.neo4j.graphql.domain.fields
 
 import org.neo4j.graphql.capitalize
-import org.neo4j.graphql.domain.*
+import org.neo4j.graphql.domain.Interface
+import org.neo4j.graphql.domain.Node
+import org.neo4j.graphql.domain.RelationshipProperties
+import org.neo4j.graphql.domain.TypeMeta
 
 /**
  * Representation of the `@relationship` directive and its meta.
@@ -18,7 +21,7 @@ class RelationField(
      * The type of the neo4j relation
      */
     val relationType: String,
-    direction: Direction,
+    val direction: Direction,
     val properties: RelationshipProperties?,
     /**
      * The node or interface name. If the filed is defined in an interface, the prefix will have the interface's name
@@ -29,7 +32,8 @@ class RelationField(
     typeMeta,
 ) {
 
-    val name: String get() = "${connectionPrefix}${fieldName.capitalize()}Relationship"
+    // TODO move to connection field?
+    val relationshipTypeName: String get() = "${connectionPrefix}${fieldName.capitalize()}Relationship"
 
     /**
      * If the type of the field is an interface, this list contains all nodes implementing this interface

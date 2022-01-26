@@ -43,6 +43,7 @@ extend type Comment @auth(rules: [{operations: [READ, UPDATE, DELETE, DISCONNECT
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Connect Node

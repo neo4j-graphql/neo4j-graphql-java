@@ -24,6 +24,7 @@ type Movie @node(label: "Film", additionalLabels: ["Multimedia"]) {
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Create Movie and relation with additional labels

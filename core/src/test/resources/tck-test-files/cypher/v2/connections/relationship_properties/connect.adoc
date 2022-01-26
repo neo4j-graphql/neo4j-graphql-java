@@ -27,6 +27,7 @@ interface ActedIn {
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Create movie while connecting a relationship that has properties

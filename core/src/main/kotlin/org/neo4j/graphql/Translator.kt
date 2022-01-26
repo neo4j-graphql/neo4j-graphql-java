@@ -6,13 +6,13 @@ import graphql.schema.GraphQLSchema
 
 class Translator(val schema: GraphQLSchema) {
 
-    class CypherHolder(var cypher: Cypher?)
+    class CypherHolder(var cypher: OldCypher?)
 
     private val gql: GraphQL = GraphQL.newGraphQL(schema).build()
 
     @JvmOverloads
     @Throws(OptimizedQueryException::class)
-    fun translate(query: String, params: Map<String, Any?> = emptyMap(), ctx: QueryContext = QueryContext()): List<Cypher> {
+    fun translate(query: String, params: Map<String, Any?> = emptyMap(), ctx: QueryContext = QueryContext()): List<OldCypher> {
         val cypherHolder = CypherHolder(null)
         val executionInput = ExecutionInput.newExecutionInput()
             .query(query)

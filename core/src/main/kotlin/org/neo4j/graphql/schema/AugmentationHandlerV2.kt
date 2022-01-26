@@ -22,7 +22,7 @@ abstract class AugmentationHandlerV2(ctx: AugmentationContext) : BaseAugmentatio
 
     data class AugmentedField(
         val coordinates: FieldCoordinates,
-        val dataFetcher: DataFetcher<Cypher>,
+        val dataFetcher: DataFetcher<OldCypher>,
     )
 
     protected fun addAggregationSelectionType(node: Node): String {

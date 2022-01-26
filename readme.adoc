@@ -437,7 +437,7 @@ RETURN person { .name } AS person
 LIMIT $first
 ----
 
-Those parameters are returned as part of the `Cypher` type that's returned from the `translate()`-method.
+Those parameters are returned as part of the `OldCypher` type that's returned from the `translate()`-method.
 
 === Aliases
 

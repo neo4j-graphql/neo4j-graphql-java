@@ -34,6 +34,7 @@ type Logo {
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Should have correct variables in apoc.do.when

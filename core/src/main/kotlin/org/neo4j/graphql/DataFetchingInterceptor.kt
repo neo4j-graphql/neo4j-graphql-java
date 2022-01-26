@@ -14,5 +14,5 @@ interface DataFetchingInterceptor {
      * The method then returns the fully parsed result.
      */
     @Throws(Exception::class)
-    fun fetchData(env: DataFetchingEnvironment, delegate: DataFetcher<Cypher>): Any?
+    fun fetchData(env: DataFetchingEnvironment, delegate: DataFetcher<OldCypher>): Any?
 }

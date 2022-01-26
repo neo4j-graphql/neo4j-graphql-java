@@ -36,6 +36,7 @@ extend type User @auth(rules: [{operations: [CREATE, UPDATE, CONNECT, DISCONNECT
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Connect Node

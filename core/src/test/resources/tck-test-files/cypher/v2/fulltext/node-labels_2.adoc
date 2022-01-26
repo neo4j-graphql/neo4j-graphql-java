@@ -16,8 +16,7 @@ type Movie @fulltext(indexes: [{name: "MovieTitle", fields: ["title"]}]) @node(a
 .Configuration
 [source,json,schema-config=true]
 ----
-{
-}
+{}
 ----
 == simple match with single fulltext property and jwt additionalLabels
 

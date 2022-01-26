@@ -17,6 +17,7 @@ type Tech @node(plural: "Techs") {
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Count Tech with plural techs using aggregation

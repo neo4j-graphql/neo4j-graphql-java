@@ -60,7 +60,7 @@ class CreateRelationHandler private constructor(schemaConfig: SchemaConfig) : Ba
                 }
         }
 
-        override fun createDataFetcher(): DataFetcher<Cypher> {
+        override fun createDataFetcher(): DataFetcher<OldCypher> {
             return CreateRelationHandler(schemaConfig)
         }
     }

@@ -86,7 +86,7 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
             title: String,
             globalBlocks: Map<String, ParsedBlock>,
             codeBlocks: Map<String, ParsedBlock>
-    ): () -> Cypher {
+    ): () -> OldCypher {
         val transformationTask = FutureTask {
 
             val schema = createSchema(globalBlocks, codeBlocks)
@@ -110,11 +110,11 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
         }
     }
 
-    private fun printGeneratedQuery(result: () -> Cypher): DynamicTest = DynamicTest.dynamicTest("Generated query") {
+    private fun printGeneratedQuery(result: () -> OldCypher): DynamicTest = DynamicTest.dynamicTest("Generated query") {
         println(result().query)
     }
 
-    private fun printReplacedParameter(result: () -> Cypher): DynamicTest = DynamicTest.dynamicTest("Generated query with params replaced") {
+    private fun printReplacedParameter(result: () -> OldCypher): DynamicTest = DynamicTest.dynamicTest("Generated query with params replaced") {
         var queryWithReplacedParams = result().query
         result().params.forEach { (key, value) ->
             queryWithReplacedParams = queryWithReplacedParams.replace("$$key", if (value is String) "'$value'" else value.toString())
@@ -125,7 +125,7 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
         println(queryWithReplacedParams)
     }
 
-    private fun testCypher(title: String, cypherBlock: ParsedBlock?, result: () -> Cypher): DynamicTest = DynamicTest.dynamicTest("Test Cypher", cypherBlock?.uri) {
+    private fun testCypher(title: String, cypherBlock: ParsedBlock?, result: () -> OldCypher): DynamicTest = DynamicTest.dynamicTest("Test Cypher", cypherBlock?.uri) {
         val cypher = cypherBlock?.code()
                 ?: throw IllegalStateException("missing cypher query for $title")
         val expected = cypher.normalize()
@@ -138,7 +138,7 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
         }
     }
 
-    private fun testCypherParams(codeBlocks: Map<String, ParsedBlock>, result: () -> Cypher): DynamicTest {
+    private fun testCypherParams(codeBlocks: Map<String, ParsedBlock>, result: () -> OldCypher): DynamicTest {
         val cypherParamsBlock = getOrCreateBlock(codeBlocks, CYPHER_PARAMS_MARKER, "Cypher Params")
 
         return DynamicTest.dynamicTest("Test Cypher Params", cypherParamsBlock?.uri) {
@@ -164,7 +164,7 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
 
     private fun setupDataFetchingInterceptor(testData: ParsedBlock): DataFetchingInterceptor {
         return object : DataFetchingInterceptor {
-            override fun fetchData(env: DataFetchingEnvironment, delegate: DataFetcher<Cypher>): Any? = neo4j
+            override fun fetchData(env: DataFetchingEnvironment, delegate: DataFetcher<OldCypher>): Any? = neo4j
                 ?.defaultDatabaseService()?.let { db ->
                     db.executeTransactionally("MATCH (n) DETACH DELETE n")
                     if (testData.code().isNotBlank()) {

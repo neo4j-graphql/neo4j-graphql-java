@@ -27,6 +27,7 @@ type Movie implements MovieInterface {
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Simple Create

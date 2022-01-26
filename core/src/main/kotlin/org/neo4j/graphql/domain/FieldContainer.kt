@@ -6,9 +6,7 @@ import org.neo4j.graphql.isList
 /**
  * A container holding fields
  */
-abstract class FieldContainer<T : BaseField, OWNER : FieldContainer<T, OWNER>>(
-    val fields: List<T>
-) {
+abstract class FieldContainer<T : BaseField>(val fields: List<T>) {
 
     init {
         fields.forEach { it.owner = this }

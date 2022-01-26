@@ -29,6 +29,7 @@ interface ActorActedInProps {
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Create mutation

@@ -22,6 +22,7 @@ type Area {
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Should ignore the empty array and not include any where

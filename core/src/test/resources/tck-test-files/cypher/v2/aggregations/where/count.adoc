@@ -22,6 +22,7 @@ type Post {
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Equality Count

@@ -22,6 +22,7 @@ type Person {
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Should not add where keyword if empty where

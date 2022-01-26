@@ -55,7 +55,7 @@ class MergeOrUpdateHandler private constructor(private val merge: Boolean, schem
         override fun createDataFetcher(
             operationType: OperationType,
             fieldDefinition: FieldDefinition
-        ): DataFetcher<Cypher>? {
+        ): DataFetcher<OldCypher>? {
             if (operationType != OperationType.MUTATION) {
                 return null
             }

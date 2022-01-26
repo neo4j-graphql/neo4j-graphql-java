@@ -24,6 +24,7 @@ type Movie @node(label: "Film") {
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Read Unions

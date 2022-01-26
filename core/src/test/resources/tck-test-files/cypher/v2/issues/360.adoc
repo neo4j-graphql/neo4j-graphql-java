@@ -21,6 +21,7 @@ type Event {
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Should exclude undefined members in AND

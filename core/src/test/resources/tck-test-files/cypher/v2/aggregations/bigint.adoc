@@ -17,6 +17,7 @@ type File {
 [source,json,schema-config=true]
 ----
 {
+  "enableRegex": true
 }
 ----
 == Average

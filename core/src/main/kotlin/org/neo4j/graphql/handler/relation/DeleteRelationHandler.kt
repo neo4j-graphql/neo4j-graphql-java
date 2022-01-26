@@ -29,7 +29,7 @@ class DeleteRelationHandler private constructor(schemaConfig: SchemaConfig) :
                 }
         }
 
-        override fun createDataFetcher(): DataFetcher<Cypher> = DeleteRelationHandler(schemaConfig)
+        override fun createDataFetcher(): DataFetcher<OldCypher> = DeleteRelationHandler(schemaConfig)
 
     }
 
