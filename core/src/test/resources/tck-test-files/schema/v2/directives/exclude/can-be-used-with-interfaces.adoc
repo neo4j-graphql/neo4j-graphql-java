@@ -1,10 +1,8 @@
 :toc:
 
-= @exclude directive
+= @exclude directive -> can be used with interfaces
 
-== can be used with interfaces
-
-=== Source schema
+== Source schema
 
 [source,graphql,schema=true]
 ----
@@ -21,7 +19,7 @@ type Series implements Production @exclude(operations: [UPDATE]) {
 }
 ----
 
-=== Augmented schema
+== Augmented schema
 
 .Augmented Schema
 [source,graphql]

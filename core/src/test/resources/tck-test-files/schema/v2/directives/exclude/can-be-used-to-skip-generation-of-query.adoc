@@ -1,10 +1,8 @@
 :toc:
 
-= @exclude directive
+= @exclude directive -> can be used to skip generation of Query
 
-== can be used to skip generation of Query
-
-=== Source schema
+== Source schema
 
 [source,graphql,schema=true]
 ----
@@ -17,7 +15,7 @@ type Movie {
 }
 ----
 
-=== Augmented schema
+== Augmented schema
 
 .Augmented Schema
 [source,graphql]

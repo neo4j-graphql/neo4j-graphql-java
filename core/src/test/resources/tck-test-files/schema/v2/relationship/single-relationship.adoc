@@ -1,10 +1,8 @@
 :toc:
 
-= Relationship
+= Relationship -> Single Relationship
 
-== Single Relationship
-
-=== Source schema
+== Source schema
 
 [source,graphql,schema=true]
 ----
@@ -18,7 +16,7 @@ type Movie {
 }
 ----
 
-=== Augmented schema
+== Augmented schema
 
 .Augmented Schema
 [source,graphql]

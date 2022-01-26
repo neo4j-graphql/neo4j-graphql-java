@@ -1,10 +1,8 @@
 :toc:
 
-= @readonly directive
+= @readonly directive -> makes a field readonly
 
-== makes a field readonly
-
-=== Source schema
+== Source schema
 
 [source,graphql,schema=true]
 ----
@@ -14,7 +12,7 @@ type User {
 }
 ----
 
-=== Augmented schema
+== Augmented schema
 
 .Augmented Schema
 [source,graphql]

@@ -1,0 +1,526 @@
+:toc:
+
+= schema/rfs/003 -> ObjectType -> should not throw when using valid relationship
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Source {
+  targets: [Target!]! @relationship(type: "HAS_TARGET", direction: OUT)
+  target1: Target! @relationship(type: "HAS_TARGET", direction: OUT)
+  target2: Target @relationship(type: "HAS_TARGET", direction: OUT)
+}
+
+type Target {
+  id: ID @id
+}
+----
+
+== Augmented schema
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type CreateInfo {
+  bookmark: String
+  nodesCreated: Int!
+  relationshipsCreated: Int!
+}
+
+type CreateSourcesMutationResponse {
+  info: CreateInfo!
+  sources: [Source!]!
+}
+
+type CreateTargetsMutationResponse {
+  info: CreateInfo!
+  targets: [Target!]!
+}
+
+type DeleteInfo {
+  bookmark: String
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
+type IDAggregateSelectionNullable {
+  longest: ID
+  shortest: ID
+}
+
+type Mutation {
+  createSources(input: [SourceCreateInput!]!): CreateSourcesMutationResponse!
+  createTargets(input: [TargetCreateInput!]!): CreateTargetsMutationResponse!
+  deleteSources(delete: SourceDeleteInput, where: SourceWhere): DeleteInfo!
+  deleteTargets(where: TargetWhere): DeleteInfo!
+  updateSources(connect: SourceConnectInput, connectOrCreate: SourceConnectOrCreateInput, create: SourceRelationInput, delete: SourceDeleteInput, disconnect: SourceDisconnectInput, update: SourceUpdateInput, where: SourceWhere): UpdateSourcesMutationResponse!
+  updateTargets(update: TargetUpdateInput, where: TargetWhere): UpdateTargetsMutationResponse!
+}
+
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  sources(options: SourceOptions, where: SourceWhere): [Source!]!
+  sourcesAggregate(where: SourceWhere): SourceAggregateSelection!
+  targets(options: TargetOptions, where: TargetWhere): [Target!]!
+  targetsAggregate(where: TargetWhere): TargetAggregateSelection!
+}
+
+type Source {
+  target1(options: TargetOptions, where: TargetWhere): Target!
+  target1Aggregate(where: TargetWhere): SourceTargetTarget1AggregationSelection
+  target1Connection(after: String, first: Int, sort: [SourceTarget1ConnectionSort!], where: SourceTarget1ConnectionWhere): SourceTarget1Connection!
+  target2(options: TargetOptions, where: TargetWhere): Target
+  target2Aggregate(where: TargetWhere): SourceTargetTarget2AggregationSelection
+  target2Connection(after: String, first: Int, sort: [SourceTarget2ConnectionSort!], where: SourceTarget2ConnectionWhere): SourceTarget2Connection!
+  targets(options: TargetOptions, where: TargetWhere): [Target!]!
+  targetsAggregate(where: TargetWhere): SourceTargetTargetsAggregationSelection
+  targetsConnection(after: String, first: Int, sort: [SourceTargetsConnectionSort!], where: SourceTargetsConnectionWhere): SourceTargetsConnection!
+}
+
+type SourceAggregateSelection {
+  count: Int!
+}
+
+type SourceTarget1Connection {
+  edges: [SourceTarget1Relationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type SourceTarget1Relationship {
+  cursor: String!
+  node: Target!
+}
+
+type SourceTarget2Connection {
+  edges: [SourceTarget2Relationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type SourceTarget2Relationship {
+  cursor: String!
+  node: Target!
+}
+
+type SourceTargetTarget1AggregationSelection {
+  count: Int!
+  node: SourceTargetTarget1NodeAggregateSelection
+}
+
+type SourceTargetTarget1NodeAggregateSelection {
+  id: IDAggregateSelectionNullable!
+}
+
+type SourceTargetTarget2AggregationSelection {
+  count: Int!
+  node: SourceTargetTarget2NodeAggregateSelection
+}
+
+type SourceTargetTarget2NodeAggregateSelection {
+  id: IDAggregateSelectionNullable!
+}
+
+type SourceTargetTargetsAggregationSelection {
+  count: Int!
+  node: SourceTargetTargetsNodeAggregateSelection
+}
+
+type SourceTargetTargetsNodeAggregateSelection {
+  id: IDAggregateSelectionNullable!
+}
+
+type SourceTargetsConnection {
+  edges: [SourceTargetsRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type SourceTargetsRelationship {
+  cursor: String!
+  node: Target!
+}
+
+type Target {
+  id: ID
+}
+
+type TargetAggregateSelection {
+  count: Int!
+  id: IDAggregateSelectionNullable!
+}
+
+type UpdateInfo {
+  bookmark: String
+  nodesCreated: Int!
+  nodesDeleted: Int!
+  relationshipsCreated: Int!
+  relationshipsDeleted: Int!
+}
+
+type UpdateSourcesMutationResponse {
+  info: UpdateInfo!
+  sources: [Source!]!
+}
+
+type UpdateTargetsMutationResponse {
+  info: UpdateInfo!
+  targets: [Target!]!
+}
+
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+input SourceConnectInput {
+  target1: SourceTarget1ConnectFieldInput
+  target2: SourceTarget2ConnectFieldInput
+  targets: [SourceTargetsConnectFieldInput!]
+}
+
+input SourceConnectOrCreateInput {
+  target1: SourceTarget1ConnectOrCreateFieldInput
+  target2: SourceTarget2ConnectOrCreateFieldInput
+  targets: [SourceTargetsConnectOrCreateFieldInput!]
+}
+
+input SourceCreateInput {
+  target1: SourceTarget1FieldInput
+  target2: SourceTarget2FieldInput
+  targets: SourceTargetsFieldInput
+}
+
+input SourceDeleteInput {
+  target1: SourceTarget1DeleteFieldInput
+  target2: SourceTarget2DeleteFieldInput
+  targets: [SourceTargetsDeleteFieldInput!]
+}
+
+input SourceDisconnectInput {
+  target1: SourceTarget1DisconnectFieldInput
+  target2: SourceTarget2DisconnectFieldInput
+  targets: [SourceTargetsDisconnectFieldInput!]
+}
+
+input SourceOptions {
+  limit: Int
+  offset: Int
+}
+
+input SourceRelationInput {
+  target1: SourceTarget1CreateFieldInput
+  target2: SourceTarget2CreateFieldInput
+  targets: [SourceTargetsCreateFieldInput!]
+}
+
+input SourceTarget1AggregateInput {
+  AND: [SourceTarget1AggregateInput!]
+  OR: [SourceTarget1AggregateInput!]
+  count: Int
+  count_GT: Int
+  count_GTE: Int
+  count_LT: Int
+  count_LTE: Int
+  node: SourceTarget1NodeAggregationWhereInput
+}
+
+input SourceTarget1ConnectFieldInput {
+  where: TargetConnectWhere
+}
+
+input SourceTarget1ConnectOrCreateFieldInput {
+  onCreate: SourceTarget1ConnectOrCreateFieldInputOnCreate!
+  where: TargetConnectOrCreateWhere!
+}
+
+input SourceTarget1ConnectOrCreateFieldInputOnCreate {
+  node: TargetCreateInput!
+}
+
+input SourceTarget1ConnectionSort {
+  node: TargetSort
+}
+
+input SourceTarget1ConnectionWhere {
+  AND: [SourceTarget1ConnectionWhere!]
+  OR: [SourceTarget1ConnectionWhere!]
+  node: TargetWhere
+  node_NOT: TargetWhere
+}
+
+input SourceTarget1CreateFieldInput {
+  node: TargetCreateInput!
+}
+
+input SourceTarget1DeleteFieldInput {
+  where: SourceTarget1ConnectionWhere
+}
+
+input SourceTarget1DisconnectFieldInput {
+  where: SourceTarget1ConnectionWhere
+}
+
+input SourceTarget1FieldInput {
+  connect: SourceTarget1ConnectFieldInput
+  connectOrCreate: SourceTarget1ConnectOrCreateFieldInput
+  create: SourceTarget1CreateFieldInput
+}
+
+input SourceTarget1NodeAggregationWhereInput {
+  AND: [SourceTarget1NodeAggregationWhereInput!]
+  OR: [SourceTarget1NodeAggregationWhereInput!]
+  id_EQUAL: ID
+}
+
+input SourceTarget1UpdateConnectionInput {
+  node: TargetUpdateInput
+}
+
+input SourceTarget1UpdateFieldInput {
+  connect: SourceTarget1ConnectFieldInput
+  connectOrCreate: SourceTarget1ConnectOrCreateFieldInput
+  create: SourceTarget1CreateFieldInput
+  delete: SourceTarget1DeleteFieldInput
+  disconnect: SourceTarget1DisconnectFieldInput
+  update: SourceTarget1UpdateConnectionInput
+  where: SourceTarget1ConnectionWhere
+}
+
+input SourceTarget2AggregateInput {
+  AND: [SourceTarget2AggregateInput!]
+  OR: [SourceTarget2AggregateInput!]
+  count: Int
+  count_GT: Int
+  count_GTE: Int
+  count_LT: Int
+  count_LTE: Int
+  node: SourceTarget2NodeAggregationWhereInput
+}
+
+input SourceTarget2ConnectFieldInput {
+  where: TargetConnectWhere
+}
+
+input SourceTarget2ConnectOrCreateFieldInput {
+  onCreate: SourceTarget2ConnectOrCreateFieldInputOnCreate!
+  where: TargetConnectOrCreateWhere!
+}
+
+input SourceTarget2ConnectOrCreateFieldInputOnCreate {
+  node: TargetCreateInput!
+}
+
+input SourceTarget2ConnectionSort {
+  node: TargetSort
+}
+
+input SourceTarget2ConnectionWhere {
+  AND: [SourceTarget2ConnectionWhere!]
+  OR: [SourceTarget2ConnectionWhere!]
+  node: TargetWhere
+  node_NOT: TargetWhere
+}
+
+input SourceTarget2CreateFieldInput {
+  node: TargetCreateInput!
+}
+
+input SourceTarget2DeleteFieldInput {
+  where: SourceTarget2ConnectionWhere
+}
+
+input SourceTarget2DisconnectFieldInput {
+  where: SourceTarget2ConnectionWhere
+}
+
+input SourceTarget2FieldInput {
+  connect: SourceTarget2ConnectFieldInput
+  connectOrCreate: SourceTarget2ConnectOrCreateFieldInput
+  create: SourceTarget2CreateFieldInput
+}
+
+input SourceTarget2NodeAggregationWhereInput {
+  AND: [SourceTarget2NodeAggregationWhereInput!]
+  OR: [SourceTarget2NodeAggregationWhereInput!]
+  id_EQUAL: ID
+}
+
+input SourceTarget2UpdateConnectionInput {
+  node: TargetUpdateInput
+}
+
+input SourceTarget2UpdateFieldInput {
+  connect: SourceTarget2ConnectFieldInput
+  connectOrCreate: SourceTarget2ConnectOrCreateFieldInput
+  create: SourceTarget2CreateFieldInput
+  delete: SourceTarget2DeleteFieldInput
+  disconnect: SourceTarget2DisconnectFieldInput
+  update: SourceTarget2UpdateConnectionInput
+  where: SourceTarget2ConnectionWhere
+}
+
+input SourceTargetsAggregateInput {
+  AND: [SourceTargetsAggregateInput!]
+  OR: [SourceTargetsAggregateInput!]
+  count: Int
+  count_GT: Int
+  count_GTE: Int
+  count_LT: Int
+  count_LTE: Int
+  node: SourceTargetsNodeAggregationWhereInput
+}
+
+input SourceTargetsConnectFieldInput {
+  where: TargetConnectWhere
+}
+
+input SourceTargetsConnectOrCreateFieldInput {
+  onCreate: SourceTargetsConnectOrCreateFieldInputOnCreate!
+  where: TargetConnectOrCreateWhere!
+}
+
+input SourceTargetsConnectOrCreateFieldInputOnCreate {
+  node: TargetCreateInput!
+}
+
+input SourceTargetsConnectionSort {
+  node: TargetSort
+}
+
+input SourceTargetsConnectionWhere {
+  AND: [SourceTargetsConnectionWhere!]
+  OR: [SourceTargetsConnectionWhere!]
+  node: TargetWhere
+  node_NOT: TargetWhere
+}
+
+input SourceTargetsCreateFieldInput {
+  node: TargetCreateInput!
+}
+
+input SourceTargetsDeleteFieldInput {
+  where: SourceTargetsConnectionWhere
+}
+
+input SourceTargetsDisconnectFieldInput {
+  where: SourceTargetsConnectionWhere
+}
+
+input SourceTargetsFieldInput {
+  connect: [SourceTargetsConnectFieldInput!]
+  connectOrCreate: [SourceTargetsConnectOrCreateFieldInput!]
+  create: [SourceTargetsCreateFieldInput!]
+}
+
+input SourceTargetsNodeAggregationWhereInput {
+  AND: [SourceTargetsNodeAggregationWhereInput!]
+  OR: [SourceTargetsNodeAggregationWhereInput!]
+  id_EQUAL: ID
+}
+
+input SourceTargetsUpdateConnectionInput {
+  node: TargetUpdateInput
+}
+
+input SourceTargetsUpdateFieldInput {
+  connect: [SourceTargetsConnectFieldInput!]
+  connectOrCreate: [SourceTargetsConnectOrCreateFieldInput!]
+  create: [SourceTargetsCreateFieldInput!]
+  delete: [SourceTargetsDeleteFieldInput!]
+  disconnect: [SourceTargetsDisconnectFieldInput!]
+  update: SourceTargetsUpdateConnectionInput
+  where: SourceTargetsConnectionWhere
+}
+
+input SourceUpdateInput {
+  target1: SourceTarget1UpdateFieldInput
+  target2: SourceTarget2UpdateFieldInput
+  targets: [SourceTargetsUpdateFieldInput!]
+}
+
+input SourceWhere {
+  AND: [SourceWhere!]
+  OR: [SourceWhere!]
+  target1: TargetWhere
+  target1Aggregate: SourceTarget1AggregateInput
+  target1Connection: SourceTarget1ConnectionWhere
+  target1Connection_NOT: SourceTarget1ConnectionWhere
+  target1_NOT: TargetWhere
+  target2: TargetWhere
+  target2Aggregate: SourceTarget2AggregateInput
+  target2Connection: SourceTarget2ConnectionWhere
+  target2Connection_NOT: SourceTarget2ConnectionWhere
+  target2_NOT: TargetWhere
+  targets: TargetWhere
+  targetsAggregate: SourceTargetsAggregateInput
+  targetsConnection: SourceTargetsConnectionWhere
+  targetsConnection_NOT: SourceTargetsConnectionWhere
+  targets_NOT: TargetWhere
+}
+
+input TargetConnectOrCreateWhere {
+  node: TargetUniqueWhere!
+}
+
+input TargetConnectWhere {
+  node: TargetWhere!
+}
+
+input TargetCreateInput {
+  "Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/"
+  _emptyInput: Boolean
+}
+
+input TargetOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more TargetSort objects to sort Targets by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [TargetSort]
+}
+
+"Fields to sort Targets by. The order in which sorts are applied is not guaranteed when specifying many fields in one TargetSort object."
+input TargetSort {
+  id: SortDirection
+}
+
+input TargetUniqueWhere {
+  id: ID
+}
+
+input TargetUpdateInput {
+  "Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/"
+  _emptyInput: Boolean
+}
+
+input TargetWhere {
+  AND: [TargetWhere!]
+  OR: [TargetWhere!]
+  id: ID
+  id_CONTAINS: ID
+  id_ENDS_WITH: ID
+  id_IN: [ID]
+  id_NOT: ID
+  id_NOT_CONTAINS: ID
+  id_NOT_ENDS_WITH: ID
+  id_NOT_IN: [ID]
+  id_NOT_STARTS_WITH: ID
+  id_STARTS_WITH: ID
+}
+
+----

@@ -1,10 +1,8 @@
 :toc:
 
-= Aggregations
+= Aggregations -> Where Level Aggregations
 
-== Where Level Aggregations
-
-=== Source schema
+== Source schema
 
 [source,graphql,schema=true]
 ----
@@ -40,7 +38,7 @@ interface Likes {
 }
 ----
 
-=== Augmented schema
+== Augmented schema
 
 .Augmented Schema
 [source,graphql]

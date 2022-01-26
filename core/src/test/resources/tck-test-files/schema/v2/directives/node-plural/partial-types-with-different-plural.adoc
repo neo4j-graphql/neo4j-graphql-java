@@ -1,10 +1,8 @@
 :toc:
 
-= Node Directive
+= Node Directive -> Plural option -> Partial types with different plural
 
-== Partial types with different plural
-
-=== Source schema
+== Source schema
 
 [source,graphql,schema=true]
 ----
@@ -17,7 +15,7 @@ extend type Tech @node(plural: "Technologies") {
 }
 ----
 
-=== Augmented schema
+== Augmented schema
 
 .Augmented Schema
 [source,graphql]

@@ -1,10 +1,8 @@
 :toc:
 
-= @writeonly directive
+= @writeonly directive -> makes a field writeonly
 
-== makes a field writeonly
-
-=== Source schema
+== Source schema
 
 [source,graphql,schema=true]
 ----
@@ -14,7 +12,7 @@ type User {
 }
 ----
 
-=== Augmented schema
+== Augmented schema
 
 .Augmented Schema
 [source,graphql]

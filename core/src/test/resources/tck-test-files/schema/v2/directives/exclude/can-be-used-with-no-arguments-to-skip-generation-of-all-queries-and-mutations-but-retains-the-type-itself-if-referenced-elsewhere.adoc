@@ -1,10 +1,8 @@
 :toc:
 
-= @exclude directive
+= @exclude directive -> can be used with no arguments to skip generation of all Queries and Mutations but retains the type itself if referenced elsewhere
 
-== can be used with no arguments to skip generation of all Queries and Mutations but retains the type itself if referenced elsewhere
-
-=== Source schema
+== Source schema
 
 [source,graphql,schema=true]
 ----
@@ -21,7 +19,7 @@ type Query {
 }
 ----
 
-=== Augmented schema
+== Augmented schema
 
 .Augmented Schema
 [source,graphql]

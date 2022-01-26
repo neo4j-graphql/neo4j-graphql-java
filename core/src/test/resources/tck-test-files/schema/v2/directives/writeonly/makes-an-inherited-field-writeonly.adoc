@@ -1,10 +1,8 @@
 :toc:
 
-= @writeonly directive
+= @writeonly directive -> makes an inherited field writeonly
 
-== makes an inherited field writeonly
-
-=== Source schema
+== Source schema
 
 [source,graphql,schema=true]
 ----
@@ -19,7 +17,7 @@ type User implements UserInterface {
 }
 ----
 
-=== Augmented schema
+== Augmented schema
 
 .Augmented Schema
 [source,graphql]

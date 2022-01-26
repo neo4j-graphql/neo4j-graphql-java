@@ -1,25 +1,40 @@
 :toc:
 
-= Comments
+= Comments -> Simple
 
-== Simple
-
-=== Source schema
+== Source schema
 
 [source,graphql,schema=true]
 ----
-type Actor {
-  name: String
+"A custom scalar."
+scalar CustomScalar
+
+"An enumeration of movie genres."
+enum Genre {
+  ACTION
+  DRAMA
+  ROMANCE
 }
 
+"""A type describing a movie."""
 type Movie {
   id: ID
-  "Actors in Movie"
-  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
+  "The number of actors who acted in the movie."
+  actorCount: Int
+  """The average rating for the movie."""
+  averageRating: Float
+  """
+  Is the movie active?
+  
+  This is measured based on annual profit.
+  """
+  isActive: Boolean
+  genre: Genre
+  customScalar: CustomScalar
 }
 ----
 
-=== Augmented schema
+== Augmented schema
 
 .Augmented Schema
 [source,graphql]
@@ -27,20 +42,6 @@ type Movie {
 schema {
   query: Query
   mutation: Mutation
-}
-
-type Actor {
-  name: String
-}
-
-type ActorAggregateSelection {
-  count: Int!
-  name: StringAggregateSelectionNullable!
-}
-
-type CreateActorsMutationResponse {
-  actors: [Actor!]!
-  info: CreateInfo!
 }
 
 type CreateInfo {
@@ -60,76 +61,58 @@ type DeleteInfo {
   relationshipsDeleted: Int!
 }
 
+type FloatAggregateSelectionNullable {
+  average: Float
+  max: Float
+  min: Float
+  sum: Float
+}
+
 type IDAggregateSelectionNullable {
   longest: ID
   shortest: ID
 }
 
+type IntAggregateSelectionNullable {
+  average: Float
+  max: Int
+  min: Int
+  sum: Int
+}
+
+"A type describing a movie."
 type Movie {
-  "Actors in Movie"
-  actors(options: ActorOptions, where: ActorWhere): [Actor!]!
-  actorsAggregate(where: ActorWhere): MovieActorActorsAggregationSelection
-  actorsConnection(after: String, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
+  "The number of actors who acted in the movie."
+  actorCount: Int
+  "The average rating for the movie."
+  averageRating: Float
+  customScalar: CustomScalar
+  genre: Genre
   id: ID
-}
-
-type MovieActorActorsAggregationSelection {
-  count: Int!
-  node: MovieActorActorsNodeAggregateSelection
-}
-
-type MovieActorActorsNodeAggregateSelection {
-  name: StringAggregateSelectionNullable!
-}
-
-type MovieActorsConnection {
-  edges: [MovieActorsRelationship!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type MovieActorsRelationship {
-  cursor: String!
-  node: Actor!
+  """
+  Is the movie active?
+    
+  This is measured based on annual profit.
+  """
+  isActive: Boolean
 }
 
 type MovieAggregateSelection {
+  actorCount: IntAggregateSelectionNullable!
+  averageRating: FloatAggregateSelectionNullable!
   count: Int!
   id: IDAggregateSelectionNullable!
 }
 
 type Mutation {
-  createActors(input: [ActorCreateInput!]!): CreateActorsMutationResponse!
   createMovies(input: [MovieCreateInput!]!): CreateMoviesMutationResponse!
-  deleteActors(where: ActorWhere): DeleteInfo!
-  deleteMovies(delete: MovieDeleteInput, where: MovieWhere): DeleteInfo!
-  updateActors(update: ActorUpdateInput, where: ActorWhere): UpdateActorsMutationResponse!
-  updateMovies(connect: MovieConnectInput, create: MovieRelationInput, delete: MovieDeleteInput, disconnect: MovieDisconnectInput, update: MovieUpdateInput, where: MovieWhere): UpdateMoviesMutationResponse!
-}
-
-"Pagination information (Relay)"
-type PageInfo {
-  endCursor: String
-  hasNextPage: Boolean!
-  hasPreviousPage: Boolean!
-  startCursor: String
+  deleteMovies(where: MovieWhere): DeleteInfo!
+  updateMovies(update: MovieUpdateInput, where: MovieWhere): UpdateMoviesMutationResponse!
 }
 
 type Query {
-  actors(options: ActorOptions, where: ActorWhere): [Actor!]!
-  actorsAggregate(where: ActorWhere): ActorAggregateSelection!
   movies(options: MovieOptions, where: MovieWhere): [Movie!]!
   moviesAggregate(where: MovieWhere): MovieAggregateSelection!
-}
-
-type StringAggregateSelectionNullable {
-  longest: String
-  shortest: String
-}
-
-type UpdateActorsMutationResponse {
-  actors: [Actor!]!
-  info: UpdateInfo!
 }
 
 type UpdateInfo {
@@ -145,6 +128,13 @@ type UpdateMoviesMutationResponse {
   movies: [Movie!]!
 }
 
+"An enumeration of movie genres."
+enum Genre {
+  ACTION
+  DRAMA
+  ROMANCE
+}
+
 enum SortDirection {
   "Sort by field values in ascending order."
   ASC
@@ -152,141 +142,16 @@ enum SortDirection {
   DESC
 }
 
-input ActorConnectWhere {
-  node: ActorWhere!
-}
-
-input ActorCreateInput {
-  name: String
-}
-
-input ActorOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more ActorSort objects to sort Actors by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [ActorSort]
-}
-
-"Fields to sort Actors by. The order in which sorts are applied is not guaranteed when specifying many fields in one ActorSort object."
-input ActorSort {
-  name: SortDirection
-}
-
-input ActorUpdateInput {
-  name: String
-}
-
-input ActorWhere {
-  AND: [ActorWhere!]
-  OR: [ActorWhere!]
-  name: String
-  name_CONTAINS: String
-  name_ENDS_WITH: String
-  name_IN: [String]
-  name_NOT: String
-  name_NOT_CONTAINS: String
-  name_NOT_ENDS_WITH: String
-  name_NOT_IN: [String]
-  name_NOT_STARTS_WITH: String
-  name_STARTS_WITH: String
-}
-
-input MovieActorsAggregateInput {
-  AND: [MovieActorsAggregateInput!]
-  OR: [MovieActorsAggregateInput!]
-  count: Int
-  count_GT: Int
-  count_GTE: Int
-  count_LT: Int
-  count_LTE: Int
-  node: MovieActorsNodeAggregationWhereInput
-}
-
-input MovieActorsConnectFieldInput {
-  where: ActorConnectWhere
-}
-
-input MovieActorsConnectionSort {
-  node: ActorSort
-}
-
-input MovieActorsConnectionWhere {
-  AND: [MovieActorsConnectionWhere!]
-  OR: [MovieActorsConnectionWhere!]
-  node: ActorWhere
-  node_NOT: ActorWhere
-}
-
-input MovieActorsCreateFieldInput {
-  node: ActorCreateInput!
-}
-
-input MovieActorsDeleteFieldInput {
-  where: MovieActorsConnectionWhere
-}
-
-input MovieActorsDisconnectFieldInput {
-  where: MovieActorsConnectionWhere
-}
-
-input MovieActorsFieldInput {
-  connect: [MovieActorsConnectFieldInput!]
-  create: [MovieActorsCreateFieldInput!]
-}
-
-input MovieActorsNodeAggregationWhereInput {
-  AND: [MovieActorsNodeAggregationWhereInput!]
-  OR: [MovieActorsNodeAggregationWhereInput!]
-  name_AVERAGE_EQUAL: Float
-  name_AVERAGE_GT: Float
-  name_AVERAGE_GTE: Float
-  name_AVERAGE_LT: Float
-  name_AVERAGE_LTE: Float
-  name_EQUAL: String
-  name_GT: Int
-  name_GTE: Int
-  name_LONGEST_EQUAL: Int
-  name_LONGEST_GT: Int
-  name_LONGEST_GTE: Int
-  name_LONGEST_LT: Int
-  name_LONGEST_LTE: Int
-  name_LT: Int
-  name_LTE: Int
-  name_SHORTEST_EQUAL: Int
-  name_SHORTEST_GT: Int
-  name_SHORTEST_GTE: Int
-  name_SHORTEST_LT: Int
-  name_SHORTEST_LTE: Int
-}
-
-input MovieActorsUpdateConnectionInput {
-  node: ActorUpdateInput
-}
-
-input MovieActorsUpdateFieldInput {
-  connect: [MovieActorsConnectFieldInput!]
-  create: [MovieActorsCreateFieldInput!]
-  delete: [MovieActorsDeleteFieldInput!]
-  disconnect: [MovieActorsDisconnectFieldInput!]
-  update: MovieActorsUpdateConnectionInput
-  where: MovieActorsConnectionWhere
-}
-
-input MovieConnectInput {
-  actors: [MovieActorsConnectFieldInput!]
-}
+"A custom scalar."
+scalar CustomScalar
 
 input MovieCreateInput {
-  actors: MovieActorsFieldInput
+  actorCount: Int
+  averageRating: Float
+  customScalar: CustomScalar
+  genre: Genre
   id: ID
-}
-
-input MovieDeleteInput {
-  actors: [MovieActorsDeleteFieldInput!]
-}
-
-input MovieDisconnectInput {
-  actors: [MovieActorsDisconnectFieldInput!]
+  isActive: Boolean
 }
 
 input MovieOptions {
@@ -296,28 +161,49 @@ input MovieOptions {
   sort: [MovieSort]
 }
 
-input MovieRelationInput {
-  actors: [MovieActorsCreateFieldInput!]
-}
-
 "Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
 input MovieSort {
+  actorCount: SortDirection
+  averageRating: SortDirection
+  customScalar: SortDirection
+  genre: SortDirection
   id: SortDirection
+  isActive: SortDirection
 }
 
 input MovieUpdateInput {
-  actors: [MovieActorsUpdateFieldInput!]
+  actorCount: Int
+  averageRating: Float
+  customScalar: CustomScalar
+  genre: Genre
   id: ID
+  isActive: Boolean
 }
 
 input MovieWhere {
   AND: [MovieWhere!]
   OR: [MovieWhere!]
-  actors: ActorWhere
-  actorsAggregate: MovieActorsAggregateInput
-  actorsConnection: MovieActorsConnectionWhere
-  actorsConnection_NOT: MovieActorsConnectionWhere
-  actors_NOT: ActorWhere
+  actorCount: Int
+  actorCount_GT: Int
+  actorCount_GTE: Int
+  actorCount_IN: [Int]
+  actorCount_LT: Int
+  actorCount_LTE: Int
+  actorCount_NOT: Int
+  actorCount_NOT_IN: [Int]
+  averageRating: Float
+  averageRating_GT: Float
+  averageRating_GTE: Float
+  averageRating_IN: [Float]
+  averageRating_LT: Float
+  averageRating_LTE: Float
+  averageRating_NOT: Float
+  averageRating_NOT_IN: [Float]
+  customScalar: CustomScalar
+  genre: Genre
+  genre_IN: [Genre]
+  genre_NOT: Genre
+  genre_NOT_IN: [Genre]
   id: ID
   id_CONTAINS: ID
   id_ENDS_WITH: ID
@@ -328,6 +214,8 @@ input MovieWhere {
   id_NOT_IN: [ID]
   id_NOT_STARTS_WITH: ID
   id_STARTS_WITH: ID
+  isActive: Boolean
+  isActive_NOT: Boolean
 }
 
 ----

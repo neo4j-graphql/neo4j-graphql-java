@@ -1,10 +1,8 @@
 :toc:
 
-= Relationship-properties
+= Relationship-properties -> should filter out generated fields
 
-== should filter out generated fields
-
-=== Source schema
+== Source schema
 
 [source,graphql,schema=true]
 ----
@@ -25,7 +23,7 @@ interface ActedIn @relationshipProperties {
 }
 ----
 
-=== Augmented schema
+== Augmented schema
 
 .Augmented Schema
 [source,graphql]

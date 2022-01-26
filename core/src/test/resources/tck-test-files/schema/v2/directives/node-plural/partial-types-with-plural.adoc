@@ -1,10 +1,8 @@
 :toc:
 
-= Node Directive
+= Node Directive -> Plural option -> Partial types with plural
 
-== Partial types with plural
-
-=== Source schema
+== Source schema
 
 [source,graphql,schema=true]
 ----
@@ -17,7 +15,7 @@ type Tech {
 }
 ----
 
-=== Augmented schema
+== Augmented schema
 
 .Augmented Schema
 [source,graphql]
@@ -55,6 +53,13 @@ type Query {
   techsAggregate(where: TechWhere): TechAggregateSelection!
 }
 
+enum SortDirection {
+  """Sort by field values in ascending order."""
+  ASC
+  """Sort by field values in descending order."""
+  DESC
+}
+
 type StringAggregateSelectionNullable {
   longest: String
   shortest: String
@@ -71,26 +76,6 @@ type TechAggregateSelection {
   value: StringAggregateSelectionNullable!
 }
 
-type UpdateInfo {
-  bookmark: String
-  nodesCreated: Int!
-  nodesDeleted: Int!
-  relationshipsCreated: Int!
-  relationshipsDeleted: Int!
-}
-
-type UpdateTechsMutationResponse {
-  info: UpdateInfo!
-  techs: [Tech!]!
-}
-
-enum SortDirection {
-  "Sort by field values in ascending order."
-  ASC
-  "Sort by field values in descending order."
-  DESC
-}
-
 input TechCreateInput {
   name: String
   value: String
@@ -99,11 +84,15 @@ input TechCreateInput {
 input TechOptions {
   limit: Int
   offset: Int
-  "Specify one or more TechSort objects to sort Techs by. The sorts will be applied in the order in which they are arranged in the array."
+  """
+  Specify one or more TechSort objects to sort Techs by. The sorts will be applied in the order in which they are arranged in the array.
+  """
   sort: [TechSort]
 }
 
-"Fields to sort Techs by. The order in which sorts are applied is not guaranteed when specifying many fields in one TechSort object."
+"""
+Fields to sort Techs by. The order in which sorts are applied is not guaranteed when specifying many fields in one TechSort object.
+"""
 input TechSort {
   name: SortDirection
   value: SortDirection
@@ -139,4 +128,16 @@ input TechWhere {
   value_STARTS_WITH: String
 }
 
+type UpdateInfo {
+  bookmark: String
+  nodesCreated: Int!
+  nodesDeleted: Int!
+  relationshipsCreated: Int!
+  relationshipsDeleted: Int!
+}
+
+type UpdateTechsMutationResponse {
+  info: UpdateInfo!
+  techs: [Tech!]!
+}
 ----

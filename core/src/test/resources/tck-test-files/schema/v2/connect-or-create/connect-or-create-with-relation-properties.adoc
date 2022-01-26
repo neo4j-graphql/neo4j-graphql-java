@@ -1,10 +1,8 @@
 :toc:
 
-= Connect Or Create
+= Connect Or Create -> Connect Or Create with relation properties
 
-== Connect Or Create with relation properties
-
-=== Source schema
+== Source schema
 
 [source,graphql,schema=true]
 ----
@@ -24,7 +22,7 @@ interface ActedIn {
 }
 ----
 
-=== Augmented schema
+== Augmented schema
 
 .Augmented Schema
 [source,graphql]

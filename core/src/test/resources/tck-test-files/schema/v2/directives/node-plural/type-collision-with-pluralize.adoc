@@ -1,10 +1,8 @@
 :toc:
 
-= Node Directive
+= Node Directive -> Plural option -> Type collision with pluralize
 
-== Type collision with pluralize
-
-=== Source schema
+== Source schema
 
 [source,graphql,schema=true]
 ----
@@ -17,7 +15,7 @@ type Users {
 }
 ----
 
-=== Augmented schema
+== Augmented schema
 
 .Augmented Schema
 [source,graphql]
@@ -35,7 +33,12 @@ type CreateInfo {
 
 type CreateUsersMutationResponse {
   info: CreateInfo!
-  users: [Users!]!
+  users: [User!]!
+}
+
+type CreateUsersesMutationResponse {
+  info: CreateInfo!
+  userses: [Users!]!
 }
 
 type DeleteInfo {
@@ -45,14 +48,19 @@ type DeleteInfo {
 }
 
 type Mutation {
-  createUsers(input: [UsersCreateInput!]!): CreateUsersMutationResponse!
-  deleteUsers(where: UsersWhere): DeleteInfo!
-  updateUsers(update: UsersUpdateInput, where: UsersWhere): UpdateUsersMutationResponse!
+  createUsers(input: [UserCreateInput!]!): CreateUsersMutationResponse!
+  createUserses(input: [UsersCreateInput!]!): CreateUsersesMutationResponse!
+  deleteUsers(where: UserWhere): DeleteInfo!
+  deleteUserses(where: UsersWhere): DeleteInfo!
+  updateUsers(update: UserUpdateInput, where: UserWhere): UpdateUsersMutationResponse!
+  updateUserses(update: UsersUpdateInput, where: UsersWhere): UpdateUsersesMutationResponse!
 }
 
 type Query {
-  users(options: UsersOptions, where: UsersWhere): [Users!]!
-  usersAggregate(where: UsersWhere): UsersAggregateSelection!
+  users(options: UserOptions, where: UserWhere): [User!]!
+  usersAggregate(where: UserWhere): UserAggregateSelection!
+  userses(options: UsersOptions, where: UsersWhere): [Users!]!
+  usersesAggregate(where: UsersWhere): UsersAggregateSelection!
 }
 
 type StringAggregateSelectionNullable {
@@ -70,7 +78,21 @@ type UpdateInfo {
 
 type UpdateUsersMutationResponse {
   info: UpdateInfo!
-  users: [Users!]!
+  users: [User!]!
+}
+
+type UpdateUsersesMutationResponse {
+  info: UpdateInfo!
+  userses: [Users!]!
+}
+
+type User {
+  name: String
+}
+
+type UserAggregateSelection {
+  count: Int!
+  name: StringAggregateSelectionNullable!
 }
 
 type Users {
@@ -89,6 +111,41 @@ enum SortDirection {
   DESC
 }
 
+input UserCreateInput {
+  name: String
+}
+
+input UserOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more UserSort objects to sort Users by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [UserSort]
+}
+
+"Fields to sort Users by. The order in which sorts are applied is not guaranteed when specifying many fields in one UserSort object."
+input UserSort {
+  name: SortDirection
+}
+
+input UserUpdateInput {
+  name: String
+}
+
+input UserWhere {
+  AND: [UserWhere!]
+  OR: [UserWhere!]
+  name: String
+  name_CONTAINS: String
+  name_ENDS_WITH: String
+  name_IN: [String]
+  name_NOT: String
+  name_NOT_CONTAINS: String
+  name_NOT_ENDS_WITH: String
+  name_NOT_IN: [String]
+  name_NOT_STARTS_WITH: String
+  name_STARTS_WITH: String
+}
+
 input UsersCreateInput {
   value: String
 }
@@ -96,11 +153,11 @@ input UsersCreateInput {
 input UsersOptions {
   limit: Int
   offset: Int
-  "Specify one or more UsersSort objects to sort Users by. The sorts will be applied in the order in which they are arranged in the array."
+  "Specify one or more UsersSort objects to sort Userses by. The sorts will be applied in the order in which they are arranged in the array."
   sort: [UsersSort]
 }
 
-"Fields to sort Users by. The order in which sorts are applied is not guaranteed when specifying many fields in one UsersSort object."
+"Fields to sort Userses by. The order in which sorts are applied is not guaranteed when specifying many fields in one UsersSort object."
 input UsersSort {
   value: SortDirection
 }

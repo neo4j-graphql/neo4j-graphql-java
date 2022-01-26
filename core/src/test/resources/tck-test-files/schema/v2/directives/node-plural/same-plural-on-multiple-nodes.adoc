@@ -1,10 +1,8 @@
 :toc:
 
-= Node Directive
+= Node Directive -> Plural option -> Same plural on multiple nodes
 
-== Same plural on multiple nodes
-
-=== Source schema
+== Source schema
 
 [source,graphql,schema=true]
 ----
@@ -17,7 +15,7 @@ type User @node(plural: "Techs") {
 }
 ----
 
-=== Augmented schema
+== Augmented schema
 
 .Augmented Schema
 [source,graphql]
@@ -35,7 +33,7 @@ type CreateInfo {
 
 type CreateTechsMutationResponse {
   info: CreateInfo!
-  techs: [User!]!
+  techs: [Tech!]!
 }
 
 type DeleteInfo {
@@ -45,19 +43,28 @@ type DeleteInfo {
 }
 
 type Mutation {
-  createTechs(input: [UserCreateInput!]!): CreateTechsMutationResponse!
-  deleteTechs(where: UserWhere): DeleteInfo!
-  updateTechs(update: UserUpdateInput, where: UserWhere): UpdateTechsMutationResponse!
+  createTechs(input: [TechCreateInput!]!): CreateTechsMutationResponse!
+  deleteTechs(where: TechWhere): DeleteInfo!
+  updateTechs(update: TechUpdateInput, where: TechWhere): UpdateTechsMutationResponse!
 }
 
 type Query {
-  techs(options: UserOptions, where: UserWhere): [User!]!
-  techsAggregate(where: UserWhere): UserAggregateSelection!
+  techs(options: TechOptions, where: TechWhere): [Tech!]!
+  techsAggregate(where: TechWhere): TechAggregateSelection!
 }
 
 type StringAggregateSelectionNullable {
   longest: String
   shortest: String
+}
+
+type Tech {
+  name: String
+}
+
+type TechAggregateSelection {
+  count: Int!
+  name: StringAggregateSelectionNullable!
 }
 
 type UpdateInfo {
@@ -70,7 +77,7 @@ type UpdateInfo {
 
 type UpdateTechsMutationResponse {
   info: UpdateInfo!
-  techs: [User!]!
+  techs: [Tech!]!
 }
 
 type User {
@@ -87,6 +94,41 @@ enum SortDirection {
   ASC
   "Sort by field values in descending order."
   DESC
+}
+
+input TechCreateInput {
+  name: String
+}
+
+input TechOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more TechSort objects to sort Techs by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [TechSort]
+}
+
+"Fields to sort Techs by. The order in which sorts are applied is not guaranteed when specifying many fields in one TechSort object."
+input TechSort {
+  name: SortDirection
+}
+
+input TechUpdateInput {
+  name: String
+}
+
+input TechWhere {
+  AND: [TechWhere!]
+  OR: [TechWhere!]
+  name: String
+  name_CONTAINS: String
+  name_ENDS_WITH: String
+  name_IN: [String]
+  name_NOT: String
+  name_NOT_CONTAINS: String
+  name_NOT_ENDS_WITH: String
+  name_NOT_IN: [String]
+  name_NOT_STARTS_WITH: String
+  name_STARTS_WITH: String
 }
 
 input UserCreateInput {

@@ -2,9 +2,7 @@
 
 = connect or create with id
 
-== connect or create with id
-
-=== Source schema
+== Source schema
 
 [source,graphql,schema=true]
 ----
@@ -19,7 +17,7 @@ type Actor {
 }
 ----
 
-=== Augmented schema
+== Augmented schema
 
 .Augmented Schema
 [source,graphql]
