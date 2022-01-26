@@ -1,0 +1,98 @@
+:toc:
+
+= Cypher -> Connections -> Filtering -> Relationship -> Points
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: IN)
+}
+
+type Actor {
+  name: String!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: OUT)
+}
+
+interface ActedIn {
+  screenTime: Int!
+  location: Point!
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+}
+----
+== DISTANCE
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    title
+    actorsConnection(
+      where: {edge: {location_DISTANCE: {point: {longitude: 1.0, latitude: 2.0}, distance: 3.0}}}
+    ) {
+      edges {
+        screenTime
+        location {
+          latitude
+          longitude
+        }
+        node {
+          name
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_actorsConnection": {
+    "args": {
+      "where": {
+        "edge": {
+          "location_DISTANCE": {
+            "point": {
+              "longitude": 1,
+              "latitude": 2
+            },
+            "distance": 3
+          }
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+WITH this
+MATCH (this)<-[this_acted_in_relationship:ACTED_IN]-(this_actor:Actor)
+WHERE distance(this_acted_in_relationship.location, point($this_actorsConnection.args.where.edge.location_DISTANCE.point)) = $this_actorsConnection.args.where.edge.location_DISTANCE.distance
+WITH collect({ screenTime: this_acted_in_relationship.screenTime, location: apoc.cypher.runFirstColumn('RETURN
+CASE this_acted_in_relationship.location IS NOT NULL
+	WHEN true THEN { point: this_acted_in_relationship.location }
+	ELSE NULL
+END AS result',{ this_acted_in_relationship: this_acted_in_relationship },false), node: { name: this_actor.name } }) AS edges
+RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
+}
+RETURN this { .title, actorsConnection } as this
+----
+

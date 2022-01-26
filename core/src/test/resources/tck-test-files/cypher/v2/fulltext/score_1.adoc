@@ -1,0 +1,58 @@
+:toc:
+
+= Cypher -> fulltext -> Score
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie @fulltext(indexes: [{name: "MovieTitle", fields: ["title"]}]) {
+  title: String
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+}
+----
+== simple match with fulltext property and score_EQUAL
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(
+    fulltext: {MovieTitle: {phrase: "something AND something", score_EQUAL: 1}}
+  ) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_fulltext_MovieTitle_phrase": "something AND something",
+  "this_fulltext_MovieTitle_score_EQUAL": {
+    "low": 1,
+    "high": 0
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL db.index.fulltext.queryNodes(
+    "MovieTitle",
+    $this_fulltext_MovieTitle_phrase
+) YIELD node as this, score as score
+WHERE score = this_fulltext_MovieTitle_score_EQUAL
+RETURN this { .title } as this
+----
+

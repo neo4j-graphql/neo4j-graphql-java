@@ -1,0 +1,90 @@
+:toc:
+
+= Cypher -> fulltext -> Score
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie @fulltext(indexes: [{name: "MovieTitle", fields: ["title"], defaultThreshold: 10}]) {
+  title: String
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+}
+----
+== simple match with fulltext property and defaultThreshold
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(fulltext: {MovieTitle: {phrase: "something AND something"}}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_fulltext_MovieTitle_phrase": "something AND something",
+  "this_fulltext_MovieTitle_defaultThreshold": 10
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL db.index.fulltext.queryNodes(
+    "MovieTitle",
+    $this_fulltext_MovieTitle_phrase
+) YIELD node as this, score as score
+WHERE score = this_fulltext_MovieTitle_defaultThreshold
+RETURN this { .title } as this
+----
+
+== simple match with fulltext property and defaultThreshold override with incomming query score
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(
+    fulltext: {MovieTitle: {phrase: "something AND something", score_EQUAL: 55}}
+  ) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_fulltext_MovieTitle_phrase": "something AND something",
+  "this_fulltext_MovieTitle_score_EQUAL": {
+    "low": 55,
+    "high": 0
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL db.index.fulltext.queryNodes(
+    "MovieTitle",
+    $this_fulltext_MovieTitle_phrase
+) YIELD node as this, score as score
+WHERE score = this_fulltext_MovieTitle_score_EQUAL
+RETURN this { .title } as this
+----
+

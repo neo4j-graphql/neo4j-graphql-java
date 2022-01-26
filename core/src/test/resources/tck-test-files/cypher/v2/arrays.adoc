@@ -1,0 +1,80 @@
+:toc:
+
+= Cypher Arrays
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+  ratings: [Float!]!
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+}
+----
+== WHERE INCLUDES
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {ratings_INCLUDES: 4.0}) {
+    title
+    ratings
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_ratings_INCLUDES": 4
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE $this_ratings_INCLUDES IN this.ratings
+RETURN this { .title, .ratings } as this
+----
+
+== WHERE NOT INCLUDES
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {ratings_NOT_INCLUDES: 4.0}) {
+    title
+    ratings
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_ratings_NOT_INCLUDES": 4
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE (NOT $this_ratings_NOT_INCLUDES IN this.ratings)
+RETURN this { .title, .ratings } as this
+----
+

@@ -1,0 +1,159 @@
+:toc:
+
+= Cypher Aggregations Float
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  actorCount: Float!
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+}
+----
+== Average
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesAggregate {
+    actorCount {
+      average
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+RETURN { actorCount: { average: avg(this.actorCount) } }
+----
+
+== Max
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesAggregate {
+    actorCount {
+      max
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+RETURN { actorCount: { max: max(this.actorCount) } }
+----
+
+== Min
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesAggregate {
+    actorCount {
+      min
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+RETURN { actorCount: { min: min(this.actorCount) } }
+----
+
+== Min, Max, Sum and Average
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesAggregate {
+    actorCount {
+      min
+      max
+      average
+      sum
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+RETURN { actorCount: { min: min(this.actorCount), max: max(this.actorCount), average: avg(this.actorCount), sum: sum(this.actorCount) } }
+----
+
+== Sum
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesAggregate {
+    actorCount {
+      sum
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+RETURN { actorCount: { sum: sum(this.actorCount) } }
+----
+

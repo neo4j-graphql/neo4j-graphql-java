@@ -1,0 +1,104 @@
+:toc:
+
+= Cypher TimeStamps On Time Fields
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+interface MovieInterface {
+  interfaceTimestamp: Time @timestamp(operations: [CREATE, UPDATE])
+  overrideTimestamp: Time @timestamp(operations: [CREATE, UPDATE])
+}
+
+type Movie implements MovieInterface {
+  id: ID
+  name: String
+  createdAt: Time @timestamp(operations: [CREATE])
+  updatedAt: Time @timestamp(operations: [UPDATE])
+  interfaceTimestamp: Time
+  overrideTimestamp: Time @timestamp(operations: [CREATE])
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+}
+----
+== Simple Create
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  createMovies(input: [{id: "123"}]) {
+    movies {
+      id
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this0_id": "123"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+CREATE (this0:Movie)
+SET this0.createdAt = time()
+SET this0.interfaceTimestamp = time()
+SET this0.overrideTimestamp = time()
+SET this0.id = $this0_id
+RETURN this0
+}
+RETURN 
+this0 { .id } AS this0
+----
+
+== Simple Update
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  updateMovies(update: {id: "123", name: "dan"}) {
+    movies {
+      id
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_update_id": "123",
+  "this_update_name": "dan"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+
+SET this.updatedAt = time()
+SET this.interfaceTimestamp = time()
+SET this.id = $this_update_id
+SET this.name = $this_update_name
+
+RETURN this { .id } AS this
+----
+

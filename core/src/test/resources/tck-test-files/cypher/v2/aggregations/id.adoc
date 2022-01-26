@@ -1,0 +1,103 @@
+:toc:
+
+= Cypher Aggregations ID
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  id: ID!
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+}
+----
+== Max
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesAggregate {
+    id {
+      longest
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+RETURN { id: { longest: max(this.id) } }
+----
+
+== Min
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesAggregate {
+    id {
+      shortest
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+RETURN { id: { shortest: min(this.id) } }
+----
+
+== Min and Max
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesAggregate {
+    id {
+      shortest
+      longest
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+RETURN { id: { shortest: min(this.id), longest: max(this.id) } }
+----
+

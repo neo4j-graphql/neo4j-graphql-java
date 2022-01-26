@@ -1,0 +1,382 @@
+:toc:
+
+= Cypher -> Connections -> Filtering -> Relationship -> String
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: IN)
+}
+
+type Actor {
+  name: String!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: OUT)
+}
+
+interface ActedIn {
+  role: String!
+  screenTime: Int!
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+}
+----
+== CONTAINS
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    title
+    actorsConnection(where: {edge: {role_CONTAINS: "Forrest"}}) {
+      edges {
+        role
+        node {
+          name
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_actorsConnection": {
+    "args": {
+      "where": {
+        "edge": {
+          "role_CONTAINS": "Forrest"
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+WITH this
+MATCH (this)<-[this_acted_in_relationship:ACTED_IN]-(this_actor:Actor)
+WHERE this_acted_in_relationship.role CONTAINS $this_actorsConnection.args.where.edge.role_CONTAINS
+WITH collect({ role: this_acted_in_relationship.role, node: { name: this_actor.name } }) AS edges
+RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
+}
+RETURN this { .title, actorsConnection } as this
+----
+
+== ENDS_WITH
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    title
+    actorsConnection(where: {edge: {role_ENDS_WITH: "Gump"}}) {
+      edges {
+        role
+        node {
+          name
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_actorsConnection": {
+    "args": {
+      "where": {
+        "edge": {
+          "role_ENDS_WITH": "Gump"
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+WITH this
+MATCH (this)<-[this_acted_in_relationship:ACTED_IN]-(this_actor:Actor)
+WHERE this_acted_in_relationship.role ENDS WITH $this_actorsConnection.args.where.edge.role_ENDS_WITH
+WITH collect({ role: this_acted_in_relationship.role, node: { name: this_actor.name } }) AS edges
+RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
+}
+RETURN this { .title, actorsConnection } as this
+----
+
+== MATCHES
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    title
+    actorsConnection(where: {edge: {role_MATCHES: "Forrest.+"}}) {
+      edges {
+        role
+        node {
+          name
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_actorsConnection": {
+    "args": {
+      "where": {
+        "edge": {
+          "role_MATCHES": "Forrest.+"
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+WITH this
+MATCH (this)<-[this_acted_in_relationship:ACTED_IN]-(this_actor:Actor)
+WHERE this_acted_in_relationship.role =~ $this_actorsConnection.args.where.edge.role_MATCHES
+WITH collect({ role: this_acted_in_relationship.role, node: { name: this_actor.name } }) AS edges
+RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
+}
+RETURN this { .title, actorsConnection } as this
+----
+
+== NOT_CONTAINS
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    title
+    actorsConnection(where: {edge: {role_NOT_CONTAINS: "Forrest"}}) {
+      edges {
+        role
+        node {
+          name
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_actorsConnection": {
+    "args": {
+      "where": {
+        "edge": {
+          "role_NOT_CONTAINS": "Forrest"
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+WITH this
+MATCH (this)<-[this_acted_in_relationship:ACTED_IN]-(this_actor:Actor)
+WHERE (NOT this_acted_in_relationship.role CONTAINS $this_actorsConnection.args.where.edge.role_NOT_CONTAINS)
+WITH collect({ role: this_acted_in_relationship.role, node: { name: this_actor.name } }) AS edges
+RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
+}
+RETURN this { .title, actorsConnection } as this
+----
+
+== NOT_ENDS_WITH
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    title
+    actorsConnection(where: {edge: {role_NOT_ENDS_WITH: "Gump"}}) {
+      edges {
+        role
+        node {
+          name
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_actorsConnection": {
+    "args": {
+      "where": {
+        "edge": {
+          "role_NOT_ENDS_WITH": "Gump"
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+WITH this
+MATCH (this)<-[this_acted_in_relationship:ACTED_IN]-(this_actor:Actor)
+WHERE (NOT this_acted_in_relationship.role ENDS WITH $this_actorsConnection.args.where.edge.role_NOT_ENDS_WITH)
+WITH collect({ role: this_acted_in_relationship.role, node: { name: this_actor.name } }) AS edges
+RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
+}
+RETURN this { .title, actorsConnection } as this
+----
+
+== NOT_STARTS_WITH
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    title
+    actorsConnection(where: {edge: {role_NOT_STARTS_WITH: "Forrest"}}) {
+      edges {
+        role
+        node {
+          name
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_actorsConnection": {
+    "args": {
+      "where": {
+        "edge": {
+          "role_NOT_STARTS_WITH": "Forrest"
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+WITH this
+MATCH (this)<-[this_acted_in_relationship:ACTED_IN]-(this_actor:Actor)
+WHERE (NOT this_acted_in_relationship.role STARTS WITH $this_actorsConnection.args.where.edge.role_NOT_STARTS_WITH)
+WITH collect({ role: this_acted_in_relationship.role, node: { name: this_actor.name } }) AS edges
+RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
+}
+RETURN this { .title, actorsConnection } as this
+----
+
+== STARTS_WITH
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    title
+    actorsConnection(where: {edge: {role_STARTS_WITH: "Forrest"}}) {
+      edges {
+        role
+        node {
+          name
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_actorsConnection": {
+    "args": {
+      "where": {
+        "edge": {
+          "role_STARTS_WITH": "Forrest"
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+WITH this
+MATCH (this)<-[this_acted_in_relationship:ACTED_IN]-(this_actor:Actor)
+WHERE this_acted_in_relationship.role STARTS WITH $this_actorsConnection.args.where.edge.role_STARTS_WITH
+WITH collect({ role: this_acted_in_relationship.role, node: { name: this_actor.name } }) AS edges
+RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
+}
+RETURN this { .title, actorsConnection } as this
+----
+

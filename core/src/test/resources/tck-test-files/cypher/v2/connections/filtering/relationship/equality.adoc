@@ -1,0 +1,137 @@
+:toc:
+
+= Cypher -> Connections -> Filtering -> Relationship -> Equality
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: IN)
+}
+
+type Actor {
+  name: String!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: OUT)
+}
+
+interface ActedIn {
+  screenTime: Int!
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+}
+----
+== Equality
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    title
+    actorsConnection(where: {edge: {screenTime: 60}}) {
+      edges {
+        screenTime
+        node {
+          name
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_actorsConnection": {
+    "args": {
+      "where": {
+        "edge": {
+          "screenTime": {
+            "low": 60,
+            "high": 0
+          }
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+WITH this
+MATCH (this)<-[this_acted_in_relationship:ACTED_IN]-(this_actor:Actor)
+WHERE this_acted_in_relationship.screenTime = $this_actorsConnection.args.where.edge.screenTime
+WITH collect({ screenTime: this_acted_in_relationship.screenTime, node: { name: this_actor.name } }) AS edges
+RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
+}
+RETURN this { .title, actorsConnection } as this
+----
+
+== Inequality
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    title
+    actorsConnection(where: {edge: {screenTime_NOT: 60}}) {
+      edges {
+        screenTime
+        node {
+          name
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_actorsConnection": {
+    "args": {
+      "where": {
+        "edge": {
+          "screenTime_NOT": {
+            "low": 60,
+            "high": 0
+          }
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+WITH this
+MATCH (this)<-[this_acted_in_relationship:ACTED_IN]-(this_actor:Actor)
+WHERE (NOT this_acted_in_relationship.screenTime = $this_actorsConnection.args.where.edge.screenTime_NOT)
+WITH collect({ screenTime: this_acted_in_relationship.screenTime, node: { name: this_actor.name } }) AS edges
+RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
+}
+RETURN this { .title, actorsConnection } as this
+----
+

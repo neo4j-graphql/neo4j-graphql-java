@@ -1,0 +1,381 @@
+:toc:
+
+= Cypher -> Connections -> Filtering -> Node -> String
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: IN)
+}
+
+type Actor {
+  name: String!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: OUT)
+}
+
+interface ActedIn {
+  screenTime: Int!
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+}
+----
+== CONTAINS
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    title
+    actorsConnection(where: {node: {name_CONTAINS: "Tom"}}) {
+      edges {
+        screenTime
+        node {
+          name
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_actorsConnection": {
+    "args": {
+      "where": {
+        "node": {
+          "name_CONTAINS": "Tom"
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+WITH this
+MATCH (this)<-[this_acted_in_relationship:ACTED_IN]-(this_actor:Actor)
+WHERE this_actor.name CONTAINS $this_actorsConnection.args.where.node.name_CONTAINS
+WITH collect({ screenTime: this_acted_in_relationship.screenTime, node: { name: this_actor.name } }) AS edges
+RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
+}
+RETURN this { .title, actorsConnection } as this
+----
+
+== ENDS_WITH
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    title
+    actorsConnection(where: {node: {name_ENDS_WITH: "Hanks"}}) {
+      edges {
+        screenTime
+        node {
+          name
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_actorsConnection": {
+    "args": {
+      "where": {
+        "node": {
+          "name_ENDS_WITH": "Hanks"
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+WITH this
+MATCH (this)<-[this_acted_in_relationship:ACTED_IN]-(this_actor:Actor)
+WHERE this_actor.name ENDS WITH $this_actorsConnection.args.where.node.name_ENDS_WITH
+WITH collect({ screenTime: this_acted_in_relationship.screenTime, node: { name: this_actor.name } }) AS edges
+RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
+}
+RETURN this { .title, actorsConnection } as this
+----
+
+== MATCHES
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    title
+    actorsConnection(where: {node: {name_MATCHES: "Tom.+"}}) {
+      edges {
+        screenTime
+        node {
+          name
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_actorsConnection": {
+    "args": {
+      "where": {
+        "node": {
+          "name_MATCHES": "Tom.+"
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+WITH this
+MATCH (this)<-[this_acted_in_relationship:ACTED_IN]-(this_actor:Actor)
+WHERE this_actor.name =~ $this_actorsConnection.args.where.node.name_MATCHES
+WITH collect({ screenTime: this_acted_in_relationship.screenTime, node: { name: this_actor.name } }) AS edges
+RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
+}
+RETURN this { .title, actorsConnection } as this
+----
+
+== NOT_CONTAINS
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    title
+    actorsConnection(where: {node: {name_NOT_CONTAINS: "Tom"}}) {
+      edges {
+        screenTime
+        node {
+          name
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_actorsConnection": {
+    "args": {
+      "where": {
+        "node": {
+          "name_NOT_CONTAINS": "Tom"
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+WITH this
+MATCH (this)<-[this_acted_in_relationship:ACTED_IN]-(this_actor:Actor)
+WHERE (NOT this_actor.name CONTAINS $this_actorsConnection.args.where.node.name_NOT_CONTAINS)
+WITH collect({ screenTime: this_acted_in_relationship.screenTime, node: { name: this_actor.name } }) AS edges
+RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
+}
+RETURN this { .title, actorsConnection } as this
+----
+
+== NOT_ENDS_WITH
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    title
+    actorsConnection(where: {node: {name_NOT_ENDS_WITH: "Hanks"}}) {
+      edges {
+        screenTime
+        node {
+          name
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_actorsConnection": {
+    "args": {
+      "where": {
+        "node": {
+          "name_NOT_ENDS_WITH": "Hanks"
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+WITH this
+MATCH (this)<-[this_acted_in_relationship:ACTED_IN]-(this_actor:Actor)
+WHERE (NOT this_actor.name ENDS WITH $this_actorsConnection.args.where.node.name_NOT_ENDS_WITH)
+WITH collect({ screenTime: this_acted_in_relationship.screenTime, node: { name: this_actor.name } }) AS edges
+RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
+}
+RETURN this { .title, actorsConnection } as this
+----
+
+== NOT_STARTS_WITH
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    title
+    actorsConnection(where: {node: {name_NOT_STARTS_WITH: "Tom"}}) {
+      edges {
+        screenTime
+        node {
+          name
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_actorsConnection": {
+    "args": {
+      "where": {
+        "node": {
+          "name_NOT_STARTS_WITH": "Tom"
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+WITH this
+MATCH (this)<-[this_acted_in_relationship:ACTED_IN]-(this_actor:Actor)
+WHERE (NOT this_actor.name STARTS WITH $this_actorsConnection.args.where.node.name_NOT_STARTS_WITH)
+WITH collect({ screenTime: this_acted_in_relationship.screenTime, node: { name: this_actor.name } }) AS edges
+RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
+}
+RETURN this { .title, actorsConnection } as this
+----
+
+== STARTS_WITH
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    title
+    actorsConnection(where: {node: {name_STARTS_WITH: "Tom"}}) {
+      edges {
+        screenTime
+        node {
+          name
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_actorsConnection": {
+    "args": {
+      "where": {
+        "node": {
+          "name_STARTS_WITH": "Tom"
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+WITH this
+MATCH (this)<-[this_acted_in_relationship:ACTED_IN]-(this_actor:Actor)
+WHERE this_actor.name STARTS WITH $this_actorsConnection.args.where.node.name_STARTS_WITH
+WITH collect({ screenTime: this_acted_in_relationship.screenTime, node: { name: this_actor.name } }) AS edges
+RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
+}
+RETURN this { .title, actorsConnection } as this
+----
+

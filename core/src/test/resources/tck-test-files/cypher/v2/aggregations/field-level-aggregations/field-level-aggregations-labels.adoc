@@ -1,0 +1,67 @@
+:toc:
+
+= Field Level Aggregations Alias
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie @node(label: "Film") {
+  title: String
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN, properties: "ActedIn")
+}
+
+type Actor @node(label: "Person") {
+  name: String
+  age: Int
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
+}
+
+interface ActedIn {
+  time: Int
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+}
+----
+== Aggregation with labels
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    actorsAggregate {
+      node {
+        name {
+          shortest
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:`Film`)
+RETURN this { actorsAggregate: { node: { name: head(apoc.cypher.runFirstColumn("MATCH (this)<-[r:ACTED_IN]-(n:`Person`)     
+        WITH n as n
+        ORDER BY size(n.name) DESC
+        WITH collect(n.name) as list
+        RETURN {longest: head(list), shortest: last(list)}", { this: this })) } } } as this
+----
+

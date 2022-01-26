@@ -1,0 +1,159 @@
+:toc:
+
+= Cypher Aggregations Int
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  imdbRating: Int!
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+}
+----
+== Average
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesAggregate {
+    imdbRating {
+      average
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+RETURN { imdbRating: { average: avg(this.imdbRating) } }
+----
+
+== Max
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesAggregate {
+    imdbRating {
+      max
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+RETURN { imdbRating: { max: max(this.imdbRating) } }
+----
+
+== Min
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesAggregate {
+    imdbRating {
+      min
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+RETURN { imdbRating: { min: min(this.imdbRating) } }
+----
+
+== Min, Max, Sum and Average
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesAggregate {
+    imdbRating {
+      min
+      max
+      average
+      sum
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+RETURN { imdbRating: { min: min(this.imdbRating), max: max(this.imdbRating), average: avg(this.imdbRating), sum: sum(this.imdbRating) } }
+----
+
+== Sum
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesAggregate {
+    imdbRating {
+      sum
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+RETURN { imdbRating: { sum: sum(this.imdbRating) } }
+----
+

@@ -1,0 +1,91 @@
+:toc:
+
+= #583
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+interface Show {
+  title: String
+}
+
+interface Awardable {
+  awardsGiven: Int!
+}
+
+type Actor implements Awardable {
+  name: String
+  awardsGiven: Int!
+  actedIn: [Show!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+
+type Movie implements Show & Awardable {
+  title: String
+  awardsGiven: Int!
+}
+
+type Series implements Show & Awardable {
+  title: String
+  awardsGiven: Int!
+}
+
+type ShortFilm implements Show {
+  title: String
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+}
+----
+== Should replicate issue and return correct cypher
+
+.GraphQL-Query
+[source,graphql]
+----
+query shows {
+  actors {
+    name
+    __typename
+    actedIn {
+      title
+      ... on Awardable {
+        awardsGiven
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+WITH this
+CALL {
+WITH this
+MATCH (this)-[:ACTED_IN]->(this_Movie:Movie)
+RETURN { __resolveType: "Movie", title: this_Movie.title, awardsGiven: this_Movie.awardsGiven } AS actedIn
+UNION
+WITH this
+MATCH (this)-[:ACTED_IN]->(this_Series:Series)
+RETURN { __resolveType: "Series", title: this_Series.title, awardsGiven: this_Series.awardsGiven } AS actedIn
+UNION
+WITH this
+MATCH (this)-[:ACTED_IN]->(this_ShortFilm:ShortFilm)
+RETURN { __resolveType: "ShortFilm", title: this_ShortFilm.title } AS actedIn
+}
+RETURN this { .name, actedIn: collect(actedIn) } as this
+----
+

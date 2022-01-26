@@ -1,0 +1,72 @@
+:toc:
+
+= Cypher Alias
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Actor {
+  name: String!
+}
+
+type Movie {
+  id: ID
+  releaseDate: DateTime!
+  location: Point!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
+  custom: [Movie!]! @cypher(statement: """
+  MATCH (m:Movie)
+  RETURN m
+  """)
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+}
+----
+== Alias
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    movieId: id
+    actors {
+      aliasActorsName: name
+    }
+    custom {
+      aliasCustomId: id
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [],
+    "jwt": {
+      "roles": []
+    }
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+RETURN this { movieId: this.id, actors: [ (this)<-[:ACTED_IN]-(this_actors:Actor)   | this_actors { aliasActorsName: this_actors.name } ], custom: [this_custom IN apoc.cypher.runFirstColumn("MATCH (m:Movie)
+RETURN m", {this: this, auth: $auth}, true) | this_custom { aliasCustomId: this_custom.id }] } as this
+----
+

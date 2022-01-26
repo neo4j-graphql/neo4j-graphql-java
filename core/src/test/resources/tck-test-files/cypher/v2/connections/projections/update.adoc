@@ -1,0 +1,76 @@
+:toc:
+
+= Cypher -> Connections -> Projections -> Update
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: IN)
+}
+
+type Actor {
+  name: String!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: OUT)
+}
+
+interface ActedIn {
+  screenTime: Int!
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+}
+----
+== Connection can be selected following update Mutation
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  updateMovies(where: {title: "Forrest Gump"}) {
+    movies {
+      title
+      actorsConnection {
+        edges {
+          screenTime
+          node {
+            name
+          }
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_title": "Forrest Gump"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $this_title
+WITH this
+CALL {
+WITH this
+MATCH (this)<-[this_acted_in_relationship:ACTED_IN]-(this_actor:Actor)
+WITH collect({ screenTime: this_acted_in_relationship.screenTime, node: { name: this_actor.name } }) AS edges
+RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
+}
+RETURN this { .title, actorsConnection } AS this
+----
+

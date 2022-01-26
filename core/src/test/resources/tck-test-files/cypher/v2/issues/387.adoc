@@ -1,0 +1,63 @@
+:toc:
+
+= #387
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+scalar URL
+
+type Place {
+  name: String
+  url_works: String @cypher(statement: """return '' + ''""")
+  url_fails: URL @cypher(statement: """return '' + ''""")
+  url_array_works: [String] @cypher(statement: """return ['' + '']""")
+  url_array_fails: [URL] @cypher(statement: """return ['' + '']""")
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+}
+----
+== Should project custom scalars from custom Cypher correctly
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  places {
+    url_works
+    url_fails
+    url_array_works
+    url_array_fails
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [],
+    "jwt": {
+      "roles": []
+    }
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Place)
+RETURN this { url_works:  apoc.cypher.runFirstColumn("return '' + ''", {this: this, auth: $auth}, false), url_fails:  apoc.cypher.runFirstColumn("return '' + ''", {this: this, auth: $auth}, false), url_array_works:  apoc.cypher.runFirstColumn("return ['' + '']", {this: this, auth: $auth}, false), url_array_fails:  apoc.cypher.runFirstColumn("return ['' + '']", {this: this, auth: $auth}, false) } as this
+----
+

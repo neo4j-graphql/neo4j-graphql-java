@@ -1,0 +1,135 @@
+:toc:
+
+= Cypher Aggregations String
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+}
+----
+== Max
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesAggregate {
+    title {
+      longest
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+RETURN { title: { longest: 
+                            reduce(shortest = collect(this.title)[0], current IN collect(this.title) | apoc.cypher.runFirstColumn("
+                                RETURN
+                                CASE size(current) > size(shortest)
+                                WHEN true THEN current
+                                ELSE shortest
+                                END AS result
+                            ", { current: current, shortest: shortest }, false))
+                         } }
+----
+
+== Min
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesAggregate {
+    title {
+      shortest
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+RETURN { title: { shortest: 
+                            reduce(shortest = collect(this.title)[0], current IN collect(this.title) | apoc.cypher.runFirstColumn("
+                                RETURN
+                                CASE size(current) < size(shortest)
+                                WHEN true THEN current
+                                ELSE shortest
+                                END AS result
+                            ", { current: current, shortest: shortest }, false))
+                         } }
+----
+
+== Min and Max
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesAggregate {
+    title {
+      shortest
+      longest
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+RETURN { title: { shortest: 
+                            reduce(shortest = collect(this.title)[0], current IN collect(this.title) | apoc.cypher.runFirstColumn("
+                                RETURN
+                                CASE size(current) < size(shortest)
+                                WHEN true THEN current
+                                ELSE shortest
+                                END AS result
+                            ", { current: current, shortest: shortest }, false))
+                        , longest: 
+                            reduce(shortest = collect(this.title)[0], current IN collect(this.title) | apoc.cypher.runFirstColumn("
+                                RETURN
+                                CASE size(current) > size(shortest)
+                                WHEN true THEN current
+                                ELSE shortest
+                                END AS result
+                            ", { current: current, shortest: shortest }, false))
+                         } }
+----
+

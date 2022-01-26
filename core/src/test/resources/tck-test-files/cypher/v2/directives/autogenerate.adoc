@@ -1,0 +1,91 @@
+:toc:
+
+= Cypher autogenerate directive
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  id: ID! @id
+  name: String!
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+}
+----
+== Simple Create
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  createMovies(input: [{name: "dan"}]) {
+    movies {
+      id
+      name
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this0_name": "dan"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+CREATE (this0:Movie)
+SET this0.id = randomUUID()
+SET this0.name = $this0_name
+RETURN this0
+}
+RETURN 
+this0 { .id, .name } AS this0
+----
+
+== Simple Update
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  updateMovies(update: {name: "dan"}) {
+    movies {
+      id
+      name
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_update_name": "dan"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+
+SET this.name = $this_update_name
+
+RETURN this { .id, .name } AS this
+----
+

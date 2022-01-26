@@ -1,0 +1,103 @@
+:toc:
+
+= Cypher Aggregations Duration
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  screenTime: Duration!
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+}
+----
+== Max
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesAggregate {
+    screenTime {
+      max
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+RETURN { screenTime: { max: max(this.screenTime) } }
+----
+
+== Min
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesAggregate {
+    screenTime {
+      min
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+RETURN { screenTime: { min: min(this.screenTime) } }
+----
+
+== Min and Max
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesAggregate {
+    screenTime {
+      min
+      max
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+RETURN { screenTime: { min: min(this.screenTime), max: max(this.screenTime) } }
+----
+

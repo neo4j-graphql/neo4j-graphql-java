@@ -1,0 +1,213 @@
+:toc:
+
+= Cypher pagination tests
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  id: ID
+  title: String
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+}
+----
+== Limit
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(options: {limit: 1}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_limit": {
+    "low": 1,
+    "high": 0
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+RETURN this { .title } as this
+LIMIT $this_limit
+----
+
+== Skip + Limit
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(options: {limit: 1, offset: 2}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_offset": {
+    "low": 2,
+    "high": 0
+  },
+  "this_limit": {
+    "low": 1,
+    "high": 0
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+RETURN this { .title } as this
+SKIP $this_offset
+LIMIT $this_limit
+----
+
+== Skip + Limit as variables
+
+.GraphQL-Query
+[source,graphql]
+----
+query ($offset: Int, $limit: Int) {
+  movies(options: {limit: $limit, offset: $offset}) {
+    title
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "offset": 0,
+  "limit": 0
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_offset": {
+    "low": 0,
+    "high": 0
+  },
+  "this_limit": {
+    "low": 0,
+    "high": 0
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+RETURN this { .title } as this
+SKIP $this_offset
+LIMIT $this_limit
+----
+
+== Skip + Limit with other variables
+
+.GraphQL-Query
+[source,graphql]
+----
+query ($offset: Int, $limit: Int, $title: String) {
+  movies(options: {limit: $limit, offset: $offset}, where: {title: $title}) {
+    title
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "limit": 1,
+  "offset": 2,
+  "title": "some title"
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_title": "some title",
+  "this_offset": {
+    "low": 2,
+    "high": 0
+  },
+  "this_limit": {
+    "low": 1,
+    "high": 0
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $this_title
+RETURN this { .title } as this
+SKIP $this_offset
+LIMIT $this_limit
+----
+
+== Skipping
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(options: {offset: 1}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_offset": {
+    "low": 1,
+    "high": 0
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+RETURN this { .title } as this
+SKIP $this_offset
+----
+

@@ -1,0 +1,86 @@
+:toc:
+
+= Cypher -> fulltext -> Match
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie @fulltext(indexes: [{name: "MovieTitle", fields: ["title"]}]) {
+  title: String
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+}
+----
+== match with where and single fulltext property
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(
+    fulltext: {MovieTitle: {phrase: "something AND something"}}
+    where: {title: "some-title"}
+  ) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_fulltext_MovieTitle_phrase": "something AND something",
+  "this_title": "some-title"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL db.index.fulltext.queryNodes(
+    "MovieTitle",
+    $this_fulltext_MovieTitle_phrase
+) YIELD node as this, score as score
+WHERE this.title = $this_title
+RETURN this { .title } as this
+----
+
+== simple match with single fulltext property
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(fulltext: {MovieTitle: {phrase: "something AND something"}}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_fulltext_MovieTitle_phrase": "something AND something"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL db.index.fulltext.queryNodes(
+    "MovieTitle",
+    $this_fulltext_MovieTitle_phrase
+) YIELD node as this, score as score
+RETURN this { .title } as this
+----
+

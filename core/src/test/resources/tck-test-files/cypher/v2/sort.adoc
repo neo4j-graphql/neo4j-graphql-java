@@ -1,0 +1,298 @@
+:toc:
+
+= Cypher sort tests
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  id: ID
+  title: String
+  genres: [Genre!]! @relationship(type: "HAS_GENRE", direction: OUT)
+  totalGenres: Int! @cypher(statement: """
+  MATCH (this)-[:HAS_GENRE]->(genre:Genre)
+  RETURN count(DISTINCT genre)
+  """)
+}
+
+type Genre {
+  id: ID
+  name: String
+  totalMovies: Int! @cypher(statement: """
+  MATCH (this)<-[:HAS_GENRE]-(movie:Movie)
+  RETURN count(DISTINCT movie)
+  """)
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+}
+----
+== Multi Sort
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(options: {sort: [{id: DESC}, {title: ASC}]}) {
+    id
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+RETURN this { .id, .title } as this
+ORDER BY this.id DESC, this.title ASC
+----
+
+== Nested Sort ASC
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    genres(options: {sort: [{name: ASC}]}) {
+      name
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+RETURN this { genres: apoc.coll.sortMulti([ (this)-[:HAS_GENRE]->(this_genres:Genre)   | this_genres { .name } ], ['^name']) } as this
+----
+
+== Nested Sort DESC
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    genres(options: {sort: [{name: DESC}]}) {
+      name
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+RETURN this { genres: apoc.coll.sortMulti([ (this)-[:HAS_GENRE]->(this_genres:Genre)   | this_genres { .name } ], ['name']) } as this
+----
+
+== Nested Sort On Cypher Field ASC
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    genres(options: {sort: [{totalMovies: ASC}]}) {
+      name
+      totalMovies
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [],
+    "jwt": {
+      "roles": []
+    }
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+RETURN this { genres: apoc.coll.sortMulti([ (this)-[:HAS_GENRE]->(this_genres:Genre)   | this_genres { .name, totalMovies:  apoc.cypher.runFirstColumn("MATCH (this)<-[:HAS_GENRE]-(movie:Movie)
+RETURN count(DISTINCT movie)", {this: this_genres, auth: $auth}, false) } ], ['^totalMovies']) } as this
+----
+
+== Simple Sort On Cypher Field
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(options: {sort: [{totalGenres: DESC}]}) {
+    totalGenres
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [],
+    "jwt": {
+      "roles": []
+    }
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+RETURN this { totalGenres:  apoc.cypher.runFirstColumn("MATCH (this)-[:HAS_GENRE]->(genre:Genre)
+RETURN count(DISTINCT genre)", {this: this, auth: $auth}, false) } as this
+ORDER BY this.totalGenres DESC
+----
+
+== Sort with offset limit & with other variables
+
+.GraphQL-Query
+[source,graphql]
+----
+query ($title: String, $offset: Int, $limit: Int) {
+  movies(
+    options: {sort: [{id: DESC}, {title: ASC}], offset: $offset, limit: $limit}
+    where: {title: $title}
+  ) {
+    id
+    title
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "limit": 2,
+  "offset": 1,
+  "title": "some title"
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_title": "some title",
+  "this_offset": {
+    "low": 1,
+    "high": 0
+  },
+  "this_limit": {
+    "low": 2,
+    "high": 0
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $this_title
+RETURN this { .id, .title } as this
+ORDER BY this.id DESC, this.title ASC
+SKIP $this_offset
+LIMIT $this_limit
+----
+
+== Simple Sort
+
+=== with field in selection set
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(options: {sort: [{id: DESC}]}) {
+    id
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+RETURN this { .id, .title } as this
+ORDER BY this.id DESC
+----
+
+=== with field not in selection set
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(options: {sort: [{id: DESC}]}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+RETURN this { .title, .id } as this
+ORDER BY this.id DESC
+----
+
+

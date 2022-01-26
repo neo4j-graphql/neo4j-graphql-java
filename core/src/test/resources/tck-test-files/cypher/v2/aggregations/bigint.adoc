@@ -1,0 +1,159 @@
+:toc:
+
+= Cypher Aggregations BigInt
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type File {
+  size: BigInt!
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+}
+----
+== Average
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  filesAggregate {
+    size {
+      average
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:File)
+RETURN { size: { average: avg(this.size) } }
+----
+
+== Max
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  filesAggregate {
+    size {
+      max
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:File)
+RETURN { size: { max: max(this.size) } }
+----
+
+== Min
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  filesAggregate {
+    size {
+      min
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:File)
+RETURN { size: { min: min(this.size) } }
+----
+
+== Min, Max, Sum and Average
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  filesAggregate {
+    size {
+      min
+      max
+      average
+      sum
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:File)
+RETURN { size: { min: min(this.size), max: max(this.size), average: avg(this.size), sum: sum(this.size) } }
+----
+
+== Sum
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  filesAggregate {
+    size {
+      sum
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:File)
+RETURN { size: { sum: sum(this.size) } }
+----
+

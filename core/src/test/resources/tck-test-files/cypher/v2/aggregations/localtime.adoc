@@ -1,0 +1,103 @@
+:toc:
+
+= Cypher Aggregations LocalTime
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  createdAt: LocalTime!
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+}
+----
+== Max
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesAggregate {
+    createdAt {
+      max
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+RETURN { createdAt: { max: max(this.createdAt) } }
+----
+
+== Min
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesAggregate {
+    createdAt {
+      min
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+RETURN { createdAt: { min: min(this.createdAt) } }
+----
+
+== Min and Max
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesAggregate {
+    createdAt {
+      min
+      max
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+RETURN { createdAt: { min: min(this.createdAt), max: max(this.createdAt) } }
+----
+

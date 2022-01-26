@@ -1,0 +1,58 @@
+:toc:
+
+= Cypher -> fulltext -> Auth
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie @fulltext(indexes: [{name: "MovieTitle", fields: ["title"]}]) @auth(rules: [{where: {director: {id: "$jwt.sub"}}}]) {
+  title: String
+  director: [Person!]! @relationship(type: "DIRECTED", direction: IN)
+}
+
+type Person {
+  id: ID
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+}
+----
+== simple match with auth where
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(fulltext: {MovieTitle: {phrase: "something AND something"}}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_fulltext_MovieTitle_phrase": "something AND something",
+  "this_auth_where0_director_id": "nQGZdWWadgXbiEqkCWDnBaEoHXdUkqno"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL db.index.fulltext.queryNodes(
+    "MovieTitle",
+    $this_fulltext_MovieTitle_phrase
+) YIELD node as this, score as score
+WHERE EXISTS((this)<-[:DIRECTED]-(:Person)) AND ALL(director IN [(this)<-[:DIRECTED]-(director:Person) | director] WHERE director.id IS NOT NULL AND director.id = $this_auth_where0_director_id)
+RETURN this { .title } as this
+----
+

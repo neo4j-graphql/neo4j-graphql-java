@@ -1,0 +1,74 @@
+:toc:
+
+= Cypher Aggregations Count
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+}
+----
+== Count with WHERE
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesAggregate(where: {title: "some-title"}) {
+    count
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_title": "some-title"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $this_title
+RETURN { count: count(this) }
+----
+
+== Simple Count
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesAggregate {
+    count
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+RETURN { count: count(this) }
+----
+

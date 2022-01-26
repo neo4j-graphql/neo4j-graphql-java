@@ -1,0 +1,169 @@
+:toc:
+
+= Cypher Time
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  id: ID
+  time: Time
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+}
+----
+== GTE Read
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {time_GTE: "13:45:33.250"}) {
+    time
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_time_GTE": {
+    "hour": 13,
+    "minute": 45,
+    "second": 33,
+    "nanosecond": 250000000,
+    "timeZoneOffsetSeconds": 0
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.time >= $this_time_GTE
+RETURN this { .time } as this
+----
+
+== Simple Create
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  createMovies(input: [{time: "22:00:15.555-01:00"}]) {
+    movies {
+      time
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this0_time": {
+    "hour": 22,
+    "minute": 0,
+    "second": 15,
+    "nanosecond": 555000000,
+    "timeZoneOffsetSeconds": -3600
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+CREATE (this0:Movie)
+SET this0.time = $this0_time
+RETURN this0
+}
+RETURN 
+this0 { .time } AS this0
+----
+
+== Simple Read
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {time: "12:00:00"}) {
+    time
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_time": {
+    "hour": 12,
+    "minute": 0,
+    "second": 0,
+    "nanosecond": 0,
+    "timeZoneOffsetSeconds": 0
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.time = $this_time
+RETURN this { .time } as this
+----
+
+== Simple Update
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  updateMovies(update: {time: "09:24:40.845512+06:30"}) {
+    movies {
+      id
+      time
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_update_time": {
+    "hour": 9,
+    "minute": 24,
+    "second": 40,
+    "nanosecond": 845512000,
+    "timeZoneOffsetSeconds": 23400
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+
+SET this.time = $this_update_time
+
+RETURN this { .id, .time } AS this
+----
+

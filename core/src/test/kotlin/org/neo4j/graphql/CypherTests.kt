@@ -75,7 +75,10 @@ class CypherTests {
     fun `test issues`() =  createTestsInPath("issues", { CypherTestSuite(it, neo4j).generateTests() })
 
     @TestFactory
-    fun `new cypher tck tests`() = createTestsInPath("tck-test-files/cypher", { CypherTestSuite(it, neo4j).generateTests() })
+    fun `new cypher tck tests v1`() = createTestsInPath("tck-test-files/cypher/v1", { CypherTestSuite(it, neo4j).generateTests() })
+
+    @TestFactory
+    fun `new cypher tck tests v2`() = createTestsInPath("tck-test-files/cypher/v2", { CypherTestSuite(it, neo4j).generateTests() })
 
     companion object {
         private val INTEGRATION_TESTS = System.getProperty("neo4j-graphql-java.integration-tests", "false") == "true"
