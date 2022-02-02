@@ -46,6 +46,25 @@ enum _ActorOrdering {
 }
 ----
 
+.Cypher
+[source,cypher]
+----
+MATCH (movie:Movie)
+CALL {
+	WITH movie
+	MATCH (movie)<-[:ACTED_IN]-(movieActors:Actor)
+	WITH movieActors ORDER BY movieActors.name DESC SKIP $movieActorsOffset LIMIT $movieActorsFirst
+	RETURN collect(movieActors {
+		.name
+	}) AS movieActors
+}
+RETURN movie {
+	actors: movieActors
+} AS movie
+----
+
+'''
+
 == Test customized values on relation field
 
 .GraphQL-Query
@@ -86,6 +105,8 @@ RETURN movie {
 } AS movie
 ----
 
+'''
+
 == Test default values on root field
 
 .GraphQL-Query
@@ -116,6 +137,8 @@ RETURN test {
 } AS test ORDER BY test.name ASC SKIP $testOffset LIMIT $testFirst
 ----
 
+'''
+
 == Test customized values on root field
 
 .GraphQL-Query
@@ -145,3 +168,5 @@ RETURN test {
 	.name
 } AS test ORDER BY test.name DESC SKIP $testOffset LIMIT $testFirst
 ----
+
+'''

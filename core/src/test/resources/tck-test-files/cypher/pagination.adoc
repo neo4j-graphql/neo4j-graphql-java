@@ -71,6 +71,8 @@ RETURN movies {
 } AS movies SKIP $moviesSkip
 ----
 
+'''
+
 === Limit
 
 .GraphQL-Query
@@ -99,6 +101,8 @@ RETURN movies {
 	.title
 } AS movies LIMIT $moviesLimit
 ----
+
+'''
 
 === Skip + Limit
 
@@ -129,6 +133,8 @@ RETURN movies {
 	.title
 } AS movies SKIP $moviesSkip LIMIT $moviesLimit
 ----
+
+'''
 
 === Skip + Limit as variables
 
@@ -168,6 +174,8 @@ RETURN movies {
 	.title
 } AS movies SKIP $moviesSkip LIMIT $moviesLimit
 ----
+
+'''
 
 === Skip + Limit with other variables
 
@@ -214,6 +222,8 @@ RETURN movies {
 } AS movies SKIP $moviesSkip LIMIT $moviesLimit
 ----
 
+'''
+
 === Default values
 
 .GraphQL-Query
@@ -243,6 +253,8 @@ RETURN actors {
 	.name
 } AS actors SKIP $actorsSkip LIMIT $actorsLimit
 ----
+
+'''
 
 == For projection
 
@@ -289,6 +301,8 @@ RETURN actors {
 } AS actors SKIP $actorsSkip LIMIT $actorsLimit
 ----
 
+'''
+
 === Limit
 
 .GraphQL-Query
@@ -331,6 +345,8 @@ RETURN actors {
 	movies: actorsMovies
 } AS actors SKIP $actorsSkip LIMIT $actorsLimit
 ----
+
+'''
 
 === Skip + Limit
 
@@ -375,6 +391,8 @@ RETURN actors {
 	movies: actorsMovies
 } AS actors SKIP $actorsSkip LIMIT $actorsLimit
 ----
+
+'''
 
 === Skip + Limit as variables
 
@@ -428,6 +446,8 @@ RETURN actors {
 	movies: actorsMovies
 } AS actors SKIP $actorsSkip LIMIT $actorsLimit
 ----
+
+'''
 
 === Skip + Limit with other variables
 
@@ -488,6 +508,8 @@ RETURN actors {
 } AS actors SKIP $actorsSkip LIMIT $actorsLimit
 ----
 
+'''
+
 === Default values
 
 .GraphQL-Query
@@ -529,3 +551,5 @@ RETURN movies {
 	actors: moviesActors
 } AS movies
 ----
+
+'''

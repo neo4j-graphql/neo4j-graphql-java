@@ -39,7 +39,6 @@ schema {
   query: Query
   mutation: Mutation
 }
-
 ----
 
 == Queries
@@ -71,6 +70,8 @@ RETURN person {
 	name: personName
 } AS person
 ----
+
+'''
 
 === render cypher query directive params args
 
@@ -105,6 +106,8 @@ RETURN p3 {
 	.id
 } AS p3
 ----
+
+'''
 
 === render cypher field directive with params defaults
 
@@ -146,6 +149,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === render cypher query directive
 
 .GraphQL-Query
@@ -176,6 +181,8 @@ RETURN p2 {
 	.id
 } AS p2
 ----
+
+'''
 
 === render cypher mutation directive
 
@@ -210,6 +217,8 @@ RETURN person {
 	.id
 } AS person
 ----
+
+'''
 
 === render cypher field directive with params
 
@@ -251,6 +260,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === render cypher field directive nested
 
 .GraphQL-Query
@@ -291,6 +302,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === render cypher query directive params
 
 .GraphQL-Query
@@ -325,6 +338,8 @@ RETURN p3 {
 } AS p3
 ----
 
+'''
+
 === render cypher field directive scalar
 
 .GraphQL-Query
@@ -358,6 +373,8 @@ RETURN person {
 	name: personName
 } AS person
 ----
+
+'''
 
 === pass through directives' result in query
 
@@ -396,6 +413,8 @@ CALL {
 RETURN user AS user
 ----
 
+'''
+
 
 === pass through directives result in field
 
@@ -433,3 +452,5 @@ RETURN person {
 	data: personData
 } AS person
 ----
+
+'''

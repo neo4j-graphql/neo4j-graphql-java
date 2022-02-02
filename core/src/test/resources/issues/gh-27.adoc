@@ -46,6 +46,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 == query friends not null
 
 .GraphQL-Query
@@ -75,6 +77,8 @@ RETURN person {
 	.name
 } AS person
 ----
+
+'''
 
 == query friends null
 
@@ -106,6 +110,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 == query friends name not null
 
 .GraphQL-Query
@@ -134,3 +140,5 @@ RETURN person {
 	.name
 } AS person
 ----
+
+'''

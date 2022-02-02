@@ -94,6 +94,8 @@ RETURN user {
 } AS user
 ----
 
+'''
+
 == Delete relation no matter of direction
 
 .GraphQL-Query
@@ -150,3 +152,5 @@ RETURN deleteUserAssociates {
 	associates: deleteUserAssociatesAssociates
 } AS deleteUserAssociates
 ----
+
+'''

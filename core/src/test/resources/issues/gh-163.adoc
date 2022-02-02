@@ -53,6 +53,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 == Query with simple conditions and filter
 
 .Query configuration
@@ -95,3 +97,5 @@ RETURN person {
 	.name
 } AS person
 ----
+
+'''

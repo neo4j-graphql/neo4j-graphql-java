@@ -51,6 +51,8 @@ RETURN addCategoryParentCategory {
 } AS addCategoryParentCategory
 ----
 
+'''
+
 == Add sub categories
 
 .GraphQL-Query
@@ -86,3 +88,5 @@ RETURN addCategorySubCategories {
 	.id
 } AS addCategorySubCategories
 ----
+
+'''

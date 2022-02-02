@@ -25,7 +25,6 @@ type Movie {
   released: Int
   characters: [Role]
 }
-
 ----
 
 == Queries
@@ -70,3 +69,5 @@ RETURN person {
 	roles: personRoles
 } AS person
 ----
+
+'''

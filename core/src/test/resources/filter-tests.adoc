@@ -99,6 +99,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === Filter enum _not_
 
 .GraphQL-Query
@@ -136,6 +138,8 @@ RETURN person {
 	.name
 } AS person
 ----
+
+'''
 
 === Filter enum _not_in_
 
@@ -175,6 +179,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === Filter enum _in_
 
 .GraphQL-Query
@@ -200,6 +206,19 @@ RETURN person {
   "filterPersonGenderIn" : [ "male" ]
 }
 ----
+
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.gender IN $filterPersonGenderIn
+RETURN person {
+	.name
+} AS person
+----
+
+'''
 
 === Filter enum _null_
 
@@ -232,6 +251,8 @@ RETURN person {
 	.name
 } AS person
 ----
+
+'''
 
 === Filter enum _not_null_
 
@@ -272,6 +293,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 == Filter on _ID_
 
 === Filter id _eq_
@@ -310,6 +333,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === Filter id _starts_with_
 
 .GraphQL-Query
@@ -345,6 +370,8 @@ RETURN person {
 	.name
 } AS person
 ----
+
+'''
 
 === Filter id _not_starts_with_
 
@@ -384,6 +411,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === Filter id _ends_with_
 
 .GraphQL-Query
@@ -419,6 +448,8 @@ RETURN person {
 	.name
 } AS person
 ----
+
+'''
 
 === Filter id _not_ends_with_
 
@@ -458,6 +489,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === Filter id _matches_
 
 .GraphQL-Query
@@ -494,6 +527,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === Filter id _contains_
 
 .GraphQL-Query
@@ -529,6 +564,8 @@ RETURN person {
 	.name
 } AS person
 ----
+
+'''
 
 === Filter id _not_contains_
 
@@ -568,6 +605,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === Filter id _in_
 
 .GraphQL-Query
@@ -603,6 +642,8 @@ RETURN person {
 	.name
 } AS person
 ----
+
+'''
 
 === Filter id _not_in_
 
@@ -642,6 +683,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === Filter id _not_
 
 .GraphQL-Query
@@ -680,6 +723,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 == Filter on _@nativeId_
 
 === filter _@nativeId_ _eq_
@@ -709,6 +754,8 @@ RETURN company {
 } AS company
 ----
 
+'''
+
 === filter _@nativeId_ _in_
 
 .GraphQL-Query
@@ -735,6 +782,8 @@ RETURN company {
 	_id: id(company)
 } AS company
 ----
+
+'''
 
 === filter _@nativeId_ _not_in_
 
@@ -763,6 +812,8 @@ RETURN company {
 } AS company
 ----
 
+'''
+
 === filter _@nativeId_ _not_
 
 .GraphQL-Query
@@ -789,6 +840,8 @@ RETURN company {
 	_id: id(company)
 } AS company
 ----
+
+'''
 
 == Filter on _Int_
 
@@ -828,6 +881,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === Filter number _in_
 
 .GraphQL-Query
@@ -863,6 +918,8 @@ RETURN person {
 	.name
 } AS person
 ----
+
+'''
 
 === Filter number _not_in_
 
@@ -902,6 +959,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === Filter number _lte_
 
 .GraphQL-Query
@@ -939,6 +998,8 @@ RETURN person {
 	.name
 } AS person
 ----
+
+'''
 
 === Filter number _lt_
 
@@ -978,6 +1039,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === Filter number _gt_
 
 .GraphQL-Query
@@ -1013,6 +1076,8 @@ RETURN person {
 	.name
 } AS person
 ----
+
+'''
 
 === Filter number _gte_
 
@@ -1050,6 +1115,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === Filter number _null_
 
 .GraphQL-Query
@@ -1081,6 +1148,8 @@ RETURN person {
 	.name
 } AS person
 ----
+
+'''
 
 === Filter number _not_null_
 
@@ -1120,6 +1189,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 == Filter on _Float_
 
 === Filter float _eq_
@@ -1157,6 +1228,8 @@ RETURN person {
 	.name
 } AS person
 ----
+
+'''
 
 === Filter float _not_
 
@@ -1196,6 +1269,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === Filter float _in_
 
 .GraphQL-Query
@@ -1231,6 +1306,8 @@ RETURN person {
 	.name
 } AS person
 ----
+
+'''
 
 === Filter float _not_in_
 
@@ -1270,6 +1347,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === Filter float _lte_
 
 .GraphQL-Query
@@ -1307,6 +1386,8 @@ RETURN person {
 	.name
 } AS person
 ----
+
+'''
 
 === Filter float _lt_
 
@@ -1346,6 +1427,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === Filter float _gte_
 
 .GraphQL-Query
@@ -1381,6 +1464,8 @@ RETURN person {
 	.name
 } AS person
 ----
+
+'''
 
 === Filter float _gt_
 
@@ -1418,6 +1503,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === Filter float _null_
 
 .GraphQL-Query
@@ -1449,6 +1536,8 @@ RETURN person {
 	.name
 } AS person
 ----
+
+'''
 
 === Filter float _not_null_
 
@@ -1488,6 +1577,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 == Filter on _String_
 
 === Filter string _eq_
@@ -1526,6 +1617,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === Filter string _starts_with_
 
 .GraphQL-Query
@@ -1561,6 +1654,8 @@ RETURN person {
 	.name
 } AS person
 ----
+
+'''
 
 === Filter string _not_starts_with_
 
@@ -1600,6 +1695,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === Filter string _ends_with_
 
 .GraphQL-Query
@@ -1635,6 +1732,8 @@ RETURN person {
 	.name
 } AS person
 ----
+
+'''
 
 === Filter string _not_ends_with_
 
@@ -1674,6 +1773,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === Filter string _matches_
 .GraphQL-Query
 [source,graphql]
@@ -1708,6 +1809,8 @@ RETURN person {
 	.name
 } AS person
 ----
+
+'''
 
 === Filter string _contains_
 
@@ -1744,6 +1847,8 @@ RETURN person {
 	.name
 } AS person
 ----
+
+'''
 
 === Filter string _not_contains_
 
@@ -1783,6 +1888,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === Filter string _in_
 
 .GraphQL-Query
@@ -1818,6 +1925,8 @@ RETURN person {
 	.name
 } AS person
 ----
+
+'''
 
 === Filter string _not_in_
 
@@ -1857,6 +1966,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === Filter string _not_
 
 .GraphQL-Query
@@ -1895,6 +2006,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === Filter string _null_
 
 .GraphQL-Query
@@ -1926,6 +2039,8 @@ RETURN person {
 	.name
 } AS person
 ----
+
+'''
 
 === Filter string _not_null_
 
@@ -1964,6 +2079,8 @@ RETURN person {
 	.name
 } AS person
 ----
+
+'''
 
 == Filter on _Boolean_
 
@@ -2005,6 +2122,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === Filter boolean _not_
 
 .GraphQL-Query
@@ -2041,6 +2160,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === Filter boolean _null_
 
 .GraphQL-Query
@@ -2072,6 +2193,8 @@ RETURN person {
 	.name
 } AS person
 ----
+
+'''
 
 === Filter boolean _not_null_
 
@@ -2110,6 +2233,8 @@ RETURN person {
 	.name
 } AS person
 ----
+
+'''
 
 == Filter on spatial
 
@@ -2151,6 +2276,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === Filter spatial _not_
 
 .GraphQL-Query
@@ -2189,6 +2316,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === Filter spatial _null_
 
 .GraphQL-Query
@@ -2216,10 +2345,14 @@ RETURN person {
 .Cypher
 [source,cypher]
 ----
-MATCH (person: Person)
+MATCH (person:Person)
 WHERE person.location IS NULL
-RETURN person { .name } AS person
+RETURN person {
+	.name
+} AS person
 ----
+
+'''
 
 === Filter spatial _not_null_
 
@@ -2250,10 +2383,14 @@ RETURN person { .name } AS person
 .Cypher
 [source,cypher]
 ----
-MATCH (person: Person)
+MATCH (person:Person)
 WHERE person.location IS NOT NULL
-RETURN person { .name } AS person
+RETURN person {
+	.name
+} AS person
 ----
+
+'''
 
 === Filter spatial _distance eq_
 
@@ -2299,6 +2436,8 @@ RETURN person {
 	.name
 } AS person
 ----
+
+'''
 
 === Filter spatial _distance lt_
 
@@ -2347,6 +2486,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === Filter spatial _distance lte_
 
 .GraphQL-Query
@@ -2393,6 +2534,8 @@ RETURN person {
 	.name
 } AS person
 ----
+
+'''
 
 === Filter spatial _distance gt_
 
@@ -2441,6 +2584,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === Filter spatial _distance gte_
 
 .GraphQL-Query
@@ -2488,6 +2633,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 == Null Filtering
 
 === Filter _null_ on relation
@@ -2517,6 +2664,8 @@ RETURN person {
 	.name
 } AS person
 ----
+
+'''
 
 === Filter _not null_ on relation
 
@@ -2551,6 +2700,8 @@ RETURN person {
 	.name
 } AS person
 ----
+
+'''
 
 == Logical Filter
 
@@ -2630,6 +2781,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === Filter _OR_
 
 ==== Multiple fields
@@ -2669,6 +2822,8 @@ RETURN person {
 	.name
 } AS person
 ----
+
+'''
 
 ==== Same field multiple values
 
@@ -2710,6 +2865,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 ==== Multiple fields + array
 
 .GraphQL-Query
@@ -2750,6 +2907,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === Complex filter
 
 .GraphQL-Query
@@ -2783,12 +2942,14 @@ RETURN person {
 ----
 MATCH (person:Person)
 WHERE ((person.fun = $filterPersonOr1And1Fun
-	AND person.height = $filterPersonOr1And2Height)
+		AND person.height = $filterPersonOr1And2Height)
 	OR person.name IN $filterPersonOr2NameIn)
 RETURN person {
 	.name
 } AS person
 ----
+
+'''
 
 == Object filter
 
@@ -2866,6 +3027,8 @@ RETURN p {
 } AS p
 ----
 
+'''
+
 === Filter object _every_ (cypher _ALL_)
 
 .GraphQL-Query
@@ -2902,6 +3065,8 @@ RETURN p {
 	.name
 } AS p
 ----
+
+'''
 
 === Filter object _none_ (cypher _NONE_)
 
@@ -2977,6 +3142,8 @@ RETURN p {
 } AS p
 ----
 
+'''
+
 === Filter object _single_ (cypher _SINGLE_)
 
 .GraphQL-Query
@@ -3014,6 +3181,8 @@ RETURN p {
 } AS p
 ----
 
+'''
+
 === Filter object _null_
 
 .GraphQL-Query
@@ -3047,6 +3216,8 @@ RETURN p {
 	.name
 } AS p
 ----
+
+'''
 
 === Filter object _not_null_
 
@@ -3088,6 +3259,8 @@ RETURN p {
 } AS p
 ----
 
+'''
+
 === Cascaded filter object string _eq_
 
 .GraphQL-Query
@@ -3127,6 +3300,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === Cascaded filter object _not_ string _eq_
 
 .GraphQL-Query
@@ -3164,6 +3339,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === Cascaded filter object string _in_
 
 .GraphQL-Query
@@ -3200,6 +3377,8 @@ RETURN p {
 	.name
 } AS p
 ----
+
+'''
 
 === Cascaded logical operator filter on object
 
@@ -3252,6 +3431,8 @@ RETURN p {
 } AS p
 ----
 
+'''
+
 == Use of Variables
 
 === Filter as variable
@@ -3300,11 +3481,13 @@ query filterQuery($filter: _PersonFilter) { person(filter: $filter) { name }}
 MATCH (person:Person)
 WHERE (person.name = $filterPersonName
 	AND any(filterPersonCompanyCond IN [(person)-[:WORKS_AT]->(filterPersonCompany:Company) | filterPersonCompany.name ENDS WITH $filterPersonCompanyNameEndsWith]
-WHERE filterPersonCompanyCond))
+	WHERE filterPersonCompanyCond))
 RETURN person {
 	.name
 } AS person
 ----
+
+'''
 
 === Variable pass through
 
@@ -3348,6 +3531,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === Handle _null_ via variable
 
 .GraphQL-Query
@@ -3385,6 +3570,8 @@ RETURN person {
 	.name
 } AS person
 ----
+
+'''
 
 === Handle _not_null_ via variable
 
@@ -3429,6 +3616,8 @@ RETURN person {
 	.name
 } AS person
 ----
+
+'''
 
 == Aliasing
 
@@ -3478,3 +3667,5 @@ RETURN p {
 	employees: pEmployees
 } AS p
 ----
+
+'''

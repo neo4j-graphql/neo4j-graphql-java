@@ -114,6 +114,8 @@ input _PersonFilter {
 
 ----
 
+'''
+
 === Schema with capitalized queries
 
 .Configuration
@@ -210,3 +212,5 @@ input _PersonFilter {
 }
 
 ----
+
+'''

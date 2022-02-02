@@ -353,6 +353,8 @@ input _Neo4jPointInput {
 
 ----
 
+'''
+
 === Disable Mutations
 
 .Configuration
@@ -1095,6 +1097,8 @@ input _PublisherFilter {
 
 ----
 
+'''
+
 === Filter on Relation Mutations
 
 .Configuration
@@ -1355,3 +1359,5 @@ input _Neo4jPointInput {
 }
 
 ----
+
+'''

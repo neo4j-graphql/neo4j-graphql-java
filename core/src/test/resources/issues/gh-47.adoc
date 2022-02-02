@@ -39,6 +39,8 @@ RETURN company {
 } AS company
 ----
 
+'''
+
 == Filter not null
 
 .GraphQL-Query
@@ -66,6 +68,8 @@ RETURN company {
 	.name
 } AS company
 ----
+
+'''
 
 == Filter null via variable
 
@@ -101,6 +105,8 @@ RETURN company {
 } AS company
 ----
 
+'''
+
 == Filter not null via variable
 
 .GraphQL-Query
@@ -134,3 +140,5 @@ RETURN company {
 	.name
 } AS company
 ----
+
+'''
