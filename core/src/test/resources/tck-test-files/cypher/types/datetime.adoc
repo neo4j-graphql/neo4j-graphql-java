@@ -83,6 +83,8 @@ RETURN movies {
 } AS movies
 ----
 
+'''
+
 === Complex Read
 
 .GraphQL-Query
@@ -134,6 +136,8 @@ RETURN movies {
 } AS movies ORDER BY movies.datetime DESC
 ----
 
+'''
+
 === Simple Create
 
 .GraphQL-Query
@@ -180,6 +184,8 @@ RETURN createMovie {
 	datetime: toString(createMovie.datetime)
 } AS createMovie
 ----
+
+'''
 
 === Simple Update
 
@@ -229,3 +235,5 @@ RETURN updateMovie {
 	datetime: toString(updateMovie.datetime)
 } AS updateMovie
 ----
+
+'''

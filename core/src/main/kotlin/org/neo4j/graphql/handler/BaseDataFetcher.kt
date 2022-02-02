@@ -38,7 +38,7 @@ abstract class BaseDataFetcher(schemaConfig: SchemaConfig) : ProjectionBase(sche
         }
         return Cypher(query, params, env.fieldDefinition.type, variable = field.aliasOrName())
             .also {
-                (env.getLocalContext() as? Translator.CypherHolder)?.apply { this.cypher = it }
+                (env.getLocalContext() as? Translator.CypherHolder)?.apply { this.cyphers += it }
             }
     }
 

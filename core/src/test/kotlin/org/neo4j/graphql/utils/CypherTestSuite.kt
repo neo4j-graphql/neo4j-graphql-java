@@ -33,11 +33,16 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
         listOf(SCHEMA_MARKER, SCHEMA_CONFIG_MARKER, TEST_DATA_MARKER)
 ) {
 
-    override fun testFactory(title: String, globalBlocks: Map<String, ParsedBlock>, codeBlocks: Map<String, ParsedBlock>, ignore: Boolean): List<DynamicNode> {
-        val cypherBlock = getOrCreateBlock(codeBlocks, CYPHER_MARKER, "Cypher")
+    override fun testFactory(
+            title: String,
+            globalBlocks: Map<String, List<ParsedBlock>>,
+            codeBlocks: Map<String, List<ParsedBlock>>,
+            ignore: Boolean
+    ): List<DynamicNode> {
+        val cypherBlocks = getOrCreateBlocks(codeBlocks, CYPHER_MARKER, "Cypher")
 
         if (ignore) {
-            return Collections.singletonList(DynamicTest.dynamicTest("Test Cypher", cypherBlock?.uri) {
+            return Collections.singletonList(DynamicTest.dynamicTest("Test Cypher", cypherBlocks.firstOrNull()?.uri) {
                 Assumptions.assumeFalse(true)
             })
         }
@@ -50,33 +55,34 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
             tests.add(printReplacedParameter(result))
         }
         if (neo4j != null) {
-            val testData = globalBlocks[TEST_DATA_MARKER]
-            var response = codeBlocks[GRAPHQL_RESPONSE_IGNORE_ORDER_MARKER]
+            val testData = globalBlocks[TEST_DATA_MARKER]?.firstOrNull()
+            var response = codeBlocks[GRAPHQL_RESPONSE_IGNORE_ORDER_MARKER]?.firstOrNull()
             var ignoreOrder = false
             if (response != null) {
                 ignoreOrder = true
             } else {
-                response = getOrCreateBlock(codeBlocks, GRAPHQL_RESPONSE_MARKER, "GraphQL-Response")
+                response = getOrCreateBlocks(codeBlocks, GRAPHQL_RESPONSE_MARKER, "GraphQL-Response").firstOrNull()
             }
             if (testData != null && response != null) {
                 tests.add(integrationTest(title, globalBlocks, codeBlocks, testData, response, ignoreOrder))
             }
         }
 
-        tests.add(testCypher(title, cypherBlock, result))
-        tests.add(testCypherParams(codeBlocks, result))
+        tests.addAll(testCypher(title, cypherBlocks, result))
+        tests.addAll(testCypherParams(codeBlocks, result))
 
         return tests
     }
 
     private fun createSchema(
-            globalBlocks: Map<String, ParsedBlock>,
-            codeBlocks: Map<String, ParsedBlock>,
+            globalBlocks: Map<String, List<ParsedBlock>>,
+            codeBlocks: Map<String, List<ParsedBlock>>,
             dataFetchingInterceptor: DataFetchingInterceptor? = null
     ): GraphQLSchema {
-        val schemaString = globalBlocks[SCHEMA_MARKER]?.code()
+        val schemaString = globalBlocks[SCHEMA_MARKER]?.firstOrNull()?.code()
                 ?: throw IllegalStateException("Schema should be defined")
-        val schemaConfig = (codeBlocks[SCHEMA_CONFIG_MARKER] ?: globalBlocks[SCHEMA_CONFIG_MARKER])?.code()
+        val schemaConfig = (codeBlocks[SCHEMA_CONFIG_MARKER]?.firstOrNull()
+                ?: globalBlocks[SCHEMA_CONFIG_MARKER]?.firstOrNull())?.code()
             ?.let { return@let MAPPER.readValue(it, SchemaConfig::class.java) }
                 ?: SchemaConfig()
         return SchemaBuilder.buildSchema(schemaString, schemaConfig, dataFetchingInterceptor)
@@ -84,25 +90,25 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
 
     private fun createTransformationTask(
             title: String,
-            globalBlocks: Map<String, ParsedBlock>,
-            codeBlocks: Map<String, ParsedBlock>
-    ): () -> Cypher {
+            globalBlocks: Map<String, List<ParsedBlock>>,
+            codeBlocks: Map<String, List<ParsedBlock>>
+    ): () -> List<Cypher> {
         val transformationTask = FutureTask {
 
             val schema = createSchema(globalBlocks, codeBlocks)
 
-            val request = codeBlocks[GRAPHQL_MARKER]?.code()
+            val request = codeBlocks[GRAPHQL_MARKER]?.firstOrNull()?.code()
                     ?: throw IllegalStateException("missing graphql for $title")
 
-            val requestParams = codeBlocks[GRAPHQL_VARIABLES_MARKER]?.code()?.parseJsonMap() ?: emptyMap()
+            val requestParams = codeBlocks[GRAPHQL_VARIABLES_MARKER]?.firstOrNull()?.code()?.parseJsonMap()
+                    ?: emptyMap()
 
-            val queryContext = codeBlocks[QUERY_CONFIG_MARKER]?.code()
+            val queryContext = codeBlocks[QUERY_CONFIG_MARKER]?.firstOrNull()?.code()
                 ?.let<String, QueryContext?> { config -> return@let MAPPER.readValue(config, QueryContext::class.java) }
                     ?: QueryContext()
 
             Translator(schema)
                 .translate(request, requestParams, queryContext)
-                .first()
         }
         return {
             transformationTask.run()
@@ -110,55 +116,73 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
         }
     }
 
-    private fun printGeneratedQuery(result: () -> Cypher): DynamicTest = DynamicTest.dynamicTest("Generated query") {
-        println(result().query)
+    private fun printGeneratedQuery(result: () -> List<Cypher>): DynamicTest = DynamicTest.dynamicTest("Generated query") {
+        result().forEach { println(it) }
     }
 
-    private fun printReplacedParameter(result: () -> Cypher): DynamicTest = DynamicTest.dynamicTest("Generated query with params replaced") {
-        var queryWithReplacedParams = result().query
-        result().params.forEach { (key, value) ->
-            queryWithReplacedParams = queryWithReplacedParams.replace("$$key", if (value is String) "'$value'" else value.toString())
-        }
-        println()
-        println("Generated query with params replaced")
-        println("------------------------------------")
-        println(queryWithReplacedParams)
-    }
-
-    private fun testCypher(title: String, cypherBlock: ParsedBlock?, result: () -> Cypher): DynamicTest = DynamicTest.dynamicTest("Test Cypher", cypherBlock?.uri) {
-        val cypher = cypherBlock?.code()
-                ?: throw IllegalStateException("missing cypher query for $title")
-        val expected = cypher.normalize()
-        val actual = result().query.normalize()
-        if (!Objects.equals(expected, actual)) {
-            cypherBlock.adjustedCode = result().query
-        }
-        if (actual != expected) {
-            throw AssertionFailedError("Cypher does not match", cypher, result().query)
-        }
-    }
-
-    private fun testCypherParams(codeBlocks: Map<String, ParsedBlock>, result: () -> Cypher): DynamicTest {
-        val cypherParamsBlock = getOrCreateBlock(codeBlocks, CYPHER_PARAMS_MARKER, "Cypher Params")
-
-        return DynamicTest.dynamicTest("Test Cypher Params", cypherParamsBlock?.uri) {
-            val resultParams = result().params
-
-            val actualParams = MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(resultParams)
-            if (cypherParamsBlock?.code()?.isBlank() == true) {
-                if (resultParams.isNotEmpty()) {
-                    cypherParamsBlock.adjustedCode = actualParams
-                    Assertions.fail<Any>("No params defined")
-                }
-                return@dynamicTest
+    private fun printReplacedParameter(result: () -> List<Cypher>): DynamicTest = DynamicTest.dynamicTest("Generated query with params replaced") {
+        result().forEach {
+            var queryWithReplacedParams = it.query
+            it.params.forEach { (key, value) ->
+                queryWithReplacedParams =
+                        queryWithReplacedParams.replace("$$key", if (value is String) "'$value'" else value.toString())
             }
-            val cypherParams = cypherParamsBlock?.code()?.parseJsonMap() ?: emptyMap()
-            val expected = fixNumbers(cypherParams)
-            val actual = fixNumbers(resultParams)
+            println()
+            println("Generated query with params replaced")
+            println("------------------------------------")
+            println(queryWithReplacedParams)
+        }
+    }
+
+    private fun testCypher(title: String, cypherBlocks: List<ParsedBlock>, result: () -> List<Cypher>): List<DynamicTest> = cypherBlocks.mapIndexed { index, cypherBlock ->
+        var name = "Test Cypher"
+        if (cypherBlocks.size > 1) {
+            name += " (${index + 1})"
+        }
+        DynamicTest.dynamicTest(name, cypherBlock.uri) {
+            val cypher = cypherBlock.code()
+            val expected = cypher.normalize()
+            val actual = (result().getOrNull(index)?.query
+                    ?: throw IllegalStateException("missing cypher query for $title ($index)"))
+            val actualNormalized = actual.normalize()
+
             if (!Objects.equals(expected, actual)) {
-                cypherParamsBlock?.adjustedCode = actualParams
+                cypherBlock.adjustedCode = actual
             }
-            Assertions.assertThat(actual).isEqualTo(expected)
+            if (actualNormalized != expected) {
+                throw AssertionFailedError("Cypher does not match", cypher, actual)
+            }
+        }
+    }
+
+    private fun testCypherParams(codeBlocks: Map<String, List<ParsedBlock>>, result: () -> List<Cypher>): List<DynamicTest> {
+        val cypherParamsBlocks = getOrCreateBlocks(codeBlocks, CYPHER_PARAMS_MARKER, "Cypher Params")
+
+        return cypherParamsBlocks.mapIndexed { index, cypherParamsBlock ->
+            var name = "Test Cypher Params"
+            if (cypherParamsBlocks.size > 1) {
+                name += " (${index + 1})"
+            }
+            DynamicTest.dynamicTest(name, cypherParamsBlock.uri) {
+                val resultParams = result().getOrNull(index)?.params
+                        ?: throw IllegalStateException("Expected a cypher query with index $index")
+
+                val actualParams = MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(resultParams)
+                if (cypherParamsBlock.code().isBlank()) {
+                    if (resultParams.isNotEmpty()) {
+                        cypherParamsBlock.adjustedCode = actualParams
+                        Assertions.fail<Any>("No params defined")
+                    }
+                    return@dynamicTest
+                }
+                val cypherParams = cypherParamsBlock.code().parseJsonMap()
+                val expected = fixNumbers(cypherParams)
+                val actual = fixNumbers(resultParams)
+                if (!Objects.equals(expected, actual)) {
+                    cypherParamsBlock.adjustedCode = actualParams
+                }
+                Assertions.assertThat(actual).isEqualTo(expected)
+            }
         }
     }
 
@@ -189,20 +213,20 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
 
     private fun integrationTest(
             title: String,
-            globalBlocks: Map<String, ParsedBlock>,
-            codeBlocks: Map<String, ParsedBlock>,
+            globalBlocks: Map<String, List<ParsedBlock>>,
+            codeBlocks: Map<String, List<ParsedBlock>>,
             testData: ParsedBlock,
             response: ParsedBlock,
             ignoreOrder: Boolean
     ): DynamicNode = DynamicTest.dynamicTest("Integration Test", response.uri) {
         val dataFetchingInterceptor = setupDataFetchingInterceptor(testData)
-        val request = codeBlocks[GRAPHQL_MARKER]?.code()
+        val request = codeBlocks[GRAPHQL_MARKER]?.firstOrNull()?.code()
                 ?: throw IllegalStateException("missing graphql for $title")
 
 
-        val requestParams = codeBlocks[GRAPHQL_VARIABLES_MARKER]?.code()?.parseJsonMap() ?: emptyMap()
+        val requestParams = codeBlocks[GRAPHQL_VARIABLES_MARKER]?.firstOrNull()?.code()?.parseJsonMap() ?: emptyMap()
 
-        val queryContext = codeBlocks[QUERY_CONFIG_MARKER]?.code()
+        val queryContext = codeBlocks[QUERY_CONFIG_MARKER]?.firstOrNull()?.code()
             ?.let<String, QueryContext?> { config -> return@let MAPPER.readValue(config, QueryContext::class.java) }
                 ?: QueryContext()
 
@@ -243,7 +267,7 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
                 .containsOnlyKeys(*expected.keys.toTypedArray())
                 .satisfies { it.forEach { (key, value) -> assertEqualIgnoreOrder(expected[key], value) } }
             is Collection<*> -> {
-                val assertions: List<Consumer<Any>> = expected.map{ e -> Consumer<Any> { a -> assertEqualIgnoreOrder(e, a) } }
+                val assertions: List<Consumer<Any>> = expected.map { e -> Consumer<Any> { a -> assertEqualIgnoreOrder(e, a) } }
                 Assertions.assertThat(actual).asInstanceOf(InstanceOfAssertFactories.LIST)
                     .hasSize(expected.size)
                     .satisfiesExactlyInAnyOrder(*assertions.toTypedArray())

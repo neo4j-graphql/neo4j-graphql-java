@@ -1,0 +1,73 @@
+:toc:
+
+= Querying multiple root fields
+
+== Issue
+
+https://github.com/neo4j-graphql/neo4j-graphql-java/issues/265
+
+== Schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String
+}
+type User {
+  name: String
+}
+----
+
+.Test-Data
+[source,cypher,test-data=true]
+----
+CREATE
+    (:User{ name: 'user 1' }),
+    (:Movie{ title: 'movie 1' });
+----
+
+== Queries
+
+.GraphQL-Query
+[source,graphql]
+----
+query {
+  movie {
+    title
+  }
+  user {
+    name
+  }
+}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movie" : [ { "title" : "movie 1" }],
+  "user" : [ { "name" : "user 1" }]
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (movie:Movie)
+RETURN movie {
+	.title
+} AS movie
+----
+
+'''
+
+//.Cypher
+//[source,cypher]
+//----
+//MATCH (user:User)
+//RETURN user {
+//	.name
+//} AS user
+//----
+//
+//'''

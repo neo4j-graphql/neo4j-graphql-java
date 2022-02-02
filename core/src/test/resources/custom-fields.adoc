@@ -95,6 +95,8 @@ RETURN createPerson {
 } AS createPerson
 ----
 
+'''
+
 == Test Data
 
 [source,cypher,test-data=true]
@@ -139,6 +141,8 @@ RETURN person {
 	.name
 } AS Person
 ----
+
+'''
 
 == Query non nullable value
 
@@ -185,6 +189,8 @@ RETURN person {
 } AS Person
 ----
 
+'''
+
 == Query nullable value
 
 .GraphQL-Query
@@ -230,6 +236,8 @@ RETURN person {
 } AS Person
 ----
 
+'''
+
 == Query field by getter
 
 .GraphQL-Query
@@ -255,6 +263,10 @@ query { OrderPosition { amount } }
 .Cypher
 [source,cypher]
 ----
-MATCH (orderPosition: OrderPosition)
-RETURN orderPosition { .amount } AS OrderPosition
+MATCH (orderPosition:OrderPosition)
+RETURN orderPosition {
+	.amount
+} AS OrderPosition
 ----
+
+'''

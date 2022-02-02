@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Run All tests including integration tests" type="JUnit" factoryName="JUnit">
-    <module name="neo4j-graphql-java" />
+    <module name="neo4j-graphql-java (1)" />
     <option name="PACKAGE_NAME" value="org.neo4j.graphql" />
     <option name="MAIN_CLASS_NAME" value="" />
     <option name="METHOD_NAME" value="" />

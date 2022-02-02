@@ -98,6 +98,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === update dynamic properties
 
 .GraphQL-Query
@@ -136,6 +138,8 @@ RETURN updatePerson {
 } AS updatePerson
 ----
 
+'''
+
 === merge dynamic properties
 
 .GraphQL-Query
@@ -173,6 +177,8 @@ RETURN mergePerson {
 	.id
 } AS mergePerson
 ----
+
+'''
 
 === create relation with dynamic properties
 
@@ -216,6 +222,8 @@ RETURN createKnows {
 } AS createKnows
 ----
 
+'''
+
 === update relation with dynamic properties
 
 .GraphQL-Query
@@ -251,6 +259,8 @@ RETURN updateKnows {
 } AS updateKnows
 ----
 
+'''
+
 === update relation with dynamic properties
 
 .GraphQL-Query
@@ -285,3 +295,5 @@ RETURN mergeKnows {
 	json: apoc.map.fromPairs([key IN keys(mergeKnows) WHERE key STARTS WITH 'prefix.' | [substring(key, 7), mergeKnows[key]]])
 } AS mergeKnows
 ----
+
+'''

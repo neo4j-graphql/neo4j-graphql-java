@@ -26,10 +26,10 @@ class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite(
         listOf(SCHEMA_CONFIG_MARKER, GRAPHQL_MARKER)
 ) {
 
-    override fun testFactory(title: String, globalBlocks: Map<String, ParsedBlock>, codeBlocks: Map<String, ParsedBlock>, ignore: Boolean): List<DynamicNode> {
-        val targetSchemaBlock = codeBlocks[GRAPHQL_MARKER]
+    override fun testFactory(title: String, globalBlocks: Map<String, List<ParsedBlock>>, codeBlocks: Map<String, List<ParsedBlock>>, ignore: Boolean): List<DynamicNode> {
+        val targetSchemaBlock = codeBlocks[GRAPHQL_MARKER]?.first()
         val compareSchemaTest = DynamicTest.dynamicTest("compare schema", targetSchemaBlock?.uri) {
-            val configBlock = codeBlocks[SCHEMA_CONFIG_MARKER]
+            val configBlock = codeBlocks[SCHEMA_CONFIG_MARKER]?.first()
             val config = configBlock?.code()?.let { MAPPER.readValue(it, SchemaConfig::class.java) } ?: SchemaConfig()
 
             val targetSchema = targetSchemaBlock?.code()
@@ -38,7 +38,7 @@ class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite(
             var augmentedSchema: GraphQLSchema? = null
             var expectedSchema: GraphQLSchema? = null
             try {
-                val schema = globalBlocks[SCHEMA_MARKER]?.code()
+                val schema = globalBlocks[SCHEMA_MARKER]?.first()?.code()
                         ?: throw IllegalStateException("Schema should be defined")
                 augmentedSchema = SchemaBuilder.buildSchema(schema, config)
                 val schemaParser = SchemaParser()
