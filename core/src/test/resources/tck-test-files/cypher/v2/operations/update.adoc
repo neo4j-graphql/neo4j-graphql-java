@@ -121,6 +121,8 @@ FOREACH(x IN this_delete_actors0_to_delete | DETACH DELETE x)
 RETURN this { .id } AS this
 ----
 
+'''
+
 == Delete related node as update
 
 .GraphQL-Query
@@ -179,6 +181,8 @@ WITH this, collect(DISTINCT this_delete_actors0) as this_delete_actors0_to_delet
 FOREACH(x IN this_delete_actors0_to_delete | DETACH DELETE x)
 RETURN this { .id } AS this
 ----
+
+'''
 
 == Double nested delete under a nested update
 
@@ -254,6 +258,8 @@ FOREACH(x IN this_actors0_delete0_to_delete | DETACH DELETE x)
 
 RETURN this { .id } AS this
 ----
+
+'''
 
 == Double Nested Update
 
@@ -353,6 +359,8 @@ YIELD value as _
 RETURN this { .id } AS this
 ----
 
+'''
+
 == Nested delete under a nested update
 
 .GraphQL-Query
@@ -412,6 +420,8 @@ FOREACH(x IN this_actors0_delete0_to_delete | DETACH DELETE x)
 RETURN this { .id } AS this
 ----
 
+'''
+
 == Simple Update
 
 .GraphQL-Query
@@ -445,6 +455,8 @@ SET this.id = $this_update_id
 
 RETURN this { .id } AS this
 ----
+
+'''
 
 == Simple Update as Connect
 
@@ -492,6 +504,8 @@ CALL {
 }
 RETURN this { .id } AS this
 ----
+
+'''
 
 == Simple Update as Disconnect
 
@@ -550,6 +564,8 @@ RETURN count(*)
 }
 RETURN this { .id } AS this
 ----
+
+'''
 
 == Single Nested Update
 
@@ -624,6 +640,8 @@ YIELD value as _
 RETURN this { .id } AS this
 ----
 
+'''
+
 == Update an Actor while creating and connecting to a new Movie (via field level)
 
 .GraphQL-Query
@@ -670,6 +688,8 @@ MERGE (this)-[:ACTED_IN]->(this_movies0_create0_node)
 RETURN this { .name, movies: [ (this)-[:ACTED_IN]->(this_movies:Movie)   | this_movies { .id, .title } ] } AS this
 ----
 
+'''
+
 == Update an Actor while creating and connecting to a new Movie (via top level)
 
 .GraphQL-Query
@@ -713,6 +733,8 @@ MERGE (this)-[this_create_movies0_relationship:ACTED_IN]->(this_create_movies0_n
 
 RETURN this { .name, movies: [ (this)-[:ACTED_IN]->(this_movies:Movie)   | this_movies { .id, .title } ] } AS this
 ----
+
+'''
 
 == Update an Actor while creating and connecting to multiple new Movies (via top level)
 
@@ -764,6 +786,8 @@ MERGE (this)-[this_create_movies1_relationship:ACTED_IN]->(this_create_movies1_n
 
 RETURN this { .name, movies: [ (this)-[:ACTED_IN]->(this_movies:Movie)   | this_movies { .id, .title } ] } AS this
 ----
+
+'''
 
 == Update as multiple Connect
 
@@ -825,6 +849,8 @@ CALL {
 }
 RETURN this { .id } AS this
 ----
+
+'''
 
 == Update as multiple Disconnect
 
@@ -900,4 +926,6 @@ RETURN count(*)
 }
 RETURN this { .id } AS this
 ----
+
+'''
 

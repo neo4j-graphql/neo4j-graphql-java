@@ -104,7 +104,7 @@ open class BaseAugmentationV2(
         generateSortIT(node)?.let {
             fields += inputValue(
                 Constants.SORT,
-                ListType(it.asType()) // TODO make required https://github.com/neo4j/graphql/issues/809
+                ListType(it.asRequiredType())
             ) {
                 description("Specify one or more ${node.name}Sort objects to sort ${node.plural} by. The sorts will be applied in the order in which they are arranged in the array.".asDescription())
             }
@@ -190,7 +190,11 @@ open class BaseAugmentationV2(
                     op.fieldName(field.fieldName, ctx.schemaConfig),
                     when {
                         op.listInput -> field.typeMeta.whereType.inner()
-                        op.list -> ListType(field.typeMeta.whereType) // TODO make required inside list
+                        op.list -> ListType(field.typeMeta.whereType.let {
+                            if (field.typeMeta.type.isRequired())
+                                NonNullType(it)
+                            else it
+                        })
                         else -> when {
                             op.distance && field.typeMeta.whereType.name() == Constants.POINT_INPUT_TYPE -> Constants.Types.PointDistance
                             op.distance && field.typeMeta.whereType.name() == Constants.CARTESIAN_POINT_INPUT_TYPE -> Constants.Types.CartesianPointDistance
@@ -386,9 +390,9 @@ open class BaseAugmentationV2(
                                 field
                             )
                         fields += field(field.fieldName + "Aggregate", aggr.asType()) {
-                            generateWhereIT(field)?.let {
-                                inputValueDefinition(inputValue(Constants.WHERE, it.asType()))
-                            }
+                            generateWhereIT(field)
+                                ?.let { inputValueDefinition(inputValue(Constants.WHERE, it.asType())) }
+                            directedArgument(field)?.let { inputValueDefinition(it) }
                         }
                     }
                 }
@@ -429,14 +433,14 @@ open class BaseAugmentationV2(
                 ).asType()
             }
             args += inputValue(Constants.OPTIONS, optionType)
+            directedArgument(field)?.let { args += it }
         }
         if (field is ConnectionField) {
             generateConnectionWhereIT(field)
                 ?.let { args += inputValue(Constants.WHERE, it.asType()) }
-            field.relationshipField.node?.let {
-                args += inputValue(Constants.FIRST, Constants.Types.Int)
-                args += inputValue(Constants.AFTER, Constants.Types.String)
-            }
+            args += inputValue(Constants.FIRST, Constants.Types.Int)
+            args += inputValue(Constants.AFTER, Constants.Types.String)
+            directedArgument(field.relationshipField)?.let { args += it }
             generateConnectionSortIT(field)
                 ?.let { args += inputValue(Constants.SORT, ListType(it.asRequiredType())) }
         }
@@ -447,6 +451,15 @@ open class BaseAugmentationV2(
             inputValueDefinitions(args)
         }
     }
+
+    private fun directedArgument(relationshipField: RelationField): InputValueDefinition? =
+        when (relationshipField.queryDirection) {
+            RelationField.QueryDirection.DEFAULT_DIRECTED -> true
+            RelationField.QueryDirection.DEFAULT_UNDIRECTED -> false
+            else -> null
+        }?.let { defaultVal ->
+            inputValue(Constants.DIRECTED, Constants.Types.Boolean) { defaultValue(BooleanValue(defaultVal)) }
+        }
 
 
     private fun generateConnectionOT(field: ConnectionField) =
@@ -528,7 +541,7 @@ open class BaseAugmentationV2(
         }
 
     protected fun getAggregationSelectionLibraryType(type: Type<*>): Type<*>? {
-        val suffix =  if (type.isRequired()) "NonNullable" else "Nullable"
+        val suffix = if (type.isRequired()) "NonNullable" else "Nullable"
         val name = "${type.name()}AggregateSelection$suffix"
         ctx.neo4jTypeDefinitionRegistry.getUnwrappedType(name) ?: return null
         return TypeName(name)

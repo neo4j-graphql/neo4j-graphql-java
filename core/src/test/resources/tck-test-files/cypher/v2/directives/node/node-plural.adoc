@@ -45,6 +45,8 @@ MATCH (this:`Tech`)
 RETURN { count: count(this) }
 ----
 
+'''
+
 == Create Tech with plural techs using aggregation
 
 .GraphQL-Query
@@ -79,6 +81,8 @@ RETURN
 this0 { .name } AS this0
 ----
 
+'''
+
 == Delete Tech with plural techs using aggregation
 
 .GraphQL-Query
@@ -107,6 +111,8 @@ WHERE this.name = $this_name
 DETACH DELETE this
 ----
 
+'''
+
 == Query with aliases
 
 .GraphQL-Query
@@ -132,6 +138,8 @@ MATCH (this:`Tech`)
 RETURN this { .name } as this
 ----
 
+'''
+
 == Select Tech with plural techs
 
 .GraphQL-Query
@@ -156,6 +164,8 @@ RETURN this { .name } as this
 MATCH (this:`Tech`)
 RETURN this { .name } as this
 ----
+
+'''
 
 == Update Tech with plural techs using aggregation
 
@@ -188,4 +198,6 @@ SET this.name = $this_update_name
 
 RETURN this { .name } AS this
 ----
+
+'''
 

@@ -42,9 +42,9 @@ interface MovieInterface {
 type AMovie implements MovieInterface {
   foo: String
   id: ID
-  movies(options: AMovieOptions, where: AMovieWhere): [AMovie]
-  moviesAggregate(where: AMovieWhere): AMovieAMovieMoviesAggregationSelection
-  moviesConnection(after: String, first: Int, sort: [AMovieMoviesConnectionSort!], where: AMovieMoviesConnectionWhere): AMovieMoviesConnection!
+  movies(directed: Boolean = true, options: AMovieOptions, where: AMovieWhere): [AMovie]
+  moviesAggregate(directed: Boolean = true, where: AMovieWhere): AMovieAMovieMoviesAggregationSelection
+  moviesConnection(after: String, directed: Boolean = true, first: Int, sort: [AMovieMoviesConnectionSort!], where: AMovieMoviesConnectionWhere): AMovieMoviesConnection!
 }
 
 type AMovieAMovieMoviesAggregationSelection {
@@ -77,9 +77,9 @@ type AMovieMoviesRelationship {
 type BMovie implements MovieInterface {
   bar: String
   id: ID
-  movies(options: BMovieOptions, where: BMovieWhere): [BMovie]
-  moviesAggregate(where: BMovieWhere): BMovieBMovieMoviesAggregationSelection
-  moviesConnection(after: String, first: Int, sort: [BMovieMoviesConnectionSort!], where: BMovieMoviesConnectionWhere): BMovieMoviesConnection!
+  movies(directed: Boolean = true, options: BMovieOptions, where: BMovieWhere): [BMovie]
+  moviesAggregate(directed: Boolean = true, where: BMovieWhere): BMovieBMovieMoviesAggregationSelection
+  moviesConnection(after: String, directed: Boolean = true, first: Int, sort: [BMovieMoviesConnectionSort!], where: BMovieMoviesConnectionWhere): BMovieMoviesConnection!
 }
 
 type BMovieAggregateSelection {
@@ -301,7 +301,7 @@ input AMovieOptions {
   limit: Int
   offset: Int
   "Specify one or more AMovieSort objects to sort AMovies by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [AMovieSort]
+  sort: [AMovieSort!]
 }
 
 input AMovieRelationInput {
@@ -461,7 +461,7 @@ input BMovieOptions {
   limit: Int
   offset: Int
   "Specify one or more BMovieSort objects to sort BMovies by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [BMovieSort]
+  sort: [BMovieSort!]
 }
 
 input BMovieRelationInput {
@@ -511,3 +511,5 @@ input BMovieWhere {
 }
 
 ----
+
+'''

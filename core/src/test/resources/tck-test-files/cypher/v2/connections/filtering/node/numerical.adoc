@@ -85,6 +85,8 @@ RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
 RETURN this { .title, actorsConnection } as this
 ----
 
+'''
+
 == GTE
 
 .GraphQL-Query
@@ -138,6 +140,8 @@ RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
 }
 RETURN this { .title, actorsConnection } as this
 ----
+
+'''
 
 == LT
 
@@ -193,6 +197,8 @@ RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
 RETURN this { .title, actorsConnection } as this
 ----
 
+'''
+
 == LTE
 
 .GraphQL-Query
@@ -246,4 +252,6 @@ RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
 }
 RETURN this { .title, actorsConnection } as this
 ----
+
+'''
 

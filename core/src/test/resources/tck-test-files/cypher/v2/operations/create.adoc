@@ -60,6 +60,8 @@ RETURN
 this0 { .id } AS this0
 ----
 
+'''
+
 == Simple create -> relationship field -> connection(where)
 
 .GraphQL-Query
@@ -139,6 +141,8 @@ RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
 } RETURN actorsConnection", { this0_movies: this0_movies, projection_movies_actorsConnection: $projection_movies_actorsConnection, auth: $auth }, false) } ] } AS this0
 ----
 
+'''
+
 == Simple create and connect
 
 .GraphQL-Query
@@ -188,6 +192,8 @@ RETURN
 this0 { .id } AS this0
 ----
 
+'''
+
 == Simple Multi Create
 
 .GraphQL-Query
@@ -230,6 +236,8 @@ RETURN
 this0 { .id } AS this0, 
 this1 { .id } AS this1
 ----
+
+'''
 
 == Three Level Nested create
 
@@ -300,6 +308,8 @@ this0 { .id } AS this0,
 this1 { .id } AS this1
 ----
 
+'''
+
 == Two Level Nested create
 
 .GraphQL-Query
@@ -356,4 +366,6 @@ RETURN
 this0 { .id } AS this0, 
 this1 { .id } AS this1
 ----
+
+'''
 

@@ -205,7 +205,7 @@ input MovieOptions {
   limit: Int
   offset: Int
   "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [MovieSort]
+  sort: [MovieSort!]
 }
 
 "Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
@@ -269,11 +269,11 @@ input MovieWhere {
   isbn: String
   isbn_CONTAINS: String
   isbn_ENDS_WITH: String
-  isbn_IN: [String]
+  isbn_IN: [String!]
   isbn_NOT: String
   isbn_NOT_CONTAINS: String
   isbn_NOT_ENDS_WITH: String
-  isbn_NOT_IN: [String]
+  isbn_NOT_IN: [String!]
   isbn_NOT_STARTS_WITH: String
   isbn_STARTS_WITH: String
   screenTime: Duration
@@ -337,3 +337,5 @@ input MovieWhere {
 }
 
 ----
+
+'''

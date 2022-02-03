@@ -1,0 +1,78 @@
+:toc:
+
+= Cypher directive
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Actor {
+  name: String
+  movies(title: String): [Movie] @cypher(statement: """
+  MATCH (m:Movie {title: $title})
+  RETURN m
+  """)
+}
+
+type Movie {
+  id: ID
+  title: String
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+  "enableRegex": true
+}
+----
+== Nested Connection
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  actors {
+    movies {
+      actorsConnection {
+        totalCount
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_movies_title": null,
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [],
+    "jwt": {
+      "roles": []
+    }
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+RETURN this { movies: [this_movies IN apoc.cypher.runFirstColumn("MATCH (m:Movie {title: $title})
+RETURN m", {this: this, auth: $auth, title: $this_movies_title}, true) | this_movies { actorsConnection: apoc.cypher.runFirstColumn("CALL {
+WITH this_movies
+MATCH (this_movies)<-[this_movies_acted_in_relationship:ACTED_IN]-(this_movies_actor:Actor)
+WITH collect({  }) AS edges
+RETURN { totalCount: size(edges) } AS actorsConnection
+} RETURN actorsConnection", { this_movies: this_movies, auth: $auth }, false) }] } as this
+----
+
+'''
+

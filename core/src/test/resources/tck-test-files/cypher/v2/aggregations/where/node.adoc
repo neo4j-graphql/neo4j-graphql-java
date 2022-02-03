@@ -58,3 +58,5 @@ RETURN size(this_likesAggregate_node.someName) > $this_likesAggregate_node_someN
 RETURN this { .content } as this
 ----
 
+'''
+

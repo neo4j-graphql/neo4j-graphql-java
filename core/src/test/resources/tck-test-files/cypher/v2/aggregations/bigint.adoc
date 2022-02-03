@@ -47,6 +47,8 @@ MATCH (this:File)
 RETURN { size: { average: avg(this.size) } }
 ----
 
+'''
+
 == Max
 
 .GraphQL-Query
@@ -74,6 +76,8 @@ MATCH (this:File)
 RETURN { size: { max: max(this.size) } }
 ----
 
+'''
+
 == Min
 
 .GraphQL-Query
@@ -100,6 +104,8 @@ RETURN { size: { max: max(this.size) } }
 MATCH (this:File)
 RETURN { size: { min: min(this.size) } }
 ----
+
+'''
 
 == Min, Max, Sum and Average
 
@@ -131,6 +137,8 @@ MATCH (this:File)
 RETURN { size: { min: min(this.size), max: max(this.size), average: avg(this.size), sum: sum(this.size) } }
 ----
 
+'''
+
 == Sum
 
 .GraphQL-Query
@@ -157,4 +165,6 @@ RETURN { size: { min: min(this.size), max: max(this.size), average: avg(this.siz
 MATCH (this:File)
 RETURN { size: { sum: sum(this.size) } }
 ----
+
+'''
 

@@ -74,3 +74,5 @@ RETURN { edges: edges, totalCount: size(edges) } AS postsConnection
 RETURN this { .name, postsConnection } as this
 ----
 
+'''
+

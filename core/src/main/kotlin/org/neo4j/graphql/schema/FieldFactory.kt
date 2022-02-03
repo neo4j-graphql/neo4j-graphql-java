@@ -113,6 +113,7 @@ object FieldFactory {
                     union = fieldUnion?.memberTypes?.map { it.name() } ?: emptyList(),
                     relationshipDirective.type,
                     relationshipDirective.direction,
+                    relationshipDirective.queryDirection,
                     properties,
                     connectionPrefix
                 )

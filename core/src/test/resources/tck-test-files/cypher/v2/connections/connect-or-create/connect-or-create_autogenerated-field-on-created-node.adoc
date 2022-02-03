@@ -86,6 +86,8 @@ RETURN
 this0 { .name } AS this0
 ----
 
+'''
+
 == Create with createOrConnect operation - with @id in where
 
 .GraphQL-Query
@@ -137,6 +139,8 @@ RETURN this0
 RETURN 
 this0 { .name } AS this0
 ----
+
+'''
 
 == Update with createOrConnect operation
 
@@ -198,6 +202,8 @@ this_relationship_this_movies0_connectOrCreate0.screentime = $this_relationship_
 RETURN this { .name } AS this
 ----
 
+'''
+
 == Update with createOrConnect operation - with @id in where
 
 .GraphQL-Query
@@ -255,4 +261,6 @@ this_relationship_this_movies0_connectOrCreate0.screentime = $this_relationship_
 
 RETURN this { .name } AS this
 ----
+
+'''
 

@@ -58,6 +58,8 @@ CALL apoc.util.validate(NOT(this.id IS NOT NULL AND this.id = $this_auth_allow0_
 RETURN { count: count(this) }
 ----
 
+'''
+
 == Field BigInt with auth
 
 .GraphQL-Query
@@ -92,6 +94,8 @@ CALL apoc.util.validate(NOT(this.id IS NOT NULL AND this.id = $this_auth_allow0_
 CALL apoc.util.validate(NOT(this.id IS NOT NULL AND this.id = $imdbRatingBigInt_auth_allow0_id), "@neo4j/graphql/FORBIDDEN", [0])
 RETURN { imdbRatingBigInt: { min: min(this.imdbRatingBigInt), max: max(this.imdbRatingBigInt) } }
 ----
+
+'''
 
 == Field DateTime with auth
 
@@ -128,6 +132,8 @@ CALL apoc.util.validate(NOT(this.id IS NOT NULL AND this.id = $createdAt_auth_al
 RETURN { createdAt: { min: apoc.date.convertFormat(toString(min(this.createdAt)), "iso_zoned_date_time", "iso_offset_date_time"), max: apoc.date.convertFormat(toString(max(this.createdAt)), "iso_zoned_date_time", "iso_offset_date_time") } }
 ----
 
+'''
+
 == Field Float with auth
 
 .GraphQL-Query
@@ -162,6 +168,8 @@ CALL apoc.util.validate(NOT(this.id IS NOT NULL AND this.id = $this_auth_allow0_
 CALL apoc.util.validate(NOT(this.id IS NOT NULL AND this.id = $imdbRatingFloat_auth_allow0_id), "@neo4j/graphql/FORBIDDEN", [0])
 RETURN { imdbRatingFloat: { min: min(this.imdbRatingFloat), max: max(this.imdbRatingFloat) } }
 ----
+
+'''
 
 == Field ID with auth
 
@@ -198,6 +206,8 @@ CALL apoc.util.validate(NOT(this.id IS NOT NULL AND this.id = $id_auth_allow0_id
 RETURN { id: { shortest: min(this.id), longest: max(this.id) } }
 ----
 
+'''
+
 == Field Int with auth
 
 .GraphQL-Query
@@ -232,6 +242,8 @@ CALL apoc.util.validate(NOT(this.id IS NOT NULL AND this.id = $this_auth_allow0_
 CALL apoc.util.validate(NOT(this.id IS NOT NULL AND this.id = $imdbRatingInt_auth_allow0_id), "@neo4j/graphql/FORBIDDEN", [0])
 RETURN { imdbRatingInt: { min: min(this.imdbRatingInt), max: max(this.imdbRatingInt) } }
 ----
+
+'''
 
 == Field String with auth
 
@@ -284,6 +296,8 @@ RETURN { name: { shortest:
                          } }
 ----
 
+'''
+
 == Simple Count
 
 .GraphQL-Query
@@ -313,4 +327,6 @@ WHERE this.id IS NOT NULL AND this.id = $this_auth_where0_id
 CALL apoc.util.validate(NOT(this.id IS NOT NULL AND this.id = $this_auth_allow0_id), "@neo4j/graphql/FORBIDDEN", [0])
 RETURN { count: count(this) }
 ----
+
+'''
 

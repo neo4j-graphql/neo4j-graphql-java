@@ -66,6 +66,8 @@ CASE this0.point IS NOT NULL
 END AS result',{ this0: this0 },false) } AS this0
 ----
 
+'''
+
 == Simple Point DISTANCE query
 
 .GraphQL-Query
@@ -108,6 +110,8 @@ CASE this.point IS NOT NULL
 	ELSE NULL
 END AS result',{ this: this },false) } as this
 ----
+
+'''
 
 == Simple Point GT query
 
@@ -152,6 +156,8 @@ CASE this.point IS NOT NULL
 END AS result',{ this: this },false) } as this
 ----
 
+'''
+
 == Simple Point GTE query
 
 .GraphQL-Query
@@ -195,6 +201,8 @@ CASE this.point IS NOT NULL
 END AS result',{ this: this },false) } as this
 ----
 
+'''
+
 == Simple Point IN query
 
 .GraphQL-Query
@@ -235,6 +243,8 @@ CASE this.point IS NOT NULL
 	ELSE NULL
 END AS result',{ this: this },false) } as this
 ----
+
+'''
 
 == Simple Point LT query
 
@@ -279,6 +289,8 @@ CASE this.point IS NOT NULL
 END AS result',{ this: this },false) } as this
 ----
 
+'''
+
 == Simple Point LTE query
 
 .GraphQL-Query
@@ -322,6 +334,8 @@ CASE this.point IS NOT NULL
 END AS result',{ this: this },false) } as this
 ----
 
+'''
+
 == Simple Point NOT IN query
 
 .GraphQL-Query
@@ -363,6 +377,8 @@ CASE this.point IS NOT NULL
 END AS result',{ this: this },false) } as this
 ----
 
+'''
+
 == Simple Point NOT query
 
 .GraphQL-Query
@@ -400,6 +416,8 @@ CASE this.point IS NOT NULL
 	ELSE NULL
 END AS result',{ this: this },false) } as this
 ----
+
+'''
 
 == Simple Point query
 
@@ -439,6 +457,8 @@ CASE this.point IS NOT NULL
 	ELSE NULL
 END AS result',{ this: this },false) } as this
 ----
+
+'''
 
 == Simple Point update mutation
 
@@ -487,4 +507,6 @@ CASE this.point IS NOT NULL
 	ELSE NULL
 END AS result',{ this: this },false) } AS this
 ----
+
+'''
 

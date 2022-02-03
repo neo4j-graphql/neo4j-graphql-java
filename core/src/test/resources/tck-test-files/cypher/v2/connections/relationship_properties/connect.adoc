@@ -96,6 +96,8 @@ RETURN
 this0 { .title, actorsConnection } AS this0
 ----
 
+'''
+
 == Create movie while connecting a relationship that has properties(with where on node)
 
 .GraphQL-Query
@@ -164,6 +166,8 @@ RETURN
 this0 { .title, actorsConnection } AS this0
 ----
 
+'''
+
 == Update a movie while connecting a relationship that has properties(top level-connect)
 
 .GraphQL-Query
@@ -227,6 +231,8 @@ RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
 }
 RETURN this { .title, actorsConnection } AS this
 ----
+
+'''
 
 == Update a movie while connecting a relationship that has properties(top level-connect)(with where on node)
 
@@ -293,4 +299,6 @@ RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
 }
 RETURN this { .title, actorsConnection } AS this
 ----
+
+'''
 

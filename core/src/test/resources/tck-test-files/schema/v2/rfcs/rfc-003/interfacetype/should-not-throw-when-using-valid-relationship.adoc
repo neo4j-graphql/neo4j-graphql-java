@@ -35,12 +35,12 @@ schema {
 }
 
 interface SourceInterface {
-  target1(options: TargetOptions, where: TargetWhere): Target!
-  target1Connection(after: String, first: Int, sort: [SourceInterfaceTarget1ConnectionSort!], where: SourceInterfaceTarget1ConnectionWhere): SourceInterfaceTarget1Connection!
-  target2(options: TargetOptions, where: TargetWhere): Target
-  target2Connection(after: String, first: Int, sort: [SourceInterfaceTarget2ConnectionSort!], where: SourceInterfaceTarget2ConnectionWhere): SourceInterfaceTarget2Connection!
-  targets(options: TargetOptions, where: TargetWhere): [Target!]!
-  targetsConnection(after: String, first: Int, sort: [SourceInterfaceTargetsConnectionSort!], where: SourceInterfaceTargetsConnectionWhere): SourceInterfaceTargetsConnection!
+  target1(directed: Boolean = true, options: TargetOptions, where: TargetWhere): Target!
+  target1Connection(after: String, directed: Boolean = true, first: Int, sort: [SourceInterfaceTarget1ConnectionSort!], where: SourceInterfaceTarget1ConnectionWhere): SourceInterfaceTarget1Connection!
+  target2(directed: Boolean = true, options: TargetOptions, where: TargetWhere): Target
+  target2Connection(after: String, directed: Boolean = true, first: Int, sort: [SourceInterfaceTarget2ConnectionSort!], where: SourceInterfaceTarget2ConnectionWhere): SourceInterfaceTarget2Connection!
+  targets(directed: Boolean = true, options: TargetOptions, where: TargetWhere): [Target!]!
+  targetsConnection(after: String, directed: Boolean = true, first: Int, sort: [SourceInterfaceTargetsConnectionSort!], where: SourceInterfaceTargetsConnectionWhere): SourceInterfaceTargetsConnection!
 }
 
 type CreateInfo {
@@ -96,15 +96,15 @@ type Query {
 
 type Source implements SourceInterface {
   id: ID
-  target1(options: TargetOptions, where: TargetWhere): Target!
-  target1Aggregate(where: TargetWhere): SourceTargetTarget1AggregationSelection
-  target1Connection(after: String, first: Int, sort: [SourceInterfaceTarget1ConnectionSort!], where: SourceInterfaceTarget1ConnectionWhere): SourceInterfaceTarget1Connection!
-  target2(options: TargetOptions, where: TargetWhere): Target
-  target2Aggregate(where: TargetWhere): SourceTargetTarget2AggregationSelection
-  target2Connection(after: String, first: Int, sort: [SourceInterfaceTarget2ConnectionSort!], where: SourceInterfaceTarget2ConnectionWhere): SourceInterfaceTarget2Connection!
-  targets(options: TargetOptions, where: TargetWhere): [Target!]!
-  targetsAggregate(where: TargetWhere): SourceTargetTargetsAggregationSelection
-  targetsConnection(after: String, first: Int, sort: [SourceInterfaceTargetsConnectionSort!], where: SourceInterfaceTargetsConnectionWhere): SourceInterfaceTargetsConnection!
+  target1(directed: Boolean = true, options: TargetOptions, where: TargetWhere): Target!
+  target1Aggregate(directed: Boolean = true, where: TargetWhere): SourceTargetTarget1AggregationSelection
+  target1Connection(after: String, directed: Boolean = true, first: Int, sort: [SourceInterfaceTarget1ConnectionSort!], where: SourceInterfaceTarget1ConnectionWhere): SourceInterfaceTarget1Connection!
+  target2(directed: Boolean = true, options: TargetOptions, where: TargetWhere): Target
+  target2Aggregate(directed: Boolean = true, where: TargetWhere): SourceTargetTarget2AggregationSelection
+  target2Connection(after: String, directed: Boolean = true, first: Int, sort: [SourceInterfaceTarget2ConnectionSort!], where: SourceInterfaceTarget2ConnectionWhere): SourceInterfaceTarget2Connection!
+  targets(directed: Boolean = true, options: TargetOptions, where: TargetWhere): [Target!]!
+  targetsAggregate(directed: Boolean = true, where: TargetWhere): SourceTargetTargetsAggregationSelection
+  targetsConnection(after: String, directed: Boolean = true, first: Int, sort: [SourceInterfaceTargetsConnectionSort!], where: SourceInterfaceTargetsConnectionWhere): SourceInterfaceTargetsConnection!
 }
 
 type SourceAggregateSelection {
@@ -408,7 +408,7 @@ input SourceOptions {
   limit: Int
   offset: Int
   "Specify one or more SourceSort objects to sort Sources by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [SourceSort]
+  sort: [SourceSort!]
 }
 
 input SourceRelationInput {
@@ -526,7 +526,7 @@ input TargetOptions {
   limit: Int
   offset: Int
   "Specify one or more TargetSort objects to sort Targets by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [TargetSort]
+  sort: [TargetSort!]
 }
 
 "Fields to sort Targets by. The order in which sorts are applied is not guaranteed when specifying many fields in one TargetSort object."
@@ -559,3 +559,5 @@ input TargetWhere {
 }
 
 ----
+
+'''

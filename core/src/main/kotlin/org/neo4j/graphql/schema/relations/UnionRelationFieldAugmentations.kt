@@ -56,13 +56,14 @@ class UnionRelationFieldAugmentations(
         }
     }
 
-    override fun generateFieldRelationCreateIT() = getOrCreateInputObjectType("${prefix}CreateFieldInput") { fields, _ ->
-        rel.unionNodes.forEach { node ->
-            generateFieldCreateFieldInputIT(node.unionPrefix(), node)?.let {
-                fields += inputValue(node.name, it.wrapType())
+    override fun generateFieldRelationCreateIT() =
+        getOrCreateInputObjectType("${prefix}CreateFieldInput") { fields, _ ->
+            rel.unionNodes.forEach { node ->
+                generateFieldCreateFieldInputIT(node.unionPrefix(), node)?.let {
+                    fields += inputValue(node.name, it.wrapType())
+                }
             }
         }
-    }
 
     override fun generateFieldUpdateIT() = getOrCreateInputObjectType("${prefix}UpdateInput") { fields, _ ->
         rel.unionNodes.forEach { node ->
@@ -78,21 +79,20 @@ class UnionRelationFieldAugmentations(
         }
     }
 
-    override fun generateFieldConnectionWhereIT() = getOrCreateInputObjectType("${prefix}ConnectionWhere") { fields, _ ->
-        rel.unionNodes.forEach { node ->
-            generateFieldConnectionWhereIT(
-                node.unionPrefix(),
-                node,
-                nameOverride = "${prefix}Connection${node.name}Where" // TODO REVIEW Darrell we should harmonize the names in the js version
-            )?.let { fields += inputValue(node.name, it.asType()) }
-        }
-    }
-
-    override fun generateFieldConnectOrCreateIT() = getOrCreateInputObjectType("${prefix}ConnectOrCreateInput") { fields, _ ->
-        rel.unionNodes.forEach { node ->
-            generateFieldConnectOrCreateIT(node.unionPrefix(), node)?.let {
-                fields += inputValue(node.name, it.wrapType())
+    override fun generateFieldConnectionWhereIT() =
+        getOrCreateInputObjectType("${prefix}ConnectionWhere") { fields, _ ->
+            rel.unionNodes.forEach { node ->
+                generateFieldConnectionWhereIT(node.unionPrefix(), node)
+                    ?.let { fields += inputValue(node.name, it.asType()) }
             }
         }
-    }
+
+    override fun generateFieldConnectOrCreateIT() =
+        getOrCreateInputObjectType("${prefix}ConnectOrCreateInput") { fields, _ ->
+            rel.unionNodes.forEach { node ->
+                generateFieldConnectOrCreateIT(node.unionPrefix(), node)?.let {
+                    fields += inputValue(node.name, it.wrapType())
+                }
+            }
+        }
 }

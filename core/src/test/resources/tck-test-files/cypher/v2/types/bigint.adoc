@@ -52,6 +52,8 @@ WHERE this.size = $this_size
 RETURN this { .name } as this
 ----
 
+'''
+
 == Querying with BigInt as string in variables
 
 .GraphQL-Query
@@ -91,6 +93,8 @@ WHERE this.size = $this_size
 RETURN this { .name } as this
 ----
 
+'''
+
 == Querying with native BigInt in AST
 
 .GraphQL-Query
@@ -121,4 +125,6 @@ MATCH (this:File)
 WHERE this.size = $this_size
 RETURN this { .name } as this
 ----
+
+'''
 

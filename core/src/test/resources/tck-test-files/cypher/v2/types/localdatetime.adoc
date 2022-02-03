@@ -57,6 +57,8 @@ WHERE this.localDT >= $this_localDT_GTE
 RETURN this { .localDT } as this
 ----
 
+'''
+
 == Simple Create
 
 .GraphQL-Query
@@ -99,6 +101,8 @@ RETURN
 this0 { .localDT } AS this0
 ----
 
+'''
+
 == Simple Read
 
 .GraphQL-Query
@@ -134,6 +138,8 @@ MATCH (this:Movie)
 WHERE this.localDT = $this_localDT
 RETURN this { .localDT } as this
 ----
+
+'''
 
 == Simple Update
 
@@ -175,4 +181,6 @@ SET this.localDT = $this_update_localDT
 
 RETURN this { .id, .localDT } AS this
 ----
+
+'''
 

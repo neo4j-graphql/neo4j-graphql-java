@@ -67,6 +67,8 @@ RETURN avg(this_likesAggregate_node.someDuration) = $this_likesAggregate_node_so
 RETURN this { .content } as this
 ----
 
+'''
+
 == AVERAGE_GT
 
 .GraphQL-Query
@@ -107,6 +109,8 @@ RETURN avg(this_likesAggregate_node.someDuration) > $this_likesAggregate_node_so
 ", { this: this, this_likesAggregate_node_someDuration_AVERAGE_GT: $this_likesAggregate_node_someDuration_AVERAGE_GT }, false )
 RETURN this { .content } as this
 ----
+
+'''
 
 == AVERAGE_GTE
 
@@ -149,6 +153,8 @@ RETURN avg(this_likesAggregate_node.someDuration) >= $this_likesAggregate_node_s
 RETURN this { .content } as this
 ----
 
+'''
+
 == AVERAGE_LT
 
 .GraphQL-Query
@@ -189,6 +195,8 @@ RETURN avg(this_likesAggregate_node.someDuration) < $this_likesAggregate_node_so
 ", { this: this, this_likesAggregate_node_someDuration_AVERAGE_LT: $this_likesAggregate_node_someDuration_AVERAGE_LT }, false )
 RETURN this { .content } as this
 ----
+
+'''
 
 == AVERAGE_LTE
 
@@ -231,6 +239,8 @@ RETURN avg(this_likesAggregate_node.someDuration) <= $this_likesAggregate_node_s
 RETURN this { .content } as this
 ----
 
+'''
+
 == EQUAL
 
 .GraphQL-Query
@@ -271,6 +281,8 @@ RETURN this_likesAggregate_node.someDuration = $this_likesAggregate_node_someDur
 ", { this: this, this_likesAggregate_node_someDuration_EQUAL: $this_likesAggregate_node_someDuration_EQUAL }, false )
 RETURN this { .content } as this
 ----
+
+'''
 
 == EQUAL with alias
 
@@ -313,6 +325,8 @@ RETURN this_likesAggregate_node._someDurationAlias = $this_likesAggregate_node_s
 RETURN this { .content } as this
 ----
 
+'''
+
 == GT
 
 .GraphQL-Query
@@ -353,6 +367,8 @@ RETURN this_likesAggregate_node.someDuration > $this_likesAggregate_node_someDur
 ", { this: this, this_likesAggregate_node_someDuration_GT: $this_likesAggregate_node_someDuration_GT }, false )
 RETURN this { .content } as this
 ----
+
+'''
 
 == GTE
 
@@ -395,6 +411,8 @@ RETURN this_likesAggregate_node.someDuration >= $this_likesAggregate_node_someDu
 RETURN this { .content } as this
 ----
 
+'''
+
 == LT
 
 .GraphQL-Query
@@ -435,6 +453,8 @@ RETURN this_likesAggregate_node.someDuration < $this_likesAggregate_node_someDur
 ", { this: this, this_likesAggregate_node_someDuration_LT: $this_likesAggregate_node_someDuration_LT }, false )
 RETURN this { .content } as this
 ----
+
+'''
 
 == LTE
 
@@ -477,6 +497,8 @@ RETURN this_likesAggregate_node.someDuration <= $this_likesAggregate_node_someDu
 RETURN this { .content } as this
 ----
 
+'''
+
 == MAX_EQUAL
 
 .GraphQL-Query
@@ -517,6 +539,8 @@ RETURN  max(this_likesAggregate_node.someDuration) = $this_likesAggregate_node_s
 ", { this: this, this_likesAggregate_node_someDuration_MAX_EQUAL: $this_likesAggregate_node_someDuration_MAX_EQUAL }, false )
 RETURN this { .content } as this
 ----
+
+'''
 
 == MAX_GT
 
@@ -559,6 +583,8 @@ RETURN  max(this_likesAggregate_node.someDuration) > $this_likesAggregate_node_s
 RETURN this { .content } as this
 ----
 
+'''
+
 == MAX_GTE
 
 .GraphQL-Query
@@ -599,6 +625,8 @@ RETURN  max(this_likesAggregate_node.someDuration) >= $this_likesAggregate_node_
 ", { this: this, this_likesAggregate_node_someDuration_MAX_GTE: $this_likesAggregate_node_someDuration_MAX_GTE }, false )
 RETURN this { .content } as this
 ----
+
+'''
 
 == MAX_LT
 
@@ -641,6 +669,8 @@ RETURN  max(this_likesAggregate_node.someDuration) < $this_likesAggregate_node_s
 RETURN this { .content } as this
 ----
 
+'''
+
 == MAX_LTE
 
 .GraphQL-Query
@@ -681,6 +711,8 @@ RETURN  max(this_likesAggregate_node.someDuration) <= $this_likesAggregate_node_
 ", { this: this, this_likesAggregate_node_someDuration_MAX_LTE: $this_likesAggregate_node_someDuration_MAX_LTE }, false )
 RETURN this { .content } as this
 ----
+
+'''
 
 == MIN_EQUAL
 
@@ -723,6 +755,8 @@ RETURN  min(this_likesAggregate_node.someDuration) = $this_likesAggregate_node_s
 RETURN this { .content } as this
 ----
 
+'''
+
 == MIN_GT
 
 .GraphQL-Query
@@ -763,6 +797,8 @@ RETURN  min(this_likesAggregate_node.someDuration) > $this_likesAggregate_node_s
 ", { this: this, this_likesAggregate_node_someDuration_MIN_GT: $this_likesAggregate_node_someDuration_MIN_GT }, false )
 RETURN this { .content } as this
 ----
+
+'''
 
 == MIN_GTE
 
@@ -805,6 +841,8 @@ RETURN  min(this_likesAggregate_node.someDuration) >= $this_likesAggregate_node_
 RETURN this { .content } as this
 ----
 
+'''
+
 == MIN_LT
 
 .GraphQL-Query
@@ -846,6 +884,8 @@ RETURN  min(this_likesAggregate_node.someDuration) < $this_likesAggregate_node_s
 RETURN this { .content } as this
 ----
 
+'''
+
 == MIN_LTE
 
 .GraphQL-Query
@@ -886,4 +926,6 @@ RETURN  min(this_likesAggregate_node.someDuration) <= $this_likesAggregate_node_
 ", { this: this, this_likesAggregate_node_someDuration_MIN_LTE: $this_likesAggregate_node_someDuration_MIN_LTE }, false )
 RETURN this { .content } as this
 ----
+
+'''
 

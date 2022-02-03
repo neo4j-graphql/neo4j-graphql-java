@@ -168,6 +168,8 @@ RETURN
 this0 { .id } AS this0
 ----
 
+'''
+
 == Update Pringles Color
 
 .GraphQL-Query
@@ -279,4 +281,6 @@ YIELD value as _
 
 RETURN this { .id } AS this
 ----
+
+'''
 

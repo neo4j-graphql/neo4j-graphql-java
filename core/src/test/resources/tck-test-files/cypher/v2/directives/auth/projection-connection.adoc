@@ -74,6 +74,8 @@ RETURN { edges: edges, totalCount: size(edges) } AS postsConnection
 RETURN this { .name, postsConnection } as this
 ----
 
+'''
+
 == Two connection
 
 .GraphQL-Query
@@ -131,4 +133,6 @@ RETURN { edges: edges, totalCount: size(edges) } AS postsConnection
 }
 RETURN this { .name, postsConnection } as this
 ----
+
+'''
 

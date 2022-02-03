@@ -101,6 +101,8 @@ UNION
 RETURN this { .id } AS this
 ----
 
+'''
+
 == Create Nested Node with bind
 
 .GraphQL-Query
@@ -160,6 +162,8 @@ RETURN
 this0 { .id } AS this0
 ----
 
+'''
+
 == Create Nested Node without bind
 
 .GraphQL-Query
@@ -215,6 +219,8 @@ RETURN this0
 RETURN 
 this0 { .id } AS this0
 ----
+
+'''
 
 == Disconnect Node
 
@@ -287,6 +293,8 @@ RETURN count(*)
 }
 RETURN this { .id } AS this
 ----
+
+'''
 
 == Update Nested Node
 
@@ -410,4 +418,6 @@ WITH this
 CALL apoc.util.validate(NOT(this.id IS NOT NULL AND this.id = $this_auth_bind0_id), "@neo4j/graphql/FORBIDDEN", [0])
 RETURN this { .id } AS this
 ----
+
+'''
 

@@ -113,6 +113,8 @@ RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
 RETURN this { .title, actorsConnection } as this
 ----
 
+'''
+
 == Connection -> Relationship
 
 .GraphQL-Query
@@ -168,6 +170,8 @@ RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
 }
 RETURN this { .title, actorsConnection } as this
 ----
+
+'''
 
 == Relationship -> Connection
 
@@ -230,4 +234,6 @@ WITH collect({ screenTime: this_actors_acted_in_relationship.screenTime, node: {
 RETURN { edges: edges, totalCount: size(edges) } AS moviesConnection
 } RETURN moviesConnection", { this_actors: this_actors, this_actors_moviesConnection: $this_actors_moviesConnection, auth: $auth }, false) } ] } as this
 ----
+
+'''
 

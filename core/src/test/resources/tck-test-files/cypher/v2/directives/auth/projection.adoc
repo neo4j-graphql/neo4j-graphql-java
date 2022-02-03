@@ -69,6 +69,8 @@ this0 { .id } AS this0,
 this1 { .id } AS this1
 ----
 
+'''
+
 == Update Node
 
 .GraphQL-Query
@@ -105,4 +107,6 @@ WITH this
 CALL apoc.util.validate(NOT(this.id IS NOT NULL AND this.id = $this_id_auth_allow0_id), "@neo4j/graphql/FORBIDDEN", [0])
 RETURN this { .id } AS this
 ----
+
+'''
 

@@ -58,6 +58,8 @@ RETURN count(this_likesAggregate_node) = $this_likesAggregate_count
 RETURN this { .content } as this
 ----
 
+'''
+
 == GT Count
 
 .GraphQL-Query
@@ -90,6 +92,8 @@ RETURN count(this_likesAggregate_node) > $this_likesAggregate_count_GT
 ", { this: this, this_likesAggregate_count_GT: $this_likesAggregate_count_GT }, false )
 RETURN this { .content } as this
 ----
+
+'''
 
 == GTE Count
 
@@ -124,6 +128,8 @@ RETURN count(this_likesAggregate_node) >= $this_likesAggregate_count_GTE
 RETURN this { .content } as this
 ----
 
+'''
+
 == LT Count
 
 .GraphQL-Query
@@ -157,6 +163,8 @@ RETURN count(this_likesAggregate_node) < $this_likesAggregate_count_LT
 RETURN this { .content } as this
 ----
 
+'''
+
 == LTE Count
 
 .GraphQL-Query
@@ -189,4 +197,6 @@ RETURN count(this_likesAggregate_node) <= $this_likesAggregate_count_LTE
 ", { this: this, this_likesAggregate_count_LTE: $this_likesAggregate_count_LTE }, false )
 RETURN this { .content } as this
 ----
+
+'''
 

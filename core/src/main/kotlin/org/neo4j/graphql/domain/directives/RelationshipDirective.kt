@@ -10,19 +10,28 @@ import org.neo4j.graphql.validateName
 data class RelationshipDirective(
     val direction: RelationField.Direction,
     val type: String,
-    val properties: String?
+    val properties: String?,
+    val queryDirection: RelationField.QueryDirection
 ) {
 
     companion object {
         fun create(directive: Directive): RelationshipDirective {
             directive.validateName(DirectiveConstants.RELATIONSHIP)
-            return RelationshipDirective(
-                directive.readArgument(RelationshipDirective::direction) { RelationField.Direction.valueOf((it as EnumValue).name) }
-                    ?: throw IllegalArgumentException("direction required"),
-                directive.readArgument(RelationshipDirective::type)
-                    ?: throw IllegalArgumentException("type required"),
-                directive.readArgument(RelationshipDirective::properties),
-            )
+
+            val direction =
+                (directive.readArgument(RelationshipDirective::direction) { RelationField.Direction.valueOf((it as EnumValue).name) }
+                    ?: throw IllegalArgumentException("direction required"))
+
+            val type = (directive.readArgument(RelationshipDirective::type)
+                ?: throw IllegalArgumentException("type required"))
+
+            val properties = directive.readArgument(RelationshipDirective::properties)
+
+            val queryDirection =
+                directive.readArgument(RelationshipDirective::queryDirection) { RelationField.QueryDirection.valueOf((it as EnumValue).name) }
+                    ?: RelationField.QueryDirection.DEFAULT_DIRECTED
+
+            return RelationshipDirective(direction, type, properties, queryDirection)
         }
     }
 }

@@ -63,6 +63,8 @@ RETURN { totalCount: size(edges) } AS actors
 RETURN this { actors } as this
 ----
 
+'''
+
 == Alias Top Level Connection Field Multiple Times
 
 .GraphQL-Query
@@ -138,4 +140,6 @@ RETURN { edges: edges, totalCount: size(edges) } AS jenny
 }
 RETURN this { .title, hanks, jenny } as this
 ----
+
+'''
 

@@ -93,3 +93,5 @@ RETURN { edges: edges, totalCount: size(edges) } AS customerContactConnection
 } RETURN customerContactConnection", { this_documents: this_documents, auth: $auth }, false) } ] } as this
 ----
 
+'''
+

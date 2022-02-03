@@ -40,7 +40,7 @@ type Person {
 ----
 {
   "this_fulltext_MovieTitle_phrase": "something AND something",
-  "this_auth_where0_director_id": "eonsBiFoojqwrpWMfenkvvYXbXRbVqUS"
+  "this_auth_where0_director_id": "XzBCgjAoYtzMhzPZeQHpvRHNzgqKmobT"
 }
 ----
 
@@ -54,4 +54,6 @@ CALL db.index.fulltext.queryNodes(
 WHERE EXISTS((this)<-[:DIRECTED]-(:Person)) AND ALL(director IN [(this)<-[:DIRECTED]-(director:Person) | director] WHERE director.id IS NOT NULL AND director.id = $this_auth_where0_director_id)
 RETURN this { .title } as this
 ----
+
+'''
 

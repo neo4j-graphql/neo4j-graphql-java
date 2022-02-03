@@ -90,6 +90,8 @@ RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
 RETURN this { .title, actorsConnection } as this
 ----
 
+'''
+
 == INCLUDES
 
 .GraphQL-Query
@@ -141,6 +143,8 @@ RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
 }
 RETURN this { .title, actorsConnection } as this
 ----
+
+'''
 
 == NOT_IN
 
@@ -201,6 +205,8 @@ RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
 RETURN this { .title, actorsConnection } as this
 ----
 
+'''
+
 == NOT_INCLUDES
 
 .GraphQL-Query
@@ -252,4 +258,6 @@ RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
 }
 RETURN this { .title, actorsConnection } as this
 ----
+
+'''
 

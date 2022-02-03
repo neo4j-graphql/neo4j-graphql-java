@@ -68,6 +68,8 @@ CASE this0.points IS NOT NULL
 END AS result',{ this0: this0 },false) } AS this0
 ----
 
+'''
+
 == Simple Points INCLUDES query
 
 .GraphQL-Query
@@ -107,6 +109,8 @@ CASE this.points IS NOT NULL
 END AS result',{ this: this },false) } as this
 ----
 
+'''
+
 == Simple Points NOT INCLUDES query
 
 .GraphQL-Query
@@ -145,6 +149,8 @@ CASE this.points IS NOT NULL
 	ELSE NULL
 END AS result',{ this: this },false) } as this
 ----
+
+'''
 
 == Simple Points NOT query
 
@@ -186,6 +192,8 @@ CASE this.points IS NOT NULL
 END AS result',{ this: this },false) } as this
 ----
 
+'''
+
 == Simple Points query
 
 .GraphQL-Query
@@ -226,6 +234,8 @@ CASE this.points IS NOT NULL
 	ELSE NULL
 END AS result',{ this: this },false) } as this
 ----
+
+'''
 
 == Simple Points update mutation
 
@@ -276,4 +286,6 @@ CASE this.points IS NOT NULL
 	ELSE NULL
 END AS result',{ this: this },false) } AS this
 ----
+
+'''
 

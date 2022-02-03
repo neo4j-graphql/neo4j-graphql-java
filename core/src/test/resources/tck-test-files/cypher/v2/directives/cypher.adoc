@@ -105,6 +105,8 @@ RETURN a", {this: this, auth: $auth}, false) | this_topActor { .name, movies: [t
 RETURN m", {this: this_topActor, auth: $auth, title: $this_topActor_movies_title}, true) | this_topActor_movies { .title }] }]) } as this
 ----
 
+'''
+
 == Nested directive with params
 
 .GraphQL-Query
@@ -147,6 +149,8 @@ RETURN a", {this: this, auth: $auth}, false) | this_topActor { .name, movies: [t
 RETURN m", {this: this_topActor, auth: $auth, title: $this_topActor_movies_title}, true) | this_topActor_movies { .title }] }]) } as this
 ----
 
+'''
+
 == Simple directive
 
 .GraphQL-Query
@@ -184,6 +188,8 @@ RETURN this { .title, topActor: head([this_topActor IN apoc.cypher.runFirstColum
 RETURN a", {this: this, auth: $auth}, false) | this_topActor { .name }]) } as this
 ----
 
+'''
+
 == Simple directive (primitive)
 
 .GraphQL-Query
@@ -216,6 +222,8 @@ RETURN a", {this: this, auth: $auth}, false) | this_topActor { .name }]) } as th
 MATCH (this:Actor)
 RETURN this { randomNumber:  apoc.cypher.runFirstColumn("RETURN rand()", {this: this, auth: $auth}, false) } as this
 ----
+
+'''
 
 == Super Nested directive
 
@@ -267,6 +275,8 @@ RETURN m", {this: this_topActor, auth: $auth, title: $this_topActor_movies_title
 RETURN a", {this: this_topActor_movies, auth: $auth}, false) | this_topActor_movies_topActor { .name, movies: [this_topActor_movies_topActor_movies IN apoc.cypher.runFirstColumn("MATCH (m:Movie {title: $title})
 RETURN m", {this: this_topActor_movies_topActor, auth: $auth, title: $this_topActor_movies_topActor_movies_title}, true) | this_topActor_movies_topActor_movies { .title }] }]) }] }]) } as this
 ----
+
+'''
 
 == Union directive
 
@@ -320,4 +330,6 @@ RETURN n", {this: this, auth: $auth, title: $this_movieOrTVShow_title}, false) W
 RETURN a", {this: this_movieOrTVShow, auth: $auth}, false) | this_movieOrTVShow_topActor { .name }]) } ] + [ this_movieOrTVShow IN [this_movieOrTVShow] WHERE ("TVShow" IN labels(this_movieOrTVShow)) | this_movieOrTVShow { __resolveType: "TVShow",  .id, .title, topActor: head([this_movieOrTVShow_topActor IN apoc.cypher.runFirstColumn("MATCH (a:Actor)
 RETURN a", {this: this_movieOrTVShow, auth: $auth}, false) | this_movieOrTVShow_topActor { .name }]) } ] ] } as this
 ----
+
+'''
 

@@ -67,6 +67,8 @@ RETURN
 this0 { .id } AS this0
 ----
 
+'''
+
 == Simple Update
 
 .GraphQL-Query
@@ -102,4 +104,6 @@ SET this.name = $this_update_name
 
 RETURN this { .id } AS this
 ----
+
+'''
 

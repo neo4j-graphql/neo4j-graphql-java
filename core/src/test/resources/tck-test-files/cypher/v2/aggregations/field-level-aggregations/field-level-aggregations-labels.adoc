@@ -66,3 +66,5 @@ RETURN this { actorsAggregate: { node: { name: head(apoc.cypher.runFirstColumn("
         RETURN {longest: head(list), shortest: last(list)}", { this: this })) } } } as this
 ----
 
+'''
+

@@ -33,12 +33,7 @@ type CreateInfo {
 
 type CreateTechsMutationResponse {
   info: CreateInfo!
-  techs: [Tech!]!
-}
-
-type CreateTechsesMutationResponse {
-  info: CreateInfo!
-  techses: [Techs!]!
+  techs: [Techs!]!
 }
 
 type DeleteInfo {
@@ -48,33 +43,19 @@ type DeleteInfo {
 }
 
 type Mutation {
-  createTechs(input: [TechCreateInput!]!): CreateTechsMutationResponse!
-  createTechses(input: [TechsCreateInput!]!): CreateTechsesMutationResponse!
-  deleteTechs(where: TechWhere): DeleteInfo!
-  deleteTechses(where: TechsWhere): DeleteInfo!
-  updateTechs(update: TechUpdateInput, where: TechWhere): UpdateTechsMutationResponse!
-  updateTechses(update: TechsUpdateInput, where: TechsWhere): UpdateTechsesMutationResponse!
+  createTechs(input: [TechsCreateInput!]!): CreateTechsMutationResponse!
+  deleteTechs(where: TechsWhere): DeleteInfo!
+  updateTechs(update: TechsUpdateInput, where: TechsWhere): UpdateTechsMutationResponse!
 }
 
 type Query {
-  techs(options: TechOptions, where: TechWhere): [Tech!]!
-  techsAggregate(where: TechWhere): TechAggregateSelection!
-  techses(options: TechsOptions, where: TechsWhere): [Techs!]!
-  techsesAggregate(where: TechsWhere): TechsAggregateSelection!
+  techs(options: TechsOptions, where: TechsWhere): [Techs!]!
+  techsAggregate(where: TechsWhere): TechsAggregateSelection!
 }
 
 type StringAggregateSelectionNullable {
   longest: String
   shortest: String
-}
-
-type Tech {
-  name: String
-}
-
-type TechAggregateSelection {
-  count: Int!
-  name: StringAggregateSelectionNullable!
 }
 
 type Techs {
@@ -96,12 +77,7 @@ type UpdateInfo {
 
 type UpdateTechsMutationResponse {
   info: UpdateInfo!
-  techs: [Tech!]!
-}
-
-type UpdateTechsesMutationResponse {
-  info: UpdateInfo!
-  techses: [Techs!]!
+  techs: [Techs!]!
 }
 
 enum SortDirection {
@@ -111,41 +87,6 @@ enum SortDirection {
   DESC
 }
 
-input TechCreateInput {
-  name: String
-}
-
-input TechOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more TechSort objects to sort Techs by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [TechSort]
-}
-
-"Fields to sort Techs by. The order in which sorts are applied is not guaranteed when specifying many fields in one TechSort object."
-input TechSort {
-  name: SortDirection
-}
-
-input TechUpdateInput {
-  name: String
-}
-
-input TechWhere {
-  AND: [TechWhere!]
-  OR: [TechWhere!]
-  name: String
-  name_CONTAINS: String
-  name_ENDS_WITH: String
-  name_IN: [String]
-  name_NOT: String
-  name_NOT_CONTAINS: String
-  name_NOT_ENDS_WITH: String
-  name_NOT_IN: [String]
-  name_NOT_STARTS_WITH: String
-  name_STARTS_WITH: String
-}
-
 input TechsCreateInput {
   value: String
 }
@@ -153,11 +94,11 @@ input TechsCreateInput {
 input TechsOptions {
   limit: Int
   offset: Int
-  "Specify one or more TechsSort objects to sort Techses by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [TechsSort]
+  "Specify one or more TechsSort objects to sort Techs by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [TechsSort!]
 }
 
-"Fields to sort Techses by. The order in which sorts are applied is not guaranteed when specifying many fields in one TechsSort object."
+"Fields to sort Techs by. The order in which sorts are applied is not guaranteed when specifying many fields in one TechsSort object."
 input TechsSort {
   value: SortDirection
 }
@@ -182,3 +123,5 @@ input TechsWhere {
 }
 
 ----
+
+'''

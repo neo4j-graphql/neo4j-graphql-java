@@ -22,6 +22,7 @@ class RelationField(
      */
     val relationType: String,
     val direction: Direction,
+    val queryDirection: QueryDirection,
     val properties: RelationshipProperties?,
     /**
      * The node or interface name. If the filed is defined in an interface, the prefix will have the interface's name
@@ -53,5 +54,12 @@ class RelationField(
 
     enum class Direction {
         IN, OUT
+    }
+
+    enum class QueryDirection {
+        DEFAULT_DIRECTED,
+        DEFAULT_UNDIRECTED,
+        DIRECTED_ONLY,
+        UNDIRECTED_ONLY,
     }
 }

@@ -106,6 +106,8 @@ RETURN
 this0 { .name, city: this0.cityPropInDb, actedIn: [ (this0)-[:ACTED_IN]->(this0_actedIn:Movie)   | this0_actedIn { .title, rating: this0_actedIn.ratingPropInDb } ], actedInConnection } AS this0
 ----
 
+'''
+
 == Simple relation
 
 .GraphQL-Query
@@ -135,6 +137,8 @@ this0 { .name, city: this0.cityPropInDb, actedIn: [ (this0)-[:ACTED_IN]->(this0_
 MATCH (this:Actor)
 RETURN this { .name, city: this.cityPropInDb, actedIn: [ (this)-[:ACTED_IN]->(this_actedIn:Movie)   | this_actedIn { .title, rating: this_actedIn.ratingPropInDb } ] } as this
 ----
+
+'''
 
 == With relationship properties
 
@@ -177,4 +181,6 @@ RETURN { edges: edges, totalCount: size(edges) } AS actedInConnection
 }
 RETURN this { .name, city: this.cityPropInDb, actedInConnection } as this
 ----
+
+'''
 

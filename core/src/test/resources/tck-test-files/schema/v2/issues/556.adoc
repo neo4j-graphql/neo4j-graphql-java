@@ -79,11 +79,11 @@ interface Image {
 }
 
 type Article {
-  blocks(options: QueryOptions, where: BlockWhere): [Block!]!
-  blocksConnection(sort: [ArticleBlocksConnectionSort!], where: ArticleBlocksConnectionWhere): ArticleBlocksConnection!
+  blocks(directed: Boolean = true, options: QueryOptions, where: BlockWhere): [Block!]!
+  blocksConnection(after: String, directed: Boolean = true, first: Int, sort: [ArticleBlocksConnectionSort!], where: ArticleBlocksConnectionWhere): ArticleBlocksConnection!
   id: ID!
-  images(options: QueryOptions, where: ImageWhere): [Image!]!
-  imagesConnection(where: ArticleImagesConnectionWhere): ArticleImagesConnection!
+  images(directed: Boolean = true, options: QueryOptions, where: ImageWhere): [Image!]!
+  imagesConnection(after: String, directed: Boolean = true, first: Int, where: ArticleImagesConnectionWhere): ArticleImagesConnection!
 }
 
 type ArticleAggregateSelection {
@@ -182,8 +182,8 @@ type IDAggregateSelectionNullable {
 
 type ImageBlock implements Block {
   id: ID
-  images(options: QueryOptions, where: ImageWhere): [Image!]!
-  imagesConnection(where: ImageBlockImagesConnectionWhere): ImageBlockImagesConnection!
+  images(directed: Boolean = true, options: QueryOptions, where: ImageWhere): [Image!]!
+  imagesConnection(after: String, directed: Boolean = true, first: Int, where: ImageBlockImagesConnectionWhere): ImageBlockImagesConnection!
 }
 
 type ImageBlockAggregateSelection {
@@ -214,9 +214,9 @@ type ImageFeaturedInRelationship {
 }
 
 type Journalist {
-  articles(options: ArticleOptions, where: ArticleWhere): [Article!]!
-  articlesAggregate(where: ArticleWhere): JournalistArticleArticlesAggregationSelection
-  articlesConnection(after: String, first: Int, sort: [JournalistArticlesConnectionSort!], where: JournalistArticlesConnectionWhere): JournalistArticlesConnection!
+  articles(directed: Boolean = true, options: ArticleOptions, where: ArticleWhere): [Article!]!
+  articlesAggregate(directed: Boolean = true, where: ArticleWhere): JournalistArticleArticlesAggregationSelection
+  articlesConnection(after: String, directed: Boolean = true, first: Int, sort: [JournalistArticlesConnectionSort!], where: JournalistArticlesConnectionWhere): JournalistArticlesConnection!
 }
 
 type JournalistAggregateSelection {
@@ -271,9 +271,9 @@ type Mutation {
 }
 
 type PDFImage implements Image {
-  featuredIn(options: ArticleOptions, where: ArticleWhere): [Article!]!
-  featuredInAggregate(where: ArticleWhere): PDFImageArticleFeaturedInAggregationSelection
-  featuredInConnection(after: String, first: Int, sort: [ImageFeaturedInConnectionSort!], where: ImageFeaturedInConnectionWhere): ImageFeaturedInConnection!
+  featuredIn(directed: Boolean = true, options: ArticleOptions, where: ArticleWhere): [Article!]!
+  featuredInAggregate(directed: Boolean = true, where: ArticleWhere): PDFImageArticleFeaturedInAggregationSelection
+  featuredInConnection(after: String, directed: Boolean = true, first: Int, sort: [ImageFeaturedInConnectionSort!], where: ImageFeaturedInConnectionWhere): ImageFeaturedInConnection!
   url: String!
 }
 
@@ -512,7 +512,7 @@ input ArticleOptions {
   limit: Int
   offset: Int
   "Specify one or more ArticleSort objects to sort Articles by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [ArticleSort]
+  sort: [ArticleSort!]
 }
 
 input ArticleRelationInput {
@@ -542,11 +542,11 @@ input ArticleWhere {
   id: ID
   id_CONTAINS: ID
   id_ENDS_WITH: ID
-  id_IN: [ID]
+  id_IN: [ID!]
   id_NOT: ID
   id_NOT_CONTAINS: ID
   id_NOT_ENDS_WITH: ID
-  id_NOT_IN: [ID]
+  id_NOT_IN: [ID!]
   id_NOT_STARTS_WITH: ID
   id_STARTS_WITH: ID
   imagesConnection: ArticleImagesConnectionWhere
@@ -626,7 +626,7 @@ input DividerBlockOptions {
   limit: Int
   offset: Int
   "Specify one or more DividerBlockSort objects to sort DividerBlocks by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [DividerBlockSort]
+  sort: [DividerBlockSort!]
 }
 
 "Fields to sort DividerBlocks by. The order in which sorts are applied is not guaranteed when specifying many fields in one DividerBlockSort object."
@@ -664,11 +664,11 @@ input HasArticleWhere {
   createdAt: DateTime
   createdAt_GT: DateTime
   createdAt_GTE: DateTime
-  createdAt_IN: [DateTime]
+  createdAt_IN: [DateTime!]
   createdAt_LT: DateTime
   createdAt_LTE: DateTime
   createdAt_NOT: DateTime
-  createdAt_NOT_IN: [DateTime]
+  createdAt_NOT_IN: [DateTime!]
 }
 
 input HasBlockCreateInput {
@@ -689,11 +689,11 @@ input HasBlockWhere {
   order: Int
   order_GT: Int
   order_GTE: Int
-  order_IN: [Int]
+  order_IN: [Int!]
   order_LT: Int
   order_LTE: Int
   order_NOT: Int
-  order_NOT_IN: [Int]
+  order_NOT_IN: [Int!]
 }
 
 input ImageBlockConnectInput {
@@ -760,7 +760,7 @@ input ImageBlockOptions {
   limit: Int
   offset: Int
   "Specify one or more ImageBlockSort objects to sort ImageBlocks by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [ImageBlockSort]
+  sort: [ImageBlockSort!]
 }
 
 input ImageBlockRelationInput {
@@ -1085,7 +1085,7 @@ input PDFImageOptions {
   limit: Int
   offset: Int
   "Specify one or more PDFImageSort objects to sort PDFImages by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [PDFImageSort]
+  sort: [PDFImageSort!]
 }
 
 input PDFImageRelationInput {
@@ -1113,11 +1113,11 @@ input PDFImageWhere {
   url: String
   url_CONTAINS: String
   url_ENDS_WITH: String
-  url_IN: [String]
+  url_IN: [String!]
   url_NOT: String
   url_NOT_CONTAINS: String
   url_NOT_ENDS_WITH: String
-  url_NOT_IN: [String]
+  url_NOT_IN: [String!]
   url_NOT_STARTS_WITH: String
   url_STARTS_WITH: String
 }
@@ -1135,7 +1135,7 @@ input TextBlockOptions {
   limit: Int
   offset: Int
   "Specify one or more TextBlockSort objects to sort TextBlocks by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [TextBlockSort]
+  sort: [TextBlockSort!]
 }
 
 "Fields to sort TextBlocks by. The order in which sorts are applied is not guaranteed when specifying many fields in one TextBlockSort object."
@@ -1174,3 +1174,5 @@ input TextBlockWhere {
 }
 
 ----
+
+'''

@@ -60,6 +60,8 @@ WHERE datetime() + this.duration >= datetime() + $this_duration_GTE
 RETURN this { .duration } as this
 ----
 
+'''
+
 == Simple Create
 
 .GraphQL-Query
@@ -105,6 +107,8 @@ RETURN
 this0 { .duration } AS this0
 ----
 
+'''
+
 == Simple Read
 
 .GraphQL-Query
@@ -143,6 +147,8 @@ MATCH (this:Movie)
 WHERE this.duration = $this_duration
 RETURN this { .duration } as this
 ----
+
+'''
 
 == Simple Update
 
@@ -187,4 +193,6 @@ SET this.duration = $this_update_duration
 
 RETURN this { .id, .duration } AS this
 ----
+
+'''
 

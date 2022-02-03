@@ -98,7 +98,7 @@ input TechOptions {
   limit: Int
   offset: Int
   "Specify one or more TechSort objects to sort Technologies by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [TechSort]
+  sort: [TechSort!]
 }
 
 "Fields to sort Technologies by. The order in which sorts are applied is not guaranteed when specifying many fields in one TechSort object."
@@ -138,3 +138,5 @@ input TechWhere {
 }
 
 ----
+
+'''

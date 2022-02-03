@@ -101,6 +101,8 @@ SET this_connect_actedIn0_relationship.screenTime = $this_connect_actedIn0_relat
 RETURN this { .name } AS this
 ----
 
+'''
+
 == Update connect to an interface relationship and nested connect
 
 .GraphQL-Query
@@ -191,6 +193,8 @@ SET this_connect_actedIn0_node_actors0_relationship.screenTime = $this_connect_a
 RETURN this { .name } AS this
 ----
 
+'''
+
 == Update connect to an interface relationship and nested connect using _on to connect only one implementation
 
 .GraphQL-Query
@@ -269,6 +273,8 @@ SET this_connect_actedIn0_relationship.screenTime = $this_connect_actedIn0_relat
 }
 RETURN this { .name } AS this
 ----
+
+'''
 
 == Update connect to an interface relationship and nested connect using _on to override connection
 
@@ -365,4 +371,6 @@ SET this_connect_actedIn0_node_actors0_relationship.screenTime = $this_connect_a
 }
 RETURN this { .name } AS this
 ----
+
+'''
 

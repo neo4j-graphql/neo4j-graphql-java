@@ -112,6 +112,8 @@ RETURN
 this0 { .id } AS this0
 ----
 
+'''
+
 == Connect Node (from update connect)
 
 .GraphQL-Query
@@ -165,6 +167,8 @@ UNION
 }
 RETURN this { .id } AS this
 ----
+
+'''
 
 == Connect Node (from update update)
 
@@ -232,6 +236,8 @@ RETURN count(*)
 RETURN this { .id } AS this
 ----
 
+'''
+
 == Connect Node + User Defined Where (from create)
 
 .GraphQL-Query
@@ -296,6 +302,8 @@ RETURN
 this0 { .id } AS this0
 ----
 
+'''
+
 == Connect Node + User Defined Where (from update connect)
 
 .GraphQL-Query
@@ -351,6 +359,8 @@ UNION
 }
 RETURN this { .id } AS this
 ----
+
+'''
 
 == Connect Node + User Defined Where (from update update)
 
@@ -420,6 +430,8 @@ RETURN count(*)
 RETURN this { .id } AS this
 ----
 
+'''
+
 == Delete Nested Node
 
 .GraphQL-Query
@@ -458,6 +470,8 @@ FOREACH(x IN this_content_Post0_to_delete | DETACH DELETE x)
 DETACH DELETE this
 ----
 
+'''
+
 == Delete Node
 
 .GraphQL-Query
@@ -485,6 +499,8 @@ MATCH (this:Post)
 WHERE EXISTS((this)<-[:HAS_CONTENT]-(:User)) AND ALL(creator IN [(this)<-[:HAS_CONTENT]-(creator:User) | creator] WHERE creator.id IS NOT NULL AND creator.id = $this_auth_where0_creator_id)
 DETACH DELETE this
 ----
+
+'''
 
 == Delete Node + User Defined Where
 
@@ -514,6 +530,8 @@ MATCH (this:Post)
 WHERE this.content = $this_content AND EXISTS((this)<-[:HAS_CONTENT]-(:User)) AND ALL(creator IN [(this)<-[:HAS_CONTENT]-(creator:User) | creator] WHERE creator.id IS NOT NULL AND creator.id = $this_auth_where0_creator_id)
 DETACH DELETE this
 ----
+
+'''
 
 == Disconnect Node (from update disconnect)
 
@@ -576,6 +594,8 @@ RETURN count(*)
 RETURN this { .id } AS this
 ----
 
+'''
+
 == Disconnect Node (from update update)
 
 .GraphQL-Query
@@ -637,6 +657,8 @@ RETURN count(*)
 
 RETURN this { .id } AS this
 ----
+
+'''
 
 == Disconnect Node + User Defined Where (from update disconnect)
 
@@ -703,6 +725,8 @@ RETURN count(*)
 }
 RETURN this { .id } AS this
 ----
+
+'''
 
 == Disconnect Node + User Defined Where (from update update)
 
@@ -786,6 +810,8 @@ RETURN count(*)
 RETURN this { .id } AS this
 ----
 
+'''
+
 == Read interface relationship field
 
 .GraphQL-Query
@@ -830,6 +856,8 @@ RETURN { __resolveType: "Post", id: this_Post.id } AS content
 }
 RETURN this { .id, content: collect(content) } as this
 ----
+
+'''
 
 == Read interface relationship Using Connection
 
@@ -880,11 +908,13 @@ WHERE EXISTS((this_Post)<-[:HAS_CONTENT]-(:User)) AND ALL(creator IN [(this_Post
 WITH { node: { __resolveType: "Post", id: this_Post.id } } AS edge
 RETURN edge
 }
-WITH collect(edge) as edges, count(edge) as totalCount
+WITH collect(edge) as edges
 RETURN { edges: edges, totalCount: size(edges) } AS contentConnection
 }
 RETURN this { .id, contentConnection } as this
 ----
+
+'''
 
 == Read interface relationship Using Connection + User Defined Where
 
@@ -945,11 +975,13 @@ WHERE this_Post.id = $this_contentConnection.args.where.node.id AND EXISTS((this
 WITH { node: { __resolveType: "Post", id: this_Post.id } } AS edge
 RETURN edge
 }
-WITH collect(edge) as edges, count(edge) as totalCount
+WITH collect(edge) as edges
 RETURN { edges: edges, totalCount: size(edges) } AS contentConnection
 }
 RETURN this { .id, contentConnection } as this
 ----
+
+'''
 
 == Read Node
 
@@ -979,6 +1011,8 @@ WHERE EXISTS((this)<-[:HAS_CONTENT]-(:User)) AND ALL(creator IN [(this)<-[:HAS_C
 RETURN this { .id } as this
 ----
 
+'''
+
 == Read Node + User Defined Where
 
 .GraphQL-Query
@@ -1007,6 +1041,8 @@ MATCH (this:Post)
 WHERE this.content = $this_content AND EXISTS((this)<-[:HAS_CONTENT]-(:User)) AND ALL(creator IN [(this)<-[:HAS_CONTENT]-(creator:User) | creator] WHERE creator.id IS NOT NULL AND creator.id = $this_auth_where0_creator_id)
 RETURN this { .id } as this
 ----
+
+'''
 
 == Update Nested Node
 
@@ -1094,6 +1130,8 @@ RETURN count(*)
 RETURN this { .id } AS this
 ----
 
+'''
+
 == Update Node
 
 .GraphQL-Query
@@ -1127,6 +1165,8 @@ SET this.content = $this_update_content
 
 RETURN this { .id } AS this
 ----
+
+'''
 
 == Update Node + User Defined Where
 
@@ -1162,4 +1202,6 @@ SET this.content = $this_update_content
 
 RETURN this { .id } AS this
 ----
+
+'''
 

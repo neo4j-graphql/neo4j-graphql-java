@@ -54,14 +54,14 @@ interface ActedIn {
 }
 
 interface Production {
-  actors(options: ActorOptions, where: ActorWhere): [Actor!]!
-  actorsConnection(after: String, first: Int, sort: [ProductionActorsConnectionSort!], where: ProductionActorsConnectionWhere): ProductionActorsConnection!
+  actors(directed: Boolean = true, options: ActorOptions, where: ActorWhere): [Actor!]!
+  actorsConnection(after: String, directed: Boolean = true, first: Int, sort: [ProductionActorsConnectionSort!], where: ProductionActorsConnectionWhere): ProductionActorsConnection!
   title: String!
 }
 
 type Actor {
-  actedIn(options: QueryOptions, where: ProductionWhere): [Production!]!
-  actedInConnection(sort: [ActorActedInConnectionSort!], where: ActorActedInConnectionWhere): ActorActedInConnection!
+  actedIn(directed: Boolean = true, options: QueryOptions, where: ProductionWhere): [Production!]!
+  actedInConnection(after: String, directed: Boolean = true, first: Int, sort: [ActorActedInConnectionSort!], where: ActorActedInConnectionWhere): ActorActedInConnection!
   name: String!
 }
 
@@ -116,9 +116,9 @@ type DeleteInfo {
 
 type Episode {
   runtime: Int!
-  series(options: SeriesOptions, where: SeriesWhere): Series!
-  seriesAggregate(where: SeriesWhere): EpisodeSeriesSeriesAggregationSelection
-  seriesConnection(after: String, first: Int, sort: [EpisodeSeriesConnectionSort!], where: EpisodeSeriesConnectionWhere): EpisodeSeriesConnection!
+  series(directed: Boolean = true, options: SeriesOptions, where: SeriesWhere): Series!
+  seriesAggregate(directed: Boolean = true, where: SeriesWhere): EpisodeSeriesSeriesAggregationSelection
+  seriesConnection(after: String, directed: Boolean = true, first: Int, sort: [EpisodeSeriesConnectionSort!], where: EpisodeSeriesConnectionWhere): EpisodeSeriesConnection!
 }
 
 type EpisodeAggregateSelection {
@@ -155,9 +155,9 @@ type IntAggregateSelectionNonNullable {
 }
 
 type Movie implements Production {
-  actors(options: ActorOptions, where: ActorWhere): [Actor!]!
-  actorsAggregate(where: ActorWhere): MovieActorActorsAggregationSelection
-  actorsConnection(after: String, first: Int, sort: [ProductionActorsConnectionSort!], where: ProductionActorsConnectionWhere): ProductionActorsConnection!
+  actors(directed: Boolean = true, options: ActorOptions, where: ActorWhere): [Actor!]!
+  actorsAggregate(directed: Boolean = true, where: ActorWhere): MovieActorActorsAggregationSelection
+  actorsConnection(after: String, directed: Boolean = true, first: Int, sort: [ProductionActorsConnectionSort!], where: ProductionActorsConnectionWhere): ProductionActorsConnection!
   runtime: Int!
   title: String!
 }
@@ -229,13 +229,13 @@ type Query {
 }
 
 type Series implements Production {
-  actors(options: ActorOptions, where: ActorWhere): [Actor!]!
-  actorsAggregate(where: ActorWhere): SeriesActorActorsAggregationSelection
-  actorsConnection(after: String, first: Int, sort: [ProductionActorsConnectionSort!], where: ProductionActorsConnectionWhere): ProductionActorsConnection!
+  actors(directed: Boolean = true, options: ActorOptions, where: ActorWhere): [Actor!]!
+  actorsAggregate(directed: Boolean = true, where: ActorWhere): SeriesActorActorsAggregationSelection
+  actorsConnection(after: String, directed: Boolean = true, first: Int, sort: [ProductionActorsConnectionSort!], where: ProductionActorsConnectionWhere): ProductionActorsConnection!
   episodeCount: Int!
-  episodes(options: EpisodeOptions, where: EpisodeWhere): [Episode!]!
-  episodesAggregate(where: EpisodeWhere): SeriesEpisodeEpisodesAggregationSelection
-  episodesConnection(after: String, first: Int, sort: [SeriesEpisodesConnectionSort!], where: SeriesEpisodesConnectionWhere): SeriesEpisodesConnection!
+  episodes(directed: Boolean = true, options: EpisodeOptions, where: EpisodeWhere): [Episode!]!
+  episodesAggregate(directed: Boolean = true, where: EpisodeWhere): SeriesEpisodeEpisodesAggregationSelection
+  episodesConnection(after: String, directed: Boolean = true, first: Int, sort: [SeriesEpisodesConnectionSort!], where: SeriesEpisodesConnectionWhere): SeriesEpisodesConnection!
   title: String!
 }
 
@@ -337,11 +337,11 @@ input ActedInWhere {
   screenTime: Int
   screenTime_GT: Int
   screenTime_GTE: Int
-  screenTime_IN: [Int]
+  screenTime_IN: [Int!]
   screenTime_LT: Int
   screenTime_LTE: Int
   screenTime_NOT: Int
-  screenTime_NOT_IN: [Int]
+  screenTime_NOT_IN: [Int!]
 }
 
 input ActorActedInConnectFieldInput {
@@ -422,7 +422,7 @@ input ActorOptions {
   limit: Int
   offset: Int
   "Specify one or more ActorSort objects to sort Actors by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [ActorSort]
+  sort: [ActorSort!]
 }
 
 input ActorRelationInput {
@@ -447,11 +447,11 @@ input ActorWhere {
   name: String
   name_CONTAINS: String
   name_ENDS_WITH: String
-  name_IN: [String]
+  name_IN: [String!]
   name_NOT: String
   name_NOT_CONTAINS: String
   name_NOT_ENDS_WITH: String
-  name_NOT_IN: [String]
+  name_NOT_IN: [String!]
   name_NOT_STARTS_WITH: String
   name_STARTS_WITH: String
 }
@@ -481,7 +481,7 @@ input EpisodeOptions {
   limit: Int
   offset: Int
   "Specify one or more EpisodeSort objects to sort Episodes by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [EpisodeSort]
+  sort: [EpisodeSort!]
 }
 
 input EpisodeRelationInput {
@@ -613,11 +613,11 @@ input EpisodeWhere {
   runtime: Int
   runtime_GT: Int
   runtime_GTE: Int
-  runtime_IN: [Int]
+  runtime_IN: [Int!]
   runtime_LT: Int
   runtime_LTE: Int
   runtime_NOT: Int
-  runtime_NOT_IN: [Int]
+  runtime_NOT_IN: [Int!]
   series: SeriesWhere
   seriesAggregate: EpisodeSeriesAggregateInput
   seriesConnection: EpisodeSeriesConnectionWhere
@@ -714,7 +714,7 @@ input MovieOptions {
   limit: Int
   offset: Int
   "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [MovieSort]
+  sort: [MovieSort!]
 }
 
 input MovieRelationInput {
@@ -744,19 +744,19 @@ input MovieWhere {
   runtime: Int
   runtime_GT: Int
   runtime_GTE: Int
-  runtime_IN: [Int]
+  runtime_IN: [Int!]
   runtime_LT: Int
   runtime_LTE: Int
   runtime_NOT: Int
-  runtime_NOT_IN: [Int]
+  runtime_NOT_IN: [Int!]
   title: String
   title_CONTAINS: String
   title_ENDS_WITH: String
-  title_IN: [String]
+  title_IN: [String!]
   title_NOT: String
   title_NOT_CONTAINS: String
   title_NOT_ENDS_WITH: String
-  title_NOT_IN: [String]
+  title_NOT_IN: [String!]
   title_NOT_STARTS_WITH: String
   title_STARTS_WITH: String
 }
@@ -947,11 +947,11 @@ input ProductionWhere {
   title: String
   title_CONTAINS: String
   title_ENDS_WITH: String
-  title_IN: [String]
+  title_IN: [String!]
   title_NOT: String
   title_NOT_CONTAINS: String
   title_NOT_ENDS_WITH: String
-  title_NOT_IN: [String]
+  title_NOT_IN: [String!]
   title_NOT_STARTS_WITH: String
   title_STARTS_WITH: String
 }
@@ -1147,7 +1147,7 @@ input SeriesOptions {
   limit: Int
   offset: Int
   "Specify one or more SeriesSort objects to sort Series by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [SeriesSort]
+  sort: [SeriesSort!]
 }
 
 input SeriesRelationInput {
@@ -1179,11 +1179,11 @@ input SeriesWhere {
   episodeCount: Int
   episodeCount_GT: Int
   episodeCount_GTE: Int
-  episodeCount_IN: [Int]
+  episodeCount_IN: [Int!]
   episodeCount_LT: Int
   episodeCount_LTE: Int
   episodeCount_NOT: Int
-  episodeCount_NOT_IN: [Int]
+  episodeCount_NOT_IN: [Int!]
   episodes: EpisodeWhere
   episodesAggregate: SeriesEpisodesAggregateInput
   episodesConnection: SeriesEpisodesConnectionWhere
@@ -1192,13 +1192,15 @@ input SeriesWhere {
   title: String
   title_CONTAINS: String
   title_ENDS_WITH: String
-  title_IN: [String]
+  title_IN: [String!]
   title_NOT: String
   title_NOT_CONTAINS: String
   title_NOT_ENDS_WITH: String
-  title_NOT_IN: [String]
+  title_NOT_IN: [String!]
   title_NOT_STARTS_WITH: String
   title_STARTS_WITH: String
 }
 
 ----
+
+'''

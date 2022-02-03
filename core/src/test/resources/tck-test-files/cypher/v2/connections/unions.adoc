@@ -85,11 +85,13 @@ MATCH (this)-[this_wrote_relationship:WROTE]->(this_Journal:Journal)
 WITH { words: this_wrote_relationship.words, node: { __resolveType: "Journal", subject: this_Journal.subject } } AS edge
 RETURN edge
 }
-WITH collect(edge) as edges, count(edge) as totalCount
-RETURN { edges: edges, totalCount: totalCount } AS publicationsConnection
+WITH collect(edge) as edges
+RETURN { edges: edges, totalCount: size(edges) } AS publicationsConnection
 }
 RETURN this { .name, publicationsConnection } as this
 ----
+
+'''
 
 == Projecting union node and relationship properties with sort argument
 
@@ -140,11 +142,13 @@ WITH { words: this_wrote_relationship.words, node: { __resolveType: "Journal", s
 RETURN edge
 }
 WITH edge ORDER BY edge.words ASC
-WITH collect(edge) as edges, count(edge) as totalCount
-RETURN { edges: edges, totalCount: totalCount } AS publicationsConnection
+WITH collect(edge) as edges
+RETURN { edges: edges, totalCount: size(edges) } AS publicationsConnection
 }
 RETURN this { .name, publicationsConnection } as this
 ----
+
+'''
 
 == Projecting union node and relationship properties with where argument
 
@@ -215,11 +219,13 @@ WHERE this_Journal.subject = $this_publicationsConnection.args.where.Journal.nod
 WITH { words: this_wrote_relationship.words, node: { __resolveType: "Journal", subject: this_Journal.subject } } AS edge
 RETURN edge
 }
-WITH collect(edge) as edges, count(edge) as totalCount
-RETURN { edges: edges, totalCount: totalCount } AS publicationsConnection
+WITH collect(edge) as edges
+RETURN { edges: edges, totalCount: size(edges) } AS publicationsConnection
 }
 RETURN this { .name, publicationsConnection } as this
 ----
+
+'''
 
 == Projecting union node and relationship properties with where node and relationship argument
 
@@ -302,11 +308,13 @@ WHERE this_Journal.subject = $this_publicationsConnection.args.where.Journal.nod
 WITH { words: this_wrote_relationship.words, node: { __resolveType: "Journal", subject: this_Journal.subject } } AS edge
 RETURN edge
 }
-WITH collect(edge) as edges, count(edge) as totalCount
-RETURN { edges: edges, totalCount: totalCount } AS publicationsConnection
+WITH collect(edge) as edges
+RETURN { edges: edges, totalCount: size(edges) } AS publicationsConnection
 }
 RETURN this { .name, publicationsConnection } as this
 ----
+
+'''
 
 == Projecting union node and relationship properties with where relationship argument
 
@@ -383,9 +391,11 @@ WHERE this_wrote_relationship.words = $this_publicationsConnection.args.where.Jo
 WITH { words: this_wrote_relationship.words, node: { __resolveType: "Journal", subject: this_Journal.subject } } AS edge
 RETURN edge
 }
-WITH collect(edge) as edges, count(edge) as totalCount
-RETURN { edges: edges, totalCount: totalCount } AS publicationsConnection
+WITH collect(edge) as edges
+RETURN { edges: edges, totalCount: size(edges) } AS publicationsConnection
 }
 RETURN this { .name, publicationsConnection } as this
 ----
+
+'''
 

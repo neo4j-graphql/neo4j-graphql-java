@@ -53,6 +53,8 @@ WHERE this.date >= $this_date_GTE
 RETURN this { .date } as this
 ----
 
+'''
+
 == Simple Create
 
 .GraphQL-Query
@@ -91,6 +93,8 @@ RETURN
 this0 { .date } AS this0
 ----
 
+'''
+
 == Simple Read
 
 .GraphQL-Query
@@ -122,6 +126,8 @@ MATCH (this:Movie)
 WHERE this.date = $this_date
 RETURN this { .date } as this
 ----
+
+'''
 
 == Simple Update
 
@@ -159,4 +165,6 @@ SET this.date = $this_update_date
 
 RETURN this { .id, .date } AS this
 ----
+
+'''
 

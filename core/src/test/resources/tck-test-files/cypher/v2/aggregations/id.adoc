@@ -47,6 +47,8 @@ MATCH (this:Movie)
 RETURN { id: { longest: max(this.id) } }
 ----
 
+'''
+
 == Min
 
 .GraphQL-Query
@@ -73,6 +75,8 @@ RETURN { id: { longest: max(this.id) } }
 MATCH (this:Movie)
 RETURN { id: { shortest: min(this.id) } }
 ----
+
+'''
 
 == Min and Max
 
@@ -101,4 +105,6 @@ RETURN { id: { shortest: min(this.id) } }
 MATCH (this:Movie)
 RETURN { id: { shortest: min(this.id), longest: max(this.id) } }
 ----
+
+'''
 

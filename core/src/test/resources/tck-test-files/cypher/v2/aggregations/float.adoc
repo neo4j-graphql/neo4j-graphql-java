@@ -47,6 +47,8 @@ MATCH (this:Movie)
 RETURN { actorCount: { average: avg(this.actorCount) } }
 ----
 
+'''
+
 == Max
 
 .GraphQL-Query
@@ -74,6 +76,8 @@ MATCH (this:Movie)
 RETURN { actorCount: { max: max(this.actorCount) } }
 ----
 
+'''
+
 == Min
 
 .GraphQL-Query
@@ -100,6 +104,8 @@ RETURN { actorCount: { max: max(this.actorCount) } }
 MATCH (this:Movie)
 RETURN { actorCount: { min: min(this.actorCount) } }
 ----
+
+'''
 
 == Min, Max, Sum and Average
 
@@ -131,6 +137,8 @@ MATCH (this:Movie)
 RETURN { actorCount: { min: min(this.actorCount), max: max(this.actorCount), average: avg(this.actorCount), sum: sum(this.actorCount) } }
 ----
 
+'''
+
 == Sum
 
 .GraphQL-Query
@@ -157,4 +165,6 @@ RETURN { actorCount: { min: min(this.actorCount), max: max(this.actorCount), ave
 MATCH (this:Movie)
 RETURN { actorCount: { sum: sum(this.actorCount) } }
 ----
+
+'''
 

@@ -74,6 +74,8 @@ CALL apoc.util.validate(NOT(ANY(r IN ["admin"] WHERE ANY(rr IN $auth.roles WHERE
 DETACH DELETE this
 ----
 
+'''
+
 == Read User
 
 .GraphQL-Query
@@ -101,4 +103,6 @@ MATCH (this:`Person`)
 CALL apoc.util.validate(NOT(this.id IS NOT NULL AND this.id = $this_auth_allow0_id), "@neo4j/graphql/FORBIDDEN", [0])
 RETURN this { .id } as this
 ----
+
+'''
 

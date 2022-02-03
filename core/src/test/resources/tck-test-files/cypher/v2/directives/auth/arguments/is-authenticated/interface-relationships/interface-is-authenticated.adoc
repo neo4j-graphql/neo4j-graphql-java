@@ -116,6 +116,8 @@ UNION
 RETURN this { .id } AS this
 ----
 
+'''
+
 == Create Node
 
 .GraphQL-Query
@@ -166,6 +168,8 @@ RETURN
 this0 { .id } AS this0
 ----
 
+'''
+
 == Delete
 
 .GraphQL-Query
@@ -205,6 +209,8 @@ WITH this
 CALL apoc.util.validate(NOT(apoc.util.validatePredicate(NOT($auth.isAuthenticated = true), "@neo4j/graphql/UNAUTHENTICATED", [0])), "@neo4j/graphql/FORBIDDEN", [0])
 DETACH DELETE this
 ----
+
+'''
 
 == Disconnect
 
@@ -275,6 +281,8 @@ RETURN count(*)
 RETURN this { .id } AS this
 ----
 
+'''
+
 == Nested Delete
 
 .GraphQL-Query
@@ -327,6 +335,8 @@ CALL apoc.util.validate(NOT(apoc.util.validatePredicate(NOT($auth.isAuthenticate
 DETACH DELETE this
 ----
 
+'''
+
 == Update Node
 
 .GraphQL-Query
@@ -373,4 +383,6 @@ SET this.id = $this_update_id
 
 RETURN this { .id } AS this
 ----
+
+'''
 

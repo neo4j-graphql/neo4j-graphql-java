@@ -94,6 +94,8 @@ FOREACH(x IN this_actors0_to_delete | DETACH DELETE x)
 DETACH DELETE this
 ----
 
+'''
+
 == Simple Delete
 
 .GraphQL-Query
@@ -121,6 +123,8 @@ MATCH (this:Movie)
 WHERE this.id = $this_id
 DETACH DELETE this
 ----
+
+'''
 
 == Single Nested Delete
 
@@ -172,6 +176,8 @@ WITH this, collect(DISTINCT this_actors0) as this_actors0_to_delete
 FOREACH(x IN this_actors0_to_delete | DETACH DELETE x)
 DETACH DELETE this
 ----
+
+'''
 
 == Single Nested Delete deleting multiple
 
@@ -235,6 +241,8 @@ WITH this, collect(DISTINCT this_actors1) as this_actors1_to_delete
 FOREACH(x IN this_actors1_to_delete | DETACH DELETE x)
 DETACH DELETE this
 ----
+
+'''
 
 == Triple Nested Delete
 
@@ -318,4 +326,6 @@ WITH this, collect(DISTINCT this_actors0) as this_actors0_to_delete
 FOREACH(x IN this_actors0_to_delete | DETACH DELETE x)
 DETACH DELETE this
 ----
+
+'''
 

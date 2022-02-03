@@ -30,7 +30,7 @@ type Area {
 .GraphQL-Query
 [source,graphql]
 ----
-query ($area: [ID]) {
+query ($area: [ID!]) {
   events(where: {area: {id_IN: $area}}) {
     id
     area {
@@ -52,4 +52,6 @@ query ($area: [ID]) {
 MATCH (this:Event)
 RETURN this { .id, area: head([ (this)-[:HAPPENS_IN]->(this_area:Area)   | this_area { .id } ]) } as this
 ----
+
+'''
 

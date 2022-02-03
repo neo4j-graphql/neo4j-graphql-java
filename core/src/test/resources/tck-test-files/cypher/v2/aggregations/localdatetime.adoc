@@ -47,6 +47,8 @@ MATCH (this:Movie)
 RETURN { createdAt: { max: max(this.createdAt) } }
 ----
 
+'''
+
 == Min
 
 .GraphQL-Query
@@ -73,6 +75,8 @@ RETURN { createdAt: { max: max(this.createdAt) } }
 MATCH (this:Movie)
 RETURN { createdAt: { min: min(this.createdAt) } }
 ----
+
+'''
 
 == Min and Max
 
@@ -101,4 +105,6 @@ RETURN { createdAt: { min: min(this.createdAt) } }
 MATCH (this:Movie)
 RETURN { createdAt: { min: min(this.createdAt), max: max(this.createdAt) } }
 ----
+
+'''
 

@@ -54,6 +54,8 @@ WHERE this.time >= $this_time_GTE
 RETURN this { .time } as this
 ----
 
+'''
+
 == Simple Create
 
 .GraphQL-Query
@@ -93,6 +95,8 @@ RETURN
 this0 { .time } AS this0
 ----
 
+'''
+
 == Simple Read
 
 .GraphQL-Query
@@ -125,6 +129,8 @@ MATCH (this:Movie)
 WHERE this.time = $this_time
 RETURN this { .time } as this
 ----
+
+'''
 
 == Simple Update
 
@@ -163,4 +169,6 @@ SET this.time = $this_update_time
 
 RETURN this { .id, .time } AS this
 ----
+
+'''
 

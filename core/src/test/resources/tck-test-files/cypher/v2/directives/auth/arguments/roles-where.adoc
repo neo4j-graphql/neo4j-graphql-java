@@ -110,6 +110,8 @@ RETURN
 this0 { .id } AS this0
 ----
 
+'''
+
 == Connect Node (from update connect)
 
 .GraphQL-Query
@@ -168,6 +170,8 @@ CALL {
 }
 RETURN this { .id } AS this
 ----
+
+'''
 
 == Connect Node (from update update)e
 
@@ -230,6 +234,8 @@ CALL {
 
 RETURN this { .id } AS this
 ----
+
+'''
 
 == Connect Node + User Defined Where (from create)
 
@@ -299,6 +305,8 @@ RETURN
 this0 { .id } AS this0
 ----
 
+'''
+
 == Connect Node + User Defined Where (from update connect)
 
 .GraphQL-Query
@@ -358,6 +366,8 @@ CALL {
 }
 RETURN this { .id } AS this
 ----
+
+'''
 
 == Connect Node + User Defined Where (from update update)
 
@@ -422,6 +432,8 @@ CALL {
 RETURN this { .id } AS this
 ----
 
+'''
+
 == Delete Nested Node
 
 .GraphQL-Query
@@ -472,6 +484,8 @@ CALL apoc.util.validate(NOT(((ANY(r IN ["user"] WHERE ANY(rr IN $auth.roles WHER
 DETACH DELETE this
 ----
 
+'''
+
 == Delete Node
 
 .GraphQL-Query
@@ -513,6 +527,8 @@ WITH this
 CALL apoc.util.validate(NOT(((ANY(r IN ["user"] WHERE ANY(rr IN $auth.roles WHERE r = rr))) OR (ANY(r IN ["admin"] WHERE ANY(rr IN $auth.roles WHERE r = rr))))), "@neo4j/graphql/FORBIDDEN", [0])
 DETACH DELETE this
 ----
+
+'''
 
 == Disconnect Node (from update disconnect)
 
@@ -582,6 +598,8 @@ RETURN count(*)
 RETURN this { .id } AS this
 ----
 
+'''
+
 == Disconnect Node (from update update)
 
 .GraphQL-Query
@@ -641,6 +659,8 @@ RETURN count(*)
 
 RETURN this { .id } AS this
 ----
+
+'''
 
 == Disconnect Node + User Defined Where (from update disconnect)
 
@@ -713,6 +733,8 @@ RETURN count(*)
 }
 RETURN this { .id } AS this
 ----
+
+'''
 
 == Disconnect Node + User Defined Where (from update update)
 
@@ -793,6 +815,8 @@ RETURN count(*)
 RETURN this { .id } AS this
 ----
 
+'''
+
 == Read Connection
 
 .GraphQL-Query
@@ -849,6 +873,8 @@ RETURN { edges: edges, totalCount: size(edges) } AS postsConnection
 }
 RETURN this { .id, postsConnection } as this
 ----
+
+'''
 
 == Read Connection + User Defined Where
 
@@ -916,6 +942,8 @@ RETURN { edges: edges, totalCount: size(edges) } AS postsConnection
 RETURN this { .id, postsConnection } as this
 ----
 
+'''
+
 == Read Node
 
 .GraphQL-Query
@@ -956,6 +984,8 @@ WHERE (((ANY(r IN ["user"] WHERE ANY(rr IN $auth.roles WHERE r = rr)) AND this.i
 CALL apoc.util.validate(NOT(((ANY(r IN ["user"] WHERE ANY(rr IN $auth.roles WHERE r = rr))) OR (ANY(r IN ["admin"] WHERE ANY(rr IN $auth.roles WHERE r = rr))))), "@neo4j/graphql/FORBIDDEN", [0])
 RETURN this { .id } as this
 ----
+
+'''
 
 == Read Node + User Defined Where
 
@@ -998,6 +1028,8 @@ WHERE this.name = $this_name AND (((ANY(r IN ["user"] WHERE ANY(rr IN $auth.role
 CALL apoc.util.validate(NOT(((ANY(r IN ["user"] WHERE ANY(rr IN $auth.roles WHERE r = rr))) OR (ANY(r IN ["admin"] WHERE ANY(rr IN $auth.roles WHERE r = rr))))), "@neo4j/graphql/FORBIDDEN", [0])
 RETURN this { .id } as this
 ----
+
+'''
 
 == Read Relationship
 
@@ -1043,6 +1075,8 @@ WHERE (((ANY(r IN ["user"] WHERE ANY(rr IN $auth.roles WHERE r = rr)) AND this.i
 CALL apoc.util.validate(NOT(((ANY(r IN ["user"] WHERE ANY(rr IN $auth.roles WHERE r = rr))) OR (ANY(r IN ["admin"] WHERE ANY(rr IN $auth.roles WHERE r = rr))))), "@neo4j/graphql/FORBIDDEN", [0])
 RETURN this { .id, posts: [ (this)-[:HAS_POST]->(this_posts:Post)  WHERE (((ANY(r IN ["user"] WHERE ANY(rr IN $auth.roles WHERE r = rr)) AND EXISTS((this_posts)<-[:HAS_POST]-(:User)) AND ALL(creator IN [(this_posts)<-[:HAS_POST]-(creator:User) | creator] WHERE creator.id IS NOT NULL AND creator.id = $this_posts_auth_where0_creator_id))) OR (ANY(r IN ["admin"] WHERE ANY(rr IN $auth.roles WHERE r = rr)))) AND apoc.util.validatePredicate(NOT(((ANY(r IN ["user"] WHERE ANY(rr IN $auth.roles WHERE r = rr))) OR (ANY(r IN ["admin"] WHERE ANY(rr IN $auth.roles WHERE r = rr))))), "@neo4j/graphql/FORBIDDEN", [0]) | this_posts { .content } ] } as this
 ----
+
+'''
 
 == Read Union
 
@@ -1091,6 +1125,8 @@ CALL apoc.util.validate(NOT(((ANY(r IN ["user"] WHERE ANY(rr IN $auth.roles WHER
 RETURN this { .id, content:  [this_content IN [(this)-[:HAS_POST]->(this_content) WHERE ("Post" IN labels(this_content)) | head( [ this_content IN [this_content] WHERE ("Post" IN labels(this_content)) AND (((ANY(r IN ["user"] WHERE ANY(rr IN $auth.roles WHERE r = rr)) AND EXISTS((this_content)<-[:HAS_POST]-(:User)) AND ALL(creator IN [(this_content)<-[:HAS_POST]-(creator:User) | creator] WHERE creator.id IS NOT NULL AND creator.id = $this_content_Post_auth_where0_creator_id))) OR (ANY(r IN ["admin"] WHERE ANY(rr IN $auth.roles WHERE r = rr)))) AND apoc.util.validatePredicate(NOT(((ANY(r IN ["user"] WHERE ANY(rr IN $auth.roles WHERE r = rr))) OR (ANY(r IN ["admin"] WHERE ANY(rr IN $auth.roles WHERE r = rr))))), "@neo4j/graphql/FORBIDDEN", [0]) | this_content { __resolveType: "Post",  .id } ] ) ] WHERE this_content IS NOT NULL]  } as this
 ----
 
+'''
+
 == Read Union Relationship + User Defined Where
 
 .GraphQL-Query
@@ -1136,6 +1172,8 @@ WHERE (((ANY(r IN ["user"] WHERE ANY(rr IN $auth.roles WHERE r = rr)) AND this.i
 CALL apoc.util.validate(NOT(((ANY(r IN ["user"] WHERE ANY(rr IN $auth.roles WHERE r = rr))) OR (ANY(r IN ["admin"] WHERE ANY(rr IN $auth.roles WHERE r = rr))))), "@neo4j/graphql/FORBIDDEN", [0])
 RETURN this { .id, posts: [ (this)-[:HAS_POST]->(this_posts:Post)  WHERE this_posts.content = $this_posts_content AND (((ANY(r IN ["user"] WHERE ANY(rr IN $auth.roles WHERE r = rr)) AND EXISTS((this_posts)<-[:HAS_POST]-(:User)) AND ALL(creator IN [(this_posts)<-[:HAS_POST]-(creator:User) | creator] WHERE creator.id IS NOT NULL AND creator.id = $this_posts_auth_where0_creator_id))) OR (ANY(r IN ["admin"] WHERE ANY(rr IN $auth.roles WHERE r = rr)))) AND apoc.util.validatePredicate(NOT(((ANY(r IN ["user"] WHERE ANY(rr IN $auth.roles WHERE r = rr))) OR (ANY(r IN ["admin"] WHERE ANY(rr IN $auth.roles WHERE r = rr))))), "@neo4j/graphql/FORBIDDEN", [0]) | this_posts { .content } ] } as this
 ----
+
+'''
 
 == Read Union Using Connection
 
@@ -1195,11 +1233,13 @@ WHERE (((ANY(r IN ["user"] WHERE ANY(rr IN $auth.roles WHERE r = rr)) AND EXISTS
 WITH { node: { __resolveType: "Post", id: this_Post.id } } AS edge
 RETURN edge
 }
-WITH collect(edge) as edges, count(edge) as totalCount
-RETURN { edges: edges, totalCount: totalCount } AS contentConnection
+WITH collect(edge) as edges
+RETURN { edges: edges, totalCount: size(edges) } AS contentConnection
 }
 RETURN this { .id, contentConnection } as this
 ----
+
+'''
 
 == Read Union Using Connection + User Defined Where
 
@@ -1270,11 +1310,13 @@ WHERE this_Post.id = $this_contentConnection.args.where.Post.node.id AND (((ANY(
 WITH { node: { __resolveType: "Post", id: this_Post.id } } AS edge
 RETURN edge
 }
-WITH collect(edge) as edges, count(edge) as totalCount
-RETURN { edges: edges, totalCount: totalCount } AS contentConnection
+WITH collect(edge) as edges
+RETURN { edges: edges, totalCount: size(edges) } AS contentConnection
 }
 RETURN this { .id, contentConnection } as this
 ----
+
+'''
 
 == Update Nested Node
 
@@ -1353,6 +1395,8 @@ YIELD value as _
 RETURN this { .id, posts: [ (this)-[:HAS_POST]->(this_posts:Post)  WHERE (((ANY(r IN ["user"] WHERE ANY(rr IN $auth.roles WHERE r = rr)) AND EXISTS((this_posts)<-[:HAS_POST]-(:User)) AND ALL(creator IN [(this_posts)<-[:HAS_POST]-(creator:User) | creator] WHERE creator.id IS NOT NULL AND creator.id = $this_posts_auth_where0_creator_id))) OR (ANY(r IN ["admin"] WHERE ANY(rr IN $auth.roles WHERE r = rr)))) AND apoc.util.validatePredicate(NOT(((ANY(r IN ["user"] WHERE ANY(rr IN $auth.roles WHERE r = rr))) OR (ANY(r IN ["admin"] WHERE ANY(rr IN $auth.roles WHERE r = rr))))), "@neo4j/graphql/FORBIDDEN", [0]) | this_posts { .id } ] } AS this
 ----
 
+'''
+
 == Update Node
 
 .GraphQL-Query
@@ -1399,6 +1443,8 @@ SET this.name = $this_update_name
 
 RETURN this { .id } AS this
 ----
+
+'''
 
 == Update Node + User Defined Where
 
@@ -1447,4 +1493,6 @@ SET this.name = $this_update_name
 
 RETURN this { .id } AS this
 ----
+
+'''
 

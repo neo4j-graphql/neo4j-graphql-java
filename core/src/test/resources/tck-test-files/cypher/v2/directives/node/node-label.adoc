@@ -55,6 +55,8 @@ WHERE EXISTS((this)<-[:ACTED_IN]-(:`Person`)) AND ANY(this_actors IN [(this)<-[:
 DETACH DELETE this
 ----
 
+'''
+
 == Create Movie and relation with custom labels
 
 .GraphQL-Query
@@ -112,6 +114,8 @@ this0 { .id } AS this0,
 this1 { .id } AS this1
 ----
 
+'''
+
 == Create Movie with label Film
 
 .GraphQL-Query
@@ -146,6 +150,8 @@ RETURN
 this0 { .id } AS this0
 ----
 
+'''
+
 == Delete Movie with custom label
 
 .GraphQL-Query
@@ -173,6 +179,8 @@ MATCH (this:`Film`)
 WHERE this.id = $this_id
 DETACH DELETE this
 ----
+
+'''
 
 == Delete Movies and actors with custom labels
 
@@ -225,6 +233,8 @@ FOREACH(x IN this_actors0_to_delete | DETACH DELETE x)
 DETACH DELETE this
 ----
 
+'''
+
 == Select movie and actor with custom labels
 
 .GraphQL-Query
@@ -252,6 +262,8 @@ DETACH DELETE this
 MATCH (this:`Film`)
 RETURN this { .title, actors: [ (this)<-[:ACTED_IN]-(this_actors:`Person`)   | this_actors { .name } ] } as this
 ----
+
+'''
 
 == Select movie and actor with custom labels using Relay connection
 
@@ -291,6 +303,8 @@ RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
 RETURN this { .title, actorsConnection } as this
 ----
 
+'''
+
 == Select Movie with label Film
 
 .GraphQL-Query
@@ -315,6 +329,8 @@ RETURN this { .title, actorsConnection } as this
 MATCH (this:`Film`)
 RETURN this { .title } as this
 ----
+
+'''
 
 == Update connection in Movie with label film
 
@@ -361,6 +377,8 @@ CALL {
 }
 RETURN this { .id } AS this
 ----
+
+'''
 
 == Update disconnect in Movie with label film
 
@@ -420,6 +438,8 @@ RETURN count(*)
 RETURN this { .id } AS this
 ----
 
+'''
+
 == Update Movie with label film
 
 .GraphQL-Query
@@ -453,6 +473,8 @@ SET this.id = $this_update_id
 
 RETURN this { .id } AS this
 ----
+
+'''
 
 == Update nested actors with custom label
 
@@ -526,4 +548,6 @@ YIELD value as _
 
 RETURN this { .id } AS this
 ----
+
+'''
 

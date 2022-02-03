@@ -53,6 +53,8 @@ WHERE this.title = $this_title
 RETURN this { .title } as this
 ----
 
+'''
+
 == simple match with single fulltext property
 
 .GraphQL-Query
@@ -82,4 +84,6 @@ CALL db.index.fulltext.queryNodes(
 ) YIELD node as this, score as score
 RETURN this { .title } as this
 ----
+
+'''
 

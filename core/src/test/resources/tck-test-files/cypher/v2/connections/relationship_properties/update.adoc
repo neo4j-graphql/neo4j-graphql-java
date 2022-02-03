@@ -96,6 +96,8 @@ YIELD value as this_acted_in0_relationship_actors0_edge
 RETURN this { .title } AS this
 ----
 
+'''
+
 == Update properties on both the relationship and end node in a nested update (update -> update)
 
 .GraphQL-Query
@@ -179,4 +181,6 @@ YIELD value as this_acted_in0_relationship_actors0_edge
 
 RETURN this { .title } AS this
 ----
+
+'''
 

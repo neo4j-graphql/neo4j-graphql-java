@@ -75,6 +75,8 @@ RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
 RETURN this { .title, actorsConnection } as this
 ----
 
+'''
+
 == edges and totalCount returned if pageInfo asked for on a union
 
 .GraphQL-Query
@@ -121,11 +123,13 @@ MATCH (this)-[this_acted_in_relationship:ACTED_IN]->(this_Series:Series)
 WITH { node: { __resolveType: "Series" } } AS edge
 RETURN edge
 }
-WITH collect(edge) as edges, count(edge) as totalCount
-RETURN { edges: edges, totalCount: totalCount } AS productionsConnection
+WITH collect(edge) as edges
+RETURN { edges: edges, totalCount: size(edges) } AS productionsConnection
 }
 RETURN this { .name, productionsConnection } as this
 ----
+
+'''
 
 == edges not returned if not asked for
 
@@ -163,6 +167,8 @@ RETURN { totalCount: size(edges) } AS actorsConnection
 }
 RETURN this { .title, actorsConnection } as this
 ----
+
+'''
 
 == edges not returned if not asked for on a union
 
@@ -205,11 +211,13 @@ MATCH (this)-[this_acted_in_relationship:ACTED_IN]->(this_Series:Series)
 WITH { node: { __resolveType: "Series" } } AS edge
 RETURN edge
 }
-WITH count(edge) as totalCount
-RETURN { totalCount: totalCount } AS productionsConnection
+WITH collect(edge) as edges
+RETURN { totalCount: size(edges) } AS productionsConnection
 }
 RETURN this { .name, productionsConnection } as this
 ----
+
+'''
 
 == Minimal edges returned if not asked for with pagination arguments
 
@@ -248,6 +256,8 @@ RETURN { edges: limitedSelection, totalCount: totalCount } AS actorsConnection
 }
 RETURN this { .title, actorsConnection } as this
 ----
+
+'''
 
 == totalCount is calculated and returned if asked for with edges
 
@@ -291,6 +301,8 @@ RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
 RETURN this { .title, actorsConnection } as this
 ----
 
+'''
+
 == totalCount is calculated and returned if asked for with edges with pagination arguments
 
 .GraphQL-Query
@@ -333,4 +345,6 @@ RETURN { edges: limitedSelection, totalCount: totalCount } AS actorsConnection
 }
 RETURN this { .title, actorsConnection } as this
 ----
+
+'''
 

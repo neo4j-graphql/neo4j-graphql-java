@@ -52,6 +52,8 @@ RETURN this { .title } as this
 LIMIT $this_limit
 ----
 
+'''
+
 == Skip + Limit
 
 .GraphQL-Query
@@ -87,6 +89,8 @@ RETURN this { .title } as this
 SKIP $this_offset
 LIMIT $this_limit
 ----
+
+'''
 
 == Skip + Limit as variables
 
@@ -132,6 +136,8 @@ RETURN this { .title } as this
 SKIP $this_offset
 LIMIT $this_limit
 ----
+
+'''
 
 == Skip + Limit with other variables
 
@@ -181,6 +187,8 @@ SKIP $this_offset
 LIMIT $this_limit
 ----
 
+'''
+
 == Skipping
 
 .GraphQL-Query
@@ -211,4 +219,6 @@ MATCH (this:Movie)
 RETURN this { .title } as this
 SKIP $this_offset
 ----
+
+'''
 

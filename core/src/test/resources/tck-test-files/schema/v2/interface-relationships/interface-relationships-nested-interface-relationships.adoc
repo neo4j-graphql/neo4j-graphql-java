@@ -51,8 +51,8 @@ schema {
 
 interface Interface1 {
   field1: String!
-  interface2(options: QueryOptions, where: Interface2Where): [Interface2!]!
-  interface2Connection(where: Interface1Interface2ConnectionWhere): Interface1Interface2Connection!
+  interface2(directed: Boolean = true, options: QueryOptions, where: Interface2Where): [Interface2!]!
+  interface2Connection(after: String, directed: Boolean = true, first: Int, where: Interface1Interface2ConnectionWhere): Interface1Interface2Connection!
 }
 
 interface Interface2 {
@@ -153,8 +153,8 @@ type StringAggregateSelectionNonNullable {
 
 type Type1 {
   field1: String!
-  interface1(options: QueryOptions, where: Interface1Where): [Interface1!]!
-  interface1Connection(where: Type1Interface1ConnectionWhere): Type1Interface1Connection!
+  interface1(directed: Boolean = true, options: QueryOptions, where: Interface1Where): [Interface1!]!
+  interface1Connection(after: String, directed: Boolean = true, first: Int, where: Type1Interface1ConnectionWhere): Type1Interface1Connection!
 }
 
 type Type1AggregateSelection {
@@ -164,8 +164,8 @@ type Type1AggregateSelection {
 
 type Type1Interface1 implements Interface1 {
   field1: String!
-  interface2(options: QueryOptions, where: Interface2Where): [Interface2!]!
-  interface2Connection(where: Interface1Interface2ConnectionWhere): Interface1Interface2Connection!
+  interface2(directed: Boolean = true, options: QueryOptions, where: Interface2Where): [Interface2!]!
+  interface2Connection(after: String, directed: Boolean = true, first: Int, where: Interface1Interface2ConnectionWhere): Interface1Interface2Connection!
 }
 
 type Type1Interface1AggregateSelection {
@@ -195,8 +195,8 @@ type Type1Interface2AggregateSelection {
 
 type Type2Interface1 implements Interface1 {
   field1: String!
-  interface2(options: QueryOptions, where: Interface2Where): [Interface2!]!
-  interface2Connection(where: Interface1Interface2ConnectionWhere): Interface1Interface2Connection!
+  interface2(directed: Boolean = true, options: QueryOptions, where: Interface2Where): [Interface2!]!
+  interface2Connection(after: String, directed: Boolean = true, first: Int, where: Interface1Interface2ConnectionWhere): Interface1Interface2Connection!
 }
 
 type Type2Interface1AggregateSelection {
@@ -349,11 +349,11 @@ input Interface1Where {
   field1: String
   field1_CONTAINS: String
   field1_ENDS_WITH: String
-  field1_IN: [String]
+  field1_IN: [String!]
   field1_NOT: String
   field1_NOT_CONTAINS: String
   field1_NOT_ENDS_WITH: String
-  field1_NOT_IN: [String]
+  field1_NOT_IN: [String!]
   field1_NOT_STARTS_WITH: String
   field1_STARTS_WITH: String
   interface2Connection: Interface1Interface2ConnectionWhere
@@ -506,7 +506,7 @@ input Type1Interface1Options {
   limit: Int
   offset: Int
   "Specify one or more Type1Interface1Sort objects to sort Type1Interface1s by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [Type1Interface1Sort]
+  sort: [Type1Interface1Sort!]
 }
 
 input Type1Interface1RelationInput {
@@ -542,11 +542,11 @@ input Type1Interface1Where {
   field1: String
   field1_CONTAINS: String
   field1_ENDS_WITH: String
-  field1_IN: [String]
+  field1_IN: [String!]
   field1_NOT: String
   field1_NOT_CONTAINS: String
   field1_NOT_ENDS_WITH: String
-  field1_NOT_IN: [String]
+  field1_NOT_IN: [String!]
   field1_NOT_STARTS_WITH: String
   field1_STARTS_WITH: String
   interface2Connection: Interface1Interface2ConnectionWhere
@@ -561,7 +561,7 @@ input Type1Interface2Options {
   limit: Int
   offset: Int
   "Specify one or more Type1Interface2Sort objects to sort Type1Interface2s by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [Type1Interface2Sort]
+  sort: [Type1Interface2Sort!]
 }
 
 "Fields to sort Type1Interface2s by. The order in which sorts are applied is not guaranteed when specifying many fields in one Type1Interface2Sort object."
@@ -579,11 +579,11 @@ input Type1Interface2Where {
   field2: String
   field2_CONTAINS: String
   field2_ENDS_WITH: String
-  field2_IN: [String]
+  field2_IN: [String!]
   field2_NOT: String
   field2_NOT_CONTAINS: String
   field2_NOT_ENDS_WITH: String
-  field2_NOT_IN: [String]
+  field2_NOT_IN: [String!]
   field2_NOT_STARTS_WITH: String
   field2_STARTS_WITH: String
 }
@@ -592,7 +592,7 @@ input Type1Options {
   limit: Int
   offset: Int
   "Specify one or more Type1Sort objects to sort Type1s by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [Type1Sort]
+  sort: [Type1Sort!]
 }
 
 input Type1RelationInput {
@@ -615,11 +615,11 @@ input Type1Where {
   field1: String
   field1_CONTAINS: String
   field1_ENDS_WITH: String
-  field1_IN: [String]
+  field1_IN: [String!]
   field1_NOT: String
   field1_NOT_CONTAINS: String
   field1_NOT_ENDS_WITH: String
-  field1_NOT_IN: [String]
+  field1_NOT_IN: [String!]
   field1_NOT_STARTS_WITH: String
   field1_STARTS_WITH: String
   interface1Connection: Type1Interface1ConnectionWhere
@@ -681,7 +681,7 @@ input Type2Interface1Options {
   limit: Int
   offset: Int
   "Specify one or more Type2Interface1Sort objects to sort Type2Interface1s by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [Type2Interface1Sort]
+  sort: [Type2Interface1Sort!]
 }
 
 input Type2Interface1RelationInput {
@@ -704,11 +704,11 @@ input Type2Interface1Where {
   field1: String
   field1_CONTAINS: String
   field1_ENDS_WITH: String
-  field1_IN: [String]
+  field1_IN: [String!]
   field1_NOT: String
   field1_NOT_CONTAINS: String
   field1_NOT_ENDS_WITH: String
-  field1_NOT_IN: [String]
+  field1_NOT_IN: [String!]
   field1_NOT_STARTS_WITH: String
   field1_STARTS_WITH: String
   interface2Connection: Interface1Interface2ConnectionWhere
@@ -723,7 +723,7 @@ input Type2Interface2Options {
   limit: Int
   offset: Int
   "Specify one or more Type2Interface2Sort objects to sort Type2Interface2s by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [Type2Interface2Sort]
+  sort: [Type2Interface2Sort!]
 }
 
 "Fields to sort Type2Interface2s by. The order in which sorts are applied is not guaranteed when specifying many fields in one Type2Interface2Sort object."
@@ -741,13 +741,15 @@ input Type2Interface2Where {
   field2: String
   field2_CONTAINS: String
   field2_ENDS_WITH: String
-  field2_IN: [String]
+  field2_IN: [String!]
   field2_NOT: String
   field2_NOT_CONTAINS: String
   field2_NOT_ENDS_WITH: String
-  field2_NOT_IN: [String]
+  field2_NOT_IN: [String!]
   field2_NOT_STARTS_WITH: String
   field2_STARTS_WITH: String
 }
 
 ----
+
+'''

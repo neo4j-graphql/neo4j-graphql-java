@@ -49,3 +49,5 @@ WHERE "Movie" IN labels(this) AND "some-label" IN labels(this)
 RETURN this { .title } as this
 ----
 
+'''
+

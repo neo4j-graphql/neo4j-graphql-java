@@ -12,6 +12,7 @@ object Constants {
     const val SORT = "sort"
     const val FIRST = "first"
     const val AFTER = "after"
+    const val DIRECTED = "directed"
     const val ON_CREATE_FIELD = "onCreate"
     const val INFO_FIELD = "info"
     const val INPUT_FIELD = "input"

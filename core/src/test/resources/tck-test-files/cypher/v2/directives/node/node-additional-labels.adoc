@@ -84,6 +84,8 @@ this0 { .id } AS this0,
 this1 { .id } AS this1
 ----
 
+'''
+
 == Delete Movie with additional additionalLabels
 
 .GraphQL-Query
@@ -111,6 +113,8 @@ MATCH (this:`Film`:`Multimedia`)
 WHERE this.id = $this_id
 DETACH DELETE this
 ----
+
+'''
 
 == Select movie and actor with additional labels
 
@@ -140,6 +144,8 @@ MATCH (this:`Film`:`Multimedia`)
 RETURN this { .title, actors: [ (this)<-[:ACTED_IN]-(this_actors:`Actor`:`Person`)   | this_actors { .name } ] } as this
 ----
 
+'''
+
 == Select Movie with additional labels
 
 .GraphQL-Query
@@ -164,6 +170,8 @@ RETURN this { .title, actors: [ (this)<-[:ACTED_IN]-(this_actors:`Actor`:`Person
 MATCH (this:`Film`:`Multimedia`)
 RETURN this { .title } as this
 ----
+
+'''
 
 == Update Movie with additional labels
 
@@ -198,4 +206,6 @@ SET this.id = $this_update_id
 
 RETURN this { .id } AS this
 ----
+
+'''
 

@@ -45,20 +45,20 @@ schema {
 
 interface Content {
   content: String
-  creator(options: UserOptions, where: UserWhere): User!
-  creatorConnection(after: String, first: Int, sort: [ContentCreatorConnectionSort!], where: ContentCreatorConnectionWhere): ContentCreatorConnection!
+  creator(directed: Boolean = true, options: UserOptions, where: UserWhere): User!
+  creatorConnection(after: String, directed: Boolean = true, first: Int, sort: [ContentCreatorConnectionSort!], where: ContentCreatorConnectionWhere): ContentCreatorConnection!
   id: ID
 }
 
 type Comment implements Content {
   content: String
-  creator(options: UserOptions, where: UserWhere): User!
-  creatorAggregate(where: UserWhere): CommentUserCreatorAggregationSelection
-  creatorConnection(after: String, first: Int, sort: [ContentCreatorConnectionSort!], where: ContentCreatorConnectionWhere): ContentCreatorConnection!
+  creator(directed: Boolean = true, options: UserOptions, where: UserWhere): User!
+  creatorAggregate(directed: Boolean = true, where: UserWhere): CommentUserCreatorAggregationSelection
+  creatorConnection(after: String, directed: Boolean = true, first: Int, sort: [ContentCreatorConnectionSort!], where: ContentCreatorConnectionWhere): ContentCreatorConnection!
   id: ID
-  post(options: PostOptions, where: PostWhere): Post!
-  postAggregate(where: PostWhere): CommentPostPostAggregationSelection
-  postConnection(after: String, first: Int, sort: [CommentPostConnectionSort!], where: CommentPostConnectionWhere): CommentPostConnection!
+  post(directed: Boolean = true, options: PostOptions, where: PostWhere): Post!
+  postAggregate(directed: Boolean = true, where: PostWhere): CommentPostPostAggregationSelection
+  postConnection(after: String, directed: Boolean = true, first: Int, sort: [CommentPostConnectionSort!], where: CommentPostConnectionWhere): CommentPostConnection!
 }
 
 type CommentAggregateSelection {
@@ -162,13 +162,13 @@ type PageInfo {
 }
 
 type Post implements Content {
-  comments(options: CommentOptions, where: CommentWhere): [Comment!]!
-  commentsAggregate(where: CommentWhere): PostCommentCommentsAggregationSelection
-  commentsConnection(after: String, first: Int, sort: [PostCommentsConnectionSort!], where: PostCommentsConnectionWhere): PostCommentsConnection!
+  comments(directed: Boolean = true, options: CommentOptions, where: CommentWhere): [Comment!]!
+  commentsAggregate(directed: Boolean = true, where: CommentWhere): PostCommentCommentsAggregationSelection
+  commentsConnection(after: String, directed: Boolean = true, first: Int, sort: [PostCommentsConnectionSort!], where: PostCommentsConnectionWhere): PostCommentsConnection!
   content: String
-  creator(options: UserOptions, where: UserWhere): User!
-  creatorAggregate(where: UserWhere): PostUserCreatorAggregationSelection
-  creatorConnection(after: String, first: Int, sort: [ContentCreatorConnectionSort!], where: ContentCreatorConnectionWhere): ContentCreatorConnection!
+  creator(directed: Boolean = true, options: UserOptions, where: UserWhere): User!
+  creatorAggregate(directed: Boolean = true, where: UserWhere): PostUserCreatorAggregationSelection
+  creatorConnection(after: String, directed: Boolean = true, first: Int, sort: [ContentCreatorConnectionSort!], where: ContentCreatorConnectionWhere): ContentCreatorConnection!
   id: ID
 }
 
@@ -247,8 +247,8 @@ type UpdateUsersMutationResponse {
 }
 
 type User {
-  content(options: QueryOptions, where: ContentWhere): [Content!]!
-  contentConnection(where: UserContentConnectionWhere): UserContentConnection!
+  content(directed: Boolean = true, options: QueryOptions, where: ContentWhere): [Content!]!
+  contentConnection(after: String, directed: Boolean = true, first: Int, where: UserContentConnectionWhere): UserContentConnection!
   id: ID
   name: String
 }
@@ -344,7 +344,7 @@ input CommentOptions {
   limit: Int
   offset: Int
   "Specify one or more CommentSort objects to sort Comments by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [CommentSort]
+  sort: [CommentSort!]
 }
 
 input CommentPostAggregateInput {
@@ -807,7 +807,7 @@ input PostOptions {
   limit: Int
   offset: Int
   "Specify one or more PostSort objects to sort Posts by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [PostSort]
+  sort: [PostSort!]
 }
 
 input PostRelationInput {
@@ -938,7 +938,7 @@ input UserOptions {
   limit: Int
   offset: Int
   "Specify one or more UserSort objects to sort Users by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [UserSort]
+  sort: [UserSort!]
 }
 
 input UserRelationInput {
@@ -985,3 +985,5 @@ input UserWhere {
 }
 
 ----
+
+'''

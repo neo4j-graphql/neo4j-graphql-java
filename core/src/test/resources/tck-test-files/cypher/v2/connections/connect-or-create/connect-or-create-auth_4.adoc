@@ -70,6 +70,8 @@ RETURN
 this0 { .title } AS this0
 ----
 
+'''
+
 
 == Update -> connectOrCreate
 
@@ -114,6 +116,8 @@ this_connectOrCreate_genres0.name = $this_connectOrCreate_genres0_on_create_name
 MERGE (this)-[this_relationship_this_connectOrCreate_genres0:IN_GENRE]->(this_connectOrCreate_genres0)
 RETURN this { .title } AS this
 ----
+
+'''
 
 
 == Update -> nested connectOrCreate
@@ -163,5 +167,7 @@ MERGE (this)-[this_relationship_this_genres0_connectOrCreate0:IN_GENRE]->(this_g
 
 RETURN this { .title } AS this
 ----
+
+'''
 
 

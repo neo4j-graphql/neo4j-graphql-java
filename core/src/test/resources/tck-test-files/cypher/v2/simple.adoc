@@ -50,6 +50,8 @@ WHERE this.title = $this_title
 RETURN this { .id, .title } as this
 ----
 
+'''
+
 == Multi selection, Movie by title via variable
 
 .GraphQL-Query
@@ -87,6 +89,8 @@ WHERE this.title = $this_title
 RETURN this { .id, .title } as this
 ----
 
+'''
+
 == Single selection, Movie by title
 
 .GraphQL-Query
@@ -114,4 +118,6 @@ MATCH (this:Movie)
 WHERE this.title = $this_title
 RETURN this { .title } as this
 ----
+
+'''
 

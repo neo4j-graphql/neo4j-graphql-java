@@ -62,6 +62,8 @@ RETURN this { .id, .title } as this
 ORDER BY this.id DESC, this.title ASC
 ----
 
+'''
+
 == Nested Sort ASC
 
 .GraphQL-Query
@@ -89,6 +91,8 @@ MATCH (this:Movie)
 RETURN this { genres: apoc.coll.sortMulti([ (this)-[:HAS_GENRE]->(this_genres:Genre)   | this_genres { .name } ], ['^name']) } as this
 ----
 
+'''
+
 == Nested Sort DESC
 
 .GraphQL-Query
@@ -115,6 +119,8 @@ RETURN this { genres: apoc.coll.sortMulti([ (this)-[:HAS_GENRE]->(this_genres:Ge
 MATCH (this:Movie)
 RETURN this { genres: apoc.coll.sortMulti([ (this)-[:HAS_GENRE]->(this_genres:Genre)   | this_genres { .name } ], ['name']) } as this
 ----
+
+'''
 
 == Nested Sort On Cypher Field ASC
 
@@ -153,6 +159,8 @@ RETURN this { genres: apoc.coll.sortMulti([ (this)-[:HAS_GENRE]->(this_genres:Ge
 RETURN count(DISTINCT movie)", {this: this_genres, auth: $auth}, false) } ], ['^totalMovies']) } as this
 ----
 
+'''
+
 == Simple Sort On Cypher Field
 
 .GraphQL-Query
@@ -187,6 +195,8 @@ RETURN this { totalGenres:  apoc.cypher.runFirstColumn("MATCH (this)-[:HAS_GENRE
 RETURN count(DISTINCT genre)", {this: this, auth: $auth}, false) } as this
 ORDER BY this.totalGenres DESC
 ----
+
+'''
 
 == Sort with offset limit & with other variables
 
@@ -241,7 +251,38 @@ SKIP $this_offset
 LIMIT $this_limit
 ----
 
+'''
+
 == Simple Sort
+
+=== with field aliased in selection set
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(options: {sort: [{id: DESC}]}) {
+    aliased: id
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+RETURN this { aliased: this.id, .title, .id } as this
+ORDER BY this.id DESC
+----
+
+'''
 
 === with field in selection set
 
@@ -270,6 +311,8 @@ RETURN this { .id, .title } as this
 ORDER BY this.id DESC
 ----
 
+'''
+
 === with field not in selection set
 
 .GraphQL-Query
@@ -295,5 +338,7 @@ MATCH (this:Movie)
 RETURN this { .title, .id } as this
 ORDER BY this.id DESC
 ----
+
+'''
 
 

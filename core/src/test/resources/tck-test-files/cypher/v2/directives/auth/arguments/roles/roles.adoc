@@ -105,6 +105,8 @@ CALL {
 RETURN this { .id } AS this
 ----
 
+'''
+
 == Create Node
 
 .GraphQL-Query
@@ -152,6 +154,8 @@ RETURN this0
 RETURN 
 this0 { .id } AS this0
 ----
+
+'''
 
 == Create Node & Field
 
@@ -205,6 +209,8 @@ RETURN
 this0 { .id } AS this0
 ----
 
+'''
+
 == Delete
 
 .GraphQL-Query
@@ -244,6 +250,8 @@ WITH this
 CALL apoc.util.validate(NOT(ANY(r IN ["admin"] WHERE ANY(rr IN $auth.roles WHERE r = rr))), "@neo4j/graphql/FORBIDDEN", [0])
 DETACH DELETE this
 ----
+
+'''
 
 == Disconnect
 
@@ -304,6 +312,8 @@ RETURN count(*)
 }
 RETURN this { .id } AS this
 ----
+
+'''
 
 == Nested Connect
 
@@ -393,6 +403,8 @@ YIELD value as _
 RETURN this { .content } AS this
 ----
 
+'''
+
 == Nested Delete
 
 .GraphQL-Query
@@ -438,6 +450,8 @@ WITH this
 CALL apoc.util.validate(NOT(ANY(r IN ["admin"] WHERE ANY(rr IN $auth.roles WHERE r = rr))), "@neo4j/graphql/FORBIDDEN", [0])
 DETACH DELETE this
 ----
+
+'''
 
 == Nested Disconnect
 
@@ -524,6 +538,8 @@ YIELD value as _
 RETURN this { .content } AS this
 ----
 
+'''
+
 == Read Node
 
 .GraphQL-Query
@@ -563,6 +579,8 @@ MATCH (this:User)
 CALL apoc.util.validate(NOT(ANY(r IN ["admin"] WHERE ANY(rr IN $auth.roles WHERE r = rr))), "@neo4j/graphql/FORBIDDEN", [0])
 RETURN this { .id, .name } as this
 ----
+
+'''
 
 == Read Node & Cypher Field
 
@@ -607,6 +625,8 @@ CALL apoc.util.validate(NOT(ANY(r IN ["super-admin"] WHERE ANY(rr IN $auth.roles
 RETURN this { history: [this_history IN apoc.cypher.runFirstColumn("MATCH (this)-[:HAS_HISTORY]->(h:History) RETURN h", {this: this, auth: $auth}, true) WHERE apoc.util.validatePredicate(NOT(ANY(r IN ["super-admin"] WHERE ANY(rr IN $auth.roles WHERE r = rr))), "@neo4j/graphql/FORBIDDEN", [0]) | this_history { .url }] } as this
 ----
 
+'''
+
 == Read Node & Field
 
 .GraphQL-Query
@@ -649,6 +669,8 @@ WITH this
 CALL apoc.util.validate(NOT(ANY(r IN ["super-admin"] WHERE ANY(rr IN $auth.roles WHERE r = rr))), "@neo4j/graphql/FORBIDDEN", [0])
 RETURN this { .id, .name, .password } as this
 ----
+
+'''
 
 == Update Node
 
@@ -697,6 +719,8 @@ SET this.id = $this_update_id
 RETURN this { .id } AS this
 ----
 
+'''
+
 == Update Node & Field
 
 .GraphQL-Query
@@ -743,4 +767,6 @@ SET this.password = $this_update_password
 
 RETURN this { .id } AS this
 ----
+
+'''
 

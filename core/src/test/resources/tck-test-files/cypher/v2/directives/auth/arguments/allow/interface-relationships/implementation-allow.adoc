@@ -101,6 +101,8 @@ UNION
 RETURN this { .id } AS this
 ----
 
+'''
+
 == Disconnect Node
 
 .GraphQL-Query
@@ -170,6 +172,8 @@ RETURN count(*)
 RETURN this { .id } AS this
 ----
 
+'''
+
 == Nested Delete Node
 
 .GraphQL-Query
@@ -228,6 +232,8 @@ WITH this, collect(DISTINCT this_content_Post0) as this_content_Post0_to_delete
 FOREACH(x IN this_content_Post0_to_delete | DETACH DELETE x)
 DETACH DELETE this
 ----
+
+'''
 
 == Nested Disconnect Node
 
@@ -329,6 +335,8 @@ RETURN count(*)
 }
 RETURN this { .id } AS this
 ----
+
+'''
 
 == Nested Update Node
 
@@ -434,6 +442,8 @@ RETURN { __resolveType: "Post", id: this_Post.id } AS content
 RETURN this { .id, content: collect(content) } AS this
 ----
 
+'''
+
 == read allow protected interface relationship
 
 .GraphQL-Query
@@ -475,6 +485,8 @@ RETURN { __resolveType: "Post", id: this_Post.id, content: this_Post.content } A
 }
 RETURN this { .id, content: collect(content) } as this
 ----
+
+'''
 
 == Read Two Relationships
 
@@ -532,4 +544,6 @@ RETURN { __resolveType: "Post", comments: [ (this_Post)-[:HAS_COMMENT]->(this_Po
 }
 RETURN this { .id, content: collect(content) } as this
 ----
+
+'''
 

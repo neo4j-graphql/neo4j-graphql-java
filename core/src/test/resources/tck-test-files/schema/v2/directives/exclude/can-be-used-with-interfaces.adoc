@@ -111,7 +111,7 @@ input MovieOptions {
   limit: Int
   offset: Int
   "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [MovieSort]
+  sort: [MovieSort!]
 }
 
 "Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
@@ -146,7 +146,7 @@ input SeriesOptions {
   limit: Int
   offset: Int
   "Specify one or more SeriesSort objects to sort Series by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [SeriesSort]
+  sort: [SeriesSort!]
 }
 
 "Fields to sort Series by. The order in which sorts are applied is not guaranteed when specifying many fields in one SeriesSort object."
@@ -170,3 +170,5 @@ input SeriesWhere {
 }
 
 ----
+
+'''

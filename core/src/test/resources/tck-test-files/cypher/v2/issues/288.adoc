@@ -63,6 +63,8 @@ RETURN
 this0 { .USERID, .COMPANYID } AS this0
 ----
 
+'''
+
 == Can update a USER and COMPANYID is populated
 
 .GraphQL-Query
@@ -97,4 +99,6 @@ SET this.COMPANYID = $this_update_COMPANYID
 
 RETURN this { .USERID, .COMPANYID } AS this
 ----
+
+'''
 

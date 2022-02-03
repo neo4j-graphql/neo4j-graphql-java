@@ -113,6 +113,8 @@ this0 { .title, actorsConnection } AS this0,
 this1 { .title, actorsConnection } AS this1
 ----
 
+'''
+
 == Connection can be selected following the creation of a multiple nodes
 
 .GraphQL-Query
@@ -176,6 +178,8 @@ this0 { .title, actorsConnection } AS this0,
 this1 { .title, actorsConnection } AS this1
 ----
 
+'''
+
 == Connection can be selected following the creation of a single node
 
 .GraphQL-Query
@@ -223,4 +227,6 @@ RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
 RETURN 
 this0 { .title, actorsConnection } AS this0
 ----
+
+'''
 

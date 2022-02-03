@@ -71,6 +71,8 @@ RETURN this_likesAggregate_edge.someDateTime = $this_likesAggregate_edge_someDat
 RETURN this { .content } as this
 ----
 
+'''
+
 == EQUAL with alias
 
 .GraphQL-Query
@@ -111,6 +113,8 @@ RETURN this_likesAggregate_edge._someDateTimeAlias = $this_likesAggregate_edge_s
 ", { this: this, this_likesAggregate_edge_someDateTimeAlias_EQUAL: $this_likesAggregate_edge_someDateTimeAlias_EQUAL }, false )
 RETURN this { .content } as this
 ----
+
+'''
 
 == GT
 
@@ -153,6 +157,8 @@ RETURN this_likesAggregate_edge.someDateTime > $this_likesAggregate_edge_someDat
 RETURN this { .content } as this
 ----
 
+'''
+
 == GTE
 
 .GraphQL-Query
@@ -193,6 +199,8 @@ RETURN this_likesAggregate_edge.someDateTime >= $this_likesAggregate_edge_someDa
 ", { this: this, this_likesAggregate_edge_someDateTime_GTE: $this_likesAggregate_edge_someDateTime_GTE }, false )
 RETURN this { .content } as this
 ----
+
+'''
 
 == LT
 
@@ -235,6 +243,8 @@ RETURN this_likesAggregate_edge.someDateTime < $this_likesAggregate_edge_someDat
 RETURN this { .content } as this
 ----
 
+'''
+
 == LTE
 
 .GraphQL-Query
@@ -275,6 +285,8 @@ RETURN this_likesAggregate_edge.someDateTime <= $this_likesAggregate_edge_someDa
 ", { this: this, this_likesAggregate_edge_someDateTime_LTE: $this_likesAggregate_edge_someDateTime_LTE }, false )
 RETURN this { .content } as this
 ----
+
+'''
 
 == MAX_EQUAL
 
@@ -317,6 +329,8 @@ RETURN  max(this_likesAggregate_edge.someDateTime) = $this_likesAggregate_edge_s
 RETURN this { .content } as this
 ----
 
+'''
+
 == MAX_GT
 
 .GraphQL-Query
@@ -357,6 +371,8 @@ RETURN  max(this_likesAggregate_edge.someDateTime) > $this_likesAggregate_edge_s
 ", { this: this, this_likesAggregate_edge_someDateTime_MAX_GT: $this_likesAggregate_edge_someDateTime_MAX_GT }, false )
 RETURN this { .content } as this
 ----
+
+'''
 
 == MAX_GTE
 
@@ -399,6 +415,8 @@ RETURN  max(this_likesAggregate_edge.someDateTime) >= $this_likesAggregate_edge_
 RETURN this { .content } as this
 ----
 
+'''
+
 == MAX_LT
 
 .GraphQL-Query
@@ -439,6 +457,8 @@ RETURN  max(this_likesAggregate_edge.someDateTime) < $this_likesAggregate_edge_s
 ", { this: this, this_likesAggregate_edge_someDateTime_MAX_LT: $this_likesAggregate_edge_someDateTime_MAX_LT }, false )
 RETURN this { .content } as this
 ----
+
+'''
 
 == MAX_LTE
 
@@ -481,6 +501,8 @@ RETURN  max(this_likesAggregate_edge.someDateTime) <= $this_likesAggregate_edge_
 RETURN this { .content } as this
 ----
 
+'''
+
 == MIN_EQUAL
 
 .GraphQL-Query
@@ -521,6 +543,8 @@ RETURN  min(this_likesAggregate_edge.someDateTime) = $this_likesAggregate_edge_s
 ", { this: this, this_likesAggregate_edge_someDateTime_MIN_EQUAL: $this_likesAggregate_edge_someDateTime_MIN_EQUAL }, false )
 RETURN this { .content } as this
 ----
+
+'''
 
 == MIN_GT
 
@@ -563,6 +587,8 @@ RETURN  min(this_likesAggregate_edge.someDateTime) > $this_likesAggregate_edge_s
 RETURN this { .content } as this
 ----
 
+'''
+
 == MIN_GTE
 
 .GraphQL-Query
@@ -603,6 +629,8 @@ RETURN  min(this_likesAggregate_edge.someDateTime) >= $this_likesAggregate_edge_
 ", { this: this, this_likesAggregate_edge_someDateTime_MIN_GTE: $this_likesAggregate_edge_someDateTime_MIN_GTE }, false )
 RETURN this { .content } as this
 ----
+
+'''
 
 == MIN_LT
 
@@ -645,6 +673,8 @@ RETURN  min(this_likesAggregate_edge.someDateTime) < $this_likesAggregate_edge_s
 RETURN this { .content } as this
 ----
 
+'''
+
 == MIN_LTE
 
 .GraphQL-Query
@@ -685,4 +715,6 @@ RETURN  min(this_likesAggregate_edge.someDateTime) <= $this_likesAggregate_edge_
 ", { this: this, this_likesAggregate_edge_someDateTime_MIN_LTE: $this_likesAggregate_edge_someDateTime_MIN_LTE }, false )
 RETURN this { .content } as this
 ----
+
+'''
 

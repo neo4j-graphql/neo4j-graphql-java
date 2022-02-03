@@ -58,6 +58,8 @@ RETURN (this_likesAggregate_node.someFloat = $this_likesAggregate_node_AND_0_som
 RETURN this { .content } as this
 ----
 
+'''
+
 == OR
 
 .GraphQL-Query
@@ -90,4 +92,6 @@ RETURN (this_likesAggregate_node.someFloat = $this_likesAggregate_node_OR_0_some
 ", { this: this, this_likesAggregate_node_OR_0_someFloat_EQUAL: $this_likesAggregate_node_OR_0_someFloat_EQUAL, this_likesAggregate_node_OR_1_someFloat_EQUAL: $this_likesAggregate_node_OR_1_someFloat_EQUAL }, false )
 RETURN this { .content } as this
 ----
+
+'''
 

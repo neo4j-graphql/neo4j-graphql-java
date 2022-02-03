@@ -94,6 +94,8 @@ FOREACH(x IN this_actedIn_Series0_to_delete | DETACH DELETE x)
 DETACH DELETE this
 ----
 
+'''
+
 == Delete delete an interface relationship with nested delete
 
 .GraphQL-Query
@@ -168,6 +170,8 @@ WITH this, collect(DISTINCT this_actedIn_Series0) as this_actedIn_Series0_to_del
 FOREACH(x IN this_actedIn_Series0_to_delete | DETACH DELETE x)
 DETACH DELETE this
 ----
+
+'''
 
 == Delete delete an interface relationship with nested delete using _on to only delete from one implementation
 
@@ -246,6 +250,8 @@ WITH this, collect(DISTINCT this_actedIn_Series0) as this_actedIn_Series0_to_del
 FOREACH(x IN this_actedIn_Series0_to_delete | DETACH DELETE x)
 DETACH DELETE this
 ----
+
+'''
 
 == Delete delete an interface relationship with nested delete using _on to override delete
 
@@ -337,4 +343,6 @@ WITH this, collect(DISTINCT this_actedIn_Series0) as this_actedIn_Series0_to_del
 FOREACH(x IN this_actedIn_Series0_to_delete | DETACH DELETE x)
 DETACH DELETE this
 ----
+
+'''
 

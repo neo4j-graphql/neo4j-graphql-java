@@ -79,8 +79,8 @@ abstract class RelationFieldBaseAugmentation(
                 ?.let { fields += inputValue(Constants.CONNECT_OR_CREATE_FIELD, it.wrapType()) }
         }
 
-    fun generateFieldConnectionWhereIT(prefix: String, node: Node, nameOverride: String = "${prefix}ConnectionWhere") =
-        getOrCreateInputObjectType(nameOverride) { fields, name ->
+    fun generateFieldConnectionWhereIT(prefix: String, node: Node) =
+        getOrCreateInputObjectType("${prefix}ConnectionWhere") { fields, name ->
             generateWhereIT(node)?.let {
                 fields += inputValue(Constants.NODE_FIELD, it.asType())
                 fields += inputValue(Constants.NODE_FIELD + "_NOT", it.asType())
@@ -133,6 +133,7 @@ abstract class RelationFieldBaseAugmentation(
     }
 
     // TODO REVIEW Darrell this type is duplicated *OnCreate vs *CreateFieldInput
+    //  https://github.com/neo4j/graphql/issues/872
     private fun generateNodeWithEdgeIT(name: String, node: Node) =
         getOrCreateInputObjectType(name) { fields, _ ->
             generateContainerCreateInputIT(node)?.let {

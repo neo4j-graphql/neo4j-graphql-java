@@ -60,6 +60,8 @@ RETURN avg(this_likesAggregate_edge.someFloat) = $this_likesAggregate_edge_someF
 RETURN this { .content } as this
 ----
 
+'''
+
 == AVERAGE_GT
 
 .GraphQL-Query
@@ -89,6 +91,8 @@ RETURN avg(this_likesAggregate_edge.someFloat) > $this_likesAggregate_edge_someF
 ", { this: this, this_likesAggregate_edge_someFloat_AVERAGE_GT: $this_likesAggregate_edge_someFloat_AVERAGE_GT }, false )
 RETURN this { .content } as this
 ----
+
+'''
 
 == AVERAGE_GTE
 
@@ -120,6 +124,8 @@ RETURN avg(this_likesAggregate_edge.someFloat) >= $this_likesAggregate_edge_some
 RETURN this { .content } as this
 ----
 
+'''
+
 == AVERAGE_LT
 
 .GraphQL-Query
@@ -149,6 +155,8 @@ RETURN avg(this_likesAggregate_edge.someFloat) < $this_likesAggregate_edge_someF
 ", { this: this, this_likesAggregate_edge_someFloat_AVERAGE_LT: $this_likesAggregate_edge_someFloat_AVERAGE_LT }, false )
 RETURN this { .content } as this
 ----
+
+'''
 
 == AVERAGE_LTE
 
@@ -180,6 +188,8 @@ RETURN avg(this_likesAggregate_edge.someFloat) <= $this_likesAggregate_edge_some
 RETURN this { .content } as this
 ----
 
+'''
+
 == EQUAL
 
 .GraphQL-Query
@@ -209,6 +219,8 @@ RETURN this_likesAggregate_edge.someFloat = $this_likesAggregate_edge_someFloat_
 ", { this: this, this_likesAggregate_edge_someFloat_EQUAL: $this_likesAggregate_edge_someFloat_EQUAL }, false )
 RETURN this { .content } as this
 ----
+
+'''
 
 == EQUAL with alias
 
@@ -240,6 +252,8 @@ RETURN this_likesAggregate_edge._someFloatAlias = $this_likesAggregate_edge_some
 RETURN this { .content } as this
 ----
 
+'''
+
 == GT
 
 .GraphQL-Query
@@ -269,6 +283,8 @@ RETURN this_likesAggregate_edge.someFloat > $this_likesAggregate_edge_someFloat_
 ", { this: this, this_likesAggregate_edge_someFloat_GT: $this_likesAggregate_edge_someFloat_GT }, false )
 RETURN this { .content } as this
 ----
+
+'''
 
 == GTE
 
@@ -300,6 +316,8 @@ RETURN this_likesAggregate_edge.someFloat >= $this_likesAggregate_edge_someFloat
 RETURN this { .content } as this
 ----
 
+'''
+
 == LT
 
 .GraphQL-Query
@@ -329,6 +347,8 @@ RETURN this_likesAggregate_edge.someFloat < $this_likesAggregate_edge_someFloat_
 ", { this: this, this_likesAggregate_edge_someFloat_LT: $this_likesAggregate_edge_someFloat_LT }, false )
 RETURN this { .content } as this
 ----
+
+'''
 
 == LTE
 
@@ -360,6 +380,8 @@ RETURN this_likesAggregate_edge.someFloat <= $this_likesAggregate_edge_someFloat
 RETURN this { .content } as this
 ----
 
+'''
+
 == MAX_EQUAL
 
 .GraphQL-Query
@@ -389,6 +411,8 @@ RETURN  max(this_likesAggregate_edge.someFloat) = $this_likesAggregate_edge_some
 ", { this: this, this_likesAggregate_edge_someFloat_MAX_EQUAL: $this_likesAggregate_edge_someFloat_MAX_EQUAL }, false )
 RETURN this { .content } as this
 ----
+
+'''
 
 == MAX_GT
 
@@ -420,6 +444,8 @@ RETURN  max(this_likesAggregate_edge.someFloat) > $this_likesAggregate_edge_some
 RETURN this { .content } as this
 ----
 
+'''
+
 == MAX_GTE
 
 .GraphQL-Query
@@ -449,6 +475,8 @@ RETURN  max(this_likesAggregate_edge.someFloat) >= $this_likesAggregate_edge_som
 ", { this: this, this_likesAggregate_edge_someFloat_MAX_GTE: $this_likesAggregate_edge_someFloat_MAX_GTE }, false )
 RETURN this { .content } as this
 ----
+
+'''
 
 == MAX_LT
 
@@ -480,6 +508,8 @@ RETURN  max(this_likesAggregate_edge.someFloat) < $this_likesAggregate_edge_some
 RETURN this { .content } as this
 ----
 
+'''
+
 == MAX_LTE
 
 .GraphQL-Query
@@ -509,6 +539,8 @@ RETURN  max(this_likesAggregate_edge.someFloat) <= $this_likesAggregate_edge_som
 ", { this: this, this_likesAggregate_edge_someFloat_MAX_LTE: $this_likesAggregate_edge_someFloat_MAX_LTE }, false )
 RETURN this { .content } as this
 ----
+
+'''
 
 == MIN_EQUAL
 
@@ -540,6 +572,8 @@ RETURN  min(this_likesAggregate_edge.someFloat) = $this_likesAggregate_edge_some
 RETURN this { .content } as this
 ----
 
+'''
+
 == MIN_GT
 
 .GraphQL-Query
@@ -569,6 +603,8 @@ RETURN  min(this_likesAggregate_edge.someFloat) > $this_likesAggregate_edge_some
 ", { this: this, this_likesAggregate_edge_someFloat_MIN_GT: $this_likesAggregate_edge_someFloat_MIN_GT }, false )
 RETURN this { .content } as this
 ----
+
+'''
 
 == MIN_GTE
 
@@ -600,6 +636,8 @@ RETURN  min(this_likesAggregate_edge.someFloat) >= $this_likesAggregate_edge_som
 RETURN this { .content } as this
 ----
 
+'''
+
 == MIN_LT
 
 .GraphQL-Query
@@ -630,6 +668,8 @@ RETURN  min(this_likesAggregate_edge.someFloat) < $this_likesAggregate_edge_some
 RETURN this { .content } as this
 ----
 
+'''
+
 == MIN_LTE
 
 .GraphQL-Query
@@ -659,6 +699,8 @@ RETURN  min(this_likesAggregate_edge.someFloat) <= $this_likesAggregate_edge_som
 ", { this: this, this_likesAggregate_edge_someFloat_MIN_LTE: $this_likesAggregate_edge_someFloat_MIN_LTE }, false )
 RETURN this { .content } as this
 ----
+
+'''
 
 == SUM_EQUAL
 
@@ -691,6 +733,8 @@ RETURN this_likesAggregate_edge_someFloat_SUM_EQUAL_SUM = toFloat($this_likesAgg
 RETURN this { .content } as this
 ----
 
+'''
+
 == SUM_GT
 
 .GraphQL-Query
@@ -721,6 +765,8 @@ RETURN this_likesAggregate_edge_someFloat_SUM_GT_SUM > toFloat($this_likesAggreg
 ", { this: this, this_likesAggregate_edge_someFloat_SUM_GT: $this_likesAggregate_edge_someFloat_SUM_GT }, false )
 RETURN this { .content } as this
 ----
+
+'''
 
 == SUM_GTE
 
@@ -753,6 +799,8 @@ RETURN this_likesAggregate_edge_someFloat_SUM_GTE_SUM >= toFloat($this_likesAggr
 RETURN this { .content } as this
 ----
 
+'''
+
 == SUM_LT
 
 .GraphQL-Query
@@ -784,6 +832,8 @@ RETURN this_likesAggregate_edge_someFloat_SUM_LT_SUM < toFloat($this_likesAggreg
 RETURN this { .content } as this
 ----
 
+'''
+
 == SUM_LTE
 
 .GraphQL-Query
@@ -814,4 +864,6 @@ RETURN this_likesAggregate_edge_someFloat_SUM_LTE_SUM <= toFloat($this_likesAggr
 ", { this: this, this_likesAggregate_edge_someFloat_SUM_LTE: $this_likesAggregate_edge_someFloat_SUM_LTE }, false )
 RETURN this { .content } as this
 ----
+
+'''
 

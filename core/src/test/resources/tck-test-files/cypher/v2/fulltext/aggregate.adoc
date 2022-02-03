@@ -48,3 +48,5 @@ CALL db.index.fulltext.queryNodes(
 RETURN { count: count(this) }
 ----
 
+'''
+

@@ -55,6 +55,8 @@ RETURN { title: { longest:
                          } }
 ----
 
+'''
+
 == Min
 
 .GraphQL-Query
@@ -89,6 +91,8 @@ RETURN { title: { shortest:
                             ", { current: current, shortest: shortest }, false))
                          } }
 ----
+
+'''
 
 == Min and Max
 
@@ -133,4 +137,6 @@ RETURN { title: { shortest:
                             ", { current: current, shortest: shortest }, false))
                          } }
 ----
+
+'''
 

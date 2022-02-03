@@ -62,6 +62,8 @@ MATCH (this:Movie)
 RETURN this { .title, actors: [ (this)<-[:ACTED_IN]-(this_actors:Actor)   | this_actors { .name } ] } as this
 ----
 
+'''
+
 == Nested relation
 
 .GraphQL-Query
@@ -92,6 +94,8 @@ RETURN this { .title, actors: [ (this)<-[:ACTED_IN]-(this_actors:Actor)   | this
 MATCH (this:Movie)
 RETURN this { .title, topActor: head([ (this)-[:TOP_ACTOR]->(this_topActor:Actor)   | this_topActor { .name, movies: [ (this_topActor)-[:ACTED_IN]->(this_topActor_movies:Movie)   | this_topActor_movies { .title } ] } ]) } as this
 ----
+
+'''
 
 == Nested relation with params
 
@@ -129,6 +133,8 @@ WHERE this.title = $this_title
 RETURN this { .title, topActor: head([ (this)-[:TOP_ACTOR]->(this_topActor:Actor)  WHERE this_topActor.name = $this_topActor_name | this_topActor { .name, movies: [ (this_topActor)-[:ACTED_IN]->(this_topActor_movies:Movie)  WHERE this_topActor_movies.title = $this_topActor_movies_title | this_topActor_movies { .title } ] } ]) } as this
 ----
 
+'''
+
 == Simple relation
 
 .GraphQL-Query
@@ -156,4 +162,6 @@ RETURN this { .title, topActor: head([ (this)-[:TOP_ACTOR]->(this_topActor:Actor
 MATCH (this:Movie)
 RETURN this { .title, topActor: head([ (this)-[:TOP_ACTOR]->(this_topActor:Actor)   | this_topActor { .name } ]) } as this
 ----
+
+'''
 

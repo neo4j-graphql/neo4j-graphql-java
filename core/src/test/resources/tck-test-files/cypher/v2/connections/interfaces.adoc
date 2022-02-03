@@ -100,11 +100,13 @@ WHERE this_Series.title STARTS WITH $this_actedInConnection.args.where.node.titl
 WITH { screenTime: this_acted_in_relationship.screenTime, node: { __resolveType: "Series", episodes: this_Series.episodes, title: this_Series.title } } AS edge
 RETURN edge
 }
-WITH collect(edge) as edges, count(edge) as totalCount
+WITH collect(edge) as edges
 RETURN { edges: edges, totalCount: size(edges) } AS actedInConnection
 }
 RETURN this { .name, actedInConnection } as this
 ----
+
+'''
 
 == Projecting interface node and relationship properties with no arguments
 
@@ -155,11 +157,13 @@ MATCH (this)-[this_acted_in_relationship:ACTED_IN]->(this_Series:Series)
 WITH { screenTime: this_acted_in_relationship.screenTime, node: { __resolveType: "Series", episodes: this_Series.episodes, title: this_Series.title } } AS edge
 RETURN edge
 }
-WITH collect(edge) as edges, count(edge) as totalCount
+WITH collect(edge) as edges
 RETURN { edges: edges, totalCount: size(edges) } AS actedInConnection
 }
 RETURN this { .name, actedInConnection } as this
 ----
+
+'''
 
 == Projecting interface node and relationship properties with sort argument
 
@@ -211,11 +215,13 @@ WITH { screenTime: this_acted_in_relationship.screenTime, node: { __resolveType:
 RETURN edge
 }
 WITH edge ORDER BY edge.screenTime ASC
-WITH collect(edge) as edges, count(edge) as totalCount
+WITH collect(edge) as edges
 RETURN { edges: edges, totalCount: size(edges) } AS actedInConnection
 }
 RETURN this { .name, actedInConnection } as this
 ----
+
+'''
 
 == Projecting interface node and relationship properties with where argument
 
@@ -293,11 +299,13 @@ WHERE this_Series.episodes > $this_actedInConnection.args.where.node._on.Series.
 WITH { screenTime: this_acted_in_relationship.screenTime, node: { __resolveType: "Series", episodes: this_Series.episodes, title: this_Series.title } } AS edge
 RETURN edge
 }
-WITH collect(edge) as edges, count(edge) as totalCount
+WITH collect(edge) as edges
 RETURN { edges: edges, totalCount: size(edges) } AS actedInConnection
 }
 RETURN this { .name, actedInConnection } as this
 ----
+
+'''
 
 == Projecting interface node and relationship properties with where relationship argument
 
@@ -363,9 +371,11 @@ WHERE this_acted_in_relationship.screenTime > $this_actedInConnection.args.where
 WITH { screenTime: this_acted_in_relationship.screenTime, node: { __resolveType: "Series", episodes: this_Series.episodes, title: this_Series.title } } AS edge
 RETURN edge
 }
-WITH collect(edge) as edges, count(edge) as totalCount
+WITH collect(edge) as edges
 RETURN { edges: edges, totalCount: size(edges) } AS actedInConnection
 }
 RETURN this { .name, actedInConnection } as this
 ----
+
+'''
 

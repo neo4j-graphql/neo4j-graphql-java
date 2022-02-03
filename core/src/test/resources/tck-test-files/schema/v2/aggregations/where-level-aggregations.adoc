@@ -147,9 +147,9 @@ type PageInfo {
 }
 
 type Post {
-  likes(options: UserOptions, where: UserWhere): [User!]!
-  likesAggregate(where: UserWhere): PostUserLikesAggregationSelection
-  likesConnection(after: String, first: Int, sort: [PostLikesConnectionSort!], where: PostLikesConnectionWhere): PostLikesConnection!
+  likes(directed: Boolean = true, options: UserOptions, where: UserWhere): [User!]!
+  likesAggregate(directed: Boolean = true, where: UserWhere): PostUserLikesAggregationSelection
+  likesConnection(after: String, directed: Boolean = true, first: Int, sort: [PostLikesConnectionSort!], where: PostLikesConnectionWhere): PostLikesConnection!
   title: String
 }
 
@@ -872,7 +872,7 @@ input PostOptions {
   limit: Int
   offset: Int
   "Specify one or more PostSort objects to sort Posts by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [PostSort]
+  sort: [PostSort!]
 }
 
 input PostRelationInput {
@@ -930,7 +930,7 @@ input UserOptions {
   limit: Int
   offset: Int
   "Specify one or more UserSort objects to sort Users by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [UserSort]
+  sort: [UserSort!]
 }
 
 "Fields to sort Users by. The order in which sorts are applied is not guaranteed when specifying many fields in one UserSort object."
@@ -1050,3 +1050,5 @@ input UserWhere {
 }
 
 ----
+
+'''

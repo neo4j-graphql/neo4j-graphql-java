@@ -50,6 +50,8 @@ WHERE score = this_fulltext_MovieTitle_defaultThreshold
 RETURN this { .title } as this
 ----
 
+'''
+
 == simple match with fulltext property and defaultThreshold override with incomming query score
 
 .GraphQL-Query
@@ -86,4 +88,6 @@ CALL db.index.fulltext.queryNodes(
 WHERE score = this_fulltext_MovieTitle_score_EQUAL
 RETURN this { .title } as this
 ----
+
+'''
 

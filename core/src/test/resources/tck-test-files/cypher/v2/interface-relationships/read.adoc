@@ -100,6 +100,8 @@ RETURN { __resolveType: "Series", episodes: this_Series.episodes, title: this_Se
 RETURN this { actedIn: collect(actedIn) } as this
 ----
 
+'''
+
 == Interface Relationship Query through connection
 
 .GraphQL-Query
@@ -148,11 +150,13 @@ MATCH (this)-[this_acted_in_relationship:ACTED_IN]->(this_Series:Series)
 WITH { screenTime: this_acted_in_relationship.screenTime, node: { __resolveType: "Series", episodes: this_Series.episodes, title: this_Series.title } } AS edge
 RETURN edge
 }
-WITH collect(edge) as edges, count(edge) as totalCount
+WITH collect(edge) as edges
 RETURN { edges: edges, totalCount: size(edges) } AS actedInConnection
 }
 RETURN this { actedInConnection } as this
 ----
+
+'''
 
 == Interface Relationship Query through connection with where
 
@@ -222,11 +226,13 @@ WHERE this_acted_in_relationship.screenTime > $this_actedInConnection.args.where
 WITH { screenTime: this_acted_in_relationship.screenTime, node: { __resolveType: "Series", episodes: this_Series.episodes, title: this_Series.title } } AS edge
 RETURN edge
 }
-WITH collect(edge) as edges, count(edge) as totalCount
+WITH collect(edge) as edges
 RETURN { edges: edges, totalCount: size(edges) } AS actedInConnection
 }
 RETURN this { actedInConnection } as this
 ----
+
+'''
 
 == Interface Relationship Query through connection with where excluding type
 
@@ -291,11 +297,13 @@ WHERE this_acted_in_relationship.screenTime > $this_actedInConnection.args.where
 WITH { screenTime: this_acted_in_relationship.screenTime, node: { __resolveType: "Movie", runtime: this_Movie.runtime, title: this_Movie.title } } AS edge
 RETURN edge
 }
-WITH collect(edge) as edges, count(edge) as totalCount
+WITH collect(edge) as edges
 RETURN { edges: edges, totalCount: size(edges) } AS actedInConnection
 }
 RETURN this { actedInConnection } as this
 ----
+
+'''
 
 == Interface Relationship Query through connection with where overriding
 
@@ -370,11 +378,13 @@ WHERE this_acted_in_relationship.screenTime > $this_actedInConnection.args.where
 WITH { screenTime: this_acted_in_relationship.screenTime, node: { __resolveType: "Series", episodes: this_Series.episodes, title: this_Series.title } } AS edge
 RETURN edge
 }
-WITH collect(edge) as edges, count(edge) as totalCount
+WITH collect(edge) as edges
 RETURN { edges: edges, totalCount: size(edges) } AS actedInConnection
 }
 RETURN this { actedInConnection } as this
 ----
+
+'''
 
 == Simple Interface Relationship Query
 
@@ -419,6 +429,8 @@ RETURN { __resolveType: "Series", episodes: this_Series.episodes, title: this_Se
 RETURN this { actedIn: collect(actedIn) } as this
 ----
 
+'''
+
 == Simple Interface Relationship Query For Non-Array Field
 
 .GraphQL-Query
@@ -462,6 +474,8 @@ RETURN { __resolveType: "Series", episodes: this_Series.episodes, title: this_Se
 RETURN this { currentlyActingIn: head(collect(currentlyActingIn)) } as this
 ----
 
+'''
+
 == Simple Interface Relationship Query with offset and limit
 
 .GraphQL-Query
@@ -504,6 +518,8 @@ RETURN { __resolveType: "Series", episodes: this_Series.episodes, title: this_Se
 }
 RETURN this { actedIn: collect(actedIn)[5..15] } as this
 ----
+
+'''
 
 == Type filtering using onType
 
@@ -553,4 +569,6 @@ RETURN { __resolveType: "Movie", runtime: this_Movie.runtime, title: this_Movie.
 }
 RETURN this { actedIn: collect(actedIn) } as this
 ----
+
+'''
 

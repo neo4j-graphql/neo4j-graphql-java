@@ -47,6 +47,8 @@ MATCH (this:Movie)
 RETURN { imdbRating: { average: avg(this.imdbRating) } }
 ----
 
+'''
+
 == Max
 
 .GraphQL-Query
@@ -74,6 +76,8 @@ MATCH (this:Movie)
 RETURN { imdbRating: { max: max(this.imdbRating) } }
 ----
 
+'''
+
 == Min
 
 .GraphQL-Query
@@ -100,6 +104,8 @@ RETURN { imdbRating: { max: max(this.imdbRating) } }
 MATCH (this:Movie)
 RETURN { imdbRating: { min: min(this.imdbRating) } }
 ----
+
+'''
 
 == Min, Max, Sum and Average
 
@@ -131,6 +137,8 @@ MATCH (this:Movie)
 RETURN { imdbRating: { min: min(this.imdbRating), max: max(this.imdbRating), average: avg(this.imdbRating), sum: sum(this.imdbRating) } }
 ----
 
+'''
+
 == Sum
 
 .GraphQL-Query
@@ -157,4 +165,6 @@ RETURN { imdbRating: { min: min(this.imdbRating), max: max(this.imdbRating), ave
 MATCH (this:Movie)
 RETURN { imdbRating: { sum: sum(this.imdbRating) } }
 ----
+
+'''
 

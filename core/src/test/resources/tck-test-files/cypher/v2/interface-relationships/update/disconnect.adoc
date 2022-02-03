@@ -105,6 +105,8 @@ RETURN count(*)
 RETURN this { .name } AS this
 ----
 
+'''
+
 == Update disconnect from an interface relationship with nested disconnect
 
 .GraphQL-Query
@@ -199,6 +201,8 @@ RETURN count(*)
 RETURN this { .name } AS this
 ----
 
+'''
+
 == Update disconnect from an interface relationship with nested disconnect using _on to disconnect from only one implementation
 
 .GraphQL-Query
@@ -290,6 +294,8 @@ RETURN count(*)
 }
 RETURN this { .name } AS this
 ----
+
+'''
 
 == Update disconnect from an interface relationship with nested disconnect using _on to override disconnection
 
@@ -400,4 +406,6 @@ RETURN count(*)
 }
 RETURN this { .name } AS this
 ----
+
+'''
 

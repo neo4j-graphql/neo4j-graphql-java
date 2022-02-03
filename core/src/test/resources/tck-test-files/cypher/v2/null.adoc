@@ -54,6 +54,8 @@ WHERE this.title IS NOT NULL
 RETURN this { .title } as this
 ----
 
+'''
+
 == Simple IS NULL
 
 .GraphQL-Query
@@ -79,6 +81,8 @@ MATCH (this:Movie)
 WHERE this.title IS NULL
 RETURN this { .title } as this
 ----
+
+'''
 
 == Simple relationship IS NOT NULL
 
@@ -106,6 +110,8 @@ WHERE EXISTS((this)<-[:ACTED_IN]-(:Actor))
 RETURN this { .title } as this
 ----
 
+'''
+
 == Simple relationship IS NULL
 
 .GraphQL-Query
@@ -131,4 +137,6 @@ MATCH (this:Movie)
 WHERE NOT EXISTS((this)<-[:ACTED_IN]-(:Actor))
 RETURN this { .title } as this
 ----
+
+'''
 

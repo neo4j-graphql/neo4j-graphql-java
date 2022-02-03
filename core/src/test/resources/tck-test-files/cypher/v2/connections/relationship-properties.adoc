@@ -72,6 +72,8 @@ RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
 RETURN this { .title, actorsConnection } as this
 ----
 
+'''
+
 == Projecting node and relationship properties with sort argument
 
 .GraphQL-Query
@@ -115,6 +117,8 @@ RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
 }
 RETURN this { .title, actorsConnection } as this
 ----
+
+'''
 
 == Projecting node and relationship properties with where argument
 
@@ -167,6 +171,8 @@ RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
 }
 RETURN this { .title, actorsConnection } as this
 ----
+
+'''
 
 == Projecting thrice nested node and relationship properties with no arguments
 
@@ -238,6 +244,8 @@ RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
 RETURN this { .title, actorsConnection } as this
 ----
 
+'''
+
 == Projecting twice nested node and relationship properties with no arguments
 
 .GraphQL-Query
@@ -293,4 +301,6 @@ RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
 }
 RETURN this { .title, actorsConnection } as this
 ----
+
+'''
 

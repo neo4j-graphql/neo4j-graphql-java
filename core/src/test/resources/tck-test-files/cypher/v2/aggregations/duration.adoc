@@ -47,6 +47,8 @@ MATCH (this:Movie)
 RETURN { screenTime: { max: max(this.screenTime) } }
 ----
 
+'''
+
 == Min
 
 .GraphQL-Query
@@ -73,6 +75,8 @@ RETURN { screenTime: { max: max(this.screenTime) } }
 MATCH (this:Movie)
 RETURN { screenTime: { min: min(this.screenTime) } }
 ----
+
+'''
 
 == Min and Max
 
@@ -101,4 +105,6 @@ RETURN { screenTime: { min: min(this.screenTime) } }
 MATCH (this:Movie)
 RETURN { screenTime: { min: min(this.screenTime), max: max(this.screenTime) } }
 ----
+
+'''
 

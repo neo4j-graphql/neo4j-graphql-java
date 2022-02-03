@@ -57,6 +57,8 @@ RETURN avg(this_likesAggregate_node_name_AVERAGE_EQUAL_SIZE) = toFloat($this_lik
 RETURN this { .content } as this
 ----
 
+'''
+
 == AVERAGE_GT
 
 .GraphQL-Query
@@ -87,6 +89,8 @@ RETURN avg(this_likesAggregate_node_name_AVERAGE_GT_SIZE) > toFloat($this_likesA
 ", { this: this, this_likesAggregate_node_name_AVERAGE_GT: $this_likesAggregate_node_name_AVERAGE_GT }, false )
 RETURN this { .content } as this
 ----
+
+'''
 
 == AVERAGE_GTE
 
@@ -119,6 +123,8 @@ RETURN avg(this_likesAggregate_node_name_AVERAGE_GTE_SIZE) >= toFloat($this_like
 RETURN this { .content } as this
 ----
 
+'''
+
 == AVERAGE_LT
 
 .GraphQL-Query
@@ -149,6 +155,8 @@ RETURN avg(this_likesAggregate_node_name_AVERAGE_LT_SIZE) < toFloat($this_likesA
 ", { this: this, this_likesAggregate_node_name_AVERAGE_LT: $this_likesAggregate_node_name_AVERAGE_LT }, false )
 RETURN this { .content } as this
 ----
+
+'''
 
 == AVERAGE_LTE
 
@@ -181,6 +189,8 @@ RETURN avg(this_likesAggregate_node_name_AVERAGE_LTE_SIZE) <= toFloat($this_like
 RETURN this { .content } as this
 ----
 
+'''
+
 == EQUAL
 
 .GraphQL-Query
@@ -211,6 +221,8 @@ RETURN this_likesAggregate_node.name = $this_likesAggregate_node_name_EQUAL
 RETURN this { .content } as this
 ----
 
+'''
+
 == EQUAL with alias
 
 .GraphQL-Query
@@ -240,6 +252,8 @@ RETURN this_likesAggregate_node._someStringAlias = $this_likesAggregate_node_som
 ", { this: this, this_likesAggregate_node_someStringAlias_EQUAL: $this_likesAggregate_node_someStringAlias_EQUAL }, false )
 RETURN this { .content } as this
 ----
+
+'''
 
 == GT
 
@@ -274,6 +288,8 @@ RETURN size(this_likesAggregate_node.name) > $this_likesAggregate_node_name_GT
 RETURN this { .content } as this
 ----
 
+'''
+
 == GTE
 
 .GraphQL-Query
@@ -306,6 +322,8 @@ RETURN size(this_likesAggregate_node.name) >= $this_likesAggregate_node_name_GTE
 ", { this: this, this_likesAggregate_node_name_GTE: $this_likesAggregate_node_name_GTE }, false )
 RETURN this { .content } as this
 ----
+
+'''
 
 == LONGEST_EQUAL
 
@@ -341,6 +359,8 @@ RETURN max(this_likesAggregate_node_name_LONGEST_EQUAL_SIZE) = $this_likesAggreg
 RETURN this { .content } as this
 ----
 
+'''
+
 == LONGEST_GT
 
 .GraphQL-Query
@@ -374,6 +394,8 @@ RETURN max(this_likesAggregate_node_name_LONGEST_GT_SIZE) > $this_likesAggregate
 ", { this: this, this_likesAggregate_node_name_LONGEST_GT: $this_likesAggregate_node_name_LONGEST_GT }, false )
 RETURN this { .content } as this
 ----
+
+'''
 
 == LONGEST_GTE
 
@@ -409,6 +431,8 @@ RETURN max(this_likesAggregate_node_name_LONGEST_GTE_SIZE) >= $this_likesAggrega
 RETURN this { .content } as this
 ----
 
+'''
+
 == LONGEST_LT
 
 .GraphQL-Query
@@ -442,6 +466,8 @@ RETURN max(this_likesAggregate_node_name_LONGEST_LT_SIZE) < $this_likesAggregate
 ", { this: this, this_likesAggregate_node_name_LONGEST_LT: $this_likesAggregate_node_name_LONGEST_LT }, false )
 RETURN this { .content } as this
 ----
+
+'''
 
 == LONGEST_LTE
 
@@ -477,6 +503,8 @@ RETURN max(this_likesAggregate_node_name_LONGEST_LTE_SIZE) <= $this_likesAggrega
 RETURN this { .content } as this
 ----
 
+'''
+
 == LT
 
 .GraphQL-Query
@@ -510,6 +538,8 @@ RETURN size(this_likesAggregate_node.name) < $this_likesAggregate_node_name_LT
 RETURN this { .content } as this
 ----
 
+'''
+
 == LTE
 
 .GraphQL-Query
@@ -542,6 +572,8 @@ RETURN size(this_likesAggregate_node.name) <= $this_likesAggregate_node_name_LTE
 ", { this: this, this_likesAggregate_node_name_LTE: $this_likesAggregate_node_name_LTE }, false )
 RETURN this { .content } as this
 ----
+
+'''
 
 == SHORTEST_EQUAL
 
@@ -577,6 +609,8 @@ RETURN min(this_likesAggregate_node_name_SHORTEST_EQUAL_SIZE) = $this_likesAggre
 RETURN this { .content } as this
 ----
 
+'''
+
 == SHORTEST_GT
 
 .GraphQL-Query
@@ -610,6 +644,8 @@ RETURN min(this_likesAggregate_node_name_SHORTEST_GT_SIZE) > $this_likesAggregat
 ", { this: this, this_likesAggregate_node_name_SHORTEST_GT: $this_likesAggregate_node_name_SHORTEST_GT }, false )
 RETURN this { .content } as this
 ----
+
+'''
 
 == SHORTEST_GTE
 
@@ -645,6 +681,8 @@ RETURN min(this_likesAggregate_node_name_SHORTEST_GTE_SIZE) >= $this_likesAggreg
 RETURN this { .content } as this
 ----
 
+'''
+
 == SHORTEST_LT
 
 .GraphQL-Query
@@ -679,6 +717,8 @@ RETURN min(this_likesAggregate_node_name_SHORTEST_LT_SIZE) < $this_likesAggregat
 RETURN this { .content } as this
 ----
 
+'''
+
 == SHORTEST_LTE
 
 .GraphQL-Query
@@ -712,4 +752,6 @@ RETURN min(this_likesAggregate_node_name_SHORTEST_LTE_SIZE) <= $this_likesAggreg
 ", { this: this, this_likesAggregate_node_name_SHORTEST_LTE: $this_likesAggregate_node_name_SHORTEST_LTE }, false )
 RETURN this { .content } as this
 ----
+
+'''
 

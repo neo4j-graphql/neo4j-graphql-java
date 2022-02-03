@@ -128,6 +128,8 @@ RETURN count(*)
 RETURN this { .name } AS this
 ----
 
+'''
+
 == Update update an interface relationship with nested update
 
 .GraphQL-Query
@@ -238,6 +240,8 @@ RETURN count(*)
 RETURN this { .name } AS this
 ----
 
+'''
+
 == Update update an interface relationship with nested update using _on to only update one implementation
 
 .GraphQL-Query
@@ -346,6 +350,8 @@ RETURN count(*)
 
 RETURN this { .name } AS this
 ----
+
+'''
 
 == Update update an interface relationship with nested update using _on to override update
 
@@ -473,4 +479,6 @@ RETURN count(*)
 
 RETURN this { .name } AS this
 ----
+
+'''
 

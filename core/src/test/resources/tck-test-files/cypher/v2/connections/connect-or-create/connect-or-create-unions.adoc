@@ -105,6 +105,8 @@ RETURN
 this0 { .name } AS this0
 ----
 
+'''
+
 == Update with createOrConnect operation
 
 .GraphQL-Query
@@ -183,4 +185,6 @@ this_relationship_this_actedIn_Series0_connectOrCreate0.screentime = $this_relat
 
 RETURN this { .name } AS this
 ----
+
+'''
 

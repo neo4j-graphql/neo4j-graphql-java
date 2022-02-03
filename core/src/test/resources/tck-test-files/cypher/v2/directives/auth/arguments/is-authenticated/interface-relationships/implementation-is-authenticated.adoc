@@ -104,6 +104,8 @@ UNION
 RETURN this { .id } AS this
 ----
 
+'''
+
 == Create Node with isAuthenticated
 
 .GraphQL-Query
@@ -154,6 +156,8 @@ RETURN
 this0 { .id } AS this0
 ----
 
+'''
+
 == Create Node without isAuthenticated
 
 .GraphQL-Query
@@ -189,6 +193,8 @@ RETURN this0
 RETURN 
 this0 { .id } AS this0
 ----
+
+'''
 
 == Delete nodes with bind
 
@@ -230,6 +236,8 @@ CALL apoc.util.validate(NOT(apoc.util.validatePredicate(NOT($auth.isAuthenticate
 DETACH DELETE this
 ----
 
+'''
+
 == Delete nodes without bind
 
 .GraphQL-Query
@@ -254,6 +262,8 @@ mutation {
 MATCH (this:Comment)
 DETACH DELETE this
 ----
+
+'''
 
 == Disconnect
 
@@ -322,6 +332,8 @@ RETURN count(*)
 RETURN this { .id } AS this
 ----
 
+'''
+
 == Nested Delete
 
 .GraphQL-Query
@@ -370,6 +382,8 @@ FOREACH(x IN this_content_Post0_to_delete | DETACH DELETE x)
 DETACH DELETE this
 ----
 
+'''
+
 == Update Node with bind
 
 .GraphQL-Query
@@ -417,6 +431,8 @@ SET this.id = $this_update_id
 RETURN this { .id } AS this
 ----
 
+'''
+
 == Update Node without bind
 
 .GraphQL-Query
@@ -450,4 +466,6 @@ SET this.id = $this_update_id
 
 RETURN this { .id } AS this
 ----
+
+'''
 

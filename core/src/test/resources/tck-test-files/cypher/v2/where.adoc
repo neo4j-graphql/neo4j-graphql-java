@@ -56,6 +56,8 @@ WHERE ((this.title = $this_AND_AND_title))
 RETURN this { .title } as this
 ----
 
+'''
+
 == Nested OR
 
 .GraphQL-Query
@@ -83,6 +85,8 @@ MATCH (this:Movie)
 WHERE ((this.title = $this_OR_OR_title))
 RETURN this { .title } as this
 ----
+
+'''
 
 == Simple
 
@@ -122,6 +126,8 @@ WHERE this.title = $this_title AND this.isFavorite = $this_isFavorite
 RETURN this { .title } as this
 ----
 
+'''
+
 == Simple AND
 
 .GraphQL-Query
@@ -149,6 +155,8 @@ MATCH (this:Movie)
 WHERE (this.title = $this_AND_title)
 RETURN this { .title } as this
 ----
+
+'''
 
 == Simple IN
 
@@ -180,6 +188,8 @@ WHERE this.title IN $this_title_IN
 RETURN this { .title } as this
 ----
 
+'''
+
 == Simple OR
 
 .GraphQL-Query
@@ -207,6 +217,8 @@ MATCH (this:Movie)
 WHERE (this.title = $this_OR_title)
 RETURN this { .title } as this
 ----
+
+'''
 
 == Super Nested AND
 
@@ -236,6 +248,8 @@ WHERE (((this.title = $this_AND_AND_AND_title)))
 RETURN this { .title } as this
 ----
 
+'''
+
 == Super Nested OR
 
 .GraphQL-Query
@@ -263,4 +277,6 @@ MATCH (this:Movie)
 WHERE (((this.title = $this_OR_OR_OR_title)))
 RETURN this { .title } as this
 ----
+
+'''
 

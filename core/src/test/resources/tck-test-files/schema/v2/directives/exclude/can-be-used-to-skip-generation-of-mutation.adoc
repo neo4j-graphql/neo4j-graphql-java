@@ -75,7 +75,7 @@ input ActorOptions {
   limit: Int
   offset: Int
   "Specify one or more ActorSort objects to sort Actors by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [ActorSort]
+  sort: [ActorSort!]
 }
 
 "Fields to sort Actors by. The order in which sorts are applied is not guaranteed when specifying many fields in one ActorSort object."
@@ -103,3 +103,5 @@ input ActorWhere {
 }
 
 ----
+
+'''

@@ -76,6 +76,8 @@ RETURN
 this0 { .title } AS this0
 ----
 
+'''
+
 == Connect Unions (in update)
 
 .GraphQL-Query
@@ -122,6 +124,8 @@ CALL {
 RETURN this { .title } AS this
 ----
 
+'''
+
 == Create Unions from create mutation
 
 .GraphQL-Query
@@ -164,6 +168,8 @@ RETURN
 this0 { .title } AS this0
 ----
 
+'''
+
 == Create Unions from update create(top-level)
 
 .GraphQL-Query
@@ -195,6 +201,8 @@ SET this_create_search_Genre0_node.name = $this_create_search_Genre0_node_name
 MERGE (this)-[:SEARCH]->(this_create_search_Genre0_node)
 RETURN this { .title } AS this
 ----
+
+'''
 
 == Delete Unions (from update)
 
@@ -250,6 +258,8 @@ WITH this, collect(DISTINCT this_delete_search_Genre0) as this_delete_search_Gen
 FOREACH(x IN this_delete_search_Genre0_to_delete | DETACH DELETE x)
 RETURN this { .title } AS this
 ----
+
+'''
 
 == Disconnect Unions
 
@@ -310,6 +320,8 @@ RETURN count(*)
 }
 RETURN this { .title } AS this
 ----
+
+'''
 
 == Disconnect Unions (in update)
 
@@ -377,6 +389,8 @@ RETURN count(*)
 RETURN this { .title } AS this
 ----
 
+'''
+
 == Read Unions
 
 .GraphQL-Query
@@ -419,6 +433,8 @@ MATCH (this:Movie)
 WHERE this.title = $this_title
 RETURN this { search:  [this_search IN [(this)-[:SEARCH]->(this_search) WHERE ("Genre" IN labels(this_search)) OR ("Movie" IN labels(this_search)) | head( [ this_search IN [this_search] WHERE ("Genre" IN labels(this_search)) AND this_search.name = $this_search_Genre_name AND apoc.util.validatePredicate(NOT(this_search.name IS NOT NULL AND this_search.name = $this_search_Genre_auth_allow0_name), "@neo4j/graphql/FORBIDDEN", [0]) | this_search { __resolveType: "Genre",  .name } ] + [ this_search IN [this_search] WHERE ("Movie" IN labels(this_search)) AND this_search.title = $this_search_Movie_title | this_search { __resolveType: "Movie",  .title } ] ) ] WHERE this_search IS NOT NULL] [1..11]  } as this
 ----
+
+'''
 
 == Update Unions
 
@@ -494,4 +510,6 @@ YIELD value as _
 
 RETURN this { .title } AS this
 ----
+
+'''
 

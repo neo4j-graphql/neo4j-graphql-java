@@ -60,6 +60,8 @@ RETURN this_likesAggregate_edge.id = $this_likesAggregate_edge_id_EQUAL
 RETURN this { .content } as this
 ----
 
+'''
+
 == EQUAL with alias
 
 .GraphQL-Query
@@ -89,4 +91,6 @@ RETURN this_likesAggregate_edge._someIdAlias = $this_likesAggregate_edge_someIdA
 ", { this: this, this_likesAggregate_edge_someIdAlias_EQUAL: $this_likesAggregate_edge_someIdAlias_EQUAL }, false )
 RETURN this { .content } as this
 ----
+
+'''
 

@@ -66,3 +66,5 @@ RETURN this { actorsAggregate: { edge: { screentime: head(apoc.cypher.runFirstCo
         RETURN {min: min(r.screentime), max: max(r.screentime), average: avg(r.screentime), sum: sum(r.screentime)}", { this: this })) } } } as this
 ----
 
+'''
+

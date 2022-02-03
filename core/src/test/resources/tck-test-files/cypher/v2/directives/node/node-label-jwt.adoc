@@ -62,6 +62,8 @@ RETURN
 this0 { .title } AS this0
 ----
 
+'''
+
 == Select Movie with label Film
 
 .GraphQL-Query
@@ -86,6 +88,8 @@ this0 { .title } AS this0
 MATCH (this:`Film`)
 RETURN this { .title } as this
 ----
+
+'''
 
 == Select Movie with label Film from Actors with additionalLabels
 
@@ -121,4 +125,6 @@ MATCH (this:`Actor`:`Person`)
 WHERE this.age > $this_age_GT
 RETURN this { .name, movies: [ (this)-[:ACTED_IN]->(this_movies:`Film`)  WHERE this_movies.title = $this_movies_title | this_movies { .title } ] } as this
 ----
+
+'''
 
