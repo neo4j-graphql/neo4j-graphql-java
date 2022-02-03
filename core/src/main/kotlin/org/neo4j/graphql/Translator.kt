@@ -6,14 +6,14 @@ import graphql.schema.GraphQLSchema
 
 class Translator(val schema: GraphQLSchema) {
 
-    class CypherHolder(var cypher: OldCypher?)
+    class CypherHolder(val cyphers :MutableList<OldCypher> = mutableListOf())
 
     private val gql: GraphQL = GraphQL.newGraphQL(schema).build()
 
     @JvmOverloads
     @Throws(OptimizedQueryException::class)
     fun translate(query: String, params: Map<String, Any?> = emptyMap(), ctx: QueryContext = QueryContext()): List<OldCypher> {
-        val cypherHolder = CypherHolder(null)
+        val cypherHolder = CypherHolder()
         val executionInput = ExecutionInput.newExecutionInput()
             .query(query)
             .variables(params)
@@ -36,6 +36,6 @@ class Translator(val schema: GraphQLSchema) {
             }
         }
 
-        return listOf(requireNotNull(cypherHolder.cypher))
+        return cypherHolder.cyphers
     }
 }

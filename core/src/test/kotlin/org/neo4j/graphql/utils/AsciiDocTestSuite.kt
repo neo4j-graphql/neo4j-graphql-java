@@ -69,13 +69,12 @@ open class AsciiDocTestSuite(
         private var currentDocumentLevel: DocumentLevel? = null
         private var currentDepth = 0
 
-        private val globalCodeBlocks = mutableMapOf<String, ParsedBlock>()
-        private var codeBlocksOfTest = mutableMapOf<String, ParsedBlock>()
+        private val globalCodeBlocks = mutableMapOf<String, MutableList<ParsedBlock>>()
+        private var codeBlocksOfTest = mutableMapOf<String, MutableList<ParsedBlock>>()
 
         fun parse(): Stream<DynamicNode> {
-            val file = File(AsciiDocTestSuite::class.java.getResource("/$fileName").toURI())
+            val file = File(AsciiDocTestSuite::class.java.getResource("/$fileName")?.toURI()!!)
             val lines = file.readLines()
-            val terminatorElement = testCaseMarkers.lastOrNull()
 
             var title: String? = null
             var currentBlock: ParsedBlock? = null
@@ -100,6 +99,11 @@ open class AsciiDocTestSuite(
                         globalDone = true
                         currentBlock = startBlock(line, lineNr, codeBlocksOfTest)
                     }
+                    line == "'''" -> {
+                        createTests(title, lineNr, ignore)
+                        currentBlock = null
+                        ignore = false
+                    }
                     line == "----" -> {
                         inside = !inside
                         if (inside) {
@@ -114,15 +118,9 @@ open class AsciiDocTestSuite(
                                 SCHEMA_MARKER -> {
                                     val schemaTests = schemaTestFactory(currentBlock.code())
                                     currentDocumentLevel?.tests?.add(schemaTests)
-                                    if (terminatorElement == null) {
+                                    if (testCaseMarkers.isEmpty()){
                                         break@loop
                                     }
-                                }
-
-                                terminatorElement -> {
-                                    createTests(title, lineNr, ignore)
-                                    currentBlock = null
-                                    ignore = false
                                 }
                             }
 
@@ -171,6 +169,9 @@ open class AsciiDocTestSuite(
         }
 
         private fun createTests(title: String?, lineNr: Int, ignore: Boolean) {
+            if (codeBlocksOfTest.isEmpty()) {
+                throw IllegalStateException("no code blocks for tests (line $lineNr)")
+            }
             val tests = testFactory(
                 title ?: throw IllegalStateException("Title should be defined (line $lineNr)"),
                 globalCodeBlocks,
@@ -244,18 +245,18 @@ open class AsciiDocTestSuite(
         return rebuildTest.toString()
     }
 
-    fun startBlock(marker: String, lineIndex: Int, blocks: MutableMap<String, ParsedBlock>): ParsedBlock {
+    fun startBlock(marker: String, lineIndex: Int, blocks: MutableMap<String, MutableList<ParsedBlock>>): ParsedBlock {
         val uri = UriBuilder.fromUri(srcLocation).queryParam("line", lineIndex + 1).build()
         val block = ParsedBlock(marker, uri)
         knownBlocks += block
-        blocks[marker] = block
+        blocks.computeIfAbsent(marker) { mutableListOf() }.add(block)
         return block
     }
 
     protected open fun testFactory(
         title: String,
-        globalBlocks: Map<String, ParsedBlock>,
-        codeBlocks: Map<String, ParsedBlock>,
+        globalBlocks: Map<String, List<ParsedBlock>>,
+        codeBlocks: Map<String, List<ParsedBlock>>,
         ignore: Boolean
     ): List<DynamicNode> {
         return emptyList()
@@ -265,21 +266,22 @@ open class AsciiDocTestSuite(
         return emptyList()
     }
 
-    protected fun getOrCreateBlock(
-        codeBlocks: Map<String, ParsedBlock>,
+    protected fun getOrCreateBlocks(
+        codeBlocks: Map<String, List<ParsedBlock>>,
         marker: String,
         headline: String
-    ): ParsedBlock? {
-        var block = codeBlocks[marker]
-        if (block == null && (GENERATE_TEST_FILE_DIFF || UPDATE_TEST_FILE)) {
+    ): List<ParsedBlock> {
+        val blocks = codeBlocks[marker]?.toMutableList() ?: mutableListOf()
+        if (blocks.isEmpty() && (GENERATE_TEST_FILE_DIFF || UPDATE_TEST_FILE)) {
             val insertPoints = testCaseMarkers.indexOf(marker).let { testCaseMarkers.subList(0, it).asReversed() }
-            val insertPoint = insertPoints.mapNotNull { codeBlocks[it] }.firstOrNull()
-                ?: throw IllegalArgumentException("none of the insert points $insertPoints found")
-            block = ParsedBlock(marker, insertPoint.uri, headline)
+            val insertPoint = insertPoints.mapNotNull { codeBlocks[it]?.firstOrNull() }.firstOrNull()
+                ?: throw IllegalArgumentException("none of the insert points $insertPoints found in $fileName")
+            val block = ParsedBlock(marker, insertPoint.uri, headline)
             block.start = (insertPoint.end ?: throw IllegalStateException("no start for block defined")) + 6
-            knownBlocks += block
+            knownBlocks += blocks
+            blocks += block
         }
-        return block
+        return blocks
     }
 
     companion object {

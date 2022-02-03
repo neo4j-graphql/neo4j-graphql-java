@@ -72,8 +72,13 @@ type Query {
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person) RETURN person { .age } AS person ORDER BY person.name ASC
+MATCH (person:Person)
+RETURN person {
+	.age
+} AS person ORDER BY person.name ASC
 ----
+
+'''
 
 === rich relationship
 
@@ -109,6 +114,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === nested query multi
 
 .GraphQL-Query
@@ -141,6 +148,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === inline fragment
 
 .GraphQL-Query
@@ -158,8 +167,13 @@ RETURN person {
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person) RETURN person { .name } AS person
+MATCH (person:Person)
+RETURN person {
+	.name
+} AS person
 ----
+
+'''
 
 === simple query offset
 
@@ -185,6 +199,8 @@ RETURN person {
 	.age
 } AS person SKIP $personOffset
 ----
+
+'''
 
 === query offset as variable
 
@@ -223,6 +239,8 @@ RETURN person {
 } AS person SKIP $personOffset
 ----
 
+'''
+
 === nested query
 
 .GraphQL-Query
@@ -255,6 +273,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === simple query
 
 .GraphQL-Query
@@ -279,6 +299,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === named fragment
 
 .GraphQL-Query
@@ -296,8 +318,13 @@ RETURN person {
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person) RETURN person { .name } AS person
+MATCH (person:Person)
+RETURN person {
+	.name
+} AS person
 ----
+
+'''
 
 === rich relationship custom field names
 
@@ -332,6 +359,8 @@ RETURN person {
 	died: personDied
 } AS person
 ----
+
+'''
 
 === rich relationship 2nd hop
 
@@ -374,6 +403,8 @@ RETURN person {
 	born: personBorn
 } AS person
 ----
+
+'''
 
 === rich relationship 3 rd hop
 
@@ -428,6 +459,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === nested query parameter
 
 .GraphQL-Query
@@ -463,6 +496,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === order by query two
 
 .GraphQL-Query
@@ -480,8 +515,13 @@ RETURN person {
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person) RETURN person { .age } AS person ORDER BY person.age DESC, person.name ASC
+MATCH (person:Person)
+RETURN person {
+	.age
+} AS person ORDER BY person.age DESC, person.name ASC
 ----
+
+'''
 
 === order by with underscore
 
@@ -506,6 +546,8 @@ RETURN location {
 } AS location ORDER BY location.sort_Arg DESC
 ----
 
+'''
+
 === named fragment multi field
 
 .GraphQL-Query
@@ -523,8 +565,14 @@ RETURN location {
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person) RETURN person { .name, .age } AS person
+MATCH (person:Person)
+RETURN person {
+	.name,
+	.age
+} AS person
 ----
+
+'''
 
 === simple query alias
 
@@ -546,8 +594,13 @@ MATCH (person:Person) RETURN person { .name, .age } AS person
 .Cypher
 [source,cypher]
 ----
-MATCH (foo:Person) RETURN foo { n:foo.name } AS foo
+MATCH (foo:Person)
+RETURN foo {
+	n: foo.name
+} AS foo
 ----
+
+'''
 
 === simple query first
 
@@ -574,6 +627,8 @@ RETURN person {
 } AS person LIMIT $personFirst
 ----
 
+'''
+
 === simple query where
 
 .GraphQL-Query
@@ -599,6 +654,8 @@ RETURN person {
 	.age
 } AS person LIMIT 1
 ----
+
+'''
 
 === nested query slice offset
 
@@ -633,6 +690,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === nested query slice first
 
 .GraphQL-Query
@@ -665,6 +724,8 @@ RETURN person {
 	livedIn: personLivedIn
 } AS person
 ----
+
+'''
 
 === nested query 2 nd hop
 
@@ -706,6 +767,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === inline fragment multi fields
 
 .GraphQL-Query
@@ -723,8 +786,14 @@ query { person { ... on Person { name,age } } }
 .Cypher
 [source,cypher]
 ----
-MATCH (person:Person) RETURN person { .name, .age } AS person
+MATCH (person:Person)
+RETURN person {
+	.name,
+	.age
+} AS person
 ----
+
+'''
 
 === simple query first offset
 
@@ -751,6 +820,8 @@ RETURN person {
 	.age
 } AS person SKIP $personOffset LIMIT $personFirst
 ----
+
+'''
 
 === nested query slice first offset
 
@@ -786,6 +857,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === nested query slice first offset
 
 .GraphQL-Query
@@ -811,6 +884,8 @@ RETURN location {
 	__typename: head([label IN labels(location) WHERE label IN $locationValidTypes])
 } AS location
 ----
+
+'''
 
 === introspection
 
@@ -854,6 +929,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === inline fragments on interfaces
 
 .GraphQL-Query
@@ -892,6 +969,8 @@ RETURN location {
 	.villageArg
 } AS location
 ----
+
+'''
 
 === fragments on interfaces
 
@@ -934,6 +1013,8 @@ RETURN location {
 	.villageArg
 } AS location
 ----
+
+'''
 
 === query spatial types
 
@@ -978,6 +1059,8 @@ RETURN person {
 	}
 } AS person
 ----
+
+'''
 
 === mutate spatial types
 
@@ -1032,6 +1115,8 @@ RETURN createPerson {
 } AS createPerson
 ----
 
+'''
+
 === enforce typeName on interfaces
 
 .Query configuration
@@ -1075,3 +1160,5 @@ RETURN location {
 	__typename: head([label IN labels(location) WHERE label IN $locationValidTypes])
 } AS location
 ----
+
+'''

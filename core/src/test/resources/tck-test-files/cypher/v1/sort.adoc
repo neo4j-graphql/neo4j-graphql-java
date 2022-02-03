@@ -73,6 +73,8 @@ RETURN movies {
 } AS movies ORDER BY movies.id DESC
 ----
 
+'''
+
 === Multi Sort
 
 .GraphQL-Query
@@ -99,6 +101,8 @@ RETURN movies {
 	.title
 } AS movies ORDER BY movies.id DESC, movies.title ASC
 ----
+
+'''
 
 === Sort with skip limit & with other variables
 
@@ -152,6 +156,8 @@ RETURN movies {
 } AS movies ORDER BY movies.id DESC, movies.title ASC SKIP $moviesSkip LIMIT $moviesLimit
 ----
 
+'''
+
 === Default values
 
 .GraphQL-Query
@@ -178,6 +184,8 @@ RETURN genres {
 	.name
 } AS genres ORDER BY genres.name ASC
 ----
+
+'''
 
 == For projection
 
@@ -218,6 +226,8 @@ RETURN movies {
 } AS movies
 ----
 
+'''
+
 === Multi Sort
 
 .GraphQL-Query
@@ -254,6 +264,8 @@ RETURN movies {
 	genres: moviesGenres
 } AS movies
 ----
+
+'''
 
 === Sort with skip limit & with other variables
 
@@ -319,6 +331,8 @@ RETURN movies {
 } AS movies
 ----
 
+'''
+
 === Default values
 
 .GraphQL-Query
@@ -357,3 +371,5 @@ RETURN movies {
 	genres: moviesGenres
 } AS movies
 ----
+
+'''

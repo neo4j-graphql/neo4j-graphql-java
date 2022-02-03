@@ -100,6 +100,8 @@ RETURN movie {
 } AS movie
 ----
 
+'''
+
 .Movie Example result
 |===
 |title
@@ -168,6 +170,8 @@ WITH DISTINCT movie
 RETURN movie { .title } AS movie
 ----
 
+'''
+
 .Movie Example result
 |===
 |title
@@ -198,7 +202,6 @@ RETURN movie { .title } AS movie
     title
   }
 }
-
 ----
 
 .Cypher params
@@ -227,6 +230,8 @@ RETURN movie {
 	.title
 } AS movie
 ----
+
+'''
 
 .Movie Example result
 |===
@@ -288,6 +293,8 @@ RETURN movie {
 	.title
 } AS movie
 ----
+
+'''
 
 .Movie Example result
 |===
@@ -397,6 +404,8 @@ WITH DISTINCT movie
 RETURN movie { .title } AS movie
 ----
 
+'''
+
 .Movie Example result
 |===
 |title
@@ -469,6 +478,8 @@ RETURN movie {
 } AS movie
 ----
 
+'''
+
 .Movie Example result
 |===
 |title
@@ -523,6 +534,8 @@ RETURN movie {
 } AS movie
 ----
 
+'''
+
 .Movie Example result
 |===
 |title
@@ -574,6 +587,8 @@ RETURN movie {
 	.title
 } AS movie
 ----
+
+'''
 
 .Movie Example result
 |===
@@ -628,6 +643,8 @@ RETURN movie {
 	.title
 } AS movie
 ----
+
+'''
 
 .Movie Example result
 |===
@@ -713,6 +730,8 @@ RETURN movie {
 } AS movie
 ----
 
+'''
+
 .Movie Example result
 |===
 |title
@@ -792,6 +811,8 @@ RETURN movie {
 } AS movie
 ----
 
+'''
+
 .Movie Example result
 |===
 |title
@@ -843,6 +864,8 @@ RETURN movie {
 	.title
 } AS movie
 ----
+
+'''
 
 .Movie Example result
 |===
@@ -917,6 +940,8 @@ RETURN person {
 } AS person
 ----
 
+'''
+
 === Filter spatial null
 
 .Query configuration
@@ -951,6 +976,8 @@ RETURN person {
 	.name
 } AS person
 ----
+
+'''
 
 === Filter spatial not
 
@@ -990,6 +1017,8 @@ RETURN person {
 	.name
 } AS person
 ----
+
+'''
 
 === Filter spatial distance
 
@@ -1034,3 +1063,5 @@ RETURN person {
 	.name
 } AS person
 ----
+
+'''

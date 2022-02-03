@@ -135,8 +135,12 @@ query {
 [source,cypher]
 ----
 MATCH (movie:Movie)
-RETURN movie { .movieId } AS Movie
+RETURN movie {
+	.movieId
+} AS Movie
 ----
+
+'''
 
 === Query Single Object
 
@@ -168,6 +172,8 @@ RETURN movieById {
 } AS MovieById LIMIT 1
 ----
 
+'''
+
 === Basic Query with Parameter
 
 .GraphQL-Query
@@ -193,6 +199,8 @@ RETURN movie {
 	.title
 } AS Movie
 ----
+
+'''
 
 === Paging
 
@@ -227,6 +235,8 @@ RETURN movie {
 	.year
 } AS Movie SKIP $movieOffset LIMIT $movieFirst
 ----
+
+'''
 
 === Query Single Relation
 
@@ -268,6 +278,8 @@ RETURN movieById {
 	filmedIn: movieByIdFilmedIn
 } AS MovieById LIMIT 1
 ----
+
+'''
 
 === Query Single Object and Array of Object Relations
 
@@ -324,6 +336,8 @@ RETURN movieById {
 } AS MovieById LIMIT 1
 ----
 
+'''
+
 === Relationship Expansion
 
 .GraphQL-Query
@@ -368,6 +382,8 @@ RETURN movie {
 } AS Movie
 ----
 
+'''
+
 === Projection with sub-paging
 
 .GraphQL-Query
@@ -411,6 +427,8 @@ RETURN movie {
 	actors: movieActors
 } AS Movie
 ----
+
+'''
 
 === Subquery Cypher Directive
 
@@ -457,6 +475,8 @@ RETURN movie {
 } AS Movie
 ----
 
+'''
+
 === Subquery Cypher Directive Paging
 
 .GraphQL-Query
@@ -501,6 +521,8 @@ RETURN movie {
 	similar: movieSimilar
 } AS Movie
 ----
+
+'''
 
 === Handle Cypher Directive on Query Type
 
@@ -548,6 +570,8 @@ RETURN genresBySubstring {
 } AS GenresBySubstring
 ----
 
+'''
+
 === Handle Cypher directive on Mutation type
 
 .GraphQL-Query
@@ -579,6 +603,8 @@ RETURN createGenre {
 	.name
 } AS createGenre
 ----
+
+'''
 
 === Query using Inline Fragment
 
@@ -630,6 +656,8 @@ RETURN movie {
 	ratings: movieRatings
 } AS Movie
 ----
+
+'''
 
 === Deeply nested object query
 
@@ -734,6 +762,8 @@ RETURN movie {
 } AS Movie
 ----
 
+'''
+
 === Should merge an actor by the userId
 
 .GraphQL-Query
@@ -769,6 +799,8 @@ RETURN actor {
 	.name
 } AS actor
 ----
+
+'''
 
 === Should auto generate `add` relationship mutations for arrays
 
@@ -806,6 +838,8 @@ RETURN add {
 } AS add
 ----
 
+'''
+
 === Should auto generate `delete` relationship mutations for arrays
 
 .GraphQL-Query
@@ -841,6 +875,8 @@ RETURN del {
 	.title
 } AS del
 ----
+
+'''
 
 === Should auto generate `add` relationship mutations
 
@@ -879,6 +915,8 @@ RETURN add {
 } AS add
 ----
 
+'''
+
 === Should auto generate `delete` relationship mutations
 
 .GraphQL-Query
@@ -916,6 +954,8 @@ RETURN del {
 } AS del
 ----
 
+'''
+
 === Should auto generate `add` recursive relationship mutations for arrays
 
 .GraphQL-Query
@@ -952,6 +992,8 @@ RETURN add {
 } AS add
 ----
 
+'''
+
 == Order By
 
 === Descending, top level
@@ -985,6 +1027,8 @@ RETURN movie {
 } AS Movie ORDER BY movie.title DESC LIMIT $movieFirst
 ----
 
+'''
+
 === Descending, number
 
 .GraphQL-Query
@@ -1009,6 +1053,8 @@ RETURN movie {
 	.title
 } AS Movie ORDER BY movie.year DESC LIMIT $movieFirst
 ----
+
+'''
 
 === Deeply nested orderBy
 
@@ -1063,6 +1109,8 @@ RETURN movie {
 	actors: movieActors
 } AS Movie ORDER BY movie.title DESC
 ----
+
+'''
 
 === Deeply nested query using temporal orderBy
 
@@ -1130,6 +1178,8 @@ RETURN user {
 } AS User ORDER BY user.born DESC
 ----
 
+'''
+
 === Find all relations
 
 .GraphQL-Query
@@ -1158,6 +1208,8 @@ RETURN rated {
 	.rating
 } AS rated
 ----
+
+'''
 
 == Relations
 
@@ -1201,6 +1253,8 @@ RETURN createRated {
 } AS createRated
 ----
 
+'''
+
 === Mutate relation
 
 .GraphQL-Query
@@ -1235,6 +1289,8 @@ RETURN updateRated {
 	.rating
 } AS updateRated
 ----
+
+'''
 
 === create relation
 
@@ -1272,6 +1328,8 @@ RETURN addGenreMovies {
 } AS addGenreMovies
 ----
 
+'''
+
 == create object with multiple labels
 
 .GraphQL-Query
@@ -1307,6 +1365,8 @@ RETURN createUser {
 } AS createUser
 ----
 
+'''
+
 == Neo4j Data Types queryies
 
 === User born extraction
@@ -1334,8 +1394,15 @@ query {
 [source,cypher]
 ----
 MATCH (user:User)
-RETURN user { born: { formatted: toString(user.born), year: user.born.year } } AS User
+RETURN user {
+	born:  {
+		formatted: toString(user.born),
+		year: user.born.year
+	}
+} AS User
 ----
+
+'''
 
 === User born query filter with multiple fields
 
@@ -1372,6 +1439,8 @@ RETURN user {
 	}
 } AS User
 ----
+
+'''
 
 === Merge Actor with born field formatted
 
@@ -1413,6 +1482,8 @@ RETURN actor {
 } AS actor
 ----
 
+'''
+
 === Create Actor with born field formatted
 
 .GraphQL-Query
@@ -1450,6 +1521,8 @@ RETURN actor {
 	.name
 } AS actor
 ----
+
+'''
 
 === Merge Actor with born field object
 
@@ -1508,6 +1581,8 @@ RETURN actor {
 	.name
 } AS actor
 ----
+
+'''
 
 === Create Actor with born field object
 
@@ -1573,6 +1648,8 @@ RETURN actor {
 } AS actor
 ----
 
+'''
+
 == Deletion
 
 === delete node by id
@@ -1607,6 +1684,8 @@ WITH deleteMovie AS toDelete, deleteMovie {
 RETURN deleteMovie AS deleteMovie
 ----
 
+'''
+
 === delete node by native id
 
 .GraphQL-Query
@@ -1637,6 +1716,8 @@ WITH deleteState AS toDelete, deleteState {
 } AS deleteState DETACH DELETE toDelete
 RETURN deleteState AS deleteState
 ----
+
+'''
 
 === delete relation by native id
 
@@ -1680,3 +1761,5 @@ WITH deleteRated AS toDelete, deleteRated {
 } AS deleteRated DETACH DELETE toDelete
 RETURN deleteRated AS deleteRated
 ----
+
+'''

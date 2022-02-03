@@ -52,6 +52,8 @@ RETURN createMovie {
 } AS createMovie
 ----
 
+'''
+
 === Update
 
 .GraphQL-Query
@@ -88,6 +90,8 @@ RETURN updateMovie {
 	.released
 } AS updateMovie
 ----
+
+'''
 
 === Merge
 
@@ -126,6 +130,8 @@ RETURN mergeMovie {
 } AS mergeMovie
 ----
 
+'''
+
 === Merge null
 
 .GraphQL-Query
@@ -163,6 +169,8 @@ RETURN updateMovie {
 } AS updateMovie
 ----
 
+'''
+
 === Find
 
 .GraphQL-Query
@@ -195,6 +203,8 @@ RETURN movie {
 } AS movie
 ----
 
+'''
+
 === Filter
 
 .GraphQL-Query
@@ -226,4 +236,6 @@ RETURN movie {
 	.released
 } AS movie
 ----
+
+'''
 

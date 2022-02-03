@@ -72,6 +72,8 @@ RETURN movie {
 } AS movie
 ----
 
+'''
+
 === Simple AND
 
 .GraphQL-Query
@@ -101,6 +103,8 @@ RETURN movie {
 	.title
 } AS movie
 ----
+
+'''
 
 === Nested AND
 
@@ -132,6 +136,8 @@ RETURN movie {
 } AS movie
 ----
 
+'''
+
 === Super Nested AND
 
 .GraphQL-Query
@@ -161,6 +167,8 @@ RETURN movie {
 	.title
 } AS movie
 ----
+
+'''
 
 === Simple OR
 
@@ -192,6 +200,8 @@ RETURN movie {
 } AS movie
 ----
 
+'''
+
 === Nested OR
 
 .GraphQL-Query
@@ -221,6 +231,8 @@ RETURN movie {
 	.title
 } AS movie
 ----
+
+'''
 
 === Super Nested OR
 
@@ -252,6 +264,8 @@ RETURN movie {
 } AS movie
 ----
 
+'''
+
 === Simple IN
 
 .GraphQL-Query
@@ -281,3 +295,5 @@ RETURN movie {
 	.title
 } AS movie
 ----
+
+'''
