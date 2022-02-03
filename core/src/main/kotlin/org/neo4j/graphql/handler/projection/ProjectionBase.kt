@@ -178,6 +178,18 @@ open class ProjectionBase(
             if (value !is Map<*, *>) {
                 throw IllegalArgumentException("Only object values are supported for filtering on queried relation ${predicate.value}, but got ${value.javaClass.name}")
             }
+            type.relationshipFor("roles")
+
+            val relType = predicate.relationshipInfo.type
+
+            val relInfo = if (relType.isRelationType()) {
+                val fieldType = predicate.fieldDefinition.type
+                val nodeType = fieldType.getInnerFieldsContainer()
+                val relDirectiveField = predicate.fieldDefinition.getDirective(DirectiveConstants.RELATION)?.let { RelationshipInfo.create(nodeType, it) }
+                relationshipInfoInCorrectDirection(nodeType, predicate.relationshipInfo, type, relDirectiveField)
+            } else {
+                predicate.relationshipInfo
+            }
 
             val cond = name(normalizeName(variablePrefix, predicate.relationshipInfo.typeName, "Cond"))
             when (predicate.op) {
@@ -188,18 +200,50 @@ open class ProjectionBase(
                 RelationOperator.NONE -> Predicates.none(cond)
                 else -> null
             }?.let {
-                val targetNode = predicate.relNode.named(normalizeName(variablePrefix, predicate.relationshipInfo.typeName))
-                val relType = predicate.relationshipInfo.type
                 val parsedQuery2 = parseFilter(value, relType)
-                val condition = handleQuery(targetNode.requiredSymbolicName.value, "", targetNode, parsedQuery2, relType, variables)
-                var where = it
-                    .`in`(listBasedOn(predicate.relationshipInfo.createRelation(propertyContainer as Node, targetNode)).returning(condition))
-                    .where(cond.asCondition())
-                if (predicate.op == RelationOperator.NOT) {
-                    where = where.not()
-                }
-                result = result.and(where)
+                if (relType.isRelationType()) {
+                    parsedQuery2.relationPredicates.forEach { p ->
+                        if (p.fieldDefinition.name == relInfo.startField) {
+                            throw IllegalArgumentException("relation predicates for field ${type.name}.${predicate.fieldDefinition.name} on rich relation type ${relType.name} are only allowed for target field ${relInfo.endField}")
+                        }
+                    }
+                   val targetNode= CypherDSL.node( relInfo.type.getFieldDefinition(relInfo.endField).type.getInnerFieldsContainer().label())
+                       .named(normalizeName(variablePrefix, relInfo.endField))
 
+                    val condition = handleQuery(targetNode.requiredSymbolicName.value, "", targetNode, parsedQuery2.onlyRelations, relType, variables)
+
+
+//                    val targetNode = predicate.relNode.named(normalizeName(variablePrefix, relInfo.typeName))
+
+
+//                    parsedQuery2.relationPredicates.forEach { p->
+//                        when (p.fieldDefinition.name) {
+//                            relInfo.endField -> {
+//                                val pq3 = parseFilter(p.value, propertyContainer)
+//                                result = result.and(pq3.getFieldConditions(propertyContainer, variablePrefix, variableSuffix, schemaConfig))
+//                            }
+//                            else -> throw IllegalArgumentException("relation predicates on rich relation type ${relType.name} are only allowed for target field ${relInfo.endField}")
+//
+//                        }
+//                    }
+//                    val targetNode = predicate.relNode.named(normalizeName(variablePrefix, relInfo.typeName))
+//                    relInfo.createRelation(propertyContainer as Node, targetNode)
+//
+//                    relInfo.startField
+//
+
+                    println()
+                } else {
+                    val targetNode = predicate.relNode.named(normalizeName(variablePrefix, relInfo.typeName))
+                    val condition = handleQuery(targetNode.requiredSymbolicName.value, "", targetNode, parsedQuery2, relType, variables)
+                    var where = it
+                        .`in`(listBasedOn(relInfo.createRelation(propertyContainer as Node, targetNode)).returning(condition))
+                        .where(cond.asCondition())
+                    if (predicate.op == RelationOperator.NOT) {
+                        where = where.not()
+                    }
+                    result = result.and(where)
+                }
             }
         }
 

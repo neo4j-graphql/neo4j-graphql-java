@@ -59,15 +59,13 @@ RETURN movie {
 } AS movie
 ----
 
-'''
+.Cypher
+[source,cypher]
+----
+MATCH (user:User)
+RETURN user {
+	.name
+} AS user
+----
 
-//.Cypher
-//[source,cypher]
-//----
-//MATCH (user:User)
-//RETURN user {
-//	.name
-//} AS user
-//----
-//
-//'''
+'''

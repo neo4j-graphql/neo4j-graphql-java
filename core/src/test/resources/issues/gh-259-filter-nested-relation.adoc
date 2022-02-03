@@ -1,0 +1,83 @@
+:toc:
+
+= Filter on nodes that are nested inside type relation is not working as expected
+
+== Issue
+
+https://github.com/neo4j-graphql/neo4j-graphql-java/issues/259
+
+== Schema
+
+[source,graphql,schema=true]
+----
+type Role @relation(name:"ACTED_IN", from:"actor", to:"movie") {
+   actor: Person
+   movie: Movie
+   type: String
+}
+type Person {
+  name: String
+  born: Int
+  roles: [Role]
+}
+type Movie {
+  title: String
+  characters: [Role]
+}
+----
+
+== Queries
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  person(filter: {
+        roles_some: { movie: { title_starts_with: "P" }, movie_not: null }
+    }) {
+    roles {
+      movie {
+        title
+      }
+      type
+    }
+    name
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterPersonRoleMovieTitleStartsWith" : "P"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE any(filterPersonRoleCond IN [(person)<-[:ACTED_IN]-(filterPersonRole:ACTED_IN) | (any(filterPersonRoleMovieCond IN [(filterPersonRole)-[:ACTED_IN]->(filterPersonRoleMovie:Movie) | filterPersonRoleMovie.title STARTS WITH $filterPersonRoleMovieTitleStartsWith]
+	WHERE filterPersonRoleMovieCond)
+	AND EXISTS {
+		MATCH (filterPersonRole)-[:ACTED_IN]->(:Movie)
+	})]
+WHERE filterPersonRoleCond)
+CALL {
+	WITH person
+	MATCH (person)-[personRoles:ACTED_IN]->(personRolesMovie:Movie)
+	RETURN collect(personRoles {
+		movie: personRolesMovie {
+			.title
+		},
+		.type
+	}) AS personRoles
+}
+RETURN person {
+	roles: personRoles,
+	.name
+} AS person
+----
+
+'''
