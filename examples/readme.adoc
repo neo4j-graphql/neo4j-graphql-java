@@ -2,3 +2,4 @@
 
 * link:dgs-spring-boot/readme.adoc[Spring Boot integration with Netflix Domain Graph Service (DGS)] (recommended)
 * link:graphql-kotlin-spring-boot/readme.adoc[Spring Boot integration with graphql-kotlin]
+* link:graphql-spring-boot/readme.adoc[Preview of Spring Boot + Spring GraphQL integration]
