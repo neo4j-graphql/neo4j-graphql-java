@@ -29,6 +29,13 @@ data class SchemaConfig @JvmOverloads constructor(
          * if enabled the `Date`, `Time`, `LocalTime`, `DateTime` and `LocalDateTime` are used as scalars
          */
         val useTemporalScalars: Boolean = false,
+
+        /**
+         * If `true`, the [Translator] will resolve field aliases. Set this flag to `false` if a [DataFetchingInterceptor] is used,
+         * so graphql-java can resolve the alias correctly.
+         * If not defined, the flag will be set to false, if a [DataFetchingInterceptor] is used.
+         */
+        val resolveAlias: Boolean? = null
 ) {
     data class CRUDConfig(val enabled: Boolean = true, val exclude: List<String> = emptyList())
 

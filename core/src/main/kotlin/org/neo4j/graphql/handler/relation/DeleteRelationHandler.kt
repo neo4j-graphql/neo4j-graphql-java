@@ -8,7 +8,6 @@ import graphql.schema.idl.TypeDefinitionRegistry
 import org.neo4j.cypherdsl.core.Statement
 import org.neo4j.graphql.Cypher
 import org.neo4j.graphql.SchemaConfig
-import org.neo4j.graphql.aliasOrName
 import org.neo4j.graphql.withSubQueries
 
 /**

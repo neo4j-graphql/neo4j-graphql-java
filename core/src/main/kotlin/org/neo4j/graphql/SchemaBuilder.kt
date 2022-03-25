@@ -59,8 +59,12 @@ class SchemaBuilder(
 
             val builder = RuntimeWiring.newRuntimeWiring()
             val codeRegistryBuilder = GraphQLCodeRegistry.newCodeRegistry()
-
-            val schemaBuilder = SchemaBuilder(typeDefinitionRegistry, config)
+            val newConfig = if (config.resolveAlias == null) {
+                config.copy(resolveAlias = dataFetchingInterceptor == null)
+            } else {
+                config
+            }
+            val schemaBuilder = SchemaBuilder(typeDefinitionRegistry, newConfig)
             schemaBuilder.augmentTypes()
             schemaBuilder.registerScalars(builder)
             schemaBuilder.registerTypeNameResolver(builder)

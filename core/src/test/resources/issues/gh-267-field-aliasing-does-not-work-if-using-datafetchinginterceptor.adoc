@@ -1,0 +1,55 @@
+:toc:
+
+= Field aliasing does not work if using DataFetchingInterceptor
+
+== Issue
+
+https://github.com/neo4j-graphql/neo4j-graphql-java/issues/267
+
+== Schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String
+}
+----
+
+.Test-Data
+[source,cypher,test-data=true]
+----
+CREATE (:Movie{ title: 'movie 1' });
+----
+
+== Queries
+
+.GraphQL-Query
+[source,graphql]
+----
+query {
+  movieAlias: movie {
+    someAlias: title
+  }
+}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movieAlias" : [ {
+    "someAlias" : "movie 1"
+  } ]
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (movieAlias:Movie)
+RETURN movieAlias {
+	someAlias: movieAlias.title
+} AS movieAlias
+----
+
+'''

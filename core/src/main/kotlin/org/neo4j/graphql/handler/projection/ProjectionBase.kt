@@ -1,6 +1,7 @@
 package org.neo4j.graphql.handler.projection
 
 import graphql.Scalars.GraphQLString
+import graphql.language.Field
 import graphql.schema.*
 import org.neo4j.cypherdsl.core.*
 import org.neo4j.cypherdsl.core.Cypher.*
@@ -617,5 +618,15 @@ open class ProjectionBase(
     enum class Sort {
         ASC,
         DESC
+    }
+
+    fun Field.aliasOrName(): String = when (schemaConfig.resolveAlias) {
+        true -> (this.alias ?: this.name)
+        else -> this.name
+    }
+
+    fun SelectedField.aliasOrName(): String = when (schemaConfig.resolveAlias) {
+        true -> (this.alias ?: this.name)
+        else -> this.name
     }
 }
