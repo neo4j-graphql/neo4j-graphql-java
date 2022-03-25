@@ -4,6 +4,11 @@ enum RelationDirection {
   BOTH
 }
 
+enum RelationshipDirection {
+  IN
+  OUT
+}
+
 enum SortDirection {
   """Sort by field values in ascending order."""
   ASC

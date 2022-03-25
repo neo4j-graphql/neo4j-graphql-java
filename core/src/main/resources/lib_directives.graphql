@@ -1,4 +1,16 @@
+# deprecated use @relationship
 directive @relation(name:String, direction: RelationDirection = OUT, from: String = "from", to: String = "to") on FIELD_DEFINITION | OBJECT
+
+# Instructs neo4j-graphql-java to treat this field as a relationship. Opens up the ability to create and connect on this field.
+directive @relationship(
+  type: String!,
+  direction: RelationshipDirection!,
+  # The name of the interface containing the properties for this relationship.
+  properties: String
+) on FIELD_DEFINITION
+
+# Syntactic sugar to help differentiate between interfaces for relationship properties, and otherwise.
+directive @relationshipProperties on INTERFACE
 
 directive @cypher(
 

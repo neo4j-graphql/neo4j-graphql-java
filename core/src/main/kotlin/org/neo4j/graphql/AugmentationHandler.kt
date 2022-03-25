@@ -318,6 +318,8 @@ abstract class AugmentationHandler(
     fun FieldDefinition.isRelationship(): Boolean =
             !type.inner().isNeo4jType() && type.resolve() is ImplementingTypeDefinition<*>
 
+    fun FieldDefinition.isNewRelationship(): Boolean = hasDirective(DirectiveConstants.RELATIONSHIP) && isRelationship()
+
     fun TypeDefinitionRegistry.getUnwrappedType(name: String?): TypeDefinition<TypeDefinition<*>>? = getType(name)?.unwrap()
 
     fun DirectivesContainer<*>.cypherDirective(): CypherDirective? = if (hasDirective(DirectiveConstants.CYPHER)) {

@@ -11,6 +11,8 @@ class DirectiveConstants {
         const val RELATION_FROM = "from"
         const val RELATION_TO = "to"
 
+        const val RELATIONSHIP = "relationship"
+
         const val CYPHER = "cypher"
         const val CYPHER_STATEMENT = "statement"
         const val CYPHER_PASS_THROUGH = "passThrough"

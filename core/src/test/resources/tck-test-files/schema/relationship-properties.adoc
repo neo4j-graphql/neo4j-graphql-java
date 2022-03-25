@@ -1,0 +1,415 @@
+:toc:
+
+= Schema Relationship-properties
+
+Tests that the provided typeDefs return the correct schema (with relationship-properties).
+
+== Inputs
+
+[source,graphql,schema=true]
+----
+type Actor {
+  name: String!
+  movies: [Movie] @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
+}
+
+type Movie {
+  title: String!
+  actors: [Actor]! @relationship(type: "ACTED_IN", direction: IN, properties: "ActedIn")
+}
+
+interface ActedIn @relationshipProperties {
+  screenTime: Int!
+  startDate: Date!
+  leadRole: Boolean!
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+  "queryOptionStyle": "INPUT_TYPE",
+  "inputStyle": "INPUT_TYPE",
+  "useWhereFilter": true,
+  "pluralizeFields": true,
+  "enableStatistics": true
+}
+----
+
+== Output
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+interface ActedIn {
+  leadRole: Boolean!
+  screenTime: Int!
+  startDate: Date!
+}
+
+type Actor {
+  movies(options: MovieOptions, where: MovieWhere): [Movie]
+  name: String!
+}
+
+type CreateActorsMutationResponse {
+  actors: [Actor!]!
+  info: CreateInfo!
+}
+
+type CreateInfo {
+  nodesCreated: Int!
+  relationshipsCreated: Int!
+}
+
+type CreateMoviesMutationResponse {
+  info: CreateInfo!
+  movies: [Movie!]!
+}
+
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
+type Movie {
+  actors(options: ActorOptions, where: ActorWhere): [Actor]!
+  title: String!
+}
+
+type Mutation {
+  createActors(input: [ActorCreateInput!]!): CreateActorsMutationResponse!
+  createMovies(input: [MovieCreateInput!]!): CreateMoviesMutationResponse!
+  deleteActedIns(where: ActedInWhere!): DeleteInfo!
+  deleteActors(where: ActorWhere!): DeleteInfo!
+  deleteMovies(where: MovieWhere!): DeleteInfo!
+  updateActedIns(update: ActedInUpdateInput, where: ActedInWhere): UpdateActedInsMutationResponse!
+  updateActors(connect: ActorConnectInput, create: ActorRelationInput, delete: ActorDeleteInput, disconnect: ActorDisconnectInput, update: ActorUpdateInput, where: ActorWhere): UpdateActorsMutationResponse!
+  updateMovies(connect: MovieConnectInput, create: MovieRelationInput, delete: MovieDeleteInput, disconnect: MovieDisconnectInput, update: MovieUpdateInput, where: MovieWhere): UpdateMoviesMutationResponse!
+}
+
+type Query {
+  actedIns(options: ActedInOptions, where: ActedInWhere): [ActedIn!]!
+  actors(options: ActorOptions, where: ActorWhere): [Actor!]!
+  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
+}
+
+type UpdateActedInsMutationResponse {
+  actedIns: [ActedIn!]!
+  info: UpdateInfo!
+}
+
+type UpdateActorsMutationResponse {
+  actors: [Actor!]!
+  info: UpdateInfo!
+}
+
+type UpdateInfo {
+  nodesCreated: Int!
+  nodesDeleted: Int!
+  propertiesSet: Int!
+  relationshipsCreated: Int!
+  relationshipsDeleted: Int!
+}
+
+type UpdateMoviesMutationResponse {
+  info: UpdateInfo!
+  movies: [Movie!]!
+}
+
+enum RelationDirection {
+  BOTH
+  IN
+  OUT
+}
+
+enum RelationshipDirection {
+  IN
+  OUT
+}
+
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+"Scalar Date"
+scalar Date
+
+input ActedInOptions {
+  "Defines the maximum amount of records returned"
+  limit: Int
+  "Defines the amount of records to be skipped"
+  skip: Int
+  "Specify one or more ActedInSort objects to sort ActedIns by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [ActedInSort!]
+}
+
+"Fields to sort ActedIns by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+input ActedInSort {
+  leadRole: SortDirection
+  screenTime: SortDirection
+  startDate: SortDirection
+}
+
+input ActedInUpdateInput {
+  leadRole: Boolean
+  screenTime: Int
+  startDate: Date
+}
+
+input ActedInWhere {
+  AND: [ActedInWhere!]
+  NOT: [ActedInWhere!]
+  OR: [ActedInWhere!]
+  leadRole: Boolean
+  leadRole_not: Boolean
+  screenTime: Int
+  screenTime_gt: Int
+  screenTime_gte: Int
+  screenTime_in: [Int!]
+  screenTime_lt: Int
+  screenTime_lte: Int
+  screenTime_not: Int
+  screenTime_not_in: [Int!]
+  startDate: Date
+  startDate_gt: Date
+  startDate_gte: Date
+  startDate_in: [Date!]
+  startDate_lt: Date
+  startDate_lte: Date
+  startDate_not: Date
+  startDate_not_in: [Date!]
+}
+
+input ActorConnectInput {
+  movies: [ActorMoviesConnectFieldInput!]
+}
+
+input ActorConnectWhere {
+  node: ActorWhere!
+}
+
+input ActorCreateInput {
+  movies: ActorMoviesFieldInput
+  name: String!
+}
+
+input ActorDeleteInput {
+  movies: [ActorMoviesDeleteFieldInput!]
+}
+
+input ActorDisconnectInput {
+  movies: [ActorMoviesDisconnectFieldInput!]
+}
+
+input ActorMoviesConnectFieldInput {
+  where: MovieConnectWhere
+}
+
+input ActorMoviesConnectionWhere {
+  AND: [ActorMoviesConnectionWhere!]
+  OR: [ActorMoviesConnectionWhere!]
+  "Filters only those `Actor` for which all `movies`-relationship matches this filter. If `null` is passed to this field, only those `Actor` will be filtered which has no `movies`-relations"
+  node: MovieWhere
+  "Filters only those `Actor` for which all `movies`-relationships matches this filter"
+  node_every: MovieWhere
+  "Filters only those `Actor` for which none of the `movies`-relationships matches this filter"
+  node_none: MovieWhere
+  "Filters only those `Actor` for which all `movies`-relationship does not match this filter. If `null` is passed to this field, only those `Actor` will be filtered which has any `movies`-relation"
+  node_not: MovieWhere
+  "Filters only those `Actor` for which exactly one `movies`-relationship matches this filter"
+  node_single: MovieWhere
+  "Filters only those `Actor` for which at least one `movies`-relationship matches this filter"
+  node_some: MovieWhere
+}
+
+input ActorMoviesCreateFieldInput {
+  node: MovieCreateInput!
+}
+
+input ActorMoviesDeleteFieldInput {
+  where: ActorMoviesConnectionWhere
+}
+
+input ActorMoviesDisconnectFieldInput {
+  where: ActorMoviesConnectionWhere
+}
+
+input ActorMoviesFieldInput {
+  connect: [ActorMoviesConnectFieldInput!]
+  create: [ActorMoviesCreateFieldInput!]
+}
+
+input ActorOptions {
+  "Defines the maximum amount of records returned"
+  limit: Int
+  "Defines the amount of records to be skipped"
+  skip: Int
+  "Specify one or more ActorSort objects to sort Actors by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [ActorSort!]
+}
+
+input ActorRelationInput {
+  movies: [ActorMoviesCreateFieldInput!]
+}
+
+"Fields to sort Actors by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+input ActorSort {
+  name: SortDirection
+}
+
+input ActorUpdateInput {
+  name: String
+}
+
+input ActorWhere {
+  AND: [ActorWhere!]
+  NOT: [ActorWhere!]
+  OR: [ActorWhere!]
+  "Filters only those `Actor` for which all `movies`-relationship matches this filter. If `null` is passed to this field, only those `Actor` will be filtered which has no `movies`-relations"
+  movies: MovieWhere
+  "Filters only those `Actor` for which all `movies`-relationships matches this filter"
+  movies_every: MovieWhere
+  "Filters only those `Actor` for which none of the `movies`-relationships matches this filter"
+  movies_none: MovieWhere
+  "Filters only those `Actor` for which all `movies`-relationship does not match this filter. If `null` is passed to this field, only those `Actor` will be filtered which has any `movies`-relation"
+  movies_not: MovieWhere
+  "Filters only those `Actor` for which exactly one `movies`-relationship matches this filter"
+  movies_single: MovieWhere
+  "Filters only those `Actor` for which at least one `movies`-relationship matches this filter"
+  movies_some: MovieWhere
+  name: String
+  name_contains: String
+  name_ends_with: String
+  name_in: [String!]
+  name_matches: String
+  name_not: String
+  name_not_contains: String
+  name_not_ends_with: String
+  name_not_in: [String!]
+  name_not_starts_with: String
+  name_starts_with: String
+}
+
+input MovieActorsConnectFieldInput {
+  where: ActorConnectWhere
+}
+
+input MovieActorsConnectionWhere {
+  AND: [MovieActorsConnectionWhere!]
+  OR: [MovieActorsConnectionWhere!]
+  "Filters only those `Movie` for which all `actors`-relationship matches this filter. If `null` is passed to this field, only those `Movie` will be filtered which has no `actors`-relations"
+  node: ActorWhere
+  "Filters only those `Movie` for which all `actors`-relationships matches this filter"
+  node_every: ActorWhere
+  "Filters only those `Movie` for which none of the `actors`-relationships matches this filter"
+  node_none: ActorWhere
+  "Filters only those `Movie` for which all `actors`-relationship does not match this filter. If `null` is passed to this field, only those `Movie` will be filtered which has any `actors`-relation"
+  node_not: ActorWhere
+  "Filters only those `Movie` for which exactly one `actors`-relationship matches this filter"
+  node_single: ActorWhere
+  "Filters only those `Movie` for which at least one `actors`-relationship matches this filter"
+  node_some: ActorWhere
+}
+
+input MovieActorsCreateFieldInput {
+  node: ActorCreateInput!
+}
+
+input MovieActorsDeleteFieldInput {
+  where: MovieActorsConnectionWhere
+}
+
+input MovieActorsDisconnectFieldInput {
+  where: MovieActorsConnectionWhere
+}
+
+input MovieActorsFieldInput {
+  connect: [MovieActorsConnectFieldInput!]
+  create: [MovieActorsCreateFieldInput!]
+}
+
+input MovieConnectInput {
+  actors: [MovieActorsConnectFieldInput!]
+}
+
+input MovieConnectWhere {
+  node: MovieWhere!
+}
+
+input MovieCreateInput {
+  actors: MovieActorsFieldInput
+  title: String!
+}
+
+input MovieDeleteInput {
+  actors: [MovieActorsDeleteFieldInput!]
+}
+
+input MovieDisconnectInput {
+  actors: [MovieActorsDisconnectFieldInput!]
+}
+
+input MovieOptions {
+  "Defines the maximum amount of records returned"
+  limit: Int
+  "Defines the amount of records to be skipped"
+  skip: Int
+  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [MovieSort!]
+}
+
+input MovieRelationInput {
+  actors: [MovieActorsCreateFieldInput!]
+}
+
+"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+input MovieSort {
+  title: SortDirection
+}
+
+input MovieUpdateInput {
+  title: String
+}
+
+input MovieWhere {
+  AND: [MovieWhere!]
+  NOT: [MovieWhere!]
+  OR: [MovieWhere!]
+  "Filters only those `Movie` for which all `actors`-relationship matches this filter. If `null` is passed to this field, only those `Movie` will be filtered which has no `actors`-relations"
+  actors: ActorWhere
+  "Filters only those `Movie` for which all `actors`-relationships matches this filter"
+  actors_every: ActorWhere
+  "Filters only those `Movie` for which none of the `actors`-relationships matches this filter"
+  actors_none: ActorWhere
+  "Filters only those `Movie` for which all `actors`-relationship does not match this filter. If `null` is passed to this field, only those `Movie` will be filtered which has any `actors`-relation"
+  actors_not: ActorWhere
+  "Filters only those `Movie` for which exactly one `actors`-relationship matches this filter"
+  actors_single: ActorWhere
+  "Filters only those `Movie` for which at least one `actors`-relationship matches this filter"
+  actors_some: ActorWhere
+  title: String
+  title_contains: String
+  title_ends_with: String
+  title_in: [String!]
+  title_matches: String
+  title_not: String
+  title_not_contains: String
+  title_not_ends_with: String
+  title_not_in: [String!]
+  title_not_starts_with: String
+  title_starts_with: String
+}
+
+----
