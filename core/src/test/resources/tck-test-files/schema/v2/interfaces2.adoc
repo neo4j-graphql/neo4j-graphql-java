@@ -343,11 +343,23 @@ input AMovieWhere {
   id_NOT_IN: [ID]
   id_NOT_STARTS_WITH: ID
   id_STARTS_WITH: ID
-  movies: AMovieWhere
+  movies: AMovieWhere @deprecated(reason : "Use `movies_SOME` instead.")
   moviesAggregate: AMovieMoviesAggregateInput
-  moviesConnection: AMovieMoviesConnectionWhere
-  moviesConnection_NOT: AMovieMoviesConnectionWhere
-  movies_NOT: AMovieWhere
+  moviesConnection: AMovieMoviesConnectionWhere @deprecated(reason : "Use `moviesConnection_SOME` instead.")
+  moviesConnection_ALL: AMovieMoviesConnectionWhere
+  moviesConnection_NONE: AMovieMoviesConnectionWhere
+  moviesConnection_NOT: AMovieMoviesConnectionWhere @deprecated(reason : "Use `moviesConnection_NONE` instead.")
+  moviesConnection_SINGLE: AMovieMoviesConnectionWhere
+  moviesConnection_SOME: AMovieMoviesConnectionWhere
+  "Return AMovies where all of the related AMovies match this filter"
+  movies_ALL: AMovieWhere
+  "Return AMovies where none of the related AMovies match this filter"
+  movies_NONE: AMovieWhere
+  movies_NOT: AMovieWhere @deprecated(reason : "Use `movies_NONE` instead.")
+  "Return AMovies where one of the related AMovies match this filter"
+  movies_SINGLE: AMovieWhere
+  "Return AMovies where some of the related AMovies match this filter"
+  movies_SOME: AMovieWhere
 }
 
 input BMovieConnectInput {
@@ -503,11 +515,23 @@ input BMovieWhere {
   id_NOT_IN: [ID]
   id_NOT_STARTS_WITH: ID
   id_STARTS_WITH: ID
-  movies: BMovieWhere
+  movies: BMovieWhere @deprecated(reason : "Use `movies_SOME` instead.")
   moviesAggregate: BMovieMoviesAggregateInput
-  moviesConnection: BMovieMoviesConnectionWhere
-  moviesConnection_NOT: BMovieMoviesConnectionWhere
-  movies_NOT: BMovieWhere
+  moviesConnection: BMovieMoviesConnectionWhere @deprecated(reason : "Use `moviesConnection_SOME` instead.")
+  moviesConnection_ALL: BMovieMoviesConnectionWhere
+  moviesConnection_NONE: BMovieMoviesConnectionWhere
+  moviesConnection_NOT: BMovieMoviesConnectionWhere @deprecated(reason : "Use `moviesConnection_NONE` instead.")
+  moviesConnection_SINGLE: BMovieMoviesConnectionWhere
+  moviesConnection_SOME: BMovieMoviesConnectionWhere
+  "Return BMovies where all of the related BMovies match this filter"
+  movies_ALL: BMovieWhere
+  "Return BMovies where none of the related BMovies match this filter"
+  movies_NONE: BMovieWhere
+  movies_NOT: BMovieWhere @deprecated(reason : "Use `movies_NONE` instead.")
+  "Return BMovies where one of the related BMovies match this filter"
+  movies_SINGLE: BMovieWhere
+  "Return BMovies where some of the related BMovies match this filter"
+  movies_SOME: BMovieWhere
 }
 
 ----

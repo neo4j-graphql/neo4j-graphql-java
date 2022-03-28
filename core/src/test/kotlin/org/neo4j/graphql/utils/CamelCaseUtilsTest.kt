@@ -1,0 +1,68 @@
+package org.neo4j.graphql.utils
+
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
+
+internal class CamelCaseUtilsTest {
+
+    @Test
+    public fun test() {
+        assertEquals("foo", CamelCaseUtils.camelCase("foo"))
+        assertEquals("fooBar", CamelCaseUtils.camelCase("foo-bar"))
+        assertEquals("fooBarBaz", CamelCaseUtils.camelCase("foo-bar-baz"))
+        assertEquals("fooBar", CamelCaseUtils.camelCase("foo--bar"))
+        assertEquals("fooBar", CamelCaseUtils.camelCase("--foo-bar"))
+        assertEquals("fooBar", CamelCaseUtils.camelCase("--foo--bar"))
+        assertEquals("fooBar", CamelCaseUtils.camelCase("FOO-BAR"))
+        assertEquals("foèBar", CamelCaseUtils.camelCase("FOÈ-BAR"))
+        assertEquals("fooBar", CamelCaseUtils.camelCase("-foo-bar-"))
+        assertEquals("fooBar", CamelCaseUtils.camelCase("--foo--bar--"))
+        assertEquals("foo1", CamelCaseUtils.camelCase("foo-1"))
+        assertEquals("fooBar", CamelCaseUtils.camelCase("foo.bar"))
+        assertEquals("fooBar", CamelCaseUtils.camelCase("foo..bar"))
+        assertEquals("fooBar", CamelCaseUtils.camelCase("..foo..bar.."))
+        assertEquals("fooBar", CamelCaseUtils.camelCase("foo_bar"))
+        assertEquals("fooBar", CamelCaseUtils.camelCase("__foo__bar__"))
+        assertEquals("fooBar", CamelCaseUtils.camelCase("foo bar"))
+        assertEquals("fooBar", CamelCaseUtils.camelCase("  foo  bar  "))
+        assertEquals("-", CamelCaseUtils.camelCase("-"))
+        assertEquals("-", CamelCaseUtils.camelCase(" - "))
+        assertEquals("fooBar", CamelCaseUtils.camelCase("fooBar"))
+        assertEquals("fooBarBaz", CamelCaseUtils.camelCase("fooBar-baz"))
+        assertEquals("foìBarBaz", CamelCaseUtils.camelCase("foìBar-baz"))
+        assertEquals("fooBarBazBazzy", CamelCaseUtils.camelCase("fooBarBaz-bazzy"))
+        assertEquals("fbBazzy", CamelCaseUtils.camelCase("FBBazzy"))
+        assertEquals("f", CamelCaseUtils.camelCase("F"))
+        assertEquals("fooBar", CamelCaseUtils.camelCase("FooBar"))
+        assertEquals("foo", CamelCaseUtils.camelCase("Foo"))
+        assertEquals("foo", CamelCaseUtils.camelCase("FOO"))
+        assertEquals("", CamelCaseUtils.camelCase("--"))
+        assertEquals("", CamelCaseUtils.camelCase(""))
+        assertEquals("", CamelCaseUtils.camelCase("--__--_--_"))
+        assertEquals("fooBar?", CamelCaseUtils.camelCase("foo bar?"))
+        assertEquals("fooBar!", CamelCaseUtils.camelCase("foo bar!"))
+        assertEquals("fooBar$", CamelCaseUtils.camelCase("foo bar$"))
+        assertEquals("fooBar#", CamelCaseUtils.camelCase("foo-bar#"))
+        assertEquals("xmlHttpRequest", CamelCaseUtils.camelCase("XMLHttpRequest"))
+        assertEquals("ajaxXmlHttpRequest", CamelCaseUtils.camelCase("AjaxXMLHttpRequest"))
+        assertEquals("ajaxXmlHttpRequest", CamelCaseUtils.camelCase("Ajax-XMLHttpRequest"))
+        assertEquals("mGridCol6@md", CamelCaseUtils.camelCase("mGridCol6@md"))
+        assertEquals("a::a", CamelCaseUtils.camelCase("A::a"))
+        assertEquals("hello1World", CamelCaseUtils.camelCase("Hello1World"))
+        assertEquals("hello11World", CamelCaseUtils.camelCase("Hello11World"))
+        assertEquals("hello1World", CamelCaseUtils.camelCase("hello1world"))
+        assertEquals("hello1World11Foo", CamelCaseUtils.camelCase("Hello1World11foo"))
+        assertEquals("hello1", CamelCaseUtils.camelCase("Hello1"))
+        assertEquals("hello1", CamelCaseUtils.camelCase("hello1"))
+        assertEquals("1Hello", CamelCaseUtils.camelCase("1Hello"))
+        assertEquals("1Hello", CamelCaseUtils.camelCase("1hello"))
+        assertEquals("h2W", CamelCaseUtils.camelCase("h2w"))
+//        assertEquals("розовыйПушистыйЕдинороги", CamelCaseUtils.camelCase("розовый_пушистый-единороги"))
+//        assertEquals("розовыйПушистыйЕдинороги", CamelCaseUtils.camelCase("розовый_пушистый-единороги"))
+//        assertEquals("розовыйПушистыйЕдинороги", CamelCaseUtils.camelCase("РОЗОВЫЙ_ПУШИСТЫЙ-ЕДИНОРОГИ"))
+        assertEquals("桑德在这里。", CamelCaseUtils.camelCase("桑德在这里。"))
+        assertEquals("桑德在这里。", CamelCaseUtils.camelCase("桑德在这里。"))
+        assertEquals("桑德在这里。", CamelCaseUtils.camelCase("桑德_在这里。"))
+    }
+
+}

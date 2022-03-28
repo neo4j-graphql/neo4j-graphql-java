@@ -97,7 +97,7 @@ class InterfaceRelationFieldAugmentations(
 
     override fun generateFieldWhereIT(): String? = getOrCreateInputObjectType("${interfaze.name}Where") { fields, _ ->
         addOnField("ImplementationsWhere", fields, asList = false, ::generateWhereIT)
-        fields += getWhereFields(interfaze.name, interfaze.fields, isInterface = true)
+        fields += getWhereFields(interfaze.name, interfaze.fields, isInterface = true, plural = interfaze.pascalCasePlural)
     }
 
     // TODO merge with super.addConnectionWhere(prefix: String, node: Node)

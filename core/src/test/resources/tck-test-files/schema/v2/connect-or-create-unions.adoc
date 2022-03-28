@@ -256,7 +256,7 @@ input ActorActedInMovieConnectOrCreateFieldInput {
 
 input ActorActedInMovieConnectOrCreateFieldInputOnCreate {
   edge: ActedInCreateInput!
-  node: MovieCreateInput!
+  node: MovieOnCreateInput!
 }
 
 input ActorActedInMovieConnectionWhere {
@@ -314,7 +314,7 @@ input ActorActedInSeriesConnectOrCreateFieldInput {
 
 input ActorActedInSeriesConnectOrCreateFieldInputOnCreate {
   edge: ActedInCreateInput!
-  node: SeriesCreateInput!
+  node: SeriesOnCreateInput!
 }
 
 input ActorActedInSeriesConnectionWhere {
@@ -410,8 +410,12 @@ input ActorUpdateInput {
 input ActorWhere {
   AND: [ActorWhere!]
   OR: [ActorWhere!]
-  actedInConnection: ActorActedInConnectionWhere
-  actedInConnection_NOT: ActorActedInConnectionWhere
+  actedInConnection: ActorActedInConnectionWhere @deprecated(reason : "Use `actedInConnection_SOME` instead.")
+  actedInConnection_ALL: ActorActedInConnectionWhere
+  actedInConnection_NONE: ActorActedInConnectionWhere
+  actedInConnection_NOT: ActorActedInConnectionWhere @deprecated(reason : "Use `actedInConnection_NONE` instead.")
+  actedInConnection_SINGLE: ActorActedInConnectionWhere
+  actedInConnection_SOME: ActorActedInConnectionWhere
   name: String
   name_CONTAINS: String
   name_ENDS_WITH: String
@@ -433,6 +437,11 @@ input MovieConnectWhere {
 }
 
 input MovieCreateInput {
+  isan: String!
+  title: String!
+}
+
+input MovieOnCreateInput {
   isan: String!
   title: String!
 }
@@ -503,6 +512,11 @@ input SeriesConnectWhere {
 }
 
 input SeriesCreateInput {
+  isan: String!
+  title: String!
+}
+
+input SeriesOnCreateInput {
   isan: String!
   title: String!
 }

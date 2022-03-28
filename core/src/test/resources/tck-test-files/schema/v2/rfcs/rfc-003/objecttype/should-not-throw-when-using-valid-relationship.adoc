@@ -250,7 +250,7 @@ input SourceTarget1ConnectOrCreateFieldInput {
 }
 
 input SourceTarget1ConnectOrCreateFieldInputOnCreate {
-  node: TargetCreateInput!
+  node: TargetOnCreateInput!
 }
 
 input SourceTarget1ConnectionSort {
@@ -323,7 +323,7 @@ input SourceTarget2ConnectOrCreateFieldInput {
 }
 
 input SourceTarget2ConnectOrCreateFieldInputOnCreate {
-  node: TargetCreateInput!
+  node: TargetOnCreateInput!
 }
 
 input SourceTarget2ConnectionSort {
@@ -396,7 +396,7 @@ input SourceTargetsConnectOrCreateFieldInput {
 }
 
 input SourceTargetsConnectOrCreateFieldInputOnCreate {
-  node: TargetCreateInput!
+  node: TargetOnCreateInput!
 }
 
 input SourceTargetsConnectionSort {
@@ -467,11 +467,23 @@ input SourceWhere {
   target2Connection: SourceTarget2ConnectionWhere
   target2Connection_NOT: SourceTarget2ConnectionWhere
   target2_NOT: TargetWhere
-  targets: TargetWhere
+  targets: TargetWhere @deprecated(reason : "Use `targets_SOME` instead.")
   targetsAggregate: SourceTargetsAggregateInput
-  targetsConnection: SourceTargetsConnectionWhere
-  targetsConnection_NOT: SourceTargetsConnectionWhere
-  targets_NOT: TargetWhere
+  targetsConnection: SourceTargetsConnectionWhere @deprecated(reason : "Use `targetsConnection_SOME` instead.")
+  targetsConnection_ALL: SourceTargetsConnectionWhere
+  targetsConnection_NONE: SourceTargetsConnectionWhere
+  targetsConnection_NOT: SourceTargetsConnectionWhere @deprecated(reason : "Use `targetsConnection_NONE` instead.")
+  targetsConnection_SINGLE: SourceTargetsConnectionWhere
+  targetsConnection_SOME: SourceTargetsConnectionWhere
+  "Return Sources where all of the related Targets match this filter"
+  targets_ALL: TargetWhere
+  "Return Sources where none of the related Targets match this filter"
+  targets_NONE: TargetWhere
+  targets_NOT: TargetWhere @deprecated(reason : "Use `targets_NONE` instead.")
+  "Return Sources where one of the related Targets match this filter"
+  targets_SINGLE: TargetWhere
+  "Return Sources where some of the related Targets match this filter"
+  targets_SOME: TargetWhere
 }
 
 input TargetConnectOrCreateWhere {
@@ -483,6 +495,11 @@ input TargetConnectWhere {
 }
 
 input TargetCreateInput {
+  "Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/"
+  _emptyInput: Boolean
+}
+
+input TargetOnCreateInput {
   "Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/"
   _emptyInput: Boolean
 }

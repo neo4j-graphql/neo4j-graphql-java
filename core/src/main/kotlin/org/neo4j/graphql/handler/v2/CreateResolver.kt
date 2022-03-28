@@ -23,7 +23,7 @@ class CreateResolver private constructor(
 
             val coordinates = generateContainerCreateInputIT(node)?.let { inputType ->
                 val responseType = addResponseType("Create", node)
-                addMutationField("create" + node.plural, responseType.asRequiredType()) { args ->
+                addMutationField("create" + node.pascalCasePlural, responseType.asRequiredType()) { args ->
                     args += inputValue(Constants.INPUT_FIELD, NonNullType(ListType(inputType.asRequiredType())))
                 }
             } ?: return null

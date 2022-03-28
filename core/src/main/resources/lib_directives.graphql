@@ -12,6 +12,12 @@ directive @coalesce(
   value: ScalarType!
 ) on FIELD_DEFINITION
 
+"Informs neo4j-graphql-java that a field will be resolved by a custom resolver, and allows specification of any field dependencies."
+directive @computed(
+  "Fields that the custom resolver will depend on."
+  from: [String!]
+) on FIELD_DEFINITION
+
 "Instructs neo4j-graphql-java to run the specified Cypher statement in order to resolve the value of the field to which the directive is applied."
 directive @cypher(
   """The Cypher statement to run which returns a value of the same type composition as the field definition on which the directive is applied.

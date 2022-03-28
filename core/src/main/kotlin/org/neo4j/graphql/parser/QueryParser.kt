@@ -8,6 +8,7 @@ import org.neo4j.cypherdsl.core.Node
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.FieldContainer
 import org.neo4j.graphql.domain.fields.BaseField
+import org.neo4j.graphql.domain.fields.ConnectionField
 import org.neo4j.graphql.domain.fields.RelationField
 
 typealias CypherDSL = org.neo4j.cypherdsl.core.Cypher
@@ -77,8 +78,14 @@ class RelationPredicate(
     op: RelationOperator,
     value: Any?,
     val field: RelationField,
-    index: Int
-) : Predicate<RelationOperator>(op, value, normalizeName(field.fieldName, op.suffix.toCamelCase()), index) {
+    index: Int,
+    val connectionField: ConnectionField? = null,
+) : Predicate<RelationOperator>(
+    op,
+    value,
+    normalizeName(connectionField?.fieldName ?: field.fieldName, op.suffix.toCamelCase()),
+    index
+) {
 
     val targetFieldContainer: FieldContainer<*>? get() = this.field.node ?: this.field.interfaze
     val targetName: String? get() = this.field.node?.name ?: this.field.interfaze?.name
@@ -206,8 +213,30 @@ object QueryParser {
                     .map { it to it.fieldName(definedField.fieldName, schemaConfig) }
                     .mapNotNull { (queryOp, queryFieldName) ->
                         queriedFields.remove(queryFieldName)?.let { (index, filter) ->
-                            val harmonizedOperator = queryOp.harmonize(typeName, definedField, filter, queryFieldName)
+                            val harmonizedOperator = queryOp.harmonize(
+                                typeName,
+                                definedField.typeMeta.type,
+                                definedField.fieldName,
+                                filter,
+                                queryFieldName
+                            )
                             RelationPredicate(harmonizedOperator, filter, definedField, index)
+                        }
+                    }
+                    .forEach { relationPredicates.add(it) }
+            } else if (definedField is ConnectionField) {
+                RelationOperator.values()
+                    .map { it to it.fieldName(definedField.fieldName, schemaConfig) }
+                    .mapNotNull { (queryOp, queryFieldName) ->
+                        queriedFields.remove(queryFieldName)?.let { (index, filter) ->
+                            val harmonizedOperator = queryOp.harmonize(
+                                typeName,
+                                definedField.typeMeta.type,
+                                definedField.fieldName,
+                                filter,
+                                queryFieldName
+                            )
+                            RelationPredicate(harmonizedOperator, filter, definedField.relationshipField, index, definedField)
                         }
                     }
                     .forEach { relationPredicates.add(it) }

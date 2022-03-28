@@ -20,7 +20,7 @@ class UpdateResolver private constructor(
             }
 
             val responseType = addResponseType("Update", node)
-            val coordinates = addMutationField("update" + node.plural, responseType.asRequiredType()) { args ->
+            val coordinates = addMutationField("update" + node.pascalCasePlural, responseType.asRequiredType()) { args ->
                 generateWhereIT(node)
                     ?.let { args += inputValue(Constants.WHERE, it.asType()) }
 

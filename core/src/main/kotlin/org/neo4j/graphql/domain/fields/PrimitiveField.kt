@@ -14,10 +14,10 @@ open class PrimitiveField(
 ) : ScalarField(
     fieldName,
     typeMeta,
-), ConstrainableField{
+), ConstrainableField, HasDefaultValue {
     var autogenerate: Boolean = false
-    var defaultValue: Value<*>? = null
+    override var defaultValue: Value<*>? = null
     var coalesceValue: Value<*>? = null
 
-    override val generated: Boolean get()  = super.generated || autogenerate
+    override val generated: Boolean get() = super.generated || autogenerate
 }

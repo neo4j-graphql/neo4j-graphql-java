@@ -1,10 +1,7 @@
 package org.neo4j.graphql.domain.fields
 
 import org.neo4j.graphql.capitalize
-import org.neo4j.graphql.domain.Interface
-import org.neo4j.graphql.domain.Node
-import org.neo4j.graphql.domain.RelationshipProperties
-import org.neo4j.graphql.domain.TypeMeta
+import org.neo4j.graphql.domain.*
 
 /**
  * Representation of the `@relationship` directive and its meta.
@@ -51,6 +48,12 @@ class RelationField(
     val isInterface: Boolean get() = interfaze != null
     val isUnion: Boolean get() = union.isNotEmpty()
 
+    fun getImplementingType(): ImplementingType? = node ?: interfaze
+
+    fun getNode(name: String) =
+        node?.takeIf { it.name == name }
+            ?: unionNodes.firstOrNull { it.name == name }
+            ?: interfaze?.implementations?.firstOrNull { it.name == name }
 
     enum class Direction {
         IN, OUT

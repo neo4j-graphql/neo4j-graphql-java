@@ -8,6 +8,7 @@ object DirectiveConstants {
     const val DEFAULT = "default"
     const val TIMESTAMP = "timestamp"
     const val UNIQUE = "unique"
+    const val COMPUTED = "computed"
     const val NODE = "node"
     const val READ_ONLY = "readonly"
     const val WRITE_ONLY = "writeonly"

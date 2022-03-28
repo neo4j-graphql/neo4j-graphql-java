@@ -42,7 +42,12 @@ abstract class RelationFieldBaseAugmentation(
     }
 
     protected fun generateFieldCreateFieldInputIT(prefix: String, node: Node) =
-        generateNodeWithEdgeIT(prefix + "CreateFieldInput", node)
+        getOrCreateInputObjectType(prefix + "CreateFieldInput") { fields, _ ->
+            generateContainerCreateInputIT(node)?.let {
+                fields += inputValue(Constants.NODE_FIELD, it.asRequiredType())
+            }
+            addEdgePropertyCreateInputField(fields) { it.hasRequiredNonGeneratedFields }
+        }
 
     protected fun generateFieldConnectFieldInputIT(prefix: String, node: Node) =
         getOrCreateInputObjectType(prefix + "ConnectFieldInput") { fields, _ ->
@@ -126,20 +131,23 @@ abstract class RelationFieldBaseAugmentation(
         }
         return getOrCreateInputObjectType("${parentPrefix}ConnectOrCreateFieldInput") { fields, name ->
             generateConnectOrCreateWhereIT(node)?.let { fields += inputValue(Constants.WHERE, it.asRequiredType()) }
-            generateNodeWithEdgeIT("${name}OnCreate", node)?.let {
+            generateNodeOnCreateIT("${name}OnCreate", node)?.let {
                 fields += inputValue(Constants.ON_CREATE_FIELD, it.asRequiredType())
             }
         }
     }
 
-    // TODO REVIEW Darrell this type is duplicated *OnCreate vs *CreateFieldInput
-    //  https://github.com/neo4j/graphql/issues/872
-    private fun generateNodeWithEdgeIT(name: String, node: Node) =
+    private fun generateNodeOnCreateIT(name: String, node: Node) =
         getOrCreateInputObjectType(name) { fields, _ ->
-            generateContainerCreateInputIT(node)?.let {
+            generateNodeOnCreateInputIT(node)?.let {
                 fields += inputValue(Constants.NODE_FIELD, it.asRequiredType())
             }
             addEdgePropertyCreateInputField(fields) { it.hasRequiredNonGeneratedFields }
+        }
+
+    private fun generateNodeOnCreateInputIT(node: Node) =
+        getOrCreateInputObjectType(node.name + "OnCreateInput") { fields, _ ->
+            addScalarFields(fields, node.name, node.scalarFields, false)
         }
 
     private fun generateFieldUpdateConnectionInputIT(prefix: String, node: Node) =

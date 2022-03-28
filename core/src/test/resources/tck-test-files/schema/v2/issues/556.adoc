@@ -79,10 +79,10 @@ interface Image {
 }
 
 type Article {
-  blocks(directed: Boolean = true, options: QueryOptions, where: BlockWhere): [Block!]!
+  blocks(directed: Boolean = true, options: BlockOptions, where: BlockWhere): [Block!]!
   blocksConnection(after: String, directed: Boolean = true, first: Int, sort: [ArticleBlocksConnectionSort!], where: ArticleBlocksConnectionWhere): ArticleBlocksConnection!
   id: ID!
-  images(directed: Boolean = true, options: QueryOptions, where: ImageWhere): [Image!]!
+  images(directed: Boolean = true, options: ImageOptions, where: ImageWhere): [Image!]!
   imagesConnection(after: String, directed: Boolean = true, first: Int, where: ArticleImagesConnectionWhere): ArticleImagesConnection!
 }
 
@@ -140,9 +140,9 @@ type CreateJournalistsMutationResponse {
   journalists: [Journalist!]!
 }
 
-type CreatePDFImagesMutationResponse {
+type CreatePdfImagesMutationResponse {
   info: CreateInfo!
-  pDFImages: [PDFImage!]!
+  pdfImages: [PDFImage!]!
 }
 
 type CreateTextBlocksMutationResponse {
@@ -182,7 +182,7 @@ type IDAggregateSelectionNullable {
 
 type ImageBlock implements Block {
   id: ID
-  images(directed: Boolean = true, options: QueryOptions, where: ImageWhere): [Image!]!
+  images(directed: Boolean = true, options: ImageOptions, where: ImageWhere): [Image!]!
   imagesConnection(after: String, directed: Boolean = true, first: Int, where: ImageBlockImagesConnectionWhere): ImageBlockImagesConnection!
 }
 
@@ -254,19 +254,19 @@ type Mutation {
   createDividerBlocks(input: [DividerBlockCreateInput!]!): CreateDividerBlocksMutationResponse!
   createImageBlocks(input: [ImageBlockCreateInput!]!): CreateImageBlocksMutationResponse!
   createJournalists(input: [JournalistCreateInput!]!): CreateJournalistsMutationResponse!
-  createPDFImages(input: [PDFImageCreateInput!]!): CreatePDFImagesMutationResponse!
+  createPdfImages(input: [PDFImageCreateInput!]!): CreatePdfImagesMutationResponse!
   createTextBlocks(input: [TextBlockCreateInput!]!): CreateTextBlocksMutationResponse!
   deleteArticles(delete: ArticleDeleteInput, where: ArticleWhere): DeleteInfo!
   deleteDividerBlocks(where: DividerBlockWhere): DeleteInfo!
   deleteImageBlocks(delete: ImageBlockDeleteInput, where: ImageBlockWhere): DeleteInfo!
   deleteJournalists(delete: JournalistDeleteInput, where: JournalistWhere): DeleteInfo!
-  deletePDFImages(delete: PDFImageDeleteInput, where: PDFImageWhere): DeleteInfo!
+  deletePdfImages(delete: PDFImageDeleteInput, where: PDFImageWhere): DeleteInfo!
   deleteTextBlocks(where: TextBlockWhere): DeleteInfo!
   updateArticles(connect: ArticleConnectInput, create: ArticleRelationInput, delete: ArticleDeleteInput, disconnect: ArticleDisconnectInput, update: ArticleUpdateInput, where: ArticleWhere): UpdateArticlesMutationResponse!
   updateDividerBlocks(update: DividerBlockUpdateInput, where: DividerBlockWhere): UpdateDividerBlocksMutationResponse!
   updateImageBlocks(connect: ImageBlockConnectInput, create: ImageBlockRelationInput, delete: ImageBlockDeleteInput, disconnect: ImageBlockDisconnectInput, update: ImageBlockUpdateInput, where: ImageBlockWhere): UpdateImageBlocksMutationResponse!
   updateJournalists(connect: JournalistConnectInput, connectOrCreate: JournalistConnectOrCreateInput, create: JournalistRelationInput, delete: JournalistDeleteInput, disconnect: JournalistDisconnectInput, update: JournalistUpdateInput, where: JournalistWhere): UpdateJournalistsMutationResponse!
-  updatePDFImages(connect: PDFImageConnectInput, connectOrCreate: PDFImageConnectOrCreateInput, create: PDFImageRelationInput, delete: PDFImageDeleteInput, disconnect: PDFImageDisconnectInput, update: PDFImageUpdateInput, where: PDFImageWhere): UpdatePDFImagesMutationResponse!
+  updatePdfImages(connect: PDFImageConnectInput, connectOrCreate: PDFImageConnectOrCreateInput, create: PDFImageRelationInput, delete: PDFImageDeleteInput, disconnect: PDFImageDisconnectInput, update: PDFImageUpdateInput, where: PDFImageWhere): UpdatePdfImagesMutationResponse!
   updateTextBlocks(update: TextBlockUpdateInput, where: TextBlockWhere): UpdateTextBlocksMutationResponse!
 }
 
@@ -308,8 +308,8 @@ type Query {
   imageBlocksAggregate(where: ImageBlockWhere): ImageBlockAggregateSelection!
   journalists(options: JournalistOptions, where: JournalistWhere): [Journalist!]!
   journalistsAggregate(where: JournalistWhere): JournalistAggregateSelection!
-  pDFImages(options: PDFImageOptions, where: PDFImageWhere): [PDFImage!]!
-  pDFImagesAggregate(where: PDFImageWhere): PDFImageAggregateSelection!
+  pdfImages(options: PDFImageOptions, where: PDFImageWhere): [PDFImage!]!
+  pdfImagesAggregate(where: PDFImageWhere): PDFImageAggregateSelection!
   textBlocks(options: TextBlockOptions, where: TextBlockWhere): [TextBlock!]!
   textBlocksAggregate(where: TextBlockWhere): TextBlockAggregateSelection!
 }
@@ -363,9 +363,9 @@ type UpdateJournalistsMutationResponse {
   journalists: [Journalist!]!
 }
 
-type UpdatePDFImagesMutationResponse {
+type UpdatePdfImagesMutationResponse {
   info: UpdateInfo!
-  pDFImages: [PDFImage!]!
+  pdfImages: [PDFImage!]!
 }
 
 type UpdateTextBlocksMutationResponse {
@@ -391,6 +391,7 @@ input ArticleBlocksConnectFieldInput {
 
 input ArticleBlocksConnectionSort {
   edge: HasBlockSort
+  node: BlockSort
 }
 
 input ArticleBlocksConnectionWhere {
@@ -537,8 +538,12 @@ input ArticleUpdateInput {
 input ArticleWhere {
   AND: [ArticleWhere!]
   OR: [ArticleWhere!]
-  blocksConnection: ArticleBlocksConnectionWhere
-  blocksConnection_NOT: ArticleBlocksConnectionWhere
+  blocksConnection: ArticleBlocksConnectionWhere @deprecated(reason : "Use `blocksConnection_SOME` instead.")
+  blocksConnection_ALL: ArticleBlocksConnectionWhere
+  blocksConnection_NONE: ArticleBlocksConnectionWhere
+  blocksConnection_NOT: ArticleBlocksConnectionWhere @deprecated(reason : "Use `blocksConnection_NONE` instead.")
+  blocksConnection_SINGLE: ArticleBlocksConnectionWhere
+  blocksConnection_SOME: ArticleBlocksConnectionWhere
   id: ID
   id_CONTAINS: ID
   id_ENDS_WITH: ID
@@ -549,8 +554,12 @@ input ArticleWhere {
   id_NOT_IN: [ID!]
   id_NOT_STARTS_WITH: ID
   id_STARTS_WITH: ID
-  imagesConnection: ArticleImagesConnectionWhere
-  imagesConnection_NOT: ArticleImagesConnectionWhere
+  imagesConnection: ArticleImagesConnectionWhere @deprecated(reason : "Use `imagesConnection_SOME` instead.")
+  imagesConnection_ALL: ArticleImagesConnectionWhere
+  imagesConnection_NONE: ArticleImagesConnectionWhere
+  imagesConnection_NOT: ArticleImagesConnectionWhere @deprecated(reason : "Use `imagesConnection_NONE` instead.")
+  imagesConnection_SINGLE: ArticleImagesConnectionWhere
+  imagesConnection_SOME: ArticleImagesConnectionWhere
 }
 
 input BlockConnectInput {
@@ -597,6 +606,18 @@ input BlockImplementationsWhere {
   DividerBlock: DividerBlockWhere
   ImageBlock: ImageBlockWhere
   TextBlock: TextBlockWhere
+}
+
+input BlockOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more BlockSort objects to sort Blocks by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [BlockSort!]
+}
+
+"Fields to sort Blocks by. The order in which sorts are applied is not guaranteed when specifying many fields in one BlockSort object."
+input BlockSort {
+  id: SortDirection
 }
 
 input BlockUpdateInput {
@@ -789,8 +810,12 @@ input ImageBlockWhere {
   id_NOT_IN: [ID]
   id_NOT_STARTS_WITH: ID
   id_STARTS_WITH: ID
-  imagesConnection: ImageBlockImagesConnectionWhere
-  imagesConnection_NOT: ImageBlockImagesConnectionWhere
+  imagesConnection: ImageBlockImagesConnectionWhere @deprecated(reason : "Use `imagesConnection_SOME` instead.")
+  imagesConnection_ALL: ImageBlockImagesConnectionWhere
+  imagesConnection_NONE: ImageBlockImagesConnectionWhere
+  imagesConnection_NOT: ImageBlockImagesConnectionWhere @deprecated(reason : "Use `imagesConnection_NONE` instead.")
+  imagesConnection_SINGLE: ImageBlockImagesConnectionWhere
+  imagesConnection_SOME: ImageBlockImagesConnectionWhere
 }
 
 input ImageConnectInput {
@@ -819,12 +844,7 @@ input ImageFeaturedInConnectFieldInput {
 }
 
 input ImageFeaturedInConnectOrCreateFieldInput {
-  onCreate: ImageFeaturedInConnectOrCreateFieldInputOnCreate!
   where: ArticleConnectOrCreateWhere!
-}
-
-input ImageFeaturedInConnectOrCreateFieldInputOnCreate {
-  node: ArticleCreateInput!
 }
 
 input ImageFeaturedInConnectionSort {
@@ -892,6 +912,11 @@ input ImageImplementationsWhere {
   PDFImage: PDFImageWhere
 }
 
+input ImageOptions {
+  limit: Int
+  offset: Int
+}
+
 input ImageUpdateInput {
   _on: ImageImplementationsUpdateInput
 }
@@ -918,12 +943,7 @@ input JournalistArticlesConnectFieldInput {
 }
 
 input JournalistArticlesConnectOrCreateFieldInput {
-  onCreate: JournalistArticlesConnectOrCreateFieldInputOnCreate!
   where: ArticleConnectOrCreateWhere!
-}
-
-input JournalistArticlesConnectOrCreateFieldInputOnCreate {
-  node: ArticleCreateInput!
 }
 
 input JournalistArticlesConnectionSort {
@@ -1036,11 +1056,23 @@ input JournalistUpdateInput {
 input JournalistWhere {
   AND: [JournalistWhere!]
   OR: [JournalistWhere!]
-  articles: ArticleWhere
+  articles: ArticleWhere @deprecated(reason : "Use `articles_SOME` instead.")
   articlesAggregate: JournalistArticlesAggregateInput
-  articlesConnection: JournalistArticlesConnectionWhere
-  articlesConnection_NOT: JournalistArticlesConnectionWhere
-  articles_NOT: ArticleWhere
+  articlesConnection: JournalistArticlesConnectionWhere @deprecated(reason : "Use `articlesConnection_SOME` instead.")
+  articlesConnection_ALL: JournalistArticlesConnectionWhere
+  articlesConnection_NONE: JournalistArticlesConnectionWhere
+  articlesConnection_NOT: JournalistArticlesConnectionWhere @deprecated(reason : "Use `articlesConnection_NONE` instead.")
+  articlesConnection_SINGLE: JournalistArticlesConnectionWhere
+  articlesConnection_SOME: JournalistArticlesConnectionWhere
+  "Return Journalists where all of the related Articles match this filter"
+  articles_ALL: ArticleWhere
+  "Return Journalists where none of the related Articles match this filter"
+  articles_NONE: ArticleWhere
+  articles_NOT: ArticleWhere @deprecated(reason : "Use `articles_NONE` instead.")
+  "Return Journalists where one of the related Articles match this filter"
+  articles_SINGLE: ArticleWhere
+  "Return Journalists where some of the related Articles match this filter"
+  articles_SOME: ArticleWhere
 }
 
 input PDFImageConnectInput {
@@ -1084,7 +1116,7 @@ input PDFImageFeaturedInNodeAggregationWhereInput {
 input PDFImageOptions {
   limit: Int
   offset: Int
-  "Specify one or more PDFImageSort objects to sort PDFImages by. The sorts will be applied in the order in which they are arranged in the array."
+  "Specify one or more PDFImageSort objects to sort PdfImages by. The sorts will be applied in the order in which they are arranged in the array."
   sort: [PDFImageSort!]
 }
 
@@ -1092,7 +1124,7 @@ input PDFImageRelationInput {
   featuredIn: [ImageFeaturedInCreateFieldInput!]
 }
 
-"Fields to sort PDFImages by. The order in which sorts are applied is not guaranteed when specifying many fields in one PDFImageSort object."
+"Fields to sort PdfImages by. The order in which sorts are applied is not guaranteed when specifying many fields in one PDFImageSort object."
 input PDFImageSort {
   url: SortDirection
 }
@@ -1105,11 +1137,23 @@ input PDFImageUpdateInput {
 input PDFImageWhere {
   AND: [PDFImageWhere!]
   OR: [PDFImageWhere!]
-  featuredIn: ArticleWhere
+  featuredIn: ArticleWhere @deprecated(reason : "Use `featuredIn_SOME` instead.")
   featuredInAggregate: PDFImageFeaturedInAggregateInput
-  featuredInConnection: ImageFeaturedInConnectionWhere
-  featuredInConnection_NOT: ImageFeaturedInConnectionWhere
-  featuredIn_NOT: ArticleWhere
+  featuredInConnection: ImageFeaturedInConnectionWhere @deprecated(reason : "Use `featuredInConnection_SOME` instead.")
+  featuredInConnection_ALL: ImageFeaturedInConnectionWhere
+  featuredInConnection_NONE: ImageFeaturedInConnectionWhere
+  featuredInConnection_NOT: ImageFeaturedInConnectionWhere @deprecated(reason : "Use `featuredInConnection_NONE` instead.")
+  featuredInConnection_SINGLE: ImageFeaturedInConnectionWhere
+  featuredInConnection_SOME: ImageFeaturedInConnectionWhere
+  "Return PdfImages where all of the related Articles match this filter"
+  featuredIn_ALL: ArticleWhere
+  "Return PdfImages where none of the related Articles match this filter"
+  featuredIn_NONE: ArticleWhere
+  featuredIn_NOT: ArticleWhere @deprecated(reason : "Use `featuredIn_NONE` instead.")
+  "Return PdfImages where one of the related Articles match this filter"
+  featuredIn_SINGLE: ArticleWhere
+  "Return PdfImages where some of the related Articles match this filter"
+  featuredIn_SOME: ArticleWhere
   url: String
   url_CONTAINS: String
   url_ENDS_WITH: String
@@ -1120,11 +1164,6 @@ input PDFImageWhere {
   url_NOT_IN: [String!]
   url_NOT_STARTS_WITH: String
   url_STARTS_WITH: String
-}
-
-input QueryOptions {
-  limit: Int
-  offset: Int
 }
 
 input TextBlockCreateInput {

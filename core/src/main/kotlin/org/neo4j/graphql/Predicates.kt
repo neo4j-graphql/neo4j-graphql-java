@@ -252,8 +252,8 @@ enum class RelationOperator(val suffix: String) {
     fun fieldName(fieldName: String, schemaConfig: SchemaConfig) =
         fieldName + if (schemaConfig.capitaliseFilterOperations) suffix.uppercase() else suffix
 
-    fun harmonize(typeName: String, field: RelationField, value: Any?, queryFieldName: String) =
-        when (field.typeMeta.type.isList()) {
+    fun harmonize(typeName: String, type: Type<*>, fieldName: String, value: Any?, queryFieldName: String) =
+        when (type.isList()) {
             true -> when (this) {
                 NOT -> when (value) {
                     null -> NOT
@@ -262,7 +262,7 @@ enum class RelationOperator(val suffix: String) {
                 EQ_OR_NOT_EXISTS -> when (value) {
                     null -> EQ_OR_NOT_EXISTS
                     else -> {
-                        LOGGER.debug("$queryFieldName on type $typeName was used for filtering, consider using ${field.fieldName}${EVERY.suffix} instead")
+                        LOGGER.debug("$queryFieldName on type $typeName was used for filtering, consider using ${fieldName}${EVERY.suffix} instead")
                         EVERY
                     }
                 }
@@ -270,15 +270,15 @@ enum class RelationOperator(val suffix: String) {
             }
             false -> when (this) {
                 SINGLE -> {
-                    LOGGER.debug("Using $queryFieldName on type $typeName is deprecated, use ${field.fieldName} directly")
+                    LOGGER.debug("Using $queryFieldName on type $typeName is deprecated, use ${fieldName} directly")
                     SOME
                 }
                 SOME -> {
-                    LOGGER.debug("Using $queryFieldName on type $typeName is deprecated, use ${field.fieldName} directly")
+                    LOGGER.debug("Using $queryFieldName on type $typeName is deprecated, use ${fieldName} directly")
                     SOME
                 }
                 NONE -> {
-                    LOGGER.debug("Using $queryFieldName on type $typeName is deprecated, use ${field.fieldName}${NOT.suffix} instead")
+                    LOGGER.debug("Using $queryFieldName on type $typeName is deprecated, use ${fieldName}${NOT.suffix} instead")
                     NONE
                 }
                 NOT -> when (value) {

@@ -7,6 +7,7 @@ import org.neo4j.graphql.*
 import org.neo4j.graphql.DirectiveConstants.ALIAS
 import org.neo4j.graphql.DirectiveConstants.AUTH
 import org.neo4j.graphql.DirectiveConstants.COALESCE
+import org.neo4j.graphql.DirectiveConstants.COMPUTED
 import org.neo4j.graphql.DirectiveConstants.CYPHER
 import org.neo4j.graphql.DirectiveConstants.DEFAULT
 import org.neo4j.graphql.DirectiveConstants.EXCLUDE
@@ -61,6 +62,7 @@ object FieldFactory {
             val relationshipDirective =
                 directives.remove(RELATIONSHIP)?.let { RelationshipDirective.create(it) }
             val cypherDirective = directives.remove(CYPHER)?.let { CypherDirective.create(it) }
+            val computedDirective = directives.remove(COMPUTED)?.let { ComputedDirective.create(it) }
             val typeMeta = TypeMeta.create(field)
             val authDirective = directives.remove(AUTH)?.let { AuthDirective.create(it) }
             val idDirective = directives.remove(ID)?.let { IdDirective.create(it) }
@@ -144,10 +146,15 @@ object FieldFactory {
 
             } else if (cypherDirective != null) {
                 baseField = CypherField(field.name, typeMeta, cypherDirective.statement)
+            } else if (computedDirective != null) {
+                baseField = ComputedField(field.name, typeMeta, computedDirective.from)
             } else if (fieldScalar != null) {
                 baseField = CustomScalarField(field.name, typeMeta)
             } else if (fieldEnum != null) {
                 baseField = CustomEnumField(field.name, typeMeta)
+                if (defaultDirective != null) {
+                    baseField.defaultValue = defaultDirective.value
+                }
             } else if (fieldUnion != null) {
                 val nodes = fieldUnion.memberTypes.map { it.name() }
                 baseField = UnionField(field.name, typeMeta, nodes)

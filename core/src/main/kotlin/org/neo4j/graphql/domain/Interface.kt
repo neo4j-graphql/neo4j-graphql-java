@@ -8,30 +8,19 @@ import org.neo4j.graphql.domain.directives.ExcludeDirective
 import org.neo4j.graphql.domain.fields.BaseField
 
 class Interface(
-    val name: String,
-    val description: Description? = null,
-    val comments: List<Comment> = emptyList(),
+    name: String,
+    description: Description? = null,
+    comments: List<Comment> = emptyList(),
     fields: List<BaseField>,
-    val otherDirectives: List<Directive>,
-    val interfaces: List<Interface>,
-    val exclude: ExcludeDirective? = null,
-    val auth: AuthDirective? = null,
-) : FieldContainer<BaseField>(fields) {
+    otherDirectives: List<Directive>,
+    interfaces: List<Interface>,
+    exclude: ExcludeDirective? = null,
+    auth: AuthDirective? = null,
+) : ImplementingType(name, description, comments, fields, otherDirectives, interfaces, exclude, auth) {
 
     var implementations: List<Node> = emptyList()
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is Interface) return false
-
-        if (name != other.name) return false
-
-        return true
+    override fun toString(): String {
+        return "Interface('$name')"
     }
-
-    override fun hashCode(): Int {
-        return name.hashCode()
-    }
-
-
 }

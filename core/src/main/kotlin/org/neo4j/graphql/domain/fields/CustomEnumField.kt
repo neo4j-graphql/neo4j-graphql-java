@@ -1,5 +1,6 @@
 package org.neo4j.graphql.domain.fields
 
+import graphql.language.Value
 import org.neo4j.graphql.domain.TypeMeta
 
 class CustomEnumField(
@@ -8,4 +9,6 @@ class CustomEnumField(
 ) : ScalarField(
     fieldName,
     typeMeta,
-)
+), HasDefaultValue {
+    override var defaultValue: Value<*>? = null
+}

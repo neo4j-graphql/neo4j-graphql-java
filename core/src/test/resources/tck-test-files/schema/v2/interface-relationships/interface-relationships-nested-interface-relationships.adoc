@@ -51,8 +51,8 @@ schema {
 
 interface Interface1 {
   field1: String!
-  interface2(directed: Boolean = true, options: QueryOptions, where: Interface2Where): [Interface2!]!
-  interface2Connection(after: String, directed: Boolean = true, first: Int, where: Interface1Interface2ConnectionWhere): Interface1Interface2Connection!
+  interface2(directed: Boolean = true, options: Interface2Options, where: Interface2Where): [Interface2!]!
+  interface2Connection(after: String, directed: Boolean = true, first: Int, sort: [Interface1Interface2ConnectionSort!], where: Interface1Interface2ConnectionWhere): Interface1Interface2Connection!
 }
 
 interface Interface2 {
@@ -153,8 +153,8 @@ type StringAggregateSelectionNonNullable {
 
 type Type1 {
   field1: String!
-  interface1(directed: Boolean = true, options: QueryOptions, where: Interface1Where): [Interface1!]!
-  interface1Connection(after: String, directed: Boolean = true, first: Int, where: Type1Interface1ConnectionWhere): Type1Interface1Connection!
+  interface1(directed: Boolean = true, options: Interface1Options, where: Interface1Where): [Interface1!]!
+  interface1Connection(after: String, directed: Boolean = true, first: Int, sort: [Type1Interface1ConnectionSort!], where: Type1Interface1ConnectionWhere): Type1Interface1Connection!
 }
 
 type Type1AggregateSelection {
@@ -164,8 +164,8 @@ type Type1AggregateSelection {
 
 type Type1Interface1 implements Interface1 {
   field1: String!
-  interface2(directed: Boolean = true, options: QueryOptions, where: Interface2Where): [Interface2!]!
-  interface2Connection(after: String, directed: Boolean = true, first: Int, where: Interface1Interface2ConnectionWhere): Interface1Interface2Connection!
+  interface2(directed: Boolean = true, options: Interface2Options, where: Interface2Where): [Interface2!]!
+  interface2Connection(after: String, directed: Boolean = true, first: Int, sort: [Interface1Interface2ConnectionSort!], where: Interface1Interface2ConnectionWhere): Interface1Interface2Connection!
 }
 
 type Type1Interface1AggregateSelection {
@@ -195,8 +195,8 @@ type Type1Interface2AggregateSelection {
 
 type Type2Interface1 implements Interface1 {
   field1: String!
-  interface2(directed: Boolean = true, options: QueryOptions, where: Interface2Where): [Interface2!]!
-  interface2Connection(after: String, directed: Boolean = true, first: Int, where: Interface1Interface2ConnectionWhere): Interface1Interface2Connection!
+  interface2(directed: Boolean = true, options: Interface2Options, where: Interface2Where): [Interface2!]!
+  interface2Connection(after: String, directed: Boolean = true, first: Int, sort: [Interface1Interface2ConnectionSort!], where: Interface1Interface2ConnectionWhere): Interface1Interface2Connection!
 }
 
 type Type2Interface1AggregateSelection {
@@ -306,6 +306,10 @@ input Interface1Interface2ConnectFieldInput {
   where: Interface2ConnectWhere
 }
 
+input Interface1Interface2ConnectionSort {
+  node: Interface2Sort
+}
+
 input Interface1Interface2ConnectionWhere {
   AND: [Interface1Interface2ConnectionWhere!]
   OR: [Interface1Interface2ConnectionWhere!]
@@ -338,6 +342,18 @@ input Interface1Interface2UpdateFieldInput {
   where: Interface1Interface2ConnectionWhere
 }
 
+input Interface1Options {
+  limit: Int
+  offset: Int
+  "Specify one or more Interface1Sort objects to sort Interface1s by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [Interface1Sort!]
+}
+
+"Fields to sort Interface1s by. The order in which sorts are applied is not guaranteed when specifying many fields in one Interface1Sort object."
+input Interface1Sort {
+  field1: SortDirection
+}
+
 input Interface1UpdateInput {
   _on: Interface1ImplementationsUpdateInput
   field1: String
@@ -356,8 +372,12 @@ input Interface1Where {
   field1_NOT_IN: [String!]
   field1_NOT_STARTS_WITH: String
   field1_STARTS_WITH: String
-  interface2Connection: Interface1Interface2ConnectionWhere
-  interface2Connection_NOT: Interface1Interface2ConnectionWhere
+  interface2Connection: Interface1Interface2ConnectionWhere @deprecated(reason : "Use `interface2Connection_SOME` instead.")
+  interface2Connection_ALL: Interface1Interface2ConnectionWhere
+  interface2Connection_NONE: Interface1Interface2ConnectionWhere
+  interface2Connection_NOT: Interface1Interface2ConnectionWhere @deprecated(reason : "Use `interface2Connection_NONE` instead.")
+  interface2Connection_SINGLE: Interface1Interface2ConnectionWhere
+  interface2Connection_SOME: Interface1Interface2ConnectionWhere
 }
 
 input Interface2ConnectWhere {
@@ -379,6 +399,18 @@ input Interface2ImplementationsWhere {
   Type2Interface2: Type2Interface2Where
 }
 
+input Interface2Options {
+  limit: Int
+  offset: Int
+  "Specify one or more Interface2Sort objects to sort Interface2s by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [Interface2Sort!]
+}
+
+"Fields to sort Interface2s by. The order in which sorts are applied is not guaranteed when specifying many fields in one Interface2Sort object."
+input Interface2Sort {
+  field2: SortDirection
+}
+
 input Interface2UpdateInput {
   _on: Interface2ImplementationsUpdateInput
   field2: String
@@ -396,11 +428,6 @@ input Interface2Where {
   field2_NOT_IN: [String]
   field2_NOT_STARTS_WITH: String
   field2_STARTS_WITH: String
-}
-
-input QueryOptions {
-  limit: Int
-  offset: Int
 }
 
 input Type1ConnectInput {
@@ -427,6 +454,10 @@ input Type1Interface1ConnectFieldInput {
 
 input Type1Interface1ConnectInput {
   interface2: [Type1Interface1Interface2ConnectFieldInput!]
+}
+
+input Type1Interface1ConnectionSort {
+  node: Interface1Sort
 }
 
 input Type1Interface1ConnectionWhere {
@@ -549,8 +580,12 @@ input Type1Interface1Where {
   field1_NOT_IN: [String!]
   field1_NOT_STARTS_WITH: String
   field1_STARTS_WITH: String
-  interface2Connection: Interface1Interface2ConnectionWhere
-  interface2Connection_NOT: Interface1Interface2ConnectionWhere
+  interface2Connection: Interface1Interface2ConnectionWhere @deprecated(reason : "Use `interface2Connection_SOME` instead.")
+  interface2Connection_ALL: Interface1Interface2ConnectionWhere
+  interface2Connection_NONE: Interface1Interface2ConnectionWhere
+  interface2Connection_NOT: Interface1Interface2ConnectionWhere @deprecated(reason : "Use `interface2Connection_NONE` instead.")
+  interface2Connection_SINGLE: Interface1Interface2ConnectionWhere
+  interface2Connection_SOME: Interface1Interface2ConnectionWhere
 }
 
 input Type1Interface2CreateInput {
@@ -622,8 +657,12 @@ input Type1Where {
   field1_NOT_IN: [String!]
   field1_NOT_STARTS_WITH: String
   field1_STARTS_WITH: String
-  interface1Connection: Type1Interface1ConnectionWhere
-  interface1Connection_NOT: Type1Interface1ConnectionWhere
+  interface1Connection: Type1Interface1ConnectionWhere @deprecated(reason : "Use `interface1Connection_SOME` instead.")
+  interface1Connection_ALL: Type1Interface1ConnectionWhere
+  interface1Connection_NONE: Type1Interface1ConnectionWhere
+  interface1Connection_NOT: Type1Interface1ConnectionWhere @deprecated(reason : "Use `interface1Connection_NONE` instead.")
+  interface1Connection_SINGLE: Type1Interface1ConnectionWhere
+  interface1Connection_SOME: Type1Interface1ConnectionWhere
 }
 
 input Type2Interface1ConnectInput {
@@ -711,8 +750,12 @@ input Type2Interface1Where {
   field1_NOT_IN: [String!]
   field1_NOT_STARTS_WITH: String
   field1_STARTS_WITH: String
-  interface2Connection: Interface1Interface2ConnectionWhere
-  interface2Connection_NOT: Interface1Interface2ConnectionWhere
+  interface2Connection: Interface1Interface2ConnectionWhere @deprecated(reason : "Use `interface2Connection_SOME` instead.")
+  interface2Connection_ALL: Interface1Interface2ConnectionWhere
+  interface2Connection_NONE: Interface1Interface2ConnectionWhere
+  interface2Connection_NOT: Interface1Interface2ConnectionWhere @deprecated(reason : "Use `interface2Connection_NONE` instead.")
+  interface2Connection_SINGLE: Interface1Interface2ConnectionWhere
+  interface2Connection_SOME: Interface1Interface2ConnectionWhere
 }
 
 input Type2Interface2CreateInput {

@@ -247,8 +247,8 @@ type UpdateUsersMutationResponse {
 }
 
 type User {
-  content(directed: Boolean = true, options: QueryOptions, where: ContentWhere): [Content!]!
-  contentConnection(after: String, directed: Boolean = true, first: Int, where: UserContentConnectionWhere): UserContentConnection!
+  content(directed: Boolean = true, options: ContentOptions, where: ContentWhere): [Content!]!
+  contentConnection(after: String, directed: Boolean = true, first: Int, sort: [UserContentConnectionSort!], where: UserContentConnectionWhere): UserContentConnection!
   id: ID
   name: String
 }
@@ -619,6 +619,19 @@ input ContentImplementationsWhere {
   Post: PostWhere
 }
 
+input ContentOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more ContentSort objects to sort Contents by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [ContentSort!]
+}
+
+"Fields to sort Contents by. The order in which sorts are applied is not guaranteed when specifying many fields in one ContentSort object."
+input ContentSort {
+  content: SortDirection
+  id: SortDirection
+}
+
 input ContentUpdateInput {
   _on: ContentImplementationsUpdateInput
   content: String
@@ -831,11 +844,23 @@ input PostUpdateInput {
 input PostWhere {
   AND: [PostWhere!]
   OR: [PostWhere!]
-  comments: CommentWhere
+  comments: CommentWhere @deprecated(reason : "Use `comments_SOME` instead.")
   commentsAggregate: PostCommentsAggregateInput
-  commentsConnection: PostCommentsConnectionWhere
-  commentsConnection_NOT: PostCommentsConnectionWhere
-  comments_NOT: CommentWhere
+  commentsConnection: PostCommentsConnectionWhere @deprecated(reason : "Use `commentsConnection_SOME` instead.")
+  commentsConnection_ALL: PostCommentsConnectionWhere
+  commentsConnection_NONE: PostCommentsConnectionWhere
+  commentsConnection_NOT: PostCommentsConnectionWhere @deprecated(reason : "Use `commentsConnection_NONE` instead.")
+  commentsConnection_SINGLE: PostCommentsConnectionWhere
+  commentsConnection_SOME: PostCommentsConnectionWhere
+  "Return Posts where all of the related Comments match this filter"
+  comments_ALL: CommentWhere
+  "Return Posts where none of the related Comments match this filter"
+  comments_NONE: CommentWhere
+  comments_NOT: CommentWhere @deprecated(reason : "Use `comments_NONE` instead.")
+  "Return Posts where one of the related Comments match this filter"
+  comments_SINGLE: CommentWhere
+  "Return Posts where some of the related Comments match this filter"
+  comments_SOME: CommentWhere
   content: String
   content_CONTAINS: String
   content_ENDS_WITH: String
@@ -863,11 +888,6 @@ input PostWhere {
   id_STARTS_WITH: ID
 }
 
-input QueryOptions {
-  limit: Int
-  offset: Int
-}
-
 input UserConnectInput {
   content: [UserContentConnectFieldInput!]
 }
@@ -879,6 +899,10 @@ input UserConnectWhere {
 input UserContentConnectFieldInput {
   connect: ContentConnectInput
   where: ContentConnectWhere
+}
+
+input UserContentConnectionSort {
+  node: ContentSort
 }
 
 input UserContentConnectionWhere {
@@ -960,8 +984,12 @@ input UserUpdateInput {
 input UserWhere {
   AND: [UserWhere!]
   OR: [UserWhere!]
-  contentConnection: UserContentConnectionWhere
-  contentConnection_NOT: UserContentConnectionWhere
+  contentConnection: UserContentConnectionWhere @deprecated(reason : "Use `contentConnection_SOME` instead.")
+  contentConnection_ALL: UserContentConnectionWhere
+  contentConnection_NONE: UserContentConnectionWhere
+  contentConnection_NOT: UserContentConnectionWhere @deprecated(reason : "Use `contentConnection_NONE` instead.")
+  contentConnection_SINGLE: UserContentConnectionWhere
+  contentConnection_SOME: UserContentConnectionWhere
   id: ID
   id_CONTAINS: ID
   id_ENDS_WITH: ID

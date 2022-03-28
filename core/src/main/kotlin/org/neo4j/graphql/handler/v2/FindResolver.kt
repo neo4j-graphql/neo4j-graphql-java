@@ -30,7 +30,7 @@ class FindResolver private constructor(
             }
             val nodeType = generateNodeOT(node) ?: return null
             val coordinates =
-                addQueryField(node.plural.decapitalize(), NonNullType(ListType(nodeType.asRequiredType()))) { args ->
+                addQueryField(node.plural, NonNullType(ListType(nodeType.asRequiredType()))) { args ->
                     generateWhereIT(node)?.let { args += inputValue(Constants.WHERE, it.asType()) }
                     generateOptionsIT(node).let { args += inputValue(Constants.OPTIONS, it.asType()) }
                     generateFulltextIT(node)?.let { args += inputValue(Constants.FULLTEXT, it.asType()) }

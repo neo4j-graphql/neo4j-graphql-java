@@ -40,9 +40,9 @@ abstract class AugmentationHandlerV2(ctx: AugmentationContext) : BaseAugmentatio
 
 
     protected fun addResponseType(operation: String, node: Node) =
-        getOrCreateObjectType("${operation}${node.plural}MutationResponse") { args, _ ->
+        getOrCreateObjectType("${operation}${node.pascalCasePlural}MutationResponse") { args, _ ->
             args += field(Constants.INFO_FIELD, NonNullType(TypeName(operation + "Info")))
-            args += field(node.plural.decapitalize(), NonNullType(ListType(node.name.asRequiredType())))
+            args += field(node.plural, NonNullType(ListType(node.name.asRequiredType())))
         }
             ?: throw IllegalStateException("Expected at least the info field")
 }

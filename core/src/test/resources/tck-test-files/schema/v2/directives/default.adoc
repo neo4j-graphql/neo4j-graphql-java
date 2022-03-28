@@ -20,6 +20,13 @@ type User implements UserInterface {
   verifiedDate: DateTime! @default(value: "1970-01-01T00:00:00.000Z")
   fromInterface: String!
   toBeOverridden: String! @default(value: "Overridden value")
+  location: Location! @default(value: HERE)
+}
+
+enum Location {
+  HERE
+  THERE
+  EVERYWHERE
 }
 ----
 
@@ -111,6 +118,7 @@ type UpdateUsersMutationResponse {
 type User implements UserInterface {
   fromInterface: String!
   id: ID!
+  location: Location!
   name: String!
   numberOfFriends: Int!
   rating: Float!
@@ -130,6 +138,12 @@ type UserAggregateSelection {
   verifiedDate: DateTimeAggregateSelectionNonNullable!
 }
 
+enum Location {
+  EVERYWHERE
+  HERE
+  THERE
+}
+
 enum SortDirection {
   "Sort by field values in ascending order."
   ASC
@@ -143,6 +157,7 @@ scalar DateTime
 input UserCreateInput {
   fromInterface: String! = "Interface default value"
   id: ID! = "00000000-00000000-00000000-00000000"
+  location: Location! = HERE
   name: String! = "Jane Smith"
   numberOfFriends: Int! = 0
   rating: Float! = 0.0
@@ -162,6 +177,7 @@ input UserOptions {
 input UserSort {
   fromInterface: SortDirection
   id: SortDirection
+  location: SortDirection
   name: SortDirection
   numberOfFriends: SortDirection
   rating: SortDirection
@@ -173,6 +189,7 @@ input UserSort {
 input UserUpdateInput {
   fromInterface: String
   id: ID
+  location: Location
   name: String
   numberOfFriends: Int
   rating: Float
@@ -204,6 +221,10 @@ input UserWhere {
   id_NOT_IN: [ID!]
   id_NOT_STARTS_WITH: ID
   id_STARTS_WITH: ID
+  location: Location
+  location_IN: [Location!]
+  location_NOT: Location
+  location_NOT_IN: [Location!]
   name: String
   name_CONTAINS: String
   name_ENDS_WITH: String
