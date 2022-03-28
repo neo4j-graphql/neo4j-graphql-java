@@ -108,7 +108,10 @@ fun GraphQLType.ref(): GraphQLType = when (this) {
     else -> GraphQLTypeReference(name())
 }
 
-fun SelectedField.contextualize(variable: SymbolicName) = variable.value + (this.alias ?: this.name).capitalize()
+fun Field.aliasOrName(): String = (this.alias ?: this.name)
+fun SelectedField.aliasOrName(): String = (this.alias ?: this.name)
+fun SelectedField.contextualize(variable: String) = variable + this.aliasOrName().capitalize()
+fun SelectedField.contextualize(variable: SymbolicName) = variable.value + this.aliasOrName().capitalize()
 
 fun GraphQLType.innerName(): String = inner().name()
         ?: throw IllegalStateException("inner name cannot be retrieved for " + this.javaClass)

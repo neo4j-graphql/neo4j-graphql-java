@@ -59,12 +59,12 @@ class SchemaBuilder(
 
             val builder = RuntimeWiring.newRuntimeWiring()
             val codeRegistryBuilder = GraphQLCodeRegistry.newCodeRegistry()
-            val newConfig = if (config.resolveAlias == null) {
-                config.copy(resolveAlias = dataFetchingInterceptor == null)
-            } else {
-                config
+            if (dataFetchingInterceptor != null) {
+                codeRegistryBuilder.defaultDataFetcher {
+                    AliasPropertyDataFetcher()
+                }
             }
-            val schemaBuilder = SchemaBuilder(typeDefinitionRegistry, newConfig)
+            val schemaBuilder = SchemaBuilder(typeDefinitionRegistry, config)
             schemaBuilder.augmentTypes()
             schemaBuilder.registerScalars(builder)
             schemaBuilder.registerTypeNameResolver(builder)
@@ -278,5 +278,13 @@ class SchemaBuilder(
             .build()
         typeDefinitionRegistry.add(inputType)
         return inputName
+    }
+
+    class AliasPropertyDataFetcher : DataFetcher<Any> {
+        override fun get(env: DataFetchingEnvironment): Any? {
+            val source = env.getSource<Any>() ?: return null
+            val propertyName = env.mergedField.singleField.alias ?: env.mergedField.singleField.name
+            return PropertyDataFetcherHelper.getPropertyValue(propertyName, source, env.getFieldType(), env)
+        }
     }
 }
