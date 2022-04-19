@@ -63,10 +63,7 @@ mutation {
 ----
 {
   "this_connect_actedIn0_node_title_STARTS_WITH": "The ",
-  "this_connect_actedIn0_relationship_screenTime": {
-    "low": 90,
-    "high": 0
-  }
+  "this_connect_actedIn0_relationship_screenTime": 90
 }
 ----
 
@@ -98,7 +95,7 @@ SET this_connect_actedIn0_relationship.screenTime = $this_connect_actedIn0_relat
 	)
 	RETURN count(*)
 }
-RETURN this { .name } AS this
+RETURN collect(DISTINCT this { .name }) AS data
 ----
 
 '''
@@ -124,15 +121,9 @@ mutation {
 ----
 {
   "this_connect_actedIn0_node_title_STARTS_WITH": "The ",
-  "this_connect_actedIn0_relationship_screenTime": {
-    "low": 90,
-    "high": 0
-  },
+  "this_connect_actedIn0_relationship_screenTime": 90,
   "this_connect_actedIn0_node_actors0_node_name": "Actor",
-  "this_connect_actedIn0_node_actors0_relationship_screenTime": {
-    "low": 90,
-    "high": 0
-  }
+  "this_connect_actedIn0_node_actors0_relationship_screenTime": 90
 }
 ----
 
@@ -190,7 +181,7 @@ SET this_connect_actedIn0_node_actors0_relationship.screenTime = $this_connect_a
 }
 	RETURN count(*)
 }
-RETURN this { .name } AS this
+RETURN collect(DISTINCT this { .name }) AS data
 ----
 
 '''
@@ -216,15 +207,9 @@ mutation {
 ----
 {
   "this_connect_actedIn0_node_title_STARTS_WITH": "The ",
-  "this_connect_actedIn0_relationship_screenTime": {
-    "low": 90,
-    "high": 0
-  },
+  "this_connect_actedIn0_relationship_screenTime": 90,
   "this_connect_actedIn0_node_on_Movie0_actors0_node_name": "Actor",
-  "this_connect_actedIn0_node_on_Movie0_actors0_relationship_screenTime": {
-    "low": 90,
-    "high": 0
-  }
+  "this_connect_actedIn0_node_on_Movie0_actors0_relationship_screenTime": 90
 }
 ----
 
@@ -271,7 +256,7 @@ SET this_connect_actedIn0_relationship.screenTime = $this_connect_actedIn0_relat
 
 	RETURN count(*)
 }
-RETURN this { .name } AS this
+RETURN collect(DISTINCT this { .name }) AS data
 ----
 
 '''
@@ -297,20 +282,11 @@ mutation {
 ----
 {
   "this_connect_actedIn0_node_title_STARTS_WITH": "The ",
-  "this_connect_actedIn0_relationship_screenTime": {
-    "low": 90,
-    "high": 0
-  },
+  "this_connect_actedIn0_relationship_screenTime": 90,
   "this_connect_actedIn0_node_on_Movie0_actors0_node_name": "Different Actor",
-  "this_connect_actedIn0_node_on_Movie0_actors0_relationship_screenTime": {
-    "low": 90,
-    "high": 0
-  },
+  "this_connect_actedIn0_node_on_Movie0_actors0_relationship_screenTime": 90,
   "this_connect_actedIn0_node_actors0_node_name": "Actor",
-  "this_connect_actedIn0_node_actors0_relationship_screenTime": {
-    "low": 90,
-    "high": 0
-  }
+  "this_connect_actedIn0_node_actors0_relationship_screenTime": 90
 }
 ----
 
@@ -369,7 +345,7 @@ SET this_connect_actedIn0_node_actors0_relationship.screenTime = $this_connect_a
 }
 	RETURN count(*)
 }
-RETURN this { .name } AS this
+RETURN collect(DISTINCT this { .name }) AS data
 ----
 
 '''

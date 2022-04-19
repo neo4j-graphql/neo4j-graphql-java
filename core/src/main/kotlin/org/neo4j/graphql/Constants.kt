@@ -4,10 +4,11 @@ import graphql.language.TypeName
 
 object Constants {
 
+
     const val AND = "AND"
     const val OR = "OR"
     const val FULLTEXT_PHRASE = "phrase"
-    const val FULLTEXT_SCORE = "score"
+    const val FULLTEXT_SCORE_EQUAL = "score_EQUAL"
     const val EMPTY_INPUT = "_emptyInput"
     const val LIMIT = "limit"
     const val OFFSET = "offset"
@@ -31,6 +32,7 @@ object Constants {
     const val EDGES_FIELD = "edges"
     const val CURSOR_FIELD = "cursor"
     const val NODE_FIELD = "node"
+    const val ON  = "_on"
 
     const val POINT_TYPE = "Point"
     const val CARTESIAN_POINT_TYPE = "CartesianPoint"
@@ -70,6 +72,10 @@ object Constants {
 
     const val WHERE = "where"
 
+    const val NEO4J_QUERY_CONTEXT =  "NEO4J_QUERY_CONTEXT"
+
+    val PREDICATE_JOINS = setOf(AND, OR)
+
     object Types {
         val ID = TypeName("ID")
         val Int = TypeName("Int")
@@ -86,5 +92,12 @@ object Constants {
         val PointDistance = TypeName("PointDistance")
         val CartesianPointDistance = TypeName("CartesianPointDistance")
     }
+
+    const val AUTH_FORBIDDEN_ERROR = "@neo4j/graphql/FORBIDDEN"
+    const val AUTH_UNAUTHENTICATED_ERROR = "@neo4j/graphql/UNAUTHENTICATED"
+    const val RELATIONSHIP_REQUIREMENT_PREFIX = "@neo4j/graphql/RELATIONSHIP-REQUIRED";
+
+    // TODO migrate to old approach
+    val WHERE_REG_EX = Regex("(?<fieldName>[_A-Za-z]\\w*?)(?<isAggregate>Aggregate)?(?:_(?<operator>NOT|NOT_IN|IN|NOT_INCLUDES|INCLUDES|MATCHES|NOT_CONTAINS|CONTAINS|NOT_STARTS_WITH|STARTS_WITH|NOT_ENDS_WITH|ENDS_WITH|LT|LTE|GT|GTE|DISTANCE|ALL|NONE|SINGLE|SOME))?\$")
 
 }

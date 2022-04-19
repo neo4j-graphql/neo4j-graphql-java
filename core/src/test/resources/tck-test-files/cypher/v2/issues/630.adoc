@@ -52,11 +52,8 @@ type Movie {
 {
   "this_movies_title": null,
   "auth": {
-    "isAuthenticated": true,
-    "roles": [],
-    "jwt": {
-      "roles": []
-    }
+    "isAuthenticated": false,
+    "roles": []
   }
 }
 ----

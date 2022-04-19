@@ -89,8 +89,8 @@ CREATE (this0:Movie)
 SET this0.date = $this0_date
 RETURN this0
 }
-RETURN 
-this0 { .date } AS this0
+RETURN [
+this0 { .date }] AS data
 ----
 
 '''
@@ -163,7 +163,7 @@ MATCH (this:Movie)
 
 SET this.date = $this_update_date
 
-RETURN this { .id, .date } AS this
+RETURN collect(DISTINCT this { .id, .date }) AS data
 ----
 
 '''

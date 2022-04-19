@@ -53,10 +53,7 @@ mutation {
   "this0_name": "Tom Hanks",
   "this0_movies_connectOrCreate0_node_title": "The Terminal",
   "this0_movies_connectOrCreate0_on_create_title": "The Terminal",
-  "this0_relationship_this0_movies_connectOrCreate0_on_create_screentime": {
-    "low": 105,
-    "high": 0
-  }
+  "this0_relationship_this0_movies_connectOrCreate0_on_create_screentime": 105
 }
 ----
 
@@ -66,7 +63,10 @@ mutation {
 CALL {
 CREATE (this0:Actor)
 SET this0.name = $this0_name
-MERGE (this0_movies_connectOrCreate0:Movie { title: $this0_movies_connectOrCreate0_node_title })
+WITH this0
+CALL {
+	WITH this0
+	MERGE (this0_movies_connectOrCreate0:Movie { title: $this0_movies_connectOrCreate0_node_title })
 ON CREATE
 SET
 this0_movies_connectOrCreate0.title = $this0_movies_connectOrCreate0_on_create_title
@@ -74,10 +74,12 @@ MERGE (this0)-[this0_relationship_this0_movies_connectOrCreate0:ACTED_IN]->(this
 ON CREATE
 SET
 this0_relationship_this0_movies_connectOrCreate0.screentime = $this0_relationship_this0_movies_connectOrCreate0_on_create_screentime
+	RETURN COUNT(*)
+}
 RETURN this0
 }
-RETURN 
-this0 { .name } AS this0
+RETURN [
+this0 { .name }] AS data
 ----
 
 '''
@@ -107,10 +109,7 @@ mutation {
   "this_update_name": "Tom Hanks 2",
   "this_movies0_connectOrCreate0_node_title": "The Terminal",
   "this_movies0_connectOrCreate0_on_create_title": "The Terminal",
-  "this_relationship_this_movies0_connectOrCreate0_on_create_screentime": {
-    "low": 105,
-    "high": 0
-  }
+  "this_relationship_this_movies0_connectOrCreate0_on_create_screentime": 105
 }
 ----
 
@@ -135,7 +134,7 @@ this_relationship_this_movies0_connectOrCreate0.screentime = $this_relationship_
 	RETURN COUNT(*)
 }
 
-RETURN this { .name } AS this
+RETURN collect(DISTINCT this { .name }) AS data
 ----
 
 '''

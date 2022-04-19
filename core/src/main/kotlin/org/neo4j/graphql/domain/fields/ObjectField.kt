@@ -8,4 +8,4 @@ class ObjectField(
 ) : BaseField(
     fieldName,
     typeMeta,
-)
+), AuthableField, MutableField

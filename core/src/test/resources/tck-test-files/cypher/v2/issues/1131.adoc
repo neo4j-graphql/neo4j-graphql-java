@@ -1,0 +1,111 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/1131
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type BibliographicReference @node(additionalLabels: ["Resource"]) {
+  iri: ID! @unique @alias(property: "uri")
+  prefLabel: [String]
+  isInPublication: [Concept!]! @relationship(type: "isInPublication", direction: OUT)
+}
+
+type Concept @node(additionalLabels: ["Resource"]) {
+  iri: ID! @unique @alias(property: "uri")
+  prefLabel: [String]!
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+  "enableRegex": true
+}
+----
+== where with multiple filters and params
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  updateBibliographicReferences(
+    where: {iri: "urn:myiri2"}
+    update: {prefLabel: "Updated Label:My BRS with Resource", isInPublication: [{connectOrCreate: {where: {node: {iri: "new-g"}}, onCreate: {node: {iri: "new-g", prefLabel: "pub"}}}}, {connectOrCreate: {where: {node: {iri: "new-f"}}, onCreate: {node: {iri: "new-f", prefLabel: "pub"}}}}]}
+  ) {
+    bibliographicReferences {
+      iri
+      prefLabel
+      isInPublication(where: {iri_IN: ["new-f", "new-e"]}) {
+        iri
+        prefLabel
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_iri": "urn:myiri2",
+  "this_update_prefLabel": [
+    "Updated Label:My BRS with Resource"
+  ],
+  "this_isInPublication0_connectOrCreate0_node_uri": "new-g",
+  "this_isInPublication0_connectOrCreate0_on_create_uri": "new-g",
+  "this_isInPublication0_connectOrCreate0_on_create_prefLabel": [
+    "pub"
+  ],
+  "this_isInPublication1_connectOrCreate0_node_uri": "new-f",
+  "this_isInPublication1_connectOrCreate0_on_create_uri": "new-f",
+  "this_isInPublication1_connectOrCreate0_on_create_prefLabel": [
+    "pub"
+  ],
+  "this_isInPublication_iri_IN": [
+    "new-f",
+    "new-e"
+  ]
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:`BibliographicReference`:`Resource`)
+WHERE this.uri = $this_iri
+
+SET this.prefLabel = $this_update_prefLabel
+WITH this
+CALL {
+	WITH this
+	MERGE (this_isInPublication0_connectOrCreate0:`Concept`:`Resource` { uri: $this_isInPublication0_connectOrCreate0_node_uri })
+ON CREATE
+SET
+this_isInPublication0_connectOrCreate0.uri = $this_isInPublication0_connectOrCreate0_on_create_uri,
+this_isInPublication0_connectOrCreate0.prefLabel = $this_isInPublication0_connectOrCreate0_on_create_prefLabel
+MERGE (this)-[this_relationship_this_isInPublication0_connectOrCreate0:isInPublication]->(this_isInPublication0_connectOrCreate0)
+	RETURN COUNT(*)
+}
+WITH this
+CALL {
+	WITH this
+	MERGE (this_isInPublication1_connectOrCreate0:`Concept`:`Resource` { uri: $this_isInPublication1_connectOrCreate0_node_uri })
+ON CREATE
+SET
+this_isInPublication1_connectOrCreate0.uri = $this_isInPublication1_connectOrCreate0_on_create_uri,
+this_isInPublication1_connectOrCreate0.prefLabel = $this_isInPublication1_connectOrCreate0_on_create_prefLabel
+MERGE (this)-[this_relationship_this_isInPublication1_connectOrCreate0:isInPublication]->(this_isInPublication1_connectOrCreate0)
+	RETURN COUNT(*)
+}
+
+RETURN collect(DISTINCT this { iri: this.uri, .prefLabel, isInPublication: [ (this)-[:isInPublication]->(this_isInPublication:`Concept`:`Resource`)  WHERE this_isInPublication.uri IN $this_isInPublication_iri_IN | this_isInPublication { iri: this_isInPublication.uri, .prefLabel } ] }) AS data
+----
+
+'''
+

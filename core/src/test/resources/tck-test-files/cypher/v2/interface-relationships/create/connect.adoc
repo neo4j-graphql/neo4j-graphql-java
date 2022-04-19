@@ -70,10 +70,7 @@ mutation {
 {
   "this0_name": "Actor Name",
   "this0_actedIn_connect0_node_title_STARTS_WITH": "The ",
-  "this0_actedIn_connect0_relationship_screenTime": {
-    "low": 90,
-    "high": 0
-  }
+  "this0_actedIn_connect0_relationship_screenTime": 90
 }
 ----
 
@@ -119,8 +116,9 @@ WITH this0
 MATCH (this0)-[:ACTED_IN]->(this0_Series:Series)
 RETURN { __resolveType: "Series", episodes: this0_Series.episodes, title: this0_Series.title } AS actedIn
 }
-RETURN 
-this0 { .name, actedIn: collect(actedIn) } AS this0
+WITH this0, collect(actedIn) AS actedIn
+RETURN [
+this0 { .name, actedIn: actedIn }] AS data
 ----
 
 '''

@@ -5,6 +5,7 @@ import graphql.language.*
 import graphql.language.TypeDefinition
 import graphql.schema.*
 import graphql.schema.idl.TypeDefinitionRegistry
+import org.neo4j.cypherdsl.core.Cypher
 import org.neo4j.cypherdsl.core.SymbolicName
 import org.neo4j.graphql.DirectiveConstants.CYPHER
 import org.neo4j.graphql.DirectiveConstants.CYPHER_PASS_THROUGH
@@ -302,6 +303,9 @@ fun DataFetchingEnvironment.typeAsContainer() = this.fieldDefinition.type.inner(
 
 fun DataFetchingEnvironment.logField() = "${this.parentType.name()}.${this.fieldDefinition.name}"
 
+fun DataFetchingEnvironment.queryContext(): QueryContext? = this.graphQlContext.get(Constants.NEO4J_QUERY_CONTEXT)
+
+
 val TypeInt = TypeName("Int")
 val TypeFloat = TypeName("Float")
 val TypeBoolean = TypeName("Boolean")
@@ -346,6 +350,15 @@ fun <T : Any?> Directive.readArgument(prop: KProperty1<*, T>, transformer: (v: V
     return this.getArgument(prop.name)?.let { transformer.invoke(it.value) }
 }
 
+fun <T : Any?> ObjectValue.readField(prop: KProperty1<*, T>): T? = readField(prop) {
+    @Suppress("UNCHECKED_CAST")
+    it.toJavaValue() as T?
+}
+
+fun <T : Any?> ObjectValue.readField(prop: KProperty1<*, T>, transformer: (v: Value<*>) -> T?): T? {
+    return this.get(prop.name)?.let { transformer.invoke(it) }
+}
+
 fun <T : Any?> Directive.readRequiredArgument(prop: KProperty1<*, T>): T = readRequiredArgument(prop) {
     @Suppress("UNCHECKED_CAST")
     it.toJavaValue() as T?
@@ -380,3 +393,5 @@ fun TypeDefinitionRegistry.replace(definition: SDLDefinition<*>) {
 fun NodeDirectivesBuilder.addNonLibDirectives(directivesContainer: DirectivesContainer<*>) {
     this.directives(directivesContainer.directives.filterNot { DirectiveConstants.LIB_DIRECTIVES.contains(it.name) })
 }
+
+inline fun  <reified T> T.asCypherLiteral() = Cypher.literalOf<T>(this)

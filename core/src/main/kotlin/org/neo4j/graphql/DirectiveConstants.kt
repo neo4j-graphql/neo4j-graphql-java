@@ -15,6 +15,7 @@ object DirectiveConstants {
     const val EXCLUDE = "exclude"
     const val PRIVATE = "private" // TODO do we need this one?
     const val FULLTEXT = "fulltext"
+    const val QUERY_OPTIONS = "queryOptions"
 
     const val ID = "id"
     const val IGNORE = "ignore"
@@ -49,6 +50,7 @@ object DirectiveConstants {
         EXCLUDE,
         PRIVATE,
         FULLTEXT,
+        QUERY_OPTIONS,
         ID,
         IGNORE,
         RELATIONSHIP,

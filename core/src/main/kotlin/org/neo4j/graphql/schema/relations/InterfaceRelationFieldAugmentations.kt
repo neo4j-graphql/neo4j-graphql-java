@@ -174,7 +174,7 @@ class InterfaceRelationFieldAugmentations(
         getNodeType: (Node) -> String?
     ) {
         generateImplementationDelegate(inputTypeSuffix, asList = asList, getNodeType)?.let {
-            fields += inputValue("_on", it.asType())
+            fields += inputValue(Constants.ON, it.asType())
         }
     }
 

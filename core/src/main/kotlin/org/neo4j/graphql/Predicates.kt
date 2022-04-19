@@ -3,11 +3,7 @@ package org.neo4j.graphql
 import graphql.language.*
 import graphql.language.TypeDefinition
 import graphql.schema.GraphQLFieldDefinition
-import graphql.schema.GraphQLFieldsContainer
-import org.neo4j.cypherdsl.core.Condition
-import org.neo4j.cypherdsl.core.Expression
-import org.neo4j.cypherdsl.core.Property
-import org.neo4j.cypherdsl.core.PropertyContainer
+import org.neo4j.cypherdsl.core.*
 import org.neo4j.graphql.domain.fields.*
 import org.slf4j.LoggerFactory
 
@@ -306,7 +302,12 @@ enum class RelationOperator(val suffix: String) {
             val list = field.type.isList()
 
             val addFilterField = { op: RelationOperator, description: String ->
-                builder.addFilterField(op.fieldName(field.name, schemaConfig), false, filterType, description.asDescription())
+                builder.addFilterField(
+                    op.fieldName(field.name, schemaConfig),
+                    false,
+                    filterType,
+                    description.asDescription()
+                )
             }
 
             addFilterField(
@@ -344,6 +345,14 @@ enum class RelationOperator(val suffix: String) {
                 addFilterField(SOME, "@deprecated Use the `${field.name}`-field directly (without any suffix)")
                 addFilterField(NONE, "@deprecated Use the `${field.name}${NOT.suffix}`-field")
             }
+        }
+
+        fun fromValue(operator: String?, name: SymbolicName) = when (operator) {
+            "ALL" -> Predicates.all(name)
+            "NOT", "NONE" -> Predicates.none(name)
+            "SINGLE" -> Predicates.single(name)
+            "SOME" -> Predicates.any(name)
+            else -> Predicates.any(name)
         }
     }
 }

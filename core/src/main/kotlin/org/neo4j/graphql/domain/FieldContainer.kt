@@ -35,7 +35,18 @@ abstract class FieldContainer<T : BaseField>(val fields: List<T>) {
     }
 
     val relationFields: List<RelationField> by lazy { fields.filterIsInstance<RelationField>() }
+    val temporalFields: List<TemporalField> by lazy { fields.filterIsInstance<TemporalField>() }
+    val primitiveFields: List<PrimitiveField> by lazy {
+        fields.filterIsInstance<PrimitiveField>().filterNot { it is TemporalField }
+    }
     val connectionFields: List<ConnectionField> by lazy { fields.filterIsInstance<ConnectionField>() }
     val constrainableFields: List<BaseField> by lazy { fields.filter { it is ConstrainableField } }
     val uniqueFields: List<BaseField> by lazy { constrainableFields.filter { it.unique != null } }
+    val computedFields: List<ComputedField> by lazy { fields.filterIsInstance<ComputedField>() }
+    val authableFields: List<BaseField> by lazy { fields.filter { it is AuthableField } }
+
+    fun getField(name: String): BaseField? {
+        return fields.find { it.fieldName == name }
+    }
+
 }

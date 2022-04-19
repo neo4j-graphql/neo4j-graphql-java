@@ -22,8 +22,10 @@ abstract class BaseDataFetcher(schemaConfig: SchemaConfig) : ProjectionBase(sche
     final override fun get(env: DataFetchingEnvironment): OldCypher {
         val field = env.mergedField?.singleField
                 ?: throw IllegalAccessException("expect one field in environment.mergedField")
-        val variable = field.aliasOrName().decapitalize()
+//        val variable = field.aliasOrName().decapitalize()
+        val variable = "this" // TODO
         prepareDataFetcher(env.fieldDefinition, env.parentType)
+        // TODO remove field
         val statement = generateCypher(variable, field, env)
 
         val query = Renderer.getRenderer(Configuration

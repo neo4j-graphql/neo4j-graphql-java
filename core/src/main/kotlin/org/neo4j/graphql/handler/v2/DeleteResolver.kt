@@ -20,7 +20,7 @@ class DeleteResolver private constructor(
             }
 
             val coordinates =
-                addMutationField("delete" + node.pascalCasePlural, Constants.Types.DeleteInfo.makeRequired()) { args ->
+                addMutationField( node.rootTypeFieldNames.delete, Constants.Types.DeleteInfo.makeRequired()) { args ->
                     generateWhereIT(node)?.let { args += inputValue(Constants.WHERE, it.asType()) }
                     generateContainerDeleteInputIT(node)?.let {
                         args += inputValue(Constants.DELETE_FIELD, it.asType())

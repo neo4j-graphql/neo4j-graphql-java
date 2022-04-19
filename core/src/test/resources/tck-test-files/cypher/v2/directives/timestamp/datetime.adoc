@@ -63,8 +63,8 @@ SET this0.overrideTimestamp = datetime()
 SET this0.id = $this0_id
 RETURN this0
 }
-RETURN 
-this0 { .id } AS this0
+RETURN [
+this0 { .id }] AS data
 ----
 
 '''
@@ -102,7 +102,7 @@ SET this.interfaceTimestamp = datetime()
 SET this.id = $this_update_id
 SET this.name = $this_update_name
 
-RETURN this { .id } AS this
+RETURN collect(DISTINCT this { .id }) AS data
 ----
 
 '''

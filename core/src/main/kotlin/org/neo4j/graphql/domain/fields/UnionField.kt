@@ -9,4 +9,4 @@ class UnionField(
 ) : BaseField(
     fieldName,
     typeMeta,
-)
+), AuthableField, MutableField

@@ -69,14 +69,8 @@ mutation {
 ----
 {
   "this_create_actedIn_Movie0_node_Movie_title": "Example Film",
-  "this_create_actedIn_Movie0_node_Movie_runtime": {
-    "low": 90,
-    "high": 0
-  },
-  "this_create_actedIn_Movie0_relationship_screenTime": {
-    "low": 90,
-    "high": 0
-  }
+  "this_create_actedIn_Movie0_node_Movie_runtime": 90,
+  "this_create_actedIn_Movie0_relationship_screenTime": 90
 }
 ----
 
@@ -99,7 +93,8 @@ WITH this
 MATCH (this)-[:ACTED_IN]->(this_Series:Series)
 RETURN { __resolveType: "Series", episodes: this_Series.episodes, title: this_Series.title } AS actedIn
 }
-RETURN this { .name, actedIn: collect(actedIn) } AS this
+WITH this, collect(actedIn) AS actedIn
+RETURN collect(DISTINCT this { .name, actedIn: actedIn }) AS data
 ----
 
 '''

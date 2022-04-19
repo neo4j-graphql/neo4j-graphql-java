@@ -130,7 +130,7 @@ open class BaseAugmentationV2(
         getOrCreateInputObjectType("${node.name}${index.name.capitalize()}Fulltext") { fields, _ ->
             fields += inputValue(Constants.FULLTEXT_PHRASE, NonNullType(Constants.Types.String))
             // TODO normalize operation?
-            fields += inputValue(Constants.FULLTEXT_SCORE + "_EQUAL", Constants.Types.Int)
+            fields += inputValue(Constants.FULLTEXT_SCORE_EQUAL, Constants.Types.Int)
         }
 
 

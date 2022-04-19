@@ -192,12 +192,12 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer, schemaConfig: Sch
                         additionalConditions(listOf(totalFilter(), countFilter()), { withWithoutWhere, (total, count) ->
                             withWithoutWhere
                                 .where(total.isEqualTo(count))
-                                .and(total.isEqualTo(Cypher.literalOf<Number>(1)))
+                                .and(total.isEqualTo(1.asCypherLiteral()))
                         }))
                 RelationOperator.NONE -> queryWithoutWhere = nestingLevelHandler.parseFilter(
                         additionalConditions(listOf(countFilter()), { withWithoutWhere, (count) ->
                             withWithoutWhere
-                                .where(count.isEqualTo(Cypher.literalOf<Number>(0)))
+                                .where(count.isEqualTo(0.asCypherLiteral()))
                         }))
                 else -> throw IllegalStateException("${relFilter.op} should not be set for filed `${relFilter.fieldDefinition.name}` of type `$type`.")
             }

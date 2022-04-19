@@ -40,14 +40,8 @@ type Movie {
   "this_duration_GTE": {
     "months": 40,
     "days": 0,
-    "seconds": {
-      "low": 0,
-      "high": 0
-    },
-    "nanoseconds": {
-      "low": 0,
-      "high": 0
-    }
+    "seconds": 0,
+    "nanoseconds": 0
   }
 }
 ----
@@ -83,14 +77,8 @@ mutation {
   "this0_duration": {
     "months": 24,
     "days": 0,
-    "seconds": {
-      "low": 0,
-      "high": 0
-    },
-    "nanoseconds": {
-      "low": 0,
-      "high": 0
-    }
+    "seconds": 0,
+    "nanoseconds": 0
   }
 }
 ----
@@ -103,8 +91,8 @@ CREATE (this0:Movie)
 SET this0.duration = $this0_duration
 RETURN this0
 }
-RETURN 
-this0 { .duration } AS this0
+RETURN [
+this0 { .duration }] AS data
 ----
 
 '''
@@ -128,14 +116,8 @@ this0 { .duration } AS this0
   "this_duration": {
     "months": 12,
     "days": 0,
-    "seconds": {
-      "low": 0,
-      "high": 0
-    },
-    "nanoseconds": {
-      "low": 0,
-      "high": 0
-    }
+    "seconds": 0,
+    "nanoseconds": 0
   }
 }
 ----
@@ -172,14 +154,8 @@ mutation {
   "this_update_duration": {
     "months": 0,
     "days": 4,
-    "seconds": {
-      "low": 0,
-      "high": 0
-    },
-    "nanoseconds": {
-      "low": 0,
-      "high": 0
-    }
+    "seconds": 0,
+    "nanoseconds": 0
   }
 }
 ----
@@ -191,7 +167,7 @@ MATCH (this:Movie)
 
 SET this.duration = $this_update_duration
 
-RETURN this { .id, .duration } AS this
+RETURN collect(DISTINCT this { .id, .duration }) AS data
 ----
 
 '''

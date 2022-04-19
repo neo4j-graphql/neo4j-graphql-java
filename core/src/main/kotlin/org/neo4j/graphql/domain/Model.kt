@@ -36,7 +36,6 @@ data class Model(
             val objectNodes = typeDefinitionRegistry.getTypes(ObjectTypeDefinition::class.java)
                 .filterNot { reservedTypes.contains(it.name) }
 
-
             val nodes = objectNodes.map { node ->
                 NodeFactory.createNode(
                     node,
@@ -49,7 +48,7 @@ data class Model(
             val implementations = mutableMapOf<Interface, MutableList<Node>>()
             nodes.forEach { node ->
                 node.relationFields.forEach { field ->
-                    field.unionNodes = field.union.mapNotNull { nodesByName[it] }
+                    field.unionNodes = field.union.mapNotNull { nodesByName[it] }.sortedBy { it.name }
                     field.node = nodesByName[field.typeMeta.type.name()]
                 }
                 node.interfaces.forEach {
@@ -57,9 +56,9 @@ data class Model(
                 }
             }
             implementations.forEach { (interfaze, impls) ->
-                interfaze.implementations = impls
+                interfaze.implementations = impls.sortedBy { it.name }
                 interfaze.relationFields.forEach { field ->
-                    field.unionNodes = field.union.mapNotNull { nodesByName[it] }
+                    field.unionNodes = field.union.mapNotNull { nodesByName[it] }.sortedBy { it.name }
                     field.node = nodesByName[field.typeMeta.type.name()]
                 }
             }

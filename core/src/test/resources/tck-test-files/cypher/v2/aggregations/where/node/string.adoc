@@ -271,10 +271,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_node_name_GT": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_node_name_GT": 10
 }
 ----
 
@@ -306,10 +303,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_node_name_GTE": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_node_name_GTE": 10
 }
 ----
 
@@ -341,10 +335,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_node_name_LONGEST_EQUAL": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_node_name_LONGEST_EQUAL": 10
 }
 ----
 
@@ -377,10 +368,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_node_name_LONGEST_GT": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_node_name_LONGEST_GT": 10
 }
 ----
 
@@ -413,10 +401,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_node_name_LONGEST_GTE": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_node_name_LONGEST_GTE": 10
 }
 ----
 
@@ -449,10 +434,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_node_name_LONGEST_LT": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_node_name_LONGEST_LT": 10
 }
 ----
 
@@ -485,10 +467,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_node_name_LONGEST_LTE": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_node_name_LONGEST_LTE": 10
 }
 ----
 
@@ -521,10 +500,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_node_name_LT": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_node_name_LT": 10
 }
 ----
 
@@ -556,10 +532,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_node_name_LTE": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_node_name_LTE": 10
 }
 ----
 
@@ -591,10 +564,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_node_name_SHORTEST_EQUAL": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_node_name_SHORTEST_EQUAL": 10
 }
 ----
 
@@ -627,10 +597,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_node_name_SHORTEST_GT": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_node_name_SHORTEST_GT": 10
 }
 ----
 
@@ -663,10 +630,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_node_name_SHORTEST_GTE": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_node_name_SHORTEST_GTE": 10
 }
 ----
 
@@ -699,10 +663,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_node_name_SHORTEST_LT": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_node_name_SHORTEST_LT": 10
 }
 ----
 
@@ -735,10 +696,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_node_name_SHORTEST_LTE": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_node_name_SHORTEST_LTE": 10
 }
 ----
 

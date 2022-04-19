@@ -58,10 +58,7 @@ interface ActedIn {
     "args": {
       "where": {
         "edge": {
-          "screenTime": {
-            "low": 60,
-            "high": 0
-          }
+          "screenTime": 60
         }
       }
     }
@@ -113,10 +110,7 @@ RETURN this { .title, actorsConnection } as this
     "args": {
       "where": {
         "edge": {
-          "screenTime_NOT": {
-            "low": 60,
-            "high": 0
-          }
+          "screenTime_NOT": 60
         }
       }
     }

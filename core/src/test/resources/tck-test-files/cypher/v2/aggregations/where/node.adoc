@@ -41,10 +41,7 @@ type Post @node(label: "_Post", additionalLabels: ["additionalPost"]) {
 [source,json]
 ----
 {
-  "this_likesAggregate_node_someName_GT": {
-    "low": 1,
-    "high": 0
-  }
+  "this_likesAggregate_node_someName_GT": 1
 }
 ----
 

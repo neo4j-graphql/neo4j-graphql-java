@@ -206,10 +206,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someInt_EQUAL": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someInt_EQUAL": 10
 }
 ----
 
@@ -241,10 +238,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someIntAlias_EQUAL": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someIntAlias_EQUAL": 10
 }
 ----
 
@@ -276,10 +270,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someInt_GT": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someInt_GT": 10
 }
 ----
 
@@ -311,10 +302,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someInt_GTE": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someInt_GTE": 10
 }
 ----
 
@@ -346,10 +334,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someInt_LT": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someInt_LT": 10
 }
 ----
 
@@ -381,10 +366,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someInt_LTE": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someInt_LTE": 10
 }
 ----
 
@@ -416,10 +398,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someInt_MAX_EQUAL": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someInt_MAX_EQUAL": 10
 }
 ----
 
@@ -451,10 +430,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someInt_MAX_GT": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someInt_MAX_GT": 10
 }
 ----
 
@@ -486,10 +462,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someInt_MAX_GTE": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someInt_MAX_GTE": 10
 }
 ----
 
@@ -521,10 +494,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someInt_MAX_LT": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someInt_MAX_LT": 10
 }
 ----
 
@@ -556,10 +526,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someInt_MAX_LTE": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someInt_MAX_LTE": 10
 }
 ----
 
@@ -591,10 +558,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someInt_MIN_EQUAL": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someInt_MIN_EQUAL": 10
 }
 ----
 
@@ -626,10 +590,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someInt_MIN_GT": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someInt_MIN_GT": 10
 }
 ----
 
@@ -661,10 +622,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someInt_MIN_GTE": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someInt_MIN_GTE": 10
 }
 ----
 
@@ -696,10 +654,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someInt_MIN_LT": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someInt_MIN_LT": 10
 }
 ----
 
@@ -731,10 +686,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someInt_MIN_LTE": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someInt_MIN_LTE": 10
 }
 ----
 
@@ -766,10 +718,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someInt_SUM_EQUAL": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someInt_SUM_EQUAL": 10
 }
 ----
 
@@ -802,10 +751,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someInt_SUM_GT": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someInt_SUM_GT": 10
 }
 ----
 
@@ -838,10 +784,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someInt_SUM_GTE": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someInt_SUM_GTE": 10
 }
 ----
 
@@ -874,10 +817,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someInt_SUM_LT": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someInt_SUM_LT": 10
 }
 ----
 
@@ -910,10 +850,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someInt_SUM_LTE": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someInt_SUM_LTE": 10
 }
 ----
 

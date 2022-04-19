@@ -95,7 +95,7 @@ class SchemaBuilder(
             AggregateResolver.Factory(ctx),
             CreateResolver.Factory(ctx),
             DeleteResolver.Factory(ctx),
-            FindResolver.Factory(ctx),
+            ReadResolver.Factory(ctx),
             UpdateResolver.Factory(ctx),
         )
     }

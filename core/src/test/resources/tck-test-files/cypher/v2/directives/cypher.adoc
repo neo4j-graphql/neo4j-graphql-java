@@ -87,11 +87,8 @@ type Movie {
 {
   "this_topActor_movies_title": "some title",
   "auth": {
-    "isAuthenticated": true,
-    "roles": [],
-    "jwt": {
-      "roles": []
-    }
+    "isAuthenticated": false,
+    "roles": []
   }
 }
 ----
@@ -131,11 +128,8 @@ RETURN m", {this: this_topActor, auth: $auth, title: $this_topActor_movies_title
 {
   "this_topActor_movies_title": "some title",
   "auth": {
-    "isAuthenticated": true,
-    "roles": [],
-    "jwt": {
-      "roles": []
-    }
+    "isAuthenticated": false,
+    "roles": []
   }
 }
 ----
@@ -171,11 +165,8 @@ RETURN m", {this: this_topActor, auth: $auth, title: $this_topActor_movies_title
 ----
 {
   "auth": {
-    "isAuthenticated": true,
-    "roles": [],
-    "jwt": {
-      "roles": []
-    }
+    "isAuthenticated": false,
+    "roles": []
   }
 }
 ----
@@ -207,11 +198,8 @@ RETURN a", {this: this, auth: $auth}, false) | this_topActor { .name }]) } as th
 ----
 {
   "auth": {
-    "isAuthenticated": true,
-    "roles": [],
-    "jwt": {
-      "roles": []
-    }
+    "isAuthenticated": false,
+    "roles": []
   }
 }
 ----
@@ -256,11 +244,8 @@ RETURN this { randomNumber:  apoc.cypher.runFirstColumn("RETURN rand()", {this: 
   "this_topActor_movies_topActor_movies_title": "another title",
   "this_topActor_movies_title": "some title",
   "auth": {
-    "isAuthenticated": true,
-    "roles": [],
-    "jwt": {
-      "roles": []
-    }
+    "isAuthenticated": false,
+    "roles": []
   }
 }
 ----
@@ -311,11 +296,8 @@ RETURN m", {this: this_topActor_movies_topActor, auth: $auth, title: $this_topAc
 {
   "this_movieOrTVShow_title": "some title",
   "auth": {
-    "isAuthenticated": true,
-    "roles": [],
-    "jwt": {
-      "roles": []
-    }
+    "isAuthenticated": false,
+    "roles": []
   }
 }
 ----

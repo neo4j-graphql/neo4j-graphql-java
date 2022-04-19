@@ -66,6 +66,21 @@ mutation {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "super_admin"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
@@ -94,7 +109,7 @@ CALL {
 	WITH this
 	OPTIONAL MATCH (this_connect_posts0_node:Post)
 	WITH this, this_connect_posts0_node
-	CALL apoc.util.validate(NOT(ANY(r IN ["admin"] WHERE ANY(rr IN $auth.roles WHERE r = rr)) AND ANY(r IN ["super-admin"] WHERE ANY(rr IN $auth.roles WHERE r = rr))), "@neo4j/graphql/FORBIDDEN", [0])
+	CALL apoc.util.validate(NOT(ANY(r IN ["super-admin"] WHERE ANY(rr IN $auth.roles WHERE r = rr)) AND ANY(r IN ["admin"] WHERE ANY(rr IN $auth.roles WHERE r = rr))), "@neo4j/graphql/FORBIDDEN", [0])
 	FOREACH(_ IN CASE this WHEN NULL THEN [] ELSE [1] END | 
 		FOREACH(_ IN CASE this_connect_posts0_node WHEN NULL THEN [] ELSE [1] END | 
 			MERGE (this)-[:HAS_POST]->(this_connect_posts0_node)
@@ -102,7 +117,7 @@ CALL {
 	)
 	RETURN count(*)
 }
-RETURN this { .id } AS this
+RETURN collect(DISTINCT this { .id }) AS data
 ----
 
 '''
@@ -116,6 +131,21 @@ mutation {
   createUsers(input: [{id: "1"}]) {
     users {
       id
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "super_admin"
     }
   }
 }
@@ -151,8 +181,8 @@ WITH this0
 CALL apoc.util.validate(NOT(ANY(r IN ["admin"] WHERE ANY(rr IN $auth.roles WHERE r = rr))), "@neo4j/graphql/FORBIDDEN", [0])
 RETURN this0
 }
-RETURN 
-this0 { .id } AS this0
+RETURN [
+this0 { .id }] AS data
 ----
 
 '''
@@ -166,6 +196,21 @@ mutation {
   createUsers(input: [{id: "1", password: "super-password"}]) {
     users {
       id
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "super_admin"
     }
   }
 }
@@ -205,8 +250,8 @@ WITH this0
 CALL apoc.util.validate(NOT(ANY(r IN ["super-admin"] WHERE ANY(rr IN $auth.roles WHERE r = rr))), "@neo4j/graphql/FORBIDDEN", [0])
 RETURN this0
 }
-RETURN 
-this0 { .id } AS this0
+RETURN [
+this0 { .id }] AS data
 ----
 
 '''
@@ -219,6 +264,21 @@ this0 { .id } AS this0
 mutation {
   deleteUsers {
     nodesDeleted
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "super_admin"
+    }
   }
 }
 ----
@@ -267,6 +327,21 @@ mutation {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "super_admin"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
@@ -310,7 +385,7 @@ DELETE this_disconnect_posts0_rel
 )
 RETURN count(*)
 }
-RETURN this { .id } AS this
+RETURN collect(DISTINCT this { .id }) AS data
 ----
 
 '''
@@ -326,6 +401,21 @@ mutation {
   ) {
     comments {
       content
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "super_admin"
     }
   }
 }
@@ -387,7 +477,7 @@ CALL {
 	OPTIONAL MATCH (this_post0_creator0_connect0_node:User)
 	WHERE this_post0_creator0_connect0_node.id = $this_post0_creator0_connect0_node_id
 	WITH this, this_post0, this_post0_creator0_connect0_node
-	CALL apoc.util.validate(NOT(ANY(r IN [\"super-admin\"] WHERE ANY(rr IN $auth.roles WHERE r = rr)) AND ANY(r IN [\"admin\"] WHERE ANY(rr IN $auth.roles WHERE r = rr))), \"@neo4j/graphql/FORBIDDEN\", [0])
+	CALL apoc.util.validate(NOT(ANY(r IN [\"admin\"] WHERE ANY(rr IN $auth.roles WHERE r = rr)) AND ANY(r IN [\"super-admin\"] WHERE ANY(rr IN $auth.roles WHERE r = rr))), \"@neo4j/graphql/FORBIDDEN\", [0])
 	FOREACH(_ IN CASE this_post0 WHEN NULL THEN [] ELSE [1] END | 
 		FOREACH(_ IN CASE this_post0_creator0_connect0_node WHEN NULL THEN [] ELSE [1] END | 
 			MERGE (this_post0)-[:HAS_POST]->(this_post0_creator0_connect0_node)
@@ -396,11 +486,27 @@ CALL {
 	RETURN count(*)
 }
 
+WITH this, this_post0
+CALL {
+	WITH this_post0
+	MATCH (this_post0)-[this_post0_creator_User_unique:HAS_POST]->(:User)
+	WITH count(this_post0_creator_User_unique) as c
+	CALL apoc.util.validate(NOT(c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDPost.creator required', [0])
+	RETURN c AS this_post0_creator_User_unique_ignored
+}
 RETURN count(*)
 ", "", {this:this, updateComments: $updateComments, this_post0:this_post0, auth:$auth,this_post0_creator0_connect0_node_id:$this_post0_creator0_connect0_node_id})
-YIELD value as _
+YIELD value AS _
 
-RETURN this { .content } AS this
+WITH this
+CALL {
+	WITH this
+	MATCH (this)<-[this_post_Post_unique:HAS_COMMENT]-(:Post)
+	WITH count(this_post_Post_unique) as c
+	CALL apoc.util.validate(NOT(c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDComment.post required', [0])
+	RETURN c AS this_post_Post_unique_ignored
+}
+RETURN collect(DISTINCT this { .content }) AS data
 ----
 
 '''
@@ -413,6 +519,21 @@ RETURN this { .content } AS this
 mutation {
   deleteUsers(delete: {posts: {where: {}}}) {
     nodesDeleted
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "super_admin"
+    }
   }
 }
 ----
@@ -464,6 +585,21 @@ mutation {
   ) {
     comments {
       content
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "super_admin"
     }
   }
 }
@@ -531,11 +667,27 @@ DELETE this_post0_creator0_disconnect0_rel
 RETURN count(*)
 }
 
+WITH this, this_post0
+CALL {
+	WITH this_post0
+	MATCH (this_post0)-[this_post0_creator_User_unique:HAS_POST]->(:User)
+	WITH count(this_post0_creator_User_unique) as c
+	CALL apoc.util.validate(NOT(c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDPost.creator required', [0])
+	RETURN c AS this_post0_creator_User_unique_ignored
+}
 RETURN count(*)
 ", "", {this:this, updateComments: $updateComments, this_post0:this_post0, auth:$auth})
-YIELD value as _
+YIELD value AS _
 
-RETURN this { .content } AS this
+WITH this
+CALL {
+	WITH this
+	MATCH (this)<-[this_post_Post_unique:HAS_COMMENT]-(:Post)
+	WITH count(this_post_Post_unique) as c
+	CALL apoc.util.validate(NOT(c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDComment.post required', [0])
+	RETURN c AS this_post_Post_unique_ignored
+}
+RETURN collect(DISTINCT this { .content }) AS data
 ----
 
 '''
@@ -549,6 +701,21 @@ RETURN this { .content } AS this
   users {
     id
     name
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "super_admin"
+    }
   }
 }
 ----
@@ -591,6 +758,21 @@ RETURN this { .id, .name } as this
   users {
     history {
       url
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "super_admin"
     }
   }
 }
@@ -641,6 +823,21 @@ RETURN this { history: [this_history IN apoc.cypher.runFirstColumn("MATCH (this)
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "super_admin"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
@@ -686,6 +883,21 @@ mutation {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "super_admin"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
@@ -716,7 +928,7 @@ WITH this
 CALL apoc.util.validate(NOT(ANY(r IN ["admin"] WHERE ANY(rr IN $auth.roles WHERE r = rr))), "@neo4j/graphql/FORBIDDEN", [0])
 SET this.id = $this_update_id
 
-RETURN this { .id } AS this
+RETURN collect(DISTINCT this { .id }) AS data
 ----
 
 '''
@@ -730,6 +942,21 @@ mutation {
   updateUsers(where: {id: "1"}, update: {password: "password"}) {
     users {
       id
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "super_admin"
     }
   }
 }
@@ -765,7 +992,7 @@ WITH this
 CALL apoc.util.validate(NOT(ANY(r IN ["admin"] WHERE ANY(rr IN $auth.roles WHERE r = rr)) AND ANY(r IN ["super-admin"] WHERE ANY(rr IN $auth.roles WHERE r = rr))), "@neo4j/graphql/FORBIDDEN", [0])
 SET this.password = $this_update_password
 
-RETURN this { .id } AS this
+RETURN collect(DISTINCT this { .id }) AS data
 ----
 
 '''

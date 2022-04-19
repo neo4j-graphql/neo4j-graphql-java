@@ -6,27 +6,118 @@ import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.FieldContainer
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.RelationshipProperties
+import org.neo4j.graphql.domain.directives.AuthDirective
 import org.neo4j.graphql.parser.ParsedQuery
 import org.neo4j.graphql.parser.QueryParser
 
-class TopLevelMatchTranslator(val schemaConfig: SchemaConfig, val variables: Map<String, Any>) {
+class TopLevelMatchTranslator(
+    val schemaConfig: SchemaConfig,
+    val variables: Map<String, Any>,
+    val queryContext: QueryContext?
+) {
 
-    fun translateTopLevelMatch(node: Node, varName: String, arguments: Map<String, Any>): OngoingReading {
+    fun translateTopLevelMatch(
+        node: Node,
+        cypherNode: org.neo4j.cypherdsl.core.Node,
+        arguments: Map<String, Any>,
+        authOperation: AuthDirective.AuthOperation
+    ): OngoingReading {
 
-        val cypherNode = node.asCypherNode(varName)
-        val match = Cypher.match(cypherNode)
-        // TODO fulltext
+        val match: ExposesWhere
+        var conditions: Condition
 
-        val conditions = where(cypherNode, node, varName, arguments)
+        val varName = cypherNode.name()
+
+        val fulltextInput = arguments[Constants.FULLTEXT] as? Map<*, *>
+        if (fulltextInput != null) {
+            createFulltextSearchMatch(fulltextInput, node, varName).let { (m, c) ->
+                match = m
+                conditions = c
+            }
+        } else {
+            match = Cypher.match(cypherNode)
+            conditions = Conditions.noCondition()
+        }
+
+        conditions = conditions.and(where(cypherNode, node, varName, arguments))
+
+        if (node.auth != null) {
+            AuthTranslator(
+                schemaConfig,
+                queryContext,
+                where = AuthTranslator.AuthOptions(cypherNode, node)
+            ).createAuth(node.auth, authOperation)
+                ?.let { conditions = conditions.and(it) }
+        }
+
 
         return match.where(conditions)
+    }
+
+    private fun createFulltextSearchMatch(
+        fulltextInput: Map<*, *>,
+        node: Node,
+        varName: String
+    ): Pair<ExposesWhere, Condition> {
+        if (fulltextInput.size > 1) {
+            throw IllegalArgumentException("Can only call one search at any given time");
+        }
+        val (indexName, indexInputObject) = fulltextInput.entries.first()
+        val indexInput = indexInputObject as Map<*, *>
+
+        val thisName = Cypher.name("node").`as`("this")
+        val scoreName = Cypher.name("score").`as`("score")
+        val call: ExposesWhere = CypherDSL.call("db.index.fulltext.queryNodes")
+            .withArgs(
+                (indexName as String).asCypherLiteral(),
+                Cypher.parameter(
+                    schemaConfig.namingStrategy.resolveParameter(varName, "fulltext", indexName, "phrase"),
+                    indexInput[Constants.FULLTEXT_PHRASE]
+                )
+            )
+            .yield(thisName, scoreName)
+
+        var cond = Conditions.noCondition()
+        // TODO remove this? https://github.com/neo4j/graphql/issues/1189
+        if (node.additionalLabels.isNotEmpty()) {
+            // TODO add Functions.labels(#symbolicName) // node.hasLabels()
+            node.allLabels(queryContext).forEach {
+                cond =
+                    cond.and(it.asCypherLiteral().`in`(Cypher.call("labels").withArgs(thisName).asFunction()))
+            }
+        }
+
+        if (node.fulltextDirective != null) {
+            val index = node.fulltextDirective.indexes.find { it.name == indexName }
+            ((indexInput[Constants.FULLTEXT_SCORE_EQUAL] as? Number)
+                ?.let {
+                    Cypher.parameter(
+                        schemaConfig.namingStrategy.resolveParameter(varName, "fulltext", indexName, "score", "EQUAL"),
+                        it
+                    )
+                }
+                ?: index?.defaultThreshold?.let {
+                    Cypher.parameter(
+                        schemaConfig.namingStrategy.resolveParameter(
+                            varName,
+                            "fulltext",
+                            indexName,
+                            "defaultThreshold" // TODO naming: split
+                        ),
+                        it
+                    )
+                })
+                ?.let { cond = cond.and(scoreName.eq(it)) }
+        }
+
+        return call to cond
     }
 
     fun createWhere(node: Node, varName: String, arguments: Map<String, Any>) {
 
     }
 
-    fun where(
+    private fun where(
         propertyContainer: PropertyContainer,
         node: Node,
         varName: String,
@@ -35,10 +126,11 @@ class TopLevelMatchTranslator(val schemaConfig: SchemaConfig, val variables: Map
         val result = Conditions.noCondition()
         val whereInput = arguments[Constants.WHERE]
         return (whereInput as? Map<*, *>)
-            ?.let { QueryParser.parseFilter(it, node.name, node, SchemaConfig()) }
+            ?.let { QueryParser.parseFilter(it, node.name, node, schemaConfig) }
             ?.let {
                 val filterCondition = handleQuery(
-                    normalizeName(Constants.WHERE, varName),
+                    varName,
+//                    normalizeName(Constants.WHERE, varName), // TODO naming
                     "",
                     propertyContainer,
                     it,
@@ -50,7 +142,7 @@ class TopLevelMatchTranslator(val schemaConfig: SchemaConfig, val variables: Map
             ?: result
     }
 
-    fun handleQuery(
+    private fun handleQuery(
         variablePrefix: String,
         variableSuffix: String,
         propertyContainer: PropertyContainer,
@@ -92,11 +184,14 @@ class TopLevelMatchTranslator(val schemaConfig: SchemaConfig, val variables: Map
                         RelationOperator.NONE -> Predicates.none(cond)
                         else -> null
                     }?.let {
-                        val thisParam = normalizeName(variablePrefix, refNode.name)
-                        val relationshipVariable = normalizeName(thisParam, predicate.field.relationshipTypeName)
+                        val thisParam = normalizeName2(variablePrefix, refNode.name) // TODO naming
+                        val relationshipVariable = normalizeName2(thisParam, predicate.field.relationshipTypeName)
 
-                        val namedTargetNode = refNode.asCypherNode().named(thisParam)
-                        val namedRelation = predicate.createRelation(propertyContainer as org.neo4j.cypherdsl.core.Node, namedTargetNode).named(relationshipVariable)
+                        val namedTargetNode = refNode.asCypherNode(queryContext).named(thisParam)
+                        val namedRelation = predicate.createRelation(
+                            propertyContainer as org.neo4j.cypherdsl.core.Node,
+                            namedTargetNode
+                        ).named(relationshipVariable)
 
 //                        if (predicate.op == RelationOperator.NOT || predicate.op == RelationOperator.NONE){
 //                            // TODO https://github.com/neo4j/graphql/issues/925
@@ -126,7 +221,7 @@ class TopLevelMatchTranslator(val schemaConfig: SchemaConfig, val variables: Map
                 continue
             }
 
-            val cond = Cypher.name(normalizeName(variablePrefix, predicate.field.typeMeta.type.name(), "Cond"))
+            val cond = Cypher.name(normalizeName2(variablePrefix, predicate.field.typeMeta.type.name(), "Cond"))
             when (predicate.op) {
                 RelationOperator.SOME -> Predicates.any(cond)
                 RelationOperator.SINGLE -> Predicates.single(cond)
@@ -137,7 +232,7 @@ class TopLevelMatchTranslator(val schemaConfig: SchemaConfig, val variables: Map
             }?.let {
                 val typeName2 = predicate.targetName ?: TODO("union")
                 val fieldContainer2 = predicate.targetFieldContainer ?: TODO("union")
-                val targetNode = predicate.relNode.named(normalizeName(variablePrefix, typeName2))
+                val targetNode = predicate.relNode.named(normalizeName2(variablePrefix, typeName2))
                 val parsedQuery2 = QueryParser.parseFilter(value, typeName2, fieldContainer2, schemaConfig)
                 val condition = handleQuery(
                     targetNode.requiredSymbolicName.value,

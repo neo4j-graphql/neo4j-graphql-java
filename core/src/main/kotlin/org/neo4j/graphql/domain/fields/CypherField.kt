@@ -12,7 +12,7 @@ class CypherField(
     val statement: String,
 ) : BaseField(
     fieldName, typeMeta
-) {
+), AuthableField {
     fun isSortable() = sortableFields.contains(typeMeta.type.name())
 
     companion object {

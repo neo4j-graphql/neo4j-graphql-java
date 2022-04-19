@@ -8,10 +8,7 @@ import org.neo4j.graphql.DirectiveConstants
 import org.neo4j.graphql.domain.Interface
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.RelationshipProperties
-import org.neo4j.graphql.domain.directives.AuthDirective
-import org.neo4j.graphql.domain.directives.ExcludeDirective
-import org.neo4j.graphql.domain.directives.FullTextDirective
-import org.neo4j.graphql.domain.directives.NodeDirective
+import org.neo4j.graphql.domain.directives.*
 import org.neo4j.graphql.domain.fields.BaseField
 import org.neo4j.graphql.domain.fields.PrimitiveField
 import org.neo4j.graphql.isList
@@ -34,6 +31,7 @@ object NodeFactory {
         var exclude: ExcludeDirective? = null
         var nodeDirective: NodeDirective? = null
         var fulltext: FullTextDirective? = null
+        var queryOptions: QueryOptionsDirective? = null
 
         definition.directives.forEach {
             when (it.name) {
@@ -41,6 +39,7 @@ object NodeFactory {
                 DirectiveConstants.EXCLUDE -> exclude = ExcludeDirective.create(it)
                 DirectiveConstants.NODE -> nodeDirective = NodeDirective.create(it)
                 DirectiveConstants.FULLTEXT -> fulltext = FullTextDirective.create(it)
+                DirectiveConstants.QUERY_OPTIONS -> queryOptions = QueryOptionsDirective.create(it)
                 else -> otherDirectives += it
             }
         }
@@ -82,7 +81,8 @@ object NodeFactory {
             exclude,
             nodeDirective,
             fulltext?.validate(definition, fields),
-            auth,
+            queryOptions?.validate(definition.name),
+            auth
         )
     }
 

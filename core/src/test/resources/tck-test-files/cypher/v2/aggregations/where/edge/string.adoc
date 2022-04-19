@@ -275,10 +275,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someString_GT": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someString_GT": 10
 }
 ----
 
@@ -310,10 +307,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someString_GTE": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someString_GTE": 10
 }
 ----
 
@@ -345,10 +339,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someString_LONGEST_EQUAL": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someString_LONGEST_EQUAL": 10
 }
 ----
 
@@ -381,10 +372,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someString_LONGEST_GT": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someString_LONGEST_GT": 10
 }
 ----
 
@@ -417,10 +405,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someString_LONGEST_GTE": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someString_LONGEST_GTE": 10
 }
 ----
 
@@ -453,10 +438,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someString_LONGEST_LT": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someString_LONGEST_LT": 10
 }
 ----
 
@@ -489,10 +471,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someString_LONGEST_LTE": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someString_LONGEST_LTE": 10
 }
 ----
 
@@ -525,10 +504,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someString_LT": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someString_LT": 10
 }
 ----
 
@@ -560,10 +536,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someString_LTE": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someString_LTE": 10
 }
 ----
 
@@ -595,10 +568,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someString_SHORTEST_EQUAL": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someString_SHORTEST_EQUAL": 10
 }
 ----
 
@@ -631,10 +601,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someString_SHORTEST_GT": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someString_SHORTEST_GT": 10
 }
 ----
 
@@ -667,10 +634,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someString_SHORTEST_GTE": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someString_SHORTEST_GTE": 10
 }
 ----
 
@@ -703,10 +667,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someString_SHORTEST_LT": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someString_SHORTEST_LT": 10
 }
 ----
 
@@ -739,10 +700,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someString_SHORTEST_LTE": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someString_SHORTEST_LTE": 10
 }
 ----
 

@@ -8,4 +8,4 @@ class PointField(
 ) : ScalarField(
     fieldName,
     typeMeta,
-), ConstrainableField
+), ConstrainableField, AuthableField, MutableField

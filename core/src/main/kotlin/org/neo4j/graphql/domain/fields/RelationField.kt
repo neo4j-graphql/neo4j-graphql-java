@@ -1,5 +1,6 @@
 package org.neo4j.graphql.domain.fields
 
+import org.neo4j.cypherdsl.core.Relationship
 import org.neo4j.graphql.capitalize
 import org.neo4j.graphql.domain.*
 
@@ -34,7 +35,7 @@ class RelationField(
     val relationshipTypeName: String get() = "${connectionPrefix}${fieldName.capitalize()}Relationship"
 
     /**
-     * If the type of the field is an interface, this list contains all nodes implementing this interface
+     * If the type of the field is an union, this list contains all nodes of the union
      */
     lateinit var unionNodes: List<Node>
 
@@ -55,6 +56,13 @@ class RelationField(
             ?: unionNodes.firstOrNull { it.name == name }
             ?: interfaze?.implementations?.firstOrNull { it.name == name }
 
+    fun getReferenceNodes() = when {
+        interfaze != null -> interfaze.implementations
+        unionNodes.isNotEmpty() -> unionNodes
+        node != null -> listOf(requireNotNull(node))
+        else -> throw IllegalStateException("Type of field ${getOwnerName()}.${fieldName} is neither interface nor union nor simple node")
+    }
+
     enum class Direction {
         IN, OUT
     }
@@ -65,4 +73,13 @@ class RelationField(
         DIRECTED_ONLY,
         UNDIRECTED_ONLY,
     }
+
+    fun createDslRelation(
+        start: org.neo4j.cypherdsl.core.Node,
+        end: org.neo4j.cypherdsl.core.Node,
+        name: String? = null
+    ): Relationship = when (direction) {
+        Direction.IN -> start.relationshipFrom(end, relationType)
+        Direction.OUT -> start.relationshipTo(end, relationType)
+    }.let { if (name != null) it.named(name) else it }
 }

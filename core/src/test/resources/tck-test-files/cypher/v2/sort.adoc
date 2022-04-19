@@ -229,14 +229,8 @@ query ($title: String, $offset: Int, $limit: Int) {
 ----
 {
   "this_title": "some title",
-  "this_offset": {
-    "low": 1,
-    "high": 0
-  },
-  "this_limit": {
-    "low": 2,
-    "high": 0
-  }
+  "this_offset": 1,
+  "this_limit": 2
 }
 ----
 

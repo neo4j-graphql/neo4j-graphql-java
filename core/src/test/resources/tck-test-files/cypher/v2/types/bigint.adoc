@@ -37,10 +37,7 @@ type File {
 [source,json]
 ----
 {
-  "this_size": {
-    "low": -1,
-    "high": 2147483647
-  }
+  "this_size": "9223372036854775807"
 }
 ----
 
@@ -78,10 +75,7 @@ query Files($size: BigInt) {
 [source,json]
 ----
 {
-  "this_size": {
-    "low": -1,
-    "high": 2147483647
-  }
+  "this_size": "9223372036854775807"
 }
 ----
 
@@ -111,10 +105,7 @@ RETURN this { .name } as this
 [source,json]
 ----
 {
-  "this_size": {
-    "low": -1,
-    "high": 2147483647
-  }
+  "this_size": "9223372036854775807"
 }
 ----
 

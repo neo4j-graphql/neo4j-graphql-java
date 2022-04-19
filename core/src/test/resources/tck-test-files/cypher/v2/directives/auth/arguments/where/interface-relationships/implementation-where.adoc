@@ -66,6 +66,21 @@ mutation {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
@@ -108,8 +123,8 @@ UNION
 }
 RETURN this0
 }
-RETURN 
-this0 { .id } AS this0
+RETURN [
+this0 { .id }] AS data
 ----
 
 '''
@@ -123,6 +138,21 @@ mutation {
   updateUsers(connect: {content: {where: {node: {}}}}) {
     users {
       id
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
     }
   }
 }
@@ -165,7 +195,7 @@ UNION
 	)
 	RETURN count(*)
 }
-RETURN this { .id } AS this
+RETURN collect(DISTINCT this { .id }) AS data
 ----
 
 '''
@@ -179,6 +209,21 @@ mutation {
   updateUsers(update: {content: {connect: {where: {node: {}}}}}) {
     users {
       id
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
     }
   }
 }
@@ -233,7 +278,7 @@ CALL {
 RETURN count(*)
 }
 
-RETURN this { .id } AS this
+RETURN collect(DISTINCT this { .id }) AS data
 ----
 
 '''
@@ -249,6 +294,21 @@ mutation {
   ) {
     users {
       id
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
     }
   }
 }
@@ -298,8 +358,8 @@ UNION
 }
 RETURN this0
 }
-RETURN 
-this0 { .id } AS this0
+RETURN [
+this0 { .id }] AS data
 ----
 
 '''
@@ -313,6 +373,21 @@ mutation {
   updateUsers(connect: {content: {where: {node: {id: "some-id"}}}}) {
     users {
       id
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
     }
   }
 }
@@ -357,7 +432,7 @@ UNION
 	)
 	RETURN count(*)
 }
-RETURN this { .id } AS this
+RETURN collect(DISTINCT this { .id }) AS data
 ----
 
 '''
@@ -371,6 +446,21 @@ mutation {
   updateUsers(update: {content: {connect: {where: {node: {id: "new-id"}}}}}) {
     users {
       id
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
     }
   }
 }
@@ -427,7 +517,7 @@ CALL {
 RETURN count(*)
 }
 
-RETURN this { .id } AS this
+RETURN collect(DISTINCT this { .id }) AS data
 ----
 
 '''
@@ -440,6 +530,21 @@ RETURN this { .id } AS this
 mutation {
   deleteUsers(delete: {content: {where: {}}}) {
     nodesDeleted
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
+    }
   }
 }
 ----
@@ -484,6 +589,21 @@ mutation {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
@@ -510,6 +630,21 @@ DETACH DELETE this
 mutation {
   deletePosts(where: {content: "Bob"}) {
     nodesDeleted
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
+    }
   }
 }
 ----
@@ -542,6 +677,21 @@ mutation {
   updateUsers(disconnect: {content: {where: {}}}) {
     users {
       id
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
     }
   }
 }
@@ -591,7 +741,7 @@ DELETE this_disconnect_content0_rel
 )
 RETURN count(*)
 }
-RETURN this { .id } AS this
+RETURN collect(DISTINCT this { .id }) AS data
 ----
 
 '''
@@ -605,6 +755,21 @@ mutation {
   updateUsers(update: {content: {disconnect: {where: {}}}}) {
     users {
       id
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
     }
   }
 }
@@ -655,7 +820,7 @@ RETURN count(*)
 RETURN count(*)
 }
 
-RETURN this { .id } AS this
+RETURN collect(DISTINCT this { .id }) AS data
 ----
 
 '''
@@ -669,6 +834,21 @@ mutation {
   updateUsers(disconnect: {content: {where: {node: {id: "some-id"}}}}) {
     users {
       id
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
     }
   }
 }
@@ -723,7 +903,7 @@ DELETE this_disconnect_content0_rel
 )
 RETURN count(*)
 }
-RETURN this { .id } AS this
+RETURN collect(DISTINCT this { .id }) AS data
 ----
 
 '''
@@ -737,6 +917,21 @@ mutation {
   updateUsers(update: {content: [{disconnect: {where: {node: {id: "new-id"}}}}]}) {
     users {
       id
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
     }
   }
 }
@@ -807,7 +1002,7 @@ RETURN count(*)
 RETURN count(*)
 }
 
-RETURN this { .id } AS this
+RETURN collect(DISTINCT this { .id }) AS data
 ----
 
 '''
@@ -824,6 +1019,21 @@ RETURN this { .id } AS this
       ... on Post {
         id
       }
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
     }
   }
 }
@@ -854,7 +1064,8 @@ MATCH (this)-[:HAS_CONTENT]->(this_Post:Post)
 WHERE EXISTS((this_Post)<-[:HAS_CONTENT]-(:User)) AND ALL(creator IN [(this_Post)<-[:HAS_CONTENT]-(creator:User) | creator] WHERE creator.id IS NOT NULL AND creator.id = $this_Post_auth_where0_creator_id)
 RETURN { __resolveType: "Post", id: this_Post.id } AS content
 }
-RETURN this { .id, content: collect(content) } as this
+WITH this, collect(content) AS content
+RETURN this { .id, content: content } as this
 ----
 
 '''
@@ -875,6 +1086,21 @@ RETURN this { .id, content: collect(content) } as this
           }
         }
       }
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
     }
   }
 }
@@ -932,6 +1158,21 @@ RETURN this { .id, contentConnection } as this
           }
         }
       }
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
     }
   }
 }
@@ -995,6 +1236,21 @@ RETURN this { .id, contentConnection } as this
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
@@ -1021,6 +1277,21 @@ RETURN this { .id } as this
 {
   posts(where: {content: "bob"}) {
     id
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
+    }
   }
 }
 ----
@@ -1053,6 +1324,21 @@ mutation {
   updateUsers(update: {content: {update: {node: {id: "new-id"}}}}) {
     users {
       id
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
     }
   }
 }
@@ -1109,9 +1395,17 @@ CALL apoc.do.when(this_content0 IS NOT NULL, "
 
 SET this_content0.id = $this_update_content0_id
 
+WITH this, this_content0
+CALL {
+	WITH this_content0
+	MATCH (this_content0)<-[this_content0_creator_User_unique:HAS_CONTENT]-(:User)
+	WITH count(this_content0_creator_User_unique) as c
+	CALL apoc.util.validate(NOT(c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDComment.creator required', [0])
+	RETURN c AS this_content0_creator_User_unique_ignored
+}
 RETURN count(*)
 ", "", {this:this, updateUsers: $updateUsers, this_content0:this_content0, auth:$auth,this_update_content0_id:$this_update_content0_id})
-YIELD value as _
+YIELD value AS _
 RETURN count(*)
 UNION
 WITH this
@@ -1121,13 +1415,21 @@ CALL apoc.do.when(this_content0 IS NOT NULL, "
 
 SET this_content0.id = $this_update_content0_id
 
+WITH this, this_content0
+CALL {
+	WITH this_content0
+	MATCH (this_content0)<-[this_content0_creator_User_unique:HAS_CONTENT]-(:User)
+	WITH count(this_content0_creator_User_unique) as c
+	CALL apoc.util.validate(NOT(c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDPost.creator required', [0])
+	RETURN c AS this_content0_creator_User_unique_ignored
+}
 RETURN count(*)
 ", "", {this:this, updateUsers: $updateUsers, this_content0:this_content0, auth:$auth,this_update_content0_id:$this_update_content0_id})
-YIELD value as _
+YIELD value AS _
 RETURN count(*)
 }
 
-RETURN this { .id } AS this
+RETURN collect(DISTINCT this { .id }) AS data
 ----
 
 '''
@@ -1141,6 +1443,21 @@ mutation {
   updatePosts(update: {content: "Bob"}) {
     posts {
       id
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
     }
   }
 }
@@ -1163,7 +1480,15 @@ WHERE EXISTS((this)<-[:HAS_CONTENT]-(:User)) AND ALL(creator IN [(this)<-[:HAS_C
 
 SET this.content = $this_update_content
 
-RETURN this { .id } AS this
+WITH this
+CALL {
+	WITH this
+	MATCH (this)<-[this_creator_User_unique:HAS_CONTENT]-(:User)
+	WITH count(this_creator_User_unique) as c
+	CALL apoc.util.validate(NOT(c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDPost.creator required', [0])
+	RETURN c AS this_creator_User_unique_ignored
+}
+RETURN collect(DISTINCT this { .id }) AS data
 ----
 
 '''
@@ -1177,6 +1502,21 @@ mutation {
   updatePosts(where: {content: "bob"}, update: {content: "Bob"}) {
     posts {
       id
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
     }
   }
 }
@@ -1200,7 +1540,15 @@ WHERE this.content = $this_content AND EXISTS((this)<-[:HAS_CONTENT]-(:User)) AN
 
 SET this.content = $this_update_content
 
-RETURN this { .id } AS this
+WITH this
+CALL {
+	WITH this
+	MATCH (this)<-[this_creator_User_unique:HAS_CONTENT]-(:User)
+	WITH count(this_creator_User_unique) as c
+	CALL apoc.util.validate(NOT(c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDPost.creator required', [0])
+	RETURN c AS this_creator_User_unique_ignored
+}
+RETURN collect(DISTINCT this { .id }) AS data
 ----
 
 '''

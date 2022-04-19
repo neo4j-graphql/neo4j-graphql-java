@@ -8,7 +8,7 @@ import org.neo4j.graphql.readArgument
 import org.neo4j.graphql.validateName
 
 data class TimestampDirective(
-    val operations: List<TimeStampOperation>,
+    val operations: Set<TimeStampOperation>,
 ) {
 
     enum class TimeStampOperation { CREATE, UPDATE }
@@ -20,7 +20,7 @@ data class TimestampDirective(
                 (arrayValue as ArrayValue).values.map {
                     TimeStampOperation.valueOf((it as EnumValue).name)
                 }
-            } ?: TimeStampOperation.values().asList())
+            }?.toSet() ?: TimeStampOperation.values().toSet())
         }
     }
 }

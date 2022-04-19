@@ -15,7 +15,7 @@ class FullTextDirective(
     class FullTextIndex(value: ObjectValue) {
         val name: String = value.get(FullTextIndex::name) ?: throw IllegalArgumentException("name is required")
         val fields: List<String> = value.get(FullTextIndex::fields) ?: emptyList()
-        val defaultThreshold: Int? = value.get(FullTextIndex::defaultThreshold)
+        val defaultThreshold: Long? = value.get(FullTextIndex::defaultThreshold)
     }
 
     companion object {

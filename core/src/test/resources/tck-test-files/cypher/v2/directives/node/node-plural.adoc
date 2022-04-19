@@ -77,8 +77,8 @@ CREATE (this0:`Tech`)
 SET this0.name = $this0_name
 RETURN this0
 }
-RETURN 
-this0 { .name } AS this0
+RETURN [
+this0 { .name }] AS data
 ----
 
 '''
@@ -196,7 +196,7 @@ MATCH (this:`Tech`)
 
 SET this.name = $this_update_name
 
-RETURN this { .name } AS this
+RETURN collect(DISTINCT this { .name }) AS data
 ----
 
 '''

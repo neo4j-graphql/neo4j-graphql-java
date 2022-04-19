@@ -1,18 +1,24 @@
 package org.neo4j.graphql.handler.v2
 
+import graphql.language.Field
 import graphql.language.ListType
 import graphql.language.NonNullType
-import graphql.schema.DataFetcher
 import graphql.schema.DataFetchingEnvironment
+import org.neo4j.cypherdsl.core.Cypher
+import org.neo4j.cypherdsl.core.ExposesReturning
+import org.neo4j.cypherdsl.core.Statement
+import org.neo4j.cypherdsl.core.StatementBuilder
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.ExcludeDirective
+import org.neo4j.graphql.handler.BaseDataFetcher
 import org.neo4j.graphql.schema.AugmentationHandlerV2
+import org.neo4j.graphql.translate.CreateTranslator
 
 class CreateResolver private constructor(
-    val schemaConfig: SchemaConfig,
+    schemaConfig: SchemaConfig,
     val node: Node
-) : DataFetcher<OldCypher> {
+) : BaseDataFetcher(schemaConfig) {
 
     class Factory(ctx: AugmentationContext) : AugmentationHandlerV2(ctx) {
 
@@ -22,8 +28,8 @@ class CreateResolver private constructor(
             }
 
             val coordinates = generateContainerCreateInputIT(node)?.let { inputType ->
-                val responseType = addResponseType("Create", node)
-                addMutationField("create" + node.pascalCasePlural, responseType.asRequiredType()) { args ->
+                val responseType = addResponseType(node, node.typeNames.createResponse, Constants.Types.CreateInfo)
+                addMutationField(node.rootTypeFieldNames.create, responseType.asRequiredType()) { args ->
                     args += inputValue(Constants.INPUT_FIELD, NonNullType(ListType(inputType.asRequiredType())))
                 }
             } ?: return null
@@ -32,8 +38,59 @@ class CreateResolver private constructor(
         }
     }
 
-    override fun get(environment: DataFetchingEnvironment?): OldCypher {
-        TODO("Not yet implemented")
+    override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement {
+        val inputAny = env.arguments[Constants.INPUT_FIELD]
+        val inputs = (inputAny as? List<*>)
+            ?: throw IllegalArgumentException("expected an input of type ${env.fieldDefinition.getArgument(Constants.INPUT_FIELD).type} but got ${inputAny?.javaClass?.name}")
+
+        val queryContext = env.queryContext()
+
+
+        var queries: StatementBuilder.OngoingReadingWithoutWhere? = null
+        val nodes = mutableListOf<org.neo4j.cypherdsl.core.Node>()
+        inputs
+            .filterIsInstance<Map<*, *>>()
+            .forEachIndexed { index, value ->
+                val dslNode = node.asCypherNode(queryContext).named("this$index")
+
+                val statement = (
+                        CreateTranslator(schemaConfig, env.variables, queryContext)
+                            .createCreateAndParams(
+                                node,
+                                dslNode,
+                                value,
+                                listOf(dslNode.requiredSymbolicName)
+                            ) as ExposesReturning
+                        ).returning(dslNode)
+                    .build()
+
+                queries = queries?.call(statement) ?: Cypher.call(statement)
+                nodes += dslNode
+            }
+        if (queries == null) {
+            throw IllegalArgumentException("nothing to create for ${env.fieldDefinition}")
+        }
+
+        val (node, result) = if (nodes.size > 1) {
+            val node = Cypher.anyNode().named("this")
+            node to queries!!
+                .unwind(Cypher.listOf(*nodes.map { it.requiredSymbolicName }.toTypedArray()))
+                .`as`(node.requiredSymbolicName)
+        } else {
+            nodes[0] to queries!!
+        }
+
+//        val (subQueries, projectionEntries, authValidate) = CreateProjection().createProjectionAndParams()
+
+        val type = env.typeAsContainer()
+
+//        val targetFieldSelection = env.selectionSet.getFields(field.name).first().selectionSet
+        val (projectionEntries, subQueries) = projectFields(node, type, env)
+        return result
+            .withSubQueries(subQueries)
+            .returning(node.project(projectionEntries).`as`(variable))
+            .build()
+
     }
 }
 

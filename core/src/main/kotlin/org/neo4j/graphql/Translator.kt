@@ -17,6 +17,7 @@ class Translator(val schema: GraphQLSchema) {
         val executionInput = ExecutionInput.newExecutionInput()
             .query(query)
             .variables(params)
+            .graphQLContext(mapOf(Constants.NEO4J_QUERY_CONTEXT to ctx))
             .context(ctx)
             .localContext(cypherHolder)
             .build()

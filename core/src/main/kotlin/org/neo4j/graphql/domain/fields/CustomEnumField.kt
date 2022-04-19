@@ -9,6 +9,7 @@ class CustomEnumField(
 ) : ScalarField(
     fieldName,
     typeMeta,
-), HasDefaultValue {
+), HasDefaultValue, HasCoalesceValue, AuthableField, MutableField {
     override var defaultValue: Value<*>? = null
+    override var coalesceValue: Value<*>? = null
 }

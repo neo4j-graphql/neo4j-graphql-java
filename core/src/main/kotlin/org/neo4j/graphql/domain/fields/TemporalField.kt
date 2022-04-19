@@ -5,10 +5,10 @@ import org.neo4j.graphql.domain.directives.TimestampDirective
 
 class TemporalField(fieldName: String, typeMeta: TypeMeta) :
     PrimitiveField(fieldName, typeMeta),
-    ConstrainableField
+    ConstrainableField, AuthableField, MutableField
 {
     // TODO rename field to `generateTimestampOperations`
-    var timestamps: List<TimestampDirective.TimeStampOperation>? = null
+    var timestamps: Set<TimestampDirective.TimeStampOperation>? = null
 
     override val generated: Boolean get()  = super.generated || timestamps != null
 }

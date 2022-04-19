@@ -46,10 +46,7 @@ interface Likes {
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someBigInt_AVERAGE_EQUAL": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someBigInt_AVERAGE_EQUAL": -2147483648
 }
 ----
 
@@ -81,10 +78,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someBigInt_AVERAGE_GT": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someBigInt_AVERAGE_GT": -2147483648
 }
 ----
 
@@ -116,10 +110,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someBigInt_AVERAGE_GTE": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someBigInt_AVERAGE_GTE": -2147483648
 }
 ----
 
@@ -151,10 +142,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someBigInt_AVERAGE_LT": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someBigInt_AVERAGE_LT": -2147483648
 }
 ----
 
@@ -186,10 +174,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someBigInt_AVERAGE_LTE": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someBigInt_AVERAGE_LTE": -2147483648
 }
 ----
 
@@ -221,10 +206,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someBigInt_EQUAL": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someBigInt_EQUAL": -2147483648
 }
 ----
 
@@ -256,10 +238,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someBigIntAlias_EQUAL": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someBigIntAlias_EQUAL": -2147483648
 }
 ----
 
@@ -291,10 +270,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someBigInt_GT": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someBigInt_GT": -2147483648
 }
 ----
 
@@ -326,10 +302,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someBigInt_GTE": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someBigInt_GTE": -2147483648
 }
 ----
 
@@ -361,10 +334,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someBigInt_LT": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someBigInt_LT": -2147483648
 }
 ----
 
@@ -396,10 +366,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someBigInt_LTE": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someBigInt_LTE": -2147483648
 }
 ----
 
@@ -431,10 +398,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someBigInt_MAX_EQUAL": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someBigInt_MAX_EQUAL": -2147483648
 }
 ----
 
@@ -466,10 +430,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someBigInt_MAX_GT": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someBigInt_MAX_GT": -2147483648
 }
 ----
 
@@ -501,10 +462,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someBigInt_MAX_GTE": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someBigInt_MAX_GTE": -2147483648
 }
 ----
 
@@ -536,10 +494,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someBigInt_MAX_LT": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someBigInt_MAX_LT": -2147483648
 }
 ----
 
@@ -571,10 +526,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someBigInt_MAX_LTE": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someBigInt_MAX_LTE": -2147483648
 }
 ----
 
@@ -606,10 +558,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someBigInt_MIN_EQUAL": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someBigInt_MIN_EQUAL": -2147483648
 }
 ----
 
@@ -641,10 +590,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someBigInt_MIN_GT": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someBigInt_MIN_GT": -2147483648
 }
 ----
 
@@ -676,10 +622,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someBigInt_MIN_GTE": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someBigInt_MIN_GTE": -2147483648
 }
 ----
 
@@ -711,10 +654,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someBigInt_MIN_LT": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someBigInt_MIN_LT": -2147483648
 }
 ----
 
@@ -746,10 +686,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someBigInt_MIN_LTE": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someBigInt_MIN_LTE": -2147483648
 }
 ----
 
@@ -781,10 +718,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someBigInt_SUM_EQUAL": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someBigInt_SUM_EQUAL": -2147483648
 }
 ----
 
@@ -817,10 +751,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someBigInt_SUM_GT": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someBigInt_SUM_GT": -2147483648
 }
 ----
 
@@ -853,10 +784,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someBigInt_SUM_GTE": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someBigInt_SUM_GTE": -2147483648
 }
 ----
 
@@ -889,10 +817,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someBigInt_SUM_LT": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someBigInt_SUM_LT": -2147483648
 }
 ----
 
@@ -925,10 +850,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someBigInt_SUM_LTE": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "this_likesAggregate_edge_someBigInt_SUM_LTE": -2147483648
 }
 ----
 

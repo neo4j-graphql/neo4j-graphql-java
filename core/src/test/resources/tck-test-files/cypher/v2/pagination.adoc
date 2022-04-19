@@ -37,10 +37,7 @@ type Movie {
 [source,json]
 ----
 {
-  "this_limit": {
-    "low": 1,
-    "high": 0
-  }
+  "this_limit": 1
 }
 ----
 
@@ -70,14 +67,8 @@ LIMIT $this_limit
 [source,json]
 ----
 {
-  "this_offset": {
-    "low": 2,
-    "high": 0
-  },
-  "this_limit": {
-    "low": 1,
-    "high": 0
-  }
+  "this_offset": 2,
+  "this_limit": 1
 }
 ----
 
@@ -117,14 +108,8 @@ query ($offset: Int, $limit: Int) {
 [source,json]
 ----
 {
-  "this_offset": {
-    "low": 0,
-    "high": 0
-  },
-  "this_limit": {
-    "low": 0,
-    "high": 0
-  }
+  "this_offset": 0,
+  "this_limit": 0
 }
 ----
 
@@ -166,14 +151,8 @@ query ($offset: Int, $limit: Int, $title: String) {
 ----
 {
   "this_title": "some title",
-  "this_offset": {
-    "low": 2,
-    "high": 0
-  },
-  "this_limit": {
-    "low": 1,
-    "high": 0
-  }
+  "this_offset": 2,
+  "this_limit": 1
 }
 ----
 
@@ -205,10 +184,7 @@ LIMIT $this_limit
 [source,json]
 ----
 {
-  "this_offset": {
-    "low": 1,
-    "high": 0
-  }
+  "this_offset": 1
 }
 ----
 

@@ -41,10 +41,7 @@ type Post {
 [source,json]
 ----
 {
-  "this_likesAggregate_count": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_count": 10
 }
 ----
 
@@ -76,10 +73,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_count_GT": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_count_GT": 10
 }
 ----
 
@@ -111,10 +105,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_count_GTE": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_count_GTE": 10
 }
 ----
 
@@ -146,10 +137,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_count_LT": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_count_LT": 10
 }
 ----
 
@@ -181,10 +169,7 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_count_LTE": {
-    "low": 10,
-    "high": 0
-  }
+  "this_likesAggregate_count_LTE": 10
 }
 ----
 

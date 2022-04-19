@@ -266,10 +266,7 @@ RETURN this { .name, publicationsConnection } as this
             "title": "Book Title"
           },
           "edge": {
-            "words": {
-              "low": 1000,
-              "high": 0
-            }
+            "words": 1000
           }
         },
         "Journal": {
@@ -277,10 +274,7 @@ RETURN this { .name, publicationsConnection } as this
             "subject": "Journal Subject"
           },
           "edge": {
-            "words": {
-              "low": 2000,
-              "high": 0
-            }
+            "words": 2000
           }
         }
       }
@@ -352,18 +346,12 @@ RETURN this { .name, publicationsConnection } as this
       "where": {
         "Book": {
           "edge": {
-            "words": {
-              "low": 1000,
-              "high": 0
-            }
+            "words": 1000
           }
         },
         "Journal": {
           "edge": {
-            "words": {
-              "low": 2000,
-              "high": 0
-            }
+            "words": 2000
           }
         }
       }

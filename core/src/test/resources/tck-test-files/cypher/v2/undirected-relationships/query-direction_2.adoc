@@ -1,0 +1,54 @@
+:toc:
+
+= QueryDirection in relationships
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type User {
+  name: String!
+  friends: [User!]! @relationship(type: "FRIENDS_WITH", direction: OUT, queryDirection: DEFAULT_DIRECTED)
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{}
+----
+== query with directed and undirected relationships with a DEFAULT_DIRECTED
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  users {
+    name
+    friends: friends {
+      name
+    }
+    undirectedFriends: friends(directed: false) {
+      name
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+RETURN this { .name, friends: [ (this)-[:FRIENDS_WITH]->(this_friends:User)   | this_friends { .name } ], undirectedFriends: [ (this)-[:FRIENDS_WITH]-(this_undirectedFriends:User)   | this_undirectedFriends { .name } ] } as this
+----
+
+'''
+

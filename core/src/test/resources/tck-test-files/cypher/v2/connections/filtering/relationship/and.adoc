@@ -67,10 +67,7 @@ interface ActedIn {
               "role_ENDS_WITH": "Gump"
             },
             {
-              "screenTime_LT": {
-                "low": 60,
-                "high": 0
-              }
+              "screenTime_LT": 60
             }
           ]
         }

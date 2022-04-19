@@ -1,0 +1,50 @@
+:toc:
+
+= Undirected Aggregations
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type User {
+  name: String!
+  friends: [User!]! @relationship(type: "FRIENDS_WITH", direction: OUT)
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{}
+----
+== query with undirected aggregation
+
+.GraphQL-Query
+[source,graphql]
+----
+query Users {
+  users {
+    friendsAggregate(directed: false) {
+      count
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+RETURN this { friendsAggregate: { count: head(apoc.cypher.runFirstColumn("MATCH (this)-[r:FRIENDS_WITH]-(n:User)      RETURN COUNT(n)", { this: this })) } } as this
+----
+
+'''
+

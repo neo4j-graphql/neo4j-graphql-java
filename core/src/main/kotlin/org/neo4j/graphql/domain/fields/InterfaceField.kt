@@ -9,4 +9,4 @@ class InterfaceField(
 ) : BaseField(
     fieldName,
     typeMeta,
-)
+), MutableField

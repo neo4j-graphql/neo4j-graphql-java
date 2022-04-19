@@ -45,14 +45,8 @@ type Post {
   "this_likesAggregate_node_someDuration_AVERAGE_EQUAL": {
     "months": 12,
     "days": 0,
-    "seconds": {
-      "low": 0,
-      "high": 0
-    },
-    "nanoseconds": {
-      "low": 0,
-      "high": 0
-    }
+    "seconds": 0,
+    "nanoseconds": 0
   }
 }
 ----
@@ -88,14 +82,8 @@ RETURN this { .content } as this
   "this_likesAggregate_node_someDuration_AVERAGE_GT": {
     "months": 12,
     "days": 0,
-    "seconds": {
-      "low": 0,
-      "high": 0
-    },
-    "nanoseconds": {
-      "low": 0,
-      "high": 0
-    }
+    "seconds": 0,
+    "nanoseconds": 0
   }
 }
 ----
@@ -131,14 +119,8 @@ RETURN this { .content } as this
   "this_likesAggregate_node_someDuration_AVERAGE_GTE": {
     "months": 12,
     "days": 0,
-    "seconds": {
-      "low": 0,
-      "high": 0
-    },
-    "nanoseconds": {
-      "low": 0,
-      "high": 0
-    }
+    "seconds": 0,
+    "nanoseconds": 0
   }
 }
 ----
@@ -174,14 +156,8 @@ RETURN this { .content } as this
   "this_likesAggregate_node_someDuration_AVERAGE_LT": {
     "months": 12,
     "days": 0,
-    "seconds": {
-      "low": 0,
-      "high": 0
-    },
-    "nanoseconds": {
-      "low": 0,
-      "high": 0
-    }
+    "seconds": 0,
+    "nanoseconds": 0
   }
 }
 ----
@@ -217,14 +193,8 @@ RETURN this { .content } as this
   "this_likesAggregate_node_someDuration_AVERAGE_LTE": {
     "months": 12,
     "days": 0,
-    "seconds": {
-      "low": 0,
-      "high": 0
-    },
-    "nanoseconds": {
-      "low": 0,
-      "high": 0
-    }
+    "seconds": 0,
+    "nanoseconds": 0
   }
 }
 ----
@@ -260,14 +230,8 @@ RETURN this { .content } as this
   "this_likesAggregate_node_someDuration_EQUAL": {
     "months": 12,
     "days": 0,
-    "seconds": {
-      "low": 0,
-      "high": 0
-    },
-    "nanoseconds": {
-      "low": 0,
-      "high": 0
-    }
+    "seconds": 0,
+    "nanoseconds": 0
   }
 }
 ----
@@ -303,14 +267,8 @@ RETURN this { .content } as this
   "this_likesAggregate_node_someDurationAlias_EQUAL": {
     "months": 12,
     "days": 0,
-    "seconds": {
-      "low": 0,
-      "high": 0
-    },
-    "nanoseconds": {
-      "low": 0,
-      "high": 0
-    }
+    "seconds": 0,
+    "nanoseconds": 0
   }
 }
 ----
@@ -346,14 +304,8 @@ RETURN this { .content } as this
   "this_likesAggregate_node_someDuration_GT": {
     "months": 12,
     "days": 0,
-    "seconds": {
-      "low": 0,
-      "high": 0
-    },
-    "nanoseconds": {
-      "low": 0,
-      "high": 0
-    }
+    "seconds": 0,
+    "nanoseconds": 0
   }
 }
 ----
@@ -389,14 +341,8 @@ RETURN this { .content } as this
   "this_likesAggregate_node_someDuration_GTE": {
     "months": 12,
     "days": 0,
-    "seconds": {
-      "low": 0,
-      "high": 0
-    },
-    "nanoseconds": {
-      "low": 0,
-      "high": 0
-    }
+    "seconds": 0,
+    "nanoseconds": 0
   }
 }
 ----
@@ -432,14 +378,8 @@ RETURN this { .content } as this
   "this_likesAggregate_node_someDuration_LT": {
     "months": 12,
     "days": 0,
-    "seconds": {
-      "low": 0,
-      "high": 0
-    },
-    "nanoseconds": {
-      "low": 0,
-      "high": 0
-    }
+    "seconds": 0,
+    "nanoseconds": 0
   }
 }
 ----
@@ -475,14 +415,8 @@ RETURN this { .content } as this
   "this_likesAggregate_node_someDuration_LTE": {
     "months": 12,
     "days": 0,
-    "seconds": {
-      "low": 0,
-      "high": 0
-    },
-    "nanoseconds": {
-      "low": 0,
-      "high": 0
-    }
+    "seconds": 0,
+    "nanoseconds": 0
   }
 }
 ----
@@ -518,14 +452,8 @@ RETURN this { .content } as this
   "this_likesAggregate_node_someDuration_MAX_EQUAL": {
     "months": 12,
     "days": 0,
-    "seconds": {
-      "low": 0,
-      "high": 0
-    },
-    "nanoseconds": {
-      "low": 0,
-      "high": 0
-    }
+    "seconds": 0,
+    "nanoseconds": 0
   }
 }
 ----
@@ -561,14 +489,8 @@ RETURN this { .content } as this
   "this_likesAggregate_node_someDuration_MAX_GT": {
     "months": 12,
     "days": 0,
-    "seconds": {
-      "low": 0,
-      "high": 0
-    },
-    "nanoseconds": {
-      "low": 0,
-      "high": 0
-    }
+    "seconds": 0,
+    "nanoseconds": 0
   }
 }
 ----
@@ -604,14 +526,8 @@ RETURN this { .content } as this
   "this_likesAggregate_node_someDuration_MAX_GTE": {
     "months": 12,
     "days": 0,
-    "seconds": {
-      "low": 0,
-      "high": 0
-    },
-    "nanoseconds": {
-      "low": 0,
-      "high": 0
-    }
+    "seconds": 0,
+    "nanoseconds": 0
   }
 }
 ----
@@ -647,14 +563,8 @@ RETURN this { .content } as this
   "this_likesAggregate_node_someDuration_MAX_LT": {
     "months": 12,
     "days": 0,
-    "seconds": {
-      "low": 0,
-      "high": 0
-    },
-    "nanoseconds": {
-      "low": 0,
-      "high": 0
-    }
+    "seconds": 0,
+    "nanoseconds": 0
   }
 }
 ----
@@ -690,14 +600,8 @@ RETURN this { .content } as this
   "this_likesAggregate_node_someDuration_MAX_LTE": {
     "months": 12,
     "days": 0,
-    "seconds": {
-      "low": 0,
-      "high": 0
-    },
-    "nanoseconds": {
-      "low": 0,
-      "high": 0
-    }
+    "seconds": 0,
+    "nanoseconds": 0
   }
 }
 ----
@@ -733,14 +637,8 @@ RETURN this { .content } as this
   "this_likesAggregate_node_someDuration_MIN_EQUAL": {
     "months": 12,
     "days": 0,
-    "seconds": {
-      "low": 0,
-      "high": 0
-    },
-    "nanoseconds": {
-      "low": 0,
-      "high": 0
-    }
+    "seconds": 0,
+    "nanoseconds": 0
   }
 }
 ----
@@ -776,14 +674,8 @@ RETURN this { .content } as this
   "this_likesAggregate_node_someDuration_MIN_GT": {
     "months": 12,
     "days": 0,
-    "seconds": {
-      "low": 0,
-      "high": 0
-    },
-    "nanoseconds": {
-      "low": 0,
-      "high": 0
-    }
+    "seconds": 0,
+    "nanoseconds": 0
   }
 }
 ----
@@ -819,14 +711,8 @@ RETURN this { .content } as this
   "this_likesAggregate_node_someDuration_MIN_GTE": {
     "months": 12,
     "days": 0,
-    "seconds": {
-      "low": 0,
-      "high": 0
-    },
-    "nanoseconds": {
-      "low": 0,
-      "high": 0
-    }
+    "seconds": 0,
+    "nanoseconds": 0
   }
 }
 ----
@@ -862,14 +748,8 @@ RETURN this { .content } as this
   "this_likesAggregate_node_someDuration_MIN_LT": {
     "months": 12,
     "days": 0,
-    "seconds": {
-      "low": 0,
-      "high": 0
-    },
-    "nanoseconds": {
-      "low": 0,
-      "high": 0
-    }
+    "seconds": 0,
+    "nanoseconds": 0
   }
 }
 ----
@@ -905,14 +785,8 @@ RETURN this { .content } as this
   "this_likesAggregate_node_someDuration_MIN_LTE": {
     "months": 12,
     "days": 0,
-    "seconds": {
-      "low": 0,
-      "high": 0
-    },
-    "nanoseconds": {
-      "low": 0,
-      "high": 0
-    }
+    "seconds": 0,
+    "nanoseconds": 0
   }
 }
 ----

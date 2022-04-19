@@ -40,6 +40,8 @@ data class SchemaConfig @JvmOverloads constructor(
      * Neo4j database.
      */
     val enableRegex: Boolean = false,
+
+    val namingStrategy: NamingStrategy = NamingStrategy()
 ) {
     data class CRUDConfig(val enabled: Boolean = true, val exclude: List<String> = emptyList())
 

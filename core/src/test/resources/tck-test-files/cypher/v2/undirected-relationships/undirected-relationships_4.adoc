@@ -1,0 +1,61 @@
+:toc:
+
+= Undirected relationships
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Foo {
+  id: ID @unique
+  Name: String
+  Age: Int
+  DrinksAt: Bar @relationship(type: "DRINKS_AT", direction: OUT)
+}
+
+type Bar {
+  id: ID @unique
+  Adress: String
+  Customers: [Foo!]! @relationship(type: "DRINKS_AT", direction: IN)
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{}
+----
+== nested undirected relationship
+
+.GraphQL-Query
+[source,graphql]
+----
+query Query {
+  foos {
+    DrinksAt {
+      id
+      Customers(directed: false) {
+        Name
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Foo)
+RETURN this { DrinksAt: head([ (this)-[:DRINKS_AT]->(this_DrinksAt:Bar)   | this_DrinksAt { .id, Customers: [ (this_DrinksAt)-[:DRINKS_AT]-(this_DrinksAt_Customers:Foo)   | this_DrinksAt_Customers { .Name } ] } ]) } as this
+----
+
+'''
+

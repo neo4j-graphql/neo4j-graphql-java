@@ -21,7 +21,7 @@ class AggregateResolver private constructor(
             }
             val aggregationSelection = addAggregationSelectionType(node)
             val coordinates =
-                addQueryField(node.plural + "Aggregate", aggregationSelection.asRequiredType()) { args ->
+                addQueryField(node.rootTypeFieldNames.aggregate, aggregationSelection.asRequiredType()) { args ->
                     generateWhereIT(node)?.let { args += inputValue(Constants.WHERE, it.asType()) }
                     generateFulltextIT(node)?.let { args += inputValue(Constants.FULLTEXT, it.asType()) }
                 }

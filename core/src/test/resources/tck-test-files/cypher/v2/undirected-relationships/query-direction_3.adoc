@@ -1,0 +1,51 @@
+:toc:
+
+= QueryDirection in relationships
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type User {
+  name: String!
+  friends: [User!]! @relationship(type: "FRIENDS_WITH", direction: OUT, queryDirection: DIRECTED_ONLY)
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{}
+----
+== query with a DIRECTED_ONLY relationship
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  users {
+    name
+    friends: friends {
+      name
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+RETURN this { .name, friends: [ (this)-[:FRIENDS_WITH]->(this_friends:User)   | this_friends { .name } ] } as this
+----
+
+'''
+

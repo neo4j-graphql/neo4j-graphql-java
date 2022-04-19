@@ -56,6 +56,21 @@ mutation {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "super_admin"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
@@ -101,7 +116,7 @@ UNION
 	)
 	RETURN count(*)
 }
-RETURN this { .id } AS this
+RETURN collect(DISTINCT this { .id }) AS data
 ----
 
 '''
@@ -115,6 +130,21 @@ mutation {
   createPosts(input: [{id: "1", content: "content"}]) {
     posts {
       id
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "super_admin"
     }
   }
 }
@@ -152,8 +182,8 @@ WITH this0
 CALL apoc.util.validate(NOT(apoc.util.validatePredicate(NOT($auth.isAuthenticated = true), "@neo4j/graphql/UNAUTHENTICATED", [0])), "@neo4j/graphql/FORBIDDEN", [0])
 RETURN this0
 }
-RETURN 
-this0 { .id } AS this0
+RETURN [
+this0 { .id }] AS data
 ----
 
 '''
@@ -167,6 +197,21 @@ mutation {
   createComments(input: [{id: "1", content: "content"}]) {
     comments {
       id
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "super_admin"
     }
   }
 }
@@ -190,8 +235,8 @@ SET this0.id = $this0_id
 SET this0.content = $this0_content
 RETURN this0
 }
-RETURN 
-this0 { .id } AS this0
+RETURN [
+this0 { .id }] AS data
 ----
 
 '''
@@ -204,6 +249,21 @@ this0 { .id } AS this0
 mutation {
   deletePosts {
     nodesDeleted
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "super_admin"
+    }
   }
 }
 ----
@@ -250,6 +310,21 @@ mutation {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "super_admin"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
@@ -274,6 +349,21 @@ mutation {
   updateUsers(disconnect: {content: {}}) {
     users {
       id
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "super_admin"
     }
   }
 }
@@ -329,7 +419,7 @@ DELETE this_disconnect_content0_rel
 )
 RETURN count(*)
 }
-RETURN this { .id } AS this
+RETURN collect(DISTINCT this { .id }) AS data
 ----
 
 '''
@@ -342,6 +432,21 @@ RETURN this { .id } AS this
 mutation {
   deleteUsers(delete: {content: {where: {}}}) {
     nodesDeleted
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "super_admin"
+    }
   }
 }
 ----
@@ -398,6 +503,21 @@ mutation {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "super_admin"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
@@ -428,7 +548,7 @@ WITH this
 CALL apoc.util.validate(NOT(apoc.util.validatePredicate(NOT($auth.isAuthenticated = true), "@neo4j/graphql/UNAUTHENTICATED", [0])), "@neo4j/graphql/FORBIDDEN", [0])
 SET this.id = $this_update_id
 
-RETURN this { .id } AS this
+RETURN collect(DISTINCT this { .id }) AS data
 ----
 
 '''
@@ -442,6 +562,21 @@ mutation {
   updateComments(where: {id: "1"}, update: {id: "id-1"}) {
     comments {
       id
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "super_admin"
     }
   }
 }
@@ -464,7 +599,7 @@ WHERE this.id = $this_id
 
 SET this.id = $this_update_id
 
-RETURN this { .id } AS this
+RETURN collect(DISTINCT this { .id }) AS data
 ----
 
 '''

@@ -58,10 +58,7 @@ interface ActedIn {
     "args": {
       "where": {
         "edge": {
-          "screenTime_GT": {
-            "low": 60,
-            "high": 0
-          }
+          "screenTime_GT": 60
         }
       }
     }
@@ -113,10 +110,7 @@ RETURN this { .title, actorsConnection } as this
     "args": {
       "where": {
         "edge": {
-          "screenTime_GTE": {
-            "low": 60,
-            "high": 0
-          }
+          "screenTime_GTE": 60
         }
       }
     }
@@ -168,10 +162,7 @@ RETURN this { .title, actorsConnection } as this
     "args": {
       "where": {
         "edge": {
-          "screenTime_LT": {
-            "low": 60,
-            "high": 0
-          }
+          "screenTime_LT": 60
         }
       }
     }
@@ -223,10 +214,7 @@ RETURN this { .title, actorsConnection } as this
     "args": {
       "where": {
         "edge": {
-          "screenTime_LTE": {
-            "low": 60,
-            "high": 0
-          }
+          "screenTime_LTE": 60
         }
       }
     }

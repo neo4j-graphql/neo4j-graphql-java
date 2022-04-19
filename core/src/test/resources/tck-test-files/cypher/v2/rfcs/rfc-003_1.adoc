@@ -1,0 +1,321 @@
+:toc:
+
+= create
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Address {
+  street: String!
+}
+
+type Director {
+  id: ID!
+  address: Address! @relationship(type: "HAS_ADDRESS", direction: OUT)
+}
+
+type Movie {
+  id: ID!
+  director: Director! @relationship(type: "DIRECTED", direction: IN)
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{}
+----
+== connect
+
+=== nested mutations
+
+==== should add validation when connecting to a required relationship
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  createMovies(
+    input: [{id: "movieId-4", director: {connect: {where: {node: {id: "directorId-4"}}, connect: {address: {where: {node: {street: "some-street"}}}}}}}]
+  ) {
+    info {
+      nodesCreated
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this0_id": "movieId-4",
+  "this0_director_connect0_node_id": "directorId-4",
+  "this0_director_connect0_node_address0_node_street": "some-street"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+CREATE (this0:Movie)
+SET this0.id = $this0_id
+WITH this0
+CALL {
+	WITH this0
+	OPTIONAL MATCH (this0_director_connect0_node:Director)
+	WHERE this0_director_connect0_node.id = $this0_director_connect0_node_id
+	FOREACH(_ IN CASE this0 WHEN NULL THEN [] ELSE [1] END | 
+		FOREACH(_ IN CASE this0_director_connect0_node WHEN NULL THEN [] ELSE [1] END | 
+			MERGE (this0)<-[:DIRECTED]-(this0_director_connect0_node)
+		)
+	)
+WITH this0, this0_director_connect0_node
+CALL {
+	WITH this0, this0_director_connect0_node
+	OPTIONAL MATCH (this0_director_connect0_node_address0_node:Address)
+	WHERE this0_director_connect0_node_address0_node.street = $this0_director_connect0_node_address0_node_street
+	FOREACH(_ IN CASE this0_director_connect0_node WHEN NULL THEN [] ELSE [1] END | 
+		FOREACH(_ IN CASE this0_director_connect0_node_address0_node WHEN NULL THEN [] ELSE [1] END | 
+			MERGE (this0_director_connect0_node)-[:HAS_ADDRESS]->(this0_director_connect0_node_address0_node)
+		)
+	)
+	WITH this0, this0_director_connect0_node, this0_director_connect0_node_address0_node
+CALL {
+	WITH this0_director_connect0_node
+	MATCH (this0_director_connect0_node)-[this0_director_connect0_node_address_Address_unique:HAS_ADDRESS]->(:Address)
+	WITH count(this0_director_connect0_node_address_Address_unique) as c
+	CALL apoc.util.validate(NOT(c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDDirector.address required', [0])
+	RETURN c AS this0_director_connect0_node_address_Address_unique_ignored
+}
+	RETURN count(*)
+}
+	RETURN count(*)
+}
+WITH this0
+CALL {
+	WITH this0
+	MATCH (this0)<-[this0_director_Director_unique:DIRECTED]-(:Director)
+	WITH count(this0_director_Director_unique) as c
+	CALL apoc.util.validate(NOT(c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.director required', [0])
+	RETURN c AS this0_director_Director_unique_ignored
+}
+RETURN this0
+}
+RETURN 'Query cannot conclude with CALL'
+----
+
+'''
+
+
+
+== nested mutations
+
+=== should add validation when creating node with required relationship
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  createMovies(
+    input: [{id: "movieId-2", director: {create: {node: {id: "directorId-2"}}}}]
+  ) {
+    info {
+      nodesCreated
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this0_id": "movieId-2",
+  "this0_director0_node_id": "directorId-2"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+CREATE (this0:Movie)
+SET this0.id = $this0_id
+
+WITH this0
+CREATE (this0_director0_node:Director)
+SET this0_director0_node.id = $this0_director0_node_id
+MERGE (this0)<-[:DIRECTED]-(this0_director0_node)
+WITH this0, this0_director0_node
+CALL {
+	WITH this0_director0_node
+	MATCH (this0_director0_node)-[this0_director0_node_address_Address_unique:HAS_ADDRESS]->(:Address)
+	WITH count(this0_director0_node_address_Address_unique) as c
+	CALL apoc.util.validate(NOT(c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDDirector.address required', [0])
+	RETURN c AS this0_director0_node_address_Address_unique_ignored
+}
+WITH this0
+CALL {
+	WITH this0
+	MATCH (this0)<-[this0_director_Director_unique:DIRECTED]-(:Director)
+	WITH count(this0_director_Director_unique) as c
+	CALL apoc.util.validate(NOT(c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.director required', [0])
+	RETURN c AS this0_director_Director_unique_ignored
+}
+RETURN this0
+}
+RETURN 'Query cannot conclude with CALL'
+----
+
+'''
+
+
+== update
+
+=== nested mutations
+
+==== should add validation when creating a node with a required relationship through a nested mutation
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  updateMovies(
+    where: {id: "movieId-4"}
+    update: {director: {create: {node: {id: "directorId-3"}}}}
+  ) {
+    info {
+      nodesCreated
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_id": "movieId-4",
+  "this_director0_create0_node_id": "directorId-3"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.id = $this_id
+
+WITH this
+CREATE (this_director0_create0_node:Director)
+SET this_director0_create0_node.id = $this_director0_create0_node_id
+MERGE (this)<-[:DIRECTED]-(this_director0_create0_node)
+WITH this, this_director0_create0_node
+CALL {
+	WITH this_director0_create0_node
+	MATCH (this_director0_create0_node)-[this_director0_create0_node_address_Address_unique:HAS_ADDRESS]->(:Address)
+	WITH count(this_director0_create0_node_address_Address_unique) as c
+	CALL apoc.util.validate(NOT(c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDDirector.address required', [0])
+	RETURN c AS this_director0_create0_node_address_Address_unique_ignored
+}
+
+WITH this
+CALL {
+	WITH this
+	MATCH (this)<-[this_director_Director_unique:DIRECTED]-(:Director)
+	WITH count(this_director_Director_unique) as c
+	CALL apoc.util.validate(NOT(c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.director required', [0])
+	RETURN c AS this_director_Director_unique_ignored
+}
+RETURN 'Query cannot conclude with CALL'
+----
+
+'''
+
+==== should add validation when updating a nested node with a required relationship
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  updateMovies(
+    where: {id: "movieId-4"}
+    update: {director: {update: {node: {id: "directorId-3"}}}}
+  ) {
+    info {
+      nodesCreated
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_id": "movieId-4",
+  "this_update_director0_id": "directorId-3",
+  "auth": {
+    "isAuthenticated": false,
+    "roles": []
+  },
+  "updateMovies": {
+    "args": {
+      "update": {
+        "director": {
+          "update": {
+            "node": {
+              "id": "directorId-3"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.id = $this_id
+
+WITH this
+OPTIONAL MATCH (this)<-[this_directed0_relationship:DIRECTED]-(this_director0:Director)
+CALL apoc.do.when(this_director0 IS NOT NULL, "
+
+SET this_director0.id = $this_update_director0_id
+
+WITH this, this_director0
+CALL {
+	WITH this_director0
+	MATCH (this_director0)-[this_director0_address_Address_unique:HAS_ADDRESS]->(:Address)
+	WITH count(this_director0_address_Address_unique) as c
+	CALL apoc.util.validate(NOT(c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDDirector.address required', [0])
+	RETURN c AS this_director0_address_Address_unique_ignored
+}
+RETURN count(*)
+", "", {this:this, updateMovies: $updateMovies, this_director0:this_director0, auth:$auth,this_update_director0_id:$this_update_director0_id})
+YIELD value AS _
+
+WITH this
+CALL {
+	WITH this
+	MATCH (this)<-[this_director_Director_unique:DIRECTED]-(:Director)
+	WITH count(this_director_Director_unique) as c
+	CALL apoc.util.validate(NOT(c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.director required', [0])
+	RETURN c AS this_director_Director_unique_ignored
+}
+RETURN 'Query cannot conclude with CALL'
+----
+
+'''
+
+
+

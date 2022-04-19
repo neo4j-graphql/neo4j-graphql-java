@@ -102,7 +102,7 @@ DELETE this_disconnect_actedIn0_rel
 )
 RETURN count(*)
 }
-RETURN this { .name } AS this
+RETURN collect(DISTINCT this { .name }) AS data
 ----
 
 '''
@@ -198,7 +198,7 @@ RETURN count(*)
 }
 RETURN count(*)
 }
-RETURN this { .name } AS this
+RETURN collect(DISTINCT this { .name }) AS data
 ----
 
 '''
@@ -292,7 +292,7 @@ DELETE this_disconnect_actedIn0_rel
 
 RETURN count(*)
 }
-RETURN this { .name } AS this
+RETURN collect(DISTINCT this { .name }) AS data
 ----
 
 '''
@@ -404,7 +404,7 @@ RETURN count(*)
 }
 RETURN count(*)
 }
-RETURN this { .name } AS this
+RETURN collect(DISTINCT this { .name }) AS data
 ----
 
 '''

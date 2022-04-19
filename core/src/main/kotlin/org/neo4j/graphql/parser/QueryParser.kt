@@ -101,7 +101,7 @@ class RelationPredicate(
             TODO("remove")
         }
 
-    val relNode: Node = field.node?.asCypherNode() ?: TODO()
+    val relNode: Node = field.node?.asCypherNode(queryContext = null) ?: TODO()
 
     fun createRelation(start: Node, end: Node): Relationship {
         return when (field.direction) {

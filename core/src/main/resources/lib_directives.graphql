@@ -72,6 +72,11 @@ directive @node(
 "Instructs neo4j-graphql-java to only expose a field through the Neo4j GraphQL OGM."
 directive @private on FIELD_DEFINITION
 
+"Instructs neo4j-graphql-java to inject default values into a query such as a default limit."
+directive @queryOptions(
+  limit: LimitInput
+) on OBJECT
+
 "Instructs neo4j-graphql-java to only include a field in generated input type for creating, and in the object type within which the directive is applied."
 directive @readonly on FIELD_DEFINITION
 
@@ -151,6 +156,14 @@ input FullTextIndex {
   name: String!
   fields: [String!]!
   defaultThreshold: Int
+}
+
+"Limit options."
+input LimitInput {
+  "If no limit argument is supplied on query will fallback to this value."
+  default: Int
+  "Maximum limit to be used for queries."
+  max: Int
 }
 
 enum AuthOperation {

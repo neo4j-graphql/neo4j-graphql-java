@@ -60,10 +60,7 @@ mutation {
 {
   "this0_title": "Forrest Gump",
   "this0_actors0_node_name": "Tom Hanks",
-  "this0_actors0_relationship_screenTime": {
-    "low": 60,
-    "high": 0
-  }
+  "this0_actors0_relationship_screenTime": 60
 }
 ----
 
@@ -87,8 +84,8 @@ MATCH (this0)<-[this0_acted_in_relationship:ACTED_IN]-(this0_actor:Actor)
 WITH collect({ screenTime: this0_acted_in_relationship.screenTime, node: { name: this0_actor.name } }) AS edges
 RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
 }
-RETURN 
-this0 { .title, actorsConnection } AS this0
+RETURN [
+this0 { .title, actorsConnection }] AS data
 ----
 
 '''

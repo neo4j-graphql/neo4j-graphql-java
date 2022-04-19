@@ -65,16 +65,10 @@ interface ActedIn {
         "edge": {
           "AND": [
             {
-              "screenTime_GT": {
-                "low": 30,
-                "high": 0
-              }
+              "screenTime_GT": 30
             },
             {
-              "screenTime_LT": {
-                "low": 90,
-                "high": 0
-              }
+              "screenTime_LT": 90
             }
           ]
         },

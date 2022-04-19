@@ -212,11 +212,8 @@ RETURN this { .title, actorsConnection } as this
   },
   "this_actors_name": "Tom Hanks",
   "auth": {
-    "isAuthenticated": true,
-    "roles": [],
-    "jwt": {
-      "roles": []
-    }
+    "isAuthenticated": false,
+    "roles": []
   }
 }
 ----

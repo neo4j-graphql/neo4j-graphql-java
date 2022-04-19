@@ -155,6 +155,13 @@ object FieldFactory {
                 if (defaultDirective != null) {
                     baseField.defaultValue = defaultDirective.value
                 }
+                if (coalesceDirective != null) {
+                    val coalesceValue = coalesceDirective.value
+                    if (coalesceValue !is EnumValue) {
+                        throw IllegalArgumentException("@coalesce value on enum fields must be an enum value");
+                    }
+                    baseField.coalesceValue = coalesceValue
+                }
             } else if (fieldUnion != null) {
                 val nodes = fieldUnion.memberTypes.map { it.name() }
                 baseField = UnionField(field.name, typeMeta, nodes)

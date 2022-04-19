@@ -42,6 +42,18 @@ type Actor {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "sub": "super_admin"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
@@ -76,6 +88,18 @@ RETURN this { .name, moviesAggregate: { count: head(apoc.cypher.runFirstColumn("
     title
     actorsAggregate {
       count
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "sub": "super_admin"
     }
   }
 }

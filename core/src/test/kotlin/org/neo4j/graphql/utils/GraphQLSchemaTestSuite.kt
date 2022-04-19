@@ -19,12 +19,14 @@ import org.neo4j.graphql.SchemaConfig
 import org.opentest4j.AssertionFailedError
 import java.util.*
 
-class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite(
-    fileName,
-    listOf(SCHEMA_CONFIG_MARKER, GRAPHQL_MARKER)
-) {
+class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite(fileName, TEST_CASE_MARKERS) {
 
-    override fun testFactory(title: String, globalBlocks: Map<String, List<ParsedBlock>>, codeBlocks: Map<String, List<ParsedBlock>>, ignore: Boolean): List<DynamicNode> {
+    override fun testFactory(
+        title: String,
+        globalBlocks: Map<String, List<ParsedBlock>>,
+        codeBlocks: Map<String, List<ParsedBlock>>,
+        ignore: Boolean
+    ): List<DynamicNode> {
         val targetSchemaBlock = codeBlocks[GRAPHQL_MARKER]?.first()
         targetSchemaBlock?.let {
             try {
@@ -96,6 +98,7 @@ class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite(
 
     companion object {
         private const val GRAPHQL_MARKER = "[source,graphql]"
+        private val TEST_CASE_MARKERS: List<String> = listOf(SCHEMA_CONFIG_MARKER, GRAPHQL_MARKER)
 
         private val SCHEMA_PRINTER = SchemaPrinter(
             SchemaPrinter.Options.defaultOptions()

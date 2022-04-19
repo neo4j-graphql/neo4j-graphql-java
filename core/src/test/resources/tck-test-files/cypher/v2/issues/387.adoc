@@ -46,11 +46,8 @@ type Place {
 ----
 {
   "auth": {
-    "isAuthenticated": true,
-    "roles": [],
-    "jwt": {
-      "roles": []
-    }
+    "isAuthenticated": false,
+    "roles": []
   }
 }
 ----

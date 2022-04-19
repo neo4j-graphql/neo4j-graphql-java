@@ -32,8 +32,8 @@ type COMPANY {
 [source,graphql]
 ----
 mutation {
-  createUSERS(input: {USERID: "userid", COMPANYID: "companyid"}) {
-    uSERS {
+  createUsers(input: {USERID: "userid", COMPANYID: "companyid"}) {
+    users {
       USERID
       COMPANYID
     }
@@ -59,8 +59,8 @@ SET this0.USERID = $this0_USERID
 SET this0.COMPANYID = $this0_COMPANYID
 RETURN this0
 }
-RETURN 
-this0 { .USERID, .COMPANYID } AS this0
+RETURN [
+this0 { .USERID, .COMPANYID }] AS data
 ----
 
 '''
@@ -71,8 +71,8 @@ this0 { .USERID, .COMPANYID } AS this0
 [source,graphql]
 ----
 mutation {
-  updateUSERS(where: {USERID: "userid"}, update: {COMPANYID: "companyid2"}) {
-    uSERS {
+  updateUsers(where: {USERID: "userid"}, update: {COMPANYID: "companyid2"}) {
+    users {
       USERID
       COMPANYID
     }
@@ -97,7 +97,7 @@ WHERE this.USERID = $this_USERID
 
 SET this.COMPANYID = $this_update_COMPANYID
 
-RETURN this { .USERID, .COMPANYID } AS this
+RETURN collect(DISTINCT this { .USERID, .COMPANYID }) AS data
 ----
 
 '''

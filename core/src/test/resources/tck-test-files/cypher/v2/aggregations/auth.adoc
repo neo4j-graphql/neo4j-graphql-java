@@ -39,6 +39,18 @@ extend type User @auth(rules: [{allow: {id: "$jwt.sub"}, where: {id: "$jwt.sub"}
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "sub": "super_admin"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
@@ -70,6 +82,18 @@ RETURN { count: count(this) }
     imdbRatingBigInt {
       min
       max
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "sub": "super_admin"
     }
   }
 }
@@ -112,6 +136,18 @@ RETURN { imdbRatingBigInt: { min: min(this.imdbRatingBigInt), max: max(this.imdb
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "sub": "super_admin"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
@@ -144,6 +180,18 @@ RETURN { createdAt: { min: apoc.date.convertFormat(toString(min(this.createdAt))
     imdbRatingFloat {
       min
       max
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "sub": "super_admin"
     }
   }
 }
@@ -186,6 +234,18 @@ RETURN { imdbRatingFloat: { min: min(this.imdbRatingFloat), max: max(this.imdbRa
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "sub": "super_admin"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
@@ -223,6 +283,18 @@ RETURN { id: { shortest: min(this.id), longest: max(this.id) } }
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "sub": "super_admin"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
@@ -255,6 +327,18 @@ RETURN { imdbRatingInt: { min: min(this.imdbRatingInt), max: max(this.imdbRating
     name {
       shortest
       longest
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "sub": "super_admin"
     }
   }
 }
@@ -306,6 +390,18 @@ RETURN { name: { shortest:
 {
   usersAggregate {
     count
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "sub": "super_admin"
+    }
   }
 }
 ----

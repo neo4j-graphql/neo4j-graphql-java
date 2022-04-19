@@ -41,14 +41,8 @@ type Post {
 [source,json]
 ----
 {
-  "this_likesAggregate_AND_0_count_GT": {
-    "low": 10,
-    "high": 0
-  },
-  "this_likesAggregate_AND_1_count_LT": {
-    "low": 20,
-    "high": 0
-  }
+  "this_likesAggregate_AND_0_count_GT": 10,
+  "this_likesAggregate_AND_1_count_LT": 20
 }
 ----
 
@@ -82,22 +76,10 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_AND_0_count_GT": {
-    "low": 10,
-    "high": 0
-  },
-  "this_likesAggregate_AND_1_count_LT": {
-    "low": 20,
-    "high": 0
-  },
-  "this_likesAggregate_OR_0_count_GT": {
-    "low": 10,
-    "high": 0
-  },
-  "this_likesAggregate_OR_1_count_LT": {
-    "low": 20,
-    "high": 0
-  }
+  "this_likesAggregate_AND_0_count_GT": 10,
+  "this_likesAggregate_AND_1_count_LT": 20,
+  "this_likesAggregate_OR_0_count_GT": 10,
+  "this_likesAggregate_OR_1_count_LT": 20
 }
 ----
 
@@ -129,14 +111,8 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_OR_0_count_GT": {
-    "low": 10,
-    "high": 0
-  },
-  "this_likesAggregate_OR_1_count_LT": {
-    "low": 20,
-    "high": 0
-  }
+  "this_likesAggregate_OR_0_count_GT": 10,
+  "this_likesAggregate_OR_1_count_LT": 20
 }
 ----
 

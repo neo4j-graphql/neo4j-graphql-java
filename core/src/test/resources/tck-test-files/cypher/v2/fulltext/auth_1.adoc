@@ -35,12 +35,24 @@ type Person {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "sub": "random-uuid"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
 {
   "this_fulltext_MovieTitle_phrase": "something AND something",
-  "this_auth_where0_director_id": "XzBCgjAoYtzMhzPZeQHpvRHNzgqKmobT"
+  "this_auth_where0_director_id": "random-uuid"
 }
 ----
 

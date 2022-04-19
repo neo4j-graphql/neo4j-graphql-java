@@ -60,10 +60,7 @@ interface ActedIn {
     "args": {
       "where": {
         "node": {
-          "age_GT": {
-            "low": 60,
-            "high": 0
-          }
+          "age_GT": 60
         }
       }
     }
@@ -116,10 +113,7 @@ RETURN this { .title, actorsConnection } as this
     "args": {
       "where": {
         "node": {
-          "age_GTE": {
-            "low": 60,
-            "high": 0
-          }
+          "age_GTE": 60
         }
       }
     }
@@ -172,10 +166,7 @@ RETURN this { .title, actorsConnection } as this
     "args": {
       "where": {
         "node": {
-          "age_LT": {
-            "low": 60,
-            "high": 0
-          }
+          "age_LT": 60
         }
       }
     }
@@ -228,10 +219,7 @@ RETURN this { .title, actorsConnection } as this
     "args": {
       "where": {
         "node": {
-          "age_LTE": {
-            "low": 60,
-            "high": 0
-          }
+          "age_LTE": 60
         }
       }
     }

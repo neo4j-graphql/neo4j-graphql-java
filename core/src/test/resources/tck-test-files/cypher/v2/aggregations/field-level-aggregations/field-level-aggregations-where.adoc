@@ -84,10 +84,7 @@ RETURN this { .title, actorsAggregate: { count: head(apoc.cypher.runFirstColumn(
 [source,json]
 ----
 {
-  "this_actorsAggregate_n_age_GT": {
-    "low": 40,
-    "high": 0
-  }
+  "this_actorsAggregate_n_age_GT": 40
 }
 ----
 

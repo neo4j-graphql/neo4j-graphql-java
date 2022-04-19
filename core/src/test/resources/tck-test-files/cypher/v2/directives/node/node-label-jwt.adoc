@@ -42,6 +42,18 @@ mutation {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "movielabel": "Film"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
@@ -58,8 +70,8 @@ CREATE (this0:`Film`)
 SET this0.title = $this0_title
 RETURN this0
 }
-RETURN 
-this0 { .title } AS this0
+RETURN [
+this0 { .title }] AS data
 ----
 
 '''
@@ -72,6 +84,18 @@ this0 { .title } AS this0
 {
   movies {
     title
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "movielabel": "Film"
+    }
   }
 }
 ----
@@ -106,14 +130,24 @@ RETURN this { .title } as this
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "movielabel": "Film",
+      "personlabel": "Person"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
 {
-  "this_age_GT": {
-    "low": 10,
-    "high": 0
-  },
+  "this_age_GT": 10,
   "this_movies_title": "terminator"
 }
 ----
