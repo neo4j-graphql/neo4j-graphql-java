@@ -178,6 +178,14 @@ open class ProjectionBase(
             if (value !is Map<*, *>) {
                 throw IllegalArgumentException("Only object values are supported for filtering on queried relation ${predicate.value}, but got ${value.javaClass.name}")
             }
+            if(type.isRelationType()) {
+                val targetNode = predicate.relNode.named(normalizeName(propertyContainer.requiredSymbolicName.value, predicate.relationshipInfo.typeName))
+                val relType = predicate.relationshipInfo.type
+                val parsedQuery2 = parseFilter(value, relType)
+                val condition = handleQuery(targetNode.requiredSymbolicName.value, "", targetNode, parsedQuery2, relType, variables)
+                result = result.and(condition)
+                continue
+            }
 
             val cond = name(normalizeName(variablePrefix, predicate.relationshipInfo.typeName, "Cond"))
             when (predicate.op) {

@@ -15,12 +15,23 @@ type Person {
   fun: Boolean
   gender: Gender
   company: Company @relation(name:"WORKS_AT")
+  skills: [PersonSkills]
   location: _Neo4jPoint
 }
 type Company {
   _id: ID
   name: String
   employees: [Person] @relation(name:"WORKS_AT", direction: IN)
+}
+type Skill {
+  id: ID!
+  name: String
+  skilledPerson: [Person] @relation(name: "HAS_SKILL", direction: OUT)
+}
+type PersonSkills @relation(name: "HAS_SKILL", from: "person", to: "skill") {
+    person: Person
+    skill: Skill
+    proficiencyLevel: Int
 }
 ----
 
@@ -3257,6 +3268,44 @@ WHERE EXISTS {
 RETURN p {
 	.name
 } AS p
+----
+
+'''
+
+=== Filter object whose parent is relationship
+
+.GraphQL-Query
+[source,graphql]
+----
+{ person { skills(filter: {skill: {name_starts_with: "F"}}) { skill { name } proficiencyLevel }}}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "personSkillsSkillNameStartsWith" : "F"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+CALL {
+	WITH person
+	MATCH (person)-[personSkills:HAS_SKILL]->(personSkillsSkill:Skill)
+	WHERE personSkillsSkill.name STARTS WITH $personSkillsSkillNameStartsWith
+	RETURN collect(personSkills {
+		skill: personSkillsSkill {
+			.name
+		},
+		.proficiencyLevel
+	}) AS personSkills
+}
+RETURN person {
+	skills: personSkills
+} AS person
 ----
 
 '''
