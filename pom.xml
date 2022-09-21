@@ -23,11 +23,11 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>11</java.version>
-        <kotlin.version>1.6.10</kotlin.version>
+        <kotlin.version>1.7.10</kotlin.version>
         <kotlin.compiler.jvmTarget>${java.version}</kotlin.compiler.jvmTarget>
-        <neo4j.version>4.4.1</neo4j.version>
-        <neo4j-apoc.version>4.4.0.1</neo4j-apoc.version>
-        <junit-jupiter.version>5.8.2</junit-jupiter.version>
+        <neo4j.version>4.4.11</neo4j.version>
+        <neo4j-apoc.version>4.4.0.9</neo4j-apoc.version>
+        <junit-jupiter.version>5.9.0</junit-jupiter.version>
     </properties>
 
     <modules>
@@ -102,7 +102,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.5.1</version>
+                <version>3.10.1</version>
                 <executions>
                     <execution>
                         <id>compile</id>
@@ -128,7 +128,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>2.2.1</version>
+                <version>3.2.1</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -141,7 +141,7 @@
             <plugin>
                 <groupId>org.jetbrains.dokka</groupId>
                 <artifactId>dokka-maven-plugin</artifactId>
-                <version>1.4.10.2</version>
+                <version>1.7.10</version>
                 <executions>
                     <execution>
                         <phase>prepare-package</phase>
@@ -157,7 +157,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0-M5</version>
+                <version>3.0.0-M7</version>
             </plugin>
 
             <plugin>
@@ -201,7 +201,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-source-plugin</artifactId>
-                        <version>2.2.1</version>
+                        <version>3.2.1</version>
                         <executions>
                             <execution>
                                 <id>attach-sources</id>
@@ -214,7 +214,7 @@
                     <plugin>
                         <groupId>org.jetbrains.dokka</groupId>
                         <artifactId>dokka-maven-plugin</artifactId>
-                        <version>1.4.10.2</version>
+                        <version>1.7.10</version>
                         <executions>
                             <execution>
                                 <phase>prepare-package</phase>
@@ -243,7 +243,7 @@
                     <plugin>
                         <groupId>org.sonatype.plugins</groupId>
                         <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <version>1.6.3</version>
+                        <version>1.6.8</version>
                         <extensions>true</extensions>
                         <configuration>
                             <serverId>ossrh</serverId>

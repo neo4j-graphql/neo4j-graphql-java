@@ -174,7 +174,7 @@ mutation {
 .Expected Cypher output
 [source,cypher]
 ----
-CREATE (createMovie:Movie  {
+CREATE (createMovie:Movie {
 	id: $createMovieId,
 	datetime: datetime($createMovieDatetime)
 })
@@ -223,10 +223,10 @@ mutation {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (updateMovie:Movie  {
+MATCH (updateMovie:Movie {
 	id: $updateMovieId
 })
-SET updateMovie +=  {
+SET updateMovie += {
 	datetime: datetime($updateMovieDatetime)
 }
 WITH updateMovie

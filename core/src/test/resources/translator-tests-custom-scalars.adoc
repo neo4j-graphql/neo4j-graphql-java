@@ -41,7 +41,7 @@ mutation {
 .Cypher
 [source,cypher]
 ----
-CREATE (createMovie:Movie  {
+CREATE (createMovie:Movie {
 	title: $createMovieTitle,
 	released: $createMovieReleased
 })
@@ -81,7 +81,7 @@ mutation {
 ----
 MATCH (updateMovie:Movie)
 WHERE id(updateMovie) = toInteger($updateMovie_id)
-SET updateMovie +=  {
+SET updateMovie += {
 	released: $updateMovieReleased
 }
 WITH updateMovie
@@ -120,7 +120,7 @@ mutation {
 ----
 MATCH (mergeMovie:Movie)
 WHERE id(mergeMovie) = toInteger($mergeMovie_id)
-SET mergeMovie +=  {
+SET mergeMovie += {
 	released: $mergeMovieReleased
 }
 WITH mergeMovie
@@ -159,7 +159,7 @@ mutation {
 ----
 MATCH (updateMovie:Movie)
 WHERE id(updateMovie) = toInteger($updateMovie_id)
-SET updateMovie +=  {
+SET updateMovie += {
 	released: $updateMovieReleased
 }
 WITH updateMovie

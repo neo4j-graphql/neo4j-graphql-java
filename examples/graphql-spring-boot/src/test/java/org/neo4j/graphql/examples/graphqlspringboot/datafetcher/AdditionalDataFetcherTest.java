@@ -8,7 +8,7 @@ import org.neo4j.driver.springframework.boot.autoconfigure.Neo4jDriverProperties
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.test.autoconfigure.graphql.tester.AutoConfigureWebGraphQlTester;
+import org.springframework.boot.test.autoconfigure.graphql.tester.AutoConfigureHttpGraphQlTester;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -20,7 +20,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.net.URI;
 
-@AutoConfigureWebGraphQlTester
+@AutoConfigureHttpGraphQlTester
 @SpringBootTest(properties = "database=neo4j")
 @EnableAutoConfiguration
 @Testcontainers
@@ -33,7 +33,7 @@ class AdditionalDataFetcherTest {
     private Driver driver;
 
     @Container
-    private static final Neo4jContainer<?> neo4jServer = new Neo4jContainer<>("neo4j:4.4.1");
+    private static final Neo4jContainer<?> neo4jServer = new Neo4jContainer<>("neo4j:4.4.11");
 
 
     @BeforeEach
@@ -51,7 +51,7 @@ class AdditionalDataFetcherTest {
 
     @Test
     void testHybridDataFetcher() {
-        this.graphQlTester.query("query {\n" +
+        this.graphQlTester.document("query {\n" +
                         "  other\n" +
                         "  movies(options: { limit: 3, skip: null }) {\n" +
                         "    title\n" +
