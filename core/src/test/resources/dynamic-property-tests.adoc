@@ -125,10 +125,10 @@ mutation {
 .Cypher
 [source,cypher]
 ----
-MATCH (updatePerson:Person  {
+MATCH (updatePerson:Person {
 	id: $updatePersonId
 })
-SET updatePerson +=  {
+SET updatePerson += {
 	`properties.foo`: $updatePersonJsonFoo,
 	`properties.x`: $updatePersonJsonX
 }
@@ -165,10 +165,10 @@ mutation {
 .Cypher
 [source,cypher]
 ----
-MERGE (mergePerson:Person  {
+MERGE (mergePerson:Person {
 	id: $mergePersonId
 })
-SET mergePerson +=  {
+SET mergePerson += {
 	`properties.foo`: $mergePersonJsonFoo,
 	`properties.x`: $mergePersonJsonX
 }
@@ -206,13 +206,13 @@ mutation {
 .Cypher
 [source,cypher]
 ----
-MATCH (source:Person  {
+MATCH (source:Person {
 	id: $sourceSource_id
 })
-MATCH (knows:Person  {
+MATCH (knows:Person {
 	id: $knowsKnows_id
 })
-CREATE (source)-[createKnows:KNOWS  {
+CREATE (source)-[createKnows:KNOWS {
 	`prefix.foo`: $createKnowsJsonFoo
 }]->(knows)
 WITH createKnows
@@ -250,7 +250,7 @@ mutation {
 ----
 MATCH ()-[updateKnows:KNOWS]->()
 WHERE id(updateKnows) = toInteger($updateKnows_id)
-SET updateKnows +=  {
+SET updateKnows += {
 	`prefix.foo`: $updateKnowsJsonFoo
 }
 WITH updateKnows
@@ -287,7 +287,7 @@ mutation {
 ----
 MATCH ()-[mergeKnows:KNOWS]->()
 WHERE id(mergeKnows) = toInteger($mergeKnows_id)
-SET mergeKnows +=  {
+SET mergeKnows += {
 	`prefix.foo`: $mergeKnowsJsonFoo
 }
 WITH mergeKnows

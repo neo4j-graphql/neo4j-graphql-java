@@ -38,10 +38,10 @@ mutation {
 .Cypher
 [source,cypher]
 ----
-MATCH (from:Category  {
+MATCH (from:Category {
 	id: $fromId
 })
-MATCH (to:Category  {
+MATCH (to:Category {
 	id: $toParentCategory
 })
 MERGE (from)-[:PARENT_CATEGORY]->(to)
@@ -77,7 +77,7 @@ mutation {
 .Cypher
 [source,cypher]
 ----
-MATCH (from:Category  {
+MATCH (from:Category {
 	id: $fromId
 })
 MATCH (to:Category)

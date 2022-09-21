@@ -265,7 +265,7 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
             is Map<*, *> -> Assertions.assertThat(actual).asInstanceOf(InstanceOfAssertFactories.MAP)
                 .hasSize(expected.size)
                 .containsOnlyKeys(*expected.keys.toTypedArray())
-                .satisfies { it.forEach { (key, value) -> assertEqualIgnoreOrder(expected[key], value) } }
+                .satisfies(Consumer { it.forEach { (key, value) -> assertEqualIgnoreOrder(expected[key], value) } })
             is Collection<*> -> {
                 val assertions: List<Consumer<Any>> = expected.map { e -> Consumer<Any> { a -> assertEqualIgnoreOrder(e, a) } }
                 Assertions.assertThat(actual).asInstanceOf(InstanceOfAssertFactories.LIST)
