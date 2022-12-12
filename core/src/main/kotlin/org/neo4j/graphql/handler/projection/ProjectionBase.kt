@@ -225,6 +225,7 @@ open class ProjectionBase(
                     values.size > 1 -> values.mapIndexed { index, value -> handleLogicalOperator(value, "${classifier}${index + 1}", variables) }
                     else -> values.map { value -> handleLogicalOperator(value, "", variables) }
                 }
+
                 else -> emptyList()
             }
         }
@@ -275,9 +276,8 @@ open class ProjectionBase(
             projections.addAll(pro)
             subQueries += sub
         }
-        if (nodeType is GraphQLInterfaceType
-            && !handledFields.contains(TYPE_NAME)
-            && (env.getContext() as? QueryContext)?.queryTypeOfInterfaces == true
+        if ((nodeType is GraphQLInterfaceType
+                    && !handledFields.contains(TYPE_NAME)) && env.queryContext().queryTypeOfInterfaces
         ) {
             // for interfaces the typename is required to determine the correct implementation
             val (pro, sub) = projectField(propertyContainer, variable, TYPE_NAME_SELECTED_FIELD, nodeType, env, variableSuffix)
@@ -348,6 +348,7 @@ open class ProjectionBase(
             schemaConfig.useTemporalScalars && fieldDefinition.isNeo4jTemporalType() -> {
                 projections += getNeo4jTypeConverter(fieldDefinition).projectField(variable, field, "")
             }
+
             isObjectField -> {
                 if (fieldDefinition.isNeo4jType()) {
                     projections += projectNeo4jObjectType(variable, field, fieldDefinition)
@@ -357,9 +358,11 @@ open class ProjectionBase(
                     subQueries += sub
                 }
             }
+
             fieldDefinition.isNativeId() -> {
                 projections += id(anyNode(variable))
             }
+
             else -> {
                 val dynamicPrefix = fieldDefinition.dynamicPrefix()
                 when {
@@ -376,6 +379,7 @@ open class ProjectionBase(
                         )
                             .asFunction()
                     }
+
                     field.aliasOrName() != fieldDefinition.propertyName() -> {
                         projections += variable.property(fieldDefinition.propertyName())
                     }
@@ -481,6 +485,7 @@ open class ProjectionBase(
                         ?: "")), variableSuffix, field.selectionSet)
                 propertyContainer.project(projectionEntries) to subQueries
             }
+
             is Relationship -> projectNodeFromRichRelationship(parent, fieldDefinition, variable, field, env)
             else -> throw IllegalArgumentException("${propertyContainer.javaClass.name} cannot be handled for field ${fieldDefinition.name} of type ${parent.name}")
         }
@@ -543,6 +548,7 @@ open class ProjectionBase(
                 val label = nodeType.getRelevantFieldDefinition(relInfo.endField)!!.type.innerName()
                 node(label).named("$childVariable${relInfo.endField.capitalize()}") to relInfo.endField
             }
+
             else -> node(nodeType.name).named(childVariableName) to null
         }
 

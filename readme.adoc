@@ -302,6 +302,18 @@ type Person {
 }
 ----
 
+=== Neo4j 5.x support
+
+This library supports queries for both neo4j `4.x` and `5.x`. By default, the neo4j 5 dialect is enabled. The dialect can be changed via `QueryContext`.
+
+.Example of changing the dialect via Translator
+[source,kotlin]
+----
+var query
+    val ctx = QueryContext(neo4jDialect = Dialect.DEFAULT) //  Dialect.DEFAULT matches to neo4j version < 5.x
+    query = translator.translate(query, params, ctx)
+----
+
 === Handle Arguments as Equality Comparisons for Top Level and Nested Fields
 
 If you add a simple argument to your top-level query or nested related fields, those will be translated to direct equality comparisons.

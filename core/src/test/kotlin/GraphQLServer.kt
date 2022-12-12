@@ -17,7 +17,7 @@ import org.neo4j.driver.GraphDatabase
 import org.neo4j.driver.Values
 import org.neo4j.graphql.*
 import java.net.InetSocketAddress
-import kotlin.streams.toList
+import java.util.stream.Collectors
 
 
 const val schema = """
@@ -59,7 +59,7 @@ fun main() {
                 try {
                     val result = session.run(cypher, Values.value(params))
                     when {
-                        type?.isList() == true -> result.stream().map { it[variable].asObject() }.toList()
+                        type?.isList() == true -> result.stream().map { it[variable].asObject() }.collect(Collectors.toList())
                         else -> result.stream().map { it[variable].asObject() }.findFirst().orElse(emptyMap<String, Any>())
                     }
                 } catch (e: Exception) {
@@ -83,10 +83,11 @@ fun main() {
                     schema.execute(query).let { println(mapper.writeValueAsString(it));it }
                 } else {
                     try {
+                        val queryContext = QueryContext(optimizedQuery = setOf(QueryContext.OptimizationStrategy.FILTER_AS_MATCH))
                         schema.execute(ExecutionInput
                             .newExecutionInput()
                             .query(query)
-                            .context(QueryContext(optimizedQuery = setOf(QueryContext.OptimizationStrategy.FILTER_AS_MATCH)))
+                            .graphQLContext(mapOf(QueryContext.KEY to queryContext))
                             .variables(params(payload))
                             .build())
                     } catch (e: OptimizedQueryException) {
