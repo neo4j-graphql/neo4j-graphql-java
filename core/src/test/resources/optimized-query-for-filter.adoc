@@ -1057,7 +1057,7 @@ RETURN person {
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE distance(person.location, point($personLocationDistanceLt.point)) < $personLocationDistanceLt.distance
+WHERE point.distance(person.location, point($personLocationDistanceLt.point)) < $personLocationDistanceLt.distance
 WITH person
 RETURN person {
 	.name

@@ -15,8 +15,9 @@
     <description>Example for using neo4j-graphql-java with Spring Boot and Netflix Domain Graph Service (DGS)</description>
 
     <properties>
-        <testcontainers.version>1.17.3</testcontainers.version>
-        <spring-boot.version>2.7.3</spring-boot.version>
+        <testcontainers.version>1.17.6</testcontainers.version>
+        <spring-boot.version>2.7.6</spring-boot.version>
+        <graphql-java.version>19.2</graphql-java.version>
     </properties>
 
     <dependencies>
@@ -46,7 +47,7 @@
         <dependency>
             <groupId>com.netflix.graphql.dgs</groupId>
             <artifactId>graphql-dgs-spring-boot-starter</artifactId>
-            <version>5.2.1</version>
+            <version>5.5.0</version>
         </dependency>
         <dependency>
             <groupId>com.netflix.graphql.dgs.codegen</groupId>
@@ -90,6 +91,11 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>com.graphql-java</groupId>
+                <artifactId>graphql-java</artifactId>
+                <version>${graphql-java.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>

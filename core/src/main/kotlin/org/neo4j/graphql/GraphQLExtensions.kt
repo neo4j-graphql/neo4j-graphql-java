@@ -1,5 +1,6 @@
 package org.neo4j.graphql
 
+import graphql.GraphQLContext
 import graphql.Scalars
 import graphql.language.*
 import graphql.language.TypeDefinition
@@ -94,6 +95,7 @@ fun GraphQLFieldsContainer.label(): String = when {
             ?.getDirective(DirectiveConstants.RELATION)
             ?.getArgument(RELATION_NAME)?.argumentValue?.value?.toJavaValue()?.toString()
                 ?: this.name
+
     else -> name
 }
 
@@ -232,6 +234,11 @@ fun DataFetchingEnvironment.typeAsContainer() = this.fieldDefinition.type.inner(
         ?: throw IllegalStateException("expect type of field ${this.logField()} to be GraphQLFieldsContainer, but was ${this.fieldDefinition.type.name()}")
 
 fun DataFetchingEnvironment.logField() = "${this.parentType.name()}.${this.fieldDefinition.name}"
+fun DataFetchingEnvironment.queryContext(): QueryContext = this.graphQlContext.get(QueryContext.KEY) ?: QueryContext()
+fun GraphQLContext.setQueryContext(ctx: QueryContext): GraphQLContext {
+    this.put(QueryContext.KEY, ctx)
+    return this
+}
 
 val TypeInt = TypeName("Int")
 val TypeFloat = TypeName("Float")

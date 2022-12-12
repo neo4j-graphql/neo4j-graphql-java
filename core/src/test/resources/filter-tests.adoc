@@ -2431,7 +2431,7 @@ RETURN person {
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE distance(person.location, point($filterPersonLocationDistance.point)) = $filterPersonLocationDistance.distance
+WHERE point.distance(person.location, point($filterPersonLocationDistance.point)) = $filterPersonLocationDistance.distance
 RETURN person {
 	.name
 } AS person
@@ -2480,7 +2480,7 @@ RETURN person {
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE distance(person.location, point($filterPersonLocationDistanceLt.point)) < $filterPersonLocationDistanceLt.distance
+WHERE point.distance(person.location, point($filterPersonLocationDistanceLt.point)) < $filterPersonLocationDistanceLt.distance
 RETURN person {
 	.name
 } AS person
@@ -2529,7 +2529,7 @@ RETURN person {
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE distance(person.location, point($filterPersonLocationDistanceLte.point)) <= $filterPersonLocationDistanceLte.distance
+WHERE point.distance(person.location, point($filterPersonLocationDistanceLte.point)) <= $filterPersonLocationDistanceLte.distance
 RETURN person {
 	.name
 } AS person
@@ -2578,7 +2578,7 @@ RETURN person {
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE distance(person.location, point($filterPersonLocationDistanceGt.point)) > $filterPersonLocationDistanceGt.distance
+WHERE point.distance(person.location, point($filterPersonLocationDistanceGt.point)) > $filterPersonLocationDistanceGt.distance
 RETURN person {
 	.name
 } AS person
@@ -2627,7 +2627,7 @@ RETURN person {
 [source,cypher]
 ----
 MATCH (person:Person)
-WHERE distance(person.location, point($filterPersonLocationDistanceGte.point)) >= $filterPersonLocationDistanceGte.distance
+WHERE point.distance(person.location, point($filterPersonLocationDistanceGte.point)) >= $filterPersonLocationDistanceGte.distance
 RETURN person {
 	.name
 } AS person
