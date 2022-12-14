@@ -132,7 +132,7 @@ mutation {
 .Cypher
 [source,cypher]
 ----
-MATCH (from:User  {
+MATCH (from:User {
 	uuid: $fromUuid
 })
 MATCH (to:User)

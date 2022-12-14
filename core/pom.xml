@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.neo4j</groupId>
         <artifactId>neo4j-graphql-java-parent</artifactId>
-        <version>1.5.1-SNAPSHOT</version>
+        <version>1.6.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>neo4j-graphql-java</artifactId>
@@ -15,6 +15,12 @@
     <description>GraphQL to Cypher Mapping</description>
 
     <dependencies>
+        <dependency>
+            <groupId>org.neo4j.driver</groupId>
+            <artifactId>neo4j-java-driver</artifactId>
+            <version>5.2.0</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.neo4j.test</groupId>
             <artifactId>neo4j-harness</artifactId>
@@ -29,15 +35,20 @@
         </dependency>
         <dependency>
             <groupId>org.neo4j.procedure</groupId>
-            <artifactId>apoc</artifactId>
+            <artifactId>apoc-core</artifactId>
             <version>${neo4j-apoc.version}</version>
-            <classifier>all</classifier>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.neo4j.procedure</groupId>
+            <artifactId>apoc-common</artifactId>
+            <version>${neo4j-apoc.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.graphql-java</groupId>
             <artifactId>graphql-java</artifactId>
-            <version>17.3</version>
+            <version>19.2</version>
         </dependency>
         <dependency>
             <groupId>org.atteo</groupId>
@@ -62,15 +73,16 @@
         <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j-cypher-dsl</artifactId>
-            <version>2021.4.1</version>
+            <version>2022.8.1</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.2.7</version>
+            <version>1.4.5</version>
             <scope>test</scope>
         </dependency>
         <dependency>
+            <!-- the old version of junit is required to have the nice diff handling in intellij -->
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.13.2</version>
@@ -79,7 +91,7 @@
         <dependency>
             <groupId>org.junit.vintage</groupId>
             <artifactId>junit-vintage-engine</artifactId>
-            <version>5.8.2</version>
+            <version>5.9.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -99,12 +111,12 @@
             <dependency>
                 <groupId>org.assertj</groupId>
                 <artifactId>assertj-core</artifactId>
-                <version>3.19.0</version>
+                <version>3.23.1</version>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
-                <version>1.7.32</version>
+                <version>2.0.5</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

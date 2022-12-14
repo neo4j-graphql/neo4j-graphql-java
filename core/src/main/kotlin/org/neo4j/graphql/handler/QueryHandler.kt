@@ -107,11 +107,12 @@ class QueryHandler private constructor(schemaConfig: SchemaConfig) : BaseDataFet
         val (propertyContainer, match) = when {
             type.isRelationType() -> anyNode().relationshipTo(anyNode(), type.label()).named(variable)
                 .let { rel -> rel to match(rel) }
+
             else -> node(type.label()).named(variable)
                 .let { node -> node to match(node) }
         }
 
-        val ongoingReading = if ((env.getContext() as? QueryContext)?.optimizedQuery?.contains(QueryContext.OptimizationStrategy.FILTER_AS_MATCH) == true) {
+        val ongoingReading = if (env.queryContext().optimizedQuery?.contains(QueryContext.OptimizationStrategy.FILTER_AS_MATCH) == true) {
 
             OptimizedFilterHandler(type, schemaConfig).generateFilterQuery(variable, fieldDefinition, env.arguments, match, propertyContainer, env.variables)
 

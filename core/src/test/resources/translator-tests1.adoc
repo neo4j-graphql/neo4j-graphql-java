@@ -1051,7 +1051,7 @@ WHERE (person.location.longitude = $personLocationAnd1Longitude
 	AND person.location.latitude = $personLocationAnd2Latitude)
 RETURN person {
 	.name,
-	location:  {
+	location: {
 		crs: person.location.crs,
 		longitude: person.location.longitude,
 		latitude: person.location.latitude,
@@ -1098,14 +1098,14 @@ mutation{
 .Cypher
 [source,cypher]
 ----
-CREATE (createPerson:Person  {
+CREATE (createPerson:Person {
 	name: $createPersonName,
 	location: point($createPersonLocation)
 })
 WITH createPerson
 RETURN createPerson {
 	.name,
-	location:  {
+	location: {
 		crs: createPerson.location.crs,
 		srid: createPerson.location.srid,
 		latitude: createPerson.location.latitude,

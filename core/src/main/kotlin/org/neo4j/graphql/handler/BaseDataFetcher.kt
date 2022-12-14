@@ -25,11 +25,12 @@ abstract class BaseDataFetcher(schemaConfig: SchemaConfig) : ProjectionBase(sche
         val variable = field.aliasOrName().decapitalize()
         prepareDataFetcher(env.fieldDefinition, env.parentType)
         val statement = generateCypher(variable, field, env)
-
+        val dialect = env.queryContext().neo4jDialect
         val query = Renderer.getRenderer(Configuration
             .newConfig()
             .withIndentStyle(Configuration.IndentStyle.TAB)
             .withPrettyPrint(true)
+            .withDialect(dialect)
             .build()
         ).render(statement)
 

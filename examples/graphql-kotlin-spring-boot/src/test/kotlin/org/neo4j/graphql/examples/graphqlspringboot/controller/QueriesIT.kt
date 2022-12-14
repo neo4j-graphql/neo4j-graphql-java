@@ -104,7 +104,7 @@ internal class QueriesIT(
 
     companion object {
         @Container
-        private val neo4jServer = Neo4jContainer<Nothing>("neo4j:4.4.1")
+        private val neo4jServer = Neo4jContainer<Nothing>("neo4j:4.4.11")
 
     }
 

@@ -3,11 +3,13 @@ package org.neo4j.graphql.examples.graphqlspringboot.config;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLNonNull;
 import graphql.schema.GraphQLType;
+import org.neo4j.cypherdsl.core.renderer.Dialect;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.SessionConfig;
 import org.neo4j.graphql.Cypher;
 import org.neo4j.graphql.DataFetchingInterceptor;
+import org.neo4j.graphql.QueryContext;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,6 +36,11 @@ public class Neo4jConfiguration {
             Driver driver,
             @Value("${database}") String database) {
         return (env, delegate) -> {
+            // here you can switch to the new neo4j 5 dialect, if required
+            QueryContext queryContext = new QueryContext();
+            queryContext.setNeo4jDialect(Dialect.DEFAULT);
+            env.getGraphQlContext().put(QueryContext.KEY, queryContext);
+
             Cypher cypher = delegate.get(env);
             return driver.session(SessionConfig.forDatabase(database)).writeTransaction(tx -> {
                 Map<String, Object> boltParams = new HashMap<>(cypher.getParams());
@@ -49,7 +56,7 @@ public class Neo4jConfiguration {
                     return result.list()
                             .stream()
                             .map(record -> record.get(cypher.getVariable()).asObject())
-                            .collect(Collectors.toList())
+                            .toList()
                             .stream().findFirst()
                             .orElse(Collections.emptyMap());
                 }
