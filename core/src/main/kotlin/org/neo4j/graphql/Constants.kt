@@ -5,6 +5,7 @@ import graphql.language.TypeName
 object Constants {
 
 
+    const val DATA = "data"
     const val AND = "AND"
     const val OR = "OR"
     const val FULLTEXT_PHRASE = "phrase"

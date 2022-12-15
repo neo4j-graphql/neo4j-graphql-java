@@ -54,7 +54,7 @@ class CreateResolver private constructor(
                 val dslNode = node.asCypherNode(queryContext).named("this$index")
 
                 val statement = (
-                        CreateTranslator(schemaConfig, env.variables, queryContext)
+                        CreateTranslator(schemaConfig, queryContext)
                             .createCreateAndParams(
                                 node,
                                 dslNode,
@@ -85,10 +85,11 @@ class CreateResolver private constructor(
         val type = env.typeAsContainer()
 
 //        val targetFieldSelection = env.selectionSet.getFields(field.name).first().selectionSet
-        val (projectionEntries, subQueries) = projectFields(node, type, env)
+//        val (projectionEntries, subQueries) = projectFields(node, type, env)
         return result
-            .withSubQueries(subQueries)
-            .returning(node.project(projectionEntries).`as`(variable))
+//            .withSubQueries(subQueries)
+            .returning(1.asCypherLiteral()) //TODO
+//            .returning(node.project(projectionEntries).`as`(variable))
             .build()
 
     }

@@ -10,6 +10,7 @@ import org.neo4j.graphql.domain.FieldContainer
 import org.neo4j.graphql.domain.fields.BaseField
 import org.neo4j.graphql.domain.fields.ConnectionField
 import org.neo4j.graphql.domain.fields.RelationField
+import org.neo4j.graphql.handler.utils.ChainString
 
 typealias CypherDSL = org.neo4j.cypherdsl.core.Cypher
 
@@ -25,7 +26,7 @@ class ParsedQuery(
 
     fun getFieldConditions(
         propertyContainer: PropertyContainer,
-        variablePrefix: String,
+        variablePrefix: ChainString,
         variableSuffix: String,
         schemaConfig: SchemaConfig
     ): Condition =
@@ -54,7 +55,7 @@ class FieldPredicate(
 
     fun createCondition(
         propertyContainer: PropertyContainer,
-        variablePrefix: String,
+        variablePrefix: ChainString,
         variableSuffix: String,
         schemaConfig: SchemaConfig
     ) =

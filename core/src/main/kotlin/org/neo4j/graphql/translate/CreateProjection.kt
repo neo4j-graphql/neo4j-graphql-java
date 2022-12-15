@@ -8,6 +8,7 @@ import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
 import org.neo4j.graphql.domain.dto.OptionsInput
 import org.neo4j.graphql.domain.fields.*
+import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.translate.where.CreateWhere
 import org.neo4j.graphql.utils.RelevantNodeFilter
 import org.neo4j.graphql.utils.ResolveTree
@@ -20,7 +21,7 @@ class CreateProjection {
         node: Node,
         varName: org.neo4j.cypherdsl.core.Node,
         env: DataFetchingEnvironment,
-        chainStr: String? = null,
+        chainStr: ChainString? = null,
         schemaConfig: SchemaConfig,
         variables: Map<String, Any>,
         queryContext: QueryContext?,
@@ -32,7 +33,7 @@ class CreateProjection {
         node: Node,
         varName: org.neo4j.cypherdsl.core.Node,
         resolveTree: ResolveTree,
-        chainStr: String? = null,
+        chainStr: ChainString? = null,
         schemaConfig: SchemaConfig,
         variables: Map<String, Any>,
         queryContext: QueryContext?,
@@ -54,11 +55,7 @@ class CreateProjection {
         }
         mergedFields.values.forEach { field ->
             val alias = field.alias ?: field.name
-            val param = if (chainStr == null) {
-                schemaConfig.namingStrategy.resolveParameter(varName.requiredSymbolicName.value, alias)
-            } else {
-                schemaConfig.namingStrategy.resolveParameter(chainStr, alias)
-            }
+            val param = chainStr?.extend(alias) ?: ChainString(schemaConfig, varName, alias)
 
             val nodeField = node.getField(field.name) ?: return@forEach
             var optionsInput = OptionsInput.create(field.args[Constants.OPTIONS])
@@ -100,9 +97,7 @@ class CreateProjection {
 
                     val interfaceQueries = mutableListOf<Statement>()
                     referenceNodes?.map { refNode ->
-                        val param2 =
-                            schemaConfig.namingStrategy.resolveName(varName.requiredSymbolicName.value, refNode.name)
-                        val endNode = refNode.asCypherNode(queryContext, param2)
+                        val endNode = refNode.asCypherNode(queryContext, ChainString(schemaConfig, varName, refNode))
 
                         var subQuery: OngoingReading = Cypher.with(fullWithVars)
                             .match(nodeField.createDslRelation(Cypher.anyNode(varName.requiredSymbolicName), endNode))
@@ -121,10 +116,7 @@ class CreateProjection {
                                     }
                                 },
                                 endNode,
-                                schemaConfig.namingStrategy.resolveName(
-                                    chainStr ?: varName.requiredSymbolicName.value,
-                                    alias
-                                )
+                                chainStr?.extend(alias) ?: ChainString(schemaConfig, varName, alias)
                             )
 
                         AuthTranslator(schemaConfig, queryContext, where = AuthTranslator.AuthOptions(endNode, refNode))
@@ -168,7 +160,7 @@ class CreateProjection {
                 } else if (nodeField.isUnion) {
                     val referenceNodes = nodeField.unionNodes
                     projections += alias
-                    val endNode = Cypher.anyNode(param)
+                    val endNode = Cypher.anyNode(param.resolveName())
                     val rel = nodeField.createDslRelation(varName, endNode)
                     var unionConditions: Condition? = null
                     val p = endNode.requiredSymbolicName
@@ -206,7 +198,7 @@ class CreateProjection {
                                 refNode,
                                 endNode,
                                 recurse.authValidate,
-                                schemaConfig.namingStrategy.resolveName(param, refNode.name)
+                                param.extend(refNode)
                             )
                                 ?.let { unionCondition = unionCondition and it }
                             projection.addAll(recurse.projection)
@@ -280,7 +272,7 @@ class CreateProjection {
         node: Node,
         varName: org.neo4j.cypherdsl.core.Node,
         authValidate: Condition?,
-        chainStr: String?
+        chainStr: ChainString?
     ): Condition? {
         val whereInput = whereInputAny as? Map<*, *>
         var condition: Condition? = null

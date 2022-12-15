@@ -4,10 +4,10 @@ import graphql.language.Comment
 import graphql.language.Description
 import graphql.language.Directive
 import org.neo4j.cypherdsl.core.Cypher
-import org.neo4j.cypherdsl.core.Node
 import org.neo4j.graphql.QueryContext
 import org.neo4j.graphql.domain.directives.*
 import org.neo4j.graphql.domain.fields.BaseField
+import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.utils.CamelCaseUtils.camelCase
 
 class Node(
@@ -61,6 +61,8 @@ class Node(
     override fun toString(): String {
         return "Node('$name')"
     }
+
+    fun asCypherNode(queryContext: QueryContext?, name: ChainString) = asCypherNode(queryContext, name.resolveName())
     fun asCypherNode(queryContext: QueryContext?, name: String? = null) =
         Cypher.node(mainLabel, additionalLabels(queryContext)).let {
             when {

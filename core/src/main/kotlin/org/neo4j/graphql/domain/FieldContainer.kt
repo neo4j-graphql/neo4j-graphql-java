@@ -46,6 +46,7 @@ abstract class FieldContainer<T : BaseField>(val fields: List<T>) {
     val authableFields: List<BaseField> by lazy { fields.filter { it is AuthableField } }
 
     fun getField(name: String): BaseField? {
+        // TODO use map instead?
         return fields.find { it.fieldName == name }
     }
 

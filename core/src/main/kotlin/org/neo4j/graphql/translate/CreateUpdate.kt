@@ -7,6 +7,7 @@ import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.directives.AuthDirective
 import org.neo4j.graphql.domain.fields.AuthableField
 import org.neo4j.graphql.domain.fields.RelationField
+import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.translate.where.CreateConnectionWhere
 import org.neo4j.graphql.utils.InterfaceInputUtils
 
@@ -14,11 +15,11 @@ class CreateUpdate(
     private val parentVar: Node,
     private val updateInputAny: Any?,
     private val varName: Node,
-    private val chainStr: String?,
+    private val chainStr: ChainString?,
     private val node: org.neo4j.graphql.domain.Node,
     private val withVars: List<SymbolicName>,
     private val context: QueryContext?,
-    private val parameterPrefix: String,
+    private val parameterPrefix: ChainString,
     private val includeRelationshipValidation: Boolean = false,
     private val schemaConfig: SchemaConfig,
     private val ongoingReading: ExposesWith
@@ -39,11 +40,7 @@ class CreateUpdate(
         )
             .createAuth(node.auth, AuthDirective.AuthOperation.UPDATE)
 
-        fun getParam(key: String) = if (chainStr != null) {
-            schemaConfig.namingStrategy.resolveName(chainStr, key)
-        } else {
-            schemaConfig.namingStrategy.resolveName(parentVar.name(), "update", key)
-        }
+        val param = chainStr?:ChainString(schemaConfig, parentVar, "update")
 
         updateInput.forEach { (key, value) ->
             val field = node.getField(key as String) ?: return@forEach
@@ -53,7 +50,7 @@ class CreateUpdate(
                 AuthTranslator(
                     schemaConfig,
                     context,
-                    allow = AuthTranslator.AuthOptions(parentVar, node, chainStr = getParam(key))
+                    allow = AuthTranslator.AuthOptions(parentVar, node, chainStr = param.extend(key))
                 )
                     .createAuth(field.auth, AuthDirective.AuthOperation.UPDATE)
                     ?.let { preAuthCondition = preAuthCondition and it }
@@ -61,7 +58,7 @@ class CreateUpdate(
                 AuthTranslator(
                     schemaConfig,
                     context,
-                    bind = AuthTranslator.AuthOptions(parentVar, node, chainStr = getParam(key)),
+                    bind = AuthTranslator.AuthOptions(parentVar, node, chainStr = param.extend(key)),
                     skipIsAuthenticated = true,
                     skipRoles = true
                 )
@@ -81,7 +78,7 @@ class CreateUpdate(
                 CreateSetPropertiesTranslator.Operation.UPDATE,
                 node,
                 schemaConfig,
-                chainStr
+                param
             )
             .takeIf { it.isNotEmpty() }
             ?.let { result.requiresExposeSet(withVars).set(it) } ?: result
@@ -91,7 +88,7 @@ class CreateUpdate(
             val field = node.getField(key as String) ?: return@forEach
 
             if (field is RelationField) {
-                result = handleRelationField(field, value, getParam(key), result)
+                result = handleRelationField(field, value, param.extend(key), result)
                 return@forEach
             }
 
@@ -114,7 +111,7 @@ class CreateUpdate(
     private fun handleRelationField(
         field: RelationField,
         value: Any?,
-        param: String,
+        param: ChainString,
         subquery: ExposesWith,
     ): ExposesWith {
         val key = field.fieldName
@@ -132,8 +129,8 @@ class CreateUpdate(
 
             inputs.forEachIndexed { index, inputAny ->
                 val input = inputAny as Map<*, *>
-                val _varName = schemaConfig.namingStrategy.resolveName(
-                    varName.name(),
+                val _varName = ChainString(schemaConfig,
+                    varName,
                     key.let { it + (index.takeIf { !field.isUnion } ?: "") },
                     (refNode.name + index).takeIf { field.isUnion }
                 )
@@ -146,7 +143,7 @@ class CreateUpdate(
                     result = CreateDisconnectTranslator(
                         withVars,
                         it,
-                        schemaConfig.namingStrategy.resolveName(_varName, "disconnect"),
+                        _varName.extend("disconnect"),
                         field,
                         parentVar,
                         context,
@@ -154,10 +151,9 @@ class CreateUpdate(
                         listOf(refNode),
                         refNode.name.takeIf { field.isUnion },
                         node,
-                        schemaConfig.namingStrategy.resolveParameter(
-                            parameterPrefix,
+                        parameterPrefix.extend(
                             key,
-                            refNode.name.takeIf { field.isUnion },
+                            refNode.takeIf { field.isUnion },
                             index.takeIf { field.typeMeta.type.isList() },
                             "disconnect"
                         ),
@@ -171,7 +167,7 @@ class CreateUpdate(
                         schemaConfig,
                         context,
                         node,
-                        schemaConfig.namingStrategy.resolveName(_varName, "connect"),
+                        _varName.extend("connect"),
                         parentVar,
                         fromCreate = false,
                         withVars,
@@ -206,14 +202,14 @@ class CreateUpdate(
         input: Map<*, *>,
         update: Map<*, *>,
         index: Int,
-        _varName: String,
+        _varName: ChainString,
         exposesWith: ExposesWith,
-        param: String
+        param: ChainString
     ): ExposesWith {
         var result = exposesWith
 
-        val relationshipVariable = schemaConfig.namingStrategy
-            .resolveName(varName, field.relationType.lowercase(), index, "relationship")
+        val relationshipVariable =
+            ChainString(schemaConfig, varName, field.relationType.lowercase(), index, "relationship")
 
         val endNode = refNode.asCypherNode(context, _varName)
 
@@ -232,11 +228,11 @@ class CreateUpdate(
                     endNode,
                     field,
                     rel,
-                    schemaConfig.namingStrategy.resolveParameter(
-                        parameterPrefix,
-                        field.fieldName,
-                        refNode.name.takeIf { field.isUnion },
-                        index.takeIf { field.typeMeta.type.isList() })
+                    parameterPrefix.extend(
+                        field,
+                        refNode.takeIf { field.isUnion },
+                        index.takeIf { field.typeMeta.type.isList() }
+                    )
                 )
                 ?.let { condition = condition and it }
         }
@@ -263,18 +259,16 @@ class CreateUpdate(
                 endNode,
                 inputExcludingOnForNode,
                 endNode,
-                schemaConfig.namingStrategy.resolveName(
-                    param,
+                param.extend(
                     refNode.name.takeIf { field.isUnion },
                     index
                 ),
                 refNode,
                 nestedWithVars,
                 context,
-                schemaConfig.namingStrategy.resolveName(
-                    param,
+                param.extend(
                     field,
-                    refNode.name.takeIf { field.isUnion },
+                    refNode.takeIf { field.isUnion },
                     index.takeIf { field.typeMeta.type.isList() },
                     "update",
                     "node"
@@ -289,25 +283,23 @@ class CreateUpdate(
                     endNode,
                     inputOnForNode,
                     endNode,
-                    schemaConfig.namingStrategy.resolveName(
-                        param,
+                    param.extend(
                         refNode.name.takeIf { field.isUnion },
                         index,
                         "on",
-                        refNode.name
+                        refNode // TODO don't take for union
                     ),
                     refNode,
                     nestedWithVars,
                     context,
-                    schemaConfig.namingStrategy.resolveName(
-                        parameterPrefix,
+                    parameterPrefix.extend(
                         field,
-                        refNode.name.takeIf { field.isUnion },
+                        refNode.takeIf { field.isUnion },
                         index.takeIf { field.typeMeta.type.isList() },
                         "update",
                         "node",
                         "on",
-                        refNode.name
+                        refNode // TODO don't take for union
                     ),
                     includeRelationshipValidation = false,
                     schemaConfig,
@@ -318,13 +310,12 @@ class CreateUpdate(
             result = (result as OngoingReading).call(
                 (subResult as ExposesReturning).returning(
                     Functions.count(Cypher.asterisk()).`as`(
-                        schemaConfig.namingStrategy.resolveName(
-                            param,
+                        param.extend(
                             refNode.name.takeIf { field.isUnion },
                             index,
                             refNode.name,
                             "ignore"
-                        ),
+                        ).resolveName(),
                     )
                 ).build()
             )
@@ -342,8 +333,7 @@ class CreateUpdate(
                         CreateSetPropertiesTranslator.Operation.UPDATE,
                         edgeProperties,
                         schemaConfig,
-                        schemaConfig.namingStrategy.resolveName(
-                            parameterPrefix,
+                        parameterPrefix.extend(
                             field,
                             refNode.name.takeIf { field.isUnion },
                             index.takeIf { field.typeMeta.type.isList() },

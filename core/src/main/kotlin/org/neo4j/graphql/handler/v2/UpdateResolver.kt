@@ -2,19 +2,20 @@ package org.neo4j.graphql.handler.v2
 
 import graphql.language.Field
 import graphql.schema.DataFetchingEnvironment
-import org.neo4j.cypherdsl.core.ExposesSubqueryCall
+import org.neo4j.cypherdsl.core.ExposesCreate
+import org.neo4j.cypherdsl.core.ExposesMerge
+import org.neo4j.cypherdsl.core.Functions
 import org.neo4j.cypherdsl.core.Statement
 import org.neo4j.cypherdsl.core.StatementBuilder.ExposesWith
-import org.neo4j.cypherdsl.core.StatementBuilder.OngoingReading
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
 import org.neo4j.graphql.domain.directives.ExcludeDirective
+import org.neo4j.graphql.domain.dto.*
 import org.neo4j.graphql.handler.BaseDataFetcher
+import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.schema.AugmentationHandlerV2
-import org.neo4j.graphql.translate.CreateProjection
-import org.neo4j.graphql.translate.CreateUpdate
-import org.neo4j.graphql.translate.TopLevelMatchTranslator
+import org.neo4j.graphql.translate.*
 import org.neo4j.graphql.utils.ResolveTree
 
 class UpdateResolver private constructor(
@@ -62,12 +63,14 @@ class UpdateResolver private constructor(
         val dslNode = node.asCypherNode(queryContext, variable)
         val resolveTree = ResolveTree.resolve(env) // todo move into parent class
 
-        val updateInput = resolveTree.args[Constants.UPDATE_FIELD]
-        val connectInput = resolveTree.args[Constants.CONNECT_FIELD]
-        val disconnectInput = resolveTree.args[Constants.DISCONNECT_FIELD]
-        val createInput = resolveTree.args[Constants.CREATE_FIELD]
-        val deleteInput = resolveTree.args[Constants.DELETE_FIELD]
-        val connectOrCreateInput = resolveTree.args[Constants.CONNECT_OR_CREATE_FIELD]
+        val updateInput = resolveTree.args[Constants.UPDATE_FIELD]?.let { RelationFieldsInput(node, it) }
+        val connectInput = resolveTree.args[Constants.CONNECT_FIELD]?.let { RelationFieldsInput(node, it) }
+        val disconnectInput = resolveTree.args[Constants.DISCONNECT_FIELD]?.let { RelationFieldsInput(node, it) }
+        val createInput = resolveTree.args[Constants.CREATE_FIELD]?.let { RelationFieldsInput(node, it) }
+        val deleteInput = resolveTree.args[Constants.DELETE_FIELD]?.let { RelationFieldsInput(node, it) }
+        val connectOrCreateInput =
+            resolveTree.args[Constants.CONNECT_OR_CREATE_FIELD]?.let { RelationFieldsInput(node, it) }
+        val assumeReconnecting = connectInput != null && disconnectInput != null
 
         val withVars = listOf(dslNode.requiredSymbolicName)
 
@@ -75,45 +78,257 @@ class UpdateResolver private constructor(
         var ongoingReading: ExposesWith = TopLevelMatchTranslator(schemaConfig, env.variables, queryContext)
             .translateTopLevelMatch(node, dslNode, env.arguments, AuthDirective.AuthOperation.UPDATE)
 
-        val nodeProjection = resolveTree.getFieldOfType(node.typeNames.updateResponse, node.plural)
-
         if (updateInput != null) {
             ongoingReading = CreateUpdate(
-                    dslNode,
-                    updateInput,
-                    dslNode,
-                    chainStr = null,
-                    node,
-                    withVars,
-                    queryContext,
-                    schemaConfig.namingStrategy.resolveParameter(resolveTree.name),
-                    true,
-                    schemaConfig,
-                    ongoingReading
-                )
+                dslNode,
+                updateInput,
+                dslNode,
+                chainStr = null,
+                node,
+                withVars,
+                queryContext,
+                ChainString(schemaConfig, resolveTree.name),
+                true,
+                schemaConfig,
+                ongoingReading
+            )
                 .createUpdateAndParams()
         }
 
+        disconnectInput?.getInputsPerField()?.forEach { (relField, refNodes, input) ->
 
-        // TODO continue here
-//        AuthTranslator(schemaConfig, queryContext, allow = AuthTranslator.AuthOptions(dslNode, node))
-//            .createAuth(node.auth, AuthDirective.AuthOperation.READ)
-//            ?.let { ongoingReading = ongoingReading.call(it.apocValidate(Constants.AUTH_FORBIDDEN_ERROR)) }
+            if (relField.isInterface) {
+                ongoingReading = CreateDisconnectTranslator(
+                    withVars,
+                    input,
+                    ChainString(schemaConfig, dslNode, "disconnect", relField),
+                    relField,
+                    dslNode,
+                    queryContext,
+                    schemaConfig,
+                    refNodes,
+                    null,
+                    node,
+                    ChainString(schemaConfig, resolveTree.name, "disconnect", relField),
+                    ongoingReading
+                )
+                    .createDisconnectAndParams()
+            } else {
+                refNodes.forEach { refNode ->
+                    ongoingReading = CreateDisconnectTranslator(
+                        withVars,
+                        if (relField.isUnion) (UnionInput(input)).getDataForNode(refNode) else input,
+                        ChainString(
+                            schemaConfig,
+                            dslNode,
+                            "disconnect",
+                            relField,
+                            refNode.name.takeIf { relField.isUnion }),
+                        relField,
+                        dslNode,
+                        queryContext,
+                        schemaConfig,
+                        listOf(refNode),
+                        refNode.name.takeIf { relField.isUnion },
+                        node,
+                        ChainString(schemaConfig,
+                            resolveTree.name,
+                            "disconnect",
+                            relField,
+                            refNode.name.takeIf { relField.isUnion }),
+                        ongoingReading
+                    )
+                        .createDisconnectAndParams()
+                }
+            }
+        }
 
-        val projection = CreateProjection()
-            .createProjectionAndParams(node, dslNode, env, null, schemaConfig, env.variables, queryContext)
+        connectInput?.getInputsPerField()?.forEach { (relField, refNodes, input) ->
+            if (relField.isInterface) {
+                ongoingReading = CreateConnectTranslator.createConnectAndParams(
+                    schemaConfig,
+                    queryContext,
+                    node,
+                    ChainString(schemaConfig, dslNode, "connect", relField),
+                    dslNode,
+                    false,
+                    withVars,
+                    relField,
+                    input,
+                    ongoingReading,
+                    refNodes,
+                    null,
+                    includeRelationshipValidation = assumeReconnecting
+                )
+            } else {
+                refNodes.forEach { refNode ->
+                    ongoingReading = CreateConnectTranslator.createConnectAndParams(
+                        schemaConfig,
+                        queryContext,
+                        node,
+                        ChainString(schemaConfig,
+                            dslNode,
+                            "connect",
+                            relField,
+                            refNode.name.takeIf { relField.isUnion }),
+                        dslNode,
+                        false,
+                        withVars,
+                        relField,
+                        if (relField.isUnion) (UnionInput(input)).getDataForNode(refNode) else input,
+                        ongoingReading,
+                        listOf(refNode),
+                        refNode.name.takeIf { relField.isUnion }
+                        //TODO why not includeRelationshipValidation
+                    )
+                }
+            }
+        }
 
-        projection.authValidate
-            ?.let {
-                ongoingReading = ongoingReading
-                    .with(dslNode)
-                    .call(it.apocValidate(Constants.AUTH_FORBIDDEN_ERROR))
+        createInput?.getInputsPerField()?.forEach { (relField, refNodes, input) ->
+
+            refNodes.forEach { refNode ->
+                val creates: List<CreateInput> = if (relField.isInterface) {
+                    val listInput = input as? List<*> ?: listOf(input)
+
+                    listInput
+                        .map { CreateInput(it) }
+                        .mapNotNull {
+                            val nodeForImpl = InterfaceInput(it.node)
+                                .getNodeInputForNode(refNode)
+                                ?: return@mapNotNull null
+                            CreateInput(nodeForImpl, it.edge)
+                        }
+
+                } else if (relField.isUnion) {
+                    listOf(CreateInput(UnionInput(input).getDataForNode(refNode)))
+                } else {
+                    listOf(CreateInput(input))
+                }
+                if (creates.isEmpty()) {
+                    return@forEach
+                }
+
+                creates.forEachIndexed { index, create ->
+                    val targetNode = node.asCypherNode(
+                        queryContext, ChainString(
+                            schemaConfig,
+                            dslNode,
+                            "create",
+                            relField,
+                            refNode.takeIf { relField.isInterface || relField.isUnion },
+                            index,
+                            "node"
+                        ).resolveName()
+                    )
+                    ongoingReading = CreateTranslator(schemaConfig, queryContext)
+                        .createCreateAndParams(
+                            refNode,
+                            targetNode,
+                            create.node,
+                            listOf(dslNode.requiredSymbolicName)
+                        ) {
+                            (ongoingReading as ExposesCreate).create(it)
+                        }
+
+                    val relationship = relField.createDslRelation(
+                        dslNode, targetNode, ChainString(
+                            schemaConfig,
+                            dslNode,
+                            "create",
+                            relField,
+                            refNode.takeIf { relField.isInterface || relField.isUnion },
+                            index,
+                            "relationship"
+                        )
+                    )
+                    ongoingReading = (ongoingReading as ExposesMerge).merge(relationship)
+                        .let { merge ->
+                            relField.properties?.let { properties ->
+                                CreateSetPropertiesTranslator
+                                    .createSetProperties(
+                                        relationship,
+                                        create.edge,
+                                        CreateSetPropertiesTranslator.Operation.CREATE,
+                                        properties,
+                                        schemaConfig
+                                    )
+                                    .takeIf { it.isNotEmpty() }
+                                    ?.let { merge.set(it).with(dslNode) }
+                            } ?: merge
+                        }
+                }
+            }
+        }
+
+        if (deleteInput != null) {
+            ongoingReading = DeleteTranslator.createDeleteAndParams(
+                node,
+                deleteInput,
+                ChainString(schemaConfig, dslNode, "delete"),
+                dslNode,
+                withVars,
+                ChainString(schemaConfig, resolveTree.name, "args", "delete"),
+                schemaConfig,
+                queryContext,
+                ongoingReading
+            )
+        }
+
+        connectOrCreateInput?.getInputsPerField()?.forEach { (relField, refNodes, input) ->
+            refNodes.forEach { refNode ->
+
+                val inputs = if (relField.isUnion) {
+                    UnionInput(input).getDataForNode(refNode)
+                } else {
+                    input
+                }
+                    ?.let { it as? List<*> ?: listOf(it) }
+                    ?.filterNotNull()
+                    ?.map { ConnectOrCreateInput(it) }
+
+                ongoingReading = ConnectOrCreateTranslator.createConnectOrCreateAndParams(
+                    inputs,
+                    ChainString(
+                        schemaConfig,
+                        dslNode,
+                        "connectOrCreate",
+                        relField,
+                        refNode.takeIf { relField.isUnion }
+                    ),
+                    dslNode,
+                    relField,
+                    refNode,
+                    withVars,
+                    ongoingReading,
+                    schemaConfig,
+                    queryContext
+                )
             }
 
-        val mapProjection = dslNode.project(projection.projection).`as`(dslNode.requiredSymbolicName)
-        return (ongoingReading as OngoingReading)
-            .withSubQueries(projection.subQueries)
-            .returning(mapProjection)
+        }
+
+        val projection = resolveTree.getFieldOfType(node.typeNames.updateResponse, node.plural)
+            ?.let {
+                CreateProjection()
+                    .createProjectionAndParams(node, dslNode, it, null, schemaConfig, env.variables, queryContext)
+            }
+
+        projection?.authValidate?.let {
+            ongoingReading = ongoingReading
+                .with(dslNode)
+                .apocValidate(it, Constants.AUTH_FORBIDDEN_ERROR)
+        }
+
+        return ongoingReading
+            .maybeWith(withVars)
+            .withSubQueries(projection?.subQueries)
+            .returning(
+                *listOfNotNull(
+                    projection?.let { Functions.collectDistinct(dslNode.project(it.projection)).`as`(Constants.DATA) },
+//                    TODO subscription
+                ).toTypedArray()
+            )
             .build()
     }
 

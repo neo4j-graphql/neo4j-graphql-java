@@ -7,6 +7,7 @@ import org.neo4j.graphql.domain.FieldContainer
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.RelationshipProperties
 import org.neo4j.graphql.domain.directives.AuthDirective
+import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.parser.ParsedQuery
 import org.neo4j.graphql.parser.QueryParser
 
@@ -26,7 +27,7 @@ class TopLevelMatchTranslator(
         val match: ExposesWhere
         var conditions: Condition
 
-        val varName = cypherNode.name()
+        val varName = ChainString(schemaConfig, cypherNode)
 
         val fulltextInput = arguments[Constants.FULLTEXT] as? Map<*, *>
         if (fulltextInput != null) {
@@ -57,7 +58,7 @@ class TopLevelMatchTranslator(
     private fun createFulltextSearchMatch(
         fulltextInput: Map<*, *>,
         node: Node,
-        varName: String
+        varName: ChainString
     ): Pair<ExposesWhere, Condition> {
         if (fulltextInput.size > 1) {
             throw IllegalArgumentException("Can only call one search at any given time");
@@ -70,10 +71,7 @@ class TopLevelMatchTranslator(
         val call: ExposesWhere = CypherDSL.call("db.index.fulltext.queryNodes")
             .withArgs(
                 (indexName as String).asCypherLiteral(),
-                Cypher.parameter(
-                    schemaConfig.namingStrategy.resolveParameter(varName, "fulltext", indexName, "phrase"),
-                    indexInput[Constants.FULLTEXT_PHRASE]
-                )
+                varName.extend("fulltext", indexName, "phrase").resolveParameter(indexInput[Constants.FULLTEXT_PHRASE])
             )
             .yield(thisName, scoreName)
 
@@ -90,22 +88,13 @@ class TopLevelMatchTranslator(
         if (node.fulltextDirective != null) {
             val index = node.fulltextDirective.indexes.find { it.name == indexName }
             ((indexInput[Constants.FULLTEXT_SCORE_EQUAL] as? Number)
-                ?.let {
-                    Cypher.parameter(
-                        schemaConfig.namingStrategy.resolveParameter(varName, "fulltext", indexName, "score", "EQUAL"),
-                        it
-                    )
-                }
+                ?.let { varName.extend("fulltext", indexName, "score", "EQUAL").resolveParameter(it) }
                 ?: index?.defaultThreshold?.let {
-                    Cypher.parameter(
-                        schemaConfig.namingStrategy.resolveParameter(
-                            varName,
-                            "fulltext",
-                            indexName,
-                            "defaultThreshold" // TODO naming: split
-                        ),
-                        it
-                    )
+                    varName.extend(
+                        "fulltext",
+                        indexName,
+                        "defaultThreshold" // TODO naming: split
+                    ).resolveParameter(it)
                 })
                 ?.let { cond = cond.and(scoreName.eq(it)) }
         }
@@ -120,7 +109,7 @@ class TopLevelMatchTranslator(
     private fun where(
         propertyContainer: PropertyContainer,
         node: Node,
-        varName: String,
+        varName: ChainString,
         arguments: Map<String, Any>,
     ): Condition {
         val result = Conditions.noCondition()
@@ -143,7 +132,7 @@ class TopLevelMatchTranslator(
     }
 
     private fun handleQuery(
-        variablePrefix: String,
+        variablePrefix: ChainString,
         variableSuffix: String,
         propertyContainer: PropertyContainer,
         parsedQuery: ParsedQuery,
@@ -175,7 +164,7 @@ class TopLevelMatchTranslator(
                     val refNode = predicate.field.getNode(nodeName as String)
                         ?: throw IllegalStateException("Cannot resolve node for connection ${predicate.field.getOwnerName()}.${predicate.field.fieldName}")
 
-                    val cond = Cypher.name(normalizeName(variablePrefix, predicate.field.typeMeta.type.name(), "Cond"))
+                    val cond = Cypher.name(variablePrefix.extend(predicate.field.typeMeta.type, "Cond").resolveName())
                     when (predicate.op) {
                         RelationOperator.SOME -> Predicates.any(cond)
                         RelationOperator.SINGLE -> Predicates.single(cond)
@@ -184,10 +173,10 @@ class TopLevelMatchTranslator(
                         RelationOperator.NONE -> Predicates.none(cond)
                         else -> null
                     }?.let {
-                        val thisParam = normalizeName2(variablePrefix, refNode.name) // TODO naming
-                        val relationshipVariable = normalizeName2(thisParam, predicate.field.relationshipTypeName)
+                        val thisParam = variablePrefix.extend(refNode)
+                        val relationshipVariable = thisParam.extend(predicate.field.relationshipTypeName).resolveName()
 
-                        val namedTargetNode = refNode.asCypherNode(queryContext).named(thisParam)
+                        val namedTargetNode = refNode.asCypherNode(queryContext, thisParam)
                         val namedRelation = predicate.createRelation(
                             propertyContainer as org.neo4j.cypherdsl.core.Node,
                             namedTargetNode
@@ -221,7 +210,7 @@ class TopLevelMatchTranslator(
                 continue
             }
 
-            val cond = Cypher.name(normalizeName2(variablePrefix, predicate.field.typeMeta.type.name(), "Cond"))
+            val cond = Cypher.name(variablePrefix.extend(predicate.field.typeMeta.type, "Cond").resolveName())
             when (predicate.op) {
                 RelationOperator.SOME -> Predicates.any(cond)
                 RelationOperator.SINGLE -> Predicates.single(cond)
@@ -232,10 +221,11 @@ class TopLevelMatchTranslator(
             }?.let {
                 val typeName2 = predicate.targetName ?: TODO("union")
                 val fieldContainer2 = predicate.targetFieldContainer ?: TODO("union")
-                val targetNode = predicate.relNode.named(normalizeName2(variablePrefix, typeName2))
+                val targetNodeName = variablePrefix.extend(typeName2)
+                val targetNode = predicate.relNode.named(targetNodeName.resolveName())
                 val parsedQuery2 = QueryParser.parseFilter(value, typeName2, fieldContainer2, schemaConfig)
                 val condition = handleQuery(
-                    targetNode.requiredSymbolicName.value,
+                    targetNodeName,
                     "",
                     targetNode,
                     parsedQuery2,
@@ -262,7 +252,7 @@ class TopLevelMatchTranslator(
 
             val parsedNestedQuery = QueryParser.parseFilter(objectValue, typeName, fieldContainer, schemaConfig)
             return handleQuery(
-                variablePrefix + classifier,
+                variablePrefix.extend(classifier),
                 variableSuffix,
                 propertyContainer,
                 parsedNestedQuery,
@@ -280,8 +270,10 @@ class TopLevelMatchTranslator(
                             "${classifier}${index + 1}"
                         )
                     }
+
                     else -> values.map { value -> handleLogicalOperator(value, "") }
                 }
+
                 else -> emptyList()
             }
         }
@@ -315,7 +307,7 @@ class TopLevelMatchTranslator(
                 ?.let { (value, isNot) ->
                     val pq = QueryParser.parseFilter(value as Map<*, *>, targetName, fieldContainer, schemaConfig)
                     handleQuery(
-                        propertyContainer.requiredSymbolicName.value,
+                        ChainString(schemaConfig, propertyContainer),
                         suffix,
                         propertyContainer,
                         pq,
@@ -346,6 +338,7 @@ class TopLevelMatchTranslator(
                             schemaConfig
                         )
                     }
+
                     else -> list.map { value ->
                         createConnectionWhere(
                             node,
@@ -358,6 +351,7 @@ class TopLevelMatchTranslator(
                         )
                     }
                 }
+
                 else -> emptyList()
             }
         }

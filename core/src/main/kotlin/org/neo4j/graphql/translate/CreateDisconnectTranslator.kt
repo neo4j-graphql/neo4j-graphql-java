@@ -6,6 +6,7 @@ import org.neo4j.cypherdsl.core.StatementBuilder.OngoingReading
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.directives.AuthDirective
 import org.neo4j.graphql.domain.fields.RelationField
+import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.translate.where.CreateConnectionWhere
 import org.neo4j.graphql.utils.InterfaceInputUtils
 
@@ -13,7 +14,7 @@ import org.neo4j.graphql.utils.InterfaceInputUtils
 class CreateDisconnectTranslator(
     private val withVars: List<SymbolicName>,
     private val value: Any?,
-    private val varName: String,
+    private val varName: ChainString,
     private val relationField: RelationField,
     private val parentVar: Node,
     private val context: QueryContext?,
@@ -21,7 +22,7 @@ class CreateDisconnectTranslator(
     private val refNodes: List<org.neo4j.graphql.domain.Node>,
     private val labelOverride: String? = null,
     private val parentNode: org.neo4j.graphql.domain.Node,
-    private val parameterPrefix: String,
+    private val parameterPrefix: ChainString,
     private val ongoingReading: ExposesWith,
 
     ) {
@@ -54,13 +55,14 @@ class CreateDisconnectTranslator(
         input: Any?,
         index: Int,
     ): Statement {
-        val _varName = schemaConfig.namingStrategy.resolveName(varName, index)
-
-        val relVarName = schemaConfig.namingStrategy.resolveName(_varName, "rel")
+        val _varName = varName.extend(index)
 
         val endNode =
-            labelOverride?.let { Cypher.node(it).named(_varName) } ?: relatedNode.asCypherNode(context, _varName)
-        val dslRelation = relationField.createDslRelation(parentVar, endNode, relVarName)
+            labelOverride?.let { Cypher.node(it).named(_varName.resolveName()) } ?: relatedNode.asCypherNode(
+                context,
+                _varName
+            )
+        val dslRelation = relationField.createDslRelation(parentVar, endNode, _varName.extend("rel"))
 
         var condition: Condition? = null
         input.nestedObject(Constants.WHERE)?.let { where ->
@@ -71,8 +73,7 @@ class CreateDisconnectTranslator(
                     endNode,
                     relationField,
                     dslRelation,
-                    schemaConfig.namingStrategy.resolveName(
-                        parameterPrefix,
+                    parameterPrefix.extend(
                         index.takeIf { relationField.typeMeta.type.isList() },
                         "where"
                     )
@@ -97,7 +98,8 @@ class CreateDisconnectTranslator(
                     schemaConfig,
                     context,
                     allow = authOptions.copy(
-                        chainStr = schemaConfig.namingStrategy.resolveName(
+                        chainStr = ChainString(
+                            schemaConfig,
                             authOptions.varName,
                             authOptions.parentNode,
                             i,
@@ -115,7 +117,8 @@ class CreateDisconnectTranslator(
                     skipIsAuthenticated = true,
                     bind = authOptions.copy(
                         varName = endNode, // TODO is this intentional? create a test for this!
-                        chainStr = schemaConfig.namingStrategy.resolveName(
+                        chainStr = ChainString(
+                            schemaConfig,
                             authOptions.varName,
                             authOptions.parentNode,
                             i,
@@ -138,9 +141,10 @@ class CreateDisconnectTranslator(
             }
             .call(
                 Cypher.with(endNode, dslRelation)
-                    .with(endNode, dslRelation)
+                    .with(endNode, dslRelation)// TODO use the new version from js
                     .where(endNode.isNotNull)
                     .delete(dslRelation)
+                    .returning(Functions.count(Cypher.asterisk()))
                     .build()
             )
 
@@ -167,22 +171,18 @@ class CreateDisconnectTranslator(
                         call = CreateDisconnectTranslator(
                             nestedWithVars,
                             if (relField.isUnion) v.nestedObject(newRefNode.name) else v,
-                            schemaConfig.namingStrategy.resolveName(
-                                endNode,
-                                k,
-                                newRefNode.name.takeIf { relField.isUnion }),
+                            ChainString(schemaConfig, endNode, k, newRefNode.takeIf { relField.isUnion }),
                             relField,
                             endNode,
                             context, schemaConfig,
                             listOf(newRefNode),
                             labelOverride = newRefNode.name.takeIf { relField.isUnion },
                             relatedNode,
-                            schemaConfig.namingStrategy.resolveName(
-                                parameterPrefix,
+                            parameterPrefix.extend(
                                 i.takeIf { relField.typeMeta.type.isList() },
                                 "disconnect",
                                 k,
-                                newRefNode.name.takeIf { relField.isUnion }),
+                                newRefNode.takeIf { relField.isUnion }),
                             call,
                         )
                             .createDisconnectAndParams()
@@ -197,25 +197,21 @@ class CreateDisconnectTranslator(
                                     call = CreateDisconnectTranslator(
                                         nestedWithVars,
                                         if (relField.isUnion) v.nestedObject(newRefNode.name) else v,
-                                        schemaConfig.namingStrategy.resolveName(
-                                            endNode,
-                                            k,
-                                            newRefNode.name.takeIf { relField.isUnion }),
+                                        ChainString(schemaConfig, endNode, k, newRefNode.takeIf { relField.isUnion }),
                                         relField,
                                         endNode,
                                         context, schemaConfig,
                                         listOf(newRefNode),
                                         labelOverride = newRefNode.name.takeIf { relField.isUnion },
                                         relatedNode,
-                                        schemaConfig.namingStrategy.resolveName(
-                                            parameterPrefix,
+                                        parameterPrefix.extend(
                                             i.takeIf { relField.typeMeta.type.isList() },
                                             "disconnect",
                                             "_on",
-                                            newRefNode.name,
+                                            newRefNode,
                                             onDisconnectIndex.takeIf { relField.typeMeta.type.isList() },
                                             k,
-                                            newRefNode.name.takeIf { relField.isUnion }),
+                                            newRefNode.takeIf { relField.isUnion }),
                                         call,
                                     )
                                         .createDisconnectAndParams()

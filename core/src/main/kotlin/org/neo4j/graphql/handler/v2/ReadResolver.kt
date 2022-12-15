@@ -55,7 +55,7 @@ class ReadResolver private constructor(
 
         AuthTranslator(schemaConfig, queryContext, allow = AuthTranslator.AuthOptions(dslNode, node))
             .createAuth(node.auth, AuthDirective.AuthOperation.READ)
-            ?.let { ongoingReading = ongoingReading.call(it.apocValidate(Constants.AUTH_FORBIDDEN_ERROR)) }
+            ?.let { ongoingReading = ongoingReading.apocValidate(it, Constants.AUTH_FORBIDDEN_ERROR) }
 
         val projection = CreateProjection()
             .createProjectionAndParams(node, dslNode, env, null, schemaConfig, env.variables, queryContext)
@@ -64,7 +64,7 @@ class ReadResolver private constructor(
             ?.let {
                 ongoingReading = ongoingReading
                     .with(dslNode)
-                    .call(it.apocValidate(Constants.AUTH_FORBIDDEN_ERROR))
+                    .apocValidate(it, Constants.AUTH_FORBIDDEN_ERROR)
             }
 
         val mapProjection = dslNode.project(projection.projection).`as`(dslNode.requiredSymbolicName)

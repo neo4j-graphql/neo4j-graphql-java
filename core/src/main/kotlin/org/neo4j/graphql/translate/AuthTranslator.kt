@@ -10,6 +10,8 @@ import org.neo4j.graphql.Constants.OR
 import org.neo4j.graphql.Constants.PREDICATE_JOINS
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
+import org.neo4j.graphql.handler.utils.ChainString
+import org.neo4j.graphql.handler.utils.ChainString.Companion.extend
 
 class AuthTranslator(
     val schemaConfig: SchemaConfig,
@@ -35,7 +37,7 @@ class AuthTranslator(
             auth.rules
         }
 
-        if (where != null && !auth.hasWhereRule()){
+        if (where != null && !auth.hasWhereRule()) {
             return null
         }
 
@@ -51,7 +53,7 @@ class AuthTranslator(
     private fun createSubPredicate(
         authRule: AuthDirective.BaseAuthRule,
         index: Int,
-        chainStr: String? = null
+        chainStr: ChainString? = null
     ): Condition? {
         var condition: Condition? = createRolesCondition(authRule)
 
@@ -63,11 +65,8 @@ class AuthTranslator(
                 useAnyPredicate = true,
                 node = allow.parentNode,
                 varName = allow.varName,
-                chainStr = schemaConfig.namingStrategy.resolveName(
-                    (allow.chainStr ?: allow.varName.requiredSymbolicName.value) + (chainStr ?: ""),
-                    "auth",
-                    "allow$index"
-                ),
+                chainStr = (allow.chainStr ?: ChainString(schemaConfig, allow.varName))
+                    .extend(chainStr, "auth", "allow", index),
             )
                 ?.let { condition = condition and it }
 
@@ -79,11 +78,8 @@ class AuthTranslator(
                 useAnyPredicate = false,
                 node = bind.parentNode,
                 varName = bind.varName,
-                chainStr = schemaConfig.namingStrategy.resolveName(
-                    (bind.chainStr ?: bind.varName.requiredSymbolicName.value) + (chainStr ?: ""),
-                    "auth",
-                    "bind$index"
-                ),
+                chainStr = (bind.chainStr ?: ChainString(schemaConfig, bind.varName))
+                    .extend(chainStr, "auth", "bind", index),
             )
                 ?.let { condition = condition and it }
         }
@@ -94,18 +90,15 @@ class AuthTranslator(
                 useAnyPredicate = false,
                 node = where.parentNode,
                 varName = where.varName,
-                chainStr = schemaConfig.namingStrategy.resolveName(
-                    (where.chainStr ?: where.varName.requiredSymbolicName.value) + (chainStr ?: ""),
-                    "auth",
-                    "where$index"
-                ),
+                chainStr = (where.chainStr ?: ChainString(schemaConfig, where.varName))
+                    .extend(chainStr, "auth", "where", index),
             )
                 ?.let { condition = condition and it }
         }
 
         var ors: Condition? = null
         authRule.OR?.forEachIndexed { i, nestedRule ->
-            createSubPredicate(nestedRule, i, "${chainStr ?: ""}OR${i}")
+            createSubPredicate(nestedRule, i, chainStr.extend(schemaConfig, "OR", i))
                 ?.let { ors = ors or it }
         }
         if (ors != null) {
@@ -113,7 +106,7 @@ class AuthTranslator(
         }
 
         authRule.AND?.forEachIndexed { i, nestedRule ->
-            createSubPredicate(nestedRule, i, "${chainStr ?: ""}AND${i}")
+            createSubPredicate(nestedRule, i, chainStr.extend(schemaConfig, "AND", i))
                 ?.let { condition = condition and it }
         }
 
@@ -157,7 +150,7 @@ class AuthTranslator(
         ruleDefinitions: Map<*, *>,
         allowUnauthenticated: Boolean? = null,
         useAnyPredicate: Boolean,
-        chainStr: String,
+        chainStr: ChainString,
         node: Node,
         varName: org.neo4j.cypherdsl.core.Node
     ): Condition? {
@@ -175,7 +168,7 @@ class AuthTranslator(
                         item,
                         allowUnauthenticated,
                         useAnyPredicate,
-                        schemaConfig.namingStrategy.resolveName(chainStr, key, index.toString()),
+                        chainStr.extend(key, index),
                         node,
                         varName
                     )?.let { innerCondition ->
@@ -210,10 +203,7 @@ class AuthTranslator(
 //                        null -> varName.property(authableField.dbPropertyName).isNull
                     else -> {
                         val property = varName.property(authableField.dbPropertyName)
-                        val parameter = Cypher.parameter(
-                            schemaConfig.namingStrategy.resolveParameter(chainStr, key),
-                            paramValue
-                        )
+                        val parameter = chainStr.extend(key).resolveParameter(paramValue)
                         property.isNotNull.and(property.eq(parameter))
                     }
                 }
@@ -234,7 +224,7 @@ class AuthTranslator(
                             mapOf(k to v),
                             allowUnauthenticated,
                             useAnyPredicate,
-                            schemaConfig.namingStrategy.resolveName(chainStr, key),
+                            chainStr.extend(key),
                             refNode,
                             namedEnd
                         )
@@ -242,7 +232,7 @@ class AuthTranslator(
                 }
 //                TODO use this
 //                val  cond = Cypher.name("cond")
-                val  cond = Cypher.name(namedEnd.name())
+                val cond = Cypher.name(namedEnd.name())
                 val o = if (useAnyPredicate) {
                     Predicates.any(cond)
                 } else {
@@ -265,6 +255,6 @@ class AuthTranslator(
     data class AuthOptions(
         val varName: org.neo4j.cypherdsl.core.Node,
         val parentNode: Node,
-        val chainStr: String? = null
+        val chainStr: ChainString? = null
     )
 }

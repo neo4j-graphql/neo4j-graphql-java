@@ -5,6 +5,7 @@ import org.neo4j.cypherdsl.core.PropertyContainer
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.fields.RelationField
+import org.neo4j.graphql.handler.utils.ChainString
 
 //TODO completed
 class CreateConnectionWhere(val schemaConfig: SchemaConfig, val queryContext: QueryContext?) {
@@ -15,7 +16,7 @@ class CreateConnectionWhere(val schemaConfig: SchemaConfig, val queryContext: Qu
         nodeVariable: PropertyContainer,
         relationship: RelationField,
         relationshipVariable: PropertyContainer,
-        parameterPrefix: String
+        parameterPrefix: ChainString
     ): Condition? {
 
         val whereInput = whereInputAny as? Map<*, *> ?: return null
@@ -34,7 +35,7 @@ class CreateConnectionWhere(val schemaConfig: SchemaConfig, val queryContext: Qu
                         nodeVariable,
                         relationship,
                         relationshipVariable,
-                        schemaConfig.namingStrategy.resolveName(parameterPrefix, key, index)
+                        parameterPrefix.extend(key, index)
                     )?.let {
 
                         innerCondition = if (Constants.OR == key) {
@@ -53,7 +54,7 @@ class CreateConnectionWhere(val schemaConfig: SchemaConfig, val queryContext: Qu
                         relationship.properties,
                         value,
                         relationshipVariable,
-                        schemaConfig.namingStrategy.resolveName(parameterPrefix, k)
+                        parameterPrefix.extend(k)
                     )
                     ?.let {
                         // TODO check `not` case to work correctly
@@ -82,7 +83,7 @@ class CreateConnectionWhere(val schemaConfig: SchemaConfig, val queryContext: Qu
                         node,
                         inputExcludingOnForNode,
                         nodeVariable,
-                        schemaConfig.namingStrategy.resolveName(parameterPrefix, k)
+                        parameterPrefix.extend(k)
                     )
                     ?.let {
                         // TODO check `not` case to work correctly
@@ -98,7 +99,7 @@ class CreateConnectionWhere(val schemaConfig: SchemaConfig, val queryContext: Qu
                             node,
                             inputOnForNodeExcludingRoot,
                             nodeVariable,
-                            schemaConfig.namingStrategy.resolveName(parameterPrefix, k, "on", node.name)
+                            parameterPrefix.extend(k, "on", node)
                         )
                         ?.let {
                             // TODO check `not` case to work correctly

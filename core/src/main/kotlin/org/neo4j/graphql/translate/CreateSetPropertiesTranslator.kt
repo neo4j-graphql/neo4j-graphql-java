@@ -12,6 +12,7 @@ import org.neo4j.graphql.domain.directives.TimestampDirective.TimeStampOperation
 import org.neo4j.graphql.domain.fields.BaseField
 import org.neo4j.graphql.domain.fields.PointField
 import org.neo4j.graphql.domain.fields.ScalarField
+import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.isList
 import org.neo4j.graphql.name
 
@@ -25,13 +26,12 @@ object CreateSetPropertiesTranslator {
 
     fun createSetProperties(
         propertyContainer: PropertyContainer,
-        propertiesAny: Any?,
+        properties: Map<*, *>?,
         operation: Operation,
         fieldContainer: FieldContainer<*>,
         schemaConfig: SchemaConfig,
-        paramPrefix: String? = null,
+        paramPrefix: ChainString? = null,
     ): Collection<Expression> {
-        val properties = propertiesAny as? Map<*,*>?: return emptySet()
 
         val expressions = mutableListOf<Expression>()
 
@@ -43,9 +43,7 @@ object CreateSetPropertiesTranslator {
         if (operation == Operation.CREATE) {
             fieldContainer.primitiveFields
                 .filter { it.autogenerate }
-                .forEach {
-                    set(it, Cypher.call("randomUUID").asFunction())// TODO add to Functions
-                }
+                .forEach { set(it, Functions.randomUUID()) }
         }
 
         fieldContainer.temporalFields
@@ -57,18 +55,15 @@ object CreateSetPropertiesTranslator {
                 }
             }
 
-        properties.forEach { (fieldName, value) ->
+        properties?.forEach { (fieldName, value) ->
             // only handle scalar fields here
 
-            // TODO why only scalars annd not MutableField
+            // TODO why only scalars and not MutableField
             val field = fieldContainer.getField(fieldName as String) as? ScalarField ?: return@forEach
 
-            val param = Cypher.parameter(
-                schemaConfig.namingStrategy.resolveName(
-                    paramPrefix?: propertyContainer.requiredSymbolicName.value,
-                    fieldName
-                ), value
-            )
+            val param = (paramPrefix ?: ChainString(schemaConfig, propertyContainer))
+                .extend(fieldName)
+                .resolveParameter(value)
 
             val valueToSet = when (field) {
                 is PointField ->
@@ -78,6 +73,7 @@ object CreateSetPropertiesTranslator {
                     } else {
                         Functions.point(param)
                     }
+
                 else -> param
             }
             set(field, valueToSet)

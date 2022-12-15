@@ -7,6 +7,7 @@ import org.neo4j.cypherdsl.core.Cypher.*
 import org.neo4j.cypherdsl.core.Functions.*
 import org.neo4j.cypherdsl.core.StatementBuilder.*
 import org.neo4j.graphql.*
+import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.parser.ParsedQuery
 import org.neo4j.graphql.parser.QueryParser.parseArguments
 import org.neo4j.graphql.parser.QueryParser.parseFilter
@@ -132,12 +133,17 @@ open class ProjectionBase(
         arguments: Map<String, Any>,
         variables: Map<String, Any>
     ): Condition {
-        val variable = propertyContainer.requiredSymbolicName.value
-
         val result = if (!schemaConfig.useWhereFilter) {
             val filteredArguments = arguments.filterKeys { !SPECIAL_FIELDS.contains(it) }
             val parsedQuery = parseArguments(filteredArguments, fieldDefinition, type)
-            handleQuery(variable, "", propertyContainer, parsedQuery, type, variables)
+            handleQuery(
+                ChainString(schemaConfig, propertyContainer),
+                "",
+                propertyContainer,
+                parsedQuery,
+                type,
+                variables
+            )
         } else {
             Conditions.noCondition()
         }
@@ -152,14 +158,21 @@ open class ProjectionBase(
             ?.let { parseFilter(it, type) }
             ?.let {
                 val filterCondition =
-                    handleQuery(normalizeName(filterFieldName, variable), "", propertyContainer, it, type, variables)
+                    handleQuery(
+                        ChainString(schemaConfig, filterFieldName, propertyContainer),
+                        "",
+                        propertyContainer,
+                        it,
+                        type,
+                        variables
+                    )
                 result.and(filterCondition)
             }
             ?: result
     }
 
     protected fun handleQuery(
-        variablePrefix: String,
+        variablePrefix: ChainString,
         variableSuffix: String,
         propertyContainer: PropertyContainer,
         parsedQuery: ParsedQuery,
@@ -180,7 +193,7 @@ open class ProjectionBase(
                 throw IllegalArgumentException("Only object values are supported for filtering on queried relation ${predicate.value}, but got ${value.javaClass.name}")
             }
 
-            val cond = name(normalizeName(variablePrefix, predicate.relationshipInfo.typeName, "Cond"))
+            val cond = name(variablePrefix.extend(predicate.relationshipInfo.typeName, "Cond").resolveName())
             when (predicate.op) {
                 RelationOperator.SOME -> Predicates.any(cond)
                 RelationOperator.SINGLE -> Predicates.single(cond)
@@ -189,12 +202,12 @@ open class ProjectionBase(
                 RelationOperator.NONE -> Predicates.none(cond)
                 else -> null
             }?.let {
+                val targetNodeName = variablePrefix.extend(predicate.relationshipInfo.typeName)
                 val targetNode =
-                    predicate.relNode.named(normalizeName(variablePrefix, predicate.relationshipInfo.typeName))
+                    predicate.relNode.named(targetNodeName.resolveName())
                 val relType = predicate.relationshipInfo.type
                 val parsedQuery2 = parseFilter(value, relType)
-                val condition =
-                    handleQuery(targetNode.requiredSymbolicName.value, "", targetNode, parsedQuery2, relType, variables)
+                val condition = handleQuery(targetNodeName, "", targetNode, parsedQuery2, relType, variables)
                 var where = it
                     .`in`(
                         listBasedOn(
@@ -219,7 +232,7 @@ open class ProjectionBase(
 
             val parsedNestedQuery = parseFilter(objectValue, type)
             return handleQuery(
-                variablePrefix + classifier,
+                variablePrefix.extend(classifier),
                 variableSuffix,
                 propertyContainer,
                 parsedNestedQuery,
@@ -238,8 +251,10 @@ open class ProjectionBase(
                             variables
                         )
                     }
+
                     else -> values.map { value -> handleLogicalOperator(value, "", variables) }
                 }
+
                 else -> emptyList()
             }
         }
@@ -386,6 +401,7 @@ open class ProjectionBase(
             schemaConfig.useTemporalScalars && fieldDefinition.isNeo4jTemporalType() -> {
                 projections += getNeo4jTypeConverter(fieldDefinition).projectField(variable, field, "")
             }
+
             isObjectField -> {
                 if (fieldDefinition.isNeo4jType()) {
                     projections += projectNeo4jObjectType(variable, field, fieldDefinition)
@@ -403,9 +419,11 @@ open class ProjectionBase(
                     subQueries += sub
                 }
             }
+
             fieldDefinition.isNativeId() -> {
                 projections += id(anyNode(variable))
             }
+
             else -> {
                 val dynamicPrefix = fieldDefinition.dynamicPrefix()
                 when {
@@ -423,6 +441,7 @@ open class ProjectionBase(
                         )
                             .asFunction()
                     }
+
                     field.aliasOrName() != fieldDefinition.propertyName() -> {
                         projections += variable.property(fieldDefinition.propertyName())
                     }
@@ -548,6 +567,7 @@ open class ProjectionBase(
                 )
                 propertyContainer.project(projectionEntries) to subQueries
             }
+
             is Relationship -> projectNodeFromRichRelationship(parent, fieldDefinition, variable, field, env)
             else -> throw IllegalArgumentException("${propertyContainer.javaClass.name} cannot be handled for field ${fieldDefinition.name} of type ${parent.name}")
         }
@@ -623,6 +643,7 @@ open class ProjectionBase(
                 val label = nodeType.getRelevantFieldDefinition(relInfo.endField)!!.type.innerName()
                 node(label).named("$childVariable${relInfo.endField.capitalize()}") to relInfo.endField
             }
+
             else -> node(nodeType.name).named(childVariableName) to null
         }
 
@@ -657,6 +678,7 @@ open class ProjectionBase(
                 ordering != null -> skipLimit.format(
                     reading.with(*withPassThrough.toTypedArray()).orderBy(*ordering.toTypedArray())
                 )
+
                 skipLimit.applies() -> skipLimit.format(reading.with(*withPassThrough.toTypedArray()))
                 else -> reading
             }

@@ -4,12 +4,11 @@ import graphql.language.Description
 import graphql.language.VariableReference
 import graphql.schema.GraphQLOutputType
 import org.neo4j.cypherdsl.core.*
-import org.neo4j.cypherdsl.core.StatementBuilder.BuildableStatement
-import org.neo4j.cypherdsl.core.StatementBuilder.ExposesSet
+import org.neo4j.cypherdsl.core.StatementBuilder.*
 import org.neo4j.graphql.domain.dto.OptionsInput
 import java.util.*
 
-
+@Deprecated("use ChainString")
 fun queryParameter(value: Any?, vararg parts: String?): Parameter<*> {
     val name = when (value) {
         is VariableReference -> value.name
@@ -19,15 +18,17 @@ fun queryParameter(value: Any?, vararg parts: String?): Parameter<*> {
 }
 
 fun Expression.collect(type: GraphQLOutputType) = if (type.isList()) Functions.collect(this) else this
-fun StatementBuilder.OngoingReading.withSubQueries(subQueries: List<Statement>) =
-    subQueries.fold(this, { it, sub -> it.call(sub) })
+fun OngoingReading.withSubQueries(subQueries: List<Statement>?) =
+    subQueries?.fold(this, { it, sub -> it.call(sub) }) ?: this
 
-fun ExposesSubqueryCall.withSubQueries(subQueries: List<Statement>) =
-    subQueries.fold(this, { it, sub -> it.call(sub) })
+fun ExposesSubqueryCall.withSubQueries(subQueries: List<Statement>?) =
+    subQueries?.fold(this, { it, sub -> it.call(sub) }) ?: this
 
+@Deprecated("use ChainString")
 fun normalizeName(vararg parts: String?) =
     parts.mapNotNull { it?.capitalize() }.filter { it.isNotBlank() }.joinToString("").decapitalize()
 
+@Deprecated("use ChainString")
 fun normalizeName2(vararg parts: String?) = parts.filter { it?.isNotBlank() == true }.joinToString("_")
 
 fun PropertyContainer.id(): FunctionInvocation = when (this) {
@@ -52,19 +53,11 @@ fun String.toLowerCase(): String = lowercase(Locale.getDefault())
 fun <E> Collection<E>.containsAny(other: Collection<E>): Boolean = this.find { other.contains(it) } != null
 infix fun Condition?.and(rhs: Condition) = this?.and(rhs) ?: rhs
 infix fun Condition?.or(rhs: Condition) = this?.or(rhs) ?: rhs
-fun Condition?.apocValidate(errorMessage: String) = this?.let {
-    Cypher.call("apoc.util.validate")
-        .withArgs(it.not(), errorMessage.asCypherLiteral(), Cypher.listOf(0.asCypherLiteral()))
-        .build()
-}
 
-fun ExposesSubqueryCall.apocValidate(cond: Condition, errorMessage: String) =
-    // TODO remove yield and with after https://github.com/neo4j-contrib/cypher-dsl/issues/349 is resolved
-    this.call(cond.apocValidate(errorMessage))
-//        "apoc.util.validate")
-//        .withArgs(cond.not(), errorMessage.asCypherLiteral(), Cypher.listOf(0.asCypherLiteral()))
-//        .yield(true.asCypherLiteral().`as`("_"))
-//        .with(withVars)
+fun ExposesCall<OngoingInQueryCallWithoutArguments>.apocValidate(cond: Condition, errorMessage: String): VoidCall =
+    this.call("apoc.util.validate")
+        .withArgs(cond.not(), errorMessage.asCypherLiteral(), Cypher.listOf(0.asCypherLiteral()))
+        .withoutResults()
 
 fun Condition?.apocValidatePredicate(errorMessage: String) = this?.let {
     Cypher.call("apoc.util.validatePredicate")
@@ -94,7 +87,7 @@ fun StatementBuilder.OngoingReadingAndReturn.applySortingSkipAndLimit(
 }
 
 fun StatementBuilder.ExposesWith.maybeWith(withVars: List<SymbolicName>) = when (this) {
-    is StatementBuilder.OngoingReading -> this
+    is OngoingReading -> this
     else -> this.with(withVars)
 }
 

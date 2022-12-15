@@ -1,16 +1,27 @@
 package org.neo4j.graphql.handler.v2
 
-import graphql.schema.DataFetcher
+import graphql.language.Field
 import graphql.schema.DataFetchingEnvironment
+import org.neo4j.cypherdsl.core.Statement
+import org.neo4j.cypherdsl.core.StatementBuilder
+import org.neo4j.cypherdsl.core.StatementBuilder.ExposesDelete
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
+import org.neo4j.graphql.domain.directives.AuthDirective
 import org.neo4j.graphql.domain.directives.ExcludeDirective
+import org.neo4j.graphql.domain.dto.RelationFieldsInput
+import org.neo4j.graphql.handler.BaseDataFetcher
+import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.schema.AugmentationHandlerV2
+import org.neo4j.graphql.translate.AuthTranslator
+import org.neo4j.graphql.translate.DeleteTranslator
+import org.neo4j.graphql.translate.TopLevelMatchTranslator
+import org.neo4j.graphql.utils.ResolveTree
 
 class DeleteResolver private constructor(
-    val schemaConfig: SchemaConfig,
+    schemaConfig: SchemaConfig,
     val node: Node
-) : DataFetcher<OldCypher> {
+) : BaseDataFetcher(schemaConfig) {
 
     class Factory(ctx: AugmentationContext) : AugmentationHandlerV2(ctx) {
 
@@ -31,8 +42,45 @@ class DeleteResolver private constructor(
         }
     }
 
-    override fun get(environment: DataFetchingEnvironment?): OldCypher {
-        TODO("Not yet implemented")
+    override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement {
+        val queryContext = env.queryContext()
+
+        val dslNode = node.asCypherNode(queryContext, variable)
+
+        var ongoingReading: StatementBuilder.ExposesWith = TopLevelMatchTranslator(schemaConfig, env.variables, queryContext)
+            .translateTopLevelMatch(node, dslNode, env.arguments, AuthDirective.AuthOperation.DELETE)
+
+        val resolveTree = ResolveTree.resolve(env)
+        val deleteInput = resolveTree.args[Constants.DELETE_FIELD]?.let { RelationFieldsInput(node, it) }
+
+        val withVars = listOf(dslNode.requiredSymbolicName)
+
+        if (deleteInput != null) {
+            ongoingReading = DeleteTranslator.createDeleteAndParams(
+                node,
+                deleteInput,
+                ChainString(schemaConfig, variable),
+                dslNode,
+                withVars,
+                ChainString(schemaConfig, variable, resolveTree.name, "args", "delete"),
+                schemaConfig,
+                queryContext,
+                ongoingReading
+            )
+        }
+
+        AuthTranslator(schemaConfig, queryContext, allow = AuthTranslator.AuthOptions(dslNode, node))
+            .createAuth(node.auth, AuthDirective.AuthOperation.DELETE)
+            ?.let { ongoingReading = ongoingReading
+                .with(dslNode)
+                .apocValidate(it, Constants.AUTH_FORBIDDEN_ERROR)
+            }
+
+
+        return (ongoingReading as ExposesDelete)
+            .detachDelete(dslNode)
+            // TODO subscription
+            .build()
     }
 }
 

@@ -63,6 +63,8 @@
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j-cypher-dsl</artifactId>
             <version>9999-SNAPSHOT</version>
+<!--            TODO set correct version-->
+<!--            <version>2022.8.1</version>-->
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>

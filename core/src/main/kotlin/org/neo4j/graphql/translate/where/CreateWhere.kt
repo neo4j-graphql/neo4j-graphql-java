@@ -6,6 +6,8 @@ import org.neo4j.graphql.Constants.PREDICATE_JOINS
 import org.neo4j.graphql.Constants.WHERE_REG_EX
 import org.neo4j.graphql.domain.FieldContainer
 import org.neo4j.graphql.domain.fields.*
+import org.neo4j.graphql.handler.utils.ChainString
+import org.neo4j.graphql.handler.utils.ChainString.Companion.extend
 
 class CreateWhere(val schemaConfig: SchemaConfig, val queryContext: QueryContext?) {
 
@@ -14,7 +16,7 @@ class CreateWhere(val schemaConfig: SchemaConfig, val queryContext: QueryContext
         whereInput: Any?,
         element: FieldContainer<*>,
         varName: PropertyContainer,
-        parameterPrefix: String,
+        parameterPrefix: ChainString,
     ): Condition? {
         return createWhere(element, whereInput, varName, parameterPrefix)
     }
@@ -23,7 +25,7 @@ class CreateWhere(val schemaConfig: SchemaConfig, val queryContext: QueryContext
         node: FieldContainer<*>,
         whereInputAny: Any?,
         varName: PropertyContainer, // todo rename to dslNode
-        chainStr: String? = null,
+        chainStr: ChainString? = null,
     ): Condition? {
         // TODO harmonize with top level where
         val whereInput = whereInputAny as? Map<*, *> ?: return null
@@ -57,18 +59,13 @@ class CreateWhere(val schemaConfig: SchemaConfig, val queryContext: QueryContext
 //        }
 
         whereInput.forEach { (key, value) ->
-            val param = if (chainStr == null) {
-                schemaConfig.namingStrategy.resolveParameter(varName.requiredSymbolicName.value, key)
-            } else {
-                schemaConfig.namingStrategy.resolveParameter(chainStr, key)
-            }
-
+            val param = chainStr?.extend(key) ?: ChainString(schemaConfig, varName, key)
             if (PREDICATE_JOINS.contains(key)) {
                 var innerCondition: Condition? = null
                 (value as List<*>).forEachIndexed { index, v ->
                     createWhere(
                         node, value, varName,
-                        schemaConfig.namingStrategy.resolveParameter(param, index.takeIf { it > 0 })
+                        param.extend(index.takeIf { it > 0 })
                     )?.let {
 
                         innerCondition = if (Constants.OR == key) {
@@ -110,7 +107,7 @@ class CreateWhere(val schemaConfig: SchemaConfig, val queryContext: QueryContext
 
                     var relCond = field.createDslRelation(varName, endDslNode).asCondition()
 
-                    val endNode = endDslNode.named(param)
+                    val endNode = endDslNode.named(param.resolveName())
                     createWhere(refNode, value, endNode, chainStr = param)?.let { innerWhere ->
                         val nestedCondition = RelationOperator
                             .fromValue(operator, endNode.requiredSymbolicName)
@@ -150,10 +147,9 @@ class CreateWhere(val schemaConfig: SchemaConfig, val queryContext: QueryContext
 
                         var relCond = field.relationshipField.createDslRelation(varName, endDslNode).asCondition()
 
-                        val thisParam = schemaConfig.namingStrategy.resolveName(param, refNode.name)
+                        val thisParam = param.extend( refNode)
 
-                        val parameterPrefix = schemaConfig.namingStrategy.resolveName(
-                            chainStr,
+                        val parameterPrefix = chainStr.extend(schemaConfig,
                             varName.requiredSymbolicName.value,
                             fieldName,
                             "where",
@@ -161,11 +157,11 @@ class CreateWhere(val schemaConfig: SchemaConfig, val queryContext: QueryContext
                         )
 
                         val cond = CypherDSL.name("Cond")
-                        val endNode = endDslNode.named(thisParam)
+                        val endNode = endDslNode.named(thisParam.resolveName())
                         val relation = field.relationshipField.createDslRelation(
                             varName,
                             endNode,
-                            schemaConfig.namingStrategy.resolveName(thisParam, field.relationshipTypeName)
+                            thisParam.extend(field.relationshipTypeName)
                         )
 
                         (CreateConnectionWhere(schemaConfig, queryContext)
@@ -216,7 +212,8 @@ class CreateWhere(val schemaConfig: SchemaConfig, val queryContext: QueryContext
                 return@forEach
             }
 
-            result = result and createWhereClause(CypherDSL.parameter(param, value), property, operator, field)
+            result =
+                result and createWhereClause(CypherDSL.parameter(param.resolveName(), value), property, operator, field)
 
         }
 
@@ -245,10 +242,13 @@ class CreateWhere(val schemaConfig: SchemaConfig, val queryContext: QueryContext
                         Functions.distance(property, Functions.point(param.property("point"))),
                         param.property("distance")
                     )
+
                 "NOT_IN", "IN" ->
                     comparisonResolver(property, paramPointArray)
+
                 "NOT_INCLUDES", "INCLUDES" ->
                     comparisonResolver(paramPoint, property)
+
                 else ->
                     property.eq(if (field.typeMeta.type.isList()) paramPointArray else paramPoint)
             }

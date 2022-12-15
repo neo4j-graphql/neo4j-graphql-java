@@ -8,13 +8,14 @@ import org.neo4j.graphql.*
 import org.neo4j.graphql.Constants.AUTH_FORBIDDEN_ERROR
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
+import org.neo4j.graphql.domain.dto.ConnectOrCreateInput
 import org.neo4j.graphql.domain.fields.BaseField
 import org.neo4j.graphql.domain.fields.ConnectionField
 import org.neo4j.graphql.domain.fields.RelationField
+import org.neo4j.graphql.handler.utils.ChainString
 
 class CreateTranslator(
     val schemaConfig: SchemaConfig,
-    val variables: Map<String, Any>,
     val queryContext: QueryContext?,
 ) {
 
@@ -59,7 +60,7 @@ class CreateTranslator(
         authConditions?.let {
             exposeWith = exposeWith
                 .with(*withVars.toTypedArray())
-                .call(it.apocValidate(AUTH_FORBIDDEN_ERROR))
+                .apocValidate(it, AUTH_FORBIDDEN_ERROR)
         }
 
         if (includeRelationshipValidation) {
@@ -88,7 +89,7 @@ class CreateTranslator(
         var resultExposeWith: ExposesWith = exposeWith
         val varName = dslNode.requiredSymbolicName.value
         val fieldName = field.fieldName
-        val varNameKey = schemaConfig.namingStrategy.resolveName(varName, fieldName)
+        val varNameKey = ChainString(schemaConfig, varName, fieldName)
 
         val field = node.getField(fieldName)
         if (field is RelationField) {
@@ -129,6 +130,7 @@ class CreateTranslator(
                         val creates = when (field.typeMeta.type.isList()) {
                             true -> createField as? List<*>
                                 ?: throw IllegalArgumentException("expected $fieldName to be a list")
+
                             false -> listOf(createField)
                         }
 
@@ -143,17 +145,11 @@ class CreateTranslator(
                                 nodeField
                             }
 
-                            fun getName(suffix: String) = schemaConfig.namingStrategy.resolveName(
-                                varName,
-                                fieldName + index,
-                                unionTypeName,
-                                suffix
-                            )
+                            val baseName = varNameKey.extend(index, unionTypeName)
+                            val refDslNode = refNode.asCypherNode(queryContext, baseName.extend("node"))
 
-                            val propertiesName = field.properties?.let { getName("relationship") }
-
-                            val nodeName = getName("node")
-                            val refDslNode = refNode.asCypherNode(queryContext).named(nodeName)
+                            val propertiesName = baseName.extend("relationship")
+                                .takeIf { field.properties != null }
 
                             val dslRelation = field.createDslRelation(dslNode, refDslNode, propertiesName)
                             resultExposeWith = createCreateAndParams(
@@ -166,7 +162,7 @@ class CreateTranslator(
                             )
                                 .merge(dslRelation)
                                 .let { merge ->
-                                    if (propertiesName != null) {
+                                    if (field.properties != null) {
                                         val expressions = CreateSetPropertiesTranslator.createSetProperties(
                                             dslRelation,
                                             edgeField ?: emptyMap<Any, Any>(),
@@ -198,9 +194,8 @@ class CreateTranslator(
                             schemaConfig,
                             queryContext,
                             node,
-                            schemaConfig.namingStrategy.resolveName(
-                                varNameKey,
-                                if (field.isUnion) unionTypeName else null,
+                            varNameKey.extend(
+                                unionTypeName.takeIf { field.isUnion },
                                 "connect"
                             ),
                             dslNode,
@@ -211,23 +206,35 @@ class CreateTranslator(
                             resultExposeWith,
                             listOf(refNode),
                             labelOverride = unionTypeName,
-                        )?: throw IllegalStateException("resultExposeWith should not be null")
+                        )
                     }
                 }
 
 
-                (v as? Map<*, *>)?.let { v[Constants.CONNECT_OR_CREATE_FIELD] }?.let {
-                    TODO("createConnectOrCreateAndParams")
+                (v as? Map<*, *>)?.let { v[Constants.CONNECT_OR_CREATE_FIELD] }?.let { input ->
+                    resultExposeWith = ConnectOrCreateTranslator.createConnectOrCreateAndParams(
+                        (input as? List<*> ?: listOf(input)).map { ConnectOrCreateInput(it) },
+                        varNameKey.extend(unionTypeName.takeIf { field.isUnion }, "connectOrCreate"),
+                        dslNode,
+                        field,
+                        refNode,
+                        withVars,
+                        resultExposeWith,
+                        schemaConfig,
+                        queryContext
+                    )
                 }
             }
 
-            (value as? Map<*, *>)?.get(Constants.CONNECT_FIELD)?.let {
-                if (field.isInterface) {
+            (value as? Map<*, *>)
+                ?.get(Constants.CONNECT_FIELD)
+                ?.takeIf { field.isInterface }
+                ?.let {
                     resultExposeWith = CreateConnectTranslator.createConnectAndParams(
                         schemaConfig,
                         queryContext,
                         node,
-                        schemaConfig.namingStrategy.resolveName(varNameKey, "connect"),
+                        varNameKey.extend("connect"),
                         dslNode,
                         fromCreate = true,
                         withVars,
@@ -238,7 +245,6 @@ class CreateTranslator(
                         labelOverride = null
                     )
                 }
-            }
         }
         return resultExposeWith
     }

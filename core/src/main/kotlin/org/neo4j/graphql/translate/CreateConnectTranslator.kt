@@ -5,17 +5,17 @@ import org.neo4j.cypherdsl.core.StatementBuilder.ExposesWith
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
+import org.neo4j.graphql.domain.dto.Dict
 import org.neo4j.graphql.domain.fields.RelationField
+import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.translate.where.CreateWhere
-import kotlin.contracts.ExperimentalContracts
-import kotlin.contracts.contract
 
 //TODO complete
 class CreateConnectTranslator(
     private val schemaConfig: SchemaConfig,
     private val queryContext: QueryContext?,
     private val parentNode: Node,
-    private val varName: String,
+    private val varName: ChainString,
     private val parentVar: org.neo4j.cypherdsl.core.Node,
     private val fromCreate: Boolean,
     private val withVars: List<SymbolicName>,
@@ -33,7 +33,7 @@ class CreateConnectTranslator(
             schemaConfig: SchemaConfig,
             queryContext: QueryContext?,
             parentNode: Node,
-            varName: String,
+            varName: ChainString,
             parentVar: org.neo4j.cypherdsl.core.Node,
             fromCreate: Boolean,
             withVars: List<SymbolicName>,
@@ -82,7 +82,7 @@ class CreateConnectTranslator(
                     ?.let { result = result.with(withVars).where(it) }
             }
 
-            val baseName = varName + index
+            val baseName = varName.extend(index)
 
             val subquery = if (relationField.isInterface) {
                 refNodes.mapNotNull { refNode ->
@@ -104,7 +104,7 @@ class CreateConnectTranslator(
     private fun createSubqueryContents(
         relatedNode: Node,
         connectAny: Any?,
-        baseName: String,
+        baseName: ChainString,
     ): Statement? {
         val connect = connectAny as? Map<*, *> ?: return null
 
@@ -112,7 +112,7 @@ class CreateConnectTranslator(
                 labelOverride
                     ?.let { Cypher.node(labelOverride) }
                     ?: relatedNode.asCypherNode(queryContext)
-                ).named(schemaConfig.namingStrategy.resolveName(baseName, "node"))
+                ).named(baseName.extend("node").resolveName())
 
         val conditions = getConnectWhere(nodeName, relatedNode, connect)
 
@@ -121,7 +121,8 @@ class CreateConnectTranslator(
             .let { if (conditions != null) it.where(conditions) else it }
 
         getPreAuth(nodeName, relatedNode)?.let {
-            subQuery = subQuery.with(*(withVars + nodeName).toTypedArray()).call(it)
+            subQuery = subQuery.with(*(withVars + nodeName).toTypedArray())
+                .apocValidate(it, Constants.AUTH_FORBIDDEN_ERROR)
         }
 
         val mergeConnectionStatement = getMergeConnectionStatement(nodeName, baseName, connect)
@@ -134,7 +135,8 @@ class CreateConnectTranslator(
         subQuery = addNestedConnects(nodeName, relatedNode, connect, subQuery)
 
         getPostAuth(nodeName, relatedNode)?.let {
-            subQuery = subQuery.with(*(withVars + nodeName).toTypedArray()).call(it)
+            subQuery = subQuery.with(*(withVars + nodeName).toTypedArray())
+                .apocValidate(it, Constants.AUTH_FORBIDDEN_ERROR)
         }
 
         return subQuery
@@ -179,7 +181,7 @@ class CreateConnectTranslator(
     private fun getPreAuth(
         nodeName: org.neo4j.cypherdsl.core.Node,
         relatedNode: Node
-    ): Statement? {
+    ): Condition? {
         val allows = mutableListOf(AuthTranslator.AuthOptions(nodeName, relatedNode))
         if (!fromCreate) {
             allows += AuthTranslator.AuthOptions(parentVar, parentNode)
@@ -192,32 +194,28 @@ class CreateConnectTranslator(
                 schemaConfig,
                 queryContext,
                 allow = allow.copy(
-                    chainStr = schemaConfig.namingStrategy.resolveName(
-                        allow.varName.requiredSymbolicName.value,
-                        allow.parentNode.name + index,
-                        "allow"
-                    )
+                    chainStr = ChainString(schemaConfig, allow.varName, allow.parentNode, index, "allow")
                 )
             )
                 .createAuth(allow.parentNode.auth, AuthDirective.AuthOperation.CONNECT)
                 ?.let { preAuth = preAuth and it }
         }
-        return preAuth.apocValidate(Constants.AUTH_FORBIDDEN_ERROR)
+        return preAuth
     }
 
     private fun getMergeConnectionStatement(
         nodeName: org.neo4j.cypherdsl.core.Node,
-        baseName: String,
+        baseName: ChainString,
         connect: Map<*, *>
     ): ResultStatement {
         var createDslRelation = relationField.createDslRelation(parentVar, nodeName)
         val edgeSet = if (relationField.properties != null) {
             createDslRelation =
-                createDslRelation.named(schemaConfig.namingStrategy.resolveName(baseName, "relationship"))
+                createDslRelation.named(baseName.extend("relationship").resolveName())
             CreateSetPropertiesTranslator
                 .createSetProperties(
                     createDslRelation,
-                    connect[Constants.EDGE_FIELD],
+                    connect[Constants.EDGE_FIELD]?.let { Dict(it) },
                     CreateSetPropertiesTranslator.Operation.CREATE,
                     relationField.properties,
                     schemaConfig
@@ -314,10 +312,7 @@ class CreateConnectTranslator(
                     schemaConfig,
                     queryContext,
                     parentNode = relatedNode,
-                    varName = schemaConfig.namingStrategy.resolveName(
-                        nodeName.requiredSymbolicName.value,
-                        k,
-                        newRefNode.name.takeIf { relField.isUnion }),
+                    varName = ChainString(schemaConfig, nodeName, k, newRefNode.takeIf { relField.isUnion }),
                     parentVar = nodeName,
                     fromCreate = false, // TODO I think we should pass through the `fromCreate`
                     withVars = withVars + nodeName.requiredSymbolicName,
@@ -352,12 +347,7 @@ class CreateConnectTranslator(
                             schemaConfig,
                             queryContext,
                             parentNode = relatedNode,
-                            varName = schemaConfig.namingStrategy.resolveName(
-                                nodeName.requiredSymbolicName.value,
-                                "on",
-                                relatedNode.name + onConnectIndex,
-                                k
-                            ),
+                            varName = ChainString(schemaConfig, "on", relatedNode.name + onConnectIndex, k),
                             parentVar = nodeName,
                             fromCreate = false, // TODO do we need to pass through the `fromCreate`?
                             withVars = withVars + nodeName.requiredSymbolicName,
@@ -378,7 +368,7 @@ class CreateConnectTranslator(
     private fun getPostAuth(
         nodeName: org.neo4j.cypherdsl.core.Node,
         relatedNode: Node
-    ): Statement? {
+    ): Condition? {
         var postAuth: Condition? = null
         listOf(parentNode.takeIf { !fromCreate }, relatedNode)
             .filterNotNull()
@@ -395,15 +385,12 @@ class CreateConnectTranslator(
                     bind = AuthTranslator.AuthOptions(
                         nodeName,
                         node,
-                        chainStr = schemaConfig.namingStrategy.resolveName(
-                            nodeName.requiredSymbolicName.value + node.name + i,
-                            "bind"
-                        )
+                        chainStr = ChainString(schemaConfig, nodeName, node, i, "bind")
                     )
                 )
                     .createAuth(node.auth, AuthDirective.AuthOperation.CONNECT)
                     ?.let { postAuth = postAuth and it }
             }
-        return postAuth.apocValidate(Constants.AUTH_FORBIDDEN_ERROR)
+        return postAuth
     }
 }

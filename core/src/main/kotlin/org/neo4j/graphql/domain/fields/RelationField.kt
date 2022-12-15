@@ -3,6 +3,7 @@ package org.neo4j.graphql.domain.fields
 import org.neo4j.cypherdsl.core.Relationship
 import org.neo4j.graphql.capitalize
 import org.neo4j.graphql.domain.*
+import org.neo4j.graphql.handler.utils.ChainString
 
 /**
  * Representation of the `@relationship` directive and its meta.
@@ -77,9 +78,9 @@ class RelationField(
     fun createDslRelation(
         start: org.neo4j.cypherdsl.core.Node,
         end: org.neo4j.cypherdsl.core.Node,
-        name: String? = null
+        name: ChainString? = null
     ): Relationship = when (direction) {
         Direction.IN -> start.relationshipFrom(end, relationType)
         Direction.OUT -> start.relationshipTo(end, relationType)
-    }.let { if (name != null) it.named(name) else it }
+    }.let { if (name != null) it.named(name.resolveName()) else it }
 }

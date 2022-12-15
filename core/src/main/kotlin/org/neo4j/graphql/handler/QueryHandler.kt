@@ -8,6 +8,7 @@ import org.neo4j.cypherdsl.core.Cypher.*
 import org.neo4j.cypherdsl.core.Statement
 import org.neo4j.graphql.*
 import org.neo4j.graphql.handler.filter.OptimizedFilterHandler
+import org.neo4j.graphql.handler.utils.ChainString
 
 /**
  * This class handles all the logic related to the querying of nodes and relations.
@@ -111,10 +112,10 @@ class QueryHandler private constructor(schemaConfig: SchemaConfig) : BaseDataFet
         }
 
         val ongoingReading =
-            if ((env.getContext() as? QueryContext)?.optimizedQuery?.contains(QueryContext.OptimizationStrategy.FILTER_AS_MATCH) == true) {
+            if (env.queryContext()?.optimizedQuery?.contains(QueryContext.OptimizationStrategy.FILTER_AS_MATCH) == true) {
 
                 OptimizedFilterHandler(type, schemaConfig).generateFilterQuery(
-                    variable,
+                    ChainString(schemaConfig, variable),
                     fieldDefinition,
                     env.arguments,
                     match,
