@@ -9,7 +9,7 @@ import org.neo4j.graphql.domain.Node
 
 
 //TODO complete
-object CreateRelationshipValidationTranslator {
+object RelationshipValidationTranslator {
 
     fun createRelationshipValidations(
         node: Node,

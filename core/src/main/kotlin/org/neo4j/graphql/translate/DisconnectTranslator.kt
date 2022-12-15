@@ -5,14 +5,15 @@ import org.neo4j.cypherdsl.core.StatementBuilder.ExposesWith
 import org.neo4j.cypherdsl.core.StatementBuilder.OngoingReading
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.directives.AuthDirective
+import org.neo4j.graphql.domain.dto.ConnectionWhere
+import org.neo4j.graphql.domain.dto.DisconnectFieldInput
 import org.neo4j.graphql.domain.fields.RelationField
-import org.neo4j.graphql.translate.where.CreateConnectionWhere
-import org.neo4j.graphql.utils.InterfaceInputUtils
+import org.neo4j.graphql.translate.where.createConnectionWhere
 
 //TODO complete
-class CreateDisconnectTranslator(
+class DisconnectTranslator(
     private val withVars: List<SymbolicName>,
-    private val value: Any?,
+    private val inputs: DisconnectFieldInput.NodeDisconnectFieldInputs,
     private val varName: String,
     private val relationField: RelationField,
     private val parentVar: Node,
@@ -23,16 +24,14 @@ class CreateDisconnectTranslator(
     private val parentNode: org.neo4j.graphql.domain.Node,
     private val parameterPrefix: String,
     private val ongoingReading: ExposesWith,
-
-    ) {
+) {
 
     fun createDisconnectAndParams(): ExposesWith {
-        val list = value as? List<*> ?: listOf(value)
         val whereAuth = AuthTranslator(schemaConfig, context, where = AuthTranslator.AuthOptions(parentVar, parentNode))
             .createAuth(parentNode.auth, AuthDirective.AuthOperation.DISCONNECT)
         var result = ongoingReading
 
-        list.forEachIndexed { index, disconnect ->
+        inputs.forEachIndexed { index, disconnect ->
 
             val subqueries = if (relationField.isInterface) {
                 refNodes.map { refNode -> createSubqueryContents(refNode, disconnect, index) }
@@ -40,7 +39,7 @@ class CreateDisconnectTranslator(
                 listOf(createSubqueryContents(refNodes.first(), disconnect, index))
             }
 
-            // TODO is union for interfaces required?
+            // TODO is cypher union for an interfaces required?
 
             result = (whereAuth?.let { result.with(withVars).where(it) } ?: result)
                 .with(withVars)
@@ -49,34 +48,36 @@ class CreateDisconnectTranslator(
         return result
     }
 
-    fun createSubqueryContents(
+    private fun createSubqueryContents(
         relatedNode: org.neo4j.graphql.domain.Node,
-        input: Any?,
+        input: DisconnectFieldInput.NodeDisconnectFieldInput,
         index: Int,
     ): Statement {
-        val _varName = schemaConfig.namingStrategy.resolveName(varName, index)
+        val nestedPrefix = schemaConfig.namingStrategy.resolveName(varName, index)
+        val relVarName = schemaConfig.namingStrategy.resolveName(nestedPrefix, "rel")
 
-        val relVarName = schemaConfig.namingStrategy.resolveName(_varName, "rel")
+        val endNode = labelOverride
+            ?.let { Cypher.node(it).named(nestedPrefix) }
+            ?: relatedNode.asCypherNode(context, nestedPrefix)
 
-        val endNode =
-            labelOverride?.let { Cypher.node(it).named(_varName) } ?: relatedNode.asCypherNode(context, _varName)
         val dslRelation = relationField.createDslRelation(parentVar, endNode, relVarName)
 
         var condition: Condition? = null
-        input.nestedObject(Constants.WHERE)?.let { where ->
-            condition = CreateConnectionWhere(schemaConfig, context)
-                .createConnectionWhere(
-                    where,
-                    relatedNode,
-                    endNode,
-                    relationField,
-                    dslRelation,
-                    schemaConfig.namingStrategy.resolveName(
-                        parameterPrefix,
-                        index.takeIf { relationField.typeMeta.type.isList() },
-                        "where"
-                    )
-                )
+        input.where?.let { where ->
+            condition = createConnectionWhere(
+                where as? ConnectionWhere.ImplementingTypeConnectionWhere ?: TODO("handle unions"),
+                relatedNode,
+                endNode,
+                relationField,
+                dslRelation,
+                schemaConfig.namingStrategy.resolveName(
+                    parameterPrefix,
+                    index.takeIf { relationField.typeMeta.type.isList() },
+                    "where"
+                ),
+                schemaConfig,
+                context,
+            )
         }
 
         if (relatedNode.auth != null) {
@@ -144,32 +145,38 @@ class CreateDisconnectTranslator(
                     .build()
             )
 
-        input.nestedObject(Constants.DISCONNECT_FIELD)?.let {
-            val disconnects = it as? List<*> ?: listOf(it)
-
+        input.disconnect?.let { disconnects ->
             val nestedWithVars = withVars + endNode.requiredSymbolicName
             disconnects.forEachIndexed { i, c ->
-                val (inputOnForNode, inputExcludingOnForNode) = InterfaceInputUtils
-                    .spiltInput(c as? Map<*, *>, relatedNode.name, relationField.isInterface)
+                val inputOnForNode = c.getAdditionalFieldsForImplementation(relatedNode)
+                val inputExcludingOnForNode = c.getCommonInterfaceFields(relatedNode)
 
+                fun nestedDisconnect(
+                    relField: RelationField,
+                    value: DisconnectFieldInput,
+                    classifier: ((RelationField, org.neo4j.graphql.domain.Node) -> String)? = null
+                ) {
 
-                inputExcludingOnForNode.forEach { (k, v) ->
-                    // TODO why in js startsWith is used for getting the field (line 193)?
-                    val relField = relatedNode.getField(k as String) as? RelationField ?: return@forEach
-
-                    val newRefNodes = if (relField.isUnion) {
-                        (v as Map<*, *>).keys.mapNotNull { relField.getNode(it as String) }
+                    val newRefNodes = if (value is DisconnectFieldInput.UnionDisconnectFieldInput) {
+                        value.keys
                     } else {
                         relField.getReferenceNodes()
                     }
 
                     newRefNodes.forEach { newRefNode ->
-                        call = CreateDisconnectTranslator(
+
+                        val inputs = when (value) {
+                            is DisconnectFieldInput.NodeDisconnectFieldInputs -> value
+                            is DisconnectFieldInput.UnionDisconnectFieldInput -> value[newRefNode] ?: return
+                            else -> throw IllegalStateException("unknown value type")
+                        }
+
+                        call = DisconnectTranslator(
                             nestedWithVars,
-                            if (relField.isUnion) v.nestedObject(newRefNode.name) else v,
+                            inputs,
                             schemaConfig.namingStrategy.resolveName(
                                 endNode,
-                                k,
+                                relField,
                                 newRefNode.name.takeIf { relField.isUnion }),
                             relField,
                             endNode,
@@ -181,51 +188,34 @@ class CreateDisconnectTranslator(
                                 parameterPrefix,
                                 i.takeIf { relField.typeMeta.type.isList() },
                                 "disconnect",
-                                k,
+                                classifier?.let { it(relField, newRefNode) },
+                                relField,
                                 newRefNode.name.takeIf { relField.isUnion }),
                             call,
                         )
                             .createDisconnectAndParams()
                     }
+                }
 
-                    if (relationField.isInterface && inputOnForNode != null) {
-                        // TODO harmonize with block above
-                        val onDisconnects = inputOnForNode as? List<*> ?: listOf(inputOnForNode)
-                        onDisconnects.forEachIndexed { onDisconnectIndex, onDisconnect ->
-                            (onDisconnect as? Map<*, *>)?.forEach { (k, v) ->
-                                newRefNodes.forEach { newRefNode ->
-                                    call = CreateDisconnectTranslator(
-                                        nestedWithVars,
-                                        if (relField.isUnion) v.nestedObject(newRefNode.name) else v,
-                                        schemaConfig.namingStrategy.resolveName(
-                                            endNode,
-                                            k,
-                                            newRefNode.name.takeIf { relField.isUnion }),
-                                        relField,
-                                        endNode,
-                                        context, schemaConfig,
-                                        listOf(newRefNode),
-                                        labelOverride = newRefNode.name.takeIf { relField.isUnion },
-                                        relatedNode,
-                                        schemaConfig.namingStrategy.resolveName(
-                                            parameterPrefix,
-                                            i.takeIf { relField.typeMeta.type.isList() },
-                                            "disconnect",
-                                            "_on",
-                                            newRefNode.name,
-                                            onDisconnectIndex.takeIf { relField.typeMeta.type.isList() },
-                                            k,
-                                            newRefNode.name.takeIf { relField.isUnion }),
-                                        call,
-                                    )
-                                        .createDisconnectAndParams()
-                                }
+                inputExcludingOnForNode.relations?.forEach { (k, v) -> nestedDisconnect(k, v) }
 
+                if (relationField.isInterface && inputOnForNode != null) {
+                    inputOnForNode.forEachIndexed { onDisconnectIndex, onDisconnect ->
+                        onDisconnect.relations?.forEach { (k, v) ->
+
+                            nestedDisconnect(k, v) { relField, newRefNode ->
+                                schemaConfig.namingStrategy.resolveName(
+                                    "_on",
+                                    newRefNode.name,
+                                    onDisconnectIndex.takeIf { relField.typeMeta.type.isList() },
+                                )
                             }
 
                         }
+
                     }
                 }
+
             }
         }
 

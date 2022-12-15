@@ -2,18 +2,18 @@ package org.neo4j.graphql.handler.v2
 
 import graphql.language.Field
 import graphql.schema.DataFetchingEnvironment
-import org.neo4j.cypherdsl.core.ExposesSubqueryCall
+import org.neo4j.cypherdsl.core.ExposesReturning
 import org.neo4j.cypherdsl.core.Statement
 import org.neo4j.cypherdsl.core.StatementBuilder.ExposesWith
-import org.neo4j.cypherdsl.core.StatementBuilder.OngoingReading
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
 import org.neo4j.graphql.domain.directives.ExcludeDirective
+import org.neo4j.graphql.domain.dto.UpdateInput
 import org.neo4j.graphql.handler.BaseDataFetcher
 import org.neo4j.graphql.schema.AugmentationHandlerV2
-import org.neo4j.graphql.translate.CreateProjection
-import org.neo4j.graphql.translate.CreateUpdate
+import org.neo4j.graphql.translate.ProjectionTranslator
+import org.neo4j.graphql.translate.UpdateTranslator
 import org.neo4j.graphql.translate.TopLevelMatchTranslator
 import org.neo4j.graphql.utils.ResolveTree
 
@@ -62,7 +62,7 @@ class UpdateResolver private constructor(
         val dslNode = node.asCypherNode(queryContext, variable)
         val resolveTree = ResolveTree.resolve(env) // todo move into parent class
 
-        val updateInput = resolveTree.args[Constants.UPDATE_FIELD]
+        val updateInput = resolveTree.args[Constants.UPDATE_FIELD]?.let { UpdateInput.create(node, it) }
         val connectInput = resolveTree.args[Constants.CONNECT_FIELD]
         val disconnectInput = resolveTree.args[Constants.DISCONNECT_FIELD]
         val createInput = resolveTree.args[Constants.CREATE_FIELD]
@@ -78,19 +78,19 @@ class UpdateResolver private constructor(
         val nodeProjection = resolveTree.getFieldOfType(node.typeNames.updateResponse, node.plural)
 
         if (updateInput != null) {
-            ongoingReading = CreateUpdate(
-                    dslNode,
-                    updateInput,
-                    dslNode,
-                    chainStr = null,
-                    node,
-                    withVars,
-                    queryContext,
-                    schemaConfig.namingStrategy.resolveParameter(resolveTree.name),
-                    true,
-                    schemaConfig,
-                    ongoingReading
-                )
+            ongoingReading = UpdateTranslator(
+                dslNode,
+                updateInput,
+                dslNode,
+                chainStr = null,
+                node,
+                withVars,
+                queryContext,
+                schemaConfig.namingStrategy.resolveParameter(resolveTree.name),
+                true,
+                schemaConfig,
+                ongoingReading
+            )
                 .createUpdateAndParams()
         }
 
@@ -100,7 +100,7 @@ class UpdateResolver private constructor(
 //            .createAuth(node.auth, AuthDirective.AuthOperation.READ)
 //            ?.let { ongoingReading = ongoingReading.call(it.apocValidate(Constants.AUTH_FORBIDDEN_ERROR)) }
 
-        val projection = CreateProjection()
+        val projection = ProjectionTranslator()
             .createProjectionAndParams(node, dslNode, env, null, schemaConfig, env.variables, queryContext)
 
         projection.authValidate
@@ -111,8 +111,8 @@ class UpdateResolver private constructor(
             }
 
         val mapProjection = dslNode.project(projection.projection).`as`(dslNode.requiredSymbolicName)
-        return (ongoingReading as OngoingReading)
-            .withSubQueries(projection.subQueries)
+        return (ongoingReading as ExposesReturning)
+//            .withSubQueries(projection.subQueries)
             .returning(mapProjection)
             .build()
     }

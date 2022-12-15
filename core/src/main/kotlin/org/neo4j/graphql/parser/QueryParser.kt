@@ -35,9 +35,9 @@ class ParsedQuery(
             ?: Conditions.noCondition()
 }
 
-abstract class Predicate<T>(
+abstract class Predicate<T, VALUE>(
     val op: T,
-    val value: Any?,
+    val value: VALUE,
     val normalizedName: String,
     val index: Int
 )
@@ -50,7 +50,7 @@ class FieldPredicate(
     value: Any?,
     val field: BaseField,
     index: Int
-) : Predicate<FieldOperator>(op, value, normalizeName(field.fieldName, op.suffix.toCamelCase()), index) {
+) : Predicate<FieldOperator, Any?>(op, value, normalizeName(field.fieldName, op.suffix.toCamelCase()), index) {
 
     fun createCondition(
         propertyContainer: PropertyContainer,
@@ -80,7 +80,7 @@ class RelationPredicate(
     val field: RelationField,
     index: Int,
     val connectionField: ConnectionField? = null,
-) : Predicate<RelationOperator>(
+) : Predicate<RelationOperator, Any?>(
     op,
     value,
     normalizeName(connectionField?.fieldName ?: field.fieldName, op.suffix.toCamelCase()),
@@ -236,7 +236,13 @@ object QueryParser {
                                 filter,
                                 queryFieldName
                             )
-                            RelationPredicate(harmonizedOperator, filter, definedField.relationshipField, index, definedField)
+                            RelationPredicate(
+                                harmonizedOperator,
+                                filter,
+                                definedField.relationshipField,
+                                index,
+                                definedField
+                            )
                         }
                     }
                     .forEach { relationPredicates.add(it) }
@@ -265,8 +271,8 @@ object QueryParser {
         }
 
         return ParsedQuery(
-            fieldPredicates.sortedBy(Predicate<*>::index),
-            relationPredicates.sortedBy(Predicate<*>::index),
+            fieldPredicates.sortedBy(Predicate<*, *>::index),
+            relationPredicates.sortedBy(Predicate<*, *>::index),
             or, and
         )
     }

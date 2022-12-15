@@ -41,6 +41,7 @@ object FieldFactory {
         typeDefinitionRegistry: TypeDefinitionRegistry,
         relationshipPropertiesFactory: (name: String) -> RelationshipProperties?,
         interfaceFactory: (name: String) -> Interface?,
+        schemaConfig: SchemaConfig,
     ): List<BaseField> {
         val objInterfaces = obj.implements
             .mapNotNull { typeDefinitionRegistry.getTypeByName<InterfaceTypeDefinition>(it.name()) }
@@ -112,7 +113,7 @@ object FieldFactory {
                     field.name,
                     typeMeta,
                     interfaze,
-                    union = fieldUnion?.memberTypes?.map { it.name() } ?: emptyList(),
+                    unionNodeNames = fieldUnion?.memberTypes?.map { it.name() } ?: emptyList(),
                     relationshipDirective.type,
                     relationshipDirective.direction,
                     relationshipDirective.queryDirection,
@@ -149,9 +150,9 @@ object FieldFactory {
             } else if (computedDirective != null) {
                 baseField = ComputedField(field.name, typeMeta, computedDirective.from)
             } else if (fieldScalar != null) {
-                baseField = CustomScalarField(field.name, typeMeta)
+                baseField = CustomScalarField(field.name, typeMeta, schemaConfig)
             } else if (fieldEnum != null) {
-                baseField = CustomEnumField(field.name, typeMeta)
+                baseField = CustomEnumField(field.name, typeMeta, schemaConfig)
                 if (defaultDirective != null) {
                     baseField.defaultValue = defaultDirective.value
                 }
@@ -173,7 +174,7 @@ object FieldFactory {
             } else if (ignoreDirective != null) {
                 baseField = IgnoredField(field.name, typeMeta)
             } else if (Constants.TEMPORAL_TYPES.contains(typeMeta.type.name())) {
-                baseField = TemporalField(field.name, typeMeta)
+                baseField = TemporalField(field.name, typeMeta, schemaConfig)
 
                 if (timestampDirective != null) {
                     if (typeMeta.type.isList()) {
@@ -195,9 +196,9 @@ object FieldFactory {
                     baseField.defaultValue = defaultDirective.value
                 }
             } else if (Constants.POINT_TYPES.contains(typeMeta.type.name())) {
-                baseField = PointField(field.name, typeMeta)
+                baseField = PointField(field.name, typeMeta, schemaConfig)
             } else {
-                baseField = PrimitiveField(field.name, typeMeta)
+                baseField = PrimitiveField(field.name, typeMeta, schemaConfig)
 
                 if (idDirective != null) {
                     if (idDirective.autogenerate) {

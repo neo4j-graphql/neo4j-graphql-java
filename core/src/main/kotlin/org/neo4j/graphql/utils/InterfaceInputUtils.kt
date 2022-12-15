@@ -3,6 +3,7 @@ package org.neo4j.graphql.utils
 import org.neo4j.graphql.Constants
 import org.neo4j.graphql.nestedMap
 
+//TODO remove
 object InterfaceInputUtils {
 
     fun spiltInput(input: Map<*, *>?, nodeName: String, isInterface: Boolean):

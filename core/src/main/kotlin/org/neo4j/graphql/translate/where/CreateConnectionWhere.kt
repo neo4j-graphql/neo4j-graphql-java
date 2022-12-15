@@ -2,113 +2,92 @@ package org.neo4j.graphql.translate.where
 
 import org.neo4j.cypherdsl.core.Condition
 import org.neo4j.cypherdsl.core.PropertyContainer
-import org.neo4j.graphql.*
+import org.neo4j.graphql.QueryContext
+import org.neo4j.graphql.SchemaConfig
+import org.neo4j.graphql.and
 import org.neo4j.graphql.domain.Node
+import org.neo4j.graphql.domain.dto.ConnectionWhere
+import org.neo4j.graphql.domain.dto.WhereInput
 import org.neo4j.graphql.domain.fields.RelationField
+import org.neo4j.graphql.domain.predicates.ConnectionPredicate
 
 //TODO completed
-class CreateConnectionWhere(val schemaConfig: SchemaConfig, val queryContext: QueryContext?) {
+fun createConnectionWhere(
+    whereInput: ConnectionWhere.ImplementingTypeConnectionWhere,
+    node: Node,
+    nodeVariable: PropertyContainer,
+    relationship: RelationField,
+    relationshipVariable: PropertyContainer,
+    parameterPrefix: String,
+    schemaConfig: SchemaConfig,
+    queryContext: QueryContext?
+): Condition? {
 
-    fun createConnectionWhere(
-        whereInputAny: Any?,
-        node: Node,
-        nodeVariable: PropertyContainer,
-        relationship: RelationField,
-        relationshipVariable: PropertyContainer,
-        parameterPrefix: String
-    ): Condition? {
-
-        val whereInput = whereInputAny as? Map<*, *> ?: return null
-
+    fun createOnNode(key: String, value: WhereInput): Condition? {
         var result: Condition? = null
 
-        whereInput.forEach { (k, value) ->
-            val key = k as? String ?: throw IllegalArgumentException("expected a string")
-
-            if (Constants.PREDICATE_JOINS.contains(key)) {
-                var innerCondition: Condition? = null
-                (value as List<*>).forEachIndexed { index, v ->
-                    createConnectionWhere(
-                        v,
-                        node,
-                        nodeVariable,
-                        relationship,
-                        relationshipVariable,
-                        schemaConfig.namingStrategy.resolveName(parameterPrefix, key, index)
-                    )?.let {
-
-                        innerCondition = if (Constants.OR == key) {
-                            innerCondition or it
-                        } else {
-                            innerCondition and it
-                        }
-                    }
-                }
-                innerCondition?.let { result = result and it }
-            }
-
-            if (key.startsWith(Constants.EDGE_FIELD) && relationship.properties != null) {
-                CreateWhere(schemaConfig, queryContext)
-                    .createWhere(
-                        relationship.properties,
-                        value,
-                        relationshipVariable,
-                        schemaConfig.namingStrategy.resolveName(parameterPrefix, k)
-                    )
-                    ?.let {
-                        // TODO check `not` case to work correctly
-                        result = result and it
+        if (value is WhereInput.FieldContainerWhereInput) {
+                    if (!value.hasFilterForNode(node)) {
+                        throw IllegalArgumentException("_on is used as the only argument and node is not present within")
                     }
 
+            val inputOnForNode = value.on?.get(node)
+            val inputExcludingOnForNode = value.excluding(inputOnForNode)
 
-            }
+            createWhere(
+                node,
+                inputExcludingOnForNode,
+                nodeVariable,
+                schemaConfig.namingStrategy.resolveName(parameterPrefix, key),
+                schemaConfig,
+                queryContext
+            )
+                ?.let { result = result and it }
 
-            if (key.startsWith(Constants.NODE_FIELD) || key == node.name) {
-                val valueMap = value as? Map<*, *>
-                if (valueMap?.size == 1
-                    && valueMap[Constants.ON] != null
-                    && (valueMap[Constants.ON] as? Map<*, *>)?.containsKey(node.name) == true
-                ) {
-                    throw IllegalArgumentException("_on is used as the only argument and node is not present within")
-                }
-
-                val inputOnForNode = (valueMap?.get(Constants.ON) as? Map<*, *>)?.get(node.name) as? Map<*, *>
-                val inputExcludingOnForNode = valueMap?.toMutableMap()
-                    ?.apply { keys.removeAll(inputOnForNode?.keys ?: emptySet()) }
-
-
-                CreateWhere(schemaConfig, queryContext)
-                    .createWhere(
-                        node,
-                        inputExcludingOnForNode,
-                        nodeVariable,
-                        schemaConfig.namingStrategy.resolveName(parameterPrefix, k)
-                    )
-                    ?.let {
-                        // TODO check `not` case to work correctly
-                        result = result and it
-                    }
-
-                val inputOnForNodeExcludingRoot = inputOnForNode
-                    ?.toMutableMap()
-                    ?.apply { keys.removeAll(inputExcludingOnForNode?.keys ?: emptySet()) }
-                if (inputOnForNode != null) {
-                    CreateWhere(schemaConfig, queryContext)
-                        .createWhere(
-                            node,
-                            inputOnForNodeExcludingRoot,
-                            nodeVariable,
-                            schemaConfig.namingStrategy.resolveName(parameterPrefix, k, "on", node.name)
-                        )
-                        ?.let {
-                            // TODO check `not` case to work correctly
-                            result = result and it
-                        }
-                }
-
+            if (inputOnForNode != null) {
+                createWhere(
+                    node,
+                    value.withPreferredOn(node),
+                    nodeVariable,
+                    schemaConfig.namingStrategy.resolveName(parameterPrefix, key, "on", node.name),
+                    schemaConfig,
+                    queryContext
+                )
+                    ?.let { result = result and it }
             }
         }
-
         return result
     }
+
+    var result = whereInput.reduceNestedConditions { key, index, nested ->
+        createConnectionWhere(
+            nested,
+            node,
+            nodeVariable,
+            relationship,
+            relationshipVariable,
+            schemaConfig.namingStrategy.resolveName(parameterPrefix, key, index),
+            schemaConfig,
+            queryContext
+        )
+    }
+
+    whereInput.predicates?.forEach { predicate ->
+        when (predicate.target) {
+            ConnectionPredicate.Target.EDGE -> createWhere(
+                relationship.properties,
+                predicate.value,
+                relationshipVariable,
+                schemaConfig.namingStrategy.resolveName(parameterPrefix, predicate.key),
+                schemaConfig,
+                queryContext
+            )
+
+            ConnectionPredicate.Target.NODE -> createOnNode(predicate.key, predicate.value)
+        }
+            ?.let { predicate.op.conditionCreator(it) }
+            ?.let { result = result and it }
+    }
+
+    return result
 }

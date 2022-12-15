@@ -5,13 +5,13 @@ import org.neo4j.cypherdsl.core.StatementBuilder.ExposesWith
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
+import org.neo4j.graphql.domain.dto.ConnectFieldInput
+import org.neo4j.graphql.domain.dto.ConnectInput
 import org.neo4j.graphql.domain.fields.RelationField
-import org.neo4j.graphql.translate.where.CreateWhere
-import kotlin.contracts.ExperimentalContracts
-import kotlin.contracts.contract
+import org.neo4j.graphql.translate.where.createWhere
 
 //TODO complete
-class CreateConnectTranslator(
+class ConnectTranslator(
     private val schemaConfig: SchemaConfig,
     private val queryContext: QueryContext?,
     private val parentNode: Node,
@@ -20,58 +20,16 @@ class CreateConnectTranslator(
     private val fromCreate: Boolean,
     private val withVars: List<SymbolicName>,
     private val relationField: RelationField,
-    private val value: Any?,
+    private val inputs: ConnectFieldInput.NodeConnectFieldInputs?,
     private val exposeWith: ExposesWith,
-    private val refNodes: List<Node>,
+    private val refNodes: Collection<Node>,
     private val labelOverride: String?,
-    private val includeRelationshipValidation: Boolean,
+    private val includeRelationshipValidation: Boolean = false,
 ) {
 
-    companion object {
-
-        fun createConnectAndParams(
-            schemaConfig: SchemaConfig,
-            queryContext: QueryContext?,
-            parentNode: Node,
-            varName: String,
-            parentVar: org.neo4j.cypherdsl.core.Node,
-            fromCreate: Boolean,
-            withVars: List<SymbolicName>,
-            relationField: RelationField,
-            value: Any?,
-            exposeWith: ExposesWith,
-            refNodes: List<Node>,
-            labelOverride: String?,
-            includeRelationshipValidation: Boolean = false,
-        ): ExposesWith {
-            return CreateConnectTranslator(
-                schemaConfig,
-                queryContext,
-                parentNode,
-                varName,
-                parentVar,
-                fromCreate,
-                withVars,
-                relationField,
-                value,
-                exposeWith,
-                refNodes,
-                labelOverride,
-                includeRelationshipValidation
-            )
-                .createConnectAndParams()
-        }
-    }
-
-    private fun createConnectAndParams(): ExposesWith {
-        val values = if (relationField.typeMeta.type.isList()) {
-            value as? List<*> ?: throw IllegalArgumentException("expected a list")
-        } else {
-            listOf(value)
-        }
+    fun createConnectAndParams(): ExposesWith {
         var result = exposeWith
-
-        values.forEachIndexed { index, connect ->
+        inputs?.forEachIndexed { index, connect ->
             if (parentNode.auth != null && !fromCreate) {
                 AuthTranslator(
                     schemaConfig,
@@ -85,7 +43,7 @@ class CreateConnectTranslator(
             val baseName = varName + index
 
             val subquery = if (relationField.isInterface) {
-                refNodes.mapNotNull { refNode ->
+                refNodes.map { refNode ->
                     createSubqueryContents(refNode, connect, baseName)
                 }
                     .takeIf { it.isNotEmpty() }
@@ -103,11 +61,9 @@ class CreateConnectTranslator(
 
     private fun createSubqueryContents(
         relatedNode: Node,
-        connectAny: Any?,
+        connect: ConnectFieldInput.NodeConnectFieldInput,
         baseName: String,
-    ): Statement? {
-        val connect = connectAny as? Map<*, *> ?: return null
-
+    ): Statement {
         val nodeName = (
                 labelOverride
                     ?.let { Cypher.node(labelOverride) }
@@ -145,25 +101,25 @@ class CreateConnectTranslator(
     private fun getConnectWhere(
         nodeName: org.neo4j.cypherdsl.core.Node,
         relatedNode: Node,
-        connect: Map<*, *>
+        connect: ConnectFieldInput.NodeConnectFieldInput
     ): Condition? {
-        val where = connect[Constants.WHERE] as? Map<*, *> ?: return null
-        val whereNode = where[Constants.NODE_FIELD] as? Map<*, *> ?: return null
+        val where = connect.where ?: return null
+        val whereNode = where.node
 
-        // If _on is the only where key and it doesn't contain this implementation, don't connect it
-        val on = whereNode[Constants.ON] as? Map<*, *>
-        if (on != null && whereNode.size == 1 && !on.containsKey(relatedNode.name)) {
+        // If _on is the only `where`-key and it doesn't contain this implementation, don't connect it
+        if (!whereNode.hasFilterForNode(relatedNode)) {
             return null
         }
 
-        val whereInput = (on?.get(relatedNode.name) as? Map<*, *>)?.let { onFields ->
-            // If this where key is also inside _on for this implementation, use the one in _on instead
-            whereNode.toMutableMap().also { it.putAll(onFields) }
-        } ?: whereNode
-
-
-        var conditions = CreateWhere(schemaConfig, queryContext)
-            .createWhere(relatedNode, whereInput, varName = nodeName)
+        val whereInput = whereNode.withPreferredOn(relatedNode)
+        var conditions = createWhere(
+            relatedNode,
+            whereInput,
+            propertyContainer = nodeName,
+            chainStr = null,
+            schemaConfig,
+            queryContext
+        )
 
         if (relatedNode.auth != null) {
 
@@ -208,20 +164,19 @@ class CreateConnectTranslator(
     private fun getMergeConnectionStatement(
         nodeName: org.neo4j.cypherdsl.core.Node,
         baseName: String,
-        connect: Map<*, *>
+        connect: ConnectFieldInput.NodeConnectFieldInput
     ): ResultStatement {
         var createDslRelation = relationField.createDslRelation(parentVar, nodeName)
         val edgeSet = if (relationField.properties != null) {
             createDslRelation =
                 createDslRelation.named(schemaConfig.namingStrategy.resolveName(baseName, "relationship"))
-            CreateSetPropertiesTranslator
-                .createSetProperties(
-                    createDslRelation,
-                    connect[Constants.EDGE_FIELD],
-                    CreateSetPropertiesTranslator.Operation.CREATE,
-                    relationField.properties,
-                    schemaConfig
-                )
+            createSetProperties(
+                createDslRelation,
+                connect.edge,
+                Operation.CREATE,
+                relationField.properties,
+                schemaConfig
+            )
         } else {
             emptySet()
         }
@@ -244,7 +199,7 @@ class CreateConnectTranslator(
         var resultQuery = subQuery
         listOf(parentNode to parentVar, relatedNode to nodeName)
             .forEach { (node, varName) ->
-                CreateRelationshipValidationTranslator
+                RelationshipValidationTranslator
                     .createRelationshipValidations(node, varName, queryContext, schemaConfig)
                     .takeIf { it.isNotEmpty() }
                     ?.let {
@@ -259,86 +214,74 @@ class CreateConnectTranslator(
     private fun addNestedConnects(
         nodeName: org.neo4j.cypherdsl.core.Node,
         relatedNode: Node,
-        connect: Map<*, *>,
+        connect: ConnectFieldInput.NodeConnectFieldInput,
         subQuery: ExposesWith
     ): ExposesWith {
-        val connects = connect[Constants.CONNECT_FIELD]?.let { nestedConnectAny ->
-            if (nestedConnectAny is List<*>) {
-                nestedConnectAny
-            } else {
-                listOf(nestedConnectAny)
-            }
-        } ?: return subQuery
-
-        var resultQuery = subQuery
-
-        connects
-            .filterIsInstance<Map<*, *>>()
-            .forEach { c -> resultQuery = addNestedConnect(nodeName, relatedNode, c, resultQuery) }
-
-        return resultQuery
+        val connects = connect.connect ?: return subQuery
+        return connects.fold(subQuery) { resultQuery, input ->
+            addNestedConnect(
+                nodeName,
+                relatedNode,
+                input,
+                resultQuery
+            )
+        }
     }
 
     private fun addNestedConnect(
         nodeName: org.neo4j.cypherdsl.core.Node,
         relatedNode: Node,
-        connect: Map<*, *>,
+        connect: ConnectInput,
         subQuery: ExposesWith
     ): ExposesWith {
-        val on = connect[Constants.ON] as? Map<*, *>
+        val on = connect.on
+        val onInterface = on?.get(relatedNode)?.takeIf { relationField.isInterface }
         var resultQuery: ExposesWith = subQuery
-        connect.forEach { (k, v) ->
-
-            if (k == Constants.ON) {
+        connect.forEach { (relField, v) ->
+            if (onInterface?.find { it.containsKey(relField) } != null) {
                 return@forEach
             }
 
-            if (relationField.isInterface && on?.get(relatedNode.name) != null) {
-                val onList = on[relatedNode.name] as? List<*> ?: listOf(on[relatedNode.name])
-                if (onList.find { (it as? Map<*, *>)?.containsKey(k) == true } != null) {
-                    return@forEach
-                }
-            }
-
-            val relField = relatedNode.getField(k as String) as? RelationField ?: return@forEach
             val newRefNodes = mutableListOf<Node>()
-            if (relField.isUnion) {
-                newRefNodes += (v as Map<*, *>).mapNotNull { relField.getNode(it.key as String) }
+            if (v is ConnectFieldInput.UnionConnectFieldInput) {
+                newRefNodes += v.keys
             } else {
                 // TODO what about interfaces?
                 relField.node?.let { newRefNodes += it }
             }
 
             newRefNodes.forEach { newRefNode ->
-                resultQuery = createConnectAndParams(
+                val nestedInputs = when (v) {
+                    is ConnectFieldInput.UnionConnectFieldInput -> v[newRefNode] ?: return@forEach
+                    is ConnectFieldInput.NodeConnectFieldInputs -> v
+                    else -> throw IllegalStateException("unknown type for ConnectFieldInput")
+                }
+                resultQuery = ConnectTranslator(
                     schemaConfig,
                     queryContext,
                     parentNode = relatedNode,
                     varName = schemaConfig.namingStrategy.resolveName(
                         nodeName.requiredSymbolicName.value,
-                        k,
+                        relField,
                         newRefNode.name.takeIf { relField.isUnion }),
                     parentVar = nodeName,
                     fromCreate = false, // TODO I think we should pass through the `fromCreate`
                     withVars = withVars + nodeName.requiredSymbolicName,
                     relationField = relField,
-                    value = if (relField.isUnion) (v as? Map<*, *>)?.get(newRefNode.name) else v,
+                    inputs = nestedInputs,
                     exposeWith = resultQuery,
                     refNodes = listOf(newRefNode),
                     labelOverride = newRefNode.name.takeIf { relField.isUnion },
                     includeRelationshipValidation = true
-                )
+                ).createConnectAndParams()
             }
         }
 
-        if (relationField.isInterface && on?.get(relatedNode.name) != null) {
-            val onConnects = on[relatedNode.name] as? List<*> ?: listOf(on[relatedNode.name])
+        if (onInterface != null) {
 
             // TODO merge with the block above
-            onConnects.forEachIndexed { onConnectIndex, onConnectAny ->
-                val onConnect = onConnectAny as Map<*, *>
-                onConnect.forEach { k, v ->
-                    val relField = relatedNode.getField(k as String) as? RelationField ?: return@forEach
+            onInterface.forEachIndexed { onConnectIndex, onConnect ->
+                onConnect.forEach { relField, v ->
                     val newRefNodes = mutableListOf<Node>()
                     if (relField.isUnion) {
                         newRefNodes += (v as Map<*, *>).mapNotNull { relField.getNode(it.key as String) }
@@ -348,7 +291,12 @@ class CreateConnectTranslator(
                     }
 
                     newRefNodes.forEach { newRefNode ->
-                        resultQuery = createConnectAndParams(
+                        val nestedInputs = when (v) {
+                            is ConnectFieldInput.UnionConnectFieldInput -> v[newRefNode] ?: return@forEach
+                            is ConnectFieldInput.NodeConnectFieldInputs -> v
+                            else -> throw IllegalStateException("unknown type for ConnectFieldInput")
+                        }
+                        resultQuery = ConnectTranslator(
                             schemaConfig,
                             queryContext,
                             parentNode = relatedNode,
@@ -356,17 +304,17 @@ class CreateConnectTranslator(
                                 nodeName.requiredSymbolicName.value,
                                 "on",
                                 relatedNode.name + onConnectIndex,
-                                k
+                                relField
                             ),
                             parentVar = nodeName,
                             fromCreate = false, // TODO do we need to pass through the `fromCreate`?
                             withVars = withVars + nodeName.requiredSymbolicName,
                             relationField = relField,
-                            value = if (relField.isUnion) (v as? Map<*, *>)?.get(newRefNode.name) else v,
+                            inputs = nestedInputs,
                             exposeWith = resultQuery,
                             refNodes = listOf(newRefNode),
                             labelOverride = newRefNode.name.takeIf { relField.isUnion },
-                        )
+                        ).createConnectAndParams()
                     }
                 }
             }

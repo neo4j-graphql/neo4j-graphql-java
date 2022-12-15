@@ -5,14 +5,14 @@ import org.neo4j.cypherdsl.core.StatementBuilder.ExposesWith
 import org.neo4j.cypherdsl.core.StatementBuilder.OngoingReading
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.directives.AuthDirective
+import org.neo4j.graphql.domain.dto.*
 import org.neo4j.graphql.domain.fields.AuthableField
 import org.neo4j.graphql.domain.fields.RelationField
-import org.neo4j.graphql.translate.where.CreateConnectionWhere
-import org.neo4j.graphql.utils.InterfaceInputUtils
+import org.neo4j.graphql.translate.where.createConnectionWhere
 
-class CreateUpdate(
+class UpdateTranslator(
     private val parentVar: Node,
-    private val updateInputAny: Any?,
+    private val updateInput: UpdateInput?,
     private val varName: Node,
     private val chainStr: String?,
     private val node: org.neo4j.graphql.domain.Node,
@@ -25,7 +25,7 @@ class CreateUpdate(
 ) {
 
     fun createUpdateAndParams(): ExposesWith {
-        val updateInput = updateInputAny as? Map<*, *> ?: return ongoingReading
+        if (updateInput == null) return ongoingReading
 
         var preAuthCondition = AuthTranslator(schemaConfig, context, allow = AuthTranslator.AuthOptions(varName, node))
             .createAuth(node.auth, AuthDirective.AuthOperation.UPDATE)
@@ -39,21 +39,22 @@ class CreateUpdate(
         )
             .createAuth(node.auth, AuthDirective.AuthOperation.UPDATE)
 
-        fun getParam(key: String) = if (chainStr != null) {
-            schemaConfig.namingStrategy.resolveName(chainStr, key)
+        val prefix = if (chainStr != null) {
+            schemaConfig.namingStrategy.resolveName(chainStr)
         } else {
-            schemaConfig.namingStrategy.resolveName(parentVar.name(), "update", key)
+            schemaConfig.namingStrategy.resolveName(parentVar, "update")
         }
 
-        updateInput.forEach { (key, value) ->
-            val field = node.getField(key as String) ?: return@forEach
+        fun getParam(key: Any) = schemaConfig.namingStrategy.resolveName(prefix, key)
 
+
+        updateInput.fields().forEach { field ->
             if (field is AuthableField && field.auth != null) {
 
                 AuthTranslator(
                     schemaConfig,
                     context,
-                    allow = AuthTranslator.AuthOptions(parentVar, node, chainStr = getParam(key))
+                    allow = AuthTranslator.AuthOptions(parentVar, node, chainStr = getParam(field))
                 )
                     .createAuth(field.auth, AuthDirective.AuthOperation.UPDATE)
                     ?.let { preAuthCondition = preAuthCondition and it }
@@ -61,7 +62,7 @@ class CreateUpdate(
                 AuthTranslator(
                     schemaConfig,
                     context,
-                    bind = AuthTranslator.AuthOptions(parentVar, node, chainStr = getParam(key)),
+                    bind = AuthTranslator.AuthOptions(parentVar, node, chainStr = getParam(field)),
                     skipIsAuthenticated = true,
                     skipRoles = true
                 )
@@ -74,26 +75,20 @@ class CreateUpdate(
         var result = ongoingReading
 
         preAuthCondition?.let { result = result.maybeWith(withVars).apocValidate(it, Constants.AUTH_FORBIDDEN_ERROR) }
-        result = CreateSetPropertiesTranslator
-            .createSetProperties(
-                varName,
-                updateInput,
-                CreateSetPropertiesTranslator.Operation.UPDATE,
-                node,
-                schemaConfig,
-                chainStr
-            )
+        result = createSetProperties(
+            varName,
+            updateInput.properties,
+            Operation.UPDATE,
+            node,
+            schemaConfig,
+            prefix
+        )
             .takeIf { it.isNotEmpty() }
             ?.let { result.requiresExposeSet(withVars).set(it) } ?: result
 
 
-        updateInput.forEach { (key, value) ->
-            val field = node.getField(key as String) ?: return@forEach
-
-            if (field is RelationField) {
-                result = handleRelationField(field, value, getParam(key), result)
-                return@forEach
-            }
+        updateInput.relations?.forEach { (field, value) ->
+            result = handleRelationField(field, value, getParam(field), result)
 
             // TODO subscriptions
         }
@@ -103,17 +98,17 @@ class CreateUpdate(
         }
 
         if (includeRelationshipValidation) {
-            CreateRelationshipValidationTranslator
+            RelationshipValidationTranslator
                 .createRelationshipValidations(node, varName, context, schemaConfig)
                 .takeIf { it.isNotEmpty() }
-                ?.let { result = result.with(withVars).withSubQueries(it) }
+                ?.let { result = result.maybeWith(withVars).withSubQueries(it) }
         }
         return result
     }
 
     private fun handleRelationField(
         field: RelationField,
-        value: Any?,
+        value: UpdateFieldInputs,
         param: String,
         subquery: ExposesWith,
     ): ExposesWith {
@@ -122,28 +117,24 @@ class CreateUpdate(
         var result = subquery
         refNodes.forEach { refNode ->
 
-            val v = if (field.isUnion) {
-                (value as? Map<*, *>)?.get(refNode.name)
-            } else {
-                value
+            val inputs = when (value) {
+                is UpdateFieldInputs.NodeUpdateFieldInputs -> value
+                is UpdateFieldInputs.UnionUpdateFieldInputs -> value[refNode] ?: return@forEach
+                else -> throw IllegalStateException("unknown value type")
             }
-            // TODO we should check the type of v instead of the fields type meta
-            val inputs = if (field.typeMeta.type.isList()) v as List<*> else listOf(v)
-
-            inputs.forEachIndexed { index, inputAny ->
-                val input = inputAny as Map<*, *>
+            inputs.forEachIndexed { index, input ->
                 val _varName = schemaConfig.namingStrategy.resolveName(
                     varName.name(),
                     key.let { it + (index.takeIf { !field.isUnion } ?: "") },
                     (refNode.name + index).takeIf { field.isUnion }
                 )
 
-                input.nestedMap(Constants.UPDATE_FIELD)?.let { update ->
+                input.update?.let { update ->
                     result = handleNestedUpdate(refNode, field, input, update, index, _varName, result, param)
                 }
 
-                input.nestedMap(Constants.DISCONNECT_FIELD)?.let {
-                    result = CreateDisconnectTranslator(
+                input.disconnect?.let {
+                    result = DisconnectTranslator(
                         withVars,
                         it,
                         schemaConfig.namingStrategy.resolveName(_varName, "disconnect"),
@@ -166,8 +157,8 @@ class CreateUpdate(
                         .createDisconnectAndParams()
                 }
 
-                input.nestedMap(Constants.CONNECT_FIELD)?.let { connect ->
-                    result = CreateConnectTranslator.createConnectAndParams(
+                input.connect?.let { connect ->
+                    result = ConnectTranslator(
                         schemaConfig,
                         context,
                         node,
@@ -181,18 +172,28 @@ class CreateUpdate(
                         listOf(refNode),
                         refNode.name.takeIf { field.isUnion },
                         includeRelationshipValidation = false
+                    ).createConnectAndParams()
+                }
+
+                input.connectOrCreate?.let { connectOrCreate ->
+                    result = createConnectOrCreate(
+                        connectOrCreate,
+                        schemaConfig.namingStrategy.resolveName(_varName, "connectOrCreate"),
+                        varName,
+                        field,
+                        refNode,
+                        withVars,
+                        result,
+                        context,
+                        schemaConfig
                     )
                 }
 
-                input.nestedMap(Constants.CONNECT_OR_CREATE_FIELD)?.let {
-                    TODO("createDisconnectAndParams 321")
-                }
-
-                input.nestedMap(Constants.DELETE_FIELD)?.let {
+                input.delete?.let { delete ->
                     TODO("createDisconnectAndParams 335")
                 }
 
-                input.nestedMap(Constants.CREATE_FIELD)?.let {
+                input.create?.let { create ->
                     TODO("createDisconnectAndParams 355")
                 }
             }
@@ -203,8 +204,8 @@ class CreateUpdate(
     private fun handleNestedUpdate(
         refNode: org.neo4j.graphql.domain.Node,
         field: RelationField,
-        input: Map<*, *>,
-        update: Map<*, *>,
+        input: UpdateFieldInput,
+        update: UpdateConnectionInput,
         index: Int,
         _varName: String,
         exposesWith: ExposesWith,
@@ -224,20 +225,22 @@ class CreateUpdate(
         )
         var condition: Condition? = null
 
-        input[Constants.WHERE]?.let { whereAny ->
-            CreateConnectionWhere(schemaConfig, context)
-                .createConnectionWhere(
-                    whereAny,
-                    refNode,
-                    endNode,
-                    field,
-                    rel,
-                    schemaConfig.namingStrategy.resolveParameter(
-                        parameterPrefix,
-                        field.fieldName,
-                        refNode.name.takeIf { field.isUnion },
-                        index.takeIf { field.typeMeta.type.isList() })
-                )
+        input.where?.let { where ->
+            createConnectionWhere(
+                where as? ConnectionWhere.ImplementingTypeConnectionWhere
+                    ?: throw IllegalArgumentException("only `where` for nodes are expected"),
+                refNode,
+                endNode,
+                field,
+                rel,
+                schemaConfig.namingStrategy.resolveParameter(
+                    parameterPrefix,
+                    field.fieldName,
+                    refNode.name.takeIf { field.isUnion },
+                    index.takeIf { field.typeMeta.type.isList() }),
+                schemaConfig,
+                context,
+            )
                 ?.let { condition = condition and it }
         }
 
@@ -251,15 +254,15 @@ class CreateUpdate(
             (result as ExposesMatch).optionalMatch(rel)
         }.let { if (condition != null) it.where(condition) else it }
 
-        update.nestedMap(Constants.NODE_FIELD)?.let { nodeUpdate ->
+        update.node?.let { nodeUpdate ->
 
 
             val nestedWithVars = listOf(endNode.requiredSymbolicName)
 
-            val (inputOnForNode, inputExcludingOnForNode) = InterfaceInputUtils
-                .spiltInput(nodeUpdate, refNode.name, field.isInterface)
+            val inputExcludingOnForNode = nodeUpdate.getCommonInterfaceFields(refNode)
+            val inputOnForNode = nodeUpdate.getAdditionalFieldsForImplementation(refNode)
 
-            var subResult = CreateUpdate(
+            var subResult = UpdateTranslator(
                 endNode,
                 inputExcludingOnForNode,
                 endNode,
@@ -285,7 +288,7 @@ class CreateUpdate(
             ).createUpdateAndParams()
 
             if (field.isInterface && inputOnForNode != null) {
-                subResult = CreateUpdate(
+                subResult = UpdateTranslator(
                     endNode,
                     inputOnForNode,
                     endNode,
@@ -334,23 +337,22 @@ class CreateUpdate(
         }
 
         field.properties?.let { edgeProperties ->
-            update.nestedMap(Constants.EDGE_FIELD)?.let { edgeUpdate ->
-                result = CreateSetPropertiesTranslator
-                    .createSetProperties(
-                        rel,
-                        edgeUpdate,
-                        CreateSetPropertiesTranslator.Operation.UPDATE,
-                        edgeProperties,
-                        schemaConfig,
-                        schemaConfig.namingStrategy.resolveName(
-                            parameterPrefix,
-                            field,
-                            refNode.name.takeIf { field.isUnion },
-                            index.takeIf { field.typeMeta.type.isList() },
-                            "update",
-                            "edge"
-                        )
+            update.edge?.let { edgeUpdate ->
+                result = createSetProperties(
+                    rel,
+                    edgeUpdate,
+                    Operation.UPDATE,
+                    edgeProperties,
+                    schemaConfig,
+                    schemaConfig.namingStrategy.resolveName(
+                        parameterPrefix,
+                        field,
+                        refNode.name.takeIf { field.isUnion },
+                        index.takeIf { field.typeMeta.type.isList() },
+                        "update",
+                        "edge"
                     )
+                )
                     .takeIf { it.isNotEmpty() }
                     ?.let {
                         exposesWith.requiresExposeSet(listOf(rel.requiredSymbolicName))

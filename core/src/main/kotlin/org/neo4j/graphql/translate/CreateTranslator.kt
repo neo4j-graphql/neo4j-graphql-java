@@ -8,46 +8,42 @@ import org.neo4j.graphql.*
 import org.neo4j.graphql.Constants.AUTH_FORBIDDEN_ERROR
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
-import org.neo4j.graphql.domain.fields.BaseField
-import org.neo4j.graphql.domain.fields.ConnectionField
+import org.neo4j.graphql.domain.dto.CreateInput
+import org.neo4j.graphql.domain.dto.CreateRelationFieldInput
 import org.neo4j.graphql.domain.fields.RelationField
 
 class CreateTranslator(
     val schemaConfig: SchemaConfig,
-    val variables: Map<String, Any>,
     val queryContext: QueryContext?,
 ) {
 
     fun createCreateAndParams(
         node: Node,
         dslNode: org.neo4j.cypherdsl.core.Node,
-        input: Map<*, *>?,
+        input: CreateInput.NodeCreateInput?,
         withVars: List<SymbolicName>,
         includeRelationshipValidation: Boolean = false,
         createFactory: (dslNode: org.neo4j.cypherdsl.core.Node) -> OngoingUpdate = { Cypher.create(it) },
     ): BuildableMatchAndUpdate {
         var create: ExposesSet = createFactory(dslNode)
 
-        if (input != null) {
-            CreateSetPropertiesTranslator
-                .createSetProperties(dslNode, input, CreateSetPropertiesTranslator.Operation.CREATE, node, schemaConfig)
+        var authConditions: Condition? = null
+        input?.properties?.let { properties ->
+            createSetProperties(dslNode, properties, Operation.CREATE, node, schemaConfig)
                 .let { create = create.set(it) }
+
+            properties.keys.forEach { field ->
+                if (field.auth != null) {
+                    AuthTranslator(schemaConfig, queryContext, bind = AuthTranslator.AuthOptions(dslNode, node))
+                        .createAuth(field.auth, AuthDirective.AuthOperation.CREATE)
+                        ?.let { authConditions = authConditions and it }
+                }
+            }
         }
 
         var exposeWith = create as ExposesWith
-        var authConditions: Condition? = null
-        input?.forEach { (fieldName, value) ->
-            val field = node.getField(fieldName as String) ?: return@forEach
-            exposeWith = reducer(node, field, value, dslNode, withVars, exposeWith)
-
-            // TODO why only for primitive fields in JS
-            val fieldAuth = field.auth
-            if (field !is RelationField && field !is ConnectionField && fieldAuth != null) {
-                AuthTranslator(schemaConfig, queryContext, bind = AuthTranslator.AuthOptions(dslNode, node))
-                    .createAuth(fieldAuth, AuthDirective.AuthOperation.CREATE)
-                    ?.let { authConditions = authConditions and it }
-            }
-
+        input?.relations?.forEach { (field, value) ->
+            exposeWith = handleRelation(node, field, value, dslNode, withVars, exposeWith)
         }
 
         if (node.auth != null) {
@@ -63,7 +59,7 @@ class CreateTranslator(
         }
 
         if (includeRelationshipValidation) {
-            CreateRelationshipValidationTranslator
+            RelationshipValidationTranslator
                 .createRelationshipValidations(node, dslNode, queryContext, schemaConfig)
                 .takeIf { it.isNotEmpty() }
                 ?.let {
@@ -77,10 +73,10 @@ class CreateTranslator(
     }
 
 
-    fun reducer(
+    private fun handleRelation(
         node: Node,
-        field: BaseField,
-        value: Any?,
+        field: RelationField,
+        value: CreateRelationFieldInput,
         dslNode: org.neo4j.cypherdsl.core.Node,
         withVars: List<SymbolicName>,
         exposeWith: ExposesWith
@@ -90,155 +86,130 @@ class CreateTranslator(
         val fieldName = field.fieldName
         val varNameKey = schemaConfig.namingStrategy.resolveName(varName, fieldName)
 
-        val field = node.getField(fieldName)
-        if (field is RelationField) {
-            val refNodes: List<Node> = if (field.isUnion) {
-                @Suppress("UNCHECKED_CAST")
-                (value as? Map<String, *>)?.keys
-                    ?.mapNotNull { unionTypeName -> field.getNode(unionTypeName) }
-                    ?: emptyList()
-            } else if (field.interfaze != null) {
-                field.interfaze.implementations
-            } else {
-                listOf(field.node ?: throw IllegalStateException("missing node for ${node.name}.$fieldName"))
+        val refNodes = if (value is CreateRelationFieldInput.UnionCreateRelationFieldInput) {
+            value.keys
+        } else if (field.interfaze != null) {
+            field.interfaze.implementations.values
+        } else {
+            listOf(field.node ?: throw IllegalStateException("missing node for ${node.name}.$fieldName"))
+        }
+
+        refNodes.forEach { refNode ->
+            val (v, unionTypeName) = when (value) {
+                is CreateRelationFieldInput.UnionCreateRelationFieldInput -> value[refNode] to field.fieldName
+                is CreateRelationFieldInput.NodeCreateRelationFieldInput -> value to field.fieldName.takeIf { field.isInterface }
+                else -> throw IllegalStateException("unknown type for CreateFieldInput")
             }
-
-            /*
-            {
-                unionField: {
-                    UnionTypeName1:  {
-                        filedOfUnionType1: value
-                    }
-                    UnionTypeName2:  {
-                        filedOfUnionType2: value
-                    }
-                }
-                interfaceField: {
-                    filedOfInterface: value
-                }
-             */
-            refNodes.forEach { refNode ->
-                val (v, unionTypeName) = when {
-                    field.isUnion -> (value as Map<*, *>)[refNode.name] to field.fieldName
-                    field.isInterface -> value to field.fieldName
-                    else -> value to null
-                }
-                (v as? Map<*, *>)
-                    ?.let { v[Constants.CREATE_FIELD] }
-                    ?.let { createField ->
-                        val creates = when (field.typeMeta.type.isList()) {
-                            true -> createField as? List<*>
-                                ?: throw IllegalArgumentException("expected $fieldName to be a list")
-                            false -> listOf(createField)
-                        }
-
-                        creates.forEachIndexed { index, createAny ->
-                            val create = createAny as? Map<*, *> ?: return@forEachIndexed
-                            val nodeField = create[Constants.NODE_FIELD] as? Map<*, *>
-                            val edgeField = create[Constants.EDGE_FIELD] as? Map<*, *>
-
-                            val subInput = if (field.isInterface) {
-                                nodeField?.get(refNode.name) as? Map<*, *> ?: return@forEachIndexed
-                            } else {
-                                nodeField
-                            }
-
-                            fun getName(suffix: String) = schemaConfig.namingStrategy.resolveName(
-                                varName,
-                                fieldName + index,
-                                unionTypeName,
-                                suffix
-                            )
-
-                            val propertiesName = field.properties?.let { getName("relationship") }
-
-                            val nodeName = getName("node")
-                            val refDslNode = refNode.asCypherNode(queryContext).named(nodeName)
-
-                            val dslRelation = field.createDslRelation(dslNode, refDslNode, propertiesName)
-                            resultExposeWith = createCreateAndParams(
-                                refNode,
-                                refDslNode,
-                                subInput,
-                                withVars + refDslNode.requiredSymbolicName,
-                                includeRelationshipValidation = false,
-                                createFactory = { resultExposeWith.with(withVars).create(it) }
-                            )
-                                .merge(dslRelation)
-                                .let { merge ->
-                                    if (propertiesName != null) {
-                                        val expressions = CreateSetPropertiesTranslator.createSetProperties(
-                                            dslRelation,
-                                            edgeField ?: emptyMap<Any, Any>(),
-                                            CreateSetPropertiesTranslator.Operation.CREATE,
-                                            field.properties,
-                                            schemaConfig
-                                        )
-                                        merge.set(expressions)
-                                    } else {
-                                        merge
-                                    }
-                                }
-
-                            CreateRelationshipValidationTranslator
-                                .createRelationshipValidations(refNode, refDslNode, queryContext, schemaConfig)
-                                .takeIf { it.isNotEmpty() }
-                                ?.let {
-                                    resultExposeWith = resultExposeWith
-                                        .with(withVars + refDslNode.requiredSymbolicName)
-                                        .withSubQueries(it)
-                                }
-                        }
+            v?.create?.let { creates ->
+                creates.forEachIndexed { index, create ->
+                    val edgeField = create.edge
+                    val nestedInput = when (val nodeField = create.node) {
+                        is CreateInput.NodeCreateInput -> nodeField
+                        is CreateInput.InterfaceCreateInput -> nodeField[refNode]
+                        else -> null
                     }
 
-
-                (v as? Map<*, *>)?.get(Constants.CONNECT_FIELD)?.let {
-                    if (!field.isInterface) {
-                        resultExposeWith = CreateConnectTranslator.createConnectAndParams(
-                            schemaConfig,
-                            queryContext,
-                            node,
-                            schemaConfig.namingStrategy.resolveName(
-                                varNameKey,
-                                if (field.isUnion) unionTypeName else null,
-                                "connect"
-                            ),
-                            dslNode,
-                            fromCreate = true,
-                            withVars,
-                            field,
-                            it,
-                            resultExposeWith,
-                            listOf(refNode),
-                            labelOverride = unionTypeName,
-                        )?: throw IllegalStateException("resultExposeWith should not be null")
-                    }
-                }
-
-
-                (v as? Map<*, *>)?.let { v[Constants.CONNECT_OR_CREATE_FIELD] }?.let {
-                    TODO("createConnectOrCreateAndParams")
-                }
-            }
-
-            (value as? Map<*, *>)?.get(Constants.CONNECT_FIELD)?.let {
-                if (field.isInterface) {
-                    resultExposeWith = CreateConnectTranslator.createConnectAndParams(
-                        schemaConfig,
-                        queryContext,
-                        node,
-                        schemaConfig.namingStrategy.resolveName(varNameKey, "connect"),
-                        dslNode,
-                        fromCreate = true,
-                        withVars,
-                        field,
-                        it,
-                        resultExposeWith,
-                        refNodes,
-                        labelOverride = null
+                    fun getName(suffix: String) = schemaConfig.namingStrategy.resolveName(
+                        varName,
+                        fieldName + index,
+                        unionTypeName,
+                        suffix
                     )
+
+                    val propertiesName = field.properties?.let { getName("relationship") }
+
+                    val nodeName = getName("node")
+                    val refDslNode = refNode.asCypherNode(queryContext).named(nodeName)
+
+                    val dslRelation = field.createDslRelation(dslNode, refDslNode, propertiesName)
+                    resultExposeWith = createCreateAndParams(
+                        refNode,
+                        refDslNode,
+                        nestedInput,
+                        withVars + refDslNode.requiredSymbolicName,
+                        includeRelationshipValidation = false,
+                        createFactory = { resultExposeWith.with(withVars).create(it) }
+                    )
+                        .merge(dslRelation)
+                        .let { merge ->
+                            if (propertiesName != null) {
+                                val expressions = createSetProperties(
+                                    dslRelation,
+                                    edgeField,
+                                    Operation.CREATE,
+                                    field.properties,
+                                    schemaConfig
+                                )
+                                merge.set(expressions)
+                            } else {
+                                merge
+                            }
+                        }
+
+                    RelationshipValidationTranslator
+                        .createRelationshipValidations(refNode, refDslNode, queryContext, schemaConfig)
+                        .takeIf { it.isNotEmpty() }
+                        ?.let {
+                            resultExposeWith = resultExposeWith
+                                .with(withVars + refDslNode.requiredSymbolicName)
+                                .withSubQueries(it)
+                        }
                 }
             }
+
+            v?.connect?.takeIf { !field.isInterface }?.let { connects ->
+                resultExposeWith = ConnectTranslator(
+                    schemaConfig,
+                    queryContext,
+                    node,
+                    schemaConfig.namingStrategy.resolveName(
+                        varNameKey,
+                        if (field.isUnion) unionTypeName else null,
+                        "connect"
+                    ),
+                    dslNode,
+                    fromCreate = true,
+                    withVars,
+                    field,
+                    connects,
+                    resultExposeWith,
+                    listOf(refNode),
+                    labelOverride = unionTypeName,
+                ).createConnectAndParams()
+            }
+
+
+            v?.connectOrCreate?.let { connectOrCreate ->
+                resultExposeWith =  createConnectOrCreate(
+                    connectOrCreate,
+                    schemaConfig.namingStrategy.resolveName(varNameKey, unionTypeName, "connectOrCreate"),
+                    dslNode,
+                    field,
+                    refNode,
+                    withVars,
+                    resultExposeWith,
+                    queryContext,
+                    schemaConfig
+                )
+            }
+        }
+
+        if (value is CreateRelationFieldInput.NodeCreateRelationFieldInput && field.isInterface) {
+            resultExposeWith = ConnectTranslator(
+                schemaConfig,
+                queryContext,
+                node,
+                schemaConfig.namingStrategy.resolveName(varNameKey, "connect"),
+                dslNode,
+                fromCreate = true,
+                withVars,
+                field,
+                value.connect,
+                resultExposeWith,
+                refNodes,
+                labelOverride = null
+            )
+                .createConnectAndParams()
         }
         return resultExposeWith
     }

@@ -60,7 +60,7 @@ fun Condition?.apocValidate(errorMessage: String) = this?.let {
 
 fun ExposesSubqueryCall.apocValidate(cond: Condition, errorMessage: String) =
     // TODO remove yield and with after https://github.com/neo4j-contrib/cypher-dsl/issues/349 is resolved
-    this.call(cond.apocValidate(errorMessage))
+//    this.call(cond.apocValidate(errorMessage))
 //        "apoc.util.validate")
 //        .withArgs(cond.not(), errorMessage.asCypherLiteral(), Cypher.listOf(0.asCypherLiteral()))
 //        .yield(true.asCypherLiteral().`as`("_"))
@@ -103,10 +103,17 @@ fun StatementBuilder.ExposesWith.requiresExposeSet(withVars: List<SymbolicName>)
     else -> this.with(withVars)
 }
 
-fun Any?.nestedMap(vararg path: String): Map<*, *>? = nestedObject(*path) as? Map<*, *>
+fun Any?.nestedMap(vararg path: String): Map<String, *>? =
+    (nestedObject(*path) as? Map<*, *>)?.mapKeys { it.key as String }
+
 fun Any?.nestedObject(vararg path: String, pos: Int = 0): Any? {
     if (pos == path.size) {
         return this
     }
     return (this as? Map<*, *>)?.get(path[pos])?.let { it.nestedObject(*path, pos = pos + 1) }
+}
+
+fun Any.wrapList(): List<Any> = when (this) {
+    is List<*> -> this.filterNotNull()
+    else -> listOf(this)
 }

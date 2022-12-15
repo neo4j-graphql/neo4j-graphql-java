@@ -185,7 +185,7 @@ class InterfaceRelationFieldAugmentations(
         getAdditionalFields: (() -> List<InputValueDefinition>)? = null,
     ) =
         getOrCreateInputObjectType("${interfaze.name}$inputTypeSuffix") { fields, _ ->
-            interfaze.implementations.forEach { node ->
+            interfaze.implementations.values.forEach { node ->
                 getNodeType(node)?.let {
                     val type = when (asList) {
                         true -> ListType(it.asRequiredType())

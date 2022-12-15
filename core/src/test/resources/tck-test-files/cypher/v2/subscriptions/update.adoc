@@ -1,0 +1,69 @@
+:toc:
+
+= Subscriptions metadata on update
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Actor {
+  name: String!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+
+type Movie {
+  id: ID!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+  "enableRegex": true
+}
+----
+== Simple update with subscriptions
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  updateMovies(where: {id: "1"}, update: {id: "2"}) {
+    movies {
+      id
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_id": "1",
+  "this_update_id": "2"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+WITH [] AS meta
+MATCH (this:Movie)
+WHERE this.id = $this_id
+
+WITH this { .* } AS oldProps, this, meta
+SET this.id = $this_update_id
+WITH this, meta + { event: "update", id: id(this), properties: { old: oldProps, new: this { .* } }, timestamp: timestamp(), typename: "Movie" } AS meta
+
+WITH this, meta
+UNWIND meta AS m
+RETURN collect(DISTINCT this { .id }) AS data, collect(DISTINCT m) as meta
+----
+
+'''
+

@@ -1,6 +1,7 @@
 package org.neo4j.graphql.domain
 
 import org.neo4j.graphql.domain.fields.*
+import org.neo4j.graphql.domain.predicates.definitions.PredicateDefinition
 import org.neo4j.graphql.isList
 
 /**
@@ -45,8 +46,16 @@ abstract class FieldContainer<T : BaseField>(val fields: List<T>) {
     val computedFields: List<ComputedField> by lazy { fields.filterIsInstance<ComputedField>() }
     val authableFields: List<BaseField> by lazy { fields.filter { it is AuthableField } }
 
+    val predicates: Map<String, PredicateDefinition> by lazy {
+        val result = mutableMapOf<String, PredicateDefinition>()
+        scalarFields.forEach { result.putAll(it.predicates) }
+        relationFields.forEach { result.putAll(it.predicates) }
+        result
+    }
+
     fun getField(name: String): BaseField? {
         return fields.find { it.fieldName == name }
     }
 
+    fun getPredicate(key: String) = predicates[key]
 }

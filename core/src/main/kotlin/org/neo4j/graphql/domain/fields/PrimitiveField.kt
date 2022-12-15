@@ -1,6 +1,7 @@
 package org.neo4j.graphql.domain.fields
 
 import graphql.language.Value
+import org.neo4j.graphql.SchemaConfig
 import org.neo4j.graphql.domain.TypeMeta
 
 /**
@@ -11,9 +12,11 @@ import org.neo4j.graphql.domain.TypeMeta
 open class PrimitiveField(
     fieldName: String,
     typeMeta: TypeMeta,
+    schemaConfig: SchemaConfig,
 ) : ScalarField(
     fieldName,
     typeMeta,
+    schemaConfig,
 ), ConstrainableField, HasDefaultValue, HasCoalesceValue, AuthableField, MutableField {
     var autogenerate: Boolean = false
     override var defaultValue: Value<*>? = null

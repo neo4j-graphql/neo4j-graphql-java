@@ -7,14 +7,14 @@ import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
 import org.neo4j.graphql.domain.dto.OptionsInput
+import org.neo4j.graphql.domain.dto.WhereInput
 import org.neo4j.graphql.domain.fields.*
-import org.neo4j.graphql.translate.where.CreateWhere
-import org.neo4j.graphql.utils.RelevantNodeFilter
+import org.neo4j.graphql.translate.where.createWhere
 import org.neo4j.graphql.utils.ResolveTree
 import org.neo4j.graphql.utils.ResolveTree.Companion.generateMissingOrAliasedFields
 import org.neo4j.graphql.utils.ResolveTree.Companion.resolve
 
-class CreateProjection {
+class ProjectionTranslator {
 
     fun createProjectionAndParams(
         node: Node,
@@ -83,23 +83,25 @@ class CreateProjection {
             if (nodeField is RelationField) {
                 val referenceNode = nodeField.node
                 val isArray = nodeField.typeMeta.type.isList()
-                val whereInput = field.args[Constants.WHERE] as? Map<*, *>
-
+                val whereInputAny = field.args[Constants.WHERE]
                 if (referenceNode?.queryOptions != null) {
                     optionsInput = optionsInput.merge(referenceNode.queryOptions)
                 }
 
-                if (nodeField.isInterface) {
+                if (nodeField.interfaze != null) {
+                    val whereInput =
+                        whereInputAny?.let { WhereInput.FieldContainerWhereInput.create(nodeField.interfaze, it) }
+
                     projections += alias
 
                     val fieldName = Cypher.name(field.name)
 
                     val fullWithVars = withVars + varName.requiredSymbolicName
-                    val referenceNodes = nodeField.interfaze?.implementations
-                        ?.filter { RelevantNodeFilter.filterInterfaceNodes(it, whereInput) }
+                    val referenceNodes =
+                        nodeField.interfaze.implementations.values.filter { whereInput?.hasFilterForNode(node) == true }
 
                     val interfaceQueries = mutableListOf<Statement>()
-                    referenceNodes?.map { refNode ->
+                    referenceNodes.map { refNode ->
                         val param2 =
                             schemaConfig.namingStrategy.resolveName(varName.requiredSymbolicName.value, refNode.name)
                         val endNode = refNode.asCypherNode(queryContext, param2)
@@ -111,21 +113,17 @@ class CreateProjection {
                             .createAuth(refNode.auth, AuthDirective.AuthOperation.READ)
                             ?.let { subQuery = subQuery.apocValidate(it, Constants.AUTH_FORBIDDEN_ERROR) }
 
-                        var condition = CreateWhere(schemaConfig, queryContext)
-                            .createWhere(
-                                refNode,
-                                whereInput?.let { map ->
-                                    map.toMutableMap().apply {
-                                        ((map[Constants.ON] as? Map<*, *>)?.get(refNode.name) as? Map<*, *>)
-                                            ?.let { putAll(it) }
-                                    }
-                                },
-                                endNode,
-                                schemaConfig.namingStrategy.resolveName(
-                                    chainStr ?: varName.requiredSymbolicName.value,
-                                    alias
-                                )
-                            )
+                        var condition = createWhere(
+                            refNode,
+                            whereInput?.withPreferredOn(node),
+                            endNode,
+                            schemaConfig.namingStrategy.resolveName(
+                                chainStr ?: varName.requiredSymbolicName.value,
+                                alias
+                            ),
+                            schemaConfig,
+                            queryContext
+                        )
 
                         AuthTranslator(schemaConfig, queryContext, where = AuthTranslator.AuthOptions(endNode, refNode))
                             .createAuth(refNode.auth, AuthDirective.AuthOperation.READ)
@@ -166,7 +164,7 @@ class CreateProjection {
                     // TODO sort and limit
 
                 } else if (nodeField.isUnion) {
-                    val referenceNodes = nodeField.unionNodes
+                    val referenceNodes = requireNotNull(nodeField.union).nodes.values
                     projections += alias
                     val endNode = Cypher.anyNode(param)
                     val rel = nodeField.createDslRelation(varName, endNode)
@@ -189,6 +187,14 @@ class CreateProjection {
                         var unionCondition = Conditions.noCondition().and(labelCondition)
 
                         if (!typeFields.isNullOrEmpty()) {
+                            val whereInput =
+                                whereInputAny?.let {
+                                    WhereInput.UnionWhereInput.create(
+                                        requireNotNull(nodeField.union),
+                                        it
+                                    )
+                                }
+
                             val recurse = createProjectionAndParams(
                                 refNode,
                                 endNode,
@@ -200,7 +206,7 @@ class CreateProjection {
                             )
 
                             createNodeWhereAndParams(
-                                whereInput?.get(refNode.name),
+                                whereInput?.get(refNode),
                                 queryContext,
                                 schemaConfig,
                                 refNode,
@@ -274,7 +280,7 @@ class CreateProjection {
     }
 
     private fun createNodeWhereAndParams(
-        whereInputAny: Any?,
+        whereInput: WhereInput?,
         context: QueryContext?,
         schemaConfig: SchemaConfig,
         node: Node,
@@ -282,11 +288,9 @@ class CreateProjection {
         authValidate: Condition?,
         chainStr: String?
     ): Condition? {
-        val whereInput = whereInputAny as? Map<*, *>
         var condition: Condition? = null
         if (whereInput != null) {
-            condition = CreateWhere(schemaConfig, context)
-                .createWhere(node, whereInput, varName, chainStr)
+            condition = createWhere(node, whereInput, varName, chainStr, schemaConfig, context)
         }
 
         AuthTranslator(schemaConfig, context, where = AuthTranslator.AuthOptions(varName, node, chainStr))

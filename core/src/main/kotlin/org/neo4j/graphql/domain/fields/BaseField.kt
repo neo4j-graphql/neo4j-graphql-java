@@ -1,9 +1,8 @@
 package org.neo4j.graphql.domain.fields
 
-import graphql.language.Comment
-import graphql.language.Description
-import graphql.language.Directive
-import graphql.language.InputValueDefinition
+import graphql.language.*
+import org.neo4j.cypherdsl.core.Condition
+import org.neo4j.cypherdsl.core.Expression
 import org.neo4j.graphql.domain.Interface
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.RelationshipProperties
@@ -47,5 +46,20 @@ abstract class BaseField(
             is RelationshipProperties -> it.interfaceName
             else -> throw IllegalStateException("cannot determine name from owner of type ${it::class.java.name}")
         }
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as BaseField
+
+        if (fieldName != other.fieldName) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return fieldName.hashCode()
     }
 }
