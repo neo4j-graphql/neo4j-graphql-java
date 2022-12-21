@@ -99,26 +99,33 @@ open class BaseAugmentationV2(
         RelationFieldBaseAugmentation::generateFieldRelationCreateIT
     )
 
-    fun generateOptionsIT(implementingType: ImplementingType) = getOrCreateInputObjectType("${implementingType.name}Options") { fields, _ ->
-        fields += inputValue(Constants.LIMIT, Constants.Types.Int)
-        fields += inputValue(Constants.OFFSET, Constants.Types.Int)
-        generateSortIT(implementingType)?.let {
-            fields += inputValue(
-                Constants.SORT,
-                ListType(it.asRequiredType())
-            ) {
-                description("Specify one or more ${implementingType.name}Sort objects to sort ${implementingType.pascalCasePlural} by. The sorts will be applied in the order in which they are arranged in the array.".asDescription())
+    fun generateOptionsIT(implementingType: ImplementingType) =
+        getOrCreateInputObjectType("${implementingType.name}Options") { fields, _ ->
+            fields += inputValue(Constants.LIMIT, Constants.Types.Int)
+            fields += inputValue(Constants.OFFSET, Constants.Types.Int)
+            generateSortIT(implementingType)?.let {
+                fields += inputValue(
+                    Constants.SORT,
+                    ListType(it.asRequiredType())
+                ) {
+                    description("Specify one or more ${implementingType.name}Sort objects to sort ${implementingType.pascalCasePlural} by. The sorts will be applied in the order in which they are arranged in the array.".asDescription())
+                }
             }
-        }
-    } ?: throw IllegalStateException("at least the paging fields should be present")
+        } ?: throw IllegalStateException("at least the paging fields should be present")
 
 
-    private fun generateSortIT(implementingType: ImplementingType) = getOrCreateInputObjectType("${implementingType.name}Sort",
-        init = { description("Fields to sort ${implementingType.pascalCasePlural} by. The order in which sorts are applied is not guaranteed when specifying many fields in one ${implementingType.name}Sort object.".asDescription()) },
-        initFields = { fields, _ ->
-            implementingType.sortableFields.forEach { fields += inputValue(it.fieldName, Constants.Types.SortDirection) }
-        }
-    )
+    private fun generateSortIT(implementingType: ImplementingType) =
+        getOrCreateInputObjectType("${implementingType.name}Sort",
+            init = { description("Fields to sort ${implementingType.pascalCasePlural} by. The order in which sorts are applied is not guaranteed when specifying many fields in one ${implementingType.name}Sort object.".asDescription()) },
+            initFields = { fields, _ ->
+                implementingType.sortableFields.forEach {
+                    fields += inputValue(
+                        it.fieldName,
+                        Constants.Types.SortDirection
+                    )
+                }
+            }
+        )
 
     fun generateFulltextIT(node: Node) = getOrCreateInputObjectType("${node.name}Fulltext") { fields, _ ->
         node.fulltextDirective?.indexes?.forEach { index ->
@@ -134,7 +141,7 @@ open class BaseAugmentationV2(
         }
 
 
-    fun generateWhereIT(field: RelationField): String? =
+    fun generateWhereOfFieldIT(field: RelationField): String? =
         getTypeFromRelationField(field, RelationFieldBaseAugmentation::generateFieldWhereIT)
 
     fun generateWhereIT(node: Node): String? =
@@ -207,10 +214,10 @@ open class BaseAugmentationV2(
             }
             if (field is RelationField) {
                 if (field.node != null) { // TODO REVIEW Darrell why not for union or interfaces https://github.com/neo4j/graphql/issues/810
-                    generateWhereIT(field)?.let {
+                    generateWhereOfFieldIT(field)?.let {
                         if (field.typeMeta.type.isList()) {
                             // n..m relationship
-                            listOf("ALL", "NONE", "SINGLE", "SOME").forEach {filter->
+                            listOf("ALL", "NONE", "SINGLE", "SOME").forEach { filter ->
                                 result += inputValue("${field.fieldName}_$filter", it.asType()) {
                                     description(
                                         "Return $plural where ${if (filter !== "SINGLE") filter.lowercase() else "one"} of the related ${field.getImplementingType()?.pascalCasePlural} match this filter".asDescription()
@@ -218,8 +225,35 @@ open class BaseAugmentationV2(
                                 }
                             }
                             // TODO remove
-                            result += inputValue(field.fieldName, it.asType()) {directive(Directive("deprecated", listOf(Argument("reason",StringValue("Use `${field.fieldName}_SOME` instead." )))))}
-                            result += inputValue(field.fieldName + "_NOT", it.asType()){directive(Directive("deprecated", listOf(Argument("reason",StringValue("Use `${field.fieldName}_NONE` instead." )))))}
+                            result += inputValue(field.fieldName, it.asType()) {
+                                directive(
+                                    Directive(
+                                        "deprecated",
+                                        listOf(
+                                            Argument(
+                                                "reason",
+                                                StringValue("Use `${field.fieldName}_SOME` instead.")
+                                            )
+                                        )
+                                    )
+                                )
+                            }
+                            result += inputValue(
+                                field.fieldName + "_NOT",
+                                it.asType()
+                            ) {
+                                directive(
+                                    Directive(
+                                        "deprecated",
+                                        listOf(
+                                            Argument(
+                                                "reason",
+                                                StringValue("Use `${field.fieldName}_NONE` instead.")
+                                            )
+                                        )
+                                    )
+                                )
+                            }
                         } else {
                             // n..1 relationship
                             result += inputValue(field.fieldName, it.asType())
@@ -236,12 +270,26 @@ open class BaseAugmentationV2(
                 generateConnectionWhereIT(field)?.let {
                     if (field.relationshipField.typeMeta.type.isList()) {
                         // n..m relationship
-                        listOf("ALL", "NONE", "SINGLE", "SOME").forEach {filter->
+                        listOf("ALL", "NONE", "SINGLE", "SOME").forEach { filter ->
                             result += inputValue("${field.fieldName}_$filter", it.asType())
                         }
                         // TODO remove
-                        result += inputValue(field.fieldName, it.asType()) {directive(Directive("deprecated", listOf(Argument("reason",StringValue("Use `${field.fieldName}_SOME` instead." )))))}
-                        result += inputValue(field.fieldName + "_NOT", it.asType()){directive(Directive("deprecated", listOf(Argument("reason",StringValue("Use `${field.fieldName}_NONE` instead." )))))}
+                        result += inputValue(field.fieldName, it.asType()) {
+                            directive(
+                                Directive(
+                                    "deprecated",
+                                    listOf(Argument("reason", StringValue("Use `${field.fieldName}_SOME` instead.")))
+                                )
+                            )
+                        }
+                        result += inputValue(field.fieldName + "_NOT", it.asType()) {
+                            directive(
+                                Directive(
+                                    "deprecated",
+                                    listOf(Argument("reason", StringValue("Use `${field.fieldName}_NONE` instead.")))
+                                )
+                            )
+                        }
                     } else {
                         // n..1 relationship
                         result += inputValue(field.fieldName, it.asType())
@@ -276,8 +324,8 @@ open class BaseAugmentationV2(
                 rel.properties?.fields
             )
                 ?.let { fields += inputValue(Constants.EDGE_FIELD, it.asType()) }
-            fields += inputValue("AND", ListType(name.asRequiredType()))
-            fields += inputValue("OR", ListType(name.asRequiredType()))
+            fields += inputValue(Constants.AND, ListType(name.asRequiredType()))
+            fields += inputValue(Constants.OR, ListType(name.asRequiredType()))
         }
             ?: throw IllegalStateException("Expected at least the count field")
 
@@ -427,7 +475,7 @@ open class BaseAugmentationV2(
                                 field
                             )
                         fields += field(field.fieldName + "Aggregate", aggr.asType()) {
-                            generateWhereIT(field)
+                            generateWhereOfFieldIT(field)
                                 ?.let { inputValueDefinition(inputValue(Constants.WHERE, it.asType())) }
                             directedArgument(field)?.let { inputValueDefinition(it) }
                         }
@@ -458,16 +506,13 @@ open class BaseAugmentationV2(
             else -> field.typeMeta.type
         }
         if (field is RelationField) {
-            generateWhereIT(field)?.let {
+            generateWhereOfFieldIT(field)?.let {
                 args += inputValue(Constants.WHERE, it.asType())
             }
-            val optionType = when {
-                field.isUnion -> Constants.Types.QueryOptions
-                else -> generateOptionsIT(
-                    field.getImplementingType()
-                        ?: throw IllegalArgumentException("no node on ${field.connectionPrefix}.${field.fieldName}")
-                ).asType()
-            }
+            val optionType = field.extractOnTarget(
+                onImplementingType = { generateOptionsIT(it).asType() },
+                onUnion = { Constants.Types.QueryOptions },
+            )
             args += inputValue(Constants.OPTIONS, optionType)
             directedArgument(field)?.let { args += it }
         }

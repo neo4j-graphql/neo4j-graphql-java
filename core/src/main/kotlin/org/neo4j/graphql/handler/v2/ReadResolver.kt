@@ -9,11 +9,11 @@ import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
 import org.neo4j.graphql.domain.directives.ExcludeDirective
-import org.neo4j.graphql.domain.dto.OptionsInput
+import org.neo4j.graphql.domain.inputs.options.OptionsInput
 import org.neo4j.graphql.handler.BaseDataFetcher
 import org.neo4j.graphql.schema.AugmentationHandlerV2
 import org.neo4j.graphql.translate.AuthTranslator
-import org.neo4j.graphql.translate.CreateProjection
+import org.neo4j.graphql.translate.ProjectionTranslator
 import org.neo4j.graphql.translate.TopLevelMatchTranslator
 
 /**
@@ -57,7 +57,7 @@ class ReadResolver private constructor(
             .createAuth(node.auth, AuthDirective.AuthOperation.READ)
             ?.let { ongoingReading = ongoingReading.apocValidate(it, Constants.AUTH_FORBIDDEN_ERROR) }
 
-        val projection = CreateProjection()
+        val projection = ProjectionTranslator()
             .createProjectionAndParams(node, dslNode, env, null, schemaConfig, env.variables, queryContext)
 
         projection.authValidate

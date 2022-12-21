@@ -11,7 +11,13 @@ import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
 import org.neo4j.graphql.domain.directives.ExcludeDirective
-import org.neo4j.graphql.domain.dto.*
+import org.neo4j.graphql.domain.inputs.ScalarProperties
+import org.neo4j.graphql.domain.inputs.connect.ConnectFieldInput
+import org.neo4j.graphql.domain.inputs.connect_or_create.ConnectOrCreateFieldInput
+import org.neo4j.graphql.domain.inputs.create.CreateInput
+import org.neo4j.graphql.domain.inputs.create.RelationFieldInput
+import org.neo4j.graphql.domain.inputs.disconnect.DisconnectFieldInput
+import org.neo4j.graphql.domain.inputs.update.UpdateResolverInputs
 import org.neo4j.graphql.handler.BaseDataFetcher
 import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.schema.AugmentationHandlerV2
@@ -63,14 +69,8 @@ class UpdateResolver private constructor(
         val dslNode = node.asCypherNode(queryContext, variable)
         val resolveTree = ResolveTree.resolve(env) // todo move into parent class
 
-        val updateInput = resolveTree.args[Constants.UPDATE_FIELD]?.let { RelationFieldsInput(node, it) }
-        val connectInput = resolveTree.args[Constants.CONNECT_FIELD]?.let { RelationFieldsInput(node, it) }
-        val disconnectInput = resolveTree.args[Constants.DISCONNECT_FIELD]?.let { RelationFieldsInput(node, it) }
-        val createInput = resolveTree.args[Constants.CREATE_FIELD]?.let { RelationFieldsInput(node, it) }
-        val deleteInput = resolveTree.args[Constants.DELETE_FIELD]?.let { RelationFieldsInput(node, it) }
-        val connectOrCreateInput =
-            resolveTree.args[Constants.CONNECT_OR_CREATE_FIELD]?.let { RelationFieldsInput(node, it) }
-        val assumeReconnecting = connectInput != null && disconnectInput != null
+        val arguments = UpdateResolverInputs(node, resolveTree.args)
+        val assumeReconnecting = arguments.connect != null && arguments.disconnect != null
 
         val withVars = listOf(dslNode.requiredSymbolicName)
 
@@ -78,10 +78,10 @@ class UpdateResolver private constructor(
         var ongoingReading: ExposesWith = TopLevelMatchTranslator(schemaConfig, env.variables, queryContext)
             .translateTopLevelMatch(node, dslNode, env.arguments, AuthDirective.AuthOperation.UPDATE)
 
-        if (updateInput != null) {
-            ongoingReading = CreateUpdate(
+        if (arguments.update != null) {
+            ongoingReading = UpdateTranslator(
                 dslNode,
-                updateInput,
+                arguments.update,
                 dslNode,
                 chainStr = null,
                 node,
@@ -95,13 +95,25 @@ class UpdateResolver private constructor(
                 .createUpdateAndParams()
         }
 
-        disconnectInput?.getInputsPerField()?.forEach { (relField, refNodes, input) ->
+        arguments.disconnect?.relations?.forEach { (relField, input) ->
+            val data = when (input) {
+                is DisconnectFieldInput.NodeDisconnectFieldInputs -> listOf(
+                    Triple(listOf(relField.node!!), input, null)
+                )
 
-            if (relField.isInterface) {
-                ongoingReading = CreateDisconnectTranslator(
+                is DisconnectFieldInput.InterfaceDisconnectFieldInputs -> listOf(
+                    Triple(relField.getReferenceNodes(), input, null)
+                )
+
+                is DisconnectFieldInput.UnionDisconnectFieldInput -> input.dataPerNode.map { (node, inputs) ->
+                    Triple(listOf(node), inputs, node.name)
+                }
+            }
+            data.forEach { (refNodes, inp, nameClassifier) ->
+                DisconnectTranslator(
                     withVars,
-                    input,
-                    ChainString(schemaConfig, dslNode, "disconnect", relField),
+                    inp,
+                    ChainString(schemaConfig, dslNode, "disconnect", relField, nameClassifier),
                     relField,
                     dslNode,
                     queryContext,
@@ -109,107 +121,59 @@ class UpdateResolver private constructor(
                     refNodes,
                     null,
                     node,
-                    ChainString(schemaConfig, resolveTree.name, "disconnect", relField),
+                    ChainString(schemaConfig, resolveTree.name, "disconnect", relField, nameClassifier),
                     ongoingReading
                 )
                     .createDisconnectAndParams()
-            } else {
-                refNodes.forEach { refNode ->
-                    ongoingReading = CreateDisconnectTranslator(
-                        withVars,
-                        if (relField.isUnion) (UnionInput(input)).getDataForNode(refNode) else input,
-                        ChainString(
-                            schemaConfig,
-                            dslNode,
-                            "disconnect",
-                            relField,
-                            refNode.name.takeIf { relField.isUnion }),
-                        relField,
-                        dslNode,
-                        queryContext,
-                        schemaConfig,
-                        listOf(refNode),
-                        refNode.name.takeIf { relField.isUnion },
-                        node,
-                        ChainString(schemaConfig,
-                            resolveTree.name,
-                            "disconnect",
-                            relField,
-                            refNode.name.takeIf { relField.isUnion }),
-                        ongoingReading
-                    )
-                        .createDisconnectAndParams()
-                }
             }
         }
 
-        connectInput?.getInputsPerField()?.forEach { (relField, refNodes, input) ->
-            if (relField.isInterface) {
-                ongoingReading = CreateConnectTranslator.createConnectAndParams(
+        arguments.connect?.relations?.forEach { (relField, input) ->
+            val data = when (input) {
+                is ConnectFieldInput.NodeConnectFieldInputs -> listOf(
+                    Triple(listOf(relField.node!!), input, null)
+                )
+
+                is ConnectFieldInput.InterfaceConnectFieldInputs -> listOf(
+                    Triple(relField.getReferenceNodes(), input, null)
+                )
+
+                is ConnectFieldInput.UnionConnectFieldInput -> input.dataPerNode.map { (node, inputs) ->
+                    Triple(listOf(node), inputs, node.name)
+                }
+            }
+            data.forEach { (refNodes, inp, nameClassifier) ->
+                ongoingReading = ConnectTranslator(
                     schemaConfig,
                     queryContext,
                     node,
-                    ChainString(schemaConfig, dslNode, "connect", relField),
+                    ChainString(schemaConfig, dslNode, "connect", relField, nameClassifier),
                     dslNode,
                     false,
                     withVars,
                     relField,
-                    input,
+                    inp,
                     ongoingReading,
                     refNodes,
-                    null,
+                    labelOverride = nameClassifier,
                     includeRelationshipValidation = assumeReconnecting
-                )
-            } else {
-                refNodes.forEach { refNode ->
-                    ongoingReading = CreateConnectTranslator.createConnectAndParams(
-                        schemaConfig,
-                        queryContext,
-                        node,
-                        ChainString(schemaConfig,
-                            dslNode,
-                            "connect",
-                            relField,
-                            refNode.name.takeIf { relField.isUnion }),
-                        dslNode,
-                        false,
-                        withVars,
-                        relField,
-                        if (relField.isUnion) (UnionInput(input)).getDataForNode(refNode) else input,
-                        ongoingReading,
-                        listOf(refNode),
-                        refNode.name.takeIf { relField.isUnion }
-                        //TODO why not includeRelationshipValidation
-                    )
-                }
+                ).createConnectAndParams()
             }
         }
 
-        createInput?.getInputsPerField()?.forEach { (relField, refNodes, input) ->
+        arguments.create?.relations?.forEach { (relField, input) ->
+            relField.getReferenceNodes().forEach { refNode ->
+                val creates: List<Pair<CreateInput, ScalarProperties?>>? = when (input) {
+                    is RelationFieldInput.NodeCreateCreateFieldInputs -> input.map { it.node to it.edge }
+                    is RelationFieldInput.InterfaceCreateFieldInputs -> input.mapNotNull {
+                        val n = it.node?.getDataForNode(refNode) ?: return@mapNotNull null
+                        n to it.edge
+                    }
 
-            refNodes.forEach { refNode ->
-                val creates: List<CreateInput> = if (relField.isInterface) {
-                    val listInput = input as? List<*> ?: listOf(input)
-
-                    listInput
-                        .map { CreateInput(it) }
-                        .mapNotNull {
-                            val nodeForImpl = InterfaceInput(it.node)
-                                .getNodeInputForNode(refNode)
-                                ?: return@mapNotNull null
-                            CreateInput(nodeForImpl, it.edge)
-                        }
-
-                } else if (relField.isUnion) {
-                    listOf(CreateInput(UnionInput(input).getDataForNode(refNode)))
-                } else {
-                    listOf(CreateInput(input))
-                }
-                if (creates.isEmpty()) {
-                    return@forEach
+                    is RelationFieldInput.UnionFieldInput -> input.getDataForNode(node)?.map { it.node to it.edge }
                 }
 
-                creates.forEachIndexed { index, create ->
+                creates?.forEachIndexed { index, (createNode, createEdge) ->
                     val targetNode = node.asCypherNode(
                         queryContext, ChainString(
                             schemaConfig,
@@ -225,7 +189,7 @@ class UpdateResolver private constructor(
                         .createCreateAndParams(
                             refNode,
                             targetNode,
-                            create.node,
+                            createNode,
                             listOf(dslNode.requiredSymbolicName)
                         ) {
                             (ongoingReading as ExposesCreate).create(it)
@@ -245,24 +209,21 @@ class UpdateResolver private constructor(
                     ongoingReading = (ongoingReading as ExposesMerge).merge(relationship)
                         .let { merge ->
                             relField.properties?.let { properties ->
-                                CreateSetPropertiesTranslator
-                                    .createSetProperties(
-                                        relationship,
-                                        create.edge,
-                                        CreateSetPropertiesTranslator.Operation.CREATE,
-                                        properties,
-                                        schemaConfig
-                                    )
-                                    .takeIf { it.isNotEmpty() }
-                                    ?.let { merge.set(it).with(dslNode) }
+                                createSetProperties(
+                                    relationship,
+                                    createEdge,
+                                    Operation.CREATE,
+                                    properties,
+                                    schemaConfig
+                                )?.let { merge.set(it).with(dslNode) }
                             } ?: merge
                         }
                 }
             }
         }
 
-        if (deleteInput != null) {
-            ongoingReading = DeleteTranslator.createDeleteAndParams(
+        arguments.delete?.let { deleteInput ->
+            ongoingReading = createDeleteAndParams(
                 node,
                 deleteInput,
                 ChainString(schemaConfig, dslNode, "delete"),
@@ -275,19 +236,16 @@ class UpdateResolver private constructor(
             )
         }
 
-        connectOrCreateInput?.getInputsPerField()?.forEach { (relField, refNodes, input) ->
-            refNodes.forEach { refNode ->
+        arguments.connectOrCreate?.relations?.forEach { (relField, input) ->
+            relField.getReferenceNodes().forEach { refNode ->
 
-                val inputs = if (relField.isUnion) {
-                    UnionInput(input).getDataForNode(refNode)
-                } else {
-                    input
+                val inputs = when (input) {
+                    is ConnectOrCreateFieldInput.NodeConnectOrCreateFieldInputs -> input
+                    is ConnectOrCreateFieldInput.UnionConnectOrCreateFieldInput -> input.getDataForNode(refNode)
+                        ?: emptyList()
                 }
-                    ?.let { it as? List<*> ?: listOf(it) }
-                    ?.filterNotNull()
-                    ?.map { ConnectOrCreateInput(it) }
 
-                ongoingReading = ConnectOrCreateTranslator.createConnectOrCreateAndParams(
+                ongoingReading = createConnectOrCreate(
                     inputs,
                     ChainString(
                         schemaConfig,
@@ -301,8 +259,8 @@ class UpdateResolver private constructor(
                     refNode,
                     withVars,
                     ongoingReading,
-                    schemaConfig,
-                    queryContext
+                    queryContext,
+                    schemaConfig
                 )
             }
 
@@ -310,7 +268,7 @@ class UpdateResolver private constructor(
 
         val projection = resolveTree.getFieldOfType(node.typeNames.updateResponse, node.plural)
             ?.let {
-                CreateProjection()
+                ProjectionTranslator()
                     .createProjectionAndParams(node, dslNode, it, null, schemaConfig, env.variables, queryContext)
             }
 

@@ -2,288 +2,185 @@ package org.neo4j.graphql.translate.where
 
 import org.neo4j.cypherdsl.core.*
 import org.neo4j.graphql.*
-import org.neo4j.graphql.Constants.PREDICATE_JOINS
-import org.neo4j.graphql.Constants.WHERE_REG_EX
 import org.neo4j.graphql.domain.FieldContainer
-import org.neo4j.graphql.domain.fields.*
+import org.neo4j.graphql.domain.inputs.WhereInput
+import org.neo4j.graphql.domain.fields.HasCoalesceValue
+import org.neo4j.graphql.domain.inputs.connection_where.ConnectionWhere
+import org.neo4j.graphql.domain.predicates.ConnectionFieldPredicate
+import org.neo4j.graphql.domain.predicates.RelationFieldPredicate
+import org.neo4j.graphql.domain.predicates.ScalarFieldPredicate
 import org.neo4j.graphql.handler.utils.ChainString
-import org.neo4j.graphql.handler.utils.ChainString.Companion.extend
 
-class CreateWhere(val schemaConfig: SchemaConfig, val queryContext: QueryContext?) {
+fun createWhere(
+    node: FieldContainer<*>?,
+    whereInput: WhereInput?,
+    propertyContainer: PropertyContainer, // todo rename to dslNode
+    chainStr: ChainString? = null,
+    schemaConfig: SchemaConfig,
+    queryContext: QueryContext?,
+): Condition? {
+    if (node == null || whereInput == null) return null
+    // TODO harmonize with top level where
 
-    //TODO("inline")
-    fun createElementWhere(
-        whereInput: Any?,
-        element: FieldContainer<*>,
-        varName: PropertyContainer,
-        parameterPrefix: ChainString,
-    ): Condition? {
-        return createWhere(element, whereInput, varName, parameterPrefix)
+    val paramPrefix =chainStr ?: ChainString(schemaConfig, propertyContainer)
+
+    fun resolveRelationCondition(predicate: RelationFieldPredicate): Condition {
+        if (node !is Node) throw IllegalArgumentException("a nodes is required for relation predicates")
+        val field = predicate.field
+        val op = predicate.def.operator
+        val where = predicate.where
+        val param = paramPrefix.extend( field, op.suffix)
+        val refNode = field.node ?: throw IllegalArgumentException("Relationship filters must reference nodes")
+        val endDslNode = refNode.asCypherNode(queryContext)
+
+        var relCond = field.createDslRelation(node, endDslNode).asCondition()
+
+        val endNode = endDslNode.named(param.resolveName())
+        createWhere(refNode, where, endNode, chainStr = param, schemaConfig, queryContext)
+            ?.let { innerWhere ->
+                val nestedCondition = op.predicateCreator(endNode.requiredSymbolicName)
+                    .`in`(
+                        CypherDSL
+                            .listBasedOn(field.createDslRelation(node, endNode))
+                            .returning(endNode)
+                    )
+                    .where(innerWhere)
+                relCond = relCond and nestedCondition
+            }
+
+        if (op == org.neo4j.graphql.domain.predicates.RelationOperator.NOT_EQUAL) {
+            relCond = relCond.not()
+        }
+        return relCond
     }
 
-    fun createWhere(
-        node: FieldContainer<*>,
-        whereInputAny: Any?,
-        varName: PropertyContainer, // todo rename to dslNode
-        chainStr: ChainString? = null,
-    ): Condition? {
-        // TODO harmonize with top level where
-        val whereInput = whereInputAny as? Map<*, *> ?: return null
+    fun resolveConnectionCondition(predicate: ConnectionFieldPredicate): Condition? {
+        val field = predicate.field
+        val op = predicate.def.operator
+        val where = predicate.where
 
+        if (node !is Node) throw IllegalArgumentException("a nodes is required for relation predicates")
+        val relationField = field.relationshipField
+
+        val nodeEntries = when (where) {
+            is ConnectionWhere.UnionConnectionWhere -> where.dataPerNode.mapKeys { node.name() }
+            is ConnectionWhere.ImplementingTypeConnectionWhere ->
+                // TODO can we use the name somehow else
+                mapOf(relationField.typeMeta.type.name() to where)
+            else -> throw IllegalStateException("Unsupported where type")
+        }
         var result: Condition? = null
 
-//        fun getParam(key: String) = if (chainStr == null) {
-//            schemaConfig.namingStrategy.resolveParameter(varName.requiredSymbolicName.value, key)
-//        } else {
-//            schemaConfig.namingStrategy.resolveParameter(chainStr, key)
-//        }
-//
-//        listOf(
-//            Triple(whereInput.or, Constants.OR, { lhs: Condition?, rhs: Condition -> lhs or rhs }),
-//            Triple(whereInput.and, Constants.AND, { lhs: Condition?, rhs: Condition -> lhs and rhs }),
-//        ).forEach { (joins, key, reducer) ->
-//            if (!joins.isNullOrEmpty()) {
-//                var innerCondition: Condition? = null
-//                val param = getParam(key)
-//                joins.forEachIndexed { index, v ->
-//                    createWhere(
-//                        node,
-//                        v,
-//                        varName,
-//                        schemaConfig.namingStrategy.resolveParameter(param, index.takeIf { it > 0 })
-//                    )
-//                        ?.let { innerCondition = reducer(innerCondition, it) }
-//                }
-//                innerCondition?.let { result = result and it }
-//            }
-//        }
+        val param = paramPrefix.extend(field, op.suffix)
+        nodeEntries.forEach { (nodeName, whereInput) ->
+            val refNode = relationField.getNode(nodeName)
+                ?: throw IllegalArgumentException("Cannot find referenced node $nodeName")
 
-        whereInput.forEach { (key, value) ->
-            val param = chainStr?.extend(key) ?: ChainString(schemaConfig, varName, key)
-            if (PREDICATE_JOINS.contains(key)) {
-                var innerCondition: Condition? = null
-                (value as List<*>).forEachIndexed { index, v ->
-                    createWhere(
-                        node, value, varName,
-                        param.extend(index.takeIf { it > 0 })
-                    )?.let {
-
-                        innerCondition = if (Constants.OR == key) {
-                            innerCondition or it
-                        } else {
-                            innerCondition and it
-                        }
-                    }
-                }
-                innerCondition?.let { result = result and it }
-            }
+            val endDslNode = refNode.asCypherNode(queryContext)
 
 
-            val match = WHERE_REG_EX.find(key as String)
-            val fieldName = match?.groups?.get("fieldName")?.value ?: return@forEach
-            val isAggregate = match.groups["isAggregate"] != null
-            val operator = match.groups["operator"]?.value
+            var relCond = relationField.createDslRelation(node, endDslNode).asCondition()
 
-            val isNot = operator?.startsWith("NOT") ?: false
+            val thisParam = param.extend(refNode)
 
-            val field = node.getField(fieldName) ?: return null
+            val parameterPrefix = param.extend(
+                node,
+                field,
+                "where",
+                field,
+                op.suffix // TODO duplicate op
+            )
 
-            if (isAggregate) {
-                if (field !is RelationField) throw IllegalArgumentException("Aggregate filters must be on relationship fields")
+            val cond = CypherDSL.name("Cond")
+            val endNode = endDslNode.named(thisParam.resolveName())
+            val relation = relationField.createDslRelation(
+                node,
+                endNode,
+                thisParam.extend(field.relationshipTypeName)
+            )
 
-                AggregateWhere(schemaConfig, queryContext)
-                    .createAggregateWhere(param, field, varName, value)
-                    ?.let { result = result and it }
-
-                return@forEach
-            }
-
-            if (varName is Node) {
-                if (field is RelationField) {
-                    val refNode =
-                        field.node ?: throw IllegalArgumentException("Relationship filters must reference nodes")
-                    val endDslNode = refNode.asCypherNode(queryContext)
-
-
-                    var relCond = field.createDslRelation(varName, endDslNode).asCondition()
-
-                    val endNode = endDslNode.named(param.resolveName())
-                    createWhere(refNode, value, endNode, chainStr = param)?.let { innerWhere ->
-                        val nestedCondition = RelationOperator
-                            .fromValue(operator, endNode.requiredSymbolicName)
-                            .`in`(
-                                CypherDSL
-                                    .listBasedOn(field.createDslRelation(varName, endNode))
-                                    .returning(endNode)
-                            )
-                            .where(innerWhere)
-                        relCond = relCond and nestedCondition
-                    }
-
-                    if (isNot) {
-                        relCond = relCond.not()
-                    }
-
-                    result = result and relCond
-                    return@forEach
-                }
-
-                if (field is ConnectionField) {
-
-                    val nodeEntries = if (field.relationshipField.isUnion) {
-                        value as? Map<*, *>
-                            ?: throw IllegalArgumentException("Connection filter for union must be a map")
-                    } else {
-                        // TODO can we use the name somehow else
-                        mapOf(field.relationshipField.typeMeta.type.name() to value)
-                    }
-
-                    nodeEntries.forEach { (nodeName, whereInput) ->
-                        val refNode = field.relationshipField.getNode(nodeName as String)
-                            ?: throw IllegalArgumentException("Cannot find referenced node $nodeName")
-
-                        val endDslNode = refNode.asCypherNode(queryContext)
-
-
-                        var relCond = field.relationshipField.createDslRelation(varName, endDslNode).asCondition()
-
-                        val thisParam = param.extend( refNode)
-
-                        val parameterPrefix = chainStr.extend(schemaConfig,
-                            varName.requiredSymbolicName.value,
-                            fieldName,
-                            "where",
-                            key
+            (
+                    createConnectionWhere(
+                        whereInput,
+                        refNode,
+                        endNode,
+                        relationField,
+                        relation,
+                        parameterPrefix,
+                        schemaConfig,
+                        queryContext
+                    )
+                        ?: Conditions.isTrue())
+                .let { innerWhere ->
+                    val nestedCondition = op.predicateCreator(cond)
+                        .`in`(
+                            CypherDSL
+                                .listBasedOn(relation)
+                                .returning(innerWhere)
                         )
-
-                        val cond = CypherDSL.name("Cond")
-                        val endNode = endDslNode.named(thisParam.resolveName())
-                        val relation = field.relationshipField.createDslRelation(
-                            varName,
-                            endNode,
-                            thisParam.extend(field.relationshipTypeName)
-                        )
-
-                        (CreateConnectionWhere(schemaConfig, queryContext)
-                            .createConnectionWhere(
-                                whereInput, refNode,
-                                endNode,
-                                field.relationshipField,
-                                relation,
-                                parameterPrefix
-                            )
-                            ?: Conditions.isTrue())
-                            .let { innerWhere ->
-                                val nestedCondition = RelationOperator
-                                    .fromValue(operator, cond)
-                                    .`in`(
-                                        CypherDSL
-                                            .listBasedOn(relation)
-                                            .returning(innerWhere)
-                                    )
-                                    .where(cond.asCondition())
-                                relCond = relCond and nestedCondition
-                            }
-
-                        if (isNot) {
-                            relCond = relCond.not()
-                        }
-
-                        result = result and relCond
-                    }
-                    return@forEach
+                        .where(cond.asCondition())
+                    relCond = relCond and nestedCondition
                 }
+
+            if (op == org.neo4j.graphql.domain.predicates.RelationOperator.NOT_EQUAL) {
+                relCond = relCond.not()
             }
 
-            val dbProperty = varName.property(field.dbPropertyName)
-            val property =
-                (field as? HasCoalesceValue)
-                    ?.coalesceValue
-                    ?.toJavaValue()
-                    ?.let { Functions.coalesce(dbProperty, asCypherLiteral().asCypherLiteral()) }
-                    ?: dbProperty
-
-            if (value == null) {
-                if (isNot) {
-                    result = result and property.isNotNull
-                } else {
-                    result = result and property.isNull
-                }
-                return@forEach
-            }
-
-            result =
-                result and createWhereClause(CypherDSL.parameter(param.resolveName(), value), property, operator, field)
-
+            result = result and relCond
         }
-
         return result
     }
 
 
-    private fun createWhereClause(
-        param: Parameter<*>,
-        property: Expression,
-        operator: String?,
-        field: BaseField
-    ): Condition {
+    fun resolveScalarCondition(predicate: ScalarFieldPredicate): Condition {
+        val field = predicate.field
+        val dbProperty = propertyContainer.property(field.dbPropertyName)
+        val property =
+            (field as? HasCoalesceValue)
+                ?.coalesceValue
+                ?.toJavaValue()
+                ?.let { Functions.coalesce(dbProperty, it.asCypherLiteral()) }
+                ?: dbProperty
 
-        val comparisonResolver = comparisonMap[operator]
-            ?: throw IllegalStateException("cannot handle operation $operator for ${field.getOwnerName()}.${field.fieldName}")
+        val rhs = if (predicate.value == null) {
+            Cypher.literalNull()
+        } else {
+            Cypher.parameter(
+                schemaConfig.namingStrategy.resolveParameter(paramPrefix, predicate.resolver.name),
+                predicate.value
+            )
+        }
+        return predicate.resolver.createCondition(property, rhs)
+    }
 
-        if (field is PointField) {
-            val paramPoint = Functions.point(param)
-            val p = Cypher.name("p")
-            val paramPointArray = Cypher.listWith(p).`in`(param).returning(Functions.point(p))
+    var result: Condition? = null
 
-            return when (operator) {
-                "LT", "LTE", "GT", "GTE", "DISTANCE" ->
-                    comparisonResolver(
-                        Functions.distance(property, Functions.point(param.property("point"))),
-                        param.property("distance")
-                    )
+    if (whereInput is WhereInput.FieldContainerWhereInput<*>) {
+        result = whereInput.reduceNestedConditions { key, index, nested ->
+            createWhere(
+                node, nested, propertyContainer,
+                paramPrefix.extend(key, index.takeIf { it > 0 }),
+                schemaConfig, queryContext
+            )
+        }
 
-                "NOT_IN", "IN" ->
-                    comparisonResolver(property, paramPointArray)
+        whereInput.aggregate?.forEach { (field, input) ->
+            TODO()
+//                AggregateWhere(schemaConfig, queryContext)
+//                    .createAggregateWhere(param, field, varName, value)
+//                    ?.let { result = result and it }
+        }
 
-                "NOT_INCLUDES", "INCLUDES" ->
-                    comparisonResolver(paramPoint, property)
-
-                else ->
-                    property.eq(if (field.typeMeta.type.isList()) paramPointArray else paramPoint)
+        whereInput.predicates.forEach { predicate ->
+            when (predicate) {
+                is ScalarFieldPredicate -> resolveScalarCondition(predicate)
+                is RelationFieldPredicate -> resolveRelationCondition(predicate)
+                is ConnectionFieldPredicate -> resolveConnectionCondition(predicate)
+                else -> null
             }
-        }
-
-        if (field.typeMeta.type.name() == Constants.DURATION) {
-            return comparisonResolver(Functions.datetime().add(property), Functions.datetime().add(param))
-        }
-
-        return when (operator) {
-            "NOT_INCLUDES", "INCLUDES" -> comparisonResolver(param, property)
-            else -> comparisonResolver(property, param)
+                ?.let { result = result and it }
         }
     }
 
-    companion object {
-        val comparisonMap: Map<String?, (Expression, Expression) -> Condition> = mapOf(
-            null to Expression::eq,
-            "LT" to Expression::lt,
-            "LTE" to Expression::lte,
-            "GT" to Expression::gt,
-            "GTE" to Expression::gte,
-            "DISTANCE" to Expression::eq,
-            "NOT_CONTAINS" to { lhs, rhs -> lhs.contains(rhs).not() },
-            "CONTAINS" to Expression::contains,
-            "NOT_STARTS_WITH" to { lhs, rhs -> lhs.startsWith(rhs).not() },
-            "STARTS_WITH" to Expression::startsWith,
-            "NOT_ENDS_WITH" to { lhs, rhs -> lhs.endsWith(rhs).not() },
-            "ENDS_WITH" to Expression::endsWith,
-            "MATCHES" to Expression::matches,
-            "NOT_IN" to { lhs, rhs -> lhs.`in`(rhs).not() },
-            "IN" to Expression::`in`,
-            "NOT_INCLUDES" to { lhs, rhs -> lhs.`in`(rhs).not() },
-            "INCLUDES" to Expression::`in`,
-        )
-    }
-
+    return result
 }

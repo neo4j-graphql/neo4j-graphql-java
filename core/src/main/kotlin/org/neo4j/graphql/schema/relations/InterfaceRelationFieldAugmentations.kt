@@ -75,29 +75,28 @@ class InterfaceRelationFieldAugmentations(
 
     override fun generateFieldUpdateIT() =
         getOrCreateInputObjectType("${prefix}UpdateFieldInput") { fields, _ ->
-            generateFieldConnectIT()?.let {
-                fields += inputValue(Constants.CONNECT_FIELD, it.wrapType())
-            }
-            generateFieldRelationCreateIT()?.let {
-                fields += inputValue(Constants.CREATE_FIELD, it.wrapType())
-            }
-            generateFieldDeleteIT()?.let {
-                fields += inputValue(Constants.DELETE_FIELD, it.wrapType())
-            }
-            generateFieldDisconnectIT()?.let {
-                fields += inputValue(Constants.DISCONNECT_FIELD, it.wrapType())
-            }
-            generateFieldUpdateConnectionInputIT()?.let {
-                fields += inputValue(Constants.UPDATE_FIELD, it.asType())
-            }
-            generateFieldConnectionWhereIT()?.let {
-                fields += inputValue(Constants.WHERE, it.asType())
-            }
+            generateFieldConnectionWhereIT()
+                ?.let { fields += inputValue(Constants.WHERE, it.asType()) }
+            generateFieldUpdateConnectionInputIT()
+                ?.let { fields += inputValue(Constants.UPDATE_FIELD, it.asType()) }
+            generateFieldConnectIT()
+                ?.let { fields += inputValue(Constants.CONNECT_FIELD, it.wrapType()) }
+            generateFieldDisconnectIT()
+                ?.let { fields += inputValue(Constants.DISCONNECT_FIELD, it.wrapType()) }
+            generateFieldRelationCreateIT()
+                ?.let { fields += inputValue(Constants.CREATE_FIELD, it.wrapType()) }
+            generateFieldDeleteIT()
+                ?.let { fields += inputValue(Constants.DELETE_FIELD, it.wrapType()) }
         }
 
     override fun generateFieldWhereIT(): String? = getOrCreateInputObjectType("${interfaze.name}Where") { fields, _ ->
         addOnField("ImplementationsWhere", fields, asList = false, ::generateWhereIT)
-        fields += getWhereFields(interfaze.name, interfaze.fields, isInterface = true, plural = interfaze.pascalCasePlural)
+        fields += getWhereFields(
+            interfaze.name,
+            interfaze.fields,
+            isInterface = true,
+            plural = interfaze.pascalCasePlural
+        )
     }
 
     // TODO merge with super.addConnectionWhere(prefix: String, node: Node)
@@ -113,8 +112,8 @@ class InterfaceRelationFieldAugmentations(
             }
             if (fields.isNotEmpty()) {
                 val listWhereType = ListType(connectionWhereName.asRequiredType())
-                fields += inputValue("AND", listWhereType)
-                fields += inputValue("OR", listWhereType)
+                fields += inputValue(Constants.AND, listWhereType)
+                fields += inputValue(Constants.OR, listWhereType)
             }
         }
 
@@ -185,7 +184,7 @@ class InterfaceRelationFieldAugmentations(
         getAdditionalFields: (() -> List<InputValueDefinition>)? = null,
     ) =
         getOrCreateInputObjectType("${interfaze.name}$inputTypeSuffix") { fields, _ ->
-            interfaze.implementations.forEach { node ->
+            interfaze.implementations.values.forEach { node ->
                 getNodeType(node)?.let {
                     val type = when (asList) {
                         true -> ListType(it.asRequiredType())

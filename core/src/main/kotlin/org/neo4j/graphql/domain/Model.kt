@@ -17,11 +17,14 @@ data class Model(
     val relationship: List<RelationField>
 ) {
     companion object {
-        fun createModel(typeDefinitionRegistry: TypeDefinitionRegistry) =
-            ModelInitializer(typeDefinitionRegistry).createModel()
+        fun createModel(typeDefinitionRegistry: TypeDefinitionRegistry, schemaConfig: SchemaConfig) =
+            ModelInitializer(typeDefinitionRegistry, schemaConfig).createModel()
     }
 
-    private class ModelInitializer(val typeDefinitionRegistry: TypeDefinitionRegistry) {
+    private class ModelInitializer(
+        val typeDefinitionRegistry: TypeDefinitionRegistry,
+        val schemaConfig: SchemaConfig,
+    ) {
         private val relationshipFields = mutableMapOf<String, RelationshipProperties?>()
         private val interfaces = ConcurrentHashMap<String, Interface?>()
 
@@ -42,29 +45,36 @@ data class Model(
                     typeDefinitionRegistry,
                     this::getOrCreateRelationshipProperties,
                     this::getOrCreateInterface,
+                    schemaConfig,
                 )
             }
             val nodesByName = nodes.associateBy { it.name }
             val implementations = mutableMapOf<Interface, MutableList<Node>>()
             nodes.forEach { node ->
-                node.relationFields.forEach { field ->
-                    field.unionNodes = field.union.mapNotNull { nodesByName[it] }.sortedBy { it.name }
-                    field.node = nodesByName[field.typeMeta.type.name()]
-                }
+                initRelations(node, nodesByName)
                 node.interfaces.forEach {
                     implementations.computeIfAbsent(it) { mutableListOf() }.add(node)
                 }
             }
             implementations.forEach { (interfaze, impls) ->
-                interfaze.implementations = impls.sortedBy { it.name }
-                interfaze.relationFields.forEach { field ->
-                    field.unionNodes = field.union.mapNotNull { nodesByName[it] }.sortedBy { it.name }
-                    field.node = nodesByName[field.typeMeta.type.name()]
-                }
+                interfaze.implementations = impls.sortedBy { it.name }.map { it.name to it }.toMap()
+                initRelations(interfaze, nodesByName)
             }
             val relationships = nodes.flatMap { it.relationFields }
 
             return Model(nodes, relationships)
+        }
+
+        private fun initRelations(type: ImplementingType, nodesByName: Map<String, Node>) {
+            type.relationFields.forEach { field ->
+                field.union = field.unionNodeNames
+                    .mapNotNull { nodesByName[it] }
+                    .sortedBy { it.name }
+                    .map { it.name to it }
+                    .takeIf { it.isNotEmpty() }
+                    ?.let { Union(field.typeMeta.type.name(), it.toMap()) }
+                field.node = nodesByName[field.typeMeta.type.name()]
+            }
         }
 
         private fun getOrCreateRelationshipProperties(name: String): RelationshipProperties? {
@@ -94,6 +104,7 @@ data class Model(
                     typeDefinitionRegistry,
                     this::getOrCreateRelationshipProperties,
                     this::getOrCreateInterface,
+                    schemaConfig,
                 ).onEach { field ->
                     if (field !is ScalarField) {
                         throw IllegalStateException("Field $name.${field.fieldName} is expected to be of scalar type")
@@ -113,6 +124,7 @@ data class Model(
                     typeDefinitionRegistry,
                     ::getOrCreateRelationshipProperties,
                     ::getOrCreateInterface,
+                    schemaConfig,
                 )
             }
         }

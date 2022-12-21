@@ -4,6 +4,7 @@ import graphql.language.Directive
 import graphql.language.InterfaceTypeDefinition
 import graphql.schema.idl.TypeDefinitionRegistry
 import org.neo4j.graphql.DirectiveConstants
+import org.neo4j.graphql.SchemaConfig
 import org.neo4j.graphql.domain.Interface
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.RelationshipProperties
@@ -21,6 +22,7 @@ object InterfaceFactory {
         typeDefinitionRegistry: TypeDefinitionRegistry,
         relationshipPropertiesFactory: (name: String) -> RelationshipProperties?,
         interfaceFactory: (name: String) -> Interface?,
+        schemaConfig: SchemaConfig,
     ): Interface {
 
         val otherDirectives = mutableListOf<Directive>()
@@ -45,7 +47,8 @@ object InterfaceFactory {
                 definition,
                 typeDefinitionRegistry,
                 relationshipPropertiesFactory,
-                interfaceFactory
+                interfaceFactory,
+                schemaConfig
             ),
             otherDirectives,
             interfaces,

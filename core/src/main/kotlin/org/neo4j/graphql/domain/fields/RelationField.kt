@@ -3,7 +3,10 @@ package org.neo4j.graphql.domain.fields
 import org.neo4j.cypherdsl.core.Relationship
 import org.neo4j.graphql.capitalize
 import org.neo4j.graphql.domain.*
+import org.neo4j.graphql.domain.predicates.RelationOperator
+import org.neo4j.graphql.domain.predicates.definitions.RelationPredicateDefinition
 import org.neo4j.graphql.handler.utils.ChainString
+import org.neo4j.graphql.isList
 
 /**
  * Representation of the `@relationship` directive and its meta.
@@ -15,7 +18,7 @@ class RelationField(
      * If the type of the field is an interface
      */
     val interfaze: Interface?,
-    var union: List<String>,
+    var unionNodeNames: List<String>,
     /**
      * The type of the neo4j relation
      */
@@ -30,15 +33,12 @@ class RelationField(
 ) : BaseField(
     fieldName,
     typeMeta,
-) {
+), NodeResolver {
 
     // TODO move to connection field?
     val relationshipTypeName: String get() = "${connectionPrefix}${fieldName.capitalize()}Relationship"
 
-    /**
-     * If the type of the field is an union, this list contains all nodes of the union
-     */
-    lateinit var unionNodes: List<Node>
+    var union: Union? = null
 
     lateinit var connectionField: ConnectionField
 
@@ -48,21 +48,38 @@ class RelationField(
     var node: Node? = null
 
     val isInterface: Boolean get() = interfaze != null
-    val isUnion: Boolean get() = union.isNotEmpty()
+    val isUnion: Boolean get() = unionNodeNames.isNotEmpty()
+
+    val predicates: Map<String, RelationPredicateDefinition> by lazy {
+        val result = mutableMapOf<String, RelationPredicateDefinition>()
+        listOf(true, false).forEach { isConnection ->
+            RelationOperator.values().forEach { op ->
+                if (op.list == this.typeMeta.type.isList()) {
+                    val name = (this.fieldName.takeIf { !isConnection } ?: connectionField.fieldName) +
+                            (op.suffix?.let { "_$it" } ?: "")
+                    result[name] = RelationPredicateDefinition(name, this, op, isConnection)
+                }
+            }
+        }
+        result
+    }
 
     fun getImplementingType(): ImplementingType? = node ?: interfaze
 
-    fun getNode(name: String) =
-        node?.takeIf { it.name == name }
-            ?: unionNodes.firstOrNull { it.name == name }
-            ?: interfaze?.implementations?.firstOrNull { it.name == name }
+    override fun getRequiredNode(name: String) = getNode(name)
+        ?: throw IllegalArgumentException("unknown implementation $name for ${this.getOwnerName()}.$fieldName")
 
-    fun getReferenceNodes() = when {
-        interfaze != null -> interfaze.implementations
-        unionNodes.isNotEmpty() -> unionNodes
-        node != null -> listOf(requireNotNull(node))
-        else -> throw IllegalStateException("Type of field ${getOwnerName()}.${fieldName} is neither interface nor union nor simple node")
-    }
+    override fun getNode(name: String) = extractOnTarget(
+        onNode = { it.takeIf { it.name == name } },
+        onInterface = { it.getRequiredImplementation(name) },
+        onUnion = { it.getRequiredNode(name) }
+    )
+
+    fun getReferenceNodes() = extractOnTarget(
+        onNode = { listOf(it) },
+        onInterface = { it.implementations.values },
+        onUnion = { it.nodes.values }
+    )
 
     enum class Direction {
         IN, OUT
@@ -83,4 +100,24 @@ class RelationField(
         Direction.IN -> start.relationshipFrom(end, relationType)
         Direction.OUT -> start.relationshipTo(end, relationType)
     }.let { if (name != null) it.named(name.resolveName()) else it }
+
+    fun <UNION_RESULT : RESULT, INTERFACE_RESULT : RESULT, NODE_RESULT : RESULT, RESULT> extractOnTarget(
+        onNode: (Node) -> NODE_RESULT,
+        onInterface: (Interface) -> INTERFACE_RESULT,
+        onUnion: (Union) -> UNION_RESULT,
+    ): RESULT {
+        node?.let { return onNode(it) }
+        interfaze?.let { return onInterface(it) }
+        union?.let { return onUnion(it) }
+        throw IllegalStateException("type of ${getOwnerName()}.${fieldName} is neither node nor interface nor union")
+    }
+
+    fun <UNION_RESULT : RESULT, IMPLEMENTATION_TYPE_RESULT : RESULT, RESULT> extractOnTarget(
+        onImplementingType: (ImplementingType) -> IMPLEMENTATION_TYPE_RESULT,
+        onUnion: (Union) -> UNION_RESULT,
+    ): RESULT = extractOnTarget(
+        onNode = { onImplementingType(it) },
+        onInterface = { onImplementingType(it) },
+        onUnion
+    )
 }

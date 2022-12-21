@@ -96,8 +96,8 @@ abstract class RelationFieldBaseAugmentation(
             }
             if (fields.isNotEmpty()) {
                 val listWhereType = ListType(name.asRequiredType())
-                fields += inputValue("AND", listWhereType)
-                fields += inputValue("OR", listWhereType)
+                fields += inputValue(Constants.AND, listWhereType)
+                fields += inputValue(Constants.OR, listWhereType)
             }
         }
 

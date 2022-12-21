@@ -16,9 +16,17 @@ class Interface(
     interfaces: List<Interface>,
     exclude: ExcludeDirective? = null,
     auth: AuthDirective? = null,
-) : ImplementingType(name, description, comments, fields, otherDirectives, interfaces, exclude, auth) {
+) : ImplementingType(name, description, comments, fields, otherDirectives, interfaces, exclude, auth), NodeResolver {
 
-    var implementations: List<Node> = emptyList()
+    var implementations: Map<String, Node> = emptyMap()
+
+    fun getRequiredImplementation(name: String) =  implementations[name]
+        ?: throw IllegalArgumentException("unknown implementation $name for interface ${this.name}")
+
+    override fun getRequiredNode(name: String) = implementations.get(name)
+        ?: throw IllegalArgumentException("unknown implementation $name for interface ${this.name}")
+
+    override fun getNode(name: String) = implementations[name]
 
     override fun toString(): String {
         return "Interface('$name')"

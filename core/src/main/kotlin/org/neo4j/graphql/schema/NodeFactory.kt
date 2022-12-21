@@ -3,16 +3,13 @@ package org.neo4j.graphql.schema
 import graphql.language.Directive
 import graphql.language.ObjectTypeDefinition
 import graphql.schema.idl.TypeDefinitionRegistry
-import org.neo4j.graphql.Constants
-import org.neo4j.graphql.DirectiveConstants
+import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Interface
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.RelationshipProperties
 import org.neo4j.graphql.domain.directives.*
 import org.neo4j.graphql.domain.fields.BaseField
 import org.neo4j.graphql.domain.fields.PrimitiveField
-import org.neo4j.graphql.isList
-import org.neo4j.graphql.name
 
 /**
  * A factory to create the internal representation of a [Node]
@@ -24,6 +21,7 @@ object NodeFactory {
         typeDefinitionRegistry: TypeDefinitionRegistry,
         relationshipPropertiesFactory: (name: String) -> RelationshipProperties?,
         interfaceFactory: (name: String) -> Interface?,
+        schemaConfig: SchemaConfig,
     ): Node {
 
         val otherDirectives = mutableListOf<Directive>()
@@ -68,7 +66,8 @@ object NodeFactory {
             definition,
             typeDefinitionRegistry,
             relationshipPropertiesFactory,
-            interfaceFactory
+            interfaceFactory,
+            schemaConfig
         )
 
         return Node(

@@ -11,6 +11,7 @@ import org.neo4j.cypherdsl.core.StatementBuilder
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.ExcludeDirective
+import org.neo4j.graphql.domain.inputs.create.CreateResolverInputs
 import org.neo4j.graphql.handler.BaseDataFetcher
 import org.neo4j.graphql.schema.AugmentationHandlerV2
 import org.neo4j.graphql.translate.CreateTranslator
@@ -39,34 +40,29 @@ class CreateResolver private constructor(
     }
 
     override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement {
-        val inputAny = env.arguments[Constants.INPUT_FIELD]
-        val inputs = (inputAny as? List<*>)
-            ?: throw IllegalArgumentException("expected an input of type ${env.fieldDefinition.getArgument(Constants.INPUT_FIELD).type} but got ${inputAny?.javaClass?.name}")
+        val arguments = CreateResolverInputs(node, env.arguments)
 
         val queryContext = env.queryContext()
 
-
         var queries: StatementBuilder.OngoingReadingWithoutWhere? = null
         val nodes = mutableListOf<org.neo4j.cypherdsl.core.Node>()
-        inputs
-            .filterIsInstance<Map<*, *>>()
-            .forEachIndexed { index, value ->
-                val dslNode = node.asCypherNode(queryContext).named("this$index")
+        arguments.input?.forEachIndexed { index, value ->
+            val dslNode = node.asCypherNode(queryContext).named("this$index")
 
-                val statement = (
-                        CreateTranslator(schemaConfig, queryContext)
-                            .createCreateAndParams(
-                                node,
-                                dslNode,
-                                value,
-                                listOf(dslNode.requiredSymbolicName)
-                            ) as ExposesReturning
-                        ).returning(dslNode)
-                    .build()
+            val statement = (
+                    CreateTranslator(schemaConfig, queryContext)
+                        .createCreateAndParams(
+                            node,
+                            dslNode,
+                            value,
+                            listOf(dslNode.requiredSymbolicName)
+                        ) as ExposesReturning
+                    ).returning(dslNode)
+                .build()
 
-                queries = queries?.call(statement) ?: Cypher.call(statement)
-                nodes += dslNode
-            }
+            queries = queries?.call(statement) ?: Cypher.call(statement)
+            nodes += dslNode
+        }
         if (queries == null) {
             throw IllegalArgumentException("nothing to create for ${env.fieldDefinition}")
         }
@@ -80,7 +76,8 @@ class CreateResolver private constructor(
             nodes[0] to queries!!
         }
 
-//        val (subQueries, projectionEntries, authValidate) = CreateProjection().createProjectionAndParams()
+//        val (subQueries, projectionEntries, authValidate) = ProjectionTranslator()
+//            .createProjectionAndParams()
 
         val type = env.typeAsContainer()
 
@@ -88,8 +85,9 @@ class CreateResolver private constructor(
 //        val (projectionEntries, subQueries) = projectFields(node, type, env)
         return result
 //            .withSubQueries(subQueries)
-            .returning(1.asCypherLiteral()) //TODO
+//            .returning(1.asCypherLiteral()) //TODO
 //            .returning(node.project(projectionEntries).`as`(variable))
+            .returning(variable)
             .build()
 
     }

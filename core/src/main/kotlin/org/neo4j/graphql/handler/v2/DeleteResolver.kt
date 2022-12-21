@@ -9,13 +9,13 @@ import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
 import org.neo4j.graphql.domain.directives.ExcludeDirective
-import org.neo4j.graphql.domain.dto.RelationFieldsInput
+import org.neo4j.graphql.domain.inputs.delete.DeleteResolverInputs
 import org.neo4j.graphql.handler.BaseDataFetcher
 import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.schema.AugmentationHandlerV2
 import org.neo4j.graphql.translate.AuthTranslator
-import org.neo4j.graphql.translate.DeleteTranslator
 import org.neo4j.graphql.translate.TopLevelMatchTranslator
+import org.neo4j.graphql.translate.createDeleteAndParams
 import org.neo4j.graphql.utils.ResolveTree
 
 class DeleteResolver private constructor(
@@ -31,7 +31,7 @@ class DeleteResolver private constructor(
             }
 
             val coordinates =
-                addMutationField( node.rootTypeFieldNames.delete, Constants.Types.DeleteInfo.makeRequired()) { args ->
+                addMutationField(node.rootTypeFieldNames.delete, Constants.Types.DeleteInfo.makeRequired()) { args ->
                     generateWhereIT(node)?.let { args += inputValue(Constants.WHERE, it.asType()) }
                     generateContainerDeleteInputIT(node)?.let {
                         args += inputValue(Constants.DELETE_FIELD, it.asType())
@@ -47,18 +47,19 @@ class DeleteResolver private constructor(
 
         val dslNode = node.asCypherNode(queryContext, variable)
 
-        var ongoingReading: StatementBuilder.ExposesWith = TopLevelMatchTranslator(schemaConfig, env.variables, queryContext)
-            .translateTopLevelMatch(node, dslNode, env.arguments, AuthDirective.AuthOperation.DELETE)
+        var ongoingReading: StatementBuilder.ExposesWith =
+            TopLevelMatchTranslator(schemaConfig, env.variables, queryContext)
+                .translateTopLevelMatch(node, dslNode, env.arguments, AuthDirective.AuthOperation.DELETE)
 
         val resolveTree = ResolveTree.resolve(env)
-        val deleteInput = resolveTree.args[Constants.DELETE_FIELD]?.let { RelationFieldsInput(node, it) }
+        val input = DeleteResolverInputs(node, resolveTree.args)
 
         val withVars = listOf(dslNode.requiredSymbolicName)
 
-        if (deleteInput != null) {
-            ongoingReading = DeleteTranslator.createDeleteAndParams(
+        input.delete?.let {
+            ongoingReading = createDeleteAndParams(
                 node,
-                deleteInput,
+                it,
                 ChainString(schemaConfig, variable),
                 dslNode,
                 withVars,
@@ -71,9 +72,10 @@ class DeleteResolver private constructor(
 
         AuthTranslator(schemaConfig, queryContext, allow = AuthTranslator.AuthOptions(dslNode, node))
             .createAuth(node.auth, AuthDirective.AuthOperation.DELETE)
-            ?.let { ongoingReading = ongoingReading
-                .with(dslNode)
-                .apocValidate(it, Constants.AUTH_FORBIDDEN_ERROR)
+            ?.let {
+                ongoingReading = ongoingReading
+                    .with(dslNode)
+                    .apocValidate(it, Constants.AUTH_FORBIDDEN_ERROR)
             }
 
 

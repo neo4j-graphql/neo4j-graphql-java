@@ -5,7 +5,7 @@ import graphql.language.VariableReference
 import graphql.schema.GraphQLOutputType
 import org.neo4j.cypherdsl.core.*
 import org.neo4j.cypherdsl.core.StatementBuilder.*
-import org.neo4j.graphql.domain.dto.OptionsInput
+import org.neo4j.graphql.domain.inputs.options.OptionsInput
 import java.util.*
 
 @Deprecated("use ChainString")
@@ -74,7 +74,7 @@ fun StatementBuilder.OngoingReadingAndReturn.applySortingSkipAndLimit(
     schemaConfig: SchemaConfig
 ): BuildableStatement<ResultStatement> {
     val ordered = optionsInput.sort
-        ?.map { (field, direction) -> Cypher.sort(p.property(field), direction) }
+        ?.flatMap { it.map { (field, direction) -> Cypher.sort(p.property(field), direction) } }
         ?.takeIf { it.isNotEmpty() }
         ?.let { this.orderBy(it) }
         ?: this
@@ -96,10 +96,24 @@ fun StatementBuilder.ExposesWith.requiresExposeSet(withVars: List<SymbolicName>)
     else -> this.with(withVars)
 }
 
-fun Any?.nestedMap(vararg path: String): Map<*, *>? = nestedObject(*path) as? Map<*, *>
+fun Any?.nestedMap(vararg path: String): Map<String, *>? =
+    (nestedObject(*path) as? Map<*, *>)?.mapKeys { it.key as String }
+
 fun Any?.nestedObject(vararg path: String, pos: Int = 0): Any? {
     if (pos == path.size) {
         return this
     }
     return (this as? Map<*, *>)?.get(path[pos])?.let { it.nestedObject(*path, pos = pos + 1) }
 }
+
+inline fun <reified T> T.wrapList(): List<T> = when (this) {
+    is List<*> -> this
+        .filterNotNull()
+        .filterIsInstance<T>()
+        .also { check(it.size == this.size, { "expected only elements of type " + T::class.java }) }
+
+    else -> listOf(this)
+}
+
+fun <X, T, R> T.conditionalBlock(cond: Boolean, block: (T) -> R): X where  T : X, R : X =
+    if (cond) block(this) else this

@@ -10,7 +10,7 @@ import org.neo4j.graphql.domain.directives.ExcludeDirective
 import org.neo4j.graphql.domain.fields.BaseField
 import org.neo4j.graphql.utils.CamelCaseUtils.camelCase
 
-open class ImplementingType(
+sealed class ImplementingType(
     val name: String,
     val description: Description? = null,
     val comments: List<Comment> = emptyList(),

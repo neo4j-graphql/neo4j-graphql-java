@@ -1,0 +1,459 @@
+@startuml
+page 2x2
+skinparam pageMargin 10
+skinparam pageExternalColor gray
+skinparam pageBorderColor black
+
+'left to right direction
+class Where {
+    AND
+    OR
+    <connectionField>: ConnectionWhere
+    <scalarFieldConditions>
+}
+Where *--- "0..1" Where : AND, OR >
+
+package ConnectionWhere as WherePackage <<Rectangle>> {
+    interface ConnectionWhere
+    class NodeConnectionWhere #f0fff7 {
+        node
+        node_NOT
+        edge
+        edge_NOT
+        AND
+        OR
+    }
+    NodeConnectionWhere *-- "0..1" NodeConnectionWhere : AND, OR >
+
+    class InterfaceConnectionWhere #aliceblue {
+        node
+        node_NOT
+        edge
+        edge_NOT
+        AND
+        OR
+    }
+    InterfaceConnectionWhere *-- "0..1" InterfaceConnectionWhere : AND, OR >
+
+    class InterfaceConnectionImplementationsWhere #aliceblue {
+        on: Map<{NodeName}, Where>
+        <scalarFieldConditions>
+    }
+    InterfaceConnectionWhere *--- "0..1" InterfaceConnectionImplementationsWhere :node, node_NOT >
+    InterfaceConnectionImplementationsWhere *--- "0..1" Where : >
+
+
+    class UnionConnectionWhere #fff7f0 {
+        <NodeName> : NodeConnectionWhere
+    }
+    UnionConnectionWhere *--- "0..1" NodeConnectionWhere : >
+
+    ConnectionWhere <|-- NodeConnectionWhere
+    ConnectionWhere <|-- InterfaceConnectionWhere
+    ConnectionWhere <|-- UnionConnectionWhere
+}
+
+package Create <<Rectangle>> {
+
+    ' BaseAugmentationV2::generateContainerCreateInputIT
+    class CreateInput {
+        ' RelationFieldBaseAugmentation::generateFieldCreateIT
+        <relationFieldName> : FieldInput
+        <scalarFieldName>
+    }
+
+    ' RelationFieldBaseAugmentation::generateFieldCreateIT
+    interface FieldInput
+    CreateInput *-- "0..1" FieldInput : >
+
+    abstract class ImplementingTypeCreateFieldInput {
+        edge
+    }
+    ImplementingTypeCreateFieldInput *-up- "0..1" CreateInput : edge >
+
+    ' NodeRelationFieldAugmentations::generateFieldCreateIT
+    ' > RelationFieldBaseAugmentation::generateFieldNodeFieldInputIT
+    class NodeFieldInput #f0fff7 {
+        create
+        connect
+        connectOrCreate
+    }
+    NodeFieldInput *-- "0..n" NodeCreateFieldInput : create >
+
+    ' InterfaceRelationFieldAugmentations::generateFieldCreateIT
+    class InterfaceFieldInput #aliceblue {
+        create
+        connect
+    }
+    InterfaceFieldInput *-- "0..n" InterfaceCreateFieldInput : create >
+
+    class NodeFieldInputs <List<NodeFieldInput>> #f0fff7 {
+    }
+    NodeFieldInputs o-- "0..n" NodeFieldInput
+
+    class InterfaceFieldInputs <List<InterfaceFieldInput>> #aliceblue {
+    }
+    InterfaceFieldInputs o-- "0..n" InterfaceFieldInput
+
+    ' UnionRelationFieldAugmentations::generateFieldCreateIT
+    class UnionFieldInput #fff7f0 {
+        <NodeName> : NodeFieldInputs
+    }
+    UnionFieldInput *-- "0..1" NodeFieldInputs : >
+
+    ' RelationFieldBaseAugmentation::generateFieldCreateFieldInputIT
+    class NodeCreateFieldInput #f0fff7 {
+        node
+    }
+    NodeCreateFieldInput *-up- "0..1" CreateInput : node >
+
+    class InterfaceCreateFieldInput #aliceblue {
+        node
+    }
+    InterfaceCreateFieldInput *-- "0..1" InterfaceCreateInput : node >
+
+    
+    class InterfaceCreateInput #aliceblue {
+        // TODO not used yet
+    }
+
+
+    ImplementingTypeCreateFieldInput <|-- NodeCreateFieldInput
+    ImplementingTypeCreateFieldInput <|-- InterfaceCreateFieldInput
+
+    FieldInput <|-- NodeFieldInputs
+    FieldInput <|-- InterfaceFieldInputs
+    FieldInput <|-- UnionFieldInput
+}
+
+package Connect <<Rectangle>> {
+    ' BaseAugmentationV2::generateContainerConnectInputIT
+    class ConnectInput {
+        ' RelationFieldBaseAugmentation::generateFieldConnectIT
+        <relationFieldName> : ConnectFieldInput
+    }
+
+    ' RelationFieldBaseAugmentation::generateFieldConnectFieldInputIT
+    interface ConnectFieldInput {
+    }
+    ConnectInput *--- "0..1" ConnectFieldInput: >
+
+    ' BaseAugmentationV2::generateConnectWhereIT
+    class ConnectWhere {
+        node
+    }
+
+    abstract class ImplementingTypeConnectFieldInput{
+        edge
+        where
+        connect
+    }
+    ImplementingTypeConnectFieldInput *--- "0..1" ConnectWhere : where >
+    ImplementingTypeConnectFieldInput *-up- "0..n" ConnectInput : connect >
+    ImplementingTypeConnectFieldInput *--- "0..1" CreateInput : edge >
+
+    class NodeConnectFieldInputs <List<NodeConnectFieldInput>> #f0fff7 {
+    }
+    NodeConnectFieldInputs o-- "0..n" NodeConnectFieldInput
+
+    class InterfaceConnectFieldInputs <List<InterfaceConnectFieldInput>> #aliceblue {
+    }
+    InterfaceConnectFieldInputs o-- "0..n" InterfaceConnectFieldInput
+
+    ' NodeRelationFieldAugmentations::generateFieldConnectIT
+    class NodeConnectFieldInput #f0fff7 {
+    }
+
+    ' InterfaceRelationFieldAugmentations::generateFieldConnectIT
+    class InterfaceConnectFieldInput #aliceblue {
+        on: Map<{NodeName}, NodeConnectFieldInputs>
+    }
+    InterfaceConnectFieldInput *-- "0..1" NodeConnectFieldInputs : >
+
+    class UnionConnectFieldInput #fff7f0 {
+        <NodeName> : NodeConnectFieldInputs
+    }
+    UnionConnectFieldInput *-- "0..1" NodeConnectFieldInputs : >
+
+
+    ImplementingTypeConnectFieldInput <|-- NodeConnectFieldInput
+    ImplementingTypeConnectFieldInput <|-- InterfaceConnectFieldInput
+    ConnectFieldInput <|-- UnionConnectFieldInput
+    ConnectFieldInput <|-- NodeConnectFieldInputs
+    ConnectFieldInput <|-- InterfaceConnectFieldInputs
+}
+
+package Disconnect <<Rectangle>> {
+    ' BaseAugmentationV2::generateContainerDisconnectInputIT
+    class DisconnectInput {
+        ' RelationFieldBaseAugmentation::generateFieldDisconnectIT
+        <relationFieldName> : DisconnectFieldInput
+    }
+
+    interface DisconnectFieldInput {
+    }
+    DisconnectInput *-- "0..n" DisconnectFieldInput : >
+
+    abstract class ImplementingTypeDisconnectFieldInput {
+        where
+        disconnect
+    }
+    ImplementingTypeDisconnectFieldInput *-up- "0..1" DisconnectInput : disconnect >
+
+    class NodeDisconnectFieldInputs <List<NodeDisconnectFieldInput>> #f0fff7 {
+    }
+    NodeDisconnectFieldInputs o-- "0..n" NodeDisconnectFieldInput
+
+    class InterfaceDisconnectFieldInputs <List<InterfaceDisconnectFieldInput>> #aliceblue {
+    }
+    InterfaceDisconnectFieldInputs o-- "0..n" InterfaceDisconnectFieldInput
+
+    ' NodeRelationFieldAugmentations::generateFieldDisconnectIT
+    ' RelationFieldBaseAugmentation::generateFieldDisconnectFieldInputIT
+    class NodeDisconnectFieldInput #f0fff7 {
+    }
+
+    class InterfaceDisconnectFieldInput #aliceblue {
+        on: Map<{NodeName}, NodeDisconnectFieldInputs>
+    }
+    InterfaceDisconnectFieldInput *-- "0..1" NodeDisconnectFieldInputs : >
+
+    class UnionDisconnectFieldInput #fff7f0 {
+        <NodeName>: NodeDisconnectFieldInputs
+    }
+    UnionDisconnectFieldInput *-- "0..n" NodeDisconnectFieldInputs : >
+
+    DisconnectFieldInput <|-- NodeDisconnectFieldInputs
+    DisconnectFieldInput <|-- InterfaceDisconnectFieldInputs
+    DisconnectFieldInput <|-- UnionDisconnectFieldInput
+    ImplementingTypeDisconnectFieldInput <|-- NodeDisconnectFieldInput
+    ImplementingTypeDisconnectFieldInput <|-- InterfaceDisconnectFieldInput
+}
+
+package Delete <<Rectangle>> {
+    ' BaseAugmentationV2::generateContainerDeleteInputIT
+    class DeleteInput {
+        ' RelationFieldBaseAugmentation::generateFieldDeleteIT
+        <relationFieldName> : DeleteFieldInput
+    }
+
+    interface DeleteFieldInput {
+    }
+    DeleteInput *-- "0..n" DeleteFieldInput : >
+
+    abstract class ImplementingTypeDeleteFieldInput {
+        where
+        delete
+    }
+    ImplementingTypeDeleteFieldInput *-up- "0..1" DeleteInput : delete >
+
+    class NodeDeleteFieldInputs <List<NodeDeleteFieldInput>> #f0fff7 {
+    }
+    NodeDeleteFieldInputs o-- "0..n" NodeDeleteFieldInput
+
+    class InterfaceDeleteFieldInputs <List<InterfaceDeleteFieldInput>> #aliceblue {
+    }
+    InterfaceDeleteFieldInputs o-- "0..n" InterfaceDeleteFieldInput
+
+    ' NodeRelationFieldAugmentations::generateFieldDeleteIT
+    ' RelationFieldBaseAugmentation::generateFieldDeleteFieldInputIT
+    class NodeDeleteFieldInput #f0fff7 {
+    }
+
+    class InterfaceDeleteFieldInput #aliceblue {
+        on: Map<{NodeName}, NodeDeleteFieldInputs>
+    }
+    InterfaceDeleteFieldInput *-- "0..1" NodeDeleteFieldInputs : >
+
+    class UnionDeleteFieldInput #fff7f0 {
+        <NodeName>: NodeDeleteFieldInputs
+    }
+    UnionDeleteFieldInput *-- "0..n" NodeDeleteFieldInputs : >
+
+    DeleteFieldInput <|-- NodeDeleteFieldInputs
+    DeleteFieldInput <|-- InterfaceDeleteFieldInputs
+    DeleteFieldInput <|-- UnionDeleteFieldInput
+    ImplementingTypeDeleteFieldInput <|-- NodeDeleteFieldInput
+    ImplementingTypeDeleteFieldInput <|-- InterfaceDeleteFieldInput
+
+}
+
+
+package ConnectOrCreate <<Rectangle>> {
+    ' BaseAugmentationV2::generateContainerConnectOrCreateInputIT
+    class ConnectOrCreateInput {
+        ' RelationFieldBaseAugmentation::generateFieldConnectOrCreateIT
+        <relationFieldName> : ConnectOrCreateFieldInput
+    }
+
+    interface ConnectOrCreateFieldInput {
+    }
+    ConnectOrCreateInput *-- "0..n" ConnectOrCreateFieldInput : >
+
+    ' NodeRelationFieldAugmentations::generateFieldConnectOrCreateIT
+    ' RelationFieldBaseAugmentation::generateFieldConnectOrCreateFieldInputIT
+    class NodeConnectOrCreateFieldInput #f0fff7 {
+        where
+        onCreate
+    }
+    NodeConnectOrCreateFieldInput *-- "0..1" ConnectOrCreateInput : onCreate >
+    NodeConnectOrCreateFieldInput *-- "0..1" ConnectOrCreateWhere : where >
+
+    class NodeConnectOrCreateFieldInputs <List<NodeConnectOrCreateFieldInput>> #f0fff7 {
+    }
+    NodeConnectOrCreateFieldInputs o-- "0..n" NodeConnectOrCreateFieldInput
+
+    class UnionConnectOrCreateFieldInput #fff7f0 {
+        <NodeName>: NodeConnectOrCreateFieldInputs
+    }
+    UnionConnectOrCreateFieldInput *--- "0..n" NodeConnectOrCreateFieldInputs : >
+
+    ConnectOrCreateFieldInput <|-- NodeConnectOrCreateFieldInputs
+    ConnectOrCreateFieldInput <|-- UnionConnectOrCreateFieldInput
+
+    ' BaseAugmentationV2::generateConnectOrCreateWhereIT
+    class ConnectOrCreateWhere{
+        node
+    }
+    ConnectOrCreateWhere *-- "0..1" UniqueWhere : node >
+
+    class UniqueWhere {
+        <uniqueFieldConditions>
+    }
+}
+
+
+package Update <<Rectangle>> {
+
+    ' BaseAugmentationV2::generateContainerUpdateIT
+    class UpdateInput {
+        ' RelationFieldBaseAugmentation::generateFieldUpdateIT
+        <relationFieldName> : UpdateFieldInput
+        <scalarFieldName>
+    }
+
+    ' RelationFieldBaseAugmentation::generateFieldUpdateIT
+    interface UpdateFieldInput {
+    }
+    UpdateInput *-- "0..1" UpdateFieldInput : >
+
+    ' NodeRelationFieldAugmentations::generateFieldUpdateIT
+    ' > RelationFieldBaseAugmentation::generateFieldUpdateFieldInputIT
+    class NodeUpdateFieldInput #f0fff7 {
+        where
+        update
+        connect
+        disconnect
+        create
+        delete
+        connectOrCreate
+    }
+    NodeUpdateFieldInput *-- "0..1" NodeUpdateConnectionInput : update >
+
+    ' InterfaceRelationFieldAugmentations::generateFieldUpdateIT
+    class InterfaceUpdateFieldInput #aliceblue {
+        where
+        update
+        connect
+        disconnect
+        create
+        delete
+    }
+    InterfaceUpdateFieldInput *-- "0..1" InterfaceUpdateConnectionInput : update >
+
+    abstract class ImplementingTypeUpdateConnectionInput {
+        edge
+    }
+    ImplementingTypeUpdateConnectionInput *-up- "0..1" UpdateInput : edge >
+
+    ' RelationFieldBaseAugmentation::generateFieldUpdateConnectionInputIT
+    class NodeUpdateConnectionInput #f0fff7 {
+        node
+    }
+    NodeUpdateConnectionInput *-up- "0..1" UpdateInput : node >
+
+    ' InterfaceRelationFieldAugmentations::generateFieldUpdateConnectionInputIT
+    class InterfaceUpdateConnectionInput #aliceblue {
+        node
+    }
+    InterfaceUpdateConnectionInput *-- "0..1" InterfaceUpdateConnectionNodeInput : node >
+
+    class InterfaceUpdateConnectionNodeInput #aliceblue {
+        on: Map<{NodeName}, UpdateInput>
+        <scalarFieldsOfInterface>
+    }
+    InterfaceUpdateConnectionNodeInput *-- "0..1" UpdateInput : >
+
+    class NodeUpdateFieldInputs <List<NodeUpdateFieldInput>> #f0fff7 {
+    }
+    NodeUpdateFieldInputs o-- "0..n" NodeUpdateFieldInput
+
+    class InterfaceUpdateFieldInputs <List<InterfaceUpdateFieldInput>> #aliceblue {
+    }
+    InterfaceUpdateFieldInputs o-- "0..n" InterfaceUpdateFieldInput
+
+    ' UnionRelationFieldAugmentations::generateFieldUpdateIT
+    class UnionUpdateFieldInput #fff7f0 {
+        <NodeName> : NodeUpdateFieldInputs
+    }
+    UnionUpdateFieldInput *-- "0..1" NodeUpdateFieldInputs : >
+
+    UpdateFieldInput <|-- NodeUpdateFieldInputs
+    UpdateFieldInput <|-- InterfaceUpdateFieldInputs
+    UpdateFieldInput <|-- UnionUpdateFieldInput
+    ImplementingTypeUpdateConnectionInput <|-- NodeUpdateConnectionInput
+    ImplementingTypeUpdateConnectionInput <|-- InterfaceUpdateConnectionInput
+}
+
+' * -> Where
+Where *-- "0..1" ConnectionWhere : >
+ConnectWhere *-- "0..1" Where : node >
+NodeConnectionWhere *-- "0..1" Where :  node, node_NOT, edge, edge_NOT >
+InterfaceConnectionWhere *-- "0..1" Where : edge, edge_NOT >
+
+' Create -> ConnectOrCreate
+NodeFieldInput *-down-- "0..n" ConnectOrCreateFieldInput : connectOrCreate >
+
+' Create -> Connect
+NodeFieldInput *----- "0..n" ConnectFieldInput : connect >
+InterfaceFieldInput *----- "0..n" InterfaceConnectFieldInput : connect >
+
+' Update -> ConnectionWhere
+NodeUpdateFieldInput *---- "0..1" NodeConnectionWhere : where >
+InterfaceUpdateFieldInput *----- "0..1" InterfaceConnectionWhere : where >
+
+' Update -> Connect
+NodeUpdateFieldInput *----- "0..1" NodeConnectFieldInputs : connect >
+InterfaceUpdateFieldInput *----- "0..1" InterfaceConnectFieldInputs : connect >
+
+' Update -> Disconnect
+NodeUpdateFieldInput *----- "0..1" NodeDisconnectFieldInputs : disconnect >
+InterfaceUpdateFieldInput *----- "0..1" InterfaceDisconnectFieldInputs : disconnect >
+
+' Update -> Create
+NodeUpdateFieldInput *-right-- "0..n" NodeCreateFieldInput : create >
+InterfaceUpdateFieldInput *-right-- "0..n" InterfaceCreateFieldInput : create >
+
+' Update -> Delete
+NodeUpdateFieldInput *--- "0..1" NodeDeleteFieldInputs : delete >
+InterfaceUpdateFieldInput *--- "0..1" InterfaceDeleteFieldInputs : delete >
+
+' Update -> ConnectOrCreate
+NodeUpdateFieldInput *-down-- "0..1" NodeConnectOrCreateFieldInputs : connectOrCreate >
+
+' Disconnect -> ConnectionWhere
+ImplementingTypeDisconnectFieldInput *--- "0..1" ConnectionWhere : where >
+
+' Delete -> ConnectionWhere
+ImplementingTypeDeleteFieldInput *--- "0..1" ConnectionWhere : where >
+
+'package Resolver <<Rectangle>> {
+'    class CreateResolverArguments {
+'        'CreateResolver
+'        input: [CreateInput!]!
+'    }
+'    CreateResolverArguments *--- "0..n" CreateInput : input >
+'
+'}
+
+@enduml
