@@ -53,8 +53,8 @@ data class OptionsInput(
         fun create(map: Map<String, *>) = OptionsInput(
             map[Constants.LIMIT] as? Int,
             map[Constants.OFFSET] as? Int,
-            map[Constants.SORT]?.wrapList()?.map {
-                Dict(it).entries
+            map[Constants.SORT]?.wrapList()?.map { sortInput ->
+                Dict(sortInput).entries
                     .mapNotNull { (k, v) ->
                         val key = k as? String ?: return@mapNotNull null
                         val sort = (v as? String)?.let { SortItem.Direction.valueOf(it) } ?: return@mapNotNull null

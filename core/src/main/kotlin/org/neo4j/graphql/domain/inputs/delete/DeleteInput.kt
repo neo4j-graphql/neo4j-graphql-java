@@ -22,10 +22,10 @@ sealed class DeleteInput private constructor(implementingType: ImplementingType,
 
     class InterfaceDeleteInput(interfaze: Interface, data: Dict) : DeleteInput(interfaze, data) {
 
-        val on = data[Constants.ON]?.let {
+        val on = data[Constants.ON]?.let { on ->
             PerNodeInput(
                 interfaze,
-                Dict(it),
+                Dict(on),
                 { node: Node, value: Any -> value.wrapList().map { NodeDeleteInput(node, Dict(it)) } }
             )
         }

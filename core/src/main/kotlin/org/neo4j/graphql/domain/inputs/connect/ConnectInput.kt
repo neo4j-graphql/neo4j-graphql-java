@@ -24,10 +24,10 @@ sealed class ConnectInput private constructor(
 
     class InterfaceConnectInput(interfaze: Interface, data: Dict) : ConnectInput(interfaze, data) {
 
-        val on = data[Constants.ON]?.let {
+        val on = data[Constants.ON]?.let { on ->
             PerNodeInput(
                 interfaze,
-                Dict(it),
+                Dict(on),
                 { node, value -> value.wrapList().map { NodeConnectInput(node, Dict(it)) } }
             )
         }

@@ -3,12 +3,15 @@ package org.neo4j.graphql.domain.inputs.disconnect
 import org.neo4j.graphql.Constants
 import org.neo4j.graphql.domain.Interface
 import org.neo4j.graphql.domain.Node
+import org.neo4j.graphql.domain.RelationshipProperties
 import org.neo4j.graphql.domain.Union
 import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.domain.inputs.Dict
 import org.neo4j.graphql.domain.inputs.InputListWrapper
 import org.neo4j.graphql.domain.inputs.PerNodeInput
 import org.neo4j.graphql.domain.inputs.connection_where.ConnectionWhere
+import org.neo4j.graphql.domain.inputs.connection_where.ConnectionWhere.InterfaceConnectionWhere
+import org.neo4j.graphql.domain.inputs.connection_where.ConnectionWhere.NodeConnectionWhere
 import org.neo4j.graphql.wrapList
 
 sealed interface DisconnectFieldInput {
@@ -18,22 +21,26 @@ sealed interface DisconnectFieldInput {
         val disconnect: List<DisconnectInput>?
     }
 
-    class NodeDisconnectFieldInput(node: Node, field: RelationField, data: Dict) :
+    class NodeDisconnectFieldInput(node: Node, relationshipProperties: RelationshipProperties?, data: Dict) :
         ImplementingTypeDisconnectFieldInput {
 
         override val where = data[Constants.WHERE]?.let {
-            ConnectionWhere.NodeConnectionWhere.create(node, field, Dict(it))
+            NodeConnectionWhere(node, relationshipProperties, Dict(it))
         }
 
         override val disconnect = data[Constants.DISCONNECT_FIELD]
             ?.wrapList()?.map { DisconnectInput.NodeDisconnectInput(node, Dict(it)) }
     }
 
-    class InterfaceDisconnectFieldInput(interfaze: Interface, field: RelationField, data: Dict) :
+    class InterfaceDisconnectFieldInput(
+        interfaze: Interface,
+        relationshipProperties: RelationshipProperties?,
+        data: Dict
+    ) :
         ImplementingTypeDisconnectFieldInput {
 
         override val where = data[Constants.WHERE]?.let {
-            ConnectionWhere.InterfaceConnectionWhere.create(interfaze, field, Dict(it))
+            InterfaceConnectionWhere(interfaze, relationshipProperties, Dict(it))
         }
 
         override val disconnect = data[Constants.DISCONNECT_FIELD]
@@ -43,7 +50,7 @@ sealed interface DisconnectFieldInput {
             PerNodeInput(
                 interfaze,
                 Dict(it),
-                { node: Node, value: Any -> NodeDisconnectFieldInputs.create(node, field, value) }
+                { node: Node, value: Any -> NodeDisconnectFieldInputs.create(node, relationshipProperties, value) }
             )
         }
     }
@@ -52,10 +59,10 @@ sealed interface DisconnectFieldInput {
         InputListWrapper<NodeDisconnectFieldInput>(items) {
 
         companion object {
-            fun create(node: Node, field: RelationField, value: Any?) = create(
+            fun create(node: Node, relationshipProperties: RelationshipProperties?, value: Any?) = create(
                 value,
                 ::NodeDisconnectFieldInputs,
-                { NodeDisconnectFieldInput(node, field, Dict(it)) }
+                { NodeDisconnectFieldInput(node, relationshipProperties, Dict(it)) }
             )
         }
     }
@@ -63,26 +70,27 @@ sealed interface DisconnectFieldInput {
     class InterfaceDisconnectFieldInputs(items: List<InterfaceDisconnectFieldInput>) : DisconnectFieldInput,
         InputListWrapper<InterfaceDisconnectFieldInput>(items) {
         companion object {
-            fun create(interfaze: Interface, field: RelationField, value: Any?) = create(
+            fun create(interfaze: Interface, relationshipProperties: RelationshipProperties?, value: Any?) = create(
                 value,
                 ::InterfaceDisconnectFieldInputs,
-                { InterfaceDisconnectFieldInput(interfaze, field, Dict(it)) }
+                { InterfaceDisconnectFieldInput(interfaze, relationshipProperties, Dict(it)) }
             )
         }
     }
 
-    class UnionDisconnectFieldInput(union: Union, field: RelationField, data: Dict) : DisconnectFieldInput,
+    class UnionDisconnectFieldInput(union: Union, relationshipProperties: RelationshipProperties?, data: Dict) :
+        DisconnectFieldInput,
         PerNodeInput<NodeDisconnectFieldInputs>(
             union,
             data,
-            { node, value -> NodeDisconnectFieldInputs.create(node, field, value) }
+            { node, value -> NodeDisconnectFieldInputs.create(node, relationshipProperties, value) }
         )
 
     companion object {
         fun create(field: RelationField, value: Any) = field.extractOnTarget(
-            onNode = { NodeDisconnectFieldInputs.create(it, field, value) },
-            onInterface = { InterfaceDisconnectFieldInputs.create(it, field, value) },
-            onUnion = { UnionDisconnectFieldInput(it, field, Dict(value)) }
+            onNode = { NodeDisconnectFieldInputs.create(it, field.properties, value) },
+            onInterface = { InterfaceDisconnectFieldInputs.create(it, field.properties, value) },
+            onUnion = { UnionDisconnectFieldInput(it, field.properties, Dict(value)) }
         )
     }
 }

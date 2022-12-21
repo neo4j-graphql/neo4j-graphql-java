@@ -21,10 +21,10 @@ sealed class DisconnectInput private constructor(implementingType: ImplementingT
 
     class InterfaceDisconnectInput(interfaze: Interface, data: Dict) : DisconnectInput(interfaze, data) {
 
-        val on = data[Constants.ON]?.let {
+        val on = data[Constants.ON]?.let { on ->
             PerNodeInput(
                 interfaze,
-                Dict(it),
+                Dict(on),
                 { node: Node, value: Any -> value.wrapList().map { NodeDisconnectInput(node, Dict(it)) } }
             )
         }

@@ -1,10 +1,7 @@
 package org.neo4j.graphql.domain.inputs.connect
 
 import org.neo4j.graphql.Constants
-import org.neo4j.graphql.domain.ImplementingType
-import org.neo4j.graphql.domain.Interface
-import org.neo4j.graphql.domain.Node
-import org.neo4j.graphql.domain.Union
+import org.neo4j.graphql.domain.*
 import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.domain.inputs.*
 import org.neo4j.graphql.wrapList
@@ -13,24 +10,33 @@ sealed interface ConnectFieldInput {
 
     sealed class ImplementingTypeConnectFieldInput(
         implementingType: ImplementingType,
-        field: RelationField,
+        relationshipProperties: RelationshipProperties?,
         data: Dict
     ) {
-        val edge = data[Constants.EDGE_FIELD]?.let { ScalarProperties.create(data, implementingType) }
+        val edge = relationshipProperties
+            ?.let { props -> data[Constants.EDGE_FIELD]?.let { ScalarProperties.create(data, props) } }
+
         val where = data[Constants.WHERE]?.let { ConnectWhere(implementingType, Dict(it)) }
-        val connect = data[Constants.CONNECT_FIELD]?.let { it.wrapList().map { ConnectInput.create(field, it)} }
+        val connect =
+            data[Constants.CONNECT_FIELD]?.let { input ->
+                input.wrapList().map { ConnectInput.create(implementingType, it) }
+            }
     }
 
-    class NodeConnectFieldInput(node: Node, field: RelationField, data: Dict) :
-        ImplementingTypeConnectFieldInput(node, field, data)
+    class NodeConnectFieldInput(node: Node, relationshipProperties: RelationshipProperties?, data: Dict) :
+        ImplementingTypeConnectFieldInput(node, relationshipProperties, data)
 
-    class InterfaceConnectFieldInput(interfaze: Interface, field: RelationField, data: Dict) :
-        ImplementingTypeConnectFieldInput(interfaze, field, data) {
+    class InterfaceConnectFieldInput(
+        interfaze: Interface,
+        relationshipProperties: RelationshipProperties?,
+        data: Dict
+    ) :
+        ImplementingTypeConnectFieldInput(interfaze, relationshipProperties, data) {
         val on = data[Constants.ON]?.let {
             PerNodeInput(
                 interfaze,
                 Dict(it),
-                { node: Node, value: Any -> NodeConnectFieldInputs.create(node, field, value) }
+                { node: Node, value: Any -> NodeConnectFieldInputs.create(node, relationshipProperties, value) }
             )
         }
     }
@@ -39,10 +45,10 @@ sealed interface ConnectFieldInput {
         InputListWrapper<NodeConnectFieldInput>(items) {
 
         companion object {
-            fun create(node: Node, field: RelationField, value: Any?) = create(
+            fun create(node: Node, relationshipProperties: RelationshipProperties?, value: Any?) = create(
                 value,
                 ::NodeConnectFieldInputs,
-                { NodeConnectFieldInput(node, field, Dict(it)) }
+                { NodeConnectFieldInput(node, relationshipProperties, Dict(it)) }
             )
         }
     }
@@ -50,19 +56,20 @@ sealed interface ConnectFieldInput {
     class InterfaceConnectFieldInputs(items: List<InterfaceConnectFieldInput>) : ConnectFieldInput,
         InputListWrapper<InterfaceConnectFieldInput>(items) {
         companion object {
-            fun create(interfaze: Interface, field: RelationField, value: Any?) = create(
+            fun create(interfaze: Interface, relationshipProperties: RelationshipProperties?, value: Any?) = create(
                 value,
                 ::InterfaceConnectFieldInputs,
-                { InterfaceConnectFieldInput(interfaze, field, Dict(it)) }
+                { InterfaceConnectFieldInput(interfaze, relationshipProperties, Dict(it)) }
             )
         }
     }
 
-    class UnionConnectFieldInput(union: Union, field: RelationField, data: Dict) : ConnectFieldInput,
+    class UnionConnectFieldInput(union: Union, relationshipProperties: RelationshipProperties?, data: Dict) :
+        ConnectFieldInput,
         PerNodeInput<NodeConnectFieldInputs>(
             union,
             data,
-            { node, value -> NodeConnectFieldInputs.create(node, field, value) }
+            { node, value -> NodeConnectFieldInputs.create(node, relationshipProperties, value) }
         )
 
     class ConnectWhere(type: ImplementingType, data: Dict) {
@@ -71,9 +78,9 @@ sealed interface ConnectFieldInput {
 
     companion object {
         fun create(field: RelationField, value: Any) = field.extractOnTarget(
-            onNode = { NodeConnectFieldInputs.create(it, field, value) },
-            onInterface = { InterfaceConnectFieldInputs.create(it, field, value) },
-            onUnion = { UnionConnectFieldInput(it, field, Dict(value)) }
+            onNode = { NodeConnectFieldInputs.create(it, field.properties, value) },
+            onInterface = { InterfaceConnectFieldInputs.create(it, field.properties, value) },
+            onUnion = { UnionConnectFieldInput(it, field.properties, Dict(value)) }
         )
     }
 }

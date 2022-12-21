@@ -6,8 +6,6 @@ import org.neo4j.graphql.domain.inputs.Dict
 import org.neo4j.graphql.domain.inputs.WhereInput
 import org.neo4j.graphql.domain.inputs.connect.ConnectInput
 import org.neo4j.graphql.domain.inputs.connect_or_create.ConnectOrCreateInput
-import org.neo4j.graphql.domain.inputs.create.CreateFieldInput
-import org.neo4j.graphql.domain.inputs.create.CreateInput
 import org.neo4j.graphql.domain.inputs.create.RelationInput
 import org.neo4j.graphql.domain.inputs.delete.DeleteInput
 import org.neo4j.graphql.domain.inputs.disconnect.DisconnectInput

@@ -27,4 +27,9 @@ class ConnectionPredicate(
         EQUAL("", { it }),
         NOT("_NOT", { it.not() });
     }
+
+    companion object {
+        fun getTargetOperationCombinations() = ConnectionPredicate.Target.values()
+            .flatMap { target -> ConnectionPredicate.ConnectionOperator.values().map { target to it } }
+    }
 }
