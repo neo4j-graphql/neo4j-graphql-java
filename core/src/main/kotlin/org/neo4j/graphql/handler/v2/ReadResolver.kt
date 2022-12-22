@@ -9,12 +9,13 @@ import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
 import org.neo4j.graphql.domain.directives.ExcludeDirective
-import org.neo4j.graphql.domain.inputs.options.OptionsInput
+import org.neo4j.graphql.domain.inputs.filter.ReadResolverInputs
 import org.neo4j.graphql.handler.BaseDataFetcher
 import org.neo4j.graphql.schema.AugmentationHandlerV2
 import org.neo4j.graphql.translate.AuthTranslator
 import org.neo4j.graphql.translate.ProjectionTranslator
 import org.neo4j.graphql.translate.TopLevelMatchTranslator
+import org.neo4j.graphql.utils.ResolveTree
 
 /**
  * This class handles all the logic related to the querying of nodes.
@@ -44,14 +45,16 @@ class ReadResolver private constructor(
 
     override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement {
         val queryContext = env.queryContext()
+
+        val resolveTree = ResolveTree.resolve(env)
+        val input = ReadResolverInputs(node, resolveTree.args)
+
         val dslNode = node.asCypherNode(queryContext, variable)
 
-        val optionsInput = OptionsInput
-            .create(env.arguments[Constants.OPTIONS])
-            .merge(node.queryOptions)
+        val optionsInput = input.options.merge(node.queryOptions)
 
         var ongoingReading = TopLevelMatchTranslator(schemaConfig, env.variables, queryContext)
-            .translateTopLevelMatch(node, dslNode, env.arguments, AuthDirective.AuthOperation.READ)
+            .translateTopLevelMatch(node, dslNode, input.fulltext, input.where, AuthDirective.AuthOperation.READ)
 
         AuthTranslator(schemaConfig, queryContext, allow = AuthTranslator.AuthOptions(dslNode, node))
             .createAuth(node.auth, AuthDirective.AuthOperation.READ)

@@ -44,15 +44,14 @@ class DeleteResolver private constructor(
 
     override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement {
         val queryContext = env.queryContext()
+        val resolveTree = ResolveTree.resolve(env)
+        val input = DeleteResolverInputs(node, resolveTree.args)
 
         val dslNode = node.asCypherNode(queryContext, variable)
 
         var ongoingReading: StatementBuilder.ExposesWith =
             TopLevelMatchTranslator(schemaConfig, env.variables, queryContext)
-                .translateTopLevelMatch(node, dslNode, env.arguments, AuthDirective.AuthOperation.DELETE)
-
-        val resolveTree = ResolveTree.resolve(env)
-        val input = DeleteResolverInputs(node, resolveTree.args)
+                .translateTopLevelMatch(node, dslNode, null, input.where, AuthDirective.AuthOperation.DELETE)
 
         val withVars = listOf(dslNode.requiredSymbolicName)
 

@@ -76,7 +76,7 @@ class UpdateResolver private constructor(
 
 
         var ongoingReading: ExposesWith = TopLevelMatchTranslator(schemaConfig, env.variables, queryContext)
-            .translateTopLevelMatch(node, dslNode, env.arguments, AuthDirective.AuthOperation.UPDATE)
+            .translateTopLevelMatch(node, dslNode, null, arguments.where, AuthDirective.AuthOperation.UPDATE)
 
         if (arguments.update != null) {
             ongoingReading = UpdateTranslator(
@@ -166,7 +166,7 @@ class UpdateResolver private constructor(
                 val creates: List<Pair<CreateInput, ScalarProperties?>>? = when (input) {
                     is RelationFieldInput.NodeCreateCreateFieldInputs -> input.map { it.node to it.edge }
                     is RelationFieldInput.InterfaceCreateFieldInputs -> input.mapNotNull {
-                        val n = it.node?.getDataForNode(refNode) ?: return@mapNotNull null
+                        val n = it.node.getDataForNode(refNode) ?: return@mapNotNull null
                         n to it.edge
                     }
 

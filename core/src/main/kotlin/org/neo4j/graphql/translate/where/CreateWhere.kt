@@ -25,7 +25,7 @@ fun createWhere(
     val paramPrefix =chainStr ?: ChainString(schemaConfig, propertyContainer)
 
     fun resolveRelationCondition(predicate: RelationFieldPredicate): Condition {
-        if (node !is Node) throw IllegalArgumentException("a nodes is required for relation predicates")
+        if (propertyContainer !is Node) throw IllegalArgumentException("a nodes is required for relation predicates")
         val field = predicate.field
         val op = predicate.def.operator
         val where = predicate.where
@@ -33,7 +33,7 @@ fun createWhere(
         val refNode = field.node ?: throw IllegalArgumentException("Relationship filters must reference nodes")
         val endDslNode = refNode.asCypherNode(queryContext)
 
-        var relCond = field.createDslRelation(node, endDslNode).asCondition()
+        var relCond = field.createDslRelation(propertyContainer, endDslNode).asCondition()
 
         val endNode = endDslNode.named(param.resolveName())
         createWhere(refNode, where, endNode, chainStr = param, schemaConfig, queryContext)
@@ -41,7 +41,7 @@ fun createWhere(
                 val nestedCondition = op.predicateCreator(endNode.requiredSymbolicName)
                     .`in`(
                         CypherDSL
-                            .listBasedOn(field.createDslRelation(node, endNode))
+                            .listBasedOn(field.createDslRelation(propertyContainer, endNode))
                             .returning(endNode)
                     )
                     .where(innerWhere)

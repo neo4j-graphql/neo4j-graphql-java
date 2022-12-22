@@ -7,9 +7,12 @@ import org.neo4j.graphql.domain.FieldContainer
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.RelationshipProperties
 import org.neo4j.graphql.domain.directives.AuthDirective
+import org.neo4j.graphql.domain.inputs.WhereInput
+import org.neo4j.graphql.domain.inputs.filter.FulltextPerIndex
 import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.parser.ParsedQuery
 import org.neo4j.graphql.parser.QueryParser
+import org.neo4j.graphql.translate.where.createWhere
 
 class TopLevelMatchTranslator(
     val schemaConfig: SchemaConfig,
@@ -20,7 +23,8 @@ class TopLevelMatchTranslator(
     fun translateTopLevelMatch(
         node: Node,
         cypherNode: org.neo4j.cypherdsl.core.Node,
-        arguments: Map<String, Any>,
+        fulltextInput: FulltextPerIndex?,
+        where: WhereInput?,
         authOperation: AuthDirective.AuthOperation
     ): OngoingReading {
 
@@ -29,7 +33,6 @@ class TopLevelMatchTranslator(
 
         val varName = ChainString(schemaConfig, cypherNode)
 
-        val fulltextInput = arguments[Constants.FULLTEXT] as? Map<*, *>
         if (fulltextInput != null) {
             createFulltextSearchMatch(fulltextInput, node, varName).let { (m, c) ->
                 match = m
@@ -40,7 +43,8 @@ class TopLevelMatchTranslator(
             conditions = Conditions.noCondition()
         }
 
-        conditions = conditions.and(where(cypherNode, node, varName, arguments))
+        createWhere(node, where, cypherNode, varName, schemaConfig, queryContext)
+            ?.let { conditions = conditions.and(it) }
 
         if (node.auth != null) {
             AuthTranslator(
@@ -56,22 +60,21 @@ class TopLevelMatchTranslator(
     }
 
     private fun createFulltextSearchMatch(
-        fulltextInput: Map<*, *>,
+        fulltextInput: FulltextPerIndex,
         node: Node,
         varName: ChainString
     ): Pair<ExposesWhere, Condition> {
         if (fulltextInput.size > 1) {
             throw IllegalArgumentException("Can only call one search at any given time");
         }
-        val (indexName, indexInputObject) = fulltextInput.entries.first()
-        val indexInput = indexInputObject as Map<*, *>
+        val (indexName, indexInput) = fulltextInput.entries.first()
 
         val thisName = Cypher.name("node").`as`("this")
         val scoreName = Cypher.name("score").`as`("score")
         val call: ExposesWhere = CypherDSL.call("db.index.fulltext.queryNodes")
             .withArgs(
-                (indexName as String).asCypherLiteral(),
-                varName.extend("fulltext", indexName, "phrase").resolveParameter(indexInput[Constants.FULLTEXT_PHRASE])
+                indexName.asCypherLiteral(),
+                varName.extend("fulltext", indexName, "phrase").resolveParameter(indexInput.phrase)
             )
             .yield(thisName, scoreName)
 
@@ -87,7 +90,7 @@ class TopLevelMatchTranslator(
 
         if (node.fulltextDirective != null) {
             val index = node.fulltextDirective.indexes.find { it.name == indexName }
-            ((indexInput[Constants.FULLTEXT_SCORE_EQUAL] as? Number)
+            (indexInput.score
                 ?.let { varName.extend("fulltext", indexName, "score", "EQUAL").resolveParameter(it) }
                 ?: index?.defaultThreshold?.let {
                     varName.extend(
@@ -102,18 +105,15 @@ class TopLevelMatchTranslator(
         return call to cond
     }
 
-    fun createWhere(node: Node, varName: String, arguments: Map<String, Any>) {
-
-    }
+    // TODO remove after check if all logic is migrated
 
     private fun where(
         propertyContainer: PropertyContainer,
         node: Node,
         varName: ChainString,
-        arguments: Map<String, Any>,
+        whereInput: WhereInput?,
     ): Condition {
         val result = Conditions.noCondition()
-        val whereInput = arguments[Constants.WHERE]
         return (whereInput as? Map<*, *>)
             ?.let { QueryParser.parseFilter(it, node.name, node, schemaConfig) }
             ?.let {
