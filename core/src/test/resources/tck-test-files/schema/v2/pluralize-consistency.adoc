@@ -68,13 +68,27 @@ type PageInfo {
 type Query {
   superFriends(options: super_friendOptions, where: super_friendWhere): [super_friend!]!
   superFriendsAggregate(where: super_friendWhere): super_friendAggregateSelection!
+  superFriendsConnection(after: String, first: Int, sort: [super_friendSort], where: super_friendWhere): SuperFriendsConnection!
   superUsers(options: super_userOptions, where: super_userWhere): [super_user!]!
   superUsersAggregate(where: super_userWhere): super_userAggregateSelection!
+  superUsersConnection(after: String, first: Int, sort: [super_userSort], where: super_userWhere): SuperUsersConnection!
 }
 
 type StringAggregateSelectionNonNullable {
   longest: String!
   shortest: String!
+}
+
+type SuperFriendsConnection {
+  edges: [super_friendEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type SuperUsersConnection {
+  edges: [super_userEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
 }
 
 type UpdateInfo {
@@ -104,6 +118,11 @@ type super_friendAggregateSelection {
   name: StringAggregateSelectionNonNullable!
 }
 
+type super_friendEdge {
+  cursor: String!
+  node: super_friend!
+}
+
 type super_user {
   my_friend(directed: Boolean = true, options: super_friendOptions, where: super_friendWhere): [super_friend!]!
   my_friendAggregate(directed: Boolean = true, where: super_friendWhere): super_usersuper_friendMy_friendAggregationSelection
@@ -114,6 +133,11 @@ type super_user {
 type super_userAggregateSelection {
   count: Int!
   name: StringAggregateSelectionNonNullable!
+}
+
+type super_userEdge {
+  cursor: String!
+  node: super_user!
 }
 
 type super_userMy_friendConnection {
@@ -312,14 +336,14 @@ input super_userWhere {
   my_friendConnection_NOT: super_userMy_friendConnectionWhere @deprecated(reason : "Use `my_friendConnection_NONE` instead.")
   my_friendConnection_SINGLE: super_userMy_friendConnectionWhere
   my_friendConnection_SOME: super_userMy_friendConnectionWhere
-  "Return SuperUsers where all of the related SuperFriends match this filter"
+  "Return super_users where all of the related super_friends match this filter"
   my_friend_ALL: super_friendWhere
-  "Return SuperUsers where none of the related SuperFriends match this filter"
+  "Return super_users where none of the related super_friends match this filter"
   my_friend_NONE: super_friendWhere
   my_friend_NOT: super_friendWhere @deprecated(reason : "Use `my_friend_NONE` instead.")
-  "Return SuperUsers where one of the related SuperFriends match this filter"
+  "Return super_users where one of the related super_friends match this filter"
   my_friend_SINGLE: super_friendWhere
-  "Return SuperUsers where some of the related SuperFriends match this filter"
+  "Return super_users where some of the related super_friends match this filter"
   my_friend_SOME: super_friendWhere
   name: String
   name_CONTAINS: String

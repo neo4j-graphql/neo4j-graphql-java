@@ -60,6 +60,17 @@ type MovieAggregateSelection {
   title: StringAggregateSelectionNullable!
 }
 
+type MovieEdge {
+  cursor: String!
+  node: Movie!
+}
+
+type MoviesConnection {
+  edges: [MovieEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
 type Mutation {
   createActors(input: [ActorCreateInput!]!): CreateActorsMutationResponse!
   createMovies(input: [MovieCreateInput!]!): CreateMoviesMutationResponse!
@@ -69,9 +80,18 @@ type Mutation {
   updateMovies(update: MovieUpdateInput, where: MovieWhere): UpdateMoviesMutationResponse!
 }
 
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
 type Query {
   movies(options: MovieOptions, where: MovieWhere): [Movie!]!
   moviesAggregate(where: MovieWhere): MovieAggregateSelection!
+  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
 }
 
 type StringAggregateSelectionNullable {

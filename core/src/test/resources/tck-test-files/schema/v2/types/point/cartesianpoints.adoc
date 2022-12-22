@@ -22,26 +22,10 @@ schema {
 }
 
 type CartesianPoint {
-  """
-  The coordinate reference systems (CRS)
-  -------------------------------------
-  possible values:
-  * `cartesian`: A 2D point in the Cartesian CRS is specified with a map containing x and y coordinate values
-  * `cartesian-3d`: A 3D point in the Cartesian CRS is specified with a map containing x, y and z coordinate values
-  """
   crs: String!
-  """
-  The internal Neo4j ID for the CRS
-  One of:
-  * `7203`: represents CRS `cartesian`
-  * `9157`: represents CRS `cartesian-3d`
-  """
   srid: Int!
-  "The first element of the Coordinate"
   x: Float!
-  "The second element of the Coordinate"
   y: Float!
-  "The third element of the Coordinate"
   z: Float
 }
 
@@ -70,15 +54,35 @@ type MachineAggregateSelection {
   count: Int!
 }
 
+type MachineEdge {
+  cursor: String!
+  node: Machine!
+}
+
+type MachinesConnection {
+  edges: [MachineEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
 type Mutation {
   createMachines(input: [MachineCreateInput!]!): CreateMachinesMutationResponse!
   deleteMachines(where: MachineWhere): DeleteInfo!
   updateMachines(update: MachineUpdateInput, where: MachineWhere): UpdateMachinesMutationResponse!
 }
 
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
 type Query {
   machines(options: MachineOptions, where: MachineWhere): [Machine!]!
   machinesAggregate(where: MachineWhere): MachineAggregateSelection!
+  machinesConnection(after: String, first: Int, where: MachineWhere): MachinesConnection!
 }
 
 type UpdateInfo {
@@ -95,11 +99,8 @@ type UpdateMachinesMutationResponse {
 }
 
 input CartesianPointInput {
-  "The first element of the Coordinate"
   x: Float!
-  "The second element of the Coordinate"
   y: Float!
-  "The third element of the Coordinate"
   z: Float
 }
 
@@ -114,6 +115,8 @@ input MachineOptions {
 
 input MachineUpdateInput {
   partLocations: [CartesianPointInput!]
+  partLocations_POP: Int
+  partLocations_PUSH: [CartesianPointInput!]
 }
 
 input MachineWhere {

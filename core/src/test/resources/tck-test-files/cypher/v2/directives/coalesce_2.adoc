@@ -43,16 +43,18 @@ type Movie {
 [source,json]
 ----
 {
-  "this_status": "ACTIVE"
+  "param0": "ACTIVE"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE coalesce(this.status, "ACTIVE") = $this_status
-RETURN this { .id, .status } as this
+MATCH (this:`Movie`)
+WHERE coalesce(this.status, "ACTIVE") = $param0
+
+
+RETURN this { .id, .status } AS this
 ----
 
 '''

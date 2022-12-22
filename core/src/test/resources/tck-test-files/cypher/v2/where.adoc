@@ -44,16 +44,85 @@ type Movie {
 [source,json]
 ----
 {
-  "this_AND_AND_title": "some title"
+  "param0": "some title"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE ((this.title = $this_AND_AND_title))
-RETURN this { .title } as this
+MATCH (this:`Movie`)
+WHERE this.title = $param0
+
+
+RETURN this { .title } AS this
+----
+
+'''
+
+== Nested AND and OR
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {AND: [{OR: [{title: "some title"}, {isFavorite: true}], id: 2}]}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "some title",
+  "param1": true,
+  "param2": "2"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:`Movie`)
+WHERE ((this.title = $param0 OR this.isFavorite = $param1) AND this.id = $param2)
+
+
+RETURN this { .title } AS this
+----
+
+'''
+
+== Nested AND with multiple properties
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {AND: [{AND: [{title: "some title"}, {title: "another title"}]}]}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "some title",
+  "param1": "another title"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:`Movie`)
+WHERE (this.title = $param0 AND this.title = $param1)
+
+
+RETURN this { .title } AS this
 ----
 
 '''
@@ -74,16 +143,18 @@ RETURN this { .title } as this
 [source,json]
 ----
 {
-  "this_OR_OR_title": "some title"
+  "param0": "some title"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE ((this.title = $this_OR_OR_title))
-RETURN this { .title } as this
+MATCH (this:`Movie`)
+WHERE this.title = $param0
+
+
+RETURN this { .title } AS this
 ----
 
 '''
@@ -113,17 +184,19 @@ query ($title: String, $isFavorite: Boolean) {
 [source,json]
 ----
 {
-  "this_title": "some title",
-  "this_isFavorite": true
+  "param0": "some title",
+  "param1": true
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE this.title = $this_title AND this.isFavorite = $this_isFavorite
-RETURN this { .title } as this
+MATCH (this:`Movie`)
+WHERE (this.title = $param0 AND this.isFavorite = $param1)
+
+
+RETURN this { .title } AS this
 ----
 
 '''
@@ -144,27 +217,29 @@ RETURN this { .title } as this
 [source,json]
 ----
 {
-  "this_AND_title": "some title"
+  "param0": "some title"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE (this.title = $this_AND_title)
-RETURN this { .title } as this
+MATCH (this:`Movie`)
+WHERE this.title = $param0
+
+
+RETURN this { .title } AS this
 ----
 
 '''
 
-== Simple IN
+== Simple AND with multiple parameters
 
 .GraphQL-Query
 [source,graphql]
 ----
 {
-  movies(where: {title_IN: ["some title"]}) {
+  movies(where: {AND: [{title: "some title"}, {isFavorite: true}]}) {
     title
   }
 }
@@ -174,18 +249,19 @@ RETURN this { .title } as this
 [source,json]
 ----
 {
-  "this_title_IN": [
-    "some title"
-  ]
+  "param0": "some title",
+  "param1": true
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE this.title IN $this_title_IN
-RETURN this { .title } as this
+MATCH (this:`Movie`)
+WHERE (this.title = $param0 AND this.isFavorite = $param1)
+
+
+RETURN this { .title } AS this
 ----
 
 '''
@@ -206,16 +282,18 @@ RETURN this { .title } as this
 [source,json]
 ----
 {
-  "this_OR_title": "some title"
+  "param0": "some title"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE (this.title = $this_OR_title)
-RETURN this { .title } as this
+MATCH (this:`Movie`)
+WHERE this.title = $param0
+
+
+RETURN this { .title } AS this
 ----
 
 '''
@@ -236,16 +314,18 @@ RETURN this { .title } as this
 [source,json]
 ----
 {
-  "this_AND_AND_AND_title": "some title"
+  "param0": "some title"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE (((this.title = $this_AND_AND_AND_title)))
-RETURN this { .title } as this
+MATCH (this:`Movie`)
+WHERE this.title = $param0
+
+
+RETURN this { .title } AS this
 ----
 
 '''
@@ -266,17 +346,82 @@ RETURN this { .title } as this
 [source,json]
 ----
 {
-  "this_OR_OR_OR_title": "some title"
+  "param0": "some title"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE (((this.title = $this_OR_OR_OR_title)))
-RETURN this { .title } as this
+MATCH (this:`Movie`)
+WHERE this.title = $param0
+
+
+RETURN this { .title } AS this
 ----
 
 '''
+
+== Where with null
+
+=== Match with not NULL in where
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {title_NOT: null}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:`Movie`)
+WHERE this.title IS NOT NULL
+
+
+RETURN this { .title } AS this
+----
+
+'''
+
+=== Match with NULL in where
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {title: null}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:`Movie`)
+WHERE this.title IS NULL
+
+
+RETURN this { .title } AS this
+----
+
+'''
+
 

@@ -37,16 +37,23 @@ type Movie {
 [source,json]
 ----
 {
-  "this_limit": 1
+  "param0": {
+    "low": 1,
+    "high": 0
+  }
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-RETURN this { .title } as this
-LIMIT $this_limit
+MATCH (this:`Movie`)
+
+WITH *
+
+LIMIT $param0
+
+RETURN this { .title } AS this
 ----
 
 '''
@@ -67,18 +74,28 @@ LIMIT $this_limit
 [source,json]
 ----
 {
-  "this_offset": 2,
-  "this_limit": 1
+  "param0": {
+    "low": 2,
+    "high": 0
+  },
+  "param1": {
+    "low": 1,
+    "high": 0
+  }
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-RETURN this { .title } as this
-SKIP $this_offset
-LIMIT $this_limit
+MATCH (this:`Movie`)
+
+WITH *
+
+SKIP $param0
+LIMIT $param1
+
+RETURN this { .title } AS this
 ----
 
 '''
@@ -108,18 +125,28 @@ query ($offset: Int, $limit: Int) {
 [source,json]
 ----
 {
-  "this_offset": 0,
-  "this_limit": 0
+  "param0": {
+    "low": 0,
+    "high": 0
+  },
+  "param1": {
+    "low": 0,
+    "high": 0
+  }
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-RETURN this { .title } as this
-SKIP $this_offset
-LIMIT $this_limit
+MATCH (this:`Movie`)
+
+WITH *
+
+SKIP $param0
+LIMIT $param1
+
+RETURN this { .title } AS this
 ----
 
 '''
@@ -150,20 +177,30 @@ query ($offset: Int, $limit: Int, $title: String) {
 [source,json]
 ----
 {
-  "this_title": "some title",
-  "this_offset": 2,
-  "this_limit": 1
+  "param0": "some title",
+  "param1": {
+    "low": 2,
+    "high": 0
+  },
+  "param2": {
+    "low": 1,
+    "high": 0
+  }
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE this.title = $this_title
-RETURN this { .title } as this
-SKIP $this_offset
-LIMIT $this_limit
+MATCH (this:`Movie`)
+WHERE this.title = $param0
+
+WITH *
+
+SKIP $param1
+LIMIT $param2
+
+RETURN this { .title } AS this
 ----
 
 '''
@@ -184,16 +221,23 @@ LIMIT $this_limit
 [source,json]
 ----
 {
-  "this_offset": 1
+  "param0": {
+    "low": 1,
+    "high": 0
+  }
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-RETURN this { .title } as this
-SKIP $this_offset
+MATCH (this:`Movie`)
+
+WITH *
+
+SKIP $param0
+
+RETURN this { .title } AS this
 ----
 
 '''

@@ -1,0 +1,376 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/1614 -> should include enumFields on relationships
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+enum CrewPositionType {
+  BoomOperator
+  Gaffer
+  KeyGrip
+}
+
+interface CrewPosition {
+  position: CrewPositionType
+}
+
+type Movie {
+  name: String!
+}
+
+type CrewMember {
+  movies: Movie! @relationship(type: "WORKED_ON", direction: OUT, properties: "CrewPosition")
+}
+----
+
+== Augmented schema
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+interface CrewPosition {
+  position: CrewPositionType
+}
+
+type CreateCrewMembersMutationResponse {
+  crewMembers: [CrewMember!]!
+  info: CreateInfo!
+}
+
+type CreateInfo {
+  bookmark: String
+  nodesCreated: Int!
+  relationshipsCreated: Int!
+}
+
+type CreateMoviesMutationResponse {
+  info: CreateInfo!
+  movies: [Movie!]!
+}
+
+type CrewMember {
+  movies(directed: Boolean = true, options: MovieOptions, where: MovieWhere): Movie!
+  moviesAggregate(directed: Boolean = true, where: MovieWhere): CrewMemberMovieMoviesAggregationSelection
+  moviesConnection(after: String, directed: Boolean = true, first: Int, sort: [CrewMemberMoviesConnectionSort!], where: CrewMemberMoviesConnectionWhere): CrewMemberMoviesConnection!
+}
+
+type CrewMemberAggregateSelection {
+  count: Int!
+}
+
+type CrewMemberEdge {
+  cursor: String!
+  node: CrewMember!
+}
+
+type CrewMemberMovieMoviesAggregationSelection {
+  count: Int!
+  node: CrewMemberMovieMoviesNodeAggregateSelection
+}
+
+type CrewMemberMovieMoviesNodeAggregateSelection {
+  name: StringAggregateSelectionNonNullable!
+}
+
+type CrewMemberMoviesConnection {
+  edges: [CrewMemberMoviesRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type CrewMemberMoviesRelationship implements CrewPosition {
+  cursor: String!
+  node: Movie!
+  position: CrewPositionType
+}
+
+type CrewMembersConnection {
+  edges: [CrewMemberEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type DeleteInfo {
+  bookmark: String
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
+type Movie {
+  name: String!
+}
+
+type MovieAggregateSelection {
+  count: Int!
+  name: StringAggregateSelectionNonNullable!
+}
+
+type MovieEdge {
+  cursor: String!
+  node: Movie!
+}
+
+type MoviesConnection {
+  edges: [MovieEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Mutation {
+  createCrewMembers(input: [CrewMemberCreateInput!]!): CreateCrewMembersMutationResponse!
+  createMovies(input: [MovieCreateInput!]!): CreateMoviesMutationResponse!
+  deleteCrewMembers(delete: CrewMemberDeleteInput, where: CrewMemberWhere): DeleteInfo!
+  deleteMovies(where: MovieWhere): DeleteInfo!
+  updateCrewMembers(connect: CrewMemberConnectInput, create: CrewMemberRelationInput, delete: CrewMemberDeleteInput, disconnect: CrewMemberDisconnectInput, update: CrewMemberUpdateInput, where: CrewMemberWhere): UpdateCrewMembersMutationResponse!
+  updateMovies(update: MovieUpdateInput, where: MovieWhere): UpdateMoviesMutationResponse!
+}
+
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  crewMembers(options: CrewMemberOptions, where: CrewMemberWhere): [CrewMember!]!
+  crewMembersAggregate(where: CrewMemberWhere): CrewMemberAggregateSelection!
+  crewMembersConnection(after: String, first: Int, where: CrewMemberWhere): CrewMembersConnection!
+  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
+  moviesAggregate(where: MovieWhere): MovieAggregateSelection!
+  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
+}
+
+type StringAggregateSelectionNonNullable {
+  longest: String!
+  shortest: String!
+}
+
+type UpdateCrewMembersMutationResponse {
+  crewMembers: [CrewMember!]!
+  info: UpdateInfo!
+}
+
+type UpdateInfo {
+  bookmark: String
+  nodesCreated: Int!
+  nodesDeleted: Int!
+  relationshipsCreated: Int!
+  relationshipsDeleted: Int!
+}
+
+type UpdateMoviesMutationResponse {
+  info: UpdateInfo!
+  movies: [Movie!]!
+}
+
+enum CrewPositionType {
+  BoomOperator
+  Gaffer
+  KeyGrip
+}
+
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+input CrewMemberConnectInput {
+  movies: CrewMemberMoviesConnectFieldInput
+}
+
+input CrewMemberCreateInput {
+  movies: CrewMemberMoviesFieldInput
+}
+
+input CrewMemberDeleteInput {
+  movies: CrewMemberMoviesDeleteFieldInput
+}
+
+input CrewMemberDisconnectInput {
+  movies: CrewMemberMoviesDisconnectFieldInput
+}
+
+input CrewMemberMoviesAggregateInput {
+  AND: [CrewMemberMoviesAggregateInput!]
+  OR: [CrewMemberMoviesAggregateInput!]
+  count: Int
+  count_GT: Int
+  count_GTE: Int
+  count_LT: Int
+  count_LTE: Int
+  node: CrewMemberMoviesNodeAggregationWhereInput
+}
+
+input CrewMemberMoviesConnectFieldInput {
+  edge: CrewPositionCreateInput
+  where: MovieConnectWhere
+}
+
+input CrewMemberMoviesConnectionSort {
+  edge: CrewPositionSort
+  node: MovieSort
+}
+
+input CrewMemberMoviesConnectionWhere {
+  AND: [CrewMemberMoviesConnectionWhere!]
+  OR: [CrewMemberMoviesConnectionWhere!]
+  edge: CrewPositionWhere
+  edge_NOT: CrewPositionWhere
+  node: MovieWhere
+  node_NOT: MovieWhere
+}
+
+input CrewMemberMoviesCreateFieldInput {
+  edge: CrewPositionCreateInput
+  node: MovieCreateInput!
+}
+
+input CrewMemberMoviesDeleteFieldInput {
+  where: CrewMemberMoviesConnectionWhere
+}
+
+input CrewMemberMoviesDisconnectFieldInput {
+  where: CrewMemberMoviesConnectionWhere
+}
+
+input CrewMemberMoviesFieldInput {
+  connect: CrewMemberMoviesConnectFieldInput
+  create: CrewMemberMoviesCreateFieldInput
+}
+
+input CrewMemberMoviesNodeAggregationWhereInput {
+  AND: [CrewMemberMoviesNodeAggregationWhereInput!]
+  OR: [CrewMemberMoviesNodeAggregationWhereInput!]
+  name_AVERAGE_EQUAL: Float
+  name_AVERAGE_GT: Float
+  name_AVERAGE_GTE: Float
+  name_AVERAGE_LT: Float
+  name_AVERAGE_LTE: Float
+  name_EQUAL: String
+  name_GT: Int
+  name_GTE: Int
+  name_LONGEST_EQUAL: Int
+  name_LONGEST_GT: Int
+  name_LONGEST_GTE: Int
+  name_LONGEST_LT: Int
+  name_LONGEST_LTE: Int
+  name_LT: Int
+  name_LTE: Int
+  name_SHORTEST_EQUAL: Int
+  name_SHORTEST_GT: Int
+  name_SHORTEST_GTE: Int
+  name_SHORTEST_LT: Int
+  name_SHORTEST_LTE: Int
+}
+
+input CrewMemberMoviesUpdateConnectionInput {
+  edge: CrewPositionUpdateInput
+  node: MovieUpdateInput
+}
+
+input CrewMemberMoviesUpdateFieldInput {
+  connect: CrewMemberMoviesConnectFieldInput
+  create: CrewMemberMoviesCreateFieldInput
+  delete: CrewMemberMoviesDeleteFieldInput
+  disconnect: CrewMemberMoviesDisconnectFieldInput
+  update: CrewMemberMoviesUpdateConnectionInput
+  where: CrewMemberMoviesConnectionWhere
+}
+
+input CrewMemberOptions {
+  limit: Int
+  offset: Int
+}
+
+input CrewMemberRelationInput {
+  movies: CrewMemberMoviesCreateFieldInput
+}
+
+input CrewMemberUpdateInput {
+  movies: CrewMemberMoviesUpdateFieldInput
+}
+
+input CrewMemberWhere {
+  AND: [CrewMemberWhere!]
+  OR: [CrewMemberWhere!]
+  movies: MovieWhere
+  moviesAggregate: CrewMemberMoviesAggregateInput
+  moviesConnection: CrewMemberMoviesConnectionWhere
+  moviesConnection_NOT: CrewMemberMoviesConnectionWhere
+  movies_NOT: MovieWhere
+}
+
+input CrewPositionCreateInput {
+  position: CrewPositionType
+}
+
+input CrewPositionSort {
+  position: SortDirection
+}
+
+input CrewPositionUpdateInput {
+  position: CrewPositionType
+}
+
+input CrewPositionWhere {
+  AND: [CrewPositionWhere!]
+  OR: [CrewPositionWhere!]
+  position: CrewPositionType
+  position_IN: [CrewPositionType]
+  position_NOT: CrewPositionType
+  position_NOT_IN: [CrewPositionType]
+}
+
+input MovieConnectWhere {
+  node: MovieWhere!
+}
+
+input MovieCreateInput {
+  name: String!
+}
+
+input MovieOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [MovieSort!]
+}
+
+"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+input MovieSort {
+  name: SortDirection
+}
+
+input MovieUpdateInput {
+  name: String
+}
+
+input MovieWhere {
+  AND: [MovieWhere!]
+  OR: [MovieWhere!]
+  name: String
+  name_CONTAINS: String
+  name_ENDS_WITH: String
+  name_IN: [String!]
+  name_NOT: String
+  name_NOT_CONTAINS: String
+  name_NOT_ENDS_WITH: String
+  name_NOT_IN: [String!]
+  name_NOT_STARTS_WITH: String
+  name_STARTS_WITH: String
+}
+
+----
+
+'''

@@ -1,6 +1,6 @@
 :toc:
 
-= schema/rfs/003 -> InterfaceType -> should not throw when using valid relationship
+= schema/rfc/003 -> InterfaceType -> should not throw when using valid relationship
 
 == Source schema
 
@@ -35,12 +35,12 @@ schema {
 }
 
 interface SourceInterface {
-  target1(directed: Boolean = true, options: TargetOptions, where: TargetWhere): Target!
-  target1Connection(after: String, directed: Boolean = true, first: Int, sort: [SourceInterfaceTarget1ConnectionSort!], where: SourceInterfaceTarget1ConnectionWhere): SourceInterfaceTarget1Connection!
-  target2(directed: Boolean = true, options: TargetOptions, where: TargetWhere): Target
-  target2Connection(after: String, directed: Boolean = true, first: Int, sort: [SourceInterfaceTarget2ConnectionSort!], where: SourceInterfaceTarget2ConnectionWhere): SourceInterfaceTarget2Connection!
-  targets(directed: Boolean = true, options: TargetOptions, where: TargetWhere): [Target!]!
-  targetsConnection(after: String, directed: Boolean = true, first: Int, sort: [SourceInterfaceTargetsConnectionSort!], where: SourceInterfaceTargetsConnectionWhere): SourceInterfaceTargetsConnection!
+  target1: Target!
+  target1Connection: SourceInterfaceTarget1Connection!
+  target2: Target
+  target2Connection: SourceInterfaceTarget2Connection!
+  targets: [Target!]!
+  targetsConnection: SourceInterfaceTargetsConnection!
 }
 
 type CreateInfo {
@@ -90,8 +90,10 @@ type PageInfo {
 type Query {
   sources(options: SourceOptions, where: SourceWhere): [Source!]!
   sourcesAggregate(where: SourceWhere): SourceAggregateSelection!
+  sourcesConnection(after: String, first: Int, sort: [SourceSort], where: SourceWhere): SourcesConnection!
   targets(options: TargetOptions, where: TargetWhere): [Target!]!
   targetsAggregate(where: TargetWhere): TargetAggregateSelection!
+  targetsConnection(after: String, first: Int, sort: [TargetSort], where: TargetWhere): TargetsConnection!
 }
 
 type Source implements SourceInterface {
@@ -110,6 +112,11 @@ type Source implements SourceInterface {
 type SourceAggregateSelection {
   count: Int!
   id: IDAggregateSelectionNullable!
+}
+
+type SourceEdge {
+  cursor: String!
+  node: Source!
 }
 
 type SourceInterfaceTarget1Connection {
@@ -172,6 +179,12 @@ type SourceTargetTargetsNodeAggregateSelection {
   id: IDAggregateSelectionNullable!
 }
 
+type SourcesConnection {
+  edges: [SourceEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
 type Target {
   id: ID
 }
@@ -179,6 +192,17 @@ type Target {
 type TargetAggregateSelection {
   count: Int!
   id: IDAggregateSelectionNullable!
+}
+
+type TargetEdge {
+  cursor: String!
+  node: Target!
+}
+
+type TargetsConnection {
+  edges: [TargetEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
 }
 
 type UpdateInfo {

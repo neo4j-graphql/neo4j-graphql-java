@@ -41,18 +41,27 @@ type Post {
 [source,json]
 ----
 {
-  "this_likesAggregate_count": 10
+  "param0": {
+    "low": 10,
+    "high": 0
+  }
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Post)
-WHERE apoc.cypher.runFirstColumn(" MATCH (this)<-[this_likesAggregate_edge:LIKES]-(this_likesAggregate_node:User)
-RETURN count(this_likesAggregate_node) = $this_likesAggregate_count
-", { this: this, this_likesAggregate_count: $this_likesAggregate_count }, false )
-RETURN this { .content } as this
+MATCH (this:`Post`)
+CALL {
+    WITH this
+    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
+    RETURN count(this1) = $param0 AS var2
+}
+WITH *
+WHERE var2 = true
+
+
+RETURN this { .content } AS this
 ----
 
 '''
@@ -73,18 +82,27 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_count_GT": 10
+  "param0": {
+    "low": 10,
+    "high": 0
+  }
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Post)
-WHERE apoc.cypher.runFirstColumn(" MATCH (this)<-[this_likesAggregate_edge:LIKES]-(this_likesAggregate_node:User)
-RETURN count(this_likesAggregate_node) > $this_likesAggregate_count_GT
-", { this: this, this_likesAggregate_count_GT: $this_likesAggregate_count_GT }, false )
-RETURN this { .content } as this
+MATCH (this:`Post`)
+CALL {
+    WITH this
+    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
+    RETURN count(this1) > $param0 AS var2
+}
+WITH *
+WHERE var2 = true
+
+
+RETURN this { .content } AS this
 ----
 
 '''
@@ -105,18 +123,27 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_count_GTE": 10
+  "param0": {
+    "low": 10,
+    "high": 0
+  }
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Post)
-WHERE apoc.cypher.runFirstColumn(" MATCH (this)<-[this_likesAggregate_edge:LIKES]-(this_likesAggregate_node:User)
-RETURN count(this_likesAggregate_node) >= $this_likesAggregate_count_GTE
-", { this: this, this_likesAggregate_count_GTE: $this_likesAggregate_count_GTE }, false )
-RETURN this { .content } as this
+MATCH (this:`Post`)
+CALL {
+    WITH this
+    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
+    RETURN count(this1) >= $param0 AS var2
+}
+WITH *
+WHERE var2 = true
+
+
+RETURN this { .content } AS this
 ----
 
 '''
@@ -137,18 +164,27 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_count_LT": 10
+  "param0": {
+    "low": 10,
+    "high": 0
+  }
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Post)
-WHERE apoc.cypher.runFirstColumn(" MATCH (this)<-[this_likesAggregate_edge:LIKES]-(this_likesAggregate_node:User)
-RETURN count(this_likesAggregate_node) < $this_likesAggregate_count_LT
-", { this: this, this_likesAggregate_count_LT: $this_likesAggregate_count_LT }, false )
-RETURN this { .content } as this
+MATCH (this:`Post`)
+CALL {
+    WITH this
+    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
+    RETURN count(this1) < $param0 AS var2
+}
+WITH *
+WHERE var2 = true
+
+
+RETURN this { .content } AS this
 ----
 
 '''
@@ -169,18 +205,27 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_count_LTE": 10
+  "param0": {
+    "low": 10,
+    "high": 0
+  }
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Post)
-WHERE apoc.cypher.runFirstColumn(" MATCH (this)<-[this_likesAggregate_edge:LIKES]-(this_likesAggregate_node:User)
-RETURN count(this_likesAggregate_node) <= $this_likesAggregate_count_LTE
-", { this: this, this_likesAggregate_count_LTE: $this_likesAggregate_count_LTE }, false )
-RETURN this { .content } as this
+MATCH (this:`Post`)
+CALL {
+    WITH this
+    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
+    RETURN count(this1) <= $param0 AS var2
+}
+WITH *
+WHERE var2 = true
+
+
+RETURN this { .content } AS this
 ----
 
 '''

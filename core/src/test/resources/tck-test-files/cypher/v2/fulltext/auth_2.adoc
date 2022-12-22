@@ -35,36 +35,23 @@ type Person {
 }
 ----
 
-.Query Context
-[source,json,query-config=true]
-----
-{
-  "contextParams": {
-    "jwt": {
-      "sub": "random-uuid"
-    }
-  }
-}
-----
-
 .Expected Cypher params
 [source,json]
 ----
 {
-  "this_fulltext_MovieTitle_phrase": "something AND something",
-  "this_auth_allow0_director_id": "random-uuid"
+  "param0": "something AND something",
+  "param1": "my-sub"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-CALL db.index.fulltext.queryNodes(
-    "MovieTitle",
-    $this_fulltext_MovieTitle_phrase
-) YIELD node as this, score as score
-CALL apoc.util.validate(NOT(EXISTS((this)<-[:DIRECTED]-(:Person)) AND ANY(director IN [(this)<-[:DIRECTED]-(director:Person) | director] WHERE director.id IS NOT NULL AND director.id = $this_auth_allow0_director_id)), "@neo4j/graphql/FORBIDDEN", [0])
-RETURN this { .title } as this
+CALL db.index.fulltext.queryNodes("MovieTitle", $param0) YIELD node AS this
+WHERE ("Movie" IN labels(this) AND apoc.util.validatePredicate(NOT ((exists((this)<-[:DIRECTED]-(:`Person`)) AND any(this0 IN [(this)<-[:DIRECTED]-(this0:`Person`) | this0] WHERE (this0.id IS NOT NULL AND this0.id = $param1)))), "@neo4j/graphql/FORBIDDEN", [0]))
+
+
+RETURN this { .title } AS this
 ----
 
 '''

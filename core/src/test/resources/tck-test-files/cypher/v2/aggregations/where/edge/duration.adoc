@@ -46,11 +46,17 @@ interface Likes {
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someDuration_AVERAGE_EQUAL": {
+  "param0": {
     "months": 12,
     "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
+    "seconds": {
+      "low": 0,
+      "high": 0
+    },
+    "nanoseconds": {
+      "low": 0,
+      "high": 0
+    }
   }
 }
 ----
@@ -58,11 +64,17 @@ interface Likes {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Post)
-WHERE apoc.cypher.runFirstColumn(" MATCH (this)<-[this_likesAggregate_edge:LIKES]-(this_likesAggregate_node:User)
-RETURN avg(this_likesAggregate_edge.someDuration) = $this_likesAggregate_edge_someDuration_AVERAGE_EQUAL
-", { this: this, this_likesAggregate_edge_someDuration_AVERAGE_EQUAL: $this_likesAggregate_edge_someDuration_AVERAGE_EQUAL }, false )
-RETURN this { .content } as this
+MATCH (this:`Post`)
+CALL {
+    WITH this
+    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
+    RETURN avg(this0.someDuration) = $param0 AS var2
+}
+WITH *
+WHERE var2 = true
+
+
+RETURN this { .content } AS this
 ----
 
 '''
@@ -83,11 +95,17 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someDuration_AVERAGE_GT": {
+  "param0": {
     "months": 12,
     "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
+    "seconds": {
+      "low": 0,
+      "high": 0
+    },
+    "nanoseconds": {
+      "low": 0,
+      "high": 0
+    }
   }
 }
 ----
@@ -95,11 +113,17 @@ RETURN this { .content } as this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Post)
-WHERE apoc.cypher.runFirstColumn(" MATCH (this)<-[this_likesAggregate_edge:LIKES]-(this_likesAggregate_node:User)
-RETURN avg(this_likesAggregate_edge.someDuration) > $this_likesAggregate_edge_someDuration_AVERAGE_GT
-", { this: this, this_likesAggregate_edge_someDuration_AVERAGE_GT: $this_likesAggregate_edge_someDuration_AVERAGE_GT }, false )
-RETURN this { .content } as this
+MATCH (this:`Post`)
+CALL {
+    WITH this
+    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
+    RETURN avg(this0.someDuration) > $param0 AS var2
+}
+WITH *
+WHERE var2 = true
+
+
+RETURN this { .content } AS this
 ----
 
 '''
@@ -120,11 +144,17 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someDuration_AVERAGE_GTE": {
+  "param0": {
     "months": 12,
     "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
+    "seconds": {
+      "low": 0,
+      "high": 0
+    },
+    "nanoseconds": {
+      "low": 0,
+      "high": 0
+    }
   }
 }
 ----
@@ -132,11 +162,17 @@ RETURN this { .content } as this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Post)
-WHERE apoc.cypher.runFirstColumn(" MATCH (this)<-[this_likesAggregate_edge:LIKES]-(this_likesAggregate_node:User)
-RETURN avg(this_likesAggregate_edge.someDuration) >= $this_likesAggregate_edge_someDuration_AVERAGE_GTE
-", { this: this, this_likesAggregate_edge_someDuration_AVERAGE_GTE: $this_likesAggregate_edge_someDuration_AVERAGE_GTE }, false )
-RETURN this { .content } as this
+MATCH (this:`Post`)
+CALL {
+    WITH this
+    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
+    RETURN avg(this0.someDuration) >= $param0 AS var2
+}
+WITH *
+WHERE var2 = true
+
+
+RETURN this { .content } AS this
 ----
 
 '''
@@ -157,11 +193,17 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someDuration_AVERAGE_LT": {
+  "param0": {
     "months": 12,
     "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
+    "seconds": {
+      "low": 0,
+      "high": 0
+    },
+    "nanoseconds": {
+      "low": 0,
+      "high": 0
+    }
   }
 }
 ----
@@ -169,11 +211,17 @@ RETURN this { .content } as this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Post)
-WHERE apoc.cypher.runFirstColumn(" MATCH (this)<-[this_likesAggregate_edge:LIKES]-(this_likesAggregate_node:User)
-RETURN avg(this_likesAggregate_edge.someDuration) < $this_likesAggregate_edge_someDuration_AVERAGE_LT
-", { this: this, this_likesAggregate_edge_someDuration_AVERAGE_LT: $this_likesAggregate_edge_someDuration_AVERAGE_LT }, false )
-RETURN this { .content } as this
+MATCH (this:`Post`)
+CALL {
+    WITH this
+    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
+    RETURN avg(this0.someDuration) < $param0 AS var2
+}
+WITH *
+WHERE var2 = true
+
+
+RETURN this { .content } AS this
 ----
 
 '''
@@ -194,11 +242,17 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someDuration_AVERAGE_LTE": {
+  "param0": {
     "months": 12,
     "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
+    "seconds": {
+      "low": 0,
+      "high": 0
+    },
+    "nanoseconds": {
+      "low": 0,
+      "high": 0
+    }
   }
 }
 ----
@@ -206,11 +260,17 @@ RETURN this { .content } as this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Post)
-WHERE apoc.cypher.runFirstColumn(" MATCH (this)<-[this_likesAggregate_edge:LIKES]-(this_likesAggregate_node:User)
-RETURN avg(this_likesAggregate_edge.someDuration) <= $this_likesAggregate_edge_someDuration_AVERAGE_LTE
-", { this: this, this_likesAggregate_edge_someDuration_AVERAGE_LTE: $this_likesAggregate_edge_someDuration_AVERAGE_LTE }, false )
-RETURN this { .content } as this
+MATCH (this:`Post`)
+CALL {
+    WITH this
+    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
+    RETURN avg(this0.someDuration) <= $param0 AS var2
+}
+WITH *
+WHERE var2 = true
+
+
+RETURN this { .content } AS this
 ----
 
 '''
@@ -231,11 +291,17 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someDuration_EQUAL": {
+  "param0": {
     "months": 12,
     "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
+    "seconds": {
+      "low": 0,
+      "high": 0
+    },
+    "nanoseconds": {
+      "low": 0,
+      "high": 0
+    }
   }
 }
 ----
@@ -243,11 +309,17 @@ RETURN this { .content } as this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Post)
-WHERE apoc.cypher.runFirstColumn(" MATCH (this)<-[this_likesAggregate_edge:LIKES]-(this_likesAggregate_node:User)
-RETURN this_likesAggregate_edge.someDuration = $this_likesAggregate_edge_someDuration_EQUAL
-", { this: this, this_likesAggregate_edge_someDuration_EQUAL: $this_likesAggregate_edge_someDuration_EQUAL }, false )
-RETURN this { .content } as this
+MATCH (this:`Post`)
+CALL {
+    WITH this
+    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
+    RETURN any(var2 IN collect(this0.someDuration) WHERE var2 = $param0) AS var3
+}
+WITH *
+WHERE var3 = true
+
+
+RETURN this { .content } AS this
 ----
 
 '''
@@ -268,11 +340,17 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someDurationAlias_EQUAL": {
+  "param0": {
     "months": 12,
     "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
+    "seconds": {
+      "low": 0,
+      "high": 0
+    },
+    "nanoseconds": {
+      "low": 0,
+      "high": 0
+    }
   }
 }
 ----
@@ -280,11 +358,17 @@ RETURN this { .content } as this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Post)
-WHERE apoc.cypher.runFirstColumn(" MATCH (this)<-[this_likesAggregate_edge:LIKES]-(this_likesAggregate_node:User)
-RETURN this_likesAggregate_edge._someDurationAlias = $this_likesAggregate_edge_someDurationAlias_EQUAL
-", { this: this, this_likesAggregate_edge_someDurationAlias_EQUAL: $this_likesAggregate_edge_someDurationAlias_EQUAL }, false )
-RETURN this { .content } as this
+MATCH (this:`Post`)
+CALL {
+    WITH this
+    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
+    RETURN any(var2 IN collect(this0.someDurationAlias) WHERE var2 = $param0) AS var3
+}
+WITH *
+WHERE var3 = true
+
+
+RETURN this { .content } AS this
 ----
 
 '''
@@ -305,11 +389,17 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someDuration_GT": {
+  "param0": {
     "months": 12,
     "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
+    "seconds": {
+      "low": 0,
+      "high": 0
+    },
+    "nanoseconds": {
+      "low": 0,
+      "high": 0
+    }
   }
 }
 ----
@@ -317,11 +407,17 @@ RETURN this { .content } as this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Post)
-WHERE apoc.cypher.runFirstColumn(" MATCH (this)<-[this_likesAggregate_edge:LIKES]-(this_likesAggregate_node:User)
-RETURN this_likesAggregate_edge.someDuration > $this_likesAggregate_edge_someDuration_GT
-", { this: this, this_likesAggregate_edge_someDuration_GT: $this_likesAggregate_edge_someDuration_GT }, false )
-RETURN this { .content } as this
+MATCH (this:`Post`)
+CALL {
+    WITH this
+    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
+    RETURN any(var2 IN collect(this0.someDuration) WHERE var2 > $param0) AS var3
+}
+WITH *
+WHERE var3 = true
+
+
+RETURN this { .content } AS this
 ----
 
 '''
@@ -342,11 +438,17 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someDuration_GTE": {
+  "param0": {
     "months": 12,
     "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
+    "seconds": {
+      "low": 0,
+      "high": 0
+    },
+    "nanoseconds": {
+      "low": 0,
+      "high": 0
+    }
   }
 }
 ----
@@ -354,11 +456,17 @@ RETURN this { .content } as this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Post)
-WHERE apoc.cypher.runFirstColumn(" MATCH (this)<-[this_likesAggregate_edge:LIKES]-(this_likesAggregate_node:User)
-RETURN this_likesAggregate_edge.someDuration >= $this_likesAggregate_edge_someDuration_GTE
-", { this: this, this_likesAggregate_edge_someDuration_GTE: $this_likesAggregate_edge_someDuration_GTE }, false )
-RETURN this { .content } as this
+MATCH (this:`Post`)
+CALL {
+    WITH this
+    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
+    RETURN any(var2 IN collect(this0.someDuration) WHERE var2 >= $param0) AS var3
+}
+WITH *
+WHERE var3 = true
+
+
+RETURN this { .content } AS this
 ----
 
 '''
@@ -379,11 +487,17 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someDuration_LT": {
+  "param0": {
     "months": 12,
     "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
+    "seconds": {
+      "low": 0,
+      "high": 0
+    },
+    "nanoseconds": {
+      "low": 0,
+      "high": 0
+    }
   }
 }
 ----
@@ -391,11 +505,17 @@ RETURN this { .content } as this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Post)
-WHERE apoc.cypher.runFirstColumn(" MATCH (this)<-[this_likesAggregate_edge:LIKES]-(this_likesAggregate_node:User)
-RETURN this_likesAggregate_edge.someDuration < $this_likesAggregate_edge_someDuration_LT
-", { this: this, this_likesAggregate_edge_someDuration_LT: $this_likesAggregate_edge_someDuration_LT }, false )
-RETURN this { .content } as this
+MATCH (this:`Post`)
+CALL {
+    WITH this
+    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
+    RETURN any(var2 IN collect(this0.someDuration) WHERE var2 < $param0) AS var3
+}
+WITH *
+WHERE var3 = true
+
+
+RETURN this { .content } AS this
 ----
 
 '''
@@ -416,11 +536,17 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someDuration_LTE": {
+  "param0": {
     "months": 12,
     "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
+    "seconds": {
+      "low": 0,
+      "high": 0
+    },
+    "nanoseconds": {
+      "low": 0,
+      "high": 0
+    }
   }
 }
 ----
@@ -428,11 +554,17 @@ RETURN this { .content } as this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Post)
-WHERE apoc.cypher.runFirstColumn(" MATCH (this)<-[this_likesAggregate_edge:LIKES]-(this_likesAggregate_node:User)
-RETURN this_likesAggregate_edge.someDuration <= $this_likesAggregate_edge_someDuration_LTE
-", { this: this, this_likesAggregate_edge_someDuration_LTE: $this_likesAggregate_edge_someDuration_LTE }, false )
-RETURN this { .content } as this
+MATCH (this:`Post`)
+CALL {
+    WITH this
+    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
+    RETURN any(var2 IN collect(this0.someDuration) WHERE var2 <= $param0) AS var3
+}
+WITH *
+WHERE var3 = true
+
+
+RETURN this { .content } AS this
 ----
 
 '''
@@ -453,11 +585,17 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someDuration_MAX_EQUAL": {
+  "param0": {
     "months": 12,
     "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
+    "seconds": {
+      "low": 0,
+      "high": 0
+    },
+    "nanoseconds": {
+      "low": 0,
+      "high": 0
+    }
   }
 }
 ----
@@ -465,11 +603,17 @@ RETURN this { .content } as this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Post)
-WHERE apoc.cypher.runFirstColumn(" MATCH (this)<-[this_likesAggregate_edge:LIKES]-(this_likesAggregate_node:User)
-RETURN  max(this_likesAggregate_edge.someDuration) = $this_likesAggregate_edge_someDuration_MAX_EQUAL
-", { this: this, this_likesAggregate_edge_someDuration_MAX_EQUAL: $this_likesAggregate_edge_someDuration_MAX_EQUAL }, false )
-RETURN this { .content } as this
+MATCH (this:`Post`)
+CALL {
+    WITH this
+    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
+    RETURN max(this0.someDuration) = $param0 AS var2
+}
+WITH *
+WHERE var2 = true
+
+
+RETURN this { .content } AS this
 ----
 
 '''
@@ -490,11 +634,17 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someDuration_MAX_GT": {
+  "param0": {
     "months": 12,
     "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
+    "seconds": {
+      "low": 0,
+      "high": 0
+    },
+    "nanoseconds": {
+      "low": 0,
+      "high": 0
+    }
   }
 }
 ----
@@ -502,11 +652,17 @@ RETURN this { .content } as this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Post)
-WHERE apoc.cypher.runFirstColumn(" MATCH (this)<-[this_likesAggregate_edge:LIKES]-(this_likesAggregate_node:User)
-RETURN  max(this_likesAggregate_edge.someDuration) > $this_likesAggregate_edge_someDuration_MAX_GT
-", { this: this, this_likesAggregate_edge_someDuration_MAX_GT: $this_likesAggregate_edge_someDuration_MAX_GT }, false )
-RETURN this { .content } as this
+MATCH (this:`Post`)
+CALL {
+    WITH this
+    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
+    RETURN max(this0.someDuration) > $param0 AS var2
+}
+WITH *
+WHERE var2 = true
+
+
+RETURN this { .content } AS this
 ----
 
 '''
@@ -527,11 +683,17 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someDuration_MAX_GTE": {
+  "param0": {
     "months": 12,
     "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
+    "seconds": {
+      "low": 0,
+      "high": 0
+    },
+    "nanoseconds": {
+      "low": 0,
+      "high": 0
+    }
   }
 }
 ----
@@ -539,11 +701,17 @@ RETURN this { .content } as this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Post)
-WHERE apoc.cypher.runFirstColumn(" MATCH (this)<-[this_likesAggregate_edge:LIKES]-(this_likesAggregate_node:User)
-RETURN  max(this_likesAggregate_edge.someDuration) >= $this_likesAggregate_edge_someDuration_MAX_GTE
-", { this: this, this_likesAggregate_edge_someDuration_MAX_GTE: $this_likesAggregate_edge_someDuration_MAX_GTE }, false )
-RETURN this { .content } as this
+MATCH (this:`Post`)
+CALL {
+    WITH this
+    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
+    RETURN max(this0.someDuration) >= $param0 AS var2
+}
+WITH *
+WHERE var2 = true
+
+
+RETURN this { .content } AS this
 ----
 
 '''
@@ -564,11 +732,17 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someDuration_MAX_LT": {
+  "param0": {
     "months": 12,
     "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
+    "seconds": {
+      "low": 0,
+      "high": 0
+    },
+    "nanoseconds": {
+      "low": 0,
+      "high": 0
+    }
   }
 }
 ----
@@ -576,11 +750,17 @@ RETURN this { .content } as this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Post)
-WHERE apoc.cypher.runFirstColumn(" MATCH (this)<-[this_likesAggregate_edge:LIKES]-(this_likesAggregate_node:User)
-RETURN  max(this_likesAggregate_edge.someDuration) < $this_likesAggregate_edge_someDuration_MAX_LT
-", { this: this, this_likesAggregate_edge_someDuration_MAX_LT: $this_likesAggregate_edge_someDuration_MAX_LT }, false )
-RETURN this { .content } as this
+MATCH (this:`Post`)
+CALL {
+    WITH this
+    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
+    RETURN max(this0.someDuration) < $param0 AS var2
+}
+WITH *
+WHERE var2 = true
+
+
+RETURN this { .content } AS this
 ----
 
 '''
@@ -601,11 +781,17 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someDuration_MAX_LTE": {
+  "param0": {
     "months": 12,
     "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
+    "seconds": {
+      "low": 0,
+      "high": 0
+    },
+    "nanoseconds": {
+      "low": 0,
+      "high": 0
+    }
   }
 }
 ----
@@ -613,11 +799,17 @@ RETURN this { .content } as this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Post)
-WHERE apoc.cypher.runFirstColumn(" MATCH (this)<-[this_likesAggregate_edge:LIKES]-(this_likesAggregate_node:User)
-RETURN  max(this_likesAggregate_edge.someDuration) <= $this_likesAggregate_edge_someDuration_MAX_LTE
-", { this: this, this_likesAggregate_edge_someDuration_MAX_LTE: $this_likesAggregate_edge_someDuration_MAX_LTE }, false )
-RETURN this { .content } as this
+MATCH (this:`Post`)
+CALL {
+    WITH this
+    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
+    RETURN max(this0.someDuration) <= $param0 AS var2
+}
+WITH *
+WHERE var2 = true
+
+
+RETURN this { .content } AS this
 ----
 
 '''
@@ -638,11 +830,17 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someDuration_MIN_EQUAL": {
+  "param0": {
     "months": 12,
     "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
+    "seconds": {
+      "low": 0,
+      "high": 0
+    },
+    "nanoseconds": {
+      "low": 0,
+      "high": 0
+    }
   }
 }
 ----
@@ -650,11 +848,17 @@ RETURN this { .content } as this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Post)
-WHERE apoc.cypher.runFirstColumn(" MATCH (this)<-[this_likesAggregate_edge:LIKES]-(this_likesAggregate_node:User)
-RETURN  min(this_likesAggregate_edge.someDuration) = $this_likesAggregate_edge_someDuration_MIN_EQUAL
-", { this: this, this_likesAggregate_edge_someDuration_MIN_EQUAL: $this_likesAggregate_edge_someDuration_MIN_EQUAL }, false )
-RETURN this { .content } as this
+MATCH (this:`Post`)
+CALL {
+    WITH this
+    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
+    RETURN min(this0.someDuration) = $param0 AS var2
+}
+WITH *
+WHERE var2 = true
+
+
+RETURN this { .content } AS this
 ----
 
 '''
@@ -675,11 +879,17 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someDuration_MIN_GT": {
+  "param0": {
     "months": 12,
     "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
+    "seconds": {
+      "low": 0,
+      "high": 0
+    },
+    "nanoseconds": {
+      "low": 0,
+      "high": 0
+    }
   }
 }
 ----
@@ -687,11 +897,17 @@ RETURN this { .content } as this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Post)
-WHERE apoc.cypher.runFirstColumn(" MATCH (this)<-[this_likesAggregate_edge:LIKES]-(this_likesAggregate_node:User)
-RETURN  min(this_likesAggregate_edge.someDuration) > $this_likesAggregate_edge_someDuration_MIN_GT
-", { this: this, this_likesAggregate_edge_someDuration_MIN_GT: $this_likesAggregate_edge_someDuration_MIN_GT }, false )
-RETURN this { .content } as this
+MATCH (this:`Post`)
+CALL {
+    WITH this
+    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
+    RETURN min(this0.someDuration) > $param0 AS var2
+}
+WITH *
+WHERE var2 = true
+
+
+RETURN this { .content } AS this
 ----
 
 '''
@@ -712,11 +928,17 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someDuration_MIN_GTE": {
+  "param0": {
     "months": 12,
     "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
+    "seconds": {
+      "low": 0,
+      "high": 0
+    },
+    "nanoseconds": {
+      "low": 0,
+      "high": 0
+    }
   }
 }
 ----
@@ -724,11 +946,17 @@ RETURN this { .content } as this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Post)
-WHERE apoc.cypher.runFirstColumn(" MATCH (this)<-[this_likesAggregate_edge:LIKES]-(this_likesAggregate_node:User)
-RETURN  min(this_likesAggregate_edge.someDuration) >= $this_likesAggregate_edge_someDuration_MIN_GTE
-", { this: this, this_likesAggregate_edge_someDuration_MIN_GTE: $this_likesAggregate_edge_someDuration_MIN_GTE }, false )
-RETURN this { .content } as this
+MATCH (this:`Post`)
+CALL {
+    WITH this
+    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
+    RETURN min(this0.someDuration) >= $param0 AS var2
+}
+WITH *
+WHERE var2 = true
+
+
+RETURN this { .content } AS this
 ----
 
 '''
@@ -749,11 +977,17 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someDuration_MIN_LT": {
+  "param0": {
     "months": 12,
     "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
+    "seconds": {
+      "low": 0,
+      "high": 0
+    },
+    "nanoseconds": {
+      "low": 0,
+      "high": 0
+    }
   }
 }
 ----
@@ -761,11 +995,17 @@ RETURN this { .content } as this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Post)
-WHERE apoc.cypher.runFirstColumn(" MATCH (this)<-[this_likesAggregate_edge:LIKES]-(this_likesAggregate_node:User)
-RETURN  min(this_likesAggregate_edge.someDuration) < $this_likesAggregate_edge_someDuration_MIN_LT
-", { this: this, this_likesAggregate_edge_someDuration_MIN_LT: $this_likesAggregate_edge_someDuration_MIN_LT }, false )
-RETURN this { .content } as this
+MATCH (this:`Post`)
+CALL {
+    WITH this
+    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
+    RETURN min(this0.someDuration) < $param0 AS var2
+}
+WITH *
+WHERE var2 = true
+
+
+RETURN this { .content } AS this
 ----
 
 '''
@@ -786,11 +1026,17 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_edge_someDuration_MIN_LTE": {
+  "param0": {
     "months": 12,
     "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
+    "seconds": {
+      "low": 0,
+      "high": 0
+    },
+    "nanoseconds": {
+      "low": 0,
+      "high": 0
+    }
   }
 }
 ----
@@ -798,11 +1044,17 @@ RETURN this { .content } as this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Post)
-WHERE apoc.cypher.runFirstColumn(" MATCH (this)<-[this_likesAggregate_edge:LIKES]-(this_likesAggregate_node:User)
-RETURN  min(this_likesAggregate_edge.someDuration) <= $this_likesAggregate_edge_someDuration_MIN_LTE
-", { this: this, this_likesAggregate_edge_someDuration_MIN_LTE: $this_likesAggregate_edge_someDuration_MIN_LTE }, false )
-RETURN this { .content } as this
+MATCH (this:`Post`)
+CALL {
+    WITH this
+    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
+    RETURN min(this0.someDuration) <= $param0 AS var2
+}
+WITH *
+WHERE var2 = true
+
+
+RETURN this { .content } AS this
 ----
 
 '''

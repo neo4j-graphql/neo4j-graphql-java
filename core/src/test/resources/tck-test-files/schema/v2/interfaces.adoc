@@ -39,8 +39,8 @@ schema {
 interface MovieNode {
   customQuery: [Movie]
   id: ID
-  movies(directed: Boolean = true, options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieNodeMoviesConnectionSort!], where: MovieNodeMoviesConnectionWhere): MovieNodeMoviesConnection!
+  movies: [Movie!]!
+  moviesConnection: MovieNodeMoviesConnection!
 }
 
 type CreateInfo {
@@ -79,6 +79,11 @@ type MovieAggregateSelection {
   id: IDAggregateSelectionNullable!
 }
 
+type MovieEdge {
+  cursor: String!
+  node: Movie!
+}
+
 type MovieMovieMoviesAggregationSelection {
   count: Int!
   node: MovieMovieMoviesNodeAggregateSelection
@@ -99,6 +104,12 @@ type MovieNodeMoviesRelationship {
   node: Movie!
 }
 
+type MoviesConnection {
+  edges: [MovieEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
 type Mutation {
   createMovies(input: [MovieCreateInput!]!): CreateMoviesMutationResponse!
   deleteMovies(delete: MovieDeleteInput, where: MovieWhere): DeleteInfo!
@@ -116,6 +127,7 @@ type PageInfo {
 type Query {
   movies(options: MovieOptions, where: MovieWhere): [Movie!]!
   moviesAggregate(where: MovieWhere): MovieAggregateSelection!
+  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
 }
 
 type UpdateInfo {

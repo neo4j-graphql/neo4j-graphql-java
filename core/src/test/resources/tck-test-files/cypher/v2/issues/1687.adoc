@@ -1,0 +1,65 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/1687
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+interface Production {
+  id: ID
+  title: String
+}
+
+type Movie implements Production {
+  id: ID
+  title: String
+  actorCount: Int
+  genres: [Genre!]! @relationship(type: "HAS_GENRE", direction: OUT)
+}
+
+type Genre {
+  name: String
+  movies: [Production!]! @relationship(type: "HAS_GENRE", direction: IN)
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{}
+----
+== should be able to return all the genres related to the Matrix movie using connection fields
+
+.GraphQL-Query
+[source,graphql]
+----
+query Genres {
+  genres(where: {moviesConnection_ALL: {node: {_on: {Movie: {title: "Matrix"}}}}}) {
+    name
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "Matrix"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:`Genre`)
+WHERE size([(this1:`Movie`)-[this0:HAS_GENRE]->(this) WHERE NOT this1.title = $param0 | 1]) = 0
+
+
+RETURN this { .name } AS this
+----
+
+'''
+

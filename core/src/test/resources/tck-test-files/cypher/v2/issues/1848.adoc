@@ -1,0 +1,101 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/1848
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type ContentPiece @node(additionalLabels: ["UNIVERSAL"]) {
+  uid: String! @unique
+  id: Int
+}
+
+type Project @node(additionalLabels: ["UNIVERSAL"]) {
+  uid: String! @unique
+  id: Int
+}
+
+type Community @node(additionalLabels: ["UNIVERSAL"]) {
+  uid: String! @unique
+  id: Int
+  hasContentPieces: [ContentPiece!]! @relationship(type: "COMMUNITY_CONTENTPIECE_HASCONTENTPIECES", direction: OUT)
+  hasAssociatedProjects: [Project!]! @relationship(type: "COMMUNITY_PROJECT_HASASSOCIATEDPROJECTS", direction: OUT)
+}
+
+extend type Community {
+  """Used on Community Landing Page"""
+  hasFeedItems(limit: Int = 10, pageIndex: Int = 0): [FeedItem!]! @cypher(statement: """
+  Match(this)-[:COMMUNITY_CONTENTPIECE_HASCONTENTPIECES|:COMMUNITY_PROJECT_HASASSOCIATEDPROJECTS]-(pag) return pag SKIP ($limit * $pageIndex) LIMIT $limit
+  """)
+}
+
+union FeedItem = ContentPiece | Project
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{}
+----
+== should not concatenate AND and variable name
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  communities {
+    id
+    hasFeedItems {
+      ... on ContentPiece {
+        id
+      }
+      ... on Project {
+        id
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": {
+    "low": 10,
+    "high": 0
+  },
+  "param1": {
+    "low": 0,
+    "high": 0
+  },
+  "auth": {
+    "isAuthenticated": false,
+    "roles": []
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:`Community`:`UNIVERSAL`)
+
+CALL {
+    WITH this
+    UNWIND apoc.cypher.runFirstColumnMany("Match(this)-[:COMMUNITY_CONTENTPIECE_HASCONTENTPIECES|:COMMUNITY_PROJECT_HASASSOCIATEDPROJECTS]-(pag) return pag SKIP ($limit * $pageIndex) LIMIT $limit", { limit: $param0, pageIndex: $param1, this: this, auth: $auth }) AS this_hasFeedItems
+    WITH *
+    WHERE ((this_hasFeedItems:`ContentPiece` AND this_hasFeedItems:`UNIVERSAL`) OR (this_hasFeedItems:`Project` AND this_hasFeedItems:`UNIVERSAL`))
+    RETURN collect(CASE
+        WHEN (this_hasFeedItems:`ContentPiece` AND this_hasFeedItems:`UNIVERSAL`) THEN this_hasFeedItems { __resolveType: "ContentPiece",  .id }
+        WHEN (this_hasFeedItems:`Project` AND this_hasFeedItems:`UNIVERSAL`) THEN this_hasFeedItems { __resolveType: "Project",  .id }
+    END) AS this_hasFeedItems
+}
+RETURN this { .id, hasFeedItems: this_hasFeedItems } AS this
+----
+
+'''
+

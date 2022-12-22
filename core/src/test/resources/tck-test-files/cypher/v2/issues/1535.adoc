@@ -1,0 +1,95 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/1535
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Tenant {
+  id: ID! @id
+  name: String!
+  events: [Event!]! @relationship(type: "HOSTED_BY", direction: IN)
+  fooBars: [FooBar!]! @relationship(type: "HAS_FOOBARS", direction: OUT)
+}
+
+interface Event {
+  id: ID!
+  title: String
+  beginsAt: DateTime!
+}
+
+type Screening implements Event {
+  id: ID! @id
+  title: String
+  beginsAt: DateTime!
+}
+
+type Booking implements Event {
+  id: ID!
+  title: String
+  beginsAt: DateTime!
+  duration: Int!
+}
+
+type FooBar {
+  id: ID! @id
+  name: String!
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{}
+----
+== should use alias in result projection for a field using an interface
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  tenants {
+    id
+    name
+    events232: events {
+      id
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:`Tenant`)
+
+WITH *
+CALL {
+WITH *
+CALL {
+    WITH this
+    MATCH (this)<-[this0:HOSTED_BY]-(this_Screening:`Screening`)
+    
+    RETURN { __resolveType: "Screening", id: this_Screening.id } AS this_events
+    UNION
+    WITH this
+    MATCH (this)<-[this1:HOSTED_BY]-(this_Booking:`Booking`)
+    
+    RETURN { __resolveType: "Booking", id: this_Booking.id } AS this_events
+}
+RETURN collect(this_events) AS this_events
+}
+RETURN this { .id, .name, events232: this_events } AS this
+----
+
+'''
+

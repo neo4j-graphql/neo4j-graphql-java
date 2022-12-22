@@ -45,22 +45,30 @@ mutation {
 [source,json]
 ----
 {
-  "this0_USERID": "userid",
-  "this0_COMPANYID": "companyid"
+  "create_param0": [
+    {
+      "USERID": "userid",
+      "COMPANYID": "companyid"
+    }
+  ],
+  "resolvedCallbacks": {}
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
+UNWIND $create_param0 AS create_var1
 CALL {
-CREATE (this0:USER)
-SET this0.USERID = $this0_USERID
-SET this0.COMPANYID = $this0_COMPANYID
-RETURN this0
+    WITH create_var1
+    CREATE (create_this0:`USER`)
+    SET
+        create_this0.USERID = create_var1.USERID,
+        create_this0.COMPANYID = create_var1.COMPANYID
+    
+    RETURN create_this0
 }
-RETURN [
-this0 { .USERID, .COMPANYID }] AS data
+RETURN collect(create_this0 { .USERID, .COMPANYID }) AS data
 ----
 
 '''
@@ -84,16 +92,18 @@ mutation {
 [source,json]
 ----
 {
-  "this_USERID": "userid",
-  "this_update_COMPANYID": "companyid2"
+  "param0": "userid",
+  "this_update_COMPANYID": "companyid2",
+  "resolvedCallbacks": {}
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:USER)
-WHERE this.USERID = $this_USERID
+MATCH (this:`USER`)
+WHERE this.USERID = $param0
+
 
 SET this.COMPANYID = $this_update_COMPANYID
 

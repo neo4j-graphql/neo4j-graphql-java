@@ -41,7 +41,10 @@ type Post @node(label: "_Post", additionalLabels: ["additionalPost"]) {
 [source,json]
 ----
 {
-  "this_likesAggregate_node_someName_GT": 1
+  "param0": {
+    "low": 1,
+    "high": 0
+  }
 }
 ----
 
@@ -49,10 +52,16 @@ type Post @node(label: "_Post", additionalLabels: ["additionalPost"]) {
 [source,cypher]
 ----
 MATCH (this:`_Post`:`additionalPost`)
-WHERE apoc.cypher.runFirstColumn(" MATCH (this)<-[this_likesAggregate_edge:LIKES]-(this_likesAggregate_node:`_User`:`additionalUser`)
-RETURN size(this_likesAggregate_node.someName) > $this_likesAggregate_node_someName_GT
-", { this: this, this_likesAggregate_node_someName_GT: $this_likesAggregate_node_someName_GT }, false )
-RETURN this { .content } as this
+CALL {
+    WITH this
+    MATCH (this1:`_User`:`additionalUser`)-[this0:LIKES]->(this:`_Post`:`additionalPost`)
+    RETURN any(var2 IN collect(size(this1.someName)) WHERE var2 > $param0) AS var3
+}
+WITH *
+WHERE var3 = true
+
+
+RETURN this { .content } AS this
 ----
 
 '''

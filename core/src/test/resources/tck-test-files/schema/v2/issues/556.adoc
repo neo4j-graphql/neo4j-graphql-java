@@ -103,6 +103,11 @@ type ArticleBlocksRelationship implements HasBlock {
   order: Int!
 }
 
+type ArticleEdge {
+  cursor: String!
+  node: Article!
+}
+
 type ArticleImagesConnection {
   edges: [ArticleImagesRelationship!]!
   pageInfo: PageInfo!
@@ -112,6 +117,12 @@ type ArticleImagesConnection {
 type ArticleImagesRelationship {
   cursor: String!
   node: Image!
+}
+
+type ArticlesConnection {
+  edges: [ArticleEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
 }
 
 type CreateArticlesMutationResponse {
@@ -170,6 +181,17 @@ type DividerBlockAggregateSelection {
   id: IDAggregateSelectionNullable!
 }
 
+type DividerBlockEdge {
+  cursor: String!
+  node: DividerBlock!
+}
+
+type DividerBlocksConnection {
+  edges: [DividerBlockEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
 type IDAggregateSelectionNonNullable {
   longest: ID!
   shortest: ID!
@@ -191,6 +213,11 @@ type ImageBlockAggregateSelection {
   id: IDAggregateSelectionNullable!
 }
 
+type ImageBlockEdge {
+  cursor: String!
+  node: ImageBlock!
+}
+
 type ImageBlockImagesConnection {
   edges: [ImageBlockImagesRelationship!]!
   pageInfo: PageInfo!
@@ -200,6 +227,12 @@ type ImageBlockImagesConnection {
 type ImageBlockImagesRelationship {
   cursor: String!
   node: Image!
+}
+
+type ImageBlocksConnection {
+  edges: [ImageBlockEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
 }
 
 type ImageFeaturedInConnection {
@@ -249,6 +282,17 @@ type JournalistArticlesRelationship implements HasArticle {
   node: Article!
 }
 
+type JournalistEdge {
+  cursor: String!
+  node: Journalist!
+}
+
+type JournalistsConnection {
+  edges: [JournalistEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
 type Mutation {
   createArticles(input: [ArticleCreateInput!]!): CreateArticlesMutationResponse!
   createDividerBlocks(input: [DividerBlockCreateInput!]!): CreateDividerBlocksMutationResponse!
@@ -291,6 +335,11 @@ type PDFImageArticleFeaturedInNodeAggregateSelection {
   id: IDAggregateSelectionNonNullable!
 }
 
+type PDFImageEdge {
+  cursor: String!
+  node: PDFImage!
+}
+
 "Pagination information (Relay)"
 type PageInfo {
   endCursor: String
@@ -299,19 +348,31 @@ type PageInfo {
   startCursor: String
 }
 
+type PdfImagesConnection {
+  edges: [PDFImageEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
 type Query {
   articles(options: ArticleOptions, where: ArticleWhere): [Article!]!
   articlesAggregate(where: ArticleWhere): ArticleAggregateSelection!
+  articlesConnection(after: String, first: Int, sort: [ArticleSort], where: ArticleWhere): ArticlesConnection!
   dividerBlocks(options: DividerBlockOptions, where: DividerBlockWhere): [DividerBlock!]!
   dividerBlocksAggregate(where: DividerBlockWhere): DividerBlockAggregateSelection!
+  dividerBlocksConnection(after: String, first: Int, sort: [DividerBlockSort], where: DividerBlockWhere): DividerBlocksConnection!
   imageBlocks(options: ImageBlockOptions, where: ImageBlockWhere): [ImageBlock!]!
   imageBlocksAggregate(where: ImageBlockWhere): ImageBlockAggregateSelection!
+  imageBlocksConnection(after: String, first: Int, sort: [ImageBlockSort], where: ImageBlockWhere): ImageBlocksConnection!
   journalists(options: JournalistOptions, where: JournalistWhere): [Journalist!]!
   journalistsAggregate(where: JournalistWhere): JournalistAggregateSelection!
+  journalistsConnection(after: String, first: Int, where: JournalistWhere): JournalistsConnection!
   pdfImages(options: PDFImageOptions, where: PDFImageWhere): [PDFImage!]!
   pdfImagesAggregate(where: PDFImageWhere): PDFImageAggregateSelection!
+  pdfImagesConnection(after: String, first: Int, sort: [PDFImageSort], where: PDFImageWhere): PdfImagesConnection!
   textBlocks(options: TextBlockOptions, where: TextBlockWhere): [TextBlock!]!
   textBlocksAggregate(where: TextBlockWhere): TextBlockAggregateSelection!
+  textBlocksConnection(after: String, first: Int, sort: [TextBlockSort], where: TextBlockWhere): TextBlocksConnection!
 }
 
 type StringAggregateSelectionNonNullable {
@@ -333,6 +394,17 @@ type TextBlockAggregateSelection {
   count: Int!
   id: IDAggregateSelectionNullable!
   text: StringAggregateSelectionNullable!
+}
+
+type TextBlockEdge {
+  cursor: String!
+  node: TextBlock!
+}
+
+type TextBlocksConnection {
+  edges: [TextBlockEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
 }
 
 type UpdateArticlesMutationResponse {
@@ -509,6 +581,11 @@ input ArticleImagesUpdateFieldInput {
   where: ArticleImagesConnectionWhere
 }
 
+input ArticleOnCreateInput {
+  "Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/"
+  _emptyInput: Boolean
+}
+
 input ArticleOptions {
   limit: Int
   offset: Int
@@ -612,7 +689,7 @@ input BlockOptions {
   limit: Int
   offset: Int
   "Specify one or more BlockSort objects to sort Blocks by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [BlockSort!]
+  sort: [BlockSort]
 }
 
 "Fields to sort Blocks by. The order in which sorts are applied is not guaranteed when specifying many fields in one BlockSort object."
@@ -702,6 +779,8 @@ input HasBlockSort {
 
 input HasBlockUpdateInput {
   order: Int
+  order_DECREMENT: Int
+  order_INCREMENT: Int
 }
 
 input HasBlockWhere {
@@ -844,7 +923,12 @@ input ImageFeaturedInConnectFieldInput {
 }
 
 input ImageFeaturedInConnectOrCreateFieldInput {
+  onCreate: ImageFeaturedInConnectOrCreateFieldInputOnCreate!
   where: ArticleConnectOrCreateWhere!
+}
+
+input ImageFeaturedInConnectOrCreateFieldInputOnCreate {
+  node: ArticleOnCreateInput!
 }
 
 input ImageFeaturedInConnectionSort {
@@ -943,7 +1027,12 @@ input JournalistArticlesConnectFieldInput {
 }
 
 input JournalistArticlesConnectOrCreateFieldInput {
+  onCreate: JournalistArticlesConnectOrCreateFieldInputOnCreate!
   where: ArticleConnectOrCreateWhere!
+}
+
+input JournalistArticlesConnectOrCreateFieldInputOnCreate {
+  node: ArticleOnCreateInput!
 }
 
 input JournalistArticlesConnectionSort {
@@ -1145,14 +1234,14 @@ input PDFImageWhere {
   featuredInConnection_NOT: ImageFeaturedInConnectionWhere @deprecated(reason : "Use `featuredInConnection_NONE` instead.")
   featuredInConnection_SINGLE: ImageFeaturedInConnectionWhere
   featuredInConnection_SOME: ImageFeaturedInConnectionWhere
-  "Return PdfImages where all of the related Articles match this filter"
+  "Return PDFImages where all of the related Articles match this filter"
   featuredIn_ALL: ArticleWhere
-  "Return PdfImages where none of the related Articles match this filter"
+  "Return PDFImages where none of the related Articles match this filter"
   featuredIn_NONE: ArticleWhere
   featuredIn_NOT: ArticleWhere @deprecated(reason : "Use `featuredIn_NONE` instead.")
-  "Return PdfImages where one of the related Articles match this filter"
+  "Return PDFImages where one of the related Articles match this filter"
   featuredIn_SINGLE: ArticleWhere
-  "Return PdfImages where some of the related Articles match this filter"
+  "Return PDFImages where some of the related Articles match this filter"
   featuredIn_SOME: ArticleWhere
   url: String
   url_CONTAINS: String

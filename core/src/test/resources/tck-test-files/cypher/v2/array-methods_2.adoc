@@ -1,0 +1,159 @@
+:toc:
+
+= Arrays Methods
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+  ratings: [Float!]!
+  scores: [Float!]!
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+  "enableRegex": true
+}
+----
+== pop and push
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  updateMovies(update: {ratings_PUSH: 1.5, scores_POP: 1}) {
+    movies {
+      title
+      ratings
+      scores
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_update_ratings_PUSH": [
+    1.5
+  ],
+  "this_update_scores_POP": {
+    "low": 1,
+    "high": 0
+  },
+  "resolvedCallbacks": {}
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:`Movie`)
+
+CALL apoc.util.validate(this.ratings IS NULL OR this.scores IS NULL, "Properties %s, %s cannot be NULL", ['ratings', 'scores'])
+SET this.ratings = this.ratings + $this_update_ratings_PUSH
+SET this.scores = this.scores[0..-$this_update_scores_POP]
+
+RETURN collect(DISTINCT this { .title, .ratings, .scores }) AS data
+----
+
+'''
+
+== pop multiple
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  updateMovies(update: {ratings_POP: 1, scores_POP: 1}) {
+    movies {
+      title
+      ratings
+      scores
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_update_ratings_POP": {
+    "low": 1,
+    "high": 0
+  },
+  "this_update_scores_POP": {
+    "low": 1,
+    "high": 0
+  },
+  "resolvedCallbacks": {}
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:`Movie`)
+
+CALL apoc.util.validate(this.ratings IS NULL OR this.scores IS NULL, "Properties %s, %s cannot be NULL", ['ratings', 'scores'])
+SET this.ratings = this.ratings[0..-$this_update_ratings_POP]
+SET this.scores = this.scores[0..-$this_update_scores_POP]
+
+RETURN collect(DISTINCT this { .title, .ratings, .scores }) AS data
+----
+
+'''
+
+== push multiple
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  updateMovies(update: {ratings_PUSH: 1.0, scores_PUSH: 1.0}) {
+    movies {
+      title
+      ratings
+      scores
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_update_ratings_PUSH": [
+    1
+  ],
+  "this_update_scores_PUSH": [
+    1
+  ],
+  "resolvedCallbacks": {}
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:`Movie`)
+
+CALL apoc.util.validate(this.ratings IS NULL OR this.scores IS NULL, "Properties %s, %s cannot be NULL", ['ratings', 'scores'])
+SET this.ratings = this.ratings + $this_update_ratings_PUSH
+SET this.scores = this.scores + $this_update_scores_PUSH
+
+RETURN collect(DISTINCT this { .title, .ratings, .scores }) AS data
+----
+
+'''
+

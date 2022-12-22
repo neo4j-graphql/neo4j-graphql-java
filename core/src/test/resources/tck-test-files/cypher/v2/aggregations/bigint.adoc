@@ -43,7 +43,7 @@ type File {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:File)
+MATCH (this:`File`)
 RETURN { size: { average: avg(this.size) } }
 ----
 
@@ -72,7 +72,7 @@ RETURN { size: { average: avg(this.size) } }
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:File)
+MATCH (this:`File`)
 RETURN { size: { max: max(this.size) } }
 ----
 
@@ -101,7 +101,7 @@ RETURN { size: { max: max(this.size) } }
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:File)
+MATCH (this:`File`)
 RETURN { size: { min: min(this.size) } }
 ----
 
@@ -133,7 +133,7 @@ RETURN { size: { min: min(this.size) } }
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:File)
+MATCH (this:`File`)
 RETURN { size: { min: min(this.size), max: max(this.size), average: avg(this.size), sum: sum(this.size) } }
 ----
 
@@ -162,7 +162,7 @@ RETURN { size: { min: min(this.size), max: max(this.size), average: avg(this.siz
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:File)
+MATCH (this:`File`)
 RETURN { size: { sum: sum(this.size) } }
 ----
 

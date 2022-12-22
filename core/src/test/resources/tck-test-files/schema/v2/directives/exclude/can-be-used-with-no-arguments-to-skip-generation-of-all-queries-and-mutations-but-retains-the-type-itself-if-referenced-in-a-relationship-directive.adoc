@@ -79,6 +79,17 @@ type MovieAggregateSelection {
   title: StringAggregateSelectionNullable!
 }
 
+type MovieEdge {
+  cursor: String!
+  node: Movie!
+}
+
+type MoviesConnection {
+  edges: [MovieEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
 type Mutation {
   createMovies(input: [MovieCreateInput!]!): CreateMoviesMutationResponse!
   deleteMovies(delete: MovieDeleteInput, where: MovieWhere): DeleteInfo!
@@ -96,6 +107,7 @@ type PageInfo {
 type Query {
   movies(options: MovieOptions, where: MovieWhere): [Movie!]!
   moviesAggregate(where: MovieWhere): MovieAggregateSelection!
+  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
 }
 
 type StringAggregateSelectionNullable {

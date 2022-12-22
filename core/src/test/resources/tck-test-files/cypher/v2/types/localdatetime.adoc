@@ -37,7 +37,7 @@ type Movie {
 [source,json]
 ----
 {
-  "this_localDT_GTE": {
+  "param0": {
     "year": 2010,
     "month": 8,
     "day": 23,
@@ -52,9 +52,11 @@ type Movie {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE this.localDT >= $this_localDT_GTE
-RETURN this { .localDT } as this
+MATCH (this:`Movie`)
+WHERE this.localDT >= $param0
+
+
+RETURN this { .localDT } AS this
 ----
 
 '''
@@ -77,28 +79,36 @@ mutation {
 [source,json]
 ----
 {
-  "this0_localDT": {
-    "year": 1974,
-    "month": 5,
-    "day": 1,
-    "hour": 22,
-    "minute": 0,
-    "second": 15,
-    "nanosecond": 555000000
-  }
+  "create_param0": [
+    {
+      "localDT": {
+        "year": 1974,
+        "month": 5,
+        "day": 1,
+        "hour": 22,
+        "minute": 0,
+        "second": 15,
+        "nanosecond": 555000000
+      }
+    }
+  ],
+  "resolvedCallbacks": {}
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
+UNWIND $create_param0 AS create_var1
 CALL {
-CREATE (this0:Movie)
-SET this0.localDT = $this0_localDT
-RETURN this0
+    WITH create_var1
+    CREATE (create_this0:`Movie`)
+    SET
+        create_this0.localDT = create_var1.localDT
+    
+    RETURN create_this0
 }
-RETURN [
-this0 { .localDT }] AS data
+RETURN collect(create_this0 { .localDT }) AS data
 ----
 
 '''
@@ -119,7 +129,7 @@ this0 { .localDT }] AS data
 [source,json]
 ----
 {
-  "this_localDT": {
+  "param0": {
     "year": 2003,
     "month": 9,
     "day": 14,
@@ -134,9 +144,11 @@ this0 { .localDT }] AS data
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE this.localDT = $this_localDT
-RETURN this { .localDT } as this
+MATCH (this:`Movie`)
+WHERE this.localDT = $param0
+
+
+RETURN this { .localDT } AS this
 ----
 
 '''
@@ -168,14 +180,16 @@ mutation {
     "minute": 24,
     "second": 40,
     "nanosecond": 845512000
-  }
+  },
+  "resolvedCallbacks": {}
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
+MATCH (this:`Movie`)
+
 
 SET this.localDT = $this_update_localDT
 

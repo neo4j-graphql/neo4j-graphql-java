@@ -37,16 +37,21 @@ type File {
 [source,json]
 ----
 {
-  "this_size": "9223372036854775807"
+  "param0": {
+    "low": -1,
+    "high": 2147483647
+  }
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:File)
-WHERE this.size = $this_size
-RETURN this { .name } as this
+MATCH (this:`File`)
+WHERE this.size = $param0
+
+
+RETURN this { .name } AS this
 ----
 
 '''
@@ -75,16 +80,21 @@ query Files($size: BigInt) {
 [source,json]
 ----
 {
-  "this_size": "9223372036854775807"
+  "param0": {
+    "low": -1,
+    "high": 2147483647
+  }
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:File)
-WHERE this.size = $this_size
-RETURN this { .name } as this
+MATCH (this:`File`)
+WHERE this.size = $param0
+
+
+RETURN this { .name } AS this
 ----
 
 '''
@@ -105,16 +115,21 @@ RETURN this { .name } as this
 [source,json]
 ----
 {
-  "this_size": "9223372036854775807"
+  "param0": {
+    "low": -1,
+    "high": 2147483647
+  }
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:File)
-WHERE this.size = $this_size
-RETURN this { .name } as this
+MATCH (this:`File`)
+WHERE this.size = $param0
+
+
+RETURN this { .name } AS this
 ----
 
 '''

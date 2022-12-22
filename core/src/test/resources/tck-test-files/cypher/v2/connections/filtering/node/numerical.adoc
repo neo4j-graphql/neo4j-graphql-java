@@ -56,14 +56,9 @@ interface ActedIn {
 [source,json]
 ----
 {
-  "this_actorsConnection": {
-    "args": {
-      "where": {
-        "node": {
-          "age_GT": 60
-        }
-      }
-    }
+  "this_connection_actorsConnectionparam0": {
+    "low": 60,
+    "high": 0
   }
 }
 ----
@@ -71,15 +66,18 @@ interface ActedIn {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
+MATCH (this:`Movie`)
+
 CALL {
-WITH this
-MATCH (this)<-[this_acted_in_relationship:ACTED_IN]-(this_actor:Actor)
-WHERE this_actor.age > $this_actorsConnection.args.where.node.age_GT
-WITH collect({ screenTime: this_acted_in_relationship.screenTime, node: { name: this_actor.name, age: this_actor.age } }) AS edges
-RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
+    WITH this
+    MATCH (this)<-[this_connection_actorsConnectionthis0:ACTED_IN]-(this_Actor:`Actor`)
+    WHERE this_Actor.age > $this_connection_actorsConnectionparam0
+    WITH { screenTime: this_connection_actorsConnectionthis0.screenTime, node: { name: this_Actor.name, age: this_Actor.age } } AS edge
+    WITH collect(edge) AS edges
+    WITH edges, size(edges) AS totalCount
+    RETURN { edges: edges, totalCount: totalCount } AS this_actorsConnection
 }
-RETURN this { .title, actorsConnection } as this
+RETURN this { .title, actorsConnection: this_actorsConnection } AS this
 ----
 
 '''
@@ -109,14 +107,9 @@ RETURN this { .title, actorsConnection } as this
 [source,json]
 ----
 {
-  "this_actorsConnection": {
-    "args": {
-      "where": {
-        "node": {
-          "age_GTE": 60
-        }
-      }
-    }
+  "this_connection_actorsConnectionparam0": {
+    "low": 60,
+    "high": 0
   }
 }
 ----
@@ -124,15 +117,18 @@ RETURN this { .title, actorsConnection } as this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
+MATCH (this:`Movie`)
+
 CALL {
-WITH this
-MATCH (this)<-[this_acted_in_relationship:ACTED_IN]-(this_actor:Actor)
-WHERE this_actor.age >= $this_actorsConnection.args.where.node.age_GTE
-WITH collect({ screenTime: this_acted_in_relationship.screenTime, node: { name: this_actor.name, age: this_actor.age } }) AS edges
-RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
+    WITH this
+    MATCH (this)<-[this_connection_actorsConnectionthis0:ACTED_IN]-(this_Actor:`Actor`)
+    WHERE this_Actor.age >= $this_connection_actorsConnectionparam0
+    WITH { screenTime: this_connection_actorsConnectionthis0.screenTime, node: { name: this_Actor.name, age: this_Actor.age } } AS edge
+    WITH collect(edge) AS edges
+    WITH edges, size(edges) AS totalCount
+    RETURN { edges: edges, totalCount: totalCount } AS this_actorsConnection
 }
-RETURN this { .title, actorsConnection } as this
+RETURN this { .title, actorsConnection: this_actorsConnection } AS this
 ----
 
 '''
@@ -162,14 +158,9 @@ RETURN this { .title, actorsConnection } as this
 [source,json]
 ----
 {
-  "this_actorsConnection": {
-    "args": {
-      "where": {
-        "node": {
-          "age_LT": 60
-        }
-      }
-    }
+  "this_connection_actorsConnectionparam0": {
+    "low": 60,
+    "high": 0
   }
 }
 ----
@@ -177,15 +168,18 @@ RETURN this { .title, actorsConnection } as this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
+MATCH (this:`Movie`)
+
 CALL {
-WITH this
-MATCH (this)<-[this_acted_in_relationship:ACTED_IN]-(this_actor:Actor)
-WHERE this_actor.age < $this_actorsConnection.args.where.node.age_LT
-WITH collect({ screenTime: this_acted_in_relationship.screenTime, node: { name: this_actor.name, age: this_actor.age } }) AS edges
-RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
+    WITH this
+    MATCH (this)<-[this_connection_actorsConnectionthis0:ACTED_IN]-(this_Actor:`Actor`)
+    WHERE this_Actor.age < $this_connection_actorsConnectionparam0
+    WITH { screenTime: this_connection_actorsConnectionthis0.screenTime, node: { name: this_Actor.name, age: this_Actor.age } } AS edge
+    WITH collect(edge) AS edges
+    WITH edges, size(edges) AS totalCount
+    RETURN { edges: edges, totalCount: totalCount } AS this_actorsConnection
 }
-RETURN this { .title, actorsConnection } as this
+RETURN this { .title, actorsConnection: this_actorsConnection } AS this
 ----
 
 '''
@@ -215,14 +209,9 @@ RETURN this { .title, actorsConnection } as this
 [source,json]
 ----
 {
-  "this_actorsConnection": {
-    "args": {
-      "where": {
-        "node": {
-          "age_LTE": 60
-        }
-      }
-    }
+  "this_connection_actorsConnectionparam0": {
+    "low": 60,
+    "high": 0
   }
 }
 ----
@@ -230,15 +219,18 @@ RETURN this { .title, actorsConnection } as this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
+MATCH (this:`Movie`)
+
 CALL {
-WITH this
-MATCH (this)<-[this_acted_in_relationship:ACTED_IN]-(this_actor:Actor)
-WHERE this_actor.age <= $this_actorsConnection.args.where.node.age_LTE
-WITH collect({ screenTime: this_acted_in_relationship.screenTime, node: { name: this_actor.name, age: this_actor.age } }) AS edges
-RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
+    WITH this
+    MATCH (this)<-[this_connection_actorsConnectionthis0:ACTED_IN]-(this_Actor:`Actor`)
+    WHERE this_Actor.age <= $this_connection_actorsConnectionparam0
+    WITH { screenTime: this_connection_actorsConnectionthis0.screenTime, node: { name: this_Actor.name, age: this_Actor.age } } AS edge
+    WITH collect(edge) AS edges
+    WITH edges, size(edges) AS totalCount
+    RETURN { edges: edges, totalCount: totalCount } AS this_actorsConnection
 }
-RETURN this { .title, actorsConnection } as this
+RETURN this { .title, actorsConnection: this_actorsConnection } AS this
 ----
 
 '''

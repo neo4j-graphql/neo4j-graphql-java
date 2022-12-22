@@ -51,16 +51,29 @@ type Person {
 [source,json]
 ----
 {
-  "this_actorsAggregate_n_name_CONTAINS": "abc",
-  "this_directorsAggregate_n_name_CONTAINS": "abcdefg"
+  "this_actorsAggregate_param0": "abc",
+  "this_directorsAggregate_param0": "abcdefg"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-RETURN this { .title, actorsAggregate: { count: head(apoc.cypher.runFirstColumn("MATCH (this)<-[r:ACTED_IN]-(n:Person) WHERE n.name CONTAINS $this_actorsAggregate_n_name_CONTAINS    RETURN COUNT(n)", { this_actorsAggregate_n_name_CONTAINS: $this_actorsAggregate_n_name_CONTAINS, this: this })) }, directorsAggregate: { count: head(apoc.cypher.runFirstColumn("MATCH (this)<-[r:DIRECTED]-(n:Person) WHERE n.name CONTAINS $this_directorsAggregate_n_name_CONTAINS    RETURN COUNT(n)", { this_directorsAggregate_n_name_CONTAINS: $this_directorsAggregate_n_name_CONTAINS, this: this })) } } as this
+MATCH (this:`Movie`)
+
+CALL {
+    WITH this
+    MATCH (this_actorsAggregate_this1:`Person`)-[this_actorsAggregate_this0:ACTED_IN]->(this)
+    WHERE this_actorsAggregate_this1.name CONTAINS $this_actorsAggregate_param0
+    RETURN count(this) AS this_actorsAggregate_var2
+}
+CALL {
+    WITH this
+    MATCH (this_directorsAggregate_this1:`Person`)-[this_directorsAggregate_this0:DIRECTED]->(this)
+    WHERE this_directorsAggregate_this1.name CONTAINS $this_directorsAggregate_param0
+    RETURN count(this) AS this_directorsAggregate_var2
+}
+RETURN this { .title, actorsAggregate: { count: this_actorsAggregate_var2 }, directorsAggregate: { count: this_directorsAggregate_var2 } } AS this
 ----
 
 '''
@@ -84,15 +97,25 @@ RETURN this { .title, actorsAggregate: { count: head(apoc.cypher.runFirstColumn(
 [source,json]
 ----
 {
-  "this_actorsAggregate_n_age_GT": 40
+  "this_actorsAggregate_param0": {
+    "low": 40,
+    "high": 0
+  }
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-RETURN this { .title, actorsAggregate: { count: head(apoc.cypher.runFirstColumn("MATCH (this)<-[r:ACTED_IN]-(n:Person) WHERE n.age > $this_actorsAggregate_n_age_GT    RETURN COUNT(n)", { this_actorsAggregate_n_age_GT: $this_actorsAggregate_n_age_GT, this: this })) } } as this
+MATCH (this:`Movie`)
+
+CALL {
+    WITH this
+    MATCH (this_actorsAggregate_this1:`Person`)-[this_actorsAggregate_this0:ACTED_IN]->(this)
+    WHERE this_actorsAggregate_this1.age > $this_actorsAggregate_param0
+    RETURN count(this) AS this_actorsAggregate_var2
+}
+RETURN this { .title, actorsAggregate: { count: this_actorsAggregate_var2 } } AS this
 ----
 
 '''

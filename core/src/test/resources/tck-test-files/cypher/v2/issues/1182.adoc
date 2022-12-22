@@ -1,0 +1,98 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/1182
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  id: ID! @id
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
+}
+
+type Actor {
+  id: ID! @id
+  name: String!
+  dob: DateTime!
+  homeAddress: Point!
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{}
+----
+== DateTime and Point values get set as expected
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  createMovies(
+    input: [{title: "Forrest Gump", actors: {connectOrCreate: {where: {node: {id: 1}}, onCreate: {node: {name: "Tom Hanks", dob: "1970-01-01T00:00:00.000Z", homeAddress: {longitude: 1, latitude: 2}}}}}}]
+  ) {
+    movies {
+      title
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this0_title": "Forrest Gump",
+  "this0_actors_connectOrCreate_param0": "1",
+  "this0_actors_connectOrCreate_param1": "Tom Hanks",
+  "this0_actors_connectOrCreate_param2": {
+    "longitude": 1,
+    "latitude": 2
+  },
+  "this0_actors_connectOrCreate_param3": {
+    "year": 1970,
+    "month": 1,
+    "day": 1,
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nanosecond": 0,
+    "timeZoneOffsetSeconds": 0
+  },
+  "resolvedCallbacks": {}
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+CREATE (this0:Movie)
+SET this0.id = randomUUID()
+SET this0.title = $this0_title
+WITH this0
+CALL {
+    WITH this0
+    MERGE (this0_actors_connectOrCreate0:`Actor` { id: $this0_actors_connectOrCreate_param0 })
+    ON CREATE SET
+        this0_actors_connectOrCreate0.name = $this0_actors_connectOrCreate_param1,
+        this0_actors_connectOrCreate0.homeAddress = $this0_actors_connectOrCreate_param2,
+        this0_actors_connectOrCreate0.dob = $this0_actors_connectOrCreate_param3
+    MERGE (this0_actors_connectOrCreate0)-[this0_actors_connectOrCreate_this0:ACTED_IN]->(this0)
+    RETURN COUNT(*) AS _
+}
+RETURN this0
+}
+
+
+RETURN [
+this0 { .title }] AS data
+----
+
+'''
+

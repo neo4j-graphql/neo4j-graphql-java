@@ -1,0 +1,99 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/2262
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Component {
+  uuid: String
+  upstreamProcess: Process @relationship(type: "OUTPUT", direction: IN)
+  downstreamProcesses: [Process!]! @relationship(type: "INPUT", direction: OUT)
+}
+
+type Process {
+  uuid: String
+  componentOutputs: [Component!]! @relationship(type: "OUTPUT", direction: OUT)
+  componentInputs: [Component!]! @relationship(type: "INPUT", direction: IN)
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{}
+----
+== query nested relations under a root connection field
+
+.GraphQL-Query
+[source,graphql]
+----
+query ComponentsProcesses {
+  components(where: {uuid: "c1"}) {
+    uuid
+    upstreamProcessConnection {
+      edges {
+        node {
+          uuid
+          componentInputsConnection(sort: [{node: {uuid: DESC}}]) {
+            edges {
+              node {
+                uuid
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "c1"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:`Component`)
+WHERE this.uuid = $param0
+
+CALL {
+    WITH this
+    MATCH (this)<-[this_connection_upstreamProcessConnectionthis0:OUTPUT]-(this_Process:`Process`)
+    CALL {
+        WITH this_Process
+        MATCH (this_Process)<-[this_Process_connection_componentInputsConnectionthis0:INPUT]-(this_Process_Component:`Component`)
+        WITH this_Process_connection_componentInputsConnectionthis0, this_Process_Component
+        ORDER BY this_Process_Component.uuid DESC
+        WITH { node: { uuid: this_Process_Component.uuid } } AS edge
+        WITH collect(edge) AS edges
+        WITH edges, size(edges) AS totalCount
+        CALL {
+            WITH edges
+            UNWIND edges AS edge
+            WITH edge
+            ORDER BY edge.node.uuid DESC
+            RETURN collect(edge) AS this_Process_connection_componentInputsConnectionvar1
+        }
+        WITH this_Process_connection_componentInputsConnectionvar1 AS edges, totalCount
+        RETURN { edges: edges, totalCount: totalCount } AS this_Process_componentInputsConnection
+    }
+    WITH { node: { uuid: this_Process.uuid, componentInputsConnection: this_Process_componentInputsConnection } } AS edge
+    WITH collect(edge) AS edges
+    WITH edges, size(edges) AS totalCount
+    RETURN { edges: edges, totalCount: totalCount } AS this_upstreamProcessConnection
+}
+RETURN this { .uuid, upstreamProcessConnection: this_upstreamProcessConnection } AS this
+----
+
+'''
+

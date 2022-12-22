@@ -54,7 +54,9 @@ mutation {
 [source,json]
 ----
 {
-  "this_id": "movieId-4",
+  "param0": "movieId-4",
+  "updateMovies_args_delete_director_where_Directorparam0": "directorId-3",
+  "updateMovies_args_delete_director_delete_address_where_Addressparam0": "some-address",
   "updateMovies": {
     "args": {
       "delete": {
@@ -76,38 +78,50 @@ mutation {
         }
       }
     }
-  }
+  },
+  "resolvedCallbacks": {}
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE this.id = $this_id
+MATCH (this:`Movie`)
+WHERE this.id = $param0
 WITH this
 OPTIONAL MATCH (this)<-[this_delete_director0_relationship:DIRECTED]-(this_delete_director0:Director)
-WHERE this_delete_director0.id = $updateMovies.args.delete.director.where.node.id
+WHERE this_delete_director0.id = $updateMovies_args_delete_director_where_Directorparam0
 WITH this, this_delete_director0
 OPTIONAL MATCH (this_delete_director0)-[this_delete_director0_address0_relationship:HAS_ADDRESS]->(this_delete_director0_address0:Address)
-WHERE this_delete_director0_address0.id = $updateMovies.args.delete.director.delete.address.where.node.id
-WITH this, this_delete_director0, collect(DISTINCT this_delete_director0_address0) as this_delete_director0_address0_to_delete
-FOREACH(x IN this_delete_director0_address0_to_delete | DETACH DELETE x)
-WITH this, collect(DISTINCT this_delete_director0) as this_delete_director0_to_delete
-FOREACH(x IN this_delete_director0_to_delete | DETACH DELETE x)
-WITH this
+WHERE this_delete_director0_address0.id = $updateMovies_args_delete_director_delete_address_where_Addressparam0
+WITH this, this_delete_director0, collect(DISTINCT this_delete_director0_address0) AS this_delete_director0_address0_to_delete
+CALL {
+	WITH this_delete_director0_address0_to_delete
+	UNWIND this_delete_director0_address0_to_delete AS x
+	DETACH DELETE x
+	RETURN count(*) AS _
+}
+WITH this, collect(DISTINCT this_delete_director0) AS this_delete_director0_to_delete
+CALL {
+	WITH this_delete_director0_to_delete
+	UNWIND this_delete_director0_to_delete AS x
+	DETACH DELETE x
+	RETURN count(*) AS _
+}
+WITH *
+WITH *
 CALL {
 	WITH this
 	MATCH (this)<-[this_director_Director_unique:DIRECTED]-(:Director)
 	WITH count(this_director_Director_unique) as c
-	CALL apoc.util.validate(NOT(c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.director required', [0])
+	CALL apoc.util.validate(NOT (c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.director required', [0])
 	RETURN c AS this_director_Director_unique_ignored
 }
 CALL {
 	WITH this
 	MATCH (this)<-[this_coDirector_CoDirector_unique:CO_DIRECTED]-(:CoDirector)
 	WITH count(this_coDirector_CoDirector_unique) as c
-	CALL apoc.util.validate(NOT(c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.coDirector must be less than or equal to one', [0])
+	CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.coDirector must be less than or equal to one', [0])
 	RETURN c AS this_coDirector_CoDirector_unique_ignored
 }
 RETURN 'Query cannot conclude with CALL'

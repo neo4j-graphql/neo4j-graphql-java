@@ -37,7 +37,7 @@ type Movie {
 [source,json]
 ----
 {
-  "this_date_GTE": {
+  "param0": {
     "year": 1980,
     "month": 4,
     "day": 8
@@ -48,9 +48,11 @@ type Movie {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE this.date >= $this_date_GTE
-RETURN this { .date } as this
+MATCH (this:`Movie`)
+WHERE this.date >= $param0
+
+
+RETURN this { .date } AS this
 ----
 
 '''
@@ -73,24 +75,32 @@ mutation {
 [source,json]
 ----
 {
-  "this0_date": {
-    "year": 1970,
-    "month": 1,
-    "day": 1
-  }
+  "create_param0": [
+    {
+      "date": {
+        "year": 1970,
+        "month": 1,
+        "day": 1
+      }
+    }
+  ],
+  "resolvedCallbacks": {}
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
+UNWIND $create_param0 AS create_var1
 CALL {
-CREATE (this0:Movie)
-SET this0.date = $this0_date
-RETURN this0
+    WITH create_var1
+    CREATE (create_this0:`Movie`)
+    SET
+        create_this0.date = create_var1.date
+    
+    RETURN create_this0
 }
-RETURN [
-this0 { .date }] AS data
+RETURN collect(create_this0 { .date }) AS data
 ----
 
 '''
@@ -111,7 +121,7 @@ this0 { .date }] AS data
 [source,json]
 ----
 {
-  "this_date": {
+  "param0": {
     "year": 1970,
     "month": 1,
     "day": 1
@@ -122,9 +132,11 @@ this0 { .date }] AS data
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE this.date = $this_date
-RETURN this { .date } as this
+MATCH (this:`Movie`)
+WHERE this.date = $param0
+
+
+RETURN this { .date } AS this
 ----
 
 '''
@@ -152,14 +164,16 @@ mutation {
     "year": 1970,
     "month": 1,
     "day": 1
-  }
+  },
+  "resolvedCallbacks": {}
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
+MATCH (this:`Movie`)
+
 
 SET this.date = $this_update_date
 

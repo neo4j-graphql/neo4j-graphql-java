@@ -53,30 +53,25 @@ query Actors {
 [source,json]
 ----
 {
-  "this_moviesConnection": {
-    "args": {
-      "where": {
-        "node": {
-          "status": "ACTIVE"
-        }
-      }
-    }
-  }
+  "this_connection_moviesConnectionparam0": "ACTIVE"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Actor)
+MATCH (this:`Actor`)
+
 CALL {
-WITH this
-MATCH (this)-[this_acted_in_relationship:ACTED_IN]->(this_movie:Movie)
-WHERE coalesce(this_movie.status, "ACTIVE") = $this_moviesConnection.args.where.node.status
-WITH collect({ node: { id: this_movie.id, status: this_movie.status } }) AS edges
-RETURN { edges: edges, totalCount: size(edges) } AS moviesConnection
+    WITH this
+    MATCH (this)-[this_connection_moviesConnectionthis0:ACTED_IN]->(this_Movie:`Movie`)
+    WHERE coalesce(this_Movie.status, "ACTIVE") = $this_connection_moviesConnectionparam0
+    WITH { node: { id: this_Movie.id, status: this_Movie.status } } AS edge
+    WITH collect(edge) AS edges
+    WITH edges, size(edges) AS totalCount
+    RETURN { edges: edges, totalCount: totalCount } AS this_moviesConnection
 }
-RETURN this { moviesConnection } as this
+RETURN this { moviesConnection: this_moviesConnection } AS this
 ----
 
 '''

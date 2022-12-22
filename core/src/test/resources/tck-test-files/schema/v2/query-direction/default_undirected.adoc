@@ -56,6 +56,7 @@ type PageInfo {
 type Query {
   users(options: UserOptions, where: UserWhere): [User!]!
   usersAggregate(where: UserWhere): UserAggregateSelection!
+  usersConnection(after: String, first: Int, sort: [UserSort], where: UserWhere): UsersConnection!
 }
 
 type StringAggregateSelectionNonNullable {
@@ -88,6 +89,11 @@ type UserAggregateSelection {
   name: StringAggregateSelectionNonNullable!
 }
 
+type UserEdge {
+  cursor: String!
+  node: User!
+}
+
 type UserFriendsConnection {
   edges: [UserFriendsRelationship!]!
   pageInfo: PageInfo!
@@ -106,6 +112,12 @@ type UserUserFriendsAggregationSelection {
 
 type UserUserFriendsNodeAggregateSelection {
   name: StringAggregateSelectionNonNullable!
+}
+
+type UsersConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
 }
 
 enum SortDirection {

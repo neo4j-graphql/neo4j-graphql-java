@@ -58,21 +58,10 @@ interface ActedIn {
 [source,json]
 ----
 {
-  "this_actorsConnection": {
-    "args": {
-      "where": {
-        "edge": {
-          "OR": [
-            {
-              "role_ENDS_WITH": "Gump"
-            },
-            {
-              "screenTime_LT": 60
-            }
-          ]
-        }
-      }
-    }
+  "this_connection_actorsConnectionparam0": "Gump",
+  "this_connection_actorsConnectionparam1": {
+    "low": 60,
+    "high": 0
   }
 }
 ----
@@ -80,15 +69,18 @@ interface ActedIn {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
+MATCH (this:`Movie`)
+
 CALL {
-WITH this
-MATCH (this)<-[this_acted_in_relationship:ACTED_IN]-(this_actor:Actor)
-WHERE ((this_acted_in_relationship.role ENDS WITH $this_actorsConnection.args.where.edge.OR[0].role_ENDS_WITH) OR (this_acted_in_relationship.screenTime < $this_actorsConnection.args.where.edge.OR[1].screenTime_LT))
-WITH collect({ role: this_acted_in_relationship.role, screenTime: this_acted_in_relationship.screenTime, node: { name: this_actor.name } }) AS edges
-RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
+    WITH this
+    MATCH (this)<-[this_connection_actorsConnectionthis0:ACTED_IN]-(this_Actor:`Actor`)
+    WHERE (this_connection_actorsConnectionthis0.role ENDS WITH $this_connection_actorsConnectionparam0 OR this_connection_actorsConnectionthis0.screenTime < $this_connection_actorsConnectionparam1)
+    WITH { role: this_connection_actorsConnectionthis0.role, screenTime: this_connection_actorsConnectionthis0.screenTime, node: { name: this_Actor.name } } AS edge
+    WITH collect(edge) AS edges
+    WITH edges, size(edges) AS totalCount
+    RETURN { edges: edges, totalCount: totalCount } AS this_actorsConnection
 }
-RETURN this { .title, actorsConnection } as this
+RETURN this { .title, actorsConnection: this_actorsConnection } AS this
 ----
 
 '''

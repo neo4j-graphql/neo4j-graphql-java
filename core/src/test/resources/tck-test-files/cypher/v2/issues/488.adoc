@@ -60,24 +60,38 @@ type Text {
 [source,json]
 ----
 {
-  "this_journalists": {
-    "where": {
-      "keywordsConnection": {
-        "node": {
-          "type": "Smile"
-        }
-      }
-    }
-  }
+  "param0": "Smile"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Journalist)
-WHERE EXISTS((this)-[:HAS_KEYWORD]->(:Emoji)) AND ANY(this_keywordsConnection_Emoji_map IN [(this)-[this_keywordsConnection_Emoji_JournalistKeywordsRelationship:HAS_KEYWORD]->(this_keywordsConnection_Emoji:Emoji)  | { node: this_keywordsConnection_Emoji, relationship: this_keywordsConnection_Emoji_JournalistKeywordsRelationship } ] WHERE this_keywordsConnection_Emoji_map.node.type = $this_journalists.where.keywordsConnection.node.type)
-RETURN this { .name, keywords:  [this_keywords IN [(this)-[:HAS_KEYWORD]->(this_keywords) WHERE ("Emoji" IN labels(this_keywords)) OR ("Hashtag" IN labels(this_keywords)) OR ("Text" IN labels(this_keywords)) | head( [ this_keywords IN [this_keywords] WHERE ("Emoji" IN labels(this_keywords)) | this_keywords { __resolveType: "Emoji",  .id, .type } ] + [ this_keywords IN [this_keywords] WHERE ("Hashtag" IN labels(this_keywords)) | this_keywords { __resolveType: "Hashtag" }  ] + [ this_keywords IN [this_keywords] WHERE ("Text" IN labels(this_keywords)) | this_keywords { __resolveType: "Text" }  ] ) ] WHERE this_keywords IS NOT NULL]  } as this
+MATCH (this:`Journalist`)
+WHERE size([(this)-[this0:HAS_KEYWORD]->(this1:`Emoji`) WHERE this1.type = $param0 | 1]) > 0
+
+CALL {
+    WITH this
+    CALL {
+        WITH *
+        MATCH (this)-[this2:HAS_KEYWORD]->(this_keywords:`Emoji`)
+        WITH this_keywords  { __resolveType: "Emoji",  .id, .type } AS this_keywords
+        RETURN this_keywords AS this_keywords
+        UNION
+        WITH *
+        MATCH (this)-[this3:HAS_KEYWORD]->(this_keywords:`Hashtag`)
+        WITH this_keywords { __resolveType: "Hashtag" } AS this_keywords
+        RETURN this_keywords AS this_keywords
+        UNION
+        WITH *
+        MATCH (this)-[this4:HAS_KEYWORD]->(this_keywords:`Text`)
+        WITH this_keywords { __resolveType: "Text" } AS this_keywords
+        RETURN this_keywords AS this_keywords
+    }
+    WITH this_keywords
+    RETURN collect(this_keywords) AS this_keywords
+}
+RETURN this { .name, keywords: this_keywords } AS this
 ----
 
 '''
@@ -104,24 +118,38 @@ RETURN this { .name, keywords:  [this_keywords IN [(this)-[:HAS_KEYWORD]->(this_
 [source,json]
 ----
 {
-  "this_journalists": {
-    "where": {
-      "keywordsConnection_NOT": {
-        "node": {
-          "type": "Smile"
-        }
-      }
-    }
-  }
+  "param0": "Smile"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Journalist)
-WHERE EXISTS((this)-[:HAS_KEYWORD]->(:Emoji)) AND NONE(this_keywordsConnection_NOT_Emoji_map IN [(this)-[this_keywordsConnection_NOT_Emoji_JournalistKeywordsRelationship:HAS_KEYWORD]->(this_keywordsConnection_NOT_Emoji:Emoji)  | { node: this_keywordsConnection_NOT_Emoji, relationship: this_keywordsConnection_NOT_Emoji_JournalistKeywordsRelationship } ] WHERE this_keywordsConnection_NOT_Emoji_map.node.type = $this_journalists.where.keywordsConnection_NOT.node.type)
-RETURN this { .name, keywords:  [this_keywords IN [(this)-[:HAS_KEYWORD]->(this_keywords) WHERE ("Emoji" IN labels(this_keywords)) OR ("Hashtag" IN labels(this_keywords)) OR ("Text" IN labels(this_keywords)) | head( [ this_keywords IN [this_keywords] WHERE ("Emoji" IN labels(this_keywords)) | this_keywords { __resolveType: "Emoji",  .id, .type } ] + [ this_keywords IN [this_keywords] WHERE ("Hashtag" IN labels(this_keywords)) | this_keywords { __resolveType: "Hashtag" }  ] + [ this_keywords IN [this_keywords] WHERE ("Text" IN labels(this_keywords)) | this_keywords { __resolveType: "Text" }  ] ) ] WHERE this_keywords IS NOT NULL]  } as this
+MATCH (this:`Journalist`)
+WHERE size([(this)-[this0:HAS_KEYWORD]->(this1:`Emoji`) WHERE this1.type = $param0 | 1]) = 0
+
+CALL {
+    WITH this
+    CALL {
+        WITH *
+        MATCH (this)-[this2:HAS_KEYWORD]->(this_keywords:`Emoji`)
+        WITH this_keywords  { __resolveType: "Emoji",  .id, .type } AS this_keywords
+        RETURN this_keywords AS this_keywords
+        UNION
+        WITH *
+        MATCH (this)-[this3:HAS_KEYWORD]->(this_keywords:`Hashtag`)
+        WITH this_keywords { __resolveType: "Hashtag" } AS this_keywords
+        RETURN this_keywords AS this_keywords
+        UNION
+        WITH *
+        MATCH (this)-[this4:HAS_KEYWORD]->(this_keywords:`Text`)
+        WITH this_keywords { __resolveType: "Text" } AS this_keywords
+        RETURN this_keywords AS this_keywords
+    }
+    WITH this_keywords
+    RETURN collect(this_keywords) AS this_keywords
+}
+RETURN this { .name, keywords: this_keywords } AS this
 ----
 
 '''

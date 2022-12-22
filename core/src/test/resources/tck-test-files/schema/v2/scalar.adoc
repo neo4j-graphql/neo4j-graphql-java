@@ -10,7 +10,9 @@ scalar CustomScalar
 
 type Movie {
   id: ID
+  myCustomArrayScalar: [CustomScalar!]
   myCustomScalar: CustomScalar
+  myRequiredCustomArrayScalar: [CustomScalar!]!
 }
 ----
 
@@ -48,12 +50,25 @@ type IDAggregateSelectionNullable {
 
 type Movie {
   id: ID
+  myCustomArrayScalar: [CustomScalar!]
   myCustomScalar: CustomScalar
+  myRequiredCustomArrayScalar: [CustomScalar!]!
 }
 
 type MovieAggregateSelection {
   count: Int!
   id: IDAggregateSelectionNullable!
+}
+
+type MovieEdge {
+  cursor: String!
+  node: Movie!
+}
+
+type MoviesConnection {
+  edges: [MovieEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
 }
 
 type Mutation {
@@ -62,9 +77,18 @@ type Mutation {
   updateMovies(update: MovieUpdateInput, where: MovieWhere): UpdateMoviesMutationResponse!
 }
 
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
 type Query {
   movies(options: MovieOptions, where: MovieWhere): [Movie!]!
   moviesAggregate(where: MovieWhere): MovieAggregateSelection!
+  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
 }
 
 type UpdateInfo {
@@ -91,7 +115,9 @@ scalar CustomScalar
 
 input MovieCreateInput {
   id: ID
+  myCustomArrayScalar: [CustomScalar!]
   myCustomScalar: CustomScalar
+  myRequiredCustomArrayScalar: [CustomScalar!]!
 }
 
 input MovieOptions {
@@ -109,7 +135,9 @@ input MovieSort {
 
 input MovieUpdateInput {
   id: ID
+  myCustomArrayScalar: [CustomScalar!]
   myCustomScalar: CustomScalar
+  myRequiredCustomArrayScalar: [CustomScalar!]
 }
 
 input MovieWhere {
@@ -125,7 +153,18 @@ input MovieWhere {
   id_NOT_IN: [ID]
   id_NOT_STARTS_WITH: ID
   id_STARTS_WITH: ID
+  myCustomArrayScalar: [CustomScalar!]
+  myCustomArrayScalar_INCLUDES: CustomScalar
+  myCustomArrayScalar_NOT: [CustomScalar!]
+  myCustomArrayScalar_NOT_INCLUDES: CustomScalar
   myCustomScalar: CustomScalar
+  myCustomScalar_IN: [CustomScalar]
+  myCustomScalar_NOT: CustomScalar
+  myCustomScalar_NOT_IN: [CustomScalar]
+  myRequiredCustomArrayScalar: [CustomScalar!]
+  myRequiredCustomArrayScalar_INCLUDES: CustomScalar
+  myRequiredCustomArrayScalar_NOT: [CustomScalar!]
+  myRequiredCustomArrayScalar_NOT_INCLUDES: CustomScalar
 }
 
 ----

@@ -1,0 +1,558 @@
+:toc:
+
+= Algebraic -> Should be supported in interfaces
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+interface Production {
+  viewers: Int!
+}
+
+type Movie implements Production {
+  id: ID
+  viewers: Int!
+  workers: [Person!]! @relationship(type: "WORKED_IN", direction: IN)
+}
+
+type Person {
+  name: String!
+  worksInProduction: [Production!]! @relationship(type: "WORKED_IN", direction: OUT)
+}
+----
+
+== Augmented schema
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+interface Production {
+  viewers: Int!
+}
+
+type CreateInfo {
+  bookmark: String
+  nodesCreated: Int!
+  relationshipsCreated: Int!
+}
+
+type CreateMoviesMutationResponse {
+  info: CreateInfo!
+  movies: [Movie!]!
+}
+
+type CreatePeopleMutationResponse {
+  info: CreateInfo!
+  people: [Person!]!
+}
+
+type DeleteInfo {
+  bookmark: String
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
+type IDAggregateSelectionNullable {
+  longest: ID
+  shortest: ID
+}
+
+type IntAggregateSelectionNonNullable {
+  average: Float!
+  max: Int!
+  min: Int!
+  sum: Int!
+}
+
+type Movie implements Production {
+  id: ID
+  viewers: Int!
+  workers(directed: Boolean = true, options: PersonOptions, where: PersonWhere): [Person!]!
+  workersAggregate(directed: Boolean = true, where: PersonWhere): MoviePersonWorkersAggregationSelection
+  workersConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieWorkersConnectionSort!], where: MovieWorkersConnectionWhere): MovieWorkersConnection!
+}
+
+type MovieAggregateSelection {
+  count: Int!
+  id: IDAggregateSelectionNullable!
+  viewers: IntAggregateSelectionNonNullable!
+}
+
+type MovieEdge {
+  cursor: String!
+  node: Movie!
+}
+
+type MoviePersonWorkersAggregationSelection {
+  count: Int!
+  node: MoviePersonWorkersNodeAggregateSelection
+}
+
+type MoviePersonWorkersNodeAggregateSelection {
+  name: StringAggregateSelectionNonNullable!
+}
+
+type MovieWorkersConnection {
+  edges: [MovieWorkersRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type MovieWorkersRelationship {
+  cursor: String!
+  node: Person!
+}
+
+type MoviesConnection {
+  edges: [MovieEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Mutation {
+  createMovies(input: [MovieCreateInput!]!): CreateMoviesMutationResponse!
+  createPeople(input: [PersonCreateInput!]!): CreatePeopleMutationResponse!
+  deleteMovies(delete: MovieDeleteInput, where: MovieWhere): DeleteInfo!
+  deletePeople(delete: PersonDeleteInput, where: PersonWhere): DeleteInfo!
+  updateMovies(connect: MovieConnectInput, create: MovieRelationInput, delete: MovieDeleteInput, disconnect: MovieDisconnectInput, update: MovieUpdateInput, where: MovieWhere): UpdateMoviesMutationResponse!
+  updatePeople(connect: PersonConnectInput, create: PersonRelationInput, delete: PersonDeleteInput, disconnect: PersonDisconnectInput, update: PersonUpdateInput, where: PersonWhere): UpdatePeopleMutationResponse!
+}
+
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type PeopleConnection {
+  edges: [PersonEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Person {
+  name: String!
+  worksInProduction(directed: Boolean = true, options: ProductionOptions, where: ProductionWhere): [Production!]!
+  worksInProductionConnection(after: String, directed: Boolean = true, first: Int, sort: [PersonWorksInProductionConnectionSort!], where: PersonWorksInProductionConnectionWhere): PersonWorksInProductionConnection!
+}
+
+type PersonAggregateSelection {
+  count: Int!
+  name: StringAggregateSelectionNonNullable!
+}
+
+type PersonEdge {
+  cursor: String!
+  node: Person!
+}
+
+type PersonWorksInProductionConnection {
+  edges: [PersonWorksInProductionRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type PersonWorksInProductionRelationship {
+  cursor: String!
+  node: Production!
+}
+
+type Query {
+  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
+  moviesAggregate(where: MovieWhere): MovieAggregateSelection!
+  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
+  people(options: PersonOptions, where: PersonWhere): [Person!]!
+  peopleAggregate(where: PersonWhere): PersonAggregateSelection!
+  peopleConnection(after: String, first: Int, sort: [PersonSort], where: PersonWhere): PeopleConnection!
+}
+
+type StringAggregateSelectionNonNullable {
+  longest: String!
+  shortest: String!
+}
+
+type UpdateInfo {
+  bookmark: String
+  nodesCreated: Int!
+  nodesDeleted: Int!
+  relationshipsCreated: Int!
+  relationshipsDeleted: Int!
+}
+
+type UpdateMoviesMutationResponse {
+  info: UpdateInfo!
+  movies: [Movie!]!
+}
+
+type UpdatePeopleMutationResponse {
+  info: UpdateInfo!
+  people: [Person!]!
+}
+
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+input MovieConnectInput {
+  workers: [MovieWorkersConnectFieldInput!]
+}
+
+input MovieCreateInput {
+  id: ID
+  viewers: Int!
+  workers: MovieWorkersFieldInput
+}
+
+input MovieDeleteInput {
+  workers: [MovieWorkersDeleteFieldInput!]
+}
+
+input MovieDisconnectInput {
+  workers: [MovieWorkersDisconnectFieldInput!]
+}
+
+input MovieOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [MovieSort!]
+}
+
+input MovieRelationInput {
+  workers: [MovieWorkersCreateFieldInput!]
+}
+
+"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+input MovieSort {
+  id: SortDirection
+  viewers: SortDirection
+}
+
+input MovieUpdateInput {
+  id: ID
+  viewers: Int
+  viewers_DECREMENT: Int
+  viewers_INCREMENT: Int
+  workers: [MovieWorkersUpdateFieldInput!]
+}
+
+input MovieWhere {
+  AND: [MovieWhere!]
+  OR: [MovieWhere!]
+  id: ID
+  id_CONTAINS: ID
+  id_ENDS_WITH: ID
+  id_IN: [ID]
+  id_NOT: ID
+  id_NOT_CONTAINS: ID
+  id_NOT_ENDS_WITH: ID
+  id_NOT_IN: [ID]
+  id_NOT_STARTS_WITH: ID
+  id_STARTS_WITH: ID
+  viewers: Int
+  viewers_GT: Int
+  viewers_GTE: Int
+  viewers_IN: [Int!]
+  viewers_LT: Int
+  viewers_LTE: Int
+  viewers_NOT: Int
+  viewers_NOT_IN: [Int!]
+  workers: PersonWhere @deprecated(reason : "Use `workers_SOME` instead.")
+  workersAggregate: MovieWorkersAggregateInput
+  workersConnection: MovieWorkersConnectionWhere @deprecated(reason : "Use `workersConnection_SOME` instead.")
+  workersConnection_ALL: MovieWorkersConnectionWhere
+  workersConnection_NONE: MovieWorkersConnectionWhere
+  workersConnection_NOT: MovieWorkersConnectionWhere @deprecated(reason : "Use `workersConnection_NONE` instead.")
+  workersConnection_SINGLE: MovieWorkersConnectionWhere
+  workersConnection_SOME: MovieWorkersConnectionWhere
+  "Return Movies where all of the related People match this filter"
+  workers_ALL: PersonWhere
+  "Return Movies where none of the related People match this filter"
+  workers_NONE: PersonWhere
+  workers_NOT: PersonWhere @deprecated(reason : "Use `workers_NONE` instead.")
+  "Return Movies where one of the related People match this filter"
+  workers_SINGLE: PersonWhere
+  "Return Movies where some of the related People match this filter"
+  workers_SOME: PersonWhere
+}
+
+input MovieWorkersAggregateInput {
+  AND: [MovieWorkersAggregateInput!]
+  OR: [MovieWorkersAggregateInput!]
+  count: Int
+  count_GT: Int
+  count_GTE: Int
+  count_LT: Int
+  count_LTE: Int
+  node: MovieWorkersNodeAggregationWhereInput
+}
+
+input MovieWorkersConnectFieldInput {
+  connect: [PersonConnectInput!]
+  where: PersonConnectWhere
+}
+
+input MovieWorkersConnectionSort {
+  node: PersonSort
+}
+
+input MovieWorkersConnectionWhere {
+  AND: [MovieWorkersConnectionWhere!]
+  OR: [MovieWorkersConnectionWhere!]
+  node: PersonWhere
+  node_NOT: PersonWhere
+}
+
+input MovieWorkersCreateFieldInput {
+  node: PersonCreateInput!
+}
+
+input MovieWorkersDeleteFieldInput {
+  delete: PersonDeleteInput
+  where: MovieWorkersConnectionWhere
+}
+
+input MovieWorkersDisconnectFieldInput {
+  disconnect: PersonDisconnectInput
+  where: MovieWorkersConnectionWhere
+}
+
+input MovieWorkersFieldInput {
+  connect: [MovieWorkersConnectFieldInput!]
+  create: [MovieWorkersCreateFieldInput!]
+}
+
+input MovieWorkersNodeAggregationWhereInput {
+  AND: [MovieWorkersNodeAggregationWhereInput!]
+  OR: [MovieWorkersNodeAggregationWhereInput!]
+  name_AVERAGE_EQUAL: Float
+  name_AVERAGE_GT: Float
+  name_AVERAGE_GTE: Float
+  name_AVERAGE_LT: Float
+  name_AVERAGE_LTE: Float
+  name_EQUAL: String
+  name_GT: Int
+  name_GTE: Int
+  name_LONGEST_EQUAL: Int
+  name_LONGEST_GT: Int
+  name_LONGEST_GTE: Int
+  name_LONGEST_LT: Int
+  name_LONGEST_LTE: Int
+  name_LT: Int
+  name_LTE: Int
+  name_SHORTEST_EQUAL: Int
+  name_SHORTEST_GT: Int
+  name_SHORTEST_GTE: Int
+  name_SHORTEST_LT: Int
+  name_SHORTEST_LTE: Int
+}
+
+input MovieWorkersUpdateConnectionInput {
+  node: PersonUpdateInput
+}
+
+input MovieWorkersUpdateFieldInput {
+  connect: [MovieWorkersConnectFieldInput!]
+  create: [MovieWorkersCreateFieldInput!]
+  delete: [MovieWorkersDeleteFieldInput!]
+  disconnect: [MovieWorkersDisconnectFieldInput!]
+  update: MovieWorkersUpdateConnectionInput
+  where: MovieWorkersConnectionWhere
+}
+
+input PersonConnectInput {
+  worksInProduction: [PersonWorksInProductionConnectFieldInput!]
+}
+
+input PersonConnectWhere {
+  node: PersonWhere!
+}
+
+input PersonCreateInput {
+  name: String!
+  worksInProduction: PersonWorksInProductionFieldInput
+}
+
+input PersonDeleteInput {
+  worksInProduction: [PersonWorksInProductionDeleteFieldInput!]
+}
+
+input PersonDisconnectInput {
+  worksInProduction: [PersonWorksInProductionDisconnectFieldInput!]
+}
+
+input PersonOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more PersonSort objects to sort People by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [PersonSort!]
+}
+
+input PersonRelationInput {
+  worksInProduction: [PersonWorksInProductionCreateFieldInput!]
+}
+
+"Fields to sort People by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonSort object."
+input PersonSort {
+  name: SortDirection
+}
+
+input PersonUpdateInput {
+  name: String
+  worksInProduction: [PersonWorksInProductionUpdateFieldInput!]
+}
+
+input PersonWhere {
+  AND: [PersonWhere!]
+  OR: [PersonWhere!]
+  name: String
+  name_CONTAINS: String
+  name_ENDS_WITH: String
+  name_IN: [String!]
+  name_NOT: String
+  name_NOT_CONTAINS: String
+  name_NOT_ENDS_WITH: String
+  name_NOT_IN: [String!]
+  name_NOT_STARTS_WITH: String
+  name_STARTS_WITH: String
+  worksInProductionConnection: PersonWorksInProductionConnectionWhere @deprecated(reason : "Use `worksInProductionConnection_SOME` instead.")
+  worksInProductionConnection_ALL: PersonWorksInProductionConnectionWhere
+  worksInProductionConnection_NONE: PersonWorksInProductionConnectionWhere
+  worksInProductionConnection_NOT: PersonWorksInProductionConnectionWhere @deprecated(reason : "Use `worksInProductionConnection_NONE` instead.")
+  worksInProductionConnection_SINGLE: PersonWorksInProductionConnectionWhere
+  worksInProductionConnection_SOME: PersonWorksInProductionConnectionWhere
+}
+
+input PersonWorksInProductionConnectFieldInput {
+  connect: ProductionConnectInput
+  where: ProductionConnectWhere
+}
+
+input PersonWorksInProductionConnectionSort {
+  node: ProductionSort
+}
+
+input PersonWorksInProductionConnectionWhere {
+  AND: [PersonWorksInProductionConnectionWhere!]
+  OR: [PersonWorksInProductionConnectionWhere!]
+  node: ProductionWhere
+  node_NOT: ProductionWhere
+}
+
+input PersonWorksInProductionCreateFieldInput {
+  node: ProductionCreateInput!
+}
+
+input PersonWorksInProductionDeleteFieldInput {
+  delete: ProductionDeleteInput
+  where: PersonWorksInProductionConnectionWhere
+}
+
+input PersonWorksInProductionDisconnectFieldInput {
+  disconnect: ProductionDisconnectInput
+  where: PersonWorksInProductionConnectionWhere
+}
+
+input PersonWorksInProductionFieldInput {
+  connect: [PersonWorksInProductionConnectFieldInput!]
+  create: [PersonWorksInProductionCreateFieldInput!]
+}
+
+input PersonWorksInProductionUpdateConnectionInput {
+  node: ProductionUpdateInput
+}
+
+input PersonWorksInProductionUpdateFieldInput {
+  connect: [PersonWorksInProductionConnectFieldInput!]
+  create: [PersonWorksInProductionCreateFieldInput!]
+  delete: [PersonWorksInProductionDeleteFieldInput!]
+  disconnect: [PersonWorksInProductionDisconnectFieldInput!]
+  update: PersonWorksInProductionUpdateConnectionInput
+  where: PersonWorksInProductionConnectionWhere
+}
+
+input ProductionConnectInput {
+  _on: ProductionImplementationsConnectInput
+}
+
+input ProductionConnectWhere {
+  node: ProductionWhere!
+}
+
+input ProductionCreateInput {
+  Movie: MovieCreateInput
+}
+
+input ProductionDeleteInput {
+  _on: ProductionImplementationsDeleteInput
+}
+
+input ProductionDisconnectInput {
+  _on: ProductionImplementationsDisconnectInput
+}
+
+input ProductionImplementationsConnectInput {
+  Movie: [MovieConnectInput!]
+}
+
+input ProductionImplementationsDeleteInput {
+  Movie: [MovieDeleteInput!]
+}
+
+input ProductionImplementationsDisconnectInput {
+  Movie: [MovieDisconnectInput!]
+}
+
+input ProductionImplementationsUpdateInput {
+  Movie: MovieUpdateInput
+}
+
+input ProductionImplementationsWhere {
+  Movie: MovieWhere
+}
+
+input ProductionOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more ProductionSort objects to sort Productions by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [ProductionSort]
+}
+
+"Fields to sort Productions by. The order in which sorts are applied is not guaranteed when specifying many fields in one ProductionSort object."
+input ProductionSort {
+  viewers: SortDirection
+}
+
+input ProductionUpdateInput {
+  _on: ProductionImplementationsUpdateInput
+  viewers: Int
+  viewers_DECREMENT: Int
+  viewers_INCREMENT: Int
+}
+
+input ProductionWhere {
+  _on: ProductionImplementationsWhere
+  viewers: Int
+  viewers_GT: Int
+  viewers_GTE: Int
+  viewers_IN: [Int!]
+  viewers_LT: Int
+  viewers_LTE: Int
+  viewers_NOT: Int
+  viewers_NOT_IN: [Int!]
+}
+
+----
+
+'''

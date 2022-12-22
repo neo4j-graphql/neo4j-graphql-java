@@ -43,7 +43,7 @@ type Movie {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
+MATCH (this:`Movie`)
 RETURN { actorCount: { average: avg(this.actorCount) } }
 ----
 
@@ -72,7 +72,7 @@ RETURN { actorCount: { average: avg(this.actorCount) } }
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
+MATCH (this:`Movie`)
 RETURN { actorCount: { max: max(this.actorCount) } }
 ----
 
@@ -101,7 +101,7 @@ RETURN { actorCount: { max: max(this.actorCount) } }
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
+MATCH (this:`Movie`)
 RETURN { actorCount: { min: min(this.actorCount) } }
 ----
 
@@ -133,7 +133,7 @@ RETURN { actorCount: { min: min(this.actorCount) } }
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
+MATCH (this:`Movie`)
 RETURN { actorCount: { min: min(this.actorCount), max: max(this.actorCount), average: avg(this.actorCount), sum: sum(this.actorCount) } }
 ----
 
@@ -162,7 +162,7 @@ RETURN { actorCount: { min: min(this.actorCount), max: max(this.actorCount), ave
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
+MATCH (this:`Movie`)
 RETURN { actorCount: { sum: sum(this.actorCount) } }
 ----
 

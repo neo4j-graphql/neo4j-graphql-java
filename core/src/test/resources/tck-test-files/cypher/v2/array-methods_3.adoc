@@ -1,0 +1,85 @@
+:toc:
+
+= Arrays Methods
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+  filmingLocations: [Point!]!
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+  "enableRegex": true
+}
+----
+== push (point)
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation UpdateMovie($inputValue: [PointInput!]!) {
+  updateMovies(update: {filmingLocations_PUSH: $inputValue}) {
+    movies {
+      title
+      filmingLocations {
+        latitude
+        longitude
+        height
+      }
+    }
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "inputValue": {
+    "longitude": -178.7374,
+    "latitude": 38.4554,
+    "height": 60111.54
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_update_filmingLocations_PUSH": [
+    {
+      "longitude": -178.7374,
+      "latitude": 38.4554,
+      "height": 60111.54
+    }
+  ],
+  "resolvedCallbacks": {}
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:`Movie`)
+
+CALL apoc.util.validate(this.filmingLocations IS NULL, "Property %s cannot be NULL", ['filmingLocations'])
+SET this.filmingLocations = this.filmingLocations + [p in $this_update_filmingLocations_PUSH | point(p)]
+
+RETURN collect(DISTINCT this { .title, filmingLocations: (CASE
+    WHEN this.filmingLocations IS NOT NULL THEN [p_var0 IN this.filmingLocations | { point: p_var0 }]
+    ELSE NULL
+END) }) AS data
+----
+
+'''
+

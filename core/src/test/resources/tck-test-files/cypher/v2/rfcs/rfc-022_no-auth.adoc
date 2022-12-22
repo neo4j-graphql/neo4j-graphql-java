@@ -1,0 +1,135 @@
+:toc:
+
+= no auth
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+  released: Int
+  actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN, properties: "ActedIn")
+  directors: [Person!]! @relationship(type: "DIRECTED", direction: IN)
+}
+
+type Person {
+  name: String!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
+  directed: [Movie!]! @relationship(type: "DIRECTED", direction: OUT)
+}
+
+interface ActedIn @relationshipProperties {
+  year: Int
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+  "enableRegex": true
+}
+----
+== Double nested query
+
+.GraphQL-Query
+[source,graphql]
+----
+query Query {
+  movies(where: {released: 1999}) {
+    title
+    actors(where: {name: "Keanu Reeves"}) {
+      name
+      directed {
+        title
+        released
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": {
+    "low": 1999,
+    "high": 0
+  },
+  "param1": "Keanu Reeves"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:`Movie`)
+WHERE this.released = $param0
+
+CALL {
+    WITH this
+    MATCH (this_actors:`Person`)-[this0:ACTED_IN]->(this)
+    WHERE this_actors.name = $param1
+    CALL {
+        WITH this_actors
+        MATCH (this_actors)-[this1:DIRECTED]->(this_actors_directed:`Movie`)
+        WITH this_actors_directed { .title, .released } AS this_actors_directed
+        RETURN collect(this_actors_directed) AS this_actors_directed
+    }
+    WITH this_actors { .name, directed: this_actors_directed } AS this_actors
+    RETURN collect(this_actors) AS this_actors
+}
+RETURN this { .title, actors: this_actors } AS this
+----
+
+'''
+
+== Nested query
+
+.GraphQL-Query
+[source,graphql]
+----
+query Query {
+  movies(where: {released: 1999}) {
+    title
+    actors(where: {name: "Keanu Reeves"}) {
+      name
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": {
+    "low": 1999,
+    "high": 0
+  },
+  "param1": "Keanu Reeves"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:`Movie`)
+WHERE this.released = $param0
+
+CALL {
+    WITH this
+    MATCH (this_actors:`Person`)-[this0:ACTED_IN]->(this)
+    WHERE this_actors.name = $param1
+    WITH this_actors { .name } AS this_actors
+    RETURN collect(this_actors) AS this_actors
+}
+RETURN this { .title, actors: this_actors } AS this
+----
+
+'''
+

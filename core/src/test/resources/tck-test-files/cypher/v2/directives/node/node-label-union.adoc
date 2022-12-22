@@ -53,9 +53,17 @@ type Movie @node(label: "Film") {
 [source,json]
 ----
 {
-  "this_title": "some title",
-  "this_search_Genre_name": "Horror",
-  "this_search_Movie_title": "The Matrix"
+  "param0": "some title",
+  "param1": "Horror",
+  "param2": "The Matrix",
+  "param3": {
+    "low": 1,
+    "high": 0
+  },
+  "param4": {
+    "low": 10,
+    "high": 0
+  }
 }
 ----
 
@@ -63,8 +71,30 @@ type Movie @node(label: "Film") {
 [source,cypher]
 ----
 MATCH (this:`Film`)
-WHERE this.title = $this_title
-RETURN this { search:  [this_search IN [(this)-[:SEARCH]->(this_search) WHERE ("Category" IN labels(this_search) AND "ExtraLabel1" IN labels(this_search) AND "ExtraLabel2" IN labels(this_search)) OR ("Film" IN labels(this_search)) | head( [ this_search IN [this_search] WHERE ("Category" IN labels(this_search) AND "ExtraLabel1" IN labels(this_search) AND "ExtraLabel2" IN labels(this_search)) AND this_search.name = $this_search_Genre_name | this_search { __resolveType: "Genre",  .name } ] + [ this_search IN [this_search] WHERE ("Film" IN labels(this_search)) AND this_search.title = $this_search_Movie_title | this_search { __resolveType: "Movie",  .title } ] ) ] WHERE this_search IS NOT NULL] [1..11]  } as this
+WHERE this.title = $param0
+
+CALL {
+    WITH this
+    CALL {
+        WITH *
+        MATCH (this)-[this0:SEARCH]->(this_search:`Category`:`ExtraLabel1`:`ExtraLabel2`)
+        WHERE this_search.name = $param1
+        WITH this_search  { __resolveType: "Genre",  .name } AS this_search
+        RETURN this_search AS this_search
+        UNION
+        WITH *
+        MATCH (this)-[this1:SEARCH]->(this_search:`Film`)
+        WHERE this_search.title = $param2
+        WITH this_search  { __resolveType: "Movie",  .title } AS this_search
+        RETURN this_search AS this_search
+    }
+    WITH this_search
+    
+    SKIP $param3
+    LIMIT $param4
+    RETURN collect(this_search) AS this_search
+}
+RETURN this { search: this_search } AS this
 ----
 
 '''

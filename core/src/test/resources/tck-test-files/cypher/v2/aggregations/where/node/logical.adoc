@@ -43,19 +43,25 @@ type Post {
 [source,json]
 ----
 {
-  "this_likesAggregate_node_AND_0_someFloat_EQUAL": 10,
-  "this_likesAggregate_node_AND_1_someFloat_EQUAL": 11
+  "param0": 10,
+  "param1": 11
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Post)
-WHERE apoc.cypher.runFirstColumn(" MATCH (this)<-[this_likesAggregate_edge:LIKES]-(this_likesAggregate_node:User)
-RETURN (this_likesAggregate_node.someFloat = $this_likesAggregate_node_AND_0_someFloat_EQUAL AND this_likesAggregate_node.someFloat = $this_likesAggregate_node_AND_1_someFloat_EQUAL)
-", { this: this, this_likesAggregate_node_AND_0_someFloat_EQUAL: $this_likesAggregate_node_AND_0_someFloat_EQUAL, this_likesAggregate_node_AND_1_someFloat_EQUAL: $this_likesAggregate_node_AND_1_someFloat_EQUAL }, false )
-RETURN this { .content } as this
+MATCH (this:`Post`)
+CALL {
+    WITH this
+    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
+    RETURN any(var2 IN collect(this1.someFloat) WHERE var2 = $param0) AS var3, any(var4 IN collect(this1.someFloat) WHERE var4 = $param1) AS var5
+}
+WITH *
+WHERE (var3 = true AND var5 = true)
+
+
+RETURN this { .content } AS this
 ----
 
 '''
@@ -78,19 +84,25 @@ RETURN this { .content } as this
 [source,json]
 ----
 {
-  "this_likesAggregate_node_OR_0_someFloat_EQUAL": 10,
-  "this_likesAggregate_node_OR_1_someFloat_EQUAL": 11
+  "param0": 10,
+  "param1": 11
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Post)
-WHERE apoc.cypher.runFirstColumn(" MATCH (this)<-[this_likesAggregate_edge:LIKES]-(this_likesAggregate_node:User)
-RETURN (this_likesAggregate_node.someFloat = $this_likesAggregate_node_OR_0_someFloat_EQUAL OR this_likesAggregate_node.someFloat = $this_likesAggregate_node_OR_1_someFloat_EQUAL)
-", { this: this, this_likesAggregate_node_OR_0_someFloat_EQUAL: $this_likesAggregate_node_OR_0_someFloat_EQUAL, this_likesAggregate_node_OR_1_someFloat_EQUAL: $this_likesAggregate_node_OR_1_someFloat_EQUAL }, false )
-RETURN this { .content } as this
+MATCH (this:`Post`)
+CALL {
+    WITH this
+    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
+    RETURN any(var2 IN collect(this1.someFloat) WHERE var2 = $param0) AS var3, any(var4 IN collect(this1.someFloat) WHERE var4 = $param1) AS var5
+}
+WITH *
+WHERE (var3 = true OR var5 = true)
+
+
+RETURN this { .content } AS this
 ----
 
 '''

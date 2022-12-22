@@ -42,36 +42,32 @@ mutation {
 }
 ----
 
-.Query Context
-[source,json,query-config=true]
-----
-{
-  "contextParams": {
-    "jwt": {
-      "movielabel": "Film"
-    }
-  }
-}
-----
-
 .Expected Cypher params
 [source,json]
 ----
 {
-  "this0_title": "Titanic"
+  "create_param0": [
+    {
+      "title": "Titanic"
+    }
+  ],
+  "resolvedCallbacks": {}
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
+UNWIND $create_param0 AS create_var1
 CALL {
-CREATE (this0:`Film`)
-SET this0.title = $this0_title
-RETURN this0
+    WITH create_var1
+    CREATE (create_this0:`Film`)
+    SET
+        create_this0.title = create_var1.title
+    
+    RETURN create_this0
 }
-RETURN [
-this0 { .title }] AS data
+RETURN collect(create_this0 { .title }) AS data
 ----
 
 '''
@@ -88,18 +84,6 @@ this0 { .title }] AS data
 }
 ----
 
-.Query Context
-[source,json,query-config=true]
-----
-{
-  "contextParams": {
-    "jwt": {
-      "movielabel": "Film"
-    }
-  }
-}
-----
-
 .Expected Cypher params
 [source,json]
 ----
@@ -110,7 +94,9 @@ this0 { .title }] AS data
 [source,cypher]
 ----
 MATCH (this:`Film`)
-RETURN this { .title } as this
+
+
+RETURN this { .title } AS this
 ----
 
 '''
@@ -130,25 +116,15 @@ RETURN this { .title } as this
 }
 ----
 
-.Query Context
-[source,json,query-config=true]
-----
-{
-  "contextParams": {
-    "jwt": {
-      "movielabel": "Film",
-      "personlabel": "Person"
-    }
-  }
-}
-----
-
 .Expected Cypher params
 [source,json]
 ----
 {
-  "this_age_GT": 10,
-  "this_movies_title": "terminator"
+  "param0": {
+    "low": 10,
+    "high": 0
+  },
+  "param1": "terminator"
 }
 ----
 
@@ -156,8 +132,16 @@ RETURN this { .title } as this
 [source,cypher]
 ----
 MATCH (this:`Actor`:`Person`)
-WHERE this.age > $this_age_GT
-RETURN this { .name, movies: [ (this)-[:ACTED_IN]->(this_movies:`Film`)  WHERE this_movies.title = $this_movies_title | this_movies { .title } ] } as this
+WHERE this.age > $param0
+
+CALL {
+    WITH this
+    MATCH (this)-[this0:ACTED_IN]->(this_movies:`Film`)
+    WHERE this_movies.title = $param1
+    WITH this_movies { .title } AS this_movies
+    RETURN collect(this_movies) AS this_movies
+}
+RETURN this { .name, movies: this_movies } AS this
 ----
 
 '''

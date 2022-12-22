@@ -58,8 +58,15 @@ type Movie implements MovieInterface {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-RETURN this { .title, actors: [ (this)<-[:ACTED_IN]-(this_actors:Actor)   | this_actors { .name } ] } as this
+MATCH (this:`Movie`)
+
+CALL {
+    WITH this
+    MATCH (this_actors:`Actor`)-[this0:ACTED_IN]->(this)
+    WITH this_actors { .name } AS this_actors
+    RETURN collect(this_actors) AS this_actors
+}
+RETURN this { .title, actors: this_actors } AS this
 ----
 
 '''
@@ -91,8 +98,21 @@ RETURN this { .title, actors: [ (this)<-[:ACTED_IN]-(this_actors:Actor)   | this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-RETURN this { .title, topActor: head([ (this)-[:TOP_ACTOR]->(this_topActor:Actor)   | this_topActor { .name, movies: [ (this_topActor)-[:ACTED_IN]->(this_topActor_movies:Movie)   | this_topActor_movies { .title } ] } ]) } as this
+MATCH (this:`Movie`)
+
+CALL {
+    WITH this
+    MATCH (this)-[this0:TOP_ACTOR]->(this_topActor:`Actor`)
+    CALL {
+        WITH this_topActor
+        MATCH (this_topActor)-[this1:ACTED_IN]->(this_topActor_movies:`Movie`)
+        WITH this_topActor_movies { .title } AS this_topActor_movies
+        RETURN collect(this_topActor_movies) AS this_topActor_movies
+    }
+    WITH this_topActor { .name, movies: this_topActor_movies } AS this_topActor
+    RETURN head(collect(this_topActor)) AS this_topActor
+}
+RETURN this { .title, topActor: this_topActor } AS this
 ----
 
 '''
@@ -119,18 +139,33 @@ RETURN this { .title, topActor: head([ (this)-[:TOP_ACTOR]->(this_topActor:Actor
 [source,json]
 ----
 {
-  "this_title": "some title",
-  "this_topActor_movies_title": "top actor movie",
-  "this_topActor_name": "top actor"
+  "param0": "some title",
+  "param1": "top actor",
+  "param2": "top actor movie"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE this.title = $this_title
-RETURN this { .title, topActor: head([ (this)-[:TOP_ACTOR]->(this_topActor:Actor)  WHERE this_topActor.name = $this_topActor_name | this_topActor { .name, movies: [ (this_topActor)-[:ACTED_IN]->(this_topActor_movies:Movie)  WHERE this_topActor_movies.title = $this_topActor_movies_title | this_topActor_movies { .title } ] } ]) } as this
+MATCH (this:`Movie`)
+WHERE this.title = $param0
+
+CALL {
+    WITH this
+    MATCH (this)-[this0:TOP_ACTOR]->(this_topActor:`Actor`)
+    WHERE this_topActor.name = $param1
+    CALL {
+        WITH this_topActor
+        MATCH (this_topActor)-[this1:ACTED_IN]->(this_topActor_movies:`Movie`)
+        WHERE this_topActor_movies.title = $param2
+        WITH this_topActor_movies { .title } AS this_topActor_movies
+        RETURN collect(this_topActor_movies) AS this_topActor_movies
+    }
+    WITH this_topActor { .name, movies: this_topActor_movies } AS this_topActor
+    RETURN head(collect(this_topActor)) AS this_topActor
+}
+RETURN this { .title, topActor: this_topActor } AS this
 ----
 
 '''
@@ -159,8 +194,15 @@ RETURN this { .title, topActor: head([ (this)-[:TOP_ACTOR]->(this_topActor:Actor
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-RETURN this { .title, topActor: head([ (this)-[:TOP_ACTOR]->(this_topActor:Actor)   | this_topActor { .name } ]) } as this
+MATCH (this:`Movie`)
+
+CALL {
+    WITH this
+    MATCH (this)-[this0:TOP_ACTOR]->(this_topActor:`Actor`)
+    WITH this_topActor { .name } AS this_topActor
+    RETURN head(collect(this_topActor)) AS this_topActor
+}
+RETURN this { .title, topActor: this_topActor } AS this
 ----
 
 '''

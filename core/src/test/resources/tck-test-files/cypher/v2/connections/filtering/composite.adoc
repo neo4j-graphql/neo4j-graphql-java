@@ -58,49 +58,36 @@ interface ActedIn {
 [source,json]
 ----
 {
-  "this_title": "Forrest Gump",
-  "this_actorsConnection": {
-    "args": {
-      "where": {
-        "edge": {
-          "AND": [
-            {
-              "screenTime_GT": 30
-            },
-            {
-              "screenTime_LT": 90
-            }
-          ]
-        },
-        "node": {
-          "AND": [
-            {
-              "firstName": "Tom"
-            },
-            {
-              "lastName": "Hanks"
-            }
-          ]
-        }
-      }
-    }
-  }
+  "param0": "Forrest Gump",
+  "this_connection_actorsConnectionparam0": {
+    "low": 30,
+    "high": 0
+  },
+  "this_connection_actorsConnectionparam1": {
+    "low": 90,
+    "high": 0
+  },
+  "this_connection_actorsConnectionparam2": "Tom",
+  "this_connection_actorsConnectionparam3": "Hanks"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE this.title = $this_title
+MATCH (this:`Movie`)
+WHERE this.title = $param0
+
 CALL {
-WITH this
-MATCH (this)<-[this_acted_in_relationship:ACTED_IN]-(this_actor:Actor)
-WHERE ((this_acted_in_relationship.screenTime > $this_actorsConnection.args.where.edge.AND[0].screenTime_GT) AND (this_acted_in_relationship.screenTime < $this_actorsConnection.args.where.edge.AND[1].screenTime_LT)) AND ((this_actor.firstName = $this_actorsConnection.args.where.node.AND[0].firstName) AND (this_actor.lastName = $this_actorsConnection.args.where.node.AND[1].lastName))
-WITH collect({ screenTime: this_acted_in_relationship.screenTime, node: { firstName: this_actor.firstName, lastName: this_actor.lastName } }) AS edges
-RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
+    WITH this
+    MATCH (this)<-[this_connection_actorsConnectionthis0:ACTED_IN]-(this_Actor:`Actor`)
+    WHERE ((this_connection_actorsConnectionthis0.screenTime > $this_connection_actorsConnectionparam0 AND this_connection_actorsConnectionthis0.screenTime < $this_connection_actorsConnectionparam1) AND (this_Actor.firstName = $this_connection_actorsConnectionparam2 AND this_Actor.lastName = $this_connection_actorsConnectionparam3))
+    WITH { screenTime: this_connection_actorsConnectionthis0.screenTime, node: { firstName: this_Actor.firstName, lastName: this_Actor.lastName } } AS edge
+    WITH collect(edge) AS edges
+    WITH edges, size(edges) AS totalCount
+    RETURN { edges: edges, totalCount: totalCount } AS this_actorsConnection
 }
-RETURN this { .title, actorsConnection } as this
+RETURN this { .title, actorsConnection: this_actorsConnection } AS this
 ----
 
 '''

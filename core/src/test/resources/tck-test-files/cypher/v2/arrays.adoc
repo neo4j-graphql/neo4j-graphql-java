@@ -38,16 +38,18 @@ type Movie {
 [source,json]
 ----
 {
-  "this_ratings_INCLUDES": 4
+  "param0": 4
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE $this_ratings_INCLUDES IN this.ratings
-RETURN this { .title, .ratings } as this
+MATCH (this:`Movie`)
+WHERE $param0 IN this.ratings
+
+
+RETURN this { .title, .ratings } AS this
 ----
 
 '''
@@ -69,16 +71,18 @@ RETURN this { .title, .ratings } as this
 [source,json]
 ----
 {
-  "this_ratings_NOT_INCLUDES": 4
+  "param0": 4
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE (NOT $this_ratings_NOT_INCLUDES IN this.ratings)
-RETURN this { .title, .ratings } as this
+MATCH (this:`Movie`)
+WHERE NOT ($param0 IN this.ratings)
+
+
+RETURN this { .title, .ratings } AS this
 ----
 
 '''

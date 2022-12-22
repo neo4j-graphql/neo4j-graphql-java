@@ -49,9 +49,11 @@ type Movie {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
+MATCH (this:`Movie`)
 WHERE this.title IS NOT NULL
-RETURN this { .title } as this
+
+
+RETURN this { .title } AS this
 ----
 
 '''
@@ -77,9 +79,11 @@ RETURN this { .title } as this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
+MATCH (this:`Movie`)
 WHERE this.title IS NULL
-RETURN this { .title } as this
+
+
+RETURN this { .title } AS this
 ----
 
 '''
@@ -105,9 +109,13 @@ RETURN this { .title } as this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE EXISTS((this)<-[:ACTED_IN]-(:Actor))
-RETURN this { .title } as this
+MATCH (this:`Movie`)
+WHERE EXISTS {
+    MATCH (this0:`Actor`)-[:ACTED_IN]->(this)
+}
+
+
+RETURN this { .title } AS this
 ----
 
 '''
@@ -133,9 +141,13 @@ RETURN this { .title } as this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE NOT EXISTS((this)<-[:ACTED_IN]-(:Actor))
-RETURN this { .title } as this
+MATCH (this:`Movie`)
+WHERE NOT (EXISTS {
+    MATCH (this0:`Actor`)-[:ACTED_IN]->(this)
+})
+
+
+RETURN this { .title } AS this
 ----
 
 '''

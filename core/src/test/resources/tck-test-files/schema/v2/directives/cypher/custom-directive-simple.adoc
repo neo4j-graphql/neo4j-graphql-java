@@ -39,6 +39,17 @@ type ActorAggregateSelection {
   name: StringAggregateSelectionNullable!
 }
 
+type ActorEdge {
+  cursor: String!
+  node: Actor!
+}
+
+type ActorsConnection {
+  edges: [ActorEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
 type CreateActorsMutationResponse {
   actors: [Actor!]!
   info: CreateInfo!
@@ -76,6 +87,17 @@ type MovieAggregateSelection {
   id: IDAggregateSelectionNullable!
 }
 
+type MovieEdge {
+  cursor: String!
+  node: Movie!
+}
+
+type MoviesConnection {
+  edges: [MovieEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
 type Mutation {
   createActors(input: [ActorCreateInput!]!): CreateActorsMutationResponse!
   createMovies(input: [MovieCreateInput!]!): CreateMoviesMutationResponse!
@@ -85,11 +107,21 @@ type Mutation {
   updateMovies(update: MovieUpdateInput, where: MovieWhere): UpdateMoviesMutationResponse!
 }
 
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
 type Query {
   actors(options: ActorOptions, where: ActorWhere): [Actor!]!
   actorsAggregate(where: ActorWhere): ActorAggregateSelection!
+  actorsConnection(after: String, first: Int, sort: [ActorSort], where: ActorWhere): ActorsConnection!
   movies(options: MovieOptions, where: MovieWhere): [Movie!]!
   moviesAggregate(where: MovieWhere): MovieAggregateSelection!
+  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
 }
 
 type StringAggregateSelectionNullable {

@@ -47,15 +47,35 @@ type DeprecatedAggregateSelection {
   deprecatedField: StringAggregateSelectionNullable!
 }
 
+type DeprecatedEdge {
+  cursor: String!
+  node: Deprecated!
+}
+
+type DeprecatedsConnection {
+  edges: [DeprecatedEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
 type Mutation {
   createDeprecateds(input: [DeprecatedCreateInput!]!): CreateDeprecatedsMutationResponse!
   deleteDeprecateds(where: DeprecatedWhere): DeleteInfo!
   updateDeprecateds(update: DeprecatedUpdateInput, where: DeprecatedWhere): UpdateDeprecatedsMutationResponse!
 }
 
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
 type Query {
   deprecateds(options: DeprecatedOptions, where: DeprecatedWhere): [Deprecated!]!
   deprecatedsAggregate(where: DeprecatedWhere): DeprecatedAggregateSelection!
+  deprecatedsConnection(after: String, first: Int, sort: [DeprecatedSort], where: DeprecatedWhere): DeprecatedsConnection!
 }
 
 type StringAggregateSelectionNullable {
@@ -84,7 +104,7 @@ enum SortDirection {
 }
 
 input DeprecatedCreateInput {
-  deprecatedField: String
+  deprecatedField: String @deprecated(reason : "No longer supported")
 }
 
 input DeprecatedOptions {
@@ -96,26 +116,26 @@ input DeprecatedOptions {
 
 "Fields to sort Deprecateds by. The order in which sorts are applied is not guaranteed when specifying many fields in one DeprecatedSort object."
 input DeprecatedSort {
-  deprecatedField: SortDirection
+  deprecatedField: SortDirection @deprecated(reason : "No longer supported")
 }
 
 input DeprecatedUpdateInput {
-  deprecatedField: String
+  deprecatedField: String @deprecated(reason : "No longer supported")
 }
 
 input DeprecatedWhere {
   AND: [DeprecatedWhere!]
   OR: [DeprecatedWhere!]
-  deprecatedField: String
-  deprecatedField_CONTAINS: String
-  deprecatedField_ENDS_WITH: String
-  deprecatedField_IN: [String]
-  deprecatedField_NOT: String
-  deprecatedField_NOT_CONTAINS: String
-  deprecatedField_NOT_ENDS_WITH: String
-  deprecatedField_NOT_IN: [String]
-  deprecatedField_NOT_STARTS_WITH: String
-  deprecatedField_STARTS_WITH: String
+  deprecatedField: String @deprecated(reason : "No longer supported")
+  deprecatedField_CONTAINS: String @deprecated(reason : "No longer supported")
+  deprecatedField_ENDS_WITH: String @deprecated(reason : "No longer supported")
+  deprecatedField_IN: [String] @deprecated(reason : "No longer supported")
+  deprecatedField_NOT: String @deprecated(reason : "No longer supported")
+  deprecatedField_NOT_CONTAINS: String @deprecated(reason : "No longer supported")
+  deprecatedField_NOT_ENDS_WITH: String @deprecated(reason : "No longer supported")
+  deprecatedField_NOT_IN: [String] @deprecated(reason : "No longer supported")
+  deprecatedField_NOT_STARTS_WITH: String @deprecated(reason : "No longer supported")
+  deprecatedField_STARTS_WITH: String @deprecated(reason : "No longer supported")
 }
 
 ----

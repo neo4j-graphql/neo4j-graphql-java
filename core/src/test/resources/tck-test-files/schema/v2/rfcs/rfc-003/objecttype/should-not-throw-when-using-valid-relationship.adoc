@@ -1,6 +1,6 @@
 :toc:
 
-= schema/rfs/003 -> ObjectType -> should not throw when using valid relationship
+= schema/rfc/003 -> ObjectType -> should not throw when using valid relationship
 
 == Source schema
 
@@ -74,8 +74,10 @@ type PageInfo {
 type Query {
   sources(options: SourceOptions, where: SourceWhere): [Source!]!
   sourcesAggregate(where: SourceWhere): SourceAggregateSelection!
+  sourcesConnection(after: String, first: Int, where: SourceWhere): SourcesConnection!
   targets(options: TargetOptions, where: TargetWhere): [Target!]!
   targetsAggregate(where: TargetWhere): TargetAggregateSelection!
+  targetsConnection(after: String, first: Int, sort: [TargetSort], where: TargetWhere): TargetsConnection!
 }
 
 type Source {
@@ -92,6 +94,11 @@ type Source {
 
 type SourceAggregateSelection {
   count: Int!
+}
+
+type SourceEdge {
+  cursor: String!
+  node: Source!
 }
 
 type SourceTarget1Connection {
@@ -154,6 +161,12 @@ type SourceTargetsRelationship {
   node: Target!
 }
 
+type SourcesConnection {
+  edges: [SourceEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
 type Target {
   id: ID
 }
@@ -161,6 +174,17 @@ type Target {
 type TargetAggregateSelection {
   count: Int!
   id: IDAggregateSelectionNullable!
+}
+
+type TargetEdge {
+  cursor: String!
+  node: Target!
+}
+
+type TargetsConnection {
+  edges: [TargetEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
 }
 
 type UpdateInfo {

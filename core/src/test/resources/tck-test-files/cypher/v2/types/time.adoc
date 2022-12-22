@@ -21,6 +21,56 @@ type Movie {
   "enableRegex": true
 }
 ----
+== Create with HH:MM format
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  createMovies(input: [{time: "22:00"}]) {
+    movies {
+      time
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "create_param0": [
+    {
+      "time": {
+        "hour": 22,
+        "minute": 0,
+        "second": 0,
+        "nanosecond": 0,
+        "timeZoneOffsetSeconds": 0
+      }
+    }
+  ],
+  "resolvedCallbacks": {}
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+UNWIND $create_param0 AS create_var1
+CALL {
+    WITH create_var1
+    CREATE (create_this0:`Movie`)
+    SET
+        create_this0.time = create_var1.time
+    
+    RETURN create_this0
+}
+RETURN collect(create_this0 { .time }) AS data
+----
+
+'''
+
 == GTE Read
 
 .GraphQL-Query
@@ -37,7 +87,7 @@ type Movie {
 [source,json]
 ----
 {
-  "this_time_GTE": {
+  "param0": {
     "hour": 13,
     "minute": 45,
     "second": 33,
@@ -50,9 +100,11 @@ type Movie {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE this.time >= $this_time_GTE
-RETURN this { .time } as this
+MATCH (this:`Movie`)
+WHERE this.time >= $param0
+
+
+RETURN this { .time } AS this
 ----
 
 '''
@@ -75,26 +127,34 @@ mutation {
 [source,json]
 ----
 {
-  "this0_time": {
-    "hour": 22,
-    "minute": 0,
-    "second": 15,
-    "nanosecond": 555000000,
-    "timeZoneOffsetSeconds": -3600
-  }
+  "create_param0": [
+    {
+      "time": {
+        "hour": 22,
+        "minute": 0,
+        "second": 15,
+        "nanosecond": 555000000,
+        "timeZoneOffsetSeconds": -3600
+      }
+    }
+  ],
+  "resolvedCallbacks": {}
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
+UNWIND $create_param0 AS create_var1
 CALL {
-CREATE (this0:Movie)
-SET this0.time = $this0_time
-RETURN this0
+    WITH create_var1
+    CREATE (create_this0:`Movie`)
+    SET
+        create_this0.time = create_var1.time
+    
+    RETURN create_this0
 }
-RETURN [
-this0 { .time }] AS data
+RETURN collect(create_this0 { .time }) AS data
 ----
 
 '''
@@ -115,7 +175,7 @@ this0 { .time }] AS data
 [source,json]
 ----
 {
-  "this_time": {
+  "param0": {
     "hour": 12,
     "minute": 0,
     "second": 0,
@@ -128,9 +188,11 @@ this0 { .time }] AS data
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE this.time = $this_time
-RETURN this { .time } as this
+MATCH (this:`Movie`)
+WHERE this.time = $param0
+
+
+RETURN this { .time } AS this
 ----
 
 '''
@@ -160,14 +222,16 @@ mutation {
     "second": 40,
     "nanosecond": 845512000,
     "timeZoneOffsetSeconds": 23400
-  }
+  },
+  "resolvedCallbacks": {}
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
+MATCH (this:`Movie`)
+
 
 SET this.time = $this_update_time
 

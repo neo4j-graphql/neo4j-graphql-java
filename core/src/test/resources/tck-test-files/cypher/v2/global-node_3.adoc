@@ -1,0 +1,65 @@
+:toc:
+
+= Global nodes
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Actor {
+  dbId: Int! @id(global: true, autogenerate: false)
+  name: String!
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{}
+----
+== it should project the param as an integer when the underlying field is a number (fixes 1560)
+
+.GraphQL-Query
+[source,graphql]
+----
+query ($where: ActorWhere!) {
+  actors(where: $where) {
+    id
+    dbId
+    name
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "where": {
+    "id": "QWN0b3I6ZGJJZDoxMjM0NQ=="
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": 12345
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:`Actor`)
+WHERE this.dbId = $param0
+
+
+RETURN this { .dbId, .name } AS this
+----
+
+'''
+

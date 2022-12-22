@@ -75,40 +75,58 @@ mutation {
 [source,json]
 ----
 {
-  "this0_id": "1",
-  "this1_id": "2",
-  "projection_photos_url": "url.com",
-  "projection_colors_id": "123",
-  "projection_sizes_name": "small"
+  "create_param0": "url.com",
+  "create_param1": "123",
+  "create_param2": "small",
+  "create_param3": [
+    {
+      "id": "1"
+    },
+    {
+      "id": "2"
+    }
+  ],
+  "resolvedCallbacks": {}
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
+UNWIND $create_param3 AS create_var4
 CALL {
-CREATE (this0:Product)
-SET this0.id = $this0_id
-RETURN this0
+    WITH create_var4
+    CREATE (create_this3:`Product`)
+    SET
+        create_this3.id = create_var4.id
+    
+    RETURN create_this3
 }
 CALL {
-CREATE (this1:Product)
-SET this1.id = $this1_id
-RETURN this1
+    WITH create_this3
+    MATCH (create_this3)-[create_this0:HAS_PHOTO]->(create_this3_photos:`Photo`)
+    WHERE create_this3_photos.url = $create_param0
+    WITH create_this3_photos { .url, location: (CASE
+        WHEN create_this3_photos.location IS NOT NULL THEN { point: create_this3_photos.location }
+        ELSE NULL
+    END) } AS create_this3_photos
+    RETURN collect(create_this3_photos) AS create_this3_photos
 }
-
-
-RETURN [
-this0 { .id, photos: [ (this0)-[:HAS_PHOTO]->(this0_photos:Photo)  WHERE this0_photos.url = $projection_photos_url | this0_photos { .url, location: apoc.cypher.runFirstColumn('RETURN
-CASE this0_photos.location IS NOT NULL
-	WHEN true THEN { point: this0_photos.location }
-	ELSE NULL
-END AS result',{ this0_photos: this0_photos },false) } ], colors: [ (this0)-[:HAS_COLOR]->(this0_colors:Color)  WHERE this0_colors.id = $projection_colors_id | this0_colors { .id } ], sizes: [ (this0)-[:HAS_SIZE]->(this0_sizes:Size)  WHERE this0_sizes.name = $projection_sizes_name | this0_sizes { .name } ] }, 
-this1 { .id, photos: [ (this1)-[:HAS_PHOTO]->(this1_photos:Photo)  WHERE this1_photos.url = $projection_photos_url | this1_photos { .url, location: apoc.cypher.runFirstColumn('RETURN
-CASE this1_photos.location IS NOT NULL
-	WHEN true THEN { point: this1_photos.location }
-	ELSE NULL
-END AS result',{ this1_photos: this1_photos },false) } ], colors: [ (this1)-[:HAS_COLOR]->(this1_colors:Color)  WHERE this1_colors.id = $projection_colors_id | this1_colors { .id } ], sizes: [ (this1)-[:HAS_SIZE]->(this1_sizes:Size)  WHERE this1_sizes.name = $projection_sizes_name | this1_sizes { .name } ] }] AS data
+CALL {
+    WITH create_this3
+    MATCH (create_this3)-[create_this1:HAS_COLOR]->(create_this3_colors:`Color`)
+    WHERE create_this3_colors.id = $create_param1
+    WITH create_this3_colors { .id } AS create_this3_colors
+    RETURN collect(create_this3_colors) AS create_this3_colors
+}
+CALL {
+    WITH create_this3
+    MATCH (create_this3)-[create_this2:HAS_SIZE]->(create_this3_sizes:`Size`)
+    WHERE create_this3_sizes.name = $create_param2
+    WITH create_this3_sizes { .name } AS create_this3_sizes
+    RETURN collect(create_this3_sizes) AS create_this3_sizes
+}
+RETURN collect(create_this3 { .id, photos: create_this3_photos, colors: create_this3_colors, sizes: create_this3_sizes }) AS data
 ----
 
 '''

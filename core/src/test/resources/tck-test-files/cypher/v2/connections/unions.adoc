@@ -71,24 +71,26 @@ interface Wrote {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Author)
+MATCH (this:`Author`)
+
 CALL {
-WITH this
-CALL {
-WITH this
-MATCH (this)-[this_wrote_relationship:WROTE]->(this_Book:Book)
-WITH { words: this_wrote_relationship.words, node: { __resolveType: "Book", title: this_Book.title } } AS edge
-RETURN edge
-UNION
-WITH this
-MATCH (this)-[this_wrote_relationship:WROTE]->(this_Journal:Journal)
-WITH { words: this_wrote_relationship.words, node: { __resolveType: "Journal", subject: this_Journal.subject } } AS edge
-RETURN edge
+    WITH this
+    CALL {
+        WITH this
+        MATCH (this)-[this_connection_publicationsConnectionthis0:WROTE]->(this_Book:`Book`)
+        WITH { words: this_connection_publicationsConnectionthis0.words, node: { __resolveType: "Book", title: this_Book.title } } AS edge
+        RETURN edge
+        UNION
+        WITH this
+        MATCH (this)-[this_connection_publicationsConnectionthis1:WROTE]->(this_Journal:`Journal`)
+        WITH { words: this_connection_publicationsConnectionthis1.words, node: { __resolveType: "Journal", subject: this_Journal.subject } } AS edge
+        RETURN edge
+    }
+    WITH collect(edge) AS edges
+    WITH edges, size(edges) AS totalCount
+    RETURN { edges: edges, totalCount: totalCount } AS this_publicationsConnection
 }
-WITH collect(edge) as edges
-RETURN { edges: edges, totalCount: size(edges) } AS publicationsConnection
-}
-RETURN this { .name, publicationsConnection } as this
+RETURN this { .name, publicationsConnection: this_publicationsConnection } AS this
 ----
 
 '''
@@ -127,25 +129,30 @@ RETURN this { .name, publicationsConnection } as this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Author)
+MATCH (this:`Author`)
+
 CALL {
-WITH this
-CALL {
-WITH this
-MATCH (this)-[this_wrote_relationship:WROTE]->(this_Book:Book)
-WITH { words: this_wrote_relationship.words, node: { __resolveType: "Book", title: this_Book.title } } AS edge
-RETURN edge
-UNION
-WITH this
-MATCH (this)-[this_wrote_relationship:WROTE]->(this_Journal:Journal)
-WITH { words: this_wrote_relationship.words, node: { __resolveType: "Journal", subject: this_Journal.subject } } AS edge
-RETURN edge
+    WITH this
+    CALL {
+        WITH this
+        MATCH (this)-[this_connection_publicationsConnectionthis0:WROTE]->(this_Book:`Book`)
+        WITH { words: this_connection_publicationsConnectionthis0.words, node: { __resolveType: "Book", title: this_Book.title } } AS edge
+        RETURN edge
+        UNION
+        WITH this
+        MATCH (this)-[this_connection_publicationsConnectionthis1:WROTE]->(this_Journal:`Journal`)
+        WITH { words: this_connection_publicationsConnectionthis1.words, node: { __resolveType: "Journal", subject: this_Journal.subject } } AS edge
+        RETURN edge
+    }
+    WITH collect(edge) AS edges
+    WITH edges, size(edges) AS totalCount
+    UNWIND edges AS edge
+    WITH edge, totalCount
+    ORDER BY edge.words ASC
+    WITH collect(edge) AS edges, totalCount
+    RETURN { edges: edges, totalCount: totalCount } AS this_publicationsConnection
 }
-WITH edge ORDER BY edge.words ASC
-WITH collect(edge) as edges
-RETURN { edges: edges, totalCount: size(edges) } AS publicationsConnection
-}
-RETURN this { .name, publicationsConnection } as this
+RETURN this { .name, publicationsConnection: this_publicationsConnection } AS this
 ----
 
 '''
@@ -181,48 +188,36 @@ RETURN this { .name, publicationsConnection } as this
 [source,json]
 ----
 {
-  "this_publicationsConnection": {
-    "args": {
-      "where": {
-        "Book": {
-          "node": {
-            "title": "Book Title"
-          }
-        },
-        "Journal": {
-          "node": {
-            "subject": "Journal Subject"
-          }
-        }
-      }
-    }
-  }
+  "this_connection_publicationsConnectionparam0": "Book Title",
+  "this_connection_publicationsConnectionparam1": "Journal Subject"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Author)
+MATCH (this:`Author`)
+
 CALL {
-WITH this
-CALL {
-WITH this
-MATCH (this)-[this_wrote_relationship:WROTE]->(this_Book:Book)
-WHERE this_Book.title = $this_publicationsConnection.args.where.Book.node.title
-WITH { words: this_wrote_relationship.words, node: { __resolveType: "Book", title: this_Book.title } } AS edge
-RETURN edge
-UNION
-WITH this
-MATCH (this)-[this_wrote_relationship:WROTE]->(this_Journal:Journal)
-WHERE this_Journal.subject = $this_publicationsConnection.args.where.Journal.node.subject
-WITH { words: this_wrote_relationship.words, node: { __resolveType: "Journal", subject: this_Journal.subject } } AS edge
-RETURN edge
+    WITH this
+    CALL {
+        WITH this
+        MATCH (this)-[this_connection_publicationsConnectionthis0:WROTE]->(this_Book:`Book`)
+        WHERE this_Book.title = $this_connection_publicationsConnectionparam0
+        WITH { words: this_connection_publicationsConnectionthis0.words, node: { __resolveType: "Book", title: this_Book.title } } AS edge
+        RETURN edge
+        UNION
+        WITH this
+        MATCH (this)-[this_connection_publicationsConnectionthis1:WROTE]->(this_Journal:`Journal`)
+        WHERE this_Journal.subject = $this_connection_publicationsConnectionparam1
+        WITH { words: this_connection_publicationsConnectionthis1.words, node: { __resolveType: "Journal", subject: this_Journal.subject } } AS edge
+        RETURN edge
+    }
+    WITH collect(edge) AS edges
+    WITH edges, size(edges) AS totalCount
+    RETURN { edges: edges, totalCount: totalCount } AS this_publicationsConnection
 }
-WITH collect(edge) as edges
-RETURN { edges: edges, totalCount: size(edges) } AS publicationsConnection
-}
-RETURN this { .name, publicationsConnection } as this
+RETURN this { .name, publicationsConnection: this_publicationsConnection } AS this
 ----
 
 '''
@@ -258,27 +253,15 @@ RETURN this { .name, publicationsConnection } as this
 [source,json]
 ----
 {
-  "this_publicationsConnection": {
-    "args": {
-      "where": {
-        "Book": {
-          "node": {
-            "title": "Book Title"
-          },
-          "edge": {
-            "words": 1000
-          }
-        },
-        "Journal": {
-          "node": {
-            "subject": "Journal Subject"
-          },
-          "edge": {
-            "words": 2000
-          }
-        }
-      }
-    }
+  "this_connection_publicationsConnectionparam0": "Book Title",
+  "this_connection_publicationsConnectionparam1": {
+    "low": 1000,
+    "high": 0
+  },
+  "this_connection_publicationsConnectionparam2": "Journal Subject",
+  "this_connection_publicationsConnectionparam3": {
+    "low": 2000,
+    "high": 0
   }
 }
 ----
@@ -286,26 +269,28 @@ RETURN this { .name, publicationsConnection } as this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Author)
+MATCH (this:`Author`)
+
 CALL {
-WITH this
-CALL {
-WITH this
-MATCH (this)-[this_wrote_relationship:WROTE]->(this_Book:Book)
-WHERE this_Book.title = $this_publicationsConnection.args.where.Book.node.title AND this_wrote_relationship.words = $this_publicationsConnection.args.where.Book.edge.words
-WITH { words: this_wrote_relationship.words, node: { __resolveType: "Book", title: this_Book.title } } AS edge
-RETURN edge
-UNION
-WITH this
-MATCH (this)-[this_wrote_relationship:WROTE]->(this_Journal:Journal)
-WHERE this_Journal.subject = $this_publicationsConnection.args.where.Journal.node.subject AND this_wrote_relationship.words = $this_publicationsConnection.args.where.Journal.edge.words
-WITH { words: this_wrote_relationship.words, node: { __resolveType: "Journal", subject: this_Journal.subject } } AS edge
-RETURN edge
+    WITH this
+    CALL {
+        WITH this
+        MATCH (this)-[this_connection_publicationsConnectionthis0:WROTE]->(this_Book:`Book`)
+        WHERE (this_Book.title = $this_connection_publicationsConnectionparam0 AND this_connection_publicationsConnectionthis0.words = $this_connection_publicationsConnectionparam1)
+        WITH { words: this_connection_publicationsConnectionthis0.words, node: { __resolveType: "Book", title: this_Book.title } } AS edge
+        RETURN edge
+        UNION
+        WITH this
+        MATCH (this)-[this_connection_publicationsConnectionthis1:WROTE]->(this_Journal:`Journal`)
+        WHERE (this_Journal.subject = $this_connection_publicationsConnectionparam2 AND this_connection_publicationsConnectionthis1.words = $this_connection_publicationsConnectionparam3)
+        WITH { words: this_connection_publicationsConnectionthis1.words, node: { __resolveType: "Journal", subject: this_Journal.subject } } AS edge
+        RETURN edge
+    }
+    WITH collect(edge) AS edges
+    WITH edges, size(edges) AS totalCount
+    RETURN { edges: edges, totalCount: totalCount } AS this_publicationsConnection
 }
-WITH collect(edge) as edges
-RETURN { edges: edges, totalCount: size(edges) } AS publicationsConnection
-}
-RETURN this { .name, publicationsConnection } as this
+RETURN this { .name, publicationsConnection: this_publicationsConnection } AS this
 ----
 
 '''
@@ -341,21 +326,13 @@ RETURN this { .name, publicationsConnection } as this
 [source,json]
 ----
 {
-  "this_publicationsConnection": {
-    "args": {
-      "where": {
-        "Book": {
-          "edge": {
-            "words": 1000
-          }
-        },
-        "Journal": {
-          "edge": {
-            "words": 2000
-          }
-        }
-      }
-    }
+  "this_connection_publicationsConnectionparam0": {
+    "low": 1000,
+    "high": 0
+  },
+  "this_connection_publicationsConnectionparam1": {
+    "low": 2000,
+    "high": 0
   }
 }
 ----
@@ -363,26 +340,28 @@ RETURN this { .name, publicationsConnection } as this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Author)
+MATCH (this:`Author`)
+
 CALL {
-WITH this
-CALL {
-WITH this
-MATCH (this)-[this_wrote_relationship:WROTE]->(this_Book:Book)
-WHERE this_wrote_relationship.words = $this_publicationsConnection.args.where.Book.edge.words
-WITH { words: this_wrote_relationship.words, node: { __resolveType: "Book", title: this_Book.title } } AS edge
-RETURN edge
-UNION
-WITH this
-MATCH (this)-[this_wrote_relationship:WROTE]->(this_Journal:Journal)
-WHERE this_wrote_relationship.words = $this_publicationsConnection.args.where.Journal.edge.words
-WITH { words: this_wrote_relationship.words, node: { __resolveType: "Journal", subject: this_Journal.subject } } AS edge
-RETURN edge
+    WITH this
+    CALL {
+        WITH this
+        MATCH (this)-[this_connection_publicationsConnectionthis0:WROTE]->(this_Book:`Book`)
+        WHERE this_connection_publicationsConnectionthis0.words = $this_connection_publicationsConnectionparam0
+        WITH { words: this_connection_publicationsConnectionthis0.words, node: { __resolveType: "Book", title: this_Book.title } } AS edge
+        RETURN edge
+        UNION
+        WITH this
+        MATCH (this)-[this_connection_publicationsConnectionthis1:WROTE]->(this_Journal:`Journal`)
+        WHERE this_connection_publicationsConnectionthis1.words = $this_connection_publicationsConnectionparam1
+        WITH { words: this_connection_publicationsConnectionthis1.words, node: { __resolveType: "Journal", subject: this_Journal.subject } } AS edge
+        RETURN edge
+    }
+    WITH collect(edge) AS edges
+    WITH edges, size(edges) AS totalCount
+    RETURN { edges: edges, totalCount: totalCount } AS this_publicationsConnection
 }
-WITH collect(edge) as edges
-RETURN { edges: edges, totalCount: size(edges) } AS publicationsConnection
-}
-RETURN this { .name, publicationsConnection } as this
+RETURN this { .name, publicationsConnection: this_publicationsConnection } AS this
 ----
 
 '''

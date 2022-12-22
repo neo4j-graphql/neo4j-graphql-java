@@ -1,0 +1,115 @@
+:toc:
+
+= Global nodes
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Actor {
+  dbId: ID! @id(global: true) @alias(property: "id")
+  name: String!
+  movies: [Actor!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+
+type Movie {
+  title: ID! @id(global: true)
+  actors: [Movie!]! @relationship(type: "ACTED_IN", direction: IN)
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{}
+----
+== it should project the correct node and fields when id is the idField
+
+.GraphQL-Query
+[source,graphql]
+----
+query Node($id: ID!) {
+  node(id: $id) {
+    id
+    ... on Actor {
+      name
+    }
+    ... on Movie {
+      title
+    }
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "id": "QWN0b3I6ZGJJZDoxMjM0NTU="
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "123455"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:`Actor`)
+WHERE this.id = $param0
+
+
+RETURN this { .name, dbId: this.id } AS this
+----
+
+'''
+
+== it should project the correct selectionSet when id is used as a where argument
+
+.GraphQL-Query
+[source,graphql]
+----
+query ($where: ActorWhere!) {
+  actors(where: $where) {
+    name
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "where": {
+    "id": "QWN0b3I6ZGJJZDoxMjM0NQ=="
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "12345"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:`Actor`)
+WHERE this.id = $param0
+
+
+RETURN this { .name } AS this
+----
+
+'''
+

@@ -37,11 +37,17 @@ type Movie {
 [source,json]
 ----
 {
-  "this_duration_GTE": {
+  "param0": {
     "months": 40,
     "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
+    "seconds": {
+      "low": 0,
+      "high": 0
+    },
+    "nanoseconds": {
+      "low": 0,
+      "high": 0
+    }
   }
 }
 ----
@@ -49,9 +55,11 @@ type Movie {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE datetime() + this.duration >= datetime() + $this_duration_GTE
-RETURN this { .duration } as this
+MATCH (this:`Movie`)
+WHERE datetime() + this.duration >= datetime() + $param0
+
+
+RETURN this { .duration } AS this
 ----
 
 '''
@@ -74,25 +82,39 @@ mutation {
 [source,json]
 ----
 {
-  "this0_duration": {
-    "months": 24,
-    "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
-  }
+  "create_param0": [
+    {
+      "duration": {
+        "months": 24,
+        "days": 0,
+        "seconds": {
+          "low": 0,
+          "high": 0
+        },
+        "nanoseconds": {
+          "low": 0,
+          "high": 0
+        }
+      }
+    }
+  ],
+  "resolvedCallbacks": {}
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
+UNWIND $create_param0 AS create_var1
 CALL {
-CREATE (this0:Movie)
-SET this0.duration = $this0_duration
-RETURN this0
+    WITH create_var1
+    CREATE (create_this0:`Movie`)
+    SET
+        create_this0.duration = create_var1.duration
+    
+    RETURN create_this0
 }
-RETURN [
-this0 { .duration }] AS data
+RETURN collect(create_this0 { .duration }) AS data
 ----
 
 '''
@@ -113,11 +135,17 @@ this0 { .duration }] AS data
 [source,json]
 ----
 {
-  "this_duration": {
+  "param0": {
     "months": 12,
     "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
+    "seconds": {
+      "low": 0,
+      "high": 0
+    },
+    "nanoseconds": {
+      "low": 0,
+      "high": 0
+    }
   }
 }
 ----
@@ -125,9 +153,11 @@ this0 { .duration }] AS data
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE this.duration = $this_duration
-RETURN this { .duration } as this
+MATCH (this:`Movie`)
+WHERE this.duration = $param0
+
+
+RETURN this { .duration } AS this
 ----
 
 '''
@@ -154,16 +184,24 @@ mutation {
   "this_update_duration": {
     "months": 0,
     "days": 4,
-    "seconds": 0,
-    "nanoseconds": 0
-  }
+    "seconds": {
+      "low": 0,
+      "high": 0
+    },
+    "nanoseconds": {
+      "low": 0,
+      "high": 0
+    }
+  },
+  "resolvedCallbacks": {}
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
+MATCH (this:`Movie`)
+
 
 SET this.duration = $this_update_duration
 

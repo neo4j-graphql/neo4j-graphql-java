@@ -1,0 +1,92 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/1115
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Parent {
+  children: [Child!]! @relationship(type: "HAS", direction: IN)
+}
+
+type Child {
+  tcId: String @unique
+}
+
+extend type Child @auth(rules: [{operations: [READ, CREATE, UPDATE, DELETE, CONNECT, DISCONNECT], roles: ["upstream"]}, {operations: [READ], roles: ["downstream"]}])
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+  "enableRegex": true
+}
+----
+== multiple connectOrCreate operations with auth
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation UpdateParents {
+  updateParents(
+    connectOrCreate: {children: [{where: {node: {tcId: "123"}}, onCreate: {node: {tcId: "123"}}}, {where: {node: {tcId: "456"}}, onCreate: {node: {tcId: "456"}}}]}
+  ) {
+    info {
+      nodesCreated
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_connectOrCreate_children_param0": "123",
+  "this_connectOrCreate_children_param1": "123",
+  "this_connectOrCreate_children_param2": "456",
+  "this_connectOrCreate_children_param3": "456",
+  "resolvedCallbacks": {},
+  "auth": {
+    "isAuthenticated": false,
+    "roles": []
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:`Parent`)
+WITH this
+CALL {
+    WITH this
+    MERGE (this_connectOrCreate_children0:`Child` { tcId: $this_connectOrCreate_children_param0 })
+    ON CREATE SET
+        this_connectOrCreate_children0.tcId = $this_connectOrCreate_children_param1
+    MERGE (this_connectOrCreate_children0)-[this_connectOrCreate_children_this0:HAS]->(this)
+    WITH *
+    CALL apoc.util.validate(NOT (any(auth_var1 IN ["upstream"] WHERE any(auth_var0 IN $auth.roles WHERE auth_var0 = auth_var1))), "@neo4j/graphql/FORBIDDEN", [0])
+    RETURN COUNT(*) AS _
+}
+WITH this
+CALL {
+    WITH this
+    MERGE (this_connectOrCreate_children1:`Child` { tcId: $this_connectOrCreate_children_param2 })
+    ON CREATE SET
+        this_connectOrCreate_children1.tcId = $this_connectOrCreate_children_param3
+    MERGE (this_connectOrCreate_children1)-[this_connectOrCreate_children_this1:HAS]->(this)
+    WITH *
+    CALL apoc.util.validate(NOT (any(auth_var1 IN ["upstream"] WHERE any(auth_var0 IN $auth.roles WHERE auth_var0 = auth_var1))), "@neo4j/graphql/FORBIDDEN", [0])
+    RETURN COUNT(*) AS _
+}
+WITH *
+RETURN 'Query cannot conclude with CALL'
+----
+
+'''
+

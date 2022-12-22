@@ -38,16 +38,18 @@ type Movie {
 [source,json]
 ----
 {
-  "this_title": "River Runs Through It, A"
+  "param0": "River Runs Through It, A"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE this.title = $this_title
-RETURN this { .id, .title } as this
+MATCH (this:`Movie`)
+WHERE this.title = $param0
+
+
+RETURN this { .id, .title } AS this
 ----
 
 '''
@@ -77,16 +79,18 @@ query ($title: String) {
 [source,json]
 ----
 {
-  "this_title": "some title"
+  "param0": "some title"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE this.title = $this_title
-RETURN this { .id, .title } as this
+MATCH (this:`Movie`)
+WHERE this.title = $param0
+
+
+RETURN this { .id, .title } AS this
 ----
 
 '''
@@ -107,16 +111,18 @@ RETURN this { .id, .title } as this
 [source,json]
 ----
 {
-  "this_title": "River Runs Through It, A"
+  "param0": "River Runs Through It, A"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE this.title = $this_title
-RETURN this { .title } as this
+MATCH (this:`Movie`)
+WHERE this.title = $param0
+
+
+RETURN this { .title } AS this
 ----
 
 '''

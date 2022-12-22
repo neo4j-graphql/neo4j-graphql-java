@@ -46,16 +46,18 @@ type Genre {
 [source,json]
 ----
 {
-  "this_id_CONTAINS": "123"
+  "param0": "123"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE this.id CONTAINS $this_id_CONTAINS
-RETURN this { .id } as this
+MATCH (this:`Movie`)
+WHERE this.id CONTAINS $param0
+
+
+RETURN this { .id } AS this
 ----
 
 '''
@@ -76,16 +78,18 @@ RETURN this { .id } as this
 [source,json]
 ----
 {
-  "this_id_ENDS_WITH": "123"
+  "param0": "123"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE this.id ENDS WITH $this_id_ENDS_WITH
-RETURN this { .id } as this
+MATCH (this:`Movie`)
+WHERE this.id ENDS WITH $param0
+
+
+RETURN this { .id } AS this
 ----
 
 '''
@@ -106,16 +110,21 @@ RETURN this { .id } as this
 [source,json]
 ----
 {
-  "this_actorCount_GT": 123
+  "param0": {
+    "low": 123,
+    "high": 0
+  }
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE this.actorCount > $this_actorCount_GT
-RETURN this { .actorCount } as this
+MATCH (this:`Movie`)
+WHERE this.actorCount > $param0
+
+
+RETURN this { .actorCount } AS this
 ----
 
 '''
@@ -136,16 +145,53 @@ RETURN this { .actorCount } as this
 [source,json]
 ----
 {
-  "this_budget_GT": "9223372036854775000"
+  "param0": {
+    "low": -808,
+    "high": 2147483647
+  }
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE this.budget > $this_budget_GT
-RETURN this { .budget } as this
+MATCH (this:`Movie`)
+WHERE this.budget > $param0
+
+
+RETURN this { .budget } AS this
+----
+
+'''
+
+== GT String
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {title_GT: "The Matrix Revolutions"}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "The Matrix Revolutions"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:`Movie`)
+WHERE this.title > $param0
+
+
+RETURN this { .title } AS this
 ----
 
 '''
@@ -166,16 +212,21 @@ RETURN this { .budget } as this
 [source,json]
 ----
 {
-  "this_actorCount_GTE": 123
+  "param0": {
+    "low": 123,
+    "high": 0
+  }
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE this.actorCount >= $this_actorCount_GTE
-RETURN this { .actorCount } as this
+MATCH (this:`Movie`)
+WHERE this.actorCount >= $param0
+
+
+RETURN this { .actorCount } AS this
 ----
 
 '''
@@ -196,16 +247,53 @@ RETURN this { .actorCount } as this
 [source,json]
 ----
 {
-  "this_budget_GTE": "9223372036854775000"
+  "param0": {
+    "low": -808,
+    "high": 2147483647
+  }
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE this.budget >= $this_budget_GTE
-RETURN this { .budget } as this
+MATCH (this:`Movie`)
+WHERE this.budget >= $param0
+
+
+RETURN this { .budget } AS this
+----
+
+'''
+
+== GTE String
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {title_GTE: "The Matrix Revolutions"}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "The Matrix Revolutions"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:`Movie`)
+WHERE this.title >= $param0
+
+
+RETURN this { .title } AS this
 ----
 
 '''
@@ -226,7 +314,7 @@ RETURN this { .budget } as this
 [source,json]
 ----
 {
-  "this__id_IN": [
+  "param0": [
     "123"
   ]
 }
@@ -235,9 +323,11 @@ RETURN this { .budget } as this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE this._id IN $this__id_IN
-RETURN this { ._id } as this
+MATCH (this:`Movie`)
+WHERE this._id IN $param0
+
+
+RETURN this { ._id } AS this
 ----
 
 '''
@@ -258,16 +348,21 @@ RETURN this { ._id } as this
 [source,json]
 ----
 {
-  "this_actorCount_LT": 123
+  "param0": {
+    "low": 123,
+    "high": 0
+  }
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE this.actorCount < $this_actorCount_LT
-RETURN this { .actorCount } as this
+MATCH (this:`Movie`)
+WHERE this.actorCount < $param0
+
+
+RETURN this { .actorCount } AS this
 ----
 
 '''
@@ -288,16 +383,53 @@ RETURN this { .actorCount } as this
 [source,json]
 ----
 {
-  "this_budget_LT": "9223372036854775807"
+  "param0": {
+    "low": -1,
+    "high": 2147483647
+  }
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE this.budget < $this_budget_LT
-RETURN this { .budget } as this
+MATCH (this:`Movie`)
+WHERE this.budget < $param0
+
+
+RETURN this { .budget } AS this
+----
+
+'''
+
+== LT String
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {title_LT: "The Matrix Revolutions"}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "The Matrix Revolutions"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:`Movie`)
+WHERE this.title < $param0
+
+
+RETURN this { .title } AS this
 ----
 
 '''
@@ -318,16 +450,21 @@ RETURN this { .budget } as this
 [source,json]
 ----
 {
-  "this_actorCount_LTE": 123
+  "param0": {
+    "low": 123,
+    "high": 0
+  }
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE this.actorCount <= $this_actorCount_LTE
-RETURN this { .actorCount } as this
+MATCH (this:`Movie`)
+WHERE this.actorCount <= $param0
+
+
+RETURN this { .actorCount } AS this
 ----
 
 '''
@@ -348,16 +485,53 @@ RETURN this { .actorCount } as this
 [source,json]
 ----
 {
-  "this_budget_LTE": "9223372036854775807"
+  "param0": {
+    "low": -1,
+    "high": 2147483647
+  }
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE this.budget <= $this_budget_LTE
-RETURN this { .budget } as this
+MATCH (this:`Movie`)
+WHERE this.budget <= $param0
+
+
+RETURN this { .budget } AS this
+----
+
+'''
+
+== LTE String
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {title_LTE: "The Matrix Revolutions"}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "The Matrix Revolutions"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:`Movie`)
+WHERE this.title <= $param0
+
+
+RETURN this { .title } AS this
 ----
 
 '''
@@ -378,16 +552,18 @@ RETURN this { .budget } as this
 [source,json]
 ----
 {
-  "this_id_NOT": "123"
+  "param0": "123"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE (NOT this.id = $this_id_NOT)
-RETURN this { .id } as this
+MATCH (this:`Movie`)
+WHERE NOT (this.id = $param0)
+
+
+RETURN this { .id } AS this
 ----
 
 '''
@@ -408,16 +584,18 @@ RETURN this { .id } as this
 [source,json]
 ----
 {
-  "this_id_NOT_CONTAINS": "123"
+  "param0": "123"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE (NOT this.id CONTAINS $this_id_NOT_CONTAINS)
-RETURN this { .id } as this
+MATCH (this:`Movie`)
+WHERE NOT (this.id CONTAINS $param0)
+
+
+RETURN this { .id } AS this
 ----
 
 '''
@@ -438,16 +616,18 @@ RETURN this { .id } as this
 [source,json]
 ----
 {
-  "this_id_NOT_ENDS_WITH": "123"
+  "param0": "123"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE (NOT this.id ENDS WITH $this_id_NOT_ENDS_WITH)
-RETURN this { .id } as this
+MATCH (this:`Movie`)
+WHERE NOT (this.id ENDS WITH $param0)
+
+
+RETURN this { .id } AS this
 ----
 
 '''
@@ -468,7 +648,7 @@ RETURN this { .id } as this
 [source,json]
 ----
 {
-  "this_id_NOT_IN": [
+  "param0": [
     "123"
   ]
 }
@@ -477,9 +657,11 @@ RETURN this { .id } as this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE (NOT this.id IN $this_id_NOT_IN)
-RETURN this { .id } as this
+MATCH (this:`Movie`)
+WHERE NOT (this.id IN $param0)
+
+
+RETURN this { .id } AS this
 ----
 
 '''
@@ -500,16 +682,18 @@ RETURN this { .id } as this
 [source,json]
 ----
 {
-  "this_id_NOT_STARTS_WITH": "123"
+  "param0": "123"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE (NOT this.id STARTS WITH $this_id_NOT_STARTS_WITH)
-RETURN this { .id } as this
+MATCH (this:`Movie`)
+WHERE NOT (this.id STARTS WITH $param0)
+
+
+RETURN this { .id } AS this
 ----
 
 '''
@@ -530,16 +714,18 @@ RETURN this { .id } as this
 [source,json]
 ----
 {
-  "this_id_MATCHES": "(?i)123.*"
+  "param0": "(?i)123.*"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE this.id =~ $this_id_MATCHES
-RETURN this { .id } as this
+MATCH (this:`Movie`)
+WHERE this.id =~ $param0
+
+
+RETURN this { .id } AS this
 ----
 
 '''
@@ -560,16 +746,18 @@ RETURN this { .id } as this
 [source,json]
 ----
 {
-  "this_id_STARTS_WITH": "123"
+  "param0": "123"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE this.id STARTS WITH $this_id_STARTS_WITH
-RETURN this { .id } as this
+MATCH (this:`Movie`)
+WHERE this.id STARTS WITH $param0
+
+
+RETURN this { .id } AS this
 ----
 
 '''
@@ -592,24 +780,18 @@ RETURN this { .id } as this
 [source,json]
 ----
 {
-  "this_movies": {
-    "where": {
-      "genresConnection": {
-        "node": {
-          "name": "some genre"
-        }
-      }
-    }
-  }
+  "param0": "some genre"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE EXISTS((this)-[:IN_GENRE]->(:Genre)) AND ANY(this_genresConnection_Genre_map IN [(this)-[this_genresConnection_Genre_MovieGenresRelationship:IN_GENRE]->(this_genresConnection_Genre:Genre)  | { node: this_genresConnection_Genre, relationship: this_genresConnection_Genre_MovieGenresRelationship } ] WHERE this_genresConnection_Genre_map.node.name = $this_movies.where.genresConnection.node.name)
-RETURN this { .actorCount } as this
+MATCH (this:`Movie`)
+WHERE size([(this)-[this0:IN_GENRE]->(this1:`Genre`) WHERE this1.name = $param0 | 1]) > 0
+
+
+RETURN this { .actorCount } AS this
 ----
 
 '''
@@ -630,24 +812,18 @@ RETURN this { .actorCount } as this
 [source,json]
 ----
 {
-  "this_movies": {
-    "where": {
-      "genresConnection_NOT": {
-        "node": {
-          "name": "some genre"
-        }
-      }
-    }
-  }
+  "param0": "some genre"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE EXISTS((this)-[:IN_GENRE]->(:Genre)) AND NONE(this_genresConnection_NOT_Genre_map IN [(this)-[this_genresConnection_NOT_Genre_MovieGenresRelationship:IN_GENRE]->(this_genresConnection_NOT_Genre:Genre)  | { node: this_genresConnection_NOT_Genre, relationship: this_genresConnection_NOT_Genre_MovieGenresRelationship } ] WHERE this_genresConnection_NOT_Genre_map.node.name = $this_movies.where.genresConnection_NOT.node.name)
-RETURN this { .actorCount } as this
+MATCH (this:`Movie`)
+WHERE size([(this)-[this0:IN_GENRE]->(this1:`Genre`) WHERE this1.name = $param0 | 1]) = 0
+
+
+RETURN this { .actorCount } AS this
 ----
 
 '''
@@ -670,24 +846,18 @@ RETURN this { .actorCount } as this
 [source,json]
 ----
 {
-  "this_movies": {
-    "where": {
-      "genresConnection_ALL": {
-        "node": {
-          "name": "some genre"
-        }
-      }
-    }
-  }
+  "param0": "some genre"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE EXISTS((this)-[:IN_GENRE]->(:Genre)) AND ALL(this_genresConnection_ALL_Genre_map IN [(this)-[this_genresConnection_ALL_Genre_MovieGenresRelationship:IN_GENRE]->(this_genresConnection_ALL_Genre:Genre)  | { node: this_genresConnection_ALL_Genre, relationship: this_genresConnection_ALL_Genre_MovieGenresRelationship } ] WHERE this_genresConnection_ALL_Genre_map.node.name = $this_movies.where.genresConnection_ALL.node.name)
-RETURN this { .actorCount } as this
+MATCH (this:`Movie`)
+WHERE size([(this)-[this0:IN_GENRE]->(this1:`Genre`) WHERE NOT this1.name = $param0 | 1]) = 0
+
+
+RETURN this { .actorCount } AS this
 ----
 
 '''
@@ -708,24 +878,18 @@ RETURN this { .actorCount } as this
 [source,json]
 ----
 {
-  "this_movies": {
-    "where": {
-      "genresConnection_NONE": {
-        "node": {
-          "name": "some genre"
-        }
-      }
-    }
-  }
+  "param0": "some genre"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE EXISTS((this)-[:IN_GENRE]->(:Genre)) AND NONE(this_genresConnection_NONE_Genre_map IN [(this)-[this_genresConnection_NONE_Genre_MovieGenresRelationship:IN_GENRE]->(this_genresConnection_NONE_Genre:Genre)  | { node: this_genresConnection_NONE_Genre, relationship: this_genresConnection_NONE_Genre_MovieGenresRelationship } ] WHERE this_genresConnection_NONE_Genre_map.node.name = $this_movies.where.genresConnection_NONE.node.name)
-RETURN this { .actorCount } as this
+MATCH (this:`Movie`)
+WHERE size([(this)-[this0:IN_GENRE]->(this1:`Genre`) WHERE this1.name = $param0 | 1]) = 0
+
+
+RETURN this { .actorCount } AS this
 ----
 
 '''
@@ -746,24 +910,18 @@ RETURN this { .actorCount } as this
 [source,json]
 ----
 {
-  "this_movies": {
-    "where": {
-      "genresConnection_SINGLE": {
-        "node": {
-          "name": "some genre"
-        }
-      }
-    }
-  }
+  "param0": "some genre"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE EXISTS((this)-[:IN_GENRE]->(:Genre)) AND SINGLE(this_genresConnection_SINGLE_Genre_map IN [(this)-[this_genresConnection_SINGLE_Genre_MovieGenresRelationship:IN_GENRE]->(this_genresConnection_SINGLE_Genre:Genre)  | { node: this_genresConnection_SINGLE_Genre, relationship: this_genresConnection_SINGLE_Genre_MovieGenresRelationship } ] WHERE this_genresConnection_SINGLE_Genre_map.node.name = $this_movies.where.genresConnection_SINGLE.node.name)
-RETURN this { .actorCount } as this
+MATCH (this:`Movie`)
+WHERE size([(this)-[this0:IN_GENRE]->(this1:`Genre`) WHERE this1.name = $param0 | 1]) = 1
+
+
+RETURN this { .actorCount } AS this
 ----
 
 '''
@@ -784,24 +942,18 @@ RETURN this { .actorCount } as this
 [source,json]
 ----
 {
-  "this_movies": {
-    "where": {
-      "genresConnection_SOME": {
-        "node": {
-          "name": "some genre"
-        }
-      }
-    }
-  }
+  "param0": "some genre"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE EXISTS((this)-[:IN_GENRE]->(:Genre)) AND ANY(this_genresConnection_SOME_Genre_map IN [(this)-[this_genresConnection_SOME_Genre_MovieGenresRelationship:IN_GENRE]->(this_genresConnection_SOME_Genre:Genre)  | { node: this_genresConnection_SOME_Genre, relationship: this_genresConnection_SOME_Genre_MovieGenresRelationship } ] WHERE this_genresConnection_SOME_Genre_map.node.name = $this_movies.where.genresConnection_SOME.node.name)
-RETURN this { .actorCount } as this
+MATCH (this:`Movie`)
+WHERE size([(this)-[this0:IN_GENRE]->(this1:`Genre`) WHERE this1.name = $param0 | 1]) > 0
+
+
+RETURN this { .actorCount } AS this
 ----
 
 '''
@@ -826,16 +978,21 @@ RETURN this { .actorCount } as this
 [source,json]
 ----
 {
-  "this_genres_name": "some genre"
+  "param0": "some genre"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE EXISTS((this)-[:IN_GENRE]->(:Genre)) AND ANY(this_genres IN [(this)-[:IN_GENRE]->(this_genres:Genre) | this_genres] WHERE this_genres.name = $this_genres_name)
-RETURN this { .actorCount } as this
+MATCH (this:`Movie`)
+WHERE EXISTS {
+    MATCH (this)-[:IN_GENRE]->(this0:`Genre`)
+    WHERE this0.name = $param0
+}
+
+
+RETURN this { .actorCount } AS this
 ----
 
 '''
@@ -856,16 +1013,21 @@ RETURN this { .actorCount } as this
 [source,json]
 ----
 {
-  "this_genres_NOT_name": "some genre"
+  "param0": "some genre"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE EXISTS((this)-[:IN_GENRE]->(:Genre)) AND NONE(this_genres_NOT IN [(this)-[:IN_GENRE]->(this_genres_NOT:Genre) | this_genres_NOT] WHERE this_genres_NOT.name = $this_genres_NOT_name)
-RETURN this { .actorCount } as this
+MATCH (this:`Movie`)
+WHERE NOT (EXISTS {
+    MATCH (this)-[:IN_GENRE]->(this0:`Genre`)
+    WHERE this0.name = $param0
+})
+
+
+RETURN this { .actorCount } AS this
 ----
 
 '''
@@ -888,16 +1050,24 @@ RETURN this { .actorCount } as this
 [source,json]
 ----
 {
-  "this_genres_ALL_name": "some genre"
+  "param0": "some genre"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE EXISTS((this)-[:IN_GENRE]->(:Genre)) AND ALL(this_genres_ALL IN [(this)-[:IN_GENRE]->(this_genres_ALL:Genre) | this_genres_ALL] WHERE this_genres_ALL.name = $this_genres_ALL_name)
-RETURN this { .actorCount } as this
+MATCH (this:`Movie`)
+WHERE (EXISTS {
+    MATCH (this)-[:IN_GENRE]->(this0:`Genre`)
+    WHERE this0.name = $param0
+} AND NOT (EXISTS {
+    MATCH (this)-[:IN_GENRE]->(this0:`Genre`)
+    WHERE NOT (this0.name = $param0)
+}))
+
+
+RETURN this { .actorCount } AS this
 ----
 
 '''
@@ -918,16 +1088,21 @@ RETURN this { .actorCount } as this
 [source,json]
 ----
 {
-  "this_genres_NONE_name": "some genre"
+  "param0": "some genre"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE EXISTS((this)-[:IN_GENRE]->(:Genre)) AND NONE(this_genres_NONE IN [(this)-[:IN_GENRE]->(this_genres_NONE:Genre) | this_genres_NONE] WHERE this_genres_NONE.name = $this_genres_NONE_name)
-RETURN this { .actorCount } as this
+MATCH (this:`Movie`)
+WHERE NOT (EXISTS {
+    MATCH (this)-[:IN_GENRE]->(this0:`Genre`)
+    WHERE this0.name = $param0
+})
+
+
+RETURN this { .actorCount } AS this
 ----
 
 '''
@@ -948,16 +1123,18 @@ RETURN this { .actorCount } as this
 [source,json]
 ----
 {
-  "this_genres_SINGLE_name": "some genre"
+  "param0": "some genre"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE EXISTS((this)-[:IN_GENRE]->(:Genre)) AND SINGLE(this_genres_SINGLE IN [(this)-[:IN_GENRE]->(this_genres_SINGLE:Genre) | this_genres_SINGLE] WHERE this_genres_SINGLE.name = $this_genres_SINGLE_name)
-RETURN this { .actorCount } as this
+MATCH (this:`Movie`)
+WHERE single(this0 IN [(this)-[:IN_GENRE]->(this0:`Genre`) | this0] WHERE this0.name = $param0)
+
+
+RETURN this { .actorCount } AS this
 ----
 
 '''
@@ -978,16 +1155,21 @@ RETURN this { .actorCount } as this
 [source,json]
 ----
 {
-  "this_genres_SOME_name": "some genre"
+  "param0": "some genre"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE EXISTS((this)-[:IN_GENRE]->(:Genre)) AND ANY(this_genres_SOME IN [(this)-[:IN_GENRE]->(this_genres_SOME:Genre) | this_genres_SOME] WHERE this_genres_SOME.name = $this_genres_SOME_name)
-RETURN this { .actorCount } as this
+MATCH (this:`Movie`)
+WHERE EXISTS {
+    MATCH (this)-[:IN_GENRE]->(this0:`Genre`)
+    WHERE this0.name = $param0
+}
+
+
+RETURN this { .actorCount } AS this
 ----
 
 '''

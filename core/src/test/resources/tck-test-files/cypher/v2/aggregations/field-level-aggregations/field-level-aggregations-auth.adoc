@@ -42,18 +42,6 @@ type Actor {
 }
 ----
 
-.Query Context
-[source,json,query-config=true]
-----
-{
-  "contextParams": {
-    "jwt": {
-      "sub": "super_admin"
-    }
-  }
-}
-----
-
 .Expected Cypher params
 [source,json]
 ----
@@ -72,8 +60,15 @@ type Actor {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Actor)
-RETURN this { .name, moviesAggregate: { count: head(apoc.cypher.runFirstColumn("MATCH (this)-[r:ACTED_IN]->(n:Movie)     CALL apoc.util.validate(NOT(apoc.util.validatePredicate(NOT($auth.isAuthenticated = true), \"@neo4j/graphql/UNAUTHENTICATED\", [0])), \"@neo4j/graphql/FORBIDDEN\", [0]) RETURN COUNT(n)", { auth: $auth, this: this })) } } as this
+MATCH (this:`Actor`)
+
+CALL {
+    WITH this
+    MATCH (this)-[this_moviesAggregate_this0:ACTED_IN]->(this_moviesAggregate_this1:`Movie`)
+    WHERE apoc.util.validatePredicate(NOT (apoc.util.validatePredicate(NOT ($auth.isAuthenticated = true), "@neo4j/graphql/UNAUTHENTICATED", [0])), "@neo4j/graphql/FORBIDDEN", [0])
+    RETURN count(this) AS this_moviesAggregate_var2
+}
+RETURN this { .name, moviesAggregate: { count: this_moviesAggregate_var2 } } AS this
 ----
 
 '''
@@ -93,18 +88,6 @@ RETURN this { .name, moviesAggregate: { count: head(apoc.cypher.runFirstColumn("
 }
 ----
 
-.Query Context
-[source,json,query-config=true]
-----
-{
-  "contextParams": {
-    "jwt": {
-      "sub": "super_admin"
-    }
-  }
-}
-----
-
 .Expected Cypher params
 [source,json]
 ----
@@ -123,9 +106,15 @@ RETURN this { .name, moviesAggregate: { count: head(apoc.cypher.runFirstColumn("
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-CALL apoc.util.validate(NOT(apoc.util.validatePredicate(NOT($auth.isAuthenticated = true), "@neo4j/graphql/UNAUTHENTICATED", [0])), "@neo4j/graphql/FORBIDDEN", [0])
-RETURN this { .title, actorsAggregate: { count: head(apoc.cypher.runFirstColumn("MATCH (this)<-[r:ACTED_IN]-(n:Actor)      RETURN COUNT(n)", { this: this })) } } as this
+MATCH (this:`Movie`)
+WHERE apoc.util.validatePredicate(NOT (apoc.util.validatePredicate(NOT ($auth.isAuthenticated = true), "@neo4j/graphql/UNAUTHENTICATED", [0])), "@neo4j/graphql/FORBIDDEN", [0])
+
+CALL {
+    WITH this
+    MATCH (this_actorsAggregate_this1:`Actor`)-[this_actorsAggregate_this0:ACTED_IN]->(this)
+    RETURN count(this) AS this_actorsAggregate_var2
+}
+RETURN this { .title, actorsAggregate: { count: this_actorsAggregate_var2 } } AS this
 ----
 
 '''

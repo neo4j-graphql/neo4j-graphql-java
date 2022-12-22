@@ -1,0 +1,102 @@
+:toc:
+
+= Arrays Methods
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+  ratings: [Float!]!
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+  "enableRegex": true
+}
+----
+== pop
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  updateMovies(update: {ratings_POP: 1}) {
+    movies {
+      title
+      ratings
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_update_ratings_POP": {
+    "low": 1,
+    "high": 0
+  },
+  "resolvedCallbacks": {}
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:`Movie`)
+
+CALL apoc.util.validate(this.ratings IS NULL, "Property %s cannot be NULL", ['ratings'])
+SET this.ratings = this.ratings[0..-$this_update_ratings_POP]
+
+RETURN collect(DISTINCT this { .title, .ratings }) AS data
+----
+
+'''
+
+== push
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  updateMovies(update: {ratings_PUSH: 1.0}) {
+    movies {
+      title
+      ratings
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "this_update_ratings_PUSH": [
+    1
+  ],
+  "resolvedCallbacks": {}
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:`Movie`)
+
+CALL apoc.util.validate(this.ratings IS NULL, "Property %s cannot be NULL", ['ratings'])
+SET this.ratings = this.ratings + $this_update_ratings_PUSH
+
+RETURN collect(DISTINCT this { .title, .ratings }) AS data
+----
+
+'''
+

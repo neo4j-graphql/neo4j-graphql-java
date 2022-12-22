@@ -64,53 +64,45 @@ interface ActedIn {
 [source,json]
 ----
 {
-  "this_title": "Forrest Gump",
-  "this_actor_movie_actors_name_NOT": "Tom Hanks",
-  "this_actorsConnection": {
-    "args": {
-      "where": {
-        "node": {
-          "name": "Tom Hanks"
-        }
-      }
-    },
-    "edges": {
-      "node": {
-        "moviesConnection": {
-          "args": {
-            "where": {
-              "node": {
-                "title_NOT": "Forrest Gump"
-              }
-            }
-          }
-        }
-      }
-    }
-  }
+  "param0": "Forrest Gump",
+  "this_connection_actorsConnectionparam0": "Tom Hanks",
+  "this_Actor_connection_moviesConnectionparam0": "Forrest Gump",
+  "this_Actor_connection_moviesConnectionparam1": "Tom Hanks"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE this.title = $this_title
+MATCH (this:`Movie`)
+WHERE this.title = $param0
+
 CALL {
-WITH this
-MATCH (this)<-[this_acted_in_relationship:ACTED_IN]-(this_actor:Actor)
-WHERE this_actor.name = $this_actorsConnection.args.where.node.name
-CALL {
-WITH this_actor
-MATCH (this_actor)-[this_actor_acted_in_relationship:ACTED_IN]->(this_actor_movie:Movie)
-WHERE (NOT this_actor_movie.title = $this_actorsConnection.edges.node.moviesConnection.args.where.node.title_NOT)
-WITH collect({ node: { title: this_actor_movie.title, actors: [ (this_actor_movie)<-[:ACTED_IN]-(this_actor_movie_actors:Actor)  WHERE (NOT this_actor_movie_actors.name = $this_actor_movie_actors_name_NOT) | this_actor_movie_actors { .name } ] } }) AS edges
-RETURN { edges: edges, totalCount: size(edges) } AS moviesConnection
+    WITH this
+    MATCH (this)<-[this_connection_actorsConnectionthis0:ACTED_IN]-(this_Actor:`Actor`)
+    WHERE this_Actor.name = $this_connection_actorsConnectionparam0
+    CALL {
+        WITH this_Actor
+        MATCH (this_Actor)-[this_Actor_connection_moviesConnectionthis0:ACTED_IN]->(this_Actor_Movie:`Movie`)
+        WHERE NOT (this_Actor_Movie.title = $this_Actor_connection_moviesConnectionparam0)
+        CALL {
+            WITH this_Actor_Movie
+            MATCH (this_Actor_Movie_actors:`Actor`)-[this_Actor_connection_moviesConnectionthis1:ACTED_IN]->(this_Actor_Movie)
+            WHERE NOT (this_Actor_Movie_actors.name = $this_Actor_connection_moviesConnectionparam1)
+            WITH this_Actor_Movie_actors { .name } AS this_Actor_Movie_actors
+            RETURN collect(this_Actor_Movie_actors) AS this_Actor_Movie_actors
+        }
+        WITH { node: { title: this_Actor_Movie.title, actors: this_Actor_Movie_actors } } AS edge
+        WITH collect(edge) AS edges
+        WITH edges, size(edges) AS totalCount
+        RETURN { edges: edges, totalCount: totalCount } AS this_Actor_moviesConnection
+    }
+    WITH { screenTime: this_connection_actorsConnectionthis0.screenTime, node: { name: this_Actor.name, moviesConnection: this_Actor_moviesConnection } } AS edge
+    WITH collect(edge) AS edges
+    WITH edges, size(edges) AS totalCount
+    RETURN { edges: edges, totalCount: totalCount } AS this_actorsConnection
 }
-WITH collect({ screenTime: this_acted_in_relationship.screenTime, node: { name: this_actor.name, moviesConnection: moviesConnection } }) AS edges
-RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
-}
-RETURN this { .title, actorsConnection } as this
+RETURN this { .title, actorsConnection: this_actorsConnection } AS this
 ----
 
 '''
@@ -142,33 +134,35 @@ RETURN this { .title, actorsConnection } as this
 [source,json]
 ----
 {
-  "this_title": "Forrest Gump",
-  "this_actor_movies_title_NOT": "Forrest Gump",
-  "this_actorsConnection": {
-    "args": {
-      "where": {
-        "node": {
-          "name": "Tom Hanks"
-        }
-      }
-    }
-  }
+  "param0": "Forrest Gump",
+  "this_connection_actorsConnectionparam0": "Tom Hanks",
+  "this_connection_actorsConnectionparam1": "Forrest Gump"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE this.title = $this_title
+MATCH (this:`Movie`)
+WHERE this.title = $param0
+
 CALL {
-WITH this
-MATCH (this)<-[this_acted_in_relationship:ACTED_IN]-(this_actor:Actor)
-WHERE this_actor.name = $this_actorsConnection.args.where.node.name
-WITH collect({ screenTime: this_acted_in_relationship.screenTime, node: { name: this_actor.name, movies: [ (this_actor)-[:ACTED_IN]->(this_actor_movies:Movie)  WHERE (NOT this_actor_movies.title = $this_actor_movies_title_NOT) | this_actor_movies { .title } ] } }) AS edges
-RETURN { edges: edges, totalCount: size(edges) } AS actorsConnection
+    WITH this
+    MATCH (this)<-[this_connection_actorsConnectionthis0:ACTED_IN]-(this_Actor:`Actor`)
+    WHERE this_Actor.name = $this_connection_actorsConnectionparam0
+    CALL {
+        WITH this_Actor
+        MATCH (this_Actor)-[this_connection_actorsConnectionthis1:ACTED_IN]->(this_Actor_movies:`Movie`)
+        WHERE NOT (this_Actor_movies.title = $this_connection_actorsConnectionparam1)
+        WITH this_Actor_movies { .title } AS this_Actor_movies
+        RETURN collect(this_Actor_movies) AS this_Actor_movies
+    }
+    WITH { screenTime: this_connection_actorsConnectionthis0.screenTime, node: { name: this_Actor.name, movies: this_Actor_movies } } AS edge
+    WITH collect(edge) AS edges
+    WITH edges, size(edges) AS totalCount
+    RETURN { edges: edges, totalCount: totalCount } AS this_actorsConnection
 }
-RETURN this { .title, actorsConnection } as this
+RETURN this { .title, actorsConnection: this_actorsConnection } AS this
 ----
 
 '''
@@ -200,36 +194,35 @@ RETURN this { .title, actorsConnection } as this
 [source,json]
 ----
 {
-  "this_title": "Forrest Gump",
-  "this_actors_moviesConnection": {
-    "args": {
-      "where": {
-        "node": {
-          "title_NOT": "Forrest Gump"
-        }
-      }
-    }
-  },
-  "this_actors_name": "Tom Hanks",
-  "auth": {
-    "isAuthenticated": false,
-    "roles": []
-  }
+  "param0": "Forrest Gump",
+  "param1": "Tom Hanks",
+  "this_actors_connection_moviesConnectionparam0": "Forrest Gump"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE this.title = $this_title
-RETURN this { .title, actors: [ (this)<-[:ACTED_IN]-(this_actors:Actor)  WHERE this_actors.name = $this_actors_name | this_actors { .name, moviesConnection: apoc.cypher.runFirstColumn("CALL {
-WITH this_actors
-MATCH (this_actors)-[this_actors_acted_in_relationship:ACTED_IN]->(this_actors_movie:Movie)
-WHERE (NOT this_actors_movie.title = $this_actors_moviesConnection.args.where.node.title_NOT)
-WITH collect({ screenTime: this_actors_acted_in_relationship.screenTime, node: { title: this_actors_movie.title } }) AS edges
-RETURN { edges: edges, totalCount: size(edges) } AS moviesConnection
-} RETURN moviesConnection", { this_actors: this_actors, this_actors_moviesConnection: $this_actors_moviesConnection, auth: $auth }, false) } ] } as this
+MATCH (this:`Movie`)
+WHERE this.title = $param0
+
+CALL {
+    WITH this
+    MATCH (this_actors:`Actor`)-[this0:ACTED_IN]->(this)
+    WHERE this_actors.name = $param1
+    CALL {
+        WITH this_actors
+        MATCH (this_actors)-[this_actors_connection_moviesConnectionthis0:ACTED_IN]->(this_actors_Movie:`Movie`)
+        WHERE NOT (this_actors_Movie.title = $this_actors_connection_moviesConnectionparam0)
+        WITH { screenTime: this_actors_connection_moviesConnectionthis0.screenTime, node: { title: this_actors_Movie.title } } AS edge
+        WITH collect(edge) AS edges
+        WITH edges, size(edges) AS totalCount
+        RETURN { edges: edges, totalCount: totalCount } AS this_actors_moviesConnection
+    }
+    WITH this_actors { .name, moviesConnection: this_actors_moviesConnection } AS this_actors
+    RETURN collect(this_actors) AS this_actors
+}
+RETURN this { .title, actors: this_actors } AS this
 ----
 
 '''

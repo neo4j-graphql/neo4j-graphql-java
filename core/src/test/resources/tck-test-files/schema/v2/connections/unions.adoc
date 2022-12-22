@@ -55,6 +55,11 @@ type AuthorAggregateSelection {
   name: StringAggregateSelectionNonNullable!
 }
 
+type AuthorEdge {
+  cursor: String!
+  node: Author!
+}
+
 type AuthorPublicationsConnection {
   edges: [AuthorPublicationsRelationship!]!
   pageInfo: PageInfo!
@@ -65,6 +70,12 @@ type AuthorPublicationsRelationship implements Wrote {
   cursor: String!
   node: Publication!
   words: Int!
+}
+
+type AuthorsConnection {
+  edges: [AuthorEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
 }
 
 type Book {
@@ -103,6 +114,17 @@ type BookAuthorRelationship implements Wrote {
   cursor: String!
   node: Author!
   words: Int!
+}
+
+type BookEdge {
+  cursor: String!
+  node: Book!
+}
+
+type BooksConnection {
+  edges: [BookEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
 }
 
 type CreateAuthorsMutationResponse {
@@ -177,6 +199,17 @@ type JournalAuthorRelationship implements Wrote {
   words: Int!
 }
 
+type JournalEdge {
+  cursor: String!
+  node: Journal!
+}
+
+type JournalsConnection {
+  edges: [JournalEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
 type Mutation {
   createAuthors(input: [AuthorCreateInput!]!): CreateAuthorsMutationResponse!
   createBooks(input: [BookCreateInput!]!): CreateBooksMutationResponse!
@@ -200,10 +233,13 @@ type PageInfo {
 type Query {
   authors(options: AuthorOptions, where: AuthorWhere): [Author!]!
   authorsAggregate(where: AuthorWhere): AuthorAggregateSelection!
+  authorsConnection(after: String, first: Int, sort: [AuthorSort], where: AuthorWhere): AuthorsConnection!
   books(options: BookOptions, where: BookWhere): [Book!]!
   booksAggregate(where: BookWhere): BookAggregateSelection!
+  booksConnection(after: String, first: Int, sort: [BookSort], where: BookWhere): BooksConnection!
   journals(options: JournalOptions, where: JournalWhere): [Journal!]!
   journalsAggregate(where: JournalWhere): JournalAggregateSelection!
+  journalsConnection(after: String, first: Int, sort: [JournalSort], where: JournalWhere): JournalsConnection!
 }
 
 type StringAggregateSelectionNonNullable {
@@ -851,6 +887,8 @@ input WroteSort {
 
 input WroteUpdateInput {
   words: Int
+  words_DECREMENT: Int
+  words_INCREMENT: Int
 }
 
 input WroteWhere {

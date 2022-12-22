@@ -158,6 +158,11 @@ type PostAggregateSelection {
   title: StringAggregateSelectionNullable!
 }
 
+type PostEdge {
+  cursor: String!
+  node: Post!
+}
+
 type PostLikesConnection {
   edges: [PostLikesRelationship!]!
   pageInfo: PageInfo!
@@ -211,11 +216,19 @@ type PostUserLikesNodeAggregateSelection {
   someTime: TimeAggregateSelectionNullable!
 }
 
+type PostsConnection {
+  edges: [PostEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
 type Query {
   posts(options: PostOptions, where: PostWhere): [Post!]!
   postsAggregate(where: PostWhere): PostAggregateSelection!
+  postsConnection(after: String, first: Int, sort: [PostSort], where: PostWhere): PostsConnection!
   users(options: UserOptions, where: UserWhere): [User!]!
   usersAggregate(where: UserWhere): UserAggregateSelection!
+  usersConnection(after: String, first: Int, sort: [UserSort], where: UserWhere): UsersConnection!
 }
 
 type StringAggregateSelectionNullable {
@@ -273,6 +286,17 @@ type UserAggregateSelection {
   someTime: TimeAggregateSelectionNullable!
 }
 
+type UserEdge {
+  cursor: String!
+  node: User!
+}
+
+type UsersConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
 enum SortDirection {
   "Sort by field values in ascending order."
   ASC
@@ -326,11 +350,19 @@ input LikesSort {
 
 input LikesUpdateInput {
   someBigInt: BigInt
+  someBigInt_DECREMENT: BigInt
+  someBigInt_INCREMENT: BigInt
   someDateTime: DateTime
   someDuration: Duration
   someFloat: Float
+  someFloat_ADD: Float
+  someFloat_DIVIDE: Float
+  someFloat_MULTIPLY: Float
+  someFloat_SUBTRACT: Float
   someId: ID
   someInt: Int
+  someInt_DECREMENT: Int
+  someInt_INCREMENT: Int
   someLocalDateTime: LocalDateTime
   someLocalTime: LocalTime
   someString: String
@@ -961,11 +993,19 @@ input UserSort {
 
 input UserUpdateInput {
   someBigInt: BigInt
+  someBigInt_DECREMENT: BigInt
+  someBigInt_INCREMENT: BigInt
   someDateTime: DateTime
   someDuration: Duration
   someFloat: Float
+  someFloat_ADD: Float
+  someFloat_DIVIDE: Float
+  someFloat_MULTIPLY: Float
+  someFloat_SUBTRACT: Float
   someId: ID
   someInt: Int
+  someInt_DECREMENT: Int
+  someInt_INCREMENT: Int
   someLocalDateTime: LocalDateTime
   someLocalTime: LocalTime
   someString: String

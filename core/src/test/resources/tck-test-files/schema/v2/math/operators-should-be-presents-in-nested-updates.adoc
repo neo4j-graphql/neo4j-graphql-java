@@ -1,0 +1,535 @@
+:toc:
+
+= Algebraic -> Operators should be presents in nested updates
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  id: ID
+  viewers: Int!
+  directedBy: Director @relationship(type: "DIRECTS", direction: IN)
+}
+
+type Director {
+  lastName: String!
+  directs: [Movie!]! @relationship(type: "DIRECTS", direction: OUT)
+}
+----
+
+== Augmented schema
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type CreateDirectorsMutationResponse {
+  directors: [Director!]!
+  info: CreateInfo!
+}
+
+type CreateInfo {
+  bookmark: String
+  nodesCreated: Int!
+  relationshipsCreated: Int!
+}
+
+type CreateMoviesMutationResponse {
+  info: CreateInfo!
+  movies: [Movie!]!
+}
+
+type DeleteInfo {
+  bookmark: String
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
+type Director {
+  directs(directed: Boolean = true, options: MovieOptions, where: MovieWhere): [Movie!]!
+  directsAggregate(directed: Boolean = true, where: MovieWhere): DirectorMovieDirectsAggregationSelection
+  directsConnection(after: String, directed: Boolean = true, first: Int, sort: [DirectorDirectsConnectionSort!], where: DirectorDirectsConnectionWhere): DirectorDirectsConnection!
+  lastName: String!
+}
+
+type DirectorAggregateSelection {
+  count: Int!
+  lastName: StringAggregateSelectionNonNullable!
+}
+
+type DirectorDirectsConnection {
+  edges: [DirectorDirectsRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type DirectorDirectsRelationship {
+  cursor: String!
+  node: Movie!
+}
+
+type DirectorEdge {
+  cursor: String!
+  node: Director!
+}
+
+type DirectorMovieDirectsAggregationSelection {
+  count: Int!
+  node: DirectorMovieDirectsNodeAggregateSelection
+}
+
+type DirectorMovieDirectsNodeAggregateSelection {
+  id: IDAggregateSelectionNullable!
+  viewers: IntAggregateSelectionNonNullable!
+}
+
+type DirectorsConnection {
+  edges: [DirectorEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type IDAggregateSelectionNullable {
+  longest: ID
+  shortest: ID
+}
+
+type IntAggregateSelectionNonNullable {
+  average: Float!
+  max: Int!
+  min: Int!
+  sum: Int!
+}
+
+type Movie {
+  directedBy(directed: Boolean = true, options: DirectorOptions, where: DirectorWhere): Director
+  directedByAggregate(directed: Boolean = true, where: DirectorWhere): MovieDirectorDirectedByAggregationSelection
+  directedByConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieDirectedByConnectionSort!], where: MovieDirectedByConnectionWhere): MovieDirectedByConnection!
+  id: ID
+  viewers: Int!
+}
+
+type MovieAggregateSelection {
+  count: Int!
+  id: IDAggregateSelectionNullable!
+  viewers: IntAggregateSelectionNonNullable!
+}
+
+type MovieDirectedByConnection {
+  edges: [MovieDirectedByRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type MovieDirectedByRelationship {
+  cursor: String!
+  node: Director!
+}
+
+type MovieDirectorDirectedByAggregationSelection {
+  count: Int!
+  node: MovieDirectorDirectedByNodeAggregateSelection
+}
+
+type MovieDirectorDirectedByNodeAggregateSelection {
+  lastName: StringAggregateSelectionNonNullable!
+}
+
+type MovieEdge {
+  cursor: String!
+  node: Movie!
+}
+
+type MoviesConnection {
+  edges: [MovieEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Mutation {
+  createDirectors(input: [DirectorCreateInput!]!): CreateDirectorsMutationResponse!
+  createMovies(input: [MovieCreateInput!]!): CreateMoviesMutationResponse!
+  deleteDirectors(delete: DirectorDeleteInput, where: DirectorWhere): DeleteInfo!
+  deleteMovies(delete: MovieDeleteInput, where: MovieWhere): DeleteInfo!
+  updateDirectors(connect: DirectorConnectInput, create: DirectorRelationInput, delete: DirectorDeleteInput, disconnect: DirectorDisconnectInput, update: DirectorUpdateInput, where: DirectorWhere): UpdateDirectorsMutationResponse!
+  updateMovies(connect: MovieConnectInput, create: MovieRelationInput, delete: MovieDeleteInput, disconnect: MovieDisconnectInput, update: MovieUpdateInput, where: MovieWhere): UpdateMoviesMutationResponse!
+}
+
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  directors(options: DirectorOptions, where: DirectorWhere): [Director!]!
+  directorsAggregate(where: DirectorWhere): DirectorAggregateSelection!
+  directorsConnection(after: String, first: Int, sort: [DirectorSort], where: DirectorWhere): DirectorsConnection!
+  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
+  moviesAggregate(where: MovieWhere): MovieAggregateSelection!
+  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
+}
+
+type StringAggregateSelectionNonNullable {
+  longest: String!
+  shortest: String!
+}
+
+type UpdateDirectorsMutationResponse {
+  directors: [Director!]!
+  info: UpdateInfo!
+}
+
+type UpdateInfo {
+  bookmark: String
+  nodesCreated: Int!
+  nodesDeleted: Int!
+  relationshipsCreated: Int!
+  relationshipsDeleted: Int!
+}
+
+type UpdateMoviesMutationResponse {
+  info: UpdateInfo!
+  movies: [Movie!]!
+}
+
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+input DirectorConnectInput {
+  directs: [DirectorDirectsConnectFieldInput!]
+}
+
+input DirectorConnectWhere {
+  node: DirectorWhere!
+}
+
+input DirectorCreateInput {
+  directs: DirectorDirectsFieldInput
+  lastName: String!
+}
+
+input DirectorDeleteInput {
+  directs: [DirectorDirectsDeleteFieldInput!]
+}
+
+input DirectorDirectsAggregateInput {
+  AND: [DirectorDirectsAggregateInput!]
+  OR: [DirectorDirectsAggregateInput!]
+  count: Int
+  count_GT: Int
+  count_GTE: Int
+  count_LT: Int
+  count_LTE: Int
+  node: DirectorDirectsNodeAggregationWhereInput
+}
+
+input DirectorDirectsConnectFieldInput {
+  connect: [MovieConnectInput!]
+  where: MovieConnectWhere
+}
+
+input DirectorDirectsConnectionSort {
+  node: MovieSort
+}
+
+input DirectorDirectsConnectionWhere {
+  AND: [DirectorDirectsConnectionWhere!]
+  OR: [DirectorDirectsConnectionWhere!]
+  node: MovieWhere
+  node_NOT: MovieWhere
+}
+
+input DirectorDirectsCreateFieldInput {
+  node: MovieCreateInput!
+}
+
+input DirectorDirectsDeleteFieldInput {
+  delete: MovieDeleteInput
+  where: DirectorDirectsConnectionWhere
+}
+
+input DirectorDirectsDisconnectFieldInput {
+  disconnect: MovieDisconnectInput
+  where: DirectorDirectsConnectionWhere
+}
+
+input DirectorDirectsFieldInput {
+  connect: [DirectorDirectsConnectFieldInput!]
+  create: [DirectorDirectsCreateFieldInput!]
+}
+
+input DirectorDirectsNodeAggregationWhereInput {
+  AND: [DirectorDirectsNodeAggregationWhereInput!]
+  OR: [DirectorDirectsNodeAggregationWhereInput!]
+  id_EQUAL: ID
+  viewers_AVERAGE_EQUAL: Float
+  viewers_AVERAGE_GT: Float
+  viewers_AVERAGE_GTE: Float
+  viewers_AVERAGE_LT: Float
+  viewers_AVERAGE_LTE: Float
+  viewers_EQUAL: Int
+  viewers_GT: Int
+  viewers_GTE: Int
+  viewers_LT: Int
+  viewers_LTE: Int
+  viewers_MAX_EQUAL: Int
+  viewers_MAX_GT: Int
+  viewers_MAX_GTE: Int
+  viewers_MAX_LT: Int
+  viewers_MAX_LTE: Int
+  viewers_MIN_EQUAL: Int
+  viewers_MIN_GT: Int
+  viewers_MIN_GTE: Int
+  viewers_MIN_LT: Int
+  viewers_MIN_LTE: Int
+  viewers_SUM_EQUAL: Int
+  viewers_SUM_GT: Int
+  viewers_SUM_GTE: Int
+  viewers_SUM_LT: Int
+  viewers_SUM_LTE: Int
+}
+
+input DirectorDirectsUpdateConnectionInput {
+  node: MovieUpdateInput
+}
+
+input DirectorDirectsUpdateFieldInput {
+  connect: [DirectorDirectsConnectFieldInput!]
+  create: [DirectorDirectsCreateFieldInput!]
+  delete: [DirectorDirectsDeleteFieldInput!]
+  disconnect: [DirectorDirectsDisconnectFieldInput!]
+  update: DirectorDirectsUpdateConnectionInput
+  where: DirectorDirectsConnectionWhere
+}
+
+input DirectorDisconnectInput {
+  directs: [DirectorDirectsDisconnectFieldInput!]
+}
+
+input DirectorOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more DirectorSort objects to sort Directors by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [DirectorSort!]
+}
+
+input DirectorRelationInput {
+  directs: [DirectorDirectsCreateFieldInput!]
+}
+
+"Fields to sort Directors by. The order in which sorts are applied is not guaranteed when specifying many fields in one DirectorSort object."
+input DirectorSort {
+  lastName: SortDirection
+}
+
+input DirectorUpdateInput {
+  directs: [DirectorDirectsUpdateFieldInput!]
+  lastName: String
+}
+
+input DirectorWhere {
+  AND: [DirectorWhere!]
+  OR: [DirectorWhere!]
+  directs: MovieWhere @deprecated(reason : "Use `directs_SOME` instead.")
+  directsAggregate: DirectorDirectsAggregateInput
+  directsConnection: DirectorDirectsConnectionWhere @deprecated(reason : "Use `directsConnection_SOME` instead.")
+  directsConnection_ALL: DirectorDirectsConnectionWhere
+  directsConnection_NONE: DirectorDirectsConnectionWhere
+  directsConnection_NOT: DirectorDirectsConnectionWhere @deprecated(reason : "Use `directsConnection_NONE` instead.")
+  directsConnection_SINGLE: DirectorDirectsConnectionWhere
+  directsConnection_SOME: DirectorDirectsConnectionWhere
+  "Return Directors where all of the related Movies match this filter"
+  directs_ALL: MovieWhere
+  "Return Directors where none of the related Movies match this filter"
+  directs_NONE: MovieWhere
+  directs_NOT: MovieWhere @deprecated(reason : "Use `directs_NONE` instead.")
+  "Return Directors where one of the related Movies match this filter"
+  directs_SINGLE: MovieWhere
+  "Return Directors where some of the related Movies match this filter"
+  directs_SOME: MovieWhere
+  lastName: String
+  lastName_CONTAINS: String
+  lastName_ENDS_WITH: String
+  lastName_IN: [String!]
+  lastName_NOT: String
+  lastName_NOT_CONTAINS: String
+  lastName_NOT_ENDS_WITH: String
+  lastName_NOT_IN: [String!]
+  lastName_NOT_STARTS_WITH: String
+  lastName_STARTS_WITH: String
+}
+
+input MovieConnectInput {
+  directedBy: MovieDirectedByConnectFieldInput
+}
+
+input MovieConnectWhere {
+  node: MovieWhere!
+}
+
+input MovieCreateInput {
+  directedBy: MovieDirectedByFieldInput
+  id: ID
+  viewers: Int!
+}
+
+input MovieDeleteInput {
+  directedBy: MovieDirectedByDeleteFieldInput
+}
+
+input MovieDirectedByAggregateInput {
+  AND: [MovieDirectedByAggregateInput!]
+  OR: [MovieDirectedByAggregateInput!]
+  count: Int
+  count_GT: Int
+  count_GTE: Int
+  count_LT: Int
+  count_LTE: Int
+  node: MovieDirectedByNodeAggregationWhereInput
+}
+
+input MovieDirectedByConnectFieldInput {
+  connect: DirectorConnectInput
+  where: DirectorConnectWhere
+}
+
+input MovieDirectedByConnectionSort {
+  node: DirectorSort
+}
+
+input MovieDirectedByConnectionWhere {
+  AND: [MovieDirectedByConnectionWhere!]
+  OR: [MovieDirectedByConnectionWhere!]
+  node: DirectorWhere
+  node_NOT: DirectorWhere
+}
+
+input MovieDirectedByCreateFieldInput {
+  node: DirectorCreateInput!
+}
+
+input MovieDirectedByDeleteFieldInput {
+  delete: DirectorDeleteInput
+  where: MovieDirectedByConnectionWhere
+}
+
+input MovieDirectedByDisconnectFieldInput {
+  disconnect: DirectorDisconnectInput
+  where: MovieDirectedByConnectionWhere
+}
+
+input MovieDirectedByFieldInput {
+  connect: MovieDirectedByConnectFieldInput
+  create: MovieDirectedByCreateFieldInput
+}
+
+input MovieDirectedByNodeAggregationWhereInput {
+  AND: [MovieDirectedByNodeAggregationWhereInput!]
+  OR: [MovieDirectedByNodeAggregationWhereInput!]
+  lastName_AVERAGE_EQUAL: Float
+  lastName_AVERAGE_GT: Float
+  lastName_AVERAGE_GTE: Float
+  lastName_AVERAGE_LT: Float
+  lastName_AVERAGE_LTE: Float
+  lastName_EQUAL: String
+  lastName_GT: Int
+  lastName_GTE: Int
+  lastName_LONGEST_EQUAL: Int
+  lastName_LONGEST_GT: Int
+  lastName_LONGEST_GTE: Int
+  lastName_LONGEST_LT: Int
+  lastName_LONGEST_LTE: Int
+  lastName_LT: Int
+  lastName_LTE: Int
+  lastName_SHORTEST_EQUAL: Int
+  lastName_SHORTEST_GT: Int
+  lastName_SHORTEST_GTE: Int
+  lastName_SHORTEST_LT: Int
+  lastName_SHORTEST_LTE: Int
+}
+
+input MovieDirectedByUpdateConnectionInput {
+  node: DirectorUpdateInput
+}
+
+input MovieDirectedByUpdateFieldInput {
+  connect: MovieDirectedByConnectFieldInput
+  create: MovieDirectedByCreateFieldInput
+  delete: MovieDirectedByDeleteFieldInput
+  disconnect: MovieDirectedByDisconnectFieldInput
+  update: MovieDirectedByUpdateConnectionInput
+  where: MovieDirectedByConnectionWhere
+}
+
+input MovieDisconnectInput {
+  directedBy: MovieDirectedByDisconnectFieldInput
+}
+
+input MovieOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [MovieSort!]
+}
+
+input MovieRelationInput {
+  directedBy: MovieDirectedByCreateFieldInput
+}
+
+"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+input MovieSort {
+  id: SortDirection
+  viewers: SortDirection
+}
+
+input MovieUpdateInput {
+  directedBy: MovieDirectedByUpdateFieldInput
+  id: ID
+  viewers: Int
+  viewers_DECREMENT: Int
+  viewers_INCREMENT: Int
+}
+
+input MovieWhere {
+  AND: [MovieWhere!]
+  OR: [MovieWhere!]
+  directedBy: DirectorWhere
+  directedByAggregate: MovieDirectedByAggregateInput
+  directedByConnection: MovieDirectedByConnectionWhere
+  directedByConnection_NOT: MovieDirectedByConnectionWhere
+  directedBy_NOT: DirectorWhere
+  id: ID
+  id_CONTAINS: ID
+  id_ENDS_WITH: ID
+  id_IN: [ID]
+  id_NOT: ID
+  id_NOT_CONTAINS: ID
+  id_NOT_ENDS_WITH: ID
+  id_NOT_IN: [ID]
+  id_NOT_STARTS_WITH: ID
+  id_STARTS_WITH: ID
+  viewers: Int
+  viewers_GT: Int
+  viewers_GTE: Int
+  viewers_IN: [Int!]
+  viewers_LT: Int
+  viewers_LTE: Int
+  viewers_NOT: Int
+  viewers_NOT_IN: [Int!]
+}
+
+----
+
+'''

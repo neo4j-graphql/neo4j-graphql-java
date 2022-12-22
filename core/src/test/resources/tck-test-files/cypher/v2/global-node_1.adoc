@@ -1,0 +1,72 @@
+:toc:
+
+= Global nodes
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Actor {
+  name: ID! @id(global: true)
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+
+type Movie {
+  title: ID! @id(global: true)
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{}
+----
+== it should fetch the correct node and fields
+
+.GraphQL-Query
+[source,graphql]
+----
+query Node($id: ID!) {
+  node(id: $id) {
+    id
+    ... on Movie {
+      title
+    }
+    ... on Actor {
+      name
+    }
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "id": "TW92aWU6dGl0bGU6QSBSaXZlciBSdW5zIFRocm91Z2ggSXQ="
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "A River Runs Through It"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:`Movie`)
+WHERE this.title = $param0
+
+
+RETURN this { .title } AS this
+----
+
+'''
+

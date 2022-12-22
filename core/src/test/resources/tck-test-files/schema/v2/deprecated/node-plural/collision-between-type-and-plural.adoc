@@ -1,0 +1,147 @@
+:toc:
+
+= Node Directive -> Plural option -> Collision between Type and plural
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Tech @node(plural: "Techs") {
+  name: String
+}
+
+type Techs {
+  value: String
+}
+----
+
+== Augmented schema
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type CreateInfo {
+  bookmark: String
+  nodesCreated: Int!
+  relationshipsCreated: Int!
+}
+
+type CreateTechsMutationResponse {
+  info: CreateInfo!
+  techs: [Techs!]!
+}
+
+type DeleteInfo {
+  bookmark: String
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
+type Mutation {
+  createTechs(input: [TechsCreateInput!]!): CreateTechsMutationResponse!
+  deleteTechs(where: TechsWhere): DeleteInfo!
+  updateTechs(update: TechsUpdateInput, where: TechsWhere): UpdateTechsMutationResponse!
+}
+
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  techs(options: TechsOptions, where: TechsWhere): [Techs!]!
+  techsAggregate(where: TechsWhere): TechsAggregateSelection!
+  techsConnection(after: String, first: Int, sort: [TechsSort], where: TechsWhere): TechsConnection!
+}
+
+type StringAggregateSelectionNullable {
+  longest: String
+  shortest: String
+}
+
+type Techs {
+  value: String
+}
+
+type TechsAggregateSelection {
+  count: Int!
+  value: StringAggregateSelectionNullable!
+}
+
+type TechsConnection {
+  edges: [TechsEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type TechsEdge {
+  cursor: String!
+  node: Techs!
+}
+
+type UpdateInfo {
+  bookmark: String
+  nodesCreated: Int!
+  nodesDeleted: Int!
+  relationshipsCreated: Int!
+  relationshipsDeleted: Int!
+}
+
+type UpdateTechsMutationResponse {
+  info: UpdateInfo!
+  techs: [Techs!]!
+}
+
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+input TechsCreateInput {
+  value: String
+}
+
+input TechsOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more TechsSort objects to sort Techs by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [TechsSort!]
+}
+
+"Fields to sort Techs by. The order in which sorts are applied is not guaranteed when specifying many fields in one TechsSort object."
+input TechsSort {
+  value: SortDirection
+}
+
+input TechsUpdateInput {
+  value: String
+}
+
+input TechsWhere {
+  AND: [TechsWhere!]
+  OR: [TechsWhere!]
+  value: String
+  value_CONTAINS: String
+  value_ENDS_WITH: String
+  value_IN: [String]
+  value_NOT: String
+  value_NOT_CONTAINS: String
+  value_NOT_ENDS_WITH: String
+  value_NOT_IN: [String]
+  value_NOT_STARTS_WITH: String
+  value_STARTS_WITH: String
+}
+
+----
+
+'''

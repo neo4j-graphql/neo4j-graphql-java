@@ -82,6 +82,17 @@ type ActorAggregateSelection {
   name: StringAggregateSelectionNonNullable!
 }
 
+type ActorEdge {
+  cursor: String!
+  node: Actor!
+}
+
+type ActorsConnection {
+  edges: [ActorEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
 type CreateActorsMutationResponse {
   actors: [Actor!]!
   info: CreateInfo!
@@ -126,6 +137,11 @@ type EpisodeAggregateSelection {
   runtime: IntAggregateSelectionNonNullable!
 }
 
+type EpisodeEdge {
+  cursor: String!
+  node: Episode!
+}
+
 type EpisodeSeriesConnection {
   edges: [EpisodeSeriesRelationship!]!
   pageInfo: PageInfo!
@@ -145,6 +161,12 @@ type EpisodeSeriesSeriesAggregationSelection {
 type EpisodeSeriesSeriesNodeAggregateSelection {
   episodeCount: IntAggregateSelectionNonNullable!
   title: StringAggregateSelectionNonNullable!
+}
+
+type EpisodesConnection {
+  edges: [EpisodeEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
 }
 
 type IntAggregateSelectionNonNullable {
@@ -180,6 +202,17 @@ type MovieAggregateSelection {
   count: Int!
   runtime: IntAggregateSelectionNonNullable!
   title: StringAggregateSelectionNonNullable!
+}
+
+type MovieEdge {
+  cursor: String!
+  node: Movie!
+}
+
+type MoviesConnection {
+  edges: [MovieEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
 }
 
 type Mutation {
@@ -220,12 +253,16 @@ type ProductionActorsRelationship implements ActedIn {
 type Query {
   actors(options: ActorOptions, where: ActorWhere): [Actor!]!
   actorsAggregate(where: ActorWhere): ActorAggregateSelection!
+  actorsConnection(after: String, first: Int, sort: [ActorSort], where: ActorWhere): ActorsConnection!
   episodes(options: EpisodeOptions, where: EpisodeWhere): [Episode!]!
   episodesAggregate(where: EpisodeWhere): EpisodeAggregateSelection!
+  episodesConnection(after: String, first: Int, sort: [EpisodeSort], where: EpisodeWhere): EpisodesConnection!
   movies(options: MovieOptions, where: MovieWhere): [Movie!]!
   moviesAggregate(where: MovieWhere): MovieAggregateSelection!
+  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
   series(options: SeriesOptions, where: SeriesWhere): [Series!]!
   seriesAggregate(where: SeriesWhere): SeriesAggregateSelection!
+  seriesConnection(after: String, first: Int, sort: [SeriesSort], where: SeriesWhere): SeriesConnection!
 }
 
 type Series implements Production {
@@ -257,6 +294,17 @@ type SeriesAggregateSelection {
   count: Int!
   episodeCount: IntAggregateSelectionNonNullable!
   title: StringAggregateSelectionNonNullable!
+}
+
+type SeriesConnection {
+  edges: [SeriesEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type SeriesEdge {
+  cursor: String!
+  node: Series!
 }
 
 type SeriesEpisodeEpisodesAggregationSelection {
@@ -329,6 +377,8 @@ input ActedInSort {
 
 input ActedInUpdateInput {
   screenTime: Int
+  screenTime_DECREMENT: Int
+  screenTime_INCREMENT: Int
 }
 
 input ActedInWhere {
@@ -609,6 +659,8 @@ input EpisodeSort {
 
 input EpisodeUpdateInput {
   runtime: Int
+  runtime_DECREMENT: Int
+  runtime_INCREMENT: Int
   series: EpisodeSeriesUpdateFieldInput
 }
 
@@ -735,6 +787,8 @@ input MovieSort {
 input MovieUpdateInput {
   actors: [ProductionActorsUpdateFieldInput!]
   runtime: Int
+  runtime_DECREMENT: Int
+  runtime_INCREMENT: Int
   title: String
 }
 
@@ -952,7 +1006,7 @@ input ProductionOptions {
   limit: Int
   offset: Int
   "Specify one or more ProductionSort objects to sort Productions by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [ProductionSort!]
+  sort: [ProductionSort]
 }
 
 "Fields to sort Productions by. The order in which sorts are applied is not guaranteed when specifying many fields in one ProductionSort object."
@@ -1200,6 +1254,8 @@ input SeriesSort {
 input SeriesUpdateInput {
   actors: [ProductionActorsUpdateFieldInput!]
   episodeCount: Int
+  episodeCount_DECREMENT: Int
+  episodeCount_INCREMENT: Int
   episodes: [SeriesEpisodesUpdateFieldInput!]
   title: String
 }

@@ -67,6 +67,11 @@ type CommentAggregateSelection {
   id: IDAggregateSelectionNullable!
 }
 
+type CommentEdge {
+  cursor: String!
+  node: Comment!
+}
+
 type CommentPostConnection {
   edges: [CommentPostRelationship!]!
   pageInfo: PageInfo!
@@ -96,6 +101,12 @@ type CommentUserCreatorAggregationSelection {
 type CommentUserCreatorNodeAggregateSelection {
   id: IDAggregateSelectionNullable!
   name: StringAggregateSelectionNullable!
+}
+
+type CommentsConnection {
+  edges: [CommentEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
 }
 
 type ContentCreatorConnection {
@@ -199,6 +210,11 @@ type PostCommentsRelationship {
   node: Comment!
 }
 
+type PostEdge {
+  cursor: String!
+  node: Post!
+}
+
 type PostUserCreatorAggregationSelection {
   count: Int!
   node: PostUserCreatorNodeAggregateSelection
@@ -209,13 +225,22 @@ type PostUserCreatorNodeAggregateSelection {
   name: StringAggregateSelectionNullable!
 }
 
+type PostsConnection {
+  edges: [PostEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
 type Query {
   comments(options: CommentOptions, where: CommentWhere): [Comment!]!
   commentsAggregate(where: CommentWhere): CommentAggregateSelection!
+  commentsConnection(after: String, first: Int, sort: [CommentSort], where: CommentWhere): CommentsConnection!
   posts(options: PostOptions, where: PostWhere): [Post!]!
   postsAggregate(where: PostWhere): PostAggregateSelection!
+  postsConnection(after: String, first: Int, sort: [PostSort], where: PostWhere): PostsConnection!
   users(options: UserOptions, where: UserWhere): [User!]!
   usersAggregate(where: UserWhere): UserAggregateSelection!
+  usersConnection(after: String, first: Int, sort: [UserSort], where: UserWhere): UsersConnection!
 }
 
 type StringAggregateSelectionNullable {
@@ -268,6 +293,17 @@ type UserContentConnection {
 type UserContentRelationship {
   cursor: String!
   node: Content!
+}
+
+type UserEdge {
+  cursor: String!
+  node: User!
+}
+
+type UsersConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
 }
 
 enum SortDirection {
@@ -623,7 +659,7 @@ input ContentOptions {
   limit: Int
   offset: Int
   "Specify one or more ContentSort objects to sort Contents by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [ContentSort!]
+  sort: [ContentSort]
 }
 
 "Fields to sort Contents by. The order in which sorts are applied is not guaranteed when specifying many fields in one ContentSort object."
