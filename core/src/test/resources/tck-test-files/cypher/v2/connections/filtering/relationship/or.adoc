@@ -59,10 +59,7 @@ interface ActedIn {
 ----
 {
   "this_connection_actorsConnectionparam0": "Gump",
-  "this_connection_actorsConnectionparam1": {
-    "low": 60,
-    "high": 0
-  }
+  "this_connection_actorsConnectionparam1": 60
 }
 ----
 

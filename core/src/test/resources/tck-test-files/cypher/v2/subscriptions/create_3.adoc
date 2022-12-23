@@ -71,15 +71,9 @@ mutation {
 {
   "this0_title": "The Matrix",
   "this0_directors_Actor0_node_name": "Keanu Reeves",
-  "this0_directors_Actor0_relationship_year": {
-    "low": 2420,
-    "high": 0
-  },
+  "this0_directors_Actor0_relationship_year": 2420,
   "this0_directors_Person0_node_name": "Lilly Wachowski",
-  "this0_directors_Person0_relationship_year": {
-    "low": 1999,
-    "high": 0
-  },
+  "this0_directors_Person0_relationship_year": 1999,
   "resolvedCallbacks": {}
 }
 ----
@@ -243,19 +237,10 @@ mutation {
   "this0_title": "The Matrix",
   "this0_directors_Actor0_node_name": "Keanu Reeves",
   "this0_directors_Actor0_node_movies0_node_title": "Funny movie",
-  "this0_directors_Actor0_node_movies0_relationship_screenTime": {
-    "low": 190,
-    "high": 0
-  },
-  "this0_directors_Actor0_relationship_year": {
-    "low": 2420,
-    "high": 0
-  },
+  "this0_directors_Actor0_node_movies0_relationship_screenTime": 190,
+  "this0_directors_Actor0_relationship_year": 2420,
   "this0_directors_Person0_node_name": "Lilly Wachowski",
-  "this0_directors_Person0_relationship_year": {
-    "low": 1999,
-    "high": 0
-  },
+  "this0_directors_Person0_relationship_year": 1999,
   "resolvedCallbacks": {}
 }
 ----

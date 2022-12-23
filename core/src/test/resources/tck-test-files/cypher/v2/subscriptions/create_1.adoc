@@ -60,10 +60,7 @@ mutation {
 {
   "this0_title": "Forrest Gump",
   "this0_actors0_node_name": "Tom Hanks",
-  "this0_actors0_relationship_screenTime": {
-    "low": 60,
-    "high": 0
-  },
+  "this0_actors0_relationship_screenTime": 60,
   "resolvedCallbacks": {}
 }
 ----
@@ -182,14 +179,8 @@ mutation {
   "this0_title": "Forrest Gump",
   "this0_actors0_node_name": "Tom Hanks",
   "this0_actors0_node_movies0_node_title": "Funny movie",
-  "this0_actors0_node_movies0_relationship_screenTime": {
-    "low": 1990,
-    "high": 0
-  },
-  "this0_actors0_relationship_screenTime": {
-    "low": 60,
-    "high": 0
-  },
+  "this0_actors0_node_movies0_relationship_screenTime": 1990,
+  "this0_actors0_relationship_screenTime": 60,
   "resolvedCallbacks": {}
 }
 ----

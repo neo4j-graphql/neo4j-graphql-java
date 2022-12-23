@@ -40,10 +40,7 @@ mutation {
 [source,json]
 ----
 {
-  "this_update_ratings_POP": {
-    "low": 1,
-    "high": 0
-  },
+  "this_update_ratings_POP": 1,
   "resolvedCallbacks": {},
   "auth": {
     "isAuthenticated": true,

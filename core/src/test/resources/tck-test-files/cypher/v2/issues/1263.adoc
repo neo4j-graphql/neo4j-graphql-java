@@ -63,15 +63,9 @@ type Actor {
 ----
 {
   "this_connection_actedInConnectionparam0": "foo",
-  "this_connection_actedInConnectionparam1": {
-    "low": 90,
-    "high": 0
-  },
+  "this_connection_actedInConnectionparam1": 90,
   "this_connection_actedInConnectionparam2": "foo",
-  "this_connection_actedInConnectionparam3": {
-    "low": 50,
-    "high": 0
-  }
+  "this_connection_actedInConnectionparam3": 50
 }
 ----
 

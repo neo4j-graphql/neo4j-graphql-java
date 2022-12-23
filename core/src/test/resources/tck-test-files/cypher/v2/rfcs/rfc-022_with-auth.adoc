@@ -50,10 +50,7 @@ query Query {
 [source,json]
 ----
 {
-  "param0": {
-    "low": 1999,
-    "high": 0
-  },
+  "param0": 1999,
   "param1": "Keanu Reeves",
   "param4": "The Matrix",
   "param7": "my-test",

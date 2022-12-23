@@ -70,10 +70,7 @@ mutation UpdateMovies {
 {
   "param0": "John Wick",
   "this_reviewers0_create0_node_name": "Ana",
-  "this_reviewers0_create0_node_reputation": {
-    "low": 100,
-    "high": 0
-  },
+  "this_reviewers0_create0_node_reputation": 100,
   "updateMovies": {
     "args": {
       "update": {
@@ -84,17 +81,11 @@ mutation UpdateMovies {
                 "node": {
                   "Person": {
                     "name": "Ana",
-                    "reputation": {
-                      "low": 100,
-                      "high": 0
-                    }
+                    "reputation": 100
                   }
                 },
                 "edge": {
-                  "score": {
-                    "low": 10,
-                    "high": 0
-                  }
+                  "score": 10
                 }
               }
             ]

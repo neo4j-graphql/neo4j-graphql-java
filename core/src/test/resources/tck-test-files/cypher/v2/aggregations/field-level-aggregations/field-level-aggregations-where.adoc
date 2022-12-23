@@ -104,10 +104,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "this_actorsAggregate_param0": {
-    "low": 40,
-    "high": 0
-  }
+  "this_actorsAggregate_param0": 40
 }
 ----
 

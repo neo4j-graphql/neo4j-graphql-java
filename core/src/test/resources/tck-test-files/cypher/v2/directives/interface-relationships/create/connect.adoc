@@ -70,15 +70,9 @@ mutation {
 {
   "this0_name": "Actor Name",
   "this0_actedIn_connect0_node_param0": "The ",
-  "this0_actedIn_connect0_relationship_screenTime": {
-    "low": 90,
-    "high": 0
-  },
+  "this0_actedIn_connect0_relationship_screenTime": 90,
   "this0_actedIn_connect1_node_param0": "The ",
-  "this0_actedIn_connect1_relationship_screenTime": {
-    "low": 90,
-    "high": 0
-  },
+  "this0_actedIn_connect1_relationship_screenTime": 90,
   "resolvedCallbacks": {}
 }
 ----

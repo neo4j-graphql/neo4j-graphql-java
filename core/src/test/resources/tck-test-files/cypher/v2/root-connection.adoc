@@ -47,10 +47,7 @@ type Actor {
 [source,json]
 ----
 {
-  "param0": {
-    "low": 20,
-    "high": 0
-  }
+  "param0": 20
 }
 ----
 
@@ -102,10 +99,7 @@ RETURN {
 ----
 {
   "param0": "Matrix",
-  "param1": {
-    "low": 20,
-    "high": 0
-  }
+  "param1": 20
 }
 ----
 
@@ -161,10 +155,7 @@ RETURN {
 [source,json]
 ----
 {
-  "param0": {
-    "low": 20,
-    "high": 0
-  }
+  "param0": 20
 }
 ----
 

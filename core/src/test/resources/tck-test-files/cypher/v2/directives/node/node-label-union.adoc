@@ -56,14 +56,8 @@ type Movie @node(label: "Film") {
   "param0": "some title",
   "param1": "Horror",
   "param2": "The Matrix",
-  "param3": {
-    "low": 1,
-    "high": 0
-  },
-  "param4": {
-    "low": 10,
-    "high": 0
-  }
+  "param3": 1,
+  "param4": 10
 }
 ----
 

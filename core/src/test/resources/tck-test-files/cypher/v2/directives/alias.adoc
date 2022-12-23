@@ -80,10 +80,7 @@ mutation {
             },
             "edge": {
               "character": "Molly",
-              "screenTime": {
-                "low": 120,
-                "high": 0
-              }
+              "screenTime": 120
             }
           }
         ]

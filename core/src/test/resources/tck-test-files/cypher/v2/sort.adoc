@@ -281,14 +281,8 @@ query ($title: String, $offset: Int, $limit: Int) {
 ----
 {
   "param0": "some title",
-  "param1": {
-    "low": 1,
-    "high": 0
-  },
-  "param2": {
-    "low": 2,
-    "high": 0
-  }
+  "param1": 1,
+  "param2": 2
 }
 ----
 

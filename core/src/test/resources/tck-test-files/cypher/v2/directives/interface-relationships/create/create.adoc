@@ -70,14 +70,8 @@ mutation {
 {
   "this0_name": "Actor Name",
   "this0_actedInMovie0_node_title": "Example Film",
-  "this0_actedInMovie0_node_runtime": {
-    "low": 90,
-    "high": 0
-  },
-  "this0_actedInMovie0_relationship_screenTime": {
-    "low": 90,
-    "high": 0
-  },
+  "this0_actedInMovie0_node_runtime": 90,
+  "this0_actedInMovie0_relationship_screenTime": 90,
   "resolvedCallbacks": {}
 }
 ----

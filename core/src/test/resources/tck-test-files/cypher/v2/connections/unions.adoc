@@ -301,15 +301,9 @@ RETURN this {
 ----
 {
   "this_connection_publicationsConnectionparam0": "Book Title",
-  "this_connection_publicationsConnectionparam1": {
-    "low": 1000,
-    "high": 0
-  },
+  "this_connection_publicationsConnectionparam1": 1000,
   "this_connection_publicationsConnectionparam2": "Journal Subject",
-  "this_connection_publicationsConnectionparam3": {
-    "low": 2000,
-    "high": 0
-  }
+  "this_connection_publicationsConnectionparam3": 2000
 }
 ----
 
@@ -391,14 +385,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "this_connection_publicationsConnectionparam0": {
-    "low": 1000,
-    "high": 0
-  },
-  "this_connection_publicationsConnectionparam1": {
-    "low": 2000,
-    "high": 0
-  }
+  "this_connection_publicationsConnectionparam0": 1000,
+  "this_connection_publicationsConnectionparam1": 2000
 }
 ----
 

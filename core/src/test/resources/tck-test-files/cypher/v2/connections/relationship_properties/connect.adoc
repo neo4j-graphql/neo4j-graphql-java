@@ -59,10 +59,7 @@ mutation {
 ----
 {
   "this0_title": "Forrest Gump",
-  "this0_actors_connect0_relationship_screenTime": {
-    "low": 60,
-    "high": 0
-  },
+  "this0_actors_connect0_relationship_screenTime": 60,
   "resolvedCallbacks": {}
 }
 ----
@@ -149,10 +146,7 @@ mutation {
 {
   "this0_title": "Forrest Gump",
   "this0_actors_connect0_node_param0": "Tom Hanks",
-  "this0_actors_connect0_relationship_screenTime": {
-    "low": 60,
-    "high": 0
-  },
+  "this0_actors_connect0_relationship_screenTime": 60,
   "resolvedCallbacks": {}
 }
 ----
@@ -240,10 +234,7 @@ mutation {
 ----
 {
   "param0": "Forrest Gump",
-  "this_connect_actors0_relationship_screenTime": {
-    "low": 60,
-    "high": 0
-  },
+  "this_connect_actors0_relationship_screenTime": 60,
   "resolvedCallbacks": {}
 }
 ----
@@ -329,10 +320,7 @@ mutation {
 {
   "param0": "Forrest Gump",
   "this_connect_actors0_node_param0": "Tom Hanks",
-  "this_connect_actors0_relationship_screenTime": {
-    "low": 60,
-    "high": 0
-  },
+  "this_connect_actors0_relationship_screenTime": 60,
   "resolvedCallbacks": {}
 }
 ----

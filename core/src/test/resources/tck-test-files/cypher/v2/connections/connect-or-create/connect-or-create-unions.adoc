@@ -61,17 +61,11 @@ mutation {
   "this0_actedIn_Movie_connectOrCreate_param0": "0000-0000-03B6-0000-O-0000-0006-P",
   "this0_actedIn_Movie_connectOrCreate_param1": "Forrest Gump",
   "this0_actedIn_Movie_connectOrCreate_param2": "0000-0000-03B6-0000-O-0000-0006-P",
-  "this0_actedIn_Movie_connectOrCreate_param3": {
-    "low": 105,
-    "high": 0
-  },
+  "this0_actedIn_Movie_connectOrCreate_param3": 105,
   "this0_actedIn_Series_connectOrCreate_param0": "0000-0001-ECC5-0000-8-0000-0001-B",
   "this0_actedIn_Series_connectOrCreate_param1": "Band of Brothers",
   "this0_actedIn_Series_connectOrCreate_param2": "0000-0001-ECC5-0000-8-0000-0001-B",
-  "this0_actedIn_Series_connectOrCreate_param3": {
-    "low": 126,
-    "high": 0
-  },
+  "this0_actedIn_Series_connectOrCreate_param3": 126,
   "resolvedCallbacks": {}
 }
 ----
@@ -139,17 +133,11 @@ mutation {
   "this_actedIn_Movie0_connectOrCreate_param0": "0000-0000-03B6-0000-O-0000-0006-P",
   "this_actedIn_Movie0_connectOrCreate_param1": "Forrest Gump",
   "this_actedIn_Movie0_connectOrCreate_param2": "0000-0000-03B6-0000-O-0000-0006-P",
-  "this_actedIn_Movie0_connectOrCreate_param3": {
-    "low": 105,
-    "high": 0
-  },
+  "this_actedIn_Movie0_connectOrCreate_param3": 105,
   "this_actedIn_Series0_connectOrCreate_param0": "0000-0001-ECC5-0000-8-0000-0001-B",
   "this_actedIn_Series0_connectOrCreate_param1": "Band of Brothers",
   "this_actedIn_Series0_connectOrCreate_param2": "0000-0001-ECC5-0000-8-0000-0001-B",
-  "this_actedIn_Series0_connectOrCreate_param3": {
-    "low": 126,
-    "high": 0
-  },
+  "this_actedIn_Series0_connectOrCreate_param3": 126,
   "resolvedCallbacks": {}
 }
 ----

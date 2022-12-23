@@ -291,10 +291,7 @@ RETURN this {
 ----
 {
   "param0": "Forrest Gump",
-  "this_connection_actorsConnectionparam0": {
-    "low": 5,
-    "high": 0
-  }
+  "this_connection_actorsConnectionparam0": 5
 }
 ----
 
@@ -414,10 +411,7 @@ RETURN this {
 ----
 {
   "param0": "Forrest Gump",
-  "this_connection_actorsConnectionparam0": {
-    "low": 5,
-    "high": 0
-  }
+  "this_connection_actorsConnectionparam0": 5
 }
 ----
 

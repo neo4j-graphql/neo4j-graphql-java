@@ -230,14 +230,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "this_connection_actedInConnectionparam0": {
-    "low": 90,
-    "high": 0
-  },
-  "this_connection_actedInConnectionparam1": {
-    "low": 50,
-    "high": 0
-  }
+  "this_connection_actedInConnectionparam0": 90,
+  "this_connection_actedInConnectionparam1": 50
 }
 ----
 
@@ -318,14 +312,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "this_connection_actedInConnectionparam0": {
-    "low": 60,
-    "high": 0
-  },
-  "this_connection_actedInConnectionparam1": {
-    "low": 60,
-    "high": 0
-  }
+  "this_connection_actedInConnectionparam0": 60,
+  "this_connection_actedInConnectionparam1": 60
 }
 ----
 

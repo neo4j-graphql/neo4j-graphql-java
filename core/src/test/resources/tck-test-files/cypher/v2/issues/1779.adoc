@@ -44,10 +44,7 @@ type School {
 [source,json]
 ----
 {
-  "param0": {
-    "low": 23,
-    "high": 0
-  }
+  "param0": 23
 }
 ----
 

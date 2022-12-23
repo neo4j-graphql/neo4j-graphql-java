@@ -110,10 +110,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "low": 123,
-    "high": 0
-  }
+  "param0": 123
 }
 ----
 
@@ -212,10 +209,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "low": 123,
-    "high": 0
-  }
+  "param0": 123
 }
 ----
 
@@ -348,10 +342,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "low": 123,
-    "high": 0
-  }
+  "param0": 123
 }
 ----
 
@@ -450,10 +441,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "low": 123,
-    "high": 0
-  }
+  "param0": 123
 }
 ----
 

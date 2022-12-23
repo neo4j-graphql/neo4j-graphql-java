@@ -41,14 +41,8 @@ type Post {
 [source,json]
 ----
 {
-  "param0": {
-    "low": 10,
-    "high": 0
-  },
-  "param1": {
-    "low": 20,
-    "high": 0
-  }
+  "param0": 10,
+  "param1": 20
 }
 ----
 
@@ -89,22 +83,10 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "low": 10,
-    "high": 0
-  },
-  "param1": {
-    "low": 20,
-    "high": 0
-  },
-  "param2": {
-    "low": 10,
-    "high": 0
-  },
-  "param3": {
-    "low": 20,
-    "high": 0
-  }
+  "param0": 10,
+  "param1": 20,
+  "param2": 10,
+  "param3": 20
 }
 ----
 
@@ -145,14 +127,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "low": 10,
-    "high": 0
-  },
-  "param1": {
-    "low": 20,
-    "high": 0
-  }
+  "param0": 10,
+  "param1": 20
 }
 ----
 

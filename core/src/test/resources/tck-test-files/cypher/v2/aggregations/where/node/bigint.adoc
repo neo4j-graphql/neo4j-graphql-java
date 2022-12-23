@@ -42,10 +42,7 @@ type Post {
 [source,json]
 ----
 {
-  "param0": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "param0": 2147483648
 }
 ----
 
@@ -83,10 +80,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "param0": 2147483648
 }
 ----
 
@@ -124,10 +118,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "param0": 2147483648
 }
 ----
 
@@ -165,10 +156,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "param0": 2147483648
 }
 ----
 
@@ -206,10 +194,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "param0": 2147483648
 }
 ----
 
@@ -247,10 +232,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "param0": 2147483648
 }
 ----
 
@@ -288,10 +270,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "param0": 2147483648
 }
 ----
 
@@ -329,10 +308,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "param0": 2147483648
 }
 ----
 
@@ -370,10 +346,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "param0": 2147483648
 }
 ----
 
@@ -411,10 +384,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "param0": 2147483648
 }
 ----
 
@@ -452,10 +422,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "param0": 2147483648
 }
 ----
 
@@ -493,10 +460,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "param0": 2147483648
 }
 ----
 
@@ -534,10 +498,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "param0": 2147483648
 }
 ----
 
@@ -575,10 +536,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "param0": 2147483648
 }
 ----
 
@@ -616,10 +574,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "param0": 2147483648
 }
 ----
 
@@ -657,10 +612,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "param0": 2147483648
 }
 ----
 
@@ -698,10 +650,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "param0": 2147483648
 }
 ----
 
@@ -739,10 +688,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "param0": 2147483648
 }
 ----
 
@@ -780,10 +726,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "param0": 2147483648
 }
 ----
 
@@ -821,10 +764,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "param0": 2147483648
 }
 ----
 
@@ -862,10 +802,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "param0": 2147483648
 }
 ----
 
@@ -903,10 +840,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "param0": 2147483648
 }
 ----
 
@@ -944,10 +878,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "param0": 2147483648
 }
 ----
 
@@ -985,10 +916,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "param0": 2147483648
 }
 ----
 
@@ -1026,10 +954,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "param0": 2147483648
 }
 ----
 
@@ -1067,10 +992,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "low": -2147483648,
-    "high": 0
-  }
+  "param0": 2147483648
 }
 ----
 

@@ -68,10 +68,7 @@ mutation {
               "name": "Tom Hanks"
             },
             "edge": {
-              "screenTime": {
-                "low": 60,
-                "high": 0
-              }
+              "screenTime": 60
             }
           }
         ]

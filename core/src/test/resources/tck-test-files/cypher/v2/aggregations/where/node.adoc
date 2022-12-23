@@ -41,10 +41,7 @@ type Post @node(label: "_Post", additionalLabels: ["additionalPost"]) {
 [source,json]
 ----
 {
-  "param0": {
-    "low": 1,
-    "high": 0
-  }
+  "param0": 1
 }
 ----
 

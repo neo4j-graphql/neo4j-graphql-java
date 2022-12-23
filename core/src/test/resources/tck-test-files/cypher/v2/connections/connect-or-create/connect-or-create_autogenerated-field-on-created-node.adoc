@@ -55,10 +55,7 @@ mutation {
   "this0_name": "Tom Hanks",
   "this0_movies_connectOrCreate_param0": "The Terminal",
   "this0_movies_connectOrCreate_param1": "The Terminal",
-  "this0_movies_connectOrCreate_param2": {
-    "low": 105,
-    "high": 0
-  },
+  "this0_movies_connectOrCreate_param2": 105,
   "resolvedCallbacks": {}
 }
 ----
@@ -112,10 +109,7 @@ mutation {
   "this0_name": "Tom Hanks",
   "this0_movies_connectOrCreate_param0": "movieId",
   "this0_movies_connectOrCreate_param1": "The Terminal",
-  "this0_movies_connectOrCreate_param2": {
-    "low": 105,
-    "high": 0
-  },
+  "this0_movies_connectOrCreate_param2": 105,
   "resolvedCallbacks": {}
 }
 ----
@@ -171,10 +165,7 @@ mutation {
   "this_update_name": "Tom Hanks 2",
   "this_movies0_connectOrCreate_param0": "The Terminal",
   "this_movies0_connectOrCreate_param1": "The Terminal",
-  "this_movies0_connectOrCreate_param2": {
-    "low": 105,
-    "high": 0
-  },
+  "this_movies0_connectOrCreate_param2": 105,
   "resolvedCallbacks": {}
 }
 ----
@@ -228,10 +219,7 @@ mutation {
   "this_update_name": "Tom Hanks 2",
   "this_movies0_connectOrCreate_param0": "movieId",
   "this_movies0_connectOrCreate_param1": "The Terminal",
-  "this_movies0_connectOrCreate_param2": {
-    "low": 105,
-    "high": 0
-  },
+  "this_movies0_connectOrCreate_param2": 105,
   "resolvedCallbacks": {}
 }
 ----

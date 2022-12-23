@@ -534,14 +534,8 @@ RETURN this {
   "param1": "Horror",
   "param2": "Horror",
   "param3": "The Matrix",
-  "param4": {
-    "low": 1,
-    "high": 0
-  },
-  "param5": {
-    "low": 10,
-    "high": 0
-  }
+  "param4": 1,
+  "param5": 10
 }
 ----
 

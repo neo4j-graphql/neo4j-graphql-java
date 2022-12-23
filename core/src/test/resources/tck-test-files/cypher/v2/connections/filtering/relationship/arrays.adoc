@@ -56,14 +56,8 @@ interface ActedIn {
 ----
 {
   "this_connection_actorsConnectionparam0": [
-    {
-      "low": 60,
-      "high": 0
-    },
-    {
-      "low": 70,
-      "high": 0
-    }
+    60,
+    70
   ]
 }
 ----
@@ -181,14 +175,8 @@ RETURN this {
 ----
 {
   "this_connection_actorsConnectionparam0": [
-    {
-      "low": 60,
-      "high": 0
-    },
-    {
-      "low": 70,
-      "high": 0
-    }
+    60,
+    70
   ]
 }
 ----

@@ -211,15 +211,9 @@ RETURN this {
 [source,json]
 ----
 {
-  "this_connection_actedInConnectionparam0": {
-    "low": 60,
-    "high": 0
-  },
+  "this_connection_actedInConnectionparam0": 60,
   "this_connection_actedInConnectionparam1": "The ",
-  "this_connection_actedInConnectionparam2": {
-    "low": 60,
-    "high": 0
-  },
+  "this_connection_actedInConnectionparam2": 60,
   "this_connection_actedInConnectionparam3": "The "
 }
 ----
@@ -300,10 +294,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "this_connection_actedInConnectionparam0": {
-    "low": 60,
-    "high": 0
-  },
+  "this_connection_actedInConnectionparam0": 60,
   "this_connection_actedInConnectionparam1": "The "
 }
 ----
@@ -374,15 +365,9 @@ RETURN this {
 [source,json]
 ----
 {
-  "this_connection_actedInConnectionparam0": {
-    "low": 60,
-    "high": 0
-  },
+  "this_connection_actedInConnectionparam0": 60,
   "this_connection_actedInConnectionparam1": "A ",
-  "this_connection_actedInConnectionparam2": {
-    "low": 60,
-    "high": 0
-  },
+  "this_connection_actedInConnectionparam2": 60,
   "this_connection_actedInConnectionparam3": "The "
 }
 ----
@@ -571,14 +556,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "low": 5,
-    "high": 0
-  },
-  "param1": {
-    "low": 10,
-    "high": 0
-  }
+  "param0": 5,
+  "param1": 10
 }
 ----
 

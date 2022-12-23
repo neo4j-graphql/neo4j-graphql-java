@@ -78,17 +78,11 @@ mutation {
   "this0_id": "1",
   "this0_workersActor0_node_id": "1",
   "this0_workersActor0_node_name": "actor 1",
-  "this0_workersActor0_relationship_year": {
-    "low": 2022,
-    "high": 0
-  },
+  "this0_workersActor0_relationship_year": 2022,
   "this1_id": "2",
   "this1_workersActor0_node_id": "2",
   "this1_workersActor0_node_name": "actor 2",
-  "this1_workersActor0_relationship_year": {
-    "low": 2022,
-    "high": 0
-  },
+  "this1_workersActor0_relationship_year": 2022,
   "this2_id": "3",
   "this2_website0_node_address": "mywebsite.com",
   "this3_id": "4",
@@ -379,17 +373,11 @@ mutation {
   "this0_id": "1",
   "this0_workersActor0_node_id": "1",
   "this0_workersActor0_node_name": "actor 1",
-  "this0_workersActor0_relationship_year": {
-    "low": 2022,
-    "high": 0
-  },
+  "this0_workersActor0_relationship_year": 2022,
   "this1_id": "2",
   "this1_workersModeler0_node_id": "2",
   "this1_workersModeler0_node_name": "modeler 1",
-  "this1_workersModeler0_relationship_year": {
-    "low": 2022,
-    "high": 0
-  },
+  "this1_workersModeler0_relationship_year": 2022,
   "resolvedCallbacks": {}
 }
 ----

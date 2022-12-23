@@ -45,10 +45,7 @@ mutation {
   "this_update_ratings_PUSH": [
     1.5
   ],
-  "this_update_scores_POP": {
-    "low": 1,
-    "high": 0
-  },
+  "this_update_scores_POP": 1,
   "resolvedCallbacks": {}
 }
 ----
@@ -90,14 +87,8 @@ mutation {
 [source,json]
 ----
 {
-  "this_update_ratings_POP": {
-    "low": 1,
-    "high": 0
-  },
-  "this_update_scores_POP": {
-    "low": 1,
-    "high": 0
-  },
+  "this_update_ratings_POP": 1,
+  "this_update_scores_POP": 1,
   "resolvedCallbacks": {}
 }
 ----

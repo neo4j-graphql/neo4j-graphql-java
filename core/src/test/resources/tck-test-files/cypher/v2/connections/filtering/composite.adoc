@@ -59,14 +59,8 @@ interface ActedIn {
 ----
 {
   "param0": "Forrest Gump",
-  "this_connection_actorsConnectionparam0": {
-    "low": 30,
-    "high": 0
-  },
-  "this_connection_actorsConnectionparam1": {
-    "low": 90,
-    "high": 0
-  },
+  "this_connection_actorsConnectionparam0": 30,
+  "this_connection_actorsConnectionparam1": 90,
   "this_connection_actorsConnectionparam2": "Tom",
   "this_connection_actorsConnectionparam3": "Hanks"
 }
