@@ -8,21 +8,15 @@ import org.neo4j.graphql.domain.inputs.NestedWhere
 import org.neo4j.graphql.domain.inputs.PerNodeInput
 import org.neo4j.graphql.domain.inputs.WhereInput
 import org.neo4j.graphql.domain.predicates.ConnectionPredicate
-import org.neo4j.graphql.wrapList
 
 sealed interface ConnectionWhere {
 
-    sealed class ImplementingTypeConnectionWhere(
+    sealed class ImplementingTypeConnectionWhere<T : ImplementingTypeConnectionWhere<T>>(
         implementingType: ImplementingType,
         relationshipProperties: RelationshipProperties?,
-        data: Dict
-    ) : ConnectionWhere, NestedWhere<ImplementingTypeConnectionWhere> {
-
-        override val and: List<ImplementingTypeConnectionWhere>? =
-            data[Constants.AND]?.wrapList()?.map { create(implementingType, relationshipProperties, it) }
-
-        override val or: List<ImplementingTypeConnectionWhere>? =
-            data[Constants.OR]?.wrapList()?.map { create(implementingType, relationshipProperties, it) }
+        data: Dict,
+        nestedWhereFactory: (data: Dict) -> T?
+    ) : ConnectionWhere, NestedWhere<T>(data, nestedWhereFactory) {
 
         val predicates: List<ConnectionPredicate>? = ConnectionPredicate.getTargetOperationCombinations()
             .mapNotNull { (target, op) ->
@@ -38,14 +32,24 @@ sealed interface ConnectionWhere {
     }
 
     class NodeConnectionWhere(node: Node, relationshipProperties: RelationshipProperties?, data: Dict) :
-        ImplementingTypeConnectionWhere(node, relationshipProperties, data)
+        ImplementingTypeConnectionWhere<NodeConnectionWhere>(
+            node,
+            relationshipProperties,
+            data,
+            { NodeConnectionWhere(node, relationshipProperties, it) }
+        )
 
     class InterfaceConnectionWhere(
         interfaze: Interface,
         relationshipProperties: RelationshipProperties?,
         data: Dict
     ) :
-        ImplementingTypeConnectionWhere(interfaze, relationshipProperties, data) {
+        ImplementingTypeConnectionWhere<InterfaceConnectionWhere>(
+            interfaze,
+            relationshipProperties,
+            data,
+            { InterfaceConnectionWhere(interfaze, relationshipProperties, it) }
+        ) {
 
         val on = data[Constants.ON]?.let {
             PerNodeInput(interfaze, Dict(it), { node: Node, value: Any -> WhereInput.create(node, value) })

@@ -20,7 +20,7 @@ fun createDeleteAndParams(
     withVars: List<SymbolicName>,
     parameterPrefix: ChainString,
     schemaConfig: SchemaConfig,
-    queryContext: QueryContext?,
+    queryContext: QueryContext,
     ongoingReading: ExposesWith,
     nested: Boolean = false
 ): ExposesWith {
@@ -47,7 +47,7 @@ fun createDeleteAndParams(
                     endNodeName.extend("relationship")
                 )
 
-                var condition = createConnectionWhere(
+                var (condition, whereSubquery)  = createConnectionWhere(
                     delete.where,
                     refNode,
                     endNode,
@@ -62,6 +62,10 @@ fun createDeleteAndParams(
                     schemaConfig,
                     queryContext
                 )
+
+                if (whereSubquery.isNotEmpty()){
+                    TODO()
+                }
 
                 AuthTranslator(schemaConfig, queryContext, where = AuthTranslator.AuthOptions(endNode, refNode))
                     .createAuth(refNode.auth, AuthDirective.AuthOperation.DELETE)

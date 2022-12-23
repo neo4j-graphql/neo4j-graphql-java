@@ -52,9 +52,9 @@ fun TypeName.wrapLike(type: Type<*>): Type<*> = when (type) {
 }
 
 fun TypeName.makeRequired(required: Boolean = true): Type<*> = when (required) {
-        true -> NonNullType(this)
-        else -> this
-    }
+    true -> NonNullType(this)
+    else -> this
+}
 
 fun Type<*>.isListElementRequired(): Boolean = when (this) {
     is ListType -> type is NonNullType
@@ -138,6 +138,7 @@ fun GraphQLFieldsContainer.label(): String = when {
             ?.getDirective(DirectiveConstants.RELATION)
             ?.getArgument(RELATION_NAME)?.argumentValue?.value?.toJavaValue()?.toString()
             ?: this.name
+
     else -> name
 }
 
@@ -303,7 +304,13 @@ fun DataFetchingEnvironment.typeAsContainer() = this.fieldDefinition.type.inner(
 
 fun DataFetchingEnvironment.logField() = "${this.parentType.name()}.${this.fieldDefinition.name}"
 
-fun DataFetchingEnvironment.queryContext(): QueryContext? = this.graphQlContext.get(Constants.NEO4J_QUERY_CONTEXT)
+fun DataFetchingEnvironment.queryContext(): QueryContext =
+    this.graphQlContext.get<QueryContext?>(Constants.NEO4J_QUERY_CONTEXT)
+        ?: run {
+            val queryContext = QueryContext()
+            this.graphQlContext.put(Constants.NEO4J_QUERY_CONTEXT, queryContext)
+            queryContext
+        }
 
 
 val TypeInt = TypeName("Int")
@@ -394,4 +401,4 @@ fun NodeDirectivesBuilder.addNonLibDirectives(directivesContainer: DirectivesCon
     this.directives(directivesContainer.directives.filterNot { DirectiveConstants.LIB_DIRECTIVES.contains(it.name) })
 }
 
-inline fun  <reified T> T.asCypherLiteral() = Cypher.literalOf<T>(this)
+inline fun <reified T> T.asCypherLiteral() = Cypher.literalOf<T>(this)

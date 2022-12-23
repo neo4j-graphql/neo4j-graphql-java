@@ -9,7 +9,10 @@ import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
 import org.neo4j.graphql.domain.directives.ExcludeDirective
-import org.neo4j.graphql.domain.inputs.filter.ReadResolverInputs
+import org.neo4j.graphql.domain.inputs.Dict
+import org.neo4j.graphql.domain.inputs.WhereInput
+import org.neo4j.graphql.domain.inputs.filter.FulltextPerIndex
+import org.neo4j.graphql.domain.inputs.options.OptionsInput
 import org.neo4j.graphql.handler.BaseDataFetcher
 import org.neo4j.graphql.schema.AugmentationHandlerV2
 import org.neo4j.graphql.translate.AuthTranslator
@@ -43,11 +46,17 @@ class ReadResolver private constructor(
         }
     }
 
+    private class InputArguments(node: Node, args: Map<String, *>) {
+        val where = args[Constants.WHERE]?.let { WhereInput.NodeWhereInput(node, Dict(it)) }
+        val options = OptionsInput.create(args[Constants.OPTIONS])
+        val fulltext = args[Constants.FULLTEXT]?.let { FulltextPerIndex(Dict(it)) }
+    }
+
     override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement {
         val queryContext = env.queryContext()
 
         val resolveTree = ResolveTree.resolve(env)
-        val input = ReadResolverInputs(node, resolveTree.args)
+        val input = InputArguments(node, resolveTree.args)
 
         val dslNode = node.asCypherNode(queryContext, variable)
 

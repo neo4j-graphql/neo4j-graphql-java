@@ -30,6 +30,8 @@ class Node(
 
     val typeNames by lazy { TypeNames() }
 
+    val aggregateTypeNames by lazy { AggregateTypeNames() }
+
     override val plural: String by lazy {
         nodeDirective?.plural?.let { leadingUnderscores(it) + camelCase(it) } ?: super.plural
     }
@@ -37,6 +39,11 @@ class Node(
     inner class TypeNames {
         val createResponse = "Create${pascalCasePlural}MutationResponse"
         val updateResponse = "Update${pascalCasePlural}MutationResponse"
+    }
+
+    inner class AggregateTypeNames {
+        val selection = "${name}AggregateSelection"
+        val input = "${name}AggregateSelectionInput"
     }
 
     val rootTypeFieldNames by lazy { RootTypeFieldNames() }

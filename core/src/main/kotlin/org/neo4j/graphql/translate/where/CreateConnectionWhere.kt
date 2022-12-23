@@ -2,6 +2,7 @@ package org.neo4j.graphql.translate.where
 
 import org.neo4j.cypherdsl.core.Condition
 import org.neo4j.cypherdsl.core.PropertyContainer
+import org.neo4j.cypherdsl.core.Statement
 import org.neo4j.graphql.QueryContext
 import org.neo4j.graphql.SchemaConfig
 import org.neo4j.graphql.and
@@ -11,22 +12,23 @@ import org.neo4j.graphql.domain.inputs.WhereInput
 import org.neo4j.graphql.domain.inputs.connection_where.ConnectionWhere
 import org.neo4j.graphql.domain.predicates.ConnectionPredicate
 import org.neo4j.graphql.handler.utils.ChainString
+import org.neo4j.graphql.translate.WhereResult
 
 //TODO completed
 fun createConnectionWhere(
-    whereInput: ConnectionWhere.ImplementingTypeConnectionWhere?,
+    whereInput: ConnectionWhere.ImplementingTypeConnectionWhere<*>?,
     node: Node,
     nodeVariable: PropertyContainer,
     relationship: RelationField,
     relationshipVariable: PropertyContainer,
     parameterPrefix: ChainString,
     schemaConfig: SchemaConfig,
-    queryContext: QueryContext?
-): Condition? {
+    queryContext: QueryContext
+): WhereResult {
 
-    fun createOnNode(key: String, value: WhereInput): Condition? {
+    fun createOnNode(key: String, value: WhereInput): WhereResult {
         var result: Condition? = null
-
+        val subQueries = mutableListOf<Statement>()
         if (value is WhereInput.FieldContainerWhereInput<*>) {
             if (!value.hasFilterForNode(node)) {
                 throw IllegalArgumentException("_on is used as the only argument and node is not present within")
@@ -37,7 +39,7 @@ fun createConnectionWhere(
                 else -> null to value
             }
 
-            createWhere(
+            val (whereCondition, whereSubquery) = createWhere(
                 node,
                 inputExcludingOnForNode,
                 nodeVariable,
@@ -45,10 +47,11 @@ fun createConnectionWhere(
                 schemaConfig,
                 queryContext
             )
-                ?.let { result = result and it }
+            whereCondition?.let { result = result and it }
+            subQueries.addAll(whereSubquery)
 
             if (inputOnForNode != null) {
-                createWhere(
+                val (innerWhereCondition, innerWhereSubquery) = createWhere(
                     node,
                     value.withPreferredOn(node),
                     nodeVariable,
@@ -56,14 +59,17 @@ fun createConnectionWhere(
                     schemaConfig,
                     queryContext
                 )
-                    ?.let { result = result and it }
+                innerWhereCondition?.let { result = result and it }
+                subQueries.addAll(innerWhereSubquery)
             }
         }
-        return result
+
+        return WhereResult(result, subQueries)
     }
 
-    var result = whereInput?.reduceNestedConditions { key, index, nested ->
-        createConnectionWhere(
+    val subQueries = mutableListOf<Statement>()
+    var condition = whereInput?.reduceNestedConditions { key, index, nested ->
+        val (whereCondition, whereSubquery) = createConnectionWhere(
             nested,
             node,
             nodeVariable,
@@ -73,10 +79,12 @@ fun createConnectionWhere(
             schemaConfig,
             queryContext
         )
+        subQueries.addAll(whereSubquery)
+        whereCondition
     }
 
     whereInput?.predicates?.forEach { predicate ->
-        when (predicate.target) {
+        val (whereCondition, whereSubquery) = when (predicate.target) {
             ConnectionPredicate.Target.EDGE -> createWhere(
                 relationship.properties,
                 predicate.value,
@@ -88,9 +96,10 @@ fun createConnectionWhere(
 
             ConnectionPredicate.Target.NODE -> createOnNode(predicate.key, predicate.value)
         }
-            ?.let { predicate.op.conditionCreator(it) }
-            ?.let { result = result and it }
+        whereCondition?.let { predicate.op.conditionCreator(it) }
+            ?.let { condition = condition and it }
+        subQueries.addAll(whereSubquery)
     }
 
-    return result
+    return WhereResult(condition, subQueries)
 }

@@ -4,7 +4,6 @@ import graphql.language.TypeName
 
 object Constants {
 
-
     const val DATA = "data"
     const val AND = "AND"
     const val OR = "OR"
@@ -47,6 +46,15 @@ object Constants {
     const val LOCAL_DATE_TIME = "LocalDateTime"
     const val BIG_INT = "BigInt"
     const val DURATION = "Duration"
+
+    const val MIN = "min"
+    const val MAX = "max"
+    const val AVERAGE = "average"
+    const val SUM = "sum"
+    const val SHORTEST = "shortest"
+    const val LONGEST = "longest"
+
+    const val AGGREGATION_SUFFIX = "Aggregate"
 
     val TEMPORAL_TYPES = setOf(DATE, TIME, LOCAL_TIME, DATE_TIME, LOCAL_DATE_TIME)
     val ZONED_TIME_TYPES = setOf(TIME, DATE_TIME)

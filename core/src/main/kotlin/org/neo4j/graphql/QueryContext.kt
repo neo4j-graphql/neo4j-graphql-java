@@ -1,5 +1,8 @@
 package org.neo4j.graphql
 
+import org.neo4j.cypherdsl.core.Cypher
+import org.neo4j.graphql.handler.utils.ChainString
+
 data class QueryContext @JvmOverloads constructor(
     /**
      * if true the <code>__typename</code> will always be returned for interfaces, no matter if it was queried or not
@@ -14,6 +17,9 @@ data class QueryContext @JvmOverloads constructor(
     var contextParams: Map<String, Any?>? = emptyMap(),
     val auth: AuthParams? = null // TODO init
 ) {
+
+    var varCounter = 0
+    var paramCounter = 0
 
     fun resolve(string: String): String {
         return contextParams?.let { params ->
@@ -32,6 +38,9 @@ data class QueryContext @JvmOverloads constructor(
             }
         } ?: string
     }
+
+    fun getNextVariable(prefix: ChainString? = null) = Cypher.name((prefix?.resolveName() ?: "var") + varCounter++)
+    fun getNextParam(value: Any?) = Cypher.parameter("param" + paramCounter++, value)
 
     enum class OptimizationStrategy {
         /**

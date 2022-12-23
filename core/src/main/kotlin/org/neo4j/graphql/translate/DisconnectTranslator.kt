@@ -19,7 +19,7 @@ class DisconnectTranslator(
     private val varName: ChainString,
     private val relationField: RelationField,
     private val parentVar: Node,
-    private val context: QueryContext?,
+    private val context: QueryContext,
     private val schemaConfig: SchemaConfig,
     private val refNodes: Collection<org.neo4j.graphql.domain.Node>,
     private val labelOverride: String? = null,
@@ -66,8 +66,8 @@ class DisconnectTranslator(
 
         var condition: Condition? = null
         input.where?.let { where ->
-            condition = createConnectionWhere(
-                where as? ConnectionWhere.ImplementingTypeConnectionWhere ?: TODO("handle unions"),
+            val (whereCondition, whereSubquery) = createConnectionWhere(
+                where as? ConnectionWhere.ImplementingTypeConnectionWhere<*> ?: TODO("handle unions"),
                 relatedNode,
                 endNode,
                 relationField,
@@ -79,6 +79,11 @@ class DisconnectTranslator(
                 schemaConfig,
                 context,
             )
+            condition = whereCondition
+
+            if (whereSubquery.isNotEmpty()){
+                TODO()
+            }
         }
 
         if (relatedNode.auth != null) {

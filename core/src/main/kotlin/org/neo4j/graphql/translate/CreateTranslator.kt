@@ -16,7 +16,7 @@ import org.neo4j.graphql.handler.utils.ChainString
 
 class CreateTranslator(
     val schemaConfig: SchemaConfig,
-    val queryContext: QueryContext?,
+    val queryContext: QueryContext,
 ) {
 
     fun createCreateAndParams(

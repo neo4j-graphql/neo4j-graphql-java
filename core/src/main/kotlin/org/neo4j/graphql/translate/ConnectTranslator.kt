@@ -14,7 +14,7 @@ import org.neo4j.graphql.translate.where.createWhere
 //TODO complete
 class ConnectTranslator(
     private val schemaConfig: SchemaConfig,
-    private val queryContext: QueryContext?,
+    private val queryContext: QueryContext,
     private val parentNode: Node,
     private val varName: ChainString,
     private val parentVar: org.neo4j.cypherdsl.core.Node,
@@ -71,7 +71,7 @@ class ConnectTranslator(
             ?: relatedNode.asCypherNode(queryContext)
                 ).named(nodeName.resolveName())
 
-        val conditions = getConnectWhere(node, relatedNode, connect)
+        val (conditions, nestedSubQueries) = getConnectWhere(node, relatedNode, connect)
 
         var subQuery = CypherDSL.with(withVars)
             .optionalMatch(node)
@@ -97,6 +97,7 @@ class ConnectTranslator(
         }
 
         return subQuery
+            .withSubQueries(nestedSubQueries)
             .returning(Functions.count(Cypher.asterisk()))
             .build()
     }
@@ -105,16 +106,16 @@ class ConnectTranslator(
         nodeName: org.neo4j.cypherdsl.core.Node,
         relatedNode: Node,
         connect: ConnectFieldInput.ImplementingTypeConnectFieldInput
-    ): Condition? {
-        val whereNode = connect.where?.node ?: return null
+    ): WhereResult {
+        val whereNode = connect.where?.node ?: return WhereResult.EMPTY
 
         // If _on is the only `where`-key and it doesn't contain this implementation, don't connect it
         if (!whereNode.hasFilterForNode(relatedNode)) {
-            return null
+            return WhereResult.EMPTY
         }
 
         val whereInput = whereNode.withPreferredOn(relatedNode)
-        var conditions = createWhere(
+        var (conditions, whereSubQueries) = createWhere(
             relatedNode,
             whereInput,
             propertyContainer = nodeName,
@@ -131,7 +132,7 @@ class ConnectTranslator(
                 .createAuth(relatedNode.auth, AuthDirective.AuthOperation.CONNECT)
                 ?.let { conditions = conditions and it }
         }
-        return conditions
+        return WhereResult(conditions, whereSubQueries)
     }
 
     private fun getPreAuth(

@@ -159,6 +159,7 @@ enum class FieldOperator(
             "Time",
             "LocalTime",
             "Duration",
+            "String",
         )
         private val pointTypes = setOf(
             Constants.POINT_TYPE,

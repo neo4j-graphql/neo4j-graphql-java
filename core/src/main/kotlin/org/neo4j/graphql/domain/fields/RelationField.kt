@@ -54,11 +54,12 @@ class RelationField(
         val result = mutableMapOf<String, RelationPredicateDefinition>()
         listOf(true, false).forEach { isConnection ->
             RelationOperator.values().forEach { op ->
-                if (op.list == this.typeMeta.type.isList()) {
+                // TODO https://github.com/neo4j/graphql/issues/144
+//                if (op.list == this.typeMeta.type.isList()) {
                     val name = (this.fieldName.takeIf { !isConnection } ?: connectionField.fieldName) +
                             (op.suffix?.let { "_$it" } ?: "")
                     result[name] = RelationPredicateDefinition(name, this, op, isConnection)
-                }
+//                }
             }
         }
         result
@@ -97,7 +98,7 @@ class RelationField(
         end: org.neo4j.cypherdsl.core.Node,
         name: ChainString? = null
     ): Relationship = when (direction) {
-        Direction.IN -> start.relationshipFrom(end, relationType)
+        Direction.IN -> end.relationshipTo(start, relationType)
         Direction.OUT -> start.relationshipTo(end, relationType)
     }.let { if (name != null) it.named(name.resolveName()) else it }
 

@@ -91,6 +91,7 @@ abstract class ScalarField(fieldName: String, typeMeta: TypeMeta, schemaConfig: 
         private val COMPARABLE_TYPES = setOf(
             "Float",
             "Int",
+            "String",
             Constants.BIG_INT,
             Constants.DATE_TIME,
             Constants.DATE,

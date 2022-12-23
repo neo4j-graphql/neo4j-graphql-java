@@ -3,13 +3,14 @@ package org.neo4j.graphql.translate.where
 import org.neo4j.cypherdsl.core.*
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.FieldContainer
-import org.neo4j.graphql.domain.inputs.WhereInput
 import org.neo4j.graphql.domain.fields.HasCoalesceValue
+import org.neo4j.graphql.domain.inputs.WhereInput
 import org.neo4j.graphql.domain.inputs.connection_where.ConnectionWhere
 import org.neo4j.graphql.domain.predicates.ConnectionFieldPredicate
 import org.neo4j.graphql.domain.predicates.RelationFieldPredicate
 import org.neo4j.graphql.domain.predicates.ScalarFieldPredicate
 import org.neo4j.graphql.handler.utils.ChainString
+import org.neo4j.graphql.translate.WhereResult
 
 fun createWhere(
     node: FieldContainer<*>?,
@@ -17,19 +18,19 @@ fun createWhere(
     propertyContainer: PropertyContainer, // todo rename to dslNode
     chainStr: ChainString? = null,
     schemaConfig: SchemaConfig,
-    queryContext: QueryContext?,
-): Condition? {
-    if (node == null || whereInput == null) return null
+    queryContext: QueryContext,
+): WhereResult {
+    if (node == null || whereInput == null) return WhereResult.EMPTY
     // TODO harmonize with top level where
 
-    val paramPrefix =chainStr ?: ChainString(schemaConfig, propertyContainer)
+    val paramPrefix = chainStr ?: ChainString(schemaConfig, propertyContainer)
 
     fun resolveRelationCondition(predicate: RelationFieldPredicate): Condition {
         if (propertyContainer !is Node) throw IllegalArgumentException("a nodes is required for relation predicates")
         val field = predicate.field
         val op = predicate.def.operator
         val where = predicate.where
-        val param = paramPrefix.extend( field, op.suffix)
+        val param = paramPrefix.extend(field, op.suffix)
         val refNode = field.node ?: throw IllegalArgumentException("Relationship filters must reference nodes")
         val endDslNode = refNode.asCypherNode(queryContext)
 
@@ -37,14 +38,16 @@ fun createWhere(
 
         val endNode = endDslNode.named(param.resolveName())
         createWhere(refNode, where, endNode, chainStr = param, schemaConfig, queryContext)
+            .takeIf { it.predicate != null }
             ?.let { innerWhere ->
+                check(innerWhere.preComputedSubQueries.isEmpty(), { "TODO implement sub-queries here" })
                 val nestedCondition = op.predicateCreator(endNode.requiredSymbolicName)
                     .`in`(
                         CypherDSL
                             .listBasedOn(field.createDslRelation(propertyContainer, endNode))
                             .returning(endNode)
                     )
-                    .where(innerWhere)
+                    .where(innerWhere.predicate)
                 relCond = relCond and nestedCondition
             }
 
@@ -54,24 +57,26 @@ fun createWhere(
         return relCond
     }
 
-    fun resolveConnectionCondition(predicate: ConnectionFieldPredicate): Condition? {
+    fun resolveConnectionCondition(predicate: ConnectionFieldPredicate): WhereResult {
         val field = predicate.field
         val op = predicate.def.operator
         val where = predicate.where
 
-        if (node !is Node) throw IllegalArgumentException("a nodes is required for relation predicates")
+        if (propertyContainer !is Node) throw IllegalArgumentException("a nodes is required for relation predicates")
         val relationField = field.relationshipField
 
         val nodeEntries = when (where) {
-            is ConnectionWhere.UnionConnectionWhere -> where.dataPerNode.mapKeys { node.name() }
-            is ConnectionWhere.ImplementingTypeConnectionWhere ->
+            is ConnectionWhere.UnionConnectionWhere -> where.dataPerNode.mapKeys { propertyContainer.name() }
+            is ConnectionWhere.ImplementingTypeConnectionWhere<*> ->
                 // TODO can we use the name somehow else
                 mapOf(relationField.typeMeta.type.name() to where)
+
             else -> throw IllegalStateException("Unsupported where type")
         }
         var result: Condition? = null
 
         val param = paramPrefix.extend(field, op.suffix)
+        val subQueries = mutableListOf<Statement>()
         nodeEntries.forEach { (nodeName, whereInput) ->
             val refNode = relationField.getNode(nodeName)
                 ?: throw IllegalArgumentException("Cannot find referenced node $nodeName")
@@ -79,7 +84,7 @@ fun createWhere(
             val endDslNode = refNode.asCypherNode(queryContext)
 
 
-            var relCond = relationField.createDslRelation(node, endDslNode).asCondition()
+            var relCond = relationField.createDslRelation(propertyContainer, endDslNode).asCondition()
 
             val thisParam = param.extend(refNode)
 
@@ -94,23 +99,25 @@ fun createWhere(
             val cond = CypherDSL.name("Cond")
             val endNode = endDslNode.named(thisParam.resolveName())
             val relation = relationField.createDslRelation(
-                node,
+                propertyContainer,
                 endNode,
                 thisParam.extend(field.relationshipTypeName)
             )
 
-            (
-                    createConnectionWhere(
-                        whereInput,
-                        refNode,
-                        endNode,
-                        relationField,
-                        relation,
-                        parameterPrefix,
-                        schemaConfig,
-                        queryContext
-                    )
-                        ?: Conditions.isTrue())
+
+            val (whereCondition, whereSubquery) = createConnectionWhere(
+                whereInput,
+                refNode,
+                endNode,
+                relationField,
+                relation,
+                parameterPrefix,
+                schemaConfig,
+                queryContext
+            )
+            subQueries.addAll(whereSubquery)
+
+            (whereCondition ?: Conditions.isTrue())
                 .let { innerWhere ->
                     val nestedCondition = op.predicateCreator(cond)
                         .`in`(
@@ -128,7 +135,7 @@ fun createWhere(
 
             result = result and relCond
         }
-        return result
+        return WhereResult(result, subQueries)
     }
 
 
@@ -146,41 +153,50 @@ fun createWhere(
             Cypher.literalNull()
         } else {
             Cypher.parameter(
-                schemaConfig.namingStrategy.resolveParameter(paramPrefix, predicate.resolver.name),
+                schemaConfig.namingStrategy.resolveParameter(paramPrefix, predicate.name),
                 predicate.value
             )
         }
-        return predicate.resolver.createCondition(property, rhs)
+        return predicate.createCondition(property, rhs)
     }
 
     var result: Condition? = null
-
+    val subQueries = mutableListOf<Statement>()
     if (whereInput is WhereInput.FieldContainerWhereInput<*>) {
         result = whereInput.reduceNestedConditions { key, index, nested ->
-            createWhere(
+            val (whereCondition, whereSubquery) = createWhere(
                 node, nested, propertyContainer,
                 paramPrefix.extend(key, index.takeIf { it > 0 }),
                 schemaConfig, queryContext
             )
+            subQueries.addAll(whereSubquery)
+            whereCondition
         }
 
-        whereInput.aggregate?.forEach { (field, input) ->
-            TODO()
-//                AggregateWhere(schemaConfig, queryContext)
-//                    .createAggregateWhere(param, field, varName, value)
-//                    ?.let { result = result and it }
+        whereInput.aggregate.forEach { (field, input) ->
+            if (propertyContainer !is Node) throw IllegalArgumentException("a nodes is required for relation predicates")
+            AggregateWhere(schemaConfig, queryContext)
+                .createAggregateWhere(paramPrefix, field, propertyContainer, input)
+                .let { aggregationResult ->
+                    aggregationResult.predicate?.let { result = result and it }
+                    subQueries.addAll(aggregationResult.preComputedSubQueries)
+                }
         }
 
         whereInput.predicates.forEach { predicate ->
             when (predicate) {
                 is ScalarFieldPredicate -> resolveScalarCondition(predicate)
                 is RelationFieldPredicate -> resolveRelationCondition(predicate)
-                is ConnectionFieldPredicate -> resolveConnectionCondition(predicate)
+                is ConnectionFieldPredicate -> {
+                    val (whereCondition, whereSubquery) =resolveConnectionCondition(predicate)
+                    subQueries.addAll(whereSubquery)
+                    whereCondition
+                }
                 else -> null
             }
                 ?.let { result = result and it }
         }
     }
 
-    return result
+    return WhereResult(result, subQueries)
 }

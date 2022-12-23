@@ -3,6 +3,8 @@ package org.neo4j.graphql.domain.fields
 import graphql.language.Value
 import org.neo4j.graphql.SchemaConfig
 import org.neo4j.graphql.domain.TypeMeta
+import org.neo4j.graphql.isRequired
+import org.neo4j.graphql.name
 
 /**
  * Representation of any field thats not
@@ -23,4 +25,9 @@ open class PrimitiveField(
     override var coalesceValue: Value<*>? = null
 
     override val generated: Boolean get() = super.generated || autogenerate
+
+    fun getAggregationSelectionLibraryTypeName(): String {
+        val suffix = if (typeMeta.type.isRequired()) "NonNullable" else "Nullable"
+        return "${typeMeta.type.name()}AggregateSelection$suffix"
+    }
 }

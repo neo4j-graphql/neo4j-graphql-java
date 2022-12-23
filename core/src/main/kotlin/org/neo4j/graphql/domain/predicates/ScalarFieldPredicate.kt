@@ -1,9 +1,10 @@
 package org.neo4j.graphql.domain.predicates
 
-import org.neo4j.graphql.domain.fields.ScalarField
 import org.neo4j.graphql.domain.predicates.definitions.ScalarPredicateDefinition
 
 class ScalarFieldPredicate(
-    val resolver: ScalarPredicateDefinition,
-    val value: Any?
-) : Predicate<ScalarField>(resolver.name, resolver.field)
+    private val resolver: ScalarPredicateDefinition,
+    value: Any?
+) : ExpressionPredicate(resolver.name, { rhs, lhs -> resolver.createCondition(rhs, lhs) }, value) {
+    val field get() = resolver.field
+}

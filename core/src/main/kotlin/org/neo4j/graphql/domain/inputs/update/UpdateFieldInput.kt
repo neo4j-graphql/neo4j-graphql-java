@@ -19,7 +19,7 @@ import org.neo4j.graphql.domain.inputs.disconnect.DisconnectFieldInput
 sealed interface UpdateFieldInput {
 
     sealed class ImplementingTypeUpdateFieldInput {
-        abstract val where: ConnectionWhere.ImplementingTypeConnectionWhere?
+        abstract val where: ConnectionWhere.ImplementingTypeConnectionWhere<*>?
         abstract val update: ImplementingTypeUpdateConnectionInput?
         abstract val connect: List<ConnectFieldInput.ImplementingTypeConnectFieldInput>?
         abstract val disconnect: List<DisconnectFieldInput.ImplementingTypeDisconnectFieldInput>?

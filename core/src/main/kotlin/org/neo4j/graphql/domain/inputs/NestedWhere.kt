@@ -4,10 +4,16 @@ import org.neo4j.cypherdsl.core.Condition
 import org.neo4j.graphql.Constants
 import org.neo4j.graphql.and
 import org.neo4j.graphql.or
+import org.neo4j.graphql.wrapList
 
-interface NestedWhere<T : NestedWhere<T>> {
-    val and: List<T>?
-    val or: List<T>?
+abstract class NestedWhere<T : NestedWhere<T>>(
+    data: Dict,
+    nestedWhereFactory: (data: Dict) -> T?
+) {
+
+    val and = data[Constants.AND]?.wrapList()?.mapNotNull { nestedWhereFactory(Dict(it)) }
+
+    val or = data[Constants.OR]?.wrapList()?.mapNotNull { nestedWhereFactory(Dict(it)) }
 
     fun reduceNestedConditions(extractCondition: (key: String, index: Int, nested: T) -> Condition?): Condition? {
         var result: Condition? = null

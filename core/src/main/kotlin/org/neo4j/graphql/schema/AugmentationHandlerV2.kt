@@ -26,13 +26,13 @@ abstract class AugmentationHandlerV2(ctx: AugmentationContext) : BaseAugmentatio
     )
 
     protected fun addAggregationSelectionType(node: Node): String {
-        return getOrCreateObjectType("${node.name}AggregateSelection") { fields, _ ->
+        return getOrCreateObjectType(node.aggregateTypeNames.selection) { fields, _ ->
             fields += field(Constants.COUNT, NonNullType(Constants.Types.Int))
             fields += node.fields
                 .filterIsInstance<PrimitiveField>()
                 .filterNot { it.typeMeta.type.isList() }
                 .mapNotNull { field ->
-                    getAggregationSelectionLibraryType(field.typeMeta.type)?.let { field(field.fieldName, NonNullType(it)) }
+                    getAggregationSelectionLibraryType(field)?.let { field(field.fieldName, NonNullType(it)) }
                 }
         } ?: throw IllegalStateException("Expected at least the count field")
     }

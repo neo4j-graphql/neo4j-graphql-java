@@ -18,7 +18,7 @@ class UpdateTranslator(
     private val chainStr: ChainString?,
     private val node: org.neo4j.graphql.domain.Node,
     private val withVars: List<SymbolicName>,
-    private val context: QueryContext?,
+    private val context: QueryContext,
     private val parameterPrefix: ChainString,
     private val includeRelationshipValidation: Boolean = false,
     private val schemaConfig: SchemaConfig,
@@ -218,7 +218,7 @@ class UpdateTranslator(
         var condition: Condition? = null
 
         input.where?.let { where ->
-            createConnectionWhere(
+            val (whereCondition, whereSubquery) = createConnectionWhere(
                 where,
                 refNode,
                 endNode,
@@ -231,7 +231,10 @@ class UpdateTranslator(
                 schemaConfig,
                 context,
             )
-                ?.let { condition = condition and it }
+            whereCondition?.let { condition = condition and it }
+            if (whereSubquery.isNotEmpty()){
+                TODO()
+            }
         }
 
         AuthTranslator(schemaConfig, context, where = AuthTranslator.AuthOptions(endNode, refNode))

@@ -95,15 +95,18 @@ open class AsciiDocTestSuite(
                 when {
                     !globalDone && globalMarkers.contains(line) -> currentBlock =
                         startBlock(line, lineNr, globalCodeBlocks)
+
                     testCaseMarkers.contains(line) -> {
                         globalDone = true
                         currentBlock = startBlock(line, lineNr, codeBlocksOfTest)
                     }
+
                     line == "'''" -> {
                         createTests(title, lineNr, ignore)
                         currentBlock = null
                         ignore = false
                     }
+
                     line == "----" -> {
                         inside = !inside
                         if (inside) {
@@ -118,7 +121,7 @@ open class AsciiDocTestSuite(
                                 SCHEMA_MARKER -> {
                                     val schemaTests = schemaTestFactory(currentBlock.code())
                                     currentDocumentLevel?.tests?.add(schemaTests)
-                                    if (testCaseMarkers.isEmpty()){
+                                    if (testCaseMarkers.isEmpty()) {
                                         break@loop
                                     }
                                 }
@@ -191,6 +194,7 @@ open class AsciiDocTestSuite(
                     depth > currentDepth -> currentDocumentLevel
                     depth == currentDepth -> currentDocumentLevel?.parent
                         ?: throw IllegalStateException("cannot create sub-level on null")
+
                     else -> currentDocumentLevel?.parent?.parent
                         ?: throw IllegalStateException("cannot create sub-level on null")
                 }
@@ -220,8 +224,8 @@ open class AsciiDocTestSuite(
         if (!Objects.equals(rebuildTest, fileContent.toString())) {
             // This special exception will be handled by intellij so that you can diff directly with the file
             throw FileComparisonFailure(
-                null, rebuildTest, fileContent.toString(),
-                null, File("src/test/resources/", fileName).absolutePath
+                null, fileContent.toString(), rebuildTest,
+                File("src/test/resources/", fileName).absolutePath, null
             )
         }
     }

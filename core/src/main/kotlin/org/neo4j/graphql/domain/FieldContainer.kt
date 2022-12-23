@@ -1,5 +1,6 @@
 package org.neo4j.graphql.domain
 
+import org.neo4j.graphql.Constants
 import org.neo4j.graphql.domain.fields.*
 import org.neo4j.graphql.domain.predicates.definitions.PredicateDefinition
 import org.neo4j.graphql.isList
@@ -51,6 +52,12 @@ abstract class FieldContainer<T : BaseField>(val fields: List<T>) {
         scalarFields.forEach { result.putAll(it.predicates) }
         relationFields.forEach { result.putAll(it.predicates) }
         result
+    }
+
+    val aggregationPredicates: Map<String, RelationField> by lazy {
+        relationFields.filter { it.node != null }
+            .map { it.fieldName + Constants.AGGREGATION_SUFFIX to it }
+            .toMap()
     }
 
     fun getField(name: String): BaseField? {

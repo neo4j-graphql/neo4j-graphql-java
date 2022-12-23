@@ -204,6 +204,7 @@ open class BaseAugmentationV2(
                                 NonNullType(it)
                             else it
                         })
+
                         else -> when {
                             op.distance && field.typeMeta.whereType.name() == Constants.POINT_INPUT_TYPE -> Constants.Types.PointDistance
                             op.distance && field.typeMeta.whereType.name() == Constants.CARTESIAN_POINT_INPUT_TYPE -> Constants.Types.CartesianPointDistance
@@ -262,7 +263,7 @@ open class BaseAugmentationV2(
 
                     }
                     generateAggregateInputIT(typeName, field).let {
-                        result += inputValue(field.fieldName + "Aggregate", it.asType())
+                        result += inputValue(field.fieldName + Constants.AGGREGATION_SUFFIX, it.asType())
                     }
                 }
             }
@@ -345,6 +346,7 @@ open class BaseAugmentationV2(
                                 "SHORTEST_${op}" to Constants.Types.Int,
                             )
                         }
+
                         Constants.WHERE_AGGREGATION_AVERAGE_TYPES.contains(field.typeMeta.type.name()) -> {
                             val averageType = when (field.typeMeta.type.name()) {
                                 Constants.BIG_INT, Constants.DURATION -> field.typeMeta.type.inner()
@@ -365,6 +367,7 @@ open class BaseAugmentationV2(
                                 }
                             }
                         }
+
                         else ->
                             Constants.WHERE_AGGREGATION_OPERATORS.flatMap { op ->
                                 listOf(
@@ -605,14 +608,13 @@ open class BaseAugmentationV2(
                 .filterIsInstance<PrimitiveField>()
                 .filterNot { it.typeMeta.type.isList() }
                 .forEach { field ->
-                    getAggregationSelectionLibraryType(field.typeMeta.type)
+                    getAggregationSelectionLibraryType(field)
                         ?.let { fields += field(field.fieldName, NonNullType(it)) }
                 }
         }
 
-    protected fun getAggregationSelectionLibraryType(type: Type<*>): Type<*>? {
-        val suffix = if (type.isRequired()) "NonNullable" else "Nullable"
-        val name = "${type.name()}AggregateSelection$suffix"
+    protected fun getAggregationSelectionLibraryType(field: PrimitiveField): Type<*>? {
+        val name = field.getAggregationSelectionLibraryTypeName()
         ctx.neo4jTypeDefinitionRegistry.getUnwrappedType(name) ?: return null
         return TypeName(name)
     }

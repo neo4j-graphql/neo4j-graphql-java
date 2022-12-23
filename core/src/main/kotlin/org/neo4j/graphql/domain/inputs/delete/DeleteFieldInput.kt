@@ -15,7 +15,7 @@ import org.neo4j.graphql.domain.inputs.connection_where.ConnectionWhere.NodeConn
 
 sealed interface DeleteFieldInput {
     sealed interface ImplementingTypeDeleteFieldInput {
-        val where: ConnectionWhere.ImplementingTypeConnectionWhere?
+        val where: ConnectionWhere.ImplementingTypeConnectionWhere<*>?
         val delete: DeleteInput?
     }
 

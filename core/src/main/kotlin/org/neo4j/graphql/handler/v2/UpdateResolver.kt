@@ -11,13 +11,20 @@ import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
 import org.neo4j.graphql.domain.directives.ExcludeDirective
+import org.neo4j.graphql.domain.inputs.Dict
 import org.neo4j.graphql.domain.inputs.ScalarProperties
+import org.neo4j.graphql.domain.inputs.WhereInput
 import org.neo4j.graphql.domain.inputs.connect.ConnectFieldInput
+import org.neo4j.graphql.domain.inputs.connect.ConnectInput
 import org.neo4j.graphql.domain.inputs.connect_or_create.ConnectOrCreateFieldInput
+import org.neo4j.graphql.domain.inputs.connect_or_create.ConnectOrCreateInput
 import org.neo4j.graphql.domain.inputs.create.CreateInput
 import org.neo4j.graphql.domain.inputs.create.RelationFieldInput
+import org.neo4j.graphql.domain.inputs.create.RelationInput
+import org.neo4j.graphql.domain.inputs.delete.DeleteInput
 import org.neo4j.graphql.domain.inputs.disconnect.DisconnectFieldInput
-import org.neo4j.graphql.domain.inputs.update.UpdateResolverInputs
+import org.neo4j.graphql.domain.inputs.disconnect.DisconnectInput
+import org.neo4j.graphql.domain.inputs.update.UpdateInput
 import org.neo4j.graphql.handler.BaseDataFetcher
 import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.schema.AugmentationHandlerV2
@@ -64,12 +71,23 @@ class UpdateResolver private constructor(
         }
     }
 
+    private class InputArguments(node: Node, args: Map<String, *>) {
+        val where = args[Constants.WHERE]?.let { WhereInput.create(node, it) }
+        val update = args[Constants.UPDATE_FIELD]?.let { UpdateInput.NodeUpdateInput(node, Dict(it)) }
+        val connect = args[Constants.CONNECT_FIELD]?.let { ConnectInput.NodeConnectInput(node, Dict(it)) }
+        val disconnect = args[Constants.DISCONNECT_FIELD]?.let { DisconnectInput.NodeDisconnectInput(node, Dict(it)) }
+        val create = args[Constants.CREATE_FIELD]?.let { RelationInput.create(node, it) }
+        val delete = args[Constants.DELETE_FIELD]?.let { DeleteInput.NodeDeleteInput(node, Dict(it)) }
+        val connectOrCreate = args[Constants.CONNECT_OR_CREATE_FIELD]?.let { ConnectOrCreateInput.create(node, it) }
+    }
+
+
     override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement {
         val queryContext = env.queryContext()
         val dslNode = node.asCypherNode(queryContext, variable)
         val resolveTree = ResolveTree.resolve(env) // todo move into parent class
 
-        val arguments = UpdateResolverInputs(node, resolveTree.args)
+        val arguments = InputArguments(node, resolveTree.args)
         val assumeReconnecting = arguments.connect != null && arguments.disconnect != null
 
         val withVars = listOf(dslNode.requiredSymbolicName)

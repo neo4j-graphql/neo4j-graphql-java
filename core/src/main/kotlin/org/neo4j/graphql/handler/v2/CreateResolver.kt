@@ -11,7 +11,7 @@ import org.neo4j.cypherdsl.core.StatementBuilder
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.ExcludeDirective
-import org.neo4j.graphql.domain.inputs.create.CreateResolverInputs
+import org.neo4j.graphql.domain.inputs.create.CreateInput
 import org.neo4j.graphql.handler.BaseDataFetcher
 import org.neo4j.graphql.schema.AugmentationHandlerV2
 import org.neo4j.graphql.translate.CreateTranslator
@@ -39,8 +39,14 @@ class CreateResolver private constructor(
         }
     }
 
+    private class InputArguments(node: Node, args: Map<String, *>) {
+        val input = args[Constants.INPUT_FIELD]
+            ?.wrapList()
+            ?.map { CreateInput.create(node, it) }
+    }
+
     override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement {
-        val arguments = CreateResolverInputs(node, env.arguments)
+        val arguments = InputArguments(node, env.arguments)
 
         val queryContext = env.queryContext()
 

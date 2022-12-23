@@ -10,6 +10,8 @@ class ResolveTree(
     val args: Map<String, *> = emptyMap<String, Any>(),
     val fieldsByTypeName: Map<String, Map<*, ResolveTree>> = emptyMap(),
 ) {
+    val aliasOrName get() = alias ?: name
+
     companion object {
 
         fun resolve(env: DataFetchingEnvironment): ResolveTree {
@@ -71,6 +73,4 @@ class ResolveTree(
 
     fun getFieldOfType(typeName: String, fieldName: String): ResolveTree? =
         this.fieldsByTypeName[typeName]?.values?.find { it.name == fieldName }
-
-
 }

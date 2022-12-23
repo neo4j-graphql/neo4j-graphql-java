@@ -1,5 +1,5 @@
 package org.neo4j.graphql.domain.predicates.definitions
 
-interface PredicateDefinition {
+sealed interface PredicateDefinition {
     val name:String
 }

@@ -7,4 +7,6 @@ import org.neo4j.graphql.domain.predicates.definitions.RelationPredicateDefiniti
 class ConnectionFieldPredicate(
     val def: RelationPredicateDefinition,
     val where: ConnectionWhere?,
-) : Predicate<ConnectionField>(def.name, def.field.connectionField)
+) : Predicate(def.name) {
+    val field get() = def.field.connectionField
+}

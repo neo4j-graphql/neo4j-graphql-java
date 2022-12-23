@@ -71,18 +71,19 @@ interface WhereInput {
         data: Dict,
         fieldContainer: FieldContainer<*>,
         nestedWhereFactory: (data: Dict) -> T?
-    ) : WhereInput, NestedWhere<T> {
-
-        override val and = data[Constants.AND]?.wrapList()?.mapNotNull { nestedWhereFactory(Dict(it)) }
-
-        override val or = data[Constants.OR]?.wrapList()?.mapNotNull { nestedWhereFactory(Dict(it)) }
+    ) : WhereInput, NestedWhere<T>(data, nestedWhereFactory) {
 
         val predicates = data
             .filter { !SPECIAL_KEYS.contains(it.key) }
             .mapNotNull { (key, value) -> createPredicate(fieldContainer, key, value) }
 
 
-        val aggregate: Map<RelationField, AggregateInput>? = emptyMap()
+        val aggregate: Map<RelationField, AggregateInput> = data
+            .mapNotNull { (key, value) ->
+                val field = fieldContainer.aggregationPredicates[key] ?: return@mapNotNull null
+                field to (AggregateInput.create(field, value) ?: return@mapNotNull null)
+            }
+            .toMap()
 
         fun hasPredicates(): Boolean = predicates.isNotEmpty()
                 || or?.find { it.hasPredicates() } != null

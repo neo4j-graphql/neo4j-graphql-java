@@ -9,7 +9,9 @@ import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
 import org.neo4j.graphql.domain.directives.ExcludeDirective
-import org.neo4j.graphql.domain.inputs.delete.DeleteResolverInputs
+import org.neo4j.graphql.domain.inputs.Dict
+import org.neo4j.graphql.domain.inputs.WhereInput
+import org.neo4j.graphql.domain.inputs.delete.DeleteInput
 import org.neo4j.graphql.handler.BaseDataFetcher
 import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.schema.AugmentationHandlerV2
@@ -42,10 +44,15 @@ class DeleteResolver private constructor(
         }
     }
 
+    private class InputArguments(node: Node, args: Map<String, *>) {
+        val delete = args[Constants.DELETE_FIELD]?.let { DeleteInput.NodeDeleteInput(node, Dict(it)) }
+        val where = args[Constants.WHERE]?.let { WhereInput.NodeWhereInput(node, Dict(it)) }
+    }
+
     override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement {
         val queryContext = env.queryContext()
         val resolveTree = ResolveTree.resolve(env)
-        val input = DeleteResolverInputs(node, resolveTree.args)
+        val input = InputArguments(node, resolveTree.args)
 
         val dslNode = node.asCypherNode(queryContext, variable)
 

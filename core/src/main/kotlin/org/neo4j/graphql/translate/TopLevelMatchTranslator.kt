@@ -1,6 +1,7 @@
 package org.neo4j.graphql.translate
 
 import org.neo4j.cypherdsl.core.*
+import org.neo4j.cypherdsl.core.StatementBuilder.ExposesWith
 import org.neo4j.cypherdsl.core.StatementBuilder.OngoingReading
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.FieldContainer
@@ -17,7 +18,7 @@ import org.neo4j.graphql.translate.where.createWhere
 class TopLevelMatchTranslator(
     val schemaConfig: SchemaConfig,
     val variables: Map<String, Any>,
-    val queryContext: QueryContext?
+    val queryContext: QueryContext
 ) {
 
     fun translateTopLevelMatch(
@@ -28,23 +29,16 @@ class TopLevelMatchTranslator(
         authOperation: AuthDirective.AuthOperation
     ): OngoingReading {
 
-        val match: ExposesWhere
-        var conditions: Condition
-
         val varName = ChainString(schemaConfig, cypherNode)
 
-        if (fulltextInput != null) {
-            createFulltextSearchMatch(fulltextInput, node, varName).let { (m, c) ->
-                match = m
-                conditions = c
-            }
+        var (match, conditions) = if (fulltextInput != null) {
+            createFulltextSearchMatch(fulltextInput, node, varName)
         } else {
-            match = Cypher.match(cypherNode)
-            conditions = Conditions.noCondition()
+            Cypher.match(cypherNode) to Conditions.noCondition()
         }
 
-        createWhere(node, where, cypherNode, varName, schemaConfig, queryContext)
-            ?.let { conditions = conditions.and(it) }
+        val (whereConditions, subQueries) = createWhere(node, where, cypherNode, varName, schemaConfig, queryContext)
+        whereConditions?.let { conditions = conditions.and(it) }
 
         if (node.auth != null) {
             AuthTranslator(
@@ -54,16 +48,20 @@ class TopLevelMatchTranslator(
             ).createAuth(node.auth, authOperation)
                 ?.let { conditions = conditions.and(it) }
         }
-
-
-        return match.where(conditions)
+        return if (subQueries.isNotEmpty()) {
+            (match.withSubQueries(subQueries) as ExposesWith)
+                .with(Cypher.asterisk())
+                .where(conditions)
+        } else {
+            match.where(conditions)
+        }
     }
 
     private fun createFulltextSearchMatch(
         fulltextInput: FulltextPerIndex,
         node: Node,
         varName: ChainString
-    ): Pair<ExposesWhere, Condition> {
+    ): Pair<StatementBuilder.OngoingStandaloneCallWithReturnFields, Condition> {
         if (fulltextInput.size > 1) {
             throw IllegalArgumentException("Can only call one search at any given time");
         }
@@ -71,7 +69,7 @@ class TopLevelMatchTranslator(
 
         val thisName = Cypher.name("node").`as`("this")
         val scoreName = Cypher.name("score").`as`("score")
-        val call: ExposesWhere = CypherDSL.call("db.index.fulltext.queryNodes")
+        val call = CypherDSL.call("db.index.fulltext.queryNodes")
             .withArgs(
                 indexName.asCypherLiteral(),
                 varName.extend("fulltext", indexName, "phrase").resolveParameter(indexInput.phrase)

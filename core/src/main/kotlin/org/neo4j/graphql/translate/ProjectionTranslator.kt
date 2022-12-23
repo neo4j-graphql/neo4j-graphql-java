@@ -25,7 +25,7 @@ class ProjectionTranslator {
         chainStr: ChainString? = null,
         schemaConfig: SchemaConfig,
         variables: Map<String, Any>,
-        queryContext: QueryContext?,
+        queryContext: QueryContext,
     ): Projection {
         return createProjectionAndParams(node, varName, resolve(env), chainStr, schemaConfig, variables, queryContext)
     }
@@ -37,7 +37,7 @@ class ProjectionTranslator {
         chainStr: ChainString? = null,
         schemaConfig: SchemaConfig,
         variables: Map<String, Any>,
-        queryContext: QueryContext?,
+        queryContext: QueryContext,
         withVars: List<SymbolicName> = emptyList(),
         resolveType: Boolean = false,
     ): Projection {
@@ -55,7 +55,7 @@ class ProjectionTranslator {
             projections += node.name.asCypherLiteral()
         }
         mergedFields.values.forEach { field ->
-            val alias = field.alias ?: field.name
+            val alias = field.aliasOrName
             val param = chainStr?.extend(alias) ?: ChainString(schemaConfig, varName, alias)
 
             val nodeField = node.getField(field.name) ?: return@forEach
@@ -109,7 +109,7 @@ class ProjectionTranslator {
                             .createAuth(refNode.auth, AuthDirective.AuthOperation.READ)
                             ?.let { subQuery = subQuery.apocValidate(it, Constants.AUTH_FORBIDDEN_ERROR) }
 
-                        var condition = createWhere(
+                        var (condition, whereSubQueries) = createWhere(
                             refNode,
                             whereInput?.withPreferredOn(node),
                             endNode,
@@ -117,6 +117,7 @@ class ProjectionTranslator {
                             schemaConfig,
                             queryContext
                         )
+                        subQueries.addAll(whereSubQueries)
 
                         AuthTranslator(schemaConfig, queryContext, where = AuthTranslator.AuthOptions(endNode, refNode))
                             .createAuth(refNode.auth, AuthDirective.AuthOperation.READ)
@@ -204,7 +205,12 @@ class ProjectionTranslator {
                                 recurse.authValidate,
                                 param.extend(refNode)
                             )
-                                ?.let { unionCondition = unionCondition and it }
+                                .let { (nodeWhere, nodeSubQueries) ->
+                                    subQueries.addAll(nodeSubQueries)
+                                    if (nodeWhere != null) {
+                                        unionCondition = unionCondition and nodeWhere
+                                    }
+                                }
                             projection.addAll(recurse.projection)
                         }
 
@@ -271,16 +277,19 @@ class ProjectionTranslator {
 
     private fun createNodeWhereAndParams(
         whereInput: WhereInput?,
-        context: QueryContext?,
+        context: QueryContext,
         schemaConfig: SchemaConfig,
         node: Node,
         varName: org.neo4j.cypherdsl.core.Node,
         authValidate: Condition?,
         chainStr: ChainString?
-    ): Condition? {
+    ): WhereResult {
         var condition: Condition? = null
+        val subQueries = mutableListOf<Statement>()
         if (whereInput != null) {
-            condition = createWhere(node, whereInput, varName, chainStr, schemaConfig, context)
+            val whereResult = createWhere(node, whereInput, varName, chainStr, schemaConfig, context)
+            condition = whereResult.predicate
+            subQueries.addAll(whereResult.preComputedSubQueries)
         }
 
         AuthTranslator(schemaConfig, context, where = AuthTranslator.AuthOptions(varName, node, chainStr))
@@ -295,7 +304,7 @@ class ProjectionTranslator {
         authValidate.apocValidatePredicate(Constants.AUTH_FORBIDDEN_ERROR)
             ?.let { condition = condition and it }
 
-        return condition
+        return WhereResult(condition, subQueries)
     }
 
     data class Projection(
