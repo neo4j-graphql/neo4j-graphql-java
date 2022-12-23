@@ -47,13 +47,11 @@ type Movie {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Movie`)
-
-WITH *
-
-LIMIT $param0
-
-RETURN this { .title } AS this
+MATCH (this:Movie)
+WITH * LIMIT $param0
+RETURN this {
+	.title
+} AS this
 ----
 
 '''
@@ -88,14 +86,11 @@ RETURN this { .title } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Movie`)
-
-WITH *
-
-SKIP $param0
-LIMIT $param1
-
-RETURN this { .title } AS this
+MATCH (this:Movie)
+WITH * SKIP $param0 LIMIT $param1
+RETURN this {
+	.title
+} AS this
 ----
 
 '''
@@ -139,14 +134,11 @@ query ($offset: Int, $limit: Int) {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Movie`)
-
-WITH *
-
-SKIP $param0
-LIMIT $param1
-
-RETURN this { .title } AS this
+MATCH (this:Movie)
+WITH * SKIP $param0 LIMIT $param1
+RETURN this {
+	.title
+} AS this
 ----
 
 '''
@@ -192,15 +184,12 @@ query ($offset: Int, $limit: Int, $title: String) {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Movie`)
+MATCH (this:Movie)
 WHERE this.title = $param0
-
-WITH *
-
-SKIP $param1
-LIMIT $param2
-
-RETURN this { .title } AS this
+WITH * SKIP $param1 LIMIT $param2
+RETURN this {
+	.title
+} AS this
 ----
 
 '''
@@ -231,13 +220,11 @@ RETURN this { .title } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Movie`)
-
-WITH *
-
-SKIP $param0
-
-RETURN this { .title } AS this
+MATCH (this:Movie)
+WITH * SKIP $param0
+RETURN this {
+	.title
+} AS this
 ----
 
 '''

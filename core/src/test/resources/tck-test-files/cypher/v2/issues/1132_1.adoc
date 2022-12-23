@@ -52,31 +52,34 @@ mutation {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Source`)
+MATCH (this:Source)
 WITH this
 CALL {
 	WITH this
 	OPTIONAL MATCH (this_connect_targets0_node:Target)
 	WHERE this_connect_targets0_node.id = $this_connect_targets0_node_param0
 	WITH this, this_connect_targets0_node
-	CALL apoc.util.validate(NOT ((this.id IS NOT NULL AND this.id = $thisauth_param0)), "@neo4j/graphql/FORBIDDEN", [0])
+	CALL apoc.util.validate(NOT ((this.id IS NOT NULL
+		AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
 	CALL {
 		WITH *
-		WITH collect(this_connect_targets0_node) as connectedNodes, collect(this) as parentNodes
+		WITH collect(this_connect_targets0_node) AS connectedNodes, collect(this) AS parentNodes
 		CALL {
 			WITH connectedNodes, parentNodes
-			UNWIND parentNodes as this
-			UNWIND connectedNodes as this_connect_targets0_node
+			UNWIND parentNodes AS this
+			UNWIND connectedNodes AS this_connect_targets0_node
 			MERGE (this)-[:HAS_TARGET]->(this_connect_targets0_node)
 			RETURN count(*) AS _
 		}
 		RETURN count(*) AS _
 	}
-WITH this, this_connect_targets0_node
+	WITH this, this_connect_targets0_node
 	RETURN count(*) AS connect_this_connect_targets_Target
 }
 WITH *
-RETURN collect(DISTINCT this { .id }) AS data
+RETURN collect(DISTINCT this {
+	.id
+}) AS data
 ----
 
 '''

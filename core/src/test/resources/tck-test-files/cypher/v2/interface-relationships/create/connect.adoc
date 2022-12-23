@@ -78,47 +78,47 @@ mutation {
 [source,cypher]
 ----
 CALL {
-CREATE (this0:Actor)
-SET this0.name = $this0_name
-WITH this0
-CALL {
+	CREATE (this0:Actor)
+	SET this0.name = $this0_name
 	WITH this0
-	OPTIONAL MATCH (this0_actedIn_connect0_node:Movie)
-	WHERE this0_actedIn_connect0_node.title STARTS WITH $this0_actedIn_connect0_node_title_STARTS_WITH
-	FOREACH(_ IN CASE this0 WHEN NULL THEN [] ELSE [1] END | 
-		FOREACH(_ IN CASE this0_actedIn_connect0_node WHEN NULL THEN [] ELSE [1] END | 
-			MERGE (this0)-[this0_actedIn_connect0_relationship:ACTED_IN]->(this0_actedIn_connect0_node)
-SET this0_actedIn_connect0_relationship.screenTime = $this0_actedIn_connect0_relationship_screenTime
-		)
-	)
-	RETURN count(*)
-UNION
-	WITH this0
-	OPTIONAL MATCH (this0_actedIn_connect0_node:Series)
-	WHERE this0_actedIn_connect0_node.title STARTS WITH $this0_actedIn_connect0_node_title_STARTS_WITH
-	FOREACH(_ IN CASE this0 WHEN NULL THEN [] ELSE [1] END | 
-		FOREACH(_ IN CASE this0_actedIn_connect0_node WHEN NULL THEN [] ELSE [1] END | 
-			MERGE (this0)-[this0_actedIn_connect0_relationship:ACTED_IN]->(this0_actedIn_connect0_node)
-SET this0_actedIn_connect0_relationship.screenTime = $this0_actedIn_connect0_relationship_screenTime
-		)
-	)
-	RETURN count(*)
-}
-RETURN this0
+	CALL {
+		WITH this0
+		OPTIONAL MATCH (this0_actedIn_connect0_node:Movie)
+		WHERE this0_actedIn_connect0_node.title STARTS WITH $this0_actedIn_connect0_node_title_STARTS_WITH FOREACH (_ IN CASE this0 WHEN NULL THEN [] ELSE [1] END | FOREACH (_ IN CASE this0_actedIn_connect0_node WHEN NULL THEN [] ELSE [1] END |
+		MERGE (this0)-[this0_actedIn_connect0_relationship:ACTED_IN]->(this0_actedIn_connect0_node)
+		SET this0_actedIn_connect0_relationship.screenTime = $this0_actedIn_connect0_relationship_screenTime))
+		RETURN count(*) UNION
+		WITH this0
+		OPTIONAL MATCH (this0_actedIn_connect0_node:Series)
+		WHERE this0_actedIn_connect0_node.title STARTS WITH $this0_actedIn_connect0_node_title_STARTS_WITH FOREACH (_ IN CASE this0 WHEN NULL THEN [] ELSE [1] END | FOREACH (_ IN CASE this0_actedIn_connect0_node WHEN NULL THEN [] ELSE [1] END |
+		MERGE (this0)-[this0_actedIn_connect0_relationship:ACTED_IN]->(this0_actedIn_connect0_node)
+		SET this0_actedIn_connect0_relationship.screenTime = $this0_actedIn_connect0_relationship_screenTime))
+		RETURN count(*)
+	}
+	RETURN this0
 }
 WITH this0
 CALL {
-WITH this0
-MATCH (this0)-[:ACTED_IN]->(this0_Movie:Movie)
-RETURN { __resolveType: "Movie", runtime: this0_Movie.runtime, title: this0_Movie.title } AS actedIn
-UNION
-WITH this0
-MATCH (this0)-[:ACTED_IN]->(this0_Series:Series)
-RETURN { __resolveType: "Series", episodes: this0_Series.episodes, title: this0_Series.title } AS actedIn
+	WITH this0
+	MATCH (this0)-[:ACTED_IN]->(this0_Movie:Movie)
+	RETURN {
+		__resolveType: 'Movie',
+		runtime: this0_Movie.runtime,
+		title: this0_Movie.title
+	} AS actedIn UNION
+	WITH this0
+	MATCH (this0)-[:ACTED_IN]->(this0_Series:Series)
+	RETURN {
+		__resolveType: 'Series',
+		episodes: this0_Series.episodes,
+		title: this0_Series.title
+	} AS actedIn
 }
 WITH this0, collect(actedIn) AS actedIn
-RETURN [
-this0 { .name, actedIn: actedIn }] AS data
+RETURN [this0 {
+	.name,
+	actedIn: actedIn
+}] AS data
 ----
 
 '''

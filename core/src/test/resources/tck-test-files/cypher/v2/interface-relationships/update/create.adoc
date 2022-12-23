@@ -85,16 +85,26 @@ MERGE (this)-[this_create_actedIn_Movie0_relationship:ACTED_IN]->(this_create_ac
 SET this_create_actedIn_Movie0_relationship.screenTime = $this_create_actedIn_Movie0_relationship_screenTime
 WITH this
 CALL {
-WITH this
-MATCH (this)-[:ACTED_IN]->(this_Movie:Movie)
-RETURN { __resolveType: "Movie", runtime: this_Movie.runtime, title: this_Movie.title } AS actedIn
-UNION
-WITH this
-MATCH (this)-[:ACTED_IN]->(this_Series:Series)
-RETURN { __resolveType: "Series", episodes: this_Series.episodes, title: this_Series.title } AS actedIn
+	WITH this
+	MATCH (this)-[:ACTED_IN]->(this_Movie:Movie)
+	RETURN {
+		__resolveType: 'Movie',
+		runtime: this_Movie.runtime,
+		title: this_Movie.title
+	} AS actedIn UNION
+	WITH this
+	MATCH (this)-[:ACTED_IN]->(this_Series:Series)
+	RETURN {
+		__resolveType: 'Series',
+		episodes: this_Series.episodes,
+		title: this_Series.title
+	} AS actedIn
 }
 WITH this, collect(actedIn) AS actedIn
-RETURN collect(DISTINCT this { .name, actedIn: actedIn }) AS data
+RETURN collect(DISTINCT this {
+	.name,
+	actedIn: actedIn
+}) AS data
 ----
 
 '''

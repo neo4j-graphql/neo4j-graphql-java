@@ -53,21 +53,27 @@ query Query {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Foo`)
-
+MATCH (this:Foo)
 CALL {
-    WITH this
-    MATCH (this)-[this0:DRINKS_AT]->(this_DrinksAt:`Bar`)
-    CALL {
-        WITH this_DrinksAt
-        MATCH (this_DrinksAt)-[this1:DRINKS_AT]-(this_DrinksAt_Customers:`Foo`)
-        WITH this_DrinksAt_Customers { .Name } AS this_DrinksAt_Customers
-        RETURN collect(this_DrinksAt_Customers) AS this_DrinksAt_Customers
-    }
-    WITH this_DrinksAt { .id, Customers: this_DrinksAt_Customers } AS this_DrinksAt
-    RETURN head(collect(this_DrinksAt)) AS this_DrinksAt
+	WITH this
+	MATCH (this)-[this0:DRINKS_AT]->(this_DrinksAt:Bar)
+	CALL {
+		WITH this_DrinksAt
+		MATCH (this_DrinksAt)-[this1:DRINKS_AT]-(this_DrinksAt_Customers:Foo)
+		WITH this_DrinksAt_Customers {
+			.Name
+		} AS this_DrinksAt_Customers
+		RETURN collect(this_DrinksAt_Customers) AS this_DrinksAt_Customers
+	}
+	WITH this_DrinksAt {
+		.id,
+		Customers: this_DrinksAt_Customers
+	} AS this_DrinksAt
+	RETURN head(collect(this_DrinksAt)) AS this_DrinksAt
 }
-RETURN this { DrinksAt: this_DrinksAt } AS this
+RETURN this {
+	DrinksAt: this_DrinksAt
+} AS this
 ----
 
 '''

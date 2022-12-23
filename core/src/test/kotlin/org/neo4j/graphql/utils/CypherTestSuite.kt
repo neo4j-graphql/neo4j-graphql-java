@@ -10,13 +10,18 @@ import org.assertj.core.api.InstanceOfAssertFactories
 import org.junit.jupiter.api.Assumptions
 import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.DynamicTest
+import org.neo4j.cypherdsl.core.renderer.Configuration
+import org.neo4j.cypherdsl.core.renderer.Renderer
+import org.neo4j.cypherdsl.parser.CypherParser
+import org.neo4j.cypherdsl.parser.Options
 import org.neo4j.graphql.*
 import org.neo4j.harness.Neo4j
 import org.opentest4j.AssertionFailedError
+import java.io.File
+import java.io.FileWriter
 import java.util.*
 import java.util.concurrent.FutureTask
 import java.util.function.Consumer
-import kotlin.streams.toList
 
 class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTestSuite(
     fileName,
@@ -56,6 +61,19 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
             }
             if (testData != null && response != null) {
                 tests.add(integrationTest(title, globalBlocks, codeBlocks, testData, response, ignoreOrder))
+            }
+        }
+        if (REFORMAT_TEST_FILE){
+            cypherBlocks.forEach {
+                val statement = CypherParser.parse(it.code(), Options.defaultOptions())
+                val query = Renderer.getRenderer(
+                    Configuration
+                    .newConfig()
+                    .withIndentStyle(Configuration.IndentStyle.TAB)
+                    .withPrettyPrint(true)
+                    .build()
+                ).render(statement)
+                it.reformattedCode = query
             }
         }
 
@@ -269,6 +287,7 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
                 .hasSize(expected.size)
                 .containsOnlyKeys(*expected.keys.toTypedArray())
                 .satisfies { it.forEach { (key, value) -> assertEqualIgnoreOrder(expected[key], value) } }
+
             is Collection<*> -> {
                 val assertions: List<Consumer<Any>> =
                     expected.map { e -> Consumer<Any> { a -> assertEqualIgnoreOrder(e, a) } }
@@ -276,6 +295,7 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
                     .hasSize(expected.size)
                     .satisfiesExactlyInAnyOrder(*assertions.toTypedArray())
             }
+
             else -> Assertions.assertThat(actual).isEqualTo(expected)
         }
     }

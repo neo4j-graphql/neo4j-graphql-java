@@ -54,11 +54,12 @@ query Genres {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Genre`)
-WHERE size([(this1:`Movie`)-[this0:HAS_GENRE]->(this) WHERE NOT this1.title = $param0 | 1]) = 0
-
-
-RETURN this { .name } AS this
+MATCH (this:Genre)
+WHERE size([(this1:Movie)-[this0:HAS_GENRE]->(this)
+WHERE NOT (this1.title = $param0) | 1]) = 0
+RETURN this {
+	.name
+} AS this
 ----
 
 '''

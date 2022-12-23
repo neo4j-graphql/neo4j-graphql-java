@@ -94,35 +94,44 @@ mutation {
 [source,cypher]
 ----
 MATCH (this:Actor)
-
 WITH this
 CALL {
-WITH this
-OPTIONAL MATCH (this)-[this_acted_in0_relationship:ACTED_IN]->(this_actedIn0:Movie)
-WHERE this_actedIn0.title = $updateActors.args.update.actedIn[0].where.node.title
-CALL apoc.do.when(this_actedIn0 IS NOT NULL, "
+	WITH this
+	OPTIONAL MATCH (this)-[this_acted_in0_relationship:ACTED_IN]->(this_actedIn0:Movie)
+	WHERE this_actedIn0.title = $updateActors.args.update.actedIn[0].where.node.title
+	CALL apoc.do.when(this_actedIn0 IS NOT NULL, '
 
 SET this_actedIn0.title = $this_update_actedIn0_title
 
 RETURN count(*)
-", "", {this:this, updateActors: $updateActors, this_actedIn0:this_actedIn0, auth:$auth,this_update_actedIn0_title:$this_update_actedIn0_title})
-YIELD value AS _
-RETURN count(*)
-UNION
-WITH this
-OPTIONAL MATCH (this)-[this_acted_in0_relationship:ACTED_IN]->(this_actedIn0:Series)
-WHERE this_actedIn0.title = $updateActors.args.update.actedIn[0].where.node.title
-CALL apoc.do.when(this_actedIn0 IS NOT NULL, "
+', '', {
+		this: this,
+		updateActors: $updateActors,
+		this_actedIn0: this_actedIn0,
+		auth: $auth,
+		this_update_actedIn0_title: $this_update_actedIn0_title
+	}) YIELD value AS _
+	RETURN count(*) UNION
+	WITH this
+	OPTIONAL MATCH (this)-[this_acted_in0_relationship:ACTED_IN]->(this_actedIn0:Series)
+	WHERE this_actedIn0.title = $updateActors.args.update.actedIn[0].where.node.title
+	CALL apoc.do.when(this_actedIn0 IS NOT NULL, '
 
 SET this_actedIn0.title = $this_update_actedIn0_title
 
 RETURN count(*)
-", "", {this:this, updateActors: $updateActors, this_actedIn0:this_actedIn0, auth:$auth,this_update_actedIn0_title:$this_update_actedIn0_title})
-YIELD value AS _
-RETURN count(*)
+', '', {
+		this: this,
+		updateActors: $updateActors,
+		this_actedIn0: this_actedIn0,
+		auth: $auth,
+		this_update_actedIn0_title: $this_update_actedIn0_title
+	}) YIELD value AS _
+	RETURN count(*)
 }
-
-RETURN collect(DISTINCT this { .name }) AS data
+RETURN collect(DISTINCT this {
+	.name
+}) AS data
 ----
 
 '''
@@ -187,13 +196,12 @@ mutation {
 [source,cypher]
 ----
 MATCH (this:Actor)
-
 WITH this
 CALL {
-WITH this
-OPTIONAL MATCH (this)-[this_acted_in0_relationship:ACTED_IN]->(this_actedIn0:Movie)
-WHERE this_actedIn0.title = $updateActors.args.update.actedIn[0].where.node.title
-CALL apoc.do.when(this_actedIn0 IS NOT NULL, "
+	WITH this
+	OPTIONAL MATCH (this)-[this_acted_in0_relationship:ACTED_IN]->(this_actedIn0:Movie)
+	WHERE this_actedIn0.title = $updateActors.args.update.actedIn[0].where.node.title
+	CALL apoc.do.when(this_actedIn0 IS NOT NULL, '
 
 WITH this, this_actedIn0
 OPTIONAL MATCH (this_actedIn0)<-[this_actedIn0_acted_in0_relationship:ACTED_IN]-(this_actedIn0_actors0:Actor)
@@ -206,14 +214,18 @@ RETURN count(*)
 YIELD value AS _
 
 RETURN count(*)
-", "", {this:this, updateActors: $updateActors, this_actedIn0:this_actedIn0, auth:$auth,this_update_actedIn0_actors0_name:$this_update_actedIn0_actors0_name})
-YIELD value AS _
-RETURN count(*)
-UNION
-WITH this
-OPTIONAL MATCH (this)-[this_acted_in0_relationship:ACTED_IN]->(this_actedIn0:Series)
-WHERE this_actedIn0.title = $updateActors.args.update.actedIn[0].where.node.title
-CALL apoc.do.when(this_actedIn0 IS NOT NULL, "
+', '', {
+		this: this,
+		updateActors: $updateActors,
+		this_actedIn0: this_actedIn0,
+		auth: $auth,
+		this_update_actedIn0_actors0_name: $this_update_actedIn0_actors0_name
+	}) YIELD value AS _
+	RETURN count(*) UNION
+	WITH this
+	OPTIONAL MATCH (this)-[this_acted_in0_relationship:ACTED_IN]->(this_actedIn0:Series)
+	WHERE this_actedIn0.title = $updateActors.args.update.actedIn[0].where.node.title
+	CALL apoc.do.when(this_actedIn0 IS NOT NULL, '
 
 WITH this, this_actedIn0
 OPTIONAL MATCH (this_actedIn0)<-[this_actedIn0_acted_in0_relationship:ACTED_IN]-(this_actedIn0_actors0:Actor)
@@ -226,12 +238,18 @@ RETURN count(*)
 YIELD value AS _
 
 RETURN count(*)
-", "", {this:this, updateActors: $updateActors, this_actedIn0:this_actedIn0, auth:$auth,this_update_actedIn0_actors0_name:$this_update_actedIn0_actors0_name})
-YIELD value AS _
-RETURN count(*)
+', '', {
+		this: this,
+		updateActors: $updateActors,
+		this_actedIn0: this_actedIn0,
+		auth: $auth,
+		this_update_actedIn0_actors0_name: $this_update_actedIn0_actors0_name
+	}) YIELD value AS _
+	RETURN count(*)
 }
-
-RETURN collect(DISTINCT this { .name }) AS data
+RETURN collect(DISTINCT this {
+	.name
+}) AS data
 ----
 
 '''
@@ -300,13 +318,12 @@ mutation {
 [source,cypher]
 ----
 MATCH (this:Actor)
-
 WITH this
 CALL {
-WITH this
-OPTIONAL MATCH (this)-[this_acted_in0_relationship:ACTED_IN]->(this_actedIn0:Movie)
-WHERE this_actedIn0.title = $updateActors.args.update.actedIn[0].where.node.title
-CALL apoc.do.when(this_actedIn0 IS NOT NULL, "
+	WITH this
+	OPTIONAL MATCH (this)-[this_acted_in0_relationship:ACTED_IN]->(this_actedIn0:Movie)
+	WHERE this_actedIn0.title = $updateActors.args.update.actedIn[0].where.node.title
+	CALL apoc.do.when(this_actedIn0 IS NOT NULL, '
 
 
 
@@ -321,23 +338,32 @@ RETURN count(*)
 YIELD value AS _
 
 RETURN count(*)
-", "", {this:this, updateActors: $updateActors, this_actedIn0:this_actedIn0, auth:$auth,this_update_actedIn0_on_Movie_actors0_name:$this_update_actedIn0_on_Movie_actors0_name})
-YIELD value AS _
-RETURN count(*)
-UNION
-WITH this
-OPTIONAL MATCH (this)-[this_acted_in0_relationship:ACTED_IN]->(this_actedIn0:Series)
-WHERE this_actedIn0.title = $updateActors.args.update.actedIn[0].where.node.title
-CALL apoc.do.when(this_actedIn0 IS NOT NULL, "
+', '', {
+		this: this,
+		updateActors: $updateActors,
+		this_actedIn0: this_actedIn0,
+		auth: $auth,
+		this_update_actedIn0_on_Movie_actors0_name: $this_update_actedIn0_on_Movie_actors0_name
+	}) YIELD value AS _
+	RETURN count(*) UNION
+	WITH this
+	OPTIONAL MATCH (this)-[this_acted_in0_relationship:ACTED_IN]->(this_actedIn0:Series)
+	WHERE this_actedIn0.title = $updateActors.args.update.actedIn[0].where.node.title
+	CALL apoc.do.when(this_actedIn0 IS NOT NULL, '
 
 
 RETURN count(*)
-", "", {this:this, updateActors: $updateActors, this_actedIn0:this_actedIn0, auth:$auth})
-YIELD value AS _
-RETURN count(*)
+', '', {
+		this: this,
+		updateActors: $updateActors,
+		this_actedIn0: this_actedIn0,
+		auth: $auth
+	}) YIELD value AS _
+	RETURN count(*)
 }
-
-RETURN collect(DISTINCT this { .name }) AS data
+RETURN collect(DISTINCT this {
+	.name
+}) AS data
 ----
 
 '''
@@ -416,13 +442,12 @@ mutation {
 [source,cypher]
 ----
 MATCH (this:Actor)
-
 WITH this
 CALL {
-WITH this
-OPTIONAL MATCH (this)-[this_acted_in0_relationship:ACTED_IN]->(this_actedIn0:Movie)
-WHERE this_actedIn0.title = $updateActors.args.update.actedIn[0].where.node.title
-CALL apoc.do.when(this_actedIn0 IS NOT NULL, "
+	WITH this
+	OPTIONAL MATCH (this)-[this_acted_in0_relationship:ACTED_IN]->(this_actedIn0:Movie)
+	WHERE this_actedIn0.title = $updateActors.args.update.actedIn[0].where.node.title
+	CALL apoc.do.when(this_actedIn0 IS NOT NULL, '
 
 
 
@@ -437,14 +462,18 @@ RETURN count(*)
 YIELD value AS _
 
 RETURN count(*)
-", "", {this:this, updateActors: $updateActors, this_actedIn0:this_actedIn0, auth:$auth,this_update_actedIn0_on_Movie_actors0_name:$this_update_actedIn0_on_Movie_actors0_name})
-YIELD value AS _
-RETURN count(*)
-UNION
-WITH this
-OPTIONAL MATCH (this)-[this_acted_in0_relationship:ACTED_IN]->(this_actedIn0:Series)
-WHERE this_actedIn0.title = $updateActors.args.update.actedIn[0].where.node.title
-CALL apoc.do.when(this_actedIn0 IS NOT NULL, "
+', '', {
+		this: this,
+		updateActors: $updateActors,
+		this_actedIn0: this_actedIn0,
+		auth: $auth,
+		this_update_actedIn0_on_Movie_actors0_name: $this_update_actedIn0_on_Movie_actors0_name
+	}) YIELD value AS _
+	RETURN count(*) UNION
+	WITH this
+	OPTIONAL MATCH (this)-[this_acted_in0_relationship:ACTED_IN]->(this_actedIn0:Series)
+	WHERE this_actedIn0.title = $updateActors.args.update.actedIn[0].where.node.title
+	CALL apoc.do.when(this_actedIn0 IS NOT NULL, '
 
 WITH this, this_actedIn0
 OPTIONAL MATCH (this_actedIn0)<-[this_actedIn0_acted_in0_relationship:ACTED_IN]-(this_actedIn0_actors0:Actor)
@@ -457,12 +486,18 @@ RETURN count(*)
 YIELD value AS _
 
 RETURN count(*)
-", "", {this:this, updateActors: $updateActors, this_actedIn0:this_actedIn0, auth:$auth,this_update_actedIn0_actors0_name:$this_update_actedIn0_actors0_name})
-YIELD value AS _
-RETURN count(*)
+', '', {
+		this: this,
+		updateActors: $updateActors,
+		this_actedIn0: this_actedIn0,
+		auth: $auth,
+		this_update_actedIn0_actors0_name: $this_update_actedIn0_actors0_name
+	}) YIELD value AS _
+	RETURN count(*)
 }
-
-RETURN collect(DISTINCT this { .name }) AS data
+RETURN collect(DISTINCT this {
+	.name
+}) AS data
 ----
 
 '''

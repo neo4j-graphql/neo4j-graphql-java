@@ -49,11 +49,11 @@ type Movie {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Movie`)
+MATCH (this:Movie)
 WHERE this.time >= $param0
-
-
-RETURN this { .time } AS this
+RETURN this {
+	.time
+} AS this
 ----
 
 '''
@@ -95,14 +95,14 @@ mutation {
 ----
 UNWIND $create_param0 AS create_var1
 CALL {
-    WITH create_var1
-    CREATE (create_this0:`Movie`)
-    SET
-        create_this0.time = create_var1.time
-    
-    RETURN create_this0
+	WITH create_var1
+	CREATE (create_this0:Movie)
+	SET create_this0.time = create_var1.time
+	RETURN create_this0
 }
-RETURN collect(create_this0 { .time }) AS data
+RETURN collect(create_this0 {
+	.time
+}) AS data
 ----
 
 '''
@@ -135,11 +135,11 @@ RETURN collect(create_this0 { .time }) AS data
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Movie`)
+MATCH (this:Movie)
 WHERE this.time = $param0
-
-
-RETURN this { .time } AS this
+RETURN this {
+	.time
+} AS this
 ----
 
 '''
@@ -176,12 +176,12 @@ mutation {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Movie`)
-
-
+MATCH (this:Movie)
 SET this.time = $this_update_time
-
-RETURN collect(DISTINCT this { .id, .time }) AS data
+RETURN collect(DISTINCT this {
+	.id,
+	.time
+}) AS data
 ----
 
 '''

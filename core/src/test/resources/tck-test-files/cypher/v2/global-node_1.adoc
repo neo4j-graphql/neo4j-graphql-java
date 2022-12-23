@@ -61,11 +61,11 @@ query Node($id: ID!) {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Movie`)
+MATCH (this:Movie)
 WHERE this.title = $param0
-
-
-RETURN this { .title } AS this
+RETURN this {
+	.title
+} AS this
 ----
 
 '''

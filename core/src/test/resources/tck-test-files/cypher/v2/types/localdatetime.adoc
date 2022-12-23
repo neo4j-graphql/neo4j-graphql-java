@@ -52,11 +52,11 @@ type Movie {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Movie`)
+MATCH (this:Movie)
 WHERE this.localDT >= $param0
-
-
-RETURN this { .localDT } AS this
+RETURN this {
+	.localDT
+} AS this
 ----
 
 '''
@@ -101,14 +101,14 @@ mutation {
 ----
 UNWIND $create_param0 AS create_var1
 CALL {
-    WITH create_var1
-    CREATE (create_this0:`Movie`)
-    SET
-        create_this0.localDT = create_var1.localDT
-    
-    RETURN create_this0
+	WITH create_var1
+	CREATE (create_this0:Movie)
+	SET create_this0.localDT = create_var1.localDT
+	RETURN create_this0
 }
-RETURN collect(create_this0 { .localDT }) AS data
+RETURN collect(create_this0 {
+	.localDT
+}) AS data
 ----
 
 '''
@@ -144,11 +144,11 @@ RETURN collect(create_this0 { .localDT }) AS data
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Movie`)
+MATCH (this:Movie)
 WHERE this.localDT = $param0
-
-
-RETURN this { .localDT } AS this
+RETURN this {
+	.localDT
+} AS this
 ----
 
 '''
@@ -188,12 +188,12 @@ mutation {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Movie`)
-
-
+MATCH (this:Movie)
 SET this.localDT = $this_update_localDT
-
-RETURN collect(DISTINCT this { .id, .localDT }) AS data
+RETURN collect(DISTINCT this {
+	.id,
+	.localDT
+}) AS data
 ----
 
 '''

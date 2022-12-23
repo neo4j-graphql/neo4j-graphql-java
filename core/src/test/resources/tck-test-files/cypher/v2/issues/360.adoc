@@ -78,11 +78,13 @@ query ($rangeStart: DateTime, $rangeEnd: DateTime, $activity: String) {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Event`)
-WHERE (this.start >= $param0 AND this.start <= $param1)
-
-
-RETURN this { start: apoc.date.convertFormat(toString(this.start), "iso_zoned_date_time", "iso_offset_date_time"), .activity } AS this
+MATCH (this:Event)
+WHERE (this.start >= $param0
+	AND this.start <= $param1)
+RETURN this {
+	start: apoc.date.convertFormat(toString(this.start), 'iso_zoned_date_time', 'iso_offset_date_time'),
+	.activity
+} AS this
 ----
 
 '''
@@ -141,11 +143,13 @@ query ($rangeStart: DateTime, $rangeEnd: DateTime, $activity: String) {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Event`)
-WHERE (this.start >= $param0 OR this.start <= $param1)
-
-
-RETURN this { start: apoc.date.convertFormat(toString(this.start), "iso_zoned_date_time", "iso_offset_date_time"), .activity } AS this
+MATCH (this:Event)
+WHERE (this.start >= $param0
+	OR this.start <= $param1)
+RETURN this {
+	start: apoc.date.convertFormat(toString(this.start), 'iso_zoned_date_time', 'iso_offset_date_time'),
+	.activity
+} AS this
 ----
 
 '''

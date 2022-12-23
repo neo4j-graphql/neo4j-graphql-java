@@ -68,27 +68,40 @@ type Project {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Employee`)
+MATCH (this:Employee)
 CALL {
-    WITH this
-    MATCH (this:`Employee`)-[this0:PARTICIPATES]->(this1:`Project`)
-    RETURN any(var2 IN collect(this0.allocation) WHERE var2 <= $param0) AS var3
+	WITH this
+	MATCH (this)-[this0:PARTICIPATES]->(this1:Project)
+	RETURN any(var2 IN collect(this0.allocation) WHERE var2 <= $param0) AS var3
 }
 WITH *
 WHERE var3 = true
-
 CALL {
-    WITH this
-    MATCH (this)-[this_projectsAggregate_this0:PARTICIPATES]->(this_projectsAggregate_this1:`Project`)
-    RETURN count(this) AS this_projectsAggregate_var2
+	WITH this
+	MATCH (this)-[this_projectsAggregate_this0:PARTICIPATES]->(this_projectsAggregate_this1:Project)
+	RETURN count(this) AS this_projectsAggregate_var2
 }
-
 CALL {
-    WITH this
-    MATCH (this)-[this_projectsAggregate_this0:PARTICIPATES]->(this_projectsAggregate_this1:`Project`)
-    RETURN { min: min(this_projectsAggregate_this0.allocation), max: max(this_projectsAggregate_this0.allocation), average: avg(this_projectsAggregate_this0.allocation), sum: sum(this_projectsAggregate_this0.allocation) }  AS this_projectsAggregate_var3
+	WITH this
+	MATCH (this)-[this_projectsAggregate_this0:PARTICIPATES]->(this_projectsAggregate_this1:Project)
+	RETURN {
+		min: min(this_projectsAggregate_this0.allocation),
+		max: max(this_projectsAggregate_this0.allocation),
+		average: avg(this_projectsAggregate_this0.allocation),
+		sum: sum(this_projectsAggregate_this0.allocation)
+	} AS this_projectsAggregate_var3
 }
-RETURN this { .employeeId, .firstName, .lastName, projectsAggregate: { count: this_projectsAggregate_var2, edge: { allocation: this_projectsAggregate_var3 } } } AS this
+RETURN this {
+	.employeeId,
+	.firstName,
+	.lastName,
+	projectsAggregate: {
+		count: this_projectsAggregate_var2,
+		edge: {
+			allocation: this_projectsAggregate_var3
+		}
+	}
+} AS this
 ----
 
 '''
@@ -129,27 +142,40 @@ RETURN this { .employeeId, .firstName, .lastName, projectsAggregate: { count: th
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Employee`)
+MATCH (this:Employee)
 CALL {
-    WITH this
-    MATCH (this:`Employee`)-[this0:PARTICIPATES]->(this1:`Project`)
-    RETURN sum(this0.allocation) <= $param0 AS var2
+	WITH this
+	MATCH (this)-[this0:PARTICIPATES]->(this1:Project)
+	RETURN sum(this0.allocation) <= $param0 AS var2
 }
 WITH *
 WHERE var2 = true
-
 CALL {
-    WITH this
-    MATCH (this)-[this_projectsAggregate_this0:PARTICIPATES]->(this_projectsAggregate_this1:`Project`)
-    RETURN count(this) AS this_projectsAggregate_var2
+	WITH this
+	MATCH (this)-[this_projectsAggregate_this0:PARTICIPATES]->(this_projectsAggregate_this1:Project)
+	RETURN count(this) AS this_projectsAggregate_var2
 }
-
 CALL {
-    WITH this
-    MATCH (this)-[this_projectsAggregate_this0:PARTICIPATES]->(this_projectsAggregate_this1:`Project`)
-    RETURN { min: min(this_projectsAggregate_this0.allocation), max: max(this_projectsAggregate_this0.allocation), average: avg(this_projectsAggregate_this0.allocation), sum: sum(this_projectsAggregate_this0.allocation) }  AS this_projectsAggregate_var3
+	WITH this
+	MATCH (this)-[this_projectsAggregate_this0:PARTICIPATES]->(this_projectsAggregate_this1:Project)
+	RETURN {
+		min: min(this_projectsAggregate_this0.allocation),
+		max: max(this_projectsAggregate_this0.allocation),
+		average: avg(this_projectsAggregate_this0.allocation),
+		sum: sum(this_projectsAggregate_this0.allocation)
+	} AS this_projectsAggregate_var3
 }
-RETURN this { .employeeId, .firstName, .lastName, projectsAggregate: { count: this_projectsAggregate_var2, edge: { allocation: this_projectsAggregate_var3 } } } AS this
+RETURN this {
+	.employeeId,
+	.firstName,
+	.lastName,
+	projectsAggregate: {
+		count: this_projectsAggregate_var2,
+		edge: {
+			allocation: this_projectsAggregate_var3
+		}
+	}
+} AS this
 ----
 
 '''

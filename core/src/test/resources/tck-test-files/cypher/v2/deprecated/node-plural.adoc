@@ -41,8 +41,10 @@ type Tech @node(plural: "Techs") {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Tech`)
-RETURN { count: count(this) }
+MATCH (this:Tech)
+RETURN {
+	count: count(this)
+}
 ----
 
 '''
@@ -79,14 +81,14 @@ mutation {
 ----
 UNWIND $create_param0 AS create_var1
 CALL {
-    WITH create_var1
-    CREATE (create_this0:`Tech`)
-    SET
-        create_this0.name = create_var1.name
-    
-    RETURN create_this0
+	WITH create_var1
+	CREATE (create_this0:Tech)
+	SET create_this0.name = create_var1.name
+	RETURN create_this0
 }
-RETURN collect(create_this0 { .name }) AS data
+RETURN collect(create_this0 {
+	.name
+}) AS data
 ----
 
 '''
@@ -114,7 +116,7 @@ mutation {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Tech`)
+MATCH (this:Tech)
 WHERE this.name = $param0
 DETACH DELETE this
 ----
@@ -142,10 +144,10 @@ DETACH DELETE this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Tech`)
-
-
-RETURN this { .name } AS this
+MATCH (this:Tech)
+RETURN this {
+	.name
+} AS this
 ----
 
 '''
@@ -171,10 +173,10 @@ RETURN this { .name } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Tech`)
-
-
-RETURN this { .name } AS this
+MATCH (this:Tech)
+RETURN this {
+	.name
+} AS this
 ----
 
 '''
@@ -205,12 +207,11 @@ mutation {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Tech`)
-
-
+MATCH (this:Tech)
 SET this.name = $this_update_name
-
-RETURN collect(DISTINCT this { .name }) AS data
+RETURN collect(DISTINCT this {
+	.name
+}) AS data
 ----
 
 '''

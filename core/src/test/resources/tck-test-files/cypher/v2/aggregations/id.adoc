@@ -43,8 +43,12 @@ type Movie {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Movie`)
-RETURN { id: { longest: max(this.id) } }
+MATCH (this:Movie)
+RETURN {
+	id: {
+		longest: max(this.id)
+	}
+}
 ----
 
 '''
@@ -72,8 +76,12 @@ RETURN { id: { longest: max(this.id) } }
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Movie`)
-RETURN { id: { shortest: min(this.id) } }
+MATCH (this:Movie)
+RETURN {
+	id: {
+		shortest: min(this.id)
+	}
+}
 ----
 
 '''
@@ -102,8 +110,13 @@ RETURN { id: { shortest: min(this.id) } }
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Movie`)
-RETURN { id: { shortest: min(this.id), longest: max(this.id) } }
+MATCH (this:Movie)
+RETURN {
+	id: {
+		shortest: min(this.id),
+		longest: max(this.id)
+	}
+}
 ----
 
 '''

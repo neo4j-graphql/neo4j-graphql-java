@@ -47,11 +47,11 @@ type File {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`File`)
+MATCH (this:File)
 WHERE this.size = $param0
-
-
-RETURN this { .name } AS this
+RETURN this {
+	.name
+} AS this
 ----
 
 '''
@@ -90,11 +90,11 @@ query Files($size: BigInt) {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`File`)
+MATCH (this:File)
 WHERE this.size = $param0
-
-
-RETURN this { .name } AS this
+RETURN this {
+	.name
+} AS this
 ----
 
 '''
@@ -125,11 +125,11 @@ RETURN this { .name } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`File`)
+MATCH (this:File)
 WHERE this.size = $param0
-
-
-RETURN this { .name } AS this
+RETURN this {
+	.name
+} AS this
 ----
 
 '''

@@ -58,14 +58,14 @@ mutation {
 ----
 UNWIND $create_param0 AS create_var1
 CALL {
-    WITH create_var1
-    CREATE (create_this0:`Movie`)
-    SET
-        create_this0.id = create_var1.id
-    
-    RETURN create_this0
+	WITH create_var1
+	CREATE (create_this0:Movie)
+	SET create_this0.id = create_var1.id
+	RETURN create_this0
 }
-RETURN collect(create_this0 { .id }) AS data
+RETURN collect(create_this0 {
+	.id
+}) AS data
 ----
 
 '''
@@ -109,48 +109,58 @@ mutation {
 [source,cypher]
 ----
 CALL {
-CREATE (this0:Actor)
-SET this0.name = $this0_name
-WITH this0
-CALL {
+	CREATE (this0:Actor)
+	SET this0.name = $this0_name
 	WITH this0
-	OPTIONAL MATCH (this0_movies_connect0_node:Movie)
-	WHERE this0_movies_connect0_node.id = $this0_movies_connect0_node_param0
 	CALL {
-		WITH *
-		WITH collect(this0_movies_connect0_node) as connectedNodes, collect(this0) as parentNodes
+		WITH this0
+		OPTIONAL MATCH (this0_movies_connect0_node:Movie)
+		WHERE this0_movies_connect0_node.id = $this0_movies_connect0_node_param0
 		CALL {
-			WITH connectedNodes, parentNodes
-			UNWIND parentNodes as this0
-			UNWIND connectedNodes as this0_movies_connect0_node
-			MERGE (this0)-[:ACTED_IN]->(this0_movies_connect0_node)
+			WITH *
+			WITH collect(this0_movies_connect0_node) AS connectedNodes, collect(this0) AS parentNodes
+			CALL {
+				WITH connectedNodes, parentNodes
+				UNWIND parentNodes AS this0
+				UNWIND connectedNodes AS this0_movies_connect0_node
+				MERGE (this0)-[:ACTED_IN]->(this0_movies_connect0_node)
+				RETURN count(*) AS _
+			}
 			RETURN count(*) AS _
 		}
-		RETURN count(*) AS _
+		WITH this0, this0_movies_connect0_node
+		RETURN count(*) AS connect_this0_movies_connect_Movie
 	}
-WITH this0, this0_movies_connect0_node
-	RETURN count(*) AS connect_this0_movies_connect_Movie
+	RETURN this0
 }
-RETURN this0
-}
-
 CALL {
-    WITH this0
-    MATCH (this0)-[create_this0:ACTED_IN]->(this0_movies:`Movie`)
-    CALL {
-        WITH this0_movies
-        MATCH (this0_movies)<-[this0_movies_connection_actorsConnectionthis0:ACTED_IN]-(this0_movies_Actor:`Actor`)
-        WHERE this0_movies_Actor.name = $projection_movies_connection_actorsConnectionparam0
-        WITH { node: { name: this0_movies_Actor.name } } AS edge
-        WITH collect(edge) AS edges
-        WITH edges, size(edges) AS totalCount
-        RETURN { edges: edges, totalCount: totalCount } AS this0_movies_actorsConnection
-    }
-    WITH this0_movies { actorsConnection: this0_movies_actorsConnection } AS this0_movies
-    RETURN collect(this0_movies) AS this0_movies
+	WITH this0
+	MATCH (this0)-[create_this0:ACTED_IN]->(this0_movies:Movie)
+	CALL {
+		WITH this0_movies
+		MATCH (this0_movies)<-[this0_movies_connection_actorsConnectionthis0:ACTED_IN]-(this0_movies_Actor:Actor)
+		WHERE this0_movies_Actor.name = $projection_movies_connection_actorsConnectionparam0
+		WITH {
+			node: {
+				name: this0_movies_Actor.name
+			}
+		} AS edge
+		WITH collect(edge) AS edges
+		WITH edges, size(edges) AS totalCount
+		RETURN {
+			edges: edges,
+			totalCount: totalCount
+		} AS this0_movies_actorsConnection
+	}
+	WITH this0_movies {
+		actorsConnection: this0_movies_actorsConnection
+	} AS this0_movies
+	RETURN collect(this0_movies) AS this0_movies
 }
-RETURN [
-this0 { .name, movies: this0_movies }] AS data
+RETURN [this0 {
+	.name,
+	movies: this0_movies
+}] AS data
 ----
 
 '''
@@ -185,34 +195,33 @@ mutation {
 [source,cypher]
 ----
 CALL {
-CREATE (this0:Movie)
-SET this0.id = $this0_id
-WITH this0
-CALL {
+	CREATE (this0:Movie)
+	SET this0.id = $this0_id
 	WITH this0
-	OPTIONAL MATCH (this0_actors_connect0_node:Actor)
-	WHERE this0_actors_connect0_node.name = $this0_actors_connect0_node_param0
 	CALL {
-		WITH *
-		WITH collect(this0_actors_connect0_node) as connectedNodes, collect(this0) as parentNodes
+		WITH this0
+		OPTIONAL MATCH (this0_actors_connect0_node:Actor)
+		WHERE this0_actors_connect0_node.name = $this0_actors_connect0_node_param0
 		CALL {
-			WITH connectedNodes, parentNodes
-			UNWIND parentNodes as this0
-			UNWIND connectedNodes as this0_actors_connect0_node
-			MERGE (this0)<-[:ACTED_IN]-(this0_actors_connect0_node)
+			WITH *
+			WITH collect(this0_actors_connect0_node) AS connectedNodes, collect(this0) AS parentNodes
+			CALL {
+				WITH connectedNodes, parentNodes
+				UNWIND parentNodes AS this0
+				UNWIND connectedNodes AS this0_actors_connect0_node
+				MERGE (this0)<-[:ACTED_IN]-(this0_actors_connect0_node)
+				RETURN count(*) AS _
+			}
 			RETURN count(*) AS _
 		}
-		RETURN count(*) AS _
+		WITH this0, this0_actors_connect0_node
+		RETURN count(*) AS connect_this0_actors_connect_Actor
 	}
-WITH this0, this0_actors_connect0_node
-	RETURN count(*) AS connect_this0_actors_connect_Actor
+	RETURN this0
 }
-RETURN this0
-}
-
-
-RETURN [
-this0 { .id }] AS data
+RETURN [this0 {
+	.id
+}] AS data
 ----
 
 '''
@@ -252,14 +261,14 @@ mutation {
 ----
 UNWIND $create_param0 AS create_var1
 CALL {
-    WITH create_var1
-    CREATE (create_this0:`Movie`)
-    SET
-        create_this0.id = create_var1.id
-    
-    RETURN create_this0
+	WITH create_var1
+	CREATE (create_this0:Movie)
+	SET create_this0.id = create_var1.id
+	RETURN create_this0
 }
-RETURN collect(create_this0 { .id }) AS data
+RETURN collect(create_this0 {
+	.id
+}) AS data
 ----
 
 '''
@@ -337,38 +346,34 @@ mutation {
 ----
 UNWIND $create_param0 AS create_var1
 CALL {
-    WITH create_var1
-    CREATE (create_this0:`Movie`)
-    SET
-        create_this0.id = create_var1.id
-    WITH create_this0, create_var1
-    CALL {
-        WITH create_this0, create_var1
-        UNWIND create_var1.actors.create AS create_var2
-        WITH create_var2.node AS create_var3, create_var2.edge AS create_var4, create_this0
-        CREATE (create_this5:`Actor`)
-        SET
-            create_this5.name = create_var3.name
-        MERGE (create_this5)-[create_this6:ACTED_IN]->(create_this0)
-        WITH create_this5, create_var3
-        CALL {
-            WITH create_this5, create_var3
-            UNWIND create_var3.movies.create AS create_var7
-            WITH create_var7.node AS create_var8, create_var7.edge AS create_var9, create_this5
-            CREATE (create_this10:`Movie`)
-            SET
-                create_this10.id = create_var8.id
-            MERGE (create_this5)-[create_this11:ACTED_IN]->(create_this10)
-            
-            RETURN collect(NULL) AS create_var12
-        }
-        
-        RETURN collect(NULL) AS create_var13
-    }
-    
-    RETURN create_this0
+	WITH create_var1
+	CREATE (create_this0:Movie)
+	SET create_this0.id = create_var1.id
+	WITH create_this0, create_var1
+	CALL {
+		WITH create_this0, create_var1
+		UNWIND create_var1.actors.create AS create_var2
+		WITH create_var2.node AS create_var3, create_var2.edge AS create_var4, create_this0
+		CREATE (create_this5:Actor)
+		SET create_this5.name = create_var3.name
+		MERGE (create_this5)-[create_this6:ACTED_IN]->(create_this0)
+		WITH create_this5, create_var3
+		CALL {
+			WITH create_this5, create_var3
+			UNWIND create_var3.movies.create AS create_var7
+			WITH create_var7.node AS create_var8, create_var7.edge AS create_var9, create_this5
+			CREATE (create_this10:Movie)
+			SET create_this10.id = create_var8.id
+			MERGE (create_this5)-[create_this11:ACTED_IN]->(create_this10)
+			RETURN collect(NULL) AS create_var12
+		}
+		RETURN collect(NULL) AS create_var13
+	}
+	RETURN create_this0
 }
-RETURN collect(create_this0 { .id }) AS data
+RETURN collect(create_this0 {
+	.id
+}) AS data
 ----
 
 '''
@@ -428,26 +433,24 @@ mutation {
 ----
 UNWIND $create_param0 AS create_var1
 CALL {
-    WITH create_var1
-    CREATE (create_this0:`Movie`)
-    SET
-        create_this0.id = create_var1.id
-    WITH create_this0, create_var1
-    CALL {
-        WITH create_this0, create_var1
-        UNWIND create_var1.actors.create AS create_var2
-        WITH create_var2.node AS create_var3, create_var2.edge AS create_var4, create_this0
-        CREATE (create_this5:`Actor`)
-        SET
-            create_this5.name = create_var3.name
-        MERGE (create_this5)-[create_this6:ACTED_IN]->(create_this0)
-        
-        RETURN collect(NULL) AS create_var7
-    }
-    
-    RETURN create_this0
+	WITH create_var1
+	CREATE (create_this0:Movie)
+	SET create_this0.id = create_var1.id
+	WITH create_this0, create_var1
+	CALL {
+		WITH create_this0, create_var1
+		UNWIND create_var1.actors.create AS create_var2
+		WITH create_var2.node AS create_var3, create_var2.edge AS create_var4, create_this0
+		CREATE (create_this5:Actor)
+		SET create_this5.name = create_var3.name
+		MERGE (create_this5)-[create_this6:ACTED_IN]->(create_this0)
+		RETURN collect(NULL) AS create_var7
+	}
+	RETURN create_this0
 }
-RETURN collect(create_this0 { .id }) AS data
+RETURN collect(create_this0 {
+	.id
+}) AS data
 ----
 
 '''

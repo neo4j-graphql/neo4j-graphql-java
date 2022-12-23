@@ -54,11 +54,12 @@ query ($where: ActorWhere!) {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Actor`)
+MATCH (this:Actor)
 WHERE this.dbId = $param0
-
-
-RETURN this { .dbId, .name } AS this
+RETURN this {
+	.dbId,
+	.name
+} AS this
 ----
 
 '''

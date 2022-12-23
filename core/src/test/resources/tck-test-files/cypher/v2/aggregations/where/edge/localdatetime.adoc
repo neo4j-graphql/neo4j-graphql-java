@@ -63,17 +63,17 @@ interface Likes {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Post`)
+MATCH (this:Post)
 CALL {
-    WITH this
-    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
-    RETURN any(var2 IN collect(this0.someLocalDateTime) WHERE var2 = $param0) AS var3
+	WITH this
+	MATCH (this1:User)-[this0:LIKES]->(this)
+	RETURN any(var2 IN collect(this0.someLocalDateTime) WHERE var2 = $param0) AS var3
 }
 WITH *
 WHERE var3 = true
-
-
-RETURN this { .content } AS this
+RETURN this {
+	.content
+} AS this
 ----
 
 '''
@@ -111,17 +111,17 @@ RETURN this { .content } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Post`)
+MATCH (this:Post)
 CALL {
-    WITH this
-    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
-    RETURN any(var2 IN collect(this0.someLocalDateTimeAlias) WHERE var2 = $param0) AS var3
+	WITH this
+	MATCH (this1:User)-[this0:LIKES]->(this)
+	RETURN any(var2 IN collect(this0.someLocalDateTimeAlias) WHERE var2 = $param0) AS var3
 }
 WITH *
 WHERE var3 = true
-
-
-RETURN this { .content } AS this
+RETURN this {
+	.content
+} AS this
 ----
 
 '''
@@ -159,17 +159,17 @@ RETURN this { .content } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Post`)
+MATCH (this:Post)
 CALL {
-    WITH this
-    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
-    RETURN any(var2 IN collect(this0.someLocalDateTime) WHERE var2 > $param0) AS var3
+	WITH this
+	MATCH (this1:User)-[this0:LIKES]->(this)
+	RETURN any(var2 IN collect(this0.someLocalDateTime) WHERE var2 > $param0) AS var3
 }
 WITH *
 WHERE var3 = true
-
-
-RETURN this { .content } AS this
+RETURN this {
+	.content
+} AS this
 ----
 
 '''
@@ -207,17 +207,17 @@ RETURN this { .content } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Post`)
+MATCH (this:Post)
 CALL {
-    WITH this
-    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
-    RETURN any(var2 IN collect(this0.someLocalDateTime) WHERE var2 >= $param0) AS var3
+	WITH this
+	MATCH (this1:User)-[this0:LIKES]->(this)
+	RETURN any(var2 IN collect(this0.someLocalDateTime) WHERE var2 >= $param0) AS var3
 }
 WITH *
 WHERE var3 = true
-
-
-RETURN this { .content } AS this
+RETURN this {
+	.content
+} AS this
 ----
 
 '''
@@ -255,17 +255,17 @@ RETURN this { .content } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Post`)
+MATCH (this:Post)
 CALL {
-    WITH this
-    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
-    RETURN any(var2 IN collect(this0.someLocalDateTime) WHERE var2 < $param0) AS var3
+	WITH this
+	MATCH (this1:User)-[this0:LIKES]->(this)
+	RETURN any(var2 IN collect(this0.someLocalDateTime) WHERE var2 < $param0) AS var3
 }
 WITH *
 WHERE var3 = true
-
-
-RETURN this { .content } AS this
+RETURN this {
+	.content
+} AS this
 ----
 
 '''
@@ -303,17 +303,17 @@ RETURN this { .content } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Post`)
+MATCH (this:Post)
 CALL {
-    WITH this
-    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
-    RETURN any(var2 IN collect(this0.someLocalDateTime) WHERE var2 <= $param0) AS var3
+	WITH this
+	MATCH (this1:User)-[this0:LIKES]->(this)
+	RETURN any(var2 IN collect(this0.someLocalDateTime) WHERE var2 <= $param0) AS var3
 }
 WITH *
 WHERE var3 = true
-
-
-RETURN this { .content } AS this
+RETURN this {
+	.content
+} AS this
 ----
 
 '''
@@ -351,17 +351,17 @@ RETURN this { .content } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Post`)
+MATCH (this:Post)
 CALL {
-    WITH this
-    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
-    RETURN max(this0.someLocalDateTime) = $param0 AS var2
+	WITH this
+	MATCH (this1:User)-[this0:LIKES]->(this)
+	RETURN max(this0.someLocalDateTime) = $param0 AS var2
 }
 WITH *
 WHERE var2 = true
-
-
-RETURN this { .content } AS this
+RETURN this {
+	.content
+} AS this
 ----
 
 '''
@@ -399,17 +399,17 @@ RETURN this { .content } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Post`)
+MATCH (this:Post)
 CALL {
-    WITH this
-    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
-    RETURN max(this0.someLocalDateTime) > $param0 AS var2
+	WITH this
+	MATCH (this1:User)-[this0:LIKES]->(this)
+	RETURN max(this0.someLocalDateTime) > $param0 AS var2
 }
 WITH *
 WHERE var2 = true
-
-
-RETURN this { .content } AS this
+RETURN this {
+	.content
+} AS this
 ----
 
 '''
@@ -447,17 +447,17 @@ RETURN this { .content } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Post`)
+MATCH (this:Post)
 CALL {
-    WITH this
-    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
-    RETURN max(this0.someLocalDateTime) >= $param0 AS var2
+	WITH this
+	MATCH (this1:User)-[this0:LIKES]->(this)
+	RETURN max(this0.someLocalDateTime) >= $param0 AS var2
 }
 WITH *
 WHERE var2 = true
-
-
-RETURN this { .content } AS this
+RETURN this {
+	.content
+} AS this
 ----
 
 '''
@@ -495,17 +495,17 @@ RETURN this { .content } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Post`)
+MATCH (this:Post)
 CALL {
-    WITH this
-    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
-    RETURN max(this0.someLocalDateTime) < $param0 AS var2
+	WITH this
+	MATCH (this1:User)-[this0:LIKES]->(this)
+	RETURN max(this0.someLocalDateTime) < $param0 AS var2
 }
 WITH *
 WHERE var2 = true
-
-
-RETURN this { .content } AS this
+RETURN this {
+	.content
+} AS this
 ----
 
 '''
@@ -543,17 +543,17 @@ RETURN this { .content } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Post`)
+MATCH (this:Post)
 CALL {
-    WITH this
-    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
-    RETURN max(this0.someLocalDateTime) <= $param0 AS var2
+	WITH this
+	MATCH (this1:User)-[this0:LIKES]->(this)
+	RETURN max(this0.someLocalDateTime) <= $param0 AS var2
 }
 WITH *
 WHERE var2 = true
-
-
-RETURN this { .content } AS this
+RETURN this {
+	.content
+} AS this
 ----
 
 '''
@@ -591,17 +591,17 @@ RETURN this { .content } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Post`)
+MATCH (this:Post)
 CALL {
-    WITH this
-    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
-    RETURN min(this0.someLocalDateTime) = $param0 AS var2
+	WITH this
+	MATCH (this1:User)-[this0:LIKES]->(this)
+	RETURN min(this0.someLocalDateTime) = $param0 AS var2
 }
 WITH *
 WHERE var2 = true
-
-
-RETURN this { .content } AS this
+RETURN this {
+	.content
+} AS this
 ----
 
 '''
@@ -639,17 +639,17 @@ RETURN this { .content } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Post`)
+MATCH (this:Post)
 CALL {
-    WITH this
-    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
-    RETURN min(this0.someLocalDateTime) > $param0 AS var2
+	WITH this
+	MATCH (this1:User)-[this0:LIKES]->(this)
+	RETURN min(this0.someLocalDateTime) > $param0 AS var2
 }
 WITH *
 WHERE var2 = true
-
-
-RETURN this { .content } AS this
+RETURN this {
+	.content
+} AS this
 ----
 
 '''
@@ -687,17 +687,17 @@ RETURN this { .content } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Post`)
+MATCH (this:Post)
 CALL {
-    WITH this
-    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
-    RETURN min(this0.someLocalDateTime) >= $param0 AS var2
+	WITH this
+	MATCH (this1:User)-[this0:LIKES]->(this)
+	RETURN min(this0.someLocalDateTime) >= $param0 AS var2
 }
 WITH *
 WHERE var2 = true
-
-
-RETURN this { .content } AS this
+RETURN this {
+	.content
+} AS this
 ----
 
 '''
@@ -735,17 +735,17 @@ RETURN this { .content } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Post`)
+MATCH (this:Post)
 CALL {
-    WITH this
-    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
-    RETURN min(this0.someLocalDateTime) < $param0 AS var2
+	WITH this
+	MATCH (this1:User)-[this0:LIKES]->(this)
+	RETURN min(this0.someLocalDateTime) < $param0 AS var2
 }
 WITH *
 WHERE var2 = true
-
-
-RETURN this { .content } AS this
+RETURN this {
+	.content
+} AS this
 ----
 
 '''
@@ -783,17 +783,17 @@ RETURN this { .content } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Post`)
+MATCH (this:Post)
 CALL {
-    WITH this
-    MATCH (this1:`User`)-[this0:LIKES]->(this:`Post`)
-    RETURN min(this0.someLocalDateTime) <= $param0 AS var2
+	WITH this
+	MATCH (this1:User)-[this0:LIKES]->(this)
+	RETURN min(this0.someLocalDateTime) <= $param0 AS var2
 }
 WITH *
 WHERE var2 = true
-
-
-RETURN this { .content } AS this
+RETURN this {
+	.content
+} AS this
 ----
 
 '''

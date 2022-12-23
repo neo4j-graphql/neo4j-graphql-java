@@ -60,14 +60,14 @@ mutation {
 ----
 UNWIND $create_param0 AS create_var1
 CALL {
-    WITH create_var1
-    CREATE (create_this0:`Film`)
-    SET
-        create_this0.title = create_var1.title
-    
-    RETURN create_this0
+	WITH create_var1
+	CREATE (create_this0:Film)
+	SET create_this0.title = create_var1.title
+	RETURN create_this0
 }
-RETURN collect(create_this0 { .title }) AS data
+RETURN collect(create_this0 {
+	.title
+}) AS data
 ----
 
 '''
@@ -93,10 +93,10 @@ RETURN collect(create_this0 { .title }) AS data
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Film`)
-
-
-RETURN this { .title } AS this
+MATCH (this:Film)
+RETURN this {
+	.title
+} AS this
 ----
 
 '''
@@ -131,17 +131,21 @@ RETURN this { .title } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Actor`:`Person`)
+MATCH (this:Actor:Person)
 WHERE this.age > $param0
-
 CALL {
-    WITH this
-    MATCH (this)-[this0:ACTED_IN]->(this_movies:`Film`)
-    WHERE this_movies.title = $param1
-    WITH this_movies { .title } AS this_movies
-    RETURN collect(this_movies) AS this_movies
+	WITH this
+	MATCH (this)-[this0:ACTED_IN]->(this_movies:Film)
+	WHERE this_movies.title = $param1
+	WITH this_movies {
+		.title
+	} AS this_movies
+	RETURN collect(this_movies) AS this_movies
 }
-RETURN this { .name, movies: this_movies } AS this
+RETURN this {
+	.name,
+	movies: this_movies
+} AS this
 ----
 
 '''

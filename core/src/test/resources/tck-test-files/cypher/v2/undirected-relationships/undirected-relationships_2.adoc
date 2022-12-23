@@ -58,25 +58,31 @@ query Users {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`User`)
-
+MATCH (this:User)
 CALL {
-    WITH this
-    CALL {
-        WITH *
-        MATCH (this)-[this0:HAS_CONTENT]-(this_content:`Blog`)
-        WITH this_content  { __resolveType: "Blog",  .title } AS this_content
-        RETURN this_content AS this_content
-        UNION
-        WITH *
-        MATCH (this)-[this1:HAS_CONTENT]-(this_content:`Post`)
-        WITH this_content  { __resolveType: "Post",  .content } AS this_content
-        RETURN this_content AS this_content
-    }
-    WITH this_content
-    RETURN collect(this_content) AS this_content
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[this0:HAS_CONTENT]-(this_content:Blog)
+		WITH this_content {
+			__resolveType: 'Blog',
+			.title
+		} AS this_content
+		RETURN this_content AS this_content UNION
+		WITH *
+		MATCH (this)-[this1:HAS_CONTENT]-(this_content:Post)
+		WITH this_content {
+			__resolveType: 'Post',
+			.content
+		} AS this_content
+		RETURN this_content AS this_content
+	}
+	WITH this_content
+	RETURN collect(this_content) AS this_content
 }
-RETURN this { content: this_content } AS this
+RETURN this {
+	content: this_content
+} AS this
 ----
 
 '''

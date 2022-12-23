@@ -43,8 +43,12 @@ type Movie {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Movie`)
-RETURN { screenTime: { max: max(this.screenTime) } }
+MATCH (this:Movie)
+RETURN {
+	screenTime: {
+		max: max(this.screenTime)
+	}
+}
 ----
 
 '''
@@ -72,8 +76,12 @@ RETURN { screenTime: { max: max(this.screenTime) } }
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Movie`)
-RETURN { screenTime: { min: min(this.screenTime) } }
+MATCH (this:Movie)
+RETURN {
+	screenTime: {
+		min: min(this.screenTime)
+	}
+}
 ----
 
 '''
@@ -102,8 +110,13 @@ RETURN { screenTime: { min: min(this.screenTime) } }
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Movie`)
-RETURN { screenTime: { min: min(this.screenTime), max: max(this.screenTime) } }
+MATCH (this:Movie)
+RETURN {
+	screenTime: {
+		min: min(this.screenTime),
+		max: max(this.screenTime)
+	}
+}
 ----
 
 '''

@@ -52,10 +52,15 @@ extend type User @auth(rules: [{allow: {id: "$jwt.sub"}, where: {id: "$jwt.sub"}
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`User`)
-WHERE (this.name = $param0 AND (this.id IS NOT NULL AND this.id = $auth_param0))
-CALL apoc.util.validate(NOT ((this.id IS NOT NULL AND this.id = $thisauth_param0)), "@neo4j/graphql/FORBIDDEN", [0])
-RETURN { count: count(this) }
+MATCH (this:User)
+WHERE (this.name = $param0
+	AND this.id IS NOT NULL
+	AND this.id = $auth_param0)
+CALL apoc.util.validate(NOT ((this.id IS NOT NULL
+	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
+RETURN {
+	count: count(this)
+}
 ----
 
 '''
@@ -87,11 +92,19 @@ RETURN { count: count(this) }
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`User`)
-WHERE (this.id IS NOT NULL AND this.id = $auth_param0)
-CALL apoc.util.validate(NOT ((this.id IS NOT NULL AND this.id = $thisauth_param0)), "@neo4j/graphql/FORBIDDEN", [0])
-CALL apoc.util.validate(NOT ((this.id IS NOT NULL AND this.id = $thisauth_param0)), "@neo4j/graphql/FORBIDDEN", [0])
-RETURN { imdbRatingBigInt: { min: min(this.imdbRatingBigInt), max: max(this.imdbRatingBigInt) } }
+MATCH (this:User)
+WHERE (this.id IS NOT NULL
+	AND this.id = $auth_param0)
+CALL apoc.util.validate(NOT ((this.id IS NOT NULL
+	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
+CALL apoc.util.validate(NOT ((this.id IS NOT NULL
+	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
+RETURN {
+	imdbRatingBigInt: {
+		min: min(this.imdbRatingBigInt),
+		max: max(this.imdbRatingBigInt)
+	}
+}
 ----
 
 '''
@@ -123,11 +136,19 @@ RETURN { imdbRatingBigInt: { min: min(this.imdbRatingBigInt), max: max(this.imdb
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`User`)
-WHERE (this.id IS NOT NULL AND this.id = $auth_param0)
-CALL apoc.util.validate(NOT ((this.id IS NOT NULL AND this.id = $thisauth_param0)), "@neo4j/graphql/FORBIDDEN", [0])
-CALL apoc.util.validate(NOT ((this.id IS NOT NULL AND this.id = $thisauth_param0)), "@neo4j/graphql/FORBIDDEN", [0])
-RETURN { createdAt: { min: apoc.date.convertFormat(toString(min(this.createdAt)), "iso_zoned_date_time", "iso_offset_date_time"), max: apoc.date.convertFormat(toString(max(this.createdAt)), "iso_zoned_date_time", "iso_offset_date_time") } }
+MATCH (this:User)
+WHERE (this.id IS NOT NULL
+	AND this.id = $auth_param0)
+CALL apoc.util.validate(NOT ((this.id IS NOT NULL
+	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
+CALL apoc.util.validate(NOT ((this.id IS NOT NULL
+	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
+RETURN {
+	createdAt: {
+		min: apoc.date.convertFormat(toString(min(this.createdAt)), 'iso_zoned_date_time', 'iso_offset_date_time'),
+		max: apoc.date.convertFormat(toString(max(this.createdAt)), 'iso_zoned_date_time', 'iso_offset_date_time')
+	}
+}
 ----
 
 '''
@@ -159,11 +180,19 @@ RETURN { createdAt: { min: apoc.date.convertFormat(toString(min(this.createdAt))
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`User`)
-WHERE (this.id IS NOT NULL AND this.id = $auth_param0)
-CALL apoc.util.validate(NOT ((this.id IS NOT NULL AND this.id = $thisauth_param0)), "@neo4j/graphql/FORBIDDEN", [0])
-CALL apoc.util.validate(NOT ((this.id IS NOT NULL AND this.id = $thisauth_param0)), "@neo4j/graphql/FORBIDDEN", [0])
-RETURN { imdbRatingFloat: { min: min(this.imdbRatingFloat), max: max(this.imdbRatingFloat) } }
+MATCH (this:User)
+WHERE (this.id IS NOT NULL
+	AND this.id = $auth_param0)
+CALL apoc.util.validate(NOT ((this.id IS NOT NULL
+	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
+CALL apoc.util.validate(NOT ((this.id IS NOT NULL
+	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
+RETURN {
+	imdbRatingFloat: {
+		min: min(this.imdbRatingFloat),
+		max: max(this.imdbRatingFloat)
+	}
+}
 ----
 
 '''
@@ -195,11 +224,19 @@ RETURN { imdbRatingFloat: { min: min(this.imdbRatingFloat), max: max(this.imdbRa
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`User`)
-WHERE (this.id IS NOT NULL AND this.id = $auth_param0)
-CALL apoc.util.validate(NOT ((this.id IS NOT NULL AND this.id = $thisauth_param0)), "@neo4j/graphql/FORBIDDEN", [0])
-CALL apoc.util.validate(NOT ((this.id IS NOT NULL AND this.id = $thisauth_param0)), "@neo4j/graphql/FORBIDDEN", [0])
-RETURN { id: { shortest: min(this.id), longest: max(this.id) } }
+MATCH (this:User)
+WHERE (this.id IS NOT NULL
+	AND this.id = $auth_param0)
+CALL apoc.util.validate(NOT ((this.id IS NOT NULL
+	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
+CALL apoc.util.validate(NOT ((this.id IS NOT NULL
+	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
+RETURN {
+	id: {
+		shortest: min(this.id),
+		longest: max(this.id)
+	}
+}
 ----
 
 '''
@@ -231,11 +268,19 @@ RETURN { id: { shortest: min(this.id), longest: max(this.id) } }
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`User`)
-WHERE (this.id IS NOT NULL AND this.id = $auth_param0)
-CALL apoc.util.validate(NOT ((this.id IS NOT NULL AND this.id = $thisauth_param0)), "@neo4j/graphql/FORBIDDEN", [0])
-CALL apoc.util.validate(NOT ((this.id IS NOT NULL AND this.id = $thisauth_param0)), "@neo4j/graphql/FORBIDDEN", [0])
-RETURN { imdbRatingInt: { min: min(this.imdbRatingInt), max: max(this.imdbRatingInt) } }
+MATCH (this:User)
+WHERE (this.id IS NOT NULL
+	AND this.id = $auth_param0)
+CALL apoc.util.validate(NOT ((this.id IS NOT NULL
+	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
+CALL apoc.util.validate(NOT ((this.id IS NOT NULL
+	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
+RETURN {
+	imdbRatingInt: {
+		min: min(this.imdbRatingInt),
+		max: max(this.imdbRatingInt)
+	}
+}
 ----
 
 '''
@@ -267,25 +312,19 @@ RETURN { imdbRatingInt: { min: min(this.imdbRatingInt), max: max(this.imdbRating
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`User`)
-WHERE (this.id IS NOT NULL AND this.id = $auth_param0)
-CALL apoc.util.validate(NOT ((this.id IS NOT NULL AND this.id = $thisauth_param0)), "@neo4j/graphql/FORBIDDEN", [0])
-CALL apoc.util.validate(NOT ((this.id IS NOT NULL AND this.id = $thisauth_param0)), "@neo4j/graphql/FORBIDDEN", [0])
-RETURN { name: { shortest: 
-                            reduce(aggVar = collect(this.name)[0], current IN collect(this.name) |
-                                CASE
-                                WHEN size(current) < size(aggVar) THEN current
-                                ELSE aggVar
-                                END
-                            )
-                        , longest: 
-                            reduce(aggVar = collect(this.name)[0], current IN collect(this.name) |
-                                CASE
-                                WHEN size(current) > size(aggVar) THEN current
-                                ELSE aggVar
-                                END
-                            )
-                         } }
+MATCH (this:User)
+WHERE (this.id IS NOT NULL
+	AND this.id = $auth_param0)
+CALL apoc.util.validate(NOT ((this.id IS NOT NULL
+	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
+CALL apoc.util.validate(NOT ((this.id IS NOT NULL
+	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
+RETURN {
+	name: {
+		shortest: reduce(aggVar = collect(this.name)[0], current IN collect(this.name) | CASE WHEN size(current) < size(aggVar) THEN current ELSE aggVar END),
+		longest: reduce(aggVar = collect(this.name)[0], current IN collect(this.name) | CASE WHEN size(current) > size(aggVar) THEN current ELSE aggVar END)
+	}
+}
 ----
 
 '''
@@ -314,10 +353,14 @@ RETURN { name: { shortest:
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`User`)
-WHERE (this.id IS NOT NULL AND this.id = $auth_param0)
-CALL apoc.util.validate(NOT ((this.id IS NOT NULL AND this.id = $thisauth_param0)), "@neo4j/graphql/FORBIDDEN", [0])
-RETURN { count: count(this) }
+MATCH (this:User)
+WHERE (this.id IS NOT NULL
+	AND this.id = $auth_param0)
+CALL apoc.util.validate(NOT ((this.id IS NOT NULL
+	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
+RETURN {
+	count: count(this)
+}
 ----
 
 '''

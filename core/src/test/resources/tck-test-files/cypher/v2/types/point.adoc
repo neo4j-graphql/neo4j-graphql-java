@@ -60,17 +60,17 @@ mutation {
 ----
 UNWIND $create_param0 AS create_var1
 CALL {
-    WITH create_var1
-    CREATE (create_this0:`PointContainer`)
-    SET
-        create_this0.point = point(create_var1.point)
-    
-    RETURN create_this0
+	WITH create_var1
+	CREATE (create_this0:PointContainer)
+	SET create_this0.point = point(create_var1.point)
+	RETURN create_this0
 }
-RETURN collect(create_this0 { point: (CASE
-    WHEN create_this0.point IS NOT NULL THEN { point: create_this0.point, crs: create_this0.point.crs }
-    ELSE NULL
-END) }) AS data
+RETURN collect(create_this0 {
+	point: CASE WHEN create_this0.point IS NOT NULL THEN {
+		point: create_this0.point,
+		crs: create_this0.point.crs
+	} ELSE NULL END
+}) AS data
 ----
 
 '''
@@ -107,14 +107,14 @@ END) }) AS data
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`PointContainer`)
+MATCH (this:PointContainer)
 WHERE this.point IN [var0 IN $param0 | point(var0)]
-
-
-RETURN this { point: (CASE
-    WHEN this.point IS NOT NULL THEN { point: this.point, crs: this.point.crs }
-    ELSE NULL
-END) } AS this
+RETURN this {
+	point: CASE WHEN this.point IS NOT NULL THEN {
+		point: this.point,
+		crs: this.point.crs
+	} ELSE NULL END
+} AS this
 ----
 
 '''
@@ -151,14 +151,14 @@ END) } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`PointContainer`)
+MATCH (this:PointContainer)
 WHERE NOT (this.point IN [var0 IN $param0 | point(var0)])
-
-
-RETURN this { point: (CASE
-    WHEN this.point IS NOT NULL THEN { point: this.point, crs: this.point.crs }
-    ELSE NULL
-END) } AS this
+RETURN this {
+	point: CASE WHEN this.point IS NOT NULL THEN {
+		point: this.point,
+		crs: this.point.crs
+	} ELSE NULL END
+} AS this
 ----
 
 '''
@@ -192,14 +192,13 @@ END) } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`PointContainer`)
+MATCH (this:PointContainer)
 WHERE NOT (this.point = point($param0))
-
-
-RETURN this { point: (CASE
-    WHEN this.point IS NOT NULL THEN { point: this.point }
-    ELSE NULL
-END) } AS this
+RETURN this {
+	point: CASE WHEN this.point IS NOT NULL THEN {
+		point: this.point
+	} ELSE NULL END
+} AS this
 ----
 
 '''
@@ -234,14 +233,14 @@ END) } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`PointContainer`)
+MATCH (this:PointContainer)
 WHERE this.point = point($param0)
-
-
-RETURN this { point: (CASE
-    WHEN this.point IS NOT NULL THEN { point: this.point, crs: this.point.crs }
-    ELSE NULL
-END) } AS this
+RETURN this {
+	point: CASE WHEN this.point IS NOT NULL THEN {
+		point: this.point,
+		crs: this.point.crs
+	} ELSE NULL END
+} AS this
 ----
 
 '''
@@ -283,16 +282,15 @@ mutation {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`PointContainer`)
+MATCH (this:PointContainer)
 WHERE this.id = $param0
-
-
 SET this.point = point($this_update_point)
-
-RETURN collect(DISTINCT this { point: (CASE
-    WHEN this.point IS NOT NULL THEN { point: this.point, crs: this.point.crs }
-    ELSE NULL
-END) }) AS data
+RETURN collect(DISTINCT this {
+	point: CASE WHEN this.point IS NOT NULL THEN {
+		point: this.point,
+		crs: this.point.crs
+	} ELSE NULL END
+}) AS data
 ----
 
 '''
@@ -333,14 +331,13 @@ END) }) AS data
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`PointContainer`)
+MATCH (this:PointContainer)
 WHERE distance(this.point, point($param0.point)) = $param0.distance
-
-
-RETURN this { point: (CASE
-    WHEN this.point IS NOT NULL THEN { point: this.point }
-    ELSE NULL
-END) } AS this
+RETURN this {
+	point: CASE WHEN this.point IS NOT NULL THEN {
+		point: this.point
+	} ELSE NULL END
+} AS this
 ----
 
 '''
@@ -379,14 +376,13 @@ END) } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`PointContainer`)
+MATCH (this:PointContainer)
 WHERE point.distance(this.point, point($param0.point)) = $param0.distance
-
-
-RETURN this { point: (CASE
-    WHEN this.point IS NOT NULL THEN { point: this.point }
-    ELSE NULL
-END) } AS this
+RETURN this {
+	point: CASE WHEN this.point IS NOT NULL THEN {
+		point: this.point
+	} ELSE NULL END
+} AS this
 ----
 
 '''
@@ -425,14 +421,13 @@ END) } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`PointContainer`)
+MATCH (this:PointContainer)
 WHERE distance(this.point, point($param0.point)) > $param0.distance
-
-
-RETURN this { point: (CASE
-    WHEN this.point IS NOT NULL THEN { point: this.point }
-    ELSE NULL
-END) } AS this
+RETURN this {
+	point: CASE WHEN this.point IS NOT NULL THEN {
+		point: this.point
+	} ELSE NULL END
+} AS this
 ----
 
 '''
@@ -471,14 +466,13 @@ END) } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`PointContainer`)
+MATCH (this:PointContainer)
 WHERE point.distance(this.point, point($param0.point)) > $param0.distance
-
-
-RETURN this { point: (CASE
-    WHEN this.point IS NOT NULL THEN { point: this.point }
-    ELSE NULL
-END) } AS this
+RETURN this {
+	point: CASE WHEN this.point IS NOT NULL THEN {
+		point: this.point
+	} ELSE NULL END
+} AS this
 ----
 
 '''
@@ -517,14 +511,13 @@ END) } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`PointContainer`)
+MATCH (this:PointContainer)
 WHERE distance(this.point, point($param0.point)) >= $param0.distance
-
-
-RETURN this { point: (CASE
-    WHEN this.point IS NOT NULL THEN { point: this.point }
-    ELSE NULL
-END) } AS this
+RETURN this {
+	point: CASE WHEN this.point IS NOT NULL THEN {
+		point: this.point
+	} ELSE NULL END
+} AS this
 ----
 
 '''
@@ -563,14 +556,13 @@ END) } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`PointContainer`)
+MATCH (this:PointContainer)
 WHERE point.distance(this.point, point($param0.point)) >= $param0.distance
-
-
-RETURN this { point: (CASE
-    WHEN this.point IS NOT NULL THEN { point: this.point }
-    ELSE NULL
-END) } AS this
+RETURN this {
+	point: CASE WHEN this.point IS NOT NULL THEN {
+		point: this.point
+	} ELSE NULL END
+} AS this
 ----
 
 '''
@@ -609,14 +601,13 @@ END) } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`PointContainer`)
+MATCH (this:PointContainer)
 WHERE distance(this.point, point($param0.point)) < $param0.distance
-
-
-RETURN this { point: (CASE
-    WHEN this.point IS NOT NULL THEN { point: this.point }
-    ELSE NULL
-END) } AS this
+RETURN this {
+	point: CASE WHEN this.point IS NOT NULL THEN {
+		point: this.point
+	} ELSE NULL END
+} AS this
 ----
 
 '''
@@ -655,14 +646,13 @@ END) } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`PointContainer`)
+MATCH (this:PointContainer)
 WHERE point.distance(this.point, point($param0.point)) < $param0.distance
-
-
-RETURN this { point: (CASE
-    WHEN this.point IS NOT NULL THEN { point: this.point }
-    ELSE NULL
-END) } AS this
+RETURN this {
+	point: CASE WHEN this.point IS NOT NULL THEN {
+		point: this.point
+	} ELSE NULL END
+} AS this
 ----
 
 '''
@@ -701,14 +691,13 @@ END) } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`PointContainer`)
+MATCH (this:PointContainer)
 WHERE distance(this.point, point($param0.point)) <= $param0.distance
-
-
-RETURN this { point: (CASE
-    WHEN this.point IS NOT NULL THEN { point: this.point }
-    ELSE NULL
-END) } AS this
+RETURN this {
+	point: CASE WHEN this.point IS NOT NULL THEN {
+		point: this.point
+	} ELSE NULL END
+} AS this
 ----
 
 '''
@@ -747,14 +736,13 @@ END) } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`PointContainer`)
+MATCH (this:PointContainer)
 WHERE point.distance(this.point, point($param0.point)) <= $param0.distance
-
-
-RETURN this { point: (CASE
-    WHEN this.point IS NOT NULL THEN { point: this.point }
-    ELSE NULL
-END) } AS this
+RETURN this {
+	point: CASE WHEN this.point IS NOT NULL THEN {
+		point: this.point
+	} ELSE NULL END
+} AS this
 ----
 
 '''

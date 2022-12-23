@@ -46,7 +46,11 @@ type User {
 [source,cypher]
 ----
 MATCH (this:User)
-RETURN this { .firstName, .lastName, .fullName } as this
+RETURN this {
+	.firstName,
+	.lastName,
+	.fullName
+} AS this
 ----
 
 '''
@@ -73,7 +77,11 @@ RETURN this { .firstName, .lastName, .fullName } as this
 [source,cypher]
 ----
 MATCH (this:User)
-RETURN this { .fullName, .firstName, .lastName } as this
+RETURN this {
+	.fullName,
+	.firstName,
+	.lastName
+} AS this
 ----
 
 '''

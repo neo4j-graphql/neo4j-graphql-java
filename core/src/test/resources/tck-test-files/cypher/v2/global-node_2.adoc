@@ -62,11 +62,12 @@ query Node($id: ID!) {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Actor`)
+MATCH (this:Actor)
 WHERE this.id = $param0
-
-
-RETURN this { .name, dbId: this.id } AS this
+RETURN this {
+	.name,
+	dbId: this.id
+} AS this
 ----
 
 '''
@@ -104,11 +105,11 @@ query ($where: ActorWhere!) {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Actor`)
+MATCH (this:Actor)
 WHERE this.id = $param0
-
-
-RETURN this { .name } AS this
+RETURN this {
+	.name
+} AS this
 ----
 
 '''

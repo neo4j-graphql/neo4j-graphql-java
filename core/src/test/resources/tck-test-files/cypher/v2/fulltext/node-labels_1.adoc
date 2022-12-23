@@ -41,11 +41,12 @@ type Movie @fulltext(indexes: [{name: "MovieTitle", fields: ["title"]}]) @node(a
 .Expected Cypher output
 [source,cypher]
 ----
-CALL db.index.fulltext.queryNodes("MovieTitle", $param0) YIELD node AS this
-WHERE ("Movie" IN labels(this) AND "AnotherLabel" IN labels(this))
-
-
-RETURN this { .title } AS this
+CALL db.index.fulltext.queryNodes('MovieTitle', $param0) YIELD node AS this
+WHERE ('Movie' IN labels(this)
+	AND 'AnotherLabel' IN labels(this))
+RETURN this {
+	.title
+} AS this
 ----
 
 '''

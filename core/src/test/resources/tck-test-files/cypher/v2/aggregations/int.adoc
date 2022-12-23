@@ -43,8 +43,12 @@ type Movie {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Movie`)
-RETURN { imdbRating: { average: avg(this.imdbRating) } }
+MATCH (this:Movie)
+RETURN {
+	imdbRating: {
+		average: avg(this.imdbRating)
+	}
+}
 ----
 
 '''
@@ -72,8 +76,12 @@ RETURN { imdbRating: { average: avg(this.imdbRating) } }
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Movie`)
-RETURN { imdbRating: { max: max(this.imdbRating) } }
+MATCH (this:Movie)
+RETURN {
+	imdbRating: {
+		max: max(this.imdbRating)
+	}
+}
 ----
 
 '''
@@ -101,8 +109,12 @@ RETURN { imdbRating: { max: max(this.imdbRating) } }
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Movie`)
-RETURN { imdbRating: { min: min(this.imdbRating) } }
+MATCH (this:Movie)
+RETURN {
+	imdbRating: {
+		min: min(this.imdbRating)
+	}
+}
 ----
 
 '''
@@ -133,8 +145,15 @@ RETURN { imdbRating: { min: min(this.imdbRating) } }
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Movie`)
-RETURN { imdbRating: { min: min(this.imdbRating), max: max(this.imdbRating), average: avg(this.imdbRating), sum: sum(this.imdbRating) } }
+MATCH (this:Movie)
+RETURN {
+	imdbRating: {
+		min: min(this.imdbRating),
+		max: max(this.imdbRating),
+		average: avg(this.imdbRating),
+		sum: sum(this.imdbRating)
+	}
+}
 ----
 
 '''
@@ -162,8 +181,12 @@ RETURN { imdbRating: { min: min(this.imdbRating), max: max(this.imdbRating), ave
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Movie`)
-RETURN { imdbRating: { sum: sum(this.imdbRating) } }
+MATCH (this:Movie)
+RETURN {
+	imdbRating: {
+		sum: sum(this.imdbRating)
+	}
+}
 ----
 
 '''

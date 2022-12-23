@@ -45,10 +45,12 @@ type User {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`User`)
-
-
-RETURN this { .firstName, .lastName, .fullName } AS this
+MATCH (this:User)
+RETURN this {
+	.firstName,
+	.lastName,
+	.fullName
+} AS this
 ----
 
 '''
@@ -74,10 +76,12 @@ RETURN this { .firstName, .lastName, .fullName } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`User`)
-
-
-RETURN this { .fullName, .firstName, .lastName } AS this
+MATCH (this:User)
+RETURN this {
+	.fullName,
+	.firstName,
+	.lastName
+} AS this
 ----
 
 '''

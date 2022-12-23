@@ -61,15 +61,14 @@ mutation {
 ----
 UNWIND $create_param0 AS create_var1
 CALL {
-    WITH create_var1
-    CREATE (create_this0:`User`)
-    SET
-        create_this0.id = create_var1.id
-    
-    
-    RETURN create_this0
+	WITH create_var1
+	CREATE (create_this0:User)
+	SET create_this0.id = create_var1.id
+	RETURN create_this0
 }
-RETURN collect(create_this0 { .id }) AS data
+RETURN collect(create_this0 {
+	.id
+}) AS data
 ----
 
 '''
@@ -101,15 +100,17 @@ mutation {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`User`)
+MATCH (this:User)
 WITH this
-CALL apoc.util.validate(NOT ((this.id IS NOT NULL AND this.id = $thisauth_param0)), "@neo4j/graphql/FORBIDDEN", [0])
-
+CALL apoc.util.validate(NOT ((this.id IS NOT NULL
+	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
 SET this.id = $this_update_id
-
 WITH *
-CALL apoc.util.validate(NOT ((this.id IS NOT NULL AND this.id = $thisauth_param0)), "@neo4j/graphql/FORBIDDEN", [0])
-RETURN collect(DISTINCT this { .id }) AS data
+CALL apoc.util.validate(NOT ((this.id IS NOT NULL
+	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
+RETURN collect(DISTINCT this {
+	.id
+}) AS data
 ----
 
 '''

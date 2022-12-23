@@ -41,8 +41,10 @@ type Tech @node(plural: "Techs") {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Tech`)
-RETURN { count: count(this) }
+MATCH (this:Tech)
+RETURN {
+	count: count(this)
+}
 ----
 
 '''
@@ -73,12 +75,13 @@ mutation {
 [source,cypher]
 ----
 CALL {
-CREATE (this0:`Tech`)
-SET this0.name = $this0_name
-RETURN this0
+	CREATE (this0:Tech)
+	SET this0.name = $this0_name
+	RETURN this0
 }
-RETURN [
-this0 { .name }] AS data
+RETURN [this0 {
+	.name
+}] AS data
 ----
 
 '''
@@ -106,7 +109,7 @@ mutation {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Tech`)
+MATCH (this:Tech)
 WHERE this.name = $this_name
 DETACH DELETE this
 ----
@@ -134,8 +137,10 @@ DETACH DELETE this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Tech`)
-RETURN this { .name } as this
+MATCH (this:Tech)
+RETURN this {
+	.name
+} AS this
 ----
 
 '''
@@ -161,8 +166,10 @@ RETURN this { .name } as this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Tech`)
-RETURN this { .name } as this
+MATCH (this:Tech)
+RETURN this {
+	.name
+} AS this
 ----
 
 '''
@@ -192,11 +199,11 @@ mutation {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Tech`)
-
+MATCH (this:Tech)
 SET this.name = $this_update_name
-
-RETURN collect(DISTINCT this { .name }) AS data
+RETURN collect(DISTINCT this {
+	.name
+}) AS data
 ----
 
 '''

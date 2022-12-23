@@ -51,11 +51,11 @@ type Movie {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Movie`)
+MATCH (this:Movie)
 WHERE this.title = $param0
-
-
-RETURN this { .title } AS this
+RETURN this {
+	.title
+} AS this
 ----
 
 '''
@@ -85,11 +85,13 @@ RETURN this { .title } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Movie`)
-WHERE ((this.title = $param0 OR this.isFavorite = $param1) AND this.id = $param2)
-
-
-RETURN this { .title } AS this
+MATCH (this:Movie)
+WHERE ((this.title = $param0
+		OR this.isFavorite = $param1)
+	AND this.id = $param2)
+RETURN this {
+	.title
+} AS this
 ----
 
 '''
@@ -118,11 +120,12 @@ RETURN this { .title } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Movie`)
-WHERE (this.title = $param0 AND this.title = $param1)
-
-
-RETURN this { .title } AS this
+MATCH (this:Movie)
+WHERE (this.title = $param0
+	AND this.title = $param1)
+RETURN this {
+	.title
+} AS this
 ----
 
 '''
@@ -150,11 +153,11 @@ RETURN this { .title } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Movie`)
+MATCH (this:Movie)
 WHERE this.title = $param0
-
-
-RETURN this { .title } AS this
+RETURN this {
+	.title
+} AS this
 ----
 
 '''
@@ -192,11 +195,12 @@ query ($title: String, $isFavorite: Boolean) {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Movie`)
-WHERE (this.title = $param0 AND this.isFavorite = $param1)
-
-
-RETURN this { .title } AS this
+MATCH (this:Movie)
+WHERE (this.title = $param0
+	AND this.isFavorite = $param1)
+RETURN this {
+	.title
+} AS this
 ----
 
 '''
@@ -224,11 +228,11 @@ RETURN this { .title } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Movie`)
+MATCH (this:Movie)
 WHERE this.title = $param0
-
-
-RETURN this { .title } AS this
+RETURN this {
+	.title
+} AS this
 ----
 
 '''
@@ -257,11 +261,12 @@ RETURN this { .title } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Movie`)
-WHERE (this.title = $param0 AND this.isFavorite = $param1)
-
-
-RETURN this { .title } AS this
+MATCH (this:Movie)
+WHERE (this.title = $param0
+	AND this.isFavorite = $param1)
+RETURN this {
+	.title
+} AS this
 ----
 
 '''
@@ -289,11 +294,11 @@ RETURN this { .title } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Movie`)
+MATCH (this:Movie)
 WHERE this.title = $param0
-
-
-RETURN this { .title } AS this
+RETURN this {
+	.title
+} AS this
 ----
 
 '''
@@ -321,11 +326,11 @@ RETURN this { .title } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Movie`)
+MATCH (this:Movie)
 WHERE this.title = $param0
-
-
-RETURN this { .title } AS this
+RETURN this {
+	.title
+} AS this
 ----
 
 '''
@@ -353,11 +358,11 @@ RETURN this { .title } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Movie`)
+MATCH (this:Movie)
 WHERE this.title = $param0
-
-
-RETURN this { .title } AS this
+RETURN this {
+	.title
+} AS this
 ----
 
 '''
@@ -385,11 +390,11 @@ RETURN this { .title } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Movie`)
+MATCH (this:Movie)
 WHERE this.title IS NOT NULL
-
-
-RETURN this { .title } AS this
+RETURN this {
+	.title
+} AS this
 ----
 
 '''
@@ -415,11 +420,11 @@ RETURN this { .title } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Movie`)
+MATCH (this:Movie)
 WHERE this.title IS NULL
-
-
-RETURN this { .title } AS this
+RETURN this {
+	.title
+} AS this
 ----
 
 '''

@@ -75,27 +75,20 @@ WITH this
 CALL {
 	WITH this
 	OPTIONAL MATCH (this_connect_actedIn0_node:Movie)
-	WHERE this_connect_actedIn0_node.title STARTS WITH $this_connect_actedIn0_node_title_STARTS_WITH
-	FOREACH(_ IN CASE this WHEN NULL THEN [] ELSE [1] END | 
-		FOREACH(_ IN CASE this_connect_actedIn0_node WHEN NULL THEN [] ELSE [1] END | 
-			MERGE (this)-[this_connect_actedIn0_relationship:ACTED_IN]->(this_connect_actedIn0_node)
-SET this_connect_actedIn0_relationship.screenTime = $this_connect_actedIn0_relationship_screenTime
-		)
-	)
-	RETURN count(*)
-UNION
+	WHERE this_connect_actedIn0_node.title STARTS WITH $this_connect_actedIn0_node_title_STARTS_WITH FOREACH (_ IN CASE this WHEN NULL THEN [] ELSE [1] END | FOREACH (_ IN CASE this_connect_actedIn0_node WHEN NULL THEN [] ELSE [1] END |
+	MERGE (this)-[this_connect_actedIn0_relationship:ACTED_IN]->(this_connect_actedIn0_node)
+	SET this_connect_actedIn0_relationship.screenTime = $this_connect_actedIn0_relationship_screenTime))
+	RETURN count(*) UNION
 	WITH this
 	OPTIONAL MATCH (this_connect_actedIn0_node:Series)
-	WHERE this_connect_actedIn0_node.title STARTS WITH $this_connect_actedIn0_node_title_STARTS_WITH
-	FOREACH(_ IN CASE this WHEN NULL THEN [] ELSE [1] END | 
-		FOREACH(_ IN CASE this_connect_actedIn0_node WHEN NULL THEN [] ELSE [1] END | 
-			MERGE (this)-[this_connect_actedIn0_relationship:ACTED_IN]->(this_connect_actedIn0_node)
-SET this_connect_actedIn0_relationship.screenTime = $this_connect_actedIn0_relationship_screenTime
-		)
-	)
+	WHERE this_connect_actedIn0_node.title STARTS WITH $this_connect_actedIn0_node_title_STARTS_WITH FOREACH (_ IN CASE this WHEN NULL THEN [] ELSE [1] END | FOREACH (_ IN CASE this_connect_actedIn0_node WHEN NULL THEN [] ELSE [1] END |
+	MERGE (this)-[this_connect_actedIn0_relationship:ACTED_IN]->(this_connect_actedIn0_node)
+	SET this_connect_actedIn0_relationship.screenTime = $this_connect_actedIn0_relationship_screenTime))
 	RETURN count(*)
 }
-RETURN collect(DISTINCT this { .name }) AS data
+RETURN collect(DISTINCT this {
+	.name
+}) AS data
 ----
 
 '''
@@ -135,53 +128,38 @@ WITH this
 CALL {
 	WITH this
 	OPTIONAL MATCH (this_connect_actedIn0_node:Movie)
-	WHERE this_connect_actedIn0_node.title STARTS WITH $this_connect_actedIn0_node_title_STARTS_WITH
-	FOREACH(_ IN CASE this WHEN NULL THEN [] ELSE [1] END | 
-		FOREACH(_ IN CASE this_connect_actedIn0_node WHEN NULL THEN [] ELSE [1] END | 
-			MERGE (this)-[this_connect_actedIn0_relationship:ACTED_IN]->(this_connect_actedIn0_node)
-SET this_connect_actedIn0_relationship.screenTime = $this_connect_actedIn0_relationship_screenTime
-		)
-	)
-WITH this, this_connect_actedIn0_node
-CALL {
+	WHERE this_connect_actedIn0_node.title STARTS WITH $this_connect_actedIn0_node_title_STARTS_WITH FOREACH (_ IN CASE this WHEN NULL THEN [] ELSE [1] END | FOREACH (_ IN CASE this_connect_actedIn0_node WHEN NULL THEN [] ELSE [1] END |
+	MERGE (this)-[this_connect_actedIn0_relationship:ACTED_IN]->(this_connect_actedIn0_node)
+	SET this_connect_actedIn0_relationship.screenTime = $this_connect_actedIn0_relationship_screenTime))
 	WITH this, this_connect_actedIn0_node
-	OPTIONAL MATCH (this_connect_actedIn0_node_actors0_node:Actor)
-	WHERE this_connect_actedIn0_node_actors0_node.name = $this_connect_actedIn0_node_actors0_node_name
-	FOREACH(_ IN CASE this_connect_actedIn0_node WHEN NULL THEN [] ELSE [1] END | 
-		FOREACH(_ IN CASE this_connect_actedIn0_node_actors0_node WHEN NULL THEN [] ELSE [1] END | 
-			MERGE (this_connect_actedIn0_node)<-[this_connect_actedIn0_node_actors0_relationship:ACTED_IN]-(this_connect_actedIn0_node_actors0_node)
-SET this_connect_actedIn0_node_actors0_relationship.screenTime = $this_connect_actedIn0_node_actors0_relationship_screenTime
-		)
-	)
-	RETURN count(*)
-}
-	RETURN count(*)
-UNION
+	CALL {
+		WITH this, this_connect_actedIn0_node
+		OPTIONAL MATCH (this_connect_actedIn0_node_actors0_node:Actor)
+		WHERE this_connect_actedIn0_node_actors0_node.name = $this_connect_actedIn0_node_actors0_node_name FOREACH (_ IN CASE this_connect_actedIn0_node WHEN NULL THEN [] ELSE [1] END | FOREACH (_ IN CASE this_connect_actedIn0_node_actors0_node WHEN NULL THEN [] ELSE [1] END |
+		MERGE (this_connect_actedIn0_node)<-[this_connect_actedIn0_node_actors0_relationship:ACTED_IN]-(this_connect_actedIn0_node_actors0_node)
+		SET this_connect_actedIn0_node_actors0_relationship.screenTime = $this_connect_actedIn0_node_actors0_relationship_screenTime))
+		RETURN count(*)
+	}
+	RETURN count(*) UNION
 	WITH this
 	OPTIONAL MATCH (this_connect_actedIn0_node:Series)
-	WHERE this_connect_actedIn0_node.title STARTS WITH $this_connect_actedIn0_node_title_STARTS_WITH
-	FOREACH(_ IN CASE this WHEN NULL THEN [] ELSE [1] END | 
-		FOREACH(_ IN CASE this_connect_actedIn0_node WHEN NULL THEN [] ELSE [1] END | 
-			MERGE (this)-[this_connect_actedIn0_relationship:ACTED_IN]->(this_connect_actedIn0_node)
-SET this_connect_actedIn0_relationship.screenTime = $this_connect_actedIn0_relationship_screenTime
-		)
-	)
-WITH this, this_connect_actedIn0_node
-CALL {
+	WHERE this_connect_actedIn0_node.title STARTS WITH $this_connect_actedIn0_node_title_STARTS_WITH FOREACH (_ IN CASE this WHEN NULL THEN [] ELSE [1] END | FOREACH (_ IN CASE this_connect_actedIn0_node WHEN NULL THEN [] ELSE [1] END |
+	MERGE (this)-[this_connect_actedIn0_relationship:ACTED_IN]->(this_connect_actedIn0_node)
+	SET this_connect_actedIn0_relationship.screenTime = $this_connect_actedIn0_relationship_screenTime))
 	WITH this, this_connect_actedIn0_node
-	OPTIONAL MATCH (this_connect_actedIn0_node_actors0_node:Actor)
-	WHERE this_connect_actedIn0_node_actors0_node.name = $this_connect_actedIn0_node_actors0_node_name
-	FOREACH(_ IN CASE this_connect_actedIn0_node WHEN NULL THEN [] ELSE [1] END | 
-		FOREACH(_ IN CASE this_connect_actedIn0_node_actors0_node WHEN NULL THEN [] ELSE [1] END | 
-			MERGE (this_connect_actedIn0_node)<-[this_connect_actedIn0_node_actors0_relationship:ACTED_IN]-(this_connect_actedIn0_node_actors0_node)
-SET this_connect_actedIn0_node_actors0_relationship.screenTime = $this_connect_actedIn0_node_actors0_relationship_screenTime
-		)
-	)
+	CALL {
+		WITH this, this_connect_actedIn0_node
+		OPTIONAL MATCH (this_connect_actedIn0_node_actors0_node:Actor)
+		WHERE this_connect_actedIn0_node_actors0_node.name = $this_connect_actedIn0_node_actors0_node_name FOREACH (_ IN CASE this_connect_actedIn0_node WHEN NULL THEN [] ELSE [1] END | FOREACH (_ IN CASE this_connect_actedIn0_node_actors0_node WHEN NULL THEN [] ELSE [1] END |
+		MERGE (this_connect_actedIn0_node)<-[this_connect_actedIn0_node_actors0_relationship:ACTED_IN]-(this_connect_actedIn0_node_actors0_node)
+		SET this_connect_actedIn0_node_actors0_relationship.screenTime = $this_connect_actedIn0_node_actors0_relationship_screenTime))
+		RETURN count(*)
+	}
 	RETURN count(*)
 }
-	RETURN count(*)
-}
-RETURN collect(DISTINCT this { .name }) AS data
+RETURN collect(DISTINCT this {
+	.name
+}) AS data
 ----
 
 '''
@@ -221,42 +199,29 @@ WITH this
 CALL {
 	WITH this
 	OPTIONAL MATCH (this_connect_actedIn0_node:Movie)
-	WHERE this_connect_actedIn0_node.title STARTS WITH $this_connect_actedIn0_node_title_STARTS_WITH
-	FOREACH(_ IN CASE this WHEN NULL THEN [] ELSE [1] END | 
-		FOREACH(_ IN CASE this_connect_actedIn0_node WHEN NULL THEN [] ELSE [1] END | 
-			MERGE (this)-[this_connect_actedIn0_relationship:ACTED_IN]->(this_connect_actedIn0_node)
-SET this_connect_actedIn0_relationship.screenTime = $this_connect_actedIn0_relationship_screenTime
-		)
-	)
-
-WITH this, this_connect_actedIn0_node
-CALL {
+	WHERE this_connect_actedIn0_node.title STARTS WITH $this_connect_actedIn0_node_title_STARTS_WITH FOREACH (_ IN CASE this WHEN NULL THEN [] ELSE [1] END | FOREACH (_ IN CASE this_connect_actedIn0_node WHEN NULL THEN [] ELSE [1] END |
+	MERGE (this)-[this_connect_actedIn0_relationship:ACTED_IN]->(this_connect_actedIn0_node)
+	SET this_connect_actedIn0_relationship.screenTime = $this_connect_actedIn0_relationship_screenTime))
 	WITH this, this_connect_actedIn0_node
-	OPTIONAL MATCH (this_connect_actedIn0_node_on_Movie0_actors0_node:Actor)
-	WHERE this_connect_actedIn0_node_on_Movie0_actors0_node.name = $this_connect_actedIn0_node_on_Movie0_actors0_node_name
-	FOREACH(_ IN CASE this_connect_actedIn0_node WHEN NULL THEN [] ELSE [1] END | 
-		FOREACH(_ IN CASE this_connect_actedIn0_node_on_Movie0_actors0_node WHEN NULL THEN [] ELSE [1] END | 
-			MERGE (this_connect_actedIn0_node)<-[this_connect_actedIn0_node_on_Movie0_actors0_relationship:ACTED_IN]-(this_connect_actedIn0_node_on_Movie0_actors0_node)
-SET this_connect_actedIn0_node_on_Movie0_actors0_relationship.screenTime = $this_connect_actedIn0_node_on_Movie0_actors0_relationship_screenTime
-		)
-	)
-	RETURN count(*)
-}
-	RETURN count(*)
-UNION
+	CALL {
+		WITH this, this_connect_actedIn0_node
+		OPTIONAL MATCH (this_connect_actedIn0_node_on_Movie0_actors0_node:Actor)
+		WHERE this_connect_actedIn0_node_on_Movie0_actors0_node.name = $this_connect_actedIn0_node_on_Movie0_actors0_node_name FOREACH (_ IN CASE this_connect_actedIn0_node WHEN NULL THEN [] ELSE [1] END | FOREACH (_ IN CASE this_connect_actedIn0_node_on_Movie0_actors0_node WHEN NULL THEN [] ELSE [1] END |
+		MERGE (this_connect_actedIn0_node)<-[this_connect_actedIn0_node_on_Movie0_actors0_relationship:ACTED_IN]-(this_connect_actedIn0_node_on_Movie0_actors0_node)
+		SET this_connect_actedIn0_node_on_Movie0_actors0_relationship.screenTime = $this_connect_actedIn0_node_on_Movie0_actors0_relationship_screenTime))
+		RETURN count(*)
+	}
+	RETURN count(*) UNION
 	WITH this
 	OPTIONAL MATCH (this_connect_actedIn0_node:Series)
-	WHERE this_connect_actedIn0_node.title STARTS WITH $this_connect_actedIn0_node_title_STARTS_WITH
-	FOREACH(_ IN CASE this WHEN NULL THEN [] ELSE [1] END | 
-		FOREACH(_ IN CASE this_connect_actedIn0_node WHEN NULL THEN [] ELSE [1] END | 
-			MERGE (this)-[this_connect_actedIn0_relationship:ACTED_IN]->(this_connect_actedIn0_node)
-SET this_connect_actedIn0_relationship.screenTime = $this_connect_actedIn0_relationship_screenTime
-		)
-	)
-
+	WHERE this_connect_actedIn0_node.title STARTS WITH $this_connect_actedIn0_node_title_STARTS_WITH FOREACH (_ IN CASE this WHEN NULL THEN [] ELSE [1] END | FOREACH (_ IN CASE this_connect_actedIn0_node WHEN NULL THEN [] ELSE [1] END |
+	MERGE (this)-[this_connect_actedIn0_relationship:ACTED_IN]->(this_connect_actedIn0_node)
+	SET this_connect_actedIn0_relationship.screenTime = $this_connect_actedIn0_relationship_screenTime))
 	RETURN count(*)
 }
-RETURN collect(DISTINCT this { .name }) AS data
+RETURN collect(DISTINCT this {
+	.name
+}) AS data
 ----
 
 '''
@@ -298,54 +263,38 @@ WITH this
 CALL {
 	WITH this
 	OPTIONAL MATCH (this_connect_actedIn0_node:Movie)
-	WHERE this_connect_actedIn0_node.title STARTS WITH $this_connect_actedIn0_node_title_STARTS_WITH
-	FOREACH(_ IN CASE this WHEN NULL THEN [] ELSE [1] END | 
-		FOREACH(_ IN CASE this_connect_actedIn0_node WHEN NULL THEN [] ELSE [1] END | 
-			MERGE (this)-[this_connect_actedIn0_relationship:ACTED_IN]->(this_connect_actedIn0_node)
-SET this_connect_actedIn0_relationship.screenTime = $this_connect_actedIn0_relationship_screenTime
-		)
-	)
-
-WITH this, this_connect_actedIn0_node
-CALL {
+	WHERE this_connect_actedIn0_node.title STARTS WITH $this_connect_actedIn0_node_title_STARTS_WITH FOREACH (_ IN CASE this WHEN NULL THEN [] ELSE [1] END | FOREACH (_ IN CASE this_connect_actedIn0_node WHEN NULL THEN [] ELSE [1] END |
+	MERGE (this)-[this_connect_actedIn0_relationship:ACTED_IN]->(this_connect_actedIn0_node)
+	SET this_connect_actedIn0_relationship.screenTime = $this_connect_actedIn0_relationship_screenTime))
 	WITH this, this_connect_actedIn0_node
-	OPTIONAL MATCH (this_connect_actedIn0_node_on_Movie0_actors0_node:Actor)
-	WHERE this_connect_actedIn0_node_on_Movie0_actors0_node.name = $this_connect_actedIn0_node_on_Movie0_actors0_node_name
-	FOREACH(_ IN CASE this_connect_actedIn0_node WHEN NULL THEN [] ELSE [1] END | 
-		FOREACH(_ IN CASE this_connect_actedIn0_node_on_Movie0_actors0_node WHEN NULL THEN [] ELSE [1] END | 
-			MERGE (this_connect_actedIn0_node)<-[this_connect_actedIn0_node_on_Movie0_actors0_relationship:ACTED_IN]-(this_connect_actedIn0_node_on_Movie0_actors0_node)
-SET this_connect_actedIn0_node_on_Movie0_actors0_relationship.screenTime = $this_connect_actedIn0_node_on_Movie0_actors0_relationship_screenTime
-		)
-	)
-	RETURN count(*)
-}
-	RETURN count(*)
-UNION
+	CALL {
+		WITH this, this_connect_actedIn0_node
+		OPTIONAL MATCH (this_connect_actedIn0_node_on_Movie0_actors0_node:Actor)
+		WHERE this_connect_actedIn0_node_on_Movie0_actors0_node.name = $this_connect_actedIn0_node_on_Movie0_actors0_node_name FOREACH (_ IN CASE this_connect_actedIn0_node WHEN NULL THEN [] ELSE [1] END | FOREACH (_ IN CASE this_connect_actedIn0_node_on_Movie0_actors0_node WHEN NULL THEN [] ELSE [1] END |
+		MERGE (this_connect_actedIn0_node)<-[this_connect_actedIn0_node_on_Movie0_actors0_relationship:ACTED_IN]-(this_connect_actedIn0_node_on_Movie0_actors0_node)
+		SET this_connect_actedIn0_node_on_Movie0_actors0_relationship.screenTime = $this_connect_actedIn0_node_on_Movie0_actors0_relationship_screenTime))
+		RETURN count(*)
+	}
+	RETURN count(*) UNION
 	WITH this
 	OPTIONAL MATCH (this_connect_actedIn0_node:Series)
-	WHERE this_connect_actedIn0_node.title STARTS WITH $this_connect_actedIn0_node_title_STARTS_WITH
-	FOREACH(_ IN CASE this WHEN NULL THEN [] ELSE [1] END | 
-		FOREACH(_ IN CASE this_connect_actedIn0_node WHEN NULL THEN [] ELSE [1] END | 
-			MERGE (this)-[this_connect_actedIn0_relationship:ACTED_IN]->(this_connect_actedIn0_node)
-SET this_connect_actedIn0_relationship.screenTime = $this_connect_actedIn0_relationship_screenTime
-		)
-	)
-WITH this, this_connect_actedIn0_node
-CALL {
+	WHERE this_connect_actedIn0_node.title STARTS WITH $this_connect_actedIn0_node_title_STARTS_WITH FOREACH (_ IN CASE this WHEN NULL THEN [] ELSE [1] END | FOREACH (_ IN CASE this_connect_actedIn0_node WHEN NULL THEN [] ELSE [1] END |
+	MERGE (this)-[this_connect_actedIn0_relationship:ACTED_IN]->(this_connect_actedIn0_node)
+	SET this_connect_actedIn0_relationship.screenTime = $this_connect_actedIn0_relationship_screenTime))
 	WITH this, this_connect_actedIn0_node
-	OPTIONAL MATCH (this_connect_actedIn0_node_actors0_node:Actor)
-	WHERE this_connect_actedIn0_node_actors0_node.name = $this_connect_actedIn0_node_actors0_node_name
-	FOREACH(_ IN CASE this_connect_actedIn0_node WHEN NULL THEN [] ELSE [1] END | 
-		FOREACH(_ IN CASE this_connect_actedIn0_node_actors0_node WHEN NULL THEN [] ELSE [1] END | 
-			MERGE (this_connect_actedIn0_node)<-[this_connect_actedIn0_node_actors0_relationship:ACTED_IN]-(this_connect_actedIn0_node_actors0_node)
-SET this_connect_actedIn0_node_actors0_relationship.screenTime = $this_connect_actedIn0_node_actors0_relationship_screenTime
-		)
-	)
+	CALL {
+		WITH this, this_connect_actedIn0_node
+		OPTIONAL MATCH (this_connect_actedIn0_node_actors0_node:Actor)
+		WHERE this_connect_actedIn0_node_actors0_node.name = $this_connect_actedIn0_node_actors0_node_name FOREACH (_ IN CASE this_connect_actedIn0_node WHEN NULL THEN [] ELSE [1] END | FOREACH (_ IN CASE this_connect_actedIn0_node_actors0_node WHEN NULL THEN [] ELSE [1] END |
+		MERGE (this_connect_actedIn0_node)<-[this_connect_actedIn0_node_actors0_relationship:ACTED_IN]-(this_connect_actedIn0_node_actors0_node)
+		SET this_connect_actedIn0_node_actors0_relationship.screenTime = $this_connect_actedIn0_node_actors0_relationship_screenTime))
+		RETURN count(*)
+	}
 	RETURN count(*)
 }
-	RETURN count(*)
-}
-RETURN collect(DISTINCT this { .name }) AS data
+RETURN collect(DISTINCT this {
+	.name
+}) AS data
 ----
 
 '''

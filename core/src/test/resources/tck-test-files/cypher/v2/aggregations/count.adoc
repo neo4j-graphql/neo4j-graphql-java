@@ -43,9 +43,11 @@ type Movie {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Movie`)
+MATCH (this:Movie)
 WHERE this.title = $param0
-RETURN { count: count(this) }
+RETURN {
+	count: count(this)
+}
 ----
 
 '''
@@ -71,8 +73,10 @@ RETURN { count: count(this) }
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Movie`)
-RETURN { count: count(this) }
+MATCH (this:Movie)
+RETURN {
+	count: count(this)
+}
 ----
 
 '''

@@ -72,23 +72,36 @@ interface RelationMaterialSupplier @relationshipProperties {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Bulk`:`BULK`)
-
+MATCH (this:Bulk:BULK)
 CALL {
-    WITH this
-    MATCH (this)-[this0:MATERIAL_BULK]->(this_material:`Material`)
-    CALL {
-        WITH this_material
-        MATCH (this_material)-[this_material_connection_suppliersConnectionthis0:MATERIAL_SUPPLIER]->(this_material_Supplier:`Supplier`)
-        WITH { supplierMaterialNumber: this_material_connection_suppliersConnectionthis0.supplierMaterialNumber, node: { supplierId: this_material_Supplier.supplierId } } AS edge
-        WITH collect(edge) AS edges
-        WITH edges, size(edges) AS totalCount
-        RETURN { edges: edges, totalCount: totalCount } AS this_material_suppliersConnection
-    }
-    WITH this_material { .id, suppliersConnection: this_material_suppliersConnection } AS this_material
-    RETURN head(collect(this_material)) AS this_material
+	WITH this
+	MATCH (this)-[this0:MATERIAL_BULK]->(this_material:Material)
+	CALL {
+		WITH this_material
+		MATCH (this_material)-[this_material_connection_suppliersConnectionthis0:MATERIAL_SUPPLIER]->(this_material_Supplier:Supplier)
+		WITH {
+			supplierMaterialNumber: this_material_connection_suppliersConnectionthis0.supplierMaterialNumber,
+			node: {
+				supplierId: this_material_Supplier.supplierId
+			}
+		} AS edge
+		WITH collect(edge) AS edges
+		WITH edges, size(edges) AS totalCount
+		RETURN {
+			edges: edges,
+			totalCount: totalCount
+		} AS this_material_suppliersConnection
+	}
+	WITH this_material {
+		.id,
+		suppliersConnection: this_material_suppliersConnection
+	} AS this_material
+	RETURN head(collect(this_material)) AS this_material
 }
-RETURN this { .supplierMaterialNumber, material: this_material } AS this
+RETURN this {
+	.supplierMaterialNumber,
+	material: this_material
+} AS this
 ----
 
 '''

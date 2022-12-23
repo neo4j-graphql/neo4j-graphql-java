@@ -45,11 +45,12 @@ type Movie {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Movie`)
+MATCH (this:Movie)
 WHERE $param0 IN this.ratings
-
-
-RETURN this { .title, .ratings } AS this
+RETURN this {
+	.title,
+	.ratings
+} AS this
 ----
 
 '''
@@ -78,11 +79,12 @@ RETURN this { .title, .ratings } AS this
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:`Movie`)
+MATCH (this:Movie)
 WHERE NOT ($param0 IN this.ratings)
-
-
-RETURN this { .title, .ratings } AS this
+RETURN this {
+	.title,
+	.ratings
+} AS this
 ----
 
 '''
