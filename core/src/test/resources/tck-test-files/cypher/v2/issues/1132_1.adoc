@@ -39,6 +39,18 @@ mutation {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "sub": "1"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----

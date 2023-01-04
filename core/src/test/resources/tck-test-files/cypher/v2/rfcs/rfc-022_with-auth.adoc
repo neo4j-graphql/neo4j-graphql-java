@@ -46,6 +46,18 @@ query Query {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "test": "my-test"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----

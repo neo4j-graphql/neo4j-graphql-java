@@ -30,6 +30,18 @@ type Movie @fulltext(indexes: [{name: "MovieTitle", fields: ["title"]}]) @node(a
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "label": "some-label"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----

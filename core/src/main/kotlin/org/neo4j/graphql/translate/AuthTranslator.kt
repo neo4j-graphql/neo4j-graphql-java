@@ -15,7 +15,7 @@ import org.neo4j.graphql.handler.utils.ChainString.Companion.extend
 
 class AuthTranslator(
     val schemaConfig: SchemaConfig,
-    val queryContext: QueryContext?,
+    val queryContext: QueryContext,
 
     val skipRoles: Boolean = false,
     val skipIsAuthenticated: Boolean = false,
@@ -124,7 +124,7 @@ class AuthTranslator(
             .`in`(Cypher.listOf(authRule.roles.map { it.asCypherLiteral() })) // TODO should we provide the list as param?
             .where(
                 Predicates.any("rr")
-                    .`in`(Cypher.parameter("auth.roles", queryContext?.auth))
+                    .`in`(Cypher.parameter("auth.roles", queryContext.auth))
                     .where(r.eq(rr))
             )
     }
@@ -134,16 +134,14 @@ class AuthTranslator(
             return null
         }
         // TODO can we optimize this apoc call?
-        return Cypher.call("apoc.util.validatePredicate")
-            .withArgs(
-                Cypher.parameter("auth.isAuthenticated", queryContext?.auth) // TODO optimize compile time check
+        return ApocFunctions.util
+            .validatePredicate(
+                Cypher.parameter("auth.isAuthenticated", queryContext.auth) // TODO optimize compile time check
                     .eq(authRule.isAuthenticated.asCypherLiteral()).not(),
                 AUTH_UNAUTHENTICATED_ERROR.asCypherLiteral(),
                 Cypher.listOf(0.asCypherLiteral())
             )
-            .asFunction()
             .asCondition()
-
     }
 
     private fun createAuthPredicate(
@@ -192,7 +190,7 @@ class AuthTranslator(
 
             val authableField = node.authableFields.find { it.fieldName == key }
             if (authableField != null) {
-                val paramValue = (value as? String)?.let { queryContext?.resolve(it) ?: it }
+                val paramValue = (value as? String)?.let { queryContext.resolve(it) }
 
                 if (paramValue == null && allowUnauthenticated != true) {
                     throw Neo4jGraphQLAuthenticationError("Unauthenticated")
@@ -203,7 +201,7 @@ class AuthTranslator(
 //                        null -> varName.property(authableField.dbPropertyName).isNull
                     else -> {
                         val property = varName.property(authableField.dbPropertyName)
-                        val parameter = chainStr.extend(key).resolveParameter(paramValue)
+                        val parameter = queryContext.getNextParam(paramValue)
                         property.isNotNull.and(property.eq(parameter))
                     }
                 }

@@ -1,5 +1,9 @@
 package org.neo4j.graphql.utils
 
+import com.fasterxml.jackson.core.JsonGenerator
+import com.fasterxml.jackson.databind.JsonSerializer
+import com.fasterxml.jackson.databind.SerializerProvider
+import com.fasterxml.jackson.databind.module.SimpleModule
 import graphql.ExecutionInput
 import graphql.GraphQL
 import graphql.schema.DataFetcher
@@ -19,6 +23,7 @@ import org.neo4j.harness.Neo4j
 import org.opentest4j.AssertionFailedError
 import java.io.File
 import java.io.FileWriter
+import java.time.LocalDateTime
 import java.util.*
 import java.util.concurrent.FutureTask
 import java.util.function.Consumer
@@ -195,7 +200,7 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
                 }
                 val cypherParams = cypherParamsBlock.code().parseJsonMap()
                 val expected = fixNumbers(cypherParams)
-                val actual = fixNumbers(resultParams)
+                val actual = fixNumbers(actualParams.parseJsonMap())
                 if (!Objects.equals(expected, actual)) {
                     cypherParamsBlock.adjustedCode = actualParams
                 }

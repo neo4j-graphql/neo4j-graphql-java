@@ -9,7 +9,7 @@ data class ScalarPredicateDefinition(
     override val name: String,
     val field: ScalarField,
     private val comparisonResolver: (Expression, Expression) -> Condition,
-    val type: Type<*> // TODO use this for schema augmentation
+    val type: Type<*>
 ) : PredicateDefinition {
     fun createCondition(lhs: Expression, rhs: Expression): Condition = comparisonResolver(lhs, rhs)
 }

@@ -62,15 +62,24 @@ class ReadResolver private constructor(
 
         val optionsInput = input.options.merge(node.queryOptions)
 
-        var ongoingReading = TopLevelMatchTranslator(schemaConfig, env.variables, queryContext)
-            .translateTopLevelMatch(node, dslNode, input.fulltext, input.where, AuthDirective.AuthOperation.READ)
+        val authPredicates =
+            AuthTranslator(schemaConfig, queryContext, allow = AuthTranslator.AuthOptions(dslNode, node))
+                .createAuth(node.auth, AuthDirective.AuthOperation.READ)
+                ?.let { it.apocValidatePredicate(Constants.AUTH_FORBIDDEN_ERROR) }
 
-        AuthTranslator(schemaConfig, queryContext, allow = AuthTranslator.AuthOptions(dslNode, node))
-            .createAuth(node.auth, AuthDirective.AuthOperation.READ)
-            ?.let { ongoingReading = ongoingReading.apocValidate(it, Constants.AUTH_FORBIDDEN_ERROR) }
+        var ongoingReading = TopLevelMatchTranslator(schemaConfig, env.variables, queryContext)
+            .translateTopLevelMatch(
+                node,
+                dslNode,
+                input.fulltext,
+                input.where,
+                AuthDirective.AuthOperation.READ,
+                authPredicates
+            )
+
 
         val projection = ProjectionTranslator()
-            .createProjectionAndParams(node, dslNode, env, null, schemaConfig, env.variables, queryContext)
+            .createProjectionAndParams(node, dslNode, resolveTree, null, schemaConfig, env.variables, queryContext)
 
         projection.authValidate
             ?.let {

@@ -6,12 +6,13 @@ import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.domain.inputs.PerNodeInput.Companion.getCommonFields
 import org.neo4j.graphql.domain.inputs.aggregation.AggregateInput
 import org.neo4j.graphql.domain.inputs.connection_where.ConnectionWhere
+import org.neo4j.graphql.domain.predicates.AggregationFieldPredicate
 import org.neo4j.graphql.domain.predicates.ConnectionFieldPredicate
 import org.neo4j.graphql.domain.predicates.RelationFieldPredicate
 import org.neo4j.graphql.domain.predicates.ScalarFieldPredicate
+import org.neo4j.graphql.domain.predicates.definitions.AggregationPredicateDefinition
 import org.neo4j.graphql.domain.predicates.definitions.RelationPredicateDefinition
 import org.neo4j.graphql.domain.predicates.definitions.ScalarPredicateDefinition
-import org.neo4j.graphql.wrapList
 
 interface WhereInput {
 
@@ -24,21 +25,19 @@ interface WhereInput {
     ) : WhereInput,
         FieldContainerWhereInput<NodeWhereInput>(data, node, { NodeWhereInput(node, it) })
 
-    class PropertyWhereInput(
+    class EdgeWhereInput(
         relationshipProperties: RelationshipProperties,
         data: Dict
-    ) : WhereInput,
-        FieldContainerWhereInput<PropertyWhereInput>(
+    ) : FieldContainerWhereInput<EdgeWhereInput>(
             data,
             relationshipProperties,
-            { PropertyWhereInput(relationshipProperties, it) })
+            { EdgeWhereInput(relationshipProperties, it) })
 
 
     class InterfaceWhereInput(
         interfaze: Interface,
         val data: Dict
-    ) : WhereInput,
-        FieldContainerWhereInput<InterfaceWhereInput>(data, interfaze, { InterfaceWhereInput(interfaze, it) }) {
+    ) : FieldContainerWhereInput<InterfaceWhereInput>(data, interfaze, { InterfaceWhereInput(interfaze, it) }) {
 
         val on = data[Constants.ON]?.let {
             PerNodeInput(
@@ -74,20 +73,19 @@ interface WhereInput {
     ) : WhereInput, NestedWhere<T>(data, nestedWhereFactory) {
 
         val predicates = data
-            .filter { !SPECIAL_KEYS.contains(it.key) }
+            .filterNot { SPECIAL_KEYS.contains(it.key) }
             .mapNotNull { (key, value) -> createPredicate(fieldContainer, key, value) }
 
 
-        val aggregate: Map<RelationField, AggregateInput> = data
+        val relationAggregate: Map<RelationField, AggregateInput> = data
             .mapNotNull { (key, value) ->
-                val field = fieldContainer.aggregationPredicates[key] ?: return@mapNotNull null
+                val field = fieldContainer.relationAggregationFields[key] ?: return@mapNotNull null
                 field to (AggregateInput.create(field, value) ?: return@mapNotNull null)
             }
             .toMap()
 
         fun hasPredicates(): Boolean = predicates.isNotEmpty()
-                || or?.find { it.hasPredicates() } != null
-                || and?.find { it.hasPredicates() } != null
+                || nestedConditions.values.flatten().find { it.hasPredicates() } != null
 
         /**
          * We want to filter nodes if there is either:
@@ -110,7 +108,7 @@ interface WhereInput {
             when (fieldContainer) {
                 is Node -> NodeWhereInput(fieldContainer, Dict(data))
                 is Interface -> InterfaceWhereInput(fieldContainer, Dict(data))
-                is RelationshipProperties -> PropertyWhereInput(fieldContainer, Dict(data))
+                is RelationshipProperties -> EdgeWhereInput(fieldContainer, Dict(data))
                 null -> null
                 else -> error("unsupported type for FieldContainer: " + fieldContainer.javaClass.name)
             }
@@ -121,17 +119,17 @@ interface WhereInput {
         )
 
         fun createPredicate(fieldContainer: FieldContainer<*>, key: String, value: Any?) =
-            fieldContainer.getPredicate(key)
-                ?.let { def ->
-                    when (def) {
-                        is ScalarPredicateDefinition -> ScalarFieldPredicate(def, value)
-                        is RelationPredicateDefinition -> when (def.connection) {
-                            true -> RelationFieldPredicate(def, value?.let { create(def.field, it) })
-                            false -> ConnectionFieldPredicate(def, value?.let { ConnectionWhere.create(def.field, it) })
-                        }
-
-                        else -> null
+            fieldContainer.predicates[key]?.let { def ->
+                when (def) {
+                    is ScalarPredicateDefinition -> ScalarFieldPredicate(def, value)
+                    is RelationPredicateDefinition -> when (def.connection) {
+                        true  -> ConnectionFieldPredicate(def, value?.let { ConnectionWhere.create(def.field, it) })
+                        false-> RelationFieldPredicate(def, value?.let { create(def.field, it) })
                     }
+
+                    is AggregationPredicateDefinition -> AggregationFieldPredicate(def, value)
+                    else -> null
                 }
+            }
     }
 }

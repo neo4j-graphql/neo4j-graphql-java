@@ -39,6 +39,21 @@ mutation {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "super_admin"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
@@ -82,6 +97,21 @@ mutation {
   updateUsers(update: {id: "new-id"}) {
     users {
       id
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "super_admin"
     }
   }
 }

@@ -58,6 +58,11 @@ class AggregateResolver private constructor(
 
         val dslNode = node.asCypherNode(queryContext, variable)
 
+        val authPredicates =
+            AuthTranslator(schemaConfig, queryContext, allow = AuthTranslator.AuthOptions(dslNode, node))
+            .createAuth(node.auth, AuthDirective.AuthOperation.READ)
+            ?.let { it.apocValidatePredicate(Constants.AUTH_FORBIDDEN_ERROR) }
+
 // TODO harmonize with read
         var ongoingReading = TopLevelMatchTranslator(schemaConfig, env.variables, queryContext)
             .translateTopLevelMatch(
@@ -65,12 +70,9 @@ class AggregateResolver private constructor(
                 dslNode,
                 arguments.fulltext,
                 arguments.where,
-                AuthDirective.AuthOperation.READ
+                AuthDirective.AuthOperation.READ,
+                authPredicates
             )
-
-        AuthTranslator(schemaConfig, queryContext, allow = AuthTranslator.AuthOptions(dslNode, node))
-            .createAuth(node.auth, AuthDirective.AuthOperation.READ)
-            ?.let { ongoingReading = ongoingReading.apocValidate(it, Constants.AUTH_FORBIDDEN_ERROR) }
 
 
         val selection = resolveTree.fieldsByTypeName[node.aggregateTypeNames.selection]
@@ -97,7 +99,6 @@ class AggregateResolver private constructor(
                     .createAuth(auth, AuthDirective.AuthOperation.READ)
                     ?.let { authValidate = authValidate and it }
             }
-
 
             val aggregateFields = fieldSelection.fieldsByTypeName[nodeField.getAggregationSelectionLibraryTypeName()]
             val property = dslNode.property(nodeField.dbPropertyName)
@@ -145,7 +146,7 @@ class AggregateResolver private constructor(
         }
 
         authValidate?.let {
-            ongoingReading = ongoingReading.with(dslNode).apocValidate(it, Constants.AUTH_FORBIDDEN_ERROR)
+            ongoingReading = ongoingReading.apocValidate(it, Constants.AUTH_FORBIDDEN_ERROR)
         }
         return ongoingReading
             .returning(Cypher.mapOf(*projection.toTypedArray()))

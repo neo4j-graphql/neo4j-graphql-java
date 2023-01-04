@@ -6,13 +6,12 @@ import org.neo4j.graphql.domain.RelationshipProperties
 import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.domain.inputs.Dict
 import org.neo4j.graphql.domain.inputs.NestedWhere
-import org.neo4j.graphql.domain.inputs.ScalarProperties
 import org.neo4j.graphql.domain.predicates.ExpressionPredicate
 import org.neo4j.graphql.domain.predicates.FieldOperator
 
 class AggregateInput(node: Node, properties: RelationshipProperties?, data: Dict) : NestedWhere<AggregateInput>(
     data,
-    { AggregateInput(node, properties, data) }) {
+    { AggregateInput(node, properties, it) }) {
 
     val countPredicates = COUNT_PREDICATES
         .mapNotNull { (key, op) ->
@@ -20,9 +19,10 @@ class AggregateInput(node: Node, properties: RelationshipProperties?, data: Dict
             ExpressionPredicate(key, op.conditionCreator, value)
         }
 
-    val node = data[Constants.NODE_FIELD]?.let { ScalarProperties.create(data, node) }
+    val node = data[Constants.NODE_FIELD]?.let { AggregationWhereInput(node, Dict(it)) }
 
-    val edge = properties?.let { props -> data[Constants.EDGE_FIELD]?.let { ScalarProperties.create(data, props) } }
+    val edge =
+        properties?.let { props -> data[Constants.EDGE_FIELD]?.let { AggregationWhereInput(props, Dict(it)) } }
 
     companion object {
 
@@ -33,7 +33,7 @@ class AggregateInput(node: Node, properties: RelationshipProperties?, data: Dict
             FieldOperator.GT,
             FieldOperator.GTE,
         )
-            .map { Constants.COUNT + "_" + it.suffix to it }
+            .map { op -> Constants.COUNT + ("_".takeIf { op.suffix.isNotBlank() } ?: "") + op.suffix to op }
             .toMap()
 
         fun create(field: RelationField, value: Any?): AggregateInput? {

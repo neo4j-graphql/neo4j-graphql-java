@@ -46,12 +46,7 @@ interface Likes {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0" : "12:00:00"
 }
 ----
 
@@ -89,12 +84,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0" : "12:00:00"
 }
 ----
 
@@ -105,7 +95,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN any(var2 IN collect(this0.someLocalTimeAlias) WHERE var2 = $param0) AS var3
+	RETURN any(var2 IN collect(this0._someLocalTimeAlias) WHERE var2 = $param0) AS var3
 }
 WITH *
 WHERE var3 = true
@@ -132,12 +122,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0" : "12:00:00"
 }
 ----
 
@@ -175,12 +160,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0" : "12:00:00"
 }
 ----
 
@@ -218,12 +198,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0" : "12:00:00"
 }
 ----
 
@@ -261,12 +236,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0" : "12:00:00"
 }
 ----
 
@@ -304,12 +274,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0" : "12:00:00"
 }
 ----
 
@@ -347,12 +312,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0" : "12:00:00"
 }
 ----
 
@@ -390,12 +350,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0" : "12:00:00"
 }
 ----
 
@@ -433,12 +388,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0" : "12:00:00"
 }
 ----
 
@@ -476,12 +426,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0" : "12:00:00"
 }
 ----
 
@@ -519,12 +464,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0" : "12:00:00"
 }
 ----
 
@@ -562,12 +502,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0" : "12:00:00"
 }
 ----
 
@@ -605,12 +540,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0" : "12:00:00"
 }
 ----
 
@@ -648,12 +578,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0" : "12:00:00"
 }
 ----
 
@@ -691,12 +616,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0" : "12:00:00"
 }
 ----
 

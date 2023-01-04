@@ -11,7 +11,7 @@ import org.neo4j.graphql.domain.fields.BaseField
 import org.neo4j.graphql.utils.CamelCaseUtils.camelCase
 
 sealed class ImplementingType(
-    val name: String,
+    override val name: String,
     val description: Description? = null,
     val comments: List<Comment> = emptyList(),
     fields: List<BaseField>,

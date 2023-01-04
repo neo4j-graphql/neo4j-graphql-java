@@ -56,6 +56,21 @@ mutation {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
@@ -151,6 +166,21 @@ mutation {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
@@ -221,6 +251,21 @@ mutation {
   ) {
     users {
       id
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
     }
   }
 }
@@ -319,6 +364,21 @@ mutation {
   ) {
     users {
       id
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
     }
   }
 }

@@ -42,6 +42,18 @@ mutation {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "movielabel": "Film"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
@@ -84,6 +96,18 @@ RETURN collect(create_this0 {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "movielabel": "Film"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
@@ -111,6 +135,19 @@ RETURN this {
     name
     movies(where: {title: "terminator"}) {
       title
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "movielabel": "Film",
+      "personlabel": "Person"
     }
   }
 }

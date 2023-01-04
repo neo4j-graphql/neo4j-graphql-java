@@ -44,15 +44,7 @@ type Post {
 [source,json]
 ----
 {
-  "param0": {
-    "year": 2003,
-    "month": 9,
-    "day": 14,
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0" : "2003-09-14T12:00:00"
 }
 ----
 
@@ -92,15 +84,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "year": 2003,
-    "month": 9,
-    "day": 14,
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0" : "2003-09-14T12:00:00"
 }
 ----
 
@@ -111,7 +95,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN any(var2 IN collect(this1.someLocalDateTimeAlias) WHERE var2 = $param0) AS var3
+	RETURN any(var2 IN collect(this1._someLocalDateTimeAlias) WHERE var2 = $param0) AS var3
 }
 WITH *
 WHERE var3 = true
@@ -140,15 +124,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "year": 2003,
-    "month": 9,
-    "day": 14,
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0" : "2003-09-14T12:00:00"
 }
 ----
 
@@ -188,15 +164,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "year": 2003,
-    "month": 9,
-    "day": 14,
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0" : "2003-09-14T12:00:00"
 }
 ----
 
@@ -236,15 +204,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "year": 2003,
-    "month": 9,
-    "day": 14,
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0" : "2003-09-14T12:00:00"
 }
 ----
 
@@ -284,15 +244,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "year": 2003,
-    "month": 9,
-    "day": 14,
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0" : "2003-09-14T12:00:00"
 }
 ----
 
@@ -332,15 +284,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "year": 2003,
-    "month": 9,
-    "day": 14,
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0" : "2003-09-14T12:00:00"
 }
 ----
 
@@ -380,15 +324,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "year": 2003,
-    "month": 9,
-    "day": 14,
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0" : "2003-09-14T12:00:00"
 }
 ----
 
@@ -428,15 +364,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "year": 2003,
-    "month": 9,
-    "day": 14,
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0" : "2003-09-14T12:00:00"
 }
 ----
 
@@ -476,15 +404,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "year": 2003,
-    "month": 9,
-    "day": 14,
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0" : "2003-09-14T12:00:00"
 }
 ----
 
@@ -524,15 +444,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "year": 2003,
-    "month": 9,
-    "day": 14,
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0" : "2003-09-14T12:00:00"
 }
 ----
 
@@ -572,15 +484,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "year": 2003,
-    "month": 9,
-    "day": 14,
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0" : "2003-09-14T12:00:00"
 }
 ----
 
@@ -620,15 +524,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "year": 2003,
-    "month": 9,
-    "day": 14,
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0" : "2003-09-14T12:00:00"
 }
 ----
 
@@ -668,15 +564,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "year": 2003,
-    "month": 9,
-    "day": 14,
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0" : "2003-09-14T12:00:00"
 }
 ----
 
@@ -716,15 +604,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "year": 2003,
-    "month": 9,
-    "day": 14,
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0" : "2003-09-14T12:00:00"
 }
 ----
 
@@ -764,15 +644,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "year": 2003,
-    "month": 9,
-    "day": 14,
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0" : "2003-09-14T12:00:00"
 }
 ----
 

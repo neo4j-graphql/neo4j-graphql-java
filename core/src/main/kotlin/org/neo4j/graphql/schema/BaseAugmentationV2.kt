@@ -129,12 +129,12 @@ open class BaseAugmentationV2(
 
     fun generateFulltextIT(node: Node) = getOrCreateInputObjectType("${node.name}Fulltext") { fields, _ ->
         node.fulltextDirective?.indexes?.forEach { index ->
-            generateFulltextIndexIT(node, index)?.let { fields += inputValue(index.name, it.asType()) }
+            generateFulltextIndexIT(node, index)?.let { fields += inputValue(index.indexName, it.asType()) }
         }
     }
 
     private fun generateFulltextIndexIT(node: Node, index: FullTextDirective.FullTextIndex) =
-        getOrCreateInputObjectType("${node.name}${index.name.capitalize()}Fulltext") { fields, _ ->
+        getOrCreateInputObjectType("${node.name}${index.indexName.capitalize()}Fulltext") { fields, _ ->
             fields += inputValue(Constants.FULLTEXT_PHRASE, NonNullType(Constants.Types.String))
             // TODO normalize operation?
             fields += inputValue(Constants.FULLTEXT_SCORE_EQUAL, Constants.Types.Int)
@@ -194,24 +194,8 @@ open class BaseAugmentationV2(
     ): List<InputValueDefinition> {
         val result = mutableListOf<InputValueDefinition>()
         fieldList.forEach { field ->
-            FieldOperator.forField(field, ctx.schemaConfig).forEach { op ->
-                result += inputValue(
-                    op.fieldName(field.fieldName, ctx.schemaConfig),
-                    when {
-                        op.listInput -> field.typeMeta.whereType.inner()
-                        op.list -> ListType(field.typeMeta.whereType.let {
-                            if (field.typeMeta.type.isRequired())
-                                NonNullType(it)
-                            else it
-                        })
-
-                        else -> when {
-                            op.distance && field.typeMeta.whereType.name() == Constants.POINT_INPUT_TYPE -> Constants.Types.PointDistance
-                            op.distance && field.typeMeta.whereType.name() == Constants.CARTESIAN_POINT_INPUT_TYPE -> Constants.Types.CartesianPointDistance
-                            else -> field.typeMeta.whereType
-                        }
-                    }
-                )
+            if (field is ScalarField) {
+                field.predicates.values.forEach { result += inputValue(it.name, it.type) }
             }
             if (field is RelationField) {
                 if (field.node != null) { // TODO REVIEW Darrell why not for union or interfaces https://github.com/neo4j/graphql/issues/810
@@ -263,7 +247,7 @@ open class BaseAugmentationV2(
 
                     }
                     generateAggregateInputIT(typeName, field).let {
-                        result += inputValue(field.fieldName + Constants.AGGREGATION_SUFFIX, it.asType())
+                        result += inputValue(field.fieldName + Constants.AGGREGATION_FIELD_SUFFIX, it.asType())
                     }
                 }
             }
@@ -334,56 +318,8 @@ open class BaseAugmentationV2(
         getOrCreateInputObjectType(name) { fields, _ ->
             relFields
                 ?.filterIsInstance<PrimitiveField>()
-                ?.filter { Constants.WHERE_AGGREGATION_TYPES.contains(it.typeMeta.type.name()) }
-                ?.forEach { field ->
-                    when {
-                        field.typeMeta.type.name() == "ID" -> listOf("EQUAL" to Constants.Types.ID)
-                        field.typeMeta.type.name() == "String" -> Constants.WHERE_AGGREGATION_OPERATORS.flatMap { op ->
-                            listOf(
-                                op to if (op === "EQUAL") Constants.Types.String else Constants.Types.Int,
-                                "AVERAGE_${op}" to Constants.Types.Float,
-                                "LONGEST_${op}" to Constants.Types.Int,
-                                "SHORTEST_${op}" to Constants.Types.Int,
-                            )
-                        }
-
-                        Constants.WHERE_AGGREGATION_AVERAGE_TYPES.contains(field.typeMeta.type.name()) -> {
-                            val averageType = when (field.typeMeta.type.name()) {
-                                Constants.BIG_INT, Constants.DURATION -> field.typeMeta.type.inner()
-                                else -> Constants.Types.Float
-                            }
-                            Constants.WHERE_AGGREGATION_OPERATORS.flatMap { op ->
-                                listOf(
-                                    op to field.typeMeta.type.inner(),
-                                    "AVERAGE_${op}" to averageType,
-                                    "MIN_${op}" to field.typeMeta.type.inner(),
-                                    "MAX_${op}" to field.typeMeta.type.inner(),
-                                ).let { result ->
-                                    if (field.typeMeta.type.name() != Constants.DURATION) {
-                                        result + ("SUM_${op}" to field.typeMeta.type.inner())
-                                    } else {
-                                        result
-                                    }
-                                }
-                            }
-                        }
-
-                        else ->
-                            Constants.WHERE_AGGREGATION_OPERATORS.flatMap { op ->
-                                listOf(
-                                    op to field.typeMeta.type.inner(),
-                                    "MIN_${op}" to field.typeMeta.type.inner(),
-                                    "MAX_${op}" to field.typeMeta.type.inner(),
-                                )
-                            }
-                    }
-                        .forEach { (suffix, type) ->
-                            fields += inputValue(
-                                field.fieldName + "_" + suffix,
-                                type
-                            )
-                        }
-                }
+                ?.flatMap { it.aggregationPredicates.entries }
+                ?.forEach { (name, def) -> fields += inputValue(name, def.type) }
 
             if (fields.isNotEmpty()) {
                 fields += inputValue("AND", ListType(name.asRequiredType()))
@@ -470,18 +406,15 @@ open class BaseAugmentationV2(
                 .filterNot { it.writeonly }
                 .forEach { field ->
                     fields += mapField(field)
-                    (field as? RelationField)?.node?.let { n ->
-                        val aggr =
-                            generateAggregationSelectionOT(
-                                node.name + n.name + field.fieldName.capitalize(),
-                                n,
-                                field
-                            )
-                        fields += field(field.fieldName + "Aggregate", aggr.asType()) {
-                            generateWhereOfFieldIT(field)
-                                ?.let { inputValueDefinition(inputValue(Constants.WHERE, it.asType())) }
-                            directedArgument(field)?.let { inputValueDefinition(it) }
+                    (field as? RelationField)?.let { n ->
+                        generateAggregationSelectionOT(field)?.let { aggr ->
+                            fields += field(field.fieldName + Constants.AGGREGATION_FIELD_SUFFIX, aggr.asType()) {
+                                generateWhereOfFieldIT(field)
+                                    ?.let { inputValueDefinition(inputValue(Constants.WHERE, it.asType())) }
+                                directedArgument(field)?.let { inputValueDefinition(it) }
+                            }
                         }
+
                     }
                 }
         }
@@ -593,14 +526,17 @@ open class BaseAugmentationV2(
             }
         }
 
-    private fun generateAggregationSelectionOT(baseTypeName: String, refNode: Node, rel: RelationField) =
-        getOrCreateObjectType("${baseTypeName}AggregationSelection") { fields, _ ->
+    private fun generateAggregationSelectionOT(rel: RelationField): String? {
+        val refNode = rel.node ?: return null
+        val aggregateTypeNames = rel.aggregateTypeNames ?: return null
+        return getOrCreateObjectType(aggregateTypeNames.field) { fields, _ ->
             fields += field(Constants.COUNT, Constants.Types.Int.makeRequired())
-            createAggregationField("${baseTypeName}NodeAggregateSelection", refNode.fields)
+            createAggregationField(aggregateTypeNames.node, refNode.fields)
                 ?.let { fields += field(Constants.NODE_FIELD, it.asType()) }
-            createAggregationField("${baseTypeName}EdgeAggregateSelection", rel.properties?.fields ?: emptyList())
+            createAggregationField(aggregateTypeNames.edge, rel.properties?.fields ?: emptyList())
                 ?.let { fields += field(Constants.EDGE_FIELD, it.asType()) }
         } ?: throw IllegalStateException("Expected at least the count field")
+    }
 
     private fun createAggregationField(name: String, relFields: List<BaseField>) =
         getOrCreateObjectType(name) { fields, _ ->

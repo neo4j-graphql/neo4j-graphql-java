@@ -43,8 +43,8 @@ type Post {
 [source,json]
 ----
 {
-  "param0": 10,
-  "param1": 11
+  "param0" : 10.0,
+  "param1" : 11.0
 }
 ----
 
@@ -55,11 +55,11 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN any(var2 IN collect(this1.someFloat) WHERE var2 = $param0) AS var3, any(var4 IN collect(this1.someFloat) WHERE var4 = $param1) AS var5
+	RETURN (any(var2 IN collect(this1.someFloat) WHERE var2 = $param0)
+		AND any(var3 IN collect(this1.someFloat) WHERE var3 = $param1)) AS var4
 }
 WITH *
-WHERE (var3 = true
-	AND var5 = true)
+WHERE var4 = true
 RETURN this {
 	.content
 } AS this
@@ -85,8 +85,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": 10,
-  "param1": 11
+  "param0" : 10.0,
+  "param1" : 11.0
 }
 ----
 
@@ -97,11 +97,11 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN any(var2 IN collect(this1.someFloat) WHERE var2 = $param0) AS var3, any(var4 IN collect(this1.someFloat) WHERE var4 = $param1) AS var5
+	RETURN (any(var2 IN collect(this1.someFloat) WHERE var2 = $param0)
+		OR any(var3 IN collect(this1.someFloat) WHERE var3 = $param1)) AS var4
 }
 WITH *
-WHERE (var3 = true
-	OR var5 = true)
+WHERE var4 = true
 RETURN this {
 	.content
 } AS this

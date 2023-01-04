@@ -42,7 +42,7 @@ type Post {
 [source,json]
 ----
 {
-  "param0": 10
+  "param0" : 10.0
 }
 ----
 
@@ -80,7 +80,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": 10
+  "param0" : 10.0
 }
 ----
 
@@ -118,7 +118,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": 10
+  "param0" : 10.0
 }
 ----
 
@@ -156,7 +156,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": 10
+  "param0" : 10.0
 }
 ----
 
@@ -194,7 +194,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": 10
+  "param0" : 10.0
 }
 ----
 
@@ -281,7 +281,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN any(var2 IN collect(this1.someStringAlias) WHERE var2 = $param0) AS var3
+	RETURN any(var2 IN collect(this1._someStringAlias) WHERE var2 = $param0) AS var3
 }
 WITH *
 WHERE var3 = true

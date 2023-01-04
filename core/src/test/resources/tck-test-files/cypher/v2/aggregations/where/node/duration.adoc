@@ -42,12 +42,7 @@ type Post {
 [source,json]
 ----
 {
-  "param0": {
-    "months": 12,
-    "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
-  }
+  "param0" : "P1Y"
 }
 ----
 
@@ -85,12 +80,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "months": 12,
-    "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
-  }
+  "param0" : "P1Y"
 }
 ----
 
@@ -128,12 +118,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "months": 12,
-    "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
-  }
+  "param0" : "P1Y"
 }
 ----
 
@@ -171,12 +156,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "months": 12,
-    "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
-  }
+  "param0" : "P1Y"
 }
 ----
 
@@ -214,12 +194,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "months": 12,
-    "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
-  }
+  "param0" : "P1Y"
 }
 ----
 
@@ -257,12 +232,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "months": 12,
-    "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
-  }
+  "param0" : "P1Y"
 }
 ----
 
@@ -300,12 +270,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "months": 12,
-    "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
-  }
+  "param0" : "P1Y"
 }
 ----
 
@@ -316,7 +281,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN any(var2 IN collect(this1.someDurationAlias) WHERE var2 = $param0) AS var3
+	RETURN any(var2 IN collect(this1._someDurationAlias) WHERE var2 = $param0) AS var3
 }
 WITH *
 WHERE var3 = true
@@ -343,12 +308,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "months": 12,
-    "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
-  }
+  "param0" : "P1Y"
 }
 ----
 
@@ -386,12 +346,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "months": 12,
-    "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
-  }
+  "param0" : "P1Y"
 }
 ----
 
@@ -429,12 +384,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "months": 12,
-    "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
-  }
+  "param0" : "P1Y"
 }
 ----
 
@@ -472,12 +422,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "months": 12,
-    "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
-  }
+  "param0" : "P1Y"
 }
 ----
 
@@ -515,12 +460,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "months": 12,
-    "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
-  }
+  "param0" : "P1Y"
 }
 ----
 
@@ -558,12 +498,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "months": 12,
-    "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
-  }
+  "param0" : "P1Y"
 }
 ----
 
@@ -601,12 +536,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "months": 12,
-    "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
-  }
+  "param0" : "P1Y"
 }
 ----
 
@@ -644,12 +574,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "months": 12,
-    "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
-  }
+  "param0" : "P1Y"
 }
 ----
 
@@ -687,12 +612,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "months": 12,
-    "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
-  }
+  "param0" : "P1Y"
 }
 ----
 
@@ -730,12 +650,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "months": 12,
-    "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
-  }
+  "param0" : "P1Y"
 }
 ----
 
@@ -773,12 +688,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "months": 12,
-    "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
-  }
+  "param0" : "P1Y"
 }
 ----
 
@@ -816,12 +726,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "months": 12,
-    "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
-  }
+  "param0" : "P1Y"
 }
 ----
 
@@ -859,12 +764,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "months": 12,
-    "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
-  }
+  "param0" : "P1Y"
 }
 ----
 
@@ -902,12 +802,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "months": 12,
-    "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
-  }
+  "param0" : "P1Y"
 }
 ----
 

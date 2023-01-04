@@ -1,34 +1,20 @@
 package org.neo4j.graphql.translate
 
-import graphql.schema.DataFetchingEnvironment
 import org.neo4j.cypherdsl.core.*
 import org.neo4j.cypherdsl.core.StatementBuilder.OngoingReading
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
 import org.neo4j.graphql.domain.fields.*
-import org.neo4j.graphql.domain.inputs.Dict
 import org.neo4j.graphql.domain.inputs.WhereInput
-import org.neo4j.graphql.domain.inputs.options.OptionsInput
+import org.neo4j.graphql.domain.inputs.field_arguments.RelationFieldInputArgs
 import org.neo4j.graphql.handler.utils.ChainString
+import org.neo4j.graphql.translate.field_aggregation.CreateFieldAggregation
 import org.neo4j.graphql.translate.where.createWhere
 import org.neo4j.graphql.utils.ResolveTree
 import org.neo4j.graphql.utils.ResolveTree.Companion.generateMissingOrAliasedFields
-import org.neo4j.graphql.utils.ResolveTree.Companion.resolve
 
 class ProjectionTranslator {
-
-    fun createProjectionAndParams(
-        node: Node,
-        varName: org.neo4j.cypherdsl.core.Node,
-        env: DataFetchingEnvironment,
-        chainStr: ChainString? = null,
-        schemaConfig: SchemaConfig,
-        variables: Map<String, Any>,
-        queryContext: QueryContext,
-    ): Projection {
-        return createProjectionAndParams(node, varName, resolve(env), chainStr, schemaConfig, variables, queryContext)
-    }
 
     fun createProjectionAndParams(
         node: Node,
@@ -58,8 +44,12 @@ class ProjectionTranslator {
             val alias = field.aliasOrName
             val param = chainStr?.extend(alias) ?: ChainString(schemaConfig, varName, alias)
 
-            val nodeField = node.getField(field.name) ?: return@forEach
-            var optionsInput = OptionsInput.create(field.args[Constants.OPTIONS])
+            val (isAggregate, nodeField) = node.relationAggregationFields[field.name]
+                ?.let { true to it }
+                ?: (false to node.getField(field.name))
+            if (nodeField == null) {
+                return@forEach
+            }
 
             if (nodeField is AuthableField) {
                 nodeField.auth?.let { auth ->
@@ -78,17 +68,13 @@ class ProjectionTranslator {
                 return@forEach
             }
 
-            if (nodeField is RelationField) {
+            if (nodeField is RelationField && !isAggregate) {
                 val referenceNode = nodeField.node
                 val isArray = nodeField.typeMeta.type.isList()
-                val whereInputAny = field.args[Constants.WHERE]
-                if (referenceNode?.queryOptions != null) {
-                    optionsInput = optionsInput.merge(referenceNode.queryOptions)
-                }
+                val arguments = RelationFieldInputArgs(nodeField, field.args)
 
                 if (nodeField.interfaze != null) {
-                    val whereInput =
-                        whereInputAny?.let { WhereInput.create(nodeField.interfaze, it) }
+                    val whereInput = arguments.where as WhereInput.InterfaceWhereInput?
 
                     projections += alias
 
@@ -176,15 +162,10 @@ class ProjectionTranslator {
                         val projection = mutableListOf("__resolveType", refNode.name.asCypherLiteral())
                         val typeFields = field.fieldsByTypeName[refNode.name]
 
-                        // TODO revert to the following after https://github.com/neo4j-contrib/cypher-dsl/issues/350 is fixed:
-                        //  var unionCondition = labelCondition
-                        var unionCondition = Conditions.noCondition().and(labelCondition)
+                        var unionCondition = labelCondition
 
                         if (!typeFields.isNullOrEmpty()) {
-                            val whereInput =
-                                whereInputAny?.let {
-                                    WhereInput.UnionWhereInput(requireNotNull(nodeField.union), Dict(it))
-                                }
+                            val whereInput = arguments.where as WhereInput.UnionWhereInput?
 
                             val recurse = createProjectionAndParams(
                                 refNode,
@@ -227,7 +208,7 @@ class ProjectionTranslator {
                         .where(p.isNotNull)
                         .returning()
 
-                    unionParts = optionsInput.wrapLimitAndOffset(unionParts)
+                    unionParts = arguments.options.wrapLimitAndOffset(unionParts)
 
                     projections += if (isArray) {
                         unionParts
@@ -236,13 +217,72 @@ class ProjectionTranslator {
                     }
 
                 } else {
-                    TODO("implement Node")
+                    // NODE
+
+                    val whereInput = arguments.where as WhereInput.NodeWhereInput?
+
+                    val endNode = referenceNode!!.asCypherNode(queryContext, param)
+                    val rel = nodeField.createDslRelation(varName, endNode).named(queryContext.getNextVariable(
+                        ChainString(schemaConfig, varName)))
+
+                    //TODO harmonize with union?
+                    val recurse = createProjectionAndParams(
+                        referenceNode,
+                        Cypher.anyNode(),
+                        field,
+                        param,
+                        schemaConfig,
+                        variables,
+                        queryContext
+                    )
+
+                    val (nodeWhere, nodeSubQueries) = createNodeWhereAndParams(
+                        whereInput,
+                        queryContext,
+                        schemaConfig,
+                        referenceNode,
+                        endNode,
+                        recurse.authValidate,
+                        param.extend(referenceNode)
+                    )
+
+                    Cypher.with(varName)
+                        .match(rel)
+
+                    val ref = endNode.requiredSymbolicName
+                    subQueries.add(
+                        Cypher.with(varName)
+                            .match(rel)
+                            .let { reading -> nodeWhere?.let { reading.where(it) } ?: reading }
+                            .with(endNode.project(recurse.projection).`as`(ref))
+                            .returning(Functions.collect(ref)
+                                .let { collect -> if (isArray) collect else Functions.head(collect) }
+                                .`as`(ref)
+                            )
+                            // TODO sorting and limit
+                            .build()
+                    )
+                    projections += alias
+                    projections += ref
                 }
 
                 return@forEach
             }
 
-            // TODO field aggregation
+            if (nodeField is RelationField && isAggregate) {
+                CreateFieldAggregation.createFieldAggregation(
+                    varName,
+                    nodeField,
+                    field,
+                    subQueries,
+                    schemaConfig,
+                    queryContext
+                )?.let {
+                    projections += alias
+                    projections += it
+                }
+                return@forEach
+            }
 
             if (nodeField is ConnectionField) {
                 TODO("implement ConnectionField")

@@ -3,6 +3,7 @@ package org.neo4j.graphql.domain.fields
 import graphql.language.Value
 import org.neo4j.graphql.SchemaConfig
 import org.neo4j.graphql.domain.TypeMeta
+import org.neo4j.graphql.domain.predicates.definitions.AggregationPredicateDefinition
 import org.neo4j.graphql.isRequired
 import org.neo4j.graphql.name
 
@@ -25,6 +26,10 @@ open class PrimitiveField(
     override var coalesceValue: Value<*>? = null
 
     override val generated: Boolean get() = super.generated || autogenerate
+
+    val aggregationPredicates: Map<String, AggregationPredicateDefinition> by lazy {
+        AggregationPredicateDefinition.create(this)
+    }
 
     fun getAggregationSelectionLibraryTypeName(): String {
         val suffix = if (typeMeta.type.isRequired()) "NonNullable" else "Nullable"

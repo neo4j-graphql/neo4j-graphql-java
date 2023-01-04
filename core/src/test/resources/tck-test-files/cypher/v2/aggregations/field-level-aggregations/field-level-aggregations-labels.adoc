@@ -61,18 +61,17 @@ interface ActedIn {
 MATCH (this:Film)
 CALL {
 	WITH this
-	MATCH (this_actorsAggregate_this0:Person)-[this_actorsAggregate_this1:ACTED_IN]->(this)
-	WITH this_actorsAggregate_this0 ORDER BY size(this_actorsAggregate_this0.name) DESC
-	WITH collect(this_actorsAggregate_this0.name) AS list
+	MATCH (actor:Person)-[rel:ACTED_IN]->(this)
+	WITH actor ORDER BY size(actor.name) DESC
+	WITH collect(actor.name) AS list
 	RETURN {
-		longest: head(list),
 		shortest: last(list)
-	} AS this_actorsAggregate_var2
+	} AS this_actorsAggregate_var0
 }
 RETURN this {
 	actorsAggregate: {
 		node: {
-			name: this_actorsAggregate_var2
+			name: this_actorsAggregate_var0
 		}
 	}
 } AS this

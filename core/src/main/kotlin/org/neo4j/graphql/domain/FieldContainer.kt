@@ -2,6 +2,7 @@ package org.neo4j.graphql.domain
 
 import org.neo4j.graphql.Constants
 import org.neo4j.graphql.domain.fields.*
+import org.neo4j.graphql.domain.predicates.definitions.AggregationPredicateDefinition
 import org.neo4j.graphql.domain.predicates.definitions.PredicateDefinition
 import org.neo4j.graphql.isList
 
@@ -13,6 +14,8 @@ abstract class FieldContainer<T : BaseField>(val fields: List<T>) {
     init {
         fields.forEach { it.owner = this }
     }
+
+    abstract val name: String
 
     val hasNonGeneratedProperties: Boolean get() = fields.any { !it.generated }
     val hasRequiredNonGeneratedFields: Boolean get() = fields.any { !it.generated && it.required }
@@ -54,9 +57,15 @@ abstract class FieldContainer<T : BaseField>(val fields: List<T>) {
         result
     }
 
-    val aggregationPredicates: Map<String, RelationField> by lazy {
+    val aggregationPredicates: Map<String, AggregationPredicateDefinition> by lazy {
+        val result = mutableMapOf<String, AggregationPredicateDefinition>()
+        fields.filterIsInstance<PrimitiveField>().forEach { result.putAll(it.aggregationPredicates) }
+        result
+    }
+
+    val relationAggregationFields: Map<String, RelationField> by lazy {
         relationFields.filter { it.node != null }
-            .map { it.fieldName + Constants.AGGREGATION_SUFFIX to it }
+            .map { it.fieldName + Constants.AGGREGATION_FIELD_SUFFIX to it }
             .toMap()
     }
 
@@ -64,6 +73,4 @@ abstract class FieldContainer<T : BaseField>(val fields: List<T>) {
         // TODO use map instead?
         return fields.find { it.fieldName == name }
     }
-
-    fun getPredicate(key: String) = predicates[key]
 }

@@ -1,12 +1,12 @@
 package org.neo4j.graphql.domain.fields
 
 import org.neo4j.cypherdsl.core.Relationship
+import org.neo4j.graphql.Constants
 import org.neo4j.graphql.capitalize
 import org.neo4j.graphql.domain.*
 import org.neo4j.graphql.domain.predicates.RelationOperator
 import org.neo4j.graphql.domain.predicates.definitions.RelationPredicateDefinition
 import org.neo4j.graphql.handler.utils.ChainString
-import org.neo4j.graphql.isList
 
 /**
  * Representation of the `@relationship` directive and its meta.
@@ -56,13 +56,25 @@ class RelationField(
             RelationOperator.values().forEach { op ->
                 // TODO https://github.com/neo4j/graphql/issues/144
 //                if (op.list == this.typeMeta.type.isList()) {
-                    val name = (this.fieldName.takeIf { !isConnection } ?: connectionField.fieldName) +
-                            (op.suffix?.let { "_$it" } ?: "")
-                    result[name] = RelationPredicateDefinition(name, this, op, isConnection)
+                val name = (this.fieldName.takeIf { !isConnection } ?: connectionField.fieldName) +
+                        (op.suffix?.let { "_$it" } ?: "")
+                result[name] = RelationPredicateDefinition(name, this, op, isConnection)
 //                }
             }
         }
         result
+    }
+
+    val aggregateTypeNames by lazy { node?.let { AggregateTypeNames(it) } }
+
+    inner class AggregateTypeNames(
+        node: Node,
+        prefix: String = getOwnerName() + node.name + fieldName.capitalize()
+    ) {
+
+        val field = prefix + Constants.AGGREGATION_SELECTION_FIELD_SUFFIX
+        val node = prefix + Constants.AGGREGATION_SELECTION_NODE_SUFFIX
+        val edge = prefix + Constants.AGGREGATION_SELECTION_EDGE_SUFFIX
     }
 
     fun getImplementingType(): ImplementingType? = node ?: interfaze
@@ -91,6 +103,32 @@ class RelationField(
         DEFAULT_UNDIRECTED,
         DIRECTED_ONLY,
         UNDIRECTED_ONLY,
+    }
+
+    fun createQueryDslRelation(
+        start: org.neo4j.cypherdsl.core.Node,
+        end: org.neo4j.cypherdsl.core.Node,
+        directed: Boolean?,
+        name: ChainString? = null
+    ): Relationship {
+        val useDirected = when (queryDirection) {
+            QueryDirection.DEFAULT_DIRECTED -> directed ?: true
+            QueryDirection.DEFAULT_UNDIRECTED -> directed ?: false
+            QueryDirection.DIRECTED_ONLY -> {
+                check(directed == true, { "Invalid direction in 'DIRECTED_ONLY' relationship" })
+                true
+            }
+
+            QueryDirection.UNDIRECTED_ONLY -> {
+                check(directed == false, { "Invalid direction in 'UNDIRECTED_ONLY' relationship" })
+                false
+            }
+        }
+        if (useDirected) {
+            return createDslRelation(start, end, name)
+        }
+        return start.relationshipBetween(end, relationType)
+            .let { if (name != null) it.named(name.resolveName()) else it }
     }
 
     fun createDslRelation(

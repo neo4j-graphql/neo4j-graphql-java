@@ -16,7 +16,7 @@ fun createConnectOrCreate(
     refNode: org.neo4j.graphql.domain.Node,
     withVars: List<SymbolicName>,
     exposeWith: ExposesWith,
-    context: QueryContext?,
+    context: QueryContext,
     schemaConfig: SchemaConfig,
 ): ExposesWith {
     var result: ExposesWith = Cypher.with(withVars)

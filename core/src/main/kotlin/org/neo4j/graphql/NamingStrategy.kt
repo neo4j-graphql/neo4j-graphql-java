@@ -22,7 +22,7 @@ class NamingStrategy {
                 }
             }
             .filterNotNull()
-            .map {
+            .mapNotNull {
                 when (it) {
                     is SymbolicName -> it.value
                     is Named -> it.requiredSymbolicName.value

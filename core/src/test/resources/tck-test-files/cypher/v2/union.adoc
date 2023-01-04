@@ -462,6 +462,18 @@ RETURN collect(DISTINCT this {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "jwtAllowedNamesExample": "Horror"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
@@ -521,6 +533,18 @@ RETURN this {
       ... on Genre {
         name
       }
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "jwtAllowedNamesExample": "Horror"
     }
   }
 }
@@ -587,6 +611,18 @@ RETURN this {
       ... on Genre {
         name
       }
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "jwtAllowedNamesExample": "Horror"
     }
   }
 }

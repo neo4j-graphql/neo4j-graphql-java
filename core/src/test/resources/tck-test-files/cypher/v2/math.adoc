@@ -71,10 +71,7 @@ mutation {
     "isAuthenticated": false,
     "roles": []
   },
-  "this_update_marriedWith0_on_Star_marriageLength_INCREMENT": {
-    "low": 1,
-    "high": 0
-  },
+  "this_update_marriedWith0_on_Star_marriageLength_INCREMENT": 1,
   "updateActors": {
     "args": {
       "update": {
@@ -83,10 +80,7 @@ mutation {
             "node": {
               "_on": {
                 "Star": {
-                  "marriageLength_INCREMENT": {
-                    "low": 1,
-                    "high": 0
-                  }
+                  "marriageLength_INCREMENT": 1
                 }
               }
             }
@@ -183,10 +177,7 @@ mutation {
 [source,json]
 ----
 {
-  "this_update_marriedWith0_marriageLength_INCREMENT": {
-    "low": 1,
-    "high": 0
-  },
+  "this_update_marriedWith0_marriageLength_INCREMENT": 1,
   "auth": {
     "isAuthenticated": false,
     "roles": []
@@ -197,10 +188,7 @@ mutation {
         "marriedWith": {
           "update": {
             "node": {
-              "marriageLength_INCREMENT": {
-                "low": 1,
-                "high": 0
-              }
+              "marriageLength_INCREMENT": 1
             }
           }
         }
@@ -388,10 +376,7 @@ mutation {
 [source,json]
 ----
 {
-  "this_update_actedIn0_viewers_INCREMENT": {
-    "low": 10,
-    "high": 0
-  },
+  "this_update_actedIn0_viewers_INCREMENT": 10,
   "auth": {
     "isAuthenticated": false,
     "roles": []
@@ -403,10 +388,7 @@ mutation {
           {
             "update": {
               "node": {
-                "viewers_INCREMENT": {
-                  "low": 10,
-                  "high": 0
-                }
+                "viewers_INCREMENT": 10
               }
             }
           }
@@ -525,10 +507,7 @@ mutation {
 [source,json]
 ----
 {
-  "this_update_viewers_INCREMENT": {
-    "low": 3,
-    "high": 0
-  },
+  "this_update_viewers_INCREMENT": 3,
   "resolvedCallbacks": {}
 }
 ----

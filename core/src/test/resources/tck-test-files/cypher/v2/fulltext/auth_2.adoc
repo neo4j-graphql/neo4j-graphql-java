@@ -35,6 +35,18 @@ type Person {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "sub": "my-sub"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----

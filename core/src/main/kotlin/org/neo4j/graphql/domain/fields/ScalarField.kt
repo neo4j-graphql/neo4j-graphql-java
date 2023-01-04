@@ -1,5 +1,6 @@
 package org.neo4j.graphql.domain.fields
 
+import graphql.language.ListType
 import graphql.language.Type
 import org.neo4j.cypherdsl.core.Condition
 import org.neo4j.cypherdsl.core.Expression
@@ -43,28 +44,29 @@ abstract class ScalarField(fieldName: String, typeMeta: TypeMeta, schemaConfig: 
             return result
         }
         result
-            .add(FieldOperator.IN, resolver)
-            .add(FieldOperator.NOT_IN, resolver)
-        when {
-            COMPARABLE_TYPES.contains(fieldType) -> result
+            // TODO set non null
+            .add(FieldOperator.IN, resolver, ListType(typeMeta.type.inner()))
+            .add(FieldOperator.NOT_IN, resolver, ListType(typeMeta.type.inner()))
+        if (STRING_LIKE_TYPES.contains(fieldType)) {
+            result
+                .add(FieldOperator.CONTAINS)
+                .add(FieldOperator.NOT_CONTAINS)
+                .add(FieldOperator.STARTS_WITH)
+                .add(FieldOperator.NOT_STARTS_WITH)
+                .add(FieldOperator.ENDS_WITH)
+                .add(FieldOperator.NOT_ENDS_WITH)
+
+            if (schemaConfig.enableRegex) {
+                result.add(FieldOperator.MATCHES)
+            }
+        }
+//        else // TODO REMOVED the else since string is also comparable https://github.com/neo4j/graphql/issues/2657
+        if (COMPARABLE_TYPES.contains(fieldType)) {
+            result
                 .add(FieldOperator.LT, resolver)
                 .add(FieldOperator.LTE, resolver)
                 .add(FieldOperator.GT, resolver)
                 .add(FieldOperator.GTE, resolver)
-
-            STRING_LIKE_TYPES.contains(fieldType) -> {
-                result
-                    .add(FieldOperator.CONTAINS)
-                    .add(FieldOperator.NOT_CONTAINS)
-                    .add(FieldOperator.STARTS_WITH)
-                    .add(FieldOperator.NOT_STARTS_WITH)
-                    .add(FieldOperator.ENDS_WITH)
-                    .add(FieldOperator.NOT_ENDS_WITH)
-
-                if (schemaConfig.enableRegex) {
-                    result.add(FieldOperator.MATCHES)
-                }
-            }
         }
         return result
     }
@@ -89,9 +91,9 @@ abstract class ScalarField(fieldName: String, typeMeta: TypeMeta, schemaConfig: 
 
     companion object {
         private val COMPARABLE_TYPES = setOf(
-            "Float",
-            "Int",
-            "String",
+            Constants.FLOAT,
+            Constants.INT,
+            Constants.STRING,
             Constants.BIG_INT,
             Constants.DATE_TIME,
             Constants.DATE,
@@ -101,6 +103,6 @@ abstract class ScalarField(fieldName: String, typeMeta: TypeMeta, schemaConfig: 
             Constants.DURATION,
         )
 
-        private val STRING_LIKE_TYPES = setOf("ID", "String")
+        private val STRING_LIKE_TYPES = setOf(Constants.ID, Constants.STRING)
     }
 }

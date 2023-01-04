@@ -39,13 +39,25 @@ extend type User @auth(rules: [{allow: {id: "$jwt.sub"}, where: {id: "$jwt.sub"}
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "sub": "super_admin"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
 {
-  "param0": "some-name",
-  "auth_param0": "super_admin",
-  "thisauth_param0": "super_admin"
+  "param0" : "some-name",
+  "param1" : "super_admin",
+  "param2" : "super_admin"
 }
 ----
 
@@ -55,9 +67,9 @@ extend type User @auth(rules: [{allow: {id: "$jwt.sub"}, where: {id: "$jwt.sub"}
 MATCH (this:User)
 WHERE (this.name = $param0
 	AND this.id IS NOT NULL
-	AND this.id = $auth_param0)
+	AND this.id = $param1)
 CALL apoc.util.validate(NOT ((this.id IS NOT NULL
-	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
+	AND this.id = $param2)), '@neo4j/graphql/FORBIDDEN', [0])
 RETURN {
 	count: count(this)
 }
@@ -80,12 +92,25 @@ RETURN {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "sub": "super_admin"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
 {
-  "auth_param0": "super_admin",
-  "thisauth_param0": "super_admin"
+  "param0" : "super_admin",
+  "param1" : "super_admin",
+  "param2" : "super_admin"
 }
 ----
 
@@ -94,11 +119,11 @@ RETURN {
 ----
 MATCH (this:User)
 WHERE (this.id IS NOT NULL
-	AND this.id = $auth_param0)
+	AND this.id = $param0)
 CALL apoc.util.validate(NOT ((this.id IS NOT NULL
-	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
+	AND this.id = $param1)), '@neo4j/graphql/FORBIDDEN', [0])
 CALL apoc.util.validate(NOT ((this.id IS NOT NULL
-	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
+	AND this.id = $param2)), '@neo4j/graphql/FORBIDDEN', [0])
 RETURN {
 	imdbRatingBigInt: {
 		min: min(this.imdbRatingBigInt),
@@ -124,12 +149,25 @@ RETURN {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "sub": "super_admin"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
 {
-  "auth_param0": "super_admin",
-  "thisauth_param0": "super_admin"
+  "param0" : "super_admin",
+  "param1" : "super_admin",
+  "param2" : "super_admin"
 }
 ----
 
@@ -138,11 +176,11 @@ RETURN {
 ----
 MATCH (this:User)
 WHERE (this.id IS NOT NULL
-	AND this.id = $auth_param0)
+	AND this.id = $param0)
 CALL apoc.util.validate(NOT ((this.id IS NOT NULL
-	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
+	AND this.id = $param1)), '@neo4j/graphql/FORBIDDEN', [0])
 CALL apoc.util.validate(NOT ((this.id IS NOT NULL
-	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
+	AND this.id = $param2)), '@neo4j/graphql/FORBIDDEN', [0])
 RETURN {
 	createdAt: {
 		min: apoc.date.convertFormat(toString(min(this.createdAt)), 'iso_zoned_date_time', 'iso_offset_date_time'),
@@ -168,12 +206,25 @@ RETURN {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "sub": "super_admin"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
 {
-  "auth_param0": "super_admin",
-  "thisauth_param0": "super_admin"
+  "param0" : "super_admin",
+  "param1" : "super_admin",
+  "param2" : "super_admin"
 }
 ----
 
@@ -182,11 +233,11 @@ RETURN {
 ----
 MATCH (this:User)
 WHERE (this.id IS NOT NULL
-	AND this.id = $auth_param0)
+	AND this.id = $param0)
 CALL apoc.util.validate(NOT ((this.id IS NOT NULL
-	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
+	AND this.id = $param1)), '@neo4j/graphql/FORBIDDEN', [0])
 CALL apoc.util.validate(NOT ((this.id IS NOT NULL
-	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
+	AND this.id = $param2)), '@neo4j/graphql/FORBIDDEN', [0])
 RETURN {
 	imdbRatingFloat: {
 		min: min(this.imdbRatingFloat),
@@ -212,12 +263,25 @@ RETURN {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "sub": "super_admin"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
 {
-  "auth_param0": "super_admin",
-  "thisauth_param0": "super_admin"
+  "param0" : "super_admin",
+  "param1" : "super_admin",
+  "param2" : "super_admin"
 }
 ----
 
@@ -226,11 +290,11 @@ RETURN {
 ----
 MATCH (this:User)
 WHERE (this.id IS NOT NULL
-	AND this.id = $auth_param0)
+	AND this.id = $param0)
 CALL apoc.util.validate(NOT ((this.id IS NOT NULL
-	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
+	AND this.id = $param1)), '@neo4j/graphql/FORBIDDEN', [0])
 CALL apoc.util.validate(NOT ((this.id IS NOT NULL
-	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
+	AND this.id = $param2)), '@neo4j/graphql/FORBIDDEN', [0])
 RETURN {
 	id: {
 		shortest: min(this.id),
@@ -256,12 +320,25 @@ RETURN {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "sub": "super_admin"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
 {
-  "auth_param0": "super_admin",
-  "thisauth_param0": "super_admin"
+  "param0" : "super_admin",
+  "param1" : "super_admin",
+  "param2" : "super_admin"
 }
 ----
 
@@ -270,11 +347,11 @@ RETURN {
 ----
 MATCH (this:User)
 WHERE (this.id IS NOT NULL
-	AND this.id = $auth_param0)
+	AND this.id = $param0)
 CALL apoc.util.validate(NOT ((this.id IS NOT NULL
-	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
+	AND this.id = $param1)), '@neo4j/graphql/FORBIDDEN', [0])
 CALL apoc.util.validate(NOT ((this.id IS NOT NULL
-	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
+	AND this.id = $param2)), '@neo4j/graphql/FORBIDDEN', [0])
 RETURN {
 	imdbRatingInt: {
 		min: min(this.imdbRatingInt),
@@ -300,12 +377,25 @@ RETURN {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "sub": "super_admin"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
 {
-  "auth_param0": "super_admin",
-  "thisauth_param0": "super_admin"
+  "param0" : "super_admin",
+  "param1" : "super_admin",
+  "param2" : "super_admin"
 }
 ----
 
@@ -314,11 +404,11 @@ RETURN {
 ----
 MATCH (this:User)
 WHERE (this.id IS NOT NULL
-	AND this.id = $auth_param0)
+	AND this.id = $param0)
 CALL apoc.util.validate(NOT ((this.id IS NOT NULL
-	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
+	AND this.id = $param1)), '@neo4j/graphql/FORBIDDEN', [0])
 CALL apoc.util.validate(NOT ((this.id IS NOT NULL
-	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
+	AND this.id = $param2)), '@neo4j/graphql/FORBIDDEN', [0])
 RETURN {
 	name: {
 		shortest: reduce(aggVar = collect(this.name)[0], current IN collect(this.name) | CASE WHEN size(current) < size(aggVar) THEN current ELSE aggVar END),
@@ -341,12 +431,24 @@ RETURN {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "sub": "super_admin"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
 {
-  "auth_param0": "super_admin",
-  "thisauth_param0": "super_admin"
+  "param0" : "super_admin",
+  "param1" : "super_admin"
 }
 ----
 
@@ -355,9 +457,9 @@ RETURN {
 ----
 MATCH (this:User)
 WHERE (this.id IS NOT NULL
-	AND this.id = $auth_param0)
+	AND this.id = $param0)
 CALL apoc.util.validate(NOT ((this.id IS NOT NULL
-	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
+	AND this.id = $param1)), '@neo4j/graphql/FORBIDDEN', [0])
 RETURN {
 	count: count(this)
 }

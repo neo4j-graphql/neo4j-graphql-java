@@ -32,13 +32,17 @@ object Constants {
     const val EDGES_FIELD = "edges"
     const val CURSOR_FIELD = "cursor"
     const val NODE_FIELD = "node"
-    const val ON  = "_on"
+    const val ON = "_on"
 
     const val POINT_TYPE = "Point"
     const val CARTESIAN_POINT_TYPE = "CartesianPoint"
     const val POINT_INPUT_TYPE = "PointInput"
     const val CARTESIAN_POINT_INPUT_TYPE = "CartesianPointInput"
 
+    const val ID = "ID"
+    const val STRING = "String"
+    const val INT = "Int"
+    const val FLOAT = "Float"
     const val DATE = "Date"
     const val TIME = "Time"
     const val LOCAL_TIME = "LocalTime"
@@ -54,7 +58,10 @@ object Constants {
     const val SHORTEST = "shortest"
     const val LONGEST = "longest"
 
-    const val AGGREGATION_SUFFIX = "Aggregate"
+    const val AGGREGATION_FIELD_SUFFIX = "Aggregate"
+    const val AGGREGATION_SELECTION_FIELD_SUFFIX = "AggregationSelection"
+    const val AGGREGATION_SELECTION_NODE_SUFFIX = "NodeAggregateSelection"
+    const val AGGREGATION_SELECTION_EDGE_SUFFIX = "EdgeAggregateSelection"
 
     val TEMPORAL_TYPES = setOf(DATE, TIME, LOCAL_TIME, DATE_TIME, LOCAL_DATE_TIME)
     val ZONED_TIME_TYPES = setOf(TIME, DATE_TIME)
@@ -70,10 +77,6 @@ object Constants {
         DirectiveConstants.RELATIONSHIP,
         DirectiveConstants.CYPHER
     )
-    val WHERE_AGGREGATION_OPERATORS = listOf("EQUAL", "GT", "GTE", "LT", "LTE")
-    val WHERE_AGGREGATION_AVERAGE_TYPES = setOf("String", "Int", "Float", BIG_INT, DURATION)
-    val WHERE_AGGREGATION_TYPES =
-        setOf("ID", "String", "Float", "Int", BIG_INT, DATE_TIME, LOCAL_DATE_TIME, LOCAL_TIME, TIME, DURATION)
 
     const val OPTIONS = "options"
     const val FULLTEXT = "fulltext"
@@ -81,15 +84,15 @@ object Constants {
 
     const val WHERE = "where"
 
-    const val NEO4J_QUERY_CONTEXT =  "NEO4J_QUERY_CONTEXT"
+    const val NEO4J_QUERY_CONTEXT = "NEO4J_QUERY_CONTEXT"
 
     val PREDICATE_JOINS = setOf(AND, OR)
 
     object Types {
         val ID = TypeName("ID")
-        val Int = TypeName("Int")
-        val Float = TypeName("Float")
-        val String = TypeName("String")
+        val Int = TypeName(INT)
+        val Float = TypeName(FLOAT)
+        val String = TypeName(STRING)
         val Boolean = TypeName("Boolean")
 
         val DeleteInfo = TypeName("DeleteInfo")
@@ -107,6 +110,7 @@ object Constants {
     const val RELATIONSHIP_REQUIREMENT_PREFIX = "@neo4j/graphql/RELATIONSHIP-REQUIRED";
 
     // TODO migrate to old approach
-    val WHERE_REG_EX = Regex("(?<fieldName>[_A-Za-z]\\w*?)(?<isAggregate>Aggregate)?(?:_(?<operator>NOT|NOT_IN|IN|NOT_INCLUDES|INCLUDES|MATCHES|NOT_CONTAINS|CONTAINS|NOT_STARTS_WITH|STARTS_WITH|NOT_ENDS_WITH|ENDS_WITH|LT|LTE|GT|GTE|DISTANCE|ALL|NONE|SINGLE|SOME))?\$")
+    val WHERE_REG_EX =
+        Regex("(?<fieldName>[_A-Za-z]\\w*?)(?<isAggregate>Aggregate)?(?:_(?<operator>NOT|NOT_IN|IN|NOT_INCLUDES|INCLUDES|MATCHES|NOT_CONTAINS|CONTAINS|NOT_STARTS_WITH|STARTS_WITH|NOT_ENDS_WITH|ENDS_WITH|LT|LTE|GT|GTE|DISTANCE|ALL|NONE|SINGLE|SOME))?\$")
 
 }

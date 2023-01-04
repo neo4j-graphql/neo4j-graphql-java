@@ -89,7 +89,7 @@ object NodeFactory {
         definition: ObjectTypeDefinition,
         fields: List<BaseField>
     ): FullTextDirective {
-        this.indexes.groupBy { it.name }.forEach { (name, indices) ->
+        this.indexes.groupBy { it.indexName }.forEach { (name, indices) ->
             if (indices.size > 1) {
                 throw IllegalArgumentException("Node '${definition.name}' @fulltext index contains duplicate name '$name'")
             }
@@ -105,7 +105,7 @@ object NodeFactory {
         this.indexes.forEach { index ->
             index.fields.forEach { fieldName ->
                 if (!stringFieldNames.contains(fieldName)) {
-                    throw IllegalArgumentException("Node '${definition.name}' @fulltext index contains invalid index '${index.name}' cannot use find String field '${fieldName}'")
+                    throw IllegalArgumentException("Node '${definition.name}' @fulltext index contains invalid index '${index.indexName}' cannot use find String field '${fieldName}'")
                 }
             }
         }

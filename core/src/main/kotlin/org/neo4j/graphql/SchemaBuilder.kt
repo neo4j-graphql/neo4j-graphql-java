@@ -12,6 +12,8 @@ import org.neo4j.graphql.domain.Model
 import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.handler.projection.ProjectionBase
 import org.neo4j.graphql.handler.v2.*
+import org.neo4j.graphql.scalars.BigIntScalar
+import org.neo4j.graphql.scalars.DurationScalar
 import org.neo4j.graphql.schema.AugmentationHandlerV2
 import org.neo4j.graphql.schema.BaseAugmentationV2
 
@@ -218,6 +220,8 @@ class SchemaBuilder(
             .forEach { (name, definition) ->
                 val scalar = when (name) {
                     "DynamicProperties" -> DynamicProperties.INSTANCE
+                    Constants.BIG_INT -> BigIntScalar.INSTANCE
+// TODO                   Constants.DURATION -> DurationScalar.INSTANCE
                     else -> GraphQLScalarType.newScalar()
                         .name(name)
                         .description(

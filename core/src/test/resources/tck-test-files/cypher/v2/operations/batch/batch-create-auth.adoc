@@ -59,6 +59,18 @@ mutation {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "sub": "1"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
@@ -381,6 +393,18 @@ mutation {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "sub": "1"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
@@ -498,6 +522,18 @@ mutation {
   createMovies(input: [{id: "1"}, {id: "2"}]) {
     movies {
       id
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "sub": "1"
     }
   }
 }

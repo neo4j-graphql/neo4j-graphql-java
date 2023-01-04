@@ -14,4 +14,6 @@ class RelationshipProperties(
      * the fields of the rich relation
      */
     fields: List<ScalarField>
-) : FieldContainer<ScalarField>(fields)
+) : FieldContainer<ScalarField>(fields) {
+    override val name: String get() = interfaceName
+}

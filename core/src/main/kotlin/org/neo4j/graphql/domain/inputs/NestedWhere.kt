@@ -10,26 +10,35 @@ abstract class NestedWhere<T : NestedWhere<T>>(
     data: Dict,
     nestedWhereFactory: (data: Dict) -> T?
 ) {
+    val nestedConditions = data
+        .filter { SPECIAL_WHERE_KEYS.contains(it.key) }
+        .mapValues { (_, joins) -> joins.wrapList().mapNotNull { nestedWhereFactory(Dict(it)) } }
 
-    val and = data[Constants.AND]?.wrapList()?.mapNotNull { nestedWhereFactory(Dict(it)) }
+    val and get() = nestedConditions[Constants.AND]
 
-    val or = data[Constants.OR]?.wrapList()?.mapNotNull { nestedWhereFactory(Dict(it)) }
+    val or get() = nestedConditions[Constants.OR]
 
     fun reduceNestedConditions(extractCondition: (key: String, index: Int, nested: T) -> Condition?): Condition? {
         var result: Condition? = null
-        listOf(
-            Triple(or, Constants.OR, { lhs: Condition?, rhs: Condition -> lhs or rhs }),
-            Triple(and, Constants.AND, { lhs: Condition?, rhs: Condition -> lhs and rhs }),
-        ).forEach { (joins, key, reducer) ->
-            if (!joins.isNullOrEmpty()) {
-                var innerCondition: Condition? = null
-                joins.forEachIndexed { index, v ->
-                    extractCondition(key, index, v)
-                        ?.let { innerCondition = reducer(innerCondition, it) }
-                }
-                innerCondition?.let { result = result and it }
+        nestedConditions.forEach { (op, joins) ->
+            if (joins.isEmpty()) {
+                return@forEach
             }
+            val reducer = when (op) {
+                Constants.AND -> { lhs: Condition?, rhs: Condition -> lhs and rhs }
+                Constants.OR -> { lhs: Condition?, rhs: Condition -> lhs or rhs }
+                else -> error("only '${Constants.AND}' and '${Constants.OR}' expected")
+            }
+            var innerCondition: Condition? = null
+            joins.forEachIndexed { index, v ->
+                extractCondition(op, index, v)?.let { innerCondition = reducer(innerCondition, it) }
+            }
+            innerCondition?.let { result = result and it }
         }
         return result
+    }
+
+    companion object {
+        val SPECIAL_WHERE_KEYS = setOf(Constants.OR, Constants.AND)
     }
 }

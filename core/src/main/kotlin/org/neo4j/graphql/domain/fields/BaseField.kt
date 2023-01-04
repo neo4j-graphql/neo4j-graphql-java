@@ -3,10 +3,8 @@ package org.neo4j.graphql.domain.fields
 import graphql.language.*
 import org.neo4j.cypherdsl.core.Condition
 import org.neo4j.cypherdsl.core.Expression
-import org.neo4j.graphql.domain.Interface
+import org.neo4j.graphql.domain.*
 import org.neo4j.graphql.domain.Node
-import org.neo4j.graphql.domain.RelationshipProperties
-import org.neo4j.graphql.domain.TypeMeta
 import org.neo4j.graphql.domain.directives.AuthDirective
 import org.neo4j.graphql.domain.directives.UniqueDirective
 import org.neo4j.graphql.isRequired
@@ -29,7 +27,7 @@ sealed class BaseField(
     var ignored: Boolean = false
     var dbPropertyName: String = fieldName
     var unique: UniqueDirective? = null
-    lateinit var owner: Any
+    lateinit var owner: FieldContainer<*>
 
     override fun toString(): String {
         return "Field: $fieldName"

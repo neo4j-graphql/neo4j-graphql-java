@@ -60,18 +60,9 @@ type Community {
 [source,json]
 ----
 {
-  "param0": {
-    "low": 4656564,
-    "high": 0
-  },
-  "param1": {
-    "low": 10,
-    "high": 0
-  },
-  "param2": {
-    "low": 0,
-    "high": 0
-  },
+  "param0": 4656564,
+  "param1": 10,
+  "param2": 0,
   "auth": {
     "isAuthenticated": false,
     "roles": []

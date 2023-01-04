@@ -102,14 +102,8 @@ query getApplicationVariants($where: ApplicationVariantWhere, $options: Applicat
 ----
 {
   "param0": true,
-  "param4": {
-    "low": 0,
-    "high": 0
-  },
-  "param5": {
-    "low": 50,
-    "high": 0
-  },
+  "param4": 0,
+  "param5": 50,
   "auth": {
     "isAuthenticated": false,
     "roles": []

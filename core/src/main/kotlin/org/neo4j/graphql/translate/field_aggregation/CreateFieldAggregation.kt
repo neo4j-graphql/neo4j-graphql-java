@@ -1,0 +1,261 @@
+package org.neo4j.graphql.translate.field_aggregation
+
+import org.neo4j.cypherdsl.core.*
+import org.neo4j.graphql.*
+import org.neo4j.graphql.domain.FieldContainer
+import org.neo4j.graphql.domain.Node
+import org.neo4j.graphql.domain.directives.AuthDirective
+import org.neo4j.graphql.domain.fields.PrimitiveField
+import org.neo4j.graphql.domain.fields.RelationField
+import org.neo4j.graphql.domain.inputs.field_arguments.AggregateFieldInputArgs
+import org.neo4j.graphql.handler.utils.ChainString
+import org.neo4j.graphql.translate.ApocFunctions
+import org.neo4j.graphql.translate.AuthTranslator
+import org.neo4j.graphql.translate.where.createWhere
+import org.neo4j.graphql.utils.ResolveTree
+
+object CreateFieldAggregation {
+
+    fun createFieldAggregation(
+        dslNode: org.neo4j.cypherdsl.core.Node,
+        relationField: RelationField,
+        field: ResolveTree,
+        subQueries: MutableList<Statement>,
+        schemaConfig: SchemaConfig,
+        queryContext: QueryContext,
+    ): Any? {
+        val referenceNode = relationField.node ?: return null
+
+        val targetRef = referenceNode.asCypherNode(queryContext, referenceNode.name.lowercase())
+
+        val aggregationFields = field.fieldsByTypeName[relationField.aggregateTypeNames?.field]
+        val aggregationNodeFields =
+            aggregationFields?.get(Constants.NODE_FIELD)?.fieldsByTypeName?.get(relationField.aggregateTypeNames?.node)
+        val aggregationEdgeFields =
+            aggregationFields?.get(Constants.EDGE_FIELD)?.fieldsByTypeName?.get(relationField.aggregateTypeNames?.edge)
+
+        val authData = createFieldAggregationAuth(
+            referenceNode,
+            schemaConfig,
+            queryContext,
+            targetRef,
+            aggregationNodeFields
+        )
+        val prefix = ChainString(schemaConfig, dslNode, field.name)
+
+        val args = AggregateFieldInputArgs(referenceNode, field.args)
+        val whereInput = args.where
+        val (predicate, preComputedSubqueries) = createWhere(
+            referenceNode,
+            whereInput,
+            targetRef,
+            prefix,
+            schemaConfig,
+            queryContext
+        )
+
+        val where = listOfNotNull(authData, predicate).foldWithAnd()
+
+        val relationship = relationField.createQueryDslRelation(dslNode, targetRef, args.directed)
+            .named("rel")
+        val matchWherePattern = Cypher
+            .with(dslNode)
+            .match(relationship)
+            .withSubQueries(preComputedSubqueries)
+            .let {
+                if (where != null) {
+                    if (it is ExposesWhere) {
+                        it.where(where)
+                    } else {
+                        it.with(Cypher.asterisk()).where(where)
+                    }
+                } else it
+            }
+
+        val projections = mutableListOf<Any>()
+
+        aggregationFields?.get(Constants.COUNT)?.let {
+            val countRef = queryContext.getNextVariable(prefix.extend("var"))
+            projections += it.aliasOrName
+            projections += countRef
+            subQueries += matchWherePattern
+                .returning(Functions.count(relationship.requiredSymbolicName).`as`(countRef))
+                .build()
+        }
+
+        if (aggregationNodeFields != null) {
+            val innerProjection = getAggregationProjectionAndSubqueries(
+                prefix,
+                referenceNode,
+                matchWherePattern,
+                targetRef,
+                aggregationNodeFields,
+                subQueries,
+                queryContext
+            )
+            projections += aggregationFields[Constants.NODE_FIELD]?.aliasOrName!!
+            projections += innerProjection
+        }
+
+        if (aggregationEdgeFields != null && relationField.properties != null) {
+            val innerProjection = getAggregationProjectionAndSubqueries(
+                prefix,
+                relationField.properties,
+                matchWherePattern,
+                relationship,
+                aggregationEdgeFields,
+                subQueries,
+                queryContext
+            )
+            projections += aggregationFields[Constants.EDGE_FIELD]?.aliasOrName!!
+            projections += innerProjection
+        }
+
+        return Cypher.mapOf(*projections.toTypedArray())
+    }
+
+    private fun getAggregationProjectionAndSubqueries(
+        prefix: ChainString,
+        fieldContainer: FieldContainer<*>,
+        matchPattern: StatementBuilder.OngoingReading,
+        targetRef: PropertyContainer,
+        fields: Map<*, ResolveTree>,
+        subQueries: MutableList<Statement>,
+        queryContext: QueryContext
+    ): MapExpression {
+        val projection = mutableListOf<Any>()
+        fields
+            .mapKeys {
+                fieldContainer.getField(it.key as String) as? PrimitiveField
+                    ?: error("cannot find field ${fieldContainer.name}::${it.key}")
+            }
+            .forEach { (field, data) ->
+
+                val property = targetRef.property(field.dbPropertyName)
+                val nestedSelection =
+                    data.fieldsByTypeName[field.getAggregationSelectionLibraryTypeName()] ?: return@forEach
+                val fieldRef = queryContext.getNextVariable(prefix.extend("var"))
+
+                projection += data.aliasOrName
+                projection += fieldRef
+
+                val innerProjection = when (field.typeMeta.type.name()) {
+                    Constants.STRING,
+                    Constants.ID -> {
+                        val list = Cypher.name("list")
+                        subQueries += matchPattern
+                            .with(targetRef)
+                            .orderBy(Functions.size(property)).descending()
+                            .with(Functions.collect(property).`as`(list))
+                            .returning(stringAggregationProjection(nestedSelection, list).`as`(fieldRef))
+                            .build()
+                        return@forEach
+                    }
+
+                    Constants.INT,
+                    Constants.BIG_INT,
+                    Constants.FLOAT -> defaultAggregationProjection(nestedSelection, property, number = true)
+
+                    Constants.DATE_TIME -> dateTimeAggregationProjection(nestedSelection, property)
+                    else -> defaultAggregationProjection(nestedSelection, property, number = false)
+                }
+                subQueries += matchPattern.returning(innerProjection.`as`(fieldRef)).build()
+            }
+        return Cypher.mapOf(*projection.toTypedArray())
+    }
+
+
+    private fun stringAggregationProjection(nestedSelection: Map<*, ResolveTree>, property: Expression): MapExpression {
+        val projection = mutableListOf<Any>()
+        nestedSelection.values.map { aggregateField ->
+            val reduceFun = when (aggregateField.name) {
+                Constants.LONGEST -> Functions::head
+                Constants.SHORTEST -> Functions::last
+                else -> error("unsupported field ${aggregateField.name} for string aggregation")
+            }
+            projection += aggregateField.aliasOrName
+            projection += reduceFun(property)
+        }
+        return Cypher.mapOf(*projection.toTypedArray())
+    }
+
+    private fun defaultAggregationProjection(
+        nestedSelection: Map<*, ResolveTree>,
+        property: Property,
+        number: Boolean
+    ): MapExpression {
+        val projection = mutableListOf<Any>()
+        nestedSelection.values.forEach { aggregateField ->
+            val reduceFun = when (aggregateField.name) {
+                Constants.MIN -> Functions::min
+
+                Constants.MAX -> Functions::max
+
+                Constants.AVERAGE -> Functions::avg
+                    .also { check(number, { "${Constants.AVERAGE} is only supported for numbers" }) }
+
+                Constants.SUM -> Functions::sum
+                    .also { check(number, { "${Constants.SUM} is only supported for numbers" }) }
+
+                else -> error("unsupported field ${aggregateField.name} for aggregation")
+            }
+            projection += aggregateField.aliasOrName
+            projection += reduceFun(property)
+        }
+        return Cypher.mapOf(*projection.toTypedArray())
+    }
+
+    private fun dateTimeAggregationProjection(nestedSelection: Map<*, ResolveTree>, property: Property): MapExpression {
+        val projection = mutableListOf<Any>()
+        nestedSelection.values.forEach { aggregateField ->
+            val reduceFun = when (aggregateField.name) {
+                Constants.MIN -> Functions::min
+                Constants.MAX -> Functions::max
+                else -> error("unsupported field ${aggregateField.name} for date aggregation")
+            }
+            projection += aggregateField.aliasOrName
+            projection += ApocFunctions.date.convertFormat(
+                Functions.toString(reduceFun(property)),
+                "iso_zoned_date_time".asCypherLiteral(),
+                "iso_offset_date_time".asCypherLiteral()
+            )
+        }
+        return Cypher.mapOf(*projection.toTypedArray())
+    }
+
+
+    private fun createFieldAggregationAuth(
+        node: Node,
+        schemaConfig: SchemaConfig,
+        queryContext: QueryContext,
+        subqueryNodeAlias: org.neo4j.cypherdsl.core.Node,
+        nodeFields: Map<*, ResolveTree?>?
+    ): Condition? {
+         //TODO harmonize with ProjectionTranslator::createNodeWhereAndParams ?
+
+
+        val allowAuth =
+            AuthTranslator(schemaConfig, queryContext, allow = AuthTranslator.AuthOptions(subqueryNodeAlias, node))
+                .createAuth(node.auth, AuthDirective.AuthOperation.READ)
+                ?.let { it.apocValidatePredicate(Constants.AUTH_FORBIDDEN_ERROR) }
+
+        val whereAuth =
+            AuthTranslator(schemaConfig, queryContext, where = AuthTranslator.AuthOptions(subqueryNodeAlias, node))
+                .createAuth(node.auth, AuthDirective.AuthOperation.READ)
+
+        val fieldAuth = nodeFields
+            ?.mapKeys { node.getField(it.key as String) }
+            ?.mapNotNull { (field, _) ->
+                AuthTranslator(
+                    schemaConfig,
+                    queryContext,
+                    allow = AuthTranslator.AuthOptions(subqueryNodeAlias, node, ChainString(schemaConfig, field))
+                )
+                    .createAuth(field?.auth, AuthDirective.AuthOperation.READ)
+            }
+            ?.foldWithAnd()
+            ?.let { it.apocValidatePredicate(Constants.AUTH_FORBIDDEN_ERROR) }
+
+        return listOfNotNull(allowAuth, whereAuth, fieldAuth).foldWithAnd()
+    }
+}

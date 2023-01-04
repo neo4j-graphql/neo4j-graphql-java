@@ -79,6 +79,20 @@ query getDrivesWithFilteredUnionType {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ]
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----

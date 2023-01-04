@@ -157,10 +157,7 @@ mutation {
 ----
 {
   "param0": "1",
-  "updateMovies_args_delete_actors0_where_Actorparam0": {
-    "low": 60,
-    "high": 0
-  },
+  "updateMovies_args_delete_actors0_where_Actorparam0": 60,
   "updateMovies_args_delete_actors0_where_Actorparam1": "Actor to delete",
   "updateMovies": {
     "args": {
@@ -169,10 +166,7 @@ mutation {
           {
             "where": {
               "edge": {
-                "screenTime": {
-                  "low": 60,
-                  "high": 0
-                }
+                "screenTime": 60
               },
               "node": {
                 "name": "Actor to delete"

@@ -42,6 +42,18 @@ mutation {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "sub": "super_admin"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----

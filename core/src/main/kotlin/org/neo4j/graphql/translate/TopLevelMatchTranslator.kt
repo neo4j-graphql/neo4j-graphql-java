@@ -26,7 +26,8 @@ class TopLevelMatchTranslator(
         cypherNode: org.neo4j.cypherdsl.core.Node,
         fulltextInput: FulltextPerIndex?,
         where: WhereInput?,
-        authOperation: AuthDirective.AuthOperation
+        authOperation: AuthDirective.AuthOperation,
+        additionalPredicates: Condition? = null
     ): OngoingReading {
 
         val varName = ChainString(schemaConfig, cypherNode)
@@ -35,6 +36,9 @@ class TopLevelMatchTranslator(
             createFulltextSearchMatch(fulltextInput, node, varName)
         } else {
             Cypher.match(cypherNode) to Conditions.noCondition()
+        }
+        if (additionalPredicates !=  null){
+            conditions = additionalPredicates and conditions
         }
 
         val (whereConditions, subQueries) = createWhere(node, where, cypherNode, varName, schemaConfig, queryContext)
@@ -87,7 +91,7 @@ class TopLevelMatchTranslator(
         }
 
         if (node.fulltextDirective != null) {
-            val index = node.fulltextDirective.indexes.find { it.name == indexName }
+            val index = node.fulltextDirective.indexes.find { it.indexName == indexName }
             (indexInput.score
                 ?.let { varName.extend("fulltext", indexName, "score", "EQUAL").resolveParameter(it) }
                 ?: index?.defaultThreshold?.let {

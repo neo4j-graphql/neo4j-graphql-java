@@ -66,6 +66,21 @@ mutation {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
@@ -150,6 +165,21 @@ mutation {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
@@ -228,6 +258,21 @@ mutation {
   updateUsers(update: {content: {connect: {where: {node: {}}}}}) {
     users {
       id
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
     }
   }
 }
@@ -330,6 +375,21 @@ mutation {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
@@ -418,6 +478,21 @@ mutation {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
@@ -500,6 +575,21 @@ mutation {
   updateUsers(update: {content: {connect: {where: {node: {id: "new-id"}}}}}) {
     users {
       id
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
     }
   }
 }
@@ -601,6 +691,21 @@ mutation {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
@@ -655,6 +760,21 @@ mutation {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
@@ -684,6 +804,21 @@ DETACH DELETE this
 mutation {
   deletePosts(where: {content: "Bob"}) {
     nodesDeleted
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
+    }
   }
 }
 ----
@@ -720,6 +855,21 @@ mutation {
   updateUsers(disconnect: {content: {where: {}}}) {
     users {
       id
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
     }
   }
 }
@@ -807,6 +957,21 @@ mutation {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
@@ -885,6 +1050,21 @@ mutation {
   updateUsers(disconnect: {content: {where: {node: {id: "some-id"}}}}) {
     users {
       id
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
     }
   }
 }
@@ -975,6 +1155,21 @@ mutation {
   updateUsers(update: {content: [{disconnect: {where: {node: {id: "new-id"}}}}]}) {
     users {
       id
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
     }
   }
 }
@@ -1089,6 +1284,21 @@ RETURN collect(DISTINCT this {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
@@ -1150,6 +1360,21 @@ RETURN this {
           }
         }
       }
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
     }
   }
 }
@@ -1231,6 +1456,21 @@ RETURN this {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
@@ -1302,6 +1542,21 @@ RETURN this {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
@@ -1333,6 +1588,21 @@ RETURN this {
 {
   posts(where: {content: "bob"}) {
     id
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
+    }
   }
 }
 ----
@@ -1371,6 +1641,21 @@ mutation {
   updateUsers(update: {content: {update: {node: {id: "new-id"}}}}) {
     users {
       id
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
     }
   }
 }
@@ -1500,6 +1785,21 @@ mutation {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
@@ -1543,6 +1843,21 @@ mutation {
   updatePosts(where: {content: "bob"}, update: {content: "Bob"}) {
     posts {
       id
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "id-01"
     }
   }
 }

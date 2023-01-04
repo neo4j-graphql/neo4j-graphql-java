@@ -2,6 +2,7 @@ package org.neo4j.graphql
 
 import org.neo4j.cypherdsl.core.Cypher
 import org.neo4j.graphql.handler.utils.ChainString
+import java.util.concurrent.atomic.AtomicInteger
 
 data class QueryContext @JvmOverloads constructor(
     /**
@@ -18,8 +19,8 @@ data class QueryContext @JvmOverloads constructor(
     val auth: AuthParams? = null // TODO init
 ) {
 
-    var varCounter = 0
-    var paramCounter = 0
+    private var varCounter = 0
+    private var paramCounter = mutableMapOf<String, AtomicInteger>()
 
     fun resolve(string: String): String {
         return contextParams?.let { params ->
@@ -40,7 +41,10 @@ data class QueryContext @JvmOverloads constructor(
     }
 
     fun getNextVariable(prefix: ChainString? = null) = Cypher.name((prefix?.resolveName() ?: "var") + varCounter++)
-    fun getNextParam(value: Any?) = Cypher.parameter("param" + paramCounter++, value)
+    fun getNextParam(value: Any?) = getNextParam("param", value)
+    fun getNextParam(prefix: String, value: Any?) = paramCounter
+        .computeIfAbsent(prefix) { AtomicInteger(0) }.getAndIncrement()
+        .let { Cypher.parameter(prefix + it, value) }
 
     enum class OptimizationStrategy {
         /**

@@ -6,6 +6,8 @@ import graphql.schema.GraphQLOutputType
 import org.neo4j.cypherdsl.core.*
 import org.neo4j.cypherdsl.core.StatementBuilder.*
 import org.neo4j.graphql.domain.inputs.options.OptionsInput
+import org.neo4j.graphql.translate.ApocFunctions
+import org.neo4j.graphql.translate.ApocFunctions.UtilFunctions.callApocValidate
 import java.util.*
 
 @Deprecated("use ChainString")
@@ -53,16 +55,19 @@ fun String.toLowerCase(): String = lowercase(Locale.getDefault())
 fun <E> Collection<E>.containsAny(other: Collection<E>): Boolean = this.find { other.contains(it) } != null
 infix fun Condition?.and(rhs: Condition) = this?.and(rhs) ?: rhs
 infix fun Condition?.or(rhs: Condition) = this?.or(rhs) ?: rhs
+fun Collection<Condition>.foldWithAnd(): Condition? = this.takeIf { it.isNotEmpty() }?.let {
+    var result = Conditions.noCondition()
+    this.forEach {
+        result = result and it
+    }
+    result
+}
 
 fun ExposesCall<OngoingInQueryCallWithoutArguments>.apocValidate(cond: Condition, errorMessage: String): VoidCall =
-    this.call("apoc.util.validate")
-        .withArgs(cond.not(), errorMessage.asCypherLiteral(), Cypher.listOf(0.asCypherLiteral()))
-        .withoutResults()
+    this.callApocValidate(cond.not(), errorMessage.asCypherLiteral(), Cypher.listOf(0.asCypherLiteral()))
 
 fun Condition?.apocValidatePredicate(errorMessage: String) = this?.let {
-    Cypher.call("apoc.util.validatePredicate")
-        .withArgs(it.not(), errorMessage.asCypherLiteral(), Cypher.listOf(0.asCypherLiteral()))
-        .asFunction()
+    ApocFunctions.util.validatePredicate(it.not(), errorMessage.asCypherLiteral(), Cypher.listOf(0.asCypherLiteral()))
         .asCondition()
 }
 

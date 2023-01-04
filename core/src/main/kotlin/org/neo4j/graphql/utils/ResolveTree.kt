@@ -3,6 +3,7 @@ package org.neo4j.graphql.utils
 import graphql.schema.DataFetchingEnvironment
 import graphql.schema.DataFetchingFieldSelectionSet
 import graphql.schema.SelectedField
+import org.neo4j.graphql.aliasOrName
 
 class ResolveTree(
     val name: String,
@@ -31,7 +32,7 @@ class ResolveTree(
 //                    .flatMap { objectType -> (objectType.interfaces.map { it.name } + objectType.name) }
                 selectedField.objectTypeNames
                     .map { fieldsByTypeName.computeIfAbsent(it) { mutableMapOf() } }
-                    .forEach { it[selectedField.alias ?: selectedField.name] = field }
+                    .forEach { it[selectedField.aliasOrName()] = field }
             }
             return fieldsByTypeName.takeIf { it.isNotEmpty() } ?: emptyMap()
         }

@@ -50,6 +50,18 @@ extend type Post @auth(rules: [{allow: {creator: {id: "$jwt.sub"}}}])
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "sub": "super_admin"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
@@ -113,6 +125,18 @@ RETURN this {
           }
         }
       }
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams": {
+    "jwt": {
+      "sub": "super_admin"
     }
   }
 }
