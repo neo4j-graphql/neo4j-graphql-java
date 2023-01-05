@@ -33,6 +33,7 @@ object Constants {
     const val CURSOR_FIELD = "cursor"
     const val NODE_FIELD = "node"
     const val ON = "_on"
+    const val SCORE = "score"
 
     const val POINT_TYPE = "Point"
     const val CARTESIAN_POINT_TYPE = "CartesianPoint"
@@ -103,6 +104,21 @@ object Constants {
         val SortDirection = TypeName("SortDirection")
         val PointDistance = TypeName("PointDistance")
         val CartesianPointDistance = TypeName("CartesianPointDistance")
+        val FloatWhere = TypeName("FloatWhere")
+    }
+
+    object ArrayOperations {
+        const val PUSH = "PUSH"
+        const val POP = "POP"
+    }
+    object Math {
+
+        const val INCREMENT = "INCREMENT"
+        const val DECREMENT = "DECREMENT"
+        const val ADD = "ADD"
+        const val SUBTRACT = "SUBTRACT"
+        const val DIVIDE = "DIVIDE"
+        const val MULTIPLY = "MULTIPLY"
     }
 
     const val AUTH_FORBIDDEN_ERROR = "@neo4j/graphql/FORBIDDEN"

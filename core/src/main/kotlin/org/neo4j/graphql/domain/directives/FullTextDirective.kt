@@ -13,8 +13,12 @@ class FullTextDirective(
 ) {
 
     class FullTextIndex(value: ObjectValue) {
-        val indexName: String = value.get(FullTextIndex::indexName) ?: throw IllegalArgumentException("indexName is required")
+        val indexName: String =
+            value.get(FullTextIndex::indexName) ?: throw IllegalArgumentException("indexName is required")
+        val queryName: String? = value.get(FullTextIndex::queryName)
         val fields: List<String> = value.get(FullTextIndex::fields) ?: emptyList()
+
+        @Deprecated("remove")
         val defaultThreshold: Long? = value.get(FullTextIndex::defaultThreshold)
     }
 

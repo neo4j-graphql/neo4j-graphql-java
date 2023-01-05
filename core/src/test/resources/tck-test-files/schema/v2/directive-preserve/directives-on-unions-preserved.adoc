@@ -299,26 +299,26 @@ input BlogPostsFieldInput {
 input BlogPostsNodeAggregationWhereInput {
   AND: [BlogPostsNodeAggregationWhereInput!]
   OR: [BlogPostsNodeAggregationWhereInput!]
-  content_AVERAGE_EQUAL: Float
-  content_AVERAGE_GT: Float
-  content_AVERAGE_GTE: Float
-  content_AVERAGE_LT: Float
-  content_AVERAGE_LTE: Float
-  content_EQUAL: String
-  content_GT: Int
-  content_GTE: Int
-  content_LONGEST_EQUAL: Int
-  content_LONGEST_GT: Int
-  content_LONGEST_GTE: Int
-  content_LONGEST_LT: Int
-  content_LONGEST_LTE: Int
-  content_LT: Int
-  content_LTE: Int
-  content_SHORTEST_EQUAL: Int
-  content_SHORTEST_GT: Int
-  content_SHORTEST_GTE: Int
-  content_SHORTEST_LT: Int
-  content_SHORTEST_LTE: Int
+  content_AVERAGE_EQUAL: Float @deprecated(reason : "Do not use post.content")
+  content_AVERAGE_GT: Float @deprecated(reason : "Do not use post.content")
+  content_AVERAGE_GTE: Float @deprecated(reason : "Do not use post.content")
+  content_AVERAGE_LT: Float @deprecated(reason : "Do not use post.content")
+  content_AVERAGE_LTE: Float @deprecated(reason : "Do not use post.content")
+  content_EQUAL: String @deprecated(reason : "Do not use post.content")
+  content_GT: Int @deprecated(reason : "Do not use post.content")
+  content_GTE: Int @deprecated(reason : "Do not use post.content")
+  content_LONGEST_EQUAL: Int @deprecated(reason : "Do not use post.content")
+  content_LONGEST_GT: Int @deprecated(reason : "Do not use post.content")
+  content_LONGEST_GTE: Int @deprecated(reason : "Do not use post.content")
+  content_LONGEST_LT: Int @deprecated(reason : "Do not use post.content")
+  content_LONGEST_LTE: Int @deprecated(reason : "Do not use post.content")
+  content_LT: Int @deprecated(reason : "Do not use post.content")
+  content_LTE: Int @deprecated(reason : "Do not use post.content")
+  content_SHORTEST_EQUAL: Int @deprecated(reason : "Do not use post.content")
+  content_SHORTEST_GT: Int @deprecated(reason : "Do not use post.content")
+  content_SHORTEST_GTE: Int @deprecated(reason : "Do not use post.content")
+  content_SHORTEST_LT: Int @deprecated(reason : "Do not use post.content")
+  content_SHORTEST_LTE: Int @deprecated(reason : "Do not use post.content")
 }
 
 input BlogPostsUpdateConnectionInput {
@@ -430,7 +430,7 @@ input QueryOptions {
 }
 
 input UserConnectInput {
-  content: UserContentConnectInput
+  content: UserContentConnectInput @deprecated(reason : "Do not use user.content")
 }
 
 input UserContentBlogConnectFieldInput {
@@ -554,16 +554,16 @@ input UserContentUpdateInput {
 }
 
 input UserCreateInput {
-  content: UserContentCreateInput
+  content: UserContentCreateInput @deprecated(reason : "Do not use user.content")
   name: String
 }
 
 input UserDeleteInput {
-  content: UserContentDeleteInput
+  content: UserContentDeleteInput @deprecated(reason : "Do not use user.content")
 }
 
 input UserDisconnectInput {
-  content: UserContentDisconnectInput
+  content: UserContentDisconnectInput @deprecated(reason : "Do not use user.content")
 }
 
 input UserOptions {
@@ -574,7 +574,7 @@ input UserOptions {
 }
 
 input UserRelationInput {
-  content: UserContentCreateFieldInput
+  content: UserContentCreateFieldInput @deprecated(reason : "Do not use user.content")
 }
 
 "Fields to sort Users by. The order in which sorts are applied is not guaranteed when specifying many fields in one UserSort object."
@@ -583,7 +583,7 @@ input UserSort {
 }
 
 input UserUpdateInput {
-  content: UserContentUpdateInput
+  content: UserContentUpdateInput @deprecated(reason : "Do not use user.content")
   name: String
 }
 

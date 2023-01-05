@@ -4,6 +4,7 @@ import graphql.language.InterfaceTypeDefinition
 import graphql.language.UnionTypeDefinition
 import graphql.schema.GraphQLScalarType
 import graphql.schema.GraphQLSchema
+import graphql.schema.GraphqlTypeComparatorRegistry
 import graphql.schema.diff.DiffSet
 import graphql.schema.diff.SchemaDiff
 import graphql.schema.diff.reporting.CapturingReporter
@@ -102,10 +103,12 @@ class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite(fileName, TES
 
         private val SCHEMA_PRINTER = SchemaPrinter(
             SchemaPrinter.Options.defaultOptions()
-                .includeDirectives(false)
                 .includeScalarTypes(true)
                 .includeSchemaDefinition(true)
                 .includeIntrospectionTypes(false)
+                .includeDirectives {
+                    setOf("deprecated", "include", "skip", "specifiedBy").contains(it.name).not()
+                }
         )
 
         fun diff(augmentedSchema: GraphQLSchema, expected: GraphQLSchema) {

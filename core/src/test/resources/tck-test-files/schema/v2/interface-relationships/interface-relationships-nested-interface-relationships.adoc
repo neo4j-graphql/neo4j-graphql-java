@@ -52,7 +52,7 @@ schema {
 interface Interface1 {
   field1: String!
   interface2(directed: Boolean = true, options: Interface2Options, where: Interface2Where): [Interface2!]!
-  interface2Connection(after: String, directed: Boolean = true, first: Int, where: Interface1Interface2ConnectionWhere): Interface1Interface2Connection!
+  interface2Connection(after: String, directed: Boolean = true, first: Int, sort: [Interface1Interface2ConnectionSort!], where: Interface1Interface2ConnectionWhere): Interface1Interface2Connection!
 }
 
 interface Interface2 {
@@ -411,7 +411,7 @@ input Interface1Options {
   limit: Int
   offset: Int
   "Specify one or more Interface1Sort objects to sort Interface1s by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [Interface1Sort]
+  sort: [Interface1Sort!]
 }
 
 "Fields to sort Interface1s by. The order in which sorts are applied is not guaranteed when specifying many fields in one Interface1Sort object."
@@ -468,7 +468,7 @@ input Interface2Options {
   limit: Int
   offset: Int
   "Specify one or more Interface2Sort objects to sort Interface2s by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [Interface2Sort]
+  sort: [Interface2Sort!]
 }
 
 "Fields to sort Interface2s by. The order in which sorts are applied is not guaranteed when specifying many fields in one Interface2Sort object."

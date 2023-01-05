@@ -27,9 +27,9 @@ class DeleteResolver private constructor(
 
     class Factory(ctx: AugmentationContext) : AugmentationHandlerV2(ctx) {
 
-        override fun augmentNode(node: Node): AugmentedField? {
+        override fun augmentNode(node: Node): List<AugmentedField> {
             if (!node.isOperationAllowed(ExcludeDirective.ExcludeOperation.DELETE)) {
-                return null
+                return emptyList()
             }
 
             val coordinates =
@@ -40,7 +40,7 @@ class DeleteResolver private constructor(
                     }
                 }
 
-            return AugmentedField(coordinates, DeleteResolver(ctx.schemaConfig, node))
+            return AugmentedField(coordinates, DeleteResolver(ctx.schemaConfig, node)).wrapList()
         }
     }
 

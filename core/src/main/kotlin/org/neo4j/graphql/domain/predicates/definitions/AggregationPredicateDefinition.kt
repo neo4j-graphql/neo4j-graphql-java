@@ -2,11 +2,8 @@ package org.neo4j.graphql.domain.predicates.definitions
 
 import graphql.language.Type
 import org.neo4j.cypherdsl.core.*
-import org.neo4j.graphql.Constants
-import org.neo4j.graphql.QueryContext
+import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.fields.PrimitiveField
-import org.neo4j.graphql.inner
-import org.neo4j.graphql.name
 
 data class AggregationPredicateDefinition(
     override val name: String,
@@ -91,7 +88,6 @@ data class AggregationPredicateDefinition(
         val condition: (Type<*>) -> Boolean = { true }
     ) {
         EQUAL("EQUAL", Expression::eq),
-        // TODO should we also use feature toggles for strings? https://github.com/neo4j/graphql/issues/2657#issuecomment-1369858159
         LT("LT", Expression::lt, condition = { it.name() != Constants.ID }),
         LTE("LTE", Expression::lte, condition = { it.name() != Constants.ID }),
         GT("GT", Expression::gt, condition = { it.name() != Constants.ID }),
@@ -125,6 +121,7 @@ data class AggregationPredicateDefinition(
             .filter { it.condition(field.typeMeta.type) }
             .flatMap { method ->
                 Operator.values()
+                    .filterNot { field.typeMeta.type.isList() }
                     .filter { it.condition(field.typeMeta.type) }
                     .map { op ->
                         val name =

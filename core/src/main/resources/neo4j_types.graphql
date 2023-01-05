@@ -251,6 +251,12 @@ input QueryOptions {
   offset: Int
 }
 
+"The input for filtering a float"
+input FloatWhere {
+  max: Float
+  min: Float
+}
+
 "A date, represented as a 'yyyy-mm-dd' string"
 scalar Date
 

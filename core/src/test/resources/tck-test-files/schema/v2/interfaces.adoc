@@ -39,8 +39,8 @@ schema {
 interface MovieNode {
   customQuery: [Movie]
   id: ID
-  movies: [Movie!]!
-  moviesConnection: MovieNodeMoviesConnection!
+  movies(directed: Boolean = true, options: MovieOptions, where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieNodeMoviesConnectionSort!], where: MovieNodeMoviesConnectionWhere): MovieNodeMoviesConnection!
 }
 
 type CreateInfo {

@@ -39,14 +39,17 @@ abstract class ScalarField(fieldName: String, typeMeta: TypeMeta, schemaConfig: 
         }
         if (typeMeta.type.isList()) {
             result
-                .add(FieldOperator.INCLUDES, resolver)
-                .add(FieldOperator.NOT_INCLUDES, resolver)
+                .add(FieldOperator.INCLUDES, resolver, typeMeta.type.inner())
+                .add(FieldOperator.NOT_INCLUDES, resolver, typeMeta.type.inner())
             return result
         }
         result
-            // TODO set non null
-            .add(FieldOperator.IN, resolver, ListType(typeMeta.type.inner()))
-            .add(FieldOperator.NOT_IN, resolver, ListType(typeMeta.type.inner()))
+            .add(FieldOperator.IN, resolver, ListType(typeMeta.type.inner().makeRequired(typeMeta.type.isRequired())))
+            .add(
+                FieldOperator.NOT_IN,
+                resolver,
+                ListType(typeMeta.type.inner().makeRequired(typeMeta.type.isRequired()))
+            )
         if (STRING_LIKE_TYPES.contains(fieldType)) {
             result
                 .add(FieldOperator.CONTAINS)
@@ -60,13 +63,12 @@ abstract class ScalarField(fieldName: String, typeMeta: TypeMeta, schemaConfig: 
                 result.add(FieldOperator.MATCHES)
             }
         }
-//        else // TODO REMOVED the else since string is also comparable https://github.com/neo4j/graphql/issues/2657
         if (COMPARABLE_TYPES.contains(fieldType)) {
-            result
-                .add(FieldOperator.LT, resolver)
-                .add(FieldOperator.LTE, resolver)
-                .add(FieldOperator.GT, resolver)
-                .add(FieldOperator.GTE, resolver)
+            val isString = fieldType == Constants.STRING
+            if (!isString || schemaConfig.features.filters.string.lt) result.add(FieldOperator.LT, resolver)
+            if (!isString || schemaConfig.features.filters.string.lte) result.add(FieldOperator.LTE, resolver)
+            if (!isString || schemaConfig.features.filters.string.gt) result.add(FieldOperator.GT, resolver)
+            if (!isString || schemaConfig.features.filters.string.gte) result.add(FieldOperator.GTE, resolver)
         }
         return result
     }

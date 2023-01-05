@@ -180,7 +180,7 @@ input UserCreateInput {
   location: Location! = HERE
   name: String! = "Jane Smith"
   numberOfFriends: Int! = 0
-  rating: Float! = 0
+  rating: Float! = 0.0
   toBeOverridden: String! = "Overridden value"
   verified: Boolean! = false
   verifiedDate: DateTime! = "1970-01-01T00:00:00.000Z"

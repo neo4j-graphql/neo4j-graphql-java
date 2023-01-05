@@ -72,10 +72,32 @@ type PageInfo {
 }
 
 type Point {
+  """
+  The coordinate reference systems (CRS)
+  -------------------------------------
+  posible values:
+  * `wgs-84`: A 2D geographic point in the WGS 84 CRS is specified by: longitude and latitude
+  * `wgs-84-3d`: A 3D geographic point in the WGS 84 CRS is specified by longitude, latitude and height
+  """
   crs: String!
+  "The third element of the Coordinate for geographic CRS, meters above the ellipsoid defined by the datum (WGS-84)"
   height: Float
+  """
+  The second element of the Coordinate for geographic CRS, degrees North of the equator
+  Range -90.0 to 90.0
+  """
   latitude: Float!
+  """
+  The first element of the Coordinate for geographic CRS, degrees East of the prime meridian
+  Range -180.0 to 180.0
+  """
   longitude: Float!
+  """
+  The internal Neo4j ID for the CRS
+  One of:
+  * `4326`: represents CRS `wgs-84`
+  * `4979`: represents CRS `wgs-84-3d`
+  """
   srid: Int!
 }
 
@@ -146,8 +168,17 @@ input PointDistance {
 }
 
 input PointInput {
+  "The third element of the Coordinate for geographic CRS, meters above the ellipsoid defined by the datum (WGS-84)"
   height: Float
+  """
+  The second element of the Coordinate for geographic CRS, degrees North of the equator
+  Range -90.0 to 90.0
+  """
   latitude: Float!
+  """
+  The first element of the Coordinate for geographic CRS, degrees East of the prime meridian
+  Range -180.0 to 180.0
+  """
   longitude: Float!
 }
 

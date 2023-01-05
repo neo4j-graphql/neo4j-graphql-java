@@ -114,24 +114,20 @@ open class BaseAugmentationV2(
         } ?: throw IllegalStateException("at least the paging fields should be present")
 
 
-    private fun generateSortIT(implementingType: ImplementingType) =
+    fun generateSortIT(implementingType: ImplementingType) =
         getOrCreateInputObjectType("${implementingType.name}Sort",
             init = { description("Fields to sort ${implementingType.pascalCasePlural} by. The order in which sorts are applied is not guaranteed when specifying many fields in one ${implementingType.name}Sort object.".asDescription()) },
             initFields = { fields, _ ->
-                implementingType.sortableFields.forEach {
+                implementingType.sortableFields.forEach { field ->
                     fields += inputValue(
-                        it.fieldName,
+                        field.fieldName,
                         Constants.Types.SortDirection
-                    )
+                    ) {
+                        directives(field.deprecatedDirectives)
+                    }
                 }
             }
         )
-
-    fun generateFulltextIT(node: Node) = getOrCreateInputObjectType("${node.name}Fulltext") { fields, _ ->
-        node.fulltextDirective?.indexes?.forEach { index ->
-            generateFulltextIndexIT(node, index)?.let { fields += inputValue(index.indexName, it.asType()) }
-        }
-    }
 
     private fun generateFulltextIndexIT(node: Node, index: FullTextDirective.FullTextIndex) =
         getOrCreateInputObjectType("${node.name}${index.indexName.capitalize()}Fulltext") { fields, _ ->
@@ -195,7 +191,11 @@ open class BaseAugmentationV2(
         val result = mutableListOf<InputValueDefinition>()
         fieldList.forEach { field ->
             if (field is ScalarField) {
-                field.predicates.values.forEach { result += inputValue(it.name, it.type) }
+                field.predicates.values.forEach {
+                    result += inputValue(it.name, it.type) {
+                        directives(field.deprecatedDirectives)
+                    }
+                }
             }
             if (field is RelationField) {
                 if (field.node != null) { // TODO REVIEW Darrell why not for union or interfaces https://github.com/neo4j/graphql/issues/810
@@ -207,6 +207,7 @@ open class BaseAugmentationV2(
                                     description(
                                         "Return $plural where ${if (filter !== "SINGLE") filter.lowercase() else "one"} of the related ${field.getImplementingType()?.pascalCasePlural} match this filter".asDescription()
                                     )
+                                    directives(field.deprecatedDirectives)
                                 }
                             }
                             // TODO remove
@@ -247,7 +248,9 @@ open class BaseAugmentationV2(
 
                     }
                     generateAggregateInputIT(typeName, field).let {
-                        result += inputValue(field.fieldName + Constants.AGGREGATION_FIELD_SUFFIX, it.asType())
+                        result += inputValue(field.fieldName + Constants.AGGREGATION_FIELD_SUFFIX, it.asType()) {
+                            directives(field.deprecatedDirectives)
+                        }
                     }
                 }
             }
@@ -256,7 +259,9 @@ open class BaseAugmentationV2(
                     if (field.relationshipField.typeMeta.type.isList()) {
                         // n..m relationship
                         listOf("ALL", "NONE", "SINGLE", "SOME").forEach { filter ->
-                            result += inputValue("${field.fieldName}_$filter", it.asType())
+                            result += inputValue("${field.fieldName}_$filter", it.asType()) {
+                                directives(field.deprecatedDirectives)
+                            }
                         }
                         // TODO remove
                         result += inputValue(field.fieldName, it.asType()) {
@@ -319,7 +324,11 @@ open class BaseAugmentationV2(
             relFields
                 ?.filterIsInstance<PrimitiveField>()
                 ?.flatMap { it.aggregationPredicates.entries }
-                ?.forEach { (name, def) -> fields += inputValue(name, def.type) }
+                ?.forEach { (name, def) ->
+                    fields += inputValue(name, def.type) {
+                        directives(def.field.deprecatedDirectives)
+                    }
+                }
 
             if (fields.isNotEmpty()) {
                 fields += inputValue("AND", ListType(name.asRequiredType()))
@@ -347,6 +356,35 @@ open class BaseAugmentationV2(
                     if (!update && field is HasDefaultValue) {
                         defaultValue(field.defaultValue)
                     }
+                    directives(field.deprecatedDirectives)
+                }
+                if (update) {
+                    if (field.typeMeta.type.isList()
+                        &&
+                        (field is PrimitiveField // TODO remove after https://github.com/neo4j/graphql/issues/2677
+                                || field is PointField)
+                    ) {
+                        fields += inputValue("${field.fieldName}_${Constants.ArrayOperations.POP}", Constants.Types.Int)
+                        fields += inputValue("${field.fieldName}_${Constants.ArrayOperations.PUSH}", type)
+                    } else {
+                        when (field.typeMeta.type.name()) {
+                            Constants.INT, Constants.BIG_INT -> listOf(
+                                Constants.Math.INCREMENT,
+                                Constants.Math.DECREMENT
+                            ).forEach {
+                                fields += inputValue("${field.fieldName}_$it", type)
+                            }
+
+                            Constants.FLOAT -> listOf(
+                                Constants.Math.ADD,
+                                Constants.Math.SUBTRACT,
+                                Constants.Math.DIVIDE,
+                                Constants.Math.MULTIPLY
+                            ).forEach {
+                                fields += inputValue("${field.fieldName}_$it", type)
+                            }
+                        }
+                    }
                 }
             }
     }
@@ -371,7 +409,8 @@ open class BaseAugmentationV2(
                     } else {
                         typeName.asType()
                     }
-                    fields += inputValue(rel.fieldName, type)
+                    fields += inputValue(rel.fieldName, type) { directives(rel.deprecatedDirectives) }
+
                 }
             }
         if (fields.isEmpty() && enforceFields) {
@@ -412,6 +451,7 @@ open class BaseAugmentationV2(
                                 generateWhereOfFieldIT(field)
                                     ?.let { inputValueDefinition(inputValue(Constants.WHERE, it.asType())) }
                                 directedArgument(field)?.let { inputValueDefinition(it) }
+                                directives(field.deprecatedDirectives)
                             }
                         }
 
@@ -419,6 +459,26 @@ open class BaseAugmentationV2(
                 }
         }
     )
+
+    fun generateNodeConnectionOT(node: Node): String {
+        val name = "${node.plural.capitalize()}Connection"
+        return getOrCreateObjectType(name)
+        { fields, _ ->
+            generateNodeEdgeOT(node).let {
+                fields += field(Constants.EDGES_FIELD, NonNullType(ListType(it.asRequiredType())))
+            }
+            fields += field(Constants.TOTAL_COUNT, NonNullType(Constants.Types.Int))
+            fields += field(Constants.PAGE_INFO, NonNullType(Constants.Types.PageInfo))
+        }
+            ?: throw IllegalStateException("Expected $name to have fields")
+    }
+
+    private fun generateNodeEdgeOT(node: Node): String =
+        getOrCreateObjectType("${node.name}Edge") { fields, _ ->
+            fields += field(Constants.CURSOR_FIELD, Constants.Types.String.makeRequired())
+            fields += field(Constants.NODE_FIELD, node.name.asType(true))
+        }
+            ?: throw IllegalStateException("Expected ${node.name}Edge to have fields")
 
     fun generateInterfaceType(interfaze: Interface) {
         ctx.typeDefinitionRegistry.replace(InterfaceTypeDefinition.newInterfaceTypeDefinition()
@@ -434,6 +494,30 @@ open class BaseAugmentationV2(
             .build()
         )
     }
+
+    fun generateNodeFulltextOT(node: Node) = getOrCreateObjectType("${node.name}FulltextResult", {
+        description("The result of a fulltext search on an index of ${node.name}".asDescription())
+    }) { fields, _ ->
+        fields += field(node.name.lowercase(), node.name.asType(true))
+        fields += field(Constants.SCORE, Constants.Types.Float.makeRequired())
+    }
+
+    fun generateFulltextSort(node: Node) = getOrCreateInputObjectType("${node.name}FulltextSort", {
+        description("The input for sorting a fulltext query on an index of ${node.name}".asDescription())
+    }) { fields, _ ->
+        generateSortIT(node)?.let { fields += inputValue(node.name.lowercase(), it.asType()) }
+        fields += inputValue(Constants.SCORE, Constants.Types.SortDirection)
+    }
+        ?: throw IllegalStateException("Expected ${node.name}FulltextSort to have fields")
+
+    fun generateFulltextWhere(node: Node) = getOrCreateInputObjectType("${node.name}FulltextWhere", {
+        description("The input for filtering a fulltext query on an index of ${node.name}".asDescription())
+    }) { fields, _ ->
+        generateWhereIT(node)?.let { fields += inputValue(node.name.lowercase(), it.asType()) }
+        fields += inputValue(Constants.SCORE, Constants.Types.FloatWhere)
+    }
+        ?: throw IllegalStateException("Expected ${node.name}FulltextWhere to have fields")
+
 
     private fun mapField(field: BaseField): FieldDefinition {
         val args = field.arguments.toMutableList()

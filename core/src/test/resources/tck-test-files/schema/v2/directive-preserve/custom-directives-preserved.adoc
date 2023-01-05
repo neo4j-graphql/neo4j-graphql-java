@@ -25,6 +25,10 @@ schema {
   mutation: Mutation
 }
 
+directive @preservedTopLevel(boolean: Boolean, float: Float, int: Int, string: String) on OBJECT
+
+directive @preservedFieldLevel(boolean: Boolean, float: Float, int: Int, string: String) on FIELD_DEFINITION
+
 type CreateInfo {
   bookmark: String
   nodesCreated: Int!
@@ -47,8 +51,8 @@ type IDAggregateSelectionNullable {
   shortest: ID
 }
 
-type Movie {
-  id: ID
+type Movie @preservedTopLevel {
+  id: ID @preservedFieldLevel(boolean : true, float : 1.2, int : 12, string : "str")
 }
 
 type MovieAggregateSelection {

@@ -8,7 +8,6 @@ import org.neo4j.graphql.validateName
 class NodeDirective(
     var label: String? = null,
     var additionalLabels: List<String>? = null,
-    var plural: String? = null,
 ) {
 
     companion object {
@@ -17,7 +16,6 @@ class NodeDirective(
             return NodeDirective(
                 directive.readArgument(NodeDirective::label),
                 directive.readArgument(NodeDirective::additionalLabels),
-                directive.readArgument(NodeDirective::plural),
             )
         }
     }

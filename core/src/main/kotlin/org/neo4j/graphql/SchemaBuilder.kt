@@ -99,6 +99,8 @@ class SchemaBuilder(
             DeleteResolver.Factory(ctx),
             ReadResolver.Factory(ctx),
             UpdateResolver.Factory(ctx),
+            ConnectionResolver.Factory(ctx),
+            FulltextResolver.Factory(ctx),
         )
     }
 
@@ -117,7 +119,7 @@ class SchemaBuilder(
         }
 
         augmentedFields += model.nodes.flatMap { node ->
-            handler.mapNotNull { h -> h.augmentNode(node) }
+            handler.flatMap { h -> h.augmentNode(node) }
         }
 
         removeLibraryDirectivesFromInterfaces()

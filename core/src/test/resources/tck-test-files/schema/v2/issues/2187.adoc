@@ -308,26 +308,26 @@ input GenreMoviesNodeAggregationWhereInput {
   imdbRating_SUM_GTE: Float
   imdbRating_SUM_LT: Float
   imdbRating_SUM_LTE: Float
-  title_AVERAGE_EQUAL: Float
-  title_AVERAGE_GT: Float
-  title_AVERAGE_GTE: Float
-  title_AVERAGE_LT: Float
-  title_AVERAGE_LTE: Float
-  title_EQUAL: String
-  title_GT: Int
-  title_GTE: Int
-  title_LONGEST_EQUAL: Int
-  title_LONGEST_GT: Int
-  title_LONGEST_GTE: Int
-  title_LONGEST_LT: Int
-  title_LONGEST_LTE: Int
-  title_LT: Int
-  title_LTE: Int
-  title_SHORTEST_EQUAL: Int
-  title_SHORTEST_GT: Int
-  title_SHORTEST_GTE: Int
-  title_SHORTEST_LT: Int
-  title_SHORTEST_LTE: Int
+  title_AVERAGE_EQUAL: Float @deprecated(reason : "Do not use title")
+  title_AVERAGE_GT: Float @deprecated(reason : "Do not use title")
+  title_AVERAGE_GTE: Float @deprecated(reason : "Do not use title")
+  title_AVERAGE_LT: Float @deprecated(reason : "Do not use title")
+  title_AVERAGE_LTE: Float @deprecated(reason : "Do not use title")
+  title_EQUAL: String @deprecated(reason : "Do not use title")
+  title_GT: Int @deprecated(reason : "Do not use title")
+  title_GTE: Int @deprecated(reason : "Do not use title")
+  title_LONGEST_EQUAL: Int @deprecated(reason : "Do not use title")
+  title_LONGEST_GT: Int @deprecated(reason : "Do not use title")
+  title_LONGEST_GTE: Int @deprecated(reason : "Do not use title")
+  title_LONGEST_LT: Int @deprecated(reason : "Do not use title")
+  title_LONGEST_LTE: Int @deprecated(reason : "Do not use title")
+  title_LT: Int @deprecated(reason : "Do not use title")
+  title_LTE: Int @deprecated(reason : "Do not use title")
+  title_SHORTEST_EQUAL: Int @deprecated(reason : "Do not use title")
+  title_SHORTEST_GT: Int @deprecated(reason : "Do not use title")
+  title_SHORTEST_GTE: Int @deprecated(reason : "Do not use title")
+  title_SHORTEST_LT: Int @deprecated(reason : "Do not use title")
+  title_SHORTEST_LTE: Int @deprecated(reason : "Do not use title")
   year_AVERAGE_EQUAL: Float
   year_AVERAGE_GT: Float
   year_AVERAGE_GTE: Float

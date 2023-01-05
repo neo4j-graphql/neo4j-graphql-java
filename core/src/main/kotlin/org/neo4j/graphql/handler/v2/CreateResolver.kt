@@ -23,9 +23,9 @@ class CreateResolver private constructor(
 
     class Factory(ctx: AugmentationContext) : AugmentationHandlerV2(ctx) {
 
-        override fun augmentNode(node: Node): AugmentedField? {
+        override fun augmentNode(node: Node): List<AugmentedField> {
             if (!node.isOperationAllowed(ExcludeDirective.ExcludeOperation.CREATE)) {
-                return null
+                return emptyList()
             }
 
             val coordinates = generateContainerCreateInputIT(node)?.let { inputType ->
@@ -33,9 +33,9 @@ class CreateResolver private constructor(
                 addMutationField(node.rootTypeFieldNames.create, responseType.asRequiredType()) { args ->
                     args += inputValue(Constants.INPUT_FIELD, NonNullType(ListType(inputType.asRequiredType())))
                 }
-            } ?: return null
+            } ?: return emptyList()
 
-            return AugmentedField(coordinates, CreateResolver(ctx.schemaConfig, node))
+            return AugmentedField(coordinates, CreateResolver(ctx.schemaConfig, node)).wrapList()
         }
     }
 

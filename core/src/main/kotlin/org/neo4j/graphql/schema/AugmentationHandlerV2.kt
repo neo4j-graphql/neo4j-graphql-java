@@ -18,7 +18,7 @@ import org.neo4j.graphql.domain.fields.PrimitiveField
  */
 abstract class AugmentationHandlerV2(ctx: AugmentationContext) : BaseAugmentationV2(ctx) {
 
-    abstract fun augmentNode(node: Node): AugmentedField?
+    abstract fun augmentNode(node: Node): List<AugmentedField>
 
     data class AugmentedField(
         val coordinates: FieldCoordinates,

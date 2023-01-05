@@ -1,12 +1,13 @@
 package org.neo4j.graphql.domain.fields
 
+import graphql.language.ListType
+import graphql.language.NonNullType
 import org.neo4j.cypherdsl.core.Cypher
 import org.neo4j.cypherdsl.core.Functions
-import org.neo4j.graphql.SchemaConfig
+import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.TypeMeta
 import org.neo4j.graphql.domain.predicates.FieldOperator
 import org.neo4j.graphql.domain.predicates.definitions.ScalarPredicateDefinition
-import org.neo4j.graphql.isList
 
 class PointField(
     fieldName: String,
@@ -48,12 +49,18 @@ class PointField(
         suffix: String = op.suffix
     ): MutableMap<String, ScalarPredicateDefinition> {
         return this.add(
-            suffix, { property, parameter ->
+            suffix,
+            { property, parameter ->
                 op.conditionCreator(
                     Functions.distance(property, Functions.point(parameter.property("point"))),
                     parameter.property("distance")
                 )
-            }, type = typeMeta.whereType
+            },
+            type = when (typeMeta.type.name()) {
+                Constants.POINT_TYPE -> Constants.Types.PointDistance
+                Constants.CARTESIAN_POINT_TYPE -> Constants.Types.CartesianPointDistance
+                else -> error("unsupported point type " + typeMeta.type.name())
+            }
         )
     }
 
@@ -63,7 +70,7 @@ class PointField(
                 val p = Cypher.name("p")
                 val paramPointArray = Cypher.listWith(p).`in`(parameter).returning(Functions.point(p))
                 op.conditionCreator(property, paramPointArray)
-            }, type = typeMeta.whereType
+            }, type = ListType(NonNullType(typeMeta.whereType))
         )
     }
 
@@ -72,7 +79,7 @@ class PointField(
             op.suffix, { property, parameter ->
                 val paramPoint = Functions.point(parameter)
                 op.conditionCreator(paramPoint, property)
-            }, type = typeMeta.whereType
+            }, type = typeMeta.whereType.inner()
         )
     }
 }

@@ -63,6 +63,11 @@ type AMovieAggregateSelection {
   id: IDAggregateSelectionNullable!
 }
 
+type AMovieEdge {
+  cursor: String!
+  node: AMovie!
+}
+
 type AMovieMoviesConnection {
   edges: [AMovieMoviesRelationship!]!
   pageInfo: PageInfo!
@@ -72,6 +77,12 @@ type AMovieMoviesConnection {
 type AMovieMoviesRelationship {
   cursor: String!
   node: AMovie!
+}
+
+type AMoviesConnection {
+  edges: [AMovieEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
 }
 
 type BMovie implements MovieInterface {
@@ -98,6 +109,11 @@ type BMovieBMovieMoviesNodeAggregateSelection {
   id: IDAggregateSelectionNullable!
 }
 
+type BMovieEdge {
+  cursor: String!
+  node: BMovie!
+}
+
 type BMovieMoviesConnection {
   edges: [BMovieMoviesRelationship!]!
   pageInfo: PageInfo!
@@ -107,6 +123,12 @@ type BMovieMoviesConnection {
 type BMovieMoviesRelationship {
   cursor: String!
   node: BMovie!
+}
+
+type BMoviesConnection {
+  edges: [BMovieEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
 }
 
 type CreateAMoviesMutationResponse {
@@ -156,8 +178,10 @@ type PageInfo {
 type Query {
   aMovies(options: AMovieOptions, where: AMovieWhere): [AMovie!]!
   aMoviesAggregate(where: AMovieWhere): AMovieAggregateSelection!
+  aMoviesConnection(after: String, first: Int, sort: [AMovieSort], where: AMovieWhere): AMoviesConnection!
   bMovies(options: BMovieOptions, where: BMovieWhere): [BMovie!]!
   bMoviesAggregate(where: BMovieWhere): BMovieAggregateSelection!
+  bMoviesConnection(after: String, first: Int, sort: [BMovieSort], where: BMovieWhere): BMoviesConnection!
 }
 
 type StringAggregateSelectionNullable {

@@ -22,10 +22,26 @@ schema {
 }
 
 type CartesianPoint {
+  """
+  The coordinate reference systems (CRS)
+  -------------------------------------
+  possible values:
+  * `cartesian`: A 2D point in the Cartesian CRS is specified with a map containing x and y coordinate values
+  * `cartesian-3d`: A 3D point in the Cartesian CRS is specified with a map containing x, y and z coordinate values
+  """
   crs: String!
+  """
+  The internal Neo4j ID for the CRS
+  One of:
+  * `7203`: represents CRS `cartesian`
+  * `9157`: represents CRS `cartesian-3d`
+  """
   srid: Int!
+  "The first element of the Coordinate"
   x: Float!
+  "The second element of the Coordinate"
   y: Float!
+  "The third element of the Coordinate"
   z: Float
 }
 
@@ -99,8 +115,11 @@ type UpdateMachinesMutationResponse {
 }
 
 input CartesianPointInput {
+  "The first element of the Coordinate"
   x: Float!
+  "The second element of the Coordinate"
   y: Float!
+  "The third element of the Coordinate"
   z: Float
 }
 

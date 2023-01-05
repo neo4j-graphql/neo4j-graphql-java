@@ -19,6 +19,8 @@ class InterfaceRelationFieldAugmentations(
 ) : RelationFieldBaseAugmentation(ctx, rel) {
 
     private val prefix: String = rel.getOwnerName() + rel.fieldName.capitalize()
+    // TODO create ticket
+//    private val prefix2: String = (rel.interfaceField?.getOwnerName() ?: rel.getOwnerName()) + rel.fieldName.capitalize()
 
     override fun generateFieldCreateIT() = getOrCreateInputObjectType("${prefix}FieldInput") { fields, _ ->
         generateFieldRelationCreateIT()?.let {
@@ -134,8 +136,9 @@ class InterfaceRelationFieldAugmentations(
         RelationFieldBaseAugmentation::generateFieldUpdateIT,
         asList = false
     ) {
-        interfaze.scalarFields.filterNot { it.generated || it.readonly }
-            .mapNotNull { field -> field.typeMeta.updateType?.let { inputValue(field.fieldName, it) } }
+        val fields = mutableListOf<InputValueDefinition>()
+        addScalarFields(fields, interfaze.name, interfaze.scalarFields, true)
+        fields
     }
 
     private fun generateCreateInputIT() =

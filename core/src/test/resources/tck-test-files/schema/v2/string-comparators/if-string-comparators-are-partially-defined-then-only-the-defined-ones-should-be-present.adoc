@@ -13,6 +13,25 @@ type Movie {
 
 == Augmented schema
 
+=== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+  "features": {
+    "filters": {
+      "string": {
+        "lt": true,
+        "lte": true,
+        "gt": true,
+        "gte": true
+      }
+    }
+  }
+}
+----
+
 .Augmented Schema
 [source,graphql]
 ----

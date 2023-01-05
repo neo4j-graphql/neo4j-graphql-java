@@ -41,7 +41,9 @@ data class SchemaConfig @JvmOverloads constructor(
      */
     val enableRegex: Boolean = false,
 
-    val namingStrategy: NamingStrategy = NamingStrategy()
+    val namingStrategy: NamingStrategy = NamingStrategy(),
+
+    val features: Neo4jFeaturesSettings = Neo4jFeaturesSettings()
 ) {
     data class CRUDConfig(val enabled: Boolean = true, val exclude: List<String> = emptyList())
 
@@ -60,4 +62,20 @@ data class SchemaConfig @JvmOverloads constructor(
          */
         INPUT_TYPE,
     }
+
+    data class Neo4jFeaturesSettings(
+        val filters: Neo4jFiltersSettings = Neo4jFiltersSettings()
+    )
+
+    data class Neo4jFiltersSettings(
+        // TODO should we also use feature toggles for strings? https://github.com/neo4j/graphql/issues/2657#issuecomment-1369858159
+        val string: Neo4jStringFiltersSettings = Neo4jStringFiltersSettings()
+    )
+
+    data class Neo4jStringFiltersSettings(
+        val gt: Boolean = false,
+        val gte: Boolean = false,
+        val lt: Boolean = false,
+        val lte: Boolean = false,
+    )
 }

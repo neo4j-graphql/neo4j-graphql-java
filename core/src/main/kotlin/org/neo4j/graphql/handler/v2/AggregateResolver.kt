@@ -31,23 +31,21 @@ class AggregateResolver private constructor(
 
     class Factory(ctx: AugmentationContext) : AugmentationHandlerV2(ctx) {
 
-        override fun augmentNode(node: Node): AugmentedField? {
+        override fun augmentNode(node: Node): List<AugmentedField> {
             if (!node.isOperationAllowed(ExcludeDirective.ExcludeOperation.READ)) {
-                return null
+                return emptyList()
             }
             val aggregationSelection = addAggregationSelectionType(node)
             val coordinates =
                 addQueryField(node.rootTypeFieldNames.aggregate, aggregationSelection.asRequiredType()) { args ->
                     generateWhereIT(node)?.let { args += inputValue(Constants.WHERE, it.asType()) }
-                    generateFulltextIT(node)?.let { args += inputValue(Constants.FULLTEXT, it.asType()) }
                 }
-            return AugmentedField(coordinates, AggregateResolver(ctx.schemaConfig, node))
+            return AugmentedField(coordinates, AggregateResolver(ctx.schemaConfig, node)).wrapList()
         }
     }
 
     private class InputArguments(node: Node, args: Map<String, *>) {
         val where = args[Constants.WHERE]?.let { WhereInput.NodeWhereInput(node, Dict(it)) }
-        val fulltext = args[Constants.FULLTEXT]?.let { FulltextPerIndex(Dict(it)) }
     }
 
     override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement {
@@ -68,7 +66,7 @@ class AggregateResolver private constructor(
             .translateTopLevelMatch(
                 node,
                 dslNode,
-                arguments.fulltext,
+               null,
                 arguments.where,
                 AuthDirective.AuthOperation.READ,
                 authPredicates

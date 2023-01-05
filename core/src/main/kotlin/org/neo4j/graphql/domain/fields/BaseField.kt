@@ -1,10 +1,10 @@
 package org.neo4j.graphql.domain.fields
 
-import graphql.language.*
-import org.neo4j.cypherdsl.core.Condition
-import org.neo4j.cypherdsl.core.Expression
+import graphql.language.Comment
+import graphql.language.Description
+import graphql.language.Directive
+import graphql.language.InputValueDefinition
 import org.neo4j.graphql.domain.*
-import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
 import org.neo4j.graphql.domain.directives.UniqueDirective
 import org.neo4j.graphql.isRequired
@@ -17,6 +17,9 @@ sealed class BaseField(
     var typeMeta: TypeMeta,
 ) {
     var otherDirectives: List<Directive> = emptyList()
+    val deprecatedDirectives
+        get() = otherDirectives.filter { it.name == "deprecated" }
+
     var arguments: List<InputValueDefinition> = emptyList()
     var private: Boolean = false
     var auth: AuthDirective? = null
@@ -45,6 +48,11 @@ sealed class BaseField(
             else -> throw IllegalStateException("cannot determine name from owner of type ${it::class.java.name}")
         }
     }
+
+    val interfaceField get() = (owner as? Node)
+        ?.interfaces
+        ?.mapNotNull { it.getField(fieldName) }
+        ?.firstOrNull()
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

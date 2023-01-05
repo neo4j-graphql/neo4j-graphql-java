@@ -11,7 +11,6 @@ import org.neo4j.graphql.domain.directives.AuthDirective
 import org.neo4j.graphql.domain.directives.ExcludeDirective
 import org.neo4j.graphql.domain.inputs.Dict
 import org.neo4j.graphql.domain.inputs.WhereInput
-import org.neo4j.graphql.domain.inputs.filter.FulltextPerIndex
 import org.neo4j.graphql.domain.inputs.options.OptionsInput
 import org.neo4j.graphql.handler.BaseDataFetcher
 import org.neo4j.graphql.schema.AugmentationHandlerV2
@@ -31,25 +30,23 @@ class ReadResolver private constructor(
 
     class Factory(ctx: AugmentationContext) : AugmentationHandlerV2(ctx) {
 
-        override fun augmentNode(node: Node): AugmentedField? {
+        override fun augmentNode(node: Node): List<AugmentedField> {
             if (!node.isOperationAllowed(ExcludeDirective.ExcludeOperation.READ)) {
-                return null
+                return emptyList()
             }
-            val nodeType = generateNodeOT(node) ?: return null
+            val nodeType = generateNodeOT(node) ?: return emptyList()
             val coordinates =
                 addQueryField(node.rootTypeFieldNames.read, NonNullType(ListType(nodeType.asRequiredType()))) { args ->
                     generateWhereIT(node)?.let { args += inputValue(Constants.WHERE, it.asType()) }
                     generateOptionsIT(node).let { args += inputValue(Constants.OPTIONS, it.asType()) }
-                    generateFulltextIT(node)?.let { args += inputValue(Constants.FULLTEXT, it.asType()) }
                 }
-            return AugmentedField(coordinates, ReadResolver(ctx.schemaConfig, node))
+            return AugmentedField(coordinates, ReadResolver(ctx.schemaConfig, node)).wrapList()
         }
     }
 
     private class InputArguments(node: Node, args: Map<String, *>) {
         val where = args[Constants.WHERE]?.let { WhereInput.NodeWhereInput(node, Dict(it)) }
         val options = OptionsInput.create(args[Constants.OPTIONS])
-        val fulltext = args[Constants.FULLTEXT]?.let { FulltextPerIndex(Dict(it)) }
     }
 
     override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement {
@@ -71,7 +68,7 @@ class ReadResolver private constructor(
             .translateTopLevelMatch(
                 node,
                 dslNode,
-                input.fulltext,
+                null,
                 input.where,
                 AuthDirective.AuthOperation.READ,
                 authPredicates

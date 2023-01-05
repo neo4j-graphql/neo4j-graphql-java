@@ -181,7 +181,7 @@ object FieldFactory {
                         throw IllegalArgumentException("cannot auto-generate an array")
                     }
                     if (!Constants.ZONED_TIME_TYPES.contains(typeMeta.type.name())) {
-                        throw  IllegalArgumentException("Cannot timestamp temporal fields lacking time zone information")
+                        throw IllegalArgumentException("Cannot timestamp temporal fields lacking time zone information")
                     }
                     baseField.timestamps = timestampDirective.operations
                 }

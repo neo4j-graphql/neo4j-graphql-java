@@ -29,6 +29,7 @@ object NodeFactory {
         var exclude: ExcludeDirective? = null
         var nodeDirective: NodeDirective? = null
         var fulltext: FullTextDirective? = null
+        var pluralDirective: PluralDirective? = null
         var queryOptions: QueryOptionsDirective? = null
 
         definition.directives.forEach {
@@ -37,6 +38,7 @@ object NodeFactory {
                 DirectiveConstants.EXCLUDE -> exclude = ExcludeDirective.create(it)
                 DirectiveConstants.NODE -> nodeDirective = NodeDirective.create(it)
                 DirectiveConstants.FULLTEXT -> fulltext = FullTextDirective.create(it)
+                DirectiveConstants.PLURAL -> pluralDirective = PluralDirective.create(it)
                 DirectiveConstants.QUERY_OPTIONS -> queryOptions = QueryOptionsDirective.create(it)
                 else -> otherDirectives += it
             }
@@ -81,6 +83,7 @@ object NodeFactory {
             nodeDirective,
             fulltext?.validate(definition, fields),
             queryOptions?.validate(definition.name),
+            pluralDirective?.value,
             auth
         )
     }

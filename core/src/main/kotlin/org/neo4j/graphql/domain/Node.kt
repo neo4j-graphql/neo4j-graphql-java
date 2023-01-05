@@ -21,6 +21,7 @@ class Node(
     val nodeDirective: NodeDirective? = null,
     val fulltextDirective: FullTextDirective? = null,
     val queryOptions: QueryOptionsDirective? = null,
+    plural: String?,
     auth: AuthDirective? = null,
 ) : ImplementingType(name, description, comments, fields, otherDirectives, interfaces, exclude, auth) {
 
@@ -33,7 +34,7 @@ class Node(
     val aggregateTypeNames by lazy { AggregateTypeNames() }
 
     override val plural: String by lazy {
-        nodeDirective?.plural?.let { leadingUnderscores(it) + camelCase(it) } ?: super.plural
+        plural?.let { leadingUnderscores(it) + camelCase(it) } ?: super.plural
     }
 
     inner class TypeNames {
@@ -51,6 +52,7 @@ class Node(
     inner class RootTypeFieldNames {
         val create = "create${pascalCasePlural}"
         val read = plural
+        val connection = "${plural}Connection"
         val update = "update${pascalCasePlural}"
         val delete = "delete${pascalCasePlural}"
         val aggregate = "${plural}Aggregate"

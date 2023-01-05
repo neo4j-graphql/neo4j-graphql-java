@@ -10,6 +10,7 @@ object DirectiveConstants {
     const val UNIQUE = "unique"
     const val COMPUTED = "computed"
     const val NODE = "node"
+    const val PLURAL = "plural"
     const val READ_ONLY = "readonly"
     const val WRITE_ONLY = "writeonly"
     const val EXCLUDE = "exclude"
@@ -57,6 +58,7 @@ object DirectiveConstants {
         RELATIONSHIP_PROPERTIES,
         CYPHER,
         PROPERTY,
+        PLURAL
     )
 
 }

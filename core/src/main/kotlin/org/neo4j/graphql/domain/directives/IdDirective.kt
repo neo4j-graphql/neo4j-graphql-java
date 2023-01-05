@@ -8,6 +8,7 @@ import org.neo4j.graphql.validateName
 data class IdDirective(
     val autogenerate: Boolean,
     val unique: Boolean,
+    val global: Boolean,
 ) {
 
     companion object {
@@ -16,7 +17,8 @@ data class IdDirective(
             return IdDirective(
                 directive.readArgument(IdDirective::autogenerate) ?: true,
                 // If unique argument is absent from @id directive, default is to use unique constraint
-                directive.readArgument(IdDirective::unique) ?: true
+                directive.readArgument(IdDirective::unique) ?: true,
+                directive.readArgument(IdDirective::global) ?: false,
             )
         }
     }

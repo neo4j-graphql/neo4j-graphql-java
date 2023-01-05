@@ -13,11 +13,4 @@ class CustomScalarField(
     fieldName,
     typeMeta,
     schemaConfig,
-) {
-    override val predicates: Map<String, ScalarPredicateDefinition> = initPredicates()
-
-    private fun initPredicates(): Map<String, ScalarPredicateDefinition> {
-        return mutableMapOf<String, ScalarPredicateDefinition>()
-            .add(FieldOperator.EQUAL)
-    }
-}
+)

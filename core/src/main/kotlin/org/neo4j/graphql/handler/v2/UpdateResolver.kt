@@ -38,9 +38,9 @@ class UpdateResolver private constructor(
 
     class Factory(ctx: AugmentationContext) : AugmentationHandlerV2(ctx) {
 
-        override fun augmentNode(node: Node): AugmentedField? {
+        override fun augmentNode(node: Node): List<AugmentedField> {
             if (!node.isOperationAllowed(ExcludeDirective.ExcludeOperation.UPDATE)) {
-                return null
+                return emptyList()
             }
 
             val responseType = addResponseType(node, node.typeNames.updateResponse, Constants.Types.UpdateInfo)
@@ -67,7 +67,7 @@ class UpdateResolver private constructor(
                     ?.let { args += inputValue(Constants.CONNECT_OR_CREATE_FIELD, it.asType()) }
             }
 
-            return AugmentedField(coordinates, UpdateResolver(ctx.schemaConfig, node))
+            return AugmentedField(coordinates, UpdateResolver(ctx.schemaConfig, node)).wrapList()
         }
     }
 

@@ -6,7 +6,7 @@
 
 [source,graphql,schema=true]
 ----
-type Person {
+type Person @plural(value: "People"){
   name: String!
   actedInMovies: [Movie!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: OUT)
 }
