@@ -4,7 +4,6 @@ import graphql.language.InterfaceTypeDefinition
 import graphql.language.UnionTypeDefinition
 import graphql.schema.GraphQLScalarType
 import graphql.schema.GraphQLSchema
-import graphql.schema.GraphqlTypeComparatorRegistry
 import graphql.schema.diff.DiffSet
 import graphql.schema.diff.SchemaDiff
 import graphql.schema.diff.reporting.CapturingReporter
@@ -107,7 +106,8 @@ class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite(fileName, TES
                 .includeSchemaDefinition(true)
                 .includeIntrospectionTypes(false)
                 .includeDirectives {
-                    setOf("deprecated", "include", "skip", "specifiedBy").contains(it.name).not()
+                    // skip printing of graphql native directives
+                    setOf("deprecated", "include", "skip", "specifiedBy").contains(it).not()
                 }
         )
 

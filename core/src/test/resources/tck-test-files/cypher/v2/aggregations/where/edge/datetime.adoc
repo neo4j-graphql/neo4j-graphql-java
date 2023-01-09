@@ -48,7 +48,16 @@ interface Likes {
 [source,json]
 ----
 {
-  "param0" : "2021-09-25T12:51:24.037Z"
+  "param0": {
+    "year": 2021,
+    "month": 9,
+    "day": 25,
+    "hour": 12,
+    "minute": 51,
+    "second": 24,
+    "nanosecond": 37000000,
+    "timeZoneOffsetSeconds": 0
+  }
 }
 ----
 
@@ -88,7 +97,16 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2021-09-25T12:51:24.037Z"
+  "param0": {
+    "year": 2021,
+    "month": 9,
+    "day": 25,
+    "hour": 12,
+    "minute": 51,
+    "second": 24,
+    "nanosecond": 37000000,
+    "timeZoneOffsetSeconds": 0
+  }
 }
 ----
 
@@ -128,7 +146,16 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2021-09-25T12:51:24.037Z"
+  "param0": {
+    "year": 2021,
+    "month": 9,
+    "day": 25,
+    "hour": 12,
+    "minute": 51,
+    "second": 24,
+    "nanosecond": 37000000,
+    "timeZoneOffsetSeconds": 0
+  }
 }
 ----
 
@@ -168,7 +195,16 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2021-09-25T12:51:24.037Z"
+  "param0": {
+    "year": 2021,
+    "month": 9,
+    "day": 25,
+    "hour": 12,
+    "minute": 51,
+    "second": 24,
+    "nanosecond": 37000000,
+    "timeZoneOffsetSeconds": 0
+  }
 }
 ----
 
@@ -208,7 +244,16 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2021-09-25T12:51:24.037Z"
+  "param0": {
+    "year": 2021,
+    "month": 9,
+    "day": 25,
+    "hour": 12,
+    "minute": 51,
+    "second": 24,
+    "nanosecond": 37000000,
+    "timeZoneOffsetSeconds": 0
+  }
 }
 ----
 
@@ -248,7 +293,16 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2021-09-25T12:51:24.037Z"
+  "param0": {
+    "year": 2021,
+    "month": 9,
+    "day": 25,
+    "hour": 12,
+    "minute": 51,
+    "second": 24,
+    "nanosecond": 37000000,
+    "timeZoneOffsetSeconds": 0
+  }
 }
 ----
 
@@ -288,7 +342,16 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2021-09-25T12:51:24.037Z"
+  "param0": {
+    "year": 2021,
+    "month": 9,
+    "day": 25,
+    "hour": 12,
+    "minute": 51,
+    "second": 24,
+    "nanosecond": 37000000,
+    "timeZoneOffsetSeconds": 0
+  }
 }
 ----
 
@@ -328,7 +391,16 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2021-09-25T12:51:24.037Z"
+  "param0": {
+    "year": 2021,
+    "month": 9,
+    "day": 25,
+    "hour": 12,
+    "minute": 51,
+    "second": 24,
+    "nanosecond": 37000000,
+    "timeZoneOffsetSeconds": 0
+  }
 }
 ----
 
@@ -368,7 +440,16 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2021-09-25T12:51:24.037Z"
+  "param0": {
+    "year": 2021,
+    "month": 9,
+    "day": 25,
+    "hour": 12,
+    "minute": 51,
+    "second": 24,
+    "nanosecond": 37000000,
+    "timeZoneOffsetSeconds": 0
+  }
 }
 ----
 
@@ -408,7 +489,16 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2021-09-25T12:51:24.037Z"
+  "param0": {
+    "year": 2021,
+    "month": 9,
+    "day": 25,
+    "hour": 12,
+    "minute": 51,
+    "second": 24,
+    "nanosecond": 37000000,
+    "timeZoneOffsetSeconds": 0
+  }
 }
 ----
 
@@ -448,7 +538,16 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2021-09-25T12:51:24.037Z"
+  "param0": {
+    "year": 2021,
+    "month": 9,
+    "day": 25,
+    "hour": 12,
+    "minute": 51,
+    "second": 24,
+    "nanosecond": 37000000,
+    "timeZoneOffsetSeconds": 0
+  }
 }
 ----
 
@@ -488,7 +587,16 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2021-09-25T12:51:24.037Z"
+  "param0": {
+    "year": 2021,
+    "month": 9,
+    "day": 25,
+    "hour": 12,
+    "minute": 51,
+    "second": 24,
+    "nanosecond": 37000000,
+    "timeZoneOffsetSeconds": 0
+  }
 }
 ----
 
@@ -528,7 +636,16 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2021-09-25T12:51:24.037Z"
+  "param0": {
+    "year": 2021,
+    "month": 9,
+    "day": 25,
+    "hour": 12,
+    "minute": 51,
+    "second": 24,
+    "nanosecond": 37000000,
+    "timeZoneOffsetSeconds": 0
+  }
 }
 ----
 
@@ -568,7 +685,16 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2021-09-25T12:51:24.037Z"
+  "param0": {
+    "year": 2021,
+    "month": 9,
+    "day": 25,
+    "hour": 12,
+    "minute": 51,
+    "second": 24,
+    "nanosecond": 37000000,
+    "timeZoneOffsetSeconds": 0
+  }
 }
 ----
 
@@ -608,7 +734,16 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2021-09-25T12:51:24.037Z"
+  "param0": {
+    "year": 2021,
+    "month": 9,
+    "day": 25,
+    "hour": 12,
+    "minute": 51,
+    "second": 24,
+    "nanosecond": 37000000,
+    "timeZoneOffsetSeconds": 0
+  }
 }
 ----
 
@@ -648,7 +783,16 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2021-09-25T12:51:24.037Z"
+  "param0": {
+    "year": 2021,
+    "month": 9,
+    "day": 25,
+    "hour": 12,
+    "minute": 51,
+    "second": 24,
+    "nanosecond": 37000000,
+    "timeZoneOffsetSeconds": 0
+  }
 }
 ----
 

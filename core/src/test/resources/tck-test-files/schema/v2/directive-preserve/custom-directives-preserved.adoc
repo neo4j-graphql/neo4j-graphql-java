@@ -25,9 +25,9 @@ schema {
   mutation: Mutation
 }
 
-directive @preservedTopLevel(boolean: Boolean, float: Float, int: Int, string: String) on OBJECT
-
 directive @preservedFieldLevel(boolean: Boolean, float: Float, int: Int, string: String) on FIELD_DEFINITION
+
+directive @preservedTopLevel(boolean: Boolean, float: Float, int: Int, string: String) on OBJECT
 
 type CreateInfo {
   bookmark: String

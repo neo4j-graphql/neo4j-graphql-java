@@ -1,0 +1,164 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/2581
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Author {
+  name: String
+  mostRecentBook: Book @cypher(statement: "MATCH (this)-[:AUTHORED_BOOK]->(b:Book) RETURN b AS result ORDER BY b.year DESC LIMIT 1", columnName: "result")
+  mostRecentBooks: [Book!] @cypher(statement: "MATCH (this)-[:AUTHORED_BOOK]->(b:Book) RETURN b AS result ORDER BY b.year DESC LIMIT 5", columnName: "result")
+  lastPublishedYear: Int @cypher(statement: "MATCH (this)-[:AUTHORED_BOOK]->(b:Book) RETURN b.year AS result ORDER BY b.year DESC LIMIT 1", columnName: "result")
+  books: [Book!]! @relationship(type: "AUTHORED_BOOK", direction: OUT)
+}
+
+type Book {
+  name: String!
+  year: Int
+  refID: ID @id
+  soldCopies: Int @cypher(statement: "OPTIONAL MATCH(sales:Sales) WHERE this.refID = sales.refID WITH count(sales) as result RETURN result as result", columnName: "result")
+  soldCopiesWithoutColumnName: Int @cypher(statement: "OPTIONAL MATCH(sales:Sales) WHERE this.refID = sales.refID WITH count(sales) as result RETURN result as result")
+  authors: [Author!]! @relationship(type: "AUTHORED_BOOK", direction: IN)
+}
+
+type Sales {
+  price: Int
+  refID: ID
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{}
+----
+== query nested custom cypher with columnName
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  authors {
+    name
+    mostRecentBook {
+      name
+      year
+      soldCopies
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Author)
+CALL {
+	WITH this
+	CALL {
+		WITH this
+		WITH this AS this
+		MATCH (this)-[:AUTHORED_BOOK]->(b:Book)
+		RETURN b AS result ORDER BY b.year DESC LIMIT 1
+	}
+	WITH result AS this_mostRecentBook
+	CALL {
+		WITH this_mostRecentBook
+		CALL {
+			WITH this_mostRecentBook
+			WITH this_mostRecentBook AS this
+			OPTIONAL MATCH (sales:Sales)
+			WHERE this.refID = sales.refID
+			WITH count(sales) AS result
+			RETURN result AS result
+		}
+		UNWIND result AS this_mostRecentBook_soldCopies
+		RETURN head(collect(this_mostRecentBook_soldCopies)) AS this_mostRecentBook_soldCopies
+	}
+	RETURN head(collect(this_mostRecentBook {
+		.name,
+		.year,
+		soldCopies: this_mostRecentBook_soldCopies
+	})) AS this_mostRecentBook
+}
+RETURN this {
+	.name,
+	mostRecentBook: this_mostRecentBook
+} AS this
+----
+
+'''
+
+== query nested custom cypher without columnName
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  authors {
+    name
+    mostRecentBook {
+      name
+      year
+      soldCopiesWithoutColumnName
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "auth": {
+    "isAuthenticated": false,
+    "roles": []
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Author)
+CALL {
+	WITH this
+	CALL {
+		WITH this
+		WITH this AS this
+		MATCH (this)-[:AUTHORED_BOOK]->(b:Book)
+		RETURN b AS result ORDER BY b.year DESC LIMIT 1
+	}
+	WITH result AS this_mostRecentBook
+	CALL {
+		WITH this_mostRecentBook
+		UNWIND apoc.cypher.runFirstColumnSingle('OPTIONAL MATCH(sales:Sales) WHERE this.refID = sales.refID WITH count(sales) as result RETURN result as result', {
+			this: this_mostRecentBook,
+			auth: $auth
+		}) AS this_mostRecentBook_soldCopiesWithoutColumnName
+		RETURN head(collect(this_mostRecentBook_soldCopiesWithoutColumnName)) AS this_mostRecentBook_soldCopiesWithoutColumnName
+	}
+	RETURN head(collect(this_mostRecentBook {
+		.name,
+		.year,
+		soldCopiesWithoutColumnName: this_mostRecentBook_soldCopiesWithoutColumnName
+	})) AS this_mostRecentBook
+}
+RETURN this {
+	.name,
+	mostRecentBook: this_mostRecentBook
+} AS this
+----
+
+'''
+

@@ -55,9 +55,9 @@ extend type User @auth(rules: [{allow: {id: "$jwt.sub"}, where: {id: "$jwt.sub"}
 [source,json]
 ----
 {
-  "param0" : "some-name",
-  "param1" : "super_admin",
-  "param2" : "super_admin"
+  "param0": "some-name",
+  "auth_param0": "super_admin",
+  "thisauth_param0": "super_admin"
 }
 ----
 
@@ -67,9 +67,9 @@ extend type User @auth(rules: [{allow: {id: "$jwt.sub"}, where: {id: "$jwt.sub"}
 MATCH (this:User)
 WHERE (this.name = $param0
 	AND this.id IS NOT NULL
-	AND this.id = $param1)
+	AND this.id = $auth_param0)
 CALL apoc.util.validate(NOT ((this.id IS NOT NULL
-	AND this.id = $param2)), '@neo4j/graphql/FORBIDDEN', [0])
+	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
 RETURN {
 	count: count(this)
 }
@@ -108,9 +108,8 @@ RETURN {
 [source,json]
 ----
 {
-  "param0" : "super_admin",
-  "param1" : "super_admin",
-  "param2" : "super_admin"
+  "auth_param0": "super_admin",
+  "thisauth_param0": "super_admin"
 }
 ----
 
@@ -119,11 +118,11 @@ RETURN {
 ----
 MATCH (this:User)
 WHERE (this.id IS NOT NULL
-	AND this.id = $param0)
+	AND this.id = $auth_param0)
 CALL apoc.util.validate(NOT ((this.id IS NOT NULL
-	AND this.id = $param1)), '@neo4j/graphql/FORBIDDEN', [0])
+	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
 CALL apoc.util.validate(NOT ((this.id IS NOT NULL
-	AND this.id = $param2)), '@neo4j/graphql/FORBIDDEN', [0])
+	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
 RETURN {
 	imdbRatingBigInt: {
 		min: min(this.imdbRatingBigInt),
@@ -165,9 +164,8 @@ RETURN {
 [source,json]
 ----
 {
-  "param0" : "super_admin",
-  "param1" : "super_admin",
-  "param2" : "super_admin"
+  "auth_param0": "super_admin",
+  "thisauth_param0": "super_admin"
 }
 ----
 
@@ -176,11 +174,11 @@ RETURN {
 ----
 MATCH (this:User)
 WHERE (this.id IS NOT NULL
-	AND this.id = $param0)
+	AND this.id = $auth_param0)
 CALL apoc.util.validate(NOT ((this.id IS NOT NULL
-	AND this.id = $param1)), '@neo4j/graphql/FORBIDDEN', [0])
+	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
 CALL apoc.util.validate(NOT ((this.id IS NOT NULL
-	AND this.id = $param2)), '@neo4j/graphql/FORBIDDEN', [0])
+	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
 RETURN {
 	createdAt: {
 		min: apoc.date.convertFormat(toString(min(this.createdAt)), 'iso_zoned_date_time', 'iso_offset_date_time'),
@@ -222,9 +220,8 @@ RETURN {
 [source,json]
 ----
 {
-  "param0" : "super_admin",
-  "param1" : "super_admin",
-  "param2" : "super_admin"
+  "auth_param0": "super_admin",
+  "thisauth_param0": "super_admin"
 }
 ----
 
@@ -233,11 +230,11 @@ RETURN {
 ----
 MATCH (this:User)
 WHERE (this.id IS NOT NULL
-	AND this.id = $param0)
+	AND this.id = $auth_param0)
 CALL apoc.util.validate(NOT ((this.id IS NOT NULL
-	AND this.id = $param1)), '@neo4j/graphql/FORBIDDEN', [0])
+	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
 CALL apoc.util.validate(NOT ((this.id IS NOT NULL
-	AND this.id = $param2)), '@neo4j/graphql/FORBIDDEN', [0])
+	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
 RETURN {
 	imdbRatingFloat: {
 		min: min(this.imdbRatingFloat),
@@ -279,9 +276,8 @@ RETURN {
 [source,json]
 ----
 {
-  "param0" : "super_admin",
-  "param1" : "super_admin",
-  "param2" : "super_admin"
+  "auth_param0": "super_admin",
+  "thisauth_param0": "super_admin"
 }
 ----
 
@@ -290,11 +286,11 @@ RETURN {
 ----
 MATCH (this:User)
 WHERE (this.id IS NOT NULL
-	AND this.id = $param0)
+	AND this.id = $auth_param0)
 CALL apoc.util.validate(NOT ((this.id IS NOT NULL
-	AND this.id = $param1)), '@neo4j/graphql/FORBIDDEN', [0])
+	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
 CALL apoc.util.validate(NOT ((this.id IS NOT NULL
-	AND this.id = $param2)), '@neo4j/graphql/FORBIDDEN', [0])
+	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
 RETURN {
 	id: {
 		shortest: min(this.id),
@@ -336,9 +332,8 @@ RETURN {
 [source,json]
 ----
 {
-  "param0" : "super_admin",
-  "param1" : "super_admin",
-  "param2" : "super_admin"
+  "auth_param0": "super_admin",
+  "thisauth_param0": "super_admin"
 }
 ----
 
@@ -347,11 +342,11 @@ RETURN {
 ----
 MATCH (this:User)
 WHERE (this.id IS NOT NULL
-	AND this.id = $param0)
+	AND this.id = $auth_param0)
 CALL apoc.util.validate(NOT ((this.id IS NOT NULL
-	AND this.id = $param1)), '@neo4j/graphql/FORBIDDEN', [0])
+	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
 CALL apoc.util.validate(NOT ((this.id IS NOT NULL
-	AND this.id = $param2)), '@neo4j/graphql/FORBIDDEN', [0])
+	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
 RETURN {
 	imdbRatingInt: {
 		min: min(this.imdbRatingInt),
@@ -393,9 +388,8 @@ RETURN {
 [source,json]
 ----
 {
-  "param0" : "super_admin",
-  "param1" : "super_admin",
-  "param2" : "super_admin"
+  "auth_param0": "super_admin",
+  "thisauth_param0": "super_admin"
 }
 ----
 
@@ -404,11 +398,11 @@ RETURN {
 ----
 MATCH (this:User)
 WHERE (this.id IS NOT NULL
-	AND this.id = $param0)
+	AND this.id = $auth_param0)
 CALL apoc.util.validate(NOT ((this.id IS NOT NULL
-	AND this.id = $param1)), '@neo4j/graphql/FORBIDDEN', [0])
+	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
 CALL apoc.util.validate(NOT ((this.id IS NOT NULL
-	AND this.id = $param2)), '@neo4j/graphql/FORBIDDEN', [0])
+	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
 RETURN {
 	name: {
 		shortest: reduce(aggVar = collect(this.name)[0], current IN collect(this.name) | CASE WHEN size(current) < size(aggVar) THEN current ELSE aggVar END),
@@ -447,8 +441,8 @@ RETURN {
 [source,json]
 ----
 {
-  "param0" : "super_admin",
-  "param1" : "super_admin"
+  "auth_param0": "super_admin",
+  "thisauth_param0": "super_admin"
 }
 ----
 
@@ -457,9 +451,9 @@ RETURN {
 ----
 MATCH (this:User)
 WHERE (this.id IS NOT NULL
-	AND this.id = $param0)
+	AND this.id = $auth_param0)
 CALL apoc.util.validate(NOT ((this.id IS NOT NULL
-	AND this.id = $param1)), '@neo4j/graphql/FORBIDDEN', [0])
+	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
 RETURN {
 	count: count(this)
 }

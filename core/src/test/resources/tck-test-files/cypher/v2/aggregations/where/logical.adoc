@@ -72,7 +72,7 @@ RETURN this {
 ----
 {
   posts(
-    where: {likesAggregate: {AND: [{count_GT: 10}, {count_LT: 20}], OR: [{count_GT: 30}, {count_LT: 40}]}}
+    where: {likesAggregate: {AND: [{count_GT: 10}, {count_LT: 20}], OR: [{count_GT: 10}, {count_LT: 20}]}}
   ) {
     content
   }
@@ -85,8 +85,8 @@ RETURN this {
 {
   "param0": 10,
   "param1": 20,
-  "param2": 30,
-  "param3": 40
+  "param2": 10,
+  "param3": 20
 }
 ----
 

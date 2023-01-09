@@ -46,7 +46,13 @@ interface Likes {
 [source,json]
 ----
 {
-  "param0" : "12:00:00"
+  "param0": {
+    "hour": 12,
+    "minute": 0,
+    "second": 0,
+    "nanosecond": 0,
+    "timeZoneOffsetSeconds": 0
+  }
 }
 ----
 
@@ -84,7 +90,13 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "12:00:00"
+  "param0": {
+    "hour": 12,
+    "minute": 0,
+    "second": 0,
+    "nanosecond": 0,
+    "timeZoneOffsetSeconds": 0
+  }
 }
 ----
 
@@ -122,7 +134,13 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "12:00:00"
+  "param0": {
+    "hour": 12,
+    "minute": 0,
+    "second": 0,
+    "nanosecond": 0,
+    "timeZoneOffsetSeconds": 0
+  }
 }
 ----
 
@@ -160,7 +178,13 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "12:00:00"
+  "param0": {
+    "hour": 12,
+    "minute": 0,
+    "second": 0,
+    "nanosecond": 0,
+    "timeZoneOffsetSeconds": 0
+  }
 }
 ----
 
@@ -198,7 +222,13 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "12:00:00"
+  "param0": {
+    "hour": 12,
+    "minute": 0,
+    "second": 0,
+    "nanosecond": 0,
+    "timeZoneOffsetSeconds": 0
+  }
 }
 ----
 
@@ -236,7 +266,13 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "12:00:00"
+  "param0": {
+    "hour": 12,
+    "minute": 0,
+    "second": 0,
+    "nanosecond": 0,
+    "timeZoneOffsetSeconds": 0
+  }
 }
 ----
 
@@ -274,7 +310,13 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "12:00:00"
+  "param0": {
+    "hour": 12,
+    "minute": 0,
+    "second": 0,
+    "nanosecond": 0,
+    "timeZoneOffsetSeconds": 0
+  }
 }
 ----
 
@@ -312,7 +354,13 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "12:00:00"
+  "param0": {
+    "hour": 12,
+    "minute": 0,
+    "second": 0,
+    "nanosecond": 0,
+    "timeZoneOffsetSeconds": 0
+  }
 }
 ----
 
@@ -350,7 +398,13 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "12:00:00"
+  "param0": {
+    "hour": 12,
+    "minute": 0,
+    "second": 0,
+    "nanosecond": 0,
+    "timeZoneOffsetSeconds": 0
+  }
 }
 ----
 
@@ -388,7 +442,13 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "12:00:00"
+  "param0": {
+    "hour": 12,
+    "minute": 0,
+    "second": 0,
+    "nanosecond": 0,
+    "timeZoneOffsetSeconds": 0
+  }
 }
 ----
 
@@ -426,7 +486,13 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "12:00:00"
+  "param0": {
+    "hour": 12,
+    "minute": 0,
+    "second": 0,
+    "nanosecond": 0,
+    "timeZoneOffsetSeconds": 0
+  }
 }
 ----
 
@@ -464,7 +530,13 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "12:00:00"
+  "param0": {
+    "hour": 12,
+    "minute": 0,
+    "second": 0,
+    "nanosecond": 0,
+    "timeZoneOffsetSeconds": 0
+  }
 }
 ----
 
@@ -502,7 +574,13 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "12:00:00"
+  "param0": {
+    "hour": 12,
+    "minute": 0,
+    "second": 0,
+    "nanosecond": 0,
+    "timeZoneOffsetSeconds": 0
+  }
 }
 ----
 
@@ -540,7 +618,13 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "12:00:00"
+  "param0": {
+    "hour": 12,
+    "minute": 0,
+    "second": 0,
+    "nanosecond": 0,
+    "timeZoneOffsetSeconds": 0
+  }
 }
 ----
 
@@ -578,7 +662,13 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "12:00:00"
+  "param0": {
+    "hour": 12,
+    "minute": 0,
+    "second": 0,
+    "nanosecond": 0,
+    "timeZoneOffsetSeconds": 0
+  }
 }
 ----
 
@@ -616,7 +706,13 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "12:00:00"
+  "param0": {
+    "hour": 12,
+    "minute": 0,
+    "second": 0,
+    "nanosecond": 0,
+    "timeZoneOffsetSeconds": 0
+  }
 }
 ----
 

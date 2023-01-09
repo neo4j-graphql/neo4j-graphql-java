@@ -1,9 +1,5 @@
 package org.neo4j.graphql.utils
 
-import com.fasterxml.jackson.core.JsonGenerator
-import com.fasterxml.jackson.databind.JsonSerializer
-import com.fasterxml.jackson.databind.SerializerProvider
-import com.fasterxml.jackson.databind.module.SimpleModule
 import graphql.ExecutionInput
 import graphql.GraphQL
 import graphql.schema.DataFetcher
@@ -21,9 +17,6 @@ import org.neo4j.cypherdsl.parser.Options
 import org.neo4j.graphql.*
 import org.neo4j.harness.Neo4j
 import org.opentest4j.AssertionFailedError
-import java.io.File
-import java.io.FileWriter
-import java.time.LocalDateTime
 import java.util.*
 import java.util.concurrent.FutureTask
 import java.util.function.Consumer
@@ -68,15 +61,15 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
                 tests.add(integrationTest(title, globalBlocks, codeBlocks, testData, response, ignoreOrder))
             }
         }
-        if (REFORMAT_TEST_FILE){
+        if (REFORMAT_TEST_FILE) {
             cypherBlocks.forEach {
                 val statement = CypherParser.parse(it.code(), Options.defaultOptions())
                 val query = Renderer.getRenderer(
                     Configuration
-                    .newConfig()
-                    .withIndentStyle(Configuration.IndentStyle.TAB)
-                    .withPrettyPrint(true)
-                    .build()
+                        .newConfig()
+                        .withIndentStyle(Configuration.IndentStyle.TAB)
+                        .withPrettyPrint(true)
+                        .build()
                 ).render(statement)
                 it.reformattedCode = query
             }

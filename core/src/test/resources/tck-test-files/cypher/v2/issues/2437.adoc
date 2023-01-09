@@ -1,0 +1,100 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/2437
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Agent @exclude(operations: [DELETE]) {
+  uuid: ID! @id
+  archivedAt: DateTime
+  valuations: [Valuation!]! @relationship(type: "IS_VALUATION_AGENT", direction: OUT)
+}
+
+extend type Agent @auth(rules: [{operations: [CREATE], roles: ["Admin"]}, {where: {archivedAt: null}}])
+
+type Valuation @exclude(operations: [DELETE]) {
+  uuid: ID! @id
+  archivedAt: DateTime
+  agent: Agent! @relationship(type: "IS_VALUATION_AGENT", direction: IN)
+}
+
+extend type Valuation @auth(rules: [{where: {archivedAt: null}}])
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{}
+----
+== query and limits nested connections
+
+.GraphQL-Query
+[source,graphql]
+----
+query Agents {
+  agents(where: {uuid: "a1"}) {
+    uuid
+    valuationsConnection(first: 10) {
+      edges {
+        node {
+          uuid
+        }
+      }
+      pageInfo {
+        hasNextPage
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "a1",
+  "this_connection_valuationsConnectionparam0": 10
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Agent)
+WHERE (this.uuid = $param0
+	AND this.archivedAt IS NULL)
+CALL {
+	WITH this
+	MATCH (this)-[this_connection_valuationsConnectionthis0:IS_VALUATION_AGENT]->(this_Valuation:Valuation)
+	WHERE this_Valuation.archivedAt IS NULL
+	WITH {
+		node: {
+			uuid: this_Valuation.uuid
+		}
+	} AS edge
+	WITH collect(edge) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge LIMIT $this_connection_valuationsConnectionparam0
+		RETURN collect(edge) AS this_connection_valuationsConnectionvar1
+	}
+	WITH this_connection_valuationsConnectionvar1 AS edges, totalCount
+	RETURN {
+		edges: edges,
+		totalCount: totalCount
+	} AS this_valuationsConnection
+}
+RETURN this {
+	.uuid,
+	valuationsConnection: this_valuationsConnection
+} AS this
+----
+
+'''
+

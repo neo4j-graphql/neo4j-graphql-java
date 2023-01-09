@@ -42,7 +42,7 @@ type Post {
 [source,json]
 ----
 {
-  "param0" : 10.0
+  "param0": 10
 }
 ----
 
@@ -80,7 +80,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 10.0
+  "param0": 10
 }
 ----
 
@@ -118,7 +118,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 10.0
+  "param0": 10
 }
 ----
 
@@ -156,7 +156,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 10.0
+  "param0": 10
 }
 ----
 
@@ -194,7 +194,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 10.0
+  "param0": 10
 }
 ----
 

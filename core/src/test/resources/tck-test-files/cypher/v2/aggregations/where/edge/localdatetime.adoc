@@ -48,7 +48,15 @@ interface Likes {
 [source,json]
 ----
 {
-  "param0" : "2003-09-14T12:00:00"
+  "param0": {
+    "year": 2003,
+    "month": 9,
+    "day": 14,
+    "hour": 12,
+    "minute": 0,
+    "second": 0,
+    "nanosecond": 0
+  }
 }
 ----
 
@@ -88,7 +96,15 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2003-09-14T12:00:00"
+  "param0": {
+    "year": 2003,
+    "month": 9,
+    "day": 14,
+    "hour": 12,
+    "minute": 0,
+    "second": 0,
+    "nanosecond": 0
+  }
 }
 ----
 
@@ -128,7 +144,15 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2003-09-14T12:00:00"
+  "param0": {
+    "year": 2003,
+    "month": 9,
+    "day": 14,
+    "hour": 12,
+    "minute": 0,
+    "second": 0,
+    "nanosecond": 0
+  }
 }
 ----
 
@@ -168,7 +192,15 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2003-09-14T12:00:00"
+  "param0": {
+    "year": 2003,
+    "month": 9,
+    "day": 14,
+    "hour": 12,
+    "minute": 0,
+    "second": 0,
+    "nanosecond": 0
+  }
 }
 ----
 
@@ -208,7 +240,15 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2003-09-14T12:00:00"
+  "param0": {
+    "year": 2003,
+    "month": 9,
+    "day": 14,
+    "hour": 12,
+    "minute": 0,
+    "second": 0,
+    "nanosecond": 0
+  }
 }
 ----
 
@@ -248,7 +288,15 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2003-09-14T12:00:00"
+  "param0": {
+    "year": 2003,
+    "month": 9,
+    "day": 14,
+    "hour": 12,
+    "minute": 0,
+    "second": 0,
+    "nanosecond": 0
+  }
 }
 ----
 
@@ -288,7 +336,15 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2003-09-14T12:00:00"
+  "param0": {
+    "year": 2003,
+    "month": 9,
+    "day": 14,
+    "hour": 12,
+    "minute": 0,
+    "second": 0,
+    "nanosecond": 0
+  }
 }
 ----
 
@@ -328,7 +384,15 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2003-09-14T12:00:00"
+  "param0": {
+    "year": 2003,
+    "month": 9,
+    "day": 14,
+    "hour": 12,
+    "minute": 0,
+    "second": 0,
+    "nanosecond": 0
+  }
 }
 ----
 
@@ -368,7 +432,15 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2003-09-14T12:00:00"
+  "param0": {
+    "year": 2003,
+    "month": 9,
+    "day": 14,
+    "hour": 12,
+    "minute": 0,
+    "second": 0,
+    "nanosecond": 0
+  }
 }
 ----
 
@@ -408,7 +480,15 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2003-09-14T12:00:00"
+  "param0": {
+    "year": 2003,
+    "month": 9,
+    "day": 14,
+    "hour": 12,
+    "minute": 0,
+    "second": 0,
+    "nanosecond": 0
+  }
 }
 ----
 
@@ -448,7 +528,15 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2003-09-14T12:00:00"
+  "param0": {
+    "year": 2003,
+    "month": 9,
+    "day": 14,
+    "hour": 12,
+    "minute": 0,
+    "second": 0,
+    "nanosecond": 0
+  }
 }
 ----
 
@@ -488,7 +576,15 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2003-09-14T12:00:00"
+  "param0": {
+    "year": 2003,
+    "month": 9,
+    "day": 14,
+    "hour": 12,
+    "minute": 0,
+    "second": 0,
+    "nanosecond": 0
+  }
 }
 ----
 
@@ -528,7 +624,15 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2003-09-14T12:00:00"
+  "param0": {
+    "year": 2003,
+    "month": 9,
+    "day": 14,
+    "hour": 12,
+    "minute": 0,
+    "second": 0,
+    "nanosecond": 0
+  }
 }
 ----
 
@@ -568,7 +672,15 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2003-09-14T12:00:00"
+  "param0": {
+    "year": 2003,
+    "month": 9,
+    "day": 14,
+    "hour": 12,
+    "minute": 0,
+    "second": 0,
+    "nanosecond": 0
+  }
 }
 ----
 
@@ -608,7 +720,15 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2003-09-14T12:00:00"
+  "param0": {
+    "year": 2003,
+    "month": 9,
+    "day": 14,
+    "hour": 12,
+    "minute": 0,
+    "second": 0,
+    "nanosecond": 0
+  }
 }
 ----
 
@@ -648,7 +768,15 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2003-09-14T12:00:00"
+  "param0": {
+    "year": 2003,
+    "month": 9,
+    "day": 14,
+    "hour": 12,
+    "minute": 0,
+    "second": 0,
+    "nanosecond": 0
+  }
 }
 ----
 

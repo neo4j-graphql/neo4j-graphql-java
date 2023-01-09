@@ -46,7 +46,12 @@ interface Likes {
 [source,json]
 ----
 {
-  "param0" : "P1Y"
+  "param0": {
+    "months": 12,
+    "days": 0,
+    "seconds": 0,
+    "nanoseconds": 0
+  }
 }
 ----
 
@@ -84,7 +89,12 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "P1Y"
+  "param0": {
+    "months": 12,
+    "days": 0,
+    "seconds": 0,
+    "nanoseconds": 0
+  }
 }
 ----
 
@@ -122,7 +132,12 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "P1Y"
+  "param0": {
+    "months": 12,
+    "days": 0,
+    "seconds": 0,
+    "nanoseconds": 0
+  }
 }
 ----
 
@@ -160,7 +175,12 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "P1Y"
+  "param0": {
+    "months": 12,
+    "days": 0,
+    "seconds": 0,
+    "nanoseconds": 0
+  }
 }
 ----
 
@@ -198,7 +218,12 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "P1Y"
+  "param0": {
+    "months": 12,
+    "days": 0,
+    "seconds": 0,
+    "nanoseconds": 0
+  }
 }
 ----
 
@@ -236,7 +261,12 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "P1Y"
+  "param0": {
+    "months": 12,
+    "days": 0,
+    "seconds": 0,
+    "nanoseconds": 0
+  }
 }
 ----
 
@@ -274,7 +304,12 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "P1Y"
+  "param0": {
+    "months": 12,
+    "days": 0,
+    "seconds": 0,
+    "nanoseconds": 0
+  }
 }
 ----
 
@@ -312,7 +347,12 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "P1Y"
+  "param0": {
+    "months": 12,
+    "days": 0,
+    "seconds": 0,
+    "nanoseconds": 0
+  }
 }
 ----
 
@@ -350,7 +390,12 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "P1Y"
+  "param0": {
+    "months": 12,
+    "days": 0,
+    "seconds": 0,
+    "nanoseconds": 0
+  }
 }
 ----
 
@@ -388,7 +433,12 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "P1Y"
+  "param0": {
+    "months": 12,
+    "days": 0,
+    "seconds": 0,
+    "nanoseconds": 0
+  }
 }
 ----
 
@@ -426,7 +476,12 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "P1Y"
+  "param0": {
+    "months": 12,
+    "days": 0,
+    "seconds": 0,
+    "nanoseconds": 0
+  }
 }
 ----
 
@@ -464,7 +519,12 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "P1Y"
+  "param0": {
+    "months": 12,
+    "days": 0,
+    "seconds": 0,
+    "nanoseconds": 0
+  }
 }
 ----
 
@@ -502,7 +562,12 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "P1Y"
+  "param0": {
+    "months": 12,
+    "days": 0,
+    "seconds": 0,
+    "nanoseconds": 0
+  }
 }
 ----
 
@@ -540,7 +605,12 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "P1Y"
+  "param0": {
+    "months": 12,
+    "days": 0,
+    "seconds": 0,
+    "nanoseconds": 0
+  }
 }
 ----
 
@@ -578,7 +648,12 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "P1Y"
+  "param0": {
+    "months": 12,
+    "days": 0,
+    "seconds": 0,
+    "nanoseconds": 0
+  }
 }
 ----
 
@@ -616,7 +691,12 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "P1Y"
+  "param0": {
+    "months": 12,
+    "days": 0,
+    "seconds": 0,
+    "nanoseconds": 0
+  }
 }
 ----
 
@@ -654,7 +734,12 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "P1Y"
+  "param0": {
+    "months": 12,
+    "days": 0,
+    "seconds": 0,
+    "nanoseconds": 0
+  }
 }
 ----
 
@@ -692,7 +777,12 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "P1Y"
+  "param0": {
+    "months": 12,
+    "days": 0,
+    "seconds": 0,
+    "nanoseconds": 0
+  }
 }
 ----
 
@@ -730,7 +820,12 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "P1Y"
+  "param0": {
+    "months": 12,
+    "days": 0,
+    "seconds": 0,
+    "nanoseconds": 0
+  }
 }
 ----
 
@@ -768,7 +863,12 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "P1Y"
+  "param0": {
+    "months": 12,
+    "days": 0,
+    "seconds": 0,
+    "nanoseconds": 0
+  }
 }
 ----
 
@@ -806,7 +906,12 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "P1Y"
+  "param0": {
+    "months": 12,
+    "days": 0,
+    "seconds": 0,
+    "nanoseconds": 0
+  }
 }
 ----
 
