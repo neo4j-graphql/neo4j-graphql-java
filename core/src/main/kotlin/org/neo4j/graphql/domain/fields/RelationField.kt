@@ -109,7 +109,8 @@ class RelationField(
         start: org.neo4j.cypherdsl.core.Node,
         end: org.neo4j.cypherdsl.core.Node,
         directed: Boolean?,
-        name: ChainString? = null
+        name: ChainString? = null,
+        startLeft: Boolean = false, // TODO used only to make migrating form JS easier
     ): Relationship {
         val useDirected = when (queryDirection) {
             QueryDirection.DEFAULT_DIRECTED -> directed ?: true
@@ -125,7 +126,7 @@ class RelationField(
             }
         }
         if (useDirected) {
-            return createDslRelation(start, end, name)
+            return createDslRelation(start, end, name, startLeft)
         }
         return start.relationshipBetween(end, relationType)
             .let { if (name != null) it.named(name.resolveName()) else it }
@@ -134,9 +135,14 @@ class RelationField(
     fun createDslRelation(
         start: org.neo4j.cypherdsl.core.Node,
         end: org.neo4j.cypherdsl.core.Node,
-        name: ChainString? = null
+        name: ChainString? = null,
+        startLeft: Boolean = false, // TODO used only to make migrating form JS easier
     ): Relationship = when (direction) {
-        Direction.IN -> end.relationshipTo(start, relationType)
+        Direction.IN -> if (startLeft) {
+            start.relationshipFrom(end, relationType)
+        } else {
+            end.relationshipTo(start, relationType)
+        }
         Direction.OUT -> start.relationshipTo(end, relationType)
     }.let { if (name != null) it.named(name.resolveName()) else it }
 

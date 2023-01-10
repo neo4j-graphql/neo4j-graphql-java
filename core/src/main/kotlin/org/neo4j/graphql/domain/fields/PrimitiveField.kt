@@ -3,6 +3,7 @@ package org.neo4j.graphql.domain.fields
 import graphql.language.Value
 import org.neo4j.graphql.SchemaConfig
 import org.neo4j.graphql.domain.TypeMeta
+import org.neo4j.graphql.domain.directives.PopulatedByDirective
 import org.neo4j.graphql.domain.predicates.definitions.AggregationPredicateDefinition
 import org.neo4j.graphql.isRequired
 import org.neo4j.graphql.name
@@ -25,7 +26,10 @@ open class PrimitiveField(
     override var defaultValue: Value<*>? = null
     override var coalesceValue: Value<*>? = null
 
-    override val generated: Boolean get() = super.generated || autogenerate
+    override val generated: Boolean get() = super.generated || autogenerate || callback != null
+
+    // TODO rename to populatedBY
+    var callback: PopulatedByDirective? = null
 
     val aggregationPredicates: Map<String, AggregationPredicateDefinition> by lazy {
         AggregationPredicateDefinition.create(this)

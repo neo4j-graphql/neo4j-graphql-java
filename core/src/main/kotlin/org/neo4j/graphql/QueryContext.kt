@@ -1,7 +1,9 @@
 package org.neo4j.graphql
 
 import org.neo4j.cypherdsl.core.Cypher
+import org.neo4j.cypherdsl.core.Parameter
 import org.neo4j.graphql.handler.utils.ChainString
+import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
 data class QueryContext @JvmOverloads constructor(
@@ -21,6 +23,7 @@ data class QueryContext @JvmOverloads constructor(
 
     private var varCounter = 0
     private var paramCounter = mutableMapOf<String, AtomicInteger>()
+    private var paramKeysPerValues = mutableMapOf<String, MutableMap<Any?, Parameter<*>>>()
 
     fun resolve(string: String): String {
         return contextParams?.let { params ->
@@ -40,11 +43,20 @@ data class QueryContext @JvmOverloads constructor(
         } ?: string
     }
 
-    fun getNextVariable(prefix: ChainString? = null) = Cypher.name((prefix?.resolveName() ?: "var") + varCounter++)
+    fun getNextVariable(prefix: ChainString? = null) = getNextVariable(prefix?.resolveName())
+    fun getNextVariable(prefix: String?) = (prefix ?: "var").let { p ->
+        varCounter++
+            .let { Cypher.name(p + it) }
+    }
+
     fun getNextParam(value: Any?) = getNextParam("param", value)
-    fun getNextParam(prefix: String, value: Any?) = paramCounter
-        .computeIfAbsent(prefix) { AtomicInteger(0) }.getAndIncrement()
-        .let { Cypher.parameter(prefix + it, value) }
+    fun getNextParam(prefix: String, value: Any?) =
+        paramKeysPerValues.computeIfAbsent(prefix) { mutableMapOf() }
+            .computeIfAbsent(value) {
+                paramCounter
+                    .computeIfAbsent(prefix) { AtomicInteger(0) }.getAndIncrement()
+                    .let { Cypher.parameter(prefix + it, value) }
+            }
 
     enum class OptimizationStrategy {
         /**

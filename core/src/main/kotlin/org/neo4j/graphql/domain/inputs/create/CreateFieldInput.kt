@@ -1,5 +1,6 @@
 package org.neo4j.graphql.domain.inputs.create
 
+import org.neo4j.graphql.AugmentationContext
 import org.neo4j.graphql.Constants
 import org.neo4j.graphql.domain.Interface
 import org.neo4j.graphql.domain.Node
@@ -9,14 +10,16 @@ import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.domain.inputs.Dict
 import org.neo4j.graphql.domain.inputs.PerNodeInput
 import org.neo4j.graphql.domain.inputs.connect.ConnectFieldInput
+import org.neo4j.graphql.domain.inputs.connect.ConnectFieldInput.*
 import org.neo4j.graphql.domain.inputs.connect_or_create.ConnectOrCreateFieldInput
 import org.neo4j.graphql.wrapList
+import org.neo4j.graphql.wrapType
 
 sealed interface CreateFieldInput {
 
     sealed class ImplementingTypeFieldInput {
         abstract val create: List<RelationFieldInput.ImplementingTypeCreateFieldInput>?
-        abstract val connect: List<ConnectFieldInput.ImplementingTypeConnectFieldInput>?
+        abstract val connect: List<ImplementingTypeConnectFieldInput>?
     }
 
     class NodeFieldInput(node: Node, relationshipProperties: RelationshipProperties?, data: Dict) :
@@ -34,6 +37,28 @@ sealed interface CreateFieldInput {
         val connectOrCreate = data[Constants.CONNECT_OR_CREATE_FIELD]
             ?.let { ConnectOrCreateFieldInput.NodeConnectOrCreateFieldInputs.create(node, relationshipProperties, it) }
 
+
+        object Augmentation {
+            fun generateFieldNodeFieldInputIT(
+                rel: RelationField,
+                prefix: String,
+                node: Node,
+                ctx: AugmentationContext
+            ) =
+                ctx.getOrCreateInputObjectType("${prefix}${Constants.InputTypeSuffix.FieldInput}") { fields, _ ->
+                    RelationFieldInput.NodeCreateCreateFieldInput.Augmentation
+                        .generateFieldCreateFieldInputIT(rel, prefix, node, ctx)
+                        ?.let { fields += ctx.inputValue(Constants.CREATE_FIELD, it.wrapType(rel)) }
+
+                    NodeConnectFieldInput.Augmentation
+                        .generateFieldConnectFieldInputIT(rel, prefix, node, ctx)
+                        ?.let { fields += ctx.inputValue(Constants.CONNECT_FIELD, it.wrapType(rel)) }
+
+                    ConnectOrCreateFieldInput.NodeConnectOrCreateFieldInput.Augmentation
+                        .generateFieldConnectOrCreateIT(rel, prefix, node, ctx)
+                        ?.let { fields += ctx.inputValue(Constants.CONNECT_OR_CREATE_FIELD, it.wrapType(rel)) }
+                }
+        }
     }
 
     class InterfaceFieldInput(interfaze: Interface, relationshipProperties: RelationshipProperties?, data: Dict) :
@@ -46,6 +71,27 @@ sealed interface CreateFieldInput {
 
         override val connect = data[Constants.CONNECT_FIELD]
             ?.let { ConnectFieldInput.InterfaceConnectFieldInputs.create(interfaze, relationshipProperties, it) }
+
+        object Augmentation {
+            fun generateFieldCreateIT(
+                rel: RelationField,
+                prefix: String,
+                interfaze: Interface,
+                ctx: AugmentationContext
+            ) = ctx.getOrCreateInputObjectType("${prefix}${Constants.InputTypeSuffix.FieldInput}") { fields, _ ->
+
+                RelationFieldInput.InterfaceCreateFieldInput.Augmentation
+                    .generateFieldRelationCreateIT(rel, prefix, interfaze, ctx)
+                    ?.let {
+                        fields += ctx.inputValue(Constants.CREATE_FIELD, it.wrapType(rel))
+                    }
+
+                InterfaceConnectFieldInput.Augmentation
+                    .generateFieldConnectIT(rel, prefix, interfaze, ctx)
+                    ?.let { fields += ctx.inputValue(Constants.CONNECT_FIELD, it.wrapType(rel)) }
+            }
+
+        }
     }
 
 

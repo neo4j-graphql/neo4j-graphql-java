@@ -103,7 +103,16 @@ class AggregateWhere(val schemaConfig: SchemaConfig, val queryContext: QueryCont
                 ?.toJavaValue()
                 ?.let { Functions.coalesce(dbProperty, it.asCypherLiteral()) }
                 ?: dbProperty
-        val rhs = queryContext.getNextParam(predicate.value)
+        var rhs: Expression = queryContext.getNextParam(predicate.value)
+        rhs = when (field.typeMeta.type.name()) {
+            Constants.DURATION -> Functions.duration(rhs)
+            Constants.DATE_TIME -> Functions.datetime(rhs)
+            Constants.LOCAL_DATE_TIME -> Functions.localdatetime(rhs)
+            Constants.LOCAL_TIME -> Functions.localtime(rhs)
+            Constants.DATE -> Functions.date(rhs)
+            Constants.TIME -> Functions.time(rhs)
+            else -> rhs
+        }
         return predicate.resolver.createCondition(property, rhs, queryContext)
     }
 }

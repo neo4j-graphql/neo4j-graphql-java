@@ -13,7 +13,6 @@ import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.handler.projection.ProjectionBase
 import org.neo4j.graphql.handler.v2.*
 import org.neo4j.graphql.scalars.BigIntScalar
-import org.neo4j.graphql.scalars.DurationScalar
 import org.neo4j.graphql.schema.AugmentationHandlerV2
 import org.neo4j.graphql.schema.BaseAugmentationV2
 

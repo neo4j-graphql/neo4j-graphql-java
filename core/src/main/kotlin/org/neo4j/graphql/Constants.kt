@@ -40,6 +40,7 @@ object Constants {
     const val POINT_INPUT_TYPE = "PointInput"
     const val CARTESIAN_POINT_INPUT_TYPE = "CartesianPointInput"
 
+    const val BOOLEAN = "Boolean"
     const val ID = "ID"
     const val STRING = "String"
     const val INT = "Int"
@@ -59,7 +60,6 @@ object Constants {
     const val SHORTEST = "shortest"
     const val LONGEST = "longest"
 
-    const val AGGREGATION_FIELD_SUFFIX = "Aggregate"
     const val AGGREGATION_SELECTION_FIELD_SUFFIX = "AggregationSelection"
     const val AGGREGATION_SELECTION_NODE_SUFFIX = "NodeAggregateSelection"
     const val AGGREGATION_SELECTION_EDGE_SUFFIX = "EdgeAggregateSelection"
@@ -88,6 +88,62 @@ object Constants {
     const val NEO4J_QUERY_CONTEXT = "NEO4J_QUERY_CONTEXT"
 
     val PREDICATE_JOINS = setOf(AND, OR)
+
+    object FieldSuffix {
+        const val Aggregate = "Aggregate"
+
+    }
+    object OutputTypeSuffix {
+        const val Connection = "Connection"
+        const val Edge = "Edge"
+    }
+
+    object InputTypeSuffix {
+
+        const val CreateInput = "CreateInput"
+        const val CreateFieldInput = "CreateFieldInput"
+
+        const val ConnectInput = "ConnectInput"
+        const val ConnectFieldInput = "ConnectFieldInput"
+
+        const val ConnectOrCreateInput = "ConnectOrCreateInput"
+        const val ConnectOrCreateFieldInput = "ConnectOrCreateFieldInput"
+        const val ConnectOrCreateWhere = "ConnectOrCreateWhere"
+        const val OnCreate = "OnCreate"
+        const val OnCreateInput = "OnCreateInput"
+
+        const val FieldInput = "FieldInput"
+        const val RelationInput = "RelationInput"
+
+        const val DeleteInput = "DeleteInput"
+        const val DeleteFieldInput = "DeleteFieldInput"
+
+        const val UpdateInput = "UpdateInput"
+        const val UpdateFieldInput = "UpdateFieldInput"
+        const val UpdateConnectionInput = "UpdateConnectionInput"
+
+        const val DisconnectInput = "DisconnectInput"
+        const val DisconnectFieldInput = "DisconnectFieldInput"
+
+
+        const val ConnectWhere = "ConnectWhere"
+
+        const val ConnectionWhere = "ConnectionWhere"
+
+        const val Where = "Where"
+        const val UniqueWhere = "UniqueWhere"
+        const val ImplementationsWhere = "ImplementationsWhere"
+
+        const val AggregateInput = "AggregateInput"
+        const val NodeAggregationWhereInput = "NodeAggregationWhereInput"
+        const val EdgeAggregationWhereInput = "EdgeAggregationWhereInput"
+
+        const val FulltextSort = "FulltextSort"
+        const val FulltextWhere = "FulltextWhere"
+
+        const val Options = "Options"
+        const val Sort = "Sort"
+    }
 
     object Types {
         val ID = TypeName("ID")

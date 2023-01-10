@@ -34,10 +34,15 @@ class DeleteResolver private constructor(
 
             val coordinates =
                 addMutationField(node.rootTypeFieldNames.delete, Constants.Types.DeleteInfo.makeRequired()) { args ->
-                    generateWhereIT(node)?.let { args += inputValue(Constants.WHERE, it.asType()) }
-                    generateContainerDeleteInputIT(node)?.let {
-                        args += inputValue(Constants.DELETE_FIELD, it.asType())
-                    }
+
+                    WhereInput.NodeWhereInput.Augmentation
+                        .generateWhereIT(node, ctx)
+                        ?.let { args += inputValue(Constants.WHERE, it.asType()) }
+
+                    DeleteInput.NodeDeleteInput.Augmentation
+                        .generateContainerDeleteInputIT(node, ctx)?.let {
+                            args += inputValue(Constants.DELETE_FIELD, it.asType())
+                        }
                 }
 
             return AugmentedField(coordinates, DeleteResolver(ctx.schemaConfig, node)).wrapList()

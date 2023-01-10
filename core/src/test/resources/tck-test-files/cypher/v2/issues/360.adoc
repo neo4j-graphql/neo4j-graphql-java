@@ -52,26 +52,8 @@ query ($rangeStart: DateTime, $rangeEnd: DateTime, $activity: String) {
 [source,json]
 ----
 {
-  "param0": {
-    "year": 2021,
-    "month": 7,
-    "day": 17,
-    "hour": 23,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0,
-    "timeZoneOffsetSeconds": 0
-  },
-  "param1": {
-    "year": 2021,
-    "month": 7,
-    "day": 18,
-    "hour": 22,
-    "minute": 59,
-    "second": 59,
-    "nanosecond": 0,
-    "timeZoneOffsetSeconds": 0
-  }
+  "param0": "2021-07-17T23:00:00Z",
+  "param1": "2021-07-18T22:59:59Z"
 }
 ----
 
@@ -117,26 +99,8 @@ query ($rangeStart: DateTime, $rangeEnd: DateTime, $activity: String) {
 [source,json]
 ----
 {
-  "param0": {
-    "year": 2021,
-    "month": 7,
-    "day": 17,
-    "hour": 23,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0,
-    "timeZoneOffsetSeconds": 0
-  },
-  "param1": {
-    "year": 2021,
-    "month": 7,
-    "day": 18,
-    "hour": 22,
-    "minute": 59,
-    "second": 59,
-    "nanosecond": 0,
-    "timeZoneOffsetSeconds": 0
-  }
+  "param0": "2021-07-17T23:00:00Z",
+  "param1": "2021-07-18T22:59:59Z"
 }
 ----
 

@@ -5,10 +5,11 @@ object DirectiveConstants {
     const val ALIAS = "alias"
     const val AUTH = "auth"
     const val COALESCE = "coalesce"
+    const val CUSTOM_RESOLVER = "customResolver"
+    const val POPULATED_BY = "populatedBy"
     const val DEFAULT = "default"
     const val TIMESTAMP = "timestamp"
     const val UNIQUE = "unique"
-    const val COMPUTED = "computed"
     const val NODE = "node"
     const val PLURAL = "plural"
     const val READ_ONLY = "readonly"
@@ -42,6 +43,7 @@ object DirectiveConstants {
         ALIAS,
         AUTH,
         COALESCE,
+        CUSTOM_RESOLVER,
         DEFAULT,
         TIMESTAMP,
         UNIQUE,
@@ -58,7 +60,8 @@ object DirectiveConstants {
         RELATIONSHIP_PROPERTIES,
         CYPHER,
         PROPERTY,
-        PLURAL
+        PLURAL,
+        POPULATED_BY,
     )
 
 }

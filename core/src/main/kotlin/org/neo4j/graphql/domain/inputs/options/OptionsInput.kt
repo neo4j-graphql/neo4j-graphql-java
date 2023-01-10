@@ -1,12 +1,13 @@
 package org.neo4j.graphql.domain.inputs.options
 
+import graphql.language.ListType
 import org.neo4j.cypherdsl.core.Cypher
 import org.neo4j.cypherdsl.core.Expression
 import org.neo4j.cypherdsl.core.SortItem
-import org.neo4j.graphql.Constants
+import org.neo4j.graphql.*
+import org.neo4j.graphql.domain.ImplementingType
 import org.neo4j.graphql.domain.directives.QueryOptionsDirective
 import org.neo4j.graphql.domain.inputs.Dict
-import org.neo4j.graphql.wrapList
 
 data class OptionsInput(
     val limit: Int? = null,
@@ -53,16 +54,26 @@ data class OptionsInput(
         fun create(map: Map<String, *>) = OptionsInput(
             map[Constants.LIMIT] as? Int,
             map[Constants.OFFSET] as? Int,
-            map[Constants.SORT]?.wrapList()?.map { sortInput ->
-                Dict(sortInput).entries
-                    .mapNotNull { (k, v) ->
-                        val key = k as? String ?: return@mapNotNull null
-                        val sort = (v as? String)?.let { SortItem.Direction.valueOf(it) } ?: return@mapNotNull null
-                        key to sort
-                    }
-                    .toMap()
-            }
-
+            map[Constants.SORT]?.wrapList()?.map { SortInput.create(Dict(it)) }
         )
+    }
+
+    object Augmentation {
+
+        fun generateOptionsIT(implementingType: ImplementingType, ctx: AugmentationContext) =
+            ctx.getOrCreateInputObjectType("${implementingType.name}${Constants.InputTypeSuffix.Options}") { fields, _ ->
+                fields += ctx.inputValue(Constants.LIMIT, Constants.Types.Int)
+                fields += ctx.inputValue(Constants.OFFSET, Constants.Types.Int)
+                SortInput.Companion.Augmentation
+                    .generateSortIT(implementingType, ctx)
+                    ?.let {
+                        fields += ctx.inputValue(
+                            Constants.SORT,
+                            ListType(it.asRequiredType())
+                        ) {
+                            description("Specify one or more ${implementingType.name}Sort objects to sort ${implementingType.pascalCasePlural} by. The sorts will be applied in the order in which they are arranged in the array.".asDescription())
+                        }
+                    }
+            } ?: throw IllegalStateException("at least the paging fields should be present")
     }
 }

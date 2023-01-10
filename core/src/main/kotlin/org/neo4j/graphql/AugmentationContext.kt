@@ -3,7 +3,13 @@ package org.neo4j.graphql
 import graphql.language.*
 import graphql.schema.FieldCoordinates
 import graphql.schema.idl.TypeDefinitionRegistry
-import org.neo4j.graphql.domain.fields.RelationField
+import org.neo4j.graphql.domain.fields.*
+import org.neo4j.graphql.domain.inputs.ScalarProperties
+import org.neo4j.graphql.schema.relations.InterfaceRelationFieldAugmentations
+import org.neo4j.graphql.schema.relations.NodeRelationFieldAugmentations
+import org.neo4j.graphql.schema.relations.RelationFieldBaseAugmentation
+import org.neo4j.graphql.schema.relations.UnionRelationFieldAugmentations
+import kotlin.reflect.KFunction1
 
 interface AugmentationBase {
 
@@ -38,111 +44,11 @@ interface AugmentationBase {
         return addMutationField(field(name, type, argList))
     }
 
-    fun addInputObjectType(
-        name: String,
-        vararg fields: InputValueDefinition,
-        init: (InputObjectTypeDefinition.Builder.() -> Unit)? = null
-    ): String = addInputObjectType(name, fields.asList(), init)
-
-
-    fun addInputObjectType(
-        name: String,
-        fields: List<InputValueDefinition>,
-        init: (InputObjectTypeDefinition.Builder.() -> Unit)? = null
-    ): String
-
-    fun addObjectType(
-        name: String,
-        vararg fields: FieldDefinition,
-        init: (ObjectTypeDefinition.Builder.() -> Unit)? = null
-    ): String = addObjectType(name, fields.asList(), init)
-
-    fun addObjectType(
-        name: String,
-        fields: List<FieldDefinition>,
-        init: (ObjectTypeDefinition.Builder.() -> Unit)? = null
-    ): String
-
     fun getOrCreateObjectType(
         name: String,
         init: (ObjectTypeDefinition.Builder.() -> Unit)? = null,
         initFields: (fields: MutableList<FieldDefinition>, name: String) -> Unit,
     ): String?
-
-    fun getOrCreateInterfaceType(
-        name: String,
-        init: (InterfaceTypeDefinition.Builder.() -> Unit)? = null,
-        initFields: (fields: MutableList<FieldDefinition>, name: String) -> Unit,
-    ): String?
-
-    fun objectType(init: ObjectTypeDefinition.Builder.() -> Unit): ObjectTypeDefinition {
-        val type = ObjectTypeDefinition.newObjectTypeDefinition()
-        type.init()
-        return type.build()
-    }
-
-    fun inputObjectType(
-        name: String,
-        vararg fields: InputValueDefinition,
-        init: (InputObjectTypeDefinition.Builder.() -> Unit)? = null
-    ): InputObjectTypeDefinition = inputObjectType(name, fields.asList(), init)
-
-    fun inputObjectType(
-        name: String,
-        fields: List<InputValueDefinition>,
-        init: (InputObjectTypeDefinition.Builder.() -> Unit)? = null
-    ): InputObjectTypeDefinition {
-        val type = InputObjectTypeDefinition.newInputObjectDefinition()
-        type.name(name)
-        type.inputValueDefinitions(fields)
-        init?.let { type.it() }
-        return type.build()
-    }
-
-    fun inputObjectType(
-        template: InputObjectTypeDefinition,
-        init: InputObjectTypeDefinition.Builder.() -> Unit
-    ): InputObjectTypeDefinition {
-        return template.transform(init)
-    }
-
-    fun objectType(
-        name: String,
-        vararg fields: FieldDefinition,
-        init: (ObjectTypeDefinition.Builder.() -> Unit)? = null
-    ): ObjectTypeDefinition = objectType(name, fields.asList(), init)
-
-    fun objectType(
-        name: String,
-        fields: List<FieldDefinition>,
-        init: (ObjectTypeDefinition.Builder.() -> Unit)? = null
-    ): ObjectTypeDefinition {
-        val type = ObjectTypeDefinition.newObjectTypeDefinition()
-        type.name(name)
-        type.fieldDefinitions(fields)
-        init?.let { type.it() }
-        return type.build()
-    }
-
-    fun interfaceType(
-        name: String,
-        fields: List<FieldDefinition>,
-        init: (InterfaceTypeDefinition.Builder.() -> Unit)? = null
-    ): InterfaceTypeDefinition {
-        val type = InterfaceTypeDefinition.newInterfaceTypeDefinition()
-        type.name(name)
-        type.definitions(fields)
-        init?.let { type.it() }
-        return type.build()
-    }
-
-    fun objectType(
-        template: ObjectTypeDefinition,
-        init: ObjectTypeDefinition.Builder.() -> Unit
-    ): ObjectTypeDefinition {
-        return template.transform(init)
-    }
-
 
     fun inputValue(
         name: String,
@@ -170,27 +76,23 @@ interface AugmentationBase {
         return field.build()
     }
 
-    fun inputValue(
-        template: InputValueDefinition,
-        init: InputValueDefinition.Builder.() -> Unit
-    ): InputValueDefinition {
-        return template.transform(init)
-    }
+    fun getOrCreateRelationInputObjectType(
+        sourceName: String,
+        suffix: String,
+        relationFields: List<RelationField>,
+        extractor: KFunction1<RelationFieldBaseAugmentation, String?>,
+        wrapList: Boolean = true,
+        scalarFields: List<ScalarField> = emptyList(),
+        update: Boolean = false,
+        enforceFields: Boolean = false,
+    ): String?
 
-    fun ObjectTypeDefinition.Builder.description(text: String) = description(text.asDescription())
+    fun getTypeFromRelationField(
+        rel: RelationField,
+        extractor: KFunction1<RelationFieldBaseAugmentation, String?>
+    ): String?
 
-    fun ObjectTypeDefinition.Builder.field(init: FieldDefinition.Builder.() -> Unit): FieldDefinition {
-        val type = FieldDefinition.newFieldDefinition()
-        type.init()
-        val build = type.build()
-        this.fieldDefinition(build)
-        return build
-    }
-
-    fun String.wrapType(rel: RelationField) = when {
-        rel.typeMeta.type.isList() -> ListType(this.asRequiredType())
-        else -> this.asType()
-    }
+    fun directedArgument(relationshipField: RelationField): InputValueDefinition?
 }
 
 class AugmentationContext(
@@ -199,15 +101,22 @@ class AugmentationContext(
     val neo4jTypeDefinitionRegistry: TypeDefinitionRegistry
 ) : AugmentationBase {
 
-    private val currentlyCreatingInputType = mutableSetOf<String>()
-    private val currentlyCreatingObjectType = mutableSetOf<String>()
+    private val knownInputTypes = mutableSetOf<String>()
+    private val emptyInputTypes = mutableSetOf<String>()
+
+    private val knownObjectTypes = mutableSetOf<String>()
+    private val emptyObjectTypes = mutableSetOf<String>()
 
     override fun getOrCreateInputObjectType(
         name: String,
         init: (InputObjectTypeDefinition.Builder.() -> Unit)?,
         initFields: (fields: MutableList<InputValueDefinition>, name: String) -> Unit
     ): String? {
-        if (currentlyCreatingInputType.contains(name)) {
+        if (emptyInputTypes.contains(name)) {
+            return null
+        }
+        if (knownInputTypes.contains(name)) {
+            // TODO we should use futures here, so we can handle null names, which we do not know at this point of time
             return name
         }
         val type = typeDefinitionRegistry.getTypeByName<InterfaceTypeDefinition>(name)
@@ -215,16 +124,28 @@ class AugmentationContext(
             true -> type
             else -> {
                 val fields = mutableListOf<InputValueDefinition>()
-                currentlyCreatingInputType.add(name)
+                knownInputTypes.add(name)
                 initFields(fields, name)
-                currentlyCreatingInputType.remove(name)
                 if (fields.isNotEmpty()) {
                     inputObjectType(name, fields, init).also { typeDefinitionRegistry.add(it) }
                 } else {
+                    emptyInputTypes.add(name)
                     null
                 }
             }
         }?.name
+    }
+
+    private fun inputObjectType(
+        name: String,
+        fields: List<InputValueDefinition>,
+        init: (InputObjectTypeDefinition.Builder.() -> Unit)? = null
+    ): InputObjectTypeDefinition {
+        val type = InputObjectTypeDefinition.newInputObjectDefinition()
+        type.name(name)
+        type.inputValueDefinitions(fields)
+        init?.let { type.it() }
+        return type.build()
     }
 
     override fun addQueryField(fieldDefinition: FieldDefinition): FieldCoordinates {
@@ -262,32 +183,17 @@ class AugmentationContext(
         }
     }
 
-    override fun addInputObjectType(
-        name: String,
-        fields: List<InputValueDefinition>,
-        init: (InputObjectTypeDefinition.Builder.() -> Unit)?
-    ): String {
-        val type = typeDefinitionRegistry.getTypeByName(name)
-            ?: inputObjectType(name, fields, init).also { typeDefinitionRegistry.add(it) }
-        return type.name
-    }
-
-    override fun addObjectType(
-        name: String,
-        fields: List<FieldDefinition>,
-        init: (ObjectTypeDefinition.Builder.() -> Unit)?
-    ): String {
-        val type = typeDefinitionRegistry.getTypeByName(name)
-            ?: objectType(name, fields, init).also { typeDefinitionRegistry.add(it) }
-        return type.name
-    }
 
     override fun getOrCreateObjectType(
         name: String,
         init: (ObjectTypeDefinition.Builder.() -> Unit)?,
         initFields: (fields: MutableList<FieldDefinition>, name: String) -> Unit,
     ): String? {
-        if (currentlyCreatingObjectType.contains(name)) {
+        if (emptyObjectTypes.contains(name)) {
+            return null
+        }
+        if (knownObjectTypes.contains(name)) {
+            // TODO we should use futures here, so we can handle null names, which we do not know at this point of time
             return name
         }
         val type = typeDefinitionRegistry.getTypeByName<ObjectTypeDefinition>(name)
@@ -295,35 +201,82 @@ class AugmentationContext(
             true -> type
             else -> {
                 val fields = mutableListOf<FieldDefinition>()
-                currentlyCreatingObjectType.add(name)
+                knownObjectTypes.add(name)
                 initFields(fields, name)
-                currentlyCreatingObjectType.remove(name)
                 if (fields.isNotEmpty()) {
                     objectType(name, fields, init).also { typeDefinitionRegistry.add(it) }
                 } else {
+                    emptyObjectTypes.add(name)
                     null
                 }
             }
         }?.name
     }
 
-    override fun getOrCreateInterfaceType(
+    private fun objectType(
         name: String,
-        init: (InterfaceTypeDefinition.Builder.() -> Unit)?,
-        initFields: (fields: MutableList<FieldDefinition>, name: String) -> Unit,
-    ): String? {
-        val type = typeDefinitionRegistry.getTypeByName<InterfaceTypeDefinition>(name)
-        return when (type != null) {
-            true -> type
-            else -> {
-                val fields = mutableListOf<FieldDefinition>()
-                initFields(fields, name)
-                if (fields.isNotEmpty()) {
-                    interfaceType(name, fields, init).also { typeDefinitionRegistry.add(it) }
-                } else {
-                    null
+        fields: List<FieldDefinition>,
+        init: (ObjectTypeDefinition.Builder.() -> Unit)? = null
+    ): ObjectTypeDefinition {
+        val type = ObjectTypeDefinition.newObjectTypeDefinition()
+        type.name(name)
+        type.fieldDefinitions(fields)
+        init?.let { type.it() }
+        return type.build()
+    }
+    override fun getOrCreateRelationInputObjectType(
+        sourceName: String,
+        suffix: String,
+        relationFields: List<RelationField>,
+        extractor: KFunction1<RelationFieldBaseAugmentation, String?>,
+        wrapList: Boolean,
+        scalarFields: List<ScalarField>,
+        update: Boolean,
+        enforceFields: Boolean,
+    ) = getOrCreateInputObjectType(sourceName + suffix) { fields, _ ->
+
+        ScalarProperties.Companion.Augmentation
+            .addScalarFields(fields, sourceName, scalarFields, update, this)
+
+        relationFields
+            .forEach { rel ->
+                getTypeFromRelationField(rel, extractor)?.let { typeName ->
+                    val type = if (!rel.isUnion && wrapList) {
+                        // for union fields, the arrays are moved down one level, so we don't wrap them here
+                        typeName.wrapType(rel)
+                    } else {
+                        typeName.asType()
+                    }
+                    fields += inputValue(rel.fieldName, type) { directives(rel.deprecatedDirectives) }
+
                 }
             }
-        }?.name
+        if (fields.isEmpty() && enforceFields) {
+            fields += inputValue(Constants.EMPTY_INPUT, Constants.Types.Boolean) {
+                // TODO use a link of this project
+                description("Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/".asDescription())
+            }
+        }
     }
+
+    override fun getTypeFromRelationField(
+        rel: RelationField,
+        extractor: KFunction1<RelationFieldBaseAugmentation, String?>
+    ): String? {
+        val aug = rel.extractOnTarget(
+            onNode = { NodeRelationFieldAugmentations(this, rel, it) },
+            onInterface = { InterfaceRelationFieldAugmentations(this, rel, it) },
+            onUnion = { UnionRelationFieldAugmentations(this, rel, it) }
+        )
+        return extractor(aug)
+    }
+
+    override fun directedArgument(relationshipField: RelationField): InputValueDefinition? =
+        when (relationshipField.queryDirection) {
+            RelationField.QueryDirection.DEFAULT_DIRECTED -> true
+            RelationField.QueryDirection.DEFAULT_UNDIRECTED -> false
+            else -> null
+        }?.let { defaultVal ->
+            inputValue(Constants.DIRECTED, Constants.Types.Boolean) { defaultValue(BooleanValue(defaultVal)) }
+        }
 }

@@ -1,6 +1,9 @@
 package org.neo4j.graphql.domain.fields
 
+import org.neo4j.graphql.Constants
+import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.TypeMeta
+import org.neo4j.graphql.isList
 import org.neo4j.graphql.name
 
 /**
@@ -13,23 +16,24 @@ class CypherField(
 ) : BaseField(
     fieldName, typeMeta
 ), AuthableField {
-    fun isSortable() = sortableFields.contains(typeMeta.type.name())
+    fun isSortable() = !typeMeta.type.isList() && sortableFields.contains(typeMeta.type.name())
+
+    var node: Node? = null
 
     companion object {
-        //TODO constants
         val sortableFields = setOf(
-            "Boolean",
-            "ID",
-            "Int",
-            "BigInt",
-            "Float",
-            "String",
-            "DateTime",
-            "LocalDateTime",
-            "Time",
-            "LocalTime",
-            "Date",
-            "Duration"
+            Constants.BOOLEAN,
+            Constants.ID,
+            Constants.INT,
+            Constants.BIG_INT,
+            Constants.FLOAT,
+            Constants.STRING,
+            Constants.DATE_TIME,
+            Constants.LOCAL_DATE_TIME,
+            Constants.TIME,
+            Constants.LOCAL_TIME,
+            Constants.DATE,
+            Constants.DURATION,
         )
     }
 }

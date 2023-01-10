@@ -9,7 +9,10 @@ import org.neo4j.graphql.domain.fields.*
 import org.neo4j.graphql.domain.inputs.WhereInput
 import org.neo4j.graphql.domain.inputs.field_arguments.RelationFieldInputArgs
 import org.neo4j.graphql.handler.utils.ChainString
+import org.neo4j.graphql.translate.connection_clause.CreateConnectionClause
 import org.neo4j.graphql.translate.field_aggregation.CreateFieldAggregation
+import org.neo4j.graphql.translate.projection.projectCypherField
+import org.neo4j.graphql.translate.projection.projectScalarField
 import org.neo4j.graphql.translate.where.createWhere
 import org.neo4j.graphql.utils.ResolveTree
 import org.neo4j.graphql.utils.ResolveTree.Companion.generateMissingOrAliasedFields
@@ -26,6 +29,7 @@ class ProjectionTranslator {
         queryContext: QueryContext,
         withVars: List<SymbolicName> = emptyList(),
         resolveType: Boolean = false,
+        useShortcut: Boolean = true,
     ): Projection {
 
         val selectedFields = resolveTree.fieldsByTypeName[node.name] ?: return Projection()
@@ -64,7 +68,8 @@ class ProjectionTranslator {
             }
 
             if (nodeField is CypherField) {
-                TODO("implement CypherField")
+                projections += alias
+                projections += projectCypherField(field, nodeField, varName )
                 return@forEach
             }
 
@@ -221,14 +226,20 @@ class ProjectionTranslator {
 
                     val whereInput = arguments.where as WhereInput.NodeWhereInput?
 
-                    val endNode = referenceNode!!.asCypherNode(queryContext, param)
-                    val rel = nodeField.createDslRelation(varName, endNode).named(queryContext.getNextVariable(
-                        ChainString(schemaConfig, varName)))
+                    val endNode = referenceNode!!.asCypherNode(
+                        queryContext,
+                        ChainString(schemaConfig, varName, nodeField)
+                    )
+                    val rel = nodeField.createDslRelation(varName, endNode).named(
+                        queryContext.getNextVariable(
+                            ChainString(schemaConfig, varName)
+                        )
+                    )
 
                     //TODO harmonize with union?
                     val recurse = createProjectionAndParams(
                         referenceNode,
-                        Cypher.anyNode(),
+                        endNode,
                         field,
                         param,
                         schemaConfig,
@@ -253,13 +264,14 @@ class ProjectionTranslator {
                     subQueries.add(
                         Cypher.with(varName)
                             .match(rel)
-                            .let { reading -> nodeWhere?.let { reading.where(it) } ?: reading }
+                            .optionalWhere(nodeWhere)
+                            .withSubQueries(recurse.subQueries + nodeSubQueries)
                             .with(endNode.project(recurse.projection).`as`(ref))
+                            .applySortingSkipAndLimit(endNode, arguments.options, queryContext)
                             .returning(Functions.collect(ref)
                                 .let { collect -> if (isArray) collect else Functions.head(collect) }
                                 .`as`(ref)
                             )
-                            // TODO sorting and limit
                             .build()
                     )
                     projections += alias
@@ -285,19 +297,24 @@ class ProjectionTranslator {
             }
 
             if (nodeField is ConnectionField) {
-                TODO("implement ConnectionField")
+
+                CreateConnectionClause.createConnectionClause(
+                    field,
+                    nodeField,
+                    queryContext,
+                    varName,
+                    subQueries,
+                    schemaConfig
+                )
+                    ?.let {
+                        projections += alias
+                        projections += it
+                    }
                 return@forEach
             }
 
-            if (nodeField is PointField) {
-                TODO("implement PointField")
-            } else if (nodeField is TemporalField && nodeField.typeMeta.type.name() == Constants.DATE_TIME) {
-                TODO("implement TemporalField DATE_TIME")
-            } else {
-                projections += alias
-                if (alias != nodeField.dbPropertyName) {
-                    projections += varName.property(nodeField.dbPropertyName)
-                }
+            if (nodeField is ScalarField) {
+                projections.addAll(projectScalarField(field, nodeField, varName, shortcut = useShortcut))
             }
 
         }

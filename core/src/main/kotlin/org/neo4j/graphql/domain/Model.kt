@@ -55,6 +55,7 @@ data class Model(
                 node.interfaces.forEach {
                     implementations.computeIfAbsent(it) { mutableListOf() }.add(node)
                 }
+                node.cypherFields.forEach { it.node = nodesByName[it.typeMeta.type.name()] }
             }
             implementations.forEach { (interfaze, impls) ->
                 interfaze.implementations = impls.sortedBy { it.name }.map { it.name to it }.toMap()

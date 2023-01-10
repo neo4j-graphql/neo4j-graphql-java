@@ -5,8 +5,7 @@ import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.FieldContainer
 import org.neo4j.graphql.domain.fields.HasCoalesceValue
 import org.neo4j.graphql.domain.inputs.WhereInput
-import org.neo4j.graphql.domain.inputs.connection_where.ConnectionWhere
-import org.neo4j.graphql.domain.predicates.AggregationFieldPredicate
+import org.neo4j.graphql.domain.inputs.connection.ConnectionWhere
 import org.neo4j.graphql.domain.predicates.ConnectionFieldPredicate
 import org.neo4j.graphql.domain.predicates.RelationFieldPredicate
 import org.neo4j.graphql.domain.predicates.ScalarFieldPredicate
@@ -153,8 +152,8 @@ fun createWhere(
         val rhs = if (predicate.value == null) {
             Cypher.literalNull()
         } else {
-            queryContext.getNextParam(predicate.value)
             //TODO cleanup old naming logic
+            queryContext.getNextParam(predicate.value)
 //            paramPrefix.extend(predicate.name).resolveParameter(predicate.value)
         }
         return predicate.createCondition(property, rhs)

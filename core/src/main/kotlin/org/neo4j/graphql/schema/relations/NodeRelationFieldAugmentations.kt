@@ -4,17 +4,26 @@ import org.neo4j.graphql.AugmentationContext
 import org.neo4j.graphql.capitalize
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.fields.RelationField
+import org.neo4j.graphql.domain.inputs.WhereInput
+import org.neo4j.graphql.domain.inputs.connect.ConnectFieldInput.NodeConnectFieldInput
+import org.neo4j.graphql.domain.inputs.connect_or_create.ConnectOrCreateFieldInput
+import org.neo4j.graphql.domain.inputs.connection.ConnectionWhere
+import org.neo4j.graphql.domain.inputs.create.CreateFieldInput
+import org.neo4j.graphql.domain.inputs.create.RelationFieldInput
+import org.neo4j.graphql.domain.inputs.delete.DeleteFieldInput
+import org.neo4j.graphql.domain.inputs.disconnect.DisconnectFieldInput
+import org.neo4j.graphql.domain.inputs.update.UpdateFieldInput
 
 /**
  * Augmentation for relations referencing a node
  */
 class NodeRelationFieldAugmentations(
-    ctx: AugmentationContext,
-    val rel: RelationField,
-    private val node: Node = rel.node
-        ?: throw IllegalArgumentException("no node on ${rel.getOwnerName()}.${rel.fieldName}"),
+    private val ctx: AugmentationContext,
+    private val rel: RelationField,
+    private val node: Node,
+) : RelationFieldBaseAugmentation {
+
     private val prefix: String = rel.connectionPrefix + rel.fieldName.capitalize()
-) : RelationFieldBaseAugmentation(ctx, rel) {
 
     init {
         if (rel.isUnion) {
@@ -25,21 +34,30 @@ class NodeRelationFieldAugmentations(
         }
     }
 
-    override fun generateFieldCreateIT() = generateFieldNodeFieldInputIT(prefix, node)
+    override fun generateFieldCreateIT() = CreateFieldInput.NodeFieldInput.Augmentation
+        .generateFieldNodeFieldInputIT(rel, prefix, node, ctx)
 
-    override fun generateFieldConnectIT() = generateFieldConnectFieldInputIT(prefix, node)
+    override fun generateFieldConnectIT() = NodeConnectFieldInput.Augmentation
+        .generateFieldConnectFieldInputIT(rel, prefix, node, ctx)
 
-    override fun generateFieldDeleteIT() = generateFieldDeleteFieldInputIT(prefix, node)
+    override fun generateFieldDeleteIT() = DeleteFieldInput.NodeDeleteFieldInput.Augmentation
+        .generateFieldDeleteFieldInputIT(rel, prefix, node, ctx)
 
-    override fun generateFieldDisconnectIT() = generateFieldDisconnectFieldInputIT(prefix, node)
+    override fun generateFieldDisconnectIT() = DisconnectFieldInput.NodeDisconnectFieldInput.Augmentation
+        .generateFieldDisconnectFieldInputIT(rel, prefix, node, ctx)
 
-    override fun generateFieldRelationCreateIT() = generateFieldCreateFieldInputIT(prefix, node)
+    override fun generateFieldRelationCreateIT() = RelationFieldInput.NodeCreateCreateFieldInput.Augmentation
+        .generateFieldCreateFieldInputIT(rel, prefix, node, ctx)
 
-    override fun generateFieldUpdateIT() = generateFieldUpdateFieldInputIT(prefix, node)
+    override fun generateFieldUpdateIT() = UpdateFieldInput.NodeUpdateFieldInput.Augmentation
+        .generateFieldUpdateFieldInputIT(rel, prefix, node, ctx)
 
-    override fun generateFieldConnectOrCreateIT() = generateFieldConnectOrCreateIT(prefix, node)
+    override fun generateFieldConnectOrCreateIT() = ConnectOrCreateFieldInput.NodeConnectOrCreateFieldInput.Augmentation
+        .generateFieldConnectOrCreateIT(rel, prefix, node, ctx)
 
-    override fun generateFieldWhereIT(): String? = generateWhereIT(node)
+    override fun generateFieldWhereIT(): String? = WhereInput.NodeWhereInput.Augmentation
+        .generateWhereIT(node, ctx)
 
-    override fun generateFieldConnectionWhereIT() = generateFieldConnectionWhereIT(prefix, node)
+    override fun generateFieldConnectionWhereIT() = ConnectionWhere.NodeConnectionWhere.Augmentation
+        .generateFieldConnectionWhereIT(rel, prefix, node, ctx)
 }

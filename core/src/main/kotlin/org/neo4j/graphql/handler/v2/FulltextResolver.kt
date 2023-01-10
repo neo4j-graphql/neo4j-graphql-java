@@ -9,6 +9,8 @@ import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.ExcludeDirective
 import org.neo4j.graphql.domain.directives.FullTextDirective
+import org.neo4j.graphql.domain.inputs.fulltext.FulltextSort
+import org.neo4j.graphql.domain.inputs.fulltext.FulltextWhere
 import org.neo4j.graphql.handler.BaseDataFetcher
 import org.neo4j.graphql.schema.AugmentationHandlerV2
 
@@ -40,8 +42,14 @@ class FulltextResolver private constructor(
                             args += inputValue(Constants.LIMIT, Constants.Types.Int)
                             args += inputValue(Constants.OFFSET, Constants.Types.Int)
                             args += inputValue(Constants.FULLTEXT_PHRASE, Constants.Types.String.makeRequired())
-                            args += inputValue(Constants.SORT, ListType(generateFulltextSort(node).asType(true)))
-                            args += inputValue(Constants.WHERE, generateFulltextWhere(node).asType())
+                            args += inputValue(
+                                Constants.SORT,
+                                ListType(FulltextSort.Augmentation.generateFulltextSort(node, ctx).asType(true))
+                            )
+                            args += inputValue(
+                                Constants.WHERE,
+                                FulltextWhere.Augmentation.generateFulltextWhere(node, ctx).asType()
+                            )
                         }
                     AugmentedField(coordinates, FulltextResolver(ctx.schemaConfig, node, fullTextIndex))
                 }

@@ -54,16 +54,7 @@ mutation {
     "longitude": 1,
     "latitude": 2
   },
-  "this0_actors_connectOrCreate_param3": {
-    "year": 1970,
-    "month": 1,
-    "day": 1,
-    "hour": 0,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0,
-    "timeZoneOffsetSeconds": 0
-  },
+  "this0_actors_connectOrCreate_param3": "1970-01-01T00:00:00Z",
   "resolvedCallbacks": {}
 }
 ----

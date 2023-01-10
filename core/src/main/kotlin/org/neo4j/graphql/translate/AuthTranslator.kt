@@ -65,8 +65,7 @@ class AuthTranslator(
                 useAnyPredicate = true,
                 node = allow.parentNode,
                 varName = allow.varName,
-                chainStr = (allow.chainStr ?: ChainString(schemaConfig, allow.varName))
-                    .extend(chainStr, "auth", "allow", index),
+                chainStr = (allow.chainStr ?: ChainString(schemaConfig, allow.varName)).appendOnPrevious( "auth"),
             )
                 ?.let { condition = condition and it }
 
@@ -78,8 +77,7 @@ class AuthTranslator(
                 useAnyPredicate = false,
                 node = bind.parentNode,
                 varName = bind.varName,
-                chainStr = (bind.chainStr ?: ChainString(schemaConfig, bind.varName))
-                    .extend(chainStr, "auth", "bind", index),
+                chainStr = (bind.chainStr ?: ChainString(schemaConfig, bind.varName)).appendOnPrevious( "auth"),
             )
                 ?.let { condition = condition and it }
         }
@@ -90,8 +88,7 @@ class AuthTranslator(
                 useAnyPredicate = false,
                 node = where.parentNode,
                 varName = where.varName,
-                chainStr = (where.chainStr ?: ChainString(schemaConfig, where.varName))
-                    .extend(chainStr, "auth", "where", index),
+                chainStr = (where.chainStr ?: ChainString(schemaConfig)).appendOnPrevious( "auth"),
             )
                 ?.let { condition = condition and it }
         }
@@ -154,7 +151,7 @@ class AuthTranslator(
     ): Condition? {
         var condition: Condition? = null
 
-        ruleDefinitions.forEach { (keyObject, value) ->
+        ruleDefinitions.entries.forEachIndexed { ruleIndex, (keyObject, value) ->
             val key = keyObject as String
             if (PREDICATE_JOINS.contains(key)) {
                 var innerConditions: Condition? = null
@@ -166,7 +163,8 @@ class AuthTranslator(
                         item,
                         allowUnauthenticated,
                         useAnyPredicate,
-                        chainStr.extend(key, index),
+//                        chainStr.extend(key, index),
+                        chainStr,
                         node,
                         varName
                     )?.let { innerCondition ->
@@ -201,7 +199,7 @@ class AuthTranslator(
 //                        null -> varName.property(authableField.dbPropertyName).isNull
                     else -> {
                         val property = varName.property(authableField.dbPropertyName)
-                        val parameter = queryContext.getNextParam(paramValue)
+                        val parameter = queryContext.getNextParam(chainStr.resolveName()+ "_param", paramValue)
                         property.isNotNull.and(property.eq(parameter))
                     }
                 }
@@ -210,10 +208,12 @@ class AuthTranslator(
 
             val relationField = node.relationFields.find { it.fieldName == key }
             if (relationField != null) {
-                val refNode = relationField.node ?: return@forEach
+                val refNode = relationField.node ?: return@forEachIndexed
 
-                val end = Cypher.node(refNode.mainLabel, refNode.additionalLabels(queryContext))
-                val namedEnd = end.named(relationField.fieldName)
+                val end = refNode.asCypherNode(queryContext)
+                // TODO naming
+                val namedEnd = end.named("auth_this"+ruleIndex)
+//                val namedEnd = end.named(chainStr.resolveName())
 
                 var authPredicate = Conditions.noCondition()
                 (value as Map<*, *>).forEach { (k, v) ->
@@ -222,7 +222,7 @@ class AuthTranslator(
                             mapOf(k to v),
                             allowUnauthenticated,
                             useAnyPredicate,
-                            chainStr.extend(key),
+                            chainStr,
                             refNode,
                             namedEnd
                         )
@@ -239,10 +239,10 @@ class AuthTranslator(
 //                TODO check if we can use this
 //                    .`in`(Cypher.listBasedOn(relationField.createDslRelation(varName, namedEnd)).returning(authPredicate))
 //                    .where(cond.asCondition())
-                    .`in`(Cypher.listBasedOn(relationField.createDslRelation(varName, namedEnd)).returning(cond))
+                    .`in`(Cypher.listBasedOn(relationField.createDslRelation(varName, namedEnd, startLeft = true)).returning(cond))
                     .where(authPredicate)
 
-                val relationCondition = Predicates.exists(relationField.createDslRelation(varName, end)).and(o)
+                val relationCondition = Predicates.exists(relationField.createDslRelation(varName, end, startLeft = true)).and(o)
                 condition = condition?.and(relationCondition) ?: relationCondition
             }
         }

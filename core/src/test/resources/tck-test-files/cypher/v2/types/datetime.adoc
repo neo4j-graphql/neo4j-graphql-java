@@ -41,16 +41,7 @@ mutation {
 {
   "create_param0": [
     {
-      "datetime": {
-        "year": 1970,
-        "month": 1,
-        "day": 1,
-        "hour": 0,
-        "minute": 0,
-        "second": 0,
-        "nanosecond": 0,
-        "timeZoneOffsetSeconds": 0
-      }
+      "datetime": "1970-01-01T00:00:00Z"
     }
   ],
   "resolvedCallbacks": {}
@@ -90,16 +81,7 @@ RETURN collect(create_this0 {
 [source,json]
 ----
 {
-  "param0": {
-    "year": 1970,
-    "month": 1,
-    "day": 1,
-    "hour": 0,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0,
-    "timeZoneOffsetSeconds": 0
-  }
+  "param0": "1970-01-01T00:00:00Z"
 }
 ----
 
@@ -134,16 +116,7 @@ mutation {
 [source,json]
 ----
 {
-  "this_update_datetime": {
-    "year": 1970,
-    "month": 1,
-    "day": 1,
-    "hour": 0,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0,
-    "timeZoneOffsetSeconds": 0
-  },
+  "this_update_datetime": "1970-01-01T00:00:00Z",
   "resolvedCallbacks": {}
 }
 ----

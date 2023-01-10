@@ -42,12 +42,7 @@ type Post {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0": "12:00:00"
 }
 ----
 
@@ -85,12 +80,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0": "12:00:00"
 }
 ----
 
@@ -128,12 +118,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0": "12:00:00"
 }
 ----
 
@@ -171,12 +156,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0": "12:00:00"
 }
 ----
 
@@ -214,12 +194,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0": "12:00:00"
 }
 ----
 
@@ -257,12 +232,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0": "12:00:00"
 }
 ----
 
@@ -300,12 +270,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0": "12:00:00"
 }
 ----
 
@@ -343,12 +308,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0": "12:00:00"
 }
 ----
 
@@ -386,12 +346,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0": "12:00:00"
 }
 ----
 
@@ -429,12 +384,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0": "12:00:00"
 }
 ----
 
@@ -472,12 +422,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0": "12:00:00"
 }
 ----
 
@@ -515,12 +460,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0": "12:00:00"
 }
 ----
 
@@ -558,12 +498,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0": "12:00:00"
 }
 ----
 
@@ -601,12 +536,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0": "12:00:00"
 }
 ----
 
@@ -644,12 +574,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0": "12:00:00"
 }
 ----
 
@@ -687,12 +612,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0
-  }
+  "param0": "12:00:00"
 }
 ----
 

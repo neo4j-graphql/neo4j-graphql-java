@@ -40,6 +40,8 @@ sealed class ImplementingType(
 
     open val plural: String by lazy { leadingUnderscores(name) + English.plural(camelCase(name)) }
 
+    open val pluralKeepCase: String by lazy { English.plural(name) }
+
     val pascalCaseSingular: String by lazy { this.singular.capitalize() }
 
     val pascalCasePlural: String by lazy { this.plural.capitalize() }

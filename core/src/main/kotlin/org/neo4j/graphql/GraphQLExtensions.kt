@@ -16,6 +16,7 @@ import org.neo4j.graphql.DirectiveConstants.PROPERTY
 import org.neo4j.graphql.DirectiveConstants.PROPERTY_NAME
 import org.neo4j.graphql.DirectiveConstants.RELATION_NAME
 import org.neo4j.graphql.DirectiveConstants.RELATION_TO
+import org.neo4j.graphql.domain.fields.BaseField
 import org.neo4j.graphql.handler.projection.ProjectionBase
 import org.slf4j.LoggerFactory
 import kotlin.reflect.KMutableProperty0
@@ -49,6 +50,10 @@ fun TypeName.wrapLike(type: Type<*>): Type<*> = when (type) {
     is NonNullType -> NonNullType(this.wrapLike(type.type))
     is TypeName -> this
     else -> throw IllegalStateException("Unknown type")
+}
+fun String.wrapType(field: BaseField) = when {
+    field.typeMeta.type.isList() -> ListType(this.asRequiredType())
+    else -> this.asType()
 }
 
 fun TypeName.makeRequired(required: Boolean = true): Type<*> = when (required) {

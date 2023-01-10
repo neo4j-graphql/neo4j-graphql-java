@@ -434,14 +434,14 @@ input MovieWhere {
   actorsConnection_NOT: MovieActorsConnectionWhere @deprecated(reason : "Use `actorsConnection_NONE` instead.")
   actorsConnection_SINGLE: MovieActorsConnectionWhere
   actorsConnection_SOME: MovieActorsConnectionWhere
-  "Return Movies where all of the related People match this filter"
+  "Return Movies where all of the related Persons match this filter"
   actors_ALL: PersonWhere
-  "Return Movies where none of the related People match this filter"
+  "Return Movies where none of the related Persons match this filter"
   actors_NONE: PersonWhere
   actors_NOT: PersonWhere @deprecated(reason : "Use `actors_NONE` instead.")
-  "Return Movies where one of the related People match this filter"
+  "Return Movies where one of the related Persons match this filter"
   actors_SINGLE: PersonWhere
-  "Return Movies where some of the related People match this filter"
+  "Return Movies where some of the related Persons match this filter"
   actors_SOME: PersonWhere
   title: String
   title_CONTAINS: String
@@ -629,14 +629,14 @@ input PersonWhere {
   actedInMoviesConnection_NOT: PersonActedInMoviesConnectionWhere @deprecated(reason : "Use `actedInMoviesConnection_NONE` instead.")
   actedInMoviesConnection_SINGLE: PersonActedInMoviesConnectionWhere
   actedInMoviesConnection_SOME: PersonActedInMoviesConnectionWhere
-  "Return People where all of the related Movies match this filter"
+  "Return Persons where all of the related Movies match this filter"
   actedInMovies_ALL: MovieWhere
-  "Return People where none of the related Movies match this filter"
+  "Return Persons where none of the related Movies match this filter"
   actedInMovies_NONE: MovieWhere
   actedInMovies_NOT: MovieWhere @deprecated(reason : "Use `actedInMovies_NONE` instead.")
-  "Return People where one of the related Movies match this filter"
+  "Return Persons where one of the related Movies match this filter"
   actedInMovies_SINGLE: MovieWhere
-  "Return People where some of the related Movies match this filter"
+  "Return Persons where some of the related Movies match this filter"
   actedInMovies_SOME: MovieWhere
   name: String
   name_CONTAINS: String

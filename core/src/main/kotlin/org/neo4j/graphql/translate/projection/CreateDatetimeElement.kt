@@ -1,4 +1,4 @@
-package org.neo4j.graphql.handler.projection
+package org.neo4j.graphql.translate.projection
 
 import org.neo4j.cypherdsl.core.Expression
 import org.neo4j.graphql.asCypherLiteral

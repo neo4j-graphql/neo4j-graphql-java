@@ -7,13 +7,14 @@ import org.neo4j.graphql.*
 import org.neo4j.graphql.DirectiveConstants.ALIAS
 import org.neo4j.graphql.DirectiveConstants.AUTH
 import org.neo4j.graphql.DirectiveConstants.COALESCE
-import org.neo4j.graphql.DirectiveConstants.COMPUTED
+import org.neo4j.graphql.DirectiveConstants.CUSTOM_RESOLVER
 import org.neo4j.graphql.DirectiveConstants.CYPHER
 import org.neo4j.graphql.DirectiveConstants.DEFAULT
 import org.neo4j.graphql.DirectiveConstants.EXCLUDE
 import org.neo4j.graphql.DirectiveConstants.ID
 import org.neo4j.graphql.DirectiveConstants.IGNORE
 import org.neo4j.graphql.DirectiveConstants.NODE
+import org.neo4j.graphql.DirectiveConstants.POPULATED_BY
 import org.neo4j.graphql.DirectiveConstants.PRIVATE
 import org.neo4j.graphql.DirectiveConstants.READ_ONLY
 import org.neo4j.graphql.DirectiveConstants.RELATIONSHIP
@@ -63,7 +64,8 @@ object FieldFactory {
             val relationshipDirective =
                 directives.remove(RELATIONSHIP)?.let { RelationshipDirective.create(it) }
             val cypherDirective = directives.remove(CYPHER)?.let { CypherDirective.create(it) }
-            val computedDirective = directives.remove(COMPUTED)?.let { ComputedDirective.create(it) }
+            val customResolverDirective = directives.remove(CUSTOM_RESOLVER)?.let { CustomResolverDirective.create(it) }
+
             val typeMeta = TypeMeta.create(field)
             val authDirective = directives.remove(AUTH)?.let { AuthDirective.create(it) }
             val idDirective = directives.remove(ID)?.let { IdDirective.create(it) }
@@ -72,6 +74,8 @@ object FieldFactory {
             val timestampDirective =
                 directives.remove(TIMESTAMP)?.let { TimestampDirective.create(it) }
             val aliasDirective = directives.remove(ALIAS)?.let { AliasDirective.create(it) }
+            val populatedByDirective = directives.remove(POPULATED_BY)?.let { PopulatedByDirective.create(it) }
+
             val unique = directives.remove(UNIQUE)
                 ?.let { UniqueDirective.create(it) }
                 ?: idDirective?.let { UniqueDirective("${obj.name}_${field.name}") }
@@ -147,8 +151,8 @@ object FieldFactory {
 
             } else if (cypherDirective != null) {
                 baseField = CypherField(field.name, typeMeta, cypherDirective.statement)
-            } else if (computedDirective != null) {
-                baseField = ComputedField(field.name, typeMeta, computedDirective.from)
+            } else if (customResolverDirective != null) {
+                baseField = ComputedField(field.name, typeMeta, customResolverDirective.requires)
             } else if (fieldScalar != null) {
                 baseField = CustomScalarField(field.name, typeMeta, schemaConfig)
             } else if (fieldEnum != null) {
@@ -217,10 +221,10 @@ object FieldFactory {
                     fun <T : Value<*>> Value<*>.checkKind(clazz: KClass<T>): T = clazz.safeCast(this)
                         ?: throw IllegalArgumentException("Default value for ${obj.name}.${field.name} does not have matching type ${typeMeta.type.name()}")
                     baseField.defaultValue = when (typeMeta.type.name()) {
-                        "ID", "String" -> value.checkKind(StringValue::class)
-                        "Boolean" -> value.checkKind(BooleanValue::class)
-                        "Int" -> value.checkKind(IntValue::class)
-                        "Float" -> value.checkKind(FloatValue::class)
+                        Constants.ID, Constants.STRING -> value.checkKind(StringValue::class)
+                        Constants.BOOLEAN -> value.checkKind(BooleanValue::class)
+                        Constants.INT -> value.checkKind(IntValue::class)
+                        Constants.FLOAT -> value.checkKind(FloatValue::class)
                         else -> throw IllegalArgumentException("@default directive can only be used on types: Int | Float | String | Boolean | ID")
                     }
                 }
@@ -230,15 +234,19 @@ object FieldFactory {
                     fun <T : Value<*>> Value<*>.checkKind(clazz: KClass<T>): T = clazz.safeCast(this)
                         ?: throw IllegalArgumentException("coalesce() value for ${obj.name}.${field.name} does not have matching type ${typeMeta.type.name()}")
                     baseField.coalesceValue = when (typeMeta.type.name()) {
-                        "ID", "String" -> value.checkKind(StringValue::class)
-                        "Boolean" -> value.checkKind(BooleanValue::class)
-                        "Int" -> value.checkKind(IntValue::class)
-                        "Float" -> value.checkKind(FloatValue::class)
+                        Constants.ID, Constants.STRING -> value.checkKind(StringValue::class)
+                        Constants.BOOLEAN -> value.checkKind(BooleanValue::class)
+                        Constants.INT -> value.checkKind(IntValue::class)
+                        Constants.FLOAT -> value.checkKind(FloatValue::class)
                         else -> throw IllegalArgumentException("@coalesce directive can only be used on types: Int | Float | String | Boolean | ID")
                     }
                 }
 
 
+            }
+
+            if (baseField is PrimitiveField){
+                baseField.callback = populatedByDirective
             }
 
             baseField.apply {

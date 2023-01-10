@@ -7,6 +7,7 @@ import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
 import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.domain.inputs.connect.ConnectFieldInput
+import org.neo4j.graphql.domain.inputs.connect.ConnectFieldInput.ImplementingTypeConnectFieldInput
 import org.neo4j.graphql.domain.inputs.connect.ConnectInput
 import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.translate.where.createWhere
@@ -21,7 +22,7 @@ class ConnectTranslator(
     private val fromCreate: Boolean,
     private val withVars: List<SymbolicName>,
     private val relationField: RelationField,
-    private val inputs: List<ConnectFieldInput.ImplementingTypeConnectFieldInput>?,
+    private val inputs: List<ImplementingTypeConnectFieldInput>?,
     private val exposeWith: ExposesWith,
     private val refNodes: Collection<Node>,
     private val labelOverride: String?,
@@ -62,7 +63,7 @@ class ConnectTranslator(
 
     private fun createSubqueryContents(
         relatedNode: Node,
-        connect: ConnectFieldInput.ImplementingTypeConnectFieldInput,
+        connect: ImplementingTypeConnectFieldInput,
         baseName: ChainString,
     ): Statement {
         val nodeName = baseName.extend("node")
@@ -105,7 +106,7 @@ class ConnectTranslator(
     private fun getConnectWhere(
         nodeName: org.neo4j.cypherdsl.core.Node,
         relatedNode: Node,
-        connect: ConnectFieldInput.ImplementingTypeConnectFieldInput
+        connect: ImplementingTypeConnectFieldInput
     ): WhereResult {
         val whereNode = connect.where?.node ?: return WhereResult.EMPTY
 
@@ -150,9 +151,7 @@ class ConnectTranslator(
             AuthTranslator(
                 schemaConfig,
                 queryContext,
-                allow = allow.copy(
-                    chainStr = ChainString(schemaConfig, allow.varName, allow.parentNode, index, "allow")
-                )
+                allow = allow
             )
                 .createAuth(allow.parentNode.auth, AuthDirective.AuthOperation.CONNECT)
                 ?.let { preAuth = preAuth and it }
@@ -163,7 +162,7 @@ class ConnectTranslator(
     private fun getMergeConnectionStatement(
         nodeName: org.neo4j.cypherdsl.core.Node,
         baseName: ChainString,
-        connect: ConnectFieldInput.ImplementingTypeConnectFieldInput
+        connect: ImplementingTypeConnectFieldInput
     ): ResultStatement {
         var createDslRelation = relationField.createDslRelation(parentVar, nodeName)
         val edgeSet = if (relationField.properties != null) {
@@ -180,7 +179,7 @@ class ConnectTranslator(
         }
 
         //https://neo4j.com/developer/kb/conditional-cypher-execution/
-        return Cypher.with(parentVar, nodeName)
+        return Cypher.with(Cypher.asterisk())
             .with(parentVar, nodeName)
             .where(parentVar.isNotNull.and(nodeName.isNotNull))
             .merge(createDslRelation)
@@ -213,7 +212,7 @@ class ConnectTranslator(
         nodeName: org.neo4j.cypherdsl.core.Node,
         relatedNode: Node,
         baseName: ChainString,
-        connect: ConnectFieldInput.ImplementingTypeConnectFieldInput,
+        connect: ImplementingTypeConnectFieldInput,
         subQuery: ExposesWith
     ): ExposesWith {
         val connects = connect.connect ?: return subQuery

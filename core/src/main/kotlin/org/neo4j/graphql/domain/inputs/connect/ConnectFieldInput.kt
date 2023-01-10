@@ -1,10 +1,15 @@
 package org.neo4j.graphql.domain.inputs.connect
 
-import org.neo4j.graphql.Constants
+import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.*
 import org.neo4j.graphql.domain.fields.RelationField
-import org.neo4j.graphql.domain.inputs.*
-import org.neo4j.graphql.wrapList
+import org.neo4j.graphql.domain.inputs.Dict
+import org.neo4j.graphql.domain.inputs.InputListWrapper
+import org.neo4j.graphql.domain.inputs.PerNodeInput
+import org.neo4j.graphql.domain.inputs.ScalarProperties
+import org.neo4j.graphql.domain.inputs.create.CreateInput
+import org.neo4j.graphql.schema.InterfaceAugmentation
+import org.neo4j.graphql.schema.relations.RelationFieldBaseAugmentation
 
 sealed interface ConnectFieldInput {
 
@@ -24,7 +29,27 @@ sealed interface ConnectFieldInput {
     }
 
     class NodeConnectFieldInput(node: Node, relationshipProperties: RelationshipProperties?, data: Dict) :
-        ImplementingTypeConnectFieldInput(node, relationshipProperties, data)
+        ImplementingTypeConnectFieldInput(node, relationshipProperties, data) {
+
+        object Augmentation {
+            fun generateFieldConnectFieldInputIT(
+                rel: RelationField,
+                prefix: String,
+                node: Node,
+                ctx: AugmentationContext
+            ) = ctx.getOrCreateInputObjectType(prefix + Constants.InputTypeSuffix.ConnectFieldInput) { fields, _ ->
+
+                ConnectWhere.Augmentation.generateConnectWhereIT(node, ctx)
+                    ?.let { fields += ctx.inputValue(Constants.WHERE, it.asType()) }
+
+                ConnectInput.NodeConnectInput.Augmentation.generateContainerConnectInputIT(node, ctx)
+                    ?.let { fields += ctx.inputValue(Constants.CONNECT_FIELD, it.wrapType(rel)) }
+
+                CreateInput.Augmentation.addEdgePropertyCreateInputField(rel.properties, fields, ctx,
+                    required = { it.hasRequiredNonGeneratedFields })
+            }
+        }
+    }
 
     class InterfaceConnectFieldInput(
         interfaze: Interface,
@@ -36,8 +61,46 @@ sealed interface ConnectFieldInput {
             PerNodeInput(
                 interfaze,
                 Dict(it),
-                { node: Node, value: Any -> NodeConnectFieldInputs.create(node, relationshipProperties, value) }
+                { node: Node, value: Any ->
+                    ConnectFieldInput.NodeConnectFieldInputs.create(
+                        node,
+                        relationshipProperties,
+                        value
+                    )
+                }
             )
+        }
+
+        object Augmentation {
+            fun generateFieldConnectIT(
+                rel: RelationField,
+                prefix: String,
+                interfaze: Interface,
+                ctx: AugmentationContext
+            ) = ctx.getOrCreateInputObjectType("${prefix}${Constants.InputTypeSuffix.ConnectFieldInput}") { fields, _ ->
+
+                InterfaceAugmentation(interfaze, ctx)
+                    .addInterfaceField(
+                        Constants.InputTypeSuffix.ConnectInput,
+                        { node ->
+                            ConnectInput.NodeConnectInput.Augmentation.generateContainerConnectInputIT(
+                                node,
+                                ctx
+                            )
+                        },
+                        RelationFieldBaseAugmentation::generateFieldConnectIT
+                    )
+                    ?.let { fields += ctx.inputValue(Constants.CONNECT_FIELD, it.asType()) }
+
+                CreateInput.Augmentation.addEdgePropertyCreateInputField(
+                    rel.properties,
+                    fields,
+                    ctx,
+                    required = { it.hasRequiredFields })
+
+                ConnectWhere.Augmentation.generateConnectWhereIT(interfaze, ctx)
+                    ?.let { fields += ctx.inputValue(Constants.WHERE, it.asType()) }
+            }
         }
     }
 
@@ -59,7 +122,13 @@ sealed interface ConnectFieldInput {
             fun create(interfaze: Interface, relationshipProperties: RelationshipProperties?, value: Any?) = create(
                 value,
                 ::InterfaceConnectFieldInputs,
-                { InterfaceConnectFieldInput(interfaze, relationshipProperties, Dict(it)) }
+                {
+                    InterfaceConnectFieldInput(
+                        interfaze,
+                        relationshipProperties,
+                        Dict(it)
+                    )
+                }
             )
         }
     }
@@ -71,10 +140,6 @@ sealed interface ConnectFieldInput {
             data,
             { node, value -> NodeConnectFieldInputs.create(node, relationshipProperties, value) }
         )
-
-    class ConnectWhere(type: ImplementingType, data: Dict) {
-        val node = data[Constants.NODE_FIELD]?.let { WhereInput.create(type, it) }
-    }
 
     companion object {
         fun create(field: RelationField, value: Any) = field.extractOnTarget(

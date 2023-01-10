@@ -3,17 +3,21 @@ package org.neo4j.graphql.handler.utils
 import org.neo4j.cypherdsl.core.Cypher
 import org.neo4j.graphql.SchemaConfig
 
-class ChainString private constructor(val schemaConfig: SchemaConfig, val list: List<Any?>) {
+class ChainString private constructor(val schemaConfig: SchemaConfig, val list: List<Pair<Boolean, Any?>>) {
 
-    constructor(schemaConfig: SchemaConfig, vararg parts: Any?) : this(schemaConfig, parts.toList())
+    constructor(schemaConfig: SchemaConfig, vararg parts: Any?) : this(schemaConfig, parts.toList().map { false to it })
 
-    fun extend(parts: List<Any?>) = ChainString(schemaConfig, list + parts)
+    fun extend(parts: List<Any?>) = ChainString(schemaConfig, list + parts.map { false to it })
     fun extend(vararg parts: Any?) = extend(parts.toList())
 
-    fun resolveName() = schemaConfig.namingStrategy.resolveName(*list.toTypedArray())
+    fun appendOnPrevious(parts: List<Any?>) = ChainString(schemaConfig, list + parts.map { true to it })
+
+    fun appendOnPrevious(vararg parts: Any?) = appendOnPrevious(parts.toList())
+
+    fun resolveName() = schemaConfig.namingStrategy.resolveInternal(list)
 
     fun resolveParameter(value: Any?) = Cypher.parameter(
-        schemaConfig.namingStrategy.resolveParameter(*list.toTypedArray()),
+        schemaConfig.namingStrategy.resolveInternal(list),
         value
     )
 

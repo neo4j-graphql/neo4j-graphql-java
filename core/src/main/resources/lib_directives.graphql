@@ -81,7 +81,7 @@ directive @plural(
   value: String!
 ) on OBJECT
 
-# TODO remove?
+# TODO ?
 "Instructs neo4j-graphql-java to invoke the specified callback function when updating or creating the properties on a node or relationship."
 directive @populatedBy(
   "The name of the callback function that will be used to populate the fields values."
@@ -89,7 +89,7 @@ directive @populatedBy(
 
   "Which events to invoke the callback on."
   operations: [PopulatedByOperation!]! = [CREATE, UPDATE]
-) on OBJECT
+) on FIELD_DEFINITION
 
 # TODO remove?
 "Instructs neo4j-graphql-java to only expose a field through the Neo4j GraphQL OGM."

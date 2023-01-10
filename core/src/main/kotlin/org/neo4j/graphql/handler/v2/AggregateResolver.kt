@@ -14,13 +14,12 @@ import org.neo4j.graphql.domain.fields.PrimitiveField
 import org.neo4j.graphql.domain.fields.TemporalField
 import org.neo4j.graphql.domain.inputs.Dict
 import org.neo4j.graphql.domain.inputs.WhereInput
-import org.neo4j.graphql.domain.inputs.filter.FulltextPerIndex
 import org.neo4j.graphql.handler.BaseDataFetcher
-import org.neo4j.graphql.handler.projection.createDatetimeExpression
 import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.schema.AugmentationHandlerV2
 import org.neo4j.graphql.translate.AuthTranslator
 import org.neo4j.graphql.translate.TopLevelMatchTranslator
+import org.neo4j.graphql.translate.projection.createDatetimeExpression
 import org.neo4j.graphql.utils.ResolveTree
 
 
@@ -38,7 +37,8 @@ class AggregateResolver private constructor(
             val aggregationSelection = addAggregationSelectionType(node)
             val coordinates =
                 addQueryField(node.rootTypeFieldNames.aggregate, aggregationSelection.asRequiredType()) { args ->
-                    generateWhereIT(node)?.let { args += inputValue(Constants.WHERE, it.asType()) }
+                    WhereInput.NodeWhereInput.Augmentation.generateWhereIT(node, ctx)
+                        ?.let { args += inputValue(Constants.WHERE, it.asType()) }
                 }
             return AugmentedField(coordinates, AggregateResolver(ctx.schemaConfig, node)).wrapList()
         }
@@ -56,21 +56,21 @@ class AggregateResolver private constructor(
 
         val dslNode = node.asCypherNode(queryContext, variable)
 
-        val authPredicates =
-            AuthTranslator(schemaConfig, queryContext, allow = AuthTranslator.AuthOptions(dslNode, node))
-            .createAuth(node.auth, AuthDirective.AuthOperation.READ)
-            ?.let { it.apocValidatePredicate(Constants.AUTH_FORBIDDEN_ERROR) }
-
 // TODO harmonize with read
         var ongoingReading = TopLevelMatchTranslator(schemaConfig, env.variables, queryContext)
             .translateTopLevelMatch(
                 node,
                 dslNode,
-               null,
+                null,
                 arguments.where,
-                AuthDirective.AuthOperation.READ,
-                authPredicates
+                AuthDirective.AuthOperation.READ
             )
+            .let { reading ->
+                AuthTranslator(schemaConfig, queryContext, allow = AuthTranslator.AuthOptions(dslNode, node))
+                    .createAuth(node.auth, AuthDirective.AuthOperation.READ)
+                    ?.let { reading.apocValidate(it, Constants.AUTH_FORBIDDEN_ERROR) }
+                    ?: reading
+            }
 
 
         val selection = resolveTree.fieldsByTypeName[node.aggregateTypeNames.selection]
@@ -92,7 +92,7 @@ class AggregateResolver private constructor(
                 AuthTranslator(
                     schemaConfig,
                     queryContext,
-                    allow = AuthTranslator.AuthOptions(dslNode, node, param)
+                    allow = AuthTranslator.AuthOptions(dslNode, node)
                 )
                     .createAuth(auth, AuthDirective.AuthOperation.READ)
                     ?.let { authValidate = authValidate and it }

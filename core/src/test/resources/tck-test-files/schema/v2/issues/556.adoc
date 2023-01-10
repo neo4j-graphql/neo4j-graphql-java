@@ -581,11 +581,6 @@ input ArticleImagesUpdateFieldInput {
   where: ArticleImagesConnectionWhere
 }
 
-input ArticleOnCreateInput {
-  "Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/"
-  _emptyInput: Boolean
-}
-
 input ArticleOptions {
   limit: Int
   offset: Int
@@ -689,7 +684,7 @@ input BlockOptions {
   limit: Int
   offset: Int
   "Specify one or more BlockSort objects to sort Blocks by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [BlockSort]
+  sort: [BlockSort!]
 }
 
 "Fields to sort Blocks by. The order in which sorts are applied is not guaranteed when specifying many fields in one BlockSort object."
@@ -923,12 +918,7 @@ input ImageFeaturedInConnectFieldInput {
 }
 
 input ImageFeaturedInConnectOrCreateFieldInput {
-  onCreate: ImageFeaturedInConnectOrCreateFieldInputOnCreate!
   where: ArticleConnectOrCreateWhere!
-}
-
-input ImageFeaturedInConnectOrCreateFieldInputOnCreate {
-  node: ArticleOnCreateInput!
 }
 
 input ImageFeaturedInConnectionSort {
@@ -1027,12 +1017,7 @@ input JournalistArticlesConnectFieldInput {
 }
 
 input JournalistArticlesConnectOrCreateFieldInput {
-  onCreate: JournalistArticlesConnectOrCreateFieldInputOnCreate!
   where: ArticleConnectOrCreateWhere!
-}
-
-input JournalistArticlesConnectOrCreateFieldInputOnCreate {
-  node: ArticleOnCreateInput!
 }
 
 input JournalistArticlesConnectionSort {

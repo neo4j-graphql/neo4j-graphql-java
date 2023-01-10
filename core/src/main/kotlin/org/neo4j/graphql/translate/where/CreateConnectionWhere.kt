@@ -9,7 +9,7 @@ import org.neo4j.graphql.and
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.domain.inputs.WhereInput
-import org.neo4j.graphql.domain.inputs.connection_where.ConnectionWhere
+import org.neo4j.graphql.domain.inputs.connection.ConnectionWhere
 import org.neo4j.graphql.domain.predicates.ConnectionPredicate
 import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.translate.WhereResult

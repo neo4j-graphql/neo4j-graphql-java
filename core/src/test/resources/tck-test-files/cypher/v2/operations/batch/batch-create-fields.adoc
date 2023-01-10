@@ -584,12 +584,7 @@ mutation {
   "create_param0": [
     {
       "id": "1",
-      "runningTime": {
-        "months": 0,
-        "days": 14,
-        "seconds": 58320,
-        "nanoseconds": 0
-      },
+      "runningTime": "P0M14DT58320S",
       "location": {
         "longitude": 3,
         "latitude": 3

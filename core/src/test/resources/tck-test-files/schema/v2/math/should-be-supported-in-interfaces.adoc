@@ -276,14 +276,14 @@ input MovieWhere {
   workersConnection_NOT: MovieWorkersConnectionWhere @deprecated(reason : "Use `workersConnection_NONE` instead.")
   workersConnection_SINGLE: MovieWorkersConnectionWhere
   workersConnection_SOME: MovieWorkersConnectionWhere
-  "Return Movies where all of the related People match this filter"
+  "Return Movies where all of the related Persons match this filter"
   workers_ALL: PersonWhere
-  "Return Movies where none of the related People match this filter"
+  "Return Movies where none of the related Persons match this filter"
   workers_NONE: PersonWhere
   workers_NOT: PersonWhere @deprecated(reason : "Use `workers_NONE` instead.")
-  "Return Movies where one of the related People match this filter"
+  "Return Movies where one of the related Persons match this filter"
   workers_SINGLE: PersonWhere
-  "Return Movies where some of the related People match this filter"
+  "Return Movies where some of the related Persons match this filter"
   workers_SOME: PersonWhere
 }
 

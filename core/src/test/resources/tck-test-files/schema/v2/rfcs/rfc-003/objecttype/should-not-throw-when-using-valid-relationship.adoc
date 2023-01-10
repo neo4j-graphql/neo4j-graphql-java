@@ -269,12 +269,7 @@ input SourceTarget1ConnectFieldInput {
 }
 
 input SourceTarget1ConnectOrCreateFieldInput {
-  onCreate: SourceTarget1ConnectOrCreateFieldInputOnCreate!
   where: TargetConnectOrCreateWhere!
-}
-
-input SourceTarget1ConnectOrCreateFieldInputOnCreate {
-  node: TargetOnCreateInput!
 }
 
 input SourceTarget1ConnectionSort {
@@ -342,12 +337,7 @@ input SourceTarget2ConnectFieldInput {
 }
 
 input SourceTarget2ConnectOrCreateFieldInput {
-  onCreate: SourceTarget2ConnectOrCreateFieldInputOnCreate!
   where: TargetConnectOrCreateWhere!
-}
-
-input SourceTarget2ConnectOrCreateFieldInputOnCreate {
-  node: TargetOnCreateInput!
 }
 
 input SourceTarget2ConnectionSort {
@@ -415,12 +405,7 @@ input SourceTargetsConnectFieldInput {
 }
 
 input SourceTargetsConnectOrCreateFieldInput {
-  onCreate: SourceTargetsConnectOrCreateFieldInputOnCreate!
   where: TargetConnectOrCreateWhere!
-}
-
-input SourceTargetsConnectOrCreateFieldInputOnCreate {
-  node: TargetOnCreateInput!
 }
 
 input SourceTargetsConnectionSort {
@@ -519,11 +504,6 @@ input TargetConnectWhere {
 }
 
 input TargetCreateInput {
-  "Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/"
-  _emptyInput: Boolean
-}
-
-input TargetOnCreateInput {
   "Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/"
   _emptyInput: Boolean
 }

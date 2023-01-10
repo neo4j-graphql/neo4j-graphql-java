@@ -27,7 +27,17 @@ type Genre {
 [source,json,schema-config=true]
 ----
 {
-  "enableRegex": true
+  "enableRegex": true,
+  "features": {
+    "filters": {
+      "string": {
+        "lt": true,
+        "lte": true,
+        "gt": true,
+        "gte": true
+      }
+    }
+  }
 }
 ----
 == CONTAINS
@@ -142,10 +152,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "low": -808,
-    "high": 2147483647
-  }
+  "param0" : 9223372036854775000
 }
 ----
 
@@ -241,10 +248,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "low": -808,
-    "high": 2147483647
-  }
+  "param0" : 9223372036854775000
 }
 ----
 
@@ -374,10 +378,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "low": -1,
-    "high": 2147483647
-  }
+  "param0" : 9223372036854775807
 }
 ----
 
@@ -473,10 +474,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "low": -1,
-    "high": 2147483647
-  }
+  "param0" : 9223372036854775807
 }
 ----
 

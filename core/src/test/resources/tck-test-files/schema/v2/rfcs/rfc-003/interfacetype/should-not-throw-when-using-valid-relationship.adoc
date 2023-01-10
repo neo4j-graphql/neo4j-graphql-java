@@ -35,12 +35,12 @@ schema {
 }
 
 interface SourceInterface {
-  target1: Target!
-  target1Connection: SourceInterfaceTarget1Connection!
-  target2: Target
-  target2Connection: SourceInterfaceTarget2Connection!
-  targets: [Target!]!
-  targetsConnection: SourceInterfaceTargetsConnection!
+  target1(directed: Boolean = true, options: TargetOptions, where: TargetWhere): Target!
+  target1Connection(after: String, directed: Boolean = true, first: Int, sort: [SourceInterfaceTarget1ConnectionSort!], where: SourceInterfaceTarget1ConnectionWhere): SourceInterfaceTarget1Connection!
+  target2(directed: Boolean = true, options: TargetOptions, where: TargetWhere): Target
+  target2Connection(after: String, directed: Boolean = true, first: Int, sort: [SourceInterfaceTarget2ConnectionSort!], where: SourceInterfaceTarget2ConnectionWhere): SourceInterfaceTarget2Connection!
+  targets(directed: Boolean = true, options: TargetOptions, where: TargetWhere): [Target!]!
+  targetsConnection(after: String, directed: Boolean = true, first: Int, sort: [SourceInterfaceTargetsConnectionSort!], where: SourceInterfaceTargetsConnectionWhere): SourceInterfaceTargetsConnection!
 }
 
 type CreateInfo {
@@ -265,12 +265,7 @@ input SourceInterfaceTarget1ConnectFieldInput {
 }
 
 input SourceInterfaceTarget1ConnectOrCreateFieldInput {
-  onCreate: SourceInterfaceTarget1ConnectOrCreateFieldInputOnCreate!
   where: TargetConnectOrCreateWhere!
-}
-
-input SourceInterfaceTarget1ConnectOrCreateFieldInputOnCreate {
-  node: TargetOnCreateInput!
 }
 
 input SourceInterfaceTarget1ConnectionSort {
@@ -321,12 +316,7 @@ input SourceInterfaceTarget2ConnectFieldInput {
 }
 
 input SourceInterfaceTarget2ConnectOrCreateFieldInput {
-  onCreate: SourceInterfaceTarget2ConnectOrCreateFieldInputOnCreate!
   where: TargetConnectOrCreateWhere!
-}
-
-input SourceInterfaceTarget2ConnectOrCreateFieldInputOnCreate {
-  node: TargetOnCreateInput!
 }
 
 input SourceInterfaceTarget2ConnectionSort {
@@ -377,12 +367,7 @@ input SourceInterfaceTargetsConnectFieldInput {
 }
 
 input SourceInterfaceTargetsConnectOrCreateFieldInput {
-  onCreate: SourceInterfaceTargetsConnectOrCreateFieldInputOnCreate!
   where: TargetConnectOrCreateWhere!
-}
-
-input SourceInterfaceTargetsConnectOrCreateFieldInputOnCreate {
-  node: TargetOnCreateInput!
 }
 
 input SourceInterfaceTargetsConnectionSort {
@@ -554,11 +539,6 @@ input TargetConnectWhere {
 }
 
 input TargetCreateInput {
-  "Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/"
-  _emptyInput: Boolean
-}
-
-input TargetOnCreateInput {
   "Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/"
   _emptyInput: Boolean
 }

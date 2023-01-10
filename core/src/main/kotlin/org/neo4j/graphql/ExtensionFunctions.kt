@@ -73,6 +73,40 @@ fun Condition?.apocValidatePredicate(errorMessage: String) = this?.let {
 
 fun Named.name(): String = this.requiredSymbolicName.value
 
+fun OngoingReading.applySortingSkipAndLimit(
+    p: PropertyContainer,
+    optionsInput: OptionsInput,
+    queryContext: QueryContext
+): OngoingReading {
+    val ordered = optionsInput.sort
+        ?.flatMap { it.map { (field, direction) -> Cypher.sort(p.property(field), direction) } }
+        ?.takeIf { it.isNotEmpty() }
+        ?.let {
+            if (this is ExposesOrderBy) {
+                this
+            } else {
+                this.with(Cypher.asterisk())
+            }.orderBy(it)
+        }
+        ?: this
+    val skip = optionsInput.offset?.let {
+        if (ordered is ExposesSkip) {
+            ordered
+        } else {
+            ordered.with(Cypher.asterisk())
+        }.skip(queryContext.getNextParam(it))
+    }
+        ?: ordered
+    return optionsInput.limit?.let {
+        if (skip is ExposesLimit) {
+            skip
+        } else {
+            skip.with(Cypher.asterisk())
+        }.limit(queryContext.getNextParam(it))
+    }
+        ?: skip
+}
+
 fun StatementBuilder.OngoingReadingAndReturn.applySortingSkipAndLimit(
     p: PropertyContainer,
     optionsInput: OptionsInput,
@@ -122,3 +156,9 @@ inline fun <reified T> T.wrapList(): List<T> = when (this) {
 
 fun <X, T, R> T.conditionalBlock(cond: Boolean, block: (T) -> R): X where  T : X, R : X =
     if (cond) block(this) else this
+
+fun OngoingReadingWithoutWhere.optionalWhere(condition: List<Condition?>): OngoingReading =
+    optionalWhere(condition.filterNotNull().takeIf { it.isNotEmpty() }?.foldWithAnd())
+
+fun OngoingReadingWithoutWhere.optionalWhere(condition: Condition?): OngoingReading =
+    if (condition != null) this.where(condition) else this

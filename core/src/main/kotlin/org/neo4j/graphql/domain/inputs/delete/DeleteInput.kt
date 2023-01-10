@@ -1,5 +1,6 @@
 package org.neo4j.graphql.domain.inputs.delete
 
+import org.neo4j.graphql.AugmentationContext
 import org.neo4j.graphql.Constants
 import org.neo4j.graphql.domain.ImplementingType
 import org.neo4j.graphql.domain.Interface
@@ -8,6 +9,7 @@ import org.neo4j.graphql.domain.inputs.Dict
 import org.neo4j.graphql.domain.inputs.PerNodeInput
 import org.neo4j.graphql.domain.inputs.PerNodeInput.Companion.getCommonFields
 import org.neo4j.graphql.domain.inputs.RelationFieldsInput
+import org.neo4j.graphql.schema.relations.RelationFieldBaseAugmentation
 import org.neo4j.graphql.wrapList
 
 sealed class DeleteInput private constructor(implementingType: ImplementingType, data: Dict) :
@@ -18,7 +20,18 @@ sealed class DeleteInput private constructor(implementingType: ImplementingType,
     ) {
 
 
-    class NodeDeleteInput(node: Node, data: Dict) : DeleteInput(node, data)
+    class NodeDeleteInput(node: Node, data: Dict) : DeleteInput(node, data) {
+
+        object Augmentation {
+            fun generateContainerDeleteInputIT(node: Node, ctx: AugmentationContext) =
+                ctx.getOrCreateRelationInputObjectType(
+                    node.name,
+                    Constants.InputTypeSuffix.DeleteInput,
+                    node.relationFields,
+                    RelationFieldBaseAugmentation::generateFieldDeleteIT
+                )
+        }
+    }
 
     class InterfaceDeleteInput(interfaze: Interface, data: Dict) : DeleteInput(interfaze, data) {
 

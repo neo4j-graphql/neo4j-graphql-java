@@ -37,12 +37,7 @@ type Movie {
 [source,json]
 ----
 {
-  "param0": {
-    "months": 40,
-    "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
-  }
+  "param0": "P40M0DT0S"
 }
 ----
 
@@ -78,12 +73,7 @@ mutation {
 {
   "create_param0": [
     {
-      "duration": {
-        "months": 24,
-        "days": 0,
-        "seconds": 0,
-        "nanoseconds": 0
-      }
+      "duration": "P24M0DT0S"
     }
   ],
   "resolvedCallbacks": {}
@@ -123,12 +113,7 @@ RETURN collect(create_this0 {
 [source,json]
 ----
 {
-  "param0": {
-    "months": 12,
-    "days": 0,
-    "seconds": 0,
-    "nanoseconds": 0
-  }
+  "param0": "P12M0DT0S"
 }
 ----
 
@@ -163,12 +148,7 @@ mutation {
 [source,json]
 ----
 {
-  "this_update_duration": {
-    "months": 0,
-    "days": 4,
-    "seconds": 0,
-    "nanoseconds": 0
-  },
+  "this_update_duration": "P0M4DT0S",
   "resolvedCallbacks": {}
 }
 ----

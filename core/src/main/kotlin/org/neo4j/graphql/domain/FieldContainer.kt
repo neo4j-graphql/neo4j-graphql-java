@@ -1,6 +1,6 @@
 package org.neo4j.graphql.domain
 
-import org.neo4j.graphql.Constants
+import org.neo4j.graphql.Constants.FieldSuffix
 import org.neo4j.graphql.domain.fields.*
 import org.neo4j.graphql.domain.predicates.definitions.AggregationPredicateDefinition
 import org.neo4j.graphql.domain.predicates.definitions.PredicateDefinition
@@ -30,7 +30,7 @@ abstract class FieldContainer<T : BaseField>(val fields: List<T>) {
                         it is CustomEnumField ||
                         it is TemporalField ||
                         it is PointField ||
-                        it is CypherField
+                        (it is CypherField && it.isSortable())
             }
 
     }
@@ -49,6 +49,7 @@ abstract class FieldContainer<T : BaseField>(val fields: List<T>) {
     val uniqueFields: List<BaseField> by lazy { constrainableFields.filter { it.unique != null } }
     val computedFields: List<ComputedField> by lazy { fields.filterIsInstance<ComputedField>() }
     val authableFields: List<BaseField> by lazy { fields.filter { it is AuthableField } }
+    val cypherFields: List<CypherField> by lazy { fields.filterIsInstance<CypherField>() }
 
     val predicates: Map<String, PredicateDefinition> by lazy {
         val result = mutableMapOf<String, PredicateDefinition>()
@@ -65,7 +66,7 @@ abstract class FieldContainer<T : BaseField>(val fields: List<T>) {
 
     val relationAggregationFields: Map<String, RelationField> by lazy {
         relationFields.filter { it.node != null }
-            .map { it.fieldName + Constants.AGGREGATION_FIELD_SUFFIX to it }
+            .map { it.fieldName + FieldSuffix.Aggregate to it }
             .toMap()
     }
 

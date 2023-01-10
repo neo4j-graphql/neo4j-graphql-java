@@ -37,8 +37,14 @@ class ReadResolver private constructor(
             val nodeType = generateNodeOT(node) ?: return emptyList()
             val coordinates =
                 addQueryField(node.rootTypeFieldNames.read, NonNullType(ListType(nodeType.asRequiredType()))) { args ->
-                    generateWhereIT(node)?.let { args += inputValue(Constants.WHERE, it.asType()) }
-                    generateOptionsIT(node).let { args += inputValue(Constants.OPTIONS, it.asType()) }
+
+                    WhereInput.NodeWhereInput.Augmentation
+                        .generateWhereIT(node, ctx)
+                        ?.let { args += inputValue(Constants.WHERE, it.asType()) }
+
+                    OptionsInput.Augmentation
+                        .generateOptionsIT(node, ctx)
+                        .let { args += inputValue(Constants.OPTIONS, it.asType()) }
                 }
             return AugmentedField(coordinates, ReadResolver(ctx.schemaConfig, node)).wrapList()
         }
@@ -88,8 +94,8 @@ class ReadResolver private constructor(
         val mapProjection = dslNode.project(projection.projection).`as`(dslNode.requiredSymbolicName)
         return ongoingReading
             .withSubQueries(projection.subQueries)
+            .applySortingSkipAndLimit(dslNode, optionsInput, queryContext)
             .returning(mapProjection)
-            .applySortingSkipAndLimit(dslNode, optionsInput, schemaConfig)
             .build()
     }
 }

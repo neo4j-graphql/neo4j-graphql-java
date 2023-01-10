@@ -45,25 +45,33 @@ class UpdateResolver private constructor(
 
             val responseType = addResponseType(node, node.typeNames.updateResponse, Constants.Types.UpdateInfo)
             val coordinates = addMutationField(node.rootTypeFieldNames.update, responseType.asRequiredType()) { args ->
-                generateWhereIT(node)
+
+                WhereInput.NodeWhereInput.Augmentation
+                    .generateWhereIT(node, ctx)
                     ?.let { args += inputValue(Constants.WHERE, it.asType()) }
 
-                generateContainerUpdateIT(node)
+                UpdateInput.NodeUpdateInput.Augmentation
+                    .generateContainerUpdateIT(node, ctx)
                     ?.let { args += inputValue(Constants.UPDATE_FIELD, it.asType()) }
 
-                generateContainerConnectInputIT(node)
+                ConnectInput.NodeConnectInput.Augmentation
+                    .generateContainerConnectInputIT(node, ctx)
                     ?.let { args += inputValue(Constants.CONNECT_FIELD, it.asType()) }
 
-                generateContainerDisconnectInputIT(node)
+                DisconnectInput.NodeDisconnectInput.Augmentation
+                    .generateContainerDisconnectInputIT(node, ctx)
                     ?.let { args += inputValue(Constants.DISCONNECT_FIELD, it.asType()) }
 
-                generateContainerRelationCreateInputIT(node)
+                RelationInput.Augmentation
+                    .generateContainerRelationCreateInputIT(node, ctx)
                     ?.let { args += inputValue(Constants.CREATE_FIELD, it.asType()) }
 
-                generateContainerDeleteInputIT(node)
+                DeleteInput.NodeDeleteInput.Augmentation
+                    .generateContainerDeleteInputIT(node, ctx)
                     ?.let { args += inputValue(Constants.DELETE_FIELD, it.asType()) }
 
-                generateContainerConnectOrCreateInputIT(node)
+                ConnectOrCreateInput.Augmentation
+                    .generateContainerConnectOrCreateInputIT(node, ctx)
                     ?.let { args += inputValue(Constants.CONNECT_OR_CREATE_FIELD, it.asType()) }
             }
 

@@ -12,13 +12,24 @@ data class AggregationPredicateDefinition(
     val operator: Operator,
     val type: Type<*>
 ) : PredicateDefinition {
-    fun createCondition(lhs: Expression, rhs: Expression, ctx: QueryContext): Condition = when (method) {
-        Method.NONE -> {
-            val variable = ctx.getNextVariable()
-            Predicates.any(variable).`in`(Functions.collect(lhs)).where(operator.conditionCreator(variable, rhs))
-        }
+    fun createCondition(lhs: Expression, rhs: Expression, ctx: QueryContext): Condition {
+        val convertedRhs = wrapExpression(rhs)
+        return when (method) {
+            Method.NONE -> {
+                val variable = ctx.getNextVariable()
+                Predicates.any(variable).`in`(Functions.collect(lhs)).where(operator.conditionCreator(wrapExpression(variable),
+                    convertedRhs
+                ))
+            }
 
-        else -> operator.conditionCreator(method.functionCreator(lhs), rhs)
+            else -> operator.conditionCreator(wrapExpression(method.functionCreator(lhs)), convertedRhs)
+        }
+    }
+
+    private fun wrapExpression(expression: Expression): Expression = if (type.name() == Constants.DURATION){
+        Functions.datetime().add(expression)
+    } else {
+        expression
     }
 
     enum class Method(

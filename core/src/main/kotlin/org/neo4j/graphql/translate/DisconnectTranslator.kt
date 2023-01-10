@@ -6,7 +6,7 @@ import org.neo4j.cypherdsl.core.StatementBuilder.OngoingReading
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.directives.AuthDirective
 import org.neo4j.graphql.domain.fields.RelationField
-import org.neo4j.graphql.domain.inputs.connection_where.ConnectionWhere
+import org.neo4j.graphql.domain.inputs.connection.ConnectionWhere
 import org.neo4j.graphql.domain.inputs.disconnect.DisconnectFieldInput
 import org.neo4j.graphql.domain.inputs.disconnect.DisconnectInput
 import org.neo4j.graphql.handler.utils.ChainString

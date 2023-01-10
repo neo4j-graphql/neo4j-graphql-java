@@ -28,12 +28,16 @@ class CreateResolver private constructor(
                 return emptyList()
             }
 
-            val coordinates = generateContainerCreateInputIT(node)?.let { inputType ->
-                val responseType = addResponseType(node, node.typeNames.createResponse, Constants.Types.CreateInfo)
-                addMutationField(node.rootTypeFieldNames.create, responseType.asRequiredType()) { args ->
-                    args += inputValue(Constants.INPUT_FIELD, NonNullType(ListType(inputType.asRequiredType())))
-                }
-            } ?: return emptyList()
+            val coordinates = CreateInput.Augmentation
+                .generateContainerCreateInputIT(node, ctx)
+                ?.let { inputType ->
+
+                    val responseType = addResponseType(node, node.typeNames.createResponse, Constants.Types.CreateInfo)
+                    addMutationField(node.rootTypeFieldNames.create, responseType.asRequiredType()) { args ->
+                        args += inputValue(Constants.INPUT_FIELD, NonNullType(ListType(inputType.asRequiredType())))
+                    }
+
+                } ?: return emptyList()
 
             return AugmentedField(coordinates, CreateResolver(ctx.schemaConfig, node)).wrapList()
         }
