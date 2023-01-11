@@ -70,7 +70,7 @@ abstract class AugmentationHandler(
             if (addFieldOperations && !field.isNativeId()) {
                 val typeDefinition = field.type.resolve()
                         ?: throw IllegalArgumentException("type ${field.type.name()} cannot be resolved")
-                FieldOperator.forType(typeDefinition, field.type.inner().isNeo4jType())
+                FieldOperator.forType(typeDefinition, field.type.inner().isNeo4jType(), field.type.isList())
                     .map { op ->
                         val wrappedType: Type<*> = when {
                             op.list -> ListType(NonNullType(TypeName(type.name())))
@@ -160,11 +160,11 @@ abstract class AugmentationHandler(
                 if (field.isRelationship()) {
                     RelationOperator.createRelationFilterFields(type, field, filterType, builder)
                 } else {
-                    FieldOperator.forType(typeDefinition, field.type.inner().isNeo4jType())
+                    FieldOperator.forType(typeDefinition, field.type.inner().isNeo4jType(), field.type.isList())
                         .forEach { op -> builder.addFilterField(op.fieldName(field.name), op.list, filterType, field.description) }
                     if (typeDefinition.isNeo4jSpatialType()) {
                         val distanceFilterType = getSpatialDistanceFilter(neo4jTypeDefinitionRegistry.getUnwrappedType(filterType) as TypeDefinition<*>)
-                        FieldOperator.forType(distanceFilterType, true)
+                        FieldOperator.forType(distanceFilterType, true, field.type.isList())
                             .forEach { op -> builder.addFilterField(op.fieldName(field.name + NEO4j_POINT_DISTANCE_FILTER_SUFFIX), op.list, NEO4j_POINT_DISTANCE_FILTER) }
                     }
                 }

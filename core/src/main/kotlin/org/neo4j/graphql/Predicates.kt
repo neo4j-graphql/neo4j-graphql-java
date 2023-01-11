@@ -39,6 +39,10 @@ enum class FieldOperator(
     EW("_ends_with", { lhs, rhs -> lhs.endsWith(rhs) }),
     MATCHES("_matches", { lhs, rhs -> lhs.matches(rhs) }),
 
+    EQ_LIST("", { lhs, rhs -> lhs.isEqualTo(rhs) }, list = true),
+    INCLUDES_ALL("_includes_all", { lhs, rhs -> lhs.includesAll(rhs) }, list = true),
+    INCLUDES_ANY("_includes_any", { lhs, rhs -> lhs.includesAny(rhs) }, list = true),
+    NOT_INCLUDES("_not_includes", { lhs, rhs -> lhs.includesAny(rhs).not() }, not = true, list = true),
 
     DISTANCE(NEO4j_POINT_DISTANCE_FILTER_SUFFIX, { lhs, rhs -> lhs.isEqualTo(rhs) }, distance = true),
     DISTANCE_LT(NEO4j_POINT_DISTANCE_FILTER_SUFFIX + "_lt", { lhs, rhs -> lhs.lt(rhs) }, distance = true),
@@ -109,8 +113,9 @@ enum class FieldOperator(
 
     companion object {
 
-        fun forType(type: TypeDefinition<*>, isNeo4jType: Boolean): List<FieldOperator> =
+        fun forType(type: TypeDefinition<*>, isNeo4jType: Boolean, isList: Boolean): List<FieldOperator> =
                 when {
+                    isList -> listOf(INCLUDES_ALL, INCLUDES_ANY, NOT_INCLUDES, EQ_LIST)
                     type.name == TypeBoolean.name -> listOf(EQ, NEQ)
                     type.name == NEO4j_POINT_DISTANCE_FILTER -> listOf(EQ, LT, LTE, GT, GTE)
                     type.isNeo4jSpatialType() -> listOf(EQ, NEQ)
