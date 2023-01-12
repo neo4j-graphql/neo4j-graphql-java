@@ -4,8 +4,9 @@ import graphql.schema.DataFetchingEnvironment
 import graphql.schema.DataFetchingFieldSelectionSet
 import graphql.schema.SelectedField
 import org.neo4j.graphql.aliasOrName
+import org.neo4j.graphql.schema.model.inputs.Dict
 
-class ObjectFieldSelection<SELECTION, ARGS>(
+open class ObjectFieldSelection<SELECTION, ARGS>(
     resolveTree: IResolveTree,
     val parsedSelection: SELECTION,
     val parsedArguments: ARGS
@@ -14,7 +15,7 @@ class ObjectFieldSelection<SELECTION, ARGS>(
 interface IResolveTree {
     val name: String
     val alias: String?
-    val args: Map<String, *>
+    val args: Dict
     val fieldsByTypeName: Map<String, Map<String, ResolveTree>>
 
     val aliasOrName get() = alias ?: name
@@ -62,7 +63,7 @@ interface IResolveTree {
 class ResolveTree(
     override val name: String,
     override val alias: String? = null,
-    override val args: Map<String, *> = emptyMap<String, Any>(),
+    override val args: Dict = Dict.EMPTY,
     override val fieldsByTypeName: Map<String, Map<String, ResolveTree>> = emptyMap(),
 ) : IResolveTree {
 
@@ -70,11 +71,11 @@ class ResolveTree(
     companion object {
 
         fun resolve(env: DataFetchingEnvironment): ResolveTree {
-            return ResolveTree(env.field.name, env.field.alias, env.arguments, resolve(env.selectionSet))
+            return ResolveTree(env.field.name, env.field.alias, Dict(env.arguments), resolve(env.selectionSet))
         }
 
         fun resolve(field: SelectedField): ResolveTree {
-            return ResolveTree(field.name, field.alias, field.arguments, resolve(field.selectionSet))
+            return ResolveTree(field.name, field.alias, Dict(field.arguments), resolve(field.selectionSet))
         }
 
         fun resolve(selectionSet: DataFetchingFieldSelectionSet): Map<String, Map<String, ResolveTree>> {

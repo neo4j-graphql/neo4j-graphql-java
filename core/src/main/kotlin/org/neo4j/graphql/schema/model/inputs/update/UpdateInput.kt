@@ -17,6 +17,7 @@ import org.neo4j.graphql.schema.model.inputs.PerNodeInput.Companion.getCommonFie
 import org.neo4j.graphql.schema.model.inputs.RelationFieldsInput
 import org.neo4j.graphql.schema.model.inputs.ScalarProperties
 import org.neo4j.graphql.schema.relations.RelationFieldBaseAugmentation
+import org.neo4j.graphql.toDict
 
 sealed class UpdateInput private constructor(implementingType: ImplementingType, data: Dict) :
     RelationFieldsInput<UpdateFieldInput>(
@@ -30,7 +31,7 @@ sealed class UpdateInput private constructor(implementingType: ImplementingType,
 
     class NodeUpdateInput(node: Node, data: Dict) : UpdateInput(node, data) {
 
-        object Augmentation : AugmentationBase{
+        object Augmentation : AugmentationBase {
             fun generateContainerUpdateIT(node: Node, ctx: AugmentationContext) = UpdateInput.Augmentation
                 .generateContainerUpdateIT(
                     node.name,
@@ -44,13 +45,12 @@ sealed class UpdateInput private constructor(implementingType: ImplementingType,
 
     class InterfaceUpdateInput(interfaze: Interface, data: Dict) : UpdateInput(interfaze, data) {
 
-        val on = data[Constants.ON]?.let {
-            PerNodeInput(interfaze, Dict(it), { node: Node, value: Any -> NodeUpdateInput(node, Dict(value)) })
-        }
+        val on = data.nestedDict(Constants.ON)
+            ?.let { PerNodeInput(interfaze, it, { node: Node, value: Any -> NodeUpdateInput(node, value.toDict()) }) }
 
         fun getCommonFields(implementation: Node) = on.getCommonFields(implementation, data, ::NodeUpdateInput)
 
-        object Augmentation : AugmentationBase{
+        object Augmentation : AugmentationBase {
 
             fun generateUpdateInputIT(interfaze: Interface, ctx: AugmentationContext) =
                 ctx.addInterfaceField(
@@ -71,9 +71,9 @@ sealed class UpdateInput private constructor(implementingType: ImplementingType,
     }
 
     companion object {
-        fun create(implementingType: ImplementingType, anyData: Any) = when (implementingType) {
-            is Node -> NodeUpdateInput(implementingType, Dict(anyData))
-            is Interface -> InterfaceUpdateInput(implementingType, Dict(anyData))
+        fun create(implementingType: ImplementingType, data: Dict) = when (implementingType) {
+            is Node -> NodeUpdateInput(implementingType, data)
+            is Interface -> InterfaceUpdateInput(implementingType, data)
         }
     }
 

@@ -7,6 +7,7 @@ import org.neo4j.graphql.schema.AugmentationContext
 import org.neo4j.graphql.schema.model.inputs.Dict
 import org.neo4j.graphql.schema.model.inputs.RelationFieldsInput
 import org.neo4j.graphql.schema.relations.RelationFieldBaseAugmentation
+import org.neo4j.graphql.toDict
 
 class RelationInput private constructor(
     node: Node,
@@ -17,7 +18,7 @@ class RelationInput private constructor(
     { field, value -> RelationFieldInput.create(field, value) }) {
 
     companion object {
-        fun create(node: Node, anyData: Any) = RelationInput(node, Dict(anyData))
+        fun create(node: Node, anyData: Any) = RelationInput(node, anyData.toDict())
     }
 
     object Augmentation : AugmentationBase {

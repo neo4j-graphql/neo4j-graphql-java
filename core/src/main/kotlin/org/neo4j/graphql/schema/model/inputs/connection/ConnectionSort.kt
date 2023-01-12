@@ -12,9 +12,9 @@ import org.neo4j.graphql.schema.model.inputs.options.SortInput
 
 class ConnectionSort(data: Dict) {
 
-    val node = data[Constants.NODE_FIELD]?.let { SortInput.create(Dict(it)) }
+    val node = data.nestedDict(Constants.NODE_FIELD)?.let { SortInput.create(it) }
 
-    val edge = data[Constants.EDGE_FIELD]?.let { SortInput.create(Dict(it)) }
+    val edge = data.nestedDict(Constants.EDGE_FIELD)?.let { SortInput.create(it) }
 
     object Augmentation : AugmentationBase {
 

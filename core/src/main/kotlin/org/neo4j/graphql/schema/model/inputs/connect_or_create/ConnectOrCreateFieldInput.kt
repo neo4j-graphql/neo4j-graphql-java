@@ -13,6 +13,7 @@ import org.neo4j.graphql.schema.model.inputs.InputListWrapper
 import org.neo4j.graphql.schema.model.inputs.PerNodeInput
 import org.neo4j.graphql.schema.model.inputs.ScalarProperties
 import org.neo4j.graphql.schema.model.inputs.create.CreateInput
+import org.neo4j.graphql.toDict
 
 sealed interface ConnectOrCreateFieldInput {
 
@@ -21,9 +22,11 @@ sealed interface ConnectOrCreateFieldInput {
         relationshipProperties: RelationshipProperties?,
         data: Dict
     ) {
-        val where = data[Constants.WHERE]?.let { ConnectOrCreateWhere(node, Dict(it)) }
-        val onCreate = data[Constants.ON_CREATE_FIELD]
-            ?.let { ConnectOrCreateFieldInputOnCreate(node, relationshipProperties, data) }
+        val where = data.nestedDict(Constants.WHERE)
+            ?.let { ConnectOrCreateWhere(node, it) }
+
+        val onCreate = data.nestedDict(Constants.ON_CREATE_FIELD)
+            ?.let { ConnectOrCreateFieldInputOnCreate(node, relationshipProperties, it) }
 
 
         object Augmentation : AugmentationBase {
@@ -77,12 +80,7 @@ sealed interface ConnectOrCreateFieldInput {
             fun create(node: Node, relationshipProperties: RelationshipProperties?, value: Any?) = create(
                 value,
                 ::NodeConnectOrCreateFieldInputs,
-                {
-                    NodeConnectOrCreateFieldInput(
-                        node, relationshipProperties,
-                        Dict(it)
-                    )
-                }
+                { NodeConnectOrCreateFieldInput(node, relationshipProperties, it.toDict()) }
             )
         }
     }
@@ -95,33 +93,26 @@ sealed interface ConnectOrCreateFieldInput {
         PerNodeInput<NodeConnectOrCreateFieldInputs>(
             union,
             data,
-            { node, value ->
-                NodeConnectOrCreateFieldInputs.create(
-                    node, relationshipProperties,
-                    Dict(value)
-                )
-            }
+            { node, value -> NodeConnectOrCreateFieldInputs.create(node, relationshipProperties, value.toDict()) }
         )
 
     class ConnectOrCreateFieldInputOnCreate(node: Node, relationProps: RelationshipProperties?, data: Dict) {
-        val node = data[Constants.NODE_FIELD]?.let {
-            ScalarProperties.create(data, node)
-        }
+
+        val node = data.nestedDict(Constants.NODE_FIELD)
+            ?.let { ScalarProperties.create(it, node) }
 
         val edge = relationProps
-            ?.let { props -> data[Constants.EDGE_FIELD]?.let { ScalarProperties.create(data, props) } }
+            ?.let { props ->
+                data.nestedDict(Constants.EDGE_FIELD)
+                    ?.let { ScalarProperties.create(it, props) }
+            }
     }
 
     companion object {
         fun create(field: RelationField, value: Any) = field.extractOnTarget(
             onNode = { NodeConnectOrCreateFieldInputs.create(it, field.properties, value) },
             onInterface = { error("cannot connect to interface") },
-            onUnion = {
-                UnionConnectOrCreateFieldInput(
-                    it, field.properties,
-                    Dict(value)
-                )
-            }
+            onUnion = { UnionConnectOrCreateFieldInput(it, field.properties, value.toDict()) }
         )
     }
 }

@@ -1,10 +1,7 @@
 package org.neo4j.graphql.schema.model.inputs
 
 import org.neo4j.cypherdsl.core.Condition
-import org.neo4j.graphql.Constants
-import org.neo4j.graphql.and
-import org.neo4j.graphql.or
-import org.neo4j.graphql.wrapList
+import org.neo4j.graphql.*
 
 abstract class NestedWhere<T : NestedWhere<T>>(
     data: Dict,
@@ -12,7 +9,7 @@ abstract class NestedWhere<T : NestedWhere<T>>(
 ) {
     val nestedConditions = data
         .filter { SPECIAL_WHERE_KEYS.contains(it.key) }
-        .mapValues { (_, joins) -> joins.wrapList().mapNotNull { nestedWhereFactory(Dict(it)) } }
+        .mapValues { (_, joins) -> joins.wrapList().toDict().mapNotNull { nestedWhereFactory(it) } }
 
     val and get() = nestedConditions[Constants.AND]
 

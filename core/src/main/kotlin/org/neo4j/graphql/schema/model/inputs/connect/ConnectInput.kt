@@ -12,6 +12,7 @@ import org.neo4j.graphql.schema.model.inputs.PerNodeInput
 import org.neo4j.graphql.schema.model.inputs.PerNodeInput.Companion.getCommonFields
 import org.neo4j.graphql.schema.model.inputs.RelationFieldsInput
 import org.neo4j.graphql.schema.relations.RelationFieldBaseAugmentation
+import org.neo4j.graphql.toDict
 import org.neo4j.graphql.wrapList
 
 sealed class ConnectInput private constructor(
@@ -38,32 +39,21 @@ sealed class ConnectInput private constructor(
 
     class InterfaceConnectInput(interfaze: Interface, data: Dict) : ConnectInput(interfaze, data) {
 
-        val on = data[Constants.ON]?.let { on ->
-            PerNodeInput(
-                interfaze,
-                Dict(on),
-                { node, value ->
-                    value.wrapList().map {
-                        NodeConnectInput(
-                            node,
-                            Dict(it)
-                        )
-                    }
-                }
-            )
+        val on = data.nestedDict(Constants.ON)?.let { on ->
+            PerNodeInput(interfaze, on, { node, value -> value.wrapList().toDict().map { NodeConnectInput(node, it) } })
         }
 
         fun getCommonFields(implementation: Node) = on.getCommonFields(implementation, data, ::NodeConnectInput)
     }
 
     companion object {
-        fun create(implementingType: ImplementingType, anyData: Any) = when (implementingType) {
-            is Node -> NodeConnectInput(implementingType, Dict(anyData))
-            is Interface -> InterfaceConnectInput(implementingType, Dict(anyData))
+        fun create(implementingType: ImplementingType, data: Dict) = when (implementingType) {
+            is Node -> NodeConnectInput(implementingType, data)
+            is Interface -> InterfaceConnectInput(implementingType, data)
         }
 
         fun create(relationField: RelationField, anyData: Any): ConnectInput = relationField.extractOnTarget(
-            onImplementingType = { create(it, anyData) },
+            onImplementingType = { create(it, anyData.toDict()) },
             onUnion = { error("cannot create for a union type of field ${relationField.getOwnerName()}.${relationField.fieldName}") }
         )
     }

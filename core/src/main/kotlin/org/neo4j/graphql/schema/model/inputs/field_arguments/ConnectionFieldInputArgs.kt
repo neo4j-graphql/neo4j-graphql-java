@@ -11,18 +11,19 @@ import org.neo4j.graphql.schema.AugmentationContext
 import org.neo4j.graphql.schema.model.inputs.Dict
 import org.neo4j.graphql.schema.model.inputs.connection.ConnectionSort
 import org.neo4j.graphql.schema.model.inputs.connection.ConnectionWhere
-import org.neo4j.graphql.wrapList
 
-class ConnectionFieldInputArgs(field: ConnectionField, data: Map<String, *>) {
+class ConnectionFieldInputArgs(field: ConnectionField, data: Dict) {
 
-    val where = data[Constants.WHERE]?.let { ConnectionWhere.create(field.relationshipField, Dict(it)) }
-    val first = data[Constants.FIRST] as? Int
-    val after = data[Constants.AFTER] as? String
-    val directed = data[Constants.DIRECTED] as? Boolean
-    val sort = data[Constants.SORT]
-        ?.wrapList()
-        ?.map { ConnectionSort(Dict(it)) }
-        ?: emptyList()
+    val where = data.nestedDict(Constants.WHERE)
+        ?.let { ConnectionWhere.create(field.relationshipField, it) }
+
+    val first = data.nestedObject(Constants.FIRST) as? Int
+
+    val after = data.nestedObject(Constants.AFTER) as? String
+
+    val directed = data.nestedObject(Constants.DIRECTED) as? Boolean
+
+    val sort = data.nestedDictList(Constants.SORT).map { ConnectionSort(it) }
 
     object Augmentation : AugmentationBase {
 
@@ -36,7 +37,7 @@ class ConnectionFieldInputArgs(field: ConnectionField, data: Map<String, *>) {
             args += inputValue(Constants.FIRST, Constants.Types.Int)
             args += inputValue(Constants.AFTER, Constants.Types.String)
 
-            RelationFieldInputArgs.Augmentation.directedArgument(field.relationshipField, ctx)?.let { args += it }
+            RelationFieldInputArgs.Augmentation.directedArgument(field.relationshipField)?.let { args += it }
 
             ConnectionSort.Augmentation
                 .generateConnectionSortIT(field, ctx)

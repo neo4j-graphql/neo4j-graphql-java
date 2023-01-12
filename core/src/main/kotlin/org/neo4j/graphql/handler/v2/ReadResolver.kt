@@ -52,9 +52,11 @@ class ReadResolver private constructor(
         }
     }
 
-    private class InputArguments(node: Node, args: Map<String, *>) {
-        val where = args[Constants.WHERE]?.let { WhereInput.NodeWhereInput(node, Dict(it)) }
-        val options = OptionsInput.create(args[Constants.OPTIONS])
+    private class InputArguments(node: Node, args: Dict) {
+        val where = args.nestedDict(Constants.WHERE)
+            ?.let { WhereInput.NodeWhereInput(node, it) }
+
+        val options = OptionsInput.create(args.nestedDict(Constants.OPTIONS))
     }
 
     override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement {

@@ -16,7 +16,7 @@ import org.neo4j.graphql.schema.model.inputs.connection.ConnectionWhere
 import org.neo4j.graphql.schema.model.inputs.connection.ConnectionWhere.InterfaceConnectionWhere
 import org.neo4j.graphql.schema.model.inputs.connection.ConnectionWhere.NodeConnectionWhere
 import org.neo4j.graphql.schema.relations.RelationFieldBaseAugmentation
-import org.neo4j.graphql.wrapList
+import org.neo4j.graphql.toDict
 
 sealed interface DisconnectFieldInput {
 
@@ -27,12 +27,12 @@ sealed interface DisconnectFieldInput {
 
     class NodeDisconnectFieldInput(node: Node, relationshipProperties: RelationshipProperties?, data: Dict) :
         ImplementingTypeDisconnectFieldInput {
-        override val where = data[Constants.WHERE]?.let {
-            NodeConnectionWhere(node, relationshipProperties, Dict(it))
-        }
+        override val where = data.nestedDict(Constants.WHERE)
+            ?.let { NodeConnectionWhere(node, relationshipProperties, it) }
 
-        override val disconnect = data[Constants.DISCONNECT_FIELD]
-            ?.wrapList()?.map { DisconnectInput.NodeDisconnectInput(node, Dict(it)) }
+        override val disconnect = data.nestedDictList(Constants.DISCONNECT_FIELD)
+            .map { DisconnectInput.NodeDisconnectInput(node, it) }
+            .takeIf { it.isNotEmpty() }
 
 
         object Augmentation : AugmentationBase {
@@ -62,22 +62,22 @@ sealed interface DisconnectFieldInput {
     ) :
         ImplementingTypeDisconnectFieldInput {
 
-        override val where = data[Constants.WHERE]?.let {
-            InterfaceConnectionWhere(interfaze, relationshipProperties, Dict(it))
-        }
+        override val where = data.nestedDict(Constants.WHERE)
+            ?.let { InterfaceConnectionWhere(interfaze, relationshipProperties, it) }
 
-        override val disconnect = data[Constants.DISCONNECT_FIELD]
-            ?.wrapList()?.map { DisconnectInput.InterfaceDisconnectInput(interfaze, Dict(it)) }
+        override val disconnect = data.nestedDictList(Constants.DISCONNECT_FIELD)
+            .map { DisconnectInput.InterfaceDisconnectInput(interfaze, it) }
+            .takeIf { it.isNotEmpty() }
 
-        val on = data[Constants.ON]?.let {
+        val on = data.nestedDict(Constants.ON)?.let {
             PerNodeInput(
                 interfaze,
-                Dict(it),
+                it,
                 { node: Node, value: Any -> NodeDisconnectFieldInputs.create(node, relationshipProperties, value) }
             )
         }
 
-        object Augmentation : AugmentationBase{
+        object Augmentation : AugmentationBase {
             fun generateFieldDisconnectIT(
                 rel: RelationField,
                 prefix: String,
@@ -113,7 +113,7 @@ sealed interface DisconnectFieldInput {
             fun create(node: Node, relationshipProperties: RelationshipProperties?, value: Any?) = create(
                 value,
                 ::NodeDisconnectFieldInputs,
-                { NodeDisconnectFieldInput(node, relationshipProperties, Dict(it)) }
+                { NodeDisconnectFieldInput(node, relationshipProperties, it.toDict()) }
             )
         }
     }
@@ -124,7 +124,7 @@ sealed interface DisconnectFieldInput {
             fun create(interfaze: Interface, relationshipProperties: RelationshipProperties?, value: Any?) = create(
                 value,
                 ::InterfaceDisconnectFieldInputs,
-                { InterfaceDisconnectFieldInput(interfaze, relationshipProperties, Dict(it)) }
+                { InterfaceDisconnectFieldInput(interfaze, relationshipProperties, it.toDict()) }
             )
         }
     }
@@ -141,7 +141,7 @@ sealed interface DisconnectFieldInput {
         fun create(field: RelationField, value: Any) = field.extractOnTarget(
             onNode = { NodeDisconnectFieldInputs.create(it, field.properties, value) },
             onInterface = { InterfaceDisconnectFieldInputs.create(it, field.properties, value) },
-            onUnion = { UnionDisconnectFieldInput(it, field.properties, Dict(value)) }
+            onUnion = { UnionDisconnectFieldInput(it, field.properties, value.toDict()) }
         )
     }
 }

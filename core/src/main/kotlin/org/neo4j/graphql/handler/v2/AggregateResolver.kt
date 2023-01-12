@@ -16,6 +16,7 @@ import org.neo4j.graphql.handler.BaseDataFetcher
 import org.neo4j.graphql.schema.AugmentationBase
 import org.neo4j.graphql.schema.AugmentationContext
 import org.neo4j.graphql.schema.AugmentationHandler
+import org.neo4j.graphql.schema.model.inputs.Dict
 import org.neo4j.graphql.schema.model.inputs.WhereInput
 import org.neo4j.graphql.schema.model.outputs.aggregate.AggregationSelection
 import org.neo4j.graphql.translate.AuthTranslator
@@ -45,15 +46,11 @@ class AggregateResolver private constructor(
         }
     }
 
-    private class AggregateFieldArgs(node: Node, args: Map<String, *>) {
-        val where = args[Constants.WHERE]?.let {
-            WhereInput.NodeWhereInput(
-                node,
-                org.neo4j.graphql.schema.model.inputs.Dict(it)
-            )
-        }
+    private class AggregateFieldArgs(node: Node, args: Dict) {
+        val where = args.nestedDict(Constants.WHERE)
+            ?.let { WhereInput.NodeWhereInput(node, it) }
 
-        object Augmentation: AugmentationBase {
+        object Augmentation : AugmentationBase {
 
             fun getFieldArguments(node: Node, ctx: AugmentationContext): List<InputValueDefinition> {
                 val args = mutableListOf<InputValueDefinition>()

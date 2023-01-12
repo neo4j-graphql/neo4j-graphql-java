@@ -9,10 +9,10 @@ import org.neo4j.graphql.Constants.AUTH_FORBIDDEN_ERROR
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
 import org.neo4j.graphql.domain.fields.RelationField
+import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.schema.model.inputs.create.CreateFieldInput
 import org.neo4j.graphql.schema.model.inputs.create.CreateInput
 import org.neo4j.graphql.schema.model.inputs.create.RelationFieldInput
-import org.neo4j.graphql.handler.utils.ChainString
 
 class CreateTranslator(
     val schemaConfig: SchemaConfig,
@@ -106,7 +106,7 @@ class CreateTranslator(
                     val edgeField = create.edge
                     val nestedInput = when (create) {
                         is RelationFieldInput.NodeCreateCreateFieldInput -> create.node
-                        is RelationFieldInput.InterfaceCreateFieldInput -> create.node?.getDataForNode(refNode)
+                        is RelationFieldInput.InterfaceCreateFieldInput -> create.node.getDataForNode(refNode)
                     }
 
                     val baseName = varNameKey.extend(index, unionTypeName)

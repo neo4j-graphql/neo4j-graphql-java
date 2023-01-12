@@ -11,15 +11,15 @@ import org.neo4j.graphql.schema.model.inputs.Dict
 import org.neo4j.graphql.schema.model.inputs.WhereInput
 import org.neo4j.graphql.schema.model.inputs.options.OptionsInput
 
-class RelationFieldInputArgs(field: RelationField, data: Map<String, *>) {
+class RelationFieldInputArgs(field: RelationField, data: Dict) {
 
-    val where = data[Constants.WHERE]?.let { WhereInput.create(field, Dict(it)) }
+    val where = data.nestedDict(Constants.WHERE)
+        ?.let { WhereInput.create(field, it) }
 
-    val directed = data[Constants.DIRECTED] as? Boolean
-
+    val directed = data.nestedObject(Constants.DIRECTED) as? Boolean
 
     val options = OptionsInput
-        .create(data[Constants.OPTIONS])
+        .create(data.nestedDict(Constants.OPTIONS))
         .merge(field.node?.queryOptions)
 
     object Augmentation : AugmentationBase {
@@ -37,12 +37,12 @@ class RelationFieldInputArgs(field: RelationField, data: Map<String, *>) {
             )
             args += inputValue(Constants.OPTIONS, optionType)
 
-            directedArgument(field, ctx)?.let { args += it }
+            directedArgument(field)?.let { args += it }
 
             return args
         }
 
-        fun directedArgument(relationshipField: RelationField, ctx: AugmentationContext): InputValueDefinition? =
+        fun directedArgument(relationshipField: RelationField): InputValueDefinition? =
             when (relationshipField.queryDirection) {
                 RelationField.QueryDirection.DEFAULT_DIRECTED -> true
                 RelationField.QueryDirection.DEFAULT_UNDIRECTED -> false

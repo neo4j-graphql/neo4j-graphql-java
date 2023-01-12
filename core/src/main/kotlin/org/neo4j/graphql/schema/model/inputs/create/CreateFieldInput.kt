@@ -12,7 +12,7 @@ import org.neo4j.graphql.schema.model.inputs.Dict
 import org.neo4j.graphql.schema.model.inputs.PerNodeInput
 import org.neo4j.graphql.schema.model.inputs.connect.ConnectFieldInput.*
 import org.neo4j.graphql.schema.model.inputs.connect_or_create.ConnectOrCreateFieldInput
-import org.neo4j.graphql.wrapList
+import org.neo4j.graphql.toDict
 import org.neo4j.graphql.wrapType
 
 sealed interface CreateFieldInput {
@@ -26,15 +26,15 @@ sealed interface CreateFieldInput {
         CreateFieldInput,
         ImplementingTypeFieldInput() {
 
-        override val create = data[Constants.CREATE_FIELD]
-            ?.wrapList()
-            ?.map { RelationFieldInput.NodeCreateCreateFieldInput.create(node, it) }
-            ?.takeIf { it.isNotEmpty() }
+        override val create = data
+            .nestedDictList(Constants.CREATE_FIELD)
+            .map { RelationFieldInput.NodeCreateCreateFieldInput.create(node, it) }
+            .takeIf { it.isNotEmpty() }
 
-        override val connect = data[Constants.CONNECT_FIELD]
+        override val connect = data.nestedObject(Constants.CONNECT_FIELD)
             ?.let { NodeConnectFieldInputs.create(node, relationshipProperties, it) }
 
-        val connectOrCreate = data[Constants.CONNECT_OR_CREATE_FIELD]
+        val connectOrCreate = data.nestedObject(Constants.CONNECT_OR_CREATE_FIELD)
             ?.let { ConnectOrCreateFieldInput.NodeConnectOrCreateFieldInputs.create(node, relationshipProperties, it) }
 
 
@@ -64,15 +64,14 @@ sealed interface CreateFieldInput {
     class InterfaceFieldInput(interfaze: Interface, relationshipProperties: RelationshipProperties?, data: Dict) :
         CreateFieldInput,
         ImplementingTypeFieldInput() {
-        override val create = data[Constants.CREATE_FIELD]
-            ?.wrapList()
-            ?.map { RelationFieldInput.InterfaceCreateFieldInput.create(interfaze, it) }
-            ?.takeIf { it.isNotEmpty() }
+        override val create = data.nestedDictList(Constants.CREATE_FIELD)
+            .map { RelationFieldInput.InterfaceCreateFieldInput.create(interfaze, it) }
+            .takeIf { it.isNotEmpty() }
 
-        override val connect = data[Constants.CONNECT_FIELD]
+        override val connect = data.nestedObject(Constants.CONNECT_FIELD)
             ?.let { InterfaceConnectFieldInputs.create(interfaze, relationshipProperties, it) }
 
-        object Augmentation : AugmentationBase{
+        object Augmentation : AugmentationBase {
             fun generateFieldCreateIT(
                 rel: RelationField,
                 prefix: String,
@@ -99,13 +98,13 @@ sealed interface CreateFieldInput {
         PerNodeInput<NodeFieldInput>(
             union,
             data,
-            { node, value -> NodeFieldInput(node, relationshipProperties, Dict(value)) })
+            { node, value -> NodeFieldInput(node, relationshipProperties, value.toDict()) })
 
     companion object {
-        fun create(field: RelationField, value: Any) = field.extractOnTarget(
-            onNode = { NodeFieldInput(it, field.properties, Dict(value)) },
-            onInterface = { InterfaceFieldInput(it, field.properties, Dict(value)) },
-            onUnion = { UnionFieldInput(it, field.properties, Dict(value)) }
+        fun create(field: RelationField, value: Dict) = field.extractOnTarget(
+            onNode = { NodeFieldInput(it, field.properties, value) },
+            onInterface = { InterfaceFieldInput(it, field.properties, value) },
+            onUnion = { UnionFieldInput(it, field.properties, value) }
         )
     }
 }

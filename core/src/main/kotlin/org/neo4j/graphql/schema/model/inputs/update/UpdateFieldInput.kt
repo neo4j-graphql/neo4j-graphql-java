@@ -18,6 +18,7 @@ import org.neo4j.graphql.schema.model.inputs.connection.ConnectionWhere.NodeConn
 import org.neo4j.graphql.schema.model.inputs.create.RelationFieldInput
 import org.neo4j.graphql.schema.model.inputs.delete.DeleteFieldInput
 import org.neo4j.graphql.schema.model.inputs.disconnect.DisconnectFieldInput
+import org.neo4j.graphql.toDict
 import org.neo4j.graphql.wrapType
 
 sealed interface UpdateFieldInput {
@@ -33,32 +34,26 @@ sealed interface UpdateFieldInput {
 
     class NodeUpdateFieldInput(node: Node, relationshipProperties: RelationshipProperties?, data: Dict) :
         ImplementingTypeUpdateFieldInput() {
-        override val where = data[Constants.WHERE]?.let {
-            NodeConnectionWhere(node, relationshipProperties, Dict(it))
-        }
+        override val where = data.nestedDict(Constants.WHERE)
+            ?.let { NodeConnectionWhere(node, relationshipProperties, it) }
 
-        override val update = data[Constants.UPDATE_FIELD]?.let {
-            NodeUpdateConnectionInput(node, Dict(it))
-        }
+        override val update = data.nestedDict(Constants.UPDATE_FIELD)
+            ?.let { NodeUpdateConnectionInput(node, it) }
 
-        override val connect = data[Constants.CONNECT_FIELD]?.let {
-            NodeConnectFieldInputs.create(node, relationshipProperties, it)
-        }
+        override val connect = data.nestedObject(Constants.CONNECT_FIELD)
+            ?.let { NodeConnectFieldInputs.create(node, relationshipProperties, it) }
 
-        override val disconnect = data[Constants.DISCONNECT_FIELD]?.let {
-            DisconnectFieldInput.NodeDisconnectFieldInputs.create(node, relationshipProperties, it)
-        }
+        override val disconnect = data.nestedObject(Constants.DISCONNECT_FIELD)
+            ?.let { DisconnectFieldInput.NodeDisconnectFieldInputs.create(node, relationshipProperties, it) }
 
-        override val create =
-            data[Constants.CREATE_FIELD]?.let { RelationFieldInput.NodeCreateCreateFieldInputs.create(node, it) }
+        override val create = data.nestedObject(Constants.CREATE_FIELD)
+            ?.let { RelationFieldInput.NodeCreateCreateFieldInputs.create(node, it) }
 
-        override val delete = data[Constants.DELETE_FIELD]?.let {
-            DeleteFieldInput.NodeDeleteFieldInputs.create(node, relationshipProperties, it)
-        }
+        override val delete = data.nestedObject(Constants.DELETE_FIELD)
+            ?.let { DeleteFieldInput.NodeDeleteFieldInputs.create(node, relationshipProperties, it) }
 
-        val connectOrCreate = data[Constants.CONNECT_OR_CREATE_FIELD]?.let {
-            ConnectOrCreateFieldInput.NodeConnectOrCreateFieldInputs.create(node, relationshipProperties, it)
-        }
+        val connectOrCreate = data.nestedObject(Constants.CONNECT_OR_CREATE_FIELD)
+            ?.let { ConnectOrCreateFieldInput.NodeConnectOrCreateFieldInputs.create(node, relationshipProperties, it) }
 
         object Augmentation : AugmentationBase {
 
@@ -104,30 +99,25 @@ sealed interface UpdateFieldInput {
     class InterfaceUpdateFieldInput(interfaze: Interface, relationshipProperties: RelationshipProperties?, data: Dict) :
         ImplementingTypeUpdateFieldInput() {
 
-        override val update = data[Constants.UPDATE_FIELD]?.let {
-            InterfaceUpdateConnectionInput(interfaze, data)
-        }
+        override val update = data.nestedDict(Constants.UPDATE_FIELD)
+            ?.let { InterfaceUpdateConnectionInput(interfaze, data) }
 
-        override val connect = data[Constants.CONNECT_FIELD]?.let {
-            InterfaceConnectFieldInputs.create(interfaze, relationshipProperties, it)
-        }
+        override val connect = data.nestedObject(Constants.CONNECT_FIELD)
+            ?.let { InterfaceConnectFieldInputs.create(interfaze, relationshipProperties, it) }
 
-        override val disconnect = data[Constants.DISCONNECT_FIELD]?.let {
-            DisconnectFieldInput.InterfaceDisconnectFieldInputs.create(interfaze, relationshipProperties, it)
-        }
+        override val disconnect = data.nestedObject(Constants.DISCONNECT_FIELD)
+            ?.let { DisconnectFieldInput.InterfaceDisconnectFieldInputs.create(interfaze, relationshipProperties, it) }
 
-        override val create =
-            data[Constants.CREATE_FIELD]?.let { RelationFieldInput.InterfaceCreateFieldInputs.create(interfaze, it) }
+        override val create = data.nestedObject(Constants.CREATE_FIELD)
+            ?.let { RelationFieldInput.InterfaceCreateFieldInputs.create(interfaze, it) }
 
-        override val delete = data[Constants.DELETE_FIELD]?.let {
-            DeleteFieldInput.InterfaceDeleteFieldInputs.create(interfaze, relationshipProperties, it)
-        }
+        override val delete = data.nestedObject(Constants.DELETE_FIELD)
+            ?.let { DeleteFieldInput.InterfaceDeleteFieldInputs.create(interfaze, relationshipProperties, it) }
 
-        override val where = data[Constants.WHERE]?.let {
-            InterfaceConnectionWhere(interfaze, relationshipProperties, Dict(it))
-        }
+        override val where = data.nestedDict(Constants.WHERE)
+            ?.let { InterfaceConnectionWhere(interfaze, relationshipProperties, it) }
 
-        object Augmentation : AugmentationBase{
+        object Augmentation : AugmentationBase {
 
             fun generateFieldUpdateIT(
                 rel: RelationField,
@@ -166,18 +156,18 @@ sealed interface UpdateFieldInput {
     }
 
     sealed class ImplementingTypeUpdateConnectionInput(implementingType: ImplementingType, data: Dict) {
-        val edge = data[Constants.EDGE_FIELD]?.let { ScalarProperties.create(data, implementingType) }
-        abstract val node: UpdateInput?
+        val edge = data.nestedDict(Constants.EDGE_FIELD)
+            ?.let { ScalarProperties.create(it, implementingType) }
 
-        object Augmentation : AugmentationBase{
-        }
+        abstract val node: UpdateInput?
     }
 
     class InterfaceUpdateConnectionInput(interfaze: Interface, data: Dict) :
         ImplementingTypeUpdateConnectionInput(interfaze, data) {
-        override val node = data[Constants.NODE_FIELD]?.let { UpdateInput.InterfaceUpdateInput(interfaze, data) }
+        override val node = data.nestedDict(Constants.NODE_FIELD)
+            ?.let { UpdateInput.InterfaceUpdateInput(interfaze, it) }
 
-        object Augmentation : AugmentationBase{
+        object Augmentation : AugmentationBase {
 
             fun generateFieldUpdateConnectionInputIT(
                 rel: RelationField,
@@ -199,7 +189,7 @@ sealed interface UpdateFieldInput {
 
     class NodeUpdateConnectionInput(node: Node, data: Dict) :
         ImplementingTypeUpdateConnectionInput(node, data) {
-        object Augmentation : AugmentationBase{
+        object Augmentation : AugmentationBase {
 
             fun generateFieldUpdateConnectionInputIT(
                 rel: RelationField,
@@ -218,7 +208,8 @@ sealed interface UpdateFieldInput {
                 }
         }
 
-        override val node = data[Constants.NODE_FIELD]?.let { UpdateInput.NodeUpdateInput(node, data) }
+        override val node = data.nestedDict(Constants.NODE_FIELD)
+            ?.let { UpdateInput.NodeUpdateInput(node, it) }
     }
 
     class NodeUpdateFieldInputs(items: List<NodeUpdateFieldInput>) : UpdateFieldInput,
@@ -228,7 +219,7 @@ sealed interface UpdateFieldInput {
             fun create(node: Node, relationshipProperties: RelationshipProperties?, value: Any?) = create(
                 value,
                 ::NodeUpdateFieldInputs,
-                { NodeUpdateFieldInput(node, relationshipProperties, Dict(it)) }
+                { NodeUpdateFieldInput(node, relationshipProperties, it.toDict()) }
             )
         }
     }
@@ -239,7 +230,7 @@ sealed interface UpdateFieldInput {
             fun create(interfaze: Interface, relationshipProperties: RelationshipProperties?, value: Any?) = create(
                 value,
                 ::InterfaceUpdateFieldInputs,
-                { InterfaceUpdateFieldInput(interfaze, relationshipProperties, Dict(it)) }
+                { InterfaceUpdateFieldInput(interfaze, relationshipProperties, it.toDict()) }
             )
         }
     }
@@ -256,7 +247,7 @@ sealed interface UpdateFieldInput {
         fun create(field: RelationField, value: Any) = field.extractOnTarget(
             onNode = { NodeUpdateFieldInputs.create(it, field.properties, value) },
             onInterface = { InterfaceUpdateFieldInputs.create(it, field.properties, value) },
-            onUnion = { UnionUpdateFieldInput(it, field.properties, Dict(value)) }
+            onUnion = { UnionUpdateFieldInput(it, field.properties, value.toDict()) }
         )
     }
 }

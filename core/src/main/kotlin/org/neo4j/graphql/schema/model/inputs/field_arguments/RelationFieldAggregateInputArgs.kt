@@ -10,9 +10,12 @@ import org.neo4j.graphql.schema.AugmentationContext
 import org.neo4j.graphql.schema.model.inputs.Dict
 import org.neo4j.graphql.schema.model.inputs.WhereInput
 
-class RelationFieldAggregateInputArgs(node: Node, data: Map<String, *>) {
-    val where = data[Constants.WHERE]?.let { WhereInput.NodeWhereInput(node, Dict(it)) }
-    val directed = data[Constants.DIRECTED] as Boolean?
+class RelationFieldAggregateInputArgs(node: Node, data: Dict) {
+
+    val where = data.nestedDict(Constants.WHERE)
+        ?.let { WhereInput.NodeWhereInput(node, it) }
+
+    val directed = data.nestedObject(Constants.DIRECTED) as Boolean?
 
     object Augmentation : AugmentationBase {
 
@@ -23,7 +26,7 @@ class RelationFieldAggregateInputArgs(node: Node, data: Map<String, *>) {
                 .generateWhereOfFieldIT(field, ctx)
                 ?.let { args += inputValue(Constants.WHERE, it.asType()) }
 
-            RelationFieldInputArgs.Augmentation.directedArgument(field, ctx)?.let { args += it }
+            RelationFieldInputArgs.Augmentation.directedArgument(field)?.let { args += it }
 
             return args
         }

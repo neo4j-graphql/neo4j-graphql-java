@@ -16,6 +16,7 @@ import org.neo4j.graphql.schema.model.inputs.connection.ConnectionWhere
 import org.neo4j.graphql.schema.model.inputs.connection.ConnectionWhere.InterfaceConnectionWhere
 import org.neo4j.graphql.schema.model.inputs.connection.ConnectionWhere.NodeConnectionWhere
 import org.neo4j.graphql.schema.relations.RelationFieldBaseAugmentation
+import org.neo4j.graphql.toDict
 
 sealed interface DeleteFieldInput {
     sealed interface ImplementingTypeDeleteFieldInput {
@@ -26,10 +27,11 @@ sealed interface DeleteFieldInput {
     class NodeDeleteFieldInput(node: Node, relationshipProperties: RelationshipProperties?, data: Dict) :
         ImplementingTypeDeleteFieldInput {
 
-        override val where =
-            data[Constants.WHERE]?.let { NodeConnectionWhere(node, relationshipProperties, Dict(it)) }
+        override val where = data.nestedDict(Constants.WHERE)
+            ?.let { NodeConnectionWhere(node, relationshipProperties, it) }
 
-        override val delete = data[Constants.DELETE_FIELD]?.let { DeleteInput.NodeDeleteInput(node, Dict(it)) }
+        override val delete = data.nestedDict(Constants.DELETE_FIELD)
+            ?.let { DeleteInput.NodeDeleteInput(node, it) }
 
         object Augmentation : AugmentationBase {
             fun generateFieldDeleteFieldInputIT(
@@ -55,31 +57,21 @@ sealed interface DeleteFieldInput {
     class InterfaceDeleteFieldInput(interfaze: Interface, relationshipProperties: RelationshipProperties?, data: Dict) :
         ImplementingTypeDeleteFieldInput {
 
-        override val where = data[Constants.WHERE]
+        override val where = data.nestedDict(Constants.WHERE)
+            ?.let { InterfaceConnectionWhere(interfaze, relationshipProperties, it) }
+
+        override val delete = data.nestedDict(Constants.DELETE_FIELD)
+            ?.let { DeleteInput.InterfaceDeleteInput(interfaze, it) }
+
+        val on = data.nestedDict(Constants.ON)
             ?.let {
-                InterfaceConnectionWhere(
-                    interfaze, relationshipProperties,
-                    Dict(it)
-                )
-            }
-
-        override val delete =
-            data[Constants.DELETE_FIELD]?.let {
-                DeleteInput.InterfaceDeleteInput(
+                PerNodeInput(
                     interfaze,
-                    Dict(it)
-                )
+                    it,
+                    { node: Node, value: Any -> NodeDeleteFieldInputs.create(node, relationshipProperties, value) })
             }
 
-        val on = data[Constants.ON]?.let {
-            PerNodeInput(
-                interfaze,
-                Dict(it),
-                { node: Node, value: Any -> NodeDeleteFieldInputs.create(node, relationshipProperties, value) }
-            )
-        }
-
-        object Augmentation : AugmentationBase{
+        object Augmentation : AugmentationBase {
             fun generateFieldDeleteIT(
                 rel: RelationField,
                 prefix: String,
@@ -108,7 +100,7 @@ sealed interface DeleteFieldInput {
             fun create(node: Node, relationshipProperties: RelationshipProperties?, value: Any?) = create(
                 value,
                 ::NodeDeleteFieldInputs,
-                { NodeDeleteFieldInput(node, relationshipProperties, Dict(it)) }
+                { NodeDeleteFieldInput(node, relationshipProperties, it.toDict()) }
             )
         }
     }
@@ -119,7 +111,7 @@ sealed interface DeleteFieldInput {
             fun create(interfaze: Interface, relationshipProperties: RelationshipProperties?, value: Any?) = create(
                 value,
                 ::InterfaceDeleteFieldInputs,
-                { InterfaceDeleteFieldInput(interfaze, relationshipProperties, Dict(it)) }
+                { InterfaceDeleteFieldInput(interfaze, relationshipProperties, it.toDict()) }
             )
         }
     }
@@ -136,7 +128,7 @@ sealed interface DeleteFieldInput {
         fun create(field: RelationField, value: Any) = field.extractOnTarget(
             onNode = { NodeDeleteFieldInputs.create(it, field.properties, value) },
             onInterface = { InterfaceDeleteFieldInputs.create(it, field.properties, value) },
-            onUnion = { UnionDeleteFieldInput(it, field.properties, Dict(value)) }
+            onUnion = { UnionDeleteFieldInput(it, field.properties, value.toDict()) }
         )
     }
 }

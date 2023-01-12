@@ -12,7 +12,7 @@ import org.neo4j.graphql.domain.directives.QueryOptionsDirective
 import org.neo4j.graphql.schema.AugmentationBase
 import org.neo4j.graphql.schema.AugmentationContext
 import org.neo4j.graphql.schema.model.inputs.Dict
-import org.neo4j.graphql.wrapList
+import org.neo4j.graphql.toDict
 
 data class OptionsInput(
     val limit: Int? = null,
@@ -54,12 +54,12 @@ data class OptionsInput(
 
     companion object {
 
-        fun create(any: Any?) = any?.let { Dict(it) }?.let { create(it) } ?: OptionsInput()
+        fun create(any: Any?) = any?.toDict()?.let { create(it) } ?: OptionsInput()
 
-        fun create(map: Map<String, *>) = OptionsInput(
-            map[Constants.LIMIT] as? Int,
-            map[Constants.OFFSET] as? Int,
-            map[Constants.SORT]?.wrapList()?.map { SortInput.create(Dict(it)) }
+        fun create(map: Dict) = OptionsInput(
+            map.nestedObject(Constants.LIMIT) as? Int,
+            map.nestedObject(Constants.OFFSET) as? Int,
+            map.nestedDictList(Constants.SORT).map { SortInput.create(it) }.takeIf { it.isNotEmpty() }
         )
     }
 

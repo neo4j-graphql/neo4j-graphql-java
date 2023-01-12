@@ -24,29 +24,25 @@ import org.neo4j.graphql.schema.model.inputs.PerNodeInput.Companion.getCommonFie
 import org.neo4j.graphql.schema.model.inputs.aggregation.AggregateInput
 import org.neo4j.graphql.schema.model.inputs.connection.ConnectionWhere
 import org.neo4j.graphql.schema.relations.RelationFieldBaseAugmentation
+import org.neo4j.graphql.toDict
 
 interface WhereInput {
 
     class UnionWhereInput(union: Union, data: Dict) : WhereInput,
-        PerNodeInput<NodeWhereInput>(union, data, { node, value ->
-            NodeWhereInput(
-                node,
-                Dict(value)
-            )
-        })
+        PerNodeInput<NodeWhereInput>(union, data, { node, value -> NodeWhereInput(node, value.toDict()) })
 
     class NodeWhereInput(
         node: Node,
         data: Dict
     ) : WhereInput,
         FieldContainerWhereInput<NodeWhereInput>(data, node, { NodeWhereInput(node, it) }) {
-        object Augmentation : AugmentationBase{
+        object Augmentation : AugmentationBase {
 
             fun generateWhereIT(node: Node, ctx: AugmentationContext): String? =
                 ctx.getOrCreateInputObjectType("${node.name}${Constants.InputTypeSuffix.Where}") { fields, _ ->
 
                     fields += FieldContainerWhereInput.Augmentation
-                        .getWhereFields(node.name, node.fields, ctx, plural = node.pluralKeepCase)
+                        .getWhereFields(node.name, node.fields, ctx)
 
                 }
         }
@@ -59,7 +55,7 @@ interface WhereInput {
         data,
         relationshipProperties,
         { EdgeWhereInput(relationshipProperties, it) }) {
-        object Augmentation : AugmentationBase{
+        object Augmentation : AugmentationBase {
 
             // TODO rename to edge
             fun generateRelationPropertiesWhereIT(properties: RelationshipProperties?, ctx: AugmentationContext) =
@@ -80,12 +76,8 @@ interface WhereInput {
         val data: Dict
     ) : FieldContainerWhereInput<InterfaceWhereInput>(data, interfaze, { InterfaceWhereInput(interfaze, it) }) {
 
-        val on = data[Constants.ON]?.let {
-            PerNodeInput(
-                interfaze,
-                Dict(it),
-                { node, value -> NodeWhereInput(node, Dict(value)) }
-            )
+        val on = data.nestedDict(Constants.ON)?.let {
+            PerNodeInput(interfaze, it, { node, value -> NodeWhereInput(node, value.toDict()) })
         }
 
         fun getCommonFields(implementation: Node) = on.getCommonFields(implementation, data, ::NodeWhereInput)
@@ -102,23 +94,22 @@ interface WhereInput {
         }
 
         override fun withPreferredOn(node: Node): NodeWhereInput {
-            val overrideData = data[Constants.ON]?.let { Dict(it) } ?: emptyMap()
+            val overrideData = data.nestedDict(Constants.ON) ?: emptyMap()
             return NodeWhereInput(node, Dict(data + overrideData))
         }
 
-        object Augmentation : AugmentationBase{
+        object Augmentation : AugmentationBase {
             fun generateFieldWhereIT(interfaze: Interface, ctx: AugmentationContext): String? =
                 ctx.getOrCreateInputObjectType("${interfaze.name}${Constants.InputTypeSuffix.Where}") { fields, _ ->
 
                     ctx.addOnField(interfaze, Constants.InputTypeSuffix.ImplementationsWhere, fields, asList = false,
-                            { node -> NodeWhereInput.Augmentation.generateWhereIT(node, ctx) })
+                        { node -> NodeWhereInput.Augmentation.generateWhereIT(node, ctx) })
 
                     fields += FieldContainerWhereInput.Augmentation.getWhereFields(
                         interfaze.name,
                         interfaze.fields,
                         ctx,
-                        isInterface = true,
-                        plural = interfaze.pluralKeepCase
+                        isInterface = true
                     )
                 }
 
@@ -165,8 +156,7 @@ interface WhereInput {
                 typeName: String,
                 fieldList: List<BaseField>,
                 ctx: AugmentationContext,
-                isInterface: Boolean = false,
-                plural: String = typeName
+                isInterface: Boolean = false
             ): List<InputValueDefinition> {
                 val result = mutableListOf<InputValueDefinition>()
                 fieldList.forEach { field ->
@@ -221,20 +211,17 @@ interface WhereInput {
 
     companion object {
 
-        fun create(fieldContainer: FieldContainer<*>?, data: Any): FieldContainerWhereInput<*>? =
+        fun create(fieldContainer: FieldContainer<*>?, data: Dict): FieldContainerWhereInput<*>? =
             when (fieldContainer) {
-                is Node -> NodeWhereInput(fieldContainer, Dict(data))
-                is Interface -> InterfaceWhereInput(fieldContainer, Dict(data))
-                is RelationshipProperties -> EdgeWhereInput(
-                    fieldContainer,
-                    Dict(data)
-                )
+                is Node -> NodeWhereInput(fieldContainer, data)
+                is Interface -> InterfaceWhereInput(fieldContainer, data)
+                is RelationshipProperties -> EdgeWhereInput(fieldContainer, data)
                 null -> null
             }
 
-        fun create(field: RelationField, data: Any) = field.extractOnTarget(
+        fun create(field: RelationField, data: Dict) = field.extractOnTarget(
             onImplementingType = { create(it, data) },
-            onUnion = { UnionWhereInput(it, Dict(data)) },
+            onUnion = { UnionWhereInput(it, data) },
         )
 
         fun createPredicate(fieldContainer: FieldContainer<*>, key: String, value: Any?) =
@@ -243,7 +230,7 @@ interface WhereInput {
                     is ScalarPredicateDefinition -> ScalarFieldPredicate(def, value)
                     is RelationPredicateDefinition -> when (def.connection) {
                         true -> ConnectionFieldPredicate(def, value?.let { ConnectionWhere.create(def.field, it) })
-                        false -> RelationFieldPredicate(def, value?.let { create(def.field, it) })
+                        false -> RelationFieldPredicate(def, value?.let { create(def.field, it.toDict()) })
                     }
 
                     is AggregationPredicateDefinition -> AggregationFieldPredicate(def, value)
@@ -251,7 +238,7 @@ interface WhereInput {
             }
     }
 
-    object Augmentation : AugmentationBase{
+    object Augmentation : AugmentationBase {
         fun generateWhereOfFieldIT(field: RelationField, ctx: AugmentationContext): String? =
             ctx.getTypeFromRelationField(field, RelationFieldBaseAugmentation::generateFieldWhereIT)
     }

@@ -11,6 +11,7 @@ import org.neo4j.graphql.schema.model.inputs.PerNodeInput
 import org.neo4j.graphql.schema.model.inputs.PerNodeInput.Companion.getCommonFields
 import org.neo4j.graphql.schema.model.inputs.RelationFieldsInput
 import org.neo4j.graphql.schema.relations.RelationFieldBaseAugmentation
+import org.neo4j.graphql.toDict
 import org.neo4j.graphql.wrapList
 
 sealed class DeleteInput private constructor(implementingType: ImplementingType, data: Dict) :
@@ -36,21 +37,20 @@ sealed class DeleteInput private constructor(implementingType: ImplementingType,
 
     class InterfaceDeleteInput(interfaze: Interface, data: Dict) : DeleteInput(interfaze, data) {
 
-        val on = data[Constants.ON]?.let { on ->
+        val on = data.nestedDict(Constants.ON)?.let { on ->
             PerNodeInput(
                 interfaze,
-                Dict(on),
-                { node: Node, value: Any -> value.wrapList().map { NodeDeleteInput(node, Dict(it)) } }
-            )
+                on,
+                { node: Node, value: Any -> value.wrapList().toDict().map { NodeDeleteInput(node, it) } })
         }
 
         fun getCommonFields(implementation: Node) = on.getCommonFields(implementation, data, ::NodeDeleteInput)
     }
 
     companion object {
-        fun create(implementingType: ImplementingType, anyData: Any) = when (implementingType) {
-            is Node -> NodeDeleteInput(implementingType, Dict(anyData))
-            is Interface -> InterfaceDeleteInput(implementingType, Dict(anyData))
+        fun create(implementingType: ImplementingType, data: Dict) = when (implementingType) {
+            is Node -> NodeDeleteInput(implementingType, data)
+            is Interface -> InterfaceDeleteInput(implementingType, data)
         }
     }
 }

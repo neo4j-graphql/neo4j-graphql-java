@@ -12,7 +12,7 @@ import org.neo4j.graphql.schema.model.inputs.PerNodeInput
 import org.neo4j.graphql.schema.model.inputs.ScalarProperties
 import org.neo4j.graphql.schema.model.inputs.create.CreateInput
 import org.neo4j.graphql.schema.relations.RelationFieldBaseAugmentation
-import org.neo4j.graphql.wrapList
+import org.neo4j.graphql.toDict
 import org.neo4j.graphql.wrapType
 
 sealed interface ConnectFieldInput {
@@ -23,13 +23,13 @@ sealed interface ConnectFieldInput {
         data: Dict
     ) {
         val edge = relationshipProperties
-            ?.let { props -> data[Constants.EDGE_FIELD]?.let { ScalarProperties.create(data, props) } }
+            ?.let { props -> data.nestedDict(Constants.EDGE_FIELD)?.let { ScalarProperties.create(it, props) } }
 
-        val where = data[Constants.WHERE]?.let { ConnectWhere(implementingType, Dict(it)) }
-        val connect =
-            data[Constants.CONNECT_FIELD]?.let { input ->
-                input.wrapList().map { ConnectInput.create(implementingType, it) }
-            }
+        val where = data.nestedDict(Constants.WHERE)?.let { ConnectWhere(implementingType, it) }
+
+        val connect = data.nestedDictList(Constants.CONNECT_FIELD)
+            .map { ConnectInput.create(implementingType, it) }
+            .takeIf { it.isNotEmpty() }
     }
 
     class NodeConnectFieldInput(node: Node, relationshipProperties: RelationshipProperties?, data: Dict) :
@@ -61,21 +61,16 @@ sealed interface ConnectFieldInput {
         data: Dict
     ) :
         ImplementingTypeConnectFieldInput(interfaze, relationshipProperties, data) {
-        val on = data[Constants.ON]?.let {
-            PerNodeInput(
-                interfaze,
-                Dict(it),
-                { node: Node, value: Any ->
-                    NodeConnectFieldInputs.create(
-                        node,
-                        relationshipProperties,
-                        value
-                    )
-                }
-            )
-        }
+        val on = data.nestedDict(Constants.ON)
+            ?.let {
+                PerNodeInput(
+                    interfaze,
+                    it,
+                    { node: Node, value: Any -> NodeConnectFieldInputs.create(node, relationshipProperties, value) }
+                )
+            }
 
-        object Augmentation : AugmentationBase{
+        object Augmentation : AugmentationBase {
             fun generateFieldConnectIT(
                 rel: RelationField,
                 prefix: String,
@@ -113,7 +108,7 @@ sealed interface ConnectFieldInput {
             fun create(node: Node, relationshipProperties: RelationshipProperties?, value: Any?) = create(
                 value,
                 ::NodeConnectFieldInputs,
-                { NodeConnectFieldInput(node, relationshipProperties, Dict(it)) }
+                { NodeConnectFieldInput(node, relationshipProperties, it.toDict()) }
             )
         }
     }
@@ -124,13 +119,7 @@ sealed interface ConnectFieldInput {
             fun create(interfaze: Interface, relationshipProperties: RelationshipProperties?, value: Any?) = create(
                 value,
                 ::InterfaceConnectFieldInputs,
-                {
-                    InterfaceConnectFieldInput(
-                        interfaze,
-                        relationshipProperties,
-                        Dict(it)
-                    )
-                }
+                { InterfaceConnectFieldInput(interfaze, relationshipProperties, it.toDict()) }
             )
         }
     }
@@ -147,7 +136,7 @@ sealed interface ConnectFieldInput {
         fun create(field: RelationField, value: Any) = field.extractOnTarget(
             onNode = { NodeConnectFieldInputs.create(it, field.properties, value) },
             onInterface = { InterfaceConnectFieldInputs.create(it, field.properties, value) },
-            onUnion = { UnionConnectFieldInput(it, field.properties, Dict(value)) }
+            onUnion = { UnionConnectFieldInput(it, field.properties, value.toDict()) }
         )
     }
 }

@@ -2,6 +2,7 @@ package org.neo4j.graphql.schema.model.inputs
 
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.NodeResolver
+import org.neo4j.graphql.toDict
 import org.neo4j.graphql.wrapList
 
 open class PerNodeInput<T>(
@@ -32,11 +33,11 @@ open class PerNodeInput<T>(
             val commonDataExcludingOverrides = commonData
                 .toMutableMap()
                 .apply {
-                    val fieldsToRemove = perNodeData.wrapList().flatMapTo(hashSetOf()) { Dict(it).keys }
+                    val fieldsToRemove = perNodeData.wrapList().flatMapTo(hashSetOf()) { it.toDict().keys }
                     keys.removeAll(fieldsToRemove)
                 }
 
-            return factory(node, Dict(commonDataExcludingOverrides))
+            return factory(node, commonDataExcludingOverrides.toDict())
         }
     }
 }

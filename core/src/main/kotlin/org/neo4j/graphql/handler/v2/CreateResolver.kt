@@ -1,6 +1,7 @@
 package org.neo4j.graphql.handler.v2
 
 import graphql.language.Field
+import graphql.language.InputValueDefinition
 import graphql.language.ListType
 import graphql.language.NonNullType
 import graphql.schema.DataFetchingEnvironment
@@ -11,10 +12,12 @@ import org.neo4j.cypherdsl.core.StatementBuilder
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.ExcludeDirective
-import org.neo4j.graphql.schema.model.inputs.create.CreateInput
 import org.neo4j.graphql.handler.BaseDataFetcher
+import org.neo4j.graphql.schema.AugmentationBase
 import org.neo4j.graphql.schema.AugmentationContext
 import org.neo4j.graphql.schema.AugmentationHandler
+import org.neo4j.graphql.schema.model.inputs.Dict
+import org.neo4j.graphql.schema.model.inputs.create.CreateInput
 import org.neo4j.graphql.translate.CreateTranslator
 
 class CreateResolver private constructor(
@@ -29,29 +32,42 @@ class CreateResolver private constructor(
                 return emptyList()
             }
 
-            val coordinates = CreateInput.Augmentation
-                .generateContainerCreateInputIT(node, ctx)
-                ?.let { inputType ->
+            val arguments = CreateInputArguments.Augmentation.getFieldArguments(node, ctx)
+            if (arguments.isEmpty()) {
+                return emptyList()
+            }
 
-                    val responseType = addResponseType(node, node.typeNames.createResponse, Constants.Types.CreateInfo)
-                    addMutationField(node.rootTypeFieldNames.create, responseType.asRequiredType()) { args ->
-                        args += inputValue(Constants.INPUT_FIELD, NonNullType(ListType(inputType.asRequiredType())))
-                    }
-
-                } ?: return emptyList()
+            val responseType = addResponseType(node, node.typeNames.createResponse, Constants.Types.CreateInfo)
+            val coordinates = addMutationField(node.rootTypeFieldNames.create, responseType.asRequiredType(), arguments)
 
             return AugmentedField(coordinates, CreateResolver(ctx.schemaConfig, node)).wrapList()
         }
     }
 
-    private class InputArguments(node: Node, args: Map<String, *>) {
-        val input = args[Constants.INPUT_FIELD]
-            ?.wrapList()
-            ?.map { CreateInput.create(node, it) }
+    private class CreateInputArguments(node: Node, args: Dict) {
+
+        val input = args.nestedDictList(Constants.INPUT_FIELD)
+            .map { CreateInput.create(node, it) }
+            .takeIf { it.isNotEmpty() }
+
+        object Augmentation : AugmentationBase {
+
+            fun getFieldArguments(node: Node, ctx: AugmentationContext): List<InputValueDefinition> {
+                val args = mutableListOf<InputValueDefinition>()
+
+                CreateInput.Augmentation
+                    .generateContainerCreateInputIT(node, ctx)
+                    ?.let { inputType ->
+                        args += inputValue(Constants.INPUT_FIELD, NonNullType(ListType(inputType.asRequiredType())))
+                    }
+
+                return args
+            }
+        }
     }
 
     override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement {
-        val arguments = InputArguments(node, env.arguments)
+        val arguments = CreateInputArguments(node, env.arguments.toDict())
 
         val queryContext = env.queryContext()
 

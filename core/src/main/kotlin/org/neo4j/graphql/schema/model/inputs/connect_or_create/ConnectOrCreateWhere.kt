@@ -10,9 +10,9 @@ import org.neo4j.graphql.schema.model.inputs.ScalarProperties
 
 class ConnectOrCreateWhere(node: Node, data: Dict) {
 
-    val node = data[Constants.NODE_FIELD]?.let {
+    val node = data.nestedDict(Constants.NODE_FIELD)?.let {
         // UniqueWhere
-        ScalarProperties.create(data, node)
+        ScalarProperties.create(it, node)
     }
 
     object Augmentation : AugmentationBase {

@@ -80,14 +80,27 @@ class UpdateResolver private constructor(
         }
     }
 
-    private class InputArguments(node: Node, args: Map<String, *>) {
-        val where = args[Constants.WHERE]?.let { WhereInput.create(node, it) }
-        val update = args[Constants.UPDATE_FIELD]?.let { UpdateInput.NodeUpdateInput(node, Dict(it)) }
-        val connect = args[Constants.CONNECT_FIELD]?.let { ConnectInput.NodeConnectInput(node, Dict(it)) }
-        val disconnect = args[Constants.DISCONNECT_FIELD]?.let { DisconnectInput.NodeDisconnectInput(node, Dict(it)) }
-        val create = args[Constants.CREATE_FIELD]?.let { RelationInput.create(node, it) }
-        val delete = args[Constants.DELETE_FIELD]?.let { DeleteInput.NodeDeleteInput(node, Dict(it)) }
-        val connectOrCreate = args[Constants.CONNECT_OR_CREATE_FIELD]?.let { ConnectOrCreateInput.create(node, it) }
+    private class InputArguments(node: Node, args: Dict) {
+        val where = args.nestedDict(Constants.WHERE)
+            ?.let { WhereInput.create(node, it) }
+
+        val update = args.nestedDict(Constants.UPDATE_FIELD)
+            ?.let { UpdateInput.NodeUpdateInput(node, it) }
+
+        val connect = args.nestedDict(Constants.CONNECT_FIELD)
+            ?.let { ConnectInput.NodeConnectInput(node, it) }
+
+        val disconnect = args.nestedDict(Constants.DISCONNECT_FIELD)
+            ?.let { DisconnectInput.NodeDisconnectInput(node, it) }
+
+        val create = args.nestedDict(Constants.CREATE_FIELD)
+            ?.let { RelationInput.create(node, it) }
+
+        val delete = args.nestedDict(Constants.DELETE_FIELD)
+            ?.let { DeleteInput.NodeDeleteInput(node, it) }
+
+        val connectOrCreate = args.nestedDict(Constants.CONNECT_OR_CREATE_FIELD)
+            ?.let { ConnectOrCreateInput.create(node, it) }
     }
 
 

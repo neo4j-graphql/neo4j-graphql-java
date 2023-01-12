@@ -50,9 +50,12 @@ class DeleteResolver private constructor(
         }
     }
 
-    private class InputArguments(node: Node, args: Map<String, *>) {
-        val delete = args[Constants.DELETE_FIELD]?.let { DeleteInput.NodeDeleteInput(node, Dict(it)) }
-        val where = args[Constants.WHERE]?.let { WhereInput.NodeWhereInput(node, Dict(it)) }
+    private class InputArguments(node: Node, args: Dict) {
+        val delete = args.nestedDict(Constants.DELETE_FIELD)
+            ?.let { DeleteInput.NodeDeleteInput(node, it) }
+
+        val where = args.nestedDict(Constants.WHERE)
+            ?.let { WhereInput.NodeWhereInput(node, it) }
     }
 
     override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement {

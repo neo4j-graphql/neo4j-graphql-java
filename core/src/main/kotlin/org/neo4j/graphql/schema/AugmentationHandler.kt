@@ -48,6 +48,10 @@ abstract class AugmentationHandler(val ctx: AugmentationContext) : AugmentationB
         return FieldCoordinates.coordinates(queryTypeName, fieldDefinition.name)
     }
 
+    fun addMutationField(name: String, type: Type<*>, args: List<InputValueDefinition>): FieldCoordinates {
+        return addMutationField(field(name, type, args))
+    }
+
     fun addMutationField(
         name: String,
         type: Type<*>,
@@ -55,7 +59,7 @@ abstract class AugmentationHandler(val ctx: AugmentationContext) : AugmentationB
     ): FieldCoordinates {
         val argList = mutableListOf<InputValueDefinition>()
         args?.invoke(argList)
-        return addMutationField(field(name, type, argList))
+        return addMutationField(name, type, argList)
     }
 
     fun addMutationField(fieldDefinition: FieldDefinition): FieldCoordinates {

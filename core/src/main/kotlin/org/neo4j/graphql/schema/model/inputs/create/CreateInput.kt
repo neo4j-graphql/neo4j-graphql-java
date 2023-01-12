@@ -13,6 +13,7 @@ import org.neo4j.graphql.schema.model.inputs.Dict
 import org.neo4j.graphql.schema.model.inputs.RelationFieldsInput
 import org.neo4j.graphql.schema.model.inputs.ScalarProperties
 import org.neo4j.graphql.schema.relations.RelationFieldBaseAugmentation
+import org.neo4j.graphql.toDict
 
 class CreateInput private constructor(
     node: Node,
@@ -20,13 +21,13 @@ class CreateInput private constructor(
 ) : RelationFieldsInput<CreateFieldInput>(
     node,
     data,
-    { field, value -> CreateFieldInput.create(field, value) }
+    { field, value -> CreateFieldInput.create(field, value.toDict()) }
 ) {
 
     val properties by lazy { ScalarProperties.create(data, node) }
 
     companion object {
-        fun create(node: Node, anyData: Any) = CreateInput(node, Dict(anyData))
+        fun create(node: Node, data: Dict) = CreateInput(node, data)
     }
 
     object Augmentation : AugmentationBase {

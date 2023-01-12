@@ -5,12 +5,12 @@ import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.RelationshipProperties
 import org.neo4j.graphql.domain.fields.RelationField
-import org.neo4j.graphql.schema.model.inputs.Dict
-import org.neo4j.graphql.schema.model.inputs.NestedWhere
 import org.neo4j.graphql.domain.predicates.ExpressionPredicate
 import org.neo4j.graphql.domain.predicates.FieldOperator
 import org.neo4j.graphql.schema.AugmentationBase
 import org.neo4j.graphql.schema.AugmentationContext
+import org.neo4j.graphql.schema.model.inputs.Dict
+import org.neo4j.graphql.schema.model.inputs.NestedWhere
 
 class AggregateInput(node: Node, properties: RelationshipProperties?, data: Dict) : NestedWhere<AggregateInput>(
     data,
@@ -22,14 +22,10 @@ class AggregateInput(node: Node, properties: RelationshipProperties?, data: Dict
             ExpressionPredicate(key, op.conditionCreator, value)
         }
 
-    val node = data[Constants.NODE_FIELD]?.let { AggregationWhereInput(node,
-        Dict(it)
-    ) }
+    val node = data.nestedDict(Constants.NODE_FIELD)?.let { AggregationWhereInput(node, it) }
 
-    val edge =
-        properties?.let { props -> data[Constants.EDGE_FIELD]?.let { AggregationWhereInput(props,
-            Dict(it)
-        ) } }
+    val edge = properties
+        ?.let { props -> data.nestedDict(Constants.EDGE_FIELD)?.let { AggregationWhereInput(props, it) } }
 
     companion object {
 
@@ -48,7 +44,7 @@ class AggregateInput(node: Node, properties: RelationshipProperties?, data: Dict
                 return null
             }
             return field.extractOnTarget(
-                onNode = { AggregateInput(it, field.properties, Dict(value)) },
+                onNode = { AggregateInput(it, field.properties, value.toDict()) },
                 onInterface = { error("interfaces are not supported for aggregation") },
                 onUnion = { error("unions are not supported for aggregation") },
             )
