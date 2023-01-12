@@ -7,8 +7,8 @@ import org.neo4j.cypherdsl.core.SymbolicName
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
-import org.neo4j.graphql.domain.inputs.delete.DeleteFieldInput
-import org.neo4j.graphql.domain.inputs.delete.DeleteInput
+import org.neo4j.graphql.schema.model.inputs.delete.DeleteFieldInput
+import org.neo4j.graphql.schema.model.inputs.delete.DeleteInput
 import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.translate.where.createConnectionWhere
 

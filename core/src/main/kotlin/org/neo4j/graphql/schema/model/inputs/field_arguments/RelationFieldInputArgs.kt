@@ -1,0 +1,54 @@
+package org.neo4j.graphql.schema.model.inputs.field_arguments
+
+import graphql.language.BooleanValue
+import graphql.language.InputValueDefinition
+import org.neo4j.graphql.Constants
+import org.neo4j.graphql.asType
+import org.neo4j.graphql.domain.fields.RelationField
+import org.neo4j.graphql.schema.AugmentationBase
+import org.neo4j.graphql.schema.AugmentationContext
+import org.neo4j.graphql.schema.model.inputs.Dict
+import org.neo4j.graphql.schema.model.inputs.WhereInput
+import org.neo4j.graphql.schema.model.inputs.options.OptionsInput
+
+class RelationFieldInputArgs(field: RelationField, data: Map<String, *>) {
+
+    val where = data[Constants.WHERE]?.let { WhereInput.create(field, Dict(it)) }
+
+    val directed = data[Constants.DIRECTED] as? Boolean
+
+
+    val options = OptionsInput
+        .create(data[Constants.OPTIONS])
+        .merge(field.node?.queryOptions)
+
+    object Augmentation : AugmentationBase {
+
+        fun getFieldArguments(field: RelationField, ctx: AugmentationContext): List<InputValueDefinition> {
+            val args = mutableListOf<InputValueDefinition>()
+
+            WhereInput.Augmentation
+                .generateWhereOfFieldIT(field, ctx)
+                ?.let { args += inputValue(Constants.WHERE, it.asType()) }
+
+            val optionType = field.extractOnTarget(
+                onImplementingType = { OptionsInput.Augmentation.generateOptionsIT(it, ctx).asType() },
+                onUnion = { Constants.Types.QueryOptions },
+            )
+            args += inputValue(Constants.OPTIONS, optionType)
+
+            directedArgument(field, ctx)?.let { args += it }
+
+            return args
+        }
+
+        fun directedArgument(relationshipField: RelationField, ctx: AugmentationContext): InputValueDefinition? =
+            when (relationshipField.queryDirection) {
+                RelationField.QueryDirection.DEFAULT_DIRECTED -> true
+                RelationField.QueryDirection.DEFAULT_UNDIRECTED -> false
+                else -> null
+            }?.let { defaultVal ->
+                inputValue(Constants.DIRECTED, Constants.Types.Boolean) { defaultValue(BooleanValue(defaultVal)) }
+            }
+    }
+}

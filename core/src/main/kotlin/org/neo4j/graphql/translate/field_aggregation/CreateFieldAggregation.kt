@@ -2,12 +2,12 @@ package org.neo4j.graphql.translate.field_aggregation
 
 import org.neo4j.cypherdsl.core.*
 import org.neo4j.graphql.*
-import org.neo4j.graphql.domain.FieldContainer
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
-import org.neo4j.graphql.domain.fields.PrimitiveField
 import org.neo4j.graphql.domain.fields.RelationField
-import org.neo4j.graphql.domain.inputs.field_arguments.AggregateFieldInputArgs
+import org.neo4j.graphql.schema.model.inputs.field_arguments.RelationFieldAggregateInputArgs
+import org.neo4j.graphql.schema.model.outputs.aggregate.AggregationSelectionFields
+import org.neo4j.graphql.schema.model.outputs.aggregate.RelationAggregationSelection
 import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.translate.ApocFunctions
 import org.neo4j.graphql.translate.AuthTranslator
@@ -27,12 +27,9 @@ object CreateFieldAggregation {
         val referenceNode = relationField.node ?: return null
 
         val targetRef = referenceNode.asCypherNode(queryContext, referenceNode.name.lowercase())
-
-        val aggregationFields = field.fieldsByTypeName[relationField.aggregateTypeNames?.field]
-        val aggregationNodeFields =
-            aggregationFields?.get(Constants.NODE_FIELD)?.fieldsByTypeName?.get(relationField.aggregateTypeNames?.node)
-        val aggregationEdgeFields =
-            aggregationFields?.get(Constants.EDGE_FIELD)?.fieldsByTypeName?.get(relationField.aggregateTypeNames?.edge)
+        val aggregationFields = RelationAggregationSelection(relationField, field)
+        val aggregationNodeFields = aggregationFields.node?.parsedSelection
+        val aggregationEdgeFields = aggregationFields.edge?.parsedSelection
 
         val authData = createFieldAggregationAuth(
             referenceNode,
@@ -43,7 +40,7 @@ object CreateFieldAggregation {
         )
         val prefix = ChainString(schemaConfig, dslNode, field.name)
 
-        val args = AggregateFieldInputArgs(referenceNode, field.args)
+        val args = RelationFieldAggregateInputArgs(referenceNode, field.args)
         val whereInput = args.where
         val (predicate, preComputedSubqueries) = createWhere(
             referenceNode,
@@ -57,7 +54,7 @@ object CreateFieldAggregation {
         val where = listOfNotNull(authData, predicate).foldWithAnd()
 
         val relationship = relationField.createQueryDslRelation(dslNode, targetRef, args.directed)
-            .named("rel")
+            .named("edge")
         val matchWherePattern = Cypher
             .with(dslNode)
             .match(relationship)
@@ -74,40 +71,37 @@ object CreateFieldAggregation {
 
         val projections = mutableListOf<Any>()
 
-        aggregationFields?.get(Constants.COUNT)?.let {
+        aggregationFields.count.takeIf { it.isNotEmpty() }?.let {
             val countRef = queryContext.getNextVariable(prefix.extend("var"))
-            projections += it.aliasOrName
-            projections += countRef
+            projections + it.project(countRef)
             subQueries += matchWherePattern
-                .returning(Functions.count(relationship.requiredSymbolicName).`as`(countRef))
+                .returning(Functions.count(targetRef).`as`(countRef))
                 .build()
         }
 
         if (aggregationNodeFields != null) {
             val innerProjection = getAggregationProjectionAndSubqueries(
                 prefix,
-                referenceNode,
                 matchWherePattern,
                 targetRef,
                 aggregationNodeFields,
                 subQueries,
                 queryContext
             )
-            projections += aggregationFields[Constants.NODE_FIELD]?.aliasOrName!!
+            projections += aggregationFields.node.aliasOrName
             projections += innerProjection
         }
 
-        if (aggregationEdgeFields != null && relationField.properties != null) {
+        if (aggregationEdgeFields != null) {
             val innerProjection = getAggregationProjectionAndSubqueries(
                 prefix,
-                relationField.properties,
                 matchWherePattern,
                 relationship,
                 aggregationEdgeFields,
                 subQueries,
                 queryContext
             )
-            projections += aggregationFields[Constants.EDGE_FIELD]?.aliasOrName!!
+            projections += aggregationFields.edge.aliasOrName
             projections += innerProjection
         }
 
@@ -116,20 +110,18 @@ object CreateFieldAggregation {
 
     private fun getAggregationProjectionAndSubqueries(
         prefix: ChainString,
-        fieldContainer: FieldContainer<*>,
         matchPattern: StatementBuilder.OngoingReading,
         targetRef: PropertyContainer,
-        fields: Map<*, ResolveTree>,
+        fields: AggregationSelectionFields,
         subQueries: MutableList<Statement>,
         queryContext: QueryContext
     ): MapExpression {
         val projection = mutableListOf<Any>()
         fields
-            .mapKeys {
-                fieldContainer.getField(it.key as String) as? PrimitiveField
-                    ?: error("cannot find field ${fieldContainer.name}::${it.key}")
-            }
+            .flatMap { pair -> pair.value.map { pair.key to it } }
             .forEach { (field, data) ->
+
+                //TODO what about auth?
 
                 val property = targetRef.property(field.dbPropertyName)
                 val nestedSelection =
@@ -229,10 +221,9 @@ object CreateFieldAggregation {
         schemaConfig: SchemaConfig,
         queryContext: QueryContext,
         subqueryNodeAlias: org.neo4j.cypherdsl.core.Node,
-        nodeFields: Map<*, ResolveTree?>?
+        nodeFields: AggregationSelectionFields?
     ): Condition? {
-         //TODO harmonize with ProjectionTranslator::createNodeWhereAndParams ?
-
+        //TODO harmonize with ProjectionTranslator::createNodeWhereAndParams ?
 
         val allowAuth =
             AuthTranslator(schemaConfig, queryContext, allow = AuthTranslator.AuthOptions(subqueryNodeAlias, node))
@@ -244,14 +235,13 @@ object CreateFieldAggregation {
                 .createAuth(node.auth, AuthDirective.AuthOperation.READ)
 
         val fieldAuth = nodeFields
-            ?.mapKeys { node.getField(it.key as String) }
             ?.mapNotNull { (field, _) ->
                 AuthTranslator(
                     schemaConfig,
                     queryContext,
                     allow = AuthTranslator.AuthOptions(subqueryNodeAlias, node, ChainString(schemaConfig, field))
                 )
-                    .createAuth(field?.auth, AuthDirective.AuthOperation.READ)
+                    .createAuth(field.auth, AuthDirective.AuthOperation.READ)
             }
             ?.foldWithAnd()
             ?.let { it.apocValidatePredicate(Constants.AUTH_FORBIDDEN_ERROR) }

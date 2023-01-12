@@ -7,6 +7,7 @@ import org.neo4j.graphql.domain.*
 import org.neo4j.graphql.domain.predicates.RelationOperator
 import org.neo4j.graphql.domain.predicates.definitions.RelationPredicateDefinition
 import org.neo4j.graphql.handler.utils.ChainString
+import org.neo4j.graphql.isList
 
 /**
  * Representation of the `@relationship` directive and its meta.
@@ -54,12 +55,11 @@ class RelationField(
         val result = mutableMapOf<String, RelationPredicateDefinition>()
         listOf(true, false).forEach { isConnection ->
             RelationOperator.values().forEach { op ->
-                // TODO https://github.com/neo4j/graphql/issues/144
-//                if (op.list == this.typeMeta.type.isList()) {
-                val name = (this.fieldName.takeIf { !isConnection } ?: connectionField.fieldName) +
-                        (op.suffix?.let { "_$it" } ?: "")
-                result[name] = RelationPredicateDefinition(name, this, op, isConnection)
-//                }
+                if (op.list == this.typeMeta.type.isList()) {
+                    val name = (this.fieldName.takeIf { !isConnection } ?: connectionField.fieldName) +
+                            (op.suffix?.let { "_$it" } ?: "")
+                    result[name] = RelationPredicateDefinition(name, this, op, isConnection)
+                }
             }
         }
         result
@@ -143,6 +143,7 @@ class RelationField(
         } else {
             end.relationshipTo(start, relationType)
         }
+
         Direction.OUT -> start.relationshipTo(end, relationType)
     }.let { if (name != null) it.named(name.resolveName()) else it }
 

@@ -11,23 +11,24 @@ import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
 import org.neo4j.graphql.domain.directives.ExcludeDirective
-import org.neo4j.graphql.domain.inputs.Dict
-import org.neo4j.graphql.domain.inputs.ScalarProperties
-import org.neo4j.graphql.domain.inputs.WhereInput
-import org.neo4j.graphql.domain.inputs.connect.ConnectFieldInput
-import org.neo4j.graphql.domain.inputs.connect.ConnectInput
-import org.neo4j.graphql.domain.inputs.connect_or_create.ConnectOrCreateFieldInput
-import org.neo4j.graphql.domain.inputs.connect_or_create.ConnectOrCreateInput
-import org.neo4j.graphql.domain.inputs.create.CreateInput
-import org.neo4j.graphql.domain.inputs.create.RelationFieldInput
-import org.neo4j.graphql.domain.inputs.create.RelationInput
-import org.neo4j.graphql.domain.inputs.delete.DeleteInput
-import org.neo4j.graphql.domain.inputs.disconnect.DisconnectFieldInput
-import org.neo4j.graphql.domain.inputs.disconnect.DisconnectInput
-import org.neo4j.graphql.domain.inputs.update.UpdateInput
 import org.neo4j.graphql.handler.BaseDataFetcher
 import org.neo4j.graphql.handler.utils.ChainString
-import org.neo4j.graphql.schema.AugmentationHandlerV2
+import org.neo4j.graphql.schema.AugmentationContext
+import org.neo4j.graphql.schema.AugmentationHandler
+import org.neo4j.graphql.schema.model.inputs.Dict
+import org.neo4j.graphql.schema.model.inputs.ScalarProperties
+import org.neo4j.graphql.schema.model.inputs.WhereInput
+import org.neo4j.graphql.schema.model.inputs.connect.ConnectFieldInput
+import org.neo4j.graphql.schema.model.inputs.connect.ConnectInput
+import org.neo4j.graphql.schema.model.inputs.connect_or_create.ConnectOrCreateFieldInput
+import org.neo4j.graphql.schema.model.inputs.connect_or_create.ConnectOrCreateInput
+import org.neo4j.graphql.schema.model.inputs.create.CreateInput
+import org.neo4j.graphql.schema.model.inputs.create.RelationFieldInput
+import org.neo4j.graphql.schema.model.inputs.create.RelationInput
+import org.neo4j.graphql.schema.model.inputs.delete.DeleteInput
+import org.neo4j.graphql.schema.model.inputs.disconnect.DisconnectFieldInput
+import org.neo4j.graphql.schema.model.inputs.disconnect.DisconnectInput
+import org.neo4j.graphql.schema.model.inputs.update.UpdateInput
 import org.neo4j.graphql.translate.*
 import org.neo4j.graphql.utils.ResolveTree
 
@@ -36,7 +37,7 @@ class UpdateResolver private constructor(
     val node: Node
 ) : BaseDataFetcher(schemaConfig) {
 
-    class Factory(ctx: AugmentationContext) : AugmentationHandlerV2(ctx) {
+    class Factory(ctx: AugmentationContext) : AugmentationHandler(ctx) {
 
         override fun augmentNode(node: Node): List<AugmentedField> {
             if (!node.isOperationAllowed(ExcludeDirective.ExcludeOperation.UPDATE)) {
@@ -293,6 +294,7 @@ class UpdateResolver private constructor(
         }
 
         val projection = resolveTree.getFieldOfType(node.typeNames.updateResponse, node.plural)
+            .firstOrNull()// TODO use all aliases
             ?.let {
                 ProjectionTranslator()
                     .createProjectionAndParams(node, dslNode, it, null, schemaConfig, env.variables, queryContext)

@@ -9,10 +9,11 @@ import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.ExcludeDirective
 import org.neo4j.graphql.domain.directives.FullTextDirective
-import org.neo4j.graphql.domain.inputs.fulltext.FulltextSort
-import org.neo4j.graphql.domain.inputs.fulltext.FulltextWhere
+import org.neo4j.graphql.schema.model.inputs.fulltext.FulltextSort
+import org.neo4j.graphql.schema.model.inputs.fulltext.FulltextWhere
 import org.neo4j.graphql.handler.BaseDataFetcher
-import org.neo4j.graphql.schema.AugmentationHandlerV2
+import org.neo4j.graphql.schema.AugmentationContext
+import org.neo4j.graphql.schema.AugmentationHandler
 
 /**
  * This class handles all the logic related to the querying of nodes.
@@ -24,7 +25,7 @@ class FulltextResolver private constructor(
     val index: FullTextDirective.FullTextIndex
 ) : BaseDataFetcher(schemaConfig) {
 
-    class Factory(ctx: AugmentationContext) : AugmentationHandlerV2(ctx) {
+    class Factory(ctx: AugmentationContext) : AugmentationHandler(ctx) {
 
         override fun augmentNode(node: Node): List<AugmentedField> {
             if (!node.isOperationAllowed(ExcludeDirective.ExcludeOperation.READ)) {
@@ -54,6 +55,14 @@ class FulltextResolver private constructor(
                     AugmentedField(coordinates, FulltextResolver(ctx.schemaConfig, node, fullTextIndex))
                 }
                 ?: emptyList()
+        }
+
+        //TODO remove?  new Handling?
+        private fun generateNodeFulltextOT(node: Node) = ctx.getOrCreateObjectType("${node.name}FulltextResult", {
+            description("The result of a fulltext search on an index of ${node.name}".asDescription())
+        }) { fields, _ ->
+            fields += field(node.name.lowercase(), node.name.asType(true))
+            fields += field(Constants.SCORE, Constants.Types.Float.makeRequired())
         }
     }
 

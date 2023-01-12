@@ -1,6 +1,7 @@
 package org.neo4j.graphql.handler.v2
 
 import graphql.language.Field
+import graphql.language.InputValueDefinition
 import graphql.schema.DataFetchingEnvironment
 import org.neo4j.cypherdsl.core.Condition
 import org.neo4j.cypherdsl.core.Cypher
@@ -10,13 +11,13 @@ import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
 import org.neo4j.graphql.domain.directives.ExcludeDirective
-import org.neo4j.graphql.domain.fields.PrimitiveField
 import org.neo4j.graphql.domain.fields.TemporalField
-import org.neo4j.graphql.domain.inputs.Dict
-import org.neo4j.graphql.domain.inputs.WhereInput
 import org.neo4j.graphql.handler.BaseDataFetcher
-import org.neo4j.graphql.handler.utils.ChainString
-import org.neo4j.graphql.schema.AugmentationHandlerV2
+import org.neo4j.graphql.schema.AugmentationBase
+import org.neo4j.graphql.schema.AugmentationContext
+import org.neo4j.graphql.schema.AugmentationHandler
+import org.neo4j.graphql.schema.model.inputs.WhereInput
+import org.neo4j.graphql.schema.model.outputs.aggregate.AggregationSelection
 import org.neo4j.graphql.translate.AuthTranslator
 import org.neo4j.graphql.translate.TopLevelMatchTranslator
 import org.neo4j.graphql.translate.projection.createDatetimeExpression
@@ -28,30 +29,50 @@ class AggregateResolver private constructor(
     val node: Node
 ) : BaseDataFetcher(schemaConfig) {
 
-    class Factory(ctx: AugmentationContext) : AugmentationHandlerV2(ctx) {
+    class Factory(ctx: AugmentationContext) : AugmentationHandler(ctx) {
 
         override fun augmentNode(node: Node): List<AugmentedField> {
             if (!node.isOperationAllowed(ExcludeDirective.ExcludeOperation.READ)) {
                 return emptyList()
             }
-            val aggregationSelection = addAggregationSelectionType(node)
+            val aggregationSelection = AggregationSelection.Augmentation.addAggregationSelectionType(node, ctx)
+
             val coordinates =
                 addQueryField(node.rootTypeFieldNames.aggregate, aggregationSelection.asRequiredType()) { args ->
-                    WhereInput.NodeWhereInput.Augmentation.generateWhereIT(node, ctx)
-                        ?.let { args += inputValue(Constants.WHERE, it.asType()) }
+                    args += AggregateFieldArgs.Augmentation.getFieldArguments(node, ctx)
                 }
             return AugmentedField(coordinates, AggregateResolver(ctx.schemaConfig, node)).wrapList()
         }
     }
 
-    private class InputArguments(node: Node, args: Map<String, *>) {
-        val where = args[Constants.WHERE]?.let { WhereInput.NodeWhereInput(node, Dict(it)) }
+    private class AggregateFieldArgs(node: Node, args: Map<String, *>) {
+        val where = args[Constants.WHERE]?.let {
+            WhereInput.NodeWhereInput(
+                node,
+                org.neo4j.graphql.schema.model.inputs.Dict(it)
+            )
+        }
+
+        object Augmentation: AugmentationBase {
+
+            fun getFieldArguments(node: Node, ctx: AugmentationContext): List<InputValueDefinition> {
+                val args = mutableListOf<InputValueDefinition>()
+
+                WhereInput.NodeWhereInput.Augmentation
+                    .generateWhereIT(node, ctx)
+                    ?.let { args += inputValue(Constants.WHERE, it.asType()) }
+
+                return args
+            }
+        }
     }
 
     override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement {
         val resolveTree = ResolveTree.resolve(env)
+            .parse({ AggregationSelection(node, it) }, { AggregateFieldArgs(node, it.args) })
 
-        val arguments = InputArguments(node, resolveTree.args)
+        val selection = resolveTree.parsedSelection
+        val arguments = resolveTree.parsedArguments
         val queryContext = env.queryContext()
 
         val dslNode = node.asCypherNode(queryContext, variable)
@@ -73,21 +94,13 @@ class AggregateResolver private constructor(
             }
 
 
-        val selection = resolveTree.fieldsByTypeName[node.aggregateTypeNames.selection]
-        val chainStr = ChainString(schemaConfig, dslNode)
         var authValidate: Condition? = null
         val projection = mutableListOf<Any>()
 
-        selection?.values?.forEach { fieldSelection ->
-            val alias = fieldSelection.aliasOrName
-            val param = chainStr.extend(alias)
+        projection.addAll(selection.count.project(Functions.count(dslNode)))
 
-            if (fieldSelection.name == Constants.COUNT) {
-                projection += alias
-                projection += Functions.count(dslNode)
-            }
+        selection.fieldSelection.forEach { (nodeField, fieldSelection) ->
 
-            val nodeField = node.getField(fieldSelection.name) as? PrimitiveField ?: return@forEach
             nodeField.auth?.let { auth ->
                 AuthTranslator(
                     schemaConfig,
@@ -98,11 +111,14 @@ class AggregateResolver private constructor(
                     ?.let { authValidate = authValidate and it }
             }
 
-            val aggregateFields = fieldSelection.fieldsByTypeName[nodeField.getAggregationSelectionLibraryTypeName()]
+            val aggregateFields = fieldSelection
+                .mapNotNull { it.fieldsByTypeName[nodeField.getAggregationSelectionLibraryTypeName()]?.values }
+                .flatten()
+
             val property = dslNode.property(nodeField.dbPropertyName)
 
             val thisProjections = mutableListOf<Any>()
-            aggregateFields?.values?.forEach { aggregateField ->
+            aggregateFields.forEach { aggregateField ->
                 val value = when (aggregateField.name) {
                     Constants.MIN, Constants.SHORTEST -> Functions.min(property)
                     Constants.MAX, Constants.LONGEST -> Functions.max(property)
@@ -139,8 +155,7 @@ class AggregateResolver private constructor(
                 }
 
             }
-            projection += alias
-            projection += Cypher.mapOf(*thisProjections.toTypedArray())
+            projection.addAll(fieldSelection.project(Cypher.mapOf(*thisProjections.toTypedArray())))
         }
 
         authValidate?.let {

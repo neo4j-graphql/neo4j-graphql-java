@@ -9,13 +9,15 @@ import org.neo4j.graphql.isList
 /**
  * A container holding fields
  */
-abstract class FieldContainer<T : BaseField>(val fields: List<T>) {
+sealed class FieldContainer<T : BaseField>(val fields: List<T>) {
 
     init {
         fields.forEach { it.owner = this }
     }
 
     abstract val name: String
+
+    private val fieldsByName = fields.map { it.fieldName to it }.toMap()
 
     val hasNonGeneratedProperties: Boolean get() = fields.any { !it.generated }
     val hasRequiredNonGeneratedFields: Boolean get() = fields.any { !it.generated && it.required }
@@ -70,8 +72,5 @@ abstract class FieldContainer<T : BaseField>(val fields: List<T>) {
             .toMap()
     }
 
-    fun getField(name: String): BaseField? {
-        // TODO use map instead?
-        return fields.find { it.fieldName == name }
-    }
+    fun getField(name: String): BaseField? = fieldsByName[name]
 }

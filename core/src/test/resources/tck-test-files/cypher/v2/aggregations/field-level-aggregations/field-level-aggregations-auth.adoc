@@ -75,14 +75,14 @@ type Actor {
 MATCH (this:Actor)
 CALL {
 	WITH this
-	MATCH (this)-[this_moviesAggregate_this0:ACTED_IN]->(this_moviesAggregate_this1:Movie)
+	MATCH (this)-[edge:ACTED_IN]->(movie:Movie)
 	WHERE apoc.util.validatePredicate(NOT (apoc.util.validatePredicate(NOT ($auth.isAuthenticated = true), '@neo4j/graphql/UNAUTHENTICATED', [0])), '@neo4j/graphql/FORBIDDEN', [0])
-	RETURN count(this_moviesAggregate_this1) AS this_moviesAggregate_var2
+	RETURN count(movie) AS this_moviesAggregate_var0
 }
 RETURN this {
 	.name,
 	moviesAggregate: {
-		count: this_moviesAggregate_var2
+		count: this_moviesAggregate_var0
 	}
 } AS this
 ----
@@ -138,13 +138,13 @@ MATCH (this:Movie)
 WHERE apoc.util.validatePredicate(NOT (apoc.util.validatePredicate(NOT ($auth.isAuthenticated = true), '@neo4j/graphql/UNAUTHENTICATED', [0])), '@neo4j/graphql/FORBIDDEN', [0])
 CALL {
 	WITH this
-	MATCH (this_actorsAggregate_this1:Actor)-[this_actorsAggregate_this0:ACTED_IN]->(this)
-	RETURN count(this_actorsAggregate_this1) AS this_actorsAggregate_var2
+	MATCH (actor:Actor)-[edge:ACTED_IN]->(this)
+	RETURN count(actor) AS this_actorsAggregate_var0
 }
 RETURN this {
 	.title,
 	actorsAggregate: {
-		count: this_actorsAggregate_var2
+		count: this_actorsAggregate_var0
 	}
 } AS this
 ----

@@ -64,18 +64,18 @@ interface ActedIn {
 MATCH (this:Movie)
 CALL {
 	WITH this
-	MATCH (this_actorsAggregate_this1:Actor)-[this_actorsAggregate_this0:ACTED_IN]->(this)
+	MATCH (actor:Actor)-[edge:ACTED_IN]->(this)
 	RETURN {
-		min: min(this_actorsAggregate_this0.screentime),
-		max: max(this_actorsAggregate_this0.screentime),
-		average: avg(this_actorsAggregate_this0.screentime),
-		sum: sum(this_actorsAggregate_this0.screentime)
-	} AS this_actorsAggregate_var2
+		max: max(edge.screentime),
+		min: min(edge.screentime),
+		average: avg(edge.screentime),
+		sum: sum(edge.screentime)
+	} AS this_actorsAggregate_var0
 }
 RETURN this {
 	actorsAggregate: {
 		edge: {
-			screentime: this_actorsAggregate_var2
+			screentime: this_actorsAggregate_var0
 		}
 	}
 } AS this

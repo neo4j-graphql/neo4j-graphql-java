@@ -5,9 +5,10 @@ import graphql.language.VariableReference
 import graphql.schema.GraphQLOutputType
 import org.neo4j.cypherdsl.core.*
 import org.neo4j.cypherdsl.core.StatementBuilder.*
-import org.neo4j.graphql.domain.inputs.options.OptionsInput
+import org.neo4j.graphql.schema.model.inputs.options.OptionsInput
 import org.neo4j.graphql.translate.ApocFunctions
 import org.neo4j.graphql.translate.ApocFunctions.UtilFunctions.callApocValidate
+import org.neo4j.graphql.utils.IResolveTree
 import java.util.*
 
 @Deprecated("use ChainString")
@@ -162,3 +163,9 @@ fun OngoingReadingWithoutWhere.optionalWhere(condition: List<Condition?>): Ongoi
 
 fun OngoingReadingWithoutWhere.optionalWhere(condition: Condition?): OngoingReading =
     if (condition != null) this.where(condition) else this
+fun OrderableOngoingReadingAndWithWithoutWhere.optionalWhere(condition: Condition?): OngoingReading =
+    if (condition != null) this.where(condition) else this
+
+fun Iterable<IResolveTree>.project(expression: Expression): List<Any> = this.flatMap {
+    listOf(it.aliasOrName, expression)
+}

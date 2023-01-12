@@ -9,7 +9,7 @@ import org.neo4j.graphql.SchemaConfig
 import org.neo4j.graphql.domain.FieldContainer
 import org.neo4j.graphql.domain.directives.AuthDirective.AuthOperation
 import org.neo4j.graphql.domain.directives.TimestampDirective.TimeStampOperation
-import org.neo4j.graphql.domain.inputs.ScalarProperties
+import org.neo4j.graphql.schema.model.inputs.ScalarProperties
 import org.neo4j.graphql.domain.fields.BaseField
 import org.neo4j.graphql.domain.fields.PointField
 import org.neo4j.graphql.handler.utils.ChainString

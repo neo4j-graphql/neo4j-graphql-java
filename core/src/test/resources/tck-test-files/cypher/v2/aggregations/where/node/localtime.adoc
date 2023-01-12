@@ -53,7 +53,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN any(var2 IN collect(this1.someLocalTime) WHERE var2 = $param0) AS var3
+	RETURN any(var2 IN collect(this1.someLocalTime) WHERE var2 = localtime($param0)) AS var3
 }
 WITH *
 WHERE var3 = true
@@ -91,7 +91,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN any(var2 IN collect(this1._someLocalTimeAlias) WHERE var2 = $param0) AS var3
+	RETURN any(var2 IN collect(this1._someLocalTimeAlias) WHERE var2 = localtime($param0)) AS var3
 }
 WITH *
 WHERE var3 = true
@@ -129,7 +129,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN any(var2 IN collect(this1.someLocalTime) WHERE var2 > $param0) AS var3
+	RETURN any(var2 IN collect(this1.someLocalTime) WHERE var2 > localtime($param0)) AS var3
 }
 WITH *
 WHERE var3 = true
@@ -167,7 +167,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN any(var2 IN collect(this1.someLocalTime) WHERE var2 >= $param0) AS var3
+	RETURN any(var2 IN collect(this1.someLocalTime) WHERE var2 >= localtime($param0)) AS var3
 }
 WITH *
 WHERE var3 = true
@@ -205,7 +205,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN any(var2 IN collect(this1.someLocalTime) WHERE var2 < $param0) AS var3
+	RETURN any(var2 IN collect(this1.someLocalTime) WHERE var2 < localtime($param0)) AS var3
 }
 WITH *
 WHERE var3 = true
@@ -243,7 +243,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN any(var2 IN collect(this1.someLocalTime) WHERE var2 <= $param0) AS var3
+	RETURN any(var2 IN collect(this1.someLocalTime) WHERE var2 <= localtime($param0)) AS var3
 }
 WITH *
 WHERE var3 = true
@@ -281,7 +281,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN max(this1.someLocalTime) = $param0 AS var2
+	RETURN max(this1.someLocalTime) = localtime($param0) AS var2
 }
 WITH *
 WHERE var2 = true
@@ -319,7 +319,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN max(this1.someLocalTime) > $param0 AS var2
+	RETURN max(this1.someLocalTime) > localtime($param0) AS var2
 }
 WITH *
 WHERE var2 = true
@@ -357,7 +357,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN max(this1.someLocalTime) >= $param0 AS var2
+	RETURN max(this1.someLocalTime) >= localtime($param0) AS var2
 }
 WITH *
 WHERE var2 = true
@@ -395,7 +395,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN max(this1.someLocalTime) < $param0 AS var2
+	RETURN max(this1.someLocalTime) < localtime($param0) AS var2
 }
 WITH *
 WHERE var2 = true
@@ -433,7 +433,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN max(this1.someLocalTime) <= $param0 AS var2
+	RETURN max(this1.someLocalTime) <= localtime($param0) AS var2
 }
 WITH *
 WHERE var2 = true
@@ -471,7 +471,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN min(this1.someLocalTime) = $param0 AS var2
+	RETURN min(this1.someLocalTime) = localtime($param0) AS var2
 }
 WITH *
 WHERE var2 = true
@@ -509,7 +509,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN min(this1.someLocalTime) > $param0 AS var2
+	RETURN min(this1.someLocalTime) > localtime($param0) AS var2
 }
 WITH *
 WHERE var2 = true
@@ -547,7 +547,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN min(this1.someLocalTime) >= $param0 AS var2
+	RETURN min(this1.someLocalTime) >= localtime($param0) AS var2
 }
 WITH *
 WHERE var2 = true
@@ -585,7 +585,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN min(this1.someLocalTime) < $param0 AS var2
+	RETURN min(this1.someLocalTime) < localtime($param0) AS var2
 }
 WITH *
 WHERE var2 = true
@@ -623,7 +623,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN min(this1.someLocalTime) <= $param0 AS var2
+	RETURN min(this1.someLocalTime) <= localtime($param0) AS var2
 }
 WITH *
 WHERE var2 = true

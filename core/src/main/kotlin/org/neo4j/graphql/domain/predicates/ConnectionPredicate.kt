@@ -2,7 +2,7 @@ package org.neo4j.graphql.domain.predicates
 
 import org.neo4j.cypherdsl.core.Condition
 import org.neo4j.graphql.Constants
-import org.neo4j.graphql.domain.inputs.WhereInput
+import org.neo4j.graphql.schema.model.inputs.WhereInput
 
 /**
  * Predicates on a nodes' or relations' property

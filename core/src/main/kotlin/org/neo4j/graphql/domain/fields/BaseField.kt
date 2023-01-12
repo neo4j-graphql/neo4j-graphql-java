@@ -17,8 +17,8 @@ sealed class BaseField(
     var typeMeta: TypeMeta,
 ) {
     var otherDirectives: List<Directive> = emptyList()
-    val deprecatedDirectives
-        get() = otherDirectives.filter { it.name == "deprecated" }
+    val deprecatedDirective
+        get() = otherDirectives.firstOrNull { it.name == "deprecated" }
 
     var arguments: List<InputValueDefinition> = emptyList()
     var private: Boolean = false

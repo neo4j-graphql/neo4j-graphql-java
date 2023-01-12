@@ -79,6 +79,9 @@ object Constants {
         DirectiveConstants.CYPHER
     )
 
+    const val TYPE_NAME = "__typename"
+
+
     const val OPTIONS = "options"
     const val FULLTEXT = "fulltext"
     val OPTIONS_TYPE = TypeName("QueryOptions")

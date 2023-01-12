@@ -9,11 +9,13 @@ import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
 import org.neo4j.graphql.domain.directives.ExcludeDirective
-import org.neo4j.graphql.domain.inputs.Dict
-import org.neo4j.graphql.domain.inputs.WhereInput
-import org.neo4j.graphql.domain.inputs.options.OptionsInput
 import org.neo4j.graphql.handler.BaseDataFetcher
-import org.neo4j.graphql.schema.AugmentationHandlerV2
+import org.neo4j.graphql.schema.AugmentationContext
+import org.neo4j.graphql.schema.AugmentationHandler
+import org.neo4j.graphql.schema.model.inputs.Dict
+import org.neo4j.graphql.schema.model.inputs.WhereInput
+import org.neo4j.graphql.schema.model.inputs.options.OptionsInput
+import org.neo4j.graphql.schema.model.outputs.NodeSelection
 import org.neo4j.graphql.translate.AuthTranslator
 import org.neo4j.graphql.translate.ProjectionTranslator
 import org.neo4j.graphql.translate.TopLevelMatchTranslator
@@ -28,13 +30,13 @@ class ReadResolver private constructor(
     val node: Node
 ) : BaseDataFetcher(schemaConfig) {
 
-    class Factory(ctx: AugmentationContext) : AugmentationHandlerV2(ctx) {
+    class Factory(ctx: AugmentationContext) : AugmentationHandler(ctx) {
 
         override fun augmentNode(node: Node): List<AugmentedField> {
             if (!node.isOperationAllowed(ExcludeDirective.ExcludeOperation.READ)) {
                 return emptyList()
             }
-            val nodeType = generateNodeOT(node) ?: return emptyList()
+            val nodeType = NodeSelection.Augmentation.generateNodeSelection(node, ctx) ?: return emptyList()
             val coordinates =
                 addQueryField(node.rootTypeFieldNames.read, NonNullType(ListType(nodeType.asRequiredType()))) { args ->
 

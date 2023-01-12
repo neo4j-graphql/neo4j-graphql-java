@@ -4,8 +4,8 @@ import org.neo4j.cypherdsl.core.*
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.FieldContainer
 import org.neo4j.graphql.domain.fields.HasCoalesceValue
-import org.neo4j.graphql.domain.inputs.WhereInput
-import org.neo4j.graphql.domain.inputs.connection.ConnectionWhere
+import org.neo4j.graphql.schema.model.inputs.WhereInput
+import org.neo4j.graphql.schema.model.inputs.connection.ConnectionWhere
 import org.neo4j.graphql.domain.predicates.ConnectionFieldPredicate
 import org.neo4j.graphql.domain.predicates.RelationFieldPredicate
 import org.neo4j.graphql.domain.predicates.ScalarFieldPredicate
@@ -25,36 +25,41 @@ fun createWhere(
 
     val paramPrefix = chainStr ?: ChainString(schemaConfig, propertyContainer)
 
-    fun resolveRelationCondition(predicate: RelationFieldPredicate): Condition {
+    fun resolveRelationCondition(predicate: RelationFieldPredicate): WhereResult {
         if (propertyContainer !is Node) throw IllegalArgumentException("a nodes is required for relation predicates")
         val field = predicate.field
         val op = predicate.def.operator
-        val where = predicate.where
-        val param = paramPrefix.extend(field, op.suffix)
         val refNode = field.node ?: throw IllegalArgumentException("Relationship filters must reference nodes")
-        val endDslNode = refNode.asCypherNode(queryContext)
+        val endNode = refNode.asCypherNode(queryContext).named(queryContext.getNextVariable(propertyContainer.name()))
 
-        var relCond = field.createDslRelation(propertyContainer, endDslNode).asCondition()
+        val (nestedCondition, preComputedSubQueries) = createWhere(
+            refNode,
+            predicate.where,
+            endNode,
+            chainStr = paramPrefix.extend(field, op.suffix),
+            schemaConfig,
+            queryContext
+        )
 
-        val endNode = endDslNode.named(param.resolveName())
-        createWhere(refNode, where, endNode, chainStr = param, schemaConfig, queryContext)
-            .takeIf { it.predicate != null }
-            ?.let { innerWhere ->
-                check(innerWhere.preComputedSubQueries.isEmpty(), { "TODO implement sub-queries here" })
-                val nestedCondition = op.predicateCreator(endNode.requiredSymbolicName)
-                    .`in`(
-                        CypherDSL
-                            .listBasedOn(field.createDslRelation(propertyContainer, endNode))
-                            .returning(endNode)
-                    )
-                    .where(innerWhere.predicate)
-                relCond = relCond and nestedCondition
+        val countRef = queryContext.getNextVariable()
+
+        val match = Cypher
+            .with(propertyContainer)
+            .match(field.createDslRelation(propertyContainer, endNode))
+            .let {
+                val whereCondition = op.whereTransformer(nestedCondition)
+                if (preComputedSubQueries.isEmpty()) {
+                    it.optionalWhere(whereCondition)
+                } else {
+                    it
+                        .withSubQueries(preComputedSubQueries)
+                        .with(Cypher.asterisk())
+                        .optionalWhere(whereCondition)
+                }
             }
+            .returning(Functions.count(endNode).`as`(countRef))
 
-        if (op == org.neo4j.graphql.domain.predicates.RelationOperator.NOT_EQUAL) {
-            relCond = relCond.not()
-        }
-        return relCond
+        return WhereResult(op.countPredicate(countRef), listOf(match.build()))
     }
 
     fun resolveConnectionCondition(predicate: ConnectionFieldPredicate): WhereResult {
@@ -81,12 +86,8 @@ fun createWhere(
             val refNode = relationField.getNode(nodeName)
                 ?: throw IllegalArgumentException("Cannot find referenced node $nodeName")
 
-            val endDslNode = refNode.asCypherNode(queryContext)
-
-
-            var relCond = relationField.createDslRelation(propertyContainer, endDslNode).asCondition()
-
-            val thisParam = param.extend(refNode)
+            val endNode =
+                refNode.asCypherNode(queryContext).named(queryContext.getNextVariable(propertyContainer.name()))
 
             val parameterPrefix = param.extend(
                 node,
@@ -96,16 +97,10 @@ fun createWhere(
                 op.suffix // TODO duplicate op
             )
 
-            val cond = CypherDSL.name("Cond")
-            val endNode = endDslNode.named(thisParam.resolveName())
-            val relation = relationField.createDslRelation(
-                propertyContainer,
-                endNode,
-                thisParam.extend(field.relationshipTypeName)
-            )
+            val relation = relationField.createDslRelation(propertyContainer, endNode).named("edge")
+            val countRef = queryContext.getNextVariable()
 
-
-            val (whereCondition, whereSubquery) = createConnectionWhere(
+            val (nestedCondition, preComputedSubQueries) = createConnectionWhere(
                 whereInput,
                 refNode,
                 endNode,
@@ -115,25 +110,25 @@ fun createWhere(
                 schemaConfig,
                 queryContext
             )
-            subQueries.addAll(whereSubquery)
 
-            (whereCondition ?: Conditions.isTrue())
-                .let { innerWhere ->
-                    val nestedCondition = op.predicateCreator(cond)
-                        .`in`(
-                            CypherDSL
-                                .listBasedOn(relation)
-                                .returning(innerWhere)
-                        )
-                        .where(cond.asCondition())
-                    relCond = relCond and nestedCondition
+            val match = Cypher
+                .with(propertyContainer)
+                .match(relation)
+                .let {
+                    val whereCondition = op.whereTransformer(nestedCondition)
+                    if (preComputedSubQueries.isEmpty()) {
+                        it.optionalWhere(whereCondition)
+                    } else {
+                        it
+                            .withSubQueries(preComputedSubQueries)
+                            .with(Cypher.asterisk())
+                            .optionalWhere(whereCondition)
+                    }
                 }
+                .returning(Functions.count(endNode).`as`(countRef))
 
-            if (op == org.neo4j.graphql.domain.predicates.RelationOperator.NOT_EQUAL) {
-                relCond = relCond.not()
-            }
-
-            result = result and relCond
+            result = result and op.countPredicate(countRef)
+            subQueries.add(match.build())
         }
         return WhereResult(result, subQueries)
     }
@@ -183,17 +178,16 @@ fun createWhere(
         }
 
         whereInput.predicates.forEach { predicate ->
-            when (predicate) {
-                is ScalarFieldPredicate -> resolveScalarCondition(predicate)
+            val (whereCondition, whereSubquery) = when (predicate) {
+                is ScalarFieldPredicate -> WhereResult(resolveScalarCondition(predicate), emptyList())
                 is RelationFieldPredicate -> resolveRelationCondition(predicate)
-                is ConnectionFieldPredicate -> {
-                    val (whereCondition, whereSubquery) =resolveConnectionCondition(predicate)
-                    subQueries.addAll(whereSubquery)
-                    whereCondition
-                }
-                else -> null
+                is ConnectionFieldPredicate -> resolveConnectionCondition(predicate)
+                else -> WhereResult.EMPTY
             }
-                ?.let { result = result and it }
+            subQueries.addAll(whereSubquery)
+            if (whereCondition != null) {
+                result = result and whereCondition
+            }
         }
     }
 

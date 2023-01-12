@@ -562,19 +562,19 @@ input MovieUpdateInput {
 input MovieWhere {
   AND: [MovieWhere!]
   OR: [MovieWhere!]
-  genres: GenreWhere @deprecated(reason : "Use `genres_SOME` instead.")
+  genres: GenreWhere @deprecated(reason : "Do not use")
   genresAggregate: MovieGenresAggregateInput @deprecated(reason : "Do not use")
-  genresConnection: MovieGenresConnectionWhere @deprecated(reason : "Use `genresConnection_SOME` instead.")
+  genresConnection: MovieGenresConnectionWhere @deprecated(reason : "Do not use")
   genresConnection_ALL: MovieGenresConnectionWhere @deprecated(reason : "Do not use")
   genresConnection_NONE: MovieGenresConnectionWhere @deprecated(reason : "Do not use")
-  genresConnection_NOT: MovieGenresConnectionWhere @deprecated(reason : "Use `genresConnection_NONE` instead.")
+  genresConnection_NOT: MovieGenresConnectionWhere @deprecated(reason : "Do not use")
   genresConnection_SINGLE: MovieGenresConnectionWhere @deprecated(reason : "Do not use")
   genresConnection_SOME: MovieGenresConnectionWhere @deprecated(reason : "Do not use")
   "Return Movies where all of the related Genres match this filter"
   genres_ALL: GenreWhere @deprecated(reason : "Do not use")
   "Return Movies where none of the related Genres match this filter"
   genres_NONE: GenreWhere @deprecated(reason : "Do not use")
-  genres_NOT: GenreWhere @deprecated(reason : "Use `genres_NONE` instead.")
+  genres_NOT: GenreWhere @deprecated(reason : "Do not use")
   "Return Movies where one of the related Genres match this filter"
   genres_SINGLE: GenreWhere @deprecated(reason : "Do not use")
   "Return Movies where some of the related Genres match this filter"

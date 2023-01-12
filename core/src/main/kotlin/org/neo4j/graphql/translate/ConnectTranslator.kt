@@ -6,9 +6,9 @@ import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
 import org.neo4j.graphql.domain.fields.RelationField
-import org.neo4j.graphql.domain.inputs.connect.ConnectFieldInput
-import org.neo4j.graphql.domain.inputs.connect.ConnectFieldInput.ImplementingTypeConnectFieldInput
-import org.neo4j.graphql.domain.inputs.connect.ConnectInput
+import org.neo4j.graphql.schema.model.inputs.connect.ConnectFieldInput
+import org.neo4j.graphql.schema.model.inputs.connect.ConnectFieldInput.ImplementingTypeConnectFieldInput
+import org.neo4j.graphql.schema.model.inputs.connect.ConnectInput
 import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.translate.where.createWhere
 
@@ -74,7 +74,7 @@ class ConnectTranslator(
 
         val (conditions, nestedSubQueries) = getConnectWhere(node, relatedNode, connect)
 
-        var subQuery = CypherDSL.with(withVars)
+        var subQuery = Cypher.with(withVars)
             .optionalMatch(node)
             .let { if (conditions != null) it.where(conditions) else it }
 

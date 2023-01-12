@@ -6,8 +6,8 @@ import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
 import org.neo4j.graphql.domain.fields.*
-import org.neo4j.graphql.domain.inputs.WhereInput
-import org.neo4j.graphql.domain.inputs.field_arguments.RelationFieldInputArgs
+import org.neo4j.graphql.schema.model.inputs.WhereInput
+import org.neo4j.graphql.schema.model.inputs.field_arguments.RelationFieldInputArgs
 import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.translate.connection_clause.CreateConnectionClause
 import org.neo4j.graphql.translate.field_aggregation.CreateFieldAggregation

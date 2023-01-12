@@ -6,8 +6,8 @@ import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.directives.AuthDirective
 import org.neo4j.graphql.domain.fields.AuthableField
 import org.neo4j.graphql.domain.fields.RelationField
-import org.neo4j.graphql.domain.inputs.update.UpdateFieldInput
-import org.neo4j.graphql.domain.inputs.update.UpdateInput
+import org.neo4j.graphql.schema.model.inputs.update.UpdateFieldInput
+import org.neo4j.graphql.schema.model.inputs.update.UpdateInput
 import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.translate.where.createConnectionWhere
 

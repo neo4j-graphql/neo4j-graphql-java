@@ -590,10 +590,10 @@ input UserUpdateInput {
 input UserWhere {
   AND: [UserWhere!]
   OR: [UserWhere!]
-  contentConnection: UserContentConnectionWhere @deprecated(reason : "Use `contentConnection_SOME` instead.")
+  contentConnection: UserContentConnectionWhere @deprecated(reason : "Do not use user.content")
   contentConnection_ALL: UserContentConnectionWhere @deprecated(reason : "Do not use user.content")
   contentConnection_NONE: UserContentConnectionWhere @deprecated(reason : "Do not use user.content")
-  contentConnection_NOT: UserContentConnectionWhere @deprecated(reason : "Use `contentConnection_NONE` instead.")
+  contentConnection_NOT: UserContentConnectionWhere @deprecated(reason : "Do not use user.content")
   contentConnection_SINGLE: UserContentConnectionWhere @deprecated(reason : "Do not use user.content")
   contentConnection_SOME: UserContentConnectionWhere @deprecated(reason : "Do not use user.content")
   name: String

@@ -8,8 +8,8 @@ enum class FieldOperator(
     val suffix: String,
     val conditionCreator: (Expression, Expression) -> Condition
 ) {
-    EQUAL("", { lhs, rhs -> if (rhs == Cypher.literalNull()) rhs.isNull else lhs.eq(rhs) }),
-    NOT_EQUAL("NOT", { lhs, rhs -> if (rhs == Cypher.literalNull()) rhs.isNotNull else lhs.eq(rhs).not() }),
+    EQUAL("", { lhs, rhs -> if (rhs == Cypher.literalNull()) lhs.isNull else lhs.eq(rhs) }),
+    NOT_EQUAL("NOT", { lhs, rhs -> if (rhs == Cypher.literalNull()) lhs.isNotNull else lhs.eq(rhs).not() }),
     LT("LT", Expression::lt),
     LTE("LTE", Expression::lte),
     GT("GT", Expression::gt),

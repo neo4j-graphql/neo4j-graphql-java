@@ -4,8 +4,8 @@ import org.neo4j.cypherdsl.core.*
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.fields.HasCoalesceValue
 import org.neo4j.graphql.domain.fields.RelationField
-import org.neo4j.graphql.domain.inputs.aggregation.AggregateInput
-import org.neo4j.graphql.domain.inputs.aggregation.AggregationWhereInput
+import org.neo4j.graphql.schema.model.inputs.aggregation.AggregateInput
+import org.neo4j.graphql.schema.model.inputs.aggregation.AggregationWhereInput
 import org.neo4j.graphql.domain.predicates.AggregationFieldPredicate
 import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.translate.WhereResult

@@ -1,6 +1,6 @@
 package org.neo4j.graphql.domain.predicates
 
-import org.neo4j.graphql.domain.inputs.WhereInput
+import org.neo4j.graphql.schema.model.inputs.WhereInput
 import org.neo4j.graphql.domain.predicates.definitions.RelationPredicateDefinition
 
 class RelationFieldPredicate(

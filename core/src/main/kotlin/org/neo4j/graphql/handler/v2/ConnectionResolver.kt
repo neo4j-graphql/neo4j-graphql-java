@@ -7,10 +7,12 @@ import org.neo4j.cypherdsl.core.Statement
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.ExcludeDirective
-import org.neo4j.graphql.domain.inputs.WhereInput
-import org.neo4j.graphql.domain.inputs.options.SortInput
+import org.neo4j.graphql.schema.model.inputs.WhereInput
+import org.neo4j.graphql.schema.model.inputs.options.SortInput
+import org.neo4j.graphql.schema.model.outputs.root_connection.RootNodeConnectionSelection
 import org.neo4j.graphql.handler.BaseDataFetcher
-import org.neo4j.graphql.schema.AugmentationHandlerV2
+import org.neo4j.graphql.schema.AugmentationContext
+import org.neo4j.graphql.schema.AugmentationHandler
 
 /**
  * This class handles all the logic related to the querying of nodes.
@@ -21,13 +23,13 @@ class ConnectionResolver private constructor(
     val node: Node
 ) : BaseDataFetcher(schemaConfig) {
 
-    class Factory(ctx: AugmentationContext) : AugmentationHandlerV2(ctx) {
+    class Factory(ctx: AugmentationContext) : AugmentationHandler(ctx) {
 
         override fun augmentNode(node: Node): List<AugmentedField> {
             if (!node.isOperationAllowed(ExcludeDirective.ExcludeOperation.READ)) {
                 return emptyList()
             }
-            val nodeConnectionType = generateNodeConnectionOT(node)
+            val nodeConnectionType = RootNodeConnectionSelection.Augmentation.generateNodeConnectionOT(node, ctx)
             val coordinates =
                 addQueryField(node.rootTypeFieldNames.connection, nodeConnectionType.asRequiredType()) { args ->
                     WhereInput.NodeWhereInput.Augmentation

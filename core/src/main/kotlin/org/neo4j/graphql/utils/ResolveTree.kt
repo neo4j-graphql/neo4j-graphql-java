@@ -5,13 +5,67 @@ import graphql.schema.DataFetchingFieldSelectionSet
 import graphql.schema.SelectedField
 import org.neo4j.graphql.aliasOrName
 
-class ResolveTree(
-    val name: String,
-    val alias: String? = null,
-    val args: Map<String, *> = emptyMap<String, Any>(),
-    val fieldsByTypeName: Map<String, Map<*, ResolveTree>> = emptyMap(),
-) {
+class ObjectFieldSelection<SELECTION, ARGS>(
+    resolveTree: IResolveTree,
+    val parsedSelection: SELECTION,
+    val parsedArguments: ARGS
+) : IResolveTree by resolveTree
+
+interface IResolveTree {
+    val name: String
+    val alias: String?
+    val args: Map<String, *>
+    val fieldsByTypeName: Map<String, Map<String, ResolveTree>>
+
     val aliasOrName get() = alias ?: name
+
+    fun getFieldOfType(typeName: String, fieldName: String) =
+        this.fieldsByTypeName[typeName]?.values?.filter { it.name == fieldName } ?: emptyList()
+
+    fun <SEL> getFieldOfType(
+        typeName: String,
+        fieldName: String,
+        selectionConverter: (rt: IResolveTree) -> SEL
+    ) = getFieldOfType(typeName, fieldName, selectionConverter, { null })
+
+    fun <SEL, ARGS> getFieldOfType(
+        typeName: String,
+        fieldName: String,
+        selectionConverter: (rt: IResolveTree) -> SEL,
+        argsConverter: (rt: IResolveTree) -> ARGS
+    ) = getFieldOfType(typeName, fieldName)
+        .map { it.parse(selectionConverter, argsConverter) }
+
+    fun getSingleFieldOfType(typeName: String, fieldName: String) =
+        getFieldOfType(typeName, fieldName)
+            .also { if (it.size > 1) error("expect only one selection for $name::$fieldName") }
+            .singleOrNull()
+
+    fun <SEL> getSingleFieldOfType(
+        typeName: String,
+        fieldName: String,
+        selectionConverter: (rt: IResolveTree) -> SEL
+    ) = getSingleFieldOfType(typeName, fieldName)
+        ?.let { it.parse(selectionConverter, { null }) }
+
+
+    fun <SEL, ARGS> parse(
+        selectionConverter: (rt: IResolveTree) -> SEL,
+        argsConverter: (rt: IResolveTree) -> ARGS
+    ): ObjectFieldSelection<SEL, ARGS> {
+        val selection = selectionConverter(this)
+        val args = argsConverter(this)
+        return ObjectFieldSelection(this, selection, args)
+    }
+}
+
+class ResolveTree(
+    override val name: String,
+    override val alias: String? = null,
+    override val args: Map<String, *> = emptyMap<String, Any>(),
+    override val fieldsByTypeName: Map<String, Map<String, ResolveTree>> = emptyMap(),
+) : IResolveTree {
+
 
     companion object {
 
@@ -23,7 +77,7 @@ class ResolveTree(
             return ResolveTree(field.name, field.alias, field.arguments, resolve(field.selectionSet))
         }
 
-        fun resolve(selectionSet: DataFetchingFieldSelectionSet): Map<String, Map<*, ResolveTree>> {
+        fun resolve(selectionSet: DataFetchingFieldSelectionSet): Map<String, Map<String, ResolveTree>> {
             val fieldsByTypeName = mutableMapOf<String, MutableMap<String, ResolveTree>>()
             selectionSet.immediateFields.map { selectedField ->
                 val field = resolve(selectedField)
@@ -72,6 +126,4 @@ class ResolveTree(
         return "ResolveTree(name='$name', alias=$alias, args=$args, fieldsByTypeName=$fieldsByTypeName)"
     }
 
-    fun getFieldOfType(typeName: String, fieldName: String): ResolveTree? =
-        this.fieldsByTypeName[typeName]?.values?.find { it.name == fieldName }
 }

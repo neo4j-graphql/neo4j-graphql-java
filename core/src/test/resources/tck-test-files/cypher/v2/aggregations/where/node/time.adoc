@@ -42,13 +42,7 @@ type Post {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0,
-    "timeZoneOffsetSeconds": 0
-  }
+  "param0" : "12:00:00"
 }
 ----
 
@@ -59,7 +53,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN any(var2 IN collect(this1.someTime) WHERE var2 = $param0) AS var3
+	RETURN any(var2 IN collect(this1.someTime) WHERE var2 = time($param0)) AS var3
 }
 WITH *
 WHERE var3 = true
@@ -86,13 +80,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0,
-    "timeZoneOffsetSeconds": 0
-  }
+  "param0" : "12:00:00"
 }
 ----
 
@@ -103,7 +91,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN any(var2 IN collect(this1._someTimeAlias) WHERE var2 = $param0) AS var3
+	RETURN any(var2 IN collect(this1._someTimeAlias) WHERE var2 = time($param0)) AS var3
 }
 WITH *
 WHERE var3 = true
@@ -130,13 +118,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0,
-    "timeZoneOffsetSeconds": 0
-  }
+  "param0" : "12:00:00"
 }
 ----
 
@@ -147,7 +129,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN any(var2 IN collect(this1.someTime) WHERE var2 > $param0) AS var3
+	RETURN any(var2 IN collect(this1.someTime) WHERE var2 > time($param0)) AS var3
 }
 WITH *
 WHERE var3 = true
@@ -174,13 +156,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0,
-    "timeZoneOffsetSeconds": 0
-  }
+  "param0" : "12:00:00"
 }
 ----
 
@@ -191,7 +167,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN any(var2 IN collect(this1.someTime) WHERE var2 >= $param0) AS var3
+	RETURN any(var2 IN collect(this1.someTime) WHERE var2 >= time($param0)) AS var3
 }
 WITH *
 WHERE var3 = true
@@ -218,13 +194,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0,
-    "timeZoneOffsetSeconds": 0
-  }
+  "param0" : "12:00:00"
 }
 ----
 
@@ -235,7 +205,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN any(var2 IN collect(this1.someTime) WHERE var2 < $param0) AS var3
+	RETURN any(var2 IN collect(this1.someTime) WHERE var2 < time($param0)) AS var3
 }
 WITH *
 WHERE var3 = true
@@ -262,13 +232,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0,
-    "timeZoneOffsetSeconds": 0
-  }
+  "param0" : "12:00:00"
 }
 ----
 
@@ -279,7 +243,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN any(var2 IN collect(this1.someTime) WHERE var2 <= $param0) AS var3
+	RETURN any(var2 IN collect(this1.someTime) WHERE var2 <= time($param0)) AS var3
 }
 WITH *
 WHERE var3 = true
@@ -306,13 +270,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0,
-    "timeZoneOffsetSeconds": 0
-  }
+  "param0" : "12:00:00"
 }
 ----
 
@@ -323,7 +281,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN max(this1.someTime) = $param0 AS var2
+	RETURN max(this1.someTime) = time($param0) AS var2
 }
 WITH *
 WHERE var2 = true
@@ -350,13 +308,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0,
-    "timeZoneOffsetSeconds": 0
-  }
+  "param0" : "12:00:00"
 }
 ----
 
@@ -367,7 +319,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN max(this1.someTime) > $param0 AS var2
+	RETURN max(this1.someTime) > time($param0) AS var2
 }
 WITH *
 WHERE var2 = true
@@ -394,13 +346,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0,
-    "timeZoneOffsetSeconds": 0
-  }
+  "param0" : "12:00:00"
 }
 ----
 
@@ -411,7 +357,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN max(this1.someTime) >= $param0 AS var2
+	RETURN max(this1.someTime) >= time($param0) AS var2
 }
 WITH *
 WHERE var2 = true
@@ -438,13 +384,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0,
-    "timeZoneOffsetSeconds": 0
-  }
+  "param0" : "12:00:00"
 }
 ----
 
@@ -455,7 +395,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN max(this1.someTime) < $param0 AS var2
+	RETURN max(this1.someTime) < time($param0) AS var2
 }
 WITH *
 WHERE var2 = true
@@ -482,13 +422,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0,
-    "timeZoneOffsetSeconds": 0
-  }
+  "param0" : "12:00:00"
 }
 ----
 
@@ -499,7 +433,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN max(this1.someTime) <= $param0 AS var2
+	RETURN max(this1.someTime) <= time($param0) AS var2
 }
 WITH *
 WHERE var2 = true
@@ -526,13 +460,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0,
-    "timeZoneOffsetSeconds": 0
-  }
+  "param0" : "12:00:00"
 }
 ----
 
@@ -543,7 +471,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN min(this1.someTime) = $param0 AS var2
+	RETURN min(this1.someTime) = time($param0) AS var2
 }
 WITH *
 WHERE var2 = true
@@ -570,13 +498,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0,
-    "timeZoneOffsetSeconds": 0
-  }
+  "param0" : "12:00:00"
 }
 ----
 
@@ -587,7 +509,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN min(this1.someTime) > $param0 AS var2
+	RETURN min(this1.someTime) > time($param0) AS var2
 }
 WITH *
 WHERE var2 = true
@@ -614,13 +536,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0,
-    "timeZoneOffsetSeconds": 0
-  }
+  "param0" : "12:00:00"
 }
 ----
 
@@ -631,7 +547,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN min(this1.someTime) >= $param0 AS var2
+	RETURN min(this1.someTime) >= time($param0) AS var2
 }
 WITH *
 WHERE var2 = true
@@ -658,13 +574,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0,
-    "timeZoneOffsetSeconds": 0
-  }
+  "param0" : "12:00:00"
 }
 ----
 
@@ -675,7 +585,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN min(this1.someTime) < $param0 AS var2
+	RETURN min(this1.someTime) < time($param0) AS var2
 }
 WITH *
 WHERE var2 = true
@@ -702,13 +612,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "hour": 12,
-    "minute": 0,
-    "second": 0,
-    "nanosecond": 0,
-    "timeZoneOffsetSeconds": 0
-  }
+  "param0" : "12:00:00"
 }
 ----
 
@@ -719,7 +623,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN min(this1.someTime) <= $param0 AS var2
+	RETURN min(this1.someTime) <= time($param0) AS var2
 }
 WITH *
 WHERE var2 = true

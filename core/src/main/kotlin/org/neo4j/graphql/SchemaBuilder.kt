@@ -7,14 +7,14 @@ import graphql.schema.idl.ScalarInfo.GRAPHQL_SPECIFICATION_SCALARS_DEFINITIONS
 import graphql.schema.idl.SchemaGenerator
 import graphql.schema.idl.SchemaParser
 import graphql.schema.idl.TypeDefinitionRegistry
-import org.neo4j.graphql.AugmentationHandler.OperationType
 import org.neo4j.graphql.domain.Model
 import org.neo4j.graphql.domain.fields.RelationField
-import org.neo4j.graphql.handler.projection.ProjectionBase
 import org.neo4j.graphql.handler.v2.*
 import org.neo4j.graphql.scalars.BigIntScalar
-import org.neo4j.graphql.schema.AugmentationHandlerV2
-import org.neo4j.graphql.schema.BaseAugmentationV2
+import org.neo4j.graphql.schema.AugmentationContext
+import org.neo4j.graphql.schema.AugmentationHandler
+import org.neo4j.graphql.schema.model.outputs.InterfaceSelection
+import org.neo4j.graphql.schema.model.outputs.NodeSelection
 
 /**
  * A class for augmenting a type definition registry and generate the corresponding data fetcher.
@@ -83,11 +83,10 @@ class SchemaBuilder(
         }
     }
 
-    private val handler: List<AugmentationHandlerV2>
+    private val handler: List<AugmentationHandler>
     private val neo4jTypeDefinitionRegistry: TypeDefinitionRegistry = getNeo4jEnhancements()
-    private val augmentedFields = mutableListOf<AugmentationHandlerV2.AugmentedField>()
+    private val augmentedFields = mutableListOf<AugmentationHandler.AugmentedField>()
     private val ctx = AugmentationContext(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry)
-    private val baseAugmentation = BaseAugmentationV2(ctx)
 
     init {
         ensureRootQueryTypeExists(typeDefinitionRegistry)
@@ -114,6 +113,10 @@ class SchemaBuilder(
         // remove type definition for node since it will be added while augmenting the schema
         model.nodes.forEach {
             typeDefinitionRegistry.getTypeByName<ObjectTypeDefinition>(it.name)
+                ?.let { typeDefinitionRegistry.remove(it) }
+        }
+        model.interfaces.forEach {
+            typeDefinitionRegistry.getTypeByName<InterfaceTypeDefinition>(it.name)
                 ?.let { typeDefinitionRegistry.remove(it) }
         }
 
@@ -143,6 +146,7 @@ class SchemaBuilder(
                 when (typeDefinition) {
                     is ImplementingTypeDefinition -> typeDefinition.fieldDefinitions
                         .flatMap { fieldDefinition -> fieldDefinition.inputValueDefinitions.map { it.type } + fieldDefinition.type }
+
                     is InputObjectTypeDefinition -> typeDefinition.inputValueDefinitions.map { it.type }
                     else -> emptyList()
                 }
@@ -163,7 +167,7 @@ class SchemaBuilder(
                         node.interfaces.flatMap { it.interfaces }
             }
             .distinctBy { it.name }
-            .forEach { baseAugmentation.generateInterfaceType(it) }
+            .forEach { InterfaceSelection.Augmentation.generateInterfaceSelection(it, ctx) }
     }
 
     private fun removeLibraryDirectivesFromInterfaces() {
@@ -205,7 +209,7 @@ class SchemaBuilder(
                 .map { it.type.name() }
                 .filter { typeDefinitionRegistry.getTypeByName<ObjectTypeDefinition>(it) == null }
                 .mapNotNull { nodesByName[it] }
-                .onEach { baseAugmentation.generateNodeOT(it) }
+                .onEach { NodeSelection.Augmentation.generateNodeSelection(it, ctx) }
                 .map { it.name }
                 .toSet()
         }
@@ -250,7 +254,7 @@ class SchemaBuilder(
                 builder.type(typeDefinition.name) {
                     it.typeResolver { env ->
                         (env.getObject() as? Map<String, Any>)
-                            ?.let { data -> data[ProjectionBase.TYPE_NAME] as? String }
+                            ?.let { data -> data[Constants.TYPE_NAME] as? String }
                             ?.let { typeName -> env.schema.getObjectType(typeName) }
                     }
                 }
@@ -374,4 +378,10 @@ class SchemaBuilder(
         typeDefinitionRegistry.add(inputType)
         return inputName
     }
+
+    enum class OperationType {
+        QUERY,
+        MUTATION
+    }
+
 }

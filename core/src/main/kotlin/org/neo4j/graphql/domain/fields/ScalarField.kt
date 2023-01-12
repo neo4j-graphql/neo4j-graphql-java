@@ -34,7 +34,7 @@ abstract class ScalarField(fieldName: String, typeMeta: TypeMeta, schemaConfig: 
         val result = mutableMapOf<String, ScalarPredicateDefinition>()
             .add(FieldOperator.EQUAL, resolver)
             .add(FieldOperator.NOT_EQUAL, resolver)
-        if (fieldType == TypeBoolean.name) {
+        if (fieldType == Constants.BOOLEAN) {
             return result
         }
         if (typeMeta.type.isList()) {

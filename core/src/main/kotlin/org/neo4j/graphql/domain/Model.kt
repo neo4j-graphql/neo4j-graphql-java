@@ -7,14 +7,12 @@ import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.domain.fields.ScalarField
 import org.neo4j.graphql.merge.TypeDefinitionRegistryMerger
-import org.neo4j.graphql.schema.FieldFactory
-import org.neo4j.graphql.schema.InterfaceFactory
-import org.neo4j.graphql.schema.NodeFactory
 import java.util.concurrent.ConcurrentHashMap
 
 data class Model(
-    val nodes: List<Node>,
-    val relationship: List<RelationField>
+    val nodes: Collection<Node>,
+    val relationship: Collection<RelationField>,
+    val interfaces: Collection<Interface>
 ) {
     companion object {
         fun createModel(typeDefinitionRegistry: TypeDefinitionRegistry, schemaConfig: SchemaConfig) =
@@ -63,7 +61,7 @@ data class Model(
             }
             val relationships = nodes.flatMap { it.relationFields }
 
-            return Model(nodes, relationships)
+            return Model(nodes, relationships, implementations.keys)
         }
 
         private fun initRelations(type: ImplementingType, nodesByName: Map<String, Node>) {

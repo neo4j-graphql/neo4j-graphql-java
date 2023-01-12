@@ -5,7 +5,7 @@ import org.neo4j.cypherdsl.core.StatementBuilder.ExposesWith
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.directives.AuthDirective
 import org.neo4j.graphql.domain.fields.RelationField
-import org.neo4j.graphql.domain.inputs.connect_or_create.ConnectOrCreateFieldInput
+import org.neo4j.graphql.schema.model.inputs.connect_or_create.ConnectOrCreateFieldInput
 import org.neo4j.graphql.handler.utils.ChainString
 
 fun createConnectOrCreate(

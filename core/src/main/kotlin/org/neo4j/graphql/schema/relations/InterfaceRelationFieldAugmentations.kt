@@ -1,17 +1,17 @@
 package org.neo4j.graphql.schema.relations
 
-import org.neo4j.graphql.AugmentationContext
+import org.neo4j.graphql.schema.AugmentationContext
 import org.neo4j.graphql.capitalize
 import org.neo4j.graphql.domain.Interface
 import org.neo4j.graphql.domain.fields.RelationField
-import org.neo4j.graphql.domain.inputs.WhereInput
-import org.neo4j.graphql.domain.inputs.connect.ConnectFieldInput.InterfaceConnectFieldInput
-import org.neo4j.graphql.domain.inputs.connection.ConnectionWhere
-import org.neo4j.graphql.domain.inputs.create.CreateFieldInput
-import org.neo4j.graphql.domain.inputs.create.RelationFieldInput
-import org.neo4j.graphql.domain.inputs.delete.DeleteFieldInput
-import org.neo4j.graphql.domain.inputs.disconnect.DisconnectFieldInput
-import org.neo4j.graphql.domain.inputs.update.UpdateFieldInput
+import org.neo4j.graphql.schema.model.inputs.WhereInput
+import org.neo4j.graphql.schema.model.inputs.connect.ConnectFieldInput.InterfaceConnectFieldInput
+import org.neo4j.graphql.schema.model.inputs.connection.ConnectionWhere
+import org.neo4j.graphql.schema.model.inputs.create.CreateFieldInput
+import org.neo4j.graphql.schema.model.inputs.create.RelationFieldInput
+import org.neo4j.graphql.schema.model.inputs.delete.DeleteFieldInput
+import org.neo4j.graphql.schema.model.inputs.disconnect.DisconnectFieldInput
+import org.neo4j.graphql.schema.model.inputs.update.UpdateFieldInput
 
 /**
  * Augmentation for relations referencing an interface
