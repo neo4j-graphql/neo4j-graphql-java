@@ -74,7 +74,7 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer, schemaConfig: Sch
             private val matchQueryWithoutWhere: OngoingReading,
             private val type: GraphQLFieldsContainer,
             private val value: Map<*, *>,
-            private val parentPassThroughWiths: Collection<Expression>,
+            private val parentPassThroughWiths: Collection<IdentifiableElement>,
             private val variables: Map<String, Any>
     ) {
 
@@ -156,7 +156,7 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer, schemaConfig: Sch
         private fun handleQuantifierPredicates(
                 query: OrderableOngoingReadingAndWithWithoutWhere,
                 relFilter: RelationPredicate,
-                levelPassThroughWiths: LinkedHashSet<Expression>
+                levelPassThroughWiths: LinkedHashSet<IdentifiableElement>
         ): OrderableOngoingReadingAndWithWithoutWhere {
             val objectField = relFilter.value
             val nestedParsedQuery = parseFilter(objectField as Map<*, *>, relFilter.fieldDefinition.type.getInnerFieldsContainer())
@@ -227,7 +227,7 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer, schemaConfig: Sch
         private fun createAdditionalConditions(
                 query: ParsedQuery,
                 relVariable: Node,
-                passThroughWiths: LinkedHashSet<Expression>,
+                passThroughWiths: LinkedHashSet<IdentifiableElement>,
                 filter: List<Pair<SymbolicName, AliasedExpression>>,
                 whereClauseFactory: WhereClauseFactory
         ): ConditionBuilder {
@@ -249,7 +249,7 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer, schemaConfig: Sch
 
         private fun withClauseWithOptionalDistinct(
                 exposesWith: ExposesWith,
-                withs: Collection<Expression>,
+                withs: Collection<IdentifiableElement>,
                 useDistinct: Boolean = true) = when {
             useDistinct && withs.size == 1 -> exposesWith.withDistinct(*withs.toTypedArray())
             else -> exposesWith.with(*withs.toTypedArray())
