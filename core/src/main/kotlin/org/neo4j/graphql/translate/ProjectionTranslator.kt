@@ -1,16 +1,16 @@
 package org.neo4j.graphql.translate
 
 import org.neo4j.cypherdsl.core.*
-import org.neo4j.cypherdsl.core.StatementBuilder.OngoingReading
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
 import org.neo4j.graphql.domain.fields.*
+import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.schema.model.inputs.WhereInput
 import org.neo4j.graphql.schema.model.inputs.field_arguments.RelationFieldInputArgs
-import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.translate.connection_clause.CreateConnectionClause
 import org.neo4j.graphql.translate.field_aggregation.CreateFieldAggregation
+import org.neo4j.graphql.translate.projection.createInterfaceProjectionAndParams
 import org.neo4j.graphql.translate.projection.projectCypherField
 import org.neo4j.graphql.translate.projection.projectScalarField
 import org.neo4j.graphql.translate.where.createWhere
@@ -22,28 +22,29 @@ class ProjectionTranslator {
     fun createProjectionAndParams(
         node: Node,
         varName: org.neo4j.cypherdsl.core.Node,
-        resolveTree: ResolveTree,
+        resolveTree: ResolveTree?,
         chainStr: ChainString? = null,
         schemaConfig: SchemaConfig,
-        variables: Map<String, Any>,
         queryContext: QueryContext,
         withVars: List<SymbolicName> = emptyList(),
         resolveType: Boolean = false,
         useShortcut: Boolean = true,
     ): Projection {
-
-        val selectedFields = resolveTree.fieldsByTypeName[node.name] ?: return Projection()
-
-        val mergedFields = selectedFields + generateMissingOrAliasedRequiredFields(node, selectedFields)
-
-        var authValidate: Condition? = null
         val projections = mutableListOf<Any>()
-        val subQueries = mutableListOf<Statement>()
 
         if (resolveType) {
             projections += "__resolveType"
             projections += node.name.asCypherLiteral()
         }
+
+        val selectedFields =
+            resolveTree?.fieldsByTypeName?.get(node.name) ?: return Projection(projection = projections)
+
+        val mergedFields = selectedFields + generateMissingOrAliasedRequiredFields(node, selectedFields)
+
+        var authValidate: Condition? = null
+        val subQueries = mutableListOf<Statement>()
+
         mergedFields.values.forEach { field ->
             val alias = field.aliasOrName
             val param = chainStr?.extend(alias) ?: ChainString(schemaConfig, varName, alias)
@@ -60,7 +61,7 @@ class ProjectionTranslator {
                     AuthTranslator(
                         schemaConfig,
                         queryContext,
-                        allow = AuthTranslator.AuthOptions(varName, node, param)
+                        allow = AuthTranslator.AuthOptions(varName, node)
                     )
                         .createAuth(auth, AuthDirective.AuthOperation.READ)
                         ?.let { authValidate = authValidate and it }
@@ -69,7 +70,7 @@ class ProjectionTranslator {
 
             if (nodeField is CypherField) {
                 projections += alias
-                projections += projectCypherField(field, nodeField, varName )
+                projections += projectCypherField(field, nodeField, varName)
                 return@forEach
             }
 
@@ -79,74 +80,13 @@ class ProjectionTranslator {
                 val arguments = RelationFieldInputArgs(nodeField, field.args)
 
                 if (nodeField.interfaze != null) {
-                    val whereInput = arguments.where as WhereInput.InterfaceWhereInput?
+                    val returnVariable = Cypher.name(ChainString(schemaConfig, varName, field).resolveName())
 
+                    subQueries += createInterfaceProjectionAndParams(
+                        field, nodeField, varName, withVars, returnVariable, queryContext, schemaConfig
+                    )
                     projections += alias
-
-                    val fieldName = Cypher.name(field.name)
-
-                    val fullWithVars = withVars + varName.requiredSymbolicName
-                    val referenceNodes =
-                        nodeField.interfaze.implementations.values.filter { whereInput?.hasFilterForNode(node) == true }
-
-                    val interfaceQueries = mutableListOf<Statement>()
-                    referenceNodes.map { refNode ->
-                        val endNode = refNode.asCypherNode(queryContext, ChainString(schemaConfig, varName, refNode))
-
-                        var subQuery: OngoingReading = Cypher.with(fullWithVars)
-                            .match(nodeField.createDslRelation(Cypher.anyNode(varName.requiredSymbolicName), endNode))
-
-                        AuthTranslator(schemaConfig, queryContext, allow = AuthTranslator.AuthOptions(endNode, refNode))
-                            .createAuth(refNode.auth, AuthDirective.AuthOperation.READ)
-                            ?.let { subQuery = subQuery.apocValidate(it, Constants.AUTH_FORBIDDEN_ERROR) }
-
-                        var (condition, whereSubQueries) = createWhere(
-                            refNode,
-                            whereInput?.withPreferredOn(node),
-                            endNode,
-                            (chainStr ?: ChainString(schemaConfig, varName)).extend(alias),
-                            schemaConfig,
-                            queryContext
-                        )
-                        subQueries.addAll(whereSubQueries)
-
-                        AuthTranslator(schemaConfig, queryContext, where = AuthTranslator.AuthOptions(endNode, refNode))
-                            .createAuth(refNode.auth, AuthDirective.AuthOperation.READ)
-                            ?.let { condition = condition and it }
-
-                        val recurse = createProjectionAndParams(
-                            refNode,
-                            endNode,
-                            field,
-                            chainStr = null,
-                            schemaConfig,
-                            variables,
-                            queryContext,
-                            resolveType = true,
-                        )
-                        // TODO what about the nestedAuth strings
-
-                        interfaceQueries += subQuery
-                            .withSubQueries(recurse.subQueries)
-                            .returning(endNode.project(recurse.projection).`as`(fieldName))
-                            .build()
-
-                    }
-
-                    val ongoingReading: OngoingReading = if (interfaceQueries.size > 1) {
-                        Cypher.with(fullWithVars).call(Cypher.union(interfaceQueries))
-                    } else {
-                        Cypher.with(fullWithVars).call(interfaceQueries.first())
-                    }
-
-                    subQueries += if (nodeField.typeMeta.type.isList()) {
-                        ongoingReading.returning(Functions.collect(fieldName).`as`(fieldName))
-                    } else {
-                        ongoingReading.returning(fieldName)
-                    }.build()
-                    projections += fieldName
-
-                    // TODO sort and limit
+                    projections += returnVariable
 
                 } else if (nodeField.isUnion) {
                     val referenceNodes = requireNotNull(nodeField.union).nodes.values
@@ -178,7 +118,6 @@ class ProjectionTranslator {
                                 field,
                                 chainStr = null,
                                 schemaConfig,
-                                variables,
                                 queryContext
                             )
 
@@ -243,7 +182,6 @@ class ProjectionTranslator {
                         field,
                         param,
                         schemaConfig,
-                        variables,
                         queryContext
                     )
 
@@ -353,7 +291,12 @@ class ProjectionTranslator {
             .createAuth(node.auth, AuthDirective.AuthOperation.READ)
             ?.let { condition = condition and it }
 
-        AuthTranslator(schemaConfig, context, allow = AuthTranslator.AuthOptions(varName, node, chainStr))
+        AuthTranslator(
+            schemaConfig,
+            context,
+            allow = AuthTranslator.AuthOptions(varName, node, chainStr),
+            noParamPrefix = true
+        )
             .createAuth(node.auth, AuthDirective.AuthOperation.READ)
             .apocValidatePredicate(Constants.AUTH_FORBIDDEN_ERROR)
             ?.let { condition = condition and it }

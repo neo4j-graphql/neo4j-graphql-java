@@ -4,12 +4,12 @@ import org.neo4j.cypherdsl.core.*
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.FieldContainer
 import org.neo4j.graphql.domain.fields.HasCoalesceValue
-import org.neo4j.graphql.schema.model.inputs.WhereInput
-import org.neo4j.graphql.schema.model.inputs.connection.ConnectionWhere
 import org.neo4j.graphql.domain.predicates.ConnectionFieldPredicate
 import org.neo4j.graphql.domain.predicates.RelationFieldPredicate
 import org.neo4j.graphql.domain.predicates.ScalarFieldPredicate
 import org.neo4j.graphql.handler.utils.ChainString
+import org.neo4j.graphql.schema.model.inputs.WhereInput
+import org.neo4j.graphql.schema.model.inputs.connection.ConnectionWhere
 import org.neo4j.graphql.translate.WhereResult
 
 fun createWhere(
@@ -19,6 +19,8 @@ fun createWhere(
     chainStr: ChainString? = null,
     schemaConfig: SchemaConfig,
     queryContext: QueryContext,
+    usePrefix: Boolean = false,  //TODO  only used to align test with JS version
+
 ): WhereResult {
     if (node == null || whereInput == null) return WhereResult.EMPTY
     // TODO harmonize with top level where
@@ -38,7 +40,8 @@ fun createWhere(
             endNode,
             chainStr = paramPrefix.extend(field, op.suffix),
             schemaConfig,
-            queryContext
+            queryContext,
+            usePrefix
         )
 
         val countRef = queryContext.getNextVariable()
@@ -108,7 +111,8 @@ fun createWhere(
                 relation,
                 parameterPrefix,
                 schemaConfig,
-                queryContext
+                queryContext,
+                usePrefix
             )
 
             val match = Cypher
@@ -147,9 +151,12 @@ fun createWhere(
         val rhs = if (predicate.value == null) {
             Cypher.literalNull()
         } else {
-            //TODO cleanup old naming logic
-            queryContext.getNextParam(predicate.value)
-//            paramPrefix.extend(predicate.name).resolveParameter(predicate.value)
+            if (usePrefix) {
+                queryContext.getNextParam(paramPrefix.appendOnPrevious("param"), predicate.value)
+//                paramPrefix.extend(predicate.name).resolveParameter(predicate.value)
+            } else {
+                queryContext.getNextParam(predicate.value)
+            }
         }
         return predicate.createCondition(property, rhs)
     }
@@ -161,7 +168,7 @@ fun createWhere(
             val (whereCondition, whereSubquery) = createWhere(
                 node, nested, propertyContainer,
                 paramPrefix.extend(key, index.takeIf { it > 0 }),
-                schemaConfig, queryContext
+                schemaConfig, queryContext, usePrefix
             )
             subQueries.addAll(whereSubquery)
             whereCondition

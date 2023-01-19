@@ -1,20 +1,14 @@
 package org.neo4j.graphql.translate
 
-import org.neo4j.cypherdsl.core.Cypher
-import org.neo4j.cypherdsl.core.Expression
-import org.neo4j.cypherdsl.core.Functions
-import org.neo4j.cypherdsl.core.PropertyContainer
-import org.neo4j.graphql.Constants
-import org.neo4j.graphql.SchemaConfig
+import org.neo4j.cypherdsl.core.*
+import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.FieldContainer
 import org.neo4j.graphql.domain.directives.AuthDirective.AuthOperation
 import org.neo4j.graphql.domain.directives.TimestampDirective.TimeStampOperation
-import org.neo4j.graphql.schema.model.inputs.ScalarProperties
 import org.neo4j.graphql.domain.fields.BaseField
 import org.neo4j.graphql.domain.fields.PointField
 import org.neo4j.graphql.handler.utils.ChainString
-import org.neo4j.graphql.isList
-import org.neo4j.graphql.name
+import org.neo4j.graphql.schema.model.inputs.ScalarProperties
 
 //TODO complete
 enum class Operation(val auth: AuthOperation, val timestamp: TimeStampOperation) {
@@ -28,16 +22,37 @@ fun createSetProperties(
     operation: Operation,
     fieldContainer: FieldContainer<*>?,
     schemaConfig: SchemaConfig,
+    context: QueryContext,
     paramPrefix: ChainString? = null,
-    autoGenerateFieldFilter: ((BaseField) -> Boolean)? = null
-): List<Expression>? {
+    autoGenerateFieldFilter: ((BaseField) -> Boolean)? = null,
+): List<Expression>? = createSetPropertiesSplit(
+    propertyContainer,
+    properties,
+    operation,
+    fieldContainer,
+    schemaConfig,
+    context,
+    paramPrefix,
+    autoGenerateFieldFilter
+)
+    ?.flatMap { listOf(it.first, it.second) }
+
+fun createSetPropertiesSplit(
+    propertyContainer: PropertyContainer,
+    properties: ScalarProperties?,
+    operation: Operation,
+    fieldContainer: FieldContainer<*>?,
+    schemaConfig: SchemaConfig,
+    context: QueryContext,
+    paramPrefix: ChainString? = null,
+    autoGenerateFieldFilter: ((BaseField) -> Boolean)? = null,
+): List<Pair<Property, Expression>>? {
     if (fieldContainer == null) return null
 
-    val expressions = mutableListOf<Expression>()
+    val expressions = mutableListOf<Pair<Property, Expression>>()
 
     fun set(field: BaseField, expression: Expression) {
-        expressions += propertyContainer.property(field.dbPropertyName)
-        expressions += expression
+        expressions += propertyContainer.property(field.dbPropertyName) to expression
     }
 
     if (operation == Operation.CREATE) {
@@ -58,9 +73,8 @@ fun createSetProperties(
         }
 
     properties?.forEach { (field, value) ->
-        val param = (paramPrefix ?: ChainString(schemaConfig, propertyContainer))
-            .extend(field)
-            .resolveParameter(value)
+        // TODO use only params without prefix?
+        val param = paramPrefix?.extend(field)?.resolveParameter(value) ?: context.getNextParam(value)
 
         val valueToSet = when (field) {
             is PointField ->
@@ -70,6 +84,7 @@ fun createSetProperties(
                 } else {
                     Functions.point(param)
                 }
+
             else -> param
         }
         set(field, valueToSet)

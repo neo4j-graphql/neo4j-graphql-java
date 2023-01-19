@@ -2,10 +2,7 @@ package org.neo4j.graphql.handler.v2
 
 import graphql.language.Field
 import graphql.schema.DataFetchingEnvironment
-import org.neo4j.cypherdsl.core.ExposesCreate
-import org.neo4j.cypherdsl.core.ExposesMerge
-import org.neo4j.cypherdsl.core.Functions
-import org.neo4j.cypherdsl.core.Statement
+import org.neo4j.cypherdsl.core.*
 import org.neo4j.cypherdsl.core.StatementBuilder.ExposesWith
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
@@ -30,6 +27,7 @@ import org.neo4j.graphql.schema.model.inputs.disconnect.DisconnectFieldInput
 import org.neo4j.graphql.schema.model.inputs.disconnect.DisconnectInput
 import org.neo4j.graphql.schema.model.inputs.update.UpdateInput
 import org.neo4j.graphql.translate.*
+import org.neo4j.graphql.translate.Operation
 import org.neo4j.graphql.utils.ResolveTree
 
 class UpdateResolver private constructor(
@@ -161,7 +159,7 @@ class UpdateResolver private constructor(
                     refNodes,
                     null,
                     node,
-                    ChainString(schemaConfig, resolveTree.name, "disconnect", relField, nameClassifier),
+                    ChainString(schemaConfig, resolveTree.name, "args", "disconnect", relField, nameClassifier),
                     ongoingReading
                 )
                     .createDisconnectAndParams()
@@ -254,7 +252,8 @@ class UpdateResolver private constructor(
                                     createEdge,
                                     Operation.CREATE,
                                     properties,
-                                    schemaConfig
+                                    schemaConfig,
+                                    queryContext
                                 )?.let { merge.set(it).with(dslNode) }
                             } ?: merge
                         }
@@ -310,18 +309,30 @@ class UpdateResolver private constructor(
             .firstOrNull()// TODO use all aliases
             ?.let {
                 ProjectionTranslator()
-                    .createProjectionAndParams(node, dslNode, it, null, schemaConfig, env.variables, queryContext)
+                    .createProjectionAndParams(node, dslNode, it, null, schemaConfig, queryContext)
             }
 
         projection?.authValidate?.let {
             ongoingReading = ongoingReading
-                .with(dslNode)
+                .maybeWith(withVars)
                 .apocValidate(it, Constants.AUTH_FORBIDDEN_ERROR)
         }
 
         return ongoingReading
-            .maybeWith(withVars)
-            .withSubQueries(projection?.subQueries)
+            .let {
+                if (projection?.subQueries.isNullOrEmpty()) {
+                    it
+                } else {
+                    it.maybeWith(withVars).withSubQueries(projection?.subQueries)
+                }
+            }
+            .let {
+                if (it is ExposesReturning) {
+                    it
+                } else {
+                    it.maybeWithAsterix()
+                }
+            }
             .returning(
                 *listOfNotNull(
                     projection?.let { Functions.collectDistinct(dslNode.project(it.projection)).`as`(Constants.DATA) },

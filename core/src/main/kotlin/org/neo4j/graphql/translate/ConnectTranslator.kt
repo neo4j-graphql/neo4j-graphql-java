@@ -6,10 +6,10 @@ import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
 import org.neo4j.graphql.domain.fields.RelationField
+import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.schema.model.inputs.connect.ConnectFieldInput
 import org.neo4j.graphql.schema.model.inputs.connect.ConnectFieldInput.ImplementingTypeConnectFieldInput
 import org.neo4j.graphql.schema.model.inputs.connect.ConnectInput
-import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.translate.where.createWhere
 
 //TODO complete
@@ -44,17 +44,17 @@ class ConnectTranslator(
 
             val baseName = varName.extend(index)
 
-            val subquery = if (relationField.isInterface) {
-                refNodes.map { refNode ->
-                    createSubqueryContents(refNode, connect, baseName)
+            val subQueries = if (relationField.isInterface) {
+                refNodes.mapIndexed { i, refNode ->
+                    createSubqueryContents(refNode, connect, varName.extend(i))
                 }
-                    .takeIf { it.isNotEmpty() }
-                    ?.let { Cypher.union(it) }
             } else {
                 createSubqueryContents(refNodes.first(), connect, baseName)
+                    .wrapList()
             }
-            if (subquery != null) {
-                result = result.with(withVars).call(subquery)
+            if (subQueries.isNotEmpty()) {
+                result = result.with(withVars)
+                    .withSubQueries(subQueries)
             }
         }
 
@@ -90,7 +90,10 @@ class ConnectTranslator(
             subQuery = addRelationshipValidation(node, relatedNode, subQuery)
         }
 
-        subQuery = addNestedConnects(node, relatedNode, nodeName, connect, subQuery)
+        subQuery = addNestedConnects(
+            node, relatedNode, nodeName, connect, subQuery
+                .with(*(withVars + node).toTypedArray()) // TODO do we really need this `with`?
+        )
 
         getPostAuth(node, relatedNode)?.let {
             subQuery = subQuery.with(*(withVars + node).toTypedArray())
@@ -99,7 +102,17 @@ class ConnectTranslator(
 
         return subQuery
             .withSubQueries(nestedSubQueries)
-            .returning(Functions.count(Cypher.asterisk()))
+            .returning(
+                Functions.count(Cypher.asterisk())
+                    .`as`(
+                        ChainString(
+                            schemaConfig,
+                            "connect",
+                            varName,
+                            relatedNode
+                        ).resolveName()
+                    )  // TODO why this alias?
+            )
             .build()
     }
 
@@ -120,9 +133,10 @@ class ConnectTranslator(
             relatedNode,
             whereInput,
             propertyContainer = nodeName,
-            chainStr = null,
+            chainStr = ChainString(schemaConfig, nodeName),
             schemaConfig,
-            queryContext
+            queryContext,
+            usePrefix = true
         )
 
         if (relatedNode.auth != null) {
@@ -163,8 +177,13 @@ class ConnectTranslator(
         nodeName: org.neo4j.cypherdsl.core.Node,
         baseName: ChainString,
         connect: ImplementingTypeConnectFieldInput
-    ): ResultStatement {
-        var createDslRelation = relationField.createDslRelation(parentVar, nodeName)
+    ): Statement {
+        val connectedNodes = Functions.collect(nodeName).`as`("connectedNodes")
+        val parentNodes = Functions.collect(parentVar).`as`("parentNodes")
+        val unwoundedParents = Cypher.anyNode(parentVar.requiredSymbolicName)
+        val unwoundedConnections = Cypher.anyNode(nodeName.requiredSymbolicName)
+
+        var createDslRelation = relationField.createDslRelation(unwoundedParents, unwoundedConnections)
         val edgeSet = if (relationField.properties != null) {
             createDslRelation = createDslRelation.named(baseName.extend("relationship").resolveName())
             createSetProperties(
@@ -172,19 +191,26 @@ class ConnectTranslator(
                 connect.edge,
                 Operation.CREATE,
                 relationField.properties,
-                schemaConfig
+                schemaConfig,
+                queryContext
             )
         } else {
             null
         }
 
-        //https://neo4j.com/developer/kb/conditional-cypher-execution/
-        return Cypher.with(Cypher.asterisk())
-            .with(parentVar, nodeName)
-            .where(parentVar.isNotNull.and(nodeName.isNotNull))
-            .merge(createDslRelation)
-            .let { merge -> edgeSet?.let { merge.set(it) } ?: merge }
-            .returning(Functions.count(Cypher.asterisk()))
+        return Cypher
+            .with(Cypher.asterisk())
+            .with(connectedNodes, parentNodes)
+            .call(
+                Cypher.with(connectedNodes, parentNodes)
+                    .unwind(parentNodes).`as`(unwoundedParents.requiredSymbolicName)
+                    .unwind(connectedNodes).`as`(unwoundedConnections.requiredSymbolicName)
+                    .merge(createDslRelation)
+                    .let { merge -> edgeSet?.let { merge.set(it) } ?: merge }
+                    .returning(Functions.count(Cypher.asterisk()).`as`("_"))
+                    .build()
+            )
+            .returning(Functions.count(Cypher.asterisk()).`as`("_"))
             .build()
     }
 

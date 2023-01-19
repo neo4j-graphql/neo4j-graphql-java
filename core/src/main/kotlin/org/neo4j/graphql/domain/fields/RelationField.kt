@@ -135,7 +135,7 @@ class RelationField(
     fun createDslRelation(
         start: org.neo4j.cypherdsl.core.Node,
         end: org.neo4j.cypherdsl.core.Node,
-        name: ChainString? = null,
+        name: String? = null,
         startLeft: Boolean = false, // TODO used only to make migrating form JS easier
     ): Relationship = when (direction) {
         Direction.IN -> if (startLeft) {
@@ -145,7 +145,14 @@ class RelationField(
         }
 
         Direction.OUT -> start.relationshipTo(end, relationType)
-    }.let { if (name != null) it.named(name.resolveName()) else it }
+    }.let { if (name != null) it.named(name) else it }
+
+    fun createDslRelation(
+        start: org.neo4j.cypherdsl.core.Node,
+        end: org.neo4j.cypherdsl.core.Node,
+        name: ChainString?,
+        startLeft: Boolean = false, // TODO used only to make migrating form JS easier
+    ): Relationship = createDslRelation(start, end, name?.resolveName(), startLeft)
 
     fun <UNION_RESULT : RESULT, INTERFACE_RESULT : RESULT, NODE_RESULT : RESULT, RESULT> extractOnTarget(
         onNode: (Node) -> NODE_RESULT,

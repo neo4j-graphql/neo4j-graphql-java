@@ -70,7 +70,12 @@ class ReadResolver private constructor(
         val optionsInput = input.options.merge(node.queryOptions)
 
         val authPredicates =
-            AuthTranslator(schemaConfig, queryContext, allow = AuthTranslator.AuthOptions(dslNode, node))
+            AuthTranslator(
+                schemaConfig,
+                queryContext,
+                allow = AuthTranslator.AuthOptions(dslNode, node),
+                noParamPrefix = true
+            )
                 .createAuth(node.auth, AuthDirective.AuthOperation.READ)
                 ?.let { it.apocValidatePredicate(Constants.AUTH_FORBIDDEN_ERROR) }
 
@@ -86,12 +91,12 @@ class ReadResolver private constructor(
 
 
         val projection = ProjectionTranslator()
-            .createProjectionAndParams(node, dslNode, resolveTree, null, schemaConfig, env.variables, queryContext)
+            .createProjectionAndParams(node, dslNode, resolveTree, null, schemaConfig, queryContext)
 
         projection.authValidate
             ?.let {
                 ongoingReading = ongoingReading
-                    .with(dslNode)
+                    .maybeWith(listOf(dslNode.requiredSymbolicName))
                     .apocValidate(it, Constants.AUTH_FORBIDDEN_ERROR)
             }
 

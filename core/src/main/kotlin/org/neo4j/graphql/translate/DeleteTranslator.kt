@@ -7,9 +7,9 @@ import org.neo4j.cypherdsl.core.SymbolicName
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
+import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.schema.model.inputs.delete.DeleteFieldInput
 import org.neo4j.graphql.schema.model.inputs.delete.DeleteInput
-import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.translate.where.createConnectionWhere
 
 fun createDeleteAndParams(
@@ -44,7 +44,8 @@ fun createDeleteAndParams(
                 val endNode = refNode.asCypherNode(queryContext, endNodeName)
                 val dslRelation = relField.createDslRelation(
                     parentVar, endNode,
-                    endNodeName.extend("relationship")
+                    endNodeName.extend("relationship"),
+                    startLeft = true
                 )
 
                 var (condition, whereSubquery)  = createConnectionWhere(
@@ -60,7 +61,8 @@ fun createDeleteAndParams(
                         "where"
                     ),
                     schemaConfig,
-                    queryContext
+                    queryContext,
+                    usePrefix = true
                 )
 
                 if (whereSubquery.isNotEmpty()){
@@ -153,7 +155,7 @@ fun createDeleteAndParams(
                         Cypher.with(nodeToDelete)
                             .unwind(nodeToDelete).`as`(x)
                             .detachDelete(x)
-                            .returning(Functions.count(Cypher.asterisk()))
+                            .returning(Functions.count(Cypher.asterisk()).`as`("_"))
                             .build()
                     )
             }

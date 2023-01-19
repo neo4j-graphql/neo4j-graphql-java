@@ -6,9 +6,9 @@ import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.directives.AuthDirective
 import org.neo4j.graphql.domain.fields.AuthableField
 import org.neo4j.graphql.domain.fields.RelationField
+import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.schema.model.inputs.update.UpdateFieldInput
 import org.neo4j.graphql.schema.model.inputs.update.UpdateInput
-import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.translate.where.createConnectionWhere
 
 class UpdateTranslator(
@@ -18,7 +18,7 @@ class UpdateTranslator(
     private val chainStr: ChainString?,
     private val node: org.neo4j.graphql.domain.Node,
     private val withVars: List<SymbolicName>,
-    private val context: QueryContext,
+    private val queryContext: QueryContext,
     private val parameterPrefix: ChainString,
     private val includeRelationshipValidation: Boolean = false,
     private val schemaConfig: SchemaConfig,
@@ -28,12 +28,13 @@ class UpdateTranslator(
     fun createUpdateAndParams(): ExposesWith {
         if (updateInput == null) return ongoingReading
 
-        var preAuthCondition = AuthTranslator(schemaConfig, context, allow = AuthTranslator.AuthOptions(varName, node))
-            .createAuth(node.auth, AuthDirective.AuthOperation.UPDATE)
+        var preAuthCondition =
+            AuthTranslator(schemaConfig, queryContext, allow = AuthTranslator.AuthOptions(varName, node))
+                .createAuth(node.auth, AuthDirective.AuthOperation.UPDATE)
 
         var postAuthCondition = AuthTranslator(
             schemaConfig,
-            context,
+            queryContext,
             bind = AuthTranslator.AuthOptions(varName, node),
             skipIsAuthenticated = true,
             skipRoles = true
@@ -47,7 +48,7 @@ class UpdateTranslator(
 
                 AuthTranslator(
                     schemaConfig,
-                    context,
+                    queryContext,
                     allow = AuthTranslator.AuthOptions(parentVar, node, chainStr = prefix.extend(field))
                 )
                     .createAuth(field.auth, AuthDirective.AuthOperation.UPDATE)
@@ -55,7 +56,7 @@ class UpdateTranslator(
 
                 AuthTranslator(
                     schemaConfig,
-                    context,
+                    queryContext,
                     bind = AuthTranslator.AuthOptions(parentVar, node, chainStr = prefix.extend(field)),
                     skipIsAuthenticated = true,
                     skipRoles = true
@@ -68,16 +69,31 @@ class UpdateTranslator(
 
         var result = ongoingReading
 
-        preAuthCondition?.let { result = result.maybeWith(withVars).apocValidate(it, Constants.AUTH_FORBIDDEN_ERROR) }
-        result = createSetProperties(
+        preAuthCondition?.let {
+            result = result
+                .maybeWith(withVars)
+                .with(withVars) // TODO use maybeWith?
+                .apocValidate(it, Constants.AUTH_FORBIDDEN_ERROR)
+        }
+        result = createSetPropertiesSplit(
             varName,
             updateInput.properties,
             Operation.UPDATE,
             node,
             schemaConfig,
+            queryContext,
             prefix
         )
-            ?.let { result.requiresExposeSet(withVars).set(it) } ?: result
+            // TODO use createSetProperties and ?.let { result.requiresExposeSet(withVars).set(it) } ?: result
+            //  instead of:
+            ?.let {
+                var x = result
+
+                for ((prop, value) in it) {
+                    x = x.requiresExposeSet(withVars).set(prop, value)
+                }
+                x
+            } ?: result
 
 
         updateInput.relations.forEach { (field, value) ->
@@ -92,9 +108,13 @@ class UpdateTranslator(
 
         if (includeRelationshipValidation) {
             RelationshipValidationTranslator
-                .createRelationshipValidations(node, varName, context, schemaConfig)
+                .createRelationshipValidations(node, varName, queryContext, schemaConfig)
                 .takeIf { it.isNotEmpty() }
-                ?.let { result = result.maybeWith(withVars).withSubQueries(it) }
+                ?.let {
+                    result = result
+                        .maybeWith(withVars)
+                        .withSubQueries(it)
+                }
         }
         return result
     }
@@ -122,9 +142,9 @@ class UpdateTranslator(
                     (refNode.name + index).takeIf { field.isUnion }
                 )
 
-                input.update?.let { update ->
-                    result = handleNestedUpdate(refNode, field, input, update, index, _varName, result, param)
-                }
+                result = handleNestedUpdate(refNode, field, input, index, _varName, param)
+                    ?.let { result.maybeWith(withVars).call(it) }
+                    ?: result
 
                 input.disconnect?.let {
                     result = DisconnectTranslator(
@@ -133,7 +153,7 @@ class UpdateTranslator(
                         _varName.extend("disconnect"),
                         field,
                         parentVar,
-                        context,
+                        queryContext,
                         schemaConfig,
                         listOf(refNode),
                         refNode.name.takeIf { field.isUnion },
@@ -152,7 +172,7 @@ class UpdateTranslator(
                 input.connect?.let { connect ->
                     result = ConnectTranslator(
                         schemaConfig,
-                        context,
+                        queryContext,
                         node,
                         _varName.extend("connect"),
                         parentVar,
@@ -176,7 +196,7 @@ class UpdateTranslator(
                         refNode,
                         withVars,
                         result,
-                        context,
+                        queryContext,
                         schemaConfig
                     )
                 }
@@ -197,59 +217,74 @@ class UpdateTranslator(
         refNode: org.neo4j.graphql.domain.Node,
         field: RelationField,
         input: UpdateFieldInput.ImplementingTypeUpdateFieldInput,
-        update: UpdateFieldInput.ImplementingTypeUpdateConnectionInput,
         index: Int,
         _varName: ChainString,
-        exposesWith: ExposesWith,
         param: ChainString
-    ): ExposesWith {
-        var result = exposesWith
+    ): Statement? {
+        val update = input.update ?: return null
 
         val relationshipVariable =
             ChainString(schemaConfig, varName, field.relationType.lowercase(), index, "relationship")
 
-        val endNode = refNode.asCypherNode(context, _varName)
+        val endNode = refNode.asCypherNode(queryContext, _varName)
 
         val rel = field.createDslRelation(
             Cypher.anyNode(parentVar.requiredSymbolicName),
             endNode,
-            relationshipVariable
+            relationshipVariable,
+            startLeft = true
         )
-        var condition: Condition? = null
 
-        input.where?.let { where ->
-            val (whereCondition, whereSubquery) = createConnectionWhere(
-                where,
-                refNode,
-                endNode,
+        val (whereCondition, whereSubquery) = createConnectionWhere(
+            input.where,
+            refNode,
+            endNode,
+            field,
+            rel,
+            parameterPrefix.extend(
                 field,
-                rel,
-                parameterPrefix.extend(
-                    field,
-                    refNode.takeIf { field.isUnion },
-                    index.takeIf { field.typeMeta.type.isList() }),
-                schemaConfig,
-                context,
-            )
-            whereCondition?.let { condition = condition and it }
-            if (whereSubquery.isNotEmpty()){
-                TODO()
-            }
-        }
+                refNode.takeIf { field.isUnion },
+                index.takeIf { field.typeMeta.type.isList() }),
+            schemaConfig,
+            queryContext,
+        )
 
-        AuthTranslator(schemaConfig, context, where = AuthTranslator.AuthOptions(endNode, refNode))
+        val whereAuth = AuthTranslator(schemaConfig, queryContext, where = AuthTranslator.AuthOptions(endNode, refNode))
             .createAuth(refNode.auth, AuthDirective.AuthOperation.UPDATE)
-            ?.let { condition = condition and it }
 
-        result = if (withVars.isNotEmpty()) {
-            result.with(withVars).optionalMatch(rel)
-        } else {
-            (result as ExposesMatch).optionalMatch(rel)
-        }.let { if (condition != null) it.where(condition) else it }
+        var result = Cypher
+            .with(withVars)
+            .match(rel)
+            .optionalWhere(listOf(whereCondition, whereAuth))
+            .withSubQueries(whereSubquery)
+            .let { reading ->
+                field.properties?.let { edgeProperties ->
+                    update.edge?.let { edgeUpdate ->
+                        createSetProperties(
+                            rel,
+                            edgeUpdate,
+                            Operation.UPDATE,
+                            edgeProperties,
+                            schemaConfig,
+                            queryContext,
+                            parameterPrefix.extend(
+                                field,
+                                refNode.name.takeIf { field.isUnion },
+                                index.takeIf { field.typeMeta.type.isList() },
+                                "update",
+                                "edge"
+                            )
+                        )
+                            ?.let { reading.set(it) }
+                    }
+                } ?: reading
+            }
+
+
 
         update.node?.let { nodeUpdate ->
 
-            val nestedWithVars = listOf(endNode.requiredSymbolicName)
+            val nestedWithVars = withVars + endNode.requiredSymbolicName
             val (inputOnForNode, inputExcludingOnForNode) = when (nodeUpdate) {
                 is UpdateInput.NodeUpdateInput -> null to nodeUpdate
                 is UpdateInput.InterfaceUpdateInput -> nodeUpdate.on?.getDataForNode(refNode) to nodeUpdate.getCommonFields(
@@ -257,7 +292,7 @@ class UpdateTranslator(
                 )
             }
 
-            var subResult = UpdateTranslator(
+            result = UpdateTranslator(
                 endNode,
                 inputExcludingOnForNode,
                 endNode,
@@ -267,7 +302,7 @@ class UpdateTranslator(
                 ),
                 refNode,
                 nestedWithVars,
-                context,
+                queryContext,
                 param.extend(
                     field,
                     refNode.takeIf { field.isUnion },
@@ -277,11 +312,11 @@ class UpdateTranslator(
                 ),
                 includeRelationshipValidation = true,
                 schemaConfig,
-                Cypher.with(nestedWithVars),
+                result,
             ).createUpdateAndParams()
 
             if (field.isInterface && inputOnForNode != null) {
-                subResult = UpdateTranslator(
+                result = UpdateTranslator(
                     endNode,
                     inputOnForNode,
                     endNode,
@@ -293,7 +328,7 @@ class UpdateTranslator(
                     ),
                     refNode,
                     nestedWithVars,
-                    context,
+                    queryContext,
                     parameterPrefix.extend(
                         field,
                         refNode.takeIf { field.isUnion },
@@ -305,46 +340,30 @@ class UpdateTranslator(
                     ),
                     includeRelationshipValidation = false,
                     schemaConfig,
-                    subResult,
+                    result,
                 ).createUpdateAndParams()
             }
 
-            result = (result as StatementBuilder.OngoingReading).call(
-                (subResult as ExposesReturning).returning(
-                    Functions.count(Cypher.asterisk()).`as`(
-                        param.extend(
-                            refNode.name.takeIf { field.isUnion },
-                            index,
-                            refNode.name,
-                            "ignore"
-                        ).resolveName(),
-                    )
-                ).build()
-            )
+//            result = result.maybeWith(withVars).call(
+//                (subResult as ExposesReturning).returning(
+//                    Functions.count(Cypher.asterisk()).`as`(
+//                        param.extend(
+//                            refNode.name.takeIf { field.isUnion },
+//                            index,
+//                            refNode.name
+//                        ).resolveName(),
+//                    )
+//                ).build()
+//            )
 
             // TODO subscription 232
         }
 
-        field.properties?.let { edgeProperties ->
-            update.edge?.let { edgeUpdate ->
-                result = createSetProperties(
-                    rel,
-                    edgeUpdate,
-                    Operation.UPDATE,
-                    edgeProperties,
-                    schemaConfig,
-                    parameterPrefix.extend(
-                        field,
-                        refNode.name.takeIf { field.isUnion },
-                        index.takeIf { field.typeMeta.type.isList() },
-                        "update",
-                        "edge"
-                    )
-                )
-                    ?.let { exposesWith.requiresExposeSet(listOf(rel.requiredSymbolicName)).set(it) }
-                    ?: result
-            }
-        }
         return result
+            .returning(
+                Functions.count(Cypher.asterisk())
+                    .`as`(ChainString(schemaConfig, "update", varName, refNode).resolveName())
+            )
+            .build()
     }
 }

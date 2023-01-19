@@ -31,7 +31,7 @@ object RelationshipValidationTranslator {
             c.lte(1.asCypherLiteral()) to "${RELATIONSHIP_REQUIREMENT_PREFIX}${node.name}.${field.fieldName} required"
         }
         val relVarName = ChainString(schemaConfig, varName, field, toNode, "unique")
-        val dslRelation = field.createDslRelation(varName, toNode.asCypherNode(context), relVarName)
+        val dslRelation = field.createDslRelation(varName, toNode.asCypherNode(context), relVarName, startLeft = true)
 
         Cypher.with(varName)
             .match(dslRelation)

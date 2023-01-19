@@ -8,10 +8,10 @@ import org.neo4j.graphql.SchemaConfig
 import org.neo4j.graphql.and
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.fields.RelationField
-import org.neo4j.graphql.schema.model.inputs.WhereInput
-import org.neo4j.graphql.schema.model.inputs.connection.ConnectionWhere
 import org.neo4j.graphql.domain.predicates.ConnectionPredicate
 import org.neo4j.graphql.handler.utils.ChainString
+import org.neo4j.graphql.schema.model.inputs.WhereInput
+import org.neo4j.graphql.schema.model.inputs.connection.ConnectionWhere
 import org.neo4j.graphql.translate.WhereResult
 
 //TODO completed
@@ -23,7 +23,8 @@ fun createConnectionWhere(
     relationshipVariable: PropertyContainer,
     parameterPrefix: ChainString,
     schemaConfig: SchemaConfig,
-    queryContext: QueryContext
+    queryContext: QueryContext,
+    usePrefix: Boolean = false // TODO only used to align test with JS version?
 ): WhereResult {
 
     fun createOnNode(key: String, value: WhereInput): WhereResult {
@@ -43,9 +44,10 @@ fun createConnectionWhere(
                 node,
                 inputExcludingOnForNode,
                 nodeVariable,
-                parameterPrefix.extend(key),
+                parameterPrefix.extend(node),
                 schemaConfig,
-                queryContext
+                queryContext,
+                usePrefix,
             )
             whereCondition?.let { result = result and it }
             subQueries.addAll(whereSubquery)
@@ -57,7 +59,8 @@ fun createConnectionWhere(
                     nodeVariable,
                     parameterPrefix.extend(key, "on", node),
                     schemaConfig,
-                    queryContext
+                    queryContext,
+                    usePrefix,
                 )
                 innerWhereCondition?.let { result = result and it }
                 subQueries.addAll(innerWhereSubquery)
@@ -77,7 +80,8 @@ fun createConnectionWhere(
             relationshipVariable,
             parameterPrefix.extend(key, index),
             schemaConfig,
-            queryContext
+            queryContext,
+            usePrefix,
         )
         subQueries.addAll(whereSubquery)
         whereCondition
@@ -91,7 +95,8 @@ fun createConnectionWhere(
                 relationshipVariable,
                 parameterPrefix.extend(predicate.key),
                 schemaConfig,
-                queryContext
+                queryContext,
+                usePrefix,
             )
 
             ConnectionPredicate.Target.NODE -> createOnNode(predicate.key, predicate.value)

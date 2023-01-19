@@ -22,6 +22,7 @@ class AuthTranslator(
     val allow: AuthOptions? = null, // TODO harmonize args
     val bind: AuthOptions? = null,
     val where: AuthOptions? = null,
+    val noParamPrefix: Boolean = false, // TODO this is just to align cypher with JS version
 ) {
 
     fun createAuth(auth: AuthDirective?, vararg operations: AuthDirective.AuthOperation) =
@@ -65,7 +66,7 @@ class AuthTranslator(
                 useAnyPredicate = true,
                 node = allow.parentNode,
                 varName = allow.varName,
-                chainStr = (allow.chainStr ?: ChainString(schemaConfig, allow.varName)).appendOnPrevious( "auth"),
+                chainStr = (allow.chainStr ?: ChainString(schemaConfig, allow.varName)).appendOnPrevious("auth"),
             )
                 ?.let { condition = condition and it }
 
@@ -77,7 +78,7 @@ class AuthTranslator(
                 useAnyPredicate = false,
                 node = bind.parentNode,
                 varName = bind.varName,
-                chainStr = (bind.chainStr ?: ChainString(schemaConfig, bind.varName)).appendOnPrevious( "auth"),
+                chainStr = (bind.chainStr ?: ChainString(schemaConfig, bind.varName)).appendOnPrevious("auth"),
             )
                 ?.let { condition = condition and it }
         }
@@ -88,7 +89,7 @@ class AuthTranslator(
                 useAnyPredicate = false,
                 node = where.parentNode,
                 varName = where.varName,
-                chainStr = (where.chainStr ?: ChainString(schemaConfig)).appendOnPrevious( "auth"),
+                chainStr = (where.chainStr ?: ChainString(schemaConfig)).appendOnPrevious("auth"),
             )
                 ?.let { condition = condition and it }
         }
@@ -199,7 +200,11 @@ class AuthTranslator(
 //                        null -> varName.property(authableField.dbPropertyName).isNull
                     else -> {
                         val property = varName.property(authableField.dbPropertyName)
-                        val parameter = queryContext.getNextParam(chainStr.resolveName()+ "_param", paramValue)
+                        val parameter = if (noParamPrefix) {
+                            queryContext.getNextParam(paramValue)
+                        } else {
+                            queryContext.getNextParam(chainStr.resolveName() + "_param", paramValue)
+                        }
                         property.isNotNull.and(property.eq(parameter))
                     }
                 }
@@ -212,6 +217,7 @@ class AuthTranslator(
 
                 val end = refNode.asCypherNode(queryContext)
                 // TODO naming
+
                 val namedEnd = end.named("auth_this"+ruleIndex)
 //                val namedEnd = end.named(chainStr.resolveName())
 
@@ -230,7 +236,7 @@ class AuthTranslator(
                 }
 //                TODO use this
 //                val  cond = Cypher.name("cond")
-                val cond = Cypher.name(namedEnd.name())
+                val cond = namedEnd.requiredSymbolicName
                 val o = if (useAnyPredicate) {
                     Predicates.any(cond)
                 } else {
@@ -239,10 +245,14 @@ class AuthTranslator(
 //                TODO check if we can use this
 //                    .`in`(Cypher.listBasedOn(relationField.createDslRelation(varName, namedEnd)).returning(authPredicate))
 //                    .where(cond.asCondition())
-                    .`in`(Cypher.listBasedOn(relationField.createDslRelation(varName, namedEnd, startLeft = true)).returning(cond))
+                    .`in`(
+                        Cypher.listBasedOn(relationField.createDslRelation(varName, namedEnd, startLeft = true))
+                            .returning(cond)
+                    )
                     .where(authPredicate)
 
-                val relationCondition = Predicates.exists(relationField.createDslRelation(varName, end, startLeft = true)).and(o)
+                val relationCondition =
+                    Predicates.exists(relationField.createDslRelation(varName, end, startLeft = true)).and(o)
                 condition = condition?.and(relationCondition) ?: relationCondition
             }
         }

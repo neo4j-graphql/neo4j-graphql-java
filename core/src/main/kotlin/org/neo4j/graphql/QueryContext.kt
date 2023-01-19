@@ -3,7 +3,6 @@ package org.neo4j.graphql
 import org.neo4j.cypherdsl.core.Cypher
 import org.neo4j.cypherdsl.core.Parameter
 import org.neo4j.graphql.handler.utils.ChainString
-import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
 data class QueryContext @JvmOverloads constructor(
@@ -48,6 +47,10 @@ data class QueryContext @JvmOverloads constructor(
         varCounter++
             .let { Cypher.name(p + it) }
     }
+
+    fun getNextParam(prefix: ChainString? = null, value: Any?) = getNextParam(
+        prefix?.resolveName() ?: "param", value
+    )
 
     fun getNextParam(value: Any?) = getNextParam("param", value)
     fun getNextParam(prefix: String, value: Any?) =

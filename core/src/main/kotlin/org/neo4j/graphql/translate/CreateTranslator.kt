@@ -31,7 +31,7 @@ class CreateTranslator(
 
         var authConditions: Condition? = null
         input?.properties?.let { properties ->
-            createSetProperties(dslNode, properties, Operation.CREATE, node, schemaConfig)
+            createSetProperties(dslNode, properties, Operation.CREATE, node, schemaConfig, queryContext)
                 ?.let { create = create.set(it) }
 
             properties.keys.forEach { field ->
@@ -132,7 +132,8 @@ class CreateTranslator(
                                     edgeField,
                                     Operation.CREATE,
                                     field.properties,
-                                    schemaConfig
+                                    schemaConfig,
+                                    queryContext
                                 )?.let { merge.set(it) } ?: merge
                             } else {
                                 merge

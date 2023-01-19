@@ -1,14 +1,17 @@
 package org.neo4j.graphql.translate
 
-import org.neo4j.cypherdsl.core.*
+import org.neo4j.cypherdsl.core.Condition
+import org.neo4j.cypherdsl.core.Conditions
+import org.neo4j.cypherdsl.core.Cypher
+import org.neo4j.cypherdsl.core.StatementBuilder
 import org.neo4j.cypherdsl.core.StatementBuilder.ExposesWith
 import org.neo4j.cypherdsl.core.StatementBuilder.OngoingReading
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
+import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.schema.model.inputs.WhereInput
 import org.neo4j.graphql.schema.model.inputs.filter.FulltextPerIndex
-import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.translate.where.createWhere
 
 class TopLevelMatchTranslator(
@@ -33,12 +36,13 @@ class TopLevelMatchTranslator(
         } else {
             Cypher.match(cypherNode) to Conditions.noCondition()
         }
-        if (additionalPredicates !=  null){
-            conditions = additionalPredicates and conditions
-        }
 
         val (whereConditions, subQueries) = createWhere(node, where, cypherNode, varName, schemaConfig, queryContext)
         whereConditions?.let { conditions = conditions.and(it) }
+
+        if (additionalPredicates != null) {
+            conditions = conditions and additionalPredicates
+        }
 
         if (node.auth != null) {
             AuthTranslator(

@@ -1,6 +1,7 @@
 package org.neo4j.graphql.handler.v2
 
 import graphql.language.Field
+import graphql.language.InputValueDefinition
 import graphql.schema.DataFetchingEnvironment
 import org.neo4j.cypherdsl.core.Statement
 import org.neo4j.cypherdsl.core.StatementBuilder
@@ -11,6 +12,7 @@ import org.neo4j.graphql.domain.directives.AuthDirective
 import org.neo4j.graphql.domain.directives.ExcludeDirective
 import org.neo4j.graphql.handler.BaseDataFetcher
 import org.neo4j.graphql.handler.utils.ChainString
+import org.neo4j.graphql.schema.AugmentationBase
 import org.neo4j.graphql.schema.AugmentationContext
 import org.neo4j.graphql.schema.AugmentationHandler
 import org.neo4j.graphql.schema.model.inputs.Dict
@@ -33,35 +35,52 @@ class DeleteResolver private constructor(
                 return emptyList()
             }
 
-            val coordinates =
-                addMutationField(node.rootTypeFieldNames.delete, Constants.Types.DeleteInfo.makeRequired()) { args ->
+            val arguments = DeleteInputArguments.Augmentation.getFieldArguments(node, ctx)
+            if (arguments.isEmpty()) {
+                return emptyList()
+            }
 
-                    WhereInput.NodeWhereInput.Augmentation
-                        .generateWhereIT(node, ctx)
-                        ?.let { args += inputValue(Constants.WHERE, it.asType()) }
-
-                    DeleteInput.NodeDeleteInput.Augmentation
-                        .generateContainerDeleteInputIT(node, ctx)?.let {
-                            args += inputValue(Constants.DELETE_FIELD, it.asType())
-                        }
-                }
+            val coordinates = addMutationField(
+                node.rootTypeFieldNames.delete,
+                Constants.Types.DeleteInfo.makeRequired(),
+                arguments
+            )
 
             return AugmentedField(coordinates, DeleteResolver(ctx.schemaConfig, node)).wrapList()
         }
     }
 
-    private class InputArguments(node: Node, args: Dict) {
+    private class DeleteInputArguments(node: Node, args: Dict) {
         val delete = args.nestedDict(Constants.DELETE_FIELD)
             ?.let { DeleteInput.NodeDeleteInput(node, it) }
 
         val where = args.nestedDict(Constants.WHERE)
             ?.let { WhereInput.NodeWhereInput(node, it) }
+
+        object Augmentation : AugmentationBase {
+
+            fun getFieldArguments(node: Node, ctx: AugmentationContext): List<InputValueDefinition> {
+                val args = mutableListOf<InputValueDefinition>()
+
+                DeleteInput.NodeDeleteInput.Augmentation
+                    .generateContainerDeleteInputIT(node, ctx)?.let {
+                        args += inputValue(Constants.DELETE_FIELD, it.asType())
+                    }
+
+                WhereInput.NodeWhereInput.Augmentation
+                    .generateWhereIT(node, ctx)
+                    ?.let { args += inputValue(Constants.WHERE, it.asType()) }
+
+                return args
+            }
+        }
     }
+
 
     override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement {
         val queryContext = env.queryContext()
         val resolveTree = ResolveTree.resolve(env)
-        val input = InputArguments(node, resolveTree.args)
+        val input = DeleteInputArguments(node, resolveTree.args)
 
         val dslNode = node.asCypherNode(queryContext, variable)
 

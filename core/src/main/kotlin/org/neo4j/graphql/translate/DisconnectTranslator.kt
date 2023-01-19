@@ -6,10 +6,10 @@ import org.neo4j.cypherdsl.core.StatementBuilder.OngoingReading
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.directives.AuthDirective
 import org.neo4j.graphql.domain.fields.RelationField
+import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.schema.model.inputs.connection.ConnectionWhere
 import org.neo4j.graphql.schema.model.inputs.disconnect.DisconnectFieldInput
 import org.neo4j.graphql.schema.model.inputs.disconnect.DisconnectInput
-import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.translate.where.createConnectionWhere
 
 //TODO complete
@@ -44,7 +44,7 @@ class DisconnectTranslator(
             // TODO is cypher union for an interfaces required?
 
             result = (whereAuth?.let { result.with(withVars).where(it) } ?: result)
-                .with(withVars)
+                .maybeWith(withVars)
                 .withSubQueries(subqueries)
         }
         return result
@@ -62,7 +62,7 @@ class DisconnectTranslator(
             ?.let { Cypher.node(it).named(nestedPrefix.resolveName()) }
             ?: relatedNode.asCypherNode(context, nestedPrefix)
 
-        val dslRelation = relationField.createDslRelation(parentVar, endNode, relVarName)
+        val dslRelation = relationField.createDslRelation(parentVar, endNode, relVarName, startLeft = true)
 
         var condition: Condition? = null
         input.where?.let { where ->
@@ -78,10 +78,11 @@ class DisconnectTranslator(
                 ),
                 schemaConfig,
                 context,
+                usePrefix = true,
             )
             condition = whereCondition
 
-            if (whereSubquery.isNotEmpty()){
+            if (whereSubquery.isNotEmpty()) {
                 TODO()
             }
         }
@@ -100,19 +101,7 @@ class DisconnectTranslator(
         )
             .filter { it.parentNode.auth != null }
             .forEachIndexed { i, authOptions ->
-                AuthTranslator(
-                    schemaConfig,
-                    context,
-                    allow = authOptions.copy(
-                        chainStr = ChainString(
-                            schemaConfig,
-                            authOptions.varName,
-                            authOptions.parentNode,
-                            i,
-                            "allow"
-                        )
-                    )
-                )
+                AuthTranslator(schemaConfig, context, allow = authOptions)
                     .createAuth(authOptions.parentNode.auth, AuthDirective.AuthOperation.DISCONNECT)
                     ?.let { preAuth = preAuth and it }
 
@@ -137,20 +126,25 @@ class DisconnectTranslator(
             }
 
 
+        val x = Cypher.name("x")
         var call: ExposesWith = Cypher.with(withVars)
             .optionalMatch(dslRelation)
             .let { query ->
                 condition?.let { query.where(condition) } ?: query
             }
             .let { query ->
-                preAuth?.let { query.apocValidate(it, Constants.AUTH_FORBIDDEN_ERROR) } ?: query
+                preAuth?.let {
+                    query
+                        .with(*(withVars + endNode + dslRelation).toTypedArray()) // TODO is this required?
+                        .apocValidate(it, Constants.AUTH_FORBIDDEN_ERROR)
+                } ?: query
             }
             .call(
-                Cypher.with(endNode, dslRelation)
-                    .with(endNode, dslRelation)// TODO use the new version from js
-                    .where(endNode.isNotNull)
+                Cypher.with(endNode, dslRelation, parentVar)
+                    .with(Functions.collect(endNode).`as`(endNode.requiredSymbolicName), dslRelation, parentVar)
+                    .unwind(endNode.requiredSymbolicName).`as`(x) // TODO use only for subscriptions?
                     .delete(dslRelation)
-                    .returning(Functions.count(Cypher.asterisk()))
+                    .returning(Functions.count(Cypher.asterisk()).`as`("_"))
                     .build()
             )
 
@@ -180,7 +174,9 @@ class DisconnectTranslator(
 
                         val inputs = when (value) {
                             is DisconnectFieldInput.NodeDisconnectFieldInputs -> value
-                            is DisconnectFieldInput.UnionDisconnectFieldInput -> value.getDataForNode(newRefNode) ?: return
+                            is DisconnectFieldInput.UnionDisconnectFieldInput -> value.getDataForNode(newRefNode)
+                                ?: return
+
                             else -> throw IllegalStateException("unknown value type")
                         }
 
@@ -200,7 +196,7 @@ class DisconnectTranslator(
                                 classifier?.let { it(relField, newRefNode) },
                                 relField,
                                 newRefNode.takeIf { relField.isUnion }),
-                            call,
+                            call
                         )
                             .createDisconnectAndParams()
                     }
@@ -215,7 +211,7 @@ class DisconnectTranslator(
                             ChainString(
                                 schemaConfig,
                                 "_on",
-                                newRefNode,
+                                relatedNode,
                                 onDisconnectIndex.takeIf { relField.typeMeta.type.isList() },
                             )
                         }
@@ -232,7 +228,17 @@ class DisconnectTranslator(
             .let { query ->
                 postAuth?.let { query.apocValidate(it, Constants.AUTH_FORBIDDEN_ERROR) } ?: query
             }
-            .returning(Functions.count(Cypher.asterisk()))
+            .returning(
+                Functions.count(Cypher.asterisk())
+                    .`as`(
+                        ChainString(
+                            schemaConfig,
+                            "disconnect",
+                            varName,
+                            relatedNode
+                        ).resolveName()
+                    ) // TODO why this alias?
+            )
             .build()
     }
 }

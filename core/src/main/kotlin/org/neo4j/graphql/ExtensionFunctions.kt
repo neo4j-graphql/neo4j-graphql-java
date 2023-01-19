@@ -73,6 +73,19 @@ fun Condition?.apocValidatePredicate(errorMessage: String) = this?.let {
         .asCondition()
 }
 
+// TODO rename
+fun ExposesReturning.apocValidateNew(cond: Condition?, errorMessage: String) =
+    if (cond == null) {
+        this
+    } else {
+        when (this) {
+//            is OngoingReading -> this
+            is ExposesWith -> this.with(Cypher.asterisk())
+            else -> error("cannot handle " + this::class.java.name)
+        }.apocValidate(cond, errorMessage)
+    }
+
+
 fun Named.name(): String = this.requiredSymbolicName.value
 
 fun OngoingReading.applySortingSkipAndLimit(
@@ -127,6 +140,11 @@ fun StatementBuilder.OngoingReadingAndReturn.applySortingSkipAndLimit(
         ?: skip
 }
 
+fun StatementBuilder.ExposesWith.maybeWithAsterix() = when (this) {
+    is OngoingReading -> this
+    else -> this.with(Cypher.asterisk())
+}
+
 fun StatementBuilder.ExposesWith.maybeWith(withVars: List<SymbolicName>) = when (this) {
     is OngoingReading -> this
     else -> this.with(withVars)
@@ -156,7 +174,7 @@ inline fun <reified T> T.wrapList(): List<T> = when (this) {
     else -> listOf(this)
 }
 
-fun <X, T, R> T.conditionalBlock(cond: Boolean, block: (T) -> R): X where  T : X, R : X =
+fun <X, T : X, R : X> T.conditionalBlock(cond: Boolean, block: (T) -> R): X =
     if (cond) block(this) else this
 
 fun OngoingReadingWithoutWhere.optionalWhere(condition: List<Condition?>): OngoingReading =

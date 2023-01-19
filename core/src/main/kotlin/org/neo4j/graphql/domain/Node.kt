@@ -5,6 +5,7 @@ import graphql.language.Description
 import graphql.language.Directive
 import org.neo4j.cypherdsl.core.Cypher
 import org.neo4j.graphql.QueryContext
+import org.neo4j.graphql.decapitalize
 import org.neo4j.graphql.domain.directives.*
 import org.neo4j.graphql.domain.fields.BaseField
 import org.neo4j.graphql.handler.utils.ChainString
@@ -70,6 +71,8 @@ class Node(
     override fun toString(): String {
         return "Node('$name')"
     }
+
+    fun asCypherNodeWithNodeName(queryContext: QueryContext?) = asCypherNode(queryContext, name.decapitalize())
 
     fun asCypherNode(queryContext: QueryContext?, name: ChainString) = asCypherNode(queryContext, name.resolveName())
     fun asCypherNode(queryContext: QueryContext?, name: String? = null) =

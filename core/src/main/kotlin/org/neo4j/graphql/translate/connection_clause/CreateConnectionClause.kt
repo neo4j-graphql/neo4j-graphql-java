@@ -6,9 +6,9 @@ import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
 import org.neo4j.graphql.domain.fields.ConnectionField
 import org.neo4j.graphql.domain.fields.ScalarField
+import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.schema.model.inputs.connection.ConnectionWhere
 import org.neo4j.graphql.schema.model.inputs.field_arguments.ConnectionFieldInputArgs
-import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.translate.AuthTranslator
 import org.neo4j.graphql.translate.ProjectionTranslator
 import org.neo4j.graphql.translate.projection.projectScalarField
@@ -127,7 +127,6 @@ object CreateConnectionClause {
                             it,
                             prefix,
                             schemaConfig,
-                            emptyMap(),
                             queryContext,
                             useShortcut = false
                         )

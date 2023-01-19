@@ -100,7 +100,7 @@ sealed interface UpdateFieldInput {
         ImplementingTypeUpdateFieldInput() {
 
         override val update = data.nestedDict(Constants.UPDATE_FIELD)
-            ?.let { InterfaceUpdateConnectionInput(interfaze, data) }
+            ?.let { InterfaceUpdateConnectionInput(interfaze, it) }
 
         override val connect = data.nestedObject(Constants.CONNECT_FIELD)
             ?.let { InterfaceConnectFieldInputs.create(interfaze, relationshipProperties, it) }
