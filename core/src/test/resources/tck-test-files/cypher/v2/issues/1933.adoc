@@ -61,7 +61,7 @@ type Project {
 [source,json]
 ----
 {
-  "param0": 25
+  "param0" : 25
 }
 ----
 
@@ -135,7 +135,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": 25
+  "param0" : 25
 }
 ----
 

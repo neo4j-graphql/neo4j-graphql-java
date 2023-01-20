@@ -53,25 +53,16 @@ mutation {
 [source,json]
 ----
 {
-  "update_param0": [
-    "new-f",
-    "new-e"
-  ],
-  "param0": "urn:myiri2",
-  "this_update_prefLabel": [
-    "Updated Label:My BRS with Resource"
-  ],
-  "this_isInPublication0_connectOrCreate_param0": "new-g",
-  "this_isInPublication0_connectOrCreate_param1": "new-g",
-  "this_isInPublication0_connectOrCreate_param2": [
-    "pub"
-  ],
-  "this_isInPublication1_connectOrCreate_param0": "new-f",
-  "this_isInPublication1_connectOrCreate_param1": "new-f",
-  "this_isInPublication1_connectOrCreate_param2": [
-    "pub"
-  ],
-  "resolvedCallbacks": {}
+  "param0" : "urn:myiri2",
+  "resolvedCallbacks" : { },
+  "this_isInPublication0_connectOrCreate_param0" : "new-g",
+  "this_isInPublication0_connectOrCreate_param1" : "new-g",
+  "this_isInPublication0_connectOrCreate_param2" : [ "pub" ],
+  "this_isInPublication1_connectOrCreate_param0" : "new-f",
+  "this_isInPublication1_connectOrCreate_param1" : "new-f",
+  "this_isInPublication1_connectOrCreate_param2" : [ "pub" ],
+  "this_update_prefLabel" : [ "Updated Label:My BRS with Resource" ],
+  "update_param0" : [ "new-f", "new-e" ]
 }
 ----
 

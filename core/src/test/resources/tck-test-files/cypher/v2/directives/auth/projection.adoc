@@ -58,16 +58,13 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0": [
-    {
-      "id": "id-1"
-    },
-    {
-      "id": "id-2"
-    }
-  ],
-  "projectionauth_param0": "super_admin",
-  "resolvedCallbacks": {}
+  "create_param0" : [ {
+    "id" : "id-1"
+  }, {
+    "id" : "id-2"
+  } ],
+  "projectionauth_param0" : "super_admin",
+  "resolvedCallbacks" : { }
 }
 ----
 
@@ -121,9 +118,9 @@ mutation {
 [source,json]
 ----
 {
-  "this_update_id": "new-id",
-  "thisauth_param0": "super_admin",
-  "resolvedCallbacks": {}
+  "resolvedCallbacks" : { },
+  "this_update_id" : "new-id",
+  "thisauth_param0" : "super_admin"
 }
 ----
 

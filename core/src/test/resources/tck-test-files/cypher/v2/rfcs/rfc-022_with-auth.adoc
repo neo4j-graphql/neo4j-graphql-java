@@ -62,18 +62,18 @@ query Query {
 [source,json]
 ----
 {
-  "param0": 1999,
-  "param1": "Keanu Reeves",
-  "param3": "The Matrix",
-  "param5": "my-test",
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [],
-    "jwt": {
-      "roles": [],
-      "test": "my-test"
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ ],
+    "jwt" : {
+      "roles" : [ ],
+      "test" : "my-test"
     }
-  }
+  },
+  "param0" : 1999,
+  "param1" : "Keanu Reeves",
+  "param3" : "The Matrix",
+  "param5" : "my-test"
 }
 ----
 

@@ -53,11 +53,11 @@ type Movie @node(label: "Film") {
 [source,json]
 ----
 {
-  "param0": "some title",
-  "param1": "Horror",
-  "param2": "The Matrix",
-  "param3": 1,
-  "param4": 10
+  "param0" : "some title",
+  "param1" : "Horror",
+  "param2" : "The Matrix",
+  "param3" : 1,
+  "param4" : 10
 }
 ----
 

@@ -60,11 +60,11 @@ mutation {
 [source,json]
 ----
 {
-  "this_update_title": "Cool Movie",
-  "this_connectOrCreate_genres_param0": "Horror",
-  "this_connectOrCreate_genres_param1": "Horror",
-  "this_connectOrCreate_genres0auth_param0": "test",
-  "resolvedCallbacks": {}
+  "resolvedCallbacks" : { },
+  "this_connectOrCreate_genres0auth_param0" : "test",
+  "this_connectOrCreate_genres_param0" : "Horror",
+  "this_connectOrCreate_genres_param1" : "Horror",
+  "this_update_title" : "Cool Movie"
 }
 ----
 

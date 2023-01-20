@@ -68,10 +68,10 @@ mutation {
 [source,json]
 ----
 {
-  "this_create_actedIn_Movie0_node_Movie_title": "Example Film",
-  "this_create_actedIn_Movie0_node_Movie_runtime": 90,
-  "this_create_actedIn_Movie0_relationship_screenTime": 90,
-  "resolvedCallbacks": {}
+  "resolvedCallbacks" : { },
+  "this_create_actedIn_Movie0_node_Movie_runtime" : 90,
+  "this_create_actedIn_Movie0_node_Movie_title" : "Example Film",
+  "this_create_actedIn_Movie0_relationship_screenTime" : 90
 }
 ----
 

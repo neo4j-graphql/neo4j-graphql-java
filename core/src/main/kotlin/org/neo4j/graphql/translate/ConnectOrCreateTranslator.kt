@@ -74,7 +74,6 @@ fun createConnectOrCreate(
 // TODO inline
 fun createConnectOrCreate(
     inputs: List<ConnectOrCreateFieldInput.NodeConnectOrCreateFieldInput>,
-    varName: ChainString,
     parentVar: Node,
     relationField: RelationField,
     refNode: org.neo4j.graphql.domain.Node,

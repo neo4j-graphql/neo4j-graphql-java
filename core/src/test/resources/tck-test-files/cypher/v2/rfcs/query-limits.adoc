@@ -57,8 +57,8 @@ type Festival {
 [source,json]
 ----
 {
-  "param0": 3,
-  "this_connection_actorsConnectionparam0": 4
+  "param0" : 3,
+  "this_connection_actorsConnectionparam0" : 4
 }
 ----
 
@@ -120,7 +120,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "this_connection_showsConnectionparam0": 2
+  "this_connection_showsConnectionparam0" : 2
 }
 ----
 
@@ -181,8 +181,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": 3,
-  "this_connection_actorsConnectionparam0": 2
+  "param0" : 3,
+  "this_connection_actorsConnectionparam0" : 2
 }
 ----
 
@@ -240,8 +240,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": 3,
-  "param1": 2
+  "param0" : 3,
+  "param1" : 2
 }
 ----
 
@@ -285,8 +285,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": 3,
-  "param1": 2
+  "param0" : 3,
+  "param1" : 2
 }
 ----
 
@@ -330,7 +330,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": 3
+  "param0" : 3
 }
 ----
 
@@ -362,7 +362,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": 2
+  "param0" : 2
 }
 ----
 
@@ -394,7 +394,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": 2
+  "param0" : 2
 }
 ----
 

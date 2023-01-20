@@ -59,23 +59,21 @@ mutation {
 [source,json]
 ----
 {
-  "this_deleteActors": {
-    "args": {
-      "delete": {
-        "actedIn": [
-          {
-            "where": {
-              "node": {
-                "title_STARTS_WITH": "The "
-              }
+  "this_deleteActors" : {
+    "args" : {
+      "delete" : {
+        "actedIn" : [ {
+          "where" : {
+            "node" : {
+              "title_STARTS_WITH" : "The "
             }
           }
-        ]
+        } ]
       }
     }
   },
-  "this_deleteActors_args_delete_actedIn0_where_Movieparam0": "The ",
-  "this_deleteActors_args_delete_actedIn0_where_Seriesparam0": "The "
+  "this_deleteActors_args_delete_actedIn0_where_Movieparam0" : "The ",
+  "this_deleteActors_args_delete_actedIn0_where_Seriesparam0" : "The "
 }
 ----
 
@@ -127,35 +125,31 @@ mutation {
 [source,json]
 ----
 {
-  "this_deleteActors": {
-    "args": {
-      "delete": {
-        "actedIn": [
-          {
-            "delete": {
-              "actors": [
-                {
-                  "where": {
-                    "node": {
-                      "name": "Actor"
-                    }
-                  }
+  "this_deleteActors" : {
+    "args" : {
+      "delete" : {
+        "actedIn" : [ {
+          "delete" : {
+            "actors" : [ {
+              "where" : {
+                "node" : {
+                  "name" : "Actor"
                 }
-              ]
-            },
-            "where": {
-              "node": {
-                "title_STARTS_WITH": "The "
               }
+            } ]
+          },
+          "where" : {
+            "node" : {
+              "title_STARTS_WITH" : "The "
             }
           }
-        ]
+        } ]
       }
     }
   },
-  "this_deleteActors_args_delete_actedIn0_where_Movieparam0": "The ",
-  "this_deleteActors_args_delete_actedIn0_delete_actors0_where_Actorparam0": "Actor",
-  "this_deleteActors_args_delete_actedIn0_where_Seriesparam0": "The "
+  "this_deleteActors_args_delete_actedIn0_delete_actors0_where_Actorparam0" : "Actor",
+  "this_deleteActors_args_delete_actedIn0_where_Movieparam0" : "The ",
+  "this_deleteActors_args_delete_actedIn0_where_Seriesparam0" : "The "
 }
 ----
 
@@ -227,41 +221,35 @@ mutation {
 [source,json]
 ----
 {
-  "this_deleteActors": {
-    "args": {
-      "delete": {
-        "actedIn": [
-          {
-            "delete": {
-              "_on": {
-                "Movie": [
-                  {
-                    "actors": [
-                      {
-                        "where": {
-                          "node": {
-                            "name": "Actor"
-                          }
-                        }
-                      }
-                    ]
+  "this_deleteActors" : {
+    "args" : {
+      "delete" : {
+        "actedIn" : [ {
+          "delete" : {
+            "_on" : {
+              "Movie" : [ {
+                "actors" : [ {
+                  "where" : {
+                    "node" : {
+                      "name" : "Actor"
+                    }
                   }
-                ]
-              }
-            },
-            "where": {
-              "node": {
-                "title_STARTS_WITH": "The "
-              }
+                } ]
+              } ]
+            }
+          },
+          "where" : {
+            "node" : {
+              "title_STARTS_WITH" : "The "
             }
           }
-        ]
+        } ]
       }
     }
   },
-  "this_deleteActors_args_delete_actedIn0_where_Movieparam0": "The ",
-  "this_deleteActors_args_delete_actedIn0_delete__on_Movie0_actors0_where_Actorparam0": "Actor",
-  "this_deleteActors_args_delete_actedIn0_where_Seriesparam0": "The "
+  "this_deleteActors_args_delete_actedIn0_delete__on_Movie0_actors0_where_Actorparam0" : "Actor",
+  "this_deleteActors_args_delete_actedIn0_where_Movieparam0" : "The ",
+  "this_deleteActors_args_delete_actedIn0_where_Seriesparam0" : "The "
 }
 ----
 
@@ -323,51 +311,43 @@ mutation {
 [source,json]
 ----
 {
-  "this_deleteActors": {
-    "args": {
-      "delete": {
-        "actedIn": [
-          {
-            "delete": {
-              "actors": [
-                {
-                  "where": {
-                    "node": {
-                      "name": "Actor"
+  "this_deleteActors" : {
+    "args" : {
+      "delete" : {
+        "actedIn" : [ {
+          "delete" : {
+            "actors" : [ {
+              "where" : {
+                "node" : {
+                  "name" : "Actor"
+                }
+              }
+            } ],
+            "_on" : {
+              "Movie" : [ {
+                "actors" : [ {
+                  "where" : {
+                    "node" : {
+                      "name" : "Different Actor"
                     }
                   }
-                }
-              ],
-              "_on": {
-                "Movie": [
-                  {
-                    "actors": [
-                      {
-                        "where": {
-                          "node": {
-                            "name": "Different Actor"
-                          }
-                        }
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            "where": {
-              "node": {
-                "title_STARTS_WITH": "The "
-              }
+                } ]
+              } ]
+            }
+          },
+          "where" : {
+            "node" : {
+              "title_STARTS_WITH" : "The "
             }
           }
-        ]
+        } ]
       }
     }
   },
-  "this_deleteActors_args_delete_actedIn0_where_Movieparam0": "The ",
-  "this_deleteActors_args_delete_actedIn0_delete__on_Movie0_actors0_where_Actorparam0": "Different Actor",
-  "this_deleteActors_args_delete_actedIn0_where_Seriesparam0": "The ",
-  "this_deleteActors_args_delete_actedIn0_delete_actors0_where_Actorparam0": "Actor"
+  "this_deleteActors_args_delete_actedIn0_delete__on_Movie0_actors0_where_Actorparam0" : "Different Actor",
+  "this_deleteActors_args_delete_actedIn0_delete_actors0_where_Actorparam0" : "Actor",
+  "this_deleteActors_args_delete_actedIn0_where_Movieparam0" : "The ",
+  "this_deleteActors_args_delete_actedIn0_where_Seriesparam0" : "The "
 }
 ----
 

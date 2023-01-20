@@ -78,23 +78,19 @@ mutation {
 [source,json]
 ----
 {
-  "this0_id": "123",
-  "this0_name": "Bob",
-  "this0_password": "password",
-  "this0_posts_connect0_nodeauth_param1": "id-01",
-  "resolvedCallbacks": {},
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "id-01"
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "id-01"
     }
-  }
+  },
+  "resolvedCallbacks" : { },
+  "this0_id" : "123",
+  "this0_name" : "Bob",
+  "this0_password" : "password",
+  "this0_posts_connect0_nodeauth_param1" : "id-01"
 }
 ----
 
@@ -184,22 +180,18 @@ mutation {
 [source,json]
 ----
 {
-  "auth_param1": "id-01",
-  "thisauth_param1": "id-01",
-  "this_connect_posts0_nodeauth_param1": "id-01",
-  "resolvedCallbacks": {},
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "id-01"
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "id-01"
     }
-  }
+  },
+  "auth_param1" : "id-01",
+  "resolvedCallbacks" : { },
+  "this_connect_posts0_nodeauth_param1" : "id-01",
+  "thisauth_param1" : "id-01"
 }
 ----
 
@@ -307,22 +299,18 @@ mutation {
 [source,json]
 ----
 {
-  "auth_param1": "id-01",
-  "thisauth_param1": "id-01",
-  "this_posts0_connect0_nodeauth_param1": "id-01",
-  "resolvedCallbacks": {},
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "id-01"
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "id-01"
     }
-  }
+  },
+  "auth_param1" : "id-01",
+  "resolvedCallbacks" : { },
+  "this_posts0_connect0_nodeauth_param1" : "id-01",
+  "thisauth_param1" : "id-01"
 }
 ----
 
@@ -438,24 +426,20 @@ mutation {
 [source,json]
 ----
 {
-  "this0_id": "123",
-  "this0_name": "Bob",
-  "this0_password": "password",
-  "this0_posts_connect0_node_param0": "post-id",
-  "this0_posts_connect0_nodeauth_param1": "id-01",
-  "resolvedCallbacks": {},
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "id-01"
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "id-01"
     }
-  }
+  },
+  "resolvedCallbacks" : { },
+  "this0_id" : "123",
+  "this0_name" : "Bob",
+  "this0_password" : "password",
+  "this0_posts_connect0_node_param0" : "post-id",
+  "this0_posts_connect0_nodeauth_param1" : "id-01"
 }
 ----
 
@@ -546,23 +530,19 @@ mutation {
 [source,json]
 ----
 {
-  "auth_param1": "id-01",
-  "thisauth_param1": "id-01",
-  "this_connect_posts0_node_param0": "some-id",
-  "this_connect_posts0_nodeauth_param1": "id-01",
-  "resolvedCallbacks": {},
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "id-01"
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "id-01"
     }
-  }
+  },
+  "auth_param1" : "id-01",
+  "resolvedCallbacks" : { },
+  "this_connect_posts0_node_param0" : "some-id",
+  "this_connect_posts0_nodeauth_param1" : "id-01",
+  "thisauth_param1" : "id-01"
 }
 ----
 
@@ -671,23 +651,19 @@ mutation {
 [source,json]
 ----
 {
-  "auth_param1": "id-01",
-  "thisauth_param1": "id-01",
-  "this_posts0_connect0_node_param0": "new-id",
-  "this_posts0_connect0_nodeauth_param1": "id-01",
-  "resolvedCallbacks": {},
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "id-01"
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "id-01"
     }
-  }
+  },
+  "auth_param1" : "id-01",
+  "resolvedCallbacks" : { },
+  "this_posts0_connect0_node_param0" : "new-id",
+  "this_posts0_connect0_nodeauth_param1" : "id-01",
+  "thisauth_param1" : "id-01"
 }
 ----
 
@@ -800,20 +776,16 @@ mutation {
 [source,json]
 ----
 {
-  "auth_param1": "id-01",
-  "this_posts0auth_param1": "id-01",
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "id-01"
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "id-01"
     }
-  }
+  },
+  "auth_param1" : "id-01",
+  "this_posts0auth_param1" : "id-01"
 }
 ----
 
@@ -898,19 +870,15 @@ mutation {
 [source,json]
 ----
 {
-  "auth_param1": "id-01",
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "id-01"
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "id-01"
     }
-  }
+  },
+  "auth_param1" : "id-01"
 }
 ----
 
@@ -971,31 +939,25 @@ mutation {
 [source,json]
 ----
 {
-  "auth_param1": "id-01",
-  "thisauth_param1": "id-01",
-  "this_disconnect_posts0auth_param1": "id-01",
-  "updateUsers": {
-    "args": {
-      "disconnect": {
-        "posts": [
-          {
-            "where": {}
-          }
-        ]
-      }
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "id-01"
     }
   },
-  "resolvedCallbacks": {},
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "id-01"
+  "auth_param1" : "id-01",
+  "resolvedCallbacks" : { },
+  "this_disconnect_posts0auth_param1" : "id-01",
+  "thisauth_param1" : "id-01",
+  "updateUsers" : {
+    "args" : {
+      "disconnect" : {
+        "posts" : [ {
+          "where" : { }
+        } ]
+      }
     }
   }
 }
@@ -1099,22 +1061,18 @@ mutation {
 [source,json]
 ----
 {
-  "auth_param1": "id-01",
-  "thisauth_param1": "id-01",
-  "this_posts0_disconnect0auth_param1": "id-01",
-  "resolvedCallbacks": {},
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "id-01"
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "id-01"
     }
-  }
+  },
+  "auth_param1" : "id-01",
+  "resolvedCallbacks" : { },
+  "this_posts0_disconnect0auth_param1" : "id-01",
+  "thisauth_param1" : "id-01"
 }
 ----
 
@@ -1222,38 +1180,32 @@ mutation {
 [source,json]
 ----
 {
-  "auth_param1": "id-01",
-  "thisauth_param1": "id-01",
-  "updateUsers_args_disconnect_posts0_where_Postparam0": "some-id",
-  "this_disconnect_posts0auth_param1": "id-01",
-  "updateUsers": {
-    "args": {
-      "disconnect": {
-        "posts": [
-          {
-            "where": {
-              "node": {
-                "id": "some-id"
-              }
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "id-01"
+    }
+  },
+  "auth_param1" : "id-01",
+  "resolvedCallbacks" : { },
+  "this_disconnect_posts0auth_param1" : "id-01",
+  "thisauth_param1" : "id-01",
+  "updateUsers" : {
+    "args" : {
+      "disconnect" : {
+        "posts" : [ {
+          "where" : {
+            "node" : {
+              "id" : "some-id"
             }
           }
-        ]
+        } ]
       }
     }
   },
-  "resolvedCallbacks": {},
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "id-01"
-    }
-  }
+  "updateUsers_args_disconnect_posts0_where_Postparam0" : "some-id"
 }
 ----
 
@@ -1356,42 +1308,34 @@ mutation {
 [source,json]
 ----
 {
-  "auth_param1": "id-01",
-  "thisauth_param1": "id-01",
-  "updateUsers_args_update_posts0_disconnect0_where_Postparam0": "new-id",
-  "this_posts0_disconnect0auth_param1": "id-01",
-  "updateUsers": {
-    "args": {
-      "update": {
-        "posts": [
-          {
-            "disconnect": [
-              {
-                "where": {
-                  "node": {
-                    "id": "new-id"
-                  }
-                }
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "id-01"
+    }
+  },
+  "auth_param1" : "id-01",
+  "resolvedCallbacks" : { },
+  "this_posts0_disconnect0auth_param1" : "id-01",
+  "thisauth_param1" : "id-01",
+  "updateUsers" : {
+    "args" : {
+      "update" : {
+        "posts" : [ {
+          "disconnect" : [ {
+            "where" : {
+              "node" : {
+                "id" : "new-id"
               }
-            ]
-          }
-        ]
+            }
+          } ]
+        } ]
       }
     }
   },
-  "resolvedCallbacks": {},
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "id-01"
-    }
-  }
+  "updateUsers_args_update_posts0_disconnect0_where_Postparam0" : "new-id"
 }
 ----
 
@@ -1505,20 +1449,16 @@ RETURN collect(DISTINCT this {
 [source,json]
 ----
 {
-  "auth_param1": "id-01",
-  "this_connection_postsConnectionparam1": "id-01",
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "id-01"
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "id-01"
     }
-  }
+  },
+  "auth_param1" : "id-01",
+  "this_connection_postsConnectionparam1" : "id-01"
 }
 ----
 
@@ -1617,21 +1557,17 @@ RETURN this {
 [source,json]
 ----
 {
-  "auth_param1": "id-01",
-  "this_connection_postsConnectionparam0": "some-id",
-  "this_connection_postsConnectionparam2": "id-01",
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "id-01"
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "id-01"
     }
-  }
+  },
+  "auth_param1" : "id-01",
+  "this_connection_postsConnectionparam0" : "some-id",
+  "this_connection_postsConnectionparam2" : "id-01"
 }
 ----
 
@@ -1724,19 +1660,15 @@ RETURN this {
 [source,json]
 ----
 {
-  "auth_param1": "id-01",
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "id-01"
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "id-01"
     }
-  }
+  },
+  "auth_param1" : "id-01"
 }
 ----
 
@@ -1796,20 +1728,16 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "bob",
-  "auth_param1": "id-01",
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "id-01"
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "id-01"
     }
-  }
+  },
+  "auth_param1" : "id-01",
+  "param0" : "bob"
 }
 ----
 
@@ -1873,20 +1801,16 @@ RETURN this {
 [source,json]
 ----
 {
-  "auth_param1": "id-01",
-  "param4": "id-01",
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "id-01"
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "id-01"
     }
-  }
+  },
+  "auth_param1" : "id-01",
+  "param4" : "id-01"
 }
 ----
 
@@ -1976,20 +1900,16 @@ RETURN this {
 [source,json]
 ----
 {
-  "auth_param1": "id-01",
-  "param4": "id-01",
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "id-01"
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "id-01"
     }
-  }
+  },
+  "auth_param1" : "id-01",
+  "param4" : "id-01"
 }
 ----
 
@@ -2083,21 +2003,17 @@ RETURN this {
 [source,json]
 ----
 {
-  "auth_param1": "id-01",
-  "param3": "cool",
-  "param5": "id-01",
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "id-01"
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "id-01"
     }
-  }
+  },
+  "auth_param1" : "id-01",
+  "param3" : "cool",
+  "param5" : "id-01"
 }
 ----
 
@@ -2192,20 +2108,16 @@ RETURN this {
 [source,json]
 ----
 {
-  "auth_param1": "id-01",
-  "this_connection_contentConnectionparam1": "id-01",
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "id-01"
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "id-01"
     }
-  }
+  },
+  "auth_param1" : "id-01",
+  "this_connection_contentConnectionparam1" : "id-01"
 }
 ----
 
@@ -2311,21 +2223,17 @@ RETURN this {
 [source,json]
 ----
 {
-  "auth_param1": "id-01",
-  "this_connection_contentConnectionparam0": "some-id",
-  "this_connection_contentConnectionparam2": "id-01",
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "id-01"
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "id-01"
     }
-  }
+  },
+  "auth_param1" : "id-01",
+  "this_connection_contentConnectionparam0" : "some-id",
+  "this_connection_contentConnectionparam2" : "id-01"
 }
 ----
 
@@ -2428,38 +2336,32 @@ mutation {
 [source,json]
 ----
 {
-  "update_param1": "id-01",
-  "auth_param1": "id-01",
-  "this_posts0auth_param1": "id-01",
-  "this_update_posts0_id": "new-id",
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "id-01"
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "id-01"
     }
   },
-  "updateUsers": {
-    "args": {
-      "update": {
-        "posts": [
-          {
-            "update": {
-              "node": {
-                "id": "new-id"
-              }
+  "auth_param1" : "id-01",
+  "resolvedCallbacks" : { },
+  "this_posts0auth_param1" : "id-01",
+  "this_update_posts0_id" : "new-id",
+  "updateUsers" : {
+    "args" : {
+      "update" : {
+        "posts" : [ {
+          "update" : {
+            "node" : {
+              "id" : "new-id"
             }
           }
-        ]
+        } ]
       }
     }
   },
-  "resolvedCallbacks": {}
+  "update_param1" : "id-01"
 }
 ----
 
@@ -2582,21 +2484,17 @@ mutation {
 [source,json]
 ----
 {
-  "auth_param1": "id-01",
-  "this_update_name": "Bob",
-  "resolvedCallbacks": {},
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "id-01"
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "id-01"
     }
-  }
+  },
+  "auth_param1" : "id-01",
+  "resolvedCallbacks" : { },
+  "this_update_name" : "Bob"
 }
 ----
 
@@ -2660,22 +2558,18 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "bob",
-  "auth_param1": "id-01",
-  "this_update_name": "Bob",
-  "resolvedCallbacks": {},
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "id-01"
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "id-01"
     }
-  }
+  },
+  "auth_param1" : "id-01",
+  "param0" : "bob",
+  "resolvedCallbacks" : { },
+  "this_update_name" : "Bob"
 }
 ----
 

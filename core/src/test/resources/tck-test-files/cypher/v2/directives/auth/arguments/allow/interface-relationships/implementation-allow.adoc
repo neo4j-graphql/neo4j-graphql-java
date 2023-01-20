@@ -107,7 +107,6 @@ CALL {
 		}
 		RETURN count(*) AS _
 	}
-	WITH this, this_connect_content0_node
 	RETURN count(*) AS connect_this_connect_content_Comment
 }
 CALL {
@@ -131,7 +130,6 @@ CALL {
 		}
 		RETURN count(*) AS _
 	}
-	WITH this, this_connect_content1_node
 	RETURN count(*) AS connect_this_connect_content_Post
 }
 RETURN collect(DISTINCT this {

@@ -63,8 +63,8 @@ interface RelationMaterialSupplier @relationshipProperties {
 [source,json]
 ----
 {
-  "cypherParams": {
-    "tenant": "BULK"
+  "cypherParams" : {
+    "tenant" : "BULK"
   }
 }
 ----

@@ -49,7 +49,7 @@ type Actor {
 [source,json]
 ----
 {
-  "title": "The Matrix"
+  "param0" : "The Matrix"
 }
 ----
 
@@ -61,16 +61,16 @@ CALL {
 	WITH this
 	CALL {
 		WITH this
-		WITH this AS this
+		WITH $param0 AS title, this AS this
 		MATCH (m:Movie {
-			title: $title
+			title: title
 		})
 		RETURN m
 	}
 	WITH m AS this_custom
 	CALL {
 		WITH this_custom
-		MATCH (this_custom_actors:Actor)-[this0:ACTED_IN]->(this_custom)
+		MATCH (this_custom_actors:Actor)-[this_custom0:ACTED_IN]->(this_custom)
 		WITH this_custom_actors {
 			.name
 		} AS this_custom_actors

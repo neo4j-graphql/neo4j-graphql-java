@@ -54,23 +54,22 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "movieId-4",
-  "updateMovies_args_delete_director_where_Directorparam0": "directorId-3",
-  "updateMovies_args_delete_director_delete_address_where_Addressparam0": "some-address",
-  "updateMovies": {
-    "args": {
-      "delete": {
-        "director": {
-          "where": {
-            "node": {
-              "id": "directorId-3"
+  "param0" : "movieId-4",
+  "resolvedCallbacks" : { },
+  "updateMovies" : {
+    "args" : {
+      "delete" : {
+        "director" : {
+          "where" : {
+            "node" : {
+              "id" : "directorId-3"
             }
           },
-          "delete": {
-            "address": {
-              "where": {
-                "node": {
-                  "id": "some-address"
+          "delete" : {
+            "address" : {
+              "where" : {
+                "node" : {
+                  "id" : "some-address"
                 }
               }
             }
@@ -79,7 +78,8 @@ mutation {
       }
     }
   },
-  "resolvedCallbacks": {}
+  "updateMovies_args_delete_director_delete_address_where_Addressparam0" : "some-address",
+  "updateMovies_args_delete_director_where_Directorparam0" : "directorId-3"
 }
 ----
 

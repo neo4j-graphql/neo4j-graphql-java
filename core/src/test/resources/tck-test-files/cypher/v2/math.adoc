@@ -67,20 +67,21 @@ mutation {
 [source,json]
 ----
 {
-  "auth": {
-    "isAuthenticated": false,
-    "roles": []
+  "auth" : {
+    "isAuthenticated" : false,
+    "roles" : [ ]
   },
-  "this_update_marriedWith0_on_Star_marriageLength_INCREMENT": 1,
-  "updateActors": {
-    "args": {
-      "update": {
-        "marriedWith": {
-          "update": {
-            "node": {
-              "_on": {
-                "Star": {
-                  "marriageLength_INCREMENT": 1
+  "resolvedCallbacks" : { },
+  "this_update_marriedWith0_on_Star_marriageLength_INCREMENT" : 1,
+  "updateActors" : {
+    "args" : {
+      "update" : {
+        "marriedWith" : {
+          "update" : {
+            "node" : {
+              "_on" : {
+                "Star" : {
+                  "marriageLength_INCREMENT" : 1
                 }
               }
             }
@@ -88,8 +89,7 @@ mutation {
         }
       }
     }
-  },
-  "resolvedCallbacks": {}
+  }
 }
 ----
 
@@ -177,25 +177,25 @@ mutation {
 [source,json]
 ----
 {
-  "this_update_marriedWith0_marriageLength_INCREMENT": 1,
-  "auth": {
-    "isAuthenticated": false,
-    "roles": []
+  "auth" : {
+    "isAuthenticated" : false,
+    "roles" : [ ]
   },
-  "updateActors": {
-    "args": {
-      "update": {
-        "marriedWith": {
-          "update": {
-            "node": {
-              "marriageLength_INCREMENT": 1
+  "resolvedCallbacks" : { },
+  "this_update_marriedWith0_marriageLength_INCREMENT" : 1,
+  "updateActors" : {
+    "args" : {
+      "update" : {
+        "marriedWith" : {
+          "update" : {
+            "node" : {
+              "marriageLength_INCREMENT" : 1
             }
           }
         }
       }
     }
-  },
-  "resolvedCallbacks": {}
+  }
 }
 ----
 
@@ -283,22 +283,20 @@ mutation Mutation {
 [source,json]
 ----
 {
-  "updateActors": {
-    "args": {
-      "update": {
-        "actedIn": [
-          {
-            "update": {
-              "edge": {
-                "pay_ADD": 100
-              }
+  "resolvedCallbacks" : { },
+  "updateActors" : {
+    "args" : {
+      "update" : {
+        "actedIn" : [ {
+          "update" : {
+            "edge" : {
+              "pay_ADD" : 100
             }
           }
-        ]
+        } ]
       }
     }
-  },
-  "resolvedCallbacks": {}
+  }
 }
 ----
 
@@ -376,27 +374,25 @@ mutation {
 [source,json]
 ----
 {
-  "this_update_actedIn0_viewers_INCREMENT": 10,
-  "auth": {
-    "isAuthenticated": false,
-    "roles": []
+  "auth" : {
+    "isAuthenticated" : false,
+    "roles" : [ ]
   },
-  "updateActors": {
-    "args": {
-      "update": {
-        "actedIn": [
-          {
-            "update": {
-              "node": {
-                "viewers_INCREMENT": 10
-              }
+  "resolvedCallbacks" : { },
+  "this_update_actedIn0_viewers_INCREMENT" : 10,
+  "updateActors" : {
+    "args" : {
+      "update" : {
+        "actedIn" : [ {
+          "update" : {
+            "node" : {
+              "viewers_INCREMENT" : 10
             }
           }
-        ]
+        } ]
       }
     }
-  },
-  "resolvedCallbacks": {}
+  }
 }
 ----
 
@@ -463,8 +459,8 @@ mutation {
 [source,json]
 ----
 {
-  "this_update_revenue_MULTIPLY": 3,
-  "resolvedCallbacks": {}
+  "resolvedCallbacks" : { },
+  "this_update_revenue_MULTIPLY" : 3
 }
 ----
 
@@ -507,8 +503,8 @@ mutation {
 [source,json]
 ----
 {
-  "this_update_viewers_INCREMENT": 3,
-  "resolvedCallbacks": {}
+  "resolvedCallbacks" : { },
+  "this_update_viewers_INCREMENT" : 3
 }
 ----
 

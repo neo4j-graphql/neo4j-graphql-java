@@ -57,7 +57,7 @@ type Actor {
 [source,json]
 ----
 {
-  "param0": "Forrest Gump"
+  "param0" : "Forrest Gump"
 }
 ----
 
@@ -113,7 +113,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "Tom Hanks"
+  "param0" : "Tom Hanks"
 }
 ----
 
@@ -176,7 +176,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "Forrest Gump"
+  "param0" : "Forrest Gump"
 }
 ----
 
@@ -227,7 +227,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "Tom Hanks"
+  "param0" : "Tom Hanks"
 }
 ----
 
@@ -290,8 +290,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "Forrest Gump",
-  "this_connection_actorsConnectionparam0": 5
+  "param0" : "Forrest Gump",
+  "this_connection_actorsConnectionparam0" : 5
 }
 ----
 
@@ -354,7 +354,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "Forrest Gump"
+  "param0" : "Forrest Gump"
 }
 ----
 
@@ -410,8 +410,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "Forrest Gump",
-  "this_connection_actorsConnectionparam0": 5
+  "param0" : "Forrest Gump",
+  "this_connection_actorsConnectionparam0" : 5
 }
 ----
 

@@ -37,7 +37,7 @@ type Movie {
 [source,json]
 ----
 {
-  "param0": "2010-08-23T13:45:33.250000000"
+  "param0" : "2010-08-23T13:45:33.250000000"
 }
 ----
 
@@ -71,12 +71,10 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0": [
-    {
-      "localDT": "1974-05-01T22:00:15.555000000"
-    }
-  ],
-  "resolvedCallbacks": {}
+  "create_param0" : [ {
+    "localDT" : "1974-05-01T22:00:15.555000000"
+  } ],
+  "resolvedCallbacks" : { }
 }
 ----
 
@@ -113,7 +111,7 @@ RETURN collect(create_this0 {
 [source,json]
 ----
 {
-  "param0": "2003-09-14T12:00:00"
+  "param0" : "2003-09-14T12:00:00"
 }
 ----
 
@@ -148,8 +146,8 @@ mutation {
 [source,json]
 ----
 {
-  "this_update_localDT": "1881-07-13T09:24:40.845512000",
-  "resolvedCallbacks": {}
+  "resolvedCallbacks" : { },
+  "this_update_localDT" : "1881-07-13T09:24:40.845512000"
 }
 ----
 

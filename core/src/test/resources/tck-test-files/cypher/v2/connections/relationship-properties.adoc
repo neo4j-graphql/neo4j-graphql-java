@@ -55,7 +55,7 @@ interface ActedIn {
 [source,json]
 ----
 {
-  "param0": "Forrest Gump"
+  "param0" : "Forrest Gump"
 }
 ----
 
@@ -112,7 +112,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "Forrest Gump"
+  "param0" : "Forrest Gump"
 }
 ----
 
@@ -175,7 +175,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -235,7 +235,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -297,8 +297,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "Forrest Gump",
-  "this_connection_actorsConnectionparam0": "Tom Hanks"
+  "param0" : "Forrest Gump",
+  "this_connection_actorsConnectionparam0" : "Tom Hanks"
 }
 ----
 
@@ -372,7 +372,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "Forrest Gump"
+  "param0" : "Forrest Gump"
 }
 ----
 
@@ -471,7 +471,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "Forrest Gump"
+  "param0" : "Forrest Gump"
 }
 ----
 

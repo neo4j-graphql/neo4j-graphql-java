@@ -23,9 +23,9 @@ import org.neo4j.graphql.DirectiveConstants.TIMESTAMP
 import org.neo4j.graphql.DirectiveConstants.UNIQUE
 import org.neo4j.graphql.DirectiveConstants.WRITE_ONLY
 import org.neo4j.graphql.domain.directives.*
-import org.neo4j.graphql.domain.directives.CypherDirective
 import org.neo4j.graphql.domain.fields.*
 import org.neo4j.graphql.domain.fields.ObjectField
+import org.slf4j.LoggerFactory
 import kotlin.reflect.KClass
 import kotlin.reflect.safeCast
 
@@ -147,7 +147,31 @@ object FieldFactory {
                 baseField.connectionField = connectionField
 
             } else if (cypherDirective != null) {
-                baseField = CypherField(field.name, typeMeta, cypherDirective.statement)
+                val unionNodeNames = fieldUnion?.memberTypes?.map { it.name() } ?: emptyList()
+                val originalStatement = cypherDirective.statement
+                // Arguments on the field are passed to the Cypher statement and can be used by name.
+                // They must not be prefixed by $ since they are no longer parameters. Just use the same name as the fields' argument.
+                val rewrittenStatement = originalStatement.replace(Regex("\\\$([_a-zA-Z]\\w*)"), "$1")
+                if (originalStatement != rewrittenStatement) {
+                    LoggerFactory.getLogger(FieldFactory::class.java)
+                        .warn(
+                            """
+                            The field arguments used in the directives statement must not contain parameters. The statement was replaced. Please adjust your GraphQl Schema.
+                                Got        : {}
+                                Replaced by: {}
+                                Field      : {}.{} ({})
+                            """.trimIndent(),
+                            originalStatement, rewrittenStatement, obj.name, field.name, field.sourceLocation
+                        )
+                }
+                baseField = CypherField(
+                    field.name,
+                    typeMeta,
+                    rewrittenStatement,
+                    cypherDirective.columnName,
+                    unionNodeNames,
+                )
+
             } else if (customResolverDirective != null) {
                 baseField = ComputedField(field.name, typeMeta, customResolverDirective.requires)
             } else if (fieldScalar != null) {
@@ -242,7 +266,7 @@ object FieldFactory {
 
             }
 
-            if (baseField is PrimitiveField){
+            if (baseField is PrimitiveField) {
                 baseField.callback = populatedByDirective
             }
 

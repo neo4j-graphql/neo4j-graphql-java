@@ -40,12 +40,10 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0": [
-    {
-      "name": "dan"
-    }
-  ],
-  "resolvedCallbacks": {}
+  "create_param0" : [ {
+    "name" : "dan"
+  } ],
+  "resolvedCallbacks" : { }
 }
 ----
 
@@ -86,8 +84,8 @@ mutation {
 [source,json]
 ----
 {
-  "this_update_name": "dan",
-  "resolvedCallbacks": {}
+  "resolvedCallbacks" : { },
+  "this_update_name" : "dan"
 }
 ----
 

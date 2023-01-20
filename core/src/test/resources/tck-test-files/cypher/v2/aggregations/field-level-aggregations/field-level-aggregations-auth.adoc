@@ -58,12 +58,12 @@ type Actor {
 [source,json]
 ----
 {
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [],
-    "jwt": {
-      "roles": [],
-      "sub": "super_admin"
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ ],
+    "jwt" : {
+      "roles" : [ ],
+      "sub" : "super_admin"
     }
   }
 }
@@ -120,12 +120,12 @@ RETURN this {
 [source,json]
 ----
 {
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [],
-    "jwt": {
-      "roles": [],
-      "sub": "super_admin"
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ ],
+    "jwt" : {
+      "roles" : [ ],
+      "sub" : "super_admin"
     }
   }
 }

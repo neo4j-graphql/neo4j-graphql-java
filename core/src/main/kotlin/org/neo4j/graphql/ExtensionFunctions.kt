@@ -91,10 +91,16 @@ fun Named.name(): String = this.requiredSymbolicName.value
 fun OngoingReading.applySortingSkipAndLimit(
     p: PropertyContainer,
     optionsInput: OptionsInput,
-    queryContext: QueryContext
+    sortFields: Map<String, Expression>,
+    queryContext: QueryContext,
 ): OngoingReading {
     val ordered = optionsInput.sort
-        ?.flatMap { it.map { (field, direction) -> Cypher.sort(p.property(field), direction) } }
+        ?.flatMap {
+            it.map { (field, direction) ->
+                val sortField = sortFields[field] ?: p.property(field)
+                Cypher.sort(sortField, direction)
+            }
+        }
         ?.takeIf { it.isNotEmpty() }
         ?.let {
             if (this is ExposesOrderBy) {
@@ -185,6 +191,9 @@ fun OngoingReadingWithoutWhere.optionalWhere(condition: Condition?): OngoingRead
 
 fun OrderableOngoingReadingAndWithWithoutWhere.optionalWhere(condition: Condition?): OngoingReading =
     if (condition != null) this.where(condition) else this
+
+fun OrderableOngoingReadingAndWithWithoutWhere.optionalWhere(condition: List<Condition?>): OngoingReading =
+    optionalWhere(condition.filterNotNull().takeIf { it.isNotEmpty() }?.foldWithAnd())
 
 fun Iterable<IResolveTree>.project(expression: Expression): List<Any> = this.flatMap {
     listOf(it.aliasOrName, expression)

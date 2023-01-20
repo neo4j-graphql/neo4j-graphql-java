@@ -54,7 +54,7 @@ query Node($id: ID!) {
 [source,json]
 ----
 {
-  "param0": "A River Runs Through It"
+  "param0" : "A River Runs Through It"
 }
 ----
 

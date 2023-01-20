@@ -85,12 +85,12 @@ mutation {
 [source,json]
 ----
 {
-  "this0_id": "123",
-  "this0_name": "Bob",
-  "this0_password": "password",
-  "this0_content_connect0_nodeauth_param0": "id-01",
-  "this0_content_connect1_nodeauth_param0": "id-01",
-  "resolvedCallbacks": {}
+  "resolvedCallbacks" : { },
+  "this0_content_connect0_nodeauth_param0" : "id-01",
+  "this0_content_connect1_nodeauth_param0" : "id-01",
+  "this0_id" : "123",
+  "this0_name" : "Bob",
+  "this0_password" : "password"
 }
 ----
 
@@ -189,11 +189,11 @@ mutation {
 [source,json]
 ----
 {
-  "auth_param0": "id-01",
-  "thisauth_param0": "id-01",
-  "this_connect_content0_nodeauth_param0": "id-01",
-  "this_connect_content1_nodeauth_param0": "id-01",
-  "resolvedCallbacks": {}
+  "auth_param0" : "id-01",
+  "resolvedCallbacks" : { },
+  "this_connect_content0_nodeauth_param0" : "id-01",
+  "this_connect_content1_nodeauth_param0" : "id-01",
+  "thisauth_param0" : "id-01"
 }
 ----
 
@@ -292,10 +292,10 @@ mutation {
 [source,json]
 ----
 {
-  "auth_param0": "id-01",
-  "thisauth_param0": "id-01",
-  "this_content0_connect0_nodeauth_param0": "id-01",
-  "resolvedCallbacks": {}
+  "auth_param0" : "id-01",
+  "resolvedCallbacks" : { },
+  "this_content0_connect0_nodeauth_param0" : "id-01",
+  "thisauth_param0" : "id-01"
 }
 ----
 
@@ -408,14 +408,14 @@ mutation {
 [source,json]
 ----
 {
-  "this0_id": "123",
-  "this0_name": "Bob",
-  "this0_password": "password",
-  "this0_content_connect0_node_param0": "post-id",
-  "this0_content_connect0_nodeauth_param0": "id-01",
-  "this0_content_connect1_node_param0": "post-id",
-  "this0_content_connect1_nodeauth_param0": "id-01",
-  "resolvedCallbacks": {}
+  "resolvedCallbacks" : { },
+  "this0_content_connect0_node_param0" : "post-id",
+  "this0_content_connect0_nodeauth_param0" : "id-01",
+  "this0_content_connect1_node_param0" : "post-id",
+  "this0_content_connect1_nodeauth_param0" : "id-01",
+  "this0_id" : "123",
+  "this0_name" : "Bob",
+  "this0_password" : "password"
 }
 ----
 
@@ -516,13 +516,13 @@ mutation {
 [source,json]
 ----
 {
-  "auth_param0": "id-01",
-  "thisauth_param0": "id-01",
-  "this_connect_content0_node_param0": "some-id",
-  "this_connect_content0_nodeauth_param0": "id-01",
-  "this_connect_content1_node_param0": "some-id",
-  "this_connect_content1_nodeauth_param0": "id-01",
-  "resolvedCallbacks": {}
+  "auth_param0" : "id-01",
+  "resolvedCallbacks" : { },
+  "this_connect_content0_node_param0" : "some-id",
+  "this_connect_content0_nodeauth_param0" : "id-01",
+  "this_connect_content1_node_param0" : "some-id",
+  "this_connect_content1_nodeauth_param0" : "id-01",
+  "thisauth_param0" : "id-01"
 }
 ----
 
@@ -623,11 +623,11 @@ mutation {
 [source,json]
 ----
 {
-  "auth_param0": "id-01",
-  "thisauth_param0": "id-01",
-  "this_content0_connect0_node_param0": "new-id",
-  "this_content0_connect0_nodeauth_param0": "id-01",
-  "resolvedCallbacks": {}
+  "auth_param0" : "id-01",
+  "resolvedCallbacks" : { },
+  "this_content0_connect0_node_param0" : "new-id",
+  "this_content0_connect0_nodeauth_param0" : "id-01",
+  "thisauth_param0" : "id-01"
 }
 ----
 
@@ -738,9 +738,9 @@ mutation {
 [source,json]
 ----
 {
-  "auth_param0": "id-01",
-  "this_content_Comment0auth_param0": "id-01",
-  "this_content_Post0auth_param0": "id-01"
+  "auth_param0" : "id-01",
+  "this_content_Comment0auth_param0" : "id-01",
+  "this_content_Post0auth_param0" : "id-01"
 }
 ----
 
@@ -812,7 +812,7 @@ mutation {
 [source,json]
 ----
 {
-  "auth_param0": "id-01"
+  "auth_param0" : "id-01"
 }
 ----
 
@@ -860,8 +860,8 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "Bob",
-  "auth_param0": "id-01"
+  "auth_param0" : "id-01",
+  "param0" : "Bob"
 }
 ----
 
@@ -912,21 +912,19 @@ mutation {
 [source,json]
 ----
 {
-  "auth_param0": "id-01",
-  "thisauth_param0": "id-01",
-  "this_disconnect_content0auth_param0": "id-01",
-  "updateUsers": {
-    "args": {
-      "disconnect": {
-        "content": [
-          {
-            "where": {}
-          }
-        ]
+  "auth_param0" : "id-01",
+  "resolvedCallbacks" : { },
+  "this_disconnect_content0auth_param0" : "id-01",
+  "thisauth_param0" : "id-01",
+  "updateUsers" : {
+    "args" : {
+      "disconnect" : {
+        "content" : [ {
+          "where" : { }
+        } ]
       }
     }
-  },
-  "resolvedCallbacks": {}
+  }
 }
 ----
 
@@ -1013,10 +1011,10 @@ mutation {
 [source,json]
 ----
 {
-  "auth_param0": "id-01",
-  "thisauth_param0": "id-01",
-  "this_content0_disconnect0auth_param0": "id-01",
-  "resolvedCallbacks": {}
+  "auth_param0" : "id-01",
+  "resolvedCallbacks" : { },
+  "this_content0_disconnect0auth_param0" : "id-01",
+  "thisauth_param0" : "id-01"
 }
 ----
 
@@ -1115,27 +1113,25 @@ mutation {
 [source,json]
 ----
 {
-  "auth_param0": "id-01",
-  "thisauth_param0": "id-01",
-  "updateUsers_args_disconnect_content0_where_Commentparam0": "some-id",
-  "this_disconnect_content0auth_param0": "id-01",
-  "updateUsers_args_disconnect_content0_where_Postparam0": "some-id",
-  "updateUsers": {
-    "args": {
-      "disconnect": {
-        "content": [
-          {
-            "where": {
-              "node": {
-                "id": "some-id"
-              }
+  "auth_param0" : "id-01",
+  "resolvedCallbacks" : { },
+  "this_disconnect_content0auth_param0" : "id-01",
+  "thisauth_param0" : "id-01",
+  "updateUsers" : {
+    "args" : {
+      "disconnect" : {
+        "content" : [ {
+          "where" : {
+            "node" : {
+              "id" : "some-id"
             }
           }
-        ]
+        } ]
       }
     }
   },
-  "resolvedCallbacks": {}
+  "updateUsers_args_disconnect_content0_where_Commentparam0" : "some-id",
+  "updateUsers_args_disconnect_content0_where_Postparam0" : "some-id"
 }
 ----
 
@@ -1224,31 +1220,27 @@ mutation {
 [source,json]
 ----
 {
-  "auth_param0": "id-01",
-  "thisauth_param0": "id-01",
-  "updateUsers_args_update_content0_disconnect0_where_Commentparam0": "new-id",
-  "this_content0_disconnect0auth_param0": "id-01",
-  "updateUsers_args_update_content0_disconnect0_where_Postparam0": "new-id",
-  "updateUsers": {
-    "args": {
-      "update": {
-        "content": [
-          {
-            "disconnect": [
-              {
-                "where": {
-                  "node": {
-                    "id": "new-id"
-                  }
-                }
+  "auth_param0" : "id-01",
+  "resolvedCallbacks" : { },
+  "this_content0_disconnect0auth_param0" : "id-01",
+  "thisauth_param0" : "id-01",
+  "updateUsers" : {
+    "args" : {
+      "update" : {
+        "content" : [ {
+          "disconnect" : [ {
+            "where" : {
+              "node" : {
+                "id" : "new-id"
               }
-            ]
-          }
-        ]
+            }
+          } ]
+        } ]
       }
     }
   },
-  "resolvedCallbacks": {}
+  "updateUsers_args_update_content0_disconnect0_where_Commentparam0" : "new-id",
+  "updateUsers_args_update_content0_disconnect0_where_Postparam0" : "new-id"
 }
 ----
 
@@ -1352,9 +1344,9 @@ RETURN collect(DISTINCT this {
 [source,json]
 ----
 {
-  "auth_param0": "id-01",
-  "param1": "id-01",
-  "param2": "id-01"
+  "auth_param0" : "id-01",
+  "param1" : "id-01",
+  "param2" : "id-01"
 }
 ----
 
@@ -1438,9 +1430,9 @@ RETURN this {
 [source,json]
 ----
 {
-  "auth_param0": "id-01",
-  "this_connection_contentConnectionparam0": "id-01",
-  "this_connection_contentConnectionparam1": "id-01"
+  "auth_param0" : "id-01",
+  "this_connection_contentConnectionparam0" : "id-01",
+  "this_connection_contentConnectionparam1" : "id-01"
 }
 ----
 
@@ -1534,11 +1526,11 @@ RETURN this {
 [source,json]
 ----
 {
-  "auth_param0": "id-01",
-  "this_connection_contentConnectionparam0": "some-id",
-  "this_connection_contentConnectionparam1": "id-01",
-  "this_connection_contentConnectionparam2": "some-id",
-  "this_connection_contentConnectionparam3": "id-01"
+  "auth_param0" : "id-01",
+  "this_connection_contentConnectionparam0" : "some-id",
+  "this_connection_contentConnectionparam1" : "id-01",
+  "this_connection_contentConnectionparam2" : "some-id",
+  "this_connection_contentConnectionparam3" : "id-01"
 }
 ----
 
@@ -1625,7 +1617,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "auth_param0": "id-01"
+  "auth_param0" : "id-01"
 }
 ----
 
@@ -1675,8 +1667,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "bob",
-  "auth_param0": "id-01"
+  "auth_param0" : "id-01",
+  "param0" : "bob"
 }
 ----
 
@@ -1729,37 +1721,31 @@ mutation {
 [source,json]
 ----
 {
-  "auth_param0": "id-01",
-  "this_content0auth_param0": "id-01",
-  "this_update_content0_id": "new-id",
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "id-01"
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "id-01"
     }
   },
-  "updateUsers": {
-    "args": {
-      "update": {
-        "content": [
-          {
-            "update": {
-              "node": {
-                "id": "new-id"
-              }
+  "auth_param0" : "id-01",
+  "resolvedCallbacks" : { },
+  "this_content0auth_param0" : "id-01",
+  "this_update_content0_id" : "new-id",
+  "updateUsers" : {
+    "args" : {
+      "update" : {
+        "content" : [ {
+          "update" : {
+            "node" : {
+              "id" : "new-id"
             }
           }
-        ]
+        } ]
       }
     }
-  },
-  "resolvedCallbacks": {}
+  }
 }
 ----
 
@@ -1872,9 +1858,9 @@ mutation {
 [source,json]
 ----
 {
-  "auth_param0": "id-01",
-  "this_update_content": "Bob",
-  "resolvedCallbacks": {}
+  "auth_param0" : "id-01",
+  "resolvedCallbacks" : { },
+  "this_update_content" : "Bob"
 }
 ----
 
@@ -1935,10 +1921,10 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "bob",
-  "auth_param0": "id-01",
-  "this_update_content": "Bob",
-  "resolvedCallbacks": {}
+  "auth_param0" : "id-01",
+  "param0" : "bob",
+  "resolvedCallbacks" : { },
+  "this_update_content" : "Bob"
 }
 ----
 

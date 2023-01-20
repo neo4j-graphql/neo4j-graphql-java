@@ -46,15 +46,15 @@ mutation UpdateParents {
 [source,json]
 ----
 {
-  "this_connectOrCreate_children_param0": "123",
-  "this_connectOrCreate_children_param1": "123",
-  "this_connectOrCreate_children_param2": "456",
-  "this_connectOrCreate_children_param3": "456",
-  "resolvedCallbacks": {},
-  "auth": {
-    "isAuthenticated": false,
-    "roles": []
-  }
+  "auth" : {
+    "isAuthenticated" : false,
+    "roles" : [ ]
+  },
+  "resolvedCallbacks" : { },
+  "this_connectOrCreate_children_param0" : "123",
+  "this_connectOrCreate_children_param1" : "123",
+  "this_connectOrCreate_children_param2" : "456",
+  "this_connectOrCreate_children_param3" : "456"
 }
 ----
 

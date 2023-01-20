@@ -62,34 +62,32 @@ mutation {
 [source,json]
 ----
 {
-  "updateActors_args_update_actedIn0_where_Movieparam0": "Old Title",
-  "this_update_actedIn0_title": "New Title",
-  "auth": {
-    "isAuthenticated": false,
-    "roles": []
+  "auth" : {
+    "isAuthenticated" : false,
+    "roles" : [ ]
   },
-  "updateActors_args_update_actedIn0_where_Seriesparam0": "Old Title",
-  "updateActors": {
-    "args": {
-      "update": {
-        "actedIn": [
-          {
-            "update": {
-              "node": {
-                "title": "New Title"
-              }
-            },
-            "where": {
-              "node": {
-                "title": "Old Title"
-              }
+  "resolvedCallbacks" : { },
+  "this_update_actedIn0_title" : "New Title",
+  "updateActors" : {
+    "args" : {
+      "update" : {
+        "actedIn" : [ {
+          "update" : {
+            "node" : {
+              "title" : "New Title"
+            }
+          },
+          "where" : {
+            "node" : {
+              "title" : "Old Title"
             }
           }
-        ]
+        } ]
       }
     }
   },
-  "resolvedCallbacks": {}
+  "updateActors_args_update_actedIn0_where_Movieparam0" : "Old Title",
+  "updateActors_args_update_actedIn0_where_Seriesparam0" : "Old Title"
 }
 ----
 
@@ -165,42 +163,38 @@ mutation {
 [source,json]
 ----
 {
-  "updateActors_args_update_actedIn0_where_Movieparam0": "Old Title",
-  "this_update_actedIn0_actors0_name": "New Actor Name",
-  "auth": {
-    "isAuthenticated": false,
-    "roles": []
+  "auth" : {
+    "isAuthenticated" : false,
+    "roles" : [ ]
   },
-  "updateActors_args_update_actedIn0_where_Seriesparam0": "Old Title",
-  "updateActors": {
-    "args": {
-      "update": {
-        "actedIn": [
-          {
-            "update": {
-              "node": {
-                "actors": [
-                  {
-                    "update": {
-                      "node": {
-                        "name": "New Actor Name"
-                      }
-                    }
+  "resolvedCallbacks" : { },
+  "this_update_actedIn0_actors0_name" : "New Actor Name",
+  "updateActors" : {
+    "args" : {
+      "update" : {
+        "actedIn" : [ {
+          "update" : {
+            "node" : {
+              "actors" : [ {
+                "update" : {
+                  "node" : {
+                    "name" : "New Actor Name"
                   }
-                ]
-              }
-            },
-            "where": {
-              "node": {
-                "title": "Old Title"
-              }
+                }
+              } ]
+            }
+          },
+          "where" : {
+            "node" : {
+              "title" : "Old Title"
             }
           }
-        ]
+        } ]
       }
     }
   },
-  "resolvedCallbacks": {}
+  "updateActors_args_update_actedIn0_where_Movieparam0" : "Old Title",
+  "updateActors_args_update_actedIn0_where_Seriesparam0" : "Old Title"
 }
 ----
 
@@ -294,46 +288,42 @@ mutation {
 [source,json]
 ----
 {
-  "updateActors_args_update_actedIn0_where_Movieparam0": "Old Title",
-  "auth": {
-    "isAuthenticated": false,
-    "roles": []
+  "auth" : {
+    "isAuthenticated" : false,
+    "roles" : [ ]
   },
-  "this_update_actedIn0_on_Movie_actors0_name": "New Actor Name",
-  "updateActors_args_update_actedIn0_where_Seriesparam0": "Old Title",
-  "updateActors": {
-    "args": {
-      "update": {
-        "actedIn": [
-          {
-            "update": {
-              "node": {
-                "_on": {
-                  "Movie": {
-                    "actors": [
-                      {
-                        "update": {
-                          "node": {
-                            "name": "New Actor Name"
-                          }
-                        }
+  "resolvedCallbacks" : { },
+  "this_update_actedIn0_on_Movie_actors0_name" : "New Actor Name",
+  "updateActors" : {
+    "args" : {
+      "update" : {
+        "actedIn" : [ {
+          "update" : {
+            "node" : {
+              "_on" : {
+                "Movie" : {
+                  "actors" : [ {
+                    "update" : {
+                      "node" : {
+                        "name" : "New Actor Name"
                       }
-                    ]
-                  }
+                    }
+                  } ]
                 }
               }
-            },
-            "where": {
-              "node": {
-                "title": "Old Title"
-              }
+            }
+          },
+          "where" : {
+            "node" : {
+              "title" : "Old Title"
             }
           }
-        ]
+        } ]
       }
     }
   },
-  "resolvedCallbacks": {}
+  "updateActors_args_update_actedIn0_where_Movieparam0" : "Old Title",
+  "updateActors_args_update_actedIn0_where_Seriesparam0" : "Old Title"
 }
 ----
 
@@ -419,56 +409,50 @@ mutation {
 [source,json]
 ----
 {
-  "updateActors_args_update_actedIn0_where_Movieparam0": "Old Title",
-  "auth": {
-    "isAuthenticated": false,
-    "roles": []
+  "auth" : {
+    "isAuthenticated" : false,
+    "roles" : [ ]
   },
-  "this_update_actedIn0_on_Movie_actors0_name": "Different Actor Name",
-  "updateActors_args_update_actedIn0_where_Seriesparam0": "Old Title",
-  "this_update_actedIn0_actors0_name": "New Actor Name",
-  "updateActors": {
-    "args": {
-      "update": {
-        "actedIn": [
-          {
-            "update": {
-              "node": {
-                "_on": {
-                  "Movie": {
-                    "actors": [
-                      {
-                        "update": {
-                          "node": {
-                            "name": "Different Actor Name"
-                          }
-                        }
-                      }
-                    ]
-                  }
-                },
-                "actors": [
-                  {
-                    "update": {
-                      "node": {
-                        "name": "New Actor Name"
+  "resolvedCallbacks" : { },
+  "this_update_actedIn0_actors0_name" : "New Actor Name",
+  "this_update_actedIn0_on_Movie_actors0_name" : "Different Actor Name",
+  "updateActors" : {
+    "args" : {
+      "update" : {
+        "actedIn" : [ {
+          "update" : {
+            "node" : {
+              "_on" : {
+                "Movie" : {
+                  "actors" : [ {
+                    "update" : {
+                      "node" : {
+                        "name" : "Different Actor Name"
                       }
                     }
+                  } ]
+                }
+              },
+              "actors" : [ {
+                "update" : {
+                  "node" : {
+                    "name" : "New Actor Name"
                   }
-                ]
-              }
-            },
-            "where": {
-              "node": {
-                "title": "Old Title"
-              }
+                }
+              } ]
+            }
+          },
+          "where" : {
+            "node" : {
+              "title" : "Old Title"
             }
           }
-        ]
+        } ]
       }
     }
   },
-  "resolvedCallbacks": {}
+  "updateActors_args_update_actedIn0_where_Movieparam0" : "Old Title",
+  "updateActors_args_update_actedIn0_where_Seriesparam0" : "Old Title"
 }
 ----
 

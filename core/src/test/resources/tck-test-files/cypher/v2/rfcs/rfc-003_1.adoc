@@ -52,10 +52,10 @@ mutation {
 [source,json]
 ----
 {
-  "this0_id": "movieId-4",
-  "this0_director_connect0_node_param0": "directorId-4",
-  "this0_director_connect0_node_address0_node_param0": "some-street",
-  "resolvedCallbacks": {}
+  "resolvedCallbacks" : { },
+  "this0_director_connect0_node_address0_node_param0" : "some-street",
+  "this0_director_connect0_node_param0" : "directorId-4",
+  "this0_id" : "movieId-4"
 }
 ----
 
@@ -151,19 +151,17 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0": [
-    {
-      "id": "movieId-2",
-      "director": {
-        "create": {
-          "node": {
-            "id": "directorId-2"
-          }
+  "create_param0" : [ {
+    "id" : "movieId-2",
+    "director" : {
+      "create" : {
+        "node" : {
+          "id" : "directorId-2"
         }
       }
     }
-  ],
-  "resolvedCallbacks": {}
+  } ],
+  "resolvedCallbacks" : { }
 }
 ----
 
@@ -234,9 +232,9 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "movieId-4",
-  "this_director0_create0_node_id": "directorId-3",
-  "resolvedCallbacks": {}
+  "param0" : "movieId-4",
+  "resolvedCallbacks" : { },
+  "this_director0_create0_node_id" : "directorId-3"
 }
 ----
 
@@ -291,26 +289,26 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "movieId-4",
-  "this_update_director0_id": "directorId-3",
-  "auth": {
-    "isAuthenticated": false,
-    "roles": []
+  "auth" : {
+    "isAuthenticated" : false,
+    "roles" : [ ]
   },
-  "updateMovies": {
-    "args": {
-      "update": {
-        "director": {
-          "update": {
-            "node": {
-              "id": "directorId-3"
+  "param0" : "movieId-4",
+  "resolvedCallbacks" : { },
+  "this_update_director0_id" : "directorId-3",
+  "updateMovies" : {
+    "args" : {
+      "update" : {
+        "director" : {
+          "update" : {
+            "node" : {
+              "id" : "directorId-3"
             }
           }
         }
       }
     }
-  },
-  "resolvedCallbacks": {}
+  }
 }
 ----
 

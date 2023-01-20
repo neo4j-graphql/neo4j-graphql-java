@@ -58,22 +58,12 @@ mutation {
 [source,json]
 ----
 {
-  "this0_kind": "PARENT_OF",
-  "this0_subjects_connect0_node_param0": [
-    "adam",
-    "eve"
-  ],
-  "this0_subjects_connect1_node_param0": [
-    "adam",
-    "eve"
-  ],
-  "this0_objects_connect0_node_param0": [
-    "cain"
-  ],
-  "this0_objects_connect1_node_param0": [
-    "cain"
-  ],
-  "resolvedCallbacks": {}
+  "resolvedCallbacks" : { },
+  "this0_kind" : "PARENT_OF",
+  "this0_objects_connect0_node_param0" : [ "cain" ],
+  "this0_objects_connect1_node_param0" : [ "cain" ],
+  "this0_subjects_connect0_node_param0" : [ "adam", "eve" ],
+  "this0_subjects_connect1_node_param0" : [ "adam", "eve" ]
 }
 ----
 
@@ -194,22 +184,12 @@ mutation {
 [source,json]
 ----
 {
-  "this0_kind": "PARENT_OF",
-  "this0_subjects_connect0_node_param0": [
-    "adam",
-    "eve"
-  ],
-  "this0_subjects_connect1_node_param0": [
-    "adam",
-    "eve"
-  ],
-  "this0_objects_connect0_node_param0": [
-    "abel"
-  ],
-  "this0_objects_connect1_node_param0": [
-    "abel"
-  ],
-  "resolvedCallbacks": {}
+  "resolvedCallbacks" : { },
+  "this0_kind" : "PARENT_OF",
+  "this0_objects_connect0_node_param0" : [ "abel" ],
+  "this0_objects_connect1_node_param0" : [ "abel" ],
+  "this0_subjects_connect0_node_param0" : [ "adam", "eve" ],
+  "this0_subjects_connect1_node_param0" : [ "adam", "eve" ]
 }
 ----
 
@@ -330,37 +310,17 @@ mutation {
 [source,json]
 ----
 {
-  "this0_kind": "PARENT_OF",
-  "this0_subjects_connect0_node_param0": [
-    "adam",
-    "eve"
-  ],
-  "this0_subjects_connect1_node_param0": [
-    "adam",
-    "eve"
-  ],
-  "this0_objects_connect0_node_param0": [
-    "cain"
-  ],
-  "this0_objects_connect1_node_param0": [
-    "cain"
-  ],
-  "this1_kind": "PARENT_OF",
-  "this1_subjects_connect0_node_param0": [
-    "adam",
-    "eve"
-  ],
-  "this1_subjects_connect1_node_param0": [
-    "adam",
-    "eve"
-  ],
-  "this1_objects_connect0_node_param0": [
-    "abel"
-  ],
-  "this1_objects_connect1_node_param0": [
-    "abel"
-  ],
-  "resolvedCallbacks": {}
+  "resolvedCallbacks" : { },
+  "this0_kind" : "PARENT_OF",
+  "this0_objects_connect0_node_param0" : [ "cain" ],
+  "this0_objects_connect1_node_param0" : [ "cain" ],
+  "this0_subjects_connect0_node_param0" : [ "adam", "eve" ],
+  "this0_subjects_connect1_node_param0" : [ "adam", "eve" ],
+  "this1_kind" : "PARENT_OF",
+  "this1_objects_connect0_node_param0" : [ "abel" ],
+  "this1_objects_connect1_node_param0" : [ "abel" ],
+  "this1_subjects_connect0_node_param0" : [ "adam", "eve" ],
+  "this1_subjects_connect1_node_param0" : [ "adam", "eve" ]
 }
 ----
 
@@ -573,37 +533,17 @@ mutation {
 [source,json]
 ----
 {
-  "this0_kind": "PARENT_OF",
-  "this0_subjects_connect0_node_param0": [
-    "adam",
-    "eve"
-  ],
-  "this0_subjects_connect1_node_param0": [
-    "adam",
-    "eve"
-  ],
-  "this0_objects_connect0_node_param0": [
-    "cain"
-  ],
-  "this0_objects_connect1_node_param0": [
-    "cain"
-  ],
-  "this1_kind": "PARENT_OF",
-  "this1_subjects_connect0_node_param0": [
-    "adam",
-    "eve"
-  ],
-  "this1_subjects_connect1_node_param0": [
-    "adam",
-    "eve"
-  ],
-  "this1_objects_connect0_node_param0": [
-    "abel"
-  ],
-  "this1_objects_connect1_node_param0": [
-    "abel"
-  ],
-  "resolvedCallbacks": {}
+  "resolvedCallbacks" : { },
+  "this0_kind" : "PARENT_OF",
+  "this0_objects_connect0_node_param0" : [ "cain" ],
+  "this0_objects_connect1_node_param0" : [ "cain" ],
+  "this0_subjects_connect0_node_param0" : [ "adam", "eve" ],
+  "this0_subjects_connect1_node_param0" : [ "adam", "eve" ],
+  "this1_kind" : "PARENT_OF",
+  "this1_objects_connect0_node_param0" : [ "abel" ],
+  "this1_objects_connect1_node_param0" : [ "abel" ],
+  "this1_subjects_connect0_node_param0" : [ "adam", "eve" ],
+  "this1_subjects_connect1_node_param0" : [ "adam", "eve" ]
 }
 ----
 
@@ -890,17 +830,11 @@ mutation {
 [source,json]
 ----
 {
-  "this0_kind": "PARENT_OF",
-  "this0_subjects_connect0_node_param0": [
-    "adam",
-    "eve"
-  ],
-  "this0_subjects_connect1_node_param0": [
-    "adam",
-    "eve"
-  ],
-  "this1_kind": "PARENT_OF",
-  "resolvedCallbacks": {}
+  "resolvedCallbacks" : { },
+  "this0_kind" : "PARENT_OF",
+  "this0_subjects_connect0_node_param0" : [ "adam", "eve" ],
+  "this0_subjects_connect1_node_param0" : [ "adam", "eve" ],
+  "this1_kind" : "PARENT_OF"
 }
 ----
 

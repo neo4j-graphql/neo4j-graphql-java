@@ -75,18 +75,15 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0": "url.com",
-  "create_param1": "123",
-  "create_param2": "small",
-  "create_param3": [
-    {
-      "id": "1"
-    },
-    {
-      "id": "2"
-    }
-  ],
-  "resolvedCallbacks": {}
+  "create_param0" : "url.com",
+  "create_param1" : "123",
+  "create_param2" : "small",
+  "create_param3" : [ {
+    "id" : "1"
+  }, {
+    "id" : "2"
+  } ],
+  "resolvedCallbacks" : { }
 }
 ----
 

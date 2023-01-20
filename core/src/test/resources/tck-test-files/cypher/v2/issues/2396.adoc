@@ -142,17 +142,13 @@ query Mandates($where: MandateWhere, $options: MandateOptions) {
 [source,json]
 ----
 {
-  "param0": 0,
-  "param1": 0,
-  "param2": 0,
-  "param3": [
-    "APARTMENT"
-  ],
-  "param4": [
-    "13001"
-  ],
-  "param5": 0,
-  "param6": 20
+  "param0" : 0,
+  "param1" : 0,
+  "param2" : 0,
+  "param3" : [ "APARTMENT" ],
+  "param4" : [ "13001" ],
+  "param5" : 0,
+  "param6" : 20
 }
 ----
 
@@ -254,17 +250,13 @@ query Mandates($where: MandateWhere, $options: MandateOptions) {
 [source,json]
 ----
 {
-  "param0": 0,
-  "param1": 0,
-  "param2": 0,
-  "param3": [
-    "APARTMENT"
-  ],
-  "param4": [
-    "13001"
-  ],
-  "param5": 20,
-  "param6": 40
+  "param0" : 0,
+  "param1" : 0,
+  "param2" : 0,
+  "param3" : [ "APARTMENT" ],
+  "param4" : [ "13001" ],
+  "param5" : 20,
+  "param6" : 40
 }
 ----
 
@@ -363,15 +355,11 @@ query Mandates($where: MandateWhere, $options: MandateOptions) {
 [source,json]
 ----
 {
-  "param0": 0,
-  "param1": 0,
-  "param2": 0,
-  "param3": [
-    "APARTMENT"
-  ],
-  "param4": [
-    "13001"
-  ]
+  "param0" : 0,
+  "param1" : 0,
+  "param2" : 0,
+  "param3" : [ "APARTMENT" ],
+  "param4" : [ "13001" ]
 }
 ----
 

@@ -55,9 +55,9 @@ mutation {
 [source,json]
 ----
 {
-  "this_connect_targets0_node_param0": "1",
-  "thisauth_param0": "1",
-  "resolvedCallbacks": {}
+  "resolvedCallbacks" : { },
+  "this_connect_targets0_node_param0" : "1",
+  "thisauth_param0" : "1"
 }
 ----
 

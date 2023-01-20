@@ -58,8 +58,8 @@ interface ActedIn {
 [source,json]
 ----
 {
-  "this_connection_actorsConnectionparam0": "Gump",
-  "this_connection_actorsConnectionparam1": 60
+  "this_connection_actorsConnectionparam0" : "Gump",
+  "this_connection_actorsConnectionparam1" : 60
 }
 ----
 

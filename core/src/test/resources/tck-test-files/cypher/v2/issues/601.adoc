@@ -69,9 +69,9 @@ query Document {
 [source,json]
 ----
 {
-  "auth": {
-    "isAuthenticated": false,
-    "roles": []
+  "auth" : {
+    "isAuthenticated" : false,
+    "roles" : [ ]
   }
 }
 ----

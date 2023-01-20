@@ -43,7 +43,7 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "tom"
+  "param0" : "tom"
 }
 ----
 
@@ -80,33 +80,26 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0": [
-    {
-      "id": "1",
-      "actors": {
-        "create": [
-          {
-            "node": {
-              "name": "actor 1"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "id": "2",
-      "actors": {
-        "create": [
-          {
-            "node": {
-              "name": "actor 2"
-            }
-          }
-        ]
-      }
+  "create_param0" : [ {
+    "id" : "1",
+    "actors" : {
+      "create" : [ {
+        "node" : {
+          "name" : "actor 1"
+        }
+      } ]
     }
-  ],
-  "resolvedCallbacks": {}
+  }, {
+    "id" : "2",
+    "actors" : {
+      "create" : [ {
+        "node" : {
+          "name" : "actor 2"
+        }
+      } ]
+    }
+  } ],
+  "resolvedCallbacks" : { }
 }
 ----
 
@@ -155,12 +148,10 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0": [
-    {
-      "id": "1"
-    }
-  ],
-  "resolvedCallbacks": {}
+  "create_param0" : [ {
+    "id" : "1"
+  } ],
+  "resolvedCallbacks" : { }
 }
 ----
 
@@ -197,7 +188,7 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "123"
+  "param0" : "123"
 }
 ----
 
@@ -230,23 +221,21 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "123",
-  "this_deleteMovies": {
-    "args": {
-      "delete": {
-        "actors": [
-          {
-            "where": {
-              "node": {
-                "name": "Actor to delete"
-              }
+  "param0" : "123",
+  "this_deleteMovies" : {
+    "args" : {
+      "delete" : {
+        "actors" : [ {
+          "where" : {
+            "node" : {
+              "name" : "Actor to delete"
             }
           }
-        ]
+        } ]
       }
     }
   },
-  "this_deleteMovies_args_delete_actors0_where_Actorparam0": "Actor to delete"
+  "this_deleteMovies_args_delete_actors0_where_Actorparam0" : "Actor to delete"
 }
 ----
 
@@ -288,7 +277,7 @@ DETACH DELETE this
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -333,7 +322,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -378,7 +367,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -413,9 +402,9 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "1",
-  "this_connect_actors0_node_param0": "Daniel",
-  "resolvedCallbacks": {}
+  "param0" : "1",
+  "resolvedCallbacks" : { },
+  "this_connect_actors0_node_param0" : "Daniel"
 }
 ----
 
@@ -473,24 +462,22 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "1",
-  "updateMovies_args_disconnect_actors0_where_Actorparam0": "Daniel",
-  "updateMovies": {
-    "args": {
-      "disconnect": {
-        "actors": [
-          {
-            "where": {
-              "node": {
-                "name": "Daniel"
-              }
+  "param0" : "1",
+  "resolvedCallbacks" : { },
+  "updateMovies" : {
+    "args" : {
+      "disconnect" : {
+        "actors" : [ {
+          "where" : {
+            "node" : {
+              "name" : "Daniel"
             }
           }
-        ]
+        } ]
       }
     }
   },
-  "resolvedCallbacks": {}
+  "updateMovies_args_disconnect_actors0_where_Actorparam0" : "Daniel"
 }
 ----
 
@@ -539,9 +526,9 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "1",
-  "this_update_id": "2",
-  "resolvedCallbacks": {}
+  "param0" : "1",
+  "resolvedCallbacks" : { },
+  "this_update_id" : "2"
 }
 ----
 
@@ -579,37 +566,35 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "1",
-  "updateMovies_args_update_actors0_where_Actorparam0": "old name",
-  "this_update_actors0_name": "new name",
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [],
-    "jwt": {
-      "roles": []
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ ],
+    "jwt" : {
+      "roles" : [ ]
     }
   },
-  "updateMovies": {
-    "args": {
-      "update": {
-        "actors": [
-          {
-            "where": {
-              "node": {
-                "name": "old name"
-              }
-            },
-            "update": {
-              "node": {
-                "name": "new name"
-              }
+  "param0" : "1",
+  "resolvedCallbacks" : { },
+  "this_update_actors0_name" : "new name",
+  "updateMovies" : {
+    "args" : {
+      "update" : {
+        "actors" : [ {
+          "where" : {
+            "node" : {
+              "name" : "old name"
+            }
+          },
+          "update" : {
+            "node" : {
+              "name" : "new name"
             }
           }
-        ]
+        } ]
       }
     }
   },
-  "resolvedCallbacks": {}
+  "updateMovies_args_update_actors0_where_Actorparam0" : "old name"
 }
 ----
 

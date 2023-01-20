@@ -62,24 +62,22 @@ mutation {
 [source,json]
 ----
 {
-  "updateActors_args_disconnect_actedIn0_where_Movieparam0": "The ",
-  "updateActors_args_disconnect_actedIn0_where_Seriesparam0": "The ",
-  "updateActors": {
-    "args": {
-      "disconnect": {
-        "actedIn": [
-          {
-            "where": {
-              "node": {
-                "title_STARTS_WITH": "The "
-              }
+  "resolvedCallbacks" : { },
+  "updateActors" : {
+    "args" : {
+      "disconnect" : {
+        "actedIn" : [ {
+          "where" : {
+            "node" : {
+              "title_STARTS_WITH" : "The "
             }
           }
-        ]
+        } ]
       }
     }
   },
-  "resolvedCallbacks": {}
+  "updateActors_args_disconnect_actedIn0_where_Movieparam0" : "The ",
+  "updateActors_args_disconnect_actedIn0_where_Seriesparam0" : "The "
 }
 ----
 
@@ -142,36 +140,32 @@ mutation {
 [source,json]
 ----
 {
-  "updateActors_args_disconnect_actedIn0_where_Movieparam0": "The ",
-  "updateActors_args_disconnect_actedIn0_disconnect_actors0_where_Actorparam0": "Actor",
-  "updateActors_args_disconnect_actedIn0_where_Seriesparam0": "The ",
-  "updateActors": {
-    "args": {
-      "disconnect": {
-        "actedIn": [
-          {
-            "disconnect": {
-              "actors": [
-                {
-                  "where": {
-                    "node": {
-                      "name": "Actor"
-                    }
-                  }
+  "resolvedCallbacks" : { },
+  "updateActors" : {
+    "args" : {
+      "disconnect" : {
+        "actedIn" : [ {
+          "disconnect" : {
+            "actors" : [ {
+              "where" : {
+                "node" : {
+                  "name" : "Actor"
                 }
-              ]
-            },
-            "where": {
-              "node": {
-                "title_STARTS_WITH": "The "
               }
+            } ]
+          },
+          "where" : {
+            "node" : {
+              "title_STARTS_WITH" : "The "
             }
           }
-        ]
+        } ]
       }
     }
   },
-  "resolvedCallbacks": {}
+  "updateActors_args_disconnect_actedIn0_disconnect_actors0_where_Actorparam0" : "Actor",
+  "updateActors_args_disconnect_actedIn0_where_Movieparam0" : "The ",
+  "updateActors_args_disconnect_actedIn0_where_Seriesparam0" : "The "
 }
 ----
 
@@ -260,42 +254,36 @@ mutation {
 [source,json]
 ----
 {
-  "updateActors_args_disconnect_actedIn0_where_Movieparam0": "The ",
-  "updateActors_args_disconnect_actedIn0_disconnect__on_Movie0_actors0_where_Actorparam0": "Actor",
-  "updateActors_args_disconnect_actedIn0_where_Seriesparam0": "The ",
-  "updateActors": {
-    "args": {
-      "disconnect": {
-        "actedIn": [
-          {
-            "disconnect": {
-              "_on": {
-                "Movie": [
-                  {
-                    "actors": [
-                      {
-                        "where": {
-                          "node": {
-                            "name": "Actor"
-                          }
-                        }
-                      }
-                    ]
+  "resolvedCallbacks" : { },
+  "updateActors" : {
+    "args" : {
+      "disconnect" : {
+        "actedIn" : [ {
+          "disconnect" : {
+            "_on" : {
+              "Movie" : [ {
+                "actors" : [ {
+                  "where" : {
+                    "node" : {
+                      "name" : "Actor"
+                    }
                   }
-                ]
-              }
-            },
-            "where": {
-              "node": {
-                "title_STARTS_WITH": "The "
-              }
+                } ]
+              } ]
+            }
+          },
+          "where" : {
+            "node" : {
+              "title_STARTS_WITH" : "The "
             }
           }
-        ]
+        } ]
       }
     }
   },
-  "resolvedCallbacks": {}
+  "updateActors_args_disconnect_actedIn0_disconnect__on_Movie0_actors0_where_Actorparam0" : "Actor",
+  "updateActors_args_disconnect_actedIn0_where_Movieparam0" : "The ",
+  "updateActors_args_disconnect_actedIn0_where_Seriesparam0" : "The "
 }
 ----
 
@@ -371,52 +359,44 @@ mutation {
 [source,json]
 ----
 {
-  "updateActors_args_disconnect_actedIn0_where_Movieparam0": "The ",
-  "updateActors_args_disconnect_actedIn0_disconnect__on_Movie0_actors0_where_Actorparam0": "Different Actor",
-  "updateActors_args_disconnect_actedIn0_where_Seriesparam0": "The ",
-  "updateActors_args_disconnect_actedIn0_disconnect_actors0_where_Actorparam0": "Actor",
-  "updateActors": {
-    "args": {
-      "disconnect": {
-        "actedIn": [
-          {
-            "disconnect": {
-              "actors": [
-                {
-                  "where": {
-                    "node": {
-                      "name": "Actor"
+  "resolvedCallbacks" : { },
+  "updateActors" : {
+    "args" : {
+      "disconnect" : {
+        "actedIn" : [ {
+          "disconnect" : {
+            "actors" : [ {
+              "where" : {
+                "node" : {
+                  "name" : "Actor"
+                }
+              }
+            } ],
+            "_on" : {
+              "Movie" : [ {
+                "actors" : [ {
+                  "where" : {
+                    "node" : {
+                      "name" : "Different Actor"
                     }
                   }
-                }
-              ],
-              "_on": {
-                "Movie": [
-                  {
-                    "actors": [
-                      {
-                        "where": {
-                          "node": {
-                            "name": "Different Actor"
-                          }
-                        }
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            "where": {
-              "node": {
-                "title_STARTS_WITH": "The "
-              }
+                } ]
+              } ]
+            }
+          },
+          "where" : {
+            "node" : {
+              "title_STARTS_WITH" : "The "
             }
           }
-        ]
+        } ]
       }
     }
   },
-  "resolvedCallbacks": {}
+  "updateActors_args_disconnect_actedIn0_disconnect__on_Movie0_actors0_where_Actorparam0" : "Different Actor",
+  "updateActors_args_disconnect_actedIn0_disconnect_actors0_where_Actorparam0" : "Actor",
+  "updateActors_args_disconnect_actedIn0_where_Movieparam0" : "The ",
+  "updateActors_args_disconnect_actedIn0_where_Seriesparam0" : "The "
 }
 ----
 

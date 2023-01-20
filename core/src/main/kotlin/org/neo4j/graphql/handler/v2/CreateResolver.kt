@@ -133,7 +133,7 @@ class CreateResolver private constructor(
         }
 
 
-        val (subQueries, projectionEntries, authValidate) = ProjectionTranslator()
+        val projection = ProjectionTranslator()
             .createProjectionAndParams(
                 node,
                 dslNode,
@@ -144,8 +144,8 @@ class CreateResolver private constructor(
             )
 
         return result
-            .withSubQueries(subQueries)
-            .returning(dslNode.project(projectionEntries).`as`(variable))
+            .withSubQueries(projection.allSubQueries)
+            .returning(Cypher.listOf(dslNode.project(projection.projection)).`as`("data"))
             .build()
 
     }

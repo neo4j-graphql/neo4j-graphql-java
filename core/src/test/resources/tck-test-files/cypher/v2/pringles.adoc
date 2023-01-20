@@ -62,28 +62,28 @@ mutation {
 [source,json]
 ----
 {
-  "this0_id": "1",
-  "this0_name": "Pringles",
-  "this0_sizes0_node_id": "103",
-  "this0_sizes0_node_name": "Small",
-  "this0_sizes1_node_id": "104",
-  "this0_sizes1_node_name": "Large",
-  "this0_colors0_node_id": "100",
-  "this0_colors0_node_name": "Red",
-  "this0_colors1_node_id": "102",
-  "this0_colors1_node_name": "Green",
-  "this0_photos0_node_id": "105",
-  "this0_photos0_node_description": "Outdoor photo",
-  "this0_photos0_node_url": "outdoor.png",
-  "this0_photos1_node_id": "106",
-  "this0_photos1_node_description": "Green photo",
-  "this0_photos1_node_url": "g.png",
-  "this0_photos1_node_color_connect0_node_param0": "102",
-  "this0_photos2_node_id": "107",
-  "this0_photos2_node_description": "Red photo",
-  "this0_photos2_node_url": "r.png",
-  "this0_photos2_node_color_connect0_node_param0": "100",
-  "resolvedCallbacks": {}
+  "resolvedCallbacks" : { },
+  "this0_colors0_node_id" : "100",
+  "this0_colors0_node_name" : "Red",
+  "this0_colors1_node_id" : "102",
+  "this0_colors1_node_name" : "Green",
+  "this0_id" : "1",
+  "this0_name" : "Pringles",
+  "this0_photos0_node_description" : "Outdoor photo",
+  "this0_photos0_node_id" : "105",
+  "this0_photos0_node_url" : "outdoor.png",
+  "this0_photos1_node_color_connect0_node_param0" : "102",
+  "this0_photos1_node_description" : "Green photo",
+  "this0_photos1_node_id" : "106",
+  "this0_photos1_node_url" : "g.png",
+  "this0_photos2_node_color_connect0_node_param0" : "100",
+  "this0_photos2_node_description" : "Red photo",
+  "this0_photos2_node_id" : "107",
+  "this0_photos2_node_url" : "r.png",
+  "this0_sizes0_node_id" : "103",
+  "this0_sizes0_node_name" : "Small",
+  "this0_sizes1_node_id" : "104",
+  "this0_sizes1_node_name" : "Large"
 }
 ----
 
@@ -226,55 +226,53 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "Pringles",
-  "updateProducts_args_update_photos0_where_Photoparam0": "Green Photo",
-  "this_update_photos0_description": "Light Green Photo",
-  "updateProducts_args_update_photos0_update_node_color_disconnect_where_Colorparam0": "Green",
-  "this_photos0_color0_connect0_node_param0": "Light Green",
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [],
-    "jwt": {
-      "roles": []
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ ],
+    "jwt" : {
+      "roles" : [ ]
     }
   },
-  "updateProducts": {
-    "args": {
-      "update": {
-        "photos": [
-          {
-            "where": {
-              "node": {
-                "description": "Green Photo"
-              }
-            },
-            "update": {
-              "node": {
-                "description": "Light Green Photo",
-                "color": {
-                  "connect": {
-                    "where": {
-                      "node": {
-                        "name": "Light Green"
-                      }
+  "param0" : "Pringles",
+  "resolvedCallbacks" : { },
+  "this_photos0_color0_connect0_node_param0" : "Light Green",
+  "this_update_photos0_description" : "Light Green Photo",
+  "updateProducts" : {
+    "args" : {
+      "update" : {
+        "photos" : [ {
+          "where" : {
+            "node" : {
+              "description" : "Green Photo"
+            }
+          },
+          "update" : {
+            "node" : {
+              "description" : "Light Green Photo",
+              "color" : {
+                "connect" : {
+                  "where" : {
+                    "node" : {
+                      "name" : "Light Green"
                     }
-                  },
-                  "disconnect": {
-                    "where": {
-                      "node": {
-                        "name": "Green"
-                      }
+                  }
+                },
+                "disconnect" : {
+                  "where" : {
+                    "node" : {
+                      "name" : "Green"
                     }
                   }
                 }
               }
             }
           }
-        ]
+        } ]
       }
     }
   },
-  "resolvedCallbacks": {}
+  "updateProducts_args_update_photos0_update_node_color_disconnect_where_Colorparam0" : "Green",
+  "updateProducts_args_update_photos0_where_Photoparam0" : "Green Photo"
 }
 ----
 

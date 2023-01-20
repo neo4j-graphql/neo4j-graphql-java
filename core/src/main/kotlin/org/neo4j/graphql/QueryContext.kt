@@ -9,14 +9,15 @@ data class QueryContext @JvmOverloads constructor(
     /**
      * if true the <code>__typename</code> will always be returned for interfaces, no matter if it was queried or not
      */
-    var queryTypeOfInterfaces: Boolean = false,
+    val queryTypeOfInterfaces: Boolean = false,
 
     /**
      * If set alternative approaches for query translation will be used
      */
-    var optimizedQuery: Set<OptimizationStrategy>? = null,
+    val optimizedQuery: Set<OptimizationStrategy>? = null,
 
-    var contextParams: Map<String, Any?>? = emptyMap(),
+    val contextParams: Map<String, Any?>? = emptyMap(),
+
     val auth: AuthParams? = null // TODO init
 ) {
 
@@ -68,7 +69,7 @@ data class QueryContext @JvmOverloads constructor(
         FILTER_AS_MATCH
     }
 
-    class AuthParams(
+    data class AuthParams @JvmOverloads constructor(
         val roles: Collection<String>? = null,
         val isAuthenticated: Boolean
     )

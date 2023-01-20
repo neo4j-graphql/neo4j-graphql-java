@@ -56,8 +56,8 @@ query Agents {
 [source,json]
 ----
 {
-  "param0": "a1",
-  "this_connection_valuationsConnectionparam0": 10
+  "param0" : "a1",
+  "this_connection_valuationsConnectionparam0" : 10
 }
 ----
 

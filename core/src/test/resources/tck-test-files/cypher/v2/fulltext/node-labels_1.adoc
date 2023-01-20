@@ -34,7 +34,7 @@ type Movie @fulltext(indexes: [{name: "MovieTitle", fields: ["title"]}]) @node(a
 [source,json]
 ----
 {
-  "param0": "something AND something"
+  "param0" : "something AND something"
 }
 ----
 

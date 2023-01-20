@@ -58,11 +58,11 @@ type User {
 [source,json]
 ----
 {
-  "param0": "test-id",
-  "auth": {
-    "isAuthenticated": false,
-    "roles": []
-  }
+  "auth" : {
+    "isAuthenticated" : false,
+    "roles" : [ ]
+  },
+  "param0" : "test-id"
 }
 ----
 

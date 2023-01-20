@@ -120,13 +120,13 @@ query getSeriesWithRelationFilters($where: SeriesWhere = {current: true}) {
 [source,json]
 ----
 {
-  "param0": true,
-  "param1": "C",
-  "param2": false,
-  "param3": "AM",
-  "param4": true,
-  "param5": "smart",
-  "param6": true
+  "param0" : true,
+  "param1" : "C",
+  "param2" : false,
+  "param3" : "AM",
+  "param4" : true,
+  "param5" : "smart",
+  "param6" : true
 }
 ----
 

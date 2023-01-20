@@ -44,12 +44,10 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0": [
-    {
-      "id": "1"
-    }
-  ],
-  "resolvedCallbacks": {}
+  "create_param0" : [ {
+    "id" : "1"
+  } ],
+  "resolvedCallbacks" : { }
 }
 ----
 
@@ -98,10 +96,10 @@ mutation {
 [source,json]
 ----
 {
-  "this0_name": "Dan",
-  "this0_movies_connect0_node_param0": "1",
-  "projection_movies_connection_actorsConnectionparam0": "Dan",
-  "resolvedCallbacks": {}
+  "projection_movies_connection_actorsConnectionparam0" : "Dan",
+  "resolvedCallbacks" : { },
+  "this0_movies_connect0_node_param0" : "1",
+  "this0_name" : "Dan"
 }
 ----
 
@@ -115,7 +113,7 @@ CALL {
 	CALL {
 		WITH this0
 		OPTIONAL MATCH (this0_movies_connect0_node:Movie)
-		WHERE this0_movies_connect0_node.id = $this0_movies_connect0_node_param0
+		WHERE this0_movies_connect0_node.id = $this0_movies_connect0_nodeparam0
 		CALL {
 			WITH *
 			WITH collect(this0_movies_connect0_node) AS connectedNodes, collect(this0) AS parentNodes
@@ -185,9 +183,8 @@ mutation {
 [source,json]
 ----
 {
-  "this0_id": "1",
-  "this0_actors_connect0_node_param0": "Dan",
-  "resolvedCallbacks": {}
+  "this0_actors_connect0_nodeparam0" : "Dan",
+  "this0_id" : "1"
 }
 ----
 
@@ -201,7 +198,7 @@ CALL {
 	CALL {
 		WITH this0
 		OPTIONAL MATCH (this0_actors_connect0_node:Actor)
-		WHERE this0_actors_connect0_node.name = $this0_actors_connect0_node_param0
+		WHERE this0_actors_connect0_node.name = $this0_actors_connect0_nodeparam0
 		CALL {
 			WITH *
 			WITH collect(this0_actors_connect0_node) AS connectedNodes, collect(this0) AS parentNodes
@@ -244,15 +241,12 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0": [
-    {
-      "id": "1"
-    },
-    {
-      "id": "2"
-    }
-  ],
-  "resolvedCallbacks": {}
+  "create_param0" : [ {
+    "id" : "1"
+  }, {
+    "id" : "2"
+  } ],
+  "resolvedCallbacks" : { }
 }
 ----
 
@@ -293,51 +287,40 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0": [
-    {
-      "id": "1",
-      "actors": {
-        "create": [
-          {
-            "node": {
-              "name": "actor 1",
-              "movies": {
-                "create": [
-                  {
-                    "node": {
-                      "id": "10"
-                    }
-                  }
-                ]
+  "create_param0" : [ {
+    "id" : "1",
+    "actors" : {
+      "create" : [ {
+        "node" : {
+          "name" : "actor 1",
+          "movies" : {
+            "create" : [ {
+              "node" : {
+                "id" : "10"
               }
-            }
+            } ]
           }
-        ]
-      }
-    },
-    {
-      "id": "2",
-      "actors": {
-        "create": [
-          {
-            "node": {
-              "name": "actor 2",
-              "movies": {
-                "create": [
-                  {
-                    "node": {
-                      "id": "20"
-                    }
-                  }
-                ]
-              }
-            }
-          }
-        ]
-      }
+        }
+      } ]
     }
-  ],
-  "resolvedCallbacks": {}
+  }, {
+    "id" : "2",
+    "actors" : {
+      "create" : [ {
+        "node" : {
+          "name" : "actor 2",
+          "movies" : {
+            "create" : [ {
+              "node" : {
+                "id" : "20"
+              }
+            } ]
+          }
+        }
+      } ]
+    }
+  } ],
+  "resolvedCallbacks" : { }
 }
 ----
 
@@ -398,33 +381,26 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0": [
-    {
-      "id": "1",
-      "actors": {
-        "create": [
-          {
-            "node": {
-              "name": "actor 1"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "id": "2",
-      "actors": {
-        "create": [
-          {
-            "node": {
-              "name": "actor 2"
-            }
-          }
-        ]
-      }
+  "create_param0" : [ {
+    "id" : "1",
+    "actors" : {
+      "create" : [ {
+        "node" : {
+          "name" : "actor 1"
+        }
+      } ]
     }
-  ],
-  "resolvedCallbacks": {}
+  }, {
+    "id" : "2",
+    "actors" : {
+      "create" : [ {
+        "node" : {
+          "name" : "actor 2"
+        }
+      } ]
+    }
+  } ],
+  "resolvedCallbacks" : { }
 }
 ----
 

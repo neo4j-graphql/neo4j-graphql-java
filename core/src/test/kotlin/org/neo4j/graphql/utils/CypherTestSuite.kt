@@ -73,6 +73,13 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
                 ).render(statement)
                 it.reformattedCode = query
             }
+            getOrCreateBlocks(codeBlocks, CYPHER_PARAMS_MARKER, "Cypher Params").forEach {
+                val cypherParams = it.code().parseJsonMap()
+                it.reformattedCode = MAPPER
+                    .writerWithDefaultPrettyPrinter()
+                    .writeValueAsString(cypherParams.toSortedMap())
+            }
+
         }
 
         tests.addAll(testCypher(title, cypherBlocks, result))

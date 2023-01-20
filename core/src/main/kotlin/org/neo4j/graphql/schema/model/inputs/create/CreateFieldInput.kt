@@ -64,6 +64,7 @@ sealed interface CreateFieldInput {
     class InterfaceFieldInput(interfaze: Interface, relationshipProperties: RelationshipProperties?, data: Dict) :
         CreateFieldInput,
         ImplementingTypeFieldInput() {
+
         override val create = data.nestedDictList(Constants.CREATE_FIELD)
             .map { RelationFieldInput.InterfaceCreateFieldInput.create(interfaze, it) }
             .takeIf { it.isNotEmpty() }

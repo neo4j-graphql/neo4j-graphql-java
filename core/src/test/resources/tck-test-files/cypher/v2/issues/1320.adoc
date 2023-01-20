@@ -53,8 +53,8 @@ query getAggreationOnTeams {
 [source,json]
 ----
 {
-  "this_accepted_param0": "Accepted",
-  "this_identified_param0": "Identified"
+  "this_accepted_param0" : "Accepted",
+  "this_identified_param0" : "Identified"
 }
 ----
 

@@ -120,7 +120,7 @@ object CreateConnectionClause {
 
                 relationshipFieldsByTypeName?.get(Constants.NODE_FIELD)?.let {
 
-                    val (projectionSubQueries, nestedProjection, authValidate) = ProjectionTranslator()
+                    val projection = ProjectionTranslator()
                         .createProjectionAndParams(
                             relatedNode,
                             endNode,
@@ -130,10 +130,10 @@ object CreateConnectionClause {
                             queryContext,
                             useShortcut = false
                         )
-                    conditions.add(authValidate)
-                    nestedSubQueries.addAll(projectionSubQueries)
+                    conditions.add(projection.authValidate)
+                    nestedSubQueries.addAll(projection.allSubQueries)
                     innerProjection += it.aliasOrName
-                    innerProjection += Cypher.mapOf(*nestedProjection.toTypedArray())
+                    innerProjection += Cypher.mapOf(*projection.projection.toTypedArray())
                 }
 
 

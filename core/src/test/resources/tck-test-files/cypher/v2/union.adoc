@@ -47,9 +47,9 @@ mutation {
 [source,json]
 ----
 {
-  "this0_title": "some movie",
-  "this0_search_Genre_connect0_node_param0": "some genre",
-  "resolvedCallbacks": {}
+  "resolvedCallbacks" : { },
+  "this0_search_Genre_connect0_node_param0" : "some genre",
+  "this0_title" : "some movie"
 }
 ----
 
@@ -109,9 +109,9 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "some movie",
-  "this_connect_search_Genre0_node_param0": "some genre",
-  "resolvedCallbacks": {}
+  "param0" : "some movie",
+  "resolvedCallbacks" : { },
+  "this_connect_search_Genre0_node_param0" : "some genre"
 }
 ----
 
@@ -168,9 +168,9 @@ mutation {
 [source,json]
 ----
 {
-  "this0_title": "some movie",
-  "this0_search_Genre0_node_name": "some genre",
-  "resolvedCallbacks": {}
+  "resolvedCallbacks" : { },
+  "this0_search_Genre0_node_name" : "some genre",
+  "this0_title" : "some movie"
 }
 ----
 
@@ -211,8 +211,8 @@ mutation {
 [source,json]
 ----
 {
-  "this_create_search_Genre0_node_name": "some genre",
-  "resolvedCallbacks": {}
+  "resolvedCallbacks" : { },
+  "this_create_search_Genre0_node_name" : "some genre"
 }
 ----
 
@@ -252,26 +252,24 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "some movie",
-  "updateMovies_args_delete_search_Genre0_where_Genreparam0": "some genre",
-  "updateMovies": {
-    "args": {
-      "delete": {
-        "search": {
-          "Genre": [
-            {
-              "where": {
-                "node": {
-                  "name": "some genre"
-                }
+  "param0" : "some movie",
+  "resolvedCallbacks" : { },
+  "updateMovies" : {
+    "args" : {
+      "delete" : {
+        "search" : {
+          "Genre" : [ {
+            "where" : {
+              "node" : {
+                "name" : "some genre"
               }
             }
-          ]
+          } ]
         }
       }
     }
   },
-  "resolvedCallbacks": {}
+  "updateMovies_args_delete_search_Genre0_where_Genreparam0" : "some genre"
 }
 ----
 
@@ -319,26 +317,24 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "some movie",
-  "updateMovies_args_disconnect_search_Genre0_where_Genreparam0": "some genre",
-  "updateMovies": {
-    "args": {
-      "disconnect": {
-        "search": {
-          "Genre": [
-            {
-              "where": {
-                "node": {
-                  "name": "some genre"
-                }
+  "param0" : "some movie",
+  "resolvedCallbacks" : { },
+  "updateMovies" : {
+    "args" : {
+      "disconnect" : {
+        "search" : {
+          "Genre" : [ {
+            "where" : {
+              "node" : {
+                "name" : "some genre"
               }
             }
-          ]
+          } ]
         }
       }
     }
   },
-  "resolvedCallbacks": {}
+  "updateMovies_args_disconnect_search_Genre0_where_Genreparam0" : "some genre"
 }
 ----
 
@@ -390,30 +386,26 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "some movie",
-  "updateMovies_args_update_search_Genre0_disconnect0_where_Genreparam0": "some genre",
-  "updateMovies": {
-    "args": {
-      "update": {
-        "search": {
-          "Genre": [
-            {
-              "disconnect": [
-                {
-                  "where": {
-                    "node": {
-                      "name": "some genre"
-                    }
-                  }
+  "param0" : "some movie",
+  "resolvedCallbacks" : { },
+  "updateMovies" : {
+    "args" : {
+      "update" : {
+        "search" : {
+          "Genre" : [ {
+            "disconnect" : [ {
+              "where" : {
+                "node" : {
+                  "name" : "some genre"
                 }
-              ]
-            }
-          ]
+              }
+            } ]
+          } ]
         }
       }
     }
   },
-  "resolvedCallbacks": {}
+  "updateMovies_args_update_search_Genre0_disconnect0_where_Genreparam0" : "some genre"
 }
 ----
 
@@ -478,7 +470,7 @@ RETURN collect(DISTINCT this {
 [source,json]
 ----
 {
-  "param0": "Horror"
+  "param0" : "Horror"
 }
 ----
 
@@ -554,12 +546,12 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "some title",
-  "param1": "Horror",
-  "param2": "Horror",
-  "param3": "The Matrix",
-  "param4": 1,
-  "param5": 10
+  "param0" : "some title",
+  "param1" : "Horror",
+  "param2" : "Horror",
+  "param3" : "The Matrix",
+  "param4" : 1,
+  "param5" : 10
 }
 ----
 
@@ -632,7 +624,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "Horror"
+  "param0" : "Horror"
 }
 ----
 
@@ -690,39 +682,37 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "some movie",
-  "updateMovies_args_update_search_Genre0_where_Genreparam0": "some genre",
-  "this_update_search_Genre0_name": "some new genre",
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [],
-    "jwt": {
-      "roles": []
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ ],
+    "jwt" : {
+      "roles" : [ ]
     }
   },
-  "updateMovies": {
-    "args": {
-      "update": {
-        "search": {
-          "Genre": [
-            {
-              "where": {
-                "node": {
-                  "name": "some genre"
-                }
-              },
-              "update": {
-                "node": {
-                  "name": "some new genre"
-                }
+  "param0" : "some movie",
+  "resolvedCallbacks" : { },
+  "this_update_search_Genre0_name" : "some new genre",
+  "updateMovies" : {
+    "args" : {
+      "update" : {
+        "search" : {
+          "Genre" : [ {
+            "where" : {
+              "node" : {
+                "name" : "some genre"
+              }
+            },
+            "update" : {
+              "node" : {
+                "name" : "some new genre"
               }
             }
-          ]
+          } ]
         }
       }
     }
   },
-  "resolvedCallbacks": {}
+  "updateMovies_args_update_search_Genre0_where_Genreparam0" : "some genre"
 }
 ----
 

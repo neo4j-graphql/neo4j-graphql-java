@@ -52,7 +52,7 @@ type Movie implements MovieInterface {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -96,7 +96,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -150,9 +150,9 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "some title",
-  "param1": "top actor",
-  "param2": "top actor movie"
+  "param0" : "some title",
+  "param1" : "top actor",
+  "param2" : "top actor movie"
 }
 ----
 
@@ -206,7 +206,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output

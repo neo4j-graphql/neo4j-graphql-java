@@ -56,7 +56,7 @@ query ComponentsProcesses {
 [source,json]
 ----
 {
-  "param0": "c1"
+  "param0" : "c1"
 }
 ----
 

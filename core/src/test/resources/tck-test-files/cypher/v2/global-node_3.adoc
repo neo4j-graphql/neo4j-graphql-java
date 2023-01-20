@@ -47,7 +47,7 @@ query ($where: ActorWhere!) {
 [source,json]
 ----
 {
-  "param0": 12345
+  "param0" : 12345
 }
 ----
 

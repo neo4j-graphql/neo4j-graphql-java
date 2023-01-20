@@ -92,7 +92,6 @@ class DeleteResolver private constructor(
 
         input.delete?.let {
             ongoingReading = createDeleteAndParams(
-                node,
                 it,
                 ChainString(schemaConfig, variable),
                 dslNode,

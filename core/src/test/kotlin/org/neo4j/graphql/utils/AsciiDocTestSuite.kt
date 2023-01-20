@@ -1,6 +1,7 @@
 package org.neo4j.graphql.utils
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.intellij.rt.execution.junit.FileComparisonFailure
 import org.junit.jupiter.api.DynamicContainer
 import org.junit.jupiter.api.DynamicNode
@@ -296,7 +297,7 @@ open class AsciiDocTestSuite(
         val GENERATE_TEST_FILE_DIFF = System.getProperty("neo4j-graphql-java.generate-test-file-diff", "true") == "true"
         val REFORMAT_TEST_FILE = System.getProperty("neo4j-graphql-java.reformat", "false") == "true"
         val UPDATE_TEST_FILE = System.getProperty("neo4j-graphql-java.update-test-file", "false") == "true"
-        val MAPPER = ObjectMapper()
+        val MAPPER = ObjectMapper().registerKotlinModule()
         val HEADLINE_PATTERN: Pattern = Pattern.compile("^(=+) (.*)$")
 
         const val SCHEMA_MARKER = "[source,graphql,schema=true]"

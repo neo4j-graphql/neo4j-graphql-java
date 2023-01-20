@@ -118,7 +118,6 @@ CALL {
 		}
 		RETURN count(*) AS _
 	}
-	WITH this, this_connect_posts0_node
 	RETURN count(*) AS connect_this_connect_posts_Post
 }
 RETURN collect(DISTINCT this {
@@ -159,8 +158,8 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "user-id",
-  "thisauth_param0": "user-id"
+  "param0" : "user-id",
+  "thisauth_param0" : "user-id"
 }
 ----
 
@@ -361,7 +360,7 @@ mutation {
   "this_post0_disconnect0_creator0auth_param0" : "user-id",
   "this_post0_disconnect0auth_param0" : "user-id",
   "thisauth_param0" : "user-id",
-  "updateComments_post_disconnect_disconnect_creator_where_Userparam0" : "user-id"
+  "updateComments_args_update_post_disconnect_disconnect_creator_where_Userparam0" : "user-id"
 }
 ----
 
@@ -397,7 +396,7 @@ CALL {
 	CALL {
 		WITH this, this_post0_disconnect0
 		OPTIONAL MATCH (this_post0_disconnect0)<-[this_post0_disconnect0_creator0_rel:HAS_POST]-(this_post0_disconnect0_creator0:User)
-		WHERE this_post0_disconnect0_creator0.id = $updateComments_post_disconnect_disconnect_creator_where_Userparam0
+		WHERE this_post0_disconnect0_creator0.id = $updateComments_args_update_post_disconnect_disconnect_creator_where_Userparam0
 		WITH this, this_post0_disconnect0, this_post0_disconnect0_creator0, this_post0_disconnect0_creator0_rel
 		CALL apoc.util.validate(NOT ((exists((this_post0_disconnect0)<-[:HAS_POST]-(:User))
 			AND any(auth_this0 IN [(this_post0_disconnect0)<-[:HAS_POST]-(auth_this0:User) | auth_this0]
@@ -552,6 +551,7 @@ mutation {
   "param0" : "post-id",
   "this_creator0auth_param0" : "user-id",
   "this_update_creator0_password" : "new-password",
+  "this_update_creator0_passwordauth_param0" : "user-id",
   "thisauth_param0" : "user-id"
 }
 ----
@@ -571,7 +571,9 @@ CALL {
 	MATCH (this)<-[this_has_post0_relationship:HAS_POST]-(this_creator0:User)
 	WITH this, this_creator0
 	CALL apoc.util.validate(NOT ((this_creator0.id IS NOT NULL
-		AND this_creator0.id = $this_creator0auth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
+		AND this_creator0.id = $this_creator0auth_param0
+		AND this_creator0.id IS NOT NULL
+		AND this_creator0.id = $this_update_creator0_passwordauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
 	SET this_creator0.password = $this_update_creator0_password
 	RETURN count(*) AS update_this_User
 }
@@ -620,7 +622,7 @@ RETURN collect(DISTINCT this {
 [source,json]
 ----
 {
-  "param0": "id-01"
+  "param0" : "id-01"
 }
 ----
 
@@ -668,8 +670,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "id-01",
-  "thisauth_param0": "id-01"
+  "param0" : "id-01",
+  "thisauth_param0" : "id-01"
 }
 ----
 
@@ -989,6 +991,7 @@ mutation {
 {
   "param0" : "id-01",
   "this_update_password" : "new-password",
+  "this_update_passwordauth_param0" : "id-01",
   "thisauth_param0" : "id-01"
 }
 ----
@@ -1000,7 +1003,9 @@ MATCH (this:User)
 WHERE this.id = $param0
 WITH this
 CALL apoc.util.validate(NOT ((this.id IS NOT NULL
-	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
+	AND this.id = $thisauth_param0
+	AND this.id IS NOT NULL
+	AND this.id = $this_update_passwordauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
 SET this.password = $this_update_password
 RETURN collect(DISTINCT this {
 	.id

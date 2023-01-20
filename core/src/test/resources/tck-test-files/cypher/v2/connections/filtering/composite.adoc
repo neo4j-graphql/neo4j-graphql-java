@@ -58,11 +58,11 @@ interface ActedIn {
 [source,json]
 ----
 {
-  "param0": "Forrest Gump",
-  "this_connection_actorsConnectionparam0": 30,
-  "this_connection_actorsConnectionparam1": 90,
-  "this_connection_actorsConnectionparam2": "Tom",
-  "this_connection_actorsConnectionparam3": "Hanks"
+  "param0" : "Forrest Gump",
+  "this_connection_actorsConnectionparam0" : 30,
+  "this_connection_actorsConnectionparam1" : 90,
+  "this_connection_actorsConnectionparam2" : "Tom",
+  "this_connection_actorsConnectionparam3" : "Hanks"
 }
 ----
 

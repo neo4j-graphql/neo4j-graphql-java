@@ -54,13 +54,13 @@ mutation {
 [source,json]
 ----
 {
-  "this0_name": "TestProduct",
-  "this0_genre_connectOrCreate_param0": "Action",
-  "this0_genre_connectOrCreate_param1": "Action",
-  "resolvedCallbacks": {
-    "this0_id_nanoid": "callback_value",
-    "this0_genre_connectOrCreate0_id_nanoid": "callback_value"
-  }
+  "resolvedCallbacks" : {
+    "this0_id_nanoid" : "callback_value",
+    "this0_genre_connectOrCreate0_id_nanoid" : "callback_value"
+  },
+  "this0_genre_connectOrCreate_param0" : "Action",
+  "this0_genre_connectOrCreate_param1" : "Action",
+  "this0_name" : "TestProduct"
 }
 ----
 

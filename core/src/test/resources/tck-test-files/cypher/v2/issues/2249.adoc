@@ -68,33 +68,29 @@ mutation UpdateMovies {
 [source,json]
 ----
 {
-  "param0": "John Wick",
-  "this_reviewers0_create0_node_name": "Ana",
-  "this_reviewers0_create0_node_reputation": 100,
-  "updateMovies": {
-    "args": {
-      "update": {
-        "reviewers": [
-          {
-            "create": [
-              {
-                "node": {
-                  "Person": {
-                    "name": "Ana",
-                    "reputation": 100
-                  }
-                },
-                "edge": {
-                  "score": 10
-                }
+  "param0" : "John Wick",
+  "resolvedCallbacks" : { },
+  "this_reviewers0_create0_node_name" : "Ana",
+  "this_reviewers0_create0_node_reputation" : 100,
+  "updateMovies" : {
+    "args" : {
+      "update" : {
+        "reviewers" : [ {
+          "create" : [ {
+            "node" : {
+              "Person" : {
+                "name" : "Ana",
+                "reputation" : 100
               }
-            ]
-          }
-        ]
+            },
+            "edge" : {
+              "score" : 10
+            }
+          } ]
+        } ]
       }
     }
-  },
-  "resolvedCallbacks": {}
+  }
 }
 ----
 

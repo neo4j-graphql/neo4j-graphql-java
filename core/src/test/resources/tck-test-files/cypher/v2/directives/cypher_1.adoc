@@ -50,11 +50,11 @@ type Query {
 [source,json]
 ----
 {
-  "title": "The Matrix",
-  "auth": {
-    "isAuthenticated": false,
-    "roles": []
-  }
+  "auth" : {
+    "isAuthenticated" : false,
+    "roles" : [ ]
+  },
+  "title" : "The Matrix"
 }
 ----
 

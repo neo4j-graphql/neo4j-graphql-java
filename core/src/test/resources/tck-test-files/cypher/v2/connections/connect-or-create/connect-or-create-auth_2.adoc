@@ -47,17 +47,17 @@ mutation {
 [source,json]
 ----
 {
-  "this0_title": "Cool Movie",
-  "this0_genres_connectOrCreate_param0": "Horror",
-  "this0_genres_connectOrCreate_param1": "Horror",
-  "resolvedCallbacks": {},
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [],
-    "jwt": {
-      "roles": []
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ ],
+    "jwt" : {
+      "roles" : [ ]
     }
-  }
+  },
+  "resolvedCallbacks" : { },
+  "this0_genres_connectOrCreate_param0" : "Horror",
+  "this0_genres_connectOrCreate_param1" : "Horror",
+  "this0_title" : "Cool Movie"
 }
 ----
 
@@ -114,17 +114,17 @@ mutation {
 [source,json]
 ----
 {
-  "this_update_title": "Cool Movie",
-  "this_connectOrCreate_genres_param0": "Horror",
-  "this_connectOrCreate_genres_param1": "Horror",
-  "resolvedCallbacks": {},
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [],
-    "jwt": {
-      "roles": []
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ ],
+    "jwt" : {
+      "roles" : [ ]
     }
-  }
+  },
+  "resolvedCallbacks" : { },
+  "this_connectOrCreate_genres_param0" : "Horror",
+  "this_connectOrCreate_genres_param1" : "Horror",
+  "this_update_title" : "Cool Movie"
 }
 ----
 
@@ -178,17 +178,17 @@ mutation {
 [source,json]
 ----
 {
-  "this_update_title": "Cool Movie",
-  "this_genres0_connectOrCreate_param0": "Horror",
-  "this_genres0_connectOrCreate_param1": "Horror",
-  "resolvedCallbacks": {},
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [],
-    "jwt": {
-      "roles": []
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ ],
+    "jwt" : {
+      "roles" : [ ]
     }
-  }
+  },
+  "resolvedCallbacks" : { },
+  "this_genres0_connectOrCreate_param0" : "Horror",
+  "this_genres0_connectOrCreate_param1" : "Horror",
+  "this_update_title" : "Cool Movie"
 }
 ----
 

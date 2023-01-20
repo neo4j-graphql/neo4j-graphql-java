@@ -60,13 +60,13 @@ type Community {
 [source,json]
 ----
 {
-  "param0": 4656564,
-  "param1": 10,
-  "param2": 0,
-  "auth": {
-    "isAuthenticated": false,
-    "roles": []
-  }
+  "auth" : {
+    "isAuthenticated" : false,
+    "roles" : [ ]
+  },
+  "param0" : 4656564,
+  "param1" : 10,
+  "param2" : 0
 }
 ----
 

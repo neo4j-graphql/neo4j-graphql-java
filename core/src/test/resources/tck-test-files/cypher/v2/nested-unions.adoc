@@ -71,10 +71,10 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "Movie",
-  "this_connect_actors_LeadActor0_node_param0": "Actor",
-  "this_connect_actors_LeadActor0_node_actedIn_Series0_node_param0": "Series",
-  "resolvedCallbacks": {}
+  "param0" : "Movie",
+  "resolvedCallbacks" : { },
+  "this_connect_actors_LeadActor0_node_actedIn_Series0_node_param0" : "Series",
+  "this_connect_actors_LeadActor0_node_param0" : "Actor"
 }
 ----
 
@@ -203,40 +203,36 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "Movie",
-  "updateMovies_args_disconnect_actors_LeadActor0_where_LeadActorparam0": "Actor",
-  "updateMovies_args_disconnect_actors_LeadActor0_disconnect_actedIn_Series0_where_Seriesparam0": "Series",
-  "updateMovies": {
-    "args": {
-      "disconnect": {
-        "actors": {
-          "LeadActor": [
-            {
-              "where": {
-                "node": {
-                  "name": "Actor"
-                }
-              },
-              "disconnect": {
-                "actedIn": {
-                  "Series": [
-                    {
-                      "where": {
-                        "node": {
-                          "name": "Series"
-                        }
-                      }
+  "param0" : "Movie",
+  "resolvedCallbacks" : { },
+  "updateMovies" : {
+    "args" : {
+      "disconnect" : {
+        "actors" : {
+          "LeadActor" : [ {
+            "where" : {
+              "node" : {
+                "name" : "Actor"
+              }
+            },
+            "disconnect" : {
+              "actedIn" : {
+                "Series" : [ {
+                  "where" : {
+                    "node" : {
+                      "name" : "Series"
                     }
-                  ]
-                }
+                  }
+                } ]
               }
             }
-          ]
+          } ]
         }
       }
     }
   },
-  "resolvedCallbacks": {}
+  "updateMovies_args_disconnect_actors_LeadActor0_disconnect_actedIn_Series0_where_Seriesparam0" : "Series",
+  "updateMovies_args_disconnect_actors_LeadActor0_where_LeadActorparam0" : "Actor"
 }
 ----
 

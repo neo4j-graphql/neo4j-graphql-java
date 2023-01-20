@@ -63,7 +63,7 @@ fragment FragmentOnInterface on Entity {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -98,7 +98,7 @@ fragment FragmentOnType on User {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -134,7 +134,7 @@ query users {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output

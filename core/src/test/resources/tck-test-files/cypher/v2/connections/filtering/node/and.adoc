@@ -58,8 +58,8 @@ interface ActedIn {
 [source,json]
 ----
 {
-  "this_connection_actorsConnectionparam0": "Tom",
-  "this_connection_actorsConnectionparam1": "Hanks"
+  "this_connection_actorsConnectionparam0" : "Tom",
+  "this_connection_actorsConnectionparam1" : "Hanks"
 }
 ----
 

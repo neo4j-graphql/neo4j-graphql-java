@@ -67,27 +67,23 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0": [
-    {
-      "name": "Molly",
-      "city": "Sjömarken",
-      "actedIn": {
-        "create": [
-          {
-            "node": {
-              "title": "Molly's game",
-              "rating": 5
-            },
-            "edge": {
-              "character": "Molly",
-              "screenTime": 120
-            }
-          }
-        ]
-      }
+  "create_param0" : [ {
+    "name" : "Molly",
+    "city" : "Sjömarken",
+    "actedIn" : {
+      "create" : [ {
+        "node" : {
+          "title" : "Molly's game",
+          "rating" : 5
+        },
+        "edge" : {
+          "character" : "Molly",
+          "screenTime" : 120
+        }
+      } ]
     }
-  ],
-  "resolvedCallbacks": {}
+  } ],
+  "resolvedCallbacks" : { }
 }
 ----
 
@@ -169,7 +165,7 @@ RETURN collect(create_this1 {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -220,7 +216,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output

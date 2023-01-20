@@ -53,9 +53,9 @@ mutation {
 [source,json]
 ----
 {
-  "this0_title": "Forrest Gump",
-  "this0_actors0_node_name": "Tom Hanks",
-  "resolvedCallbacks": {}
+  "resolvedCallbacks" : { },
+  "this0_actors0_node_name" : "Tom Hanks",
+  "this0_title" : "Forrest Gump"
 }
 ----
 

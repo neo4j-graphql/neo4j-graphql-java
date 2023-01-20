@@ -58,8 +58,8 @@ interface ActedIn {
 [source,json]
 ----
 {
-  "this_connection_actorsConnectionparam0": "2000-01-01",
-  "this_connection_actorsConnectionparam1": "2010-01-01T00:00:00Z"
+  "this_connection_actorsConnectionparam0" : "2000-01-01",
+  "this_connection_actorsConnectionparam1" : "2010-01-01T00:00:00Z"
 }
 ----
 

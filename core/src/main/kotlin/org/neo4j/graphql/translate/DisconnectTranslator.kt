@@ -55,7 +55,7 @@ class DisconnectTranslator(
         input: DisconnectFieldInput.ImplementingTypeDisconnectFieldInput,
         index: Int,
     ): Statement {
-        val nestedPrefix = varName.extend(index)
+        val nestedPrefix = varName.appendOnPrevious(index)
         val relVarName = nestedPrefix.extend("rel")
 
         val endNode = labelOverride
@@ -72,10 +72,9 @@ class DisconnectTranslator(
                 endNode,
                 relationField,
                 dslRelation,
-                parameterPrefix.extend(
-                    index.takeIf { relationField.typeMeta.type.isList() },
-                    "where"
-                ),
+                parameterPrefix
+                    .appendOnPrevious(index.takeIf { relationField.typeMeta.type.isList() })
+                    .extend("where"),
                 schemaConfig,
                 context,
                 usePrefix = true,
@@ -112,13 +111,6 @@ class DisconnectTranslator(
                     skipIsAuthenticated = true,
                     bind = authOptions.copy(
                         varName = endNode, // TODO is this intentional? create a test for this!
-                        chainStr = ChainString(
-                            schemaConfig,
-                            authOptions.varName,
-                            authOptions.parentNode,
-                            i,
-                            "bind"
-                        )
                     )
                 )
                     .createAuth(authOptions.parentNode.auth, AuthDirective.AuthOperation.DISCONNECT)
@@ -190,12 +182,13 @@ class DisconnectTranslator(
                             listOf(newRefNode),
                             labelOverride = newRefNode.name.takeIf { relField.isUnion },
                             relatedNode,
-                            parameterPrefix.extend(
-                                i.takeIf { relField.typeMeta.type.isList() },
-                                "disconnect",
-                                classifier?.let { it(relField, newRefNode) },
-                                relField,
-                                newRefNode.takeIf { relField.isUnion }),
+                            parameterPrefix
+                                .appendOnPrevious(i.takeIf { relField.typeMeta.type.isList() })
+                                .extend(
+                                    "disconnect",
+                                    classifier?.let { it(relField, newRefNode) },
+                                    relField,
+                                    newRefNode.takeIf { relField.isUnion }),
                             call
                         )
                             .createDisconnectAndParams()
@@ -208,12 +201,8 @@ class DisconnectTranslator(
                     onDisconnect.relations.forEach { (k, v) ->
 
                         nestedDisconnect(k, v) { relField, newRefNode ->
-                            ChainString(
-                                schemaConfig,
-                                "_on",
-                                relatedNode,
-                                onDisconnectIndex.takeIf { relField.typeMeta.type.isList() },
-                            )
+                            ChainString(schemaConfig, "_on", relatedNode)
+                                .appendOnPrevious(onDisconnectIndex.takeIf { relField.typeMeta.type.isList() })
                         }
 
                     }

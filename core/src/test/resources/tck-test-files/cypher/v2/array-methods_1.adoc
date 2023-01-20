@@ -40,8 +40,8 @@ mutation {
 [source,json]
 ----
 {
-  "this_update_ratings_POP": 1,
-  "resolvedCallbacks": {}
+  "resolvedCallbacks" : { },
+  "this_update_ratings_POP" : 1
 }
 ----
 
@@ -78,10 +78,8 @@ mutation {
 [source,json]
 ----
 {
-  "this_update_ratings_PUSH": [
-    1
-  ],
-  "resolvedCallbacks": {}
+  "resolvedCallbacks" : { },
+  "this_update_ratings_PUSH" : [ 1 ]
 }
 ----
 

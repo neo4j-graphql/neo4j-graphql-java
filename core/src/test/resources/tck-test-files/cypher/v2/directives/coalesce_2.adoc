@@ -43,7 +43,7 @@ type Movie {
 [source,json]
 ----
 {
-  "param0": "ACTIVE"
+  "param0" : "ACTIVE"
 }
 ----
 

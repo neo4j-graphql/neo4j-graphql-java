@@ -88,12 +88,12 @@ interface Record {
 [source,json]
 ----
 {
-  "param0": "1",
-  "param2": 10,
-  "auth": {
-    "isAuthenticated": false,
-    "roles": []
-  }
+  "auth" : {
+    "isAuthenticated" : false,
+    "roles" : [ ]
+  },
+  "param0" : "1",
+  "param2" : 10
 }
 ----
 

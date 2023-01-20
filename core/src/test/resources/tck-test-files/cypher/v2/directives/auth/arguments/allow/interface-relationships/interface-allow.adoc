@@ -122,7 +122,6 @@ CALL {
 		}
 		RETURN count(*) AS _
 	}
-	WITH this, this_connect_content0_node
 	RETURN count(*) AS connect_this_connect_content_Comment
 }
 CALL {
@@ -148,7 +147,6 @@ CALL {
 		}
 		RETURN count(*) AS _
 	}
-	WITH this, this_connect_content1_node
 	RETURN count(*) AS connect_this_connect_content_Post
 }
 RETURN collect(DISTINCT this {
@@ -634,6 +632,7 @@ mutation {
   "param0" : "post-id",
   "this_creator0auth_param0" : "user-id",
   "this_update_creator0_password" : "new-password",
+  "this_update_creator0_passwordauth_param0" : "user-id",
   "thisauth_param0" : "user-id"
 }
 ----
@@ -653,7 +652,9 @@ CALL {
 	MATCH (this)<-[this_has_content0_relationship:HAS_CONTENT]-(this_creator0:User)
 	WITH this, this_creator0
 	CALL apoc.util.validate(NOT ((this_creator0.id IS NOT NULL
-		AND this_creator0.id = $this_creator0auth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
+		AND this_creator0.id = $this_creator0auth_param0
+		AND this_creator0.id IS NOT NULL
+		AND this_creator0.id = $this_update_creator0_passwordauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
 	SET this_creator0.password = $this_update_creator0_password
 	RETURN count(*) AS update_this_User
 }

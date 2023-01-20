@@ -44,9 +44,9 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "1",
-  "this_update_id": "2",
-  "resolvedCallbacks": {}
+  "param0" : "1",
+  "resolvedCallbacks" : { },
+  "this_update_id" : "2"
 }
 ----
 

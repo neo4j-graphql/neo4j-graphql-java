@@ -125,7 +125,7 @@ class UpdateResolver private constructor(
                 node,
                 withVars,
                 queryContext,
-                ChainString(schemaConfig, resolveTree.name),
+                ChainString(schemaConfig, resolveTree.name, "args", "update"),
                 true,
                 schemaConfig,
                 ongoingReading
@@ -201,18 +201,14 @@ class UpdateResolver private constructor(
 
         arguments.create?.relations?.forEach { (relField, input) ->
             relField.getReferenceNodes().forEach { refNode ->
-                val creates: List<Pair<CreateInput, ScalarProperties?>>? = when (input) {
+                val creates: List<Pair<CreateInput?, ScalarProperties?>>? = when (input) {
                     is RelationFieldInput.NodeCreateCreateFieldInputs -> input.map { it.node to it.edge }
-                    is RelationFieldInput.InterfaceCreateFieldInputs -> input.mapNotNull {
-                        val n = it.node.getDataForNode(refNode) ?: return@mapNotNull null
-                        n to it.edge
-                    }
-
+                    is RelationFieldInput.InterfaceCreateFieldInputs -> input.map { it.node?.getDataForNode(refNode) to it.edge }
                     is RelationFieldInput.UnionFieldInput -> input.getDataForNode(node)?.map { it.node to it.edge }
                 }
 
                 creates?.forEachIndexed { index, (createNode, createEdge) ->
-                    val targetNode = node.asCypherNode(
+                    val targetNode = refNode.asCypherNode(
                         queryContext, ChainString(
                             schemaConfig,
                             dslNode,
@@ -263,7 +259,6 @@ class UpdateResolver private constructor(
 
         arguments.delete?.let { deleteInput ->
             ongoingReading = createDeleteAndParams(
-                node,
                 deleteInput,
                 ChainString(schemaConfig, dslNode, "delete"),
                 dslNode,
@@ -286,13 +281,6 @@ class UpdateResolver private constructor(
 
                 ongoingReading = createConnectOrCreate(
                     inputs,
-                    ChainString(
-                        schemaConfig,
-                        dslNode,
-                        "connectOrCreate",
-                        relField,
-                        refNode.takeIf { relField.isUnion }
-                    ),
                     dslNode,
                     relField,
                     refNode,
@@ -318,12 +306,23 @@ class UpdateResolver private constructor(
                 .apocValidate(it, Constants.AUTH_FORBIDDEN_ERROR)
         }
 
+        if (arguments.update == null) {
+            RelationshipValidationTranslator
+                .createRelationshipValidations(node, dslNode, queryContext, schemaConfig)
+                .takeIf { it.isNotEmpty() }
+                ?.let {
+                    ongoingReading = ongoingReading
+                        .maybeWith(withVars)
+                        .withSubQueries(it)
+                }
+        }
+
         return ongoingReading
             .let {
-                if (projection?.subQueries.isNullOrEmpty()) {
+                if (projection?.allSubQueries.isNullOrEmpty()) {
                     it
                 } else {
-                    it.maybeWith(withVars).withSubQueries(projection?.subQueries)
+                    it.maybeWith(withVars).withSubQueries(projection?.allSubQueries)
                 }
             }
             .let {

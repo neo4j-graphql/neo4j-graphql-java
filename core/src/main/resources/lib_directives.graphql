@@ -32,12 +32,6 @@ directive @cypher(
 
   "[Experimental] Name of the returned variable from the Cypher statement, if provided, the query will be optimized to improve performance."
   columnName: String
-
-  # TODO create feature request
-  """if true, passes the sole responsibility for the nested query result for the field to your Cypher query.
-  You will have to provide all data/structure required by client queries.
-  Otherwise, we assume if you return object-types that you will return the appropriate nodes from your statement."""
-  passThrough: Boolean = false
 ) on FIELD_DEFINITION
 
 "Instructs neo4j-graphql-java to set the specified value as the default value in the CreateInput type for the object type in which this directive is used."

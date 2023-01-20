@@ -63,10 +63,10 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "TestId",
-  "this_connect_interface0_node_param0": "childone name connect",
-  "this_connect_interface1_node_param0": "childone name connect",
-  "resolvedCallbacks": {}
+  "param0" : "TestId",
+  "resolvedCallbacks" : { },
+  "this_connect_interface0_node_param0" : "childone name connect",
+  "this_connect_interface1_node_param0" : "childone name connect"
 }
 ----
 
@@ -168,9 +168,9 @@ mutation ddfs {
 [source,json]
 ----
 {
-  "param0": "TestID",
-  "this_create_interface_ChildOne0_node_ChildOne_name": "childone name2",
-  "resolvedCallbacks": {}
+  "param0" : "TestID",
+  "resolvedCallbacks" : { },
+  "this_create_interface_ChildOne0_node_ChildOne_name" : "childone name2"
 }
 ----
 

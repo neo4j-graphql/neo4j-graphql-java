@@ -55,10 +55,7 @@ interface ActedIn {
 [source,json]
 ----
 {
-  "this_connection_actorsConnectionparam0": [
-    "Tom Hanks",
-    "Robin Wright"
-  ]
+  "this_connection_actorsConnectionparam0" : [ "Tom Hanks", "Robin Wright" ]
 }
 ----
 
@@ -116,7 +113,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "this_connection_actorsConnectionparam0": "Blue"
+  "this_connection_actorsConnectionparam0" : "Blue"
 }
 ----
 
@@ -174,10 +171,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "this_connection_actorsConnectionparam0": [
-    "Tom Hanks",
-    "Robin Wright"
-  ]
+  "this_connection_actorsConnectionparam0" : [ "Tom Hanks", "Robin Wright" ]
 }
 ----
 
@@ -235,7 +229,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "this_connection_actorsConnectionparam0": "Blue"
+  "this_connection_actorsConnectionparam0" : "Blue"
 }
 ----
 

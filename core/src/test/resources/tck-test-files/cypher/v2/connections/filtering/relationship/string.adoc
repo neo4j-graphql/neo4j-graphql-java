@@ -55,7 +55,7 @@ interface ActedIn {
 [source,json]
 ----
 {
-  "this_connection_actorsConnectionparam0": "Forrest"
+  "this_connection_actorsConnectionparam0" : "Forrest"
 }
 ----
 
@@ -112,7 +112,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "this_connection_actorsConnectionparam0": "Gump"
+  "this_connection_actorsConnectionparam0" : "Gump"
 }
 ----
 
@@ -169,7 +169,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "this_connection_actorsConnectionparam0": "Forrest.+"
+  "this_connection_actorsConnectionparam0" : "Forrest.+"
 }
 ----
 
@@ -226,7 +226,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "this_connection_actorsConnectionparam0": "Forrest"
+  "this_connection_actorsConnectionparam0" : "Forrest"
 }
 ----
 
@@ -283,7 +283,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "this_connection_actorsConnectionparam0": "Gump"
+  "this_connection_actorsConnectionparam0" : "Gump"
 }
 ----
 
@@ -340,7 +340,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "this_connection_actorsConnectionparam0": "Forrest"
+  "this_connection_actorsConnectionparam0" : "Forrest"
 }
 ----
 
@@ -397,7 +397,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "this_connection_actorsConnectionparam0": "Forrest"
+  "this_connection_actorsConnectionparam0" : "Forrest"
 }
 ----
 

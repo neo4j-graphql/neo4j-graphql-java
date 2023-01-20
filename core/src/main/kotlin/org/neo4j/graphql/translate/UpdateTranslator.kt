@@ -4,9 +4,9 @@ import org.neo4j.cypherdsl.core.*
 import org.neo4j.cypherdsl.core.StatementBuilder.ExposesWith
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.directives.AuthDirective
-import org.neo4j.graphql.domain.fields.AuthableField
 import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.handler.utils.ChainString
+import org.neo4j.graphql.schema.model.inputs.create.RelationFieldInput
 import org.neo4j.graphql.schema.model.inputs.update.UpdateFieldInput
 import org.neo4j.graphql.schema.model.inputs.update.UpdateInput
 import org.neo4j.graphql.translate.where.createConnectionWhere
@@ -43,8 +43,8 @@ class UpdateTranslator(
 
         val prefix = chainStr ?: ChainString(schemaConfig, parentVar, "update")
 
-        updateInput.properties?.forEach { field ->
-            if (field is AuthableField && field.auth != null) {
+        updateInput.properties?.keys?.forEach { field ->
+            if (field.auth != null) {
 
                 AuthTranslator(
                     schemaConfig,
@@ -142,6 +142,7 @@ class UpdateTranslator(
                     (refNode.name + index).takeIf { field.isUnion }
                 )
 
+                // input.update
                 result = handleNestedUpdate(refNode, field, input, index, _varName, param)
                     ?.let { result.maybeWith(withVars).call(it) }
                     ?: result
@@ -190,7 +191,6 @@ class UpdateTranslator(
                 (input as? UpdateFieldInput.NodeUpdateFieldInput)?.connectOrCreate?.let { connectOrCreate ->
                     result = createConnectOrCreate(
                         connectOrCreate,
-                        _varName.extend("connectOrCreate"),
                         varName,
                         field,
                         refNode,
@@ -202,12 +202,99 @@ class UpdateTranslator(
                 }
 
                 input.delete?.let { delete ->
-                    TODO("createDisconnectAndParams 335")
+                    result = createDeleteAndParams(
+                        field,
+                        refNode,
+                        delete,
+                        _varName.extend("delete"),
+                        parentVar,
+                        withVars,
+                        parameterPrefix.extend(
+                            key,
+                            index.takeIf { field.typeMeta.type.isList() },
+                            "delete"
+                        ),
+                        schemaConfig,
+                        queryContext,
+                        result
+                    )
                 }
 
-                input.create?.let { create ->
-                    TODO("createDisconnectAndParams 355")
-                }
+                input.create
+                    ?.let {
+                        when (it) {
+                            is RelationFieldInput.NodeCreateCreateFieldInputs -> it
+                            is RelationFieldInput.InterfaceCreateFieldInputs -> it
+                            is RelationFieldInput.UnionFieldInput -> it.getDataForNode(refNode)
+                        }
+                    }
+                    ?.let { creates ->
+
+                        if (withVars.isNotEmpty()) {
+                            result = result.with(withVars)
+                        }
+
+                        creates.forEachIndexed { i, create ->
+
+                            val baseName = ChainString(schemaConfig, _varName, "create", i)
+                            val nodeName = baseName.extend("node")
+                            val propertiesName = baseName.extend("relationship")
+
+                            val createNodeInput = when (create) {
+                                is RelationFieldInput.InterfaceCreateFieldInput -> create.node?.getDataForNode(refNode)
+                                is RelationFieldInput.NodeCreateCreateFieldInput -> create.node
+                            }
+
+                            val endNode = refNode.asCypherNode(queryContext, nodeName)
+                            val relationVarName = propertiesName.takeIf { create.edge != null /*TODO or subscription*/ }
+                            val relation = field.createDslRelation(parentVar, endNode, relationVarName)
+
+                            val setProperties = createSetProperties(
+                                relation,
+                                create.edge,
+                                Operation.CREATE,
+                                field.properties,
+                                schemaConfig,
+                                queryContext,
+                                parameterPrefix.extend(
+                                    key,
+                                    refNode.takeIf { field.isUnion },
+                                    index,
+                                    "create",
+                                    i,
+                                    "edge"
+                                )
+                            )
+
+                            result = CreateTranslator(schemaConfig, queryContext)
+                                .createCreateAndParams(
+                                    refNode,
+                                    endNode,
+                                    createNodeInput,
+                                    withVars,
+                                    createFactory = { dslNode -> result.maybeWith(withVars).create(dslNode) }
+                                )
+                                .merge(relation)
+                                .let {
+                                    if (setProperties.isNullOrEmpty()) {
+                                        it
+                                    } else {
+                                        it.set(setProperties)
+                                    }
+                                }
+
+                            // TODO subscriptions
+
+                            RelationshipValidationTranslator
+                                .createRelationshipValidations(refNode, endNode, queryContext, schemaConfig)
+                                .let {
+                                    result
+                                        .maybeWith(withVars)
+                                        .withSubQueries(it)
+                                }
+                        }
+                    }
+
             }
         }
         return result
@@ -224,7 +311,9 @@ class UpdateTranslator(
         val update = input.update ?: return null
 
         val relationshipVariable =
-            ChainString(schemaConfig, varName, field.relationType.lowercase(), index, "relationship")
+            ChainString(schemaConfig, varName, field.relationType.lowercase())
+                .appendOnPrevious(index)
+                .extend("relationship")
 
         val endNode = refNode.asCypherNode(queryContext, _varName)
 
@@ -241,22 +330,24 @@ class UpdateTranslator(
             endNode,
             field,
             rel,
-            parameterPrefix.extend(
-                field,
-                refNode.takeIf { field.isUnion },
-                index.takeIf { field.typeMeta.type.isList() }),
+            parameterPrefix
+                .extend(field, refNode.takeIf { field.isUnion })
+                .appendOnPrevious(index.takeIf { field.typeMeta.type.isList() })
+                .extend("where"),
             schemaConfig,
             queryContext,
+            usePrefix = true
         )
 
         val whereAuth = AuthTranslator(schemaConfig, queryContext, where = AuthTranslator.AuthOptions(endNode, refNode))
             .createAuth(refNode.auth, AuthDirective.AuthOperation.UPDATE)
 
+
         var result = Cypher
             .with(withVars)
             .match(rel)
             .optionalWhere(listOf(whereCondition, whereAuth))
-            .withSubQueries(whereSubquery)
+            .withSubQueries(whereSubquery) // TODO create test for where sub-queries, I think we must move them before the where
             .let { reading ->
                 field.properties?.let { edgeProperties ->
                     update.edge?.let { edgeUpdate ->
@@ -281,7 +372,6 @@ class UpdateTranslator(
             }
 
 
-
         update.node?.let { nodeUpdate ->
 
             val nestedWithVars = withVars + endNode.requiredSymbolicName
@@ -296,20 +386,15 @@ class UpdateTranslator(
                 endNode,
                 inputExcludingOnForNode,
                 endNode,
-                param.extend(
-                    refNode.name.takeIf { field.isUnion },
-                    index
-                ),
+                param
+                    .extend(refNode.name.takeIf { field.isUnion })
+                    .appendOnPrevious(index),
                 refNode,
                 nestedWithVars,
                 queryContext,
-                param.extend(
-                    field,
-                    refNode.takeIf { field.isUnion },
-                    index.takeIf { field.typeMeta.type.isList() },
-                    "update",
-                    "node"
-                ),
+                param.extend(field, refNode.takeIf { field.isUnion })
+                    .appendOnPrevious(index.takeIf { field.typeMeta.type.isList() })
+                    .extend("update", "node"),
                 includeRelationshipValidation = true,
                 schemaConfig,
                 result,
@@ -343,18 +428,6 @@ class UpdateTranslator(
                     result,
                 ).createUpdateAndParams()
             }
-
-//            result = result.maybeWith(withVars).call(
-//                (subResult as ExposesReturning).returning(
-//                    Functions.count(Cypher.asterisk()).`as`(
-//                        param.extend(
-//                            refNode.name.takeIf { field.isUnion },
-//                            index,
-//                            refNode.name
-//                        ).resolveName(),
-//                    )
-//                ).build()
-//            )
 
             // TODO subscription 232
         }

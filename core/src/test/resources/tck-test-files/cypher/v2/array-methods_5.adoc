@@ -60,23 +60,21 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "1",
-  "updateActors": {
-    "args": {
-      "update": {
-        "actedIn": [
-          {
-            "update": {
-              "edge": {
-                "pay_POP": 1
-              }
+  "param0" : "1",
+  "resolvedCallbacks" : { },
+  "updateActors" : {
+    "args" : {
+      "update" : {
+        "actedIn" : [ {
+          "update" : {
+            "edge" : {
+              "pay_POP" : 1
             }
           }
-        ]
+        } ]
       }
     }
-  },
-  "resolvedCallbacks": {}
+  }
 }
 ----
 
@@ -156,25 +154,21 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "1",
-  "updateActors": {
-    "args": {
-      "update": {
-        "actedIn": [
-          {
-            "update": {
-              "edge": {
-                "pay_PUSH": [
-                  10
-                ]
-              }
+  "param0" : "1",
+  "resolvedCallbacks" : { },
+  "updateActors" : {
+    "args" : {
+      "update" : {
+        "actedIn" : [ {
+          "update" : {
+            "edge" : {
+              "pay_PUSH" : [ 10 ]
             }
           }
-        ]
+        } ]
       }
     }
-  },
-  "resolvedCallbacks": {}
+  }
 }
 ----
 

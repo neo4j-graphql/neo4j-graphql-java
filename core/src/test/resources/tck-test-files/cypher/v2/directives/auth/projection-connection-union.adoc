@@ -76,9 +76,9 @@ extend type Post @auth(rules: [{allow: {creator: {id: "$jwt.sub"}}}])
 [source,json]
 ----
 {
-  "param0": "super_admin",
-  "this_connection_contentConnectionparam0": "super_admin",
-  "this_Post_connection_creatorConnectionparam0": "super_admin"
+  "param0" : "super_admin",
+  "this_Post_connection_creatorConnectionparam0" : "super_admin",
+  "this_connection_contentConnectionparam0" : "super_admin"
 }
 ----
 

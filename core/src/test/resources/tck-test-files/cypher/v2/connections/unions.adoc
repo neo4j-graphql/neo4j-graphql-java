@@ -65,7 +65,7 @@ interface Wrote {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -139,7 +139,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -219,8 +219,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "this_connection_publicationsConnectionparam0": "Book Title",
-  "this_connection_publicationsConnectionparam1": "Journal Subject"
+  "this_connection_publicationsConnectionparam0" : "Book Title",
+  "this_connection_publicationsConnectionparam1" : "Journal Subject"
 }
 ----
 
@@ -300,10 +300,10 @@ RETURN this {
 [source,json]
 ----
 {
-  "this_connection_publicationsConnectionparam0": "Book Title",
-  "this_connection_publicationsConnectionparam1": 1000,
-  "this_connection_publicationsConnectionparam2": "Journal Subject",
-  "this_connection_publicationsConnectionparam3": 2000
+  "this_connection_publicationsConnectionparam0" : "Book Title",
+  "this_connection_publicationsConnectionparam1" : 1000,
+  "this_connection_publicationsConnectionparam2" : "Journal Subject",
+  "this_connection_publicationsConnectionparam3" : 2000
 }
 ----
 
@@ -385,8 +385,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "this_connection_publicationsConnectionparam0": 1000,
-  "this_connection_publicationsConnectionparam1": 2000
+  "this_connection_publicationsConnectionparam0" : 1000,
+  "this_connection_publicationsConnectionparam1" : 2000
 }
 ----
 

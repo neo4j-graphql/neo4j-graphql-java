@@ -45,13 +45,11 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0": [
-    {
-      "USERID": "userid",
-      "COMPANYID": "companyid"
-    }
-  ],
-  "resolvedCallbacks": {}
+  "create_param0" : [ {
+    "USERID" : "userid",
+    "COMPANYID" : "companyid"
+  } ],
+  "resolvedCallbacks" : { }
 }
 ----
 
@@ -92,9 +90,9 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "userid",
-  "this_update_COMPANYID": "companyid2",
-  "resolvedCallbacks": {}
+  "param0" : "userid",
+  "resolvedCallbacks" : { },
+  "this_update_COMPANYID" : "companyid2"
 }
 ----
 

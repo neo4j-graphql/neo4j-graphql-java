@@ -89,28 +89,29 @@ mutation updatePeople($where: PersonWhere, $update: PersonUpdateInput) {
 [source,json]
 ----
 {
-  "param0": "Someone",
-  "this_update_car0_manufacturer0_name": "Manufacturer",
-  "this_car0_manufacturer0_logo0_connect0_node_param0": "Opel Logo",
-  "auth": {
-    "isAuthenticated": false,
-    "roles": []
+  "auth" : {
+    "isAuthenticated" : false,
+    "roles" : [ ]
   },
-  "updatePeople": {
-    "args": {
-      "update": {
-        "car": {
-          "update": {
-            "node": {
-              "manufacturer": {
-                "update": {
-                  "node": {
-                    "name": "Manufacturer",
-                    "logo": {
-                      "connect": {
-                        "where": {
-                          "node": {
-                            "identifier": "Opel Logo"
+  "param0" : "Someone",
+  "resolvedCallbacks" : { },
+  "this_car0_manufacturer0_logo0_connect0_node_param0" : "Opel Logo",
+  "this_update_car0_manufacturer0_name" : "Manufacturer",
+  "updatePeople" : {
+    "args" : {
+      "update" : {
+        "car" : {
+          "update" : {
+            "node" : {
+              "manufacturer" : {
+                "update" : {
+                  "node" : {
+                    "name" : "Manufacturer",
+                    "logo" : {
+                      "connect" : {
+                        "where" : {
+                          "node" : {
+                            "identifier" : "Opel Logo"
                           }
                         }
                       }
@@ -123,8 +124,7 @@ mutation updatePeople($where: PersonWhere, $update: PersonUpdateInput) {
         }
       }
     }
-  },
-  "resolvedCallbacks": {}
+  }
 }
 ----
 

@@ -44,7 +44,7 @@ type Movie {
 [source,json]
 ----
 {
-  "param0": "some title"
+  "param0" : "some title"
 }
 ----
 
@@ -76,9 +76,9 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "some title",
-  "param1": true,
-  "param2": "2"
+  "param0" : "some title",
+  "param1" : true,
+  "param2" : "2"
 }
 ----
 
@@ -112,8 +112,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "some title",
-  "param1": "another title"
+  "param0" : "some title",
+  "param1" : "another title"
 }
 ----
 
@@ -146,7 +146,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "some title"
+  "param0" : "some title"
 }
 ----
 
@@ -187,8 +187,8 @@ query ($title: String, $isFavorite: Boolean) {
 [source,json]
 ----
 {
-  "param0": "some title",
-  "param1": true
+  "param0" : "some title",
+  "param1" : true
 }
 ----
 
@@ -221,7 +221,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "some title"
+  "param0" : "some title"
 }
 ----
 
@@ -253,8 +253,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "some title",
-  "param1": true
+  "param0" : "some title",
+  "param1" : true
 }
 ----
 
@@ -287,7 +287,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "some title"
+  "param0" : "some title"
 }
 ----
 
@@ -319,7 +319,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "some title"
+  "param0" : "some title"
 }
 ----
 
@@ -351,7 +351,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "some title"
+  "param0" : "some title"
 }
 ----
 
@@ -384,7 +384,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -414,7 +414,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output

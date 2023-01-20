@@ -56,7 +56,7 @@ type Genre {
 [source,json]
 ----
 {
-  "param0": "123"
+  "param0" : "123"
 }
 ----
 
@@ -88,7 +88,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "123"
+  "param0" : "123"
 }
 ----
 
@@ -120,7 +120,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": 123
+  "param0" : 123
 }
 ----
 
@@ -184,7 +184,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "The Matrix Revolutions"
+  "param0" : "The Matrix Revolutions"
 }
 ----
 
@@ -216,7 +216,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": 123
+  "param0" : 123
 }
 ----
 
@@ -280,7 +280,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "The Matrix Revolutions"
+  "param0" : "The Matrix Revolutions"
 }
 ----
 
@@ -312,9 +312,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": [
-    "123"
-  ]
+  "param0" : [ "123" ]
 }
 ----
 
@@ -346,7 +344,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": 123
+  "param0" : 123
 }
 ----
 
@@ -410,7 +408,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "The Matrix Revolutions"
+  "param0" : "The Matrix Revolutions"
 }
 ----
 
@@ -442,7 +440,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": 123
+  "param0" : 123
 }
 ----
 
@@ -506,7 +504,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "The Matrix Revolutions"
+  "param0" : "The Matrix Revolutions"
 }
 ----
 
@@ -538,7 +536,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "123"
+  "param0" : "123"
 }
 ----
 
@@ -570,7 +568,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "123"
+  "param0" : "123"
 }
 ----
 
@@ -602,7 +600,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "123"
+  "param0" : "123"
 }
 ----
 
@@ -634,9 +632,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": [
-    "123"
-  ]
+  "param0" : [ "123" ]
 }
 ----
 
@@ -668,7 +664,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "123"
+  "param0" : "123"
 }
 ----
 
@@ -700,7 +696,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "(?i)123.*"
+  "param0" : "(?i)123.*"
 }
 ----
 
@@ -732,7 +728,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "123"
+  "param0" : "123"
 }
 ----
 
@@ -766,7 +762,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "some genre"
+  "param0" : "some genre"
 }
 ----
 
@@ -805,7 +801,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "some genre"
+  "param0" : "some genre"
 }
 ----
 
@@ -846,7 +842,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "some genre"
+  "param0" : "some genre"
 }
 ----
 
@@ -885,7 +881,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "some genre"
+  "param0" : "some genre"
 }
 ----
 
@@ -924,7 +920,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "some genre"
+  "param0" : "some genre"
 }
 ----
 
@@ -963,7 +959,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "some genre"
+  "param0" : "some genre"
 }
 ----
 
@@ -1006,7 +1002,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "some genre"
+  "param0" : "some genre"
 }
 ----
 
@@ -1045,7 +1041,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "some genre"
+  "param0" : "some genre"
 }
 ----
 
@@ -1086,7 +1082,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "some genre"
+  "param0" : "some genre"
 }
 ----
 
@@ -1125,7 +1121,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "some genre"
+  "param0" : "some genre"
 }
 ----
 
@@ -1164,7 +1160,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "some genre"
+  "param0" : "some genre"
 }
 ----
 
@@ -1203,7 +1199,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "some genre"
+  "param0" : "some genre"
 }
 ----
 

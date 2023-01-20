@@ -68,25 +68,23 @@ mutation DeleteOrganizations($where: OrganizationWhere, $delete: OrganizationDel
 [source,json]
 ----
 {
-  "param0": "Google",
-  "this_deleteOrganizations": {
-    "args": {
-      "delete": {
-        "admins": [
-          {
-            "where": {
-              "node": {
-                "organizationsAggregate": {
-                  "count": 1
-                }
+  "param0" : "Google",
+  "this_deleteOrganizations" : {
+    "args" : {
+      "delete" : {
+        "admins" : [ {
+          "where" : {
+            "node" : {
+              "organizationsAggregate" : {
+                "count" : 1
               }
             }
           }
-        ]
+        } ]
       }
     }
   },
-  "this_deleteOrganizations_args_delete_admins0_where_Adminparam0": 1
+  "this_deleteOrganizations_args_delete_admins0_where_Adminparam0" : 1
 }
 ----
 

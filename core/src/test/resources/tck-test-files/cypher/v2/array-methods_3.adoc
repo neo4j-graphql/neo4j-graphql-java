@@ -56,14 +56,12 @@ mutation UpdateMovie($inputValue: [PointInput!]!) {
 [source,json]
 ----
 {
-  "this_update_filmingLocations_PUSH": [
-    {
-      "longitude": -178.7374,
-      "latitude": 38.4554,
-      "height": 60111.54
-    }
-  ],
-  "resolvedCallbacks": {}
+  "resolvedCallbacks" : { },
+  "this_update_filmingLocations_PUSH" : [ {
+    "longitude" : -178.7374,
+    "latitude" : 38.4554,
+    "height" : 60111.54
+  } ]
 }
 ----
 

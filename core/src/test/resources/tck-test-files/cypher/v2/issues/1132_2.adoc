@@ -55,24 +55,22 @@ mutation {
 [source,json]
 ----
 {
-  "updateSources_args_disconnect_targets0_where_Targetparam0": "1",
-  "thisauth_param0": "1",
-  "updateSources": {
-    "args": {
-      "disconnect": {
-        "targets": [
-          {
-            "where": {
-              "node": {
-                "id": "1"
-              }
+  "resolvedCallbacks" : { },
+  "thisauth_param0" : "1",
+  "updateSources" : {
+    "args" : {
+      "disconnect" : {
+        "targets" : [ {
+          "where" : {
+            "node" : {
+              "id" : "1"
             }
           }
-        ]
+        } ]
       }
     }
   },
-  "resolvedCallbacks": {}
+  "updateSources_args_disconnect_targets0_where_Targetparam0" : "1"
 }
 ----
 

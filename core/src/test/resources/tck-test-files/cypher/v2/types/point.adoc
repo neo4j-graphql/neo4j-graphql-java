@@ -43,15 +43,13 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0": [
-    {
-      "point": {
-        "longitude": 1,
-        "latitude": 2
-      }
+  "create_param0" : [ {
+    "point" : {
+      "longitude" : 1,
+      "latitude" : 2
     }
-  ],
-  "resolvedCallbacks": {}
+  } ],
+  "resolvedCallbacks" : { }
 }
 ----
 
@@ -95,12 +93,10 @@ RETURN collect(create_this0 {
 [source,json]
 ----
 {
-  "param0": [
-    {
-      "longitude": 1,
-      "latitude": 2
-    }
-  ]
+  "param0" : [ {
+    "longitude" : 1,
+    "latitude" : 2
+  } ]
 }
 ----
 
@@ -139,12 +135,10 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": [
-    {
-      "longitude": 1,
-      "latitude": 2
-    }
-  ]
+  "param0" : [ {
+    "longitude" : 1,
+    "latitude" : 2
+  } ]
 }
 ----
 
@@ -182,9 +176,9 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "longitude": 1,
-    "latitude": 2
+  "param0" : {
+    "longitude" : 1,
+    "latitude" : 2
   }
 }
 ----
@@ -223,9 +217,9 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "longitude": 1,
-    "latitude": 2
+  "param0" : {
+    "longitude" : 1,
+    "latitude" : 2
   }
 }
 ----
@@ -270,12 +264,12 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "id",
-  "this_update_point": {
-    "longitude": 1,
-    "latitude": 2
-  },
-  "resolvedCallbacks": {}
+  "param0" : "id",
+  "resolvedCallbacks" : { },
+  "this_update_point" : {
+    "longitude" : 1,
+    "latitude" : 2
+  }
 }
 ----
 
@@ -318,12 +312,12 @@ RETURN collect(DISTINCT this {
 [source,json]
 ----
 {
-  "param0": {
-    "point": {
-      "longitude": 1.1,
-      "latitude": 2.2
+  "param0" : {
+    "point" : {
+      "longitude" : 1.1,
+      "latitude" : 2.2
     },
-    "distance": 3.3
+    "distance" : 3.3
   }
 }
 ----
@@ -363,12 +357,12 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "point": {
-      "longitude": 1.1,
-      "latitude": 2.2
+  "param0" : {
+    "point" : {
+      "longitude" : 1.1,
+      "latitude" : 2.2
     },
-    "distance": 3.3
+    "distance" : 3.3
   }
 }
 ----
@@ -408,12 +402,12 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "point": {
-      "longitude": 1.1,
-      "latitude": 2.2
+  "param0" : {
+    "point" : {
+      "longitude" : 1.1,
+      "latitude" : 2.2
     },
-    "distance": 3.3
+    "distance" : 3.3
   }
 }
 ----
@@ -453,12 +447,12 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "point": {
-      "longitude": 1.1,
-      "latitude": 2.2
+  "param0" : {
+    "point" : {
+      "longitude" : 1.1,
+      "latitude" : 2.2
     },
-    "distance": 3.3
+    "distance" : 3.3
   }
 }
 ----
@@ -498,12 +492,12 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "point": {
-      "longitude": 1.1,
-      "latitude": 2.2
+  "param0" : {
+    "point" : {
+      "longitude" : 1.1,
+      "latitude" : 2.2
     },
-    "distance": 3.3
+    "distance" : 3.3
   }
 }
 ----
@@ -543,12 +537,12 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "point": {
-      "longitude": 1.1,
-      "latitude": 2.2
+  "param0" : {
+    "point" : {
+      "longitude" : 1.1,
+      "latitude" : 2.2
     },
-    "distance": 3.3
+    "distance" : 3.3
   }
 }
 ----
@@ -588,12 +582,12 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "point": {
-      "longitude": 1.1,
-      "latitude": 2.2
+  "param0" : {
+    "point" : {
+      "longitude" : 1.1,
+      "latitude" : 2.2
     },
-    "distance": 3.3
+    "distance" : 3.3
   }
 }
 ----
@@ -633,12 +627,12 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "point": {
-      "longitude": 1.1,
-      "latitude": 2.2
+  "param0" : {
+    "point" : {
+      "longitude" : 1.1,
+      "latitude" : 2.2
     },
-    "distance": 3.3
+    "distance" : 3.3
   }
 }
 ----
@@ -678,12 +672,12 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "point": {
-      "longitude": 1.1,
-      "latitude": 2.2
+  "param0" : {
+    "point" : {
+      "longitude" : 1.1,
+      "latitude" : 2.2
     },
-    "distance": 3.3
+    "distance" : 3.3
   }
 }
 ----
@@ -723,12 +717,12 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "point": {
-      "longitude": 1.1,
-      "latitude": 2.2
+  "param0" : {
+    "point" : {
+      "longitude" : 1.1,
+      "latitude" : 2.2
     },
-    "distance": 3.3
+    "distance" : 3.3
   }
 }
 ----

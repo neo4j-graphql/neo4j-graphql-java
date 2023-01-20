@@ -51,29 +51,27 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "Forrest Gump",
-  "updateMovies_args_update_actors0_where_Actorparam0": "Tom Hanks",
-  "updateMovies": {
-    "args": {
-      "update": {
-        "actors": [
-          {
-            "where": {
-              "node": {
-                "name": "Tom Hanks"
-              }
-            },
-            "update": {
-              "edge": {
-                "screenTime": 60
-              }
+  "param0" : "Forrest Gump",
+  "resolvedCallbacks" : { },
+  "updateMovies" : {
+    "args" : {
+      "update" : {
+        "actors" : [ {
+          "where" : {
+            "node" : {
+              "name" : "Tom Hanks"
+            }
+          },
+          "update" : {
+            "edge" : {
+              "screenTime" : 60
             }
           }
-        ]
+        } ]
       }
     }
   },
-  "resolvedCallbacks": {}
+  "updateMovies_args_update_actors0_where_Actorparam0" : "Tom Hanks"
 }
 ----
 
@@ -122,37 +120,35 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "Forrest Gump",
-  "updateMovies_args_update_actors0_where_Actorparam0": "Tom Hanks",
-  "this_update_actors0_name": "Tom Hanks",
-  "auth": {
-    "isAuthenticated": false,
-    "roles": []
+  "auth" : {
+    "isAuthenticated" : false,
+    "roles" : [ ]
   },
-  "updateMovies": {
-    "args": {
-      "update": {
-        "actors": [
-          {
-            "where": {
-              "node": {
-                "name": "Tom Hanks"
-              }
+  "param0" : "Forrest Gump",
+  "resolvedCallbacks" : { },
+  "this_update_actors0_name" : "Tom Hanks",
+  "updateMovies" : {
+    "args" : {
+      "update" : {
+        "actors" : [ {
+          "where" : {
+            "node" : {
+              "name" : "Tom Hanks"
+            }
+          },
+          "update" : {
+            "node" : {
+              "name" : "Tom Hanks"
             },
-            "update": {
-              "node": {
-                "name": "Tom Hanks"
-              },
-              "edge": {
-                "screenTime": 60
-              }
+            "edge" : {
+              "screenTime" : 60
             }
           }
-        ]
+        } ]
       }
     }
   },
-  "resolvedCallbacks": {}
+  "updateMovies_args_update_actors0_where_Actorparam0" : "Tom Hanks"
 }
 ----
 

@@ -47,7 +47,7 @@ query Genres {
 [source,json]
 ----
 {
-  "param0": "Matrix"
+  "param0" : "Matrix"
 }
 ----
 

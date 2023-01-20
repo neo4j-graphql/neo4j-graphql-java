@@ -107,15 +107,15 @@ query ($where: SeriesWhere, $connectionWhere: RelationPropsWhere) {
 [source,json]
 ----
 {
-  "param0": true,
-  "param1": true,
-  "param2": true,
-  "param3": "MHA",
-  "param4": true,
-  "param5": "1",
-  "this_connection_nameDetailsConnectionparam0": true,
-  "this_connection_architectureConnectionparam0": true,
-  "this_MasterData_connection_nameDetailsConnectionparam0": true
+  "param0" : true,
+  "param1" : true,
+  "param2" : true,
+  "param3" : "MHA",
+  "param4" : true,
+  "param5" : "1",
+  "this_MasterData_connection_nameDetailsConnectionparam0" : true,
+  "this_connection_architectureConnectionparam0" : true,
+  "this_connection_nameDetailsConnectionparam0" : true
 }
 ----
 

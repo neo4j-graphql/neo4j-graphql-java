@@ -61,7 +61,7 @@ type Actor @node(additionalLabels: ["Person", "Alien"]) {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -122,7 +122,7 @@ RETURN {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output

@@ -47,33 +47,26 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0": [
-    {
-      "id": "1",
-      "actors": {
-        "create": [
-          {
-            "node": {
-              "name": "actor 1"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "id": "2",
-      "actors": {
-        "create": [
-          {
-            "node": {
-              "name": "actor 2"
-            }
-          }
-        ]
-      }
+  "create_param0" : [ {
+    "id" : "1",
+    "actors" : {
+      "create" : [ {
+        "node" : {
+          "name" : "actor 1"
+        }
+      } ]
     }
-  ],
-  "resolvedCallbacks": {}
+  }, {
+    "id" : "2",
+    "actors" : {
+      "create" : [ {
+        "node" : {
+          "name" : "actor 2"
+        }
+      } ]
+    }
+  } ],
+  "resolvedCallbacks" : { }
 }
 ----
 
@@ -120,7 +113,7 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "123"
+  "param0" : "123"
 }
 ----
 
@@ -152,7 +145,7 @@ DETACH DELETE this
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -190,7 +183,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -222,9 +215,9 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "1",
-  "this_update_id": "2",
-  "resolvedCallbacks": {}
+  "param0" : "1",
+  "resolvedCallbacks" : { },
+  "this_update_id" : "2"
 }
 ----
 

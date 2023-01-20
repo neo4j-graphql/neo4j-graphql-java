@@ -58,11 +58,11 @@ mutation {
 [source,json]
 ----
 {
-  "this0_id": "1",
-  "this0auth_param0": "super_admin",
-  "this1_id": "2",
-  "this1auth_param0": "super_admin",
-  "resolvedCallbacks": {}
+  "resolvedCallbacks" : { },
+  "this0_id" : "1",
+  "this0auth_param0" : "super_admin",
+  "this1_id" : "2",
+  "this1auth_param0" : "super_admin"
 }
 ----
 

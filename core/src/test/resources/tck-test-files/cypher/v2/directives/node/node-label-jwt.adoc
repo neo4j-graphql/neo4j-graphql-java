@@ -58,12 +58,10 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0": [
-    {
-      "title": "Titanic"
-    }
-  ],
-  "resolvedCallbacks": {}
+  "create_param0" : [ {
+    "title" : "Titanic"
+  } ],
+  "resolvedCallbacks" : { }
 }
 ----
 
@@ -111,7 +109,7 @@ RETURN collect(create_this0 {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -157,8 +155,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": 10,
-  "param1": "terminator"
+  "param0" : 10,
+  "param1" : "terminator"
 }
 ----
 

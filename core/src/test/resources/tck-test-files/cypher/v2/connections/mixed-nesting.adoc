@@ -64,10 +64,10 @@ interface ActedIn {
 [source,json]
 ----
 {
-  "param0": "Forrest Gump",
-  "this_connection_actorsConnectionparam0": "Tom Hanks",
-  "this_Actor_connection_moviesConnectionparam0": "Forrest Gump",
-  "this_Actor_connection_moviesConnectionparam1": "Tom Hanks"
+  "param0" : "Forrest Gump",
+  "this_Actor_connection_moviesConnectionparam0" : "Forrest Gump",
+  "this_Actor_connection_moviesConnectionparam1" : "Tom Hanks",
+  "this_connection_actorsConnectionparam0" : "Tom Hanks"
 }
 ----
 
@@ -155,9 +155,9 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "Forrest Gump",
-  "this_connection_actorsConnectionparam0": "Tom Hanks",
-  "this_connection_actorsConnectionparam1": "Forrest Gump"
+  "param0" : "Forrest Gump",
+  "this_connection_actorsConnectionparam0" : "Tom Hanks",
+  "this_connection_actorsConnectionparam1" : "Forrest Gump"
 }
 ----
 
@@ -228,9 +228,9 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "Forrest Gump",
-  "param1": "Tom Hanks",
-  "this_actors_connection_moviesConnectionparam0": "Forrest Gump"
+  "param0" : "Forrest Gump",
+  "param1" : "Tom Hanks",
+  "this_actors_connection_moviesConnectionparam0" : "Forrest Gump"
 }
 ----
 

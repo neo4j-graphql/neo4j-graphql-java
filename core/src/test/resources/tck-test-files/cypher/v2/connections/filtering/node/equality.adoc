@@ -54,7 +54,7 @@ interface ActedIn {
 [source,json]
 ----
 {
-  "this_connection_actorsConnectionparam0": "Tom Hanks"
+  "this_connection_actorsConnectionparam0" : "Tom Hanks"
 }
 ----
 
@@ -111,7 +111,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "this_connection_actorsConnectionparam0": "Tom Hanks"
+  "this_connection_actorsConnectionparam0" : "Tom Hanks"
 }
 ----
 

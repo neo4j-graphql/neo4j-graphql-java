@@ -77,7 +77,7 @@ type Actor {
 [source,json]
 ----
 {
-  "param0": "super_admin"
+  "param0" : "super_admin"
 }
 ----
 

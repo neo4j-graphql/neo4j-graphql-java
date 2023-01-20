@@ -46,9 +46,9 @@ type dcterms_title @node(additionalLabels: ["property"]) @exclude(operations: [C
 [source,json]
 ----
 {
-  "param0": "0777",
-  "param1": 10000,
-  "param2": "0777"
+  "param0" : "0777",
+  "param1" : 10000,
+  "param2" : "0777"
 }
 ----
 

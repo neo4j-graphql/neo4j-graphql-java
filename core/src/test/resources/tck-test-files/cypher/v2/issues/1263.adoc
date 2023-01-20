@@ -62,10 +62,10 @@ type Actor {
 [source,json]
 ----
 {
-  "this_connection_actedInConnectionparam0": "foo",
-  "this_connection_actedInConnectionparam1": 90,
-  "this_connection_actedInConnectionparam2": "foo",
-  "this_connection_actedInConnectionparam3": 50
+  "this_connection_actedInConnectionparam0" : "foo",
+  "this_connection_actedInConnectionparam1" : 90,
+  "this_connection_actedInConnectionparam2" : "foo",
+  "this_connection_actedInConnectionparam3" : 50
 }
 ----
 

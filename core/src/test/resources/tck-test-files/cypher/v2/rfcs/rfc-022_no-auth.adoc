@@ -56,8 +56,8 @@ query Query {
 [source,json]
 ----
 {
-  "param0": 1999,
-  "param1": "Keanu Reeves"
+  "param0" : 1999,
+  "param1" : "Keanu Reeves"
 }
 ----
 
@@ -112,8 +112,8 @@ query Query {
 [source,json]
 ----
 {
-  "param0": 1999,
-  "param1": "Keanu Reeves"
+  "param0" : 1999,
+  "param1" : "Keanu Reeves"
 }
 ----
 

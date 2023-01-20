@@ -39,12 +39,10 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0": [
-    {
-      "datetime": "1970-01-01T00:00:00Z"
-    }
-  ],
-  "resolvedCallbacks": {}
+  "create_param0" : [ {
+    "datetime" : "1970-01-01T00:00:00Z"
+  } ],
+  "resolvedCallbacks" : { }
 }
 ----
 
@@ -81,7 +79,7 @@ RETURN collect(create_this0 {
 [source,json]
 ----
 {
-  "param0": "1970-01-01T00:00:00Z"
+  "param0" : "1970-01-01T00:00:00Z"
 }
 ----
 
@@ -116,8 +114,8 @@ mutation {
 [source,json]
 ----
 {
-  "this_update_datetime": "1970-01-01T00:00:00Z",
-  "resolvedCallbacks": {}
+  "resolvedCallbacks" : { },
+  "this_update_datetime" : "1970-01-01T00:00:00Z"
 }
 ----
 

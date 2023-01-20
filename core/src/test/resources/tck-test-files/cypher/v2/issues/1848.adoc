@@ -64,12 +64,12 @@ union FeedItem = ContentPiece | Project
 [source,json]
 ----
 {
-  "param0": 10,
-  "param1": 0,
-  "auth": {
-    "isAuthenticated": false,
-    "roles": []
-  }
+  "auth" : {
+    "isAuthenticated" : false,
+    "roles" : [ ]
+  },
+  "param0" : 10,
+  "param1" : 0
 }
 ----
 

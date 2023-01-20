@@ -53,7 +53,7 @@ query Actors {
 [source,json]
 ----
 {
-  "this_connection_moviesConnectionparam0": "ACTIVE"
+  "this_connection_moviesConnectionparam0" : "ACTIVE"
 }
 ----
 

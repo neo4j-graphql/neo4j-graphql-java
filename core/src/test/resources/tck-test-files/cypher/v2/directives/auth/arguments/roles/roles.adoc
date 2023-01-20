@@ -85,19 +85,15 @@ mutation {
 [source,json]
 ----
 {
-  "resolvedCallbacks": {},
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "super_admin"
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "super_admin"
     }
-  }
+  },
+  "resolvedCallbacks" : { }
 }
 ----
 
@@ -128,10 +124,8 @@ CALL {
 		}
 		RETURN count(*) AS _
 	}
-	WITH this, this_connect_posts0_node
 	RETURN count(*) AS connect_this_connect_posts_Post
 }
-WITH *
 RETURN collect(DISTINCT this {
 	.id
 }) AS data
@@ -172,24 +166,18 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0": [
-    {
-      "id": "1"
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "super_admin"
     }
-  ],
-  "resolvedCallbacks": {},
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "super_admin"
-    }
-  }
+  },
+  "create_param0" : [ {
+    "id" : "1"
+  } ],
+  "resolvedCallbacks" : { }
 }
 ----
 
@@ -247,25 +235,19 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0": [
-    {
-      "id": "1",
-      "password": "super-password"
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "super_admin"
     }
-  ],
-  "resolvedCallbacks": {},
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "super_admin"
-    }
-  }
+  },
+  "create_param0" : [ {
+    "id" : "1",
+    "password" : "super-password"
+  } ],
+  "resolvedCallbacks" : { }
 }
 ----
 
@@ -326,16 +308,12 @@ mutation {
 [source,json]
 ----
 {
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "super_admin"
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "super_admin"
     }
   }
 }
@@ -387,26 +365,20 @@ mutation {
 [source,json]
 ----
 {
-  "updateUsers": {
-    "args": {
-      "disconnect": {
-        "posts": [
-          {}
-        ]
-      }
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "super_admin"
     }
   },
-  "resolvedCallbacks": {},
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "super_admin"
+  "resolvedCallbacks" : { },
+  "updateUsers" : {
+    "args" : {
+      "disconnect" : {
+        "posts" : [ { } ]
+      }
     }
   }
 }
@@ -479,30 +451,27 @@ mutation {
 [source,json]
 ----
 {
-  "this_post0_creator0_connect0_node_param0": "user-id",
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "super_admin"
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "super_admin"
     }
   },
-  "updateComments": {
-    "args": {
-      "update": {
-        "post": {
-          "update": {
-            "node": {
-              "creator": {
-                "connect": {
-                  "where": {
-                    "node": {
-                      "id": "user-id"
+  "resolvedCallbacks" : { },
+  "this_post0_creator0_connect0_node_param0" : "user-id",
+  "updateComments" : {
+    "args" : {
+      "update" : {
+        "post" : {
+          "update" : {
+            "node" : {
+              "creator" : {
+                "connect" : {
+                  "where" : {
+                    "node" : {
+                      "id" : "user-id"
                     }
                   }
                 }
@@ -512,8 +481,7 @@ mutation {
         }
       }
     }
-  },
-  "resolvedCallbacks": {}
+  }
 }
 ----
 
@@ -611,16 +579,12 @@ mutation {
 [source,json]
 ----
 {
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "super_admin"
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "super_admin"
     }
   }
 }
@@ -687,30 +651,26 @@ mutation {
 [source,json]
 ----
 {
-  "updateComments_args_update_post_update_node_creator_disconnect_where_Userparam0": "user-id",
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "super_admin"
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "super_admin"
     }
   },
-  "updateComments": {
-    "args": {
-      "update": {
-        "post": {
-          "update": {
-            "node": {
-              "creator": {
-                "disconnect": {
-                  "where": {
-                    "node": {
-                      "id": "user-id"
+  "resolvedCallbacks" : { },
+  "updateComments" : {
+    "args" : {
+      "update" : {
+        "post" : {
+          "update" : {
+            "node" : {
+              "creator" : {
+                "disconnect" : {
+                  "where" : {
+                    "node" : {
+                      "id" : "user-id"
                     }
                   }
                 }
@@ -721,7 +681,7 @@ mutation {
       }
     }
   },
-  "resolvedCallbacks": {}
+  "updateComments_args_update_post_update_node_creator_disconnect_where_Userparam0" : "user-id"
 }
 ----
 
@@ -814,16 +774,12 @@ RETURN collect(DISTINCT this {
 [source,json]
 ----
 {
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "super_admin"
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "super_admin"
     }
   }
 }
@@ -877,16 +833,12 @@ RETURN this {
 [source,json]
 ----
 {
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "super_admin"
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "super_admin"
     }
   }
 }
@@ -952,16 +904,12 @@ RETURN this {
 [source,json]
 ----
 {
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "super_admin"
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "super_admin"
     }
   }
 }
@@ -1019,21 +967,17 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "1",
-  "this_update_id": "id-1",
-  "resolvedCallbacks": {},
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "super_admin"
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "super_admin"
     }
-  }
+  },
+  "param0" : "1",
+  "resolvedCallbacks" : { },
+  "this_update_id" : "id-1"
 }
 ----
 
@@ -1087,21 +1031,17 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "1",
-  "this_update_password": "password",
-  "resolvedCallbacks": {},
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "super_admin"
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "super_admin"
     }
-  }
+  },
+  "param0" : "1",
+  "resolvedCallbacks" : { },
+  "this_update_password" : "password"
 }
 ----
 

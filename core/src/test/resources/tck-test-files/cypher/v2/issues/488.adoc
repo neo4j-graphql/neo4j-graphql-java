@@ -60,7 +60,7 @@ type Text {
 [source,json]
 ----
 {
-  "param0": "Smile"
+  "param0" : "Smile"
 }
 ----
 
@@ -127,7 +127,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "Smile"
+  "param0" : "Smile"
 }
 ----
 

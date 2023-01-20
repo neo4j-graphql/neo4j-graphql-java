@@ -60,9 +60,9 @@ query ($where: EntityWhere) {
 [source,json]
 ----
 {
-  "param0": "Cat",
-  "param1": "Dog",
-  "param2": "Bird"
+  "param0" : "Cat",
+  "param1" : "Dog",
+  "param2" : "Bird"
 }
 ----
 
@@ -123,10 +123,10 @@ query ($where: EntityWhere) {
 [source,json]
 ----
 {
-  "param0": "Cat",
-  "param1": "Dog",
-  "param2": "Bird",
-  "param3": "Fish"
+  "param0" : "Cat",
+  "param1" : "Dog",
+  "param2" : "Bird",
+  "param3" : "Fish"
 }
 ----
 

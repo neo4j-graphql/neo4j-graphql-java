@@ -58,7 +58,7 @@ query GetProductionsMovie {
 [source,json]
 ----
 {
-  "param0": "Test Movie"
+  "param0" : "Test Movie"
 }
 ----
 

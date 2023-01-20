@@ -51,7 +51,7 @@ type Genre {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -84,7 +84,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -123,7 +123,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -164,11 +164,11 @@ RETURN this {
 [source,json]
 ----
 {
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [],
-    "jwt": {
-      "roles": []
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ ],
+    "jwt" : {
+      "roles" : [ ]
     }
   }
 }
@@ -219,11 +219,11 @@ RETURN this {
 [source,json]
 ----
 {
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [],
-    "jwt": {
-      "roles": []
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ ],
+    "jwt" : {
+      "roles" : [ ]
     }
   }
 }
@@ -280,9 +280,9 @@ query ($title: String, $offset: Int, $limit: Int) {
 [source,json]
 ----
 {
-  "param0": "some title",
-  "param1": 1,
-  "param2": 2
+  "param0" : "some title",
+  "param1" : 1,
+  "param2" : 2
 }
 ----
 
@@ -318,7 +318,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -351,7 +351,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -382,7 +382,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output

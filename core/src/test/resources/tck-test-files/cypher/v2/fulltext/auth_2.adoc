@@ -51,8 +51,8 @@ type Person {
 [source,json]
 ----
 {
-  "param0": "something AND something",
-  "param1": "my-sub"
+  "param0" : "something AND something",
+  "param1" : "my-sub"
 }
 ----
 

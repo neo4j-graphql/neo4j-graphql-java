@@ -52,7 +52,7 @@ query Genres {
 [source,json]
 ----
 {
-  "this_connection_moviesConnectionparam0": "Action"
+  "this_connection_moviesConnectionparam0" : "Action"
 }
 ----
 

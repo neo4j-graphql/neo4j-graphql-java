@@ -42,11 +42,11 @@ class ConnectTranslator(
                     ?.let { result = result.with(withVars).where(it) }
             }
 
-            val baseName = varName.extend(index)
+            val baseName = varName.appendOnPrevious(index)
 
             val subQueries = if (relationField.isInterface) {
                 refNodes.mapIndexed { i, refNode ->
-                    createSubqueryContents(refNode, connect, varName.extend(i))
+                    createSubqueryContents(refNode, connect, varName.appendOnPrevious(i))
                 }
             } else {
                 createSubqueryContents(refNodes.first(), connect, baseName)
@@ -90,10 +90,7 @@ class ConnectTranslator(
             subQuery = addRelationshipValidation(node, relatedNode, subQuery)
         }
 
-        subQuery = addNestedConnects(
-            node, relatedNode, nodeName, connect, subQuery
-                .with(*(withVars + node).toTypedArray()) // TODO do we really need this `with`?
-        )
+        subQuery = addNestedConnects(node, relatedNode, nodeName, connect, subQuery)
 
         getPostAuth(node, relatedNode)?.let {
             subQuery = subQuery.with(*(withVars + node).toTypedArray())
@@ -183,7 +180,8 @@ class ConnectTranslator(
         val unwoundedParents = Cypher.anyNode(parentVar.requiredSymbolicName)
         val unwoundedConnections = Cypher.anyNode(nodeName.requiredSymbolicName)
 
-        var createDslRelation = relationField.createDslRelation(unwoundedParents, unwoundedConnections)
+        var createDslRelation =
+            relationField.createDslRelation(unwoundedParents, unwoundedConnections, startLeft = true)
         val edgeSet = if (relationField.properties != null) {
             createDslRelation = createDslRelation.named(baseName.extend("relationship").resolveName())
             createSetProperties(
@@ -291,11 +289,12 @@ class ConnectTranslator(
                             schemaConfig,
                             queryContext,
                             parentNode = relatedNode,
-                            varName = name.extend(
-                                index.takeIf { isOn },
-                                relField,
-                                newRefNode.takeIf { relField.isUnion }
-                            ),
+                            varName = name
+                                .appendOnPrevious(index.takeIf { isOn })
+                                .extend(
+                                    relField,
+                                    newRefNode.takeIf { relField.isUnion }
+                                ),
                             parentVar = nodeName,
                             fromCreate = false, // TODO I think we should pass through the `fromCreate`
                             withVars = withVars + nodeName.requiredSymbolicName,
@@ -330,11 +329,7 @@ class ConnectTranslator(
                     queryContext,
                     skipRoles = true,
                     skipIsAuthenticated = true,
-                    bind = AuthTranslator.AuthOptions(
-                        nodeName,
-                        node,
-                        chainStr = ChainString(schemaConfig, nodeName, node, i, "bind")
-                    )
+                    bind = AuthTranslator.AuthOptions(nodeName, node)
                 )
                     .createAuth(node.auth, AuthDirective.AuthOperation.CONNECT)
                     ?.let { postAuth = postAuth and it }

@@ -66,8 +66,8 @@ type Actor {
 [source,json]
 ----
 {
-  "param0": "The ",
-  "param1": "A "
+  "param0" : "The ",
+  "param1" : "A "
 }
 ----
 
@@ -133,7 +133,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -211,10 +211,10 @@ RETURN this {
 [source,json]
 ----
 {
-  "this_connection_actedInConnectionparam0": 60,
-  "this_connection_actedInConnectionparam1": "The ",
-  "this_connection_actedInConnectionparam2": 60,
-  "this_connection_actedInConnectionparam3": "The "
+  "this_connection_actedInConnectionparam0" : 60,
+  "this_connection_actedInConnectionparam1" : "The ",
+  "this_connection_actedInConnectionparam2" : 60,
+  "this_connection_actedInConnectionparam3" : "The "
 }
 ----
 
@@ -294,8 +294,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "this_connection_actedInConnectionparam0": 60,
-  "this_connection_actedInConnectionparam1": "The "
+  "this_connection_actedInConnectionparam0" : 60,
+  "this_connection_actedInConnectionparam1" : "The "
 }
 ----
 
@@ -365,10 +365,10 @@ RETURN this {
 [source,json]
 ----
 {
-  "this_connection_actedInConnectionparam0": 60,
-  "this_connection_actedInConnectionparam1": "A ",
-  "this_connection_actedInConnectionparam2": 60,
-  "this_connection_actedInConnectionparam3": "The "
+  "this_connection_actedInConnectionparam0" : 60,
+  "this_connection_actedInConnectionparam1" : "A ",
+  "this_connection_actedInConnectionparam2" : 60,
+  "this_connection_actedInConnectionparam3" : "The "
 }
 ----
 
@@ -443,7 +443,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -501,7 +501,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -556,8 +556,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": 5,
-  "param1": 10
+  "param0" : 5,
+  "param1" : 10
 }
 ----
 
@@ -615,7 +615,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "The "
+  "param0" : "The "
 }
 ----
 

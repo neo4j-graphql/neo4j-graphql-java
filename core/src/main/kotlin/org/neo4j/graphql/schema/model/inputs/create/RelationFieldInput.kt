@@ -17,11 +17,13 @@ import org.neo4j.graphql.toDict
 
 sealed interface RelationFieldInput {
     sealed class ImplementingTypeCreateFieldInput(implementingType: ImplementingType, data: Dict) {
-        val edge = data.nestedDict(Constants.EDGE_FIELD)?.let { ScalarProperties.create(it, implementingType) }
+        val edge = data.nestedDict(Constants.EDGE_FIELD)
+            ?.let { ScalarProperties.create(it, implementingType) }
     }
 
-    class NodeCreateCreateFieldInput(node: Node, value: Dict) : ImplementingTypeCreateFieldInput(node, value) {
-        val node = CreateInput.create(node, value)
+    class NodeCreateCreateFieldInput(node: Node, data: Dict) : ImplementingTypeCreateFieldInput(node, data) {
+        val node = data.nestedDict(Constants.NODE_FIELD)
+            ?.let { CreateInput.create(node, it) }
 
         companion object {
             fun create(node: Node, value: Any?): NodeCreateCreateFieldInput {
@@ -53,7 +55,13 @@ sealed interface RelationFieldInput {
     class InterfaceCreateFieldInput(interfaze: Interface, data: Dict) :
         ImplementingTypeCreateFieldInput(interfaze, data) {
 
-        val node = PerNodeInput(interfaze, data, { node: Node, value: Any -> CreateInput.create(node, value.toDict()) })
+        val node = data.nestedDict(Constants.NODE_FIELD)
+            ?.let {
+                PerNodeInput(
+                    interfaze,
+                    it,
+                    { node: Node, value: Any -> CreateInput.create(node, value.toDict()) })
+            }
 
         companion object {
             fun create(interfaze: Interface, value: Any): InterfaceCreateFieldInput {

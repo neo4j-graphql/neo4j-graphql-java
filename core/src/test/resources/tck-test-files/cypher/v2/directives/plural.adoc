@@ -35,7 +35,7 @@ type Tech @plural(value: "Techs") {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -67,12 +67,10 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0": [
-    {
-      "name": "Highlander"
-    }
-  ],
-  "resolvedCallbacks": {}
+  "create_param0" : [ {
+    "name" : "Highlander"
+  } ],
+  "resolvedCallbacks" : { }
 }
 ----
 
@@ -109,7 +107,7 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "Matrix"
+  "param0" : "Matrix"
 }
 ----
 
@@ -138,7 +136,7 @@ DETACH DELETE this
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -167,7 +165,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -199,8 +197,8 @@ mutation {
 [source,json]
 ----
 {
-  "this_update_name": "Matrix",
-  "resolvedCallbacks": {}
+  "resolvedCallbacks" : { },
+  "this_update_name" : "Matrix"
 }
 ----
 

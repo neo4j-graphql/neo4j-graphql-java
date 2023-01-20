@@ -51,8 +51,8 @@ type Person {
 [source,json]
 ----
 {
-  "param0": "something AND something",
-  "auth_param0": "my-sub"
+  "auth_param0" : "my-sub",
+  "param0" : "something AND something"
 }
 ----
 

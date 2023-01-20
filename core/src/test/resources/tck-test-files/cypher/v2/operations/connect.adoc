@@ -62,16 +62,15 @@ mutation {
 [source,json]
 ----
 {
-  "this0_id": "123",
-  "this0_name": "Nested Connect",
-  "this0_colors_connect0_node_param0": "Red",
-  "this0_colors_connect0_node_photos0_node_param0": "123",
-  "this0_colors_connect0_node_photos0_node_color0_node_param0": "134",
-  "this0_photos_connect0_node_param0": "321",
-  "this0_photos_connect0_node_color0_node_param0": "Green",
-  "this0_photos_connect1_node_param0": "33211",
-  "this0_photos_connect1_node_color0_node_param0": "Red",
-  "resolvedCallbacks": {}
+  "this0_colors_connect0_node_photos0_node_color0_nodeparam0" : "134",
+  "this0_colors_connect0_node_photos0_nodeparam0" : "123",
+  "this0_colors_connect0_nodeparam0" : "Red",
+  "this0_id" : "123",
+  "this0_name" : "Nested Connect",
+  "this0_photos_connect0_node_color0_nodeparam0" : "Green",
+  "this0_photos_connect0_nodeparam0" : "321",
+  "this0_photos_connect1_node_color0_nodeparam0" : "Red",
+  "this0_photos_connect1_nodeparam0" : "33211"
 }
 ----
 
@@ -86,7 +85,7 @@ CALL {
 	CALL {
 		WITH this0
 		OPTIONAL MATCH (this0_colors_connect0_node:Color)
-		WHERE this0_colors_connect0_node.name = $this0_colors_connect0_node_param0
+		WHERE this0_colors_connect0_node.name = $this0_colors_connect0_nodeparam0
 		CALL {
 			WITH *
 			WITH collect(this0_colors_connect0_node) AS connectedNodes, collect(this0) AS parentNodes
@@ -103,10 +102,10 @@ CALL {
 		CALL {
 			WITH this0, this0_colors_connect0_node
 			OPTIONAL MATCH (this0_colors_connect0_node_photos0_node:Photo)
-			WHERE this0_colors_connect0_node_photos0_node.id = $this0_colors_connect0_node_photos0_node_param0
+			WHERE this0_colors_connect0_node_photos0_node.id = $this0_colors_connect0_node_photos0_nodeparam0
 			CALL {
 				WITH *
-				WITH this0, collect(this0_colors_connect0_node_photos0_node) AS connectedNodes, collect(this0_colors_connect0_node) AS parentNodes
+				WITH collect(this0_colors_connect0_node_photos0_node) AS connectedNodes, collect(this0_colors_connect0_node) AS parentNodes
 				CALL {
 					WITH connectedNodes, parentNodes
 					UNWIND parentNodes AS this0_colors_connect0_node
@@ -128,10 +127,10 @@ CALL {
 			CALL {
 				WITH this0, this0_colors_connect0_node, this0_colors_connect0_node_photos0_node
 				OPTIONAL MATCH (this0_colors_connect0_node_photos0_node_color0_node:Color)
-				WHERE this0_colors_connect0_node_photos0_node_color0_node.id = $this0_colors_connect0_node_photos0_node_color0_node_param0
+				WHERE this0_colors_connect0_node_photos0_node_color0_node.id = $this0_colors_connect0_node_photos0_node_color0_nodeparam0
 				CALL {
 					WITH *
-					WITH this0, this0_colors_connect0_node, collect(this0_colors_connect0_node_photos0_node_color0_node) AS connectedNodes, collect(this0_colors_connect0_node_photos0_node) AS parentNodes
+					WITH collect(this0_colors_connect0_node_photos0_node_color0_node) AS connectedNodes, collect(this0_colors_connect0_node_photos0_node) AS parentNodes
 					CALL {
 						WITH connectedNodes, parentNodes
 						UNWIND parentNodes AS this0_colors_connect0_node_photos0_node
@@ -149,7 +148,6 @@ CALL {
 					CALL apoc.util.validate(NOT (c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDPhoto.color required', [0])
 					RETURN c AS this0_colors_connect0_node_photos0_node_color_Color_unique_ignored
 				}
-				WITH this0, this0_colors_connect0_node, this0_colors_connect0_node_photos0_node, this0_colors_connect0_node_photos0_node_color0_node
 				RETURN count(*) AS connect_this0_colors_connect0_node_photos0_node_color_Color
 			}
 			RETURN count(*) AS connect_this0_colors_connect0_node_photos_Photo
@@ -160,7 +158,7 @@ CALL {
 	CALL {
 		WITH this0
 		OPTIONAL MATCH (this0_photos_connect0_node:Photo)
-		WHERE this0_photos_connect0_node.id = $this0_photos_connect0_node_param0
+		WHERE this0_photos_connect0_node.id = $this0_photos_connect0_nodeparam0
 		CALL {
 			WITH *
 			WITH collect(this0_photos_connect0_node) AS connectedNodes, collect(this0) AS parentNodes
@@ -177,10 +175,10 @@ CALL {
 		CALL {
 			WITH this0, this0_photos_connect0_node
 			OPTIONAL MATCH (this0_photos_connect0_node_color0_node:Color)
-			WHERE this0_photos_connect0_node_color0_node.name = $this0_photos_connect0_node_color0_node_param0
+			WHERE this0_photos_connect0_node_color0_node.name = $this0_photos_connect0_node_color0_nodeparam0
 			CALL {
 				WITH *
-				WITH this0, collect(this0_photos_connect0_node_color0_node) AS connectedNodes, collect(this0_photos_connect0_node) AS parentNodes
+				WITH collect(this0_photos_connect0_node_color0_node) AS connectedNodes, collect(this0_photos_connect0_node) AS parentNodes
 				CALL {
 					WITH connectedNodes, parentNodes
 					UNWIND parentNodes AS this0_photos_connect0_node
@@ -198,7 +196,6 @@ CALL {
 				CALL apoc.util.validate(NOT (c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDPhoto.color required', [0])
 				RETURN c AS this0_photos_connect0_node_color_Color_unique_ignored
 			}
-			WITH this0, this0_photos_connect0_node, this0_photos_connect0_node_color0_node
 			RETURN count(*) AS connect_this0_photos_connect0_node_color_Color
 		}
 		RETURN count(*) AS connect_this0_photos_connect_Photo
@@ -207,7 +204,7 @@ CALL {
 	CALL {
 		WITH this0
 		OPTIONAL MATCH (this0_photos_connect1_node:Photo)
-		WHERE this0_photos_connect1_node.id = $this0_photos_connect1_node_param0
+		WHERE this0_photos_connect1_node.id = $this0_photos_connect1_nodeparam0
 		CALL {
 			WITH *
 			WITH collect(this0_photos_connect1_node) AS connectedNodes, collect(this0) AS parentNodes
@@ -224,10 +221,10 @@ CALL {
 		CALL {
 			WITH this0, this0_photos_connect1_node
 			OPTIONAL MATCH (this0_photos_connect1_node_color0_node:Color)
-			WHERE this0_photos_connect1_node_color0_node.name = $this0_photos_connect1_node_color0_node_param0
+			WHERE this0_photos_connect1_node_color0_node.name = $this0_photos_connect1_node_color0_nodeparam0
 			CALL {
 				WITH *
-				WITH this0, collect(this0_photos_connect1_node_color0_node) AS connectedNodes, collect(this0_photos_connect1_node) AS parentNodes
+				WITH collect(this0_photos_connect1_node_color0_node) AS connectedNodes, collect(this0_photos_connect1_node) AS parentNodes
 				CALL {
 					WITH connectedNodes, parentNodes
 					UNWIND parentNodes AS this0_photos_connect1_node
@@ -245,7 +242,6 @@ CALL {
 				CALL apoc.util.validate(NOT (c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDPhoto.color required', [0])
 				RETURN c AS this0_photos_connect1_node_color_Color_unique_ignored
 			}
-			WITH this0, this0_photos_connect1_node, this0_photos_connect1_node_color0_node
 			RETURN count(*) AS connect_this0_photos_connect1_node_color_Color
 		}
 		RETURN count(*) AS connect_this0_photos_connect_Photo

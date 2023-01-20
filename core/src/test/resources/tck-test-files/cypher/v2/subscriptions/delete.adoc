@@ -42,23 +42,21 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "1",
-  "this_deleteMovies": {
-    "args": {
-      "delete": {
-        "actors": [
-          {
-            "where": {
-              "node": {
-                "name": "1"
-              }
+  "param0" : "1",
+  "this_deleteMovies" : {
+    "args" : {
+      "delete" : {
+        "actors" : [ {
+          "where" : {
+            "node" : {
+              "name" : "1"
             }
           }
-        ]
+        } ]
       }
     }
   },
-  "this_deleteMovies_args_delete_actors0_where_Actorparam0": "1"
+  "this_deleteMovies_args_delete_actors0_where_Actorparam0" : "1"
 }
 ----
 
@@ -148,7 +146,7 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "1"
+  "param0" : "1"
 }
 ----
 
@@ -238,47 +236,41 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "123",
-  "this_deleteMovies": {
-    "args": {
-      "delete": {
-        "actors": [
-          {
-            "where": {
-              "node": {
-                "name": "Actor to delete"
-              }
-            },
-            "delete": {
-              "movies": [
-                {
-                  "where": {
-                    "node": {
-                      "id": "321"
-                    }
-                  },
-                  "delete": {
-                    "actors": [
-                      {
-                        "where": {
-                          "node": {
-                            "name": "Another actor to delete"
-                          }
-                        }
-                      }
-                    ]
-                  }
-                }
-              ]
+  "param0" : "123",
+  "this_deleteMovies" : {
+    "args" : {
+      "delete" : {
+        "actors" : [ {
+          "where" : {
+            "node" : {
+              "name" : "Actor to delete"
             }
+          },
+          "delete" : {
+            "movies" : [ {
+              "where" : {
+                "node" : {
+                  "id" : "321"
+                }
+              },
+              "delete" : {
+                "actors" : [ {
+                  "where" : {
+                    "node" : {
+                      "name" : "Another actor to delete"
+                    }
+                  }
+                } ]
+              }
+            } ]
           }
-        ]
+        } ]
       }
     }
   },
-  "this_deleteMovies_args_delete_actors0_where_Actorparam0": "Actor to delete",
-  "this_deleteMovies_args_delete_actors0_delete_movies0_where_Movieparam0": "321",
-  "this_deleteMovies_args_delete_actors0_delete_movies0_delete_actors0_where_Actorparam0": "Another actor to delete"
+  "this_deleteMovies_args_delete_actors0_delete_movies0_delete_actors0_where_Actorparam0" : "Another actor to delete",
+  "this_deleteMovies_args_delete_actors0_delete_movies0_where_Movieparam0" : "321",
+  "this_deleteMovies_args_delete_actors0_where_Actorparam0" : "Actor to delete"
 }
 ----
 

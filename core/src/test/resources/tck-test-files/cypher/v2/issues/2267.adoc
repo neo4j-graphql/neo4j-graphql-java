@@ -52,7 +52,7 @@ type Story implements Publication {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output

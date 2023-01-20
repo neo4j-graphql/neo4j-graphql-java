@@ -63,19 +63,15 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "123",
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "id-01"
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "id-01"
     }
-  }
+  },
+  "param0" : "123"
 }
 ----
 
@@ -127,7 +123,7 @@ DETACH DELETE this
 [source,json]
 ----
 {
-  "param0": "id-01"
+  "param0" : "id-01"
 }
 ----
 

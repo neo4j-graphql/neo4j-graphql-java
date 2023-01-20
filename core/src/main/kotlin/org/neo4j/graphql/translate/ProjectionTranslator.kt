@@ -8,6 +8,7 @@ import org.neo4j.graphql.domain.fields.*
 import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.schema.model.inputs.WhereInput
 import org.neo4j.graphql.schema.model.inputs.field_arguments.RelationFieldInputArgs
+import org.neo4j.graphql.schema.model.inputs.options.OptionsInput
 import org.neo4j.graphql.translate.connection_clause.CreateConnectionClause
 import org.neo4j.graphql.translate.field_aggregation.CreateFieldAggregation
 import org.neo4j.graphql.translate.projection.createInterfaceProjectionAndParams
@@ -40,10 +41,14 @@ class ProjectionTranslator {
         val selectedFields =
             resolveTree?.fieldsByTypeName?.get(node.name) ?: return Projection(projection = projections)
 
+        val options = resolveTree.args.nestedDict(Constants.OPTIONS)?.let { OptionsInput.create(it) }
+
         val mergedFields = selectedFields + generateMissingOrAliasedRequiredFields(node, selectedFields)
 
         var authValidate: Condition? = null
         val subQueries = mutableListOf<Statement>()
+        val subQueriesBeforeSort = mutableListOf<Statement>()
+        val sortFields = mutableMapOf<String, Expression>()
 
         mergedFields.values.forEach { field ->
             val alias = field.aliasOrName
@@ -69,8 +74,20 @@ class ProjectionTranslator {
             }
 
             if (nodeField is CypherField) {
-                projections += alias
-                projections += projectCypherField(field, nodeField, varName)
+
+                val resultReference = Cypher.name(param.resolveName())
+
+                val customCypherStatement =
+                    projectCypherField(field, nodeField, varName, resultReference, queryContext, schemaConfig)
+
+                if (options?.sort?.find { it.containsKey(field.name) } != null) {
+                    sortFields[field.name] = resultReference
+                    subQueriesBeforeSort += customCypherStatement
+                } else {
+                    subQueries += customCypherStatement
+                }
+                projections += field.aliasOrName
+                projections += resultReference
                 return@forEach
             }
 
@@ -169,11 +186,8 @@ class ProjectionTranslator {
                         queryContext,
                         ChainString(schemaConfig, varName, nodeField)
                     )
-                    val rel = nodeField.createDslRelation(varName, endNode).named(
-                        queryContext.getNextVariable(
-                            ChainString(schemaConfig, varName)
-                        )
-                    )
+                    val rel = nodeField.createQueryDslRelation(varName, endNode, arguments.directed)
+                        .named(queryContext.getNextVariable(ChainString(schemaConfig, varName)))
 
                     //TODO harmonize with union?
                     val recurse = createProjectionAndParams(
@@ -203,9 +217,9 @@ class ProjectionTranslator {
                         Cypher.with(varName)
                             .match(rel)
                             .optionalWhere(nodeWhere)
-                            .withSubQueries(recurse.subQueries + nodeSubQueries)
+                            .withSubQueries(recurse.allSubQueries + nodeSubQueries)
                             .with(endNode.project(recurse.projection).`as`(ref))
-                            .applySortingSkipAndLimit(endNode, arguments.options, queryContext)
+                            .applySortingSkipAndLimit(endNode, arguments.options, recurse.sortFields, queryContext)
                             .returning(Functions.collect(ref)
                                 .let { collect -> if (isArray) collect else Functions.head(collect) }
                                 .`as`(ref)
@@ -256,7 +270,7 @@ class ProjectionTranslator {
             }
 
         }
-        return Projection(subQueries, projections, authValidate)
+        return Projection(projections, authValidate, subQueries, subQueriesBeforeSort, sortFields)
     }
 
     private fun generateMissingOrAliasedRequiredFields(
@@ -307,10 +321,14 @@ class ProjectionTranslator {
         return WhereResult(condition, subQueries)
     }
 
-    data class Projection(
-        val subQueries: List<Statement> = emptyList(),
+    class Projection(
         val projection: List<Any> = emptyList(),
         val authValidate: Condition? = null,
-    )
+        val subQueries: List<Statement> = emptyList(),
+        val subQueriesBeforeSort: List<Statement> = emptyList(),
+        val sortFields: Map<String, Expression> = emptyMap(),
+    ) {
+        val allSubQueries get() = subQueriesBeforeSort + subQueries
+    }
 
 }

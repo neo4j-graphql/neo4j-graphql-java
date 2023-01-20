@@ -37,8 +37,8 @@ type Movie @fulltext(indexes: [{name: "MovieTitle", fields: ["title"]}]) {
 [source,json]
 ----
 {
-  "param0": "something AND something",
-  "param1": "some-title"
+  "param0" : "something AND something",
+  "param1" : "some-title"
 }
 ----
 
@@ -71,7 +71,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "something AND something"
+  "param0" : "something AND something"
 }
 ----
 

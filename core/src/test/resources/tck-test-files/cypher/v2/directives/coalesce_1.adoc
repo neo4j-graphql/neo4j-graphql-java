@@ -63,13 +63,13 @@ query ($id: ID, $name: String, $verified: Boolean, $numberOfFriends: Int, $ratin
 [source,json]
 ----
 {
-  "param0": "Some ID",
-  "param1": "Some name",
-  "param2": true,
-  "param3": 10,
-  "param4": 3.5,
-  "param5": "Some string",
-  "param6": "Some string"
+  "param0" : "Some ID",
+  "param1" : "Some name",
+  "param2" : true,
+  "param3" : 10,
+  "param4" : 3.5,
+  "param5" : "Some string",
+  "param6" : "Some string"
 }
 ----
 

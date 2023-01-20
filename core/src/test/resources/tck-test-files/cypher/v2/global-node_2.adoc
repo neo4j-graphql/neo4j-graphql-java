@@ -55,7 +55,7 @@ query Node($id: ID!) {
 [source,json]
 ----
 {
-  "param0": "123455"
+  "param0" : "123455"
 }
 ----
 
@@ -98,7 +98,7 @@ query ($where: ActorWhere!) {
 [source,json]
 ----
 {
-  "param0": "12345"
+  "param0" : "12345"
 }
 ----
 

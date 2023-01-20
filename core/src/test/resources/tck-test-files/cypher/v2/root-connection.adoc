@@ -47,7 +47,7 @@ type Actor {
 [source,json]
 ----
 {
-  "param0": 20
+  "param0" : 20
 }
 ----
 
@@ -98,8 +98,8 @@ RETURN {
 [source,json]
 ----
 {
-  "param0": "Matrix",
-  "param1": 20
+  "param0" : "Matrix",
+  "param1" : 20
 }
 ----
 
@@ -155,7 +155,7 @@ RETURN {
 [source,json]
 ----
 {
-  "param0": 20
+  "param0" : 20
 }
 ----
 
@@ -219,7 +219,7 @@ RETURN {
 [source,json]
 ----
 {
-  "param0": "River Runs Through It, A"
+  "param0" : "River Runs Through It, A"
 }
 ----
 

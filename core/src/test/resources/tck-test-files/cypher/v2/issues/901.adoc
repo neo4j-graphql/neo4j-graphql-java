@@ -80,10 +80,10 @@ query ($where: SeriesWhere) {
 [source,json]
 ----
 {
-  "param0": true,
-  "param1": "abc",
-  "param2": true,
-  "param3": "smart"
+  "param0" : true,
+  "param1" : "abc",
+  "param2" : true,
+  "param3" : "smart"
 }
 ----
 

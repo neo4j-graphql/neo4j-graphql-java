@@ -31,8 +31,11 @@ class CreateTranslator(
 
         var authConditions: Condition? = null
         input?.properties?.let { properties ->
-            createSetProperties(dslNode, properties, Operation.CREATE, node, schemaConfig, queryContext)
-                ?.let { create = create.set(it) }
+            createSetPropertiesSplit(
+                dslNode, properties, Operation.CREATE, node, schemaConfig, queryContext,
+                paramPrefix = ChainString(schemaConfig, dslNode)
+            )
+                ?.map { (prop, value) -> create = create.set(prop, value) }
 
             properties.keys.forEach { field ->
                 if (field.auth != null) {
@@ -106,16 +109,18 @@ class CreateTranslator(
                     val edgeField = create.edge
                     val nestedInput = when (create) {
                         is RelationFieldInput.NodeCreateCreateFieldInput -> create.node
-                        is RelationFieldInput.InterfaceCreateFieldInput -> create.node.getDataForNode(refNode)
+                        is RelationFieldInput.InterfaceCreateFieldInput -> create.node?.getDataForNode(refNode)
                     }
-
-                    val baseName = varNameKey.extend(index, unionTypeName)
+                    if (field.isInterface && nestedInput == null) {
+                        return@let
+                    }
+                    val baseName = varNameKey.appendOnPrevious(refNode.takeIf { field.isInterface }, index)
                     val refDslNode = refNode.asCypherNode(queryContext, baseName.extend("node"))
 
                     val propertiesName = baseName.extend("relationship")
                         .takeIf { field.properties != null }
 
-                    val dslRelation = field.createDslRelation(dslNode, refDslNode, propertiesName)
+                    val dslRelation = field.createDslRelation(dslNode, refDslNode, propertiesName, startLeft = true)
                     resultExposeWith = createCreateAndParams(
                         refNode,
                         refDslNode,
@@ -175,7 +180,6 @@ class CreateTranslator(
             (v as? CreateFieldInput.NodeFieldInput)?.connectOrCreate?.let { connectOrCreate ->
                 resultExposeWith = createConnectOrCreate(
                     connectOrCreate,
-                    varNameKey.extend(unionTypeName, "connectOrCreate"),
                     dslNode,
                     field,
                     refNode,

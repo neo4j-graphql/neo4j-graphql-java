@@ -56,16 +56,13 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0": [
-    {
-      "title": "Forrest Gump"
-    },
-    {
-      "title": "Toy Story"
-    }
-  ],
-  "projection_connection_actorsConnectionparam0": "Tom Hanks",
-  "resolvedCallbacks": {}
+  "create_param0" : [ {
+    "title" : "Forrest Gump"
+  }, {
+    "title" : "Toy Story"
+  } ],
+  "projection_connection_actorsConnectionparam0" : "Tom Hanks",
+  "resolvedCallbacks" : { }
 }
 ----
 
@@ -130,15 +127,12 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0": [
-    {
-      "title": "Forrest Gump"
-    },
-    {
-      "title": "Toy Story"
-    }
-  ],
-  "resolvedCallbacks": {}
+  "create_param0" : [ {
+    "title" : "Forrest Gump"
+  }, {
+    "title" : "Toy Story"
+  } ],
+  "resolvedCallbacks" : { }
 }
 ----
 
@@ -202,12 +196,10 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0": [
-    {
-      "title": "Forrest Gump"
-    }
-  ],
-  "resolvedCallbacks": {}
+  "create_param0" : [ {
+    "title" : "Forrest Gump"
+  } ],
+  "resolvedCallbacks" : { }
 }
 ----
 

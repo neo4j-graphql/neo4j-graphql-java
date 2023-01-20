@@ -41,8 +41,8 @@ type Post {
 [source,json]
 ----
 {
-  "param0": 10,
-  "param1": 20
+  "param0" : 10,
+  "param1" : 20
 }
 ----
 
@@ -83,10 +83,10 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": 10,
-  "param1": 20,
-  "param2": 10,
-  "param3": 20
+  "param0" : 10,
+  "param1" : 20,
+  "param2" : 10,
+  "param3" : 20
 }
 ----
 
@@ -127,8 +127,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": 10,
-  "param1": 20
+  "param0" : 10,
+  "param1" : 20
 }
 ----
 

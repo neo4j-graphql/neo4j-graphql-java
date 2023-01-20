@@ -49,8 +49,8 @@ type UserDemographics {
 [source,json]
 ----
 {
-  "param0": "Gender",
-  "param1": "Female"
+  "param0" : "Gender",
+  "param1" : "Female"
 }
 ----
 
@@ -102,10 +102,10 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "Gender",
-  "param1": "Female",
-  "param2": "State",
-  "param3": "Age"
+  "param0" : "Gender",
+  "param1" : "Female",
+  "param2" : "State",
+  "param3" : "Age"
 }
 ----
 

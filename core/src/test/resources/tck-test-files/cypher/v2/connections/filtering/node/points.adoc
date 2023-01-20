@@ -61,12 +61,12 @@ interface ActedIn {
 [source,json]
 ----
 {
-  "this_connection_actorsConnectionparam0": {
-    "point": {
-      "longitude": 1,
-      "latitude": 2
+  "this_connection_actorsConnectionparam0" : {
+    "point" : {
+      "longitude" : 1,
+      "latitude" : 2
     },
-    "distance": 3
+    "distance" : 3
   }
 }
 ----

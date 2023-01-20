@@ -54,7 +54,7 @@ interface ActedIn {
 [source,json]
 ----
 {
-  "this_connection_actorsConnectionparam0": "Tom"
+  "this_connection_actorsConnectionparam0" : "Tom"
 }
 ----
 
@@ -111,7 +111,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "this_connection_actorsConnectionparam0": "Hanks"
+  "this_connection_actorsConnectionparam0" : "Hanks"
 }
 ----
 
@@ -168,7 +168,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "this_connection_actorsConnectionparam0": "Tom.+"
+  "this_connection_actorsConnectionparam0" : "Tom.+"
 }
 ----
 
@@ -225,7 +225,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "this_connection_actorsConnectionparam0": "Tom"
+  "this_connection_actorsConnectionparam0" : "Tom"
 }
 ----
 
@@ -282,7 +282,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "this_connection_actorsConnectionparam0": "Hanks"
+  "this_connection_actorsConnectionparam0" : "Hanks"
 }
 ----
 
@@ -339,7 +339,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "this_connection_actorsConnectionparam0": "Tom"
+  "this_connection_actorsConnectionparam0" : "Tom"
 }
 ----
 
@@ -396,7 +396,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "this_connection_actorsConnectionparam0": "Tom"
+  "this_connection_actorsConnectionparam0" : "Tom"
 }
 ----
 

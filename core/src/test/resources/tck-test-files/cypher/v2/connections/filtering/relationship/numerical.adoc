@@ -54,7 +54,7 @@ interface ActedIn {
 [source,json]
 ----
 {
-  "this_connection_actorsConnectionparam0": 60
+  "this_connection_actorsConnectionparam0" : 60
 }
 ----
 
@@ -111,7 +111,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "this_connection_actorsConnectionparam0": 60
+  "this_connection_actorsConnectionparam0" : 60
 }
 ----
 
@@ -168,7 +168,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "this_connection_actorsConnectionparam0": 60
+  "this_connection_actorsConnectionparam0" : 60
 }
 ----
 
@@ -225,7 +225,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "this_connection_actorsConnectionparam0": 60
+  "this_connection_actorsConnectionparam0" : 60
 }
 ----
 

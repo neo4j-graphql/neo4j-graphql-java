@@ -77,11 +77,11 @@ type MasterData {
 [source,json]
 ----
 {
-  "param0": true,
-  "param1": "MHA",
-  "this_connection_mainConnectionparam0": true,
-  "this_Series_connection_architectureConnectionparam0": true,
-  "this_Series_MasterData_connection_nameDetailsConnectionparam0": true
+  "param0" : true,
+  "param1" : "MHA",
+  "this_Series_MasterData_connection_nameDetailsConnectionparam0" : true,
+  "this_Series_connection_architectureConnectionparam0" : true,
+  "this_connection_mainConnectionparam0" : true
 }
 ----
 

@@ -53,7 +53,10 @@ data class Model(
                 node.interfaces.forEach {
                     implementations.computeIfAbsent(it) { mutableListOf() }.add(node)
                 }
-                node.cypherFields.forEach { it.node = nodesByName[it.typeMeta.type.name()] }
+                node.cypherFields.forEach { field ->
+                    field.node = nodesByName[field.typeMeta.type.name()]
+                    field.union = Union.create(field.typeMeta.type.name(), field.unionNodeNames, nodesByName)
+                }
             }
             implementations.forEach { (interfaze, impls) ->
                 interfaze.implementations = impls.sortedBy { it.name }.map { it.name to it }.toMap()
@@ -66,12 +69,7 @@ data class Model(
 
         private fun initRelations(type: ImplementingType, nodesByName: Map<String, Node>) {
             type.relationFields.forEach { field ->
-                field.union = field.unionNodeNames
-                    .mapNotNull { nodesByName[it] }
-                    .sortedBy { it.name }
-                    .map { it.name to it }
-                    .takeIf { it.isNotEmpty() }
-                    ?.let { Union(field.typeMeta.type.name(), it.toMap()) }
+                field.union = Union.create(field.typeMeta.type.name(), field.unionNodeNames, nodesByName)
                 field.node = nodesByName[field.typeMeta.type.name()]
             }
         }

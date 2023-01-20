@@ -75,20 +75,20 @@ mutation {
 [source,json]
 ----
 {
-  "this0_id": "1",
-  "this0_workersActor0_node_id": "1",
-  "this0_workersActor0_node_name": "actor 1",
-  "this0_workersActor0_relationship_year": 2022,
-  "this1_id": "2",
-  "this1_workersActor0_node_id": "2",
-  "this1_workersActor0_node_name": "actor 2",
-  "this1_workersActor0_relationship_year": 2022,
-  "this2_id": "3",
-  "this2_website0_node_address": "mywebsite.com",
-  "this3_id": "4",
-  "this3_workers_connect0_node_param0": "2",
-  "this3_workers_connect1_node_param0": "2",
-  "resolvedCallbacks": {}
+  "resolvedCallbacks" : { },
+  "this0_id" : "1",
+  "this0_workersActor0_node_id" : "1",
+  "this0_workersActor0_node_name" : "actor 1",
+  "this0_workersActor0_relationship_year" : 2022,
+  "this1_id" : "2",
+  "this1_workersActor0_node_id" : "2",
+  "this1_workersActor0_node_name" : "actor 2",
+  "this1_workersActor0_relationship_year" : 2022,
+  "this2_id" : "3",
+  "this2_website0_node_address" : "mywebsite.com",
+  "this3_id" : "4",
+  "this3_workers_connect0_node_param0" : "2",
+  "this3_workers_connect1_node_param0" : "2"
 }
 ----
 
@@ -370,15 +370,15 @@ mutation {
 [source,json]
 ----
 {
-  "this0_id": "1",
-  "this0_workersActor0_node_id": "1",
-  "this0_workersActor0_node_name": "actor 1",
-  "this0_workersActor0_relationship_year": 2022,
-  "this1_id": "2",
-  "this1_workersModeler0_node_id": "2",
-  "this1_workersModeler0_node_name": "modeler 1",
-  "this1_workersModeler0_relationship_year": 2022,
-  "resolvedCallbacks": {}
+  "resolvedCallbacks" : { },
+  "this0_id" : "1",
+  "this0_workersActor0_node_id" : "1",
+  "this0_workersActor0_node_name" : "actor 1",
+  "this0_workersActor0_relationship_year" : 2022,
+  "this1_id" : "2",
+  "this1_workersModeler0_node_id" : "2",
+  "this1_workersModeler0_node_name" : "modeler 1",
+  "this1_workersModeler0_relationship_year" : 2022
 }
 ----
 
@@ -506,15 +506,12 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0": [
-    {
-      "id": "1"
-    },
-    {
-      "id": "2"
-    }
-  ],
-  "resolvedCallbacks": {}
+  "create_param0" : [ {
+    "id" : "1"
+  }, {
+    "id" : "2"
+  } ],
+  "resolvedCallbacks" : { }
 }
 ----
 

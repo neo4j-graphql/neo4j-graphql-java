@@ -28,7 +28,7 @@ object RelationshipValidationTranslator {
         val (predicate, errorMessage) = if (field.typeMeta.type.isRequired()) {
             c.eq(1.asCypherLiteral()) to "${RELATIONSHIP_REQUIREMENT_PREFIX}${node.name}.${field.fieldName} required"
         } else {
-            c.lte(1.asCypherLiteral()) to "${RELATIONSHIP_REQUIREMENT_PREFIX}${node.name}.${field.fieldName} required"
+            c.lte(1.asCypherLiteral()) to "${RELATIONSHIP_REQUIREMENT_PREFIX}${node.name}.${field.fieldName} must be less than or equal to one"
         }
         val relVarName = ChainString(schemaConfig, varName, field, toNode, "unique")
         val dslRelation = field.createDslRelation(varName, toNode.asCypherNode(context), relVarName, startLeft = true)

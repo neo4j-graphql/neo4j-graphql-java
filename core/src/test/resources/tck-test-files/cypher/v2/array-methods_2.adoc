@@ -42,11 +42,9 @@ mutation {
 [source,json]
 ----
 {
-  "this_update_ratings_PUSH": [
-    1.5
-  ],
-  "this_update_scores_POP": 1,
-  "resolvedCallbacks": {}
+  "resolvedCallbacks" : { },
+  "this_update_ratings_PUSH" : [ 1.5 ],
+  "this_update_scores_POP" : 1
 }
 ----
 
@@ -87,9 +85,9 @@ mutation {
 [source,json]
 ----
 {
-  "this_update_ratings_POP": 1,
-  "this_update_scores_POP": 1,
-  "resolvedCallbacks": {}
+  "resolvedCallbacks" : { },
+  "this_update_ratings_POP" : 1,
+  "this_update_scores_POP" : 1
 }
 ----
 
@@ -130,13 +128,9 @@ mutation {
 [source,json]
 ----
 {
-  "this_update_ratings_PUSH": [
-    1
-  ],
-  "this_update_scores_PUSH": [
-    1
-  ],
-  "resolvedCallbacks": {}
+  "resolvedCallbacks" : { },
+  "this_update_ratings_PUSH" : [ 1 ],
+  "this_update_scores_PUSH" : [ 1 ]
 }
 ----
 

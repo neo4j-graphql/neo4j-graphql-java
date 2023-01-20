@@ -134,7 +134,10 @@ class AuthTranslator(
         // TODO can we optimize this apoc call?
         return ApocFunctions.util
             .validatePredicate(
-                Cypher.parameter("auth.isAuthenticated", queryContext.auth) // TODO optimize compile time check
+                Cypher.parameter(
+                    "auth.isAuthenticated",
+                    queryContext.auth?.isAuthenticated
+                ) // TODO optimize compile time check
                     .eq(authRule.isAuthenticated.asCypherLiteral()).not(),
                 AUTH_UNAUTHENTICATED_ERROR.asCypherLiteral(),
                 Cypher.listOf(0.asCypherLiteral())

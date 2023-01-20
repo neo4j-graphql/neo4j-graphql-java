@@ -82,7 +82,7 @@ fun createInterfaceProjectionAndParams(
             .with(fullWithVars)
             .match(pattern)
             .optionalWhere(predicates)
-            .withSubQueries(whereSubQueries + recurse.subQueries)
+            .withSubQueries(whereSubQueries + recurse.allSubQueries)
             .returning(Cypher.mapOf(*recurse.projection.toTypedArray()).`as`(returnVariable))
             .build()
     }

@@ -43,17 +43,13 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0": [
-    {
-      "points": [
-        {
-          "longitude": 1,
-          "latitude": 2
-        }
-      ]
-    }
-  ],
-  "resolvedCallbacks": {}
+  "create_param0" : [ {
+    "points" : [ {
+      "longitude" : 1,
+      "latitude" : 2
+    } ]
+  } ],
+  "resolvedCallbacks" : { }
 }
 ----
 
@@ -97,9 +93,9 @@ RETURN collect(create_this0 {
 [source,json]
 ----
 {
-  "param0": {
-    "longitude": 1,
-    "latitude": 2
+  "param0" : {
+    "longitude" : 1,
+    "latitude" : 2
   }
 }
 ----
@@ -139,9 +135,9 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": {
-    "longitude": 1,
-    "latitude": 2
+  "param0" : {
+    "longitude" : 1,
+    "latitude" : 2
   }
 }
 ----
@@ -180,12 +176,10 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": [
-    {
-      "longitude": 1,
-      "latitude": 2
-    }
-  ]
+  "param0" : [ {
+    "longitude" : 1,
+    "latitude" : 2
+  } ]
 }
 ----
 
@@ -223,12 +217,10 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": [
-    {
-      "longitude": 1,
-      "latitude": 2
-    }
-  ]
+  "param0" : [ {
+    "longitude" : 1,
+    "latitude" : 2
+  } ]
 }
 ----
 
@@ -272,14 +264,12 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "id",
-  "this_update_points": [
-    {
-      "longitude": 1,
-      "latitude": 2
-    }
-  ],
-  "resolvedCallbacks": {}
+  "param0" : "id",
+  "resolvedCallbacks" : { },
+  "this_update_points" : [ {
+    "longitude" : 1,
+    "latitude" : 2
+  } ]
 }
 ----
 

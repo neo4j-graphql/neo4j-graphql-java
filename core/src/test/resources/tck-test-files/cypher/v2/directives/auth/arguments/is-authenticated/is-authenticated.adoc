@@ -62,6 +62,9 @@ mutation {
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true
+  },
   "contextParams": {
     "jwt": {
       "roles": [
@@ -77,19 +80,7 @@ mutation {
 [source,json]
 ----
 {
-  "resolvedCallbacks": {},
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "super_admin"
-    }
-  }
+  "auth.isAuthenticated" : true
 }
 ----
 
@@ -116,10 +107,8 @@ CALL {
 		}
 		RETURN count(*) AS _
 	}
-	WITH this, this_connect_posts0_node
 	RETURN count(*) AS connect_this_connect_posts_Post
 }
-WITH *
 RETURN collect(DISTINCT this {
 	.id
 }) AS data
@@ -145,6 +134,9 @@ mutation {
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true
+  },
   "contextParams": {
     "jwt": {
       "roles": [
@@ -160,24 +152,18 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0": [
-    {
-      "id": "1"
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "super_admin"
     }
-  ],
-  "resolvedCallbacks": {},
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "super_admin"
-    }
-  }
+  },
+  "create_param0" : [ {
+    "id" : "1"
+  } ],
+  "resolvedCallbacks" : { }
 }
 ----
 
@@ -218,6 +204,9 @@ mutation {
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true
+  },
   "contextParams": {
     "jwt": {
       "roles": [
@@ -233,25 +222,19 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0": [
-    {
-      "id": "1",
-      "password": "super-password"
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ],
+      "sub" : "super_admin"
     }
-  ],
-  "resolvedCallbacks": {},
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "super_admin"
-    }
-  }
+  },
+  "create_param0" : [ {
+    "id" : "1",
+    "password" : "super-password"
+  } ],
+  "resolvedCallbacks" : { }
 }
 ----
 
@@ -293,6 +276,9 @@ mutation {
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true
+  },
   "contextParams": {
     "jwt": {
       "roles": [
@@ -308,18 +294,7 @@ mutation {
 [source,json]
 ----
 {
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "super_admin"
-    }
-  }
+  "auth.isAuthenticated" : true
 }
 ----
 
@@ -352,6 +327,9 @@ mutation {
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true
+  },
   "contextParams": {
     "jwt": {
       "roles": [
@@ -367,28 +345,7 @@ mutation {
 [source,json]
 ----
 {
-  "updateUsers": {
-    "args": {
-      "disconnect": {
-        "posts": [
-          {}
-        ]
-      }
-    }
-  },
-  "resolvedCallbacks": {},
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "super_admin"
-    }
-  }
+  "auth.isAuthenticated" : true
 }
 ----
 
@@ -396,7 +353,6 @@ mutation {
 [source,cypher]
 ----
 MATCH (this:User)
-WITH this
 CALL {
 	WITH this
 	OPTIONAL MATCH (this)-[this_disconnect_posts0_rel:HAS_POST]->(this_disconnect_posts0:Post)
@@ -412,7 +368,6 @@ CALL {
 	}
 	RETURN count(*) AS disconnect_this_disconnect_posts_Post
 }
-WITH *
 RETURN collect(DISTINCT this {
 	.id
 }) AS data
@@ -436,6 +391,9 @@ mutation {
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true
+  },
   "contextParams": {
     "jwt": {
       "roles": [
@@ -451,18 +409,7 @@ mutation {
 [source,json]
 ----
 {
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "super_admin"
-    }
-  }
+  "auth.isAuthenticated" : true
 }
 ----
 
@@ -505,6 +452,9 @@ DETACH DELETE this
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true
+  },
   "contextParams": {
     "jwt": {
       "roles": [
@@ -520,18 +470,7 @@ DETACH DELETE this
 [source,json]
 ----
 {
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "super_admin"
-    }
-  }
+  "auth.isAuthenticated" : true
 }
 ----
 
@@ -566,6 +505,9 @@ RETURN this {
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true
+  },
   "contextParams": {
     "jwt": {
       "roles": [
@@ -581,18 +523,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "super_admin"
-    }
-  }
+  "auth.isAuthenticated" : true
 }
 ----
 
@@ -604,10 +535,11 @@ WHERE apoc.util.validatePredicate(NOT (apoc.util.validatePredicate(NOT ($auth.is
 CALL apoc.util.validate(NOT (apoc.util.validatePredicate(NOT ($auth.isAuthenticated = true), '@neo4j/graphql/UNAUTHENTICATED', [0])), '@neo4j/graphql/FORBIDDEN', [0])
 CALL {
 	WITH this
-	UNWIND apoc.cypher.runFirstColumnMany('MATCH (this)-[:HAS_HISTORY]->(h:History) RETURN h', {
-		this: this,
-		auth: $auth
-	}) AS this_history
+	CALL {
+		WITH this
+		WITH this AS this
+		MATCH (this)-[:HAS_HISTORY]->(h:History) RETURN h AS this_history
+	}
 	RETURN collect(this_history {
 		.url
 	}) AS this_history
@@ -637,6 +569,9 @@ RETURN this {
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true
+  },
   "contextParams": {
     "jwt": {
       "roles": [
@@ -652,18 +587,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "super_admin"
-    }
-  }
+  "auth.isAuthenticated" : true
 }
 ----
 
@@ -700,6 +624,9 @@ mutation {
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true
+  },
   "contextParams": {
     "jwt": {
       "roles": [
@@ -715,21 +642,9 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "1",
-  "this_update_id": "id-1",
-  "resolvedCallbacks": {},
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "super_admin"
-    }
-  }
+  "auth.isAuthenticated" : true,
+  "param0" : "1",
+  "this_update_id" : "id-1"
 }
 ----
 
@@ -766,6 +681,9 @@ mutation {
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true
+  },
   "contextParams": {
     "jwt": {
       "roles": [
@@ -781,21 +699,9 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "1",
-  "this_update_password": "password",
-  "resolvedCallbacks": {},
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "super_admin"
-    }
-  }
+  "auth.isAuthenticated" : true,
+  "param0" : "1",
+  "this_update_password" : "password"
 }
 ----
 

@@ -97,21 +97,17 @@ query getDrivesWithFilteredUnionType {
 [source,json]
 ----
 {
-  "param0": true,
-  "this_connection_driveCompositionsConnectionparam0": true,
-  "this_DriveComposition_connection_driveComponentConnectionparam0": true,
-  "this_DriveComposition_connection_driveComponentConnectionparam2": true,
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ],
-    "jwt": {
-      "roles": [
-        "admin"
-      ]
+  "auth" : {
+    "isAuthenticated" : true,
+    "roles" : [ "admin" ],
+    "jwt" : {
+      "roles" : [ "admin" ]
     }
-  }
+  },
+  "param0" : true,
+  "this_DriveComposition_connection_driveComponentConnectionparam0" : true,
+  "this_DriveComposition_connection_driveComponentConnectionparam2" : true,
+  "this_connection_driveCompositionsConnectionparam0" : true
 }
 ----
 

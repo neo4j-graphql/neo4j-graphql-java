@@ -58,24 +58,20 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0": [
-    {
-      "title": "Forrest Gump",
-      "actors": {
-        "create": [
-          {
-            "node": {
-              "name": "Tom Hanks"
-            },
-            "edge": {
-              "screenTime": 60
-            }
-          }
-        ]
-      }
+  "create_param0" : [ {
+    "title" : "Forrest Gump",
+    "actors" : {
+      "create" : [ {
+        "node" : {
+          "name" : "Tom Hanks"
+        },
+        "edge" : {
+          "screenTime" : 60
+        }
+      } ]
     }
-  ],
-  "resolvedCallbacks": {}
+  } ],
+  "resolvedCallbacks" : { }
 }
 ----
 

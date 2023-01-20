@@ -33,7 +33,6 @@ class NamingStrategy {
                     is Node -> value.name
                     is ResolveTree -> value.aliasOrName
                     null -> return@fold result
-                    is Number -> return@fold result + value
                     else -> value.toString()
                 }
                 if (string.isNullOrBlank()) {

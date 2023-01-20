@@ -102,8 +102,9 @@ class ReadResolver private constructor(
 
         val mapProjection = dslNode.project(projection.projection).`as`(dslNode.requiredSymbolicName)
         return ongoingReading
+            .withSubQueries(projection.subQueriesBeforeSort)
+            .applySortingSkipAndLimit(dslNode, optionsInput, projection.sortFields, queryContext)
             .withSubQueries(projection.subQueries)
-            .applySortingSkipAndLimit(dslNode, optionsInput, queryContext)
             .returning(mapProjection)
             .build()
     }

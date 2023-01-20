@@ -38,7 +38,7 @@ type Movie {
 [source,json]
 ----
 {
-  "param0": "River Runs Through It, A"
+  "param0" : "River Runs Through It, A"
 }
 ----
 
@@ -80,7 +80,7 @@ query ($title: String) {
 [source,json]
 ----
 {
-  "param0": "some title"
+  "param0" : "some title"
 }
 ----
 
@@ -113,7 +113,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0": "River Runs Through It, A"
+  "param0" : "River Runs Through It, A"
 }
 ----
 

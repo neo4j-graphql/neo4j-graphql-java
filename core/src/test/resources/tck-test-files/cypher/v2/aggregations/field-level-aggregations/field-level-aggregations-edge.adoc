@@ -55,7 +55,7 @@ interface ActedIn {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output

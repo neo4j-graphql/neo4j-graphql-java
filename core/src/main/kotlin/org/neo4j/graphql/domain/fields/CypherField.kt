@@ -3,6 +3,7 @@ package org.neo4j.graphql.domain.fields
 import org.neo4j.graphql.Constants
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.TypeMeta
+import org.neo4j.graphql.domain.Union
 import org.neo4j.graphql.isList
 import org.neo4j.graphql.name
 
@@ -13,12 +14,15 @@ class CypherField(
     fieldName: String,
     typeMeta: TypeMeta,
     val statement: String,
+    val resultAlias: String?,
+    val unionNodeNames: List<String>,
 ) : BaseField(
     fieldName, typeMeta
 ), AuthableField {
     fun isSortable() = !typeMeta.type.isList() && sortableFields.contains(typeMeta.type.name())
 
     var node: Node? = null
+    var union: Union? = null
 
     companion object {
         val sortableFields = setOf(

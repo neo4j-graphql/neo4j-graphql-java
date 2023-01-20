@@ -62,41 +62,36 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0": [
-    {
-      "id": "1",
-      "actors": {
-        "create": [
-          {
-            "node": {
-              "name": "actor 1",
-              "website": {
-                "create": {
-                  "node": {
-                    "address": "Actor1.com"
-                  }
-                }
+  "create_param0" : [ {
+    "id" : "1",
+    "actors" : {
+      "create" : [ {
+        "node" : {
+          "name" : "actor 1",
+          "website" : {
+            "create" : {
+              "node" : {
+                "address" : "Actor1.com"
               }
-            },
-            "edge": {
-              "year": 2022
             }
           }
-        ]
-      }
-    },
-    {
-      "id": "2",
-      "website": {
-        "create": {
-          "node": {
-            "address": "The Matrix2.com"
-          }
+        },
+        "edge" : {
+          "year" : 2022
+        }
+      } ]
+    }
+  }, {
+    "id" : "2",
+    "website" : {
+      "create" : {
+        "node" : {
+          "address" : "The Matrix2.com"
         }
       }
     }
-  ],
-  "resolvedCallbacks": {}
+  } ],
+  "resolvedCallbacks" : { }
 }
 ----
 
@@ -190,20 +185,20 @@ mutation {
 [source,json]
 ----
 {
-  "this0_id": "1",
-  "this0_actors0_node_name": "actor 1",
-  "this0_actors0_relationship_year": 2022,
-  "this1_id": "2",
-  "this1_actors0_node_name": "actor 2",
-  "this1_actors0_relationship_year": 1999,
-  "this2_id": "3",
-  "this2_website0_node_address": "mywebsite.com",
-  "this3_id": "4",
-  "this3_actors_connect0_node_param0": "2",
-  "this4_id": "5",
-  "this4_actors_connectOrCreate_param0": "2",
-  "this4_actors_connectOrCreate_param1": "actor 2",
-  "resolvedCallbacks": {}
+  "resolvedCallbacks" : { },
+  "this0_actors0_node_name" : "actor 1",
+  "this0_actors0_relationship_year" : 2022,
+  "this0_id" : "1",
+  "this1_actors0_node_name" : "actor 2",
+  "this1_actors0_relationship_year" : 1999,
+  "this1_id" : "2",
+  "this2_id" : "3",
+  "this2_website0_node_address" : "mywebsite.com",
+  "this3_actors_connect0_node_param0" : "2",
+  "this3_id" : "4",
+  "this4_actors_connectOrCreate_param0" : "2",
+  "this4_actors_connectOrCreate_param1" : "actor 2",
+  "this4_id" : "5"
 }
 ----
 
@@ -472,39 +467,32 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0": [
-    {
-      "id": "1",
-      "actors": {
-        "create": [
-          {
-            "node": {
-              "name": "actor 1"
-            },
-            "edge": {
-              "year": 2022
-            }
-          }
-        ]
-      }
-    },
-    {
-      "id": "2",
-      "actors": {
-        "create": [
-          {
-            "node": {
-              "name": "actor 1"
-            },
-            "edge": {
-              "year": 2022
-            }
-          }
-        ]
-      }
+  "create_param0" : [ {
+    "id" : "1",
+    "actors" : {
+      "create" : [ {
+        "node" : {
+          "name" : "actor 1"
+        },
+        "edge" : {
+          "year" : 2022
+        }
+      } ]
     }
-  ],
-  "resolvedCallbacks": {}
+  }, {
+    "id" : "2",
+    "actors" : {
+      "create" : [ {
+        "node" : {
+          "name" : "actor 1"
+        },
+        "edge" : {
+          "year" : 2022
+        }
+      } ]
+    }
+  } ],
+  "resolvedCallbacks" : { }
 }
 ----
 
@@ -581,20 +569,17 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0": [
-    {
-      "id": "1",
-      "runningTime": "P0M14DT58320S",
-      "location": {
-        "longitude": 3,
-        "latitude": 3
-      }
-    },
-    {
-      "id": "2"
+  "create_param0" : [ {
+    "id" : "1",
+    "runningTime" : "P0M14DT58320S",
+    "location" : {
+      "longitude" : 3,
+      "latitude" : 3
     }
-  ],
-  "resolvedCallbacks": {}
+  }, {
+    "id" : "2"
+  } ],
+  "resolvedCallbacks" : { }
 }
 ----
 
