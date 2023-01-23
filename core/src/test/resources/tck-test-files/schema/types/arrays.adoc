@@ -1,0 +1,116 @@
+:toc:
+
+= Schema Arrays
+
+Tests that the provided typeDefs return the correct schema.
+
+== Inputs
+
+[source,graphql,schema=true]
+----
+type Movie {
+    id: ID
+    ratings: [Float!]
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+  "queryOptionStyle": "INPUT_TYPE",
+  "useWhereFilter": true,
+  "pluralizeFields": true,
+  "useTemporalScalars": true
+}
+----
+
+**Output**
+
+== Output
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type Movie {
+  id: ID
+  ratings: [Float!]
+}
+
+type Mutation {
+  createMovie(id: ID, ratings: [Float!]): Movie!
+  "Deletes Movie and returns the type itself"
+  deleteMovie(id: ID): Movie
+  mergeMovie(id: ID, ratings: [Float!]): Movie!
+  updateMovie(id: ID, ratings: [Float!]): Movie
+}
+
+type Query {
+  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
+}
+
+enum RelationDirection {
+  BOTH
+  IN
+  OUT
+}
+
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+input MovieOptions {
+  "Defines the maximum amount of records returned"
+  limit: Int
+  "Defines the amount of records to be skipped"
+  skip: Int
+  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [MovieSort!]
+}
+
+"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+input MovieSort {
+  id: SortDirection
+  ratings: SortDirection
+}
+
+input MovieWhere {
+  AND: [MovieWhere!]
+  NOT: [MovieWhere!]
+  OR: [MovieWhere!]
+  id: ID
+  id_contains: ID
+  id_ends_with: ID
+  id_gt: ID
+  id_gte: ID
+  id_in: [ID]
+  id_lt: ID
+  id_lte: ID
+  id_matches: ID
+  id_not: ID
+  id_not_contains: ID
+  id_not_ends_with: ID
+  id_not_in: [ID]
+  id_not_starts_with: ID
+  id_starts_with: ID
+  ratings: [Float!]
+  ratings_includes_all: [Float!]
+  ratings_includes_none: [Float!]
+  ratings_includes_single: [Float!]
+  ratings_includes_some: [Float!]
+  ratings_not: [Float!]
+}
+
+----
+
+'''

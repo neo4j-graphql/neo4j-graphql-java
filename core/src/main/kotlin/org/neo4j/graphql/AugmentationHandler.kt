@@ -161,7 +161,10 @@ abstract class AugmentationHandler(
                     RelationOperator.createRelationFilterFields(type, field, filterType, builder)
                 } else {
                     FieldOperator.forType(typeDefinition, field.type.inner().isNeo4jType(), field.type.isList())
-                        .forEach { op -> builder.addFilterField(op.fieldName(field.name), op.list, filterType, field.description) }
+                        .forEach { op -> when {
+                            field.type.isList() -> builder.addArrayFilterField(op.fieldName(field.name), filterType, field.description)
+                            else -> builder.addFilterField(op.fieldName(field.name), op.list, filterType, field.description)
+                        }}
                     if (typeDefinition.isNeo4jSpatialType()) {
                         val distanceFilterType = getSpatialDistanceFilter(neo4jTypeDefinitionRegistry.getUnwrappedType(filterType) as TypeDefinition<*>)
                         FieldOperator.forType(distanceFilterType, true, field.type.isList())
