@@ -4,13 +4,16 @@ import graphql.language.*
 import graphql.language.TypeDefinition
 import graphql.schema.GraphQLFieldDefinition
 import graphql.schema.GraphQLFieldsContainer
-import org.neo4j.cypherdsl.core.Condition
-import org.neo4j.cypherdsl.core.Expression
-import org.neo4j.cypherdsl.core.Property
-import org.neo4j.cypherdsl.core.PropertyContainer
+import org.neo4j.cypherdsl.core.*
+import org.neo4j.cypherdsl.core.Predicates.OngoingListBasedPredicateFunction
 import org.slf4j.LoggerFactory
 
 typealias CypherDSL = org.neo4j.cypherdsl.core.Cypher
+
+private fun createArrayPredicate(factory: (SymbolicName) -> OngoingListBasedPredicateFunction) = { lhs: Expression, rhs: Expression ->
+    val x: SymbolicName = org.neo4j.cypherdsl.core.Cypher.name("x")
+    factory(x).`in`(lhs).where(x.`in`(rhs))
+}
 
 enum class FieldOperator(
         val suffix: String,
@@ -39,6 +42,10 @@ enum class FieldOperator(
     EW("_ends_with", { lhs, rhs -> lhs.endsWith(rhs) }),
     MATCHES("_matches", { lhs, rhs -> lhs.matches(rhs) }),
 
+    INCLUDES_ALL("_includes_all", createArrayPredicate(Predicates::all), list = true),
+    INCLUDES_SOME("_includes_some", createArrayPredicate(Predicates::any), list = true),
+    INCLUDES_NONE("_includes_none", createArrayPredicate(Predicates::none), list = true),
+    INCLUDES_SINGLE("_includes_single", createArrayPredicate(Predicates::single), list = true),
 
     DISTANCE(NEO4j_POINT_DISTANCE_FILTER_SUFFIX, { lhs, rhs -> lhs.isEqualTo(rhs) }, distance = true),
     DISTANCE_LT(NEO4j_POINT_DISTANCE_FILTER_SUFFIX + "_lt", { lhs, rhs -> lhs.lt(rhs) }, distance = true),
@@ -109,8 +116,9 @@ enum class FieldOperator(
 
     companion object {
 
-        fun forType(type: TypeDefinition<*>, isNeo4jType: Boolean): List<FieldOperator> =
+        fun forType(type: TypeDefinition<*>, isNeo4jType: Boolean, isList: Boolean): List<FieldOperator> =
                 when {
+                    isList -> listOf(EQ, NEQ, INCLUDES_ALL, INCLUDES_NONE, INCLUDES_SOME, INCLUDES_SINGLE)
                     type.name == TypeBoolean.name -> listOf(EQ, NEQ)
                     type.name == NEO4j_POINT_DISTANCE_FILTER -> listOf(EQ, LT, LTE, GT, GTE)
                     type.isNeo4jSpatialType() -> listOf(EQ, NEQ)

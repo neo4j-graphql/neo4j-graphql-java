@@ -13,6 +13,7 @@ type Person {
   age: Int
   height: Float
   fun: Boolean
+  hobbies: [String]
   gender: Gender
   company: Company @relation(name:"WORKS_AT")
   skills: [PersonSkills]
@@ -45,12 +46,13 @@ UNWIND [
   {id:       'jane',
    name:     'Jane',
    age:      38,
+   hobbies:  ["Cycling", "Dancing"],
    gender:   'female',
    fun:      true,
    height:   1.75,
    location: point({longitude: 1, latitude: 2, height: 3})
   },
-  {id: 'joe', name: 'Joe', age: 42, gender: 'male', fun: false, height: 1.85}
+  {id: 'joe', name: 'Joe', age: 42, hobbies: ["Reading", "Dancing"], gender: 'male', fun: false, height: 1.85}
 ] AS props
 CREATE (p:Person)-[:WORKS_AT]->(c)
 SET p = props;
@@ -61,6 +63,7 @@ UNWIND [{
   id:       'jill',
   name:     'Jill',
   age:      32,
+  hobbies:  ["Cycling", "Reading"],
   gender:   'female',
   fun:      true,
   height:   1.65,
@@ -71,6 +74,252 @@ AS props
 CREATE (p:Person)-[:WORKS_AT]->(c)
 SET p = props
 ----
+
+== Filter on _List_
+
+=== Filter array _includes_some_
+
+.GraphQL-Query
+[source,graphql]
+----
+{ person(filter: { hobbies_includes_some: ["Cycling", "Reading"] }) { name hobbies }}
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "person" : [ {
+    "name" : "Joe",
+    "hobbies" : ["Reading", "Dancing"]
+  }, {
+     "name" : "Jill",
+     "hobbies" : ["Cycling", "Reading"]
+  }, {
+      "name" : "Jane",
+      "hobbies" : ["Cycling", "Dancing"]
+  } ]
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{"filterPersonHobbiesIncludesSome": ["Cycling", "Reading"]}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE any(x IN person.hobbies
+WHERE x IN $filterPersonHobbiesIncludesSome)
+RETURN person {
+	.name,
+	.hobbies
+} AS person
+----
+
+'''
+
+=== Filter array _includes_all_
+
+.GraphQL-Query
+[source,graphql]
+----
+{ person(filter: { hobbies_includes_all: ["Cycling", "Reading"] }) { name hobbies }}
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "person" : [ {
+     "name" : "Jill",
+     "hobbies" : ["Cycling", "Reading"]
+  } ]
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{"filterPersonHobbiesIncludesAll": ["Cycling", "Reading"]}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE all(x IN person.hobbies
+WHERE x IN $filterPersonHobbiesIncludesAll)
+RETURN person {
+	.name,
+	.hobbies
+} AS person
+----
+
+'''
+
+=== Filter array _includes_none
+
+.GraphQL-Query
+[source,graphql]
+----
+{ person(filter: { hobbies_includes_none: ["Dancing"] }) { name hobbies }}
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "person" : [ {
+     "name" : "Jill",
+     "hobbies" : ["Cycling", "Reading"]
+  } ]
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{"filterPersonHobbiesIncludesNone": ["Dancing"]}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE none(x IN person.hobbies
+WHERE x IN $filterPersonHobbiesIncludesNone)
+RETURN person {
+	.name,
+	.hobbies
+} AS person
+----
+
+'''
+
+=== Filter array _includes_single
+
+.GraphQL-Query
+[source,graphql]
+----
+{ person(filter: { hobbies_includes_single: ["Dancing"] }) { name hobbies }}
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "person" : [ {
+    "name" : "Joe",
+    "hobbies" : ["Reading", "Dancing"]
+  }, {
+      "name" : "Jane",
+      "hobbies" : ["Cycling", "Dancing"]
+  } ]
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{"filterPersonHobbiesIncludesSingle": ["Dancing"]}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE single(x IN person.hobbies
+WHERE x IN $filterPersonHobbiesIncludesSingle)
+RETURN person {
+	.name,
+	.hobbies
+} AS person
+----
+
+'''
+
+=== Filter array _eq_
+
+.GraphQL-Query
+[source,graphql]
+----
+{ person(filter: { hobbies: ["Cycling", "Reading"] }) { name hobbies }}
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "person" : [ {
+     "name" : "Jill",
+     "hobbies" : ["Cycling", "Reading"]
+  } ]
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{"filterPersonHobbies": ["Cycling", "Reading"]}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE person.hobbies = $filterPersonHobbies
+RETURN person {
+	.name,
+	.hobbies
+} AS person
+----
+
+'''
+
+=== Filter array _not_
+
+.GraphQL-Query
+[source,graphql]
+----
+{ person(filter: { hobbies_not: ["Cycling", "Reading"] }) { name hobbies }}
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "person" : [ {
+    "name" : "Joe",
+    "hobbies" : ["Reading", "Dancing"]
+  }, {
+      "name" : "Jane",
+      "hobbies" : ["Cycling", "Dancing"]
+  } ]
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{"filterPersonHobbiesNot": ["Cycling", "Reading"]}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+WHERE NOT (person.hobbies = $filterPersonHobbiesNot)
+RETURN person {
+	.name,
+	.hobbies
+} AS person
+----
+
+'''
 
 == Filter on _Enum_
 

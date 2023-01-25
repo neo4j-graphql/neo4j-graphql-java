@@ -225,6 +225,17 @@ fun InputObjectTypeDefinition.Builder.addFilterField(fieldName: String, isList: 
     this.inputValueDefinition(inputField.build())
 }
 
+fun InputObjectTypeDefinition.Builder.addArrayFilterField(fieldName: String, filterType: String, description: Description? = null) {
+    val inputField = InputValueDefinition.newInputValueDefinition()
+        .name(fieldName)
+        .type(ListType(NonNullType(TypeName(filterType))))
+    if (description != null) {
+        inputField.description(description)
+    }
+
+    this.inputValueDefinition(inputField.build())
+}
+
 fun TypeDefinitionRegistry.queryTypeName() = this.getOperationType("query") ?: "Query"
 fun TypeDefinitionRegistry.mutationTypeName() = this.getOperationType("mutation") ?: "Mutation"
 fun TypeDefinitionRegistry.subscriptionTypeName() = this.getOperationType("subscription") ?: "Subscription"
