@@ -1,0 +1,144 @@
+:toc:
+
+= Field aliasing does not work if using DataFetchingInterceptor
+
+== Issue
+
+https://github.com/neo4j-graphql/neo4j-graphql-java/issues/267
+
+== Schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  query: Int @cypher(statement: "RETURN 42", passThrough:true)
+  title: String
+  actors: [Actor!] @relation(name: "ACTED_IN", direction:IN)
+}
+type Actor {
+  name: String
+}
+----
+
+.Test-Data
+[source,cypher,test-data=true]
+----
+CREATE (m:Movie{ title: 'movie 1' }),
+    (max:Actor{ name: 'Max' }),
+    (marie:Actor{ name: 'Marie' }),
+    (max)-[:ACTED_IN]->(m),
+    (marie)-[:ACTED_IN]->(m);
+----
+
+== Queries
+
+.GraphQL-Query
+[source,graphql]
+----
+query {
+  movieAlias: movie {
+    title
+    title1: title
+    title2: title
+    query
+    number1: query
+    number2: query
+    actors(orderBy: [ name_asc ]) { name }
+    allMax: actors(filter: { name: "Max" }) { name }
+    allMarie: actors(filter: { name: "Marie" }) { name }
+  }
+}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movieAlias" : [ {
+    "title" : "movie 1",
+    "title1" : "movie 1",
+    "title2" : "movie 1",
+    "query" : 42,
+    "number1" : 42,
+    "number2" : 42,
+    "actors" : [ {
+      "name" : "Marie"
+    }, {
+      "name" : "Max"
+    } ],
+    "allMax" : [ {
+      "name" : "Max"
+    } ],
+    "allMarie" : [ {
+      "name" : "Marie"
+    } ]
+  } ]
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "filterMovieAliasAllMarieName" : "Marie",
+  "filterMovieAliasAllMaxName" : "Max"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (movieAlias:Movie)
+CALL {
+	WITH movieAlias
+	WITH movieAlias AS this
+	RETURN 42 AS movieAliasQuery LIMIT 1
+}
+CALL {
+	WITH movieAlias
+	WITH movieAlias AS this
+	RETURN 42 AS movieAliasNumber1 LIMIT 1
+}
+CALL {
+	WITH movieAlias
+	WITH movieAlias AS this
+	RETURN 42 AS movieAliasNumber2 LIMIT 1
+}
+CALL {
+	WITH movieAlias
+	MATCH (movieAlias)<-[:ACTED_IN]-(movieAliasActors:Actor)
+	WITH movieAliasActors ORDER BY movieAliasActors.name ASC
+	RETURN collect(movieAliasActors {
+		.name
+	}) AS movieAliasActors
+}
+CALL {
+	WITH movieAlias
+	MATCH (movieAlias)<-[:ACTED_IN]-(movieAliasAllMax:Actor)
+	WHERE movieAliasAllMax.name = $filterMovieAliasAllMaxName
+	RETURN collect(movieAliasAllMax {
+		.name
+	}) AS movieAliasAllMax
+}
+CALL {
+	WITH movieAlias
+	MATCH (movieAlias)<-[:ACTED_IN]-(movieAliasAllMarie:Actor)
+	WHERE movieAliasAllMarie.name = $filterMovieAliasAllMarieName
+	RETURN collect(movieAliasAllMarie {
+		.name
+	}) AS movieAliasAllMarie
+}
+RETURN movieAlias {
+	.title,
+	title1: movieAlias.title,
+	title2: movieAlias.title,
+	query: movieAliasQuery,
+	number1: movieAliasNumber1,
+	number2: movieAliasNumber2,
+	actors: movieAliasActors,
+	allMax: movieAliasAllMax,
+	allMarie: movieAliasAllMarie
+} AS movieAlias
+----
+
+'''

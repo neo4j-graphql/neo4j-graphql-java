@@ -8,7 +8,7 @@
     <artifactId>neo4j-graphql-java-parent</artifactId>
     <name>Neo4j GraphQL Java Parent</name>
     <description>GraphQL to Cypher Mapping</description>
-    <version>1.5.1-SNAPSHOT</version>
+    <version>1.7.1-SNAPSHOT</version>
     <url>https://github.com/neo4j-graphql/neo4j-graphql-java</url>
     <packaging>pom</packaging>
 
@@ -25,12 +25,12 @@
         <java.version>17</java.version>
         <kotlin.version>1.7.22</kotlin.version>
         <kotlin.compiler.jvmTarget>${java.version}</kotlin.compiler.jvmTarget>
-        <neo4j.version>4.4.1</neo4j.version>
-        <neo4j-apoc.version>4.4.0.1</neo4j-apoc.version>
-        <junit-jupiter.version>5.8.2</junit-jupiter.version>
+        <neo4j.version>5.2.0</neo4j.version>
+        <neo4j-apoc.version>5.2.1</neo4j-apoc.version>
+        <junit-jupiter.version>5.9.1</junit-jupiter.version>
         <mapstruct.version>1.5.0.RC1</mapstruct.version>
         <!--            TODO set correct version
-                <neo4j-cypher-dsl.version>2022.8.1</neo4j-cypher-dsl.version>
+                <neo4j-cypher-dsl.version>2023.0.0</neo4j-cypher-dsl.version>
         -->
         <neo4j-cypher-dsl.version>9999-SNAPSHOT</neo4j-cypher-dsl.version>
     </properties>
@@ -107,7 +107,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.5.1</version>
+                <version>3.10.1</version>
                 <executions>
                     <execution>
                         <id>compile</id>
@@ -133,7 +133,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>2.2.1</version>
+                <version>3.2.1</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -146,7 +146,7 @@
             <plugin>
                 <groupId>org.jetbrains.dokka</groupId>
                 <artifactId>dokka-maven-plugin</artifactId>
-                <version>1.4.10.2</version>
+                <version>1.7.10</version>
                 <executions>
                     <execution>
                         <phase>prepare-package</phase>
@@ -162,7 +162,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0-M5</version>
+                <version>3.0.0-M7</version>
             </plugin>
 
             <plugin>
@@ -206,7 +206,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-source-plugin</artifactId>
-                        <version>2.2.1</version>
+                        <version>3.2.1</version>
                         <executions>
                             <execution>
                                 <id>attach-sources</id>
@@ -219,7 +219,7 @@
                     <plugin>
                         <groupId>org.jetbrains.dokka</groupId>
                         <artifactId>dokka-maven-plugin</artifactId>
-                        <version>1.4.10.2</version>
+                        <version>1.7.10</version>
                         <executions>
                             <execution>
                                 <phase>prepare-package</phase>
@@ -248,7 +248,7 @@
                     <plugin>
                         <groupId>org.sonatype.plugins</groupId>
                         <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <version>1.6.3</version>
+                        <version>1.6.8</version>
                         <extensions>true</extensions>
                         <configuration>
                             <serverId>ossrh</serverId>

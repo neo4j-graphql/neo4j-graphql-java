@@ -788,10 +788,10 @@ mutation {
 .Cypher
 [source,cypher]
 ----
-MERGE (actor:Actor  {
+MERGE (actor:Actor {
 	userId: $actorUserId
 })
-SET actor +=  {
+SET actor += {
 	name: $actorName
 }
 WITH actor
@@ -826,7 +826,7 @@ mutation {
 .Cypher
 [source,cypher]
 ----
-MATCH (from:Movie  {
+MATCH (from:Movie {
 	movieId: $fromMovieId
 })
 MATCH (to:Genre)
@@ -864,7 +864,7 @@ mutation {
 .Cypher
 [source,cypher]
 ----
-MATCH (from:Movie  {
+MATCH (from:Movie {
 	movieId: $fromMovieId
 })
 MATCH (to:Genre)
@@ -902,10 +902,10 @@ mutation {
 .Cypher
 [source,cypher]
 ----
-MATCH (from:Movie  {
+MATCH (from:Movie {
 	movieId: $fromMovieId
 })
-MATCH (to:Publisher  {
+MATCH (to:Publisher {
 	name: $toPublishedBy
 })
 MERGE (from)-[:PUBLISHED_BY]->(to)
@@ -941,10 +941,10 @@ mutation {
 .Cypher
 [source,cypher]
 ----
-MATCH (from:Movie  {
+MATCH (from:Movie {
 	movieId: $fromMovieId
 })
-MATCH (to:Publisher  {
+MATCH (to:Publisher {
 	name: $toPublishedBy
 })
 MATCH (from)-[r:PUBLISHED_BY]->(to) DELETE r
@@ -980,7 +980,7 @@ mutation {
 .Cypher
 [source,cypher]
 ----
-MATCH (from:User  {
+MATCH (from:User {
 	userId: $fromUserId
 })
 MATCH (to:User)
@@ -1156,14 +1156,14 @@ CALL {
 		WITH userKnowsKnows ORDER BY userKnowsKnows.born ASC, userKnowsKnows.born DESC SKIP $userKnowsKnowsOffset LIMIT $userKnowsKnowsFirst
 		RETURN collect(userKnowsKnows {
 			.name,
-			born:  {
+			born: {
 				formatted: toString(userKnowsKnows.born)
 			}
 		}) AS userKnowsKnows
 	}
 	RETURN collect(userKnows {
 		.name,
-		born:  {
+		born: {
 			formatted: toString(userKnows.born)
 		},
 		knows: userKnowsKnows
@@ -1171,7 +1171,7 @@ CALL {
 }
 RETURN user {
 	.name,
-	born:  {
+	born: {
 		formatted: toString(user.born)
 	},
 	knows: userKnows
@@ -1238,13 +1238,13 @@ mutation {
 .Cypher
 [source,cypher]
 ----
-MATCH (from:User  {
+MATCH (from:User {
 	userId: $fromFrom_userId
 })
-MATCH (to:Movie  {
+MATCH (to:Movie {
 	movieId: $toTo_movieId
 })
-CREATE (from)-[createRated:RATED  {
+CREATE (from)-[createRated:RATED {
 	rating: $createRatedRating
 }]->(to)
 WITH createRated
@@ -1281,7 +1281,7 @@ mutation {
 ----
 MATCH ()-[updateRated:RATED]->()
 WHERE id(updateRated) = toInteger($updateRated_id)
-SET updateRated +=  {
+SET updateRated += {
 	rating: $updateRatedRating
 }
 WITH updateRated
@@ -1316,7 +1316,7 @@ mutation {
 .Cypher
 [source,cypher]
 ----
-MATCH (from:Genre  {
+MATCH (from:Genre {
 	name: $fromName
 })
 MATCH (to:Movie)
@@ -1355,7 +1355,7 @@ mutation {
 .Cypher
 [source,cypher]
 ----
-CREATE (createUser:User:Person  {
+CREATE (createUser:User:Person {
 	userId: $createUserUserId
 })
 WITH createUser
@@ -1395,7 +1395,7 @@ query {
 ----
 MATCH (user:User)
 RETURN user {
-	born:  {
+	born: {
 		formatted: toString(user.born),
 		year: user.born.year
 	}
@@ -1434,7 +1434,7 @@ MATCH (user:User)
 WHERE (user.born.year = $userBornAnd1Year
 	AND user.born = datetime($userBornAnd2Formatted))
 RETURN user {
-	born:  {
+	born: {
 		year: user.born.year
 	}
 } AS User
@@ -1469,10 +1469,10 @@ mutation {
 .Cypher
 [source,cypher]
 ----
-MERGE (actor:Actor  {
+MERGE (actor:Actor {
 	userId: $actorUserId
 })
-SET actor +=  {
+SET actor += {
 	name: $actorName,
 	born: datetime($actorBorn.formatted)
 }
@@ -1511,7 +1511,7 @@ mutation {
 .Cypher
 [source,cypher]
 ----
-CREATE (actor:Actor:Person  {
+CREATE (actor:Actor:Person {
 	userId: $actorUserId,
 	name: $actorName,
 	born: datetime($actorBorn.formatted)
@@ -1569,10 +1569,10 @@ mutation {
 .Cypher
 [source,cypher]
 ----
-MERGE (actor:Actor  {
+MERGE (actor:Actor {
 	userId: $actorUserId
 })
-SET actor +=  {
+SET actor += {
 	name: $actorName,
 	born: datetime($actorBorn)
 }
@@ -1633,7 +1633,7 @@ mutation {
 .Cypher
 [source,cypher]
 ----
-CREATE (actor:Actor:Person  {
+CREATE (actor:Actor:Person {
 	userId: $actorUserId,
 	name: $actorName,
 	born: datetime($actorBorn)
@@ -1641,7 +1641,7 @@ CREATE (actor:Actor:Person  {
 WITH actor
 RETURN actor {
 	.name,
-	born:  {
+	born: {
 		year: actor.born.year,
 		month: actor.born.month
 	}
@@ -1675,7 +1675,7 @@ mutation{
 .Cypher
 [source,cypher]
 ----
-MATCH (deleteMovie:Movie  {
+MATCH (deleteMovie:Movie {
 	movieId: $deleteMovieMovieId
 })
 WITH deleteMovie AS toDelete, deleteMovie {

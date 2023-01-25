@@ -260,8 +260,7 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
             ExecutionInput.newExecutionInput()
                 .query(request)
                 .variables(requestParams)
-                .graphQLContext(mapOf(Constants.NEO4J_QUERY_CONTEXT to queryContext))
-                .context(queryContext)
+                .graphQLContext(mapOf(QueryContext.KEY to queryContext))
                 .build()
         )
         Assertions.assertThat(result.errors).isEmpty()
@@ -291,8 +290,8 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
             is Map<*, *> -> Assertions.assertThat(actual).asInstanceOf(InstanceOfAssertFactories.MAP)
                 .hasSize(expected.size)
                 .containsOnlyKeys(*expected.keys.toTypedArray())
-                .satisfies { it.forEach { (key, value) -> assertEqualIgnoreOrder(expected[key], value) } }
-
+                .satisfies(Consumer { it.forEach { (key, value) -> assertEqualIgnoreOrder(expected[key], value) } }
+)
             is Collection<*> -> {
                 val assertions: List<Consumer<Any>> =
                     expected.map { e -> Consumer<Any> { a -> assertEqualIgnoreOrder(e, a) } }

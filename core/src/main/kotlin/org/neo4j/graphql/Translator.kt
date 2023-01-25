@@ -6,7 +6,7 @@ import graphql.schema.GraphQLSchema
 
 class Translator(val schema: GraphQLSchema) {
 
-    class CypherHolder(val cyphers :MutableList<OldCypher> = mutableListOf())
+    class CypherHolder(val cyphers: MutableList<OldCypher> = mutableListOf())
 
     private val gql: GraphQL = GraphQL.newGraphQL(schema).build()
 
@@ -17,8 +17,7 @@ class Translator(val schema: GraphQLSchema) {
         val executionInput = ExecutionInput.newExecutionInput()
             .query(query)
             .variables(params)
-            .graphQLContext(mapOf(Constants.NEO4J_QUERY_CONTEXT to ctx))
-            .context(ctx)
+            .graphQLContext(mapOf(QueryContext.KEY to ctx))
             .localContext(cypherHolder)
             .build()
         val result = gql.execute(executionInput)

@@ -9,10 +9,7 @@ import graphql.schema.GraphQLType
 import org.neo4j.cypherdsl.core.Statement
 import org.neo4j.cypherdsl.core.renderer.Configuration
 import org.neo4j.cypherdsl.core.renderer.Renderer
-import org.neo4j.graphql.OldCypher
-import org.neo4j.graphql.SchemaConfig
-import org.neo4j.graphql.Translator
-import org.neo4j.graphql.aliasOrName
+import org.neo4j.graphql.*
 
 /**
  * This is a base class for the implementation of graphql data fetcher used in this project
@@ -29,12 +26,13 @@ abstract class BaseDataFetcher(protected val schemaConfig: SchemaConfig) : DataF
         prepareDataFetcher(env.fieldDefinition, env.parentType)
         // TODO remove field
         val statement = generateCypher(variable, field, env)
-
+        val dialect = env.queryContext().neo4jDialect
         val query = Renderer.getRenderer(
             Configuration
                 .newConfig()
                 .withIndentStyle(Configuration.IndentStyle.TAB)
                 .withPrettyPrint(true)
+            .withDialect(dialect)
                 .build()
         ).render(statement)
 

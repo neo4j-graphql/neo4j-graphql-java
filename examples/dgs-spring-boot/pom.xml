@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.neo4j</groupId>
         <artifactId>neo4j-graphql-java-examples</artifactId>
-        <version>1.5.1-SNAPSHOT</version>
+        <version>1.7.1-SNAPSHOT</version>
     </parent>
 
     <groupId>org.neo4j.graphql.examples</groupId>
@@ -15,8 +15,9 @@
     <description>Example for using neo4j-graphql-java with Spring Boot and Netflix Domain Graph Service (DGS)</description>
 
     <properties>
-        <testcontainers.version>1.16.2</testcontainers.version>
-        <spring-boot.version>2.6.1</spring-boot.version>
+        <testcontainers.version>1.17.6</testcontainers.version>
+        <spring-boot.version>2.7.6</spring-boot.version>
+        <graphql-java.version>19.2</graphql-java.version>
     </properties>
 
     <dependencies>
@@ -40,18 +41,18 @@
         <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j-graphql-java</artifactId>
-            <version>1.5.1-SNAPSHOT</version>
+            <version>1.7.1-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.netflix.graphql.dgs</groupId>
             <artifactId>graphql-dgs-spring-boot-starter</artifactId>
-            <version>4.9.10</version>
+            <version>5.5.0</version>
         </dependency>
         <dependency>
             <groupId>com.netflix.graphql.dgs.codegen</groupId>
             <artifactId>graphql-dgs-codegen-client-core</artifactId>
-            <version>5.1.9</version>
+            <version>5.1.17</version>
         </dependency>
 
         <!-- Kotlin dependencies -->
@@ -91,6 +92,11 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
+                <groupId>com.graphql-java</groupId>
+                <artifactId>graphql-java</artifactId>
+                <version>${graphql-java.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
                 <version>${spring-boot.version}</version>
@@ -120,7 +126,7 @@
             <plugin>
                 <groupId>org.neo4j</groupId>
                 <artifactId>neo4j-graphql-augmented-schema-generator-maven-plugin</artifactId>
-                <version>1.5.1-SNAPSHOT</version>
+                <version>1.7.1-SNAPSHOT</version>
                 <executions>
                     <execution>
                         <goals>

@@ -67,7 +67,7 @@ mutation{
 .Cypher
 [source,cypher]
 ----
-MATCH (team:Team  {
+MATCH (team:Team {
 	id: $teamId
 })
 MATCH (player:Player)
@@ -105,7 +105,7 @@ mutation{
 .Cypher
 [source,cypher]
 ----
-MATCH (team:Team  {
+MATCH (team:Team {
 	id: $teamId
 })
 MATCH (player:Player)
@@ -143,7 +143,7 @@ mutation{
 .Cypher
 [source,cypher]
 ----
-MATCH (player:Player  {
+MATCH (player:Player {
 	id: $playerId
 })
 MATCH (team:Team)
@@ -181,7 +181,7 @@ mutation{
 .Cypher
 [source,cypher]
 ----
-MATCH (player:Player  {
+MATCH (player:Player {
 	id: $playerId
 })
 MATCH (team:Team)
@@ -220,13 +220,13 @@ mutation{
 .Cypher
 [source,cypher]
 ----
-MATCH (player:Player  {
+MATCH (player:Player {
 	id: $playerPlayer_id
 })
-MATCH (team:Team  {
+MATCH (team:Team {
 	id: $teamTeam_id
 })
-CREATE (player)-[createMembership:MEMBER_OF  {
+CREATE (player)-[createMembership:MEMBER_OF {
 	prop: $createMembershipProp
 }]->(team)
 WITH createMembership
@@ -435,10 +435,10 @@ mutation{
 .Cypher
 [source,cypher]
 ----
-MATCH (child:Category  {
+MATCH (child:Category {
 	name: $childName
 })
-MATCH (parent:Category  {
+MATCH (parent:Category {
 	name: $parentParentCategory
 })
 MERGE (child)-[:HAS_PARENT]->(parent)
@@ -474,10 +474,10 @@ mutation{
 .Cypher
 [source,cypher]
 ----
-MATCH (child:Category  {
+MATCH (child:Category {
 	name: $childName
 })
-MATCH (parent:Category  {
+MATCH (parent:Category {
 	name: $parentParentCategory
 })
 MATCH (child)-[r:HAS_PARENT]->(parent) DELETE r
@@ -513,7 +513,7 @@ mutation{
 .Cypher
 [source,cypher]
 ----
-MATCH (parent:Category  {
+MATCH (parent:Category {
 	name: $parentName
 })
 MATCH (child:Category)
@@ -551,7 +551,7 @@ mutation{
 .Cypher
 [source,cypher]
 ----
-MATCH (parent:Category  {
+MATCH (parent:Category {
 	name: $parentName
 })
 MATCH (child:Category)
@@ -590,13 +590,13 @@ mutation{
 .Cypher
 [source,cypher]
 ----
-MATCH (child:Category  {
+MATCH (child:Category {
 	name: $childChild_name
 })
-MATCH (parent:Category  {
+MATCH (parent:Category {
 	name: $parentParent_name
 })
-CREATE (child)-[createCategoryAssignment:HAS_PARENT  {
+CREATE (child)-[createCategoryAssignment:HAS_PARENT {
 	prop: $createCategoryAssignmentProp
 }]->(parent)
 WITH createCategoryAssignment

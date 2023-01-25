@@ -88,8 +88,6 @@ object Constants {
 
     const val WHERE = "where"
 
-    const val NEO4J_QUERY_CONTEXT = "NEO4J_QUERY_CONTEXT"
-
     val PREDICATE_JOINS = setOf(AND, OR)
 
     object FieldSuffix {

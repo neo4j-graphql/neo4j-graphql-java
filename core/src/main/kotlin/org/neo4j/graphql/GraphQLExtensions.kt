@@ -1,7 +1,7 @@
 package org.neo4j.graphql
 
+import graphql.GraphQLContext
 import graphql.language.*
-import graphql.language.TypeDefinition
 import graphql.schema.*
 import graphql.schema.idl.TypeDefinitionRegistry
 import org.neo4j.cypherdsl.core.Cypher
@@ -183,14 +183,18 @@ fun DataFetchingEnvironment.typeAsContainer() = this.fieldDefinition.type.inner(
     ?: throw IllegalStateException("expect type of field ${this.logField()} to be GraphQLFieldsContainer, but was ${this.fieldDefinition.type.name()}")
 
 fun DataFetchingEnvironment.logField() = "${this.parentType.name()}.${this.fieldDefinition.name}"
-
 fun DataFetchingEnvironment.queryContext(): QueryContext =
-    this.graphQlContext.get<QueryContext?>(Constants.NEO4J_QUERY_CONTEXT)
+    this.graphQlContext.get<QueryContext?>(QueryContext.KEY)
         ?: run {
             val queryContext = QueryContext()
-            this.graphQlContext.put(Constants.NEO4J_QUERY_CONTEXT, queryContext)
+            this.graphQlContext.put(QueryContext.KEY, queryContext)
             queryContext
         }
+
+fun GraphQLContext.setQueryContext(ctx: QueryContext): GraphQLContext {
+    this.put(QueryContext.KEY, ctx)
+    return this
+}
 
 
 fun ObjectValue.get(name: String): Value<Value<*>>? = this.objectFields.firstOrNull { it.name == name }?.value

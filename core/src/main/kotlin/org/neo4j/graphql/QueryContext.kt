@@ -2,6 +2,7 @@ package org.neo4j.graphql
 
 import org.neo4j.cypherdsl.core.Cypher
 import org.neo4j.cypherdsl.core.Parameter
+import org.neo4j.cypherdsl.core.renderer.Dialect
 import org.neo4j.graphql.handler.utils.ChainString
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -16,7 +17,10 @@ data class QueryContext @JvmOverloads constructor(
      */
     val optimizedQuery: Set<OptimizationStrategy>? = null,
 
+    val neo4jDialect: Dialect = Dialect.NEO4J_5,
+
     val contextParams: Map<String, Any?>? = emptyMap(),
+
 
     val auth: AuthParams? = null // TODO init
 ) {
@@ -75,6 +79,8 @@ data class QueryContext @JvmOverloads constructor(
     )
 
     companion object {
+        const val KEY = "NEO4J_QUERY_CONTEXT"
+
         private const val PATH_PATTERN = "([a-zA-Z_][a-zA-Z_0-9]*(?:.[a-zA-Z_][a-zA-Z_0-9]*)*)"
         private val CONTEXT_VARIABLE_PATTERN = Regex("\\\$(?:\\{$PATH_PATTERN}|$PATH_PATTERN)")
     }

@@ -9,7 +9,7 @@
 interface HasMovies { movies:[Movie] }
 type Person0 { name: String, born: _Neo4jTime, location: _Neo4jPoint }
 type Person1 { name: String, born: _Neo4jDate }
-type Person2 { name: String, age: [Int], born: _Neo4jDateTime }
+type Person2 { name: String, age: Int, born: _Neo4jDateTime }
 type Person3 { name: String!, born: _Neo4jLocalTime }
 type Person4 { id:ID!, name: String, born: _Neo4jLocalDateTime }
 type Person5 implements HasMovies { id:ID!, movies:[Movie] @relation(name: "LIKES")}
@@ -105,7 +105,7 @@ type Mutation {
   createKnows4(json: DynamicProperties, knows_id: ID!, source_id: ID!): Knows4!
   createMovie(id: ID!): Movie!
   createPerson1(born: _Neo4jDateInput, name: String): Person1!
-  createPerson2(age: [Int], born: _Neo4jDateTimeInput, name: String): Person2!
+  createPerson2(age: Int, born: _Neo4jDateTimeInput, name: String): Person2!
   createPerson3(born: _Neo4jLocalTimeInput, name: String!): Person3!
   createPerson4(born: _Neo4jLocalDateTimeInput, id: ID!, name: String): Person4!
   createPerson5(id: ID!): Person5!
@@ -146,7 +146,7 @@ type Person1 {
 }
 
 type Person2 {
-  age: [Int]
+  age: Int
   born: _Neo4jDateTime
   name: String
 }
@@ -421,7 +421,7 @@ type Person1 {
 }
 
 type Person2 {
-  age: [Int]
+  age: Int
   born: _Neo4jDateTime
   name: String
 }
@@ -454,7 +454,7 @@ type Query {
   knows4(_id: ID, filter: _Knows4Filter, first: Int, offset: Int, orderBy: [_Knows4Ordering!]): [Knows4!]!
   movie(filter: _MovieFilter, first: Int, id: ID, id_contains: ID, id_ends_with: ID, id_gt: ID, id_gte: ID, id_in: [ID!], id_lt: ID, id_lte: ID, id_matches: ID, id_not: ID, id_not_contains: ID, id_not_ends_with: ID, id_not_in: [ID!], id_not_starts_with: ID, id_starts_with: ID, offset: Int, orderBy: [_MovieOrdering!]): [Movie!]!
   person1(born: _Neo4jDateInput, born_in: [_Neo4jDateInput!], born_not: _Neo4jDateInput, born_not_in: [_Neo4jDateInput!], filter: _Person1Filter, first: Int, name: String, name_contains: String, name_ends_with: String, name_gt: String, name_gte: String, name_in: [String!], name_lt: String, name_lte: String, name_matches: String, name_not: String, name_not_contains: String, name_not_ends_with: String, name_not_in: [String!], name_not_starts_with: String, name_starts_with: String, offset: Int, orderBy: [_Person1Ordering!]): [Person1!]!
-  person2(age: [Int], age_gt: [Int], age_gte: [Int], age_in: [Int!], age_lt: [Int], age_lte: [Int], age_not: [Int], age_not_in: [Int!], born: _Neo4jDateTimeInput, born_in: [_Neo4jDateTimeInput!], born_not: _Neo4jDateTimeInput, born_not_in: [_Neo4jDateTimeInput!], filter: _Person2Filter, first: Int, name: String, name_contains: String, name_ends_with: String, name_gt: String, name_gte: String, name_in: [String!], name_lt: String, name_lte: String, name_matches: String, name_not: String, name_not_contains: String, name_not_ends_with: String, name_not_in: [String!], name_not_starts_with: String, name_starts_with: String, offset: Int, orderBy: [_Person2Ordering!]): [Person2!]!
+  person2(age: Int, age_gt: Int, age_gte: Int, age_in: [Int!], age_lt: Int, age_lte: Int, age_not: Int, age_not_in: [Int!], born: _Neo4jDateTimeInput, born_in: [_Neo4jDateTimeInput!], born_not: _Neo4jDateTimeInput, born_not_in: [_Neo4jDateTimeInput!], filter: _Person2Filter, first: Int, name: String, name_contains: String, name_ends_with: String, name_gt: String, name_gte: String, name_in: [String!], name_lt: String, name_lte: String, name_matches: String, name_not: String, name_not_contains: String, name_not_ends_with: String, name_not_in: [String!], name_not_starts_with: String, name_starts_with: String, offset: Int, orderBy: [_Person2Ordering!]): [Person2!]!
   person3(born: _Neo4jLocalTimeInput, born_in: [_Neo4jLocalTimeInput!], born_not: _Neo4jLocalTimeInput, born_not_in: [_Neo4jLocalTimeInput!], filter: _Person3Filter, first: Int, name: String, name_contains: String, name_ends_with: String, name_gt: String, name_gte: String, name_in: [String!], name_lt: String, name_lte: String, name_matches: String, name_not: String, name_not_contains: String, name_not_ends_with: String, name_not_in: [String!], name_not_starts_with: String, name_starts_with: String, offset: Int, orderBy: [_Person3Ordering!]): [Person3!]!
   person4(born: _Neo4jLocalDateTimeInput, born_in: [_Neo4jLocalDateTimeInput!], born_not: _Neo4jLocalDateTimeInput, born_not_in: [_Neo4jLocalDateTimeInput!], filter: _Person4Filter, first: Int, id: ID, id_contains: ID, id_ends_with: ID, id_gt: ID, id_gte: ID, id_in: [ID!], id_lt: ID, id_lte: ID, id_matches: ID, id_not: ID, id_not_contains: ID, id_not_ends_with: ID, id_not_in: [ID!], id_not_starts_with: ID, id_starts_with: ID, name: String, name_contains: String, name_ends_with: String, name_gt: String, name_gte: String, name_in: [String!], name_lt: String, name_lte: String, name_matches: String, name_not: String, name_not_contains: String, name_not_ends_with: String, name_not_in: [String!], name_not_starts_with: String, name_starts_with: String, offset: Int, orderBy: [_Person4Ordering!]): [Person4!]!
   person5(filter: _Person5Filter, first: Int, id: ID, id_contains: ID, id_ends_with: ID, id_gt: ID, id_gte: ID, id_in: [ID!], id_lt: ID, id_lte: ID, id_matches: ID, id_not: ID, id_not_contains: ID, id_not_ends_with: ID, id_not_in: [ID!], id_not_starts_with: ID, id_starts_with: ID, offset: Int, orderBy: [_Person5Ordering!]): [Person5!]!
@@ -1197,7 +1197,7 @@ type Person1 {
 }
 
 type Person2 {
-  age: [Int]
+  age: Int
   born: _Neo4jDateTime
   name: String
 }
