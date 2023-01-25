@@ -4,13 +4,16 @@ import graphql.language.*
 import graphql.language.TypeDefinition
 import graphql.schema.GraphQLFieldDefinition
 import graphql.schema.GraphQLFieldsContainer
-import org.neo4j.cypherdsl.core.Condition
-import org.neo4j.cypherdsl.core.Expression
-import org.neo4j.cypherdsl.core.Property
-import org.neo4j.cypherdsl.core.PropertyContainer
+import org.neo4j.cypherdsl.core.*
+import org.neo4j.cypherdsl.core.Predicates.OngoingListBasedPredicateFunction
 import org.slf4j.LoggerFactory
 
 typealias CypherDSL = org.neo4j.cypherdsl.core.Cypher
+
+private fun createArrayPredicate(factory: (SymbolicName) -> OngoingListBasedPredicateFunction) = { lhs: Expression, rhs: Expression ->
+    val x: SymbolicName = org.neo4j.cypherdsl.core.Cypher.name("x")
+    factory(x).`in`(lhs).where(x.`in`(rhs))
+}
 
 enum class FieldOperator(
         val suffix: String,
@@ -39,22 +42,10 @@ enum class FieldOperator(
     EW("_ends_with", { lhs, rhs -> lhs.endsWith(rhs) }),
     MATCHES("_matches", { lhs, rhs -> lhs.matches(rhs) }),
 
-    INCLUDES_ALL("_includes_all", { lhs, rhs ->
-        val x: org.neo4j.cypherdsl.core.SymbolicName = org.neo4j.cypherdsl.core.Cypher.name("x")
-        org.neo4j.cypherdsl.core.Predicates.all(x).`in`(lhs).where(x.`in`(rhs))
-    }, list = true),
-    INCLUDES_SOME("_includes_some", { lhs, rhs ->
-        val x: org.neo4j.cypherdsl.core.SymbolicName = org.neo4j.cypherdsl.core.Cypher.name("x")
-        org.neo4j.cypherdsl.core.Predicates.any(x).`in`(lhs).where(x.`in`(rhs))
-    }, list = true),
-    INCLUDES_NONE("_includes_none", { lhs, rhs ->
-        val x: org.neo4j.cypherdsl.core.SymbolicName = org.neo4j.cypherdsl.core.Cypher.name("x")
-        org.neo4j.cypherdsl.core.Predicates.none(x).`in`(lhs).where(x.`in`(rhs))
-    }, list = true),
-    INCLUDES_SINGLE("_includes_single", { lhs, rhs ->
-        val x: org.neo4j.cypherdsl.core.SymbolicName = org.neo4j.cypherdsl.core.Cypher.name("x")
-        org.neo4j.cypherdsl.core.Predicates.single(x).`in`(lhs).where(x.`in`(rhs))
-    }, list = true),
+    INCLUDES_ALL("_includes_all", createArrayPredicate(Predicates::all), list = true),
+    INCLUDES_SOME("_includes_some", createArrayPredicate(Predicates::any), list = true),
+    INCLUDES_NONE("_includes_none", createArrayPredicate(Predicates::none), list = true),
+    INCLUDES_SINGLE("_includes_single", createArrayPredicate(Predicates::single), list = true),
 
     DISTANCE(NEO4j_POINT_DISTANCE_FILTER_SUFFIX, { lhs, rhs -> lhs.isEqualTo(rhs) }, distance = true),
     DISTANCE_LT(NEO4j_POINT_DISTANCE_FILTER_SUFFIX + "_lt", { lhs, rhs -> lhs.lt(rhs) }, distance = true),
