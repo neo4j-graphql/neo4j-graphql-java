@@ -401,7 +401,7 @@ open class ProjectionBase(
     }
 
     fun cypherDirective(ctxVariable: SymbolicName, fieldDefinition: GraphQLFieldDefinition, arguments: Map<String, Any>, cypherDirective: CypherDirective, thisValue: SymbolicName?): ResultStatement {
-        val args = sortedMapOf<String, Expression>()
+        val args = sortedMapOf<String, IdentifiableElement>()
         if (thisValue != null) args["this"] = thisValue.`as`("this")
         arguments
             .filterNot { (name, _) -> SPECIAL_FIELDS.contains(name) }
