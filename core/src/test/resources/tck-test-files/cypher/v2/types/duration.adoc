@@ -37,7 +37,7 @@ type Movie {
 [source,json]
 ----
 {
-  "param0" : "P40M0DT0S"
+  "param0" : "P3Y4M"
 }
 ----
 
@@ -45,7 +45,7 @@ type Movie {
 [source,cypher]
 ----
 MATCH (this:Movie)
-WHERE (datetime() + this.duration) >= (datetime() + $param0)
+WHERE (datetime() + this.duration) >= (datetime() + duration($param0))
 RETURN this {
 	.duration
 } AS this
@@ -111,7 +111,7 @@ RETURN collect(create_this0 {
 [source,json]
 ----
 {
-  "param0" : "P12M0DT0S"
+  "param0" : "P1Y"
 }
 ----
 
@@ -119,7 +119,7 @@ RETURN collect(create_this0 {
 [source,cypher]
 ----
 MATCH (this:Movie)
-WHERE this.duration = $param0
+WHERE (datetime() + this.duration) = (datetime() + duration($param0))
 RETURN this {
 	.duration
 } AS this
@@ -146,8 +146,7 @@ mutation {
 [source,json]
 ----
 {
-  "resolvedCallbacks" : { },
-  "this_update_duration" : "P0M4DT0S"
+  "this_update_duration" : "P4D"
 }
 ----
 
@@ -155,7 +154,7 @@ mutation {
 [source,cypher]
 ----
 MATCH (this:Movie)
-SET this.duration = $this_update_duration
+SET this.duration = duration($this_update_duration)
 RETURN collect(DISTINCT this {
 	.id,
 	.duration

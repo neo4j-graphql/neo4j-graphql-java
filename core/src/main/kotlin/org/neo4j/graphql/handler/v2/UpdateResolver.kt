@@ -148,7 +148,7 @@ class UpdateResolver private constructor(
                 }
             }
             data.forEach { (refNodes, inp, nameClassifier) ->
-                DisconnectTranslator(
+                ongoingReading = DisconnectTranslator(
                     withVars,
                     inp,
                     ChainString(schemaConfig, dslNode, "disconnect", relField, nameClassifier),
@@ -208,17 +208,14 @@ class UpdateResolver private constructor(
                 }
 
                 creates?.forEachIndexed { index, (createNode, createEdge) ->
-                    val targetNode = refNode.asCypherNode(
-                        queryContext, ChainString(
-                            schemaConfig,
-                            dslNode,
-                            "create",
-                            relField,
-                            refNode.takeIf { relField.isInterface || relField.isUnion },
-                            index,
-                            "node"
-                        ).resolveName()
-                    )
+                    val base = ChainString(
+                        schemaConfig,
+                        dslNode,
+                        "create",
+                        relField,
+                        refNode.takeIf { relField.isInterface || relField.isUnion })
+                        .appendOnPrevious(index)
+                    val targetNode = refNode.asCypherNode(queryContext, base.extend("node").resolveName())
                     ongoingReading = CreateTranslator(schemaConfig, queryContext)
                         .createCreateAndParams(
                             refNode,
@@ -230,15 +227,7 @@ class UpdateResolver private constructor(
                         }
 
                     val relationship = relField.createDslRelation(
-                        dslNode, targetNode, ChainString(
-                            schemaConfig,
-                            dslNode,
-                            "create",
-                            relField,
-                            refNode.takeIf { relField.isInterface || relField.isUnion },
-                            index,
-                            "relationship"
-                        )
+                        dslNode, targetNode, base.extend("relationship")
                     )
                     ongoingReading = (ongoingReading as ExposesMerge).merge(relationship)
                         .let { merge ->

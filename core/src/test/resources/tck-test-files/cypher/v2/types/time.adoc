@@ -40,13 +40,7 @@ mutation {
 ----
 {
   "create_param0" : [ {
-    "time" : {
-      "hour" : 22,
-      "minute" : 0,
-      "second" : 0,
-      "nanosecond" : 0,
-      "timeZoneOffsetSeconds" : 0
-    }
+    "time" : "22:00:00Z"
   } ],
   "resolvedCallbacks" : { }
 }
@@ -85,13 +79,7 @@ RETURN collect(create_this0 {
 [source,json]
 ----
 {
-  "param0" : {
-    "hour" : 13,
-    "minute" : 45,
-    "second" : 33,
-    "nanosecond" : 250000000,
-    "timeZoneOffsetSeconds" : 0
-  }
+  "param0" : "13:45:33.250"
 }
 ----
 
@@ -99,7 +87,7 @@ RETURN collect(create_this0 {
 [source,cypher]
 ----
 MATCH (this:Movie)
-WHERE this.time >= $param0
+WHERE this.time >= time($param0)
 RETURN this {
 	.time
 } AS this
@@ -126,13 +114,7 @@ mutation {
 ----
 {
   "create_param0" : [ {
-    "time" : {
-      "hour" : 22,
-      "minute" : 0,
-      "second" : 15,
-      "nanosecond" : 555000000,
-      "timeZoneOffsetSeconds" : -3600
-    }
+    "time" : "22:00:15.555000000-01:00"
   } ],
   "resolvedCallbacks" : { }
 }
@@ -171,13 +153,7 @@ RETURN collect(create_this0 {
 [source,json]
 ----
 {
-  "param0" : {
-    "hour" : 12,
-    "minute" : 0,
-    "second" : 0,
-    "nanosecond" : 0,
-    "timeZoneOffsetSeconds" : 0
-  }
+  "param0" : "12:00:00"
 }
 ----
 
@@ -185,7 +161,7 @@ RETURN collect(create_this0 {
 [source,cypher]
 ----
 MATCH (this:Movie)
-WHERE this.time = $param0
+WHERE this.time = time($param0)
 RETURN this {
 	.time
 } AS this
@@ -212,14 +188,7 @@ mutation {
 [source,json]
 ----
 {
-  "resolvedCallbacks" : { },
-  "this_update_time" : {
-    "hour" : 9,
-    "minute" : 24,
-    "second" : 40,
-    "nanosecond" : 845512000,
-    "timeZoneOffsetSeconds" : 23400
-  }
+  "this_update_time" : "09:24:40.845512+06:30"
 }
 ----
 
@@ -227,7 +196,7 @@ mutation {
 [source,cypher]
 ----
 MATCH (this:Movie)
-SET this.time = $this_update_time
+SET this.time = time($this_update_time)
 RETURN collect(DISTINCT this {
 	.id,
 	.time

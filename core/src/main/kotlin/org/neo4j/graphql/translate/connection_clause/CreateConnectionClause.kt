@@ -72,7 +72,8 @@ object CreateConnectionClause {
             rel,
             prefix,
             schemaConfig,
-            queryContext
+            queryContext,
+            usePrefix = true
         )
 
         val allowAuth =
@@ -113,14 +114,14 @@ object CreateConnectionClause {
                 relationshipProperties.values.forEach {
                     val scalarField =
                         relField.properties?.getField(it.name) as? ScalarField ?: error("expect only scalar fields")
-                    innerProjection.addAll(projectScalarField(it, scalarField, rel))
+                    innerProjection.addAll(projectScalarField(it, scalarField, rel, queryContext = queryContext))
                 }
 
                 // TODO extraFields (sorting)
 
                 relationshipFieldsByTypeName?.get(Constants.NODE_FIELD)?.let {
 
-                    val projection = ProjectionTranslator()
+                    val nestedProjection = ProjectionTranslator()
                         .createProjectionAndParams(
                             relatedNode,
                             endNode,
@@ -130,10 +131,10 @@ object CreateConnectionClause {
                             queryContext,
                             useShortcut = false
                         )
-                    conditions.add(projection.authValidate)
-                    nestedSubQueries.addAll(projection.allSubQueries)
+                    conditions.add(nestedProjection.authValidate)
+                    nestedSubQueries.addAll(nestedProjection.allSubQueries)
                     innerProjection += it.aliasOrName
-                    innerProjection += Cypher.mapOf(*projection.projection.toTypedArray())
+                    innerProjection += Cypher.mapOf(*nestedProjection.projection.toTypedArray())
                 }
 
 

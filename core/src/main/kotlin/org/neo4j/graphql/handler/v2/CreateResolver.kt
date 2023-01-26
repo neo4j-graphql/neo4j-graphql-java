@@ -22,6 +22,7 @@ import org.neo4j.graphql.schema.model.outputs.NodeSelection
 import org.neo4j.graphql.translate.CreateTranslator
 import org.neo4j.graphql.translate.ProjectionTranslator
 import org.neo4j.graphql.utils.IResolveTree
+import org.neo4j.graphql.utils.ObjectFieldSelection
 import org.neo4j.graphql.utils.ResolveTree
 
 class CreateResolver private constructor(
@@ -97,6 +98,7 @@ class CreateResolver private constructor(
             { CreateMutationSelection(node, it) },
             { CreateInputArguments(node, it.args) }
         )
+//        unwindCreate(variable, field, env, request)
 
         val queryContext = env.queryContext()
 
@@ -148,6 +150,22 @@ class CreateResolver private constructor(
             .returning(Cypher.listOf(dslNode.project(projection.projection)).`as`("data"))
             .build()
 
+    }
+
+
+    class UnsupportedUnwindOptimization : RuntimeException()
+
+    private fun unwindCreate(
+        variable: String,
+        field: Field,
+        env: DataFetchingEnvironment,
+        request: ObjectFieldSelection<CreateMutationSelection, CreateInputArguments>
+    ): Statement {
+//        if (env.queryContext().subscriptionsEnabled) {
+//            throw new UnsupportedUnwindOptimization("Unwind create optimisation does not yet support subscriptions");
+//        }
+//       if (request.parsedArguments.input)
+        TODO()
     }
 }
 

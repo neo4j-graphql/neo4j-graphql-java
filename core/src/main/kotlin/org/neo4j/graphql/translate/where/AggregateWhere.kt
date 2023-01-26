@@ -4,10 +4,10 @@ import org.neo4j.cypherdsl.core.*
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.fields.HasCoalesceValue
 import org.neo4j.graphql.domain.fields.RelationField
-import org.neo4j.graphql.schema.model.inputs.aggregation.AggregateInput
-import org.neo4j.graphql.schema.model.inputs.aggregation.AggregationWhereInput
 import org.neo4j.graphql.domain.predicates.AggregationFieldPredicate
 import org.neo4j.graphql.handler.utils.ChainString
+import org.neo4j.graphql.schema.model.inputs.aggregation.AggregateInput
+import org.neo4j.graphql.schema.model.inputs.aggregation.AggregationWhereInput
 import org.neo4j.graphql.translate.WhereResult
 
 class AggregateWhere(val schemaConfig: SchemaConfig, val queryContext: QueryContext) {
@@ -103,16 +103,9 @@ class AggregateWhere(val schemaConfig: SchemaConfig, val queryContext: QueryCont
                 ?.toJavaValue()
                 ?.let { Functions.coalesce(dbProperty, it.asCypherLiteral()) }
                 ?: dbProperty
-        var rhs: Expression = queryContext.getNextParam(predicate.value)
-        rhs = when (field.typeMeta.type.name()) {
-            Constants.DURATION -> Functions.duration(rhs)
-            Constants.DATE_TIME -> Functions.datetime(rhs)
-            Constants.LOCAL_DATE_TIME -> Functions.localdatetime(rhs)
-            Constants.LOCAL_TIME -> Functions.localtime(rhs)
-            Constants.DATE -> Functions.date(rhs)
-            Constants.TIME -> Functions.time(rhs)
-            else -> rhs
-        }
+        val rhs: Expression = queryContext
+            .getNextParam(predicate.value)
+            .let { field.convertInputToCypher(it) }
         return predicate.resolver.createCondition(property, rhs, queryContext)
     }
 }

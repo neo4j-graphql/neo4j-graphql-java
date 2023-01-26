@@ -124,8 +124,10 @@ CALL {
 		}
 		RETURN count(*) AS _
 	}
+	WITH this, this_connect_posts0_node
 	RETURN count(*) AS connect_this_connect_posts_Post
 }
+WITH *
 RETURN collect(DISTINCT this {
 	.id
 }) AS data

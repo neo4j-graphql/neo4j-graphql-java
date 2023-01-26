@@ -9,9 +9,9 @@ object BigIntScalar {
 
     val INSTANCE: GraphQLScalarType = GraphQLScalarType.newScalar()
         .name(Constants.BIG_INT)
-        .coercing(object : Coercing<Number, Any> {
+        .coercing(object : Coercing<Number, String> {
             @Throws(CoercingSerializeException::class)
-            override fun serialize(input: Any): Any {
+            override fun serialize(input: Any): String {
                 return input.toString()
             }
 
@@ -26,6 +26,8 @@ object BigIntScalar {
                     is StringValue -> input.value.toLong()
                     is FloatValue -> input.value
                     is IntValue -> input.value
+                    is String -> input.toLong()
+                    is Float, is Int, is Long -> input as Number
                     else -> Assert.assertShouldNeverHappen("Only string or number is expected")
                 }
             }

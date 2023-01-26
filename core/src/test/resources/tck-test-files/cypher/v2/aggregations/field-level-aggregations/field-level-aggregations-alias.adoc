@@ -61,17 +61,18 @@ interface ActedIn {
 MATCH (this:Movie)
 CALL {
 	WITH this
-	MATCH (actor:Actor)-[edge:ACTED_IN]->(this)
-	WITH actor ORDER BY size(actor.name) DESC
-	WITH collect(actor.name) AS list
+	MATCH (this_actorsAggregate_this0:Actor)-[this_actorsAggregate_this1:ACTED_IN]->(this)
+	WITH this_actorsAggregate_this0 ORDER BY size(this_actorsAggregate_this0.name) DESC
+	WITH collect(this_actorsAggregate_this0.name) AS list
 	RETURN {
+		longest: head(list),
 		shortest: last(list)
-	} AS this_actorsAggregate_var0
+	} AS this_actorsAggregate_var2
 }
 RETURN this {
 	actorsAggregate: {
 		node: {
-			myName: this_actorsAggregate_var0
+			myName: this_actorsAggregate_var2
 		}
 	}
 } AS this
@@ -109,15 +110,18 @@ RETURN this {
 MATCH (this:Movie)
 CALL {
 	WITH this
-	MATCH (actor:Actor)-[edge:ACTED_IN]->(this)
+	MATCH (this_actorsAggregate_this1:Actor)-[this_actorsAggregate_this0:ACTED_IN]->(this)
 	RETURN {
-		max: max(edge.screentime)
-	} AS this_actorsAggregate_var0
+		min: min(this_actorsAggregate_this0.screentime),
+		max: max(this_actorsAggregate_this0.screentime),
+		average: avg(this_actorsAggregate_this0.screentime),
+		sum: sum(this_actorsAggregate_this0.screentime)
+	} AS this_actorsAggregate_var2
 }
 RETURN this {
 	actorsAggregate: {
 		edge: {
-			time: this_actorsAggregate_var0
+			time: this_actorsAggregate_var2
 		}
 	}
 } AS this

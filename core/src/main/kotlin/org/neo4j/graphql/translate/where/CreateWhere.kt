@@ -151,11 +151,13 @@ fun createWhere(
         val rhs = if (predicate.value == null) {
             Cypher.literalNull()
         } else {
-            if (usePrefix) {
-                queryContext.getNextParam(paramPrefix.appendOnPrevious("param"), predicate.value)
-//                paramPrefix.extend(predicate.name).resolveParameter(predicate.value)
-            } else {
-                queryContext.getNextParam(predicate.value)
+            when {
+                usePrefix -> {
+                    //                paramPrefix.extend(predicate.name).resolveParameter(predicate.value)
+                    queryContext.getNextParam(paramPrefix.appendOnPrevious("param"), predicate.value)
+                }
+
+                else -> queryContext.getNextParam(predicate.value)
             }
         }
         return predicate.createCondition(property, rhs)

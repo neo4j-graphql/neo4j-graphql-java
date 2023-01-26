@@ -136,11 +136,14 @@ class UpdateTranslator(
                 is UpdateFieldInput.UnionUpdateFieldInput -> value.getDataForNode(refNode) ?: return@forEach
             }
             inputs.forEachIndexed { index, input ->
-                val _varName = ChainString(schemaConfig,
-                    varName,
-                    key.let { it + (index.takeIf { !field.isUnion } ?: "") },
-                    (refNode.name + index).takeIf { field.isUnion }
-                )
+                val _varName = ChainString(schemaConfig, varName, key)
+                    .appendOnPrevious(index.takeIf { !field.isUnion })
+                    .extend(refNode.name.takeIf { field.isUnion })
+                    .appendOnPrevious(index.takeIf { field.isUnion })
+
+                if (withVars.isNotEmpty()) {
+                    result = result.with(withVars)
+                }
 
                 // input.update
                 result = handleNestedUpdate(refNode, field, input, index, _varName, param)
@@ -159,12 +162,9 @@ class UpdateTranslator(
                         listOf(refNode),
                         refNode.name.takeIf { field.isUnion },
                         node,
-                        parameterPrefix.extend(
-                            key,
-                            refNode.takeIf { field.isUnion },
-                            index.takeIf { field.typeMeta.type.isList() },
-                            "disconnect"
-                        ),
+                        parameterPrefix.extend(key, refNode.takeIf { field.isUnion })
+                            .appendOnPrevious(index.takeIf { field.typeMeta.type.isList() })
+                            .extend("disconnect"),
                         result
                     )
                         .createDisconnectAndParams()
@@ -209,11 +209,9 @@ class UpdateTranslator(
                         _varName.extend("delete"),
                         parentVar,
                         withVars,
-                        parameterPrefix.extend(
-                            key,
-                            index.takeIf { field.typeMeta.type.isList() },
-                            "delete"
-                        ),
+                        parameterPrefix.extend(key)
+                            .appendOnPrevious(index.takeIf { field.typeMeta.type.isList() })
+                            .extend("delete"),
                         schemaConfig,
                         queryContext,
                         result
@@ -236,7 +234,7 @@ class UpdateTranslator(
 
                         creates.forEachIndexed { i, create ->
 
-                            val baseName = ChainString(schemaConfig, _varName, "create", i)
+                            val baseName = ChainString(schemaConfig, _varName, "create").appendOnPrevious(i)
                             val nodeName = baseName.extend("node")
                             val propertiesName = baseName.extend("relationship")
 

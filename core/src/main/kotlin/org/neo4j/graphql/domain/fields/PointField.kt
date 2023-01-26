@@ -2,17 +2,28 @@ package org.neo4j.graphql.domain.fields
 
 import graphql.language.ListType
 import graphql.language.NonNullType
+import graphql.language.TypeName
 import org.neo4j.cypherdsl.core.Cypher
+import org.neo4j.cypherdsl.core.Expression
 import org.neo4j.cypherdsl.core.Functions
-import org.neo4j.graphql.*
+import org.neo4j.cypherdsl.core.Parameter
+import org.neo4j.graphql.Constants
+import org.neo4j.graphql.SchemaConfig
 import org.neo4j.graphql.domain.TypeMeta
 import org.neo4j.graphql.domain.predicates.FieldOperator
 import org.neo4j.graphql.domain.predicates.definitions.ScalarPredicateDefinition
+import org.neo4j.graphql.inner
+import org.neo4j.graphql.isList
+import org.neo4j.graphql.schema.model.outputs.point.BasePointSelection
+import org.neo4j.graphql.schema.model.outputs.point.CartesianPointSelection
+import org.neo4j.graphql.schema.model.outputs.point.PointSelection
+import org.neo4j.graphql.utils.IResolveTree
 
 class PointField(
     fieldName: String,
     typeMeta: TypeMeta,
-    schemaConfig: SchemaConfig,
+    val type: Type,
+    schemaConfig: SchemaConfig
 ) : ScalarField(
     fieldName,
     typeMeta,
@@ -56,11 +67,7 @@ class PointField(
                     parameter.property("distance")
                 )
             },
-            type = when (typeMeta.type.name()) {
-                Constants.POINT_TYPE -> Constants.Types.PointDistance
-                Constants.CARTESIAN_POINT_TYPE -> Constants.Types.CartesianPointDistance
-                else -> error("unsupported point type " + typeMeta.type.name())
-            }
+            type = type.inputType
         )
     }
 
@@ -78,8 +85,25 @@ class PointField(
         return this.add(
             op.suffix, { property, parameter ->
                 val paramPoint = Functions.point(parameter)
-                op.conditionCreator(paramPoint, property)
+                op.conditionCreator(property, paramPoint)
             }, type = typeMeta.whereType.inner()
         )
+    }
+
+    override fun convertInputToCypher(input: Parameter<*>): Expression = if (typeMeta.type.isList()) {
+        val point = Cypher.name("p")
+        Cypher.listWith(point).`in`(input).returning(Functions.point(point))
+    } else {
+        Functions.point(input)
+    }
+
+    fun parseSelection(rt: IResolveTree) = type.selectionFactory(rt)
+
+    enum class Type(
+        internal val inputType: TypeName,
+        internal val selectionFactory: (IResolveTree) -> BasePointSelection
+    ) {
+        GEOGRAPHIC(Constants.Types.PointDistance, ::PointSelection),
+        CARTESIAN(Constants.Types.CartesianPointDistance, ::CartesianPointSelection)
     }
 }

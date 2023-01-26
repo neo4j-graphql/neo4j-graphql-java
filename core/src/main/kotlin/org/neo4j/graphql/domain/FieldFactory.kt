@@ -221,7 +221,12 @@ object FieldFactory {
                     baseField.defaultValue = defaultDirective.value
                 }
             } else if (Constants.POINT_TYPES.contains(typeMeta.type.name())) {
-                baseField = PointField(field.name, typeMeta, schemaConfig)
+                val type = when (typeMeta.type.name()) {
+                    Constants.POINT_TYPE -> PointField.Type.GEOGRAPHIC
+                    Constants.CARTESIAN_POINT_TYPE -> PointField.Type.CARTESIAN
+                    else -> error("unsupported point type " + typeMeta.type.name())
+                }
+                baseField = PointField(field.name, typeMeta, type, schemaConfig)
             } else {
                 baseField = PrimitiveField(field.name, typeMeta, schemaConfig)
 

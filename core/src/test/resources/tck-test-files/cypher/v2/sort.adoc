@@ -163,15 +163,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{
-  "auth" : {
-    "isAuthenticated" : true,
-    "roles" : [ ],
-    "jwt" : {
-      "roles" : [ ]
-    }
-  }
-}
+{ }
 ----
 
 .Expected Cypher output
@@ -183,17 +175,18 @@ CALL {
 	MATCH (this)-[this0:HAS_GENRE]->(this_genres:Genre)
 	CALL {
 		WITH this_genres
-		UNWIND apoc.cypher.runFirstColumnSingle('MATCH (this)<-[:HAS_GENRE]-(movie:Movie)
-        RETURN count(DISTINCT movie)', {
-			this: this_genres,
-			auth: $auth
-		}) AS this_genres_totalMovies
+		CALL {
+			WITH this_genres
+			WITH this_genres AS this
+			MATCH (this)<-[:HAS_GENRE]-(movie:Movie)
+			RETURN count(DISTINCT movie) AS this_genres_totalMovies
+		}
 		RETURN head(collect(this_genres_totalMovies)) AS this_genres_totalMovies
 	}
 	WITH this_genres {
 		.name,
 		totalMovies: this_genres_totalMovies
-	} AS this_genres ORDER BY this_genres.totalMovies ASC
+	} AS this_genres ORDER BY this_genres_totalMovies ASC
 	RETURN collect(this_genres) AS this_genres
 }
 RETURN this {
@@ -218,15 +211,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{
-  "auth" : {
-    "isAuthenticated" : true,
-    "roles" : [ ],
-    "jwt" : {
-      "roles" : [ ]
-    }
-  }
-}
+{ }
 ----
 
 .Expected Cypher output
@@ -235,11 +220,12 @@ RETURN this {
 MATCH (this:Movie)
 CALL {
 	WITH this
-	UNWIND apoc.cypher.runFirstColumnSingle('MATCH (this)-[:HAS_GENRE]->(genre:Genre)
-    RETURN count(DISTINCT genre)', {
-		this: this,
-		auth: $auth
-	}) AS this_totalGenres
+	CALL {
+		WITH this
+		WITH this AS this
+		MATCH (this)-[:HAS_GENRE]->(genre:Genre)
+		RETURN count(DISTINCT genre) AS this_totalGenres
+	}
 	RETURN head(collect(this_totalGenres)) AS this_totalGenres
 }
 WITH * ORDER BY this_totalGenres DESC
@@ -328,8 +314,7 @@ MATCH (this:Movie)
 WITH * ORDER BY this.id DESC
 RETURN this {
 	aliased: this.id,
-	.title,
-	.id
+	.title
 } AS this
 ----
 
@@ -391,8 +376,7 @@ RETURN this {
 MATCH (this:Movie)
 WITH * ORDER BY this.id DESC
 RETURN this {
-	.title,
-	.id
+	.title
 } AS this
 ----
 

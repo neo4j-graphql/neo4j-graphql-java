@@ -5,6 +5,7 @@ import graphql.language.Type
 import org.neo4j.cypherdsl.core.Condition
 import org.neo4j.cypherdsl.core.Expression
 import org.neo4j.cypherdsl.core.Functions
+import org.neo4j.cypherdsl.core.Parameter
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.TypeMeta
 import org.neo4j.graphql.domain.predicates.FieldOperator
@@ -78,7 +79,14 @@ abstract class ScalarField(fieldName: String, typeMeta: TypeMeta, schemaConfig: 
         delegate: ((comparisonResolver: (Expression, Expression) -> Condition) -> (Expression, Expression) -> Condition)? = null,
         type: Type<*>? = null,
     ): MutableMap<String, ScalarPredicateDefinition> {
-        return this.add(op.suffix, delegate?.invoke(op.conditionCreator) ?: op.conditionCreator, type)
+        val comparisonResolver: (Expression, Expression) -> Condition = { lhs, rhs ->
+            val rhs2 = when (rhs) {
+                is Parameter<*> -> convertInputToCypher(rhs)
+                else -> rhs
+            }
+            (delegate?.invoke(op.conditionCreator) ?: op.conditionCreator)(lhs, rhs2)
+        }
+        return this.add(op.suffix, comparisonResolver, type)
     }
 
     protected fun MutableMap<String, ScalarPredicateDefinition>.add(
@@ -106,5 +114,10 @@ abstract class ScalarField(fieldName: String, typeMeta: TypeMeta, schemaConfig: 
         )
 
         private val STRING_LIKE_TYPES = setOf(Constants.ID, Constants.STRING)
+    }
+
+    open fun convertInputToCypher(input: Parameter<*>): Expression = when (typeMeta.type.name()) {
+        Constants.DURATION -> Functions.duration(input)
+        else -> input
     }
 }

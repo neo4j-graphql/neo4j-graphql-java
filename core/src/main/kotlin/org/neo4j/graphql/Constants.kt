@@ -35,6 +35,15 @@ object Constants {
     const val ON = "_on"
     const val SCORE = "score"
 
+    const val X = "x"
+    const val Y = "y"
+    const val Z = "z"
+    const val LONGITUDE = "longitude"
+    const val LATITUDE = "latitude"
+    const val HEIGHT = "height"
+    const val CRS = "crs"
+    const val SRID = "srid"
+
     const val POINT_TYPE = "Point"
     const val CARTESIAN_POINT_TYPE = "CartesianPoint"
     const val POINT_INPUT_TYPE = "PointInput"

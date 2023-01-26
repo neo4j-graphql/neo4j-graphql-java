@@ -100,11 +100,9 @@ fun createDeleteAndParams(
                 endNodeName,
                 endNode,
                 withVars + endNode.requiredSymbolicName,
-                parameterPrefix.extend(
-                    refNode.takeIf { relField.isUnion },
-                    index.takeIf { relField.typeMeta.type.isList() },
-                    "delete"
-                ),
+                parameterPrefix.extend(refNode.takeIf { relField.isUnion })
+                    .appendOnPrevious(index.takeIf { relField.typeMeta.type.isList() })
+                    .extend("delete"),
                 schemaConfig,
                 queryContext,
                 exposesWith

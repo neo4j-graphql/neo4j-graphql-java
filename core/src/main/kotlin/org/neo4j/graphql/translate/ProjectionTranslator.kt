@@ -266,7 +266,7 @@ class ProjectionTranslator {
             }
 
             if (nodeField is ScalarField) {
-                projections.addAll(projectScalarField(field, nodeField, varName, shortcut = useShortcut))
+                projections.addAll(projectScalarField(field, nodeField, varName, shortcut = useShortcut, queryContext))
             }
 
         }

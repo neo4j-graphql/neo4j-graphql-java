@@ -94,8 +94,8 @@ RETURN collect(create_this0 {
 ----
 {
   "param0" : [ {
-    "longitude" : 1,
-    "latitude" : 2
+    "longitude" : 1.0,
+    "latitude" : 2.0
   } ]
 }
 ----
@@ -104,10 +104,11 @@ RETURN collect(create_this0 {
 [source,cypher]
 ----
 MATCH (this:PointContainer)
-WHERE this.point IN [var0 IN $param0 | point(var0)]
+WHERE this.point IN [p IN $param0 | point(p)]
 RETURN this {
 	point: CASE WHEN this.point IS NOT NULL THEN {
-		point: this.point,
+		longitude: this.point.longitude,
+		latitude: this.point.latitude,
 		crs: this.point.crs
 	} ELSE NULL END
 } AS this
@@ -136,8 +137,8 @@ RETURN this {
 ----
 {
   "param0" : [ {
-    "longitude" : 1,
-    "latitude" : 2
+    "longitude" : 1.0,
+    "latitude" : 2.0
   } ]
 }
 ----
@@ -146,10 +147,11 @@ RETURN this {
 [source,cypher]
 ----
 MATCH (this:PointContainer)
-WHERE NOT (this.point IN [var0 IN $param0 | point(var0)])
+WHERE NOT (this.point IN [p IN $param0 | point(p)])
 RETURN this {
 	point: CASE WHEN this.point IS NOT NULL THEN {
-		point: this.point,
+		longitude: this.point.longitude,
+		latitude: this.point.latitude,
 		crs: this.point.crs
 	} ELSE NULL END
 } AS this
@@ -177,8 +179,8 @@ RETURN this {
 ----
 {
   "param0" : {
-    "longitude" : 1,
-    "latitude" : 2
+    "longitude" : 1.0,
+    "latitude" : 2.0
   }
 }
 ----
@@ -190,7 +192,8 @@ MATCH (this:PointContainer)
 WHERE NOT (this.point = point($param0))
 RETURN this {
 	point: CASE WHEN this.point IS NOT NULL THEN {
-		point: this.point
+		longitude: this.point.longitude,
+		latitude: this.point.latitude
 	} ELSE NULL END
 } AS this
 ----
@@ -218,8 +221,8 @@ RETURN this {
 ----
 {
   "param0" : {
-    "longitude" : 1,
-    "latitude" : 2
+    "longitude" : 1.0,
+    "latitude" : 2.0
   }
 }
 ----
@@ -231,7 +234,8 @@ MATCH (this:PointContainer)
 WHERE this.point = point($param0)
 RETURN this {
 	point: CASE WHEN this.point IS NOT NULL THEN {
-		point: this.point,
+		longitude: this.point.longitude,
+		latitude: this.point.latitude,
 		crs: this.point.crs
 	} ELSE NULL END
 } AS this
@@ -265,10 +269,9 @@ mutation {
 ----
 {
   "param0" : "id",
-  "resolvedCallbacks" : { },
   "this_update_point" : {
-    "longitude" : 1,
-    "latitude" : 2
+    "longitude" : 1.0,
+    "latitude" : 2.0
   }
 }
 ----
@@ -281,7 +284,8 @@ WHERE this.id = $param0
 SET this.point = point($this_update_point)
 RETURN collect(DISTINCT this {
 	point: CASE WHEN this.point IS NOT NULL THEN {
-		point: this.point,
+		longitude: this.point.longitude,
+		latitude: this.point.latitude,
 		crs: this.point.crs
 	} ELSE NULL END
 }) AS data
@@ -292,6 +296,14 @@ RETURN collect(DISTINCT this {
 == tests using describe or point.describe
 
 === Simple Point DISTANCE query
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "neo4jDialect": "DEFAULT"
+}
+----
 
 .GraphQL-Query
 [source,graphql]
@@ -329,7 +341,8 @@ MATCH (this:PointContainer)
 WHERE distance(this.point, point($param0.point)) = $param0.distance
 RETURN this {
 	point: CASE WHEN this.point IS NOT NULL THEN {
-		point: this.point
+		longitude: this.point.longitude,
+		latitude: this.point.latitude
 	} ELSE NULL END
 } AS this
 ----
@@ -374,7 +387,8 @@ MATCH (this:PointContainer)
 WHERE point.distance(this.point, point($param0.point)) = $param0.distance
 RETURN this {
 	point: CASE WHEN this.point IS NOT NULL THEN {
-		point: this.point
+		longitude: this.point.longitude,
+		latitude: this.point.latitude
 	} ELSE NULL END
 } AS this
 ----
@@ -382,6 +396,14 @@ RETURN this {
 '''
 
 === Simple Point GT query
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "neo4jDialect": "DEFAULT"
+}
+----
 
 .GraphQL-Query
 [source,graphql]
@@ -419,7 +441,8 @@ MATCH (this:PointContainer)
 WHERE distance(this.point, point($param0.point)) > $param0.distance
 RETURN this {
 	point: CASE WHEN this.point IS NOT NULL THEN {
-		point: this.point
+		longitude: this.point.longitude,
+		latitude: this.point.latitude
 	} ELSE NULL END
 } AS this
 ----
@@ -464,7 +487,8 @@ MATCH (this:PointContainer)
 WHERE point.distance(this.point, point($param0.point)) > $param0.distance
 RETURN this {
 	point: CASE WHEN this.point IS NOT NULL THEN {
-		point: this.point
+		longitude: this.point.longitude,
+		latitude: this.point.latitude
 	} ELSE NULL END
 } AS this
 ----
@@ -472,6 +496,14 @@ RETURN this {
 '''
 
 === Simple Point GTE query
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "neo4jDialect": "DEFAULT"
+}
+----
 
 .GraphQL-Query
 [source,graphql]
@@ -509,7 +541,8 @@ MATCH (this:PointContainer)
 WHERE distance(this.point, point($param0.point)) >= $param0.distance
 RETURN this {
 	point: CASE WHEN this.point IS NOT NULL THEN {
-		point: this.point
+		longitude: this.point.longitude,
+		latitude: this.point.latitude
 	} ELSE NULL END
 } AS this
 ----
@@ -554,7 +587,8 @@ MATCH (this:PointContainer)
 WHERE point.distance(this.point, point($param0.point)) >= $param0.distance
 RETURN this {
 	point: CASE WHEN this.point IS NOT NULL THEN {
-		point: this.point
+		longitude: this.point.longitude,
+		latitude: this.point.latitude
 	} ELSE NULL END
 } AS this
 ----
@@ -562,6 +596,14 @@ RETURN this {
 '''
 
 === Simple Point LT query
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "neo4jDialect": "DEFAULT"
+}
+----
 
 .GraphQL-Query
 [source,graphql]
@@ -599,7 +641,8 @@ MATCH (this:PointContainer)
 WHERE distance(this.point, point($param0.point)) < $param0.distance
 RETURN this {
 	point: CASE WHEN this.point IS NOT NULL THEN {
-		point: this.point
+		longitude: this.point.longitude,
+		latitude: this.point.latitude
 	} ELSE NULL END
 } AS this
 ----
@@ -644,7 +687,8 @@ MATCH (this:PointContainer)
 WHERE point.distance(this.point, point($param0.point)) < $param0.distance
 RETURN this {
 	point: CASE WHEN this.point IS NOT NULL THEN {
-		point: this.point
+		longitude: this.point.longitude,
+		latitude: this.point.latitude
 	} ELSE NULL END
 } AS this
 ----
@@ -652,6 +696,14 @@ RETURN this {
 '''
 
 === Simple Point LTE query
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "neo4jDialect": "DEFAULT"
+}
+----
 
 .GraphQL-Query
 [source,graphql]
@@ -689,7 +741,8 @@ MATCH (this:PointContainer)
 WHERE distance(this.point, point($param0.point)) <= $param0.distance
 RETURN this {
 	point: CASE WHEN this.point IS NOT NULL THEN {
-		point: this.point
+		longitude: this.point.longitude,
+		latitude: this.point.latitude
 	} ELSE NULL END
 } AS this
 ----
@@ -734,8 +787,9 @@ MATCH (this:PointContainer)
 WHERE point.distance(this.point, point($param0.point)) <= $param0.distance
 RETURN this {
 	point: CASE WHEN this.point IS NOT NULL THEN {
-		point: this.point
-	} ELSE NULL END
+		longitude: this.point.longitude,
+		latitude: this.point.latitude
+	} ELSE null END
 } AS this
 ----
 

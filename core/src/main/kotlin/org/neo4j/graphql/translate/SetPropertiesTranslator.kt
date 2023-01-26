@@ -1,13 +1,18 @@
 package org.neo4j.graphql.translate
 
-import org.neo4j.cypherdsl.core.*
-import org.neo4j.graphql.*
+import org.neo4j.cypherdsl.core.Expression
+import org.neo4j.cypherdsl.core.Functions
+import org.neo4j.cypherdsl.core.Property
+import org.neo4j.cypherdsl.core.PropertyContainer
+import org.neo4j.graphql.Constants
+import org.neo4j.graphql.QueryContext
+import org.neo4j.graphql.SchemaConfig
 import org.neo4j.graphql.domain.FieldContainer
 import org.neo4j.graphql.domain.directives.AuthDirective.AuthOperation
 import org.neo4j.graphql.domain.directives.TimestampDirective.TimeStampOperation
 import org.neo4j.graphql.domain.fields.BaseField
-import org.neo4j.graphql.domain.fields.PointField
 import org.neo4j.graphql.handler.utils.ChainString
+import org.neo4j.graphql.name
 import org.neo4j.graphql.schema.model.inputs.ScalarProperties
 
 //TODO complete
@@ -75,18 +80,7 @@ fun createSetPropertiesSplit(
     properties?.forEach { (field, value) ->
         // TODO use only params without prefix?
         val param = paramPrefix?.extend(field)?.resolveParameter(value) ?: context.getNextParam(value)
-
-        val valueToSet = when (field) {
-            is PointField ->
-                if (field.typeMeta.type.isList()) {
-                    val point = Cypher.name("p")
-                    Cypher.listWith(point).`in`(param).returning(Functions.point(point))
-                } else {
-                    Functions.point(param)
-                }
-
-            else -> param
-        }
+        val valueToSet = field.convertInputToCypher(param)
         set(field, valueToSet)
     }
     return expressions.takeIf { it.isNotEmpty() }

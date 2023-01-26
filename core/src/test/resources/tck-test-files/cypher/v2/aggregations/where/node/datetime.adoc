@@ -44,7 +44,7 @@ type Post {
 [source,json]
 ----
 {
-  "param0" : "2021-09-25T12:51:24.037Z"
+  "param0" : "2021-09-25T12:51:24.037000000Z"
 }
 ----
 
@@ -55,7 +55,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN any(var2 IN collect(this1.someDateTime) WHERE var2 = datetime($param0)) AS var3
+	RETURN any(var2 IN collect(this1.someDateTime) WHERE var2 = $param0) AS var3
 }
 WITH *
 WHERE var3 = true
@@ -84,7 +84,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2021-09-25T12:51:24.037Z"
+  "param0" : "2021-09-25T12:51:24.037000000Z"
 }
 ----
 
@@ -95,7 +95,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN any(var2 IN collect(this1._someDateTimeAlias) WHERE var2 = datetime($param0)) AS var3
+	RETURN any(var2 IN collect(this1._someDateTimeAlias) WHERE var2 = $param0) AS var3
 }
 WITH *
 WHERE var3 = true
@@ -124,7 +124,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2021-09-25T12:51:24.037Z"
+  "param0" : "2021-09-25T12:51:24.037000000Z"
 }
 ----
 
@@ -135,7 +135,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN any(var2 IN collect(this1.someDateTime) WHERE var2 > datetime($param0)) AS var3
+	RETURN any(var2 IN collect(this1.someDateTime) WHERE var2 > $param0) AS var3
 }
 WITH *
 WHERE var3 = true
@@ -164,7 +164,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2021-09-25T12:51:24.037Z"
+  "param0" : "2021-09-25T12:51:24.037000000Z"
 }
 ----
 
@@ -175,7 +175,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN any(var2 IN collect(this1.someDateTime) WHERE var2 >= datetime($param0)) AS var3
+	RETURN any(var2 IN collect(this1.someDateTime) WHERE var2 >= $param0) AS var3
 }
 WITH *
 WHERE var3 = true
@@ -204,7 +204,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2021-09-25T12:51:24.037Z"
+  "param0" : "2021-09-25T12:51:24.037000000Z"
 }
 ----
 
@@ -215,7 +215,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN any(var2 IN collect(this1.someDateTime) WHERE var2 < datetime($param0)) AS var3
+	RETURN any(var2 IN collect(this1.someDateTime) WHERE var2 < $param0) AS var3
 }
 WITH *
 WHERE var3 = true
@@ -244,7 +244,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2021-09-25T12:51:24.037Z"
+  "param0" : "2021-09-25T12:51:24.037000000Z"
 }
 ----
 
@@ -255,7 +255,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN any(var2 IN collect(this1.someDateTime) WHERE var2 <= datetime($param0)) AS var3
+	RETURN any(var2 IN collect(this1.someDateTime) WHERE var2 <= $param0) AS var3
 }
 WITH *
 WHERE var3 = true
@@ -284,7 +284,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2021-09-25T12:51:24.037Z"
+  "param0" : "2021-09-25T12:51:24.037000000Z"
 }
 ----
 
@@ -295,7 +295,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN max(this1.someDateTime) = datetime($param0) AS var2
+	RETURN max(this1.someDateTime) = $param0 AS var2
 }
 WITH *
 WHERE var2 = true
@@ -324,7 +324,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2021-09-25T12:51:24.037Z"
+  "param0" : "2021-09-25T12:51:24.037000000Z"
 }
 ----
 
@@ -335,7 +335,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN max(this1.someDateTime) > datetime($param0) AS var2
+	RETURN max(this1.someDateTime) > $param0 AS var2
 }
 WITH *
 WHERE var2 = true
@@ -364,7 +364,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2021-09-25T12:51:24.037Z"
+  "param0" : "2021-09-25T12:51:24.037000000Z"
 }
 ----
 
@@ -375,7 +375,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN max(this1.someDateTime) >= datetime($param0) AS var2
+	RETURN max(this1.someDateTime) >= $param0 AS var2
 }
 WITH *
 WHERE var2 = true
@@ -404,7 +404,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2021-09-25T12:51:24.037Z"
+  "param0" : "2021-09-25T12:51:24.037000000Z"
 }
 ----
 
@@ -415,7 +415,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN max(this1.someDateTime) < datetime($param0) AS var2
+	RETURN max(this1.someDateTime) < $param0 AS var2
 }
 WITH *
 WHERE var2 = true
@@ -444,7 +444,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2021-09-25T12:51:24.037Z"
+  "param0" : "2021-09-25T12:51:24.037000000Z"
 }
 ----
 
@@ -455,7 +455,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN max(this1.someDateTime) <= datetime($param0) AS var2
+	RETURN max(this1.someDateTime) <= $param0 AS var2
 }
 WITH *
 WHERE var2 = true
@@ -484,7 +484,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2021-09-25T12:51:24.037Z"
+  "param0" : "2021-09-25T12:51:24.037000000Z"
 }
 ----
 
@@ -495,7 +495,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN min(this1.someDateTime) = datetime($param0) AS var2
+	RETURN min(this1.someDateTime) = $param0 AS var2
 }
 WITH *
 WHERE var2 = true
@@ -524,7 +524,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2021-09-25T12:51:24.037Z"
+  "param0" : "2021-09-25T12:51:24.037000000Z"
 }
 ----
 
@@ -535,7 +535,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN min(this1.someDateTime) > datetime($param0) AS var2
+	RETURN min(this1.someDateTime) > $param0 AS var2
 }
 WITH *
 WHERE var2 = true
@@ -564,7 +564,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2021-09-25T12:51:24.037Z"
+  "param0" : "2021-09-25T12:51:24.037000000Z"
 }
 ----
 
@@ -575,7 +575,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN min(this1.someDateTime) >= datetime($param0) AS var2
+	RETURN min(this1.someDateTime) >= $param0 AS var2
 }
 WITH *
 WHERE var2 = true
@@ -604,7 +604,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2021-09-25T12:51:24.037Z"
+  "param0" : "2021-09-25T12:51:24.037000000Z"
 }
 ----
 
@@ -615,7 +615,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN min(this1.someDateTime) < datetime($param0) AS var2
+	RETURN min(this1.someDateTime) < $param0 AS var2
 }
 WITH *
 WHERE var2 = true
@@ -644,7 +644,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2021-09-25T12:51:24.037Z"
+  "param0" : "2021-09-25T12:51:24.037000000Z"
 }
 ----
 
@@ -655,7 +655,7 @@ MATCH (this:Post)
 CALL {
 	WITH this
 	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN min(this1.someDateTime) <= datetime($param0) AS var2
+	RETURN min(this1.someDateTime) <= $param0 AS var2
 }
 WITH *
 WHERE var2 = true

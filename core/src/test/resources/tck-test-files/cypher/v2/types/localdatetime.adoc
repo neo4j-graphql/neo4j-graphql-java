@@ -37,7 +37,7 @@ type Movie {
 [source,json]
 ----
 {
-  "param0" : "2010-08-23T13:45:33.250000000"
+  "param0" : "2010-08-23T13:45:33.250"
 }
 ----
 
@@ -45,7 +45,7 @@ type Movie {
 [source,cypher]
 ----
 MATCH (this:Movie)
-WHERE this.localDT >= $param0
+WHERE this.localDT >= localdatetime($param0)
 RETURN this {
 	.localDT
 } AS this
@@ -119,7 +119,7 @@ RETURN collect(create_this0 {
 [source,cypher]
 ----
 MATCH (this:Movie)
-WHERE this.localDT = $param0
+WHERE this.localDT = localdatetime($param0)
 RETURN this {
 	.localDT
 } AS this
@@ -146,8 +146,7 @@ mutation {
 [source,json]
 ----
 {
-  "resolvedCallbacks" : { },
-  "this_update_localDT" : "1881-07-13T09:24:40.845512000"
+  "this_update_localDT" : "1881-07-13T09:24:40.845512"
 }
 ----
 
@@ -155,7 +154,7 @@ mutation {
 [source,cypher]
 ----
 MATCH (this:Movie)
-SET this.localDT = $this_update_localDT
+SET this.localDT = localdatetime($this_update_localDT)
 RETURN collect(DISTINCT this {
 	.id,
 	.localDT
