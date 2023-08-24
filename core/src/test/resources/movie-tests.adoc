@@ -642,10 +642,10 @@ MATCH (movie:Movie)
 WHERE movie.title = $movieTitle
 CALL {
 	WITH movie
-	MATCH (movie)<-[movieRatings:RATED]-(movieRatingsFrom:User)
+	MATCH (movie)<-[movieRatings:RATED]-(movieRatingsUser:User)
 	RETURN collect(movieRatings {
 		.rating,
-		from: movieRatingsFrom {
+		from: movieRatingsUser {
 			.name,
 			.userId
 		}

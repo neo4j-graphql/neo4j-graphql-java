@@ -546,7 +546,7 @@ open class ProjectionBase(
         val (endNodePattern, variableSuffix) = when {
             isRelFromType -> {
                 val label = nodeType.getRelevantFieldDefinition(relInfo.endField)!!.type.innerName()
-                node(label).named("$childVariable${relInfo.endField.capitalize()}") to relInfo.endField
+                node(label).named("$childVariable${label.capitalize()}") to label
             }
 
             else -> node(nodeType.name).named(childVariableName) to null

@@ -713,9 +713,9 @@ RETURN category {
 MATCH (category:Category)
 CALL {
 	WITH category
-	MATCH (category)<-[categoryChildCategoryAssignments:HAS_PARENT]-(categoryChildCategoryAssignmentsChild:Category)
+	MATCH (category)<-[categoryChildCategoryAssignments:HAS_PARENT]-(categoryChildCategoryAssignmentsCategory:Category)
 	RETURN collect(categoryChildCategoryAssignments {
-		child: categoryChildCategoryAssignmentsChild {
+		child: categoryChildCategoryAssignmentsCategory {
 			.name
 		},
 		.prop
@@ -757,9 +757,9 @@ RETURN category {
 MATCH (category:Category)
 CALL {
 	WITH category
-	OPTIONAL MATCH (category)-[categoryParentCategoryAssignment:HAS_PARENT]->(categoryParentCategoryAssignmentParent:Category)
+	OPTIONAL MATCH (category)-[categoryParentCategoryAssignment:HAS_PARENT]->(categoryParentCategoryAssignmentCategory:Category)
 	RETURN categoryParentCategoryAssignment {
-		parent: categoryParentCategoryAssignmentParent {
+		parent: categoryParentCategoryAssignmentCategory {
 			.name
 		},
 		.prop

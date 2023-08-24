@@ -77,14 +77,14 @@ CALL {
 }
 CALL {
 	WITH person
-	MATCH (person)-[personKnowsRel:KNOWS]->(personKnowsRelKnows:Person)
+	MATCH (person)-[personKnowsRel:KNOWS]->(personKnowsRelPerson:Person)
 	RETURN collect(personKnowsRel {
 		json: apoc.map.fromPairs([key IN keys(personKnowsRel) WHERE key STARTS WITH 'prefix.' | [substring(key, 7), personKnowsRel[key]]])
 	}) AS personKnowsRel
 }
 CALL {
 	WITH person
-	MATCH (person)<-[personKnownByRel:KNOWS]-(personKnownByRelSource:Person)
+	MATCH (person)<-[personKnownByRel:KNOWS]-(personKnownByRelPerson:Person)
 	RETURN collect(personKnownByRel {
 		json: apoc.map.fromPairs([key IN keys(personKnownByRel) WHERE key STARTS WITH 'prefix.' | [substring(key, 7), personKnownByRel[key]]])
 	}) AS personKnownByRel

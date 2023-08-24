@@ -97,10 +97,10 @@ MATCH (user:User)
 WHERE user.name IN $filterUserNameIn
 CALL {
 	WITH user
-	OPTIONAL MATCH (user)-[userReferredBy:REFERRED_BY]->(userReferredByReferredBy:User)
+	OPTIONAL MATCH (user)-[userReferredBy:REFERRED_BY]->(userReferredByUser:User)
 	RETURN userReferredBy {
 		.referralDate,
-		referredBy: userReferredByReferredBy {
+		referredBy: userReferredByUser {
 			.name
 		}
 	} AS userReferredBy LIMIT 1

@@ -100,10 +100,10 @@ RETURN person {
 MATCH (person:Person)
 CALL {
 	WITH person
-	OPTIONAL MATCH (person)-[personBorn:BORN]->(personBornTo:Location)
+	OPTIONAL MATCH (person)-[personBorn:BORN]->(personBornLocation:Location)
 	RETURN personBorn {
 		.date,
-		to: personBornTo {
+		to: personBornLocation {
 			.name
 		}
 	} AS personBorn LIMIT 1
@@ -346,10 +346,10 @@ RETURN person {
 MATCH (person:Person)
 CALL {
 	WITH person
-	OPTIONAL MATCH (person)-[personDied:DIED]->(personDiedWhere:Location)
+	OPTIONAL MATCH (person)-[personDied:DIED]->(personDiedLocation:Location)
 	RETURN personDied {
 		.date,
-		where: personDiedWhere {
+		where: personDiedLocation {
 			.name
 		}
 	} AS personDied LIMIT 1
@@ -382,19 +382,19 @@ RETURN person {
 MATCH (person:Person)
 CALL {
 	WITH person
-	OPTIONAL MATCH (person)-[personBorn:BORN]->(personBornTo:Location)
+	OPTIONAL MATCH (person)-[personBorn:BORN]->(personBornLocation:Location)
 	CALL {
-		WITH personBornTo
-		OPTIONAL MATCH (personBornTo)<-[:FOUNDED]-(personBornToFounded:Person)
-		RETURN personBornToFounded {
+		WITH personBornLocation
+		OPTIONAL MATCH (personBornLocation)<-[:FOUNDED]-(personBornLocationFounded:Person)
+		RETURN personBornLocationFounded {
 			.name
-		} AS personBornToFounded LIMIT 1
+		} AS personBornLocationFounded LIMIT 1
 	}
 	RETURN personBorn {
 		.date,
-		to: personBornTo {
+		to: personBornLocation {
 			.name,
-			founded: personBornToFounded
+			founded: personBornLocationFounded
 		}
 	} AS personBorn LIMIT 1
 }
@@ -426,30 +426,30 @@ RETURN person {
 MATCH (person:Person)
 CALL {
 	WITH person
-	OPTIONAL MATCH (person)-[personBorn:BORN]->(personBornTo:Location)
+	OPTIONAL MATCH (person)-[personBorn:BORN]->(personBornLocation:Location)
 	CALL {
-		WITH personBornTo
-		OPTIONAL MATCH (personBornTo)<-[:FOUNDED]-(personBornToFounded:Person)
+		WITH personBornLocation
+		OPTIONAL MATCH (personBornLocation)<-[:FOUNDED]-(personBornLocationFounded:Person)
 		CALL {
-			WITH personBornToFounded
-			OPTIONAL MATCH (personBornToFounded)-[personBornToFoundedBorn:BORN]->(personBornToFoundedBornTo:Location)
-			RETURN personBornToFoundedBorn {
+			WITH personBornLocationFounded
+			OPTIONAL MATCH (personBornLocationFounded)-[personBornLocationFoundedBorn:BORN]->(personBornLocationFoundedBornLocation:Location)
+			RETURN personBornLocationFoundedBorn {
 				.date,
-				to: personBornToFoundedBornTo {
+				to: personBornLocationFoundedBornLocation {
 					.name
 				}
-			} AS personBornToFoundedBorn LIMIT 1
+			} AS personBornLocationFoundedBorn LIMIT 1
 		}
-		RETURN personBornToFounded {
+		RETURN personBornLocationFounded {
 			.name,
-			born: personBornToFoundedBorn
-		} AS personBornToFounded LIMIT 1
+			born: personBornLocationFoundedBorn
+		} AS personBornLocationFounded LIMIT 1
 	}
 	RETURN personBorn {
 		.date,
-		to: personBornTo {
+		to: personBornLocation {
 			.name,
-			founded: personBornToFounded
+			founded: personBornLocationFounded
 		}
 	} AS personBorn LIMIT 1
 }
@@ -917,7 +917,7 @@ RETURN location {
 MATCH (person:Person)
 CALL {
 	WITH person
-	OPTIONAL MATCH (person)-[personBorn:BORN]->(personBornTo:Location)
+	OPTIONAL MATCH (person)-[personBorn:BORN]->(personBornLocation:Location)
 	RETURN personBorn {
 		__typename: 'Birth'
 	} AS personBorn LIMIT 1
