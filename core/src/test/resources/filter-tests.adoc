@@ -18,6 +18,7 @@ type Person {
   company: Company @relation(name:"WORKS_AT")
   skills: [PersonSkills]
   location: _Neo4jPoint
+  cards: [Cards]
 }
 type Company {
   _id: ID
@@ -29,10 +30,23 @@ type Skill {
   name: String
   skilledPerson: [Person] @relation(name: "HAS_SKILL", direction: OUT)
 }
+
+type Card {
+   _id: ID!
+   name: String
+   cardHolderPerson: [Person] @relation(name: "HAS_CARD", direction: OUT)
+}
+
 type PersonSkills @relation(name: "HAS_SKILL", from: "person", to: "skill") {
     person: Person
     skill: Skill
     proficiencyLevel: Int
+}
+
+type Cards @relation(name: "HAS_CARD", from: "source", to: "target"){
+    source: Person
+    target: Card
+    purchasedDate: Date
 }
 ----
 
@@ -72,7 +86,24 @@ UNWIND [{
 AS props
 
 CREATE (p:Person)-[:WORKS_AT]->(c)
-SET p = props
+SET p = props;
+
+CREATE (c:Card {name: 'Mastercard'})
+WITH c
+UNWIND [{
+  id:       'jame',
+  name:     'Jame',
+  age:      35,
+  hobbies:  ["Cycling", "Singing"],
+  gender:   'male',
+  fun:      true,
+  height:   1.64,
+  location: point({longitude: 3, latitude: 4, height: 5})
+}]
+AS props
+
+CREATE (p:Person)-[:HAS_CARD]->(c)
+SET p = props;
 ----
 
 == Filter on _List_
@@ -3521,7 +3552,7 @@ RETURN p {
 
 '''
 
-=== Filter object whose parent is relationship
+=== Filter object whose parent is relationship Case 1
 
 .GraphQL-Query
 [source,graphql]
@@ -3554,6 +3585,42 @@ CALL {
 }
 RETURN person {
 	skills: personSkills
+} AS person
+----
+
+'''
+=== Filter object whose parent is relationship Case 2
+
+.GraphQL-Query
+[source,graphql]
+----
+{ person { cards(filter: {target: {name: "Mastercard"}}) { target { name } }}}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+"personCardsCardName" : "Mastercard"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+CALL {
+	WITH person
+	MATCH (person)-[personCards:HAS_CARD]->(personCardsCard:Card)
+	WHERE personCardsCard.name = $personCardsCardName
+	RETURN collect(personCards {
+		target: personCardsCard {
+			.name
+		}
+	}) AS personCards
+}
+RETURN person {
+	cards: personCards
 } AS person
 ----
 
