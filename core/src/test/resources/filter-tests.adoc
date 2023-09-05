@@ -90,20 +90,7 @@ SET p = props;
 
 CREATE (c:Card {name: 'Mastercard'})
 WITH c
-UNWIND [{
-  id:       'jame',
-  name:     'Jame',
-  age:      35,
-  hobbies:  ["Cycling", "Singing"],
-  gender:   'male',
-  fun:      true,
-  height:   1.64,
-  location: point({longitude: 3, latitude: 4, height: 5})
-}]
-AS props
-
-CREATE (p:Person)-[:HAS_CARD]->(c)
-SET p = props;
+CREATE (p:Person)-[:HAS_CARD]->(c);
 ----
 
 == Filter on _List_
