@@ -1,0 +1,206 @@
+:toc:
+
+= GitHub Issue #299: Incorrect mutation translation for IDs with @property
+
+== Schema
+
+[source,graphql,schema=true]
+----
+type Person {
+    id: ID! @property(name: "~id")
+    name: String
+    actedIn: [Movie!]! @relation(name: "ACTED_IN", direction:OUT)
+}
+
+type Movie {
+    title: ID!
+}
+----
+
+== Merge Mutation
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  mergePerson(id: "test-id", name: "test-name") {
+    id
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "mergePersonId": "test-id",
+  "mergePersonName": "test-name"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MERGE (mergePerson:Person {
+	`~id`: $mergePersonId
+})
+SET mergePerson += {
+	name: $mergePersonName
+}
+WITH mergePerson
+RETURN mergePerson {
+	id: mergePerson.`~id`
+} AS mergePerson
+----
+
+'''
+
+== Update Mutation
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  updatePerson(id: "test-id", name: "other-test-name") {
+    id
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "updatePersonId": "test-id",
+  "updatePersonName": "other-test-name"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (updatePerson:Person {
+	`~id`: $updatePersonId
+})
+SET updatePerson += {
+	name: $updatePersonName
+}
+WITH updatePerson
+RETURN updatePerson {
+	id: updatePerson.`~id`
+} AS updatePerson
+----
+
+'''
+
+== Delete Mutation
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  deletePerson(id: "test-id") {
+    id
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "deletePersonId": "test-id"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (deletePerson:Person {
+	`~id`: $deletePersonId
+})
+WITH deletePerson AS toDelete, deletePerson {
+	id: deletePerson.`~id`
+} AS deletePerson DETACH DELETE toDelete
+RETURN deletePerson AS deletePerson
+----
+
+'''
+
+== Add Relationship Mutation
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  addPersonActedIn(id: "test-id", actedIn: "test-movie") {
+    id
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "fromId": "test-id",
+  "toActedIn": "test-movie"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (from:Person {
+	`~id`: $fromId
+})
+MATCH (to:Movie {
+	title: $toActedIn
+})
+MERGE (from)-[:ACTED_IN]->(to)
+WITH DISTINCT from AS addPersonActedIn
+RETURN addPersonActedIn {
+	id: addPersonActedIn.`~id`
+} AS addPersonActedIn
+----
+
+'''
+
+== Delete Relationship Mutation
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  deletePersonActedIn(id: "test-id", actedIn: "test-movie") {
+    id
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "fromId": "test-id",
+  "toActedIn": "test-movie"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (from:Person {
+	`~id`: $fromId
+})
+MATCH (to:Movie {
+	title: $toActedIn
+})
+MATCH (from)-[r:ACTED_IN]->(to) DELETE r
+WITH DISTINCT from AS deletePersonActedIn
+RETURN deletePersonActedIn {
+	id: deletePersonActedIn.`~id`
+} AS deletePersonActedIn
+----
+
+'''
