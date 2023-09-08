@@ -105,11 +105,10 @@ abstract class BaseDataFetcherForContainer(schemaConfig: SchemaConfig) : BaseDat
                         propContainer to where
                     } else {
                         val node = node(label).named(variable)
-                        // TODO handle @property aliasing
                         if (idProperty.value is ArrayValue) {
-                            node to node.property(idField.name).`in`(idParam)
+                            node to node.property(idField.propertyName()).`in`(idParam)
                         } else {
-                            node.withProperties(idField.name, idParam) to Conditions.noCondition()
+                            node.withProperties(idField.propertyName(), idParam) to Conditions.noCondition()
                         }
                     }
                 }
