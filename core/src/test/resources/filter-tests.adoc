@@ -3611,6 +3611,20 @@ RETURN person {
 } AS person
 ----
 
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "person" : [ {
+    "cards" : [ {
+      "target": {
+        "name": "Mastercard"
+      }
+    }]
+  } ]
+}
+----
+
 '''
 
 === Cascaded filter object string _eq_
