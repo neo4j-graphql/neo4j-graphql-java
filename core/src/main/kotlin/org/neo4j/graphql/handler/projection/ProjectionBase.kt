@@ -179,7 +179,7 @@ open class ProjectionBase(
                 throw IllegalArgumentException("Only object values are supported for filtering on queried relation ${predicate.value}, but got ${value.javaClass.name}")
             }
             if(type.isRelationType()) {
-                val targetNode = predicate.relNode.named(normalizeName(propertyContainer.requiredSymbolicName.value, predicate.relationshipInfo.typeName))
+                val targetNode = predicate.relNode.named(normalizeName(propertyContainer.requiredSymbolicName.value, predicate.relationshipInfo.endField.capitalize()))
                 val relType = predicate.relationshipInfo.type
                 val parsedQuery2 = parseFilter(value, relType)
                 val condition = handleQuery(targetNode.requiredSymbolicName.value, "", targetNode, parsedQuery2, relType, variables)
@@ -552,7 +552,7 @@ open class ProjectionBase(
             else -> node(nodeType.name).named(childVariableName) to null
         }
 
-        val (projectionEntries, sub) = projectFields(endNodePattern, nodeType, env, name(childVariable), variableSuffix, field.selectionSet)
+        val (projectionEntries, sub) = projectFields(endNodePattern, nodeType, env, childVariableName, variableSuffix, field.selectionSet)
 
         val withPassThrough = mutableListOf(endNodePattern.requiredSymbolicName)
         var relationship = relInfo.createRelation(anyNode(variable), endNodePattern)
