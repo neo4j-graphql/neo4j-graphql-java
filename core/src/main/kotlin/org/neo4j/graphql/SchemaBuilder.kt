@@ -131,6 +131,7 @@ class SchemaBuilder(
                 when (typeDefinition) {
                     is ImplementingTypeDefinition -> typeDefinition.fieldDefinitions
                         .flatMap { fieldDefinition -> fieldDefinition.inputValueDefinitions.map { it.type } + fieldDefinition.type }
+
                     is InputObjectTypeDefinition -> typeDefinition.inputValueDefinitions.map { it.type }
                     else -> emptyList()
                 }
@@ -141,6 +142,20 @@ class SchemaBuilder(
             .filterNot { typeDefinitionRegistry.hasType(it) }
             .mapNotNull { neo4jTypeDefinitionRegistry.getType(it).unwrap() }
             .forEach { typeDefinitionRegistry.add(it) }
+
+
+        if (typeDefinitionRegistry.getType(mutationTypeName).isPresent) {
+            typeDefinitionRegistry.schemaDefinition().ifPresent { schemaDefinition ->
+                typeDefinitionRegistry.remove(schemaDefinition)
+                typeDefinitionRegistry.add(schemaDefinition.transform {
+                    val ops = schemaDefinition.operationTypeDefinitions.toMutableList()
+                    if (ops.find { it.name == "mutation" } == null) {
+                        ops.add(OperationTypeDefinition("mutation", TypeName(mutationTypeName)))
+                    }
+                    it.operationTypeDefinitions(ops)
+                })
+            }
+        }
     }
 
     /**
@@ -282,7 +297,7 @@ class SchemaBuilder(
         override fun get(env: DataFetchingEnvironment): Any? {
             val source = env.getSource<Any>() ?: return null
             val propertyName = env.mergedField.singleField.alias ?: env.mergedField.singleField.name
-            return PropertyDataFetcherHelper.getPropertyValue(propertyName, source, env.fieldType, env)
+            return PropertyDataFetcherHelper.getPropertyValue(propertyName, source, env.fieldType, { env })
         }
     }
 }
