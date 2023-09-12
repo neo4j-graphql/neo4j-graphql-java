@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.neo4j</groupId>
         <artifactId>neo4j-graphql-java-examples</artifactId>
-        <version>1.8.0</version>
+        <version>1.8.1-SNAPSHOT</version>
     </parent>
 
     <groupId>org.neo4j.graphql.examples</groupId>
@@ -37,7 +37,7 @@
         <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j-graphql-java</artifactId>
-            <version>1.8.0</version>
+            <version>1.8.1-SNAPSHOT</version>
         </dependency>
 
         <!-- a spring graphql library -->
