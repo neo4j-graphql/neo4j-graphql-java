@@ -16,8 +16,8 @@
 
     <properties>
         <testcontainers.version>1.17.6</testcontainers.version>
-        <graphql-kotlin.version>6.3.1</graphql-kotlin.version>
-        <spring-boot.version>2.7.6</spring-boot.version>
+        <graphql-kotlin.version>6.5.3</graphql-kotlin.version>
+        <spring-boot.version>2.7.14</spring-boot.version>
     </properties>
 
     <dependencies>
