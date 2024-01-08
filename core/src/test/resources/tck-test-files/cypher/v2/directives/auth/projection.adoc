@@ -43,6 +43,12 @@ mutation {
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [
+      "admin"
+    ]
+  },
   "contextParams": {
     "jwt": {
       "roles": [
@@ -63,8 +69,7 @@ mutation {
   }, {
     "id" : "id-2"
   } ],
-  "projectionauth_param0" : "super_admin",
-  "resolvedCallbacks" : { }
+  "projectionauth_param0" : "super_admin"
 }
 ----
 
@@ -103,6 +108,12 @@ mutation {
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [
+      "admin"
+    ]
+  },
   "contextParams": {
     "jwt": {
       "roles": [
@@ -118,7 +129,6 @@ mutation {
 [source,json]
 ----
 {
-  "resolvedCallbacks" : { },
   "this_update_id" : "new-id",
   "thisauth_param0" : "super_admin"
 }
@@ -128,12 +138,10 @@ mutation {
 [source,cypher]
 ----
 MATCH (this:User)
-WITH this
-CALL apoc.util.validate(NOT ((this.id IS NOT NULL
+WITH this CALL apoc.util.validate(NOT ((this.id IS NOT NULL
 	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
 SET this.id = $this_update_id
-WITH *
-CALL apoc.util.validate(NOT ((this.id IS NOT NULL
+WITH * CALL apoc.util.validate(NOT ((this.id IS NOT NULL
 	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
 RETURN collect(DISTINCT this {
 	.id

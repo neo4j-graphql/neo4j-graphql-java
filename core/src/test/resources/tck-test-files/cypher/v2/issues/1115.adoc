@@ -50,7 +50,6 @@ mutation UpdateParents {
     "isAuthenticated" : false,
     "roles" : [ ]
   },
-  "resolvedCallbacks" : { },
   "this_connectOrCreate_children_param0" : "123",
   "this_connectOrCreate_children_param1" : "123",
   "this_connectOrCreate_children_param2" : "456",
@@ -70,10 +69,9 @@ CALL {
 	})
 	ON CREATE SET this_connectOrCreate_children0.tcId = $this_connectOrCreate_children_param1
 	MERGE (this_connectOrCreate_children0)-[this_connectOrCreate_children_this0:HAS]->(this)
-	WITH *
-	CALL apoc.util.validate(NOT (any(auth_var1 IN ['upstream']
-	WHERE any(auth_var0 IN $auth.roles
-	WHERE auth_var0 = auth_var1))), '@neo4j/graphql/FORBIDDEN', [0])
+	WITH * CALL apoc.util.validate(NOT (any(r IN ['upstream']
+	WHERE any(rr IN $auth.roles
+	WHERE rr = r))), '@neo4j/graphql/FORBIDDEN', [0])
 	RETURN count(*) AS _
 }
 WITH this
@@ -84,10 +82,9 @@ CALL {
 	})
 	ON CREATE SET this_connectOrCreate_children1.tcId = $this_connectOrCreate_children_param3
 	MERGE (this_connectOrCreate_children1)-[this_connectOrCreate_children_this1:HAS]->(this)
-	WITH *
-	CALL apoc.util.validate(NOT (any(auth_var1 IN ['upstream']
-	WHERE any(auth_var0 IN $auth.roles
-	WHERE auth_var0 = auth_var1))), '@neo4j/graphql/FORBIDDEN', [0])
+	WITH * CALL apoc.util.validate(NOT (any(r IN ['upstream']
+	WHERE any(rr IN $auth.roles
+	WHERE rr = r))), '@neo4j/graphql/FORBIDDEN', [0])
 	RETURN count(*) AS _
 }
 WITH *

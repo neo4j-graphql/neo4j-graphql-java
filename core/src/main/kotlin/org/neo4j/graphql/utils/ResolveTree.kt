@@ -60,11 +60,20 @@ interface IResolveTree {
     }
 }
 
+class SelectionOfType(
+    val treePerAlias: Map<String /* Alias or Name*/, ResolveTree>
+) : Map<String /* Alias or Name*/, ResolveTree> by treePerAlias {
+
+    fun getAliasOfField(name: String) = treePerAlias
+        .filter { it.value.name == name }
+        .firstNotNullOfOrNull { it.key }
+}
+
 class ResolveTree(
     override val name: String,
     override val alias: String? = null,
     override val args: Dict = Dict.EMPTY,
-    override val fieldsByTypeName: Map<String, Map<String, ResolveTree>> = emptyMap(),
+    override val fieldsByTypeName: Map<String /*TypeName*/, SelectionOfType> = emptyMap(),
 ) : IResolveTree {
 
 
@@ -78,7 +87,7 @@ class ResolveTree(
             return ResolveTree(field.name, field.alias, Dict(field.arguments), resolve(field.selectionSet))
         }
 
-        fun resolve(selectionSet: DataFetchingFieldSelectionSet): Map<String, Map<String, ResolveTree>> {
+        fun resolve(selectionSet: DataFetchingFieldSelectionSet): Map<String, SelectionOfType> {
             val fieldsByTypeName = mutableMapOf<String, MutableMap<String, ResolveTree>>()
             selectionSet.immediateFields.map { selectedField ->
                 val field = resolve(selectedField)
@@ -89,7 +98,10 @@ class ResolveTree(
                     .map { fieldsByTypeName.computeIfAbsent(it) { mutableMapOf() } }
                     .forEach { it[selectedField.aliasOrName()] = field }
             }
-            return fieldsByTypeName.takeIf { it.isNotEmpty() } ?: emptyMap()
+            return fieldsByTypeName
+                .mapValues { SelectionOfType(it.value) }
+                .takeIf { it.isNotEmpty() }
+                ?: emptyMap()
         }
 
         /**
@@ -99,6 +111,8 @@ class ResolveTree(
             fieldNames: Set<String>,
             selection: Map<*, ResolveTree>
         ): Map<String, ResolveTree> {
+
+            //TODO harmonize with ResolveTree::extend
             val result = mutableMapOf<String, ResolveTree>()
             fieldNames.forEach { fieldName ->
                 val exists = getResolveTreeByFieldName(fieldName, selection)
@@ -125,6 +139,23 @@ class ResolveTree(
 
     override fun toString(): String {
         return "ResolveTree(name='$name', alias=$alias, args=$args, fieldsByTypeName=$fieldsByTypeName)"
+    }
+
+    fun extend(type: String, additionalFields: List<String>): ResolveTree {
+        return additionalFields
+            .filter { getFieldOfType(type, it).isEmpty() }
+            .takeIf { it.isNotEmpty() }
+            ?.let { extraFields ->
+                val newSubSelection = fieldsByTypeName.toMutableMap()
+                val resolveTreeOfType = newSubSelection[type]?.toMutableMap() ?: mutableMapOf()
+                extraFields.forEach {
+                    resolveTreeOfType[it] = ResolveTree(it)
+                }
+                newSubSelection[type] = SelectionOfType(resolveTreeOfType)
+                ResolveTree(name, alias, args, newSubSelection)
+            }
+            ?: this
+
     }
 
 }

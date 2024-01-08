@@ -48,6 +48,12 @@ mutation {
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [
+      "admin"
+    ]
+  },
   "contextParams": {
     "jwt": {
       "roles": [
@@ -79,15 +85,11 @@ mutation {
 [source,cypher]
 ----
 MATCH (this:Comment)
-WHERE EXISTS {
-	MATCH (this0:Person)-[:HAS_POST]->(this)
-	WHERE this0.id = $param0
-}
-WITH this
-CALL apoc.util.validate(NOT (any(auth_var1 IN ['admin']
-WHERE any(auth_var0 IN $auth.roles
-WHERE auth_var0 = auth_var1))), '@neo4j/graphql/FORBIDDEN', [0])
-DETACH DELETE this
+WHERE single(this0 IN [(this0)-[:HAS_POST]->(this) | this0]
+WHERE this0.id = $param0)
+WITH this CALL apoc.util.validate(NOT (any(r IN ['admin']
+WHERE any(rr IN $auth.roles
+WHERE rr = r))), '@neo4j/graphql/FORBIDDEN', [0]) DETACH DELETE this
 ----
 
 '''
@@ -108,6 +110,12 @@ DETACH DELETE this
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [
+      "admin"
+    ]
+  },
   "contextParams": {
     "jwt": {
       "roles": [

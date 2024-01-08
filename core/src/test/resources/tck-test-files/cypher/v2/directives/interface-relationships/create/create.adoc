@@ -68,7 +68,6 @@ mutation {
 [source,json]
 ----
 {
-  "resolvedCallbacks" : { },
   "this0_actedInMovie0_node_runtime" : 90,
   "this0_actedInMovie0_node_title" : "Example Film",
   "this0_actedInMovie0_relationship_screenTime" : 90,

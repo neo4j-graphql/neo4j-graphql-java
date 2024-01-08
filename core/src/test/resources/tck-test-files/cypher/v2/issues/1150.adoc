@@ -83,6 +83,12 @@ query getDrivesWithFilteredUnionType {
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [
+      "admin"
+    ]
+  },
   "contextParams": {
     "jwt": {
       "roles": [
@@ -126,9 +132,9 @@ CALL {
 			WITH this_DriveComposition
 			MATCH (this_DriveComposition)-[this_DriveComposition_connection_driveComponentConnectionthis0:HAS]->(this_DriveComposition_Battery:Battery)
 			WHERE (this_DriveComposition_connection_driveComponentConnectionthis0.current = $this_DriveComposition_connection_driveComponentConnectionparam0
-				AND apoc.util.validatePredicate(NOT ((any(this_DriveComposition_connection_driveComponentConnectionvar2 IN ['admin']
-					WHERE any(this_DriveComposition_connection_driveComponentConnectionvar1 IN $auth.roles
-					WHERE this_DriveComposition_connection_driveComponentConnectionvar1 = this_DriveComposition_connection_driveComponentConnectionvar2))
+				AND apoc.util.validatePredicate(NOT ((any(r IN ['admin']
+					WHERE any(rr IN $auth.roles
+					WHERE rr = r))
 					AND apoc.util.validatePredicate(NOT ($auth.isAuthenticated = true), '@neo4j/graphql/UNAUTHENTICATED', [0]))), '@neo4j/graphql/FORBIDDEN', [0]))
 			WITH {
 				current: this_DriveComposition_connection_driveComponentConnectionthis0.current,
@@ -139,10 +145,10 @@ CALL {
 			} AS edge
 			RETURN edge UNION
 			WITH this_DriveComposition
-			MATCH (this_DriveComposition)-[this_DriveComposition_connection_driveComponentConnectionthis3:HAS]->(this_DriveComposition_CombustionEngine:CombustionEngine)
-			WHERE this_DriveComposition_connection_driveComponentConnectionthis3.current = $this_DriveComposition_connection_driveComponentConnectionparam2
+			MATCH (this_DriveComposition)-[this_DriveComposition_connection_driveComponentConnectionthis1:HAS]->(this_DriveComposition_CombustionEngine:CombustionEngine)
+			WHERE this_DriveComposition_connection_driveComponentConnectionthis1.current = $this_DriveComposition_connection_driveComponentConnectionparam2
 			WITH {
-				current: this_DriveComposition_connection_driveComponentConnectionthis3.current,
+				current: this_DriveComposition_connection_driveComponentConnectionthis1.current,
 				node: {
 					__resolveType: 'CombustionEngine',
 					id: this_DriveComposition_CombustionEngine.id

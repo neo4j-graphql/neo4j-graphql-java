@@ -48,8 +48,7 @@ mutation {
       "longitude" : 1,
       "latitude" : 2
     } ]
-  } ],
-  "resolvedCallbacks" : { }
+  } ]
 }
 ----
 
@@ -94,8 +93,8 @@ RETURN collect(create_this0 {
 ----
 {
   "param0" : {
-    "longitude" : 1.0,
-    "latitude" : 2.0
+    "longitude" : 1,
+    "latitude" : 2
   }
 }
 ----
@@ -107,8 +106,7 @@ MATCH (this:PointContainer)
 WHERE point($param0) IN this.points
 RETURN this {
 	points: CASE WHEN this.points IS NOT NULL THEN [p_var0 IN this.points | {
-		longitude: p_var0.longitude,
-		latitude: p_var0.latitude,
+		point: p_var0,
 		crs: p_var0.crs
 	}] ELSE NULL END
 } AS this
@@ -137,8 +135,8 @@ RETURN this {
 ----
 {
   "param0" : {
-    "longitude" : 1.0,
-    "latitude" : 2.0
+    "longitude" : 1,
+    "latitude" : 2
   }
 }
 ----
@@ -150,8 +148,7 @@ MATCH (this:PointContainer)
 WHERE NOT (point($param0) IN this.points)
 RETURN this {
 	points: CASE WHEN this.points IS NOT NULL THEN [p_var0 IN this.points | {
-		longitude: p_var0.longitude,
-		latitude: p_var0.latitude,
+		point: p_var0,
 		crs: p_var0.crs
 	}] ELSE NULL END
 } AS this
@@ -179,8 +176,8 @@ RETURN this {
 ----
 {
   "param0" : [ {
-    "longitude" : 1.0,
-    "latitude" : 2.0
+    "longitude" : 1,
+    "latitude" : 2
   } ]
 }
 ----
@@ -189,11 +186,10 @@ RETURN this {
 [source,cypher]
 ----
 MATCH (this:PointContainer)
-WHERE NOT (this.points = [p IN $param0 | point(p)])
+WHERE NOT (this.points = [var0 IN $param0 | point(var0)])
 RETURN this {
 	points: CASE WHEN this.points IS NOT NULL THEN [p_var0 IN this.points | {
-		longitude: p_var0.longitude,
-		latitude: p_var0.latitude
+		point: p_var0
 	}] ELSE NULL END
 } AS this
 ----
@@ -221,8 +217,8 @@ RETURN this {
 ----
 {
   "param0" : [ {
-    "longitude" : 1.0,
-    "latitude" : 2.0
+    "longitude" : 1,
+    "latitude" : 2
   } ]
 }
 ----
@@ -231,11 +227,10 @@ RETURN this {
 [source,cypher]
 ----
 MATCH (this:PointContainer)
-WHERE this.points = [p IN $param0 | point(p)]
+WHERE this.points = [var0 IN $param0 | point(var0)]
 RETURN this {
 	points: CASE WHEN this.points IS NOT NULL THEN [p_var0 IN this.points | {
-		longitude: p_var0.longitude,
-		latitude: p_var0.latitude,
+		point: p_var0,
 		crs: p_var0.crs
 	}] ELSE NULL END
 } AS this
@@ -270,8 +265,8 @@ mutation {
 {
   "param0" : "id",
   "this_update_points" : [ {
-    "longitude" : 1.0,
-    "latitude" : 2.0
+    "longitude" : 1,
+    "latitude" : 2
   } ]
 }
 ----
@@ -284,8 +279,7 @@ WHERE this.id = $param0
 SET this.points = [p IN $this_update_points | point(p)]
 RETURN collect(DISTINCT this {
 	points: CASE WHEN this.points IS NOT NULL THEN [p_var0 IN this.points | {
-		longitude: p_var0.longitude,
-		latitude: p_var0.latitude,
+		point: p_var0,
 		crs: p_var0.crs
 	}] ELSE NULL END
 }) AS data

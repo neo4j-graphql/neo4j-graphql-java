@@ -34,6 +34,7 @@ type Movie @fulltext(indexes: [{name: "MovieTitle", fields: ["title"]}]) @node(a
 [source,json,query-config=true]
 ----
 {
+  "auth": {},
   "contextParams": {
     "jwt": {
       "label": "some-label"

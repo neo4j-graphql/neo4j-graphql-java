@@ -1,7 +1,6 @@
 package org.neo4j.graphql.translate
 
 import org.neo4j.cypherdsl.core.*
-import org.neo4j.cypherdsl.core.StatementBuilder.ExposesWith
 import org.neo4j.cypherdsl.core.StatementBuilder.OngoingReading
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.directives.AuthDirective
@@ -10,6 +9,7 @@ import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.schema.model.inputs.connection.ConnectionWhere
 import org.neo4j.graphql.schema.model.inputs.disconnect.DisconnectFieldInput
 import org.neo4j.graphql.schema.model.inputs.disconnect.DisconnectInput
+import org.neo4j.graphql.translate.where.PrefixUsage
 import org.neo4j.graphql.translate.where.createConnectionWhere
 
 //TODO complete
@@ -44,8 +44,16 @@ class DisconnectTranslator(
             // TODO is cypher union for an interfaces required?
 
             result = (whereAuth?.let { result.with(withVars).where(it) } ?: result)
-                .maybeWith(withVars)
-                .withSubQueries(subqueries)
+                .let {
+                    if (subqueries.isNotEmpty()) {
+                        it
+                            .maybeWith(withVars)
+                            .withSubQueries(subqueries)
+                    } else {
+                        it
+                    }
+                }
+
         }
         return result
     }
@@ -74,10 +82,11 @@ class DisconnectTranslator(
                 dslRelation,
                 parameterPrefix
                     .appendOnPrevious(index.takeIf { relationField.typeMeta.type.isList() })
-                    .extend("where"),
+                    .extend("where")
+                    .extend(relatedNode),
                 schemaConfig,
                 context,
-                usePrefix = true,
+                usePrefix = PrefixUsage.APPEND,
             )
             condition = whereCondition
 

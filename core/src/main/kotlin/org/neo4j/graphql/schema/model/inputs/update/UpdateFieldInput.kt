@@ -2,7 +2,10 @@ package org.neo4j.graphql.schema.model.inputs.update
 
 import org.neo4j.graphql.Constants
 import org.neo4j.graphql.asType
-import org.neo4j.graphql.domain.*
+import org.neo4j.graphql.domain.Interface
+import org.neo4j.graphql.domain.Node
+import org.neo4j.graphql.domain.RelationshipProperties
+import org.neo4j.graphql.domain.Union
 import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.schema.AugmentationBase
 import org.neo4j.graphql.schema.AugmentationContext
@@ -38,7 +41,7 @@ sealed interface UpdateFieldInput {
             ?.let { NodeConnectionWhere(node, relationshipProperties, it) }
 
         override val update = data.nestedDict(Constants.UPDATE_FIELD)
-            ?.let { NodeUpdateConnectionInput(node, it) }
+            ?.let { NodeUpdateConnectionInput(node, relationshipProperties, it) }
 
         override val connect = data.nestedObject(Constants.CONNECT_FIELD)
             ?.let { NodeConnectFieldInputs.create(node, relationshipProperties, it) }
@@ -47,7 +50,7 @@ sealed interface UpdateFieldInput {
             ?.let { DisconnectFieldInput.NodeDisconnectFieldInputs.create(node, relationshipProperties, it) }
 
         override val create = data.nestedObject(Constants.CREATE_FIELD)
-            ?.let { RelationFieldInput.NodeCreateCreateFieldInputs.create(node, it) }
+            ?.let { RelationFieldInput.NodeCreateCreateFieldInputs.create(node, relationshipProperties, it) }
 
         override val delete = data.nestedObject(Constants.DELETE_FIELD)
             ?.let { DeleteFieldInput.NodeDeleteFieldInputs.create(node, relationshipProperties, it) }
@@ -100,7 +103,7 @@ sealed interface UpdateFieldInput {
         ImplementingTypeUpdateFieldInput() {
 
         override val update = data.nestedDict(Constants.UPDATE_FIELD)
-            ?.let { InterfaceUpdateConnectionInput(interfaze, it) }
+            ?.let { InterfaceUpdateConnectionInput(interfaze, relationshipProperties, it) }
 
         override val connect = data.nestedObject(Constants.CONNECT_FIELD)
             ?.let { InterfaceConnectFieldInputs.create(interfaze, relationshipProperties, it) }
@@ -109,7 +112,7 @@ sealed interface UpdateFieldInput {
             ?.let { DisconnectFieldInput.InterfaceDisconnectFieldInputs.create(interfaze, relationshipProperties, it) }
 
         override val create = data.nestedObject(Constants.CREATE_FIELD)
-            ?.let { RelationFieldInput.InterfaceCreateFieldInputs.create(interfaze, it) }
+            ?.let { RelationFieldInput.InterfaceCreateFieldInputs.create(interfaze, relationshipProperties, it) }
 
         override val delete = data.nestedObject(Constants.DELETE_FIELD)
             ?.let { DeleteFieldInput.InterfaceDeleteFieldInputs.create(interfaze, relationshipProperties, it) }
@@ -155,15 +158,17 @@ sealed interface UpdateFieldInput {
 
     }
 
-    sealed class ImplementingTypeUpdateConnectionInput(implementingType: ImplementingType, data: Dict) {
+    sealed class ImplementingTypeUpdateConnectionInput(relationshipProperties: RelationshipProperties?, data: Dict) {
+
         val edge = data.nestedDict(Constants.EDGE_FIELD)
-            ?.let { ScalarProperties.create(it, implementingType) }
+            ?.let { ScalarProperties.create(it, relationshipProperties) }
 
         abstract val node: UpdateInput?
     }
 
-    class InterfaceUpdateConnectionInput(interfaze: Interface, data: Dict) :
-        ImplementingTypeUpdateConnectionInput(interfaze, data) {
+    class InterfaceUpdateConnectionInput(interfaze: Interface, relationshipProperties: RelationshipProperties?, data: Dict) :
+        ImplementingTypeUpdateConnectionInput(relationshipProperties, data) {
+
         override val node = data.nestedDict(Constants.NODE_FIELD)
             ?.let { UpdateInput.InterfaceUpdateInput(interfaze, it) }
 
@@ -187,8 +192,12 @@ sealed interface UpdateFieldInput {
         }
     }
 
-    class NodeUpdateConnectionInput(node: Node, data: Dict) :
-        ImplementingTypeUpdateConnectionInput(node, data) {
+    class NodeUpdateConnectionInput(node: Node, relationshipProperties: RelationshipProperties?, data: Dict) :
+        ImplementingTypeUpdateConnectionInput(relationshipProperties, data) {
+
+        override val node = data.nestedDict(Constants.NODE_FIELD)
+            ?.let { UpdateInput.NodeUpdateInput(node, it) }
+
         object Augmentation : AugmentationBase {
 
             fun generateFieldUpdateConnectionInputIT(
@@ -207,9 +216,6 @@ sealed interface UpdateFieldInput {
 
                 }
         }
-
-        override val node = data.nestedDict(Constants.NODE_FIELD)
-            ?.let { UpdateInput.NodeUpdateInput(node, it) }
     }
 
     class NodeUpdateFieldInputs(items: List<NodeUpdateFieldInput>) : UpdateFieldInput,

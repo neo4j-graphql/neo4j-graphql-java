@@ -58,7 +58,6 @@ mutation {
 [source,json]
 ----
 {
-  "resolvedCallbacks" : { },
   "this0_actors0_node_name" : "Tom Hanks",
   "this0_actors0_relationship_screenTime" : 60,
   "this0_title" : "Forrest Gump"
@@ -176,7 +175,6 @@ mutation {
 [source,json]
 ----
 {
-  "resolvedCallbacks" : { },
   "this0_actors0_node_movies0_node_title" : "Funny movie",
   "this0_actors0_node_movies0_relationship_screenTime" : 1990,
   "this0_actors0_node_name" : "Tom Hanks",

@@ -40,7 +40,6 @@ mutation {
 [source,json]
 ----
 {
-  "resolvedCallbacks" : { },
   "this_update_ratings_POP" : 1
 }
 ----
@@ -48,8 +47,7 @@ mutation {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-CALL apoc.util.validate(this.ratings IS NULL, 'Property %s cannot be NULL', ['ratings'])
+MATCH (this:Movie) CALL apoc.util.validate(this.ratings IS NULL, 'Property %s cannot be NULL', ['ratings'])
 SET this.ratings = this.ratings[0..- $this_update_ratings_POP]
 RETURN collect(DISTINCT this {
 	.title,
@@ -78,7 +76,6 @@ mutation {
 [source,json]
 ----
 {
-  "resolvedCallbacks" : { },
   "this_update_ratings_PUSH" : [ 1 ]
 }
 ----
@@ -86,8 +83,7 @@ mutation {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-CALL apoc.util.validate(this.ratings IS NULL, 'Property %s cannot be NULL', ['ratings'])
+MATCH (this:Movie) CALL apoc.util.validate(this.ratings IS NULL, 'Property %s cannot be NULL', ['ratings'])
 SET this.ratings = (this.ratings + $this_update_ratings_PUSH)
 RETURN collect(DISTINCT this {
 	.title,

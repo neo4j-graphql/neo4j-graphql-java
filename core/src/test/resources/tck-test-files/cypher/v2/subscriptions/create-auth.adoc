@@ -46,6 +46,7 @@ mutation {
 [source,json,query-config=true]
 ----
 {
+  "auth": {},
   "contextParams": {
     "jwt": {
       "sub": "super_admin"
@@ -58,7 +59,6 @@ mutation {
 [source,json]
 ----
 {
-  "resolvedCallbacks" : { },
   "this0_id" : "1",
   "this0auth_param0" : "super_admin",
   "this1_id" : "2",
@@ -85,8 +85,7 @@ CALL {
 		timestamp: timestamp(),
 		typename: 'Actor'
 	}) AS meta, this0
-	WITH this0, meta
-	CALL apoc.util.validate(NOT ((this0.id IS NOT NULL
+	WITH this0, meta CALL apoc.util.validate(NOT ((this0.id IS NOT NULL
 		AND this0.id = $this0auth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
 	RETURN this0, meta AS this0_meta
 }
@@ -106,8 +105,7 @@ CALL {
 		timestamp: timestamp(),
 		typename: 'Actor'
 	}) AS meta, this1
-	WITH this1, meta
-	CALL apoc.util.validate(NOT ((this1.id IS NOT NULL
+	WITH this1, meta CALL apoc.util.validate(NOT ((this1.id IS NOT NULL
 		AND this1.id = $this1auth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
 	RETURN this1, meta AS this1_meta
 }

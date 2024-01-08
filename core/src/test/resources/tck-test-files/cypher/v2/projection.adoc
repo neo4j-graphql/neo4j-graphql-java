@@ -82,8 +82,7 @@ mutation {
     "id" : "1"
   }, {
     "id" : "2"
-  } ],
-  "resolvedCallbacks" : { }
+  } ]
 }
 ----
 

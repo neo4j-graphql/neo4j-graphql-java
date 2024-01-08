@@ -70,29 +70,28 @@ mutation {
         }
       } ]
     }
-  } ],
-  "resolvedCallbacks" : { }
+  } ]
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-UNWIND $create_param0 AS create_var1
+UNWIND $create_param0 AS create_var0
 CALL {
-	WITH create_var1
+	WITH create_var0
 	CREATE (create_this0:Movie)
-	SET create_this0.title = create_var1.title
-	WITH create_this0, create_var1
+	SET create_this0.title = create_var0.title
+	WITH create_this0, create_var0
 	CALL {
-		WITH create_this0, create_var1
-		UNWIND create_var1.actors.create AS create_var2
-		WITH create_var2.node AS create_var3, create_var2.edge AS create_var4, create_this0
-		CREATE (create_this5:Actor)
-		SET create_this5.name = create_var3.name
-		MERGE (create_this5)-[create_this6:ACTED_IN]->(create_this0)
-		SET create_this6.screenTime = create_var4.screenTime
-		RETURN collect(NULL) AS create_var7
+		WITH create_this0, create_var0
+		UNWIND create_var0.actors.create AS create_var1
+		WITH create_var1.node AS create_var2, create_var1.edge AS create_var3, create_this0
+		CREATE (create_this1:Actor)
+		SET create_this1.name = create_var2.name
+		MERGE (create_this1)-[create_this2:ACTED_IN]->(create_this0)
+		SET create_this2.screenTime = create_var3.screenTime
+		RETURN collect(NULL) AS create_var4
 	}
 	RETURN create_this0
 }

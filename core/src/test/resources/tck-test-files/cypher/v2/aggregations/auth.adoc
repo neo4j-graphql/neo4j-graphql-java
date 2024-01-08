@@ -43,6 +43,7 @@ extend type User @auth(rules: [{allow: {id: "$jwt.sub"}, where: {id: "$jwt.sub"}
 [source,json,query-config=true]
 ----
 {
+  "auth": {},
   "contextParams": {
     "jwt": {
       "sub": "super_admin"
@@ -67,8 +68,7 @@ extend type User @auth(rules: [{allow: {id: "$jwt.sub"}, where: {id: "$jwt.sub"}
 MATCH (this:User)
 WHERE (this.name = $param0
 	AND this.id IS NOT NULL
-	AND this.id = $auth_param0)
-CALL apoc.util.validate(NOT ((this.id IS NOT NULL
+	AND this.id = $auth_param0) CALL apoc.util.validate(NOT ((this.id IS NOT NULL
 	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
 RETURN {
 	count: count(this)
@@ -96,6 +96,7 @@ RETURN {
 [source,json,query-config=true]
 ----
 {
+  "auth": {},
   "contextParams": {
     "jwt": {
       "sub": "super_admin"
@@ -118,10 +119,8 @@ RETURN {
 ----
 MATCH (this:User)
 WHERE (this.id IS NOT NULL
-	AND this.id = $auth_param0)
-CALL apoc.util.validate(NOT ((this.id IS NOT NULL
-	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
-CALL apoc.util.validate(NOT ((this.id IS NOT NULL
+	AND this.id = $auth_param0) CALL apoc.util.validate(NOT ((this.id IS NOT NULL
+	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0]) CALL apoc.util.validate(NOT ((this.id IS NOT NULL
 	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
 RETURN {
 	imdbRatingBigInt: {
@@ -152,6 +151,7 @@ RETURN {
 [source,json,query-config=true]
 ----
 {
+  "auth": {},
   "contextParams": {
     "jwt": {
       "sub": "super_admin"
@@ -174,10 +174,8 @@ RETURN {
 ----
 MATCH (this:User)
 WHERE (this.id IS NOT NULL
-	AND this.id = $auth_param0)
-CALL apoc.util.validate(NOT ((this.id IS NOT NULL
-	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
-CALL apoc.util.validate(NOT ((this.id IS NOT NULL
+	AND this.id = $auth_param0) CALL apoc.util.validate(NOT ((this.id IS NOT NULL
+	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0]) CALL apoc.util.validate(NOT ((this.id IS NOT NULL
 	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
 RETURN {
 	createdAt: {
@@ -208,6 +206,7 @@ RETURN {
 [source,json,query-config=true]
 ----
 {
+  "auth": {},
   "contextParams": {
     "jwt": {
       "sub": "super_admin"
@@ -230,10 +229,8 @@ RETURN {
 ----
 MATCH (this:User)
 WHERE (this.id IS NOT NULL
-	AND this.id = $auth_param0)
-CALL apoc.util.validate(NOT ((this.id IS NOT NULL
-	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
-CALL apoc.util.validate(NOT ((this.id IS NOT NULL
+	AND this.id = $auth_param0) CALL apoc.util.validate(NOT ((this.id IS NOT NULL
+	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0]) CALL apoc.util.validate(NOT ((this.id IS NOT NULL
 	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
 RETURN {
 	imdbRatingFloat: {
@@ -264,6 +261,7 @@ RETURN {
 [source,json,query-config=true]
 ----
 {
+  "auth": {},
   "contextParams": {
     "jwt": {
       "sub": "super_admin"
@@ -286,10 +284,8 @@ RETURN {
 ----
 MATCH (this:User)
 WHERE (this.id IS NOT NULL
-	AND this.id = $auth_param0)
-CALL apoc.util.validate(NOT ((this.id IS NOT NULL
-	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
-CALL apoc.util.validate(NOT ((this.id IS NOT NULL
+	AND this.id = $auth_param0) CALL apoc.util.validate(NOT ((this.id IS NOT NULL
+	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0]) CALL apoc.util.validate(NOT ((this.id IS NOT NULL
 	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
 RETURN {
 	id: {
@@ -320,6 +316,7 @@ RETURN {
 [source,json,query-config=true]
 ----
 {
+  "auth": {},
   "contextParams": {
     "jwt": {
       "sub": "super_admin"
@@ -342,10 +339,8 @@ RETURN {
 ----
 MATCH (this:User)
 WHERE (this.id IS NOT NULL
-	AND this.id = $auth_param0)
-CALL apoc.util.validate(NOT ((this.id IS NOT NULL
-	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
-CALL apoc.util.validate(NOT ((this.id IS NOT NULL
+	AND this.id = $auth_param0) CALL apoc.util.validate(NOT ((this.id IS NOT NULL
+	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0]) CALL apoc.util.validate(NOT ((this.id IS NOT NULL
 	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
 RETURN {
 	imdbRatingInt: {
@@ -376,6 +371,7 @@ RETURN {
 [source,json,query-config=true]
 ----
 {
+  "auth": {},
   "contextParams": {
     "jwt": {
       "sub": "super_admin"
@@ -398,10 +394,8 @@ RETURN {
 ----
 MATCH (this:User)
 WHERE (this.id IS NOT NULL
-	AND this.id = $auth_param0)
-CALL apoc.util.validate(NOT ((this.id IS NOT NULL
-	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
-CALL apoc.util.validate(NOT ((this.id IS NOT NULL
+	AND this.id = $auth_param0) CALL apoc.util.validate(NOT ((this.id IS NOT NULL
+	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0]) CALL apoc.util.validate(NOT ((this.id IS NOT NULL
 	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
 RETURN {
 	name: {
@@ -429,6 +423,7 @@ RETURN {
 [source,json,query-config=true]
 ----
 {
+  "auth": {},
   "contextParams": {
     "jwt": {
       "sub": "super_admin"
@@ -451,8 +446,7 @@ RETURN {
 ----
 MATCH (this:User)
 WHERE (this.id IS NOT NULL
-	AND this.id = $auth_param0)
-CALL apoc.util.validate(NOT ((this.id IS NOT NULL
+	AND this.id = $auth_param0) CALL apoc.util.validate(NOT ((this.id IS NOT NULL
 	AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
 RETURN {
 	count: count(this)

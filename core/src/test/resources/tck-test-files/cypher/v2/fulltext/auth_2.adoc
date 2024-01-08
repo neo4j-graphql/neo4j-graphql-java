@@ -39,6 +39,7 @@ type Person {
 [source,json,query-config=true]
 ----
 {
+  "auth": {},
   "contextParams": {
     "jwt": {
       "sub": "my-sub"
@@ -62,7 +63,7 @@ type Person {
 CALL db.index.fulltext.queryNodes('MovieTitle', $param0) YIELD node AS this
 WHERE ('Movie' IN labels(this)
 	AND apoc.util.validatePredicate(NOT ((exists((this)<-[:DIRECTED]-(:Person))
-		AND any(this0 IN [(this)<-[:DIRECTED]-(this0:Person) | this0]
+		AND any(this0 IN [(this)<-[:DIRECTED]-(this0) | this0]
 		WHERE (this0.id IS NOT NULL
 			AND this0.id = $param1)))), '@neo4j/graphql/FORBIDDEN', [0]))
 RETURN this {

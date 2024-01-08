@@ -48,8 +48,7 @@ mutation {
   "create_param0" : [ {
     "USERID" : "userid",
     "COMPANYID" : "companyid"
-  } ],
-  "resolvedCallbacks" : { }
+  } ]
 }
 ----
 
@@ -91,7 +90,6 @@ mutation {
 ----
 {
   "param0" : "userid",
-  "resolvedCallbacks" : { },
   "this_update_COMPANYID" : "companyid2"
 }
 ----

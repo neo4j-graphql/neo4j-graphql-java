@@ -19,6 +19,7 @@ import org.neo4j.graphql.schema.model.outputs.NodeSelection
 import org.neo4j.graphql.translate.AuthTranslator
 import org.neo4j.graphql.translate.ProjectionTranslator
 import org.neo4j.graphql.translate.TopLevelMatchTranslator
+import org.neo4j.graphql.translate.where.PrefixUsage
 import org.neo4j.graphql.utils.ResolveTree
 
 /**
@@ -62,8 +63,14 @@ class ReadResolver private constructor(
     override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement {
         val queryContext = env.queryContext()
 
+
         val resolveTree = ResolveTree.resolve(env)
-        val input = InputArguments(node, resolveTree.args)
+        val selection = resolveTree.parse(
+            { NodeSelection(node, it) },
+            { InputArguments(node, it.args) }
+        )
+
+        val input = selection.parsedArguments
 
         val dslNode = node.asCypherNode(queryContext, variable)
 
@@ -91,7 +98,15 @@ class ReadResolver private constructor(
 
 
         val projection = ProjectionTranslator()
-            .createProjectionAndParams(node, dslNode, resolveTree, null, schemaConfig, queryContext)
+            .createProjectionAndParams(
+                node,
+                dslNode,
+                resolveTree,
+                null,
+                schemaConfig,
+                queryContext,
+                connectPrefixUsage = PrefixUsage.NONE
+            )
 
         projection.authValidate
             ?.let {

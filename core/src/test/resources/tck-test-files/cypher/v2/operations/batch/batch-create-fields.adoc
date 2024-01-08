@@ -90,8 +90,7 @@ mutation {
         }
       }
     }
-  } ],
-  "resolvedCallbacks" : { }
+  } ]
 }
 ----
 
@@ -126,8 +125,7 @@ CALL {
 		CALL {
 			WITH create_this5
 			MATCH (create_this5)-[create_this5_website_Website_unique:HAS_WEBSITE]->(:Website)
-			WITH count(create_this5_website_Website_unique) AS c
-			CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDActor.website must be less than or equal to one', [0])
+			WITH count(create_this5_website_Website_unique) AS c CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDActor.website must be less than or equal to one', [0])
 			RETURN c AS create_this5_website_Website_unique_ignored
 		}
 		RETURN collect(NULL) AS create_var13
@@ -146,8 +144,7 @@ CALL {
 	CALL {
 		WITH create_this0
 		MATCH (create_this0)-[create_this0_website_Website_unique:HAS_WEBSITE]->(:Website)
-		WITH count(create_this0_website_Website_unique) AS c
-		CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.website must be less than or equal to one', [0])
+		WITH count(create_this0_website_Website_unique) AS c CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.website must be less than or equal to one', [0])
 		RETURN c AS create_this0_website_Website_unique_ignored
 	}
 	RETURN create_this0
@@ -185,7 +182,6 @@ mutation {
 [source,json]
 ----
 {
-  "resolvedCallbacks" : { },
   "this0_actors0_node_name" : "actor 1",
   "this0_actors0_relationship_year" : 2022,
   "this0_id" : "1",
@@ -220,16 +216,14 @@ CALL {
 	CALL {
 		WITH this0_actors0_node
 		MATCH (this0_actors0_node)-[this0_actors0_node_website_Website_unique:HAS_WEBSITE]->(:Website)
-		WITH count(this0_actors0_node_website_Website_unique) AS c
-		CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDActor.website must be less than or equal to one', [0])
+		WITH count(this0_actors0_node_website_Website_unique) AS c CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDActor.website must be less than or equal to one', [0])
 		RETURN c AS this0_actors0_node_website_Website_unique_ignored
 	}
 	WITH this0
 	CALL {
 		WITH this0
 		MATCH (this0)-[this0_website_Website_unique:HAS_WEBSITE]->(:Website)
-		WITH count(this0_website_Website_unique) AS c
-		CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.website must be less than or equal to one', [0])
+		WITH count(this0_website_Website_unique) AS c CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.website must be less than or equal to one', [0])
 		RETURN c AS this0_website_Website_unique_ignored
 	}
 	RETURN this0
@@ -249,16 +243,14 @@ CALL {
 	CALL {
 		WITH this1_actors0_node
 		MATCH (this1_actors0_node)-[this1_actors0_node_website_Website_unique:HAS_WEBSITE]->(:Website)
-		WITH count(this1_actors0_node_website_Website_unique) AS c
-		CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDActor.website must be less than or equal to one', [0])
+		WITH count(this1_actors0_node_website_Website_unique) AS c CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDActor.website must be less than or equal to one', [0])
 		RETURN c AS this1_actors0_node_website_Website_unique_ignored
 	}
 	WITH this1
 	CALL {
 		WITH this1
 		MATCH (this1)-[this1_website_Website_unique:HAS_WEBSITE]->(:Website)
-		WITH count(this1_website_Website_unique) AS c
-		CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.website must be less than or equal to one', [0])
+		WITH count(this1_website_Website_unique) AS c CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.website must be less than or equal to one', [0])
 		RETURN c AS this1_website_Website_unique_ignored
 	}
 	RETURN this1
@@ -275,8 +267,7 @@ CALL {
 	CALL {
 		WITH this2
 		MATCH (this2)-[this2_website_Website_unique:HAS_WEBSITE]->(:Website)
-		WITH count(this2_website_Website_unique) AS c
-		CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.website must be less than or equal to one', [0])
+		WITH count(this2_website_Website_unique) AS c CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.website must be less than or equal to one', [0])
 		RETURN c AS this2_website_Website_unique_ignored
 	}
 	RETURN this2
@@ -309,8 +300,7 @@ CALL {
 	CALL {
 		WITH this3
 		MATCH (this3)-[this3_website_Website_unique:HAS_WEBSITE]->(:Website)
-		WITH count(this3_website_Website_unique) AS c
-		CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.website must be less than or equal to one', [0])
+		WITH count(this3_website_Website_unique) AS c CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.website must be less than or equal to one', [0])
 		RETURN c AS this3_website_Website_unique_ignored
 	}
 	RETURN this3
@@ -333,8 +323,7 @@ CALL {
 	CALL {
 		WITH this4
 		MATCH (this4)-[this4_website_Website_unique:HAS_WEBSITE]->(:Website)
-		WITH count(this4_website_Website_unique) AS c
-		CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.website must be less than or equal to one', [0])
+		WITH count(this4_website_Website_unique) AS c CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.website must be less than or equal to one', [0])
 		RETURN c AS this4_website_Website_unique_ignored
 	}
 	RETURN this4
@@ -491,8 +480,7 @@ mutation {
         }
       } ]
     }
-  } ],
-  "resolvedCallbacks" : { }
+  } ]
 }
 ----
 
@@ -517,8 +505,7 @@ CALL {
 		CALL {
 			WITH create_this6
 			MATCH (create_this6)-[create_this6_website_Website_unique:HAS_WEBSITE]->(:Website)
-			WITH count(create_this6_website_Website_unique) AS c
-			CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDActor.website must be less than or equal to one', [0])
+			WITH count(create_this6_website_Website_unique) AS c CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDActor.website must be less than or equal to one', [0])
 			RETURN c AS create_this6_website_Website_unique_ignored
 		}
 		RETURN collect(NULL) AS create_var8
@@ -527,8 +514,7 @@ CALL {
 	CALL {
 		WITH create_this1
 		MATCH (create_this1)-[create_this1_website_Website_unique:HAS_WEBSITE]->(:Website)
-		WITH count(create_this1_website_Website_unique) AS c
-		CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.website must be less than or equal to one', [0])
+		WITH count(create_this1_website_Website_unique) AS c CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.website must be less than or equal to one', [0])
 		RETURN c AS create_this1_website_Website_unique_ignored
 	}
 	RETURN create_this1
@@ -578,8 +564,7 @@ mutation {
     }
   }, {
     "id" : "2"
-  } ],
-  "resolvedCallbacks" : { }
+  } ]
 }
 ----
 
@@ -595,8 +580,7 @@ CALL {
 	CALL {
 		WITH create_this0
 		MATCH (create_this0)-[create_this0_website_Website_unique:HAS_WEBSITE]->(:Website)
-		WITH count(create_this0_website_Website_unique) AS c
-		CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.website must be less than or equal to one', [0])
+		WITH count(create_this0_website_Website_unique) AS c CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.website must be less than or equal to one', [0])
 		RETURN c AS create_this0_website_Website_unique_ignored
 	}
 	RETURN create_this0

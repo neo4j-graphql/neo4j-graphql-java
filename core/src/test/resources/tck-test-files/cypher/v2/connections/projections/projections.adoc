@@ -314,9 +314,9 @@ CALL {
 		WITH edges
 		UNWIND edges AS edge
 		WITH edge LIMIT $this_connection_actorsConnectionparam0
-		RETURN collect(edge) AS this_connection_actorsConnectionvar1
+		RETURN collect(edge) AS this_connection_actorsConnectionvar0
 	}
-	WITH this_connection_actorsConnectionvar1 AS edges, totalCount
+	WITH this_connection_actorsConnectionvar0 AS edges, totalCount
 	RETURN {
 		edges: edges,
 		totalCount: totalCount
@@ -434,9 +434,9 @@ CALL {
 		WITH edges
 		UNWIND edges AS edge
 		WITH edge LIMIT $this_connection_actorsConnectionparam0
-		RETURN collect(edge) AS this_connection_actorsConnectionvar1
+		RETURN collect(edge) AS this_connection_actorsConnectionvar0
 	}
-	WITH this_connection_actorsConnectionvar1 AS edges, totalCount
+	WITH this_connection_actorsConnectionvar0 AS edges, totalCount
 	RETURN {
 		edges: edges,
 		totalCount: totalCount

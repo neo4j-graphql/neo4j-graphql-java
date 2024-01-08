@@ -58,7 +58,6 @@ mutation {
 [source,json]
 ----
 {
-  "resolvedCallbacks" : { },
   "this0_kind" : "PARENT_OF",
   "this0_objects_connect0_node_param0" : [ "cain" ],
   "this0_objects_connect1_node_param0" : [ "cain" ],
@@ -184,7 +183,6 @@ mutation {
 [source,json]
 ----
 {
-  "resolvedCallbacks" : { },
   "this0_kind" : "PARENT_OF",
   "this0_objects_connect0_node_param0" : [ "abel" ],
   "this0_objects_connect1_node_param0" : [ "abel" ],
@@ -310,7 +308,6 @@ mutation {
 [source,json]
 ----
 {
-  "resolvedCallbacks" : { },
   "this0_kind" : "PARENT_OF",
   "this0_objects_connect0_node_param0" : [ "cain" ],
   "this0_objects_connect1_node_param0" : [ "cain" ],
@@ -533,7 +530,6 @@ mutation {
 [source,json]
 ----
 {
-  "resolvedCallbacks" : { },
   "this0_kind" : "PARENT_OF",
   "this0_objects_connect0_node_param0" : [ "cain" ],
   "this0_objects_connect1_node_param0" : [ "cain" ],
@@ -830,7 +826,6 @@ mutation {
 [source,json]
 ----
 {
-  "resolvedCallbacks" : { },
   "this0_kind" : "PARENT_OF",
   "this0_subjects_connect0_node_param0" : [ "adam", "eve" ],
   "this0_subjects_connect1_node_param0" : [ "adam", "eve" ],

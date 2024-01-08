@@ -17,7 +17,7 @@ import org.neo4j.graphql.toDict
 data class OptionsInput(
     val limit: Int? = null,
     val offset: Int? = null,
-    val sort: List<Map<String, SortItem.Direction>>? = null,
+    val sort: List<SortInput>? = null,
 ) {
     fun merge(queryOptions: QueryOptionsDirective?): OptionsInput {
         if (queryOptions == null) {

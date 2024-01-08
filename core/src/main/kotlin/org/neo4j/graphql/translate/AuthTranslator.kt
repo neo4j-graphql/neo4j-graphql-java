@@ -121,9 +121,9 @@ class AuthTranslator(
         return Predicates.any(r)
             .`in`(Cypher.listOf(authRule.roles.map { it.asCypherLiteral() })) // TODO should we provide the list as param?
             .where(
-                Predicates.any("rr")
-                    .`in`(Cypher.parameter("auth.roles", queryContext.auth))
-                    .where(r.eq(rr))
+                Predicates.any(rr)
+                    .`in`(Cypher.parameter("auth", queryContext.auth).property("roles"))
+                    .where(rr.eq(r))
             )
     }
 
@@ -134,10 +134,8 @@ class AuthTranslator(
         // TODO can we optimize this apoc call?
         return ApocFunctions.util
             .validatePredicate(
-                Cypher.parameter(
-                    "auth.isAuthenticated",
-                    queryContext.auth?.isAuthenticated
-                ) // TODO optimize compile time check
+                Cypher.parameter("auth", queryContext.auth).property("isAuthenticated") // TODO use field directly without passing auth
+                    // TODO optimize compile time check
                     .eq(authRule.isAuthenticated.asCypherLiteral()).not(),
                 AUTH_UNAUTHENTICATED_ERROR.asCypherLiteral(),
                 Cypher.listOf(0.asCypherLiteral())
@@ -221,7 +219,7 @@ class AuthTranslator(
                 val end = refNode.asCypherNode(queryContext)
                 // TODO naming
 
-                val namedEnd = end.named("auth_this"+ruleIndex)
+                val namedEnd = end.named("auth_this" + ruleIndex)
 //                val namedEnd = end.named(chainStr.resolveName())
 
                 var authPredicate = Conditions.noCondition()

@@ -54,6 +54,7 @@ extend type Post @auth(rules: [{allow: {creator: {id: "$jwt.sub"}}}])
 [source,json,query-config=true]
 ----
 {
+  "auth": {},
   "contextParams": {
     "jwt": {
       "sub": "super_admin"
@@ -134,6 +135,7 @@ RETURN this {
 [source,json,query-config=true]
 ----
 {
+  "auth": {},
   "contextParams": {
     "jwt": {
       "sub": "super_admin"

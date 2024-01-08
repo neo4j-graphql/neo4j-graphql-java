@@ -48,6 +48,7 @@ mutation {
 [source,json,query-config=true]
 ----
 {
+  "auth": {},
   "contextParams": {
     "jwt": {
       "sub": "test"
@@ -60,7 +61,6 @@ mutation {
 [source,json]
 ----
 {
-  "resolvedCallbacks" : { },
   "this_connectOrCreate_genres0auth_param0" : "test",
   "this_connectOrCreate_genres_param0" : "Horror",
   "this_connectOrCreate_genres_param1" : "Horror",
@@ -81,8 +81,7 @@ CALL {
 	})
 	ON CREATE SET this_connectOrCreate_genres0.name = $this_connectOrCreate_genres_param1
 	MERGE (this)-[this_connectOrCreate_genres_this0:IN_GENRE]->(this_connectOrCreate_genres0)
-	WITH *
-	CALL apoc.util.validate(NOT ((this_connectOrCreate_genres0.name IS NOT NULL
+	WITH * CALL apoc.util.validate(NOT ((this_connectOrCreate_genres0.name IS NOT NULL
 		AND this_connectOrCreate_genres0.name = $this_connectOrCreate_genres0auth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
 	RETURN count(*) AS _
 }

@@ -37,7 +37,10 @@ type File {
 [source,json]
 ----
 {
-  "param0" : 9223372036854775807
+  "param0" : {
+    "low" : -1,
+    "high" : 2147483647
+  }
 }
 ----
 
@@ -77,7 +80,10 @@ query Files($size: BigInt) {
 [source,json]
 ----
 {
-  "param0" : 9223372036854775807
+  "param0" : {
+    "low" : -1,
+    "high" : 2147483647
+  }
 }
 ----
 
@@ -109,7 +115,10 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 9223372036854775807
+  "param0" : {
+    "low" : -1,
+    "high" : 2147483647
+  }
 }
 ----
 

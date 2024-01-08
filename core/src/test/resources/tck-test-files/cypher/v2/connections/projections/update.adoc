@@ -56,8 +56,7 @@ mutation {
 [source,json]
 ----
 {
-  "param0" : "Forrest Gump",
-  "resolvedCallbacks" : { }
+  "param0" : "Forrest Gump"
 }
 ----
 

@@ -16,7 +16,7 @@ import org.neo4j.graphql.schema.relations.RelationFieldBaseAugmentation
 import org.neo4j.graphql.toDict
 
 class CreateInput private constructor(
-    node: Node,
+    val node: Node,
     data: Dict
 ) : RelationFieldsInput<CreateFieldInput>(
     node,

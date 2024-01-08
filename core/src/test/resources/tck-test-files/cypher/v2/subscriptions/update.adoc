@@ -26,6 +26,118 @@ type Movie {
   "enableRegex": true
 }
 ----
+== Nested update with subscriptions
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  updateMovies(
+    where: {id: "1"}
+    update: {id: "2", actors: [{where: {node: {name: "arthur"}}, update: {node: {name: "ford"}}}]}
+  ) {
+    movies {
+      id
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "1",
+  "this_update_actors0_name" : "ford",
+  "this_update_id" : "2",
+  "updateMovies" : {
+    "args" : {
+      "update" : {
+        "id" : "2",
+        "actors" : [ {
+          "where" : {
+            "node" : {
+              "name" : "arthur"
+            }
+          },
+          "update" : {
+            "node" : {
+              "name" : "ford"
+            }
+          }
+        } ]
+      }
+    }
+  },
+  "updateMovies_args_update_actors0_where_Actorparam0" : "arthur"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+WITH [] AS meta
+MATCH (this:Movie)
+WHERE this.id = $param0
+WITH this {
+	.*
+} AS oldProps, this, meta
+CALL {
+	WITH *
+	SET this.id = $this_update_id
+	WITH this, meta
+	CALL {
+		WITH this, meta
+		MATCH (this)<-[this_acted_in0_relationship:ACTED_IN]-(this_actors0:Actor)
+		WHERE this_actors0.name = $updateMovies_args_update_actors0_where_Actorparam0
+		WITH this_actors0 {
+			.*
+		} AS oldProps, this, meta, this_actors0
+		CALL {
+			WITH *
+			SET this_actors0.name = $this_update_actors0_name
+			RETURN meta AS update_meta
+		}
+		WITH *, update_meta AS meta
+		WITH this, this_actors0, (meta + {
+			event: 'update',
+			id: id(this_actors0),
+			properties: {
+				old: oldProps,
+				new: this_actors0 {
+					.*
+				}
+			},
+			timestamp: timestamp(),
+			typename: 'Actor'
+		}) AS meta
+		RETURN collect(meta) AS update_meta
+	}
+	WITH this, reduce(m = meta, n IN update_meta | (m + n)) AS meta
+	RETURN meta AS update_meta
+}
+WITH *, update_meta AS meta
+WITH this, (meta + {
+	event: 'update',
+	id: id(this),
+	properties: {
+		old: oldProps,
+		new: this {
+			.*
+		}
+	},
+	timestamp: timestamp(),
+	typename: 'Movie'
+}) AS meta
+WITH *
+UNWIND CASE meta WHEN [] THEN [NULL] ELSE meta END AS m
+RETURN collect(DISTINCT this {
+	.id
+}) AS data, collect(DISTINCT m) AS meta
+----
+
+'''
+
 == Simple update with subscriptions
 
 .GraphQL-Query
@@ -45,7 +157,6 @@ mutation {
 ----
 {
   "param0" : "1",
-  "resolvedCallbacks" : { },
   "this_update_id" : "2"
 }
 ----

@@ -26,7 +26,7 @@ object RelationshipValidationTranslator {
 
         val c = Cypher.name("c")
         val (predicate, errorMessage) = if (field.typeMeta.type.isRequired()) {
-            c.eq(1.asCypherLiteral()) to "${RELATIONSHIP_REQUIREMENT_PREFIX}${node.name}.${field.fieldName} required"
+            c.eq(1.asCypherLiteral()) to "${RELATIONSHIP_REQUIREMENT_PREFIX}${node.name}.${field.fieldName} required exactly once"
         } else {
             c.lte(1.asCypherLiteral()) to "${RELATIONSHIP_REQUIREMENT_PREFIX}${node.name}.${field.fieldName} must be less than or equal to one"
         }

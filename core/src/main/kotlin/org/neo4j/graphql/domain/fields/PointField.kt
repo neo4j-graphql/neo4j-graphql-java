@@ -6,7 +6,6 @@ import graphql.language.TypeName
 import org.neo4j.cypherdsl.core.Cypher
 import org.neo4j.cypherdsl.core.Expression
 import org.neo4j.cypherdsl.core.Functions
-import org.neo4j.cypherdsl.core.Parameter
 import org.neo4j.graphql.Constants
 import org.neo4j.graphql.SchemaConfig
 import org.neo4j.graphql.domain.TypeMeta
@@ -90,7 +89,7 @@ class PointField(
         )
     }
 
-    override fun convertInputToCypher(input: Parameter<*>): Expression = if (typeMeta.type.isList()) {
+    override fun convertInputToCypher(input: Expression): Expression = if (typeMeta.type.isList()) {
         val point = Cypher.name("p")
         Cypher.listWith(point).`in`(input).returning(Functions.point(point))
     } else {

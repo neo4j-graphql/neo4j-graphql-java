@@ -12,6 +12,8 @@ import org.neo4j.graphql.schema.model.inputs.Dict
 import org.neo4j.graphql.schema.model.inputs.PerNodeInput
 import org.neo4j.graphql.schema.model.inputs.connect.ConnectFieldInput.*
 import org.neo4j.graphql.schema.model.inputs.connect_or_create.ConnectOrCreateFieldInput
+import org.neo4j.graphql.schema.model.inputs.create.RelationFieldInput.InterfaceCreateFieldInput
+import org.neo4j.graphql.schema.model.inputs.create.RelationFieldInput.NodeCreateCreateFieldInput
 import org.neo4j.graphql.toDict
 import org.neo4j.graphql.wrapType
 
@@ -28,7 +30,7 @@ sealed interface CreateFieldInput {
 
         override val create = data
             .nestedDictList(Constants.CREATE_FIELD)
-            .map { RelationFieldInput.NodeCreateCreateFieldInput.create(node, it) }
+            .map { NodeCreateCreateFieldInput(node, relationshipProperties, it.toDict()) }
             .takeIf { it.isNotEmpty() }
 
         override val connect = data.nestedObject(Constants.CONNECT_FIELD)
@@ -66,7 +68,7 @@ sealed interface CreateFieldInput {
         ImplementingTypeFieldInput() {
 
         override val create = data.nestedDictList(Constants.CREATE_FIELD)
-            .map { RelationFieldInput.InterfaceCreateFieldInput.create(interfaze, it) }
+            .map { InterfaceCreateFieldInput(interfaze, relationshipProperties, it.toDict()) }
             .takeIf { it.isNotEmpty() }
 
         override val connect = data.nestedObject(Constants.CONNECT_FIELD)

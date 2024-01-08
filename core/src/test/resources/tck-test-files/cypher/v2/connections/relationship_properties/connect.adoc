@@ -58,7 +58,6 @@ mutation {
 [source,json]
 ----
 {
-  "resolvedCallbacks" : { },
   "this0_actors_connect0_relationship_screenTime" : 60,
   "this0_title" : "Forrest Gump"
 }
@@ -144,7 +143,6 @@ mutation {
 [source,json]
 ----
 {
-  "resolvedCallbacks" : { },
   "this0_actors_connect0_node_param0" : "Tom Hanks",
   "this0_actors_connect0_relationship_screenTime" : 60,
   "this0_title" : "Forrest Gump"
@@ -234,7 +232,6 @@ mutation {
 ----
 {
   "param0" : "Forrest Gump",
-  "resolvedCallbacks" : { },
   "this_connect_actors0_relationship_screenTime" : 60
 }
 ----
@@ -319,7 +316,6 @@ mutation {
 ----
 {
   "param0" : "Forrest Gump",
-  "resolvedCallbacks" : { },
   "this_connect_actors0_node_param0" : "Tom Hanks",
   "this_connect_actors0_relationship_screenTime" : 60
 }

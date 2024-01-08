@@ -134,15 +134,21 @@ query getSeriesWithRelationFilters($where: SeriesWhere = {current: true}) {
 [source,cypher]
 ----
 MATCH (this:Series)
-WHERE ((size([(this)-[this0:MANUFACTURER]->(this1:Manufacturer)
-		WHERE (this0.current = $param0
-			AND this1.name = $param1) | 1]) > 0
-		OR size([(this)-[this2:MANUFACTURER]->(this3:Manufacturer)
-		WHERE (this2.current = $param2
-			AND this3.name = $param3) | 1]) > 0)
-	AND size([(this)-[this4:BRAND]->(this5:Brand)
-	WHERE (this4.current = $param4
-		AND this5.name = $param5) | 1]) > 0
+WHERE ((EXISTS {
+			MATCH (this)-[this0:MANUFACTURER]->(this1:Manufacturer)
+			WHERE (this0.current = $param0
+				AND this1.name = $param1)
+		}
+		OR EXISTS {
+			MATCH (this)-[this2:MANUFACTURER]->(this3:Manufacturer)
+			WHERE (this2.current = $param2
+				AND this3.name = $param3)
+		})
+	AND EXISTS {
+		MATCH (this)-[this4:BRAND]->(this5:Brand)
+		WHERE (this4.current = $param4
+			AND this5.name = $param5)
+	}
 	AND this.current = $param6)
 CALL {
 	WITH this

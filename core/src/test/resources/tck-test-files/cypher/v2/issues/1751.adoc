@@ -105,11 +105,9 @@ WITH *, aggregateWhereFiltervar0[0] AS this_admins0_relationship, aggregateWhere
 WITH this, collect(DISTINCT this_admins0) AS this_admins0_to_delete ORDER BY this_admins0_to_delete DESC
 CALL {
 	WITH this_admins0_to_delete
-	UNWIND this_admins0_to_delete AS x
-	DETACH DELETE x
+	UNWIND this_admins0_to_delete AS x DETACH DELETE x
 	RETURN count(*) AS _
-}
-DETACH DELETE this
+} DETACH DELETE this
 ----
 
 '''

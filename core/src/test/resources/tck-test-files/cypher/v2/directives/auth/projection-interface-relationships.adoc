@@ -65,6 +65,7 @@ type Actor {
 [source,json,query-config=true]
 ----
 {
+  "auth": {},
   "contextParams": {
     "jwt": {
       "sub": "super_admin"

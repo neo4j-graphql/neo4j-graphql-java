@@ -43,6 +43,7 @@ mutation {
 [source,json,query-config=true]
 ----
 {
+  "auth": {},
   "contextParams": {
     "jwt": {
       "sub": "1"
@@ -55,7 +56,6 @@ mutation {
 [source,json]
 ----
 {
-  "resolvedCallbacks" : { },
   "this_connect_targets0_node_param0" : "1",
   "thisauth_param0" : "1"
 }
@@ -70,8 +70,7 @@ CALL {
 	WITH this
 	OPTIONAL MATCH (this_connect_targets0_node:Target)
 	WHERE this_connect_targets0_node.id = $this_connect_targets0_node_param0
-	WITH this, this_connect_targets0_node
-	CALL apoc.util.validate(NOT ((this.id IS NOT NULL
+	WITH this, this_connect_targets0_node CALL apoc.util.validate(NOT ((this.id IS NOT NULL
 		AND this.id = $thisauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
 	CALL {
 		WITH *

@@ -5,10 +5,10 @@ import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
 import org.neo4j.graphql.domain.fields.RelationField
+import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.schema.model.inputs.field_arguments.RelationFieldAggregateInputArgs
 import org.neo4j.graphql.schema.model.outputs.aggregate.AggregationSelectionFields
 import org.neo4j.graphql.schema.model.outputs.aggregate.RelationAggregationSelection
-import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.translate.ApocFunctions
 import org.neo4j.graphql.translate.AuthTranslator
 import org.neo4j.graphql.translate.where.createWhere
@@ -58,15 +58,16 @@ object CreateFieldAggregation {
         val matchWherePattern = Cypher
             .with(dslNode)
             .match(relationship)
-            .withSubQueries(preComputedSubqueries)
             .let {
-                if (where != null) {
-                    if (it is ExposesWhere) {
-                        it.where(where)
-                    } else {
-                        it.with(Cypher.asterisk()).where(where)
-                    }
-                } else it
+                when {
+                    where != null && preComputedSubqueries.isEmpty() -> it.withSubQueries(preComputedSubqueries)
+                        .with(Cypher.asterisk())
+                        .where(where)
+
+                    where != null -> it.where(where)
+
+                    else -> it
+                }
             }
 
         val projections = mutableListOf<Any>()

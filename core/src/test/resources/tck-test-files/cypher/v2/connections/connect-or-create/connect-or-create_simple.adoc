@@ -50,7 +50,6 @@ mutation {
 [source,json]
 ----
 {
-  "resolvedCallbacks" : { },
   "this0_movies_connectOrCreate_param0" : "The Terminal",
   "this0_movies_connectOrCreate_param1" : "The Terminal",
   "this0_movies_connectOrCreate_param2" : 105,
@@ -106,7 +105,6 @@ mutation {
 ----
 {
   "param0" : "Tom Hanks",
-  "resolvedCallbacks" : { },
   "this_movies0_connectOrCreate_param0" : "The Terminal",
   "this_movies0_connectOrCreate_param1" : "The Terminal",
   "this_movies0_connectOrCreate_param2" : 105,

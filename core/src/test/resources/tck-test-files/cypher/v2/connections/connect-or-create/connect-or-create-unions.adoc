@@ -57,7 +57,6 @@ mutation {
 [source,json]
 ----
 {
-  "resolvedCallbacks" : { },
   "this0_actedIn_Movie_connectOrCreate_param0" : "0000-0000-03B6-0000-O-0000-0006-P",
   "this0_actedIn_Movie_connectOrCreate_param1" : "Forrest Gump",
   "this0_actedIn_Movie_connectOrCreate_param2" : "0000-0000-03B6-0000-O-0000-0006-P",
@@ -129,7 +128,6 @@ mutation {
 ----
 {
   "param0" : "Tom Hanks evil twin",
-  "resolvedCallbacks" : { },
   "this_actedIn_Movie0_connectOrCreate_param0" : "0000-0000-03B6-0000-O-0000-0006-P",
   "this_actedIn_Movie0_connectOrCreate_param1" : "Forrest Gump",
   "this_actedIn_Movie0_connectOrCreate_param2" : "0000-0000-03B6-0000-O-0000-0006-P",

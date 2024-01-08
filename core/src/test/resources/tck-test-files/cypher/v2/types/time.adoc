@@ -41,8 +41,7 @@ mutation {
 {
   "create_param0" : [ {
     "time" : "22:00:00Z"
-  } ],
-  "resolvedCallbacks" : { }
+  } ]
 }
 ----
 
@@ -79,7 +78,7 @@ RETURN collect(create_this0 {
 [source,json]
 ----
 {
-  "param0" : "13:45:33.250"
+  "param0" : "13:45:33.250000000Z"
 }
 ----
 
@@ -87,7 +86,7 @@ RETURN collect(create_this0 {
 [source,cypher]
 ----
 MATCH (this:Movie)
-WHERE this.time >= time($param0)
+WHERE this.time >= $param0
 RETURN this {
 	.time
 } AS this
@@ -115,8 +114,7 @@ mutation {
 {
   "create_param0" : [ {
     "time" : "22:00:15.555000000-01:00"
-  } ],
-  "resolvedCallbacks" : { }
+  } ]
 }
 ----
 
@@ -153,7 +151,7 @@ RETURN collect(create_this0 {
 [source,json]
 ----
 {
-  "param0" : "12:00:00"
+  "param0" : "12:00:00Z"
 }
 ----
 
@@ -161,7 +159,7 @@ RETURN collect(create_this0 {
 [source,cypher]
 ----
 MATCH (this:Movie)
-WHERE this.time = time($param0)
+WHERE this.time = $param0
 RETURN this {
 	.time
 } AS this
@@ -188,7 +186,7 @@ mutation {
 [source,json]
 ----
 {
-  "this_update_time" : "09:24:40.845512+06:30"
+  "this_update_time" : "09:24:40.845512000+06:30"
 }
 ----
 
@@ -196,7 +194,7 @@ mutation {
 [source,cypher]
 ----
 MATCH (this:Movie)
-SET this.time = time($this_update_time)
+SET this.time = $this_update_time
 RETURN collect(DISTINCT this {
 	.id,
 	.time

@@ -42,7 +42,6 @@ mutation {
 [source,json]
 ----
 {
-  "resolvedCallbacks" : { },
   "this_update_ratings_PUSH" : [ 1.5 ],
   "this_update_scores_POP" : 1
 }
@@ -51,8 +50,7 @@ mutation {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-CALL apoc.util.validate((this.ratings IS NULL
+MATCH (this:Movie) CALL apoc.util.validate((this.ratings IS NULL
 	OR this.scores IS NULL), 'Properties %s, %s cannot be NULL', ['ratings', 'scores'])
 SET this.ratings = (this.ratings + $this_update_ratings_PUSH)
 SET this.scores = this.scores[0..- $this_update_scores_POP]
@@ -85,7 +83,6 @@ mutation {
 [source,json]
 ----
 {
-  "resolvedCallbacks" : { },
   "this_update_ratings_POP" : 1,
   "this_update_scores_POP" : 1
 }
@@ -94,8 +91,7 @@ mutation {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-CALL apoc.util.validate((this.ratings IS NULL
+MATCH (this:Movie) CALL apoc.util.validate((this.ratings IS NULL
 	OR this.scores IS NULL), 'Properties %s, %s cannot be NULL', ['ratings', 'scores'])
 SET this.ratings = this.ratings[0..- $this_update_ratings_POP]
 SET this.scores = this.scores[0..- $this_update_scores_POP]
@@ -128,7 +124,6 @@ mutation {
 [source,json]
 ----
 {
-  "resolvedCallbacks" : { },
   "this_update_ratings_PUSH" : [ 1 ],
   "this_update_scores_PUSH" : [ 1 ]
 }
@@ -137,8 +132,7 @@ mutation {
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-CALL apoc.util.validate((this.ratings IS NULL
+MATCH (this:Movie) CALL apoc.util.validate((this.ratings IS NULL
 	OR this.scores IS NULL), 'Properties %s, %s cannot be NULL', ['ratings', 'scores'])
 SET this.ratings = (this.ratings + $this_update_ratings_PUSH)
 SET this.scores = (this.scores + $this_update_scores_PUSH)

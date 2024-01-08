@@ -9,6 +9,7 @@ import org.neo4j.graphql.and
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.domain.predicates.ConnectionPredicate
+import org.neo4j.graphql.foldWithAnd
 import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.schema.model.inputs.WhereInput
 import org.neo4j.graphql.schema.model.inputs.connection.ConnectionWhere
@@ -24,11 +25,11 @@ fun createConnectionWhere(
     parameterPrefix: ChainString,
     schemaConfig: SchemaConfig,
     queryContext: QueryContext,
-    usePrefix: Boolean = false // TODO only used to align test with JS version?
+    usePrefix: PrefixUsage = PrefixUsage.NONE
 ): WhereResult {
 
     fun createOnNode(key: String, value: WhereInput): WhereResult {
-        var result: Condition? = null
+        val result = mutableListOf<Condition?>()
         val subQueries = mutableListOf<Statement>()
         if (value is WhereInput.FieldContainerWhereInput<*>) {
             if (!value.hasFilterForNode(node)) {
@@ -44,30 +45,30 @@ fun createConnectionWhere(
                 node,
                 inputExcludingOnForNode,
                 nodeVariable,
-                parameterPrefix.extend(node),
+                parameterPrefix,
                 schemaConfig,
                 queryContext,
                 usePrefix,
             )
-            whereCondition?.let { result = result and it }
+            result += whereCondition
             subQueries.addAll(whereSubquery)
 
             if (inputOnForNode != null) {
                 val (innerWhereCondition, innerWhereSubquery) = createWhere(
                     node,
-                    value.withPreferredOn(node),
+                    inputOnForNode,
                     nodeVariable,
-                    parameterPrefix.extend(key, "on", node),
+                    parameterPrefix,
                     schemaConfig,
                     queryContext,
                     usePrefix,
                 )
-                innerWhereCondition?.let { result = result and it }
+                result += innerWhereCondition
                 subQueries.addAll(innerWhereSubquery)
             }
         }
 
-        return WhereResult(result, subQueries)
+        return WhereResult(result.foldWithAnd(), subQueries)
     }
 
     val subQueries = mutableListOf<Statement>()
@@ -93,7 +94,7 @@ fun createConnectionWhere(
                 relationship.properties,
                 predicate.value,
                 relationshipVariable,
-                parameterPrefix.extend(predicate.key),
+                parameterPrefix,
                 schemaConfig,
                 queryContext,
                 usePrefix,

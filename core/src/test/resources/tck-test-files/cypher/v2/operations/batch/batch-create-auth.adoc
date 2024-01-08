@@ -63,6 +63,7 @@ mutation {
 [source,json,query-config=true]
 ----
 {
+  "auth": {},
   "contextParams": {
     "jwt": {
       "sub": "1"
@@ -84,7 +85,6 @@ mutation {
     }
   },
   "create_param0" : "1",
-  "resolvedCallbacks" : { },
   "this0_actors0_node_name" : "actor 1",
   "this0_actors0_relationship_year" : 2022,
   "this0_id" : "1",
@@ -119,20 +119,17 @@ CALL {
 	CALL {
 		WITH this0_actors0_node
 		MATCH (this0_actors0_node)-[this0_actors0_node_website_Website_unique:HAS_WEBSITE]->(:Website)
-		WITH count(this0_actors0_node_website_Website_unique) AS c
-		CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDActor.website must be less than or equal to one', [0])
+		WITH count(this0_actors0_node_website_Website_unique) AS c CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDActor.website must be less than or equal to one', [0])
 		RETURN c AS this0_actors0_node_website_Website_unique_ignored
 	}
-	WITH this0
-	CALL apoc.util.validate(NOT (any(auth_var1 IN ['admin']
-	WHERE any(auth_var0 IN $auth.roles
-	WHERE auth_var0 = auth_var1))), '@neo4j/graphql/FORBIDDEN', [0])
+	WITH this0 CALL apoc.util.validate(NOT (any(r IN ['admin']
+	WHERE any(rr IN $auth.roles
+	WHERE rr = r))), '@neo4j/graphql/FORBIDDEN', [0])
 	WITH this0
 	CALL {
 		WITH this0
 		MATCH (this0)-[this0_website_Website_unique:HAS_WEBSITE]->(:Website)
-		WITH count(this0_website_Website_unique) AS c
-		CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.website must be less than or equal to one', [0])
+		WITH count(this0_website_Website_unique) AS c CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.website must be less than or equal to one', [0])
 		RETURN c AS this0_website_Website_unique_ignored
 	}
 	RETURN this0
@@ -150,20 +147,17 @@ CALL {
 	CALL {
 		WITH this1_actors0_node
 		MATCH (this1_actors0_node)-[this1_actors0_node_website_Website_unique:HAS_WEBSITE]->(:Website)
-		WITH count(this1_actors0_node_website_Website_unique) AS c
-		CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDActor.website must be less than or equal to one', [0])
+		WITH count(this1_actors0_node_website_Website_unique) AS c CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDActor.website must be less than or equal to one', [0])
 		RETURN c AS this1_actors0_node_website_Website_unique_ignored
 	}
-	WITH this1
-	CALL apoc.util.validate(NOT (any(auth_var1 IN ['admin']
-	WHERE any(auth_var0 IN $auth.roles
-	WHERE auth_var0 = auth_var1))), '@neo4j/graphql/FORBIDDEN', [0])
+	WITH this1 CALL apoc.util.validate(NOT (any(r IN ['admin']
+	WHERE any(rr IN $auth.roles
+	WHERE rr = r))), '@neo4j/graphql/FORBIDDEN', [0])
 	WITH this1
 	CALL {
 		WITH this1
 		MATCH (this1)-[this1_website_Website_unique:HAS_WEBSITE]->(:Website)
-		WITH count(this1_website_Website_unique) AS c
-		CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.website must be less than or equal to one', [0])
+		WITH count(this1_website_Website_unique) AS c CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.website must be less than or equal to one', [0])
 		RETURN c AS this1_website_Website_unique_ignored
 	}
 	RETURN this1
@@ -175,16 +169,14 @@ CALL {
 	CREATE (this2_website0_node:Website)
 	SET this2_website0_node.address = $this2_website0_node_address
 	MERGE (this2)-[:HAS_WEBSITE]->(this2_website0_node)
-	WITH this2
-	CALL apoc.util.validate(NOT (any(auth_var1 IN ['admin']
-	WHERE any(auth_var0 IN $auth.roles
-	WHERE auth_var0 = auth_var1))), '@neo4j/graphql/FORBIDDEN', [0])
+	WITH this2 CALL apoc.util.validate(NOT (any(r IN ['admin']
+	WHERE any(rr IN $auth.roles
+	WHERE rr = r))), '@neo4j/graphql/FORBIDDEN', [0])
 	WITH this2
 	CALL {
 		WITH this2
 		MATCH (this2)-[this2_website_Website_unique:HAS_WEBSITE]->(:Website)
-		WITH count(this2_website_Website_unique) AS c
-		CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.website must be less than or equal to one', [0])
+		WITH count(this2_website_Website_unique) AS c CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.website must be less than or equal to one', [0])
 		RETURN c AS this2_website_Website_unique_ignored
 	}
 	RETURN this2
@@ -197,8 +189,7 @@ CALL {
 		WITH this3
 		OPTIONAL MATCH (this3_actors_connect0_node:Actor)
 		WHERE this3_actors_connect0_node.id = $this3_actors_connect0_node_param0
-		WITH this3, this3_actors_connect0_node
-		CALL apoc.util.validate(NOT ((this3_actors_connect0_node.id IS NOT NULL
+		WITH this3, this3_actors_connect0_node CALL apoc.util.validate(NOT ((this3_actors_connect0_node.id IS NOT NULL
 			AND this3_actors_connect0_node.id = $this3_actors_connect0_nodeauth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
 		CALL {
 			WITH *
@@ -215,16 +206,14 @@ CALL {
 		WITH this3, this3_actors_connect0_node
 		RETURN count(*) AS connect_this3_actors_connect_Actor
 	}
-	WITH this3
-	CALL apoc.util.validate(NOT (any(auth_var1 IN ['admin']
-	WHERE any(auth_var0 IN $auth.roles
-	WHERE auth_var0 = auth_var1))), '@neo4j/graphql/FORBIDDEN', [0])
+	WITH this3 CALL apoc.util.validate(NOT (any(r IN ['admin']
+	WHERE any(rr IN $auth.roles
+	WHERE rr = r))), '@neo4j/graphql/FORBIDDEN', [0])
 	WITH this3
 	CALL {
 		WITH this3
 		MATCH (this3)-[this3_website_Website_unique:HAS_WEBSITE]->(:Website)
-		WITH count(this3_website_Website_unique) AS c
-		CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.website must be less than or equal to one', [0])
+		WITH count(this3_website_Website_unique) AS c CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.website must be less than or equal to one', [0])
 		RETURN c AS this3_website_Website_unique_ignored
 	}
 	RETURN this3
@@ -240,21 +229,18 @@ CALL {
 		})
 	ON CREATE SET this4_actors_connectOrCreate0.name = $this4_actors_connectOrCreate_param1
 		MERGE (this4_actors_connectOrCreate0)-[this4_actors_connectOrCreate_this0:ACTED_IN]->(this4)
-		WITH *
-		CALL apoc.util.validate(NOT ((this4_actors_connectOrCreate0.id IS NOT NULL
+		WITH * CALL apoc.util.validate(NOT ((this4_actors_connectOrCreate0.id IS NOT NULL
 			AND this4_actors_connectOrCreate0.id = $this4_actors_connectOrCreate0auth_param0)), '@neo4j/graphql/FORBIDDEN', [0])
 		RETURN count(*) AS _
 	}
-	WITH this4
-	CALL apoc.util.validate(NOT (any(auth_var1 IN ['admin']
-	WHERE any(auth_var0 IN $auth.roles
-	WHERE auth_var0 = auth_var1))), '@neo4j/graphql/FORBIDDEN', [0])
+	WITH this4 CALL apoc.util.validate(NOT (any(r IN ['admin']
+	WHERE any(rr IN $auth.roles
+	WHERE rr = r))), '@neo4j/graphql/FORBIDDEN', [0])
 	WITH this4
 	CALL {
 		WITH this4
 		MATCH (this4)-[this4_website_Website_unique:HAS_WEBSITE]->(:Website)
-		WITH count(this4_website_Website_unique) AS c
-		CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.website must be less than or equal to one', [0])
+		WITH count(this4_website_Website_unique) AS c CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.website must be less than or equal to one', [0])
 		RETURN c AS this4_website_Website_unique_ignored
 	}
 	RETURN this4
@@ -397,6 +383,7 @@ mutation {
 [source,json,query-config=true]
 ----
 {
+  "auth": {},
   "contextParams": {
     "jwt": {
       "sub": "1"
@@ -442,8 +429,7 @@ mutation {
         }
       } ]
     }
-  } ],
-  "resolvedCallbacks" : { }
+  } ]
 }
 ----
 
@@ -468,22 +454,19 @@ CALL {
 		CALL {
 			WITH create_this6
 			MATCH (create_this6)-[create_this6_website_Website_unique:HAS_WEBSITE]->(:Website)
-			WITH count(create_this6_website_Website_unique) AS c
-			CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDActor.website must be less than or equal to one', [0])
+			WITH count(create_this6_website_Website_unique) AS c CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDActor.website must be less than or equal to one', [0])
 			RETURN c AS create_this6_website_Website_unique_ignored
 		}
 		RETURN collect(NULL) AS create_var8
 	}
-	WITH *
-	CALL apoc.util.validate(NOT (any(auth_var1 IN ['admin']
-	WHERE any(auth_var0 IN $auth.roles
-	WHERE auth_var0 = auth_var1))), '@neo4j/graphql/FORBIDDEN', [0])
+	WITH * CALL apoc.util.validate(NOT (any(r IN ['admin']
+	WHERE any(rr IN $auth.roles
+	WHERE rr = r))), '@neo4j/graphql/FORBIDDEN', [0])
 	WITH create_this1
 	CALL {
 		WITH create_this1
 		MATCH (create_this1)-[create_this1_website_Website_unique:HAS_WEBSITE]->(:Website)
-		WITH count(create_this1_website_Website_unique) AS c
-		CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.website must be less than or equal to one', [0])
+		WITH count(create_this1_website_Website_unique) AS c CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.website must be less than or equal to one', [0])
 		RETURN c AS create_this1_website_Website_unique_ignored
 	}
 	RETURN create_this1
@@ -524,6 +507,7 @@ mutation {
 [source,json,query-config=true]
 ----
 {
+  "auth": {},
   "contextParams": {
     "jwt": {
       "sub": "1"
@@ -548,8 +532,7 @@ mutation {
     "id" : "1"
   }, {
     "id" : "2"
-  } ],
-  "resolvedCallbacks" : { }
+  } ]
 }
 ----
 
@@ -561,16 +544,14 @@ CALL {
 	WITH create_var1
 	CREATE (create_this0:Movie)
 	SET create_this0.id = create_var1.id
-	WITH *
-	CALL apoc.util.validate(NOT (any(auth_var1 IN ['admin']
-	WHERE any(auth_var0 IN $auth.roles
-	WHERE auth_var0 = auth_var1))), '@neo4j/graphql/FORBIDDEN', [0])
+	WITH * CALL apoc.util.validate(NOT (any(r IN ['admin']
+	WHERE any(rr IN $auth.roles
+	WHERE rr = r))), '@neo4j/graphql/FORBIDDEN', [0])
 	WITH create_this0
 	CALL {
 		WITH create_this0
 		MATCH (create_this0)-[create_this0_website_Website_unique:HAS_WEBSITE]->(:Website)
-		WITH count(create_this0_website_Website_unique) AS c
-		CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.website must be less than or equal to one', [0])
+		WITH count(create_this0_website_Website_unique) AS c CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.website must be less than or equal to one', [0])
 		RETURN c AS create_this0_website_Website_unique_ignored
 	}
 	RETURN create_this0

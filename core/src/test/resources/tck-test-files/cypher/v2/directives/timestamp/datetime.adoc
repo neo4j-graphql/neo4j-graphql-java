@@ -50,8 +50,7 @@ mutation {
 {
   "create_param0" : [ {
     "id" : "123"
-  } ],
-  "resolvedCallbacks" : { }
+  } ]
 }
 ----
 
@@ -90,7 +89,6 @@ mutation {
 [source,json]
 ----
 {
-  "resolvedCallbacks" : { },
   "this_update_id" : "123",
   "this_update_name" : "dan"
 }

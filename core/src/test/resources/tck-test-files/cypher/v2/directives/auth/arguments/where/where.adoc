@@ -63,6 +63,12 @@ mutation {
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [
+      "admin"
+    ]
+  },
   "contextParams": {
     "jwt": {
       "roles": [
@@ -78,7 +84,6 @@ mutation {
 [source,json]
 ----
 {
-  "resolvedCallbacks" : { },
   "this0_id" : "123",
   "this0_name" : "Bob",
   "this0_password" : "password",
@@ -144,6 +149,12 @@ mutation {
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [
+      "admin"
+    ]
+  },
   "contextParams": {
     "jwt": {
       "roles": [
@@ -160,7 +171,6 @@ mutation {
 ----
 {
   "auth_param0" : "id-01",
-  "resolvedCallbacks" : { },
   "this_connect_posts0_nodeauth_param0" : "id-01",
   "thisauth_param0" : "id-01"
 }
@@ -224,6 +234,12 @@ mutation {
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [
+      "admin"
+    ]
+  },
   "contextParams": {
     "jwt": {
       "roles": [
@@ -240,7 +256,6 @@ mutation {
 ----
 {
   "auth_param0" : "id-01",
-  "resolvedCallbacks" : { },
   "this_posts0_connect0_nodeauth_param0" : "id-01",
   "thisauth_param0" : "id-01"
 }
@@ -305,6 +320,12 @@ mutation {
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [
+      "admin"
+    ]
+  },
   "contextParams": {
     "jwt": {
       "roles": [
@@ -320,7 +341,6 @@ mutation {
 [source,json]
 ----
 {
-  "resolvedCallbacks" : { },
   "this0_id" : "123",
   "this0_name" : "Bob",
   "this0_password" : "password",
@@ -388,6 +408,12 @@ mutation {
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [
+      "admin"
+    ]
+  },
   "contextParams": {
     "jwt": {
       "roles": [
@@ -404,7 +430,6 @@ mutation {
 ----
 {
   "auth_param0" : "id-01",
-  "resolvedCallbacks" : { },
   "this_connect_posts0_node_param0" : "some-id",
   "this_connect_posts0_nodeauth_param0" : "id-01",
   "thisauth_param0" : "id-01"
@@ -470,6 +495,12 @@ mutation {
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [
+      "admin"
+    ]
+  },
   "contextParams": {
     "jwt": {
       "roles": [
@@ -486,7 +517,6 @@ mutation {
 ----
 {
   "auth_param0" : "id-01",
-  "resolvedCallbacks" : { },
   "this_posts0_connect0_node_param0" : "new-id",
   "this_posts0_connect0_nodeauth_param0" : "id-01",
   "thisauth_param0" : "id-01"
@@ -549,6 +579,12 @@ mutation {
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [
+      "admin"
+    ]
+  },
   "contextParams": {
     "jwt": {
       "roles": [
@@ -578,17 +614,15 @@ WHERE (this.id IS NOT NULL
 WITH this
 OPTIONAL MATCH (this)-[this_posts0_relationship:HAS_POST]->(this_posts0:Post)
 WHERE (exists((this_posts0)<-[:HAS_POST]-(:User))
-	AND all(auth_this0 IN [(this_posts0)<-[:HAS_POST]-(auth_this0:User) | auth_this0]
+	AND all(auth_this0 IN [(this_posts0)<-[:HAS_POST]-(auth_this0) | auth_this0]
 	WHERE (auth_this0.id IS NOT NULL
 		AND auth_this0.id = $this_posts0auth_param0)))
 WITH this, collect(DISTINCT this_posts0) AS this_posts0_to_delete
 CALL {
 	WITH this_posts0_to_delete
-	UNWIND this_posts0_to_delete AS x
-	DETACH DELETE x
+	UNWIND this_posts0_to_delete AS x DETACH DELETE x
 	RETURN count(*) AS _
-}
-DETACH DELETE this
+} DETACH DELETE this
 ----
 
 '''
@@ -609,6 +643,12 @@ mutation {
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [
+      "admin"
+    ]
+  },
   "contextParams": {
     "jwt": {
       "roles": [
@@ -633,8 +673,7 @@ mutation {
 ----
 MATCH (this:User)
 WHERE (this.id IS NOT NULL
-	AND this.id = $auth_param0)
-DETACH DELETE this
+	AND this.id = $auth_param0) DETACH DELETE this
 ----
 
 '''
@@ -655,6 +694,12 @@ mutation {
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [
+      "admin"
+    ]
+  },
   "contextParams": {
     "jwt": {
       "roles": [
@@ -681,8 +726,7 @@ mutation {
 MATCH (this:User)
 WHERE (this.name = $param0
 	AND this.id IS NOT NULL
-	AND this.id = $auth_param0)
-DETACH DELETE this
+	AND this.id = $auth_param0) DETACH DELETE this
 ----
 
 '''
@@ -705,6 +749,12 @@ mutation {
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [
+      "admin"
+    ]
+  },
   "contextParams": {
     "jwt": {
       "roles": [
@@ -721,7 +771,6 @@ mutation {
 ----
 {
   "auth_param0" : "id-01",
-  "resolvedCallbacks" : { },
   "this_disconnect_posts0auth_param0" : "id-01",
   "thisauth_param0" : "id-01",
   "updateUsers" : {
@@ -756,8 +805,7 @@ CALL {
 	CALL {
 		WITH this_disconnect_posts0, this_disconnect_posts0_rel, this
 		WITH collect(this_disconnect_posts0) AS this_disconnect_posts0, this_disconnect_posts0_rel, this
-		UNWIND this_disconnect_posts0 AS x
-		DELETE this_disconnect_posts0_rel
+		UNWIND this_disconnect_posts0 AS x DELETE this_disconnect_posts0_rel
 		RETURN count(*) AS _
 	}
 	RETURN count(*) AS disconnect_this_disconnect_posts_Post
@@ -788,6 +836,12 @@ mutation {
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [
+      "admin"
+    ]
+  },
   "contextParams": {
     "jwt": {
       "roles": [
@@ -804,7 +858,6 @@ mutation {
 ----
 {
   "auth_param0" : "id-01",
-  "resolvedCallbacks" : { },
   "this_posts0_disconnect0auth_param0" : "id-01",
   "thisauth_param0" : "id-01"
 }
@@ -830,8 +883,7 @@ CALL {
 	CALL {
 		WITH this_posts0_disconnect0, this_posts0_disconnect0_rel, this
 		WITH collect(this_posts0_disconnect0) AS this_posts0_disconnect0, this_posts0_disconnect0_rel, this
-		UNWIND this_posts0_disconnect0 AS x
-		DELETE this_posts0_disconnect0_rel
+		UNWIND this_posts0_disconnect0 AS x DELETE this_posts0_disconnect0_rel
 		RETURN count(*) AS _
 	}
 	RETURN count(*) AS disconnect_this_posts0_disconnect_Post
@@ -861,6 +913,12 @@ mutation {
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [
+      "admin"
+    ]
+  },
   "contextParams": {
     "jwt": {
       "roles": [
@@ -877,7 +935,6 @@ mutation {
 ----
 {
   "auth_param0" : "id-01",
-  "resolvedCallbacks" : { },
   "this_disconnect_posts0auth_param0" : "id-01",
   "thisauth_param0" : "id-01",
   "updateUsers" : {
@@ -918,8 +975,7 @@ CALL {
 	CALL {
 		WITH this_disconnect_posts0, this_disconnect_posts0_rel, this
 		WITH collect(this_disconnect_posts0) AS this_disconnect_posts0, this_disconnect_posts0_rel, this
-		UNWIND this_disconnect_posts0 AS x
-		DELETE this_disconnect_posts0_rel
+		UNWIND this_disconnect_posts0 AS x DELETE this_disconnect_posts0_rel
 		RETURN count(*) AS _
 	}
 	RETURN count(*) AS disconnect_this_disconnect_posts_Post
@@ -950,6 +1006,12 @@ mutation {
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [
+      "admin"
+    ]
+  },
   "contextParams": {
     "jwt": {
       "roles": [
@@ -966,7 +1028,6 @@ mutation {
 ----
 {
   "auth_param0" : "id-01",
-  "resolvedCallbacks" : { },
   "this_posts0_disconnect0auth_param0" : "id-01",
   "thisauth_param0" : "id-01",
   "updateUsers" : {
@@ -1009,8 +1070,7 @@ CALL {
 	CALL {
 		WITH this_posts0_disconnect0, this_posts0_disconnect0_rel, this
 		WITH collect(this_posts0_disconnect0) AS this_posts0_disconnect0, this_posts0_disconnect0_rel, this
-		UNWIND this_posts0_disconnect0 AS x
-		DELETE this_posts0_disconnect0_rel
+		UNWIND this_posts0_disconnect0 AS x DELETE this_posts0_disconnect0_rel
 		RETURN count(*) AS _
 	}
 	RETURN count(*) AS disconnect_this_posts0_disconnect_Post
@@ -1045,6 +1105,12 @@ RETURN collect(DISTINCT this {
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [
+      "admin"
+    ]
+  },
   "contextParams": {
     "jwt": {
       "roles": [
@@ -1121,6 +1187,12 @@ RETURN this {
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [
+      "admin"
+    ]
+  },
   "contextParams": {
     "jwt": {
       "roles": [
@@ -1192,6 +1264,12 @@ RETURN this {
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [
+      "admin"
+    ]
+  },
   "contextParams": {
     "jwt": {
       "roles": [
@@ -1240,6 +1318,12 @@ RETURN this {
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [
+      "admin"
+    ]
+  },
   "contextParams": {
     "jwt": {
       "roles": [
@@ -1293,6 +1377,12 @@ RETURN this {
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [
+      "admin"
+    ]
+  },
   "contextParams": {
     "jwt": {
       "roles": [
@@ -1360,6 +1450,12 @@ RETURN this {
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [
+      "admin"
+    ]
+  },
   "contextParams": {
     "jwt": {
       "roles": [
@@ -1431,6 +1527,12 @@ RETURN this {
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [
+      "admin"
+    ]
+  },
   "contextParams": {
     "jwt": {
       "roles": [
@@ -1504,6 +1606,12 @@ RETURN this {
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [
+      "admin"
+    ]
+  },
   "contextParams": {
     "jwt": {
       "roles": [
@@ -1587,6 +1695,12 @@ RETURN this {
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [
+      "admin"
+    ]
+  },
   "contextParams": {
     "jwt": {
       "roles": [
@@ -1668,6 +1782,12 @@ mutation {
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [
+      "admin"
+    ]
+  },
   "contextParams": {
     "jwt": {
       "roles": [
@@ -1683,31 +1803,9 @@ mutation {
 [source,json]
 ----
 {
-  "auth" : {
-    "isAuthenticated" : true,
-    "roles" : [ "admin" ],
-    "jwt" : {
-      "roles" : [ "admin" ],
-      "sub" : "id-01"
-    }
-  },
   "auth_param0" : "id-01",
-  "resolvedCallbacks" : { },
   "this_posts0auth_param0" : "id-01",
   "this_update_posts0_id" : "new-id",
-  "updateUsers" : {
-    "args" : {
-      "update" : {
-        "posts" : [ {
-          "update" : {
-            "node" : {
-              "id" : "new-id"
-            }
-          }
-        } ]
-      }
-    }
-  },
   "update_param0" : "id-01"
 }
 ----
@@ -1719,32 +1817,23 @@ MATCH (this:User)
 WHERE (this.id IS NOT NULL
 	AND this.id = $auth_param0)
 WITH this
-OPTIONAL MATCH (this)-[this_has_post0_relationship:HAS_POST]->(this_posts0:Post)
-WHERE (exists((this_posts0)<-[:HAS_POST]-(:User))
-	AND all(auth_this0 IN [(this_posts0)<-[:HAS_POST]-(auth_this0:User) | auth_this0]
-	WHERE (auth_this0.id IS NOT NULL
-		AND auth_this0.id = $this_posts0auth_param0)))
-CALL apoc.do.when(this_posts0 IS NOT NULL, '
-
-
-SET this_posts0.id = $this_update_posts0_id
-
-WITH this, this_posts0
 CALL {
-	WITH this_posts0
-	MATCH (this_posts0)<-[this_posts0_creator_User_unique:HAS_POST]-(:User)
-	WITH count(this_posts0_creator_User_unique) as c
-	CALL apoc.util.validate(NOT (c = 1), \'@neo4j/graphql/RELATIONSHIP-REQUIREDPost.creator required\', [0])
-	RETURN c AS this_posts0_creator_User_unique_ignored
+	WITH this
+	MATCH (this)-[this_has_post0_relationship:HAS_POST]->(this_posts0:Post)
+	WHERE (exists((this_posts0)<-[:HAS_POST]-(:User))
+		AND all(auth_this0 IN [(this_posts0)<-[:HAS_POST]-(auth_this0:User) | auth_this0]
+		WHERE (auth_this0.id IS NOT NULL
+			AND auth_this0.id = $this_posts0auth_param0)))
+	SET this_posts0.id = $this_update_posts0_id
+	WITH this, this_posts0
+	CALL {
+		WITH this_posts0
+		MATCH (this_posts0)<-[this_posts0_creator_User_unique:HAS_POST]-(:User)
+		WITH count(this_posts0_creator_User_unique) AS c CALL apoc.util.validate(NOT (c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDPost.creator required exactly once', [0])
+		RETURN c AS this_posts0_creator_User_unique_ignored
+	}
+	RETURN count(*) AS update_this_posts0
 }
-RETURN count(*) AS _
-', '', {
-	this: this,
-	updateUsers: $updateUsers,
-	this_posts0: this_posts0,
-	auth: $auth,
-	this_update_posts0_id: $this_update_posts0_id
-}) YIELD value AS _
 WITH *
 CALL {
 	WITH this
@@ -1784,6 +1873,12 @@ mutation {
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [
+      "admin"
+    ]
+  },
   "contextParams": {
     "jwt": {
       "roles": [
@@ -1800,7 +1895,6 @@ mutation {
 ----
 {
   "auth_param0" : "id-01",
-  "resolvedCallbacks" : { },
   "this_update_name" : "Bob"
 }
 ----
@@ -1837,6 +1931,12 @@ mutation {
 [source,json,query-config=true]
 ----
 {
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [
+      "admin"
+    ]
+  },
   "contextParams": {
     "jwt": {
       "roles": [
@@ -1854,7 +1954,6 @@ mutation {
 {
   "auth_param0" : "id-01",
   "param0" : "bob",
-  "resolvedCallbacks" : { },
   "this_update_name" : "Bob"
 }
 ----

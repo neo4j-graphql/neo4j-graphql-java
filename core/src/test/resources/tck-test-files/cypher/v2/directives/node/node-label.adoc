@@ -54,8 +54,7 @@ MATCH (this:Film)
 WHERE EXISTS {
 	MATCH (this0:Person)-[:ACTED_IN]->(this)
 	WHERE this0.name = $param0
-}
-DETACH DELETE this
+} DETACH DELETE this
 ----
 
 '''
@@ -98,8 +97,7 @@ mutation {
         }
       } ]
     }
-  } ],
-  "resolvedCallbacks" : { }
+  } ]
 }
 ----
 
@@ -150,8 +148,7 @@ mutation {
 {
   "create_param0" : [ {
     "id" : "1"
-  } ],
-  "resolvedCallbacks" : { }
+  } ]
 }
 ----
 
@@ -196,8 +193,7 @@ mutation {
 [source,cypher]
 ----
 MATCH (this:Film)
-WHERE this.id = $param0
-DETACH DELETE this
+WHERE this.id = $param0 DETACH DELETE this
 ----
 
 '''
@@ -250,11 +246,9 @@ WHERE this_actors0.name = $this_deleteMovies_args_delete_actors0_where_Actorpara
 WITH this, collect(DISTINCT this_actors0) AS this_actors0_to_delete
 CALL {
 	WITH this_actors0_to_delete
-	UNWIND this_actors0_to_delete AS x
-	DETACH DELETE x
+	UNWIND this_actors0_to_delete AS x DETACH DELETE x
 	RETURN count(*) AS _
-}
-DETACH DELETE this
+} DETACH DELETE this
 ----
 
 '''
@@ -403,7 +397,6 @@ mutation {
 ----
 {
   "param0" : "1",
-  "resolvedCallbacks" : { },
   "this_connect_actors0_node_param0" : "Daniel"
 }
 ----
@@ -463,7 +456,6 @@ mutation {
 ----
 {
   "param0" : "1",
-  "resolvedCallbacks" : { },
   "updateMovies" : {
     "args" : {
       "disconnect" : {
@@ -494,8 +486,7 @@ CALL {
 	CALL {
 		WITH this_disconnect_actors0, this_disconnect_actors0_rel, this
 		WITH collect(this_disconnect_actors0) AS this_disconnect_actors0, this_disconnect_actors0_rel, this
-		UNWIND this_disconnect_actors0 AS x
-		DELETE this_disconnect_actors0_rel
+		UNWIND this_disconnect_actors0 AS x DELETE this_disconnect_actors0_rel
 		RETURN count(*) AS _
 	}
 	RETURN count(*) AS disconnect_this_disconnect_actors_Actor
@@ -527,7 +518,6 @@ mutation {
 ----
 {
   "param0" : "1",
-  "resolvedCallbacks" : { },
   "this_update_id" : "2"
 }
 ----
@@ -566,15 +556,7 @@ mutation {
 [source,json]
 ----
 {
-  "auth" : {
-    "isAuthenticated" : true,
-    "roles" : [ ],
-    "jwt" : {
-      "roles" : [ ]
-    }
-  },
   "param0" : "1",
-  "resolvedCallbacks" : { },
   "this_update_actors0_name" : "new name",
   "updateMovies" : {
     "args" : {
@@ -604,21 +586,13 @@ mutation {
 MATCH (this:Film)
 WHERE this.id = $param0
 WITH this
-OPTIONAL MATCH (this)<-[this_acted_in0_relationship:ACTED_IN]-(this_actors0:Person)
-WHERE this_actors0.name = $updateMovies_args_update_actors0_where_Actorparam0
-CALL apoc.do.when(this_actors0 IS NOT NULL, '
-
-
-SET this_actors0.name = $this_update_actors0_name
-
-RETURN count(*) AS _
-', '', {
-	this: this,
-	updateMovies: $updateMovies,
-	this_actors0: this_actors0,
-	auth: $auth,
-	this_update_actors0_name: $this_update_actors0_name
-}) YIELD value AS _
+CALL {
+	WITH this
+	MATCH (this)<-[this_acted_in0_relationship:ACTED_IN]-(this_actors0:Person)
+	WHERE this_actors0.name = $updateMovies_args_update_actors0_where_Actorparam0
+	SET this_actors0.name = $this_update_actors0_name
+	RETURN count(*) AS update_this_actors0
+}
 RETURN collect(DISTINCT this {
 	.id
 }) AS data

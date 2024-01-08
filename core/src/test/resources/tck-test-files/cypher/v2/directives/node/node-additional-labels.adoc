@@ -65,8 +65,7 @@ mutation {
         }
       } ]
     }
-  } ],
-  "resolvedCallbacks" : { }
+  } ]
 }
 ----
 
@@ -121,8 +120,7 @@ mutation {
 [source,cypher]
 ----
 MATCH (this:Film:Multimedia)
-WHERE this.id = $param0
-DETACH DELETE this
+WHERE this.id = $param0 DETACH DELETE this
 ----
 
 '''
@@ -216,7 +214,6 @@ mutation {
 ----
 {
   "param0" : "1",
-  "resolvedCallbacks" : { },
   "this_update_id" : "2"
 }
 ----

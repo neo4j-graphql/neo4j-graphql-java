@@ -137,9 +137,9 @@ CALL {
 		WITH edges
 		UNWIND edges AS edge
 		WITH edge ORDER BY edge.screenTime DESC
-		RETURN collect(edge) AS this_connection_actorsConnectionvar1
+		RETURN collect(edge) AS this_connection_actorsConnectionvar0
 	}
-	WITH this_connection_actorsConnectionvar1 AS edges, totalCount
+	WITH this_connection_actorsConnectionvar0 AS edges, totalCount
 	RETURN {
 		edges: edges,
 		totalCount: totalCount
@@ -198,9 +198,9 @@ CALL {
 		WITH edges
 		UNWIND edges AS edge
 		WITH edge ORDER BY edge.year DESC, edge.node.name ASC
-		RETURN collect(edge) AS this_connection_actorsConnectionvar1
+		RETURN collect(edge) AS this_connection_actorsConnectionvar0
 	}
-	WITH this_connection_actorsConnectionvar1 AS edges, totalCount
+	WITH this_connection_actorsConnectionvar0 AS edges, totalCount
 	RETURN {
 		edges: edges,
 		totalCount: totalCount
@@ -258,9 +258,9 @@ CALL {
 		WITH edges
 		UNWIND edges AS edge
 		WITH edge ORDER BY edge.node.name ASC, edge.year DESC
-		RETURN collect(edge) AS this_connection_actorsConnectionvar1
+		RETURN collect(edge) AS this_connection_actorsConnectionvar0
 	}
-	WITH this_connection_actorsConnectionvar1 AS edges, totalCount
+	WITH this_connection_actorsConnectionvar0 AS edges, totalCount
 	RETURN {
 		edges: edges,
 		totalCount: totalCount

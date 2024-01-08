@@ -3,6 +3,7 @@ package org.neo4j.graphql.handler.v2
 import graphql.language.Field
 import graphql.language.InputValueDefinition
 import graphql.schema.DataFetchingEnvironment
+import org.neo4j.cypherdsl.core.ExposesWith
 import org.neo4j.cypherdsl.core.Statement
 import org.neo4j.cypherdsl.core.StatementBuilder
 import org.neo4j.cypherdsl.core.StatementBuilder.ExposesDelete
@@ -84,7 +85,7 @@ class DeleteResolver private constructor(
 
         val dslNode = node.asCypherNode(queryContext, variable)
 
-        var ongoingReading: StatementBuilder.ExposesWith =
+        var ongoingReading: ExposesWith =
             TopLevelMatchTranslator(schemaConfig, env.variables, queryContext)
                 .translateTopLevelMatch(node, dslNode, null, input.where, AuthDirective.AuthOperation.DELETE)
 

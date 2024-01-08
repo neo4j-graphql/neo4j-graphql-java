@@ -11,6 +11,7 @@ import org.neo4j.graphql.domain.FieldContainer
 import org.neo4j.graphql.domain.directives.AuthDirective.AuthOperation
 import org.neo4j.graphql.domain.directives.TimestampDirective.TimeStampOperation
 import org.neo4j.graphql.domain.fields.BaseField
+import org.neo4j.graphql.domain.fields.ScalarField
 import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.name
 import org.neo4j.graphql.schema.model.inputs.ScalarProperties
@@ -29,7 +30,8 @@ fun createSetProperties(
     schemaConfig: SchemaConfig,
     context: QueryContext,
     paramPrefix: ChainString? = null,
-    autoGenerateFieldFilter: ((BaseField) -> Boolean)? = null,
+    extendParamWithName: Boolean = true, // TODO this is ´only to align with JS
+    autoGenerateFieldFilter: ((BaseField) -> Boolean)? = null
 ): List<Expression>? = createSetPropertiesSplit(
     propertyContainer,
     properties,
@@ -38,6 +40,7 @@ fun createSetProperties(
     schemaConfig,
     context,
     paramPrefix,
+    extendParamWithName,
     autoGenerateFieldFilter
 )
     ?.flatMap { listOf(it.first, it.second) }
@@ -50,7 +53,34 @@ fun createSetPropertiesSplit(
     schemaConfig: SchemaConfig,
     context: QueryContext,
     paramPrefix: ChainString? = null,
-    autoGenerateFieldFilter: ((BaseField) -> Boolean)? = null,
+    extendParamWithName: Boolean = true, // TODO this is ´only to align with JS
+    autoGenerateFieldFilter: ((BaseField) -> Boolean)? = null
+): List<Pair<Property, Expression>>? {
+    if (fieldContainer == null) return null
+    return createSetPropertiesSplit(
+        propertyContainer,
+        properties?.map { (field, value) ->
+            val param = when {
+                extendParamWithName -> paramPrefix
+                    ?.extend(field)
+                    ?.resolveParameter(value)
+                    ?: context.getNextParam(value)
+
+                else -> context.getNextParam(paramPrefix, value)
+            }
+            field to param
+        },
+        operation, fieldContainer, autoGenerateFieldFilter
+    )
+}
+
+
+fun createSetPropertiesSplit(
+    propertyContainer: PropertyContainer,
+    properties: List<Pair<ScalarField, Expression>>?,
+    operation: Operation,
+    fieldContainer: FieldContainer<*>?,
+    autoGenerateFieldFilter: ((BaseField) -> Boolean)? = null
 ): List<Pair<Property, Expression>>? {
     if (fieldContainer == null) return null
 
@@ -58,14 +88,6 @@ fun createSetPropertiesSplit(
 
     fun set(field: BaseField, expression: Expression) {
         expressions += propertyContainer.property(field.dbPropertyName) to expression
-    }
-
-    if (operation == Operation.CREATE) {
-        fieldContainer.primitiveFields
-            .filter { it.autogenerate }
-            .filter { autoGenerateFieldFilter?.invoke(it) ?: true }
-            .forEach { set(it, Functions.randomUUID()) }
-
     }
 
     fieldContainer.temporalFields
@@ -77,12 +99,17 @@ fun createSetPropertiesSplit(
             }
         }
 
+    if (operation == Operation.CREATE) {
+        fieldContainer.primitiveFields
+            .filter { it.autogenerate }
+            .filter { autoGenerateFieldFilter?.invoke(it) ?: true }
+            .forEach { set(it, Functions.randomUUID()) }
+
+    }
+
     properties?.forEach { (field, value) ->
-        // TODO use only params without prefix?
-        val param = paramPrefix?.extend(field)?.resolveParameter(value) ?: context.getNextParam(value)
-        val valueToSet = field.convertInputToCypher(param)
+        val valueToSet = field.convertInputToCypher(value)
         set(field, valueToSet)
     }
     return expressions.takeIf { it.isNotEmpty() }
 }
-

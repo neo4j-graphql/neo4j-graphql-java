@@ -14,6 +14,7 @@ import org.neo4j.graphql.translate.field_aggregation.CreateFieldAggregation
 import org.neo4j.graphql.translate.projection.createInterfaceProjectionAndParams
 import org.neo4j.graphql.translate.projection.projectCypherField
 import org.neo4j.graphql.translate.projection.projectScalarField
+import org.neo4j.graphql.translate.where.PrefixUsage
 import org.neo4j.graphql.translate.where.createWhere
 import org.neo4j.graphql.utils.ResolveTree
 import org.neo4j.graphql.utils.ResolveTree.Companion.generateMissingOrAliasedFields
@@ -30,11 +31,12 @@ class ProjectionTranslator {
         withVars: List<SymbolicName> = emptyList(),
         resolveType: Boolean = false,
         useShortcut: Boolean = true,
+        connectPrefixUsage: PrefixUsage = PrefixUsage.APPEND
     ): Projection {
         val projections = mutableListOf<Any>()
 
         if (resolveType) {
-            projections += "__resolveType"
+            projections += Constants.RESOLVE_TYPE
             projections += node.name.asCypherLiteral()
         }
 
@@ -52,7 +54,9 @@ class ProjectionTranslator {
 
         mergedFields.values.forEach { field ->
             val alias = field.aliasOrName
-            val param = chainStr?.extend(alias) ?: ChainString(schemaConfig, varName, alias)
+            val param = chainStr
+//                ?.extend(alias)
+                ?: ChainString(schemaConfig, varName, alias)
 
             val (isAggregate, nodeField) = node.relationAggregationFields[field.name]
                 ?.let { true to it }
@@ -121,7 +125,7 @@ class ProjectionTranslator {
                         labelCondition?.let { unionConditions = unionConditions or it }
 
                         // TODO __resolveType vs __typename ?
-                        val projection = mutableListOf("__resolveType", refNode.name.asCypherLiteral())
+                        val projection = mutableListOf(Constants.RESOLVE_TYPE, refNode.name.asCypherLiteral())
                         val typeFields = field.fieldsByTypeName[refNode.name]
 
                         var unionCondition = labelCondition
@@ -186,8 +190,13 @@ class ProjectionTranslator {
                         queryContext,
                         ChainString(schemaConfig, varName, nodeField)
                     )
-                    val rel = nodeField.createQueryDslRelation(varName, endNode, arguments.directed)
-                        .named(queryContext.getNextVariable(ChainString(schemaConfig, varName)))
+                    val rel = nodeField.createQueryDslRelation(
+                        Cypher.anyNode(varName.requiredSymbolicName), // TODO use varName https://github.com/neo4j-contrib/cypher-dsl/issues/595
+                        endNode, arguments.directed)
+                        .named(queryContext.getNextVariable(
+                            chainStr?.appendOnPrevious("this")
+                            ?:ChainString(schemaConfig, varName))
+                        )
 
                     //TODO harmonize with union?
                     val recurse = createProjectionAndParams(
@@ -206,7 +215,10 @@ class ProjectionTranslator {
                         referenceNode,
                         endNode,
                         recurse.authValidate,
-                        param.extend(referenceNode)
+                        param
+//                            .extend(referenceNode) // TODO cleanup
+                        ,
+                        connectPrefixUsage
                     )
 
                     Cypher.with(varName)
@@ -250,18 +262,20 @@ class ProjectionTranslator {
 
             if (nodeField is ConnectionField) {
 
+                val returnVariable = Cypher.name(varName.name() + "_" + field.aliasOrName)
+
                 CreateConnectionClause.createConnectionClause(
                     field,
                     nodeField,
                     queryContext,
                     varName,
-                    subQueries,
-                    schemaConfig
-                )
-                    ?.let {
-                        projections += alias
-                        projections += it
-                    }
+                    schemaConfig,
+                    returnVariable,
+                )?.let {
+                    subQueries += it
+                    projections += alias
+                    projections += returnVariable
+                }
                 return@forEach
             }
 
@@ -291,12 +305,13 @@ class ProjectionTranslator {
         node: Node,
         varName: org.neo4j.cypherdsl.core.Node,
         authValidate: Condition?,
-        chainStr: ChainString?
+        chainStr: ChainString?,
+        usePrefix: PrefixUsage = PrefixUsage.APPEND
     ): WhereResult {
         var condition: Condition? = null
         val subQueries = mutableListOf<Statement>()
         if (whereInput != null) {
-            val whereResult = createWhere(node, whereInput, varName, chainStr, schemaConfig, context)
+            val whereResult = createWhere(node, whereInput, varName, chainStr, schemaConfig, context, usePrefix)
             condition = whereResult.predicate
             subQueries.addAll(whereResult.preComputedSubQueries)
         }

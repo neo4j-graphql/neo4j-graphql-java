@@ -47,6 +47,28 @@ mutation {
 ----
 {
   "param0" : "123",
+  "this_deleteMovies" : {
+    "args" : {
+      "delete" : {
+        "actors" : [ {
+          "where" : {
+            "node" : {
+              "name" : "Actor to delete"
+            }
+          },
+          "delete" : {
+            "movies" : [ {
+              "where" : {
+                "node" : {
+                  "id" : "321"
+                }
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  },
   "this_deleteMovies_args_delete_actors0_delete_movies0_where_Movieparam0" : "321",
   "this_deleteMovies_args_delete_actors0_where_Actorparam0" : "Actor to delete"
 }
@@ -66,18 +88,15 @@ WHERE this_actors0_movies0.id = $this_deleteMovies_args_delete_actors0_delete_mo
 WITH this, this_actors0, collect(DISTINCT this_actors0_movies0) AS this_actors0_movies0_to_delete
 CALL {
 	WITH this_actors0_movies0_to_delete
-	UNWIND this_actors0_movies0_to_delete AS x
-	DETACH DELETE x
+	UNWIND this_actors0_movies0_to_delete AS x DETACH DELETE x
 	RETURN count(*) AS _
 }
 WITH this, collect(DISTINCT this_actors0) AS this_actors0_to_delete
 CALL {
 	WITH this_actors0_to_delete
-	UNWIND this_actors0_to_delete AS x
-	DETACH DELETE x
+	UNWIND this_actors0_to_delete AS x DETACH DELETE x
 	RETURN count(*) AS _
-}
-DETACH DELETE this
+} DETACH DELETE this
 ----
 
 '''
@@ -106,8 +125,7 @@ mutation {
 [source,cypher]
 ----
 MATCH (this:Movie)
-WHERE this.id = $param0
-DETACH DELETE this
+WHERE this.id = $param0 DETACH DELETE this
 ----
 
 '''
@@ -132,6 +150,19 @@ mutation {
 ----
 {
   "param0" : "123",
+  "this_deleteMovies" : {
+    "args" : {
+      "delete" : {
+        "actors" : [ {
+          "where" : {
+            "node" : {
+              "name" : "Actor to delete"
+            }
+          }
+        } ]
+      }
+    }
+  },
   "this_deleteMovies_args_delete_actors0_where_Actorparam0" : "Actor to delete"
 }
 ----
@@ -147,11 +178,9 @@ WHERE this_actors0.name = $this_deleteMovies_args_delete_actors0_where_Actorpara
 WITH this, collect(DISTINCT this_actors0) AS this_actors0_to_delete
 CALL {
 	WITH this_actors0_to_delete
-	UNWIND this_actors0_to_delete AS x
-	DETACH DELETE x
+	UNWIND this_actors0_to_delete AS x DETACH DELETE x
 	RETURN count(*) AS _
-}
-DETACH DELETE this
+} DETACH DELETE this
 ----
 
 '''
@@ -176,6 +205,25 @@ mutation {
 ----
 {
   "param0" : "123",
+  "this_deleteMovies" : {
+    "args" : {
+      "delete" : {
+        "actors" : [ {
+          "where" : {
+            "node" : {
+              "name" : "Actor to delete"
+            }
+          }
+        }, {
+          "where" : {
+            "node" : {
+              "name" : "Another actor to delete"
+            }
+          }
+        } ]
+      }
+    }
+  },
   "this_deleteMovies_args_delete_actors0_where_Actorparam0" : "Actor to delete",
   "this_deleteMovies_args_delete_actors1_where_Actorparam0" : "Another actor to delete"
 }
@@ -192,8 +240,7 @@ WHERE this_actors0.name = $this_deleteMovies_args_delete_actors0_where_Actorpara
 WITH this, collect(DISTINCT this_actors0) AS this_actors0_to_delete
 CALL {
 	WITH this_actors0_to_delete
-	UNWIND this_actors0_to_delete AS x
-	DETACH DELETE x
+	UNWIND this_actors0_to_delete AS x DETACH DELETE x
 	RETURN count(*) AS _
 }
 WITH this
@@ -202,11 +249,9 @@ WHERE this_actors1.name = $this_deleteMovies_args_delete_actors1_where_Actorpara
 WITH this, collect(DISTINCT this_actors1) AS this_actors1_to_delete
 CALL {
 	WITH this_actors1_to_delete
-	UNWIND this_actors1_to_delete AS x
-	DETACH DELETE x
+	UNWIND this_actors1_to_delete AS x DETACH DELETE x
 	RETURN count(*) AS _
-}
-DETACH DELETE this
+} DETACH DELETE this
 ----
 
 '''
@@ -231,6 +276,37 @@ mutation {
 ----
 {
   "param0" : "123",
+  "this_deleteMovies" : {
+    "args" : {
+      "delete" : {
+        "actors" : [ {
+          "where" : {
+            "node" : {
+              "name" : "Actor to delete"
+            }
+          },
+          "delete" : {
+            "movies" : [ {
+              "where" : {
+                "node" : {
+                  "id" : "321"
+                }
+              },
+              "delete" : {
+                "actors" : [ {
+                  "where" : {
+                    "node" : {
+                      "name" : "Another actor to delete"
+                    }
+                  }
+                } ]
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  },
   "this_deleteMovies_args_delete_actors0_delete_movies0_delete_actors0_where_Actorparam0" : "Another actor to delete",
   "this_deleteMovies_args_delete_actors0_delete_movies0_where_Movieparam0" : "321",
   "this_deleteMovies_args_delete_actors0_where_Actorparam0" : "Actor to delete"
@@ -254,25 +330,21 @@ WHERE this_actors0_movies0_actors0.name = $this_deleteMovies_args_delete_actors0
 WITH this, this_actors0, this_actors0_movies0, collect(DISTINCT this_actors0_movies0_actors0) AS this_actors0_movies0_actors0_to_delete
 CALL {
 	WITH this_actors0_movies0_actors0_to_delete
-	UNWIND this_actors0_movies0_actors0_to_delete AS x
-	DETACH DELETE x
+	UNWIND this_actors0_movies0_actors0_to_delete AS x DETACH DELETE x
 	RETURN count(*) AS _
 }
 WITH this, this_actors0, collect(DISTINCT this_actors0_movies0) AS this_actors0_movies0_to_delete
 CALL {
 	WITH this_actors0_movies0_to_delete
-	UNWIND this_actors0_movies0_to_delete AS x
-	DETACH DELETE x
+	UNWIND this_actors0_movies0_to_delete AS x DETACH DELETE x
 	RETURN count(*) AS _
 }
 WITH this, collect(DISTINCT this_actors0) AS this_actors0_to_delete
 CALL {
 	WITH this_actors0_to_delete
-	UNWIND this_actors0_to_delete AS x
-	DETACH DELETE x
+	UNWIND this_actors0_to_delete AS x DETACH DELETE x
 	RETURN count(*) AS _
-}
-DETACH DELETE this
+} DETACH DELETE this
 ----
 
 '''

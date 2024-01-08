@@ -2,6 +2,7 @@ package org.neo4j.graphql.translate
 
 import org.neo4j.cypherdsl.core.Condition
 import org.neo4j.cypherdsl.core.Cypher
+import org.neo4j.cypherdsl.core.ExposesWith
 import org.neo4j.cypherdsl.core.StatementBuilder.*
 import org.neo4j.cypherdsl.core.SymbolicName
 import org.neo4j.graphql.*
@@ -13,6 +14,7 @@ import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.schema.model.inputs.create.CreateFieldInput
 import org.neo4j.graphql.schema.model.inputs.create.CreateInput
 import org.neo4j.graphql.schema.model.inputs.create.RelationFieldInput
+import org.neo4j.graphql.translate.where.PrefixUsage
 
 class CreateTranslator(
     val schemaConfig: SchemaConfig,
@@ -173,6 +175,7 @@ class CreateTranslator(
                     resultExposeWith,
                     listOf(refNode),
                     labelOverride = unionTypeName,
+                    usePrefix = PrefixUsage.EXTEND
                 ).createConnectAndParams()
             }
 
@@ -184,9 +187,13 @@ class CreateTranslator(
                     field,
                     refNode,
                     withVars,
-                    resultExposeWith,
+                    resultExposeWith.with(withVars),
                     queryContext,
-                    schemaConfig
+                    schemaConfig,
+                    ChainString(schemaConfig,
+                        dslNode,
+                        field,
+                        refNode.takeIf { field.isUnion }, "connectOrCreate"),
                 )
             }
         }

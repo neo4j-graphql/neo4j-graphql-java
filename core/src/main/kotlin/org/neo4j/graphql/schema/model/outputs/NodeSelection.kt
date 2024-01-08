@@ -9,8 +9,10 @@ import org.neo4j.graphql.schema.AugmentationBase
 import org.neo4j.graphql.schema.AugmentationContext
 import org.neo4j.graphql.schema.model.inputs.field_arguments.RelationFieldAggregateInputArgs
 import org.neo4j.graphql.schema.model.outputs.aggregate.RelationAggregationSelection
+import org.neo4j.graphql.utils.IResolveTree
+import org.neo4j.graphql.utils.ResolveTree
 
-class NodeSelection : FieldContainerSelection() {
+class NodeSelection(val node: Node, val resolveTree: IResolveTree) : FieldContainerSelection() {
 
     object Augmentation : AugmentationBase {
 

@@ -5,10 +5,12 @@ import graphql.language.VariableReference
 import graphql.schema.GraphQLOutputType
 import org.neo4j.cypherdsl.core.*
 import org.neo4j.cypherdsl.core.StatementBuilder.*
+import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.schema.model.inputs.Dict
 import org.neo4j.graphql.schema.model.inputs.options.OptionsInput
 import org.neo4j.graphql.translate.ApocFunctions
 import org.neo4j.graphql.translate.ApocFunctions.UtilFunctions.callApocValidate
+import org.neo4j.graphql.translate.connection_clause.CreateConnectionClause
 import org.neo4j.graphql.utils.IResolveTree
 import java.util.*
 
@@ -57,13 +59,16 @@ fun String.toLowerCase(): String = lowercase(Locale.getDefault())
 fun <E> Collection<E>.containsAny(other: Collection<E>): Boolean = this.find { other.contains(it) } != null
 infix fun Condition?.and(rhs: Condition) = this?.and(rhs) ?: rhs
 infix fun Condition?.or(rhs: Condition) = this?.or(rhs) ?: rhs
-fun Collection<Condition>.foldWithAnd(): Condition? = this.takeIf { it.isNotEmpty() }?.let {
-    var result = Conditions.noCondition()
-    this.forEach {
-        result = result and it
+fun Collection<Condition?>.foldWithAnd(): Condition? = this
+    .filterNotNull()
+    .takeIf { it.isNotEmpty() }
+    ?.let { conditions ->
+        var result = Conditions.noCondition()
+        conditions.forEach {
+            result = result and it
+        }
+        result
     }
-    result
-}
 
 fun ExposesCall<OngoingInQueryCallWithoutArguments>.apocValidate(cond: Condition, errorMessage: String): VoidCall =
     this.callApocValidate(cond.not(), errorMessage.asCypherLiteral(), Cypher.listOf(0.asCypherLiteral()))
@@ -89,43 +94,67 @@ fun ExposesReturning.apocValidateNew(cond: Condition?, errorMessage: String) =
 fun Named.name(): String = this.requiredSymbolicName.value
 
 fun OngoingReading.applySortingSkipAndLimit(
+    orderAndLimit: CreateConnectionClause.OrderAndLimit?,
+    queryContext: QueryContext,
+    prefix: ChainString? = null,
+    withVars: List<Named>? = null,
+): OngoingReading {
+    if (orderAndLimit == null) {
+        return this
+    }
+    val ordered = orderAndLimit.sortItems
+        .takeIf { it.isNotEmpty() }
+        ?.let {
+            if (this is ExposesOrderBy) {
+                this
+            } else {
+                if (withVars != null) {
+                    this.with(*withVars.toTypedArray())
+                } else {
+                    this.with(Cypher.asterisk())
+                }
+            }.orderBy(it)
+        }
+        ?: this
+    val skip = orderAndLimit.offset?.let {
+        if (ordered is ExposesSkip) {
+            ordered
+        } else {
+            if (withVars != null) {
+                this.with(*withVars.toTypedArray())
+            } else {
+                ordered.with(Cypher.asterisk())
+            }
+        }.skip(queryContext.getNextParam(prefix, it))
+    }
+        ?: ordered
+    return orderAndLimit.limit?.let {
+        if (skip is ExposesLimit) {
+            skip
+        } else {
+            if (withVars != null) {
+                this.with(*withVars.toTypedArray())
+            } else {
+                skip.with(Cypher.asterisk())
+            }
+        }.limit(queryContext.getNextParam(prefix, it))
+    }
+        ?: skip
+}
+
+fun OngoingReading.applySortingSkipAndLimit(
     p: PropertyContainer,
     optionsInput: OptionsInput,
     sortFields: Map<String, Expression>,
     queryContext: QueryContext,
 ): OngoingReading {
-    val ordered = optionsInput.sort
-        ?.flatMap {
-            it.map { (field, direction) ->
-                val sortField = sortFields[field] ?: p.property(field)
-                Cypher.sort(sortField, direction)
-            }
-        }
-        ?.takeIf { it.isNotEmpty() }
-        ?.let {
-            if (this is ExposesOrderBy) {
-                this
-            } else {
-                this.with(Cypher.asterisk())
-            }.orderBy(it)
-        }
-        ?: this
-    val skip = optionsInput.offset?.let {
-        if (ordered is ExposesSkip) {
-            ordered
-        } else {
-            ordered.with(Cypher.asterisk())
-        }.skip(queryContext.getNextParam(it))
-    }
-        ?: ordered
-    return optionsInput.limit?.let {
-        if (skip is ExposesLimit) {
-            skip
-        } else {
-            skip.with(Cypher.asterisk())
-        }.limit(queryContext.getNextParam(it))
-    }
-        ?: skip
+    return this.applySortingSkipAndLimit(CreateConnectionClause.OrderAndLimit(
+        optionsInput.sort
+            ?.flatMap { it.getCypherSortFields(p::property, sortFields) }
+            ?: emptyList(),
+        optionsInput.offset,
+        optionsInput.limit
+    ), queryContext)
 }
 
 fun StatementBuilder.OngoingReadingAndReturn.applySortingSkipAndLimit(
@@ -146,17 +175,17 @@ fun StatementBuilder.OngoingReadingAndReturn.applySortingSkipAndLimit(
         ?: skip
 }
 
-fun StatementBuilder.ExposesWith.maybeWithAsterix() = when (this) {
+fun ExposesWith.maybeWithAsterix() = when (this) {
     is OngoingReading -> this
     else -> this.with(Cypher.asterisk())
 }
 
-fun StatementBuilder.ExposesWith.maybeWith(withVars: List<SymbolicName>) = when (this) {
+fun ExposesWith.maybeWith(withVars: List<SymbolicName>) = when (this) {
     is OngoingReading -> this
     else -> this.with(withVars)
 }
 
-fun StatementBuilder.ExposesWith.requiresExposeSet(withVars: List<SymbolicName>): ExposesSet = when (this) {
+fun ExposesWith.requiresExposeSet(withVars: List<SymbolicName>): ExposesSet = when (this) {
     is ExposesSet -> this
     else -> this.with(withVars)
 }

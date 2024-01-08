@@ -72,7 +72,6 @@ mutation {
 ----
 {
   "param0" : "Movie",
-  "resolvedCallbacks" : { },
   "this_connect_actors_LeadActor0_node_actedIn_Series0_node_param0" : "Series",
   "this_connect_actors_LeadActor0_node_param0" : "Actor"
 }
@@ -204,7 +203,6 @@ mutation {
 ----
 {
   "param0" : "Movie",
-  "resolvedCallbacks" : { },
   "updateMovies" : {
     "args" : {
       "disconnect" : {
@@ -249,8 +247,7 @@ CALL {
 	CALL {
 		WITH this_disconnect_actors_LeadActor0, this_disconnect_actors_LeadActor0_rel, this
 		WITH collect(this_disconnect_actors_LeadActor0) AS this_disconnect_actors_LeadActor0, this_disconnect_actors_LeadActor0_rel, this
-		UNWIND this_disconnect_actors_LeadActor0 AS x
-		DELETE this_disconnect_actors_LeadActor0_rel
+		UNWIND this_disconnect_actors_LeadActor0 AS x DELETE this_disconnect_actors_LeadActor0_rel
 		RETURN count(*) AS _
 	}
 	CALL {
@@ -260,8 +257,7 @@ CALL {
 		CALL {
 			WITH this_disconnect_actors_LeadActor0_actedIn_Series0, this_disconnect_actors_LeadActor0_actedIn_Series0_rel, this_disconnect_actors_LeadActor0
 			WITH collect(this_disconnect_actors_LeadActor0_actedIn_Series0) AS this_disconnect_actors_LeadActor0_actedIn_Series0, this_disconnect_actors_LeadActor0_actedIn_Series0_rel, this_disconnect_actors_LeadActor0
-			UNWIND this_disconnect_actors_LeadActor0_actedIn_Series0 AS x
-			DELETE this_disconnect_actors_LeadActor0_actedIn_Series0_rel
+			UNWIND this_disconnect_actors_LeadActor0_actedIn_Series0 AS x DELETE this_disconnect_actors_LeadActor0_actedIn_Series0_rel
 			RETURN count(*) AS _
 		}
 		RETURN count(*) AS disconnect_this_disconnect_actors_LeadActor0_actedIn_Series_Series

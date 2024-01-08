@@ -36,7 +36,7 @@ abstract class BaseDataFetcher(protected val schemaConfig: SchemaConfig) : DataF
                 .build()
         ).render(statement)
 
-        val params = statement.parameters.mapValues { (_, value) ->
+        val params = statement.catalog.parameters.mapValues { (_, value) ->
             (value as? VariableReference)?.let { env.variables[it.name] } ?: value
         }
         return OldCypher(query, params, env.fieldDefinition.type, variable = field.aliasOrName())

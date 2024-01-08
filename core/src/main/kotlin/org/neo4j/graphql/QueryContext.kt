@@ -23,10 +23,10 @@ data class QueryContext @JvmOverloads constructor(
     val contextParams: Map<String, Any?>? = emptyMap(),
 
 
-    val auth: AuthParams? = null // TODO init
+    val auth: AuthParams? = AuthParams()
 ) {
 
-    private var varCounter = 0
+    private var varCounter = mutableMapOf<String, AtomicInteger>()
     private var paramCounter = mutableMapOf<String, AtomicInteger>()
     private var paramKeysPerValues = mutableMapOf<String, MutableMap<Any?, Parameter<*>>>()
 
@@ -50,22 +50,26 @@ data class QueryContext @JvmOverloads constructor(
 
     fun getNextVariable(prefix: ChainString? = null) = getNextVariable(prefix?.resolveName())
     fun getNextVariable(prefix: String?) = (prefix ?: "var").let { p ->
-        varCounter++
+        varCounter.computeIfAbsent(p) { AtomicInteger(0) }.getAndIncrement()
             .let { Cypher.name(p + it) }
     }
 
-    fun getNextParam(prefix: ChainString? = null, value: Any?) = getNextParam(
-        prefix?.resolveName() ?: "param", value
+    fun getNextParam(prefix: ChainString? = null, value: Any?, reuseKey: Boolean = false) = getNextParam(
+        prefix?.resolveName() ?: "param", value, reuseKey
     )
 
     fun getNextParam(value: Any?) = getNextParam("param", value)
-    fun getNextParam(prefix: String, value: Any?) =
-        paramKeysPerValues.computeIfAbsent(prefix) { mutableMapOf() }
-            .computeIfAbsent(value) {
-                paramCounter
-                    .computeIfAbsent(prefix) { AtomicInteger(0) }.getAndIncrement()
-                    .let { Cypher.parameter(prefix + it, value) }
-            }
+    fun getNextParam(prefix: String, value: Any?, reuseKey: Boolean = false): Parameter<*> =
+        if (reuseKey) {
+            paramKeysPerValues.computeIfAbsent(prefix) { mutableMapOf() }
+                .computeIfAbsent(value) {
+                    getNextParam(prefix, value, reuseKey = false)
+                }
+        } else {
+            paramCounter
+                .computeIfAbsent(prefix) { AtomicInteger(0) }.getAndIncrement()
+                .let { Cypher.parameter(prefix + it, value) }
+        }
 
     enum class OptimizationStrategy {
         /**
@@ -75,8 +79,9 @@ data class QueryContext @JvmOverloads constructor(
     }
 
     data class AuthParams @JvmOverloads constructor(
-        val roles: Collection<String>? = null,
-        val isAuthenticated: Boolean
+        val roles: Collection<String> = emptyList(),
+        val isAuthenticated: Boolean = false,
+        val jwt: Map<String, *>? = emptyMap<String, Any>(),
     )
 
     companion object {

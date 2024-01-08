@@ -55,7 +55,6 @@ mutation {
 ----
 {
   "param0" : "movieId-4",
-  "resolvedCallbacks" : { },
   "updateMovies" : {
     "args" : {
       "delete" : {
@@ -97,15 +96,13 @@ WHERE this_delete_director0_address0.id = $updateMovies_args_delete_director_del
 WITH this, this_delete_director0, collect(DISTINCT this_delete_director0_address0) AS this_delete_director0_address0_to_delete
 CALL {
 	WITH this_delete_director0_address0_to_delete
-	UNWIND this_delete_director0_address0_to_delete AS x
-	DETACH DELETE x
+	UNWIND this_delete_director0_address0_to_delete AS x DETACH DELETE x
 	RETURN count(*) AS _
 }
 WITH this, collect(DISTINCT this_delete_director0) AS this_delete_director0_to_delete
 CALL {
 	WITH this_delete_director0_to_delete
-	UNWIND this_delete_director0_to_delete AS x
-	DETACH DELETE x
+	UNWIND this_delete_director0_to_delete AS x DETACH DELETE x
 	RETURN count(*) AS _
 }
 WITH *
@@ -113,15 +110,13 @@ WITH *
 CALL {
 	WITH this
 	MATCH (this)<-[this_director_Director_unique:DIRECTED]-(:Director)
-	WITH count(this_director_Director_unique) AS c
-	CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.director must be less than or equal to one', [0])
+	WITH count(this_director_Director_unique) AS c CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.director must be less than or equal to one', [0])
 	RETURN c AS this_director_Director_unique_ignored
 }
 CALL {
 	WITH this
 	MATCH (this)<-[this_coDirector_CoDirector_unique:CO_DIRECTED]-(:CoDirector)
-	WITH count(this_coDirector_CoDirector_unique) AS c
-	CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.coDirector must be less than or equal to one', [0])
+	WITH count(this_coDirector_CoDirector_unique) AS c CALL apoc.util.validate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.coDirector must be less than or equal to one', [0])
 	RETURN c AS this_coDirector_CoDirector_unique_ignored
 }
 RETURN 'Query cannot conclude with CALL'

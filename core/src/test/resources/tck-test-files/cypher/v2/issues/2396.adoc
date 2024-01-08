@@ -157,22 +157,14 @@ query Mandates($where: MandateWhere, $options: MandateOptions) {
 ----
 MATCH (this:Mandate)
 WHERE (this.price >= $param0
-	AND EXISTS {
-		MATCH (this)-[:HAS_VALUATION]->(this0:Valuation)
-		WHERE EXISTS {
-			MATCH (this0)-[:VALUATION_FOR]->(this1:Estate)
-			WHERE (this1.area >= $param1
-				AND this1.floor >= $param2
-				AND this1.estateType IN $param3
-				AND EXISTS {
-					MATCH (this1)-[:HAS_ADDRESS]->(this2:Address)
-					WHERE EXISTS {
-						MATCH (this2)-[:HAS_POSTAL_CODE]->(this3:PostalCode)
-						WHERE this3.number IN $param4
-					}
-				})
-		}
-	}
+	AND single(this3 IN [(this)-[:HAS_VALUATION]->(this3) | this3]
+	WHERE single(this0 IN [(this3)-[:VALUATION_FOR]->(this0) | this0]
+	WHERE (this0.area >= $param1
+		AND this0.floor >= $param2
+		AND this0.estateType IN $param3
+		AND single(this2 IN [(this0)-[:HAS_ADDRESS]->(this2) | this2]
+		WHERE single(this1 IN [(this2)-[:HAS_POSTAL_CODE]->(this1) | this1]
+		WHERE this1.number IN $param4)))))
 	AND this.archivedAt IS NULL)
 WITH * SKIP $param5 LIMIT $param6
 CALL {
@@ -265,22 +257,14 @@ query Mandates($where: MandateWhere, $options: MandateOptions) {
 ----
 MATCH (this:Mandate)
 WHERE (this.price >= $param0
-	AND EXISTS {
-		MATCH (this)-[:HAS_VALUATION]->(this0:Valuation)
-		WHERE EXISTS {
-			MATCH (this0)-[:VALUATION_FOR]->(this1:Estate)
-			WHERE (this1.area >= $param1
-				AND this1.floor >= $param2
-				AND this1.estateType IN $param3
-				AND EXISTS {
-					MATCH (this1)-[:HAS_ADDRESS]->(this2:Address)
-					WHERE EXISTS {
-						MATCH (this2)-[:HAS_POSTAL_CODE]->(this3:PostalCode)
-						WHERE this3.number IN $param4
-					}
-				})
-		}
-	}
+	AND single(this3 IN [(this)-[:HAS_VALUATION]->(this3) | this3]
+	WHERE single(this0 IN [(this3)-[:VALUATION_FOR]->(this0) | this0]
+	WHERE (this0.area >= $param1
+		AND this0.floor >= $param2
+		AND this0.estateType IN $param3
+		AND single(this2 IN [(this0)-[:HAS_ADDRESS]->(this2) | this2]
+		WHERE single(this1 IN [(this2)-[:HAS_POSTAL_CODE]->(this1) | this1]
+		WHERE this1.number IN $param4)))))
 	AND this.archivedAt IS NULL)
 WITH * SKIP $param5 LIMIT $param6
 CALL {
@@ -368,22 +352,14 @@ query Mandates($where: MandateWhere, $options: MandateOptions) {
 ----
 MATCH (this:Mandate)
 WHERE (this.price >= $param0
-	AND EXISTS {
-		MATCH (this)-[:HAS_VALUATION]->(this0:Valuation)
-		WHERE EXISTS {
-			MATCH (this0)-[:VALUATION_FOR]->(this1:Estate)
-			WHERE (this1.area >= $param1
-				AND this1.floor >= $param2
-				AND this1.estateType IN $param3
-				AND EXISTS {
-					MATCH (this1)-[:HAS_ADDRESS]->(this2:Address)
-					WHERE EXISTS {
-						MATCH (this2)-[:HAS_POSTAL_CODE]->(this3:PostalCode)
-						WHERE this3.number IN $param4
-					}
-				})
-		}
-	}
+	AND single(this3 IN [(this)-[:HAS_VALUATION]->(this3) | this3]
+	WHERE single(this0 IN [(this3)-[:VALUATION_FOR]->(this0) | this0]
+	WHERE (this0.area >= $param1
+		AND this0.floor >= $param2
+		AND this0.estateType IN $param3
+		AND single(this2 IN [(this0)-[:HAS_ADDRESS]->(this2) | this2]
+		WHERE single(this1 IN [(this2)-[:HAS_POSTAL_CODE]->(this1) | this1]
+		WHERE this1.number IN $param4)))))
 	AND this.archivedAt IS NULL)
 CALL {
 	WITH this

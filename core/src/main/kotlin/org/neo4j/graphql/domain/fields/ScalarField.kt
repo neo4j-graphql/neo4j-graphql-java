@@ -116,7 +116,7 @@ abstract class ScalarField(fieldName: String, typeMeta: TypeMeta, schemaConfig: 
         private val STRING_LIKE_TYPES = setOf(Constants.ID, Constants.STRING)
     }
 
-    open fun convertInputToCypher(input: Parameter<*>): Expression = when (typeMeta.type.name()) {
+    open fun convertInputToCypher(input: Expression): Expression = when (typeMeta.type.name()) {
         Constants.DURATION -> Functions.duration(input)
         else -> input
     }

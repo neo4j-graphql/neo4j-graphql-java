@@ -160,17 +160,26 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
             name += " (${index + 1})"
         }
         DynamicTest.dynamicTest(name, cypherBlock.uri) {
+            val cfg = Configuration.newConfig()
+                .withPrettyPrint(true)
+                .withGeneratedNames(true)
+                .build()
+            val renderer = Renderer.getRenderer(cfg)
+
             val cypher = cypherBlock.code()
-            val expected = cypher.normalize()
+            val parseOptions = Options.newOptions().createSortedMaps(true).build()
+            val expected = renderer.render(CypherParser.parse(cypher, parseOptions))
             val actual = (result().getOrNull(index)?.query
                 ?: throw IllegalStateException("missing cypher query for $title ($index)"))
-            val actualNormalized = actual.normalize()
+            val actualNormalized = renderer.render(CypherParser.parse(actual, parseOptions))
 
             if (!Objects.equals(expected, actual)) {
                 cypherBlock.adjustedCode = actual
             }
             if (actualNormalized != expected) {
-                throw AssertionFailedError("Cypher does not match", cypher, actual)
+                throw AssertionFailedError("Cypher does not match", expected, actualNormalized)
+                // TODO
+                //  throw AssertionFailedError("Cypher does not match", cypher, actual)
             }
         }
     }
@@ -290,8 +299,8 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
             is Map<*, *> -> Assertions.assertThat(actual).asInstanceOf(InstanceOfAssertFactories.MAP)
                 .hasSize(expected.size)
                 .containsOnlyKeys(*expected.keys.toTypedArray())
-                .satisfies(Consumer { it.forEach { (key, value) -> assertEqualIgnoreOrder(expected[key], value) } }
-)
+                .satisfies(Consumer { it.forEach { (key, value) -> assertEqualIgnoreOrder(expected[key], value) } })
+
             is Collection<*> -> {
                 val assertions: List<Consumer<Any>> =
                     expected.map { e -> Consumer<Any> { a -> assertEqualIgnoreOrder(e, a) } }

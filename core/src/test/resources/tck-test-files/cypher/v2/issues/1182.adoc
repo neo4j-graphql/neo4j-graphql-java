@@ -47,7 +47,6 @@ mutation {
 [source,json]
 ----
 {
-  "resolvedCallbacks" : { },
   "this0_actors_connectOrCreate_param0" : "1",
   "this0_actors_connectOrCreate_param1" : "Tom Hanks",
   "this0_actors_connectOrCreate_param2" : {

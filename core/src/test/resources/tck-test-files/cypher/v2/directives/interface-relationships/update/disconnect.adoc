@@ -62,7 +62,6 @@ mutation {
 [source,json]
 ----
 {
-  "resolvedCallbacks" : { },
   "updateActors" : {
     "args" : {
       "disconnect" : {
@@ -93,8 +92,7 @@ CALL {
 	CALL {
 		WITH this_disconnect_actedIn0, this_disconnect_actedIn0_rel, this
 		WITH collect(this_disconnect_actedIn0) AS this_disconnect_actedIn0, this_disconnect_actedIn0_rel, this
-		UNWIND this_disconnect_actedIn0 AS x
-		DELETE this_disconnect_actedIn0_rel
+		UNWIND this_disconnect_actedIn0 AS x DELETE this_disconnect_actedIn0_rel
 		RETURN count(*) AS _
 	}
 	RETURN count(*) AS disconnect_this_disconnect_actedIn_Movie
@@ -106,8 +104,7 @@ CALL {
 	CALL {
 		WITH this_disconnect_actedIn0, this_disconnect_actedIn0_rel, this
 		WITH collect(this_disconnect_actedIn0) AS this_disconnect_actedIn0, this_disconnect_actedIn0_rel, this
-		UNWIND this_disconnect_actedIn0 AS x
-		DELETE this_disconnect_actedIn0_rel
+		UNWIND this_disconnect_actedIn0 AS x DELETE this_disconnect_actedIn0_rel
 		RETURN count(*) AS _
 	}
 	RETURN count(*) AS disconnect_this_disconnect_actedIn_Series
@@ -140,7 +137,6 @@ mutation {
 [source,json]
 ----
 {
-  "resolvedCallbacks" : { },
   "updateActors" : {
     "args" : {
       "disconnect" : {
@@ -181,8 +177,7 @@ CALL {
 	CALL {
 		WITH this_disconnect_actedIn0, this_disconnect_actedIn0_rel, this
 		WITH collect(this_disconnect_actedIn0) AS this_disconnect_actedIn0, this_disconnect_actedIn0_rel, this
-		UNWIND this_disconnect_actedIn0 AS x
-		DELETE this_disconnect_actedIn0_rel
+		UNWIND this_disconnect_actedIn0 AS x DELETE this_disconnect_actedIn0_rel
 		RETURN count(*) AS _
 	}
 	CALL {
@@ -192,8 +187,7 @@ CALL {
 		CALL {
 			WITH this_disconnect_actedIn0_actors0, this_disconnect_actedIn0_actors0_rel, this_disconnect_actedIn0
 			WITH collect(this_disconnect_actedIn0_actors0) AS this_disconnect_actedIn0_actors0, this_disconnect_actedIn0_actors0_rel, this_disconnect_actedIn0
-			UNWIND this_disconnect_actedIn0_actors0 AS x
-			DELETE this_disconnect_actedIn0_actors0_rel
+			UNWIND this_disconnect_actedIn0_actors0 AS x DELETE this_disconnect_actedIn0_actors0_rel
 			RETURN count(*) AS _
 		}
 		RETURN count(*) AS disconnect_this_disconnect_actedIn0_actors_Actor
@@ -207,8 +201,7 @@ CALL {
 	CALL {
 		WITH this_disconnect_actedIn0, this_disconnect_actedIn0_rel, this
 		WITH collect(this_disconnect_actedIn0) AS this_disconnect_actedIn0, this_disconnect_actedIn0_rel, this
-		UNWIND this_disconnect_actedIn0 AS x
-		DELETE this_disconnect_actedIn0_rel
+		UNWIND this_disconnect_actedIn0 AS x DELETE this_disconnect_actedIn0_rel
 		RETURN count(*) AS _
 	}
 	CALL {
@@ -218,8 +211,7 @@ CALL {
 		CALL {
 			WITH this_disconnect_actedIn0_actors0, this_disconnect_actedIn0_actors0_rel, this_disconnect_actedIn0
 			WITH collect(this_disconnect_actedIn0_actors0) AS this_disconnect_actedIn0_actors0, this_disconnect_actedIn0_actors0_rel, this_disconnect_actedIn0
-			UNWIND this_disconnect_actedIn0_actors0 AS x
-			DELETE this_disconnect_actedIn0_actors0_rel
+			UNWIND this_disconnect_actedIn0_actors0 AS x DELETE this_disconnect_actedIn0_actors0_rel
 			RETURN count(*) AS _
 		}
 		RETURN count(*) AS disconnect_this_disconnect_actedIn0_actors_Actor
@@ -254,7 +246,6 @@ mutation {
 [source,json]
 ----
 {
-  "resolvedCallbacks" : { },
   "updateActors" : {
     "args" : {
       "disconnect" : {
@@ -299,8 +290,7 @@ CALL {
 	CALL {
 		WITH this_disconnect_actedIn0, this_disconnect_actedIn0_rel, this
 		WITH collect(this_disconnect_actedIn0) AS this_disconnect_actedIn0, this_disconnect_actedIn0_rel, this
-		UNWIND this_disconnect_actedIn0 AS x
-		DELETE this_disconnect_actedIn0_rel
+		UNWIND this_disconnect_actedIn0 AS x DELETE this_disconnect_actedIn0_rel
 		RETURN count(*) AS _
 	}
 	CALL {
@@ -310,8 +300,7 @@ CALL {
 		CALL {
 			WITH this_disconnect_actedIn0_actors0, this_disconnect_actedIn0_actors0_rel, this_disconnect_actedIn0
 			WITH collect(this_disconnect_actedIn0_actors0) AS this_disconnect_actedIn0_actors0, this_disconnect_actedIn0_actors0_rel, this_disconnect_actedIn0
-			UNWIND this_disconnect_actedIn0_actors0 AS x
-			DELETE this_disconnect_actedIn0_actors0_rel
+			UNWIND this_disconnect_actedIn0_actors0 AS x DELETE this_disconnect_actedIn0_actors0_rel
 			RETURN count(*) AS _
 		}
 		RETURN count(*) AS disconnect_this_disconnect_actedIn0_actors_Actor
@@ -325,8 +314,7 @@ CALL {
 	CALL {
 		WITH this_disconnect_actedIn0, this_disconnect_actedIn0_rel, this
 		WITH collect(this_disconnect_actedIn0) AS this_disconnect_actedIn0, this_disconnect_actedIn0_rel, this
-		UNWIND this_disconnect_actedIn0 AS x
-		DELETE this_disconnect_actedIn0_rel
+		UNWIND this_disconnect_actedIn0 AS x DELETE this_disconnect_actedIn0_rel
 		RETURN count(*) AS _
 	}
 	RETURN count(*) AS disconnect_this_disconnect_actedIn_Series
@@ -359,7 +347,6 @@ mutation {
 [source,json]
 ----
 {
-  "resolvedCallbacks" : { },
   "updateActors" : {
     "args" : {
       "disconnect" : {
@@ -412,8 +399,7 @@ CALL {
 	CALL {
 		WITH this_disconnect_actedIn0, this_disconnect_actedIn0_rel, this
 		WITH collect(this_disconnect_actedIn0) AS this_disconnect_actedIn0, this_disconnect_actedIn0_rel, this
-		UNWIND this_disconnect_actedIn0 AS x
-		DELETE this_disconnect_actedIn0_rel
+		UNWIND this_disconnect_actedIn0 AS x DELETE this_disconnect_actedIn0_rel
 		RETURN count(*) AS _
 	}
 	CALL {
@@ -423,8 +409,7 @@ CALL {
 		CALL {
 			WITH this_disconnect_actedIn0_actors0, this_disconnect_actedIn0_actors0_rel, this_disconnect_actedIn0
 			WITH collect(this_disconnect_actedIn0_actors0) AS this_disconnect_actedIn0_actors0, this_disconnect_actedIn0_actors0_rel, this_disconnect_actedIn0
-			UNWIND this_disconnect_actedIn0_actors0 AS x
-			DELETE this_disconnect_actedIn0_actors0_rel
+			UNWIND this_disconnect_actedIn0_actors0 AS x DELETE this_disconnect_actedIn0_actors0_rel
 			RETURN count(*) AS _
 		}
 		RETURN count(*) AS disconnect_this_disconnect_actedIn0_actors_Actor
@@ -438,8 +423,7 @@ CALL {
 	CALL {
 		WITH this_disconnect_actedIn0, this_disconnect_actedIn0_rel, this
 		WITH collect(this_disconnect_actedIn0) AS this_disconnect_actedIn0, this_disconnect_actedIn0_rel, this
-		UNWIND this_disconnect_actedIn0 AS x
-		DELETE this_disconnect_actedIn0_rel
+		UNWIND this_disconnect_actedIn0 AS x DELETE this_disconnect_actedIn0_rel
 		RETURN count(*) AS _
 	}
 	CALL {
@@ -449,8 +433,7 @@ CALL {
 		CALL {
 			WITH this_disconnect_actedIn0_actors0, this_disconnect_actedIn0_actors0_rel, this_disconnect_actedIn0
 			WITH collect(this_disconnect_actedIn0_actors0) AS this_disconnect_actedIn0_actors0, this_disconnect_actedIn0_actors0_rel, this_disconnect_actedIn0
-			UNWIND this_disconnect_actedIn0_actors0 AS x
-			DELETE this_disconnect_actedIn0_actors0_rel
+			UNWIND this_disconnect_actedIn0_actors0 AS x DELETE this_disconnect_actedIn0_actors0_rel
 			RETURN count(*) AS _
 		}
 		RETURN count(*) AS disconnect_this_disconnect_actedIn0_actors_Actor

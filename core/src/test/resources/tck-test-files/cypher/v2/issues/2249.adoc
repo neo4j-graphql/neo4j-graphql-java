@@ -69,7 +69,6 @@ mutation UpdateMovies {
 ----
 {
   "param0" : "John Wick",
-  "resolvedCallbacks" : { },
   "this_reviewers0_create0_node_name" : "Ana",
   "this_reviewers0_create0_node_reputation" : 100,
   "updateMovies" : {

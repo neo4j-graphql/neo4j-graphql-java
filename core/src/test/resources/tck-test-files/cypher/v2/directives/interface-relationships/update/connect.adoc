@@ -62,7 +62,6 @@ mutation {
 [source,json]
 ----
 {
-  "resolvedCallbacks" : { },
   "this_connect_actedIn0_node_param0" : "The ",
   "this_connect_actedIn0_relationship_screenTime" : 90,
   "this_connect_actedIn1_node_param0" : "The ",
@@ -143,7 +142,6 @@ mutation {
 [source,json]
 ----
 {
-  "resolvedCallbacks" : { },
   "this_connect_actedIn0_node_actors0_node_param0" : "Actor",
   "this_connect_actedIn0_node_actors0_relationship_screenTime" : 90,
   "this_connect_actedIn0_node_param0" : "The ",
@@ -268,7 +266,6 @@ mutation {
 [source,json]
 ----
 {
-  "resolvedCallbacks" : { },
   "this_connect_actedIn0_node_on_Movie0_actors0_node_param0" : "Actor",
   "this_connect_actedIn0_node_on_Movie0_actors0_relationship_screenTime" : 90,
   "this_connect_actedIn0_node_param0" : "The ",
@@ -371,7 +368,6 @@ mutation {
 [source,json]
 ----
 {
-  "resolvedCallbacks" : { },
   "this_connect_actedIn0_node_on_Movie0_actors0_node_param0" : "Different Actor",
   "this_connect_actedIn0_node_on_Movie0_actors0_relationship_screenTime" : 90,
   "this_connect_actedIn0_node_param0" : "The ",

@@ -61,25 +61,24 @@ mutation {
   }, {
     "title" : "Toy Story"
   } ],
-  "projection_connection_actorsConnectionparam0" : "Tom Hanks",
-  "resolvedCallbacks" : { }
+  "create_this0_connection_actorsConnectionparam0" : "Tom Hanks"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-UNWIND $create_param0 AS create_var1
+UNWIND $create_param0 AS create_var0
 CALL {
-	WITH create_var1
+	WITH create_var0
 	CREATE (create_this0:Movie)
-	SET create_this0.title = create_var1.title
+	SET create_this0.title = create_var0.title
 	RETURN create_this0
 }
 CALL {
 	WITH create_this0
 	MATCH (create_this0)<-[create_this0_connection_actorsConnectionthis0:ACTED_IN]-(create_this0_Actor:Actor)
-	WHERE create_this0_Actor.name = $projection_connection_actorsConnectionparam0
+	WHERE create_this0_Actor.name = $create_this0_connection_actorsConnectionparam0
 	WITH {
 		screenTime: create_this0_connection_actorsConnectionthis0.screenTime,
 		node: {
@@ -131,19 +130,18 @@ mutation {
     "title" : "Forrest Gump"
   }, {
     "title" : "Toy Story"
-  } ],
-  "resolvedCallbacks" : { }
+  } ]
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-UNWIND $create_param0 AS create_var1
+UNWIND $create_param0 AS create_var0
 CALL {
-	WITH create_var1
+	WITH create_var0
 	CREATE (create_this0:Movie)
-	SET create_this0.title = create_var1.title
+	SET create_this0.title = create_var0.title
 	RETURN create_this0
 }
 CALL {
@@ -198,19 +196,18 @@ mutation {
 {
   "create_param0" : [ {
     "title" : "Forrest Gump"
-  } ],
-  "resolvedCallbacks" : { }
+  } ]
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-UNWIND $create_param0 AS create_var1
+UNWIND $create_param0 AS create_var0
 CALL {
-	WITH create_var1
+	WITH create_var0
 	CREATE (create_this0:Movie)
-	SET create_this0.title = create_var1.title
+	SET create_this0.title = create_var0.title
 	RETURN create_this0
 }
 CALL {

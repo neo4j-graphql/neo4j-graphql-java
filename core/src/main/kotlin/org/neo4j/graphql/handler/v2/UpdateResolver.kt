@@ -3,7 +3,6 @@ package org.neo4j.graphql.handler.v2
 import graphql.language.Field
 import graphql.schema.DataFetchingEnvironment
 import org.neo4j.cypherdsl.core.*
-import org.neo4j.cypherdsl.core.StatementBuilder.ExposesWith
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
@@ -28,6 +27,7 @@ import org.neo4j.graphql.schema.model.inputs.disconnect.DisconnectInput
 import org.neo4j.graphql.schema.model.inputs.update.UpdateInput
 import org.neo4j.graphql.translate.*
 import org.neo4j.graphql.translate.Operation
+import org.neo4j.graphql.translate.where.PrefixUsage
 import org.neo4j.graphql.utils.ResolveTree
 
 class UpdateResolver private constructor(
@@ -160,7 +160,7 @@ class UpdateResolver private constructor(
                     null,
                     node,
                     ChainString(schemaConfig, resolveTree.name, "args", "disconnect", relField, nameClassifier),
-                    ongoingReading
+                    ongoingReading.with(withVars)
                 )
                     .createDisconnectAndParams()
             }
@@ -194,7 +194,8 @@ class UpdateResolver private constructor(
                     ongoingReading,
                     refNodes,
                     labelOverride = nameClassifier,
-                    includeRelationshipValidation = assumeReconnecting
+                    includeRelationshipValidation = assumeReconnecting,
+                    usePrefix = PrefixUsage.EXTEND
                 ).createConnectAndParams()
             }
         }
@@ -276,7 +277,8 @@ class UpdateResolver private constructor(
                     withVars,
                     ongoingReading,
                     queryContext,
-                    schemaConfig
+                    schemaConfig,
+                    ChainString(schemaConfig, dslNode, "connectOrCreate", relField)
                 )
             }
 
@@ -307,6 +309,20 @@ class UpdateResolver private constructor(
         }
 
         return ongoingReading
+            .let {
+                if (
+                    arguments.delete != null ||
+                    arguments.connect != null ||
+                    arguments.disconnect != null ||
+                    arguments.create != null ||
+                    arguments.connectOrCreate != null ||
+                    !projection?.allSubQueries.isNullOrEmpty()
+                ) {
+                    it.with(Cypher.asterisk()) // TODO remove this statement
+                } else {
+                    it
+                }
+            }
             .let {
                 if (projection?.allSubQueries.isNullOrEmpty()) {
                     it

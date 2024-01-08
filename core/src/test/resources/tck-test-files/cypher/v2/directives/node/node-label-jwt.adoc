@@ -46,6 +46,7 @@ mutation {
 [source,json,query-config=true]
 ----
 {
+  "auth": {},
   "contextParams": {
     "jwt": {
       "movielabel": "Film"
@@ -60,8 +61,7 @@ mutation {
 {
   "create_param0" : [ {
     "title" : "Titanic"
-  } ],
-  "resolvedCallbacks" : { }
+  } ]
 }
 ----
 
@@ -98,6 +98,7 @@ RETURN collect(create_this0 {
 [source,json,query-config=true]
 ----
 {
+  "auth": {},
   "contextParams": {
     "jwt": {
       "movielabel": "Film"
@@ -142,6 +143,7 @@ RETURN this {
 [source,json,query-config=true]
 ----
 {
+  "auth": {},
   "contextParams": {
     "jwt": {
       "movielabel": "Film",

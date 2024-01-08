@@ -33,6 +33,14 @@ interface ActedIn {
 ----
 == DISTANCE
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "neo4jDialect": "DEFAULT"
+}
+----
+
 .GraphQL-Query
 [source,graphql]
 ----
@@ -63,10 +71,10 @@ interface ActedIn {
 {
   "this_connection_actorsConnectionparam0" : {
     "point" : {
-      "longitude" : 1,
-      "latitude" : 2
+      "longitude" : 1.0,
+      "latitude" : 2.0
     },
-    "distance" : 3
+    "distance" : 3.0
   }
 }
 ----
@@ -82,7 +90,8 @@ CALL {
 	WITH {
 		screenTime: this_connection_actorsConnectionthis0.screenTime,
 		location: CASE WHEN this_connection_actorsConnectionthis0.location IS NOT NULL THEN {
-			point: this_connection_actorsConnectionthis0.location
+			latitude: this_connection_actorsConnectionthis0.location.latitude,
+			longitude: this_connection_actorsConnectionthis0.location.longitude
 		} ELSE NULL END,
 		node: {
 			name: this_Actor.name

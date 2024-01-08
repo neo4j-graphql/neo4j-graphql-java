@@ -34,6 +34,7 @@ object Constants {
     const val NODE_FIELD = "node"
     const val ON = "_on"
     const val SCORE = "score"
+    const val RESOLVE_TYPE = "__resolveType"
 
     const val X = "x"
     const val Y = "y"

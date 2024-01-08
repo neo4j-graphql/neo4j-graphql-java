@@ -19,7 +19,7 @@ fun createWhere(
     chainStr: ChainString? = null,
     schemaConfig: SchemaConfig,
     queryContext: QueryContext,
-    usePrefix: Boolean = false,  //TODO  only used to align test with JS version
+    usePrefix: PrefixUsage = PrefixUsage.NONE
 
 ): WhereResult {
     if (node == null || whereInput == null) return WhereResult.EMPTY
@@ -151,13 +151,13 @@ fun createWhere(
         val rhs = if (predicate.value == null) {
             Cypher.literalNull()
         } else {
-            when {
-                usePrefix -> {
+            when (usePrefix){
+                PrefixUsage.NONE -> queryContext.getNextParam(predicate.value)
+                PrefixUsage.APPEND -> {
                     //                paramPrefix.extend(predicate.name).resolveParameter(predicate.value)
                     queryContext.getNextParam(paramPrefix.appendOnPrevious("param"), predicate.value)
                 }
-
-                else -> queryContext.getNextParam(predicate.value)
+                PrefixUsage.EXTEND -> queryContext.getNextParam(paramPrefix.extend("param"), predicate.value)
             }
         }
         return predicate.createCondition(property, rhs)
@@ -169,7 +169,7 @@ fun createWhere(
         result = whereInput.reduceNestedConditions { key, index, nested ->
             val (whereCondition, whereSubquery) = createWhere(
                 node, nested, propertyContainer,
-                paramPrefix.extend(key, index.takeIf { it > 0 }),
+                paramPrefix,
                 schemaConfig, queryContext, usePrefix
             )
             subQueries.addAll(whereSubquery)
@@ -202,3 +202,4 @@ fun createWhere(
 
     return WhereResult(result, subQueries)
 }
+

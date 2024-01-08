@@ -54,7 +54,6 @@ mutation {
 ----
 {
   "param0" : "urn:myiri2",
-  "resolvedCallbacks" : { },
   "this_isInPublication0_connectOrCreate_param0" : "new-g",
   "this_isInPublication0_connectOrCreate_param1" : "new-g",
   "this_isInPublication0_connectOrCreate_param2" : [ "pub" ],

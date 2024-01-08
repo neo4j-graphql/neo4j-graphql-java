@@ -41,8 +41,7 @@ mutation {
 {
   "create_param0" : [ {
     "datetime" : "1970-01-01T00:00:00Z"
-  } ],
-  "resolvedCallbacks" : { }
+  } ]
 }
 ----
 
@@ -79,7 +78,7 @@ RETURN collect(create_this0 {
 [source,json]
 ----
 {
-  "param0" : "1970-01-01T00:00:00.000Z"
+  "param0" : "1970-01-01T00:00:00Z"
 }
 ----
 
@@ -87,7 +86,7 @@ RETURN collect(create_this0 {
 [source,cypher]
 ----
 MATCH (this:Movie)
-WHERE this.datetime = datetime($param0)
+WHERE this.datetime = $param0
 RETURN this {
 	datetime: apoc.date.convertFormat(toString(this.datetime), 'iso_zoned_date_time', 'iso_offset_date_time')
 } AS this
@@ -114,7 +113,7 @@ mutation {
 [source,json]
 ----
 {
-  "this_update_datetime" : "1970-01-01T00:00:00.000Z"
+  "this_update_datetime" : "1970-01-01T00:00:00Z"
 }
 ----
 
@@ -122,7 +121,7 @@ mutation {
 [source,cypher]
 ----
 MATCH (this:Movie)
-SET this.datetime = datetime($this_update_datetime)
+SET this.datetime = $this_update_datetime
 RETURN collect(DISTINCT this {
 	.id,
 	datetime: apoc.date.convertFormat(toString(this.datetime), 'iso_zoned_date_time', 'iso_offset_date_time')

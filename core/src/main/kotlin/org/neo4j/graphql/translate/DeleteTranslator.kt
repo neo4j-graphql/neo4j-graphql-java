@@ -1,8 +1,8 @@
 package org.neo4j.graphql.translate
 
 import org.neo4j.cypherdsl.core.Cypher
+import org.neo4j.cypherdsl.core.ExposesWith
 import org.neo4j.cypherdsl.core.Functions
-import org.neo4j.cypherdsl.core.StatementBuilder.ExposesWith
 import org.neo4j.cypherdsl.core.SymbolicName
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
@@ -11,6 +11,7 @@ import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.schema.model.inputs.delete.DeleteFieldInput
 import org.neo4j.graphql.schema.model.inputs.delete.DeleteInput
+import org.neo4j.graphql.translate.where.PrefixUsage
 import org.neo4j.graphql.translate.where.createConnectionWhere
 
 fun createDeleteAndParams(
@@ -53,10 +54,10 @@ fun createDeleteAndParams(
             parameterPrefix
                 .extend(refNode.takeIf { relField.isUnion })
                 .appendOnPrevious(index.takeIf { relField.typeMeta.type.isList() })
-                .extend("where"),
+                .extend("where", refNode),
             schemaConfig,
             queryContext,
-            usePrefix = true
+            usePrefix = PrefixUsage.APPEND
         )
 
         if (whereSubquery.isNotEmpty()) {

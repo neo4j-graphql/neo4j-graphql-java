@@ -1,7 +1,6 @@
 package org.neo4j.graphql.translate
 
 import org.neo4j.cypherdsl.core.*
-import org.neo4j.cypherdsl.core.StatementBuilder.ExposesWith
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
@@ -10,6 +9,7 @@ import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.schema.model.inputs.connect.ConnectFieldInput
 import org.neo4j.graphql.schema.model.inputs.connect.ConnectFieldInput.ImplementingTypeConnectFieldInput
 import org.neo4j.graphql.schema.model.inputs.connect.ConnectInput
+import org.neo4j.graphql.translate.where.PrefixUsage
 import org.neo4j.graphql.translate.where.createWhere
 
 //TODO complete
@@ -27,6 +27,7 @@ class ConnectTranslator(
     private val refNodes: Collection<Node>,
     private val labelOverride: String?,
     private val includeRelationshipValidation: Boolean = false,
+    private val usePrefix: PrefixUsage = PrefixUsage.APPEND
 ) {
 
     fun createConnectAndParams(): ExposesWith {
@@ -78,8 +79,10 @@ class ConnectTranslator(
             .optionalMatch(node)
             .let { if (conditions != null) it.where(conditions) else it }
 
+        val nestedWithVars = (withVars + node)
+
         getPreAuth(node, relatedNode)?.let {
-            subQuery = subQuery.with(*(withVars + node).toTypedArray())
+            subQuery = subQuery.with(*nestedWithVars.toTypedArray())
                 .apocValidate(it, Constants.AUTH_FORBIDDEN_ERROR)
         }
 
@@ -90,10 +93,13 @@ class ConnectTranslator(
             subQuery = addRelationshipValidation(node, relatedNode, subQuery)
         }
 
-        subQuery = addNestedConnects(node, relatedNode, nodeName, connect, subQuery)
+        subQuery = addNestedConnects(node, relatedNode, nodeName, connect,
+            subQuery
+                .with(*nestedWithVars.toTypedArray()) // TODO remove with
+        )
 
         getPostAuth(node, relatedNode)?.let {
-            subQuery = subQuery.with(*(withVars + node).toTypedArray())
+            subQuery = subQuery.with(*nestedWithVars.toTypedArray())
                 .apocValidate(it, Constants.AUTH_FORBIDDEN_ERROR)
         }
 
@@ -133,7 +139,7 @@ class ConnectTranslator(
             chainStr = ChainString(schemaConfig, nodeName),
             schemaConfig,
             queryContext,
-            usePrefix = true
+            usePrefix
         )
 
         if (relatedNode.auth != null) {
@@ -183,14 +189,16 @@ class ConnectTranslator(
         var createDslRelation =
             relationField.createDslRelation(unwoundedParents, unwoundedConnections, startLeft = true)
         val edgeSet = if (relationField.properties != null) {
-            createDslRelation = createDslRelation.named(baseName.extend("relationship").resolveName())
+            val prefix = baseName.extend("relationship")
+            createDslRelation = createDslRelation.named(prefix.resolveName())
             createSetProperties(
                 createDslRelation,
                 connect.edge,
                 Operation.CREATE,
                 relationField.properties,
                 schemaConfig,
-                queryContext
+                queryContext,
+                prefix
             )
         } else {
             null

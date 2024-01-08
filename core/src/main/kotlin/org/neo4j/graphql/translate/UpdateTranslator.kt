@@ -1,7 +1,6 @@
 package org.neo4j.graphql.translate
 
 import org.neo4j.cypherdsl.core.*
-import org.neo4j.cypherdsl.core.StatementBuilder.ExposesWith
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.directives.AuthDirective
 import org.neo4j.graphql.domain.fields.RelationField
@@ -9,6 +8,7 @@ import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.schema.model.inputs.create.RelationFieldInput
 import org.neo4j.graphql.schema.model.inputs.update.UpdateFieldInput
 import org.neo4j.graphql.schema.model.inputs.update.UpdateInput
+import org.neo4j.graphql.translate.where.PrefixUsage
 import org.neo4j.graphql.translate.where.createConnectionWhere
 
 class UpdateTranslator(
@@ -112,7 +112,8 @@ class UpdateTranslator(
                 .takeIf { it.isNotEmpty() }
                 ?.let {
                     result = result
-                        .maybeWith(withVars)
+//                        .maybeWith(withVars)
+                        .with(withVars) // TODO use maybe with?
                         .withSubQueries(it)
                 }
         }
@@ -197,7 +198,10 @@ class UpdateTranslator(
                         withVars,
                         result,
                         queryContext,
-                        schemaConfig
+                        schemaConfig,
+                        ChainString(schemaConfig, varName, field,
+                            refNode.takeIf { field.isUnion }
+                        ).appendOnPrevious(index).extend( "connectOrCreate")
                     )
                 }
 
@@ -331,10 +335,12 @@ class UpdateTranslator(
             parameterPrefix
                 .extend(field, refNode.takeIf { field.isUnion })
                 .appendOnPrevious(index.takeIf { field.typeMeta.type.isList() })
-                .extend("where"),
+                .extend("where")
+                .extend(refNode.takeIf { !field.isUnion })
+            ,
             schemaConfig,
             queryContext,
-            usePrefix = true
+            usePrefix = PrefixUsage.APPEND
         )
 
         val whereAuth = AuthTranslator(schemaConfig, queryContext, where = AuthTranslator.AuthOptions(endNode, refNode))
@@ -433,7 +439,7 @@ class UpdateTranslator(
         return result
             .returning(
                 Functions.count(Cypher.asterisk())
-                    .`as`(ChainString(schemaConfig, "update", varName, refNode).resolveName())
+                    .`as`(ChainString(schemaConfig, "update", _varName).resolveName())
             )
             .build()
     }

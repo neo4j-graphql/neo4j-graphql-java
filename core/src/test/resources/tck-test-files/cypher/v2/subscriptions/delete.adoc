@@ -116,13 +116,11 @@ WITH this, this_actors0_to_delete, reduce(m = meta, n IN this_actors0_to_delete 
 })) AS meta
 CALL {
 	WITH this_actors0_to_delete
-	UNWIND this_actors0_to_delete AS x
-	DETACH DELETE x
+	UNWIND this_actors0_to_delete AS x DETACH DELETE x
 	RETURN count(*) AS _
 }
 WITH this, collect(DISTINCT meta) AS update_meta
-WITH this, reduce(m = [], n IN update_meta | (m + n)) AS meta
-DETACH DELETE this
+WITH this, reduce(m = [], n IN update_meta | (m + n)) AS meta DETACH DELETE this
 WITH collect(meta) AS meta
 WITH reduce(m = [], n IN meta | (m + n)) AS meta
 RETURN meta
@@ -208,8 +206,7 @@ CALL {
 	} END AS meta
 	RETURN collect(DISTINCT meta) AS relationship_meta
 }
-WITH reduce(m = meta, r IN relationship_meta | (m + r)) AS meta, this
-DETACH DELETE this
+WITH reduce(m = meta, r IN relationship_meta | (m + r)) AS meta, this DETACH DELETE this
 WITH collect(meta) AS meta
 WITH reduce(m = [], n IN meta | (m + n)) AS meta
 RETURN meta
@@ -336,8 +333,7 @@ WITH this, this_actors0, this_actors0_relationship, this_actors0_movies0, this_a
 })) AS meta
 CALL {
 	WITH this_actors0_movies0_actors0_to_delete
-	UNWIND this_actors0_movies0_actors0_to_delete AS x
-	DETACH DELETE x
+	UNWIND this_actors0_movies0_actors0_to_delete AS x DETACH DELETE x
 	RETURN count(*) AS _
 }
 WITH this, this_actors0, this_actors0_relationship, this_actors0_movies0, this_actors0_movies0_relationship, collect(DISTINCT meta) AS update_meta
@@ -377,8 +373,7 @@ WITH this, this_actors0, this_actors0_relationship, this_actors0_movies0_to_dele
 })) AS meta
 CALL {
 	WITH this_actors0_movies0_to_delete
-	UNWIND this_actors0_movies0_to_delete AS x
-	DETACH DELETE x
+	UNWIND this_actors0_movies0_to_delete AS x DETACH DELETE x
 	RETURN count(*) AS _
 }
 WITH this, this_actors0, this_actors0_relationship, collect(DISTINCT meta) AS update_meta
@@ -418,13 +413,11 @@ WITH this, this_actors0_to_delete, reduce(m = meta, n IN this_actors0_to_delete 
 })) AS meta
 CALL {
 	WITH this_actors0_to_delete
-	UNWIND this_actors0_to_delete AS x
-	DETACH DELETE x
+	UNWIND this_actors0_to_delete AS x DETACH DELETE x
 	RETURN count(*) AS _
 }
 WITH this, collect(DISTINCT meta) AS update_meta
-WITH this, reduce(m = [], n IN update_meta | (m + n)) AS meta
-DETACH DELETE this
+WITH this, reduce(m = [], n IN update_meta | (m + n)) AS meta DETACH DELETE this
 WITH collect(meta) AS meta
 WITH reduce(m = [], n IN meta | (m + n)) AS meta
 RETURN meta
