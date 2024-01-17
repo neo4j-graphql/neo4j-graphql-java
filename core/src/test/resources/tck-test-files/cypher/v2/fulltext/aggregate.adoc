@@ -10,14 +10,6 @@ type Movie @fulltext(indexes: [{name: "MovieTitle", fields: ["title"]}]) {
   title: String
 }
 ----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{}
-----
 == simple aggregate with single fulltext property
 
 .GraphQL-Query
@@ -34,18 +26,20 @@ type Movie @fulltext(indexes: [{name: "MovieTitle", fields: ["title"]}]) {
 [source,json]
 ----
 {
-  "param0" : "something AND something"
+  "param0": "something AND something",
+  "param1": "Movie"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-CALL db.index.fulltext.queryNodes('MovieTitle', $param0) YIELD node AS this
-WHERE 'Movie' IN labels(this)
-RETURN {
-	count: count(this)
+CALL {
+    CALL db.index.fulltext.queryNodes("MovieTitle", $param0) YIELD node AS this0, score AS var1
+    WHERE $param1 IN labels(this0)
+    RETURN count(this0) AS var2
 }
+RETURN { count: var2 }
 ----
 
 '''

@@ -86,17 +86,9 @@ class TopLevelMatchTranslator(
             }
         }
 
-        if (node.fulltextDirective != null) {
-            val index = node.fulltextDirective.indexes.find { it.indexName == indexName }
-            (indexInput.score
+        if (node.annotations.fulltext != null) {
+            indexInput.score
                 ?.let { varName.extend("fulltext", indexName, "score", "EQUAL").resolveParameter(it) }
-                ?: index?.defaultThreshold?.let {
-                    varName.extend(
-                        "fulltext",
-                        indexName,
-                        "defaultThreshold" // TODO naming: split
-                    ).resolveParameter(it)
-                })
                 ?.let { cond = cond.and(scoreName.eq(it)) }
         }
 

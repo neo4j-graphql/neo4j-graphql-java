@@ -87,8 +87,9 @@ type CreateActorsMutationResponse {
   info: CreateInfo!
 }
 
+"Information about the number of nodes and relationships created during a create mutation"
 type CreateInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   relationshipsCreated: Int!
 }
@@ -103,8 +104,9 @@ type CreateSeriesMutationResponse {
   series: [Series!]!
 }
 
+"Information about the number of nodes and relationships deleted during a delete mutation"
 type DeleteInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesDeleted: Int!
   relationshipsDeleted: Int!
 }
@@ -202,8 +204,9 @@ type UpdateActorsMutationResponse {
   info: UpdateInfo!
 }
 
+"Information about the number of nodes and relationships created and deleted during an update mutation"
 type UpdateInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   nodesDeleted: Int!
   relationshipsCreated: Int!
@@ -220,6 +223,7 @@ type UpdateSeriesMutationResponse {
   series: [Series!]!
 }
 
+"An enum for sorting in either ascending or descending order."
 enum SortDirection {
   "Sort by field values in ascending order."
   ASC
@@ -243,6 +247,7 @@ input ActedInUpdateInput {
 
 input ActedInWhere {
   AND: [ActedInWhere!]
+  NOT: ActedInWhere
   OR: [ActedInWhere!]
   screenTime: Int
   screenTime_GT: Int
@@ -250,8 +255,8 @@ input ActedInWhere {
   screenTime_IN: [Int!]
   screenTime_LT: Int
   screenTime_LTE: Int
-  screenTime_NOT: Int
-  screenTime_NOT_IN: [Int!]
+  screenTime_NOT: Int @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  screenTime_NOT_IN: [Int!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input ActorActedInConnectFieldInput {
@@ -266,11 +271,12 @@ input ActorActedInConnectionSort {
 
 input ActorActedInConnectionWhere {
   AND: [ActorActedInConnectionWhere!]
+  NOT: ActorActedInConnectionWhere
   OR: [ActorActedInConnectionWhere!]
   edge: ActedInWhere
-  edge_NOT: ActedInWhere
+  edge_NOT: ActedInWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   node: ProductionWhere
-  node_NOT: ProductionWhere
+  node_NOT: ProductionWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input ActorActedInCreateFieldInput {
@@ -345,22 +351,27 @@ input ActorUpdateInput {
 
 input ActorWhere {
   AND: [ActorWhere!]
+  NOT: ActorWhere
   OR: [ActorWhere!]
   actedInConnection: ActorActedInConnectionWhere @deprecated(reason : "Use `actedInConnection_SOME` instead.")
+  "Return Actors where all of the related ActorActedInConnections match this filter"
   actedInConnection_ALL: ActorActedInConnectionWhere
+  "Return Actors where none of the related ActorActedInConnections match this filter"
   actedInConnection_NONE: ActorActedInConnectionWhere
   actedInConnection_NOT: ActorActedInConnectionWhere @deprecated(reason : "Use `actedInConnection_NONE` instead.")
+  "Return Actors where one of the related ActorActedInConnections match this filter"
   actedInConnection_SINGLE: ActorActedInConnectionWhere
+  "Return Actors where some of the related ActorActedInConnections match this filter"
   actedInConnection_SOME: ActorActedInConnectionWhere
   name: String
   name_CONTAINS: String
   name_ENDS_WITH: String
   name_IN: [String!]
-  name_NOT: String
-  name_NOT_CONTAINS: String
-  name_NOT_ENDS_WITH: String
-  name_NOT_IN: [String!]
-  name_NOT_STARTS_WITH: String
+  name_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   name_STARTS_WITH: String
 }
 
@@ -391,6 +402,7 @@ input MovieUpdateInput {
 
 input MovieWhere {
   AND: [MovieWhere!]
+  NOT: MovieWhere
   OR: [MovieWhere!]
   runtime: Int
   runtime_GT: Int
@@ -398,17 +410,17 @@ input MovieWhere {
   runtime_IN: [Int!]
   runtime_LT: Int
   runtime_LTE: Int
-  runtime_NOT: Int
-  runtime_NOT_IN: [Int!]
+  runtime_NOT: Int @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  runtime_NOT_IN: [Int!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   title: String
   title_CONTAINS: String
   title_ENDS_WITH: String
   title_IN: [String!]
-  title_NOT: String
-  title_NOT_CONTAINS: String
-  title_NOT_ENDS_WITH: String
-  title_NOT_IN: [String!]
-  title_NOT_STARTS_WITH: String
+  title_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   title_STARTS_WITH: String
 }
 
@@ -435,7 +447,7 @@ input ProductionOptions {
   limit: Int
   offset: Int
   "Specify one or more ProductionSort objects to sort Productions by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [ProductionSort!]
+  sort: [ProductionSort]
 }
 
 "Fields to sort Productions by. The order in which sorts are applied is not guaranteed when specifying many fields in one ProductionSort object."
@@ -454,11 +466,11 @@ input ProductionWhere {
   title_CONTAINS: String
   title_ENDS_WITH: String
   title_IN: [String!]
-  title_NOT: String
-  title_NOT_CONTAINS: String
-  title_NOT_ENDS_WITH: String
-  title_NOT_IN: [String!]
-  title_NOT_STARTS_WITH: String
+  title_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   title_STARTS_WITH: String
 }
 
@@ -489,6 +501,7 @@ input SeriesUpdateInput {
 
 input SeriesWhere {
   AND: [SeriesWhere!]
+  NOT: SeriesWhere
   OR: [SeriesWhere!]
   episodes: Int
   episodes_GT: Int
@@ -496,17 +509,17 @@ input SeriesWhere {
   episodes_IN: [Int!]
   episodes_LT: Int
   episodes_LTE: Int
-  episodes_NOT: Int
-  episodes_NOT_IN: [Int!]
+  episodes_NOT: Int @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  episodes_NOT_IN: [Int!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   title: String
   title_CONTAINS: String
   title_ENDS_WITH: String
   title_IN: [String!]
-  title_NOT: String
-  title_NOT_CONTAINS: String
-  title_NOT_ENDS_WITH: String
-  title_NOT_IN: [String!]
-  title_NOT_STARTS_WITH: String
+  title_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   title_STARTS_WITH: String
 }
 

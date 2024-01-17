@@ -6,13 +6,13 @@ import graphql.schema.DataFetchingEnvironment
 import org.neo4j.cypherdsl.core.Statement
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
-import org.neo4j.graphql.domain.directives.ExcludeDirective
-import org.neo4j.graphql.schema.model.inputs.WhereInput
-import org.neo4j.graphql.schema.model.inputs.options.SortInput
-import org.neo4j.graphql.schema.model.outputs.root_connection.RootNodeConnectionSelection
 import org.neo4j.graphql.handler.BaseDataFetcher
 import org.neo4j.graphql.schema.AugmentationContext
 import org.neo4j.graphql.schema.AugmentationHandler
+import org.neo4j.graphql.schema.model.inputs.WhereInput
+import org.neo4j.graphql.schema.model.inputs.filter.FulltextInput
+import org.neo4j.graphql.schema.model.inputs.options.SortInput
+import org.neo4j.graphql.schema.model.outputs.root_connection.RootNodeConnectionSelection
 
 /**
  * This class handles all the logic related to the querying of nodes.
@@ -23,15 +23,18 @@ class ConnectionResolver private constructor(
     val node: Node
 ) : BaseDataFetcher(schemaConfig) {
 
-    class Factory(ctx: AugmentationContext) : AugmentationHandler(ctx) {
+    class Factory(ctx: AugmentationContext) : AugmentationHandler(ctx), AugmentationHandler.NodeAugmentation {
 
         override fun augmentNode(node: Node): List<AugmentedField> {
-            if (!node.isOperationAllowed(ExcludeDirective.ExcludeOperation.READ)) {
+            if (node.annotations.query?.read == false) {
                 return emptyList()
             }
             val nodeConnectionType = RootNodeConnectionSelection.Augmentation.generateNodeConnectionOT(node, ctx)
             val coordinates =
-                addQueryField(node.rootTypeFieldNames.connection, nodeConnectionType.asRequiredType()) { args ->
+                addQueryField(
+                    node.operations.rootTypeFieldNames.connection,
+                    nodeConnectionType.asRequiredType()
+                ) { args ->
                     WhereInput.NodeWhereInput.Augmentation
                         .generateWhereIT(node, ctx)
                         ?.let { args += inputValue(Constants.WHERE, it.asType()) }
@@ -42,6 +45,15 @@ class ConnectionResolver private constructor(
 
                     args += inputValue(Constants.FIRST, Constants.Types.Int)
                     args += inputValue(Constants.AFTER, Constants.Types.String)
+
+                    if (node.annotations.fulltext != null) {
+                        FulltextInput.Augmentation.generateFulltextInput(node, ctx)
+                            ?.let {
+                                args += inputValue(Constants.FULLTEXT, it.asType()) {
+                                    description("Query a full-text index. Allows for the aggregation of results, but does not return the query score. Use the root full-text query fields if you require the score.".asDescription())
+                                }
+                            }
+                    }
                 }
             return AugmentedField(coordinates, ConnectionResolver(ctx.schemaConfig, node)).wrapList()
         }

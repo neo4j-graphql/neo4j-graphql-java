@@ -11,8 +11,8 @@ type Movie {
   actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN)
   actorsCount: Int! @cypher(statement: """
   MATCH (this)<-[:ACTED_IN]-(ac:Person)
-  RETURN count(ac)
-  """)
+  RETURN count(ac) as res
+  """, columnName: "res")
 }
 
 type Person {
@@ -23,16 +23,6 @@ type Person {
 type Genre {
   name: String!
   movies: [Movie!]! @relationship(type: "IS_GENRE", direction: IN)
-}
-----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{
-  "enableRegex": true
 }
 ----
 == order in connections with custom cypher
@@ -57,12 +47,7 @@ type Genre {
 .Expected Cypher params
 [source,json]
 ----
-{
-  "auth" : {
-    "isAuthenticated" : false,
-    "roles" : [ ]
-  }
-}
+{}
 ----
 
 .Expected Cypher output
@@ -70,41 +55,32 @@ type Genre {
 ----
 MATCH (this:Genre)
 CALL {
-	WITH this
-	MATCH (this)<-[this_connection_moviesConnectionthis0:IS_GENRE]-(this_Movie:Movie)
-	WITH this_connection_moviesConnectionthis0, this_Movie ORDER BY this_Movie.actorsCount DESC
-	CALL {
-		WITH this_Movie
-		UNWIND apoc.cypher.runFirstColumnSingle('MATCH (this)<-[:ACTED_IN]-(ac:Person)
-        RETURN count(ac)', {
-			this: this_Movie,
-			auth: $auth
-		}) AS this_Movie_actorsCount
-		RETURN head(collect(this_Movie_actorsCount)) AS this_Movie_actorsCount
-	}
-	WITH {
-		node: {
-			title: this_Movie.title,
-			actorsCount: this_Movie_actorsCount
-		}
-	} AS edge
-	WITH collect(edge) AS edges
-	WITH edges, size(edges) AS totalCount
-	CALL {
-		WITH edges
-		UNWIND edges AS edge
-		WITH edge ORDER BY edge.node.actorsCount DESC
-		RETURN collect(edge) AS this_connection_moviesConnectionvar1
-	}
-	WITH this_connection_moviesConnectionvar1 AS edges, totalCount
-	RETURN {
-		edges: edges,
-		totalCount: totalCount
-	} AS this_moviesConnection
+    WITH this
+    MATCH (this)<-[this0:IS_GENRE]-(this1:Movie)
+    WITH collect({ node: this1, relationship: this0 }) AS edges
+    WITH edges, size(edges) AS totalCount
+    CALL {
+        WITH edges
+        UNWIND edges AS edge
+        WITH edge.node AS this1, edge.relationship AS this0
+        CALL {
+            WITH this1
+            CALL {
+                WITH this1
+                WITH this1 AS this
+                MATCH (this)<-[:ACTED_IN]-(ac:Person)
+                RETURN count(ac) as res
+            }
+            UNWIND res AS this2
+            RETURN head(collect(this2)) AS this2
+        }
+        WITH *
+        ORDER BY this2 DESC
+        RETURN collect({ node: { title: this1.title, actorsCount: this2 } }) AS var3
+    }
+    RETURN { edges: var3, totalCount: totalCount } AS var4
 }
-RETURN this {
-	moviesConnection: this_moviesConnection
-} AS this
+RETURN this { moviesConnection: var4 } AS this
 ----
 
 '''

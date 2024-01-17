@@ -7,6 +7,7 @@ import graphql.schema.idl.ScalarInfo.GRAPHQL_SPECIFICATION_SCALARS_DEFINITIONS
 import graphql.schema.idl.SchemaGenerator
 import graphql.schema.idl.SchemaParser
 import graphql.schema.idl.TypeDefinitionRegistry
+import org.neo4j.graphql.domain.Interface
 import org.neo4j.graphql.domain.Model
 import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.handler.v2.*
@@ -88,8 +89,6 @@ class SchemaBuilder(
     private val ctx = AugmentationContext(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry)
 
     init {
-        ensureRootQueryTypeExists(typeDefinitionRegistry)
-
         handler = mutableListOf(
             AggregateResolver.Factory(ctx),
             CreateResolver.Factory(ctx),
@@ -98,6 +97,8 @@ class SchemaBuilder(
             UpdateResolver.Factory(ctx),
             ConnectionResolver.Factory(ctx),
             FulltextResolver.Factory(ctx),
+            SubscriptionResolver.Factory(ctx),
+            GlobalNodeResolver.Factory(ctx),
         )
     }
 
@@ -119,16 +120,22 @@ class SchemaBuilder(
                 ?.let { typeDefinitionRegistry.remove(it) }
         }
 
-        augmentedFields += model.nodes.flatMap { node ->
-            handler.flatMap { h -> h.augmentNode(node) }
-        }
+        augmentedFields += handler.filterIsInstance<AugmentationHandler.NodeAugmentation>()
+            .flatMap { h -> model.nodes.flatMap(h::augmentNode) }
+        augmentedFields += handler.filterIsInstance<AugmentationHandler.EntityAugmentation>()
+            .flatMap { h -> model.entities.flatMap(h::augmentEntity) }
+        augmentedFields += handler.filterIsInstance<AugmentationHandler.ModelAugmentation>()
+            .flatMap { h -> h.augmentModel(model) }
 
         removeLibraryDirectivesFromInterfaces()
+        removeLibraryDirectivesFromUnions()
         removeLibraryDirectivesFromRootTypes()
+        removeLibraryDirectivesFromSchemaTypes()
 
         ensureAllReferencedNodesExists(model)
         ensureAllReferencedInterfacesExists(model)
         ensureReferencedLibraryTypesExists()
+        ensureRootQueryTypeExists()
     }
 
     private fun ensureReferencedLibraryTypesExists() {
@@ -144,7 +151,8 @@ class SchemaBuilder(
             .flatMap { typeDefinition ->
                 when (typeDefinition) {
                     is ImplementingTypeDefinition -> typeDefinition.fieldDefinitions
-                        .flatMap { fieldDefinition -> fieldDefinition.inputValueDefinitions.map { it.type } + fieldDefinition.type }
+                        .flatMap { fieldDefinition -> fieldDefinition.inputValueDefinitions.map { it.type } + fieldDefinition.type } +
+                            typeDefinition.implements
 
                     is InputObjectTypeDefinition -> typeDefinition.inputValueDefinitions.map { it.type }
                     else -> emptyList()
@@ -162,7 +170,9 @@ class SchemaBuilder(
         model.nodes
             .flatMap { node ->
                 node.interfaces +
-                        node.fields.filterIsInstance<RelationField>().mapNotNull { it.interfaze } +
+                        node.fields.filterIsInstance<RelationField>()
+                            .mapNotNull { it.target }
+                            .filterIsInstance<Interface>() +
                         node.interfaces.flatMap { it.interfaces }
             }
             .distinctBy { it.name }
@@ -180,8 +190,20 @@ class SchemaBuilder(
         }
     }
 
+    private fun removeLibraryDirectivesFromUnions() {
+        typeDefinitionRegistry.getTypes(UnionTypeDefinition::class.java).forEach { unionTypeDefinition ->
+            typeDefinitionRegistry.replace(unionTypeDefinition.transform { builder ->
+                builder.addNonLibDirectives(unionTypeDefinition)
+            })
+        }
+    }
+
     private fun removeLibraryDirectivesFromRootTypes() {
-        listOf(typeDefinitionRegistry.queryType(), typeDefinitionRegistry.mutationType())
+        listOf(
+            typeDefinitionRegistry.queryType(),
+            typeDefinitionRegistry.mutationType(),
+            typeDefinitionRegistry.subscriptionType(),
+        )
             .filterNotNull()
             .forEach { obj ->
                 typeDefinitionRegistry.replace(obj.transform { objBuilder ->
@@ -191,6 +213,21 @@ class SchemaBuilder(
                     })
                 })
             }
+    }
+
+    private fun removeLibraryDirectivesFromSchemaTypes() {
+        typeDefinitionRegistry.schemaExtensionDefinitions.forEach { obj ->
+            typeDefinitionRegistry.remove(obj)
+            typeDefinitionRegistry.add(obj.transformExtension { objBuilder ->
+                objBuilder.directives(obj.directives.filterNot { DirectiveConstants.LIB_DIRECTIVES.contains(it.name) })
+            })
+        }
+        typeDefinitionRegistry.schemaDefinition()?.unwrap()?.let { obj ->
+            typeDefinitionRegistry.replace(obj.transform { objBuilder ->
+                objBuilder.directives(obj.directives.filterNot { DirectiveConstants.LIB_DIRECTIVES.contains(it.name) })
+
+            })
+        }
     }
 
     private fun ensureAllReferencedNodesExists(model: Model) {
@@ -320,30 +357,38 @@ class SchemaBuilder(
             }
     }
 
-    private fun ensureRootQueryTypeExists(enhancedRegistry: TypeDefinitionRegistry) {
-        var schemaDefinition = enhancedRegistry.schemaDefinition().orElse(null)
-        if (schemaDefinition?.operationTypeDefinitions?.find { it.name == "query" } != null) {
+    private fun ensureRootQueryTypeExists() {
+        if (typeDefinitionRegistry.queryType() != null) {
             return
         }
+        typeDefinitionRegistry.add(
+            ObjectTypeDefinition.newObjectTypeDefinition().name("Query")
+                .fieldDefinition(
+                    FieldDefinition
+                        .newFieldDefinition()
+                        .name("_empty")
+                        .type(Constants.Types.Boolean)
+                        .build()
+                ).build()
+        )
 
-        enhancedRegistry.add(ObjectTypeDefinition.newObjectTypeDefinition().name("Query").build())
+//        var schemaDefinition = typeDefinitionRegistry.schemaDefinition().unwrap()
+//        if (schemaDefinition != null) {
+//            // otherwise, adding a transform schema would fail
+//            typeDefinitionRegistry.remove(schemaDefinition)
+//        } else {
+//            schemaDefinition = SchemaDefinition.newSchemaDefinition().build()
+//        }
 
-        if (schemaDefinition != null) {
-            // otherwise, adding a transform schema would fail
-            enhancedRegistry.remove(schemaDefinition)
-        } else {
-            schemaDefinition = SchemaDefinition.newSchemaDefinition().build()
-        }
-
-        enhancedRegistry.add(schemaDefinition.transform {
-            it.operationTypeDefinition(
-                OperationTypeDefinition
-                    .newOperationTypeDefinition()
-                    .name("query")
-                    .typeName(TypeName("Query"))
-                    .build()
-            )
-        })
+//        typeDefinitionRegistry.add(schemaDefinition!!.transform {
+//            it.operationTypeDefinition(
+//                OperationTypeDefinition
+//                    .newOperationTypeDefinition()
+//                    .name("query")
+//                    .typeName(TypeName("Query"))
+//                    .build()
+//            )
+//        })
     }
 
     private fun getNeo4jEnhancements(): TypeDefinitionRegistry {

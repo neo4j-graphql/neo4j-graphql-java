@@ -13,14 +13,14 @@ interface SourceInterface {
 }
 
 type Source implements SourceInterface {
-  id: ID @id
+  id: ID @id @unique
   targets: [Target!]!
   target1: Target!
   target2: Target
 }
 
 type Target {
-  id: ID @id
+  id: ID @id @unique
 }
 ----
 
@@ -43,8 +43,9 @@ interface SourceInterface {
   targetsConnection(after: String, directed: Boolean = true, first: Int, sort: [SourceInterfaceTargetsConnectionSort!], where: SourceInterfaceTargetsConnectionWhere): SourceInterfaceTargetsConnection!
 }
 
+"Information about the number of nodes and relationships created during a create mutation"
 type CreateInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   relationshipsCreated: Int!
 }
@@ -59,8 +60,9 @@ type CreateTargetsMutationResponse {
   targets: [Target!]!
 }
 
+"Information about the number of nodes and relationships deleted during a delete mutation"
 type DeleteInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesDeleted: Int!
   relationshipsDeleted: Int!
 }
@@ -205,8 +207,9 @@ type TargetsConnection {
   totalCount: Int!
 }
 
+"Information about the number of nodes and relationships created and deleted during an update mutation"
 type UpdateInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   nodesDeleted: Int!
   relationshipsCreated: Int!
@@ -223,6 +226,7 @@ type UpdateTargetsMutationResponse {
   targets: [Target!]!
 }
 
+"An enum for sorting in either ascending or descending order."
 enum SortDirection {
   "Sort by field values in ascending order."
   ASC
@@ -261,11 +265,18 @@ input SourceDisconnectInput {
 }
 
 input SourceInterfaceTarget1ConnectFieldInput {
+  "Whether or not to overwrite any matching relationship with the new properties."
+  overwrite: Boolean! = true
   where: TargetConnectWhere
 }
 
 input SourceInterfaceTarget1ConnectOrCreateFieldInput {
+  onCreate: SourceInterfaceTarget1ConnectOrCreateFieldInputOnCreate!
   where: TargetConnectOrCreateWhere!
+}
+
+input SourceInterfaceTarget1ConnectOrCreateFieldInputOnCreate {
+  node: TargetOnCreateInput!
 }
 
 input SourceInterfaceTarget1ConnectionSort {
@@ -274,9 +285,10 @@ input SourceInterfaceTarget1ConnectionSort {
 
 input SourceInterfaceTarget1ConnectionWhere {
   AND: [SourceInterfaceTarget1ConnectionWhere!]
+  NOT: SourceInterfaceTarget1ConnectionWhere
   OR: [SourceInterfaceTarget1ConnectionWhere!]
   node: TargetWhere
-  node_NOT: TargetWhere
+  node_NOT: TargetWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input SourceInterfaceTarget1CreateFieldInput {
@@ -312,11 +324,18 @@ input SourceInterfaceTarget1UpdateFieldInput {
 }
 
 input SourceInterfaceTarget2ConnectFieldInput {
+  "Whether or not to overwrite any matching relationship with the new properties."
+  overwrite: Boolean! = true
   where: TargetConnectWhere
 }
 
 input SourceInterfaceTarget2ConnectOrCreateFieldInput {
+  onCreate: SourceInterfaceTarget2ConnectOrCreateFieldInputOnCreate!
   where: TargetConnectOrCreateWhere!
+}
+
+input SourceInterfaceTarget2ConnectOrCreateFieldInputOnCreate {
+  node: TargetOnCreateInput!
 }
 
 input SourceInterfaceTarget2ConnectionSort {
@@ -325,9 +344,10 @@ input SourceInterfaceTarget2ConnectionSort {
 
 input SourceInterfaceTarget2ConnectionWhere {
   AND: [SourceInterfaceTarget2ConnectionWhere!]
+  NOT: SourceInterfaceTarget2ConnectionWhere
   OR: [SourceInterfaceTarget2ConnectionWhere!]
   node: TargetWhere
-  node_NOT: TargetWhere
+  node_NOT: TargetWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input SourceInterfaceTarget2CreateFieldInput {
@@ -363,11 +383,18 @@ input SourceInterfaceTarget2UpdateFieldInput {
 }
 
 input SourceInterfaceTargetsConnectFieldInput {
+  "Whether or not to overwrite any matching relationship with the new properties."
+  overwrite: Boolean! = true
   where: TargetConnectWhere
 }
 
 input SourceInterfaceTargetsConnectOrCreateFieldInput {
+  onCreate: SourceInterfaceTargetsConnectOrCreateFieldInputOnCreate!
   where: TargetConnectOrCreateWhere!
+}
+
+input SourceInterfaceTargetsConnectOrCreateFieldInputOnCreate {
+  node: TargetOnCreateInput!
 }
 
 input SourceInterfaceTargetsConnectionSort {
@@ -376,9 +403,10 @@ input SourceInterfaceTargetsConnectionSort {
 
 input SourceInterfaceTargetsConnectionWhere {
   AND: [SourceInterfaceTargetsConnectionWhere!]
+  NOT: SourceInterfaceTargetsConnectionWhere
   OR: [SourceInterfaceTargetsConnectionWhere!]
   node: TargetWhere
-  node_NOT: TargetWhere
+  node_NOT: TargetWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input SourceInterfaceTargetsCreateFieldInput {
@@ -433,6 +461,7 @@ input SourceSort {
 
 input SourceTarget1AggregateInput {
   AND: [SourceTarget1AggregateInput!]
+  NOT: SourceTarget1AggregateInput
   OR: [SourceTarget1AggregateInput!]
   count: Int
   count_GT: Int
@@ -444,12 +473,14 @@ input SourceTarget1AggregateInput {
 
 input SourceTarget1NodeAggregationWhereInput {
   AND: [SourceTarget1NodeAggregationWhereInput!]
+  NOT: SourceTarget1NodeAggregationWhereInput
   OR: [SourceTarget1NodeAggregationWhereInput!]
-  id_EQUAL: ID
+  id_EQUAL: ID @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
 }
 
 input SourceTarget2AggregateInput {
   AND: [SourceTarget2AggregateInput!]
+  NOT: SourceTarget2AggregateInput
   OR: [SourceTarget2AggregateInput!]
   count: Int
   count_GT: Int
@@ -461,12 +492,14 @@ input SourceTarget2AggregateInput {
 
 input SourceTarget2NodeAggregationWhereInput {
   AND: [SourceTarget2NodeAggregationWhereInput!]
+  NOT: SourceTarget2NodeAggregationWhereInput
   OR: [SourceTarget2NodeAggregationWhereInput!]
-  id_EQUAL: ID
+  id_EQUAL: ID @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
 }
 
 input SourceTargetsAggregateInput {
   AND: [SourceTargetsAggregateInput!]
+  NOT: SourceTargetsAggregateInput
   OR: [SourceTargetsAggregateInput!]
   count: Int
   count_GT: Int
@@ -478,8 +511,9 @@ input SourceTargetsAggregateInput {
 
 input SourceTargetsNodeAggregationWhereInput {
   AND: [SourceTargetsNodeAggregationWhereInput!]
+  NOT: SourceTargetsNodeAggregationWhereInput
   OR: [SourceTargetsNodeAggregationWhereInput!]
-  id_EQUAL: ID
+  id_EQUAL: ID @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
 }
 
 input SourceUpdateInput {
@@ -490,16 +524,17 @@ input SourceUpdateInput {
 
 input SourceWhere {
   AND: [SourceWhere!]
+  NOT: SourceWhere
   OR: [SourceWhere!]
   id: ID
   id_CONTAINS: ID
   id_ENDS_WITH: ID
   id_IN: [ID]
-  id_NOT: ID
-  id_NOT_CONTAINS: ID
-  id_NOT_ENDS_WITH: ID
-  id_NOT_IN: [ID]
-  id_NOT_STARTS_WITH: ID
+  id_NOT: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_CONTAINS: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_ENDS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_IN: [ID] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_STARTS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id_STARTS_WITH: ID
   target1: TargetWhere
   target1Aggregate: SourceTarget1AggregateInput
@@ -514,10 +549,14 @@ input SourceWhere {
   targets: TargetWhere @deprecated(reason : "Use `targets_SOME` instead.")
   targetsAggregate: SourceTargetsAggregateInput
   targetsConnection: SourceInterfaceTargetsConnectionWhere @deprecated(reason : "Use `targetsConnection_SOME` instead.")
+  "Return Sources where all of the related SourceInterfaceTargetsConnections match this filter"
   targetsConnection_ALL: SourceInterfaceTargetsConnectionWhere
+  "Return Sources where none of the related SourceInterfaceTargetsConnections match this filter"
   targetsConnection_NONE: SourceInterfaceTargetsConnectionWhere
   targetsConnection_NOT: SourceInterfaceTargetsConnectionWhere @deprecated(reason : "Use `targetsConnection_NONE` instead.")
+  "Return Sources where one of the related SourceInterfaceTargetsConnections match this filter"
   targetsConnection_SINGLE: SourceInterfaceTargetsConnectionWhere
+  "Return Sources where some of the related SourceInterfaceTargetsConnections match this filter"
   targetsConnection_SOME: SourceInterfaceTargetsConnectionWhere
   "Return Sources where all of the related Targets match this filter"
   targets_ALL: TargetWhere
@@ -539,6 +578,11 @@ input TargetConnectWhere {
 }
 
 input TargetCreateInput {
+  "Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/"
+  _emptyInput: Boolean
+}
+
+input TargetOnCreateInput {
   "Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/"
   _emptyInput: Boolean
 }
@@ -566,16 +610,17 @@ input TargetUpdateInput {
 
 input TargetWhere {
   AND: [TargetWhere!]
+  NOT: TargetWhere
   OR: [TargetWhere!]
   id: ID
   id_CONTAINS: ID
   id_ENDS_WITH: ID
   id_IN: [ID]
-  id_NOT: ID
-  id_NOT_CONTAINS: ID
-  id_NOT_ENDS_WITH: ID
-  id_NOT_IN: [ID]
-  id_NOT_STARTS_WITH: ID
+  id_NOT: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_CONTAINS: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_ENDS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_IN: [ID] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_STARTS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id_STARTS_WITH: ID
 }
 

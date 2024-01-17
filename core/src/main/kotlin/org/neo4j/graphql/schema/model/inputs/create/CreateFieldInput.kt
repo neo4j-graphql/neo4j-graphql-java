@@ -46,20 +46,30 @@ sealed interface CreateFieldInput {
                 prefix: String,
                 node: Node,
                 ctx: AugmentationContext
-            ) =
-                ctx.getOrCreateInputObjectType("${prefix}${Constants.InputTypeSuffix.FieldInput}") { fields, _ ->
-                    RelationFieldInput.NodeCreateCreateFieldInput.Augmentation
-                        .generateFieldCreateFieldInputIT(rel, prefix, node, ctx)
-                        ?.let { fields += inputValue(Constants.CREATE_FIELD, it.wrapType(rel)) }
-
-                    NodeConnectFieldInput.Augmentation
-                        .generateFieldConnectFieldInputIT(rel, prefix, node, ctx)
-                        ?.let { fields += inputValue(Constants.CONNECT_FIELD, it.wrapType(rel)) }
-
-                    ConnectOrCreateFieldInput.NodeConnectOrCreateFieldInput.Augmentation
-                        .generateFieldConnectOrCreateIT(rel, prefix, node, ctx)
-                        ?.let { fields += inputValue(Constants.CONNECT_OR_CREATE_FIELD, it.wrapType(rel)) }
+            ): String? {
+                if (!rel.shouldGenerateFieldInputType(node)) {
+                    return null
                 }
+                return ctx.getOrCreateInputObjectType("${prefix}${Constants.InputTypeSuffix.FieldInput}") { fields, _ ->
+                    if (rel.annotations.relationship?.isCreateAllowed != false) {
+                        NodeCreateCreateFieldInput.Augmentation
+                            .generateFieldCreateFieldInputIT(rel, prefix, node, ctx)
+                            ?.let { fields += inputValue(Constants.CREATE_FIELD, it.wrapType(rel)) }
+                    }
+
+                    if (rel.annotations.relationship?.isConnectAllowed != false) {
+                        NodeConnectFieldInput.Augmentation
+                            .generateFieldConnectFieldInputIT(rel, prefix, node, ctx)
+                            ?.let { fields += inputValue(Constants.CONNECT_FIELD, it.wrapType(rel)) }
+                    }
+
+                    if (rel.annotations.relationship?.isConnectOrCreateAllowed != false) {
+                        ConnectOrCreateFieldInput.NodeConnectOrCreateFieldInput.Augmentation
+                            .generateFieldConnectOrCreateIT(rel, prefix, node, ctx)
+                            ?.let { fields += inputValue(Constants.CONNECT_OR_CREATE_FIELD, it.wrapType(rel)) }
+                    }
+                }
+            }
         }
     }
 
@@ -80,17 +90,26 @@ sealed interface CreateFieldInput {
                 prefix: String,
                 interfaze: Interface,
                 ctx: AugmentationContext
-            ) = ctx.getOrCreateInputObjectType("${prefix}${Constants.InputTypeSuffix.FieldInput}") { fields, _ ->
+            ): String? {
+                if (!rel.shouldGenerateFieldInputType(interfaze)) {
+                    return null
+                }
+                return ctx.getOrCreateInputObjectType("${prefix}${Constants.InputTypeSuffix.FieldInput}") { fields, _ ->
 
-                RelationFieldInput.InterfaceCreateFieldInput.Augmentation
-                    .generateFieldRelationCreateIT(rel, prefix, interfaze, ctx)
-                    ?.let {
-                        fields += inputValue(Constants.CREATE_FIELD, it.wrapType(rel))
+                    if (rel.annotations.relationship?.isCreateAllowed != false) {
+                        InterfaceCreateFieldInput.Augmentation
+                            .generateFieldRelationCreateIT(rel, prefix, interfaze, ctx)
+                            ?.let {
+                                fields += inputValue(Constants.CREATE_FIELD, it.wrapType(rel))
+                            }
                     }
 
-                InterfaceConnectFieldInput.Augmentation
-                    .generateFieldConnectIT(rel, prefix, interfaze, ctx)
-                    ?.let { fields += inputValue(Constants.CONNECT_FIELD, it.wrapType(rel)) }
+                    if (rel.annotations.relationship?.isConnectAllowed != false) {
+                        InterfaceConnectFieldInput.Augmentation
+                            .generateFieldConnectIT(rel, prefix, interfaze, ctx)
+                            ?.let { fields += inputValue(Constants.CONNECT_FIELD, it.wrapType(rel)) }
+                    }
+                }
             }
 
         }

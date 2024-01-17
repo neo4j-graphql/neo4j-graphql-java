@@ -96,7 +96,7 @@ class CreateTranslator(
         val refNodes = if (value is CreateFieldInput.UnionFieldInput) {
             value.dataPerNode.keys
         } else if (field.interfaze != null) {
-            field.interfaze.implementations.values
+            field.interfaze!!.implementations.values
         } else {
             listOf(field.node ?: throw IllegalStateException("missing node for ${node.name}.$fieldName"))
         }

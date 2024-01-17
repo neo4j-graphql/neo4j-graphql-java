@@ -7,20 +7,12 @@
 [source,graphql,schema=true]
 ----
 type Movie {
-  title: String!
+  title: String
+  testId: ID
 }
 ----
 
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{
-  "enableRegex": true
-}
-----
-== Max
+== Longest
 
 .GraphQL-Query
 [source,graphql]
@@ -37,23 +29,25 @@ type Movie {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-RETURN {
-	title: {
-		longest: reduce(aggVar = collect(this.title)[0], current IN collect(this.title) | CASE WHEN size(current) > size(aggVar) THEN current ELSE aggVar END)
-	}
+CALL {
+    MATCH (this:Movie)
+    WITH this
+    ORDER BY size(this.title) DESC
+    WITH collect(this.title) AS list
+    RETURN { longest: head(list) } AS var0
 }
+RETURN { title: var0 }
 ----
 
 '''
 
-== Min
+== Shortest
 
 .GraphQL-Query
 [source,graphql]
@@ -70,23 +64,25 @@ RETURN {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-RETURN {
-	title: {
-		shortest: reduce(aggVar = collect(this.title)[0], current IN collect(this.title) | CASE WHEN size(current) < size(aggVar) THEN current ELSE aggVar END)
-	}
+CALL {
+    MATCH (this:Movie)
+    WITH this
+    ORDER BY size(this.title) DESC
+    WITH collect(this.title) AS list
+    RETURN { shortest: last(list) } AS var0
 }
+RETURN { title: var0 }
 ----
 
 '''
 
-== Min and Max
+== Shortest and longest
 
 .GraphQL-Query
 [source,graphql]
@@ -104,19 +100,58 @@ RETURN {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-RETURN {
-	title: {
-		shortest: reduce(aggVar = collect(this.title)[0], current IN collect(this.title) | CASE WHEN size(current) < size(aggVar) THEN current ELSE aggVar END),
-		longest: reduce(aggVar = collect(this.title)[0], current IN collect(this.title) | CASE WHEN size(current) > size(aggVar) THEN current ELSE aggVar END)
-	}
+CALL {
+    MATCH (this:Movie)
+    WITH this
+    ORDER BY size(this.title) DESC
+    WITH collect(this.title) AS list
+    RETURN { longest: head(list), shortest: last(list) } AS var0
 }
+RETURN { title: var0 }
+----
+
+'''
+
+== Shortest with filter
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesAggregate(where: {testId: "10"}) {
+    title {
+      shortest
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "10"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+    MATCH (this:Movie)
+    WHERE this.testId = $param0
+    WITH this
+    ORDER BY size(this.title) DESC
+    WITH collect(this.title) AS list
+    RETURN { shortest: last(list) } AS var0
+}
+RETURN { title: var0 }
 ----
 
 '''

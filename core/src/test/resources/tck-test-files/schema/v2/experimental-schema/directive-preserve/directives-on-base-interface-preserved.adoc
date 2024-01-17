@@ -1,0 +1,972 @@
+:toc:
+
+= Directive-preserve -> Directives on base interface preserved
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+interface Production {
+  title: String!
+  actors: [Actor!]! @deprecated(reason: "Do not use")
+}
+
+type Movie implements Production {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN, properties: "ActedIn")
+  runtime: Int!
+}
+
+type Series implements Production {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN, properties: "ActedIn")
+  episodes: Int!
+}
+
+interface ActedIn @relationshipProperties {
+  role: String!
+}
+
+type Actor {
+  name: String!
+  actedIn: [Production!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+  "experimental": true
+}
+----
+
+== Augmented schema
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+interface ActedIn {
+  role: String!
+}
+
+interface Production {
+  actors: [Actor!]! @deprecated(reason : "Do not use")
+  title: String!
+}
+
+type Actor {
+  actedIn(directed: Boolean = true, options: ProductionOptions, where: ProductionWhere): [Production!]!
+  actedInAggregate(directed: Boolean = true, where: ProductionWhere): ActorProductionActedInAggregationSelection
+  actedInConnection(after: String, directed: Boolean = true, first: Int, sort: [ActorActedInConnectionSort!], where: ActorActedInConnectionWhere): ActorActedInConnection!
+  name: String!
+}
+
+type ActorActedInConnection {
+  edges: [ActorActedInRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ActorActedInRelationship implements ActedIn {
+  cursor: String!
+  node: Production!
+  role: String!
+}
+
+type ActorAggregateSelection {
+  count: Int!
+  name: StringAggregateSelectionNonNullable!
+}
+
+type ActorEdge {
+  cursor: String!
+  node: Actor!
+}
+
+type ActorProductionActedInAggregationSelection {
+  count: Int!
+  edge: ActorProductionActedInEdgeAggregateSelection
+  node: ActorProductionActedInNodeAggregateSelection
+}
+
+type ActorProductionActedInEdgeAggregateSelection {
+  role: StringAggregateSelectionNonNullable!
+}
+
+type ActorProductionActedInNodeAggregateSelection {
+  title: StringAggregateSelectionNonNullable!
+}
+
+type ActorsConnection {
+  edges: [ActorEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type CreateActorsMutationResponse {
+  actors: [Actor!]!
+  info: CreateInfo!
+}
+
+"Information about the number of nodes and relationships created during a create mutation"
+type CreateInfo {
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesCreated: Int!
+  relationshipsCreated: Int!
+}
+
+type CreateMoviesMutationResponse {
+  info: CreateInfo!
+  movies: [Movie!]!
+}
+
+type CreateSeriesMutationResponse {
+  info: CreateInfo!
+  series: [Series!]!
+}
+
+"Information about the number of nodes and relationships deleted during a delete mutation"
+type DeleteInfo {
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
+type IntAggregateSelectionNonNullable {
+  average: Float!
+  max: Int!
+  min: Int!
+  sum: Int!
+}
+
+type Movie implements Production {
+  actors(directed: Boolean = true, options: ActorOptions, where: ActorWhere): [Actor!]! @deprecated(reason : "Do not use")
+  actorsAggregate(directed: Boolean = true, where: ActorWhere): MovieActorActorsAggregationSelection @deprecated(reason : "Do not use")
+  actorsConnection(after: String, directed: Boolean = true, first: Int, sort: [ProductionActorsConnectionSort!], where: ProductionActorsConnectionWhere): ProductionActorsConnection! @deprecated(reason : "Do not use")
+  runtime: Int!
+  title: String!
+}
+
+type MovieActorActorsAggregationSelection {
+  count: Int!
+  edge: MovieActorActorsEdgeAggregateSelection
+  node: MovieActorActorsNodeAggregateSelection
+}
+
+type MovieActorActorsEdgeAggregateSelection {
+  role: StringAggregateSelectionNonNullable!
+}
+
+type MovieActorActorsNodeAggregateSelection {
+  name: StringAggregateSelectionNonNullable!
+}
+
+type MovieAggregateSelection {
+  count: Int!
+  runtime: IntAggregateSelectionNonNullable!
+  title: StringAggregateSelectionNonNullable!
+}
+
+type MovieEdge {
+  cursor: String!
+  node: Movie!
+}
+
+type MoviesConnection {
+  edges: [MovieEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Mutation {
+  createActors(input: [ActorCreateInput!]!): CreateActorsMutationResponse!
+  createMovies(input: [MovieCreateInput!]!): CreateMoviesMutationResponse!
+  createSeries(input: [SeriesCreateInput!]!): CreateSeriesMutationResponse!
+  deleteActors(delete: ActorDeleteInput, where: ActorWhere): DeleteInfo!
+  deleteMovies(delete: MovieDeleteInput, where: MovieWhere): DeleteInfo!
+  deleteSeries(delete: SeriesDeleteInput, where: SeriesWhere): DeleteInfo!
+  updateActors(connect: ActorConnectInput, create: ActorRelationInput, delete: ActorDeleteInput, disconnect: ActorDisconnectInput, update: ActorUpdateInput, where: ActorWhere): UpdateActorsMutationResponse!
+  updateMovies(connect: MovieConnectInput, create: MovieRelationInput, delete: MovieDeleteInput, disconnect: MovieDisconnectInput, update: MovieUpdateInput, where: MovieWhere): UpdateMoviesMutationResponse!
+  updateSeries(connect: SeriesConnectInput, create: SeriesRelationInput, delete: SeriesDeleteInput, disconnect: SeriesDisconnectInput, update: SeriesUpdateInput, where: SeriesWhere): UpdateSeriesMutationResponse!
+}
+
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type ProductionActorsConnection {
+  edges: [ProductionActorsRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ProductionActorsRelationship implements ActedIn {
+  cursor: String!
+  node: Actor!
+  role: String!
+}
+
+type ProductionAggregateSelection {
+  count: Int!
+  title: StringAggregateSelectionNonNullable!
+}
+
+type Query {
+  actors(options: ActorOptions, where: ActorWhere): [Actor!]!
+  actorsAggregate(where: ActorWhere): ActorAggregateSelection!
+  actorsConnection(after: String, first: Int, sort: [ActorSort], where: ActorWhere): ActorsConnection!
+  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
+  moviesAggregate(where: MovieWhere): MovieAggregateSelection!
+  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
+  productions(options: ProductionOptions, where: ProductionWhere): [Production!]!
+  productionsAggregate(where: ProductionWhere): ProductionAggregateSelection!
+  series(options: SeriesOptions, where: SeriesWhere): [Series!]!
+  seriesAggregate(where: SeriesWhere): SeriesAggregateSelection!
+  seriesConnection(after: String, first: Int, sort: [SeriesSort], where: SeriesWhere): SeriesConnection!
+}
+
+type Series implements Production {
+  actors(directed: Boolean = true, options: ActorOptions, where: ActorWhere): [Actor!]! @deprecated(reason : "Do not use")
+  actorsAggregate(directed: Boolean = true, where: ActorWhere): SeriesActorActorsAggregationSelection @deprecated(reason : "Do not use")
+  actorsConnection(after: String, directed: Boolean = true, first: Int, sort: [ProductionActorsConnectionSort!], where: ProductionActorsConnectionWhere): ProductionActorsConnection! @deprecated(reason : "Do not use")
+  episodes: Int!
+  title: String!
+}
+
+type SeriesActorActorsAggregationSelection {
+  count: Int!
+  edge: SeriesActorActorsEdgeAggregateSelection
+  node: SeriesActorActorsNodeAggregateSelection
+}
+
+type SeriesActorActorsEdgeAggregateSelection {
+  role: StringAggregateSelectionNonNullable!
+}
+
+type SeriesActorActorsNodeAggregateSelection {
+  name: StringAggregateSelectionNonNullable!
+}
+
+type SeriesAggregateSelection {
+  count: Int!
+  episodes: IntAggregateSelectionNonNullable!
+  title: StringAggregateSelectionNonNullable!
+}
+
+type SeriesConnection {
+  edges: [SeriesEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type SeriesEdge {
+  cursor: String!
+  node: Series!
+}
+
+type StringAggregateSelectionNonNullable {
+  longest: String!
+  shortest: String!
+}
+
+type UpdateActorsMutationResponse {
+  actors: [Actor!]!
+  info: UpdateInfo!
+}
+
+"Information about the number of nodes and relationships created and deleted during an update mutation"
+type UpdateInfo {
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesCreated: Int!
+  nodesDeleted: Int!
+  relationshipsCreated: Int!
+  relationshipsDeleted: Int!
+}
+
+type UpdateMoviesMutationResponse {
+  info: UpdateInfo!
+  movies: [Movie!]!
+}
+
+type UpdateSeriesMutationResponse {
+  info: UpdateInfo!
+  series: [Series!]!
+}
+
+enum ProductionImplementation {
+  Movie
+  Series
+}
+
+"An enum for sorting in either ascending or descending order."
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+input ActedInCreateInput {
+  role: String!
+}
+
+input ActedInSort {
+  role: SortDirection
+}
+
+input ActedInUpdateInput {
+  role: String
+}
+
+input ActedInWhere {
+  AND: [ActedInWhere!]
+  NOT: ActedInWhere
+  OR: [ActedInWhere!]
+  role: String
+  role_CONTAINS: String
+  role_ENDS_WITH: String
+  role_IN: [String!]
+  role_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  role_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  role_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  role_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  role_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  role_STARTS_WITH: String
+}
+
+input ActorActedInConnectFieldInput {
+  connect: ProductionConnectInput
+  edge: ActedInCreateInput!
+  where: ProductionConnectWhere
+}
+
+input ActorActedInConnectionSort {
+  edge: ActedInSort
+  node: ProductionSort
+}
+
+input ActorActedInConnectionWhere {
+  AND: [ActorActedInConnectionWhere!]
+  NOT: ActorActedInConnectionWhere
+  OR: [ActorActedInConnectionWhere!]
+  edge: ActedInWhere
+  edge_NOT: ActedInWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  node: ProductionWhere
+  node_NOT: ProductionWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+}
+
+input ActorActedInCreateFieldInput {
+  edge: ActedInCreateInput!
+  node: ProductionCreateInput!
+}
+
+input ActorActedInDeleteFieldInput {
+  delete: ProductionDeleteInput
+  where: ActorActedInConnectionWhere
+}
+
+input ActorActedInDisconnectFieldInput {
+  disconnect: ProductionDisconnectInput
+  where: ActorActedInConnectionWhere
+}
+
+input ActorActedInFieldInput {
+  connect: [ActorActedInConnectFieldInput!]
+  create: [ActorActedInCreateFieldInput!]
+}
+
+input ActorActedInUpdateConnectionInput {
+  edge: ActedInUpdateInput
+  node: ProductionUpdateInput
+}
+
+input ActorActedInUpdateFieldInput {
+  connect: [ActorActedInConnectFieldInput!]
+  create: [ActorActedInCreateFieldInput!]
+  delete: [ActorActedInDeleteFieldInput!]
+  disconnect: [ActorActedInDisconnectFieldInput!]
+  update: ActorActedInUpdateConnectionInput
+  where: ActorActedInConnectionWhere
+}
+
+input ActorConnectInput {
+  actedIn: [ActorActedInConnectFieldInput!]
+}
+
+input ActorConnectWhere {
+  node: ActorWhere!
+}
+
+input ActorCreateInput {
+  actedIn: ActorActedInFieldInput
+  name: String!
+}
+
+input ActorDeleteInput {
+  actedIn: [ActorActedInDeleteFieldInput!]
+}
+
+input ActorDisconnectInput {
+  actedIn: [ActorActedInDisconnectFieldInput!]
+}
+
+input ActorOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more ActorSort objects to sort Actors by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [ActorSort!]
+}
+
+input ActorRelationInput {
+  actedIn: [ActorActedInCreateFieldInput!]
+}
+
+"Fields to sort Actors by. The order in which sorts are applied is not guaranteed when specifying many fields in one ActorSort object."
+input ActorSort {
+  name: SortDirection
+}
+
+input ActorUpdateInput {
+  actedIn: [ActorActedInUpdateFieldInput!]
+  name: String
+}
+
+input ActorWhere {
+  AND: [ActorWhere!]
+  NOT: ActorWhere
+  OR: [ActorWhere!]
+  actedInConnection: ActorActedInConnectionWhere @deprecated(reason : "Use `actedInConnection_SOME` instead.")
+  "Return Actors where all of the related ActorActedInConnections match this filter"
+  actedInConnection_ALL: ActorActedInConnectionWhere
+  "Return Actors where none of the related ActorActedInConnections match this filter"
+  actedInConnection_NONE: ActorActedInConnectionWhere
+  actedInConnection_NOT: ActorActedInConnectionWhere @deprecated(reason : "Use `actedInConnection_NONE` instead.")
+  "Return Actors where one of the related ActorActedInConnections match this filter"
+  actedInConnection_SINGLE: ActorActedInConnectionWhere
+  "Return Actors where some of the related ActorActedInConnections match this filter"
+  actedInConnection_SOME: ActorActedInConnectionWhere
+  name: String
+  name_CONTAINS: String
+  name_ENDS_WITH: String
+  name_IN: [String!]
+  name_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_STARTS_WITH: String
+}
+
+input MovieActorsAggregateInput {
+  AND: [MovieActorsAggregateInput!]
+  NOT: MovieActorsAggregateInput
+  OR: [MovieActorsAggregateInput!]
+  count: Int
+  count_GT: Int
+  count_GTE: Int
+  count_LT: Int
+  count_LTE: Int
+  edge: MovieActorsEdgeAggregationWhereInput
+  node: MovieActorsNodeAggregationWhereInput
+}
+
+input MovieActorsEdgeAggregationWhereInput {
+  AND: [MovieActorsEdgeAggregationWhereInput!]
+  NOT: MovieActorsEdgeAggregationWhereInput
+  OR: [MovieActorsEdgeAggregationWhereInput!]
+  role_AVERAGE_EQUAL: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_AVERAGE_GT: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_AVERAGE_GTE: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_AVERAGE_LENGTH_EQUAL: Float
+  role_AVERAGE_LENGTH_GT: Float
+  role_AVERAGE_LENGTH_GTE: Float
+  role_AVERAGE_LENGTH_LT: Float
+  role_AVERAGE_LENGTH_LTE: Float
+  role_AVERAGE_LT: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_AVERAGE_LTE: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_EQUAL: String @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  role_GT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  role_GTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  role_LONGEST_EQUAL: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_LONGEST_GT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_LONGEST_GTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_LONGEST_LENGTH_EQUAL: Int
+  role_LONGEST_LENGTH_GT: Int
+  role_LONGEST_LENGTH_GTE: Int
+  role_LONGEST_LENGTH_LT: Int
+  role_LONGEST_LENGTH_LTE: Int
+  role_LONGEST_LT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_LONGEST_LTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_LT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  role_LTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  role_SHORTEST_EQUAL: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_SHORTEST_GT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_SHORTEST_GTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_SHORTEST_LENGTH_EQUAL: Int
+  role_SHORTEST_LENGTH_GT: Int
+  role_SHORTEST_LENGTH_GTE: Int
+  role_SHORTEST_LENGTH_LT: Int
+  role_SHORTEST_LENGTH_LTE: Int
+  role_SHORTEST_LT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_SHORTEST_LTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+}
+
+input MovieActorsNodeAggregationWhereInput {
+  AND: [MovieActorsNodeAggregationWhereInput!]
+  NOT: MovieActorsNodeAggregationWhereInput
+  OR: [MovieActorsNodeAggregationWhereInput!]
+  name_AVERAGE_EQUAL: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_AVERAGE_GT: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_AVERAGE_GTE: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_AVERAGE_LENGTH_EQUAL: Float
+  name_AVERAGE_LENGTH_GT: Float
+  name_AVERAGE_LENGTH_GTE: Float
+  name_AVERAGE_LENGTH_LT: Float
+  name_AVERAGE_LENGTH_LTE: Float
+  name_AVERAGE_LT: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_AVERAGE_LTE: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_EQUAL: String @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_GT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_GTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_LONGEST_EQUAL: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_LONGEST_GT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_LONGEST_GTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_LONGEST_LENGTH_EQUAL: Int
+  name_LONGEST_LENGTH_GT: Int
+  name_LONGEST_LENGTH_GTE: Int
+  name_LONGEST_LENGTH_LT: Int
+  name_LONGEST_LENGTH_LTE: Int
+  name_LONGEST_LT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_LONGEST_LTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_LT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_LTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_SHORTEST_EQUAL: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_SHORTEST_GT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_SHORTEST_GTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_SHORTEST_LENGTH_EQUAL: Int
+  name_SHORTEST_LENGTH_GT: Int
+  name_SHORTEST_LENGTH_GTE: Int
+  name_SHORTEST_LENGTH_LT: Int
+  name_SHORTEST_LENGTH_LTE: Int
+  name_SHORTEST_LT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_SHORTEST_LTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+}
+
+input MovieConnectInput {
+  actors: [ProductionActorsConnectFieldInput!] @deprecated(reason : "Do not use")
+}
+
+input MovieCreateInput {
+  actors: ProductionActorsFieldInput @deprecated(reason : "Do not use")
+  runtime: Int!
+  title: String!
+}
+
+input MovieDeleteInput {
+  actors: [ProductionActorsDeleteFieldInput!] @deprecated(reason : "Do not use")
+}
+
+input MovieDisconnectInput {
+  actors: [ProductionActorsDisconnectFieldInput!] @deprecated(reason : "Do not use")
+}
+
+input MovieOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [MovieSort!]
+}
+
+input MovieRelationInput {
+  actors: [ProductionActorsCreateFieldInput!] @deprecated(reason : "Do not use")
+}
+
+"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+input MovieSort {
+  runtime: SortDirection
+  title: SortDirection
+}
+
+input MovieUpdateInput {
+  actors: [ProductionActorsUpdateFieldInput!] @deprecated(reason : "Do not use")
+  runtime: Int
+  runtime_DECREMENT: Int
+  runtime_INCREMENT: Int
+  title: String
+}
+
+input MovieWhere {
+  AND: [MovieWhere!]
+  NOT: MovieWhere
+  OR: [MovieWhere!]
+  actors: ActorWhere @deprecated(reason : "Do not use")
+  actorsAggregate: MovieActorsAggregateInput @deprecated(reason : "Do not use")
+  actorsConnection: ProductionActorsConnectionWhere @deprecated(reason : "Do not use")
+  "Return Movies where all of the related ProductionActorsConnections match this filter"
+  actorsConnection_ALL: ProductionActorsConnectionWhere @deprecated(reason : "Do not use")
+  "Return Movies where none of the related ProductionActorsConnections match this filter"
+  actorsConnection_NONE: ProductionActorsConnectionWhere @deprecated(reason : "Do not use")
+  actorsConnection_NOT: ProductionActorsConnectionWhere @deprecated(reason : "Do not use")
+  "Return Movies where one of the related ProductionActorsConnections match this filter"
+  actorsConnection_SINGLE: ProductionActorsConnectionWhere @deprecated(reason : "Do not use")
+  "Return Movies where some of the related ProductionActorsConnections match this filter"
+  actorsConnection_SOME: ProductionActorsConnectionWhere @deprecated(reason : "Do not use")
+  "Return Movies where all of the related Actors match this filter"
+  actors_ALL: ActorWhere @deprecated(reason : "Do not use")
+  "Return Movies where none of the related Actors match this filter"
+  actors_NONE: ActorWhere @deprecated(reason : "Do not use")
+  actors_NOT: ActorWhere @deprecated(reason : "Do not use")
+  "Return Movies where one of the related Actors match this filter"
+  actors_SINGLE: ActorWhere @deprecated(reason : "Do not use")
+  "Return Movies where some of the related Actors match this filter"
+  actors_SOME: ActorWhere @deprecated(reason : "Do not use")
+  runtime: Int
+  runtime_GT: Int
+  runtime_GTE: Int
+  runtime_IN: [Int!]
+  runtime_LT: Int
+  runtime_LTE: Int
+  runtime_NOT: Int @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  runtime_NOT_IN: [Int!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title: String
+  title_CONTAINS: String
+  title_ENDS_WITH: String
+  title_IN: [String!]
+  title_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_STARTS_WITH: String
+}
+
+input ProductionActorsConnectFieldInput {
+  connect: [ActorConnectInput!]
+  edge: ActedInCreateInput!
+  "Whether or not to overwrite any matching relationship with the new properties."
+  overwrite: Boolean! = true
+  where: ActorConnectWhere
+}
+
+input ProductionActorsConnectionSort {
+  edge: ActedInSort
+  node: ActorSort
+}
+
+input ProductionActorsConnectionWhere {
+  AND: [ProductionActorsConnectionWhere!]
+  NOT: ProductionActorsConnectionWhere
+  OR: [ProductionActorsConnectionWhere!]
+  edge: ActedInWhere
+  edge_NOT: ActedInWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  node: ActorWhere
+  node_NOT: ActorWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+}
+
+input ProductionActorsCreateFieldInput {
+  edge: ActedInCreateInput!
+  node: ActorCreateInput!
+}
+
+input ProductionActorsDeleteFieldInput {
+  delete: ActorDeleteInput
+  where: ProductionActorsConnectionWhere
+}
+
+input ProductionActorsDisconnectFieldInput {
+  disconnect: ActorDisconnectInput
+  where: ProductionActorsConnectionWhere
+}
+
+input ProductionActorsFieldInput {
+  connect: [ProductionActorsConnectFieldInput!]
+  create: [ProductionActorsCreateFieldInput!]
+}
+
+input ProductionActorsUpdateConnectionInput {
+  edge: ActedInUpdateInput
+  node: ActorUpdateInput
+}
+
+input ProductionActorsUpdateFieldInput {
+  connect: [ProductionActorsConnectFieldInput!]
+  create: [ProductionActorsCreateFieldInput!]
+  delete: [ProductionActorsDeleteFieldInput!]
+  disconnect: [ProductionActorsDisconnectFieldInput!]
+  update: ProductionActorsUpdateConnectionInput
+  where: ProductionActorsConnectionWhere
+}
+
+input ProductionConnectInput {
+  _on: ProductionImplementationsConnectInput
+}
+
+input ProductionConnectWhere {
+  node: ProductionWhere!
+}
+
+input ProductionCreateInput {
+  Movie: MovieCreateInput
+  Series: SeriesCreateInput
+}
+
+input ProductionDeleteInput {
+  _on: ProductionImplementationsDeleteInput
+}
+
+input ProductionDisconnectInput {
+  _on: ProductionImplementationsDisconnectInput
+}
+
+input ProductionImplementationsConnectInput {
+  Movie: [MovieConnectInput!]
+  Series: [SeriesConnectInput!]
+}
+
+input ProductionImplementationsDeleteInput {
+  Movie: [MovieDeleteInput!]
+  Series: [SeriesDeleteInput!]
+}
+
+input ProductionImplementationsDisconnectInput {
+  Movie: [MovieDisconnectInput!]
+  Series: [SeriesDisconnectInput!]
+}
+
+input ProductionImplementationsUpdateInput {
+  Movie: MovieUpdateInput
+  Series: SeriesUpdateInput
+}
+
+input ProductionOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more ProductionSort objects to sort Productions by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [ProductionSort]
+}
+
+"Fields to sort Productions by. The order in which sorts are applied is not guaranteed when specifying many fields in one ProductionSort object."
+input ProductionSort {
+  title: SortDirection
+}
+
+input ProductionUpdateInput {
+  _on: ProductionImplementationsUpdateInput
+  title: String
+}
+
+input ProductionWhere {
+  AND: [ProductionWhere!]
+  NOT: ProductionWhere
+  OR: [ProductionWhere!]
+  title: String
+  title_CONTAINS: String
+  title_ENDS_WITH: String
+  title_IN: [String!]
+  title_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_STARTS_WITH: String
+  typename_IN: [ProductionImplementation!]
+}
+
+input SeriesActorsAggregateInput {
+  AND: [SeriesActorsAggregateInput!]
+  NOT: SeriesActorsAggregateInput
+  OR: [SeriesActorsAggregateInput!]
+  count: Int
+  count_GT: Int
+  count_GTE: Int
+  count_LT: Int
+  count_LTE: Int
+  edge: SeriesActorsEdgeAggregationWhereInput
+  node: SeriesActorsNodeAggregationWhereInput
+}
+
+input SeriesActorsEdgeAggregationWhereInput {
+  AND: [SeriesActorsEdgeAggregationWhereInput!]
+  NOT: SeriesActorsEdgeAggregationWhereInput
+  OR: [SeriesActorsEdgeAggregationWhereInput!]
+  role_AVERAGE_EQUAL: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_AVERAGE_GT: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_AVERAGE_GTE: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_AVERAGE_LENGTH_EQUAL: Float
+  role_AVERAGE_LENGTH_GT: Float
+  role_AVERAGE_LENGTH_GTE: Float
+  role_AVERAGE_LENGTH_LT: Float
+  role_AVERAGE_LENGTH_LTE: Float
+  role_AVERAGE_LT: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_AVERAGE_LTE: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_EQUAL: String @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  role_GT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  role_GTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  role_LONGEST_EQUAL: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_LONGEST_GT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_LONGEST_GTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_LONGEST_LENGTH_EQUAL: Int
+  role_LONGEST_LENGTH_GT: Int
+  role_LONGEST_LENGTH_GTE: Int
+  role_LONGEST_LENGTH_LT: Int
+  role_LONGEST_LENGTH_LTE: Int
+  role_LONGEST_LT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_LONGEST_LTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_LT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  role_LTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  role_SHORTEST_EQUAL: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_SHORTEST_GT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_SHORTEST_GTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_SHORTEST_LENGTH_EQUAL: Int
+  role_SHORTEST_LENGTH_GT: Int
+  role_SHORTEST_LENGTH_GTE: Int
+  role_SHORTEST_LENGTH_LT: Int
+  role_SHORTEST_LENGTH_LTE: Int
+  role_SHORTEST_LT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_SHORTEST_LTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+}
+
+input SeriesActorsNodeAggregationWhereInput {
+  AND: [SeriesActorsNodeAggregationWhereInput!]
+  NOT: SeriesActorsNodeAggregationWhereInput
+  OR: [SeriesActorsNodeAggregationWhereInput!]
+  name_AVERAGE_EQUAL: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_AVERAGE_GT: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_AVERAGE_GTE: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_AVERAGE_LENGTH_EQUAL: Float
+  name_AVERAGE_LENGTH_GT: Float
+  name_AVERAGE_LENGTH_GTE: Float
+  name_AVERAGE_LENGTH_LT: Float
+  name_AVERAGE_LENGTH_LTE: Float
+  name_AVERAGE_LT: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_AVERAGE_LTE: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_EQUAL: String @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_GT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_GTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_LONGEST_EQUAL: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_LONGEST_GT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_LONGEST_GTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_LONGEST_LENGTH_EQUAL: Int
+  name_LONGEST_LENGTH_GT: Int
+  name_LONGEST_LENGTH_GTE: Int
+  name_LONGEST_LENGTH_LT: Int
+  name_LONGEST_LENGTH_LTE: Int
+  name_LONGEST_LT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_LONGEST_LTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_LT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_LTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_SHORTEST_EQUAL: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_SHORTEST_GT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_SHORTEST_GTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_SHORTEST_LENGTH_EQUAL: Int
+  name_SHORTEST_LENGTH_GT: Int
+  name_SHORTEST_LENGTH_GTE: Int
+  name_SHORTEST_LENGTH_LT: Int
+  name_SHORTEST_LENGTH_LTE: Int
+  name_SHORTEST_LT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_SHORTEST_LTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+}
+
+input SeriesConnectInput {
+  actors: [ProductionActorsConnectFieldInput!] @deprecated(reason : "Do not use")
+}
+
+input SeriesCreateInput {
+  actors: ProductionActorsFieldInput @deprecated(reason : "Do not use")
+  episodes: Int!
+  title: String!
+}
+
+input SeriesDeleteInput {
+  actors: [ProductionActorsDeleteFieldInput!] @deprecated(reason : "Do not use")
+}
+
+input SeriesDisconnectInput {
+  actors: [ProductionActorsDisconnectFieldInput!] @deprecated(reason : "Do not use")
+}
+
+input SeriesOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more SeriesSort objects to sort Series by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [SeriesSort!]
+}
+
+input SeriesRelationInput {
+  actors: [ProductionActorsCreateFieldInput!] @deprecated(reason : "Do not use")
+}
+
+"Fields to sort Series by. The order in which sorts are applied is not guaranteed when specifying many fields in one SeriesSort object."
+input SeriesSort {
+  episodes: SortDirection
+  title: SortDirection
+}
+
+input SeriesUpdateInput {
+  actors: [ProductionActorsUpdateFieldInput!] @deprecated(reason : "Do not use")
+  episodes: Int
+  episodes_DECREMENT: Int
+  episodes_INCREMENT: Int
+  title: String
+}
+
+input SeriesWhere {
+  AND: [SeriesWhere!]
+  NOT: SeriesWhere
+  OR: [SeriesWhere!]
+  actors: ActorWhere @deprecated(reason : "Do not use")
+  actorsAggregate: SeriesActorsAggregateInput @deprecated(reason : "Do not use")
+  actorsConnection: ProductionActorsConnectionWhere @deprecated(reason : "Do not use")
+  "Return Series where all of the related ProductionActorsConnections match this filter"
+  actorsConnection_ALL: ProductionActorsConnectionWhere @deprecated(reason : "Do not use")
+  "Return Series where none of the related ProductionActorsConnections match this filter"
+  actorsConnection_NONE: ProductionActorsConnectionWhere @deprecated(reason : "Do not use")
+  actorsConnection_NOT: ProductionActorsConnectionWhere @deprecated(reason : "Do not use")
+  "Return Series where one of the related ProductionActorsConnections match this filter"
+  actorsConnection_SINGLE: ProductionActorsConnectionWhere @deprecated(reason : "Do not use")
+  "Return Series where some of the related ProductionActorsConnections match this filter"
+  actorsConnection_SOME: ProductionActorsConnectionWhere @deprecated(reason : "Do not use")
+  "Return Series where all of the related Actors match this filter"
+  actors_ALL: ActorWhere @deprecated(reason : "Do not use")
+  "Return Series where none of the related Actors match this filter"
+  actors_NONE: ActorWhere @deprecated(reason : "Do not use")
+  actors_NOT: ActorWhere @deprecated(reason : "Do not use")
+  "Return Series where one of the related Actors match this filter"
+  actors_SINGLE: ActorWhere @deprecated(reason : "Do not use")
+  "Return Series where some of the related Actors match this filter"
+  actors_SOME: ActorWhere @deprecated(reason : "Do not use")
+  episodes: Int
+  episodes_GT: Int
+  episodes_GTE: Int
+  episodes_IN: [Int!]
+  episodes_LT: Int
+  episodes_LTE: Int
+  episodes_NOT: Int @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  episodes_NOT_IN: [Int!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title: String
+  title_CONTAINS: String
+  title_ENDS_WITH: String
+  title_IN: [String!]
+  title_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_STARTS_WITH: String
+}
+
+----
+
+'''

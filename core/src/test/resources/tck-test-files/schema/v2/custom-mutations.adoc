@@ -16,12 +16,12 @@ type Movie {
 
 type Query {
   testQuery(input: ExampleInput): String
-  testCypherQuery(input: ExampleInput): String @cypher(statement: "")
+  testCypherQuery(input: ExampleInput): String @cypher(statement: "RETURN 'hello' AS h", columnName: "h")
 }
 
 type Mutation {
   testMutation(input: ExampleInput): String
-  testCypherMutation(input: ExampleInput): String @cypher(statement: "")
+  testCypherMutation(input: ExampleInput): String @cypher(statement: "RETURN 'hello' AS h", columnName: "h")
 }
 
 type Subscription {
@@ -40,8 +40,9 @@ schema {
   subscription: Subscription
 }
 
+"Information about the number of nodes and relationships created during a create mutation"
 type CreateInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   relationshipsCreated: Int!
 }
@@ -51,8 +52,9 @@ type CreateMoviesMutationResponse {
   movies: [Movie!]!
 }
 
+"Information about the number of nodes and relationships deleted during a delete mutation"
 type DeleteInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesDeleted: Int!
   relationshipsDeleted: Int!
 }
@@ -110,8 +112,9 @@ type Subscription {
   testSubscription(input: ExampleInput): String
 }
 
+"Information about the number of nodes and relationships created and deleted during an update mutation"
 type UpdateInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   nodesDeleted: Int!
   relationshipsCreated: Int!
@@ -123,6 +126,7 @@ type UpdateMoviesMutationResponse {
   movies: [Movie!]!
 }
 
+"An enum for sorting in either ascending or descending order."
 enum SortDirection {
   "Sort by field values in ascending order."
   ASC
@@ -156,16 +160,17 @@ input MovieUpdateInput {
 
 input MovieWhere {
   AND: [MovieWhere!]
+  NOT: MovieWhere
   OR: [MovieWhere!]
   id: ID
   id_CONTAINS: ID
   id_ENDS_WITH: ID
   id_IN: [ID]
-  id_NOT: ID
-  id_NOT_CONTAINS: ID
-  id_NOT_ENDS_WITH: ID
-  id_NOT_IN: [ID]
-  id_NOT_STARTS_WITH: ID
+  id_NOT: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_CONTAINS: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_ENDS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_IN: [ID] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_STARTS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id_STARTS_WITH: ID
 }
 

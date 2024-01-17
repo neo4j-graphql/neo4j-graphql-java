@@ -1,11 +1,19 @@
 package org.neo4j.graphql
 
 import graphql.language.TypeName
+import org.neo4j.graphql.domain.directives.CypherDirective
+import org.neo4j.graphql.domain.directives.RelationshipDirective
 
 object Constants {
 
+    const val ID_FIELD = "id"
+    const val RELATIONSHIP_FIELD_NAME = "relationshipFieldName"
+    const val CREATED_RELATIONSHIP = "createdRelationship"
+    const val DELETED_RELATIONSHIP = "deletedRelationship"
+    const val PREVIOUS_STATE = "previousState"
     const val DATA = "data"
     const val AND = "AND"
+    const val NOT = "NOT"
     const val OR = "OR"
     const val FULLTEXT_PHRASE = "phrase"
     const val FULLTEXT_SCORE_EQUAL = "score_EQUAL"
@@ -21,6 +29,7 @@ object Constants {
     const val INPUT_FIELD = "input"
     const val CREATE_FIELD = "create"
     const val CONNECT_FIELD = "connect"
+    const val OVERWRITE_FIELD = "overwrite"
     const val CONNECT_OR_CREATE_FIELD = "connectOrCreate"
     const val UPDATE_FIELD = "update"
     const val DELETE_FIELD = "delete"
@@ -32,9 +41,14 @@ object Constants {
     const val EDGES_FIELD = "edges"
     const val CURSOR_FIELD = "cursor"
     const val NODE_FIELD = "node"
+    const val TYPENAME_IN = "typename_IN"
     const val ON = "_on"
     const val SCORE = "score"
     const val RESOLVE_TYPE = "__resolveType"
+
+    const val EVENT = "event"
+    const val TIMESTAMP = "timestamp"
+
 
     const val X = "x"
     const val Y = "y"
@@ -70,10 +84,6 @@ object Constants {
     const val SHORTEST = "shortest"
     const val LONGEST = "longest"
 
-    const val AGGREGATION_SELECTION_FIELD_SUFFIX = "AggregationSelection"
-    const val AGGREGATION_SELECTION_NODE_SUFFIX = "NodeAggregateSelection"
-    const val AGGREGATION_SELECTION_EDGE_SUFFIX = "EdgeAggregateSelection"
-
     val TEMPORAL_TYPES = setOf(DATE, TIME, LOCAL_TIME, DATE_TIME, LOCAL_DATE_TIME)
     val ZONED_TIME_TYPES = setOf(TIME, DATE_TIME)
     val POINT_TYPES = setOf(POINT_TYPE, CARTESIAN_POINT_TYPE)
@@ -85,8 +95,8 @@ object Constants {
 
     val FORBIDDEN_RELATIONSHIP_PROPERTY_DIRECTIVES = setOf(
         DirectiveConstants.AUTH,
-        DirectiveConstants.RELATIONSHIP,
-        DirectiveConstants.CYPHER
+        RelationshipDirective.NAME,
+        CypherDirective.NAME
     )
 
     const val TYPE_NAME = "__typename"
@@ -104,6 +114,7 @@ object Constants {
         const val Aggregate = "Aggregate"
 
     }
+
     object OutputTypeSuffix {
         const val Connection = "Connection"
         const val Edge = "Edge"
@@ -144,6 +155,7 @@ object Constants {
         const val Where = "Where"
         const val UniqueWhere = "UniqueWhere"
         const val ImplementationsWhere = "ImplementationsWhere"
+        const val ImplementationsSubscriptionWhere = "ImplementationsSubscriptionWhere"
 
         const val AggregateInput = "AggregateInput"
         const val NodeAggregationWhereInput = "NodeAggregationWhereInput"
@@ -151,6 +163,7 @@ object Constants {
 
         const val FulltextSort = "FulltextSort"
         const val FulltextWhere = "FulltextWhere"
+        const val Fulltext = "Fulltext"
 
         const val Options = "Options"
         const val Sort = "Sort"
@@ -172,12 +185,15 @@ object Constants {
         val PointDistance = TypeName("PointDistance")
         val CartesianPointDistance = TypeName("CartesianPointDistance")
         val FloatWhere = TypeName("FloatWhere")
+        val EventType = TypeName("EventType")
+        val Node = TypeName("Node")
     }
 
     object ArrayOperations {
         const val PUSH = "PUSH"
         const val POP = "POP"
     }
+
     object Math {
 
         const val INCREMENT = "INCREMENT"

@@ -6,23 +6,13 @@
 
 [source,graphql,schema=true]
 ----
-type User @node(label: "_User", additionalLabels: ["additionalUser"]) {
+type User @node(labels: ["_User", "additionalUser"]) {
   someName: String
 }
 
-type Post @node(label: "_Post", additionalLabels: ["additionalPost"]) {
+type Post @node(labels: ["_Post", "additionalPost"]) {
   content: String!
   likes: [User!]! @relationship(type: "LIKES", direction: IN)
-}
-----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{
-  "enableRegex": true
 }
 ----
 == GT with node directive
@@ -41,7 +31,7 @@ type Post @node(label: "_Post", additionalLabels: ["additionalPost"]) {
 [source,json]
 ----
 {
-  "param0" : 1
+  "param0": 1
 }
 ----
 
@@ -50,15 +40,13 @@ type Post @node(label: "_Post", additionalLabels: ["additionalPost"]) {
 ----
 MATCH (this:_Post:additionalPost)
 CALL {
-	WITH this
-	MATCH (this1:_User:additionalUser)-[this0:LIKES]->(this)
-	RETURN any(var2 IN collect(size(this1.someName)) WHERE var2 > $param0) AS var3
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:_User:additionalUser)
+    RETURN any(var2 IN collect(size(this1.someName)) WHERE var2 > $param0) AS var3
 }
 WITH *
 WHERE var3 = true
-RETURN this {
-	.content
-} AS this
+RETURN this { .content } AS this
 ----
 
 '''

@@ -16,16 +16,6 @@ type Movie {
   status: Status @coalesce(value: ACTIVE)
 }
 ----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{
-  "enableRegex": true
-}
-----
 == Coalesce with enum in match
 
 .GraphQL-Query
@@ -43,7 +33,7 @@ type Movie {
 [source,json]
 ----
 {
-  "param0" : "ACTIVE"
+  "param0": "ACTIVE"
 }
 ----
 
@@ -51,11 +41,8 @@ type Movie {
 [source,cypher]
 ----
 MATCH (this:Movie)
-WHERE coalesce(this.status, 'ACTIVE') = $param0
-RETURN this {
-	.id,
-	.status
-} AS this
+WHERE coalesce(this.status, "ACTIVE") = $param0
+RETURN this { .id, .status } AS this
 ----
 
 '''

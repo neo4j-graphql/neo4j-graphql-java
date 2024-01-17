@@ -1,7 +1,8 @@
 package org.neo4j.graphql.schema.model.inputs.aggregation
 
-import graphql.language.ListType
-import org.neo4j.graphql.*
+import org.neo4j.graphql.Constants
+import org.neo4j.graphql.asType
+import org.neo4j.graphql.capitalize
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.RelationshipProperties
 import org.neo4j.graphql.domain.fields.RelationField
@@ -11,6 +12,8 @@ import org.neo4j.graphql.schema.AugmentationBase
 import org.neo4j.graphql.schema.AugmentationContext
 import org.neo4j.graphql.schema.model.inputs.Dict
 import org.neo4j.graphql.schema.model.inputs.NestedWhere
+import org.neo4j.graphql.schema.model.inputs.WhereInput
+import org.neo4j.graphql.toDict
 
 class AggregateInput(node: Node, properties: RelationshipProperties?, data: Dict) : NestedWhere<AggregateInput>(
     data,
@@ -52,8 +55,11 @@ class AggregateInput(node: Node, properties: RelationshipProperties?, data: Dict
     }
 
     object Augmentation : AugmentationBase {
-        fun generateAggregateInputIT(sourceName: String, rel: RelationField, ctx: AugmentationContext) =
-            ctx.getOrCreateInputObjectType("${sourceName}${rel.fieldName.capitalize()}${Constants.InputTypeSuffix.AggregateInput}") { fields, name ->
+        fun generateAggregateInputIT(sourceName: String, rel: RelationField, ctx: AugmentationContext): String? {
+            if (rel.annotations.filterable?.byAggregate == false) {
+                return null
+            }
+            return ctx.getOrCreateInputObjectType("${sourceName}${rel.fieldName.capitalize()}${Constants.InputTypeSuffix.AggregateInput}") { fields, name ->
 
                 fields += inputValue(Constants.COUNT, Constants.Types.Int)
                 fields += inputValue(Constants.COUNT + "_LT", Constants.Types.Int)
@@ -64,7 +70,7 @@ class AggregateInput(node: Node, properties: RelationshipProperties?, data: Dict
                 AggregationWhereInput.Augmentation
                     .generateWhereAggregationInputTypeForContainer(
                         "${sourceName}${rel.fieldName.capitalize()}${Constants.InputTypeSuffix.NodeAggregationWhereInput}",
-                        rel.node?.fields,
+                        rel.node?.fields?.filter { it.isAggregationFilterable() },
                         ctx
                     )
                     ?.let { fields += inputValue(Constants.NODE_FIELD, it.asType()) }
@@ -77,10 +83,10 @@ class AggregateInput(node: Node, properties: RelationshipProperties?, data: Dict
                     )
                     ?.let { fields += inputValue(Constants.EDGE_FIELD, it.asType()) }
 
-                fields += inputValue(Constants.AND, ListType(name.asRequiredType()))
-                fields += inputValue(Constants.OR, ListType(name.asRequiredType()))
+                WhereInput.Augmentation.addNestingWhereFields(name, fields, ctx)
             }
                 ?: throw IllegalStateException("Expected at least the count field")
+        }
     }
 
 }

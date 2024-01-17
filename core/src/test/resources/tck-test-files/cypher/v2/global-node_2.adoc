@@ -7,23 +7,15 @@
 [source,graphql,schema=true]
 ----
 type Actor {
-  dbId: ID! @id(global: true) @alias(property: "id")
+  dbId: ID! @id @unique @relayId @alias(property: "id")
   name: String!
   movies: [Actor!]! @relationship(type: "ACTED_IN", direction: OUT)
 }
 
 type Movie {
-  title: ID! @id(global: true)
+  title: ID! @id @unique @relayId
   actors: [Movie!]! @relationship(type: "ACTED_IN", direction: IN)
 }
-----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{}
 ----
 == it should project the correct node and fields when id is the idField
 
@@ -55,7 +47,7 @@ query Node($id: ID!) {
 [source,json]
 ----
 {
-  "param0" : "123455"
+  "param0": "123455"
 }
 ----
 
@@ -64,10 +56,7 @@ query Node($id: ID!) {
 ----
 MATCH (this:Actor)
 WHERE this.id = $param0
-RETURN this {
-	.name,
-	dbId: this.id
-} AS this
+RETURN this { .name, dbId: this.id } AS this
 ----
 
 '''
@@ -98,7 +87,7 @@ query ($where: ActorWhere!) {
 [source,json]
 ----
 {
-  "param0" : "12345"
+  "param0": "12345"
 }
 ----
 
@@ -107,9 +96,7 @@ query ($where: ActorWhere!) {
 ----
 MATCH (this:Actor)
 WHERE this.id = $param0
-RETURN this {
-	.name
-} AS this
+RETURN this { .name } AS this
 ----
 
 '''

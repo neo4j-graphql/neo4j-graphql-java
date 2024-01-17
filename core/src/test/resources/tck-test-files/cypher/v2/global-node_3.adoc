@@ -7,17 +7,9 @@
 [source,graphql,schema=true]
 ----
 type Actor {
-  dbId: Int! @id(global: true, autogenerate: false)
+  dbId: Int! @relayId
   name: String!
 }
-----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{}
 ----
 == it should project the param as an integer when the underlying field is a number (fixes 1560)
 
@@ -47,7 +39,7 @@ query ($where: ActorWhere!) {
 [source,json]
 ----
 {
-  "param0" : 12345
+  "param0": 12345
 }
 ----
 
@@ -56,10 +48,7 @@ query ($where: ActorWhere!) {
 ----
 MATCH (this:Actor)
 WHERE this.dbId = $param0
-RETURN this {
-	.dbId,
-	.name
-} AS this
+RETURN this { .dbId, .name } AS this
 ----
 
 '''

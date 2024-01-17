@@ -6,14 +6,22 @@
 
 [source,graphql,schema=true]
 ----
-type Movie {
-  id: ID
-  title: String
+interface Production {
+  id: ID!
+  title: String!
+}
+
+type Movie implements Production {
+  id: ID!
+  title: String!
+  runtime: Int!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN, properties: "ActedIn")
   genres: [Genre!]! @relationship(type: "HAS_GENRE", direction: OUT)
+  numberOfActors: Int! @cypher(statement: "MATCH (actor:Actor)-[:ACTED_IN]->(this) RETURN count(actor) as count", columnName: "count")
   totalGenres: Int! @cypher(statement: """
   MATCH (this)-[:HAS_GENRE]->(genre:Genre)
-  RETURN count(DISTINCT genre)
-  """)
+  RETURN count(DISTINCT genre) as result
+  """, columnName: "result")
 }
 
 type Genre {
@@ -21,20 +29,221 @@ type Genre {
   name: String
   totalMovies: Int! @cypher(statement: """
   MATCH (this)<-[:HAS_GENRE]-(movie:Movie)
-  RETURN count(DISTINCT movie)
-  """)
+  RETURN count(DISTINCT movie) as result
+  """, columnName: "result")
+}
+
+type Series implements Production {
+  id: ID!
+  title: String!
+  episodes: Int!
+}
+
+type Actor {
+  id: ID!
+  name: String!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
+  actedIn: [Production!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
+  totalScreenTime: Int! @cypher(statement: """
+  MATCH (this)-[r:ACTED_IN]->(:Movie)
+  RETURN sum(r.screenTime) as sum
+  """, columnName: "sum")
+}
+
+interface ActedIn @relationshipProperties {
+  screenTime: Int!
 }
 ----
 
-== Configuration
+== Connection nested
 
-.Configuration
-[source,json,schema-config=true]
+.GraphQL-Query
+[source,graphql]
 ----
 {
-  "enableRegex": true
+  actors {
+    moviesConnection(first: 2, sort: {node: {title: DESC, numberOfActors: ASC}}) {
+      totalCount
+      edges {
+        node {
+          title
+          actorsConnection {
+            edges {
+              node {
+                name
+                totalScreenTime
+              }
+            }
+          }
+        }
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
 }
 ----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": 2
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+CALL {
+    WITH this
+    MATCH (this)-[this0:ACTED_IN]->(this1:Movie)
+    WITH collect({ node: this1, relationship: this0 }) AS edges
+    WITH edges, size(edges) AS totalCount
+    CALL {
+        WITH edges
+        UNWIND edges AS edge
+        WITH edge.node AS this1, edge.relationship AS this0
+        CALL {
+            WITH this1
+            CALL {
+                WITH this1
+                WITH this1 AS this
+                MATCH (actor:Actor)-[:ACTED_IN]->(this) RETURN count(actor) as count
+            }
+            UNWIND count AS this2
+            RETURN head(collect(this2)) AS this2
+        }
+        WITH *
+        ORDER BY this1.title DESC, this2 ASC
+        LIMIT $param0
+        CALL {
+            WITH this1
+            MATCH (this1)<-[this3:ACTED_IN]-(this4:Actor)
+            WITH collect({ node: this4, relationship: this3 }) AS edges
+            WITH edges, size(edges) AS totalCount
+            CALL {
+                WITH edges
+                UNWIND edges AS edge
+                WITH edge.node AS this4, edge.relationship AS this3
+                CALL {
+                    WITH this4
+                    CALL {
+                        WITH this4
+                        WITH this4 AS this
+                        MATCH (this)-[r:ACTED_IN]->(:Movie)
+                        RETURN sum(r.screenTime) as sum
+                    }
+                    UNWIND sum AS this5
+                    RETURN head(collect(this5)) AS this5
+                }
+                RETURN collect({ node: { name: this4.name, totalScreenTime: this5 } }) AS var6
+            }
+            RETURN { edges: var6, totalCount: totalCount } AS var7
+        }
+        RETURN collect({ node: { title: this1.title, actorsConnection: var7 } }) AS var8
+    }
+    RETURN { edges: var8, totalCount: totalCount } AS var9
+}
+RETURN this { moviesConnection: var9 } AS this
+----
+
+'''
+
+== Connection top level
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesConnection(first: 2, sort: {title: DESC, numberOfActors: ASC}) {
+    totalCount
+    edges {
+      node {
+        title
+        actorsConnection {
+          edges {
+            node {
+              name
+              totalScreenTime
+            }
+          }
+        }
+      }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": 2
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this0:Movie)
+WITH collect({ node: this0 }) AS edges
+WITH edges, size(edges) AS totalCount
+CALL {
+    WITH edges
+    UNWIND edges AS edge
+    WITH edge.node AS this0
+    CALL {
+        WITH this0
+        CALL {
+            WITH this0
+            WITH this0 AS this
+            MATCH (actor:Actor)-[:ACTED_IN]->(this) RETURN count(actor) as count
+        }
+        UNWIND count AS this1
+        RETURN head(collect(this1)) AS this1
+    }
+    WITH *
+    ORDER BY this0.title DESC, this1 ASC
+    LIMIT $param0
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this2:ACTED_IN]-(this3:Actor)
+        WITH collect({ node: this3, relationship: this2 }) AS edges
+        WITH edges, size(edges) AS totalCount
+        CALL {
+            WITH edges
+            UNWIND edges AS edge
+            WITH edge.node AS this3, edge.relationship AS this2
+            CALL {
+                WITH this3
+                CALL {
+                    WITH this3
+                    WITH this3 AS this
+                    MATCH (this)-[r:ACTED_IN]->(:Movie)
+                    RETURN sum(r.screenTime) as sum
+                }
+                UNWIND sum AS this4
+                RETURN head(collect(this4)) AS this4
+            }
+            RETURN collect({ node: { name: this3.name, totalScreenTime: this4 } }) AS var5
+        }
+        RETURN { edges: var5, totalCount: totalCount } AS var6
+    }
+    RETURN collect({ node: { title: this0.title, actorsConnection: var6 } }) AS var7
+}
+RETURN { edges: var7, totalCount: totalCount } AS this
+----
+
+'''
+
 == Multi Sort
 
 .GraphQL-Query
@@ -51,18 +260,16 @@ type Genre {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 MATCH (this:Movie)
-WITH * ORDER BY this.id DESC, this.title ASC
-RETURN this {
-	.id,
-	.title
-} AS this
+WITH *
+ORDER BY this.id DESC, this.title ASC
+RETURN this { .id, .title } AS this
 ----
 
 '''
@@ -84,7 +291,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
@@ -92,16 +299,13 @@ RETURN this {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)-[this0:HAS_GENRE]->(this_genres:Genre)
-	WITH this_genres {
-		.name
-	} AS this_genres ORDER BY this_genres.name ASC
-	RETURN collect(this_genres) AS this_genres
+    WITH this
+    MATCH (this)-[this0:HAS_GENRE]->(this1:Genre)
+    WITH this1 { .name } AS this1
+    ORDER BY this1.name ASC
+    RETURN collect(this1) AS var2
 }
-RETURN this {
-	genres: this_genres
-} AS this
+RETURN this { genres: var2 } AS this
 ----
 
 '''
@@ -123,7 +327,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
@@ -131,16 +335,13 @@ RETURN this {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)-[this0:HAS_GENRE]->(this_genres:Genre)
-	WITH this_genres {
-		.name
-	} AS this_genres ORDER BY this_genres.name DESC
-	RETURN collect(this_genres) AS this_genres
+    WITH this
+    MATCH (this)-[this0:HAS_GENRE]->(this1:Genre)
+    WITH this1 { .name } AS this1
+    ORDER BY this1.name DESC
+    RETURN collect(this1) AS var2
 }
-RETURN this {
-	genres: this_genres
-} AS this
+RETURN this { genres: var2 } AS this
 ----
 
 '''
@@ -163,15 +364,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{
-  "auth" : {
-    "isAuthenticated" : true,
-    "roles" : [ ],
-    "jwt" : {
-      "roles" : [ ]
-    }
-  }
-}
+{}
 ----
 
 .Expected Cypher output
@@ -179,26 +372,24 @@ RETURN this {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)-[this0:HAS_GENRE]->(this_genres:Genre)
-	CALL {
-		WITH this_genres
-		UNWIND apoc.cypher.runFirstColumnSingle('MATCH (this)<-[:HAS_GENRE]-(movie:Movie)
-        RETURN count(DISTINCT movie)', {
-			this: this_genres,
-			auth: $auth
-		}) AS this_genres_totalMovies
-		RETURN head(collect(this_genres_totalMovies)) AS this_genres_totalMovies
-	}
-	WITH this_genres {
-		.name,
-		totalMovies: this_genres_totalMovies
-	} AS this_genres ORDER BY this_genres.totalMovies ASC
-	RETURN collect(this_genres) AS this_genres
+    WITH this
+    MATCH (this)-[this0:HAS_GENRE]->(this1:Genre)
+    CALL {
+        WITH this1
+        CALL {
+            WITH this1
+            WITH this1 AS this
+            MATCH (this)<-[:HAS_GENRE]-(movie:Movie)
+            RETURN count(DISTINCT movie) as result
+        }
+        UNWIND result AS this2
+        RETURN head(collect(this2)) AS this2
+    }
+    WITH this1 { .name, totalMovies: this2 } AS this1
+    ORDER BY this2 ASC
+    RETURN collect(this1) AS var3
 }
-RETURN this {
-	genres: this_genres
-} AS this
+RETURN this { genres: var3 } AS this
 ----
 
 '''
@@ -218,15 +409,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{
-  "auth" : {
-    "isAuthenticated" : true,
-    "roles" : [ ],
-    "jwt" : {
-      "roles" : [ ]
-    }
-  }
-}
+{}
 ----
 
 .Expected Cypher output
@@ -234,18 +417,59 @@ RETURN this {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	UNWIND apoc.cypher.runFirstColumnSingle('MATCH (this)-[:HAS_GENRE]->(genre:Genre)
-    RETURN count(DISTINCT genre)', {
-		this: this,
-		auth: $auth
-	}) AS this_totalGenres
-	RETURN head(collect(this_totalGenres)) AS this_totalGenres
+    WITH this
+    CALL {
+        WITH this
+        WITH this AS this
+        MATCH (this)-[:HAS_GENRE]->(genre:Genre)
+        RETURN count(DISTINCT genre) as result
+    }
+    UNWIND result AS this0
+    RETURN head(collect(this0)) AS this0
 }
-WITH * ORDER BY this_totalGenres DESC
-RETURN this {
-	totalGenres: this_totalGenres
-} AS this
+WITH *
+ORDER BY this0 DESC
+RETURN this { totalGenres: this0 } AS this
+----
+
+'''
+
+== Simple Sort On Cypher Field Without Projection
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(options: {sort: [{totalGenres: DESC}]}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+    WITH this
+    CALL {
+        WITH this
+        WITH this AS this
+        MATCH (this)-[:HAS_GENRE]->(genre:Genre)
+        RETURN count(DISTINCT genre) as result
+    }
+    UNWIND result AS this0
+    RETURN head(collect(this0)) AS this0
+}
+WITH *
+ORDER BY this0 DESC
+RETURN this { .title, totalGenres: this0 } AS this
 ----
 
 '''
@@ -280,9 +504,9 @@ query ($title: String, $offset: Int, $limit: Int) {
 [source,json]
 ----
 {
-  "param0" : "some title",
-  "param1" : 1,
-  "param2" : 2
+  "param0": "some title",
+  "param1": 1,
+  "param2": 2
 }
 ----
 
@@ -291,11 +515,11 @@ query ($title: String, $offset: Int, $limit: Int) {
 ----
 MATCH (this:Movie)
 WHERE this.title = $param0
-WITH * ORDER BY this.id DESC, this.title ASC SKIP $param1 LIMIT $param2
-RETURN this {
-	.id,
-	.title
-} AS this
+WITH *
+ORDER BY this.id DESC, this.title ASC
+SKIP $param1
+LIMIT $param2
+RETURN this { .id, .title } AS this
 ----
 
 '''
@@ -318,19 +542,16 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 MATCH (this:Movie)
-WITH * ORDER BY this.id DESC
-RETURN this {
-	aliased: this.id,
-	.title,
-	.id
-} AS this
+WITH *
+ORDER BY this.id DESC
+RETURN this { .title, .id, aliased: this.id } AS this
 ----
 
 '''
@@ -351,18 +572,16 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 MATCH (this:Movie)
-WITH * ORDER BY this.id DESC
-RETURN this {
-	.id,
-	.title
-} AS this
+WITH *
+ORDER BY this.id DESC
+RETURN this { .id, .title } AS this
 ----
 
 '''
@@ -382,18 +601,16 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 MATCH (this:Movie)
-WITH * ORDER BY this.id DESC
-RETURN this {
-	.title,
-	.id
-} AS this
+WITH *
+ORDER BY this.id DESC
+RETURN this { .title, .id } AS this
 ----
 
 '''

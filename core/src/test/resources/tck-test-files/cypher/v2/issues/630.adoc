@@ -11,23 +11,13 @@ type Actor {
   movies(title: String): [Movie] @cypher(statement: """
   MATCH (m:Movie {title: $title})
   RETURN m
-  """)
+  """, columnName: "m")
 }
 
 type Movie {
   id: ID
   title: String
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
-}
-----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{
-  "enableRegex": true
 }
 ----
 == Nested Connection
@@ -49,12 +39,7 @@ type Movie {
 .Expected Cypher params
 [source,json]
 ----
-{
-  "auth" : {
-    "isAuthenticated" : false,
-    "roles" : [ ]
-  }
-}
+{}
 ----
 
 .Expected Cypher output
@@ -62,35 +47,30 @@ type Movie {
 ----
 MATCH (this:Actor)
 CALL {
-	WITH this
-	UNWIND apoc.cypher.runFirstColumnMany('MATCH (m:Movie {title: $title})
-    RETURN m', {
-		title: NULL,
-		this: this,
-		auth: $auth
-	}) AS this_movies
-	CALL {
-		WITH this_movies
-		MATCH (this_movies)<-[this_movies_connection_actorsConnectionthis0:ACTED_IN]-(this_movies_Actor:Actor)
-		WITH {
-			node: {
-				__resolveType: 'Actor'
-			}
-		} AS edge
-		WITH collect(edge) AS edges
-		WITH edges, size(edges) AS totalCount
-		RETURN {
-			edges: edges,
-			totalCount: totalCount
-		} AS this_movies_actorsConnection
-	}
-	RETURN collect(this_movies {
-		actorsConnection: this_movies_actorsConnection
-	}) AS this_movies
+    WITH this
+    CALL {
+        WITH this
+        WITH this AS this
+        MATCH (m:Movie {title: NULL})
+        RETURN m
+    }
+    WITH m AS this0
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this1:ACTED_IN]-(this2:Actor)
+        WITH collect({ node: this2, relationship: this1 }) AS edges
+        WITH edges, size(edges) AS totalCount
+        CALL {
+            WITH edges
+            UNWIND edges AS edge
+            WITH edge.node AS this2, edge.relationship AS this1
+            RETURN collect({ node: { __resolveType: "Actor", __id: id(this2) } }) AS var3
+        }
+        RETURN { edges: var3, totalCount: totalCount } AS var4
+    }
+    RETURN collect(this0 { actorsConnection: var4 }) AS this0
 }
-RETURN this {
-	movies: this_movies
-} AS this
+RETURN this { movies: this0 } AS this
 ----
 
 '''

@@ -15,7 +15,7 @@ interface HasArticle @relationshipProperties {
 }
 
 type Article {
-  id: ID! @id
+  id: ID! @id @unique
   blocks: [Block!]! @relationship(type: "HAS_BLOCK", direction: OUT, properties: "HasBlock")
   images: [Image!]! @relationship(type: "HAS_IMAGE", direction: OUT)
 }
@@ -29,16 +29,16 @@ interface Block {
 }
 
 type TextBlock implements Block {
-  id: ID @id
+  id: ID @id @unique
   text: String
 }
 
 type DividerBlock implements Block {
-  id: ID @id
+  id: ID @id @unique
 }
 
 type ImageBlock implements Block {
-  id: ID @id
+  id: ID @id @unique
   images: [Image!]! @relationship(type: "HAS_IMAGE", direction: OUT)
 }
 
@@ -140,8 +140,9 @@ type CreateImageBlocksMutationResponse {
   info: CreateInfo!
 }
 
+"Information about the number of nodes and relationships created during a create mutation"
 type CreateInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   relationshipsCreated: Int!
 }
@@ -166,8 +167,9 @@ type DateTimeAggregateSelectionNonNullable {
   min: DateTime!
 }
 
+"Information about the number of nodes and relationships deleted during a delete mutation"
 type DeleteInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesDeleted: Int!
   relationshipsDeleted: Int!
 }
@@ -422,8 +424,9 @@ type UpdateImageBlocksMutationResponse {
   info: UpdateInfo!
 }
 
+"Information about the number of nodes and relationships created and deleted during an update mutation"
 type UpdateInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   nodesDeleted: Int!
   relationshipsCreated: Int!
@@ -445,6 +448,7 @@ type UpdateTextBlocksMutationResponse {
   textBlocks: [TextBlock!]!
 }
 
+"An enum for sorting in either ascending or descending order."
 enum SortDirection {
   "Sort by field values in ascending order."
   ASC
@@ -468,11 +472,12 @@ input ArticleBlocksConnectionSort {
 
 input ArticleBlocksConnectionWhere {
   AND: [ArticleBlocksConnectionWhere!]
+  NOT: ArticleBlocksConnectionWhere
   OR: [ArticleBlocksConnectionWhere!]
   edge: HasBlockWhere
-  edge_NOT: HasBlockWhere
+  edge_NOT: HasBlockWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   node: BlockWhere
-  node_NOT: BlockWhere
+  node_NOT: BlockWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input ArticleBlocksCreateFieldInput {
@@ -544,9 +549,10 @@ input ArticleImagesConnectFieldInput {
 
 input ArticleImagesConnectionWhere {
   AND: [ArticleImagesConnectionWhere!]
+  NOT: ArticleImagesConnectionWhere
   OR: [ArticleImagesConnectionWhere!]
   node: ImageWhere
-  node_NOT: ImageWhere
+  node_NOT: ImageWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input ArticleImagesCreateFieldInput {
@@ -581,6 +587,11 @@ input ArticleImagesUpdateFieldInput {
   where: ArticleImagesConnectionWhere
 }
 
+input ArticleOnCreateInput {
+  "Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/"
+  _emptyInput: Boolean
+}
+
 input ArticleOptions {
   limit: Int
   offset: Int
@@ -609,28 +620,37 @@ input ArticleUpdateInput {
 
 input ArticleWhere {
   AND: [ArticleWhere!]
+  NOT: ArticleWhere
   OR: [ArticleWhere!]
   blocksConnection: ArticleBlocksConnectionWhere @deprecated(reason : "Use `blocksConnection_SOME` instead.")
+  "Return Articles where all of the related ArticleBlocksConnections match this filter"
   blocksConnection_ALL: ArticleBlocksConnectionWhere
+  "Return Articles where none of the related ArticleBlocksConnections match this filter"
   blocksConnection_NONE: ArticleBlocksConnectionWhere
   blocksConnection_NOT: ArticleBlocksConnectionWhere @deprecated(reason : "Use `blocksConnection_NONE` instead.")
+  "Return Articles where one of the related ArticleBlocksConnections match this filter"
   blocksConnection_SINGLE: ArticleBlocksConnectionWhere
+  "Return Articles where some of the related ArticleBlocksConnections match this filter"
   blocksConnection_SOME: ArticleBlocksConnectionWhere
   id: ID
   id_CONTAINS: ID
   id_ENDS_WITH: ID
   id_IN: [ID!]
-  id_NOT: ID
-  id_NOT_CONTAINS: ID
-  id_NOT_ENDS_WITH: ID
-  id_NOT_IN: [ID!]
-  id_NOT_STARTS_WITH: ID
+  id_NOT: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_CONTAINS: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_ENDS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_IN: [ID!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_STARTS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id_STARTS_WITH: ID
   imagesConnection: ArticleImagesConnectionWhere @deprecated(reason : "Use `imagesConnection_SOME` instead.")
+  "Return Articles where all of the related ArticleImagesConnections match this filter"
   imagesConnection_ALL: ArticleImagesConnectionWhere
+  "Return Articles where none of the related ArticleImagesConnections match this filter"
   imagesConnection_NONE: ArticleImagesConnectionWhere
   imagesConnection_NOT: ArticleImagesConnectionWhere @deprecated(reason : "Use `imagesConnection_NONE` instead.")
+  "Return Articles where one of the related ArticleImagesConnections match this filter"
   imagesConnection_SINGLE: ArticleImagesConnectionWhere
+  "Return Articles where some of the related ArticleImagesConnections match this filter"
   imagesConnection_SOME: ArticleImagesConnectionWhere
 }
 
@@ -684,7 +704,7 @@ input BlockOptions {
   limit: Int
   offset: Int
   "Specify one or more BlockSort objects to sort Blocks by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [BlockSort!]
+  sort: [BlockSort]
 }
 
 "Fields to sort Blocks by. The order in which sorts are applied is not guaranteed when specifying many fields in one BlockSort object."
@@ -702,11 +722,11 @@ input BlockWhere {
   id_CONTAINS: ID
   id_ENDS_WITH: ID
   id_IN: [ID]
-  id_NOT: ID
-  id_NOT_CONTAINS: ID
-  id_NOT_ENDS_WITH: ID
-  id_NOT_IN: [ID]
-  id_NOT_STARTS_WITH: ID
+  id_NOT: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_CONTAINS: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_ENDS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_IN: [ID] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_STARTS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id_STARTS_WITH: ID
 }
 
@@ -734,16 +754,17 @@ input DividerBlockUpdateInput {
 
 input DividerBlockWhere {
   AND: [DividerBlockWhere!]
+  NOT: DividerBlockWhere
   OR: [DividerBlockWhere!]
   id: ID
   id_CONTAINS: ID
   id_ENDS_WITH: ID
   id_IN: [ID]
-  id_NOT: ID
-  id_NOT_CONTAINS: ID
-  id_NOT_ENDS_WITH: ID
-  id_NOT_IN: [ID]
-  id_NOT_STARTS_WITH: ID
+  id_NOT: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_CONTAINS: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_ENDS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_IN: [ID] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_STARTS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id_STARTS_WITH: ID
 }
 
@@ -753,6 +774,7 @@ input HasArticleSort {
 
 input HasArticleWhere {
   AND: [HasArticleWhere!]
+  NOT: HasArticleWhere
   OR: [HasArticleWhere!]
   createdAt: DateTime
   createdAt_GT: DateTime
@@ -760,8 +782,8 @@ input HasArticleWhere {
   createdAt_IN: [DateTime!]
   createdAt_LT: DateTime
   createdAt_LTE: DateTime
-  createdAt_NOT: DateTime
-  createdAt_NOT_IN: [DateTime!]
+  createdAt_NOT: DateTime @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  createdAt_NOT_IN: [DateTime!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input HasBlockCreateInput {
@@ -780,6 +802,7 @@ input HasBlockUpdateInput {
 
 input HasBlockWhere {
   AND: [HasBlockWhere!]
+  NOT: HasBlockWhere
   OR: [HasBlockWhere!]
   order: Int
   order_GT: Int
@@ -787,8 +810,8 @@ input HasBlockWhere {
   order_IN: [Int!]
   order_LT: Int
   order_LTE: Int
-  order_NOT: Int
-  order_NOT_IN: [Int!]
+  order_NOT: Int @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  order_NOT_IN: [Int!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input ImageBlockConnectInput {
@@ -814,9 +837,10 @@ input ImageBlockImagesConnectFieldInput {
 
 input ImageBlockImagesConnectionWhere {
   AND: [ImageBlockImagesConnectionWhere!]
+  NOT: ImageBlockImagesConnectionWhere
   OR: [ImageBlockImagesConnectionWhere!]
   node: ImageWhere
-  node_NOT: ImageWhere
+  node_NOT: ImageWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input ImageBlockImagesCreateFieldInput {
@@ -873,22 +897,27 @@ input ImageBlockUpdateInput {
 
 input ImageBlockWhere {
   AND: [ImageBlockWhere!]
+  NOT: ImageBlockWhere
   OR: [ImageBlockWhere!]
   id: ID
   id_CONTAINS: ID
   id_ENDS_WITH: ID
   id_IN: [ID]
-  id_NOT: ID
-  id_NOT_CONTAINS: ID
-  id_NOT_ENDS_WITH: ID
-  id_NOT_IN: [ID]
-  id_NOT_STARTS_WITH: ID
+  id_NOT: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_CONTAINS: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_ENDS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_IN: [ID] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_STARTS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id_STARTS_WITH: ID
   imagesConnection: ImageBlockImagesConnectionWhere @deprecated(reason : "Use `imagesConnection_SOME` instead.")
+  "Return ImageBlocks where all of the related ImageBlockImagesConnections match this filter"
   imagesConnection_ALL: ImageBlockImagesConnectionWhere
+  "Return ImageBlocks where none of the related ImageBlockImagesConnections match this filter"
   imagesConnection_NONE: ImageBlockImagesConnectionWhere
   imagesConnection_NOT: ImageBlockImagesConnectionWhere @deprecated(reason : "Use `imagesConnection_NONE` instead.")
+  "Return ImageBlocks where one of the related ImageBlockImagesConnections match this filter"
   imagesConnection_SINGLE: ImageBlockImagesConnectionWhere
+  "Return ImageBlocks where some of the related ImageBlockImagesConnections match this filter"
   imagesConnection_SOME: ImageBlockImagesConnectionWhere
 }
 
@@ -914,11 +943,18 @@ input ImageDisconnectInput {
 
 input ImageFeaturedInConnectFieldInput {
   connect: [ArticleConnectInput!]
+  "Whether or not to overwrite any matching relationship with the new properties."
+  overwrite: Boolean! = true
   where: ArticleConnectWhere
 }
 
 input ImageFeaturedInConnectOrCreateFieldInput {
+  onCreate: ImageFeaturedInConnectOrCreateFieldInputOnCreate!
   where: ArticleConnectOrCreateWhere!
+}
+
+input ImageFeaturedInConnectOrCreateFieldInputOnCreate {
+  node: ArticleOnCreateInput!
 }
 
 input ImageFeaturedInConnectionSort {
@@ -927,9 +963,10 @@ input ImageFeaturedInConnectionSort {
 
 input ImageFeaturedInConnectionWhere {
   AND: [ImageFeaturedInConnectionWhere!]
+  NOT: ImageFeaturedInConnectionWhere
   OR: [ImageFeaturedInConnectionWhere!]
   node: ArticleWhere
-  node_NOT: ArticleWhere
+  node_NOT: ArticleWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input ImageFeaturedInCreateFieldInput {
@@ -1001,6 +1038,7 @@ input ImageWhere {
 
 input JournalistArticlesAggregateInput {
   AND: [JournalistArticlesAggregateInput!]
+  NOT: JournalistArticlesAggregateInput
   OR: [JournalistArticlesAggregateInput!]
   count: Int
   count_GT: Int
@@ -1013,11 +1051,18 @@ input JournalistArticlesAggregateInput {
 
 input JournalistArticlesConnectFieldInput {
   connect: [ArticleConnectInput!]
+  "Whether or not to overwrite any matching relationship with the new properties."
+  overwrite: Boolean! = true
   where: ArticleConnectWhere
 }
 
 input JournalistArticlesConnectOrCreateFieldInput {
+  onCreate: JournalistArticlesConnectOrCreateFieldInputOnCreate!
   where: ArticleConnectOrCreateWhere!
+}
+
+input JournalistArticlesConnectOrCreateFieldInputOnCreate {
+  node: ArticleOnCreateInput!
 }
 
 input JournalistArticlesConnectionSort {
@@ -1027,11 +1072,12 @@ input JournalistArticlesConnectionSort {
 
 input JournalistArticlesConnectionWhere {
   AND: [JournalistArticlesConnectionWhere!]
+  NOT: JournalistArticlesConnectionWhere
   OR: [JournalistArticlesConnectionWhere!]
   edge: HasArticleWhere
-  edge_NOT: HasArticleWhere
+  edge_NOT: HasArticleWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   node: ArticleWhere
-  node_NOT: ArticleWhere
+  node_NOT: ArticleWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input JournalistArticlesCreateFieldInput {
@@ -1050,12 +1096,13 @@ input JournalistArticlesDisconnectFieldInput {
 
 input JournalistArticlesEdgeAggregationWhereInput {
   AND: [JournalistArticlesEdgeAggregationWhereInput!]
+  NOT: JournalistArticlesEdgeAggregationWhereInput
   OR: [JournalistArticlesEdgeAggregationWhereInput!]
-  createdAt_EQUAL: DateTime
-  createdAt_GT: DateTime
-  createdAt_GTE: DateTime
-  createdAt_LT: DateTime
-  createdAt_LTE: DateTime
+  createdAt_EQUAL: DateTime @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  createdAt_GT: DateTime @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  createdAt_GTE: DateTime @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  createdAt_LT: DateTime @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  createdAt_LTE: DateTime @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
   createdAt_MAX_EQUAL: DateTime
   createdAt_MAX_GT: DateTime
   createdAt_MAX_GTE: DateTime
@@ -1076,8 +1123,9 @@ input JournalistArticlesFieldInput {
 
 input JournalistArticlesNodeAggregationWhereInput {
   AND: [JournalistArticlesNodeAggregationWhereInput!]
+  NOT: JournalistArticlesNodeAggregationWhereInput
   OR: [JournalistArticlesNodeAggregationWhereInput!]
-  id_EQUAL: ID
+  id_EQUAL: ID @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
 }
 
 input JournalistArticlesUpdateConnectionInput {
@@ -1129,14 +1177,19 @@ input JournalistUpdateInput {
 
 input JournalistWhere {
   AND: [JournalistWhere!]
+  NOT: JournalistWhere
   OR: [JournalistWhere!]
   articles: ArticleWhere @deprecated(reason : "Use `articles_SOME` instead.")
   articlesAggregate: JournalistArticlesAggregateInput
   articlesConnection: JournalistArticlesConnectionWhere @deprecated(reason : "Use `articlesConnection_SOME` instead.")
+  "Return Journalists where all of the related JournalistArticlesConnections match this filter"
   articlesConnection_ALL: JournalistArticlesConnectionWhere
+  "Return Journalists where none of the related JournalistArticlesConnections match this filter"
   articlesConnection_NONE: JournalistArticlesConnectionWhere
   articlesConnection_NOT: JournalistArticlesConnectionWhere @deprecated(reason : "Use `articlesConnection_NONE` instead.")
+  "Return Journalists where one of the related JournalistArticlesConnections match this filter"
   articlesConnection_SINGLE: JournalistArticlesConnectionWhere
+  "Return Journalists where some of the related JournalistArticlesConnections match this filter"
   articlesConnection_SOME: JournalistArticlesConnectionWhere
   "Return Journalists where all of the related Articles match this filter"
   articles_ALL: ArticleWhere
@@ -1172,6 +1225,7 @@ input PDFImageDisconnectInput {
 
 input PDFImageFeaturedInAggregateInput {
   AND: [PDFImageFeaturedInAggregateInput!]
+  NOT: PDFImageFeaturedInAggregateInput
   OR: [PDFImageFeaturedInAggregateInput!]
   count: Int
   count_GT: Int
@@ -1183,8 +1237,9 @@ input PDFImageFeaturedInAggregateInput {
 
 input PDFImageFeaturedInNodeAggregationWhereInput {
   AND: [PDFImageFeaturedInNodeAggregationWhereInput!]
+  NOT: PDFImageFeaturedInNodeAggregationWhereInput
   OR: [PDFImageFeaturedInNodeAggregationWhereInput!]
-  id_EQUAL: ID
+  id_EQUAL: ID @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
 }
 
 input PDFImageOptions {
@@ -1210,14 +1265,19 @@ input PDFImageUpdateInput {
 
 input PDFImageWhere {
   AND: [PDFImageWhere!]
+  NOT: PDFImageWhere
   OR: [PDFImageWhere!]
   featuredIn: ArticleWhere @deprecated(reason : "Use `featuredIn_SOME` instead.")
   featuredInAggregate: PDFImageFeaturedInAggregateInput
   featuredInConnection: ImageFeaturedInConnectionWhere @deprecated(reason : "Use `featuredInConnection_SOME` instead.")
+  "Return PDFImages where all of the related ImageFeaturedInConnections match this filter"
   featuredInConnection_ALL: ImageFeaturedInConnectionWhere
+  "Return PDFImages where none of the related ImageFeaturedInConnections match this filter"
   featuredInConnection_NONE: ImageFeaturedInConnectionWhere
   featuredInConnection_NOT: ImageFeaturedInConnectionWhere @deprecated(reason : "Use `featuredInConnection_NONE` instead.")
+  "Return PDFImages where one of the related ImageFeaturedInConnections match this filter"
   featuredInConnection_SINGLE: ImageFeaturedInConnectionWhere
+  "Return PDFImages where some of the related ImageFeaturedInConnections match this filter"
   featuredInConnection_SOME: ImageFeaturedInConnectionWhere
   "Return PDFImages where all of the related Articles match this filter"
   featuredIn_ALL: ArticleWhere
@@ -1232,11 +1292,11 @@ input PDFImageWhere {
   url_CONTAINS: String
   url_ENDS_WITH: String
   url_IN: [String!]
-  url_NOT: String
-  url_NOT_CONTAINS: String
-  url_NOT_ENDS_WITH: String
-  url_NOT_IN: [String!]
-  url_NOT_STARTS_WITH: String
+  url_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  url_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  url_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  url_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  url_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   url_STARTS_WITH: String
 }
 
@@ -1263,26 +1323,27 @@ input TextBlockUpdateInput {
 
 input TextBlockWhere {
   AND: [TextBlockWhere!]
+  NOT: TextBlockWhere
   OR: [TextBlockWhere!]
   id: ID
   id_CONTAINS: ID
   id_ENDS_WITH: ID
   id_IN: [ID]
-  id_NOT: ID
-  id_NOT_CONTAINS: ID
-  id_NOT_ENDS_WITH: ID
-  id_NOT_IN: [ID]
-  id_NOT_STARTS_WITH: ID
+  id_NOT: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_CONTAINS: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_ENDS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_IN: [ID] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_STARTS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id_STARTS_WITH: ID
   text: String
   text_CONTAINS: String
   text_ENDS_WITH: String
   text_IN: [String]
-  text_NOT: String
-  text_NOT_CONTAINS: String
-  text_NOT_ENDS_WITH: String
-  text_NOT_IN: [String]
-  text_NOT_STARTS_WITH: String
+  text_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  text_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  text_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  text_NOT_IN: [String] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  text_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   text_STARTS_WITH: String
 }
 

@@ -24,18 +24,11 @@ type Community {
   hasFeedItems(limit: Int = 10, page: Int = 0): [FeedItem!]! @cypher(statement: """
   Match(this)-[:COMMUNITY_CONTENTPIECE_HASCONTENTPIECES|:COMMUNITY_PROJECT_HASASSOCIATEDPROJECTS]-(pag)
      return pag SKIP ($limit * $pageIndex) LIMIT $limit
-  """)
+  """, columnName: "pag")
 }
 ----
 
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{}
-----
-== expectMultipleValues should be set to true in apoc.cypher.runFirstColumn
+== collect unions returned by cypher directive
 
 .GraphQL-Query
 [source,graphql]
@@ -60,13 +53,9 @@ type Community {
 [source,json]
 ----
 {
-  "auth" : {
-    "isAuthenticated" : false,
-    "roles" : [ ]
-  },
-  "param0" : 4656564,
-  "param1" : 10,
-  "param2" : 0
+  "param0": 4656564,
+  "param1": 10,
+  "param2": 0
 }
 ----
 
@@ -76,29 +65,22 @@ type Community {
 MATCH (this:Community)
 WHERE this.id = $param0
 CALL {
-	WITH this
-	UNWIND apoc.cypher.runFirstColumnMany('Match(this)-[:COMMUNITY_CONTENTPIECE_HASCONTENTPIECES|:COMMUNITY_PROJECT_HASASSOCIATEDPROJECTS]-(pag)
-       return pag SKIP ($limit * $pageIndex) LIMIT $limit', {
-		limit: $param1,
-		page: $param2,
-		this: this,
-		auth: $auth
-	}) AS this_hasFeedItems
-	WITH *
-	WHERE (this_hasFeedItems:Content
-		OR this_hasFeedItems:Project)
-	RETURN collect(CASE WHEN this_hasFeedItems:Content THEN this_hasFeedItems {
-		__resolveType: 'Content',
-		.name
-	} WHEN this_hasFeedItems:Project THEN this_hasFeedItems {
-		__resolveType: 'Project',
-		.name
-	} END) AS this_hasFeedItems
+    WITH this
+    CALL {
+        WITH this
+        WITH this AS this
+        Match(this)-[:COMMUNITY_CONTENTPIECE_HASCONTENTPIECES|:COMMUNITY_PROJECT_HASASSOCIATEDPROJECTS]-(pag)
+           return pag SKIP ($param1 * $param2Index) LIMIT $param1
+    }
+    WITH pag AS this0
+    WITH *
+    WHERE (this0:Content OR this0:Project)
+    RETURN collect(CASE
+        WHEN this0:Content THEN this0 { .name, __resolveType: "Content" }
+        WHEN this0:Project THEN this0 { .name, __resolveType: "Project" }
+    END) AS this0
 }
-RETURN this {
-	.id,
-	hasFeedItems: this_hasFeedItems
-} AS this
+RETURN this { .id, hasFeedItems: this0 } AS this
 ----
 
 '''

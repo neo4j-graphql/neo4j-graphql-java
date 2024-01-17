@@ -1,7 +1,6 @@
 package org.neo4j.graphql.domain.directives
 
 import graphql.language.Directive
-import org.neo4j.graphql.DirectiveConstants
 import org.neo4j.graphql.readArgument
 import org.neo4j.graphql.validateName
 
@@ -10,8 +9,9 @@ data class UniqueDirective(
 ) {
 
     companion object {
+        const val NAME = "unique"
         fun create(directive: Directive): UniqueDirective {
-            directive.validateName(DirectiveConstants.UNIQUE)
+            directive.validateName(NAME)
             return UniqueDirective(directive.readArgument(UniqueDirective::constraintName))
         }
     }

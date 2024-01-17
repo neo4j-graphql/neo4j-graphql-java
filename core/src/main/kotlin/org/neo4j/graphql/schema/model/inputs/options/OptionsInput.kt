@@ -3,12 +3,13 @@ package org.neo4j.graphql.schema.model.inputs.options
 import graphql.language.ListType
 import org.neo4j.cypherdsl.core.Cypher
 import org.neo4j.cypherdsl.core.Expression
-import org.neo4j.cypherdsl.core.SortItem
 import org.neo4j.graphql.Constants
 import org.neo4j.graphql.asDescription
-import org.neo4j.graphql.asRequiredType
+import org.neo4j.graphql.asType
+import org.neo4j.graphql.domain.Entity
 import org.neo4j.graphql.domain.ImplementingType
-import org.neo4j.graphql.domain.directives.QueryOptionsDirective
+import org.neo4j.graphql.domain.Node
+import org.neo4j.graphql.domain.directives.LimitDirective
 import org.neo4j.graphql.schema.AugmentationBase
 import org.neo4j.graphql.schema.AugmentationContext
 import org.neo4j.graphql.schema.model.inputs.Dict
@@ -19,13 +20,13 @@ data class OptionsInput(
     val offset: Int? = null,
     val sort: List<SortInput>? = null,
 ) {
-    fun merge(queryOptions: QueryOptionsDirective?): OptionsInput {
-        if (queryOptions == null) {
+    fun merge(limitDirective: LimitDirective?): OptionsInput {
+        if (limitDirective == null) {
             return this
         }
         val newLimit = when {
             limit != null -> {
-                val max = queryOptions.limit?.max
+                val max = limitDirective.max
                 if (max != null && limit > max) {
                     max
                 } else {
@@ -33,7 +34,7 @@ data class OptionsInput(
                 }
             }
 
-            else -> queryOptions.limit?.default ?: queryOptions.limit?.max
+            else -> limitDirective.default ?: limitDirective.max
         }
         return copy(limit = newLimit)
     }
@@ -74,11 +75,17 @@ data class OptionsInput(
                     ?.let {
                         fields += inputValue(
                             Constants.SORT,
-                            ListType(it.asRequiredType())
+                            // TODO make all required, this is only for api alignment
+                            ListType(it.asType(implementingType is Node))
                         ) {
                             description("Specify one or more ${implementingType.name}Sort objects to sort ${implementingType.pascalCasePlural} by. The sorts will be applied in the order in which they are arranged in the array.".asDescription())
                         }
                     }
             } ?: throw IllegalStateException("at least the paging fields should be present")
+
+        fun generateOptionsIT(entity: Entity, ctx: AugmentationContext) = entity.extractOnTarget(
+            { generateOptionsIT(it, ctx) },
+            { Constants.Types.QueryOptions.name }
+        )
     }
 }

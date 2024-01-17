@@ -48,7 +48,7 @@ sealed class FieldContainer<T : BaseField>(val fields: List<T>) {
     }
     val connectionFields: List<ConnectionField> by lazy { fields.filterIsInstance<ConnectionField>() }
     val constrainableFields: List<BaseField> by lazy { fields.filter { it is ConstrainableField } }
-    val uniqueFields: List<BaseField> by lazy { constrainableFields.filter { it.unique != null } }
+    val uniqueFields: List<BaseField> by lazy { constrainableFields.filter { it.annotations.unique != null } }
     val computedFields: List<ComputedField> by lazy { fields.filterIsInstance<ComputedField>() }
     val authableFields: List<BaseField> by lazy { fields.filter { it is AuthableField } }
     val cypherFields: List<CypherField> by lazy { fields.filterIsInstance<CypherField>() }
@@ -67,7 +67,7 @@ sealed class FieldContainer<T : BaseField>(val fields: List<T>) {
     }
 
     val relationAggregationFields: Map<String, RelationField> by lazy {
-        relationFields.filter { it.node != null }
+        relationFields.filter { it.target is Node }
             .map { it.fieldName + FieldSuffix.Aggregate to it }
             .toMap()
     }

@@ -19,12 +19,12 @@ type Movie {
   genres: [Genre!]! @relationship(type: "HAS_GENRE", direction: OUT)
   totalGenres: Int! @cypher(statement: """
   MATCH (this)-[:HAS_GENRE]->(genre:Genre)
-  RETURN count(DISTINCT genre)
-  """)
+  RETURN count(DISTINCT genre) as result
+  """, columnName: "result")
   totalActors: Int! @cypher(statement: """
   MATCH (this)<-[:ACTED_IN]-(actor:Actor)
-  RETURN count(DISTINCT actor)
-  """)
+  RETURN count(DISTINCT actor) as result
+  """, columnName: "result")
 }
 
 type Genre {
@@ -32,18 +32,8 @@ type Genre {
   name: String
   totalMovies: Int! @cypher(statement: """
   MATCH (this)<-[:HAS_GENRE]-(movie:Movie)
-  RETURN count(DISTINCT movie)
-  """)
-}
-----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{
-  "enableRegex": true
+  RETURN count(DISTINCT movie) as result
+  """, columnName: "result")
 }
 ----
 == Should project cypher fields after applying the sort when sorting on a non-cypher field on a root connection)
@@ -66,46 +56,35 @@ type Genre {
 .Expected Cypher params
 [source,json]
 ----
-{
-  "auth" : {
-    "isAuthenticated" : true,
-    "roles" : [ ],
-    "jwt" : {
-      "roles" : [ ]
-    }
-  }
-}
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WITH collect(this) AS edges
+MATCH (this0:Movie)
+WITH collect({ node: this0 }) AS edges
 WITH edges, size(edges) AS totalCount
-UNWIND edges AS this
-WITH this, totalCount
-WITH * ORDER BY this.title ASC
 CALL {
-	WITH this
-	UNWIND apoc.cypher.runFirstColumnSingle('MATCH (this)-[:HAS_GENRE]->(genre:Genre)
-    RETURN count(DISTINCT genre)', {
-		this: this,
-		auth: $auth
-	}) AS this_totalGenres
-	RETURN head(collect(this_totalGenres)) AS this_totalGenres
+    WITH edges
+    UNWIND edges AS edge
+    WITH edge.node AS this0
+    WITH *
+    ORDER BY this0.title ASC
+    CALL {
+        WITH this0
+        CALL {
+            WITH this0
+            WITH this0 AS this
+            MATCH (this)-[:HAS_GENRE]->(genre:Genre)
+            RETURN count(DISTINCT genre) as result
+        }
+        UNWIND result AS this1
+        RETURN head(collect(this1)) AS this1
+    }
+    RETURN collect({ node: { title: this0.title, totalGenres: this1 } }) AS var2
 }
-WITH {
-	node: this {
-		.title,
-		totalGenres: this_totalGenres
-	}
-} AS edge, totalCount, this
-WITH collect(edge) AS edges, totalCount
-RETURN {
-	edges: edges,
-	totalCount: totalCount
-} AS this
+RETURN { edges: var2, totalCount: totalCount } AS this
 ----
 
 '''
@@ -130,46 +109,35 @@ RETURN {
 .Expected Cypher params
 [source,json]
 ----
-{
-  "auth" : {
-    "isAuthenticated" : true,
-    "roles" : [ ],
-    "jwt" : {
-      "roles" : [ ]
-    }
-  }
-}
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WITH collect(this) AS edges
+MATCH (this0:Movie)
+WITH collect({ node: this0 }) AS edges
 WITH edges, size(edges) AS totalCount
-UNWIND edges AS this
-WITH this, totalCount
 CALL {
-	WITH this
-	UNWIND apoc.cypher.runFirstColumnSingle('MATCH (this)-[:HAS_GENRE]->(genre:Genre)
-    RETURN count(DISTINCT genre)', {
-		this: this,
-		auth: $auth
-	}) AS this_totalGenres
-	RETURN head(collect(this_totalGenres)) AS this_totalGenres
+    WITH edges
+    UNWIND edges AS edge
+    WITH edge.node AS this0
+    CALL {
+        WITH this0
+        CALL {
+            WITH this0
+            WITH this0 AS this
+            MATCH (this)-[:HAS_GENRE]->(genre:Genre)
+            RETURN count(DISTINCT genre) as result
+        }
+        UNWIND result AS this1
+        RETURN head(collect(this1)) AS this1
+    }
+    WITH *
+    ORDER BY this1 ASC
+    RETURN collect({ node: { title: this0.title, totalGenres: this1 } }) AS var2
 }
-WITH * ORDER BY this_totalGenres ASC
-WITH {
-	node: this {
-		.title,
-		totalGenres: this_totalGenres
-	}
-} AS edge, totalCount, this
-WITH collect(edge) AS edges, totalCount
-RETURN {
-	edges: edges,
-	totalCount: totalCount
-} AS this
+RETURN { edges: var2, totalCount: totalCount } AS this
 ----
 
 '''
@@ -195,56 +163,46 @@ RETURN {
 .Expected Cypher params
 [source,json]
 ----
-{
-  "auth" : {
-    "isAuthenticated" : true,
-    "roles" : [ ],
-    "jwt" : {
-      "roles" : [ ]
-    }
-  }
-}
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WITH collect(this) AS edges
+MATCH (this0:Movie)
+WITH collect({ node: this0 }) AS edges
 WITH edges, size(edges) AS totalCount
-UNWIND edges AS this
-WITH this, totalCount
 CALL {
-	WITH this
-	UNWIND apoc.cypher.runFirstColumnSingle('MATCH (this)-[:HAS_GENRE]->(genre:Genre)
-    RETURN count(DISTINCT genre)', {
-		this: this,
-		auth: $auth
-	}) AS this_totalGenres
-	RETURN head(collect(this_totalGenres)) AS this_totalGenres
+    WITH edges
+    UNWIND edges AS edge
+    WITH edge.node AS this0
+    CALL {
+        WITH this0
+        CALL {
+            WITH this0
+            WITH this0 AS this
+            MATCH (this)-[:HAS_GENRE]->(genre:Genre)
+            RETURN count(DISTINCT genre) as result
+        }
+        UNWIND result AS this1
+        RETURN head(collect(this1)) AS this1
+    }
+    WITH *
+    ORDER BY this1 ASC
+    CALL {
+        WITH this0
+        CALL {
+            WITH this0
+            WITH this0 AS this
+            MATCH (this)<-[:ACTED_IN]-(actor:Actor)
+            RETURN count(DISTINCT actor) as result
+        }
+        UNWIND result AS this2
+        RETURN head(collect(this2)) AS this2
+    }
+    RETURN collect({ node: { title: this0.title, totalGenres: this1, totalActors: this2 } }) AS var3
 }
-WITH * ORDER BY this_totalGenres ASC
-CALL {
-	WITH this
-	UNWIND apoc.cypher.runFirstColumnSingle('MATCH (this)<-[:ACTED_IN]-(actor:Actor)
-    RETURN count(DISTINCT actor)', {
-		this: this,
-		auth: $auth
-	}) AS this_totalActors
-	RETURN head(collect(this_totalActors)) AS this_totalActors
-}
-WITH {
-	node: this {
-		.title,
-		totalGenres: this_totalGenres,
-		totalActors: this_totalActors
-	}
-} AS edge, totalCount, this
-WITH collect(edge) AS edges, totalCount
-RETURN {
-	edges: edges,
-	totalCount: totalCount
-} AS this
+RETURN { edges: var3, totalCount: totalCount } AS this
 ----
 
 '''

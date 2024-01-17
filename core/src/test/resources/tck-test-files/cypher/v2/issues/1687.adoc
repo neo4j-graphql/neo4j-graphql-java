@@ -23,14 +23,6 @@ type Genre {
   movies: [Production!]! @relationship(type: "HAS_GENRE", direction: IN)
 }
 ----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{}
-----
 == should be able to return all the genres related to the Matrix movie using connection fields
 
 .GraphQL-Query
@@ -47,7 +39,7 @@ query Genres {
 [source,json]
 ----
 {
-  "param0" : "Matrix"
+  "param0": "Matrix"
 }
 ----
 
@@ -56,16 +48,13 @@ query Genres {
 ----
 MATCH (this:Genre)
 WHERE (EXISTS {
-		MATCH (this1:Movie)-[this0:HAS_GENRE]->(this)
-		WHERE this1.title = $param0
-	}
-	AND NOT (EXISTS {
-		MATCH (this1)-[this0]->(this)
-		WHERE NOT (this1.title = $param0)
-	}))
-RETURN this {
-	.name
-} AS this
+    MATCH (this)<-[this0:HAS_GENRE]-(this1:Movie)
+    WHERE this1.title = $param0
+} AND NOT (EXISTS {
+    MATCH (this)<-[this0:HAS_GENRE]-(this1:Movie)
+    WHERE NOT (this1.title = $param0)
+}))
+RETURN this { .name } AS this
 ----
 
 '''

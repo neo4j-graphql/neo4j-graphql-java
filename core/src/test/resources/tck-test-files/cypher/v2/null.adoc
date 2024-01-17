@@ -18,16 +18,6 @@ type Movie {
   isFavorite: Boolean
 }
 ----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{
-  "enableRegex": true
-}
-----
 == Simple IS NOT NULL
 
 .GraphQL-Query
@@ -43,7 +33,7 @@ type Movie {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
@@ -51,9 +41,7 @@ type Movie {
 ----
 MATCH (this:Movie)
 WHERE this.title IS NOT NULL
-RETURN this {
-	.title
-} AS this
+RETURN this { .title } AS this
 ----
 
 '''
@@ -73,7 +61,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
@@ -81,9 +69,7 @@ RETURN this {
 ----
 MATCH (this:Movie)
 WHERE this.title IS NULL
-RETURN this {
-	.title
-} AS this
+RETURN this { .title } AS this
 ----
 
 '''
@@ -103,7 +89,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
@@ -111,11 +97,9 @@ RETURN this {
 ----
 MATCH (this:Movie)
 WHERE EXISTS {
-	MATCH (this0:Actor)-[:ACTED_IN]->(this)
+    MATCH (this)<-[:ACTED_IN]-(this0:Actor)
 }
-RETURN this {
-	.title
-} AS this
+RETURN this { .title } AS this
 ----
 
 '''
@@ -135,7 +119,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
@@ -143,11 +127,9 @@ RETURN this {
 ----
 MATCH (this:Movie)
 WHERE NOT (EXISTS {
-	MATCH (this0:Actor)-[:ACTED_IN]->(this)
+    MATCH (this)<-[:ACTED_IN]-(this0:Actor)
 })
-RETURN this {
-	.title
-} AS this
+RETURN this { .title } AS this
 ----
 
 '''

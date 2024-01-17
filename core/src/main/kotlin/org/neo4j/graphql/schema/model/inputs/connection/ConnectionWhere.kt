@@ -1,7 +1,6 @@
 package org.neo4j.graphql.schema.model.inputs.connection
 
 import graphql.language.InputValueDefinition
-import graphql.language.ListType
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.*
 import org.neo4j.graphql.domain.fields.ConnectionField
@@ -14,6 +13,9 @@ import org.neo4j.graphql.schema.model.inputs.NestedWhere
 import org.neo4j.graphql.schema.model.inputs.PerNodeInput
 import org.neo4j.graphql.schema.model.inputs.WhereInput
 import org.neo4j.graphql.schema.relations.RelationFieldBaseAugmentation
+
+private val NEGATION_DEPRECATED =
+    "Negation filters will be deprecated, use the NOT operator to achieve the same behavior".toDeprecatedDirective()
 
 sealed interface ConnectionWhere {
 
@@ -45,20 +47,11 @@ sealed interface ConnectionWhere {
                     .generateRelationPropertiesWhereIT(rel.properties, ctx)
                     ?.let {
                         fields += inputValue(Constants.EDGE_FIELD, it.asType())
-                        fields += inputValue(Constants.EDGE_FIELD + "_NOT", it.asType())
+                        fields += inputValue(Constants.EDGE_FIELD + "_NOT", it.asType()) {
+                            directive(NEGATION_DEPRECATED)
+                        }
                     }
 
-            }
-
-            fun addNestingWhere(
-                fields: MutableList<InputValueDefinition>,
-                connectionWhereName: String
-            ) {
-                if (fields.isNotEmpty()) {
-                    val listWhereType = ListType(connectionWhereName.asRequiredType())
-                    fields += inputValue(Constants.AND, listWhereType)
-                    fields += inputValue(Constants.OR, listWhereType)
-                }
             }
         }
 
@@ -83,11 +76,13 @@ sealed interface ConnectionWhere {
                     WhereInput.NodeWhereInput.Augmentation.generateWhereIT(node, ctx)
                         ?.let {
                             fields += inputValue(Constants.NODE_FIELD, it.asType())
-                            fields += inputValue(Constants.NODE_FIELD + "_NOT", it.asType())
+                            fields += inputValue(Constants.NODE_FIELD + "_NOT", it.asType()) {
+                                directive(NEGATION_DEPRECATED)
+                            }
                         }
 
                     ImplementingTypeConnectionWhere.Augmentation.addEdgePredicates(rel, ctx, fields)
-                    ImplementingTypeConnectionWhere.Augmentation.addNestingWhere(fields, connectionWhereName)
+                    WhereInput.Augmentation.addNestingWhereFields(connectionWhereName, fields, ctx)
                 }
         }
     }
@@ -115,11 +110,13 @@ sealed interface ConnectionWhere {
                 ctx.getOrCreateInputObjectType(rel.connectionField.typeMeta.whereType.name()) { fields, connectionWhereName ->
                     WhereInput.InterfaceWhereInput.Augmentation.generateFieldWhereIT(interfaze, ctx)?.let {
                         fields += inputValue(Constants.NODE_FIELD, it.asType())
-                        fields += inputValue(Constants.NODE_FIELD + "_NOT", it.asType())
+                        fields += inputValue(Constants.NODE_FIELD + "_NOT", it.asType()) {
+                            directive(NEGATION_DEPRECATED)
+                        }
                     }
 
                     ImplementingTypeConnectionWhere.Augmentation.addEdgePredicates(rel, ctx, fields)
-                    ImplementingTypeConnectionWhere.Augmentation.addNestingWhere(fields, connectionWhereName)
+                    WhereInput.Augmentation.addNestingWhereFields(connectionWhereName, fields, ctx)
                 }
 
         }

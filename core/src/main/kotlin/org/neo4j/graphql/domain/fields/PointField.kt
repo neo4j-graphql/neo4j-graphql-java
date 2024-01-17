@@ -9,6 +9,7 @@ import org.neo4j.cypherdsl.core.Functions
 import org.neo4j.graphql.Constants
 import org.neo4j.graphql.SchemaConfig
 import org.neo4j.graphql.domain.TypeMeta
+import org.neo4j.graphql.domain.directives.Annotations
 import org.neo4j.graphql.domain.predicates.FieldOperator
 import org.neo4j.graphql.domain.predicates.definitions.ScalarPredicateDefinition
 import org.neo4j.graphql.inner
@@ -22,10 +23,12 @@ class PointField(
     fieldName: String,
     typeMeta: TypeMeta,
     val type: Type,
+    annotations: Annotations,
     schemaConfig: SchemaConfig
 ) : ScalarField(
     fieldName,
     typeMeta,
+    annotations,
     schemaConfig,
 ), ConstrainableField, AuthableField, MutableField {
 

@@ -11,16 +11,6 @@ type Movie {
   time: LocalTime
 }
 ----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{
-  "enableRegex": true
-}
-----
 == GTE Read
 
 .GraphQL-Query
@@ -37,7 +27,7 @@ type Movie {
 [source,json]
 ----
 {
-  "param0" : "13:45:33.250000000"
+  "param0": "13:45:33.250000000"
 }
 ----
 
@@ -46,9 +36,7 @@ type Movie {
 ----
 MATCH (this:Movie)
 WHERE this.time >= $param0
-RETURN this {
-	.time
-} AS this
+RETURN this { .time } AS this
 ----
 
 '''
@@ -71,25 +59,27 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0" : [ {
-    "time" : "22:00:15.555000000"
-  } ]
+  "create_param0": [
+    {
+      "time": "22:00:15.555000000"
+    }
+  ]
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-UNWIND $create_param0 AS create_var1
+UNWIND $create_param0 AS create_var0
 CALL {
-	WITH create_var1
-	CREATE (create_this0:Movie)
-	SET create_this0.time = create_var1.time
-	RETURN create_this0
+    WITH create_var0
+    CREATE (create_this1:Movie)
+    SET
+        create_this1.time = create_var0.time
+    
+    RETURN create_this1
 }
-RETURN collect(create_this0 {
-	.time
-}) AS data
+RETURN collect(create_this1 { .time }) AS data
 ----
 
 '''
@@ -110,7 +100,7 @@ RETURN collect(create_this0 {
 [source,json]
 ----
 {
-  "param0" : "12:00:00"
+  "param0": "12:00:00"
 }
 ----
 
@@ -119,9 +109,7 @@ RETURN collect(create_this0 {
 ----
 MATCH (this:Movie)
 WHERE this.time = $param0
-RETURN this {
-	.time
-} AS this
+RETURN this { .time } AS this
 ----
 
 '''
@@ -145,7 +133,7 @@ mutation {
 [source,json]
 ----
 {
-  "this_update_time" : "09:24:40.845512000"
+  "this_update_time": "09:24:40.845512000"
 }
 ----
 
@@ -153,11 +141,11 @@ mutation {
 [source,cypher]
 ----
 MATCH (this:Movie)
+
+
 SET this.time = $this_update_time
-RETURN collect(DISTINCT this {
-	.id,
-	.time
-}) AS data
+
+RETURN collect(DISTINCT this { .id, .time }) AS data
 ----
 
 '''

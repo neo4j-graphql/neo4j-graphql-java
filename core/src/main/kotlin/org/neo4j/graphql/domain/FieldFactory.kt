@@ -4,25 +4,9 @@ import graphql.language.*
 import graphql.schema.idl.ScalarInfo
 import graphql.schema.idl.TypeDefinitionRegistry
 import org.neo4j.graphql.*
-import org.neo4j.graphql.DirectiveConstants.ALIAS
-import org.neo4j.graphql.DirectiveConstants.AUTH
-import org.neo4j.graphql.DirectiveConstants.COALESCE
-import org.neo4j.graphql.DirectiveConstants.CUSTOM_RESOLVER
-import org.neo4j.graphql.DirectiveConstants.CYPHER
-import org.neo4j.graphql.DirectiveConstants.DEFAULT
-import org.neo4j.graphql.DirectiveConstants.EXCLUDE
-import org.neo4j.graphql.DirectiveConstants.ID
-import org.neo4j.graphql.DirectiveConstants.IGNORE
-import org.neo4j.graphql.DirectiveConstants.NODE
-import org.neo4j.graphql.DirectiveConstants.POPULATED_BY
-import org.neo4j.graphql.DirectiveConstants.PRIVATE
-import org.neo4j.graphql.DirectiveConstants.READ_ONLY
-import org.neo4j.graphql.DirectiveConstants.RELATIONSHIP
-import org.neo4j.graphql.DirectiveConstants.RELATIONSHIP_PROPERTIES
-import org.neo4j.graphql.DirectiveConstants.TIMESTAMP
-import org.neo4j.graphql.DirectiveConstants.UNIQUE
-import org.neo4j.graphql.DirectiveConstants.WRITE_ONLY
-import org.neo4j.graphql.domain.directives.*
+import org.neo4j.graphql.domain.directives.Annotations
+import org.neo4j.graphql.domain.directives.PrivateDirective
+import org.neo4j.graphql.domain.directives.RelationshipDirective
 import org.neo4j.graphql.domain.fields.*
 import org.neo4j.graphql.domain.fields.ObjectField
 import org.slf4j.LoggerFactory
@@ -46,7 +30,7 @@ object FieldFactory {
 
         val result = mutableListOf<BaseField>()
 
-        obj.fieldDefinitions.mapNotNull { field ->
+        obj.fieldDefinitions.forEach { field ->
 
             // Create list of directives for this field. Field directives override interface field directives.
             val directives: MutableMap<String, Directive> = mutableMapOf()
@@ -54,31 +38,10 @@ object FieldFactory {
                 .forEach { interfaceField -> interfaceField.directives.associateByTo(directives) { it.name } }
             field.directives.associateByTo(directives) { it.name }
 
-            checkDirectiveCombinations(directives.values)
+            if (directives.containsKey(PrivateDirective.NAME)) return@forEach
 
-            if (directives.containsKey(PRIVATE)) return@mapNotNull null
-
-            val relationshipDirective =
-                directives.remove(RELATIONSHIP)?.let { RelationshipDirective.create(it) }
-            val cypherDirective = directives.remove(CYPHER)?.let { CypherDirective.create(it) }
-            val customResolverDirective = directives.remove(CUSTOM_RESOLVER)?.let { CustomResolverDirective.create(it) }
-
+            val annotations = Annotations(directives)
             val typeMeta = TypeMeta.create(field)
-            val authDirective = directives.remove(AUTH)?.let { AuthDirective.create(it) }
-            val idDirective = directives.remove(ID)?.let { IdDirective.create(it) }
-            val defaultDirective = directives.remove(DEFAULT)?.let { DefaultDirective.create(it) }
-            val coalesceDirective = directives.remove(COALESCE)?.let { CoalesceDirective.create(it) }
-            val timestampDirective =
-                directives.remove(TIMESTAMP)?.let { TimestampDirective.create(it) }
-            val aliasDirective = directives.remove(ALIAS)?.let { AliasDirective.create(it) }
-            val populatedByDirective = directives.remove(POPULATED_BY)?.let { PopulatedByDirective.create(it) }
-
-            val unique = directives.remove(UNIQUE)
-                ?.let { UniqueDirective.create(it) }
-                ?: idDirective?.let { UniqueDirective("${obj.name}_${field.name}") }
-            val ignoreDirective = directives.remove(IGNORE)
-            val readonlyDirective = directives.remove(READ_ONLY)
-            val writeonlyDirective = directives.remove(WRITE_ONLY)
 
             val fieldInterface = typeDefinitionRegistry.getTypeByName<InterfaceTypeDefinition>(typeMeta.type.name())
             val fieldUnion = typeDefinitionRegistry.getTypeByName<UnionTypeDefinition>(typeMeta.type.name())
@@ -89,35 +52,29 @@ object FieldFactory {
 
             val baseField: BaseField
 
-            if (relationshipDirective != null) {
-                val properties = if (relationshipDirective.properties != null) {
-                    relationshipPropertiesFactory(relationshipDirective.properties)
-                        ?: throw IllegalArgumentException("Cannot find interface specified in @$RELATIONSHIP of ${obj.name}.${field.name}")
+            if (annotations.relationship != null) {
+                val properties = if (annotations.relationship.properties != null) {
+                    relationshipPropertiesFactory(annotations.relationship.properties)
+                        ?: throw IllegalArgumentException("Cannot find interface specified in @${RelationshipDirective.NAME} of ${obj.name}.${field.name}")
                 } else {
                     null
                 }
 
-                val interfaze = fieldInterface?.let { interfaceFactory(it.name) }
                 var connectionPrefix = obj.name
                 if (obj.implements.isNotEmpty()) {
-                    obj.implements
-                        .mapNotNull { typeDefinitionRegistry.getTypeByName<InterfaceTypeDefinition>(it.name()) }
-//                        .firstOrNull { it.getField(field.name) != null }
-                        // TODO REVIEW Darrell
-                        .firstOrNull { it.getField(field.name)?.type?.name() == field.type.name() }
-                        ?.let {
-                            connectionPrefix = it.name
-                        }
+                    val interfacedDefs =
+                        obj.implements.mapNotNull { typeDefinitionRegistry.getTypeByName<InterfaceTypeDefinition>(it.name()) }
+                    val firstInterface = interfacedDefs.firstOrNull()
+                    if (firstInterface != null && firstInterface.getField(field.name) != null) {
+                        // TODO Darrell why only the 1st interface?
+                        connectionPrefix = firstInterface.name
+                    }
                 }
 
                 baseField = RelationField(
                     field.name,
                     typeMeta,
-                    interfaze,
-                    unionNodeNames = fieldUnion?.memberTypes?.map { it.name() } ?: emptyList(),
-                    relationshipDirective.type,
-                    relationshipDirective.direction,
-                    relationshipDirective.queryDirection,
+                    annotations,
                     properties,
                     connectionPrefix
                 )
@@ -132,23 +89,17 @@ object FieldFactory {
                         type = NonNullType(TypeName(connectionTypeName)),
                         whereType = TypeName(connectionTypeName + "Where")
                     ),
+                    annotations,
                     relationshipField = baseField
                 ).apply {
-                    this.dbPropertyName = aliasDirective?.property ?: field.name
-                    this.otherDirectives = directives.values.toList()
                     this.arguments = field.inputValueDefinitions
-                    this.auth = authDirective
-                    this.readonly = readonlyDirective != null
-                    this.writeonly = writeonlyDirective != null
-                    this.unique = unique
                 }
                 result.add(connectionField)
 
                 baseField.connectionField = connectionField
 
-            } else if (cypherDirective != null) {
-                val unionNodeNames = fieldUnion?.memberTypes?.map { it.name() } ?: emptyList()
-                val originalStatement = cypherDirective.statement
+            } else if (annotations.cypher != null) {
+                val originalStatement = annotations.cypher.statement
                 // Arguments on the field are passed to the Cypher statement and can be used by name.
                 // They must not be prefixed by $ since they are no longer parameters. Just use the same name as the fields' argument.
                 val rewrittenStatement = originalStatement.replace(Regex("\\\$([_a-zA-Z]\\w*)"), "$1")
@@ -167,58 +118,41 @@ object FieldFactory {
                 baseField = CypherField(
                     field.name,
                     typeMeta,
+                    annotations,
                     rewrittenStatement,
-                    cypherDirective.columnName,
-                    unionNodeNames,
                 )
 
-            } else if (customResolverDirective != null) {
-                baseField = ComputedField(field.name, typeMeta, customResolverDirective.requires)
+            } else if (annotations.customResolver != null) {
+                baseField = ComputedField(field.name, typeMeta, annotations)
             } else if (fieldScalar != null) {
-                baseField = CustomScalarField(field.name, typeMeta, schemaConfig)
+                baseField = CustomScalarField(field.name, typeMeta, annotations, schemaConfig)
             } else if (fieldEnum != null) {
-                baseField = CustomEnumField(field.name, typeMeta, schemaConfig)
-                if (defaultDirective != null) {
-                    baseField.defaultValue = defaultDirective.value
-                }
-                if (coalesceDirective != null) {
-                    val coalesceValue = coalesceDirective.value
-                    if (coalesceValue !is EnumValue) {
-                        throw IllegalArgumentException("@coalesce value on enum fields must be an enum value");
-                    }
-                    baseField.coalesceValue = coalesceValue
+                baseField = CustomEnumField(field.name, typeMeta, annotations, schemaConfig)
+                if (annotations.coalesce != null) {
+                    require(annotations.coalesce.value is EnumValue) { "@coalesce value on enum fields must be an enum value" }
                 }
             } else if (fieldUnion != null) {
                 val nodes = fieldUnion.memberTypes.map { it.name() }
-                baseField = UnionField(field.name, typeMeta, nodes)
+                baseField = UnionField(field.name, typeMeta, annotations, nodes)
             } else if (fieldInterface != null) {
                 val implementations = fieldInterface.implements.mapNotNull { it.name() }
-                baseField = InterfaceField(field.name, typeMeta, implementations)
+                baseField = InterfaceField(field.name, typeMeta, annotations, implementations)
             } else if (fieldObject != null) {
-                baseField = ObjectField(field.name, typeMeta)
-            } else if (ignoreDirective != null) {
-                baseField = IgnoredField(field.name, typeMeta)
+                baseField = ObjectField(field.name, typeMeta, annotations)
             } else if (Constants.TEMPORAL_TYPES.contains(typeMeta.type.name())) {
-                baseField = TemporalField(field.name, typeMeta, schemaConfig)
+                baseField = TemporalField(field.name, typeMeta, annotations, schemaConfig)
 
-                if (timestampDirective != null) {
-                    if (typeMeta.type.isList()) {
-                        throw IllegalArgumentException("cannot auto-generate an array")
-                    }
-                    if (!Constants.ZONED_TIME_TYPES.contains(typeMeta.type.name())) {
-                        throw IllegalArgumentException("Cannot timestamp temporal fields lacking time zone information")
-                    }
-                    baseField.timestamps = timestampDirective.operations
+                if (annotations.timestamp != null) {
+                    require(!typeMeta.type.isList()) { "cannot auto-generate an array" }
+                    require(Constants.ZONED_TIME_TYPES.contains(typeMeta.type.name())) { "Cannot timestamp temporal fields lacking time zone information" }
                 }
 
-                if (defaultDirective != null) {
-                    val value = defaultDirective.value.toJavaValue()
+                if (annotations.default != null) {
+                    val value = annotations.default.value.toJavaValue()
                     // todo add validation logic to field
 //                        if () {
 //                            throw  IllegalArgumentException("Default value for ${obj.name}.${field.name} is not a valid DateTime")
 //                        }
-
-                    baseField.defaultValue = defaultDirective.value
                 }
             } else if (Constants.POINT_TYPES.contains(typeMeta.type.name())) {
                 val type = when (typeMeta.type.name()) {
@@ -226,27 +160,28 @@ object FieldFactory {
                     Constants.CARTESIAN_POINT_TYPE -> PointField.Type.CARTESIAN
                     else -> error("unsupported point type " + typeMeta.type.name())
                 }
-                baseField = PointField(field.name, typeMeta, type, schemaConfig)
+                baseField = PointField(field.name, typeMeta, type, annotations, schemaConfig)
             } else {
-                baseField = PrimitiveField(field.name, typeMeta, schemaConfig)
+                baseField = PrimitiveField(field.name, typeMeta, annotations, schemaConfig)
 
-                if (idDirective != null) {
-                    if (idDirective.autogenerate) {
-                        if (typeMeta.type.name() != "ID") {
-                            throw IllegalArgumentException("cannot auto-generate a non ID field")
-                        }
-                        if (typeMeta.type.isList()) {
-                            throw IllegalArgumentException("cannot auto-generate an array")
-                        }
-                        baseField.autogenerate = true
-                    }
-                }
+                // TODO add validation
+//                if (idDirective != null) {
+//                    if (idDirective.autogenerate) {
+//                        if (typeMeta.type.name() != "ID") {
+//                            throw IllegalArgumentException("cannot auto-generate a non ID field")
+//                        }
+//                        if (typeMeta.type.isList()) {
+//                            throw IllegalArgumentException("cannot auto-generate an array")
+//                        }
+//                        baseField.autogenerate = true
+//                    }
+//                }
 
-                if (defaultDirective != null) {
-                    val value = defaultDirective.value
+                if (annotations.default != null) {
+                    val value = annotations.default.value
                     fun <T : Value<*>> Value<*>.checkKind(clazz: KClass<T>): T = clazz.safeCast(this)
                         ?: throw IllegalArgumentException("Default value for ${obj.name}.${field.name} does not have matching type ${typeMeta.type.name()}")
-                    baseField.defaultValue = when (typeMeta.type.name()) {
+                    when (typeMeta.type.name()) {
                         Constants.ID, Constants.STRING -> value.checkKind(StringValue::class)
                         Constants.BOOLEAN -> value.checkKind(BooleanValue::class)
                         Constants.INT -> value.checkKind(IntValue::class)
@@ -255,11 +190,11 @@ object FieldFactory {
                     }
                 }
 
-                if (coalesceDirective != null) {
-                    val value = coalesceDirective.value
+                if (annotations.coalesce != null) {
+                    val value = annotations.coalesce.value
                     fun <T : Value<*>> Value<*>.checkKind(clazz: KClass<T>): T = clazz.safeCast(this)
                         ?: throw IllegalArgumentException("coalesce() value for ${obj.name}.${field.name} does not have matching type ${typeMeta.type.name()}")
-                    baseField.coalesceValue = when (typeMeta.type.name()) {
+                    when (typeMeta.type.name()) {
                         Constants.ID, Constants.STRING -> value.checkKind(StringValue::class)
                         Constants.BOOLEAN -> value.checkKind(BooleanValue::class)
                         Constants.INT -> value.checkKind(IntValue::class)
@@ -271,58 +206,14 @@ object FieldFactory {
 
             }
 
-            if (baseField is PrimitiveField) {
-                baseField.callback = populatedByDirective
-            }
-
             baseField.apply {
-                this.dbPropertyName = aliasDirective?.property ?: field.name
-                this.otherDirectives = directives.values.toList()
                 this.arguments = field.inputValueDefinitions
-                this.auth = authDirective
                 this.description = field.description
                 this.comments = field.comments
-                this.readonly = readonlyDirective != null
-                this.writeonly = writeonlyDirective != null
-                this.unique = unique
             }
             result.add(baseField)
         }
 
         return result
-    }
-
-    private val invalidDirectiveCombinations = mapOf(
-        ALIAS to setOf(CYPHER, IGNORE, RELATIONSHIP),
-        AUTH to setOf(IGNORE),
-        COALESCE to emptySet(),
-        CYPHER to emptySet(),
-        DEFAULT to emptySet(),
-        ID to setOf(CYPHER, IGNORE, RELATIONSHIP, TIMESTAMP, UNIQUE),
-        IGNORE to setOf(ALIAS, AUTH, ID, READ_ONLY, RELATIONSHIP),
-        PRIVATE to emptySet(),
-        READ_ONLY to setOf(CYPHER, IGNORE),
-        RELATIONSHIP to setOf(ALIAS, COALESCE, CYPHER, DEFAULT, ID, IGNORE, READ_ONLY),
-        TIMESTAMP to setOf(ID, UNIQUE),
-        UNIQUE to setOf(CYPHER, ID, IGNORE, RELATIONSHIP, TIMESTAMP),
-        WRITE_ONLY to setOf(CYPHER, IGNORE),
-        // OBJECT
-        NODE to emptySet(),
-
-        // INTERFACE
-        RELATIONSHIP_PROPERTIES to emptySet(),
-
-        // OBJECT and INTERFACE
-        EXCLUDE to emptySet(),
-    )
-
-    private fun checkDirectiveCombinations(directives: Collection<Directive>) = directives.forEach { directive ->
-        // Will skip any custom directives
-        invalidDirectiveCombinations[directive.name]?.let { invalidCombinations ->
-            directives.find { invalidCombinations.contains(it.name) }?.let {
-                throw IllegalArgumentException("`Directive @${directive.name} cannot be used in combination with @${it.name}")
-
-            }
-        }
     }
 }

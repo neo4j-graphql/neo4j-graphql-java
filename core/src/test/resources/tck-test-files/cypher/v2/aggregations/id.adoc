@@ -10,16 +10,6 @@ type Movie {
   id: ID!
 }
 ----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{
-  "enableRegex": true
-}
-----
 == Max
 
 .GraphQL-Query
@@ -37,18 +27,17 @@ type Movie {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-RETURN {
-	id: {
-		longest: max(this.id)
-	}
+CALL {
+    MATCH (this:Movie)
+    RETURN { longest: max(this.id) } AS var0
 }
+RETURN { id: var0 }
 ----
 
 '''
@@ -70,18 +59,17 @@ RETURN {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-RETURN {
-	id: {
-		shortest: min(this.id)
-	}
+CALL {
+    MATCH (this:Movie)
+    RETURN { shortest: min(this.id) } AS var0
 }
+RETURN { id: var0 }
 ----
 
 '''
@@ -104,19 +92,17 @@ RETURN {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-RETURN {
-	id: {
-		shortest: min(this.id),
-		longest: max(this.id)
-	}
+CALL {
+    MATCH (this:Movie)
+    RETURN { shortest: min(this.id), longest: max(this.id) } AS var0
 }
+RETURN { id: var0 }
 ----
 
 '''

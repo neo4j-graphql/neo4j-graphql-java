@@ -7,25 +7,17 @@
 [source,graphql,schema=true]
 ----
 type Movie {
-  id: ID! @id
+  id: ID! @id @unique
   title: String!
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
 }
 
 type Actor {
-  id: ID! @id
+  id: ID! @id @unique
   name: String!
   dob: DateTime!
   homeAddress: Point!
 }
-----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{}
 ----
 == DateTime and Point values get set as expected
 
@@ -47,14 +39,14 @@ mutation {
 [source,json]
 ----
 {
-  "this0_actors_connectOrCreate_param0" : "1",
-  "this0_actors_connectOrCreate_param1" : "Tom Hanks",
-  "this0_actors_connectOrCreate_param2" : {
-    "longitude" : 1,
-    "latitude" : 2
-  },
-  "this0_actors_connectOrCreate_param3" : "1970-01-01T00:00:00Z",
-  "this0_title" : "Forrest Gump"
+  "this0_title": "Forrest Gump",
+  "this0_actors_connectOrCreate_param0": "1",
+  "this0_actors_connectOrCreate_param1": "Tom Hanks",
+  "this0_actors_connectOrCreate_param2": "1970-01-01T00:00:00Z",
+  "this0_actors_connectOrCreate_param3": {
+    "longitude": 1,
+    "latitude": 2
+  }
 }
 ----
 
@@ -62,24 +54,27 @@ mutation {
 [source,cypher]
 ----
 CALL {
-	CREATE (this0:Movie)
-	SET this0.id = randomUUID()
-	SET this0.title = $this0_title
-	WITH this0
-	CALL {
-		WITH this0
-		MERGE (this0_actors_connectOrCreate0:Actor {
-			id: $this0_actors_connectOrCreate_param0
-		})
-	ON CREATE SET this0_actors_connectOrCreate0.name = $this0_actors_connectOrCreate_param1, this0_actors_connectOrCreate0.homeAddress = $this0_actors_connectOrCreate_param2, this0_actors_connectOrCreate0.dob = $this0_actors_connectOrCreate_param3
-		MERGE (this0_actors_connectOrCreate0)-[this0_actors_connectOrCreate_this0:ACTED_IN]->(this0)
-		RETURN count(*) AS _
-	}
-	RETURN this0
+CREATE (this0:Movie)
+SET this0.id = randomUUID()
+SET this0.title = $this0_title
+WITH this0
+CALL {
+    WITH this0
+    MERGE (this0_actors_connectOrCreate0:Actor { id: $this0_actors_connectOrCreate_param0 })
+    ON CREATE SET
+        this0_actors_connectOrCreate0.name = $this0_actors_connectOrCreate_param1,
+        this0_actors_connectOrCreate0.dob = $this0_actors_connectOrCreate_param2,
+        this0_actors_connectOrCreate0.homeAddress = $this0_actors_connectOrCreate_param3
+    MERGE (this0)<-[this0_actors_connectOrCreate_this0:ACTED_IN]-(this0_actors_connectOrCreate0)
+    RETURN count(*) AS _
 }
-RETURN [this0 {
-	.title
-}] AS data
+RETURN this0
+}
+CALL {
+    WITH this0
+    RETURN this0 { .title } AS create_var0
+}
+RETURN [create_var0] AS data
 ----
 
 '''

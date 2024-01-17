@@ -3,6 +3,7 @@ package org.neo4j.graphql.domain.directives
 import graphql.language.*
 import org.neo4j.graphql.*
 
+// TODO delete this file
 data class AuthDirective(
     val rules: List<AuthRule>
 ) {

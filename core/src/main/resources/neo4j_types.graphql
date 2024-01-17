@@ -1,3 +1,4 @@
+"An enum for sorting in either ascending or descending order."
 enum SortDirection {
   "Sort by field values in ascending order."
   ASC
@@ -5,22 +6,27 @@ enum SortDirection {
   DESC
 }
 
+"Information about the number of nodes and relationships created and deleted during an update mutation"
 type UpdateInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   nodesDeleted: Int!
   relationshipsCreated: Int!
   relationshipsDeleted: Int!
 }
 
+"Information about the number of nodes and relationships created during a create mutation"
 type CreateInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   relationshipsCreated: Int!
 }
 
+"""
+Information about the number of nodes and relationships deleted during a delete mutation
+"""
 type DeleteInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesDeleted: Int!
   relationshipsDeleted: Int!
 }
@@ -246,6 +252,7 @@ input CartesianPointDistance {
   distance: Float!
 }
 
+"Input type for options that can be specified on a query operation."
 input QueryOptions {
   limit: Int
   offset: Int
@@ -278,5 +285,18 @@ scalar BigInt
 "A duration, represented as an ISO 8601 duration string"
 scalar Duration
 
+enum EventType {
+  CREATE
+  UPDATE
+  DELETE
+  CREATE_RELATIONSHIP
+  DELETE_RELATIONSHIP
+}
 # TODO create feature request
 #scalar DynamicProperties
+
+"An object with an ID"
+interface Node {
+  "The id of the object."
+  id: ID!
+}

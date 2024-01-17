@@ -6,23 +6,17 @@
 
 [source,graphql,schema=true]
 ----
+type JWT @jwt {
+  roles: [String!]!
+}
+
 type Movie {
   title: String
   genres: [Genre!]! @relationship(type: "IN_GENRE", direction: OUT)
 }
 
-type Genre @auth(rules: [{operations: [CONNECT], roles: ["admin"]}]) {
+type Genre @authorization(validate: [{operations: [CREATE_RELATIONSHIP], where: {jwt: {roles_INCLUDES: "admin"}}}]) {
   name: String @unique
-}
-----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{
-  "enableRegex": true
 }
 ----
 == Create -> nested connectOrCreate
@@ -47,14 +41,14 @@ mutation {
 [source,json]
 ----
 {
-  "auth" : {
-    "roles" : [ ],
-    "isAuthenticated" : false,
-    "jwt" : { }
+  "this0_title": "Cool Movie",
+  "this0_genres_connectOrCreate_param0": "Horror",
+  "this0_genres_connectOrCreate_param1": "Horror",
+  "isAuthenticated": true,
+  "jwt": {
+    "roles": []
   },
-  "this0_genres_connectOrCreate_param0" : "Horror",
-  "this0_genres_connectOrCreate_param1" : "Horror",
-  "this0_title" : "Cool Movie"
+  "this0_genres_connectOrCreate_param4": "admin"
 }
 ----
 
@@ -62,26 +56,26 @@ mutation {
 [source,cypher]
 ----
 CALL {
-	CREATE (this0:Movie)
-	SET this0.title = $this0_title
-	WITH this0
-	CALL {
-		WITH this0
-		MERGE (this0_genres_connectOrCreate0:Genre {
-			name: $this0_genres_connectOrCreate_param0
-		})
-	ON CREATE SET this0_genres_connectOrCreate0.name = $this0_genres_connectOrCreate_param1
-		MERGE (this0)-[this0_genres_connectOrCreate_this0:IN_GENRE]->(this0_genres_connectOrCreate0)
-		WITH * CALL apoc.util.validate(NOT (any(r IN ['admin']
-		WHERE any(rr IN $auth.roles
-		WHERE rr = r))), '@neo4j/graphql/FORBIDDEN', [0])
-		RETURN count(*) AS _
-	}
-	RETURN this0
+CREATE (this0:Movie)
+SET this0.title = $this0_title
+WITH this0
+CALL {
+    WITH this0
+    MERGE (this0_genres_connectOrCreate0:Genre { name: $this0_genres_connectOrCreate_param0 })
+    ON CREATE SET
+        this0_genres_connectOrCreate0.name = $this0_genres_connectOrCreate_param1
+    MERGE (this0)-[this0_genres_connectOrCreate_this0:IN_GENRE]->(this0_genres_connectOrCreate0)
+    WITH *
+    WHERE apoc.util.validatePredicate(NOT ($isAuthenticated = true AND ($jwt.roles IS NOT NULL AND $this0_genres_connectOrCreate_param4 IN $jwt.roles)), "@neo4j/graphql/FORBIDDEN", [0])
+    RETURN count(*) AS _
 }
-RETURN [this0 {
-	.title
-}] AS data
+RETURN this0
+}
+CALL {
+    WITH this0
+    RETURN this0 { .title } AS create_var0
+}
+RETURN [create_var0] AS data
 ----
 
 '''
@@ -110,14 +104,14 @@ mutation {
 [source,json]
 ----
 {
-  "auth" : {
-    "roles" : [ ],
-    "isAuthenticated" : false,
-    "jwt" : { }
+  "this_update_title": "Cool Movie",
+  "this_connectOrCreate_genres_param0": "Horror",
+  "this_connectOrCreate_genres_param1": "Horror",
+  "isAuthenticated": true,
+  "jwt": {
+    "roles": []
   },
-  "this_connectOrCreate_genres_param0" : "Horror",
-  "this_connectOrCreate_genres_param1" : "Horror",
-  "this_update_title" : "Cool Movie"
+  "this_connectOrCreate_genres_param4": "admin"
 }
 ----
 
@@ -125,24 +119,23 @@ mutation {
 [source,cypher]
 ----
 MATCH (this:Movie)
+
+
 SET this.title = $this_update_title
+
 WITH this
 CALL {
-	WITH this
-	MERGE (this_connectOrCreate_genres0:Genre {
-		name: $this_connectOrCreate_genres_param0
-	})
-	ON CREATE SET this_connectOrCreate_genres0.name = $this_connectOrCreate_genres_param1
-	MERGE (this)-[this_connectOrCreate_genres_this0:IN_GENRE]->(this_connectOrCreate_genres0)
-	WITH * CALL apoc.util.validate(NOT (any(r IN ['admin']
-	WHERE any(rr IN $auth.roles
-	WHERE rr = r))), '@neo4j/graphql/FORBIDDEN', [0])
-	RETURN count(*) AS _
+    WITH this
+    MERGE (this_connectOrCreate_genres0:Genre { name: $this_connectOrCreate_genres_param0 })
+    ON CREATE SET
+        this_connectOrCreate_genres0.name = $this_connectOrCreate_genres_param1
+    MERGE (this)-[this_connectOrCreate_genres_this0:IN_GENRE]->(this_connectOrCreate_genres0)
+    WITH *
+    WHERE apoc.util.validatePredicate(NOT ($isAuthenticated = true AND ($jwt.roles IS NOT NULL AND $this_connectOrCreate_genres_param4 IN $jwt.roles)), "@neo4j/graphql/FORBIDDEN", [0])
+    RETURN count(*) AS _
 }
 WITH *
-RETURN collect(DISTINCT this {
-	.title
-}) AS data
+RETURN collect(DISTINCT this { .title }) AS data
 ----
 
 '''
@@ -170,14 +163,14 @@ mutation {
 [source,json]
 ----
 {
-  "auth" : {
-    "roles" : [ ],
-    "isAuthenticated" : false,
-    "jwt" : { }
+  "this_update_title": "Cool Movie",
+  "this_genres0_connectOrCreate_param0": "Horror",
+  "this_genres0_connectOrCreate_param1": "Horror",
+  "isAuthenticated": true,
+  "jwt": {
+    "roles": []
   },
-  "this_genres0_connectOrCreate_param0" : "Horror",
-  "this_genres0_connectOrCreate_param1" : "Horror",
-  "this_update_title" : "Cool Movie"
+  "this_genres0_connectOrCreate_param4": "admin"
 }
 ----
 
@@ -185,23 +178,22 @@ mutation {
 [source,cypher]
 ----
 MATCH (this:Movie)
+
+
 SET this.title = $this_update_title
 WITH this
 CALL {
-	WITH this
-	MERGE (this_genres0_connectOrCreate0:Genre {
-		name: $this_genres0_connectOrCreate_param0
-	})
-	ON CREATE SET this_genres0_connectOrCreate0.name = $this_genres0_connectOrCreate_param1
-	MERGE (this)-[this_genres0_connectOrCreate_this0:IN_GENRE]->(this_genres0_connectOrCreate0)
-	WITH * CALL apoc.util.validate(NOT (any(r IN ['admin']
-	WHERE any(rr IN $auth.roles
-	WHERE rr = r))), '@neo4j/graphql/FORBIDDEN', [0])
-	RETURN count(*) AS _
+    WITH this
+    MERGE (this_genres0_connectOrCreate0:Genre { name: $this_genres0_connectOrCreate_param0 })
+    ON CREATE SET
+        this_genres0_connectOrCreate0.name = $this_genres0_connectOrCreate_param1
+    MERGE (this)-[this_genres0_connectOrCreate_this0:IN_GENRE]->(this_genres0_connectOrCreate0)
+    WITH *
+    WHERE apoc.util.validatePredicate(NOT ($isAuthenticated = true AND ($jwt.roles IS NOT NULL AND $this_genres0_connectOrCreate_param4 IN $jwt.roles)), "@neo4j/graphql/FORBIDDEN", [0])
+    RETURN count(*) AS _
 }
-RETURN collect(DISTINCT this {
-	.title
-}) AS data
+
+RETURN collect(DISTINCT this { .title }) AS data
 ----
 
 '''

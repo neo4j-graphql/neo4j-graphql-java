@@ -6,26 +6,16 @@
 
 [source,graphql,schema=true]
 ----
-type Actor @node(additionalLabels: ["$jwt.personlabel"]) {
+type Actor @node(labels: ["Actor", "$jwt.personlabel"]) {
   name: String
   age: Int
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
 }
 
-type Movie @node(label: "$jwt.movielabel") {
+type Movie @node(labels: ["$jwt.movielabel"]) {
   id: ID
   title: String
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
-}
-----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{
-  "enableRegex": true
 }
 ----
 == Create Movie with label Film
@@ -42,42 +32,31 @@ mutation {
 }
 ----
 
-.Query Context
-[source,json,query-config=true]
-----
-{
-  "auth": {},
-  "contextParams": {
-    "jwt": {
-      "movielabel": "Film"
-    }
-  }
-}
-----
-
 .Expected Cypher params
 [source,json]
 ----
 {
-  "create_param0" : [ {
-    "title" : "Titanic"
-  } ]
+  "create_param0": [
+    {
+      "title": "Titanic"
+    }
+  ]
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-UNWIND $create_param0 AS create_var1
+UNWIND $create_param0 AS create_var0
 CALL {
-	WITH create_var1
-	CREATE (create_this0:Film)
-	SET create_this0.title = create_var1.title
-	RETURN create_this0
+    WITH create_var0
+    CREATE (create_this1:Film)
+    SET
+        create_this1.title = create_var0.title
+    
+    RETURN create_this1
 }
-RETURN collect(create_this0 {
-	.title
-}) AS data
+RETURN collect(create_this1 { .title }) AS data
 ----
 
 '''
@@ -94,32 +73,17 @@ RETURN collect(create_this0 {
 }
 ----
 
-.Query Context
-[source,json,query-config=true]
-----
-{
-  "auth": {},
-  "contextParams": {
-    "jwt": {
-      "movielabel": "Film"
-    }
-  }
-}
-----
-
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 MATCH (this:Film)
-RETURN this {
-	.title
-} AS this
+RETURN this { .title } AS this
 ----
 
 '''
@@ -139,26 +103,12 @@ RETURN this {
 }
 ----
 
-.Query Context
-[source,json,query-config=true]
-----
-{
-  "auth": {},
-  "contextParams": {
-    "jwt": {
-      "movielabel": "Film",
-      "personlabel": "Person"
-    }
-  }
-}
-----
-
 .Expected Cypher params
 [source,json]
 ----
 {
-  "param0" : 10,
-  "param1" : "terminator"
+  "param0": 10,
+  "param1": "terminator"
 }
 ----
 
@@ -168,18 +118,13 @@ RETURN this {
 MATCH (this:Actor:Person)
 WHERE this.age > $param0
 CALL {
-	WITH this
-	MATCH (this)-[this0:ACTED_IN]->(this_movies:Film)
-	WHERE this_movies.title = $param1
-	WITH this_movies {
-		.title
-	} AS this_movies
-	RETURN collect(this_movies) AS this_movies
+    WITH this
+    MATCH (this)-[this0:ACTED_IN]->(this1:Film)
+    WHERE this1.title = $param1
+    WITH this1 { .title } AS this1
+    RETURN collect(this1) AS var2
 }
-RETURN this {
-	.name,
-	movies: this_movies
-} AS this
+RETURN this { .name, movies: var2 } AS this
 ----
 
 '''

@@ -7,22 +7,14 @@
 [source,graphql,schema=true]
 ----
 type Actor {
-  name: ID! @id(global: true)
+  name: ID! @id @unique @relayId
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
 }
 
 type Movie {
-  title: ID! @id(global: true)
+  title: ID! @id @unique @relayId
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
 }
-----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{}
 ----
 == it should fetch the correct node and fields
 
@@ -54,7 +46,7 @@ query Node($id: ID!) {
 [source,json]
 ----
 {
-  "param0" : "A River Runs Through It"
+  "param0": "A River Runs Through It"
 }
 ----
 
@@ -63,9 +55,7 @@ query Node($id: ID!) {
 ----
 MATCH (this:Movie)
 WHERE this.title = $param0
-RETURN this {
-	.title
-} AS this
+RETURN this { .title } AS this
 ----
 
 '''

@@ -10,23 +10,28 @@ data class AggregationPredicateDefinition(
     val field: PrimitiveField,
     val method: Method,
     val operator: Operator,
-    val type: Type<*>
+    val type: Type<*>,
+    // TODO remove deprecated
+    val deprecated: String? = null
 ) : PredicateDefinition {
     fun createCondition(lhs: Expression, rhs: Expression, ctx: QueryContext): Condition {
         val convertedRhs = wrapExpression(rhs)
         return when (method) {
             Method.NONE -> {
                 val variable = ctx.getNextVariable()
-                Predicates.any(variable).`in`(Functions.collect(lhs)).where(operator.conditionCreator(wrapExpression(variable),
-                    convertedRhs
-                ))
+                Predicates.any(variable).`in`(Functions.collect(lhs)).where(
+                    operator.conditionCreator(
+                        wrapExpression(variable),
+                        convertedRhs
+                    )
+                )
             }
 
             else -> operator.conditionCreator(wrapExpression(method.functionCreator(lhs)), convertedRhs)
         }
     }
 
-    private fun wrapExpression(expression: Expression): Expression = if (type.name() == Constants.DURATION){
+    private fun wrapExpression(expression: Expression): Expression = if (type.name() == Constants.DURATION) {
         Functions.datetime().add(expression)
     } else {
         expression
@@ -36,8 +41,10 @@ data class AggregationPredicateDefinition(
         val suffix: String,
         val functionCreator: (Expression) -> Expression,
         val typeConverter: ((Type<*>, op: Operator) -> Type<*>) = { type, _ -> type.inner() },
-        val condition: (Type<*>) -> Boolean = { true }
+        val condition: (Type<*>) -> Boolean = { true },
+        val deprecation: (Type<*>) -> String? = { null }
     ) {
+        @Deprecated("Please use the explicit _LENGTH version for string aggregation.")
         NONE(
             "",
             { it },
@@ -48,7 +55,8 @@ data class AggregationPredicateDefinition(
                     else -> type.inner()
                 }
             },
-            condition = { AGGREGATION_TYPES.contains(it.name()) }
+            condition = { AGGREGATION_TYPES.contains(it.name()) },
+            deprecation = { "Aggregation filters that are not relying on an aggregating function will be deprecated." }
         ),
         AVERAGE(
             "AVERAGE",
@@ -60,11 +68,20 @@ data class AggregationPredicateDefinition(
                 }
             },
             condition = { AGGREGATION_AVERAGE_TYPES.contains(it.name()) && it.name() != Constants.STRING }),
+        AVERAGE_LENGTH(
+            "AVERAGE_LENGTH",
+            { Functions.avg(Functions.size(it)) },
+            typeConverter = { _, _ -> Constants.Types.Float },
+            condition = { it.name() == Constants.STRING }),
+
+        @Deprecated("Please use the explicit _LENGTH version for string aggregation.")
         AVERAGE_SIZE(
             "AVERAGE", // TODO rename TO AVERAGE_SIZE? https://github.com/neo4j/graphql/issues/2661#issuecomment-1369669552
             { Functions.avg(Functions.size(it)) },
             typeConverter = { _, _ -> Constants.Types.Float },
-            condition = { it.name() == Constants.STRING }),
+            condition = { it.name() == Constants.STRING },
+            deprecation = { "Please use the explicit _LENGTH version for string aggregation." }
+        ),
         SUM(
             "SUM",
             Functions::sum,
@@ -79,14 +96,32 @@ data class AggregationPredicateDefinition(
             Functions::max,
             condition = { AGGREGATION_TYPES.contains(it.name()) && it.name() != Constants.STRING && it.name() != Constants.ID }
         ),
+
+        @Deprecated("Please use the explicit _LENGTH version for string aggregation.")
         LONGEST(
             "LONGEST",
             { Functions.max(Functions.size(it)) },
             typeConverter = { _, _ -> Constants.Types.Int },
-            condition = { it.name() == Constants.STRING }
+            condition = { it.name() == Constants.STRING },
+            deprecation = { "Please use the explicit _LENGTH version for string aggregation." }
         ),
+
+        @Deprecated("Please use the explicit _LENGTH version for string aggregation.")
         SHORTEST(
             "SHORTEST",
+            { Functions.min(Functions.size(it)) },
+            typeConverter = { _, _ -> Constants.Types.Int },
+            condition = { it.name() == Constants.STRING },
+            deprecation = { "Please use the explicit _LENGTH version for string aggregation." }
+        ),
+        LONGEST_LENGTH(
+            "LONGEST_LENGTH",
+            { Functions.max(Functions.size(it)) },
+            typeConverter = { _, _ -> Constants.Types.Int },
+            condition = { it.name() == Constants.STRING }
+        ),
+        SHORTEST_LENGTH(
+            "SHORTEST_LENGTH",
             { Functions.min(Functions.size(it)) },
             typeConverter = { _, _ -> Constants.Types.Int },
             condition = { it.name() == Constants.STRING }
@@ -139,7 +174,8 @@ data class AggregationPredicateDefinition(
                             "${field.fieldName}_${method.suffix}${"_".takeIf { method.suffix.isNotEmpty() } ?: ""}${op.suffix}"
                         name to AggregationPredicateDefinition(
                             name, field, method, op,
-                            method.typeConverter(field.typeMeta.type, op)
+                            method.typeConverter(field.typeMeta.type, op),
+                            method.deprecation(field.typeMeta.type)
                         )
                     }
             }

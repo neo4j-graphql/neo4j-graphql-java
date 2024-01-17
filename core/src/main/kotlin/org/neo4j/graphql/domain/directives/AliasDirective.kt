@@ -1,7 +1,6 @@
 package org.neo4j.graphql.domain.directives
 
 import graphql.language.Directive
-import org.neo4j.graphql.DirectiveConstants
 import org.neo4j.graphql.readRequiredArgument
 import org.neo4j.graphql.validateName
 
@@ -10,8 +9,10 @@ data class AliasDirective(
 ) {
 
     companion object {
+        const val NAME = "alias"
+
         fun create(directive: Directive): AliasDirective {
-            directive.validateName(DirectiveConstants.ALIAS)
+            directive.validateName(NAME)
             return AliasDirective(directive.readRequiredArgument(AliasDirective::property))
         }
     }

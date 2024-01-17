@@ -6,19 +6,19 @@
 
 [source,graphql,schema=true]
 ----
-type PostalCode @exclude(operations: [DELETE]) {
+type PostalCode @mutation(operations: [CREATE, UPDATE]) {
   archivedAt: DateTime
-  number: String! @id(autogenerate: false)
+  number: String! @unique
   address: [Address!]! @relationship(type: "HAS_POSTAL_CODE", direction: IN)
 }
 
-extend type PostalCode @auth(rules: [{where: {archivedAt: null}}])
+extend type PostalCode @authorization(filter: [{where: {node: {archivedAt: null}}}])
 
 union AddressNode = Estate
 
-type Address @exclude(operations: [DELETE]) {
+type Address @mutation(operations: [CREATE, UPDATE]) {
   archivedAt: DateTime
-  uuid: ID! @id
+  uuid: ID! @id @unique
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [CREATE, UPDATE])
   address: String! @unique
@@ -33,9 +33,9 @@ type Address @exclude(operations: [DELETE]) {
   node: [AddressNode!]! @relationship(type: "HAS_ADDRESS", direction: IN)
 }
 
-extend type Address @auth(rules: [{where: {archivedAt: null}}])
+extend type Address @authorization(filter: [{where: {node: {archivedAt: null}}}])
 
-type Mandate @exclude(operations: [DELETE]) {
+type Mandate @mutation(operations: [CREATE, UPDATE]) {
   archivedAt: DateTime
   number: String! @unique
   createdAt: DateTime! @timestamp(operations: [CREATE])
@@ -44,17 +44,17 @@ type Mandate @exclude(operations: [DELETE]) {
   valuation: Valuation! @relationship(type: "HAS_VALUATION", direction: OUT)
 }
 
-extend type Mandate @auth(rules: [{where: {archivedAt: null}}])
+extend type Mandate @authorization(filter: [{where: {node: {archivedAt: null}}}])
 
-type Valuation @exclude(operations: [DELETE]) {
+type Valuation @mutation(operations: [CREATE, UPDATE]) {
   archivedAt: DateTime
-  uuid: ID! @id
+  uuid: ID! @id @unique
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [CREATE, UPDATE])
   estate: Estate @relationship(type: "VALUATION_FOR", direction: OUT)
 }
 
-extend type Valuation @auth(rules: [{where: {archivedAt: null}}])
+extend type Valuation @authorization(filter: [{where: {node: {archivedAt: null}}}])
 
 enum EstateType {
   APARTMENT
@@ -71,9 +71,9 @@ enum EstateType {
   BUSINESS_FUND
 }
 
-type Estate @exclude(operations: [DELETE]) {
+type Estate @mutation(operations: [CREATE, UPDATE]) {
   archivedAt: DateTime
-  uuid: ID! @id
+  uuid: ID! @id @unique
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [CREATE, UPDATE])
   estateType: EstateType!
@@ -82,16 +82,151 @@ type Estate @exclude(operations: [DELETE]) {
   address: Address @relationship(type: "HAS_ADDRESS", direction: OUT)
 }
 
-extend type Estate @auth(rules: [{where: {archivedAt: null}}])
+extend type Estate @authorization(filter: [{where: {node: {archivedAt: null}}}])
 ----
 
-== Configuration
+== nested relationship filter
 
-.Configuration
-[source,json,schema-config=true]
+.GraphQL-Query
+[source,graphql]
 ----
-{}
+query Mandates($where: MandateWhere, $options: MandateOptions) {
+  mandates(options: $options, where: $where) {
+    valuation {
+      estate {
+        uuid
+      }
+    }
+  }
+}
 ----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "options": {},
+  "where": {
+    "valuation": {
+      "estate": {
+        "floor_GTE": 0
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": 0,
+  "isAuthenticated": true
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Mandate)
+OPTIONAL MATCH (this)-[:HAS_VALUATION]->(this0:Valuation)
+WITH *, count(this0) AS valuationCount
+WITH *
+WITH *
+WHERE ((valuationCount <> 0 AND single(this1 IN [(this0)-[:VALUATION_FOR]->(this1:Estate) WHERE this1.floor >= $param0 | 1] WHERE true)) AND ($isAuthenticated = true AND this.archivedAt IS NULL))
+CALL {
+    WITH this
+    MATCH (this)-[this2:HAS_VALUATION]->(this3:Valuation)
+    WITH *
+    WHERE ($isAuthenticated = true AND this3.archivedAt IS NULL)
+    CALL {
+        WITH this3
+        MATCH (this3)-[this4:VALUATION_FOR]->(this5:Estate)
+        WITH *
+        WHERE ($isAuthenticated = true AND this5.archivedAt IS NULL)
+        WITH this5 { .uuid } AS this5
+        RETURN head(collect(this5)) AS var6
+    }
+    WITH this3 { estate: var6 } AS this3
+    RETURN head(collect(this3)) AS var7
+}
+RETURN this { valuation: var7 } AS this
+----
+
+'''
+
+== nested relationship filter with AND
+
+.GraphQL-Query
+[source,graphql]
+----
+query Mandates($where: MandateWhere, $options: MandateOptions) {
+  mandates(options: $options, where: $where) {
+    valuation {
+      estate {
+        uuid
+      }
+    }
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "options": {},
+  "where": {
+    "price_GTE": 0,
+    "valuation": {
+      "estate": {
+        "floor_GTE": 0
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": 0,
+  "param1": 0,
+  "isAuthenticated": true
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Mandate)
+OPTIONAL MATCH (this)-[:HAS_VALUATION]->(this0:Valuation)
+WITH *, count(this0) AS valuationCount
+WITH *
+WITH *
+WHERE ((this.price >= $param0 AND (valuationCount <> 0 AND single(this1 IN [(this0)-[:VALUATION_FOR]->(this1:Estate) WHERE this1.floor >= $param1 | 1] WHERE true))) AND ($isAuthenticated = true AND this.archivedAt IS NULL))
+CALL {
+    WITH this
+    MATCH (this)-[this2:HAS_VALUATION]->(this3:Valuation)
+    WITH *
+    WHERE ($isAuthenticated = true AND this3.archivedAt IS NULL)
+    CALL {
+        WITH this3
+        MATCH (this3)-[this4:VALUATION_FOR]->(this5:Estate)
+        WITH *
+        WHERE ($isAuthenticated = true AND this5.archivedAt IS NULL)
+        WITH this5 { .uuid } AS this5
+        RETURN head(collect(this5)) AS var6
+    }
+    WITH this3 { estate: var6 } AS this3
+    RETURN head(collect(this3)) AS var7
+}
+RETURN this { valuation: var7 } AS this
+----
+
+'''
+
 == query should contain offset of 0 and limit of 20
 
 .GraphQL-Query
@@ -142,13 +277,18 @@ query Mandates($where: MandateWhere, $options: MandateOptions) {
 [source,json]
 ----
 {
-  "param0" : 0,
-  "param1" : 0,
-  "param2" : 0,
-  "param3" : [ "APARTMENT" ],
-  "param4" : [ "13001" ],
-  "param5" : 0,
-  "param6" : 20
+  "param0": [
+    "13001"
+  ],
+  "param1": [
+    "APARTMENT"
+  ],
+  "param2": 0,
+  "param3": 0,
+  "param4": 0,
+  "isAuthenticated": true,
+  "param6": 0,
+  "param7": 20
 }
 ----
 
@@ -156,38 +296,52 @@ query Mandates($where: MandateWhere, $options: MandateOptions) {
 [source,cypher]
 ----
 MATCH (this:Mandate)
-WHERE (this.price >= $param0
-	AND single(this3 IN [(this)-[:HAS_VALUATION]->(this3) | this3]
-	WHERE single(this0 IN [(this3)-[:VALUATION_FOR]->(this0) | this0]
-	WHERE (this0.area >= $param1
-		AND this0.floor >= $param2
-		AND this0.estateType IN $param3
-		AND single(this2 IN [(this0)-[:HAS_ADDRESS]->(this2) | this2]
-		WHERE single(this1 IN [(this2)-[:HAS_POSTAL_CODE]->(this1) | this1]
-		WHERE this1.number IN $param4)))))
-	AND this.archivedAt IS NULL)
-WITH * SKIP $param5 LIMIT $param6
 CALL {
-	WITH this
-	MATCH (this)-[this4:HAS_VALUATION]->(this_valuation:Valuation)
-	WHERE this_valuation.archivedAt IS NULL
-	CALL {
-		WITH this_valuation
-		MATCH (this_valuation)-[this5:VALUATION_FOR]->(this_valuation_estate:Estate)
-		WHERE this_valuation_estate.archivedAt IS NULL
-		WITH this_valuation_estate {
-			.uuid
-		} AS this_valuation_estate
-		RETURN head(collect(this_valuation_estate)) AS this_valuation_estate
-	}
-	WITH this_valuation {
-		estate: this_valuation_estate
-	} AS this_valuation
-	RETURN head(collect(this_valuation)) AS this_valuation
+    WITH this
+    MATCH (this)-[:HAS_VALUATION]->(this0:Valuation)
+    CALL {
+        WITH this0
+        MATCH (this0)-[:VALUATION_FOR]->(this1:Estate)
+        CALL {
+            WITH this1
+            MATCH (this1)-[:HAS_ADDRESS]->(this2:Address)
+            OPTIONAL MATCH (this2)-[:HAS_POSTAL_CODE]->(this3:PostalCode)
+            WITH *, count(this3) AS postalCodeCount
+            WITH *
+            WHERE (postalCodeCount <> 0 AND this3.number IN $param0)
+            RETURN count(this2) = 1 AS var4
+        }
+        WITH *
+        WHERE (this1.estateType IN $param1 AND this1.area >= $param2 AND this1.floor >= $param3 AND var4 = true)
+        RETURN count(this1) = 1 AS var5
+    }
+    WITH *
+    WHERE var5 = true
+    RETURN count(this0) = 1 AS var6
 }
-RETURN this {
-	valuation: this_valuation
-} AS this
+WITH *
+WHERE ((this.price >= $param4 AND var6 = true) AND ($isAuthenticated = true AND this.archivedAt IS NULL))
+WITH *
+
+SKIP $param6
+LIMIT $param7
+CALL {
+    WITH this
+    MATCH (this)-[this7:HAS_VALUATION]->(this8:Valuation)
+    WITH *
+    WHERE ($isAuthenticated = true AND this8.archivedAt IS NULL)
+    CALL {
+        WITH this8
+        MATCH (this8)-[this9:VALUATION_FOR]->(this10:Estate)
+        WITH *
+        WHERE ($isAuthenticated = true AND this10.archivedAt IS NULL)
+        WITH this10 { .uuid } AS this10
+        RETURN head(collect(this10)) AS var11
+    }
+    WITH this8 { estate: var11 } AS this8
+    RETURN head(collect(this8)) AS var12
+}
+RETURN this { valuation: var12 } AS this
 ----
 
 '''
@@ -242,13 +396,18 @@ query Mandates($where: MandateWhere, $options: MandateOptions) {
 [source,json]
 ----
 {
-  "param0" : 0,
-  "param1" : 0,
-  "param2" : 0,
-  "param3" : [ "APARTMENT" ],
-  "param4" : [ "13001" ],
-  "param5" : 20,
-  "param6" : 40
+  "param0": [
+    "13001"
+  ],
+  "param1": [
+    "APARTMENT"
+  ],
+  "param2": 0,
+  "param3": 0,
+  "param4": 0,
+  "isAuthenticated": true,
+  "param6": 20,
+  "param7": 40
 }
 ----
 
@@ -256,38 +415,52 @@ query Mandates($where: MandateWhere, $options: MandateOptions) {
 [source,cypher]
 ----
 MATCH (this:Mandate)
-WHERE (this.price >= $param0
-	AND single(this3 IN [(this)-[:HAS_VALUATION]->(this3) | this3]
-	WHERE single(this0 IN [(this3)-[:VALUATION_FOR]->(this0) | this0]
-	WHERE (this0.area >= $param1
-		AND this0.floor >= $param2
-		AND this0.estateType IN $param3
-		AND single(this2 IN [(this0)-[:HAS_ADDRESS]->(this2) | this2]
-		WHERE single(this1 IN [(this2)-[:HAS_POSTAL_CODE]->(this1) | this1]
-		WHERE this1.number IN $param4)))))
-	AND this.archivedAt IS NULL)
-WITH * SKIP $param5 LIMIT $param6
 CALL {
-	WITH this
-	MATCH (this)-[this4:HAS_VALUATION]->(this_valuation:Valuation)
-	WHERE this_valuation.archivedAt IS NULL
-	CALL {
-		WITH this_valuation
-		MATCH (this_valuation)-[this5:VALUATION_FOR]->(this_valuation_estate:Estate)
-		WHERE this_valuation_estate.archivedAt IS NULL
-		WITH this_valuation_estate {
-			.uuid
-		} AS this_valuation_estate
-		RETURN head(collect(this_valuation_estate)) AS this_valuation_estate
-	}
-	WITH this_valuation {
-		estate: this_valuation_estate
-	} AS this_valuation
-	RETURN head(collect(this_valuation)) AS this_valuation
+    WITH this
+    MATCH (this)-[:HAS_VALUATION]->(this0:Valuation)
+    CALL {
+        WITH this0
+        MATCH (this0)-[:VALUATION_FOR]->(this1:Estate)
+        CALL {
+            WITH this1
+            MATCH (this1)-[:HAS_ADDRESS]->(this2:Address)
+            OPTIONAL MATCH (this2)-[:HAS_POSTAL_CODE]->(this3:PostalCode)
+            WITH *, count(this3) AS postalCodeCount
+            WITH *
+            WHERE (postalCodeCount <> 0 AND this3.number IN $param0)
+            RETURN count(this2) = 1 AS var4
+        }
+        WITH *
+        WHERE (this1.estateType IN $param1 AND this1.area >= $param2 AND this1.floor >= $param3 AND var4 = true)
+        RETURN count(this1) = 1 AS var5
+    }
+    WITH *
+    WHERE var5 = true
+    RETURN count(this0) = 1 AS var6
 }
-RETURN this {
-	valuation: this_valuation
-} AS this
+WITH *
+WHERE ((this.price >= $param4 AND var6 = true) AND ($isAuthenticated = true AND this.archivedAt IS NULL))
+WITH *
+
+SKIP $param6
+LIMIT $param7
+CALL {
+    WITH this
+    MATCH (this)-[this7:HAS_VALUATION]->(this8:Valuation)
+    WITH *
+    WHERE ($isAuthenticated = true AND this8.archivedAt IS NULL)
+    CALL {
+        WITH this8
+        MATCH (this8)-[this9:VALUATION_FOR]->(this10:Estate)
+        WITH *
+        WHERE ($isAuthenticated = true AND this10.archivedAt IS NULL)
+        WITH this10 { .uuid } AS this10
+        RETURN head(collect(this10)) AS var11
+    }
+    WITH this8 { estate: var11 } AS this8
+    RETURN head(collect(this8)) AS var12
+}
+RETURN this { valuation: var12 } AS this
 ----
 
 '''
@@ -339,11 +512,16 @@ query Mandates($where: MandateWhere, $options: MandateOptions) {
 [source,json]
 ----
 {
-  "param0" : 0,
-  "param1" : 0,
-  "param2" : 0,
-  "param3" : [ "APARTMENT" ],
-  "param4" : [ "13001" ]
+  "param0": [
+    "13001"
+  ],
+  "param1": [
+    "APARTMENT"
+  ],
+  "param2": 0,
+  "param3": 0,
+  "param4": 0,
+  "isAuthenticated": true
 }
 ----
 
@@ -351,37 +529,48 @@ query Mandates($where: MandateWhere, $options: MandateOptions) {
 [source,cypher]
 ----
 MATCH (this:Mandate)
-WHERE (this.price >= $param0
-	AND single(this3 IN [(this)-[:HAS_VALUATION]->(this3) | this3]
-	WHERE single(this0 IN [(this3)-[:VALUATION_FOR]->(this0) | this0]
-	WHERE (this0.area >= $param1
-		AND this0.floor >= $param2
-		AND this0.estateType IN $param3
-		AND single(this2 IN [(this0)-[:HAS_ADDRESS]->(this2) | this2]
-		WHERE single(this1 IN [(this2)-[:HAS_POSTAL_CODE]->(this1) | this1]
-		WHERE this1.number IN $param4)))))
-	AND this.archivedAt IS NULL)
 CALL {
-	WITH this
-	MATCH (this)-[this4:HAS_VALUATION]->(this_valuation:Valuation)
-	WHERE this_valuation.archivedAt IS NULL
-	CALL {
-		WITH this_valuation
-		MATCH (this_valuation)-[this5:VALUATION_FOR]->(this_valuation_estate:Estate)
-		WHERE this_valuation_estate.archivedAt IS NULL
-		WITH this_valuation_estate {
-			.uuid
-		} AS this_valuation_estate
-		RETURN head(collect(this_valuation_estate)) AS this_valuation_estate
-	}
-	WITH this_valuation {
-		estate: this_valuation_estate
-	} AS this_valuation
-	RETURN head(collect(this_valuation)) AS this_valuation
+    WITH this
+    MATCH (this)-[:HAS_VALUATION]->(this0:Valuation)
+    CALL {
+        WITH this0
+        MATCH (this0)-[:VALUATION_FOR]->(this1:Estate)
+        CALL {
+            WITH this1
+            MATCH (this1)-[:HAS_ADDRESS]->(this2:Address)
+            OPTIONAL MATCH (this2)-[:HAS_POSTAL_CODE]->(this3:PostalCode)
+            WITH *, count(this3) AS postalCodeCount
+            WITH *
+            WHERE (postalCodeCount <> 0 AND this3.number IN $param0)
+            RETURN count(this2) = 1 AS var4
+        }
+        WITH *
+        WHERE (this1.estateType IN $param1 AND this1.area >= $param2 AND this1.floor >= $param3 AND var4 = true)
+        RETURN count(this1) = 1 AS var5
+    }
+    WITH *
+    WHERE var5 = true
+    RETURN count(this0) = 1 AS var6
 }
-RETURN this {
-	valuation: this_valuation
-} AS this
+WITH *
+WHERE ((this.price >= $param4 AND var6 = true) AND ($isAuthenticated = true AND this.archivedAt IS NULL))
+CALL {
+    WITH this
+    MATCH (this)-[this7:HAS_VALUATION]->(this8:Valuation)
+    WITH *
+    WHERE ($isAuthenticated = true AND this8.archivedAt IS NULL)
+    CALL {
+        WITH this8
+        MATCH (this8)-[this9:VALUATION_FOR]->(this10:Estate)
+        WITH *
+        WHERE ($isAuthenticated = true AND this10.archivedAt IS NULL)
+        WITH this10 { .uuid } AS this10
+        RETURN head(collect(this10)) AS var11
+    }
+    WITH this8 { estate: var11 } AS this8
+    RETURN head(collect(this8)) AS var12
+}
+RETURN this { valuation: var12 } AS this
 ----
 
 '''

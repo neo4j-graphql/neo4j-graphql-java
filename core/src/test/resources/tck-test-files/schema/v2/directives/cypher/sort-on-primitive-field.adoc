@@ -10,8 +10,8 @@ type Actor {
   name: String
   totalScreenTime: Int! @cypher(statement: """
   MATCH (this)-[r:ACTED_IN]->(:Movie)
-  RETURN sum(r.screenTime)
-  """)
+  RETURN sum(r.screenTime) as result
+  """, columnName: "result")
 }
 
 type Movie {
@@ -20,7 +20,7 @@ type Movie {
   MATCH (a:Actor {title: $title})
   RETURN a
   LIMIT 1
-  """)
+  """, columnName: "a")
 }
 ----
 
@@ -60,8 +60,9 @@ type CreateActorsMutationResponse {
   info: CreateInfo!
 }
 
+"Information about the number of nodes and relationships created during a create mutation"
 type CreateInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   relationshipsCreated: Int!
 }
@@ -71,8 +72,9 @@ type CreateMoviesMutationResponse {
   movies: [Movie!]!
 }
 
+"Information about the number of nodes and relationships deleted during a delete mutation"
 type DeleteInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesDeleted: Int!
   relationshipsDeleted: Int!
 }
@@ -139,8 +141,9 @@ type UpdateActorsMutationResponse {
   info: UpdateInfo!
 }
 
+"Information about the number of nodes and relationships created and deleted during an update mutation"
 type UpdateInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   nodesDeleted: Int!
   relationshipsCreated: Int!
@@ -152,6 +155,7 @@ type UpdateMoviesMutationResponse {
   movies: [Movie!]!
 }
 
+"An enum for sorting in either ascending or descending order."
 enum SortDirection {
   "Sort by field values in ascending order."
   ASC
@@ -182,16 +186,17 @@ input ActorUpdateInput {
 
 input ActorWhere {
   AND: [ActorWhere!]
+  NOT: ActorWhere
   OR: [ActorWhere!]
   name: String
   name_CONTAINS: String
   name_ENDS_WITH: String
   name_IN: [String]
-  name_NOT: String
-  name_NOT_CONTAINS: String
-  name_NOT_ENDS_WITH: String
-  name_NOT_IN: [String]
-  name_NOT_STARTS_WITH: String
+  name_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_IN: [String] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   name_STARTS_WITH: String
 }
 
@@ -217,16 +222,17 @@ input MovieUpdateInput {
 
 input MovieWhere {
   AND: [MovieWhere!]
+  NOT: MovieWhere
   OR: [MovieWhere!]
   id: ID
   id_CONTAINS: ID
   id_ENDS_WITH: ID
   id_IN: [ID]
-  id_NOT: ID
-  id_NOT_CONTAINS: ID
-  id_NOT_ENDS_WITH: ID
-  id_NOT_IN: [ID]
-  id_NOT_STARTS_WITH: ID
+  id_NOT: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_CONTAINS: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_ENDS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_IN: [ID] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_STARTS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id_STARTS_WITH: ID
 }
 

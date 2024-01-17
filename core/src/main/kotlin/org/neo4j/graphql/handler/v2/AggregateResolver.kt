@@ -8,9 +8,10 @@ import org.neo4j.cypherdsl.core.Cypher
 import org.neo4j.cypherdsl.core.Functions
 import org.neo4j.cypherdsl.core.Statement
 import org.neo4j.graphql.*
+import org.neo4j.graphql.domain.Entity
+import org.neo4j.graphql.domain.ImplementingType
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
-import org.neo4j.graphql.domain.directives.ExcludeDirective
 import org.neo4j.graphql.domain.fields.TemporalField
 import org.neo4j.graphql.handler.BaseDataFetcher
 import org.neo4j.graphql.schema.AugmentationBase
@@ -18,6 +19,7 @@ import org.neo4j.graphql.schema.AugmentationContext
 import org.neo4j.graphql.schema.AugmentationHandler
 import org.neo4j.graphql.schema.model.inputs.Dict
 import org.neo4j.graphql.schema.model.inputs.WhereInput
+import org.neo4j.graphql.schema.model.inputs.filter.FulltextInput
 import org.neo4j.graphql.schema.model.outputs.aggregate.AggregationSelection
 import org.neo4j.graphql.translate.AuthTranslator
 import org.neo4j.graphql.translate.TopLevelMatchTranslator
@@ -27,22 +29,37 @@ import org.neo4j.graphql.utils.ResolveTree
 
 class AggregateResolver private constructor(
     schemaConfig: SchemaConfig,
-    val node: Node
+    val implementingType: ImplementingType
 ) : BaseDataFetcher(schemaConfig) {
 
-    class Factory(ctx: AugmentationContext) : AugmentationHandler(ctx) {
+    class Factory(ctx: AugmentationContext) : AugmentationHandler(ctx), AugmentationHandler.EntityAugmentation {
 
-        override fun augmentNode(node: Node): List<AugmentedField> {
-            if (!node.isOperationAllowed(ExcludeDirective.ExcludeOperation.READ)) {
+        override fun augmentEntity(entity: Entity): List<AugmentedField> {
+            if (entity !is ImplementingType
+                || entity.annotations.query?.aggregate == false
+                || (!ctx.schemaConfig.experimental && entity !is Node)
+            ) {
                 return emptyList()
             }
-            val aggregationSelection = AggregationSelection.Augmentation.addAggregationSelectionType(node, ctx)
+            val aggregationSelection = AggregationSelection.Augmentation.addAggregationSelectionType(entity, ctx)
 
             val coordinates =
-                addQueryField(node.rootTypeFieldNames.aggregate, aggregationSelection.asRequiredType()) { args ->
-                    args += AggregateFieldArgs.Augmentation.getFieldArguments(node, ctx)
+                addQueryField(
+                    entity.operations.rootTypeFieldNames.aggregate,
+                    aggregationSelection.asRequiredType()
+                ) { args ->
+                    args += AggregateFieldArgs.Augmentation.getFieldArguments(entity, ctx)
+
+                    if (entity is Node && entity.annotations.fulltext != null) {
+                        FulltextInput.Augmentation.generateFulltextInput(entity, ctx)
+                            ?.let {
+                                args += inputValue(Constants.FULLTEXT, it.asType()) {
+                                    description("Query a full-text index. Allows for the aggregation of results, but does not return the query score. Use the root full-text query fields if you require the score.".asDescription())
+                                }
+                            }
+                    }
                 }
-            return AugmentedField(coordinates, AggregateResolver(ctx.schemaConfig, node)).wrapList()
+            return AugmentedField(coordinates, AggregateResolver(ctx.schemaConfig, entity)).wrapList()
         }
     }
 
@@ -52,11 +69,13 @@ class AggregateResolver private constructor(
 
         object Augmentation : AugmentationBase {
 
-            fun getFieldArguments(node: Node, ctx: AugmentationContext): List<InputValueDefinition> {
+            fun getFieldArguments(
+                implementingType: ImplementingType,
+                ctx: AugmentationContext
+            ): List<InputValueDefinition> {
                 val args = mutableListOf<InputValueDefinition>()
 
-                WhereInput.NodeWhereInput.Augmentation
-                    .generateWhereIT(node, ctx)
+                WhereInput.Augmentation.generateWhereIT(implementingType, ctx)
                     ?.let { args += inputValue(Constants.WHERE, it.asType()) }
 
                 return args
@@ -65,27 +84,34 @@ class AggregateResolver private constructor(
     }
 
     override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement {
+        if (implementingType !is Node) {
+            TODO()
+        }
         val resolveTree = ResolveTree.resolve(env)
-            .parse({ AggregationSelection(node, it) }, { AggregateFieldArgs(node, it.args) })
+            .parse({ AggregationSelection(implementingType, it) }, { AggregateFieldArgs(implementingType, it.args) })
 
         val selection = resolveTree.parsedSelection
         val arguments = resolveTree.parsedArguments
         val queryContext = env.queryContext()
 
-        val dslNode = node.asCypherNode(queryContext, variable)
+        val dslNode = implementingType.asCypherNode(queryContext, variable)
 
 // TODO harmonize with read
         var ongoingReading = TopLevelMatchTranslator(schemaConfig, env.variables, queryContext)
             .translateTopLevelMatch(
-                node,
+                implementingType,
                 dslNode,
                 null,
                 arguments.where,
                 AuthDirective.AuthOperation.READ
             )
             .let { reading ->
-                AuthTranslator(schemaConfig, queryContext, allow = AuthTranslator.AuthOptions(dslNode, node))
-                    .createAuth(node.auth, AuthDirective.AuthOperation.READ)
+                AuthTranslator(
+                    schemaConfig,
+                    queryContext,
+                    allow = AuthTranslator.AuthOptions(dslNode, implementingType)
+                )
+                    .createAuth(implementingType.auth, AuthDirective.AuthOperation.READ)
                     ?.let { reading.apocValidate(it, Constants.AUTH_FORBIDDEN_ERROR) }
                     ?: reading
             }
@@ -102,7 +128,7 @@ class AggregateResolver private constructor(
                 AuthTranslator(
                     schemaConfig,
                     queryContext,
-                    allow = AuthTranslator.AuthOptions(dslNode, node)
+                    allow = AuthTranslator.AuthOptions(dslNode, implementingType)
                 )
                     .createAuth(auth, AuthDirective.AuthOperation.READ)
                     ?.let { authValidate = authValidate and it }

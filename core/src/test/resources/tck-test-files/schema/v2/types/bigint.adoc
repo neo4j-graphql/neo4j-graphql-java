@@ -34,14 +34,16 @@ type CreateFilesMutationResponse {
   info: CreateInfo!
 }
 
+"Information about the number of nodes and relationships created during a create mutation"
 type CreateInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   relationshipsCreated: Int!
 }
 
+"Information about the number of nodes and relationships deleted during a delete mutation"
 type DeleteInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesDeleted: Int!
   relationshipsDeleted: Int!
 }
@@ -98,14 +100,16 @@ type UpdateFilesMutationResponse {
   info: UpdateInfo!
 }
 
+"Information about the number of nodes and relationships created and deleted during an update mutation"
 type UpdateInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   nodesDeleted: Int!
   relationshipsCreated: Int!
   relationshipsDeleted: Int!
 }
 
+"An enum for sorting in either ascending or descending order."
 enum SortDirection {
   "Sort by field values in ascending order."
   ASC
@@ -143,16 +147,17 @@ input FileUpdateInput {
 
 input FileWhere {
   AND: [FileWhere!]
+  NOT: FileWhere
   OR: [FileWhere!]
   name: String
   name_CONTAINS: String
   name_ENDS_WITH: String
   name_IN: [String!]
-  name_NOT: String
-  name_NOT_CONTAINS: String
-  name_NOT_ENDS_WITH: String
-  name_NOT_IN: [String!]
-  name_NOT_STARTS_WITH: String
+  name_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   name_STARTS_WITH: String
   size: BigInt
   size_GT: BigInt
@@ -160,8 +165,8 @@ input FileWhere {
   size_IN: [BigInt!]
   size_LT: BigInt
   size_LTE: BigInt
-  size_NOT: BigInt
-  size_NOT_IN: [BigInt!]
+  size_NOT: BigInt @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  size_NOT_IN: [BigInt!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 ----

@@ -1,0 +1,434 @@
+:toc:
+
+= @relationship directive, aggregate argument -> snapshot tests -> on INTERFACE -> aggregate argument set as true, (no-op as abstract does not support aggregation)
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Actor implements Person {
+  username: String!
+  password: String!
+}
+
+interface Person {
+  username: String!
+  password: String!
+}
+
+type Movie {
+  title: String
+  actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN, aggregate: true)
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+  "experimental": true
+}
+----
+
+== Augmented schema
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+interface Person {
+  password: String!
+  username: String!
+}
+
+type Actor implements Person {
+  password: String!
+  username: String!
+}
+
+type ActorAggregateSelection {
+  count: Int!
+  password: StringAggregateSelectionNonNullable!
+  username: StringAggregateSelectionNonNullable!
+}
+
+type ActorEdge {
+  cursor: String!
+  node: Actor!
+}
+
+type ActorsConnection {
+  edges: [ActorEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type CreateActorsMutationResponse {
+  actors: [Actor!]!
+  info: CreateInfo!
+}
+
+"Information about the number of nodes and relationships created during a create mutation"
+type CreateInfo {
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesCreated: Int!
+  relationshipsCreated: Int!
+}
+
+type CreateMoviesMutationResponse {
+  info: CreateInfo!
+  movies: [Movie!]!
+}
+
+"Information about the number of nodes and relationships deleted during a delete mutation"
+type DeleteInfo {
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
+type Movie {
+  actors(directed: Boolean = true, options: PersonOptions, where: PersonWhere): [Person!]!
+  actorsAggregate(directed: Boolean = true, where: PersonWhere): MoviePersonActorsAggregationSelection
+  actorsConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
+  title: String
+}
+
+type MovieActorsConnection {
+  edges: [MovieActorsRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type MovieActorsRelationship {
+  cursor: String!
+  node: Person!
+}
+
+type MovieAggregateSelection {
+  count: Int!
+  title: StringAggregateSelectionNullable!
+}
+
+type MovieEdge {
+  cursor: String!
+  node: Movie!
+}
+
+type MoviePersonActorsAggregationSelection {
+  count: Int!
+  node: MoviePersonActorsNodeAggregateSelection
+}
+
+type MoviePersonActorsNodeAggregateSelection {
+  password: StringAggregateSelectionNonNullable!
+  username: StringAggregateSelectionNonNullable!
+}
+
+type MoviesConnection {
+  edges: [MovieEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Mutation {
+  createActors(input: [ActorCreateInput!]!): CreateActorsMutationResponse!
+  createMovies(input: [MovieCreateInput!]!): CreateMoviesMutationResponse!
+  deleteActors(where: ActorWhere): DeleteInfo!
+  deleteMovies(delete: MovieDeleteInput, where: MovieWhere): DeleteInfo!
+  updateActors(update: ActorUpdateInput, where: ActorWhere): UpdateActorsMutationResponse!
+  updateMovies(connect: MovieConnectInput, create: MovieRelationInput, delete: MovieDeleteInput, disconnect: MovieDisconnectInput, update: MovieUpdateInput, where: MovieWhere): UpdateMoviesMutationResponse!
+}
+
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type PersonAggregateSelection {
+  count: Int!
+  password: StringAggregateSelectionNonNullable!
+  username: StringAggregateSelectionNonNullable!
+}
+
+type Query {
+  actors(options: ActorOptions, where: ActorWhere): [Actor!]!
+  actorsAggregate(where: ActorWhere): ActorAggregateSelection!
+  actorsConnection(after: String, first: Int, sort: [ActorSort], where: ActorWhere): ActorsConnection!
+  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
+  moviesAggregate(where: MovieWhere): MovieAggregateSelection!
+  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
+  people(options: PersonOptions, where: PersonWhere): [Person!]!
+  peopleAggregate(where: PersonWhere): PersonAggregateSelection!
+}
+
+type StringAggregateSelectionNonNullable {
+  longest: String!
+  shortest: String!
+}
+
+type StringAggregateSelectionNullable {
+  longest: String
+  shortest: String
+}
+
+type UpdateActorsMutationResponse {
+  actors: [Actor!]!
+  info: UpdateInfo!
+}
+
+"Information about the number of nodes and relationships created and deleted during an update mutation"
+type UpdateInfo {
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesCreated: Int!
+  nodesDeleted: Int!
+  relationshipsCreated: Int!
+  relationshipsDeleted: Int!
+}
+
+type UpdateMoviesMutationResponse {
+  info: UpdateInfo!
+  movies: [Movie!]!
+}
+
+enum PersonImplementation {
+  Actor
+}
+
+"An enum for sorting in either ascending or descending order."
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+input ActorCreateInput {
+  password: String!
+  username: String!
+}
+
+input ActorOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more ActorSort objects to sort Actors by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [ActorSort!]
+}
+
+"Fields to sort Actors by. The order in which sorts are applied is not guaranteed when specifying many fields in one ActorSort object."
+input ActorSort {
+  password: SortDirection
+  username: SortDirection
+}
+
+input ActorUpdateInput {
+  password: String
+  username: String
+}
+
+input ActorWhere {
+  AND: [ActorWhere!]
+  NOT: ActorWhere
+  OR: [ActorWhere!]
+  password: String
+  password_CONTAINS: String
+  password_ENDS_WITH: String
+  password_IN: [String!]
+  password_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  password_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  password_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  password_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  password_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  password_STARTS_WITH: String
+  username: String
+  username_CONTAINS: String
+  username_ENDS_WITH: String
+  username_IN: [String!]
+  username_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  username_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  username_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  username_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  username_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  username_STARTS_WITH: String
+}
+
+input MovieActorsConnectFieldInput {
+  where: PersonConnectWhere
+}
+
+input MovieActorsConnectionSort {
+  node: PersonSort
+}
+
+input MovieActorsConnectionWhere {
+  AND: [MovieActorsConnectionWhere!]
+  NOT: MovieActorsConnectionWhere
+  OR: [MovieActorsConnectionWhere!]
+  node: PersonWhere
+  node_NOT: PersonWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+}
+
+input MovieActorsCreateFieldInput {
+  node: PersonCreateInput!
+}
+
+input MovieActorsDeleteFieldInput {
+  where: MovieActorsConnectionWhere
+}
+
+input MovieActorsDisconnectFieldInput {
+  where: MovieActorsConnectionWhere
+}
+
+input MovieActorsFieldInput {
+  connect: [MovieActorsConnectFieldInput!]
+  create: [MovieActorsCreateFieldInput!]
+}
+
+input MovieActorsUpdateConnectionInput {
+  node: PersonUpdateInput
+}
+
+input MovieActorsUpdateFieldInput {
+  connect: [MovieActorsConnectFieldInput!]
+  create: [MovieActorsCreateFieldInput!]
+  delete: [MovieActorsDeleteFieldInput!]
+  disconnect: [MovieActorsDisconnectFieldInput!]
+  update: MovieActorsUpdateConnectionInput
+  where: MovieActorsConnectionWhere
+}
+
+input MovieConnectInput {
+  actors: [MovieActorsConnectFieldInput!]
+}
+
+input MovieCreateInput {
+  actors: MovieActorsFieldInput
+  title: String
+}
+
+input MovieDeleteInput {
+  actors: [MovieActorsDeleteFieldInput!]
+}
+
+input MovieDisconnectInput {
+  actors: [MovieActorsDisconnectFieldInput!]
+}
+
+input MovieOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [MovieSort!]
+}
+
+input MovieRelationInput {
+  actors: [MovieActorsCreateFieldInput!]
+}
+
+"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+input MovieSort {
+  title: SortDirection
+}
+
+input MovieUpdateInput {
+  actors: [MovieActorsUpdateFieldInput!]
+  title: String
+}
+
+input MovieWhere {
+  AND: [MovieWhere!]
+  NOT: MovieWhere
+  OR: [MovieWhere!]
+  actorsConnection: MovieActorsConnectionWhere @deprecated(reason : "Use `actorsConnection_SOME` instead.")
+  "Return Movies where all of the related MovieActorsConnections match this filter"
+  actorsConnection_ALL: MovieActorsConnectionWhere
+  "Return Movies where none of the related MovieActorsConnections match this filter"
+  actorsConnection_NONE: MovieActorsConnectionWhere
+  actorsConnection_NOT: MovieActorsConnectionWhere @deprecated(reason : "Use `actorsConnection_NONE` instead.")
+  "Return Movies where one of the related MovieActorsConnections match this filter"
+  actorsConnection_SINGLE: MovieActorsConnectionWhere
+  "Return Movies where some of the related MovieActorsConnections match this filter"
+  actorsConnection_SOME: MovieActorsConnectionWhere
+  title: String
+  title_CONTAINS: String
+  title_ENDS_WITH: String
+  title_IN: [String]
+  title_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_IN: [String] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_STARTS_WITH: String
+}
+
+input PersonConnectWhere {
+  node: PersonWhere!
+}
+
+input PersonCreateInput {
+  Actor: ActorCreateInput
+}
+
+input PersonImplementationsUpdateInput {
+  Actor: ActorUpdateInput
+}
+
+input PersonOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more PersonSort objects to sort People by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [PersonSort]
+}
+
+"Fields to sort People by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonSort object."
+input PersonSort {
+  password: SortDirection
+  username: SortDirection
+}
+
+input PersonUpdateInput {
+  _on: PersonImplementationsUpdateInput
+  password: String
+  username: String
+}
+
+input PersonWhere {
+  AND: [PersonWhere!]
+  NOT: PersonWhere
+  OR: [PersonWhere!]
+  password: String
+  password_CONTAINS: String
+  password_ENDS_WITH: String
+  password_IN: [String!]
+  password_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  password_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  password_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  password_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  password_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  password_STARTS_WITH: String
+  typename_IN: [PersonImplementation!]
+  username: String
+  username_CONTAINS: String
+  username_ENDS_WITH: String
+  username_IN: [String!]
+  username_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  username_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  username_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  username_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  username_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  username_STARTS_WITH: String
+}
+
+----
+
+'''

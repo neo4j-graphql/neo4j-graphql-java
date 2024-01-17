@@ -23,16 +23,6 @@ interface ActedIn @relationshipProperties {
   year: Int
 }
 ----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{
-  "enableRegex": true
-}
-----
 == Double nested query
 
 .GraphQL-Query
@@ -56,8 +46,8 @@ query Query {
 [source,json]
 ----
 {
-  "param0" : 1999,
-  "param1" : "Keanu Reeves"
+  "param0": 1999,
+  "param1": "Keanu Reeves"
 }
 ----
 
@@ -67,28 +57,19 @@ query Query {
 MATCH (this:Movie)
 WHERE this.released = $param0
 CALL {
-	WITH this
-	MATCH (this_actors:Person)-[this0:ACTED_IN]->(this)
-	WHERE this_actors.name = $param1
-	CALL {
-		WITH this_actors
-		MATCH (this_actors)-[this1:DIRECTED]->(this_actors_directed:Movie)
-		WITH this_actors_directed {
-			.title,
-			.released
-		} AS this_actors_directed
-		RETURN collect(this_actors_directed) AS this_actors_directed
-	}
-	WITH this_actors {
-		.name,
-		directed: this_actors_directed
-	} AS this_actors
-	RETURN collect(this_actors) AS this_actors
+    WITH this
+    MATCH (this)<-[this0:ACTED_IN]-(this1:Person)
+    WHERE this1.name = $param1
+    CALL {
+        WITH this1
+        MATCH (this1)-[this2:DIRECTED]->(this3:Movie)
+        WITH this3 { .title, .released } AS this3
+        RETURN collect(this3) AS var4
+    }
+    WITH this1 { .name, directed: var4 } AS this1
+    RETURN collect(this1) AS var5
 }
-RETURN this {
-	.title,
-	actors: this_actors
-} AS this
+RETURN this { .title, actors: var5 } AS this
 ----
 
 '''
@@ -112,8 +93,8 @@ query Query {
 [source,json]
 ----
 {
-  "param0" : 1999,
-  "param1" : "Keanu Reeves"
+  "param0": 1999,
+  "param1": "Keanu Reeves"
 }
 ----
 
@@ -123,18 +104,13 @@ query Query {
 MATCH (this:Movie)
 WHERE this.released = $param0
 CALL {
-	WITH this
-	MATCH (this_actors:Person)-[this0:ACTED_IN]->(this)
-	WHERE this_actors.name = $param1
-	WITH this_actors {
-		.name
-	} AS this_actors
-	RETURN collect(this_actors) AS this_actors
+    WITH this
+    MATCH (this)<-[this0:ACTED_IN]-(this1:Person)
+    WHERE this1.name = $param1
+    WITH this1 { .name } AS this1
+    RETURN collect(this1) AS var2
 }
-RETURN this {
-	.title,
-	actors: this_actors
-} AS this
+RETURN this { .title, actors: var2 } AS this
 ----
 
 '''

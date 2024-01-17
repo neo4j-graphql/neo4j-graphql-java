@@ -13,11 +13,11 @@ class InterfaceSelection : FieldContainerSelection() {
                 init = {
                     description(interfaze.description)
                     comments(interfaze.comments)
-                    directives(interfaze.otherDirectives)
+                    directives(interfaze.annotations.otherDirectives)
                     implementz(interfaze.interfaces.map { it.name.asType() })
                 },
                 initFields = { fields, _ ->
-                    interfaze.fields.filterNot { it.writeonly }
+                    interfaze.fields
                         .forEach { fields += FieldContainerSelection.Augmentation.mapField(it, ctx) }
                 })
     }

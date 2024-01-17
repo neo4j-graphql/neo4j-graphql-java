@@ -83,8 +83,9 @@ type CreateBlogsMutationResponse {
   info: CreateInfo!
 }
 
+"Information about the number of nodes and relationships created during a create mutation"
 type CreateInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   relationshipsCreated: Int!
 }
@@ -99,8 +100,9 @@ type CreateUsersMutationResponse {
   users: [User!]!
 }
 
+"Information about the number of nodes and relationships deleted during a delete mutation"
 type DeleteInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesDeleted: Int!
   relationshipsDeleted: Int!
 }
@@ -167,8 +169,9 @@ type UpdateBlogsMutationResponse {
   info: UpdateInfo!
 }
 
+"Information about the number of nodes and relationships created and deleted during an update mutation"
 type UpdateInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   nodesDeleted: Int!
   relationshipsCreated: Int!
@@ -218,6 +221,7 @@ type UsersConnection {
   totalCount: Int!
 }
 
+"An enum for sorting in either ascending or descending order."
 enum SortDirection {
   "Sort by field values in ascending order."
   ASC
@@ -255,6 +259,7 @@ input BlogOptions {
 
 input BlogPostsAggregateInput {
   AND: [BlogPostsAggregateInput!]
+  NOT: BlogPostsAggregateInput
   OR: [BlogPostsAggregateInput!]
   count: Int
   count_GT: Int
@@ -265,6 +270,8 @@ input BlogPostsAggregateInput {
 }
 
 input BlogPostsConnectFieldInput {
+  "Whether or not to overwrite any matching relationship with the new properties."
+  overwrite: Boolean! = true
   where: PostConnectWhere
 }
 
@@ -274,9 +281,10 @@ input BlogPostsConnectionSort {
 
 input BlogPostsConnectionWhere {
   AND: [BlogPostsConnectionWhere!]
+  NOT: BlogPostsConnectionWhere
   OR: [BlogPostsConnectionWhere!]
   node: PostWhere
-  node_NOT: PostWhere
+  node_NOT: PostWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input BlogPostsCreateFieldInput {
@@ -298,10 +306,16 @@ input BlogPostsFieldInput {
 
 input BlogPostsNodeAggregationWhereInput {
   AND: [BlogPostsNodeAggregationWhereInput!]
+  NOT: BlogPostsNodeAggregationWhereInput
   OR: [BlogPostsNodeAggregationWhereInput!]
   content_AVERAGE_EQUAL: Float @deprecated(reason : "Do not use post.content")
   content_AVERAGE_GT: Float @deprecated(reason : "Do not use post.content")
   content_AVERAGE_GTE: Float @deprecated(reason : "Do not use post.content")
+  content_AVERAGE_LENGTH_EQUAL: Float @deprecated(reason : "Do not use post.content")
+  content_AVERAGE_LENGTH_GT: Float @deprecated(reason : "Do not use post.content")
+  content_AVERAGE_LENGTH_GTE: Float @deprecated(reason : "Do not use post.content")
+  content_AVERAGE_LENGTH_LT: Float @deprecated(reason : "Do not use post.content")
+  content_AVERAGE_LENGTH_LTE: Float @deprecated(reason : "Do not use post.content")
   content_AVERAGE_LT: Float @deprecated(reason : "Do not use post.content")
   content_AVERAGE_LTE: Float @deprecated(reason : "Do not use post.content")
   content_EQUAL: String @deprecated(reason : "Do not use post.content")
@@ -310,6 +324,11 @@ input BlogPostsNodeAggregationWhereInput {
   content_LONGEST_EQUAL: Int @deprecated(reason : "Do not use post.content")
   content_LONGEST_GT: Int @deprecated(reason : "Do not use post.content")
   content_LONGEST_GTE: Int @deprecated(reason : "Do not use post.content")
+  content_LONGEST_LENGTH_EQUAL: Int @deprecated(reason : "Do not use post.content")
+  content_LONGEST_LENGTH_GT: Int @deprecated(reason : "Do not use post.content")
+  content_LONGEST_LENGTH_GTE: Int @deprecated(reason : "Do not use post.content")
+  content_LONGEST_LENGTH_LT: Int @deprecated(reason : "Do not use post.content")
+  content_LONGEST_LENGTH_LTE: Int @deprecated(reason : "Do not use post.content")
   content_LONGEST_LT: Int @deprecated(reason : "Do not use post.content")
   content_LONGEST_LTE: Int @deprecated(reason : "Do not use post.content")
   content_LT: Int @deprecated(reason : "Do not use post.content")
@@ -317,6 +336,11 @@ input BlogPostsNodeAggregationWhereInput {
   content_SHORTEST_EQUAL: Int @deprecated(reason : "Do not use post.content")
   content_SHORTEST_GT: Int @deprecated(reason : "Do not use post.content")
   content_SHORTEST_GTE: Int @deprecated(reason : "Do not use post.content")
+  content_SHORTEST_LENGTH_EQUAL: Int @deprecated(reason : "Do not use post.content")
+  content_SHORTEST_LENGTH_GT: Int @deprecated(reason : "Do not use post.content")
+  content_SHORTEST_LENGTH_GTE: Int @deprecated(reason : "Do not use post.content")
+  content_SHORTEST_LENGTH_LT: Int @deprecated(reason : "Do not use post.content")
+  content_SHORTEST_LENGTH_LTE: Int @deprecated(reason : "Do not use post.content")
   content_SHORTEST_LT: Int @deprecated(reason : "Do not use post.content")
   content_SHORTEST_LTE: Int @deprecated(reason : "Do not use post.content")
 }
@@ -350,14 +374,19 @@ input BlogUpdateInput {
 
 input BlogWhere {
   AND: [BlogWhere!]
+  NOT: BlogWhere
   OR: [BlogWhere!]
   posts: PostWhere @deprecated(reason : "Use `posts_SOME` instead.")
   postsAggregate: BlogPostsAggregateInput
   postsConnection: BlogPostsConnectionWhere @deprecated(reason : "Use `postsConnection_SOME` instead.")
+  "Return Blogs where all of the related BlogPostsConnections match this filter"
   postsConnection_ALL: BlogPostsConnectionWhere
+  "Return Blogs where none of the related BlogPostsConnections match this filter"
   postsConnection_NONE: BlogPostsConnectionWhere
   postsConnection_NOT: BlogPostsConnectionWhere @deprecated(reason : "Use `postsConnection_NONE` instead.")
+  "Return Blogs where one of the related BlogPostsConnections match this filter"
   postsConnection_SINGLE: BlogPostsConnectionWhere
+  "Return Blogs where some of the related BlogPostsConnections match this filter"
   postsConnection_SOME: BlogPostsConnectionWhere
   "Return Blogs where all of the related Posts match this filter"
   posts_ALL: PostWhere
@@ -372,11 +401,11 @@ input BlogWhere {
   title_CONTAINS: String
   title_ENDS_WITH: String
   title_IN: [String]
-  title_NOT: String
-  title_NOT_CONTAINS: String
-  title_NOT_ENDS_WITH: String
-  title_NOT_IN: [String]
-  title_NOT_STARTS_WITH: String
+  title_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_IN: [String] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   title_STARTS_WITH: String
 }
 
@@ -411,6 +440,7 @@ input PostUpdateInput {
 
 input PostWhere {
   AND: [PostWhere!]
+  NOT: PostWhere
   OR: [PostWhere!]
   content: String @deprecated(reason : "Do not use post.content")
   content_CONTAINS: String @deprecated(reason : "Do not use post.content")
@@ -424,6 +454,7 @@ input PostWhere {
   content_STARTS_WITH: String @deprecated(reason : "Do not use post.content")
 }
 
+"Input type for options that can be specified on a query operation."
 input QueryOptions {
   limit: Int
   offset: Int
@@ -440,9 +471,10 @@ input UserContentBlogConnectFieldInput {
 
 input UserContentBlogConnectionWhere {
   AND: [UserContentBlogConnectionWhere!]
+  NOT: UserContentBlogConnectionWhere
   OR: [UserContentBlogConnectionWhere!]
   node: BlogWhere
-  node_NOT: BlogWhere
+  node_NOT: BlogWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input UserContentBlogCreateFieldInput {
@@ -513,9 +545,10 @@ input UserContentPostConnectFieldInput {
 
 input UserContentPostConnectionWhere {
   AND: [UserContentPostConnectionWhere!]
+  NOT: UserContentPostConnectionWhere
   OR: [UserContentPostConnectionWhere!]
   node: PostWhere
-  node_NOT: PostWhere
+  node_NOT: PostWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input UserContentPostCreateFieldInput {
@@ -589,22 +622,27 @@ input UserUpdateInput {
 
 input UserWhere {
   AND: [UserWhere!]
+  NOT: UserWhere
   OR: [UserWhere!]
   contentConnection: UserContentConnectionWhere @deprecated(reason : "Do not use user.content")
+  "Return Users where all of the related UserContentConnections match this filter"
   contentConnection_ALL: UserContentConnectionWhere @deprecated(reason : "Do not use user.content")
+  "Return Users where none of the related UserContentConnections match this filter"
   contentConnection_NONE: UserContentConnectionWhere @deprecated(reason : "Do not use user.content")
   contentConnection_NOT: UserContentConnectionWhere @deprecated(reason : "Do not use user.content")
+  "Return Users where one of the related UserContentConnections match this filter"
   contentConnection_SINGLE: UserContentConnectionWhere @deprecated(reason : "Do not use user.content")
+  "Return Users where some of the related UserContentConnections match this filter"
   contentConnection_SOME: UserContentConnectionWhere @deprecated(reason : "Do not use user.content")
   name: String
   name_CONTAINS: String
   name_ENDS_WITH: String
   name_IN: [String]
-  name_NOT: String
-  name_NOT_CONTAINS: String
-  name_NOT_ENDS_WITH: String
-  name_NOT_IN: [String]
-  name_NOT_STARTS_WITH: String
+  name_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_IN: [String] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   name_STARTS_WITH: String
 }
 

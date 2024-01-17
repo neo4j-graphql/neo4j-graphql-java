@@ -28,7 +28,8 @@ sealed class DisconnectInput private constructor(implementingType: ImplementingT
                     node.name,
                     Constants.InputTypeSuffix.DisconnectInput,
                     node.relationFields,
-                    RelationFieldBaseAugmentation::generateFieldDisconnectIT
+                    RelationFieldBaseAugmentation::generateFieldDisconnectIT,
+                    condition = { it.annotations.relationship?.isDisconnectAllowed != false },
                 )
         }
     }

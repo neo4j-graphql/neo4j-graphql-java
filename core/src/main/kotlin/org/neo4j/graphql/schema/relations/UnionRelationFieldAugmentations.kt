@@ -5,6 +5,7 @@ import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.Union
 import org.neo4j.graphql.domain.fields.RelationField
+import org.neo4j.graphql.schema.AugmentationContext
 import org.neo4j.graphql.schema.model.inputs.WhereInput
 import org.neo4j.graphql.schema.model.inputs.connect.ConnectFieldInput.NodeConnectFieldInput
 import org.neo4j.graphql.schema.model.inputs.connect_or_create.ConnectOrCreateFieldInput
@@ -14,7 +15,6 @@ import org.neo4j.graphql.schema.model.inputs.create.RelationFieldInput
 import org.neo4j.graphql.schema.model.inputs.delete.DeleteFieldInput
 import org.neo4j.graphql.schema.model.inputs.disconnect.DisconnectFieldInput
 import org.neo4j.graphql.schema.model.inputs.update.UpdateFieldInput
-import org.neo4j.graphql.schema.AugmentationContext
 
 /**
  * Augmentation for relations referencing a union
@@ -22,7 +22,7 @@ import org.neo4j.graphql.schema.AugmentationContext
 class UnionRelationFieldAugmentations(
     private val ctx: AugmentationContext,
     private val rel: RelationField,
-    union: Union,
+    private val union: Union,
 ) : RelationFieldBaseAugmentation {
 
     private val prefix: String = rel.getOwnerName() + rel.fieldName.capitalize()
@@ -93,13 +93,7 @@ class UnionRelationFieldAugmentations(
             }
         }
 
-    override fun generateFieldWhereIT() =
-        ctx.getOrCreateInputObjectType("${rel.typeMeta.type.name()}${Constants.InputTypeSuffix.Where}") { fields, _ ->
-            unionNodes.forEach { node ->
-                WhereInput.NodeWhereInput.Augmentation
-                    .generateWhereIT(node, ctx)?.let { fields += ctx.inputValue(node.name, it.asType()) }
-            }
-        }
+    override fun generateFieldWhereIT() = WhereInput.UnionWhereInput.Augmentation.generateWhereIT(union, ctx)
 
     override fun generateFieldConnectionWhereIT() =
         ctx.getOrCreateInputObjectType("${prefix}${Constants.InputTypeSuffix.ConnectionWhere}") { fields, _ ->

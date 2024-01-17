@@ -16,19 +16,9 @@ type Actor {
   movies: [Movie!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: OUT)
 }
 
-interface ActedIn {
+interface ActedIn @relationshipProperties {
   role: String!
   screenTime: Int!
-}
-----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{
-  "enableRegex": true
 }
 ----
 == CONTAINS
@@ -55,7 +45,7 @@ interface ActedIn {
 [source,json]
 ----
 {
-  "this_connection_actorsConnectionparam0" : "Forrest"
+  "param0": "Forrest"
 }
 ----
 
@@ -64,26 +54,20 @@ interface ActedIn {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)<-[this_connection_actorsConnectionthis0:ACTED_IN]-(this_Actor:Actor)
-	WHERE this_connection_actorsConnectionthis0.role CONTAINS $this_connection_actorsConnectionparam0
-	WITH {
-		role: this_connection_actorsConnectionthis0.role,
-		node: {
-			name: this_Actor.name
-		}
-	} AS edge
-	WITH collect(edge) AS edges
-	WITH edges, size(edges) AS totalCount
-	RETURN {
-		edges: edges,
-		totalCount: totalCount
-	} AS this_actorsConnection
+    WITH this
+    MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
+    WHERE this0.role CONTAINS $param0
+    WITH collect({ node: this1, relationship: this0 }) AS edges
+    WITH edges, size(edges) AS totalCount
+    CALL {
+        WITH edges
+        UNWIND edges AS edge
+        WITH edge.node AS this1, edge.relationship AS this0
+        RETURN collect({ role: this0.role, node: { name: this1.name } }) AS var2
+    }
+    RETURN { edges: var2, totalCount: totalCount } AS var3
 }
-RETURN this {
-	.title,
-	actorsConnection: this_actorsConnection
-} AS this
+RETURN this { .title, actorsConnection: var3 } AS this
 ----
 
 '''
@@ -112,7 +96,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "this_connection_actorsConnectionparam0" : "Gump"
+  "param0": "Gump"
 }
 ----
 
@@ -121,26 +105,20 @@ RETURN this {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)<-[this_connection_actorsConnectionthis0:ACTED_IN]-(this_Actor:Actor)
-	WHERE this_connection_actorsConnectionthis0.role ENDS WITH $this_connection_actorsConnectionparam0
-	WITH {
-		role: this_connection_actorsConnectionthis0.role,
-		node: {
-			name: this_Actor.name
-		}
-	} AS edge
-	WITH collect(edge) AS edges
-	WITH edges, size(edges) AS totalCount
-	RETURN {
-		edges: edges,
-		totalCount: totalCount
-	} AS this_actorsConnection
+    WITH this
+    MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
+    WHERE this0.role ENDS WITH $param0
+    WITH collect({ node: this1, relationship: this0 }) AS edges
+    WITH edges, size(edges) AS totalCount
+    CALL {
+        WITH edges
+        UNWIND edges AS edge
+        WITH edge.node AS this1, edge.relationship AS this0
+        RETURN collect({ role: this0.role, node: { name: this1.name } }) AS var2
+    }
+    RETURN { edges: var2, totalCount: totalCount } AS var3
 }
-RETURN this {
-	.title,
-	actorsConnection: this_actorsConnection
-} AS this
+RETURN this { .title, actorsConnection: var3 } AS this
 ----
 
 '''
@@ -169,7 +147,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "this_connection_actorsConnectionparam0" : "Forrest.+"
+  "param0": "Forrest.+"
 }
 ----
 
@@ -178,26 +156,20 @@ RETURN this {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)<-[this_connection_actorsConnectionthis0:ACTED_IN]-(this_Actor:Actor)
-	WHERE this_connection_actorsConnectionthis0.role =~ $this_connection_actorsConnectionparam0
-	WITH {
-		role: this_connection_actorsConnectionthis0.role,
-		node: {
-			name: this_Actor.name
-		}
-	} AS edge
-	WITH collect(edge) AS edges
-	WITH edges, size(edges) AS totalCount
-	RETURN {
-		edges: edges,
-		totalCount: totalCount
-	} AS this_actorsConnection
+    WITH this
+    MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
+    WHERE this0.role =~ $param0
+    WITH collect({ node: this1, relationship: this0 }) AS edges
+    WITH edges, size(edges) AS totalCount
+    CALL {
+        WITH edges
+        UNWIND edges AS edge
+        WITH edge.node AS this1, edge.relationship AS this0
+        RETURN collect({ role: this0.role, node: { name: this1.name } }) AS var2
+    }
+    RETURN { edges: var2, totalCount: totalCount } AS var3
 }
-RETURN this {
-	.title,
-	actorsConnection: this_actorsConnection
-} AS this
+RETURN this { .title, actorsConnection: var3 } AS this
 ----
 
 '''
@@ -226,7 +198,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "this_connection_actorsConnectionparam0" : "Forrest"
+  "param0": "Forrest"
 }
 ----
 
@@ -235,26 +207,20 @@ RETURN this {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)<-[this_connection_actorsConnectionthis0:ACTED_IN]-(this_Actor:Actor)
-	WHERE NOT (this_connection_actorsConnectionthis0.role CONTAINS $this_connection_actorsConnectionparam0)
-	WITH {
-		role: this_connection_actorsConnectionthis0.role,
-		node: {
-			name: this_Actor.name
-		}
-	} AS edge
-	WITH collect(edge) AS edges
-	WITH edges, size(edges) AS totalCount
-	RETURN {
-		edges: edges,
-		totalCount: totalCount
-	} AS this_actorsConnection
+    WITH this
+    MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
+    WHERE NOT (this0.role CONTAINS $param0)
+    WITH collect({ node: this1, relationship: this0 }) AS edges
+    WITH edges, size(edges) AS totalCount
+    CALL {
+        WITH edges
+        UNWIND edges AS edge
+        WITH edge.node AS this1, edge.relationship AS this0
+        RETURN collect({ role: this0.role, node: { name: this1.name } }) AS var2
+    }
+    RETURN { edges: var2, totalCount: totalCount } AS var3
 }
-RETURN this {
-	.title,
-	actorsConnection: this_actorsConnection
-} AS this
+RETURN this { .title, actorsConnection: var3 } AS this
 ----
 
 '''
@@ -283,7 +249,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "this_connection_actorsConnectionparam0" : "Gump"
+  "param0": "Gump"
 }
 ----
 
@@ -292,26 +258,20 @@ RETURN this {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)<-[this_connection_actorsConnectionthis0:ACTED_IN]-(this_Actor:Actor)
-	WHERE NOT (this_connection_actorsConnectionthis0.role ENDS WITH $this_connection_actorsConnectionparam0)
-	WITH {
-		role: this_connection_actorsConnectionthis0.role,
-		node: {
-			name: this_Actor.name
-		}
-	} AS edge
-	WITH collect(edge) AS edges
-	WITH edges, size(edges) AS totalCount
-	RETURN {
-		edges: edges,
-		totalCount: totalCount
-	} AS this_actorsConnection
+    WITH this
+    MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
+    WHERE NOT (this0.role ENDS WITH $param0)
+    WITH collect({ node: this1, relationship: this0 }) AS edges
+    WITH edges, size(edges) AS totalCount
+    CALL {
+        WITH edges
+        UNWIND edges AS edge
+        WITH edge.node AS this1, edge.relationship AS this0
+        RETURN collect({ role: this0.role, node: { name: this1.name } }) AS var2
+    }
+    RETURN { edges: var2, totalCount: totalCount } AS var3
 }
-RETURN this {
-	.title,
-	actorsConnection: this_actorsConnection
-} AS this
+RETURN this { .title, actorsConnection: var3 } AS this
 ----
 
 '''
@@ -340,7 +300,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "this_connection_actorsConnectionparam0" : "Forrest"
+  "param0": "Forrest"
 }
 ----
 
@@ -349,26 +309,20 @@ RETURN this {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)<-[this_connection_actorsConnectionthis0:ACTED_IN]-(this_Actor:Actor)
-	WHERE NOT (this_connection_actorsConnectionthis0.role STARTS WITH $this_connection_actorsConnectionparam0)
-	WITH {
-		role: this_connection_actorsConnectionthis0.role,
-		node: {
-			name: this_Actor.name
-		}
-	} AS edge
-	WITH collect(edge) AS edges
-	WITH edges, size(edges) AS totalCount
-	RETURN {
-		edges: edges,
-		totalCount: totalCount
-	} AS this_actorsConnection
+    WITH this
+    MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
+    WHERE NOT (this0.role STARTS WITH $param0)
+    WITH collect({ node: this1, relationship: this0 }) AS edges
+    WITH edges, size(edges) AS totalCount
+    CALL {
+        WITH edges
+        UNWIND edges AS edge
+        WITH edge.node AS this1, edge.relationship AS this0
+        RETURN collect({ role: this0.role, node: { name: this1.name } }) AS var2
+    }
+    RETURN { edges: var2, totalCount: totalCount } AS var3
 }
-RETURN this {
-	.title,
-	actorsConnection: this_actorsConnection
-} AS this
+RETURN this { .title, actorsConnection: var3 } AS this
 ----
 
 '''
@@ -397,7 +351,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "this_connection_actorsConnectionparam0" : "Forrest"
+  "param0": "Forrest"
 }
 ----
 
@@ -406,26 +360,20 @@ RETURN this {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)<-[this_connection_actorsConnectionthis0:ACTED_IN]-(this_Actor:Actor)
-	WHERE this_connection_actorsConnectionthis0.role STARTS WITH $this_connection_actorsConnectionparam0
-	WITH {
-		role: this_connection_actorsConnectionthis0.role,
-		node: {
-			name: this_Actor.name
-		}
-	} AS edge
-	WITH collect(edge) AS edges
-	WITH edges, size(edges) AS totalCount
-	RETURN {
-		edges: edges,
-		totalCount: totalCount
-	} AS this_actorsConnection
+    WITH this
+    MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
+    WHERE this0.role STARTS WITH $param0
+    WITH collect({ node: this1, relationship: this0 }) AS edges
+    WITH edges, size(edges) AS totalCount
+    CALL {
+        WITH edges
+        UNWIND edges AS edge
+        WITH edge.node AS this1, edge.relationship AS this0
+        RETURN collect({ role: this0.role, node: { name: this1.name } }) AS var2
+    }
+    RETURN { edges: var2, totalCount: totalCount } AS var3
 }
-RETURN this {
-	.title,
-	actorsConnection: this_actorsConnection
-} AS this
+RETURN this { .title, actorsConnection: var3 } AS this
 ----
 
 '''

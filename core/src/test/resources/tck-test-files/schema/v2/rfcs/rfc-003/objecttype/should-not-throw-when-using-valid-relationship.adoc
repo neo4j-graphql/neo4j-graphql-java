@@ -8,12 +8,20 @@
 ----
 type Source {
   targets: [Target!]! @relationship(type: "HAS_TARGET", direction: OUT)
-  target1: Target! @relationship(type: "HAS_TARGET", direction: OUT)
-  target2: Target @relationship(type: "HAS_TARGET", direction: OUT)
+  target1: SecondTarget! @relationship(type: "HAS_TARGET", direction: OUT)
+  target2: ThirdTarget @relationship(type: "HAS_TARGET", direction: OUT)
 }
 
 type Target {
-  id: ID @id
+  id: ID @id @unique
+}
+
+type SecondTarget {
+  id: ID @id @unique
+}
+
+type ThirdTarget {
+  id: ID @id @unique
 }
 ----
 
@@ -27,10 +35,16 @@ schema {
   mutation: Mutation
 }
 
+"Information about the number of nodes and relationships created during a create mutation"
 type CreateInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   relationshipsCreated: Int!
+}
+
+type CreateSecondTargetsMutationResponse {
+  info: CreateInfo!
+  secondTargets: [SecondTarget!]!
 }
 
 type CreateSourcesMutationResponse {
@@ -43,8 +57,14 @@ type CreateTargetsMutationResponse {
   targets: [Target!]!
 }
 
+type CreateThirdTargetsMutationResponse {
+  info: CreateInfo!
+  thirdTargets: [ThirdTarget!]!
+}
+
+"Information about the number of nodes and relationships deleted during a delete mutation"
 type DeleteInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesDeleted: Int!
   relationshipsDeleted: Int!
 }
@@ -55,12 +75,18 @@ type IDAggregateSelectionNullable {
 }
 
 type Mutation {
+  createSecondTargets(input: [SecondTargetCreateInput!]!): CreateSecondTargetsMutationResponse!
   createSources(input: [SourceCreateInput!]!): CreateSourcesMutationResponse!
   createTargets(input: [TargetCreateInput!]!): CreateTargetsMutationResponse!
+  createThirdTargets(input: [ThirdTargetCreateInput!]!): CreateThirdTargetsMutationResponse!
+  deleteSecondTargets(where: SecondTargetWhere): DeleteInfo!
   deleteSources(delete: SourceDeleteInput, where: SourceWhere): DeleteInfo!
   deleteTargets(where: TargetWhere): DeleteInfo!
+  deleteThirdTargets(where: ThirdTargetWhere): DeleteInfo!
+  updateSecondTargets(update: SecondTargetUpdateInput, where: SecondTargetWhere): UpdateSecondTargetsMutationResponse!
   updateSources(connect: SourceConnectInput, connectOrCreate: SourceConnectOrCreateInput, create: SourceRelationInput, delete: SourceDeleteInput, disconnect: SourceDisconnectInput, update: SourceUpdateInput, where: SourceWhere): UpdateSourcesMutationResponse!
   updateTargets(update: TargetUpdateInput, where: TargetWhere): UpdateTargetsMutationResponse!
+  updateThirdTargets(update: ThirdTargetUpdateInput, where: ThirdTargetWhere): UpdateThirdTargetsMutationResponse!
 }
 
 "Pagination information (Relay)"
@@ -72,20 +98,46 @@ type PageInfo {
 }
 
 type Query {
+  secondTargets(options: SecondTargetOptions, where: SecondTargetWhere): [SecondTarget!]!
+  secondTargetsAggregate(where: SecondTargetWhere): SecondTargetAggregateSelection!
+  secondTargetsConnection(after: String, first: Int, sort: [SecondTargetSort], where: SecondTargetWhere): SecondTargetsConnection!
   sources(options: SourceOptions, where: SourceWhere): [Source!]!
   sourcesAggregate(where: SourceWhere): SourceAggregateSelection!
   sourcesConnection(after: String, first: Int, where: SourceWhere): SourcesConnection!
   targets(options: TargetOptions, where: TargetWhere): [Target!]!
   targetsAggregate(where: TargetWhere): TargetAggregateSelection!
   targetsConnection(after: String, first: Int, sort: [TargetSort], where: TargetWhere): TargetsConnection!
+  thirdTargets(options: ThirdTargetOptions, where: ThirdTargetWhere): [ThirdTarget!]!
+  thirdTargetsAggregate(where: ThirdTargetWhere): ThirdTargetAggregateSelection!
+  thirdTargetsConnection(after: String, first: Int, sort: [ThirdTargetSort], where: ThirdTargetWhere): ThirdTargetsConnection!
+}
+
+type SecondTarget {
+  id: ID
+}
+
+type SecondTargetAggregateSelection {
+  count: Int!
+  id: IDAggregateSelectionNullable!
+}
+
+type SecondTargetEdge {
+  cursor: String!
+  node: SecondTarget!
+}
+
+type SecondTargetsConnection {
+  edges: [SecondTargetEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
 }
 
 type Source {
-  target1(directed: Boolean = true, options: TargetOptions, where: TargetWhere): Target!
-  target1Aggregate(directed: Boolean = true, where: TargetWhere): SourceTargetTarget1AggregationSelection
+  target1(directed: Boolean = true, options: SecondTargetOptions, where: SecondTargetWhere): SecondTarget!
+  target1Aggregate(directed: Boolean = true, where: SecondTargetWhere): SourceSecondTargetTarget1AggregationSelection
   target1Connection(after: String, directed: Boolean = true, first: Int, sort: [SourceTarget1ConnectionSort!], where: SourceTarget1ConnectionWhere): SourceTarget1Connection!
-  target2(directed: Boolean = true, options: TargetOptions, where: TargetWhere): Target
-  target2Aggregate(directed: Boolean = true, where: TargetWhere): SourceTargetTarget2AggregationSelection
+  target2(directed: Boolean = true, options: ThirdTargetOptions, where: ThirdTargetWhere): ThirdTarget
+  target2Aggregate(directed: Boolean = true, where: ThirdTargetWhere): SourceThirdTargetTarget2AggregationSelection
   target2Connection(after: String, directed: Boolean = true, first: Int, sort: [SourceTarget2ConnectionSort!], where: SourceTarget2ConnectionWhere): SourceTarget2Connection!
   targets(directed: Boolean = true, options: TargetOptions, where: TargetWhere): [Target!]!
   targetsAggregate(directed: Boolean = true, where: TargetWhere): SourceTargetTargetsAggregationSelection
@@ -101,6 +153,15 @@ type SourceEdge {
   node: Source!
 }
 
+type SourceSecondTargetTarget1AggregationSelection {
+  count: Int!
+  node: SourceSecondTargetTarget1NodeAggregateSelection
+}
+
+type SourceSecondTargetTarget1NodeAggregateSelection {
+  id: IDAggregateSelectionNullable!
+}
+
 type SourceTarget1Connection {
   edges: [SourceTarget1Relationship!]!
   pageInfo: PageInfo!
@@ -109,7 +170,7 @@ type SourceTarget1Connection {
 
 type SourceTarget1Relationship {
   cursor: String!
-  node: Target!
+  node: SecondTarget!
 }
 
 type SourceTarget2Connection {
@@ -120,25 +181,7 @@ type SourceTarget2Connection {
 
 type SourceTarget2Relationship {
   cursor: String!
-  node: Target!
-}
-
-type SourceTargetTarget1AggregationSelection {
-  count: Int!
-  node: SourceTargetTarget1NodeAggregateSelection
-}
-
-type SourceTargetTarget1NodeAggregateSelection {
-  id: IDAggregateSelectionNullable!
-}
-
-type SourceTargetTarget2AggregationSelection {
-  count: Int!
-  node: SourceTargetTarget2NodeAggregateSelection
-}
-
-type SourceTargetTarget2NodeAggregateSelection {
-  id: IDAggregateSelectionNullable!
+  node: ThirdTarget!
 }
 
 type SourceTargetTargetsAggregationSelection {
@@ -159,6 +202,15 @@ type SourceTargetsConnection {
 type SourceTargetsRelationship {
   cursor: String!
   node: Target!
+}
+
+type SourceThirdTargetTarget2AggregationSelection {
+  count: Int!
+  node: SourceThirdTargetTarget2NodeAggregateSelection
+}
+
+type SourceThirdTargetTarget2NodeAggregateSelection {
+  id: IDAggregateSelectionNullable!
 }
 
 type SourcesConnection {
@@ -187,12 +239,38 @@ type TargetsConnection {
   totalCount: Int!
 }
 
+type ThirdTarget {
+  id: ID
+}
+
+type ThirdTargetAggregateSelection {
+  count: Int!
+  id: IDAggregateSelectionNullable!
+}
+
+type ThirdTargetEdge {
+  cursor: String!
+  node: ThirdTarget!
+}
+
+type ThirdTargetsConnection {
+  edges: [ThirdTargetEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"Information about the number of nodes and relationships created and deleted during an update mutation"
 type UpdateInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   nodesDeleted: Int!
   relationshipsCreated: Int!
   relationshipsDeleted: Int!
+}
+
+type UpdateSecondTargetsMutationResponse {
+  info: UpdateInfo!
+  secondTargets: [SecondTarget!]!
 }
 
 type UpdateSourcesMutationResponse {
@@ -205,11 +283,72 @@ type UpdateTargetsMutationResponse {
   targets: [Target!]!
 }
 
+type UpdateThirdTargetsMutationResponse {
+  info: UpdateInfo!
+  thirdTargets: [ThirdTarget!]!
+}
+
+"An enum for sorting in either ascending or descending order."
 enum SortDirection {
   "Sort by field values in ascending order."
   ASC
   "Sort by field values in descending order."
   DESC
+}
+
+input SecondTargetConnectOrCreateWhere {
+  node: SecondTargetUniqueWhere!
+}
+
+input SecondTargetConnectWhere {
+  node: SecondTargetWhere!
+}
+
+input SecondTargetCreateInput {
+  "Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/"
+  _emptyInput: Boolean
+}
+
+input SecondTargetOnCreateInput {
+  "Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/"
+  _emptyInput: Boolean
+}
+
+input SecondTargetOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more SecondTargetSort objects to sort SecondTargets by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [SecondTargetSort!]
+}
+
+"Fields to sort SecondTargets by. The order in which sorts are applied is not guaranteed when specifying many fields in one SecondTargetSort object."
+input SecondTargetSort {
+  id: SortDirection
+}
+
+input SecondTargetUniqueWhere {
+  id: ID
+}
+
+input SecondTargetUpdateInput {
+  "Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/"
+  _emptyInput: Boolean
+}
+
+input SecondTargetWhere {
+  AND: [SecondTargetWhere!]
+  NOT: SecondTargetWhere
+  OR: [SecondTargetWhere!]
+  id: ID
+  id_CONTAINS: ID
+  id_ENDS_WITH: ID
+  id_IN: [ID]
+  id_NOT: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_CONTAINS: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_ENDS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_IN: [ID] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_STARTS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_STARTS_WITH: ID
 }
 
 input SourceConnectInput {
@@ -255,6 +394,7 @@ input SourceRelationInput {
 
 input SourceTarget1AggregateInput {
   AND: [SourceTarget1AggregateInput!]
+  NOT: SourceTarget1AggregateInput
   OR: [SourceTarget1AggregateInput!]
   count: Int
   count_GT: Int
@@ -265,26 +405,34 @@ input SourceTarget1AggregateInput {
 }
 
 input SourceTarget1ConnectFieldInput {
-  where: TargetConnectWhere
+  "Whether or not to overwrite any matching relationship with the new properties."
+  overwrite: Boolean! = true
+  where: SecondTargetConnectWhere
 }
 
 input SourceTarget1ConnectOrCreateFieldInput {
-  where: TargetConnectOrCreateWhere!
+  onCreate: SourceTarget1ConnectOrCreateFieldInputOnCreate!
+  where: SecondTargetConnectOrCreateWhere!
+}
+
+input SourceTarget1ConnectOrCreateFieldInputOnCreate {
+  node: SecondTargetOnCreateInput!
 }
 
 input SourceTarget1ConnectionSort {
-  node: TargetSort
+  node: SecondTargetSort
 }
 
 input SourceTarget1ConnectionWhere {
   AND: [SourceTarget1ConnectionWhere!]
+  NOT: SourceTarget1ConnectionWhere
   OR: [SourceTarget1ConnectionWhere!]
-  node: TargetWhere
-  node_NOT: TargetWhere
+  node: SecondTargetWhere
+  node_NOT: SecondTargetWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input SourceTarget1CreateFieldInput {
-  node: TargetCreateInput!
+  node: SecondTargetCreateInput!
 }
 
 input SourceTarget1DeleteFieldInput {
@@ -303,12 +451,13 @@ input SourceTarget1FieldInput {
 
 input SourceTarget1NodeAggregationWhereInput {
   AND: [SourceTarget1NodeAggregationWhereInput!]
+  NOT: SourceTarget1NodeAggregationWhereInput
   OR: [SourceTarget1NodeAggregationWhereInput!]
-  id_EQUAL: ID
+  id_EQUAL: ID @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
 }
 
 input SourceTarget1UpdateConnectionInput {
-  node: TargetUpdateInput
+  node: SecondTargetUpdateInput
 }
 
 input SourceTarget1UpdateFieldInput {
@@ -323,6 +472,7 @@ input SourceTarget1UpdateFieldInput {
 
 input SourceTarget2AggregateInput {
   AND: [SourceTarget2AggregateInput!]
+  NOT: SourceTarget2AggregateInput
   OR: [SourceTarget2AggregateInput!]
   count: Int
   count_GT: Int
@@ -333,26 +483,34 @@ input SourceTarget2AggregateInput {
 }
 
 input SourceTarget2ConnectFieldInput {
-  where: TargetConnectWhere
+  "Whether or not to overwrite any matching relationship with the new properties."
+  overwrite: Boolean! = true
+  where: ThirdTargetConnectWhere
 }
 
 input SourceTarget2ConnectOrCreateFieldInput {
-  where: TargetConnectOrCreateWhere!
+  onCreate: SourceTarget2ConnectOrCreateFieldInputOnCreate!
+  where: ThirdTargetConnectOrCreateWhere!
+}
+
+input SourceTarget2ConnectOrCreateFieldInputOnCreate {
+  node: ThirdTargetOnCreateInput!
 }
 
 input SourceTarget2ConnectionSort {
-  node: TargetSort
+  node: ThirdTargetSort
 }
 
 input SourceTarget2ConnectionWhere {
   AND: [SourceTarget2ConnectionWhere!]
+  NOT: SourceTarget2ConnectionWhere
   OR: [SourceTarget2ConnectionWhere!]
-  node: TargetWhere
-  node_NOT: TargetWhere
+  node: ThirdTargetWhere
+  node_NOT: ThirdTargetWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input SourceTarget2CreateFieldInput {
-  node: TargetCreateInput!
+  node: ThirdTargetCreateInput!
 }
 
 input SourceTarget2DeleteFieldInput {
@@ -371,12 +529,13 @@ input SourceTarget2FieldInput {
 
 input SourceTarget2NodeAggregationWhereInput {
   AND: [SourceTarget2NodeAggregationWhereInput!]
+  NOT: SourceTarget2NodeAggregationWhereInput
   OR: [SourceTarget2NodeAggregationWhereInput!]
-  id_EQUAL: ID
+  id_EQUAL: ID @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
 }
 
 input SourceTarget2UpdateConnectionInput {
-  node: TargetUpdateInput
+  node: ThirdTargetUpdateInput
 }
 
 input SourceTarget2UpdateFieldInput {
@@ -391,6 +550,7 @@ input SourceTarget2UpdateFieldInput {
 
 input SourceTargetsAggregateInput {
   AND: [SourceTargetsAggregateInput!]
+  NOT: SourceTargetsAggregateInput
   OR: [SourceTargetsAggregateInput!]
   count: Int
   count_GT: Int
@@ -401,11 +561,18 @@ input SourceTargetsAggregateInput {
 }
 
 input SourceTargetsConnectFieldInput {
+  "Whether or not to overwrite any matching relationship with the new properties."
+  overwrite: Boolean! = true
   where: TargetConnectWhere
 }
 
 input SourceTargetsConnectOrCreateFieldInput {
+  onCreate: SourceTargetsConnectOrCreateFieldInputOnCreate!
   where: TargetConnectOrCreateWhere!
+}
+
+input SourceTargetsConnectOrCreateFieldInputOnCreate {
+  node: TargetOnCreateInput!
 }
 
 input SourceTargetsConnectionSort {
@@ -414,9 +581,10 @@ input SourceTargetsConnectionSort {
 
 input SourceTargetsConnectionWhere {
   AND: [SourceTargetsConnectionWhere!]
+  NOT: SourceTargetsConnectionWhere
   OR: [SourceTargetsConnectionWhere!]
   node: TargetWhere
-  node_NOT: TargetWhere
+  node_NOT: TargetWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input SourceTargetsCreateFieldInput {
@@ -439,8 +607,9 @@ input SourceTargetsFieldInput {
 
 input SourceTargetsNodeAggregationWhereInput {
   AND: [SourceTargetsNodeAggregationWhereInput!]
+  NOT: SourceTargetsNodeAggregationWhereInput
   OR: [SourceTargetsNodeAggregationWhereInput!]
-  id_EQUAL: ID
+  id_EQUAL: ID @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
 }
 
 input SourceTargetsUpdateConnectionInput {
@@ -465,24 +634,29 @@ input SourceUpdateInput {
 
 input SourceWhere {
   AND: [SourceWhere!]
+  NOT: SourceWhere
   OR: [SourceWhere!]
-  target1: TargetWhere
+  target1: SecondTargetWhere
   target1Aggregate: SourceTarget1AggregateInput
   target1Connection: SourceTarget1ConnectionWhere
   target1Connection_NOT: SourceTarget1ConnectionWhere
-  target1_NOT: TargetWhere
-  target2: TargetWhere
+  target1_NOT: SecondTargetWhere
+  target2: ThirdTargetWhere
   target2Aggregate: SourceTarget2AggregateInput
   target2Connection: SourceTarget2ConnectionWhere
   target2Connection_NOT: SourceTarget2ConnectionWhere
-  target2_NOT: TargetWhere
+  target2_NOT: ThirdTargetWhere
   targets: TargetWhere @deprecated(reason : "Use `targets_SOME` instead.")
   targetsAggregate: SourceTargetsAggregateInput
   targetsConnection: SourceTargetsConnectionWhere @deprecated(reason : "Use `targetsConnection_SOME` instead.")
+  "Return Sources where all of the related SourceTargetsConnections match this filter"
   targetsConnection_ALL: SourceTargetsConnectionWhere
+  "Return Sources where none of the related SourceTargetsConnections match this filter"
   targetsConnection_NONE: SourceTargetsConnectionWhere
   targetsConnection_NOT: SourceTargetsConnectionWhere @deprecated(reason : "Use `targetsConnection_NONE` instead.")
+  "Return Sources where one of the related SourceTargetsConnections match this filter"
   targetsConnection_SINGLE: SourceTargetsConnectionWhere
+  "Return Sources where some of the related SourceTargetsConnections match this filter"
   targetsConnection_SOME: SourceTargetsConnectionWhere
   "Return Sources where all of the related Targets match this filter"
   targets_ALL: TargetWhere
@@ -504,6 +678,11 @@ input TargetConnectWhere {
 }
 
 input TargetCreateInput {
+  "Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/"
+  _emptyInput: Boolean
+}
+
+input TargetOnCreateInput {
   "Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/"
   _emptyInput: Boolean
 }
@@ -531,16 +710,72 @@ input TargetUpdateInput {
 
 input TargetWhere {
   AND: [TargetWhere!]
+  NOT: TargetWhere
   OR: [TargetWhere!]
   id: ID
   id_CONTAINS: ID
   id_ENDS_WITH: ID
   id_IN: [ID]
-  id_NOT: ID
-  id_NOT_CONTAINS: ID
-  id_NOT_ENDS_WITH: ID
-  id_NOT_IN: [ID]
-  id_NOT_STARTS_WITH: ID
+  id_NOT: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_CONTAINS: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_ENDS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_IN: [ID] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_STARTS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_STARTS_WITH: ID
+}
+
+input ThirdTargetConnectOrCreateWhere {
+  node: ThirdTargetUniqueWhere!
+}
+
+input ThirdTargetConnectWhere {
+  node: ThirdTargetWhere!
+}
+
+input ThirdTargetCreateInput {
+  "Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/"
+  _emptyInput: Boolean
+}
+
+input ThirdTargetOnCreateInput {
+  "Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/"
+  _emptyInput: Boolean
+}
+
+input ThirdTargetOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more ThirdTargetSort objects to sort ThirdTargets by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [ThirdTargetSort!]
+}
+
+"Fields to sort ThirdTargets by. The order in which sorts are applied is not guaranteed when specifying many fields in one ThirdTargetSort object."
+input ThirdTargetSort {
+  id: SortDirection
+}
+
+input ThirdTargetUniqueWhere {
+  id: ID
+}
+
+input ThirdTargetUpdateInput {
+  "Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/"
+  _emptyInput: Boolean
+}
+
+input ThirdTargetWhere {
+  AND: [ThirdTargetWhere!]
+  NOT: ThirdTargetWhere
+  OR: [ThirdTargetWhere!]
+  id: ID
+  id_CONTAINS: ID
+  id_ENDS_WITH: ID
+  id_IN: [ID]
+  id_NOT: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_CONTAINS: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_ENDS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_IN: [ID] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_STARTS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id_STARTS_WITH: ID
 }
 

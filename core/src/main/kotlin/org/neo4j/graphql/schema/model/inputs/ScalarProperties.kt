@@ -1,7 +1,6 @@
 package org.neo4j.graphql.schema.model.inputs
 
 import graphql.language.InputValueDefinition
-import org.neo4j.graphql.schema.AugmentationContext
 import org.neo4j.graphql.Constants
 import org.neo4j.graphql.domain.FieldContainer
 import org.neo4j.graphql.domain.fields.HasDefaultValue
@@ -11,6 +10,7 @@ import org.neo4j.graphql.domain.fields.ScalarField
 import org.neo4j.graphql.isList
 import org.neo4j.graphql.name
 import org.neo4j.graphql.schema.AugmentationBase
+import org.neo4j.graphql.schema.AugmentationContext
 
 class ScalarProperties private constructor(data: Map<ScalarField, Any?>) : Map<ScalarField, Any?> by data {
     companion object {
@@ -35,7 +35,7 @@ class ScalarProperties private constructor(data: Map<ScalarField, Any?>) : Map<S
                 ctx: AugmentationContext
             ) {
                 scalarFields
-                    .filterNot { it.generated || (update && it.readonly)}
+                    .filter { if (update) it.isUpdateInputField() else it.isCreateInputField() }
                     .forEach { field ->
                         val type = if (update) {
                             field.typeMeta.updateType

@@ -20,14 +20,6 @@ type Movie {
   director: Director! @relationship(type: "DIRECTED", direction: IN)
 }
 ----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{}
-----
 == connect
 
 === nested mutations
@@ -52,9 +44,9 @@ mutation {
 [source,json]
 ----
 {
-  "this0_director_connect0_node_address0_node_param0" : "some-street",
-  "this0_director_connect0_node_param0" : "directorId-4",
-  "this0_id" : "movieId-4"
+  "this0_id": "movieId-4",
+  "this0_director_connect0_node_param0": "directorId-4",
+  "this0_director_connect0_node_address0_node_param0": "some-street"
 }
 ----
 
@@ -62,64 +54,62 @@ mutation {
 [source,cypher]
 ----
 CALL {
-	CREATE (this0:Movie)
-	SET this0.id = $this0_id
+CREATE (this0:Movie)
+SET this0.id = $this0_id
+WITH *
+CALL {
 	WITH this0
+	OPTIONAL MATCH (this0_director_connect0_node:Director)
+	WHERE this0_director_connect0_node.id = $this0_director_connect0_node_param0
 	CALL {
-		WITH this0
-		OPTIONAL MATCH (this0_director_connect0_node:Director)
-		WHERE this0_director_connect0_node.id = $this0_director_connect0_node_param0
+		WITH *
+		WITH collect(this0_director_connect0_node) as connectedNodes, collect(this0) as parentNodes
 		CALL {
-			WITH *
-			WITH collect(this0_director_connect0_node) AS connectedNodes, collect(this0) AS parentNodes
-			CALL {
-				WITH connectedNodes, parentNodes
-				UNWIND parentNodes AS this0
-				UNWIND connectedNodes AS this0_director_connect0_node
-				MERGE (this0)<-[:DIRECTED]-(this0_director_connect0_node)
-				RETURN count(*) AS _
-			}
-			RETURN count(*) AS _
+			WITH connectedNodes, parentNodes
+			UNWIND parentNodes as this0
+			UNWIND connectedNodes as this0_director_connect0_node
+			MERGE (this0)<-[:DIRECTED]-(this0_director_connect0_node)
 		}
-		WITH this0, this0_director_connect0_node
-		CALL {
-			WITH this0, this0_director_connect0_node
-			OPTIONAL MATCH (this0_director_connect0_node_address0_node:Address)
-			WHERE this0_director_connect0_node_address0_node.street = $this0_director_connect0_node_address0_node_param0
-			CALL {
-				WITH *
-				WITH this0, collect(this0_director_connect0_node_address0_node) AS connectedNodes, collect(this0_director_connect0_node) AS parentNodes
-				CALL {
-					WITH connectedNodes, parentNodes
-					UNWIND parentNodes AS this0_director_connect0_node
-					UNWIND connectedNodes AS this0_director_connect0_node_address0_node
-					MERGE (this0_director_connect0_node)-[:HAS_ADDRESS]->(this0_director_connect0_node_address0_node)
-					RETURN count(*) AS _
-				}
-				RETURN count(*) AS _
-			}
-			WITH this0, this0_director_connect0_node, this0_director_connect0_node_address0_node
-			CALL {
-				WITH this0_director_connect0_node
-				MATCH (this0_director_connect0_node)-[this0_director_connect0_node_address_Address_unique:HAS_ADDRESS]->(:Address)
-				WITH count(this0_director_connect0_node_address_Address_unique) AS c CALL apoc.util.validate(NOT (c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDDirector.address required exactly once', [0])
-				RETURN c AS this0_director_connect0_node_address_Address_unique_ignored
-			}
-			WITH this0, this0_director_connect0_node, this0_director_connect0_node_address0_node
-			RETURN count(*) AS connect_this0_director_connect0_node_address_Address
-		}
-		RETURN count(*) AS connect_this0_director_connect_Director
 	}
-	WITH this0
+WITH this0, this0_director_connect0_node
+CALL {
+	WITH this0, this0_director_connect0_node
+	OPTIONAL MATCH (this0_director_connect0_node_address0_node:Address)
+	WHERE this0_director_connect0_node_address0_node.street = $this0_director_connect0_node_address0_node_param0
 	CALL {
-		WITH this0
-		MATCH (this0)<-[this0_director_Director_unique:DIRECTED]-(:Director)
-		WITH count(this0_director_Director_unique) AS c CALL apoc.util.validate(NOT (c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.director required exactly once', [0])
-		RETURN c AS this0_director_Director_unique_ignored
+		WITH *
+		WITH this0, collect(this0_director_connect0_node_address0_node) as connectedNodes, collect(this0_director_connect0_node) as parentNodes
+		CALL {
+			WITH connectedNodes, parentNodes
+			UNWIND parentNodes as this0_director_connect0_node
+			UNWIND connectedNodes as this0_director_connect0_node_address0_node
+			MERGE (this0_director_connect0_node)-[:HAS_ADDRESS]->(this0_director_connect0_node_address0_node)
+		}
 	}
-	RETURN this0
+	WITH this0, this0_director_connect0_node, this0_director_connect0_node_address0_node
+CALL {
+	WITH this0_director_connect0_node
+	MATCH (this0_director_connect0_node)-[this0_director_connect0_node_address_Address_unique:HAS_ADDRESS]->(:Address)
+	WITH count(this0_director_connect0_node_address_Address_unique) as c
+	WHERE apoc.util.validatePredicate(NOT (c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDDirector.address required exactly once', [0])
+	RETURN c AS this0_director_connect0_node_address_Address_unique_ignored
 }
-RETURN 'Query cannot conclude with CALL'
+WITH this0, this0_director_connect0_node, this0_director_connect0_node_address0_node
+	RETURN count(*) AS connect_this0_director_connect0_node_address_Address0
+}
+	RETURN count(*) AS connect_this0_director_connect_Director0
+}
+WITH *
+CALL {
+	WITH this0
+	MATCH (this0)<-[this0_director_Director_unique:DIRECTED]-(:Director)
+	WITH count(this0_director_Director_unique) as c
+	WHERE apoc.util.validatePredicate(NOT (c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.director required exactly once', [0])
+	RETURN c AS this0_director_Director_unique_ignored
+}
+RETURN this0
+}
+RETURN "Query cannot conclude with CALL"
 ----
 
 '''
@@ -148,54 +138,60 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0" : [ {
-    "id" : "movieId-2",
-    "director" : {
-      "create" : {
-        "node" : {
-          "id" : "directorId-2"
+  "create_param0": [
+    {
+      "id": "movieId-2",
+      "director": {
+        "create": {
+          "node": {
+            "id": "directorId-2"
+          }
         }
       }
     }
-  } ]
+  ]
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-UNWIND $create_param0 AS create_var1
+UNWIND $create_param0 AS create_var0
 CALL {
-	WITH create_var1
-	CREATE (create_this0:Movie)
-	SET create_this0.id = create_var1.id
-	WITH create_this0, create_var1
-	CALL {
-		WITH create_this0, create_var1
-		UNWIND create_var1.director.create AS create_var2
-		WITH create_var2.node AS create_var3, create_var2.edge AS create_var4, create_this0
-		CREATE (create_this5:Director)
-		SET create_this5.id = create_var3.id
-		MERGE (create_this5)-[create_this6:DIRECTED]->(create_this0)
-		WITH create_this5
-		CALL {
-			WITH create_this5
-			MATCH (create_this5)-[create_this5_address_Address_unique:HAS_ADDRESS]->(:Address)
-			WITH count(create_this5_address_Address_unique) AS c CALL apoc.util.validate(NOT (c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDDirector.address required exactly once', [0])
-			RETURN c AS create_this5_address_Address_unique_ignored
-		}
-		RETURN collect(NULL) AS create_var7
-	}
-	WITH create_this0
-	CALL {
-		WITH create_this0
-		MATCH (create_this0)<-[create_this0_director_Director_unique:DIRECTED]-(:Director)
-		WITH count(create_this0_director_Director_unique) AS c CALL apoc.util.validate(NOT (c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.director required exactly once', [0])
-		RETURN c AS create_this0_director_Director_unique_ignored
-	}
-	RETURN create_this0
+    WITH create_var0
+    CREATE (create_this1:Movie)
+    SET
+        create_this1.id = create_var0.id
+    WITH create_this1, create_var0
+    CALL {
+        WITH create_this1, create_var0
+        UNWIND create_var0.director.create AS create_var2
+        WITH create_var2.node AS create_var3, create_var2.edge AS create_var4, create_this1
+        CREATE (create_this5:Director)
+        SET
+            create_this5.id = create_var3.id
+        MERGE (create_this1)<-[create_this6:DIRECTED]-(create_this5)
+        WITH create_this5
+        CALL {
+        	WITH create_this5
+        	MATCH (create_this5)-[create_this5_address_Address_unique:HAS_ADDRESS]->(:Address)
+        	WITH count(create_this5_address_Address_unique) as c
+        	WHERE apoc.util.validatePredicate(NOT (c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDDirector.address required exactly once', [0])
+        	RETURN c AS create_this5_address_Address_unique_ignored
+        }
+        RETURN collect(NULL) AS create_var7
+    }
+    WITH create_this1
+    CALL {
+    	WITH create_this1
+    	MATCH (create_this1)<-[create_this1_director_Director_unique:DIRECTED]-(:Director)
+    	WITH count(create_this1_director_Director_unique) as c
+    	WHERE apoc.util.validatePredicate(NOT (c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.director required exactly once', [0])
+    	RETURN c AS create_this1_director_Director_unique_ignored
+    }
+    RETURN create_this1
 }
-RETURN 'Query cannot conclude with CALL'
+RETURN "Query cannot conclude with CALL"
 ----
 
 '''
@@ -226,8 +222,8 @@ mutation {
 [source,json]
 ----
 {
-  "param0" : "movieId-4",
-  "this_director0_create0_node_id" : "directorId-3"
+  "param0": "movieId-4",
+  "this_director0_create0_node_id": "directorId-3"
 }
 ----
 
@@ -236,6 +232,8 @@ mutation {
 ----
 MATCH (this:Movie)
 WHERE this.id = $param0
+
+
 WITH this
 CREATE (this_director0_create0_node:Director)
 SET this_director0_create0_node.id = $this_director0_create0_node_id
@@ -244,14 +242,17 @@ WITH this, this_director0_create0_node
 CALL {
 	WITH this_director0_create0_node
 	MATCH (this_director0_create0_node)-[this_director0_create0_node_address_Address_unique:HAS_ADDRESS]->(:Address)
-	WITH count(this_director0_create0_node_address_Address_unique) AS c CALL apoc.util.validate(NOT (c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDDirector.address required exactly once', [0])
+	WITH count(this_director0_create0_node_address_Address_unique) as c
+	WHERE apoc.util.validatePredicate(NOT (c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDDirector.address required exactly once', [0])
 	RETURN c AS this_director0_create0_node_address_Address_unique_ignored
 }
-WITH this
+
+WITH *
 CALL {
 	WITH this
 	MATCH (this)<-[this_director_Director_unique:DIRECTED]-(:Director)
-	WITH count(this_director_Director_unique) AS c CALL apoc.util.validate(NOT (c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.director required exactly once', [0])
+	WITH count(this_director_Director_unique) as c
+	WHERE apoc.util.validatePredicate(NOT (c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.director required exactly once', [0])
 	RETURN c AS this_director_Director_unique_ignored
 }
 RETURN 'Query cannot conclude with CALL'
@@ -280,8 +281,8 @@ mutation {
 [source,json]
 ----
 {
-  "param0" : "movieId-4",
-  "this_update_director0_id" : "directorId-3"
+  "param0": "movieId-4",
+  "this_update_director0_id": "directorId-3"
 }
 ----
 
@@ -290,25 +291,33 @@ mutation {
 ----
 MATCH (this:Movie)
 WHERE this.id = $param0
+
+
 WITH this
 CALL {
 	WITH this
 	MATCH (this)<-[this_directed0_relationship:DIRECTED]-(this_director0:Director)
+	
+	
 	SET this_director0.id = $this_update_director0_id
+	
 	WITH this, this_director0
 	CALL {
 		WITH this_director0
 		MATCH (this_director0)-[this_director0_address_Address_unique:HAS_ADDRESS]->(:Address)
-		WITH count(this_director0_address_Address_unique) AS c CALL apoc.util.validate(NOT (c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDDirector.address required exactly once', [0])
+		WITH count(this_director0_address_Address_unique) as c
+		WHERE apoc.util.validatePredicate(NOT (c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDDirector.address required exactly once', [0])
 		RETURN c AS this_director0_address_Address_unique_ignored
 	}
 	RETURN count(*) AS update_this_director0
 }
-WITH this
+
+WITH *
 CALL {
 	WITH this
 	MATCH (this)<-[this_director_Director_unique:DIRECTED]-(:Director)
-	WITH count(this_director_Director_unique) AS c CALL apoc.util.validate(NOT (c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.director required exactly once', [0])
+	WITH count(this_director_Director_unique) as c
+	WHERE apoc.util.validatePredicate(NOT (c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.director required exactly once', [0])
 	RETURN c AS this_director_Director_unique_ignored
 }
 RETURN 'Query cannot conclude with CALL'

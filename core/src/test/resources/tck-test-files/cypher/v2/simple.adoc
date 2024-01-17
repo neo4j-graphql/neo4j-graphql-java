@@ -11,16 +11,6 @@ type Movie {
   title: String
 }
 ----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{
-  "enableRegex": true
-}
-----
 == Multi selection, Movie by title
 
 .GraphQL-Query
@@ -38,7 +28,7 @@ type Movie {
 [source,json]
 ----
 {
-  "param0" : "River Runs Through It, A"
+  "param0": "River Runs Through It, A"
 }
 ----
 
@@ -47,10 +37,7 @@ type Movie {
 ----
 MATCH (this:Movie)
 WHERE this.title = $param0
-RETURN this {
-	.id,
-	.title
-} AS this
+RETURN this { .id, .title } AS this
 ----
 
 '''
@@ -80,7 +67,7 @@ query ($title: String) {
 [source,json]
 ----
 {
-  "param0" : "some title"
+  "param0": "some title"
 }
 ----
 
@@ -89,10 +76,7 @@ query ($title: String) {
 ----
 MATCH (this:Movie)
 WHERE this.title = $param0
-RETURN this {
-	.id,
-	.title
-} AS this
+RETURN this { .id, .title } AS this
 ----
 
 '''
@@ -113,7 +97,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "River Runs Through It, A"
+  "param0": "River Runs Through It, A"
 }
 ----
 
@@ -122,9 +106,7 @@ RETURN this {
 ----
 MATCH (this:Movie)
 WHERE this.title = $param0
-RETURN this {
-	.title
-} AS this
+RETURN this { .title } AS this
 ----
 
 '''

@@ -6,17 +6,9 @@
 
 [source,graphql,schema=true]
 ----
-type Movie @fulltext(indexes: [{name: "MovieTitle", fields: ["title"]}]) @node(additionalLabels: ["$jwt.label"]) {
+type Movie @fulltext(indexes: [{name: "MovieTitle", fields: ["title"]}]) @node(labels: ["Movie", "$jwt.label"]) {
   title: String
 }
-----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{}
 ----
 == simple match with single fulltext property and jwt additionalLabels
 
@@ -30,36 +22,22 @@ type Movie @fulltext(indexes: [{name: "MovieTitle", fields: ["title"]}]) @node(a
 }
 ----
 
-.Query Context
-[source,json,query-config=true]
-----
-{
-  "auth": {},
-  "contextParams": {
-    "jwt": {
-      "label": "some-label"
-    }
-  }
-}
-----
-
 .Expected Cypher params
 [source,json]
 ----
 {
-  "param0" : "something AND something"
+  "param0": "something AND something",
+  "param1": "Movie",
+  "param2": "some-label"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-CALL db.index.fulltext.queryNodes('MovieTitle', $param0) YIELD node AS this
-WHERE ('Movie' IN labels(this)
-	AND 'some-label' IN labels(this))
-RETURN this {
-	.title
-} AS this
+CALL db.index.fulltext.queryNodes("MovieTitle", $param0) YIELD node AS this0, score AS var1
+WHERE ($param1 IN labels(this0) AND $param2 IN labels(this0))
+RETURN this0 { .title } AS this
 ----
 
 '''

@@ -5,8 +5,6 @@ import graphql.language.*
 import graphql.schema.*
 import graphql.schema.idl.TypeDefinitionRegistry
 import org.neo4j.cypherdsl.core.Cypher
-import org.neo4j.graphql.DirectiveConstants.PROPERTY
-import org.neo4j.graphql.DirectiveConstants.PROPERTY_NAME
 import org.neo4j.graphql.DirectiveConstants.RELATION_NAME
 import org.neo4j.graphql.domain.fields.BaseField
 import kotlin.reflect.KMutableProperty0
@@ -41,6 +39,18 @@ fun TypeName.wrapLike(type: Type<*>): Type<*> = when (type) {
     is TypeName -> this
     else -> throw IllegalStateException("Unknown type")
 }
+
+val Type<*>.NonNull
+    get() = when (this) {
+        is NonNullType -> this
+        else -> NonNullType(this)
+    }
+
+val Type<*>.List
+    get() = when (this) {
+        is ListType -> this
+        else -> ListType(this)
+    }
 
 fun String.wrapType(field: BaseField) = when {
     field.typeMeta.type.isList() -> ListType(this.asRequiredType())
@@ -99,7 +109,6 @@ fun SelectedField.aliasOrName(): String = (this.alias ?: this.name)
 fun GraphQLType.innerName(): String = inner().name()
     ?: throw IllegalStateException("inner name cannot be retrieved for " + this.javaClass)
 
-fun GraphQLFieldDefinition.propertyName() = getDirectiveArgument(PROPERTY, PROPERTY_NAME, this.name)!!
 
 fun <T> GraphQLDirectiveContainer.getDirectiveArgument(
     directiveName: String,
@@ -173,6 +182,7 @@ fun FieldDefinition.isIgnored(): Boolean = hasDirective(DirectiveConstants.IGNOR
 
 fun TypeDefinitionRegistry.queryType() = this.getTypeByName<ObjectTypeDefinition>(this.queryTypeName())
 fun TypeDefinitionRegistry.mutationType() = this.getTypeByName<ObjectTypeDefinition>(this.mutationTypeName())
+fun TypeDefinitionRegistry.subscriptionType() = this.getTypeByName<ObjectTypeDefinition>(this.subscriptionTypeName())
 fun TypeDefinitionRegistry.queryTypeName() = this.getOperationType("query") ?: "Query"
 fun TypeDefinitionRegistry.mutationTypeName() = this.getOperationType("mutation") ?: "Mutation"
 fun TypeDefinitionRegistry.subscriptionTypeName() = this.getOperationType("subscription") ?: "Subscription"

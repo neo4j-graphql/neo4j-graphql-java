@@ -9,7 +9,6 @@ import org.neo4j.cypherdsl.core.*
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
-import org.neo4j.graphql.domain.directives.ExcludeDirective
 import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.domain.fields.ScalarField
 import org.neo4j.graphql.handler.BaseDataFetcher
@@ -33,10 +32,10 @@ class CreateResolver private constructor(
     val node: Node
 ) : BaseDataFetcher(schemaConfig) {
 
-    class Factory(ctx: AugmentationContext) : AugmentationHandler(ctx) {
+    class Factory(ctx: AugmentationContext) : AugmentationHandler(ctx), AugmentationHandler.NodeAugmentation {
 
         override fun augmentNode(node: Node): List<AugmentedField> {
-            if (!node.isOperationAllowed(ExcludeDirective.ExcludeOperation.CREATE)) {
+            if (node.annotations.mutation?.create == false) {
                 return emptyList()
             }
 
@@ -48,7 +47,7 @@ class CreateResolver private constructor(
             val responseType = CreateMutationSelection.Augmentation.getCreateResponse(node, ctx)
 
             val coordinates = addMutationField(
-                node.rootTypeFieldNames.create,
+                node.operations.rootTypeFieldNames.create,
                 responseType.asRequiredType(),
                 arguments
             )
@@ -59,13 +58,16 @@ class CreateResolver private constructor(
 
     private class CreateMutationSelection(node: Node, selection: IResolveTree) {
 
-        val info = selection.getSingleFieldOfType(node.typeNames.createResponse, Constants.INFO_FIELD)
+        val info = selection.getSingleFieldOfType(
+            node.operations.mutationResponseTypeNames.create,
+            Constants.INFO_FIELD
+        )
 
-        val node = selection.getSingleFieldOfType(node.typeNames.createResponse, node.plural)
+        val node = selection.getSingleFieldOfType(node.operations.mutationResponseTypeNames.create, node.plural)
 
         object Augmentation : AugmentationBase {
             fun getCreateResponse(node: Node, ctx: AugmentationContext) =
-                ctx.getOrCreateObjectType(node.typeNames.createResponse) { fields, _ ->
+                ctx.getOrCreateObjectType(node.operations.mutationResponseTypeNames.create) { fields, _ ->
                     fields += field(Constants.INFO_FIELD, NonNullType(Constants.Types.CreateInfo))
                     NodeSelection.Augmentation.generateNodeSelection(node, ctx)
                         ?.let { fields += field(node.plural, NonNullType(ListType(it.asRequiredType()))) }

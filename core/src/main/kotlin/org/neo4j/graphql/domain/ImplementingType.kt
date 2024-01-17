@@ -2,12 +2,9 @@ package org.neo4j.graphql.domain
 
 import graphql.language.Comment
 import graphql.language.Description
-import graphql.language.Directive
-import org.atteo.evo.inflector.English
-import org.neo4j.graphql.capitalize
-import org.neo4j.graphql.domain.directives.AuthDirective
-import org.neo4j.graphql.domain.directives.ExcludeDirective
+import org.neo4j.graphql.domain.directives.Annotations
 import org.neo4j.graphql.domain.fields.BaseField
+import org.neo4j.graphql.domain.naming.ImplementingTypeOperations
 import org.neo4j.graphql.utils.CamelCaseUtils.camelCase
 
 sealed class ImplementingType(
@@ -15,11 +12,16 @@ sealed class ImplementingType(
     val description: Description? = null,
     val comments: List<Comment> = emptyList(),
     fields: List<BaseField>,
-    val otherDirectives: List<Directive>,
     val interfaces: List<Interface>,
-    val exclude: ExcludeDirective? = null,
-    val auth: AuthDirective? = null,
-) : FieldContainer<BaseField>(fields) {
+    final override val annotations: Annotations,
+) : FieldContainer<BaseField>(fields), Entity {
+
+    val auth = annotations.auth
+
+    val singular: String by lazy { Entity.leadingUnderscores(name) + camelCase(name) }
+
+
+    abstract override val operations: ImplementingTypeOperations
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -30,23 +32,15 @@ sealed class ImplementingType(
         return true
     }
 
-    fun isOperationAllowed(op: ExcludeDirective.ExcludeOperation) = exclude?.operations?.contains(op) != true
-
     override fun hashCode(): Int {
         return name.hashCode()
     }
 
-    open val singular: String by lazy { leadingUnderscores(name) + camelCase(name) }
-
-    open val plural: String by lazy { leadingUnderscores(name) + English.plural(camelCase(name)) }
-
-    open val pluralKeepCase: String by lazy { English.plural(name) }
-
-    val pascalCaseSingular: String by lazy { this.singular.capitalize() }
-
-    val pascalCasePlural: String by lazy { this.plural.capitalize() }
-
-    protected fun leadingUnderscores(name: String): String {
-        return Regex("^(_+).+").matchEntire(name)?.groupValues?.get(1) ?: "";
+    fun <UNION_RESULT : RESULT, INTERFACE_RESULT : RESULT, NODE_RESULT : RESULT, RESULT> extractOnImplementingType(
+        onNode: (Node) -> NODE_RESULT,
+        onInterface: (Interface) -> INTERFACE_RESULT,
+    ): RESULT = when (this) {
+        is Node -> onNode(this)
+        is Interface -> onInterface(this)
     }
 }

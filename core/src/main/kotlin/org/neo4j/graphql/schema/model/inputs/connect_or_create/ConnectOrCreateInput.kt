@@ -27,7 +27,8 @@ class ConnectOrCreateInput private constructor(
                 node.name,
                 Constants.InputTypeSuffix.ConnectOrCreateInput,
                 node.relationFields,
-                RelationFieldBaseAugmentation::generateFieldConnectOrCreateIT
+                RelationFieldBaseAugmentation::generateFieldConnectOrCreateIT,
+                condition = { it.annotations.relationship?.isConnectOrCreateAllowed != false },
             )
     }
 }

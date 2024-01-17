@@ -17,18 +17,8 @@ type Actor {
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
 }
 
-interface ActedIn {
+interface ActedIn @relationshipProperties {
   time: Int @alias(property: "screentime")
-}
-----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{
-  "enableRegex": true
 }
 ----
 == Aggregation with alias
@@ -52,7 +42,7 @@ interface ActedIn {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
@@ -60,22 +50,14 @@ interface ActedIn {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this_actorsAggregate_this0:Actor)-[this_actorsAggregate_this1:ACTED_IN]->(this)
-	WITH this_actorsAggregate_this0 ORDER BY size(this_actorsAggregate_this0.name) DESC
-	WITH collect(this_actorsAggregate_this0.name) AS list
-	RETURN {
-		longest: head(list),
-		shortest: last(list)
-	} AS this_actorsAggregate_var2
+    WITH this
+    MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
+    WITH this1
+    ORDER BY size(this1.name) DESC
+    WITH collect(this1.name) AS list
+    RETURN { shortest: last(list) } AS var2
 }
-RETURN this {
-	actorsAggregate: {
-		node: {
-			myName: this_actorsAggregate_var2
-		}
-	}
-} AS this
+RETURN this { actorsAggregate: { node: { myName: var2 } } } AS this
 ----
 
 '''
@@ -101,7 +83,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
@@ -109,22 +91,11 @@ RETURN this {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this_actorsAggregate_this1:Actor)-[this_actorsAggregate_this0:ACTED_IN]->(this)
-	RETURN {
-		min: min(this_actorsAggregate_this0.screentime),
-		max: max(this_actorsAggregate_this0.screentime),
-		average: avg(this_actorsAggregate_this0.screentime),
-		sum: sum(this_actorsAggregate_this0.screentime)
-	} AS this_actorsAggregate_var2
+    WITH this
+    MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
+    RETURN { max: max(this0.screentime) } AS var2
 }
-RETURN this {
-	actorsAggregate: {
-		edge: {
-			time: this_actorsAggregate_var2
-		}
-	}
-} AS this
+RETURN this { actorsAggregate: { edge: { time: var2 } } } AS this
 ----
 
 '''

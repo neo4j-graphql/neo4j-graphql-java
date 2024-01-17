@@ -15,16 +15,6 @@ type Post {
   likes: [User!]! @relationship(type: "LIKES", direction: IN)
 }
 ----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{
-  "enableRegex": true
-}
-----
 == AND
 
 .GraphQL-Query
@@ -43,8 +33,8 @@ type Post {
 [source,json]
 ----
 {
-  "param0" : 10,
-  "param1" : 11
+  "param0": 10,
+  "param1": 11
 }
 ----
 
@@ -53,16 +43,49 @@ type Post {
 ----
 MATCH (this:Post)
 CALL {
-	WITH this
-	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN any(var2 IN collect(this1.someFloat) WHERE var2 = $param0) AS var3, any(var4 IN collect(this1.someFloat) WHERE var4 = $param1) AS var5
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN (any(var2 IN collect(this1.someFloat) WHERE var2 = $param0) AND any(var3 IN collect(this1.someFloat) WHERE var3 = $param1)) AS var4
 }
 WITH *
-WHERE (var3 = true
-	AND var5 = true)
-RETURN this {
-	.content
-} AS this
+WHERE var4 = true
+RETURN this { .content } AS this
+----
+
+'''
+
+== NOT
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  posts(where: {likesAggregate: {node: {NOT: {someFloat_EQUAL: 10}}}}) {
+    content
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": 10
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Post)
+CALL {
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN NOT (any(var2 IN collect(this1.someFloat) WHERE var2 = $param0)) AS var3
+}
+WITH *
+WHERE var3 = true
+RETURN this { .content } AS this
 ----
 
 '''
@@ -85,8 +108,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 10,
-  "param1" : 11
+  "param0": 10,
+  "param1": 11
 }
 ----
 
@@ -95,16 +118,52 @@ RETURN this {
 ----
 MATCH (this:Post)
 CALL {
-	WITH this
-	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN any(var2 IN collect(this1.someFloat) WHERE var2 = $param0) AS var3, any(var4 IN collect(this1.someFloat) WHERE var4 = $param1) AS var5
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN (any(var2 IN collect(this1.someFloat) WHERE var2 = $param0) OR any(var3 IN collect(this1.someFloat) WHERE var3 = $param1)) AS var4
 }
 WITH *
-WHERE (var3 = true
-	OR var5 = true)
-RETURN this {
-	.content
-} AS this
+WHERE var4 = true
+RETURN this { .content } AS this
+----
+
+'''
+
+== OR NOT
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  posts(
+    where: {likesAggregate: {node: {OR: [{NOT: {someFloat_EQUAL: 10}}, {someFloat_EQUAL: 11}]}}}
+  ) {
+    content
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": 10,
+  "param1": 11
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Post)
+CALL {
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN (NOT (any(var2 IN collect(this1.someFloat) WHERE var2 = $param0)) OR any(var3 IN collect(this1.someFloat) WHERE var3 = $param1)) AS var4
+}
+WITH *
+WHERE var4 = true
+RETURN this { .content } AS this
 ----
 
 '''

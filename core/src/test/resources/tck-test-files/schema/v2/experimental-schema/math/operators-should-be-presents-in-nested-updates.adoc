@@ -1,0 +1,580 @@
+:toc:
+
+= Algebraic -> Operators should be presents in nested updates
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  id: ID
+  viewers: Int!
+  directedBy: Director @relationship(type: "DIRECTS", direction: IN)
+}
+
+type Director {
+  lastName: String!
+  directs: [Movie!]! @relationship(type: "DIRECTS", direction: OUT)
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+  "experimental": true
+}
+----
+
+== Augmented schema
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type CreateDirectorsMutationResponse {
+  directors: [Director!]!
+  info: CreateInfo!
+}
+
+"Information about the number of nodes and relationships created during a create mutation"
+type CreateInfo {
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesCreated: Int!
+  relationshipsCreated: Int!
+}
+
+type CreateMoviesMutationResponse {
+  info: CreateInfo!
+  movies: [Movie!]!
+}
+
+"Information about the number of nodes and relationships deleted during a delete mutation"
+type DeleteInfo {
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
+type Director {
+  directs(directed: Boolean = true, options: MovieOptions, where: MovieWhere): [Movie!]!
+  directsAggregate(directed: Boolean = true, where: MovieWhere): DirectorMovieDirectsAggregationSelection
+  directsConnection(after: String, directed: Boolean = true, first: Int, sort: [DirectorDirectsConnectionSort!], where: DirectorDirectsConnectionWhere): DirectorDirectsConnection!
+  lastName: String!
+}
+
+type DirectorAggregateSelection {
+  count: Int!
+  lastName: StringAggregateSelectionNonNullable!
+}
+
+type DirectorDirectsConnection {
+  edges: [DirectorDirectsRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type DirectorDirectsRelationship {
+  cursor: String!
+  node: Movie!
+}
+
+type DirectorEdge {
+  cursor: String!
+  node: Director!
+}
+
+type DirectorMovieDirectsAggregationSelection {
+  count: Int!
+  node: DirectorMovieDirectsNodeAggregateSelection
+}
+
+type DirectorMovieDirectsNodeAggregateSelection {
+  id: IDAggregateSelectionNullable!
+  viewers: IntAggregateSelectionNonNullable!
+}
+
+type DirectorsConnection {
+  edges: [DirectorEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type IDAggregateSelectionNullable {
+  longest: ID
+  shortest: ID
+}
+
+type IntAggregateSelectionNonNullable {
+  average: Float!
+  max: Int!
+  min: Int!
+  sum: Int!
+}
+
+type Movie {
+  directedBy(directed: Boolean = true, options: DirectorOptions, where: DirectorWhere): Director
+  directedByAggregate(directed: Boolean = true, where: DirectorWhere): MovieDirectorDirectedByAggregationSelection
+  directedByConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieDirectedByConnectionSort!], where: MovieDirectedByConnectionWhere): MovieDirectedByConnection!
+  id: ID
+  viewers: Int!
+}
+
+type MovieAggregateSelection {
+  count: Int!
+  id: IDAggregateSelectionNullable!
+  viewers: IntAggregateSelectionNonNullable!
+}
+
+type MovieDirectedByConnection {
+  edges: [MovieDirectedByRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type MovieDirectedByRelationship {
+  cursor: String!
+  node: Director!
+}
+
+type MovieDirectorDirectedByAggregationSelection {
+  count: Int!
+  node: MovieDirectorDirectedByNodeAggregateSelection
+}
+
+type MovieDirectorDirectedByNodeAggregateSelection {
+  lastName: StringAggregateSelectionNonNullable!
+}
+
+type MovieEdge {
+  cursor: String!
+  node: Movie!
+}
+
+type MoviesConnection {
+  edges: [MovieEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Mutation {
+  createDirectors(input: [DirectorCreateInput!]!): CreateDirectorsMutationResponse!
+  createMovies(input: [MovieCreateInput!]!): CreateMoviesMutationResponse!
+  deleteDirectors(delete: DirectorDeleteInput, where: DirectorWhere): DeleteInfo!
+  deleteMovies(delete: MovieDeleteInput, where: MovieWhere): DeleteInfo!
+  updateDirectors(connect: DirectorConnectInput, create: DirectorRelationInput, delete: DirectorDeleteInput, disconnect: DirectorDisconnectInput, update: DirectorUpdateInput, where: DirectorWhere): UpdateDirectorsMutationResponse!
+  updateMovies(connect: MovieConnectInput, create: MovieRelationInput, delete: MovieDeleteInput, disconnect: MovieDisconnectInput, update: MovieUpdateInput, where: MovieWhere): UpdateMoviesMutationResponse!
+}
+
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  directors(options: DirectorOptions, where: DirectorWhere): [Director!]!
+  directorsAggregate(where: DirectorWhere): DirectorAggregateSelection!
+  directorsConnection(after: String, first: Int, sort: [DirectorSort], where: DirectorWhere): DirectorsConnection!
+  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
+  moviesAggregate(where: MovieWhere): MovieAggregateSelection!
+  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
+}
+
+type StringAggregateSelectionNonNullable {
+  longest: String!
+  shortest: String!
+}
+
+type UpdateDirectorsMutationResponse {
+  directors: [Director!]!
+  info: UpdateInfo!
+}
+
+"Information about the number of nodes and relationships created and deleted during an update mutation"
+type UpdateInfo {
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesCreated: Int!
+  nodesDeleted: Int!
+  relationshipsCreated: Int!
+  relationshipsDeleted: Int!
+}
+
+type UpdateMoviesMutationResponse {
+  info: UpdateInfo!
+  movies: [Movie!]!
+}
+
+"An enum for sorting in either ascending or descending order."
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+input DirectorConnectInput {
+  directs: [DirectorDirectsConnectFieldInput!]
+}
+
+input DirectorConnectWhere {
+  node: DirectorWhere!
+}
+
+input DirectorCreateInput {
+  directs: DirectorDirectsFieldInput
+  lastName: String!
+}
+
+input DirectorDeleteInput {
+  directs: [DirectorDirectsDeleteFieldInput!]
+}
+
+input DirectorDirectsAggregateInput {
+  AND: [DirectorDirectsAggregateInput!]
+  NOT: DirectorDirectsAggregateInput
+  OR: [DirectorDirectsAggregateInput!]
+  count: Int
+  count_GT: Int
+  count_GTE: Int
+  count_LT: Int
+  count_LTE: Int
+  node: DirectorDirectsNodeAggregationWhereInput
+}
+
+input DirectorDirectsConnectFieldInput {
+  connect: [MovieConnectInput!]
+  "Whether or not to overwrite any matching relationship with the new properties."
+  overwrite: Boolean! = true
+  where: MovieConnectWhere
+}
+
+input DirectorDirectsConnectionSort {
+  node: MovieSort
+}
+
+input DirectorDirectsConnectionWhere {
+  AND: [DirectorDirectsConnectionWhere!]
+  NOT: DirectorDirectsConnectionWhere
+  OR: [DirectorDirectsConnectionWhere!]
+  node: MovieWhere
+  node_NOT: MovieWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+}
+
+input DirectorDirectsCreateFieldInput {
+  node: MovieCreateInput!
+}
+
+input DirectorDirectsDeleteFieldInput {
+  delete: MovieDeleteInput
+  where: DirectorDirectsConnectionWhere
+}
+
+input DirectorDirectsDisconnectFieldInput {
+  disconnect: MovieDisconnectInput
+  where: DirectorDirectsConnectionWhere
+}
+
+input DirectorDirectsFieldInput {
+  connect: [DirectorDirectsConnectFieldInput!]
+  create: [DirectorDirectsCreateFieldInput!]
+}
+
+input DirectorDirectsNodeAggregationWhereInput {
+  AND: [DirectorDirectsNodeAggregationWhereInput!]
+  NOT: DirectorDirectsNodeAggregationWhereInput
+  OR: [DirectorDirectsNodeAggregationWhereInput!]
+  id_EQUAL: ID @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  viewers_AVERAGE_EQUAL: Float
+  viewers_AVERAGE_GT: Float
+  viewers_AVERAGE_GTE: Float
+  viewers_AVERAGE_LT: Float
+  viewers_AVERAGE_LTE: Float
+  viewers_EQUAL: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  viewers_GT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  viewers_GTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  viewers_LT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  viewers_LTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  viewers_MAX_EQUAL: Int
+  viewers_MAX_GT: Int
+  viewers_MAX_GTE: Int
+  viewers_MAX_LT: Int
+  viewers_MAX_LTE: Int
+  viewers_MIN_EQUAL: Int
+  viewers_MIN_GT: Int
+  viewers_MIN_GTE: Int
+  viewers_MIN_LT: Int
+  viewers_MIN_LTE: Int
+  viewers_SUM_EQUAL: Int
+  viewers_SUM_GT: Int
+  viewers_SUM_GTE: Int
+  viewers_SUM_LT: Int
+  viewers_SUM_LTE: Int
+}
+
+input DirectorDirectsUpdateConnectionInput {
+  node: MovieUpdateInput
+}
+
+input DirectorDirectsUpdateFieldInput {
+  connect: [DirectorDirectsConnectFieldInput!]
+  create: [DirectorDirectsCreateFieldInput!]
+  delete: [DirectorDirectsDeleteFieldInput!]
+  disconnect: [DirectorDirectsDisconnectFieldInput!]
+  update: DirectorDirectsUpdateConnectionInput
+  where: DirectorDirectsConnectionWhere
+}
+
+input DirectorDisconnectInput {
+  directs: [DirectorDirectsDisconnectFieldInput!]
+}
+
+input DirectorOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more DirectorSort objects to sort Directors by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [DirectorSort!]
+}
+
+input DirectorRelationInput {
+  directs: [DirectorDirectsCreateFieldInput!]
+}
+
+"Fields to sort Directors by. The order in which sorts are applied is not guaranteed when specifying many fields in one DirectorSort object."
+input DirectorSort {
+  lastName: SortDirection
+}
+
+input DirectorUpdateInput {
+  directs: [DirectorDirectsUpdateFieldInput!]
+  lastName: String
+}
+
+input DirectorWhere {
+  AND: [DirectorWhere!]
+  NOT: DirectorWhere
+  OR: [DirectorWhere!]
+  directs: MovieWhere @deprecated(reason : "Use `directs_SOME` instead.")
+  directsAggregate: DirectorDirectsAggregateInput
+  directsConnection: DirectorDirectsConnectionWhere @deprecated(reason : "Use `directsConnection_SOME` instead.")
+  "Return Directors where all of the related DirectorDirectsConnections match this filter"
+  directsConnection_ALL: DirectorDirectsConnectionWhere
+  "Return Directors where none of the related DirectorDirectsConnections match this filter"
+  directsConnection_NONE: DirectorDirectsConnectionWhere
+  directsConnection_NOT: DirectorDirectsConnectionWhere @deprecated(reason : "Use `directsConnection_NONE` instead.")
+  "Return Directors where one of the related DirectorDirectsConnections match this filter"
+  directsConnection_SINGLE: DirectorDirectsConnectionWhere
+  "Return Directors where some of the related DirectorDirectsConnections match this filter"
+  directsConnection_SOME: DirectorDirectsConnectionWhere
+  "Return Directors where all of the related Movies match this filter"
+  directs_ALL: MovieWhere
+  "Return Directors where none of the related Movies match this filter"
+  directs_NONE: MovieWhere
+  directs_NOT: MovieWhere @deprecated(reason : "Use `directs_NONE` instead.")
+  "Return Directors where one of the related Movies match this filter"
+  directs_SINGLE: MovieWhere
+  "Return Directors where some of the related Movies match this filter"
+  directs_SOME: MovieWhere
+  lastName: String
+  lastName_CONTAINS: String
+  lastName_ENDS_WITH: String
+  lastName_IN: [String!]
+  lastName_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  lastName_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  lastName_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  lastName_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  lastName_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  lastName_STARTS_WITH: String
+}
+
+input MovieConnectInput {
+  directedBy: MovieDirectedByConnectFieldInput
+}
+
+input MovieConnectWhere {
+  node: MovieWhere!
+}
+
+input MovieCreateInput {
+  directedBy: MovieDirectedByFieldInput
+  id: ID
+  viewers: Int!
+}
+
+input MovieDeleteInput {
+  directedBy: MovieDirectedByDeleteFieldInput
+}
+
+input MovieDirectedByAggregateInput {
+  AND: [MovieDirectedByAggregateInput!]
+  NOT: MovieDirectedByAggregateInput
+  OR: [MovieDirectedByAggregateInput!]
+  count: Int
+  count_GT: Int
+  count_GTE: Int
+  count_LT: Int
+  count_LTE: Int
+  node: MovieDirectedByNodeAggregationWhereInput
+}
+
+input MovieDirectedByConnectFieldInput {
+  connect: DirectorConnectInput
+  "Whether or not to overwrite any matching relationship with the new properties."
+  overwrite: Boolean! = true
+  where: DirectorConnectWhere
+}
+
+input MovieDirectedByConnectionSort {
+  node: DirectorSort
+}
+
+input MovieDirectedByConnectionWhere {
+  AND: [MovieDirectedByConnectionWhere!]
+  NOT: MovieDirectedByConnectionWhere
+  OR: [MovieDirectedByConnectionWhere!]
+  node: DirectorWhere
+  node_NOT: DirectorWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+}
+
+input MovieDirectedByCreateFieldInput {
+  node: DirectorCreateInput!
+}
+
+input MovieDirectedByDeleteFieldInput {
+  delete: DirectorDeleteInput
+  where: MovieDirectedByConnectionWhere
+}
+
+input MovieDirectedByDisconnectFieldInput {
+  disconnect: DirectorDisconnectInput
+  where: MovieDirectedByConnectionWhere
+}
+
+input MovieDirectedByFieldInput {
+  connect: MovieDirectedByConnectFieldInput
+  create: MovieDirectedByCreateFieldInput
+}
+
+input MovieDirectedByNodeAggregationWhereInput {
+  AND: [MovieDirectedByNodeAggregationWhereInput!]
+  NOT: MovieDirectedByNodeAggregationWhereInput
+  OR: [MovieDirectedByNodeAggregationWhereInput!]
+  lastName_AVERAGE_EQUAL: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  lastName_AVERAGE_GT: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  lastName_AVERAGE_GTE: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  lastName_AVERAGE_LENGTH_EQUAL: Float
+  lastName_AVERAGE_LENGTH_GT: Float
+  lastName_AVERAGE_LENGTH_GTE: Float
+  lastName_AVERAGE_LENGTH_LT: Float
+  lastName_AVERAGE_LENGTH_LTE: Float
+  lastName_AVERAGE_LT: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  lastName_AVERAGE_LTE: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  lastName_EQUAL: String @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  lastName_GT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  lastName_GTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  lastName_LONGEST_EQUAL: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  lastName_LONGEST_GT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  lastName_LONGEST_GTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  lastName_LONGEST_LENGTH_EQUAL: Int
+  lastName_LONGEST_LENGTH_GT: Int
+  lastName_LONGEST_LENGTH_GTE: Int
+  lastName_LONGEST_LENGTH_LT: Int
+  lastName_LONGEST_LENGTH_LTE: Int
+  lastName_LONGEST_LT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  lastName_LONGEST_LTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  lastName_LT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  lastName_LTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  lastName_SHORTEST_EQUAL: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  lastName_SHORTEST_GT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  lastName_SHORTEST_GTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  lastName_SHORTEST_LENGTH_EQUAL: Int
+  lastName_SHORTEST_LENGTH_GT: Int
+  lastName_SHORTEST_LENGTH_GTE: Int
+  lastName_SHORTEST_LENGTH_LT: Int
+  lastName_SHORTEST_LENGTH_LTE: Int
+  lastName_SHORTEST_LT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  lastName_SHORTEST_LTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+}
+
+input MovieDirectedByUpdateConnectionInput {
+  node: DirectorUpdateInput
+}
+
+input MovieDirectedByUpdateFieldInput {
+  connect: MovieDirectedByConnectFieldInput
+  create: MovieDirectedByCreateFieldInput
+  delete: MovieDirectedByDeleteFieldInput
+  disconnect: MovieDirectedByDisconnectFieldInput
+  update: MovieDirectedByUpdateConnectionInput
+  where: MovieDirectedByConnectionWhere
+}
+
+input MovieDisconnectInput {
+  directedBy: MovieDirectedByDisconnectFieldInput
+}
+
+input MovieOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [MovieSort!]
+}
+
+input MovieRelationInput {
+  directedBy: MovieDirectedByCreateFieldInput
+}
+
+"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+input MovieSort {
+  id: SortDirection
+  viewers: SortDirection
+}
+
+input MovieUpdateInput {
+  directedBy: MovieDirectedByUpdateFieldInput
+  id: ID
+  viewers: Int
+  viewers_DECREMENT: Int
+  viewers_INCREMENT: Int
+}
+
+input MovieWhere {
+  AND: [MovieWhere!]
+  NOT: MovieWhere
+  OR: [MovieWhere!]
+  directedBy: DirectorWhere
+  directedByAggregate: MovieDirectedByAggregateInput
+  directedByConnection: MovieDirectedByConnectionWhere
+  directedByConnection_NOT: MovieDirectedByConnectionWhere
+  directedBy_NOT: DirectorWhere
+  id: ID
+  id_CONTAINS: ID
+  id_ENDS_WITH: ID
+  id_IN: [ID]
+  id_NOT: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_CONTAINS: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_ENDS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_IN: [ID] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_STARTS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_STARTS_WITH: ID
+  viewers: Int
+  viewers_GT: Int
+  viewers_GTE: Int
+  viewers_IN: [Int!]
+  viewers_LT: Int
+  viewers_LTE: Int
+  viewers_NOT: Int @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  viewers_NOT_IN: [Int!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+}
+
+----
+
+'''

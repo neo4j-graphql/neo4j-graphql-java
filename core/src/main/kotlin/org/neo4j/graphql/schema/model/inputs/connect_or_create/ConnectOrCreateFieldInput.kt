@@ -68,6 +68,10 @@ sealed interface ConnectOrCreateFieldInput {
 
                     ScalarProperties.Companion.Augmentation
                         .addScalarFields(fields, node.name, node.scalarFields, false, ctx)
+
+                    if (fields.isEmpty()) {
+                        fields += ctx.emptyInputField()
+                    }
                 }
 
         }

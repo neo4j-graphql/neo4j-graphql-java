@@ -5,15 +5,16 @@ import org.neo4j.cypherdsl.core.Functions
 import org.neo4j.graphql.Constants
 import org.neo4j.graphql.SchemaConfig
 import org.neo4j.graphql.domain.TypeMeta
-import org.neo4j.graphql.domain.directives.TimestampDirective
+import org.neo4j.graphql.domain.directives.Annotations
 import org.neo4j.graphql.name
 
-class TemporalField(fieldName: String, typeMeta: TypeMeta, schemaConfig: SchemaConfig) :
-    PrimitiveField(fieldName, typeMeta, schemaConfig),
+class TemporalField(fieldName: String, typeMeta: TypeMeta, annotations: Annotations, schemaConfig: SchemaConfig) :
+    PrimitiveField(fieldName, typeMeta, annotations, schemaConfig),
     ConstrainableField, AuthableField, MutableField {
     // TODO rename field to `generateTimestampOperations`
-    var timestamps: Set<TimestampDirective.TimeStampOperation>? = null
+    val timestamps get() = annotations.timestamp?.operations
 
+    // TODO harmonize
     override val generated: Boolean get() = super.generated || timestamps != null
 
     override fun convertInputToCypher(input: Expression): Expression = when (typeMeta.type.name()) {

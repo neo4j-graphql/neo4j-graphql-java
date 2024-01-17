@@ -1,9 +1,10 @@
 package org.neo4j.graphql.domain.fields
 
 import org.neo4j.cypherdsl.core.Relationship
-import org.neo4j.graphql.Constants
 import org.neo4j.graphql.capitalize
 import org.neo4j.graphql.domain.*
+import org.neo4j.graphql.domain.directives.Annotations
+import org.neo4j.graphql.domain.naming.RelationshipOperations
 import org.neo4j.graphql.domain.predicates.RelationOperator
 import org.neo4j.graphql.domain.predicates.definitions.RelationPredicateDefinition
 import org.neo4j.graphql.handler.utils.ChainString
@@ -15,17 +16,7 @@ import org.neo4j.graphql.isList
 class RelationField(
     fieldName: String,
     typeMeta: TypeMeta,
-    /**
-     * If the type of the field is an interface
-     */
-    val interfaze: Interface?,
-    var unionNodeNames: List<String>,
-    /**
-     * The type of the neo4j relation
-     */
-    val relationType: String,
-    val direction: Direction,
-    val queryDirection: QueryDirection,
+    annotations: Annotations,
     val properties: RelationshipProperties?,
     /**
      * The node or interface name. If the filed is defined in an interface, the prefix will have the interface's name
@@ -34,22 +25,27 @@ class RelationField(
 ) : BaseField(
     fieldName,
     typeMeta,
+    annotations
 ), NodeResolver {
+
+    val relationship get() = requireNotNull(annotations.relationship)
+
+    /**
+     * The type of the neo4j relation
+     */
+    val relationType get() = relationship.type
+    val direction get() = relationship.direction
+    val queryDirection get() = relationship.queryDirection
 
     // TODO move to connection field?
     val relationshipTypeName: String get() = "${connectionPrefix}${fieldName.capitalize()}Relationship"
 
-    var union: Union? = null
-
     lateinit var connectionField: ConnectionField
 
-    /**
-     * The referenced node, if the relationship is not an interface nor a union
-     */
-    var node: Node? = null
-
-    val isInterface: Boolean get() = interfaze != null
-    val isUnion: Boolean get() = unionNodeNames.isNotEmpty()
+    lateinit var target: Entity
+    val operations = RelationshipOperations(this, annotations)
+    val isInterface: Boolean get() = target is Interface
+    val isUnion: Boolean get() = target is Union
 
     val predicates: Map<String, RelationPredicateDefinition> by lazy {
         val result = mutableMapOf<String, RelationPredicateDefinition>()
@@ -65,19 +61,10 @@ class RelationField(
         result
     }
 
-    val aggregateTypeNames by lazy { node?.let { AggregateTypeNames(it) } }
-
-    inner class AggregateTypeNames(
-        node: Node,
-        prefix: String = getOwnerName() + node.name + fieldName.capitalize()
-    ) {
-
-        val field = prefix + Constants.AGGREGATION_SELECTION_FIELD_SUFFIX
-        val node = prefix + Constants.AGGREGATION_SELECTION_NODE_SUFFIX
-        val edge = prefix + Constants.AGGREGATION_SELECTION_EDGE_SUFFIX
-    }
-
-    fun getImplementingType(): ImplementingType? = node ?: interfaze
+    val implementingType get() = target as? ImplementingType
+    val node get() = target as? Node
+    val union get() = target as? Union
+    val interfaze get() = target as? Interface
 
     override fun getRequiredNode(name: String) = getNode(name)
         ?: throw IllegalArgumentException("unknown implementation $name for ${this.getOwnerName()}.$fieldName")
@@ -158,12 +145,7 @@ class RelationField(
         onNode: (Node) -> NODE_RESULT,
         onInterface: (Interface) -> INTERFACE_RESULT,
         onUnion: (Union) -> UNION_RESULT,
-    ): RESULT {
-        node?.let { return onNode(it) }
-        interfaze?.let { return onInterface(it) }
-        union?.let { return onUnion(it) }
-        throw IllegalStateException("type of ${getOwnerName()}.${fieldName} is neither node nor interface nor union")
-    }
+    ): RESULT = target.extractOnTarget(onNode, onInterface, onUnion)
 
     fun <UNION_RESULT : RESULT, IMPLEMENTATION_TYPE_RESULT : RESULT, RESULT> extractOnTarget(
         onImplementingType: (ImplementingType) -> IMPLEMENTATION_TYPE_RESULT,
@@ -173,4 +155,27 @@ class RelationField(
         onInterface = { onImplementingType(it) },
         onUnion
     )
+
+    fun shouldGenerateFieldInputType(implementingType: ImplementingType): Boolean {
+        return relationship.isConnectAllowed ||
+                relationship.isCreateAllowed ||
+                relationship.isConnectOrCreateAllowed ||
+                implementingType is Node && implementingType.uniqueFields.isNotEmpty()
+    }
+
+
+    fun shouldGenerateUpdateFieldInputType(implementingType: ImplementingType): Boolean {
+        val onlyConnectOrCreate = relationship.isOnlyConnectOrCreate
+        val hasNestedOperationsAllowed = relationship.nestedOperations.isNotEmpty()
+        if (target is Interface) {
+            return hasNestedOperationsAllowed && !onlyConnectOrCreate
+        }
+        if (target is Union) {
+            require(implementingType is Node) { "Expected member entity" }
+            val onlyConnectOrCreateAndNoUniqueFields = onlyConnectOrCreate && implementingType.uniqueFields.isEmpty()
+            return hasNestedOperationsAllowed && !onlyConnectOrCreateAndNoUniqueFields
+        }
+        val onlyConnectOrCreateAndNoUniqueFields = onlyConnectOrCreate && implementingType.uniqueFields.isEmpty()
+        return hasNestedOperationsAllowed && !onlyConnectOrCreateAndNoUniqueFields
+    }
 }

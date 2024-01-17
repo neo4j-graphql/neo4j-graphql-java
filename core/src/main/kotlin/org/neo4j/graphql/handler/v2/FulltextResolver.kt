@@ -7,13 +7,12 @@ import graphql.schema.DataFetchingEnvironment
 import org.neo4j.cypherdsl.core.Statement
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
-import org.neo4j.graphql.domain.directives.ExcludeDirective
-import org.neo4j.graphql.domain.directives.FullTextDirective
-import org.neo4j.graphql.schema.model.inputs.fulltext.FulltextSort
-import org.neo4j.graphql.schema.model.inputs.fulltext.FulltextWhere
+import org.neo4j.graphql.domain.directives.FulltextDirective
 import org.neo4j.graphql.handler.BaseDataFetcher
 import org.neo4j.graphql.schema.AugmentationContext
 import org.neo4j.graphql.schema.AugmentationHandler
+import org.neo4j.graphql.schema.model.inputs.fulltext.FulltextSort
+import org.neo4j.graphql.schema.model.inputs.fulltext.FulltextWhere
 
 /**
  * This class handles all the logic related to the querying of nodes.
@@ -22,16 +21,16 @@ import org.neo4j.graphql.schema.AugmentationHandler
 class FulltextResolver private constructor(
     schemaConfig: SchemaConfig,
     val node: Node,
-    val index: FullTextDirective.FullTextIndex
+    val index: FulltextDirective.FullTextIndex
 ) : BaseDataFetcher(schemaConfig) {
 
-    class Factory(ctx: AugmentationContext) : AugmentationHandler(ctx) {
+    class Factory(ctx: AugmentationContext) : AugmentationHandler(ctx), AugmentationHandler.NodeAugmentation {
 
         override fun augmentNode(node: Node): List<AugmentedField> {
-            if (!node.isOperationAllowed(ExcludeDirective.ExcludeOperation.READ)) {
+            if (node.annotations.query?.read == false) {
                 return emptyList()
             }
-            return node.fulltextDirective
+            return node.annotations.fulltext
                 ?.indexes
                 ?.map { fullTextIndex ->
                     val name =

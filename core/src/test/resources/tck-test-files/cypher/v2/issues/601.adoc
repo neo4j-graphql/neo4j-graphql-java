@@ -6,45 +6,39 @@
 
 [source,graphql,schema=true]
 ----
+type JWT @jwt {
+  roles: [String!]!
+}
+
 interface UploadedDocument @relationshipProperties {
   fileId: ID!
   uploadedAt: DateTime!
 }
 
-type Document @exclude(operations: [CREATE, UPDATE, DELETE]) {
-  id: ID! @id
+type Document @mutation(operations: []) {
+  id: ID! @id @unique
   stakeholder: Stakeholder! @relationship(type: "REQUIRES", direction: OUT)
   customerContact: CustomerContact! @relationship(type: "UPLOADED", properties: "UploadedDocument", direction: IN)
 }
 
-extend type Document @auth(rules: [{roles: ["view"]}])
+extend type Document @authorization(validate: [{where: {jwt: {roles_INCLUDES: "view"}}}])
 
-type CustomerContact @exclude(operations: [CREATE, UPDATE, DELETE]) {
+type CustomerContact @mutation(operations: []) {
   email: String!
   firstname: String!
   lastname: String!
   documents: [Document!]! @relationship(type: "UPLOADED", properties: "UploadedDocument", direction: OUT)
 }
 
-extend type CustomerContact @auth(rules: [{roles: ["view"]}])
+extend type CustomerContact @authorization(validate: [{where: {jwt: {roles_INCLUDES: "view"}}}])
 
-type Stakeholder @exclude(operations: [CREATE, UPDATE, DELETE]) {
+type Stakeholder @mutation(operations: []) {
   id: ID!
   fields: String!
   documents: [Document!]! @relationship(type: "REQUIRES", direction: OUT)
 }
 
-extend type Stakeholder @auth(rules: [{roles: ["view"]}])
-----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{
-  "enableRegex": true
-}
+extend type Stakeholder @authorization(validate: [{where: {jwt: {roles_INCLUDES: "view"}}}])
 ----
 == Example 1
 
@@ -69,10 +63,13 @@ query Document {
 [source,json]
 ----
 {
-  "auth" : {
-    "isAuthenticated" : false,
-    "roles" : [ ]
-  }
+  "isAuthenticated": true,
+  "jwt": {
+    "roles": []
+  },
+  "param2": "view",
+  "param3": "view",
+  "param4": "view"
 }
 ----
 
@@ -80,40 +77,31 @@ query Document {
 [source,cypher]
 ----
 MATCH (this:Stakeholder)
-WHERE apoc.util.validatePredicate(NOT (any(r IN ['view']
-WHERE any(rr IN $auth.roles
-WHERE rr = r))), '@neo4j/graphql/FORBIDDEN', [0])
+WITH *
+WHERE apoc.util.validatePredicate(NOT ($isAuthenticated = true AND ($jwt.roles IS NOT NULL AND $param2 IN $jwt.roles)), "@neo4j/graphql/FORBIDDEN", [0])
 CALL {
-	WITH this
-	MATCH (this)-[this0:REQUIRES]->(this_documents:Document)
-	WHERE apoc.util.validatePredicate(NOT (any(r IN ['view']
-	WHERE any(rr IN $auth.roles
-	WHERE rr = r))), '@neo4j/graphql/FORBIDDEN', [0])
-	CALL {
-		WITH this_documents
-		MATCH (this_documents)<-[this_documents_connection_customerContactConnectionthis0:UPLOADED]-(this_documents_CustomerContact:CustomerContact)
-		WHERE apoc.util.validatePredicate(NOT (any(r IN ['view']
-		WHERE any(rr IN $auth.roles
-		WHERE rr = r))), '@neo4j/graphql/FORBIDDEN', [0])
-		WITH {
-			fileId: this_documents_connection_customerContactConnectionthis0.fileId,
-			uploadedAt: apoc.date.convertFormat(toString(this_documents_connection_customerContactConnectionthis0.uploadedAt), 'iso_zoned_date_time', 'iso_offset_date_time')
-		} AS edge
-		WITH collect(edge) AS edges
-		WITH edges, size(edges) AS totalCount
-		RETURN {
-			edges: edges,
-			totalCount: totalCount
-		} AS this_documents_customerContactConnection
-	}
-	WITH this_documents {
-		customerContactConnection: this_documents_customerContactConnection
-	} AS this_documents
-	RETURN collect(this_documents) AS this_documents
+    WITH this
+    MATCH (this)-[this0:REQUIRES]->(this1:Document)
+    WITH *
+    WHERE apoc.util.validatePredicate(NOT ($isAuthenticated = true AND ($jwt.roles IS NOT NULL AND $param3 IN $jwt.roles)), "@neo4j/graphql/FORBIDDEN", [0])
+    CALL {
+        WITH this1
+        MATCH (this1)<-[this2:UPLOADED]-(this3:CustomerContact)
+        WHERE apoc.util.validatePredicate(NOT ($isAuthenticated = true AND ($jwt.roles IS NOT NULL AND $param4 IN $jwt.roles)), "@neo4j/graphql/FORBIDDEN", [0])
+        WITH collect({ node: this3, relationship: this2 }) AS edges
+        WITH edges, size(edges) AS totalCount
+        CALL {
+            WITH edges
+            UNWIND edges AS edge
+            WITH edge.node AS this3, edge.relationship AS this2
+            RETURN collect({ fileId: this2.fileId, uploadedAt: apoc.date.convertFormat(toString(this2.uploadedAt), "iso_zoned_date_time", "iso_offset_date_time"), node: { __resolveType: "CustomerContact", __id: id(this3) } }) AS var4
+        }
+        RETURN { edges: var4, totalCount: totalCount } AS var5
+    }
+    WITH this1 { customerContactConnection: var5 } AS this1
+    RETURN collect(this1) AS var6
 }
-RETURN this {
-	documents: this_documents
-} AS this
+RETURN this { documents: var6 } AS this
 ----
 
 '''

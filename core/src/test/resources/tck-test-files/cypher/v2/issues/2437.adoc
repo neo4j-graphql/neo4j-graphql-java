@@ -6,29 +6,25 @@
 
 [source,graphql,schema=true]
 ----
-type Agent @exclude(operations: [DELETE]) {
-  uuid: ID! @id
+type JWT @jwt {
+  roles: [String!]!
+}
+
+type Agent @mutation(operations: [CREATE, UPDATE]) {
+  uuid: ID! @id @unique
   archivedAt: DateTime
   valuations: [Valuation!]! @relationship(type: "IS_VALUATION_AGENT", direction: OUT)
 }
 
-extend type Agent @auth(rules: [{operations: [CREATE], roles: ["Admin"]}, {where: {archivedAt: null}}])
+extend type Agent @authorization(validate: [{operations: [CREATE], where: {jwt: {roles_INCLUDES: "Admin"}}}], filter: [{where: {node: {archivedAt: null}}}])
 
-type Valuation @exclude(operations: [DELETE]) {
-  uuid: ID! @id
+type Valuation @mutation(operations: [CREATE, UPDATE]) {
+  uuid: ID! @id @unique
   archivedAt: DateTime
   agent: Agent! @relationship(type: "IS_VALUATION_AGENT", direction: IN)
 }
 
-extend type Valuation @auth(rules: [{where: {archivedAt: null}}])
-----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{}
+extend type Valuation @authorization(filter: [{where: {node: {archivedAt: null}}}])
 ----
 == query and limits nested connections
 
@@ -56,8 +52,9 @@ query Agents {
 [source,json]
 ----
 {
-  "param0" : "a1",
-  "this_connection_valuationsConnectionparam0" : 10
+  "param0": "a1",
+  "isAuthenticated": true,
+  "param2": 10
 }
 ----
 
@@ -65,35 +62,26 @@ query Agents {
 [source,cypher]
 ----
 MATCH (this:Agent)
-WHERE (this.uuid = $param0
-	AND this.archivedAt IS NULL)
+WITH *
+WHERE (this.uuid = $param0 AND ($isAuthenticated = true AND this.archivedAt IS NULL))
 CALL {
-	WITH this
-	MATCH (this)-[this_connection_valuationsConnectionthis0:IS_VALUATION_AGENT]->(this_Valuation:Valuation)
-	WHERE this_Valuation.archivedAt IS NULL
-	WITH {
-		node: {
-			uuid: this_Valuation.uuid
-		}
-	} AS edge
-	WITH collect(edge) AS edges
-	WITH edges, size(edges) AS totalCount
-	CALL {
-		WITH edges
-		UNWIND edges AS edge
-		WITH edge LIMIT $this_connection_valuationsConnectionparam0
-		RETURN collect(edge) AS this_connection_valuationsConnectionvar1
-	}
-	WITH this_connection_valuationsConnectionvar1 AS edges, totalCount
-	RETURN {
-		edges: edges,
-		totalCount: totalCount
-	} AS this_valuationsConnection
+    WITH this
+    MATCH (this)-[this0:IS_VALUATION_AGENT]->(this1:Valuation)
+    WHERE ($isAuthenticated = true AND this1.archivedAt IS NULL)
+    WITH collect({ node: this1, relationship: this0 }) AS edges
+    WITH edges, size(edges) AS totalCount
+    CALL {
+        WITH edges
+        UNWIND edges AS edge
+        WITH edge.node AS this1, edge.relationship AS this0
+        WITH *
+        
+        LIMIT $param2
+        RETURN collect({ node: { uuid: this1.uuid } }) AS var2
+    }
+    RETURN { edges: var2, totalCount: totalCount } AS var3
 }
-RETURN this {
-	.uuid,
-	valuationsConnection: this_valuationsConnection
-} AS this
+RETURN this { .uuid, valuationsConnection: var3 } AS this
 ----
 
 '''

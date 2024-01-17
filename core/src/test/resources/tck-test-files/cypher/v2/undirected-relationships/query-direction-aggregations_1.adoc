@@ -11,14 +11,6 @@ type User {
   friends: [User!]! @relationship(type: "FRIENDS_WITH", direction: OUT, queryDirection: DEFAULT_UNDIRECTED)
 }
 ----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{}
-----
 == query with directed and undirected relationships with a DEFAULT_UNDIRECTED
 
 .GraphQL-Query
@@ -36,7 +28,7 @@ query Users {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
@@ -44,15 +36,11 @@ query Users {
 ----
 MATCH (this:User)
 CALL {
-	WITH this
-	MATCH (this)-[this_friendsAggregate_this0:FRIENDS_WITH]-(this_friendsAggregate_this1:User)
-	RETURN count(this_friendsAggregate_this1) AS this_friendsAggregate_var2
+    WITH this
+    MATCH (this)-[this0:FRIENDS_WITH]-(this1:User)
+    RETURN count(this1) AS var2
 }
-RETURN this {
-	friendsAggregate: {
-		count: this_friendsAggregate_var2
-	}
-} AS this
+RETURN this { friendsAggregate: { count: var2 } } AS this
 ----
 
 '''

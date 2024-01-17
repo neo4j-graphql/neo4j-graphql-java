@@ -2,11 +2,10 @@ package org.neo4j.graphql.domain.fields
 
 import graphql.language.Comment
 import graphql.language.Description
-import graphql.language.Directive
 import graphql.language.InputValueDefinition
 import org.neo4j.graphql.domain.*
-import org.neo4j.graphql.domain.directives.AuthDirective
-import org.neo4j.graphql.domain.directives.UniqueDirective
+import org.neo4j.graphql.domain.directives.Annotations
+import org.neo4j.graphql.domain.directives.TimestampDirective
 import org.neo4j.graphql.isRequired
 
 /**
@@ -15,21 +14,18 @@ import org.neo4j.graphql.isRequired
 sealed class BaseField(
     var fieldName: String,
     var typeMeta: TypeMeta,
+    var annotations: Annotations
 ) {
-    var otherDirectives: List<Directive> = emptyList()
     val deprecatedDirective
-        get() = otherDirectives.firstOrNull { it.name == "deprecated" }
-
+        get() = annotations.otherDirectives.firstOrNull { it.name == "deprecated" }
     var arguments: List<InputValueDefinition> = emptyList()
-    var private: Boolean = false
-    var auth: AuthDirective? = null
+    val auth get() = annotations.auth
+
     var description: Description? = null
     var comments: List<Comment> = emptyList()
-    var readonly: Boolean = false
-    var writeonly: Boolean = false
-    var ignored: Boolean = false
-    var dbPropertyName: String = fieldName
-    var unique: UniqueDirective? = null
+
+    //    var ignored: Boolean = false
+    open val dbPropertyName get() = annotations.alias?.property ?: fieldName
     lateinit var owner: FieldContainer<*>
 
     override fun toString(): String {
@@ -49,10 +45,11 @@ sealed class BaseField(
         }
     }
 
-    val interfaceField get() = (owner as? Node)
-        ?.interfaces
-        ?.mapNotNull { it.getField(fieldName) }
-        ?.firstOrNull()
+    val interfaceField
+        get() = (owner as? Node)
+            ?.interfaces
+            ?.mapNotNull { it.getField(fieldName) }
+            ?.firstOrNull()
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -68,4 +65,33 @@ sealed class BaseField(
     override fun hashCode(): Int {
         return fieldName.hashCode()
     }
+
+    fun isCypher() = this.annotations.cypher != null
+    fun isCustomResolvable() = this.annotations.customResolver != null
+
+    open fun isNonGeneratedField(): Boolean = false
+
+    // TODO rename
+    fun timestampCreateIsGenerated() =
+        this.annotations.timestamp?.operations?.contains(TimestampDirective.TimeStampOperation.CREATE) == true
+
+    fun timestampUpdateIsGenerated() =
+        this.annotations.timestamp?.operations?.contains(TimestampDirective.TimeStampOperation.UPDATE) == true
+
+
+    fun isCreateInputField() =
+        isNonGeneratedField()
+                && annotations.settable?.onCreate != false
+                && !timestampCreateIsGenerated()
+
+    fun isUpdateInputField() =
+        isNonGeneratedField()
+                && annotations.settable?.onUpdate != false
+                && !timestampUpdateIsGenerated()
+
+    open fun isAggregationFilterable() = !isCustomResolvable() && !isCypher()
+            && annotations.filterable?.byAggregate != false
+
+    open fun isEventPayloadField() = false
+    fun isFilterableByValue() = annotations.filterable?.byValue != false
 }

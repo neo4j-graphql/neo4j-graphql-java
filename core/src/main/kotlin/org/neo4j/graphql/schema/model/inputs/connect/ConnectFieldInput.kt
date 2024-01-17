@@ -1,7 +1,7 @@
 package org.neo4j.graphql.schema.model.inputs.connect
 
-import org.neo4j.graphql.Constants
-import org.neo4j.graphql.asType
+import graphql.language.BooleanValue
+import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.*
 import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.schema.AugmentationBase
@@ -12,8 +12,6 @@ import org.neo4j.graphql.schema.model.inputs.PerNodeInput
 import org.neo4j.graphql.schema.model.inputs.ScalarProperties
 import org.neo4j.graphql.schema.model.inputs.create.CreateInput
 import org.neo4j.graphql.schema.relations.RelationFieldBaseAugmentation
-import org.neo4j.graphql.toDict
-import org.neo4j.graphql.wrapType
 
 sealed interface ConnectFieldInput {
 
@@ -47,7 +45,16 @@ sealed interface ConnectFieldInput {
                     ?.let { fields += inputValue(Constants.WHERE, it.asType()) }
 
                 ConnectInput.NodeConnectInput.Augmentation.generateContainerConnectInputIT(node, ctx)
-                    ?.let { fields += inputValue(Constants.CONNECT_FIELD, it.wrapType(rel)) }
+                    ?.let {
+                        fields += inputValue(Constants.CONNECT_FIELD, it.wrapType(rel))
+                    }
+
+                if (rel.node != null) {
+                    fields += inputValue(Constants.OVERWRITE_FIELD, Constants.Types.Boolean.makeRequired()) {
+                        defaultValue(BooleanValue(true))
+                        description("Whether or not to overwrite any matching relationship with the new properties.".asDescription())
+                    }
+                }
 
                 CreateInput.Augmentation.addEdgePropertyCreateInputField(rel.properties, fields, ctx,
                     required = { it.hasRequiredNonGeneratedFields })

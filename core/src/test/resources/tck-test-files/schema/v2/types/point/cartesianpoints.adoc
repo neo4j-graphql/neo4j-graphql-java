@@ -45,8 +45,9 @@ type CartesianPoint {
   z: Float
 }
 
+"Information about the number of nodes and relationships created during a create mutation"
 type CreateInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   relationshipsCreated: Int!
 }
@@ -56,8 +57,9 @@ type CreateMachinesMutationResponse {
   machines: [Machine!]!
 }
 
+"Information about the number of nodes and relationships deleted during a delete mutation"
 type DeleteInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesDeleted: Int!
   relationshipsDeleted: Int!
 }
@@ -101,8 +103,9 @@ type Query {
   machinesConnection(after: String, first: Int, where: MachineWhere): MachinesConnection!
 }
 
+"Information about the number of nodes and relationships created and deleted during an update mutation"
 type UpdateInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   nodesDeleted: Int!
   relationshipsCreated: Int!
@@ -140,6 +143,7 @@ input MachineUpdateInput {
 
 input MachineWhere {
   AND: [MachineWhere!]
+  NOT: MachineWhere
   OR: [MachineWhere!]
   partLocations: [CartesianPointInput!]
   partLocations_INCLUDES: CartesianPointInput

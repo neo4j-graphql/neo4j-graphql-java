@@ -16,19 +16,9 @@ type Actor {
   movies: [Movie!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: OUT)
 }
 
-interface ActedIn {
+interface ActedIn @relationshipProperties {
   startDate: Date
   endDateTime: DateTime
-}
-----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{
-  "enableRegex": true
 }
 ----
 == GT and LT
@@ -58,8 +48,8 @@ interface ActedIn {
 [source,json]
 ----
 {
-  "this_connection_actorsConnectionparam0" : "2000-01-01",
-  "this_connection_actorsConnectionparam1" : "2010-01-01T00:00:00.000Z"
+  "param0": "2000-01-01",
+  "param1": "2010-01-01T00:00:00Z"
 }
 ----
 
@@ -68,28 +58,20 @@ interface ActedIn {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)<-[this_connection_actorsConnectionthis0:ACTED_IN]-(this_Actor:Actor)
-	WHERE (this_connection_actorsConnectionthis0.startDate > date($this_connection_actorsConnectionparam0)
-		AND this_connection_actorsConnectionthis0.endDateTime < datetime($this_connection_actorsConnectionparam1))
-	WITH {
-		startDate: this_connection_actorsConnectionthis0.startDate,
-		endDateTime: apoc.date.convertFormat(toString(this_connection_actorsConnectionthis0.endDateTime), 'iso_zoned_date_time', 'iso_offset_date_time'),
-		node: {
-			name: this_Actor.name
-		}
-	} AS edge
-	WITH collect(edge) AS edges
-	WITH edges, size(edges) AS totalCount
-	RETURN {
-		edges: edges,
-		totalCount: totalCount
-	} AS this_actorsConnection
+    WITH this
+    MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
+    WHERE (this0.startDate > $param0 AND this0.endDateTime < $param1)
+    WITH collect({ node: this1, relationship: this0 }) AS edges
+    WITH edges, size(edges) AS totalCount
+    CALL {
+        WITH edges
+        UNWIND edges AS edge
+        WITH edge.node AS this1, edge.relationship AS this0
+        RETURN collect({ startDate: this0.startDate, endDateTime: apoc.date.convertFormat(toString(this0.endDateTime), "iso_zoned_date_time", "iso_offset_date_time"), node: { name: this1.name } }) AS var2
+    }
+    RETURN { edges: var2, totalCount: totalCount } AS var3
 }
-RETURN this {
-	.title,
-	actorsConnection: this_actorsConnection
-} AS this
+RETURN this { .title, actorsConnection: var3 } AS this
 ----
 
 '''

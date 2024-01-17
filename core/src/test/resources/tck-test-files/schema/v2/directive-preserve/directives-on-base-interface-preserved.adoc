@@ -91,8 +91,9 @@ type CreateActorsMutationResponse {
   info: CreateInfo!
 }
 
+"Information about the number of nodes and relationships created during a create mutation"
 type CreateInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   relationshipsCreated: Int!
 }
@@ -107,8 +108,9 @@ type CreateSeriesMutationResponse {
   series: [Series!]!
 }
 
+"Information about the number of nodes and relationships deleted during a delete mutation"
 type DeleteInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesDeleted: Int!
   relationshipsDeleted: Int!
 }
@@ -252,8 +254,9 @@ type UpdateActorsMutationResponse {
   info: UpdateInfo!
 }
 
+"Information about the number of nodes and relationships created and deleted during an update mutation"
 type UpdateInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   nodesDeleted: Int!
   relationshipsCreated: Int!
@@ -270,6 +273,7 @@ type UpdateSeriesMutationResponse {
   series: [Series!]!
 }
 
+"An enum for sorting in either ascending or descending order."
 enum SortDirection {
   "Sort by field values in ascending order."
   ASC
@@ -291,16 +295,17 @@ input ActedInUpdateInput {
 
 input ActedInWhere {
   AND: [ActedInWhere!]
+  NOT: ActedInWhere
   OR: [ActedInWhere!]
   role: String
   role_CONTAINS: String
   role_ENDS_WITH: String
   role_IN: [String!]
-  role_NOT: String
-  role_NOT_CONTAINS: String
-  role_NOT_ENDS_WITH: String
-  role_NOT_IN: [String!]
-  role_NOT_STARTS_WITH: String
+  role_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  role_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  role_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  role_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  role_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   role_STARTS_WITH: String
 }
 
@@ -317,11 +322,12 @@ input ActorActedInConnectionSort {
 
 input ActorActedInConnectionWhere {
   AND: [ActorActedInConnectionWhere!]
+  NOT: ActorActedInConnectionWhere
   OR: [ActorActedInConnectionWhere!]
   edge: ActedInWhere
-  edge_NOT: ActedInWhere
+  edge_NOT: ActedInWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   node: ProductionWhere
-  node_NOT: ProductionWhere
+  node_NOT: ProductionWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input ActorActedInCreateFieldInput {
@@ -402,27 +408,33 @@ input ActorUpdateInput {
 
 input ActorWhere {
   AND: [ActorWhere!]
+  NOT: ActorWhere
   OR: [ActorWhere!]
   actedInConnection: ActorActedInConnectionWhere @deprecated(reason : "Use `actedInConnection_SOME` instead.")
+  "Return Actors where all of the related ActorActedInConnections match this filter"
   actedInConnection_ALL: ActorActedInConnectionWhere
+  "Return Actors where none of the related ActorActedInConnections match this filter"
   actedInConnection_NONE: ActorActedInConnectionWhere
   actedInConnection_NOT: ActorActedInConnectionWhere @deprecated(reason : "Use `actedInConnection_NONE` instead.")
+  "Return Actors where one of the related ActorActedInConnections match this filter"
   actedInConnection_SINGLE: ActorActedInConnectionWhere
+  "Return Actors where some of the related ActorActedInConnections match this filter"
   actedInConnection_SOME: ActorActedInConnectionWhere
   name: String
   name_CONTAINS: String
   name_ENDS_WITH: String
   name_IN: [String!]
-  name_NOT: String
-  name_NOT_CONTAINS: String
-  name_NOT_ENDS_WITH: String
-  name_NOT_IN: [String!]
-  name_NOT_STARTS_WITH: String
+  name_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   name_STARTS_WITH: String
 }
 
 input MovieActorsAggregateInput {
   AND: [MovieActorsAggregateInput!]
+  NOT: MovieActorsAggregateInput
   OR: [MovieActorsAggregateInput!]
   count: Int
   count_GT: Int
@@ -435,52 +447,84 @@ input MovieActorsAggregateInput {
 
 input MovieActorsEdgeAggregationWhereInput {
   AND: [MovieActorsEdgeAggregationWhereInput!]
+  NOT: MovieActorsEdgeAggregationWhereInput
   OR: [MovieActorsEdgeAggregationWhereInput!]
-  role_AVERAGE_EQUAL: Float
-  role_AVERAGE_GT: Float
-  role_AVERAGE_GTE: Float
-  role_AVERAGE_LT: Float
-  role_AVERAGE_LTE: Float
-  role_EQUAL: String
-  role_GT: Int
-  role_GTE: Int
-  role_LONGEST_EQUAL: Int
-  role_LONGEST_GT: Int
-  role_LONGEST_GTE: Int
-  role_LONGEST_LT: Int
-  role_LONGEST_LTE: Int
-  role_LT: Int
-  role_LTE: Int
-  role_SHORTEST_EQUAL: Int
-  role_SHORTEST_GT: Int
-  role_SHORTEST_GTE: Int
-  role_SHORTEST_LT: Int
-  role_SHORTEST_LTE: Int
+  role_AVERAGE_EQUAL: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_AVERAGE_GT: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_AVERAGE_GTE: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_AVERAGE_LENGTH_EQUAL: Float
+  role_AVERAGE_LENGTH_GT: Float
+  role_AVERAGE_LENGTH_GTE: Float
+  role_AVERAGE_LENGTH_LT: Float
+  role_AVERAGE_LENGTH_LTE: Float
+  role_AVERAGE_LT: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_AVERAGE_LTE: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_EQUAL: String @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  role_GT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  role_GTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  role_LONGEST_EQUAL: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_LONGEST_GT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_LONGEST_GTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_LONGEST_LENGTH_EQUAL: Int
+  role_LONGEST_LENGTH_GT: Int
+  role_LONGEST_LENGTH_GTE: Int
+  role_LONGEST_LENGTH_LT: Int
+  role_LONGEST_LENGTH_LTE: Int
+  role_LONGEST_LT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_LONGEST_LTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_LT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  role_LTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  role_SHORTEST_EQUAL: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_SHORTEST_GT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_SHORTEST_GTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_SHORTEST_LENGTH_EQUAL: Int
+  role_SHORTEST_LENGTH_GT: Int
+  role_SHORTEST_LENGTH_GTE: Int
+  role_SHORTEST_LENGTH_LT: Int
+  role_SHORTEST_LENGTH_LTE: Int
+  role_SHORTEST_LT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_SHORTEST_LTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
 }
 
 input MovieActorsNodeAggregationWhereInput {
   AND: [MovieActorsNodeAggregationWhereInput!]
+  NOT: MovieActorsNodeAggregationWhereInput
   OR: [MovieActorsNodeAggregationWhereInput!]
-  name_AVERAGE_EQUAL: Float
-  name_AVERAGE_GT: Float
-  name_AVERAGE_GTE: Float
-  name_AVERAGE_LT: Float
-  name_AVERAGE_LTE: Float
-  name_EQUAL: String
-  name_GT: Int
-  name_GTE: Int
-  name_LONGEST_EQUAL: Int
-  name_LONGEST_GT: Int
-  name_LONGEST_GTE: Int
-  name_LONGEST_LT: Int
-  name_LONGEST_LTE: Int
-  name_LT: Int
-  name_LTE: Int
-  name_SHORTEST_EQUAL: Int
-  name_SHORTEST_GT: Int
-  name_SHORTEST_GTE: Int
-  name_SHORTEST_LT: Int
-  name_SHORTEST_LTE: Int
+  name_AVERAGE_EQUAL: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_AVERAGE_GT: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_AVERAGE_GTE: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_AVERAGE_LENGTH_EQUAL: Float
+  name_AVERAGE_LENGTH_GT: Float
+  name_AVERAGE_LENGTH_GTE: Float
+  name_AVERAGE_LENGTH_LT: Float
+  name_AVERAGE_LENGTH_LTE: Float
+  name_AVERAGE_LT: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_AVERAGE_LTE: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_EQUAL: String @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_GT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_GTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_LONGEST_EQUAL: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_LONGEST_GT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_LONGEST_GTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_LONGEST_LENGTH_EQUAL: Int
+  name_LONGEST_LENGTH_GT: Int
+  name_LONGEST_LENGTH_GTE: Int
+  name_LONGEST_LENGTH_LT: Int
+  name_LONGEST_LENGTH_LTE: Int
+  name_LONGEST_LT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_LONGEST_LTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_LT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_LTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_SHORTEST_EQUAL: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_SHORTEST_GT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_SHORTEST_GTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_SHORTEST_LENGTH_EQUAL: Int
+  name_SHORTEST_LENGTH_GT: Int
+  name_SHORTEST_LENGTH_GTE: Int
+  name_SHORTEST_LENGTH_LT: Int
+  name_SHORTEST_LENGTH_LTE: Int
+  name_SHORTEST_LT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_SHORTEST_LTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
 }
 
 input MovieConnectInput {
@@ -528,14 +572,19 @@ input MovieUpdateInput {
 
 input MovieWhere {
   AND: [MovieWhere!]
+  NOT: MovieWhere
   OR: [MovieWhere!]
   actors: ActorWhere @deprecated(reason : "Do not use")
   actorsAggregate: MovieActorsAggregateInput @deprecated(reason : "Do not use")
   actorsConnection: ProductionActorsConnectionWhere @deprecated(reason : "Do not use")
+  "Return Movies where all of the related ProductionActorsConnections match this filter"
   actorsConnection_ALL: ProductionActorsConnectionWhere @deprecated(reason : "Do not use")
+  "Return Movies where none of the related ProductionActorsConnections match this filter"
   actorsConnection_NONE: ProductionActorsConnectionWhere @deprecated(reason : "Do not use")
   actorsConnection_NOT: ProductionActorsConnectionWhere @deprecated(reason : "Do not use")
+  "Return Movies where one of the related ProductionActorsConnections match this filter"
   actorsConnection_SINGLE: ProductionActorsConnectionWhere @deprecated(reason : "Do not use")
+  "Return Movies where some of the related ProductionActorsConnections match this filter"
   actorsConnection_SOME: ProductionActorsConnectionWhere @deprecated(reason : "Do not use")
   "Return Movies where all of the related Actors match this filter"
   actors_ALL: ActorWhere @deprecated(reason : "Do not use")
@@ -552,23 +601,25 @@ input MovieWhere {
   runtime_IN: [Int!]
   runtime_LT: Int
   runtime_LTE: Int
-  runtime_NOT: Int
-  runtime_NOT_IN: [Int!]
+  runtime_NOT: Int @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  runtime_NOT_IN: [Int!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   title: String
   title_CONTAINS: String
   title_ENDS_WITH: String
   title_IN: [String!]
-  title_NOT: String
-  title_NOT_CONTAINS: String
-  title_NOT_ENDS_WITH: String
-  title_NOT_IN: [String!]
-  title_NOT_STARTS_WITH: String
+  title_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   title_STARTS_WITH: String
 }
 
 input ProductionActorsConnectFieldInput {
   connect: [ActorConnectInput!]
   edge: ActedInCreateInput!
+  "Whether or not to overwrite any matching relationship with the new properties."
+  overwrite: Boolean! = true
   where: ActorConnectWhere
 }
 
@@ -579,11 +630,12 @@ input ProductionActorsConnectionSort {
 
 input ProductionActorsConnectionWhere {
   AND: [ProductionActorsConnectionWhere!]
+  NOT: ProductionActorsConnectionWhere
   OR: [ProductionActorsConnectionWhere!]
   edge: ActedInWhere
-  edge_NOT: ActedInWhere
+  edge_NOT: ActedInWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   node: ActorWhere
-  node_NOT: ActorWhere
+  node_NOT: ActorWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input ProductionActorsCreateFieldInput {
@@ -670,7 +722,7 @@ input ProductionOptions {
   limit: Int
   offset: Int
   "Specify one or more ProductionSort objects to sort Productions by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [ProductionSort!]
+  sort: [ProductionSort]
 }
 
 "Fields to sort Productions by. The order in which sorts are applied is not guaranteed when specifying many fields in one ProductionSort object."
@@ -689,16 +741,17 @@ input ProductionWhere {
   title_CONTAINS: String
   title_ENDS_WITH: String
   title_IN: [String!]
-  title_NOT: String
-  title_NOT_CONTAINS: String
-  title_NOT_ENDS_WITH: String
-  title_NOT_IN: [String!]
-  title_NOT_STARTS_WITH: String
+  title_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   title_STARTS_WITH: String
 }
 
 input SeriesActorsAggregateInput {
   AND: [SeriesActorsAggregateInput!]
+  NOT: SeriesActorsAggregateInput
   OR: [SeriesActorsAggregateInput!]
   count: Int
   count_GT: Int
@@ -711,52 +764,84 @@ input SeriesActorsAggregateInput {
 
 input SeriesActorsEdgeAggregationWhereInput {
   AND: [SeriesActorsEdgeAggregationWhereInput!]
+  NOT: SeriesActorsEdgeAggregationWhereInput
   OR: [SeriesActorsEdgeAggregationWhereInput!]
-  role_AVERAGE_EQUAL: Float
-  role_AVERAGE_GT: Float
-  role_AVERAGE_GTE: Float
-  role_AVERAGE_LT: Float
-  role_AVERAGE_LTE: Float
-  role_EQUAL: String
-  role_GT: Int
-  role_GTE: Int
-  role_LONGEST_EQUAL: Int
-  role_LONGEST_GT: Int
-  role_LONGEST_GTE: Int
-  role_LONGEST_LT: Int
-  role_LONGEST_LTE: Int
-  role_LT: Int
-  role_LTE: Int
-  role_SHORTEST_EQUAL: Int
-  role_SHORTEST_GT: Int
-  role_SHORTEST_GTE: Int
-  role_SHORTEST_LT: Int
-  role_SHORTEST_LTE: Int
+  role_AVERAGE_EQUAL: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_AVERAGE_GT: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_AVERAGE_GTE: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_AVERAGE_LENGTH_EQUAL: Float
+  role_AVERAGE_LENGTH_GT: Float
+  role_AVERAGE_LENGTH_GTE: Float
+  role_AVERAGE_LENGTH_LT: Float
+  role_AVERAGE_LENGTH_LTE: Float
+  role_AVERAGE_LT: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_AVERAGE_LTE: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_EQUAL: String @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  role_GT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  role_GTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  role_LONGEST_EQUAL: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_LONGEST_GT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_LONGEST_GTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_LONGEST_LENGTH_EQUAL: Int
+  role_LONGEST_LENGTH_GT: Int
+  role_LONGEST_LENGTH_GTE: Int
+  role_LONGEST_LENGTH_LT: Int
+  role_LONGEST_LENGTH_LTE: Int
+  role_LONGEST_LT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_LONGEST_LTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_LT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  role_LTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  role_SHORTEST_EQUAL: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_SHORTEST_GT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_SHORTEST_GTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_SHORTEST_LENGTH_EQUAL: Int
+  role_SHORTEST_LENGTH_GT: Int
+  role_SHORTEST_LENGTH_GTE: Int
+  role_SHORTEST_LENGTH_LT: Int
+  role_SHORTEST_LENGTH_LTE: Int
+  role_SHORTEST_LT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  role_SHORTEST_LTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
 }
 
 input SeriesActorsNodeAggregationWhereInput {
   AND: [SeriesActorsNodeAggregationWhereInput!]
+  NOT: SeriesActorsNodeAggregationWhereInput
   OR: [SeriesActorsNodeAggregationWhereInput!]
-  name_AVERAGE_EQUAL: Float
-  name_AVERAGE_GT: Float
-  name_AVERAGE_GTE: Float
-  name_AVERAGE_LT: Float
-  name_AVERAGE_LTE: Float
-  name_EQUAL: String
-  name_GT: Int
-  name_GTE: Int
-  name_LONGEST_EQUAL: Int
-  name_LONGEST_GT: Int
-  name_LONGEST_GTE: Int
-  name_LONGEST_LT: Int
-  name_LONGEST_LTE: Int
-  name_LT: Int
-  name_LTE: Int
-  name_SHORTEST_EQUAL: Int
-  name_SHORTEST_GT: Int
-  name_SHORTEST_GTE: Int
-  name_SHORTEST_LT: Int
-  name_SHORTEST_LTE: Int
+  name_AVERAGE_EQUAL: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_AVERAGE_GT: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_AVERAGE_GTE: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_AVERAGE_LENGTH_EQUAL: Float
+  name_AVERAGE_LENGTH_GT: Float
+  name_AVERAGE_LENGTH_GTE: Float
+  name_AVERAGE_LENGTH_LT: Float
+  name_AVERAGE_LENGTH_LTE: Float
+  name_AVERAGE_LT: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_AVERAGE_LTE: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_EQUAL: String @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_GT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_GTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_LONGEST_EQUAL: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_LONGEST_GT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_LONGEST_GTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_LONGEST_LENGTH_EQUAL: Int
+  name_LONGEST_LENGTH_GT: Int
+  name_LONGEST_LENGTH_GTE: Int
+  name_LONGEST_LENGTH_LT: Int
+  name_LONGEST_LENGTH_LTE: Int
+  name_LONGEST_LT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_LONGEST_LTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_LT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_LTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_SHORTEST_EQUAL: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_SHORTEST_GT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_SHORTEST_GTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_SHORTEST_LENGTH_EQUAL: Int
+  name_SHORTEST_LENGTH_GT: Int
+  name_SHORTEST_LENGTH_GTE: Int
+  name_SHORTEST_LENGTH_LT: Int
+  name_SHORTEST_LENGTH_LTE: Int
+  name_SHORTEST_LT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_SHORTEST_LTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
 }
 
 input SeriesConnectInput {
@@ -804,14 +889,19 @@ input SeriesUpdateInput {
 
 input SeriesWhere {
   AND: [SeriesWhere!]
+  NOT: SeriesWhere
   OR: [SeriesWhere!]
   actors: ActorWhere @deprecated(reason : "Do not use")
   actorsAggregate: SeriesActorsAggregateInput @deprecated(reason : "Do not use")
   actorsConnection: ProductionActorsConnectionWhere @deprecated(reason : "Do not use")
+  "Return Series where all of the related ProductionActorsConnections match this filter"
   actorsConnection_ALL: ProductionActorsConnectionWhere @deprecated(reason : "Do not use")
+  "Return Series where none of the related ProductionActorsConnections match this filter"
   actorsConnection_NONE: ProductionActorsConnectionWhere @deprecated(reason : "Do not use")
   actorsConnection_NOT: ProductionActorsConnectionWhere @deprecated(reason : "Do not use")
+  "Return Series where one of the related ProductionActorsConnections match this filter"
   actorsConnection_SINGLE: ProductionActorsConnectionWhere @deprecated(reason : "Do not use")
+  "Return Series where some of the related ProductionActorsConnections match this filter"
   actorsConnection_SOME: ProductionActorsConnectionWhere @deprecated(reason : "Do not use")
   "Return Series where all of the related Actors match this filter"
   actors_ALL: ActorWhere @deprecated(reason : "Do not use")
@@ -828,17 +918,17 @@ input SeriesWhere {
   episodes_IN: [Int!]
   episodes_LT: Int
   episodes_LTE: Int
-  episodes_NOT: Int
-  episodes_NOT_IN: [Int!]
+  episodes_NOT: Int @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  episodes_NOT_IN: [Int!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   title: String
   title_CONTAINS: String
   title_ENDS_WITH: String
   title_IN: [String!]
-  title_NOT: String
-  title_NOT_CONTAINS: String
-  title_NOT_ENDS_WITH: String
-  title_NOT_IN: [String!]
-  title_NOT_STARTS_WITH: String
+  title_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   title_STARTS_WITH: String
 }
 

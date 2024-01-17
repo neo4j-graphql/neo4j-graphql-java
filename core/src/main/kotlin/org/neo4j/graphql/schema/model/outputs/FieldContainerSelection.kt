@@ -34,7 +34,7 @@ sealed class FieldContainerSelection {
             return field(field.fieldName, type) {
                 description(field.description)
                 comments(field.comments)
-                directives(field.otherDirectives)
+                directives(field.annotations.otherDirectives)
                 inputValueDefinitions(args)
             }
         }

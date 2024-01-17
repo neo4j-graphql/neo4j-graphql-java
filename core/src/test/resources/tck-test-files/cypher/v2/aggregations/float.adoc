@@ -10,16 +10,6 @@ type Movie {
   actorCount: Float!
 }
 ----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{
-  "enableRegex": true
-}
-----
 == Average
 
 .GraphQL-Query
@@ -37,18 +27,17 @@ type Movie {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-RETURN {
-	actorCount: {
-		average: avg(this.actorCount)
-	}
+CALL {
+    MATCH (this:Movie)
+    RETURN { average: avg(this.actorCount) } AS var0
 }
+RETURN { actorCount: var0 }
 ----
 
 '''
@@ -70,18 +59,17 @@ RETURN {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-RETURN {
-	actorCount: {
-		max: max(this.actorCount)
-	}
+CALL {
+    MATCH (this:Movie)
+    RETURN { max: max(this.actorCount) } AS var0
 }
+RETURN { actorCount: var0 }
 ----
 
 '''
@@ -103,18 +91,17 @@ RETURN {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-RETURN {
-	actorCount: {
-		min: min(this.actorCount)
-	}
+CALL {
+    MATCH (this:Movie)
+    RETURN { min: min(this.actorCount) } AS var0
 }
+RETURN { actorCount: var0 }
 ----
 
 '''
@@ -139,21 +126,57 @@ RETURN {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-RETURN {
-	actorCount: {
-		min: min(this.actorCount),
-		max: max(this.actorCount),
-		average: avg(this.actorCount),
-		sum: sum(this.actorCount)
-	}
+CALL {
+    MATCH (this:Movie)
+    RETURN { min: min(this.actorCount), max: max(this.actorCount), average: avg(this.actorCount), sum: sum(this.actorCount) } AS var0
 }
+RETURN { actorCount: var0 }
+----
+
+'''
+
+== Min, Max, Sum and Average with count
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesAggregate {
+    count
+    actorCount {
+      min
+      max
+      average
+      sum
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+    MATCH (this:Movie)
+    RETURN count(this) AS var0
+}
+CALL {
+    MATCH (this:Movie)
+    RETURN { min: min(this.actorCount), max: max(this.actorCount), average: avg(this.actorCount), sum: sum(this.actorCount) } AS var1
+}
+RETURN { count: var0, actorCount: var1 }
 ----
 
 '''
@@ -175,18 +198,17 @@ RETURN {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-RETURN {
-	actorCount: {
-		sum: sum(this.actorCount)
-	}
+CALL {
+    MATCH (this:Movie)
+    RETURN { sum: sum(this.actorCount) } AS var0
 }
+RETURN { actorCount: var0 }
 ----
 
 '''

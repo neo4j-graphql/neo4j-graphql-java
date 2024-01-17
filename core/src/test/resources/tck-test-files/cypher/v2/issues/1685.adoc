@@ -23,14 +23,6 @@ type Genre {
   movies: [Production!]! @relationship(type: "HAS_GENRE", direction: IN)
 }
 ----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{}
-----
 == should be possible to count connection using list predicates
 
 .GraphQL-Query
@@ -52,7 +44,7 @@ query Genres {
 [source,json]
 ----
 {
-  "this_connection_moviesConnectionparam0" : "Action"
+  "param0": "Action"
 }
 ----
 
@@ -61,32 +53,22 @@ query Genres {
 ----
 MATCH (this:Genre)
 CALL {
-	WITH this
-	CALL {
-		WITH this
-		MATCH (this)<-[this_connection_moviesConnectionthis0:HAS_GENRE]-(this_Movie:Movie)
-		WHERE EXISTS {
-			MATCH (this_Movie)-[this_connection_moviesConnectionthis1:HAS_GENRE]->(this_connection_moviesConnectionthis2:Genre)
-			WHERE this_connection_moviesConnectionthis2.name = $this_connection_moviesConnectionparam0
-		}
-		WITH {
-			node: {
-				__resolveType: 'Movie'
-			}
-		} AS edge
-		RETURN edge
-	}
-	WITH collect(edge) AS edges
-	WITH edges, size(edges) AS totalCount
-	RETURN {
-		edges: edges,
-		totalCount: totalCount
-	} AS this_moviesConnection
+    WITH this
+    CALL {
+        WITH this
+        MATCH (this)<-[this0:HAS_GENRE]-(this1:Movie)
+        WHERE EXISTS {
+            MATCH (this1)-[this2:HAS_GENRE]->(this3:Genre)
+            WHERE this3.name = $param0
+        }
+        WITH { node: { __resolveType: "Movie", __id: id(this1) } } AS edge
+        RETURN edge
+    }
+    WITH collect(edge) AS edges
+    WITH edges, size(edges) AS totalCount
+    RETURN { edges: edges, totalCount: totalCount } AS var4
 }
-RETURN this {
-	moviesConnection: this_moviesConnection,
-	.name
-} AS this
+RETURN this { .name, moviesConnection: var4 } AS this
 ----
 
 '''

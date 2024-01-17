@@ -2,63 +2,29 @@ package org.neo4j.graphql.domain
 
 import graphql.language.Comment
 import graphql.language.Description
-import graphql.language.Directive
 import org.neo4j.cypherdsl.core.Cypher
 import org.neo4j.graphql.QueryContext
 import org.neo4j.graphql.decapitalize
-import org.neo4j.graphql.domain.directives.*
+import org.neo4j.graphql.domain.directives.Annotations
 import org.neo4j.graphql.domain.fields.BaseField
+import org.neo4j.graphql.domain.naming.ConcreteEntityOperations
 import org.neo4j.graphql.handler.utils.ChainString
-import org.neo4j.graphql.utils.CamelCaseUtils.camelCase
 
 class Node(
     name: String,
     description: Description? = null,
     comments: List<Comment> = emptyList(),
     fields: List<BaseField>,
-    otherDirectives: List<Directive>,
     interfaces: List<Interface>,
-    exclude: ExcludeDirective? = null,
-    val nodeDirective: NodeDirective? = null,
-    val fulltextDirective: FullTextDirective? = null,
-    val queryOptions: QueryOptionsDirective? = null,
-    plural: String?,
-    auth: AuthDirective? = null,
-) : ImplementingType(name, description, comments, fields, otherDirectives, interfaces, exclude, auth) {
+    annotations: Annotations,
+) : ImplementingType(name, description, comments, fields, interfaces, annotations) {
 
-    val mainLabel: String get() = nodeDirective?.label ?: name
+    override val operations = ConcreteEntityOperations(name, annotations)
+    val hasRelayId: Boolean get() = fields.any { it.annotations.relayId != null }
 
-    val additionalLabels: List<String> get() = nodeDirective?.additionalLabels ?: emptyList()
+    val mainLabel: String get() = annotations.node?.labels?.firstOrNull() ?: name
 
-    val typeNames by lazy { TypeNames() }
-
-    val aggregateTypeNames by lazy { AggregateTypeNames() }
-
-    override val plural: String by lazy {
-        plural?.let { leadingUnderscores(it) + camelCase(it) } ?: super.plural
-    }
-
-    inner class TypeNames {
-        val createResponse = "Create${pascalCasePlural}MutationResponse"
-        val updateResponse = "Update${pascalCasePlural}MutationResponse"
-    }
-
-    inner class AggregateTypeNames {
-        val selection = "${name}AggregateSelection"
-        val input = "${name}AggregateSelectionInput"
-    }
-
-    val rootTypeFieldNames by lazy { RootTypeFieldNames() }
-
-    inner class RootTypeFieldNames {
-        val create = "create${pascalCasePlural}"
-        val read = plural
-        val connection = "${plural}Connection"
-        val update = "update${pascalCasePlural}"
-        val delete = "delete${pascalCasePlural}"
-        val aggregate = "${plural}Aggregate"
-    }
-
+    val additionalLabels: List<String> get() = annotations.node?.labels?.drop(1) ?: emptyList()
     fun allLabels(queryContext: QueryContext?): List<String> = listOf(mainLabel) + additionalLabels(queryContext)
 
     fun additionalLabels(queryContext: QueryContext?): List<String> =

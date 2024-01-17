@@ -25,7 +25,7 @@ class ConnectionSort(data: Dict) {
                     ?.let { generatePropertySortIT(it, ctx) }
                     ?.let { fields += inputValue(Constants.EDGE_FIELD, it.asType()) }
 
-                field.relationshipField.getImplementingType()
+                field.relationshipField.implementingType
                     ?.let { SortInput.Companion.Augmentation.generateSortIT(it, ctx) }
                     ?.let { fields += inputValue(Constants.NODE_FIELD, it.asType()) }
             }

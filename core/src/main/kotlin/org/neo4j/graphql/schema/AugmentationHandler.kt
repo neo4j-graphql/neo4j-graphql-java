@@ -4,6 +4,8 @@ import graphql.language.*
 import graphql.schema.DataFetcher
 import graphql.schema.FieldCoordinates
 import org.neo4j.graphql.*
+import org.neo4j.graphql.domain.Entity
+import org.neo4j.graphql.domain.Model
 import org.neo4j.graphql.domain.Node
 
 /**
@@ -15,9 +17,19 @@ import org.neo4j.graphql.domain.Node
  */
 abstract class AugmentationHandler(val ctx: AugmentationContext) : AugmentationBase {
 
-    private val typeDefinitionRegistry = ctx.typeDefinitionRegistry
+    fun interface NodeAugmentation {
+        fun augmentNode(node: Node): List<AugmentedField>
+    }
 
-    abstract fun augmentNode(node: Node): List<AugmentedField>
+    fun interface EntityAugmentation {
+        fun augmentEntity(entity: Entity): List<AugmentedField>
+    }
+
+    fun interface ModelAugmentation {
+        fun augmentModel(model: Model): List<AugmentedField>
+    }
+
+    private val typeDefinitionRegistry = ctx.typeDefinitionRegistry
 
     data class AugmentedField(
         val coordinates: FieldCoordinates,
@@ -35,11 +47,12 @@ abstract class AugmentationHandler(val ctx: AugmentationContext) : AugmentationB
     fun addQueryField(
         name: String,
         type: Type<*>,
+        init: (FieldDefinition.Builder.() -> Unit)? = null,
         args: ((MutableList<InputValueDefinition>) -> Unit)?
     ): FieldCoordinates {
         val argList = mutableListOf<InputValueDefinition>()
         args?.invoke(argList)
-        return addQueryField(field(name, type, argList))
+        return addQueryField(field(name, type, argList, init))
     }
 
     fun addQueryField(fieldDefinition: FieldDefinition): FieldCoordinates {
@@ -66,6 +79,22 @@ abstract class AugmentationHandler(val ctx: AugmentationContext) : AugmentationB
         val mutationTypeName = typeDefinitionRegistry.mutationTypeName()
         addOperation(mutationTypeName, fieldDefinition)
         return FieldCoordinates.coordinates(mutationTypeName, fieldDefinition.name)
+    }
+
+    fun addSubscriptionField(
+        name: String,
+        type: Type<*>,
+        args: ((MutableList<InputValueDefinition>) -> Unit)?
+    ): FieldCoordinates {
+        val argList = mutableListOf<InputValueDefinition>()
+        args?.invoke(argList)
+        return addSubscriptionField(field(name, type, argList))
+    }
+
+    fun addSubscriptionField(fieldDefinition: FieldDefinition): FieldCoordinates {
+        val subscriptionTypeName = typeDefinitionRegistry.subscriptionTypeName()
+        addOperation(subscriptionTypeName, fieldDefinition)
+        return FieldCoordinates.coordinates(subscriptionTypeName, fieldDefinition.name)
     }
 
 

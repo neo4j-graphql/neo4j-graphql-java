@@ -21,20 +21,10 @@ type Place implements Entity {
 }
 
 type Interaction {
-  id: ID! @id
+  id: ID! @id @unique
   kind: String!
   subjects: [Entity!]! @relationship(type: "ACTED_IN", direction: IN)
   objects: [Entity!]! @relationship(type: "ACTED_IN", direction: OUT)
-}
-----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{
-  "enableRegex": true
 }
 ----
 == should be able to query multiple interface relations
@@ -58,56 +48,46 @@ type Interaction {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 MATCH (this:Interaction)
-WITH *
 CALL {
-	WITH *
-	CALL {
-		WITH this
-		MATCH (this)<-[this0:ACTED_IN]-(this_Person:Person)
-		RETURN {
-			__resolveType: 'Person',
-			id: this_Person.id
-		} AS this_subjects UNION
-		WITH this
-		MATCH (this)<-[this1:ACTED_IN]-(this_Place:Place)
-		RETURN {
-			__resolveType: 'Place',
-			id: this_Place.id
-		} AS this_subjects
-	}
-	RETURN collect(this_subjects) AS this_subjects
+    WITH this
+    CALL {
+        WITH *
+        MATCH (this)<-[this0:ACTED_IN]-(this1:Person)
+        WITH this1 { .id, __resolveType: "Person", __id: id(this1) } AS this1
+        RETURN this1 AS var2
+        UNION
+        WITH *
+        MATCH (this)<-[this3:ACTED_IN]-(this4:Place)
+        WITH this4 { .id, __resolveType: "Place", __id: id(this4) } AS this4
+        RETURN this4 AS var2
+    }
+    WITH var2
+    RETURN collect(var2) AS var2
 }
-WITH *
 CALL {
-	WITH *
-	CALL {
-		WITH this
-		MATCH (this)-[this2:ACTED_IN]->(this_Person:Person)
-		RETURN {
-			__resolveType: 'Person',
-			id: this_Person.id
-		} AS this_objects UNION
-		WITH this
-		MATCH (this)-[this3:ACTED_IN]->(this_Place:Place)
-		RETURN {
-			__resolveType: 'Place',
-			id: this_Place.id
-		} AS this_objects
-	}
-	RETURN collect(this_objects) AS this_objects
+    WITH this
+    CALL {
+        WITH *
+        MATCH (this)-[this5:ACTED_IN]->(this6:Person)
+        WITH this6 { .id, __resolveType: "Person", __id: id(this6) } AS this6
+        RETURN this6 AS var7
+        UNION
+        WITH *
+        MATCH (this)-[this8:ACTED_IN]->(this9:Place)
+        WITH this9 { .id, __resolveType: "Place", __id: id(this9) } AS this9
+        RETURN this9 AS var7
+    }
+    WITH var7
+    RETURN collect(var7) AS var7
 }
-RETURN this {
-	.id,
-	subjects: this_subjects,
-	objects: this_objects
-} AS this
+RETURN this { .id, subjects: var2, objects: var7 } AS this
 ----
 
 '''

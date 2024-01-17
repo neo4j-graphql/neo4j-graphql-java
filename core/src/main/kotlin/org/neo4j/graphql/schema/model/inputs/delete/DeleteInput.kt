@@ -30,7 +30,8 @@ sealed class DeleteInput private constructor(implementingType: ImplementingType,
                     node.name,
                     Constants.InputTypeSuffix.DeleteInput,
                     node.relationFields,
-                    RelationFieldBaseAugmentation::generateFieldDeleteIT
+                    RelationFieldBaseAugmentation::generateFieldDeleteIT,
+                    condition = { it.annotations.relationship?.isDeleteAllowed != false },
                 )
         }
     }

@@ -1,9 +1,9 @@
 package org.neo4j.graphql
 
-import graphql.language.Description
-import graphql.language.VariableReference
+import graphql.language.*
 import graphql.schema.GraphQLOutputType
 import org.neo4j.cypherdsl.core.*
+import org.neo4j.cypherdsl.core.Node
 import org.neo4j.cypherdsl.core.StatementBuilder.*
 import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.schema.model.inputs.Dict
@@ -230,3 +230,5 @@ fun Iterable<IResolveTree>.project(expression: Expression): List<Any> = this.fla
 
 fun Any?.toDict() = Dict.create(this) ?: Dict.EMPTY
 fun Iterable<Any?>.toDict(): List<Dict> = this.mapNotNull { Dict.create(it) }
+
+fun String.toDeprecatedDirective() = Directive("deprecated", listOf(Argument("reason", StringValue(this))))

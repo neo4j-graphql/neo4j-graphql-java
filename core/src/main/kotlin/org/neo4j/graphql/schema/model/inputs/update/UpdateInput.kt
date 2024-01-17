@@ -102,6 +102,7 @@ sealed class UpdateInput private constructor(implementingType: ImplementingType,
             scalarFields = scalarFields,
             update = true,
             enforceFields = enforceFields,
+            condition = { it.annotations.settable?.onUpdate != false }
         )
     }
 }

@@ -17,20 +17,11 @@ type Actor {
   movies: [Movie!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: OUT)
 }
 
-interface ActedIn {
+interface ActedIn @relationshipProperties {
   screenTime: Int!
 }
 ----
 
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{
-  "enableRegex": true
-}
-----
 == Composite
 
 .GraphQL-Query
@@ -58,11 +49,11 @@ interface ActedIn {
 [source,json]
 ----
 {
-  "param0" : "Forrest Gump",
-  "this_connection_actorsConnectionparam0" : "Tom",
-  "this_connection_actorsConnectionparam1" : "Hanks",
-  "this_connection_actorsConnectionparam2" : 30,
-  "this_connection_actorsConnectionparam3" : 90
+  "param0": "Forrest Gump",
+  "param1": "Tom",
+  "param2": "Hanks",
+  "param3": 30,
+  "param4": 90
 }
 ----
 
@@ -72,30 +63,258 @@ interface ActedIn {
 MATCH (this:Movie)
 WHERE this.title = $param0
 CALL {
-	WITH this
-	MATCH (this)<-[this_connection_actorsConnectionthis0:ACTED_IN]-(this_Actor:Actor)
-	WHERE (this_Actor.firstName = $this_connection_actorsConnectionparam0
-		AND this_Actor.lastName = $this_connection_actorsConnectionparam1
-		AND this_connection_actorsConnectionthis0.screenTime > $this_connection_actorsConnectionparam2
-		AND this_connection_actorsConnectionthis0.screenTime < $this_connection_actorsConnectionparam3)
-	WITH {
-		screenTime: this_connection_actorsConnectionthis0.screenTime,
-		node: {
-			firstName: this_Actor.firstName,
-			lastName: this_Actor.lastName
-		}
-	} AS edge
-	WITH collect(edge) AS edges
-	WITH edges, size(edges) AS totalCount
-	RETURN {
-		edges: edges,
-		totalCount: totalCount
-	} AS this_actorsConnection
+    WITH this
+    MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
+    WHERE ((this1.firstName = $param1 AND this1.lastName = $param2) AND (this0.screenTime > $param3 AND this0.screenTime < $param4))
+    WITH collect({ node: this1, relationship: this0 }) AS edges
+    WITH edges, size(edges) AS totalCount
+    CALL {
+        WITH edges
+        UNWIND edges AS edge
+        WITH edge.node AS this1, edge.relationship AS this0
+        RETURN collect({ screenTime: this0.screenTime, node: { firstName: this1.firstName, lastName: this1.lastName } }) AS var2
+    }
+    RETURN { edges: var2, totalCount: totalCount } AS var3
 }
-RETURN this {
-	.title,
-	actorsConnection: this_actorsConnection
-} AS this
+RETURN this { .title, actorsConnection: var3 } AS this
+----
+
+'''
+
+== Composite NOT
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {title: "Forrest Gump"}) {
+    title
+    actorsConnection(
+      where: {node: {NOT: {firstName: "Tom", lastName: "Hanks"}}, edge: {NOT: {screenTime_GT: 30, screenTime_LT: 90}}}
+    ) {
+      edges {
+        screenTime
+        node {
+          firstName
+          lastName
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "Forrest Gump",
+  "param1": "Tom",
+  "param2": "Hanks",
+  "param3": 90,
+  "param4": 30
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+CALL {
+    WITH this
+    MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
+    WHERE (NOT (this1.firstName = $param1 AND this1.lastName = $param2) AND NOT (this0.screenTime < $param3 AND this0.screenTime > $param4))
+    WITH collect({ node: this1, relationship: this0 }) AS edges
+    WITH edges, size(edges) AS totalCount
+    CALL {
+        WITH edges
+        UNWIND edges AS edge
+        WITH edge.node AS this1, edge.relationship AS this0
+        RETURN collect({ screenTime: this0.screenTime, node: { firstName: this1.firstName, lastName: this1.lastName } }) AS var2
+    }
+    RETURN { edges: var2, totalCount: totalCount } AS var3
+}
+RETURN this { .title, actorsConnection: var3 } AS this
+----
+
+'''
+
+== Composite NOT with complex nested filters
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {title: "Forrest Gump"}) {
+    title
+    actorsConnection(
+      where: {NOT: {AND: [{OR: [{node: {AND: [{firstName: "Tom"}, {lastName: "Hanks"}]}}, {edge: {AND: [{screenTime_GT: 30}, {screenTime_LT: 90}]}}]}, {node: {AND: [{firstName: "Tommy"}, {lastName: "Ford"}]}}]}}
+    ) {
+      edges {
+        screenTime
+        node {
+          firstName
+          lastName
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "Forrest Gump",
+  "param1": "Tom",
+  "param2": "Hanks",
+  "param3": 30,
+  "param4": 90,
+  "param5": "Tommy",
+  "param6": "Ford"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+CALL {
+    WITH this
+    MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
+    WHERE NOT (((this1.firstName = $param1 AND this1.lastName = $param2) OR (this0.screenTime > $param3 AND this0.screenTime < $param4)) AND (this1.firstName = $param5 AND this1.lastName = $param6))
+    WITH collect({ node: this1, relationship: this0 }) AS edges
+    WITH edges, size(edges) AS totalCount
+    CALL {
+        WITH edges
+        UNWIND edges AS edge
+        WITH edge.node AS this1, edge.relationship AS this0
+        RETURN collect({ screenTime: this0.screenTime, node: { firstName: this1.firstName, lastName: this1.lastName } }) AS var2
+    }
+    RETURN { edges: var2, totalCount: totalCount } AS var3
+}
+RETURN this { .title, actorsConnection: var3 } AS this
+----
+
+'''
+
+== Composite NOT with nested OR (edge and node)
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {title: "Forrest Gump"}) {
+    title
+    actorsConnection(
+      where: {NOT: {OR: [{node: {AND: [{firstName: "Tom"}, {lastName: "Hanks"}]}}, {edge: {AND: [{screenTime_GT: 30}, {screenTime_LT: 90}]}}]}}
+    ) {
+      edges {
+        screenTime
+        node {
+          firstName
+          lastName
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "Forrest Gump",
+  "param1": "Tom",
+  "param2": "Hanks",
+  "param3": 30,
+  "param4": 90
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+CALL {
+    WITH this
+    MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
+    WHERE NOT ((this1.firstName = $param1 AND this1.lastName = $param2) OR (this0.screenTime > $param3 AND this0.screenTime < $param4))
+    WITH collect({ node: this1, relationship: this0 }) AS edges
+    WITH edges, size(edges) AS totalCount
+    CALL {
+        WITH edges
+        UNWIND edges AS edge
+        WITH edge.node AS this1, edge.relationship AS this0
+        RETURN collect({ screenTime: this0.screenTime, node: { firstName: this1.firstName, lastName: this1.lastName } }) AS var2
+    }
+    RETURN { edges: var2, totalCount: totalCount } AS var3
+}
+RETURN this { .title, actorsConnection: var3 } AS this
+----
+
+'''
+
+== Composite OR (edge and node)
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {title: "Forrest Gump"}) {
+    title
+    actorsConnection(
+      where: {OR: [{node: {AND: [{firstName: "Tom"}, {lastName: "Hanks"}]}}, {edge: {AND: [{screenTime_GT: 30}, {screenTime_LT: 90}]}}]}
+    ) {
+      edges {
+        screenTime
+        node {
+          firstName
+          lastName
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "Forrest Gump",
+  "param1": "Tom",
+  "param2": "Hanks",
+  "param3": 30,
+  "param4": 90
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+CALL {
+    WITH this
+    MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
+    WHERE ((this1.firstName = $param1 AND this1.lastName = $param2) OR (this0.screenTime > $param3 AND this0.screenTime < $param4))
+    WITH collect({ node: this1, relationship: this0 }) AS edges
+    WITH edges, size(edges) AS totalCount
+    CALL {
+        WITH edges
+        UNWIND edges AS edge
+        WITH edge.node AS this1, edge.relationship AS this0
+        RETURN collect({ screenTime: this0.screenTime, node: { firstName: this1.firstName, lastName: this1.lastName } }) AS var2
+    }
+    RETURN { edges: var2, totalCount: totalCount } AS var3
+}
+RETURN this { .title, actorsConnection: var3 } AS this
 ----
 
 '''

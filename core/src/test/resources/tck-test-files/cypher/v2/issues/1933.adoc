@@ -7,9 +7,9 @@
 [source,graphql,schema=true]
 ----
 type Employee {
-  employeeId: ID! @id(autogenerate: false)
-  firstName: String! @readonly
-  lastName: String @readonly
+  employeeId: ID! @unique
+  firstName: String! @settable(onCreate: false, onUpdate: false)
+  lastName: String @settable(onCreate: false, onUpdate: false)
   projects: [Project!]! @relationship(type: "PARTICIPATES", direction: OUT, properties: "EmployeeParticipationProperties")
 }
 
@@ -18,19 +18,11 @@ interface EmployeeParticipationProperties @relationshipProperties {
 }
 
 type Project {
-  projectId: ID! @id(autogenerate: false)
-  name: String! @readonly
+  projectId: ID! @unique
+  name: String! @settable(onCreate: false, onUpdate: false)
   description: String
   employees: [Employee!]! @relationship(type: "PARTICIPATES", direction: IN, properties: "EmployeeParticipationProperties")
 }
-----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{}
 ----
 == should compare for LTE allocation in return statement
 
@@ -61,7 +53,7 @@ type Project {
 [source,json]
 ----
 {
-  "param0" : 25
+  "param0": 25
 }
 ----
 
@@ -70,38 +62,23 @@ type Project {
 ----
 MATCH (this:Employee)
 CALL {
-	WITH this
-	MATCH (this)-[this0:PARTICIPATES]->(this1:Project)
-	RETURN any(var2 IN collect(this0.allocation) WHERE var2 <= $param0) AS var3
+    WITH this
+    MATCH (this)-[this0:PARTICIPATES]->(this1:Project)
+    RETURN any(var2 IN collect(this0.allocation) WHERE var2 <= $param0) AS var3
 }
 WITH *
 WHERE var3 = true
 CALL {
-	WITH this
-	MATCH (this)-[this_projectsAggregate_this0:PARTICIPATES]->(this_projectsAggregate_this1:Project)
-	RETURN count(this_projectsAggregate_this1) AS this_projectsAggregate_var2
+    WITH this
+    MATCH (this)-[this4:PARTICIPATES]->(this5:Project)
+    RETURN count(this5) AS var6
 }
 CALL {
-	WITH this
-	MATCH (this)-[this_projectsAggregate_this0:PARTICIPATES]->(this_projectsAggregate_this1:Project)
-	RETURN {
-		min: min(this_projectsAggregate_this0.allocation),
-		max: max(this_projectsAggregate_this0.allocation),
-		average: avg(this_projectsAggregate_this0.allocation),
-		sum: sum(this_projectsAggregate_this0.allocation)
-	} AS this_projectsAggregate_var3
+    WITH this
+    MATCH (this)-[this7:PARTICIPATES]->(this8:Project)
+    RETURN { min: min(this7.allocation), max: max(this7.allocation), average: avg(this7.allocation), sum: sum(this7.allocation) } AS var9
 }
-RETURN this {
-	.employeeId,
-	.firstName,
-	.lastName,
-	projectsAggregate: {
-		count: this_projectsAggregate_var2,
-		edge: {
-			allocation: this_projectsAggregate_var3
-		}
-	}
-} AS this
+RETURN this { .employeeId, .firstName, .lastName, projectsAggregate: { count: var6, edge: { allocation: var9 } } } AS this
 ----
 
 '''
@@ -135,7 +112,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 25
+  "param0": 25
 }
 ----
 
@@ -144,38 +121,23 @@ RETURN this {
 ----
 MATCH (this:Employee)
 CALL {
-	WITH this
-	MATCH (this)-[this0:PARTICIPATES]->(this1:Project)
-	RETURN sum(this0.allocation) <= $param0 AS var2
+    WITH this
+    MATCH (this)-[this0:PARTICIPATES]->(this1:Project)
+    RETURN sum(this0.allocation) <= $param0 AS var2
 }
 WITH *
 WHERE var2 = true
 CALL {
-	WITH this
-	MATCH (this)-[this_projectsAggregate_this0:PARTICIPATES]->(this_projectsAggregate_this1:Project)
-	RETURN count(this_projectsAggregate_this1) AS this_projectsAggregate_var2
+    WITH this
+    MATCH (this)-[this3:PARTICIPATES]->(this4:Project)
+    RETURN count(this4) AS var5
 }
 CALL {
-	WITH this
-	MATCH (this)-[this_projectsAggregate_this0:PARTICIPATES]->(this_projectsAggregate_this1:Project)
-	RETURN {
-		min: min(this_projectsAggregate_this0.allocation),
-		max: max(this_projectsAggregate_this0.allocation),
-		average: avg(this_projectsAggregate_this0.allocation),
-		sum: sum(this_projectsAggregate_this0.allocation)
-	} AS this_projectsAggregate_var3
+    WITH this
+    MATCH (this)-[this6:PARTICIPATES]->(this7:Project)
+    RETURN { min: min(this6.allocation), max: max(this6.allocation), average: avg(this6.allocation), sum: sum(this6.allocation) } AS var8
 }
-RETURN this {
-	.employeeId,
-	.firstName,
-	.lastName,
-	projectsAggregate: {
-		count: this_projectsAggregate_var2,
-		edge: {
-			allocation: this_projectsAggregate_var3
-		}
-	}
-} AS this
+RETURN this { .employeeId, .firstName, .lastName, projectsAggregate: { count: var5, edge: { allocation: var8 } } } AS this
 ----
 
 '''

@@ -72,7 +72,11 @@ sealed interface RelationFieldInput {
                     }
 
                     CreateInput.Augmentation
-                        .addEdgePropertyCreateInputField(rel.properties, fields, ctx, required = { true })
+                        .addEdgePropertyCreateInputField(
+                            rel.properties,
+                            fields,
+                            ctx,
+                            required = { it.hasRequiredNonGeneratedFields })
                 }
 
             private fun generateCreateInputIT(interfaze: Interface, ctx: AugmentationContext) =

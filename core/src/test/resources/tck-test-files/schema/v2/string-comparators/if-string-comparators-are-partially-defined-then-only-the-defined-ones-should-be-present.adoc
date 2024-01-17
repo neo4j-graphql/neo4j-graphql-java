@@ -11,9 +11,7 @@ type Movie {
 }
 ----
 
-== Augmented schema
-
-=== Configuration
+== Configuration
 
 .Configuration
 [source,json,schema-config=true]
@@ -21,16 +19,18 @@ type Movie {
 {
   "features": {
     "filters": {
-      "string": {
-        "lt": true,
-        "lte": true,
-        "gt": true,
-        "gte": true
+      "String": {
+        "LT": true,
+        "GT": true,
+        "GTE": true,
+        "LTE": true
       }
     }
   }
 }
 ----
+
+== Augmented schema
 
 .Augmented Schema
 [source,graphql]
@@ -40,8 +40,9 @@ schema {
   mutation: Mutation
 }
 
+"Information about the number of nodes and relationships created during a create mutation"
 type CreateInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   relationshipsCreated: Int!
 }
@@ -51,8 +52,9 @@ type CreateMoviesMutationResponse {
   movies: [Movie!]!
 }
 
+"Information about the number of nodes and relationships deleted during a delete mutation"
 type DeleteInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesDeleted: Int!
   relationshipsDeleted: Int!
 }
@@ -102,8 +104,9 @@ type StringAggregateSelectionNullable {
   shortest: String
 }
 
+"Information about the number of nodes and relationships created and deleted during an update mutation"
 type UpdateInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   nodesDeleted: Int!
   relationshipsCreated: Int!
@@ -115,6 +118,7 @@ type UpdateMoviesMutationResponse {
   movies: [Movie!]!
 }
 
+"An enum for sorting in either ascending or descending order."
 enum SortDirection {
   "Sort by field values in ascending order."
   ASC
@@ -144,6 +148,7 @@ input MovieUpdateInput {
 
 input MovieWhere {
   AND: [MovieWhere!]
+  NOT: MovieWhere
   OR: [MovieWhere!]
   title: String
   title_CONTAINS: String
@@ -153,11 +158,11 @@ input MovieWhere {
   title_IN: [String]
   title_LT: String
   title_LTE: String
-  title_NOT: String
-  title_NOT_CONTAINS: String
-  title_NOT_ENDS_WITH: String
-  title_NOT_IN: [String]
-  title_NOT_STARTS_WITH: String
+  title_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_IN: [String] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   title_STARTS_WITH: String
 }
 

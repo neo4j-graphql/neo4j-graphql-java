@@ -6,7 +6,6 @@ import org.neo4j.cypherdsl.core.*
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
-import org.neo4j.graphql.domain.directives.ExcludeDirective
 import org.neo4j.graphql.handler.BaseDataFetcher
 import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.schema.AugmentationContext
@@ -35,15 +34,20 @@ class UpdateResolver private constructor(
     val node: Node
 ) : BaseDataFetcher(schemaConfig) {
 
-    class Factory(ctx: AugmentationContext) : AugmentationHandler(ctx) {
+    class Factory(ctx: AugmentationContext) : AugmentationHandler(ctx), AugmentationHandler.NodeAugmentation {
 
         override fun augmentNode(node: Node): List<AugmentedField> {
-            if (!node.isOperationAllowed(ExcludeDirective.ExcludeOperation.UPDATE)) {
+            if (node.annotations.mutation?.update == false) {
                 return emptyList()
             }
 
-            val responseType = addResponseType(node, node.typeNames.updateResponse, Constants.Types.UpdateInfo)
-            val coordinates = addMutationField(node.rootTypeFieldNames.update, responseType.asRequiredType()) { args ->
+            val responseType = addResponseType(
+                node,
+                node.operations.mutationResponseTypeNames.update,
+                Constants.Types.UpdateInfo
+            )
+            val coordinates =
+                addMutationField(node.operations.rootTypeFieldNames.update, responseType.asRequiredType()) { args ->
 
                 WhereInput.NodeWhereInput.Augmentation
                     .generateWhereIT(node, ctx)
@@ -284,7 +288,10 @@ class UpdateResolver private constructor(
 
         }
 
-        val projection = resolveTree.getFieldOfType(node.typeNames.updateResponse, node.plural)
+        val projection = resolveTree.getFieldOfType(
+            node.operations.mutationResponseTypeNames.update,
+            node.plural
+        )
             .firstOrNull()// TODO use all aliases
             ?.let {
                 ProjectionTranslator()

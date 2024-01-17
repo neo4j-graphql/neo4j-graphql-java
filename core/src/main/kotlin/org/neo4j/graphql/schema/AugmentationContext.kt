@@ -35,6 +35,16 @@ class AugmentationContext(
         ::interfaceType
     )
 
+    private val enumTypeHandler = HandledTypes(
+        { name -> typeDefinitionRegistry.getTypeByName(name) },
+        ::enumType
+    )
+
+    private val unionTypeHandler = HandledTypes(
+        { name -> typeDefinitionRegistry.getTypeByName(name) },
+        ::unionType
+    )
+
     @Suppress("FINITE_BOUNDS_VIOLATION_IN_JAVA")
     private inner class HandledTypes<BUILDER, DEF : TypeDefinition<DEF>, FIELD>(
         val typeResolver: (name: String) -> DEF?,
@@ -91,7 +101,6 @@ class AugmentationContext(
         return type.build()
     }
 
-
     fun getOrCreateObjectType(
         name: String,
         init: (ObjectTypeDefinition.Builder.() -> Unit)? = null,
@@ -128,6 +137,42 @@ class AugmentationContext(
         return type.build()
     }
 
+    fun getOrCreateEnumType(
+        name: String,
+        init: (EnumTypeDefinition.Builder.() -> Unit)? = null,
+        initValues: (enumValues: MutableList<EnumValueDefinition>, name: String) -> Unit
+    ): String? = enumTypeHandler.getOrCreateType(name, init, initValues)
+
+    private fun enumType(
+        name: String,
+        values: List<EnumValueDefinition>,
+        init: (EnumTypeDefinition.Builder.() -> Unit)? = null
+    ): EnumTypeDefinition {
+        val type = EnumTypeDefinition.newEnumTypeDefinition()
+        type.name(name)
+        type.enumValueDefinitions(values)
+        init?.let { type.it() }
+        return type.build()
+    }
+
+    fun getOrCreateUnionType(
+        name: String,
+        init: (UnionTypeDefinition.Builder.() -> Unit)? = null,
+        initValues: (members: MutableList<Type<*>>, name: String) -> Unit
+    ): String? = unionTypeHandler.getOrCreateType(name, init, initValues)
+
+    private fun unionType(
+        name: String,
+        values: List<Type<*>>,
+        init: (UnionTypeDefinition.Builder.() -> Unit)? = null
+    ): UnionTypeDefinition {
+        val type = UnionTypeDefinition.newUnionTypeDefinition()
+        type.name(name)
+        type.memberTypes(values)
+        init?.let { type.it() }
+        return type.build()
+    }
+
     fun getOrCreateRelationInputObjectType(
         sourceName: String,
         suffix: String,
@@ -137,12 +182,14 @@ class AugmentationContext(
         scalarFields: List<ScalarField> = emptyList(),
         update: Boolean = false,
         enforceFields: Boolean = false,
+        condition: (RelationField) -> Boolean = { true }
     ): String? = getOrCreateInputObjectType(sourceName + suffix) { fields, _ ->
 
         ScalarProperties.Companion.Augmentation
             .addScalarFields(fields, sourceName, scalarFields, update, this)
 
         relationFields
+            .filter { condition(it) }
             .forEach { rel ->
                 getTypeFromRelationField(rel, extractor)?.let { typeName ->
                     val type = if (!rel.isUnion && wrapList) {
@@ -156,11 +203,13 @@ class AugmentationContext(
                 }
             }
         if (fields.isEmpty() && enforceFields) {
-            fields += inputValue(Constants.EMPTY_INPUT, Constants.Types.Boolean) {
-                // TODO use a link of this project
-                description("Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/".asDescription())
-            }
+            fields += emptyInputField()
         }
+    }
+
+    fun emptyInputField() = inputValue(Constants.EMPTY_INPUT, Constants.Types.Boolean) {
+        // TODO use a link of this project
+        description("Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/".asDescription())
     }
 
     fun getTypeFromRelationField(
@@ -200,6 +249,19 @@ class AugmentationContext(
     ) {
         generateImplementationDelegate(interfaze, inputTypeSuffix, asList = asList, getNodeType)?.let {
             fields += inputValue(Constants.ON, it.asType())
+        }
+    }
+
+    fun addTypenameEnum(
+        interfaze: Interface,
+        fields: MutableList<InputValueDefinition>,
+    ) {
+        getOrCreateEnumType("${interfaze.name}Implementation") { enumValues, _ ->
+            interfaze.implementations.values.forEach { node ->
+                enumValues += EnumValueDefinition(node.name)
+            }
+        }?.let {
+            fields += inputValue(Constants.TYPENAME_IN, ListType(it.asRequiredType()))
         }
     }
 

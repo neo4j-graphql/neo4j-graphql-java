@@ -1,0 +1,1066 @@
+:toc:
+
+= Subscriptions -> Type with relationship to a subscriptions excluded type + Union type
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  id: ID
+  actorCount: Int
+  averageRating: Float
+  isActive: Boolean
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
+}
+
+union Actor = Star | Person
+
+type Star @subscription(events: []) {
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+
+type Person {
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+  "experimental": true,
+  "features": {
+    "subscriptions": true
+  }
+}
+----
+
+== Augmented schema
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
+
+union Actor = Person | Star
+
+"Information about the number of nodes and relationships created during a create mutation"
+type CreateInfo {
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesCreated: Int!
+  relationshipsCreated: Int!
+}
+
+type CreateMoviesMutationResponse {
+  info: CreateInfo!
+  movies: [Movie!]!
+}
+
+type CreatePeopleMutationResponse {
+  info: CreateInfo!
+  people: [Person!]!
+}
+
+type CreateStarsMutationResponse {
+  info: CreateInfo!
+  stars: [Star!]!
+}
+
+"Information about the number of nodes and relationships deleted during a delete mutation"
+type DeleteInfo {
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
+type FloatAggregateSelectionNullable {
+  average: Float
+  max: Float
+  min: Float
+  sum: Float
+}
+
+type IDAggregateSelectionNullable {
+  longest: ID
+  shortest: ID
+}
+
+type IntAggregateSelectionNullable {
+  average: Float
+  max: Int
+  min: Int
+  sum: Int
+}
+
+type Movie {
+  actorCount: Int
+  actors(directed: Boolean = true, options: QueryOptions, where: ActorWhere): [Actor!]!
+  actorsConnection(after: String, directed: Boolean = true, first: Int, where: MovieActorsConnectionWhere): MovieActorsConnection!
+  averageRating: Float
+  id: ID
+  isActive: Boolean
+}
+
+type MovieActorsConnection {
+  edges: [MovieActorsRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type MovieActorsRelationship {
+  cursor: String!
+  node: Actor!
+}
+
+type MovieAggregateSelection {
+  actorCount: IntAggregateSelectionNullable!
+  averageRating: FloatAggregateSelectionNullable!
+  count: Int!
+  id: IDAggregateSelectionNullable!
+}
+
+type MovieCreatedEvent {
+  createdMovie: MovieEventPayload!
+  event: EventType!
+  timestamp: Float!
+}
+
+type MovieDeletedEvent {
+  deletedMovie: MovieEventPayload!
+  event: EventType!
+  timestamp: Float!
+}
+
+type MovieEdge {
+  cursor: String!
+  node: Movie!
+}
+
+type MovieEventPayload {
+  actorCount: Int
+  averageRating: Float
+  id: ID
+  isActive: Boolean
+}
+
+type MovieRelationshipCreatedEvent {
+  event: EventType!
+  movie: MovieEventPayload!
+  relationshipFieldName: String!
+  timestamp: Float!
+}
+
+type MovieRelationshipDeletedEvent {
+  event: EventType!
+  movie: MovieEventPayload!
+  relationshipFieldName: String!
+  timestamp: Float!
+}
+
+type MovieUpdatedEvent {
+  event: EventType!
+  previousState: MovieEventPayload!
+  timestamp: Float!
+  updatedMovie: MovieEventPayload!
+}
+
+type MoviesConnection {
+  edges: [MovieEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Mutation {
+  createMovies(input: [MovieCreateInput!]!): CreateMoviesMutationResponse!
+  createPeople(input: [PersonCreateInput!]!): CreatePeopleMutationResponse!
+  createStars(input: [StarCreateInput!]!): CreateStarsMutationResponse!
+  deleteMovies(delete: MovieDeleteInput, where: MovieWhere): DeleteInfo!
+  deletePeople(delete: PersonDeleteInput, where: PersonWhere): DeleteInfo!
+  deleteStars(delete: StarDeleteInput, where: StarWhere): DeleteInfo!
+  updateMovies(connect: MovieConnectInput, create: MovieRelationInput, delete: MovieDeleteInput, disconnect: MovieDisconnectInput, update: MovieUpdateInput, where: MovieWhere): UpdateMoviesMutationResponse!
+  updatePeople(connect: PersonConnectInput, create: PersonRelationInput, delete: PersonDeleteInput, disconnect: PersonDisconnectInput, update: PersonUpdateInput, where: PersonWhere): UpdatePeopleMutationResponse!
+  updateStars(connect: StarConnectInput, create: StarRelationInput, delete: StarDeleteInput, disconnect: StarDisconnectInput, update: StarUpdateInput, where: StarWhere): UpdateStarsMutationResponse!
+}
+
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type PeopleConnection {
+  edges: [PersonEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Person {
+  movies(directed: Boolean = true, options: MovieOptions, where: MovieWhere): [Movie!]!
+  moviesAggregate(directed: Boolean = true, where: MovieWhere): PersonMovieMoviesAggregationSelection
+  moviesConnection(after: String, directed: Boolean = true, first: Int, sort: [PersonMoviesConnectionSort!], where: PersonMoviesConnectionWhere): PersonMoviesConnection!
+}
+
+type PersonAggregateSelection {
+  count: Int!
+}
+
+type PersonConnectedRelationships {
+  movies: PersonMoviesConnectedRelationship
+}
+
+type PersonCreatedEvent {
+  event: EventType!
+  timestamp: Float!
+}
+
+type PersonDeletedEvent {
+  event: EventType!
+  timestamp: Float!
+}
+
+type PersonEdge {
+  cursor: String!
+  node: Person!
+}
+
+type PersonMovieMoviesAggregationSelection {
+  count: Int!
+  node: PersonMovieMoviesNodeAggregateSelection
+}
+
+type PersonMovieMoviesNodeAggregateSelection {
+  actorCount: IntAggregateSelectionNullable!
+  averageRating: FloatAggregateSelectionNullable!
+  id: IDAggregateSelectionNullable!
+}
+
+type PersonMoviesConnectedRelationship {
+  node: MovieEventPayload!
+}
+
+type PersonMoviesConnection {
+  edges: [PersonMoviesRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type PersonMoviesRelationship {
+  cursor: String!
+  node: Movie!
+}
+
+type PersonRelationshipCreatedEvent {
+  createdRelationship: PersonConnectedRelationships!
+  event: EventType!
+  timestamp: Float!
+}
+
+type PersonRelationshipDeletedEvent {
+  deletedRelationship: PersonConnectedRelationships!
+  event: EventType!
+  timestamp: Float!
+}
+
+type PersonUpdatedEvent {
+  event: EventType!
+  timestamp: Float!
+}
+
+type Query {
+  actors(options: QueryOptions, where: ActorWhere): [Actor!]!
+  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
+  moviesAggregate(where: MovieWhere): MovieAggregateSelection!
+  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
+  people(options: PersonOptions, where: PersonWhere): [Person!]!
+  peopleAggregate(where: PersonWhere): PersonAggregateSelection!
+  peopleConnection(after: String, first: Int, where: PersonWhere): PeopleConnection!
+  stars(options: StarOptions, where: StarWhere): [Star!]!
+  starsAggregate(where: StarWhere): StarAggregateSelection!
+  starsConnection(after: String, first: Int, where: StarWhere): StarsConnection!
+}
+
+type Star {
+  movies(directed: Boolean = true, options: MovieOptions, where: MovieWhere): [Movie!]!
+  moviesAggregate(directed: Boolean = true, where: MovieWhere): StarMovieMoviesAggregationSelection
+  moviesConnection(after: String, directed: Boolean = true, first: Int, sort: [StarMoviesConnectionSort!], where: StarMoviesConnectionWhere): StarMoviesConnection!
+}
+
+type StarAggregateSelection {
+  count: Int!
+}
+
+type StarEdge {
+  cursor: String!
+  node: Star!
+}
+
+type StarMovieMoviesAggregationSelection {
+  count: Int!
+  node: StarMovieMoviesNodeAggregateSelection
+}
+
+type StarMovieMoviesNodeAggregateSelection {
+  actorCount: IntAggregateSelectionNullable!
+  averageRating: FloatAggregateSelectionNullable!
+  id: IDAggregateSelectionNullable!
+}
+
+type StarMoviesConnection {
+  edges: [StarMoviesRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type StarMoviesRelationship {
+  cursor: String!
+  node: Movie!
+}
+
+type StarsConnection {
+  edges: [StarEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Subscription {
+  movieCreated(where: MovieSubscriptionWhere): MovieCreatedEvent!
+  movieDeleted(where: MovieSubscriptionWhere): MovieDeletedEvent!
+  movieRelationshipCreated(where: MovieRelationshipCreatedSubscriptionWhere): MovieRelationshipCreatedEvent!
+  movieRelationshipDeleted(where: MovieRelationshipDeletedSubscriptionWhere): MovieRelationshipDeletedEvent!
+  movieUpdated(where: MovieSubscriptionWhere): MovieUpdatedEvent!
+  personCreated: PersonCreatedEvent!
+  personDeleted: PersonDeletedEvent!
+  personRelationshipCreated(where: PersonRelationshipCreatedSubscriptionWhere): PersonRelationshipCreatedEvent!
+  personRelationshipDeleted(where: PersonRelationshipDeletedSubscriptionWhere): PersonRelationshipDeletedEvent!
+  personUpdated: PersonUpdatedEvent!
+}
+
+"Information about the number of nodes and relationships created and deleted during an update mutation"
+type UpdateInfo {
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesCreated: Int!
+  nodesDeleted: Int!
+  relationshipsCreated: Int!
+  relationshipsDeleted: Int!
+}
+
+type UpdateMoviesMutationResponse {
+  info: UpdateInfo!
+  movies: [Movie!]!
+}
+
+type UpdatePeopleMutationResponse {
+  info: UpdateInfo!
+  people: [Person!]!
+}
+
+type UpdateStarsMutationResponse {
+  info: UpdateInfo!
+  stars: [Star!]!
+}
+
+enum EventType {
+  CREATE
+  CREATE_RELATIONSHIP
+  DELETE
+  DELETE_RELATIONSHIP
+  UPDATE
+}
+
+"An enum for sorting in either ascending or descending order."
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+input ActorWhere {
+  Person: PersonWhere
+  Star: StarWhere
+}
+
+input MovieActorsConnectInput {
+  Person: [MovieActorsPersonConnectFieldInput!]
+  Star: [MovieActorsStarConnectFieldInput!]
+}
+
+input MovieActorsConnectionWhere {
+  Person: MovieActorsPersonConnectionWhere
+  Star: MovieActorsStarConnectionWhere
+}
+
+input MovieActorsCreateFieldInput {
+  Person: [MovieActorsPersonCreateFieldInput!]
+  Star: [MovieActorsStarCreateFieldInput!]
+}
+
+input MovieActorsCreateInput {
+  Person: MovieActorsPersonFieldInput
+  Star: MovieActorsStarFieldInput
+}
+
+input MovieActorsDeleteInput {
+  Person: [MovieActorsPersonDeleteFieldInput!]
+  Star: [MovieActorsStarDeleteFieldInput!]
+}
+
+input MovieActorsDisconnectInput {
+  Person: [MovieActorsPersonDisconnectFieldInput!]
+  Star: [MovieActorsStarDisconnectFieldInput!]
+}
+
+input MovieActorsPersonConnectFieldInput {
+  connect: [PersonConnectInput!]
+  where: PersonConnectWhere
+}
+
+input MovieActorsPersonConnectionWhere {
+  AND: [MovieActorsPersonConnectionWhere!]
+  NOT: MovieActorsPersonConnectionWhere
+  OR: [MovieActorsPersonConnectionWhere!]
+  node: PersonWhere
+  node_NOT: PersonWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+}
+
+input MovieActorsPersonCreateFieldInput {
+  node: PersonCreateInput!
+}
+
+input MovieActorsPersonDeleteFieldInput {
+  delete: PersonDeleteInput
+  where: MovieActorsPersonConnectionWhere
+}
+
+input MovieActorsPersonDisconnectFieldInput {
+  disconnect: PersonDisconnectInput
+  where: MovieActorsPersonConnectionWhere
+}
+
+input MovieActorsPersonFieldInput {
+  connect: [MovieActorsPersonConnectFieldInput!]
+  create: [MovieActorsPersonCreateFieldInput!]
+}
+
+input MovieActorsPersonUpdateConnectionInput {
+  node: PersonUpdateInput
+}
+
+input MovieActorsPersonUpdateFieldInput {
+  connect: [MovieActorsPersonConnectFieldInput!]
+  create: [MovieActorsPersonCreateFieldInput!]
+  delete: [MovieActorsPersonDeleteFieldInput!]
+  disconnect: [MovieActorsPersonDisconnectFieldInput!]
+  update: MovieActorsPersonUpdateConnectionInput
+  where: MovieActorsPersonConnectionWhere
+}
+
+input MovieActorsStarConnectFieldInput {
+  connect: [StarConnectInput!]
+  where: StarConnectWhere
+}
+
+input MovieActorsStarConnectionWhere {
+  AND: [MovieActorsStarConnectionWhere!]
+  NOT: MovieActorsStarConnectionWhere
+  OR: [MovieActorsStarConnectionWhere!]
+  node: StarWhere
+  node_NOT: StarWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+}
+
+input MovieActorsStarCreateFieldInput {
+  node: StarCreateInput!
+}
+
+input MovieActorsStarDeleteFieldInput {
+  delete: StarDeleteInput
+  where: MovieActorsStarConnectionWhere
+}
+
+input MovieActorsStarDisconnectFieldInput {
+  disconnect: StarDisconnectInput
+  where: MovieActorsStarConnectionWhere
+}
+
+input MovieActorsStarFieldInput {
+  connect: [MovieActorsStarConnectFieldInput!]
+  create: [MovieActorsStarCreateFieldInput!]
+}
+
+input MovieActorsStarUpdateConnectionInput {
+  node: StarUpdateInput
+}
+
+input MovieActorsStarUpdateFieldInput {
+  connect: [MovieActorsStarConnectFieldInput!]
+  create: [MovieActorsStarCreateFieldInput!]
+  delete: [MovieActorsStarDeleteFieldInput!]
+  disconnect: [MovieActorsStarDisconnectFieldInput!]
+  update: MovieActorsStarUpdateConnectionInput
+  where: MovieActorsStarConnectionWhere
+}
+
+input MovieActorsUpdateInput {
+  Person: [MovieActorsPersonUpdateFieldInput!]
+  Star: [MovieActorsStarUpdateFieldInput!]
+}
+
+input MovieConnectInput {
+  actors: MovieActorsConnectInput
+}
+
+input MovieConnectWhere {
+  node: MovieWhere!
+}
+
+input MovieCreateInput {
+  actorCount: Int
+  actors: MovieActorsCreateInput
+  averageRating: Float
+  id: ID
+  isActive: Boolean
+}
+
+input MovieDeleteInput {
+  actors: MovieActorsDeleteInput
+}
+
+input MovieDisconnectInput {
+  actors: MovieActorsDisconnectInput
+}
+
+input MovieOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [MovieSort!]
+}
+
+input MovieRelationInput {
+  actors: MovieActorsCreateFieldInput
+}
+
+input MovieRelationshipCreatedSubscriptionWhere {
+  AND: [MovieRelationshipCreatedSubscriptionWhere!]
+  NOT: MovieRelationshipCreatedSubscriptionWhere
+  OR: [MovieRelationshipCreatedSubscriptionWhere!]
+  movie: MovieSubscriptionWhere
+}
+
+input MovieRelationshipDeletedSubscriptionWhere {
+  AND: [MovieRelationshipDeletedSubscriptionWhere!]
+  NOT: MovieRelationshipDeletedSubscriptionWhere
+  OR: [MovieRelationshipDeletedSubscriptionWhere!]
+  movie: MovieSubscriptionWhere
+}
+
+"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+input MovieSort {
+  actorCount: SortDirection
+  averageRating: SortDirection
+  id: SortDirection
+  isActive: SortDirection
+}
+
+input MovieSubscriptionWhere {
+  AND: [MovieSubscriptionWhere!]
+  NOT: MovieSubscriptionWhere
+  OR: [MovieSubscriptionWhere!]
+  actorCount: Int
+  actorCount_GT: Int
+  actorCount_GTE: Int
+  actorCount_IN: [Int]
+  actorCount_LT: Int
+  actorCount_LTE: Int
+  actorCount_NOT: Int @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  actorCount_NOT_IN: [Int] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  averageRating: Float
+  averageRating_GT: Float
+  averageRating_GTE: Float
+  averageRating_IN: [Float]
+  averageRating_LT: Float
+  averageRating_LTE: Float
+  averageRating_NOT: Float @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  averageRating_NOT_IN: [Float] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id: ID
+  id_CONTAINS: ID
+  id_ENDS_WITH: ID
+  id_IN: [ID]
+  id_NOT: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_CONTAINS: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_ENDS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_IN: [ID] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_STARTS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_STARTS_WITH: ID
+  isActive: Boolean
+  isActive_NOT: Boolean @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+}
+
+input MovieUpdateInput {
+  actorCount: Int
+  actorCount_DECREMENT: Int
+  actorCount_INCREMENT: Int
+  actors: MovieActorsUpdateInput
+  averageRating: Float
+  averageRating_ADD: Float
+  averageRating_DIVIDE: Float
+  averageRating_MULTIPLY: Float
+  averageRating_SUBTRACT: Float
+  id: ID
+  isActive: Boolean
+}
+
+input MovieWhere {
+  AND: [MovieWhere!]
+  NOT: MovieWhere
+  OR: [MovieWhere!]
+  actorCount: Int
+  actorCount_GT: Int
+  actorCount_GTE: Int
+  actorCount_IN: [Int]
+  actorCount_LT: Int
+  actorCount_LTE: Int
+  actorCount_NOT: Int @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  actorCount_NOT_IN: [Int] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  actors: ActorWhere @deprecated(reason : "Use `actors_SOME` instead.")
+  actorsConnection: MovieActorsConnectionWhere @deprecated(reason : "Use `actorsConnection_SOME` instead.")
+  "Return Movies where all of the related MovieActorsConnections match this filter"
+  actorsConnection_ALL: MovieActorsConnectionWhere
+  "Return Movies where none of the related MovieActorsConnections match this filter"
+  actorsConnection_NONE: MovieActorsConnectionWhere
+  actorsConnection_NOT: MovieActorsConnectionWhere @deprecated(reason : "Use `actorsConnection_NONE` instead.")
+  "Return Movies where one of the related MovieActorsConnections match this filter"
+  actorsConnection_SINGLE: MovieActorsConnectionWhere
+  "Return Movies where some of the related MovieActorsConnections match this filter"
+  actorsConnection_SOME: MovieActorsConnectionWhere
+  "Return Movies where all of the related Actors match this filter"
+  actors_ALL: ActorWhere
+  "Return Movies where none of the related Actors match this filter"
+  actors_NONE: ActorWhere
+  actors_NOT: ActorWhere @deprecated(reason : "Use `actors_NONE` instead.")
+  "Return Movies where one of the related Actors match this filter"
+  actors_SINGLE: ActorWhere
+  "Return Movies where some of the related Actors match this filter"
+  actors_SOME: ActorWhere
+  averageRating: Float
+  averageRating_GT: Float
+  averageRating_GTE: Float
+  averageRating_IN: [Float]
+  averageRating_LT: Float
+  averageRating_LTE: Float
+  averageRating_NOT: Float @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  averageRating_NOT_IN: [Float] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id: ID
+  id_CONTAINS: ID
+  id_ENDS_WITH: ID
+  id_IN: [ID]
+  id_NOT: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_CONTAINS: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_ENDS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_IN: [ID] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_STARTS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_STARTS_WITH: ID
+  isActive: Boolean
+  isActive_NOT: Boolean @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+}
+
+input PersonConnectInput {
+  movies: [PersonMoviesConnectFieldInput!]
+}
+
+input PersonConnectWhere {
+  node: PersonWhere!
+}
+
+input PersonCreateInput {
+  movies: PersonMoviesFieldInput
+}
+
+input PersonDeleteInput {
+  movies: [PersonMoviesDeleteFieldInput!]
+}
+
+input PersonDisconnectInput {
+  movies: [PersonMoviesDisconnectFieldInput!]
+}
+
+input PersonMoviesAggregateInput {
+  AND: [PersonMoviesAggregateInput!]
+  NOT: PersonMoviesAggregateInput
+  OR: [PersonMoviesAggregateInput!]
+  count: Int
+  count_GT: Int
+  count_GTE: Int
+  count_LT: Int
+  count_LTE: Int
+  node: PersonMoviesNodeAggregationWhereInput
+}
+
+input PersonMoviesConnectFieldInput {
+  connect: [MovieConnectInput!]
+  "Whether or not to overwrite any matching relationship with the new properties."
+  overwrite: Boolean! = true
+  where: MovieConnectWhere
+}
+
+input PersonMoviesConnectionSort {
+  node: MovieSort
+}
+
+input PersonMoviesConnectionWhere {
+  AND: [PersonMoviesConnectionWhere!]
+  NOT: PersonMoviesConnectionWhere
+  OR: [PersonMoviesConnectionWhere!]
+  node: MovieWhere
+  node_NOT: MovieWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+}
+
+input PersonMoviesCreateFieldInput {
+  node: MovieCreateInput!
+}
+
+input PersonMoviesDeleteFieldInput {
+  delete: MovieDeleteInput
+  where: PersonMoviesConnectionWhere
+}
+
+input PersonMoviesDisconnectFieldInput {
+  disconnect: MovieDisconnectInput
+  where: PersonMoviesConnectionWhere
+}
+
+input PersonMoviesFieldInput {
+  connect: [PersonMoviesConnectFieldInput!]
+  create: [PersonMoviesCreateFieldInput!]
+}
+
+input PersonMoviesNodeAggregationWhereInput {
+  AND: [PersonMoviesNodeAggregationWhereInput!]
+  NOT: PersonMoviesNodeAggregationWhereInput
+  OR: [PersonMoviesNodeAggregationWhereInput!]
+  actorCount_AVERAGE_EQUAL: Float
+  actorCount_AVERAGE_GT: Float
+  actorCount_AVERAGE_GTE: Float
+  actorCount_AVERAGE_LT: Float
+  actorCount_AVERAGE_LTE: Float
+  actorCount_EQUAL: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  actorCount_GT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  actorCount_GTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  actorCount_LT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  actorCount_LTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  actorCount_MAX_EQUAL: Int
+  actorCount_MAX_GT: Int
+  actorCount_MAX_GTE: Int
+  actorCount_MAX_LT: Int
+  actorCount_MAX_LTE: Int
+  actorCount_MIN_EQUAL: Int
+  actorCount_MIN_GT: Int
+  actorCount_MIN_GTE: Int
+  actorCount_MIN_LT: Int
+  actorCount_MIN_LTE: Int
+  actorCount_SUM_EQUAL: Int
+  actorCount_SUM_GT: Int
+  actorCount_SUM_GTE: Int
+  actorCount_SUM_LT: Int
+  actorCount_SUM_LTE: Int
+  averageRating_AVERAGE_EQUAL: Float
+  averageRating_AVERAGE_GT: Float
+  averageRating_AVERAGE_GTE: Float
+  averageRating_AVERAGE_LT: Float
+  averageRating_AVERAGE_LTE: Float
+  averageRating_EQUAL: Float @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  averageRating_GT: Float @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  averageRating_GTE: Float @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  averageRating_LT: Float @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  averageRating_LTE: Float @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  averageRating_MAX_EQUAL: Float
+  averageRating_MAX_GT: Float
+  averageRating_MAX_GTE: Float
+  averageRating_MAX_LT: Float
+  averageRating_MAX_LTE: Float
+  averageRating_MIN_EQUAL: Float
+  averageRating_MIN_GT: Float
+  averageRating_MIN_GTE: Float
+  averageRating_MIN_LT: Float
+  averageRating_MIN_LTE: Float
+  averageRating_SUM_EQUAL: Float
+  averageRating_SUM_GT: Float
+  averageRating_SUM_GTE: Float
+  averageRating_SUM_LT: Float
+  averageRating_SUM_LTE: Float
+  id_EQUAL: ID @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+}
+
+input PersonMoviesRelationshipSubscriptionWhere {
+  node: MovieSubscriptionWhere
+}
+
+input PersonMoviesUpdateConnectionInput {
+  node: MovieUpdateInput
+}
+
+input PersonMoviesUpdateFieldInput {
+  connect: [PersonMoviesConnectFieldInput!]
+  create: [PersonMoviesCreateFieldInput!]
+  delete: [PersonMoviesDeleteFieldInput!]
+  disconnect: [PersonMoviesDisconnectFieldInput!]
+  update: PersonMoviesUpdateConnectionInput
+  where: PersonMoviesConnectionWhere
+}
+
+input PersonOptions {
+  limit: Int
+  offset: Int
+}
+
+input PersonRelationInput {
+  movies: [PersonMoviesCreateFieldInput!]
+}
+
+input PersonRelationshipCreatedSubscriptionWhere {
+  AND: [PersonRelationshipCreatedSubscriptionWhere!]
+  NOT: PersonRelationshipCreatedSubscriptionWhere
+  OR: [PersonRelationshipCreatedSubscriptionWhere!]
+  createdRelationship: PersonRelationshipsSubscriptionWhere
+}
+
+input PersonRelationshipDeletedSubscriptionWhere {
+  AND: [PersonRelationshipDeletedSubscriptionWhere!]
+  NOT: PersonRelationshipDeletedSubscriptionWhere
+  OR: [PersonRelationshipDeletedSubscriptionWhere!]
+  deletedRelationship: PersonRelationshipsSubscriptionWhere
+}
+
+input PersonRelationshipsSubscriptionWhere {
+  movies: PersonMoviesRelationshipSubscriptionWhere
+}
+
+input PersonUpdateInput {
+  movies: [PersonMoviesUpdateFieldInput!]
+}
+
+input PersonWhere {
+  AND: [PersonWhere!]
+  NOT: PersonWhere
+  OR: [PersonWhere!]
+  movies: MovieWhere @deprecated(reason : "Use `movies_SOME` instead.")
+  moviesAggregate: PersonMoviesAggregateInput
+  moviesConnection: PersonMoviesConnectionWhere @deprecated(reason : "Use `moviesConnection_SOME` instead.")
+  "Return People where all of the related PersonMoviesConnections match this filter"
+  moviesConnection_ALL: PersonMoviesConnectionWhere
+  "Return People where none of the related PersonMoviesConnections match this filter"
+  moviesConnection_NONE: PersonMoviesConnectionWhere
+  moviesConnection_NOT: PersonMoviesConnectionWhere @deprecated(reason : "Use `moviesConnection_NONE` instead.")
+  "Return People where one of the related PersonMoviesConnections match this filter"
+  moviesConnection_SINGLE: PersonMoviesConnectionWhere
+  "Return People where some of the related PersonMoviesConnections match this filter"
+  moviesConnection_SOME: PersonMoviesConnectionWhere
+  "Return People where all of the related Movies match this filter"
+  movies_ALL: MovieWhere
+  "Return People where none of the related Movies match this filter"
+  movies_NONE: MovieWhere
+  movies_NOT: MovieWhere @deprecated(reason : "Use `movies_NONE` instead.")
+  "Return People where one of the related Movies match this filter"
+  movies_SINGLE: MovieWhere
+  "Return People where some of the related Movies match this filter"
+  movies_SOME: MovieWhere
+}
+
+"Input type for options that can be specified on a query operation."
+input QueryOptions {
+  limit: Int
+  offset: Int
+}
+
+input StarConnectInput {
+  movies: [StarMoviesConnectFieldInput!]
+}
+
+input StarConnectWhere {
+  node: StarWhere!
+}
+
+input StarCreateInput {
+  movies: StarMoviesFieldInput
+}
+
+input StarDeleteInput {
+  movies: [StarMoviesDeleteFieldInput!]
+}
+
+input StarDisconnectInput {
+  movies: [StarMoviesDisconnectFieldInput!]
+}
+
+input StarMoviesAggregateInput {
+  AND: [StarMoviesAggregateInput!]
+  NOT: StarMoviesAggregateInput
+  OR: [StarMoviesAggregateInput!]
+  count: Int
+  count_GT: Int
+  count_GTE: Int
+  count_LT: Int
+  count_LTE: Int
+  node: StarMoviesNodeAggregationWhereInput
+}
+
+input StarMoviesConnectFieldInput {
+  connect: [MovieConnectInput!]
+  "Whether or not to overwrite any matching relationship with the new properties."
+  overwrite: Boolean! = true
+  where: MovieConnectWhere
+}
+
+input StarMoviesConnectionSort {
+  node: MovieSort
+}
+
+input StarMoviesConnectionWhere {
+  AND: [StarMoviesConnectionWhere!]
+  NOT: StarMoviesConnectionWhere
+  OR: [StarMoviesConnectionWhere!]
+  node: MovieWhere
+  node_NOT: MovieWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+}
+
+input StarMoviesCreateFieldInput {
+  node: MovieCreateInput!
+}
+
+input StarMoviesDeleteFieldInput {
+  delete: MovieDeleteInput
+  where: StarMoviesConnectionWhere
+}
+
+input StarMoviesDisconnectFieldInput {
+  disconnect: MovieDisconnectInput
+  where: StarMoviesConnectionWhere
+}
+
+input StarMoviesFieldInput {
+  connect: [StarMoviesConnectFieldInput!]
+  create: [StarMoviesCreateFieldInput!]
+}
+
+input StarMoviesNodeAggregationWhereInput {
+  AND: [StarMoviesNodeAggregationWhereInput!]
+  NOT: StarMoviesNodeAggregationWhereInput
+  OR: [StarMoviesNodeAggregationWhereInput!]
+  actorCount_AVERAGE_EQUAL: Float
+  actorCount_AVERAGE_GT: Float
+  actorCount_AVERAGE_GTE: Float
+  actorCount_AVERAGE_LT: Float
+  actorCount_AVERAGE_LTE: Float
+  actorCount_EQUAL: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  actorCount_GT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  actorCount_GTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  actorCount_LT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  actorCount_LTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  actorCount_MAX_EQUAL: Int
+  actorCount_MAX_GT: Int
+  actorCount_MAX_GTE: Int
+  actorCount_MAX_LT: Int
+  actorCount_MAX_LTE: Int
+  actorCount_MIN_EQUAL: Int
+  actorCount_MIN_GT: Int
+  actorCount_MIN_GTE: Int
+  actorCount_MIN_LT: Int
+  actorCount_MIN_LTE: Int
+  actorCount_SUM_EQUAL: Int
+  actorCount_SUM_GT: Int
+  actorCount_SUM_GTE: Int
+  actorCount_SUM_LT: Int
+  actorCount_SUM_LTE: Int
+  averageRating_AVERAGE_EQUAL: Float
+  averageRating_AVERAGE_GT: Float
+  averageRating_AVERAGE_GTE: Float
+  averageRating_AVERAGE_LT: Float
+  averageRating_AVERAGE_LTE: Float
+  averageRating_EQUAL: Float @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  averageRating_GT: Float @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  averageRating_GTE: Float @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  averageRating_LT: Float @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  averageRating_LTE: Float @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  averageRating_MAX_EQUAL: Float
+  averageRating_MAX_GT: Float
+  averageRating_MAX_GTE: Float
+  averageRating_MAX_LT: Float
+  averageRating_MAX_LTE: Float
+  averageRating_MIN_EQUAL: Float
+  averageRating_MIN_GT: Float
+  averageRating_MIN_GTE: Float
+  averageRating_MIN_LT: Float
+  averageRating_MIN_LTE: Float
+  averageRating_SUM_EQUAL: Float
+  averageRating_SUM_GT: Float
+  averageRating_SUM_GTE: Float
+  averageRating_SUM_LT: Float
+  averageRating_SUM_LTE: Float
+  id_EQUAL: ID @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+}
+
+input StarMoviesUpdateConnectionInput {
+  node: MovieUpdateInput
+}
+
+input StarMoviesUpdateFieldInput {
+  connect: [StarMoviesConnectFieldInput!]
+  create: [StarMoviesCreateFieldInput!]
+  delete: [StarMoviesDeleteFieldInput!]
+  disconnect: [StarMoviesDisconnectFieldInput!]
+  update: StarMoviesUpdateConnectionInput
+  where: StarMoviesConnectionWhere
+}
+
+input StarOptions {
+  limit: Int
+  offset: Int
+}
+
+input StarRelationInput {
+  movies: [StarMoviesCreateFieldInput!]
+}
+
+input StarUpdateInput {
+  movies: [StarMoviesUpdateFieldInput!]
+}
+
+input StarWhere {
+  AND: [StarWhere!]
+  NOT: StarWhere
+  OR: [StarWhere!]
+  movies: MovieWhere @deprecated(reason : "Use `movies_SOME` instead.")
+  moviesAggregate: StarMoviesAggregateInput
+  moviesConnection: StarMoviesConnectionWhere @deprecated(reason : "Use `moviesConnection_SOME` instead.")
+  "Return Stars where all of the related StarMoviesConnections match this filter"
+  moviesConnection_ALL: StarMoviesConnectionWhere
+  "Return Stars where none of the related StarMoviesConnections match this filter"
+  moviesConnection_NONE: StarMoviesConnectionWhere
+  moviesConnection_NOT: StarMoviesConnectionWhere @deprecated(reason : "Use `moviesConnection_NONE` instead.")
+  "Return Stars where one of the related StarMoviesConnections match this filter"
+  moviesConnection_SINGLE: StarMoviesConnectionWhere
+  "Return Stars where some of the related StarMoviesConnections match this filter"
+  moviesConnection_SOME: StarMoviesConnectionWhere
+  "Return Stars where all of the related Movies match this filter"
+  movies_ALL: MovieWhere
+  "Return Stars where none of the related Movies match this filter"
+  movies_NONE: MovieWhere
+  movies_NOT: MovieWhere @deprecated(reason : "Use `movies_NONE` instead.")
+  "Return Stars where one of the related Movies match this filter"
+  movies_SINGLE: MovieWhere
+  "Return Stars where some of the related Movies match this filter"
+  movies_SOME: MovieWhere
+}
+
+----
+
+'''

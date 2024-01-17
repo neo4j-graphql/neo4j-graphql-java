@@ -6,31 +6,25 @@
 
 [source,graphql,schema=true]
 ----
-type Post @node(label: "Comment") {
+type JWT @jwt {
+  roles: [String!]!
+}
+
+type Post @node(labels: ["Comment"]) {
   id: ID
   content: String
   creator: User! @relationship(type: "HAS_POST", direction: IN)
 }
 
-extend type Post @auth(rules: [{operations: [DELETE], roles: ["admin"]}])
+extend type Post @authorization(validate: [{operations: [DELETE], where: {jwt: {roles_INCLUDES: "admin"}}}])
 
-type User @node(label: "Person") {
+type User @node(labels: ["Person"]) {
   id: ID
   name: String
   posts: [Post!]! @relationship(type: "HAS_POST", direction: OUT)
 }
 
-extend type User @auth(rules: [{operations: [READ, UPDATE, DELETE, DISCONNECT, CONNECT], allow: {id: "$jwt.sub"}}])
-----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{
-  "enableRegex": true
-}
+extend type User @authorization(validate: [{operations: [READ, UPDATE, DELETE, DELETE_RELATIONSHIP, CREATE_RELATIONSHIP], when: [BEFORE], where: {node: {id: "$jwt.sub"}}}])
 ----
 == Admin Deletes Post
 
@@ -44,40 +38,19 @@ mutation {
 }
 ----
 
-.Query Context
-[source,json,query-config=true]
-----
-{
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ]
-  },
-  "contextParams": {
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "id-01"
-    }
-  }
-}
-----
-
 .Expected Cypher params
 [source,json]
 ----
 {
-  "auth" : {
-    "isAuthenticated" : true,
-    "roles" : [ "admin" ],
-    "jwt" : {
-      "roles" : [ "admin" ],
-      "sub" : "id-01"
-    }
+  "param0": "123",
+  "isAuthenticated": true,
+  "jwt": {
+    "roles": [
+      "admin"
+    ],
+    "sub": "id-01"
   },
-  "param0" : "123"
+  "param3": "admin"
 }
 ----
 
@@ -85,11 +58,11 @@ mutation {
 [source,cypher]
 ----
 MATCH (this:Comment)
-WHERE single(this0 IN [(this0)-[:HAS_POST]->(this) | this0]
-WHERE this0.id = $param0)
-WITH this CALL apoc.util.validate(NOT (any(r IN ['admin']
-WHERE any(rr IN $auth.roles
-WHERE rr = r))), '@neo4j/graphql/FORBIDDEN', [0]) DETACH DELETE this
+OPTIONAL MATCH (this)<-[:HAS_POST]-(this0:Person)
+WITH *, count(this0) AS creatorCount
+WITH *
+WHERE ((creatorCount <> 0 AND this0.id = $param0) AND apoc.util.validatePredicate(NOT ($isAuthenticated = true AND ($jwt.roles IS NOT NULL AND $param3 IN $jwt.roles)), "@neo4j/graphql/FORBIDDEN", [0]))
+DETACH DELETE this
 ----
 
 '''
@@ -106,32 +79,17 @@ WHERE rr = r))), '@neo4j/graphql/FORBIDDEN', [0]) DETACH DELETE this
 }
 ----
 
-.Query Context
-[source,json,query-config=true]
-----
-{
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ]
-  },
-  "contextParams": {
-    "jwt": {
-      "roles": [
-        "admin"
-      ],
-      "sub": "id-01"
-    }
-  }
-}
-----
-
 .Expected Cypher params
 [source,json]
 ----
 {
-  "param0" : "id-01"
+  "isAuthenticated": true,
+  "jwt": {
+    "roles": [
+      "admin"
+    ],
+    "sub": "id-01"
+  }
 }
 ----
 
@@ -139,11 +97,9 @@ WHERE rr = r))), '@neo4j/graphql/FORBIDDEN', [0]) DETACH DELETE this
 [source,cypher]
 ----
 MATCH (this:Person)
-WHERE apoc.util.validatePredicate(NOT ((this.id IS NOT NULL
-	AND this.id = $param0)), '@neo4j/graphql/FORBIDDEN', [0])
-RETURN this {
-	.id
-} AS this
+WITH *
+WHERE apoc.util.validatePredicate(NOT ($isAuthenticated = true AND ($jwt.sub IS NOT NULL AND this.id = $jwt.sub)), "@neo4j/graphql/FORBIDDEN", [0])
+RETURN this { .id } AS this
 ----
 
 '''

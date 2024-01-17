@@ -2,6 +2,7 @@ package org.neo4j.graphql.schema.model.outputs.aggregate
 
 import org.neo4j.graphql.Constants
 import org.neo4j.graphql.asType
+import org.neo4j.graphql.domain.Interface
 import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.makeRequired
 import org.neo4j.graphql.schema.AugmentationBase
@@ -12,14 +13,14 @@ class RelationAggregationSelection(
     rel: RelationField,
     val selection: ResolveTree,
 ) {
-    private val aggregateTypeNames = rel.aggregateTypeNames
+    private val aggregateTypeNames = rel.operations.aggregateTypeNames
         ?: error("expect aggregateTypeNames to be set for $rel")
 
     val count = selection.getFieldOfType(aggregateTypeNames.field, Constants.COUNT)
 
     val node = selection
         .getSingleFieldOfType(aggregateTypeNames.field, Constants.NODE_FIELD, { rt ->
-            val impl = rel.getImplementingType() ?: return@getSingleFieldOfType null
+            val impl = rel.implementingType ?: return@getSingleFieldOfType null
             rt.fieldsByTypeName[aggregateTypeNames.node]?.let { AggregationSelectionFields.create(impl, it) }
         })
 
@@ -33,8 +34,11 @@ class RelationAggregationSelection(
     object Augmentation : AugmentationBase {
 
         fun generateAggregationSelectionOT(rel: RelationField, ctx: AugmentationContext): String? {
-            val refNode = rel.node ?: return null
-            val aggregateTypeNames = rel.aggregateTypeNames ?: return null
+            val implementingType = rel.implementingType ?: return null
+            if (implementingType is Interface && !ctx.schemaConfig.experimental) {
+                return null
+            }
+            val aggregateTypeNames = rel.operations.aggregateTypeNames ?: return null
 
             return ctx.getOrCreateObjectType(aggregateTypeNames.field) { fields, _ ->
 
@@ -42,7 +46,7 @@ class RelationAggregationSelection(
 
                 AggregationSelectionFields.Augmentation.createAggregationField(
                     aggregateTypeNames.node,
-                    refNode.fields,
+                    implementingType.fields,
                     ctx
                 )
                     ?.let { fields += field(Constants.NODE_FIELD, it.asType()) }

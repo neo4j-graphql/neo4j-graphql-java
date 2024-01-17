@@ -1,0 +1,147 @@
+:toc:
+
+= @query directive -> on SCHEMA -> should disable read and aggregate
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Actor {
+  name: String
+}
+
+type Movie {
+  title: String
+}
+
+extend schema @query(read: false, aggregate: false) {
+  query: Query
+  mutation: Mutation
+}
+----
+
+== Augmented schema
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type Actor {
+  name: String
+}
+
+type CreateActorsMutationResponse {
+  actors: [Actor!]!
+  info: CreateInfo!
+}
+
+"Information about the number of nodes and relationships created during a create mutation"
+type CreateInfo {
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesCreated: Int!
+  relationshipsCreated: Int!
+}
+
+type CreateMoviesMutationResponse {
+  info: CreateInfo!
+  movies: [Movie!]!
+}
+
+"Information about the number of nodes and relationships deleted during a delete mutation"
+type DeleteInfo {
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
+type Movie {
+  title: String
+}
+
+type Mutation {
+  createActors(input: [ActorCreateInput!]!): CreateActorsMutationResponse!
+  createMovies(input: [MovieCreateInput!]!): CreateMoviesMutationResponse!
+  deleteActors(where: ActorWhere): DeleteInfo!
+  deleteMovies(where: MovieWhere): DeleteInfo!
+  updateActors(update: ActorUpdateInput, where: ActorWhere): UpdateActorsMutationResponse!
+  updateMovies(update: MovieUpdateInput, where: MovieWhere): UpdateMoviesMutationResponse!
+}
+
+type Query {
+  _empty: Boolean
+}
+
+type UpdateActorsMutationResponse {
+  actors: [Actor!]!
+  info: UpdateInfo!
+}
+
+"Information about the number of nodes and relationships created and deleted during an update mutation"
+type UpdateInfo {
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesCreated: Int!
+  nodesDeleted: Int!
+  relationshipsCreated: Int!
+  relationshipsDeleted: Int!
+}
+
+type UpdateMoviesMutationResponse {
+  info: UpdateInfo!
+  movies: [Movie!]!
+}
+
+input ActorCreateInput {
+  name: String
+}
+
+input ActorUpdateInput {
+  name: String
+}
+
+input ActorWhere {
+  AND: [ActorWhere!]
+  NOT: ActorWhere
+  OR: [ActorWhere!]
+  name: String
+  name_CONTAINS: String
+  name_ENDS_WITH: String
+  name_IN: [String]
+  name_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_IN: [String] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_STARTS_WITH: String
+}
+
+input MovieCreateInput {
+  title: String
+}
+
+input MovieUpdateInput {
+  title: String
+}
+
+input MovieWhere {
+  AND: [MovieWhere!]
+  NOT: MovieWhere
+  OR: [MovieWhere!]
+  title: String
+  title_CONTAINS: String
+  title_ENDS_WITH: String
+  title_IN: [String]
+  title_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_IN: [String] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_STARTS_WITH: String
+}
+
+----
+
+'''

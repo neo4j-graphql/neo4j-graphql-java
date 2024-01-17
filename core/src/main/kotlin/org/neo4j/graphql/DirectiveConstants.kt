@@ -1,67 +1,52 @@
 package org.neo4j.graphql
 
+import org.neo4j.graphql.domain.directives.*
+
 object DirectiveConstants {
 
-    const val ALIAS = "alias"
     const val AUTH = "auth"
-    const val COALESCE = "coalesce"
-    const val CUSTOM_RESOLVER = "customResolver"
-    const val POPULATED_BY = "populatedBy"
-    const val DEFAULT = "default"
-    const val TIMESTAMP = "timestamp"
-    const val UNIQUE = "unique"
-    const val NODE = "node"
-    const val PLURAL = "plural"
+    const val IGNORE = "ignore"
     const val READ_ONLY = "readonly"
     const val WRITE_ONLY = "writeonly"
-    const val EXCLUDE = "exclude"
-    const val PRIVATE = "private" // TODO do we need this one?
-    const val FULLTEXT = "fulltext"
-    const val QUERY_OPTIONS = "queryOptions"
 
-    const val ID = "id"
-    const val IGNORE = "ignore"
-    const val RELATIONSHIP = "relationship"
-    const val RELATIONSHIP_PROPERTIES = "relationshipProperties"
     const val RELATION = "relation"
     const val RELATION_NAME = "name"
     const val RELATION_DIRECTION = "direction"
     const val RELATION_FROM = "from"
     const val RELATION_TO = "to"
 
-    const val CYPHER = "cypher"
-    const val CYPHER_STATEMENT = "statement"
-    const val CYPHER_PASS_THROUGH = "passThrough"
-
-    const val PROPERTY = "property"
     const val PROPERTY_NAME = "name"
 
     const val DYNAMIC = "dynamic"
     const val DYNAMIC_PREFIX = "prefix"
 
     val LIB_DIRECTIVES = setOf(
-        ALIAS,
-        AUTH,
-        COALESCE,
-        CUSTOM_RESOLVER,
-        DEFAULT,
-        TIMESTAMP,
-        UNIQUE,
-        NODE,
-        READ_ONLY,
-        WRITE_ONLY,
-        EXCLUDE,
-        PRIVATE,
-        FULLTEXT,
-        QUERY_OPTIONS,
-        ID,
-        IGNORE,
-        RELATIONSHIP,
-        RELATIONSHIP_PROPERTIES,
-        CYPHER,
-        PROPERTY,
-        PLURAL,
-        POPULATED_BY,
+        AliasDirective.NAME,
+        AuthenticationDirective.NAME,
+        AuthorizationDirective.NAME,
+        CoalesceDirective.NAME,
+        CustomResolverDirective.NAME,
+        CypherDirective.NAME,
+        DefaultDirective.NAME,
+        FilterableDirective.NAME,
+        FulltextDirective.NAME,
+        IdDirective.NAME,
+        JwtClaimDirective.NAME,
+        JwtDirective.NAME,
+        LimitDirective.NAME,
+        MutationDirective.NAME,
+        NodeDirective.NAME,
+        PluralDirective.NAME,
+        PopulatedByDirective.NAME,
+        PrivateDirective.NAME,
+        QueryDirective.NAME,
+        RelationshipDirective.NAME,
+        RelationshipPropertiesDirective.NAME,
+        RelayIdDirective.NAME,
+        SelectableDirective.NAME,
+        SettableDirective.NAME,
+        SubscriptionDirective.NAME,
+        TimestampDirective.NAME,
+        UniqueDirective.NAME,
     )
-
 }

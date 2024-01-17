@@ -7,32 +7,24 @@
 [source,graphql,schema=true]
 ----
 type Series {
-  id: ID! @id(autogenerate: false)
+  id: ID! @unique
   current: Boolean!
   architecture: [MasterData!]! @relationship(type: "ARCHITECTURE", properties: "RelationProps", direction: OUT)
 }
 
-type NameDetails @exclude(operations: [CREATE, UPDATE, DELETE, READ]) {
+type NameDetails @mutation(operations: []) @query(read: false, aggregate: false) {
   fullName: String!
 }
 
-interface RelationProps {
+interface RelationProps @relationshipProperties {
   current: Boolean!
 }
 
 type MasterData {
-  id: ID! @id(autogenerate: false)
+  id: ID! @unique
   current: Boolean!
   nameDetails: NameDetails @relationship(type: "HAS_NAME", properties: "RelationProps", direction: OUT)
 }
-----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{}
 ----
 == should apply where filter for deep relations, two relations deep
 
@@ -65,10 +57,10 @@ type MasterData {
 [source,json]
 ----
 {
-  "param0" : true,
-  "param1" : "MHA",
-  "this_MasterData_connection_nameDetailsConnectionparam0" : true,
-  "this_connection_architectureConnectionparam0" : true
+  "param0": true,
+  "param1": "MHA",
+  "param2": true,
+  "param3": true
 }
 ----
 
@@ -76,46 +68,36 @@ type MasterData {
 [source,cypher]
 ----
 MATCH (this:Series)
-WHERE (this.current = $param0
-	AND size([(this)-[this3:ARCHITECTURE]->(this2:MasterData)
-	WHERE size([(this2)-[this1:HAS_NAME]->(this0:NameDetails)
-	WHERE this0.fullName = $param1 | 1]) = 1 | 1]) = 1)
+WHERE (this.current = $param0 AND single(this1 IN [(this)-[this3:ARCHITECTURE]->(this1:MasterData) WHERE single(this0 IN [(this1)-[this2:HAS_NAME]->(this0:NameDetails) WHERE this0.fullName = $param1 | 1] WHERE true) | 1] WHERE true))
 CALL {
-	WITH this
-	MATCH (this)-[this_connection_architectureConnectionthis0:ARCHITECTURE]->(this_MasterData:MasterData)
-	WHERE this_connection_architectureConnectionthis0.current = $this_connection_architectureConnectionparam0
-	CALL {
-		WITH this_MasterData
-		MATCH (this_MasterData)-[this_MasterData_connection_nameDetailsConnectionthis0:HAS_NAME]->(this_MasterData_NameDetails:NameDetails)
-		WHERE this_MasterData_connection_nameDetailsConnectionthis0.current = $this_MasterData_connection_nameDetailsConnectionparam0
-		WITH {
-			node: {
-				fullName: this_MasterData_NameDetails.fullName
-			}
-		} AS edge
-		WITH collect(edge) AS edges
-		WITH edges, size(edges) AS totalCount
-		RETURN {
-			edges: edges,
-			totalCount: totalCount
-		} AS this_MasterData_nameDetailsConnection
-	}
-	WITH {
-		node: {
-			nameDetailsConnection: this_MasterData_nameDetailsConnection
-		}
-	} AS edge
-	WITH collect(edge) AS edges
-	WITH edges, size(edges) AS totalCount
-	RETURN {
-		edges: edges,
-		totalCount: totalCount
-	} AS this_architectureConnection
+    WITH this
+    MATCH (this)-[this4:ARCHITECTURE]->(this5:MasterData)
+    WHERE this4.current = $param2
+    WITH collect({ node: this5, relationship: this4 }) AS edges
+    WITH edges, size(edges) AS totalCount
+    CALL {
+        WITH edges
+        UNWIND edges AS edge
+        WITH edge.node AS this5, edge.relationship AS this4
+        CALL {
+            WITH this5
+            MATCH (this5)-[this6:HAS_NAME]->(this7:NameDetails)
+            WHERE this6.current = $param3
+            WITH collect({ node: this7, relationship: this6 }) AS edges
+            WITH edges, size(edges) AS totalCount
+            CALL {
+                WITH edges
+                UNWIND edges AS edge
+                WITH edge.node AS this7, edge.relationship AS this6
+                RETURN collect({ node: { fullName: this7.fullName } }) AS var8
+            }
+            RETURN { edges: var8, totalCount: totalCount } AS var9
+        }
+        RETURN collect({ node: { nameDetailsConnection: var9 } }) AS var10
+    }
+    RETURN { edges: var10, totalCount: totalCount } AS var11
 }
-RETURN this {
-	.id,
-	architectureConnection: this_architectureConnection
-} AS this
+RETURN this { .id, architectureConnection: var11 } AS this
 ----
 
 '''

@@ -1,0 +1,50 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/3905 -> custom Cypher result type with list of lists generates without error
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Query {
+  paths: pathList! @cypher(statement: """
+  WITH [[{entity_id:1, other_entity_id: 2}],[{entity_id: 2, other_entity_id:3},{entity_id:3, other_entity_id: 4}]] as paths
+  RETURN {paths: paths} as result
+  """, columnName: "result")
+}
+
+type pathList @query(read: false, aggregate: false) @mutation(operations: []) @subscription(events: []) {
+  paths: [[pathLink]]
+}
+
+type pathLink @query(read: false, aggregate: false) @mutation(operations: []) @subscription(events: []) {
+  entity_id: Int
+  other_entity_id: Int
+}
+----
+
+== Augmented schema
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+}
+
+type Query {
+  paths: pathList!
+}
+
+type pathLink {
+  entity_id: Int
+  other_entity_id: Int
+}
+
+type pathList {
+  paths: [[pathLink]]
+}
+
+----
+
+'''

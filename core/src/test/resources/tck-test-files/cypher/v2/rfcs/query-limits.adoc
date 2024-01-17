@@ -6,16 +6,16 @@
 
 [source,graphql,schema=true]
 ----
-type Movie @queryOptions(limit: {default: 3, max: 5}) {
+type Movie @limit(default: 3, max: 5) {
   id: ID!
   actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN)
 }
 
-type Person @queryOptions(limit: {default: 2}) {
+type Person @limit(default: 2) {
   id: ID!
 }
 
-type Show @queryOptions(limit: {max: 2}) {
+type Show @limit(max: 2) {
   id: ID!
 }
 
@@ -23,14 +23,6 @@ type Festival {
   name: String!
   shows: [Show!]! @relationship(type: "PART_OF", direction: IN)
 }
-----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{}
 ----
 == Field Level Query Limits
 
@@ -57,8 +49,8 @@ type Festival {
 [source,json]
 ----
 {
-  "param0" : 3,
-  "this_connection_actorsConnectionparam0" : 4
+  "param0": 3,
+  "param1": 4
 }
 ----
 
@@ -66,33 +58,26 @@ type Festival {
 [source,cypher]
 ----
 MATCH (this:Movie)
-WITH * LIMIT $param0
+WITH *
+
+LIMIT $param0
 CALL {
-	WITH this
-	MATCH (this)<-[this_connection_actorsConnectionthis0:ACTED_IN]-(this_Person:Person)
-	WITH {
-		node: {
-			id: this_Person.id
-		}
-	} AS edge
-	WITH collect(edge) AS edges
-	WITH edges, size(edges) AS totalCount
-	CALL {
-		WITH edges
-		UNWIND edges AS edge
-		WITH edge LIMIT $this_connection_actorsConnectionparam0
-		RETURN collect(edge) AS this_connection_actorsConnectionvar1
-	}
-	WITH this_connection_actorsConnectionvar1 AS edges, totalCount
-	RETURN {
-		edges: edges,
-		totalCount: totalCount
-	} AS this_actorsConnection
+    WITH this
+    MATCH (this)<-[this0:ACTED_IN]-(this1:Person)
+    WITH collect({ node: this1, relationship: this0 }) AS edges
+    WITH edges, size(edges) AS totalCount
+    CALL {
+        WITH edges
+        UNWIND edges AS edge
+        WITH edge.node AS this1, edge.relationship AS this0
+        WITH *
+        
+        LIMIT $param1
+        RETURN collect({ node: { id: this1.id } }) AS var2
+    }
+    RETURN { edges: var2, totalCount: totalCount } AS var3
 }
-RETURN this {
-	.id,
-	actorsConnection: this_actorsConnection
-} AS this
+RETURN this { .id, actorsConnection: var3 } AS this
 ----
 
 '''
@@ -120,7 +105,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "this_connection_showsConnectionparam0" : 2
+  "param0": 2
 }
 ----
 
@@ -129,31 +114,22 @@ RETURN this {
 ----
 MATCH (this:Festival)
 CALL {
-	WITH this
-	MATCH (this)<-[this_connection_showsConnectionthis0:PART_OF]-(this_Show:Show)
-	WITH {
-		node: {
-			id: this_Show.id
-		}
-	} AS edge
-	WITH collect(edge) AS edges
-	WITH edges, size(edges) AS totalCount
-	CALL {
-		WITH edges
-		UNWIND edges AS edge
-		WITH edge LIMIT $this_connection_showsConnectionparam0
-		RETURN collect(edge) AS this_connection_showsConnectionvar1
-	}
-	WITH this_connection_showsConnectionvar1 AS edges, totalCount
-	RETURN {
-		edges: edges,
-		totalCount: totalCount
-	} AS this_showsConnection
+    WITH this
+    MATCH (this)<-[this0:PART_OF]-(this1:Show)
+    WITH collect({ node: this1, relationship: this0 }) AS edges
+    WITH edges, size(edges) AS totalCount
+    CALL {
+        WITH edges
+        UNWIND edges AS edge
+        WITH edge.node AS this1, edge.relationship AS this0
+        WITH *
+        
+        LIMIT $param0
+        RETURN collect({ node: { id: this1.id } }) AS var2
+    }
+    RETURN { edges: var2, totalCount: totalCount } AS var3
 }
-RETURN this {
-	.name,
-	showsConnection: this_showsConnection
-} AS this
+RETURN this { .name, showsConnection: var3 } AS this
 ----
 
 '''
@@ -181,8 +157,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 3,
-  "this_connection_actorsConnectionparam0" : 2
+  "param0": 3,
+  "param1": 2
 }
 ----
 
@@ -190,33 +166,26 @@ RETURN this {
 [source,cypher]
 ----
 MATCH (this:Movie)
-WITH * LIMIT $param0
+WITH *
+
+LIMIT $param0
 CALL {
-	WITH this
-	MATCH (this)<-[this_connection_actorsConnectionthis0:ACTED_IN]-(this_Person:Person)
-	WITH {
-		node: {
-			id: this_Person.id
-		}
-	} AS edge
-	WITH collect(edge) AS edges
-	WITH edges, size(edges) AS totalCount
-	CALL {
-		WITH edges
-		UNWIND edges AS edge
-		WITH edge LIMIT $this_connection_actorsConnectionparam0
-		RETURN collect(edge) AS this_connection_actorsConnectionvar1
-	}
-	WITH this_connection_actorsConnectionvar1 AS edges, totalCount
-	RETURN {
-		edges: edges,
-		totalCount: totalCount
-	} AS this_actorsConnection
+    WITH this
+    MATCH (this)<-[this0:ACTED_IN]-(this1:Person)
+    WITH collect({ node: this1, relationship: this0 }) AS edges
+    WITH edges, size(edges) AS totalCount
+    CALL {
+        WITH edges
+        UNWIND edges AS edge
+        WITH edge.node AS this1, edge.relationship AS this0
+        WITH *
+        
+        LIMIT $param1
+        RETURN collect({ node: { id: this1.id } }) AS var2
+    }
+    RETURN { edges: var2, totalCount: totalCount } AS var3
 }
-RETURN this {
-	.id,
-	actorsConnection: this_actorsConnection
-} AS this
+RETURN this { .id, actorsConnection: var3 } AS this
 ----
 
 '''
@@ -240,8 +209,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 3,
-  "param1" : 2
+  "param0": 3,
+  "param1": 2
 }
 ----
 
@@ -249,19 +218,18 @@ RETURN this {
 [source,cypher]
 ----
 MATCH (this:Movie)
-WITH * LIMIT $param0
+WITH *
+
+LIMIT $param0
 CALL {
-	WITH this
-	MATCH (this_actors:Person)-[this0:ACTED_IN]->(this)
-	WITH this_actors {
-		.id
-	} AS this_actors LIMIT $param1
-	RETURN collect(this_actors) AS this_actors
+    WITH this
+    MATCH (this)<-[this0:ACTED_IN]-(this1:Person)
+    WITH this1 { .id } AS this1
+    
+    LIMIT $param1
+    RETURN collect(this1) AS var2
 }
-RETURN this {
-	.id,
-	actors: this_actors
-} AS this
+RETURN this { .id, actors: var2 } AS this
 ----
 
 '''
@@ -285,8 +253,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 3,
-  "param1" : 2
+  "param0": 3,
+  "param1": 2
 }
 ----
 
@@ -294,19 +262,18 @@ RETURN this {
 [source,cypher]
 ----
 MATCH (this:Movie)
-WITH * LIMIT $param0
+WITH *
+
+LIMIT $param0
 CALL {
-	WITH this
-	MATCH (this_actors:Person)-[this0:ACTED_IN]->(this)
-	WITH this_actors {
-		.id
-	} AS this_actors LIMIT $param1
-	RETURN collect(this_actors) AS this_actors
+    WITH this
+    MATCH (this)<-[this0:ACTED_IN]-(this1:Person)
+    WITH this1 { .id } AS this1
+    
+    LIMIT $param1
+    RETURN collect(this1) AS var2
 }
-RETURN this {
-	.id,
-	actors: this_actors
-} AS this
+RETURN this { .id, actors: var2 } AS this
 ----
 
 '''
@@ -330,7 +297,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 3
+  "param0": 3
 }
 ----
 
@@ -338,10 +305,10 @@ RETURN this {
 [source,cypher]
 ----
 MATCH (this:Movie)
-WITH * LIMIT $param0
-RETURN this {
-	.id
-} AS this
+WITH *
+
+LIMIT $param0
+RETURN this { .id } AS this
 ----
 
 '''
@@ -362,7 +329,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 2
+  "param0": 2
 }
 ----
 
@@ -370,10 +337,10 @@ RETURN this {
 [source,cypher]
 ----
 MATCH (this:Show)
-WITH * LIMIT $param0
-RETURN this {
-	.id
-} AS this
+WITH *
+
+LIMIT $param0
+RETURN this { .id } AS this
 ----
 
 '''
@@ -394,7 +361,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 2
+  "param0": 2
 }
 ----
 
@@ -402,10 +369,10 @@ RETURN this {
 [source,cypher]
 ----
 MATCH (this:Show)
-WITH * LIMIT $param0
-RETURN this {
-	.id
-} AS this
+WITH *
+
+LIMIT $param0
+RETURN this { .id } AS this
 ----
 
 '''

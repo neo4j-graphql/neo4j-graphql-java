@@ -10,16 +10,6 @@ type Movie {
   title: String!
 }
 ----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{
-  "enableRegex": true
-}
-----
 == Count with WHERE
 
 .GraphQL-Query
@@ -36,18 +26,19 @@ type Movie {
 [source,json]
 ----
 {
-  "param0" : "some-title"
+  "param0": "some-title"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-WHERE this.title = $param0
-RETURN {
-	count: count(this)
+CALL {
+    MATCH (this:Movie)
+    WHERE this.title = $param0
+    RETURN count(this) AS var0
 }
+RETURN { count: var0 }
 ----
 
 '''
@@ -67,16 +58,17 @@ RETURN {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie)
-RETURN {
-	count: count(this)
+CALL {
+    MATCH (this:Movie)
+    RETURN count(this) AS var0
 }
+RETURN { count: var0 }
 ----
 
 '''

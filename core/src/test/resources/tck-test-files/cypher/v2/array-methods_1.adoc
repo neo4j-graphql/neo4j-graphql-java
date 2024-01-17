@@ -11,16 +11,6 @@ type Movie {
   ratings: [Float!]!
 }
 ----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{
-  "enableRegex": true
-}
-----
 == pop
 
 .GraphQL-Query
@@ -40,19 +30,20 @@ mutation {
 [source,json]
 ----
 {
-  "this_update_ratings_POP" : 1
+  "this_update_ratings_POP": 1
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie) CALL apoc.util.validate(this.ratings IS NULL, 'Property %s cannot be NULL', ['ratings'])
-SET this.ratings = this.ratings[0..- $this_update_ratings_POP]
-RETURN collect(DISTINCT this {
-	.title,
-	.ratings
-}) AS data
+MATCH (this:Movie)
+WITH this
+WHERE apoc.util.validatePredicate(this.ratings IS NULL, "Property %s cannot be NULL", ['ratings'])
+
+SET this.ratings = this.ratings[0..-$this_update_ratings_POP]
+
+RETURN collect(DISTINCT this { .title, .ratings }) AS data
 ----
 
 '''
@@ -76,19 +67,22 @@ mutation {
 [source,json]
 ----
 {
-  "this_update_ratings_PUSH" : [ 1 ]
+  "this_update_ratings_PUSH": [
+    1
+  ]
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Movie) CALL apoc.util.validate(this.ratings IS NULL, 'Property %s cannot be NULL', ['ratings'])
-SET this.ratings = (this.ratings + $this_update_ratings_PUSH)
-RETURN collect(DISTINCT this {
-	.title,
-	.ratings
-}) AS data
+MATCH (this:Movie)
+WITH this
+WHERE apoc.util.validatePredicate(this.ratings IS NULL, "Property %s cannot be NULL", ['ratings'])
+
+SET this.ratings = this.ratings + $this_update_ratings_PUSH
+
+RETURN collect(DISTINCT this { .title, .ratings }) AS data
 ----
 
 '''

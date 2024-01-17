@@ -5,12 +5,10 @@ import graphql.language.InputValueDefinition
 import graphql.schema.DataFetchingEnvironment
 import org.neo4j.cypherdsl.core.ExposesWith
 import org.neo4j.cypherdsl.core.Statement
-import org.neo4j.cypherdsl.core.StatementBuilder
 import org.neo4j.cypherdsl.core.StatementBuilder.ExposesDelete
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
-import org.neo4j.graphql.domain.directives.ExcludeDirective
 import org.neo4j.graphql.handler.BaseDataFetcher
 import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.schema.AugmentationBase
@@ -29,10 +27,10 @@ class DeleteResolver private constructor(
     val node: Node
 ) : BaseDataFetcher(schemaConfig) {
 
-    class Factory(ctx: AugmentationContext) : AugmentationHandler(ctx) {
+    class Factory(ctx: AugmentationContext) : AugmentationHandler(ctx), AugmentationHandler.NodeAugmentation {
 
         override fun augmentNode(node: Node): List<AugmentedField> {
-            if (!node.isOperationAllowed(ExcludeDirective.ExcludeOperation.DELETE)) {
+            if (node.annotations.mutation?.delete == false) {
                 return emptyList()
             }
 
@@ -42,7 +40,7 @@ class DeleteResolver private constructor(
             }
 
             val coordinates = addMutationField(
-                node.rootTypeFieldNames.delete,
+                node.operations.rootTypeFieldNames.delete,
                 Constants.Types.DeleteInfo.makeRequired(),
                 arguments
             )

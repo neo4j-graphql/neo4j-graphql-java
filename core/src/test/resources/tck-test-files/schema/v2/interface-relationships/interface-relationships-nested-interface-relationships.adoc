@@ -59,8 +59,9 @@ interface Interface2 {
   field2: String
 }
 
+"Information about the number of nodes and relationships created during a create mutation"
 type CreateInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   relationshipsCreated: Int!
 }
@@ -90,8 +91,9 @@ type CreateType2Interface2sMutationResponse {
   type2Interface2s: [Type2Interface2!]!
 }
 
+"Information about the number of nodes and relationships deleted during a delete mutation"
 type DeleteInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesDeleted: Int!
   relationshipsDeleted: Int!
 }
@@ -273,8 +275,9 @@ type Type2Interface2sConnection {
   totalCount: Int!
 }
 
+"Information about the number of nodes and relationships created and deleted during an update mutation"
 type UpdateInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   nodesDeleted: Int!
   relationshipsCreated: Int!
@@ -306,6 +309,7 @@ type UpdateType2Interface2sMutationResponse {
   type2Interface2s: [Type2Interface2!]!
 }
 
+"An enum for sorting in either ascending or descending order."
 enum SortDirection {
   "Sort by field values in ascending order."
   ASC
@@ -372,9 +376,10 @@ input Interface1Interface2ConnectionSort {
 
 input Interface1Interface2ConnectionWhere {
   AND: [Interface1Interface2ConnectionWhere!]
+  NOT: Interface1Interface2ConnectionWhere
   OR: [Interface1Interface2ConnectionWhere!]
   node: Interface2Where
-  node_NOT: Interface2Where
+  node_NOT: Interface2Where @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input Interface1Interface2CreateFieldInput {
@@ -411,7 +416,7 @@ input Interface1Options {
   limit: Int
   offset: Int
   "Specify one or more Interface1Sort objects to sort Interface1s by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [Interface1Sort!]
+  sort: [Interface1Sort]
 }
 
 "Fields to sort Interface1s by. The order in which sorts are applied is not guaranteed when specifying many fields in one Interface1Sort object."
@@ -431,17 +436,21 @@ input Interface1Where {
   field1_CONTAINS: String
   field1_ENDS_WITH: String
   field1_IN: [String!]
-  field1_NOT: String
-  field1_NOT_CONTAINS: String
-  field1_NOT_ENDS_WITH: String
-  field1_NOT_IN: [String!]
-  field1_NOT_STARTS_WITH: String
+  field1_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field1_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field1_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field1_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field1_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   field1_STARTS_WITH: String
   interface2Connection: Interface1Interface2ConnectionWhere @deprecated(reason : "Use `interface2Connection_SOME` instead.")
+  "Return Interface1s where all of the related Interface1Interface2Connections match this filter"
   interface2Connection_ALL: Interface1Interface2ConnectionWhere
+  "Return Interface1s where none of the related Interface1Interface2Connections match this filter"
   interface2Connection_NONE: Interface1Interface2ConnectionWhere
   interface2Connection_NOT: Interface1Interface2ConnectionWhere @deprecated(reason : "Use `interface2Connection_NONE` instead.")
+  "Return Interface1s where one of the related Interface1Interface2Connections match this filter"
   interface2Connection_SINGLE: Interface1Interface2ConnectionWhere
+  "Return Interface1s where some of the related Interface1Interface2Connections match this filter"
   interface2Connection_SOME: Interface1Interface2ConnectionWhere
 }
 
@@ -468,7 +477,7 @@ input Interface2Options {
   limit: Int
   offset: Int
   "Specify one or more Interface2Sort objects to sort Interface2s by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [Interface2Sort!]
+  sort: [Interface2Sort]
 }
 
 "Fields to sort Interface2s by. The order in which sorts are applied is not guaranteed when specifying many fields in one Interface2Sort object."
@@ -487,11 +496,11 @@ input Interface2Where {
   field2_CONTAINS: String
   field2_ENDS_WITH: String
   field2_IN: [String]
-  field2_NOT: String
-  field2_NOT_CONTAINS: String
-  field2_NOT_ENDS_WITH: String
-  field2_NOT_IN: [String]
-  field2_NOT_STARTS_WITH: String
+  field2_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field2_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field2_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field2_NOT_IN: [String] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field2_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   field2_STARTS_WITH: String
 }
 
@@ -527,9 +536,10 @@ input Type1Interface1ConnectionSort {
 
 input Type1Interface1ConnectionWhere {
   AND: [Type1Interface1ConnectionWhere!]
+  NOT: Type1Interface1ConnectionWhere
   OR: [Type1Interface1ConnectionWhere!]
   node: Interface1Where
-  node_NOT: Interface1Where
+  node_NOT: Interface1Where @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input Type1Interface1CreateFieldInput {
@@ -629,22 +639,27 @@ input Type1Interface1UpdateInput {
 
 input Type1Interface1Where {
   AND: [Type1Interface1Where!]
+  NOT: Type1Interface1Where
   OR: [Type1Interface1Where!]
   field1: String
   field1_CONTAINS: String
   field1_ENDS_WITH: String
   field1_IN: [String!]
-  field1_NOT: String
-  field1_NOT_CONTAINS: String
-  field1_NOT_ENDS_WITH: String
-  field1_NOT_IN: [String!]
-  field1_NOT_STARTS_WITH: String
+  field1_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field1_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field1_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field1_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field1_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   field1_STARTS_WITH: String
   interface2Connection: Interface1Interface2ConnectionWhere @deprecated(reason : "Use `interface2Connection_SOME` instead.")
+  "Return Type1Interface1s where all of the related Interface1Interface2Connections match this filter"
   interface2Connection_ALL: Interface1Interface2ConnectionWhere
+  "Return Type1Interface1s where none of the related Interface1Interface2Connections match this filter"
   interface2Connection_NONE: Interface1Interface2ConnectionWhere
   interface2Connection_NOT: Interface1Interface2ConnectionWhere @deprecated(reason : "Use `interface2Connection_NONE` instead.")
+  "Return Type1Interface1s where one of the related Interface1Interface2Connections match this filter"
   interface2Connection_SINGLE: Interface1Interface2ConnectionWhere
+  "Return Type1Interface1s where some of the related Interface1Interface2Connections match this filter"
   interface2Connection_SOME: Interface1Interface2ConnectionWhere
 }
 
@@ -670,16 +685,17 @@ input Type1Interface2UpdateInput {
 
 input Type1Interface2Where {
   AND: [Type1Interface2Where!]
+  NOT: Type1Interface2Where
   OR: [Type1Interface2Where!]
   field2: String
   field2_CONTAINS: String
   field2_ENDS_WITH: String
   field2_IN: [String!]
-  field2_NOT: String
-  field2_NOT_CONTAINS: String
-  field2_NOT_ENDS_WITH: String
-  field2_NOT_IN: [String!]
-  field2_NOT_STARTS_WITH: String
+  field2_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field2_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field2_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field2_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field2_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   field2_STARTS_WITH: String
 }
 
@@ -706,22 +722,27 @@ input Type1UpdateInput {
 
 input Type1Where {
   AND: [Type1Where!]
+  NOT: Type1Where
   OR: [Type1Where!]
   field1: String
   field1_CONTAINS: String
   field1_ENDS_WITH: String
   field1_IN: [String!]
-  field1_NOT: String
-  field1_NOT_CONTAINS: String
-  field1_NOT_ENDS_WITH: String
-  field1_NOT_IN: [String!]
-  field1_NOT_STARTS_WITH: String
+  field1_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field1_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field1_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field1_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field1_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   field1_STARTS_WITH: String
   interface1Connection: Type1Interface1ConnectionWhere @deprecated(reason : "Use `interface1Connection_SOME` instead.")
+  "Return Type1s where all of the related Type1Interface1Connections match this filter"
   interface1Connection_ALL: Type1Interface1ConnectionWhere
+  "Return Type1s where none of the related Type1Interface1Connections match this filter"
   interface1Connection_NONE: Type1Interface1ConnectionWhere
   interface1Connection_NOT: Type1Interface1ConnectionWhere @deprecated(reason : "Use `interface1Connection_NONE` instead.")
+  "Return Type1s where one of the related Type1Interface1Connections match this filter"
   interface1Connection_SINGLE: Type1Interface1ConnectionWhere
+  "Return Type1s where some of the related Type1Interface1Connections match this filter"
   interface1Connection_SOME: Type1Interface1ConnectionWhere
 }
 
@@ -794,22 +815,27 @@ input Type2Interface1UpdateInput {
 
 input Type2Interface1Where {
   AND: [Type2Interface1Where!]
+  NOT: Type2Interface1Where
   OR: [Type2Interface1Where!]
   field1: String
   field1_CONTAINS: String
   field1_ENDS_WITH: String
   field1_IN: [String!]
-  field1_NOT: String
-  field1_NOT_CONTAINS: String
-  field1_NOT_ENDS_WITH: String
-  field1_NOT_IN: [String!]
-  field1_NOT_STARTS_WITH: String
+  field1_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field1_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field1_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field1_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field1_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   field1_STARTS_WITH: String
   interface2Connection: Interface1Interface2ConnectionWhere @deprecated(reason : "Use `interface2Connection_SOME` instead.")
+  "Return Type2Interface1s where all of the related Interface1Interface2Connections match this filter"
   interface2Connection_ALL: Interface1Interface2ConnectionWhere
+  "Return Type2Interface1s where none of the related Interface1Interface2Connections match this filter"
   interface2Connection_NONE: Interface1Interface2ConnectionWhere
   interface2Connection_NOT: Interface1Interface2ConnectionWhere @deprecated(reason : "Use `interface2Connection_NONE` instead.")
+  "Return Type2Interface1s where one of the related Interface1Interface2Connections match this filter"
   interface2Connection_SINGLE: Interface1Interface2ConnectionWhere
+  "Return Type2Interface1s where some of the related Interface1Interface2Connections match this filter"
   interface2Connection_SOME: Interface1Interface2ConnectionWhere
 }
 
@@ -835,16 +861,17 @@ input Type2Interface2UpdateInput {
 
 input Type2Interface2Where {
   AND: [Type2Interface2Where!]
+  NOT: Type2Interface2Where
   OR: [Type2Interface2Where!]
   field2: String
   field2_CONTAINS: String
   field2_ENDS_WITH: String
   field2_IN: [String!]
-  field2_NOT: String
-  field2_NOT_CONTAINS: String
-  field2_NOT_ENDS_WITH: String
-  field2_NOT_IN: [String!]
-  field2_NOT_STARTS_WITH: String
+  field2_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field2_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field2_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field2_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field2_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   field2_STARTS_WITH: String
 }
 

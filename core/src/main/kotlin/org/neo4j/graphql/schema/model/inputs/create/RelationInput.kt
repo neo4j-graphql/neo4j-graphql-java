@@ -28,7 +28,8 @@ class RelationInput private constructor(
                 node.name,
                 Constants.InputTypeSuffix.RelationInput,
                 node.relationFields,
-                RelationFieldBaseAugmentation::generateFieldRelationCreateIT
+                RelationFieldBaseAugmentation::generateFieldRelationCreateIT,
+                condition = { it.annotations.relationship?.isCreateAllowed != false },
             )
     }
 }

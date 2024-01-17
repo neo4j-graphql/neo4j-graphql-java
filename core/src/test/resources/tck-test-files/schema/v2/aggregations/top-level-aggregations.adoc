@@ -38,8 +38,9 @@ type BigIntAggregateSelectionNullable {
   sum: BigInt
 }
 
+"Information about the number of nodes and relationships created during a create mutation"
 type CreateInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   relationshipsCreated: Int!
 }
@@ -54,8 +55,9 @@ type DateTimeAggregateSelectionNullable {
   min: DateTime
 }
 
+"Information about the number of nodes and relationships deleted during a delete mutation"
 type DeleteInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesDeleted: Int!
   relationshipsDeleted: Int!
 }
@@ -169,8 +171,9 @@ type TimeAggregateSelectionNullable {
   min: Time
 }
 
+"Information about the number of nodes and relationships created and deleted during an update mutation"
 type UpdateInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   nodesDeleted: Int!
   relationshipsCreated: Int!
@@ -182,6 +185,7 @@ type UpdateMoviesMutationResponse {
   movies: [Movie!]!
 }
 
+"An enum for sorting in either ascending or descending order."
 enum SortDirection {
   "Sort by field values in ascending order."
   ASC
@@ -267,6 +271,7 @@ input MovieUpdateInput {
 
 input MovieWhere {
   AND: [MovieWhere!]
+  NOT: MovieWhere
   OR: [MovieWhere!]
   createdAt: DateTime
   createdAt_GT: DateTime
@@ -274,17 +279,17 @@ input MovieWhere {
   createdAt_IN: [DateTime]
   createdAt_LT: DateTime
   createdAt_LTE: DateTime
-  createdAt_NOT: DateTime
-  createdAt_NOT_IN: [DateTime]
+  createdAt_NOT: DateTime @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  createdAt_NOT_IN: [DateTime] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id: ID
   id_CONTAINS: ID
   id_ENDS_WITH: ID
   id_IN: [ID]
-  id_NOT: ID
-  id_NOT_CONTAINS: ID
-  id_NOT_ENDS_WITH: ID
-  id_NOT_IN: [ID]
-  id_NOT_STARTS_WITH: ID
+  id_NOT: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_CONTAINS: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_ENDS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_IN: [ID] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_STARTS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id_STARTS_WITH: ID
   imdbRating: Float
   imdbRating_GT: Float
@@ -292,17 +297,17 @@ input MovieWhere {
   imdbRating_IN: [Float]
   imdbRating_LT: Float
   imdbRating_LTE: Float
-  imdbRating_NOT: Float
-  imdbRating_NOT_IN: [Float]
+  imdbRating_NOT: Float @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  imdbRating_NOT_IN: [Float] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   isbn: String
   isbn_CONTAINS: String
   isbn_ENDS_WITH: String
   isbn_IN: [String!]
-  isbn_NOT: String
-  isbn_NOT_CONTAINS: String
-  isbn_NOT_ENDS_WITH: String
-  isbn_NOT_IN: [String!]
-  isbn_NOT_STARTS_WITH: String
+  isbn_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  isbn_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  isbn_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  isbn_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  isbn_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   isbn_STARTS_WITH: String
   screenTime: Duration
   screenTime_GT: Duration
@@ -310,57 +315,57 @@ input MovieWhere {
   screenTime_IN: [Duration]
   screenTime_LT: Duration
   screenTime_LTE: Duration
-  screenTime_NOT: Duration
-  screenTime_NOT_IN: [Duration]
+  screenTime_NOT: Duration @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  screenTime_NOT_IN: [Duration] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   someBigInt: BigInt
   someBigInt_GT: BigInt
   someBigInt_GTE: BigInt
   someBigInt_IN: [BigInt]
   someBigInt_LT: BigInt
   someBigInt_LTE: BigInt
-  someBigInt_NOT: BigInt
-  someBigInt_NOT_IN: [BigInt]
+  someBigInt_NOT: BigInt @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  someBigInt_NOT_IN: [BigInt] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   someInt: Int
   someInt_GT: Int
   someInt_GTE: Int
   someInt_IN: [Int]
   someInt_LT: Int
   someInt_LTE: Int
-  someInt_NOT: Int
-  someInt_NOT_IN: [Int]
+  someInt_NOT: Int @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  someInt_NOT_IN: [Int] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   someLocalDateTime: LocalDateTime
   someLocalDateTime_GT: LocalDateTime
   someLocalDateTime_GTE: LocalDateTime
   someLocalDateTime_IN: [LocalDateTime]
   someLocalDateTime_LT: LocalDateTime
   someLocalDateTime_LTE: LocalDateTime
-  someLocalDateTime_NOT: LocalDateTime
-  someLocalDateTime_NOT_IN: [LocalDateTime]
+  someLocalDateTime_NOT: LocalDateTime @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  someLocalDateTime_NOT_IN: [LocalDateTime] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   someLocalTime: LocalTime
   someLocalTime_GT: LocalTime
   someLocalTime_GTE: LocalTime
   someLocalTime_IN: [LocalTime]
   someLocalTime_LT: LocalTime
   someLocalTime_LTE: LocalTime
-  someLocalTime_NOT: LocalTime
-  someLocalTime_NOT_IN: [LocalTime]
+  someLocalTime_NOT: LocalTime @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  someLocalTime_NOT_IN: [LocalTime] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   someTime: Time
   someTime_GT: Time
   someTime_GTE: Time
   someTime_IN: [Time]
   someTime_LT: Time
   someTime_LTE: Time
-  someTime_NOT: Time
-  someTime_NOT_IN: [Time]
+  someTime_NOT: Time @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  someTime_NOT_IN: [Time] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   title: String
   title_CONTAINS: String
   title_ENDS_WITH: String
   title_IN: [String]
-  title_NOT: String
-  title_NOT_CONTAINS: String
-  title_NOT_ENDS_WITH: String
-  title_NOT_IN: [String]
-  title_NOT_STARTS_WITH: String
+  title_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_IN: [String] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   title_STARTS_WITH: String
 }
 

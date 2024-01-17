@@ -33,6 +33,7 @@ sealed class ConnectInput private constructor(
                     Constants.InputTypeSuffix.ConnectInput,
                     node.relationFields,
                     RelationFieldBaseAugmentation::generateFieldConnectIT,
+                    condition = { it.annotations.relationship?.isConnectAllowed != false },
                 )
         }
     }

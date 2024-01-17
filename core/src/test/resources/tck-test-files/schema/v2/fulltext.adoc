@@ -22,8 +22,9 @@ schema {
   mutation: Mutation
 }
 
+"Information about the number of nodes and relationships created during a create mutation"
 type CreateInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   relationshipsCreated: Int!
 }
@@ -33,8 +34,9 @@ type CreateMoviesMutationResponse {
   movies: [Movie!]!
 }
 
+"Information about the number of nodes and relationships deleted during a delete mutation"
 type DeleteInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesDeleted: Int!
   relationshipsDeleted: Int!
 }
@@ -82,9 +84,25 @@ type PageInfo {
 }
 
 type Query {
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesAggregate(where: MovieWhere): MovieAggregateSelection!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
+  movies(
+    "Query a full-text index. Allows for the aggregation of results, but does not return the query score. Use the root full-text query fields if you require the score."
+    fulltext: MovieFulltext,
+    options: MovieOptions,
+    where: MovieWhere
+  ): [Movie!]!
+  moviesAggregate(
+    "Query a full-text index. Allows for the aggregation of results, but does not return the query score. Use the root full-text query fields if you require the score."
+    fulltext: MovieFulltext,
+    where: MovieWhere
+  ): MovieAggregateSelection!
+  moviesConnection(
+    after: String,
+    first: Int,
+    "Query a full-text index. Allows for the aggregation of results, but does not return the query score. Use the root full-text query fields if you require the score."
+    fulltext: MovieFulltext,
+    sort: [MovieSort],
+    where: MovieWhere
+  ): MoviesConnection!
   moviesFulltextMovieDescription(limit: Int, offset: Int, phrase: String!, sort: [MovieFulltextSort!], where: MovieFulltextWhere): [MovieFulltextResult!]!
   moviesFulltextMovieTitle(limit: Int, offset: Int, phrase: String!, sort: [MovieFulltextSort!], where: MovieFulltextWhere): [MovieFulltextResult!]!
 }
@@ -94,8 +112,9 @@ type StringAggregateSelectionNullable {
   shortest: String
 }
 
+"Information about the number of nodes and relationships created and deleted during an update mutation"
 type UpdateInfo {
-  bookmark: String
+  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   nodesDeleted: Int!
   relationshipsCreated: Int!
@@ -107,6 +126,7 @@ type UpdateMoviesMutationResponse {
   movies: [Movie!]!
 }
 
+"An enum for sorting in either ascending or descending order."
 enum SortDirection {
   "Sort by field values in ascending order."
   ASC
@@ -125,6 +145,11 @@ input MovieCreateInput {
   title: String
 }
 
+input MovieFulltext {
+  MovieDescription: MovieMovieDescriptionFulltext
+  MovieTitle: MovieMovieTitleFulltext
+}
+
 "The input for sorting a fulltext query on an index of Movie"
 input MovieFulltextSort {
   movie: MovieSort
@@ -135,6 +160,14 @@ input MovieFulltextSort {
 input MovieFulltextWhere {
   movie: MovieWhere
   score: FloatWhere
+}
+
+input MovieMovieDescriptionFulltext {
+  phrase: String!
+}
+
+input MovieMovieTitleFulltext {
+  phrase: String!
 }
 
 input MovieOptions {
@@ -157,26 +190,27 @@ input MovieUpdateInput {
 
 input MovieWhere {
   AND: [MovieWhere!]
+  NOT: MovieWhere
   OR: [MovieWhere!]
   description: String
   description_CONTAINS: String
   description_ENDS_WITH: String
   description_IN: [String]
-  description_NOT: String
-  description_NOT_CONTAINS: String
-  description_NOT_ENDS_WITH: String
-  description_NOT_IN: [String]
-  description_NOT_STARTS_WITH: String
+  description_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  description_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  description_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  description_NOT_IN: [String] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  description_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   description_STARTS_WITH: String
   title: String
   title_CONTAINS: String
   title_ENDS_WITH: String
   title_IN: [String]
-  title_NOT: String
-  title_NOT_CONTAINS: String
-  title_NOT_ENDS_WITH: String
-  title_NOT_IN: [String]
-  title_NOT_STARTS_WITH: String
+  title_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_IN: [String] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   title_STARTS_WITH: String
 }
 

@@ -16,19 +16,9 @@ type Actor {
   movies: [Movie!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: OUT)
 }
 
-interface ActedIn {
+interface ActedIn @relationshipProperties {
   role: String!
   screenTime: Int!
-}
-----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{
-  "enableRegex": true
 }
 ----
 == AND
@@ -58,8 +48,8 @@ interface ActedIn {
 [source,json]
 ----
 {
-  "this_connection_actorsConnectionparam0" : "Gump",
-  "this_connection_actorsConnectionparam1" : 60
+  "param0": "Gump",
+  "param1": 60
 }
 ----
 
@@ -68,28 +58,72 @@ interface ActedIn {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)<-[this_connection_actorsConnectionthis0:ACTED_IN]-(this_Actor:Actor)
-	WHERE (this_connection_actorsConnectionthis0.role ENDS WITH $this_connection_actorsConnectionparam0
-		AND this_connection_actorsConnectionthis0.screenTime < $this_connection_actorsConnectionparam1)
-	WITH {
-		role: this_connection_actorsConnectionthis0.role,
-		screenTime: this_connection_actorsConnectionthis0.screenTime,
-		node: {
-			name: this_Actor.name
-		}
-	} AS edge
-	WITH collect(edge) AS edges
-	WITH edges, size(edges) AS totalCount
-	RETURN {
-		edges: edges,
-		totalCount: totalCount
-	} AS this_actorsConnection
+    WITH this
+    MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
+    WHERE (this0.role ENDS WITH $param0 AND this0.screenTime < $param1)
+    WITH collect({ node: this1, relationship: this0 }) AS edges
+    WITH edges, size(edges) AS totalCount
+    CALL {
+        WITH edges
+        UNWIND edges AS edge
+        WITH edge.node AS this1, edge.relationship AS this0
+        RETURN collect({ role: this0.role, screenTime: this0.screenTime, node: { name: this1.name } }) AS var2
+    }
+    RETURN { edges: var2, totalCount: totalCount } AS var3
 }
-RETURN this {
-	.title,
-	actorsConnection: this_actorsConnection
-} AS this
+RETURN this { .title, actorsConnection: var3 } AS this
+----
+
+'''
+
+== NOT
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    title
+    actorsConnection(where: {edge: {NOT: {role_ENDS_WITH: "Gump"}}}) {
+      edges {
+        role
+        screenTime
+        node {
+          name
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "Gump"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+    WITH this
+    MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
+    WHERE NOT (this0.role ENDS WITH $param0)
+    WITH collect({ node: this1, relationship: this0 }) AS edges
+    WITH edges, size(edges) AS totalCount
+    CALL {
+        WITH edges
+        UNWIND edges AS edge
+        WITH edge.node AS this1, edge.relationship AS this0
+        RETURN collect({ role: this0.role, screenTime: this0.screenTime, node: { name: this1.name } }) AS var2
+    }
+    RETURN { edges: var2, totalCount: totalCount } AS var3
+}
+RETURN this { .title, actorsConnection: var3 } AS this
 ----
 
 '''

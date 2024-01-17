@@ -32,18 +32,11 @@ data class SchemaConfig @JvmOverloads constructor(
 
     val capitaliseFilterOperations: Boolean = true,
 
-    /**
-     * To enable the inclusion of this the matches filter.
-     *
-     * The nature of RegEx matching means that on an unprotected API, this could potentially be used to execute a ReDoS
-     * attack (https://owasp.org/www-community/attacks/Regular_expression_Denial_of_Service_-_ReDoS) against the backing
-     * Neo4j database.
-     */
-    val enableRegex: Boolean = false,
-
     val namingStrategy: NamingStrategy = NamingStrategy(),
 
-    val features: Neo4jFeaturesSettings = Neo4jFeaturesSettings()
+    val features: Neo4jFeaturesSettings = Neo4jFeaturesSettings(),
+
+    val experimental: Boolean = false,
 ) {
     data class CRUDConfig(val enabled: Boolean = true, val exclude: List<String> = emptyList())
 
@@ -64,18 +57,25 @@ data class SchemaConfig @JvmOverloads constructor(
     }
 
     data class Neo4jFeaturesSettings(
-        val filters: Neo4jFiltersSettings = Neo4jFiltersSettings()
+        val filters: Neo4jFiltersSettings = Neo4jFiltersSettings(),
+        val subscriptions: Boolean = false,
     )
 
     data class Neo4jFiltersSettings(
         // TODO should we also use feature toggles for strings? https://github.com/neo4j/graphql/issues/2657#issuecomment-1369858159
-        val string: Neo4jStringFiltersSettings = Neo4jStringFiltersSettings()
+        val String: Neo4jStringFiltersSettings = Neo4jStringFiltersSettings(),
+        val ID: Neo4jIDFiltersSettings = Neo4jIDFiltersSettings()
     )
 
     data class Neo4jStringFiltersSettings(
-        val gt: Boolean = false,
-        val gte: Boolean = false,
-        val lt: Boolean = false,
-        val lte: Boolean = false,
+        val GT: Boolean = false,
+        val GTE: Boolean = false,
+        val LT: Boolean = false,
+        val LTE: Boolean = false,
+        val MATCHES: Boolean = false,
+    )
+
+    data class Neo4jIDFiltersSettings(
+        val MATCHES: Boolean = false,
     )
 }

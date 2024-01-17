@@ -6,6 +6,10 @@
 
 [source,graphql,schema=true]
 ----
+type JWT @jwt {
+  roles: [String!]!
+}
+
 type Parent {
   children: [Child!]! @relationship(type: "HAS", direction: IN)
 }
@@ -14,17 +18,7 @@ type Child {
   tcId: String @unique
 }
 
-extend type Child @auth(rules: [{operations: [READ, CREATE, UPDATE, DELETE, CONNECT, DISCONNECT], roles: ["upstream"]}, {operations: [READ], roles: ["downstream"]}])
-----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{
-  "enableRegex": true
-}
+extend type Child @authorization(validate: [{operations: [READ, CREATE, UPDATE, DELETE, CREATE_RELATIONSHIP, DELETE_RELATIONSHIP], where: {jwt: {roles_INCLUDES: "upstream"}}}, {operations: [READ], where: {jwt: {roles_INCLUDES: "downstream"}}}])
 ----
 == multiple connectOrCreate operations with auth
 
@@ -46,14 +40,16 @@ mutation UpdateParents {
 [source,json]
 ----
 {
-  "auth" : {
-    "isAuthenticated" : false,
-    "roles" : [ ]
+  "this_connectOrCreate_children_param0": "123",
+  "this_connectOrCreate_children_param1": "123",
+  "isAuthenticated": true,
+  "jwt": {
+    "roles": []
   },
-  "this_connectOrCreate_children_param0" : "123",
-  "this_connectOrCreate_children_param1" : "123",
-  "this_connectOrCreate_children_param2" : "456",
-  "this_connectOrCreate_children_param3" : "456"
+  "this_connectOrCreate_children_param4": "upstream",
+  "this_connectOrCreate_children_param5": "456",
+  "this_connectOrCreate_children_param6": "456",
+  "this_connectOrCreate_children_param7": "upstream"
 }
 ----
 
@@ -63,29 +59,25 @@ mutation UpdateParents {
 MATCH (this:Parent)
 WITH this
 CALL {
-	WITH this
-	MERGE (this_connectOrCreate_children0:Child {
-		tcId: $this_connectOrCreate_children_param0
-	})
-	ON CREATE SET this_connectOrCreate_children0.tcId = $this_connectOrCreate_children_param1
-	MERGE (this_connectOrCreate_children0)-[this_connectOrCreate_children_this0:HAS]->(this)
-	WITH * CALL apoc.util.validate(NOT (any(r IN ['upstream']
-	WHERE any(rr IN $auth.roles
-	WHERE rr = r))), '@neo4j/graphql/FORBIDDEN', [0])
-	RETURN count(*) AS _
+    WITH this
+    MERGE (this_connectOrCreate_children0:Child { tcId: $this_connectOrCreate_children_param0 })
+    ON CREATE SET
+        this_connectOrCreate_children0.tcId = $this_connectOrCreate_children_param1
+    MERGE (this)<-[this_connectOrCreate_children_this0:HAS]-(this_connectOrCreate_children0)
+    WITH *
+    WHERE apoc.util.validatePredicate(NOT ($isAuthenticated = true AND ($jwt.roles IS NOT NULL AND $this_connectOrCreate_children_param4 IN $jwt.roles)), "@neo4j/graphql/FORBIDDEN", [0])
+    RETURN count(*) AS _
 }
 WITH this
 CALL {
-	WITH this
-	MERGE (this_connectOrCreate_children1:Child {
-		tcId: $this_connectOrCreate_children_param2
-	})
-	ON CREATE SET this_connectOrCreate_children1.tcId = $this_connectOrCreate_children_param3
-	MERGE (this_connectOrCreate_children1)-[this_connectOrCreate_children_this1:HAS]->(this)
-	WITH * CALL apoc.util.validate(NOT (any(r IN ['upstream']
-	WHERE any(rr IN $auth.roles
-	WHERE rr = r))), '@neo4j/graphql/FORBIDDEN', [0])
-	RETURN count(*) AS _
+    WITH this
+    MERGE (this_connectOrCreate_children1:Child { tcId: $this_connectOrCreate_children_param5 })
+    ON CREATE SET
+        this_connectOrCreate_children1.tcId = $this_connectOrCreate_children_param6
+    MERGE (this)<-[this_connectOrCreate_children_this1:HAS]-(this_connectOrCreate_children1)
+    WITH *
+    WHERE apoc.util.validatePredicate(NOT ($isAuthenticated = true AND ($jwt.roles IS NOT NULL AND $this_connectOrCreate_children_param7 IN $jwt.roles)), "@neo4j/graphql/FORBIDDEN", [0])
+    RETURN count(*) AS _
 }
 WITH *
 RETURN 'Query cannot conclude with CALL'

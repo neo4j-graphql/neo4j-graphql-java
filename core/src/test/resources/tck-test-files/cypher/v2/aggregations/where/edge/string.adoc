@@ -15,19 +15,9 @@ type Post {
   likes: [User!]! @relationship(type: "LIKES", direction: IN, properties: "Likes")
 }
 
-interface Likes {
+interface Likes @relationshipProperties {
   someString: String
   someStringAlias: String @alias(property: "_someStringAlias")
-}
-----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{
-  "enableRegex": true
 }
 ----
 == AVERAGE_EQUAL
@@ -46,7 +36,7 @@ interface Likes {
 [source,json]
 ----
 {
-  "param0" : 10
+  "param0": 10
 }
 ----
 
@@ -55,15 +45,13 @@ interface Likes {
 ----
 MATCH (this:Post)
 CALL {
-	WITH this
-	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN avg(size(this0.someString)) = $param0 AS var2
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN avg(size(this0.someString)) = $param0 AS var2
 }
 WITH *
 WHERE var2 = true
-RETURN this {
-	.content
-} AS this
+RETURN this { .content } AS this
 ----
 
 '''
@@ -84,7 +72,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 10
+  "param0": 10
 }
 ----
 
@@ -93,15 +81,13 @@ RETURN this {
 ----
 MATCH (this:Post)
 CALL {
-	WITH this
-	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN avg(size(this0.someString)) > $param0 AS var2
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN avg(size(this0.someString)) > $param0 AS var2
 }
 WITH *
 WHERE var2 = true
-RETURN this {
-	.content
-} AS this
+RETURN this { .content } AS this
 ----
 
 '''
@@ -122,7 +108,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 10
+  "param0": 10
 }
 ----
 
@@ -131,15 +117,13 @@ RETURN this {
 ----
 MATCH (this:Post)
 CALL {
-	WITH this
-	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN avg(size(this0.someString)) >= $param0 AS var2
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN avg(size(this0.someString)) >= $param0 AS var2
 }
 WITH *
 WHERE var2 = true
-RETURN this {
-	.content
-} AS this
+RETURN this { .content } AS this
 ----
 
 '''
@@ -160,7 +144,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 10
+  "param0": 10
 }
 ----
 
@@ -169,15 +153,13 @@ RETURN this {
 ----
 MATCH (this:Post)
 CALL {
-	WITH this
-	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN avg(size(this0.someString)) < $param0 AS var2
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN avg(size(this0.someString)) < $param0 AS var2
 }
 WITH *
 WHERE var2 = true
-RETURN this {
-	.content
-} AS this
+RETURN this { .content } AS this
 ----
 
 '''
@@ -198,7 +180,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 10
+  "param0": 10
 }
 ----
 
@@ -207,15 +189,13 @@ RETURN this {
 ----
 MATCH (this:Post)
 CALL {
-	WITH this
-	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN avg(size(this0.someString)) <= $param0 AS var2
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN avg(size(this0.someString)) <= $param0 AS var2
 }
 WITH *
 WHERE var2 = true
-RETURN this {
-	.content
-} AS this
+RETURN this { .content } AS this
 ----
 
 '''
@@ -236,7 +216,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "10"
+  "param0": "10"
 }
 ----
 
@@ -245,15 +225,13 @@ RETURN this {
 ----
 MATCH (this:Post)
 CALL {
-	WITH this
-	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN any(var2 IN collect(this0.someString) WHERE var2 = $param0) AS var3
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN any(var2 IN collect(this0.someString) WHERE var2 = $param0) AS var3
 }
 WITH *
 WHERE var3 = true
-RETURN this {
-	.content
-} AS this
+RETURN this { .content } AS this
 ----
 
 '''
@@ -274,7 +252,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "10"
+  "param0": "10"
 }
 ----
 
@@ -283,15 +261,13 @@ RETURN this {
 ----
 MATCH (this:Post)
 CALL {
-	WITH this
-	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN any(var2 IN collect(this0._someStringAlias) WHERE var2 = $param0) AS var3
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN any(var2 IN collect(this0._someStringAlias) WHERE var2 = $param0) AS var3
 }
 WITH *
 WHERE var3 = true
-RETURN this {
-	.content
-} AS this
+RETURN this { .content } AS this
 ----
 
 '''
@@ -312,7 +288,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 10
+  "param0": 10
 }
 ----
 
@@ -321,15 +297,13 @@ RETURN this {
 ----
 MATCH (this:Post)
 CALL {
-	WITH this
-	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN any(var2 IN collect(size(this0.someString)) WHERE var2 > $param0) AS var3
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN any(var2 IN collect(size(this0.someString)) WHERE var2 > $param0) AS var3
 }
 WITH *
 WHERE var3 = true
-RETURN this {
-	.content
-} AS this
+RETURN this { .content } AS this
 ----
 
 '''
@@ -350,7 +324,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 10
+  "param0": 10
 }
 ----
 
@@ -359,15 +333,13 @@ RETURN this {
 ----
 MATCH (this:Post)
 CALL {
-	WITH this
-	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN any(var2 IN collect(size(this0.someString)) WHERE var2 >= $param0) AS var3
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN any(var2 IN collect(size(this0.someString)) WHERE var2 >= $param0) AS var3
 }
 WITH *
 WHERE var3 = true
-RETURN this {
-	.content
-} AS this
+RETURN this { .content } AS this
 ----
 
 '''
@@ -388,7 +360,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 10
+  "param0": 10
 }
 ----
 
@@ -397,15 +369,13 @@ RETURN this {
 ----
 MATCH (this:Post)
 CALL {
-	WITH this
-	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN max(size(this0.someString)) = $param0 AS var2
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN max(size(this0.someString)) = $param0 AS var2
 }
 WITH *
 WHERE var2 = true
-RETURN this {
-	.content
-} AS this
+RETURN this { .content } AS this
 ----
 
 '''
@@ -426,7 +396,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 10
+  "param0": 10
 }
 ----
 
@@ -435,15 +405,13 @@ RETURN this {
 ----
 MATCH (this:Post)
 CALL {
-	WITH this
-	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN max(size(this0.someString)) > $param0 AS var2
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN max(size(this0.someString)) > $param0 AS var2
 }
 WITH *
 WHERE var2 = true
-RETURN this {
-	.content
-} AS this
+RETURN this { .content } AS this
 ----
 
 '''
@@ -464,7 +432,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 10
+  "param0": 10
 }
 ----
 
@@ -473,15 +441,13 @@ RETURN this {
 ----
 MATCH (this:Post)
 CALL {
-	WITH this
-	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN max(size(this0.someString)) >= $param0 AS var2
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN max(size(this0.someString)) >= $param0 AS var2
 }
 WITH *
 WHERE var2 = true
-RETURN this {
-	.content
-} AS this
+RETURN this { .content } AS this
 ----
 
 '''
@@ -502,7 +468,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 10
+  "param0": 10
 }
 ----
 
@@ -511,15 +477,13 @@ RETURN this {
 ----
 MATCH (this:Post)
 CALL {
-	WITH this
-	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN max(size(this0.someString)) < $param0 AS var2
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN max(size(this0.someString)) < $param0 AS var2
 }
 WITH *
 WHERE var2 = true
-RETURN this {
-	.content
-} AS this
+RETURN this { .content } AS this
 ----
 
 '''
@@ -540,7 +504,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 10
+  "param0": 10
 }
 ----
 
@@ -549,15 +513,13 @@ RETURN this {
 ----
 MATCH (this:Post)
 CALL {
-	WITH this
-	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN max(size(this0.someString)) <= $param0 AS var2
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN max(size(this0.someString)) <= $param0 AS var2
 }
 WITH *
 WHERE var2 = true
-RETURN this {
-	.content
-} AS this
+RETURN this { .content } AS this
 ----
 
 '''
@@ -578,7 +540,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 10
+  "param0": 10
 }
 ----
 
@@ -587,15 +549,13 @@ RETURN this {
 ----
 MATCH (this:Post)
 CALL {
-	WITH this
-	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN any(var2 IN collect(size(this0.someString)) WHERE var2 < $param0) AS var3
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN any(var2 IN collect(size(this0.someString)) WHERE var2 < $param0) AS var3
 }
 WITH *
 WHERE var3 = true
-RETURN this {
-	.content
-} AS this
+RETURN this { .content } AS this
 ----
 
 '''
@@ -616,7 +576,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 10
+  "param0": 10
 }
 ----
 
@@ -625,15 +585,13 @@ RETURN this {
 ----
 MATCH (this:Post)
 CALL {
-	WITH this
-	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN any(var2 IN collect(size(this0.someString)) WHERE var2 <= $param0) AS var3
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN any(var2 IN collect(size(this0.someString)) WHERE var2 <= $param0) AS var3
 }
 WITH *
 WHERE var3 = true
-RETURN this {
-	.content
-} AS this
+RETURN this { .content } AS this
 ----
 
 '''
@@ -654,7 +612,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 10
+  "param0": 10
 }
 ----
 
@@ -663,15 +621,13 @@ RETURN this {
 ----
 MATCH (this:Post)
 CALL {
-	WITH this
-	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN min(size(this0.someString)) = $param0 AS var2
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN min(size(this0.someString)) = $param0 AS var2
 }
 WITH *
 WHERE var2 = true
-RETURN this {
-	.content
-} AS this
+RETURN this { .content } AS this
 ----
 
 '''
@@ -692,7 +648,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 10
+  "param0": 10
 }
 ----
 
@@ -701,15 +657,13 @@ RETURN this {
 ----
 MATCH (this:Post)
 CALL {
-	WITH this
-	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN min(size(this0.someString)) > $param0 AS var2
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN min(size(this0.someString)) > $param0 AS var2
 }
 WITH *
 WHERE var2 = true
-RETURN this {
-	.content
-} AS this
+RETURN this { .content } AS this
 ----
 
 '''
@@ -730,7 +684,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 10
+  "param0": 10
 }
 ----
 
@@ -739,15 +693,13 @@ RETURN this {
 ----
 MATCH (this:Post)
 CALL {
-	WITH this
-	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN min(size(this0.someString)) >= $param0 AS var2
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN min(size(this0.someString)) >= $param0 AS var2
 }
 WITH *
 WHERE var2 = true
-RETURN this {
-	.content
-} AS this
+RETURN this { .content } AS this
 ----
 
 '''
@@ -768,7 +720,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 10
+  "param0": 10
 }
 ----
 
@@ -777,15 +729,13 @@ RETURN this {
 ----
 MATCH (this:Post)
 CALL {
-	WITH this
-	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN min(size(this0.someString)) < $param0 AS var2
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN min(size(this0.someString)) < $param0 AS var2
 }
 WITH *
 WHERE var2 = true
-RETURN this {
-	.content
-} AS this
+RETURN this { .content } AS this
 ----
 
 '''
@@ -806,7 +756,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 10
+  "param0": 10
 }
 ----
 
@@ -815,15 +765,13 @@ RETURN this {
 ----
 MATCH (this:Post)
 CALL {
-	WITH this
-	MATCH (this1:User)-[this0:LIKES]->(this)
-	RETURN min(size(this0.someString)) <= $param0 AS var2
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN min(size(this0.someString)) <= $param0 AS var2
 }
 WITH *
 WHERE var2 = true
-RETURN this {
-	.content
-} AS this
+RETURN this { .content } AS this
 ----
 
 '''

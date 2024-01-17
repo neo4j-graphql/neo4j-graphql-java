@@ -47,7 +47,7 @@ class CreateInput private constructor(
         fun generateContainerCreateInputIT(node: Node, ctx: AugmentationContext) = generateContainerCreateInputIT(
             node.name,
             node.fields.filterIsInstance<RelationField>(),
-            node.scalarFields,
+            node.scalarFields.filter { it.isCreateInputField() },
             ctx,
             enforceFields = true,
         )
@@ -67,6 +67,7 @@ class CreateInput private constructor(
                 wrapList = false,
                 scalarFields,
                 enforceFields = enforceFields,
+                condition = { it.annotations.settable?.onCreate != false }
             )
     }
 }

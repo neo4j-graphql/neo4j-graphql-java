@@ -6,29 +6,23 @@
 
 [source,graphql,schema=true]
 ----
+type JWT @jwt {
+  roles: [String!]!
+}
+
 type Movie {
   title: String!
   released: Int
   actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN, properties: "ActedIn")
 }
 
-type Person @auth(rules: [{isAuthenticated: true, where: {name: "The Matrix"}, allow: {name: "$jwt.test"}, roles: ["admin"]}]) {
+type Person @authorization(filter: [{where: {node: {name: "The Matrix"}}}], validate: [{when: [BEFORE], where: {node: {name: "$jwt.test"}, jwt: {roles_INCLUDES: "admin"}}}]) {
   name: String!
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
 }
 
 interface ActedIn @relationshipProperties {
   year: Int
-}
-----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{
-  "enableRegex": true
 }
 ----
 == Nested query
@@ -46,35 +40,19 @@ query Query {
 }
 ----
 
-.Query Context
-[source,json,query-config=true]
-----
-{
-  "auth": {},
-  "contextParams": {
-    "jwt": {
-      "test": "my-test"
-    }
-  }
-}
-----
-
 .Expected Cypher params
 [source,json]
 ----
 {
-  "auth" : {
-    "isAuthenticated" : true,
-    "roles" : [ ],
-    "jwt" : {
-      "roles" : [ ],
-      "test" : "my-test"
-    }
+  "param0": 1999,
+  "param1": "Keanu Reeves",
+  "isAuthenticated": true,
+  "param3": "The Matrix",
+  "jwt": {
+    "roles": [],
+    "test": "my-test"
   },
-  "param0" : 1999,
-  "param1" : "Keanu Reeves",
-  "param3" : "The Matrix",
-  "param5" : "my-test"
+  "param5": "admin"
 }
 ----
 
@@ -84,30 +62,14 @@ query Query {
 MATCH (this:Movie)
 WHERE this.released = $param0
 CALL {
-	WITH this
-	MATCH (this_actors:Person)-[this0:ACTED_IN]->(this)
-	WHERE (this_actors.name = $param1
-		AND any(r IN ['admin']
-		WHERE any(rr IN $auth.roles
-		WHERE rr = r))
-		AND apoc.util.validatePredicate(NOT ($auth.isAuthenticated = true), '@neo4j/graphql/UNAUTHENTICATED', [0])
-		AND this_actors.name IS NOT NULL
-		AND this_actors.name = $param3
-		AND apoc.util.validatePredicate(NOT ((any(r IN ['admin']
-			WHERE any(rr IN $auth.roles
-			WHERE rr = r))
-			AND apoc.util.validatePredicate(NOT ($auth.isAuthenticated = true), '@neo4j/graphql/UNAUTHENTICATED', [0])
-			AND this_actors.name IS NOT NULL
-			AND this_actors.name = $param5)), '@neo4j/graphql/FORBIDDEN', [0]))
-	WITH this_actors {
-		.name
-	} AS this_actors
-	RETURN collect(this_actors) AS this_actors
+    WITH this
+    MATCH (this)<-[this0:ACTED_IN]-(this1:Person)
+    WITH *
+    WHERE (this1.name = $param1 AND ($isAuthenticated = true AND ($param3 IS NOT NULL AND this1.name = $param3)) AND apoc.util.validatePredicate(NOT ($isAuthenticated = true AND ($jwt.test IS NOT NULL AND this1.name = $jwt.test) AND ($jwt.roles IS NOT NULL AND $param5 IN $jwt.roles)), "@neo4j/graphql/FORBIDDEN", [0]))
+    WITH this1 { .name } AS this1
+    RETURN collect(this1) AS var2
 }
-RETURN this {
-	.title,
-	actors: this_actors
-} AS this
+RETURN this { .title, actors: var2 } AS this
 ----
 
 '''

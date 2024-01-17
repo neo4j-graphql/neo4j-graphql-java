@@ -1,13 +1,14 @@
 package org.neo4j.graphql.domain.predicates.definitions
 
-import graphql.language.Argument
 import graphql.language.Description
 import graphql.language.Directive
-import graphql.language.StringValue
+import org.atteo.evo.inflector.EnglischInflector
 import org.neo4j.graphql.asDescription
 import org.neo4j.graphql.domain.ImplementingType
 import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.domain.predicates.RelationOperator
+import org.neo4j.graphql.name
+import org.neo4j.graphql.toDeprecatedDirective
 
 data class RelationPredicateDefinition(
     override val name: String,
@@ -19,9 +20,12 @@ data class RelationPredicateDefinition(
     val description: Description?
         get() = if (operator.list && operator.deprecatedAlternative == null) {
             val plural = (this.field.owner as? ImplementingType)?.pluralKeepCase ?: this.field.getOwnerName()
-            val relatedName = this.field.extractOnTarget(
+            val relatedName = if (connection) {
+                // TODO really this name?
+                EnglischInflector.getPlural(this.field.connectionField.typeMeta.type.name())
+            } else this.field.extractOnTarget(
                 onImplementingType = { it.pluralKeepCase },
-                onUnion = { it.name }
+                onUnion = { it.pluralKeepCase }
             )
             "Return $plural where ${if (operator !== RelationOperator.SINGLE) operator.suffix!!.lowercase() else "one"} of the related $relatedName match this filter".asDescription()
         } else {
@@ -35,10 +39,7 @@ data class RelationPredicateDefinition(
             } else {
                 this.field
             }
-            Directive(
-                "deprecated",
-                listOf(Argument("reason", StringValue("Use `${baseField.fieldName}_${operator.deprecatedAlternative}` instead.")))
-            )
+            "Use `${baseField.fieldName}_${operator.deprecatedAlternative}` instead.".toDeprecatedDirective()
         } else {
             null
         }

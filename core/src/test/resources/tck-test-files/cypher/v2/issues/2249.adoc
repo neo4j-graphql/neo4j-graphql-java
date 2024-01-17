@@ -33,14 +33,6 @@ interface Reviewer {
   reviewerId: Int
 }
 ----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{}
-----
 == nested update with create should generate a single relationship with the nested value
 
 .GraphQL-Query
@@ -68,25 +60,29 @@ mutation UpdateMovies {
 [source,json]
 ----
 {
-  "param0" : "John Wick",
-  "this_reviewers0_create0_node_name" : "Ana",
-  "this_reviewers0_create0_node_reputation" : 100,
-  "updateMovies" : {
-    "args" : {
-      "update" : {
-        "reviewers" : [ {
-          "create" : [ {
-            "node" : {
-              "Person" : {
-                "name" : "Ana",
-                "reputation" : 100
+  "param0": "John Wick",
+  "this_reviewers0_create0_node_name": "Ana",
+  "this_reviewers0_create0_node_reputation": 100,
+  "updateMovies": {
+    "args": {
+      "update": {
+        "reviewers": [
+          {
+            "create": [
+              {
+                "edge": {
+                  "score": 10
+                },
+                "node": {
+                  "Person": {
+                    "name": "Ana",
+                    "reputation": 100
+                  }
+                }
               }
-            },
-            "edge" : {
-              "score" : 10
-            }
-          } ]
-        } ]
+            ]
+          }
+        ]
       }
     }
   }
@@ -98,46 +94,46 @@ mutation UpdateMovies {
 ----
 MATCH (this:Movie)
 WHERE this.title = $param0
+
+
 WITH this
 CALL {
-	WITH this
-	WITH this
-	CREATE (this_reviewers0_create0_node:Person)
-	SET this_reviewers0_create0_node.name = $this_reviewers0_create0_node_name
-	SET this_reviewers0_create0_node.reputation = $this_reviewers0_create0_node_reputation
-	MERGE (this)<-[this_reviewers0_create0_relationship:REVIEWED]-(this_reviewers0_create0_node)
-	SET this_reviewers0_create0_relationship.score = $updateMovies.args.update.reviewers[0].create[0].edge.score
-	RETURN count(*) AS update_this_Person
+	 WITH this
+	
+WITH this
+CREATE (this_reviewers0_create0_node:Person)
+SET this_reviewers0_create0_node.name = $this_reviewers0_create0_node_name
+SET this_reviewers0_create0_node.reputation = $this_reviewers0_create0_node_reputation
+MERGE (this)<-[this_reviewers0_create0_relationship:REVIEWED]-(this_reviewers0_create0_node)
+SET this_reviewers0_create0_relationship.score = $updateMovies.args.update.reviewers[0].create[0].edge.score
+RETURN count(*) AS update_this_Person
 }
+
 CALL {
+	 WITH this
 	WITH this
-	WITH this
-	RETURN count(*) AS update_this_Influencer
+RETURN count(*) AS update_this_Influencer
 }
-WITH *
+
+
 WITH *
 CALL {
-	WITH *
-	CALL {
-		WITH this
-		MATCH (this)<-[update_this0:REVIEWED]-(this_Person:Person)
-		RETURN {
-			__resolveType: 'Person',
-			name: this_Person.name,
-			reputation: this_Person.reputation
-		} AS this_reviewers UNION
-		WITH this
-		MATCH (this)<-[update_this1:REVIEWED]-(this_Influencer:Influencer)
-		RETURN {
-			__resolveType: 'Influencer'
-		} AS this_reviewers
-	}
-	RETURN collect(this_reviewers) AS this_reviewers
+    WITH this
+    CALL {
+        WITH *
+        MATCH (this)<-[update_this0:REVIEWED]-(update_this1:Person)
+        WITH update_this1 { __resolveType: "Person", __id: id(this), .name, .reputation } AS update_this1
+        RETURN update_this1 AS update_var2
+        UNION
+        WITH *
+        MATCH (this)<-[update_this3:REVIEWED]-(update_this4:Influencer)
+        WITH update_this4 { __resolveType: "Influencer", __id: id(this) } AS update_this4
+        RETURN update_this4 AS update_var2
+    }
+    WITH update_var2
+    RETURN collect(update_var2) AS update_var2
 }
-RETURN collect(DISTINCT this {
-	.title,
-	reviewers: this_reviewers
-}) AS data
+RETURN collect(DISTINCT this { .title, reviewers: update_var2 }) AS data
 ----
 
 '''

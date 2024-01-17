@@ -6,20 +6,24 @@
 
 [source,graphql,schema=true]
 ----
+type JWT @jwt {
+  roles: [String!]!
+}
+
 type Battery {
-  id: ID! @id(autogenerate: false)
+  id: ID! @unique
   current: Boolean!
 }
 
-extend type Battery @auth(rules: [{isAuthenticated: true, roles: ["admin"]}])
+extend type Battery @authorization(validate: [{where: {jwt: {roles_INCLUDES: "admin"}}}])
 
 type CombustionEngine {
-  id: ID! @id(autogenerate: false)
+  id: ID! @unique
   current: Boolean!
 }
 
 type Drive {
-  id: ID! @id(autogenerate: false)
+  id: ID! @unique
   current: Boolean!
   driveCompositions: [DriveComposition!]! @relationship(type: "CONSISTS_OF", properties: "RelationProps", direction: OUT)
 }
@@ -27,23 +31,13 @@ type Drive {
 union DriveComponent = Battery | CombustionEngine
 
 type DriveComposition {
-  id: ID! @id(autogenerate: false)
+  id: ID! @unique
   current: Boolean!
   driveComponent: [DriveComponent!]! @relationship(type: "HAS", properties: "RelationProps", direction: OUT)
 }
 
-interface RelationProps {
+interface RelationProps @relationshipProperties {
   current: Boolean!
-}
-----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{
-  "enableRegex": true
 }
 ----
 == union types with auth and connection-where
@@ -79,41 +73,21 @@ query getDrivesWithFilteredUnionType {
 }
 ----
 
-.Query Context
-[source,json,query-config=true]
-----
-{
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [
-      "admin"
-    ]
-  },
-  "contextParams": {
-    "jwt": {
-      "roles": [
-        "admin"
-      ]
-    }
-  }
-}
-----
-
 .Expected Cypher params
 [source,json]
 ----
 {
-  "auth" : {
-    "isAuthenticated" : true,
-    "roles" : [ "admin" ],
-    "jwt" : {
-      "roles" : [ "admin" ]
-    }
+  "param0": true,
+  "param1": true,
+  "param2": true,
+  "isAuthenticated": true,
+  "jwt": {
+    "roles": [
+      "admin"
+    ]
   },
-  "param0" : true,
-  "this_DriveComposition_connection_driveComponentConnectionparam0" : true,
-  "this_DriveComposition_connection_driveComponentConnectionparam2" : true,
-  "this_connection_driveCompositionsConnectionparam0" : true
+  "param5": "admin",
+  "param6": true
 }
 ----
 
@@ -123,62 +97,39 @@ query getDrivesWithFilteredUnionType {
 MATCH (this:Drive)
 WHERE this.current = $param0
 CALL {
-	WITH this
-	MATCH (this)-[this_connection_driveCompositionsConnectionthis0:CONSISTS_OF]->(this_DriveComposition:DriveComposition)
-	WHERE this_connection_driveCompositionsConnectionthis0.current = $this_connection_driveCompositionsConnectionparam0
-	CALL {
-		WITH this_DriveComposition
-		CALL {
-			WITH this_DriveComposition
-			MATCH (this_DriveComposition)-[this_DriveComposition_connection_driveComponentConnectionthis0:HAS]->(this_DriveComposition_Battery:Battery)
-			WHERE (this_DriveComposition_connection_driveComponentConnectionthis0.current = $this_DriveComposition_connection_driveComponentConnectionparam0
-				AND apoc.util.validatePredicate(NOT ((any(r IN ['admin']
-					WHERE any(rr IN $auth.roles
-					WHERE rr = r))
-					AND apoc.util.validatePredicate(NOT ($auth.isAuthenticated = true), '@neo4j/graphql/UNAUTHENTICATED', [0]))), '@neo4j/graphql/FORBIDDEN', [0]))
-			WITH {
-				current: this_DriveComposition_connection_driveComponentConnectionthis0.current,
-				node: {
-					__resolveType: 'Battery',
-					id: this_DriveComposition_Battery.id
-				}
-			} AS edge
-			RETURN edge UNION
-			WITH this_DriveComposition
-			MATCH (this_DriveComposition)-[this_DriveComposition_connection_driveComponentConnectionthis1:HAS]->(this_DriveComposition_CombustionEngine:CombustionEngine)
-			WHERE this_DriveComposition_connection_driveComponentConnectionthis1.current = $this_DriveComposition_connection_driveComponentConnectionparam2
-			WITH {
-				current: this_DriveComposition_connection_driveComponentConnectionthis1.current,
-				node: {
-					__resolveType: 'CombustionEngine',
-					id: this_DriveComposition_CombustionEngine.id
-				}
-			} AS edge
-			RETURN edge
-		}
-		WITH collect(edge) AS edges
-		WITH edges, size(edges) AS totalCount
-		RETURN {
-			edges: edges,
-			totalCount: totalCount
-		} AS this_DriveComposition_driveComponentConnection
-	}
-	WITH {
-		node: {
-			driveComponentConnection: this_DriveComposition_driveComponentConnection
-		}
-	} AS edge
-	WITH collect(edge) AS edges
-	WITH edges, size(edges) AS totalCount
-	RETURN {
-		edges: edges,
-		totalCount: totalCount
-	} AS this_driveCompositionsConnection
+    WITH this
+    MATCH (this)-[this0:CONSISTS_OF]->(this1:DriveComposition)
+    WHERE this0.current = $param1
+    WITH collect({ node: this1, relationship: this0 }) AS edges
+    WITH edges, size(edges) AS totalCount
+    CALL {
+        WITH edges
+        UNWIND edges AS edge
+        WITH edge.node AS this1, edge.relationship AS this0
+        CALL {
+            WITH this1
+            CALL {
+                WITH this1
+                MATCH (this1)-[this2:HAS]->(this3:Battery)
+                WHERE (this2.current = $param2 AND apoc.util.validatePredicate(NOT ($isAuthenticated = true AND ($jwt.roles IS NOT NULL AND $param5 IN $jwt.roles)), "@neo4j/graphql/FORBIDDEN", [0]))
+                WITH { current: this2.current, node: { __resolveType: "Battery", __id: id(this3), id: this3.id } } AS edge
+                RETURN edge
+                UNION
+                WITH this1
+                MATCH (this1)-[this4:HAS]->(this5:CombustionEngine)
+                WHERE this4.current = $param6
+                WITH { current: this4.current, node: { __resolveType: "CombustionEngine", __id: id(this5), id: this5.id } } AS edge
+                RETURN edge
+            }
+            WITH collect(edge) AS edges
+            WITH edges, size(edges) AS totalCount
+            RETURN { edges: edges, totalCount: totalCount } AS var6
+        }
+        RETURN collect({ node: { driveComponentConnection: var6 } }) AS var7
+    }
+    RETURN { edges: var7, totalCount: totalCount } AS var8
 }
-RETURN this {
-	.current,
-	driveCompositionsConnection: this_driveCompositionsConnection
-} AS this
+RETURN this { .current, driveCompositionsConnection: var8 } AS this
 ----
 
 '''

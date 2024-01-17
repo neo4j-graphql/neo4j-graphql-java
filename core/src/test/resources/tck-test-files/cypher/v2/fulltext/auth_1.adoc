@@ -6,7 +6,7 @@
 
 [source,graphql,schema=true]
 ----
-type Movie @fulltext(indexes: [{name: "MovieTitle", fields: ["title"]}]) @auth(rules: [{where: {director: {id: "$jwt.sub"}}}]) {
+type Movie @fulltext(indexes: [{name: "MovieTitle", fields: ["title"]}]) @authorization(filter: [{where: {node: {director: {id: "$jwt.sub"}}}}]) {
   title: String
   director: [Person!]! @relationship(type: "DIRECTED", direction: IN)
 }
@@ -16,14 +16,9 @@ type Person {
 }
 ----
 
-== Configuration
+== 4.4
 
-.Configuration
-[source,json,schema-config=true]
-----
-{}
-----
-== simple match with auth where
+=== simple match with auth where
 
 .GraphQL-Query
 [source,graphql]
@@ -35,15 +30,42 @@ type Person {
 }
 ----
 
-.Query Context
-[source,json,query-config=true]
+.Expected Cypher params
+[source,json]
 ----
 {
-  "auth": {},
-  "contextParams": {
-    "jwt": {
-      "sub": "my-sub"
-    }
+  "param0": "something AND something",
+  "param1": "Movie",
+  "isAuthenticated": true,
+  "jwt": {
+    "roles": [],
+    "sub": "my-sub"
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL db.index.fulltext.queryNodes("MovieTitle", $param0) YIELD node AS this0, score AS var1
+WHERE $param1 IN labels(this0)
+WITH *
+WHERE ($isAuthenticated = true AND size([(this0)<-[:DIRECTED]-(this2:Person) WHERE ($jwt.sub IS NOT NULL AND this2.id = $jwt.sub) | 1]) > 0)
+RETURN this0 { .title } AS this
+----
+
+'''
+
+== 5
+
+=== simple match with auth where
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(fulltext: {MovieTitle: {phrase: "something AND something"}}) {
+    title
   }
 }
 ----
@@ -52,24 +74,29 @@ type Person {
 [source,json]
 ----
 {
-  "auth_param0" : "my-sub",
-  "param0" : "something AND something"
+  "param0": "something AND something",
+  "param1": "Movie",
+  "isAuthenticated": true,
+  "jwt": {
+    "roles": [],
+    "sub": "my-sub"
+  }
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-CALL db.index.fulltext.queryNodes('MovieTitle', $param0) YIELD node AS this
-WHERE ('Movie' IN labels(this)
-	AND exists((this)<-[:DIRECTED]-(:Person))
-	AND all(auth_this0 IN [(this)<-[:DIRECTED]-(auth_this0) | auth_this0]
-	WHERE (auth_this0.id IS NOT NULL
-		AND auth_this0.id = $auth_param0)))
-RETURN this {
-	.title
-} AS this
+CALL db.index.fulltext.queryNodes("MovieTitle", $param0) YIELD node AS this0, score AS var1
+WHERE $param1 IN labels(this0)
+WITH *
+WHERE ($isAuthenticated = true AND EXISTS {
+    MATCH (this0)<-[:DIRECTED]-(this2:Person)
+    WHERE ($jwt.sub IS NOT NULL AND this2.id = $jwt.sub)
+})
+RETURN this0 { .title } AS this
 ----
 
 '''
+
 

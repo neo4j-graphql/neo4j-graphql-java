@@ -6,14 +6,15 @@ import graphql.language.NonNullType
 import graphql.schema.DataFetchingEnvironment
 import org.neo4j.cypherdsl.core.Statement
 import org.neo4j.graphql.*
+import org.neo4j.graphql.domain.Entity
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
-import org.neo4j.graphql.domain.directives.ExcludeDirective
 import org.neo4j.graphql.handler.BaseDataFetcher
 import org.neo4j.graphql.schema.AugmentationContext
 import org.neo4j.graphql.schema.AugmentationHandler
 import org.neo4j.graphql.schema.model.inputs.Dict
 import org.neo4j.graphql.schema.model.inputs.WhereInput
+import org.neo4j.graphql.schema.model.inputs.filter.FulltextInput
 import org.neo4j.graphql.schema.model.inputs.options.OptionsInput
 import org.neo4j.graphql.schema.model.outputs.NodeSelection
 import org.neo4j.graphql.translate.AuthTranslator
@@ -26,30 +27,44 @@ import org.neo4j.graphql.utils.ResolveTree
  * This class handles all the logic related to the querying of nodes.
  * This includes the augmentation of the query-fields and the related cypher generation
  */
-class ReadResolver private constructor(
+class ReadResolver internal constructor(
     schemaConfig: SchemaConfig,
-    val node: Node
+    val entity: Entity
 ) : BaseDataFetcher(schemaConfig) {
 
-    class Factory(ctx: AugmentationContext) : AugmentationHandler(ctx) {
+    class Factory(ctx: AugmentationContext) : AugmentationHandler(ctx), AugmentationHandler.EntityAugmentation {
 
-        override fun augmentNode(node: Node): List<AugmentedField> {
-            if (!node.isOperationAllowed(ExcludeDirective.ExcludeOperation.READ)) {
+        override fun augmentEntity(entity: Entity): List<AugmentedField> {
+            if (entity.annotations.query?.read == false || (!ctx.schemaConfig.experimental && entity !is Node)) {
                 return emptyList()
             }
-            val nodeType = NodeSelection.Augmentation.generateNodeSelection(node, ctx) ?: return emptyList()
-            val coordinates =
-                addQueryField(node.rootTypeFieldNames.read, NonNullType(ListType(nodeType.asRequiredType()))) { args ->
+            val nodeType = entity.extractOnTarget(
+                { node -> NodeSelection.Augmentation.generateNodeSelection(node, ctx) },
+                { interfaze -> interfaze.name },
+                { union -> union.name }
 
-                    WhereInput.NodeWhereInput.Augmentation
-                        .generateWhereIT(node, ctx)
+            )
+                ?: return emptyList()
+            val coordinates =
+                addQueryField(entity.plural, NonNullType(ListType(nodeType.asRequiredType()))) { args ->
+
+                    WhereInput.Augmentation.generateWhereIT(entity, ctx)
                         ?.let { args += inputValue(Constants.WHERE, it.asType()) }
 
                     OptionsInput.Augmentation
-                        .generateOptionsIT(node, ctx)
+                        .generateOptionsIT(entity, ctx)
                         .let { args += inputValue(Constants.OPTIONS, it.asType()) }
+
+                    if (entity is Node && entity.annotations.fulltext != null) {
+                        FulltextInput.Augmentation.generateFulltextInput(entity, ctx)
+                            ?.let {
+                                args += inputValue(Constants.FULLTEXT, it.asType()) {
+                                    description("Query a full-text index. Allows for the aggregation of results, but does not return the query score. Use the root full-text query fields if you require the score.".asDescription())
+                                }
+                            }
+                    }
                 }
-            return AugmentedField(coordinates, ReadResolver(ctx.schemaConfig, node)).wrapList()
+            return AugmentedField(coordinates, ReadResolver(ctx.schemaConfig, entity)).wrapList()
         }
     }
 
@@ -62,6 +77,10 @@ class ReadResolver private constructor(
 
     override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement {
         val queryContext = env.queryContext()
+        if (entity !is Node) {
+            TODO()
+        }
+        val node: Node = entity
 
 
         val resolveTree = ResolveTree.resolve(env)
@@ -74,7 +93,7 @@ class ReadResolver private constructor(
 
         val dslNode = node.asCypherNode(queryContext, variable)
 
-        val optionsInput = input.options.merge(node.queryOptions)
+        val optionsInput = input.options.merge(node.annotations.limit)
 
         val authPredicates =
             AuthTranslator(

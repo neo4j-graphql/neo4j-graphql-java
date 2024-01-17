@@ -50,6 +50,7 @@ class AggregationSelectionFields(data: Map<PrimitiveField, List<ResolveTree>>) :
         ): List<FieldDefinition> {
             return fields
                 .filterIsInstance<PrimitiveField>()
+                .filter { it.annotations.selectable?.onAggregate != false }
                 .filterNot { it.typeMeta.type.isList() }
                 .mapNotNull { field ->
                     getAggregationSelectionLibraryType(field, ctx)

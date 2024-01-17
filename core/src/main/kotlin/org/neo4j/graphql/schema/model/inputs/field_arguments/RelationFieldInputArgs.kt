@@ -20,7 +20,7 @@ class RelationFieldInputArgs(field: RelationField, data: Dict) {
 
     val options = OptionsInput
         .create(data.nestedDict(Constants.OPTIONS))
-        .merge(field.node?.queryOptions)
+        .merge(field.node?.annotations?.limit)
 
     object Augmentation : AugmentationBase {
 

@@ -6,28 +6,18 @@
 
 [source,graphql,schema=true]
 ----
-type Movie @node(label: "Film") {
+type Movie @node(labels: ["Film"]) {
   id: ID!
   title: String!
   imdbRating: Int!
   createdAt: DateTime!
 }
 
-type Actor @node(additionalLabels: ["Person", "Alien"]) {
+type Actor @node(labels: ["Actor", "Person", "Alien"]) {
   id: ID!
   name: String!
   imdbRating: Int!
   createdAt: DateTime!
-}
-----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{
-  "enableRegex": true
 }
 ----
 == Additional Labels Aggregations
@@ -61,32 +51,32 @@ type Actor @node(additionalLabels: ["Person", "Alien"]) {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Actor:Person:Alien)
-RETURN {
-	_id: {
-		_shortest: min(this.id),
-		_longest: max(this.id)
-	},
-	_name: {
-		_shortest: reduce(aggVar = collect(this.name)[0], current IN collect(this.name) | CASE WHEN size(current) < size(aggVar) THEN current ELSE aggVar END),
-		_longest: reduce(aggVar = collect(this.name)[0], current IN collect(this.name) | CASE WHEN size(current) > size(aggVar) THEN current ELSE aggVar END)
-	},
-	_imdbRating: {
-		_min: min(this.imdbRating),
-		_max: max(this.imdbRating),
-		_average: avg(this.imdbRating)
-	},
-	_createdAt: {
-		_min: apoc.date.convertFormat(toString(min(this.createdAt)), 'iso_zoned_date_time', 'iso_offset_date_time'),
-		_max: apoc.date.convertFormat(toString(max(this.createdAt)), 'iso_zoned_date_time', 'iso_offset_date_time')
-	}
+CALL {
+    MATCH (this:Actor:Person:Alien)
+    RETURN { _shortest: min(this.id), _longest: max(this.id) } AS var0
 }
+CALL {
+    MATCH (this:Actor:Person:Alien)
+    WITH this
+    ORDER BY size(this.name) DESC
+    WITH collect(this.name) AS list
+    RETURN { _longest: head(list), _shortest: last(list) } AS var1
+}
+CALL {
+    MATCH (this:Actor:Person:Alien)
+    RETURN { _min: min(this.imdbRating), _max: max(this.imdbRating), _average: avg(this.imdbRating) } AS var2
+}
+CALL {
+    MATCH (this:Actor:Person:Alien)
+    RETURN { _min: apoc.date.convertFormat(toString(min(this.createdAt)), "iso_zoned_date_time", "iso_offset_date_time"), _max: apoc.date.convertFormat(toString(max(this.createdAt)), "iso_zoned_date_time", "iso_offset_date_time") } AS var3
+}
+RETURN { _id: var0, _name: var1, _imdbRating: var2, _createdAt: var3 }
 ----
 
 '''
@@ -122,32 +112,32 @@ RETURN {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-MATCH (this:Film)
-RETURN {
-	_id: {
-		_shortest: min(this.id),
-		_longest: max(this.id)
-	},
-	_title: {
-		_shortest: reduce(aggVar = collect(this.title)[0], current IN collect(this.title) | CASE WHEN size(current) < size(aggVar) THEN current ELSE aggVar END),
-		_longest: reduce(aggVar = collect(this.title)[0], current IN collect(this.title) | CASE WHEN size(current) > size(aggVar) THEN current ELSE aggVar END)
-	},
-	_imdbRating: {
-		_min: min(this.imdbRating),
-		_max: max(this.imdbRating),
-		_average: avg(this.imdbRating)
-	},
-	_createdAt: {
-		_min: apoc.date.convertFormat(toString(min(this.createdAt)), 'iso_zoned_date_time', 'iso_offset_date_time'),
-		_max: apoc.date.convertFormat(toString(max(this.createdAt)), 'iso_zoned_date_time', 'iso_offset_date_time')
-	}
+CALL {
+    MATCH (this:Film)
+    RETURN { _shortest: min(this.id), _longest: max(this.id) } AS var0
 }
+CALL {
+    MATCH (this:Film)
+    WITH this
+    ORDER BY size(this.title) DESC
+    WITH collect(this.title) AS list
+    RETURN { _longest: head(list), _shortest: last(list) } AS var1
+}
+CALL {
+    MATCH (this:Film)
+    RETURN { _min: min(this.imdbRating), _max: max(this.imdbRating), _average: avg(this.imdbRating) } AS var2
+}
+CALL {
+    MATCH (this:Film)
+    RETURN { _min: apoc.date.convertFormat(toString(min(this.createdAt)), "iso_zoned_date_time", "iso_offset_date_time"), _max: apoc.date.convertFormat(toString(max(this.createdAt)), "iso_zoned_date_time", "iso_offset_date_time") } AS var3
+}
+RETURN { _id: var0, _title: var1, _imdbRating: var2, _createdAt: var3 }
 ----
 
 '''

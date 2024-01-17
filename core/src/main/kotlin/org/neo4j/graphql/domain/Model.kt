@@ -2,8 +2,10 @@ package org.neo4j.graphql.domain
 
 import graphql.language.InterfaceTypeDefinition
 import graphql.language.ObjectTypeDefinition
+import graphql.language.UnionTypeDefinition
 import graphql.schema.idl.TypeDefinitionRegistry
 import org.neo4j.graphql.*
+import org.neo4j.graphql.domain.directives.Annotations
 import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.domain.fields.ScalarField
 import org.neo4j.graphql.merge.TypeDefinitionRegistryMerger
@@ -12,8 +14,12 @@ import java.util.concurrent.ConcurrentHashMap
 data class Model(
     val nodes: Collection<Node>,
     val relationship: Collection<RelationField>,
-    val interfaces: Collection<Interface>
+    val interfaces: Collection<Interface>,
+    val unions: Collection<Union>
 ) {
+
+    val entities get() = nodes + interfaces + unions
+
     companion object {
         fun createModel(typeDefinitionRegistry: TypeDefinitionRegistry, schemaConfig: SchemaConfig) =
             ModelInitializer(typeDefinitionRegistry, schemaConfig).createModel()
@@ -48,29 +54,54 @@ data class Model(
             }
             val nodesByName = nodes.associateBy { it.name }
             val implementations = mutableMapOf<Interface, MutableList<Node>>()
+
+            val unions = parseUnions(nodesByName)
+
             nodes.forEach { node ->
-                initRelations(node, nodesByName)
+                initRelations(node, nodesByName, unions)
                 node.interfaces.forEach {
                     implementations.computeIfAbsent(it) { mutableListOf() }.add(node)
                 }
                 node.cypherFields.forEach { field ->
                     field.node = nodesByName[field.typeMeta.type.name()]
-                    field.union = Union.create(field.typeMeta.type.name(), field.unionNodeNames, nodesByName)
+                    field.union = unions[field.typeMeta.type.name()]
                 }
             }
+
             implementations.forEach { (interfaze, impls) ->
                 interfaze.implementations = impls.sortedBy { it.name }.map { it.name to it }.toMap()
-                initRelations(interfaze, nodesByName)
+                initRelations(interfaze, nodesByName, unions)
             }
             val relationships = nodes.flatMap { it.relationFields }
 
-            return Model(nodes, relationships, implementations.keys)
+            return Model(nodes, relationships, implementations.keys, unions.values)
         }
 
-        private fun initRelations(type: ImplementingType, nodesByName: Map<String, Node>) {
+        private fun parseUnions(nodesByName: Map<String, Node>): Map<String, Union> {
+            val unions = mutableMapOf<String, Union>()
+            typeDefinitionRegistry.getTypes(UnionTypeDefinition::class.java).forEach { unionDefinion ->
+                val annotations = Annotations(unionDefinion.directives)
+                unionDefinion.memberTypes
+                    .mapNotNull { nodesByName[it.name()] }
+                    .sortedBy { it.name }
+                    .map { it.name to it }
+                    .takeIf { it.isNotEmpty() }
+                    ?.let { Union(unionDefinion.name, it.toMap(), annotations) }
+                    ?.let { unions[unionDefinion.name] = it }
+            }
+            return unions
+        }
+
+        private fun initRelations(
+            type: ImplementingType,
+            nodesByName: Map<String, Node>,
+            unions: Map<String, Union>
+        ) {
             type.relationFields.forEach { field ->
-                field.union = Union.create(field.typeMeta.type.name(), field.unionNodeNames, nodesByName)
-                field.node = nodesByName[field.typeMeta.type.name()]
+                field.target = unions[field.typeMeta.type.name()]
+                    ?: nodesByName[field.typeMeta.type.name()]
+                            ?: getOrCreateInterface(field.typeMeta.type.name())
+                            ?: error("Unknown type ${field.typeMeta.type.name()}")
             }
         }
 

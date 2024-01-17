@@ -6,17 +6,17 @@
 
 [source,graphql,schema=true]
 ----
-type ContentPiece @node(additionalLabels: ["UNIVERSAL"]) {
+type ContentPiece @node(labels: ["ContentPiece", "UNIVERSAL"]) {
   uid: String! @unique
   id: Int
 }
 
-type Project @node(additionalLabels: ["UNIVERSAL"]) {
+type Project @node(labels: ["Project", "UNIVERSAL"]) {
   uid: String! @unique
   id: Int
 }
 
-type Community @node(additionalLabels: ["UNIVERSAL"]) {
+type Community @node(labels: ["Community", "UNIVERSAL"]) {
   uid: String! @unique
   id: Int
   hasContentPieces: [ContentPiece!]! @relationship(type: "COMMUNITY_CONTENTPIECE_HASCONTENTPIECES", direction: OUT)
@@ -27,18 +27,10 @@ extend type Community {
   """Used on Community Landing Page"""
   hasFeedItems(limit: Int = 10, pageIndex: Int = 0): [FeedItem!]! @cypher(statement: """
   Match(this)-[:COMMUNITY_CONTENTPIECE_HASCONTENTPIECES|:COMMUNITY_PROJECT_HASASSOCIATEDPROJECTS]-(pag) return pag SKIP ($limit * $pageIndex) LIMIT $limit
-  """)
+  """, columnName: "pag")
 }
 
 union FeedItem = ContentPiece | Project
-----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{}
 ----
 == should not concatenate AND and variable name
 
@@ -64,12 +56,8 @@ union FeedItem = ContentPiece | Project
 [source,json]
 ----
 {
-  "auth" : {
-    "isAuthenticated" : false,
-    "roles" : [ ]
-  },
-  "param0" : 10,
-  "param1" : 0
+  "param0": 10,
+  "param1": 0
 }
 ----
 
@@ -78,32 +66,21 @@ union FeedItem = ContentPiece | Project
 ----
 MATCH (this:Community:UNIVERSAL)
 CALL {
-	WITH this
-	UNWIND apoc.cypher.runFirstColumnMany('Match(this)-[:COMMUNITY_CONTENTPIECE_HASCONTENTPIECES|:COMMUNITY_PROJECT_HASASSOCIATEDPROJECTS]-(pag) return pag SKIP ($limit * $pageIndex) LIMIT $limit', {
-		limit: $param0,
-		pageIndex: $param1,
-		this: this,
-		auth: $auth
-	}) AS this_hasFeedItems
-	WITH *
-	WHERE ((this_hasFeedItems:ContentPiece
-			AND this_hasFeedItems:UNIVERSAL)
-		OR (this_hasFeedItems:Project
-			AND this_hasFeedItems:UNIVERSAL))
-	RETURN collect(CASE WHEN (this_hasFeedItems:ContentPiece
-		AND this_hasFeedItems:UNIVERSAL) THEN this_hasFeedItems {
-		__resolveType: 'ContentPiece',
-		.id
-	} WHEN (this_hasFeedItems:Project
-		AND this_hasFeedItems:UNIVERSAL) THEN this_hasFeedItems {
-		__resolveType: 'Project',
-		.id
-	} END) AS this_hasFeedItems
+    WITH this
+    CALL {
+        WITH this
+        WITH this AS this
+        Match(this)-[:COMMUNITY_CONTENTPIECE_HASCONTENTPIECES|:COMMUNITY_PROJECT_HASASSOCIATEDPROJECTS]-(pag) return pag SKIP ($param0 * $param1) LIMIT $param0
+    }
+    WITH pag AS this0
+    WITH *
+    WHERE ((this0:ContentPiece AND this0:UNIVERSAL) OR (this0:Project AND this0:UNIVERSAL))
+    RETURN collect(CASE
+        WHEN (this0:ContentPiece AND this0:UNIVERSAL) THEN this0 { .id, __resolveType: "ContentPiece" }
+        WHEN (this0:Project AND this0:UNIVERSAL) THEN this0 { .id, __resolveType: "Project" }
+    END) AS this0
 }
-RETURN this {
-	.id,
-	hasFeedItems: this_hasFeedItems
-} AS this
+RETURN this { .id, hasFeedItems: this0 } AS this
 ----
 
 '''

@@ -6,19 +6,13 @@
 
 [source,graphql,schema=true]
 ----
+type JWT @jwt {
+  roles: [String!]!
+}
+
 type Movie {
   title: String!
-  ratings: [Float!]! @auth(rules: [{operations: [UPDATE], isAuthenticated: true}])
-}
-----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{
-  "enableRegex": true
+  ratings: [Float!]! @authorization(validate: [{operations: [UPDATE], where: {jwt: {roles_INCLUDES: "update"}}}])
 }
 ----
 == pop auth
@@ -40,14 +34,13 @@ mutation {
 [source,json]
 ----
 {
-  "auth" : {
-    "isAuthenticated" : true,
-    "roles" : [ ],
-    "jwt" : {
-      "roles" : [ ]
-    }
+  "isAuthenticated": true,
+  "jwt": {
+    "roles": []
   },
-  "this_update_ratings_POP" : 1
+  "authorization__before_param2": "update",
+  "authorization__after_param2": "update",
+  "this_update_ratings_POP": 1
 }
 ----
 
@@ -55,12 +48,13 @@ mutation {
 [source,cypher]
 ----
 MATCH (this:Movie)
-WITH this CALL apoc.util.validate(NOT (apoc.util.validatePredicate(NOT ($auth.isAuthenticated = true), '@neo4j/graphql/UNAUTHENTICATED', [0])), '@neo4j/graphql/FORBIDDEN', [0]) CALL apoc.util.validate(this.ratings IS NULL, 'Property %s cannot be NULL', ['ratings'])
-SET this.ratings = this.ratings[0..- $this_update_ratings_POP]
-RETURN collect(DISTINCT this {
-	.title,
-	.ratings
-}) AS data
+WITH this
+WHERE apoc.util.validatePredicate(NOT ($isAuthenticated = true AND ($jwt.roles IS NOT NULL AND $authorization__before_param2 IN $jwt.roles)), "@neo4j/graphql/FORBIDDEN", [0]) AND apoc.util.validatePredicate(this.ratings IS NULL, "Property %s cannot be NULL", ['ratings'])
+
+SET this.ratings = this.ratings[0..-$this_update_ratings_POP]
+WITH this
+WHERE apoc.util.validatePredicate(NOT ($isAuthenticated = true AND ($jwt.roles IS NOT NULL AND $authorization__after_param2 IN $jwt.roles)), "@neo4j/graphql/FORBIDDEN", [0])
+RETURN collect(DISTINCT this { .title, .ratings }) AS data
 ----
 
 '''
@@ -84,14 +78,15 @@ mutation {
 [source,json]
 ----
 {
-  "auth" : {
-    "isAuthenticated" : true,
-    "roles" : [ ],
-    "jwt" : {
-      "roles" : [ ]
-    }
+  "isAuthenticated": true,
+  "jwt": {
+    "roles": []
   },
-  "this_update_ratings_PUSH" : [ 1 ]
+  "authorization__before_param2": "update",
+  "authorization__after_param2": "update",
+  "this_update_ratings_PUSH": [
+    1
+  ]
 }
 ----
 
@@ -99,12 +94,13 @@ mutation {
 [source,cypher]
 ----
 MATCH (this:Movie)
-WITH this CALL apoc.util.validate(NOT (apoc.util.validatePredicate(NOT ($auth.isAuthenticated = true), '@neo4j/graphql/UNAUTHENTICATED', [0])), '@neo4j/graphql/FORBIDDEN', [0]) CALL apoc.util.validate(this.ratings IS NULL, 'Property %s cannot be NULL', ['ratings'])
-SET this.ratings = (this.ratings + $this_update_ratings_PUSH)
-RETURN collect(DISTINCT this {
-	.title,
-	.ratings
-}) AS data
+WITH this
+WHERE apoc.util.validatePredicate(NOT ($isAuthenticated = true AND ($jwt.roles IS NOT NULL AND $authorization__before_param2 IN $jwt.roles)), "@neo4j/graphql/FORBIDDEN", [0]) AND apoc.util.validatePredicate(this.ratings IS NULL, "Property %s cannot be NULL", ['ratings'])
+
+SET this.ratings = this.ratings + $this_update_ratings_PUSH
+WITH this
+WHERE apoc.util.validatePredicate(NOT ($isAuthenticated = true AND ($jwt.roles IS NOT NULL AND $authorization__after_param2 IN $jwt.roles)), "@neo4j/graphql/FORBIDDEN", [0])
+RETURN collect(DISTINCT this { .title, .ratings }) AS data
 ----
 
 '''
