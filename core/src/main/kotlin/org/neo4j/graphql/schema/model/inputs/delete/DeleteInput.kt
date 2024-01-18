@@ -27,8 +27,7 @@ sealed class DeleteInput private constructor(implementingType: ImplementingType,
         object Augmentation : AugmentationBase {
             fun generateContainerDeleteInputIT(node: Node, ctx: AugmentationContext) =
                 ctx.getOrCreateRelationInputObjectType(
-                    node.name,
-                    Constants.InputTypeSuffix.DeleteInput,
+                    node.operations.deleteInputTypeName,
                     node.relationFields,
                     RelationFieldBaseAugmentation::generateFieldDeleteIT,
                     condition = { it.annotations.relationship?.isDeleteAllowed != false },

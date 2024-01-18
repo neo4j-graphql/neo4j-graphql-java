@@ -39,15 +39,15 @@ interface SubscriptionWhereFieldInput {
             }
 
             private fun getEdgeSubscriptionWhere(
-                field: RelationField,
+                rel: RelationField,
                 ctx: AugmentationContext,
             ): String? {
-                if (field.properties == null) {
+                if (rel.properties == null) {
                     return null
                 }
-                return ctx.getOrCreateInputObjectType(field.operations.edgeSubscriptionWhereInputTypeName) { fields, name ->
+                return ctx.getOrCreateInputObjectType(rel.operations.edgeSubscriptionWhereInputTypeName) { fields, name ->
                     fields += WhereInput.FieldContainerWhereInput.Augmentation
-                        .getWhereFields(field.properties.name, field.properties.fields, ctx, whereName = name)
+                        .getWhereFields(name, rel.properties.fields, ctx)
                 }
             }
         }
@@ -56,13 +56,13 @@ interface SubscriptionWhereFieldInput {
     class UnionSubscriptionWhereFieldInput : SubscriptionWhereFieldInput {
         object Augmentation : AugmentationBase {
 
-            fun generateWhereIT(field: RelationField, ctx: AugmentationContext): String? =
-                ctx.getOrCreateInputObjectType(field.operations.subscriptionWhereInputTypeName) { fields, _ ->
-                    field.union?.nodes?.values?.forEach { node ->
+            fun generateWhereIT(rel: RelationField, ctx: AugmentationContext): String? =
+                ctx.getOrCreateInputObjectType(rel.operations.subscriptionWhereInputTypeName) { fields, _ ->
+                    rel.union?.nodes?.values?.forEach { node ->
                         ImplementingTypeSubscriptionWhereFieldInput.Augmentation.generateWhereIT(
-                            field,
+                            rel,
                             node,
-                            field.operations.getToUnionSubscriptionWhereInputTypeName(node),
+                            rel.operations.getToUnionSubscriptionWhereInputTypeName(node),
                             ctx
                         )?.let {
                             fields += inputValue(node.name, it.asType())

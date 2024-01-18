@@ -46,15 +46,12 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0": [
-    {
-      "title": "Forrest Gump"
-    },
-    {
-      "title": "Toy Story"
-    }
-  ],
-  "create_param1": "Tom Hanks"
+  "create_param0" : [ {
+    "title" : "Forrest Gump"
+  }, {
+    "title" : "Toy Story"
+  } ],
+  "create_param1" : "Tom Hanks"
 }
 ----
 
@@ -63,28 +60,40 @@ mutation {
 ----
 UNWIND $create_param0 AS create_var0
 CALL {
-    WITH create_var0
-    CREATE (create_this1:Movie)
-    SET
-        create_this1.title = create_var0.title
-    
-    RETURN create_this1
+	WITH create_var0
+	CREATE (create_this1:Movie)
+	SET create_this1.title = create_var0.title
+	RETURN create_this1
 }
 CALL {
-    WITH create_this1
-    MATCH (create_this1)<-[create_this2:ACTED_IN]-(create_this3:Actor)
-    WHERE create_this3.name = $create_param1
-    WITH collect({ node: create_this3, relationship: create_this2 }) AS edges
-    WITH edges, size(edges) AS totalCount
-    CALL {
-        WITH edges
-        UNWIND edges AS edge
-        WITH edge.node AS create_this3, edge.relationship AS create_this2
-        RETURN collect({ screenTime: create_this2.screenTime, node: { name: create_this3.name } }) AS create_var4
-    }
-    RETURN { edges: create_var4, totalCount: totalCount } AS create_var5
+	WITH create_this1
+	MATCH (create_this1)<-[create_this2:ACTED_IN]-(create_this3:Actor)
+	WHERE create_this3.name = $create_param1
+	WITH collect( {
+		node: create_this3,
+		relationship: create_this2
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS create_this3, edge.relationship AS create_this2
+		RETURN collect( {
+			screenTime: create_this2.screenTime,
+			node: {
+				name: create_this3.name
+			}
+		}) AS create_var4
+	}
+	RETURN {
+		edges: create_var4,
+		totalCount: totalCount
+	} AS create_var5
 }
-RETURN collect(create_this1 { .title, actorsConnection: create_var5 }) AS data
+RETURN collect(create_this1 {
+	.title,
+	actorsConnection: create_var5
+}) AS data
 ----
 
 '''
@@ -115,14 +124,11 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0": [
-    {
-      "title": "Forrest Gump"
-    },
-    {
-      "title": "Toy Story"
-    }
-  ]
+  "create_param0" : [ {
+    "title" : "Forrest Gump"
+  }, {
+    "title" : "Toy Story"
+  } ]
 }
 ----
 
@@ -131,27 +137,39 @@ mutation {
 ----
 UNWIND $create_param0 AS create_var0
 CALL {
-    WITH create_var0
-    CREATE (create_this1:Movie)
-    SET
-        create_this1.title = create_var0.title
-    
-    RETURN create_this1
+	WITH create_var0
+	CREATE (create_this1:Movie)
+	SET create_this1.title = create_var0.title
+	RETURN create_this1
 }
 CALL {
-    WITH create_this1
-    MATCH (create_this1)<-[create_this2:ACTED_IN]-(create_this3:Actor)
-    WITH collect({ node: create_this3, relationship: create_this2 }) AS edges
-    WITH edges, size(edges) AS totalCount
-    CALL {
-        WITH edges
-        UNWIND edges AS edge
-        WITH edge.node AS create_this3, edge.relationship AS create_this2
-        RETURN collect({ screenTime: create_this2.screenTime, node: { name: create_this3.name } }) AS create_var4
-    }
-    RETURN { edges: create_var4, totalCount: totalCount } AS create_var5
+	WITH create_this1
+	MATCH (create_this1)<-[create_this2:ACTED_IN]-(create_this3:Actor)
+	WITH collect( {
+		node: create_this3,
+		relationship: create_this2
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS create_this3, edge.relationship AS create_this2
+		RETURN collect( {
+			screenTime: create_this2.screenTime,
+			node: {
+				name: create_this3.name
+			}
+		}) AS create_var4
+	}
+	RETURN {
+		edges: create_var4,
+		totalCount: totalCount
+	} AS create_var5
 }
-RETURN collect(create_this1 { .title, actorsConnection: create_var5 }) AS data
+RETURN collect(create_this1 {
+	.title,
+	actorsConnection: create_var5
+}) AS data
 ----
 
 '''
@@ -182,11 +200,9 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0": [
-    {
-      "title": "Forrest Gump"
-    }
-  ]
+  "create_param0" : [ {
+    "title" : "Forrest Gump"
+  } ]
 }
 ----
 
@@ -195,27 +211,39 @@ mutation {
 ----
 UNWIND $create_param0 AS create_var0
 CALL {
-    WITH create_var0
-    CREATE (create_this1:Movie)
-    SET
-        create_this1.title = create_var0.title
-    
-    RETURN create_this1
+	WITH create_var0
+	CREATE (create_this1:Movie)
+	SET create_this1.title = create_var0.title
+	RETURN create_this1
 }
 CALL {
-    WITH create_this1
-    MATCH (create_this1)<-[create_this2:ACTED_IN]-(create_this3:Actor)
-    WITH collect({ node: create_this3, relationship: create_this2 }) AS edges
-    WITH edges, size(edges) AS totalCount
-    CALL {
-        WITH edges
-        UNWIND edges AS edge
-        WITH edge.node AS create_this3, edge.relationship AS create_this2
-        RETURN collect({ screenTime: create_this2.screenTime, node: { name: create_this3.name } }) AS create_var4
-    }
-    RETURN { edges: create_var4, totalCount: totalCount } AS create_var5
+	WITH create_this1
+	MATCH (create_this1)<-[create_this2:ACTED_IN]-(create_this3:Actor)
+	WITH collect( {
+		node: create_this3,
+		relationship: create_this2
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS create_this3, edge.relationship AS create_this2
+		RETURN collect( {
+			screenTime: create_this2.screenTime,
+			node: {
+				name: create_this3.name
+			}
+		}) AS create_var4
+	}
+	RETURN {
+		edges: create_var4,
+		totalCount: totalCount
+	} AS create_var5
 }
-RETURN collect(create_this1 { .title, actorsConnection: create_var5 }) AS data
+RETURN collect(create_this1 {
+	.title,
+	actorsConnection: create_var5
+}) AS data
 ----
 
 '''

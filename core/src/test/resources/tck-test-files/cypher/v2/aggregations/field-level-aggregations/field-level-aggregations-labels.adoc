@@ -42,7 +42,7 @@ interface ActedIn @relationshipProperties {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -50,14 +50,21 @@ interface ActedIn @relationshipProperties {
 ----
 MATCH (this:Film)
 CALL {
-    WITH this
-    MATCH (this)<-[this0:ACTED_IN]-(this1:Person)
-    WITH this1
-    ORDER BY size(this1.name) DESC
-    WITH collect(this1.name) AS list
-    RETURN { shortest: last(list) } AS var2
+	WITH this
+	MATCH (this)<-[this0:ACTED_IN]-(this1:Person)
+	WITH this1 ORDER BY size(this1.name) DESC
+	WITH collect(this1.name) AS list
+	RETURN {
+		shortest: last(list)
+	} AS var2
 }
-RETURN this { actorsAggregate: { node: { name: var2 } } } AS this
+RETURN this {
+	actorsAggregate: {
+		node: {
+			name: var2
+		}
+	}
+} AS this
 ----
 
 '''

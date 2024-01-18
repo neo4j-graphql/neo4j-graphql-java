@@ -18,6 +18,18 @@ type Movie {
 
 extend type Actor @authorization(validate: [{when: [AFTER], where: {node: {id: "$jwt.sub"}}}])
 ----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+  "features": {
+    "subscriptions": true
+  }
+}
+----
 == Multi Create
 
 .GraphQL-Query
@@ -36,13 +48,13 @@ mutation {
 [source,json]
 ----
 {
-  "this0_id": "1",
-  "isAuthenticated": true,
-  "jwt": {
-    "roles": [],
-    "sub": "super_admin"
+  "isAuthenticated" : true,
+  "jwt" : {
+    "roles" : [ ],
+    "sub" : "super_admin"
   },
-  "this1_id": "2"
+  "this0_id" : "1",
+  "this1_id" : "2"
 }
 ----
 
@@ -50,31 +62,61 @@ mutation {
 [source,cypher]
 ----
 CALL {
-WITH [] AS meta
-CREATE (this0:Actor)
-SET this0.id = $this0_id
-WITH *, meta + { event: "create", id: id(this0), properties: { old: null, new: this0 { .* } }, timestamp: timestamp(), typename: "Actor" } AS meta
-WITH *
-WHERE apoc.util.validatePredicate(NOT ($isAuthenticated = true AND ($jwt.sub IS NOT NULL AND this0.id = $jwt.sub)), "@neo4j/graphql/FORBIDDEN", [0])
-RETURN this0, meta AS this0_meta
+	WITH [] AS meta
+	CREATE (this0:Actor)
+	SET this0.id = $this0_id
+	WITH *, (meta + {
+		event: 'create',
+		id: id(this0),
+		properties: {
+			old: NULL,
+			new: this0 {
+				.*
+			}
+		},
+		timestamp: timestamp(),
+		typename: 'Actor'
+	}) AS meta
+	WITH *
+	WHERE apoc.util.validatePredicate(NOT (($isAuthenticated = true
+		AND $jwt.sub IS NOT NULL
+		AND this0.id = $jwt.sub)), '@neo4j/graphql/FORBIDDEN', [0])
+	RETURN this0, meta AS this0_meta
 }
 CALL {
-WITH [] AS meta
-CREATE (this1:Actor)
-SET this1.id = $this1_id
-WITH *, meta + { event: "create", id: id(this1), properties: { old: null, new: this1 { .* } }, timestamp: timestamp(), typename: "Actor" } AS meta
-WITH *
-WHERE apoc.util.validatePredicate(NOT ($isAuthenticated = true AND ($jwt.sub IS NOT NULL AND this1.id = $jwt.sub)), "@neo4j/graphql/FORBIDDEN", [0])
-RETURN this1, meta AS this1_meta
+	WITH [] AS meta
+	CREATE (this1:Actor)
+	SET this1.id = $this1_id
+	WITH *, (meta + {
+		event: 'create',
+		id: id(this1),
+		properties: {
+			old: NULL,
+			new: this1 {
+				.*
+			}
+		},
+		timestamp: timestamp(),
+		typename: 'Actor'
+	}) AS meta
+	WITH *
+	WHERE apoc.util.validatePredicate(NOT (($isAuthenticated = true
+		AND $jwt.sub IS NOT NULL
+		AND this1.id = $jwt.sub)), '@neo4j/graphql/FORBIDDEN', [0])
+	RETURN this1, meta AS this1_meta
 }
-WITH this0, this1, this0_meta + this1_meta AS meta
+WITH this0, this1, (this0_meta + this1_meta) AS meta
 CALL {
-    WITH this0
-    RETURN this0 { .id } AS create_var0
+	WITH this0
+	RETURN this0 {
+		.id
+	} AS create_var0
 }
 CALL {
-    WITH this1
-    RETURN this1 { .id } AS create_var1
+	WITH this1
+	RETURN this1 {
+		.id
+	} AS create_var1
 }
 RETURN [create_var0, create_var1] AS data, meta
 ----

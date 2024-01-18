@@ -33,7 +33,7 @@ type Movie {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -41,7 +41,9 @@ type Movie {
 ----
 MATCH (this:Movie)
 WHERE this.title IS NOT NULL
-RETURN this { .title } AS this
+RETURN this {
+	.title
+} AS this
 ----
 
 '''
@@ -61,7 +63,7 @@ RETURN this { .title } AS this
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -69,7 +71,9 @@ RETURN this { .title } AS this
 ----
 MATCH (this:Movie)
 WHERE this.title IS NULL
-RETURN this { .title } AS this
+RETURN this {
+	.title
+} AS this
 ----
 
 '''
@@ -89,7 +93,7 @@ RETURN this { .title } AS this
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -97,9 +101,11 @@ RETURN this { .title } AS this
 ----
 MATCH (this:Movie)
 WHERE EXISTS {
-    MATCH (this)<-[:ACTED_IN]-(this0:Actor)
+	MATCH (this)<-[:ACTED_IN]-(this0:Actor)
 }
-RETURN this { .title } AS this
+RETURN this {
+	.title
+} AS this
 ----
 
 '''
@@ -119,7 +125,7 @@ RETURN this { .title } AS this
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -127,9 +133,11 @@ RETURN this { .title } AS this
 ----
 MATCH (this:Movie)
 WHERE NOT (EXISTS {
-    MATCH (this)<-[:ACTED_IN]-(this0:Actor)
+	MATCH (this)<-[:ACTED_IN]-(this0:Actor)
 })
-RETURN this { .title } AS this
+RETURN this {
+	.title
+} AS this
 ----
 
 '''

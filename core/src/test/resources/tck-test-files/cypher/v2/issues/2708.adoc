@@ -1,0 +1,1012 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/2708
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String
+  genres: [Genre!]! @relationship(type: "IN_GENRE", direction: OUT, properties: "InGenre")
+}
+
+type Genre {
+  name: String
+  movies: [Movie!]! @relationship(type: "IN_GENRE", direction: IN, properties: "InGenre")
+  series: [Series!]! @relationship(type: "IN_GENRE", direction: IN, properties: "InGenre")
+}
+
+type Series {
+  name: String!
+  genres: [Genre!]! @relationship(type: "IN_GENRE", direction: OUT, properties: "InGenre")
+}
+
+interface InGenre @relationshipProperties {
+  intValue: Int!
+}
+----
+
+== Mix nested aggregations in ALL filter with logical and aggregation filters
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(
+    where: {genres_ALL: {OR: [{moviesAggregate: {count: 0}}, {name: "Thriller"}], seriesAggregate: {count: 1}}}
+  ) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 0,
+  "param1" : 1,
+  "param2" : "Thriller",
+  "param3" : 0,
+  "param4" : 1,
+  "param5" : "Thriller"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+	WITH this
+	MATCH (this)-[:IN_GENRE]->(this0:Genre)
+	CALL {
+		WITH this0
+		MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
+		RETURN count(this2) = $param0 AS var3
+	}
+	CALL {
+		WITH this0
+		MATCH (this0)<-[this4:IN_GENRE]-(this5:Series)
+		RETURN count(this5) = $param1 AS var6
+	}
+	WITH *
+	WHERE ((var3 = true
+			OR this0.name = $param2)
+		AND var6 = true)
+	RETURN count(this0) > 0 AS var7
+}
+CALL {
+	WITH this
+	MATCH (this)-[:IN_GENRE]->(this0:Genre)
+	CALL {
+		WITH this0
+		MATCH (this0)<-[this8:IN_GENRE]-(this9:Movie)
+		RETURN count(this9) = $param3 AS var10
+	}
+	CALL {
+		WITH this0
+		MATCH (this0)<-[this11:IN_GENRE]-(this12:Series)
+		RETURN count(this12) = $param4 AS var13
+	}
+	WITH *
+	WHERE NOT (((var10 = true
+			OR this0.name = $param5)
+		AND var13 = true))
+	RETURN count(this0) > 0 AS var14
+}
+WITH *
+WHERE (var14 = false
+	AND var7 = true)
+RETURN this {
+	.title
+} AS this
+----
+
+'''
+
+== Mix nested aggregations in ALL filter with or
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(
+    where: {genres_ALL: {OR: [{moviesAggregate: {count: 0}}, {seriesAggregate: {count: 1}}]}}
+  ) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 0,
+  "param1" : 1,
+  "param2" : 0,
+  "param3" : 1
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+	WITH this
+	MATCH (this)-[:IN_GENRE]->(this0:Genre)
+	CALL {
+		WITH this0
+		MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
+		RETURN count(this2) = $param0 AS var3
+	}
+	CALL {
+		WITH this0
+		MATCH (this0)<-[this4:IN_GENRE]-(this5:Series)
+		RETURN count(this5) = $param1 AS var6
+	}
+	WITH *
+	WHERE (var3 = true
+		OR var6 = true)
+	RETURN count(this0) > 0 AS var7
+}
+CALL {
+	WITH this
+	MATCH (this)-[:IN_GENRE]->(this0:Genre)
+	CALL {
+		WITH this0
+		MATCH (this0)<-[this8:IN_GENRE]-(this9:Movie)
+		RETURN count(this9) = $param2 AS var10
+	}
+	CALL {
+		WITH this0
+		MATCH (this0)<-[this11:IN_GENRE]-(this12:Series)
+		RETURN count(this12) = $param3 AS var13
+	}
+	WITH *
+	WHERE NOT ((var10 = true
+		OR var13 = true))
+	RETURN count(this0) > 0 AS var14
+}
+WITH *
+WHERE (var14 = false
+	AND var7 = true)
+RETURN this {
+	.title
+} AS this
+----
+
+'''
+
+== should find genres with aggregation at the same level
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(
+    where: {genres: {moviesAggregate: {count: 3}}, genresAggregate: {count: 1}}
+  ) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 3,
+  "param1" : 1
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+	WITH this
+	MATCH (this)-[:IN_GENRE]->(this0:Genre)
+	CALL {
+		WITH this0
+		MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
+		RETURN count(this2) = $param0 AS var3
+	}
+	WITH *
+	WHERE var3 = true
+	RETURN count(this0) > 0 AS var4
+}
+CALL {
+	WITH this
+	MATCH (this)-[this5:IN_GENRE]->(this6:Genre)
+	RETURN count(this6) = $param1 AS var7
+}
+WITH *
+WHERE (var4 = true
+	AND var7 = true)
+RETURN this {
+	.title
+} AS this
+----
+
+'''
+
+== should find genres with multiple AND aggregates
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(
+    where: {genres: {AND: [{moviesAggregate: {count: 2}}, {seriesAggregate: {node: {name_SHORTEST_EQUAL: 1}}}]}}
+  ) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 2,
+  "param1" : 1
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+	WITH this
+	MATCH (this)-[:IN_GENRE]->(this0:Genre)
+	CALL {
+		WITH this0
+		MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
+		RETURN count(this2) = $param0 AS var3
+	}
+	CALL {
+		WITH this0
+		MATCH (this0)<-[this4:IN_GENRE]-(this5:Series)
+		RETURN min(size(this5.name)) = $param1 AS var6
+	}
+	WITH *
+	WHERE (var3 = true
+		AND var6 = true)
+	RETURN count(this0) > 0 AS var7
+}
+WITH *
+WHERE var7 = true
+RETURN this {
+	.title
+} AS this
+----
+
+'''
+
+== should find genres with multiple implicit AND aggregates
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(
+    where: {genres: {moviesAggregate: {count: 2}, seriesAggregate: {node: {name_SHORTEST_EQUAL: 1}}}}
+  ) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 2,
+  "param1" : 1
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+	WITH this
+	MATCH (this)-[:IN_GENRE]->(this0:Genre)
+	CALL {
+		WITH this0
+		MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
+		RETURN count(this2) = $param0 AS var3
+	}
+	CALL {
+		WITH this0
+		MATCH (this0)<-[this4:IN_GENRE]-(this5:Series)
+		RETURN min(size(this5.name)) = $param1 AS var6
+	}
+	WITH *
+	WHERE (var3 = true
+		AND var6 = true)
+	RETURN count(this0) > 0 AS var7
+}
+WITH *
+WHERE var7 = true
+RETURN this {
+	.title
+} AS this
+----
+
+'''
+
+== should find genres with multiple OR aggregates
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(
+    where: {genres: {OR: [{moviesAggregate: {count: 3}}, {seriesAggregate: {node: {name_SHORTEST_EQUAL: 1}}}]}}
+  ) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 3,
+  "param1" : 1
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+	WITH this
+	MATCH (this)-[:IN_GENRE]->(this0:Genre)
+	CALL {
+		WITH this0
+		MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
+		RETURN count(this2) = $param0 AS var3
+	}
+	CALL {
+		WITH this0
+		MATCH (this0)<-[this4:IN_GENRE]-(this5:Series)
+		RETURN min(size(this5.name)) = $param1 AS var6
+	}
+	WITH *
+	WHERE (var3 = true
+		OR var6 = true)
+	RETURN count(this0) > 0 AS var7
+}
+WITH *
+WHERE var7 = true
+RETURN this {
+	.title
+} AS this
+----
+
+'''
+
+== should find where genres_ALL
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {genres_ALL: {moviesAggregate: {count: 2}}}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 2,
+  "param1" : 2
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+	WITH this
+	MATCH (this)-[:IN_GENRE]->(this0:Genre)
+	CALL {
+		WITH this0
+		MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
+		RETURN count(this2) = $param0 AS var3
+	}
+	WITH *
+	WHERE var3 = true
+	RETURN count(this0) > 0 AS var4
+}
+CALL {
+	WITH this
+	MATCH (this)-[:IN_GENRE]->(this0:Genre)
+	CALL {
+		WITH this0
+		MATCH (this0)<-[this5:IN_GENRE]-(this6:Movie)
+		RETURN count(this6) = $param1 AS var7
+	}
+	WITH *
+	WHERE NOT (var7 = true)
+	RETURN count(this0) > 0 AS var8
+}
+WITH *
+WHERE (var8 = false
+	AND var4 = true)
+RETURN this {
+	.title
+} AS this
+----
+
+'''
+
+== should find where genres_NONE
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {genres_NONE: {moviesAggregate: {count: 2}}}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 2
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+	WITH this
+	MATCH (this)-[:IN_GENRE]->(this0:Genre)
+	CALL {
+		WITH this0
+		MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
+		RETURN count(this2) = $param0 AS var3
+	}
+	WITH *
+	WHERE var3 = true
+	RETURN count(this0) > 0 AS var4
+}
+WITH *
+WHERE var4 = false
+RETURN this {
+	.title
+} AS this
+----
+
+'''
+
+== should find where genres_NOT
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {genres_NOT: {moviesAggregate: {count: 2}}}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 2
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+	WITH this
+	MATCH (this)-[:IN_GENRE]->(this0:Genre)
+	CALL {
+		WITH this0
+		MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
+		RETURN count(this2) = $param0 AS var3
+	}
+	WITH *
+	WHERE var3 = true
+	RETURN count(this0) > 0 AS var4
+}
+WITH *
+WHERE var4 = false
+RETURN this {
+	.title
+} AS this
+----
+
+'''
+
+== should find where genres_SINGLE
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {genres_SINGLE: {moviesAggregate: {count: 2}}}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 2
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+	WITH this
+	MATCH (this)-[:IN_GENRE]->(this0:Genre)
+	CALL {
+		WITH this0
+		MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
+		RETURN count(this2) = $param0 AS var3
+	}
+	WITH *
+	WHERE var3 = true
+	RETURN count(this0) = 1 AS var4
+}
+WITH *
+WHERE var4 = true
+RETURN this {
+	.title
+} AS this
+----
+
+'''
+
+== should find where genres_SOME
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {genres_SOME: {moviesAggregate: {count: 2}}}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 2
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+	WITH this
+	MATCH (this)-[:IN_GENRE]->(this0:Genre)
+	CALL {
+		WITH this0
+		MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
+		RETURN count(this2) = $param0 AS var3
+	}
+	WITH *
+	WHERE var3 = true
+	RETURN count(this0) > 0 AS var4
+}
+WITH *
+WHERE var4 = true
+RETURN this {
+	.title
+} AS this
+----
+
+'''
+
+== should find where moviesAggregate count equal
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {genres: {moviesAggregate: {count: 2}}}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 2
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+	WITH this
+	MATCH (this)-[:IN_GENRE]->(this0:Genre)
+	CALL {
+		WITH this0
+		MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
+		RETURN count(this2) = $param0 AS var3
+	}
+	WITH *
+	WHERE var3 = true
+	RETURN count(this0) > 0 AS var4
+}
+WITH *
+WHERE var4 = true
+RETURN this {
+	.title
+} AS this
+----
+
+'''
+
+== should find where moviesAggregate count_GT
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {genres: {moviesAggregate: {count_GT: 2}}}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 2
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+	WITH this
+	MATCH (this)-[:IN_GENRE]->(this0:Genre)
+	CALL {
+		WITH this0
+		MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
+		RETURN count(this2) > $param0 AS var3
+	}
+	WITH *
+	WHERE var3 = true
+	RETURN count(this0) > 0 AS var4
+}
+WITH *
+WHERE var4 = true
+RETURN this {
+	.title
+} AS this
+----
+
+'''
+
+== should find where moviesAggregate count_LT
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {genres: {moviesAggregate: {count_LT: 3}}}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 3
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+	WITH this
+	MATCH (this)-[:IN_GENRE]->(this0:Genre)
+	CALL {
+		WITH this0
+		MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
+		RETURN count(this2) < $param0 AS var3
+	}
+	WITH *
+	WHERE var3 = true
+	RETURN count(this0) > 0 AS var4
+}
+WITH *
+WHERE var4 = true
+RETURN this {
+	.title
+} AS this
+----
+
+'''
+
+== should find where moviesAggregate edge property MAX_LT
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {genres: {moviesAggregate: {edge: {intValue_MAX_LT: 1}}}}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 1
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+	WITH this
+	MATCH (this)-[:IN_GENRE]->(this0:Genre)
+	CALL {
+		WITH this0
+		MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
+		RETURN max(this1.intValue) < $param0 AS var3
+	}
+	WITH *
+	WHERE var3 = true
+	RETURN count(this0) > 0 AS var4
+}
+WITH *
+WHERE var4 = true
+RETURN this {
+	.title
+} AS this
+----
+
+'''
+
+== should find where moviesAggregate edge property MIN_EQUAL
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {genres: {moviesAggregate: {edge: {intValue_MIN_EQUAL: 1}}}}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 1
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+	WITH this
+	MATCH (this)-[:IN_GENRE]->(this0:Genre)
+	CALL {
+		WITH this0
+		MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
+		RETURN min(this1.intValue) = $param0 AS var3
+	}
+	WITH *
+	WHERE var3 = true
+	RETURN count(this0) > 0 AS var4
+}
+WITH *
+WHERE var4 = true
+RETURN this {
+	.title
+} AS this
+----
+
+'''
+
+== should find where moviesAggregate node property AVERAGE
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {genres: {moviesAggregate: {node: {title_AVERAGE_EQUAL: 1}}}}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 1
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+	WITH this
+	MATCH (this)-[:IN_GENRE]->(this0:Genre)
+	CALL {
+		WITH this0
+		MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
+		RETURN avg(size(this2.title)) = $param0 AS var3
+	}
+	WITH *
+	WHERE var3 = true
+	RETURN count(this0) > 0 AS var4
+}
+WITH *
+WHERE var4 = true
+RETURN this {
+	.title
+} AS this
+----
+
+'''
+
+== should find where moviesAggregate node property SHORTEST
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {genres: {moviesAggregate: {node: {title_SHORTEST_EQUAL: 1}}}}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 1
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+	WITH this
+	MATCH (this)-[:IN_GENRE]->(this0:Genre)
+	CALL {
+		WITH this0
+		MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
+		RETURN min(size(this2.title)) = $param0 AS var3
+	}
+	WITH *
+	WHERE var3 = true
+	RETURN count(this0) > 0 AS var4
+}
+WITH *
+WHERE var4 = true
+RETURN this {
+	.title
+} AS this
+----
+
+'''
+
+== should not find genres_ALL where NONE true
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {genres_ALL: {moviesAggregate: {count: 0}}}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 0,
+  "param1" : 0
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+	WITH this
+	MATCH (this)-[:IN_GENRE]->(this0:Genre)
+	CALL {
+		WITH this0
+		MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
+		RETURN count(this2) = $param0 AS var3
+	}
+	WITH *
+	WHERE var3 = true
+	RETURN count(this0) > 0 AS var4
+}
+CALL {
+	WITH this
+	MATCH (this)-[:IN_GENRE]->(this0:Genre)
+	CALL {
+		WITH this0
+		MATCH (this0)<-[this5:IN_GENRE]-(this6:Movie)
+		RETURN count(this6) = $param1 AS var7
+	}
+	WITH *
+	WHERE NOT (var7 = true)
+	RETURN count(this0) > 0 AS var8
+}
+WITH *
+WHERE (var8 = false
+	AND var4 = true)
+RETURN this {
+	.title
+} AS this
+----
+
+'''
+

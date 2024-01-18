@@ -56,35 +56,44 @@ type Genre {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 MATCH (this0:Movie)
-WITH collect({ node: this0 }) AS edges
+WITH collect( {
+	node: this0
+}) AS edges
 WITH edges, size(edges) AS totalCount
 CALL {
-    WITH edges
-    UNWIND edges AS edge
-    WITH edge.node AS this0
-    WITH *
-    ORDER BY this0.title ASC
-    CALL {
-        WITH this0
-        CALL {
-            WITH this0
-            WITH this0 AS this
-            MATCH (this)-[:HAS_GENRE]->(genre:Genre)
-            RETURN count(DISTINCT genre) as result
-        }
-        UNWIND result AS this1
-        RETURN head(collect(this1)) AS this1
-    }
-    RETURN collect({ node: { title: this0.title, totalGenres: this1 } }) AS var2
+	WITH edges
+	UNWIND edges AS edge
+	WITH edge.node AS this0
+	WITH * ORDER BY this0.title ASC
+	CALL {
+		WITH this0
+		CALL {
+			WITH this0
+			WITH this0 AS this
+			MATCH (this)-[:HAS_GENRE]->(genre:Genre)
+			RETURN count(DISTINCT genre) AS result
+		}
+		UNWIND result AS this1
+		RETURN head(collect(this1)) AS this1
+	}
+	RETURN collect( {
+		node: {
+			title: this0.title,
+			totalGenres: this1
+		}
+	}) AS var2
 }
-RETURN { edges: var2, totalCount: totalCount } AS this
+RETURN {
+	edges: var2,
+	totalCount: totalCount
+} AS this
 ----
 
 '''
@@ -109,35 +118,44 @@ RETURN { edges: var2, totalCount: totalCount } AS this
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 MATCH (this0:Movie)
-WITH collect({ node: this0 }) AS edges
+WITH collect( {
+	node: this0
+}) AS edges
 WITH edges, size(edges) AS totalCount
 CALL {
-    WITH edges
-    UNWIND edges AS edge
-    WITH edge.node AS this0
-    CALL {
-        WITH this0
-        CALL {
-            WITH this0
-            WITH this0 AS this
-            MATCH (this)-[:HAS_GENRE]->(genre:Genre)
-            RETURN count(DISTINCT genre) as result
-        }
-        UNWIND result AS this1
-        RETURN head(collect(this1)) AS this1
-    }
-    WITH *
-    ORDER BY this1 ASC
-    RETURN collect({ node: { title: this0.title, totalGenres: this1 } }) AS var2
+	WITH edges
+	UNWIND edges AS edge
+	WITH edge.node AS this0
+	CALL {
+		WITH this0
+		CALL {
+			WITH this0
+			WITH this0 AS this
+			MATCH (this)-[:HAS_GENRE]->(genre:Genre)
+			RETURN count(DISTINCT genre) AS result
+		}
+		UNWIND result AS this1
+		RETURN head(collect(this1)) AS this1
+	}
+	WITH * ORDER BY this1 ASC
+	RETURN collect( {
+		node: {
+			title: this0.title,
+			totalGenres: this1
+		}
+	}) AS var2
 }
-RETURN { edges: var2, totalCount: totalCount } AS this
+RETURN {
+	edges: var2,
+	totalCount: totalCount
+} AS this
 ----
 
 '''
@@ -163,46 +181,56 @@ RETURN { edges: var2, totalCount: totalCount } AS this
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 MATCH (this0:Movie)
-WITH collect({ node: this0 }) AS edges
+WITH collect( {
+	node: this0
+}) AS edges
 WITH edges, size(edges) AS totalCount
 CALL {
-    WITH edges
-    UNWIND edges AS edge
-    WITH edge.node AS this0
-    CALL {
-        WITH this0
-        CALL {
-            WITH this0
-            WITH this0 AS this
-            MATCH (this)-[:HAS_GENRE]->(genre:Genre)
-            RETURN count(DISTINCT genre) as result
-        }
-        UNWIND result AS this1
-        RETURN head(collect(this1)) AS this1
-    }
-    WITH *
-    ORDER BY this1 ASC
-    CALL {
-        WITH this0
-        CALL {
-            WITH this0
-            WITH this0 AS this
-            MATCH (this)<-[:ACTED_IN]-(actor:Actor)
-            RETURN count(DISTINCT actor) as result
-        }
-        UNWIND result AS this2
-        RETURN head(collect(this2)) AS this2
-    }
-    RETURN collect({ node: { title: this0.title, totalGenres: this1, totalActors: this2 } }) AS var3
+	WITH edges
+	UNWIND edges AS edge
+	WITH edge.node AS this0
+	CALL {
+		WITH this0
+		CALL {
+			WITH this0
+			WITH this0 AS this
+			MATCH (this)-[:HAS_GENRE]->(genre:Genre)
+			RETURN count(DISTINCT genre) AS result
+		}
+		UNWIND result AS this1
+		RETURN head(collect(this1)) AS this1
+	}
+	WITH * ORDER BY this1 ASC
+	CALL {
+		WITH this0
+		CALL {
+			WITH this0
+			WITH this0 AS this
+			MATCH (this)<-[:ACTED_IN]-(actor:Actor)
+			RETURN count(DISTINCT actor) AS result
+		}
+		UNWIND result AS this2
+		RETURN head(collect(this2)) AS this2
+	}
+	RETURN collect( {
+		node: {
+			title: this0.title,
+			totalGenres: this1,
+			totalActors: this2
+		}
+	}) AS var3
 }
-RETURN { edges: var3, totalCount: totalCount } AS this
+RETURN {
+	edges: var3,
+	totalCount: totalCount
+} AS this
 ----
 
 '''

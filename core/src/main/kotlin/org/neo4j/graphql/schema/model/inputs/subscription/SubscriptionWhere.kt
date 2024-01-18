@@ -1,6 +1,5 @@
 package org.neo4j.graphql.schema.model.inputs.subscription
 
-import org.neo4j.graphql.Constants
 import org.neo4j.graphql.domain.Entity
 import org.neo4j.graphql.domain.Interface
 import org.neo4j.graphql.domain.Node
@@ -17,12 +16,7 @@ interface SubscriptionWhere {
             fun generateWhereIT(node: Node, ctx: AugmentationContext): String? =
                 ctx.getOrCreateInputObjectType(node.operations.subscriptionWhereInputTypeName) { fields, name ->
                     fields += WhereInput.FieldContainerWhereInput.Augmentation
-                        .getWhereFields(
-                            node.name,
-                            node.fields.filterIsInstance<ScalarField>(),
-                            ctx,
-                            whereName = name
-                        )
+                        .getWhereFields(name, node.fields.filterIsInstance<ScalarField>(), ctx)
                 }
         }
     }
@@ -35,12 +29,7 @@ interface SubscriptionWhere {
                 ctx.getOrCreateInputObjectType(interfaze.operations.subscriptionWhereInputTypeName) { fields, name ->
 
                     fields += WhereInput.FieldContainerWhereInput.Augmentation
-                        .getWhereFields(
-                            interfaze.name,
-                            interfaze.fields.filterIsInstance<ScalarField>(),
-                            ctx,
-                            whereName = name
-                        )
+                        .getWhereFields(name, interfaze.fields.filterIsInstance<ScalarField>(), ctx)
 
                     if (fields.isNotEmpty()) {
                         // TODO create ticket for adding this filtering for subscriptions as well
@@ -48,7 +37,7 @@ interface SubscriptionWhere {
                             ctx.addTypenameEnum(interfaze, fields)
                         } else {
                             ctx.addOnField(interfaze,
-                                Constants.InputTypeSuffix.ImplementationsSubscriptionWhere,
+                                interfaze.operations.implementationsSubscriptionWhereInputTypeName,
                                 fields,
                                 asList = false,
                                 { node -> NodeSubscriptionWhere.Augmentation.generateWhereIT(node, ctx) })

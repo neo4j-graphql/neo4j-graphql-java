@@ -33,12 +33,12 @@ mutation {
 [source,json]
 ----
 {
-  "this_connect_targets0_node_param0": "1",
-  "isAuthenticated": true,
-  "jwt": {
-    "roles": [],
-    "sub": "1"
-  }
+  "isAuthenticated" : true,
+  "jwt" : {
+    "roles" : [ ],
+    "sub" : "1"
+  },
+  "this_connect_targets0_node_param0" : "1"
 }
 ----
 
@@ -50,22 +50,27 @@ WITH *
 CALL {
 	WITH this
 	OPTIONAL MATCH (this_connect_targets0_node:Target)
-	WHERE this_connect_targets0_node.id = $this_connect_targets0_node_param0 AND apoc.util.validatePredicate(NOT ($isAuthenticated = true AND ($jwt.sub IS NOT NULL AND this.id = $jwt.sub)), "@neo4j/graphql/FORBIDDEN", [0])
+	WHERE (this_connect_targets0_node.id = $this_connect_targets0_node_param0
+		AND apoc.util.validatePredicate(NOT (($isAuthenticated = true
+			AND $jwt.sub IS NOT NULL
+			AND this.id = $jwt.sub)), '@neo4j/graphql/FORBIDDEN', [0]))
 	CALL {
 		WITH *
-		WITH collect(this_connect_targets0_node) as connectedNodes, collect(this) as parentNodes
+		WITH collect(this_connect_targets0_node) AS connectedNodes, collect(this) AS parentNodes
 		CALL {
 			WITH connectedNodes, parentNodes
-			UNWIND parentNodes as this
-			UNWIND connectedNodes as this_connect_targets0_node
+			UNWIND parentNodes AS this
+			UNWIND connectedNodes AS this_connect_targets0_node
 			MERGE (this)-[:HAS_TARGET]->(this_connect_targets0_node)
 		}
 	}
-WITH this, this_connect_targets0_node
+	WITH this, this_connect_targets0_node
 	RETURN count(*) AS connect_this_connect_targets_Target0
 }
 WITH *
-RETURN collect(DISTINCT this { .id }) AS data
+RETURN collect(DISTINCT this {
+	.id
+}) AS data
 ----
 
 '''

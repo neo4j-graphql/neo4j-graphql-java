@@ -1,0 +1,109 @@
+:toc:
+
+= Cypher -> fulltext -> Auth
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie @fulltext(indexes: [{name: "MovieTitle", fields: ["title"]}]) @authorization(validate: [{when: [BEFORE], where: {node: {directorConnection: {node: {id: "$jwt.sub"}}}}}]) {
+  title: String
+  director: [Person!]! @relationship(type: "DIRECTED", direction: IN)
+}
+
+type Person {
+  id: ID
+}
+----
+
+== 4.4
+
+=== simple match with auth allow on connection node
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(fulltext: {MovieTitle: {phrase: "something AND something"}}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated" : true,
+  "jwt" : {
+    "roles" : [ ],
+    "sub" : "my-sub"
+  },
+  "param0" : "something AND something",
+  "param1" : "Movie"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL db.index.fulltext.queryNodes('MovieTitle', $param0) YIELD node AS this0, score AS var1
+WHERE $param1 IN labels(this0) WITH *
+WHERE apoc.util.validatePredicate(NOT (($isAuthenticated = true
+	AND size([(this0)<-[this3:DIRECTED]-(this2:Person)
+	WHERE ($jwt.sub IS NOT NULL
+		AND this2.id = $jwt.sub) | 1]) > 0)), '@neo4j/graphql/FORBIDDEN', [0])
+RETURN this0 {
+	.title
+} AS this
+----
+
+'''
+
+== 5
+
+=== simple match with auth allow on connection node
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(fulltext: {MovieTitle: {phrase: "something AND something"}}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated" : true,
+  "jwt" : {
+    "roles" : [ ],
+    "sub" : "my-sub"
+  },
+  "param0" : "something AND something",
+  "param1" : "Movie"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL db.index.fulltext.queryNodes('MovieTitle', $param0) YIELD node AS this0, score AS var1
+WHERE $param1 IN labels(this0) WITH *
+WHERE apoc.util.validatePredicate(NOT (($isAuthenticated = true
+	AND EXISTS {
+		MATCH (this0)<-[this2:DIRECTED]-(this3:Person)
+		WHERE ($jwt.sub IS NOT NULL
+			AND this3.id = $jwt.sub)
+	})), '@neo4j/graphql/FORBIDDEN', [0])
+RETURN this0 {
+	.title
+} AS this
+----
+
+'''
+
+

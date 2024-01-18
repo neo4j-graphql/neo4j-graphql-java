@@ -1,0 +1,781 @@
+:toc:
+
+= Connection auth filter
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type JWTPayload @jwt {
+  roles: [String!]!
+}
+
+union Search = Post
+
+type User {
+  id: ID
+  name: String
+  posts: [Post!]! @relationship(type: "HAS_POST", direction: OUT)
+  content: [Search!]! @relationship(type: "HAS_POST", direction: OUT)
+}
+
+type Post {
+  id: ID
+  content: String
+  creator: User! @relationship(type: "HAS_POST", direction: IN)
+}
+
+extend type User @authorization(filter: [{where: {node: {id: "$jwt.sub"}}}])
+
+extend type User {
+  password: String! @authorization(filter: [{operations: [READ], where: {node: {id: "$jwt.sub"}}}])
+}
+
+extend type Post {
+  secretKey: String! @authorization(filter: [{operations: [READ], where: {node: {creator: {id: "$jwt.sub"}}}}])
+}
+
+extend type Post @authorization(filter: [{where: {node: {creator: {id: "$jwt.sub"}}}}])
+----
+
+== Read Connection
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  usersConnection {
+    edges {
+      node {
+        id
+        postsConnection {
+          edges {
+            node {
+              content
+            }
+          }
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated" : true,
+  "jwt" : {
+    "roles" : [ "admin" ],
+    "sub" : "id-01"
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this0:User)
+WHERE ($isAuthenticated = true
+	AND $jwt.sub IS NOT NULL
+	AND this0.id = $jwt.sub)
+WITH collect( {
+	node: this0
+}) AS edges
+WITH edges, size(edges) AS totalCount
+CALL {
+	WITH edges
+	UNWIND edges AS edge
+	WITH edge.node AS this0
+	CALL {
+		WITH this0
+		MATCH (this0)-[this1:HAS_POST]->(this2:Post)
+		OPTIONAL MATCH (this2)<-[:HAS_POST]-(this3:User)
+		WITH *, count(this3) AS creatorCount
+		WITH *
+		WHERE ($isAuthenticated = true
+			AND creatorCount <> 0
+			AND $jwt.sub IS NOT NULL
+			AND this3.id = $jwt.sub)
+		WITH collect( {
+			node: this2,
+			relationship: this1
+		}) AS edges
+		WITH edges, size(edges) AS totalCount
+		CALL {
+			WITH edges
+			UNWIND edges AS edge
+			WITH edge.node AS this2, edge.relationship AS this1
+			RETURN collect( {
+				node: {
+					content: this2.content
+				}
+			}) AS var4
+		}
+		RETURN {
+			edges: var4,
+			totalCount: totalCount
+		} AS var5
+	}
+	RETURN collect( {
+		node: {
+			id: this0.id,
+			postsConnection: var5
+		}
+	}) AS var6
+}
+RETURN {
+	edges: var6,
+	totalCount: totalCount
+} AS this
+----
+
+'''
+
+== Read Connection + User Defined Where
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  usersConnection {
+    edges {
+      node {
+        id
+        postsConnection(where: {node: {id: "some-id"}}) {
+          edges {
+            node {
+              content
+            }
+          }
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated" : true,
+  "jwt" : {
+    "roles" : [ "admin" ],
+    "sub" : "id-01"
+  },
+  "param2" : "some-id"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this0:User)
+WHERE ($isAuthenticated = true
+	AND $jwt.sub IS NOT NULL
+	AND this0.id = $jwt.sub)
+WITH collect( {
+	node: this0
+}) AS edges
+WITH edges, size(edges) AS totalCount
+CALL {
+	WITH edges
+	UNWIND edges AS edge
+	WITH edge.node AS this0
+	CALL {
+		WITH this0
+		MATCH (this0)-[this1:HAS_POST]->(this2:Post)
+		OPTIONAL MATCH (this2)<-[:HAS_POST]-(this3:User)
+		WITH *, count(this3) AS creatorCount
+		WITH *
+		WHERE (this2.id = $param2
+			AND $isAuthenticated = true
+			AND creatorCount <> 0
+			AND $jwt.sub IS NOT NULL
+			AND this3.id = $jwt.sub)
+		WITH collect( {
+			node: this2,
+			relationship: this1
+		}) AS edges
+		WITH edges, size(edges) AS totalCount
+		CALL {
+			WITH edges
+			UNWIND edges AS edge
+			WITH edge.node AS this2, edge.relationship AS this1
+			RETURN collect( {
+				node: {
+					content: this2.content
+				}
+			}) AS var4
+		}
+		RETURN {
+			edges: var4,
+			totalCount: totalCount
+		} AS var5
+	}
+	RETURN collect( {
+		node: {
+			id: this0.id,
+			postsConnection: var5
+		}
+	}) AS var6
+}
+RETURN {
+	edges: var6,
+	totalCount: totalCount
+} AS this
+----
+
+'''
+
+== Read Node
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  usersConnection {
+    edges {
+      node {
+        id
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated" : true,
+  "jwt" : {
+    "roles" : [ "admin" ],
+    "sub" : "id-01"
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this0:User)
+WHERE ($isAuthenticated = true
+	AND $jwt.sub IS NOT NULL
+	AND this0.id = $jwt.sub)
+WITH collect( {
+	node: this0
+}) AS edges
+WITH edges, size(edges) AS totalCount
+CALL {
+	WITH edges
+	UNWIND edges AS edge
+	WITH edge.node AS this0
+	RETURN collect( {
+		node: {
+			id: this0.id
+		}
+	}) AS var1
+}
+RETURN {
+	edges: var1,
+	totalCount: totalCount
+} AS this
+----
+
+'''
+
+== Read Node + User Defined Where
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  usersConnection(where: {name: "bob"}) {
+    edges {
+      node {
+        id
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated" : true,
+  "jwt" : {
+    "roles" : [ "admin" ],
+    "sub" : "id-01"
+  },
+  "param0" : "bob"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this0:User)
+WHERE (this0.name = $param0
+	AND $isAuthenticated = true
+	AND $jwt.sub IS NOT NULL
+	AND this0.id = $jwt.sub)
+WITH collect( {
+	node: this0
+}) AS edges
+WITH edges, size(edges) AS totalCount
+CALL {
+	WITH edges
+	UNWIND edges AS edge
+	WITH edge.node AS this0
+	RETURN collect( {
+		node: {
+			id: this0.id
+		}
+	}) AS var1
+}
+RETURN {
+	edges: var1,
+	totalCount: totalCount
+} AS this
+----
+
+'''
+
+== Read Relationship
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  usersConnection {
+    edges {
+      node {
+        id
+        posts {
+          content
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated" : true,
+  "jwt" : {
+    "roles" : [ "admin" ],
+    "sub" : "id-01"
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this0:User)
+WHERE ($isAuthenticated = true
+	AND $jwt.sub IS NOT NULL
+	AND this0.id = $jwt.sub)
+WITH collect( {
+	node: this0
+}) AS edges
+WITH edges, size(edges) AS totalCount
+CALL {
+	WITH edges
+	UNWIND edges AS edge
+	WITH edge.node AS this0
+	CALL {
+		WITH this0
+		MATCH (this0)-[this1:HAS_POST]->(this2:Post)
+		OPTIONAL MATCH (this2)<-[:HAS_POST]-(this3:User)
+		WITH *, count(this3) AS creatorCount
+		WITH *
+		WITH *
+		WHERE ($isAuthenticated = true
+			AND creatorCount <> 0
+			AND $jwt.sub IS NOT NULL
+			AND this3.id = $jwt.sub)
+		WITH this2 {
+			.content
+		} AS this2
+		RETURN collect(this2) AS var4
+	}
+	RETURN collect( {
+		node: {
+			id: this0.id,
+			posts: var4
+		}
+	}) AS var5
+}
+RETURN {
+	edges: var5,
+	totalCount: totalCount
+} AS this
+----
+
+'''
+
+== Read Union
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  usersConnection {
+    edges {
+      node {
+        id
+        content {
+          ... on Post {
+            id
+          }
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated" : true,
+  "jwt" : {
+    "roles" : [ "admin" ],
+    "sub" : "id-01"
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this0:User)
+WHERE ($isAuthenticated = true
+	AND $jwt.sub IS NOT NULL
+	AND this0.id = $jwt.sub)
+WITH collect( {
+	node: this0
+}) AS edges
+WITH edges, size(edges) AS totalCount
+CALL {
+	WITH edges
+	UNWIND edges AS edge
+	WITH edge.node AS this0
+	CALL {
+		WITH this0
+		CALL {
+			WITH *
+			MATCH (this0)-[this1:HAS_POST]->(this2:Post)
+			OPTIONAL MATCH (this2)<-[:HAS_POST]-(this3:User)
+			WITH *, count(this3) AS creatorCount
+			WITH *
+			WHERE ($isAuthenticated = true
+				AND creatorCount <> 0
+				AND $jwt.sub IS NOT NULL
+				AND this3.id = $jwt.sub)
+			WITH this2 {
+				.id,
+				__resolveType: 'Post',
+				__id: id(this2)
+			} AS this2
+			RETURN this2 AS var4
+		}
+		WITH var4
+		RETURN collect(var4) AS var4
+	}
+	RETURN collect( {
+		node: {
+			id: this0.id,
+			content: var4
+		}
+	}) AS var5
+}
+RETURN {
+	edges: var5,
+	totalCount: totalCount
+} AS this
+----
+
+'''
+
+== Read Union Relationship + User Defined Where
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  usersConnection {
+    edges {
+      node {
+        id
+        posts(where: {content: "cool"}) {
+          content
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated" : true,
+  "jwt" : {
+    "roles" : [ "admin" ],
+    "sub" : "id-01"
+  },
+  "param2" : "cool"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this0:User)
+WHERE ($isAuthenticated = true
+	AND $jwt.sub IS NOT NULL
+	AND this0.id = $jwt.sub)
+WITH collect( {
+	node: this0
+}) AS edges
+WITH edges, size(edges) AS totalCount
+CALL {
+	WITH edges
+	UNWIND edges AS edge
+	WITH edge.node AS this0
+	CALL {
+		WITH this0
+		MATCH (this0)-[this1:HAS_POST]->(this2:Post)
+		OPTIONAL MATCH (this2)<-[:HAS_POST]-(this3:User)
+		WITH *, count(this3) AS creatorCount
+		WITH *
+		WITH *
+		WHERE (this2.content = $param2
+			AND $isAuthenticated = true
+			AND creatorCount <> 0
+			AND $jwt.sub IS NOT NULL
+			AND this3.id = $jwt.sub)
+		WITH this2 {
+			.content
+		} AS this2
+		RETURN collect(this2) AS var4
+	}
+	RETURN collect( {
+		node: {
+			id: this0.id,
+			posts: var4
+		}
+	}) AS var5
+}
+RETURN {
+	edges: var5,
+	totalCount: totalCount
+} AS this
+----
+
+'''
+
+== Read Union Using Connection
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  usersConnection {
+    edges {
+      node {
+        id
+        contentConnection {
+          edges {
+            node {
+              ... on Post {
+                id
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated" : true,
+  "jwt" : {
+    "roles" : [ "admin" ],
+    "sub" : "id-01"
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this0:User)
+WHERE ($isAuthenticated = true
+	AND $jwt.sub IS NOT NULL
+	AND this0.id = $jwt.sub)
+WITH collect( {
+	node: this0
+}) AS edges
+WITH edges, size(edges) AS totalCount
+CALL {
+	WITH edges
+	UNWIND edges AS edge
+	WITH edge.node AS this0
+	CALL {
+		WITH this0
+		CALL {
+			WITH this0
+			MATCH (this0)-[this1:HAS_POST]->(this2:Post)
+			OPTIONAL MATCH (this2)<-[:HAS_POST]-(this3:User)
+			WITH *, count(this3) AS creatorCount
+			WITH *
+			WHERE ($isAuthenticated = true
+				AND creatorCount <> 0
+				AND $jwt.sub IS NOT NULL
+				AND this3.id = $jwt.sub)
+			WITH {
+				node: {
+					__resolveType: 'Post',
+					__id: id(this2),
+					id: this2.id
+				}
+			} AS edge
+			RETURN edge
+		}
+		WITH collect(edge) AS edges
+		WITH edges, size(edges) AS totalCount
+		RETURN {
+			edges: edges,
+			totalCount: totalCount
+		} AS var4
+	}
+	RETURN collect( {
+		node: {
+			id: this0.id,
+			contentConnection: var4
+		}
+	}) AS var5
+}
+RETURN {
+	edges: var5,
+	totalCount: totalCount
+} AS this
+----
+
+'''
+
+== Read Union Using Connection + User Defined Where
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  usersConnection {
+    edges {
+      node {
+        id
+        contentConnection(where: {Post: {node: {id: "some-id"}}}) {
+          edges {
+            node {
+              ... on Post {
+                id
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated" : true,
+  "jwt" : {
+    "roles" : [ "admin" ],
+    "sub" : "id-01"
+  },
+  "param2" : "some-id"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this0:User)
+WHERE ($isAuthenticated = true
+	AND $jwt.sub IS NOT NULL
+	AND this0.id = $jwt.sub)
+WITH collect( {
+	node: this0
+}) AS edges
+WITH edges, size(edges) AS totalCount
+CALL {
+	WITH edges
+	UNWIND edges AS edge
+	WITH edge.node AS this0
+	CALL {
+		WITH this0
+		CALL {
+			WITH this0
+			MATCH (this0)-[this1:HAS_POST]->(this2:Post)
+			OPTIONAL MATCH (this2)<-[:HAS_POST]-(this3:User)
+			WITH *, count(this3) AS creatorCount
+			WITH *
+			WHERE (this2.id = $param2
+				AND $isAuthenticated = true
+				AND creatorCount <> 0
+				AND $jwt.sub IS NOT NULL
+				AND this3.id = $jwt.sub)
+			WITH {
+				node: {
+					__resolveType: 'Post',
+					__id: id(this2),
+					id: this2.id
+				}
+			} AS edge
+			RETURN edge
+		}
+		WITH collect(edge) AS edges
+		WITH edges, size(edges) AS totalCount
+		RETURN {
+			edges: edges,
+			totalCount: totalCount
+		} AS var4
+	}
+	RETURN collect( {
+		node: {
+			id: this0.id,
+			contentConnection: var4
+		}
+	}) AS var5
+}
+RETURN {
+	edges: var5,
+	totalCount: totalCount
+} AS this
+----
+
+'''
+

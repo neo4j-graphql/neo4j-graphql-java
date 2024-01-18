@@ -2,7 +2,6 @@ package org.neo4j.graphql.schema.model.inputs.aggregation
 
 import org.neo4j.graphql.Constants
 import org.neo4j.graphql.asType
-import org.neo4j.graphql.capitalize
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.RelationshipProperties
 import org.neo4j.graphql.domain.fields.RelationField
@@ -55,11 +54,11 @@ class AggregateInput(node: Node, properties: RelationshipProperties?, data: Dict
     }
 
     object Augmentation : AugmentationBase {
-        fun generateAggregateInputIT(sourceName: String, rel: RelationField, ctx: AugmentationContext): String? {
+        fun generateAggregateInputIT(rel: RelationField, ctx: AugmentationContext): String? {
             if (rel.annotations.filterable?.byAggregate == false) {
                 return null
             }
-            return ctx.getOrCreateInputObjectType("${sourceName}${rel.fieldName.capitalize()}${Constants.InputTypeSuffix.AggregateInput}") { fields, name ->
+            return ctx.getOrCreateInputObjectType(rel.operations.aggregateInputTypeName) { fields, name ->
 
                 fields += inputValue(Constants.COUNT, Constants.Types.Int)
                 fields += inputValue(Constants.COUNT + "_LT", Constants.Types.Int)
@@ -69,7 +68,7 @@ class AggregateInput(node: Node, properties: RelationshipProperties?, data: Dict
 
                 AggregationWhereInput.Augmentation
                     .generateWhereAggregationInputTypeForContainer(
-                        "${sourceName}${rel.fieldName.capitalize()}${Constants.InputTypeSuffix.NodeAggregationWhereInput}",
+                        rel.operations.nodeAggregationWhereInputTypeName,
                         rel.node?.fields?.filter { it.isAggregationFilterable() },
                         ctx
                     )
@@ -77,7 +76,7 @@ class AggregateInput(node: Node, properties: RelationshipProperties?, data: Dict
 
                 AggregationWhereInput.Augmentation
                     .generateWhereAggregationInputTypeForContainer(
-                        "${sourceName}${rel.fieldName.capitalize()}${Constants.InputTypeSuffix.EdgeAggregationWhereInput}",
+                        rel.operations.edgeAggregationWhereInputTypeName,
                         rel.properties?.fields,
                         ctx
                     )

@@ -27,9 +27,9 @@ type File {
 [source,json]
 ----
 {
-  "param0": {
-    "low": -1,
-    "high": 2147483647
+  "param0" : {
+    "low" : -1,
+    "high" : 2147483647
   }
 }
 ----
@@ -39,7 +39,9 @@ type File {
 ----
 MATCH (this:File)
 WHERE this.size = $param0
-RETURN this { .name } AS this
+RETURN this {
+	.name
+} AS this
 ----
 
 '''
@@ -68,9 +70,9 @@ query Files($size: BigInt) {
 [source,json]
 ----
 {
-  "param0": {
-    "low": -1,
-    "high": 2147483647
+  "param0" : {
+    "low" : -1,
+    "high" : 2147483647
   }
 }
 ----
@@ -80,7 +82,9 @@ query Files($size: BigInt) {
 ----
 MATCH (this:File)
 WHERE this.size = $param0
-RETURN this { .name } AS this
+RETURN this {
+	.name
+} AS this
 ----
 
 '''
@@ -101,9 +105,9 @@ RETURN this { .name } AS this
 [source,json]
 ----
 {
-  "param0": {
-    "low": -1,
-    "high": 2147483647
+  "param0" : {
+    "low" : -1,
+    "high" : 2147483647
   }
 }
 ----
@@ -113,7 +117,9 @@ RETURN this { .name } AS this
 ----
 MATCH (this:File)
 WHERE this.size = $param0
-RETURN this { .name } AS this
+RETURN this {
+	.name
+} AS this
 ----
 
 '''

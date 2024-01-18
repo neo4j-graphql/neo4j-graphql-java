@@ -27,7 +27,7 @@ type Movie {
 [source,json]
 ----
 {
-  "param0": 1
+  "param0" : 1
 }
 ----
 
@@ -35,10 +35,10 @@ type Movie {
 [source,cypher]
 ----
 MATCH (this:Movie)
-WITH *
-
-LIMIT $param0
-RETURN this { .title } AS this
+WITH * LIMIT $param0
+RETURN this {
+	.title
+} AS this
 ----
 
 '''
@@ -59,8 +59,8 @@ RETURN this { .title } AS this
 [source,json]
 ----
 {
-  "param0": 2,
-  "param1": 1
+  "param0" : 2,
+  "param1" : 1
 }
 ----
 
@@ -68,11 +68,10 @@ RETURN this { .title } AS this
 [source,cypher]
 ----
 MATCH (this:Movie)
-WITH *
-
-SKIP $param0
-LIMIT $param1
-RETURN this { .title } AS this
+WITH * SKIP $param0 LIMIT $param1
+RETURN this {
+	.title
+} AS this
 ----
 
 '''
@@ -102,8 +101,8 @@ query ($offset: Int, $limit: Int) {
 [source,json]
 ----
 {
-  "param0": 0,
-  "param1": 0
+  "param0" : 0,
+  "param1" : 0
 }
 ----
 
@@ -111,11 +110,10 @@ query ($offset: Int, $limit: Int) {
 [source,cypher]
 ----
 MATCH (this:Movie)
-WITH *
-
-SKIP $param0
-LIMIT $param1
-RETURN this { .title } AS this
+WITH * SKIP $param0 LIMIT $param1
+RETURN this {
+	.title
+} AS this
 ----
 
 '''
@@ -146,9 +144,9 @@ query ($offset: Int, $limit: Int, $title: String) {
 [source,json]
 ----
 {
-  "param0": "some title",
-  "param1": 2,
-  "param2": 1
+  "param0" : "some title",
+  "param1" : 2,
+  "param2" : 1
 }
 ----
 
@@ -157,11 +155,10 @@ query ($offset: Int, $limit: Int, $title: String) {
 ----
 MATCH (this:Movie)
 WHERE this.title = $param0
-WITH *
-
-SKIP $param1
-LIMIT $param2
-RETURN this { .title } AS this
+WITH * SKIP $param1 LIMIT $param2
+RETURN this {
+	.title
+} AS this
 ----
 
 '''
@@ -182,7 +179,7 @@ RETURN this { .title } AS this
 [source,json]
 ----
 {
-  "param0": 1
+  "param0" : 1
 }
 ----
 
@@ -190,10 +187,10 @@ RETURN this { .title } AS this
 [source,cypher]
 ----
 MATCH (this:Movie)
-WITH *
-
-SKIP $param0
-RETURN this { .title } AS this
+WITH * SKIP $param0
+RETURN this {
+	.title
+} AS this
 ----
 
 '''

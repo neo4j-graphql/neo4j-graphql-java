@@ -1,0 +1,184 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/4001
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+input Pagination {
+  limit: Int = 20
+  offset: Int = 0
+}
+
+type Video {
+  id: ID!
+}
+
+type Serie {
+  id: ID!
+  allEpisodes(options: Pagination): [Video!]! @cypher(statement: """
+  MATCH (n:Video) RETURN n
+  SKIP toInteger($options.offset) LIMIT toInteger($options.limit)
+  """, columnName: "n")
+}
+----
+
+== resolve @cypher field with custom input types
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  series {
+    allEpisodes(options: {limit: 10, offset: 0}) {
+      id
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : {
+    "limit" : 10,
+    "offset" : 0
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Serie)
+CALL {
+	WITH this
+	CALL {
+		WITH this
+		WITH this AS this
+		MATCH (n:Video)
+		RETURN n SKIP toInteger($param0.offset) LIMIT toInteger($param0.limit)
+	}
+	WITH n AS this0
+	RETURN collect(this0 {
+		.id
+	}) AS this0
+}
+RETURN this {
+	allEpisodes: this0
+} AS this
+----
+
+'''
+
+== resolve @cypher field with custom input types argument
+
+.GraphQL-Query
+[source,graphql]
+----
+query ($option: Pagination) {
+  series {
+    allEpisodes(options: $option) {
+      id
+    }
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "option": {
+    "limit": 10,
+    "offset": 0
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : {
+    "limit" : 10,
+    "offset" : 0
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Serie)
+CALL {
+	WITH this
+	CALL {
+		WITH this
+		WITH this AS this
+		MATCH (n:Video)
+		RETURN n SKIP toInteger($param0.offset) LIMIT toInteger($param0.limit)
+	}
+	WITH n AS this0
+	RETURN collect(this0 {
+		.id
+	}) AS this0
+}
+RETURN this {
+	allEpisodes: this0
+} AS this
+----
+
+'''
+
+== resolve @cypher field with custom input types default
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  series {
+    allEpisodes(options: {}) {
+      id
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : {
+    "limit" : 20,
+    "offset" : 0
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Serie)
+CALL {
+	WITH this
+	CALL {
+		WITH this
+		WITH this AS this
+		MATCH (n:Video)
+		RETURN n SKIP toInteger($param0.offset) LIMIT toInteger($param0.limit)
+	}
+	WITH n AS this0
+	RETURN collect(this0 {
+		.id
+	}) AS this0
+}
+RETURN this {
+	allEpisodes: this0
+} AS this
+----
+
+'''
+

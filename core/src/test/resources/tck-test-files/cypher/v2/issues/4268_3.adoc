@@ -1,0 +1,68 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/4268
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type JWT @jwt {
+  id: ID!
+  email: String!
+  roles: [String!]!
+}
+
+type Movie @authorization(validate: [{when: [BEFORE], where: {jwt: {AND: [{roles: "admin"}, {roles: "super-admin"}]}}}]) {
+  title: String
+  director: [Person!]! @relationship(type: "DIRECTED", direction: IN)
+}
+
+type Person {
+  id: ID
+}
+----
+
+== AND operator should work correctly
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated" : true,
+  "jwt" : {
+    "roles" : [ "admin" ],
+    "id" : "something",
+    "email" : "something"
+  },
+  "param2" : "admin",
+  "param3" : "super-admin"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WITH *
+WHERE apoc.util.validatePredicate(NOT (($isAuthenticated = true
+	AND $jwt.roles IS NOT NULL
+	AND $jwt.roles = $param2
+	AND $jwt.roles IS NOT NULL
+	AND $jwt.roles = $param3)), '@neo4j/graphql/FORBIDDEN', [0])
+RETURN this {
+	.title
+} AS this
+----
+
+'''
+

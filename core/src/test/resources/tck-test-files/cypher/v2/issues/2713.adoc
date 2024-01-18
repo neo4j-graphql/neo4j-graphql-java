@@ -1,0 +1,192 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/2713
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String
+  genres: [Genre!]! @relationship(type: "IN_GENRE", direction: OUT, properties: "InGenre")
+}
+
+type Genre {
+  name: String
+  movies: [Movie!]! @relationship(type: "IN_GENRE", direction: IN, properties: "InGenre")
+  series: [Series!]! @relationship(type: "IN_GENRE", direction: IN, properties: "InGenre")
+}
+
+type Series {
+  name: String!
+  genres: [Genre!]! @relationship(type: "IN_GENRE", direction: OUT, properties: "InGenre")
+}
+
+interface InGenre @relationshipProperties {
+  intValue: Int!
+}
+----
+
+== should not find genresConnection_ALL by genre title
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {genresConnection_ALL: {node: {name: "Thriller"}}}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "Thriller"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE (EXISTS {
+		MATCH (this)-[this0:IN_GENRE]->(this1:Genre)
+		WHERE this1.name = $param0
+	}
+	AND NOT (EXISTS {
+		MATCH (this)-[this0:IN_GENRE]->(this1:Genre)
+		WHERE NOT (this1.name = $param0)
+	}))
+RETURN this {
+	.title
+} AS this
+----
+
+'''
+
+== should not find genresConnection_ALL where NONE true
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {genresConnection_ALL: {node: {moviesAggregate: {count: 0}}}}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 0,
+  "param1" : 0
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+	WITH this
+	MATCH (this)-[this0:IN_GENRE]->(this1:Genre)
+	CALL {
+		WITH this1
+		MATCH (this1)<-[this2:IN_GENRE]-(this3:Movie)
+		RETURN count(this3) = $param0 AS var4
+	}
+	WITH *
+	WHERE var4 = true
+	RETURN count(this1) > 0 AS var5
+}
+CALL {
+	WITH this
+	MATCH (this)-[this0:IN_GENRE]->(this1:Genre)
+	CALL {
+		WITH this1
+		MATCH (this1)<-[this6:IN_GENRE]-(this7:Movie)
+		RETURN count(this7) = $param1 AS var8
+	}
+	WITH *
+	WHERE NOT (var8 = true)
+	RETURN count(this1) > 0 AS var9
+}
+WITH *
+WHERE (var9 = false
+	AND var5 = true)
+RETURN this {
+	.title
+} AS this
+----
+
+'''
+
+== should not find genresConnection_ALL where NONE true and filter by genre title
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(
+    where: {genresConnection_ALL: {node: {moviesAggregate: {count: 0}, name: "Thriller"}}}
+  ) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 0,
+  "param1" : "Thriller",
+  "param2" : 0,
+  "param3" : "Thriller"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+	WITH this
+	MATCH (this)-[this0:IN_GENRE]->(this1:Genre)
+	CALL {
+		WITH this1
+		MATCH (this1)<-[this2:IN_GENRE]-(this3:Movie)
+		RETURN count(this3) = $param0 AS var4
+	}
+	WITH *
+	WHERE (this1.name = $param1
+		AND var4 = true)
+	RETURN count(this1) > 0 AS var5
+}
+CALL {
+	WITH this
+	MATCH (this)-[this0:IN_GENRE]->(this1:Genre)
+	CALL {
+		WITH this1
+		MATCH (this1)<-[this6:IN_GENRE]-(this7:Movie)
+		RETURN count(this7) = $param2 AS var8
+	}
+	WITH *
+	WHERE NOT ((this1.name = $param3
+		AND var8 = true))
+	RETURN count(this1) > 0 AS var9
+}
+WITH *
+WHERE (var9 = false
+	AND var5 = true)
+RETURN this {
+	.title
+} AS this
+----
+
+'''
+

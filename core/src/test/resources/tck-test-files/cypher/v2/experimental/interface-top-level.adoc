@@ -1,0 +1,405 @@
+:toc:
+
+= Interface top level operations
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type SomeNodeType implements MyOtherInterface & MyInterface {
+  id: ID! @id @unique
+  something: String
+  somethingElse: String
+  other: OtherNodeType! @relationship(type: "HAS_OTHER_NODES", direction: OUT)
+}
+
+type OtherNodeType {
+  id: ID! @id @unique
+  interfaceField: MyInterface! @relationship(type: "HAS_INTERFACE_NODES", direction: OUT)
+}
+
+interface MyInterface {
+  id: ID!
+}
+
+interface MyOtherInterface implements MyInterface {
+  id: ID!
+  something: String
+}
+
+type MyImplementationType implements MyInterface {
+  id: ID! @id @unique
+}
+
+type MyOtherImplementationType implements MyInterface {
+  id: ID! @id @unique
+  someField: String
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+  "experimental": true
+}
+----
+
+== Read interface
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  myOtherInterfaces {
+    id
+    ... on SomeNodeType {
+      id
+      other {
+        id
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+	MATCH (this0:SomeNodeType)
+	CALL {
+		WITH this0
+		MATCH (this0)-[this1:HAS_OTHER_NODES]->(this2:OtherNodeType)
+		WITH this2 {
+			.id
+		} AS this2
+		RETURN head(collect(this2)) AS var3
+	}
+	WITH this0 {
+		.id,
+		other: var3,
+		__resolveType: 'SomeNodeType',
+		__id: id(this0)
+	} AS this0
+	RETURN this0 AS this
+}
+WITH this
+RETURN this AS this
+----
+
+'''
+
+== Read interface (interface target of a relationship)
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  myInterfaces {
+    id
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+	MATCH (this0:SomeNodeType)
+	WITH this0 {
+		.id,
+		__resolveType: 'SomeNodeType',
+		__id: id(this0)
+	} AS this0
+	RETURN this0 AS this UNION
+	MATCH (this1:MyImplementationType)
+	WITH this1 {
+		.id,
+		__resolveType: 'MyImplementationType',
+		__id: id(this1)
+	} AS this1
+	RETURN this1 AS this UNION
+	MATCH (this2:MyOtherImplementationType)
+	WITH this2 {
+		.id,
+		__resolveType: 'MyOtherImplementationType',
+		__id: id(this2)
+	} AS this2
+	RETURN this2 AS this
+}
+WITH this
+RETURN this AS this
+----
+
+'''
+
+== Read interface (interface target of a relationship) with implementation projection
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  myInterfaces {
+    id
+    ... on MyOtherImplementationType {
+      someField
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+	MATCH (this0:SomeNodeType)
+	WITH this0 {
+		.id,
+		__resolveType: 'SomeNodeType',
+		__id: id(this0)
+	} AS this0
+	RETURN this0 AS this UNION
+	MATCH (this1:MyImplementationType)
+	WITH this1 {
+		.id,
+		__resolveType: 'MyImplementationType',
+		__id: id(this1)
+	} AS this1
+	RETURN this1 AS this UNION
+	MATCH (this2:MyOtherImplementationType)
+	WITH this2 {
+		.id,
+		.someField,
+		__resolveType: 'MyOtherImplementationType',
+		__id: id(this2)
+	} AS this2
+	RETURN this2 AS this
+}
+WITH this
+RETURN this AS this
+----
+
+'''
+
+== Read interface (interface target of a relationship) with interface implementation and implementation of it projection
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  myInterfaces {
+    id
+    ... on MyOtherImplementationType {
+      someField
+    }
+    ... on MyOtherInterface {
+      something
+      ... on SomeNodeType {
+        somethingElse
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+	MATCH (this0:SomeNodeType)
+	WITH this0 {
+		.id,
+		.something,
+		.somethingElse,
+		__resolveType: 'SomeNodeType',
+		__id: id(this0)
+	} AS this0
+	RETURN this0 AS this UNION
+	MATCH (this1:MyImplementationType)
+	WITH this1 {
+		.id,
+		__resolveType: 'MyImplementationType',
+		__id: id(this1)
+	} AS this1
+	RETURN this1 AS this UNION
+	MATCH (this2:MyOtherImplementationType)
+	WITH this2 {
+		.id,
+		.someField,
+		__resolveType: 'MyOtherImplementationType',
+		__id: id(this2)
+	} AS this2
+	RETURN this2 AS this
+}
+WITH this
+RETURN this AS this
+----
+
+'''
+
+== Read interface (interface target of a relationship) with interface implementation projection
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  myInterfaces {
+    id
+    ... on MyOtherImplementationType {
+      someField
+    }
+    ... on MyOtherInterface {
+      something
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+	MATCH (this0:SomeNodeType)
+	WITH this0 {
+		.id,
+		.something,
+		__resolveType: 'SomeNodeType',
+		__id: id(this0)
+	} AS this0
+	RETURN this0 AS this UNION
+	MATCH (this1:MyImplementationType)
+	WITH this1 {
+		.id,
+		__resolveType: 'MyImplementationType',
+		__id: id(this1)
+	} AS this1
+	RETURN this1 AS this UNION
+	MATCH (this2:MyOtherImplementationType)
+	WITH this2 {
+		.id,
+		.someField,
+		__resolveType: 'MyOtherImplementationType',
+		__id: id(this2)
+	} AS this2
+	RETURN this2 AS this
+}
+WITH this
+RETURN this AS this
+----
+
+'''
+
+== Read interface with shared filters
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  myOtherInterfaces(where: {id_STARTS_WITH: "1"}) {
+    id
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "1"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+	MATCH (this0:SomeNodeType)
+	WHERE this0.id STARTS WITH $param0
+	WITH this0 {
+		.id,
+		__resolveType: 'SomeNodeType',
+		__id: id(this0)
+	} AS this0
+	RETURN this0 AS this
+}
+WITH this
+RETURN this AS this
+----
+
+'''
+
+== Read interface with shared filters and concrete projection
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  myOtherInterfaces(where: {id_STARTS_WITH: "4"}) {
+    id
+    ... on SomeNodeType {
+      id
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "4"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+	MATCH (this0:SomeNodeType)
+	WHERE this0.id STARTS WITH $param0
+	WITH this0 {
+		.id,
+		__resolveType: 'SomeNodeType',
+		__id: id(this0)
+	} AS this0
+	RETURN this0 AS this
+}
+WITH this
+RETURN this AS this
+----
+
+'''
+

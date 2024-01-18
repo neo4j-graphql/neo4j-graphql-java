@@ -62,51 +62,50 @@ sealed interface UpdateFieldInput {
 
             fun generateFieldUpdateFieldInputIT(
                 rel: RelationField,
-                prefix: String,
                 node: Node,
                 ctx: AugmentationContext
             ): String? {
                 if (!rel.shouldGenerateUpdateFieldInputType(node)) {
                     return null
                 }
-                return ctx.getOrCreateInputObjectType("${prefix}${Constants.InputTypeSuffix.UpdateFieldInput}") { fields, _ ->
+                return ctx.getOrCreateInputObjectType(rel.operations.getUpdateFieldInputTypeName(node)) { fields, _ ->
 
                     NodeConnectionWhere.Augmentation
-                        .generateFieldConnectionWhereIT(rel, prefix, node, ctx)
+                        .generateFieldConnectionWhereIT(rel, node, ctx)
                         ?.let { fields += inputValue(Constants.WHERE, it.asType()) }
 
                     if (rel.annotations.relationship?.isUpdateAllowed != false) {
                         NodeUpdateConnectionInput.Augmentation
-                            .generateFieldUpdateConnectionInputIT(rel, prefix, node, ctx)
+                            .generateFieldUpdateConnectionInputIT(rel, node, ctx)
                             ?.let { fields += inputValue(Constants.UPDATE_FIELD, it.asType()) }
                     }
 
                     if (rel.annotations.relationship?.isConnectAllowed != false) {
                         NodeConnectFieldInput.Augmentation
-                            .generateFieldConnectFieldInputIT(rel, prefix, node, ctx)
+                            .generateFieldConnectFieldInputIT(rel, node, ctx)
                             ?.let { fields += inputValue(Constants.CONNECT_FIELD, it.wrapType(rel)) }
                     }
                     if (rel.annotations.relationship?.isDisconnectAllowed != false) {
                         DisconnectFieldInput.NodeDisconnectFieldInput.Augmentation
-                            .generateFieldDisconnectFieldInputIT(rel, prefix, node, ctx)
+                            .generateFieldDisconnectFieldInputIT(rel, node, ctx)
                             ?.let { fields += inputValue(Constants.DISCONNECT_FIELD, it.wrapType(rel)) }
                     }
 
                     if (rel.annotations.relationship?.isCreateAllowed != false) {
                         RelationFieldInput.NodeCreateCreateFieldInput.Augmentation
-                            .generateFieldCreateFieldInputIT(rel, prefix, node, ctx)
+                            .generateFieldCreateFieldInputIT(rel, node, ctx)
                             ?.let { fields += inputValue(Constants.CREATE_FIELD, it.wrapType(rel)) }
                     }
 
                     if (rel.annotations.relationship?.isDeleteAllowed != false) {
                         DeleteFieldInput.NodeDeleteFieldInput.Augmentation
-                            .generateFieldDeleteFieldInputIT(rel, prefix, node, ctx)
+                            .generateFieldDeleteFieldInputIT(rel, node, ctx)
                             ?.let { fields += inputValue(Constants.DELETE_FIELD, it.wrapType(rel)) }
                     }
 
                     if (rel.annotations.relationship?.isConnectOrCreateAllowed != false) {
                         ConnectOrCreateFieldInput.NodeConnectOrCreateFieldInput.Augmentation
-                            .generateFieldConnectOrCreateIT(rel, prefix, node, ctx)
+                            .generateFieldConnectOrCreateIT(rel, node, ctx)
                             ?.let { fields += inputValue(Constants.CONNECT_OR_CREATE_FIELD, it.wrapType(rel)) }
                     }
                 }
@@ -139,14 +138,13 @@ sealed interface UpdateFieldInput {
 
             fun generateFieldUpdateIT(
                 rel: RelationField,
-                prefix: String,
                 interfaze: Interface,
                 ctx: AugmentationContext
             ): String? {
                 if (!rel.shouldGenerateUpdateFieldInputType(interfaze)) {
                     return null
                 }
-                return ctx.getOrCreateInputObjectType("${prefix}${Constants.InputTypeSuffix.UpdateFieldInput}") { fields, _ ->
+                return ctx.getOrCreateInputObjectType(rel.operations.getUpdateFieldInputTypeName(interfaze)) { fields, _ ->
 
                     InterfaceConnectionWhere.Augmentation
                         .generateFieldConnectionWhereIT(rel, interfaze, ctx)
@@ -154,31 +152,31 @@ sealed interface UpdateFieldInput {
 
                     if (rel.annotations.relationship?.isUpdateAllowed != false) {
                         InterfaceUpdateConnectionInput.Augmentation
-                            .generateFieldUpdateConnectionInputIT(rel, prefix, interfaze, ctx)
+                            .generateFieldUpdateConnectionInputIT(rel, interfaze, ctx)
                             ?.let { fields += inputValue(Constants.UPDATE_FIELD, it.asType()) }
                     }
 
                     if (rel.annotations.relationship?.isConnectAllowed != false) {
                         InterfaceConnectFieldInput.Augmentation
-                            .generateFieldConnectIT(rel, prefix, interfaze, ctx)
+                            .generateFieldConnectIT(rel, interfaze, ctx)
                             ?.let { fields += inputValue(Constants.CONNECT_FIELD, it.wrapType(rel)) }
                     }
 
                     if (rel.annotations.relationship?.isDisconnectAllowed != false) {
                         DisconnectFieldInput.InterfaceDisconnectFieldInput.Augmentation
-                            .generateFieldDisconnectIT(rel, prefix, interfaze, ctx)
+                            .generateFieldDisconnectIT(rel, interfaze, ctx)
                             ?.let { fields += inputValue(Constants.DISCONNECT_FIELD, it.wrapType(rel)) }
                     }
 
                     if (rel.annotations.relationship?.isCreateAllowed != false) {
                         RelationFieldInput.InterfaceCreateFieldInput.Augmentation
-                            .generateFieldRelationCreateIT(rel, prefix, interfaze, ctx)
+                            .generateFieldRelationCreateIT(rel, interfaze, ctx)
                             ?.let { fields += inputValue(Constants.CREATE_FIELD, it.wrapType(rel)) }
                     }
 
                     if (rel.annotations.relationship?.isDeleteAllowed != false) {
                         DeleteFieldInput.InterfaceDeleteFieldInput.Augmentation
-                            .generateFieldDeleteIT(rel, prefix, interfaze, ctx)
+                            .generateFieldDeleteIT(rel, interfaze, ctx)
                             ?.let { fields += inputValue(Constants.DELETE_FIELD, it.wrapType(rel)) }
                     }
                 }
@@ -209,18 +207,17 @@ sealed interface UpdateFieldInput {
 
             fun generateFieldUpdateConnectionInputIT(
                 rel: RelationField,
-                prefix: String,
                 interfaze: Interface,
                 ctx: AugmentationContext
             ) =
-                ctx.getOrCreateInputObjectType("${prefix}${Constants.InputTypeSuffix.UpdateConnectionInput}") { fields, _ ->
+                ctx.getOrCreateInputObjectType(rel.operations.getUpdateConnectionInputTypename(interfaze)) { fields, _ ->
 
                     UpdateInput.InterfaceUpdateInput.Augmentation
                         .generateUpdateInputIT(interfaze, ctx)
                         ?.let { fields += inputValue(Constants.NODE_FIELD, it.asType()) }
 
                     UpdateInput.Augmentation
-                        .addEdgePropertyUpdateInputField(rel.properties, fields, ctx)
+                        .addEdgePropertyUpdateInputField(rel, fields, ctx)
                 }
         }
     }
@@ -235,17 +232,16 @@ sealed interface UpdateFieldInput {
 
             fun generateFieldUpdateConnectionInputIT(
                 rel: RelationField,
-                prefix: String,
                 node: Node,
                 ctx: AugmentationContext
             ) =
-                ctx.getOrCreateInputObjectType(prefix + Constants.InputTypeSuffix.UpdateConnectionInput) { fields, _ ->
+                ctx.getOrCreateInputObjectType(rel.operations.getUpdateConnectionInputTypename(node)) { fields, _ ->
 
                     UpdateInput.NodeUpdateInput.Augmentation.generateContainerUpdateIT(node, ctx)
                         ?.let { fields += inputValue(Constants.NODE_FIELD, it.asType()) }
 
                     UpdateInput.Augmentation
-                        .addEdgePropertyUpdateInputField(rel.properties, fields, ctx)
+                        .addEdgePropertyUpdateInputField(rel, fields, ctx)
 
                 }
         }

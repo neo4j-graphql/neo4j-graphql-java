@@ -39,7 +39,7 @@ query ($where: ActorWhere!) {
 [source,json]
 ----
 {
-  "param0": 12345
+  "param0" : 12345
 }
 ----
 
@@ -48,7 +48,10 @@ query ($where: ActorWhere!) {
 ----
 MATCH (this:Actor)
 WHERE this.dbId = $param0
-RETURN this { .dbId, .name } AS this
+RETURN this {
+	.dbId,
+	.name
+} AS this
 ----
 
 '''

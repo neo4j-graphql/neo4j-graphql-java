@@ -47,7 +47,7 @@ query Node($id: ID!) {
 [source,json]
 ----
 {
-  "param0": "123455"
+  "param0" : "123455"
 }
 ----
 
@@ -56,7 +56,10 @@ query Node($id: ID!) {
 ----
 MATCH (this:Actor)
 WHERE this.id = $param0
-RETURN this { .name, dbId: this.id } AS this
+RETURN this {
+	.name,
+	dbId: this.id
+} AS this
 ----
 
 '''
@@ -87,7 +90,7 @@ query ($where: ActorWhere!) {
 [source,json]
 ----
 {
-  "param0": "12345"
+  "param0" : "12345"
 }
 ----
 
@@ -96,7 +99,9 @@ query ($where: ActorWhere!) {
 ----
 MATCH (this:Actor)
 WHERE this.id = $param0
-RETURN this { .name } AS this
+RETURN this {
+	.name
+} AS this
 ----
 
 '''

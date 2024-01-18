@@ -38,11 +38,9 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0": [
-    {
-      "id": "123"
-    }
-  ]
+  "create_param0" : [ {
+    "id" : "123"
+  } ]
 }
 ----
 
@@ -51,17 +49,14 @@ mutation {
 ----
 UNWIND $create_param0 AS create_var0
 CALL {
-    WITH create_var0
-    CREATE (create_this1:Movie)
-    SET
-        create_this1.id = create_var0.id,
-        create_this1.createdAt = time(),
-        create_this1.interfaceTimestamp = time(),
-        create_this1.overrideTimestamp = time()
-    
-    RETURN create_this1
+	WITH create_var0
+	CREATE (create_this1:Movie)
+	SET create_this1.id = create_var0.id, create_this1.createdAt = time(), create_this1.interfaceTimestamp = time(), create_this1.overrideTimestamp = time()
+	RETURN create_this1
 }
-RETURN collect(create_this1 { .id }) AS data
+RETURN collect(create_this1 {
+	.id
+}) AS data
 ----
 
 '''
@@ -84,8 +79,8 @@ mutation {
 [source,json]
 ----
 {
-  "this_update_id": "123",
-  "this_update_name": "dan"
+  "this_update_id" : "123",
+  "this_update_name" : "dan"
 }
 ----
 
@@ -93,14 +88,13 @@ mutation {
 [source,cypher]
 ----
 MATCH (this:Movie)
-
-
 SET this.updatedAt = time()
 SET this.interfaceTimestamp = time()
 SET this.id = $this_update_id
 SET this.name = $this_update_name
-
-RETURN collect(DISTINCT this { .id }) AS data
+RETURN collect(DISTINCT this {
+	.id
+}) AS data
 ----
 
 '''

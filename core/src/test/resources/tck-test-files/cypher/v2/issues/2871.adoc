@@ -1,0 +1,153 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/2871
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type FirstLevel {
+  id: ID! @id @unique
+  secondLevel: SecondLevel! @relationship(type: "HAS_SECOND_LEVEL", direction: OUT)
+  createdAt: DateTime! @timestamp(operations: [CREATE])
+}
+
+type SecondLevel {
+  id: ID! @id @unique
+  thirdLevel: [ThirdLevel!]! @relationship(type: "HAS_THIRD_LEVEL", direction: OUT)
+  createdAt: DateTime! @timestamp(operations: [CREATE])
+}
+
+type ThirdLevel {
+  id: ID! @id @unique
+  createdAt: DateTime! @timestamp(operations: [CREATE])
+}
+----
+
+== should be able to filter by ALL nested within single relationship
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  firstLevels(where: {secondLevel: {thirdLevel_ALL: {id: "5"}}}) {
+    id
+    createdAt
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "5"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:FirstLevel)
+OPTIONAL MATCH (this)-[:HAS_SECOND_LEVEL]->(this0:SecondLevel)
+WITH *, count(this0) AS secondLevelCount
+WITH *
+WHERE (secondLevelCount <> 0
+	AND EXISTS {
+		MATCH (this0)-[:HAS_THIRD_LEVEL]->(this1:ThirdLevel)
+		WHERE this1.id = $param0
+	}
+	AND NOT (EXISTS {
+		MATCH (this0)-[:HAS_THIRD_LEVEL]->(this1:ThirdLevel)
+		WHERE NOT (this1.id = $param0)
+	}))
+RETURN this {
+	.id,
+	createdAt: apoc.date.convertFormat(toString(this.createdAt), 'iso_zoned_date_time', 'iso_offset_date_time')
+} AS this
+----
+
+'''
+
+== should be able to filter by SOME nested within single relationship
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  firstLevels(where: {secondLevel: {thirdLevel_SOME: {id: "3"}}}) {
+    id
+    createdAt
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "3"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:FirstLevel)
+OPTIONAL MATCH (this)-[:HAS_SECOND_LEVEL]->(this0:SecondLevel)
+WITH *, count(this0) AS secondLevelCount
+WITH *
+WHERE (secondLevelCount <> 0
+	AND EXISTS {
+		MATCH (this0)-[:HAS_THIRD_LEVEL]->(this1:ThirdLevel)
+		WHERE this1.id = $param0
+	})
+RETURN this {
+	.id,
+	createdAt: apoc.date.convertFormat(toString(this.createdAt), 'iso_zoned_date_time', 'iso_offset_date_time')
+} AS this
+----
+
+'''
+
+== should not match if SOME second level relationships meet nested predicates
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  firstLevels(where: {secondLevel: {thirdLevel_NONE: {id: "25"}}}) {
+    id
+    createdAt
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "25"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:FirstLevel)
+OPTIONAL MATCH (this)-[:HAS_SECOND_LEVEL]->(this0:SecondLevel)
+WITH *, count(this0) AS secondLevelCount
+WITH *
+WHERE (secondLevelCount <> 0
+	AND NOT (EXISTS {
+		MATCH (this0)-[:HAS_THIRD_LEVEL]->(this1:ThirdLevel)
+		WHERE this1.id = $param0
+	}))
+RETURN this {
+	.id,
+	createdAt: apoc.date.convertFormat(toString(this.createdAt), 'iso_zoned_date_time', 'iso_offset_date_time')
+} AS this
+----
+
+'''
+

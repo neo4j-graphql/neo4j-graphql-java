@@ -36,15 +36,14 @@ sealed interface DeleteFieldInput {
         object Augmentation : AugmentationBase {
             fun generateFieldDeleteFieldInputIT(
                 rel: RelationField,
-                prefix: String,
                 node: Node,
                 ctx: AugmentationContext
             ) =
 
-                ctx.getOrCreateInputObjectType("${prefix}${Constants.InputTypeSuffix.DeleteFieldInput}") { fields, _ ->
+                ctx.getOrCreateInputObjectType(rel.operations.getDeleteFieldInputTypeName(node)) { fields, _ ->
 
                     NodeConnectionWhere.Augmentation
-                        .generateFieldConnectionWhereIT(rel, prefix, node, ctx)
+                        .generateFieldConnectionWhereIT(rel, node, ctx)
                         ?.let { fields += inputValue(Constants.WHERE, it.asType()) }
 
                     DeleteInput.NodeDeleteInput.Augmentation
@@ -74,13 +73,14 @@ sealed interface DeleteFieldInput {
         object Augmentation : AugmentationBase {
             fun generateFieldDeleteIT(
                 rel: RelationField,
-                prefix: String,
                 interfaze: Interface,
                 ctx: AugmentationContext
-            ) = ctx.getOrCreateInputObjectType("${prefix}${Constants.InputTypeSuffix.DeleteFieldInput}") { fields, _ ->
+            ) = ctx.getOrCreateInputObjectType(rel.operations.getDeleteFieldInputTypeName(interfaze)) { fields, _ ->
 
                 ctx.addInterfaceField(
-                    interfaze, Constants.InputTypeSuffix.DeleteInput,
+                    interfaze,
+                    interfaze.operations.deleteInputTypeName,
+                    interfaze.operations.whereOnImplementationsDeleteInputTypeName,
                     { node -> DeleteInput.NodeDeleteInput.Augmentation.generateContainerDeleteInputIT(node, ctx) },
                     RelationFieldBaseAugmentation::generateFieldDeleteIT
                 )

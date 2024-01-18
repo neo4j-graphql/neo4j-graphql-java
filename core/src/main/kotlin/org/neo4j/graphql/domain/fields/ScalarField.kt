@@ -70,18 +70,18 @@ abstract class ScalarField(
                 .add(FieldOperator.ENDS_WITH)
                 .add(FieldOperator.NOT_ENDS_WITH, deprecated = NEGATE_DEPRECATED_MSG)
 
-            if ((fieldType == Constants.STRING && schemaConfig.features.filters.String.MATCHES)
-                || (fieldType == Constants.ID && schemaConfig.features.filters.ID.MATCHES)
+            if ((fieldType == Constants.STRING && schemaConfig.features.filters.string.matches)
+                || (fieldType == Constants.ID && schemaConfig.features.filters.id.matches)
             ) {
                 result.add(FieldOperator.MATCHES)
             }
         }
         if (COMPARABLE_TYPES.contains(fieldType)) {
             val isString = fieldType == Constants.STRING
-            if (!isString || schemaConfig.features.filters.String.LT) result.add(FieldOperator.LT, resolver)
-            if (!isString || schemaConfig.features.filters.String.LTE) result.add(FieldOperator.LTE, resolver)
-            if (!isString || schemaConfig.features.filters.String.GT) result.add(FieldOperator.GT, resolver)
-            if (!isString || schemaConfig.features.filters.String.GTE) result.add(FieldOperator.GTE, resolver)
+            if (!isString || schemaConfig.features.filters.string.lt) result.add(FieldOperator.LT, resolver)
+            if (!isString || schemaConfig.features.filters.string.lte) result.add(FieldOperator.LTE, resolver)
+            if (!isString || schemaConfig.features.filters.string.gt) result.add(FieldOperator.GT, resolver)
+            if (!isString || schemaConfig.features.filters.string.gte) result.add(FieldOperator.GTE, resolver)
         }
         return result
     }

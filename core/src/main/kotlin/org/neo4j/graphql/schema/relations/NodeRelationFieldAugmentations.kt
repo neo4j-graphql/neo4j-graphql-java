@@ -35,29 +35,29 @@ class NodeRelationFieldAugmentations(
     }
 
     override fun generateFieldCreateIT() = CreateFieldInput.NodeFieldInput.Augmentation
-        .generateFieldNodeFieldInputIT(rel, prefix, node, ctx)
+        .generateFieldNodeFieldInputIT(rel, node, ctx)
 
     override fun generateFieldConnectIT() = NodeConnectFieldInput.Augmentation
-        .generateFieldConnectFieldInputIT(rel, prefix, node, ctx)
+        .generateFieldConnectFieldInputIT(rel, node, ctx)
 
     override fun generateFieldDeleteIT() = DeleteFieldInput.NodeDeleteFieldInput.Augmentation
-        .generateFieldDeleteFieldInputIT(rel, prefix, node, ctx)
+        .generateFieldDeleteFieldInputIT(rel, node, ctx)
 
     override fun generateFieldDisconnectIT() = DisconnectFieldInput.NodeDisconnectFieldInput.Augmentation
-        .generateFieldDisconnectFieldInputIT(rel, prefix, node, ctx)
+        .generateFieldDisconnectFieldInputIT(rel, node, ctx)
 
     override fun generateFieldRelationCreateIT() = RelationFieldInput.NodeCreateCreateFieldInput.Augmentation
-        .generateFieldCreateFieldInputIT(rel, prefix, node, ctx)
+        .generateFieldCreateFieldInputIT(rel, node, ctx)
 
     override fun generateFieldUpdateIT() = UpdateFieldInput.NodeUpdateFieldInput.Augmentation
-        .generateFieldUpdateFieldInputIT(rel, prefix, node, ctx)
+        .generateFieldUpdateFieldInputIT(rel, node, ctx)
 
     override fun generateFieldConnectOrCreateIT() = ConnectOrCreateFieldInput.NodeConnectOrCreateFieldInput.Augmentation
-        .generateFieldConnectOrCreateIT(rel, prefix, node, ctx)
+        .generateFieldConnectOrCreateIT(rel, node, ctx)
 
     override fun generateFieldWhereIT(): String? = WhereInput.NodeWhereInput.Augmentation
         .generateWhereIT(node, ctx)
 
     override fun generateFieldConnectionWhereIT() = ConnectionWhere.NodeConnectionWhere.Augmentation
-        .generateFieldConnectionWhereIT(rel, prefix, node, ctx)
+        .generateFieldConnectionWhereIT(rel, node, ctx)
 }

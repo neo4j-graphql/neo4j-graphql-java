@@ -27,7 +27,7 @@ type Movie {
 [source,json]
 ----
 {
-  "param0": "P40M0DT0S"
+  "param0" : "P40M0DT0S"
 }
 ----
 
@@ -36,7 +36,9 @@ type Movie {
 ----
 MATCH (this:Movie)
 WHERE (datetime() + this.duration) >= (datetime() + $param0)
-RETURN this { .duration } AS this
+RETURN this {
+	.duration
+} AS this
 ----
 
 '''
@@ -59,11 +61,9 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0": [
-    {
-      "duration": "P24M0DT0S"
-    }
-  ]
+  "create_param0" : [ {
+    "duration" : "P24M0DT0S"
+  } ]
 }
 ----
 
@@ -72,14 +72,14 @@ mutation {
 ----
 UNWIND $create_param0 AS create_var0
 CALL {
-    WITH create_var0
-    CREATE (create_this1:Movie)
-    SET
-        create_this1.duration = create_var0.duration
-    
-    RETURN create_this1
+	WITH create_var0
+	CREATE (create_this1:Movie)
+	SET create_this1.duration = create_var0.duration
+	RETURN create_this1
 }
-RETURN collect(create_this1 { .duration }) AS data
+RETURN collect(create_this1 {
+	.duration
+}) AS data
 ----
 
 '''
@@ -100,7 +100,7 @@ RETURN collect(create_this1 { .duration }) AS data
 [source,json]
 ----
 {
-  "param0": "P12M0DT0S"
+  "param0" : "P12M0DT0S"
 }
 ----
 
@@ -109,7 +109,9 @@ RETURN collect(create_this1 { .duration }) AS data
 ----
 MATCH (this:Movie)
 WHERE this.duration = $param0
-RETURN this { .duration } AS this
+RETURN this {
+	.duration
+} AS this
 ----
 
 '''
@@ -133,7 +135,7 @@ mutation {
 [source,json]
 ----
 {
-  "this_update_duration": "P0M4DT0S"
+  "this_update_duration" : "P0M4DT0S"
 }
 ----
 
@@ -141,11 +143,11 @@ mutation {
 [source,cypher]
 ----
 MATCH (this:Movie)
-
-
 SET this.duration = $this_update_duration
-
-RETURN collect(DISTINCT this { .id, .duration }) AS data
+RETURN collect(DISTINCT this {
+	.id,
+	.duration
+}) AS data
 ----
 
 '''

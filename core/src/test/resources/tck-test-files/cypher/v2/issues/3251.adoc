@@ -1,0 +1,99 @@
+:toc:
+
+= 1:1 schema validation
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  name: String!
+  genre: Genre! @relationship(type: "HAS_GENRE", direction: OUT)
+}
+
+type Genre {
+  name: String! @unique
+  movies: [Movie!]! @relationship(type: "HAS_GENRE", direction: IN)
+}
+----
+
+== should have check in correct place following update and connect
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation UpdateMovieWithConnectAndUpdate {
+  updateMovies(
+    where: {name: "TestMovie1"}
+    update: {name: "TestMovie1"}
+    connect: {genre: {where: {node: {name: "Thriller"}}}}
+  ) {
+    movies {
+      name
+      genre {
+        name
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "TestMovie1",
+  "this_connect_genre0_node_param0" : "Thriller",
+  "this_update_name" : "TestMovie1"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.name = $param0
+SET this.name = $this_update_name
+WITH *
+CALL {
+	WITH this
+	OPTIONAL MATCH (this_connect_genre0_node:Genre)
+	WHERE this_connect_genre0_node.name = $this_connect_genre0_node_param0
+	CALL {
+		WITH *
+		WITH collect(this_connect_genre0_node) AS connectedNodes, collect(this) AS parentNodes
+		CALL {
+			WITH connectedNodes, parentNodes
+			UNWIND parentNodes AS this
+			UNWIND connectedNodes AS this_connect_genre0_node
+			MERGE (this)-[:HAS_GENRE]->(this_connect_genre0_node)
+		}
+	}
+	WITH this, this_connect_genre0_node
+	RETURN count(*) AS connect_this_connect_genre_Genre0
+}
+WITH *
+CALL {
+	WITH this
+	MATCH (this)-[update_this0:HAS_GENRE]->(update_this1:Genre)
+	WITH update_this1 {
+		.name
+	} AS update_this1
+	RETURN head(collect(update_this1)) AS update_var2
+}
+WITH *
+CALL {
+	WITH this
+	MATCH (this)-[this_genre_Genre_unique:HAS_GENRE]->(:Genre)
+	WITH count(this_genre_Genre_unique) AS c
+	WHERE apoc.util.validatePredicate(NOT (c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.genre required exactly once', [0])
+	RETURN c AS this_genre_Genre_unique_ignored
+}
+RETURN collect(DISTINCT this {
+	.name,
+	genre: update_var2
+}) AS data
+----
+
+'''
+

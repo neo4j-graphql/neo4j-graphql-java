@@ -1,0 +1,247 @@
+:toc:
+
+= Cypher -> fulltext -> Score
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie @fulltext(indexes: [{name: "MovieTitle", fields: ["title"]}]) {
+  title: String
+  released: Int
+}
+----
+
+== simple match with single property and score
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesFulltextMovieTitle(phrase: "a different name") {
+    score
+    movie {
+      title
+      released
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "a different name",
+  "param1" : "Movie"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL db.index.fulltext.queryNodes('MovieTitle', $param0) YIELD node AS this0, score AS var1
+WHERE $param1 IN labels(this0)
+RETURN this0 {
+	.title,
+	.released
+} AS movie, var1 AS score
+----
+
+'''
+
+== simple match with single property and score and filter
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesFulltextMovieTitle(
+    phrase: "a different name"
+    where: {movie: {released_GT: 2000}}
+  ) {
+    score
+    movie {
+      title
+      released
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "a different name",
+  "param1" : "Movie",
+  "param2" : 2000
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL db.index.fulltext.queryNodes('MovieTitle', $param0) YIELD node AS this0, score AS var1
+WHERE ($param1 IN labels(this0)
+	AND this0.released > $param2)
+RETURN this0 {
+	.title,
+	.released
+} AS movie, var1 AS score
+----
+
+'''
+
+== with score and normal sorting
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesFulltextMovieTitle(
+    phrase: "a different name"
+    sort: [{score: ASC}, {movie: {title: DESC}}]
+  ) {
+    score
+    movie {
+      title
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "a different name",
+  "param1" : "Movie"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL db.index.fulltext.queryNodes('MovieTitle', $param0) YIELD node AS this0, score AS var1
+WHERE $param1 IN labels(this0) WITH * ORDER BY var1 ASC, this0.title DESC
+RETURN this0 {
+	.title
+} AS movie, var1 AS score
+----
+
+'''
+
+== with score filtering
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesFulltextMovieTitle(phrase: "a different name", where: {score: {min: 0.5}}) {
+    score
+    movie {
+      title
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "a different name",
+  "param1" : "Movie",
+  "param2" : 0.5
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL db.index.fulltext.queryNodes('MovieTitle', $param0) YIELD node AS this0, score AS var1
+WHERE ($param1 IN labels(this0)
+	AND var1 >= $param2)
+RETURN this0 {
+	.title
+} AS movie, var1 AS score
+----
+
+'''
+
+== with score sorting
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesFulltextMovieTitle(phrase: "a different name", sort: {score: ASC}) {
+    score
+    movie {
+      title
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "a different name",
+  "param1" : "Movie"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL db.index.fulltext.queryNodes('MovieTitle', $param0) YIELD node AS this0, score AS var1
+WHERE $param1 IN labels(this0) WITH * ORDER BY var1 ASC
+RETURN this0 {
+	.title
+} AS movie, var1 AS score
+----
+
+'''
+
+== with sorting
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesFulltextMovieTitle(
+    phrase: "a different name"
+    sort: {movie: {title: DESC}}
+  ) {
+    score
+    movie {
+      title
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "a different name",
+  "param1" : "Movie"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL db.index.fulltext.queryNodes('MovieTitle', $param0) YIELD node AS this0, score AS var1
+WHERE $param1 IN labels(this0) WITH * ORDER BY this0.title DESC
+RETURN this0 {
+	.title
+} AS movie, var1 AS score
+----
+
+'''
+

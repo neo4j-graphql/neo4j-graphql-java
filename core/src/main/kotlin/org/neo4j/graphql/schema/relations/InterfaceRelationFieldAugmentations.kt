@@ -1,9 +1,8 @@
 package org.neo4j.graphql.schema.relations
 
-import org.neo4j.graphql.schema.AugmentationContext
-import org.neo4j.graphql.capitalize
 import org.neo4j.graphql.domain.Interface
 import org.neo4j.graphql.domain.fields.RelationField
+import org.neo4j.graphql.schema.AugmentationContext
 import org.neo4j.graphql.schema.model.inputs.WhereInput
 import org.neo4j.graphql.schema.model.inputs.connect.ConnectFieldInput.InterfaceConnectFieldInput
 import org.neo4j.graphql.schema.model.inputs.connection.ConnectionWhere
@@ -22,32 +21,25 @@ class InterfaceRelationFieldAugmentations(
     private val interfaze: Interface,
 ) : RelationFieldBaseAugmentation {
 
-
-    private val prefix: String = rel.getOwnerName() + rel.fieldName.capitalize()
-
-    // TODO https://github.com/neo4j/graphql/issues/2684
-    private val prefix2: String =
-        (rel.interfaceField?.getOwnerName() ?: rel.getOwnerName()) + rel.fieldName.capitalize()
-
     override fun generateFieldCreateIT() = CreateFieldInput.InterfaceFieldInput.Augmentation
-        .generateFieldCreateIT(rel, prefix2, interfaze, ctx)
+        .generateFieldCreateIT(rel, interfaze, ctx)
 
     override fun generateFieldConnectIT() = InterfaceConnectFieldInput.Augmentation
-        .generateFieldConnectIT(rel, prefix, interfaze, ctx)
+        .generateFieldConnectIT(rel, interfaze, ctx)
 
     override fun generateFieldDeleteIT() = DeleteFieldInput.InterfaceDeleteFieldInput.Augmentation
-        .generateFieldDeleteIT(rel, prefix, interfaze, ctx)
+        .generateFieldDeleteIT(rel, interfaze, ctx)
 
     override fun generateFieldDisconnectIT() = DisconnectFieldInput.InterfaceDisconnectFieldInput.Augmentation
-        .generateFieldDisconnectIT(rel, prefix, interfaze, ctx)
+        .generateFieldDisconnectIT(rel, interfaze, ctx)
 
     override fun generateFieldRelationCreateIT() = RelationFieldInput.InterfaceCreateFieldInput.Augmentation
-        .generateFieldRelationCreateIT(rel, prefix, interfaze, ctx)
+        .generateFieldRelationCreateIT(rel, interfaze, ctx)
 
     override fun generateFieldConnectOrCreateIT(): String? = null
 
     override fun generateFieldUpdateIT() = UpdateFieldInput.InterfaceUpdateFieldInput.Augmentation
-        .generateFieldUpdateIT(rel, prefix, interfaze, ctx)
+        .generateFieldUpdateIT(rel, interfaze, ctx)
 
     override fun generateFieldWhereIT(): String? = WhereInput.InterfaceWhereInput.Augmentation
         .generateFieldWhereIT(interfaze, ctx)

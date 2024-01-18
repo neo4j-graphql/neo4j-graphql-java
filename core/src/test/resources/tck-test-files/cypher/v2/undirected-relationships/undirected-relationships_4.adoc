@@ -39,7 +39,7 @@ query Query {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -47,18 +47,25 @@ query Query {
 ----
 MATCH (this:Foo)
 CALL {
-    WITH this
-    MATCH (this)-[this0:DRINKS_AT]->(this1:Bar)
-    CALL {
-        WITH this1
-        MATCH (this1)-[this2:DRINKS_AT]-(this3:Foo)
-        WITH this3 { .Name } AS this3
-        RETURN collect(this3) AS var4
-    }
-    WITH this1 { .id, Customers: var4 } AS this1
-    RETURN head(collect(this1)) AS var5
+	WITH this
+	MATCH (this)-[this0:DRINKS_AT]->(this1:Bar)
+	CALL {
+		WITH this1
+		MATCH (this1)-[this2:DRINKS_AT]-(this3:Foo)
+		WITH this3 {
+			.Name
+		} AS this3
+		RETURN collect(this3) AS var4
+	}
+	WITH this1 {
+		.id,
+		Customers: var4
+	} AS this1
+	RETURN head(collect(this1)) AS var5
 }
-RETURN this { DrinksAt: var5 } AS this
+RETURN this {
+	DrinksAt: var5
+} AS this
 ----
 
 '''

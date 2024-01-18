@@ -18,6 +18,7 @@ abstract class ImplementingTypeOperations(
     val sortInputTypeName get() = "${name}Sort"
     val relationInputTypeName get() = "${name}RelationInput"
     val connectInputTypeName get() = "${name}ConnectInput"
+    val disconnectInputTypeName get() = "${name}DisconnectInput"
     val connectOrCreateInputTypeName get() = "${name}ConnectOrCreateInput"
     val subscriptionWhereInputTypeName get() = "${name}SubscriptionWhere"
     override val rootTypeFieldNames get() = ImplementingTypeRootTypeFieldNames()
@@ -49,7 +50,7 @@ abstract class ImplementingTypeOperations(
 
     inner class UpdateMutationArgumentNames {
         val connect get() = connectInputTypeName
-        val disconnect get() = "${name}DisconnectInput"
+        val disconnect get() = disconnectInputTypeName
         val create get() = relationInputTypeName
         val update get() = updateInputTypeName
         val delete get() = deleteInputTypeName

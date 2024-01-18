@@ -174,8 +174,7 @@ class AugmentationContext(
     }
 
     fun getOrCreateRelationInputObjectType(
-        sourceName: String,
-        suffix: String,
+        name: String,
         relationFields: List<RelationField>,
         extractor: (RelationFieldBaseAugmentation) -> String?,
         wrapList: Boolean = true,
@@ -183,10 +182,10 @@ class AugmentationContext(
         update: Boolean = false,
         enforceFields: Boolean = false,
         condition: (RelationField) -> Boolean = { true }
-    ): String? = getOrCreateInputObjectType(sourceName + suffix) { fields, _ ->
+    ): String? = getOrCreateInputObjectType(name) { fields, _ ->
 
         ScalarProperties.Companion.Augmentation
-            .addScalarFields(fields, sourceName, scalarFields, update, this)
+            .addScalarFields(fields, scalarFields, update, this)
 
         relationFields
             .filter { condition(it) }
@@ -226,13 +225,14 @@ class AugmentationContext(
 
     fun addInterfaceField(
         interfaze: Interface,
-        suffix: String,
+        name: String,
+        onTypename: String,
         implementationResolver: (Node) -> String?,
         relationFieldsResolver: KFunction1<RelationFieldBaseAugmentation, String?>,
         asList: Boolean = true,
         getAdditionalFields: (() -> List<InputValueDefinition>)? = null,
-    ) = getOrCreateInputObjectType("${interfaze.name}$suffix") { fields, _ ->
-        addOnField(interfaze, "Implementations$suffix", fields, asList, implementationResolver)
+    ) = getOrCreateInputObjectType(name) { fields, _ ->
+        addOnField(interfaze, onTypename, fields, asList, implementationResolver)
         interfaze.relationFields.forEach { r ->
             getTypeFromRelationField(r, relationFieldsResolver)
                 ?.let { fields += inputValue(r.fieldName, it.wrapType(r)) }
@@ -242,12 +242,12 @@ class AugmentationContext(
 
     fun addOnField(
         interfaze: Interface,
-        inputTypeSuffix: String,
+        name: String,
         fields: MutableList<InputValueDefinition>,
         asList: Boolean,
         getNodeType: (Node) -> String?
     ) {
-        generateImplementationDelegate(interfaze, inputTypeSuffix, asList = asList, getNodeType)?.let {
+        generateImplementationDelegate(interfaze, name, asList = asList, getNodeType)?.let {
             fields += inputValue(Constants.ON, it.asType())
         }
     }
@@ -256,7 +256,7 @@ class AugmentationContext(
         interfaze: Interface,
         fields: MutableList<InputValueDefinition>,
     ) {
-        getOrCreateEnumType("${interfaze.name}Implementation") { enumValues, _ ->
+        getOrCreateEnumType(interfaze.operations.implementationEnumTypename) { enumValues, _ ->
             interfaze.implementations.values.forEach { node ->
                 enumValues += EnumValueDefinition(node.name)
             }
@@ -267,12 +267,12 @@ class AugmentationContext(
 
     fun generateImplementationDelegate(
         interfaze: Interface,
-        inputTypeSuffix: String,
+        name: String,
         asList: Boolean,
         getNodeType: (Node) -> String?,
         getAdditionalFields: (() -> List<InputValueDefinition>)? = null,
     ) =
-        getOrCreateInputObjectType("${interfaze.name}$inputTypeSuffix") { fields, _ ->
+        getOrCreateInputObjectType(name) { fields, _ ->
             interfaze.implementations.values.forEach { node ->
                 getNodeType(node)?.let {
                     val type = when (asList) {

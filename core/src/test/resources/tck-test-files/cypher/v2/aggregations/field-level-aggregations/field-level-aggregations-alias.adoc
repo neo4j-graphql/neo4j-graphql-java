@@ -42,7 +42,7 @@ interface ActedIn @relationshipProperties {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -50,14 +50,21 @@ interface ActedIn @relationshipProperties {
 ----
 MATCH (this:Movie)
 CALL {
-    WITH this
-    MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
-    WITH this1
-    ORDER BY size(this1.name) DESC
-    WITH collect(this1.name) AS list
-    RETURN { shortest: last(list) } AS var2
+	WITH this
+	MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
+	WITH this1 ORDER BY size(this1.name) DESC
+	WITH collect(this1.name) AS list
+	RETURN {
+		shortest: last(list)
+	} AS var2
 }
-RETURN this { actorsAggregate: { node: { myName: var2 } } } AS this
+RETURN this {
+	actorsAggregate: {
+		node: {
+			myName: var2
+		}
+	}
+} AS this
 ----
 
 '''
@@ -83,7 +90,7 @@ RETURN this { actorsAggregate: { node: { myName: var2 } } } AS this
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -91,11 +98,19 @@ RETURN this { actorsAggregate: { node: { myName: var2 } } } AS this
 ----
 MATCH (this:Movie)
 CALL {
-    WITH this
-    MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
-    RETURN { max: max(this0.screentime) } AS var2
+	WITH this
+	MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
+	RETURN {
+		max: max(this0.screentime)
+	} AS var2
 }
-RETURN this { actorsAggregate: { edge: { time: var2 } } } AS this
+RETURN this {
+	actorsAggregate: {
+		edge: {
+			time: var2
+		}
+	}
+} AS this
 ----
 
 '''

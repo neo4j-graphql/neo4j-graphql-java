@@ -36,35 +36,31 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "123",
-  "this_deleteMovies": {
-    "args": {
-      "delete": {
-        "actors": [
-          {
-            "where": {
-              "node": {
-                "name": "Actor to delete"
-              }
-            },
-            "delete": {
-              "movies": [
-                {
-                  "where": {
-                    "node": {
-                      "id": "321"
-                    }
-                  }
-                }
-              ]
+  "param0" : "123",
+  "this_deleteMovies" : {
+    "args" : {
+      "delete" : {
+        "actors" : [ {
+          "where" : {
+            "node" : {
+              "name" : "Actor to delete"
             }
+          },
+          "delete" : {
+            "movies" : [ {
+              "where" : {
+                "node" : {
+                  "id" : "321"
+                }
+              }
+            } ]
           }
-        ]
+        } ]
       }
     }
   },
-  "this_deleteMovies_args_delete_actors0_where_this_actors0param0": "Actor to delete",
-  "this_deleteMovies_args_delete_actors0_delete_movies0_where_this_actors0_movies0param0": "321"
+  "this_deleteMovies_args_delete_actors0_delete_movies0_where_this_actors0_movies0param0" : "321",
+  "this_deleteMovies_args_delete_actors0_where_this_actors0param0" : "Actor to delete"
 }
 ----
 
@@ -75,29 +71,26 @@ MATCH (this:Movie)
 WHERE this.id = $param0
 WITH *
 CALL {
-WITH *
-OPTIONAL MATCH (this)<-[this_actors0_relationship:ACTED_IN]-(this_actors0:Actor)
-WHERE this_actors0.name = $this_deleteMovies_args_delete_actors0_where_this_actors0param0
-WITH *
-CALL {
-WITH *
-OPTIONAL MATCH (this_actors0)-[this_actors0_movies0_relationship:ACTED_IN]->(this_actors0_movies0:Movie)
-WHERE this_actors0_movies0.id = $this_deleteMovies_args_delete_actors0_delete_movies0_where_this_actors0_movies0param0
-WITH this_actors0_movies0_relationship, collect(DISTINCT this_actors0_movies0) AS this_actors0_movies0_to_delete
-CALL {
-	WITH this_actors0_movies0_to_delete
-	UNWIND this_actors0_movies0_to_delete AS x
-	DETACH DELETE x
-}
-}
-WITH this_actors0_relationship, collect(DISTINCT this_actors0) AS this_actors0_to_delete
-CALL {
-	WITH this_actors0_to_delete
-	UNWIND this_actors0_to_delete AS x
-	DETACH DELETE x
-}
-}
-DETACH DELETE this
+	WITH *
+	OPTIONAL MATCH (this)<-[this_actors0_relationship:ACTED_IN]-(this_actors0:Actor)
+	WHERE this_actors0.name = $this_deleteMovies_args_delete_actors0_where_this_actors0param0
+	WITH *
+	CALL {
+		WITH *
+		OPTIONAL MATCH (this_actors0)-[this_actors0_movies0_relationship:ACTED_IN]->(this_actors0_movies0:Movie)
+		WHERE this_actors0_movies0.id = $this_deleteMovies_args_delete_actors0_delete_movies0_where_this_actors0_movies0param0
+		WITH this_actors0_movies0_relationship, collect(DISTINCT this_actors0_movies0) AS this_actors0_movies0_to_delete
+		CALL {
+			WITH this_actors0_movies0_to_delete
+			UNWIND this_actors0_movies0_to_delete AS x DETACH DELETE x
+		}
+	}
+	WITH this_actors0_relationship, collect(DISTINCT this_actors0) AS this_actors0_to_delete
+	CALL {
+		WITH this_actors0_to_delete
+		UNWIND this_actors0_to_delete AS x DETACH DELETE x
+	}
+} DETACH DELETE this
 ----
 
 '''
@@ -118,7 +111,7 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "123"
+  "param0" : "123"
 }
 ----
 
@@ -126,8 +119,7 @@ mutation {
 [source,cypher]
 ----
 MATCH (this:Movie)
-WHERE this.id = $param0
-DETACH DELETE this
+WHERE this.id = $param0 DETACH DELETE this
 ----
 
 '''
@@ -151,23 +143,21 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "123",
-  "this_deleteMovies": {
-    "args": {
-      "delete": {
-        "actors": [
-          {
-            "where": {
-              "node": {
-                "name": "Actor to delete"
-              }
+  "param0" : "123",
+  "this_deleteMovies" : {
+    "args" : {
+      "delete" : {
+        "actors" : [ {
+          "where" : {
+            "node" : {
+              "name" : "Actor to delete"
             }
           }
-        ]
+        } ]
       }
     }
   },
-  "this_deleteMovies_args_delete_actors0_where_this_actors0param0": "Actor to delete"
+  "this_deleteMovies_args_delete_actors0_where_this_actors0param0" : "Actor to delete"
 }
 ----
 
@@ -178,17 +168,15 @@ MATCH (this:Movie)
 WHERE this.id = $param0
 WITH *
 CALL {
-WITH *
-OPTIONAL MATCH (this)<-[this_actors0_relationship:ACTED_IN]-(this_actors0:Actor)
-WHERE this_actors0.name = $this_deleteMovies_args_delete_actors0_where_this_actors0param0
-WITH this_actors0_relationship, collect(DISTINCT this_actors0) AS this_actors0_to_delete
-CALL {
-	WITH this_actors0_to_delete
-	UNWIND this_actors0_to_delete AS x
-	DETACH DELETE x
-}
-}
-DETACH DELETE this
+	WITH *
+	OPTIONAL MATCH (this)<-[this_actors0_relationship:ACTED_IN]-(this_actors0:Actor)
+	WHERE this_actors0.name = $this_deleteMovies_args_delete_actors0_where_this_actors0param0
+	WITH this_actors0_relationship, collect(DISTINCT this_actors0) AS this_actors0_to_delete
+	CALL {
+		WITH this_actors0_to_delete
+		UNWIND this_actors0_to_delete AS x DETACH DELETE x
+	}
+} DETACH DELETE this
 ----
 
 '''
@@ -212,31 +200,28 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "123",
-  "this_deleteMovies": {
-    "args": {
-      "delete": {
-        "actors": [
-          {
-            "where": {
-              "node": {
-                "name": "Actor to delete"
-              }
-            }
-          },
-          {
-            "where": {
-              "node": {
-                "name": "Another actor to delete"
-              }
+  "param0" : "123",
+  "this_deleteMovies" : {
+    "args" : {
+      "delete" : {
+        "actors" : [ {
+          "where" : {
+            "node" : {
+              "name" : "Actor to delete"
             }
           }
-        ]
+        }, {
+          "where" : {
+            "node" : {
+              "name" : "Another actor to delete"
+            }
+          }
+        } ]
       }
     }
   },
-  "this_deleteMovies_args_delete_actors0_where_this_actors0param0": "Actor to delete",
-  "this_deleteMovies_args_delete_actors1_where_this_actors1param0": "Another actor to delete"
+  "this_deleteMovies_args_delete_actors0_where_this_actors0param0" : "Actor to delete",
+  "this_deleteMovies_args_delete_actors1_where_this_actors1param0" : "Another actor to delete"
 }
 ----
 
@@ -247,29 +232,26 @@ MATCH (this:Movie)
 WHERE this.id = $param0
 WITH *
 CALL {
+	WITH *
+	OPTIONAL MATCH (this)<-[this_actors0_relationship:ACTED_IN]-(this_actors0:Actor)
+	WHERE this_actors0.name = $this_deleteMovies_args_delete_actors0_where_this_actors0param0
+	WITH this_actors0_relationship, collect(DISTINCT this_actors0) AS this_actors0_to_delete
+	CALL {
+		WITH this_actors0_to_delete
+		UNWIND this_actors0_to_delete AS x DETACH DELETE x
+	}
+}
 WITH *
-OPTIONAL MATCH (this)<-[this_actors0_relationship:ACTED_IN]-(this_actors0:Actor)
-WHERE this_actors0.name = $this_deleteMovies_args_delete_actors0_where_this_actors0param0
-WITH this_actors0_relationship, collect(DISTINCT this_actors0) AS this_actors0_to_delete
 CALL {
-	WITH this_actors0_to_delete
-	UNWIND this_actors0_to_delete AS x
-	DETACH DELETE x
-}
-}
-WITH *
-CALL {
-WITH *
-OPTIONAL MATCH (this)<-[this_actors1_relationship:ACTED_IN]-(this_actors1:Actor)
-WHERE this_actors1.name = $this_deleteMovies_args_delete_actors1_where_this_actors1param0
-WITH this_actors1_relationship, collect(DISTINCT this_actors1) AS this_actors1_to_delete
-CALL {
-	WITH this_actors1_to_delete
-	UNWIND this_actors1_to_delete AS x
-	DETACH DELETE x
-}
-}
-DETACH DELETE this
+	WITH *
+	OPTIONAL MATCH (this)<-[this_actors1_relationship:ACTED_IN]-(this_actors1:Actor)
+	WHERE this_actors1.name = $this_deleteMovies_args_delete_actors1_where_this_actors1param0
+	WITH this_actors1_relationship, collect(DISTINCT this_actors1) AS this_actors1_to_delete
+	CALL {
+		WITH this_actors1_to_delete
+		UNWIND this_actors1_to_delete AS x DETACH DELETE x
+	}
+} DETACH DELETE this
 ----
 
 '''
@@ -293,47 +275,41 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "123",
-  "this_deleteMovies": {
-    "args": {
-      "delete": {
-        "actors": [
-          {
-            "where": {
-              "node": {
-                "name": "Actor to delete"
-              }
-            },
-            "delete": {
-              "movies": [
-                {
-                  "where": {
-                    "node": {
-                      "id": "321"
-                    }
-                  },
-                  "delete": {
-                    "actors": [
-                      {
-                        "where": {
-                          "node": {
-                            "name": "Another actor to delete"
-                          }
-                        }
-                      }
-                    ]
-                  }
-                }
-              ]
+  "param0" : "123",
+  "this_deleteMovies" : {
+    "args" : {
+      "delete" : {
+        "actors" : [ {
+          "where" : {
+            "node" : {
+              "name" : "Actor to delete"
             }
+          },
+          "delete" : {
+            "movies" : [ {
+              "where" : {
+                "node" : {
+                  "id" : "321"
+                }
+              },
+              "delete" : {
+                "actors" : [ {
+                  "where" : {
+                    "node" : {
+                      "name" : "Another actor to delete"
+                    }
+                  }
+                } ]
+              }
+            } ]
           }
-        ]
+        } ]
       }
     }
   },
-  "this_deleteMovies_args_delete_actors0_where_this_actors0param0": "Actor to delete",
-  "this_deleteMovies_args_delete_actors0_delete_movies0_where_this_actors0_movies0param0": "321",
-  "this_deleteMovies_args_delete_actors0_delete_movies0_delete_actors0_where_this_actors0_movies0_actors0param0": "Another actor to delete"
+  "this_deleteMovies_args_delete_actors0_delete_movies0_delete_actors0_where_this_actors0_movies0_actors0param0" : "Another actor to delete",
+  "this_deleteMovies_args_delete_actors0_delete_movies0_where_this_actors0_movies0param0" : "321",
+  "this_deleteMovies_args_delete_actors0_where_this_actors0param0" : "Actor to delete"
 }
 ----
 
@@ -344,41 +320,37 @@ MATCH (this:Movie)
 WHERE this.id = $param0
 WITH *
 CALL {
-WITH *
-OPTIONAL MATCH (this)<-[this_actors0_relationship:ACTED_IN]-(this_actors0:Actor)
-WHERE this_actors0.name = $this_deleteMovies_args_delete_actors0_where_this_actors0param0
-WITH *
-CALL {
-WITH *
-OPTIONAL MATCH (this_actors0)-[this_actors0_movies0_relationship:ACTED_IN]->(this_actors0_movies0:Movie)
-WHERE this_actors0_movies0.id = $this_deleteMovies_args_delete_actors0_delete_movies0_where_this_actors0_movies0param0
-WITH *
-CALL {
-WITH *
-OPTIONAL MATCH (this_actors0_movies0)<-[this_actors0_movies0_actors0_relationship:ACTED_IN]-(this_actors0_movies0_actors0:Actor)
-WHERE this_actors0_movies0_actors0.name = $this_deleteMovies_args_delete_actors0_delete_movies0_delete_actors0_where_this_actors0_movies0_actors0param0
-WITH this_actors0_movies0_actors0_relationship, collect(DISTINCT this_actors0_movies0_actors0) AS this_actors0_movies0_actors0_to_delete
-CALL {
-	WITH this_actors0_movies0_actors0_to_delete
-	UNWIND this_actors0_movies0_actors0_to_delete AS x
-	DETACH DELETE x
-}
-}
-WITH this_actors0_movies0_relationship, collect(DISTINCT this_actors0_movies0) AS this_actors0_movies0_to_delete
-CALL {
-	WITH this_actors0_movies0_to_delete
-	UNWIND this_actors0_movies0_to_delete AS x
-	DETACH DELETE x
-}
-}
-WITH this_actors0_relationship, collect(DISTINCT this_actors0) AS this_actors0_to_delete
-CALL {
-	WITH this_actors0_to_delete
-	UNWIND this_actors0_to_delete AS x
-	DETACH DELETE x
-}
-}
-DETACH DELETE this
+	WITH *
+	OPTIONAL MATCH (this)<-[this_actors0_relationship:ACTED_IN]-(this_actors0:Actor)
+	WHERE this_actors0.name = $this_deleteMovies_args_delete_actors0_where_this_actors0param0
+	WITH *
+	CALL {
+		WITH *
+		OPTIONAL MATCH (this_actors0)-[this_actors0_movies0_relationship:ACTED_IN]->(this_actors0_movies0:Movie)
+		WHERE this_actors0_movies0.id = $this_deleteMovies_args_delete_actors0_delete_movies0_where_this_actors0_movies0param0
+		WITH *
+		CALL {
+			WITH *
+			OPTIONAL MATCH (this_actors0_movies0)<-[this_actors0_movies0_actors0_relationship:ACTED_IN]-(this_actors0_movies0_actors0:Actor)
+			WHERE this_actors0_movies0_actors0.name = $this_deleteMovies_args_delete_actors0_delete_movies0_delete_actors0_where_this_actors0_movies0_actors0param0
+			WITH this_actors0_movies0_actors0_relationship, collect(DISTINCT this_actors0_movies0_actors0) AS this_actors0_movies0_actors0_to_delete
+			CALL {
+				WITH this_actors0_movies0_actors0_to_delete
+				UNWIND this_actors0_movies0_actors0_to_delete AS x DETACH DELETE x
+			}
+		}
+		WITH this_actors0_movies0_relationship, collect(DISTINCT this_actors0_movies0) AS this_actors0_movies0_to_delete
+		CALL {
+			WITH this_actors0_movies0_to_delete
+			UNWIND this_actors0_movies0_to_delete AS x DETACH DELETE x
+		}
+	}
+	WITH this_actors0_relationship, collect(DISTINCT this_actors0) AS this_actors0_to_delete
+	CALL {
+		WITH this_actors0_to_delete
+		UNWIND this_actors0_to_delete AS x DETACH DELETE x
+	}
+} DETACH DELETE this
 ----
 
 '''

@@ -1,0 +1,171 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/2925
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Group {
+  name: String
+  hasGroupUser: [User!]! @relationship(type: "HAS_GROUP", direction: IN)
+  hasRequiredGroupUser: [User!]! @relationship(type: "HAS_REQUIRED_GROUP", direction: IN)
+}
+
+type User {
+  name: String
+  hasGroup: Group @relationship(type: "HAS_GROUP", direction: OUT)
+  hasRequiredGroup: Group! @relationship(type: "HAS_REQUIRED_GROUP", direction: OUT)
+}
+----
+
+== should query nested relationship
+
+.GraphQL-Query
+[source,graphql]
+----
+query Query {
+  groups(where: {hasGroupUser: {hasGroup: {name_IN: ["Group A"]}}}) {
+    name
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : [ "Group A" ]
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Group)
+WHERE EXISTS {
+	MATCH (this)<-[:HAS_GROUP]-(this0:User)
+	WHERE single(this1 IN [(this0)-[:HAS_GROUP]->(this1)
+	WHERE this1.name IN $param0 | 1]
+	WHERE true)
+}
+RETURN this {
+	.name
+} AS this
+----
+
+'''
+
+== should query nested required relationship
+
+.GraphQL-Query
+[source,graphql]
+----
+query Query {
+  groups(where: {hasGroupUser: {hasRequiredGroup: {name_IN: ["Group A"]}}}) {
+    name
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : [ "Group A" ]
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Group)
+CALL {
+	WITH this
+	MATCH (this)<-[:HAS_GROUP]-(this0:User)
+	OPTIONAL MATCH (this0)-[:HAS_REQUIRED_GROUP]->(this1:Group)
+	WITH *, count(this1) AS hasRequiredGroupCount
+	WITH *
+	WHERE (hasRequiredGroupCount <> 0
+		AND this1.name IN $param0)
+	RETURN count(this0) > 0 AS var2
+}
+WITH *
+WHERE var2 = true
+RETURN this {
+	.name
+} AS this
+----
+
+'''
+
+== should query relationship
+
+.GraphQL-Query
+[source,graphql]
+----
+query Query {
+  users(where: {hasGroup: {name_IN: ["Group A"]}}) {
+    name
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : [ "Group A" ]
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+WHERE single(this0 IN [(this)-[:HAS_GROUP]->(this0)
+WHERE this0.name IN $param0 | 1]
+WHERE true)
+RETURN this {
+	.name
+} AS this
+----
+
+'''
+
+== should query required relationship
+
+.GraphQL-Query
+[source,graphql]
+----
+query Query {
+  users(where: {hasRequiredGroup: {name_IN: ["Group A"]}}) {
+    name
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : [ "Group A" ]
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+OPTIONAL MATCH (this)-[:HAS_REQUIRED_GROUP]->(this0:Group)
+WITH *, count(this0) AS hasRequiredGroupCount
+WITH *
+WHERE (hasRequiredGroupCount <> 0
+	AND this0.name IN $param0)
+RETURN this {
+	.name
+} AS this
+----
+
+'''
+

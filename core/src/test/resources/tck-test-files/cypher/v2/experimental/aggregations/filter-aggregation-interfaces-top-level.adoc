@@ -1,0 +1,213 @@
+:toc:
+
+= Top level filter on aggregation interfaces
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+interface Production {
+  title: String!
+  cost: Float!
+}
+
+type Movie implements Production {
+  title: String!
+  cost: Float!
+  runtime: Int!
+}
+
+type Series implements Production {
+  title: String!
+  cost: Float!
+  episodes: Int!
+}
+
+interface ActedIn @relationshipProperties {
+  screenTime: Int!
+}
+
+type Actor {
+  name: String!
+  actedIn: [Production!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+  "experimental": true
+}
+----
+
+== top level count
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  productionsAggregate(where: {title: "The Matrix"}) {
+    count
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "The Matrix"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+	CALL {
+		MATCH (this0:Movie)
+		RETURN this0 AS node UNION
+		MATCH (this1:Series)
+		RETURN this1 AS node
+	}
+	WITH *
+	WHERE node.title = $param0
+	RETURN count(node) AS this2
+}
+RETURN {
+	count: this2
+}
+----
+
+'''
+
+== top level count and string fields
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  productionsAggregate(where: {title: "The Matrix"}) {
+    count
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "The Matrix"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+	CALL {
+		MATCH (this0:Movie)
+		RETURN this0 AS node UNION
+		MATCH (this1:Series)
+		RETURN this1 AS node
+	}
+	WITH *
+	WHERE node.title = $param0
+	RETURN count(node) AS this2
+}
+RETURN {
+	count: this2
+}
+----
+
+'''
+
+== top level count and string fields with AND operation
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  productionsAggregate(where: {AND: [{cost_GTE: 10}, {title: "The Matrix"}]}) {
+    count
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 10,
+  "param1" : "The Matrix"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+	CALL {
+		MATCH (this0:Movie)
+		RETURN this0 AS node UNION
+		MATCH (this1:Series)
+		RETURN this1 AS node
+	}
+	WITH *
+	WHERE (node.cost >= $param0
+		AND node.title = $param1)
+	RETURN count(node) AS this2
+}
+RETURN {
+	count: this2
+}
+----
+
+'''
+
+== top level count and string fields with OR operation
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  productionsAggregate(where: {OR: [{cost_GTE: 10}, {title: "The Matrix"}]}) {
+    count
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 10,
+  "param1" : "The Matrix"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+	CALL {
+		MATCH (this0:Movie)
+		RETURN this0 AS node UNION
+		MATCH (this1:Series)
+		RETURN this1 AS node
+	}
+	WITH *
+	WHERE (node.cost >= $param0
+		OR node.title = $param1)
+	RETURN count(node) AS this2
+}
+RETURN {
+	count: this2
+}
+----
+
+'''
+

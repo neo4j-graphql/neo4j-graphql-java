@@ -1,0 +1,1648 @@
+:toc:
+
+= Cypher Auth Where
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+interface Content {
+  id: ID
+  content: String
+  creator: User! @relationship(type: "HAS_CONTENT", direction: IN)
+}
+
+type User {
+  id: ID
+  name: String
+  content: [Content!]! @relationship(type: "HAS_CONTENT", direction: OUT)
+}
+
+type Comment implements Content {
+  id: ID
+  content: String
+  creator: User!
+}
+
+type Post implements Content @authorization(filter: [{operations: [READ, UPDATE, DELETE, CREATE_RELATIONSHIP, DELETE_RELATIONSHIP], where: {node: {creator: {id: "$jwt.sub"}}}}]) {
+  id: ID
+  content: String
+  creator: User!
+}
+
+extend type User @authorization(filter: [{operations: [READ, UPDATE, DELETE, CREATE_RELATIONSHIP, DELETE_RELATIONSHIP], where: {node: {id: "$jwt.sub"}}}])
+
+extend type User {
+  password: String! @authorization(filter: [{operations: [READ], where: {node: {id: "$jwt.sub"}}}])
+}
+
+extend type Post {
+  secretKey: String! @authorization(filter: [{operations: [READ], where: {node: {creator: {id: "$jwt.sub"}}}}])
+}
+----
+
+== Connect Node (from create)
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  createUsers(
+    input: [{id: "123", name: "Bob", password: "password", content: {connect: {where: {node: {}}}}}]
+  ) {
+    users {
+      id
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated" : true,
+  "jwt" : {
+    "roles" : [ "admin" ],
+    "sub" : "id-01"
+  },
+  "this0_id" : "123",
+  "this0_name" : "Bob",
+  "this0_password" : "password"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+	CREATE (this0:User)
+	SET this0.id = $this0_id
+	SET this0.name = $this0_name
+	SET this0.password = $this0_password
+	WITH *
+	CALL {
+		WITH this0
+		OPTIONAL MATCH (this0_content_connect0_node:Comment)
+		CALL {
+			WITH *
+			WITH collect(this0_content_connect0_node) AS connectedNodes, collect(this0) AS parentNodes
+			CALL {
+				WITH connectedNodes, parentNodes
+				UNWIND parentNodes AS this0
+				UNWIND connectedNodes AS this0_content_connect0_node
+				MERGE (this0)-[:HAS_CONTENT]->(this0_content_connect0_node)
+			}
+		}
+		WITH this0, this0_content_connect0_node
+		RETURN count(*) AS connect_this0_content_connect_Comment0
+	}
+	CALL {
+		WITH this0
+		OPTIONAL MATCH (this0_content_connect1_node:Post)
+		OPTIONAL MATCH (this0_content_connect1_node)<-[:HAS_CONTENT]-(authorization__before_this0:User)
+		WITH *, count(authorization__before_this0) AS creatorCount
+		WITH *
+		WHERE ($isAuthenticated = true
+			AND creatorCount <> 0
+			AND $jwt.sub IS NOT NULL
+			AND authorization__before_this0.id = $jwt.sub)
+		CALL {
+			WITH *
+			WITH collect(this0_content_connect1_node) AS connectedNodes, collect(this0) AS parentNodes
+			CALL {
+				WITH connectedNodes, parentNodes
+				UNWIND parentNodes AS this0
+				UNWIND connectedNodes AS this0_content_connect1_node
+				MERGE (this0)-[:HAS_CONTENT]->(this0_content_connect1_node)
+			}
+		}
+		WITH this0, this0_content_connect1_node
+		RETURN count(*) AS connect_this0_content_connect_Post1
+	}
+	RETURN this0
+}
+CALL {
+	WITH this0
+	RETURN this0 {
+		.id
+	} AS create_var0
+}
+RETURN [create_var0] AS data
+----
+
+'''
+
+== Connect Node (from update connect)
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  updateUsers(connect: {content: {where: {node: {}}}}) {
+    users {
+      id
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated" : true,
+  "jwt" : {
+    "roles" : [ "admin" ],
+    "sub" : "id-01"
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+WITH *
+WHERE ($isAuthenticated = true
+	AND $jwt.sub IS NOT NULL
+	AND this.id = $jwt.sub)
+WITH *
+CALL {
+	WITH this
+	OPTIONAL MATCH (this_connect_content0_node:Comment)
+	WHERE ($isAuthenticated = true
+		AND $jwt.sub IS NOT NULL
+		AND this.id = $jwt.sub)
+	CALL {
+		WITH *
+		WITH collect(this_connect_content0_node) AS connectedNodes, collect(this) AS parentNodes
+		CALL {
+			WITH connectedNodes, parentNodes
+			UNWIND parentNodes AS this
+			UNWIND connectedNodes AS this_connect_content0_node
+			MERGE (this)-[:HAS_CONTENT]->(this_connect_content0_node)
+		}
+	}
+	WITH this, this_connect_content0_node
+	RETURN count(*) AS connect_this_connect_content_Comment0
+}
+CALL {
+	WITH this
+	OPTIONAL MATCH (this_connect_content1_node:Post)
+	OPTIONAL MATCH (this_connect_content1_node)<-[:HAS_CONTENT]-(authorization__before_this0:User)
+	WITH *, count(authorization__before_this0) AS creatorCount
+	WITH *
+	WHERE ($isAuthenticated = true
+		AND creatorCount <> 0
+		AND $jwt.sub IS NOT NULL
+		AND authorization__before_this0.id = $jwt.sub
+		AND $isAuthenticated = true
+		AND $jwt.sub IS NOT NULL
+		AND this.id = $jwt.sub)
+	CALL {
+		WITH *
+		WITH collect(this_connect_content1_node) AS connectedNodes, collect(this) AS parentNodes
+		CALL {
+			WITH connectedNodes, parentNodes
+			UNWIND parentNodes AS this
+			UNWIND connectedNodes AS this_connect_content1_node
+			MERGE (this)-[:HAS_CONTENT]->(this_connect_content1_node)
+		}
+	}
+	WITH this, this_connect_content1_node
+	RETURN count(*) AS connect_this_connect_content_Post1
+}
+WITH *
+RETURN collect(DISTINCT this {
+	.id
+}) AS data
+----
+
+'''
+
+== Connect Node (from update update)
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  updateUsers(update: {content: {connect: {where: {node: {}}}}}) {
+    users {
+      id
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated" : true,
+  "jwt" : {
+    "roles" : [ "admin" ],
+    "sub" : "id-01"
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+WITH *
+WHERE ($isAuthenticated = true
+	AND $jwt.sub IS NOT NULL
+	AND this.id = $jwt.sub)
+WITH this
+CALL {
+	WITH this
+	WITH *
+	CALL {
+		WITH this
+		OPTIONAL MATCH (this_content0_connect0_node:Comment)
+		WHERE ($isAuthenticated = true
+			AND $jwt.sub IS NOT NULL
+			AND this.id = $jwt.sub)
+		CALL {
+			WITH *
+			WITH collect(this_content0_connect0_node) AS connectedNodes, collect(this) AS parentNodes
+			CALL {
+				WITH connectedNodes, parentNodes
+				UNWIND parentNodes AS this
+				UNWIND connectedNodes AS this_content0_connect0_node
+				MERGE (this)-[:HAS_CONTENT]->(this_content0_connect0_node)
+			}
+		}
+		WITH this, this_content0_connect0_node
+		RETURN count(*) AS connect_this_content0_connect_Comment0
+	}
+	RETURN count(*) AS update_this_Comment
+}
+CALL {
+	WITH this
+	WITH *
+	CALL {
+		WITH this
+		OPTIONAL MATCH (this_content0_connect0_node:Post)
+		OPTIONAL MATCH (this_content0_connect0_node)<-[:HAS_CONTENT]-(authorization__before_this0:User)
+		WITH *, count(authorization__before_this0) AS creatorCount
+		WITH *
+		WHERE ($isAuthenticated = true
+			AND creatorCount <> 0
+			AND $jwt.sub IS NOT NULL
+			AND authorization__before_this0.id = $jwt.sub
+			AND $isAuthenticated = true
+			AND $jwt.sub IS NOT NULL
+			AND this.id = $jwt.sub)
+		CALL {
+			WITH *
+			WITH collect(this_content0_connect0_node) AS connectedNodes, collect(this) AS parentNodes
+			CALL {
+				WITH connectedNodes, parentNodes
+				UNWIND parentNodes AS this
+				UNWIND connectedNodes AS this_content0_connect0_node
+				MERGE (this)-[:HAS_CONTENT]->(this_content0_connect0_node)
+			}
+		}
+		WITH this, this_content0_connect0_node
+		RETURN count(*) AS connect_this_content0_connect_Post0
+	}
+	RETURN count(*) AS update_this_Post
+}
+RETURN collect(DISTINCT this {
+	.id
+}) AS data
+----
+
+'''
+
+== Connect Node + User Defined Where (from create)
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  createUsers(
+    input: [{id: "123", name: "Bob", password: "password", content: {connect: {where: {node: {id: "post-id"}}}}}]
+  ) {
+    users {
+      id
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated" : true,
+  "jwt" : {
+    "roles" : [ "admin" ],
+    "sub" : "id-01"
+  },
+  "this0_content_connect0_node_param0" : "post-id",
+  "this0_content_connect1_node_param0" : "post-id",
+  "this0_id" : "123",
+  "this0_name" : "Bob",
+  "this0_password" : "password"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+	CREATE (this0:User)
+	SET this0.id = $this0_id
+	SET this0.name = $this0_name
+	SET this0.password = $this0_password
+	WITH *
+	CALL {
+		WITH this0
+		OPTIONAL MATCH (this0_content_connect0_node:Comment)
+		WHERE this0_content_connect0_node.id = $this0_content_connect0_node_param0
+		CALL {
+			WITH *
+			WITH collect(this0_content_connect0_node) AS connectedNodes, collect(this0) AS parentNodes
+			CALL {
+				WITH connectedNodes, parentNodes
+				UNWIND parentNodes AS this0
+				UNWIND connectedNodes AS this0_content_connect0_node
+				MERGE (this0)-[:HAS_CONTENT]->(this0_content_connect0_node)
+			}
+		}
+		WITH this0, this0_content_connect0_node
+		RETURN count(*) AS connect_this0_content_connect_Comment0
+	}
+	CALL {
+		WITH this0
+		OPTIONAL MATCH (this0_content_connect1_node:Post)
+		OPTIONAL MATCH (this0_content_connect1_node)<-[:HAS_CONTENT]-(authorization__before_this0:User)
+		WITH *, count(authorization__before_this0) AS creatorCount
+		WITH *
+		WHERE (this0_content_connect1_node.id = $this0_content_connect1_node_param0
+			AND $isAuthenticated = true
+			AND creatorCount <> 0
+			AND $jwt.sub IS NOT NULL
+			AND authorization__before_this0.id = $jwt.sub)
+		CALL {
+			WITH *
+			WITH collect(this0_content_connect1_node) AS connectedNodes, collect(this0) AS parentNodes
+			CALL {
+				WITH connectedNodes, parentNodes
+				UNWIND parentNodes AS this0
+				UNWIND connectedNodes AS this0_content_connect1_node
+				MERGE (this0)-[:HAS_CONTENT]->(this0_content_connect1_node)
+			}
+		}
+		WITH this0, this0_content_connect1_node
+		RETURN count(*) AS connect_this0_content_connect_Post1
+	}
+	RETURN this0
+}
+CALL {
+	WITH this0
+	RETURN this0 {
+		.id
+	} AS create_var0
+}
+RETURN [create_var0] AS data
+----
+
+'''
+
+== Connect Node + User Defined Where (from update connect)
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  updateUsers(connect: {content: {where: {node: {id: "some-id"}}}}) {
+    users {
+      id
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated" : true,
+  "jwt" : {
+    "roles" : [ "admin" ],
+    "sub" : "id-01"
+  },
+  "this_connect_content0_node_param0" : "some-id",
+  "this_connect_content1_node_param0" : "some-id"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+WITH *
+WHERE ($isAuthenticated = true
+	AND $jwt.sub IS NOT NULL
+	AND this.id = $jwt.sub)
+WITH *
+CALL {
+	WITH this
+	OPTIONAL MATCH (this_connect_content0_node:Comment)
+	WHERE (this_connect_content0_node.id = $this_connect_content0_node_param0
+		AND $isAuthenticated = true
+		AND $jwt.sub IS NOT NULL
+		AND this.id = $jwt.sub)
+	CALL {
+		WITH *
+		WITH collect(this_connect_content0_node) AS connectedNodes, collect(this) AS parentNodes
+		CALL {
+			WITH connectedNodes, parentNodes
+			UNWIND parentNodes AS this
+			UNWIND connectedNodes AS this_connect_content0_node
+			MERGE (this)-[:HAS_CONTENT]->(this_connect_content0_node)
+		}
+	}
+	WITH this, this_connect_content0_node
+	RETURN count(*) AS connect_this_connect_content_Comment0
+}
+CALL {
+	WITH this
+	OPTIONAL MATCH (this_connect_content1_node:Post)
+	OPTIONAL MATCH (this_connect_content1_node)<-[:HAS_CONTENT]-(authorization__before_this0:User)
+	WITH *, count(authorization__before_this0) AS creatorCount
+	WITH *
+	WHERE (this_connect_content1_node.id = $this_connect_content1_node_param0
+		AND $isAuthenticated = true
+		AND creatorCount <> 0
+		AND $jwt.sub IS NOT NULL
+		AND authorization__before_this0.id = $jwt.sub
+		AND $isAuthenticated = true
+		AND $jwt.sub IS NOT NULL
+		AND this.id = $jwt.sub)
+	CALL {
+		WITH *
+		WITH collect(this_connect_content1_node) AS connectedNodes, collect(this) AS parentNodes
+		CALL {
+			WITH connectedNodes, parentNodes
+			UNWIND parentNodes AS this
+			UNWIND connectedNodes AS this_connect_content1_node
+			MERGE (this)-[:HAS_CONTENT]->(this_connect_content1_node)
+		}
+	}
+	WITH this, this_connect_content1_node
+	RETURN count(*) AS connect_this_connect_content_Post1
+}
+WITH *
+RETURN collect(DISTINCT this {
+	.id
+}) AS data
+----
+
+'''
+
+== Connect Node + User Defined Where (from update update)
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  updateUsers(update: {content: {connect: {where: {node: {id: "new-id"}}}}}) {
+    users {
+      id
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated" : true,
+  "jwt" : {
+    "roles" : [ "admin" ],
+    "sub" : "id-01"
+  },
+  "this_content0_connect0_node_param0" : "new-id"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+WITH *
+WHERE ($isAuthenticated = true
+	AND $jwt.sub IS NOT NULL
+	AND this.id = $jwt.sub)
+WITH this
+CALL {
+	WITH this
+	WITH *
+	CALL {
+		WITH this
+		OPTIONAL MATCH (this_content0_connect0_node:Comment)
+		WHERE (this_content0_connect0_node.id = $this_content0_connect0_node_param0
+			AND $isAuthenticated = true
+			AND $jwt.sub IS NOT NULL
+			AND this.id = $jwt.sub)
+		CALL {
+			WITH *
+			WITH collect(this_content0_connect0_node) AS connectedNodes, collect(this) AS parentNodes
+			CALL {
+				WITH connectedNodes, parentNodes
+				UNWIND parentNodes AS this
+				UNWIND connectedNodes AS this_content0_connect0_node
+				MERGE (this)-[:HAS_CONTENT]->(this_content0_connect0_node)
+			}
+		}
+		WITH this, this_content0_connect0_node
+		RETURN count(*) AS connect_this_content0_connect_Comment0
+	}
+	RETURN count(*) AS update_this_Comment
+}
+CALL {
+	WITH this
+	WITH *
+	CALL {
+		WITH this
+		OPTIONAL MATCH (this_content0_connect0_node:Post)
+		OPTIONAL MATCH (this_content0_connect0_node)<-[:HAS_CONTENT]-(authorization__before_this0:User)
+		WITH *, count(authorization__before_this0) AS creatorCount
+		WITH *
+		WHERE (this_content0_connect0_node.id = $this_content0_connect0_node_param0
+			AND $isAuthenticated = true
+			AND creatorCount <> 0
+			AND $jwt.sub IS NOT NULL
+			AND authorization__before_this0.id = $jwt.sub
+			AND $isAuthenticated = true
+			AND $jwt.sub IS NOT NULL
+			AND this.id = $jwt.sub)
+		CALL {
+			WITH *
+			WITH collect(this_content0_connect0_node) AS connectedNodes, collect(this) AS parentNodes
+			CALL {
+				WITH connectedNodes, parentNodes
+				UNWIND parentNodes AS this
+				UNWIND connectedNodes AS this_content0_connect0_node
+				MERGE (this)-[:HAS_CONTENT]->(this_content0_connect0_node)
+			}
+		}
+		WITH this, this_content0_connect0_node
+		RETURN count(*) AS connect_this_content0_connect_Post0
+	}
+	RETURN count(*) AS update_this_Post
+}
+RETURN collect(DISTINCT this {
+	.id
+}) AS data
+----
+
+'''
+
+== Delete Nested Node
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  deleteUsers(delete: {content: {where: {}}}) {
+    nodesDeleted
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated" : true,
+  "jwt" : {
+    "roles" : [ "admin" ],
+    "sub" : "id-01"
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+WITH *
+WHERE ($isAuthenticated = true
+	AND $jwt.sub IS NOT NULL
+	AND this.id = $jwt.sub)
+WITH *
+CALL {
+	WITH *
+	OPTIONAL MATCH (this)-[this_content_Comment0_relationship:HAS_CONTENT]->(this_content_Comment0:Comment)
+	WITH this_content_Comment0_relationship, collect(DISTINCT this_content_Comment0) AS this_content_Comment0_to_delete
+	CALL {
+		WITH this_content_Comment0_to_delete
+		UNWIND this_content_Comment0_to_delete AS x DETACH DELETE x
+	}
+}
+WITH *
+CALL {
+	WITH *
+	OPTIONAL MATCH (this)-[this_content_Post0_relationship:HAS_CONTENT]->(this_content_Post0:Post)
+	OPTIONAL MATCH (this_content_Post0)<-[:HAS_CONTENT]-(authorization__before_this0:User)
+	WITH *, count(authorization__before_this0) AS creatorCount
+	WHERE ($isAuthenticated = true
+		AND creatorCount <> 0
+		AND $jwt.sub IS NOT NULL
+		AND authorization__before_this0.id = $jwt.sub)
+	WITH this_content_Post0_relationship, collect(DISTINCT this_content_Post0) AS this_content_Post0_to_delete
+	CALL {
+		WITH this_content_Post0_to_delete
+		UNWIND this_content_Post0_to_delete AS x DETACH DELETE x
+	}
+} DETACH DELETE this
+----
+
+'''
+
+== Delete Node
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  deletePosts {
+    nodesDeleted
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated" : true,
+  "jwt" : {
+    "roles" : [ "admin" ],
+    "sub" : "id-01"
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Post)
+OPTIONAL MATCH (this)<-[:HAS_CONTENT]-(this0:User)
+WITH *, count(this0) AS creatorCount
+WITH *
+WHERE ($isAuthenticated = true
+	AND creatorCount <> 0
+	AND $jwt.sub IS NOT NULL
+	AND this0.id = $jwt.sub) DETACH DELETE this
+----
+
+'''
+
+== Delete Node + User Defined Where
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  deletePosts(where: {content: "Bob"}) {
+    nodesDeleted
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated" : true,
+  "jwt" : {
+    "roles" : [ "admin" ],
+    "sub" : "id-01"
+  },
+  "param0" : "Bob"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Post)
+OPTIONAL MATCH (this)<-[:HAS_CONTENT]-(this0:User)
+WITH *, count(this0) AS creatorCount
+WITH *
+WHERE (this.content = $param0
+	AND $isAuthenticated = true
+	AND creatorCount <> 0
+	AND $jwt.sub IS NOT NULL
+	AND this0.id = $jwt.sub) DETACH DELETE this
+----
+
+'''
+
+== Disconnect Node (from update disconnect)
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  updateUsers(disconnect: {content: {where: {}}}) {
+    users {
+      id
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated" : true,
+  "jwt" : {
+    "roles" : [ "admin" ],
+    "sub" : "id-01"
+  },
+  "updateUsers" : {
+    "args" : {
+      "disconnect" : {
+        "content" : [ {
+          "where" : { }
+        } ]
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+WITH *
+WHERE ($isAuthenticated = true
+	AND $jwt.sub IS NOT NULL
+	AND this.id = $jwt.sub)
+WITH this
+CALL {
+	WITH this
+	OPTIONAL MATCH (this)-[this_disconnect_content0_rel:HAS_CONTENT]->(this_disconnect_content0:Comment)
+	WHERE ($isAuthenticated = true
+		AND $jwt.sub IS NOT NULL
+		AND this.id = $jwt.sub)
+	CALL {
+		WITH this_disconnect_content0, this_disconnect_content0_rel, this
+		WITH collect(this_disconnect_content0) AS this_disconnect_content0, this_disconnect_content0_rel, this
+		UNWIND this_disconnect_content0 AS x DELETE this_disconnect_content0_rel
+	}
+	RETURN count(*) AS disconnect_this_disconnect_content_Comment
+}
+CALL {
+	WITH this
+	OPTIONAL MATCH (this)-[this_disconnect_content0_rel:HAS_CONTENT]->(this_disconnect_content0:Post)
+	OPTIONAL MATCH (this_disconnect_content0)<-[:HAS_CONTENT]-(authorization__before_this0:User)
+	WITH *, count(authorization__before_this0) AS creatorCount
+	WHERE ($isAuthenticated = true
+		AND $jwt.sub IS NOT NULL
+		AND this.id = $jwt.sub
+		AND $isAuthenticated = true
+		AND creatorCount <> 0
+		AND $jwt.sub IS NOT NULL
+		AND authorization__before_this0.id = $jwt.sub)
+	CALL {
+		WITH this_disconnect_content0, this_disconnect_content0_rel, this
+		WITH collect(this_disconnect_content0) AS this_disconnect_content0, this_disconnect_content0_rel, this
+		UNWIND this_disconnect_content0 AS x DELETE this_disconnect_content0_rel
+	}
+	RETURN count(*) AS disconnect_this_disconnect_content_Post
+}
+WITH *
+RETURN collect(DISTINCT this {
+	.id
+}) AS data
+----
+
+'''
+
+== Disconnect Node (from update update)
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  updateUsers(update: {content: {disconnect: {where: {}}}}) {
+    users {
+      id
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated" : true,
+  "jwt" : {
+    "roles" : [ "admin" ],
+    "sub" : "id-01"
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+WITH *
+WHERE ($isAuthenticated = true
+	AND $jwt.sub IS NOT NULL
+	AND this.id = $jwt.sub)
+WITH this
+CALL {
+	WITH this
+	WITH this
+	CALL {
+		WITH this
+		OPTIONAL MATCH (this)-[this_content0_disconnect0_rel:HAS_CONTENT]->(this_content0_disconnect0:Comment)
+		WHERE ($isAuthenticated = true
+			AND $jwt.sub IS NOT NULL
+			AND this.id = $jwt.sub)
+		CALL {
+			WITH this_content0_disconnect0, this_content0_disconnect0_rel, this
+			WITH collect(this_content0_disconnect0) AS this_content0_disconnect0, this_content0_disconnect0_rel, this
+			UNWIND this_content0_disconnect0 AS x DELETE this_content0_disconnect0_rel
+		}
+		RETURN count(*) AS disconnect_this_content0_disconnect_Comment
+	}
+	RETURN count(*) AS update_this_Comment
+}
+CALL {
+	WITH this
+	WITH this
+	CALL {
+		WITH this
+		OPTIONAL MATCH (this)-[this_content0_disconnect0_rel:HAS_CONTENT]->(this_content0_disconnect0:Post)
+		OPTIONAL MATCH (this_content0_disconnect0)<-[:HAS_CONTENT]-(authorization__before_this0:User)
+		WITH *, count(authorization__before_this0) AS creatorCount
+		WHERE ($isAuthenticated = true
+			AND $jwt.sub IS NOT NULL
+			AND this.id = $jwt.sub
+			AND $isAuthenticated = true
+			AND creatorCount <> 0
+			AND $jwt.sub IS NOT NULL
+			AND authorization__before_this0.id = $jwt.sub)
+		CALL {
+			WITH this_content0_disconnect0, this_content0_disconnect0_rel, this
+			WITH collect(this_content0_disconnect0) AS this_content0_disconnect0, this_content0_disconnect0_rel, this
+			UNWIND this_content0_disconnect0 AS x DELETE this_content0_disconnect0_rel
+		}
+		RETURN count(*) AS disconnect_this_content0_disconnect_Post
+	}
+	RETURN count(*) AS update_this_Post
+}
+RETURN collect(DISTINCT this {
+	.id
+}) AS data
+----
+
+'''
+
+== Disconnect Node + User Defined Where (from update disconnect)
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  updateUsers(disconnect: {content: {where: {node: {id: "some-id"}}}}) {
+    users {
+      id
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated" : true,
+  "jwt" : {
+    "roles" : [ "admin" ],
+    "sub" : "id-01"
+  },
+  "updateUsers" : {
+    "args" : {
+      "disconnect" : {
+        "content" : [ {
+          "where" : {
+            "node" : {
+              "id" : "some-id"
+            }
+          }
+        } ]
+      }
+    }
+  },
+  "updateUsers_args_disconnect_content0_where_Comment_this_disconnect_content0param0" : "some-id",
+  "updateUsers_args_disconnect_content0_where_Post_this_disconnect_content0param0" : "some-id"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+WITH *
+WHERE ($isAuthenticated = true
+	AND $jwt.sub IS NOT NULL
+	AND this.id = $jwt.sub)
+WITH this
+CALL {
+	WITH this
+	OPTIONAL MATCH (this)-[this_disconnect_content0_rel:HAS_CONTENT]->(this_disconnect_content0:Comment)
+	WHERE (this_disconnect_content0.id = $updateUsers_args_disconnect_content0_where_Comment_this_disconnect_content0param0
+		AND $isAuthenticated = true
+		AND $jwt.sub IS NOT NULL
+		AND this.id = $jwt.sub)
+	CALL {
+		WITH this_disconnect_content0, this_disconnect_content0_rel, this
+		WITH collect(this_disconnect_content0) AS this_disconnect_content0, this_disconnect_content0_rel, this
+		UNWIND this_disconnect_content0 AS x DELETE this_disconnect_content0_rel
+	}
+	RETURN count(*) AS disconnect_this_disconnect_content_Comment
+}
+CALL {
+	WITH this
+	OPTIONAL MATCH (this)-[this_disconnect_content0_rel:HAS_CONTENT]->(this_disconnect_content0:Post)
+	OPTIONAL MATCH (this_disconnect_content0)<-[:HAS_CONTENT]-(authorization__before_this0:User)
+	WITH *, count(authorization__before_this0) AS creatorCount
+	WHERE (this_disconnect_content0.id = $updateUsers_args_disconnect_content0_where_Post_this_disconnect_content0param0
+		AND $isAuthenticated = true
+		AND $jwt.sub IS NOT NULL
+		AND this.id = $jwt.sub
+		AND $isAuthenticated = true
+		AND creatorCount <> 0
+		AND $jwt.sub IS NOT NULL
+		AND authorization__before_this0.id = $jwt.sub)
+	CALL {
+		WITH this_disconnect_content0, this_disconnect_content0_rel, this
+		WITH collect(this_disconnect_content0) AS this_disconnect_content0, this_disconnect_content0_rel, this
+		UNWIND this_disconnect_content0 AS x DELETE this_disconnect_content0_rel
+	}
+	RETURN count(*) AS disconnect_this_disconnect_content_Post
+}
+WITH *
+RETURN collect(DISTINCT this {
+	.id
+}) AS data
+----
+
+'''
+
+== Disconnect Node + User Defined Where (from update update)
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  updateUsers(update: {content: [{disconnect: {where: {node: {id: "new-id"}}}}]}) {
+    users {
+      id
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated" : true,
+  "jwt" : {
+    "roles" : [ "admin" ],
+    "sub" : "id-01"
+  },
+  "updateUsers" : {
+    "args" : {
+      "update" : {
+        "content" : [ {
+          "disconnect" : [ {
+            "where" : {
+              "node" : {
+                "id" : "new-id"
+              }
+            }
+          } ]
+        } ]
+      }
+    }
+  },
+  "updateUsers_args_update_content0_disconnect0_where_Comment_this_content0_disconnect0param0" : "new-id",
+  "updateUsers_args_update_content0_disconnect0_where_Post_this_content0_disconnect0param0" : "new-id"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+WITH *
+WHERE ($isAuthenticated = true
+	AND $jwt.sub IS NOT NULL
+	AND this.id = $jwt.sub)
+WITH this
+CALL {
+	WITH this
+	WITH this
+	CALL {
+		WITH this
+		OPTIONAL MATCH (this)-[this_content0_disconnect0_rel:HAS_CONTENT]->(this_content0_disconnect0:Comment)
+		WHERE (this_content0_disconnect0.id = $updateUsers_args_update_content0_disconnect0_where_Comment_this_content0_disconnect0param0
+			AND $isAuthenticated = true
+			AND $jwt.sub IS NOT NULL
+			AND this.id = $jwt.sub)
+		CALL {
+			WITH this_content0_disconnect0, this_content0_disconnect0_rel, this
+			WITH collect(this_content0_disconnect0) AS this_content0_disconnect0, this_content0_disconnect0_rel, this
+			UNWIND this_content0_disconnect0 AS x DELETE this_content0_disconnect0_rel
+		}
+		RETURN count(*) AS disconnect_this_content0_disconnect_Comment
+	}
+	RETURN count(*) AS update_this_Comment
+}
+CALL {
+	WITH this
+	WITH this
+	CALL {
+		WITH this
+		OPTIONAL MATCH (this)-[this_content0_disconnect0_rel:HAS_CONTENT]->(this_content0_disconnect0:Post)
+		OPTIONAL MATCH (this_content0_disconnect0)<-[:HAS_CONTENT]-(authorization__before_this0:User)
+		WITH *, count(authorization__before_this0) AS creatorCount
+		WHERE (this_content0_disconnect0.id = $updateUsers_args_update_content0_disconnect0_where_Post_this_content0_disconnect0param0
+			AND $isAuthenticated = true
+			AND $jwt.sub IS NOT NULL
+			AND this.id = $jwt.sub
+			AND $isAuthenticated = true
+			AND creatorCount <> 0
+			AND $jwt.sub IS NOT NULL
+			AND authorization__before_this0.id = $jwt.sub)
+		CALL {
+			WITH this_content0_disconnect0, this_content0_disconnect0_rel, this
+			WITH collect(this_content0_disconnect0) AS this_content0_disconnect0, this_content0_disconnect0_rel, this
+			UNWIND this_content0_disconnect0 AS x DELETE this_content0_disconnect0_rel
+		}
+		RETURN count(*) AS disconnect_this_content0_disconnect_Post
+	}
+	RETURN count(*) AS update_this_Post
+}
+RETURN collect(DISTINCT this {
+	.id
+}) AS data
+----
+
+'''
+
+== Read interface relationship field
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  users {
+    id
+    content {
+      ... on Post {
+        id
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated" : true,
+  "jwt" : {
+    "roles" : [ "admin" ],
+    "sub" : "id-01"
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+WITH *
+WHERE ($isAuthenticated = true
+	AND $jwt.sub IS NOT NULL
+	AND this.id = $jwt.sub)
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[this0:HAS_CONTENT]->(this1:Comment)
+		WITH this1 {
+			__resolveType: 'Comment',
+			__id: id(this1)
+		} AS this1
+		RETURN this1 AS var2 UNION
+		WITH *
+		MATCH (this)-[this3:HAS_CONTENT]->(this4:Post)
+		OPTIONAL MATCH (this4)<-[:HAS_CONTENT]-(this5:User)
+		WITH *, count(this5) AS creatorCount
+		WITH *
+		WHERE ($isAuthenticated = true
+			AND creatorCount <> 0
+			AND $jwt.sub IS NOT NULL
+			AND this5.id = $jwt.sub)
+		WITH this4 {
+			.id,
+			__resolveType: 'Post',
+			__id: id(this4)
+		} AS this4
+		RETURN this4 AS var2
+	}
+	WITH var2
+	RETURN collect(var2) AS var2
+}
+RETURN this {
+	.id,
+	content: var2
+} AS this
+----
+
+'''
+
+== Read interface relationship Using Connection
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  users {
+    id
+    contentConnection {
+      edges {
+        node {
+          ... on Post {
+            id
+          }
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated" : true,
+  "jwt" : {
+    "roles" : [ "admin" ],
+    "sub" : "id-01"
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+WITH *
+WHERE ($isAuthenticated = true
+	AND $jwt.sub IS NOT NULL
+	AND this.id = $jwt.sub)
+CALL {
+	WITH this
+	CALL {
+		WITH this
+		MATCH (this)-[this0:HAS_CONTENT]->(this1:Comment)
+		WITH {
+			node: {
+				__resolveType: 'Comment',
+				__id: id(this1)
+			}
+		} AS edge
+		RETURN edge UNION
+		WITH this
+		MATCH (this)-[this2:HAS_CONTENT]->(this3:Post)
+		OPTIONAL MATCH (this3)<-[:HAS_CONTENT]-(this4:User)
+		WITH *, count(this4) AS creatorCount
+		WITH *
+		WHERE ($isAuthenticated = true
+			AND creatorCount <> 0
+			AND $jwt.sub IS NOT NULL
+			AND this4.id = $jwt.sub)
+		WITH {
+			node: {
+				__resolveType: 'Post',
+				__id: id(this3),
+				id: this3.id
+			}
+		} AS edge
+		RETURN edge
+	}
+	WITH collect(edge) AS edges
+	WITH edges, size(edges) AS totalCount
+	RETURN {
+		edges: edges,
+		totalCount: totalCount
+	} AS var5
+}
+RETURN this {
+	.id,
+	contentConnection: var5
+} AS this
+----
+
+'''
+
+== Read interface relationship Using Connection + User Defined Where
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  users {
+    id
+    contentConnection(where: {node: {id: "some-id"}}) {
+      edges {
+        node {
+          ... on Post {
+            id
+          }
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated" : true,
+  "jwt" : {
+    "roles" : [ "admin" ],
+    "sub" : "id-01"
+  },
+  "param2" : "some-id",
+  "param3" : "some-id"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+WITH *
+WHERE ($isAuthenticated = true
+	AND $jwt.sub IS NOT NULL
+	AND this.id = $jwt.sub)
+CALL {
+	WITH this
+	CALL {
+		WITH this
+		MATCH (this)-[this0:HAS_CONTENT]->(this1:Comment)
+		WHERE this1.id = $param2
+		WITH {
+			node: {
+				__resolveType: 'Comment',
+				__id: id(this1)
+			}
+		} AS edge
+		RETURN edge UNION
+		WITH this
+		MATCH (this)-[this2:HAS_CONTENT]->(this3:Post)
+		OPTIONAL MATCH (this3)<-[:HAS_CONTENT]-(this4:User)
+		WITH *, count(this4) AS creatorCount
+		WITH *
+		WHERE (this3.id = $param3
+			AND $isAuthenticated = true
+			AND creatorCount <> 0
+			AND $jwt.sub IS NOT NULL
+			AND this4.id = $jwt.sub)
+		WITH {
+			node: {
+				__resolveType: 'Post',
+				__id: id(this3),
+				id: this3.id
+			}
+		} AS edge
+		RETURN edge
+	}
+	WITH collect(edge) AS edges
+	WITH edges, size(edges) AS totalCount
+	RETURN {
+		edges: edges,
+		totalCount: totalCount
+	} AS var5
+}
+RETURN this {
+	.id,
+	contentConnection: var5
+} AS this
+----
+
+'''
+
+== Read Node
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  posts {
+    id
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated" : true,
+  "jwt" : {
+    "roles" : [ "admin" ],
+    "sub" : "id-01"
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Post)
+OPTIONAL MATCH (this)<-[:HAS_CONTENT]-(this0:User)
+WITH *, count(this0) AS creatorCount
+WITH *
+WITH *
+WHERE ($isAuthenticated = true
+	AND creatorCount <> 0
+	AND $jwt.sub IS NOT NULL
+	AND this0.id = $jwt.sub)
+RETURN this {
+	.id
+} AS this
+----
+
+'''
+
+== Read Node + User Defined Where
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  posts(where: {content: "bob"}) {
+    id
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated" : true,
+  "jwt" : {
+    "roles" : [ "admin" ],
+    "sub" : "id-01"
+  },
+  "param0" : "bob"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Post)
+OPTIONAL MATCH (this)<-[:HAS_CONTENT]-(this0:User)
+WITH *, count(this0) AS creatorCount
+WITH *
+WITH *
+WHERE (this.content = $param0
+	AND $isAuthenticated = true
+	AND creatorCount <> 0
+	AND $jwt.sub IS NOT NULL
+	AND this0.id = $jwt.sub)
+RETURN this {
+	.id
+} AS this
+----
+
+'''
+
+== Update Nested Node
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  updateUsers(update: {content: {update: {node: {id: "new-id"}}}}) {
+    users {
+      id
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated" : true,
+  "jwt" : {
+    "roles" : [ "admin" ],
+    "sub" : "id-01"
+  },
+  "this_update_content0_id" : "new-id"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+WITH *
+WHERE ($isAuthenticated = true
+	AND $jwt.sub IS NOT NULL
+	AND this.id = $jwt.sub)
+WITH this
+CALL {
+	WITH this
+	WITH this
+	CALL {
+		WITH this
+		MATCH (this)-[this_has_content0_relationship:HAS_CONTENT]->(this_content0:Comment)
+		SET this_content0.id = $this_update_content0_id
+		WITH this, this_content0
+		CALL {
+			WITH this_content0
+			MATCH (this_content0)<-[this_content0_creator_User_unique:HAS_CONTENT]-(:User)
+			WITH count(this_content0_creator_User_unique) AS c
+			WHERE apoc.util.validatePredicate(NOT (c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDComment.creator required exactly once', [0])
+			RETURN c AS this_content0_creator_User_unique_ignored
+		}
+		RETURN count(*) AS update_this_content0
+	}
+	RETURN count(*) AS update_this_Comment
+}
+CALL {
+	WITH this
+	WITH this
+	CALL {
+		WITH this
+		MATCH (this)-[this_has_content0_relationship:HAS_CONTENT]->(this_content0:Post)
+		OPTIONAL MATCH (this_content0)<-[:HAS_CONTENT]-(authorization__before_this0:User)
+		WITH *, count(authorization__before_this0) AS creatorCount
+		WHERE ($isAuthenticated = true
+			AND creatorCount <> 0
+			AND $jwt.sub IS NOT NULL
+			AND authorization__before_this0.id = $jwt.sub)
+		SET this_content0.id = $this_update_content0_id
+		WITH this, this_content0
+		CALL {
+			WITH this_content0
+			MATCH (this_content0)<-[this_content0_creator_User_unique:HAS_CONTENT]-(:User)
+			WITH count(this_content0_creator_User_unique) AS c
+			WHERE apoc.util.validatePredicate(NOT (c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDPost.creator required exactly once', [0])
+			RETURN c AS this_content0_creator_User_unique_ignored
+		}
+		RETURN count(*) AS update_this_content0
+	}
+	RETURN count(*) AS update_this_Post
+}
+RETURN collect(DISTINCT this {
+	.id
+}) AS data
+----
+
+'''
+
+== Update Node
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  updatePosts(update: {content: "Bob"}) {
+    posts {
+      id
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated" : true,
+  "jwt" : {
+    "roles" : [ "admin" ],
+    "sub" : "id-01"
+  },
+  "this_update_content" : "Bob"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Post)
+OPTIONAL MATCH (this)<-[:HAS_CONTENT]-(this0:User)
+WITH *, count(this0) AS creatorCount
+WITH *
+WHERE ($isAuthenticated = true
+	AND creatorCount <> 0
+	AND $jwt.sub IS NOT NULL
+	AND this0.id = $jwt.sub)
+SET this.content = $this_update_content
+WITH *
+CALL {
+	WITH this
+	MATCH (this)<-[this_creator_User_unique:HAS_CONTENT]-(:User)
+	WITH count(this_creator_User_unique) AS c
+	WHERE apoc.util.validatePredicate(NOT (c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDPost.creator required exactly once', [0])
+	RETURN c AS this_creator_User_unique_ignored
+}
+RETURN collect(DISTINCT this {
+	.id
+}) AS data
+----
+
+'''
+
+== Update Node + User Defined Where
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  updatePosts(where: {content: "bob"}, update: {content: "Bob"}) {
+    posts {
+      id
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated" : true,
+  "jwt" : {
+    "roles" : [ "admin" ],
+    "sub" : "id-01"
+  },
+  "param0" : "bob",
+  "this_update_content" : "Bob"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Post)
+OPTIONAL MATCH (this)<-[:HAS_CONTENT]-(this0:User)
+WITH *, count(this0) AS creatorCount
+WITH *
+WHERE (this.content = $param0
+	AND $isAuthenticated = true
+	AND creatorCount <> 0
+	AND $jwt.sub IS NOT NULL
+	AND this0.id = $jwt.sub)
+SET this.content = $this_update_content
+WITH *
+CALL {
+	WITH this
+	MATCH (this)<-[this_creator_User_unique:HAS_CONTENT]-(:User)
+	WITH count(this_creator_User_unique) AS c
+	WHERE apoc.util.validatePredicate(NOT (c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDPost.creator required exactly once', [0])
+	RETURN c AS this_creator_User_unique_ignored
+}
+RETURN collect(DISTINCT this {
+	.id
+}) AS data
+----
+
+'''
+

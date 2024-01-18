@@ -21,6 +21,7 @@ class RelationField(
     /**
      * The node or interface name. If the filed is defined in an interface, the prefix will have the interface's name
      */
+    // TODO remove?
     val connectionPrefix: String,
 ) : BaseField(
     fieldName,
@@ -46,6 +47,13 @@ class RelationField(
     val operations = RelationshipOperations(this, annotations)
     val isInterface: Boolean get() = target is Interface
     val isUnion: Boolean get() = target is Union
+
+    val inheritedFrom by lazy {
+        (owner as ImplementingType)
+            .interfaces
+            .firstOrNull { it.getField(fieldName) != null }
+            ?.name
+    }
 
     val predicates: Map<String, RelationPredicateDefinition> by lazy {
         val result = mutableMapOf<String, RelationPredicateDefinition>()

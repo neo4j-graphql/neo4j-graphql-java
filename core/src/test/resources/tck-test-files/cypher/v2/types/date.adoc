@@ -27,7 +27,7 @@ type Movie {
 [source,json]
 ----
 {
-  "param0": "1980-04-08"
+  "param0" : "1980-04-08"
 }
 ----
 
@@ -36,7 +36,9 @@ type Movie {
 ----
 MATCH (this:Movie)
 WHERE this.date >= $param0
-RETURN this { .date } AS this
+RETURN this {
+	.date
+} AS this
 ----
 
 '''
@@ -59,11 +61,9 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0": [
-    {
-      "date": "1970-01-01"
-    }
-  ]
+  "create_param0" : [ {
+    "date" : "1970-01-01"
+  } ]
 }
 ----
 
@@ -72,14 +72,14 @@ mutation {
 ----
 UNWIND $create_param0 AS create_var0
 CALL {
-    WITH create_var0
-    CREATE (create_this1:Movie)
-    SET
-        create_this1.date = create_var0.date
-    
-    RETURN create_this1
+	WITH create_var0
+	CREATE (create_this1:Movie)
+	SET create_this1.date = create_var0.date
+	RETURN create_this1
 }
-RETURN collect(create_this1 { .date }) AS data
+RETURN collect(create_this1 {
+	.date
+}) AS data
 ----
 
 '''
@@ -100,7 +100,7 @@ RETURN collect(create_this1 { .date }) AS data
 [source,json]
 ----
 {
-  "param0": "1970-01-01"
+  "param0" : "1970-01-01"
 }
 ----
 
@@ -109,7 +109,9 @@ RETURN collect(create_this1 { .date }) AS data
 ----
 MATCH (this:Movie)
 WHERE this.date = $param0
-RETURN this { .date } AS this
+RETURN this {
+	.date
+} AS this
 ----
 
 '''
@@ -133,7 +135,7 @@ mutation {
 [source,json]
 ----
 {
-  "this_update_date": "1970-01-01"
+  "this_update_date" : "1970-01-01"
 }
 ----
 
@@ -141,11 +143,11 @@ mutation {
 [source,cypher]
 ----
 MATCH (this:Movie)
-
-
 SET this.date = $this_update_date
-
-RETURN collect(DISTINCT this { .id, .date }) AS data
+RETURN collect(DISTINCT this {
+	.id,
+	.date
+}) AS data
 ----
 
 '''

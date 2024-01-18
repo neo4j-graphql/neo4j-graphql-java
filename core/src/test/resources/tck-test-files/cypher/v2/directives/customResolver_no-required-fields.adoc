@@ -1,0 +1,75 @@
+:toc:
+
+= No required fields
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type User {
+  firstName: String!
+  lastName: String!
+  fullName: String! @customResolver
+}
+----
+
+== should not over fetch when no other fields are manually selected
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  users {
+    fullName
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+RETURN this {
+	.fullName
+} AS this
+----
+
+'''
+
+== should not over fetch when other fields are manually selected
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  users {
+    firstName
+    fullName
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+RETURN this {
+	.firstName,
+	.fullName
+} AS this
+----
+
+'''
+

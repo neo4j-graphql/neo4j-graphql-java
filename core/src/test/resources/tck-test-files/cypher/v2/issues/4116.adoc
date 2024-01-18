@@ -1,0 +1,92 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/4115
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type User {
+  id: ID! @unique
+  roles: [String!]!
+}
+
+type Family {
+  id: ID! @id @unique
+  members: [Person!]! @relationship(type: "MEMBER_OF", direction: IN)
+  creator: User! @relationship(type: "CREATOR_OF", direction: IN)
+}
+
+type Person @authorization(filter: [{where: {node: {family: {creator: {roles_INCLUDES: "plan:paid"}}}}}]) {
+  id: ID! @id @unique
+  creator: User! @relationship(type: "CREATOR_OF", direction: IN, nestedOperations: [CONNECT])
+  family: Family! @relationship(type: "MEMBER_OF", direction: OUT)
+}
+
+type JWT @jwt {
+  roles: [String!]!
+}
+
+extend schema @authentication {
+  query: Query
+  mutation: Mutation
+}
+----
+
+== should generate valid cypher on nested aggregation with combined rules
+
+.GraphQL-Query
+[source,graphql]
+----
+query Family {
+  families {
+    id
+    membersAggregate {
+      count
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated" : true,
+  "param0" : "plan:paid"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Family)
+CALL {
+	WITH this
+	MATCH (this)<-[this0:MEMBER_OF]-(this1:Person)
+	CALL {
+		WITH this1
+		MATCH (this1)-[:MEMBER_OF]->(this2:Family)
+		OPTIONAL MATCH (this2)<-[:CREATOR_OF]-(this3:User)
+		WITH *, count(this3) AS creatorCount
+		WITH *
+		WHERE (creatorCount <> 0
+			AND $param0 IS NOT NULL
+			AND $param0 IN this3.roles)
+		RETURN count(this2) = 1 AS var4
+	}
+	WITH *
+	WHERE ($isAuthenticated = true
+		AND var4 = true)
+	RETURN count(this1) AS var5
+}
+RETURN this {
+	.id,
+	membersAggregate: {
+		count: var5
+	}
+} AS this
+----
+
+'''
+

@@ -1,0 +1,100 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/4239
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie @authorization(validate: [{when: [BEFORE], where: {node: {directorConnection: {node: {id: "$jwt.sub"}}}}}]) {
+  title: String
+  director: [Person!]! @relationship(type: "DIRECTED", direction: IN)
+}
+
+type Person {
+  id: ID
+}
+----
+
+== should produce a predicate for apoc.util.validatePredicate for version 4.4
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated" : true,
+  "jwt" : {
+    "roles" : [ ],
+    "sub" : "my-sub"
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WITH *
+WHERE apoc.util.validatePredicate(NOT (($isAuthenticated = true
+	AND size([(this)<-[this1:DIRECTED]-(this0:Person)
+	WHERE ($jwt.sub IS NOT NULL
+		AND this0.id = $jwt.sub) | 1]) > 0)), '@neo4j/graphql/FORBIDDEN', [0])
+RETURN this {
+	.title
+} AS this
+----
+
+'''
+
+== should produce a predicate for apoc.util.validatePredicate for version 5.0
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated" : true,
+  "jwt" : {
+    "roles" : [ ],
+    "sub" : "my-sub"
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WITH *
+WHERE apoc.util.validatePredicate(NOT (($isAuthenticated = true
+	AND EXISTS {
+		MATCH (this)<-[this0:DIRECTED]-(this1:Person)
+		WHERE ($jwt.sub IS NOT NULL
+			AND this1.id = $jwt.sub)
+	})), '@neo4j/graphql/FORBIDDEN', [0])
+RETURN this {
+	.title
+} AS this
+----
+
+'''
+

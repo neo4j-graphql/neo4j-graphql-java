@@ -25,69 +25,65 @@ class UnionRelationFieldAugmentations(
     private val union: Union,
 ) : RelationFieldBaseAugmentation {
 
-    private val prefix: String = rel.getOwnerName() + rel.fieldName.capitalize()
-
     private val unionNodes: Collection<Node> = union.nodes.values
 
     private val isArray: Boolean = rel.typeMeta.type.isList()
 
-    private fun Node.unionPrefix() = prefix + this.name
-
     override fun generateFieldCreateIT() =
-        ctx.getOrCreateInputObjectType("${prefix}${Constants.InputTypeSuffix.CreateInput}") { fields, _ ->
+        ctx.getOrCreateInputObjectType(rel.operations.unionCreateInputTypeName) { fields, _ ->
             unionNodes.forEach { node ->
                 CreateFieldInput.NodeFieldInput.Augmentation
-                    .generateFieldNodeFieldInputIT(rel, node.unionPrefix(), node, ctx)?.let {
+                    .generateFieldNodeFieldInputIT(rel, node, ctx)?.let {
                         fields += ctx.inputValue(node.name, it.asType())
                     }
             }
         }
 
     override fun generateFieldConnectIT() =
-        ctx.getOrCreateInputObjectType("${prefix}${Constants.InputTypeSuffix.ConnectInput}") { fields, _ ->
+        ctx.getOrCreateInputObjectType(rel.operations.unionConnectInputTypeName) { fields, _ ->
             unionNodes.forEach { node ->
                 NodeConnectFieldInput.Augmentation
-                    .generateFieldConnectFieldInputIT(rel, node.unionPrefix(), node, ctx)?.let {
+                    .generateFieldConnectFieldInputIT(rel, node, ctx)?.let {
                         fields += ctx.inputValue(node.name, it.wrapType())
                     }
             }
         }
 
     override fun generateFieldDeleteIT() =
-        ctx.getOrCreateInputObjectType("${prefix}${Constants.InputTypeSuffix.DeleteInput}") { fields, _ ->
+        ctx.getOrCreateInputObjectType(rel.operations.unionDeleteInputTypeName) { fields, _ ->
             unionNodes.forEach { node ->
                 DeleteFieldInput.NodeDeleteFieldInput.Augmentation
-                    .generateFieldDeleteFieldInputIT(rel, node.unionPrefix(), node, ctx)?.let {
+                    .generateFieldDeleteFieldInputIT(rel, node, ctx)?.let {
                         fields += ctx.inputValue(node.name, it.wrapType())
                     }
             }
         }
 
     override fun generateFieldDisconnectIT() =
-        ctx.getOrCreateInputObjectType("${prefix}${Constants.InputTypeSuffix.DisconnectInput}") { fields, _ ->
+        ctx.getOrCreateInputObjectType(rel.operations.unionDisconnectInputTypeName) { fields, _ ->
             unionNodes.forEach { node ->
                 DisconnectFieldInput.NodeDisconnectFieldInput.Augmentation
-                    .generateFieldDisconnectFieldInputIT(rel, node.unionPrefix(), node, ctx)?.let {
+                    .generateFieldDisconnectFieldInputIT(rel, node, ctx)?.let {
                         fields += ctx.inputValue(node.name, it.wrapType())
                     }
             }
         }
 
     override fun generateFieldRelationCreateIT() =
-        ctx.getOrCreateInputObjectType("${prefix}${Constants.InputTypeSuffix.CreateFieldInput}") { fields, _ ->
+        ctx.getOrCreateInputObjectType(rel.operations.unionCreateFieldInputTypeName) { fields, _ ->
             unionNodes.forEach { node ->
                 RelationFieldInput.NodeCreateCreateFieldInput.Augmentation
-                    .generateFieldCreateFieldInputIT(rel, node.unionPrefix(), node, ctx)?.let {
+                    .generateFieldCreateFieldInputIT(rel, node, ctx)?.let {
                         fields += ctx.inputValue(node.name, it.wrapType())
                     }
             }
         }
 
     override fun generateFieldUpdateIT() =
-        ctx.getOrCreateInputObjectType("${prefix}${Constants.InputTypeSuffix.UpdateInput}") { fields, _ ->
+        ctx.getOrCreateInputObjectType(rel.operations.unionUpdateInputTypeName) { fields, _ ->
             unionNodes.forEach { node ->
                 UpdateFieldInput.NodeUpdateFieldInput.Augmentation
-                    .generateFieldUpdateFieldInputIT(rel, node.unionPrefix(), node, ctx)?.let {
+                    .generateFieldUpdateFieldInputIT(rel, node, ctx)?.let {
                         fields += ctx.inputValue(node.name, it.wrapType())
                     }
             }
@@ -96,19 +92,19 @@ class UnionRelationFieldAugmentations(
     override fun generateFieldWhereIT() = WhereInput.UnionWhereInput.Augmentation.generateWhereIT(union, ctx)
 
     override fun generateFieldConnectionWhereIT() =
-        ctx.getOrCreateInputObjectType("${prefix}${Constants.InputTypeSuffix.ConnectionWhere}") { fields, _ ->
+        ctx.getOrCreateInputObjectType(rel.operations.unionConnectionUnionWhereTypeName) { fields, _ ->
             unionNodes.forEach { node ->
                 ConnectionWhere.NodeConnectionWhere.Augmentation
-                    .generateFieldConnectionWhereIT(rel, node.unionPrefix(), node, ctx)
+                    .generateFieldConnectionWhereIT(rel, node, ctx)
                     ?.let { fields += ctx.inputValue(node.name, it.asType()) }
             }
         }
 
     override fun generateFieldConnectOrCreateIT() =
-        ctx.getOrCreateInputObjectType("${prefix}${Constants.InputTypeSuffix.ConnectOrCreateInput}") { fields, _ ->
+        ctx.getOrCreateInputObjectType(rel.operations.connectOrCreateInputTypeName) { fields, _ ->
             unionNodes.forEach { node ->
                 ConnectOrCreateFieldInput.NodeConnectOrCreateFieldInput.Augmentation
-                    .generateFieldConnectOrCreateIT(rel, node.unionPrefix(), node, ctx)?.let {
+                    .generateFieldConnectOrCreateIT(rel, node, ctx)?.let {
                         fields += ctx.inputValue(node.name, it.wrapType())
                     }
             }

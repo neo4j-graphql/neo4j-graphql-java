@@ -1,0 +1,55 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/4405
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String
+}
+
+type Actor @authorization(validate: [{when: [BEFORE], operations: [READ], where: {node: {actedInConnection_SOME: {node: {title_IN: ["Matrix"]}}}}}]) {
+  name: String!
+  actedIn: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+----
+
+== authorization should work when the filter value is an array
+
+.GraphQL-Query
+[source,graphql]
+----
+query actors {
+  actors {
+    name
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated" : true,
+  "param1" : [ "Matrix" ]
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+WITH *
+WHERE apoc.util.validatePredicate(NOT (($isAuthenticated = true
+	AND size([(this)-[this1:ACTED_IN]->(this0:Movie)
+	WHERE ($param1 IS NOT NULL
+		AND this0.title IN $param1) | 1]) > 0)), '@neo4j/graphql/FORBIDDEN', [0])
+RETURN this {
+	.name
+} AS this
+----
+
+'''
+

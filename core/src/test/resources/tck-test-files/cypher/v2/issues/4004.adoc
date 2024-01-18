@@ -1,0 +1,67 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/4004
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Episode {
+  id: ID!
+}
+
+type Series {
+  id: ID!
+  allEpisodes(options: [Int!]!): [Episode!]! @cypher(statement: """
+  MATCH(this)<-[:IN_SERIES]-(episode:Episode)
+  RETURN episode as n LIMIT $options[0]
+  """, columnName: "n")
+}
+----
+
+== should query allEpisodes with argument named as options
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  series {
+    allEpisodes(options: [2]) {
+      id
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : [ 2 ]
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Series)
+CALL {
+	WITH this
+	CALL {
+		WITH this
+		WITH this AS this
+		MATCH (this)<-[:IN_SERIES]-(episode:Episode)
+		RETURN episode AS n LIMIT $param0[0]
+	}
+	WITH n AS this0
+	RETURN collect(this0 {
+		.id
+	}) AS this0
+}
+RETURN this {
+	allEpisodes: this0
+} AS this
+----
+
+'''
+

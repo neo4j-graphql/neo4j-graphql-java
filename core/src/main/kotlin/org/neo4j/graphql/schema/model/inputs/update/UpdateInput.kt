@@ -6,7 +6,6 @@ import org.neo4j.graphql.asType
 import org.neo4j.graphql.domain.ImplementingType
 import org.neo4j.graphql.domain.Interface
 import org.neo4j.graphql.domain.Node
-import org.neo4j.graphql.domain.RelationshipProperties
 import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.domain.fields.ScalarField
 import org.neo4j.graphql.schema.AugmentationBase
@@ -34,7 +33,7 @@ sealed class UpdateInput private constructor(implementingType: ImplementingType,
         object Augmentation : AugmentationBase {
             fun generateContainerUpdateIT(node: Node, ctx: AugmentationContext) = UpdateInput.Augmentation
                 .generateContainerUpdateIT(
-                    node.name,
+                    node.operations.updateInputTypeName,
                     node.fields.filterIsInstance<RelationField>(),
                     node.scalarFields,
                     enforceFields = true,
@@ -55,7 +54,8 @@ sealed class UpdateInput private constructor(implementingType: ImplementingType,
             fun generateUpdateInputIT(interfaze: Interface, ctx: AugmentationContext) =
                 ctx.addInterfaceField(
                     interfaze,
-                    Constants.InputTypeSuffix.UpdateInput,
+                    interfaze.operations.updateInputTypeName,
+                    interfaze.operations.whereOnImplementationsUpdateInputTypeName,
                     { node -> NodeUpdateInput.Augmentation.generateContainerUpdateIT(node, ctx) },
                     RelationFieldBaseAugmentation::generateFieldUpdateIT,
                     asList = false
@@ -63,7 +63,7 @@ sealed class UpdateInput private constructor(implementingType: ImplementingType,
                     val fields = mutableListOf<InputValueDefinition>()
 
                     ScalarProperties.Companion.Augmentation
-                        .addScalarFields(fields, interfaze.name, interfaze.scalarFields, true, ctx)
+                        .addScalarFields(fields, interfaze.scalarFields, true, ctx)
 
                     fields
                 }
@@ -80,23 +80,27 @@ sealed class UpdateInput private constructor(implementingType: ImplementingType,
     object Augmentation : AugmentationBase {
 
         fun addEdgePropertyUpdateInputField(
-            properties: RelationshipProperties?,
+            relationField: RelationField,
             fields: MutableList<InputValueDefinition>,
             ctx: AugmentationContext
-        ) = properties?.let { props ->
-            generateContainerUpdateIT(props.interfaceName, emptyList(), props.fields, ctx = ctx)
+        ) = relationField.properties?.let { props ->
+            generateContainerUpdateIT(
+                relationField.operations.edgeUpdateInputTypeName,
+                emptyList(),
+                props.fields,
+                ctx = ctx
+            )
                 ?.let { fields += inputValue(Constants.EDGE_FIELD, it.asType()) }
         }
 
         internal fun generateContainerUpdateIT(
-            sourceName: String,
+            name: String,
             relationFields: List<RelationField>,
             scalarFields: List<ScalarField>,
             enforceFields: Boolean = false,
             ctx: AugmentationContext
         ) = ctx.getOrCreateRelationInputObjectType(
-            sourceName,
-            Constants.InputTypeSuffix.UpdateInput,
+            name,
             relationFields,
             RelationFieldBaseAugmentation::generateFieldUpdateIT,
             scalarFields = scalarFields,

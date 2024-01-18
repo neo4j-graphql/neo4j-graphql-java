@@ -36,10 +36,9 @@ sealed interface ConnectFieldInput {
         object Augmentation : AugmentationBase {
             fun generateFieldConnectFieldInputIT(
                 rel: RelationField,
-                prefix: String,
                 node: Node,
                 ctx: AugmentationContext
-            ) = ctx.getOrCreateInputObjectType(prefix + Constants.InputTypeSuffix.ConnectFieldInput) { fields, _ ->
+            ) = ctx.getOrCreateInputObjectType(rel.operations.getConnectFieldInputTypeName(node)) { fields, _ ->
 
                 ConnectWhere.Augmentation.generateConnectWhereIT(node, ctx)
                     ?.let { fields += inputValue(Constants.WHERE, it.asType()) }
@@ -56,7 +55,8 @@ sealed interface ConnectFieldInput {
                     }
                 }
 
-                CreateInput.Augmentation.addEdgePropertyCreateInputField(rel.properties, fields, ctx,
+                CreateInput.Augmentation.addEdgePropertyCreateInputField(
+                    rel, fields, ctx,
                     required = { it.hasRequiredNonGeneratedFields })
             }
         }
@@ -80,24 +80,26 @@ sealed interface ConnectFieldInput {
         object Augmentation : AugmentationBase {
             fun generateFieldConnectIT(
                 rel: RelationField,
-                prefix: String,
                 interfaze: Interface,
-                ctx: AugmentationContext
-            ) = ctx.getOrCreateInputObjectType("${prefix}${Constants.InputTypeSuffix.ConnectFieldInput}") { fields, _ ->
+                ctx: AugmentationContext,
+                name: String = rel.operations.getConnectFieldInputTypeName(interfaze)
+            ) = ctx.getOrCreateInputObjectType(name) { fields, _ ->
 
                 ctx.addInterfaceField(
-                    interfaze, Constants.InputTypeSuffix.ConnectInput, { node ->
+                    interfaze,
+                    interfaze.operations.connectInputTypeName,
+                    interfaze.operations.whereOnImplementationsConnectInputTypeName,
+                    { node ->
                         ConnectInput.NodeConnectInput.Augmentation.generateContainerConnectInputIT(
                             node,
                             ctx
                         )
-                    },
-                    RelationFieldBaseAugmentation::generateFieldConnectIT
+                    }, RelationFieldBaseAugmentation::generateFieldConnectIT
                 )
                     ?.let { fields += inputValue(Constants.CONNECT_FIELD, it.asType()) }
 
                 CreateInput.Augmentation.addEdgePropertyCreateInputField(
-                    rel.properties,
+                    rel,
                     fields,
                     ctx,
                     required = { it.hasRequiredFields })

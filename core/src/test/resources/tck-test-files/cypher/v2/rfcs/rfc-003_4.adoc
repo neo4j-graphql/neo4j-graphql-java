@@ -33,11 +33,9 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0": [
-    {
-      "id": "movieId-1"
-    }
-  ]
+  "create_param0" : [ {
+    "id" : "movieId-1"
+  } ]
 }
 ----
 
@@ -46,21 +44,20 @@ mutation {
 ----
 UNWIND $create_param0 AS create_var0
 CALL {
-    WITH create_var0
-    CREATE (create_this1:Movie)
-    SET
-        create_this1.id = create_var0.id
-    WITH create_this1
-    CALL {
-    	WITH create_this1
-    	MATCH (create_this1)<-[create_this1_director_Director_unique:DIRECTED]-(:Director)
-    	WITH count(create_this1_director_Director_unique) as c
-    	WHERE apoc.util.validatePredicate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.director must be less than or equal to one', [0])
-    	RETURN c AS create_this1_director_Director_unique_ignored
-    }
-    RETURN create_this1
+	WITH create_var0
+	CREATE (create_this1:Movie)
+	SET create_this1.id = create_var0.id
+	WITH create_this1
+	CALL {
+		WITH create_this1
+		MATCH (create_this1)<-[create_this1_director_Director_unique:DIRECTED]-(:Director)
+		WITH count(create_this1_director_Director_unique) AS c
+		WHERE apoc.util.validatePredicate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.director must be less than or equal to one', [0])
+		RETURN c AS create_this1_director_Director_unique_ignored
+	}
+	RETURN create_this1
 }
-RETURN "Query cannot conclude with CALL"
+RETURN 'Query cannot conclude with CALL'
 ----
 
 '''
@@ -87,8 +84,8 @@ mutation {
 [source,json]
 ----
 {
-  "this0_id": "movieId-4",
-  "this0_director_connect0_node_param0": "directorId-4"
+  "this0_director_connect0_node_param0" : "directorId-4",
+  "this0_id" : "movieId-4"
 }
 ----
 
@@ -96,37 +93,37 @@ mutation {
 [source,cypher]
 ----
 CALL {
-CREATE (this0:Movie)
-SET this0.id = $this0_id
-WITH *
-CALL {
-	WITH this0
-	OPTIONAL MATCH (this0_director_connect0_node:Director)
-	WHERE this0_director_connect0_node.id = $this0_director_connect0_node_param0
+	CREATE (this0:Movie)
+	SET this0.id = $this0_id
+	WITH *
 	CALL {
-		WITH *
-		WITH collect(this0_director_connect0_node) as connectedNodes, collect(this0) as parentNodes
+		WITH this0
+		OPTIONAL MATCH (this0_director_connect0_node:Director)
+		WHERE this0_director_connect0_node.id = $this0_director_connect0_node_param0
 		CALL {
-			WITH connectedNodes, parentNodes
-			UNWIND parentNodes as this0
-			UNWIND connectedNodes as this0_director_connect0_node
-			MERGE (this0)<-[:DIRECTED]-(this0_director_connect0_node)
+			WITH *
+			WITH collect(this0_director_connect0_node) AS connectedNodes, collect(this0) AS parentNodes
+			CALL {
+				WITH connectedNodes, parentNodes
+				UNWIND parentNodes AS this0
+				UNWIND connectedNodes AS this0_director_connect0_node
+				MERGE (this0)<-[:DIRECTED]-(this0_director_connect0_node)
+			}
 		}
+		WITH this0, this0_director_connect0_node
+		RETURN count(*) AS connect_this0_director_connect_Director0
 	}
-WITH this0, this0_director_connect0_node
-	RETURN count(*) AS connect_this0_director_connect_Director0
+	WITH *
+	CALL {
+		WITH this0
+		MATCH (this0)<-[this0_director_Director_unique:DIRECTED]-(:Director)
+		WITH count(this0_director_Director_unique) AS c
+		WHERE apoc.util.validatePredicate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.director must be less than or equal to one', [0])
+		RETURN c AS this0_director_Director_unique_ignored
+	}
+	RETURN this0
 }
-WITH *
-CALL {
-	WITH this0
-	MATCH (this0)<-[this0_director_Director_unique:DIRECTED]-(:Director)
-	WITH count(this0_director_Director_unique) as c
-	WHERE apoc.util.validatePredicate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.director must be less than or equal to one', [0])
-	RETURN c AS this0_director_Director_unique_ignored
-}
-RETURN this0
-}
-RETURN "Query cannot conclude with CALL"
+RETURN 'Query cannot conclude with CALL'
 ----
 
 '''
@@ -159,22 +156,22 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "movieId-6",
-  "updateMovies_args_disconnect_director_where_Director_this_disconnect_director0param0": "directorId-6",
-  "this_connect_director0_node_param0": "directorId2-6",
-  "updateMovies": {
-    "args": {
-      "disconnect": {
-        "director": {
-          "where": {
-            "node": {
-              "id": "directorId-6"
+  "param0" : "movieId-6",
+  "this_connect_director0_node_param0" : "directorId2-6",
+  "updateMovies" : {
+    "args" : {
+      "disconnect" : {
+        "director" : {
+          "where" : {
+            "node" : {
+              "id" : "directorId-6"
             }
           }
         }
       }
     }
-  }
+  },
+  "updateMovies_args_disconnect_director_where_Director_this_disconnect_director0param0" : "directorId-6"
 }
 ----
 
@@ -185,16 +182,15 @@ MATCH (this:Movie)
 WHERE this.id = $param0
 WITH this
 CALL {
-WITH this
-OPTIONAL MATCH (this)<-[this_disconnect_director0_rel:DIRECTED]-(this_disconnect_director0:Director)
-WHERE this_disconnect_director0.id = $updateMovies_args_disconnect_director_where_Director_this_disconnect_director0param0
-CALL {
-	WITH this_disconnect_director0, this_disconnect_director0_rel, this
-	WITH collect(this_disconnect_director0) as this_disconnect_director0, this_disconnect_director0_rel, this
-	UNWIND this_disconnect_director0 as x
-	DELETE this_disconnect_director0_rel
-}
-RETURN count(*) AS disconnect_this_disconnect_director_Director
+	WITH this
+	OPTIONAL MATCH (this)<-[this_disconnect_director0_rel:DIRECTED]-(this_disconnect_director0:Director)
+	WHERE this_disconnect_director0.id = $updateMovies_args_disconnect_director_where_Director_this_disconnect_director0param0
+	CALL {
+		WITH this_disconnect_director0, this_disconnect_director0_rel, this
+		WITH collect(this_disconnect_director0) AS this_disconnect_director0, this_disconnect_director0_rel, this
+		UNWIND this_disconnect_director0 AS x DELETE this_disconnect_director0_rel
+	}
+	RETURN count(*) AS disconnect_this_disconnect_director_Director
 }
 WITH *
 CALL {
@@ -203,33 +199,38 @@ CALL {
 	WHERE this_connect_director0_node.id = $this_connect_director0_node_param0
 	CALL {
 		WITH *
-		WITH collect(this_connect_director0_node) as connectedNodes, collect(this) as parentNodes
+		WITH collect(this_connect_director0_node) AS connectedNodes, collect(this) AS parentNodes
 		CALL {
 			WITH connectedNodes, parentNodes
-			UNWIND parentNodes as this
-			UNWIND connectedNodes as this_connect_director0_node
+			UNWIND parentNodes AS this
+			UNWIND connectedNodes AS this_connect_director0_node
 			MERGE (this)<-[:DIRECTED]-(this_connect_director0_node)
 		}
 	}
-WITH this, this_connect_director0_node
+	WITH this, this_connect_director0_node
 	RETURN count(*) AS connect_this_connect_director_Director0
 }
 WITH *
 CALL {
-    WITH this
-    MATCH (this)<-[update_this0:DIRECTED]-(update_this1:Director)
-    WITH update_this1 { .id } AS update_this1
-    RETURN head(collect(update_this1)) AS update_var2
+	WITH this
+	MATCH (this)<-[update_this0:DIRECTED]-(update_this1:Director)
+	WITH update_this1 {
+		.id
+	} AS update_this1
+	RETURN head(collect(update_this1)) AS update_var2
 }
 WITH *
 CALL {
 	WITH this
 	MATCH (this)<-[this_director_Director_unique:DIRECTED]-(:Director)
-	WITH count(this_director_Director_unique) as c
+	WITH count(this_director_Director_unique) AS c
 	WHERE apoc.util.validatePredicate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.director must be less than or equal to one', [0])
 	RETURN c AS this_director_Director_unique_ignored
 }
-RETURN collect(DISTINCT this { .id, director: update_var2 }) AS data
+RETURN collect(DISTINCT this {
+	.id,
+	director: update_var2
+}) AS data
 ----
 
 '''
@@ -255,8 +256,8 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "movieId-3",
-  "this_update_id": "movieId-3"
+  "param0" : "movieId-3",
+  "this_update_id" : "movieId-3"
 }
 ----
 
@@ -265,15 +266,12 @@ mutation {
 ----
 MATCH (this:Movie)
 WHERE this.id = $param0
-
-
 SET this.id = $this_update_id
-
 WITH *
 CALL {
 	WITH this
 	MATCH (this)<-[this_director_Director_unique:DIRECTED]-(:Director)
-	WITH count(this_director_Director_unique) as c
+	WITH count(this_director_Director_unique) AS c
 	WHERE apoc.util.validatePredicate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.director must be less than or equal to one', [0])
 	RETURN c AS this_director_Director_unique_ignored
 }

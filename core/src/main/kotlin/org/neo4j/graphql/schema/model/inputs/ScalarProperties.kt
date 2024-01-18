@@ -29,7 +29,6 @@ class ScalarProperties private constructor(data: Map<ScalarField, Any?>) : Map<S
 
             fun addScalarFields(
                 fields: MutableList<InputValueDefinition>,
-                sourceName: String,
                 scalarFields: List<ScalarField>,
                 update: Boolean,
                 ctx: AugmentationContext
@@ -39,10 +38,10 @@ class ScalarProperties private constructor(data: Map<ScalarField, Any?>) : Map<S
                     .forEach { field ->
                         val type = if (update) {
                             field.typeMeta.updateType
-                                ?: throw IllegalStateException("missing type on $sourceName.${field.fieldName} for update")
+                                ?: throw IllegalStateException("missing type on ${field.getOwnerName()}.${field.fieldName} for update")
                         } else {
                             field.typeMeta.createType
-                                ?: throw IllegalStateException("missing type on $sourceName.${field.fieldName} for create")
+                                ?: throw IllegalStateException("missing type on ${field.getOwnerName()}.${field.fieldName} for create")
                         }
                         fields += inputValue(field.fieldName, type) {
                             if (!update && field is HasDefaultValue) {

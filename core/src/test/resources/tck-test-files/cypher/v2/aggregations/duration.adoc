@@ -27,17 +27,21 @@ type Movie {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 CALL {
-    MATCH (this:Movie)
-    RETURN { max: max(this.screenTime) } AS var0
+	MATCH (this:Movie)
+	RETURN {
+		max: max(this.screenTime)
+	} AS var0
 }
-RETURN { screenTime: var0 }
+RETURN {
+	screenTime: var0
+}
 ----
 
 '''
@@ -59,17 +63,21 @@ RETURN { screenTime: var0 }
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 CALL {
-    MATCH (this:Movie)
-    RETURN { min: min(this.screenTime) } AS var0
+	MATCH (this:Movie)
+	RETURN {
+		min: min(this.screenTime)
+	} AS var0
 }
-RETURN { screenTime: var0 }
+RETURN {
+	screenTime: var0
+}
 ----
 
 '''
@@ -92,17 +100,22 @@ RETURN { screenTime: var0 }
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 CALL {
-    MATCH (this:Movie)
-    RETURN { min: min(this.screenTime), max: max(this.screenTime) } AS var0
+	MATCH (this:Movie)
+	RETURN {
+		min: min(this.screenTime),
+		max: max(this.screenTime)
+	} AS var0
 }
-RETURN { screenTime: var0 }
+RETURN {
+	screenTime: var0
+}
 ----
 
 '''

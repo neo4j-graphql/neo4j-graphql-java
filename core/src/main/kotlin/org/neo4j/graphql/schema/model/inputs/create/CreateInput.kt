@@ -33,19 +33,24 @@ class CreateInput private constructor(
     object Augmentation : AugmentationBase {
 
         fun addEdgePropertyCreateInputField(
-            properties: RelationshipProperties?,
+            relationField: RelationField,
             fields: MutableList<InputValueDefinition>,
             ctx: AugmentationContext,
             required: (RelationshipProperties) -> Boolean = { false }
         ) =
-            properties?.let { props ->
-                generateContainerCreateInputIT(props.interfaceName, emptyList(), props.fields, ctx)?.let {
+            relationField.properties?.let { props ->
+                generateContainerCreateInputIT(
+                    relationField.operations.createInputTypeName,
+                    emptyList(),
+                    props.fields,
+                    ctx
+                )?.let {
                     fields += inputValue(Constants.EDGE_FIELD, it.asType(required(props)))
                 }
             }
 
         fun generateContainerCreateInputIT(node: Node, ctx: AugmentationContext) = generateContainerCreateInputIT(
-            node.name,
+            node.operations.createInputTypeName,
             node.fields.filterIsInstance<RelationField>(),
             node.scalarFields.filter { it.isCreateInputField() },
             ctx,
@@ -53,15 +58,14 @@ class CreateInput private constructor(
         )
 
         private fun generateContainerCreateInputIT(
-            sourceName: String,
+            name: String,
             relationFields: List<RelationField>,
             scalarFields: List<ScalarField>,
             ctx: AugmentationContext,
             enforceFields: Boolean = false,
         ) =
             ctx.getOrCreateRelationInputObjectType(
-                sourceName,
-                Constants.InputTypeSuffix.CreateInput,
+                name,
                 relationFields,
                 RelationFieldBaseAugmentation::generateFieldCreateIT,
                 wrapList = false,

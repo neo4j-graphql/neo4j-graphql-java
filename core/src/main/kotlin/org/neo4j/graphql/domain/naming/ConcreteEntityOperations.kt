@@ -8,12 +8,9 @@ class ConcreteEntityOperations(
     annotations: Annotations
 ) : ImplementingTypeOperations(name, annotations) {
 
-    override val whereInputTypeName get() = "${name}WhereInput"
-
     fun getFullTextIndexInputTypeName(indexName: String) = "${name}${indexName.capitalize()}Fulltext"
     fun getFullTextIndexQueryFieldName(indexName: String) = "${name}Fulltext${indexName.capitalize()}"
 
-    val disconnectInputTypeName get() = "${name}DisconnectInput"
     val onCreateInputTypeName get() = "${name}OnCreateInput"
     val relationshipsSubscriptionWhereInputTypeName get() = "${name}RelationshipsSubscriptionWhere"
     val relationshipCreatedSubscriptionWhereInputTypeName get() = "${name}RelationshipCreatedSubscriptionWhere"

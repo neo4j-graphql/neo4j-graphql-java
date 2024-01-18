@@ -42,8 +42,8 @@ query ($rangeStart: DateTime, $rangeEnd: DateTime, $activity: String) {
 [source,json]
 ----
 {
-  "param0": "2021-07-17T23:00:00Z",
-  "param1": "2021-07-18T22:59:59Z"
+  "param0" : "2021-07-17T23:00:00Z",
+  "param1" : "2021-07-18T22:59:59Z"
 }
 ----
 
@@ -51,8 +51,12 @@ query ($rangeStart: DateTime, $rangeEnd: DateTime, $activity: String) {
 [source,cypher]
 ----
 MATCH (this:Event)
-WHERE (this.start >= $param0 AND this.start <= $param1)
-RETURN this { .activity, start: apoc.date.convertFormat(toString(this.start), "iso_zoned_date_time", "iso_offset_date_time") } AS this
+WHERE (this.start >= $param0
+	AND this.start <= $param1)
+RETURN this {
+	.activity,
+	start: apoc.date.convertFormat(toString(this.start), 'iso_zoned_date_time', 'iso_offset_date_time')
+} AS this
 ----
 
 '''
@@ -85,8 +89,8 @@ query ($rangeStart: DateTime, $rangeEnd: DateTime, $activity: String) {
 [source,json]
 ----
 {
-  "param0": "2021-07-17T23:00:00Z",
-  "param1": "2021-07-18T22:59:59Z"
+  "param0" : "2021-07-17T23:00:00Z",
+  "param1" : "2021-07-18T22:59:59Z"
 }
 ----
 
@@ -94,8 +98,12 @@ query ($rangeStart: DateTime, $rangeEnd: DateTime, $activity: String) {
 [source,cypher]
 ----
 MATCH (this:Event)
-WHERE (this.start >= $param0 OR this.start <= $param1)
-RETURN this { .activity, start: apoc.date.convertFormat(toString(this.start), "iso_zoned_date_time", "iso_offset_date_time") } AS this
+WHERE (this.start >= $param0
+	OR this.start <= $param1)
+RETURN this {
+	.activity,
+	start: apoc.date.convertFormat(toString(this.start), 'iso_zoned_date_time', 'iso_offset_date_time')
+} AS this
 ----
 
 '''

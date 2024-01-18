@@ -1,6 +1,5 @@
 package org.neo4j.graphql.schema.model.inputs.connect_or_create
 
-import org.neo4j.graphql.Constants
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.schema.AugmentationBase
 import org.neo4j.graphql.schema.AugmentationContext
@@ -24,8 +23,7 @@ class ConnectOrCreateInput private constructor(
     object Augmentation : AugmentationBase {
         fun generateContainerConnectOrCreateInputIT(node: Node, ctx: AugmentationContext) =
             ctx.getOrCreateRelationInputObjectType(
-                node.name,
-                Constants.InputTypeSuffix.ConnectOrCreateInput,
+                node.operations.connectOrCreateInputTypeName,
                 node.relationFields,
                 RelationFieldBaseAugmentation::generateFieldConnectOrCreateIT,
                 condition = { it.annotations.relationship?.isConnectOrCreateAllowed != false },

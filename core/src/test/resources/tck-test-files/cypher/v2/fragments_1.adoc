@@ -1,0 +1,164 @@
+:toc:
+
+= Cypher Fragment
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+interface Entity {
+  username: String!
+}
+
+type User implements Entity {
+  id: ID! @id @unique
+  username: String!
+  owns: [OwnableType!]! @relationship(type: "OWNS", direction: OUT)
+}
+
+union OwnableType = Tile | Character
+
+interface Ownable {
+  id: ID!
+  owner: User
+}
+
+type Tile implements Ownable {
+  id: ID! @id @unique
+  owner: User! @relationship(type: "OWNS", direction: IN)
+}
+
+type Character implements Ownable {
+  id: ID! @id @unique
+  owner: User! @relationship(type: "OWNS", direction: IN)
+}
+----
+== Fragment On Interface
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  users {
+    id
+    ...FragmentOnInterface
+  }
+}
+
+fragment FragmentOnInterface on Entity {
+  username
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+RETURN this {
+	.username,
+	.id
+} AS this
+----
+
+'''
+
+== Fragment On Type
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  users {
+    id
+    ...FragmentOnType
+  }
+}
+
+fragment FragmentOnType on User {
+  username
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+RETURN this {
+	.id,
+	.username
+} AS this
+----
+
+'''
+
+== Fragment On Union
+
+.GraphQL-Query
+[source,graphql]
+----
+query users {
+  users {
+    id
+    owns {
+      __typename
+      ... on Ownable {
+        id
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[this0:OWNS]->(this1:Tile)
+		WITH this1 {
+			.id,
+			__resolveType: 'Tile',
+			__id: id(this1)
+		} AS this1
+		RETURN this1 AS var2 UNION
+		WITH *
+		MATCH (this)-[this3:OWNS]->(this4:Character)
+		WITH this4 {
+			.id,
+			__resolveType: 'Character',
+			__id: id(this4)
+		} AS this4
+		RETURN this4 AS var2
+	}
+	WITH var2
+	RETURN collect(var2) AS var2
+}
+RETURN this {
+	.id,
+	owns: var2
+} AS this
+----
+
+'''
+

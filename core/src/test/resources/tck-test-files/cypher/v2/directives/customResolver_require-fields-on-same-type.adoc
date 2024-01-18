@@ -1,0 +1,140 @@
+:toc:
+
+= Require fields on same type
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type User {
+  firstName: String!
+  lastName: String!
+  fullName: String! @customResolver(requires: "firstName lastName")
+}
+----
+
+== should not fetch required fields if @customResolver field is not selected
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  users {
+    firstName
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+RETURN this {
+	.firstName
+} AS this
+----
+
+'''
+
+== should not over fetch when all required fields are manually selected
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  users {
+    firstName
+    lastName
+    fullName
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+RETURN this {
+	.firstName,
+	.lastName,
+	.fullName
+} AS this
+----
+
+'''
+
+== should not over fetch when no required fields are manually selected
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  users {
+    fullName
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+RETURN this {
+	.fullName,
+	.firstName,
+	.lastName
+} AS this
+----
+
+'''
+
+== should not over fetch when some required fields are manually selected
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  users {
+    firstName
+    fullName
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+RETURN this {
+	.firstName,
+	.fullName,
+	.lastName
+} AS this
+----
+
+'''
+

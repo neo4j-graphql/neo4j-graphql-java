@@ -29,11 +29,10 @@ sealed interface RelationFieldInput {
         object Augmentation : AugmentationBase {
             fun generateFieldCreateFieldInputIT(
                 rel: RelationField,
-                prefix: String,
                 node: Node,
                 ctx: AugmentationContext
             ) =
-                ctx.getOrCreateInputObjectType(prefix + Constants.InputTypeSuffix.CreateFieldInput) { fields, _ ->
+                ctx.getOrCreateInputObjectType(rel.operations.getCreateFieldInputTypeName(node)) { fields, _ ->
 
                     CreateInput.Augmentation
                         .generateContainerCreateInputIT(node, ctx)
@@ -41,7 +40,7 @@ sealed interface RelationFieldInput {
 
                     CreateInput.Augmentation
                         .addEdgePropertyCreateInputField(
-                            rel.properties, fields, ctx,
+                            rel, fields, ctx,
                             required = { it.hasRequiredNonGeneratedFields })
                 }
         }
@@ -61,11 +60,11 @@ sealed interface RelationFieldInput {
         object Augmentation : AugmentationBase {
             fun generateFieldRelationCreateIT(
                 rel: RelationField,
-                prefix: String,
                 interfaze: Interface,
-                ctx: AugmentationContext
-            ) =
-                ctx.getOrCreateInputObjectType("${prefix}${Constants.InputTypeSuffix.CreateFieldInput}") { fields, _ ->
+                ctx: AugmentationContext,
+                name: String = rel.operations.getCreateFieldInputTypeName(interfaze)
+            ): String? {
+                return ctx.getOrCreateInputObjectType(name) { fields, _ ->
 
                     generateCreateInputIT(interfaze, ctx)?.let {
                         fields += inputValue(Constants.NODE_FIELD, it.asRequiredType())
@@ -73,14 +72,16 @@ sealed interface RelationFieldInput {
 
                     CreateInput.Augmentation
                         .addEdgePropertyCreateInputField(
-                            rel.properties,
+                            rel,
                             fields,
                             ctx,
                             required = { it.hasRequiredNonGeneratedFields })
                 }
+            }
 
             private fun generateCreateInputIT(interfaze: Interface, ctx: AugmentationContext) =
-                ctx.generateImplementationDelegate(interfaze, Constants.InputTypeSuffix.CreateInput,
+                ctx.generateImplementationDelegate(
+                    interfaze, interfaze.operations.createInputTypeName,
                     asList = false,
                     { node -> CreateInput.Augmentation.generateContainerCreateInputIT(node, ctx) }
                 ) {

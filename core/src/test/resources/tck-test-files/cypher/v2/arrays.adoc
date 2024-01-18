@@ -28,7 +28,7 @@ type Movie {
 [source,json]
 ----
 {
-  "param0": 4
+  "param0" : 4
 }
 ----
 
@@ -37,7 +37,10 @@ type Movie {
 ----
 MATCH (this:Movie)
 WHERE $param0 IN this.ratings
-RETURN this { .title, .ratings } AS this
+RETURN this {
+	.title,
+	.ratings
+} AS this
 ----
 
 '''
@@ -59,7 +62,7 @@ RETURN this { .title, .ratings } AS this
 [source,json]
 ----
 {
-  "param0": 4
+  "param0" : 4
 }
 ----
 
@@ -68,7 +71,10 @@ RETURN this { .title, .ratings } AS this
 ----
 MATCH (this:Movie)
 WHERE NOT ($param0 IN this.ratings)
-RETURN this { .title, .ratings } AS this
+RETURN this {
+	.title,
+	.ratings
+} AS this
 ----
 
 '''

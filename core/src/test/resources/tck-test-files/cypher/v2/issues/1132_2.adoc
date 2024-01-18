@@ -33,27 +33,25 @@ mutation {
 [source,json]
 ----
 {
-  "updateSources_args_disconnect_targets0_where_Target_this_disconnect_targets0param0": "1",
-  "isAuthenticated": true,
-  "jwt": {
-    "roles": [],
-    "sub": "1"
+  "isAuthenticated" : true,
+  "jwt" : {
+    "roles" : [ ],
+    "sub" : "1"
   },
-  "updateSources": {
-    "args": {
-      "disconnect": {
-        "targets": [
-          {
-            "where": {
-              "node": {
-                "id": "1"
-              }
+  "updateSources" : {
+    "args" : {
+      "disconnect" : {
+        "targets" : [ {
+          "where" : {
+            "node" : {
+              "id" : "1"
             }
           }
-        ]
+        } ]
       }
     }
-  }
+  },
+  "updateSources_args_disconnect_targets0_where_Target_this_disconnect_targets0param0" : "1"
 }
 ----
 
@@ -63,19 +61,23 @@ mutation {
 MATCH (this:Source)
 WITH this
 CALL {
-WITH this
-OPTIONAL MATCH (this)-[this_disconnect_targets0_rel:HAS_TARGET]->(this_disconnect_targets0:Target)
-WHERE this_disconnect_targets0.id = $updateSources_args_disconnect_targets0_where_Target_this_disconnect_targets0param0 AND apoc.util.validatePredicate(NOT ($isAuthenticated = true AND ($jwt.sub IS NOT NULL AND this.id = $jwt.sub)), "@neo4j/graphql/FORBIDDEN", [0])
-CALL {
-	WITH this_disconnect_targets0, this_disconnect_targets0_rel, this
-	WITH collect(this_disconnect_targets0) as this_disconnect_targets0, this_disconnect_targets0_rel, this
-	UNWIND this_disconnect_targets0 as x
-	DELETE this_disconnect_targets0_rel
-}
-RETURN count(*) AS disconnect_this_disconnect_targets_Target
+	WITH this
+	OPTIONAL MATCH (this)-[this_disconnect_targets0_rel:HAS_TARGET]->(this_disconnect_targets0:Target)
+	WHERE (this_disconnect_targets0.id = $updateSources_args_disconnect_targets0_where_Target_this_disconnect_targets0param0
+		AND apoc.util.validatePredicate(NOT (($isAuthenticated = true
+			AND $jwt.sub IS NOT NULL
+			AND this.id = $jwt.sub)), '@neo4j/graphql/FORBIDDEN', [0]))
+	CALL {
+		WITH this_disconnect_targets0, this_disconnect_targets0_rel, this
+		WITH collect(this_disconnect_targets0) AS this_disconnect_targets0, this_disconnect_targets0_rel, this
+		UNWIND this_disconnect_targets0 AS x DELETE this_disconnect_targets0_rel
+	}
+	RETURN count(*) AS disconnect_this_disconnect_targets_Target
 }
 WITH *
-RETURN collect(DISTINCT this { .id }) AS data
+RETURN collect(DISTINCT this {
+	.id
+}) AS data
 ----
 
 '''

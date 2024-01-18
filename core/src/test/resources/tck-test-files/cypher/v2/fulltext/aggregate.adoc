@@ -26,20 +26,21 @@ type Movie @fulltext(indexes: [{name: "MovieTitle", fields: ["title"]}]) {
 [source,json]
 ----
 {
-  "param0": "something AND something",
-  "param1": "Movie"
+  "param0" : "something AND something",
+  "param1" : "Movie"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-CALL {
-    CALL db.index.fulltext.queryNodes("MovieTitle", $param0) YIELD node AS this0, score AS var1
-    WHERE $param1 IN labels(this0)
-    RETURN count(this0) AS var2
+CALL {CALL db.index.fulltext.queryNodes('MovieTitle', $param0) YIELD node AS this0, score AS var1
+	WHERE $param1 IN labels(this0)
+	RETURN count(this0) AS var2
 }
-RETURN { count: var2 }
+RETURN {
+	count: var2
+}
 ----
 
 '''

@@ -1,0 +1,218 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/2709
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+interface Production {
+  title: String!
+  actors: [Actor!]!
+  distribution: [DistributionHouse!]!
+}
+
+type Movie implements Production @node(labels: ["Film"]) {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN, properties: "ActedIn")
+  runtime: Int!
+  distribution: [DistributionHouse!]! @relationship(type: "DISTRIBUTED_BY", direction: IN)
+}
+
+type Series implements Production {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN, properties: "ActedIn")
+  episodes: Int!
+  distribution: [DistributionHouse!]! @relationship(type: "DISTRIBUTED_BY", direction: IN)
+}
+
+interface ActedIn @relationshipProperties {
+  role: String!
+}
+
+interface Actor {
+  name: String!
+  actedIn: [Production!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
+}
+
+type MaleActor implements Actor {
+  name: String!
+  actedIn: [Production!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
+  rating: Int!
+}
+
+type FemaleActor implements Actor {
+  name: String!
+  actedIn: [Production!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
+  age: Int!
+}
+
+interface DistributionHouse {
+  name: String!
+}
+
+type Dishney implements DistributionHouse {
+  name: String!
+  review: String!
+}
+
+type Prime implements DistributionHouse {
+  name: String!
+  review: String!
+}
+
+type Netflix implements DistributionHouse {
+  name: String!
+  review: String!
+}
+----
+
+== should not use a node label so it covers all nodes implementing the interface for connection rel
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {distributionConnection_SOME: {node: {name: "test4"}}}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "test4"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Film)
+WHERE EXISTS {
+	MATCH (this)<-[this0:DISTRIBUTED_BY]-(this1)
+	WHERE (this1.name = $param0
+		AND (this1:Dishney
+			OR this1:Prime
+			OR this1:Netflix))
+}
+RETURN this {
+	.title
+} AS this
+----
+
+'''
+
+== should use the correct node label for connection rel when defined in node _on - Dishney label
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(
+    where: {OR: [{distributionConnection_SOME: {node: {_on: {Dishney: {}}, name: "test2"}}}]}
+  ) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "test2"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Film)
+WHERE EXISTS {
+	MATCH (this)<-[this0:DISTRIBUTED_BY]-(this1:Dishney)
+	WHERE this1.name = $param0
+}
+RETURN this {
+	.title
+} AS this
+----
+
+'''
+
+== should use the correct node label for connection rel when defined in node _on - Netflix label
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(
+    where: {OR: [{distributionConnection_SOME: {node: {_on: {Netflix: {}}, name: "test"}}}]}
+  ) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "test"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Film)
+WHERE EXISTS {
+	MATCH (this)<-[this0:DISTRIBUTED_BY]-(this1:Netflix)
+	WHERE this1.name = $param0
+}
+RETURN this {
+	.title
+} AS this
+----
+
+'''
+
+== should use the correct node label for connection rel when defined in node _on - without OR operator
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(
+    where: {distributionConnection_SOME: {node: {_on: {Dishney: {}}, name: "test3"}}}
+  ) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "test3"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Film)
+WHERE EXISTS {
+	MATCH (this)<-[this0:DISTRIBUTED_BY]-(this1:Dishney)
+	WHERE this1.name = $param0
+}
+RETURN this {
+	.title
+} AS this
+----
+
+'''
+

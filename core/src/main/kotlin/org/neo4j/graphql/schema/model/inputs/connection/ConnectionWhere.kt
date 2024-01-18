@@ -44,7 +44,7 @@ sealed interface ConnectionWhere {
                 fields: MutableList<InputValueDefinition>
             ) {
                 WhereInput.EdgeWhereInput.Augmentation
-                    .generateRelationPropertiesWhereIT(rel.properties, ctx)
+                    .generateRelationPropertiesWhereIT(rel, ctx)
                     ?.let {
                         fields += inputValue(Constants.EDGE_FIELD, it.asType())
                         fields += inputValue(Constants.EDGE_FIELD + "_NOT", it.asType()) {
@@ -67,12 +67,11 @@ sealed interface ConnectionWhere {
         object Augmentation : AugmentationBase {
             fun generateFieldConnectionWhereIT(
                 rel: RelationField,
-                prefix: String,
                 node: Node,
                 ctx: AugmentationContext
             ) =
 
-                ctx.getOrCreateInputObjectType("${prefix}${Constants.InputTypeSuffix.ConnectionWhere}") { fields, connectionWhereName ->
+                ctx.getOrCreateInputObjectType(rel.operations.getConnectionWhereTypename(node)) { fields, connectionWhereName ->
                     WhereInput.NodeWhereInput.Augmentation.generateWhereIT(node, ctx)
                         ?.let {
                             fields += inputValue(Constants.NODE_FIELD, it.asType())
@@ -107,7 +106,7 @@ sealed interface ConnectionWhere {
                 interfaze: Interface,
                 ctx: AugmentationContext
             ) =
-                ctx.getOrCreateInputObjectType(rel.connectionField.typeMeta.whereType.name()) { fields, connectionWhereName ->
+                ctx.getOrCreateInputObjectType(rel.operations.getConnectionWhereTypename(interfaze)) { fields, connectionWhereName ->
                     WhereInput.InterfaceWhereInput.Augmentation.generateFieldWhereIT(interfaze, ctx)?.let {
                         fields += inputValue(Constants.NODE_FIELD, it.asType())
                         fields += inputValue(Constants.NODE_FIELD + "_NOT", it.asType()) {

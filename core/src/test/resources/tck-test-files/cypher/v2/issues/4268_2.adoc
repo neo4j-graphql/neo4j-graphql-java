@@ -1,0 +1,74 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/4268
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type JWT @jwt {
+  id: ID!
+  email: String!
+  roles: [String!]!
+}
+
+type Movie @authorization(validate: [{when: [BEFORE], where: {jwt: {OR: [{OR: [{roles: "admin"}, {roles: "super-admin"}]}, {OR: [{roles: "user"}, {roles: "super-user"}]}]}}}]) {
+  title: String
+  director: [Person!]! @relationship(type: "DIRECTED", direction: IN)
+}
+
+type Person {
+  id: ID
+}
+----
+
+== Nested OR operator should work correctly
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated" : true,
+  "jwt" : {
+    "roles" : [ "admin" ],
+    "id" : "something",
+    "email" : "something"
+  },
+  "param2" : "admin",
+  "param3" : "super-admin",
+  "param4" : "user",
+  "param5" : "super-user"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WITH *
+WHERE apoc.util.validatePredicate(NOT (($isAuthenticated = true
+	AND (($jwt.roles IS NOT NULL
+			AND $jwt.roles = $param2)
+		OR ($jwt.roles IS NOT NULL
+			AND $jwt.roles = $param3)
+		OR (($jwt.roles IS NOT NULL
+				AND $jwt.roles = $param4)
+			OR ($jwt.roles IS NOT NULL
+				AND $jwt.roles = $param5))))), '@neo4j/graphql/FORBIDDEN', [0])
+RETURN this {
+	.title
+} AS this
+----
+
+'''
+

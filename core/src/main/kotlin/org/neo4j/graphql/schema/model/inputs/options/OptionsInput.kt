@@ -67,7 +67,7 @@ data class OptionsInput(
     object Augmentation : AugmentationBase {
 
         fun generateOptionsIT(implementingType: ImplementingType, ctx: AugmentationContext) =
-            ctx.getOrCreateInputObjectType("${implementingType.name}${Constants.InputTypeSuffix.Options}") { fields, _ ->
+            ctx.getOrCreateInputObjectType(implementingType.operations.optionsInputTypeName) { fields, _ ->
                 fields += inputValue(Constants.LIMIT, Constants.Types.Int)
                 fields += inputValue(Constants.OFFSET, Constants.Types.Int)
                 SortInput.Companion.Augmentation

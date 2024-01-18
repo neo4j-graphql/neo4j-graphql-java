@@ -20,7 +20,6 @@ type Actor {
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
 }
 ----
-
 == should query field custom query and return relationship data with given columnName
 
 .GraphQL-Query
@@ -42,7 +41,7 @@ type Actor {
 [source,json]
 ----
 {
-  "param0": "The Matrix"
+  "param0" : "The Matrix"
 }
 ----
 
@@ -51,23 +50,32 @@ type Actor {
 ----
 MATCH (this:Movie)
 CALL {
-    WITH this
-    CALL {
-        WITH this
-        WITH this AS this
-        MATCH (m:Movie {title: $param0})
-        RETURN m
-    }
-    WITH m AS this0
-    CALL {
-        WITH this0
-        MATCH (this0)<-[this1:ACTED_IN]-(this2:Actor)
-        WITH this2 { .name } AS this2
-        RETURN collect(this2) AS var3
-    }
-    RETURN collect(this0 { .title, actors: var3 }) AS this0
+	WITH this
+	CALL {
+		WITH this
+		WITH this AS this
+		MATCH (m:Movie {
+			title: $param0
+		})
+		RETURN m
+	}
+	WITH m AS this0
+	CALL {
+		WITH this0
+		MATCH (this0)<-[this1:ACTED_IN]-(this2:Actor)
+		WITH this2 {
+			.name
+		} AS this2
+		RETURN collect(this2) AS var3
+	}
+	RETURN collect(this0 {
+		.title,
+		actors: var3
+	}) AS this0
 }
-RETURN this { custom: this0 } AS this
+RETURN this {
+	custom: this0
+} AS this
 ----
 
 '''

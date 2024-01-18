@@ -9,16 +9,20 @@ import org.neo4j.graphql.schema.model.inputs.WhereInput
 
 class SubscriptionRelationshipWhere {
 
-    enum class Type {
+    enum class Type() {
         Created,
         Deleted
     }
 
     object Augmentation : AugmentationBase {
 
-        fun generateSubscriptionConnectionWhereType(node: Node, type: Type, ctx: AugmentationContext): String? =
+        fun generateSubscriptionConnectionWhereType(node: Node, type: Type, ctx: AugmentationContext): String? {
+            val name = when (type) {
+                Type.Created -> node.operations.relationshipCreatedSubscriptionWhereInputTypeName
+                Type.Deleted -> node.operations.relationshipDeletedSubscriptionWhereInputTypeName
+            }
             // TODO use name from operations
-            ctx.getOrCreateInputObjectType("${node.name}Relationship${type}SubscriptionWhere") { fields, name ->
+            return ctx.getOrCreateInputObjectType(name) { fields, _ ->
                 getRelationshipConnectionWhereTypes(node, ctx)?.let {
                     fields += inputValue(type.name.decapitalize() + "Relationship", it.asType())
                 }
@@ -29,6 +33,7 @@ class SubscriptionRelationshipWhere {
 
                 WhereInput.Augmentation.addNestingWhereFields(name, fields, ctx)
             }
+        }
 
         private fun getRelationshipConnectionWhereTypes(node: Node, ctx: AugmentationContext): String? =
             ctx.getOrCreateInputObjectType(node.operations.relationshipsSubscriptionWhereInputTypeName) { fields, _ ->

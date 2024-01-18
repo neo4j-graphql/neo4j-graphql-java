@@ -16,6 +16,18 @@ type Movie {
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
 }
 ----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+  "features": {
+    "subscriptions": true
+  }
+}
+----
 == Nested update with subscriptions
 
 .GraphQL-Query
@@ -37,31 +49,29 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "1",
-  "this_update_id": "2",
-  "updateMovies_args_update_actors0_where_this_actors0param0": "arthur",
-  "this_update_actors0_name": "ford",
-  "updateMovies": {
-    "args": {
-      "update": {
-        "id": "2",
-        "actors": [
-          {
-            "where": {
-              "node": {
-                "name": "arthur"
-              }
-            },
-            "update": {
-              "node": {
-                "name": "ford"
-              }
+  "param0" : "1",
+  "this_update_actors0_name" : "ford",
+  "this_update_id" : "2",
+  "updateMovies" : {
+    "args" : {
+      "update" : {
+        "id" : "2",
+        "actors" : [ {
+          "where" : {
+            "node" : {
+              "name" : "arthur"
+            }
+          },
+          "update" : {
+            "node" : {
+              "name" : "ford"
             }
           }
-        ]
+        } ]
       }
     }
-  }
+  },
+  "updateMovies_args_update_actors0_where_this_actors0param0" : "arthur"
 }
 ----
 
@@ -71,41 +81,61 @@ mutation {
 WITH [] AS meta
 MATCH (this:Movie)
 WHERE this.id = $param0
-
-
-WITH this { .* } AS oldProps, this, meta
+WITH this {
+	.*
+} AS oldProps, this, meta
 CALL {
 	WITH *
 	SET this.id = $this_update_id
 	WITH this, meta
-CALL {
-	WITH this, meta
-	MATCH (this)<-[this_acted_in0_relationship:ACTED_IN]-(this_actors0:Actor)
-	WHERE this_actors0.name = $updateMovies_args_update_actors0_where_this_actors0param0
-	
-	
-	WITH this_actors0 { .* } AS oldProps, this, meta, this_actors0
 	CALL {
-		WITH *
-		SET this_actors0.name = $this_update_actors0_name
-		RETURN meta as update_meta
+		WITH this, meta
+		MATCH (this)<-[this_acted_in0_relationship:ACTED_IN]-(this_actors0:Actor)
+		WHERE this_actors0.name = $updateMovies_args_update_actors0_where_this_actors0param0
+		WITH this_actors0 {
+			.*
+		} AS oldProps, this, meta, this_actors0
+		CALL {
+			WITH *
+			SET this_actors0.name = $this_update_actors0_name
+			RETURN meta AS update_meta
+		}
+		WITH *, update_meta AS meta
+		WITH this, this_actors0, (meta + {
+			event: 'update',
+			id: id(this_actors0),
+			properties: {
+				old: oldProps,
+				new: this_actors0 {
+					.*
+				}
+			},
+			timestamp: timestamp(),
+			typename: 'Actor'
+		}) AS meta
+		RETURN collect(meta) AS update_meta
 	}
-	WITH *, update_meta as meta
-	WITH this, this_actors0, meta + { event: "update", id: id(this_actors0), properties: { old: oldProps, new: this_actors0 { .* } }, timestamp: timestamp(), typename: "Actor" } AS meta
-	
-	RETURN collect(meta) as update_meta
+	WITH this, reduce(m = meta, n IN update_meta | (m + n)) AS meta
+	RETURN meta AS update_meta
 }
-WITH this, REDUCE(m=meta, n IN update_meta | m + n) AS meta
-	RETURN meta as update_meta
-}
-WITH *, update_meta as meta
-WITH this, meta + { event: "update", id: id(this), properties: { old: oldProps, new: this { .* } }, timestamp: timestamp(), typename: "Movie" } AS meta
-
+WITH *, update_meta AS meta
+WITH this, (meta + {
+	event: 'update',
+	id: id(this),
+	properties: {
+		old: oldProps,
+		new: this {
+			.*
+		}
+	},
+	timestamp: timestamp(),
+	typename: 'Movie'
+}) AS meta
 WITH *
-UNWIND (CASE meta WHEN [] then [null] else meta end) AS m
-RETURN collect(DISTINCT this { .id }) AS data
-, 
-collect(DISTINCT m) as meta
+UNWIND CASE meta WHEN [] THEN [NULL] ELSE meta END AS m
+RETURN collect(DISTINCT this {
+	.id
+}) AS data, collect(DISTINCT m) AS meta
 ----
 
 '''
@@ -128,8 +158,8 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "1",
-  "this_update_id": "2"
+  "param0" : "1",
+  "this_update_id" : "2"
 }
 ----
 
@@ -139,22 +169,32 @@ mutation {
 WITH [] AS meta
 MATCH (this:Movie)
 WHERE this.id = $param0
-
-
-WITH this { .* } AS oldProps, this, meta
+WITH this {
+	.*
+} AS oldProps, this, meta
 CALL {
 	WITH *
 	SET this.id = $this_update_id
-	RETURN meta as update_meta
+	RETURN meta AS update_meta
 }
-WITH *, update_meta as meta
-WITH this, meta + { event: "update", id: id(this), properties: { old: oldProps, new: this { .* } }, timestamp: timestamp(), typename: "Movie" } AS meta
-
+WITH *, update_meta AS meta
+WITH this, (meta + {
+	event: 'update',
+	id: id(this),
+	properties: {
+		old: oldProps,
+		new: this {
+			.*
+		}
+	},
+	timestamp: timestamp(),
+	typename: 'Movie'
+}) AS meta
 WITH *
-UNWIND (CASE meta WHEN [] then [null] else meta end) AS m
-RETURN collect(DISTINCT this { .id }) AS data
-, 
-collect(DISTINCT m) as meta
+UNWIND CASE meta WHEN [] THEN [NULL] ELSE meta END AS m
+RETURN collect(DISTINCT this {
+	.id
+}) AS data, collect(DISTINCT m) AS meta
 ----
 
 '''

@@ -1,0 +1,154 @@
+:toc:
+
+= Cypher Aggregations where with count and node
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type User {
+  name: String!
+}
+
+type Post {
+  content: String!
+  likes: [User!]! @relationship(type: "LIKES", direction: IN, properties: "Likes")
+}
+
+interface Likes @relationshipProperties {
+  someString: String
+}
+----
+
+== Equality Count and node
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  posts(where: {likesAggregate: {count: 10, node: {name_EQUAL: "potato"}}}) {
+    content
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 10,
+  "param1" : "potato"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Post)
+CALL {
+	WITH this
+	MATCH (this)<-[this0:LIKES]-(this1:User)
+	RETURN (count(this1) = $param0
+		AND any(var2 IN collect(this1.name) WHERE var2 = $param1)) AS var3
+}
+WITH *
+WHERE var3 = true
+RETURN this {
+	.content
+} AS this
+----
+
+'''
+
+== Equality Count, node and edge
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  posts(
+    where: {likesAggregate: {count: 10, node: {name_EQUAL: "potato"}, edge: {someString_EQUAL: "10"}}}
+  ) {
+    content
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 10,
+  "param1" : "potato",
+  "param2" : "10"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Post)
+CALL {
+	WITH this
+	MATCH (this)<-[this0:LIKES]-(this1:User)
+	RETURN (count(this1) = $param0
+		AND any(var2 IN collect(this1.name) WHERE var2 = $param1)
+		AND any(var3 IN collect(this0.someString) WHERE var3 = $param2)) AS var4
+}
+WITH *
+WHERE var4 = true
+RETURN this {
+	.content
+} AS this
+----
+
+'''
+
+== Equality Count, node, edge and logical
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  posts(
+    where: {likesAggregate: {count: 10, node: {name_EQUAL: "potato"}, edge: {someString_EQUAL: "10"}, AND: [{count_GT: 10}, {count_LT: 20}]}}
+  ) {
+    content
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 10,
+  "param1" : 10,
+  "param2" : 20,
+  "param3" : "potato",
+  "param4" : "10"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Post)
+CALL {
+	WITH this
+	MATCH (this)<-[this0:LIKES]-(this1:User)
+	RETURN (count(this1) = $param0
+		AND count(this1) > $param1
+		AND count(this1) < $param2
+		AND any(var2 IN collect(this1.name) WHERE var2 = $param3)
+		AND any(var3 IN collect(this0.someString) WHERE var3 = $param4)) AS var4
+}
+WITH *
+WHERE var4 = true
+RETURN this {
+	.content
+} AS this
+----
+
+'''
+

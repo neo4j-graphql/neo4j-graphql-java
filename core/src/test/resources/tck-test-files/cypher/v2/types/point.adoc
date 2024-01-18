@@ -33,14 +33,12 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0": [
-    {
-      "point": {
-        "longitude": 1,
-        "latitude": 2
-      }
+  "create_param0" : [ {
+    "point" : {
+      "longitude" : 1,
+      "latitude" : 2
     }
-  ]
+  } ]
 }
 ----
 
@@ -49,17 +47,17 @@ mutation {
 ----
 UNWIND $create_param0 AS create_var0
 CALL {
-    WITH create_var0
-    CREATE (create_this1:PointContainer)
-    SET
-        create_this1.point = point(create_var0.point)
-    
-    RETURN create_this1
+	WITH create_var0
+	CREATE (create_this1:PointContainer)
+	SET create_this1.point = point(create_var0.point)
+	RETURN create_this1
 }
-RETURN collect(create_this1 { point: CASE
-    WHEN create_this1.point IS NOT NULL THEN { point: create_this1.point, crs: create_this1.point.crs }
-    ELSE NULL
-END }) AS data
+RETURN collect(create_this1 {
+	point: CASE WHEN create_this1.point IS NOT NULL THEN {
+		point: create_this1.point,
+		crs: create_this1.point.crs
+	} ELSE NULL END
+}) AS data
 ----
 
 '''
@@ -84,12 +82,10 @@ END }) AS data
 [source,json]
 ----
 {
-  "param0": [
-    {
-      "longitude": 1,
-      "latitude": 2
-    }
-  ]
+  "param0" : [ {
+    "longitude" : 1,
+    "latitude" : 2
+  } ]
 }
 ----
 
@@ -98,10 +94,12 @@ END }) AS data
 ----
 MATCH (this:PointContainer)
 WHERE this.point IN [var0 IN $param0 | point(var0)]
-RETURN this { point: CASE
-    WHEN this.point IS NOT NULL THEN { point: this.point, crs: this.point.crs }
-    ELSE NULL
-END } AS this
+RETURN this {
+	point: CASE WHEN this.point IS NOT NULL THEN {
+		point: this.point,
+		crs: this.point.crs
+	} ELSE NULL END
+} AS this
 ----
 
 '''
@@ -126,12 +124,10 @@ END } AS this
 [source,json]
 ----
 {
-  "param0": [
-    {
-      "longitude": 1,
-      "latitude": 2
-    }
-  ]
+  "param0" : [ {
+    "longitude" : 1,
+    "latitude" : 2
+  } ]
 }
 ----
 
@@ -140,10 +136,12 @@ END } AS this
 ----
 MATCH (this:PointContainer)
 WHERE NOT (this.point IN [var0 IN $param0 | point(var0)])
-RETURN this { point: CASE
-    WHEN this.point IS NOT NULL THEN { point: this.point, crs: this.point.crs }
-    ELSE NULL
-END } AS this
+RETURN this {
+	point: CASE WHEN this.point IS NOT NULL THEN {
+		point: this.point,
+		crs: this.point.crs
+	} ELSE NULL END
+} AS this
 ----
 
 '''
@@ -167,9 +165,9 @@ END } AS this
 [source,json]
 ----
 {
-  "param0": {
-    "longitude": 1,
-    "latitude": 2
+  "param0" : {
+    "longitude" : 1,
+    "latitude" : 2
   }
 }
 ----
@@ -179,10 +177,11 @@ END } AS this
 ----
 MATCH (this:PointContainer)
 WHERE NOT (this.point = point($param0))
-RETURN this { point: CASE
-    WHEN this.point IS NOT NULL THEN { point: this.point }
-    ELSE NULL
-END } AS this
+RETURN this {
+	point: CASE WHEN this.point IS NOT NULL THEN {
+		point: this.point
+	} ELSE NULL END
+} AS this
 ----
 
 '''
@@ -207,9 +206,9 @@ END } AS this
 [source,json]
 ----
 {
-  "param0": {
-    "longitude": 1,
-    "latitude": 2
+  "param0" : {
+    "longitude" : 1,
+    "latitude" : 2
   }
 }
 ----
@@ -219,10 +218,12 @@ END } AS this
 ----
 MATCH (this:PointContainer)
 WHERE this.point = point($param0)
-RETURN this { point: CASE
-    WHEN this.point IS NOT NULL THEN { point: this.point, crs: this.point.crs }
-    ELSE NULL
-END } AS this
+RETURN this {
+	point: CASE WHEN this.point IS NOT NULL THEN {
+		point: this.point,
+		crs: this.point.crs
+	} ELSE NULL END
+} AS this
 ----
 
 '''
@@ -252,10 +253,10 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "id",
-  "this_update_point": {
-    "longitude": 1,
-    "latitude": 2
+  "param0" : "id",
+  "this_update_point" : {
+    "longitude" : 1,
+    "latitude" : 2
   }
 }
 ----
@@ -265,14 +266,13 @@ mutation {
 ----
 MATCH (this:PointContainer)
 WHERE this.id = $param0
-
-
 SET this.point = point($this_update_point)
-
-RETURN collect(DISTINCT this { point: CASE
-    WHEN this.point IS NOT NULL THEN { point: this.point, crs: this.point.crs }
-    ELSE NULL
-END }) AS data
+RETURN collect(DISTINCT this {
+	point: CASE WHEN this.point IS NOT NULL THEN {
+		point: this.point,
+		crs: this.point.crs
+	} ELSE NULL END
+}) AS data
 ----
 
 '''
@@ -300,12 +300,12 @@ END }) AS data
 [source,json]
 ----
 {
-  "param0": {
-    "point": {
-      "longitude": 1.1,
-      "latitude": 2.2
+  "param0" : {
+    "point" : {
+      "longitude" : 1.1,
+      "latitude" : 2.2
     },
-    "distance": 3.3
+    "distance" : 3.3
   }
 }
 ----
@@ -315,10 +315,11 @@ END }) AS data
 ----
 MATCH (this:PointContainer)
 WHERE point.distance(this.point, point($param0.point)) = $param0.distance
-RETURN this { point: CASE
-    WHEN this.point IS NOT NULL THEN { point: this.point }
-    ELSE NULL
-END } AS this
+RETURN this {
+	point: CASE WHEN this.point IS NOT NULL THEN {
+		point: this.point
+	} ELSE NULL END
+} AS this
 ----
 
 '''
@@ -344,12 +345,12 @@ END } AS this
 [source,json]
 ----
 {
-  "param0": {
-    "point": {
-      "longitude": 1.1,
-      "latitude": 2.2
+  "param0" : {
+    "point" : {
+      "longitude" : 1.1,
+      "latitude" : 2.2
     },
-    "distance": 3.3
+    "distance" : 3.3
   }
 }
 ----
@@ -359,10 +360,11 @@ END } AS this
 ----
 MATCH (this:PointContainer)
 WHERE point.distance(this.point, point($param0.point)) > $param0.distance
-RETURN this { point: CASE
-    WHEN this.point IS NOT NULL THEN { point: this.point }
-    ELSE NULL
-END } AS this
+RETURN this {
+	point: CASE WHEN this.point IS NOT NULL THEN {
+		point: this.point
+	} ELSE NULL END
+} AS this
 ----
 
 '''
@@ -388,12 +390,12 @@ END } AS this
 [source,json]
 ----
 {
-  "param0": {
-    "point": {
-      "longitude": 1.1,
-      "latitude": 2.2
+  "param0" : {
+    "point" : {
+      "longitude" : 1.1,
+      "latitude" : 2.2
     },
-    "distance": 3.3
+    "distance" : 3.3
   }
 }
 ----
@@ -403,10 +405,11 @@ END } AS this
 ----
 MATCH (this:PointContainer)
 WHERE point.distance(this.point, point($param0.point)) >= $param0.distance
-RETURN this { point: CASE
-    WHEN this.point IS NOT NULL THEN { point: this.point }
-    ELSE NULL
-END } AS this
+RETURN this {
+	point: CASE WHEN this.point IS NOT NULL THEN {
+		point: this.point
+	} ELSE NULL END
+} AS this
 ----
 
 '''
@@ -432,12 +435,12 @@ END } AS this
 [source,json]
 ----
 {
-  "param0": {
-    "point": {
-      "longitude": 1.1,
-      "latitude": 2.2
+  "param0" : {
+    "point" : {
+      "longitude" : 1.1,
+      "latitude" : 2.2
     },
-    "distance": 3.3
+    "distance" : 3.3
   }
 }
 ----
@@ -447,10 +450,11 @@ END } AS this
 ----
 MATCH (this:PointContainer)
 WHERE point.distance(this.point, point($param0.point)) < $param0.distance
-RETURN this { point: CASE
-    WHEN this.point IS NOT NULL THEN { point: this.point }
-    ELSE NULL
-END } AS this
+RETURN this {
+	point: CASE WHEN this.point IS NOT NULL THEN {
+		point: this.point
+	} ELSE NULL END
+} AS this
 ----
 
 '''
@@ -476,12 +480,12 @@ END } AS this
 [source,json]
 ----
 {
-  "param0": {
-    "point": {
-      "longitude": 1.1,
-      "latitude": 2.2
+  "param0" : {
+    "point" : {
+      "longitude" : 1.1,
+      "latitude" : 2.2
     },
-    "distance": 3.3
+    "distance" : 3.3
   }
 }
 ----
@@ -491,10 +495,11 @@ END } AS this
 ----
 MATCH (this:PointContainer)
 WHERE point.distance(this.point, point($param0.point)) <= $param0.distance
-RETURN this { point: CASE
-    WHEN this.point IS NOT NULL THEN { point: this.point }
-    ELSE NULL
-END } AS this
+RETURN this {
+	point: CASE WHEN this.point IS NOT NULL THEN {
+		point: this.point
+	} ELSE NULL END
+} AS this
 ----
 
 '''

@@ -1,6 +1,5 @@
 package org.neo4j.graphql.schema.model.inputs.create
 
-import org.neo4j.graphql.Constants
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.schema.AugmentationBase
 import org.neo4j.graphql.schema.AugmentationContext
@@ -25,8 +24,7 @@ class RelationInput private constructor(
 
         fun generateContainerRelationCreateInputIT(node: Node, ctx: AugmentationContext) =
             ctx.getOrCreateRelationInputObjectType(
-                node.name,
-                Constants.InputTypeSuffix.RelationInput,
+                node.operations.relationInputTypeName,
                 node.relationFields,
                 RelationFieldBaseAugmentation::generateFieldRelationCreateIT,
                 condition = { it.annotations.relationship?.isCreateAllowed != false },

@@ -31,7 +31,7 @@ interface WhereInput {
 
         object Augmentation : AugmentationBase {
             fun generateWhereIT(union: Union, ctx: AugmentationContext): String? =
-                ctx.getOrCreateInputObjectType("${union.name}${Constants.InputTypeSuffix.Where}") { fields, _ ->
+                ctx.getOrCreateInputObjectType(union.operations.whereInputTypeName) { fields, _ ->
                     union.nodes.values.forEach { node ->
                         NodeWhereInput.Augmentation
                             .generateWhereIT(node, ctx)?.let { fields += ctx.inputValue(node.name, it.asType()) }
@@ -49,11 +49,8 @@ interface WhereInput {
         object Augmentation : AugmentationBase {
 
             fun generateWhereIT(node: Node, ctx: AugmentationContext): String? =
-                ctx.getOrCreateInputObjectType("${node.name}${Constants.InputTypeSuffix.Where}") { fields, _ ->
-
-                    fields += FieldContainerWhereInput.Augmentation
-                        .getWhereFields(node.name, node.fields, ctx)
-
+                ctx.getOrCreateInputObjectType(node.operations.whereInputTypeName) { fields, name ->
+                    fields += FieldContainerWhereInput.Augmentation.getWhereFields(name, node.fields, ctx)
                 }
         }
     }
@@ -68,15 +65,17 @@ interface WhereInput {
         object Augmentation : AugmentationBase {
 
             // TODO rename to edge
-            fun generateRelationPropertiesWhereIT(properties: RelationshipProperties?, ctx: AugmentationContext) =
-                if (properties == null) {
+            fun generateRelationPropertiesWhereIT(relationField: RelationField, ctx: AugmentationContext): String? {
+                val properties = relationField.properties
+                return if (properties == null) {
                     null
                 } else {
-                    ctx.getOrCreateInputObjectType(properties.interfaceName + Constants.InputTypeSuffix.Where) { fields, _ ->
+                    ctx.getOrCreateInputObjectType(relationField.operations.whereInputTypeName) { fields, name ->
                         fields += FieldContainerWhereInput.Augmentation
-                            .getWhereFields(properties.interfaceName, properties.fields, ctx)
+                            .getWhereFields(name, properties.fields, ctx)
                     }
                 }
+            }
         }
     }
 
@@ -111,13 +110,13 @@ interface WhereInput {
 
         object Augmentation : AugmentationBase {
             fun generateFieldWhereIT(interfaze: Interface, ctx: AugmentationContext): String? =
-                ctx.getOrCreateInputObjectType("${interfaze.name}${Constants.InputTypeSuffix.Where}") { fields, _ ->
+                ctx.getOrCreateInputObjectType(interfaze.operations.whereInputTypeName) { fields, name ->
 
                     if (ctx.schemaConfig.experimental) {
                         ctx.addTypenameEnum(interfaze, fields)
                     } else {
                         ctx.addOnField(interfaze,
-                            Constants.InputTypeSuffix.ImplementationsWhere,
+                            interfaze.operations.whereOnImplementationsWhereInputTypeName,
                             fields,
                             asList = false,
                             { node -> NodeWhereInput.Augmentation.generateWhereIT(node, ctx) })
@@ -125,7 +124,7 @@ interface WhereInput {
 
 
                     fields += FieldContainerWhereInput.Augmentation.getWhereFields(
-                        interfaze.name,
+                        name,
                         interfaze.fields,
                         ctx,
                         isInterface = true
@@ -173,11 +172,10 @@ interface WhereInput {
 
         object Augmentation : AugmentationBase {
             fun getWhereFields(
-                typeName: String,
+                whereName: String,
                 fieldList: List<BaseField>,
                 ctx: AugmentationContext,
                 isInterface: Boolean = false,
-                whereName: String = "${typeName}${Constants.InputTypeSuffix.Where}"
             ): List<InputValueDefinition> {
                 val result = mutableListOf<InputValueDefinition>()
                 fieldList.forEach { field ->
@@ -209,7 +207,7 @@ interface WhereInput {
                                 }
                             }
                             if (field.node != null) {
-                                AggregateInput.Augmentation.generateAggregateInputIT(typeName, field, ctx)?.let {
+                                AggregateInput.Augmentation.generateAggregateInputIT(field, ctx)?.let {
                                     result += inputValue(field.fieldName + FieldSuffix.Aggregate, it.asType()) {
                                         field.deprecatedDirective?.let { directive(it) }
                                     }

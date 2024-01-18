@@ -14,7 +14,7 @@ import org.neo4j.graphql.schema.model.inputs.Dict
 class SortInput private constructor(entries: Map<String, Direction>) : Map<String, Direction> by entries {
 
     fun getCypherSortFields(
-        p: (Array<String>)->Property,
+        p: (Array<String>) -> Property,
         fieldOverrides: Map<String, Expression>
     ) = map { (field, direction) ->
         val sortField = fieldOverrides[field] ?: p(arrayOf(field))
@@ -36,7 +36,8 @@ class SortInput private constructor(entries: Map<String, Direction>) : Map<Strin
         object Augmentation : AugmentationBase {
 
             fun generateSortIT(implementingType: ImplementingType, ctx: AugmentationContext) =
-                ctx.getOrCreateInputObjectType("${implementingType.name}${Constants.InputTypeSuffix.Sort}",
+                ctx.getOrCreateInputObjectType(
+                    implementingType.operations.sortInputTypeName,
                     init = { description("Fields to sort ${implementingType.pascalCasePlural} by. The order in which sorts are applied is not guaranteed when specifying many fields in one ${implementingType.name}Sort object.".asDescription()) },
                     initFields = { fields, _ ->
                         implementingType.sortableFields.forEach { field ->

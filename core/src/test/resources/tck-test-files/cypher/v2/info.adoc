@@ -1,0 +1,140 @@
+:toc:
+
+= info
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Actor {
+  name: String!
+}
+
+type Movie {
+  id: ID
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
+}
+----
+
+== should return info from a create mutation
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  createMovies(
+    input: [{title: "title", actors: {create: [{node: {name: "Keanu"}}]}}]
+  ) {
+    info {
+      bookmark
+      nodesCreated
+      relationshipsCreated
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "create_param0" : [ {
+    "title" : "title",
+    "actors" : {
+      "create" : [ {
+        "node" : {
+          "name" : "Keanu"
+        }
+      } ]
+    }
+  } ]
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+UNWIND $create_param0 AS create_var0
+CALL {
+	WITH create_var0
+	CREATE (create_this1:Movie)
+	SET create_this1.title = create_var0.title
+	WITH create_this1, create_var0
+	CALL {
+		WITH create_this1, create_var0
+		UNWIND create_var0.actors.create AS create_var2
+		WITH create_var2.node AS create_var3, create_var2.edge AS create_var4, create_this1
+		CREATE (create_this5:Actor)
+		SET create_this5.name = create_var3.name
+		MERGE (create_this1)<-[create_this6:ACTED_IN]-(create_this5)
+		RETURN collect(NULL) AS create_var7
+	}
+	RETURN create_this1
+}
+RETURN 'Query cannot conclude with CALL'
+----
+
+'''
+
+== should return info from a delete mutation
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  deleteMovies(where: {id: "123"}) {
+    bookmark
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "123"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.id = $param0 DETACH DELETE this
+----
+
+'''
+
+== should return info from an update mutation
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  updateMovies(where: {id: "123"}) {
+    info {
+      bookmark
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "123"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.id = $param0
+RETURN 'Query cannot conclude with CALL'
+----
+
+'''
+

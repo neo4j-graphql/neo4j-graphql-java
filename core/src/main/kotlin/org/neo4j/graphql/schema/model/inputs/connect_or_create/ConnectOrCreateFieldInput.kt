@@ -32,42 +32,42 @@ sealed interface ConnectOrCreateFieldInput {
         object Augmentation : AugmentationBase {
             fun generateFieldConnectOrCreateIT(
                 rel: RelationField,
-                prefix: String,
                 node: Node,
                 ctx: AugmentationContext
             ): String? {
                 if (node.uniqueFields.isEmpty()) {
                     return null
                 }
-                return ctx.getOrCreateInputObjectType("${prefix}${Constants.InputTypeSuffix.ConnectOrCreateFieldInput}") { fields, name ->
+                return ctx.getOrCreateInputObjectType(rel.operations.getConnectOrCreateFieldInputTypeName(node)) { fields, _ ->
 
                     ConnectOrCreateWhere.Augmentation
                         .generateConnectOrCreateWhereIT(node, ctx)
                         ?.let { fields += inputValue(Constants.WHERE, it.asRequiredType()) }
 
-                    generateNodeOnCreateIT(rel, "${name}${Constants.InputTypeSuffix.OnCreate}", node, ctx)
+                    generateNodeOnCreateIT(rel, node, ctx)
                         ?.let { fields += inputValue(Constants.ON_CREATE_FIELD, it.asRequiredType()) }
                 }
             }
 
-            private fun generateNodeOnCreateIT(rel: RelationField, name: String, node: Node, ctx: AugmentationContext) =
-                ctx.getOrCreateInputObjectType(name) { fields, _ ->
+            private fun generateNodeOnCreateIT(rel: RelationField, node: Node, ctx: AugmentationContext) =
+                ctx.getOrCreateInputObjectType(rel.operations.getConnectOrCreateOnCreateFieldInputTypeName(node)) { fields, _ ->
 
                     generateNodeOnCreateInputIT(node, ctx)
                         ?.let { fields += inputValue(Constants.NODE_FIELD, it.asRequiredType()) }
 
                     CreateInput.Augmentation
-                        .addEdgePropertyCreateInputField(rel.properties, fields, ctx,
+                        .addEdgePropertyCreateInputField(
+                            rel, fields, ctx,
                             required = { it.hasRequiredNonGeneratedFields }
                         )
                 }
 
             private fun generateNodeOnCreateInputIT(node: Node, ctx: AugmentationContext) =
 
-                ctx.getOrCreateInputObjectType(node.name + Constants.InputTypeSuffix.OnCreateInput) { fields, _ ->
+                ctx.getOrCreateInputObjectType(node.operations.onCreateInputTypeName) { fields, _ ->
 
                     ScalarProperties.Companion.Augmentation
-                        .addScalarFields(fields, node.name, node.scalarFields, false, ctx)
+                        .addScalarFields(fields, node.scalarFields, false, ctx)
 
                     if (fields.isEmpty()) {
                         fields += ctx.emptyInputField()

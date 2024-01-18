@@ -1,5 +1,7 @@
 package org.neo4j.graphql
 
+import com.fasterxml.jackson.annotation.JsonProperty
+
 data class SchemaConfig @JvmOverloads constructor(
     val query: CRUDConfig = CRUDConfig(),
     val mutation: CRUDConfig = CRUDConfig(),
@@ -63,19 +65,27 @@ data class SchemaConfig @JvmOverloads constructor(
 
     data class Neo4jFiltersSettings(
         // TODO should we also use feature toggles for strings? https://github.com/neo4j/graphql/issues/2657#issuecomment-1369858159
-        val String: Neo4jStringFiltersSettings = Neo4jStringFiltersSettings(),
-        val ID: Neo4jIDFiltersSettings = Neo4jIDFiltersSettings()
+        @field:JsonProperty("String")
+        val string: Neo4jStringFiltersSettings = Neo4jStringFiltersSettings(),
+        @field:JsonProperty("ID")
+        val id: Neo4jIDFiltersSettings = Neo4jIDFiltersSettings()
     )
 
     data class Neo4jStringFiltersSettings(
-        val GT: Boolean = false,
-        val GTE: Boolean = false,
-        val LT: Boolean = false,
-        val LTE: Boolean = false,
-        val MATCHES: Boolean = false,
+        @field:JsonProperty("GT")
+        val gt: Boolean = false,
+        @field:JsonProperty("GTE")
+        val gte: Boolean = false,
+        @field:JsonProperty("LT")
+        val lt: Boolean = false,
+        @field:JsonProperty("LTE")
+        val lte: Boolean = false,
+        @field:JsonProperty("MATCHES")
+        val matches: Boolean = false,
     )
 
     data class Neo4jIDFiltersSettings(
-        val MATCHES: Boolean = false,
+        @field:JsonProperty("MATCHES")
+        val matches: Boolean = false,
     )
 }

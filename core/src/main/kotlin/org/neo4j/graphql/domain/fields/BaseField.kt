@@ -26,7 +26,7 @@ sealed class BaseField(
 
     //    var ignored: Boolean = false
     open val dbPropertyName get() = annotations.alias?.property ?: fieldName
-    lateinit var owner: FieldContainer<*>
+    open lateinit var owner: FieldContainer<*>
 
     override fun toString(): String {
         return "Field: $fieldName"
@@ -41,7 +41,6 @@ sealed class BaseField(
             is Node -> it.name
             is Interface -> it.name
             is RelationshipProperties -> it.interfaceName
-            else -> throw IllegalStateException("cannot determine name from owner of type ${it::class.java.name}")
         }
     }
 

@@ -54,7 +54,6 @@ type Movie {
   """, columnName: "a")
 }
 ----
-
 == LIMIT happens after custom Cypher if sorting on the custom Cypher field
 
 .GraphQL-Query
@@ -71,7 +70,7 @@ type Movie {
 [source,json]
 ----
 {
-  "param0": 10
+  "param0" : 10
 }
 ----
 
@@ -80,19 +79,19 @@ type Movie {
 ----
 MATCH (this:Actor)
 CALL {
-    WITH this
-    CALL {
-        WITH this
-        WITH this AS this
-        RETURN rand() as res
-    }
-    UNWIND res AS this0
-    RETURN head(collect(this0)) AS this0
+	WITH this
+	CALL {
+		WITH this
+		WITH this AS this
+		RETURN rand() AS res
+	}
+	UNWIND res AS this0
+	RETURN head(collect(this0)) AS this0
 }
-WITH *
-ORDER BY this0 ASC
-LIMIT $param0
-RETURN this { randomNumber: this0 } AS this
+WITH * ORDER BY this0 ASC LIMIT $param0
+RETURN this {
+	randomNumber: this0
+} AS this
 ----
 
 '''
@@ -113,7 +112,7 @@ RETURN this { randomNumber: this0 } AS this
 [source,json]
 ----
 {
-  "param0": 10
+  "param0" : 10
 }
 ----
 
@@ -121,20 +120,20 @@ RETURN this { randomNumber: this0 } AS this
 [source,cypher]
 ----
 MATCH (this:Actor)
-WITH *
-
-LIMIT $param0
+WITH * LIMIT $param0
 CALL {
-    WITH this
-    CALL {
-        WITH this
-        WITH this AS this
-        RETURN rand() as res
-    }
-    UNWIND res AS this0
-    RETURN head(collect(this0)) AS this0
+	WITH this
+	CALL {
+		WITH this
+		WITH this AS this
+		RETURN rand() AS res
+	}
+	UNWIND res AS this0
+	RETURN head(collect(this0)) AS this0
 }
-RETURN this { randomNumber: this0 } AS this
+RETURN this {
+	randomNumber: this0
+} AS this
 ----
 
 '''
@@ -161,7 +160,7 @@ RETURN this { randomNumber: this0 } AS this
 [source,json]
 ----
 {
-  "param0": "some title"
+  "param0" : "some title"
 }
 ----
 
@@ -170,28 +169,38 @@ RETURN this { randomNumber: this0 } AS this
 ----
 MATCH (this:Movie)
 CALL {
-    WITH this
-    CALL {
-        WITH this
-        WITH this AS this
-        MATCH (a:Actor)
-        RETURN a
-    }
-    WITH a AS this0
-    CALL {
-        WITH this0
-        CALL {
-            WITH this0
-            WITH this0 AS this
-            MATCH (m:Movie {title: $param0})
-            RETURN m
-        }
-        WITH m AS this1
-        RETURN collect(this1 { .title }) AS this1
-    }
-    RETURN head(collect(this0 { .name, movies: this1 })) AS this0
+	WITH this
+	CALL {
+		WITH this
+		WITH this AS this
+		MATCH (a:Actor)
+		RETURN a
+	}
+	WITH a AS this0
+	CALL {
+		WITH this0
+		CALL {
+			WITH this0
+			WITH this0 AS this
+			MATCH (m:Movie {
+				title: $param0
+			})
+			RETURN m
+		}
+		WITH m AS this1
+		RETURN collect(this1 {
+			.title
+		}) AS this1
+	}
+	RETURN head(collect(this0 {
+		.name,
+		movies: this1
+	})) AS this0
 }
-RETURN this { .title, topActor: this0 } AS this
+RETURN this {
+	.title,
+	topActor: this0
+} AS this
 ----
 
 '''
@@ -218,7 +227,7 @@ RETURN this { .title, topActor: this0 } AS this
 [source,json]
 ----
 {
-  "param0": "some title"
+  "param0" : "some title"
 }
 ----
 
@@ -227,28 +236,38 @@ RETURN this { .title, topActor: this0 } AS this
 ----
 MATCH (this:Movie)
 CALL {
-    WITH this
-    CALL {
-        WITH this
-        WITH this AS this
-        MATCH (a:Actor)
-        RETURN a
-    }
-    WITH a AS this0
-    CALL {
-        WITH this0
-        CALL {
-            WITH this0
-            WITH this0 AS this
-            MATCH (m:Movie {title: $param0})
-            RETURN m
-        }
-        WITH m AS this1
-        RETURN collect(this1 { .title }) AS this1
-    }
-    RETURN head(collect(this0 { .name, movies: this1 })) AS this0
+	WITH this
+	CALL {
+		WITH this
+		WITH this AS this
+		MATCH (a:Actor)
+		RETURN a
+	}
+	WITH a AS this0
+	CALL {
+		WITH this0
+		CALL {
+			WITH this0
+			WITH this0 AS this
+			MATCH (m:Movie {
+				title: $param0
+			})
+			RETURN m
+		}
+		WITH m AS this1
+		RETURN collect(this1 {
+			.title
+		}) AS this1
+	}
+	RETURN head(collect(this0 {
+		.name,
+		movies: this1
+	})) AS this0
 }
-RETURN this { .title, topActor: this0 } AS this
+RETURN this {
+	.title,
+	topActor: this0
+} AS this
 ----
 
 '''
@@ -271,7 +290,7 @@ RETURN this { .title, topActor: this0 } AS this
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -279,17 +298,22 @@ RETURN this { .title, topActor: this0 } AS this
 ----
 MATCH (this:Movie)
 CALL {
-    WITH this
-    CALL {
-        WITH this
-        WITH this AS this
-        MATCH (a:Actor)
-        RETURN a
-    }
-    WITH a AS this0
-    RETURN head(collect(this0 { .name })) AS this0
+	WITH this
+	CALL {
+		WITH this
+		WITH this AS this
+		MATCH (a:Actor)
+		RETURN a
+	}
+	WITH a AS this0
+	RETURN head(collect(this0 {
+		.name
+	})) AS this0
 }
-RETURN this { .title, topActor: this0 } AS this
+RETURN this {
+	.title,
+	topActor: this0
+} AS this
 ----
 
 '''
@@ -309,7 +333,7 @@ RETURN this { .title, topActor: this0 } AS this
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -317,16 +341,18 @@ RETURN this { .title, topActor: this0 } AS this
 ----
 MATCH (this:Actor)
 CALL {
-    WITH this
-    CALL {
-        WITH this
-        WITH this AS this
-        RETURN rand() as res
-    }
-    UNWIND res AS this0
-    RETURN head(collect(this0)) AS this0
+	WITH this
+	CALL {
+		WITH this
+		WITH this AS this
+		RETURN rand() AS res
+	}
+	UNWIND res AS this0
+	RETURN head(collect(this0)) AS this0
 }
-RETURN this { randomNumber: this0 } AS this
+RETURN this {
+	randomNumber: this0
+} AS this
 ----
 
 '''
@@ -359,8 +385,8 @@ RETURN this { randomNumber: this0 } AS this
 [source,json]
 ----
 {
-  "param0": "some title",
-  "param1": "another title"
+  "param0" : "some title",
+  "param1" : "another title"
 }
 ----
 
@@ -369,50 +395,68 @@ RETURN this { randomNumber: this0 } AS this
 ----
 MATCH (this:Movie)
 CALL {
-    WITH this
-    CALL {
-        WITH this
-        WITH this AS this
-        MATCH (a:Actor)
-        RETURN a
-    }
-    WITH a AS this0
-    CALL {
-        WITH this0
-        CALL {
-            WITH this0
-            WITH this0 AS this
-            MATCH (m:Movie {title: $param0})
-            RETURN m
-        }
-        WITH m AS this1
-        CALL {
-            WITH this1
-            CALL {
-                WITH this1
-                WITH this1 AS this
-                MATCH (a:Actor)
-                RETURN a
-            }
-            WITH a AS this2
-            CALL {
-                WITH this2
-                CALL {
-                    WITH this2
-                    WITH this2 AS this
-                    MATCH (m:Movie {title: $param1})
-                    RETURN m
-                }
-                WITH m AS this3
-                RETURN collect(this3 { .title }) AS this3
-            }
-            RETURN head(collect(this2 { .name, movies: this3 })) AS this2
-        }
-        RETURN collect(this1 { .title, topActor: this2 }) AS this1
-    }
-    RETURN head(collect(this0 { .name, movies: this1 })) AS this0
+	WITH this
+	CALL {
+		WITH this
+		WITH this AS this
+		MATCH (a:Actor)
+		RETURN a
+	}
+	WITH a AS this0
+	CALL {
+		WITH this0
+		CALL {
+			WITH this0
+			WITH this0 AS this
+			MATCH (m:Movie {
+				title: $param0
+			})
+			RETURN m
+		}
+		WITH m AS this1
+		CALL {
+			WITH this1
+			CALL {
+				WITH this1
+				WITH this1 AS this
+				MATCH (a:Actor)
+				RETURN a
+			}
+			WITH a AS this2
+			CALL {
+				WITH this2
+				CALL {
+					WITH this2
+					WITH this2 AS this
+					MATCH (m:Movie {
+						title: $param1
+					})
+					RETURN m
+				}
+				WITH m AS this3
+				RETURN collect(this3 {
+					.title
+				}) AS this3
+			}
+			RETURN head(collect(this2 {
+				.name,
+				movies: this3
+			})) AS this2
+		}
+		RETURN collect(this1 {
+			.title,
+			topActor: this2
+		}) AS this1
+	}
+	RETURN head(collect(this0 {
+		.name,
+		movies: this1
+	})) AS this0
 }
-RETURN this { .title, topActor: this0 } AS this
+RETURN this {
+	.title,
+	topActor: this0
+} AS this
 ----
 
 '''
@@ -452,7 +496,7 @@ RETURN this { .title, topActor: this0 } AS this
 [source,json]
 ----
 {
-  "param0": "some title"
+  "param0" : "some title"
 }
 ----
 
@@ -461,58 +505,79 @@ RETURN this { .title, topActor: this0 } AS this
 ----
 MATCH (this:Actor)
 CALL {
-    WITH this
-    CALL {
-        WITH this
-        WITH this AS this
-        MATCH (n)
-        WHERE (n:TVShow OR n:Movie) AND ($param0 IS NULL OR n.title = $param0)
-        RETURN n
-    }
-    WITH n AS this0
-    WITH *
-    WHERE (this0:Movie OR this0:TVShow)
-    WITH *, this0 AS this1
-    CALL {
-        WITH this1
-        CALL {
-            WITH this1
-            WITH this1 AS this
-            MATCH (a:Actor)
-            RETURN a
-        }
-        WITH a AS this2
-        RETURN head(collect(this2 { .name, .year })) AS this2
-    }
-    CALL {
-        WITH this1
-        CALL {
-            WITH this1
-            WITH this1 AS this
-            MATCH (a:Actor)
-            RETURN a
-        }
-        WITH a AS this3
-        RETURN collect(this3 { .name }) AS this3
-    }
-    WITH *, this0 AS this4
-    CALL {
-        WITH this4
-        CALL {
-            WITH this4
-            WITH this4 AS this
-            MATCH (a:Actor)
-            RETURN a
-        }
-        WITH a AS this5
-        RETURN head(collect(this5 { .name })) AS this5
-    }
-    RETURN collect(CASE
-        WHEN this0:Movie THEN this0 { .id, .title, topActor: this2, actors: this3, __resolveType: "Movie" }
-        WHEN this0:TVShow THEN this0 { .id, .title, topActor: this5, __resolveType: "TVShow" }
-    END) AS this0
+	WITH this
+	CALL {
+		WITH this
+		WITH this AS this
+		MATCH (n)
+		WHERE ((n:TVShow
+				OR n:Movie)
+			AND ($param0 IS NULL
+				OR n.title = $param0))
+		RETURN n
+	}
+	WITH n AS this0
+	WITH *
+	WHERE (this0:Movie
+		OR this0:TVShow)
+	WITH *, this0 AS this1
+	CALL {
+		WITH this1
+		CALL {
+			WITH this1
+			WITH this1 AS this
+			MATCH (a:Actor)
+			RETURN a
+		}
+		WITH a AS this2
+		RETURN head(collect(this2 {
+			.name,
+			.year
+		})) AS this2
+	}
+	CALL {
+		WITH this1
+		CALL {
+			WITH this1
+			WITH this1 AS this
+			MATCH (a:Actor)
+			RETURN a
+		}
+		WITH a AS this3
+		RETURN collect(this3 {
+			.name
+		}) AS this3
+	}
+	WITH *, this0 AS this4
+	CALL {
+		WITH this4
+		CALL {
+			WITH this4
+			WITH this4 AS this
+			MATCH (a:Actor)
+			RETURN a
+		}
+		WITH a AS this5
+		RETURN head(collect(this5 {
+			.name
+		})) AS this5
+	}
+	RETURN collect(CASE WHEN this0:Movie THEN this0 {
+		.id,
+		.title,
+		topActor: this2,
+		actors: this3,
+		__resolveType: 'Movie'
+	} WHEN this0:TVShow THEN this0 {
+		.id,
+		.title,
+		topActor: this5,
+		__resolveType: 'TVShow'
+	} END) AS this0
 }
-RETURN this { movieOrTVShow: this0 } AS this
+RETURN this {
+	movieOrTVShow: this0
+} AS this
 ----
 
 '''
@@ -535,7 +600,7 @@ RETURN this { movieOrTVShow: this0 } AS this
 [source,json]
 ----
 {
-  "param0": "some title"
+  "param0" : "some title"
 }
 ----
 
@@ -544,23 +609,30 @@ RETURN this { movieOrTVShow: this0 } AS this
 ----
 MATCH (this:Actor)
 CALL {
-    WITH this
-    CALL {
-        WITH this
-        WITH this AS this
-        MATCH (n)
-        WHERE (n:TVShow OR n:Movie) AND ($param0 IS NULL OR n.title = $param0)
-        RETURN n
-    }
-    WITH n AS this0
-    WITH *
-    WHERE (this0:Movie OR this0:TVShow)
-    RETURN collect(CASE
-        WHEN this0:Movie THEN this0 { __resolveType: "Movie" }
-        WHEN this0:TVShow THEN this0 { __resolveType: "TVShow" }
-    END) AS this0
+	WITH this
+	CALL {
+		WITH this
+		WITH this AS this
+		MATCH (n)
+		WHERE ((n:TVShow
+				OR n:Movie)
+			AND ($param0 IS NULL
+				OR n.title = $param0))
+		RETURN n
+	}
+	WITH n AS this0
+	WITH *
+	WHERE (this0:Movie
+		OR this0:TVShow)
+	RETURN collect(CASE WHEN this0:Movie THEN this0 {
+		__resolveType: 'Movie'
+	} WHEN this0:TVShow THEN this0 {
+		__resolveType: 'TVShow'
+	} END) AS this0
 }
-RETURN this { movieOrTVShow: this0 } AS this
+RETURN this {
+	movieOrTVShow: this0
+} AS this
 ----
 
 '''

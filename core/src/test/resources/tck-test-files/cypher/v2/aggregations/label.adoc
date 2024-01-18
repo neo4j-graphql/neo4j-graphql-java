@@ -51,32 +51,49 @@ type Actor @node(labels: ["Actor", "Person", "Alien"]) {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 CALL {
-    MATCH (this:Actor:Person:Alien)
-    RETURN { _shortest: min(this.id), _longest: max(this.id) } AS var0
+	MATCH (this:Actor:Person:Alien)
+	RETURN {
+		_shortest: min(this.id),
+		_longest: max(this.id)
+	} AS var0
 }
 CALL {
-    MATCH (this:Actor:Person:Alien)
-    WITH this
-    ORDER BY size(this.name) DESC
-    WITH collect(this.name) AS list
-    RETURN { _longest: head(list), _shortest: last(list) } AS var1
+	MATCH (this:Actor:Person:Alien)
+	WITH this ORDER BY size(this.name) DESC
+	WITH collect(this.name) AS list
+	RETURN {
+		_longest: head(list),
+		_shortest: last(list)
+	} AS var1
 }
 CALL {
-    MATCH (this:Actor:Person:Alien)
-    RETURN { _min: min(this.imdbRating), _max: max(this.imdbRating), _average: avg(this.imdbRating) } AS var2
+	MATCH (this:Actor:Person:Alien)
+	RETURN {
+		_min: min(this.imdbRating),
+		_max: max(this.imdbRating),
+		_average: avg(this.imdbRating)
+	} AS var2
 }
 CALL {
-    MATCH (this:Actor:Person:Alien)
-    RETURN { _min: apoc.date.convertFormat(toString(min(this.createdAt)), "iso_zoned_date_time", "iso_offset_date_time"), _max: apoc.date.convertFormat(toString(max(this.createdAt)), "iso_zoned_date_time", "iso_offset_date_time") } AS var3
+	MATCH (this:Actor:Person:Alien)
+	RETURN {
+		_min: apoc.date.convertFormat(toString(min(this.createdAt)), 'iso_zoned_date_time', 'iso_offset_date_time'),
+		_max: apoc.date.convertFormat(toString(max(this.createdAt)), 'iso_zoned_date_time', 'iso_offset_date_time')
+	} AS var3
 }
-RETURN { _id: var0, _name: var1, _imdbRating: var2, _createdAt: var3 }
+RETURN {
+	_id: var0,
+	_name: var1,
+	_imdbRating: var2,
+	_createdAt: var3
+}
 ----
 
 '''
@@ -112,32 +129,49 @@ RETURN { _id: var0, _name: var1, _imdbRating: var2, _createdAt: var3 }
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 CALL {
-    MATCH (this:Film)
-    RETURN { _shortest: min(this.id), _longest: max(this.id) } AS var0
+	MATCH (this:Film)
+	RETURN {
+		_shortest: min(this.id),
+		_longest: max(this.id)
+	} AS var0
 }
 CALL {
-    MATCH (this:Film)
-    WITH this
-    ORDER BY size(this.title) DESC
-    WITH collect(this.title) AS list
-    RETURN { _longest: head(list), _shortest: last(list) } AS var1
+	MATCH (this:Film)
+	WITH this ORDER BY size(this.title) DESC
+	WITH collect(this.title) AS list
+	RETURN {
+		_longest: head(list),
+		_shortest: last(list)
+	} AS var1
 }
 CALL {
-    MATCH (this:Film)
-    RETURN { _min: min(this.imdbRating), _max: max(this.imdbRating), _average: avg(this.imdbRating) } AS var2
+	MATCH (this:Film)
+	RETURN {
+		_min: min(this.imdbRating),
+		_max: max(this.imdbRating),
+		_average: avg(this.imdbRating)
+	} AS var2
 }
 CALL {
-    MATCH (this:Film)
-    RETURN { _min: apoc.date.convertFormat(toString(min(this.createdAt)), "iso_zoned_date_time", "iso_offset_date_time"), _max: apoc.date.convertFormat(toString(max(this.createdAt)), "iso_zoned_date_time", "iso_offset_date_time") } AS var3
+	MATCH (this:Film)
+	RETURN {
+		_min: apoc.date.convertFormat(toString(min(this.createdAt)), 'iso_zoned_date_time', 'iso_offset_date_time'),
+		_max: apoc.date.convertFormat(toString(max(this.createdAt)), 'iso_zoned_date_time', 'iso_offset_date_time')
+	} AS var3
 }
-RETURN { _id: var0, _title: var1, _imdbRating: var2, _createdAt: var3 }
+RETURN {
+	_id: var0,
+	_title: var1,
+	_imdbRating: var2,
+	_createdAt: var3
+}
 ----
 
 '''

@@ -35,12 +35,10 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0": [
-    {
-      "USERID": "userid",
-      "COMPANYID": "companyid"
-    }
-  ]
+  "create_param0" : [ {
+    "USERID" : "userid",
+    "COMPANYID" : "companyid"
+  } ]
 }
 ----
 
@@ -49,15 +47,15 @@ mutation {
 ----
 UNWIND $create_param0 AS create_var0
 CALL {
-    WITH create_var0
-    CREATE (create_this1:USER)
-    SET
-        create_this1.USERID = create_var0.USERID,
-        create_this1.COMPANYID = create_var0.COMPANYID
-    
-    RETURN create_this1
+	WITH create_var0
+	CREATE (create_this1:USER)
+	SET create_this1.USERID = create_var0.USERID, create_this1.COMPANYID = create_var0.COMPANYID
+	RETURN create_this1
 }
-RETURN collect(create_this1 { .USERID, .COMPANYID }) AS data
+RETURN collect(create_this1 {
+	.USERID,
+	.COMPANYID
+}) AS data
 ----
 
 '''
@@ -81,8 +79,8 @@ mutation {
 [source,json]
 ----
 {
-  "param0": "userid",
-  "this_update_COMPANYID": "companyid2"
+  "param0" : "userid",
+  "this_update_COMPANYID" : "companyid2"
 }
 ----
 
@@ -91,11 +89,11 @@ mutation {
 ----
 MATCH (this:USER)
 WHERE this.USERID = $param0
-
-
 SET this.COMPANYID = $this_update_COMPANYID
-
-RETURN collect(DISTINCT this { .USERID, .COMPANYID }) AS data
+RETURN collect(DISTINCT this {
+	.USERID,
+	.COMPANYID
+}) AS data
 ----
 
 '''

@@ -34,7 +34,7 @@ type Place {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -42,46 +42,51 @@ type Place {
 ----
 MATCH (this:Place)
 CALL {
-    WITH this
-    CALL {
-        WITH this
-        WITH this AS this
-        return '' + '' as result
-    }
-    UNWIND result AS this0
-    RETURN head(collect(this0)) AS this0
+	WITH this
+	CALL {
+		WITH this
+		WITH this AS this
+		RETURN ('' + '') AS result
+	}
+	UNWIND result AS this0
+	RETURN head(collect(this0)) AS this0
 }
 CALL {
-    WITH this
-    CALL {
-        WITH this
-        WITH this AS this
-        return '' + '' as result
-    }
-    UNWIND result AS this1
-    RETURN head(collect(this1)) AS this1
+	WITH this
+	CALL {
+		WITH this
+		WITH this AS this
+		RETURN ('' + '') AS result
+	}
+	UNWIND result AS this1
+	RETURN head(collect(this1)) AS this1
 }
 CALL {
-    WITH this
-    CALL {
-        WITH this
-        WITH this AS this
-        return ['' + ''] as result
-    }
-    UNWIND result AS this2
-    RETURN collect(this2) AS this2
+	WITH this
+	CALL {
+		WITH this
+		WITH this AS this
+		RETURN [('' + '')] AS result
+	}
+	UNWIND result AS this2
+	RETURN collect(this2) AS this2
 }
 CALL {
-    WITH this
-    CALL {
-        WITH this
-        WITH this AS this
-        return ['' + ''] as result
-    }
-    UNWIND result AS this3
-    RETURN collect(this3) AS this3
+	WITH this
+	CALL {
+		WITH this
+		WITH this AS this
+		RETURN [('' + '')] AS result
+	}
+	UNWIND result AS this3
+	RETURN collect(this3) AS this3
 }
-RETURN this { url_works: this0, url_fails: this1, url_array_works: this2, url_array_fails: this3 } AS this
+RETURN this {
+	url_works: this0,
+	url_fails: this1,
+	url_array_works: this2,
+	url_array_fails: this3
+} AS this
 ----
 
 '''

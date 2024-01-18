@@ -1,0 +1,217 @@
+:toc:
+
+= context-variable-not-always-resolved-on-cypher-queries
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Expr @node(labels: ["Exprlabel", "$context.tenant", "Resource"]) @mutation(operations: []) @limit(default: 100, max: 300) {
+  iri: ID! @id @alias(property: "uri")
+  realizationOf: Work @relationship(type: "realizationOf", direction: OUT)
+  relToUnion: [unionTarget!]! @relationship(type: "relToUnion", direction: OUT)
+  relToInterface: [interfaceTarget!]! @relationship(type: "relToInterface", direction: OUT)
+}
+
+type Work @node(labels: ["WorkLabel", "$context.tenant", "Resource"]) @mutation(operations: []) @limit(default: 100, max: 300) {
+  iri: ID! @id @alias(property: "uri")
+  hasResourceType: [ResourceType!]! @relationship(type: "hasResourceType", direction: OUT)
+}
+
+type ResourceType @mutation(operations: []) @limit(default: 1, max: 1000) {
+  iri: ID! @id @alias(property: "uri")
+}
+
+type coreFrag implements interfaceTarget @node(labels: ["coreFrag", "$context.tenant", "Resource"]) @mutation(operations: []) @limit(default: 100, max: 1000) {
+  iri: ID! @id @alias(property: "uri")
+}
+
+type coreRoot @node(labels: ["coreRoot", "Resource"]) @mutation(operations: []) @limit(default: 100, max: 300) {
+  iri: ID! @id @alias(property: "uri")
+}
+
+union unionTarget = coreRoot | coreFrag
+
+interface interfaceTarget {
+  iri: ID!
+}
+----
+
+== should apply dynamic label with filter
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  exprs(
+    where: {realizationOf: {hasResourceType: {iri: "http://data.somesite.com/crown/test-id"}}}
+    options: {limit: 1}
+  ) {
+    iri
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "http://data.somesite.com/crown/test-id",
+  "param1" : 1,
+  "tenant" : "test"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Exprlabel:test:Resource)
+WHERE single(this0 IN [(this)-[:realizationOf]->(this0)
+WHERE EXISTS {
+	MATCH (this0)-[:hasResourceType]->(this1:ResourceType)
+	WHERE this1.uri = $param0
+} | 1]
+WHERE true)
+WITH * LIMIT $param1
+RETURN this {
+	iri: this.uri
+} AS this
+----
+
+'''
+
+== should apply dynamic label with filter when queried an interface
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  exprs(
+    where: {realizationOf: {hasResourceType: {iri: "http://data.somesite.com/crown/test-id"}}}
+    options: {limit: 1}
+  ) {
+    iri
+    relToInterface {
+      ... on coreFrag {
+        iri
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "http://data.somesite.com/crown/test-id",
+  "param1" : 1,
+  "tenant" : "test"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Exprlabel:test:Resource)
+WHERE single(this0 IN [(this)-[:realizationOf]->(this0)
+WHERE EXISTS {
+	MATCH (this0)-[:hasResourceType]->(this1:ResourceType)
+	WHERE this1.uri = $param0
+} | 1]
+WHERE true)
+WITH * LIMIT $param1
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[this2:relToInterface]->(this3:coreFrag:test:Resource)
+		WITH this3 {
+			iri: this3.uri,
+			__resolveType: 'coreFrag',
+			__id: id(this3)
+		} AS this3
+		RETURN this3 AS var4
+	}
+	WITH var4
+	RETURN collect(var4) AS var4
+}
+RETURN this {
+	iri: this.uri,
+	relToInterface: var4
+} AS this
+----
+
+'''
+
+== should apply dynamic label with filter when queried an union
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  exprs(
+    where: {realizationOf: {hasResourceType: {iri: "http://data.somesite.com/crown/test-id"}}}
+    options: {limit: 1}
+  ) {
+    iri
+    relToUnion {
+      ... on coreFrag {
+        iri
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "http://data.somesite.com/crown/test-id",
+  "param1" : 1,
+  "tenant" : "test"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Exprlabel:test:Resource)
+WHERE single(this0 IN [(this)-[:realizationOf]->(this0)
+WHERE EXISTS {
+	MATCH (this0)-[:hasResourceType]->(this1:ResourceType)
+	WHERE this1.uri = $param0
+} | 1]
+WHERE true)
+WITH * LIMIT $param1
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[this2:relToUnion]->(this3:coreRoot:Resource)
+		WITH this3 {
+			__resolveType: 'coreRoot',
+			__id: id(this3)
+		} AS this3
+		RETURN this3 AS var4 UNION
+		WITH *
+		MATCH (this)-[this5:relToUnion]->(this6:coreFrag:test:Resource)
+		WITH this6 {
+			iri: this6.uri,
+			__resolveType: 'coreFrag',
+			__id: id(this6)
+		} AS this6
+		RETURN this6 AS var4
+	}
+	WITH var4
+	RETURN collect(var4) AS var4
+}
+RETURN this {
+	iri: this.uri,
+	relToUnion: var4
+} AS this
+----
+
+'''
+

@@ -1,0 +1,104 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/2766
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Actor {
+  name: String!
+  movies(title: String): [Movie] @cypher(statement: """
+  MATCH (this)-[]-(m:Movie {title: $title})
+  RETURN m
+  """, columnName: "m")
+}
+
+type Movie {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
+}
+----
+
+== should return nested Cypher fields
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  actors {
+    name
+    movies(title: "some title") {
+      title
+      actors {
+        name
+        movies(title: "another title") {
+          title
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "some title",
+  "param1" : "another title"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+CALL {
+	WITH this
+	CALL {
+		WITH this
+		WITH this AS this
+		MATCH (this)--(m:Movie {
+			title: $param0
+		})
+		RETURN m
+	}
+	WITH m AS this0
+	CALL {
+		WITH this0
+		MATCH (this0)<-[this1:ACTED_IN]-(this2:Actor)
+		CALL {
+			WITH this2
+			CALL {
+				WITH this2
+				WITH this2 AS this
+				MATCH (this)--(m:Movie {
+					title: $param1
+				})
+				RETURN m
+			}
+			WITH m AS this3
+			RETURN collect(this3 {
+				.title
+			}) AS this3
+		}
+		WITH this2 {
+			.name,
+			movies: this3
+		} AS this2
+		RETURN collect(this2) AS var4
+	}
+	RETURN collect(this0 {
+		.title,
+		actors: var4
+	}) AS this0
+}
+RETURN this {
+	.name,
+	movies: this0
+} AS this
+----
+
+'''
+

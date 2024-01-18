@@ -1,0 +1,104 @@
+:toc:
+
+= Connect or create with @alias
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type BibliographicReference @node(labels: ["BibliographicReference", "Resource"]) {
+  iri: ID! @unique @alias(property: "_uri")
+  prefLabel: [String]
+  isInPublication: [Concept!]! @relationship(type: "isInPublication", direction: OUT)
+}
+
+type Concept @node(labels: ["Concept", "Resource"]) {
+  iri: ID! @unique @alias(property: "$_uri")
+  prefLabel: [String]!
+}
+----
+
+== where with multiple filters and params
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  updateBibliographicReferences(
+    where: {iri: "urn:myiri2"}
+    update: {prefLabel: "Updated Label:My BRS with Resource", isInPublication: [{connectOrCreate: {where: {node: {iri: "new-g"}}, onCreate: {node: {iri: "new-g", prefLabel: "pub"}}}}, {connectOrCreate: {where: {node: {iri: "new-f"}}, onCreate: {node: {iri: "new-f", prefLabel: "pub"}}}}]}
+  ) {
+    bibliographicReferences {
+      iri
+      prefLabel
+      isInPublication(where: {iri_IN: ["new-f", "new-e"]}) {
+        iri
+        prefLabel
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "urn:myiri2",
+  "this_isInPublication0_connectOrCreate_param0" : "new-g",
+  "this_isInPublication0_connectOrCreate_param1" : "new-g",
+  "this_isInPublication0_connectOrCreate_param2" : [ "pub" ],
+  "this_isInPublication1_connectOrCreate_param0" : "new-f",
+  "this_isInPublication1_connectOrCreate_param1" : "new-f",
+  "this_isInPublication1_connectOrCreate_param2" : [ "pub" ],
+  "this_update_prefLabel" : [ "Updated Label:My BRS with Resource" ],
+  "update_param0" : [ "new-f", "new-e" ]
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:BibliographicReference:Resource)
+WHERE this._uri = $param0
+SET this.prefLabel = $this_update_prefLabel
+WITH this
+CALL {
+	WITH this
+	MERGE (this_isInPublication0_connectOrCreate0:Concept:Resource {
+		$_uri: $this_isInPublication0_connectOrCreate_param0
+	})
+	ON CREATE SET this_isInPublication0_connectOrCreate0.$_uri = $this_isInPublication0_connectOrCreate_param1, this_isInPublication0_connectOrCreate0.prefLabel = $this_isInPublication0_connectOrCreate_param2
+	MERGE (this)-[this_isInPublication0_connectOrCreate_this0:isInPublication]->(this_isInPublication0_connectOrCreate0)
+	RETURN count(*) AS _
+}
+WITH this
+CALL {
+	WITH this
+	MERGE (this_isInPublication1_connectOrCreate0:Concept:Resource {
+		$_uri: $this_isInPublication1_connectOrCreate_param0
+	})
+	ON CREATE SET this_isInPublication1_connectOrCreate0.$_uri = $this_isInPublication1_connectOrCreate_param1, this_isInPublication1_connectOrCreate0.prefLabel = $this_isInPublication1_connectOrCreate_param2
+	MERGE (this)-[this_isInPublication1_connectOrCreate_this0:isInPublication]->(this_isInPublication1_connectOrCreate0)
+	RETURN count(*) AS _
+}
+WITH *
+CALL {
+	WITH this
+	MATCH (this)-[update_this0:isInPublication]->(update_this1:Concept:Resource)
+	WHERE update_this1.$_uri IN $update_param0
+	WITH update_this1 {
+		iri: update_this1.$_uri,
+		.prefLabel
+	} AS update_this1
+	RETURN collect(update_this1) AS update_var2
+}
+RETURN collect(DISTINCT this {
+	iri: this._uri,
+	.prefLabel,
+	isInPublication: update_var2
+}) AS data
+----
+
+'''
+
