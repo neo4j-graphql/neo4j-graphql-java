@@ -40,7 +40,7 @@ object FieldFactory {
 
             if (directives.containsKey(PrivateDirective.NAME)) return@forEach
 
-            val annotations = Annotations(directives)
+            val annotations = Annotations(directives, jwtShape = null)
             val typeMeta = TypeMeta.create(field)
 
             val fieldInterface = typeDefinitionRegistry.getTypeByName<InterfaceTypeDefinition>(typeMeta.type.name())

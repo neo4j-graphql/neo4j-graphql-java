@@ -23,7 +23,7 @@ class ConnectOrCreateInput private constructor(
     object Augmentation : AugmentationBase {
         fun generateContainerConnectOrCreateInputIT(node: Node, ctx: AugmentationContext) =
             ctx.getOrCreateRelationInputObjectType(
-                node.operations.connectOrCreateInputTypeName,
+                node.namings.connectOrCreateInputTypeName,
                 node.relationFields,
                 RelationFieldBaseAugmentation::generateFieldConnectOrCreateIT,
                 condition = { it.annotations.relationship?.isConnectOrCreateAllowed != false },

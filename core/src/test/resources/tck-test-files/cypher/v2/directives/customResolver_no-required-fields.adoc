@@ -12,7 +12,6 @@ type User {
   fullName: String! @customResolver
 }
 ----
-
 == should not over fetch when no other fields are manually selected
 
 .GraphQL-Query
@@ -28,16 +27,14 @@ type User {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 MATCH (this:User)
-RETURN this {
-	.fullName
-} AS this
+RETURN this { .fullName } AS this
 ----
 
 '''
@@ -58,17 +55,14 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 MATCH (this:User)
-RETURN this {
-	.firstName,
-	.fullName
-} AS this
+RETURN this { .firstName, .fullName } AS this
 ----
 
 '''

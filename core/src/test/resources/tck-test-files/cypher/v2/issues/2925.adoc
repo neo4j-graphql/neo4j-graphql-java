@@ -18,7 +18,6 @@ type User {
   hasRequiredGroup: Group! @relationship(type: "HAS_REQUIRED_GROUP", direction: OUT)
 }
 ----
-
 == should query nested relationship
 
 .GraphQL-Query
@@ -35,7 +34,9 @@ query Query {
 [source,json]
 ----
 {
-  "param0" : [ "Group A" ]
+  "param0": [
+    "Group A"
+  ]
 }
 ----
 
@@ -44,14 +45,10 @@ query Query {
 ----
 MATCH (this:Group)
 WHERE EXISTS {
-	MATCH (this)<-[:HAS_GROUP]-(this0:User)
-	WHERE single(this1 IN [(this0)-[:HAS_GROUP]->(this1)
-	WHERE this1.name IN $param0 | 1]
-	WHERE true)
+    MATCH (this)<-[:HAS_GROUP]-(this0:User)
+    WHERE single(this1 IN [(this0)-[:HAS_GROUP]->(this1:Group) WHERE this1.name IN $param0 | 1] WHERE true)
 }
-RETURN this {
-	.name
-} AS this
+RETURN this { .name } AS this
 ----
 
 '''
@@ -72,7 +69,9 @@ query Query {
 [source,json]
 ----
 {
-  "param0" : [ "Group A" ]
+  "param0": [
+    "Group A"
+  ]
 }
 ----
 
@@ -81,20 +80,17 @@ query Query {
 ----
 MATCH (this:Group)
 CALL {
-	WITH this
-	MATCH (this)<-[:HAS_GROUP]-(this0:User)
-	OPTIONAL MATCH (this0)-[:HAS_REQUIRED_GROUP]->(this1:Group)
-	WITH *, count(this1) AS hasRequiredGroupCount
-	WITH *
-	WHERE (hasRequiredGroupCount <> 0
-		AND this1.name IN $param0)
-	RETURN count(this0) > 0 AS var2
+    WITH this
+    MATCH (this)<-[:HAS_GROUP]-(this0:User)
+    OPTIONAL MATCH (this0)-[:HAS_REQUIRED_GROUP]->(this1:Group)
+    WITH *, count(this1) AS hasRequiredGroupCount
+    WITH *
+    WHERE (hasRequiredGroupCount <> 0 AND this1.name IN $param0)
+    RETURN count(this0) > 0 AS var2
 }
 WITH *
 WHERE var2 = true
-RETURN this {
-	.name
-} AS this
+RETURN this { .name } AS this
 ----
 
 '''
@@ -115,7 +111,9 @@ query Query {
 [source,json]
 ----
 {
-  "param0" : [ "Group A" ]
+  "param0": [
+    "Group A"
+  ]
 }
 ----
 
@@ -123,12 +121,8 @@ query Query {
 [source,cypher]
 ----
 MATCH (this:User)
-WHERE single(this0 IN [(this)-[:HAS_GROUP]->(this0)
-WHERE this0.name IN $param0 | 1]
-WHERE true)
-RETURN this {
-	.name
-} AS this
+WHERE single(this0 IN [(this)-[:HAS_GROUP]->(this0:Group) WHERE this0.name IN $param0 | 1] WHERE true)
+RETURN this { .name } AS this
 ----
 
 '''
@@ -149,7 +143,9 @@ query Query {
 [source,json]
 ----
 {
-  "param0" : [ "Group A" ]
+  "param0": [
+    "Group A"
+  ]
 }
 ----
 
@@ -160,11 +156,8 @@ MATCH (this:User)
 OPTIONAL MATCH (this)-[:HAS_REQUIRED_GROUP]->(this0:Group)
 WITH *, count(this0) AS hasRequiredGroupCount
 WITH *
-WHERE (hasRequiredGroupCount <> 0
-	AND this0.name IN $param0)
-RETURN this {
-	.name
-} AS this
+WHERE (hasRequiredGroupCount <> 0 AND this0.name IN $param0)
+RETURN this { .name } AS this
 ----
 
 '''

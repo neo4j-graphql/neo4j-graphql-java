@@ -66,7 +66,6 @@ type Netflix implements DistributionHouse {
   review: String!
 }
 ----
-
 == should not use a node label so it covers all nodes implementing the interface for connection rel
 
 .GraphQL-Query
@@ -83,7 +82,7 @@ type Netflix implements DistributionHouse {
 [source,json]
 ----
 {
-  "param0" : "test4"
+  "param0": "test4"
 }
 ----
 
@@ -92,15 +91,10 @@ type Netflix implements DistributionHouse {
 ----
 MATCH (this:Film)
 WHERE EXISTS {
-	MATCH (this)<-[this0:DISTRIBUTED_BY]-(this1)
-	WHERE (this1.name = $param0
-		AND (this1:Dishney
-			OR this1:Prime
-			OR this1:Netflix))
+    MATCH (this)<-[this0:DISTRIBUTED_BY]-(this1)
+    WHERE (this1.name = $param0 AND (this1:Dishney OR this1:Prime OR this1:Netflix))
 }
-RETURN this {
-	.title
-} AS this
+RETURN this { .title } AS this
 ----
 
 '''
@@ -123,7 +117,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "test2"
+  "param0": "test2"
 }
 ----
 
@@ -132,12 +126,10 @@ RETURN this {
 ----
 MATCH (this:Film)
 WHERE EXISTS {
-	MATCH (this)<-[this0:DISTRIBUTED_BY]-(this1:Dishney)
-	WHERE this1.name = $param0
+    MATCH (this)<-[this0:DISTRIBUTED_BY]-(this1:Dishney)
+    WHERE this1.name = $param0
 }
-RETURN this {
-	.title
-} AS this
+RETURN this { .title } AS this
 ----
 
 '''
@@ -160,7 +152,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "test"
+  "param0": "test"
 }
 ----
 
@@ -169,12 +161,10 @@ RETURN this {
 ----
 MATCH (this:Film)
 WHERE EXISTS {
-	MATCH (this)<-[this0:DISTRIBUTED_BY]-(this1:Netflix)
-	WHERE this1.name = $param0
+    MATCH (this)<-[this0:DISTRIBUTED_BY]-(this1:Netflix)
+    WHERE this1.name = $param0
 }
-RETURN this {
-	.title
-} AS this
+RETURN this { .title } AS this
 ----
 
 '''
@@ -197,7 +187,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "test3"
+  "param0": "test3"
 }
 ----
 
@@ -206,12 +196,10 @@ RETURN this {
 ----
 MATCH (this:Film)
 WHERE EXISTS {
-	MATCH (this)<-[this0:DISTRIBUTED_BY]-(this1:Dishney)
-	WHERE this1.name = $param0
+    MATCH (this)<-[this0:DISTRIBUTED_BY]-(this1:Dishney)
+    WHERE this1.name = $param0
 }
-RETURN this {
-	.title
-} AS this
+RETURN this { .title } AS this
 ----
 
 '''

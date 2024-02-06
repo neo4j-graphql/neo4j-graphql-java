@@ -46,7 +46,7 @@ query Node($id: ID!) {
 [source,json]
 ----
 {
-  "param0" : "A River Runs Through It"
+  "param0": "A River Runs Through It"
 }
 ----
 
@@ -55,9 +55,7 @@ query Node($id: ID!) {
 ----
 MATCH (this:Movie)
 WHERE this.title = $param0
-RETURN this {
-	.title
-} AS this
+RETURN this { .title } AS this
 ----
 
 '''

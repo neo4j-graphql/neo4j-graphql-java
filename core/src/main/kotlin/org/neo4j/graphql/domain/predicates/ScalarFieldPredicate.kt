@@ -3,8 +3,11 @@ package org.neo4j.graphql.domain.predicates
 import org.neo4j.graphql.domain.predicates.definitions.ScalarPredicateDefinition
 
 class ScalarFieldPredicate(
-    private val resolver: ScalarPredicateDefinition,
+    private val definition: ScalarPredicateDefinition,
     value: Any?
-) : ExpressionPredicate(resolver.name, resolver::createCondition, value) {
-    val field get() = resolver.field
+) : ExpressionPredicate(definition.name, definition::createCondition, value) {
+
+    val field get() = definition.field
+
+    fun evaluate(value: Any?): Boolean = definition.comparisonEvaluator(value, this.value)
 }

@@ -40,7 +40,7 @@ class CreateInput private constructor(
         ) =
             relationField.properties?.let { props ->
                 generateContainerCreateInputIT(
-                    relationField.operations.createInputTypeName,
+                    relationField.namings.createInputTypeName,
                     emptyList(),
                     props.fields,
                     ctx
@@ -50,7 +50,7 @@ class CreateInput private constructor(
             }
 
         fun generateContainerCreateInputIT(node: Node, ctx: AugmentationContext) = generateContainerCreateInputIT(
-            node.operations.createInputTypeName,
+            node.namings.createInputTypeName,
             node.fields.filterIsInstance<RelationField>(),
             node.scalarFields.filter { it.isCreateInputField() },
             ctx,

@@ -51,7 +51,6 @@ type MyOtherImplementationType implements MyInterface {
   "experimental": true
 }
 ----
-
 == Read interface
 
 .GraphQL-Query
@@ -70,16 +69,31 @@ type MyOtherImplementationType implements MyInterface {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [],
+    "jwt": {
+      "roles": [],
+      "jwtAllowedNamesExample": "Horror"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
 {
-  "isAuthenticated" : true,
-  "jwt" : {
-    "roles" : [ ],
-    "jwtAllowedNamesExample" : "Horror"
+  "isAuthenticated": true,
+  "jwt": {
+    "roles": [],
+    "jwtAllowedNamesExample": "Horror"
   },
-  "param2" : "admin"
+  "param2": "admin"
 }
 ----
 
@@ -87,27 +101,16 @@ type MyOtherImplementationType implements MyInterface {
 [source,cypher]
 ----
 CALL {
-	MATCH (this0:SomeNodeType)
-	WHERE apoc.util.validatePredicate(NOT (($isAuthenticated = true
-		AND $jwt.jwtAllowedNamesExample IS NOT NULL
-		AND this0.id = $jwt.jwtAllowedNamesExample
-		AND $jwt.roles IS NOT NULL
-		AND $param2 IN $jwt.roles)), '@neo4j/graphql/FORBIDDEN', [0])
-	CALL {
-		WITH this0
-		MATCH (this0)-[this1:HAS_OTHER_NODES]->(this2:OtherNodeType)
-		WITH this2 {
-			.id
-		} AS this2
-		RETURN head(collect(this2)) AS var3
-	}
-	WITH this0 {
-		.id,
-		other: var3,
-		__resolveType: 'SomeNodeType',
-		__id: id(this0)
-	} AS this0
-	RETURN this0 AS this
+    MATCH (this0:SomeNodeType)
+    WHERE apoc.util.validatePredicate(NOT ($isAuthenticated = true AND ($jwt.jwtAllowedNamesExample IS NOT NULL AND this0.id = $jwt.jwtAllowedNamesExample) AND ($jwt.roles IS NOT NULL AND $param2 IN $jwt.roles)), "@neo4j/graphql/FORBIDDEN", [0])
+    CALL {
+        WITH this0
+        MATCH (this0)-[this1:HAS_OTHER_NODES]->(this2:OtherNodeType)
+        WITH this2 { .id } AS this2
+        RETURN head(collect(this2)) AS var3
+    }
+    WITH this0 { .id, other: var3, __resolveType: "SomeNodeType", __id: id(this0) } AS this0
+    RETURN this0 AS this
 }
 WITH this
 RETURN this AS this
@@ -127,17 +130,32 @@ RETURN this AS this
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [],
+    "jwt": {
+      "roles": [],
+      "jwtAllowedNamesExample": "Horror"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
 {
-  "isAuthenticated" : true,
-  "jwt" : {
-    "roles" : [ ],
-    "jwtAllowedNamesExample" : "Horror"
+  "isAuthenticated": true,
+  "jwt": {
+    "roles": [],
+    "jwtAllowedNamesExample": "Horror"
   },
-  "param2" : "admin",
-  "param3" : "a"
+  "param2": "admin",
+  "param3": "a"
 }
 ----
 
@@ -145,35 +163,19 @@ RETURN this AS this
 [source,cypher]
 ----
 CALL {
-	MATCH (this0:SomeNodeType)
-	WHERE apoc.util.validatePredicate(NOT (($isAuthenticated = true
-		AND $jwt.jwtAllowedNamesExample IS NOT NULL
-		AND this0.id = $jwt.jwtAllowedNamesExample
-		AND $jwt.roles IS NOT NULL
-		AND $param2 IN $jwt.roles)), '@neo4j/graphql/FORBIDDEN', [0])
-	WITH this0 {
-		.id,
-		__resolveType: 'SomeNodeType',
-		__id: id(this0)
-	} AS this0
-	RETURN this0 AS this UNION
-	MATCH (this1:MyImplementationType)
-	WHERE apoc.util.validatePredicate(NOT (($isAuthenticated = true
-		AND $jwt.groups IS NOT NULL
-		AND $param3 IN $jwt.groups)), '@neo4j/graphql/FORBIDDEN', [0])
-	WITH this1 {
-		.id,
-		__resolveType: 'MyImplementationType',
-		__id: id(this1)
-	} AS this1
-	RETURN this1 AS this UNION
-	MATCH (this2:MyOtherImplementationType)
-	WITH this2 {
-		.id,
-		__resolveType: 'MyOtherImplementationType',
-		__id: id(this2)
-	} AS this2
-	RETURN this2 AS this
+    MATCH (this0:SomeNodeType)
+    WHERE apoc.util.validatePredicate(NOT ($isAuthenticated = true AND ($jwt.jwtAllowedNamesExample IS NOT NULL AND this0.id = $jwt.jwtAllowedNamesExample) AND ($jwt.roles IS NOT NULL AND $param2 IN $jwt.roles)), "@neo4j/graphql/FORBIDDEN", [0])
+    WITH this0 { .id, __resolveType: "SomeNodeType", __id: id(this0) } AS this0
+    RETURN this0 AS this
+    UNION
+    MATCH (this1:MyImplementationType)
+    WHERE apoc.util.validatePredicate(NOT ($isAuthenticated = true AND ($jwt.groups IS NOT NULL AND $param3 IN $jwt.groups)), "@neo4j/graphql/FORBIDDEN", [0])
+    WITH this1 { .id, __resolveType: "MyImplementationType", __id: id(this1) } AS this1
+    RETURN this1 AS this
+    UNION
+    MATCH (this2:MyOtherImplementationType)
+    WITH this2 { .id, __resolveType: "MyOtherImplementationType", __id: id(this2) } AS this2
+    RETURN this2 AS this
 }
 WITH this
 RETURN this AS this
@@ -196,17 +198,32 @@ RETURN this AS this
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [],
+    "jwt": {
+      "roles": [],
+      "jwtAllowedNamesExample": "Horror"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
 {
-  "isAuthenticated" : true,
-  "jwt" : {
-    "roles" : [ ],
-    "jwtAllowedNamesExample" : "Horror"
+  "isAuthenticated": true,
+  "jwt": {
+    "roles": [],
+    "jwtAllowedNamesExample": "Horror"
   },
-  "param2" : "admin",
-  "param3" : "a"
+  "param2": "admin",
+  "param3": "a"
 }
 ----
 
@@ -214,36 +231,19 @@ RETURN this AS this
 [source,cypher]
 ----
 CALL {
-	MATCH (this0:SomeNodeType)
-	WHERE apoc.util.validatePredicate(NOT (($isAuthenticated = true
-		AND $jwt.jwtAllowedNamesExample IS NOT NULL
-		AND this0.id = $jwt.jwtAllowedNamesExample
-		AND $jwt.roles IS NOT NULL
-		AND $param2 IN $jwt.roles)), '@neo4j/graphql/FORBIDDEN', [0])
-	WITH this0 {
-		.id,
-		__resolveType: 'SomeNodeType',
-		__id: id(this0)
-	} AS this0
-	RETURN this0 AS this UNION
-	MATCH (this1:MyImplementationType)
-	WHERE apoc.util.validatePredicate(NOT (($isAuthenticated = true
-		AND $jwt.groups IS NOT NULL
-		AND $param3 IN $jwt.groups)), '@neo4j/graphql/FORBIDDEN', [0])
-	WITH this1 {
-		.id,
-		__resolveType: 'MyImplementationType',
-		__id: id(this1)
-	} AS this1
-	RETURN this1 AS this UNION
-	MATCH (this2:MyOtherImplementationType)
-	WITH this2 {
-		.id,
-		.someField,
-		__resolveType: 'MyOtherImplementationType',
-		__id: id(this2)
-	} AS this2
-	RETURN this2 AS this
+    MATCH (this0:SomeNodeType)
+    WHERE apoc.util.validatePredicate(NOT ($isAuthenticated = true AND ($jwt.jwtAllowedNamesExample IS NOT NULL AND this0.id = $jwt.jwtAllowedNamesExample) AND ($jwt.roles IS NOT NULL AND $param2 IN $jwt.roles)), "@neo4j/graphql/FORBIDDEN", [0])
+    WITH this0 { .id, __resolveType: "SomeNodeType", __id: id(this0) } AS this0
+    RETURN this0 AS this
+    UNION
+    MATCH (this1:MyImplementationType)
+    WHERE apoc.util.validatePredicate(NOT ($isAuthenticated = true AND ($jwt.groups IS NOT NULL AND $param3 IN $jwt.groups)), "@neo4j/graphql/FORBIDDEN", [0])
+    WITH this1 { .id, __resolveType: "MyImplementationType", __id: id(this1) } AS this1
+    RETURN this1 AS this
+    UNION
+    MATCH (this2:MyOtherImplementationType)
+    WITH this2 { .id, .someField, __resolveType: "MyOtherImplementationType", __id: id(this2) } AS this2
+    RETURN this2 AS this
 }
 WITH this
 RETURN this AS this
@@ -272,17 +272,32 @@ RETURN this AS this
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [],
+    "jwt": {
+      "roles": [],
+      "jwtAllowedNamesExample": "Horror"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
 {
-  "isAuthenticated" : true,
-  "jwt" : {
-    "roles" : [ ],
-    "jwtAllowedNamesExample" : "Horror"
+  "isAuthenticated": true,
+  "jwt": {
+    "roles": [],
+    "jwtAllowedNamesExample": "Horror"
   },
-  "param2" : "admin",
-  "param3" : "a"
+  "param2": "admin",
+  "param3": "a"
 }
 ----
 
@@ -290,38 +305,19 @@ RETURN this AS this
 [source,cypher]
 ----
 CALL {
-	MATCH (this0:SomeNodeType)
-	WHERE apoc.util.validatePredicate(NOT (($isAuthenticated = true
-		AND $jwt.jwtAllowedNamesExample IS NOT NULL
-		AND this0.id = $jwt.jwtAllowedNamesExample
-		AND $jwt.roles IS NOT NULL
-		AND $param2 IN $jwt.roles)), '@neo4j/graphql/FORBIDDEN', [0])
-	WITH this0 {
-		.id,
-		.something,
-		.somethingElse,
-		__resolveType: 'SomeNodeType',
-		__id: id(this0)
-	} AS this0
-	RETURN this0 AS this UNION
-	MATCH (this1:MyImplementationType)
-	WHERE apoc.util.validatePredicate(NOT (($isAuthenticated = true
-		AND $jwt.groups IS NOT NULL
-		AND $param3 IN $jwt.groups)), '@neo4j/graphql/FORBIDDEN', [0])
-	WITH this1 {
-		.id,
-		__resolveType: 'MyImplementationType',
-		__id: id(this1)
-	} AS this1
-	RETURN this1 AS this UNION
-	MATCH (this2:MyOtherImplementationType)
-	WITH this2 {
-		.id,
-		.someField,
-		__resolveType: 'MyOtherImplementationType',
-		__id: id(this2)
-	} AS this2
-	RETURN this2 AS this
+    MATCH (this0:SomeNodeType)
+    WHERE apoc.util.validatePredicate(NOT ($isAuthenticated = true AND ($jwt.jwtAllowedNamesExample IS NOT NULL AND this0.id = $jwt.jwtAllowedNamesExample) AND ($jwt.roles IS NOT NULL AND $param2 IN $jwt.roles)), "@neo4j/graphql/FORBIDDEN", [0])
+    WITH this0 { .id, .something, .somethingElse, __resolveType: "SomeNodeType", __id: id(this0) } AS this0
+    RETURN this0 AS this
+    UNION
+    MATCH (this1:MyImplementationType)
+    WHERE apoc.util.validatePredicate(NOT ($isAuthenticated = true AND ($jwt.groups IS NOT NULL AND $param3 IN $jwt.groups)), "@neo4j/graphql/FORBIDDEN", [0])
+    WITH this1 { .id, __resolveType: "MyImplementationType", __id: id(this1) } AS this1
+    RETURN this1 AS this
+    UNION
+    MATCH (this2:MyOtherImplementationType)
+    WITH this2 { .id, .someField, __resolveType: "MyOtherImplementationType", __id: id(this2) } AS this2
+    RETURN this2 AS this
 }
 WITH this
 RETURN this AS this
@@ -347,17 +343,32 @@ RETURN this AS this
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [],
+    "jwt": {
+      "roles": [],
+      "jwtAllowedNamesExample": "Horror"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
 {
-  "isAuthenticated" : true,
-  "jwt" : {
-    "roles" : [ ],
-    "jwtAllowedNamesExample" : "Horror"
+  "isAuthenticated": true,
+  "jwt": {
+    "roles": [],
+    "jwtAllowedNamesExample": "Horror"
   },
-  "param2" : "admin",
-  "param3" : "a"
+  "param2": "admin",
+  "param3": "a"
 }
 ----
 
@@ -365,37 +376,19 @@ RETURN this AS this
 [source,cypher]
 ----
 CALL {
-	MATCH (this0:SomeNodeType)
-	WHERE apoc.util.validatePredicate(NOT (($isAuthenticated = true
-		AND $jwt.jwtAllowedNamesExample IS NOT NULL
-		AND this0.id = $jwt.jwtAllowedNamesExample
-		AND $jwt.roles IS NOT NULL
-		AND $param2 IN $jwt.roles)), '@neo4j/graphql/FORBIDDEN', [0])
-	WITH this0 {
-		.id,
-		.something,
-		__resolveType: 'SomeNodeType',
-		__id: id(this0)
-	} AS this0
-	RETURN this0 AS this UNION
-	MATCH (this1:MyImplementationType)
-	WHERE apoc.util.validatePredicate(NOT (($isAuthenticated = true
-		AND $jwt.groups IS NOT NULL
-		AND $param3 IN $jwt.groups)), '@neo4j/graphql/FORBIDDEN', [0])
-	WITH this1 {
-		.id,
-		__resolveType: 'MyImplementationType',
-		__id: id(this1)
-	} AS this1
-	RETURN this1 AS this UNION
-	MATCH (this2:MyOtherImplementationType)
-	WITH this2 {
-		.id,
-		.someField,
-		__resolveType: 'MyOtherImplementationType',
-		__id: id(this2)
-	} AS this2
-	RETURN this2 AS this
+    MATCH (this0:SomeNodeType)
+    WHERE apoc.util.validatePredicate(NOT ($isAuthenticated = true AND ($jwt.jwtAllowedNamesExample IS NOT NULL AND this0.id = $jwt.jwtAllowedNamesExample) AND ($jwt.roles IS NOT NULL AND $param2 IN $jwt.roles)), "@neo4j/graphql/FORBIDDEN", [0])
+    WITH this0 { .id, .something, __resolveType: "SomeNodeType", __id: id(this0) } AS this0
+    RETURN this0 AS this
+    UNION
+    MATCH (this1:MyImplementationType)
+    WHERE apoc.util.validatePredicate(NOT ($isAuthenticated = true AND ($jwt.groups IS NOT NULL AND $param3 IN $jwt.groups)), "@neo4j/graphql/FORBIDDEN", [0])
+    WITH this1 { .id, __resolveType: "MyImplementationType", __id: id(this1) } AS this1
+    RETURN this1 AS this
+    UNION
+    MATCH (this2:MyOtherImplementationType)
+    WITH this2 { .id, .someField, __resolveType: "MyOtherImplementationType", __id: id(this2) } AS this2
+    RETURN this2 AS this
 }
 WITH this
 RETURN this AS this
@@ -415,17 +408,32 @@ RETURN this AS this
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [],
+    "jwt": {
+      "roles": [],
+      "jwtAllowedNamesExample": "Horror"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
 {
-  "isAuthenticated" : true,
-  "jwt" : {
-    "roles" : [ ],
-    "jwtAllowedNamesExample" : "Horror"
+  "param0": "1",
+  "isAuthenticated": true,
+  "jwt": {
+    "roles": [],
+    "jwtAllowedNamesExample": "Horror"
   },
-  "param0" : "1",
-  "param3" : "admin"
+  "param3": "admin"
 }
 ----
 
@@ -433,19 +441,10 @@ RETURN this AS this
 [source,cypher]
 ----
 CALL {
-	MATCH (this0:SomeNodeType)
-	WHERE (this0.id STARTS WITH $param0
-		AND apoc.util.validatePredicate(NOT (($isAuthenticated = true
-			AND $jwt.jwtAllowedNamesExample IS NOT NULL
-			AND this0.id = $jwt.jwtAllowedNamesExample
-			AND $jwt.roles IS NOT NULL
-			AND $param3 IN $jwt.roles)), '@neo4j/graphql/FORBIDDEN', [0]))
-	WITH this0 {
-		.id,
-		__resolveType: 'SomeNodeType',
-		__id: id(this0)
-	} AS this0
-	RETURN this0 AS this
+    MATCH (this0:SomeNodeType)
+    WHERE (this0.id STARTS WITH $param0 AND apoc.util.validatePredicate(NOT ($isAuthenticated = true AND ($jwt.jwtAllowedNamesExample IS NOT NULL AND this0.id = $jwt.jwtAllowedNamesExample) AND ($jwt.roles IS NOT NULL AND $param3 IN $jwt.roles)), "@neo4j/graphql/FORBIDDEN", [0]))
+    WITH this0 { .id, __resolveType: "SomeNodeType", __id: id(this0) } AS this0
+    RETURN this0 AS this
 }
 WITH this
 RETURN this AS this
@@ -468,17 +467,32 @@ RETURN this AS this
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [],
+    "jwt": {
+      "roles": [],
+      "jwtAllowedNamesExample": "Horror"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
 {
-  "isAuthenticated" : true,
-  "jwt" : {
-    "roles" : [ ],
-    "jwtAllowedNamesExample" : "Horror"
+  "param0": "4",
+  "isAuthenticated": true,
+  "jwt": {
+    "roles": [],
+    "jwtAllowedNamesExample": "Horror"
   },
-  "param0" : "4",
-  "param3" : "admin"
+  "param3": "admin"
 }
 ----
 
@@ -486,19 +500,10 @@ RETURN this AS this
 [source,cypher]
 ----
 CALL {
-	MATCH (this0:SomeNodeType)
-	WHERE (this0.id STARTS WITH $param0
-		AND apoc.util.validatePredicate(NOT (($isAuthenticated = true
-			AND $jwt.jwtAllowedNamesExample IS NOT NULL
-			AND this0.id = $jwt.jwtAllowedNamesExample
-			AND $jwt.roles IS NOT NULL
-			AND $param3 IN $jwt.roles)), '@neo4j/graphql/FORBIDDEN', [0]))
-	WITH this0 {
-		.id,
-		__resolveType: 'SomeNodeType',
-		__id: id(this0)
-	} AS this0
-	RETURN this0 AS this
+    MATCH (this0:SomeNodeType)
+    WHERE (this0.id STARTS WITH $param0 AND apoc.util.validatePredicate(NOT ($isAuthenticated = true AND ($jwt.jwtAllowedNamesExample IS NOT NULL AND this0.id = $jwt.jwtAllowedNamesExample) AND ($jwt.roles IS NOT NULL AND $param3 IN $jwt.roles)), "@neo4j/graphql/FORBIDDEN", [0]))
+    WITH this0 { .id, __resolveType: "SomeNodeType", __id: id(this0) } AS this0
+    RETURN this0 AS this
 }
 WITH this
 RETURN this AS this

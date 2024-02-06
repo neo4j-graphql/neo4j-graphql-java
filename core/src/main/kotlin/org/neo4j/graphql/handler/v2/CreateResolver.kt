@@ -13,6 +13,7 @@ import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.domain.fields.ScalarField
 import org.neo4j.graphql.handler.BaseDataFetcher
 import org.neo4j.graphql.handler.utils.ChainString
+import org.neo4j.graphql.schema.ArgumentsAugmentation
 import org.neo4j.graphql.schema.AugmentationBase
 import org.neo4j.graphql.schema.AugmentationContext
 import org.neo4j.graphql.schema.AugmentationHandler
@@ -22,7 +23,6 @@ import org.neo4j.graphql.schema.model.inputs.create.CreateInput
 import org.neo4j.graphql.schema.model.inputs.create.RelationFieldInput
 import org.neo4j.graphql.schema.model.outputs.NodeSelection
 import org.neo4j.graphql.translate.*
-import org.neo4j.graphql.translate.Operation
 import org.neo4j.graphql.utils.IResolveTree
 import org.neo4j.graphql.utils.ObjectFieldSelection
 import org.neo4j.graphql.utils.ResolveTree
@@ -39,7 +39,7 @@ class CreateResolver private constructor(
                 return emptyList()
             }
 
-            val arguments = CreateInputArguments.Augmentation.getFieldArguments(node, ctx)
+            val arguments = CreateInputArguments.Augmentation(node, ctx).getAugmentedArguments()
             if (arguments.isEmpty()) {
                 return emptyList()
             }
@@ -47,11 +47,10 @@ class CreateResolver private constructor(
             val responseType = CreateMutationSelection.Augmentation.getCreateResponse(node, ctx)
 
             val coordinates = addMutationField(
-                node.operations.rootTypeFieldNames.create,
+                node.namings.rootTypeFieldNames.create,
                 responseType.asRequiredType(),
                 arguments
             )
-
             return AugmentedField(coordinates, CreateResolver(ctx.schemaConfig, node)).wrapList()
         }
     }
@@ -59,15 +58,15 @@ class CreateResolver private constructor(
     private class CreateMutationSelection(node: Node, selection: IResolveTree) {
 
         val info = selection.getSingleFieldOfType(
-            node.operations.mutationResponseTypeNames.create,
+            node.namings.mutationResponseTypeNames.create,
             Constants.INFO_FIELD
         )
 
-        val node = selection.getSingleFieldOfType(node.operations.mutationResponseTypeNames.create, node.plural)
+        val node = selection.getSingleFieldOfType(node.namings.mutationResponseTypeNames.create, node.plural)
 
         object Augmentation : AugmentationBase {
             fun getCreateResponse(node: Node, ctx: AugmentationContext) =
-                ctx.getOrCreateObjectType(node.operations.mutationResponseTypeNames.create) { fields, _ ->
+                ctx.getOrCreateObjectType(node.namings.mutationResponseTypeNames.create) { fields, _ ->
                     fields += field(Constants.INFO_FIELD, NonNullType(Constants.Types.CreateInfo))
                     NodeSelection.Augmentation.generateNodeSelection(node, ctx)
                         ?.let { fields += field(node.plural, NonNullType(ListType(it.asRequiredType()))) }
@@ -82,18 +81,15 @@ class CreateResolver private constructor(
             .map { CreateInput.create(node, it) }
             .takeIf { it.isNotEmpty() }
 
-        object Augmentation : AugmentationBase {
+        class Augmentation(val node: Node, val ctx: AugmentationContext) : ArgumentsAugmentation {
 
-            fun getFieldArguments(node: Node, ctx: AugmentationContext): List<InputValueDefinition> {
-                val args = mutableListOf<InputValueDefinition>()
-
+            override fun augmentArguments(args: MutableList<InputValueDefinition>) {
                 CreateInput.Augmentation
                     .generateContainerCreateInputIT(node, ctx)
                     ?.let { inputType ->
                         args += inputValue(Constants.INPUT_FIELD, NonNullType(ListType(inputType.asRequiredType())))
                     }
 
-                return args
             }
         }
     }
@@ -217,13 +213,11 @@ class CreateResolver private constructor(
         val nestedCalls = input.create.map { (field, connectionInput) ->
             nestedCreateSubquery(field, connectionInput, currentNode, unwindVar, queryContext, prefix)
         }
-        val setExpressions = createSetPropertiesSplit(
+        val setExpressions = createSetPropertiesOnCreate(
             currentNode,
             input.properties.map { it to unwindVar.property(it.fieldName) },
-            Operation.CREATE,
             node
         )
-            ?.flatMap { listOf(it.first, it.second) }
 
         val authConditions = createAuthCondition(
             node,
@@ -295,23 +289,19 @@ class CreateResolver private constructor(
             .named(queryContext.getNextVariable(prefix))
 
 
-        val setNodeExpressions = createSetPropertiesSplit(
+        val setNodeExpressions = createSetPropertiesOnCreate(
             currentNode,
             connectionInput.nodeInput?.properties?.map { it to nodeVar.property(it.fieldName) },
-            Operation.CREATE,
             node
         )
-            ?.flatMap { listOf(it.first, it.second) }
 
         val rel = field.createDslRelation(parentVar, currentNode, "edge")
 
-        val setEdgeExpressions = createSetPropertiesSplit(
+        val setEdgeExpressions = createSetPropertiesOnCreate(
             rel,
             connectionInput.edgeProperties?.map { it to edgeVar.property(it.fieldName) },
-            Operation.CREATE,
             field.properties
         )
-            ?.flatMap { listOf(it.first, it.second) }
 
         val nestedCalls = connectionInput.nodeInput
             ?.create
@@ -409,7 +399,6 @@ class CreateResolver private constructor(
         val properties = inputs
             .mapNotNull { it.properties?.keys }
             .flatten()
-            .map { it }
             .toSet()
 
         val create: Map<RelationField, MergedConnectionCreateInput>

@@ -28,7 +28,6 @@ type Journal implements Publication {
   author: [Author!]! @relationship(type: "WROTE", direction: IN)
 }
 ----
-
 == should not fetch required fields if @customResolver field is not selected
 
 .GraphQL-Query
@@ -44,16 +43,14 @@ type Journal implements Publication {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 MATCH (this:Author)
-RETURN this {
-	.name
-} AS this
+RETURN this { .name } AS this
 ----
 
 '''
@@ -83,7 +80,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
@@ -91,35 +88,22 @@ RETURN this {
 ----
 MATCH (this:Author)
 CALL {
-	WITH this
-	CALL {
-		WITH *
-		MATCH (this)-[this0:WROTE]->(this1:Book)
-		WITH this1 {
-			.publicationYear,
-			.title,
-			__resolveType: 'Book',
-			__id: id(this1)
-		} AS this1
-		RETURN this1 AS var2 UNION
-		WITH *
-		MATCH (this)-[this3:WROTE]->(this4:Journal)
-		WITH this4 {
-			.publicationYear,
-			.subject,
-			__resolveType: 'Journal',
-			__id: id(this4)
-		} AS this4
-		RETURN this4 AS var2
-	}
-	WITH var2
-	RETURN collect(var2) AS var2
+    WITH this
+    CALL {
+        WITH *
+        MATCH (this)-[this0:WROTE]->(this1:Book)
+        WITH this1 { .publicationYear, .title, __resolveType: "Book", __id: id(this1) } AS this1
+        RETURN this1 AS var2
+        UNION
+        WITH *
+        MATCH (this)-[this3:WROTE]->(this4:Journal)
+        WITH this4 { .publicationYear, .subject, __resolveType: "Journal", __id: id(this4) } AS this4
+        RETURN this4 AS var2
+    }
+    WITH var2
+    RETURN collect(var2) AS var2
 }
-RETURN this {
-	.name,
-	.publicationsWithAuthor,
-	publications: var2
-} AS this
+RETURN this { .name, .publicationsWithAuthor, publications: var2 } AS this
 ----
 
 '''
@@ -139,7 +123,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
@@ -147,35 +131,22 @@ RETURN this {
 ----
 MATCH (this:Author)
 CALL {
-	WITH this
-	CALL {
-		WITH *
-		MATCH (this)-[this0:WROTE]->(this1:Book)
-		WITH this1 {
-			.publicationYear,
-			.title,
-			__resolveType: 'Book',
-			__id: id(this1)
-		} AS this1
-		RETURN this1 AS var2 UNION
-		WITH *
-		MATCH (this)-[this3:WROTE]->(this4:Journal)
-		WITH this4 {
-			.publicationYear,
-			.subject,
-			__resolveType: 'Journal',
-			__id: id(this4)
-		} AS this4
-		RETURN this4 AS var2
-	}
-	WITH var2
-	RETURN collect(var2) AS var2
+    WITH this
+    CALL {
+        WITH *
+        MATCH (this)-[this0:WROTE]->(this1:Book)
+        WITH this1 { .publicationYear, .title, __resolveType: "Book", __id: id(this1) } AS this1
+        RETURN this1 AS var2
+        UNION
+        WITH *
+        MATCH (this)-[this3:WROTE]->(this4:Journal)
+        WITH this4 { .publicationYear, .subject, __resolveType: "Journal", __id: id(this4) } AS this4
+        RETURN this4 AS var2
+    }
+    WITH var2
+    RETURN collect(var2) AS var2
 }
-RETURN this {
-	.publicationsWithAuthor,
-	.name,
-	publications: var2
-} AS this
+RETURN this { .publicationsWithAuthor, .name, publications: var2 } AS this
 ----
 
 '''
@@ -200,7 +171,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
@@ -208,35 +179,22 @@ RETURN this {
 ----
 MATCH (this:Author)
 CALL {
-	WITH this
-	CALL {
-		WITH *
-		MATCH (this)-[this0:WROTE]->(this1:Book)
-		WITH this1 {
-			.publicationYear,
-			.title,
-			__resolveType: 'Book',
-			__id: id(this1)
-		} AS this1
-		RETURN this1 AS var2 UNION
-		WITH *
-		MATCH (this)-[this3:WROTE]->(this4:Journal)
-		WITH this4 {
-			.publicationYear,
-			.subject,
-			__resolveType: 'Journal',
-			__id: id(this4)
-		} AS this4
-		RETURN this4 AS var2
-	}
-	WITH var2
-	RETURN collect(var2) AS var2
+    WITH this
+    CALL {
+        WITH *
+        MATCH (this)-[this0:WROTE]->(this1:Book)
+        WITH this1 { .publicationYear, .title, __resolveType: "Book", __id: id(this1) } AS this1
+        RETURN this1 AS var2
+        UNION
+        WITH *
+        MATCH (this)-[this3:WROTE]->(this4:Journal)
+        WITH this4 { .publicationYear, .subject, __resolveType: "Journal", __id: id(this4) } AS this4
+        RETURN this4 AS var2
+    }
+    WITH var2
+    RETURN collect(var2) AS var2
 }
-RETURN this {
-	.publicationsWithAuthor,
-	.name,
-	publications: var2
-} AS this
+RETURN this { .publicationsWithAuthor, .name, publications: var2 } AS this
 ----
 
 '''

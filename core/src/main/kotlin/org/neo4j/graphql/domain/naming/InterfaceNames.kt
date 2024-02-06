@@ -1,11 +1,11 @@
 package org.neo4j.graphql.domain.naming
 
-import org.neo4j.graphql.domain.directives.Annotations
+import org.neo4j.graphql.domain.directives.InterfaceAnnotations
 
-class InterfaceEntityOperations(
+class InterfaceNames(
     name: String,
-    annotations: Annotations
-) : ImplementingTypeOperations(name, annotations) {
+    annotations: InterfaceAnnotations
+) : ImplementingTypeNames(name, annotations) {
 
     val implementationEnumTypename get() = "${name}Implementation"
     val whereOnImplementationsWhereInputTypeName get() = "${name}ImplementationsWhere"

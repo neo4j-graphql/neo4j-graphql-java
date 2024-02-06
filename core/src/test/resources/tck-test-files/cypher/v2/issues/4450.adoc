@@ -26,7 +26,6 @@ interface ActorScene @relationshipProperties {
   cut: Boolean
 }
 ----
-
 == filtering through a connection to a many-to-1 relationship should work
 
 .GraphQL-Query
@@ -45,8 +44,8 @@ interface ActorScene @relationshipProperties {
 [source,json]
 ----
 {
-  "param0" : "test",
-  "param1" : true
+  "param0": "test",
+  "param1": true
 }
 ----
 
@@ -55,21 +54,17 @@ interface ActorScene @relationshipProperties {
 ----
 MATCH (this:Actor)
 CALL {
-	WITH this
-	MATCH (this)-[this0:IN_SCENE]->(this1:Scene)
-	OPTIONAL MATCH (this1)-[:AT_LOCATION]->(this2:Location)
-	WITH *, count(this2) AS locationCount
-	WITH *
-	WHERE (locationCount <> 0
-		AND this2.city = $param0
-		AND this0.cut = $param1)
-	RETURN count(this1) > 0 AS var3
+    WITH this
+    MATCH (this)-[this0:IN_SCENE]->(this1:Scene)
+    OPTIONAL MATCH (this1)-[:AT_LOCATION]->(this2:Location)
+    WITH *, count(this2) AS locationCount
+    WITH *
+    WHERE ((locationCount <> 0 AND this2.city = $param0) AND this0.cut = $param1)
+    RETURN count(this1) > 0 AS var3
 }
 WITH *
 WHERE var3 = true
-RETURN this {
-	.name
-} AS this
+RETURN this { .name } AS this
 ----
 
 '''

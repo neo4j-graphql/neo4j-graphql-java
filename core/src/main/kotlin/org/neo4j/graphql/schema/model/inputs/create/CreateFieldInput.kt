@@ -49,7 +49,7 @@ sealed interface CreateFieldInput {
                 if (!rel.shouldGenerateFieldInputType(node)) {
                     return null
                 }
-                return ctx.getOrCreateInputObjectType(rel.operations.getFieldInputTypeName(node)) { fields, _ ->
+                return ctx.getOrCreateInputObjectType(rel.namings.getFieldInputTypeName(node)) { fields, _ ->
                     if (rel.annotations.relationship?.isCreateAllowed != false) {
                         NodeCreateCreateFieldInput.Augmentation
                             .generateFieldCreateFieldInputIT(rel, node, ctx)
@@ -92,7 +92,7 @@ sealed interface CreateFieldInput {
                 if (!rel.shouldGenerateFieldInputType(interfaze)) {
                     return null
                 }
-                return ctx.getOrCreateInputObjectType(rel.operations.getFieldInputTypeName(interfaze)) { fields, _ ->
+                return ctx.getOrCreateInputObjectType(rel.namings.getFieldInputTypeName(interfaze)) { fields, _ ->
 
                     if (rel.annotations.relationship?.isCreateAllowed != false) {
                         InterfaceCreateFieldInput.Augmentation
@@ -100,7 +100,7 @@ sealed interface CreateFieldInput {
                                 rel,
                                 interfaze,
                                 ctx,
-                                name = rel.operations.getCreateFieldInputTypeNameAlternative(interfaze)
+                                name = rel.namings.getCreateFieldInputTypeNameAlternative(interfaze)
                             )
                             ?.let {
                                 fields += inputValue(Constants.CREATE_FIELD, it.wrapType(rel))
@@ -113,7 +113,7 @@ sealed interface CreateFieldInput {
                                 rel,
                                 interfaze,
                                 ctx,
-                                name = rel.operations.getConnectFieldInputTypeNameAlternative(interfaze)
+                                name = rel.namings.getConnectFieldInputTypeNameAlternative(interfaze)
                             )
                             ?.let { fields += inputValue(Constants.CONNECT_FIELD, it.wrapType(rel)) }
                     }

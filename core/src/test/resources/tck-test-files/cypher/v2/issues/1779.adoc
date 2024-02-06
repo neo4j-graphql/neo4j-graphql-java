@@ -36,7 +36,7 @@ type School {
 [source,json]
 ----
 {
-  "param0" : 23
+  "param0": 23
 }
 ----
 
@@ -45,25 +45,19 @@ type School {
 ----
 MATCH (this:Person)
 CALL {
-	WITH this
-	MATCH (this)-[this0:attends]->(this1:School)
-	WHERE (EXISTS {
-			MATCH (this1)<-[:attends]-(this2:Person)
-			WHERE this2.age > $param0
-		}
-		AND NOT (EXISTS {
-			MATCH (this1)<-[:attends]-(this2:Person)
-			WHERE NOT (this2.age > $param0)
-		}))
-	WITH this1 {
-		.name
-	} AS this1
-	RETURN collect(this1) AS var3
+    WITH this
+    MATCH (this)-[this0:attends]->(this1:School)
+    WHERE (EXISTS {
+        MATCH (this1)<-[:attends]-(this2:Person)
+        WHERE this2.age > $param0
+    } AND NOT (EXISTS {
+        MATCH (this1)<-[:attends]-(this2:Person)
+        WHERE NOT (this2.age > $param0)
+    }))
+    WITH this1 { .name } AS this1
+    RETURN collect(this1) AS var3
 }
-RETURN this {
-	.name,
-	attends: var3
-} AS this
+RETURN this { .name, attends: var3 } AS this
 ----
 
 '''

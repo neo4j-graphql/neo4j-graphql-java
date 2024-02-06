@@ -52,9 +52,9 @@ type Community {
 [source,json]
 ----
 {
-  "param0" : 4656564,
-  "param1" : 10,
-  "param2" : 0
+  "param0": 4656564,
+  "param1": 10,
+  "param2": 0
 }
 ----
 
@@ -64,29 +64,22 @@ type Community {
 MATCH (this:Community)
 WHERE this.id = $param0
 CALL {
-	WITH this
-	CALL {
-		WITH this
-		WITH this AS this
-		MATCH (this)-[:COMMUNITY_CONTENTPIECE_HASCONTENTPIECES|COMMUNITY_PROJECT_HASASSOCIATEDPROJECTS]-(pag)
-		RETURN pag SKIP ($param1 * $param2Index) LIMIT $param1
-	}
-	WITH pag AS this0
-	WITH *
-	WHERE (this0:Content
-		OR this0:Project)
-	RETURN collect(CASE WHEN this0:Content THEN this0 {
-		.name,
-		__resolveType: 'Content'
-	} WHEN this0:Project THEN this0 {
-		.name,
-		__resolveType: 'Project'
-	} END) AS this0
+    WITH this
+    CALL {
+        WITH this
+        WITH this AS this
+        Match(this)-[:COMMUNITY_CONTENTPIECE_HASCONTENTPIECES|:COMMUNITY_PROJECT_HASASSOCIATEDPROJECTS]-(pag)
+           return pag SKIP ($param1 * $param2Index) LIMIT $param1
+    }
+    WITH pag AS this0
+    WITH *
+    WHERE (this0:Content OR this0:Project)
+    RETURN collect(CASE
+        WHEN this0:Content THEN this0 { .name, __resolveType: "Content" }
+        WHEN this0:Project THEN this0 { .name, __resolveType: "Project" }
+    END) AS this0
 }
-RETURN this {
-	.id,
-	hasFeedItems: this0
-} AS this
+RETURN this { .id, hasFeedItems: this0 } AS this
 ----
 
 '''

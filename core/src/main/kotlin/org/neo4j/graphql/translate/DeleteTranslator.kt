@@ -41,8 +41,7 @@ fun createDeleteAndParams(
         val endNode = refNode.asCypherNode(queryContext, endNodeName)
         val dslRelation = relField.createDslRelation(
             parentVar, endNode,
-            endNodeName.extend("relationship"),
-            startLeft = true
+            endNodeName.extend("relationship")
         )
 
         var (condition, whereSubquery) = createConnectionWhere(

@@ -33,11 +33,13 @@ class CreateTranslator(
 
         var authConditions: Condition? = null
         input?.properties?.let { properties ->
-            createSetPropertiesSplit(
-                dslNode, properties, Operation.CREATE, node, schemaConfig, queryContext,
-                paramPrefix = ChainString(schemaConfig, dslNode)
+            createSetPropertiesOnCreate(
+                dslNode,
+                properties,
+                node,
+                queryContext
             )
-                ?.map { (prop, value) -> create = create.set(prop, value) }
+                ?.let { create = create.set(it) }
 
             properties.keys.forEach { field ->
                 if (field.auth != null) {
@@ -122,7 +124,7 @@ class CreateTranslator(
                     val propertiesName = baseName.extend("relationship")
                         .takeIf { field.properties != null }
 
-                    val dslRelation = field.createDslRelation(dslNode, refDslNode, propertiesName, startLeft = true)
+                    val dslRelation = field.createDslRelation(dslNode, refDslNode, propertiesName)
                     resultExposeWith = createCreateAndParams(
                         refNode,
                         refDslNode,
@@ -134,12 +136,10 @@ class CreateTranslator(
                         .merge(dslRelation)
                         .let { merge ->
                             if (field.properties != null) {
-                                createSetProperties(
+                                createSetPropertiesOnCreate(
                                     dslRelation,
                                     edgeField,
-                                    Operation.CREATE,
                                     field.properties,
-                                    schemaConfig,
                                     queryContext
                                 )?.let { merge.set(it) } ?: merge
                             } else {

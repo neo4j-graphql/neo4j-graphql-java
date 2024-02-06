@@ -21,7 +21,6 @@ interface ActedIn @relationshipProperties {
   roles: [String!]!
 }
 ----
-
 == should be able to filter by edge properties and aggregations in nested connections
 
 .GraphQL-Query
@@ -40,9 +39,9 @@ interface ActedIn @relationshipProperties {
 [source,json]
 ----
 {
-  "param0" : 1,
-  "param1" : "a role",
-  "param2" : "another role"
+  "param0": 1,
+  "param1": "a role",
+  "param2": "another role"
 }
 ----
 
@@ -51,31 +50,27 @@ interface ActedIn @relationshipProperties {
 ----
 MATCH (this:Actor)
 CALL {
-	WITH this
-	MATCH (this)-[this0:ACTED_IN]->(this1:Movie)
-	CALL {
-		WITH this1
-		MATCH (this1)<-[this2:ACTED_IN]-(this3:Actor)
-		CALL {
-			WITH this3
-			MATCH (this3)-[this4:ACTED_IN]->(this5:Movie)
-			RETURN count(this5) > $param0 AS var6
-		}
-		WITH *
-		WHERE (var6 = true
-			AND $param1 IN this2.roles)
-		RETURN count(this3) > 0 AS var7
-	}
-	WITH *
-	WHERE (var7 = false
-		AND $param2 IN this0.roles)
-	RETURN count(this1) = 1 AS var8
+    WITH this
+    MATCH (this)-[this0:ACTED_IN]->(this1:Movie)
+    CALL {
+        WITH this1
+        MATCH (this1)<-[this2:ACTED_IN]-(this3:Actor)
+        CALL {
+            WITH this3
+            MATCH (this3)-[this4:ACTED_IN]->(this5:Movie)
+            RETURN count(this5) > $param0 AS var6
+        }
+        WITH *
+        WHERE (var6 = true AND $param1 IN this2.roles)
+        RETURN count(this3) > 0 AS var7
+    }
+    WITH *
+    WHERE (var7 = false AND $param2 IN this0.roles)
+    RETURN count(this1) = 1 AS var8
 }
 WITH *
 WHERE var8 = true
-RETURN this {
-	.name
-} AS this
+RETURN this { .name } AS this
 ----
 
 '''
@@ -98,10 +93,10 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 1,
-  "param1" : "a name",
-  "param2" : 1,
-  "param3" : "a name"
+  "param0": 1,
+  "param1": "a name",
+  "param2": 1,
+  "param3": "a name"
 }
 ----
 
@@ -110,51 +105,46 @@ RETURN this {
 ----
 MATCH (this:Actor)
 CALL {
-	WITH this
-	MATCH (this)-[:ACTED_IN]->(this0:Movie)
-	CALL {
-		WITH this0
-		MATCH (this0)<-[:ACTED_IN]-(this1:Actor)
-		CALL {
-			WITH this1
-			MATCH (this1)-[this2:ACTED_IN]->(this3:Movie)
-			RETURN count(this3) > $param0 AS var4
-		}
-		WITH *
-		WHERE (this1.name = $param1
-			AND var4 = true)
-		RETURN count(this1) > 0 AS var5
-	}
-	WITH *
-	WHERE var5 = true
-	RETURN count(this0) > 0 AS var6
+    WITH this
+    MATCH (this)-[:ACTED_IN]->(this0:Movie)
+    CALL {
+        WITH this0
+        MATCH (this0)<-[:ACTED_IN]-(this1:Actor)
+        CALL {
+            WITH this1
+            MATCH (this1)-[this2:ACTED_IN]->(this3:Movie)
+            RETURN count(this3) > $param0 AS var4
+        }
+        WITH *
+        WHERE (this1.name = $param1 AND var4 = true)
+        RETURN count(this1) > 0 AS var5
+    }
+    WITH *
+    WHERE var5 = true
+    RETURN count(this0) > 0 AS var6
 }
 CALL {
-	WITH this
-	MATCH (this)-[:ACTED_IN]->(this0:Movie)
-	CALL {
-		WITH this0
-		MATCH (this0)<-[:ACTED_IN]-(this7:Actor)
-		CALL {
-			WITH this7
-			MATCH (this7)-[this8:ACTED_IN]->(this9:Movie)
-			RETURN count(this9) > $param2 AS var10
-		}
-		WITH *
-		WHERE (this7.name = $param3
-			AND var10 = true)
-		RETURN count(this7) > 0 AS var11
-	}
-	WITH *
-	WHERE NOT (var11 = true)
-	RETURN count(this0) > 0 AS var12
+    WITH this
+    MATCH (this)-[:ACTED_IN]->(this0:Movie)
+    CALL {
+        WITH this0
+        MATCH (this0)<-[:ACTED_IN]-(this7:Actor)
+        CALL {
+            WITH this7
+            MATCH (this7)-[this8:ACTED_IN]->(this9:Movie)
+            RETURN count(this9) > $param2 AS var10
+        }
+        WITH *
+        WHERE (this7.name = $param3 AND var10 = true)
+        RETURN count(this7) > 0 AS var11
+    }
+    WITH *
+    WHERE NOT (var11 = true)
+    RETURN count(this0) > 0 AS var12
 }
 WITH *
-WHERE (var12 = false
-	AND var6 = true)
-RETURN this {
-	.name
-} AS this
+WHERE (var12 = false AND var6 = true)
+RETURN this { .name } AS this
 ----
 
 '''
@@ -177,9 +167,9 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 1,
-  "param1" : "actor name",
-  "param2" : "actor role"
+  "param0": 1,
+  "param1": "actor name",
+  "param2": "actor role"
 }
 ----
 
@@ -188,31 +178,27 @@ RETURN this {
 ----
 MATCH (this:Actor)
 CALL {
-	WITH this
-	MATCH (this)-[this0:ACTED_IN]->(this1:Movie)
-	CALL {
-		WITH this1
-		MATCH (this1)<-[this2:ACTED_IN]-(this3:Actor)
-		CALL {
-			WITH this3
-			MATCH (this3)-[this4:ACTED_IN]->(this5:Movie)
-			RETURN count(this5) > $param0 AS var6
-		}
-		WITH *
-		WHERE (this3.name = $param1
-			AND var6 = true
-			AND $param2 IN this2.roles)
-		RETURN count(this3) > 0 AS var7
-	}
-	WITH *
-	WHERE var7 = true
-	RETURN count(this1) = 1 AS var8
+    WITH this
+    MATCH (this)-[this0:ACTED_IN]->(this1:Movie)
+    CALL {
+        WITH this1
+        MATCH (this1)<-[this2:ACTED_IN]-(this3:Actor)
+        CALL {
+            WITH this3
+            MATCH (this3)-[this4:ACTED_IN]->(this5:Movie)
+            RETURN count(this5) > $param0 AS var6
+        }
+        WITH *
+        WHERE ((this3.name = $param1 AND var6 = true) AND $param2 IN this2.roles)
+        RETURN count(this3) > 0 AS var7
+    }
+    WITH *
+    WHERE var7 = true
+    RETURN count(this1) = 1 AS var8
 }
 WITH *
 WHERE var8 = true
-RETURN this {
-	.name
-} AS this
+RETURN this { .name } AS this
 ----
 
 '''
@@ -235,9 +221,9 @@ mutation {
 [source,json]
 ----
 {
-  "param0" : 1,
-  "param1" : "a name",
-  "param2" : "some-role"
+  "param0": 1,
+  "param1": "a name",
+  "param2": "some-role"
 }
 ----
 
@@ -246,28 +232,27 @@ mutation {
 ----
 MATCH (this:Actor)
 CALL {
-	WITH this
-	MATCH (this)-[this0:ACTED_IN]->(this1:Movie)
-	CALL {
-		WITH this1
-		MATCH (this1)<-[this2:ACTED_IN]-(this3:Actor)
-		CALL {
-			WITH this3
-			MATCH (this3)-[this4:ACTED_IN]->(this5:Movie)
-			RETURN count(this5) > $param0 AS var6
-		}
-		WITH *
-		WHERE (this3.name = $param1
-			AND var6 = true
-			AND $param2 IN this2.roles)
-		RETURN count(this3) > 0 AS var7
-	}
-	WITH *
-	WHERE var7 = true
-	RETURN count(this1) = 1 AS var8
+    WITH this
+    MATCH (this)-[this0:ACTED_IN]->(this1:Movie)
+    CALL {
+        WITH this1
+        MATCH (this1)<-[this2:ACTED_IN]-(this3:Actor)
+        CALL {
+            WITH this3
+            MATCH (this3)-[this4:ACTED_IN]->(this5:Movie)
+            RETURN count(this5) > $param0 AS var6
+        }
+        WITH *
+        WHERE ((this3.name = $param1 AND var6 = true) AND $param2 IN this2.roles)
+        RETURN count(this3) > 0 AS var7
+    }
+    WITH *
+    WHERE var7 = true
+    RETURN count(this1) = 1 AS var8
 }
 WITH *
-WHERE var8 = true DETACH DELETE this
+WHERE var8 = true
+DETACH DELETE this
 ----
 
 '''
@@ -293,10 +278,10 @@ mutation {
 [source,json]
 ----
 {
-  "param0" : 1,
-  "param1" : "some role",
-  "param2" : "another role",
-  "this_update_name" : "Exciting new name!"
+  "param0": 1,
+  "param1": "some role",
+  "param2": "another role",
+  "this_update_name": "Exciting new name!"
 }
 ----
 
@@ -305,32 +290,31 @@ mutation {
 ----
 MATCH (this:Actor)
 CALL {
-	WITH this
-	MATCH (this)-[this0:ACTED_IN]->(this1:Movie)
-	CALL {
-		WITH this1
-		MATCH (this1)<-[this2:ACTED_IN]-(this3:Actor)
-		CALL {
-			WITH this3
-			MATCH (this3)-[this4:ACTED_IN]->(this5:Movie)
-			RETURN count(this5) > $param0 AS var6
-		}
-		WITH *
-		WHERE (var6 = true
-			AND $param1 IN this2.roles)
-		RETURN count(this3) > 0 AS var7
-	}
-	WITH *
-	WHERE (var7 = false
-		AND $param2 IN this0.roles)
-	RETURN count(this1) = 1 AS var8
+    WITH this
+    MATCH (this)-[this0:ACTED_IN]->(this1:Movie)
+    CALL {
+        WITH this1
+        MATCH (this1)<-[this2:ACTED_IN]-(this3:Actor)
+        CALL {
+            WITH this3
+            MATCH (this3)-[this4:ACTED_IN]->(this5:Movie)
+            RETURN count(this5) > $param0 AS var6
+        }
+        WITH *
+        WHERE (var6 = true AND $param1 IN this2.roles)
+        RETURN count(this3) > 0 AS var7
+    }
+    WITH *
+    WHERE (var7 = false AND $param2 IN this0.roles)
+    RETURN count(this1) = 1 AS var8
 }
 WITH *
 WHERE var8 = true
+
+
 SET this.name = $this_update_name
-RETURN collect(DISTINCT this {
-	.name
-}) AS data
+
+RETURN collect(DISTINCT this { .name }) AS data
 ----
 
 '''
@@ -353,10 +337,10 @@ RETURN collect(DISTINCT this {
 [source,json]
 ----
 {
-  "param0" : 1,
-  "param1" : "some name",
-  "param2" : 1,
-  "param3" : "some name"
+  "param0": 1,
+  "param1": "some name",
+  "param2": 1,
+  "param3": "some name"
 }
 ----
 
@@ -365,51 +349,46 @@ RETURN collect(DISTINCT this {
 ----
 MATCH (this:Actor)
 CALL {
-	WITH this
-	MATCH (this)-[:ACTED_IN]->(this0:Movie)
-	CALL {
-		WITH this0
-		MATCH (this0)<-[:ACTED_IN]-(this1:Actor)
-		CALL {
-			WITH this1
-			MATCH (this1)-[this2:ACTED_IN]->(this3:Movie)
-			RETURN count(this3) > $param0 AS var4
-		}
-		WITH *
-		WHERE (this1.name = $param1
-			AND var4 = true)
-		RETURN count(this1) > 0 AS var5
-	}
-	WITH *
-	WHERE var5 = true
-	RETURN count(this0) > 0 AS var6
+    WITH this
+    MATCH (this)-[:ACTED_IN]->(this0:Movie)
+    CALL {
+        WITH this0
+        MATCH (this0)<-[:ACTED_IN]-(this1:Actor)
+        CALL {
+            WITH this1
+            MATCH (this1)-[this2:ACTED_IN]->(this3:Movie)
+            RETURN count(this3) > $param0 AS var4
+        }
+        WITH *
+        WHERE (this1.name = $param1 AND var4 = true)
+        RETURN count(this1) > 0 AS var5
+    }
+    WITH *
+    WHERE var5 = true
+    RETURN count(this0) > 0 AS var6
 }
 CALL {
-	WITH this
-	MATCH (this)-[:ACTED_IN]->(this0:Movie)
-	CALL {
-		WITH this0
-		MATCH (this0)<-[:ACTED_IN]-(this7:Actor)
-		CALL {
-			WITH this7
-			MATCH (this7)-[this8:ACTED_IN]->(this9:Movie)
-			RETURN count(this9) > $param2 AS var10
-		}
-		WITH *
-		WHERE (this7.name = $param3
-			AND var10 = true)
-		RETURN count(this7) > 0 AS var11
-	}
-	WITH *
-	WHERE NOT (var11 = true)
-	RETURN count(this0) > 0 AS var12
+    WITH this
+    MATCH (this)-[:ACTED_IN]->(this0:Movie)
+    CALL {
+        WITH this0
+        MATCH (this0)<-[:ACTED_IN]-(this7:Actor)
+        CALL {
+            WITH this7
+            MATCH (this7)-[this8:ACTED_IN]->(this9:Movie)
+            RETURN count(this9) > $param2 AS var10
+        }
+        WITH *
+        WHERE (this7.name = $param3 AND var10 = true)
+        RETURN count(this7) > 0 AS var11
+    }
+    WITH *
+    WHERE NOT (var11 = true)
+    RETURN count(this0) > 0 AS var12
 }
 WITH *
-WHERE (var12 = false
-	AND var6 = true)
-RETURN this {
-	.name
-} AS this
+WHERE (var12 = false AND var6 = true)
+RETURN this { .name } AS this
 ----
 
 '''
@@ -432,10 +411,10 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 1,
-  "param1" : "some name",
-  "param2" : 1,
-  "param3" : "some name"
+  "param0": 1,
+  "param1": "some name",
+  "param2": 1,
+  "param3": "some name"
 }
 ----
 
@@ -444,51 +423,46 @@ RETURN this {
 ----
 MATCH (this:Actor)
 CALL {
-	WITH this
-	MATCH (this)-[:ACTED_IN]->(this0:Movie)
-	CALL {
-		WITH this0
-		MATCH (this0)<-[:ACTED_IN]-(this1:Actor)
-		CALL {
-			WITH this1
-			MATCH (this1)-[this2:ACTED_IN]->(this3:Movie)
-			RETURN count(this3) > $param0 AS var4
-		}
-		WITH *
-		WHERE (this1.name = $param1
-			OR var4 = true)
-		RETURN count(this1) > 0 AS var5
-	}
-	WITH *
-	WHERE var5 = true
-	RETURN count(this0) > 0 AS var6
+    WITH this
+    MATCH (this)-[:ACTED_IN]->(this0:Movie)
+    CALL {
+        WITH this0
+        MATCH (this0)<-[:ACTED_IN]-(this1:Actor)
+        CALL {
+            WITH this1
+            MATCH (this1)-[this2:ACTED_IN]->(this3:Movie)
+            RETURN count(this3) > $param0 AS var4
+        }
+        WITH *
+        WHERE (this1.name = $param1 OR var4 = true)
+        RETURN count(this1) > 0 AS var5
+    }
+    WITH *
+    WHERE var5 = true
+    RETURN count(this0) > 0 AS var6
 }
 CALL {
-	WITH this
-	MATCH (this)-[:ACTED_IN]->(this0:Movie)
-	CALL {
-		WITH this0
-		MATCH (this0)<-[:ACTED_IN]-(this7:Actor)
-		CALL {
-			WITH this7
-			MATCH (this7)-[this8:ACTED_IN]->(this9:Movie)
-			RETURN count(this9) > $param2 AS var10
-		}
-		WITH *
-		WHERE (this7.name = $param3
-			OR var10 = true)
-		RETURN count(this7) > 0 AS var11
-	}
-	WITH *
-	WHERE NOT (var11 = true)
-	RETURN count(this0) > 0 AS var12
+    WITH this
+    MATCH (this)-[:ACTED_IN]->(this0:Movie)
+    CALL {
+        WITH this0
+        MATCH (this0)<-[:ACTED_IN]-(this7:Actor)
+        CALL {
+            WITH this7
+            MATCH (this7)-[this8:ACTED_IN]->(this9:Movie)
+            RETURN count(this9) > $param2 AS var10
+        }
+        WITH *
+        WHERE (this7.name = $param3 OR var10 = true)
+        RETURN count(this7) > 0 AS var11
+    }
+    WITH *
+    WHERE NOT (var11 = true)
+    RETURN count(this0) > 0 AS var12
 }
 WITH *
-WHERE (var12 = false
-	AND var6 = true)
-RETURN this {
-	.name
-} AS this
+WHERE (var12 = false AND var6 = true)
+RETURN this { .name } AS this
 ----
 
 '''
@@ -511,9 +485,9 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 1,
-  "param1" : 1,
-  "param2" : 1
+  "param0": 1,
+  "param1": 1,
+  "param2": 1
 }
 ----
 
@@ -522,48 +496,44 @@ RETURN this {
 ----
 MATCH (this:Actor)
 CALL {
-	WITH this
-	MATCH (this)-[:ACTED_IN]->(this0:Movie)
-	CALL {
-		WITH this0
-		MATCH (this0)<-[this1:ACTED_IN]-(this2:Actor)
-		RETURN count(this2) = $param0 AS var3
-	}
-	CALL {
-		WITH this0
-		MATCH (this0)<-[this4:ACTED_IN]-(this5:Actor)
-		CALL {
-			WITH this5
-			MATCH (this5)-[this6:ACTED_IN]->(this7:Movie)
-			RETURN count(this7) > $param1 AS var8
-		}
-		WITH *
-		WHERE var8 = true
-		RETURN count(this5) > 0 AS var9
-	}
-	CALL {
-		WITH this0
-		MATCH (this0)<-[this4:ACTED_IN]-(this5:Actor)
-		CALL {
-			WITH this5
-			MATCH (this5)-[this10:ACTED_IN]->(this11:Movie)
-			RETURN count(this11) > $param2 AS var12
-		}
-		WITH *
-		WHERE NOT (var12 = true)
-		RETURN count(this5) > 0 AS var13
-	}
-	WITH *
-	WHERE (var3 = true
-		AND var13 = false
-		AND var9 = true)
-	RETURN count(this0) > 0 AS var14
+    WITH this
+    MATCH (this)-[:ACTED_IN]->(this0:Movie)
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this1:ACTED_IN]-(this2:Actor)
+        RETURN count(this2) = $param0 AS var3
+    }
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this4:ACTED_IN]-(this5:Actor)
+        CALL {
+            WITH this5
+            MATCH (this5)-[this6:ACTED_IN]->(this7:Movie)
+            RETURN count(this7) > $param1 AS var8
+        }
+        WITH *
+        WHERE var8 = true
+        RETURN count(this5) > 0 AS var9
+    }
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this4:ACTED_IN]-(this5:Actor)
+        CALL {
+            WITH this5
+            MATCH (this5)-[this10:ACTED_IN]->(this11:Movie)
+            RETURN count(this11) > $param2 AS var12
+        }
+        WITH *
+        WHERE NOT (var12 = true)
+        RETURN count(this5) > 0 AS var13
+    }
+    WITH *
+    WHERE (var3 = true AND (var13 = false AND var9 = true))
+    RETURN count(this0) > 0 AS var14
 }
 WITH *
 WHERE var14 = true
-RETURN this {
-	.name
-} AS this
+RETURN this { .name } AS this
 ----
 
 '''
@@ -586,9 +556,9 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 1,
-  "param1" : 1,
-  "param2" : 1
+  "param0": 1,
+  "param1": 1,
+  "param2": 1
 }
 ----
 
@@ -597,48 +567,44 @@ RETURN this {
 ----
 MATCH (this:Actor)
 CALL {
-	WITH this
-	MATCH (this)-[:ACTED_IN]->(this0:Movie)
-	CALL {
-		WITH this0
-		MATCH (this0)<-[:ACTED_IN]-(this1:Actor)
-		CALL {
-			WITH this1
-			MATCH (this1)-[this2:ACTED_IN]->(this3:Movie)
-			RETURN count(this3) > $param0 AS var4
-		}
-		WITH *
-		WHERE var4 = true
-		RETURN count(this1) > 0 AS var5
-	}
-	CALL {
-		WITH this0
-		MATCH (this0)<-[:ACTED_IN]-(this1:Actor)
-		CALL {
-			WITH this1
-			MATCH (this1)-[this6:ACTED_IN]->(this7:Movie)
-			RETURN count(this7) > $param1 AS var8
-		}
-		WITH *
-		WHERE NOT (var8 = true)
-		RETURN count(this1) > 0 AS var9
-	}
-	CALL {
-		WITH this0
-		MATCH (this0)<-[this10:ACTED_IN]-(this11:Actor)
-		RETURN count(this11) = $param2 AS var12
-	}
-	WITH *
-	WHERE (var9 = false
-		AND var5 = true
-		AND var12 = true)
-	RETURN count(this0) > 0 AS var13
+    WITH this
+    MATCH (this)-[:ACTED_IN]->(this0:Movie)
+    CALL {
+        WITH this0
+        MATCH (this0)<-[:ACTED_IN]-(this1:Actor)
+        CALL {
+            WITH this1
+            MATCH (this1)-[this2:ACTED_IN]->(this3:Movie)
+            RETURN count(this3) > $param0 AS var4
+        }
+        WITH *
+        WHERE var4 = true
+        RETURN count(this1) > 0 AS var5
+    }
+    CALL {
+        WITH this0
+        MATCH (this0)<-[:ACTED_IN]-(this1:Actor)
+        CALL {
+            WITH this1
+            MATCH (this1)-[this6:ACTED_IN]->(this7:Movie)
+            RETURN count(this7) > $param1 AS var8
+        }
+        WITH *
+        WHERE NOT (var8 = true)
+        RETURN count(this1) > 0 AS var9
+    }
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this10:ACTED_IN]-(this11:Actor)
+        RETURN count(this11) = $param2 AS var12
+    }
+    WITH *
+    WHERE ((var9 = false AND var5 = true) AND var12 = true)
+    RETURN count(this0) > 0 AS var13
 }
 WITH *
 WHERE var13 = true
-RETURN this {
-	.name
-} AS this
+RETURN this { .name } AS this
 ----
 
 '''
@@ -661,11 +627,11 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 3,
-  "param1" : 25,
-  "param2" : 10,
-  "param3" : 1,
-  "param4" : 1
+  "param0": 3,
+  "param1": 25,
+  "param2": 10,
+  "param3": 1,
+  "param4": 1
 }
 ----
 
@@ -674,67 +640,61 @@ RETURN this {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
-	RETURN avg(size(this1.name)) >= $param0 AS var2
+    WITH this
+    MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
+    RETURN avg(size(this1.name)) >= $param0 AS var2
 }
 CALL {
-	WITH this
-	MATCH (this)<-[this3:ACTED_IN]-(this4:Actor)
-	CALL {
-		WITH this4
-		MATCH (this4)-[this5:ACTED_IN]->(this6:Movie)
-		RETURN avg(this6.released) = $param1 AS var7
-	}
-	CALL {
-		WITH this4
-		MATCH (this4)-[this8:ACTED_IN]->(this9:Movie)
-		CALL {
-			WITH this9
-			MATCH (this9)<-[this10:ACTED_IN]-(this11:Actor)
-			RETURN avg(size(this11.name)) < $param2 AS var12
-		}
-		CALL {
-			WITH this9
-			MATCH (this9)<-[this13:ACTED_IN]-(this14:Actor)
-			CALL {
-				WITH this14
-				MATCH (this14)-[this15:ACTED_IN]->(this16:Movie)
-				RETURN count(this16) > $param3 AS var17
-			}
-			WITH *
-			WHERE var17 = true
-			RETURN count(this14) > 0 AS var18
-		}
-		CALL {
-			WITH this9
-			MATCH (this9)<-[this13:ACTED_IN]-(this14:Actor)
-			CALL {
-				WITH this14
-				MATCH (this14)-[this19:ACTED_IN]->(this20:Movie)
-				RETURN count(this20) > $param4 AS var21
-			}
-			WITH *
-			WHERE NOT (var21 = true)
-			RETURN count(this14) > 0 AS var22
-		}
-		WITH *
-		WHERE (var12 = true
-			AND var22 = false
-			AND var18 = true)
-		RETURN count(this9) > 0 AS var23
-	}
-	WITH *
-	WHERE (var7 = true
-		AND var23 = true)
-	RETURN count(this4) > 0 AS var24
+    WITH this
+    MATCH (this)<-[this3:ACTED_IN]-(this4:Actor)
+    CALL {
+        WITH this4
+        MATCH (this4)-[this5:ACTED_IN]->(this6:Movie)
+        RETURN avg(this6.released) = $param1 AS var7
+    }
+    CALL {
+        WITH this4
+        MATCH (this4)-[this8:ACTED_IN]->(this9:Movie)
+        CALL {
+            WITH this9
+            MATCH (this9)<-[this10:ACTED_IN]-(this11:Actor)
+            RETURN avg(size(this11.name)) < $param2 AS var12
+        }
+        CALL {
+            WITH this9
+            MATCH (this9)<-[this13:ACTED_IN]-(this14:Actor)
+            CALL {
+                WITH this14
+                MATCH (this14)-[this15:ACTED_IN]->(this16:Movie)
+                RETURN count(this16) > $param3 AS var17
+            }
+            WITH *
+            WHERE var17 = true
+            RETURN count(this14) > 0 AS var18
+        }
+        CALL {
+            WITH this9
+            MATCH (this9)<-[this13:ACTED_IN]-(this14:Actor)
+            CALL {
+                WITH this14
+                MATCH (this14)-[this19:ACTED_IN]->(this20:Movie)
+                RETURN count(this20) > $param4 AS var21
+            }
+            WITH *
+            WHERE NOT (var21 = true)
+            RETURN count(this14) > 0 AS var22
+        }
+        WITH *
+        WHERE (var12 = true AND (var22 = false AND var18 = true))
+        RETURN count(this9) > 0 AS var23
+    }
+    WITH *
+    WHERE (var7 = true AND var23 = true)
+    RETURN count(this4) > 0 AS var24
 }
 WITH *
-WHERE (var2 = true
-	AND var24 = true)
-RETURN this {
-	.released
-} AS this
+WHERE (var2 = true AND var24 = true)
+RETURN this { .released } AS this
 ----
 
 '''
@@ -757,11 +717,11 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 1,
-  "param1" : 1,
-  "param2" : 10,
-  "param3" : 25,
-  "param4" : 3
+  "param0": 1,
+  "param1": 1,
+  "param2": 10,
+  "param3": 25,
+  "param4": 3
 }
 ----
 
@@ -770,67 +730,61 @@ RETURN this {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)<-[:ACTED_IN]-(this0:Actor)
-	CALL {
-		WITH this0
-		MATCH (this0)-[:ACTED_IN]->(this1:Movie)
-		CALL {
-			WITH this1
-			MATCH (this1)<-[:ACTED_IN]-(this2:Actor)
-			CALL {
-				WITH this2
-				MATCH (this2)-[this3:ACTED_IN]->(this4:Movie)
-				RETURN count(this4) > $param0 AS var5
-			}
-			WITH *
-			WHERE var5 = true
-			RETURN count(this2) > 0 AS var6
-		}
-		CALL {
-			WITH this1
-			MATCH (this1)<-[:ACTED_IN]-(this2:Actor)
-			CALL {
-				WITH this2
-				MATCH (this2)-[this7:ACTED_IN]->(this8:Movie)
-				RETURN count(this8) > $param1 AS var9
-			}
-			WITH *
-			WHERE NOT (var9 = true)
-			RETURN count(this2) > 0 AS var10
-		}
-		CALL {
-			WITH this1
-			MATCH (this1)<-[this11:ACTED_IN]-(this12:Actor)
-			RETURN avg(size(this12.name)) < $param2 AS var13
-		}
-		WITH *
-		WHERE (var10 = false
-			AND var6 = true
-			AND var13 = true)
-		RETURN count(this1) > 0 AS var14
-	}
-	CALL {
-		WITH this0
-		MATCH (this0)-[this15:ACTED_IN]->(this16:Movie)
-		RETURN avg(this16.released) = $param3 AS var17
-	}
-	WITH *
-	WHERE (var14 = true
-		AND var17 = true)
-	RETURN count(this0) = 1 AS var18
+    WITH this
+    MATCH (this)<-[:ACTED_IN]-(this0:Actor)
+    CALL {
+        WITH this0
+        MATCH (this0)-[:ACTED_IN]->(this1:Movie)
+        CALL {
+            WITH this1
+            MATCH (this1)<-[:ACTED_IN]-(this2:Actor)
+            CALL {
+                WITH this2
+                MATCH (this2)-[this3:ACTED_IN]->(this4:Movie)
+                RETURN count(this4) > $param0 AS var5
+            }
+            WITH *
+            WHERE var5 = true
+            RETURN count(this2) > 0 AS var6
+        }
+        CALL {
+            WITH this1
+            MATCH (this1)<-[:ACTED_IN]-(this2:Actor)
+            CALL {
+                WITH this2
+                MATCH (this2)-[this7:ACTED_IN]->(this8:Movie)
+                RETURN count(this8) > $param1 AS var9
+            }
+            WITH *
+            WHERE NOT (var9 = true)
+            RETURN count(this2) > 0 AS var10
+        }
+        CALL {
+            WITH this1
+            MATCH (this1)<-[this11:ACTED_IN]-(this12:Actor)
+            RETURN avg(size(this12.name)) < $param2 AS var13
+        }
+        WITH *
+        WHERE ((var10 = false AND var6 = true) AND var13 = true)
+        RETURN count(this1) > 0 AS var14
+    }
+    CALL {
+        WITH this0
+        MATCH (this0)-[this15:ACTED_IN]->(this16:Movie)
+        RETURN avg(this16.released) = $param3 AS var17
+    }
+    WITH *
+    WHERE (var14 = true AND var17 = true)
+    RETURN count(this0) = 1 AS var18
 }
 CALL {
-	WITH this
-	MATCH (this)<-[this19:ACTED_IN]-(this20:Actor)
-	RETURN avg(size(this20.name)) >= $param4 AS var21
+    WITH this
+    MATCH (this)<-[this19:ACTED_IN]-(this20:Actor)
+    RETURN avg(size(this20.name)) >= $param4 AS var21
 }
 WITH *
-WHERE (var18 = true
-	AND var21 = true)
-RETURN this {
-	.released
-} AS this
+WHERE (var18 = true AND var21 = true)
+RETURN this { .released } AS this
 ----
 
 '''
@@ -853,8 +807,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 1000,
-  "param1" : 1000
+  "param0": 1000,
+  "param1": 1000
 }
 ----
 
@@ -863,35 +817,32 @@ RETURN this {
 ----
 MATCH (this:Actor)
 CALL {
-	WITH this
-	MATCH (this)-[:ACTED_IN]->(this0:Movie)
-	CALL {
-		WITH this0
-		MATCH (this0)<-[:ACTED_IN]-(this1:Actor)
-		CALL {
-			WITH this1
-			MATCH (this1)-[this2:ACTED_IN]->(this3:Movie)
-			RETURN avg(this2.screenTime) <= $param0 AS var4
-		}
-		WITH *
-		WHERE var4 = true
-		RETURN count(this1) > 0 AS var5
-	}
-	CALL {
-		WITH this0
-		MATCH (this0)<-[this6:ACTED_IN]-(this7:Actor)
-		RETURN avg(this6.screenTime) <= $param1 AS var8
-	}
-	WITH *
-	WHERE (var5 = false
-		AND var8 = true)
-	RETURN count(this0) = 1 AS var9
+    WITH this
+    MATCH (this)-[:ACTED_IN]->(this0:Movie)
+    CALL {
+        WITH this0
+        MATCH (this0)<-[:ACTED_IN]-(this1:Actor)
+        CALL {
+            WITH this1
+            MATCH (this1)-[this2:ACTED_IN]->(this3:Movie)
+            RETURN avg(this2.screenTime) <= $param0 AS var4
+        }
+        WITH *
+        WHERE var4 = true
+        RETURN count(this1) > 0 AS var5
+    }
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this6:ACTED_IN]-(this7:Actor)
+        RETURN avg(this6.screenTime) <= $param1 AS var8
+    }
+    WITH *
+    WHERE (var5 = false AND var8 = true)
+    RETURN count(this0) = 1 AS var9
 }
 WITH *
 WHERE var9 = true
-RETURN this {
-	.name
-} AS this
+RETURN this { .name } AS this
 ----
 
 '''
@@ -914,8 +865,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 1,
-  "param1" : 1
+  "param0": 1,
+  "param1": 1
 }
 ----
 
@@ -924,42 +875,39 @@ RETURN this {
 ----
 MATCH (this:Actor)
 CALL {
-	WITH this
-	MATCH (this)-[:ACTED_IN]->(this0:Movie)
-	CALL {
-		WITH this0
-		MATCH (this0)<-[this1:ACTED_IN]-(this2:Actor)
-		CALL {
-			WITH this2
-			MATCH (this2)-[this3:ACTED_IN]->(this4:Movie)
-			RETURN count(this4) > $param0 AS var5
-		}
-		WITH *
-		WHERE var5 = true
-		RETURN count(this2) > 0 AS var6
-	}
-	CALL {
-		WITH this0
-		MATCH (this0)<-[this1:ACTED_IN]-(this2:Actor)
-		CALL {
-			WITH this2
-			MATCH (this2)-[this7:ACTED_IN]->(this8:Movie)
-			RETURN count(this8) > $param1 AS var9
-		}
-		WITH *
-		WHERE NOT (var9 = true)
-		RETURN count(this2) > 0 AS var10
-	}
-	WITH *
-	WHERE (var10 = false
-		AND var6 = true)
-	RETURN count(this0) > 0 AS var11
+    WITH this
+    MATCH (this)-[:ACTED_IN]->(this0:Movie)
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this1:ACTED_IN]-(this2:Actor)
+        CALL {
+            WITH this2
+            MATCH (this2)-[this3:ACTED_IN]->(this4:Movie)
+            RETURN count(this4) > $param0 AS var5
+        }
+        WITH *
+        WHERE var5 = true
+        RETURN count(this2) > 0 AS var6
+    }
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this1:ACTED_IN]-(this2:Actor)
+        CALL {
+            WITH this2
+            MATCH (this2)-[this7:ACTED_IN]->(this8:Movie)
+            RETURN count(this8) > $param1 AS var9
+        }
+        WITH *
+        WHERE NOT (var9 = true)
+        RETURN count(this2) > 0 AS var10
+    }
+    WITH *
+    WHERE (var10 = false AND var6 = true)
+    RETURN count(this0) > 0 AS var11
 }
 WITH *
 WHERE var11 = true
-RETURN this {
-	.name
-} AS this
+RETURN this { .name } AS this
 ----
 
 '''
@@ -982,8 +930,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 1,
-  "param1" : 1
+  "param0": 1,
+  "param1": 1
 }
 ----
 
@@ -992,42 +940,39 @@ RETURN this {
 ----
 MATCH (this:Actor)
 CALL {
-	WITH this
-	MATCH (this)-[this0:ACTED_IN]->(this1:Movie)
-	CALL {
-		WITH this1
-		MATCH (this1)<-[:ACTED_IN]-(this2:Actor)
-		CALL {
-			WITH this2
-			MATCH (this2)-[this3:ACTED_IN]->(this4:Movie)
-			RETURN count(this4) > $param0 AS var5
-		}
-		WITH *
-		WHERE var5 = true
-		RETURN count(this2) > 0 AS var6
-	}
-	CALL {
-		WITH this1
-		MATCH (this1)<-[:ACTED_IN]-(this2:Actor)
-		CALL {
-			WITH this2
-			MATCH (this2)-[this7:ACTED_IN]->(this8:Movie)
-			RETURN count(this8) > $param1 AS var9
-		}
-		WITH *
-		WHERE NOT (var9 = true)
-		RETURN count(this2) > 0 AS var10
-	}
-	WITH *
-	WHERE (var10 = false
-		AND var6 = true)
-	RETURN count(this1) > 0 AS var11
+    WITH this
+    MATCH (this)-[this0:ACTED_IN]->(this1:Movie)
+    CALL {
+        WITH this1
+        MATCH (this1)<-[:ACTED_IN]-(this2:Actor)
+        CALL {
+            WITH this2
+            MATCH (this2)-[this3:ACTED_IN]->(this4:Movie)
+            RETURN count(this4) > $param0 AS var5
+        }
+        WITH *
+        WHERE var5 = true
+        RETURN count(this2) > 0 AS var6
+    }
+    CALL {
+        WITH this1
+        MATCH (this1)<-[:ACTED_IN]-(this2:Actor)
+        CALL {
+            WITH this2
+            MATCH (this2)-[this7:ACTED_IN]->(this8:Movie)
+            RETURN count(this8) > $param1 AS var9
+        }
+        WITH *
+        WHERE NOT (var9 = true)
+        RETURN count(this2) > 0 AS var10
+    }
+    WITH *
+    WHERE (var10 = false AND var6 = true)
+    RETURN count(this1) > 0 AS var11
 }
 WITH *
 WHERE var11 = true
-RETURN this {
-	.name
-} AS this
+RETURN this { .name } AS this
 ----
 
 '''
@@ -1050,7 +995,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 2
+  "param0": 2
 }
 ----
 
@@ -1059,36 +1004,34 @@ RETURN this {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
-	CALL {
-		WITH this1
-		MATCH (this1)-[:ACTED_IN]->(this2:Movie)
-		CALL {
-			WITH this2
-			MATCH (this2)<-[this3:ACTED_IN]-(this4:Actor)
-			CALL {
-				WITH this4
-				MATCH (this4)-[this5:ACTED_IN]->(this6:Movie)
-				RETURN count(this6) > $param0 AS var7
-			}
-			WITH *
-			WHERE var7 = true
-			RETURN count(this4) > 0 AS var8
-		}
-		WITH *
-		WHERE var8 = false
-		RETURN count(this2) = 1 AS var9
-	}
-	WITH *
-	WHERE var9 = true
-	RETURN count(this1) > 0 AS var10
+    WITH this
+    MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
+    CALL {
+        WITH this1
+        MATCH (this1)-[:ACTED_IN]->(this2:Movie)
+        CALL {
+            WITH this2
+            MATCH (this2)<-[this3:ACTED_IN]-(this4:Actor)
+            CALL {
+                WITH this4
+                MATCH (this4)-[this5:ACTED_IN]->(this6:Movie)
+                RETURN count(this6) > $param0 AS var7
+            }
+            WITH *
+            WHERE var7 = true
+            RETURN count(this4) > 0 AS var8
+        }
+        WITH *
+        WHERE var8 = false
+        RETURN count(this2) = 1 AS var9
+    }
+    WITH *
+    WHERE var9 = true
+    RETURN count(this1) > 0 AS var10
 }
 WITH *
 WHERE var10 = true
-RETURN this {
-	.released
-} AS this
+RETURN this { .released } AS this
 ----
 
 '''
@@ -1111,8 +1054,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 1,
-  "param1" : 1
+  "param0": 1,
+  "param1": 1
 }
 ----
 
@@ -1121,42 +1064,39 @@ RETURN this {
 ----
 MATCH (this:Actor)
 CALL {
-	WITH this
-	MATCH (this)-[this0:ACTED_IN]->(this1:Movie)
-	CALL {
-		WITH this1
-		MATCH (this1)<-[this2:ACTED_IN]-(this3:Actor)
-		CALL {
-			WITH this3
-			MATCH (this3)-[this4:ACTED_IN]->(this5:Movie)
-			RETURN count(this5) > $param0 AS var6
-		}
-		WITH *
-		WHERE var6 = true
-		RETURN count(this3) > 0 AS var7
-	}
-	CALL {
-		WITH this1
-		MATCH (this1)<-[this2:ACTED_IN]-(this3:Actor)
-		CALL {
-			WITH this3
-			MATCH (this3)-[this8:ACTED_IN]->(this9:Movie)
-			RETURN count(this9) > $param1 AS var10
-		}
-		WITH *
-		WHERE NOT (var10 = true)
-		RETURN count(this3) > 0 AS var11
-	}
-	WITH *
-	WHERE (var11 = false
-		AND var7 = true)
-	RETURN count(this1) > 0 AS var12
+    WITH this
+    MATCH (this)-[this0:ACTED_IN]->(this1:Movie)
+    CALL {
+        WITH this1
+        MATCH (this1)<-[this2:ACTED_IN]-(this3:Actor)
+        CALL {
+            WITH this3
+            MATCH (this3)-[this4:ACTED_IN]->(this5:Movie)
+            RETURN count(this5) > $param0 AS var6
+        }
+        WITH *
+        WHERE var6 = true
+        RETURN count(this3) > 0 AS var7
+    }
+    CALL {
+        WITH this1
+        MATCH (this1)<-[this2:ACTED_IN]-(this3:Actor)
+        CALL {
+            WITH this3
+            MATCH (this3)-[this8:ACTED_IN]->(this9:Movie)
+            RETURN count(this9) > $param1 AS var10
+        }
+        WITH *
+        WHERE NOT (var10 = true)
+        RETURN count(this3) > 0 AS var11
+    }
+    WITH *
+    WHERE (var11 = false AND var7 = true)
+    RETURN count(this1) > 0 AS var12
 }
 WITH *
 WHERE var12 = true
-RETURN this {
-	.name
-} AS this
+RETURN this { .name } AS this
 ----
 
 '''
@@ -1177,8 +1117,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 1,
-  "param1" : 1
+  "param0": 1,
+  "param1": 1
 }
 ----
 
@@ -1187,42 +1127,39 @@ RETURN this {
 ----
 MATCH (this:Actor)
 CALL {
-	WITH this
-	MATCH (this)-[:ACTED_IN]->(this0:Movie)
-	CALL {
-		WITH this0
-		MATCH (this0)<-[:ACTED_IN]-(this1:Actor)
-		CALL {
-			WITH this1
-			MATCH (this1)-[this2:ACTED_IN]->(this3:Movie)
-			RETURN count(this3) > $param0 AS var4
-		}
-		WITH *
-		WHERE var4 = true
-		RETURN count(this1) > 0 AS var5
-	}
-	CALL {
-		WITH this0
-		MATCH (this0)<-[:ACTED_IN]-(this1:Actor)
-		CALL {
-			WITH this1
-			MATCH (this1)-[this6:ACTED_IN]->(this7:Movie)
-			RETURN count(this7) > $param1 AS var8
-		}
-		WITH *
-		WHERE NOT (var8 = true)
-		RETURN count(this1) > 0 AS var9
-	}
-	WITH *
-	WHERE (var9 = false
-		AND var5 = true)
-	RETURN count(this0) > 0 AS var10
+    WITH this
+    MATCH (this)-[:ACTED_IN]->(this0:Movie)
+    CALL {
+        WITH this0
+        MATCH (this0)<-[:ACTED_IN]-(this1:Actor)
+        CALL {
+            WITH this1
+            MATCH (this1)-[this2:ACTED_IN]->(this3:Movie)
+            RETURN count(this3) > $param0 AS var4
+        }
+        WITH *
+        WHERE var4 = true
+        RETURN count(this1) > 0 AS var5
+    }
+    CALL {
+        WITH this0
+        MATCH (this0)<-[:ACTED_IN]-(this1:Actor)
+        CALL {
+            WITH this1
+            MATCH (this1)-[this6:ACTED_IN]->(this7:Movie)
+            RETURN count(this7) > $param1 AS var8
+        }
+        WITH *
+        WHERE NOT (var8 = true)
+        RETURN count(this1) > 0 AS var9
+    }
+    WITH *
+    WHERE (var9 = false AND var5 = true)
+    RETURN count(this0) > 0 AS var10
 }
 WITH *
 WHERE var10 = true
-RETURN this {
-	.name
-} AS this
+RETURN this { .name } AS this
 ----
 
 '''
@@ -1245,8 +1182,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 2,
-  "param1" : 2
+  "param0": 2,
+  "param1": 2
 }
 ----
 
@@ -1255,49 +1192,46 @@ RETURN this {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
-	CALL {
-		WITH this1
-		MATCH (this1)-[this2:ACTED_IN]->(this3:Movie)
-		CALL {
-			WITH this3
-			MATCH (this3)<-[this4:ACTED_IN]-(this5:Actor)
-			CALL {
-				WITH this5
-				MATCH (this5)-[this6:ACTED_IN]->(this7:Movie)
-				RETURN count(this7) > $param0 AS var8
-			}
-			WITH *
-			WHERE var8 = true
-			RETURN count(this5) > 0 AS var9
-		}
-		CALL {
-			WITH this3
-			MATCH (this3)<-[this4:ACTED_IN]-(this5:Actor)
-			CALL {
-				WITH this5
-				MATCH (this5)-[this10:ACTED_IN]->(this11:Movie)
-				RETURN count(this11) > $param1 AS var12
-			}
-			WITH *
-			WHERE NOT (var12 = true)
-			RETURN count(this5) > 0 AS var13
-		}
-		WITH *
-		WHERE (var13 = false
-			AND var9 = true)
-		RETURN count(this3) > 0 AS var14
-	}
-	WITH *
-	WHERE var14 = true
-	RETURN count(this1) > 0 AS var15
+    WITH this
+    MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
+    CALL {
+        WITH this1
+        MATCH (this1)-[this2:ACTED_IN]->(this3:Movie)
+        CALL {
+            WITH this3
+            MATCH (this3)<-[this4:ACTED_IN]-(this5:Actor)
+            CALL {
+                WITH this5
+                MATCH (this5)-[this6:ACTED_IN]->(this7:Movie)
+                RETURN count(this7) > $param0 AS var8
+            }
+            WITH *
+            WHERE var8 = true
+            RETURN count(this5) > 0 AS var9
+        }
+        CALL {
+            WITH this3
+            MATCH (this3)<-[this4:ACTED_IN]-(this5:Actor)
+            CALL {
+                WITH this5
+                MATCH (this5)-[this10:ACTED_IN]->(this11:Movie)
+                RETURN count(this11) > $param1 AS var12
+            }
+            WITH *
+            WHERE NOT (var12 = true)
+            RETURN count(this5) > 0 AS var13
+        }
+        WITH *
+        WHERE (var13 = false AND var9 = true)
+        RETURN count(this3) > 0 AS var14
+    }
+    WITH *
+    WHERE var14 = true
+    RETURN count(this1) > 0 AS var15
 }
 WITH *
 WHERE var15 = true
-RETURN this {
-	.released
-} AS this
+RETURN this { .released } AS this
 ----
 
 '''
@@ -1320,8 +1254,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 2,
-  "param1" : 2
+  "param0": 2,
+  "param1": 2
 }
 ----
 
@@ -1330,49 +1264,46 @@ RETURN this {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)<-[:ACTED_IN]-(this0:Actor)
-	CALL {
-		WITH this0
-		MATCH (this0)-[:ACTED_IN]->(this1:Movie)
-		CALL {
-			WITH this1
-			MATCH (this1)<-[:ACTED_IN]-(this2:Actor)
-			CALL {
-				WITH this2
-				MATCH (this2)-[this3:ACTED_IN]->(this4:Movie)
-				RETURN count(this4) > $param0 AS var5
-			}
-			WITH *
-			WHERE var5 = true
-			RETURN count(this2) > 0 AS var6
-		}
-		CALL {
-			WITH this1
-			MATCH (this1)<-[:ACTED_IN]-(this2:Actor)
-			CALL {
-				WITH this2
-				MATCH (this2)-[this7:ACTED_IN]->(this8:Movie)
-				RETURN count(this8) > $param1 AS var9
-			}
-			WITH *
-			WHERE NOT (var9 = true)
-			RETURN count(this2) > 0 AS var10
-		}
-		WITH *
-		WHERE (var10 = false
-			AND var6 = true)
-		RETURN count(this1) > 0 AS var11
-	}
-	WITH *
-	WHERE var11 = true
-	RETURN count(this0) > 0 AS var12
+    WITH this
+    MATCH (this)<-[:ACTED_IN]-(this0:Actor)
+    CALL {
+        WITH this0
+        MATCH (this0)-[:ACTED_IN]->(this1:Movie)
+        CALL {
+            WITH this1
+            MATCH (this1)<-[:ACTED_IN]-(this2:Actor)
+            CALL {
+                WITH this2
+                MATCH (this2)-[this3:ACTED_IN]->(this4:Movie)
+                RETURN count(this4) > $param0 AS var5
+            }
+            WITH *
+            WHERE var5 = true
+            RETURN count(this2) > 0 AS var6
+        }
+        CALL {
+            WITH this1
+            MATCH (this1)<-[:ACTED_IN]-(this2:Actor)
+            CALL {
+                WITH this2
+                MATCH (this2)-[this7:ACTED_IN]->(this8:Movie)
+                RETURN count(this8) > $param1 AS var9
+            }
+            WITH *
+            WHERE NOT (var9 = true)
+            RETURN count(this2) > 0 AS var10
+        }
+        WITH *
+        WHERE (var10 = false AND var6 = true)
+        RETURN count(this1) > 0 AS var11
+    }
+    WITH *
+    WHERE var11 = true
+    RETURN count(this0) > 0 AS var12
 }
 WITH *
 WHERE var12 = true
-RETURN this {
-	.released
-} AS this
+RETURN this { .released } AS this
 ----
 
 '''

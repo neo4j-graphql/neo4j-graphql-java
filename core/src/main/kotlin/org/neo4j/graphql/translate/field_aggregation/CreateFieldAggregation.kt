@@ -60,7 +60,7 @@ object CreateFieldAggregation {
             .match(relationship)
             .let {
                 when {
-                    where != null && preComputedSubqueries.isEmpty() -> it.withSubQueries(preComputedSubqueries)
+                    where != null && preComputedSubqueries.isNotEmpty() -> it.withSubQueries(preComputedSubqueries)
                         .with(Cypher.asterisk())
                         .where(where)
 
@@ -74,9 +74,9 @@ object CreateFieldAggregation {
 
         aggregationFields.count.takeIf { it.isNotEmpty() }?.let {
             val countRef = queryContext.getNextVariable(prefix.extend("var"))
-            projections + it.project(countRef)
+            projections.addAll(it.project(countRef))
             subQueries += matchWherePattern
-                .returning(Functions.count(targetRef).`as`(countRef))
+                .returning(Cypher.count(targetRef).`as`(countRef))
                 .build()
         }
 
@@ -90,7 +90,7 @@ object CreateFieldAggregation {
                 queryContext
             )
             projections += aggregationFields.node.aliasOrName
-            projections += innerProjection
+            projections += Cypher.mapOf(*innerProjection.toTypedArray())
         }
 
         if (aggregationEdgeFields != null) {
@@ -103,20 +103,20 @@ object CreateFieldAggregation {
                 queryContext
             )
             projections += aggregationFields.edge.aliasOrName
-            projections += innerProjection
+            projections += Cypher.mapOf(*innerProjection.toTypedArray())
         }
 
         return Cypher.mapOf(*projections.toTypedArray())
     }
 
-    private fun getAggregationProjectionAndSubqueries(
+    fun getAggregationProjectionAndSubqueries(
         prefix: ChainString,
         matchPattern: StatementBuilder.OngoingReading,
         targetRef: PropertyContainer,
         fields: AggregationSelectionFields,
         subQueries: MutableList<Statement>,
         queryContext: QueryContext
-    ): MapExpression {
+    ): List<Any> {
         val projection = mutableListOf<Any>()
         fields
             .flatMap { pair -> pair.value.map { pair.key to it } }
@@ -133,17 +133,18 @@ object CreateFieldAggregation {
                 projection += fieldRef
 
                 val innerProjection = when (field.typeMeta.type.name()) {
-                    Constants.STRING,
-                    Constants.ID -> {
+                    Constants.STRING -> {
                         val list = Cypher.name("list")
                         subQueries += matchPattern
                             .with(targetRef)
-                            .orderBy(Functions.size(property)).descending()
-                            .with(Functions.collect(property).`as`(list))
+                            .orderBy(Cypher.size(property)).descending()
+                            .with(Cypher.collect(property).`as`(list))
                             .returning(stringAggregationProjection(nestedSelection, list).`as`(fieldRef))
                             .build()
                         return@forEach
                     }
+
+                    Constants.ID -> idAggregationProjection(nestedSelection, property)
 
                     Constants.INT,
                     Constants.BIG_INT,
@@ -154,7 +155,7 @@ object CreateFieldAggregation {
                 }
                 subQueries += matchPattern.returning(innerProjection.`as`(fieldRef)).build()
             }
-        return Cypher.mapOf(*projection.toTypedArray())
+        return projection
     }
 
 
@@ -162,8 +163,22 @@ object CreateFieldAggregation {
         val projection = mutableListOf<Any>()
         nestedSelection.values.map { aggregateField ->
             val reduceFun = when (aggregateField.name) {
-                Constants.LONGEST -> Functions::head
-                Constants.SHORTEST -> Functions::last
+                Constants.LONGEST -> Cypher::head
+                Constants.SHORTEST -> Cypher::last
+                else -> error("unsupported field ${aggregateField.name} for string aggregation")
+            }
+            projection += aggregateField.aliasOrName
+            projection += reduceFun(property)
+        }
+        return Cypher.mapOf(*projection.toTypedArray())
+    }
+
+    private fun idAggregationProjection(nestedSelection: Map<*, ResolveTree>, property: Expression): MapExpression {
+        val projection = mutableListOf<Any>()
+        nestedSelection.values.map { aggregateField ->
+            val reduceFun = when (aggregateField.name) {
+                Constants.LONGEST -> Cypher::max
+                Constants.SHORTEST -> Cypher::min
                 else -> error("unsupported field ${aggregateField.name} for string aggregation")
             }
             projection += aggregateField.aliasOrName
@@ -180,14 +195,14 @@ object CreateFieldAggregation {
         val projection = mutableListOf<Any>()
         nestedSelection.values.forEach { aggregateField ->
             val reduceFun = when (aggregateField.name) {
-                Constants.MIN -> Functions::min
+                Constants.MIN -> Cypher::min
 
-                Constants.MAX -> Functions::max
+                Constants.MAX -> Cypher::max
 
-                Constants.AVERAGE -> Functions::avg
+                Constants.AVERAGE -> Cypher::avg
                     .also { check(number, { "${Constants.AVERAGE} is only supported for numbers" }) }
 
-                Constants.SUM -> Functions::sum
+                Constants.SUM -> Cypher::sum
                     .also { check(number, { "${Constants.SUM} is only supported for numbers" }) }
 
                 else -> error("unsupported field ${aggregateField.name} for aggregation")
@@ -202,13 +217,13 @@ object CreateFieldAggregation {
         val projection = mutableListOf<Any>()
         nestedSelection.values.forEach { aggregateField ->
             val reduceFun = when (aggregateField.name) {
-                Constants.MIN -> Functions::min
-                Constants.MAX -> Functions::max
+                Constants.MIN -> Cypher::min
+                Constants.MAX -> Cypher::max
                 else -> error("unsupported field ${aggregateField.name} for date aggregation")
             }
             projection += aggregateField.aliasOrName
             projection += ApocFunctions.date.convertFormat(
-                Functions.toString(reduceFun(property)),
+                Cypher.toString(reduceFun(property)),
                 "iso_zoned_date_time".asCypherLiteral(),
                 "iso_offset_date_time".asCypherLiteral()
             )

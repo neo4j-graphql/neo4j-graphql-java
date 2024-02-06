@@ -14,7 +14,7 @@ interface SubscriptionWhere {
 
         object Augmentation : AugmentationBase {
             fun generateWhereIT(node: Node, ctx: AugmentationContext): String? =
-                ctx.getOrCreateInputObjectType(node.operations.subscriptionWhereInputTypeName) { fields, name ->
+                ctx.getOrCreateInputObjectType(node.namings.subscriptionWhereInputTypeName) { fields, name ->
                     fields += WhereInput.FieldContainerWhereInput.Augmentation
                         .getWhereFields(name, node.fields.filterIsInstance<ScalarField>(), ctx)
                 }
@@ -26,7 +26,7 @@ interface SubscriptionWhere {
         object Augmentation : AugmentationBase {
 
             fun generateWhereIT(interfaze: Interface, ctx: AugmentationContext): String? =
-                ctx.getOrCreateInputObjectType(interfaze.operations.subscriptionWhereInputTypeName) { fields, name ->
+                ctx.getOrCreateInputObjectType(interfaze.namings.subscriptionWhereInputTypeName) { fields, name ->
 
                     fields += WhereInput.FieldContainerWhereInput.Augmentation
                         .getWhereFields(name, interfaze.fields.filterIsInstance<ScalarField>(), ctx)
@@ -37,7 +37,7 @@ interface SubscriptionWhere {
                             ctx.addTypenameEnum(interfaze, fields)
                         } else {
                             ctx.addOnField(interfaze,
-                                interfaze.operations.implementationsSubscriptionWhereInputTypeName,
+                                interfaze.namings.implementationsSubscriptionWhereInputTypeName,
                                 fields,
                                 asList = false,
                                 { node -> NodeSubscriptionWhere.Augmentation.generateWhereIT(node, ctx) })

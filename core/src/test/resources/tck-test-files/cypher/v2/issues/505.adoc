@@ -29,7 +29,6 @@ type Page @authorization(filter: [{operations: [READ], where: {node: {OR: [{owne
   workspace: Workspace! @relationship(type: "HAS_PAGE", direction: IN)
 }
 ----
-
 == All pages query
 
 .GraphQL-Query
@@ -46,9 +45,9 @@ query allPages {
 [source,json]
 ----
 {
-  "isAuthenticated" : false,
-  "jwt" : { },
-  "param2" : true
+  "isAuthenticated": false,
+  "jwt": {},
+  "param2": true
 }
 ----
 
@@ -61,23 +60,8 @@ WITH *, count(this0) AS ownerCount
 OPTIONAL MATCH (this)<-[:HAS_PAGE]-(this1:Workspace)
 WITH *, count(this1) AS workspaceCount
 WITH *
-WITH *
-WHERE ($isAuthenticated = true
-	AND ((ownerCount <> 0
-			AND $jwt.sub IS NOT NULL
-			AND this0.authId = $jwt.sub)
-		OR ($param2 IS NOT NULL
-			AND this.shared = $param2
-			AND (workspaceCount <> 0
-				AND (size([(this1)<-[:MEMBER_OF]-(this2:User)
-					WHERE ($jwt.sub IS NOT NULL
-						AND this2.authId = $jwt.sub) | 1]) > 0
-					OR size([(this1)-[:HAS_ADMIN]->(this3:User)
-					WHERE ($jwt.sub IS NOT NULL
-						AND this3.authId = $jwt.sub) | 1]) > 0)))))
-RETURN this {
-	.id
-} AS this
+WHERE ($isAuthenticated = true AND ((ownerCount <> 0 AND ($jwt.sub IS NOT NULL AND this0.authId = $jwt.sub)) OR (($param2 IS NOT NULL AND this.shared = $param2) AND (workspaceCount <> 0 AND (size([(this1)<-[:MEMBER_OF]-(this2:User) WHERE ($jwt.sub IS NOT NULL AND this2.authId = $jwt.sub) | 1]) > 0 OR size([(this1)-[:HAS_ADMIN]->(this3:User) WHERE ($jwt.sub IS NOT NULL AND this3.authId = $jwt.sub) | 1]) > 0)))))
+RETURN this { .id } AS this
 ----
 
 '''
@@ -98,10 +82,10 @@ query Pages {
 [source,json]
 ----
 {
-  "isAuthenticated" : false,
-  "jwt" : { },
-  "param0" : "my-workspace-id",
-  "param3" : true
+  "param0": "my-workspace-id",
+  "isAuthenticated": false,
+  "jwt": {},
+  "param3": true
 }
 ----
 
@@ -116,25 +100,8 @@ WITH *, count(this1) AS ownerCount
 OPTIONAL MATCH (this)<-[:HAS_PAGE]-(this2:Workspace)
 WITH *, count(this2) AS workspaceCount
 WITH *
-WITH *
-WHERE (workspaceCount <> 0
-	AND this0.id = $param0
-	AND ($isAuthenticated = true
-		AND ((ownerCount <> 0
-				AND $jwt.sub IS NOT NULL
-				AND this1.authId = $jwt.sub)
-			OR ($param3 IS NOT NULL
-				AND this.shared = $param3
-				AND (workspaceCount <> 0
-					AND (size([(this2)<-[:MEMBER_OF]-(this3:User)
-						WHERE ($jwt.sub IS NOT NULL
-							AND this3.authId = $jwt.sub) | 1]) > 0
-						OR size([(this2)-[:HAS_ADMIN]->(this4:User)
-						WHERE ($jwt.sub IS NOT NULL
-							AND this4.authId = $jwt.sub) | 1]) > 0))))))
-RETURN this {
-	.id
-} AS this
+WHERE ((workspaceCount <> 0 AND this0.id = $param0) AND ($isAuthenticated = true AND ((ownerCount <> 0 AND ($jwt.sub IS NOT NULL AND this1.authId = $jwt.sub)) OR (($param3 IS NOT NULL AND this.shared = $param3) AND (workspaceCount <> 0 AND (size([(this2)<-[:MEMBER_OF]-(this3:User) WHERE ($jwt.sub IS NOT NULL AND this3.authId = $jwt.sub) | 1]) > 0 OR size([(this2)-[:HAS_ADMIN]->(this4:User) WHERE ($jwt.sub IS NOT NULL AND this4.authId = $jwt.sub) | 1]) > 0))))))
+RETURN this { .id } AS this
 ----
 
 '''
@@ -159,10 +126,10 @@ query Users {
 [source,json]
 ----
 {
-  "isAuthenticated" : false,
-  "jwt" : { },
-  "param0" : "my-user-id",
-  "param3" : true
+  "param0": "my-user-id",
+  "isAuthenticated": false,
+  "jwt": {},
+  "param3": true
 }
 ----
 
@@ -172,37 +139,19 @@ query Users {
 MATCH (this:User)
 WHERE this.id = $param0
 CALL {
-	WITH this
-	MATCH (this)-[this0:CREATED_PAGE]->(this1:Page)
-	OPTIONAL MATCH (this1)<-[:CREATED_PAGE]-(this2:User)
-	WITH *, count(this2) AS ownerCount
-	OPTIONAL MATCH (this1)<-[:HAS_PAGE]-(this3:Workspace)
-	WITH *, count(this3) AS workspaceCount
-	WITH *
-	WITH *
-	WHERE ($isAuthenticated = true
-		AND ((ownerCount <> 0
-				AND $jwt.sub IS NOT NULL
-				AND this2.authId = $jwt.sub)
-			OR ($param3 IS NOT NULL
-				AND this1.shared = $param3
-				AND (workspaceCount <> 0
-					AND (size([(this3)<-[:MEMBER_OF]-(this4:User)
-						WHERE ($jwt.sub IS NOT NULL
-							AND this4.authId = $jwt.sub) | 1]) > 0
-						OR size([(this3)-[:HAS_ADMIN]->(this5:User)
-						WHERE ($jwt.sub IS NOT NULL
-							AND this5.authId = $jwt.sub) | 1]) > 0)))))
-	WITH this1 {
-		.id
-	} AS this1
-	RETURN collect(this1) AS var6
+    WITH this
+    MATCH (this)-[this0:CREATED_PAGE]->(this1:Page)
+    OPTIONAL MATCH (this1)<-[:CREATED_PAGE]-(this2:User)
+    WITH *, count(this2) AS ownerCount
+    OPTIONAL MATCH (this1)<-[:HAS_PAGE]-(this3:Workspace)
+    WITH *, count(this3) AS workspaceCount
+    WITH *
+    WITH *
+    WHERE ($isAuthenticated = true AND ((ownerCount <> 0 AND ($jwt.sub IS NOT NULL AND this2.authId = $jwt.sub)) OR (($param3 IS NOT NULL AND this1.shared = $param3) AND (workspaceCount <> 0 AND (size([(this3)<-[:MEMBER_OF]-(this4:User) WHERE ($jwt.sub IS NOT NULL AND this4.authId = $jwt.sub) | 1]) > 0 OR size([(this3)-[:HAS_ADMIN]->(this5:User) WHERE ($jwt.sub IS NOT NULL AND this5.authId = $jwt.sub) | 1]) > 0)))))
+    WITH this1 { .id } AS this1
+    RETURN collect(this1) AS var6
 }
-RETURN this {
-	.id,
-	.authId,
-	createdPages: var6
-} AS this
+RETURN this { .id, .authId, createdPages: var6 } AS this
 ----
 
 '''
@@ -226,10 +175,10 @@ query Workspaces {
 [source,json]
 ----
 {
-  "isAuthenticated" : false,
-  "jwt" : { },
-  "param0" : "my-workspace-id",
-  "param3" : true
+  "param0": "my-workspace-id",
+  "isAuthenticated": false,
+  "jwt": {},
+  "param3": true
 }
 ----
 
@@ -238,45 +187,21 @@ query Workspaces {
 ----
 MATCH (this:Workspace)
 WITH *
-WHERE (this.id = $param0
-	AND ($isAuthenticated = true
-		AND (size([(this)<-[:MEMBER_OF]-(this0:User)
-			WHERE ($jwt.sub IS NOT NULL
-				AND this0.authId = $jwt.sub) | 1]) > 0
-			OR size([(this)-[:HAS_ADMIN]->(this1:User)
-			WHERE ($jwt.sub IS NOT NULL
-				AND this1.authId = $jwt.sub) | 1]) > 0)))
+WHERE (this.id = $param0 AND ($isAuthenticated = true AND (size([(this)<-[:MEMBER_OF]-(this0:User) WHERE ($jwt.sub IS NOT NULL AND this0.authId = $jwt.sub) | 1]) > 0 OR size([(this)-[:HAS_ADMIN]->(this1:User) WHERE ($jwt.sub IS NOT NULL AND this1.authId = $jwt.sub) | 1]) > 0)))
 CALL {
-	WITH this
-	MATCH (this)-[this2:HAS_PAGE]->(this3:Page)
-	OPTIONAL MATCH (this3)<-[:CREATED_PAGE]-(this4:User)
-	WITH *, count(this4) AS ownerCount
-	OPTIONAL MATCH (this3)<-[:HAS_PAGE]-(this5:Workspace)
-	WITH *, count(this5) AS workspaceCount
-	WITH *
-	WITH *
-	WHERE ($isAuthenticated = true
-		AND ((ownerCount <> 0
-				AND $jwt.sub IS NOT NULL
-				AND this4.authId = $jwt.sub)
-			OR ($param3 IS NOT NULL
-				AND this3.shared = $param3
-				AND (workspaceCount <> 0
-					AND (size([(this5)<-[:MEMBER_OF]-(this6:User)
-						WHERE ($jwt.sub IS NOT NULL
-							AND this6.authId = $jwt.sub) | 1]) > 0
-						OR size([(this5)-[:HAS_ADMIN]->(this7:User)
-						WHERE ($jwt.sub IS NOT NULL
-							AND this7.authId = $jwt.sub) | 1]) > 0)))))
-	WITH this3 {
-		.id
-	} AS this3
-	RETURN collect(this3) AS var8
+    WITH this
+    MATCH (this)-[this2:HAS_PAGE]->(this3:Page)
+    OPTIONAL MATCH (this3)<-[:CREATED_PAGE]-(this4:User)
+    WITH *, count(this4) AS ownerCount
+    OPTIONAL MATCH (this3)<-[:HAS_PAGE]-(this5:Workspace)
+    WITH *, count(this5) AS workspaceCount
+    WITH *
+    WITH *
+    WHERE ($isAuthenticated = true AND ((ownerCount <> 0 AND ($jwt.sub IS NOT NULL AND this4.authId = $jwt.sub)) OR (($param3 IS NOT NULL AND this3.shared = $param3) AND (workspaceCount <> 0 AND (size([(this5)<-[:MEMBER_OF]-(this6:User) WHERE ($jwt.sub IS NOT NULL AND this6.authId = $jwt.sub) | 1]) > 0 OR size([(this5)-[:HAS_ADMIN]->(this7:User) WHERE ($jwt.sub IS NOT NULL AND this7.authId = $jwt.sub) | 1]) > 0)))))
+    WITH this3 { .id } AS this3
+    RETURN collect(this3) AS var8
 }
-RETURN this {
-	.id,
-	pages: var8
-} AS this
+RETURN this { .id, pages: var8 } AS this
 ----
 
 '''

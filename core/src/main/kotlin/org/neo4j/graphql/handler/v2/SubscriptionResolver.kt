@@ -36,9 +36,9 @@ class SubscriptionResolver private constructor(
             if (node.annotations.subscription?.created != false) {
                 result += addSubscriptionField(
                     node,
-                    node.operations.rootTypeFieldNames.subscribe.created,
-                    node.operations.subscriptionEventTypeNames.create,
-                    node.operations.subscriptionEventPayloadFieldNames.create,
+                    node.namings.rootTypeFieldNames.subscribe.created,
+                    node.namings.subscriptionEventTypeNames.create,
+                    node.namings.subscriptionEventPayloadFieldNames.create,
                     SubscriptionEventType.CREATED,
                     SubscriptionWhere.Augmentation.generateWhereIT(node, ctx)
                 )
@@ -47,9 +47,9 @@ class SubscriptionResolver private constructor(
             if (node.annotations.subscription?.updated != false) {
                 result += addSubscriptionField(
                     node,
-                    node.operations.rootTypeFieldNames.subscribe.updated,
-                    node.operations.subscriptionEventTypeNames.update,
-                    node.operations.subscriptionEventPayloadFieldNames.update,
+                    node.namings.rootTypeFieldNames.subscribe.updated,
+                    node.namings.subscriptionEventTypeNames.update,
+                    node.namings.subscriptionEventPayloadFieldNames.update,
                     SubscriptionEventType.UPDATED,
                     SubscriptionWhere.Augmentation.generateWhereIT(node, ctx)
                 ) { fields, _ ->
@@ -62,9 +62,9 @@ class SubscriptionResolver private constructor(
             if (node.annotations.subscription?.deleted != false) {
                 result += addSubscriptionField(
                     node,
-                    node.operations.rootTypeFieldNames.subscribe.deleted,
-                    node.operations.subscriptionEventTypeNames.delete,
-                    node.operations.subscriptionEventPayloadFieldNames.delete,
+                    node.namings.rootTypeFieldNames.subscribe.deleted,
+                    node.namings.subscriptionEventTypeNames.delete,
+                    node.namings.subscriptionEventPayloadFieldNames.delete,
                     SubscriptionEventType.DELETED,
                     SubscriptionWhere.Augmentation.generateWhereIT(node, ctx)
                 )
@@ -74,9 +74,9 @@ class SubscriptionResolver private constructor(
                 if (node.annotations.subscription?.relationshipCreated != false) {
                     result += addRelationSubscriptionField(
                         node,
-                        node.operations.rootTypeFieldNames.subscribe.relationshipCreated,
-                        node.operations.subscriptionEventTypeNames.createRelationship,
-                        node.operations.subscriptionEventPayloadFieldNames.createRelationship,
+                        node.namings.rootTypeFieldNames.subscribe.relationshipCreated,
+                        node.namings.subscriptionEventTypeNames.createRelationship,
+                        node.namings.subscriptionEventPayloadFieldNames.createRelationship,
                         SubscriptionEventType.RELATIONSHIP_CREATED
                     )
                 }
@@ -84,9 +84,9 @@ class SubscriptionResolver private constructor(
                 if (node.annotations.subscription?.relationshipDeleted != false) {
                     result += addRelationSubscriptionField(
                         node,
-                        node.operations.rootTypeFieldNames.subscribe.relationshipDeleted,
-                        node.operations.subscriptionEventTypeNames.deleteRelationship,
-                        node.operations.subscriptionEventPayloadFieldNames.deleteRelationship,
+                        node.namings.rootTypeFieldNames.subscribe.relationshipDeleted,
+                        node.namings.subscriptionEventTypeNames.deleteRelationship,
+                        node.namings.subscriptionEventPayloadFieldNames.deleteRelationship,
                         SubscriptionEventType.RELATIONSHIP_DELETED
                     )
                 }
@@ -102,7 +102,7 @@ class SubscriptionResolver private constructor(
         }
 
         private fun getEventPayloadType(union: Union): String? {
-            return ctx.getOrCreateUnionType(union.operations.subscriptionEventPayloadTypeName) { members, _ ->
+            return ctx.getOrCreateUnionType(union.namings.subscriptionEventPayloadTypeName) { members, _ ->
                 union.nodes.values.forEach { node ->
                     getEventPayloadType(node)?.let { members += it.asType() }
                 }
@@ -128,14 +128,14 @@ class SubscriptionResolver private constructor(
             return implementingType.extractOnImplementingType(
                 onNode = { node ->
                     ctx.getOrCreateObjectType(
-                        node.operations.subscriptionEventPayloadTypeName,
+                        node.namings.subscriptionEventPayloadTypeName,
                         { initExtensions { implementz(it) } },
                         initFields
                     )
                 },
                 onInterface = { interfaze ->
                     ctx.getOrCreateInterfaceType(
-                        interfaze.operations.subscriptionEventPayloadTypeName,
+                        interfaze.namings.subscriptionEventPayloadTypeName,
                         { initExtensions { implementz(it) } },
                         initFields
                     )
@@ -144,7 +144,7 @@ class SubscriptionResolver private constructor(
         }
 
         private fun getRelationsEventPayloadType(node: Node) =
-            ctx.getOrCreateObjectType(node.operations.subscriptionRelationsEventPayloadTypeName) { fields, _ ->
+            ctx.getOrCreateObjectType(node.namings.subscriptionRelationsEventPayloadTypeName) { fields, _ ->
                 node.relationFields.forEach { relationField ->
                     getRelationsEventPayloadType(relationField)?.let {
                         fields += field(relationField.fieldName, it.asType())
@@ -153,7 +153,7 @@ class SubscriptionResolver private constructor(
             }
 
         private fun getRelationsEventPayloadType(relationField: RelationField) =
-            ctx.getOrCreateObjectType(relationField.operations.subscriptionConnectedRelationshipTypeName) { fields, _ ->
+            ctx.getOrCreateObjectType(relationField.namings.subscriptionConnectedRelationshipTypeName) { fields, _ ->
 
                 //TODO Darell: these fields should be on a edge type to not have naming conflicts
                 relationField.properties?.fields?.forEach {

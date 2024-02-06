@@ -39,7 +39,7 @@ type Movie {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
@@ -47,47 +47,30 @@ type Movie {
 ----
 MATCH (this:Actor)
 CALL {
-	WITH this
-	CALL {
-		WITH this
-		WITH this AS this
-		MATCH (m:Movie {
-			title: NULL
-		})
-		RETURN m
-	}
-	WITH m AS this0
-	CALL {
-		WITH this0
-		MATCH (this0)<-[this1:ACTED_IN]-(this2:Actor)
-		WITH collect( {
-			node: this2,
-			relationship: this1
-		}) AS edges
-		WITH edges, size(edges) AS totalCount
-		CALL {
-			WITH edges
-			UNWIND edges AS edge
-			WITH edge.node AS this2, edge.relationship AS this1
-			RETURN collect( {
-				node: {
-					__resolveType: 'Actor',
-					__id: id(this2)
-				}
-			}) AS var3
-		}
-		RETURN {
-			edges: var3,
-			totalCount: totalCount
-		} AS var4
-	}
-	RETURN collect(this0 {
-		actorsConnection: var4
-	}) AS this0
+    WITH this
+    CALL {
+        WITH this
+        WITH this AS this
+        MATCH (m:Movie {title: NULL})
+        RETURN m
+    }
+    WITH m AS this0
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this1:ACTED_IN]-(this2:Actor)
+        WITH collect({ node: this2, relationship: this1 }) AS edges
+        WITH edges, size(edges) AS totalCount
+        CALL {
+            WITH edges
+            UNWIND edges AS edge
+            WITH edge.node AS this2, edge.relationship AS this1
+            RETURN collect({ node: { __resolveType: "Actor", __id: id(this2) } }) AS var3
+        }
+        RETURN { edges: var3, totalCount: totalCount } AS var4
+    }
+    RETURN collect(this0 { actorsConnection: var4 }) AS this0
 }
-RETURN this {
-	movies: this0
-} AS this
+RETURN this { movies: this0 } AS this
 ----
 
 '''

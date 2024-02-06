@@ -15,7 +15,6 @@ type Actor @authorization(validate: [{when: [BEFORE], operations: [READ], where:
   actedIn: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
 }
 ----
-
 == authorization should work when the filter value is an array, inside logical
 
 .GraphQL-Query
@@ -28,13 +27,38 @@ query actors {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [
+      "admin"
+    ],
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "id": "something",
+      "email": "something"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
 {
-  "isAuthenticated" : true,
-  "param1" : [ "Matrix" ],
-  "param2" : [ "Forrest Gump", "Top Gun" ]
+  "isAuthenticated": true,
+  "param1": [
+    "Matrix"
+  ],
+  "param2": [
+    "Forrest Gump",
+    "Top Gun"
+  ]
 }
 ----
 
@@ -43,15 +67,8 @@ query actors {
 ----
 MATCH (this:Actor)
 WITH *
-WHERE apoc.util.validatePredicate(NOT (($isAuthenticated = true
-	AND size([(this)-[this1:ACTED_IN]->(this0:Movie)
-	WHERE (($param1 IS NOT NULL
-			AND this0.title IN $param1)
-		OR ($param2 IS NOT NULL
-			AND this0.title IN $param2)) | 1]) > 0)), '@neo4j/graphql/FORBIDDEN', [0])
-RETURN this {
-	.name
-} AS this
+WHERE apoc.util.validatePredicate(NOT ($isAuthenticated = true AND size([(this)-[this1:ACTED_IN]->(this0:Movie) WHERE (($param1 IS NOT NULL AND this0.title IN $param1) OR ($param2 IS NOT NULL AND this0.title IN $param2)) | 1]) > 0), "@neo4j/graphql/FORBIDDEN", [0])
+RETURN this { .name } AS this
 ----
 
 '''

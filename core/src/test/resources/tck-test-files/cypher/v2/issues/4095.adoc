@@ -27,7 +27,6 @@ extend schema @authentication {
   mutation: Mutation
 }
 ----
-
 == query with nested aggregate count
 
 .GraphQL-Query
@@ -43,14 +42,35 @@ query Family {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [
+      "admin"
+    ],
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "michel"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
 {
-  "isAuthenticated" : true,
-  "jwt" : {
-    "roles" : [ "admin" ],
-    "sub" : "michel"
+  "isAuthenticated": true,
+  "jwt": {
+    "roles": [
+      "admin"
+    ],
+    "sub": "michel"
   }
 }
 ----
@@ -60,23 +80,15 @@ query Family {
 ----
 MATCH (this:Family)
 CALL {
-	WITH this
-	MATCH (this)<-[this0:MEMBER_OF]-(this1:Person)
-	OPTIONAL MATCH (this1)<-[:CREATOR_OF]-(this2:User)
-	WITH *, count(this2) AS creatorCount
-	WITH *
-	WHERE ($isAuthenticated = true
-		AND creatorCount <> 0
-		AND $jwt.uid IS NOT NULL
-		AND this2.id = $jwt.uid)
-	RETURN count(this1) AS var3
+    WITH this
+    MATCH (this)<-[this0:MEMBER_OF]-(this1:Person)
+    OPTIONAL MATCH (this1)<-[:CREATOR_OF]-(this2:User)
+    WITH *, count(this2) AS creatorCount
+    WITH *
+    WHERE ($isAuthenticated = true AND (creatorCount <> 0 AND ($jwt.uid IS NOT NULL AND this2.id = $jwt.uid)))
+    RETURN count(this1) AS var3
 }
-RETURN this {
-	.id,
-	membersAggregate: {
-		count: var3
-	}
-} AS this
+RETURN this { .id, membersAggregate: { count: var3 } } AS this
 ----
 
 '''

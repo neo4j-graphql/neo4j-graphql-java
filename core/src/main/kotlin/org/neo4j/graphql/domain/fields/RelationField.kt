@@ -3,8 +3,8 @@ package org.neo4j.graphql.domain.fields
 import org.neo4j.cypherdsl.core.Relationship
 import org.neo4j.graphql.capitalize
 import org.neo4j.graphql.domain.*
-import org.neo4j.graphql.domain.directives.Annotations
-import org.neo4j.graphql.domain.naming.RelationshipOperations
+import org.neo4j.graphql.domain.directives.FieldAnnotations
+import org.neo4j.graphql.domain.naming.RelationshipNames
 import org.neo4j.graphql.domain.predicates.RelationOperator
 import org.neo4j.graphql.domain.predicates.definitions.RelationPredicateDefinition
 import org.neo4j.graphql.handler.utils.ChainString
@@ -16,7 +16,7 @@ import org.neo4j.graphql.isList
 class RelationField(
     fieldName: String,
     typeMeta: TypeMeta,
-    annotations: Annotations,
+    annotations: FieldAnnotations,
     val properties: RelationshipProperties?,
     /**
      * The node or interface name. If the filed is defined in an interface, the prefix will have the interface's name
@@ -44,7 +44,7 @@ class RelationField(
     lateinit var connectionField: ConnectionField
 
     lateinit var target: Entity
-    val operations = RelationshipOperations(this, annotations)
+    val namings = RelationshipNames(this, annotations)
     val isInterface: Boolean get() = target is Interface
     val isUnion: Boolean get() = target is Union
 
@@ -55,7 +55,7 @@ class RelationField(
             ?.name
     }
 
-    val predicates: Map<String, RelationPredicateDefinition> by lazy {
+    val predicateDefinitions: Map<String, RelationPredicateDefinition> by lazy {
         val result = mutableMapOf<String, RelationPredicateDefinition>()
         listOf(true, false).forEach { isConnection ->
             RelationOperator.values().forEach { op ->
@@ -79,7 +79,7 @@ class RelationField(
 
     override fun getNode(name: String) = extractOnTarget(
         onNode = { it.takeIf { it.name == name } },
-        onInterface = { it.getRequiredImplementation(name) },
+        onInterface = { it.getRequiredNode(name) },
         onUnion = { it.getRequiredNode(name) }
     )
 
@@ -121,7 +121,7 @@ class RelationField(
             }
         }
         if (useDirected) {
-            return createDslRelation(start, end, name, startLeft)
+            return createDslRelation(start, end, name)
         }
         return start.relationshipBetween(end, relationType)
             .let { if (name != null) it.named(name.resolveName()) else it }
@@ -131,14 +131,8 @@ class RelationField(
         start: org.neo4j.cypherdsl.core.Node,
         end: org.neo4j.cypherdsl.core.Node,
         name: String? = null,
-        startLeft: Boolean = false, // TODO used only to make migrating form JS easier
     ): Relationship = when (direction) {
-        Direction.IN -> if (startLeft) {
-            start.relationshipFrom(end, relationType)
-        } else {
-            end.relationshipTo(start, relationType)
-        }
-
+        Direction.IN -> end.relationshipTo(start, relationType)
         Direction.OUT -> start.relationshipTo(end, relationType)
     }.let { if (name != null) it.named(name) else it }
 
@@ -146,8 +140,7 @@ class RelationField(
         start: org.neo4j.cypherdsl.core.Node,
         end: org.neo4j.cypherdsl.core.Node,
         name: ChainString?,
-        startLeft: Boolean = false, // TODO used only to make migrating form JS easier
-    ): Relationship = createDslRelation(start, end, name?.resolveName(), startLeft)
+    ): Relationship = createDslRelation(start, end, name?.resolveName())
 
     fun <UNION_RESULT : RESULT, INTERFACE_RESULT : RESULT, NODE_RESULT : RESULT, RESULT> extractOnTarget(
         onNode: (Node) -> NODE_RESULT,

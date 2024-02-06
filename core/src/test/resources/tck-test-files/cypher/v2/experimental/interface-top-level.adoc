@@ -46,7 +46,6 @@ type MyOtherImplementationType implements MyInterface {
   "experimental": true
 }
 ----
-
 == Read interface
 
 .GraphQL-Query
@@ -65,32 +64,40 @@ type MyOtherImplementationType implements MyInterface {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [],
+    "jwt": {
+      "roles": [],
+      "jwtAllowedNamesExample": "Horror"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 CALL {
-	MATCH (this0:SomeNodeType)
-	CALL {
-		WITH this0
-		MATCH (this0)-[this1:HAS_OTHER_NODES]->(this2:OtherNodeType)
-		WITH this2 {
-			.id
-		} AS this2
-		RETURN head(collect(this2)) AS var3
-	}
-	WITH this0 {
-		.id,
-		other: var3,
-		__resolveType: 'SomeNodeType',
-		__id: id(this0)
-	} AS this0
-	RETURN this0 AS this
+    MATCH (this0:SomeNodeType)
+    CALL {
+        WITH this0
+        MATCH (this0)-[this1:HAS_OTHER_NODES]->(this2:OtherNodeType)
+        WITH this2 { .id } AS this2
+        RETURN head(collect(this2)) AS var3
+    }
+    WITH this0 { .id, other: var3, __resolveType: "SomeNodeType", __id: id(this0) } AS this0
+    RETURN this0 AS this
 }
 WITH this
 RETURN this AS this
@@ -110,37 +117,42 @@ RETURN this AS this
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [],
+    "jwt": {
+      "roles": [],
+      "jwtAllowedNamesExample": "Horror"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 CALL {
-	MATCH (this0:SomeNodeType)
-	WITH this0 {
-		.id,
-		__resolveType: 'SomeNodeType',
-		__id: id(this0)
-	} AS this0
-	RETURN this0 AS this UNION
-	MATCH (this1:MyImplementationType)
-	WITH this1 {
-		.id,
-		__resolveType: 'MyImplementationType',
-		__id: id(this1)
-	} AS this1
-	RETURN this1 AS this UNION
-	MATCH (this2:MyOtherImplementationType)
-	WITH this2 {
-		.id,
-		__resolveType: 'MyOtherImplementationType',
-		__id: id(this2)
-	} AS this2
-	RETURN this2 AS this
+    MATCH (this0:SomeNodeType)
+    WITH this0 { .id, __resolveType: "SomeNodeType", __id: id(this0) } AS this0
+    RETURN this0 AS this
+    UNION
+    MATCH (this1:MyImplementationType)
+    WITH this1 { .id, __resolveType: "MyImplementationType", __id: id(this1) } AS this1
+    RETURN this1 AS this
+    UNION
+    MATCH (this2:MyOtherImplementationType)
+    WITH this2 { .id, __resolveType: "MyOtherImplementationType", __id: id(this2) } AS this2
+    RETURN this2 AS this
 }
 WITH this
 RETURN this AS this
@@ -163,38 +175,42 @@ RETURN this AS this
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [],
+    "jwt": {
+      "roles": [],
+      "jwtAllowedNamesExample": "Horror"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 CALL {
-	MATCH (this0:SomeNodeType)
-	WITH this0 {
-		.id,
-		__resolveType: 'SomeNodeType',
-		__id: id(this0)
-	} AS this0
-	RETURN this0 AS this UNION
-	MATCH (this1:MyImplementationType)
-	WITH this1 {
-		.id,
-		__resolveType: 'MyImplementationType',
-		__id: id(this1)
-	} AS this1
-	RETURN this1 AS this UNION
-	MATCH (this2:MyOtherImplementationType)
-	WITH this2 {
-		.id,
-		.someField,
-		__resolveType: 'MyOtherImplementationType',
-		__id: id(this2)
-	} AS this2
-	RETURN this2 AS this
+    MATCH (this0:SomeNodeType)
+    WITH this0 { .id, __resolveType: "SomeNodeType", __id: id(this0) } AS this0
+    RETURN this0 AS this
+    UNION
+    MATCH (this1:MyImplementationType)
+    WITH this1 { .id, __resolveType: "MyImplementationType", __id: id(this1) } AS this1
+    RETURN this1 AS this
+    UNION
+    MATCH (this2:MyOtherImplementationType)
+    WITH this2 { .id, .someField, __resolveType: "MyOtherImplementationType", __id: id(this2) } AS this2
+    RETURN this2 AS this
 }
 WITH this
 RETURN this AS this
@@ -223,40 +239,42 @@ RETURN this AS this
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [],
+    "jwt": {
+      "roles": [],
+      "jwtAllowedNamesExample": "Horror"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 CALL {
-	MATCH (this0:SomeNodeType)
-	WITH this0 {
-		.id,
-		.something,
-		.somethingElse,
-		__resolveType: 'SomeNodeType',
-		__id: id(this0)
-	} AS this0
-	RETURN this0 AS this UNION
-	MATCH (this1:MyImplementationType)
-	WITH this1 {
-		.id,
-		__resolveType: 'MyImplementationType',
-		__id: id(this1)
-	} AS this1
-	RETURN this1 AS this UNION
-	MATCH (this2:MyOtherImplementationType)
-	WITH this2 {
-		.id,
-		.someField,
-		__resolveType: 'MyOtherImplementationType',
-		__id: id(this2)
-	} AS this2
-	RETURN this2 AS this
+    MATCH (this0:SomeNodeType)
+    WITH this0 { .id, .something, .somethingElse, __resolveType: "SomeNodeType", __id: id(this0) } AS this0
+    RETURN this0 AS this
+    UNION
+    MATCH (this1:MyImplementationType)
+    WITH this1 { .id, __resolveType: "MyImplementationType", __id: id(this1) } AS this1
+    RETURN this1 AS this
+    UNION
+    MATCH (this2:MyOtherImplementationType)
+    WITH this2 { .id, .someField, __resolveType: "MyOtherImplementationType", __id: id(this2) } AS this2
+    RETURN this2 AS this
 }
 WITH this
 RETURN this AS this
@@ -282,39 +300,42 @@ RETURN this AS this
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [],
+    "jwt": {
+      "roles": [],
+      "jwtAllowedNamesExample": "Horror"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 CALL {
-	MATCH (this0:SomeNodeType)
-	WITH this0 {
-		.id,
-		.something,
-		__resolveType: 'SomeNodeType',
-		__id: id(this0)
-	} AS this0
-	RETURN this0 AS this UNION
-	MATCH (this1:MyImplementationType)
-	WITH this1 {
-		.id,
-		__resolveType: 'MyImplementationType',
-		__id: id(this1)
-	} AS this1
-	RETURN this1 AS this UNION
-	MATCH (this2:MyOtherImplementationType)
-	WITH this2 {
-		.id,
-		.someField,
-		__resolveType: 'MyOtherImplementationType',
-		__id: id(this2)
-	} AS this2
-	RETURN this2 AS this
+    MATCH (this0:SomeNodeType)
+    WITH this0 { .id, .something, __resolveType: "SomeNodeType", __id: id(this0) } AS this0
+    RETURN this0 AS this
+    UNION
+    MATCH (this1:MyImplementationType)
+    WITH this1 { .id, __resolveType: "MyImplementationType", __id: id(this1) } AS this1
+    RETURN this1 AS this
+    UNION
+    MATCH (this2:MyOtherImplementationType)
+    WITH this2 { .id, .someField, __resolveType: "MyOtherImplementationType", __id: id(this2) } AS this2
+    RETURN this2 AS this
 }
 WITH this
 RETURN this AS this
@@ -334,11 +355,26 @@ RETURN this AS this
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [],
+    "jwt": {
+      "roles": [],
+      "jwtAllowedNamesExample": "Horror"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
 {
-  "param0" : "1"
+  "param0": "1"
 }
 ----
 
@@ -346,14 +382,10 @@ RETURN this AS this
 [source,cypher]
 ----
 CALL {
-	MATCH (this0:SomeNodeType)
-	WHERE this0.id STARTS WITH $param0
-	WITH this0 {
-		.id,
-		__resolveType: 'SomeNodeType',
-		__id: id(this0)
-	} AS this0
-	RETURN this0 AS this
+    MATCH (this0:SomeNodeType)
+    WHERE this0.id STARTS WITH $param0
+    WITH this0 { .id, __resolveType: "SomeNodeType", __id: id(this0) } AS this0
+    RETURN this0 AS this
 }
 WITH this
 RETURN this AS this
@@ -376,11 +408,26 @@ RETURN this AS this
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [],
+    "jwt": {
+      "roles": [],
+      "jwtAllowedNamesExample": "Horror"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
 {
-  "param0" : "4"
+  "param0": "4"
 }
 ----
 
@@ -388,14 +435,10 @@ RETURN this AS this
 [source,cypher]
 ----
 CALL {
-	MATCH (this0:SomeNodeType)
-	WHERE this0.id STARTS WITH $param0
-	WITH this0 {
-		.id,
-		__resolveType: 'SomeNodeType',
-		__id: id(this0)
-	} AS this0
-	RETURN this0 AS this
+    MATCH (this0:SomeNodeType)
+    WHERE this0.id STARTS WITH $param0
+    WITH this0 { .id, __resolveType: "SomeNodeType", __id: id(this0) } AS this0
+    RETURN this0 AS this
 }
 WITH this
 RETURN this AS this

@@ -59,17 +59,31 @@ query Document {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [],
+    "jwt": {
+      "roles": []
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
 {
-  "isAuthenticated" : true,
-  "jwt" : {
-    "roles" : [ ]
+  "isAuthenticated": true,
+  "jwt": {
+    "roles": []
   },
-  "param2" : "view",
-  "param3" : "view",
-  "param4" : "view"
+  "param2": "view",
+  "param3": "view",
+  "param4": "view"
 }
 ----
 
@@ -78,53 +92,30 @@ query Document {
 ----
 MATCH (this:Stakeholder)
 WITH *
-WHERE apoc.util.validatePredicate(NOT (($isAuthenticated = true
-	AND $jwt.roles IS NOT NULL
-	AND $param2 IN $jwt.roles)), '@neo4j/graphql/FORBIDDEN', [0])
+WHERE apoc.util.validatePredicate(NOT ($isAuthenticated = true AND ($jwt.roles IS NOT NULL AND $param2 IN $jwt.roles)), "@neo4j/graphql/FORBIDDEN", [0])
 CALL {
-	WITH this
-	MATCH (this)-[this0:REQUIRES]->(this1:Document)
-	WITH *
-	WHERE apoc.util.validatePredicate(NOT (($isAuthenticated = true
-		AND $jwt.roles IS NOT NULL
-		AND $param3 IN $jwt.roles)), '@neo4j/graphql/FORBIDDEN', [0])
-	CALL {
-		WITH this1
-		MATCH (this1)<-[this2:UPLOADED]-(this3:CustomerContact)
-		WHERE apoc.util.validatePredicate(NOT (($isAuthenticated = true
-			AND $jwt.roles IS NOT NULL
-			AND $param4 IN $jwt.roles)), '@neo4j/graphql/FORBIDDEN', [0])
-		WITH collect( {
-			node: this3,
-			relationship: this2
-		}) AS edges
-		WITH edges, size(edges) AS totalCount
-		CALL {
-			WITH edges
-			UNWIND edges AS edge
-			WITH edge.node AS this3, edge.relationship AS this2
-			RETURN collect( {
-				fileId: this2.fileId,
-				uploadedAt: apoc.date.convertFormat(toString(this2.uploadedAt), 'iso_zoned_date_time', 'iso_offset_date_time'),
-				node: {
-					__resolveType: 'CustomerContact',
-					__id: id(this3)
-				}
-			}) AS var4
-		}
-		RETURN {
-			edges: var4,
-			totalCount: totalCount
-		} AS var5
-	}
-	WITH this1 {
-		customerContactConnection: var5
-	} AS this1
-	RETURN collect(this1) AS var6
+    WITH this
+    MATCH (this)-[this0:REQUIRES]->(this1:Document)
+    WITH *
+    WHERE apoc.util.validatePredicate(NOT ($isAuthenticated = true AND ($jwt.roles IS NOT NULL AND $param3 IN $jwt.roles)), "@neo4j/graphql/FORBIDDEN", [0])
+    CALL {
+        WITH this1
+        MATCH (this1)<-[this2:UPLOADED]-(this3:CustomerContact)
+        WHERE apoc.util.validatePredicate(NOT ($isAuthenticated = true AND ($jwt.roles IS NOT NULL AND $param4 IN $jwt.roles)), "@neo4j/graphql/FORBIDDEN", [0])
+        WITH collect({ node: this3, relationship: this2 }) AS edges
+        WITH edges, size(edges) AS totalCount
+        CALL {
+            WITH edges
+            UNWIND edges AS edge
+            WITH edge.node AS this3, edge.relationship AS this2
+            RETURN collect({ fileId: this2.fileId, uploadedAt: apoc.date.convertFormat(toString(this2.uploadedAt), "iso_zoned_date_time", "iso_offset_date_time"), node: { __resolveType: "CustomerContact", __id: id(this3) } }) AS var4
+        }
+        RETURN { edges: var4, totalCount: totalCount } AS var5
+    }
+    WITH this1 { customerContactConnection: var5 } AS this1
+    RETURN collect(this1) AS var6
 }
-RETURN this {
-	documents: var6
-} AS this
+RETURN this { documents: var6 } AS this
 ----
 
 '''

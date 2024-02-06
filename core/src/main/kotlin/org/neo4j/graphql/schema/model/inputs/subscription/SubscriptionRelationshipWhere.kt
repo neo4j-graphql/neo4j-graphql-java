@@ -18,8 +18,8 @@ class SubscriptionRelationshipWhere {
 
         fun generateSubscriptionConnectionWhereType(node: Node, type: Type, ctx: AugmentationContext): String? {
             val name = when (type) {
-                Type.Created -> node.operations.relationshipCreatedSubscriptionWhereInputTypeName
-                Type.Deleted -> node.operations.relationshipDeletedSubscriptionWhereInputTypeName
+                Type.Created -> node.namings.relationshipCreatedSubscriptionWhereInputTypeName
+                Type.Deleted -> node.namings.relationshipDeletedSubscriptionWhereInputTypeName
             }
             // TODO use name from operations
             return ctx.getOrCreateInputObjectType(name) { fields, _ ->
@@ -36,7 +36,7 @@ class SubscriptionRelationshipWhere {
         }
 
         private fun getRelationshipConnectionWhereTypes(node: Node, ctx: AugmentationContext): String? =
-            ctx.getOrCreateInputObjectType(node.operations.relationshipsSubscriptionWhereInputTypeName) { fields, _ ->
+            ctx.getOrCreateInputObjectType(node.namings.relationshipsSubscriptionWhereInputTypeName) { fields, _ ->
                 node.relationFields.forEach { relationField ->
                     SubscriptionWhereFieldInput.Augmentation.generateWhereIT(relationField, ctx)?.let {
                         fields += inputValue(relationField.fieldName, it.asType())

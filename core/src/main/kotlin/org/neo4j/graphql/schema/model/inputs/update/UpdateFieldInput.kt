@@ -68,7 +68,7 @@ sealed interface UpdateFieldInput {
                 if (!rel.shouldGenerateUpdateFieldInputType(node)) {
                     return null
                 }
-                return ctx.getOrCreateInputObjectType(rel.operations.getUpdateFieldInputTypeName(node)) { fields, _ ->
+                return ctx.getOrCreateInputObjectType(rel.namings.getUpdateFieldInputTypeName(node)) { fields, _ ->
 
                     NodeConnectionWhere.Augmentation
                         .generateFieldConnectionWhereIT(rel, node, ctx)
@@ -144,7 +144,7 @@ sealed interface UpdateFieldInput {
                 if (!rel.shouldGenerateUpdateFieldInputType(interfaze)) {
                     return null
                 }
-                return ctx.getOrCreateInputObjectType(rel.operations.getUpdateFieldInputTypeName(interfaze)) { fields, _ ->
+                return ctx.getOrCreateInputObjectType(rel.namings.getUpdateFieldInputTypeName(interfaze)) { fields, _ ->
 
                     InterfaceConnectionWhere.Augmentation
                         .generateFieldConnectionWhereIT(rel, interfaze, ctx)
@@ -210,7 +210,7 @@ sealed interface UpdateFieldInput {
                 interfaze: Interface,
                 ctx: AugmentationContext
             ) =
-                ctx.getOrCreateInputObjectType(rel.operations.getUpdateConnectionInputTypename(interfaze)) { fields, _ ->
+                ctx.getOrCreateInputObjectType(rel.namings.getUpdateConnectionInputTypename(interfaze)) { fields, _ ->
 
                     UpdateInput.InterfaceUpdateInput.Augmentation
                         .generateUpdateInputIT(interfaze, ctx)
@@ -235,7 +235,7 @@ sealed interface UpdateFieldInput {
                 node: Node,
                 ctx: AugmentationContext
             ) =
-                ctx.getOrCreateInputObjectType(rel.operations.getUpdateConnectionInputTypename(node)) { fields, _ ->
+                ctx.getOrCreateInputObjectType(rel.namings.getUpdateConnectionInputTypename(node)) { fields, _ ->
 
                     UpdateInput.NodeUpdateInput.Augmentation.generateContainerUpdateIT(node, ctx)
                         ?.let { fields += inputValue(Constants.NODE_FIELD, it.asType()) }

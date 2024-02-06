@@ -300,3 +300,27 @@ interface Node {
   "The id of the object."
   id: ID!
 }
+
+type JWTStandard {
+
+  "A case-sensitive string containing a StringOrURI value that identifies the principal that issued the JWT.",
+  iss: String
+
+  "A case-sensitive string containing a StringOrURI value that identifies the principal that is the subject of the JWT.",
+  sub:String
+
+  "An array of case-sensitive strings, each containing a StringOrURI value that identifies the recipients that can process the JWT.",
+  aud: [String!]
+
+  "Identifies the expiration time on or after which the JWT must not be accepted for processing.",
+  exp: Int
+
+  "Identifies the time before which the JWT must not be accepted for processing.",
+  nbf: Int
+
+  "Identifies the time at which the JWT was issued, to determine the age of the JWT.",
+  iat: Int
+
+  "Uniquely identifies the JWT, to prevent the JWT from being replayed.",
+  jti: String
+}

@@ -247,13 +247,13 @@ class AuthTranslator(
 //                    .`in`(Cypher.listBasedOn(relationField.createDslRelation(varName, namedEnd)).returning(authPredicate))
 //                    .where(cond.asCondition())
                     .`in`(
-                        Cypher.listBasedOn(relationField.createDslRelation(varName, namedEnd, startLeft = true))
+                        Cypher.listBasedOn(relationField.createDslRelation(varName, namedEnd))
                             .returning(cond)
                     )
                     .where(authPredicate)
 
                 val relationCondition =
-                    Predicates.exists(relationField.createDslRelation(varName, end, startLeft = true)).and(o)
+                    Predicates.exists(relationField.createDslRelation(varName, end)).and(o)
                 condition = condition?.and(relationCondition) ?: relationCondition
             }
         }

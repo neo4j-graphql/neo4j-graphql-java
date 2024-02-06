@@ -17,14 +17,14 @@ class ConnectOrCreateWhere(node: Node, data: Dict) {
 
     object Augmentation : AugmentationBase {
         fun generateConnectOrCreateWhereIT(node: Node, ctx: AugmentationContext) =
-            ctx.getOrCreateInputObjectType(node.operations.connectOrCreateWhereInputTypeName) { fields, _ ->
+            ctx.getOrCreateInputObjectType(node.namings.connectOrCreateWhereInputTypeName) { fields, _ ->
 
                 generateUniqueWhereIT(node, ctx)
                     ?.let { fields += inputValue(Constants.NODE_FIELD, it.asRequiredType()) }
             }
 
         private fun generateUniqueWhereIT(node: Node, ctx: AugmentationContext) =
-            ctx.getOrCreateInputObjectType(node.operations.uniqueWhereInputTypeName) { fields, _ ->
+            ctx.getOrCreateInputObjectType(node.namings.uniqueWhereInputTypeName) { fields, _ ->
                 node.uniqueFields.forEach { uniqueField ->
                     val type = if (uniqueField.typeMeta.type.isList()) {
                         ListType(uniqueField.typeMeta.type.inner())

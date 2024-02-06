@@ -3,12 +3,12 @@ package org.neo4j.graphql.domain.fields
 import graphql.language.Value
 import org.neo4j.graphql.SchemaConfig
 import org.neo4j.graphql.domain.TypeMeta
-import org.neo4j.graphql.domain.directives.Annotations
+import org.neo4j.graphql.domain.directives.FieldAnnotations
 
 class CustomEnumField(
     fieldName: String,
     typeMeta: TypeMeta,
-    annotations: Annotations,
+    annotations: FieldAnnotations,
     schemaConfig: SchemaConfig,
 ) : ScalarField(
     fieldName,

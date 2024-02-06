@@ -42,7 +42,6 @@ type Actor {
   "experimental": true
 }
 ----
-
 == top level count
 
 .GraphQL-Query
@@ -58,24 +57,23 @@ type Actor {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 CALL {
-	CALL {
-		MATCH (this0:Movie)
-		RETURN this0 AS node UNION
-		MATCH (this1:Series)
-		RETURN this1 AS node
-	}
-	RETURN count(node) AS this2
+    CALL {
+        MATCH (this0:Movie)
+        RETURN this0 AS node
+        UNION
+        MATCH (this1:Series)
+        RETURN this1 AS node
+    }
+    RETURN count(node) AS this2
 }
-RETURN {
-	count: this2
-}
+RETURN { count: this2 }
 ----
 
 '''
@@ -99,39 +97,36 @@ RETURN {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 CALL {
-	CALL {
-		MATCH (this0:Movie)
-		RETURN this0 AS node UNION
-		MATCH (this1:Series)
-		RETURN this1 AS node
-	}
-	RETURN count(node) AS this2
+    CALL {
+        MATCH (this0:Movie)
+        RETURN this0 AS node
+        UNION
+        MATCH (this1:Series)
+        RETURN this1 AS node
+    }
+    RETURN count(node) AS this2
 }
 CALL {
-	CALL {
-		MATCH (this3:Movie)
-		RETURN this3 AS node UNION
-		MATCH (this4:Series)
-		RETURN this4 AS node
-	}
-	WITH node ORDER BY size(node.title) DESC
-	WITH collect(node.title) AS list
-	RETURN {
-		longest: head(list),
-		shortest: last(list)
-	} AS this5
+    CALL {
+        MATCH (this3:Movie)
+        RETURN this3 AS node
+        UNION
+        MATCH (this4:Series)
+        RETURN this4 AS node
+    }
+    WITH node
+    ORDER BY size(node.title) DESC
+    WITH collect(node.title) AS list
+    RETURN { longest: head(list), shortest: last(list) } AS this5
 }
-RETURN {
-	count: this2,
-	title: this5
-}
+RETURN { count: this2, title: this5 }
 ----
 
 '''

@@ -2,7 +2,7 @@ package org.neo4j.graphql.translate
 
 import org.neo4j.cypherdsl.core.*
 import org.neo4j.graphql.*
-import org.neo4j.graphql.domain.directives.AuthDirective
+import org.neo4j.graphql.domain.directives.AuthorizationDirective
 import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.schema.model.inputs.create.RelationFieldInput
@@ -28,72 +28,54 @@ class UpdateTranslator(
     fun createUpdateAndParams(): ExposesWith {
         if (updateInput == null) return ongoingReading
 
-        var preAuthCondition =
-            AuthTranslator(schemaConfig, queryContext, allow = AuthTranslator.AuthOptions(varName, node))
-                .createAuth(node.auth, AuthDirective.AuthOperation.UPDATE)
-
-        var postAuthCondition = AuthTranslator(
+        var (condition, subqueries) = AuthorizationFactory.getAuthConditions(
+            node,
+            varName,
+            updateInput.properties?.keys,
             schemaConfig,
             queryContext,
-            bind = AuthTranslator.AuthOptions(varName, node),
-            skipIsAuthenticated = true,
-            skipRoles = true
+            AuthorizationDirective.AuthorizationOperation.UPDATE
         )
-            .createAuth(node.auth, AuthDirective.AuthOperation.UPDATE)
+
+        val setProps = createSetPropertiesOnUpdate(
+            varName,
+            updateInput.properties,
+            node,
+            queryContext
+        )
+        setProps?.preConditions?.let { condition = condition and it }
+
+
+        val postAuthCondition = AuthorizationFactory.getPostAuthConditions(
+            node,
+            varName,
+            updateInput.properties?.keys,
+            schemaConfig,
+            queryContext,
+            AuthorizationDirective.AuthorizationOperation.UPDATE
+        )
 
         val prefix = chainStr ?: ChainString(schemaConfig, parentVar, "update")
-
-        updateInput.properties?.keys?.forEach { field ->
-            if (field.auth != null) {
-
-                AuthTranslator(
-                    schemaConfig,
-                    queryContext,
-                    allow = AuthTranslator.AuthOptions(parentVar, node, chainStr = prefix.extend(field))
-                )
-                    .createAuth(field.auth, AuthDirective.AuthOperation.UPDATE)
-                    ?.let { preAuthCondition = preAuthCondition and it }
-
-                AuthTranslator(
-                    schemaConfig,
-                    queryContext,
-                    bind = AuthTranslator.AuthOptions(parentVar, node, chainStr = prefix.extend(field)),
-                    skipIsAuthenticated = true,
-                    skipRoles = true
-                )
-                    .createAuth(field.auth, AuthDirective.AuthOperation.UPDATE)
-                    ?.let { postAuthCondition = postAuthCondition and it }
-
-            }
-        }
-
         var result = ongoingReading
 
-        preAuthCondition?.let {
+        condition?.let {
             result = result
                 .maybeWith(withVars)
                 .with(withVars) // TODO use maybeWith?
-                .apocValidate(it, Constants.AUTH_FORBIDDEN_ERROR)
+                .optionalWhere(it)
         }
-        result = createSetPropertiesSplit(
-            varName,
-            updateInput.properties,
-            Operation.UPDATE,
-            node,
-            schemaConfig,
-            queryContext,
-            prefix
-        )
-            // TODO use createSetProperties and ?.let { result.requiresExposeSet(withVars).set(it) } ?: result
-            //  instead of:
-            ?.let {
-                var x = result
 
-                for ((prop, value) in it) {
-                    x = x.requiresExposeSet(withVars).set(prop, value)
+        result = setProps
+            ?.let {
+                // TODO use createSetProperties and ?.let { .requiresExposeSet(withVars).set(*it.expressions.toTypedArray()) } ?: result
+                //  instead of:
+                var x = result
+                for (exp in it.expressions) {
+                    x = x.requiresExposeSet(withVars).set(exp)
                 }
                 x
-            } ?: result
+            }
+            ?: result
 
 
         updateInput.relations.forEach { (field, value) ->
@@ -102,8 +84,8 @@ class UpdateTranslator(
             // TODO subscriptions
         }
 
-        postAuthCondition?.let {
-            result = result.maybeWith(withVars).apocValidate(it, Constants.AUTH_FORBIDDEN_ERROR)
+        postAuthCondition.predicate?.apocValidatePredicate()?.let {
+            result = result.with(withVars).where(it)
         }
 
         if (includeRelationshipValidation) {
@@ -201,7 +183,7 @@ class UpdateTranslator(
                         schemaConfig,
                         ChainString(schemaConfig, varName, field,
                             refNode.takeIf { field.isUnion }
-                        ).appendOnPrevious(index).extend( "connectOrCreate")
+                        ).appendOnPrevious(index).extend("connectOrCreate")
                     )
                 }
 
@@ -251,21 +233,11 @@ class UpdateTranslator(
                             val relationVarName = propertiesName.takeIf { create.edge != null /*TODO or subscription*/ }
                             val relation = field.createDslRelation(parentVar, endNode, relationVarName)
 
-                            val setProperties = createSetProperties(
+                            val setProperties = createSetPropertiesOnCreate(
                                 relation,
                                 create.edge,
-                                Operation.CREATE,
                                 field.properties,
-                                schemaConfig,
-                                queryContext,
-                                parameterPrefix.extend(
-                                    key,
-                                    refNode.takeIf { field.isUnion },
-                                    index,
-                                    "create",
-                                    i,
-                                    "edge"
-                                )
+                                queryContext
                             )
 
                             result = CreateTranslator(schemaConfig, queryContext)
@@ -322,11 +294,10 @@ class UpdateTranslator(
         val rel = field.createDslRelation(
             Cypher.anyNode(parentVar.requiredSymbolicName),
             endNode,
-            relationshipVariable,
-            startLeft = true
+            relationshipVariable
         )
 
-        val (whereCondition, whereSubquery) = createConnectionWhere(
+        var where = createConnectionWhere(
             input.where,
             refNode,
             endNode,
@@ -336,41 +307,42 @@ class UpdateTranslator(
                 .extend(field, refNode.takeIf { field.isUnion })
                 .appendOnPrevious(index.takeIf { field.typeMeta.type.isList() })
                 .extend("where")
-                .extend(refNode.takeIf { !field.isUnion })
-            ,
+                .extend(refNode.takeIf { !field.isUnion }),
             schemaConfig,
             queryContext,
             usePrefix = PrefixUsage.APPEND
         )
 
-        val whereAuth = AuthTranslator(schemaConfig, queryContext, where = AuthTranslator.AuthOptions(endNode, refNode))
-            .createAuth(refNode.auth, AuthDirective.AuthOperation.UPDATE)
-
+        where = where and AuthorizationFactory.getAuthConditions(
+            refNode,
+            endNode,
+            null, // TODO fields
+            schemaConfig,
+            queryContext,
+            AuthorizationDirective.AuthorizationOperation.UPDATE
+        )
 
         var result = Cypher
             .with(withVars)
             .match(rel)
-            .optionalWhere(listOf(whereCondition, whereAuth))
-            .withSubQueries(whereSubquery) // TODO create test for where sub-queries, I think we must move them before the where
+            .optionalWhere(where.requiredCondition)
+            .withSubQueries(where.preComputedSubQueries) // TODO create test for where sub-queries, I think we must move them before the where
             .let { reading ->
                 field.properties?.let { edgeProperties ->
                     update.edge?.let { edgeUpdate ->
-                        createSetProperties(
+                        createSetPropertiesOnUpdate(
                             rel,
                             edgeUpdate,
-                            Operation.UPDATE,
                             edgeProperties,
-                            schemaConfig,
-                            queryContext,
-                            parameterPrefix.extend(
-                                field,
-                                refNode.name.takeIf { field.isUnion },
-                                index.takeIf { field.typeMeta.type.isList() },
-                                "update",
-                                "edge"
-                            )
+                            queryContext
                         )
-                            ?.let { reading.set(it) }
+                            ?.let {
+                                if (it.preConditions != null) {
+                                    reading.with(rel).where(it.preConditions).set(it.expressions)
+                                } else {
+                                    reading.set(it.expressions)
+                                }
+                            }
                     }
                 } ?: reading
             }

@@ -15,7 +15,6 @@ type Person {
   id: ID
 }
 ----
-
 == should produce a predicate for apoc.util.validatePredicate for version 4.4 (simple API)
 
 .GraphQL-Query
@@ -28,14 +27,29 @@ type Person {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [],
+    "jwt": {
+      "roles": [],
+      "sub": "my-sub"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
 {
-  "isAuthenticated" : true,
-  "jwt" : {
-    "roles" : [ ],
-    "sub" : "my-sub"
+  "isAuthenticated": true,
+  "jwt": {
+    "roles": [],
+    "sub": "my-sub"
   }
 }
 ----
@@ -45,13 +59,8 @@ type Person {
 ----
 MATCH (this:Movie)
 WITH *
-WHERE apoc.util.validatePredicate(NOT (($isAuthenticated = true
-	AND size([(this)<-[:DIRECTED]-(this0:Person)
-	WHERE ($jwt.sub IS NOT NULL
-		AND this0.id = $jwt.sub) | 1]) > 0)), '@neo4j/graphql/FORBIDDEN', [0])
-RETURN this {
-	.title
-} AS this
+WHERE apoc.util.validatePredicate(NOT ($isAuthenticated = true AND size([(this)<-[:DIRECTED]-(this0:Person) WHERE ($jwt.sub IS NOT NULL AND this0.id = $jwt.sub) | 1]) > 0), "@neo4j/graphql/FORBIDDEN", [0])
+RETURN this { .title } AS this
 ----
 
 '''

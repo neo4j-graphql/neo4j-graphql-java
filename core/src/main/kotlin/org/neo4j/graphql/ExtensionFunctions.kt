@@ -73,7 +73,7 @@ fun Collection<Condition?>.foldWithAnd(): Condition? = this
 fun ExposesCall<OngoingInQueryCallWithoutArguments>.apocValidate(cond: Condition, errorMessage: String): VoidCall =
     this.callApocValidate(cond.not(), errorMessage.asCypherLiteral(), Cypher.listOf(0.asCypherLiteral()))
 
-fun Condition?.apocValidatePredicate(errorMessage: String) = this?.let {
+fun Condition?.apocValidatePredicate(errorMessage: String = Constants.AUTH_FORBIDDEN_ERROR) = this?.let {
     ApocFunctions.util.validatePredicate(it.not(), errorMessage.asCypherLiteral(), Cypher.listOf(0.asCypherLiteral()))
         .asCondition()
 }

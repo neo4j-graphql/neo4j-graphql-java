@@ -29,7 +29,6 @@ type Series implements Production {
   episodes: Int
 }
 ----
-
 == filter by logical operator on interface connection
 
 .GraphQL-Query
@@ -55,10 +54,10 @@ type Series implements Production {
 [source,json]
 ----
 {
-  "param0" : "something",
-  "param1" : "whatever",
-  "param2" : "something",
-  "param3" : "whatever"
+  "param0": "something",
+  "param1": "whatever",
+  "param2": "something",
+  "param3": "whatever"
 }
 ----
 
@@ -67,43 +66,25 @@ type Series implements Production {
 ----
 MATCH (this:Actor)
 CALL {
-	WITH this
-	CALL {
-		WITH this
-		MATCH (this)-[this0:ACTED_IN]->(this1:Movie)
-		WHERE (this1.title = $param0
-			OR this1.title = $param1)
-		WITH {
-			node: {
-				__resolveType: 'Movie',
-				__id: id(this1),
-				title: this1.title
-			}
-		} AS edge
-		RETURN edge UNION
-		WITH this
-		MATCH (this)-[this2:ACTED_IN]->(this3:Series)
-		WHERE (this3.title = $param2
-			OR this3.title = $param3)
-		WITH {
-			node: {
-				__resolveType: 'Series',
-				__id: id(this3),
-				title: this3.title
-			}
-		} AS edge
-		RETURN edge
-	}
-	WITH collect(edge) AS edges
-	WITH edges, size(edges) AS totalCount
-	RETURN {
-		edges: edges,
-		totalCount: totalCount
-	} AS var4
+    WITH this
+    CALL {
+        WITH this
+        MATCH (this)-[this0:ACTED_IN]->(this1:Movie)
+        WHERE (this1.title = $param0 OR this1.title = $param1)
+        WITH { node: { __resolveType: "Movie", __id: id(this1), title: this1.title } } AS edge
+        RETURN edge
+        UNION
+        WITH this
+        MATCH (this)-[this2:ACTED_IN]->(this3:Series)
+        WHERE (this3.title = $param2 OR this3.title = $param3)
+        WITH { node: { __resolveType: "Series", __id: id(this3), title: this3.title } } AS edge
+        RETURN edge
+    }
+    WITH collect(edge) AS edges
+    WITH edges, size(edges) AS totalCount
+    RETURN { edges: edges, totalCount: totalCount } AS var4
 }
-RETURN this {
-	actedInConnection: var4
-} AS this
+RETURN this { actedInConnection: var4 } AS this
 ----
 
 '''
@@ -133,10 +114,10 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "something",
-  "param1" : "ma movie",
-  "param2" : "something",
-  "param3" : "whatever"
+  "param0": "something",
+  "param1": "ma movie",
+  "param2": "something",
+  "param3": "whatever"
 }
 ----
 
@@ -145,43 +126,25 @@ RETURN this {
 ----
 MATCH (this:Actor)
 CALL {
-	WITH this
-	CALL {
-		WITH this
-		MATCH (this)-[this0:ACTED_IN]->(this1:Movie)
-		WHERE (this1.title = $param0
-			OR this1.title = $param1)
-		WITH {
-			node: {
-				__resolveType: 'Movie',
-				__id: id(this1),
-				title: this1.title
-			}
-		} AS edge
-		RETURN edge UNION
-		WITH this
-		MATCH (this)-[this2:ACTED_IN]->(this3:Series)
-		WHERE (this3.title = $param2
-			OR this3.title = $param3)
-		WITH {
-			node: {
-				__resolveType: 'Series',
-				__id: id(this3),
-				title: this3.title
-			}
-		} AS edge
-		RETURN edge
-	}
-	WITH collect(edge) AS edges
-	WITH edges, size(edges) AS totalCount
-	RETURN {
-		edges: edges,
-		totalCount: totalCount
-	} AS var4
+    WITH this
+    CALL {
+        WITH this
+        MATCH (this)-[this0:ACTED_IN]->(this1:Movie)
+        WHERE (this1.title = $param0 OR this1.title = $param1)
+        WITH { node: { __resolveType: "Movie", __id: id(this1), title: this1.title } } AS edge
+        RETURN edge
+        UNION
+        WITH this
+        MATCH (this)-[this2:ACTED_IN]->(this3:Series)
+        WHERE (this3.title = $param2 OR this3.title = $param3)
+        WITH { node: { __resolveType: "Series", __id: id(this3), title: this3.title } } AS edge
+        RETURN edge
+    }
+    WITH collect(edge) AS edges
+    WITH edges, size(edges) AS totalCount
+    RETURN { edges: edges, totalCount: totalCount } AS var4
 }
-RETURN this {
-	actedInConnection: var4
-} AS this
+RETURN this { actedInConnection: var4 } AS this
 ----
 
 '''
@@ -209,7 +172,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "something"
+  "param0": "something"
 }
 ----
 
@@ -218,30 +181,19 @@ RETURN this {
 ----
 MATCH (this:Actor)
 CALL {
-	WITH this
-	CALL {
-		WITH this
-		MATCH (this)-[this0:ACTED_IN]->(this1:Movie)
-		WHERE this1.title = $param0
-		WITH {
-			node: {
-				__resolveType: 'Movie',
-				__id: id(this1),
-				title: this1.title
-			}
-		} AS edge
-		RETURN edge
-	}
-	WITH collect(edge) AS edges
-	WITH edges, size(edges) AS totalCount
-	RETURN {
-		edges: edges,
-		totalCount: totalCount
-	} AS var2
+    WITH this
+    CALL {
+        WITH this
+        MATCH (this)-[this0:ACTED_IN]->(this1:Movie)
+        WHERE this1.title = $param0
+        WITH { node: { __resolveType: "Movie", __id: id(this1), title: this1.title } } AS edge
+        RETURN edge
+    }
+    WITH collect(edge) AS edges
+    WITH edges, size(edges) AS totalCount
+    RETURN { edges: edges, totalCount: totalCount } AS var2
 }
-RETURN this {
-	actedInConnection: var2
-} AS this
+RETURN this { actedInConnection: var2 } AS this
 ----
 
 '''

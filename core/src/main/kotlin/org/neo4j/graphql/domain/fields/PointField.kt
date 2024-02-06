@@ -9,7 +9,7 @@ import org.neo4j.cypherdsl.core.Functions
 import org.neo4j.graphql.Constants
 import org.neo4j.graphql.SchemaConfig
 import org.neo4j.graphql.domain.TypeMeta
-import org.neo4j.graphql.domain.directives.Annotations
+import org.neo4j.graphql.domain.directives.FieldAnnotations
 import org.neo4j.graphql.domain.predicates.FieldOperator
 import org.neo4j.graphql.domain.predicates.definitions.ScalarPredicateDefinition
 import org.neo4j.graphql.inner
@@ -23,7 +23,7 @@ class PointField(
     fieldName: String,
     typeMeta: TypeMeta,
     val type: Type,
-    annotations: Annotations,
+    annotations: FieldAnnotations,
     schemaConfig: SchemaConfig
 ) : ScalarField(
     fieldName,
@@ -32,7 +32,7 @@ class PointField(
     schemaConfig,
 ), ConstrainableField, AuthableField, MutableField {
 
-    override val predicates: Map<String, ScalarPredicateDefinition> = initPredicates()
+    override val predicateDefinitions: Map<String, ScalarPredicateDefinition> = initPredicates()
 
     private fun initPredicates(): Map<String, ScalarPredicateDefinition> {
         val result = mutableMapOf<String, ScalarPredicateDefinition>()
@@ -69,26 +69,33 @@ class PointField(
                     parameter.property("distance")
                 )
             },
+            { _, _ -> TODO() },
             type = type.inputType
         )
     }
 
     private fun MutableMap<String, ScalarPredicateDefinition>.addInResolver(op: FieldOperator): MutableMap<String, ScalarPredicateDefinition> {
         return this.add(
-            op.suffix, { property, parameter ->
+            op.suffix,
+            { property, parameter ->
                 val p = Cypher.name("p")
                 val paramPointArray = Cypher.listWith(p).`in`(parameter).returning(Functions.point(p))
                 op.conditionCreator(property, paramPointArray)
-            }, type = ListType(NonNullType(typeMeta.whereType))
+            },
+            { _, _ -> TODO() },
+            type = ListType(NonNullType(typeMeta.whereType))
         )
     }
 
     private fun MutableMap<String, ScalarPredicateDefinition>.addIncludesResolver(op: FieldOperator): MutableMap<String, ScalarPredicateDefinition> {
         return this.add(
-            op.suffix, { property, parameter ->
+            op.suffix,
+            { property, parameter ->
                 val paramPoint = Functions.point(parameter)
                 op.conditionCreator(property, paramPoint)
-            }, type = typeMeta.whereType.inner()
+            },
+            { _, _ -> TODO() },
+            type = typeMeta.whereType.inner()
         )
     }
 

@@ -12,7 +12,10 @@ import org.neo4j.graphql.schema.model.inputs.field_arguments.RelationFieldAggreg
 import org.neo4j.graphql.schema.model.outputs.aggregate.RelationAggregationSelection
 import org.neo4j.graphql.utils.IResolveTree
 
-class NodeSelection(val node: Node, val resolveTree: IResolveTree) : FieldContainerSelection() {
+class NodeSelection(
+    val node: Node,
+    val resolveTree: IResolveTree
+) : FieldContainerSelection() {
 
     object Augmentation : AugmentationBase {
 
@@ -53,7 +56,7 @@ class NodeSelection(val node: Node, val resolveTree: IResolveTree) : FieldContai
                 .generateAggregationSelectionOT(relationField, ctx)
                 ?.let { aggr ->
 
-                    fields += field(relationField.fieldName + Constants.FieldSuffix.Aggregate, aggr.asType()) {
+                    fields += field(relationField.namings.aggregateTypeName, aggr.asType()) {
 
                         RelationFieldAggregateInputArgs.Augmentation
                             .getFieldArguments(relationField, ctx)

@@ -15,7 +15,7 @@ interface SubscriptionWhereFieldInput {
         object Augmentation : AugmentationBase {
 
             fun generateWhereIT(field: RelationField, ctx: AugmentationContext): String? =
-                generateWhereIT(field, field.implementingType, field.operations.subscriptionWhereInputTypeName, ctx)
+                generateWhereIT(field, field.implementingType, field.namings.subscriptionWhereInputTypeName, ctx)
 
             // TODO do not create different types with same fields
             fun generateWhereIT(
@@ -45,7 +45,7 @@ interface SubscriptionWhereFieldInput {
                 if (rel.properties == null) {
                     return null
                 }
-                return ctx.getOrCreateInputObjectType(rel.operations.edgeSubscriptionWhereInputTypeName) { fields, name ->
+                return ctx.getOrCreateInputObjectType(rel.namings.edgeSubscriptionWhereInputTypeName) { fields, name ->
                     fields += WhereInput.FieldContainerWhereInput.Augmentation
                         .getWhereFields(name, rel.properties.fields, ctx)
                 }
@@ -57,12 +57,12 @@ interface SubscriptionWhereFieldInput {
         object Augmentation : AugmentationBase {
 
             fun generateWhereIT(rel: RelationField, ctx: AugmentationContext): String? =
-                ctx.getOrCreateInputObjectType(rel.operations.subscriptionWhereInputTypeName) { fields, _ ->
+                ctx.getOrCreateInputObjectType(rel.namings.subscriptionWhereInputTypeName) { fields, _ ->
                     rel.union?.nodes?.values?.forEach { node ->
                         ImplementingTypeSubscriptionWhereFieldInput.Augmentation.generateWhereIT(
                             rel,
                             node,
-                            rel.operations.getToUnionSubscriptionWhereInputTypeName(node),
+                            rel.namings.getToUnionSubscriptionWhereInputTypeName(node),
                             ctx
                         )?.let {
                             fields += inputValue(node.name, it.asType())

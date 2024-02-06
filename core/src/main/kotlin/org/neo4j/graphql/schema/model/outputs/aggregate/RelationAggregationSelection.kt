@@ -13,7 +13,7 @@ class RelationAggregationSelection(
     rel: RelationField,
     val selection: ResolveTree,
 ) {
-    private val aggregateTypeNames = rel.operations.aggregateTypeNames
+    private val aggregateTypeNames = rel.namings.aggregateTypeNames
         ?: error("expect aggregateTypeNames to be set for $rel")
 
     val count = selection.getFieldOfType(aggregateTypeNames.field, Constants.COUNT)
@@ -38,7 +38,7 @@ class RelationAggregationSelection(
             if (implementingType is Interface && !ctx.schemaConfig.experimental) {
                 return null
             }
-            val aggregateTypeNames = rel.operations.aggregateTypeNames ?: return null
+            val aggregateTypeNames = rel.namings.aggregateTypeNames ?: return null
 
             return ctx.getOrCreateObjectType(aggregateTypeNames.field) { fields, _ ->
 

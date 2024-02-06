@@ -29,7 +29,7 @@ sealed class ConnectInput private constructor(
         object Augmentation : AugmentationBase {
             fun generateContainerConnectInputIT(node: Node, ctx: AugmentationContext) =
                 ctx.getOrCreateRelationInputObjectType(
-                    node.operations.connectInputTypeName,
+                    node.namings.connectInputTypeName,
                     node.relationFields,
                     RelationFieldBaseAugmentation::generateFieldConnectIT,
                     condition = { it.annotations.relationship?.isConnectAllowed != false },

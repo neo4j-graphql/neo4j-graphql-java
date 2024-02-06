@@ -33,7 +33,7 @@ mutation {
 [source,json]
 ----
 {
-  "param0" : "tom"
+  "param0": "tom"
 }
 ----
 
@@ -42,9 +42,10 @@ mutation {
 ----
 MATCH (this:Film)
 WHERE EXISTS {
-	MATCH (this)<-[:ACTED_IN]-(this0:Person)
-	WHERE this0.name = $param0
-} DETACH DELETE this
+    MATCH (this)<-[:ACTED_IN]-(this0:Person)
+    WHERE this0.name = $param0
+}
+DETACH DELETE this
 ----
 
 '''
@@ -69,25 +70,32 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0" : [ {
-    "id" : "1",
-    "actors" : {
-      "create" : [ {
-        "node" : {
-          "name" : "actor 1"
-        }
-      } ]
+  "create_param0": [
+    {
+      "id": "1",
+      "actors": {
+        "create": [
+          {
+            "node": {
+              "name": "actor 1"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "2",
+      "actors": {
+        "create": [
+          {
+            "node": {
+              "name": "actor 2"
+            }
+          }
+        ]
+      }
     }
-  }, {
-    "id" : "2",
-    "actors" : {
-      "create" : [ {
-        "node" : {
-          "name" : "actor 2"
-        }
-      } ]
-    }
-  } ]
+  ]
 }
 ----
 
@@ -96,24 +104,26 @@ mutation {
 ----
 UNWIND $create_param0 AS create_var0
 CALL {
-	WITH create_var0
-	CREATE (create_this1:Film)
-	SET create_this1.id = create_var0.id
-	WITH create_this1, create_var0
-	CALL {
-		WITH create_this1, create_var0
-		UNWIND create_var0.actors.create AS create_var2
-		WITH create_var2.node AS create_var3, create_var2.edge AS create_var4, create_this1
-		CREATE (create_this5:Person)
-		SET create_this5.name = create_var3.name
-		MERGE (create_this1)<-[create_this6:ACTED_IN]-(create_this5)
-		RETURN collect(NULL) AS create_var7
-	}
-	RETURN create_this1
+    WITH create_var0
+    CREATE (create_this1:Film)
+    SET
+        create_this1.id = create_var0.id
+    WITH create_this1, create_var0
+    CALL {
+        WITH create_this1, create_var0
+        UNWIND create_var0.actors.create AS create_var2
+        WITH create_var2.node AS create_var3, create_var2.edge AS create_var4, create_this1
+        CREATE (create_this5:Person)
+        SET
+            create_this5.name = create_var3.name
+        MERGE (create_this1)<-[create_this6:ACTED_IN]-(create_this5)
+        
+        RETURN collect(NULL) AS create_var7
+    }
+    
+    RETURN create_this1
 }
-RETURN collect(create_this1 {
-	.id
-}) AS data
+RETURN collect(create_this1 { .id }) AS data
 ----
 
 '''
@@ -136,9 +146,11 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0" : [ {
-    "id" : "1"
-  } ]
+  "create_param0": [
+    {
+      "id": "1"
+    }
+  ]
 }
 ----
 
@@ -147,14 +159,14 @@ mutation {
 ----
 UNWIND $create_param0 AS create_var0
 CALL {
-	WITH create_var0
-	CREATE (create_this1:Film)
-	SET create_this1.id = create_var0.id
-	RETURN create_this1
+    WITH create_var0
+    CREATE (create_this1:Film)
+    SET
+        create_this1.id = create_var0.id
+    
+    RETURN create_this1
 }
-RETURN collect(create_this1 {
-	.id
-}) AS data
+RETURN collect(create_this1 { .id }) AS data
 ----
 
 '''
@@ -175,7 +187,7 @@ mutation {
 [source,json]
 ----
 {
-  "param0" : "123"
+  "param0": "123"
 }
 ----
 
@@ -183,7 +195,8 @@ mutation {
 [source,cypher]
 ----
 MATCH (this:Film)
-WHERE this.id = $param0 DETACH DELETE this
+WHERE this.id = $param0
+DETACH DELETE this
 ----
 
 '''
@@ -207,21 +220,8 @@ mutation {
 [source,json]
 ----
 {
-  "param0" : "123",
-  "this_deleteMovies" : {
-    "args" : {
-      "delete" : {
-        "actors" : [ {
-          "where" : {
-            "node" : {
-              "name" : "Actor to delete"
-            }
-          }
-        } ]
-      }
-    }
-  },
-  "this_deleteMovies_args_delete_actors0_where_this_actors0param0" : "Actor to delete"
+  "param0": "123",
+  "param1": "Actor to delete"
 }
 ----
 
@@ -232,15 +232,18 @@ MATCH (this:Film)
 WHERE this.id = $param0
 WITH *
 CALL {
-	WITH *
-	OPTIONAL MATCH (this)<-[this_actors0_relationship:ACTED_IN]-(this_actors0:Person)
-	WHERE this_actors0.name = $this_deleteMovies_args_delete_actors0_where_this_actors0param0
-	WITH this_actors0_relationship, collect(DISTINCT this_actors0) AS this_actors0_to_delete
-	CALL {
-		WITH this_actors0_to_delete
-		UNWIND this_actors0_to_delete AS x DETACH DELETE x
-	}
-} DETACH DELETE this
+    WITH *
+    OPTIONAL MATCH (this)<-[this0:ACTED_IN]-(this1:Person)
+    WHERE this1.name = $param1
+    WITH this0, collect(DISTINCT this1) AS var2
+    CALL {
+        WITH var2
+        UNWIND var2 AS var3
+        DETACH DELETE var3
+    }
+}
+WITH *
+DETACH DELETE this
 ----
 
 '''
@@ -263,7 +266,7 @@ CALL {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
@@ -271,17 +274,12 @@ CALL {
 ----
 MATCH (this:Film)
 CALL {
-	WITH this
-	MATCH (this)<-[this0:ACTED_IN]-(this1:Person)
-	WITH this1 {
-		.name
-	} AS this1
-	RETURN collect(this1) AS var2
+    WITH this
+    MATCH (this)<-[this0:ACTED_IN]-(this1:Person)
+    WITH this1 { .name } AS this1
+    RETURN collect(this1) AS var2
 }
-RETURN this {
-	.title,
-	actors: var2
-} AS this
+RETURN this { .title, actors: var2 } AS this
 ----
 
 '''
@@ -308,7 +306,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
@@ -316,32 +314,19 @@ RETURN this {
 ----
 MATCH (this:Film)
 CALL {
-	WITH this
-	MATCH (this)<-[this0:ACTED_IN]-(this1:Person)
-	WITH collect( {
-		node: this1,
-		relationship: this0
-	}) AS edges
-	WITH edges, size(edges) AS totalCount
-	CALL {
-		WITH edges
-		UNWIND edges AS edge
-		WITH edge.node AS this1, edge.relationship AS this0
-		RETURN collect( {
-			node: {
-				name: this1.name
-			}
-		}) AS var2
-	}
-	RETURN {
-		edges: var2,
-		totalCount: totalCount
-	} AS var3
+    WITH this
+    MATCH (this)<-[this0:ACTED_IN]-(this1:Person)
+    WITH collect({ node: this1, relationship: this0 }) AS edges
+    WITH edges, size(edges) AS totalCount
+    CALL {
+        WITH edges
+        UNWIND edges AS edge
+        WITH edge.node AS this1, edge.relationship AS this0
+        RETURN collect({ node: { name: this1.name } }) AS var2
+    }
+    RETURN { edges: var2, totalCount: totalCount } AS var3
 }
-RETURN this {
-	.title,
-	actorsConnection: var3
-} AS this
+RETURN this { .title, actorsConnection: var3 } AS this
 ----
 
 '''
@@ -361,16 +346,14 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 MATCH (this:Film)
-RETURN this {
-	.title
-} AS this
+RETURN this { .title } AS this
 ----
 
 '''
@@ -396,8 +379,8 @@ mutation {
 [source,json]
 ----
 {
-  "param0" : "1",
-  "this_connect_actors0_node_param0" : "Daniel"
+  "param0": "1",
+  "this_connect_actors0_node_param0": "Daniel"
 }
 ----
 
@@ -413,21 +396,19 @@ CALL {
 	WHERE this_connect_actors0_node.name = $this_connect_actors0_node_param0
 	CALL {
 		WITH *
-		WITH collect(this_connect_actors0_node) AS connectedNodes, collect(this) AS parentNodes
+		WITH collect(this_connect_actors0_node) as connectedNodes, collect(this) as parentNodes
 		CALL {
 			WITH connectedNodes, parentNodes
-			UNWIND parentNodes AS this
-			UNWIND connectedNodes AS this_connect_actors0_node
+			UNWIND parentNodes as this
+			UNWIND connectedNodes as this_connect_actors0_node
 			MERGE (this)<-[:ACTED_IN]-(this_connect_actors0_node)
 		}
 	}
-	WITH this, this_connect_actors0_node
+WITH this, this_connect_actors0_node
 	RETURN count(*) AS connect_this_connect_actors_Actor0
 }
 WITH *
-RETURN collect(DISTINCT this {
-	.id
-}) AS data
+RETURN collect(DISTINCT this { .id }) AS data
 ----
 
 '''
@@ -453,21 +434,23 @@ mutation {
 [source,json]
 ----
 {
-  "param0" : "1",
-  "updateMovies" : {
-    "args" : {
-      "disconnect" : {
-        "actors" : [ {
-          "where" : {
-            "node" : {
-              "name" : "Daniel"
+  "param0": "1",
+  "updateMovies_args_disconnect_actors0_where_Actor_this_disconnect_actors0param0": "Daniel",
+  "updateMovies": {
+    "args": {
+      "disconnect": {
+        "actors": [
+          {
+            "where": {
+              "node": {
+                "name": "Daniel"
+              }
             }
           }
-        } ]
+        ]
       }
     }
-  },
-  "updateMovies_args_disconnect_actors0_where_Actor_this_disconnect_actors0param0" : "Daniel"
+  }
 }
 ----
 
@@ -478,20 +461,19 @@ MATCH (this:Film)
 WHERE this.id = $param0
 WITH this
 CALL {
-	WITH this
-	OPTIONAL MATCH (this)<-[this_disconnect_actors0_rel:ACTED_IN]-(this_disconnect_actors0:Person)
-	WHERE this_disconnect_actors0.name = $updateMovies_args_disconnect_actors0_where_Actor_this_disconnect_actors0param0
-	CALL {
-		WITH this_disconnect_actors0, this_disconnect_actors0_rel, this
-		WITH collect(this_disconnect_actors0) AS this_disconnect_actors0, this_disconnect_actors0_rel, this
-		UNWIND this_disconnect_actors0 AS x DELETE this_disconnect_actors0_rel
-	}
-	RETURN count(*) AS disconnect_this_disconnect_actors_Actor
+WITH this
+OPTIONAL MATCH (this)<-[this_disconnect_actors0_rel:ACTED_IN]-(this_disconnect_actors0:Person)
+WHERE this_disconnect_actors0.name = $updateMovies_args_disconnect_actors0_where_Actor_this_disconnect_actors0param0
+CALL {
+	WITH this_disconnect_actors0, this_disconnect_actors0_rel, this
+	WITH collect(this_disconnect_actors0) as this_disconnect_actors0, this_disconnect_actors0_rel, this
+	UNWIND this_disconnect_actors0 as x
+	DELETE this_disconnect_actors0_rel
+}
+RETURN count(*) AS disconnect_this_disconnect_actors_Actor
 }
 WITH *
-RETURN collect(DISTINCT this {
-	.id
-}) AS data
+RETURN collect(DISTINCT this { .id }) AS data
 ----
 
 '''
@@ -514,8 +496,8 @@ mutation {
 [source,json]
 ----
 {
-  "param0" : "1",
-  "this_update_id" : "2"
+  "param0": "1",
+  "this_update_id": "2"
 }
 ----
 
@@ -524,10 +506,11 @@ mutation {
 ----
 MATCH (this:Film)
 WHERE this.id = $param0
+
+
 SET this.id = $this_update_id
-RETURN collect(DISTINCT this {
-	.id
-}) AS data
+
+RETURN collect(DISTINCT this { .id }) AS data
 ----
 
 '''
@@ -553,27 +536,29 @@ mutation {
 [source,json]
 ----
 {
-  "param0" : "1",
-  "this_update_actors0_name" : "new name",
-  "updateMovies" : {
-    "args" : {
-      "update" : {
-        "actors" : [ {
-          "where" : {
-            "node" : {
-              "name" : "old name"
-            }
-          },
-          "update" : {
-            "node" : {
-              "name" : "new name"
+  "param0": "1",
+  "updateMovies_args_update_actors0_where_this_actors0param0": "old name",
+  "this_update_actors0_name": "new name",
+  "updateMovies": {
+    "args": {
+      "update": {
+        "actors": [
+          {
+            "where": {
+              "node": {
+                "name": "old name"
+              }
+            },
+            "update": {
+              "node": {
+                "name": "new name"
+              }
             }
           }
-        } ]
+        ]
       }
     }
-  },
-  "updateMovies_args_update_actors0_where_this_actors0param0" : "old name"
+  }
 }
 ----
 
@@ -582,17 +567,21 @@ mutation {
 ----
 MATCH (this:Film)
 WHERE this.id = $param0
+
+
 WITH this
 CALL {
 	WITH this
 	MATCH (this)<-[this_acted_in0_relationship:ACTED_IN]-(this_actors0:Person)
 	WHERE this_actors0.name = $updateMovies_args_update_actors0_where_this_actors0param0
+	
+	
 	SET this_actors0.name = $this_update_actors0_name
+	
 	RETURN count(*) AS update_this_actors0
 }
-RETURN collect(DISTINCT this {
-	.id
-}) AS data
+
+RETURN collect(DISTINCT this { .id }) AS data
 ----
 
 '''

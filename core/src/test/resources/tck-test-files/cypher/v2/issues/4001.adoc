@@ -23,7 +23,6 @@ type Serie {
   """, columnName: "n")
 }
 ----
-
 == resolve @cypher field with custom input types
 
 .GraphQL-Query
@@ -42,9 +41,9 @@ type Serie {
 [source,json]
 ----
 {
-  "param0" : {
-    "limit" : 10,
-    "offset" : 0
+  "param0": {
+    "limit": 10,
+    "offset": 0
   }
 }
 ----
@@ -54,21 +53,17 @@ type Serie {
 ----
 MATCH (this:Serie)
 CALL {
-	WITH this
-	CALL {
-		WITH this
-		WITH this AS this
-		MATCH (n:Video)
-		RETURN n SKIP toInteger($param0.offset) LIMIT toInteger($param0.limit)
-	}
-	WITH n AS this0
-	RETURN collect(this0 {
-		.id
-	}) AS this0
+    WITH this
+    CALL {
+        WITH this
+        WITH this AS this
+        MATCH (n:Video) RETURN n
+        SKIP toInteger($param0.offset) LIMIT toInteger($param0.limit)
+    }
+    WITH n AS this0
+    RETURN collect(this0 { .id }) AS this0
 }
-RETURN this {
-	allEpisodes: this0
-} AS this
+RETURN this { allEpisodes: this0 } AS this
 ----
 
 '''
@@ -102,9 +97,9 @@ query ($option: Pagination) {
 [source,json]
 ----
 {
-  "param0" : {
-    "limit" : 10,
-    "offset" : 0
+  "param0": {
+    "limit": 10,
+    "offset": 0
   }
 }
 ----
@@ -114,21 +109,17 @@ query ($option: Pagination) {
 ----
 MATCH (this:Serie)
 CALL {
-	WITH this
-	CALL {
-		WITH this
-		WITH this AS this
-		MATCH (n:Video)
-		RETURN n SKIP toInteger($param0.offset) LIMIT toInteger($param0.limit)
-	}
-	WITH n AS this0
-	RETURN collect(this0 {
-		.id
-	}) AS this0
+    WITH this
+    CALL {
+        WITH this
+        WITH this AS this
+        MATCH (n:Video) RETURN n
+        SKIP toInteger($param0.offset) LIMIT toInteger($param0.limit)
+    }
+    WITH n AS this0
+    RETURN collect(this0 { .id }) AS this0
 }
-RETURN this {
-	allEpisodes: this0
-} AS this
+RETURN this { allEpisodes: this0 } AS this
 ----
 
 '''
@@ -151,9 +142,9 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : {
-    "limit" : 20,
-    "offset" : 0
+  "param0": {
+    "limit": 20,
+    "offset": 0
   }
 }
 ----
@@ -163,21 +154,17 @@ RETURN this {
 ----
 MATCH (this:Serie)
 CALL {
-	WITH this
-	CALL {
-		WITH this
-		WITH this AS this
-		MATCH (n:Video)
-		RETURN n SKIP toInteger($param0.offset) LIMIT toInteger($param0.limit)
-	}
-	WITH n AS this0
-	RETURN collect(this0 {
-		.id
-	}) AS this0
+    WITH this
+    CALL {
+        WITH this
+        WITH this AS this
+        MATCH (n:Video) RETURN n
+        SKIP toInteger($param0.offset) LIMIT toInteger($param0.limit)
+    }
+    WITH n AS this0
+    RETURN collect(this0 { .id }) AS this0
 }
-RETURN this {
-	allEpisodes: this0
-} AS this
+RETURN this { allEpisodes: this0 } AS this
 ----
 
 '''

@@ -16,7 +16,6 @@ type Product {
   partNumber: ID! @alias(property: "fg_item")
 }
 ----
-
 == should sort by aliased field
 
 .GraphQL-Query
@@ -34,19 +33,16 @@ query listProducts {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 MATCH (this:Product)
-WITH * ORDER BY this.fg_item DESC
-RETURN this {
-	.description,
-	id: this.fg_item_id,
-	partNumber: this.fg_item
-} AS this
+WITH *
+ORDER BY this.fg_item DESC
+RETURN this { .description, id: this.fg_item_id, partNumber: this.fg_item } AS this
 ----
 
 '''
@@ -70,7 +66,7 @@ query listProducts {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
@@ -78,18 +74,13 @@ query listProducts {
 ----
 MATCH (this:Employee)
 CALL {
-	WITH this
-	MATCH (this)-[this0:CAN_ACCESS]->(this1:Product)
-	WITH this1 {
-		.description,
-		id: this1.fg_item_id,
-		partNumber: this1.fg_item
-	} AS this1 ORDER BY this1.partNumber DESC
-	RETURN collect(this1) AS var2
+    WITH this
+    MATCH (this)-[this0:CAN_ACCESS]->(this1:Product)
+    WITH this1 { .description, id: this1.fg_item_id, partNumber: this1.fg_item } AS this1
+    ORDER BY this1.partNumber DESC
+    RETURN collect(this1) AS var2
 }
-RETURN this {
-	products: var2
-} AS this
+RETURN this { products: var2 } AS this
 ----
 
 '''
@@ -117,34 +108,24 @@ query listProducts {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 MATCH (this0:Product)
-WITH collect( {
-	node: this0
-}) AS edges
+WITH collect({ node: this0 }) AS edges
 WITH edges, size(edges) AS totalCount
 CALL {
-	WITH edges
-	UNWIND edges AS edge
-	WITH edge.node AS this0
-	WITH * ORDER BY this0.fg_item DESC
-	RETURN collect( {
-		node: {
-			id: this0.fg_item_id,
-			partNumber: this0.fg_item,
-			description: this0.description
-		}
-	}) AS var1
+    WITH edges
+    UNWIND edges AS edge
+    WITH edge.node AS this0
+    WITH *
+    ORDER BY this0.fg_item DESC
+    RETURN collect({ node: { id: this0.fg_item_id, partNumber: this0.fg_item, description: this0.description } }) AS var1
 }
-RETURN {
-	edges: var1,
-	totalCount: totalCount
-} AS this
+RETURN { edges: var1, totalCount: totalCount } AS this
 ----
 
 '''
@@ -172,7 +153,7 @@ query listProducts {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
@@ -180,34 +161,21 @@ query listProducts {
 ----
 MATCH (this:Employee)
 CALL {
-	WITH this
-	MATCH (this)-[this0:CAN_ACCESS]->(this1:Product)
-	WITH collect( {
-		node: this1,
-		relationship: this0
-	}) AS edges
-	WITH edges, size(edges) AS totalCount
-	CALL {
-		WITH edges
-		UNWIND edges AS edge
-		WITH edge.node AS this1, edge.relationship AS this0
-		WITH * ORDER BY this1.fg_item DESC
-		RETURN collect( {
-			node: {
-				id: this1.fg_item_id,
-				partNumber: this1.fg_item,
-				description: this1.description
-			}
-		}) AS var2
-	}
-	RETURN {
-		edges: var2,
-		totalCount: totalCount
-	} AS var3
+    WITH this
+    MATCH (this)-[this0:CAN_ACCESS]->(this1:Product)
+    WITH collect({ node: this1, relationship: this0 }) AS edges
+    WITH edges, size(edges) AS totalCount
+    CALL {
+        WITH edges
+        UNWIND edges AS edge
+        WITH edge.node AS this1, edge.relationship AS this0
+        WITH *
+        ORDER BY this1.fg_item DESC
+        RETURN collect({ node: { id: this1.fg_item_id, partNumber: this1.fg_item, description: this1.description } }) AS var2
+    }
+    RETURN { edges: var2, totalCount: totalCount } AS var3
 }
-RETURN this {
-	productsConnection: var3
-} AS this
+RETURN this { productsConnection: var3 } AS this
 ----
 
 '''

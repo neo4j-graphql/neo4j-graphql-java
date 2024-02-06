@@ -21,7 +21,6 @@ interface likesProperties @relationshipProperties {
   someProp: String!
 }
 ----
-
 == aggregation
 
 === count
@@ -44,9 +43,9 @@ interface likesProperties @relationshipProperties {
 [source,json]
 ----
 {
-  "param0" : 10,
-  "param1" : 25,
-  "param2" : 33
+  "param0": 10,
+  "param1": 25,
+  "param2": 33
 }
 ----
 
@@ -55,17 +54,13 @@ interface likesProperties @relationshipProperties {
 ----
 MATCH (this:Post)
 CALL {
-	WITH this
-	MATCH (this)<-[this0:LIKES]-(this1:User)
-	RETURN (count(this1) > $param0
-		AND count(this1) > $param1
-		AND count(this1) < $param2) AS var2
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN (count(this1) > $param0 AND (count(this1) > $param1 AND count(this1) < $param2)) AS var2
 }
 WITH *
 WHERE var2 = true
-RETURN this {
-	.content
-} AS this
+RETURN this { .content } AS this
 ----
 
 '''
@@ -88,9 +83,9 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 10,
-  "param1" : 25,
-  "param2" : 33
+  "param0": 10,
+  "param1": 25,
+  "param2": 33
 }
 ----
 
@@ -99,17 +94,13 @@ RETURN this {
 ----
 MATCH (this:Post)
 CALL {
-	WITH this
-	MATCH (this)<-[this0:LIKES]-(this1:User)
-	RETURN (count(this1) > $param0
-		AND (count(this1) > $param1
-			OR count(this1) < $param2)) AS var2
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN (count(this1) > $param0 AND (count(this1) > $param1 OR count(this1) < $param2)) AS var2
 }
 WITH *
 WHERE var2 = true
-RETURN this {
-	.content
-} AS this
+RETURN this { .content } AS this
 ----
 
 '''
@@ -132,10 +123,10 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 10,
-  "param1" : 25,
-  "param2" : 99,
-  "param3" : 33
+  "param0": 10,
+  "param1": 25,
+  "param2": 99,
+  "param3": 33
 }
 ----
 
@@ -144,18 +135,13 @@ RETURN this {
 ----
 MATCH (this:Post)
 CALL {
-	WITH this
-	MATCH (this)<-[this0:LIKES]-(this1:User)
-	RETURN (count(this1) > $param0
-		AND ((count(this1) > $param1
-				AND count(this1) <= $param2)
-			OR count(this1) < $param3)) AS var2
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN (count(this1) > $param0 AND ((count(this1) > $param1 AND count(this1) <= $param2) OR count(this1) < $param3)) AS var2
 }
 WITH *
 WHERE var2 = true
-RETURN this {
-	.content
-} AS this
+RETURN this { .content } AS this
 ----
 
 '''
@@ -178,10 +164,10 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 10,
-  "param1" : 99,
-  "param2" : 25,
-  "param3" : 33
+  "param0": 10,
+  "param1": 99,
+  "param2": 25,
+  "param3": 33
 }
 ----
 
@@ -190,18 +176,13 @@ RETURN this {
 ----
 MATCH (this:Post)
 CALL {
-	WITH this
-	MATCH (this)<-[this0:LIKES]-(this1:User)
-	RETURN (count(this1) > $param0
-		AND ((count(this1) <= $param1
-				AND count(this1) > $param2)
-			OR count(this1) < $param3)) AS var2
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN (count(this1) > $param0 AND ((count(this1) <= $param1 AND count(this1) > $param2) OR count(this1) < $param3)) AS var2
 }
 WITH *
 WHERE var2 = true
-RETURN this {
-	.content
-} AS this
+RETURN this { .content } AS this
 ----
 
 '''
@@ -224,9 +205,9 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 10,
-  "param1" : 33,
-  "param2" : 25
+  "param0": 10,
+  "param1": 33,
+  "param2": 25
 }
 ----
 
@@ -235,20 +216,17 @@ RETURN this {
 ----
 MATCH (this:Post)
 CALL {
-	WITH this
-	MATCH (this)<-[this0:LIKES]-(this1:User)
-	RETURN (count(this1) > $param0
-		AND count(this1) < $param1
-		AND count(this1) > $param2) AS var2
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN (count(this1) > $param0 AND (count(this1) < $param1 AND count(this1) > $param2)) AS var2
 }
 WITH *
 WHERE var2 = true
-RETURN this {
-	.content
-} AS this
+RETURN this { .content } AS this
 ----
 
 '''
+
 
 === node/edge
 
@@ -270,13 +248,13 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 10,
-  "param1" : 3782,
-  "param2" : 4,
-  "param3" : 10,
-  "param4" : 25,
-  "param5" : 20,
-  "param6" : 12
+  "param0": 10,
+  "param1": 3782,
+  "param2": 4,
+  "param3": 10,
+  "param4": 25,
+  "param5": 20,
+  "param6": 12
 }
 ----
 
@@ -285,21 +263,13 @@ RETURN this {
 ----
 MATCH (this:Post)
 CALL {
-	WITH this
-	MATCH (this)<-[this0:LIKES]-(this1:User)
-	RETURN (count(this1) > $param0
-		AND ((avg(size(this1.name)) > $param1
-				AND max(size(this0.someProp)) > $param2
-				AND min(size(this0.someProp)) < $param3)
-			OR min(size(this1.name)) > $param4)
-		AND min(size(this0.someProp)) > $param5
-		AND max(size(this0.someProp)) < $param6) AS var2
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN (count(this1) > $param0 AND ((avg(size(this1.name)) > $param1 AND (max(size(this0.someProp)) > $param2 AND min(size(this0.someProp)) < $param3)) OR min(size(this1.name)) > $param4) AND (min(size(this0.someProp)) > $param5 AND max(size(this0.someProp)) < $param6)) AS var2
 }
 WITH *
 WHERE var2 = true
-RETURN this {
-	.content
-} AS this
+RETURN this { .content } AS this
 ----
 
 '''
@@ -322,9 +292,9 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 10,
-  "param1" : 25,
-  "param2" : 80
+  "param0": 10,
+  "param1": 25,
+  "param2": 80
 }
 ----
 
@@ -333,17 +303,13 @@ RETURN this {
 ----
 MATCH (this:Post)
 CALL {
-	WITH this
-	MATCH (this)<-[this0:LIKES]-(this1:User)
-	RETURN (count(this1) > $param0
-		AND min(size(this1.name)) > $param1
-		AND min(size(this1.name)) < $param2) AS var2
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN (count(this1) > $param0 AND (min(size(this1.name)) > $param1 AND min(size(this1.name)) < $param2)) AS var2
 }
 WITH *
 WHERE var2 = true
-RETURN this {
-	.content
-} AS this
+RETURN this { .content } AS this
 ----
 
 '''
@@ -366,9 +332,9 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 10,
-  "param1" : 25,
-  "param2" : 80
+  "param0": 10,
+  "param1": 25,
+  "param2": 80
 }
 ----
 
@@ -377,17 +343,13 @@ RETURN this {
 ----
 MATCH (this:Post)
 CALL {
-	WITH this
-	MATCH (this)<-[this0:LIKES]-(this1:User)
-	RETURN (count(this1) > $param0
-		AND (min(size(this1.name)) > $param1
-			OR min(size(this1.name)) < $param2)) AS var2
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN (count(this1) > $param0 AND (min(size(this1.name)) > $param1 OR min(size(this1.name)) < $param2)) AS var2
 }
 WITH *
 WHERE var2 = true
-RETURN this {
-	.content
-} AS this
+RETURN this { .content } AS this
 ----
 
 '''
@@ -410,10 +372,10 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 10,
-  "param1" : 25,
-  "param2" : 40,
-  "param3" : 1233
+  "param0": 10,
+  "param1": 25,
+  "param2": 40,
+  "param3": 1233
 }
 ----
 
@@ -422,18 +384,13 @@ RETURN this {
 ----
 MATCH (this:Post)
 CALL {
-	WITH this
-	MATCH (this)<-[this0:LIKES]-(this1:User)
-	RETURN (count(this1) > $param0
-		AND ((min(size(this1.name)) > $param1
-				AND min(size(this1.name)) < $param2)
-			OR min(size(this1.name)) >= $param3)) AS var2
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN (count(this1) > $param0 AND ((min(size(this1.name)) > $param1 AND min(size(this1.name)) < $param2) OR min(size(this1.name)) >= $param3)) AS var2
 }
 WITH *
 WHERE var2 = true
-RETURN this {
-	.content
-} AS this
+RETURN this { .content } AS this
 ----
 
 '''
@@ -456,9 +413,9 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 10,
-  "param1" : 25,
-  "param2" : 80
+  "param0": 10,
+  "param1": 25,
+  "param2": 80
 }
 ----
 
@@ -467,17 +424,13 @@ RETURN this {
 ----
 MATCH (this:Post)
 CALL {
-	WITH this
-	MATCH (this)<-[this0:LIKES]-(this1:User)
-	RETURN (count(this1) > $param0
-		AND min(size(this1.name)) > $param1
-		AND min(size(this1.name)) < $param2) AS var2
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN (count(this1) > $param0 AND (min(size(this1.name)) > $param1 AND min(size(this1.name)) < $param2)) AS var2
 }
 WITH *
 WHERE var2 = true
-RETURN this {
-	.content
-} AS this
+RETURN this { .content } AS this
 ----
 
 '''
@@ -500,8 +453,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "stuff",
-  "param1" : "stuff2"
+  "param0": "stuff",
+  "param1": "stuff2"
 }
 ----
 
@@ -509,11 +462,8 @@ RETURN this {
 [source,cypher]
 ----
 MATCH (this:Post)
-WHERE NOT ((this.content = $param0
-	AND this.alternateContent = $param1))
-RETURN this {
-	.content
-} AS this
+WHERE NOT (this.content = $param0 AND this.alternateContent = $param1)
+RETURN this { .content } AS this
 ----
 
 '''
@@ -536,9 +486,9 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "stuff",
-  "param1" : "stuff2",
-  "param2" : "stuff3"
+  "param0": "stuff",
+  "param1": "stuff2",
+  "param2": "stuff3"
 }
 ----
 
@@ -546,12 +496,8 @@ RETURN this {
 [source,cypher]
 ----
 MATCH (this:Post)
-WHERE ((this.content = $param0
-		AND this.alternateContent = $param1)
-	OR this.content = $param2)
-RETURN this {
-	.content
-} AS this
+WHERE ((this.content = $param0 AND this.alternateContent = $param1) OR this.content = $param2)
+RETURN this { .content } AS this
 ----
 
 '''
@@ -572,8 +518,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "stuff",
-  "param1" : "stuff2"
+  "param0": "stuff",
+  "param1": "stuff2"
 }
 ----
 
@@ -581,14 +527,12 @@ RETURN this {
 [source,cypher]
 ----
 MATCH (this:Post)
-WHERE (this.content = $param0
-	AND this.alternateContent = $param1)
-RETURN this {
-	.content
-} AS this
+WHERE (this.content = $param0 AND this.alternateContent = $param1)
+RETURN this { .content } AS this
 ----
 
 '''
+
 
 == relationship filters
 
@@ -610,9 +554,9 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "stuff",
-  "param1" : "stuff2",
-  "param2" : "stuff3"
+  "param0": "stuff",
+  "param1": "stuff2",
+  "param2": "stuff3"
 }
 ----
 
@@ -621,24 +565,19 @@ RETURN this {
 ----
 MATCH (this:Post)
 WHERE (EXISTS {
-		MATCH (this)<-[:LIKES]-(this0:User)
-		WHERE this0.name = $param0
-	}
-	OR (EXISTS {
-			MATCH (this)<-[:LIKES]-(this1:User)
-			WHERE this1.otherName = $param1
-		}
-		AND NOT (EXISTS {
-			MATCH (this)<-[:LIKES]-(this1:User)
-			WHERE NOT (this1.otherName = $param1)
-		}))
-	OR EXISTS {
-		MATCH (this)<-[:LIKES]-(this2:User)
-		WHERE this2.otherName = $param2
-	})
-RETURN this {
-	.content
-} AS this
+    MATCH (this)<-[:LIKES]-(this0:User)
+    WHERE this0.name = $param0
+} OR (EXISTS {
+    MATCH (this)<-[:LIKES]-(this1:User)
+    WHERE this1.otherName = $param1
+} AND NOT (EXISTS {
+    MATCH (this)<-[:LIKES]-(this1:User)
+    WHERE NOT (this1.otherName = $param1)
+})) OR EXISTS {
+    MATCH (this)<-[:LIKES]-(this2:User)
+    WHERE this2.otherName = $param2
+})
+RETURN this { .content } AS this
 ----
 
 '''
@@ -659,8 +598,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "stuff",
-  "param1" : "stuff2"
+  "param0": "stuff",
+  "param1": "stuff2"
 }
 ----
 
@@ -669,13 +608,10 @@ RETURN this {
 ----
 MATCH (this:Post)
 WHERE EXISTS {
-	MATCH (this)<-[:LIKES]-(this0:User)
-	WHERE (this0.name = $param0
-		AND this0.otherName = $param1)
+    MATCH (this)<-[:LIKES]-(this0:User)
+    WHERE (this0.name = $param0 AND this0.otherName = $param1)
 }
-RETURN this {
-	.content
-} AS this
+RETURN this { .content } AS this
 ----
 
 '''
@@ -696,8 +632,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "stuff2",
-  "param1" : "stuff"
+  "param0": "stuff2",
+  "param1": "stuff"
 }
 ----
 
@@ -705,21 +641,17 @@ RETURN this {
 [source,cypher]
 ----
 MATCH (this:Post)
-WHERE (EXISTS {
-		MATCH (this)<-[:LIKES]-(this0:User)
-		WHERE this0.otherName = $param0
-	}
-	AND NOT (EXISTS {
-		MATCH (this)<-[:LIKES]-(this0:User)
-		WHERE NOT (this0.otherName = $param0)
-	})
-	AND EXISTS {
-		MATCH (this)<-[:LIKES]-(this1:User)
-		WHERE this1.name = $param1
-	})
-RETURN this {
-	.content
-} AS this
+WHERE ((EXISTS {
+    MATCH (this)<-[:LIKES]-(this0:User)
+    WHERE this0.otherName = $param0
+} AND NOT (EXISTS {
+    MATCH (this)<-[:LIKES]-(this0:User)
+    WHERE NOT (this0.otherName = $param0)
+})) AND EXISTS {
+    MATCH (this)<-[:LIKES]-(this1:User)
+    WHERE this1.name = $param1
+})
+RETURN this { .content } AS this
 ----
 
 '''

@@ -1,16 +1,18 @@
 package org.neo4j.graphql.domain
 
-import org.neo4j.graphql.domain.directives.Annotations
-import org.neo4j.graphql.domain.naming.BaseNames
+import org.neo4j.graphql.domain.directives.EntityAnnotations
+import org.neo4j.graphql.domain.naming.EntityNames
 
 sealed interface Entity {
     val name: String
-    val annotations: Annotations
+    val annotations: EntityAnnotations
 
-    val operations: BaseNames
-    val plural: String get() = operations.plural
-    val pluralKeepCase: String get() = operations.pluralKeepCase
-    val pascalCasePlural: String get() = operations.pascalCasePlural
+    val namings: EntityNames
+    val plural: String get() = namings.plural
+    val pluralKeepCase: String get() = namings.pluralKeepCase
+    val pascalCasePlural: String get() = namings.pascalCasePlural
+
+    val schema: Schema
 
     fun <UNION_RESULT : RESULT, INTERFACE_RESULT : RESULT, NODE_RESULT : RESULT, RESULT> extractOnTarget(
         onNode: (Node) -> NODE_RESULT,

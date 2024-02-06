@@ -17,7 +17,7 @@ class ConnectionSort(data: Dict) {
     object Augmentation : AugmentationBase {
 
         fun generateConnectionSortIT(field: ConnectionField, ctx: AugmentationContext) =
-            ctx.getOrCreateInputObjectType(field.relationshipField.operations.connectionSortInputTypename) { fields, _ ->
+            ctx.getOrCreateInputObjectType(field.relationshipField.namings.connectionSortInputTypename) { fields, _ ->
 
                 generatePropertySortIT(field, ctx)
                     ?.let { fields += inputValue(Constants.EDGE_FIELD, it.asType()) }
@@ -28,7 +28,7 @@ class ConnectionSort(data: Dict) {
             }
 
         private fun generatePropertySortIT(field: ConnectionField, ctx: AugmentationContext) =
-            ctx.getOrCreateInputObjectType(field.relationshipField.operations.sortInputTypeName) { fields, _ ->
+            ctx.getOrCreateInputObjectType(field.relationshipField.namings.sortInputTypeName) { fields, _ ->
                 field.relationshipField.properties?.fields?.forEach {
                     fields += inputValue(it.fieldName, Constants.Types.SortDirection)
                 }

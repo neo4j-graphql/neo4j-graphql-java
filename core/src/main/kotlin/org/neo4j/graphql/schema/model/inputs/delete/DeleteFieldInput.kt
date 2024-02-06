@@ -40,7 +40,7 @@ sealed interface DeleteFieldInput {
                 ctx: AugmentationContext
             ) =
 
-                ctx.getOrCreateInputObjectType(rel.operations.getDeleteFieldInputTypeName(node)) { fields, _ ->
+                ctx.getOrCreateInputObjectType(rel.namings.getDeleteFieldInputTypeName(node)) { fields, _ ->
 
                     NodeConnectionWhere.Augmentation
                         .generateFieldConnectionWhereIT(rel, node, ctx)
@@ -75,12 +75,12 @@ sealed interface DeleteFieldInput {
                 rel: RelationField,
                 interfaze: Interface,
                 ctx: AugmentationContext
-            ) = ctx.getOrCreateInputObjectType(rel.operations.getDeleteFieldInputTypeName(interfaze)) { fields, _ ->
+            ) = ctx.getOrCreateInputObjectType(rel.namings.getDeleteFieldInputTypeName(interfaze)) { fields, _ ->
 
                 ctx.addInterfaceField(
                     interfaze,
-                    interfaze.operations.deleteInputTypeName,
-                    interfaze.operations.whereOnImplementationsDeleteInputTypeName,
+                    interfaze.namings.deleteInputTypeName,
+                    interfaze.namings.whereOnImplementationsDeleteInputTypeName,
                     { node -> DeleteInput.NodeDeleteInput.Augmentation.generateContainerDeleteInputIT(node, ctx) },
                     RelationFieldBaseAugmentation::generateFieldDeleteIT
                 )

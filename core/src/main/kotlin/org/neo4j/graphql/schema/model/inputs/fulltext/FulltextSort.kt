@@ -13,7 +13,7 @@ class FulltextSort {
     object Augmentation : AugmentationBase {
 
         fun generateFulltextSort(node: Node, ctx: AugmentationContext) =
-            ctx.getOrCreateInputObjectType(node.operations.fulltextTypeNames.sort, {
+            ctx.getOrCreateInputObjectType(node.namings.fulltextTypeNames.sort, {
                 description("The input for sorting a fulltext query on an index of ${node.name}".asDescription())
             }) { fields, _ ->
 
@@ -23,6 +23,6 @@ class FulltextSort {
 
                 fields += inputValue(Constants.SCORE, Constants.Types.SortDirection)
             }
-                ?: throw IllegalStateException("Expected ${node.operations.fulltextTypeNames.sort} to have fields")
+                ?: throw IllegalStateException("Expected ${node.namings.fulltextTypeNames.sort} to have fields")
     }
 }

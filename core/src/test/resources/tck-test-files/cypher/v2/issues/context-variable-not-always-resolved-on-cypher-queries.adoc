@@ -36,7 +36,6 @@ interface interfaceTarget {
   iri: ID!
 }
 ----
-
 == should apply dynamic label with filter
 
 .GraphQL-Query
@@ -56,9 +55,9 @@ interface interfaceTarget {
 [source,json]
 ----
 {
-  "param0" : "http://data.somesite.com/crown/test-id",
-  "param1" : 1,
-  "tenant" : "test"
+  "param0": "http://data.somesite.com/crown/test-id",
+  "param1": 1,
+  "tenant": "test"
 }
 ----
 
@@ -66,16 +65,14 @@ interface interfaceTarget {
 [source,cypher]
 ----
 MATCH (this:Exprlabel:test:Resource)
-WHERE single(this0 IN [(this)-[:realizationOf]->(this0)
-WHERE EXISTS {
-	MATCH (this0)-[:hasResourceType]->(this1:ResourceType)
-	WHERE this1.uri = $param0
-} | 1]
-WHERE true)
-WITH * LIMIT $param1
-RETURN this {
-	iri: this.uri
-} AS this
+WHERE single(this0 IN [(this)-[:realizationOf]->(this0:WorkLabel:test:Resource) WHERE EXISTS {
+    MATCH (this0)-[:hasResourceType]->(this1:ResourceType)
+    WHERE this1.uri = $param0
+} | 1] WHERE true)
+WITH *
+
+LIMIT $param1
+RETURN this { iri: this.uri } AS this
 ----
 
 '''
@@ -104,9 +101,9 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "http://data.somesite.com/crown/test-id",
-  "param1" : 1,
-  "tenant" : "test"
+  "param0": "http://data.somesite.com/crown/test-id",
+  "param1": 1,
+  "tenant": "test"
 }
 ----
 
@@ -114,32 +111,25 @@ RETURN this {
 [source,cypher]
 ----
 MATCH (this:Exprlabel:test:Resource)
-WHERE single(this0 IN [(this)-[:realizationOf]->(this0)
-WHERE EXISTS {
-	MATCH (this0)-[:hasResourceType]->(this1:ResourceType)
-	WHERE this1.uri = $param0
-} | 1]
-WHERE true)
-WITH * LIMIT $param1
+WHERE single(this0 IN [(this)-[:realizationOf]->(this0:WorkLabel:test:Resource) WHERE EXISTS {
+    MATCH (this0)-[:hasResourceType]->(this1:ResourceType)
+    WHERE this1.uri = $param0
+} | 1] WHERE true)
+WITH *
+
+LIMIT $param1
 CALL {
-	WITH this
-	CALL {
-		WITH *
-		MATCH (this)-[this2:relToInterface]->(this3:coreFrag:test:Resource)
-		WITH this3 {
-			iri: this3.uri,
-			__resolveType: 'coreFrag',
-			__id: id(this3)
-		} AS this3
-		RETURN this3 AS var4
-	}
-	WITH var4
-	RETURN collect(var4) AS var4
+    WITH this
+    CALL {
+        WITH *
+        MATCH (this)-[this2:relToInterface]->(this3:coreFrag:test:Resource)
+        WITH this3 { iri: this3.uri, __resolveType: "coreFrag", __id: id(this3) } AS this3
+        RETURN this3 AS var4
+    }
+    WITH var4
+    RETURN collect(var4) AS var4
 }
-RETURN this {
-	iri: this.uri,
-	relToInterface: var4
-} AS this
+RETURN this { iri: this.uri, relToInterface: var4 } AS this
 ----
 
 '''
@@ -168,9 +158,9 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "http://data.somesite.com/crown/test-id",
-  "param1" : 1,
-  "tenant" : "test"
+  "param0": "http://data.somesite.com/crown/test-id",
+  "param1": 1,
+  "tenant": "test"
 }
 ----
 
@@ -178,39 +168,30 @@ RETURN this {
 [source,cypher]
 ----
 MATCH (this:Exprlabel:test:Resource)
-WHERE single(this0 IN [(this)-[:realizationOf]->(this0)
-WHERE EXISTS {
-	MATCH (this0)-[:hasResourceType]->(this1:ResourceType)
-	WHERE this1.uri = $param0
-} | 1]
-WHERE true)
-WITH * LIMIT $param1
+WHERE single(this0 IN [(this)-[:realizationOf]->(this0:WorkLabel:test:Resource) WHERE EXISTS {
+    MATCH (this0)-[:hasResourceType]->(this1:ResourceType)
+    WHERE this1.uri = $param0
+} | 1] WHERE true)
+WITH *
+
+LIMIT $param1
 CALL {
-	WITH this
-	CALL {
-		WITH *
-		MATCH (this)-[this2:relToUnion]->(this3:coreRoot:Resource)
-		WITH this3 {
-			__resolveType: 'coreRoot',
-			__id: id(this3)
-		} AS this3
-		RETURN this3 AS var4 UNION
-		WITH *
-		MATCH (this)-[this5:relToUnion]->(this6:coreFrag:test:Resource)
-		WITH this6 {
-			iri: this6.uri,
-			__resolveType: 'coreFrag',
-			__id: id(this6)
-		} AS this6
-		RETURN this6 AS var4
-	}
-	WITH var4
-	RETURN collect(var4) AS var4
+    WITH this
+    CALL {
+        WITH *
+        MATCH (this)-[this2:relToUnion]->(this3:coreRoot:Resource)
+        WITH this3 { __resolveType: "coreRoot", __id: id(this3) } AS this3
+        RETURN this3 AS var4
+        UNION
+        WITH *
+        MATCH (this)-[this5:relToUnion]->(this6:coreFrag:test:Resource)
+        WITH this6 { iri: this6.uri, __resolveType: "coreFrag", __id: id(this6) } AS this6
+        RETURN this6 AS var4
+    }
+    WITH var4
+    RETURN collect(var4) AS var4
 }
-RETURN this {
-	iri: this.uri,
-	relToUnion: var4
-} AS this
+RETURN this { iri: this.uri, relToUnion: var4 } AS this
 ----
 
 '''

@@ -21,7 +21,6 @@ type Person {
   id: ID
 }
 ----
-
 == AND operator should work correctly
 
 .GraphQL-Query
@@ -34,18 +33,40 @@ type Person {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [
+      "admin"
+    ],
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "id": "something",
+      "email": "something"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
 {
-  "isAuthenticated" : true,
-  "jwt" : {
-    "roles" : [ "admin" ],
-    "id" : "something",
-    "email" : "something"
+  "isAuthenticated": true,
+  "jwt": {
+    "roles": [
+      "admin"
+    ],
+    "id": "something",
+    "email": "something"
   },
-  "param2" : "admin",
-  "param3" : "super-admin"
+  "param2": "admin",
+  "param3": "super-admin"
 }
 ----
 
@@ -54,14 +75,8 @@ type Person {
 ----
 MATCH (this:Movie)
 WITH *
-WHERE apoc.util.validatePredicate(NOT (($isAuthenticated = true
-	AND $jwt.roles IS NOT NULL
-	AND $jwt.roles = $param2
-	AND $jwt.roles IS NOT NULL
-	AND $jwt.roles = $param3)), '@neo4j/graphql/FORBIDDEN', [0])
-RETURN this {
-	.title
-} AS this
+WHERE apoc.util.validatePredicate(NOT ($isAuthenticated = true AND (($jwt.roles IS NOT NULL AND $jwt.roles = $param2) AND ($jwt.roles IS NOT NULL AND $jwt.roles = $param3))), "@neo4j/graphql/FORBIDDEN", [0])
+RETURN this { .title } AS this
 ----
 
 '''

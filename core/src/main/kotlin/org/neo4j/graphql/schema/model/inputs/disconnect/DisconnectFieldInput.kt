@@ -41,7 +41,7 @@ sealed interface DisconnectFieldInput {
                 node: Node,
                 ctx: AugmentationContext
             ): String? =
-                ctx.getOrCreateInputObjectType(rel.operations.getDisconnectFieldInputTypeName(node)) { fields, _ ->
+                ctx.getOrCreateInputObjectType(rel.namings.getDisconnectFieldInputTypeName(node)) { fields, _ ->
 
                     NodeConnectionWhere.Augmentation
                         .generateFieldConnectionWhereIT(rel, node, ctx)
@@ -82,12 +82,12 @@ sealed interface DisconnectFieldInput {
                 interfaze: Interface,
                 ctx: AugmentationContext
             ) =
-                ctx.getOrCreateInputObjectType(rel.operations.getDisconnectFieldInputTypeName(interfaze)) { fields, _ ->
+                ctx.getOrCreateInputObjectType(rel.namings.getDisconnectFieldInputTypeName(interfaze)) { fields, _ ->
 
                     ctx.addInterfaceField(
                         interfaze,
-                        interfaze.operations.disconnectInputTypeName,
-                        interfaze.operations.whereOnImplementationsDisconnectInputTypeName,
+                        interfaze.namings.disconnectInputTypeName,
+                        interfaze.namings.whereOnImplementationsDisconnectInputTypeName,
                         { node ->
                             DisconnectInput.NodeDisconnectInput.Augmentation.generateContainerDisconnectInputIT(
                                 node,

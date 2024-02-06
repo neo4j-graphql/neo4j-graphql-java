@@ -26,7 +26,7 @@ type Movie {
 [source,json]
 ----
 {
-  "param0" : "some-title"
+  "param0": "some-title"
 }
 ----
 
@@ -34,13 +34,11 @@ type Movie {
 [source,cypher]
 ----
 CALL {
-	MATCH (this:Movie)
-	WHERE this.title = $param0
-	RETURN count(this) AS var0
+    MATCH (this:Movie)
+    WHERE this.title = $param0
+    RETURN count(this) AS var0
 }
-RETURN {
-	count: var0
-}
+RETURN { count: var0 }
 ----
 
 '''
@@ -60,19 +58,17 @@ RETURN {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 CALL {
-	MATCH (this:Movie)
-	RETURN count(this) AS var0
+    MATCH (this:Movie)
+    RETURN count(this) AS var0
 }
-RETURN {
-	count: var0
-}
+RETURN { count: var0 }
 ----
 
 '''

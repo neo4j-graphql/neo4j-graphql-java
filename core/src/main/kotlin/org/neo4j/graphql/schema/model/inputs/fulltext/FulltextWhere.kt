@@ -13,13 +13,13 @@ class FulltextWhere {
     object Augmentation : AugmentationBase {
 
         fun generateFulltextWhere(node: Node, ctx: AugmentationContext) =
-            ctx.getOrCreateInputObjectType(node.operations.fulltextTypeNames.where, {
+            ctx.getOrCreateInputObjectType(node.namings.fulltextTypeNames.where, {
                 description("The input for filtering a fulltext query on an index of ${node.name}".asDescription())
             }) { fields, _ ->
                 WhereInput.NodeWhereInput.Augmentation.generateWhereIT(node, ctx)
                     ?.let { fields += inputValue(node.name.lowercase(), it.asType()) }
                 fields += inputValue(Constants.SCORE, Constants.Types.FloatWhere)
             }
-                ?: throw IllegalStateException("Expected ${node.operations.fulltextTypeNames.where} to have fields")
+                ?: throw IllegalStateException("Expected ${node.namings.fulltextTypeNames.where} to have fields")
     }
 }

@@ -48,7 +48,6 @@ extend interface MyInterface @limit(default: 13, max: 15)
   "experimental": true
 }
 ----
-
 == Limit argument overwrites default if lower than max
 
 .GraphQL-Query
@@ -77,7 +76,7 @@ extend interface MyInterface @limit(default: 13, max: 15)
 [source,json]
 ----
 {
-  "param0" : 3
+  "param0": 3
 }
 ----
 
@@ -85,41 +84,27 @@ extend interface MyInterface @limit(default: 13, max: 15)
 [source,cypher]
 ----
 CALL {
-	MATCH (this0:SomeNodeType)
-	CALL {
-		WITH this0
-		MATCH (this0)-[this1:HAS_OTHER_NODES]->(this2:OtherNodeType)
-		WITH this2 {
-			.id
-		} AS this2
-		RETURN collect(this2) AS var3
-	}
-	WITH this0 {
-		.id,
-		.something,
-		.somethingElse,
-		other: var3,
-		__resolveType: 'SomeNodeType',
-		__id: id(this0)
-	} AS this0
-	RETURN this0 AS this UNION
-	MATCH (this4:MyImplementationType)
-	WITH this4 {
-		.id,
-		__resolveType: 'MyImplementationType',
-		__id: id(this4)
-	} AS this4
-	RETURN this4 AS this UNION
-	MATCH (this5:MyOtherImplementationType)
-	WITH this5 {
-		.id,
-		.someField,
-		__resolveType: 'MyOtherImplementationType',
-		__id: id(this5)
-	} AS this5
-	RETURN this5 AS this
+    MATCH (this0:SomeNodeType)
+    CALL {
+        WITH this0
+        MATCH (this0)-[this1:HAS_OTHER_NODES]->(this2:OtherNodeType)
+        WITH this2 { .id } AS this2
+        RETURN collect(this2) AS var3
+    }
+    WITH this0 { .id, .something, .somethingElse, other: var3, __resolveType: "SomeNodeType", __id: id(this0) } AS this0
+    RETURN this0 AS this
+    UNION
+    MATCH (this4:MyImplementationType)
+    WITH this4 { .id, __resolveType: "MyImplementationType", __id: id(this4) } AS this4
+    RETURN this4 AS this
+    UNION
+    MATCH (this5:MyOtherImplementationType)
+    WITH this5 { .id, .someField, __resolveType: "MyOtherImplementationType", __id: id(this5) } AS this5
+    RETURN this5 AS this
 }
-WITH this LIMIT $param0
+WITH this
+
+LIMIT $param0
 RETURN this AS this
 ----
 
@@ -153,7 +138,7 @@ RETURN this AS this
 [source,json]
 ----
 {
-  "param0" : 13
+  "param0": 13
 }
 ----
 
@@ -161,41 +146,27 @@ RETURN this AS this
 [source,cypher]
 ----
 CALL {
-	MATCH (this0:SomeNodeType)
-	CALL {
-		WITH this0
-		MATCH (this0)-[this1:HAS_OTHER_NODES]->(this2:OtherNodeType)
-		WITH this2 {
-			.id
-		} AS this2
-		RETURN collect(this2) AS var3
-	}
-	WITH this0 {
-		.id,
-		.something,
-		.somethingElse,
-		other: var3,
-		__resolveType: 'SomeNodeType',
-		__id: id(this0)
-	} AS this0
-	RETURN this0 AS this UNION
-	MATCH (this4:MyImplementationType)
-	WITH this4 {
-		.id,
-		__resolveType: 'MyImplementationType',
-		__id: id(this4)
-	} AS this4
-	RETURN this4 AS this UNION
-	MATCH (this5:MyOtherImplementationType)
-	WITH this5 {
-		.id,
-		.someField,
-		__resolveType: 'MyOtherImplementationType',
-		__id: id(this5)
-	} AS this5
-	RETURN this5 AS this
+    MATCH (this0:SomeNodeType)
+    CALL {
+        WITH this0
+        MATCH (this0)-[this1:HAS_OTHER_NODES]->(this2:OtherNodeType)
+        WITH this2 { .id } AS this2
+        RETURN collect(this2) AS var3
+    }
+    WITH this0 { .id, .something, .somethingElse, other: var3, __resolveType: "SomeNodeType", __id: id(this0) } AS this0
+    RETURN this0 AS this
+    UNION
+    MATCH (this4:MyImplementationType)
+    WITH this4 { .id, __resolveType: "MyImplementationType", __id: id(this4) } AS this4
+    RETURN this4 AS this
+    UNION
+    MATCH (this5:MyOtherImplementationType)
+    WITH this5 { .id, .someField, __resolveType: "MyOtherImplementationType", __id: id(this5) } AS this5
+    RETURN this5 AS this
 }
-WITH this LIMIT $param0
+WITH this
+
+LIMIT $param0
 RETURN this AS this
 ----
 
@@ -223,7 +194,7 @@ RETURN this AS this
 [source,json]
 ----
 {
-  "param0" : 13
+  "param0": 13
 }
 ----
 
@@ -232,49 +203,35 @@ RETURN this AS this
 ----
 MATCH (this:SomeNodeType)
 CALL {
-	WITH this
-	MATCH (this)-[this0:HAS_OTHER_NODES]->(this1:OtherNodeType)
-	CALL {
-		WITH this1
-		CALL {
-			WITH *
-			MATCH (this1)-[this2:HAS_INTERFACE_NODES]->(this3:SomeNodeType)
-			WITH this3 {
-				.id,
-				__resolveType: 'SomeNodeType',
-				__id: id(this3)
-			} AS this3
-			RETURN this3 AS var4 UNION
-			WITH *
-			MATCH (this1)-[this5:HAS_INTERFACE_NODES]->(this6:MyImplementationType)
-			WITH this6 {
-				.id,
-				__resolveType: 'MyImplementationType',
-				__id: id(this6)
-			} AS this6
-			RETURN this6 AS var4 UNION
-			WITH *
-			MATCH (this1)-[this7:HAS_INTERFACE_NODES]->(this8:MyOtherImplementationType)
-			WITH this8 {
-				.id,
-				__resolveType: 'MyOtherImplementationType',
-				__id: id(this8)
-			} AS this8
-			RETURN this8 AS var4
-		}
-		WITH var4 LIMIT $param0
-		RETURN head(collect(var4)) AS var4
-	}
-	WITH this1 {
-		.id,
-		interfaceField: var4
-	} AS this1
-	RETURN collect(this1) AS var9
+    WITH this
+    MATCH (this)-[this0:HAS_OTHER_NODES]->(this1:OtherNodeType)
+    CALL {
+        WITH this1
+        CALL {
+            WITH *
+            MATCH (this1)-[this2:HAS_INTERFACE_NODES]->(this3:SomeNodeType)
+            WITH this3 { .id, __resolveType: "SomeNodeType", __id: id(this3) } AS this3
+            RETURN this3 AS var4
+            UNION
+            WITH *
+            MATCH (this1)-[this5:HAS_INTERFACE_NODES]->(this6:MyImplementationType)
+            WITH this6 { .id, __resolveType: "MyImplementationType", __id: id(this6) } AS this6
+            RETURN this6 AS var4
+            UNION
+            WITH *
+            MATCH (this1)-[this7:HAS_INTERFACE_NODES]->(this8:MyOtherImplementationType)
+            WITH this8 { .id, __resolveType: "MyOtherImplementationType", __id: id(this8) } AS this8
+            RETURN this8 AS var4
+        }
+        WITH var4
+        
+        LIMIT $param0
+        RETURN head(collect(var4)) AS var4
+    }
+    WITH this1 { .id, interfaceField: var4 } AS this1
+    RETURN collect(this1) AS var9
 }
-RETURN this {
-	.id,
-	other: var9
-} AS this
+RETURN this { .id, other: var9 } AS this
 ----
 
 '''
@@ -307,7 +264,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 15
+  "param0": 15
 }
 ----
 
@@ -315,41 +272,27 @@ RETURN this {
 [source,cypher]
 ----
 CALL {
-	MATCH (this0:SomeNodeType)
-	CALL {
-		WITH this0
-		MATCH (this0)-[this1:HAS_OTHER_NODES]->(this2:OtherNodeType)
-		WITH this2 {
-			.id
-		} AS this2
-		RETURN collect(this2) AS var3
-	}
-	WITH this0 {
-		.id,
-		.something,
-		.somethingElse,
-		other: var3,
-		__resolveType: 'SomeNodeType',
-		__id: id(this0)
-	} AS this0
-	RETURN this0 AS this UNION
-	MATCH (this4:MyImplementationType)
-	WITH this4 {
-		.id,
-		__resolveType: 'MyImplementationType',
-		__id: id(this4)
-	} AS this4
-	RETURN this4 AS this UNION
-	MATCH (this5:MyOtherImplementationType)
-	WITH this5 {
-		.id,
-		.someField,
-		__resolveType: 'MyOtherImplementationType',
-		__id: id(this5)
-	} AS this5
-	RETURN this5 AS this
+    MATCH (this0:SomeNodeType)
+    CALL {
+        WITH this0
+        MATCH (this0)-[this1:HAS_OTHER_NODES]->(this2:OtherNodeType)
+        WITH this2 { .id } AS this2
+        RETURN collect(this2) AS var3
+    }
+    WITH this0 { .id, .something, .somethingElse, other: var3, __resolveType: "SomeNodeType", __id: id(this0) } AS this0
+    RETURN this0 AS this
+    UNION
+    MATCH (this4:MyImplementationType)
+    WITH this4 { .id, __resolveType: "MyImplementationType", __id: id(this4) } AS this4
+    RETURN this4 AS this
+    UNION
+    MATCH (this5:MyOtherImplementationType)
+    WITH this5 { .id, .someField, __resolveType: "MyOtherImplementationType", __id: id(this5) } AS this5
+    RETURN this5 AS this
 }
-WITH this LIMIT $param0
+WITH this
+
+LIMIT $param0
 RETURN this AS this
 ----
 
@@ -383,7 +326,7 @@ RETURN this AS this
 [source,json]
 ----
 {
-  "param0" : 15
+  "param0": 15
 }
 ----
 
@@ -391,41 +334,27 @@ RETURN this AS this
 [source,cypher]
 ----
 CALL {
-	MATCH (this0:SomeNodeType)
-	CALL {
-		WITH this0
-		MATCH (this0)-[this1:HAS_OTHER_NODES]->(this2:OtherNodeType)
-		WITH this2 {
-			.id
-		} AS this2
-		RETURN collect(this2) AS var3
-	}
-	WITH this0 {
-		.id,
-		.something,
-		.somethingElse,
-		other: var3,
-		__resolveType: 'SomeNodeType',
-		__id: id(this0)
-	} AS this0
-	RETURN this0 AS this UNION
-	MATCH (this4:MyImplementationType)
-	WITH this4 {
-		.id,
-		__resolveType: 'MyImplementationType',
-		__id: id(this4)
-	} AS this4
-	RETURN this4 AS this UNION
-	MATCH (this5:MyOtherImplementationType)
-	WITH this5 {
-		.id,
-		.someField,
-		__resolveType: 'MyOtherImplementationType',
-		__id: id(this5)
-	} AS this5
-	RETURN this5 AS this
+    MATCH (this0:SomeNodeType)
+    CALL {
+        WITH this0
+        MATCH (this0)-[this1:HAS_OTHER_NODES]->(this2:OtherNodeType)
+        WITH this2 { .id } AS this2
+        RETURN collect(this2) AS var3
+    }
+    WITH this0 { .id, .something, .somethingElse, other: var3, __resolveType: "SomeNodeType", __id: id(this0) } AS this0
+    RETURN this0 AS this
+    UNION
+    MATCH (this4:MyImplementationType)
+    WITH this4 { .id, __resolveType: "MyImplementationType", __id: id(this4) } AS this4
+    RETURN this4 AS this
+    UNION
+    MATCH (this5:MyOtherImplementationType)
+    WITH this5 { .id, .someField, __resolveType: "MyOtherImplementationType", __id: id(this5) } AS this5
+    RETURN this5 AS this
 }
-WITH this ORDER BY this.id ASC LIMIT $param0
+WITH this
+ORDER BY this.id ASC
+LIMIT $param0
 RETURN this AS this
 ----
 

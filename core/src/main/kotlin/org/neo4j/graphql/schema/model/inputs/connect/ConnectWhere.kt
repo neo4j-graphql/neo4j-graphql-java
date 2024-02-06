@@ -18,7 +18,7 @@ class ConnectWhere(type: ImplementingType, data: Dict) {
             implementingType: ImplementingType,
             ctx: AugmentationContext
         ) =
-            ctx.getOrCreateInputObjectType(implementingType.operations.connectWhereInputTypeName) { fields, _ ->
+            ctx.getOrCreateInputObjectType(implementingType.namings.connectWhereInputTypeName) { fields, _ ->
 
                 when (implementingType) {
 

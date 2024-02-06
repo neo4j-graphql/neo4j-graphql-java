@@ -34,7 +34,7 @@ type Movie {
 [source,json]
 ----
 {
-  "param0" : "some title"
+  "param0": "some title"
 }
 ----
 
@@ -43,9 +43,7 @@ type Movie {
 ----
 MATCH (this:Movie)
 WHERE this.title = $param0
-RETURN this {
-	.title
-} AS this
+RETURN this { .title } AS this
 ----
 
 '''
@@ -66,9 +64,9 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "2",
-  "param1" : "some title",
-  "param2" : true
+  "param0": "2",
+  "param1": "some title",
+  "param2": true
 }
 ----
 
@@ -76,12 +74,8 @@ RETURN this {
 [source,cypher]
 ----
 MATCH (this:Movie)
-WHERE (this.id = $param0
-	AND (this.title = $param1
-		OR this.isFavorite = $param2))
-RETURN this {
-	.title
-} AS this
+WHERE (this.id = $param0 AND (this.title = $param1 OR this.isFavorite = $param2))
+RETURN this { .title } AS this
 ----
 
 '''
@@ -102,8 +96,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "some title",
-  "param1" : "another title"
+  "param0": "some title",
+  "param1": "another title"
 }
 ----
 
@@ -111,11 +105,8 @@ RETURN this {
 [source,cypher]
 ----
 MATCH (this:Movie)
-WHERE (this.title = $param0
-	AND this.title = $param1)
-RETURN this {
-	.title
-} AS this
+WHERE (this.title = $param0 AND this.title = $param1)
+RETURN this { .title } AS this
 ----
 
 '''
@@ -136,7 +127,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "some title"
+  "param0": "some title"
 }
 ----
 
@@ -145,9 +136,7 @@ RETURN this {
 ----
 MATCH (this:Movie)
 WHERE this.title = $param0
-RETURN this {
-	.title
-} AS this
+RETURN this { .title } AS this
 ----
 
 '''
@@ -177,8 +166,8 @@ query ($title: String, $isFavorite: Boolean) {
 [source,json]
 ----
 {
-  "param0" : "some title",
-  "param1" : true
+  "param0": "some title",
+  "param1": true
 }
 ----
 
@@ -186,11 +175,8 @@ query ($title: String, $isFavorite: Boolean) {
 [source,cypher]
 ----
 MATCH (this:Movie)
-WHERE (this.title = $param0
-	AND this.isFavorite = $param1)
-RETURN this {
-	.title
-} AS this
+WHERE (this.title = $param0 AND this.isFavorite = $param1)
+RETURN this { .title } AS this
 ----
 
 '''
@@ -211,7 +197,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "some title"
+  "param0": "some title"
 }
 ----
 
@@ -220,9 +206,7 @@ RETURN this {
 ----
 MATCH (this:Movie)
 WHERE this.title = $param0
-RETURN this {
-	.title
-} AS this
+RETURN this { .title } AS this
 ----
 
 '''
@@ -243,8 +227,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "some title",
-  "param1" : true
+  "param0": "some title",
+  "param1": true
 }
 ----
 
@@ -252,11 +236,8 @@ RETURN this {
 [source,cypher]
 ----
 MATCH (this:Movie)
-WHERE (this.title = $param0
-	AND this.isFavorite = $param1)
-RETURN this {
-	.title
-} AS this
+WHERE (this.title = $param0 AND this.isFavorite = $param1)
+RETURN this { .title } AS this
 ----
 
 '''
@@ -277,7 +258,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "some title"
+  "param0": "some title"
 }
 ----
 
@@ -286,9 +267,7 @@ RETURN this {
 ----
 MATCH (this:Movie)
 WHERE NOT (this.title = $param0)
-RETURN this {
-	.title
-} AS this
+RETURN this { .title } AS this
 ----
 
 '''
@@ -309,8 +288,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "some title",
-  "param1" : false
+  "param0": "some title",
+  "param1": false
 }
 ----
 
@@ -318,11 +297,8 @@ RETURN this {
 [source,cypher]
 ----
 MATCH (this:Movie)
-WHERE NOT ((this.title = $param0
-	AND this.isFavorite = $param1))
-RETURN this {
-	.title
-} AS this
+WHERE NOT (this.title = $param0 AND this.isFavorite = $param1)
+RETURN this { .title } AS this
 ----
 
 '''
@@ -343,7 +319,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "some title"
+  "param0": "some title"
 }
 ----
 
@@ -352,9 +328,7 @@ RETURN this {
 ----
 MATCH (this:Movie)
 WHERE this.title = $param0
-RETURN this {
-	.title
-} AS this
+RETURN this { .title } AS this
 ----
 
 '''
@@ -375,7 +349,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "some title"
+  "param0": "some title"
 }
 ----
 
@@ -384,9 +358,7 @@ RETURN this {
 ----
 MATCH (this:Movie)
 WHERE this.title = $param0
-RETURN this {
-	.title
-} AS this
+RETURN this { .title } AS this
 ----
 
 '''
@@ -407,7 +379,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "some title"
+  "param0": "some title"
 }
 ----
 
@@ -416,9 +388,7 @@ RETURN this {
 ----
 MATCH (this:Movie)
 WHERE this.title = $param0
-RETURN this {
-	.title
-} AS this
+RETURN this { .title } AS this
 ----
 
 '''
@@ -440,7 +410,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
@@ -448,9 +418,7 @@ RETURN this {
 ----
 MATCH (this:Movie)
 WHERE this.title IS NOT NULL
-RETURN this {
-	.title
-} AS this
+RETURN this { .title } AS this
 ----
 
 '''
@@ -470,7 +438,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
@@ -478,9 +446,7 @@ RETURN this {
 ----
 MATCH (this:Movie)
 WHERE this.title IS NULL
-RETURN this {
-	.title
-} AS this
+RETURN this { .title } AS this
 ----
 
 '''

@@ -26,7 +26,6 @@ interface InGenre @relationshipProperties {
   intValue: Int!
 }
 ----
-
 == Mix nested aggregations in ALL filter with logical and aggregation filters
 
 .GraphQL-Query
@@ -45,12 +44,12 @@ interface InGenre @relationshipProperties {
 [source,json]
 ----
 {
-  "param0" : 0,
-  "param1" : 1,
-  "param2" : "Thriller",
-  "param3" : 0,
-  "param4" : 1,
-  "param5" : "Thriller"
+  "param0": 0,
+  "param1": 1,
+  "param2": "Thriller",
+  "param3": 0,
+  "param4": 1,
+  "param5": "Thriller"
 }
 ----
 
@@ -59,49 +58,42 @@ interface InGenre @relationshipProperties {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)-[:IN_GENRE]->(this0:Genre)
-	CALL {
-		WITH this0
-		MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
-		RETURN count(this2) = $param0 AS var3
-	}
-	CALL {
-		WITH this0
-		MATCH (this0)<-[this4:IN_GENRE]-(this5:Series)
-		RETURN count(this5) = $param1 AS var6
-	}
-	WITH *
-	WHERE ((var3 = true
-			OR this0.name = $param2)
-		AND var6 = true)
-	RETURN count(this0) > 0 AS var7
+    WITH this
+    MATCH (this)-[:IN_GENRE]->(this0:Genre)
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
+        RETURN count(this2) = $param0 AS var3
+    }
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this4:IN_GENRE]-(this5:Series)
+        RETURN count(this5) = $param1 AS var6
+    }
+    WITH *
+    WHERE ((var3 = true OR this0.name = $param2) AND var6 = true)
+    RETURN count(this0) > 0 AS var7
 }
 CALL {
-	WITH this
-	MATCH (this)-[:IN_GENRE]->(this0:Genre)
-	CALL {
-		WITH this0
-		MATCH (this0)<-[this8:IN_GENRE]-(this9:Movie)
-		RETURN count(this9) = $param3 AS var10
-	}
-	CALL {
-		WITH this0
-		MATCH (this0)<-[this11:IN_GENRE]-(this12:Series)
-		RETURN count(this12) = $param4 AS var13
-	}
-	WITH *
-	WHERE NOT (((var10 = true
-			OR this0.name = $param5)
-		AND var13 = true))
-	RETURN count(this0) > 0 AS var14
+    WITH this
+    MATCH (this)-[:IN_GENRE]->(this0:Genre)
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this8:IN_GENRE]-(this9:Movie)
+        RETURN count(this9) = $param3 AS var10
+    }
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this11:IN_GENRE]-(this12:Series)
+        RETURN count(this12) = $param4 AS var13
+    }
+    WITH *
+    WHERE NOT ((var10 = true OR this0.name = $param5) AND var13 = true)
+    RETURN count(this0) > 0 AS var14
 }
 WITH *
-WHERE (var14 = false
-	AND var7 = true)
-RETURN this {
-	.title
-} AS this
+WHERE (var14 = false AND var7 = true)
+RETURN this { .title } AS this
 ----
 
 '''
@@ -124,10 +116,10 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 0,
-  "param1" : 1,
-  "param2" : 0,
-  "param3" : 1
+  "param0": 0,
+  "param1": 1,
+  "param2": 0,
+  "param3": 1
 }
 ----
 
@@ -136,47 +128,42 @@ RETURN this {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)-[:IN_GENRE]->(this0:Genre)
-	CALL {
-		WITH this0
-		MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
-		RETURN count(this2) = $param0 AS var3
-	}
-	CALL {
-		WITH this0
-		MATCH (this0)<-[this4:IN_GENRE]-(this5:Series)
-		RETURN count(this5) = $param1 AS var6
-	}
-	WITH *
-	WHERE (var3 = true
-		OR var6 = true)
-	RETURN count(this0) > 0 AS var7
+    WITH this
+    MATCH (this)-[:IN_GENRE]->(this0:Genre)
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
+        RETURN count(this2) = $param0 AS var3
+    }
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this4:IN_GENRE]-(this5:Series)
+        RETURN count(this5) = $param1 AS var6
+    }
+    WITH *
+    WHERE (var3 = true OR var6 = true)
+    RETURN count(this0) > 0 AS var7
 }
 CALL {
-	WITH this
-	MATCH (this)-[:IN_GENRE]->(this0:Genre)
-	CALL {
-		WITH this0
-		MATCH (this0)<-[this8:IN_GENRE]-(this9:Movie)
-		RETURN count(this9) = $param2 AS var10
-	}
-	CALL {
-		WITH this0
-		MATCH (this0)<-[this11:IN_GENRE]-(this12:Series)
-		RETURN count(this12) = $param3 AS var13
-	}
-	WITH *
-	WHERE NOT ((var10 = true
-		OR var13 = true))
-	RETURN count(this0) > 0 AS var14
+    WITH this
+    MATCH (this)-[:IN_GENRE]->(this0:Genre)
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this8:IN_GENRE]-(this9:Movie)
+        RETURN count(this9) = $param2 AS var10
+    }
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this11:IN_GENRE]-(this12:Series)
+        RETURN count(this12) = $param3 AS var13
+    }
+    WITH *
+    WHERE NOT (var10 = true OR var13 = true)
+    RETURN count(this0) > 0 AS var14
 }
 WITH *
-WHERE (var14 = false
-	AND var7 = true)
-RETURN this {
-	.title
-} AS this
+WHERE (var14 = false AND var7 = true)
+RETURN this { .title } AS this
 ----
 
 '''
@@ -199,8 +186,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 3,
-  "param1" : 1
+  "param0": 3,
+  "param1": 1
 }
 ----
 
@@ -209,28 +196,25 @@ RETURN this {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)-[:IN_GENRE]->(this0:Genre)
-	CALL {
-		WITH this0
-		MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
-		RETURN count(this2) = $param0 AS var3
-	}
-	WITH *
-	WHERE var3 = true
-	RETURN count(this0) > 0 AS var4
+    WITH this
+    MATCH (this)-[:IN_GENRE]->(this0:Genre)
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
+        RETURN count(this2) = $param0 AS var3
+    }
+    WITH *
+    WHERE var3 = true
+    RETURN count(this0) > 0 AS var4
 }
 CALL {
-	WITH this
-	MATCH (this)-[this5:IN_GENRE]->(this6:Genre)
-	RETURN count(this6) = $param1 AS var7
+    WITH this
+    MATCH (this)-[this5:IN_GENRE]->(this6:Genre)
+    RETURN count(this6) = $param1 AS var7
 }
 WITH *
-WHERE (var4 = true
-	AND var7 = true)
-RETURN this {
-	.title
-} AS this
+WHERE (var4 = true AND var7 = true)
+RETURN this { .title } AS this
 ----
 
 '''
@@ -253,8 +237,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 2,
-  "param1" : 1
+  "param0": 2,
+  "param1": 1
 }
 ----
 
@@ -263,28 +247,25 @@ RETURN this {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)-[:IN_GENRE]->(this0:Genre)
-	CALL {
-		WITH this0
-		MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
-		RETURN count(this2) = $param0 AS var3
-	}
-	CALL {
-		WITH this0
-		MATCH (this0)<-[this4:IN_GENRE]-(this5:Series)
-		RETURN min(size(this5.name)) = $param1 AS var6
-	}
-	WITH *
-	WHERE (var3 = true
-		AND var6 = true)
-	RETURN count(this0) > 0 AS var7
+    WITH this
+    MATCH (this)-[:IN_GENRE]->(this0:Genre)
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
+        RETURN count(this2) = $param0 AS var3
+    }
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this4:IN_GENRE]-(this5:Series)
+        RETURN min(size(this5.name)) = $param1 AS var6
+    }
+    WITH *
+    WHERE (var3 = true AND var6 = true)
+    RETURN count(this0) > 0 AS var7
 }
 WITH *
 WHERE var7 = true
-RETURN this {
-	.title
-} AS this
+RETURN this { .title } AS this
 ----
 
 '''
@@ -307,8 +288,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 2,
-  "param1" : 1
+  "param0": 2,
+  "param1": 1
 }
 ----
 
@@ -317,28 +298,25 @@ RETURN this {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)-[:IN_GENRE]->(this0:Genre)
-	CALL {
-		WITH this0
-		MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
-		RETURN count(this2) = $param0 AS var3
-	}
-	CALL {
-		WITH this0
-		MATCH (this0)<-[this4:IN_GENRE]-(this5:Series)
-		RETURN min(size(this5.name)) = $param1 AS var6
-	}
-	WITH *
-	WHERE (var3 = true
-		AND var6 = true)
-	RETURN count(this0) > 0 AS var7
+    WITH this
+    MATCH (this)-[:IN_GENRE]->(this0:Genre)
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
+        RETURN count(this2) = $param0 AS var3
+    }
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this4:IN_GENRE]-(this5:Series)
+        RETURN min(size(this5.name)) = $param1 AS var6
+    }
+    WITH *
+    WHERE (var3 = true AND var6 = true)
+    RETURN count(this0) > 0 AS var7
 }
 WITH *
 WHERE var7 = true
-RETURN this {
-	.title
-} AS this
+RETURN this { .title } AS this
 ----
 
 '''
@@ -361,8 +339,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 3,
-  "param1" : 1
+  "param0": 3,
+  "param1": 1
 }
 ----
 
@@ -371,28 +349,25 @@ RETURN this {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)-[:IN_GENRE]->(this0:Genre)
-	CALL {
-		WITH this0
-		MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
-		RETURN count(this2) = $param0 AS var3
-	}
-	CALL {
-		WITH this0
-		MATCH (this0)<-[this4:IN_GENRE]-(this5:Series)
-		RETURN min(size(this5.name)) = $param1 AS var6
-	}
-	WITH *
-	WHERE (var3 = true
-		OR var6 = true)
-	RETURN count(this0) > 0 AS var7
+    WITH this
+    MATCH (this)-[:IN_GENRE]->(this0:Genre)
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
+        RETURN count(this2) = $param0 AS var3
+    }
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this4:IN_GENRE]-(this5:Series)
+        RETURN min(size(this5.name)) = $param1 AS var6
+    }
+    WITH *
+    WHERE (var3 = true OR var6 = true)
+    RETURN count(this0) > 0 AS var7
 }
 WITH *
 WHERE var7 = true
-RETURN this {
-	.title
-} AS this
+RETURN this { .title } AS this
 ----
 
 '''
@@ -413,8 +388,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 2,
-  "param1" : 2
+  "param0": 2,
+  "param1": 2
 }
 ----
 
@@ -423,35 +398,32 @@ RETURN this {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)-[:IN_GENRE]->(this0:Genre)
-	CALL {
-		WITH this0
-		MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
-		RETURN count(this2) = $param0 AS var3
-	}
-	WITH *
-	WHERE var3 = true
-	RETURN count(this0) > 0 AS var4
+    WITH this
+    MATCH (this)-[:IN_GENRE]->(this0:Genre)
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
+        RETURN count(this2) = $param0 AS var3
+    }
+    WITH *
+    WHERE var3 = true
+    RETURN count(this0) > 0 AS var4
 }
 CALL {
-	WITH this
-	MATCH (this)-[:IN_GENRE]->(this0:Genre)
-	CALL {
-		WITH this0
-		MATCH (this0)<-[this5:IN_GENRE]-(this6:Movie)
-		RETURN count(this6) = $param1 AS var7
-	}
-	WITH *
-	WHERE NOT (var7 = true)
-	RETURN count(this0) > 0 AS var8
+    WITH this
+    MATCH (this)-[:IN_GENRE]->(this0:Genre)
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this5:IN_GENRE]-(this6:Movie)
+        RETURN count(this6) = $param1 AS var7
+    }
+    WITH *
+    WHERE NOT (var7 = true)
+    RETURN count(this0) > 0 AS var8
 }
 WITH *
-WHERE (var8 = false
-	AND var4 = true)
-RETURN this {
-	.title
-} AS this
+WHERE (var8 = false AND var4 = true)
+RETURN this { .title } AS this
 ----
 
 '''
@@ -472,7 +444,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 2
+  "param0": 2
 }
 ----
 
@@ -481,22 +453,20 @@ RETURN this {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)-[:IN_GENRE]->(this0:Genre)
-	CALL {
-		WITH this0
-		MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
-		RETURN count(this2) = $param0 AS var3
-	}
-	WITH *
-	WHERE var3 = true
-	RETURN count(this0) > 0 AS var4
+    WITH this
+    MATCH (this)-[:IN_GENRE]->(this0:Genre)
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
+        RETURN count(this2) = $param0 AS var3
+    }
+    WITH *
+    WHERE var3 = true
+    RETURN count(this0) > 0 AS var4
 }
 WITH *
 WHERE var4 = false
-RETURN this {
-	.title
-} AS this
+RETURN this { .title } AS this
 ----
 
 '''
@@ -517,7 +487,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 2
+  "param0": 2
 }
 ----
 
@@ -526,22 +496,20 @@ RETURN this {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)-[:IN_GENRE]->(this0:Genre)
-	CALL {
-		WITH this0
-		MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
-		RETURN count(this2) = $param0 AS var3
-	}
-	WITH *
-	WHERE var3 = true
-	RETURN count(this0) > 0 AS var4
+    WITH this
+    MATCH (this)-[:IN_GENRE]->(this0:Genre)
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
+        RETURN count(this2) = $param0 AS var3
+    }
+    WITH *
+    WHERE var3 = true
+    RETURN count(this0) > 0 AS var4
 }
 WITH *
 WHERE var4 = false
-RETURN this {
-	.title
-} AS this
+RETURN this { .title } AS this
 ----
 
 '''
@@ -562,7 +530,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 2
+  "param0": 2
 }
 ----
 
@@ -571,22 +539,20 @@ RETURN this {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)-[:IN_GENRE]->(this0:Genre)
-	CALL {
-		WITH this0
-		MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
-		RETURN count(this2) = $param0 AS var3
-	}
-	WITH *
-	WHERE var3 = true
-	RETURN count(this0) = 1 AS var4
+    WITH this
+    MATCH (this)-[:IN_GENRE]->(this0:Genre)
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
+        RETURN count(this2) = $param0 AS var3
+    }
+    WITH *
+    WHERE var3 = true
+    RETURN count(this0) = 1 AS var4
 }
 WITH *
 WHERE var4 = true
-RETURN this {
-	.title
-} AS this
+RETURN this { .title } AS this
 ----
 
 '''
@@ -607,7 +573,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 2
+  "param0": 2
 }
 ----
 
@@ -616,22 +582,20 @@ RETURN this {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)-[:IN_GENRE]->(this0:Genre)
-	CALL {
-		WITH this0
-		MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
-		RETURN count(this2) = $param0 AS var3
-	}
-	WITH *
-	WHERE var3 = true
-	RETURN count(this0) > 0 AS var4
+    WITH this
+    MATCH (this)-[:IN_GENRE]->(this0:Genre)
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
+        RETURN count(this2) = $param0 AS var3
+    }
+    WITH *
+    WHERE var3 = true
+    RETURN count(this0) > 0 AS var4
 }
 WITH *
 WHERE var4 = true
-RETURN this {
-	.title
-} AS this
+RETURN this { .title } AS this
 ----
 
 '''
@@ -652,7 +616,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 2
+  "param0": 2
 }
 ----
 
@@ -661,22 +625,20 @@ RETURN this {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)-[:IN_GENRE]->(this0:Genre)
-	CALL {
-		WITH this0
-		MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
-		RETURN count(this2) = $param0 AS var3
-	}
-	WITH *
-	WHERE var3 = true
-	RETURN count(this0) > 0 AS var4
+    WITH this
+    MATCH (this)-[:IN_GENRE]->(this0:Genre)
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
+        RETURN count(this2) = $param0 AS var3
+    }
+    WITH *
+    WHERE var3 = true
+    RETURN count(this0) > 0 AS var4
 }
 WITH *
 WHERE var4 = true
-RETURN this {
-	.title
-} AS this
+RETURN this { .title } AS this
 ----
 
 '''
@@ -697,7 +659,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 2
+  "param0": 2
 }
 ----
 
@@ -706,22 +668,20 @@ RETURN this {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)-[:IN_GENRE]->(this0:Genre)
-	CALL {
-		WITH this0
-		MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
-		RETURN count(this2) > $param0 AS var3
-	}
-	WITH *
-	WHERE var3 = true
-	RETURN count(this0) > 0 AS var4
+    WITH this
+    MATCH (this)-[:IN_GENRE]->(this0:Genre)
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
+        RETURN count(this2) > $param0 AS var3
+    }
+    WITH *
+    WHERE var3 = true
+    RETURN count(this0) > 0 AS var4
 }
 WITH *
 WHERE var4 = true
-RETURN this {
-	.title
-} AS this
+RETURN this { .title } AS this
 ----
 
 '''
@@ -742,7 +702,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 3
+  "param0": 3
 }
 ----
 
@@ -751,22 +711,20 @@ RETURN this {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)-[:IN_GENRE]->(this0:Genre)
-	CALL {
-		WITH this0
-		MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
-		RETURN count(this2) < $param0 AS var3
-	}
-	WITH *
-	WHERE var3 = true
-	RETURN count(this0) > 0 AS var4
+    WITH this
+    MATCH (this)-[:IN_GENRE]->(this0:Genre)
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
+        RETURN count(this2) < $param0 AS var3
+    }
+    WITH *
+    WHERE var3 = true
+    RETURN count(this0) > 0 AS var4
 }
 WITH *
 WHERE var4 = true
-RETURN this {
-	.title
-} AS this
+RETURN this { .title } AS this
 ----
 
 '''
@@ -787,7 +745,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 1
+  "param0": 1
 }
 ----
 
@@ -796,22 +754,20 @@ RETURN this {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)-[:IN_GENRE]->(this0:Genre)
-	CALL {
-		WITH this0
-		MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
-		RETURN max(this1.intValue) < $param0 AS var3
-	}
-	WITH *
-	WHERE var3 = true
-	RETURN count(this0) > 0 AS var4
+    WITH this
+    MATCH (this)-[:IN_GENRE]->(this0:Genre)
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
+        RETURN max(this1.intValue) < $param0 AS var3
+    }
+    WITH *
+    WHERE var3 = true
+    RETURN count(this0) > 0 AS var4
 }
 WITH *
 WHERE var4 = true
-RETURN this {
-	.title
-} AS this
+RETURN this { .title } AS this
 ----
 
 '''
@@ -832,7 +788,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 1
+  "param0": 1
 }
 ----
 
@@ -841,22 +797,20 @@ RETURN this {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)-[:IN_GENRE]->(this0:Genre)
-	CALL {
-		WITH this0
-		MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
-		RETURN min(this1.intValue) = $param0 AS var3
-	}
-	WITH *
-	WHERE var3 = true
-	RETURN count(this0) > 0 AS var4
+    WITH this
+    MATCH (this)-[:IN_GENRE]->(this0:Genre)
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
+        RETURN min(this1.intValue) = $param0 AS var3
+    }
+    WITH *
+    WHERE var3 = true
+    RETURN count(this0) > 0 AS var4
 }
 WITH *
 WHERE var4 = true
-RETURN this {
-	.title
-} AS this
+RETURN this { .title } AS this
 ----
 
 '''
@@ -877,7 +831,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 1
+  "param0": 1
 }
 ----
 
@@ -886,22 +840,20 @@ RETURN this {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)-[:IN_GENRE]->(this0:Genre)
-	CALL {
-		WITH this0
-		MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
-		RETURN avg(size(this2.title)) = $param0 AS var3
-	}
-	WITH *
-	WHERE var3 = true
-	RETURN count(this0) > 0 AS var4
+    WITH this
+    MATCH (this)-[:IN_GENRE]->(this0:Genre)
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
+        RETURN avg(size(this2.title)) = $param0 AS var3
+    }
+    WITH *
+    WHERE var3 = true
+    RETURN count(this0) > 0 AS var4
 }
 WITH *
 WHERE var4 = true
-RETURN this {
-	.title
-} AS this
+RETURN this { .title } AS this
 ----
 
 '''
@@ -922,7 +874,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 1
+  "param0": 1
 }
 ----
 
@@ -931,22 +883,20 @@ RETURN this {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)-[:IN_GENRE]->(this0:Genre)
-	CALL {
-		WITH this0
-		MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
-		RETURN min(size(this2.title)) = $param0 AS var3
-	}
-	WITH *
-	WHERE var3 = true
-	RETURN count(this0) > 0 AS var4
+    WITH this
+    MATCH (this)-[:IN_GENRE]->(this0:Genre)
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
+        RETURN min(size(this2.title)) = $param0 AS var3
+    }
+    WITH *
+    WHERE var3 = true
+    RETURN count(this0) > 0 AS var4
 }
 WITH *
 WHERE var4 = true
-RETURN this {
-	.title
-} AS this
+RETURN this { .title } AS this
 ----
 
 '''
@@ -967,8 +917,8 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 0,
-  "param1" : 0
+  "param0": 0,
+  "param1": 0
 }
 ----
 
@@ -977,35 +927,32 @@ RETURN this {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)-[:IN_GENRE]->(this0:Genre)
-	CALL {
-		WITH this0
-		MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
-		RETURN count(this2) = $param0 AS var3
-	}
-	WITH *
-	WHERE var3 = true
-	RETURN count(this0) > 0 AS var4
+    WITH this
+    MATCH (this)-[:IN_GENRE]->(this0:Genre)
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this1:IN_GENRE]-(this2:Movie)
+        RETURN count(this2) = $param0 AS var3
+    }
+    WITH *
+    WHERE var3 = true
+    RETURN count(this0) > 0 AS var4
 }
 CALL {
-	WITH this
-	MATCH (this)-[:IN_GENRE]->(this0:Genre)
-	CALL {
-		WITH this0
-		MATCH (this0)<-[this5:IN_GENRE]-(this6:Movie)
-		RETURN count(this6) = $param1 AS var7
-	}
-	WITH *
-	WHERE NOT (var7 = true)
-	RETURN count(this0) > 0 AS var8
+    WITH this
+    MATCH (this)-[:IN_GENRE]->(this0:Genre)
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this5:IN_GENRE]-(this6:Movie)
+        RETURN count(this6) = $param1 AS var7
+    }
+    WITH *
+    WHERE NOT (var7 = true)
+    RETURN count(this0) > 0 AS var8
 }
 WITH *
-WHERE (var8 = false
-	AND var4 = true)
-RETURN this {
-	.title
-} AS this
+WHERE (var8 = false AND var4 = true)
+RETURN this { .title } AS this
 ----
 
 '''

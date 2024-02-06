@@ -36,7 +36,7 @@ type Actor {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
@@ -44,16 +44,11 @@ type Actor {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
-	RETURN count(this1) AS var2
+    WITH this
+    MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
+    RETURN count(this1) AS var2
 }
-RETURN this {
-	.title,
-	actorsAggregate: {
-		count: var2
-	}
-} AS this
+RETURN this { .title, actorsAggregate: { count: var2 } } AS this
 ----
 
 '''
@@ -79,7 +74,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
@@ -87,19 +82,11 @@ RETURN this {
 ----
 MATCH (this:Actor)
 CALL {
-	WITH this
-	MATCH (this)-[this0:ACTED_IN]->(this1:Movie)
-	RETURN {
-		min: apoc.date.convertFormat(toString(min(this1.released)), 'iso_zoned_date_time', 'iso_offset_date_time')
-	} AS var2
+    WITH this
+    MATCH (this)-[this0:ACTED_IN]->(this1:Movie)
+    RETURN { min: apoc.date.convertFormat(toString(min(this1.released)), "iso_zoned_date_time", "iso_offset_date_time") } AS var2
 }
-RETURN this {
-	moviesAggregate: {
-		node: {
-			released: var2
-		}
-	}
-} AS this
+RETURN this { moviesAggregate: { node: { released: var2 } } } AS this
 ----
 
 '''
@@ -132,7 +119,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
@@ -140,33 +127,19 @@ RETURN this {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
-	WITH this1 ORDER BY size(this1.name) DESC
-	WITH collect(this1.name) AS list
-	RETURN {
-		longest: head(list),
-		shortest: last(list)
-	} AS var2
+    WITH this
+    MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
+    WITH this1
+    ORDER BY size(this1.name) DESC
+    WITH collect(this1.name) AS list
+    RETURN { longest: head(list), shortest: last(list) } AS var2
 }
 CALL {
-	WITH this
-	MATCH (this)<-[this3:ACTED_IN]-(this4:Actor)
-	RETURN {
-		min: min(this4.age),
-		max: max(this4.age),
-		average: avg(this4.age),
-		sum: sum(this4.age)
-	} AS var5
+    WITH this
+    MATCH (this)<-[this3:ACTED_IN]-(this4:Actor)
+    RETURN { min: min(this4.age), max: max(this4.age), average: avg(this4.age), sum: sum(this4.age) } AS var5
 }
-RETURN this {
-	actorsAggregate: {
-		node: {
-			name: var2,
-			age: var5
-		}
-	}
-} AS this
+RETURN this { actorsAggregate: { node: { name: var2, age: var5 } } } AS this
 ----
 
 '''
@@ -195,7 +168,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
@@ -203,22 +176,11 @@ RETURN this {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
-	RETURN {
-		min: min(this1.age),
-		max: max(this1.age),
-		average: avg(this1.age),
-		sum: sum(this1.age)
-	} AS var2
+    WITH this
+    MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
+    RETURN { min: min(this1.age), max: max(this1.age), average: avg(this1.age), sum: sum(this1.age) } AS var2
 }
-RETURN this {
-	actorsAggregate: {
-		node: {
-			age: var2
-		}
-	}
-} AS this
+RETURN this { actorsAggregate: { node: { age: var2 } } } AS this
 ----
 
 '''
@@ -246,7 +208,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
@@ -254,23 +216,14 @@ RETURN this {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
-	WITH this1 ORDER BY size(this1.name) DESC
-	WITH collect(this1.name) AS list
-	RETURN {
-		longest: head(list),
-		shortest: last(list)
-	} AS var2
+    WITH this
+    MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
+    WITH this1
+    ORDER BY size(this1.name) DESC
+    WITH collect(this1.name) AS list
+    RETURN { longest: head(list), shortest: last(list) } AS var2
 }
-RETURN this {
-	.title,
-	actorsAggregate: {
-		node: {
-			name: var2
-		}
-	}
-} AS this
+RETURN this { .title, actorsAggregate: { node: { name: var2 } } } AS this
 ----
 
 '''
@@ -298,7 +251,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
@@ -306,28 +259,19 @@ RETURN this {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
-	RETURN count(this1) AS var2
+    WITH this
+    MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
+    RETURN count(this1) AS var2
 }
 CALL {
-	WITH this
-	MATCH (this)<-[this3:ACTED_IN]-(this4:Actor)
-	WITH this4 ORDER BY size(this4.name) DESC
-	WITH collect(this4.name) AS list
-	RETURN {
-		longest: head(list),
-		shortest: last(list)
-	} AS var5
+    WITH this
+    MATCH (this)<-[this3:ACTED_IN]-(this4:Actor)
+    WITH this4
+    ORDER BY size(this4.name) DESC
+    WITH collect(this4.name) AS list
+    RETURN { longest: head(list), shortest: last(list) } AS var5
 }
-RETURN this {
-	actorsAggregate: {
-		count: var2,
-		node: {
-			name: var5
-		}
-	}
-} AS this
+RETURN this { actorsAggregate: { count: var2, node: { name: var5 } } } AS this
 ----
 
 '''

@@ -1,13 +1,15 @@
 package org.neo4j.graphql.handler.v2
 
 import graphql.language.Field
+import graphql.language.InputValueDefinition
 import graphql.schema.DataFetchingEnvironment
 import org.neo4j.cypherdsl.core.*
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
-import org.neo4j.graphql.domain.directives.AuthDirective
+import org.neo4j.graphql.domain.directives.AuthorizationDirective
 import org.neo4j.graphql.handler.BaseDataFetcher
 import org.neo4j.graphql.handler.utils.ChainString
+import org.neo4j.graphql.schema.ArgumentsAugmentation
 import org.neo4j.graphql.schema.AugmentationContext
 import org.neo4j.graphql.schema.AugmentationHandler
 import org.neo4j.graphql.schema.model.inputs.Dict
@@ -25,7 +27,6 @@ import org.neo4j.graphql.schema.model.inputs.disconnect.DisconnectFieldInput
 import org.neo4j.graphql.schema.model.inputs.disconnect.DisconnectInput
 import org.neo4j.graphql.schema.model.inputs.update.UpdateInput
 import org.neo4j.graphql.translate.*
-import org.neo4j.graphql.translate.Operation
 import org.neo4j.graphql.translate.where.PrefixUsage
 import org.neo4j.graphql.utils.ResolveTree
 
@@ -43,12 +44,43 @@ class UpdateResolver private constructor(
 
             val responseType = addResponseType(
                 node,
-                node.operations.mutationResponseTypeNames.update,
+                node.namings.mutationResponseTypeNames.update,
                 Constants.Types.UpdateInfo
             )
-            val coordinates =
-                addMutationField(node.operations.rootTypeFieldNames.update, responseType.asRequiredType()) { args ->
+            val coordinates = addMutationField(
+                node.namings.rootTypeFieldNames.update,
+                responseType.asRequiredType(),
+                InputArguments.Augmentation(node, ctx)
+            ) ?: return emptyList()
 
+            return AugmentedField(coordinates, UpdateResolver(ctx.schemaConfig, node)).wrapList()
+        }
+    }
+
+    private class InputArguments(node: Node, args: Dict) {
+        val where = args.nestedDict(Constants.WHERE)
+            ?.let { WhereInput.create(node, it) }
+
+        val update = args.nestedDict(Constants.UPDATE_FIELD)
+            ?.let { UpdateInput.NodeUpdateInput(node, it) }
+
+        val connect = args.nestedDict(Constants.CONNECT_FIELD)
+            ?.let { ConnectInput.NodeConnectInput(node, it) }
+
+        val disconnect = args.nestedDict(Constants.DISCONNECT_FIELD)
+            ?.let { DisconnectInput.NodeDisconnectInput(node, it) }
+
+        val create = args.nestedDict(Constants.CREATE_FIELD)
+            ?.let { RelationInput.create(node, it) }
+
+        val delete = args.nestedDict(Constants.DELETE_FIELD)
+            ?.let { DeleteInput.NodeDeleteInput(node, it) }
+
+        val connectOrCreate = args.nestedDict(Constants.CONNECT_OR_CREATE_FIELD)
+            ?.let { ConnectOrCreateInput.create(node, it) }
+
+        class Augmentation(val node: Node, val ctx: AugmentationContext) : ArgumentsAugmentation {
+            override fun augmentArguments(args: MutableList<InputValueDefinition>) {
                 WhereInput.NodeWhereInput.Augmentation
                     .generateWhereIT(node, ctx)
                     ?.let { args += inputValue(Constants.WHERE, it.asType()) }
@@ -78,31 +110,7 @@ class UpdateResolver private constructor(
                     ?.let { args += inputValue(Constants.CONNECT_OR_CREATE_FIELD, it.asType()) }
             }
 
-            return AugmentedField(coordinates, UpdateResolver(ctx.schemaConfig, node)).wrapList()
         }
-    }
-
-    private class InputArguments(node: Node, args: Dict) {
-        val where = args.nestedDict(Constants.WHERE)
-            ?.let { WhereInput.create(node, it) }
-
-        val update = args.nestedDict(Constants.UPDATE_FIELD)
-            ?.let { UpdateInput.NodeUpdateInput(node, it) }
-
-        val connect = args.nestedDict(Constants.CONNECT_FIELD)
-            ?.let { ConnectInput.NodeConnectInput(node, it) }
-
-        val disconnect = args.nestedDict(Constants.DISCONNECT_FIELD)
-            ?.let { DisconnectInput.NodeDisconnectInput(node, it) }
-
-        val create = args.nestedDict(Constants.CREATE_FIELD)
-            ?.let { RelationInput.create(node, it) }
-
-        val delete = args.nestedDict(Constants.DELETE_FIELD)
-            ?.let { DeleteInput.NodeDeleteInput(node, it) }
-
-        val connectOrCreate = args.nestedDict(Constants.CONNECT_OR_CREATE_FIELD)
-            ?.let { ConnectOrCreateInput.create(node, it) }
     }
 
 
@@ -118,7 +126,13 @@ class UpdateResolver private constructor(
 
 
         var ongoingReading: ExposesWith = TopLevelMatchTranslator(schemaConfig, env.variables, queryContext)
-            .translateTopLevelMatch(node, dslNode, null, arguments.where, AuthDirective.AuthOperation.UPDATE)
+            .translateTopLevelMatch(
+                node,
+                dslNode,
+                null,
+                arguments.where,
+                AuthorizationDirective.AuthorizationOperation.UPDATE
+            )
 
         if (arguments.update != null) {
             ongoingReading = UpdateTranslator(
@@ -237,12 +251,10 @@ class UpdateResolver private constructor(
                     ongoingReading = (ongoingReading as ExposesMerge).merge(relationship)
                         .let { merge ->
                             relField.properties?.let { properties ->
-                                createSetProperties(
+                                createSetPropertiesOnCreate(
                                     relationship,
                                     createEdge,
-                                    Operation.CREATE,
                                     properties,
-                                    schemaConfig,
                                     queryContext
                                 )?.let { merge.set(it).with(dslNode) }
                             } ?: merge
@@ -289,7 +301,7 @@ class UpdateResolver private constructor(
         }
 
         val projection = resolveTree.getFieldOfType(
-            node.operations.mutationResponseTypeNames.update,
+            node.namings.mutationResponseTypeNames.update,
             node.plural
         )
             .firstOrNull()// TODO use all aliases

@@ -41,26 +41,28 @@ mutation {
 [source,json]
 ----
 {
-  "param0" : "Forrest Gump",
-  "updateMovies" : {
-    "args" : {
-      "update" : {
-        "actors" : [ {
-          "where" : {
-            "node" : {
-              "name" : "Tom Hanks"
-            }
-          },
-          "update" : {
-            "edge" : {
-              "screenTime" : 60
+  "param0": "Forrest Gump",
+  "updateMovies_args_update_actors0_where_this_actors0param0": "Tom Hanks",
+  "updateMovies": {
+    "args": {
+      "update": {
+        "actors": [
+          {
+            "where": {
+              "node": {
+                "name": "Tom Hanks"
+              }
+            },
+            "update": {
+              "edge": {
+                "screenTime": 60
+              }
             }
           }
-        } ]
+        ]
       }
     }
-  },
-  "updateMovies_args_update_actors0_where_this_actors0param0" : "Tom Hanks"
+  }
 }
 ----
 
@@ -69,6 +71,8 @@ mutation {
 ----
 MATCH (this:Movie)
 WHERE this.title = $param0
+
+
 WITH this
 CALL {
 	WITH this
@@ -77,9 +81,8 @@ CALL {
 	SET this_acted_in0_relationship.screenTime = $updateMovies.args.update.actors[0].update.edge.screenTime
 	RETURN count(*) AS update_this_actors0
 }
-RETURN collect(DISTINCT this {
-	.title
-}) AS data
+
+RETURN collect(DISTINCT this { .title }) AS data
 ----
 
 '''
@@ -105,30 +108,32 @@ mutation {
 [source,json]
 ----
 {
-  "param0" : "Forrest Gump",
-  "this_update_actors0_name" : "Tom Hanks",
-  "updateMovies" : {
-    "args" : {
-      "update" : {
-        "actors" : [ {
-          "where" : {
-            "node" : {
-              "name" : "Tom Hanks"
-            }
-          },
-          "update" : {
-            "node" : {
-              "name" : "Tom Hanks"
+  "param0": "Forrest Gump",
+  "updateMovies_args_update_actors0_where_this_actors0param0": "Tom Hanks",
+  "this_update_actors0_name": "Tom Hanks",
+  "updateMovies": {
+    "args": {
+      "update": {
+        "actors": [
+          {
+            "where": {
+              "node": {
+                "name": "Tom Hanks"
+              }
             },
-            "edge" : {
-              "screenTime" : 60
+            "update": {
+              "node": {
+                "name": "Tom Hanks"
+              },
+              "edge": {
+                "screenTime": 60
+              }
             }
           }
-        } ]
+        ]
       }
     }
-  },
-  "updateMovies_args_update_actors0_where_this_actors0param0" : "Tom Hanks"
+  }
 }
 ----
 
@@ -137,18 +142,22 @@ mutation {
 ----
 MATCH (this:Movie)
 WHERE this.title = $param0
+
+
 WITH this
 CALL {
 	WITH this
 	MATCH (this)<-[this_acted_in0_relationship:ACTED_IN]-(this_actors0:Actor)
 	WHERE this_actors0.name = $updateMovies_args_update_actors0_where_this_actors0param0
 	SET this_acted_in0_relationship.screenTime = $updateMovies.args.update.actors[0].update.edge.screenTime
+	
+	
 	SET this_actors0.name = $this_update_actors0_name
+	
 	RETURN count(*) AS update_this_actors0
 }
-RETURN collect(DISTINCT this {
-	.title
-}) AS data
+
+RETURN collect(DISTINCT this { .title }) AS data
 ----
 
 '''

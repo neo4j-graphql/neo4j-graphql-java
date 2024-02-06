@@ -2,9 +2,9 @@ package org.neo4j.graphql.domain
 
 import graphql.language.Comment
 import graphql.language.Description
-import org.neo4j.graphql.domain.directives.Annotations
+import org.neo4j.graphql.domain.directives.ImplementingTypeAnnotations
 import org.neo4j.graphql.domain.fields.BaseField
-import org.neo4j.graphql.domain.naming.ImplementingTypeOperations
+import org.neo4j.graphql.domain.naming.ImplementingTypeNames
 import org.neo4j.graphql.utils.CamelCaseUtils.camelCase
 
 sealed class ImplementingType(
@@ -13,15 +13,16 @@ sealed class ImplementingType(
     val comments: List<Comment> = emptyList(),
     fields: List<BaseField>,
     val interfaces: List<Interface>,
-    final override val annotations: Annotations,
+    override val annotations: ImplementingTypeAnnotations,
+    override val schema: Schema,
 ) : FieldContainer<BaseField>(fields), Entity {
 
-    val auth = annotations.auth
+    val auth get() = annotations.auth
 
     val singular: String by lazy { Entity.leadingUnderscores(name) + camelCase(name) }
 
 
-    abstract override val operations: ImplementingTypeOperations
+    abstract override val namings: ImplementingTypeNames
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

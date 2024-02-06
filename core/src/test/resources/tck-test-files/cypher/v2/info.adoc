@@ -16,7 +16,6 @@ type Movie {
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
 }
 ----
-
 == should return info from a create mutation
 
 .GraphQL-Query
@@ -39,16 +38,20 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0" : [ {
-    "title" : "title",
-    "actors" : {
-      "create" : [ {
-        "node" : {
-          "name" : "Keanu"
-        }
-      } ]
+  "create_param0": [
+    {
+      "title": "title",
+      "actors": {
+        "create": [
+          {
+            "node": {
+              "name": "Keanu"
+            }
+          }
+        ]
+      }
     }
-  } ]
+  ]
 }
 ----
 
@@ -57,22 +60,26 @@ mutation {
 ----
 UNWIND $create_param0 AS create_var0
 CALL {
-	WITH create_var0
-	CREATE (create_this1:Movie)
-	SET create_this1.title = create_var0.title
-	WITH create_this1, create_var0
-	CALL {
-		WITH create_this1, create_var0
-		UNWIND create_var0.actors.create AS create_var2
-		WITH create_var2.node AS create_var3, create_var2.edge AS create_var4, create_this1
-		CREATE (create_this5:Actor)
-		SET create_this5.name = create_var3.name
-		MERGE (create_this1)<-[create_this6:ACTED_IN]-(create_this5)
-		RETURN collect(NULL) AS create_var7
-	}
-	RETURN create_this1
+    WITH create_var0
+    CREATE (create_this1:Movie)
+    SET
+        create_this1.title = create_var0.title
+    WITH create_this1, create_var0
+    CALL {
+        WITH create_this1, create_var0
+        UNWIND create_var0.actors.create AS create_var2
+        WITH create_var2.node AS create_var3, create_var2.edge AS create_var4, create_this1
+        CREATE (create_this5:Actor)
+        SET
+            create_this5.name = create_var3.name
+        MERGE (create_this1)<-[create_this6:ACTED_IN]-(create_this5)
+        
+        RETURN collect(NULL) AS create_var7
+    }
+    
+    RETURN create_this1
 }
-RETURN 'Query cannot conclude with CALL'
+RETURN "Query cannot conclude with CALL"
 ----
 
 '''
@@ -93,7 +100,7 @@ mutation {
 [source,json]
 ----
 {
-  "param0" : "123"
+  "param0": "123"
 }
 ----
 
@@ -101,7 +108,8 @@ mutation {
 [source,cypher]
 ----
 MATCH (this:Movie)
-WHERE this.id = $param0 DETACH DELETE this
+WHERE this.id = $param0
+DETACH DELETE this
 ----
 
 '''
@@ -124,7 +132,7 @@ mutation {
 [source,json]
 ----
 {
-  "param0" : "123"
+  "param0": "123"
 }
 ----
 
@@ -133,7 +141,7 @@ mutation {
 ----
 MATCH (this:Movie)
 WHERE this.id = $param0
-RETURN 'Query cannot conclude with CALL'
+RETURN "Query cannot conclude with CALL"
 ----
 
 '''

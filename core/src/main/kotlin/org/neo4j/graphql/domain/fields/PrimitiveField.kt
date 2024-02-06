@@ -3,7 +3,7 @@ package org.neo4j.graphql.domain.fields
 import graphql.language.Value
 import org.neo4j.graphql.SchemaConfig
 import org.neo4j.graphql.domain.TypeMeta
-import org.neo4j.graphql.domain.directives.Annotations
+import org.neo4j.graphql.domain.directives.FieldAnnotations
 import org.neo4j.graphql.domain.directives.PopulatedByDirective
 import org.neo4j.graphql.domain.predicates.definitions.AggregationPredicateDefinition
 import org.neo4j.graphql.isRequired
@@ -17,7 +17,7 @@ import org.neo4j.graphql.name
 open class PrimitiveField(
     fieldName: String,
     typeMeta: TypeMeta,
-    annotations: Annotations,
+    annotations: FieldAnnotations,
     schemaConfig: SchemaConfig,
 ) : ScalarField(
     fieldName,

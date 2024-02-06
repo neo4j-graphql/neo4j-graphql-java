@@ -44,7 +44,7 @@ query Users {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
@@ -52,31 +52,22 @@ query Users {
 ----
 MATCH (this:User)
 CALL {
-	WITH this
-	CALL {
-		WITH *
-		MATCH (this)-[this0:HAS_CONTENT]-(this1:Blog)
-		WITH this1 {
-			.title,
-			__resolveType: 'Blog',
-			__id: id(this1)
-		} AS this1
-		RETURN this1 AS var2 UNION
-		WITH *
-		MATCH (this)-[this3:HAS_CONTENT]-(this4:Post)
-		WITH this4 {
-			.content,
-			__resolveType: 'Post',
-			__id: id(this4)
-		} AS this4
-		RETURN this4 AS var2
-	}
-	WITH var2
-	RETURN collect(var2) AS var2
+    WITH this
+    CALL {
+        WITH *
+        MATCH (this)-[this0:HAS_CONTENT]-(this1:Blog)
+        WITH this1 { .title, __resolveType: "Blog", __id: id(this1) } AS this1
+        RETURN this1 AS var2
+        UNION
+        WITH *
+        MATCH (this)-[this3:HAS_CONTENT]-(this4:Post)
+        WITH this4 { .content, __resolveType: "Post", __id: id(this4) } AS this4
+        RETURN this4 AS var2
+    }
+    WITH var2
+    RETURN collect(var2) AS var2
 }
-RETURN this {
-	content: var2
-} AS this
+RETURN this { content: var2 } AS this
 ----
 
 '''

@@ -60,7 +60,6 @@ type Netflix {
   review: String!
 }
 ----
-
 == should use the correct node label for connection rel when defined in node _on - Dishney label
 
 .GraphQL-Query
@@ -79,7 +78,7 @@ type Netflix {
 [source,json]
 ----
 {
-  "param0" : "test2"
+  "param0": "test2"
 }
 ----
 
@@ -88,12 +87,10 @@ type Netflix {
 ----
 MATCH (this:Film)
 WHERE EXISTS {
-	MATCH (this)<-[this0:DISTRIBUTED_BY]-(this1:Dishney)
-	WHERE this1.name = $param0
+    MATCH (this)<-[this0:DISTRIBUTED_BY]-(this1:Dishney)
+    WHERE this1.name = $param0
 }
-RETURN this {
-	.title
-} AS this
+RETURN this { .title } AS this
 ----
 
 '''
@@ -116,7 +113,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "test"
+  "param0": "test"
 }
 ----
 
@@ -125,12 +122,10 @@ RETURN this {
 ----
 MATCH (this:Film)
 WHERE EXISTS {
-	MATCH (this)<-[this0:DISTRIBUTED_BY]-(this1:Netflix)
-	WHERE this1.name = $param0
+    MATCH (this)<-[this0:DISTRIBUTED_BY]-(this1:Netflix)
+    WHERE this1.name = $param0
 }
-RETURN this {
-	.title
-} AS this
+RETURN this { .title } AS this
 ----
 
 '''
@@ -151,7 +146,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "test3"
+  "param0": "test3"
 }
 ----
 
@@ -160,12 +155,10 @@ RETURN this {
 ----
 MATCH (this:Film)
 WHERE EXISTS {
-	MATCH (this)<-[this0:DISTRIBUTED_BY]-(this1:Dishney)
-	WHERE this1.name = $param0
+    MATCH (this)<-[this0:DISTRIBUTED_BY]-(this1:Dishney)
+    WHERE this1.name = $param0
 }
-RETURN this {
-	.title
-} AS this
+RETURN this { .title } AS this
 ----
 
 '''

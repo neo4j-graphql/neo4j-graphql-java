@@ -12,7 +12,6 @@ type User {
   fullName: String! @customResolver(requires: "firstName lastName")
 }
 ----
-
 == should not fetch required fields if @customResolver field is not selected
 
 .GraphQL-Query
@@ -28,16 +27,14 @@ type User {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 MATCH (this:User)
-RETURN this {
-	.firstName
-} AS this
+RETURN this { .firstName } AS this
 ----
 
 '''
@@ -59,18 +56,14 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 MATCH (this:User)
-RETURN this {
-	.firstName,
-	.lastName,
-	.fullName
-} AS this
+RETURN this { .firstName, .lastName, .fullName } AS this
 ----
 
 '''
@@ -90,18 +83,14 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 MATCH (this:User)
-RETURN this {
-	.fullName,
-	.firstName,
-	.lastName
-} AS this
+RETURN this { .fullName, .firstName, .lastName } AS this
 ----
 
 '''
@@ -122,18 +111,14 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 MATCH (this:User)
-RETURN this {
-	.firstName,
-	.fullName,
-	.lastName
-} AS this
+RETURN this { .firstName, .fullName, .lastName } AS this
 ----
 
 '''

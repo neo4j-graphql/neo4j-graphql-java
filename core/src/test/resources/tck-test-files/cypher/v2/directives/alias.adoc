@@ -57,22 +57,26 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0" : [ {
-    "name" : "Molly",
-    "city" : "Sjömarken",
-    "actedIn" : {
-      "create" : [ {
-        "edge" : {
-          "character" : "Molly",
-          "screenTime" : 120
-        },
-        "node" : {
-          "title" : "Molly's game",
-          "rating" : 5
-        }
-      } ]
+  "create_param0": [
+    {
+      "name": "Molly",
+      "city": "Sjömarken",
+      "actedIn": {
+        "create": [
+          {
+            "edge": {
+              "character": "Molly",
+              "screenTime": 120
+            },
+            "node": {
+              "title": "Molly's game",
+              "rating": 5
+            }
+          }
+        ]
+      }
     }
-  } ]
+  ]
 }
 ----
 
@@ -81,63 +85,50 @@ mutation {
 ----
 UNWIND $create_param0 AS create_var0
 CALL {
-	WITH create_var0
-	CREATE (create_this1:Actor)
-	SET create_this1.name = create_var0.name, create_this1.cityPropInDb = create_var0.city
-	WITH create_this1, create_var0
-	CALL {
-		WITH create_this1, create_var0
-		UNWIND create_var0.actedIn.create AS create_var2
-		WITH create_var2.node AS create_var3, create_var2.edge AS create_var4, create_this1
-		CREATE (create_this5:Movie)
-		SET create_this5.title = create_var3.title, create_this5.ratingPropInDb = create_var3.rating
-		MERGE (create_this1)-[create_this6:ACTED_IN]->(create_this5)
-		SET create_this6.characterPropInDb = create_var4.character, create_this6.screenTime = create_var4.screenTime
-		RETURN collect(NULL) AS create_var7
-	}
-	RETURN create_this1
+    WITH create_var0
+    CREATE (create_this1:Actor)
+    SET
+        create_this1.name = create_var0.name,
+        create_this1.cityPropInDb = create_var0.city
+    WITH create_this1, create_var0
+    CALL {
+        WITH create_this1, create_var0
+        UNWIND create_var0.actedIn.create AS create_var2
+        WITH create_var2.node AS create_var3, create_var2.edge AS create_var4, create_this1
+        CREATE (create_this5:Movie)
+        SET
+            create_this5.title = create_var3.title,
+            create_this5.ratingPropInDb = create_var3.rating
+        MERGE (create_this1)-[create_this6:ACTED_IN]->(create_this5)
+        SET
+            create_this6.characterPropInDb = create_var4.character,
+            create_this6.screenTime = create_var4.screenTime
+        
+        RETURN collect(NULL) AS create_var7
+    }
+    
+    RETURN create_this1
 }
 CALL {
-	WITH create_this1
-	MATCH (create_this1)-[create_this8:ACTED_IN]->(create_this9:Movie)
-	WITH create_this9 {
-		.title,
-		rating: create_this9.ratingPropInDb
-	} AS create_this9
-	RETURN collect(create_this9) AS create_var10
+    WITH create_this1
+    MATCH (create_this1)-[create_this8:ACTED_IN]->(create_this9:Movie)
+    WITH create_this9 { .title, rating: create_this9.ratingPropInDb } AS create_this9
+    RETURN collect(create_this9) AS create_var10
 }
 CALL {
-	WITH create_this1
-	MATCH (create_this1)-[create_this11:ACTED_IN]->(create_this12:Movie)
-	WITH collect( {
-		node: create_this12,
-		relationship: create_this11
-	}) AS edges
-	WITH edges, size(edges) AS totalCount
-	CALL {
-		WITH edges
-		UNWIND edges AS edge
-		WITH edge.node AS create_this12, edge.relationship AS create_this11
-		RETURN collect( {
-			character: create_this11.characterPropInDb,
-			screenTime: create_this11.screenTime,
-			node: {
-				title: create_this12.title,
-				rating: create_this12.ratingPropInDb
-			}
-		}) AS create_var13
-	}
-	RETURN {
-		edges: create_var13,
-		totalCount: totalCount
-	} AS create_var14
+    WITH create_this1
+    MATCH (create_this1)-[create_this11:ACTED_IN]->(create_this12:Movie)
+    WITH collect({ node: create_this12, relationship: create_this11 }) AS edges
+    WITH edges, size(edges) AS totalCount
+    CALL {
+        WITH edges
+        UNWIND edges AS edge
+        WITH edge.node AS create_this12, edge.relationship AS create_this11
+        RETURN collect({ character: create_this11.characterPropInDb, screenTime: create_this11.screenTime, node: { title: create_this12.title, rating: create_this12.ratingPropInDb } }) AS create_var13
+    }
+    RETURN { edges: create_var13, totalCount: totalCount } AS create_var14
 }
-RETURN collect(create_this1 {
-	.name,
-	city: create_this1.cityPropInDb,
-	actedIn: create_var10,
-	actedInConnection: create_var14
-}) AS data
+RETURN collect(create_this1 { .name, city: create_this1.cityPropInDb, actedIn: create_var10, actedInConnection: create_var14 }) AS data
 ----
 
 '''
@@ -162,7 +153,7 @@ RETURN collect(create_this1 {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
@@ -170,19 +161,12 @@ RETURN collect(create_this1 {
 ----
 MATCH (this:Actor)
 CALL {
-	WITH this
-	MATCH (this)-[this0:ACTED_IN]->(this1:Movie)
-	WITH this1 {
-		.title,
-		rating: this1.ratingPropInDb
-	} AS this1
-	RETURN collect(this1) AS var2
+    WITH this
+    MATCH (this)-[this0:ACTED_IN]->(this1:Movie)
+    WITH this1 { .title, rating: this1.ratingPropInDb } AS this1
+    RETURN collect(this1) AS var2
 }
-RETURN this {
-	.name,
-	city: this.cityPropInDb,
-	actedIn: var2
-} AS this
+RETURN this { .name, city: this.cityPropInDb, actedIn: var2 } AS this
 ----
 
 '''
@@ -213,7 +197,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
@@ -221,36 +205,19 @@ RETURN this {
 ----
 MATCH (this:Actor)
 CALL {
-	WITH this
-	MATCH (this)-[this0:ACTED_IN]->(this1:Movie)
-	WITH collect( {
-		node: this1,
-		relationship: this0
-	}) AS edges
-	WITH edges, size(edges) AS totalCount
-	CALL {
-		WITH edges
-		UNWIND edges AS edge
-		WITH edge.node AS this1, edge.relationship AS this0
-		RETURN collect( {
-			character: this0.characterPropInDb,
-			screenTime: this0.screenTime,
-			node: {
-				title: this1.title,
-				rating: this1.ratingPropInDb
-			}
-		}) AS var2
-	}
-	RETURN {
-		edges: var2,
-		totalCount: totalCount
-	} AS var3
+    WITH this
+    MATCH (this)-[this0:ACTED_IN]->(this1:Movie)
+    WITH collect({ node: this1, relationship: this0 }) AS edges
+    WITH edges, size(edges) AS totalCount
+    CALL {
+        WITH edges
+        UNWIND edges AS edge
+        WITH edge.node AS this1, edge.relationship AS this0
+        RETURN collect({ character: this0.characterPropInDb, screenTime: this0.screenTime, node: { title: this1.title, rating: this1.ratingPropInDb } }) AS var2
+    }
+    RETURN { edges: var2, totalCount: totalCount } AS var3
 }
-RETURN this {
-	.name,
-	city: this.cityPropInDb,
-	actedInConnection: var3
-} AS this
+RETURN this { .name, city: this.cityPropInDb, actedInConnection: var3 } AS this
 ----
 
 '''

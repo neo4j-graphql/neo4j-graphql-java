@@ -187,18 +187,15 @@ class ConnectTranslator(
         val unwoundedConnections = Cypher.anyNode(nodeName.requiredSymbolicName)
 
         var createDslRelation =
-            relationField.createDslRelation(unwoundedParents, unwoundedConnections, startLeft = true)
+            relationField.createDslRelation(unwoundedParents, unwoundedConnections)
         val edgeSet = if (relationField.properties != null) {
             val prefix = baseName.extend("relationship")
             createDslRelation = createDslRelation.named(prefix.resolveName())
-            createSetProperties(
+            createSetPropertiesOnCreate(
                 createDslRelation,
                 connect.edge,
-                Operation.CREATE,
                 relationField.properties,
-                schemaConfig,
-                queryContext,
-                prefix
+                queryContext
             )
         } else {
             null

@@ -40,7 +40,6 @@ interface ActedIn @relationshipProperties {
   "experimental": true
 }
 ----
-
 == Filtering on nested-level relationship unions
 
 .GraphQL-Query
@@ -55,12 +54,26 @@ query actedInWhere {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [],
+    "jwt": {
+      "roles": []
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
 {
-  "param0" : "The Office",
-  "param1" : "Office"
+  "param0": "The Office",
+  "param1": "Office"
 }
 ----
 
@@ -69,16 +82,13 @@ query actedInWhere {
 ----
 MATCH (this:Actor)
 WHERE (EXISTS {
-		MATCH (this)-[:ACTED_IN]->(this0:Movie)
-		WHERE this0.title CONTAINS $param0
-	}
-	AND EXISTS {
-		MATCH (this)-[:ACTED_IN]->(this1:Series)
-		WHERE this1.title ENDS WITH $param1
-	})
-RETURN this {
-	.name
-} AS this
+    MATCH (this)-[:ACTED_IN]->(this0:Movie)
+    WHERE this0.title CONTAINS $param0
+} AND EXISTS {
+    MATCH (this)-[:ACTED_IN]->(this1:Series)
+    WHERE this1.title ENDS WITH $param1
+})
+RETURN this { .name } AS this
 ----
 
 '''
@@ -102,12 +112,26 @@ query actedInWhere {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [],
+    "jwt": {
+      "roles": []
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
 {
-  "param0" : "The Office",
-  "param1" : "The Office 2"
+  "param0": "The Office",
+  "param1": "The Office 2"
 }
 ----
 
@@ -115,22 +139,15 @@ query actedInWhere {
 [source,cypher]
 ----
 CALL {
-	MATCH (this0:Movie)
-	WHERE this0.title = $param0
-	WITH this0 {
-		.title,
-		__resolveType: 'Movie',
-		__id: id(this0)
-	} AS this0
-	RETURN this0 AS this UNION
-	MATCH (this1:Series)
-	WHERE this1.title = $param1
-	WITH this1 {
-		.title,
-		__resolveType: 'Series',
-		__id: id(this1)
-	} AS this1
-	RETURN this1 AS this
+    MATCH (this0:Movie)
+    WHERE this0.title = $param0
+    WITH this0 { .title, __resolveType: "Movie", __id: id(this0) } AS this0
+    RETURN this0 AS this
+    UNION
+    MATCH (this1:Series)
+    WHERE this1.title = $param1
+    WITH this1 { .title, __resolveType: "Series", __id: id(this1) } AS this1
+    RETURN this1 AS this
 }
 WITH this
 RETURN this AS this

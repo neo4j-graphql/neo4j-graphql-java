@@ -27,21 +27,17 @@ type Movie {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 CALL {
-	MATCH (this:Movie)
-	RETURN {
-		average: avg(this.imdbRating)
-	} AS var0
+    MATCH (this:Movie)
+    RETURN { average: avg(this.imdbRating) } AS var0
 }
-RETURN {
-	imdbRating: var0
-}
+RETURN { imdbRating: var0 }
 ----
 
 '''
@@ -63,21 +59,17 @@ RETURN {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 CALL {
-	MATCH (this:Movie)
-	RETURN {
-		max: max(this.imdbRating)
-	} AS var0
+    MATCH (this:Movie)
+    RETURN { max: max(this.imdbRating) } AS var0
 }
-RETURN {
-	imdbRating: var0
-}
+RETURN { imdbRating: var0 }
 ----
 
 '''
@@ -99,21 +91,17 @@ RETURN {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 CALL {
-	MATCH (this:Movie)
-	RETURN {
-		min: min(this.imdbRating)
-	} AS var0
+    MATCH (this:Movie)
+    RETURN { min: min(this.imdbRating) } AS var0
 }
-RETURN {
-	imdbRating: var0
-}
+RETURN { imdbRating: var0 }
 ----
 
 '''
@@ -138,24 +126,17 @@ RETURN {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 CALL {
-	MATCH (this:Movie)
-	RETURN {
-		min: min(this.imdbRating),
-		max: max(this.imdbRating),
-		average: avg(this.imdbRating),
-		sum: sum(this.imdbRating)
-	} AS var0
+    MATCH (this:Movie)
+    RETURN { min: min(this.imdbRating), max: max(this.imdbRating), average: avg(this.imdbRating), sum: sum(this.imdbRating) } AS var0
 }
-RETURN {
-	imdbRating: var0
-}
+RETURN { imdbRating: var0 }
 ----
 
 '''
@@ -177,21 +158,17 @@ RETURN {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 CALL {
-	MATCH (this:Movie)
-	RETURN {
-		sum: sum(this.imdbRating)
-	} AS var0
+    MATCH (this:Movie)
+    RETURN { sum: sum(this.imdbRating) } AS var0
 }
-RETURN {
-	imdbRating: var0
-}
+RETURN { imdbRating: var0 }
 ----
 
 '''

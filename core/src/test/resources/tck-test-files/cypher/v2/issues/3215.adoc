@@ -11,7 +11,6 @@ type Actor {
   age: Int!
 }
 ----
-
 == should ignore undefined parameters on _NOT fields
 
 .GraphQL-Query
@@ -29,7 +28,7 @@ query MyQuery($name: String) {
 [source,json]
 ----
 {
-  "param0" : 25
+  "param0": 25
 }
 ----
 
@@ -38,10 +37,7 @@ query MyQuery($name: String) {
 ----
 MATCH (this:Actor)
 WHERE this.age > $param0
-RETURN this {
-	.name,
-	.age
-} AS this
+RETURN this { .name, .age } AS this
 ----
 
 '''
@@ -63,7 +59,7 @@ query MyQuery($name: String) {
 [source,json]
 ----
 {
-  "param0" : 25
+  "param0": 25
 }
 ----
 
@@ -72,10 +68,7 @@ query MyQuery($name: String) {
 ----
 MATCH (this:Actor)
 WHERE this.age > $param0
-RETURN this {
-	.name,
-	.age
-} AS this
+RETURN this { .name, .age } AS this
 ----
 
 '''

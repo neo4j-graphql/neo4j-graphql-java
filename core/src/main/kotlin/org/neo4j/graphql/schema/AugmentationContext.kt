@@ -256,7 +256,7 @@ class AugmentationContext(
         interfaze: Interface,
         fields: MutableList<InputValueDefinition>,
     ) {
-        getOrCreateEnumType(interfaze.operations.implementationEnumTypename) { enumValues, _ ->
+        getOrCreateEnumType(interfaze.namings.implementationEnumTypename) { enumValues, _ ->
             interfaze.implementations.values.forEach { node ->
                 enumValues += EnumValueDefinition(node.name)
             }

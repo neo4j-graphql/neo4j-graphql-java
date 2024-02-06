@@ -22,11 +22,13 @@ object NodeFactory {
         relationshipPropertiesFactory: (name: String) -> RelationshipProperties?,
         interfaceFactory: (name: String) -> Interface?,
         schemaConfig: SchemaConfig,
+        jwtShape: Node?,
+        schema: Schema,
     ): Node {
 
         val schemeDirectives =
             typeDefinitionRegistry.schemaExtensionDefinitions?.map { it.directives }?.flatten() ?: emptyList()
-        val annotations = Annotations(schemeDirectives + definition.directives)
+        val annotations = Annotations(schemeDirectives + definition.directives, jwtShape)
         val interfaces = definition.implements.mapNotNull { interfaceFactory(it.name()) }
         val fields = FieldFactory.createFields(
             definition,
@@ -38,14 +40,18 @@ object NodeFactory {
         annotations.fulltext?.validate(definition, fields)
         annotations.limit?.validate(definition.name)
 
-        return Node(
+        val node = Node(
             definition.name,
             definition.description,
             definition.comments,
             fields,
             interfaces,
-            annotations
+            annotations,
+            schema,
         )
+        node.annotations.authorization?.initWhere(node)
+        fields.forEach { it.annotations.authorization?.initWhere(node) }
+        return node
     }
 
     private fun FulltextDirective.validate(

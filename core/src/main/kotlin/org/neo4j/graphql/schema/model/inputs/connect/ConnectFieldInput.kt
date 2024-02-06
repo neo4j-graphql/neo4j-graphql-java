@@ -38,7 +38,7 @@ sealed interface ConnectFieldInput {
                 rel: RelationField,
                 node: Node,
                 ctx: AugmentationContext
-            ) = ctx.getOrCreateInputObjectType(rel.operations.getConnectFieldInputTypeName(node)) { fields, _ ->
+            ) = ctx.getOrCreateInputObjectType(rel.namings.getConnectFieldInputTypeName(node)) { fields, _ ->
 
                 ConnectWhere.Augmentation.generateConnectWhereIT(node, ctx)
                     ?.let { fields += inputValue(Constants.WHERE, it.asType()) }
@@ -82,13 +82,13 @@ sealed interface ConnectFieldInput {
                 rel: RelationField,
                 interfaze: Interface,
                 ctx: AugmentationContext,
-                name: String = rel.operations.getConnectFieldInputTypeName(interfaze)
+                name: String = rel.namings.getConnectFieldInputTypeName(interfaze)
             ) = ctx.getOrCreateInputObjectType(name) { fields, _ ->
 
                 ctx.addInterfaceField(
                     interfaze,
-                    interfaze.operations.connectInputTypeName,
-                    interfaze.operations.whereOnImplementationsConnectInputTypeName,
+                    interfaze.namings.connectInputTypeName,
+                    interfaze.namings.whereOnImplementationsConnectInputTypeName,
                     { node ->
                         ConnectInput.NodeConnectInput.Augmentation.generateContainerConnectInputIT(
                             node,

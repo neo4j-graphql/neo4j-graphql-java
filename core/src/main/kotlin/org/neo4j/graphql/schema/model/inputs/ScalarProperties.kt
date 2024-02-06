@@ -1,28 +1,37 @@
 package org.neo4j.graphql.schema.model.inputs
 
 import graphql.language.InputValueDefinition
-import org.neo4j.graphql.Constants
 import org.neo4j.graphql.domain.FieldContainer
 import org.neo4j.graphql.domain.fields.HasDefaultValue
-import org.neo4j.graphql.domain.fields.PointField
-import org.neo4j.graphql.domain.fields.PrimitiveField
 import org.neo4j.graphql.domain.fields.ScalarField
-import org.neo4j.graphql.isList
-import org.neo4j.graphql.name
 import org.neo4j.graphql.schema.AugmentationBase
 import org.neo4j.graphql.schema.AugmentationContext
 
-class ScalarProperties private constructor(data: Map<ScalarField, Any?>) : Map<ScalarField, Any?> by data {
+class ScalarProperties private constructor(data: Map<ScalarField, List<UpdateInput>>) :
+    Map<ScalarField, List<ScalarProperties.UpdateInput>> by data {
+
+    class UpdateInput(
+        val value: Any?,
+        val operation: ScalarField.ScalarUpdateOperation? = null
+    )
+
     companion object {
 
         fun create(data: Map<String, *>, fieldContainer: FieldContainer<in ScalarField>?): ScalarProperties? {
             if (fieldContainer == null) return null
-            return data
-                .mapNotNull { (key, value) ->
-                    val field = fieldContainer.getField(key) as? ScalarField ?: return@mapNotNull null
-                    field to value
+            return data.mapNotNull { (key, value) ->
+                val field = fieldContainer.getField(key) as? ScalarField
+                if (field != null) {
+                    return@mapNotNull field to UpdateInput(value)
                 }
-                .let { ScalarProperties(it.toMap()) }
+                fieldContainer.updateDefinitions[key]?.let { op ->
+                    return@mapNotNull op.first to UpdateInput(value, op.second)
+                }
+                null
+            }
+                .groupBy({ it.first }, { it.second })
+                .takeIf { it.isNotEmpty() }
+                ?.let { ScalarProperties(it) }
         }
 
         object Augmentation : AugmentationBase {
@@ -50,34 +59,8 @@ class ScalarProperties private constructor(data: Map<ScalarField, Any?>) : Map<S
                             field.deprecatedDirective?.let { directive(it) }
                         }
                         if (update) {
-                            if (field.typeMeta.type.isList()
-                                &&
-                                (field is PrimitiveField // TODO remove after https://github.com/neo4j/graphql/issues/2677
-                                        || field is PointField)
-                            ) {
-                                fields += inputValue(
-                                    "${field.fieldName}_${Constants.ArrayOperations.POP}",
-                                    Constants.Types.Int
-                                )
-                                fields += inputValue("${field.fieldName}_${Constants.ArrayOperations.PUSH}", type)
-                            } else {
-                                when (field.typeMeta.type.name()) {
-                                    Constants.INT, Constants.BIG_INT -> listOf(
-                                        Constants.Math.INCREMENT,
-                                        Constants.Math.DECREMENT
-                                    ).forEach {
-                                        fields += inputValue("${field.fieldName}_$it", type)
-                                    }
-
-                                    Constants.FLOAT -> listOf(
-                                        Constants.Math.ADD,
-                                        Constants.Math.SUBTRACT,
-                                        Constants.Math.DIVIDE,
-                                        Constants.Math.MULTIPLY
-                                    ).forEach {
-                                        fields += inputValue("${field.fieldName}_$it", type)
-                                    }
-                                }
+                            field.updateDefinitions.forEach { (key, op) ->
+                                fields += inputValue(key, op.type ?: type)
                             }
                         }
                     }

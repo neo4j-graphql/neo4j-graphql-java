@@ -60,9 +60,9 @@ mutation {
 [source,json]
 ----
 {
-  "this0_actors0_node_name" : "Tom Hanks",
-  "this0_actors0_relationship_screenTime" : 60,
-  "this0_title" : "Forrest Gump"
+  "this0_title": "Forrest Gump",
+  "this0_actors0_node_name": "Tom Hanks",
+  "this0_actors0_relationship_screenTime": 60
 }
 ----
 
@@ -70,91 +70,35 @@ mutation {
 [source,cypher]
 ----
 CALL {
-	WITH [] AS meta
-	CREATE (this0:Movie)
-	SET this0.title = $this0_title
-	CREATE (this0_actors0_node:Actor)
-	SET this0_actors0_node.name = $this0_actors0_node_name
-	WITH *, (meta + {
-		event: 'create',
-		id: id(this0_actors0_node),
-		properties: {
-			old: NULL,
-			new: this0_actors0_node {
-				.*
-			}
-		},
-		timestamp: timestamp(),
-		typename: 'Actor'
-	}) AS meta
-	MERGE (this0)<-[this0_actors0_relationship:ACTED_IN]-(this0_actors0_node)
-	SET this0_actors0_relationship.screenTime = $this0_actors0_relationship_screenTime
-	WITH *, (meta + {
-		event: 'create_relationship',
-		timestamp: timestamp(),
-		id_from: id(this0_actors0_node),
-		id_to: id(this0),
-		id: id(this0_actors0_relationship),
-		relationshipName: 'ACTED_IN',
-		fromTypename: 'Actor',
-		toTypename: 'Movie',
-		properties: {
-			from: this0_actors0_node {
-				.*
-			},
-			to: this0 {
-				.*
-			},
-			relationship: this0_actors0_relationship {
-				.*
-			}
-		}
-	}) AS meta
-	WITH *, (meta + {
-		event: 'create',
-		id: id(this0),
-		properties: {
-			old: NULL,
-			new: this0 {
-				.*
-			}
-		},
-		timestamp: timestamp(),
-		typename: 'Movie'
-	}) AS meta
-	RETURN this0, meta AS this0_meta
+WITH [] AS meta
+CREATE (this0:Movie)
+SET this0.title = $this0_title
+CREATE (this0_actors0_node:Actor)
+SET this0_actors0_node.name = $this0_actors0_node_name
+WITH *, meta + { event: "create", id: id(this0_actors0_node), properties: { old: null, new: this0_actors0_node { .* } }, timestamp: timestamp(), typename: "Actor" } AS meta
+MERGE (this0)<-[this0_actors0_relationship:ACTED_IN]-(this0_actors0_node)
+SET this0_actors0_relationship.screenTime = $this0_actors0_relationship_screenTime
+WITH *, meta + { event: "create_relationship", timestamp: timestamp(), id_from: id(this0_actors0_node), id_to: id(this0), id: id(this0_actors0_relationship), relationshipName: "ACTED_IN", fromTypename: "Actor", toTypename: "Movie", properties: { from: this0_actors0_node { .* }, to: this0 { .* }, relationship: this0_actors0_relationship { .* } } } AS meta
+WITH *, meta + { event: "create", id: id(this0), properties: { old: null, new: this0 { .* } }, timestamp: timestamp(), typename: "Movie" } AS meta
+RETURN this0, meta AS this0_meta
 }
 WITH this0, this0_meta AS meta
 CALL {
-	WITH this0
-	CALL {
-		WITH this0
-		MATCH (this0)<-[create_this0:ACTED_IN]-(create_this1:Actor)
-		WITH collect( {
-			node: create_this1,
-			relationship: create_this0
-		}) AS edges
-		WITH edges, size(edges) AS totalCount
-		CALL {
-			WITH edges
-			UNWIND edges AS edge
-			WITH edge.node AS create_this1, edge.relationship AS create_this0
-			RETURN collect( {
-				screenTime: create_this0.screenTime,
-				node: {
-					name: create_this1.name
-				}
-			}) AS create_var2
-		}
-		RETURN {
-			edges: create_var2,
-			totalCount: totalCount
-		} AS create_var3
-	}
-	RETURN this0 {
-		.title,
-		actorsConnection: create_var3
-	} AS create_var4
+    WITH this0
+    CALL {
+        WITH this0
+        MATCH (this0)<-[create_this0:ACTED_IN]-(create_this1:Actor)
+        WITH collect({ node: create_this1, relationship: create_this0 }) AS edges
+        WITH edges, size(edges) AS totalCount
+        CALL {
+            WITH edges
+            UNWIND edges AS edge
+            WITH edge.node AS create_this1, edge.relationship AS create_this0
+            RETURN collect({ screenTime: create_this0.screenTime, node: { name: create_this1.name } }) AS create_var2
+        }
+        RETURN { edges: create_var2, totalCount: totalCount } AS create_var3
+    }
+    RETURN this0 { .title, actorsConnection: create_var3 } AS create_var4
 }
 RETURN [create_var4] AS data, meta
 ----
@@ -189,11 +133,11 @@ mutation {
 [source,json]
 ----
 {
-  "this0_actors0_node_movies0_node_title" : "Funny movie",
-  "this0_actors0_node_movies0_relationship_screenTime" : 1990,
-  "this0_actors0_node_name" : "Tom Hanks",
-  "this0_actors0_relationship_screenTime" : 60,
-  "this0_title" : "Forrest Gump"
+  "this0_title": "Forrest Gump",
+  "this0_actors0_node_name": "Tom Hanks",
+  "this0_actors0_node_movies0_node_title": "Funny movie",
+  "this0_actors0_node_movies0_relationship_screenTime": 1990,
+  "this0_actors0_relationship_screenTime": 60
 }
 ----
 
@@ -201,128 +145,41 @@ mutation {
 [source,cypher]
 ----
 CALL {
-	WITH [] AS meta
-	CREATE (this0:Movie)
-	SET this0.title = $this0_title
-	CREATE (this0_actors0_node:Actor)
-	SET this0_actors0_node.name = $this0_actors0_node_name
-	CREATE (this0_actors0_node_movies0_node:Movie)
-	SET this0_actors0_node_movies0_node.title = $this0_actors0_node_movies0_node_title
-	WITH *, (meta + {
-		event: 'create',
-		id: id(this0_actors0_node_movies0_node),
-		properties: {
-			old: NULL,
-			new: this0_actors0_node_movies0_node {
-				.*
-			}
-		},
-		timestamp: timestamp(),
-		typename: 'Movie'
-	}) AS meta
-	MERGE (this0_actors0_node)-[this0_actors0_node_movies0_relationship:ACTED_IN]->(this0_actors0_node_movies0_node)
-	SET this0_actors0_node_movies0_relationship.screenTime = $this0_actors0_node_movies0_relationship_screenTime
-	WITH *, (meta + {
-		event: 'create_relationship',
-		timestamp: timestamp(),
-		id_from: id(this0_actors0_node),
-		id_to: id(this0_actors0_node_movies0_node),
-		id: id(this0_actors0_node_movies0_relationship),
-		relationshipName: 'ACTED_IN',
-		fromTypename: 'Actor',
-		toTypename: 'Movie',
-		properties: {
-			from: this0_actors0_node {
-				.*
-			},
-			to: this0_actors0_node_movies0_node {
-				.*
-			},
-			relationship: this0_actors0_node_movies0_relationship {
-				.*
-			}
-		}
-	}) AS meta
-	WITH *, (meta + {
-		event: 'create',
-		id: id(this0_actors0_node),
-		properties: {
-			old: NULL,
-			new: this0_actors0_node {
-				.*
-			}
-		},
-		timestamp: timestamp(),
-		typename: 'Actor'
-	}) AS meta
-	MERGE (this0)<-[this0_actors0_relationship:ACTED_IN]-(this0_actors0_node)
-	SET this0_actors0_relationship.screenTime = $this0_actors0_relationship_screenTime
-	WITH *, (meta + {
-		event: 'create_relationship',
-		timestamp: timestamp(),
-		id_from: id(this0_actors0_node),
-		id_to: id(this0),
-		id: id(this0_actors0_relationship),
-		relationshipName: 'ACTED_IN',
-		fromTypename: 'Actor',
-		toTypename: 'Movie',
-		properties: {
-			from: this0_actors0_node {
-				.*
-			},
-			to: this0 {
-				.*
-			},
-			relationship: this0_actors0_relationship {
-				.*
-			}
-		}
-	}) AS meta
-	WITH *, (meta + {
-		event: 'create',
-		id: id(this0),
-		properties: {
-			old: NULL,
-			new: this0 {
-				.*
-			}
-		},
-		timestamp: timestamp(),
-		typename: 'Movie'
-	}) AS meta
-	RETURN this0, meta AS this0_meta
+WITH [] AS meta
+CREATE (this0:Movie)
+SET this0.title = $this0_title
+CREATE (this0_actors0_node:Actor)
+SET this0_actors0_node.name = $this0_actors0_node_name
+CREATE (this0_actors0_node_movies0_node:Movie)
+SET this0_actors0_node_movies0_node.title = $this0_actors0_node_movies0_node_title
+WITH *, meta + { event: "create", id: id(this0_actors0_node_movies0_node), properties: { old: null, new: this0_actors0_node_movies0_node { .* } }, timestamp: timestamp(), typename: "Movie" } AS meta
+MERGE (this0_actors0_node)-[this0_actors0_node_movies0_relationship:ACTED_IN]->(this0_actors0_node_movies0_node)
+SET this0_actors0_node_movies0_relationship.screenTime = $this0_actors0_node_movies0_relationship_screenTime
+WITH *, meta + { event: "create_relationship", timestamp: timestamp(), id_from: id(this0_actors0_node), id_to: id(this0_actors0_node_movies0_node), id: id(this0_actors0_node_movies0_relationship), relationshipName: "ACTED_IN", fromTypename: "Actor", toTypename: "Movie", properties: { from: this0_actors0_node { .* }, to: this0_actors0_node_movies0_node { .* }, relationship: this0_actors0_node_movies0_relationship { .* } } } AS meta
+WITH *, meta + { event: "create", id: id(this0_actors0_node), properties: { old: null, new: this0_actors0_node { .* } }, timestamp: timestamp(), typename: "Actor" } AS meta
+MERGE (this0)<-[this0_actors0_relationship:ACTED_IN]-(this0_actors0_node)
+SET this0_actors0_relationship.screenTime = $this0_actors0_relationship_screenTime
+WITH *, meta + { event: "create_relationship", timestamp: timestamp(), id_from: id(this0_actors0_node), id_to: id(this0), id: id(this0_actors0_relationship), relationshipName: "ACTED_IN", fromTypename: "Actor", toTypename: "Movie", properties: { from: this0_actors0_node { .* }, to: this0 { .* }, relationship: this0_actors0_relationship { .* } } } AS meta
+WITH *, meta + { event: "create", id: id(this0), properties: { old: null, new: this0 { .* } }, timestamp: timestamp(), typename: "Movie" } AS meta
+RETURN this0, meta AS this0_meta
 }
 WITH this0, this0_meta AS meta
 CALL {
-	WITH this0
-	CALL {
-		WITH this0
-		MATCH (this0)<-[create_this0:ACTED_IN]-(create_this1:Actor)
-		WITH collect( {
-			node: create_this1,
-			relationship: create_this0
-		}) AS edges
-		WITH edges, size(edges) AS totalCount
-		CALL {
-			WITH edges
-			UNWIND edges AS edge
-			WITH edge.node AS create_this1, edge.relationship AS create_this0
-			RETURN collect( {
-				screenTime: create_this0.screenTime,
-				node: {
-					name: create_this1.name
-				}
-			}) AS create_var2
-		}
-		RETURN {
-			edges: create_var2,
-			totalCount: totalCount
-		} AS create_var3
-	}
-	RETURN this0 {
-		.title,
-		actorsConnection: create_var3
-	} AS create_var4
+    WITH this0
+    CALL {
+        WITH this0
+        MATCH (this0)<-[create_this0:ACTED_IN]-(create_this1:Actor)
+        WITH collect({ node: create_this1, relationship: create_this0 }) AS edges
+        WITH edges, size(edges) AS totalCount
+        CALL {
+            WITH edges
+            UNWIND edges AS edge
+            WITH edge.node AS create_this1, edge.relationship AS create_this0
+            RETURN collect({ screenTime: create_this0.screenTime, node: { name: create_this1.name } }) AS create_var2
+        }
+        RETURN { edges: create_var2, totalCount: totalCount } AS create_var3
+    }
+    RETURN this0 { .title, actorsConnection: create_var3 } AS create_var4
 }
 RETURN [create_var4] AS data, meta
 ----

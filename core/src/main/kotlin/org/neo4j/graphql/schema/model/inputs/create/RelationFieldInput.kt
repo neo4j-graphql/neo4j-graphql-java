@@ -32,7 +32,7 @@ sealed interface RelationFieldInput {
                 node: Node,
                 ctx: AugmentationContext
             ) =
-                ctx.getOrCreateInputObjectType(rel.operations.getCreateFieldInputTypeName(node)) { fields, _ ->
+                ctx.getOrCreateInputObjectType(rel.namings.getCreateFieldInputTypeName(node)) { fields, _ ->
 
                     CreateInput.Augmentation
                         .generateContainerCreateInputIT(node, ctx)
@@ -62,7 +62,7 @@ sealed interface RelationFieldInput {
                 rel: RelationField,
                 interfaze: Interface,
                 ctx: AugmentationContext,
-                name: String = rel.operations.getCreateFieldInputTypeName(interfaze)
+                name: String = rel.namings.getCreateFieldInputTypeName(interfaze)
             ): String? {
                 return ctx.getOrCreateInputObjectType(name) { fields, _ ->
 
@@ -81,7 +81,7 @@ sealed interface RelationFieldInput {
 
             private fun generateCreateInputIT(interfaze: Interface, ctx: AugmentationContext) =
                 ctx.generateImplementationDelegate(
-                    interfaze, interfaze.operations.createInputTypeName,
+                    interfaze, interfaze.namings.createInputTypeName,
                     asList = false,
                     { node -> CreateInput.Augmentation.generateContainerCreateInputIT(node, ctx) }
                 ) {

@@ -8,8 +8,8 @@ import org.neo4j.graphql.domain.fields.PrimitiveField
 data class AggregationPredicateDefinition(
     override val name: String,
     val field: PrimitiveField,
-    val method: Method,
-    val operator: Operator,
+    private val method: Method,
+    private val operator: Operator,
     val type: Type<*>,
     // TODO remove deprecated
     val deprecated: String? = null
@@ -19,7 +19,8 @@ data class AggregationPredicateDefinition(
         return when (method) {
             Method.NONE -> {
                 val variable = ctx.getNextVariable()
-                Predicates.any(variable).`in`(Functions.collect(lhs)).where(
+                Cypher.any(variable).`in`(Cypher.collect(method.functionCreator(field.typeMeta.type, operator, lhs)))
+                    .where(
                     operator.conditionCreator(
                         wrapExpression(variable),
                         convertedRhs
@@ -27,19 +28,27 @@ data class AggregationPredicateDefinition(
                 )
             }
 
-            else -> operator.conditionCreator(wrapExpression(method.functionCreator(lhs)), convertedRhs)
+            else -> operator.conditionCreator(
+                wrapExpression(
+                    method.functionCreator(
+                        field.typeMeta.type,
+                        operator,
+                        lhs
+                    )
+                ), convertedRhs
+            )
         }
     }
 
     private fun wrapExpression(expression: Expression): Expression = if (type.name() == Constants.DURATION) {
-        Functions.datetime().add(expression)
+        Cypher.datetime().add(expression)
     } else {
         expression
     }
 
     enum class Method(
         val suffix: String,
-        val functionCreator: (Expression) -> Expression,
+        val functionCreator: (Type<*>, Operator, Expression) -> Expression,
         val typeConverter: ((Type<*>, op: Operator) -> Type<*>) = { type, _ -> type.inner() },
         val condition: (Type<*>) -> Boolean = { true },
         val deprecation: (Type<*>) -> String? = { null }
@@ -47,7 +56,9 @@ data class AggregationPredicateDefinition(
         @Deprecated("Please use the explicit _LENGTH version for string aggregation.")
         NONE(
             "",
-            { it },
+            { type, op, exp ->
+                if (op == Operator.EQUAL || type.name() != Constants.STRING) exp else Cypher.size(exp)
+            },
             typeConverter = { type, op ->
                 when (type.name()) {
                     //TODO why this inconsistency? https://github.com/neo4j/graphql/issues/2661
@@ -60,47 +71,42 @@ data class AggregationPredicateDefinition(
         ),
         AVERAGE(
             "AVERAGE",
-            Functions::avg,
+            { type, _, exp ->
+                if (type.name() == Constants.STRING) Cypher.avg(Cypher.size(exp)) else Cypher.avg(exp)
+            },
             typeConverter = { type, _ ->
                 when (type.name()) {
                     Constants.BIG_INT, Constants.DURATION -> type.inner()
                     else -> Constants.Types.Float
                 }
             },
-            condition = { AGGREGATION_AVERAGE_TYPES.contains(it.name()) && it.name() != Constants.STRING }),
+            condition = { AGGREGATION_AVERAGE_TYPES.contains(it.name()) },
+            deprecation = { if (it.name() == Constants.STRING) "Please use the explicit _LENGTH version for string aggregation." else null }
+        ),
         AVERAGE_LENGTH(
             "AVERAGE_LENGTH",
-            { Functions.avg(Functions.size(it)) },
+            { _, _, exp -> Cypher.avg(Cypher.size(exp)) },
             typeConverter = { _, _ -> Constants.Types.Float },
             condition = { it.name() == Constants.STRING }),
-
-        @Deprecated("Please use the explicit _LENGTH version for string aggregation.")
-        AVERAGE_SIZE(
-            "AVERAGE", // TODO rename TO AVERAGE_SIZE? https://github.com/neo4j/graphql/issues/2661#issuecomment-1369669552
-            { Functions.avg(Functions.size(it)) },
-            typeConverter = { _, _ -> Constants.Types.Float },
-            condition = { it.name() == Constants.STRING },
-            deprecation = { "Please use the explicit _LENGTH version for string aggregation." }
-        ),
         SUM(
             "SUM",
-            Functions::sum,
+            { _, _, exp -> Cypher.sum(exp) },
             condition = { AGGREGATION_AVERAGE_TYPES.contains(it.name()) && it.name() != Constants.STRING && it.name() != Constants.DURATION }),
         MIN(
             "MIN",
-            Functions::min,
+            { _, _, exp -> Cypher.min(exp) },
             condition = { AGGREGATION_TYPES.contains(it.name()) && it.name() != Constants.STRING && it.name() != Constants.ID }
         ),
         MAX(
             "MAX",
-            Functions::max,
+            { _, _, exp -> Cypher.max(exp) },
             condition = { AGGREGATION_TYPES.contains(it.name()) && it.name() != Constants.STRING && it.name() != Constants.ID }
         ),
 
         @Deprecated("Please use the explicit _LENGTH version for string aggregation.")
         LONGEST(
             "LONGEST",
-            { Functions.max(Functions.size(it)) },
+            { _, _, exp -> Cypher.max(Cypher.size(exp)) },
             typeConverter = { _, _ -> Constants.Types.Int },
             condition = { it.name() == Constants.STRING },
             deprecation = { "Please use the explicit _LENGTH version for string aggregation." }
@@ -109,20 +115,20 @@ data class AggregationPredicateDefinition(
         @Deprecated("Please use the explicit _LENGTH version for string aggregation.")
         SHORTEST(
             "SHORTEST",
-            { Functions.min(Functions.size(it)) },
+            { _, _, exp -> Cypher.min(Cypher.size(exp)) },
             typeConverter = { _, _ -> Constants.Types.Int },
             condition = { it.name() == Constants.STRING },
             deprecation = { "Please use the explicit _LENGTH version for string aggregation." }
         ),
         LONGEST_LENGTH(
             "LONGEST_LENGTH",
-            { Functions.max(Functions.size(it)) },
+            { _, _, exp -> Cypher.max(Cypher.size(exp)) },
             typeConverter = { _, _ -> Constants.Types.Int },
             condition = { it.name() == Constants.STRING }
         ),
         SHORTEST_LENGTH(
             "SHORTEST_LENGTH",
-            { Functions.min(Functions.size(it)) },
+            { _, _, exp -> Cypher.min(Cypher.size(exp)) },
             typeConverter = { _, _ -> Constants.Types.Int },
             condition = { it.name() == Constants.STRING }
         ),

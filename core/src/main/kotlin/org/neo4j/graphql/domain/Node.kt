@@ -5,9 +5,9 @@ import graphql.language.Description
 import org.neo4j.cypherdsl.core.Cypher
 import org.neo4j.graphql.QueryContext
 import org.neo4j.graphql.decapitalize
-import org.neo4j.graphql.domain.directives.Annotations
+import org.neo4j.graphql.domain.directives.NodeAnnotations
 import org.neo4j.graphql.domain.fields.BaseField
-import org.neo4j.graphql.domain.naming.ConcreteEntityOperations
+import org.neo4j.graphql.domain.naming.NodeNames
 import org.neo4j.graphql.handler.utils.ChainString
 
 class Node(
@@ -16,10 +16,11 @@ class Node(
     comments: List<Comment> = emptyList(),
     fields: List<BaseField>,
     interfaces: List<Interface>,
-    annotations: Annotations,
-) : ImplementingType(name, description, comments, fields, interfaces, annotations) {
+    override val annotations: NodeAnnotations,
+    schema: Schema,
+) : ImplementingType(name, description, comments, fields, interfaces, annotations, schema) {
 
-    override val operations = ConcreteEntityOperations(name, annotations)
+    override val namings = NodeNames(name, annotations)
     val hasRelayId: Boolean get() = fields.any { it.annotations.relayId != null }
 
     val mainLabel: String get() = annotations.node?.labels?.firstOrNull() ?: name

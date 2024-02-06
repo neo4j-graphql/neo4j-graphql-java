@@ -17,7 +17,7 @@ class FulltextInput(data: Dict) {
     object Augmentation : AugmentationBase {
 
         fun generateFulltextInput(node: Node, ctx: AugmentationContext) =
-            ctx.getOrCreateInputObjectType(node.operations.fullTextInputTypeName) { fields, _ ->
+            ctx.getOrCreateInputObjectType(node.namings.fullTextInputTypeName) { fields, _ ->
                 node.annotations.fulltext?.indexes?.forEach { index ->
                     val indexName = index.indexName
                     generateFullTextIndexInputType(node, indexName, ctx)?.let {
@@ -28,7 +28,7 @@ class FulltextInput(data: Dict) {
 
 
         private fun generateFullTextIndexInputType(node: Node, indexName: String, ctx: AugmentationContext) =
-            ctx.getOrCreateInputObjectType(node.operations.getFullTextIndexInputTypeName(indexName)) { fields, _ ->
+            ctx.getOrCreateInputObjectType(node.namings.getFullTextIndexInputTypeName(indexName)) { fields, _ ->
                 fields += inputValue(Constants.FULLTEXT_PHRASE, Constants.Types.String.NonNull)
             }
     }

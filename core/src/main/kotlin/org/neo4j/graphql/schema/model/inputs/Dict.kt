@@ -1,6 +1,8 @@
 package org.neo4j.graphql.schema.model.inputs
 
+import graphql.language.ObjectValue
 import org.neo4j.graphql.toDict
+import org.neo4j.graphql.toJavaValue
 import org.neo4j.graphql.wrapList
 
 open class Dict(val map: Map<String, Any?>) : Map<String, Any?> by map {
@@ -16,11 +18,12 @@ open class Dict(val map: Map<String, Any?>) : Map<String, Any?> by map {
         val EMPTY: Dict = Dict(emptyMap())
 
         fun create(data: Any?): Dict? = data?.let {
-            if (it !is Map<*, *>) {
-                error("expected a map with string keys")
+            val map = when (it) {
+                is ObjectValue -> it.objectFields.associate { field -> field.name to field.value.toJavaValue() }
+                is Map<*, *> -> it.mapKeys { (key, _) -> key as String }
+                else -> error("expected a map with string keys")
             }
-            val checked = it.mapKeys { (key, _) -> key as String }
-            return Dict(checked)
+            return Dict(map)
         }
     }
 }

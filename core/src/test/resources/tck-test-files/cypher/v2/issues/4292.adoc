@@ -94,7 +94,6 @@ type Mutation {
 
 extend schema @authentication
 ----
-
 == authorization subqueries should be wrapped in a Cypher.CALL
 
 .GraphQL-Query
@@ -119,17 +118,39 @@ query Groups {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [
+      "admin"
+    ],
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "id": "something",
+      "email": "something"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
 {
-  "isAuthenticated" : true,
-  "jwt" : {
-    "roles" : [ "admin" ],
-    "id" : "something",
-    "email" : "something"
+  "param0": "family_id_1",
+  "jwt": {
+    "roles": [
+      "admin"
+    ],
+    "id": "something",
+    "email": "something"
   },
-  "param0" : "family_id_1"
+  "isAuthenticated": true
 }
 ----
 
@@ -139,121 +160,63 @@ query Groups {
 MATCH (this:Group)
 WHERE this.id = $param0
 CALL {
-	WITH this
-	MATCH (this)<-[this0:MEMBER_OF]-(this1:Person)
-	OPTIONAL MATCH (this1)<-[:CREATOR_OF]-(this2:User)
-	WITH *, count(this2) AS creatorCount
-	OPTIONAL MATCH (this1)-[:MEMBER_OF]->(this3:Group)
-	WITH *, count(this3) AS groupCount
-	OPTIONAL MATCH (this1)-[:MEMBER_OF]->(this4:Group)
-	WITH *, count(this4) AS groupCount
-	WITH *
-	CALL {
-		WITH this1
-		MATCH (this1)-[:MEMBER_OF]->(this5:Group)
-		OPTIONAL MATCH (this5)<-[:CREATOR_OF]-(this6:User)
-		WITH *, count(this6) AS creatorCount
-		WITH *
-		WHERE (creatorCount <> 0
-			AND $jwt.uid IS NOT NULL
-			AND this6.id = $jwt.uid)
-		RETURN count(this5) = 1 AS var7
-	}
-	WITH *
-	WHERE apoc.util.validatePredicate(NOT (($isAuthenticated = true
-		AND (((creatorCount <> 0
-					AND $jwt.uid IS NOT NULL
-					AND this2.id = $jwt.uid)
-				OR (groupCount <> 0
-					AND size([(this3)<-[:ADMIN_OF]-(this9:Admin)
-					WHERE single(this8 IN [(this9)-[:IS_USER]->(this8)
-					WHERE ($jwt.uid IS NOT NULL
-						AND this8.id = $jwt.uid) | 1]
-					WHERE true) | 1]) > 0))
-			OR (groupCount <> 0
-				AND size([(this4)<-[:CONTRIBUTOR_TO]-(this11:Contributor)
-				WHERE single(this10 IN [(this11)-[:IS_USER]->(this10)
-				WHERE ($jwt.uid IS NOT NULL
-					AND this10.id = $jwt.uid) | 1]
-				WHERE true) | 1]) > 0)
-			OR var7 = true))), '@neo4j/graphql/FORBIDDEN', [0])
-	CALL {
-		WITH this1
-		MATCH (this1)-[this12:PARTNER_OF]-(this13:Person)
-		OPTIONAL MATCH (this13)<-[:CREATOR_OF]-(this14:User)
-		WITH *, count(this14) AS creatorCount
-		OPTIONAL MATCH (this13)-[:MEMBER_OF]->(this15:Group)
-		WITH *, count(this15) AS groupCount
-		OPTIONAL MATCH (this13)-[:MEMBER_OF]->(this16:Group)
-		WITH *, count(this16) AS groupCount
-		OPTIONAL MATCH (this13)-[:MEMBER_OF]->(this17:Group)
-		WITH *, count(this17) AS groupCount
-		WITH *
-		CALL {
-			WITH this13
-			MATCH (this13)-[:MEMBER_OF]->(this18:Group)
-			OPTIONAL MATCH (this18)<-[:CREATOR_OF]-(this19:User)
-			WITH *, count(this19) AS creatorCount
-			WITH *
-			WHERE (creatorCount <> 0
-				AND $jwt.uid IS NOT NULL
-				AND this19.id = $jwt.uid)
-			RETURN count(this18) = 1 AS var20
-		}
-		WITH *
-		WHERE apoc.util.validatePredicate(NOT (($isAuthenticated = true
-			AND (((creatorCount <> 0
-						AND $jwt.uid IS NOT NULL
-						AND this14.id = $jwt.uid)
-					OR (groupCount <> 0
-						AND size([(this15)<-[:ADMIN_OF]-(this22:Admin)
-						WHERE single(this21 IN [(this22)-[:IS_USER]->(this21)
-						WHERE ($jwt.uid IS NOT NULL
-							AND this21.id = $jwt.uid) | 1]
-						WHERE true) | 1]) > 0))
-				OR (groupCount <> 0
-					AND size([(this16)<-[:CONTRIBUTOR_TO]-(this24:Contributor)
-					WHERE single(this23 IN [(this24)-[:IS_USER]->(this23)
-					WHERE ($jwt.uid IS NOT NULL
-						AND this23.id = $jwt.uid) | 1]
-					WHERE true) | 1]) > 0)
-				OR var20 = true))), '@neo4j/graphql/FORBIDDEN', [0])
-		WITH collect( {
-			node: this13,
-			relationship: this12
-		}) AS edges
-		WITH edges, size(edges) AS totalCount
-		CALL {
-			WITH edges
-			UNWIND edges AS edge
-			WITH edge.node AS this13, edge.relationship AS this12
-			RETURN collect( {
-				active: this12.active,
-				firstDay: this12.firstDay,
-				lastDay: this12.lastDay,
-				node: {
-					__resolveType: 'Person',
-					__id: id(this13)
-				}
-			}) AS var25
-		}
-		RETURN {
-			edges: var25,
-			totalCount: totalCount
-		} AS var26
-	}
-	WITH this1 {
-		.id,
-		.name,
-		partnersConnection: var26
-	} AS this1
-	RETURN collect(this1) AS var27
+    WITH this
+    MATCH (this)<-[this0:MEMBER_OF]-(this1:Person)
+    OPTIONAL MATCH (this1)<-[:CREATOR_OF]-(this2:User)
+    WITH *, count(this2) AS creatorCount
+    OPTIONAL MATCH (this1)-[:MEMBER_OF]->(this3:Group)
+    WITH *, count(this3) AS groupCount
+    OPTIONAL MATCH (this1)-[:MEMBER_OF]->(this4:Group)
+    WITH *, count(this4) AS groupCount
+    WITH *
+    CALL {
+        WITH this1
+        MATCH (this1)-[:MEMBER_OF]->(this5:Group)
+        OPTIONAL MATCH (this5)<-[:CREATOR_OF]-(this6:User)
+        WITH *, count(this6) AS creatorCount
+        WITH *
+        WHERE (creatorCount <> 0 AND ($jwt.uid IS NOT NULL AND this6.id = $jwt.uid))
+        RETURN count(this5) = 1 AS var7
+    }
+    WITH *
+    WHERE apoc.util.validatePredicate(NOT ($isAuthenticated = true AND ((creatorCount <> 0 AND ($jwt.uid IS NOT NULL AND this2.id = $jwt.uid)) OR (groupCount <> 0 AND size([(this3)<-[:ADMIN_OF]-(this9:Admin) WHERE single(this8 IN [(this9)-[:IS_USER]->(this8:User) WHERE ($jwt.uid IS NOT NULL AND this8.id = $jwt.uid) | 1] WHERE true) | 1]) > 0) OR (groupCount <> 0 AND size([(this4)<-[:CONTRIBUTOR_TO]-(this11:Contributor) WHERE single(this10 IN [(this11)-[:IS_USER]->(this10:User) WHERE ($jwt.uid IS NOT NULL AND this10.id = $jwt.uid) | 1] WHERE true) | 1]) > 0) OR var7 = true)), "@neo4j/graphql/FORBIDDEN", [0])
+    CALL {
+        WITH this1
+        MATCH (this1)-[this12:PARTNER_OF]-(this13:Person)
+        OPTIONAL MATCH (this13)<-[:CREATOR_OF]-(this14:User)
+        WITH *, count(this14) AS creatorCount
+        OPTIONAL MATCH (this13)-[:MEMBER_OF]->(this15:Group)
+        WITH *, count(this15) AS groupCount
+        OPTIONAL MATCH (this13)-[:MEMBER_OF]->(this16:Group)
+        WITH *, count(this16) AS groupCount
+        OPTIONAL MATCH (this13)-[:MEMBER_OF]->(this17:Group)
+        WITH *, count(this17) AS groupCount
+        WITH *
+        CALL {
+            WITH this13
+            MATCH (this13)-[:MEMBER_OF]->(this18:Group)
+            OPTIONAL MATCH (this18)<-[:CREATOR_OF]-(this19:User)
+            WITH *, count(this19) AS creatorCount
+            WITH *
+            WHERE (creatorCount <> 0 AND ($jwt.uid IS NOT NULL AND this19.id = $jwt.uid))
+            RETURN count(this18) = 1 AS var20
+        }
+        WITH *
+        WHERE apoc.util.validatePredicate(NOT ($isAuthenticated = true AND ((creatorCount <> 0 AND ($jwt.uid IS NOT NULL AND this14.id = $jwt.uid)) OR (groupCount <> 0 AND size([(this15)<-[:ADMIN_OF]-(this22:Admin) WHERE single(this21 IN [(this22)-[:IS_USER]->(this21:User) WHERE ($jwt.uid IS NOT NULL AND this21.id = $jwt.uid) | 1] WHERE true) | 1]) > 0) OR (groupCount <> 0 AND size([(this16)<-[:CONTRIBUTOR_TO]-(this24:Contributor) WHERE single(this23 IN [(this24)-[:IS_USER]->(this23:User) WHERE ($jwt.uid IS NOT NULL AND this23.id = $jwt.uid) | 1] WHERE true) | 1]) > 0) OR var20 = true)), "@neo4j/graphql/FORBIDDEN", [0])
+        WITH collect({ node: this13, relationship: this12 }) AS edges
+        WITH edges, size(edges) AS totalCount
+        CALL {
+            WITH edges
+            UNWIND edges AS edge
+            WITH edge.node AS this13, edge.relationship AS this12
+            RETURN collect({ active: this12.active, firstDay: this12.firstDay, lastDay: this12.lastDay, node: { __resolveType: "Person", __id: id(this13) } }) AS var25
+        }
+        RETURN { edges: var25, totalCount: totalCount } AS var26
+    }
+    WITH this1 { .id, .name, partnersConnection: var26 } AS this1
+    RETURN collect(this1) AS var27
 }
-RETURN this {
-	.id,
-	.name,
-	members: var27
-} AS this
+RETURN this { .id, .name, members: var27 } AS this
 ----
 
 '''

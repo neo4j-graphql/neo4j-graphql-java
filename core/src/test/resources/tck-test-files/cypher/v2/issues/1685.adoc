@@ -44,7 +44,7 @@ query Genres {
 [source,json]
 ----
 {
-  "param0" : "Action"
+  "param0": "Action"
 }
 ----
 
@@ -53,33 +53,22 @@ query Genres {
 ----
 MATCH (this:Genre)
 CALL {
-	WITH this
-	CALL {
-		WITH this
-		MATCH (this)<-[this0:HAS_GENRE]-(this1:Movie)
-		WHERE EXISTS {
-			MATCH (this1)-[this2:HAS_GENRE]->(this3:Genre)
-			WHERE this3.name = $param0
-		}
-		WITH {
-			node: {
-				__resolveType: 'Movie',
-				__id: id(this1)
-			}
-		} AS edge
-		RETURN edge
-	}
-	WITH collect(edge) AS edges
-	WITH edges, size(edges) AS totalCount
-	RETURN {
-		edges: edges,
-		totalCount: totalCount
-	} AS var4
+    WITH this
+    CALL {
+        WITH this
+        MATCH (this)<-[this0:HAS_GENRE]-(this1:Movie)
+        WHERE EXISTS {
+            MATCH (this1)-[this2:HAS_GENRE]->(this3:Genre)
+            WHERE this3.name = $param0
+        }
+        WITH { node: { __resolveType: "Movie", __id: id(this1) } } AS edge
+        RETURN edge
+    }
+    WITH collect(edge) AS edges
+    WITH edges, size(edges) AS totalCount
+    RETURN { edges: edges, totalCount: totalCount } AS var4
 }
-RETURN this {
-	.name,
-	moviesConnection: var4
-} AS this
+RETURN this { .name, moviesConnection: var4 } AS this
 ----
 
 '''

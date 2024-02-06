@@ -9,6 +9,7 @@ data class ScalarPredicateDefinition(
     override val name: String,
     val field: ScalarField,
     private val comparisonResolver: (Expression, Expression) -> Condition,
+    val comparisonEvaluator: (Any?, Any?) -> Boolean,
     val type: Type<*>,
     val deprecated: String? = null
 ) : PredicateDefinition {

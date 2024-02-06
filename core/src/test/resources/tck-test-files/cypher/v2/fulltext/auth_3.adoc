@@ -15,7 +15,6 @@ type Person {
   id: ID
 }
 ----
-
 == 4.4
 
 === simple match with auth allow ALL
@@ -30,35 +29,47 @@ type Person {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [],
+    "jwt": {
+      "roles": [],
+      "sub": "my-sub"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
 {
-  "isAuthenticated" : true,
-  "jwt" : {
-    "roles" : [ ],
-    "sub" : "my-sub"
-  },
-  "param0" : "something AND something",
-  "param1" : "Movie"
+  "param0": "something AND something",
+  "param1": "Movie",
+  "isAuthenticated": true,
+  "jwt": {
+    "roles": [],
+    "sub": "my-sub"
+  }
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-CALL db.index.fulltext.queryNodes('MovieTitle', $param0) YIELD node AS this0, score AS var1
-WHERE $param1 IN labels(this0) WITH *
-WHERE apoc.util.validatePredicate(NOT (($isAuthenticated = true
-	AND size([(this0)<-[:DIRECTED]-(this2:Person)
-	WHERE NOT (($jwt.sub IS NOT NULL
-		AND this2.id = $jwt.sub)) | 1]) = 0)), '@neo4j/graphql/FORBIDDEN', [0])
-RETURN this0 {
-	.title
-} AS this
+CALL db.index.fulltext.queryNodes("MovieTitle", $param0) YIELD node AS this0, score AS var1
+WHERE $param1 IN labels(this0)
+WITH *
+WHERE apoc.util.validatePredicate(NOT ($isAuthenticated = true AND size([(this0)<-[:DIRECTED]-(this2:Person) WHERE NOT ($jwt.sub IS NOT NULL AND this2.id = $jwt.sub) | 1]) = 0), "@neo4j/graphql/FORBIDDEN", [0])
+RETURN this0 { .title } AS this
 ----
 
 '''
+
 
 == 5
 
@@ -74,39 +85,49 @@ RETURN this0 {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [],
+    "jwt": {
+      "roles": [],
+      "sub": "my-sub"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
 {
-  "isAuthenticated" : true,
-  "jwt" : {
-    "roles" : [ ],
-    "sub" : "my-sub"
-  },
-  "param0" : "something AND something",
-  "param1" : "Movie"
+  "param0": "something AND something",
+  "param1": "Movie",
+  "isAuthenticated": true,
+  "jwt": {
+    "roles": [],
+    "sub": "my-sub"
+  }
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-CALL db.index.fulltext.queryNodes('MovieTitle', $param0) YIELD node AS this0, score AS var1
-WHERE $param1 IN labels(this0) WITH *
-WHERE apoc.util.validatePredicate(NOT (($isAuthenticated = true
-	AND EXISTS {
-		MATCH (this0)<-[:DIRECTED]-(this2:Person)
-		WHERE ($jwt.sub IS NOT NULL
-			AND this2.id = $jwt.sub)
-	}
-	AND NOT (EXISTS {
-		MATCH (this0)<-[:DIRECTED]-(this2:Person)
-		WHERE NOT (($jwt.sub IS NOT NULL
-			AND this2.id = $jwt.sub))
-	}))), '@neo4j/graphql/FORBIDDEN', [0])
-RETURN this0 {
-	.title
-} AS this
+CALL db.index.fulltext.queryNodes("MovieTitle", $param0) YIELD node AS this0, score AS var1
+WHERE $param1 IN labels(this0)
+WITH *
+WHERE apoc.util.validatePredicate(NOT ($isAuthenticated = true AND (EXISTS {
+    MATCH (this0)<-[:DIRECTED]-(this2:Person)
+    WHERE ($jwt.sub IS NOT NULL AND this2.id = $jwt.sub)
+} AND NOT (EXISTS {
+    MATCH (this0)<-[:DIRECTED]-(this2:Person)
+    WHERE NOT ($jwt.sub IS NOT NULL AND this2.id = $jwt.sub)
+}))), "@neo4j/graphql/FORBIDDEN", [0])
+RETURN this0 { .title } AS this
 ----
 
 '''

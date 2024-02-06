@@ -42,7 +42,6 @@ type Actor {
   "experimental": true
 }
 ----
-
 == top level count
 
 .GraphQL-Query
@@ -59,7 +58,7 @@ type Actor {
 [source,json]
 ----
 {
-  "param0" : "The Matrix"
+  "param0": "The Matrix"
 }
 ----
 
@@ -67,19 +66,18 @@ type Actor {
 [source,cypher]
 ----
 CALL {
-	CALL {
-		MATCH (this0:Movie)
-		RETURN this0 AS node UNION
-		MATCH (this1:Series)
-		RETURN this1 AS node
-	}
-	WITH *
-	WHERE node.title = $param0
-	RETURN count(node) AS this2
+    CALL {
+        MATCH (this0:Movie)
+        RETURN this0 AS node
+        UNION
+        MATCH (this1:Series)
+        RETURN this1 AS node
+    }
+    WITH *
+    WHERE node.title = $param0
+    RETURN count(node) AS this2
 }
-RETURN {
-	count: this2
-}
+RETURN { count: this2 }
 ----
 
 '''
@@ -100,7 +98,7 @@ RETURN {
 [source,json]
 ----
 {
-  "param0" : "The Matrix"
+  "param0": "The Matrix"
 }
 ----
 
@@ -108,19 +106,18 @@ RETURN {
 [source,cypher]
 ----
 CALL {
-	CALL {
-		MATCH (this0:Movie)
-		RETURN this0 AS node UNION
-		MATCH (this1:Series)
-		RETURN this1 AS node
-	}
-	WITH *
-	WHERE node.title = $param0
-	RETURN count(node) AS this2
+    CALL {
+        MATCH (this0:Movie)
+        RETURN this0 AS node
+        UNION
+        MATCH (this1:Series)
+        RETURN this1 AS node
+    }
+    WITH *
+    WHERE node.title = $param0
+    RETURN count(node) AS this2
 }
-RETURN {
-	count: this2
-}
+RETURN { count: this2 }
 ----
 
 '''
@@ -141,8 +138,8 @@ RETURN {
 [source,json]
 ----
 {
-  "param0" : 10,
-  "param1" : "The Matrix"
+  "param0": 10,
+  "param1": "The Matrix"
 }
 ----
 
@@ -150,20 +147,18 @@ RETURN {
 [source,cypher]
 ----
 CALL {
-	CALL {
-		MATCH (this0:Movie)
-		RETURN this0 AS node UNION
-		MATCH (this1:Series)
-		RETURN this1 AS node
-	}
-	WITH *
-	WHERE (node.cost >= $param0
-		AND node.title = $param1)
-	RETURN count(node) AS this2
+    CALL {
+        MATCH (this0:Movie)
+        RETURN this0 AS node
+        UNION
+        MATCH (this1:Series)
+        RETURN this1 AS node
+    }
+    WITH *
+    WHERE (node.cost >= $param0 AND node.title = $param1)
+    RETURN count(node) AS this2
 }
-RETURN {
-	count: this2
-}
+RETURN { count: this2 }
 ----
 
 '''
@@ -184,8 +179,8 @@ RETURN {
 [source,json]
 ----
 {
-  "param0" : 10,
-  "param1" : "The Matrix"
+  "param0": 10,
+  "param1": "The Matrix"
 }
 ----
 
@@ -193,20 +188,18 @@ RETURN {
 [source,cypher]
 ----
 CALL {
-	CALL {
-		MATCH (this0:Movie)
-		RETURN this0 AS node UNION
-		MATCH (this1:Series)
-		RETURN this1 AS node
-	}
-	WITH *
-	WHERE (node.cost >= $param0
-		OR node.title = $param1)
-	RETURN count(node) AS this2
+    CALL {
+        MATCH (this0:Movie)
+        RETURN this0 AS node
+        UNION
+        MATCH (this1:Series)
+        RETURN this1 AS node
+    }
+    WITH *
+    WHERE (node.cost >= $param0 OR node.title = $param1)
+    RETURN count(node) AS this2
 }
-RETURN {
-	count: this2
-}
+RETURN { count: this2 }
 ----
 
 '''

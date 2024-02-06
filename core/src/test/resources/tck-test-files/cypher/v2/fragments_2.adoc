@@ -35,7 +35,6 @@ type Actor implements InterfaceA {
   actedIn: [Production!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
 }
 ----
-
 == should be able to project nested fragments
 
 .GraphQL-Query
@@ -66,7 +65,7 @@ fragment FragmentB on InterfaceA {
 [source,json]
 ----
 {
-  "param0" : "Keanu"
+  "param0": "Keanu"
 }
 ----
 
@@ -76,34 +75,22 @@ fragment FragmentB on InterfaceA {
 MATCH (this:Actor)
 WHERE this.name = $param0
 CALL {
-	WITH this
-	CALL {
-		WITH *
-		MATCH (this)-[this0:ACTED_IN]->(this1:Movie)
-		WITH this1 {
-			.runtime,
-			.title,
-			__resolveType: 'Movie',
-			__id: id(this1)
-		} AS this1
-		RETURN this1 AS var2 UNION
-		WITH *
-		MATCH (this)-[this3:ACTED_IN]->(this4:Series)
-		WITH this4 {
-			.runtime,
-			.title,
-			__resolveType: 'Series',
-			__id: id(this4)
-		} AS this4
-		RETURN this4 AS var2
-	}
-	WITH var2
-	RETURN collect(var2) AS var2
+    WITH this
+    CALL {
+        WITH *
+        MATCH (this)-[this0:ACTED_IN]->(this1:Movie)
+        WITH this1 { .runtime, .title, __resolveType: "Movie", __id: id(this1) } AS this1
+        RETURN this1 AS var2
+        UNION
+        WITH *
+        MATCH (this)-[this3:ACTED_IN]->(this4:Series)
+        WITH this4 { .runtime, .title, __resolveType: "Series", __id: id(this4) } AS this4
+        RETURN this4 AS var2
+    }
+    WITH var2
+    RETURN collect(var2) AS var2
 }
-RETURN this {
-	.name,
-	actedIn: var2
-} AS this
+RETURN this { .name, actedIn: var2 } AS this
 ----
 
 '''

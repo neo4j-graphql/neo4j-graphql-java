@@ -1,10 +1,18 @@
 package org.neo4j.graphql.domain
 
-import org.neo4j.graphql.Constants.FieldSuffix
 import org.neo4j.graphql.domain.fields.*
+import org.neo4j.graphql.domain.predicates.AggregationFieldPredicate
+import org.neo4j.graphql.domain.predicates.ConnectionFieldPredicate
+import org.neo4j.graphql.domain.predicates.RelationFieldPredicate
+import org.neo4j.graphql.domain.predicates.ScalarFieldPredicate
 import org.neo4j.graphql.domain.predicates.definitions.AggregationPredicateDefinition
 import org.neo4j.graphql.domain.predicates.definitions.PredicateDefinition
+import org.neo4j.graphql.domain.predicates.definitions.RelationPredicateDefinition
+import org.neo4j.graphql.domain.predicates.definitions.ScalarPredicateDefinition
 import org.neo4j.graphql.isList
+import org.neo4j.graphql.schema.model.inputs.WhereInput
+import org.neo4j.graphql.schema.model.inputs.connection.ConnectionWhere
+import org.neo4j.graphql.toDict
 
 /**
  * A container holding fields
@@ -53,10 +61,10 @@ sealed class FieldContainer<T : BaseField>(val fields: List<T>) {
     val authableFields: List<BaseField> by lazy { fields.filter { it is AuthableField } }
     val cypherFields: List<CypherField> by lazy { fields.filterIsInstance<CypherField>() }
 
-    val predicates: Map<String, PredicateDefinition> by lazy {
+    val predicateDefinitions: Map<String, PredicateDefinition> by lazy {
         val result = mutableMapOf<String, PredicateDefinition>()
-        scalarFields.forEach { result.putAll(it.predicates) }
-        relationFields.forEach { result.putAll(it.predicates) }
+        scalarFields.forEach { result.putAll(it.predicateDefinitions) }
+        relationFields.forEach { result.putAll(it.predicateDefinitions) }
         result
     }
 
@@ -68,9 +76,32 @@ sealed class FieldContainer<T : BaseField>(val fields: List<T>) {
 
     val relationAggregationFields: Map<String, RelationField> by lazy {
         relationFields.filter { it.target is Node }
-            .map { it.fieldName + FieldSuffix.Aggregate to it }
+            .map { it.namings.aggregateTypeName to it }
             .toMap()
     }
 
+    val updateDefinitions: Map<String, Pair<ScalarField, ScalarField.ScalarUpdateOperation>> by lazy {
+        val result = mutableMapOf<String, Pair<ScalarField, ScalarField.ScalarUpdateOperation>>()
+        scalarFields.forEach { field ->
+            field.updateDefinitions.forEach { (key, op) ->
+                result.put(key, field to op)
+            }
+        }
+        result
+    }
+
+
     fun getField(name: String): BaseField? = fieldsByName[name]
+
+    fun createPredicate(key: String, value: Any?) = predicateDefinitions[key]?.let { def ->
+        when (def) {
+            is ScalarPredicateDefinition -> ScalarFieldPredicate(def, value)
+            is RelationPredicateDefinition -> when (def.connection) {
+                true -> ConnectionFieldPredicate(def, value?.let { ConnectionWhere.create(def.field, it) })
+                false -> RelationFieldPredicate(def, value?.let { WhereInput.create(def.field, it.toDict()) })
+            }
+
+            is AggregationPredicateDefinition -> AggregationFieldPredicate(def, value)
+        }
+    }
 }

@@ -38,7 +38,7 @@ sealed interface ConnectOrCreateFieldInput {
                 if (node.uniqueFields.isEmpty()) {
                     return null
                 }
-                return ctx.getOrCreateInputObjectType(rel.operations.getConnectOrCreateFieldInputTypeName(node)) { fields, _ ->
+                return ctx.getOrCreateInputObjectType(rel.namings.getConnectOrCreateFieldInputTypeName(node)) { fields, _ ->
 
                     ConnectOrCreateWhere.Augmentation
                         .generateConnectOrCreateWhereIT(node, ctx)
@@ -50,7 +50,7 @@ sealed interface ConnectOrCreateFieldInput {
             }
 
             private fun generateNodeOnCreateIT(rel: RelationField, node: Node, ctx: AugmentationContext) =
-                ctx.getOrCreateInputObjectType(rel.operations.getConnectOrCreateOnCreateFieldInputTypeName(node)) { fields, _ ->
+                ctx.getOrCreateInputObjectType(rel.namings.getConnectOrCreateOnCreateFieldInputTypeName(node)) { fields, _ ->
 
                     generateNodeOnCreateInputIT(node, ctx)
                         ?.let { fields += inputValue(Constants.NODE_FIELD, it.asRequiredType()) }
@@ -64,7 +64,7 @@ sealed interface ConnectOrCreateFieldInput {
 
             private fun generateNodeOnCreateInputIT(node: Node, ctx: AugmentationContext) =
 
-                ctx.getOrCreateInputObjectType(node.operations.onCreateInputTypeName) { fields, _ ->
+                ctx.getOrCreateInputObjectType(node.namings.onCreateInputTypeName) { fields, _ ->
 
                     ScalarProperties.Companion.Augmentation
                         .addScalarFields(fields, node.scalarFields, false, ctx)

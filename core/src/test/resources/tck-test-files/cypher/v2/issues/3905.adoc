@@ -22,7 +22,6 @@ type pathLink @query(read: false, aggregate: false) @mutation(operations: []) @s
   other_entity_id: Int
 }
 ----
-
 == custom Cypher query executes and translates as expected
 
 .GraphQL-Query
@@ -41,31 +40,20 @@ type pathLink @query(read: false, aggregate: false) @mutation(operations: []) @s
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 CALL {
-	WITH [[ {
-		entity_id: 1,
-		other_entity_id: 2
-	}], [ {
-		entity_id: 2,
-		other_entity_id: 3
-	}, {
-		entity_id: 3,
-		other_entity_id: 4
-	}]] AS paths
-	RETURN {
-		paths: paths
-	} AS result
+WITH [[{entity_id:1, other_entity_id: 2}],[{entity_id: 2, other_entity_id:3},{entity_id:3, other_entity_id: 4}]] as paths
+RETURN {paths: paths} as result
 }
-WITH result AS this
-RETURN this {
-	.paths
-} AS this
+WITH result as this
+
+
+RETURN this { .paths } AS this
 ----
 
 '''

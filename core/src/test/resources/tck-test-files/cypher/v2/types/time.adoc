@@ -29,9 +29,11 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0" : [ {
-    "time" : "22:00:00Z"
-  } ]
+  "create_param0": [
+    {
+      "time": "22:00:00Z"
+    }
+  ]
 }
 ----
 
@@ -40,14 +42,14 @@ mutation {
 ----
 UNWIND $create_param0 AS create_var0
 CALL {
-	WITH create_var0
-	CREATE (create_this1:Movie)
-	SET create_this1.time = create_var0.time
-	RETURN create_this1
+    WITH create_var0
+    CREATE (create_this1:Movie)
+    SET
+        create_this1.time = create_var0.time
+    
+    RETURN create_this1
 }
-RETURN collect(create_this1 {
-	.time
-}) AS data
+RETURN collect(create_this1 { .time }) AS data
 ----
 
 '''
@@ -68,7 +70,7 @@ RETURN collect(create_this1 {
 [source,json]
 ----
 {
-  "param0" : "13:45:33.250000000Z"
+  "param0": "13:45:33.250000000Z"
 }
 ----
 
@@ -77,9 +79,7 @@ RETURN collect(create_this1 {
 ----
 MATCH (this:Movie)
 WHERE this.time >= $param0
-RETURN this {
-	.time
-} AS this
+RETURN this { .time } AS this
 ----
 
 '''
@@ -102,9 +102,11 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0" : [ {
-    "time" : "22:00:15.555000000-01:00"
-  } ]
+  "create_param0": [
+    {
+      "time": "22:00:15.555000000-01:00"
+    }
+  ]
 }
 ----
 
@@ -113,14 +115,14 @@ mutation {
 ----
 UNWIND $create_param0 AS create_var0
 CALL {
-	WITH create_var0
-	CREATE (create_this1:Movie)
-	SET create_this1.time = create_var0.time
-	RETURN create_this1
+    WITH create_var0
+    CREATE (create_this1:Movie)
+    SET
+        create_this1.time = create_var0.time
+    
+    RETURN create_this1
 }
-RETURN collect(create_this1 {
-	.time
-}) AS data
+RETURN collect(create_this1 { .time }) AS data
 ----
 
 '''
@@ -141,7 +143,7 @@ RETURN collect(create_this1 {
 [source,json]
 ----
 {
-  "param0" : "12:00:00Z"
+  "param0": "12:00:00Z"
 }
 ----
 
@@ -150,9 +152,7 @@ RETURN collect(create_this1 {
 ----
 MATCH (this:Movie)
 WHERE this.time = $param0
-RETURN this {
-	.time
-} AS this
+RETURN this { .time } AS this
 ----
 
 '''
@@ -176,7 +176,7 @@ mutation {
 [source,json]
 ----
 {
-  "this_update_time" : "09:24:40.845512000+06:30"
+  "this_update_time": "09:24:40.845512000+06:30"
 }
 ----
 
@@ -184,11 +184,11 @@ mutation {
 [source,cypher]
 ----
 MATCH (this:Movie)
+
+
 SET this.time = $this_update_time
-RETURN collect(DISTINCT this {
-	.id,
-	.time
-}) AS data
+
+RETURN collect(DISTINCT this { .id, .time }) AS data
 ----
 
 '''

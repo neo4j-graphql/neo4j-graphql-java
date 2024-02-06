@@ -33,7 +33,7 @@ query ($area: [ID!]) {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
@@ -41,17 +41,12 @@ query ($area: [ID!]) {
 ----
 MATCH (this:Event)
 CALL {
-	WITH this
-	MATCH (this)-[this0:HAPPENS_IN]->(this1:Area)
-	WITH this1 {
-		.id
-	} AS this1
-	RETURN head(collect(this1)) AS var2
+    WITH this
+    MATCH (this)-[this0:HAPPENS_IN]->(this1:Area)
+    WITH this1 { .id } AS this1
+    RETURN head(collect(this1)) AS var2
 }
-RETURN this {
-	.id,
-	area: var2
-} AS this
+RETURN this { .id, area: var2 } AS this
 ----
 
 '''

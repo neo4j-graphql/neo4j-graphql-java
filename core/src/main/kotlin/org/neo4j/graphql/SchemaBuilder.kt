@@ -108,7 +108,7 @@ class SchemaBuilder(
      * This method will also augment relation fields, so filtering and sorting is available for them
      */
     fun augmentTypes() {
-        val model = Model.createModel(typeDefinitionRegistry, schemaConfig)
+        val model = Model.createModel(typeDefinitionRegistry, neo4jTypeDefinitionRegistry, schemaConfig)
 
         // remove type definition for node since it will be added while augmenting the schema
         model.nodes.forEach {

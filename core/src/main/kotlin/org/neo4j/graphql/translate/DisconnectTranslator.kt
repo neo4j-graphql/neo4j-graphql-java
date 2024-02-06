@@ -70,7 +70,7 @@ class DisconnectTranslator(
             ?.let { Cypher.node(it).named(nestedPrefix.resolveName()) }
             ?: relatedNode.asCypherNode(context, nestedPrefix)
 
-        val dslRelation = relationField.createDslRelation(parentVar, endNode, relVarName, startLeft = true)
+        val dslRelation = relationField.createDslRelation(parentVar, endNode, relVarName)
 
         var condition: Condition? = null
         input.where?.let { where ->

@@ -32,8 +32,10 @@ mutation {
 [source,json]
 ----
 {
-  "this_update_ratings_PUSH" : [ 1.5 ],
-  "this_update_scores_POP" : 1
+  "this_update_ratings_PUSH": [
+    1.5
+  ],
+  "this_update_scores_POP": 1
 }
 ----
 
@@ -42,15 +44,12 @@ mutation {
 ----
 MATCH (this:Movie)
 WITH this
-WHERE apoc.util.validatePredicate((this.ratings IS NULL
-	OR this.scores IS NULL), 'Properties %s, %s cannot be NULL', ['ratings', 'scores'])
-SET this.ratings = (this.ratings + $this_update_ratings_PUSH)
-SET this.scores = this.scores[0..- $this_update_scores_POP]
-RETURN collect(DISTINCT this {
-	.title,
-	.ratings,
-	.scores
-}) AS data
+WHERE apoc.util.validatePredicate(this.ratings IS NULL OR this.scores IS NULL, "Properties %s, %s cannot be NULL", ['ratings', 'scores'])
+
+SET this.ratings = this.ratings + $this_update_ratings_PUSH
+SET this.scores = this.scores[0..-$this_update_scores_POP]
+
+RETURN collect(DISTINCT this { .title, .ratings, .scores }) AS data
 ----
 
 '''
@@ -75,8 +74,8 @@ mutation {
 [source,json]
 ----
 {
-  "this_update_ratings_POP" : 1,
-  "this_update_scores_POP" : 1
+  "this_update_ratings_POP": 1,
+  "this_update_scores_POP": 1
 }
 ----
 
@@ -85,15 +84,12 @@ mutation {
 ----
 MATCH (this:Movie)
 WITH this
-WHERE apoc.util.validatePredicate((this.ratings IS NULL
-	OR this.scores IS NULL), 'Properties %s, %s cannot be NULL', ['ratings', 'scores'])
-SET this.ratings = this.ratings[0..- $this_update_ratings_POP]
-SET this.scores = this.scores[0..- $this_update_scores_POP]
-RETURN collect(DISTINCT this {
-	.title,
-	.ratings,
-	.scores
-}) AS data
+WHERE apoc.util.validatePredicate(this.ratings IS NULL OR this.scores IS NULL, "Properties %s, %s cannot be NULL", ['ratings', 'scores'])
+
+SET this.ratings = this.ratings[0..-$this_update_ratings_POP]
+SET this.scores = this.scores[0..-$this_update_scores_POP]
+
+RETURN collect(DISTINCT this { .title, .ratings, .scores }) AS data
 ----
 
 '''
@@ -118,8 +114,12 @@ mutation {
 [source,json]
 ----
 {
-  "this_update_ratings_PUSH" : [ 1 ],
-  "this_update_scores_PUSH" : [ 1 ]
+  "this_update_ratings_PUSH": [
+    1
+  ],
+  "this_update_scores_PUSH": [
+    1
+  ]
 }
 ----
 
@@ -128,15 +128,12 @@ mutation {
 ----
 MATCH (this:Movie)
 WITH this
-WHERE apoc.util.validatePredicate((this.ratings IS NULL
-	OR this.scores IS NULL), 'Properties %s, %s cannot be NULL', ['ratings', 'scores'])
-SET this.ratings = (this.ratings + $this_update_ratings_PUSH)
-SET this.scores = (this.scores + $this_update_scores_PUSH)
-RETURN collect(DISTINCT this {
-	.title,
-	.ratings,
-	.scores
-}) AS data
+WHERE apoc.util.validatePredicate(this.ratings IS NULL OR this.scores IS NULL, "Properties %s, %s cannot be NULL", ['ratings', 'scores'])
+
+SET this.ratings = this.ratings + $this_update_ratings_PUSH
+SET this.scores = this.scores + $this_update_scores_PUSH
+
+RETURN collect(DISTINCT this { .title, .ratings, .scores }) AS data
 ----
 
 '''

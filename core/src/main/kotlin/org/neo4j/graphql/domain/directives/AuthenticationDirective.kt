@@ -1,13 +1,16 @@
 package org.neo4j.graphql.domain.directives
 
 import graphql.language.*
+import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.readArgument
+import org.neo4j.graphql.schema.model.inputs.JwtWhereInput
+import org.neo4j.graphql.toDict
 import org.neo4j.graphql.toJavaValue
 import org.neo4j.graphql.validateName
 
 data class AuthenticationDirective(
     val operations: Set<AuthenticationOperation>,
-    val jwt: Map<String, Any>?
+    val jwt: JwtWhereInput? = null,
 ) {
 
     enum class AuthenticationOperation { CREATE, READ, AGGREGATE, UPDATE, DELETE, CREATE_RELATIONSHIP, DELETE_RELATIONSHIP, SUBSCRIBE }
@@ -23,18 +26,21 @@ data class AuthenticationDirective(
             else -> throw IllegalArgumentException("value should be an object or `*`")
         }
 
-        fun create(directive: Directive): AuthenticationDirective {
+        fun create(directive: Directive, jwtShape: Node?): AuthenticationDirective {
             directive.validateName(NAME)
 
 
-            return AuthenticationDirective(directive.readArgument(AuthenticationDirective::operations) { arrayValue ->
+            val operations = directive.readArgument(AuthenticationDirective::operations) { arrayValue ->
                 (arrayValue as ArrayValue).values.map {
                     AuthenticationOperation.valueOf((it as EnumValue).name)
                 }
-            }?.toSet() ?: AuthenticationOperation.values().toSet(),
+            }?.toSet() ?: AuthenticationOperation.values().toSet()
 
-                directive.readArgument(AuthenticationDirective::jwt) { parseValue(it as ObjectValue) }
-            )
+            val jwtWhereInput =
+                jwtShape?.let { shape ->
+                    directive.readArgument(AuthenticationDirective::jwt) { JwtWhereInput(shape, it.toDict()) }
+                }
+            return AuthenticationDirective(operations, jwtWhereInput)
         }
     }
 }

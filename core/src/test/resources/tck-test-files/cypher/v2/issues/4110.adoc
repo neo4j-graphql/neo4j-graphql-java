@@ -16,7 +16,6 @@ type InBetween {
   company: Company! @relationship(type: "CONNECT_TO", direction: IN)
 }
 ----
-
 == wrap authenticated subquery on top level read operation
 
 .GraphQL-Query
@@ -33,13 +32,32 @@ type InBetween {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [
+      "admin"
+    ],
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "sub": "michel"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
 {
-  "isAuthenticated" : true,
-  "param0" : "example",
-  "param2" : "example"
+  "param0": "example",
+  "isAuthenticated": true,
+  "param2": "example"
 }
 ----
 
@@ -48,52 +66,40 @@ type InBetween {
 ----
 MATCH (this:Company)
 CALL {
-	WITH this
-	MATCH (this)-[:CONNECT_TO]->(this0:InBetween)
-	OPTIONAL MATCH (this0)<-[:CONNECT_TO]-(this1:Company)
-	WITH *, count(this1) AS companyCount
-	WITH *
-	WHERE (companyCount <> 0
-		AND $param0 IS NOT NULL
-		AND this1.id = $param0)
-	RETURN count(this0) = 1 AS var2
+    WITH this
+    MATCH (this)-[:CONNECT_TO]->(this0:InBetween)
+    OPTIONAL MATCH (this0)<-[:CONNECT_TO]-(this1:Company)
+    WITH *, count(this1) AS companyCount
+    WITH *
+    WHERE (companyCount <> 0 AND ($param0 IS NOT NULL AND this1.id = $param0))
+    RETURN count(this0) = 1 AS var2
 }
 WITH *
-WHERE ($isAuthenticated = true
-	AND var2 = true)
+WHERE ($isAuthenticated = true AND var2 = true)
 CALL {
-	WITH this
-	MATCH (this)-[this3:CONNECT_TO]->(this4:InBetween)
-	CALL {
-		WITH this4
-		MATCH (this4)<-[this5:CONNECT_TO]-(this6:Company)
-		CALL {
-			WITH this6
-			MATCH (this6)-[:CONNECT_TO]->(this7:InBetween)
-			OPTIONAL MATCH (this7)<-[:CONNECT_TO]-(this8:Company)
-			WITH *, count(this8) AS companyCount
-			WITH *
-			WHERE (companyCount <> 0
-				AND $param2 IS NOT NULL
-				AND this8.id = $param2)
-			RETURN count(this7) = 1 AS var9
-		}
-		WITH *
-		WHERE ($isAuthenticated = true
-			AND var9 = true)
-		WITH this6 {
-			.id
-		} AS this6
-		RETURN head(collect(this6)) AS var10
-	}
-	WITH this4 {
-		company: var10
-	} AS this4
-	RETURN head(collect(this4)) AS var11
+    WITH this
+    MATCH (this)-[this3:CONNECT_TO]->(this4:InBetween)
+    CALL {
+        WITH this4
+        MATCH (this4)<-[this5:CONNECT_TO]-(this6:Company)
+        CALL {
+            WITH this6
+            MATCH (this6)-[:CONNECT_TO]->(this7:InBetween)
+            OPTIONAL MATCH (this7)<-[:CONNECT_TO]-(this8:Company)
+            WITH *, count(this8) AS companyCount
+            WITH *
+            WHERE (companyCount <> 0 AND ($param2 IS NOT NULL AND this8.id = $param2))
+            RETURN count(this7) = 1 AS var9
+        }
+        WITH *
+        WHERE ($isAuthenticated = true AND var9 = true)
+        WITH this6 { .id } AS this6
+        RETURN head(collect(this6)) AS var10
+    }
+    WITH this4 { company: var10 } AS this4
+    RETURN head(collect(this4)) AS var11
 }
-RETURN this {
-	inBetween: var11
-} AS this
+RETURN this { inBetween: var11 } AS this
 ----
 
 '''

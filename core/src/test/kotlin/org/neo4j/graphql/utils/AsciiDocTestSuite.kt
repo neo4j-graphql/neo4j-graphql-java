@@ -8,7 +8,6 @@ import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.DynamicTest
 import java.io.File
 import java.io.FileWriter
-import java.math.BigInteger
 import java.net.URI
 import java.util.*
 import java.util.regex.Pattern
@@ -294,7 +293,8 @@ open class AsciiDocTestSuite(
          * to find broken tests easy by its console output, enable this feature
          */
         val FLATTEN_TESTS = System.getProperty("neo4j-graphql-java.flatten-tests", "false") == "true"
-        val GENERATE_TEST_FILE_DIFF = System.getProperty("neo4j-graphql-java.generate-test-file-diff", "true") == "true"
+        val GENERATE_TEST_FILE_DIFF =
+            System.getProperty("neo4j-graphql-java.generate-test-file-diff", "false") == "true"
         val REFORMAT_TEST_FILE = System.getProperty("neo4j-graphql-java.reformat", "false") == "true"
         val UPDATE_TEST_FILE = System.getProperty("neo4j-graphql-java.update-test-file", "false") == "true"
         val MAPPER = ObjectMapper().registerKotlinModule()
@@ -347,18 +347,6 @@ open class AsciiDocTestSuite(
                 return streamBuilder.build()
             }
         }
-
-        fun fixNumber(v: Any?): Any? = when (v) {
-            is Float -> v.toDouble()
-            is Int -> v.toLong()
-            is BigInteger -> v.toLong()
-            is Iterable<*> -> v.map { fixNumber(it) }
-            is Sequence<*> -> v.map { fixNumber(it) }
-            is Map<*, *> -> v.mapValues { fixNumber(it.value) }
-            else -> v
-        }
-
-        fun fixNumbers(params: Map<String, Any?>) = params.mapValues { (_, v) -> fixNumber(v) }
 
         fun String.parseJsonMap(): Map<String, Any?> = this.let {
             @Suppress("UNCHECKED_CAST")

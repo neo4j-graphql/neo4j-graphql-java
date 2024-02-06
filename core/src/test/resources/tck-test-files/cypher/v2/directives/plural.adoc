@@ -25,19 +25,17 @@ type Tech @plural(value: "Techs") {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 CALL {
-	MATCH (this:Tech)
-	RETURN count(this) AS var0
+    MATCH (this:Tech)
+    RETURN count(this) AS var0
 }
-RETURN {
-	count: var0
-}
+RETURN { count: var0 }
 ----
 
 '''
@@ -60,9 +58,11 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0" : [ {
-    "name" : "Highlander"
-  } ]
+  "create_param0": [
+    {
+      "name": "Highlander"
+    }
+  ]
 }
 ----
 
@@ -71,14 +71,14 @@ mutation {
 ----
 UNWIND $create_param0 AS create_var0
 CALL {
-	WITH create_var0
-	CREATE (create_this1:Tech)
-	SET create_this1.name = create_var0.name
-	RETURN create_this1
+    WITH create_var0
+    CREATE (create_this1:Tech)
+    SET
+        create_this1.name = create_var0.name
+    
+    RETURN create_this1
 }
-RETURN collect(create_this1 {
-	.name
-}) AS data
+RETURN collect(create_this1 { .name }) AS data
 ----
 
 '''
@@ -99,7 +99,7 @@ mutation {
 [source,json]
 ----
 {
-  "param0" : "Matrix"
+  "param0": "Matrix"
 }
 ----
 
@@ -107,7 +107,8 @@ mutation {
 [source,cypher]
 ----
 MATCH (this:Tech)
-WHERE this.name = $param0 DETACH DELETE this
+WHERE this.name = $param0
+DETACH DELETE this
 ----
 
 '''
@@ -127,16 +128,14 @@ WHERE this.name = $param0 DETACH DELETE this
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 MATCH (this:Tech)
-RETURN this {
-	.name
-} AS this
+RETURN this { .name } AS this
 ----
 
 '''
@@ -156,16 +155,14 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 MATCH (this:Tech)
-RETURN this {
-	.name
-} AS this
+RETURN this { .name } AS this
 ----
 
 '''
@@ -188,7 +185,7 @@ mutation {
 [source,json]
 ----
 {
-  "this_update_name" : "Matrix"
+  "this_update_name": "Matrix"
 }
 ----
 
@@ -196,10 +193,11 @@ mutation {
 [source,cypher]
 ----
 MATCH (this:Tech)
+
+
 SET this.name = $this_update_name
-RETURN collect(DISTINCT this {
-	.name
-}) AS data
+
+RETURN collect(DISTINCT this { .name }) AS data
 ----
 
 '''

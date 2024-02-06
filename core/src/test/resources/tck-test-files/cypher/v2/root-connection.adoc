@@ -37,7 +37,7 @@ type Actor {
 [source,json]
 ----
 {
-  "param0" : 20
+  "param0": 20
 }
 ----
 
@@ -45,25 +45,18 @@ type Actor {
 [source,cypher]
 ----
 MATCH (this0:Movie)
-WITH collect( {
-	node: this0
-}) AS edges
+WITH collect({ node: this0 }) AS edges
 WITH edges, size(edges) AS totalCount
 CALL {
-	WITH edges
-	UNWIND edges AS edge
-	WITH edge.node AS this0
-	WITH * ORDER BY this0.title ASC LIMIT $param0
-	RETURN collect( {
-		node: {
-			title: this0.title
-		}
-	}) AS var1
+    WITH edges
+    UNWIND edges AS edge
+    WITH edge.node AS this0
+    WITH *
+    ORDER BY this0.title ASC
+    LIMIT $param0
+    RETURN collect({ node: { title: this0.title } }) AS var1
 }
-RETURN {
-	edges: var1,
-	totalCount: totalCount
-} AS this
+RETURN { edges: var1, totalCount: totalCount } AS this
 ----
 
 '''
@@ -92,8 +85,8 @@ RETURN {
 [source,json]
 ----
 {
-  "param0" : "Matrix",
-  "param1" : 20
+  "param0": "Matrix",
+  "param1": 20
 }
 ----
 
@@ -102,25 +95,18 @@ RETURN {
 ----
 MATCH (this0:Movie)
 WHERE this0.title CONTAINS $param0
-WITH collect( {
-	node: this0
-}) AS edges
+WITH collect({ node: this0 }) AS edges
 WITH edges, size(edges) AS totalCount
 CALL {
-	WITH edges
-	UNWIND edges AS edge
-	WITH edge.node AS this0
-	WITH * ORDER BY this0.title ASC LIMIT $param1
-	RETURN collect( {
-		node: {
-			title: this0.title
-		}
-	}) AS var1
+    WITH edges
+    UNWIND edges AS edge
+    WITH edge.node AS this0
+    WITH *
+    ORDER BY this0.title ASC
+    LIMIT $param1
+    RETURN collect({ node: { title: this0.title } }) AS var1
 }
-RETURN {
-	edges: var1,
-	totalCount: totalCount
-} AS this
+RETURN { edges: var1, totalCount: totalCount } AS this
 ----
 
 '''
@@ -153,7 +139,7 @@ RETURN {
 [source,json]
 ----
 {
-  "param0" : 20
+  "param0": 20
 }
 ----
 
@@ -161,49 +147,31 @@ RETURN {
 [source,cypher]
 ----
 MATCH (this0:Movie)
-WITH collect( {
-	node: this0
-}) AS edges
+WITH collect({ node: this0 }) AS edges
 WITH edges, size(edges) AS totalCount
 CALL {
-	WITH edges
-	UNWIND edges AS edge
-	WITH edge.node AS this0
-	WITH * ORDER BY this0.title ASC LIMIT $param0
-	CALL {
-		WITH this0
-		MATCH (this0)<-[this1:ACTED_IN]-(this2:Actor)
-		WITH collect( {
-			node: this2,
-			relationship: this1
-		}) AS edges
-		WITH edges, size(edges) AS totalCount
-		CALL {
-			WITH edges
-			UNWIND edges AS edge
-			WITH edge.node AS this2, edge.relationship AS this1
-			RETURN collect( {
-				node: {
-					name: this2.name
-				}
-			}) AS var3
-		}
-		RETURN {
-			edges: var3,
-			totalCount: totalCount
-		} AS var4
-	}
-	RETURN collect( {
-		node: {
-			title: this0.title,
-			actorsConnection: var4
-		}
-	}) AS var5
+    WITH edges
+    UNWIND edges AS edge
+    WITH edge.node AS this0
+    WITH *
+    ORDER BY this0.title ASC
+    LIMIT $param0
+    CALL {
+        WITH this0
+        MATCH (this0)<-[this1:ACTED_IN]-(this2:Actor)
+        WITH collect({ node: this2, relationship: this1 }) AS edges
+        WITH edges, size(edges) AS totalCount
+        CALL {
+            WITH edges
+            UNWIND edges AS edge
+            WITH edge.node AS this2, edge.relationship AS this1
+            RETURN collect({ node: { name: this2.name } }) AS var3
+        }
+        RETURN { edges: var3, totalCount: totalCount } AS var4
+    }
+    RETURN collect({ node: { title: this0.title, actorsConnection: var4 } }) AS var5
 }
-RETURN {
-	edges: var5,
-	totalCount: totalCount
-} AS this
+RETURN { edges: var5, totalCount: totalCount } AS this
 ----
 
 '''
@@ -229,7 +197,7 @@ RETURN {
 [source,json]
 ----
 {
-  "param0" : "River Runs Through It, A"
+  "param0": "River Runs Through It, A"
 }
 ----
 
@@ -238,24 +206,15 @@ RETURN {
 ----
 MATCH (this0:Movie)
 WHERE this0.title = $param0
-WITH collect( {
-	node: this0
-}) AS edges
+WITH collect({ node: this0 }) AS edges
 WITH edges, size(edges) AS totalCount
 CALL {
-	WITH edges
-	UNWIND edges AS edge
-	WITH edge.node AS this0
-	RETURN collect( {
-		node: {
-			title: this0.title
-		}
-	}) AS var1
+    WITH edges
+    UNWIND edges AS edge
+    WITH edge.node AS this0
+    RETURN collect({ node: { title: this0.title } }) AS var1
 }
-RETURN {
-	edges: var1,
-	totalCount: totalCount
-} AS this
+RETURN { edges: var1, totalCount: totalCount } AS this
 ----
 
 '''

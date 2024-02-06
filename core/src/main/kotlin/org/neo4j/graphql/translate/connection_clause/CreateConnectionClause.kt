@@ -3,15 +3,17 @@ package org.neo4j.graphql.translate.connection_clause
 import org.neo4j.cypherdsl.core.*
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
-import org.neo4j.graphql.domain.directives.AuthDirective
+import org.neo4j.graphql.domain.directives.AuthenticationDirective
+import org.neo4j.graphql.domain.directives.AuthorizationDirective
 import org.neo4j.graphql.domain.fields.ConnectionField
 import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.domain.fields.ScalarField
 import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.schema.model.inputs.connection.ConnectionWhere
 import org.neo4j.graphql.schema.model.inputs.field_arguments.ConnectionFieldInputArgs
-import org.neo4j.graphql.translate.AuthTranslator
+import org.neo4j.graphql.translate.AuthorizationFactory
 import org.neo4j.graphql.translate.ProjectionTranslator
+import org.neo4j.graphql.translate.checkAuthentication
 import org.neo4j.graphql.translate.projection.projectScalarField
 import org.neo4j.graphql.translate.where.PrefixUsage
 import org.neo4j.graphql.translate.where.createConnectionWhere
@@ -88,8 +90,8 @@ object CreateConnectionClause {
 
     private fun createConnectionSortAndLimit(
         arguments: ConnectionFieldInputArgs,
-        relationshipRef: (Array<String>)->Property,
-        nodeRef: (Array<String>)->Property,
+        relationshipRef: (Array<String>) -> Property,
+        nodeRef: (Array<String>) -> Property,
         limit: Int?,
         fieldOverrides: Map<String, Expression>,
         ignoreSkipLimit: Boolean = false,
@@ -187,6 +189,13 @@ object CreateConnectionClause {
 
         val edgeItem = Cypher.name("edge")
         val sortFieldOverrides = mutableMapOf<String, Expression>()
+
+        checkAuthentication(
+            relatedNode,
+            queryContext,
+            field = null,
+            AuthenticationDirective.AuthenticationOperation.READ
+        )
 
         val edgeSubquery = createEdgeSubquery(
             args,
@@ -305,7 +314,7 @@ object CreateConnectionClause {
             null -> null
         }
 
-        val (wherePredicate, preComputedSubQueries) = createConnectionWhere(
+        var where = createConnectionWhere(
             whereInput,
             relatedNode,
             endNode,
@@ -317,14 +326,15 @@ object CreateConnectionClause {
             usePrefix
         )
 
-        val whereAuth =
-            AuthTranslator(schemaConfig, queryContext, where = AuthTranslator.AuthOptions(endNode, relatedNode))
-                .createAuth(relatedNode.auth, AuthDirective.AuthOperation.READ)
+        where = where and AuthorizationFactory.getAuthConditions(
+            relatedNode,
+            endNode,
+            fields = null,
+            schemaConfig,
+            queryContext,
+            AuthorizationDirective.AuthorizationOperation.READ
+        )
 
-        val allowAuth =
-            AuthTranslator(schemaConfig, queryContext, allow = AuthTranslator.AuthOptions(endNode, relatedNode))
-                .createAuth(relatedNode.auth, AuthDirective.AuthOperation.READ)
-                ?.let { it.apocValidatePredicate(Constants.AUTH_FORBIDDEN_ERROR) }
 
         val projection = createEdgeProjection(
             resolveTree,
@@ -340,31 +350,46 @@ object CreateConnectionClause {
             args,
             returnVariable,
         )
-        sortFieldOverrides.putAll(projection.sortFields)
+//        sortFieldOverrides.putAll(projection.sortFields)
 
-        val conditions = mutableListOf(wherePredicate, allowAuth, whereAuth, projection.authValidate)
+        where = where and projection.authValidate
+        val subqueries = where.preComputedSubQueries + projection.allSubQueries
 
-        val order = if (!ignoreSort){
+        val order = if (!ignoreSort) {
             // we ignore limit here to avoid breaking totalCount
-            createConnectionSortAndLimit(args, rel::property, endNode::property, null, emptyMap(), ignoreSkipLimit = true)
+            createConnectionSortAndLimit(
+                args,
+                rel::property,
+                endNode::property,
+                null,
+                emptyMap(),
+                ignoreSkipLimit = true
+            )
         } else {
             null
         }
         return Cypher.with(startNode)
             .match(rel)
             .let {
-                if (preComputedSubQueries.isEmpty()) {
+                if (subqueries.isEmpty()) {
                     it
-                        .optionalWhere(conditions)
+                        .optionalWhere(where.predicate)
                 } else {
-                    it.withSubQueries(preComputedSubQueries)
+                    it.withSubQueries(subqueries)
                         .with(Cypher.asterisk())
-                        .optionalWhere(conditions)
+                        .optionalWhere(where.predicate)
                 }
             }
-            .applySortingSkipAndLimit(order, queryContext,  prefix, listOf(rel, endNode))
-            .withSubQueries(projection.subQueries)
-            .with(Cypher.mapOf(*projection.projection.toTypedArray()).`as`(returnVariable))
+//            .applySortingSkipAndLimit(order, queryContext, prefix, listOf(rel, endNode))
+//            .withSubQueries(projection.subQueries)
+            .with(
+                Cypher.collect(
+                    Cypher.mapOf(
+                        Constants.NODE_FIELD, endNode.asExpression(),
+                        Constants.RELATIONSHIP_FIELD, rel.asExpression()
+                    )
+                ).`as`(returnVariable)
+            )
     }
 
     private fun createEdgeProjection(

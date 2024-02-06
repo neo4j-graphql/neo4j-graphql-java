@@ -9,9 +9,10 @@ import org.neo4j.cypherdsl.core.StatementBuilder.ExposesDelete
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
+import org.neo4j.graphql.domain.directives.AuthorizationDirective
 import org.neo4j.graphql.handler.BaseDataFetcher
 import org.neo4j.graphql.handler.utils.ChainString
-import org.neo4j.graphql.schema.AugmentationBase
+import org.neo4j.graphql.schema.ArgumentsAugmentation
 import org.neo4j.graphql.schema.AugmentationContext
 import org.neo4j.graphql.schema.AugmentationHandler
 import org.neo4j.graphql.schema.model.inputs.Dict
@@ -33,17 +34,11 @@ class DeleteResolver private constructor(
             if (node.annotations.mutation?.delete == false) {
                 return emptyList()
             }
-
-            val arguments = DeleteInputArguments.Augmentation.getFieldArguments(node, ctx)
-            if (arguments.isEmpty()) {
-                return emptyList()
-            }
-
             val coordinates = addMutationField(
-                node.operations.rootTypeFieldNames.delete,
+                node.namings.rootTypeFieldNames.delete,
                 Constants.Types.DeleteInfo.makeRequired(),
-                arguments
-            )
+                DeleteInputArguments.Augmentation(node, ctx)
+            ) ?: return emptyList()
 
             return AugmentedField(coordinates, DeleteResolver(ctx.schemaConfig, node)).wrapList()
         }
@@ -56,11 +51,9 @@ class DeleteResolver private constructor(
         val where = args.nestedDict(Constants.WHERE)
             ?.let { WhereInput.NodeWhereInput(node, it) }
 
-        object Augmentation : AugmentationBase {
+        class Augmentation(val node: Node, val ctx: AugmentationContext) : ArgumentsAugmentation {
 
-            fun getFieldArguments(node: Node, ctx: AugmentationContext): List<InputValueDefinition> {
-                val args = mutableListOf<InputValueDefinition>()
-
+            override fun augmentArguments(args: MutableList<InputValueDefinition>) {
                 DeleteInput.NodeDeleteInput.Augmentation
                     .generateContainerDeleteInputIT(node, ctx)?.let {
                         args += inputValue(Constants.DELETE_FIELD, it.asType())
@@ -69,8 +62,6 @@ class DeleteResolver private constructor(
                 WhereInput.NodeWhereInput.Augmentation
                     .generateWhereIT(node, ctx)
                     ?.let { args += inputValue(Constants.WHERE, it.asType()) }
-
-                return args
             }
         }
     }
@@ -85,7 +76,13 @@ class DeleteResolver private constructor(
 
         var ongoingReading: ExposesWith =
             TopLevelMatchTranslator(schemaConfig, env.variables, queryContext)
-                .translateTopLevelMatch(node, dslNode, null, input.where, AuthDirective.AuthOperation.DELETE)
+                .translateTopLevelMatch(
+                    node,
+                    dslNode,
+                    null,
+                    input.where,
+                    AuthorizationDirective.AuthorizationOperation.DELETE
+                )
 
         val withVars = listOf(dslNode.requiredSymbolicName)
 

@@ -18,7 +18,6 @@ type Series {
   """, columnName: "n")
 }
 ----
-
 == should query allEpisodes with argument named as options
 
 .GraphQL-Query
@@ -37,7 +36,9 @@ type Series {
 [source,json]
 ----
 {
-  "param0" : [ 2 ]
+  "param0": [
+    2
+  ]
 }
 ----
 
@@ -46,21 +47,17 @@ type Series {
 ----
 MATCH (this:Series)
 CALL {
-	WITH this
-	CALL {
-		WITH this
-		WITH this AS this
-		MATCH (this)<-[:IN_SERIES]-(episode:Episode)
-		RETURN episode AS n LIMIT $param0[0]
-	}
-	WITH n AS this0
-	RETURN collect(this0 {
-		.id
-	}) AS this0
+    WITH this
+    CALL {
+        WITH this
+        WITH this AS this
+        MATCH(this)<-[:IN_SERIES]-(episode:Episode)
+        RETURN episode as n LIMIT $param0[0]
+    }
+    WITH n AS this0
+    RETURN collect(this0 { .id }) AS this0
 }
-RETURN this {
-	allEpisodes: this0
-} AS this
+RETURN this { allEpisodes: this0 } AS this
 ----
 
 '''

@@ -1,7 +1,8 @@
 package org.neo4j.graphql.schema.model.inputs.connection
 
 import graphql.language.InputValueDefinition
-import org.neo4j.graphql.*
+import org.neo4j.graphql.Constants
+import org.neo4j.graphql.asType
 import org.neo4j.graphql.domain.*
 import org.neo4j.graphql.domain.fields.ConnectionField
 import org.neo4j.graphql.domain.fields.RelationField
@@ -13,6 +14,8 @@ import org.neo4j.graphql.schema.model.inputs.NestedWhere
 import org.neo4j.graphql.schema.model.inputs.PerNodeInput
 import org.neo4j.graphql.schema.model.inputs.WhereInput
 import org.neo4j.graphql.schema.relations.RelationFieldBaseAugmentation
+import org.neo4j.graphql.toDeprecatedDirective
+import org.neo4j.graphql.toDict
 
 private val NEGATION_DEPRECATED =
     "Negation filters will be deprecated, use the NOT operator to achieve the same behavior".toDeprecatedDirective()
@@ -71,7 +74,7 @@ sealed interface ConnectionWhere {
                 ctx: AugmentationContext
             ) =
 
-                ctx.getOrCreateInputObjectType(rel.operations.getConnectionWhereTypename(node)) { fields, connectionWhereName ->
+                ctx.getOrCreateInputObjectType(rel.namings.getConnectionWhereTypename(node)) { fields, connectionWhereName ->
                     WhereInput.NodeWhereInput.Augmentation.generateWhereIT(node, ctx)
                         ?.let {
                             fields += inputValue(Constants.NODE_FIELD, it.asType())
@@ -106,7 +109,7 @@ sealed interface ConnectionWhere {
                 interfaze: Interface,
                 ctx: AugmentationContext
             ) =
-                ctx.getOrCreateInputObjectType(rel.operations.getConnectionWhereTypename(interfaze)) { fields, connectionWhereName ->
+                ctx.getOrCreateInputObjectType(rel.namings.getConnectionWhereTypename(interfaze)) { fields, connectionWhereName ->
                     WhereInput.InterfaceWhereInput.Augmentation.generateFieldWhereIT(interfaze, ctx)?.let {
                         fields += inputValue(Constants.NODE_FIELD, it.asType())
                         fields += inputValue(Constants.NODE_FIELD + "_NOT", it.asType()) {

@@ -1,15 +1,16 @@
 package org.neo4j.graphql.handler.v2
 
 import graphql.language.Field
-import graphql.language.ListType
-import graphql.language.NonNullType
+import graphql.language.InputValueDefinition
 import graphql.schema.DataFetchingEnvironment
 import org.neo4j.cypherdsl.core.Statement
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Entity
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
+import org.neo4j.graphql.domain.directives.AuthorizationDirective
 import org.neo4j.graphql.handler.BaseDataFetcher
+import org.neo4j.graphql.schema.ArgumentsAugmentation
 import org.neo4j.graphql.schema.AugmentationContext
 import org.neo4j.graphql.schema.AugmentationHandler
 import org.neo4j.graphql.schema.model.inputs.Dict
@@ -46,24 +47,11 @@ class ReadResolver internal constructor(
             )
                 ?: return emptyList()
             val coordinates =
-                addQueryField(entity.plural, NonNullType(ListType(nodeType.asRequiredType()))) { args ->
-
-                    WhereInput.Augmentation.generateWhereIT(entity, ctx)
-                        ?.let { args += inputValue(Constants.WHERE, it.asType()) }
-
-                    OptionsInput.Augmentation
-                        .generateOptionsIT(entity, ctx)
-                        .let { args += inputValue(Constants.OPTIONS, it.asType()) }
-
-                    if (entity is Node && entity.annotations.fulltext != null) {
-                        FulltextInput.Augmentation.generateFulltextInput(entity, ctx)
-                            ?.let {
-                                args += inputValue(Constants.FULLTEXT, it.asType()) {
-                                    description("Query a full-text index. Allows for the aggregation of results, but does not return the query score. Use the root full-text query fields if you require the score.".asDescription())
-                                }
-                            }
-                    }
-                }
+                addQueryField(
+                    entity.namings.rootTypeFieldNames.read,
+                    nodeType.asRequiredType().List.NonNull,
+                    InputArguments.Augmentation(entity, ctx)
+                )
             return AugmentedField(coordinates, ReadResolver(ctx.schemaConfig, entity)).wrapList()
         }
     }
@@ -73,6 +61,27 @@ class ReadResolver internal constructor(
             ?.let { WhereInput.NodeWhereInput(node, it) }
 
         val options = OptionsInput.create(args.nestedDict(Constants.OPTIONS))
+
+        class Augmentation(val entity: Entity, val ctx: AugmentationContext) : ArgumentsAugmentation {
+            override fun augmentArguments(args: MutableList<InputValueDefinition>) {
+
+                WhereInput.Augmentation.generateWhereIT(entity, ctx)
+                    ?.let { args += inputValue(Constants.WHERE, it.asType()) }
+
+                OptionsInput.Augmentation
+                    .generateOptionsIT(entity, ctx)
+                    .let { args += inputValue(Constants.OPTIONS, it.asType()) }
+
+                if (entity is Node && entity.annotations.fulltext != null) {
+                    FulltextInput.Augmentation.generateFulltextInput(entity, ctx)
+                        ?.let {
+                            args += inputValue(Constants.FULLTEXT, it.asType()) {
+                                description("Query a full-text index. Allows for the aggregation of results, but does not return the query score. Use the root full-text query fields if you require the score.".asDescription())
+                            }
+                        }
+                }
+            }
+        }
     }
 
     override fun generateCypher(variable: String, field: Field, env: DataFetchingEnvironment): Statement {
@@ -81,6 +90,7 @@ class ReadResolver internal constructor(
             TODO()
         }
         val node: Node = entity
+
 
 
         val resolveTree = ResolveTree.resolve(env)
@@ -111,7 +121,7 @@ class ReadResolver internal constructor(
                 dslNode,
                 null,
                 input.where,
-                AuthDirective.AuthOperation.READ,
+                AuthorizationDirective.AuthorizationOperation.READ,
                 authPredicates
             )
 

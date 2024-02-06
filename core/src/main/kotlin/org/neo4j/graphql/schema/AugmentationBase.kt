@@ -21,13 +21,15 @@ interface AugmentationBase {
     fun field(
         name: String,
         type: Type<*>,
-        args: List<InputValueDefinition> = emptyList(),
+        args: List<InputValueDefinition>? = emptyList(),
         init: (FieldDefinition.Builder.() -> Unit)? = null
     ): FieldDefinition {
         val field = FieldDefinition.newFieldDefinition()
         field.name(name)
         field.type(type)
-        field.inputValueDefinitions(args)
+        if (args != null) {
+            field.inputValueDefinitions(args)
+        }
         init?.let { field.it() }
         return field.build()
     }

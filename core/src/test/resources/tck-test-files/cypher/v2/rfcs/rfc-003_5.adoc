@@ -46,21 +46,23 @@ mutation {
 [source,json]
 ----
 {
-  "param0" : "movieId-4",
-  "updateMovies" : {
-    "args" : {
-      "delete" : {
-        "director" : {
-          "where" : {
-            "node" : {
-              "id" : "directorId-3"
+  "param0": "movieId-4",
+  "updateMovies_args_delete_director_where_this_delete_director0param0": "directorId-3",
+  "updateMovies_args_delete_director_delete_address_where_this_delete_director0_address0param0": "some-address",
+  "updateMovies": {
+    "args": {
+      "delete": {
+        "director": {
+          "where": {
+            "node": {
+              "id": "directorId-3"
             }
           },
-          "delete" : {
-            "address" : {
-              "where" : {
-                "node" : {
-                  "id" : "some-address"
+          "delete": {
+            "address": {
+              "where": {
+                "node": {
+                  "id": "some-address"
                 }
               }
             }
@@ -68,9 +70,7 @@ mutation {
         }
       }
     }
-  },
-  "updateMovies_args_delete_director_delete_address_where_this_delete_director0_address0param0" : "some-address",
-  "updateMovies_args_delete_director_where_this_delete_director0param0" : "directorId-3"
+  }
 }
 ----
 
@@ -81,43 +81,45 @@ MATCH (this:Movie)
 WHERE this.id = $param0
 WITH *
 CALL {
-	WITH *
-	OPTIONAL MATCH (this)<-[this_delete_director0_relationship:DIRECTED]-(this_delete_director0:Director)
-	WHERE this_delete_director0.id = $updateMovies_args_delete_director_where_this_delete_director0param0
-	WITH *
-	CALL {
-		WITH *
-		OPTIONAL MATCH (this_delete_director0)-[this_delete_director0_address0_relationship:HAS_ADDRESS]->(this_delete_director0_address0:Address)
-		WHERE this_delete_director0_address0.id = $updateMovies_args_delete_director_delete_address_where_this_delete_director0_address0param0
-		WITH this_delete_director0_address0_relationship, collect(DISTINCT this_delete_director0_address0) AS this_delete_director0_address0_to_delete
-		CALL {
-			WITH this_delete_director0_address0_to_delete
-			UNWIND this_delete_director0_address0_to_delete AS x DETACH DELETE x
-		}
-	}
-	WITH this_delete_director0_relationship, collect(DISTINCT this_delete_director0) AS this_delete_director0_to_delete
-	CALL {
-		WITH this_delete_director0_to_delete
-		UNWIND this_delete_director0_to_delete AS x DETACH DELETE x
-	}
+WITH *
+OPTIONAL MATCH (this)<-[this_delete_director0_relationship:DIRECTED]-(this_delete_director0:Director)
+WHERE this_delete_director0.id = $updateMovies_args_delete_director_where_this_delete_director0param0
+WITH *
+CALL {
+WITH *
+OPTIONAL MATCH (this_delete_director0)-[this_delete_director0_address0_relationship:HAS_ADDRESS]->(this_delete_director0_address0:Address)
+WHERE this_delete_director0_address0.id = $updateMovies_args_delete_director_delete_address_where_this_delete_director0_address0param0
+WITH this_delete_director0_address0_relationship, collect(DISTINCT this_delete_director0_address0) AS this_delete_director0_address0_to_delete
+CALL {
+	WITH this_delete_director0_address0_to_delete
+	UNWIND this_delete_director0_address0_to_delete AS x
+	DETACH DELETE x
+}
+}
+WITH this_delete_director0_relationship, collect(DISTINCT this_delete_director0) AS this_delete_director0_to_delete
+CALL {
+	WITH this_delete_director0_to_delete
+	UNWIND this_delete_director0_to_delete AS x
+	DETACH DELETE x
+}
 }
 WITH *
 WITH *
 CALL {
 	WITH this
 	MATCH (this)<-[this_director_Director_unique:DIRECTED]-(:Director)
-	WITH count(this_director_Director_unique) AS c
+	WITH count(this_director_Director_unique) as c
 	WHERE apoc.util.validatePredicate(NOT (c = 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.director required exactly once', [0])
 	RETURN c AS this_director_Director_unique_ignored
 }
 CALL {
 	WITH this
 	MATCH (this)<-[this_coDirector_CoDirector_unique:CO_DIRECTED]-(:CoDirector)
-	WITH count(this_coDirector_CoDirector_unique) AS c
+	WITH count(this_coDirector_CoDirector_unique) as c
 	WHERE apoc.util.validatePredicate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.coDirector must be less than or equal to one', [0])
 	RETURN c AS this_coDirector_CoDirector_unique_ignored
 }
-RETURN 'Query cannot conclude with CALL'
+RETURN "Query cannot conclude with CALL"
 ----
 
 '''

@@ -24,7 +24,6 @@ type BookTitle_EN {
   value: String!
 }
 ----
-
 == should validate cardinality against all the implementations
 
 .GraphQL-Query
@@ -61,8 +60,8 @@ mutation UpdateBooks {
 [source,json]
 ----
 {
-  "param0" : "123",
-  "this_create_translatedTitle_BookTitle_EN0_node_value" : "English book title"
+  "param0": "123",
+  "this_create_translatedTitle_BookTitle_EN0_node_value": "English book title"
 }
 ----
 
@@ -72,40 +71,28 @@ mutation UpdateBooks {
 MATCH (this:Book)
 WHERE this.isbn = $param0
 WITH *
-WHERE apoc.util.validatePredicate((EXISTS((this)<-[:TRANSLATED_BOOK_TITLE]-(:BookTitle_SV))
-	OR EXISTS((this)<-[:TRANSLATED_BOOK_TITLE]-(:BookTitle_EN))), 'Relationship field \"%s.%s\" cannot have more than one node linked', ['Book', 'translatedTitle'])
+WHERE apoc.util.validatePredicate(EXISTS((this)<-[:TRANSLATED_BOOK_TITLE]-(:BookTitle_SV)) OR EXISTS((this)<-[:TRANSLATED_BOOK_TITLE]-(:BookTitle_EN)),'Relationship field "%s.%s" cannot have more than one node linked',["Book","translatedTitle"])
 CREATE (this_create_translatedTitle_BookTitle_EN0_node:BookTitle_EN)
 SET this_create_translatedTitle_BookTitle_EN0_node.value = $this_create_translatedTitle_BookTitle_EN0_node_value
 MERGE (this)<-[:TRANSLATED_BOOK_TITLE]-(this_create_translatedTitle_BookTitle_EN0_node)
 WITH *
 CALL {
-	WITH this
-	CALL {
-		WITH *
-		MATCH (this)<-[update_this0:TRANSLATED_BOOK_TITLE]-(update_this1:BookTitle_SV)
-		WITH update_this1 {
-			__resolveType: 'BookTitle_SV',
-			__id: id(this),
-			.value
-		} AS update_this1
-		RETURN update_this1 AS update_var2 UNION
-		WITH *
-		MATCH (this)<-[update_this3:TRANSLATED_BOOK_TITLE]-(update_this4:BookTitle_EN)
-		WITH update_this4 {
-			__resolveType: 'BookTitle_EN',
-			__id: id(this),
-			.value
-		} AS update_this4
-		RETURN update_this4 AS update_var2
-	}
-	WITH update_var2
-	RETURN head(collect(update_var2)) AS update_var2
+    WITH this
+    CALL {
+        WITH *
+        MATCH (this)<-[update_this0:TRANSLATED_BOOK_TITLE]-(update_this1:BookTitle_SV)
+        WITH update_this1 { .value, __resolveType: "BookTitle_SV", __id: id(update_this1) } AS update_this1
+        RETURN update_this1 AS update_var2
+        UNION
+        WITH *
+        MATCH (this)<-[update_this3:TRANSLATED_BOOK_TITLE]-(update_this4:BookTitle_EN)
+        WITH update_this4 { .value, __resolveType: "BookTitle_EN", __id: id(update_this4) } AS update_this4
+        RETURN update_this4 AS update_var2
+    }
+    WITH update_var2
+    RETURN head(collect(update_var2)) AS update_var2
 }
-RETURN collect(DISTINCT this {
-	.isbn,
-	.originalTitle,
-	translatedTitle: update_var2
-}) AS data
+RETURN collect(DISTINCT this { .isbn, .originalTitle, translatedTitle: update_var2 }) AS data
 ----
 
 '''

@@ -11,7 +11,6 @@ type Movie @fulltext(indexes: [{name: "MovieTitle", fields: ["title"]}]) {
   released: Int
 }
 ----
-
 == simple match with single property and score
 
 .GraphQL-Query
@@ -32,20 +31,17 @@ type Movie @fulltext(indexes: [{name: "MovieTitle", fields: ["title"]}]) {
 [source,json]
 ----
 {
-  "param0" : "a different name",
-  "param1" : "Movie"
+  "param0": "a different name",
+  "param1": "Movie"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-CALL db.index.fulltext.queryNodes('MovieTitle', $param0) YIELD node AS this0, score AS var1
+CALL db.index.fulltext.queryNodes("MovieTitle", $param0) YIELD node AS this0, score AS var1
 WHERE $param1 IN labels(this0)
-RETURN this0 {
-	.title,
-	.released
-} AS movie, var1 AS score
+RETURN this0 { .title, .released } AS movie, var1 AS score
 ----
 
 '''
@@ -73,22 +69,18 @@ RETURN this0 {
 [source,json]
 ----
 {
-  "param0" : "a different name",
-  "param1" : "Movie",
-  "param2" : 2000
+  "param0": "a different name",
+  "param1": "Movie",
+  "param2": 2000
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-CALL db.index.fulltext.queryNodes('MovieTitle', $param0) YIELD node AS this0, score AS var1
-WHERE ($param1 IN labels(this0)
-	AND this0.released > $param2)
-RETURN this0 {
-	.title,
-	.released
-} AS movie, var1 AS score
+CALL db.index.fulltext.queryNodes("MovieTitle", $param0) YIELD node AS this0, score AS var1
+WHERE ($param1 IN labels(this0) AND this0.released > $param2)
+RETURN this0 { .title, .released } AS movie, var1 AS score
 ----
 
 '''
@@ -115,19 +107,19 @@ RETURN this0 {
 [source,json]
 ----
 {
-  "param0" : "a different name",
-  "param1" : "Movie"
+  "param0": "a different name",
+  "param1": "Movie"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-CALL db.index.fulltext.queryNodes('MovieTitle', $param0) YIELD node AS this0, score AS var1
-WHERE $param1 IN labels(this0) WITH * ORDER BY var1 ASC, this0.title DESC
-RETURN this0 {
-	.title
-} AS movie, var1 AS score
+CALL db.index.fulltext.queryNodes("MovieTitle", $param0) YIELD node AS this0, score AS var1
+WHERE $param1 IN labels(this0)
+WITH *
+ORDER BY var1 ASC, this0.title DESC
+RETURN this0 { .title } AS movie, var1 AS score
 ----
 
 '''
@@ -151,21 +143,18 @@ RETURN this0 {
 [source,json]
 ----
 {
-  "param0" : "a different name",
-  "param1" : "Movie",
-  "param2" : 0.5
+  "param0": "a different name",
+  "param1": "Movie",
+  "param2": 0.5
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-CALL db.index.fulltext.queryNodes('MovieTitle', $param0) YIELD node AS this0, score AS var1
-WHERE ($param1 IN labels(this0)
-	AND var1 >= $param2)
-RETURN this0 {
-	.title
-} AS movie, var1 AS score
+CALL db.index.fulltext.queryNodes("MovieTitle", $param0) YIELD node AS this0, score AS var1
+WHERE ($param1 IN labels(this0) AND var1 >= $param2)
+RETURN this0 { .title } AS movie, var1 AS score
 ----
 
 '''
@@ -189,19 +178,19 @@ RETURN this0 {
 [source,json]
 ----
 {
-  "param0" : "a different name",
-  "param1" : "Movie"
+  "param0": "a different name",
+  "param1": "Movie"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-CALL db.index.fulltext.queryNodes('MovieTitle', $param0) YIELD node AS this0, score AS var1
-WHERE $param1 IN labels(this0) WITH * ORDER BY var1 ASC
-RETURN this0 {
-	.title
-} AS movie, var1 AS score
+CALL db.index.fulltext.queryNodes("MovieTitle", $param0) YIELD node AS this0, score AS var1
+WHERE $param1 IN labels(this0)
+WITH *
+ORDER BY var1 ASC
+RETURN this0 { .title } AS movie, var1 AS score
 ----
 
 '''
@@ -228,19 +217,19 @@ RETURN this0 {
 [source,json]
 ----
 {
-  "param0" : "a different name",
-  "param1" : "Movie"
+  "param0": "a different name",
+  "param1": "Movie"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-CALL db.index.fulltext.queryNodes('MovieTitle', $param0) YIELD node AS this0, score AS var1
-WHERE $param1 IN labels(this0) WITH * ORDER BY this0.title DESC
-RETURN this0 {
-	.title
-} AS movie, var1 AS score
+CALL db.index.fulltext.queryNodes("MovieTitle", $param0) YIELD node AS this0, score AS var1
+WHERE $param1 IN labels(this0)
+WITH *
+ORDER BY this0.title DESC
+RETURN this0 { .title } AS movie, var1 AS score
 ----
 
 '''

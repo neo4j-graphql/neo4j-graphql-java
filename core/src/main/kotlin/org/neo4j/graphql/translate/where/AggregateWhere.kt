@@ -24,14 +24,16 @@ class AggregateWhere(val schemaConfig: SchemaConfig, val queryContext: QueryCont
         val aggregationTarget = targetNode.asCypherNode(queryContext).named(queryContext.getNextVariable(chainStr))
         val cypherRelation = field.createDslRelation(node, aggregationTarget).named(relName)
 
-        val (projection, condition) = aggregateWhere(input, aggregationTarget, cypherRelation)
+        val condition = aggregateWhere(input, aggregationTarget, cypherRelation)
+            ?: return WhereResult.EMPTY
 
+        val operationVar = queryContext.getNextVariable()
         return WhereResult(
-            condition, listOf(
+            operationVar.eq(true.asCypherLiteral()), listOf(
                 Cypher
                     .with(node)
                     .match(cypherRelation)
-                    .returning(*projection.toTypedArray())
+                    .returning(condition.`as`(operationVar))
                     .build()
             )
         )
@@ -41,38 +43,29 @@ class AggregateWhere(val schemaConfig: SchemaConfig, val queryContext: QueryCont
         input: AggregateInput,
         aggregationTarget: Node,
         cypherRelation: Relationship
-    ): Pair<List<Expression>, Condition?> {
+    ): Condition? {
 
-        val projections = mutableListOf<Expression>()
-
-        var condition = input.reduceNestedConditions { _, _, nested ->
-            val (nestedProjections, nestedCondition) = aggregateWhere(nested, aggregationTarget, cypherRelation)
-            projections += nestedProjections
-            nestedCondition
+        var condition: Condition? = null
+        input.countPredicates.forEach {
+            val param = queryContext.getNextParam(it.value)
+            condition = condition and it.createCondition(Cypher.count(aggregationTarget), param)
         }
 
-        input.countPredicates.forEach {
-
-            val operationVar = queryContext.getNextVariable()
-            val param = queryContext.getNextParam(it.value)
-
-            projections += it.createCondition(Functions.count(aggregationTarget), param).`as`(operationVar)
-            condition = condition and operationVar.eq(true.asCypherLiteral())
+        input.reduceNestedConditions { _, _, nested ->
+            aggregateWhere(nested, aggregationTarget, cypherRelation)
+        }?.let {
+            condition = condition and it
         }
 
         input.node?.let { createAggregationWhere(aggregationTarget, it) }?.let {
-            val operationVar = queryContext.getNextVariable()
-            projections += it.`as`(operationVar)
-            condition = condition and operationVar.eq(true.asCypherLiteral())
+            condition = condition and it
         }
 
         input.edge?.let { createAggregationWhere(cypherRelation, it) }?.let {
-            val operationVar = queryContext.getNextVariable()
-            projections += it.`as`(operationVar)
-            condition = condition and operationVar.eq(true.asCypherLiteral())
+            condition = condition and it
         }
 
-        return projections to condition
+        return condition
     }
 
 

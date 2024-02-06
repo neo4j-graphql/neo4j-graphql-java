@@ -17,6 +17,7 @@ import org.neo4j.graphql.translate.projection.projectScalarField
 import org.neo4j.graphql.translate.where.PrefixUsage
 import org.neo4j.graphql.translate.where.createWhere
 import org.neo4j.graphql.utils.ResolveTree
+import org.neo4j.graphql.utils.ResolveTree.Companion.generateMissingOrAliasedFields
 
 class ProjectionTranslator {
 
@@ -290,12 +291,13 @@ class ProjectionTranslator {
         node: Node,
         selectedFields: Map<*, ResolveTree>
     ): Map<String, ResolveTree> {
-        TODO("take a look at this and use the selection set")
+//        TODO("take a look at this and use the selection set")
 //        val requiredFields = node.computedFields
 //            .filter { cf -> selectedFields.values.find { it.name == cf.fieldName } != null }
 //            .mapNotNull { it.requiredFields }
 //            .flatMapTo(linkedSetOf()) { it }
-//        return generateMissingOrAliasedFields(requiredFields, selectedFields)
+        val requiredFields = emptySet<String>()
+        return generateMissingOrAliasedFields(requiredFields, selectedFields)
     }
 
     private fun createNodeWhereAndParams(

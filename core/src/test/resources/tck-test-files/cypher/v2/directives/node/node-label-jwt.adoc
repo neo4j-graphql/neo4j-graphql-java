@@ -32,13 +32,30 @@ mutation {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [],
+    "jwt": {
+      "roles": [],
+      "movielabel": "Film"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
 {
-  "create_param0" : [ {
-    "title" : "Titanic"
-  } ]
+  "create_param0": [
+    {
+      "title": "Titanic"
+    }
+  ]
 }
 ----
 
@@ -47,14 +64,14 @@ mutation {
 ----
 UNWIND $create_param0 AS create_var0
 CALL {
-	WITH create_var0
-	CREATE (create_this1:Film)
-	SET create_this1.title = create_var0.title
-	RETURN create_this1
+    WITH create_var0
+    CREATE (create_this1:Film)
+    SET
+        create_this1.title = create_var0.title
+    
+    RETURN create_this1
 }
-RETURN collect(create_this1 {
-	.title
-}) AS data
+RETURN collect(create_this1 { .title }) AS data
 ----
 
 '''
@@ -71,19 +88,32 @@ RETURN collect(create_this1 {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [],
+    "jwt": {
+      "roles": [],
+      "movielabel": "Film"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 MATCH (this:Film)
-RETURN this {
-	.title
-} AS this
+RETURN this { .title } AS this
 ----
 
 '''
@@ -103,12 +133,28 @@ RETURN this {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [],
+    "jwt": {
+      "roles": [],
+      "movielabel": "Film",
+      "personlabel": "Person"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
 {
-  "param0" : 10,
-  "param1" : "terminator"
+  "param0": 10,
+  "param1": "terminator"
 }
 ----
 
@@ -118,18 +164,13 @@ RETURN this {
 MATCH (this:Actor:Person)
 WHERE this.age > $param0
 CALL {
-	WITH this
-	MATCH (this)-[this0:ACTED_IN]->(this1:Film)
-	WHERE this1.title = $param1
-	WITH this1 {
-		.title
-	} AS this1
-	RETURN collect(this1) AS var2
+    WITH this
+    MATCH (this)-[this0:ACTED_IN]->(this1:Film)
+    WHERE this1.title = $param1
+    WITH this1 { .title } AS this1
+    RETURN collect(this1) AS var2
 }
-RETURN this {
-	.name,
-	movies: var2
-} AS this
+RETURN this { .name, movies: var2 } AS this
 ----
 
 '''

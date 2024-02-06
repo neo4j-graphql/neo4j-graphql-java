@@ -3,12 +3,12 @@ package org.neo4j.graphql.domain.fields
 import graphql.language.ListType
 import graphql.language.Type
 import org.neo4j.cypherdsl.core.Condition
+import org.neo4j.cypherdsl.core.Cypher
 import org.neo4j.cypherdsl.core.Expression
-import org.neo4j.cypherdsl.core.Functions
 import org.neo4j.cypherdsl.core.Parameter
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.TypeMeta
-import org.neo4j.graphql.domain.directives.Annotations
+import org.neo4j.graphql.domain.directives.FieldAnnotations
 import org.neo4j.graphql.domain.predicates.FieldOperator
 import org.neo4j.graphql.domain.predicates.definitions.ScalarPredicateDefinition
 
@@ -18,12 +18,18 @@ private const val NEGATE_DEPRECATED_MSG =
 abstract class ScalarField(
     fieldName: String,
     typeMeta: TypeMeta,
-    annotations: Annotations,
+    annotations: FieldAnnotations,
     schemaConfig: SchemaConfig
 ) :
     BaseField(fieldName, typeMeta, annotations), AuthableField, MutableField {
 
-    open val predicates: Map<String, ScalarPredicateDefinition> = initPredicates(schemaConfig)
+    open val predicateDefinitions: Map<String, ScalarPredicateDefinition> = initPredicates(schemaConfig)
+
+    val updateDefinitions: Map<String, ScalarUpdateOperation> = ScalarUpdateOperation
+        .values()
+        .filter { it.condition(this) }
+        .associateBy { "${fieldName}_${it.name}" }
+
 
     private fun initPredicates(schemaConfig: SchemaConfig): Map<String, ScalarPredicateDefinition> {
         val fieldType = typeMeta.type.name()
@@ -32,8 +38,8 @@ abstract class ScalarField(
                 { comparisonResolver ->
                     { property, param ->
                         comparisonResolver(
-                            Functions.datetime().add(property),
-                            Functions.datetime().add(param)
+                            Cypher.datetime().add(property),
+                            Cypher.datetime().add(param)
                         )
                     }
                 }
@@ -99,12 +105,20 @@ abstract class ScalarField(
             }
             (delegate?.invoke(op.conditionCreator) ?: op.conditionCreator)(lhs, rhs2)
         }
-        return this.add(op.suffix, comparisonResolver, type, deprecated)
+
+        val comparisonEvaluator: (Any?, Any?) -> Boolean = { lhs, rhs ->
+            if (delegate != null) {
+                TODO()
+            }
+            op.conditionEvaluator(lhs, rhs)
+        }
+        return this.add(op.suffix, comparisonResolver, comparisonEvaluator, type, deprecated)
     }
 
     protected fun MutableMap<String, ScalarPredicateDefinition>.add(
         op: String,
         comparisonResolver: (Expression, Expression) -> Condition,
+        comparisonEvaluator: (Any?, Any?) -> Boolean,
         type: Type<*>? = null, // TODO set correct type
         deprecated: String? = null,
     ): MutableMap<String, ScalarPredicateDefinition> {
@@ -113,6 +127,7 @@ abstract class ScalarField(
             name,
             this@ScalarField,
             comparisonResolver,
+            comparisonEvaluator,
             type ?: typeMeta.whereType,
             deprecated
         )
@@ -137,7 +152,13 @@ abstract class ScalarField(
     }
 
     open fun convertInputToCypher(input: Expression): Expression = when (typeMeta.type.name()) {
-        Constants.DURATION -> Functions.duration(input)
+        Constants.DURATION ->
+            if (Constants.JS_COMPATIBILITY) {
+                input
+            } else {
+                Cypher.duration(input)
+            }
+
         else -> input
     }
 
@@ -146,4 +167,31 @@ abstract class ScalarField(
     }
 
     override fun isEventPayloadField() = true
+
+    fun isArrayUpdateOperationAllowed() = typeMeta.type.isList() &&
+            (this is PrimitiveField // TODO remove after https://github.com/neo4j/graphql/issues/2677
+                    || this is PointField)
+
+    fun isIntOperationAllowed() =
+        !typeMeta.type.isList() && (typeMeta.type.name() == Constants.INT || typeMeta.type.name() == Constants.BIG_INT)
+
+    fun isFloatOperationAllowed() = !typeMeta.type.isList() && typeMeta.type.name() == Constants.FLOAT
+
+    enum class ScalarUpdateOperation(val condition: (ScalarField) -> Boolean, val type: Type<*>? = null) {
+        /**
+         * Remove the last element from an array
+         */
+        POP(ScalarField::isArrayUpdateOperationAllowed, Constants.Types.Int),
+
+        /**
+         * Add an element to the end of an array
+         */
+        PUSH(ScalarField::isArrayUpdateOperationAllowed),
+        INCREMENT(ScalarField::isIntOperationAllowed),
+        DECREMENT(ScalarField::isIntOperationAllowed),
+        ADD(ScalarField::isFloatOperationAllowed),
+        SUBTRACT(ScalarField::isFloatOperationAllowed),
+        DIVIDE(ScalarField::isFloatOperationAllowed),
+        MULTIPLY(ScalarField::isFloatOperationAllowed),
+    }
 }

@@ -1,15 +1,15 @@
 package org.neo4j.graphql.domain.naming
 
 import org.neo4j.graphql.capitalize
-import org.neo4j.graphql.domain.directives.Annotations
+import org.neo4j.graphql.domain.directives.NodeAnnotations
 
-class ConcreteEntityOperations(
+class NodeNames(
     name: String,
-    annotations: Annotations
-) : ImplementingTypeOperations(name, annotations) {
+    annotations: NodeAnnotations
+) : ImplementingTypeNames(name, annotations) {
 
     fun getFullTextIndexInputTypeName(indexName: String) = "${name}${indexName.capitalize()}Fulltext"
-    fun getFullTextIndexQueryFieldName(indexName: String) = "${name}Fulltext${indexName.capitalize()}"
+    fun getFullTextIndexQueryFieldName(indexName: String) = "${plural}Fulltext${indexName.capitalize()}"
 
     val onCreateInputTypeName get() = "${name}OnCreateInput"
     val relationshipsSubscriptionWhereInputTypeName get() = "${name}RelationshipsSubscriptionWhere"

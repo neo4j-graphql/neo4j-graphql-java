@@ -29,7 +29,6 @@ type Genre {
   movies: [Production!]! @relationship(type: "HAS_GENRE", direction: IN)
 }
 ----
-
 == should be able to return all the genres related to the Matrix movie or series using connection fields
 
 .GraphQL-Query
@@ -48,8 +47,8 @@ query Genres {
 [source,json]
 ----
 {
-  "param0" : "Matrix",
-  "param1" : "Mr.Anderson"
+  "param0": "Matrix",
+  "param1": "Mr.Anderson"
 }
 ----
 
@@ -57,25 +56,20 @@ query Genres {
 [source,cypher]
 ----
 MATCH (this:Genre)
-WHERE (EXISTS {
-		MATCH (this)<-[this0:HAS_GENRE]-(this1:Movie)
-		WHERE this1.title = $param0
-	}
-	AND NOT (EXISTS {
-		MATCH (this)<-[this0:HAS_GENRE]-(this1:Movie)
-		WHERE NOT (this1.title = $param0)
-	})
-	AND EXISTS {
-		MATCH (this)<-[this2:HAS_GENRE]-(this3:Series)
-		WHERE this3.tagline = $param1
-	}
-	AND NOT (EXISTS {
-		MATCH (this)<-[this2:HAS_GENRE]-(this3:Series)
-		WHERE NOT (this3.tagline = $param1)
-	}))
-RETURN this {
-	.name
-} AS this
+WHERE ((EXISTS {
+    MATCH (this)<-[this0:HAS_GENRE]-(this1:Movie)
+    WHERE this1.title = $param0
+} AND NOT (EXISTS {
+    MATCH (this)<-[this0:HAS_GENRE]-(this1:Movie)
+    WHERE NOT (this1.title = $param0)
+})) AND (EXISTS {
+    MATCH (this)<-[this2:HAS_GENRE]-(this3:Series)
+    WHERE this3.tagline = $param1
+} AND NOT (EXISTS {
+    MATCH (this)<-[this2:HAS_GENRE]-(this3:Series)
+    WHERE NOT (this3.tagline = $param1)
+})))
+RETURN this { .name } AS this
 ----
 
 '''

@@ -27,7 +27,7 @@ type Movie {
 [source,json]
 ----
 {
-  "param0" : "2010-08-23T13:45:33.250000000"
+  "param0": "2010-08-23T13:45:33.250000000"
 }
 ----
 
@@ -36,9 +36,7 @@ type Movie {
 ----
 MATCH (this:Movie)
 WHERE this.localDT >= $param0
-RETURN this {
-	.localDT
-} AS this
+RETURN this { .localDT } AS this
 ----
 
 '''
@@ -61,9 +59,11 @@ mutation {
 [source,json]
 ----
 {
-  "create_param0" : [ {
-    "localDT" : "1974-05-01T22:00:15.555000000"
-  } ]
+  "create_param0": [
+    {
+      "localDT": "1974-05-01T22:00:15.555000000"
+    }
+  ]
 }
 ----
 
@@ -72,14 +72,14 @@ mutation {
 ----
 UNWIND $create_param0 AS create_var0
 CALL {
-	WITH create_var0
-	CREATE (create_this1:Movie)
-	SET create_this1.localDT = create_var0.localDT
-	RETURN create_this1
+    WITH create_var0
+    CREATE (create_this1:Movie)
+    SET
+        create_this1.localDT = create_var0.localDT
+    
+    RETURN create_this1
 }
-RETURN collect(create_this1 {
-	.localDT
-}) AS data
+RETURN collect(create_this1 { .localDT }) AS data
 ----
 
 '''
@@ -100,7 +100,7 @@ RETURN collect(create_this1 {
 [source,json]
 ----
 {
-  "param0" : "2003-09-14T12:00:00"
+  "param0": "2003-09-14T12:00:00"
 }
 ----
 
@@ -109,9 +109,7 @@ RETURN collect(create_this1 {
 ----
 MATCH (this:Movie)
 WHERE this.localDT = $param0
-RETURN this {
-	.localDT
-} AS this
+RETURN this { .localDT } AS this
 ----
 
 '''
@@ -135,7 +133,7 @@ mutation {
 [source,json]
 ----
 {
-  "this_update_localDT" : "1881-07-13T09:24:40.845512000"
+  "this_update_localDT": "1881-07-13T09:24:40.845512000"
 }
 ----
 
@@ -143,11 +141,11 @@ mutation {
 [source,cypher]
 ----
 MATCH (this:Movie)
+
+
 SET this.localDT = $this_update_localDT
-RETURN collect(DISTINCT this {
-	.id,
-	.localDT
-}) AS data
+
+RETURN collect(DISTINCT this { .id, .localDT }) AS data
 ----
 
 '''

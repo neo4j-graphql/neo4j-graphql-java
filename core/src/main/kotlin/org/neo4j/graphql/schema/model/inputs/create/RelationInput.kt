@@ -24,7 +24,7 @@ class RelationInput private constructor(
 
         fun generateContainerRelationCreateInputIT(node: Node, ctx: AugmentationContext) =
             ctx.getOrCreateRelationInputObjectType(
-                node.operations.relationInputTypeName,
+                node.namings.relationInputTypeName,
                 node.relationFields,
                 RelationFieldBaseAugmentation::generateFieldRelationCreateIT,
                 condition = { it.annotations.relationship?.isCreateAllowed != false },

@@ -17,9 +17,11 @@ object InterfaceFactory {
         relationshipPropertiesFactory: (name: String) -> RelationshipProperties?,
         interfaceFactory: (name: String) -> Interface?,
         schemaConfig: SchemaConfig,
+        jwtShape: Node?,
+        schema: Schema,
     ): Interface {
 
-        val annotations = Annotations(definition.directives)
+        val annotations = Annotations(definition.directives, jwtShape)
         val interfaces = definition.implements.mapNotNull { interfaceFactory(it.name()) }
 
         return Interface(
@@ -35,6 +37,7 @@ object InterfaceFactory {
             ),
             interfaces,
             annotations,
+            schema,
         )
     }
 }

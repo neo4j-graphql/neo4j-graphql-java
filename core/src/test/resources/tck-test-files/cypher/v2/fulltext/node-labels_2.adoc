@@ -22,25 +22,37 @@ type Movie @fulltext(indexes: [{name: "MovieTitle", fields: ["title"]}]) @node(l
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [],
+    "jwt": {
+      "roles": [],
+      "label": "some-label"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
 {
-  "param0" : "something AND something",
-  "param1" : "Movie",
-  "param2" : "some-label"
+  "param0": "something AND something",
+  "param1": "Movie",
+  "param2": "some-label"
 }
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
-CALL db.index.fulltext.queryNodes('MovieTitle', $param0) YIELD node AS this0, score AS var1
-WHERE ($param1 IN labels(this0)
-	AND $param2 IN labels(this0))
-RETURN this0 {
-	.title
-} AS this
+CALL db.index.fulltext.queryNodes("MovieTitle", $param0) YIELD node AS this0, score AS var1
+WHERE ($param1 IN labels(this0) AND $param2 IN labels(this0))
+RETURN this0 { .title } AS this
 ----
 
 '''

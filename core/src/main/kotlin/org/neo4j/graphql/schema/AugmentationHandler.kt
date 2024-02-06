@@ -47,15 +47,11 @@ abstract class AugmentationHandler(val ctx: AugmentationContext) : AugmentationB
     fun addQueryField(
         name: String,
         type: Type<*>,
-        init: (FieldDefinition.Builder.() -> Unit)? = null,
-        args: ((MutableList<InputValueDefinition>) -> Unit)?
+        args: ArgumentsAugmentation?,
+        init: (FieldDefinition.Builder.() -> Unit)? = null
     ): FieldCoordinates {
-        val argList = mutableListOf<InputValueDefinition>()
-        args?.invoke(argList)
-        return addQueryField(field(name, type, argList, init))
-    }
-
-    fun addQueryField(fieldDefinition: FieldDefinition): FieldCoordinates {
+        val argList = args?.getAugmentedArguments()
+        val fieldDefinition = field(name, type, argList, init)
         val queryTypeName = typeDefinitionRegistry.queryTypeName()
         addOperation(queryTypeName, fieldDefinition)
         return FieldCoordinates.coordinates(queryTypeName, fieldDefinition.name)
@@ -68,11 +64,13 @@ abstract class AugmentationHandler(val ctx: AugmentationContext) : AugmentationB
     fun addMutationField(
         name: String,
         type: Type<*>,
-        args: ((MutableList<InputValueDefinition>) -> Unit)?
-    ): FieldCoordinates {
-        val argList = mutableListOf<InputValueDefinition>()
-        args?.invoke(argList)
-        return addMutationField(name, type, argList)
+        args: ArgumentsAugmentation
+    ): FieldCoordinates? {
+        val argList = args.getAugmentedArguments()
+        if (argList.isEmpty()) {
+            return null
+        }
+        return addMutationField(field(name, type, argList))
     }
 
     fun addMutationField(fieldDefinition: FieldDefinition): FieldCoordinates {

@@ -33,7 +33,7 @@ sealed class UpdateInput private constructor(implementingType: ImplementingType,
         object Augmentation : AugmentationBase {
             fun generateContainerUpdateIT(node: Node, ctx: AugmentationContext) = UpdateInput.Augmentation
                 .generateContainerUpdateIT(
-                    node.operations.updateInputTypeName,
+                    node.namings.updateInputTypeName,
                     node.fields.filterIsInstance<RelationField>(),
                     node.scalarFields,
                     enforceFields = true,
@@ -54,8 +54,8 @@ sealed class UpdateInput private constructor(implementingType: ImplementingType,
             fun generateUpdateInputIT(interfaze: Interface, ctx: AugmentationContext) =
                 ctx.addInterfaceField(
                     interfaze,
-                    interfaze.operations.updateInputTypeName,
-                    interfaze.operations.whereOnImplementationsUpdateInputTypeName,
+                    interfaze.namings.updateInputTypeName,
+                    interfaze.namings.whereOnImplementationsUpdateInputTypeName,
                     { node -> NodeUpdateInput.Augmentation.generateContainerUpdateIT(node, ctx) },
                     RelationFieldBaseAugmentation::generateFieldUpdateIT,
                     asList = false
@@ -85,7 +85,7 @@ sealed class UpdateInput private constructor(implementingType: ImplementingType,
             ctx: AugmentationContext
         ) = relationField.properties?.let { props ->
             generateContainerUpdateIT(
-                relationField.operations.edgeUpdateInputTypeName,
+                relationField.namings.edgeUpdateInputTypeName,
                 emptyList(),
                 props.fields,
                 ctx = ctx

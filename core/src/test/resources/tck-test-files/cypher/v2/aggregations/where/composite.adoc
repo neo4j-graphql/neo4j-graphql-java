@@ -19,7 +19,6 @@ interface Likes @relationshipProperties {
   someString: String
 }
 ----
-
 == Equality Count and node
 
 .GraphQL-Query
@@ -36,8 +35,8 @@ interface Likes @relationshipProperties {
 [source,json]
 ----
 {
-  "param0" : 10,
-  "param1" : "potato"
+  "param0": 10,
+  "param1": "potato"
 }
 ----
 
@@ -46,16 +45,13 @@ interface Likes @relationshipProperties {
 ----
 MATCH (this:Post)
 CALL {
-	WITH this
-	MATCH (this)<-[this0:LIKES]-(this1:User)
-	RETURN (count(this1) = $param0
-		AND any(var2 IN collect(this1.name) WHERE var2 = $param1)) AS var3
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN (count(this1) = $param0 AND any(var2 IN collect(this1.name) WHERE var2 = $param1)) AS var3
 }
 WITH *
 WHERE var3 = true
-RETURN this {
-	.content
-} AS this
+RETURN this { .content } AS this
 ----
 
 '''
@@ -78,9 +74,9 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 10,
-  "param1" : "potato",
-  "param2" : "10"
+  "param0": 10,
+  "param1": "potato",
+  "param2": "10"
 }
 ----
 
@@ -89,17 +85,13 @@ RETURN this {
 ----
 MATCH (this:Post)
 CALL {
-	WITH this
-	MATCH (this)<-[this0:LIKES]-(this1:User)
-	RETURN (count(this1) = $param0
-		AND any(var2 IN collect(this1.name) WHERE var2 = $param1)
-		AND any(var3 IN collect(this0.someString) WHERE var3 = $param2)) AS var4
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN (count(this1) = $param0 AND any(var2 IN collect(this1.name) WHERE var2 = $param1) AND any(var3 IN collect(this0.someString) WHERE var3 = $param2)) AS var4
 }
 WITH *
 WHERE var4 = true
-RETURN this {
-	.content
-} AS this
+RETURN this { .content } AS this
 ----
 
 '''
@@ -122,11 +114,11 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : 10,
-  "param1" : 10,
-  "param2" : 20,
-  "param3" : "potato",
-  "param4" : "10"
+  "param0": 10,
+  "param1": 10,
+  "param2": 20,
+  "param3": "potato",
+  "param4": "10"
 }
 ----
 
@@ -135,19 +127,13 @@ RETURN this {
 ----
 MATCH (this:Post)
 CALL {
-	WITH this
-	MATCH (this)<-[this0:LIKES]-(this1:User)
-	RETURN (count(this1) = $param0
-		AND count(this1) > $param1
-		AND count(this1) < $param2
-		AND any(var2 IN collect(this1.name) WHERE var2 = $param3)
-		AND any(var3 IN collect(this0.someString) WHERE var3 = $param4)) AS var4
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN (count(this1) = $param0 AND (count(this1) > $param1 AND count(this1) < $param2) AND any(var2 IN collect(this1.name) WHERE var2 = $param3) AND any(var3 IN collect(this0.someString) WHERE var3 = $param4)) AS var4
 }
 WITH *
 WHERE var4 = true
-RETURN this {
-	.content
-} AS this
+RETURN this { .content } AS this
 ----
 
 '''

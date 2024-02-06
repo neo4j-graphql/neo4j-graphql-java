@@ -4,7 +4,7 @@ import org.neo4j.graphql.Constants
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.TypeMeta
 import org.neo4j.graphql.domain.Union
-import org.neo4j.graphql.domain.directives.Annotations
+import org.neo4j.graphql.domain.directives.FieldAnnotations
 import org.neo4j.graphql.isList
 import org.neo4j.graphql.name
 
@@ -14,7 +14,7 @@ import org.neo4j.graphql.name
 class CypherField(
     fieldName: String,
     typeMeta: TypeMeta,
-    annotations: Annotations,
+    annotations: FieldAnnotations,
     val statement: String,
 ) : BaseField(fieldName, typeMeta, annotations), AuthableField {
     fun isSortable() = !typeMeta.type.isList() && sortableFields.contains(typeMeta.type.name())

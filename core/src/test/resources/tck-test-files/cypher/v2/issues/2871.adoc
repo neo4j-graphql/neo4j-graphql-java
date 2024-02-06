@@ -23,7 +23,6 @@ type ThirdLevel {
   createdAt: DateTime! @timestamp(operations: [CREATE])
 }
 ----
-
 == should be able to filter by ALL nested within single relationship
 
 .GraphQL-Query
@@ -41,7 +40,7 @@ type ThirdLevel {
 [source,json]
 ----
 {
-  "param0" : "5"
+  "param0": "5"
 }
 ----
 
@@ -52,19 +51,14 @@ MATCH (this:FirstLevel)
 OPTIONAL MATCH (this)-[:HAS_SECOND_LEVEL]->(this0:SecondLevel)
 WITH *, count(this0) AS secondLevelCount
 WITH *
-WHERE (secondLevelCount <> 0
-	AND EXISTS {
-		MATCH (this0)-[:HAS_THIRD_LEVEL]->(this1:ThirdLevel)
-		WHERE this1.id = $param0
-	}
-	AND NOT (EXISTS {
-		MATCH (this0)-[:HAS_THIRD_LEVEL]->(this1:ThirdLevel)
-		WHERE NOT (this1.id = $param0)
-	}))
-RETURN this {
-	.id,
-	createdAt: apoc.date.convertFormat(toString(this.createdAt), 'iso_zoned_date_time', 'iso_offset_date_time')
-} AS this
+WHERE (secondLevelCount <> 0 AND (EXISTS {
+    MATCH (this0)-[:HAS_THIRD_LEVEL]->(this1:ThirdLevel)
+    WHERE this1.id = $param0
+} AND NOT (EXISTS {
+    MATCH (this0)-[:HAS_THIRD_LEVEL]->(this1:ThirdLevel)
+    WHERE NOT (this1.id = $param0)
+})))
+RETURN this { .id, createdAt: apoc.date.convertFormat(toString(this.createdAt), "iso_zoned_date_time", "iso_offset_date_time") } AS this
 ----
 
 '''
@@ -86,7 +80,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "3"
+  "param0": "3"
 }
 ----
 
@@ -97,15 +91,11 @@ MATCH (this:FirstLevel)
 OPTIONAL MATCH (this)-[:HAS_SECOND_LEVEL]->(this0:SecondLevel)
 WITH *, count(this0) AS secondLevelCount
 WITH *
-WHERE (secondLevelCount <> 0
-	AND EXISTS {
-		MATCH (this0)-[:HAS_THIRD_LEVEL]->(this1:ThirdLevel)
-		WHERE this1.id = $param0
-	})
-RETURN this {
-	.id,
-	createdAt: apoc.date.convertFormat(toString(this.createdAt), 'iso_zoned_date_time', 'iso_offset_date_time')
-} AS this
+WHERE (secondLevelCount <> 0 AND EXISTS {
+    MATCH (this0)-[:HAS_THIRD_LEVEL]->(this1:ThirdLevel)
+    WHERE this1.id = $param0
+})
+RETURN this { .id, createdAt: apoc.date.convertFormat(toString(this.createdAt), "iso_zoned_date_time", "iso_offset_date_time") } AS this
 ----
 
 '''
@@ -127,7 +117,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "25"
+  "param0": "25"
 }
 ----
 
@@ -138,15 +128,11 @@ MATCH (this:FirstLevel)
 OPTIONAL MATCH (this)-[:HAS_SECOND_LEVEL]->(this0:SecondLevel)
 WITH *, count(this0) AS secondLevelCount
 WITH *
-WHERE (secondLevelCount <> 0
-	AND NOT (EXISTS {
-		MATCH (this0)-[:HAS_THIRD_LEVEL]->(this1:ThirdLevel)
-		WHERE this1.id = $param0
-	}))
-RETURN this {
-	.id,
-	createdAt: apoc.date.convertFormat(toString(this.createdAt), 'iso_zoned_date_time', 'iso_offset_date_time')
-} AS this
+WHERE (secondLevelCount <> 0 AND NOT (EXISTS {
+    MATCH (this0)-[:HAS_THIRD_LEVEL]->(this1:ThirdLevel)
+    WHERE this1.id = $param0
+}))
+RETURN this { .id, createdAt: apoc.date.convertFormat(toString(this.createdAt), "iso_zoned_date_time", "iso_offset_date_time") } AS this
 ----
 
 '''

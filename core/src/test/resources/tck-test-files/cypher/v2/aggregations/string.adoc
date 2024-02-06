@@ -28,23 +28,20 @@ type Movie {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 CALL {
-	MATCH (this:Movie)
-	WITH this ORDER BY size(this.title) DESC
-	WITH collect(this.title) AS list
-	RETURN {
-		longest: head(list)
-	} AS var0
+    MATCH (this:Movie)
+    WITH this
+    ORDER BY size(this.title) DESC
+    WITH collect(this.title) AS list
+    RETURN { longest: head(list) } AS var0
 }
-RETURN {
-	title: var0
-}
+RETURN { title: var0 }
 ----
 
 '''
@@ -66,23 +63,20 @@ RETURN {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 CALL {
-	MATCH (this:Movie)
-	WITH this ORDER BY size(this.title) DESC
-	WITH collect(this.title) AS list
-	RETURN {
-		shortest: last(list)
-	} AS var0
+    MATCH (this:Movie)
+    WITH this
+    ORDER BY size(this.title) DESC
+    WITH collect(this.title) AS list
+    RETURN { shortest: last(list) } AS var0
 }
-RETURN {
-	title: var0
-}
+RETURN { title: var0 }
 ----
 
 '''
@@ -105,24 +99,20 @@ RETURN {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
 [source,cypher]
 ----
 CALL {
-	MATCH (this:Movie)
-	WITH this ORDER BY size(this.title) DESC
-	WITH collect(this.title) AS list
-	RETURN {
-		longest: head(list),
-		shortest: last(list)
-	} AS var0
+    MATCH (this:Movie)
+    WITH this
+    ORDER BY size(this.title) DESC
+    WITH collect(this.title) AS list
+    RETURN { longest: head(list), shortest: last(list) } AS var0
 }
-RETURN {
-	title: var0
-}
+RETURN { title: var0 }
 ----
 
 '''
@@ -145,7 +135,7 @@ RETURN {
 [source,json]
 ----
 {
-  "param0" : "10"
+  "param0": "10"
 }
 ----
 
@@ -153,17 +143,14 @@ RETURN {
 [source,cypher]
 ----
 CALL {
-	MATCH (this:Movie)
-	WHERE this.testId = $param0
-	WITH this ORDER BY size(this.title) DESC
-	WITH collect(this.title) AS list
-	RETURN {
-		shortest: last(list)
-	} AS var0
+    MATCH (this:Movie)
+    WHERE this.testId = $param0
+    WITH this
+    ORDER BY size(this.title) DESC
+    WITH collect(this.title) AS list
+    RETURN { shortest: last(list) } AS var0
 }
-RETURN {
-	title: var0
-}
+RETURN { title: var0 }
 ----
 
 '''

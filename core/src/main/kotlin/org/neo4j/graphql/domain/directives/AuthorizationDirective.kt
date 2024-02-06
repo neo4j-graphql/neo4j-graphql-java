@@ -1,89 +1,72 @@
 package org.neo4j.graphql.domain.directives
 
 import graphql.language.*
-import org.neo4j.graphql.get
-import org.neo4j.graphql.readArgument
-import org.neo4j.graphql.toJavaValue
-import org.neo4j.graphql.validateName
+import org.neo4j.graphql.*
+import org.neo4j.graphql.domain.Node
+import org.neo4j.graphql.schema.model.inputs.AuthorizationWhere
 
 data class AuthorizationDirective(
     val filter: List<FilterRule>,
     val validate: List<ValidationRule>,
 ) {
 
-
-    class FilterRule(
-        rule: ObjectValue,
-    ) {
-
-        val operations: Set<AuthorizationFilterOperation> = rule.get(FilterRule::operations) { field ->
-            (field as? ArrayValue
-                ?: throw IllegalArgumentException("filter rules rule operations should be a ListValue"))
-                .values.map {
-                    (it as? EnumValue
-                        ?: throw IllegalArgumentException("filter rules rule operations operation should be a EnumValue"))
-                        .let {
-                            AuthorizationFilterOperation.valueOf(it.name)
-                        }
-                }
-                .toSet()
-        } ?: AuthorizationFilterOperation.values().toSet()
-
-        val requireAuthentication: Boolean = rule.get(FilterRule::requireAuthentication) ?: true
-        val where: AuthorizationWhere? = rule.get(FilterRule::where) { AuthorizationWhere(it as ObjectValue) }
+    fun initWhere(node: Node) {
+        filter.forEach { it.initWhere(node) }
+        validate.forEach { it.initWhere(node) }
     }
 
-    class ValidationRule(
-        rule: ObjectValue,
+    sealed class BaseRule(
+        private val rule: ObjectValue,
+        private val jwtShape: Node?,
+        excludedOperations: Set<AuthorizationOperation>,
     ) {
-
-        val operations: Set<AuthorizationValidateOperation> = rule.get(ValidationRule::operations) { field ->
+        val operations: Set<AuthorizationOperation> = rule.get(BaseRule::operations) { field ->
             (field as? ArrayValue
-                ?: throw IllegalArgumentException("validation rules rule operations should be a ListValue"))
-                .values.map {
-                    (it as? EnumValue
-                        ?: throw IllegalArgumentException("validation rules rule operations operation should be a EnumValue"))
-                        .let {
-                            AuthorizationValidateOperation.valueOf(it.name)
-                        }
+                ?: throw IllegalArgumentException("rule operations should be a ListValue"))
+                .values.map { value ->
+                    (value as? EnumValue
+                        ?: throw IllegalArgumentException("rule operations operation should be a EnumValue"))
+                        .let { AuthorizationOperation.valueOf(it.name) }
+                        .also { op -> require(!excludedOperations.contains(op)) { "operation should not be in $excludedOperations" } }
                 }
                 .toSet()
-        } ?: AuthorizationValidateOperation.values().toSet()
+        } ?: AuthorizationOperation.values().filterNot { excludedOperations.contains(it) }.toSet()
 
-        val `when`: Set<AuthorizationValidateStage> = rule.get(ValidationRule::`when`) { field ->
-            (field as? ArrayValue
-                ?: throw IllegalArgumentException("validation when should be a ListValue"))
-                .values.map {
-                    (it as? EnumValue
-                        ?: throw IllegalArgumentException("validation when should be a EnumValue"))
-                        .let {
-                            AuthorizationValidateStage.valueOf(it.name)
-                        }
-                }
-                .toSet()
-        } ?: AuthorizationValidateStage.values().toSet()
+        val requireAuthentication: Boolean = rule.get(BaseRule::requireAuthentication) ?: true
 
-        val requireAuthentication: Boolean = rule.get(FilterRule::requireAuthentication) ?: true
-        val where: AuthorizationWhere? = rule.get(FilterRule::where) { AuthorizationWhere(it as ObjectValue) }
-    }
+        lateinit var where: AuthorizationWhere
 
-    class AuthorizationWhere(
-        value: ObjectValue,
-    ) {
-        val AND: List<AuthorizationWhere>? = value.get(AuthorizationWhere::AND, ::creteBaseAuthRule)
-        val OR: List<AuthorizationWhere>? = value.get(AuthorizationWhere::OR, ::creteBaseAuthRule)
-        val NOT: AuthorizationWhere? = value.get(AuthorizationWhere::NOT) { AuthorizationWhere(it as ObjectValue) }
-        val node: Map<String, Any>? = value.get(AuthorizationWhere::node, ::parsePredicate)
-        val jwt: Map<String, Any>? = value.get(AuthorizationWhere::jwt, ::parsePredicate)
-
-        companion object {
-            private fun creteBaseAuthRule(v: Value<*>) =
-                (v as ArrayValue).values.map { AuthorizationWhere(it as ObjectValue) }
+        fun initWhere(node: Node) {
+            where = AuthorizationWhere(node, jwtShape, rule.get(BaseRule::where).toDict())
         }
     }
 
-    enum class AuthorizationFilterOperation { READ, AGGREGATE, UPDATE, DELETE, CREATE_RELATIONSHIP, DELETE_RELATIONSHIP }
-    enum class AuthorizationValidateOperation { CREATE, READ, AGGREGATE, UPDATE, DELETE, CREATE_RELATIONSHIP, DELETE_RELATIONSHIP }
+    class FilterRule(
+        rule: ObjectValue,
+        jwtShape: Node?,
+    ) : BaseRule(rule, jwtShape, setOf(AuthorizationOperation.CREATE))
+
+    class ValidationRule(
+        rule: ObjectValue,
+        jwtShape: Node?,
+    ) : BaseRule(rule, jwtShape, emptySet()) {
+
+        val `when`: Set<AuthorizationValidateStage> = rule.get(ValidationRule::`when`) { field ->
+            when (field) {
+                is EnumValue -> return@get setOf(AuthorizationValidateStage.valueOf(field.name))
+                is ArrayValue -> field.values
+                    .map {
+                        (it as? EnumValue ?: throw IllegalArgumentException("validation when should be a EnumValue"))
+                            .let { AuthorizationValidateStage.valueOf(it.name) }
+                    }
+                    .toSet()
+
+                else -> throw IllegalArgumentException("validation when should be an EnumValue or ListValue")
+            }
+        } ?: AuthorizationValidateStage.values().toSet()
+    }
+
+    enum class AuthorizationOperation { CREATE, READ, AGGREGATE, UPDATE, DELETE, CREATE_RELATIONSHIP, DELETE_RELATIONSHIP }
     enum class AuthorizationValidateStage { BEFORE, AFTER }
 
     companion object {
@@ -97,14 +80,14 @@ data class AuthorizationDirective(
             else -> throw IllegalArgumentException("value should be an object or `*`")
         }
 
-        fun create(directive: Directive): AuthorizationDirective {
+        fun create(directive: Directive, jwtShape: Node?): AuthorizationDirective {
             directive.validateName(NAME)
             return AuthorizationDirective(
                 directive.readArgument(AuthorizationDirective::filter) { arrayValue ->
-                    (arrayValue as ArrayValue).values.map { FilterRule(it as ObjectValue) }
+                    (arrayValue as ArrayValue).values.map { FilterRule(it as ObjectValue, jwtShape) }
                 } ?: emptyList(),
                 directive.readArgument(AuthorizationDirective::validate) { arrayValue ->
-                    (arrayValue as ArrayValue).values.map { ValidationRule(it as ObjectValue) }
+                    (arrayValue as ArrayValue).values.map { ValidationRule(it as ObjectValue, jwtShape) }
                 } ?: emptyList(),
 
                 )

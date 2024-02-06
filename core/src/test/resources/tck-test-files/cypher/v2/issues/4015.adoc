@@ -17,7 +17,6 @@ type Actor {
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
 }
 ----
-
 == should return all the selected node fields
 
 .GraphQL-Query
@@ -42,7 +41,7 @@ type Actor {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
@@ -50,32 +49,19 @@ type Actor {
 ----
 MATCH (this:Movie)
 CALL {
-	WITH this
-	MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
-	WITH collect( {
-		node: this1,
-		relationship: this0
-	}) AS edges
-	WITH edges, size(edges) AS totalCount
-	CALL {
-		WITH edges
-		UNWIND edges AS edge
-		WITH edge.node AS this1, edge.relationship AS this0
-		RETURN collect( {
-			node: {
-				surname: this1.surname,
-				name: this1.name
-			}
-		}) AS var2
-	}
-	RETURN {
-		edges: var2,
-		totalCount: totalCount
-	} AS var3
+    WITH this
+    MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
+    WITH collect({ node: this1, relationship: this0 }) AS edges
+    WITH edges, size(edges) AS totalCount
+    CALL {
+        WITH edges
+        UNWIND edges AS edge
+        WITH edge.node AS this1, edge.relationship AS this0
+        RETURN collect({ node: { surname: this1.surname, name: this1.name } }) AS var2
+    }
+    RETURN { edges: var2, totalCount: totalCount } AS var3
 }
-RETURN this {
-	actorsConnection: var3
-} AS this
+RETURN this { actorsConnection: var3 } AS this
 ----
 
 '''

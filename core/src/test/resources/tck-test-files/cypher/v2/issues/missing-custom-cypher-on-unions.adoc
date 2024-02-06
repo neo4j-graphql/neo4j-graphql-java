@@ -74,7 +74,6 @@ interface RelateProps @relationshipProperties {
   isIdentifiedBy: ID
 }
 ----
-
 == should include checks for auth jwt param is not null
 
 .GraphQL-Query
@@ -113,9 +112,11 @@ fragment hierarchicalComponentFields on HierarchicalComponent {
 [source,json]
 ----
 {
-  "param0" : [ "aaa:bbb::cc::dd/222-22-22" ],
-  "param1" : "aaa:bbb::cc::dd/111-111-111",
-  "param2" : 100
+  "param0": [
+    "aaa:bbb::cc::dd/222-22-22"
+  ],
+  "param1": "aaa:bbb::cc::dd/111-111-111",
+  "param2": 100
 }
 ----
 
@@ -126,92 +127,71 @@ MATCH (this:HierarchicalComponent:Resource)
 OPTIONAL MATCH (this)-[:isContained]->(this0:HierarchicalRoot:Resource)
 WITH *, count(this0) AS isContainedCount
 WITH *
-WHERE (this.uri IN $param0
-	AND isContainedCount <> 0
-	AND this0.uri = $param1)
-WITH * LIMIT $param2
+WHERE (this.uri IN $param0 AND (isContainedCount <> 0 AND this0.uri = $param1))
+WITH *
+
+LIMIT $param2
 CALL {
-	WITH this
-	CALL {
-		WITH *
-		MATCH (this)-[this1:relatesToChild]->(this2:HierarchicalRoot:Resource)
-		WITH this2 {
-			__resolveType: 'HierarchicalRoot',
-			__id: id(this2)
-		} AS this2
-		RETURN this2 AS var3 UNION
-		WITH *
-		MATCH (this)-[this4:relatesToChild]->(this5:HierarchicalComponent:Resource)
-		CALL {
-			WITH this5
-			CALL {
-				WITH this5
-				WITH this5 AS this
-				MATCH p = (this)<-[:relatesToChild*..10]-(parent:HierarchicalRoot)
-				WITH p, parent
-				OPTIONAL MATCH (parent)-[:type]->(parentType)
-				WITH p, parent, parentType
-				UNWIND nodes(p) AS pathNode
-				WITH pathNode, relationships(p) AS rels, parent, parentType
-				WITH pathNode, head([r IN rels
-				WHERE endNode(r) = pathNode]) AS relation, parent, parentType
-				OPTIONAL MATCH (pathNode)-[:identifier]->(pathNodeIdentifier)
-				OPTIONAL MATCH (pathNode)-[:title]->(pathNodeTitle)
-				WITH pathNode, relation, parent, parentType, pathNodeIdentifier, collect( {
-					value: pathNodeTitle.value,
-					language: pathNodeTitle.language
-				}) AS pathNodeTitles
-				WITH {
-					uri: pathNode.uri,
-					identifier: pathNodeIdentifier.value,
-					title: pathNodeTitles,
-					hasSortKey: relation.hasSortKey,
-					labels: labels(pathNode),
-					partOf: parent.uri,
-					partOfType: parentType.uri
-				} AS obj
-				RETURN DISTINCT obj AS result
-			}
-			WITH result AS this6
-			RETURN collect(this6 {
-				.hasSortKey,
-				iri: this6.uri
-			}) AS this6
-		}
-		WITH this5 {
-			hierarchicalPathNodes: this6,
-			__resolveType: 'HierarchicalComponent',
-			__id: id(this5)
-		} AS this5
-		RETURN this5 AS var3 UNION
-		WITH *
-		MATCH (this)-[this7:relatesToChild]->(this8:Expression:MyTenant:Resource)
-		WITH this8 {
-			__resolveType: 'Expression',
-			__id: id(this8)
-		} AS this8
-		RETURN this8 AS var3 UNION
-		WITH *
-		MATCH (this)-[this9:relatesToChild]->(this10:Work:MyTenant:Resource)
-		WITH this10 {
-			__resolveType: 'Work',
-			__id: id(this10)
-		} AS this10
-		RETURN this10 AS var3 UNION
-		WITH *
-		MATCH (this)-[this11:relatesToChild]->(this12:Fragment:MyTenant:Resource)
-		WITH this12 {
-			__resolveType: 'Fragment',
-			__id: id(this12)
-		} AS this12
-		RETURN this12 AS var3
-	}
-	WITH var3
-	RETURN collect(var3) AS var3
+    WITH this
+    CALL {
+        WITH *
+        MATCH (this)-[this1:relatesToChild]->(this2:HierarchicalRoot:Resource)
+        WITH this2 { __resolveType: "HierarchicalRoot", __id: id(this2) } AS this2
+        RETURN this2 AS var3
+        UNION
+        WITH *
+        MATCH (this)-[this4:relatesToChild]->(this5:HierarchicalComponent:Resource)
+        CALL {
+            WITH this5
+            CALL {
+                WITH this5
+                WITH this5 AS this
+                MATCH p=(this)<-[:relatesToChild*..10]-(parent:HierarchicalRoot)
+                WITH p, parent
+                OPTIONAL MATCH (parent) - [:type] -> (parentType)
+                WITH p, parent, parentType
+                UNWIND nodes(p) as pathNode
+                WITH pathNode, relationships(p) as rels, parent, parentType
+                WITH pathNode, head([r in rels where endNode(r) = pathNode]) as relation, parent, parentType
+                OPTIONAL MATCH (pathNode) - [:identifier] -> (pathNodeIdentifier)
+                OPTIONAL MATCH (pathNode) - [:title] -> (pathNodeTitle)
+                WITH pathNode, relation, parent, parentType, pathNodeIdentifier, collect({value: pathNodeTitle.value, language: pathNodeTitle.language}) as pathNodeTitles
+                WITH {
+                uri: pathNode.uri,
+                identifier: pathNodeIdentifier.value,
+                title: pathNodeTitles,
+                hasSortKey: relation.hasSortKey,
+                labels: labels(pathNode),
+                partOf: parent.uri,
+                partOfType: parentType.uri
+                } AS obj
+                RETURN DISTINCT obj as result
+            }
+            WITH result AS this6
+            RETURN collect(this6 { .hasSortKey, iri: this6.uri }) AS this6
+        }
+        WITH this5 { hierarchicalPathNodes: this6, __resolveType: "HierarchicalComponent", __id: id(this5) } AS this5
+        RETURN this5 AS var3
+        UNION
+        WITH *
+        MATCH (this)-[this7:relatesToChild]->(this8:Expression:MyTenant:Resource)
+        WITH this8 { __resolveType: "Expression", __id: id(this8) } AS this8
+        RETURN this8 AS var3
+        UNION
+        WITH *
+        MATCH (this)-[this9:relatesToChild]->(this10:Work:MyTenant:Resource)
+        WITH this10 { __resolveType: "Work", __id: id(this10) } AS this10
+        RETURN this10 AS var3
+        UNION
+        WITH *
+        MATCH (this)-[this11:relatesToChild]->(this12:Fragment:MyTenant:Resource)
+        WITH this12 { __resolveType: "Fragment", __id: id(this12) } AS this12
+        RETURN this12 AS var3
+    }
+    WITH var3
+    RETURN collect(var3) AS var3
 }
-RETURN this {
-	relatesToChild: var3
-} AS this
+RETURN this { relatesToChild: var3 } AS this
 ----
 
 '''

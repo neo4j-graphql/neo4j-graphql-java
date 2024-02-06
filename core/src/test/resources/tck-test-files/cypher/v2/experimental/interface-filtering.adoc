@@ -43,7 +43,6 @@ interface ActedIn @relationshipProperties {
   "experimental": true
 }
 ----
-
 == Logical operator filter (top level)
 
 .GraphQL-Query
@@ -56,14 +55,28 @@ query actedInWhere {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [],
+    "jwt": {
+      "roles": []
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
 {
-  "param0" : "The Office",
-  "param1" : "The Office 2",
-  "param2" : "The Office",
-  "param3" : "The Office 2"
+  "param0": "The Office",
+  "param1": "The Office 2",
+  "param2": "The Office",
+  "param3": "The Office 2"
 }
 ----
 
@@ -71,24 +84,15 @@ query actedInWhere {
 [source,cypher]
 ----
 CALL {
-	MATCH (this0:Movie)
-	WHERE (this0.title = $param0
-		OR this0.title = $param1)
-	WITH this0 {
-		.title,
-		__resolveType: 'Movie',
-		__id: id(this0)
-	} AS this0
-	RETURN this0 AS this UNION
-	MATCH (this1:Series)
-	WHERE (this1.title = $param2
-		OR this1.title = $param3)
-	WITH this1 {
-		.title,
-		__resolveType: 'Series',
-		__id: id(this1)
-	} AS this1
-	RETURN this1 AS this
+    MATCH (this0:Movie)
+    WHERE (this0.title = $param0 OR this0.title = $param1)
+    WITH this0 { .title, __resolveType: "Movie", __id: id(this0) } AS this0
+    RETURN this0 AS this
+    UNION
+    MATCH (this1:Series)
+    WHERE (this1.title = $param2 OR this1.title = $param3)
+    WITH this1 { .title, __resolveType: "Series", __id: id(this1) } AS this1
+    RETURN this1 AS this
 }
 WITH this
 RETURN this AS this
@@ -110,14 +114,28 @@ query actedInWhere {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [],
+    "jwt": {
+      "roles": []
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
 {
-  "param0" : "The Office",
-  "param1" : "The Office 2",
-  "param2" : "The Office",
-  "param3" : "The Office 2"
+  "param0": "The Office",
+  "param1": "The Office 2",
+  "param2": "The Office",
+  "param3": "The Office 2"
 }
 ----
 
@@ -126,35 +144,24 @@ query actedInWhere {
 ----
 MATCH (this:Actor)
 CALL {
-	WITH this
-	CALL {
-		WITH *
-		MATCH (this)-[this0:ACTED_IN]->(this1:Movie)
-		WHERE (this1.title = $param0
-			OR this1.title = $param1)
-		WITH this1 {
-			.title,
-			__resolveType: 'Movie',
-			__id: id(this1)
-		} AS this1
-		RETURN this1 AS var2 UNION
-		WITH *
-		MATCH (this)-[this3:ACTED_IN]->(this4:Series)
-		WHERE (this4.title = $param2
-			OR this4.title = $param3)
-		WITH this4 {
-			.title,
-			__resolveType: 'Series',
-			__id: id(this4)
-		} AS this4
-		RETURN this4 AS var2
-	}
-	WITH var2
-	RETURN collect(var2) AS var2
+    WITH this
+    CALL {
+        WITH *
+        MATCH (this)-[this0:ACTED_IN]->(this1:Movie)
+        WHERE (this1.title = $param0 OR this1.title = $param1)
+        WITH this1 { .title, __resolveType: "Movie", __id: id(this1) } AS this1
+        RETURN this1 AS var2
+        UNION
+        WITH *
+        MATCH (this)-[this3:ACTED_IN]->(this4:Series)
+        WHERE (this4.title = $param2 OR this4.title = $param3)
+        WITH this4 { .title, __resolveType: "Series", __id: id(this4) } AS this4
+        RETURN this4 AS var2
+    }
+    WITH var2
+    RETURN collect(var2) AS var2
 }
-RETURN this {
-	actedIn: var2
-} AS this
+RETURN this { actedIn: var2 } AS this
 ----
 
 '''

@@ -4,13 +4,13 @@ import org.neo4j.graphql.capitalize
 import org.neo4j.graphql.domain.ImplementingType
 import org.neo4j.graphql.domain.Interface
 import org.neo4j.graphql.domain.Union
-import org.neo4j.graphql.domain.directives.Annotations
+import org.neo4j.graphql.domain.directives.FieldAnnotations
 import org.neo4j.graphql.domain.fields.RelationField
 
-class RelationshipOperations(
+class RelationshipNames(
     val relationship: RelationField,
-    annotations: Annotations
-) : BaseNames(relationship.fieldName, annotations) {
+    annotations: FieldAnnotations
+) : BaseNames<FieldAnnotations>(relationship.fieldName, annotations) {
 
 
     private val fieldInputPrefixForTypename
@@ -81,6 +81,7 @@ class RelationshipOperations(
     val nodeAggregationWhereInputTypeName get() = "${prefixForTypename}NodeAggregationWhereInput"
     val edgeAggregationWhereInputTypeName get() = "${prefixForTypename}EdgeAggregationWhereInput"
 
+    // TODO better name for this?
     val aggregateTypeName get() = "${relationship.fieldName}Aggregate"
 
     val aggregateTypeNames get() = relationship.implementingType?.let { AggregateTypeNames(it) }
@@ -127,7 +128,7 @@ class RelationshipOperations(
 
     fun getConnectOrCreateInputFields(target: ImplementingType): Map<String, String> {
         return mapOf(
-            "where" to "${target.operations.connectOrCreateWhereInputTypeName}!",
+            "where" to "${target.namings.connectOrCreateWhereInputTypeName}!",
             "onCreate" to "${getConnectOrCreateOnCreateFieldInputTypeName(target)}!"
         )
     }

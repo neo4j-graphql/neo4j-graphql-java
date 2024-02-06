@@ -4,7 +4,7 @@ import graphql.language.Comment
 import graphql.language.Description
 import graphql.language.InputValueDefinition
 import org.neo4j.graphql.domain.*
-import org.neo4j.graphql.domain.directives.Annotations
+import org.neo4j.graphql.domain.directives.FieldAnnotations
 import org.neo4j.graphql.domain.directives.TimestampDirective
 import org.neo4j.graphql.isRequired
 
@@ -14,7 +14,7 @@ import org.neo4j.graphql.isRequired
 sealed class BaseField(
     var fieldName: String,
     var typeMeta: TypeMeta,
-    var annotations: Annotations
+    var annotations: FieldAnnotations
 ) {
     val deprecatedDirective
         get() = annotations.otherDirectives.firstOrNull { it.name == "deprecated" }

@@ -3,19 +3,11 @@ package org.neo4j.graphql.schema.model.inputs
 import graphql.language.InputValueDefinition
 import graphql.language.ListType
 import org.neo4j.graphql.*
-import org.neo4j.graphql.Constants.FieldSuffix
 import org.neo4j.graphql.domain.*
 import org.neo4j.graphql.domain.fields.BaseField
 import org.neo4j.graphql.domain.fields.ConnectionField
 import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.domain.fields.ScalarField
-import org.neo4j.graphql.domain.predicates.AggregationFieldPredicate
-import org.neo4j.graphql.domain.predicates.ConnectionFieldPredicate
-import org.neo4j.graphql.domain.predicates.RelationFieldPredicate
-import org.neo4j.graphql.domain.predicates.ScalarFieldPredicate
-import org.neo4j.graphql.domain.predicates.definitions.AggregationPredicateDefinition
-import org.neo4j.graphql.domain.predicates.definitions.RelationPredicateDefinition
-import org.neo4j.graphql.domain.predicates.definitions.ScalarPredicateDefinition
 import org.neo4j.graphql.schema.AugmentationBase
 import org.neo4j.graphql.schema.AugmentationContext
 import org.neo4j.graphql.schema.model.inputs.PerNodeInput.Companion.getCommonFields
@@ -31,7 +23,7 @@ interface WhereInput {
 
         object Augmentation : AugmentationBase {
             fun generateWhereIT(union: Union, ctx: AugmentationContext): String? =
-                ctx.getOrCreateInputObjectType(union.operations.whereInputTypeName) { fields, _ ->
+                ctx.getOrCreateInputObjectType(union.namings.whereInputTypeName) { fields, _ ->
                     union.nodes.values.forEach { node ->
                         NodeWhereInput.Augmentation
                             .generateWhereIT(node, ctx)?.let { fields += ctx.inputValue(node.name, it.asType()) }
@@ -49,7 +41,7 @@ interface WhereInput {
         object Augmentation : AugmentationBase {
 
             fun generateWhereIT(node: Node, ctx: AugmentationContext): String? =
-                ctx.getOrCreateInputObjectType(node.operations.whereInputTypeName) { fields, name ->
+                ctx.getOrCreateInputObjectType(node.namings.whereInputTypeName) { fields, name ->
                     fields += FieldContainerWhereInput.Augmentation.getWhereFields(name, node.fields, ctx)
                 }
         }
@@ -70,7 +62,7 @@ interface WhereInput {
                 return if (properties == null) {
                     null
                 } else {
-                    ctx.getOrCreateInputObjectType(relationField.operations.whereInputTypeName) { fields, name ->
+                    ctx.getOrCreateInputObjectType(relationField.namings.whereInputTypeName) { fields, name ->
                         fields += FieldContainerWhereInput.Augmentation
                             .getWhereFields(name, properties.fields, ctx)
                     }
@@ -110,13 +102,13 @@ interface WhereInput {
 
         object Augmentation : AugmentationBase {
             fun generateFieldWhereIT(interfaze: Interface, ctx: AugmentationContext): String? =
-                ctx.getOrCreateInputObjectType(interfaze.operations.whereInputTypeName) { fields, name ->
+                ctx.getOrCreateInputObjectType(interfaze.namings.whereInputTypeName) { fields, name ->
 
                     if (ctx.schemaConfig.experimental) {
                         ctx.addTypenameEnum(interfaze, fields)
                     } else {
                         ctx.addOnField(interfaze,
-                            interfaze.operations.whereOnImplementationsWhereInputTypeName,
+                            interfaze.namings.whereOnImplementationsWhereInputTypeName,
                             fields,
                             asList = false,
                             { node -> NodeWhereInput.Augmentation.generateWhereIT(node, ctx) })
@@ -143,7 +135,7 @@ interface WhereInput {
 
         val predicates = data
             .filterNot { SPECIAL_KEYS.contains(it.key) }
-            .mapNotNull { (key, value) -> createPredicate(fieldContainer, key, value) }
+            .mapNotNull { (key, value) -> fieldContainer.createPredicate(key, value) }
 
 
         val relationAggregate: Map<RelationField, AggregateInput> = data
@@ -167,7 +159,7 @@ interface WhereInput {
         open fun withPreferredOn(node: Node): WhereInput = this
 
         companion object {
-            val SPECIAL_KEYS = setOf(Constants.ON, Constants.AND, Constants.OR)
+            val SPECIAL_KEYS = setOf(Constants.ON, Constants.AND, Constants.OR, Constants.NOT)
         }
 
         object Augmentation : AugmentationBase {
@@ -180,7 +172,7 @@ interface WhereInput {
                 val result = mutableListOf<InputValueDefinition>()
                 fieldList.forEach { field ->
                     if (field is ScalarField && field.isFilterableByValue()) {
-                        field.predicates.values.forEach {
+                        field.predicateDefinitions.values.forEach {
                             result += inputValue(it.name, it.type) {
                                 (field.deprecatedDirective ?: it.deprecated?.toDeprecatedDirective())
                                     ?.let { directive(it) }
@@ -197,18 +189,19 @@ interface WhereInput {
                             // TODO REVIEW Darrell why not for union or interfaces https://github.com/neo4j/graphql/issues/810
                             if (field.isFilterableByValue()) {
                                 WhereInput.Augmentation.generateWhereOfFieldIT(field, ctx)?.let { where ->
-                                    field.predicates.values.filterNot { it.connection }.forEach { predicateDefinition ->
-                                        result += inputValue(predicateDefinition.name, where.asType()) {
-                                            (field.deprecatedDirective ?: predicateDefinition.deprecated)
-                                                ?.let { directive(it) }
-                                            predicateDefinition.description?.let { description(it) }
+                                    field.predicateDefinitions.values.filterNot { it.connection }
+                                        .forEach { predicateDefinition ->
+                                            result += inputValue(predicateDefinition.name, where.asType()) {
+                                                (field.deprecatedDirective ?: predicateDefinition.deprecated)
+                                                    ?.let { directive(it) }
+                                                predicateDefinition.description?.let { description(it) }
+                                            }
                                         }
-                                    }
                                 }
                             }
                             if (field.node != null) {
                                 AggregateInput.Augmentation.generateAggregateInputIT(field, ctx)?.let {
-                                    result += inputValue(field.fieldName + FieldSuffix.Aggregate, it.asType()) {
+                                    result += inputValue(field.namings.aggregateTypeName, it.asType()) {
                                         field.deprecatedDirective?.let { directive(it) }
                                     }
                                 }
@@ -217,7 +210,7 @@ interface WhereInput {
                     }
                     if (field is ConnectionField && field.isFilterableByValue()) {
                         ConnectionWhere.Augmentation.generateConnectionWhereIT(field, ctx)?.let { where ->
-                            field.relationshipField.predicates.values.filter { it.connection }
+                            field.relationshipField.predicateDefinitions.values.filter { it.connection }
                                 .forEach { predicateDefinition ->
                                     result += inputValue(predicateDefinition.name, where.asType()) {
                                         (field.deprecatedDirective ?: predicateDefinition.deprecated)
@@ -248,19 +241,6 @@ interface WhereInput {
             onImplementingType = { create(it, data) },
             onUnion = { UnionWhereInput(it, data) },
         )
-
-        fun createPredicate(fieldContainer: FieldContainer<*>, key: String, value: Any?) =
-            fieldContainer.predicates[key]?.let { def ->
-                when (def) {
-                    is ScalarPredicateDefinition -> ScalarFieldPredicate(def, value)
-                    is RelationPredicateDefinition -> when (def.connection) {
-                        true -> ConnectionFieldPredicate(def, value?.let { ConnectionWhere.create(def.field, it) })
-                        false -> RelationFieldPredicate(def, value?.let { create(def.field, it.toDict()) })
-                    }
-
-                    is AggregationPredicateDefinition -> AggregationFieldPredicate(def, value)
-                }
-            }
     }
 
     object Augmentation : AugmentationBase {

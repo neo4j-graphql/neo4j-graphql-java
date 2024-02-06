@@ -1,17 +1,18 @@
 package org.neo4j.graphql.domain
 
-import org.neo4j.graphql.domain.directives.Annotations
-import org.neo4j.graphql.domain.naming.UnionEntityOperations
+import org.neo4j.graphql.domain.directives.UnionAnnotations
+import org.neo4j.graphql.domain.naming.UnionNames
 
 class Union(
     override val name: String,
     val nodes: Map<String, Node>,
-    override val annotations: Annotations,
+    override val annotations: UnionAnnotations,
+    override val schema: Schema,
 ) : NodeResolver, Entity {
 
     override fun getRequiredNode(name: String) = nodes[name]
         ?: throw IllegalArgumentException("unknown implementation $name for union ${this.name}")
 
     override fun getNode(name: String) = nodes[name]
-    override val operations = UnionEntityOperations(name, annotations)
+    override val namings = UnionNames(name, annotations)
 }

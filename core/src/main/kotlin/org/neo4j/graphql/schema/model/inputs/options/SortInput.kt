@@ -37,7 +37,7 @@ class SortInput private constructor(entries: Map<String, Direction>) : Map<Strin
 
             fun generateSortIT(implementingType: ImplementingType, ctx: AugmentationContext) =
                 ctx.getOrCreateInputObjectType(
-                    implementingType.operations.sortInputTypeName,
+                    implementingType.namings.sortInputTypeName,
                     init = { description("Fields to sort ${implementingType.pascalCasePlural} by. The order in which sorts are applied is not guaranteed when specifying many fields in one ${implementingType.name}Sort object.".asDescription()) },
                     initFields = { fields, _ ->
                         implementingType.sortableFields.forEach { field ->

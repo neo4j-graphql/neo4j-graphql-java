@@ -15,5 +15,10 @@ sealed class BasePointSelection(val selection: IResolveTree) {
         .fieldsByTypeName[Constants.POINT_TYPE]
         ?.values
         ?.filter { relevantFields.contains(it.name) }
-        ?.flatMap { listOf(it.aliasOrName, prop.property(it.name)) }
+        ?.flatMap {
+            val exp = ensureValidity(it.name, prop)
+            listOf(it.aliasOrName, exp)
+        }
+
+    abstract fun ensureValidity(name: String, point: Expression): Expression
 }

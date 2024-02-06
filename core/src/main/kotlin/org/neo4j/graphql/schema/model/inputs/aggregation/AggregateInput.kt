@@ -18,11 +18,16 @@ class AggregateInput(node: Node, properties: RelationshipProperties?, data: Dict
     data,
     { AggregateInput(node, properties, it) }) {
 
-    val countPredicates = COUNT_PREDICATES
-        .mapNotNull { (key, op) ->
-            val value = data[key] as? Number ?: return@mapNotNull null
-            ExpressionPredicate(key, op.conditionCreator, value)
-        }
+    //    val countPredicates = COUNT_PREDICATES
+//        .mapNotNull { (key, op) ->
+//            val value = data[key] as? Number ?: return@mapNotNull null
+//            ExpressionPredicate(key, op.conditionCreator, value)
+//        }
+    // TODO this is just to have the same order as in js, the code above is more concise
+    val countPredicates = data.mapNotNull { (key, value) ->
+        val numberValue = value as? Number ?: return@mapNotNull null
+        COUNT_PREDICATES[key]?.let { op -> ExpressionPredicate(key, op.conditionCreator, numberValue) }
+    }
 
     val node = data.nestedDict(Constants.NODE_FIELD)?.let { AggregationWhereInput(node, it) }
 
@@ -58,7 +63,7 @@ class AggregateInput(node: Node, properties: RelationshipProperties?, data: Dict
             if (rel.annotations.filterable?.byAggregate == false) {
                 return null
             }
-            return ctx.getOrCreateInputObjectType(rel.operations.aggregateInputTypeName) { fields, name ->
+            return ctx.getOrCreateInputObjectType(rel.namings.aggregateInputTypeName) { fields, name ->
 
                 fields += inputValue(Constants.COUNT, Constants.Types.Int)
                 fields += inputValue(Constants.COUNT + "_LT", Constants.Types.Int)
@@ -68,7 +73,7 @@ class AggregateInput(node: Node, properties: RelationshipProperties?, data: Dict
 
                 AggregationWhereInput.Augmentation
                     .generateWhereAggregationInputTypeForContainer(
-                        rel.operations.nodeAggregationWhereInputTypeName,
+                        rel.namings.nodeAggregationWhereInputTypeName,
                         rel.node?.fields?.filter { it.isAggregationFilterable() },
                         ctx
                     )
@@ -76,7 +81,7 @@ class AggregateInput(node: Node, properties: RelationshipProperties?, data: Dict
 
                 AggregationWhereInput.Augmentation
                     .generateWhereAggregationInputTypeForContainer(
-                        rel.operations.edgeAggregationWhereInputTypeName,
+                        rel.namings.edgeAggregationWhereInputTypeName,
                         rel.properties?.fields,
                         ctx
                     )

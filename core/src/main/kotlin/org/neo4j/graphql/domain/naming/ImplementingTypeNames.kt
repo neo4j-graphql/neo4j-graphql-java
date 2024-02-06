@@ -1,11 +1,11 @@
 package org.neo4j.graphql.domain.naming
 
-import org.neo4j.graphql.domain.directives.Annotations
+import org.neo4j.graphql.domain.directives.ImplementingTypeAnnotations
 
-abstract class ImplementingTypeOperations(
+sealed class ImplementingTypeNames(
     name: String,
-    annotations: Annotations
-) : BaseNames(name, annotations) {
+    annotations: ImplementingTypeAnnotations
+) : EntityNames(name, annotations) {
 
     val uniqueWhereInputTypeName get() = "${name}UniqueWhere"
     val connectOrCreateWhereInputTypeName get() = "${name}ConnectOrCreateWhere"

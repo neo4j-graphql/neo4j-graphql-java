@@ -6,6 +6,9 @@ import org.neo4j.graphql.domain.directives.RelationshipDirective
 
 object Constants {
 
+    const val JS_COMPATIBILITY: Boolean = true
+    const val JWT = "jwt"
+    const val JWT_PREFIX = "\$jwt."
     const val ID_FIELD = "id"
     const val RELATIONSHIP_FIELD_NAME = "relationshipFieldName"
     const val CREATED_RELATIONSHIP = "createdRelationship"
@@ -41,6 +44,7 @@ object Constants {
     const val EDGES_FIELD = "edges"
     const val CURSOR_FIELD = "cursor"
     const val NODE_FIELD = "node"
+    const val RELATIONSHIP_FIELD = "relationship"
     const val TYPENAME_IN = "typename_IN"
     const val ON = "_on"
     const val SCORE = "score"
@@ -108,11 +112,6 @@ object Constants {
 
     val PREDICATE_JOINS = setOf(AND, OR)
 
-    object FieldSuffix {
-        const val Aggregate = "Aggregate"
-
-    }
-
     object OutputTypeSuffix {
         const val Connection = "Connection"
         const val Edge = "Edge"
@@ -136,26 +135,22 @@ object Constants {
         val FloatWhere = TypeName("FloatWhere")
         val EventType = TypeName("EventType")
         val Node = TypeName("Node")
+        val JWTStandard = TypeName("JWTStandard")
     }
 
-    object ArrayOperations {
-        const val PUSH = "PUSH"
-        const val POP = "POP"
-    }
 
-    object Math {
+    object SpatialReferenceIdentifier {
+        const val wgs_84_2D = 4326
+        const val wgs_84_3D = 4979
+        const val cartesian_2D = 7203
+        const val cartesian_3D = 9157
 
-        const val INCREMENT = "INCREMENT"
-        const val DECREMENT = "DECREMENT"
-        const val ADD = "ADD"
-        const val SUBTRACT = "SUBTRACT"
-        const val DIVIDE = "DIVIDE"
-        const val MULTIPLY = "MULTIPLY"
     }
 
     const val AUTH_FORBIDDEN_ERROR = "@neo4j/graphql/FORBIDDEN"
     const val AUTH_UNAUTHENTICATED_ERROR = "@neo4j/graphql/UNAUTHENTICATED"
-    const val RELATIONSHIP_REQUIREMENT_PREFIX = "@neo4j/graphql/RELATIONSHIP-REQUIRED";
+    const val RELATIONSHIP_REQUIREMENT_PREFIX = "@neo4j/graphql/RELATIONSHIP-REQUIRED"
+    const val AUTHORIZATION_UNAUTHENTICATED = "Unauthenticated";
 
     // TODO migrate to old approach
     val WHERE_REG_EX =

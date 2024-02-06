@@ -1,7 +1,7 @@
 package org.neo4j.graphql.domain.fields
 
 import org.neo4j.graphql.domain.TypeMeta
-import org.neo4j.graphql.domain.directives.Annotations
+import org.neo4j.graphql.domain.directives.FieldAnnotations
 
 /**
  * Representation of the `@computed` directive and its meta.
@@ -9,7 +9,7 @@ import org.neo4j.graphql.domain.directives.Annotations
 class ComputedField(
     fieldName: String,
     typeMeta: TypeMeta,
-    annotations: Annotations,
+    annotations: FieldAnnotations,
 ) : BaseField(
     fieldName, typeMeta, annotations
 )

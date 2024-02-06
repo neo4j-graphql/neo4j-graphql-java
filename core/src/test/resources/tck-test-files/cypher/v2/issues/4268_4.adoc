@@ -21,7 +21,6 @@ type Person {
   id: ID
 }
 ----
-
 == Nested AND operator should work correctly
 
 .GraphQL-Query
@@ -34,20 +33,42 @@ type Person {
 }
 ----
 
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [
+      "admin"
+    ],
+    "jwt": {
+      "roles": [
+        "admin"
+      ],
+      "id": "something",
+      "email": "something"
+    }
+  }
+}
+----
+
 .Expected Cypher params
 [source,json]
 ----
 {
-  "isAuthenticated" : true,
-  "jwt" : {
-    "roles" : [ "admin" ],
-    "id" : "something",
-    "email" : "something"
+  "isAuthenticated": true,
+  "jwt": {
+    "roles": [
+      "admin"
+    ],
+    "id": "something",
+    "email": "something"
   },
-  "param2" : "admin",
-  "param3" : "super-admin",
-  "param4" : "user",
-  "param5" : "super-user"
+  "param2": "admin",
+  "param3": "super-admin",
+  "param4": "user",
+  "param5": "super-user"
 }
 ----
 
@@ -56,18 +77,8 @@ type Person {
 ----
 MATCH (this:Movie)
 WITH *
-WHERE apoc.util.validatePredicate(NOT (($isAuthenticated = true
-	AND $jwt.roles IS NOT NULL
-	AND $jwt.roles = $param2
-	AND $jwt.roles IS NOT NULL
-	AND $jwt.roles = $param3
-	AND $jwt.roles IS NOT NULL
-	AND $jwt.roles = $param4
-	AND $jwt.roles IS NOT NULL
-	AND $jwt.roles = $param5)), '@neo4j/graphql/FORBIDDEN', [0])
-RETURN this {
-	.title
-} AS this
+WHERE apoc.util.validatePredicate(NOT ($isAuthenticated = true AND ((($jwt.roles IS NOT NULL AND $jwt.roles = $param2) AND ($jwt.roles IS NOT NULL AND $jwt.roles = $param3)) AND (($jwt.roles IS NOT NULL AND $jwt.roles = $param4) AND ($jwt.roles IS NOT NULL AND $jwt.roles = $param5)))), "@neo4j/graphql/FORBIDDEN", [0])
+RETURN this { .title } AS this
 ----
 
 '''
