@@ -22,12 +22,12 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <java.version>11</java.version>
+        <java.version>17</java.version>
         <kotlin.version>1.7.22</kotlin.version>
         <kotlin.compiler.jvmTarget>${java.version}</kotlin.compiler.jvmTarget>
-        <neo4j.version>5.2.0</neo4j.version>
-        <neo4j-apoc.version>5.2.1</neo4j-apoc.version>
-        <junit-jupiter.version>5.9.1</junit-jupiter.version>
+        <neo4j.version>5.11.0</neo4j.version>
+        <neo4j-apoc.version>5.11.0</neo4j-apoc.version>
+        <junit-jupiter.version>5.10.0</junit-jupiter.version>
     </properties>
 
     <modules>

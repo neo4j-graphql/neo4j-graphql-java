@@ -7,6 +7,7 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.springframework.boot.autoconfigure.Neo4jDriverProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.neo4j.Neo4jProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.test.autoconfigure.graphql.tester.AutoConfigureHttpGraphQlTester;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -33,7 +34,8 @@ class AdditionalDataFetcherTest {
     private Driver driver;
 
     @Container
-    private static final Neo4jContainer<?> neo4jServer = new Neo4jContainer<>("neo4j:4.4.11");
+    private static final Neo4jContainer<?> neo4jServer = new Neo4jContainer<>("neo4j:5.2.0")
+            .withoutAuthentication();
 
 
     @BeforeEach
@@ -101,15 +103,20 @@ class AdditionalDataFetcherTest {
     static class Config {
 
         @Bean
-        @ConfigurationProperties(prefix = "ignore")
+        @ConfigurationProperties(prefix = "org.neo4j.driver")
         @Primary
         public Neo4jDriverProperties properties() {
             Neo4jDriverProperties properties = new Neo4jDriverProperties();
             properties.setUri(URI.create(neo4jServer.getBoltUrl()));
-            Neo4jDriverProperties.Authentication authentication = new Neo4jDriverProperties.Authentication();
-            authentication.setUsername("neo4j");
-            authentication.setPassword(neo4jServer.getAdminPassword());
-            properties.setAuthentication(authentication);
+            return properties;
+        }
+
+        @Bean
+        @ConfigurationProperties(prefix = "org.neo4j")
+        @Primary
+        public Neo4jProperties neo4jProperties() {
+            Neo4jProperties properties = new Neo4jProperties();
+            properties.setUri(URI.create(neo4jServer.getBoltUrl()));
             return properties;
         }
     }
