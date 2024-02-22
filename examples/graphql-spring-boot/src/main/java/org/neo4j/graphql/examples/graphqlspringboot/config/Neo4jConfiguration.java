@@ -38,7 +38,7 @@ public class Neo4jConfiguration {
         return (env, delegate) -> {
             // here you can switch to the new neo4j 5 dialect, if required
             QueryContext queryContext = new QueryContext();
-            queryContext.setNeo4jDialect(Dialect.DEFAULT);
+            queryContext.setNeo4jDialect(Dialect.NEO4J_4);
             env.getGraphQlContext().put(QueryContext.KEY, queryContext);
 
             Cypher cypher = delegate.get(env);
@@ -56,8 +56,7 @@ public class Neo4jConfiguration {
                     return result.list()
                             .stream()
                             .map(record -> record.get(cypher.getVariable()).asObject())
-                            .toList()
-                            .stream().findFirst()
+                            .findFirst()
                             .orElse(Collections.emptyMap());
                 }
             });
