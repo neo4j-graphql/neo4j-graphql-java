@@ -7,13 +7,14 @@
 [source,graphql,schema=true]
 ----
 interface HasMovies { movies:[Movie] }
+enum MovieType { documentary, action }
 type Person0 { name: String, born: _Neo4jTime, location: _Neo4jPoint }
 type Person1 { name: String, born: _Neo4jDate }
 type Person2 { name: String, age: Int, born: _Neo4jDateTime }
 type Person3 { name: String!, born: _Neo4jLocalTime }
 type Person4 { id:ID!, name: String, born: _Neo4jLocalDateTime }
 type Person5 implements HasMovies { id:ID!, movies:[Movie] @relation(name: "LIKES")}
-type Movie { id:ID!, publishedBy: Publisher @relation(name: "PUBLISHED_BY")}
+type Movie { id:ID!, movieType: MovieType, publishedBy: Publisher @relation(name: "PUBLISHED_BY")}
 type Publisher { name:ID! }
 type Knows0 @relation(name:"KNOWS", from: "source", to: "knows"){
   id: ID!
@@ -96,6 +97,7 @@ type Knows4 {
 
 type Movie {
   id: ID!
+  movieType: MovieType
   publishedBy: Publisher
 }
 
@@ -103,7 +105,7 @@ type Mutation {
   addMoviePublishedBy(id: ID!, publishedBy: ID!): Movie!
   addPerson5Movies(id: ID!, movies: [ID!]!): Person5!
   createKnows4(json: DynamicProperties, knows_id: ID!, source_id: ID!): Knows4!
-  createMovie(id: ID!): Movie!
+  createMovie(id: ID!, movieType: MovieType): Movie!
   createPerson1(born: _Neo4jDateInput, name: String): Person1!
   createPerson2(age: Int, born: _Neo4jDateTimeInput, name: String): Person2!
   createPerson3(born: _Neo4jLocalTimeInput, name: String!): Person3!
@@ -128,9 +130,11 @@ type Mutation {
   deletePublisher(name: ID!): Publisher
   mergeKnows0(id: ID!, json: DynamicProperties): Knows0!
   mergeKnows4(_id: ID!, json: DynamicProperties): Knows4!
+  mergeMovie(id: ID!, movieType: MovieType): Movie!
   mergePerson4(born: _Neo4jLocalDateTimeInput, id: ID!, name: String): Person4!
   updateKnows0(id: ID!, json: DynamicProperties): Knows0
   updateKnows4(_id: ID!, json: DynamicProperties): Knows4
+  updateMovie(id: ID!, movieType: MovieType): Movie
   updatePerson4(born: _Neo4jLocalDateTimeInput, id: ID!, name: String): Person4
 }
 
@@ -274,6 +278,11 @@ type _Neo4jTime {
   timezone: String
 }
 
+enum MovieType {
+  action
+  documentary
+}
+
 enum RelationDirection {
   BOTH
   IN
@@ -283,6 +292,8 @@ enum RelationDirection {
 enum _MovieOrdering {
   id_asc
   id_desc
+  movieType_asc
+  movieType_desc
 }
 
 enum _Person0Ordering {
@@ -381,7 +392,7 @@ schema {
 }
 
 interface HasMovies {
-  movies(filter: _MovieFilter, first: Int, id: ID, id_contains: ID, id_ends_with: ID, id_gt: ID, id_gte: ID, id_in: [ID!], id_lt: ID, id_lte: ID, id_matches: ID, id_not: ID, id_not_contains: ID, id_not_ends_with: ID, id_not_in: [ID!], id_not_starts_with: ID, id_starts_with: ID, offset: Int, orderBy: [_MovieOrdering!]): [Movie]
+  movies(filter: _MovieFilter, first: Int, id: ID, id_contains: ID, id_ends_with: ID, id_gt: ID, id_gte: ID, id_in: [ID!], id_lt: ID, id_lte: ID, id_matches: ID, id_not: ID, id_not_contains: ID, id_not_ends_with: ID, id_not_in: [ID!], id_not_starts_with: ID, id_starts_with: ID, movieType: MovieType, movieType_in: [MovieType!], movieType_not: MovieType, movieType_not_in: [MovieType!], offset: Int, orderBy: [_MovieOrdering!]): [Movie]
 }
 
 type Knows0 {
@@ -406,6 +417,7 @@ type Knows4 {
 
 type Movie {
   id: ID!
+  movieType: MovieType
   publishedBy: Publisher
 }
 
@@ -439,7 +451,7 @@ type Person4 {
 
 type Person5 implements HasMovies {
   id: ID!
-  movies(filter: _MovieFilter, first: Int, id: ID, id_contains: ID, id_ends_with: ID, id_gt: ID, id_gte: ID, id_in: [ID!], id_lt: ID, id_lte: ID, id_matches: ID, id_not: ID, id_not_contains: ID, id_not_ends_with: ID, id_not_in: [ID!], id_not_starts_with: ID, id_starts_with: ID, offset: Int, orderBy: [_MovieOrdering!]): [Movie]
+  movies(filter: _MovieFilter, first: Int, id: ID, id_contains: ID, id_ends_with: ID, id_gt: ID, id_gte: ID, id_in: [ID!], id_lt: ID, id_lte: ID, id_matches: ID, id_not: ID, id_not_contains: ID, id_not_ends_with: ID, id_not_in: [ID!], id_not_starts_with: ID, id_starts_with: ID, movieType: MovieType, movieType_in: [MovieType!], movieType_not: MovieType, movieType_not_in: [MovieType!], offset: Int, orderBy: [_MovieOrdering!]): [Movie]
 }
 
 type Publisher {
@@ -452,7 +464,7 @@ type Query {
   knows0(filter: _Knows0Filter, first: Int, id: ID, id_contains: ID, id_ends_with: ID, id_gt: ID, id_gte: ID, id_in: [ID!], id_lt: ID, id_lte: ID, id_matches: ID, id_not: ID, id_not_contains: ID, id_not_ends_with: ID, id_not_in: [ID!], id_not_starts_with: ID, id_starts_with: ID, offset: Int, orderBy: [_Knows0Ordering!]): [Knows0!]!
   knows1(filter: _Knows1Filter, first: Int, id: ID, id_contains: ID, id_ends_with: ID, id_gt: ID, id_gte: ID, id_in: [ID!], id_lt: ID, id_lte: ID, id_matches: ID, id_not: ID, id_not_contains: ID, id_not_ends_with: ID, id_not_in: [ID!], id_not_starts_with: ID, id_starts_with: ID, offset: Int, orderBy: [_Knows1Ordering!]): [Knows1!]!
   knows4(_id: ID, filter: _Knows4Filter, first: Int, offset: Int, orderBy: [_Knows4Ordering!]): [Knows4!]!
-  movie(filter: _MovieFilter, first: Int, id: ID, id_contains: ID, id_ends_with: ID, id_gt: ID, id_gte: ID, id_in: [ID!], id_lt: ID, id_lte: ID, id_matches: ID, id_not: ID, id_not_contains: ID, id_not_ends_with: ID, id_not_in: [ID!], id_not_starts_with: ID, id_starts_with: ID, offset: Int, orderBy: [_MovieOrdering!]): [Movie!]!
+  movie(filter: _MovieFilter, first: Int, id: ID, id_contains: ID, id_ends_with: ID, id_gt: ID, id_gte: ID, id_in: [ID!], id_lt: ID, id_lte: ID, id_matches: ID, id_not: ID, id_not_contains: ID, id_not_ends_with: ID, id_not_in: [ID!], id_not_starts_with: ID, id_starts_with: ID, movieType: MovieType, movieType_in: [MovieType!], movieType_not: MovieType, movieType_not_in: [MovieType!], offset: Int, orderBy: [_MovieOrdering!]): [Movie!]!
   person1(born: _Neo4jDateInput, born_in: [_Neo4jDateInput!], born_not: _Neo4jDateInput, born_not_in: [_Neo4jDateInput!], filter: _Person1Filter, first: Int, name: String, name_contains: String, name_ends_with: String, name_gt: String, name_gte: String, name_in: [String!], name_lt: String, name_lte: String, name_matches: String, name_not: String, name_not_contains: String, name_not_ends_with: String, name_not_in: [String!], name_not_starts_with: String, name_starts_with: String, offset: Int, orderBy: [_Person1Ordering!]): [Person1!]!
   person2(age: Int, age_gt: Int, age_gte: Int, age_in: [Int!], age_lt: Int, age_lte: Int, age_not: Int, age_not_in: [Int!], born: _Neo4jDateTimeInput, born_in: [_Neo4jDateTimeInput!], born_not: _Neo4jDateTimeInput, born_not_in: [_Neo4jDateTimeInput!], filter: _Person2Filter, first: Int, name: String, name_contains: String, name_ends_with: String, name_gt: String, name_gte: String, name_in: [String!], name_lt: String, name_lte: String, name_matches: String, name_not: String, name_not_contains: String, name_not_ends_with: String, name_not_in: [String!], name_not_starts_with: String, name_starts_with: String, offset: Int, orderBy: [_Person2Ordering!]): [Person2!]!
   person3(born: _Neo4jLocalTimeInput, born_in: [_Neo4jLocalTimeInput!], born_not: _Neo4jLocalTimeInput, born_not_in: [_Neo4jLocalTimeInput!], filter: _Person3Filter, first: Int, name: String, name_contains: String, name_ends_with: String, name_gt: String, name_gte: String, name_in: [String!], name_lt: String, name_lte: String, name_matches: String, name_not: String, name_not_contains: String, name_not_ends_with: String, name_not_in: [String!], name_not_starts_with: String, name_starts_with: String, offset: Int, orderBy: [_Person3Ordering!]): [Person3!]!
@@ -560,6 +572,11 @@ type _Neo4jTime {
   timezone: String
 }
 
+enum MovieType {
+  action
+  documentary
+}
+
 enum RelationDirection {
   BOTH
   IN
@@ -588,6 +605,8 @@ enum _Knows4Ordering {
 enum _MovieOrdering {
   id_asc
   id_desc
+  movieType_asc
+  movieType_desc
 }
 
 enum _Person0Ordering {
@@ -803,6 +822,10 @@ input _MovieFilter {
   id_not_in: [ID]
   id_not_starts_with: ID
   id_starts_with: ID
+  movieType: MovieType
+  movieType_in: [MovieType]
+  movieType_not: MovieType
+  movieType_not_in: [MovieType]
   "Filters only those `Movie` for which the `publishedBy`-relationship matches this filter. If `null` is passed to this field, only those `Movie` will be filtered which has no `publishedBy`-relations"
   publishedBy: _PublisherFilter
   "@deprecated Use the `publishedBy_not`-field"
@@ -1155,6 +1178,7 @@ type Knows4 {
 
 type Movie {
   id: ID!
+  movieType: MovieType
   publishedBy: Publisher
 }
 
@@ -1162,7 +1186,7 @@ type Mutation {
   addMoviePublishedBy(id: ID!, publishedBy: ID!): Movie!
   addPerson5Movies(id: ID!, movies: [ID!]!): Person5!
   createKnows4(json: DynamicProperties, knows_id: ID!, source_id: ID!): Knows4!
-  createMovie(id: ID!): Movie!
+  createMovie(id: ID!, movieType: MovieType): Movie!
   createPerson5(id: ID!): Person5!
   createPublisher(name: ID!): Publisher!
   "Deletes Knows0 and returns the type itself"
@@ -1181,8 +1205,10 @@ type Mutation {
   deletePublisher(name: ID!): Publisher
   mergeKnows0(id: ID!, json: DynamicProperties): Knows0!
   mergeKnows4(_id: ID!, json: DynamicProperties): Knows4!
+  mergeMovie(id: ID!, movieType: MovieType): Movie!
   updateKnows0(id: ID!, json: DynamicProperties): Knows0
   updateKnows4(_id: ID!, json: DynamicProperties): Knows4
+  updateMovie(id: ID!, movieType: MovieType): Movie
 }
 
 type Person0 {
@@ -1325,6 +1351,11 @@ type _Neo4jTime {
   timezone: String
 }
 
+enum MovieType {
+  action
+  documentary
+}
+
 enum RelationDirection {
   BOTH
   IN
@@ -1334,6 +1365,8 @@ enum RelationDirection {
 enum _MovieOrdering {
   id_asc
   id_desc
+  movieType_asc
+  movieType_desc
 }
 
 enum _Person0Ordering {
