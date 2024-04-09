@@ -80,7 +80,7 @@ mutation {
 [source,cypher]
 ----
 MATCH (updateMovie:Movie)
-WHERE id(updateMovie) = toInteger($updateMovie_id)
+WHERE elementId(updateMovie) = $updateMovie_id
 SET updateMovie += {
 	released: $updateMovieReleased
 }
@@ -119,7 +119,7 @@ mutation {
 [source,cypher]
 ----
 MATCH (mergeMovie:Movie)
-WHERE id(mergeMovie) = toInteger($mergeMovie_id)
+WHERE elementId(mergeMovie) = $mergeMovie_id
 SET mergeMovie += {
 	released: $mergeMovieReleased
 }
@@ -158,7 +158,7 @@ mutation {
 [source,cypher]
 ----
 MATCH (updateMovie:Movie)
-WHERE id(updateMovie) = toInteger($updateMovie_id)
+WHERE elementId(updateMovie) = $updateMovie_id
 SET updateMovie += {
 	released: $updateMovieReleased
 }

@@ -5,13 +5,11 @@ import graphql.language.TypeDefinition
 import graphql.schema.GraphQLFieldDefinition
 import graphql.schema.GraphQLFieldsContainer
 import org.neo4j.cypherdsl.core.*
-import org.neo4j.cypherdsl.core.Predicates.OngoingListBasedPredicateFunction
+import org.neo4j.cypherdsl.core.Cypher
 import org.slf4j.LoggerFactory
 
-typealias CypherDSL = org.neo4j.cypherdsl.core.Cypher
-
-private fun createArrayPredicate(factory: (SymbolicName) -> OngoingListBasedPredicateFunction) = { lhs: Expression, rhs: Expression ->
-    val x: SymbolicName = org.neo4j.cypherdsl.core.Cypher.name("x")
+private fun createArrayPredicate(factory: (SymbolicName) -> Predicates.OngoingListBasedPredicateFunction) = { lhs: Expression, rhs: Expression ->
+    val x: SymbolicName = Cypher.name("x")
     factory(x).`in`(lhs).where(x.`in`(rhs))
 }
 
@@ -42,10 +40,10 @@ enum class FieldOperator(
     EW("_ends_with", { lhs, rhs -> lhs.endsWith(rhs) }),
     MATCHES("_matches", { lhs, rhs -> lhs.matches(rhs) }),
 
-    INCLUDES_ALL("_includes_all", createArrayPredicate(Predicates::all), list = true),
-    INCLUDES_SOME("_includes_some", createArrayPredicate(Predicates::any), list = true),
-    INCLUDES_NONE("_includes_none", createArrayPredicate(Predicates::none), list = true),
-    INCLUDES_SINGLE("_includes_single", createArrayPredicate(Predicates::single), list = true),
+    INCLUDES_ALL("_includes_all", createArrayPredicate(Cypher::all), list = true),
+    INCLUDES_SOME("_includes_some", createArrayPredicate(Cypher::any), list = true),
+    INCLUDES_NONE("_includes_none", createArrayPredicate(Cypher::none), list = true),
+    INCLUDES_SINGLE("_includes_single", createArrayPredicate(Cypher::single), list = true),
 
     DISTANCE(NEO4j_POINT_DISTANCE_FILTER_SUFFIX, { lhs, rhs -> lhs.isEqualTo(rhs) }, distance = true),
     DISTANCE_LT(NEO4j_POINT_DISTANCE_FILTER_SUFFIX + "_lt", { lhs, rhs -> lhs.lt(rhs) }, distance = true),
@@ -74,10 +72,10 @@ enum class FieldOperator(
             val id = propertyContainer.id()
             val parameter = queryParameter(value, variablePrefix, queriedField, suffix)
             val condition = if (list) {
-                val idVar = CypherDSL.name("id")
-                conditionCreator(id, CypherDSL.listWith(idVar).`in`(parameter).returning(CypherDSL.call("toInteger").withArgs(idVar).asFunction()))
+                val idVar = Cypher.name("id")
+                conditionCreator(id, Cypher.listWith(idVar).`in`(parameter).returning(idVar))
             } else {
-                conditionCreator(id, CypherDSL.call("toInteger").withArgs(parameter).asFunction())
+                conditionCreator(id, parameter)
             }
             listOf(condition)
         } else {

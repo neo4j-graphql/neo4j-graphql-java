@@ -4,6 +4,8 @@ import graphql.language.Description
 import graphql.language.VariableReference
 import graphql.schema.GraphQLOutputType
 import org.neo4j.cypherdsl.core.*
+import org.neo4j.cypherdsl.core.Cypher
+import org.neo4j.cypherdsl.core.Cypher.elementId
 import java.util.*
 
 fun queryParameter(value: Any?, vararg parts: String?): Parameter<*> {
@@ -11,17 +13,17 @@ fun queryParameter(value: Any?, vararg parts: String?): Parameter<*> {
         is VariableReference -> value.name
         else -> normalizeName(*parts)
     }
-    return org.neo4j.cypherdsl.core.Cypher.parameter(name).withValue(value?.toJavaValue())
+    return Cypher.parameter(name).withValue(value?.toJavaValue())
 }
 
-fun Expression.collect(type: GraphQLOutputType) = if (type.isList()) Functions.collect(this) else this
+fun Expression.collect(type: GraphQLOutputType) = if (type.isList()) Cypher.collect(this) else this
 fun StatementBuilder.OngoingReading.withSubQueries(subQueries: List<Statement>) = subQueries.fold(this, { it, sub -> it.call(sub) })
 
 fun normalizeName(vararg parts: String?) = parts.mapNotNull { it?.capitalize() }.filter { it.isNotBlank() }.joinToString("").decapitalize()
 
 fun PropertyContainer.id(): FunctionInvocation = when (this) {
-    is Node -> Functions.id(this)
-    is Relationship -> Functions.id(this)
+    is Node -> elementId(this)
+    is Relationship -> elementId(this)
     else -> throw IllegalArgumentException("Id can only be retrieved for Nodes or Relationships")
 }
 

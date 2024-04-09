@@ -217,7 +217,7 @@ CREATE (source)-[createKnows:KNOWS {
 }]->(knows)
 WITH createKnows
 RETURN createKnows {
-	_id: id(createKnows),
+	_id: elementId(createKnows),
 	json: apoc.map.fromPairs([key IN keys(createKnows) WHERE key STARTS WITH 'prefix.' | [substring(key, 7), createKnows[key]]])
 } AS createKnows
 ----
@@ -249,7 +249,7 @@ mutation {
 [source,cypher]
 ----
 MATCH ()-[updateKnows:KNOWS]->()
-WHERE id(updateKnows) = toInteger($updateKnows_id)
+WHERE elementId(updateKnows) = $updateKnows_id
 SET updateKnows += {
 	`prefix.foo`: $updateKnowsJsonFoo
 }
@@ -286,7 +286,7 @@ mutation {
 [source,cypher]
 ----
 MATCH ()-[mergeKnows:KNOWS]->()
-WHERE id(mergeKnows) = toInteger($mergeKnows_id)
+WHERE elementId(mergeKnows) = $mergeKnows_id
 SET mergeKnows += {
 	`prefix.foo`: $mergeKnowsJsonFoo
 }

@@ -1,7 +1,7 @@
 package org.neo4j.graphql
 
 import graphql.language.ImplementingTypeDefinition
-import graphql.schema.GraphQLDirective
+import graphql.schema.GraphQLAppliedDirective
 import graphql.schema.GraphQLDirectiveContainer
 import graphql.schema.GraphQLFieldsContainer
 import graphql.schema.idl.TypeDefinitionRegistry
@@ -33,10 +33,10 @@ data class RelationshipInfo<TYPE>(
 
     companion object {
         fun create(type: GraphQLFieldsContainer): RelationshipInfo<GraphQLFieldsContainer>? = (type as? GraphQLDirectiveContainer)
-            ?.getDirective(DirectiveConstants.RELATION)
+            ?.getAppliedDirective(DirectiveConstants.RELATION)
             ?.let { relDirective -> create(type, relDirective) }
 
-        fun create(type: GraphQLFieldsContainer, relDirective: GraphQLDirective): RelationshipInfo<GraphQLFieldsContainer> {
+        fun create(type: GraphQLFieldsContainer, relDirective: GraphQLAppliedDirective): RelationshipInfo<GraphQLFieldsContainer> {
             val relType = relDirective.getArgument(DirectiveConstants.RELATION_NAME, "")!!
             val direction = relDirective.getArgument<String>(DirectiveConstants.RELATION_DIRECTION, null)
                 ?.let { RelationDirection.valueOf(it) }

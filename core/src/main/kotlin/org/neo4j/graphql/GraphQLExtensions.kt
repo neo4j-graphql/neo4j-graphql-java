@@ -52,7 +52,7 @@ fun GraphQLFieldDefinition.isNeo4jTemporalType(): Boolean = this.type.isNeo4jTem
 
 fun GraphQLFieldDefinition.isRelationship() = !type.isNeo4jType() && this.type.inner().let { it is GraphQLFieldsContainer }
 
-fun GraphQLFieldsContainer.isRelationType() = (this as? GraphQLDirectiveContainer)?.getDirective(DirectiveConstants.RELATION) != null
+fun GraphQLFieldsContainer.isRelationType() = (this as? GraphQLDirectiveContainer)?.getAppliedDirective(DirectiveConstants.RELATION) != null
 fun GraphQLFieldsContainer.relationshipFor(name: String): RelationshipInfo<GraphQLFieldsContainer>? {
     val field = getRelevantFieldDefinition(name)
             ?: throw IllegalArgumentException("$name is not defined on ${this.name}")
@@ -61,15 +61,15 @@ fun GraphQLFieldsContainer.relationshipFor(name: String): RelationshipInfo<Graph
     val (relDirective, inverse) = if (isRelationType()) {
         val typeName = this.name
         (this as? GraphQLDirectiveContainer)
-            ?.getDirective(DirectiveConstants.RELATION)?.let {
+            ?.getAppliedDirective(DirectiveConstants.RELATION)?.let {
                 // do inverse mapping, if the current type  is the `to` mapping of the relation
                 it to (fieldObjectType.getRelevantFieldDefinition(it.getArgument(RELATION_TO, null as String?))?.name == typeName)
             }
                 ?: throw IllegalStateException("Type ${this.name} needs an @relation directive")
     } else {
         (fieldObjectType as? GraphQLDirectiveContainer)
-            ?.getDirective(DirectiveConstants.RELATION)?.let { it to true }
-                ?: field.getDirective(DirectiveConstants.RELATION)?.let { it to false }
+            ?.getAppliedDirective(DirectiveConstants.RELATION)?.let { it to true }
+                ?: field.getAppliedDirective(DirectiveConstants.RELATION)?.let { it to false }
                 ?: throw IllegalStateException("Field $field needs an @relation directive")
     }
 
@@ -92,7 +92,7 @@ fun GraphQLFieldsContainer.getValidTypeLabels(schema: GraphQLSchema): List<Strin
 fun GraphQLFieldsContainer.label(): String = when {
     this.isRelationType() ->
         (this as? GraphQLDirectiveContainer)
-            ?.getDirective(DirectiveConstants.RELATION)
+            ?.getAppliedDirective(DirectiveConstants.RELATION)
             ?.getArgument(RELATION_NAME)?.argumentValue?.value?.toJavaValue()?.toString()
                 ?: this.name
 
@@ -125,7 +125,7 @@ fun GraphQLType.getInnerFieldsContainer() = inner() as? GraphQLFieldsContainer
         ?: throw IllegalArgumentException("${this.innerName()} is neither an object nor an interface")
 
 fun <T> GraphQLDirectiveContainer.getDirectiveArgument(directiveName: String, argumentName: String, defaultValue: T?): T? =
-        getDirective(directiveName)?.getArgument(argumentName, defaultValue) ?: defaultValue
+        getAppliedDirective(directiveName)?.getArgument(argumentName, defaultValue) ?: defaultValue
 
 @Suppress("UNCHECKED_CAST")
 fun <T> DirectivesContainer<*>.getDirectiveArgument(typeRegistry: TypeDefinitionRegistry, directiveName: String, argumentName: String, defaultValue: T? = null): T? {
@@ -141,25 +141,24 @@ fun <T> DirectivesContainer<*>.getDirectiveArgument(typeRegistry: TypeDefinition
 
 fun DirectivesContainer<*>.getDirective(name: String): Directive? = directives.firstOrNull { it.name == name }
 
-@Suppress("UNCHECKED_CAST")
 fun <T> DirectivesContainer<*>.getMandatoryDirectiveArgument(typeRegistry: TypeDefinitionRegistry, directiveName: String, argumentName: String, defaultValue: T? = null): T =
         getDirectiveArgument(typeRegistry, directiveName, argumentName, defaultValue)
                 ?: throw IllegalStateException("No default value for @${directiveName}::$argumentName")
 
-fun <T> GraphQLDirective.getMandatoryArgument(argumentName: String, defaultValue: T? = null): T = this.getArgument(argumentName, defaultValue)
+fun <T> GraphQLAppliedDirective.getMandatoryArgument(argumentName: String, defaultValue: T? = null): T = this.getArgument(argumentName, defaultValue)
         ?: throw IllegalStateException(argumentName + " is required for @${this.name}")
 
-fun <T> GraphQLDirective.getArgument(argumentName: String, defaultValue: T? = null): T? {
+fun <T> GraphQLAppliedDirective.getArgument(argumentName: String, defaultValue: T? = null): T? {
     val argument = getArgument(argumentName)
     @Suppress("UNCHECKED_CAST")
     return when {
         argument.argumentValue.isSet && argument.argumentValue.value != null -> argument.argumentValue.value?.toJavaValue() as T?
-        argument.argumentDefaultValue.isSet -> argument.argumentDefaultValue.value?.toJavaValue() as T?
+        argument.definition?.value != null -> argument.definition?.value?.toJavaValue() as T?
         else -> defaultValue ?: throw IllegalStateException("No default value for @${this.name}::$argumentName")
     }
 }
 
-fun GraphQLFieldDefinition.cypherDirective(): CypherDirective? = getDirective(CYPHER)?.let {
+fun GraphQLFieldDefinition.cypherDirective(): CypherDirective? = getAppliedDirective(CYPHER)?.let {
     val originalStatement = it.getMandatoryArgument<String>(CYPHER_STATEMENT)
     // Arguments on the field are passed to the Cypher statement and can be used by name.
     // They must not be prefixed by $ since they are no longer parameters. Just use the same name as the fields' argument.

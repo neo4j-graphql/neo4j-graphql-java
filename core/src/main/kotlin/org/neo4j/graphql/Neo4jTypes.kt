@@ -63,9 +63,9 @@ class Neo4jTimeConverter(name: String) : Neo4jConverter(name) {
 class Neo4jPointConverter(name: String) : Neo4jConverter(name) {
 
     fun createDistanceCondition(lhs: Expression, rhs: Parameter<*>, conditionCreator: (Expression, Expression) -> Condition): Condition {
-        val point = Functions.point(rhs.property("point"))
+        val point = Cypher.point(rhs.property("point"))
         val distance = rhs.property("distance")
-        return conditionCreator(Functions.distance(lhs, point), distance)
+        return conditionCreator(Cypher.distance(lhs, point), distance)
     }
 }
 

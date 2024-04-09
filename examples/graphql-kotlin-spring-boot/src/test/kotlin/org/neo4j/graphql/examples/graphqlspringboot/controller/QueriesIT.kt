@@ -2,14 +2,14 @@ package org.neo4j.graphql.examples.graphqlspringboot.controller
 
 import com.expediagroup.graphql.server.types.GraphQLRequest
 import org.junit.jupiter.api.Test
-import org.neo4j.driver.springframework.boot.autoconfigure.Neo4jDriverProperties
+import org.neo4j.driver.AuthToken
+import org.neo4j.driver.AuthTokens
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
-import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.boot.autoconfigure.neo4j.Neo4jConnectionDetails
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Primary
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.testcontainers.containers.Neo4jContainer
@@ -24,36 +24,37 @@ import java.net.URI
 @EnableAutoConfiguration
 @Testcontainers
 internal class QueriesIT(
-        @Autowired private val testClient: WebTestClient
+    @Autowired private val testClient: WebTestClient
 ) {
     @Test
     fun `test additional method`() {
         assertQuery(
-                """
+            """
                     {
                         echo(string: "hello world")
                     }
                 """.trimIndent(),
-                """
+            """
                 {
                     "data": {
                         "echo": "hello world"
                     }
                 }
-                """.trimIndent())
+                """.trimIndent()
+        )
     }
 
     @Test
     fun `test additional method with pojo`() {
         assertQuery(
-                """
+            """
                     {
                         pojo(param: "hello world") {
                             id
                         }
                     }
                 """.trimIndent(),
-                """
+            """
                 {
                     "data": {
                         "pojo": {
@@ -61,34 +62,38 @@ internal class QueriesIT(
                         }
                     }
                 }
-                """.trimIndent())
+                """.trimIndent()
+        )
     }
 
     @Test
     fun `test neo4jQuery`() {
         assertQuery(
-                """
+            """
                 mutation {
                   createTeam(id: "team1", name: "Team 1") {
                     id
                   }
                 }
                 """.trimIndent(),
-                """
+            """
                 {
                     "data": {
                         "createTeam": { "id": "team1" }
                     }
                 }
-                """.trimIndent())
-        assertQuery("{ team { id } }",
-                """
+                """.trimIndent()
+        )
+        assertQuery(
+            "{ team { id } }",
+            """
                 {
                     "data": {
                         "team": [ { "id": "team1" } ]
                     }
                 }
-                """.trimIndent())
+                """.trimIndent()
+        )
     }
 
     private fun assertQuery(query: String, expectedResult: String) {
@@ -104,7 +109,7 @@ internal class QueriesIT(
 
     companion object {
         @Container
-        private val neo4jServer = Neo4jContainer<Nothing>("neo4j:4.4.11")
+        private val neo4jServer = Neo4jContainer<Nothing>("neo4j:5.18.0")
 
     }
 
@@ -112,15 +117,9 @@ internal class QueriesIT(
     open class Config {
 
         @Bean
-        @ConfigurationProperties(prefix = "ignore")
-        @Primary
-        open fun properties(): Neo4jDriverProperties {
-            val properties = Neo4jDriverProperties()
-            properties.uri = URI.create(neo4jServer.boltUrl)
-            properties.authentication = Neo4jDriverProperties.Authentication()
-            properties.authentication.username = "neo4j"
-            properties.authentication.password = neo4jServer.adminPassword
-            return properties
+        open fun neo4jConnectionDetails() = object :Neo4jConnectionDetails {
+            override fun getUri(): URI = URI.create(neo4jServer.boltUrl)
+            override fun getAuthToken(): AuthToken = AuthTokens.basic("neo4j",neo4jServer.adminPassword)
         }
 
     }
