@@ -27,11 +27,11 @@ open class Neo4jConfiguration {
         return object : DataFetchingInterceptor {
             override fun fetchData(env: DataFetchingEnvironment, delegate: DataFetcher<Cypher>): Any? {
                 // here you can switch to the new neo4j 5 dialect, if required
-                env.graphQlContext.setQueryContext(QueryContext(neo4jDialect = Dialect.DEFAULT))
+                env.graphQlContext.setQueryContext(QueryContext(neo4jDialect = Dialect.NEO4J_5))
 
                 val (cypher, params, type, variable) = delegate.get(env)
 
-                return driver.session().writeTransaction { tx ->
+                return driver.session().executeWrite { tx ->
                     val boltParams = params.mapValues { toBoltValue(it.value) }
                     val result = tx.run(cypher, boltParams)
                     if (isListType(type)) {

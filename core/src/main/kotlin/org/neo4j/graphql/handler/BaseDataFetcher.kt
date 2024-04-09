@@ -34,7 +34,7 @@ abstract class BaseDataFetcher(schemaConfig: SchemaConfig) : ProjectionBase(sche
             .build()
         ).render(statement)
 
-        val params = statement.parameters.mapValues { (_, value) ->
+        val params = statement.catalog.parameters.mapValues { (_, value) ->
             (value as? VariableReference)?.let { env.variables[it.name] } ?: value
         }
         return Cypher(query, params, env.fieldDefinition.type, variable = field.aliasOrName())

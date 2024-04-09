@@ -4,6 +4,7 @@ import graphql.language.*
 import graphql.schema.GraphQLFieldDefinition
 import graphql.schema.GraphQLFieldsContainer
 import org.neo4j.cypherdsl.core.*
+import org.neo4j.cypherdsl.core.Cypher.noCondition
 import org.neo4j.cypherdsl.core.Node
 import org.neo4j.graphql.*
 import org.neo4j.graphql.handler.projection.ProjectionBase
@@ -24,7 +25,7 @@ class ParsedQuery(
             fieldPredicates
                 .flatMap { it.createCondition(propertyContainer, variablePrefix, variableSuffix, schemaConfig) }
                 .reduceOrNull { result, condition -> result.and(condition) }
-                    ?: Conditions.noCondition()
+                    ?: noCondition()
 }
 
 abstract class Predicate<T>(

@@ -214,13 +214,13 @@ class OptimizedFilterHandler(val type: GraphQLFieldsContainer, schemaConfig: Sch
         private fun totalFilter(relationPredicate: RelationPredicate, relVariableName: String): Pair<SymbolicName, AliasedExpression> {
             val totalRel = relationPredicate.relationshipInfo.createRelation(currentNode(), relationPredicate.relNode)
             val totalVar = normalizeName(relVariableName, "Total")
-            val total = Functions.size(totalRel).`as`(totalVar)
+            val total = Cypher.size(totalRel).`as`(totalVar)
             return Cypher.name(totalVar) to total
         }
 
         private fun countFilter(relVariable: Node, relVariableName: String): Pair<SymbolicName, AliasedExpression> {
             val countVar = normalizeName(relVariableName, "Count")
-            val count = Functions.countDistinct(relVariable).`as`(countVar)
+            val count = Cypher.countDistinct(relVariable).`as`(countVar)
             return Cypher.name(countVar) to count
         }
 

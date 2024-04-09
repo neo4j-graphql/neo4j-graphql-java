@@ -1203,7 +1203,7 @@ RETURN user {
 [source,cypher]
 ----
 MATCH ()-[rated:RATED]->()
-WHERE id(rated) = toInteger($rated_id)
+WHERE elementId(rated) = $rated_id
 RETURN rated {
 	.rating
 } AS rated
@@ -1249,7 +1249,7 @@ CREATE (from)-[createRated:RATED {
 }]->(to)
 WITH createRated
 RETURN createRated {
-	_id: id(createRated)
+	_id: elementId(createRated)
 } AS createRated
 ----
 
@@ -1280,7 +1280,7 @@ mutation {
 [source,cypher]
 ----
 MATCH ()-[updateRated:RATED]->()
-WHERE id(updateRated) = toInteger($updateRated_id)
+WHERE elementId(updateRated) = $updateRated_id
 SET updateRated += {
 	rating: $updateRatedRating
 }
@@ -1710,7 +1710,7 @@ mutation{
 [source,cypher]
 ----
 MATCH (deleteState:State)
-WHERE id(deleteState) = toInteger($deleteState_id)
+WHERE elementId(deleteState) = $deleteState_id
 WITH deleteState AS toDelete, deleteState {
 	.name
 } AS deleteState DETACH DELETE toDelete
@@ -1746,7 +1746,7 @@ mutation{
 [source,cypher]
 ----
 MATCH ()-[deleteRated:RATED]->()
-WHERE id(deleteRated) = toInteger($deleteRated_id)
+WHERE elementId(deleteRated) = $deleteRated_id
 CALL {
 	WITH deleteRated
 	MATCH (from:User)-[deleteRated]->()

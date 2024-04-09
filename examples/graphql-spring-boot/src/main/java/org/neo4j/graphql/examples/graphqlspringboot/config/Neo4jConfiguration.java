@@ -38,11 +38,11 @@ public class Neo4jConfiguration {
         return (env, delegate) -> {
             // here you can switch to the new neo4j 5 dialect, if required
             QueryContext queryContext = new QueryContext();
-            queryContext.setNeo4jDialect(Dialect.NEO4J_4);
+            queryContext.setNeo4jDialect(Dialect.NEO4J_5);
             env.getGraphQlContext().put(QueryContext.KEY, queryContext);
 
             Cypher cypher = delegate.get(env);
-            return driver.session(SessionConfig.forDatabase(database)).writeTransaction(tx -> {
+            return driver.session(SessionConfig.forDatabase(database)).executeWrite(tx -> {
                 Map<String, Object> boltParams = new HashMap<>(cypher.getParams());
                 boltParams.replaceAll((key, value) -> toBoltValue(value));
 

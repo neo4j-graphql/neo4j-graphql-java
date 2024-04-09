@@ -4,7 +4,6 @@ import graphql.Scalars.GraphQLString
 import graphql.schema.*
 import org.neo4j.cypherdsl.core.*
 import org.neo4j.cypherdsl.core.Cypher.*
-import org.neo4j.cypherdsl.core.Functions.*
 import org.neo4j.cypherdsl.core.StatementBuilder.*
 import org.neo4j.graphql.*
 import org.neo4j.graphql.parser.ParsedQuery
@@ -139,7 +138,7 @@ open class ProjectionBase(
             val parsedQuery = parseArguments(filteredArguments, fieldDefinition, type)
             handleQuery(variable, "", propertyContainer, parsedQuery, type, variables)
         } else {
-            Conditions.noCondition()
+            noCondition()
         }
         val filterFieldName = filterFieldName()
         return arguments[filterFieldName]
@@ -189,11 +188,11 @@ open class ProjectionBase(
 
             val cond = name(normalizeName(variablePrefix, predicate.relationshipInfo.typeName, "Cond"))
             when (predicate.op) {
-                RelationOperator.SOME -> Predicates.any(cond)
-                RelationOperator.SINGLE -> Predicates.single(cond)
-                RelationOperator.EVERY -> Predicates.all(cond)
-                RelationOperator.NOT -> Predicates.all(cond)
-                RelationOperator.NONE -> Predicates.none(cond)
+                RelationOperator.SOME -> any(cond)
+                RelationOperator.SINGLE -> single(cond)
+                RelationOperator.EVERY -> all(cond)
+                RelationOperator.NOT -> all(cond)
+                RelationOperator.NONE -> none(cond)
                 else -> null
             }?.let {
                 val targetNode = predicate.relNode.named(normalizeName(variablePrefix, predicate.relationshipInfo.typeName))
@@ -360,7 +359,7 @@ open class ProjectionBase(
             }
 
             fieldDefinition.isNativeId() -> {
-                projections += id(anyNode(variable))
+                projections += elementId(anyNode(variable))
             }
 
             else -> {
@@ -501,7 +500,7 @@ open class ProjectionBase(
         val relInfo = parent.relationship()
                 ?: throw IllegalStateException(parent.name + " is not an relation type")
 
-        val node = CypherDSL.node(fieldDefinition.type.name()).named(fieldDefinition.name)
+        val node = node(fieldDefinition.type.name()).named(fieldDefinition.name)
         val (start, end, target) = when (fieldDefinition.name) {
             relInfo.startField -> Triple(node, anyNode(), node)
             relInfo.endField -> Triple(anyNode(), node, node)
@@ -530,8 +529,8 @@ open class ProjectionBase(
         val nodeType = fieldType.getInnerFieldsContainer()
 
         // todo combine both nestings if rel-entity
-        val relDirectiveObject = (nodeType as? GraphQLDirectiveContainer)?.getDirective(DirectiveConstants.RELATION)?.let { RelationshipInfo.create(nodeType, it) }
-        val relDirectiveField = fieldDefinition.getDirective(DirectiveConstants.RELATION)?.let { RelationshipInfo.create(nodeType, it) }
+        val relDirectiveObject = (nodeType as? GraphQLDirectiveContainer)?.getAppliedDirective(DirectiveConstants.RELATION)?.let { RelationshipInfo.create(nodeType, it) }
+        val relDirectiveField = fieldDefinition.getAppliedDirective(DirectiveConstants.RELATION)?.let { RelationshipInfo.create(nodeType, it) }
 
         val (relInfo0, isRelFromType) =
                 relDirectiveObject?.let { it to true }

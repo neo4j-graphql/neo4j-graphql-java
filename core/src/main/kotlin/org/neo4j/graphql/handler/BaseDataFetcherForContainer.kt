@@ -5,8 +5,10 @@ import graphql.language.ArrayValue
 import graphql.schema.GraphQLFieldDefinition
 import graphql.schema.GraphQLFieldsContainer
 import graphql.schema.GraphQLType
-import org.neo4j.cypherdsl.core.*
+import org.neo4j.cypherdsl.core.Condition
 import org.neo4j.cypherdsl.core.Cypher.*
+import org.neo4j.cypherdsl.core.Expression
+import org.neo4j.cypherdsl.core.PropertyContainer
 import org.neo4j.graphql.*
 
 /**
@@ -96,19 +98,19 @@ abstract class BaseDataFetcherForContainer(schemaConfig: SchemaConfig) : BaseDat
                         val (propContainer, func) = if (isRelation) {
                             val variableName = name(variable)
                             val rel = anyNode().relationshipTo(anyNode(), label).named(variableName)
-                            rel to Functions.id(rel)
+                            rel to elementId(rel)
                         } else {
                             val node = node(label).named(variable)
-                            node to Functions.id(node)
+                            node to elementId(node)
                         }
-                        val where = func.isEqualTo(call("toInteger").withArgs(idParam).asFunction())
+                        val where = func.isEqualTo(idParam)
                         propContainer to where
                     } else {
                         val node = node(label).named(variable)
                         if (idProperty.value is ArrayValue) {
                             node to node.property(idField.propertyName()).`in`(idParam)
                         } else {
-                            node.withProperties(idField.propertyName(), idParam) to Conditions.noCondition()
+                            node.withProperties(idField.propertyName(), idParam) to noCondition()
                         }
                     }
                 }
