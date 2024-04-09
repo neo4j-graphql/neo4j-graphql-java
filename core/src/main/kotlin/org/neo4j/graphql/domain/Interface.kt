@@ -4,6 +4,7 @@ import graphql.language.Comment
 import graphql.language.Description
 import org.neo4j.graphql.domain.directives.InterfaceAnnotations
 import org.neo4j.graphql.domain.fields.BaseField
+import org.neo4j.graphql.domain.fields.RelationDeclarationField
 import org.neo4j.graphql.domain.naming.InterfaceNames
 
 class Interface(
@@ -16,7 +17,9 @@ class Interface(
     schema: Schema,
 ) : ImplementingType(name, description, comments, fields, interfaces, annotations, schema), NodeResolver {
 
-    var implementations: Map<String, Node> = emptyMap()
+    val relationshipDeclarations: List<RelationDeclarationField> by lazy { fields.filterIsInstance<RelationDeclarationField>() }
+
+    lateinit var implementations: Map<String, Node>
 
     override val namings = InterfaceNames(name, annotations)
 

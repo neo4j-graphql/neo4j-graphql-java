@@ -38,13 +38,61 @@ type Actor {
 
 type ActorAggregateSelection {
   count: Int!
-  password: StringAggregateSelectionNonNullable!
-  username: StringAggregateSelectionNonNullable!
+  password: StringAggregateSelection!
+  username: StringAggregateSelection!
+}
+
+input ActorCreateInput {
+  password: String!
+  username: String!
 }
 
 type ActorEdge {
   cursor: String!
   node: Actor!
+}
+
+input ActorOptions {
+  limit: Int
+  offset: Int
+  """
+  Specify one or more ActorSort objects to sort Actors by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [ActorSort!]
+}
+
+"""
+Fields to sort Actors by. The order in which sorts are applied is not guaranteed when specifying many fields in one ActorSort object.
+"""
+input ActorSort {
+  password: SortDirection
+  username: SortDirection
+}
+
+input ActorWhere {
+  AND: [ActorWhere!]
+  NOT: ActorWhere
+  OR: [ActorWhere!]
+  password: String
+  password_CONTAINS: String
+  password_ENDS_WITH: String
+  password_IN: [String!]
+  password_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  password_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  password_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  password_NOT_IN: [String!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  password_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  password_STARTS_WITH: String
+  username: String
+  username_CONTAINS: String
+  username_ENDS_WITH: String
+  username_IN: [String!]
+  username_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  username_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  username_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  username_NOT_IN: [String!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  username_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  username_STARTS_WITH: String
 }
 
 type ActorsConnection {
@@ -58,9 +106,11 @@ type CreateActorsMutationResponse {
   info: CreateInfo!
 }
 
-"Information about the number of nodes and relationships created during a create mutation"
+"""
+Information about the number of nodes and relationships created during a create mutation
+"""
 type CreateInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   relationshipsCreated: Int!
 }
@@ -70,9 +120,11 @@ type CreateMoviesMutationResponse {
   movies: [Movie!]!
 }
 
-"Information about the number of nodes and relationships deleted during a delete mutation"
+"""
+Information about the number of nodes and relationships deleted during a delete mutation
+"""
 type DeleteInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesDeleted: Int!
   relationshipsDeleted: Int!
 }
@@ -83,12 +135,48 @@ type Movie {
 
 type MovieAggregateSelection {
   count: Int!
-  title: StringAggregateSelectionNullable!
+  title: StringAggregateSelection!
+}
+
+input MovieCreateInput {
+  title: String
 }
 
 type MovieEdge {
   cursor: String!
   node: Movie!
+}
+
+input MovieOptions {
+  limit: Int
+  offset: Int
+  """
+  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [MovieSort!]
+}
+
+"""
+Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object.
+"""
+input MovieSort {
+  title: SortDirection
+}
+
+input MovieWhere {
+  AND: [MovieWhere!]
+  NOT: MovieWhere
+  OR: [MovieWhere!]
+  title: String
+  title_CONTAINS: String
+  title_ENDS_WITH: String
+  title_IN: [String]
+  title_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_IN: [String] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_STARTS_WITH: String
 }
 
 type MoviesConnection {
@@ -104,7 +192,7 @@ type Mutation {
   deleteMovies(where: MovieWhere): DeleteInfo!
 }
 
-"Pagination information (Relay)"
+"""Pagination information (Relay)"""
 type PageInfo {
   endCursor: String
   hasNextPage: Boolean!
@@ -121,100 +209,18 @@ type Query {
   moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
 }
 
-type StringAggregateSelectionNonNullable {
-  longest: String!
-  shortest: String!
-}
-
-type StringAggregateSelectionNullable {
-  longest: String
-  shortest: String
-}
-
-"An enum for sorting in either ascending or descending order."
+"""An enum for sorting in either ascending or descending order."""
 enum SortDirection {
-  "Sort by field values in ascending order."
+  """Sort by field values in ascending order."""
   ASC
-  "Sort by field values in descending order."
+  """Sort by field values in descending order."""
   DESC
 }
 
-input ActorCreateInput {
-  password: String!
-  username: String!
+type StringAggregateSelection {
+  longest: String
+  shortest: String
 }
-
-input ActorOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more ActorSort objects to sort Actors by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [ActorSort!]
-}
-
-"Fields to sort Actors by. The order in which sorts are applied is not guaranteed when specifying many fields in one ActorSort object."
-input ActorSort {
-  password: SortDirection
-  username: SortDirection
-}
-
-input ActorWhere {
-  AND: [ActorWhere!]
-  NOT: ActorWhere
-  OR: [ActorWhere!]
-  password: String
-  password_CONTAINS: String
-  password_ENDS_WITH: String
-  password_IN: [String!]
-  password_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  password_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  password_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  password_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  password_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  password_STARTS_WITH: String
-  username: String
-  username_CONTAINS: String
-  username_ENDS_WITH: String
-  username_IN: [String!]
-  username_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  username_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  username_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  username_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  username_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  username_STARTS_WITH: String
-}
-
-input MovieCreateInput {
-  title: String
-}
-
-input MovieOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [MovieSort!]
-}
-
-"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
-input MovieSort {
-  title: SortDirection
-}
-
-input MovieWhere {
-  AND: [MovieWhere!]
-  NOT: MovieWhere
-  OR: [MovieWhere!]
-  title: String
-  title_CONTAINS: String
-  title_ENDS_WITH: String
-  title_IN: [String]
-  title_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_IN: [String] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_STARTS_WITH: String
-}
-
 ----
 
 '''

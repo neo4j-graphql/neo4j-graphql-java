@@ -5,6 +5,7 @@ import org.neo4j.graphql.asRequiredType
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.RelationshipProperties
 import org.neo4j.graphql.domain.Union
+import org.neo4j.graphql.domain.fields.RelationBaseField
 import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.schema.AugmentationBase
 import org.neo4j.graphql.schema.AugmentationContext
@@ -31,7 +32,7 @@ sealed interface ConnectOrCreateFieldInput {
 
         object Augmentation : AugmentationBase {
             fun generateFieldConnectOrCreateIT(
-                rel: RelationField,
+                rel: RelationBaseField,
                 node: Node,
                 ctx: AugmentationContext
             ): String? {
@@ -49,17 +50,15 @@ sealed interface ConnectOrCreateFieldInput {
                 }
             }
 
-            private fun generateNodeOnCreateIT(rel: RelationField, node: Node, ctx: AugmentationContext) =
+            private fun generateNodeOnCreateIT(rel: RelationBaseField, node: Node, ctx: AugmentationContext) =
                 ctx.getOrCreateInputObjectType(rel.namings.getConnectOrCreateOnCreateFieldInputTypeName(node)) { fields, _ ->
 
                     generateNodeOnCreateInputIT(node, ctx)
                         ?.let { fields += inputValue(Constants.NODE_FIELD, it.asRequiredType()) }
 
                     CreateInput.Augmentation
-                        .addEdgePropertyCreateInputField(
-                            rel, fields, ctx,
-                            required = { it.hasRequiredNonGeneratedFields }
-                        )
+                        .getEdgePropertyCreateInputIT(rel, ctx, required = { it.hasRequiredNonGeneratedFields })
+                        ?.let { fields += inputValue(Constants.EDGE_FIELD, it) }
                 }
 
             private fun generateNodeOnCreateInputIT(node: Node, ctx: AugmentationContext) =

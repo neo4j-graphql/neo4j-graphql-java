@@ -4,19 +4,15 @@ import org.neo4j.cypherdsl.core.*
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthenticationDirective
-import org.neo4j.graphql.domain.directives.AuthorizationDirective
 import org.neo4j.graphql.domain.fields.ConnectionField
 import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.domain.fields.ScalarField
 import org.neo4j.graphql.handler.utils.ChainString
-import org.neo4j.graphql.schema.model.inputs.connection.ConnectionWhere
 import org.neo4j.graphql.schema.model.inputs.field_arguments.ConnectionFieldInputArgs
-import org.neo4j.graphql.translate.AuthorizationFactory
 import org.neo4j.graphql.translate.ProjectionTranslator
 import org.neo4j.graphql.translate.checkAuthentication
 import org.neo4j.graphql.translate.projection.projectScalarField
 import org.neo4j.graphql.translate.where.PrefixUsage
-import org.neo4j.graphql.translate.where.createConnectionWhere
 import org.neo4j.graphql.utils.ResolveTree
 
 object CreateConnectionClause {
@@ -299,97 +295,98 @@ object CreateConnectionClause {
         val endNode = relatedNode.asCypherNode(queryContext, ChainString(schemaConfig, startNode, relatedNode))
 
         val prefix = ChainString(schemaConfig, startNode, "connection", resolveTree.aliasOrName)
-        val rel = relField.createQueryDslRelation(
-            Cypher.anyNode()
-                .named(startNode.requiredSymbolicName), // TODO https://github.com/neo4j-contrib/cypher-dsl/issues/589
-            endNode,
-            args.directed,
-            startLeft = true
-        )
-            .named(queryContext.getNextVariable(prefix.appendOnPrevious("this")))
-
-        val whereInput = when (args.where) {
-            is ConnectionWhere.ImplementingTypeConnectionWhere<*> -> args.where
-            is ConnectionWhere.UnionConnectionWhere -> args.where.getDataForNode(relatedNode)
-            null -> null
-        }
-
-        var where = createConnectionWhere(
-            whereInput,
-            relatedNode,
-            endNode,
-            relField,
-            rel,
-            prefix,
-            schemaConfig,
-            queryContext,
-            usePrefix
-        )
-
-        where = where and AuthorizationFactory.getAuthConditions(
-            relatedNode,
-            endNode,
-            fields = null,
-            schemaConfig,
-            queryContext,
-            AuthorizationDirective.AuthorizationOperation.READ
-        )
-
-
-        val projection = createEdgeProjection(
-            resolveTree,
-            field,
-            relField,
-            rel,
-            queryContext,
-            relatedNode,
-            endNode,
-            prefix,
-            schemaConfig,
-            resolveType,
-            args,
-            returnVariable,
-        )
-//        sortFieldOverrides.putAll(projection.sortFields)
-
-        where = where and projection.authValidate
-        val subqueries = where.preComputedSubQueries + projection.allSubQueries
-
-        val order = if (!ignoreSort) {
-            // we ignore limit here to avoid breaking totalCount
-            createConnectionSortAndLimit(
-                args,
-                rel::property,
-                endNode::property,
-                null,
-                emptyMap(),
-                ignoreSkipLimit = true
-            )
-        } else {
-            null
-        }
-        return Cypher.with(startNode)
-            .match(rel)
-            .let {
-                if (subqueries.isEmpty()) {
-                    it
-                        .optionalWhere(where.predicate)
-                } else {
-                    it.withSubQueries(subqueries)
-                        .with(Cypher.asterisk())
-                        .optionalWhere(where.predicate)
-                }
-            }
-//            .applySortingSkipAndLimit(order, queryContext, prefix, listOf(rel, endNode))
-//            .withSubQueries(projection.subQueries)
-            .with(
-                Cypher.collect(
-                    Cypher.mapOf(
-                        Constants.NODE_FIELD, endNode.asExpression(),
-                        Constants.RELATIONSHIP_FIELD, rel.asExpression()
-                    )
-                ).`as`(returnVariable)
-            )
+        TODO()
+//        val rel = relField.createQueryDslRelation(
+//            Cypher.anyNode()
+//                .named(startNode.requiredSymbolicName), // TODO https://github.com/neo4j-contrib/cypher-dsl/issues/589
+//            endNode,
+//            args.directed,
+//            startLeft = true
+//        )
+//            .named(queryContext.getNextVariable(prefix.appendOnPrevious("this")))
+//
+//        val whereInput = when (args.where) {
+//            is ConnectionWhere.ImplementingTypeConnectionWhere<*> -> args.where
+//            is ConnectionWhere.UnionConnectionWhere -> args.where.getDataForNode(relatedNode)
+//            null -> null
+//        }
+//
+//        var where = createConnectionWhere(
+//            whereInput,
+//            relatedNode,
+//            endNode,
+//            relField,
+//            rel,
+//            prefix,
+//            schemaConfig,
+//            queryContext,
+//            usePrefix
+//        )
+//
+//        where = where and AuthorizationFactory.getAuthConditions(
+//            relatedNode,
+//            endNode,
+//            fields = null,
+//            schemaConfig,
+//            queryContext,
+//            AuthorizationDirective.AuthorizationOperation.READ
+//        )
+//
+//
+//        val projection = createEdgeProjection(
+//            resolveTree,
+//            field,
+//            relField,
+//            rel,
+//            queryContext,
+//            relatedNode,
+//            endNode,
+//            prefix,
+//            schemaConfig,
+//            resolveType,
+//            args,
+//            returnVariable,
+//        )
+////        sortFieldOverrides.putAll(projection.sortFields)
+//
+//        where = where and projection.authValidate
+//        val subqueries = where.preComputedSubQueries + projection.allSubQueries
+//
+//        val order = if (!ignoreSort) {
+//            // we ignore limit here to avoid breaking totalCount
+//            createConnectionSortAndLimit(
+//                args,
+//                rel::property,
+//                endNode::property,
+//                null,
+//                emptyMap(),
+//                ignoreSkipLimit = true
+//            )
+//        } else {
+//            null
+//        }
+//        return Cypher.with(startNode)
+//            .match(rel)
+//            .let {
+//                if (subqueries.isEmpty()) {
+//                    it
+//                        .optionalWhere(where.predicate)
+//                } else {
+//                    it.withSubQueries(subqueries)
+//                        .with(Cypher.asterisk())
+//                        .optionalWhere(where.predicate)
+//                }
+//            }
+////            .applySortingSkipAndLimit(order, queryContext, prefix, listOf(rel, endNode))
+////            .withSubQueries(projection.subQueries)
+//            .with(
+//                Cypher.collect(
+//                    Cypher.mapOf(
+//                        Constants.NODE_FIELD, endNode.asExpression(),
+//                        Constants.RELATIONSHIP_FIELD, rel.asExpression()
+//                    )
+//                ).`as`(returnVariable)
+//            )
     }
 
     private fun createEdgeProjection(
@@ -417,7 +414,8 @@ object CreateConnectionClause {
 
         val edges = connection[Constants.EDGES_FIELD]
         if (edges != null) {
-            val relationshipFieldsByTypeName = edges.fieldsByTypeName[field.relationshipTypeName]
+            val relationshipFieldsByTypeName =
+                edges.fieldsByTypeName[field.relationshipField.namings.relationshipFieldTypename2]
             val relationshipProperties = relationshipFieldsByTypeName
                 ?.toMutableMap()
                 ?.also {

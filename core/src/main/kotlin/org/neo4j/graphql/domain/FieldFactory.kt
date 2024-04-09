@@ -4,9 +4,7 @@ import graphql.language.*
 import graphql.schema.idl.ScalarInfo
 import graphql.schema.idl.TypeDefinitionRegistry
 import org.neo4j.graphql.*
-import org.neo4j.graphql.domain.directives.Annotations
-import org.neo4j.graphql.domain.directives.PrivateDirective
-import org.neo4j.graphql.domain.directives.RelationshipDirective
+import org.neo4j.graphql.domain.directives.*
 import org.neo4j.graphql.domain.fields.*
 import org.neo4j.graphql.domain.fields.ObjectField
 import org.slf4j.LoggerFactory
@@ -22,25 +20,13 @@ object FieldFactory {
         obj: ImplementingTypeDefinition<*>,
         typeDefinitionRegistry: TypeDefinitionRegistry,
         relationshipPropertiesFactory: (name: String) -> RelationshipProperties?,
-        interfaceFactory: (name: String) -> Interface?,
         schemaConfig: SchemaConfig,
     ): List<BaseField> {
-        val objInterfaces = obj.implements
-            .mapNotNull { typeDefinitionRegistry.getTypeByName<InterfaceTypeDefinition>(it.name()) }
-
         val result = mutableListOf<BaseField>()
 
         obj.fieldDefinitions.forEach { field ->
-
-            // Create list of directives for this field. Field directives override interface field directives.
-            val directives: MutableMap<String, Directive> = mutableMapOf()
-            objInterfaces.mapNotNull { it.getField(field.name) }
-                .forEach { interfaceField -> interfaceField.directives.associateByTo(directives) { it.name } }
-            field.directives.associateByTo(directives) { it.name }
-
-            if (directives.containsKey(PrivateDirective.NAME)) return@forEach
-
-            val annotations = Annotations(directives, jwtShape = null)
+            val annotations = Annotations(field.directives, jwtShape = null)
+            if (annotations.private != null) return@forEach
             val typeMeta = TypeMeta.create(field)
 
             val fieldInterface = typeDefinitionRegistry.getTypeByName<InterfaceTypeDefinition>(typeMeta.type.name())
@@ -52,33 +38,37 @@ object FieldFactory {
 
             val baseField: BaseField
 
-            if (annotations.relationship != null) {
-                val properties = if (annotations.relationship.properties != null) {
-                    relationshipPropertiesFactory(annotations.relationship.properties)
-                        ?: throw IllegalArgumentException("Cannot find interface specified in @${RelationshipDirective.NAME} of ${obj.name}.${field.name}")
-                } else {
-                    null
-                }
+            if (annotations.relationship != null || annotations.declareRelationship != null) {
 
                 var connectionPrefix = obj.name
                 if (obj.implements.isNotEmpty()) {
-                    val interfacedDefs =
-                        obj.implements.mapNotNull { typeDefinitionRegistry.getTypeByName<InterfaceTypeDefinition>(it.name()) }
-                    val firstInterface = interfacedDefs.firstOrNull()
-                    if (firstInterface != null && firstInterface.getField(field.name) != null) {
+                    val firstInterface = obj.implements
+                        .firstNotNullOfOrNull { typeDefinitionRegistry.getTypeByName<InterfaceTypeDefinition>(it.name()) }
+                    if (firstInterface?.getField(field.name) != null) {
                         // TODO Darrell why only the 1st interface?
                         connectionPrefix = firstInterface.name
                     }
                 }
 
-                baseField = RelationField(
-                    field.name,
-                    typeMeta,
-                    annotations,
-                    properties,
-                    connectionPrefix
-                )
-
+                baseField = if (annotations.relationship != null) {
+                    val properties = if (annotations.relationship.properties != null) {
+                        relationshipPropertiesFactory(annotations.relationship.properties)
+                            ?: throw IllegalArgumentException("Cannot find interface specified in @${RelationshipDirective.NAME} of ${obj.name}.${field.name}")
+                    } else {
+                        null
+                    }
+                    RelationField(
+                        field.name,
+                        typeMeta,
+                        annotations,
+                        properties,
+                        connectionPrefix
+                    )
+                } else if (annotations.declareRelationship != null) {
+                    RelationDeclarationField(field.name, typeMeta, annotations, connectionPrefix)
+                } else {
+                    error("Unknown relationship directive")
+                }
 
                 val connectionTypeName = "${connectionPrefix}${baseField.fieldName.capitalize()}Connection"
 
@@ -89,8 +79,15 @@ object FieldFactory {
                         type = NonNullType(TypeName(connectionTypeName)),
                         whereType = TypeName(connectionTypeName + "Where")
                     ),
-                    annotations,
-                    relationshipField = baseField
+                    Annotations(
+                        field.directives.filter {
+                            it.name == SelectableDirective.NAME ||
+                                    it.name == SettableDirective.NAME ||
+                                    it.name == FilterableDirective.NAME ||
+                                    it.name == "deprecated"
+                        }
+                    ),
+                    relationshipField = baseField as RelationBaseField
                 ).apply {
                     this.arguments = field.inputValueDefinitions
                 }

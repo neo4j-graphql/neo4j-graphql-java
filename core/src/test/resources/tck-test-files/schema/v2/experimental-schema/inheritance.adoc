@@ -14,7 +14,7 @@ directive @customDirectiveInter on INTERFACE
 
 interface Person @customDirectiveInter {
   name: String @customDirectiveField
-  friends: [Person!]! @relationship(type: "FRIENDS_WITH", direction: OUT, properties: "FriendsWith") @customDirectiveField
+  friends: [Person!]! @declareRelationship @customDirectiveField
 }
 
 type Actor implements Person @customDirectiveObj {
@@ -22,18 +22,8 @@ type Actor implements Person @customDirectiveObj {
   friends: [Person!]! @relationship(type: "FRIENDS_WITH", direction: OUT, properties: "FriendsWith")
 }
 
-interface FriendsWith @relationshipProperties {
+type FriendsWith @relationshipProperties {
   since: Int
-}
-----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{
-  "experimental": true
 }
 ----
 
@@ -53,147 +43,16 @@ directive @customDirectiveInter on INTERFACE
 
 directive @customDirectiveObj on OBJECT
 
-interface FriendsWith {
-  since: Int
-}
-
-interface Person @customDirectiveInter {
-  friends(directed: Boolean = true, options: PersonOptions, where: PersonWhere): [Person!]! @customDirectiveField
-  friendsConnection(after: String, directed: Boolean = true, first: Int, sort: [PersonFriendsConnectionSort!], where: PersonFriendsConnectionWhere): PersonFriendsConnection! @customDirectiveField
-  name: String @customDirectiveField
-}
-
 type Actor implements Person @customDirectiveObj {
-  friends(directed: Boolean = true, options: PersonOptions, where: PersonWhere): [Person!]! @customDirectiveField
+  friends(directed: Boolean = true, options: PersonOptions, where: PersonWhere): [Person!]!
   friendsAggregate(directed: Boolean = true, where: PersonWhere): ActorPersonFriendsAggregationSelection
-  friendsConnection(after: String, directed: Boolean = true, first: Int, sort: [PersonFriendsConnectionSort!], where: PersonFriendsConnectionWhere): PersonFriendsConnection! @customDirectiveField
-  name: String @customDirectiveField
+  friendsConnection(after: String, directed: Boolean = true, first: Int, sort: [PersonFriendsConnectionSort!], where: PersonFriendsConnectionWhere): PersonFriendsConnection!
+  name: String
 }
 
 type ActorAggregateSelection {
   count: Int!
-  name: StringAggregateSelectionNullable!
-}
-
-type ActorEdge {
-  cursor: String!
-  node: Actor!
-}
-
-type ActorPersonFriendsAggregationSelection {
-  count: Int!
-  edge: ActorPersonFriendsEdgeAggregateSelection
-  node: ActorPersonFriendsNodeAggregateSelection
-}
-
-type ActorPersonFriendsEdgeAggregateSelection {
-  since: IntAggregateSelectionNullable!
-}
-
-type ActorPersonFriendsNodeAggregateSelection {
-  name: StringAggregateSelectionNullable!
-}
-
-type ActorsConnection {
-  edges: [ActorEdge!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type CreateActorsMutationResponse {
-  actors: [Actor!]!
-  info: CreateInfo!
-}
-
-"Information about the number of nodes and relationships created during a create mutation"
-type CreateInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
-  nodesCreated: Int!
-  relationshipsCreated: Int!
-}
-
-"Information about the number of nodes and relationships deleted during a delete mutation"
-type DeleteInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
-  nodesDeleted: Int!
-  relationshipsDeleted: Int!
-}
-
-type IntAggregateSelectionNullable {
-  average: Float
-  max: Int
-  min: Int
-  sum: Int
-}
-
-type Mutation {
-  createActors(input: [ActorCreateInput!]!): CreateActorsMutationResponse!
-  deleteActors(delete: ActorDeleteInput, where: ActorWhere): DeleteInfo!
-  updateActors(connect: ActorConnectInput, create: ActorRelationInput, delete: ActorDeleteInput, disconnect: ActorDisconnectInput, update: ActorUpdateInput, where: ActorWhere): UpdateActorsMutationResponse!
-}
-
-"Pagination information (Relay)"
-type PageInfo {
-  endCursor: String
-  hasNextPage: Boolean!
-  hasPreviousPage: Boolean!
-  startCursor: String
-}
-
-type PersonAggregateSelection {
-  count: Int!
-  name: StringAggregateSelectionNullable!
-}
-
-type PersonFriendsConnection {
-  edges: [PersonFriendsRelationship!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type PersonFriendsRelationship implements FriendsWith {
-  cursor: String!
-  node: Person!
-  since: Int
-}
-
-type Query {
-  actors(options: ActorOptions, where: ActorWhere): [Actor!]!
-  actorsAggregate(where: ActorWhere): ActorAggregateSelection!
-  actorsConnection(after: String, first: Int, sort: [ActorSort], where: ActorWhere): ActorsConnection!
-  people(options: PersonOptions, where: PersonWhere): [Person!]!
-  peopleAggregate(where: PersonWhere): PersonAggregateSelection!
-}
-
-type StringAggregateSelectionNullable {
-  longest: String
-  shortest: String
-}
-
-type UpdateActorsMutationResponse {
-  actors: [Actor!]!
-  info: UpdateInfo!
-}
-
-"Information about the number of nodes and relationships created and deleted during an update mutation"
-type UpdateInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
-  nodesCreated: Int!
-  nodesDeleted: Int!
-  relationshipsCreated: Int!
-  relationshipsDeleted: Int!
-}
-
-enum PersonImplementation {
-  Actor
-}
-
-"An enum for sorting in either ascending or descending order."
-enum SortDirection {
-  "Sort by field values in ascending order."
-  ASC
-  "Sort by field values in descending order."
-  DESC
+  name: StringAggregateSelection!
 }
 
 input ActorConnectInput {
@@ -201,7 +60,7 @@ input ActorConnectInput {
 }
 
 input ActorCreateInput {
-  friends: PersonFriendsFieldInput
+  friends: ActorFriendsFieldInput
   name: String
 }
 
@@ -211,6 +70,11 @@ input ActorDeleteInput {
 
 input ActorDisconnectInput {
   friends: [ActorFriendsDisconnectFieldInput!]
+}
+
+type ActorEdge {
+  cursor: String!
+  node: Actor!
 }
 
 input ActorFriendsConnectFieldInput {
@@ -234,6 +98,11 @@ input ActorFriendsDisconnectFieldInput {
   where: PersonFriendsConnectionWhere
 }
 
+input ActorFriendsFieldInput {
+  connect: [ActorFriendsConnectFieldInput!]
+  create: [ActorFriendsCreateFieldInput!]
+}
+
 input ActorFriendsUpdateConnectionInput {
   edge: FriendsWithUpdateInput
   node: PersonUpdateInput
@@ -251,15 +120,33 @@ input ActorFriendsUpdateFieldInput {
 input ActorOptions {
   limit: Int
   offset: Int
-  "Specify one or more ActorSort objects to sort Actors by. The sorts will be applied in the order in which they are arranged in the array."
+  """
+  Specify one or more ActorSort objects to sort Actors by. The sorts will be applied in the order in which they are arranged in the array.
+  """
   sort: [ActorSort!]
+}
+
+type ActorPersonFriendsAggregationSelection {
+  count: Int!
+  edge: ActorPersonFriendsEdgeAggregateSelection
+  node: ActorPersonFriendsNodeAggregateSelection
+}
+
+type ActorPersonFriendsEdgeAggregateSelection {
+  since: IntAggregateSelection!
+}
+
+type ActorPersonFriendsNodeAggregateSelection {
+  name: StringAggregateSelection!
 }
 
 input ActorRelationInput {
   friends: [ActorFriendsCreateFieldInput!]
 }
 
-"Fields to sort Actors by. The order in which sorts are applied is not guaranteed when specifying many fields in one ActorSort object."
+"""
+Fields to sort Actors by. The order in which sorts are applied is not guaranteed when specifying many fields in one ActorSort object.
+"""
 input ActorSort {
   name: SortDirection
 }
@@ -273,26 +160,81 @@ input ActorWhere {
   AND: [ActorWhere!]
   NOT: ActorWhere
   OR: [ActorWhere!]
-  friendsConnection: PersonFriendsConnectionWhere @deprecated(reason : "Use `friendsConnection_SOME` instead.")
-  "Return Actors where all of the related PersonFriendsConnections match this filter"
+  friends: PersonWhere @deprecated(reason: "Use `friends_SOME` instead.")
+  friendsConnection: PersonFriendsConnectionWhere @deprecated(reason: "Use `friendsConnection_SOME` instead.")
+  """
+  Return Actors where all of the related PersonFriendsConnections match this filter
+  """
   friendsConnection_ALL: PersonFriendsConnectionWhere
-  "Return Actors where none of the related PersonFriendsConnections match this filter"
+  """
+  Return Actors where none of the related PersonFriendsConnections match this filter
+  """
   friendsConnection_NONE: PersonFriendsConnectionWhere
-  friendsConnection_NOT: PersonFriendsConnectionWhere @deprecated(reason : "Use `friendsConnection_NONE` instead.")
-  "Return Actors where one of the related PersonFriendsConnections match this filter"
+  friendsConnection_NOT: PersonFriendsConnectionWhere @deprecated(reason: "Use `friendsConnection_NONE` instead.")
+  """
+  Return Actors where one of the related PersonFriendsConnections match this filter
+  """
   friendsConnection_SINGLE: PersonFriendsConnectionWhere
-  "Return Actors where some of the related PersonFriendsConnections match this filter"
+  """
+  Return Actors where some of the related PersonFriendsConnections match this filter
+  """
   friendsConnection_SOME: PersonFriendsConnectionWhere
+  """Return Actors where all of the related People match this filter"""
+  friends_ALL: PersonWhere
+  """Return Actors where none of the related People match this filter"""
+  friends_NONE: PersonWhere
+  friends_NOT: PersonWhere @deprecated(reason: "Use `friends_NONE` instead.")
+  """Return Actors where one of the related People match this filter"""
+  friends_SINGLE: PersonWhere
+  """Return Actors where some of the related People match this filter"""
+  friends_SOME: PersonWhere
   name: String
   name_CONTAINS: String
   name_ENDS_WITH: String
   name_IN: [String]
-  name_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_IN: [String] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_IN: [String] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   name_STARTS_WITH: String
+}
+
+type ActorsConnection {
+  edges: [ActorEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type CreateActorsMutationResponse {
+  actors: [Actor!]!
+  info: CreateInfo!
+}
+
+"""
+Information about the number of nodes and relationships created during a create mutation
+"""
+type CreateInfo {
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesCreated: Int!
+  relationshipsCreated: Int!
+}
+
+"""
+Information about the number of nodes and relationships deleted during a delete mutation
+"""
+type DeleteInfo {
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
+"""
+The edge properties for the following fields:
+* Actor.friends
+"""
+type FriendsWith {
+  since: Int
 }
 
 input FriendsWithCreateInput {
@@ -319,12 +261,49 @@ input FriendsWithWhere {
   since_IN: [Int]
   since_LT: Int
   since_LTE: Int
-  since_NOT: Int @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  since_NOT_IN: [Int] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  since_NOT: Int @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  since_NOT_IN: [Int] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+}
+
+type IntAggregateSelection {
+  average: Float
+  max: Int
+  min: Int
+  sum: Int
+}
+
+type Mutation {
+  createActors(input: [ActorCreateInput!]!): CreateActorsMutationResponse!
+  deleteActors(delete: ActorDeleteInput, where: ActorWhere): DeleteInfo!
+  updateActors(connect: ActorConnectInput, create: ActorRelationInput, delete: ActorDeleteInput, disconnect: ActorDisconnectInput, update: ActorUpdateInput, where: ActorWhere): UpdateActorsMutationResponse!
+}
+
+"""Pagination information (Relay)"""
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type PeopleConnection {
+  edges: [PersonEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+interface Person @customDirectiveInter {
+  friends(options: PersonOptions, where: PersonWhere): [Person!]! @customDirectiveField
+  friendsConnection(after: String, first: Int, sort: [PersonFriendsConnectionSort!], where: PersonFriendsConnectionWhere): PersonFriendsConnection!
+  name: String @customDirectiveField
+}
+
+type PersonAggregateSelection {
+  count: Int!
+  name: StringAggregateSelection!
 }
 
 input PersonConnectInput {
-  _on: PersonImplementationsConnectInput
   friends: [PersonFriendsConnectFieldInput!]
 }
 
@@ -337,23 +316,32 @@ input PersonCreateInput {
 }
 
 input PersonDeleteInput {
-  _on: PersonImplementationsDeleteInput
   friends: [PersonFriendsDeleteFieldInput!]
 }
 
 input PersonDisconnectInput {
-  _on: PersonImplementationsDisconnectInput
   friends: [PersonFriendsDisconnectFieldInput!]
+}
+
+type PersonEdge {
+  cursor: String!
+  node: Person!
 }
 
 input PersonFriendsConnectFieldInput {
   connect: PersonConnectInput
-  edge: FriendsWithCreateInput
+  edge: PersonFriendsEdgeCreateInput
   where: PersonConnectWhere
 }
 
+type PersonFriendsConnection {
+  edges: [PersonFriendsRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
 input PersonFriendsConnectionSort {
-  edge: FriendsWithSort
+  edge: PersonFriendsEdgeSort
   node: PersonSort
 }
 
@@ -361,14 +349,14 @@ input PersonFriendsConnectionWhere {
   AND: [PersonFriendsConnectionWhere!]
   NOT: PersonFriendsConnectionWhere
   OR: [PersonFriendsConnectionWhere!]
-  edge: FriendsWithWhere
-  edge_NOT: FriendsWithWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  edge: PersonFriendsEdgeWhere
+  edge_NOT: PersonFriendsEdgeWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   node: PersonWhere
-  node_NOT: PersonWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  node_NOT: PersonWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input PersonFriendsCreateFieldInput {
-  edge: FriendsWithCreateInput
+  edge: PersonFriendsEdgeCreateInput
   node: PersonCreateInput!
 }
 
@@ -382,13 +370,48 @@ input PersonFriendsDisconnectFieldInput {
   where: PersonFriendsConnectionWhere
 }
 
-input PersonFriendsFieldInput {
-  connect: [PersonFriendsConnectFieldInput!]
-  create: [PersonFriendsCreateFieldInput!]
+input PersonFriendsEdgeCreateInput {
+  """
+  Relationship properties when source node is of type:
+  * Actor
+  """
+  FriendsWith: FriendsWithCreateInput
 }
 
+input PersonFriendsEdgeSort {
+  """
+  Relationship properties when source node is of type:
+  * Actor
+  """
+  FriendsWith: FriendsWithSort
+}
+
+input PersonFriendsEdgeUpdateInput {
+  """
+  Relationship properties when source node is of type:
+  * Actor
+  """
+  FriendsWith: FriendsWithUpdateInput
+}
+
+input PersonFriendsEdgeWhere {
+  """
+  Relationship properties when source node is of type:
+  * Actor
+  """
+  FriendsWith: FriendsWithWhere
+}
+
+type PersonFriendsRelationship {
+  cursor: String!
+  node: Person!
+  properties: PersonFriendsRelationshipProperties!
+}
+
+union PersonFriendsRelationshipProperties = FriendsWith
+
 input PersonFriendsUpdateConnectionInput {
-  edge: FriendsWithUpdateInput
+  edge: PersonFriendsEdgeUpdateInput
   node: PersonUpdateInput
 }
 
@@ -401,36 +424,27 @@ input PersonFriendsUpdateFieldInput {
   where: PersonFriendsConnectionWhere
 }
 
-input PersonImplementationsConnectInput {
-  Actor: [ActorConnectInput!]
-}
-
-input PersonImplementationsDeleteInput {
-  Actor: [ActorDeleteInput!]
-}
-
-input PersonImplementationsDisconnectInput {
-  Actor: [ActorDisconnectInput!]
-}
-
-input PersonImplementationsUpdateInput {
-  Actor: ActorUpdateInput
+enum PersonImplementation {
+  Actor
 }
 
 input PersonOptions {
   limit: Int
   offset: Int
-  "Specify one or more PersonSort objects to sort People by. The sorts will be applied in the order in which they are arranged in the array."
+  """
+  Specify one or more PersonSort objects to sort People by. The sorts will be applied in the order in which they are arranged in the array.
+  """
   sort: [PersonSort]
 }
 
-"Fields to sort People by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonSort object."
+"""
+Fields to sort People by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonSort object.
+"""
 input PersonSort {
   name: SortDirection
 }
 
 input PersonUpdateInput {
-  _on: PersonImplementationsUpdateInput
   friends: [PersonFriendsUpdateFieldInput!]
   name: String
 }
@@ -439,29 +453,84 @@ input PersonWhere {
   AND: [PersonWhere!]
   NOT: PersonWhere
   OR: [PersonWhere!]
-  friendsConnection: PersonFriendsConnectionWhere @deprecated(reason : "Use `friendsConnection_SOME` instead.")
-  "Return People where all of the related PersonFriendsConnections match this filter"
+  friends: PersonWhere @deprecated(reason: "Use `friends_SOME` instead.")
+  friendsConnection: PersonFriendsConnectionWhere @deprecated(reason: "Use `friendsConnection_SOME` instead.")
+  """
+  Return People where all of the related PersonFriendsConnections match this filter
+  """
   friendsConnection_ALL: PersonFriendsConnectionWhere
-  "Return People where none of the related PersonFriendsConnections match this filter"
+  """
+  Return People where none of the related PersonFriendsConnections match this filter
+  """
   friendsConnection_NONE: PersonFriendsConnectionWhere
-  friendsConnection_NOT: PersonFriendsConnectionWhere @deprecated(reason : "Use `friendsConnection_NONE` instead.")
-  "Return People where one of the related PersonFriendsConnections match this filter"
+  friendsConnection_NOT: PersonFriendsConnectionWhere @deprecated(reason: "Use `friendsConnection_NONE` instead.")
+  """
+  Return People where one of the related PersonFriendsConnections match this filter
+  """
   friendsConnection_SINGLE: PersonFriendsConnectionWhere
-  "Return People where some of the related PersonFriendsConnections match this filter"
+  """
+  Return People where some of the related PersonFriendsConnections match this filter
+  """
   friendsConnection_SOME: PersonFriendsConnectionWhere
+  """Return People where all of the related People match this filter"""
+  friends_ALL: PersonWhere
+  """Return People where none of the related People match this filter"""
+  friends_NONE: PersonWhere
+  friends_NOT: PersonWhere @deprecated(reason: "Use `friends_NONE` instead.")
+  """Return People where one of the related People match this filter"""
+  friends_SINGLE: PersonWhere
+  """Return People where some of the related People match this filter"""
+  friends_SOME: PersonWhere
   name: String
   name_CONTAINS: String
   name_ENDS_WITH: String
   name_IN: [String]
-  name_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_IN: [String] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_IN: [String] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   name_STARTS_WITH: String
   typename_IN: [PersonImplementation!]
 }
 
+type Query {
+  actors(options: ActorOptions, where: ActorWhere): [Actor!]!
+  actorsAggregate(where: ActorWhere): ActorAggregateSelection!
+  actorsConnection(after: String, first: Int, sort: [ActorSort], where: ActorWhere): ActorsConnection!
+  people(options: PersonOptions, where: PersonWhere): [Person!]!
+  peopleAggregate(where: PersonWhere): PersonAggregateSelection!
+  peopleConnection(after: String, first: Int, sort: [PersonSort], where: PersonWhere): PeopleConnection!
+}
+
+"""An enum for sorting in either ascending or descending order."""
+enum SortDirection {
+  """Sort by field values in ascending order."""
+  ASC
+  """Sort by field values in descending order."""
+  DESC
+}
+
+type StringAggregateSelection {
+  longest: String
+  shortest: String
+}
+
+type UpdateActorsMutationResponse {
+  actors: [Actor!]!
+  info: UpdateInfo!
+}
+
+"""
+Information about the number of nodes and relationships created and deleted during an update mutation
+"""
+type UpdateInfo {
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesCreated: Int!
+  nodesDeleted: Int!
+  relationshipsCreated: Int!
+  relationshipsDeleted: Int!
+}
 ----
 
 '''

@@ -88,7 +88,7 @@ data class Model(
                 .filterNot { reservedTypes.contains(it.name) }
 
 
-            val nodes = objectNodes.map { node ->
+            val nodes = objectNodes.mapNotNull { node ->
                 NodeFactory.createNode(
                     node,
                     typeDefinitionRegistry,
@@ -113,6 +113,8 @@ data class Model(
                     field.node = nodesByName[field.typeMeta.type.name()]
                     field.union = unions[field.typeMeta.type.name()]
                 }
+                node.annotations.authorization?.initWhere(node)
+                node.fields.forEach { it.annotations.authorization?.initWhere(node) }
             }
 
             implementations.forEach { (interfaze, impls) ->
@@ -144,7 +146,7 @@ data class Model(
             nodesByName: Map<String, Node>,
             unions: Map<String, Union>
         ) {
-            type.relationFields.forEach { field ->
+            type.relationBaseFields.forEach { field ->
                 field.target = unions[field.typeMeta.type.name()]
                     ?: nodesByName[field.typeMeta.type.name()]
                             ?: getOrCreateInterface(field.typeMeta.type.name())
@@ -155,7 +157,7 @@ data class Model(
         private fun getOrCreateRelationshipProperties(name: String): RelationshipProperties? {
             return relationshipFields.computeIfAbsent(name) {
                 val relationship =
-                    typeDefinitionRegistry.getTypeByName<InterfaceTypeDefinition>(it) ?: return@computeIfAbsent null
+                    typeDefinitionRegistry.getTypeByName<ObjectTypeDefinition>(it) ?: return@computeIfAbsent null
 
                 if (relationship.directives.find { directive -> directive.name == DirectiveConstants.AUTH } != null) {
                     throw IllegalArgumentException("Cannot have @auth directive on relationship properties interface")
@@ -178,7 +180,6 @@ data class Model(
                     relationship,
                     typeDefinitionRegistry,
                     this::getOrCreateRelationshipProperties,
-                    this::getOrCreateInterface,
                     schemaConfig,
                 ).onEach { field ->
                     if (field !is ScalarField) {

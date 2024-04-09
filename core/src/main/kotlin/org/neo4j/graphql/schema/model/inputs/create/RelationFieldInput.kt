@@ -6,6 +6,7 @@ import org.neo4j.graphql.domain.Interface
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.RelationshipProperties
 import org.neo4j.graphql.domain.Union
+import org.neo4j.graphql.domain.fields.RelationBaseField
 import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.schema.AugmentationBase
 import org.neo4j.graphql.schema.AugmentationContext
@@ -28,7 +29,7 @@ sealed interface RelationFieldInput {
 
         object Augmentation : AugmentationBase {
             fun generateFieldCreateFieldInputIT(
-                rel: RelationField,
+                rel: RelationBaseField,
                 node: Node,
                 ctx: AugmentationContext
             ) =
@@ -39,9 +40,8 @@ sealed interface RelationFieldInput {
                         ?.let { fields += inputValue(Constants.NODE_FIELD, it.asRequiredType()) }
 
                     CreateInput.Augmentation
-                        .addEdgePropertyCreateInputField(
-                            rel, fields, ctx,
-                            required = { it.hasRequiredNonGeneratedFields })
+                        .getEdgePropertyCreateInputIT(rel, ctx, required = { it.hasRequiredNonGeneratedFields })
+                        ?.let { fields += inputValue(Constants.EDGE_FIELD, it) }
                 }
         }
     }
@@ -59,23 +59,19 @@ sealed interface RelationFieldInput {
 
         object Augmentation : AugmentationBase {
             fun generateFieldRelationCreateIT(
-                rel: RelationField,
+                rel: RelationBaseField,
                 interfaze: Interface,
                 ctx: AugmentationContext,
-                name: String = rel.namings.getCreateFieldInputTypeName(interfaze)
             ): String? {
-                return ctx.getOrCreateInputObjectType(name) { fields, _ ->
+                return ctx.getOrCreateInputObjectType(rel.namings.getCreateFieldInputTypeName(interfaze)) { fields, _ ->
 
                     generateCreateInputIT(interfaze, ctx)?.let {
                         fields += inputValue(Constants.NODE_FIELD, it.asRequiredType())
                     }
 
                     CreateInput.Augmentation
-                        .addEdgePropertyCreateInputField(
-                            rel,
-                            fields,
-                            ctx,
-                            required = { it.hasRequiredNonGeneratedFields })
+                        .getEdgePropertyCreateInputIT(rel, ctx, required = { it.hasRequiredNonGeneratedFields })
+                        ?.let { fields += inputValue(Constants.EDGE_FIELD, it) }
                 }
             }
 

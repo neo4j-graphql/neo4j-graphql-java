@@ -111,14 +111,18 @@ class SchemaBuilder(
         val model = Model.createModel(typeDefinitionRegistry, neo4jTypeDefinitionRegistry, schemaConfig)
 
         // remove type definition for node since it will be added while augmenting the schema
-        model.nodes.forEach {
-            typeDefinitionRegistry.getTypeByName<ObjectTypeDefinition>(it.name)
-                ?.let { typeDefinitionRegistry.remove(it) }
-        }
-        model.interfaces.forEach {
-            typeDefinitionRegistry.getTypeByName<InterfaceTypeDefinition>(it.name)
-                ?.let { typeDefinitionRegistry.remove(it) }
-        }
+        model.nodes
+            .mapNotNull { typeDefinitionRegistry.getTypeByName<ObjectTypeDefinition>(it.name) }
+            .forEach { typeDefinitionRegistry.remove(it) }
+
+        model.interfaces
+            .mapNotNull { typeDefinitionRegistry.getTypeByName<InterfaceTypeDefinition>(it.name) }
+            .forEach { typeDefinitionRegistry.remove(it) }
+
+        model.relationship
+            .mapNotNull { it.properties?.typeName }
+            .mapNotNull { typeDefinitionRegistry.getTypeByName<ObjectTypeDefinition>(it) }
+            .forEach { typeDefinitionRegistry.remove(it) }
 
         augmentedFields += handler.filterIsInstance<AugmentationHandler.NodeAugmentation>()
             .flatMap { h -> model.nodes.flatMap(h::augmentNode) }

@@ -5,14 +5,14 @@ import graphql.language.Directive
 import org.atteo.evo.inflector.EnglischInflector
 import org.neo4j.graphql.asDescription
 import org.neo4j.graphql.domain.ImplementingType
-import org.neo4j.graphql.domain.fields.RelationField
+import org.neo4j.graphql.domain.fields.RelationBaseField
 import org.neo4j.graphql.domain.predicates.RelationOperator
 import org.neo4j.graphql.name
 import org.neo4j.graphql.toDeprecatedDirective
 
 data class RelationPredicateDefinition(
     override val name: String,
-    val field: RelationField,
+    val field: RelationBaseField,
     val operator: RelationOperator,
     val connection: Boolean
 ) : PredicateDefinition {

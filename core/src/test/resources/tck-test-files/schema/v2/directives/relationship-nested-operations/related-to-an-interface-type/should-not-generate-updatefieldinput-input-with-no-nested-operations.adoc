@@ -35,13 +35,11 @@ schema {
   mutation: Mutation
 }
 
-interface Person {
-  name: String
-}
-
-"Information about the number of nodes and relationships created during a create mutation"
+"""
+Information about the number of nodes and relationships created during a create mutation
+"""
 type CreateInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   relationshipsCreated: Int!
 }
@@ -61,20 +59,23 @@ type CreatePersonTwosMutationResponse {
   personTwos: [PersonTwo!]!
 }
 
-"Information about the number of nodes and relationships deleted during a delete mutation"
+"""
+Information about the number of nodes and relationships deleted during a delete mutation
+"""
 type DeleteInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesDeleted: Int!
   relationshipsDeleted: Int!
 }
 
-type IDAggregateSelectionNullable {
+type IDAggregateSelection {
   longest: ID
   shortest: ID
 }
 
 type Movie {
   actors(directed: Boolean = true, options: PersonOptions, where: PersonWhere): [Person!]!
+  actorsAggregate(directed: Boolean = true, where: PersonWhere): MoviePersonActorsAggregationSelection
   actorsConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
   id: ID
 }
@@ -85,6 +86,18 @@ type MovieActorsConnection {
   totalCount: Int!
 }
 
+input MovieActorsConnectionSort {
+  node: PersonSort
+}
+
+input MovieActorsConnectionWhere {
+  AND: [MovieActorsConnectionWhere!]
+  NOT: MovieActorsConnectionWhere
+  OR: [MovieActorsConnectionWhere!]
+  node: PersonWhere
+  node_NOT: PersonWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+}
+
 type MovieActorsRelationship {
   cursor: String!
   node: Person!
@@ -92,12 +105,89 @@ type MovieActorsRelationship {
 
 type MovieAggregateSelection {
   count: Int!
-  id: IDAggregateSelectionNullable!
+  id: IDAggregateSelection!
+}
+
+input MovieCreateInput {
+  id: ID
 }
 
 type MovieEdge {
   cursor: String!
   node: Movie!
+}
+
+input MovieOptions {
+  limit: Int
+  offset: Int
+  """
+  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [MovieSort!]
+}
+
+type MoviePersonActorsAggregationSelection {
+  count: Int!
+  node: MoviePersonActorsNodeAggregateSelection
+}
+
+type MoviePersonActorsNodeAggregateSelection {
+  name: StringAggregateSelection!
+}
+
+"""
+Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object.
+"""
+input MovieSort {
+  id: SortDirection
+}
+
+input MovieUpdateInput {
+  id: ID
+}
+
+input MovieWhere {
+  AND: [MovieWhere!]
+  NOT: MovieWhere
+  OR: [MovieWhere!]
+  actors: PersonWhere @deprecated(reason: "Use `actors_SOME` instead.")
+  actorsConnection: MovieActorsConnectionWhere @deprecated(reason: "Use `actorsConnection_SOME` instead.")
+  """
+  Return Movies where all of the related MovieActorsConnections match this filter
+  """
+  actorsConnection_ALL: MovieActorsConnectionWhere
+  """
+  Return Movies where none of the related MovieActorsConnections match this filter
+  """
+  actorsConnection_NONE: MovieActorsConnectionWhere
+  actorsConnection_NOT: MovieActorsConnectionWhere @deprecated(reason: "Use `actorsConnection_NONE` instead.")
+  """
+  Return Movies where one of the related MovieActorsConnections match this filter
+  """
+  actorsConnection_SINGLE: MovieActorsConnectionWhere
+  """
+  Return Movies where some of the related MovieActorsConnections match this filter
+  """
+  actorsConnection_SOME: MovieActorsConnectionWhere
+  """Return Movies where all of the related People match this filter"""
+  actors_ALL: PersonWhere
+  """Return Movies where none of the related People match this filter"""
+  actors_NONE: PersonWhere
+  actors_NOT: PersonWhere @deprecated(reason: "Use `actors_NONE` instead.")
+  """Return Movies where one of the related People match this filter"""
+  actors_SINGLE: PersonWhere
+  """Return Movies where some of the related People match this filter"""
+  actors_SOME: PersonWhere
+  id: ID
+  id_CONTAINS: ID
+  id_ENDS_WITH: ID
+  id_IN: [ID]
+  id_NOT: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_CONTAINS: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_ENDS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_IN: [ID] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_STARTS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_STARTS_WITH: ID
 }
 
 type MoviesConnection {
@@ -118,12 +208,37 @@ type Mutation {
   updatePersonTwos(update: PersonTwoUpdateInput, where: PersonTwoWhere): UpdatePersonTwosMutationResponse!
 }
 
-"Pagination information (Relay)"
+"""Pagination information (Relay)"""
 type PageInfo {
   endCursor: String
   hasNextPage: Boolean!
   hasPreviousPage: Boolean!
   startCursor: String
+}
+
+type PeopleConnection {
+  edges: [PersonEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+interface Person {
+  name: String
+}
+
+type PersonAggregateSelection {
+  count: Int!
+  name: StringAggregateSelection!
+}
+
+type PersonEdge {
+  cursor: String!
+  node: Person!
+}
+
+enum PersonImplementation {
+  PersonOne
+  PersonTwo
 }
 
 type PersonOne implements Person {
@@ -133,12 +248,60 @@ type PersonOne implements Person {
 
 type PersonOneAggregateSelection {
   count: Int!
-  name: StringAggregateSelectionNullable!
+  name: StringAggregateSelection!
+}
+
+input PersonOneCreateInput {
+  name: String
+  someExtraProp: [Int!]!
 }
 
 type PersonOneEdge {
   cursor: String!
   node: PersonOne!
+}
+
+input PersonOneOptions {
+  limit: Int
+  offset: Int
+  """
+  Specify one or more PersonOneSort objects to sort PersonOnes by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [PersonOneSort!]
+}
+
+"""
+Fields to sort PersonOnes by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonOneSort object.
+"""
+input PersonOneSort {
+  name: SortDirection
+}
+
+input PersonOneUpdateInput {
+  name: String
+  someExtraProp: [Int!]
+  someExtraProp_POP: Int
+  someExtraProp_PUSH: [Int!]
+}
+
+input PersonOneWhere {
+  AND: [PersonOneWhere!]
+  NOT: PersonOneWhere
+  OR: [PersonOneWhere!]
+  name: String
+  name_CONTAINS: String
+  name_ENDS_WITH: String
+  name_IN: [String]
+  name_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_IN: [String] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_STARTS_WITH: String
+  someExtraProp: [Int!]
+  someExtraProp_INCLUDES: Int
+  someExtraProp_NOT: [Int!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  someExtraProp_NOT_INCLUDES: Int @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 type PersonOnesConnection {
@@ -147,18 +310,74 @@ type PersonOnesConnection {
   totalCount: Int!
 }
 
+input PersonOptions {
+  limit: Int
+  offset: Int
+  """
+  Specify one or more PersonSort objects to sort People by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [PersonSort]
+}
+
+"""
+Fields to sort People by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonSort object.
+"""
+input PersonSort {
+  name: SortDirection
+}
+
 type PersonTwo implements Person {
   name: String
 }
 
 type PersonTwoAggregateSelection {
   count: Int!
-  name: StringAggregateSelectionNullable!
+  name: StringAggregateSelection!
+}
+
+input PersonTwoCreateInput {
+  name: String
 }
 
 type PersonTwoEdge {
   cursor: String!
   node: PersonTwo!
+}
+
+input PersonTwoOptions {
+  limit: Int
+  offset: Int
+  """
+  Specify one or more PersonTwoSort objects to sort PersonTwos by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [PersonTwoSort!]
+}
+
+"""
+Fields to sort PersonTwos by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonTwoSort object.
+"""
+input PersonTwoSort {
+  name: SortDirection
+}
+
+input PersonTwoUpdateInput {
+  name: String
+}
+
+input PersonTwoWhere {
+  AND: [PersonTwoWhere!]
+  NOT: PersonTwoWhere
+  OR: [PersonTwoWhere!]
+  name: String
+  name_CONTAINS: String
+  name_ENDS_WITH: String
+  name_IN: [String]
+  name_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_IN: [String] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_STARTS_WITH: String
 }
 
 type PersonTwosConnection {
@@ -167,10 +386,30 @@ type PersonTwosConnection {
   totalCount: Int!
 }
 
+input PersonWhere {
+  AND: [PersonWhere!]
+  NOT: PersonWhere
+  OR: [PersonWhere!]
+  name: String
+  name_CONTAINS: String
+  name_ENDS_WITH: String
+  name_IN: [String]
+  name_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_IN: [String] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_STARTS_WITH: String
+  typename_IN: [PersonImplementation!]
+}
+
 type Query {
   movies(options: MovieOptions, where: MovieWhere): [Movie!]!
   moviesAggregate(where: MovieWhere): MovieAggregateSelection!
   moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
+  people(options: PersonOptions, where: PersonWhere): [Person!]!
+  peopleAggregate(where: PersonWhere): PersonAggregateSelection!
+  peopleConnection(after: String, first: Int, sort: [PersonSort], where: PersonWhere): PeopleConnection!
   personOnes(options: PersonOneOptions, where: PersonOneWhere): [PersonOne!]!
   personOnesAggregate(where: PersonOneWhere): PersonOneAggregateSelection!
   personOnesConnection(after: String, first: Int, sort: [PersonOneSort], where: PersonOneWhere): PersonOnesConnection!
@@ -179,14 +418,24 @@ type Query {
   personTwosConnection(after: String, first: Int, sort: [PersonTwoSort], where: PersonTwoWhere): PersonTwosConnection!
 }
 
-type StringAggregateSelectionNullable {
+"""An enum for sorting in either ascending or descending order."""
+enum SortDirection {
+  """Sort by field values in ascending order."""
+  ASC
+  """Sort by field values in descending order."""
+  DESC
+}
+
+type StringAggregateSelection {
   longest: String
   shortest: String
 }
 
-"Information about the number of nodes and relationships created and deleted during an update mutation"
+"""
+Information about the number of nodes and relationships created and deleted during an update mutation
+"""
 type UpdateInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   nodesDeleted: Int!
   relationshipsCreated: Int!
@@ -207,184 +456,6 @@ type UpdatePersonTwosMutationResponse {
   info: UpdateInfo!
   personTwos: [PersonTwo!]!
 }
-
-"An enum for sorting in either ascending or descending order."
-enum SortDirection {
-  "Sort by field values in ascending order."
-  ASC
-  "Sort by field values in descending order."
-  DESC
-}
-
-input MovieActorsConnectionSort {
-  node: PersonSort
-}
-
-input MovieActorsConnectionWhere {
-  AND: [MovieActorsConnectionWhere!]
-  NOT: MovieActorsConnectionWhere
-  OR: [MovieActorsConnectionWhere!]
-  node: PersonWhere
-  node_NOT: PersonWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-}
-
-input MovieCreateInput {
-  id: ID
-}
-
-input MovieOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [MovieSort!]
-}
-
-"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
-input MovieSort {
-  id: SortDirection
-}
-
-input MovieUpdateInput {
-  id: ID
-}
-
-input MovieWhere {
-  AND: [MovieWhere!]
-  NOT: MovieWhere
-  OR: [MovieWhere!]
-  actorsConnection: MovieActorsConnectionWhere @deprecated(reason : "Use `actorsConnection_SOME` instead.")
-  "Return Movies where all of the related MovieActorsConnections match this filter"
-  actorsConnection_ALL: MovieActorsConnectionWhere
-  "Return Movies where none of the related MovieActorsConnections match this filter"
-  actorsConnection_NONE: MovieActorsConnectionWhere
-  actorsConnection_NOT: MovieActorsConnectionWhere @deprecated(reason : "Use `actorsConnection_NONE` instead.")
-  "Return Movies where one of the related MovieActorsConnections match this filter"
-  actorsConnection_SINGLE: MovieActorsConnectionWhere
-  "Return Movies where some of the related MovieActorsConnections match this filter"
-  actorsConnection_SOME: MovieActorsConnectionWhere
-  id: ID
-  id_CONTAINS: ID
-  id_ENDS_WITH: ID
-  id_IN: [ID]
-  id_NOT: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_CONTAINS: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_ENDS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_IN: [ID] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_STARTS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_STARTS_WITH: ID
-}
-
-input PersonImplementationsWhere {
-  PersonOne: PersonOneWhere
-  PersonTwo: PersonTwoWhere
-}
-
-input PersonOneCreateInput {
-  name: String
-  someExtraProp: [Int!]!
-}
-
-input PersonOneOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more PersonOneSort objects to sort PersonOnes by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [PersonOneSort!]
-}
-
-"Fields to sort PersonOnes by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonOneSort object."
-input PersonOneSort {
-  name: SortDirection
-}
-
-input PersonOneUpdateInput {
-  name: String
-  someExtraProp: [Int!]
-  someExtraProp_POP: Int
-  someExtraProp_PUSH: [Int!]
-}
-
-input PersonOneWhere {
-  AND: [PersonOneWhere!]
-  NOT: PersonOneWhere
-  OR: [PersonOneWhere!]
-  name: String
-  name_CONTAINS: String
-  name_ENDS_WITH: String
-  name_IN: [String]
-  name_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_IN: [String] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_STARTS_WITH: String
-  someExtraProp: [Int!]
-  someExtraProp_INCLUDES: Int
-  someExtraProp_NOT: [Int!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  someExtraProp_NOT_INCLUDES: Int @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-}
-
-input PersonOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more PersonSort objects to sort People by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [PersonSort]
-}
-
-"Fields to sort People by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonSort object."
-input PersonSort {
-  name: SortDirection
-}
-
-input PersonTwoCreateInput {
-  name: String
-}
-
-input PersonTwoOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more PersonTwoSort objects to sort PersonTwos by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [PersonTwoSort!]
-}
-
-"Fields to sort PersonTwos by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonTwoSort object."
-input PersonTwoSort {
-  name: SortDirection
-}
-
-input PersonTwoUpdateInput {
-  name: String
-}
-
-input PersonTwoWhere {
-  AND: [PersonTwoWhere!]
-  NOT: PersonTwoWhere
-  OR: [PersonTwoWhere!]
-  name: String
-  name_CONTAINS: String
-  name_ENDS_WITH: String
-  name_IN: [String]
-  name_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_IN: [String] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_STARTS_WITH: String
-}
-
-input PersonWhere {
-  _on: PersonImplementationsWhere
-  name: String
-  name_CONTAINS: String
-  name_ENDS_WITH: String
-  name_IN: [String]
-  name_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_IN: [String] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_STARTS_WITH: String
-}
-
 ----
 
 '''

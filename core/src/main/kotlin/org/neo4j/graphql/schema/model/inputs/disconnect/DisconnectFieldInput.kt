@@ -6,6 +6,7 @@ import org.neo4j.graphql.domain.Interface
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.RelationshipProperties
 import org.neo4j.graphql.domain.Union
+import org.neo4j.graphql.domain.fields.RelationBaseField
 import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.schema.AugmentationBase
 import org.neo4j.graphql.schema.AugmentationContext
@@ -37,7 +38,7 @@ sealed interface DisconnectFieldInput {
 
         object Augmentation : AugmentationBase {
             fun generateFieldDisconnectFieldInputIT(
-                rel: RelationField,
+                rel: RelationBaseField,
                 node: Node,
                 ctx: AugmentationContext
             ): String? =
@@ -78,7 +79,7 @@ sealed interface DisconnectFieldInput {
 
         object Augmentation : AugmentationBase {
             fun generateFieldDisconnectIT(
-                rel: RelationField,
+                rel: RelationBaseField,
                 interfaze: Interface,
                 ctx: AugmentationContext
             ) =
@@ -87,13 +88,6 @@ sealed interface DisconnectFieldInput {
                     ctx.addInterfaceField(
                         interfaze,
                         interfaze.namings.disconnectInputTypeName,
-                        interfaze.namings.whereOnImplementationsDisconnectInputTypeName,
-                        { node ->
-                            DisconnectInput.NodeDisconnectInput.Augmentation.generateContainerDisconnectInputIT(
-                                node,
-                                ctx
-                            )
-                        },
                         RelationFieldBaseAugmentation::generateFieldDisconnectIT
                     )
                         ?.let { fields += inputValue(Constants.DISCONNECT_FIELD, it.asType()) }

@@ -1,11 +1,8 @@
 package org.neo4j.graphql.schema.model.inputs.create
 
-import graphql.language.InputValueDefinition
-import org.neo4j.graphql.Constants
-import org.neo4j.graphql.asType
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.RelationshipProperties
-import org.neo4j.graphql.domain.fields.RelationField
+import org.neo4j.graphql.domain.fields.RelationBaseField
 import org.neo4j.graphql.domain.fields.ScalarField
 import org.neo4j.graphql.schema.AugmentationBase
 import org.neo4j.graphql.schema.AugmentationContext
@@ -32,26 +29,23 @@ class CreateInput private constructor(
 
     object Augmentation : AugmentationBase {
 
-        fun addEdgePropertyCreateInputField(
-            relationField: RelationField,
-            fields: MutableList<InputValueDefinition>,
+        fun getEdgePropertyCreateInputIT(
+            relationField: RelationBaseField,
             ctx: AugmentationContext,
-            required: (RelationshipProperties) -> Boolean = { false }
+            required: (RelationshipProperties) -> Boolean
         ) =
-            relationField.properties?.let { props ->
+            ctx.getEdgeInputField(relationField, { it.namings.createInputTypeName }, required) {
                 generateContainerCreateInputIT(
-                    relationField.namings.createInputTypeName,
+                    it.namings.createInputTypeName,
                     emptyList(),
-                    props.fields,
+                    it.properties?.fields ?: emptyList(),
                     ctx
-                )?.let {
-                    fields += inputValue(Constants.EDGE_FIELD, it.asType(required(props)))
-                }
+                )
             }
 
         fun generateContainerCreateInputIT(node: Node, ctx: AugmentationContext) = generateContainerCreateInputIT(
             node.namings.createInputTypeName,
-            node.fields.filterIsInstance<RelationField>(),
+            node.relationBaseFields,
             node.scalarFields.filter { it.isCreateInputField() },
             ctx,
             enforceFields = true,
@@ -59,7 +53,7 @@ class CreateInput private constructor(
 
         private fun generateContainerCreateInputIT(
             name: String,
-            relationFields: List<RelationField>,
+            relationFields: List<RelationBaseField>,
             scalarFields: List<ScalarField>,
             ctx: AugmentationContext,
             enforceFields: Boolean = false,

@@ -50,7 +50,9 @@ interface FieldAnnotations : CommonAnnotations {
     val jwtClaim: JwtClaimDirective?
     val populatedBy: PopulatedByDirective?
     val private: PrivateDirective?
+    val declareRelationship: DeclareRelationshipDirective?
     val relationship: RelationshipDirective?
+    val relationshipBaseDirective: RelationshipBaseDirective?
     val relayId: RelayIdDirective?
     val selectable: SelectableDirective?
     val settable: SettableDirective?
@@ -70,7 +72,10 @@ class Annotations(
 ) : ImplementingTypeAnnotations, NodeAnnotations, InterfaceAnnotations, UnionAnnotations, FieldAnnotations,
     SchemaAnnotations {
 
-    constructor(directives: Collection<Directive>, jwtShape: Node?) : this(directives.associateBy { it.name }, jwtShape)
+    constructor(directives: Collection<Directive>, jwtShape: Node? = null) : this(
+        directives.associateBy { it.name },
+        jwtShape
+    )
 
     private val unhandledDirectives: MutableMap<String, Directive> = directives.toMutableMap()
 
@@ -92,6 +97,9 @@ class Annotations(
         parse(Annotations::customResolver, CustomResolverDirective::create)
 
     override val cypher: CypherDirective? = parse(Annotations::cypher, CypherDirective::create)
+
+    override val declareRelationship: DeclareRelationshipDirective? =
+        parse(Annotations::declareRelationship, DeclareRelationshipDirective::create)
 
     override val default: DefaultDirective? = parse(Annotations::default, DefaultDirective::create)
 
@@ -120,6 +128,7 @@ class Annotations(
     override val query: QueryDirective? = parse(Annotations::query, QueryDirective::create)
 
     override val relationship: RelationshipDirective? = parse(Annotations::relationship, RelationshipDirective::create)
+    override val relationshipBaseDirective: RelationshipBaseDirective? get() = relationship ?: declareRelationship
 
     override val relationshipProperties: RelationshipPropertiesDirective? =
         parse(Annotations::relationshipProperties, RelationshipPropertiesDirective::create)

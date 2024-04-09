@@ -39,193 +39,10 @@ type Actor {
 
 type ActorAggregateSelection {
   count: Int!
-  dob: DateTimeAggregateSelectionNonNullable!
-  id: IDAggregateSelectionNonNullable!
-  name: StringAggregateSelectionNonNullable!
+  dob: DateTimeAggregateSelection!
+  id: IDAggregateSelection!
+  name: StringAggregateSelection!
 }
-
-type ActorEdge {
-  cursor: String!
-  node: Actor!
-}
-
-type ActorsConnection {
-  edges: [ActorEdge!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type CreateActorsMutationResponse {
-  actors: [Actor!]!
-  info: CreateInfo!
-}
-
-"Information about the number of nodes and relationships created during a create mutation"
-type CreateInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
-  nodesCreated: Int!
-  relationshipsCreated: Int!
-}
-
-type CreateMoviesMutationResponse {
-  info: CreateInfo!
-  movies: [Movie!]!
-}
-
-type DateTimeAggregateSelectionNonNullable {
-  max: DateTime!
-  min: DateTime!
-}
-
-"Information about the number of nodes and relationships deleted during a delete mutation"
-type DeleteInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
-  nodesDeleted: Int!
-  relationshipsDeleted: Int!
-}
-
-type IDAggregateSelectionNonNullable {
-  longest: ID!
-  shortest: ID!
-}
-
-type Movie {
-  actors(directed: Boolean = true, options: ActorOptions, where: ActorWhere): [Actor!]!
-  actorsAggregate(directed: Boolean = true, where: ActorWhere): MovieActorActorsAggregationSelection
-  actorsConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
-  id: ID!
-  title: String!
-}
-
-type MovieActorActorsAggregationSelection {
-  count: Int!
-  node: MovieActorActorsNodeAggregateSelection
-}
-
-type MovieActorActorsNodeAggregateSelection {
-  dob: DateTimeAggregateSelectionNonNullable!
-  id: IDAggregateSelectionNonNullable!
-  name: StringAggregateSelectionNonNullable!
-}
-
-type MovieActorsConnection {
-  edges: [MovieActorsRelationship!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type MovieActorsRelationship {
-  cursor: String!
-  node: Actor!
-}
-
-type MovieAggregateSelection {
-  count: Int!
-  id: IDAggregateSelectionNonNullable!
-  title: StringAggregateSelectionNonNullable!
-}
-
-type MovieEdge {
-  cursor: String!
-  node: Movie!
-}
-
-type MoviesConnection {
-  edges: [MovieEdge!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type Mutation {
-  createActors(input: [ActorCreateInput!]!): CreateActorsMutationResponse!
-  createMovies(input: [MovieCreateInput!]!): CreateMoviesMutationResponse!
-  deleteActors(where: ActorWhere): DeleteInfo!
-  deleteMovies(delete: MovieDeleteInput, where: MovieWhere): DeleteInfo!
-  updateActors(update: ActorUpdateInput, where: ActorWhere): UpdateActorsMutationResponse!
-  updateMovies(connect: MovieConnectInput, connectOrCreate: MovieConnectOrCreateInput, create: MovieRelationInput, delete: MovieDeleteInput, disconnect: MovieDisconnectInput, update: MovieUpdateInput, where: MovieWhere): UpdateMoviesMutationResponse!
-}
-
-"Pagination information (Relay)"
-type PageInfo {
-  endCursor: String
-  hasNextPage: Boolean!
-  hasPreviousPage: Boolean!
-  startCursor: String
-}
-
-type Point {
-  """
-  The coordinate reference systems (CRS)
-  -------------------------------------
-  posible values:
-  * `wgs-84`: A 2D geographic point in the WGS 84 CRS is specified by: longitude and latitude
-  * `wgs-84-3d`: A 3D geographic point in the WGS 84 CRS is specified by longitude, latitude and height
-  """
-  crs: String!
-  "The third element of the Coordinate for geographic CRS, meters above the ellipsoid defined by the datum (WGS-84)"
-  height: Float
-  """
-  The second element of the Coordinate for geographic CRS, degrees North of the equator
-  Range -90.0 to 90.0
-  """
-  latitude: Float!
-  """
-  The first element of the Coordinate for geographic CRS, degrees East of the prime meridian
-  Range -180.0 to 180.0
-  """
-  longitude: Float!
-  """
-  The internal Neo4j ID for the CRS
-  One of:
-  * `4326`: represents CRS `wgs-84`
-  * `4979`: represents CRS `wgs-84-3d`
-  """
-  srid: Int!
-}
-
-type Query {
-  actors(options: ActorOptions, where: ActorWhere): [Actor!]!
-  actorsAggregate(where: ActorWhere): ActorAggregateSelection!
-  actorsConnection(after: String, first: Int, sort: [ActorSort], where: ActorWhere): ActorsConnection!
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesAggregate(where: MovieWhere): MovieAggregateSelection!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
-}
-
-type StringAggregateSelectionNonNullable {
-  longest: String!
-  shortest: String!
-}
-
-type UpdateActorsMutationResponse {
-  actors: [Actor!]!
-  info: UpdateInfo!
-}
-
-"Information about the number of nodes and relationships created and deleted during an update mutation"
-type UpdateInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
-  nodesCreated: Int!
-  nodesDeleted: Int!
-  relationshipsCreated: Int!
-  relationshipsDeleted: Int!
-}
-
-type UpdateMoviesMutationResponse {
-  info: UpdateInfo!
-  movies: [Movie!]!
-}
-
-"An enum for sorting in either ascending or descending order."
-enum SortDirection {
-  "Sort by field values in ascending order."
-  ASC
-  "Sort by field values in descending order."
-  DESC
-}
-
-"A date and time, represented as an ISO-8601 string"
-scalar DateTime
 
 input ActorConnectOrCreateWhere {
   node: ActorUniqueWhere!
@@ -241,6 +58,11 @@ input ActorCreateInput {
   name: String!
 }
 
+type ActorEdge {
+  cursor: String!
+  node: Actor!
+}
+
 input ActorOnCreateInput {
   dob: DateTime!
   homeAddress: PointInput!
@@ -250,11 +72,15 @@ input ActorOnCreateInput {
 input ActorOptions {
   limit: Int
   offset: Int
-  "Specify one or more ActorSort objects to sort Actors by. The sorts will be applied in the order in which they are arranged in the array."
+  """
+  Specify one or more ActorSort objects to sort Actors by. The sorts will be applied in the order in which they are arranged in the array.
+  """
   sort: [ActorSort!]
 }
 
-"Fields to sort Actors by. The order in which sorts are applied is not guaranteed when specifying many fields in one ActorSort object."
+"""
+Fields to sort Actors by. The order in which sorts are applied is not guaranteed when specifying many fields in one ActorSort object.
+"""
 input ActorSort {
   dob: SortDirection
   homeAddress: SortDirection
@@ -282,8 +108,8 @@ input ActorWhere {
   dob_IN: [DateTime!]
   dob_LT: DateTime
   dob_LTE: DateTime
-  dob_NOT: DateTime @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  dob_NOT_IN: [DateTime!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  dob_NOT: DateTime @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  dob_NOT_IN: [DateTime!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   homeAddress: PointInput
   homeAddress_DISTANCE: PointDistance
   homeAddress_GT: PointDistance
@@ -291,28 +117,94 @@ input ActorWhere {
   homeAddress_IN: [PointInput!]
   homeAddress_LT: PointDistance
   homeAddress_LTE: PointDistance
-  homeAddress_NOT: PointInput
-  homeAddress_NOT_IN: [PointInput!]
+  homeAddress_NOT: PointInput @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  homeAddress_NOT_IN: [PointInput!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id: ID
   id_CONTAINS: ID
   id_ENDS_WITH: ID
   id_IN: [ID!]
-  id_NOT: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_CONTAINS: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_ENDS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_IN: [ID!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_STARTS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_CONTAINS: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_ENDS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_IN: [ID!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_STARTS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id_STARTS_WITH: ID
   name: String
   name_CONTAINS: String
   name_ENDS_WITH: String
   name_IN: [String!]
-  name_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_IN: [String!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   name_STARTS_WITH: String
+}
+
+type ActorsConnection {
+  edges: [ActorEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type CreateActorsMutationResponse {
+  actors: [Actor!]!
+  info: CreateInfo!
+}
+
+"""
+Information about the number of nodes and relationships created during a create mutation
+"""
+type CreateInfo {
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesCreated: Int!
+  relationshipsCreated: Int!
+}
+
+type CreateMoviesMutationResponse {
+  info: CreateInfo!
+  movies: [Movie!]!
+}
+
+"""A date and time, represented as an ISO-8601 string"""
+scalar DateTime
+
+type DateTimeAggregateSelection {
+  max: DateTime
+  min: DateTime
+}
+
+"""
+Information about the number of nodes and relationships deleted during a delete mutation
+"""
+type DeleteInfo {
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
+type IDAggregateSelection {
+  longest: ID
+  shortest: ID
+}
+
+type Movie {
+  actors(directed: Boolean = true, options: ActorOptions, where: ActorWhere): [Actor!]!
+  actorsAggregate(directed: Boolean = true, where: ActorWhere): MovieActorActorsAggregationSelection
+  actorsConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
+  id: ID!
+  title: String!
+}
+
+type MovieActorActorsAggregationSelection {
+  count: Int!
+  node: MovieActorActorsNodeAggregateSelection
+}
+
+type MovieActorActorsNodeAggregateSelection {
+  dob: DateTimeAggregateSelection!
+  id: IDAggregateSelection!
+  name: StringAggregateSelection!
 }
 
 input MovieActorsAggregateInput {
@@ -328,7 +220,9 @@ input MovieActorsAggregateInput {
 }
 
 input MovieActorsConnectFieldInput {
-  "Whether or not to overwrite any matching relationship with the new properties."
+  """
+  Whether or not to overwrite any matching relationship with the new properties.
+  """
   overwrite: Boolean! = true
   where: ActorConnectWhere
 }
@@ -342,6 +236,12 @@ input MovieActorsConnectOrCreateFieldInputOnCreate {
   node: ActorOnCreateInput!
 }
 
+type MovieActorsConnection {
+  edges: [MovieActorsRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
 input MovieActorsConnectionSort {
   node: ActorSort
 }
@@ -351,7 +251,7 @@ input MovieActorsConnectionWhere {
   NOT: MovieActorsConnectionWhere
   OR: [MovieActorsConnectionWhere!]
   node: ActorWhere
-  node_NOT: ActorWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  node_NOT: ActorWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input MovieActorsCreateFieldInput {
@@ -376,11 +276,11 @@ input MovieActorsNodeAggregationWhereInput {
   AND: [MovieActorsNodeAggregationWhereInput!]
   NOT: MovieActorsNodeAggregationWhereInput
   OR: [MovieActorsNodeAggregationWhereInput!]
-  dob_EQUAL: DateTime @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  dob_GT: DateTime @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  dob_GTE: DateTime @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  dob_LT: DateTime @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  dob_LTE: DateTime @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  dob_EQUAL: DateTime @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  dob_GT: DateTime @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  dob_GTE: DateTime @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  dob_LT: DateTime @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  dob_LTE: DateTime @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
   dob_MAX_EQUAL: DateTime
   dob_MAX_GT: DateTime
   dob_MAX_GTE: DateTime
@@ -391,42 +291,47 @@ input MovieActorsNodeAggregationWhereInput {
   dob_MIN_GTE: DateTime
   dob_MIN_LT: DateTime
   dob_MIN_LTE: DateTime
-  id_EQUAL: ID @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  name_AVERAGE_EQUAL: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_AVERAGE_GT: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_AVERAGE_GTE: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  id_EQUAL: ID @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_AVERAGE_EQUAL: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_AVERAGE_GT: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_AVERAGE_GTE: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
   name_AVERAGE_LENGTH_EQUAL: Float
   name_AVERAGE_LENGTH_GT: Float
   name_AVERAGE_LENGTH_GTE: Float
   name_AVERAGE_LENGTH_LT: Float
   name_AVERAGE_LENGTH_LTE: Float
-  name_AVERAGE_LT: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_AVERAGE_LTE: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_EQUAL: String @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  name_GT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  name_GTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  name_LONGEST_EQUAL: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_LONGEST_GT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_LONGEST_GTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_AVERAGE_LT: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_AVERAGE_LTE: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_EQUAL: String @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_GT: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_GTE: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_LONGEST_EQUAL: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_LONGEST_GT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_LONGEST_GTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
   name_LONGEST_LENGTH_EQUAL: Int
   name_LONGEST_LENGTH_GT: Int
   name_LONGEST_LENGTH_GTE: Int
   name_LONGEST_LENGTH_LT: Int
   name_LONGEST_LENGTH_LTE: Int
-  name_LONGEST_LT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_LONGEST_LTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_LT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  name_LTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  name_SHORTEST_EQUAL: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_SHORTEST_GT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_SHORTEST_GTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_LONGEST_LT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_LONGEST_LTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_LT: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_LTE: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_SHORTEST_EQUAL: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_SHORTEST_GT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_SHORTEST_GTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
   name_SHORTEST_LENGTH_EQUAL: Int
   name_SHORTEST_LENGTH_GT: Int
   name_SHORTEST_LENGTH_GTE: Int
   name_SHORTEST_LENGTH_LT: Int
   name_SHORTEST_LENGTH_LTE: Int
-  name_SHORTEST_LT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_SHORTEST_LTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_SHORTEST_LT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_SHORTEST_LTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+}
+
+type MovieActorsRelationship {
+  cursor: String!
+  node: Actor!
 }
 
 input MovieActorsUpdateConnectionInput {
@@ -441,6 +346,12 @@ input MovieActorsUpdateFieldInput {
   disconnect: [MovieActorsDisconnectFieldInput!]
   update: MovieActorsUpdateConnectionInput
   where: MovieActorsConnectionWhere
+}
+
+type MovieAggregateSelection {
+  count: Int!
+  id: IDAggregateSelection!
+  title: StringAggregateSelection!
 }
 
 input MovieConnectInput {
@@ -464,10 +375,17 @@ input MovieDisconnectInput {
   actors: [MovieActorsDisconnectFieldInput!]
 }
 
+type MovieEdge {
+  cursor: String!
+  node: Movie!
+}
+
 input MovieOptions {
   limit: Int
   offset: Int
-  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
+  """
+  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
+  """
   sort: [MovieSort!]
 }
 
@@ -475,7 +393,9 @@ input MovieRelationInput {
   actors: [MovieActorsCreateFieldInput!]
 }
 
-"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+"""
+Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object.
+"""
 input MovieSort {
   id: SortDirection
   title: SortDirection
@@ -490,70 +410,147 @@ input MovieWhere {
   AND: [MovieWhere!]
   NOT: MovieWhere
   OR: [MovieWhere!]
-  actors: ActorWhere @deprecated(reason : "Use `actors_SOME` instead.")
+  actors: ActorWhere @deprecated(reason: "Use `actors_SOME` instead.")
   actorsAggregate: MovieActorsAggregateInput
-  actorsConnection: MovieActorsConnectionWhere @deprecated(reason : "Use `actorsConnection_SOME` instead.")
-  "Return Movies where all of the related MovieActorsConnections match this filter"
+  actorsConnection: MovieActorsConnectionWhere @deprecated(reason: "Use `actorsConnection_SOME` instead.")
+  """
+  Return Movies where all of the related MovieActorsConnections match this filter
+  """
   actorsConnection_ALL: MovieActorsConnectionWhere
-  "Return Movies where none of the related MovieActorsConnections match this filter"
+  """
+  Return Movies where none of the related MovieActorsConnections match this filter
+  """
   actorsConnection_NONE: MovieActorsConnectionWhere
-  actorsConnection_NOT: MovieActorsConnectionWhere @deprecated(reason : "Use `actorsConnection_NONE` instead.")
-  "Return Movies where one of the related MovieActorsConnections match this filter"
+  actorsConnection_NOT: MovieActorsConnectionWhere @deprecated(reason: "Use `actorsConnection_NONE` instead.")
+  """
+  Return Movies where one of the related MovieActorsConnections match this filter
+  """
   actorsConnection_SINGLE: MovieActorsConnectionWhere
-  "Return Movies where some of the related MovieActorsConnections match this filter"
+  """
+  Return Movies where some of the related MovieActorsConnections match this filter
+  """
   actorsConnection_SOME: MovieActorsConnectionWhere
-  "Return Movies where all of the related Actors match this filter"
+  """Return Movies where all of the related Actors match this filter"""
   actors_ALL: ActorWhere
-  "Return Movies where none of the related Actors match this filter"
+  """Return Movies where none of the related Actors match this filter"""
   actors_NONE: ActorWhere
-  actors_NOT: ActorWhere @deprecated(reason : "Use `actors_NONE` instead.")
-  "Return Movies where one of the related Actors match this filter"
+  actors_NOT: ActorWhere @deprecated(reason: "Use `actors_NONE` instead.")
+  """Return Movies where one of the related Actors match this filter"""
   actors_SINGLE: ActorWhere
-  "Return Movies where some of the related Actors match this filter"
+  """Return Movies where some of the related Actors match this filter"""
   actors_SOME: ActorWhere
   id: ID
   id_CONTAINS: ID
   id_ENDS_WITH: ID
   id_IN: [ID!]
-  id_NOT: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_CONTAINS: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_ENDS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_IN: [ID!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_STARTS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_CONTAINS: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_ENDS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_IN: [ID!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_STARTS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id_STARTS_WITH: ID
   title: String
   title_CONTAINS: String
   title_ENDS_WITH: String
   title_IN: [String!]
-  title_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_IN: [String!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   title_STARTS_WITH: String
 }
 
+type MoviesConnection {
+  edges: [MovieEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Mutation {
+  createActors(input: [ActorCreateInput!]!): CreateActorsMutationResponse!
+  createMovies(input: [MovieCreateInput!]!): CreateMoviesMutationResponse!
+  deleteActors(where: ActorWhere): DeleteInfo!
+  deleteMovies(delete: MovieDeleteInput, where: MovieWhere): DeleteInfo!
+  updateActors(update: ActorUpdateInput, where: ActorWhere): UpdateActorsMutationResponse!
+  updateMovies(connect: MovieConnectInput, connectOrCreate: MovieConnectOrCreateInput, create: MovieRelationInput, delete: MovieDeleteInput, disconnect: MovieDisconnectInput, update: MovieUpdateInput, where: MovieWhere): UpdateMoviesMutationResponse!
+}
+
+"""Pagination information (Relay)"""
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+"""
+A point in a coordinate system. For more information, see https://neo4j.com/docs/graphql/4/type-definitions/types/spatial/#point
+"""
+type Point {
+  crs: String!
+  height: Float
+  latitude: Float!
+  longitude: Float!
+  srid: Int!
+}
+
+"""Input type for a point with a distance"""
 input PointDistance {
-  "The distance in metres to be used when comparing two points"
+  """The distance in metres to be used when comparing two points"""
   distance: Float!
   point: PointInput!
 }
 
+"""Input type for a point"""
 input PointInput {
-  "The third element of the Coordinate for geographic CRS, meters above the ellipsoid defined by the datum (WGS-84)"
   height: Float
-  """
-  The second element of the Coordinate for geographic CRS, degrees North of the equator
-  Range -90.0 to 90.0
-  """
   latitude: Float!
-  """
-  The first element of the Coordinate for geographic CRS, degrees East of the prime meridian
-  Range -180.0 to 180.0
-  """
   longitude: Float!
 }
 
+type Query {
+  actors(options: ActorOptions, where: ActorWhere): [Actor!]!
+  actorsAggregate(where: ActorWhere): ActorAggregateSelection!
+  actorsConnection(after: String, first: Int, sort: [ActorSort], where: ActorWhere): ActorsConnection!
+  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
+  moviesAggregate(where: MovieWhere): MovieAggregateSelection!
+  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
+}
+
+"""An enum for sorting in either ascending or descending order."""
+enum SortDirection {
+  """Sort by field values in ascending order."""
+  ASC
+  """Sort by field values in descending order."""
+  DESC
+}
+
+type StringAggregateSelection {
+  longest: String
+  shortest: String
+}
+
+type UpdateActorsMutationResponse {
+  actors: [Actor!]!
+  info: UpdateInfo!
+}
+
+"""
+Information about the number of nodes and relationships created and deleted during an update mutation
+"""
+type UpdateInfo {
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesCreated: Int!
+  nodesDeleted: Int!
+  relationshipsCreated: Int!
+  relationshipsDeleted: Int!
+}
+
+type UpdateMoviesMutationResponse {
+  info: UpdateInfo!
+  movies: [Movie!]!
+}
 ----
 
 '''

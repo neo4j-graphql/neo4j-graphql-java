@@ -5,7 +5,7 @@ import org.neo4j.graphql.Constants
 import org.neo4j.graphql.asType
 import org.neo4j.graphql.domain.*
 import org.neo4j.graphql.domain.fields.ConnectionField
-import org.neo4j.graphql.domain.fields.RelationField
+import org.neo4j.graphql.domain.fields.RelationBaseField
 import org.neo4j.graphql.domain.predicates.ConnectionPredicate
 import org.neo4j.graphql.schema.AugmentationBase
 import org.neo4j.graphql.schema.AugmentationContext
@@ -42,15 +42,15 @@ sealed interface ConnectionWhere {
 
         object Augmentation : AugmentationBase {
             fun addEdgePredicates(
-                rel: RelationField,
+                rel: RelationBaseField,
                 ctx: AugmentationContext,
                 fields: MutableList<InputValueDefinition>
             ) {
                 WhereInput.EdgeWhereInput.Augmentation
-                    .generateRelationPropertiesWhereIT(rel, ctx)
+                    .generateRelationPropertiesWhereIT((rel.interfaceField as? RelationBaseField) ?: rel, ctx)
                     ?.let {
-                        fields += inputValue(Constants.EDGE_FIELD, it.asType())
-                        fields += inputValue(Constants.EDGE_FIELD + "_NOT", it.asType()) {
+                        fields += inputValue(Constants.EDGE_FIELD, it)
+                        fields += inputValue(Constants.EDGE_FIELD + "_NOT", it) {
                             directive(NEGATION_DEPRECATED)
                         }
                     }
@@ -69,7 +69,7 @@ sealed interface ConnectionWhere {
         ) {
         object Augmentation : AugmentationBase {
             fun generateFieldConnectionWhereIT(
-                rel: RelationField,
+                rel: RelationBaseField,
                 node: Node,
                 ctx: AugmentationContext
             ) =
@@ -84,7 +84,7 @@ sealed interface ConnectionWhere {
                         }
 
                     ImplementingTypeConnectionWhere.Augmentation.addEdgePredicates(rel, ctx, fields)
-                    WhereInput.Augmentation.addNestingWhereFields(connectionWhereName, fields, ctx)
+                    WhereInput.Augmentation.addNestingWhereFields(connectionWhereName, fields)
                 }
         }
     }
@@ -105,7 +105,7 @@ sealed interface ConnectionWhere {
 
         object Augmentation : AugmentationBase {
             fun generateFieldConnectionWhereIT(
-                rel: RelationField,
+                rel: RelationBaseField,
                 interfaze: Interface,
                 ctx: AugmentationContext
             ) =
@@ -118,7 +118,7 @@ sealed interface ConnectionWhere {
                     }
 
                     ImplementingTypeConnectionWhere.Augmentation.addEdgePredicates(rel, ctx, fields)
-                    WhereInput.Augmentation.addNestingWhereFields(connectionWhereName, fields, ctx)
+                    WhereInput.Augmentation.addNestingWhereFields(connectionWhereName, fields)
                 }
 
         }
@@ -140,7 +140,7 @@ sealed interface ConnectionWhere {
                 is Interface -> InterfaceConnectionWhere(implementingType, relationshipProperties, value.toDict())
             }
 
-        fun create(field: RelationField, value: Any) = field.extractOnTarget(
+        fun create(field: RelationBaseField, value: Any) = field.extractOnTarget(
             onImplementingType = { create(it, field.properties, value.toDict()) },
             onUnion = { UnionConnectionWhere(it, field.properties, value.toDict()) }
         )

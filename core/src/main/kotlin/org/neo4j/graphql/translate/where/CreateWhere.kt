@@ -47,11 +47,11 @@ fun createWhere(
             queryContext,
             usePrefix
         )
-
-        val relation = field.createDslRelation(propertyContainer, endNode)
-        val cond = op.createRelationCondition(relation, nestedCondition)
-
-        return WhereResult(cond)
+        TODO()
+//        val relation = field.createDslRelation(propertyContainer, endNode)
+//        val cond = op.createRelationCondition(relation, nestedCondition)
+//
+//        return WhereResult(cond)
     }
 
     fun resolveConnectionCondition(predicate: ConnectionFieldPredicate): WhereResult {
@@ -89,22 +89,23 @@ fun createWhere(
                 op.suffix // TODO duplicate op
             )
 
-            val relation = relationField.createDslRelation(propertyContainer, endNode).named("edge")
-
-            val (nestedCondition, preComputedSubQueries) = createConnectionWhere(
-                whereInput,
-                refNode,
-                endNode,
-                relationField,
-                relation,
-                parameterPrefix,
-                schemaConfig,
-                queryContext,
-                usePrefix
-            )
-
-            val cond = op.createRelationCondition(relation, nestedCondition)
-            result = result and cond
+            TODO()
+//            val relation = relationField.createDslRelation(propertyContainer, endNode).named("edge")
+//
+//            val (nestedCondition, preComputedSubQueries) = createConnectionWhere(
+//                whereInput,
+//                refNode,
+//                endNode,
+//                relationField,
+//                relation,
+//                parameterPrefix,
+//                schemaConfig,
+//                queryContext,
+//                usePrefix
+//            )
+//
+//            val cond = op.createRelationCondition(relation, nestedCondition)
+//            result = result and cond
         }
         return WhereResult(result, subQueries)
     }

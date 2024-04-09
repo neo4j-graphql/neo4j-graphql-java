@@ -19,16 +19,6 @@ type Genre {
 }
 ----
 
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{
-  "experimental": true
-}
-----
-
 == Augmented schema
 
 .Augmented Schema
@@ -44,9 +34,11 @@ type CreateGenresMutationResponse {
   info: CreateInfo!
 }
 
-"Information about the number of nodes and relationships created during a create mutation"
+"""
+Information about the number of nodes and relationships created during a create mutation
+"""
 type CreateInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   relationshipsCreated: Int!
 }
@@ -56,14 +48,16 @@ type CreateMoviesMutationResponse {
   movies: [Movie!]!
 }
 
-"Information about the number of nodes and relationships deleted during a delete mutation"
+"""
+Information about the number of nodes and relationships deleted during a delete mutation
+"""
 type DeleteInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesDeleted: Int!
   relationshipsDeleted: Int!
 }
 
-type FloatAggregateSelectionNullable {
+type FloatAggregateSelection {
   average: Float
   max: Float
   min: Float
@@ -79,152 +73,7 @@ type Genre {
 
 type GenreAggregateSelection {
   count: Int!
-  name: StringAggregateSelectionNullable!
-}
-
-type GenreEdge {
-  cursor: String!
-  node: Genre!
-}
-
-type GenreMovieMoviesAggregationSelection {
-  count: Int!
-  node: GenreMovieMoviesNodeAggregateSelection
-}
-
-type GenreMovieMoviesNodeAggregateSelection {
-  imdbRating: FloatAggregateSelectionNullable!
-  title: StringAggregateSelectionNullable!
-  year: IntAggregateSelectionNullable!
-}
-
-type GenreMoviesConnection {
-  edges: [GenreMoviesRelationship!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type GenreMoviesRelationship {
-  cursor: String!
-  node: Movie!
-}
-
-type GenresConnection {
-  edges: [GenreEdge!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type IntAggregateSelectionNullable {
-  average: Float
-  max: Int
-  min: Int
-  sum: Int
-}
-
-type Movie {
-  genres(directed: Boolean = true, options: GenreOptions, where: GenreWhere): [Genre!]! @deprecated(reason : "Do not use")
-  genresAggregate(directed: Boolean = true, where: GenreWhere): MovieGenreGenresAggregationSelection @deprecated(reason : "Do not use")
-  genresConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieGenresConnectionSort!], where: MovieGenresConnectionWhere): MovieGenresConnection! @deprecated(reason : "Do not use")
-  imdbRating: Float
-  title: String
-  year: Int
-}
-
-type MovieAggregateSelection {
-  count: Int!
-  imdbRating: FloatAggregateSelectionNullable!
-  title: StringAggregateSelectionNullable!
-  year: IntAggregateSelectionNullable!
-}
-
-type MovieEdge {
-  cursor: String!
-  node: Movie!
-}
-
-type MovieGenreGenresAggregationSelection {
-  count: Int!
-  node: MovieGenreGenresNodeAggregateSelection
-}
-
-type MovieGenreGenresNodeAggregateSelection {
-  name: StringAggregateSelectionNullable!
-}
-
-type MovieGenresConnection {
-  edges: [MovieGenresRelationship!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type MovieGenresRelationship {
-  cursor: String!
-  node: Genre!
-}
-
-type MoviesConnection {
-  edges: [MovieEdge!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type Mutation {
-  createGenres(input: [GenreCreateInput!]!): CreateGenresMutationResponse!
-  createMovies(input: [MovieCreateInput!]!): CreateMoviesMutationResponse!
-  deleteGenres(delete: GenreDeleteInput, where: GenreWhere): DeleteInfo!
-  deleteMovies(delete: MovieDeleteInput, where: MovieWhere): DeleteInfo!
-  updateGenres(connect: GenreConnectInput, create: GenreRelationInput, delete: GenreDeleteInput, disconnect: GenreDisconnectInput, update: GenreUpdateInput, where: GenreWhere): UpdateGenresMutationResponse!
-  updateMovies(connect: MovieConnectInput, create: MovieRelationInput, delete: MovieDeleteInput, disconnect: MovieDisconnectInput, update: MovieUpdateInput, where: MovieWhere): UpdateMoviesMutationResponse!
-}
-
-"Pagination information (Relay)"
-type PageInfo {
-  endCursor: String
-  hasNextPage: Boolean!
-  hasPreviousPage: Boolean!
-  startCursor: String
-}
-
-type Query {
-  genres(options: GenreOptions, where: GenreWhere): [Genre!]!
-  genresAggregate(where: GenreWhere): GenreAggregateSelection!
-  genresConnection(after: String, first: Int, sort: [GenreSort], where: GenreWhere): GenresConnection!
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesAggregate(where: MovieWhere): MovieAggregateSelection!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
-}
-
-type StringAggregateSelectionNullable {
-  longest: String
-  shortest: String
-}
-
-type UpdateGenresMutationResponse {
-  genres: [Genre!]!
-  info: UpdateInfo!
-}
-
-"Information about the number of nodes and relationships created and deleted during an update mutation"
-type UpdateInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
-  nodesCreated: Int!
-  nodesDeleted: Int!
-  relationshipsCreated: Int!
-  relationshipsDeleted: Int!
-}
-
-type UpdateMoviesMutationResponse {
-  info: UpdateInfo!
-  movies: [Movie!]!
-}
-
-"An enum for sorting in either ascending or descending order."
-enum SortDirection {
-  "Sort by field values in ascending order."
-  ASC
-  "Sort by field values in descending order."
-  DESC
+  name: StringAggregateSelection!
 }
 
 input GenreConnectInput {
@@ -248,6 +97,22 @@ input GenreDisconnectInput {
   movies: [GenreMoviesDisconnectFieldInput!]
 }
 
+type GenreEdge {
+  cursor: String!
+  node: Genre!
+}
+
+type GenreMovieMoviesAggregationSelection {
+  count: Int!
+  node: GenreMovieMoviesNodeAggregateSelection
+}
+
+type GenreMovieMoviesNodeAggregateSelection {
+  imdbRating: FloatAggregateSelection!
+  title: StringAggregateSelection!
+  year: IntAggregateSelection!
+}
+
 input GenreMoviesAggregateInput {
   AND: [GenreMoviesAggregateInput!]
   NOT: GenreMoviesAggregateInput
@@ -262,9 +127,17 @@ input GenreMoviesAggregateInput {
 
 input GenreMoviesConnectFieldInput {
   connect: [MovieConnectInput!]
-  "Whether or not to overwrite any matching relationship with the new properties."
+  """
+  Whether or not to overwrite any matching relationship with the new properties.
+  """
   overwrite: Boolean! = true
   where: MovieConnectWhere
+}
+
+type GenreMoviesConnection {
+  edges: [GenreMoviesRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
 }
 
 input GenreMoviesConnectionSort {
@@ -276,7 +149,7 @@ input GenreMoviesConnectionWhere {
   NOT: GenreMoviesConnectionWhere
   OR: [GenreMoviesConnectionWhere!]
   node: MovieWhere
-  node_NOT: MovieWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  node_NOT: MovieWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input GenreMoviesCreateFieldInput {
@@ -307,11 +180,11 @@ input GenreMoviesNodeAggregationWhereInput {
   imdbRating_AVERAGE_GTE: Float
   imdbRating_AVERAGE_LT: Float
   imdbRating_AVERAGE_LTE: Float
-  imdbRating_EQUAL: Float @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  imdbRating_GT: Float @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  imdbRating_GTE: Float @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  imdbRating_LT: Float @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  imdbRating_LTE: Float @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  imdbRating_EQUAL: Float @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  imdbRating_GT: Float @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  imdbRating_GTE: Float @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  imdbRating_LT: Float @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  imdbRating_LTE: Float @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
   imdbRating_MAX_EQUAL: Float
   imdbRating_MAX_GT: Float
   imdbRating_MAX_GTE: Float
@@ -327,51 +200,51 @@ input GenreMoviesNodeAggregationWhereInput {
   imdbRating_SUM_GTE: Float
   imdbRating_SUM_LT: Float
   imdbRating_SUM_LTE: Float
-  title_AVERAGE_EQUAL: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  title_AVERAGE_GT: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  title_AVERAGE_GTE: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  title_AVERAGE_EQUAL: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  title_AVERAGE_GT: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  title_AVERAGE_GTE: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
   title_AVERAGE_LENGTH_EQUAL: Float
   title_AVERAGE_LENGTH_GT: Float
   title_AVERAGE_LENGTH_GTE: Float
   title_AVERAGE_LENGTH_LT: Float
   title_AVERAGE_LENGTH_LTE: Float
-  title_AVERAGE_LT: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  title_AVERAGE_LTE: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  title_EQUAL: String @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  title_GT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  title_GTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  title_LONGEST_EQUAL: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  title_LONGEST_GT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  title_LONGEST_GTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  title_AVERAGE_LT: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  title_AVERAGE_LTE: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  title_EQUAL: String @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  title_GT: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  title_GTE: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  title_LONGEST_EQUAL: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  title_LONGEST_GT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  title_LONGEST_GTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
   title_LONGEST_LENGTH_EQUAL: Int
   title_LONGEST_LENGTH_GT: Int
   title_LONGEST_LENGTH_GTE: Int
   title_LONGEST_LENGTH_LT: Int
   title_LONGEST_LENGTH_LTE: Int
-  title_LONGEST_LT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  title_LONGEST_LTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  title_LT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  title_LTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  title_SHORTEST_EQUAL: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  title_SHORTEST_GT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  title_SHORTEST_GTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  title_LONGEST_LT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  title_LONGEST_LTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  title_LT: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  title_LTE: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  title_SHORTEST_EQUAL: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  title_SHORTEST_GT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  title_SHORTEST_GTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
   title_SHORTEST_LENGTH_EQUAL: Int
   title_SHORTEST_LENGTH_GT: Int
   title_SHORTEST_LENGTH_GTE: Int
   title_SHORTEST_LENGTH_LT: Int
   title_SHORTEST_LENGTH_LTE: Int
-  title_SHORTEST_LT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  title_SHORTEST_LTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  title_SHORTEST_LT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  title_SHORTEST_LTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
   year_AVERAGE_EQUAL: Float
   year_AVERAGE_GT: Float
   year_AVERAGE_GTE: Float
   year_AVERAGE_LT: Float
   year_AVERAGE_LTE: Float
-  year_EQUAL: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  year_GT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  year_GTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  year_LT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  year_LTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  year_EQUAL: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  year_GT: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  year_GTE: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  year_LT: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  year_LTE: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
   year_MAX_EQUAL: Int
   year_MAX_GT: Int
   year_MAX_GTE: Int
@@ -387,6 +260,11 @@ input GenreMoviesNodeAggregationWhereInput {
   year_SUM_GTE: Int
   year_SUM_LT: Int
   year_SUM_LTE: Int
+}
+
+type GenreMoviesRelationship {
+  cursor: String!
+  node: Movie!
 }
 
 input GenreMoviesUpdateConnectionInput {
@@ -405,7 +283,9 @@ input GenreMoviesUpdateFieldInput {
 input GenreOptions {
   limit: Int
   offset: Int
-  "Specify one or more GenreSort objects to sort Genres by. The sorts will be applied in the order in which they are arranged in the array."
+  """
+  Specify one or more GenreSort objects to sort Genres by. The sorts will be applied in the order in which they are arranged in the array.
+  """
   sort: [GenreSort!]
 }
 
@@ -413,7 +293,9 @@ input GenreRelationInput {
   movies: [GenreMoviesCreateFieldInput!]
 }
 
-"Fields to sort Genres by. The order in which sorts are applied is not guaranteed when specifying many fields in one GenreSort object."
+"""
+Fields to sort Genres by. The order in which sorts are applied is not guaranteed when specifying many fields in one GenreSort object.
+"""
 input GenreSort {
   name: SortDirection
 }
@@ -427,41 +309,78 @@ input GenreWhere {
   AND: [GenreWhere!]
   NOT: GenreWhere
   OR: [GenreWhere!]
-  movies: MovieWhere @deprecated(reason : "Use `movies_SOME` instead.")
+  movies: MovieWhere @deprecated(reason: "Use `movies_SOME` instead.")
   moviesAggregate: GenreMoviesAggregateInput
-  moviesConnection: GenreMoviesConnectionWhere @deprecated(reason : "Use `moviesConnection_SOME` instead.")
-  "Return Genres where all of the related GenreMoviesConnections match this filter"
+  moviesConnection: GenreMoviesConnectionWhere @deprecated(reason: "Use `moviesConnection_SOME` instead.")
+  """
+  Return Genres where all of the related GenreMoviesConnections match this filter
+  """
   moviesConnection_ALL: GenreMoviesConnectionWhere
-  "Return Genres where none of the related GenreMoviesConnections match this filter"
+  """
+  Return Genres where none of the related GenreMoviesConnections match this filter
+  """
   moviesConnection_NONE: GenreMoviesConnectionWhere
-  moviesConnection_NOT: GenreMoviesConnectionWhere @deprecated(reason : "Use `moviesConnection_NONE` instead.")
-  "Return Genres where one of the related GenreMoviesConnections match this filter"
+  moviesConnection_NOT: GenreMoviesConnectionWhere @deprecated(reason: "Use `moviesConnection_NONE` instead.")
+  """
+  Return Genres where one of the related GenreMoviesConnections match this filter
+  """
   moviesConnection_SINGLE: GenreMoviesConnectionWhere
-  "Return Genres where some of the related GenreMoviesConnections match this filter"
+  """
+  Return Genres where some of the related GenreMoviesConnections match this filter
+  """
   moviesConnection_SOME: GenreMoviesConnectionWhere
-  "Return Genres where all of the related Movies match this filter"
+  """Return Genres where all of the related Movies match this filter"""
   movies_ALL: MovieWhere
-  "Return Genres where none of the related Movies match this filter"
+  """Return Genres where none of the related Movies match this filter"""
   movies_NONE: MovieWhere
-  movies_NOT: MovieWhere @deprecated(reason : "Use `movies_NONE` instead.")
-  "Return Genres where one of the related Movies match this filter"
+  movies_NOT: MovieWhere @deprecated(reason: "Use `movies_NONE` instead.")
+  """Return Genres where one of the related Movies match this filter"""
   movies_SINGLE: MovieWhere
-  "Return Genres where some of the related Movies match this filter"
+  """Return Genres where some of the related Movies match this filter"""
   movies_SOME: MovieWhere
   name: String
   name_CONTAINS: String
   name_ENDS_WITH: String
   name_IN: [String]
-  name_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_IN: [String] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_IN: [String] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   name_STARTS_WITH: String
 }
 
+type GenresConnection {
+  edges: [GenreEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type IntAggregateSelection {
+  average: Float
+  max: Int
+  min: Int
+  sum: Int
+}
+
+type Movie {
+  genres(directed: Boolean = true, options: GenreOptions, where: GenreWhere): [Genre!]! @deprecated(reason: "Do not use")
+  genresAggregate(directed: Boolean = true, where: GenreWhere): MovieGenreGenresAggregationSelection @deprecated(reason: "Do not use")
+  genresConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieGenresConnectionSort!], where: MovieGenresConnectionWhere): MovieGenresConnection! @deprecated(reason: "Do not use")
+  imdbRating: Float
+  title: String
+  year: Int
+}
+
+type MovieAggregateSelection {
+  count: Int!
+  imdbRating: FloatAggregateSelection!
+  title: StringAggregateSelection!
+  year: IntAggregateSelection!
+}
+
 input MovieConnectInput {
-  genres: [MovieGenresConnectFieldInput!] @deprecated(reason : "Do not use")
+  genres: [MovieGenresConnectFieldInput!] @deprecated(reason: "Do not use")
 }
 
 input MovieConnectWhere {
@@ -469,18 +388,32 @@ input MovieConnectWhere {
 }
 
 input MovieCreateInput {
-  genres: MovieGenresFieldInput @deprecated(reason : "Do not use")
+  genres: MovieGenresFieldInput @deprecated(reason: "Do not use")
   imdbRating: Float
   title: String
   year: Int
 }
 
 input MovieDeleteInput {
-  genres: [MovieGenresDeleteFieldInput!] @deprecated(reason : "Do not use")
+  genres: [MovieGenresDeleteFieldInput!] @deprecated(reason: "Do not use")
 }
 
 input MovieDisconnectInput {
-  genres: [MovieGenresDisconnectFieldInput!] @deprecated(reason : "Do not use")
+  genres: [MovieGenresDisconnectFieldInput!] @deprecated(reason: "Do not use")
+}
+
+type MovieEdge {
+  cursor: String!
+  node: Movie!
+}
+
+type MovieGenreGenresAggregationSelection {
+  count: Int!
+  node: MovieGenreGenresNodeAggregateSelection
+}
+
+type MovieGenreGenresNodeAggregateSelection {
+  name: StringAggregateSelection!
 }
 
 input MovieGenresAggregateInput {
@@ -497,9 +430,17 @@ input MovieGenresAggregateInput {
 
 input MovieGenresConnectFieldInput {
   connect: [GenreConnectInput!]
-  "Whether or not to overwrite any matching relationship with the new properties."
+  """
+  Whether or not to overwrite any matching relationship with the new properties.
+  """
   overwrite: Boolean! = true
   where: GenreConnectWhere
+}
+
+type MovieGenresConnection {
+  edges: [MovieGenresRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
 }
 
 input MovieGenresConnectionSort {
@@ -511,7 +452,7 @@ input MovieGenresConnectionWhere {
   NOT: MovieGenresConnectionWhere
   OR: [MovieGenresConnectionWhere!]
   node: GenreWhere
-  node_NOT: GenreWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  node_NOT: GenreWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input MovieGenresCreateFieldInput {
@@ -537,41 +478,46 @@ input MovieGenresNodeAggregationWhereInput {
   AND: [MovieGenresNodeAggregationWhereInput!]
   NOT: MovieGenresNodeAggregationWhereInput
   OR: [MovieGenresNodeAggregationWhereInput!]
-  name_AVERAGE_EQUAL: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_AVERAGE_GT: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_AVERAGE_GTE: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_AVERAGE_EQUAL: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_AVERAGE_GT: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_AVERAGE_GTE: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
   name_AVERAGE_LENGTH_EQUAL: Float
   name_AVERAGE_LENGTH_GT: Float
   name_AVERAGE_LENGTH_GTE: Float
   name_AVERAGE_LENGTH_LT: Float
   name_AVERAGE_LENGTH_LTE: Float
-  name_AVERAGE_LT: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_AVERAGE_LTE: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_EQUAL: String @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  name_GT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  name_GTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  name_LONGEST_EQUAL: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_LONGEST_GT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_LONGEST_GTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_AVERAGE_LT: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_AVERAGE_LTE: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_EQUAL: String @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_GT: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_GTE: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_LONGEST_EQUAL: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_LONGEST_GT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_LONGEST_GTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
   name_LONGEST_LENGTH_EQUAL: Int
   name_LONGEST_LENGTH_GT: Int
   name_LONGEST_LENGTH_GTE: Int
   name_LONGEST_LENGTH_LT: Int
   name_LONGEST_LENGTH_LTE: Int
-  name_LONGEST_LT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_LONGEST_LTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_LT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  name_LTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  name_SHORTEST_EQUAL: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_SHORTEST_GT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_SHORTEST_GTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_LONGEST_LT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_LONGEST_LTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_LT: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_LTE: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_SHORTEST_EQUAL: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_SHORTEST_GT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_SHORTEST_GTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
   name_SHORTEST_LENGTH_EQUAL: Int
   name_SHORTEST_LENGTH_GT: Int
   name_SHORTEST_LENGTH_GTE: Int
   name_SHORTEST_LENGTH_LT: Int
   name_SHORTEST_LENGTH_LTE: Int
-  name_SHORTEST_LT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_SHORTEST_LTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_SHORTEST_LT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_SHORTEST_LTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+}
+
+type MovieGenresRelationship {
+  cursor: String!
+  node: Genre!
 }
 
 input MovieGenresUpdateConnectionInput {
@@ -590,15 +536,19 @@ input MovieGenresUpdateFieldInput {
 input MovieOptions {
   limit: Int
   offset: Int
-  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
+  """
+  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
+  """
   sort: [MovieSort!]
 }
 
 input MovieRelationInput {
-  genres: [MovieGenresCreateFieldInput!] @deprecated(reason : "Do not use")
+  genres: [MovieGenresCreateFieldInput!] @deprecated(reason: "Do not use")
 }
 
-"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+"""
+Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object.
+"""
 input MovieSort {
   imdbRating: SortDirection
   title: SortDirection
@@ -606,7 +556,7 @@ input MovieSort {
 }
 
 input MovieUpdateInput {
-  genres: [MovieGenresUpdateFieldInput!] @deprecated(reason : "Do not use")
+  genres: [MovieGenresUpdateFieldInput!] @deprecated(reason: "Do not use")
   imdbRating: Float
   imdbRating_ADD: Float
   imdbRating_DIVIDE: Float
@@ -622,44 +572,52 @@ input MovieWhere {
   AND: [MovieWhere!]
   NOT: MovieWhere
   OR: [MovieWhere!]
-  genres: GenreWhere @deprecated(reason : "Do not use")
-  genresAggregate: MovieGenresAggregateInput @deprecated(reason : "Do not use")
-  genresConnection: MovieGenresConnectionWhere @deprecated(reason : "Do not use")
-  "Return Movies where all of the related MovieGenresConnections match this filter"
-  genresConnection_ALL: MovieGenresConnectionWhere @deprecated(reason : "Do not use")
-  "Return Movies where none of the related MovieGenresConnections match this filter"
-  genresConnection_NONE: MovieGenresConnectionWhere @deprecated(reason : "Do not use")
-  genresConnection_NOT: MovieGenresConnectionWhere @deprecated(reason : "Do not use")
-  "Return Movies where one of the related MovieGenresConnections match this filter"
-  genresConnection_SINGLE: MovieGenresConnectionWhere @deprecated(reason : "Do not use")
-  "Return Movies where some of the related MovieGenresConnections match this filter"
-  genresConnection_SOME: MovieGenresConnectionWhere @deprecated(reason : "Do not use")
-  "Return Movies where all of the related Genres match this filter"
-  genres_ALL: GenreWhere @deprecated(reason : "Do not use")
-  "Return Movies where none of the related Genres match this filter"
-  genres_NONE: GenreWhere @deprecated(reason : "Do not use")
-  genres_NOT: GenreWhere @deprecated(reason : "Do not use")
-  "Return Movies where one of the related Genres match this filter"
-  genres_SINGLE: GenreWhere @deprecated(reason : "Do not use")
-  "Return Movies where some of the related Genres match this filter"
-  genres_SOME: GenreWhere @deprecated(reason : "Do not use")
+  genres: GenreWhere @deprecated(reason: "Use `genres_SOME` instead.")
+  genresAggregate: MovieGenresAggregateInput @deprecated(reason: "Do not use")
+  genresConnection: MovieGenresConnectionWhere @deprecated(reason: "Use `genresConnection_SOME` instead.")
+  """
+  Return Movies where all of the related MovieGenresConnections match this filter
+  """
+  genresConnection_ALL: MovieGenresConnectionWhere @deprecated(reason: "Do not use")
+  """
+  Return Movies where none of the related MovieGenresConnections match this filter
+  """
+  genresConnection_NONE: MovieGenresConnectionWhere @deprecated(reason: "Do not use")
+  genresConnection_NOT: MovieGenresConnectionWhere @deprecated(reason: "Use `genresConnection_NONE` instead.")
+  """
+  Return Movies where one of the related MovieGenresConnections match this filter
+  """
+  genresConnection_SINGLE: MovieGenresConnectionWhere @deprecated(reason: "Do not use")
+  """
+  Return Movies where some of the related MovieGenresConnections match this filter
+  """
+  genresConnection_SOME: MovieGenresConnectionWhere @deprecated(reason: "Do not use")
+  """Return Movies where all of the related Genres match this filter"""
+  genres_ALL: GenreWhere @deprecated(reason: "Do not use")
+  """Return Movies where none of the related Genres match this filter"""
+  genres_NONE: GenreWhere @deprecated(reason: "Do not use")
+  genres_NOT: GenreWhere @deprecated(reason: "Use `genres_NONE` instead.")
+  """Return Movies where one of the related Genres match this filter"""
+  genres_SINGLE: GenreWhere @deprecated(reason: "Do not use")
+  """Return Movies where some of the related Genres match this filter"""
+  genres_SOME: GenreWhere @deprecated(reason: "Do not use")
   imdbRating: Float
   imdbRating_GT: Float
   imdbRating_GTE: Float
   imdbRating_IN: [Float]
   imdbRating_LT: Float
   imdbRating_LTE: Float
-  imdbRating_NOT: Float @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  imdbRating_NOT_IN: [Float] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  imdbRating_NOT: Float @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  imdbRating_NOT_IN: [Float] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   title: String
   title_CONTAINS: String
   title_ENDS_WITH: String
   title_IN: [String]
-  title_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_IN: [String] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_IN: [String] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   title_STARTS_WITH: String
   year: Int
   year_GT: Int
@@ -667,10 +625,75 @@ input MovieWhere {
   year_IN: [Int]
   year_LT: Int
   year_LTE: Int
-  year_NOT: Int @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  year_NOT_IN: [Int] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  year_NOT: Int @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  year_NOT_IN: [Int] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
+type MoviesConnection {
+  edges: [MovieEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Mutation {
+  createGenres(input: [GenreCreateInput!]!): CreateGenresMutationResponse!
+  createMovies(input: [MovieCreateInput!]!): CreateMoviesMutationResponse!
+  deleteGenres(delete: GenreDeleteInput, where: GenreWhere): DeleteInfo!
+  deleteMovies(delete: MovieDeleteInput, where: MovieWhere): DeleteInfo!
+  updateGenres(connect: GenreConnectInput, create: GenreRelationInput, delete: GenreDeleteInput, disconnect: GenreDisconnectInput, update: GenreUpdateInput, where: GenreWhere): UpdateGenresMutationResponse!
+  updateMovies(connect: MovieConnectInput, create: MovieRelationInput, delete: MovieDeleteInput, disconnect: MovieDisconnectInput, update: MovieUpdateInput, where: MovieWhere): UpdateMoviesMutationResponse!
+}
+
+"""Pagination information (Relay)"""
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  genres(options: GenreOptions, where: GenreWhere): [Genre!]!
+  genresAggregate(where: GenreWhere): GenreAggregateSelection!
+  genresConnection(after: String, first: Int, sort: [GenreSort], where: GenreWhere): GenresConnection!
+  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
+  moviesAggregate(where: MovieWhere): MovieAggregateSelection!
+  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
+}
+
+"""An enum for sorting in either ascending or descending order."""
+enum SortDirection {
+  """Sort by field values in ascending order."""
+  ASC
+  """Sort by field values in descending order."""
+  DESC
+}
+
+type StringAggregateSelection {
+  longest: String
+  shortest: String
+}
+
+type UpdateGenresMutationResponse {
+  genres: [Genre!]!
+  info: UpdateInfo!
+}
+
+"""
+Information about the number of nodes and relationships created and deleted during an update mutation
+"""
+type UpdateInfo {
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesCreated: Int!
+  nodesDeleted: Int!
+  relationshipsCreated: Int!
+  relationshipsDeleted: Int!
+}
+
+type UpdateMoviesMutationResponse {
+  info: UpdateInfo!
+  movies: [Movie!]!
+}
 ----
 
 '''

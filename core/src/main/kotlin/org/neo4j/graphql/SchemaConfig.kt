@@ -36,9 +36,7 @@ data class SchemaConfig @JvmOverloads constructor(
 
     val namingStrategy: NamingStrategy = NamingStrategy(),
 
-    val features: Neo4jFeaturesSettings = Neo4jFeaturesSettings(),
-
-    val experimental: Boolean = false,
+    val features: Neo4jFeaturesSettings = Neo4jFeaturesSettings()
 ) {
     data class CRUDConfig(val enabled: Boolean = true, val exclude: List<String> = emptyList())
 

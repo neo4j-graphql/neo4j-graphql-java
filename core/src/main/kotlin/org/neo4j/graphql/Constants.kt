@@ -38,14 +38,16 @@ object Constants {
     const val DELETE_FIELD = "delete"
     const val DISCONNECT_FIELD = "disconnect"
     const val EDGE_FIELD = "edge"
+    const val PROPERTIES_FIELD = "properties"
     const val COUNT = "count"
     const val TOTAL_COUNT = "totalCount"
     const val PAGE_INFO = "pageInfo"
     const val EDGES_FIELD = "edges"
     const val CURSOR_FIELD = "cursor"
     const val NODE_FIELD = "node"
-    const val RELATIONSHIP_FIELD = "relationship"
     const val TYPENAME_IN = "typename_IN"
+
+    @Deprecated("Do not use any longer")
     const val ON = "_on"
     const val SCORE = "score"
     const val RESOLVE_TYPE = "__resolveType"

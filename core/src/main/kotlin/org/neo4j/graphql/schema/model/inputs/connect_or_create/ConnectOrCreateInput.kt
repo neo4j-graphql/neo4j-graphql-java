@@ -24,9 +24,9 @@ class ConnectOrCreateInput private constructor(
         fun generateContainerConnectOrCreateInputIT(node: Node, ctx: AugmentationContext) =
             ctx.getOrCreateRelationInputObjectType(
                 node.namings.connectOrCreateInputTypeName,
-                node.relationFields,
+                node.relationBaseFields,
                 RelationFieldBaseAugmentation::generateFieldConnectOrCreateIT,
-                condition = { it.annotations.relationship?.isConnectOrCreateAllowed != false },
+                condition = { it.annotations.relationshipBaseDirective?.isConnectOrCreateAllowed != false },
             )
     }
 }

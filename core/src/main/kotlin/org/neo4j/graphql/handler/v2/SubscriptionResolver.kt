@@ -70,7 +70,7 @@ class SubscriptionResolver private constructor(
                 )
             }
 
-            if (node.relationFields.isNotEmpty()) {
+            if (node.relationBaseFields.isNotEmpty()) {
                 if (node.annotations.subscription?.relationshipCreated != false) {
                     result += addRelationSubscriptionField(
                         node,

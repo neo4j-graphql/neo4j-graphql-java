@@ -5,6 +5,7 @@ import org.neo4j.graphql.domain.Interface
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.RelationshipProperties
 import org.neo4j.graphql.domain.Union
+import org.neo4j.graphql.domain.fields.RelationBaseField
 import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.schema.AugmentationBase
 import org.neo4j.graphql.schema.AugmentationContext
@@ -42,7 +43,7 @@ sealed interface CreateFieldInput {
 
         object Augmentation : AugmentationBase {
             fun generateFieldNodeFieldInputIT(
-                rel: RelationField,
+                rel: RelationBaseField,
                 node: Node,
                 ctx: AugmentationContext
             ): String? {
@@ -85,7 +86,7 @@ sealed interface CreateFieldInput {
 
         object Augmentation : AugmentationBase {
             fun generateFieldCreateIT(
-                rel: RelationField,
+                rel: RelationBaseField,
                 interfaze: Interface,
                 ctx: AugmentationContext,
             ): String? {
@@ -96,12 +97,7 @@ sealed interface CreateFieldInput {
 
                     if (rel.annotations.relationship?.isCreateAllowed != false) {
                         InterfaceCreateFieldInput.Augmentation
-                            .generateFieldRelationCreateIT(
-                                rel,
-                                interfaze,
-                                ctx,
-                                name = rel.namings.getCreateFieldInputTypeNameAlternative(interfaze)
-                            )
+                            .generateFieldRelationCreateIT(rel, interfaze, ctx)
                             ?.let {
                                 fields += inputValue(Constants.CREATE_FIELD, it.wrapType(rel))
                             }
@@ -112,8 +108,7 @@ sealed interface CreateFieldInput {
                             .generateFieldConnectIT(
                                 rel,
                                 interfaze,
-                                ctx,
-                                name = rel.namings.getConnectFieldInputTypeNameAlternative(interfaze)
+                                ctx
                             )
                             ?.let { fields += inputValue(Constants.CONNECT_FIELD, it.wrapType(rel)) }
                     }

@@ -29,7 +29,7 @@ sealed class BaseField(
     open lateinit var owner: FieldContainer<*>
 
     override fun toString(): String {
-        return "Field: $fieldName"
+        return "Field: ${getOwnerName()}::$fieldName"
     }
 
     open val generated: Boolean get() = false
@@ -40,9 +40,16 @@ sealed class BaseField(
         when (it) {
             is Node -> it.name
             is Interface -> it.name
-            is RelationshipProperties -> it.interfaceName
+            is RelationshipProperties -> it.typeName
         }
     }
+
+    val interfaceField2: BaseField?
+        get() = (owner as? ImplementingType)
+            ?.interfaces
+            ?.mapNotNull { it.getField(fieldName) }
+            ?.firstOrNull()
+            ?.let { it.interfaceField2 ?: it }
 
     val interfaceField
         get() = (owner as? Node)

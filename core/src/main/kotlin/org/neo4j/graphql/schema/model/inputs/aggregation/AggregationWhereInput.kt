@@ -46,7 +46,7 @@ class AggregationWhereInput(
                         }
                     }
 
-                WhereInput.Augmentation.addNestingWhereFields(name, fields, ctx)
+                WhereInput.Augmentation.addNestingWhereFields(name, fields)
             }
     }
 }

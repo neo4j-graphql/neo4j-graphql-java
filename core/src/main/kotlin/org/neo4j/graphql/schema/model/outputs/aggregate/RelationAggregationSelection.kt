@@ -2,7 +2,6 @@ package org.neo4j.graphql.schema.model.outputs.aggregate
 
 import org.neo4j.graphql.Constants
 import org.neo4j.graphql.asType
-import org.neo4j.graphql.domain.Interface
 import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.makeRequired
 import org.neo4j.graphql.schema.AugmentationBase
@@ -35,9 +34,6 @@ class RelationAggregationSelection(
 
         fun generateAggregationSelectionOT(rel: RelationField, ctx: AugmentationContext): String? {
             val implementingType = rel.implementingType ?: return null
-            if (implementingType is Interface && !ctx.schemaConfig.experimental) {
-                return null
-            }
             val aggregateTypeNames = rel.namings.aggregateTypeNames ?: return null
 
             return ctx.getOrCreateObjectType(aggregateTypeNames.field) { fields, _ ->

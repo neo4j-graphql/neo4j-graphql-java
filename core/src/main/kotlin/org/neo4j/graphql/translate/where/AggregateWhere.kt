@@ -3,7 +3,7 @@ package org.neo4j.graphql.translate.where
 import org.neo4j.cypherdsl.core.*
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.fields.HasCoalesceValue
-import org.neo4j.graphql.domain.fields.RelationField
+import org.neo4j.graphql.domain.fields.RelationBaseField
 import org.neo4j.graphql.domain.predicates.AggregationFieldPredicate
 import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.schema.model.inputs.aggregation.AggregateInput
@@ -14,7 +14,7 @@ class AggregateWhere(val schemaConfig: SchemaConfig, val queryContext: QueryCont
 
     fun createAggregateWhere(
         chainStr: ChainString,
-        field: RelationField,
+        field: RelationBaseField,
         node: Node,
         input: AggregateInput
     ): WhereResult {
@@ -22,21 +22,22 @@ class AggregateWhere(val schemaConfig: SchemaConfig, val queryContext: QueryCont
         val relName =
             queryContext.getNextVariable(chainStr) // TODO cleanup relName is taken before name of aggregationTarget b/c of js naming
         val aggregationTarget = targetNode.asCypherNode(queryContext).named(queryContext.getNextVariable(chainStr))
-        val cypherRelation = field.createDslRelation(node, aggregationTarget).named(relName)
-
-        val condition = aggregateWhere(input, aggregationTarget, cypherRelation)
-            ?: return WhereResult.EMPTY
-
-        val operationVar = queryContext.getNextVariable()
-        return WhereResult(
-            operationVar.eq(true.asCypherLiteral()), listOf(
-                Cypher
-                    .with(node)
-                    .match(cypherRelation)
-                    .returning(condition.`as`(operationVar))
-                    .build()
-            )
-        )
+        TODO()
+//        val cypherRelation = field.createDslRelation(node, aggregationTarget).named(relName)
+//
+//        val condition = aggregateWhere(input, aggregationTarget, cypherRelation)
+//            ?: return WhereResult.EMPTY
+//
+//        val operationVar = queryContext.getNextVariable()
+//        return WhereResult(
+//            operationVar.eq(true.asCypherLiteral()), listOf(
+//                Cypher
+//                    .with(node)
+//                    .match(cypherRelation)
+//                    .returning(condition.`as`(operationVar))
+//                    .build()
+//            )
+//        )
     }
 
     private fun aggregateWhere(

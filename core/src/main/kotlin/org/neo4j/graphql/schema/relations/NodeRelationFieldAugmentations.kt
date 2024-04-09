@@ -1,9 +1,8 @@
 package org.neo4j.graphql.schema.relations
 
-import org.neo4j.graphql.schema.AugmentationContext
-import org.neo4j.graphql.capitalize
 import org.neo4j.graphql.domain.Node
-import org.neo4j.graphql.domain.fields.RelationField
+import org.neo4j.graphql.domain.fields.RelationBaseField
+import org.neo4j.graphql.schema.AugmentationContext
 import org.neo4j.graphql.schema.model.inputs.WhereInput
 import org.neo4j.graphql.schema.model.inputs.connect.ConnectFieldInput.NodeConnectFieldInput
 import org.neo4j.graphql.schema.model.inputs.connect_or_create.ConnectOrCreateFieldInput
@@ -19,11 +18,9 @@ import org.neo4j.graphql.schema.model.inputs.update.UpdateFieldInput
  */
 class NodeRelationFieldAugmentations(
     private val ctx: AugmentationContext,
-    private val rel: RelationField,
+    private val rel: RelationBaseField,
     private val node: Node,
 ) : RelationFieldBaseAugmentation {
-
-    private val prefix: String = rel.connectionPrefix + rel.fieldName.capitalize()
 
     init {
         if (rel.isUnion) {

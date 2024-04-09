@@ -49,6 +49,7 @@ sealed class FieldContainer<T : BaseField>(val fields: List<T>) {
         fields.filterIsInstance<ScalarField>()
     }
 
+    val relationBaseFields: List<RelationBaseField> by lazy { fields.filterIsInstance<RelationBaseField>() }
     val relationFields: List<RelationField> by lazy { fields.filterIsInstance<RelationField>() }
     val temporalFields: List<TemporalField> by lazy { fields.filterIsInstance<TemporalField>() }
     val primitiveFields: List<PrimitiveField> by lazy {
@@ -64,7 +65,7 @@ sealed class FieldContainer<T : BaseField>(val fields: List<T>) {
     val predicateDefinitions: Map<String, PredicateDefinition> by lazy {
         val result = mutableMapOf<String, PredicateDefinition>()
         scalarFields.forEach { result.putAll(it.predicateDefinitions) }
-        relationFields.forEach { result.putAll(it.predicateDefinitions) }
+        relationBaseFields.forEach { result.putAll(it.predicateDefinitions) }
         result
     }
 
@@ -74,8 +75,8 @@ sealed class FieldContainer<T : BaseField>(val fields: List<T>) {
         result
     }
 
-    val relationAggregationFields: Map<String, RelationField> by lazy {
-        relationFields.filter { it.target is Node }
+    val relationAggregationFields: Map<String, RelationBaseField> by lazy {
+        relationBaseFields.filter { it.target is Node }
             .map { it.namings.aggregateTypeName to it }
             .toMap()
     }

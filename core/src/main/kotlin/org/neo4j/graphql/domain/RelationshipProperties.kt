@@ -1,5 +1,6 @@
 package org.neo4j.graphql.domain
 
+import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.domain.fields.ScalarField
 
 /**
@@ -9,11 +10,17 @@ class RelationshipProperties(
     /**
      * The name of the interface declaring the relationships properties
      */
-    val interfaceName: String,
+    val typeName: String,
     /**
      * the fields of the rich relation
      */
     fields: List<ScalarField>
 ) : FieldContainer<ScalarField>(fields) {
-    override val name: String get() = interfaceName
+    override val name: String get() = typeName
+    private val mutableUsedByRelations: MutableList<RelationField> = mutableListOf()
+    val usedByRelations: List<RelationField> get() = mutableUsedByRelations
+
+    fun addUsedByRelation(relation: RelationField) {
+        mutableUsedByRelations.add(relation)
+    }
 }

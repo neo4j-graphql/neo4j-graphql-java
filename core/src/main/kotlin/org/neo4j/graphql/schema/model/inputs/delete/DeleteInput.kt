@@ -28,9 +28,9 @@ sealed class DeleteInput private constructor(implementingType: ImplementingType,
             fun generateContainerDeleteInputIT(node: Node, ctx: AugmentationContext) =
                 ctx.getOrCreateRelationInputObjectType(
                     node.namings.deleteInputTypeName,
-                    node.relationFields,
+                    node.relationBaseFields,
                     RelationFieldBaseAugmentation::generateFieldDeleteIT,
-                    condition = { it.annotations.relationship?.isDeleteAllowed != false },
+                    condition = { it.annotations.relationshipBaseDirective?.isDeleteAllowed != false },
                 )
         }
     }

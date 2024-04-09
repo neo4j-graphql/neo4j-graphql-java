@@ -5,6 +5,9 @@ import graphql.schema.idl.TypeDefinitionRegistry
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Interface
 import org.neo4j.graphql.domain.Node
+import org.neo4j.graphql.domain.RelationshipProperties
+import org.neo4j.graphql.domain.fields.RelationBaseField
+import org.neo4j.graphql.domain.fields.RelationDeclarationField
 import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.domain.fields.ScalarField
 import org.neo4j.graphql.schema.model.inputs.ScalarProperties
@@ -175,13 +178,13 @@ class AugmentationContext(
 
     fun getOrCreateRelationInputObjectType(
         name: String,
-        relationFields: List<RelationField>,
+        relationFields: List<RelationBaseField>,
         extractor: (RelationFieldBaseAugmentation) -> String?,
         wrapList: Boolean = true,
         scalarFields: List<ScalarField> = emptyList(),
         update: Boolean = false,
         enforceFields: Boolean = false,
-        condition: (RelationField) -> Boolean = { true }
+        condition: (RelationBaseField) -> Boolean = { true }
     ): String? = getOrCreateInputObjectType(name) { fields, _ ->
 
         ScalarProperties.Companion.Augmentation
@@ -212,7 +215,7 @@ class AugmentationContext(
     }
 
     fun getTypeFromRelationField(
-        rel: RelationField,
+        rel: RelationBaseField,
         extractor: (RelationFieldBaseAugmentation) -> String?
     ): String? {
         val aug = rel.extractOnTarget(
@@ -226,20 +229,17 @@ class AugmentationContext(
     fun addInterfaceField(
         interfaze: Interface,
         name: String,
-        onTypename: String,
-        implementationResolver: (Node) -> String?,
         relationFieldsResolver: KFunction1<RelationFieldBaseAugmentation, String?>,
-        asList: Boolean = true,
-        getAdditionalFields: (() -> List<InputValueDefinition>)? = null,
+        addAdditionalFields: ((fields: MutableList<InputValueDefinition>) -> Unit)? = null,
     ) = getOrCreateInputObjectType(name) { fields, _ ->
-        addOnField(interfaze, onTypename, fields, asList, implementationResolver)
-        interfaze.relationFields.forEach { r ->
+        interfaze.relationBaseFields.forEach { r ->
             getTypeFromRelationField(r, relationFieldsResolver)
                 ?.let { fields += inputValue(r.fieldName, it.wrapType(r)) }
         }
-        getAdditionalFields?.invoke()?.let { fields += it }
+        addAdditionalFields?.invoke(fields)
     }
 
+    @Deprecated("Do not use any longer")
     fun addOnField(
         interfaze: Interface,
         name: String,
@@ -284,4 +284,32 @@ class AugmentationContext(
             }
             getAdditionalFields?.invoke()?.let { fields += it }
         }
+
+    fun getEdgeInputField(
+        relationField: RelationBaseField,
+        getDeclarationName: (RelationDeclarationField) -> String,
+        required: (RelationshipProperties) -> Boolean = { false },
+        onRelationField: (relationField: RelationField) -> String?
+    ) = when (relationField) {
+        is RelationField -> onRelationField(relationField)?.asType(relationField.properties?.let(required) ?: false)
+        is RelationDeclarationField -> {
+            getOrCreateInputObjectType(getDeclarationName(relationField), initFields = { fields, _ ->
+                relationField.relationshipImplementations.groupBy<RelationField, String?> { it.properties?.typeName }
+                    .forEach { (propsTypeName, rels) ->
+                        if (propsTypeName == null) {
+                            return@forEach
+                        }
+                        val firstRel = rels.first()
+                        onRelationField(firstRel)
+                            ?.let { name ->
+                                fields += inputValue(propsTypeName, name.asType(required(firstRel.properties!!))) {
+                                    description(
+                                        "Relationship properties when source node is of type:\n${rels.joinToString("\n") { "* " + it.getOwnerName() }}".asDescription()
+                                    )
+                                }
+                            }
+                    }
+            })?.asType(relationField.relationshipImplementations.mapNotNull { it.properties }.all(required))
+        }
+    }
 }

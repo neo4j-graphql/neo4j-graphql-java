@@ -31,7 +31,7 @@ class SubscriptionRelationshipWhere {
                     fields += inputValue(node.singular.decapitalize(), it.asType())
                 }
 
-                WhereInput.Augmentation.addNestingWhereFields(name, fields, ctx)
+                WhereInput.Augmentation.addNestingWhereFields(name, fields)
             }
         }
 

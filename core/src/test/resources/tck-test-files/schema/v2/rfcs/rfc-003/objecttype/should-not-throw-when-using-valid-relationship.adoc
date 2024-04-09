@@ -35,9 +35,11 @@ schema {
   mutation: Mutation
 }
 
-"Information about the number of nodes and relationships created during a create mutation"
+"""
+Information about the number of nodes and relationships created during a create mutation
+"""
 type CreateInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   relationshipsCreated: Int!
 }
@@ -62,14 +64,16 @@ type CreateThirdTargetsMutationResponse {
   thirdTargets: [ThirdTarget!]!
 }
 
-"Information about the number of nodes and relationships deleted during a delete mutation"
+"""
+Information about the number of nodes and relationships deleted during a delete mutation
+"""
 type DeleteInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesDeleted: Int!
   relationshipsDeleted: Int!
 }
 
-type IDAggregateSelectionNullable {
+type IDAggregateSelection {
   longest: ID
   shortest: ID
 }
@@ -89,7 +93,7 @@ type Mutation {
   updateThirdTargets(update: ThirdTargetUpdateInput, where: ThirdTargetWhere): UpdateThirdTargetsMutationResponse!
 }
 
-"Pagination information (Relay)"
+"""Pagination information (Relay)"""
 type PageInfo {
   endCursor: String
   hasNextPage: Boolean!
@@ -118,7 +122,22 @@ type SecondTarget {
 
 type SecondTargetAggregateSelection {
   count: Int!
-  id: IDAggregateSelectionNullable!
+  id: IDAggregateSelection!
+}
+
+input SecondTargetConnectOrCreateWhere {
+  node: SecondTargetUniqueWhere!
+}
+
+input SecondTargetConnectWhere {
+  node: SecondTargetWhere!
+}
+
+input SecondTargetCreateInput {
+  """
+  Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/
+  """
+  _emptyInput: Boolean
 }
 
 type SecondTargetEdge {
@@ -126,10 +145,68 @@ type SecondTargetEdge {
   node: SecondTarget!
 }
 
+input SecondTargetOnCreateInput {
+  """
+  Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/
+  """
+  _emptyInput: Boolean
+}
+
+input SecondTargetOptions {
+  limit: Int
+  offset: Int
+  """
+  Specify one or more SecondTargetSort objects to sort SecondTargets by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [SecondTargetSort!]
+}
+
+"""
+Fields to sort SecondTargets by. The order in which sorts are applied is not guaranteed when specifying many fields in one SecondTargetSort object.
+"""
+input SecondTargetSort {
+  id: SortDirection
+}
+
+input SecondTargetUniqueWhere {
+  id: ID
+}
+
+input SecondTargetUpdateInput {
+  """
+  Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/
+  """
+  _emptyInput: Boolean
+}
+
+input SecondTargetWhere {
+  AND: [SecondTargetWhere!]
+  NOT: SecondTargetWhere
+  OR: [SecondTargetWhere!]
+  id: ID
+  id_CONTAINS: ID
+  id_ENDS_WITH: ID
+  id_IN: [ID]
+  id_NOT: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_CONTAINS: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_ENDS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_IN: [ID] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_STARTS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_STARTS_WITH: ID
+}
+
 type SecondTargetsConnection {
   edges: [SecondTargetEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
+}
+
+"""An enum for sorting in either ascending or descending order."""
+enum SortDirection {
+  """Sort by field values in ascending order."""
+  ASC
+  """Sort by field values in descending order."""
+  DESC
 }
 
 type Source {
@@ -146,209 +223,6 @@ type Source {
 
 type SourceAggregateSelection {
   count: Int!
-}
-
-type SourceEdge {
-  cursor: String!
-  node: Source!
-}
-
-type SourceSecondTargetTarget1AggregationSelection {
-  count: Int!
-  node: SourceSecondTargetTarget1NodeAggregateSelection
-}
-
-type SourceSecondTargetTarget1NodeAggregateSelection {
-  id: IDAggregateSelectionNullable!
-}
-
-type SourceTarget1Connection {
-  edges: [SourceTarget1Relationship!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type SourceTarget1Relationship {
-  cursor: String!
-  node: SecondTarget!
-}
-
-type SourceTarget2Connection {
-  edges: [SourceTarget2Relationship!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type SourceTarget2Relationship {
-  cursor: String!
-  node: ThirdTarget!
-}
-
-type SourceTargetTargetsAggregationSelection {
-  count: Int!
-  node: SourceTargetTargetsNodeAggregateSelection
-}
-
-type SourceTargetTargetsNodeAggregateSelection {
-  id: IDAggregateSelectionNullable!
-}
-
-type SourceTargetsConnection {
-  edges: [SourceTargetsRelationship!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type SourceTargetsRelationship {
-  cursor: String!
-  node: Target!
-}
-
-type SourceThirdTargetTarget2AggregationSelection {
-  count: Int!
-  node: SourceThirdTargetTarget2NodeAggregateSelection
-}
-
-type SourceThirdTargetTarget2NodeAggregateSelection {
-  id: IDAggregateSelectionNullable!
-}
-
-type SourcesConnection {
-  edges: [SourceEdge!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type Target {
-  id: ID
-}
-
-type TargetAggregateSelection {
-  count: Int!
-  id: IDAggregateSelectionNullable!
-}
-
-type TargetEdge {
-  cursor: String!
-  node: Target!
-}
-
-type TargetsConnection {
-  edges: [TargetEdge!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type ThirdTarget {
-  id: ID
-}
-
-type ThirdTargetAggregateSelection {
-  count: Int!
-  id: IDAggregateSelectionNullable!
-}
-
-type ThirdTargetEdge {
-  cursor: String!
-  node: ThirdTarget!
-}
-
-type ThirdTargetsConnection {
-  edges: [ThirdTargetEdge!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-"Information about the number of nodes and relationships created and deleted during an update mutation"
-type UpdateInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
-  nodesCreated: Int!
-  nodesDeleted: Int!
-  relationshipsCreated: Int!
-  relationshipsDeleted: Int!
-}
-
-type UpdateSecondTargetsMutationResponse {
-  info: UpdateInfo!
-  secondTargets: [SecondTarget!]!
-}
-
-type UpdateSourcesMutationResponse {
-  info: UpdateInfo!
-  sources: [Source!]!
-}
-
-type UpdateTargetsMutationResponse {
-  info: UpdateInfo!
-  targets: [Target!]!
-}
-
-type UpdateThirdTargetsMutationResponse {
-  info: UpdateInfo!
-  thirdTargets: [ThirdTarget!]!
-}
-
-"An enum for sorting in either ascending or descending order."
-enum SortDirection {
-  "Sort by field values in ascending order."
-  ASC
-  "Sort by field values in descending order."
-  DESC
-}
-
-input SecondTargetConnectOrCreateWhere {
-  node: SecondTargetUniqueWhere!
-}
-
-input SecondTargetConnectWhere {
-  node: SecondTargetWhere!
-}
-
-input SecondTargetCreateInput {
-  "Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/"
-  _emptyInput: Boolean
-}
-
-input SecondTargetOnCreateInput {
-  "Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/"
-  _emptyInput: Boolean
-}
-
-input SecondTargetOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more SecondTargetSort objects to sort SecondTargets by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [SecondTargetSort!]
-}
-
-"Fields to sort SecondTargets by. The order in which sorts are applied is not guaranteed when specifying many fields in one SecondTargetSort object."
-input SecondTargetSort {
-  id: SortDirection
-}
-
-input SecondTargetUniqueWhere {
-  id: ID
-}
-
-input SecondTargetUpdateInput {
-  "Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/"
-  _emptyInput: Boolean
-}
-
-input SecondTargetWhere {
-  AND: [SecondTargetWhere!]
-  NOT: SecondTargetWhere
-  OR: [SecondTargetWhere!]
-  id: ID
-  id_CONTAINS: ID
-  id_ENDS_WITH: ID
-  id_IN: [ID]
-  id_NOT: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_CONTAINS: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_ENDS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_IN: [ID] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_STARTS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_STARTS_WITH: ID
 }
 
 input SourceConnectInput {
@@ -381,6 +255,11 @@ input SourceDisconnectInput {
   targets: [SourceTargetsDisconnectFieldInput!]
 }
 
+type SourceEdge {
+  cursor: String!
+  node: Source!
+}
+
 input SourceOptions {
   limit: Int
   offset: Int
@@ -390,6 +269,15 @@ input SourceRelationInput {
   target1: SourceTarget1CreateFieldInput
   target2: SourceTarget2CreateFieldInput
   targets: [SourceTargetsCreateFieldInput!]
+}
+
+type SourceSecondTargetTarget1AggregationSelection {
+  count: Int!
+  node: SourceSecondTargetTarget1NodeAggregateSelection
+}
+
+type SourceSecondTargetTarget1NodeAggregateSelection {
+  id: IDAggregateSelection!
 }
 
 input SourceTarget1AggregateInput {
@@ -405,7 +293,9 @@ input SourceTarget1AggregateInput {
 }
 
 input SourceTarget1ConnectFieldInput {
-  "Whether or not to overwrite any matching relationship with the new properties."
+  """
+  Whether or not to overwrite any matching relationship with the new properties.
+  """
   overwrite: Boolean! = true
   where: SecondTargetConnectWhere
 }
@@ -419,6 +309,12 @@ input SourceTarget1ConnectOrCreateFieldInputOnCreate {
   node: SecondTargetOnCreateInput!
 }
 
+type SourceTarget1Connection {
+  edges: [SourceTarget1Relationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
 input SourceTarget1ConnectionSort {
   node: SecondTargetSort
 }
@@ -428,7 +324,7 @@ input SourceTarget1ConnectionWhere {
   NOT: SourceTarget1ConnectionWhere
   OR: [SourceTarget1ConnectionWhere!]
   node: SecondTargetWhere
-  node_NOT: SecondTargetWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  node_NOT: SecondTargetWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input SourceTarget1CreateFieldInput {
@@ -453,7 +349,12 @@ input SourceTarget1NodeAggregationWhereInput {
   AND: [SourceTarget1NodeAggregationWhereInput!]
   NOT: SourceTarget1NodeAggregationWhereInput
   OR: [SourceTarget1NodeAggregationWhereInput!]
-  id_EQUAL: ID @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  id_EQUAL: ID @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+}
+
+type SourceTarget1Relationship {
+  cursor: String!
+  node: SecondTarget!
 }
 
 input SourceTarget1UpdateConnectionInput {
@@ -483,7 +384,9 @@ input SourceTarget2AggregateInput {
 }
 
 input SourceTarget2ConnectFieldInput {
-  "Whether or not to overwrite any matching relationship with the new properties."
+  """
+  Whether or not to overwrite any matching relationship with the new properties.
+  """
   overwrite: Boolean! = true
   where: ThirdTargetConnectWhere
 }
@@ -497,6 +400,12 @@ input SourceTarget2ConnectOrCreateFieldInputOnCreate {
   node: ThirdTargetOnCreateInput!
 }
 
+type SourceTarget2Connection {
+  edges: [SourceTarget2Relationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
 input SourceTarget2ConnectionSort {
   node: ThirdTargetSort
 }
@@ -506,7 +415,7 @@ input SourceTarget2ConnectionWhere {
   NOT: SourceTarget2ConnectionWhere
   OR: [SourceTarget2ConnectionWhere!]
   node: ThirdTargetWhere
-  node_NOT: ThirdTargetWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  node_NOT: ThirdTargetWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input SourceTarget2CreateFieldInput {
@@ -531,7 +440,12 @@ input SourceTarget2NodeAggregationWhereInput {
   AND: [SourceTarget2NodeAggregationWhereInput!]
   NOT: SourceTarget2NodeAggregationWhereInput
   OR: [SourceTarget2NodeAggregationWhereInput!]
-  id_EQUAL: ID @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  id_EQUAL: ID @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+}
+
+type SourceTarget2Relationship {
+  cursor: String!
+  node: ThirdTarget!
 }
 
 input SourceTarget2UpdateConnectionInput {
@@ -548,6 +462,15 @@ input SourceTarget2UpdateFieldInput {
   where: SourceTarget2ConnectionWhere
 }
 
+type SourceTargetTargetsAggregationSelection {
+  count: Int!
+  node: SourceTargetTargetsNodeAggregateSelection
+}
+
+type SourceTargetTargetsNodeAggregateSelection {
+  id: IDAggregateSelection!
+}
+
 input SourceTargetsAggregateInput {
   AND: [SourceTargetsAggregateInput!]
   NOT: SourceTargetsAggregateInput
@@ -561,7 +484,9 @@ input SourceTargetsAggregateInput {
 }
 
 input SourceTargetsConnectFieldInput {
-  "Whether or not to overwrite any matching relationship with the new properties."
+  """
+  Whether or not to overwrite any matching relationship with the new properties.
+  """
   overwrite: Boolean! = true
   where: TargetConnectWhere
 }
@@ -575,6 +500,12 @@ input SourceTargetsConnectOrCreateFieldInputOnCreate {
   node: TargetOnCreateInput!
 }
 
+type SourceTargetsConnection {
+  edges: [SourceTargetsRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
 input SourceTargetsConnectionSort {
   node: TargetSort
 }
@@ -584,7 +515,7 @@ input SourceTargetsConnectionWhere {
   NOT: SourceTargetsConnectionWhere
   OR: [SourceTargetsConnectionWhere!]
   node: TargetWhere
-  node_NOT: TargetWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  node_NOT: TargetWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input SourceTargetsCreateFieldInput {
@@ -609,7 +540,12 @@ input SourceTargetsNodeAggregationWhereInput {
   AND: [SourceTargetsNodeAggregationWhereInput!]
   NOT: SourceTargetsNodeAggregationWhereInput
   OR: [SourceTargetsNodeAggregationWhereInput!]
-  id_EQUAL: ID @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  id_EQUAL: ID @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+}
+
+type SourceTargetsRelationship {
+  cursor: String!
+  node: Target!
 }
 
 input SourceTargetsUpdateConnectionInput {
@@ -624,6 +560,15 @@ input SourceTargetsUpdateFieldInput {
   disconnect: [SourceTargetsDisconnectFieldInput!]
   update: SourceTargetsUpdateConnectionInput
   where: SourceTargetsConnectionWhere
+}
+
+type SourceThirdTargetTarget2AggregationSelection {
+  count: Int!
+  node: SourceThirdTargetTarget2NodeAggregateSelection
+}
+
+type SourceThirdTargetTarget2NodeAggregateSelection {
+  id: IDAggregateSelection!
 }
 
 input SourceUpdateInput {
@@ -646,27 +591,50 @@ input SourceWhere {
   target2Connection: SourceTarget2ConnectionWhere
   target2Connection_NOT: SourceTarget2ConnectionWhere
   target2_NOT: ThirdTargetWhere
-  targets: TargetWhere @deprecated(reason : "Use `targets_SOME` instead.")
+  targets: TargetWhere @deprecated(reason: "Use `targets_SOME` instead.")
   targetsAggregate: SourceTargetsAggregateInput
-  targetsConnection: SourceTargetsConnectionWhere @deprecated(reason : "Use `targetsConnection_SOME` instead.")
-  "Return Sources where all of the related SourceTargetsConnections match this filter"
+  targetsConnection: SourceTargetsConnectionWhere @deprecated(reason: "Use `targetsConnection_SOME` instead.")
+  """
+  Return Sources where all of the related SourceTargetsConnections match this filter
+  """
   targetsConnection_ALL: SourceTargetsConnectionWhere
-  "Return Sources where none of the related SourceTargetsConnections match this filter"
+  """
+  Return Sources where none of the related SourceTargetsConnections match this filter
+  """
   targetsConnection_NONE: SourceTargetsConnectionWhere
-  targetsConnection_NOT: SourceTargetsConnectionWhere @deprecated(reason : "Use `targetsConnection_NONE` instead.")
-  "Return Sources where one of the related SourceTargetsConnections match this filter"
+  targetsConnection_NOT: SourceTargetsConnectionWhere @deprecated(reason: "Use `targetsConnection_NONE` instead.")
+  """
+  Return Sources where one of the related SourceTargetsConnections match this filter
+  """
   targetsConnection_SINGLE: SourceTargetsConnectionWhere
-  "Return Sources where some of the related SourceTargetsConnections match this filter"
+  """
+  Return Sources where some of the related SourceTargetsConnections match this filter
+  """
   targetsConnection_SOME: SourceTargetsConnectionWhere
-  "Return Sources where all of the related Targets match this filter"
+  """Return Sources where all of the related Targets match this filter"""
   targets_ALL: TargetWhere
-  "Return Sources where none of the related Targets match this filter"
+  """Return Sources where none of the related Targets match this filter"""
   targets_NONE: TargetWhere
-  targets_NOT: TargetWhere @deprecated(reason : "Use `targets_NONE` instead.")
-  "Return Sources where one of the related Targets match this filter"
+  targets_NOT: TargetWhere @deprecated(reason: "Use `targets_NONE` instead.")
+  """Return Sources where one of the related Targets match this filter"""
   targets_SINGLE: TargetWhere
-  "Return Sources where some of the related Targets match this filter"
+  """Return Sources where some of the related Targets match this filter"""
   targets_SOME: TargetWhere
+}
+
+type SourcesConnection {
+  edges: [SourceEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Target {
+  id: ID
+}
+
+type TargetAggregateSelection {
+  count: Int!
+  id: IDAggregateSelection!
 }
 
 input TargetConnectOrCreateWhere {
@@ -678,23 +646,36 @@ input TargetConnectWhere {
 }
 
 input TargetCreateInput {
-  "Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/"
+  """
+  Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/
+  """
   _emptyInput: Boolean
 }
 
+type TargetEdge {
+  cursor: String!
+  node: Target!
+}
+
 input TargetOnCreateInput {
-  "Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/"
+  """
+  Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/
+  """
   _emptyInput: Boolean
 }
 
 input TargetOptions {
   limit: Int
   offset: Int
-  "Specify one or more TargetSort objects to sort Targets by. The sorts will be applied in the order in which they are arranged in the array."
+  """
+  Specify one or more TargetSort objects to sort Targets by. The sorts will be applied in the order in which they are arranged in the array.
+  """
   sort: [TargetSort!]
 }
 
-"Fields to sort Targets by. The order in which sorts are applied is not guaranteed when specifying many fields in one TargetSort object."
+"""
+Fields to sort Targets by. The order in which sorts are applied is not guaranteed when specifying many fields in one TargetSort object.
+"""
 input TargetSort {
   id: SortDirection
 }
@@ -704,7 +685,9 @@ input TargetUniqueWhere {
 }
 
 input TargetUpdateInput {
-  "Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/"
+  """
+  Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/
+  """
   _emptyInput: Boolean
 }
 
@@ -716,12 +699,27 @@ input TargetWhere {
   id_CONTAINS: ID
   id_ENDS_WITH: ID
   id_IN: [ID]
-  id_NOT: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_CONTAINS: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_ENDS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_IN: [ID] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_STARTS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_CONTAINS: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_ENDS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_IN: [ID] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_STARTS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id_STARTS_WITH: ID
+}
+
+type TargetsConnection {
+  edges: [TargetEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ThirdTarget {
+  id: ID
+}
+
+type ThirdTargetAggregateSelection {
+  count: Int!
+  id: IDAggregateSelection!
 }
 
 input ThirdTargetConnectOrCreateWhere {
@@ -733,23 +731,36 @@ input ThirdTargetConnectWhere {
 }
 
 input ThirdTargetCreateInput {
-  "Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/"
+  """
+  Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/
+  """
   _emptyInput: Boolean
 }
 
+type ThirdTargetEdge {
+  cursor: String!
+  node: ThirdTarget!
+}
+
 input ThirdTargetOnCreateInput {
-  "Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/"
+  """
+  Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/
+  """
   _emptyInput: Boolean
 }
 
 input ThirdTargetOptions {
   limit: Int
   offset: Int
-  "Specify one or more ThirdTargetSort objects to sort ThirdTargets by. The sorts will be applied in the order in which they are arranged in the array."
+  """
+  Specify one or more ThirdTargetSort objects to sort ThirdTargets by. The sorts will be applied in the order in which they are arranged in the array.
+  """
   sort: [ThirdTargetSort!]
 }
 
-"Fields to sort ThirdTargets by. The order in which sorts are applied is not guaranteed when specifying many fields in one ThirdTargetSort object."
+"""
+Fields to sort ThirdTargets by. The order in which sorts are applied is not guaranteed when specifying many fields in one ThirdTargetSort object.
+"""
 input ThirdTargetSort {
   id: SortDirection
 }
@@ -759,7 +770,9 @@ input ThirdTargetUniqueWhere {
 }
 
 input ThirdTargetUpdateInput {
-  "Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/"
+  """
+  Appears because this input type would be empty otherwise because this type is composed of just generated and/or relationship properties. See https://neo4j.com/docs/graphql-manual/current/troubleshooting/faqs/
+  """
   _emptyInput: Boolean
 }
 
@@ -771,14 +784,50 @@ input ThirdTargetWhere {
   id_CONTAINS: ID
   id_ENDS_WITH: ID
   id_IN: [ID]
-  id_NOT: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_CONTAINS: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_ENDS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_IN: [ID] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_STARTS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_CONTAINS: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_ENDS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_IN: [ID] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_STARTS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id_STARTS_WITH: ID
 }
 
+type ThirdTargetsConnection {
+  edges: [ThirdTargetEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"""
+Information about the number of nodes and relationships created and deleted during an update mutation
+"""
+type UpdateInfo {
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesCreated: Int!
+  nodesDeleted: Int!
+  relationshipsCreated: Int!
+  relationshipsDeleted: Int!
+}
+
+type UpdateSecondTargetsMutationResponse {
+  info: UpdateInfo!
+  secondTargets: [SecondTarget!]!
+}
+
+type UpdateSourcesMutationResponse {
+  info: UpdateInfo!
+  sources: [Source!]!
+}
+
+type UpdateTargetsMutationResponse {
+  info: UpdateInfo!
+  targets: [Target!]!
+}
+
+type UpdateThirdTargetsMutationResponse {
+  info: UpdateInfo!
+  thirdTargets: [ThirdTarget!]!
+}
 ----
 
 '''

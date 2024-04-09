@@ -30,9 +30,11 @@ schema {
   mutation: Mutation
 }
 
-"Information about the number of nodes and relationships created during a create mutation"
+"""
+Information about the number of nodes and relationships created during a create mutation
+"""
 type CreateInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   relationshipsCreated: Int!
 }
@@ -47,21 +49,26 @@ type CreateUsersMutationResponse {
   users: [User!]!
 }
 
-type DateTimeAggregateSelectionNonNullable {
-  max: DateTime!
-  min: DateTime!
+"""A date and time, represented as an ISO-8601 string"""
+scalar DateTime
+
+type DateTimeAggregateSelection {
+  max: DateTime
+  min: DateTime
 }
 
-"Information about the number of nodes and relationships deleted during a delete mutation"
+"""
+Information about the number of nodes and relationships deleted during a delete mutation
+"""
 type DeleteInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesDeleted: Int!
   relationshipsDeleted: Int!
 }
 
-type IDAggregateSelectionNonNullable {
-  longest: ID!
-  shortest: ID!
+type IDAggregateSelection {
+  longest: ID
+  shortest: ID
 }
 
 type Mutation {
@@ -73,7 +80,7 @@ type Mutation {
   updateUsers(connect: UserConnectInput, connectOrCreate: UserConnectOrCreateInput, create: UserRelationInput, delete: UserDeleteInput, disconnect: UserDisconnectInput, update: UserUpdateInput, where: UserWhere): UpdateUsersMutationResponse!
 }
 
-"Pagination information (Relay)"
+"""Pagination information (Relay)"""
 type PageInfo {
   endCursor: String
   hasNextPage: Boolean!
@@ -91,134 +98,11 @@ type Post {
 }
 
 type PostAggregateSelection {
-  content: StringAggregateSelectionNonNullable!
+  content: StringAggregateSelection!
   count: Int!
-  createdAt: DateTimeAggregateSelectionNonNullable!
-  id: IDAggregateSelectionNonNullable!
+  createdAt: DateTimeAggregateSelection!
+  id: IDAggregateSelection!
 }
-
-type PostCreatorConnection {
-  edges: [PostCreatorRelationship!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type PostCreatorRelationship {
-  cursor: String!
-  node: User!
-}
-
-type PostEdge {
-  cursor: String!
-  node: Post!
-}
-
-type PostUserCreatorAggregationSelection {
-  count: Int!
-  node: PostUserCreatorNodeAggregateSelection
-}
-
-type PostUserCreatorNodeAggregateSelection {
-  id: IDAggregateSelectionNonNullable!
-  name: StringAggregateSelectionNonNullable!
-}
-
-type PostsConnection {
-  edges: [PostEdge!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type Query {
-  posts(options: PostOptions, where: PostWhere): [Post!]!
-  postsAggregate(where: PostWhere): PostAggregateSelection!
-  postsConnection(after: String, first: Int, sort: [PostSort], where: PostWhere): PostsConnection!
-  users(options: UserOptions, where: UserWhere): [User!]!
-  usersAggregate(where: UserWhere): UserAggregateSelection!
-  usersConnection(after: String, first: Int, sort: [UserSort], where: UserWhere): UsersConnection!
-}
-
-type StringAggregateSelectionNonNullable {
-  longest: String!
-  shortest: String!
-}
-
-"Information about the number of nodes and relationships created and deleted during an update mutation"
-type UpdateInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
-  nodesCreated: Int!
-  nodesDeleted: Int!
-  relationshipsCreated: Int!
-  relationshipsDeleted: Int!
-}
-
-type UpdatePostsMutationResponse {
-  info: UpdateInfo!
-  posts: [Post!]!
-}
-
-type UpdateUsersMutationResponse {
-  info: UpdateInfo!
-  users: [User!]!
-}
-
-type User {
-  id: ID!
-  name: String!
-  posts(directed: Boolean = true, options: PostOptions, where: PostWhere): [Post!]!
-  postsAggregate(directed: Boolean = true, where: PostWhere): UserPostPostsAggregationSelection
-  postsConnection(after: String, directed: Boolean = true, first: Int, sort: [UserPostsConnectionSort!], where: UserPostsConnectionWhere): UserPostsConnection!
-}
-
-type UserAggregateSelection {
-  count: Int!
-  id: IDAggregateSelectionNonNullable!
-  name: StringAggregateSelectionNonNullable!
-}
-
-type UserEdge {
-  cursor: String!
-  node: User!
-}
-
-type UserPostPostsAggregationSelection {
-  count: Int!
-  node: UserPostPostsNodeAggregateSelection
-}
-
-type UserPostPostsNodeAggregateSelection {
-  content: StringAggregateSelectionNonNullable!
-  createdAt: DateTimeAggregateSelectionNonNullable!
-  id: IDAggregateSelectionNonNullable!
-}
-
-type UserPostsConnection {
-  edges: [UserPostsRelationship!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type UserPostsRelationship {
-  cursor: String!
-  node: Post!
-}
-
-type UsersConnection {
-  edges: [UserEdge!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-"An enum for sorting in either ascending or descending order."
-enum SortDirection {
-  "Sort by field values in ascending order."
-  ASC
-  "Sort by field values in descending order."
-  DESC
-}
-
-"A date and time, represented as an ISO-8601 string"
-scalar DateTime
 
 input PostConnectInput {
   creator: PostCreatorConnectFieldInput
@@ -257,7 +141,9 @@ input PostCreatorAggregateInput {
 
 input PostCreatorConnectFieldInput {
   connect: UserConnectInput
-  "Whether or not to overwrite any matching relationship with the new properties."
+  """
+  Whether or not to overwrite any matching relationship with the new properties.
+  """
   overwrite: Boolean! = true
   where: UserConnectWhere
 }
@@ -271,6 +157,12 @@ input PostCreatorConnectOrCreateFieldInputOnCreate {
   node: UserOnCreateInput!
 }
 
+type PostCreatorConnection {
+  edges: [PostCreatorRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
 input PostCreatorConnectionSort {
   node: UserSort
 }
@@ -280,7 +172,7 @@ input PostCreatorConnectionWhere {
   NOT: PostCreatorConnectionWhere
   OR: [PostCreatorConnectionWhere!]
   node: UserWhere
-  node_NOT: UserWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  node_NOT: UserWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input PostCreatorCreateFieldInput {
@@ -307,42 +199,47 @@ input PostCreatorNodeAggregationWhereInput {
   AND: [PostCreatorNodeAggregationWhereInput!]
   NOT: PostCreatorNodeAggregationWhereInput
   OR: [PostCreatorNodeAggregationWhereInput!]
-  id_EQUAL: ID @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  name_AVERAGE_EQUAL: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_AVERAGE_GT: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_AVERAGE_GTE: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  id_EQUAL: ID @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_AVERAGE_EQUAL: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_AVERAGE_GT: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_AVERAGE_GTE: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
   name_AVERAGE_LENGTH_EQUAL: Float
   name_AVERAGE_LENGTH_GT: Float
   name_AVERAGE_LENGTH_GTE: Float
   name_AVERAGE_LENGTH_LT: Float
   name_AVERAGE_LENGTH_LTE: Float
-  name_AVERAGE_LT: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_AVERAGE_LTE: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_EQUAL: String @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  name_GT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  name_GTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  name_LONGEST_EQUAL: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_LONGEST_GT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_LONGEST_GTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_AVERAGE_LT: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_AVERAGE_LTE: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_EQUAL: String @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_GT: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_GTE: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_LONGEST_EQUAL: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_LONGEST_GT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_LONGEST_GTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
   name_LONGEST_LENGTH_EQUAL: Int
   name_LONGEST_LENGTH_GT: Int
   name_LONGEST_LENGTH_GTE: Int
   name_LONGEST_LENGTH_LT: Int
   name_LONGEST_LENGTH_LTE: Int
-  name_LONGEST_LT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_LONGEST_LTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_LT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  name_LTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  name_SHORTEST_EQUAL: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_SHORTEST_GT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_SHORTEST_GTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_LONGEST_LT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_LONGEST_LTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_LT: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_LTE: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_SHORTEST_EQUAL: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_SHORTEST_GT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_SHORTEST_GTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
   name_SHORTEST_LENGTH_EQUAL: Int
   name_SHORTEST_LENGTH_GT: Int
   name_SHORTEST_LENGTH_GTE: Int
   name_SHORTEST_LENGTH_LT: Int
   name_SHORTEST_LENGTH_LTE: Int
-  name_SHORTEST_LT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_SHORTEST_LTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_SHORTEST_LT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_SHORTEST_LTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+}
+
+type PostCreatorRelationship {
+  cursor: String!
+  node: User!
 }
 
 input PostCreatorUpdateConnectionInput {
@@ -367,6 +264,11 @@ input PostDisconnectInput {
   creator: PostCreatorDisconnectFieldInput
 }
 
+type PostEdge {
+  cursor: String!
+  node: Post!
+}
+
 input PostOnCreateInput {
   content: String!
   createdAt: DateTime!
@@ -376,7 +278,9 @@ input PostOnCreateInput {
 input PostOptions {
   limit: Int
   offset: Int
-  "Specify one or more PostSort objects to sort Posts by. The sorts will be applied in the order in which they are arranged in the array."
+  """
+  Specify one or more PostSort objects to sort Posts by. The sorts will be applied in the order in which they are arranged in the array.
+  """
   sort: [PostSort!]
 }
 
@@ -384,7 +288,9 @@ input PostRelationInput {
   creator: PostCreatorCreateFieldInput
 }
 
-"Fields to sort Posts by. The order in which sorts are applied is not guaranteed when specifying many fields in one PostSort object."
+"""
+Fields to sort Posts by. The order in which sorts are applied is not guaranteed when specifying many fields in one PostSort object.
+"""
 input PostSort {
   content: SortDirection
   createdAt: SortDirection
@@ -402,6 +308,16 @@ input PostUpdateInput {
   id: ID
 }
 
+type PostUserCreatorAggregationSelection {
+  count: Int!
+  node: PostUserCreatorNodeAggregateSelection
+}
+
+type PostUserCreatorNodeAggregateSelection {
+  id: IDAggregateSelection!
+  name: StringAggregateSelection!
+}
+
 input PostWhere {
   AND: [PostWhere!]
   NOT: PostWhere
@@ -410,11 +326,11 @@ input PostWhere {
   content_CONTAINS: String
   content_ENDS_WITH: String
   content_IN: [String!]
-  content_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  content_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  content_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  content_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  content_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  content_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  content_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  content_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  content_NOT_IN: [String!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  content_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   content_STARTS_WITH: String
   createdAt: DateTime
   createdAt_GT: DateTime
@@ -422,8 +338,8 @@ input PostWhere {
   createdAt_IN: [DateTime!]
   createdAt_LT: DateTime
   createdAt_LTE: DateTime
-  createdAt_NOT: DateTime @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  createdAt_NOT_IN: [DateTime!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  createdAt_NOT: DateTime @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  createdAt_NOT_IN: [DateTime!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   creator: UserWhere
   creatorAggregate: PostCreatorAggregateInput
   creatorConnection: PostCreatorConnectionWhere
@@ -433,12 +349,75 @@ input PostWhere {
   id_CONTAINS: ID
   id_ENDS_WITH: ID
   id_IN: [ID!]
-  id_NOT: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_CONTAINS: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_ENDS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_IN: [ID!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_STARTS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_CONTAINS: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_ENDS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_IN: [ID!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_STARTS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id_STARTS_WITH: ID
+}
+
+type PostsConnection {
+  edges: [PostEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Query {
+  posts(options: PostOptions, where: PostWhere): [Post!]!
+  postsAggregate(where: PostWhere): PostAggregateSelection!
+  postsConnection(after: String, first: Int, sort: [PostSort], where: PostWhere): PostsConnection!
+  users(options: UserOptions, where: UserWhere): [User!]!
+  usersAggregate(where: UserWhere): UserAggregateSelection!
+  usersConnection(after: String, first: Int, sort: [UserSort], where: UserWhere): UsersConnection!
+}
+
+"""An enum for sorting in either ascending or descending order."""
+enum SortDirection {
+  """Sort by field values in ascending order."""
+  ASC
+  """Sort by field values in descending order."""
+  DESC
+}
+
+type StringAggregateSelection {
+  longest: String
+  shortest: String
+}
+
+"""
+Information about the number of nodes and relationships created and deleted during an update mutation
+"""
+type UpdateInfo {
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesCreated: Int!
+  nodesDeleted: Int!
+  relationshipsCreated: Int!
+  relationshipsDeleted: Int!
+}
+
+type UpdatePostsMutationResponse {
+  info: UpdateInfo!
+  posts: [Post!]!
+}
+
+type UpdateUsersMutationResponse {
+  info: UpdateInfo!
+  users: [User!]!
+}
+
+type User {
+  id: ID!
+  name: String!
+  posts(directed: Boolean = true, options: PostOptions, where: PostWhere): [Post!]!
+  postsAggregate(directed: Boolean = true, where: PostWhere): UserPostPostsAggregationSelection
+  postsConnection(after: String, directed: Boolean = true, first: Int, sort: [UserPostsConnectionSort!], where: UserPostsConnectionWhere): UserPostsConnection!
+}
+
+type UserAggregateSelection {
+  count: Int!
+  id: IDAggregateSelection!
+  name: StringAggregateSelection!
 }
 
 input UserConnectInput {
@@ -470,6 +449,11 @@ input UserDisconnectInput {
   posts: [UserPostsDisconnectFieldInput!]
 }
 
+type UserEdge {
+  cursor: String!
+  node: User!
+}
+
 input UserOnCreateInput {
   name: String!
 }
@@ -477,8 +461,21 @@ input UserOnCreateInput {
 input UserOptions {
   limit: Int
   offset: Int
-  "Specify one or more UserSort objects to sort Users by. The sorts will be applied in the order in which they are arranged in the array."
+  """
+  Specify one or more UserSort objects to sort Users by. The sorts will be applied in the order in which they are arranged in the array.
+  """
   sort: [UserSort!]
+}
+
+type UserPostPostsAggregationSelection {
+  count: Int!
+  node: UserPostPostsNodeAggregateSelection
+}
+
+type UserPostPostsNodeAggregateSelection {
+  content: StringAggregateSelection!
+  createdAt: DateTimeAggregateSelection!
+  id: IDAggregateSelection!
 }
 
 input UserPostsAggregateInput {
@@ -495,7 +492,9 @@ input UserPostsAggregateInput {
 
 input UserPostsConnectFieldInput {
   connect: [PostConnectInput!]
-  "Whether or not to overwrite any matching relationship with the new properties."
+  """
+  Whether or not to overwrite any matching relationship with the new properties.
+  """
   overwrite: Boolean! = true
   where: PostConnectWhere
 }
@@ -509,6 +508,12 @@ input UserPostsConnectOrCreateFieldInputOnCreate {
   node: PostOnCreateInput!
 }
 
+type UserPostsConnection {
+  edges: [UserPostsRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
 input UserPostsConnectionSort {
   node: PostSort
 }
@@ -518,7 +523,7 @@ input UserPostsConnectionWhere {
   NOT: UserPostsConnectionWhere
   OR: [UserPostsConnectionWhere!]
   node: PostWhere
-  node_NOT: PostWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  node_NOT: PostWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input UserPostsCreateFieldInput {
@@ -545,46 +550,46 @@ input UserPostsNodeAggregationWhereInput {
   AND: [UserPostsNodeAggregationWhereInput!]
   NOT: UserPostsNodeAggregationWhereInput
   OR: [UserPostsNodeAggregationWhereInput!]
-  content_AVERAGE_EQUAL: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  content_AVERAGE_GT: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  content_AVERAGE_GTE: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  content_AVERAGE_EQUAL: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  content_AVERAGE_GT: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  content_AVERAGE_GTE: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
   content_AVERAGE_LENGTH_EQUAL: Float
   content_AVERAGE_LENGTH_GT: Float
   content_AVERAGE_LENGTH_GTE: Float
   content_AVERAGE_LENGTH_LT: Float
   content_AVERAGE_LENGTH_LTE: Float
-  content_AVERAGE_LT: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  content_AVERAGE_LTE: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  content_EQUAL: String @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  content_GT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  content_GTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  content_LONGEST_EQUAL: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  content_LONGEST_GT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  content_LONGEST_GTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  content_AVERAGE_LT: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  content_AVERAGE_LTE: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  content_EQUAL: String @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  content_GT: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  content_GTE: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  content_LONGEST_EQUAL: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  content_LONGEST_GT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  content_LONGEST_GTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
   content_LONGEST_LENGTH_EQUAL: Int
   content_LONGEST_LENGTH_GT: Int
   content_LONGEST_LENGTH_GTE: Int
   content_LONGEST_LENGTH_LT: Int
   content_LONGEST_LENGTH_LTE: Int
-  content_LONGEST_LT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  content_LONGEST_LTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  content_LT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  content_LTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  content_SHORTEST_EQUAL: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  content_SHORTEST_GT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  content_SHORTEST_GTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  content_LONGEST_LT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  content_LONGEST_LTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  content_LT: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  content_LTE: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  content_SHORTEST_EQUAL: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  content_SHORTEST_GT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  content_SHORTEST_GTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
   content_SHORTEST_LENGTH_EQUAL: Int
   content_SHORTEST_LENGTH_GT: Int
   content_SHORTEST_LENGTH_GTE: Int
   content_SHORTEST_LENGTH_LT: Int
   content_SHORTEST_LENGTH_LTE: Int
-  content_SHORTEST_LT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  content_SHORTEST_LTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  createdAt_EQUAL: DateTime @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  createdAt_GT: DateTime @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  createdAt_GTE: DateTime @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  createdAt_LT: DateTime @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  createdAt_LTE: DateTime @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  content_SHORTEST_LT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  content_SHORTEST_LTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  createdAt_EQUAL: DateTime @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  createdAt_GT: DateTime @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  createdAt_GTE: DateTime @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  createdAt_LT: DateTime @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  createdAt_LTE: DateTime @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
   createdAt_MAX_EQUAL: DateTime
   createdAt_MAX_GT: DateTime
   createdAt_MAX_GTE: DateTime
@@ -595,7 +600,12 @@ input UserPostsNodeAggregationWhereInput {
   createdAt_MIN_GTE: DateTime
   createdAt_MIN_LT: DateTime
   createdAt_MIN_LTE: DateTime
-  id_EQUAL: ID @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  id_EQUAL: ID @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+}
+
+type UserPostsRelationship {
+  cursor: String!
+  node: Post!
 }
 
 input UserPostsUpdateConnectionInput {
@@ -616,7 +626,9 @@ input UserRelationInput {
   posts: [UserPostsCreateFieldInput!]
 }
 
-"Fields to sort Users by. The order in which sorts are applied is not guaranteed when specifying many fields in one UserSort object."
+"""
+Fields to sort Users by. The order in which sorts are applied is not guaranteed when specifying many fields in one UserSort object.
+"""
 input UserSort {
   id: SortDirection
   name: SortDirection
@@ -639,45 +651,58 @@ input UserWhere {
   id_CONTAINS: ID
   id_ENDS_WITH: ID
   id_IN: [ID!]
-  id_NOT: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_CONTAINS: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_ENDS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_IN: [ID!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_STARTS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_CONTAINS: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_ENDS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_IN: [ID!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_STARTS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id_STARTS_WITH: ID
   name: String
   name_CONTAINS: String
   name_ENDS_WITH: String
   name_IN: [String!]
-  name_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_IN: [String!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   name_STARTS_WITH: String
-  posts: PostWhere @deprecated(reason : "Use `posts_SOME` instead.")
+  posts: PostWhere @deprecated(reason: "Use `posts_SOME` instead.")
   postsAggregate: UserPostsAggregateInput
-  postsConnection: UserPostsConnectionWhere @deprecated(reason : "Use `postsConnection_SOME` instead.")
-  "Return Users where all of the related UserPostsConnections match this filter"
+  postsConnection: UserPostsConnectionWhere @deprecated(reason: "Use `postsConnection_SOME` instead.")
+  """
+  Return Users where all of the related UserPostsConnections match this filter
+  """
   postsConnection_ALL: UserPostsConnectionWhere
-  "Return Users where none of the related UserPostsConnections match this filter"
+  """
+  Return Users where none of the related UserPostsConnections match this filter
+  """
   postsConnection_NONE: UserPostsConnectionWhere
-  postsConnection_NOT: UserPostsConnectionWhere @deprecated(reason : "Use `postsConnection_NONE` instead.")
-  "Return Users where one of the related UserPostsConnections match this filter"
+  postsConnection_NOT: UserPostsConnectionWhere @deprecated(reason: "Use `postsConnection_NONE` instead.")
+  """
+  Return Users where one of the related UserPostsConnections match this filter
+  """
   postsConnection_SINGLE: UserPostsConnectionWhere
-  "Return Users where some of the related UserPostsConnections match this filter"
+  """
+  Return Users where some of the related UserPostsConnections match this filter
+  """
   postsConnection_SOME: UserPostsConnectionWhere
-  "Return Users where all of the related Posts match this filter"
+  """Return Users where all of the related Posts match this filter"""
   posts_ALL: PostWhere
-  "Return Users where none of the related Posts match this filter"
+  """Return Users where none of the related Posts match this filter"""
   posts_NONE: PostWhere
-  posts_NOT: PostWhere @deprecated(reason : "Use `posts_NONE` instead.")
-  "Return Users where one of the related Posts match this filter"
+  posts_NOT: PostWhere @deprecated(reason: "Use `posts_NONE` instead.")
+  """Return Users where one of the related Posts match this filter"""
   posts_SINGLE: PostWhere
-  "Return Users where some of the related Posts match this filter"
+  """Return Users where some of the related Posts match this filter"""
   posts_SOME: PostWhere
 }
 
+type UsersConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
 ----
 
 '''

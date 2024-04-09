@@ -21,33 +21,29 @@ schema {
   mutation: Mutation
 }
 
+"""
+A point in a two- or three-dimensional Cartesian coordinate system or in a three-dimensional cylindrical coordinate system. For more information, see https://neo4j.com/docs/graphql/4/type-definitions/types/spatial/#cartesian-point
+"""
 type CartesianPoint {
-  """
-  The coordinate reference systems (CRS)
-  -------------------------------------
-  possible values:
-  * `cartesian`: A 2D point in the Cartesian CRS is specified with a map containing x and y coordinate values
-  * `cartesian-3d`: A 3D point in the Cartesian CRS is specified with a map containing x, y and z coordinate values
-  """
   crs: String!
-  """
-  The internal Neo4j ID for the CRS
-  One of:
-  * `7203`: represents CRS `cartesian`
-  * `9157`: represents CRS `cartesian-3d`
-  """
   srid: Int!
-  "The first element of the Coordinate"
   x: Float!
-  "The second element of the Coordinate"
   y: Float!
-  "The third element of the Coordinate"
   z: Float
 }
 
-"Information about the number of nodes and relationships created during a create mutation"
+"""Input type for a cartesian point"""
+input CartesianPointInput {
+  x: Float!
+  y: Float!
+  z: Float
+}
+
+"""
+Information about the number of nodes and relationships created during a create mutation
+"""
 type CreateInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   relationshipsCreated: Int!
 }
@@ -57,9 +53,11 @@ type CreateMachinesMutationResponse {
   machines: [Machine!]!
 }
 
-"Information about the number of nodes and relationships deleted during a delete mutation"
+"""
+Information about the number of nodes and relationships deleted during a delete mutation
+"""
 type DeleteInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesDeleted: Int!
   relationshipsDeleted: Int!
 }
@@ -72,62 +70,13 @@ type MachineAggregateSelection {
   count: Int!
 }
 
+input MachineCreateInput {
+  partLocations: [CartesianPointInput!]!
+}
+
 type MachineEdge {
   cursor: String!
   node: Machine!
-}
-
-type MachinesConnection {
-  edges: [MachineEdge!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type Mutation {
-  createMachines(input: [MachineCreateInput!]!): CreateMachinesMutationResponse!
-  deleteMachines(where: MachineWhere): DeleteInfo!
-  updateMachines(update: MachineUpdateInput, where: MachineWhere): UpdateMachinesMutationResponse!
-}
-
-"Pagination information (Relay)"
-type PageInfo {
-  endCursor: String
-  hasNextPage: Boolean!
-  hasPreviousPage: Boolean!
-  startCursor: String
-}
-
-type Query {
-  machines(options: MachineOptions, where: MachineWhere): [Machine!]!
-  machinesAggregate(where: MachineWhere): MachineAggregateSelection!
-  machinesConnection(after: String, first: Int, where: MachineWhere): MachinesConnection!
-}
-
-"Information about the number of nodes and relationships created and deleted during an update mutation"
-type UpdateInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
-  nodesCreated: Int!
-  nodesDeleted: Int!
-  relationshipsCreated: Int!
-  relationshipsDeleted: Int!
-}
-
-type UpdateMachinesMutationResponse {
-  info: UpdateInfo!
-  machines: [Machine!]!
-}
-
-input CartesianPointInput {
-  "The first element of the Coordinate"
-  x: Float!
-  "The second element of the Coordinate"
-  y: Float!
-  "The third element of the Coordinate"
-  z: Float
-}
-
-input MachineCreateInput {
-  partLocations: [CartesianPointInput!]!
 }
 
 input MachineOptions {
@@ -147,10 +96,51 @@ input MachineWhere {
   OR: [MachineWhere!]
   partLocations: [CartesianPointInput!]
   partLocations_INCLUDES: CartesianPointInput
-  partLocations_NOT: [CartesianPointInput!]
-  partLocations_NOT_INCLUDES: CartesianPointInput
+  partLocations_NOT: [CartesianPointInput!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  partLocations_NOT_INCLUDES: CartesianPointInput @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
+type MachinesConnection {
+  edges: [MachineEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Mutation {
+  createMachines(input: [MachineCreateInput!]!): CreateMachinesMutationResponse!
+  deleteMachines(where: MachineWhere): DeleteInfo!
+  updateMachines(update: MachineUpdateInput, where: MachineWhere): UpdateMachinesMutationResponse!
+}
+
+"""Pagination information (Relay)"""
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  machines(options: MachineOptions, where: MachineWhere): [Machine!]!
+  machinesAggregate(where: MachineWhere): MachineAggregateSelection!
+  machinesConnection(after: String, first: Int, where: MachineWhere): MachinesConnection!
+}
+
+"""
+Information about the number of nodes and relationships created and deleted during an update mutation
+"""
+type UpdateInfo {
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesCreated: Int!
+  nodesDeleted: Int!
+  relationshipsCreated: Int!
+  relationshipsDeleted: Int!
+}
+
+type UpdateMachinesMutationResponse {
+  info: UpdateInfo!
+  machines: [Machine!]!
+}
 ----
 
 '''

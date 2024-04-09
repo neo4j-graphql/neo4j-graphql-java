@@ -42,12 +42,10 @@ interface SubscriptionWhereFieldInput {
                 rel: RelationField,
                 ctx: AugmentationContext,
             ): String? {
-                if (rel.properties == null) {
-                    return null
-                }
+                val properties = rel.properties ?: return null
                 return ctx.getOrCreateInputObjectType(rel.namings.edgeSubscriptionWhereInputTypeName) { fields, name ->
                     fields += WhereInput.FieldContainerWhereInput.Augmentation
-                        .getWhereFields(name, rel.properties.fields, ctx)
+                        .getWhereFields(name, properties.fields, ctx)
                 }
             }
         }

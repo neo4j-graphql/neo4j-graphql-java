@@ -4,7 +4,7 @@ import org.neo4j.graphql.Constants
 import org.neo4j.graphql.asType
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.RelationshipProperties
-import org.neo4j.graphql.domain.fields.RelationField
+import org.neo4j.graphql.domain.fields.RelationBaseField
 import org.neo4j.graphql.domain.predicates.ExpressionPredicate
 import org.neo4j.graphql.domain.predicates.FieldOperator
 import org.neo4j.graphql.schema.AugmentationBase
@@ -46,7 +46,7 @@ class AggregateInput(node: Node, properties: RelationshipProperties?, data: Dict
             .map { op -> Constants.COUNT + ("_".takeIf { op.suffix.isNotBlank() } ?: "") + op.suffix to op }
             .toMap()
 
-        fun create(field: RelationField, value: Any?): AggregateInput? {
+        fun create(field: RelationBaseField, value: Any?): AggregateInput? {
             if (value == null) {
                 return null
             }
@@ -59,7 +59,7 @@ class AggregateInput(node: Node, properties: RelationshipProperties?, data: Dict
     }
 
     object Augmentation : AugmentationBase {
-        fun generateAggregateInputIT(rel: RelationField, ctx: AugmentationContext): String? {
+        fun generateAggregateInputIT(rel: RelationBaseField, ctx: AugmentationContext): String? {
             if (rel.annotations.filterable?.byAggregate == false) {
                 return null
             }
@@ -79,15 +79,20 @@ class AggregateInput(node: Node, properties: RelationshipProperties?, data: Dict
                     )
                     ?.let { fields += inputValue(Constants.NODE_FIELD, it.asType()) }
 
-                AggregationWhereInput.Augmentation
-                    .generateWhereAggregationInputTypeForContainer(
-                        rel.namings.edgeAggregationWhereInputTypeName,
-                        rel.properties?.fields,
-                        ctx
-                    )
-                    ?.let { fields += inputValue(Constants.EDGE_FIELD, it.asType()) }
+                ctx.getEdgeInputField(
+                    rel,
+                    { it.namings.edgeAggregationWhereInputTypeName }
+                ) {
+                    AggregationWhereInput.Augmentation
+                        .generateWhereAggregationInputTypeForContainer(
+                            it.namings.edgeAggregationWhereInputTypeName,
+                            it.properties?.fields,
+                            ctx
+                        )
+                }
+                    ?.let { fields += inputValue(Constants.EDGE_FIELD, it) }
 
-                WhereInput.Augmentation.addNestingWhereFields(name, fields, ctx)
+                WhereInput.Augmentation.addNestingWhereFields(name, fields)
             }
                 ?: throw IllegalStateException("Expected at least the count field")
         }

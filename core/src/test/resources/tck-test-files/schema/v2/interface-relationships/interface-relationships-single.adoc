@@ -20,7 +20,7 @@ type Series implements Production {
   episodes: Int!
 }
 
-interface ActedIn @relationshipProperties {
+type ActedIn @relationshipProperties {
   screenTime: Int!
 }
 
@@ -40,195 +40,12 @@ schema {
   mutation: Mutation
 }
 
-interface ActedIn {
+"""
+The edge properties for the following fields:
+* Actor.actedIn
+"""
+type ActedIn {
   screenTime: Int!
-}
-
-interface Production {
-  title: String!
-}
-
-type Actor {
-  actedIn(directed: Boolean = true, options: ProductionOptions, where: ProductionWhere): [Production!]!
-  actedInConnection(after: String, directed: Boolean = true, first: Int, sort: [ActorActedInConnectionSort!], where: ActorActedInConnectionWhere): ActorActedInConnection!
-  name: String!
-}
-
-type ActorActedInConnection {
-  edges: [ActorActedInRelationship!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type ActorActedInRelationship implements ActedIn {
-  cursor: String!
-  node: Production!
-  screenTime: Int!
-}
-
-type ActorAggregateSelection {
-  count: Int!
-  name: StringAggregateSelectionNonNullable!
-}
-
-type ActorEdge {
-  cursor: String!
-  node: Actor!
-}
-
-type ActorsConnection {
-  edges: [ActorEdge!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type CreateActorsMutationResponse {
-  actors: [Actor!]!
-  info: CreateInfo!
-}
-
-"Information about the number of nodes and relationships created during a create mutation"
-type CreateInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
-  nodesCreated: Int!
-  relationshipsCreated: Int!
-}
-
-type CreateMoviesMutationResponse {
-  info: CreateInfo!
-  movies: [Movie!]!
-}
-
-type CreateSeriesMutationResponse {
-  info: CreateInfo!
-  series: [Series!]!
-}
-
-"Information about the number of nodes and relationships deleted during a delete mutation"
-type DeleteInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
-  nodesDeleted: Int!
-  relationshipsDeleted: Int!
-}
-
-type IntAggregateSelectionNonNullable {
-  average: Float!
-  max: Int!
-  min: Int!
-  sum: Int!
-}
-
-type Movie implements Production {
-  runtime: Int!
-  title: String!
-}
-
-type MovieAggregateSelection {
-  count: Int!
-  runtime: IntAggregateSelectionNonNullable!
-  title: StringAggregateSelectionNonNullable!
-}
-
-type MovieEdge {
-  cursor: String!
-  node: Movie!
-}
-
-type MoviesConnection {
-  edges: [MovieEdge!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type Mutation {
-  createActors(input: [ActorCreateInput!]!): CreateActorsMutationResponse!
-  createMovies(input: [MovieCreateInput!]!): CreateMoviesMutationResponse!
-  createSeries(input: [SeriesCreateInput!]!): CreateSeriesMutationResponse!
-  deleteActors(delete: ActorDeleteInput, where: ActorWhere): DeleteInfo!
-  deleteMovies(where: MovieWhere): DeleteInfo!
-  deleteSeries(where: SeriesWhere): DeleteInfo!
-  updateActors(connect: ActorConnectInput, create: ActorRelationInput, delete: ActorDeleteInput, disconnect: ActorDisconnectInput, update: ActorUpdateInput, where: ActorWhere): UpdateActorsMutationResponse!
-  updateMovies(update: MovieUpdateInput, where: MovieWhere): UpdateMoviesMutationResponse!
-  updateSeries(update: SeriesUpdateInput, where: SeriesWhere): UpdateSeriesMutationResponse!
-}
-
-"Pagination information (Relay)"
-type PageInfo {
-  endCursor: String
-  hasNextPage: Boolean!
-  hasPreviousPage: Boolean!
-  startCursor: String
-}
-
-type Query {
-  actors(options: ActorOptions, where: ActorWhere): [Actor!]!
-  actorsAggregate(where: ActorWhere): ActorAggregateSelection!
-  actorsConnection(after: String, first: Int, sort: [ActorSort], where: ActorWhere): ActorsConnection!
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesAggregate(where: MovieWhere): MovieAggregateSelection!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
-  series(options: SeriesOptions, where: SeriesWhere): [Series!]!
-  seriesAggregate(where: SeriesWhere): SeriesAggregateSelection!
-  seriesConnection(after: String, first: Int, sort: [SeriesSort], where: SeriesWhere): SeriesConnection!
-}
-
-type Series implements Production {
-  episodes: Int!
-  title: String!
-}
-
-type SeriesAggregateSelection {
-  count: Int!
-  episodes: IntAggregateSelectionNonNullable!
-  title: StringAggregateSelectionNonNullable!
-}
-
-type SeriesConnection {
-  edges: [SeriesEdge!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type SeriesEdge {
-  cursor: String!
-  node: Series!
-}
-
-type StringAggregateSelectionNonNullable {
-  longest: String!
-  shortest: String!
-}
-
-type UpdateActorsMutationResponse {
-  actors: [Actor!]!
-  info: UpdateInfo!
-}
-
-"Information about the number of nodes and relationships created and deleted during an update mutation"
-type UpdateInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
-  nodesCreated: Int!
-  nodesDeleted: Int!
-  relationshipsCreated: Int!
-  relationshipsDeleted: Int!
-}
-
-type UpdateMoviesMutationResponse {
-  info: UpdateInfo!
-  movies: [Movie!]!
-}
-
-type UpdateSeriesMutationResponse {
-  info: UpdateInfo!
-  series: [Series!]!
-}
-
-"An enum for sorting in either ascending or descending order."
-enum SortDirection {
-  "Sort by field values in ascending order."
-  ASC
-  "Sort by field values in descending order."
-  DESC
 }
 
 input ActedInCreateInput {
@@ -255,13 +72,26 @@ input ActedInWhere {
   screenTime_IN: [Int!]
   screenTime_LT: Int
   screenTime_LTE: Int
-  screenTime_NOT: Int @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  screenTime_NOT_IN: [Int!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  screenTime_NOT: Int @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  screenTime_NOT_IN: [Int!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+}
+
+type Actor {
+  actedIn(directed: Boolean = true, options: ProductionOptions, where: ProductionWhere): [Production!]!
+  actedInAggregate(directed: Boolean = true, where: ProductionWhere): ActorProductionActedInAggregationSelection
+  actedInConnection(after: String, directed: Boolean = true, first: Int, sort: [ActorActedInConnectionSort!], where: ActorActedInConnectionWhere): ActorActedInConnection!
+  name: String!
 }
 
 input ActorActedInConnectFieldInput {
   edge: ActedInCreateInput!
   where: ProductionConnectWhere
+}
+
+type ActorActedInConnection {
+  edges: [ActorActedInRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
 }
 
 input ActorActedInConnectionSort {
@@ -274,9 +104,9 @@ input ActorActedInConnectionWhere {
   NOT: ActorActedInConnectionWhere
   OR: [ActorActedInConnectionWhere!]
   edge: ActedInWhere
-  edge_NOT: ActedInWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  edge_NOT: ActedInWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   node: ProductionWhere
-  node_NOT: ProductionWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  node_NOT: ProductionWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input ActorActedInCreateFieldInput {
@@ -297,6 +127,12 @@ input ActorActedInFieldInput {
   create: [ActorActedInCreateFieldInput!]
 }
 
+type ActorActedInRelationship {
+  cursor: String!
+  node: Production!
+  properties: ActedIn!
+}
+
 input ActorActedInUpdateConnectionInput {
   edge: ActedInUpdateInput
   node: ProductionUpdateInput
@@ -309,6 +145,11 @@ input ActorActedInUpdateFieldInput {
   disconnect: [ActorActedInDisconnectFieldInput!]
   update: ActorActedInUpdateConnectionInput
   where: ActorActedInConnectionWhere
+}
+
+type ActorAggregateSelection {
+  count: Int!
+  name: StringAggregateSelection!
 }
 
 input ActorConnectInput {
@@ -328,18 +169,41 @@ input ActorDisconnectInput {
   actedIn: [ActorActedInDisconnectFieldInput!]
 }
 
+type ActorEdge {
+  cursor: String!
+  node: Actor!
+}
+
 input ActorOptions {
   limit: Int
   offset: Int
-  "Specify one or more ActorSort objects to sort Actors by. The sorts will be applied in the order in which they are arranged in the array."
+  """
+  Specify one or more ActorSort objects to sort Actors by. The sorts will be applied in the order in which they are arranged in the array.
+  """
   sort: [ActorSort!]
+}
+
+type ActorProductionActedInAggregationSelection {
+  count: Int!
+  edge: ActorProductionActedInEdgeAggregateSelection
+  node: ActorProductionActedInNodeAggregateSelection
+}
+
+type ActorProductionActedInEdgeAggregateSelection {
+  screenTime: IntAggregateSelection!
+}
+
+type ActorProductionActedInNodeAggregateSelection {
+  title: StringAggregateSelection!
 }
 
 input ActorRelationInput {
   actedIn: [ActorActedInCreateFieldInput!]
 }
 
-"Fields to sort Actors by. The order in which sorts are applied is not guaranteed when specifying many fields in one ActorSort object."
+"""
+Fields to sort Actors by. The order in which sorts are applied is not guaranteed when specifying many fields in one ActorSort object.
+"""
 input ActorSort {
   name: SortDirection
 }
@@ -353,26 +217,101 @@ input ActorWhere {
   AND: [ActorWhere!]
   NOT: ActorWhere
   OR: [ActorWhere!]
-  actedInConnection: ActorActedInConnectionWhere @deprecated(reason : "Use `actedInConnection_SOME` instead.")
-  "Return Actors where all of the related ActorActedInConnections match this filter"
+  actedIn: ProductionWhere @deprecated(reason: "Use `actedIn_SOME` instead.")
+  actedInConnection: ActorActedInConnectionWhere @deprecated(reason: "Use `actedInConnection_SOME` instead.")
+  """
+  Return Actors where all of the related ActorActedInConnections match this filter
+  """
   actedInConnection_ALL: ActorActedInConnectionWhere
-  "Return Actors where none of the related ActorActedInConnections match this filter"
+  """
+  Return Actors where none of the related ActorActedInConnections match this filter
+  """
   actedInConnection_NONE: ActorActedInConnectionWhere
-  actedInConnection_NOT: ActorActedInConnectionWhere @deprecated(reason : "Use `actedInConnection_NONE` instead.")
-  "Return Actors where one of the related ActorActedInConnections match this filter"
+  actedInConnection_NOT: ActorActedInConnectionWhere @deprecated(reason: "Use `actedInConnection_NONE` instead.")
+  """
+  Return Actors where one of the related ActorActedInConnections match this filter
+  """
   actedInConnection_SINGLE: ActorActedInConnectionWhere
-  "Return Actors where some of the related ActorActedInConnections match this filter"
+  """
+  Return Actors where some of the related ActorActedInConnections match this filter
+  """
   actedInConnection_SOME: ActorActedInConnectionWhere
+  """Return Actors where all of the related Productions match this filter"""
+  actedIn_ALL: ProductionWhere
+  """Return Actors where none of the related Productions match this filter"""
+  actedIn_NONE: ProductionWhere
+  actedIn_NOT: ProductionWhere @deprecated(reason: "Use `actedIn_NONE` instead.")
+  """Return Actors where one of the related Productions match this filter"""
+  actedIn_SINGLE: ProductionWhere
+  """Return Actors where some of the related Productions match this filter"""
+  actedIn_SOME: ProductionWhere
   name: String
   name_CONTAINS: String
   name_ENDS_WITH: String
   name_IN: [String!]
-  name_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_IN: [String!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   name_STARTS_WITH: String
+}
+
+type ActorsConnection {
+  edges: [ActorEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type CreateActorsMutationResponse {
+  actors: [Actor!]!
+  info: CreateInfo!
+}
+
+"""
+Information about the number of nodes and relationships created during a create mutation
+"""
+type CreateInfo {
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesCreated: Int!
+  relationshipsCreated: Int!
+}
+
+type CreateMoviesMutationResponse {
+  info: CreateInfo!
+  movies: [Movie!]!
+}
+
+type CreateSeriesMutationResponse {
+  info: CreateInfo!
+  series: [Series!]!
+}
+
+"""
+Information about the number of nodes and relationships deleted during a delete mutation
+"""
+type DeleteInfo {
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
+type IntAggregateSelection {
+  average: Float
+  max: Int
+  min: Int
+  sum: Int
+}
+
+type Movie implements Production {
+  runtime: Int!
+  title: String!
+}
+
+type MovieAggregateSelection {
+  count: Int!
+  runtime: IntAggregateSelection!
+  title: StringAggregateSelection!
 }
 
 input MovieCreateInput {
@@ -380,14 +319,23 @@ input MovieCreateInput {
   title: String!
 }
 
+type MovieEdge {
+  cursor: String!
+  node: Movie!
+}
+
 input MovieOptions {
   limit: Int
   offset: Int
-  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
+  """
+  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
+  """
   sort: [MovieSort!]
 }
 
-"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+"""
+Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object.
+"""
 input MovieSort {
   runtime: SortDirection
   title: SortDirection
@@ -410,18 +358,53 @@ input MovieWhere {
   runtime_IN: [Int!]
   runtime_LT: Int
   runtime_LTE: Int
-  runtime_NOT: Int @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  runtime_NOT_IN: [Int!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  runtime_NOT: Int @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  runtime_NOT_IN: [Int!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   title: String
   title_CONTAINS: String
   title_ENDS_WITH: String
   title_IN: [String!]
-  title_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_IN: [String!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   title_STARTS_WITH: String
+}
+
+type MoviesConnection {
+  edges: [MovieEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Mutation {
+  createActors(input: [ActorCreateInput!]!): CreateActorsMutationResponse!
+  createMovies(input: [MovieCreateInput!]!): CreateMoviesMutationResponse!
+  createSeries(input: [SeriesCreateInput!]!): CreateSeriesMutationResponse!
+  deleteActors(delete: ActorDeleteInput, where: ActorWhere): DeleteInfo!
+  deleteMovies(where: MovieWhere): DeleteInfo!
+  deleteSeries(where: SeriesWhere): DeleteInfo!
+  updateActors(connect: ActorConnectInput, create: ActorRelationInput, delete: ActorDeleteInput, disconnect: ActorDisconnectInput, update: ActorUpdateInput, where: ActorWhere): UpdateActorsMutationResponse!
+  updateMovies(update: MovieUpdateInput, where: MovieWhere): UpdateMoviesMutationResponse!
+  updateSeries(update: SeriesUpdateInput, where: SeriesWhere): UpdateSeriesMutationResponse!
+}
+
+"""Pagination information (Relay)"""
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+interface Production {
+  title: String!
+}
+
+type ProductionAggregateSelection {
+  count: Int!
+  title: StringAggregateSelection!
 }
 
 input ProductionConnectWhere {
@@ -433,45 +416,89 @@ input ProductionCreateInput {
   Series: SeriesCreateInput
 }
 
-input ProductionImplementationsUpdateInput {
-  Movie: MovieUpdateInput
-  Series: SeriesUpdateInput
+type ProductionEdge {
+  cursor: String!
+  node: Production!
 }
 
-input ProductionImplementationsWhere {
-  Movie: MovieWhere
-  Series: SeriesWhere
+enum ProductionImplementation {
+  Movie
+  Series
 }
 
 input ProductionOptions {
   limit: Int
   offset: Int
-  "Specify one or more ProductionSort objects to sort Productions by. The sorts will be applied in the order in which they are arranged in the array."
+  """
+  Specify one or more ProductionSort objects to sort Productions by. The sorts will be applied in the order in which they are arranged in the array.
+  """
   sort: [ProductionSort]
 }
 
-"Fields to sort Productions by. The order in which sorts are applied is not guaranteed when specifying many fields in one ProductionSort object."
+"""
+Fields to sort Productions by. The order in which sorts are applied is not guaranteed when specifying many fields in one ProductionSort object.
+"""
 input ProductionSort {
   title: SortDirection
 }
 
 input ProductionUpdateInput {
-  _on: ProductionImplementationsUpdateInput
   title: String
 }
 
 input ProductionWhere {
-  _on: ProductionImplementationsWhere
+  AND: [ProductionWhere!]
+  NOT: ProductionWhere
+  OR: [ProductionWhere!]
   title: String
   title_CONTAINS: String
   title_ENDS_WITH: String
   title_IN: [String!]
-  title_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_IN: [String!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   title_STARTS_WITH: String
+  typename_IN: [ProductionImplementation!]
+}
+
+type ProductionsConnection {
+  edges: [ProductionEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Query {
+  actors(options: ActorOptions, where: ActorWhere): [Actor!]!
+  actorsAggregate(where: ActorWhere): ActorAggregateSelection!
+  actorsConnection(after: String, first: Int, sort: [ActorSort], where: ActorWhere): ActorsConnection!
+  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
+  moviesAggregate(where: MovieWhere): MovieAggregateSelection!
+  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
+  productions(options: ProductionOptions, where: ProductionWhere): [Production!]!
+  productionsAggregate(where: ProductionWhere): ProductionAggregateSelection!
+  productionsConnection(after: String, first: Int, sort: [ProductionSort], where: ProductionWhere): ProductionsConnection!
+  series(options: SeriesOptions, where: SeriesWhere): [Series!]!
+  seriesAggregate(where: SeriesWhere): SeriesAggregateSelection!
+  seriesConnection(after: String, first: Int, sort: [SeriesSort], where: SeriesWhere): SeriesConnection!
+}
+
+type Series implements Production {
+  episodes: Int!
+  title: String!
+}
+
+type SeriesAggregateSelection {
+  count: Int!
+  episodes: IntAggregateSelection!
+  title: StringAggregateSelection!
+}
+
+type SeriesConnection {
+  edges: [SeriesEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
 }
 
 input SeriesCreateInput {
@@ -479,14 +506,23 @@ input SeriesCreateInput {
   title: String!
 }
 
+type SeriesEdge {
+  cursor: String!
+  node: Series!
+}
+
 input SeriesOptions {
   limit: Int
   offset: Int
-  "Specify one or more SeriesSort objects to sort Series by. The sorts will be applied in the order in which they are arranged in the array."
+  """
+  Specify one or more SeriesSort objects to sort Series by. The sorts will be applied in the order in which they are arranged in the array.
+  """
   sort: [SeriesSort!]
 }
 
-"Fields to sort Series by. The order in which sorts are applied is not guaranteed when specifying many fields in one SeriesSort object."
+"""
+Fields to sort Series by. The order in which sorts are applied is not guaranteed when specifying many fields in one SeriesSort object.
+"""
 input SeriesSort {
   episodes: SortDirection
   title: SortDirection
@@ -509,20 +545,58 @@ input SeriesWhere {
   episodes_IN: [Int!]
   episodes_LT: Int
   episodes_LTE: Int
-  episodes_NOT: Int @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  episodes_NOT_IN: [Int!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  episodes_NOT: Int @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  episodes_NOT_IN: [Int!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   title: String
   title_CONTAINS: String
   title_ENDS_WITH: String
   title_IN: [String!]
-  title_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_IN: [String!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   title_STARTS_WITH: String
 }
 
+"""An enum for sorting in either ascending or descending order."""
+enum SortDirection {
+  """Sort by field values in ascending order."""
+  ASC
+  """Sort by field values in descending order."""
+  DESC
+}
+
+type StringAggregateSelection {
+  longest: String
+  shortest: String
+}
+
+type UpdateActorsMutationResponse {
+  actors: [Actor!]!
+  info: UpdateInfo!
+}
+
+"""
+Information about the number of nodes and relationships created and deleted during an update mutation
+"""
+type UpdateInfo {
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesCreated: Int!
+  nodesDeleted: Int!
+  relationshipsCreated: Int!
+  relationshipsDeleted: Int!
+}
+
+type UpdateMoviesMutationResponse {
+  info: UpdateInfo!
+  movies: [Movie!]!
+}
+
+type UpdateSeriesMutationResponse {
+  info: UpdateInfo!
+  series: [Series!]!
+}
 ----
 
 '''

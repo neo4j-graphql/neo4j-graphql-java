@@ -31,9 +31,11 @@ schema {
   mutation: Mutation
 }
 
-"Information about the number of nodes and relationships created during a create mutation"
+"""
+Information about the number of nodes and relationships created during a create mutation
+"""
 type CreateInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   relationshipsCreated: Int!
 }
@@ -53,19 +55,21 @@ type CreateTigersMutationResponse {
   tigers: [Tiger!]!
 }
 
-"Information about the number of nodes and relationships deleted during a delete mutation"
+"""
+Information about the number of nodes and relationships deleted during a delete mutation
+"""
 type DeleteInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesDeleted: Int!
   relationshipsDeleted: Int!
 }
 
-type IDAggregateSelectionNullable {
+type IDAggregateSelection {
   longest: ID
   shortest: ID
 }
 
-type IntAggregateSelectionNullable {
+type IntAggregateSelection {
   average: Float
   max: Int
   min: Int
@@ -84,7 +88,7 @@ type Mutation {
   updateTigers(update: TigerUpdateInput, where: TigerWhere): UpdateTigersMutationResponse!
 }
 
-"Pagination information (Relay)"
+"""Pagination information (Relay)"""
 type PageInfo {
   endCursor: String
   hasNextPage: Boolean!
@@ -104,13 +108,29 @@ type Query {
   tigersConnection(after: String, first: Int, sort: [TigerSort], where: TigerWhere): TigersConnection!
 }
 
+"""An enum for sorting in either ascending or descending order."""
+enum SortDirection {
+  """Sort by field values in ascending order."""
+  ASC
+  """Sort by field values in descending order."""
+  DESC
+}
+
 type Tiger {
   x: Int
 }
 
 type TigerAggregateSelection {
   count: Int!
-  x: IntAggregateSelectionNullable!
+  x: IntAggregateSelection!
+}
+
+input TigerConnectWhere {
+  node: TigerWhere!
+}
+
+input TigerCreateInput {
+  x: Int
 }
 
 type TigerEdge {
@@ -127,127 +147,7 @@ type TigerJawLevel2 {
 
 type TigerJawLevel2AggregateSelection {
   count: Int!
-  id: IDAggregateSelectionNullable!
-}
-
-type TigerJawLevel2Edge {
-  cursor: String!
-  node: TigerJawLevel2!
-}
-
-type TigerJawLevel2Part1 {
-  id: ID
-  tiger(directed: Boolean = true, options: TigerOptions, where: TigerWhere): Tiger!
-  tigerAggregate(directed: Boolean = true, where: TigerWhere): TigerJawLevel2Part1TigerTigerAggregationSelection
-  tigerConnection(after: String, directed: Boolean = true, first: Int, sort: [TigerJawLevel2Part1TigerConnectionSort!], where: TigerJawLevel2Part1TigerConnectionWhere): TigerJawLevel2Part1TigerConnection!
-}
-
-type TigerJawLevel2Part1AggregateSelection {
-  count: Int!
-  id: IDAggregateSelectionNullable!
-}
-
-type TigerJawLevel2Part1Connection {
-  edges: [TigerJawLevel2Part1Relationship!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type TigerJawLevel2Part1Edge {
-  cursor: String!
-  node: TigerJawLevel2Part1!
-}
-
-type TigerJawLevel2Part1Relationship {
-  cursor: String!
-  node: TigerJawLevel2Part1!
-}
-
-type TigerJawLevel2Part1TigerConnection {
-  edges: [TigerJawLevel2Part1TigerRelationship!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type TigerJawLevel2Part1TigerRelationship {
-  cursor: String!
-  node: Tiger!
-}
-
-type TigerJawLevel2Part1TigerTigerAggregationSelection {
-  count: Int!
-  node: TigerJawLevel2Part1TigerTigerNodeAggregateSelection
-}
-
-type TigerJawLevel2Part1TigerTigerNodeAggregateSelection {
-  x: IntAggregateSelectionNullable!
-}
-
-type TigerJawLevel2Part1sConnection {
-  edges: [TigerJawLevel2Part1Edge!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type TigerJawLevel2TigerJawLevel2Part1Part1AggregationSelection {
-  count: Int!
-  node: TigerJawLevel2TigerJawLevel2Part1Part1NodeAggregateSelection
-}
-
-type TigerJawLevel2TigerJawLevel2Part1Part1NodeAggregateSelection {
-  id: IDAggregateSelectionNullable!
-}
-
-type TigerJawLevel2sConnection {
-  edges: [TigerJawLevel2Edge!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type TigersConnection {
-  edges: [TigerEdge!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-"Information about the number of nodes and relationships created and deleted during an update mutation"
-type UpdateInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
-  nodesCreated: Int!
-  nodesDeleted: Int!
-  relationshipsCreated: Int!
-  relationshipsDeleted: Int!
-}
-
-type UpdateTigerJawLevel2Part1sMutationResponse {
-  info: UpdateInfo!
-  tigerJawLevel2Part1s: [TigerJawLevel2Part1!]!
-}
-
-type UpdateTigerJawLevel2sMutationResponse {
-  info: UpdateInfo!
-  tigerJawLevel2s: [TigerJawLevel2!]!
-}
-
-type UpdateTigersMutationResponse {
-  info: UpdateInfo!
-  tigers: [Tiger!]!
-}
-
-"An enum for sorting in either ascending or descending order."
-enum SortDirection {
-  "Sort by field values in ascending order."
-  ASC
-  "Sort by field values in descending order."
-  DESC
-}
-
-input TigerConnectWhere {
-  node: TigerWhere!
-}
-
-input TigerCreateInput {
-  x: Int
+  id: IDAggregateSelection!
 }
 
 input TigerJawLevel2ConnectInput {
@@ -267,11 +167,25 @@ input TigerJawLevel2DisconnectInput {
   part1: TigerJawLevel2Part1DisconnectFieldInput
 }
 
+type TigerJawLevel2Edge {
+  cursor: String!
+  node: TigerJawLevel2!
+}
+
 input TigerJawLevel2Options {
   limit: Int
   offset: Int
-  "Specify one or more TigerJawLevel2Sort objects to sort TigerJawLevel2s by. The sorts will be applied in the order in which they are arranged in the array."
+  """
+  Specify one or more TigerJawLevel2Sort objects to sort TigerJawLevel2s by. The sorts will be applied in the order in which they are arranged in the array.
+  """
   sort: [TigerJawLevel2Sort!]
+}
+
+type TigerJawLevel2Part1 {
+  id: ID
+  tiger(directed: Boolean = true, options: TigerOptions, where: TigerWhere): Tiger!
+  tigerAggregate(directed: Boolean = true, where: TigerWhere): TigerJawLevel2Part1TigerTigerAggregationSelection
+  tigerConnection(after: String, directed: Boolean = true, first: Int, sort: [TigerJawLevel2Part1TigerConnectionSort!], where: TigerJawLevel2Part1TigerConnectionWhere): TigerJawLevel2Part1TigerConnection!
 }
 
 input TigerJawLevel2Part1AggregateInput {
@@ -286,9 +200,16 @@ input TigerJawLevel2Part1AggregateInput {
   node: TigerJawLevel2Part1NodeAggregationWhereInput
 }
 
+type TigerJawLevel2Part1AggregateSelection {
+  count: Int!
+  id: IDAggregateSelection!
+}
+
 input TigerJawLevel2Part1ConnectFieldInput {
   connect: TigerJawLevel2Part1ConnectInput
-  "Whether or not to overwrite any matching relationship with the new properties."
+  """
+  Whether or not to overwrite any matching relationship with the new properties.
+  """
   overwrite: Boolean! = true
   where: TigerJawLevel2Part1ConnectWhere
 }
@@ -301,6 +222,12 @@ input TigerJawLevel2Part1ConnectWhere {
   node: TigerJawLevel2Part1Where!
 }
 
+type TigerJawLevel2Part1Connection {
+  edges: [TigerJawLevel2Part1Relationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
 input TigerJawLevel2Part1ConnectionSort {
   node: TigerJawLevel2Part1Sort
 }
@@ -310,7 +237,7 @@ input TigerJawLevel2Part1ConnectionWhere {
   NOT: TigerJawLevel2Part1ConnectionWhere
   OR: [TigerJawLevel2Part1ConnectionWhere!]
   node: TigerJawLevel2Part1Where
-  node_NOT: TigerJawLevel2Part1Where @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  node_NOT: TigerJawLevel2Part1Where @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input TigerJawLevel2Part1CreateFieldInput {
@@ -340,6 +267,11 @@ input TigerJawLevel2Part1DisconnectInput {
   tiger: TigerJawLevel2Part1TigerDisconnectFieldInput
 }
 
+type TigerJawLevel2Part1Edge {
+  cursor: String!
+  node: TigerJawLevel2Part1!
+}
+
 input TigerJawLevel2Part1FieldInput {
   connect: TigerJawLevel2Part1ConnectFieldInput
   create: TigerJawLevel2Part1CreateFieldInput
@@ -349,13 +281,15 @@ input TigerJawLevel2Part1NodeAggregationWhereInput {
   AND: [TigerJawLevel2Part1NodeAggregationWhereInput!]
   NOT: TigerJawLevel2Part1NodeAggregationWhereInput
   OR: [TigerJawLevel2Part1NodeAggregationWhereInput!]
-  id_EQUAL: ID @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  id_EQUAL: ID @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
 }
 
 input TigerJawLevel2Part1Options {
   limit: Int
   offset: Int
-  "Specify one or more TigerJawLevel2Part1Sort objects to sort TigerJawLevel2Part1s by. The sorts will be applied in the order in which they are arranged in the array."
+  """
+  Specify one or more TigerJawLevel2Part1Sort objects to sort TigerJawLevel2Part1s by. The sorts will be applied in the order in which they are arranged in the array.
+  """
   sort: [TigerJawLevel2Part1Sort!]
 }
 
@@ -363,7 +297,14 @@ input TigerJawLevel2Part1RelationInput {
   tiger: TigerJawLevel2Part1TigerCreateFieldInput
 }
 
-"Fields to sort TigerJawLevel2Part1s by. The order in which sorts are applied is not guaranteed when specifying many fields in one TigerJawLevel2Part1Sort object."
+type TigerJawLevel2Part1Relationship {
+  cursor: String!
+  node: TigerJawLevel2Part1!
+}
+
+"""
+Fields to sort TigerJawLevel2Part1s by. The order in which sorts are applied is not guaranteed when specifying many fields in one TigerJawLevel2Part1Sort object.
+"""
 input TigerJawLevel2Part1Sort {
   id: SortDirection
 }
@@ -381,9 +322,17 @@ input TigerJawLevel2Part1TigerAggregateInput {
 }
 
 input TigerJawLevel2Part1TigerConnectFieldInput {
-  "Whether or not to overwrite any matching relationship with the new properties."
+  """
+  Whether or not to overwrite any matching relationship with the new properties.
+  """
   overwrite: Boolean! = true
   where: TigerConnectWhere
+}
+
+type TigerJawLevel2Part1TigerConnection {
+  edges: [TigerJawLevel2Part1TigerRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
 }
 
 input TigerJawLevel2Part1TigerConnectionSort {
@@ -395,7 +344,7 @@ input TigerJawLevel2Part1TigerConnectionWhere {
   NOT: TigerJawLevel2Part1TigerConnectionWhere
   OR: [TigerJawLevel2Part1TigerConnectionWhere!]
   node: TigerWhere
-  node_NOT: TigerWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  node_NOT: TigerWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input TigerJawLevel2Part1TigerCreateFieldInput {
@@ -424,11 +373,11 @@ input TigerJawLevel2Part1TigerNodeAggregationWhereInput {
   x_AVERAGE_GTE: Float
   x_AVERAGE_LT: Float
   x_AVERAGE_LTE: Float
-  x_EQUAL: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  x_GT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  x_GTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  x_LT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  x_LTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  x_EQUAL: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  x_GT: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  x_GTE: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  x_LT: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  x_LTE: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
   x_MAX_EQUAL: Int
   x_MAX_GT: Int
   x_MAX_GTE: Int
@@ -444,6 +393,20 @@ input TigerJawLevel2Part1TigerNodeAggregationWhereInput {
   x_SUM_GTE: Int
   x_SUM_LT: Int
   x_SUM_LTE: Int
+}
+
+type TigerJawLevel2Part1TigerRelationship {
+  cursor: String!
+  node: Tiger!
+}
+
+type TigerJawLevel2Part1TigerTigerAggregationSelection {
+  count: Int!
+  node: TigerJawLevel2Part1TigerTigerNodeAggregateSelection
+}
+
+type TigerJawLevel2Part1TigerTigerNodeAggregateSelection {
+  x: IntAggregateSelection!
 }
 
 input TigerJawLevel2Part1TigerUpdateConnectionInput {
@@ -485,11 +448,11 @@ input TigerJawLevel2Part1Where {
   id_CONTAINS: ID
   id_ENDS_WITH: ID
   id_IN: [ID]
-  id_NOT: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_CONTAINS: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_ENDS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_IN: [ID] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_STARTS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_CONTAINS: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_ENDS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_IN: [ID] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_STARTS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id_STARTS_WITH: ID
   tiger: TigerWhere
   tigerAggregate: TigerJawLevel2Part1TigerAggregateInput
@@ -498,13 +461,30 @@ input TigerJawLevel2Part1Where {
   tiger_NOT: TigerWhere
 }
 
+type TigerJawLevel2Part1sConnection {
+  edges: [TigerJawLevel2Part1Edge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
 input TigerJawLevel2RelationInput {
   part1: TigerJawLevel2Part1CreateFieldInput
 }
 
-"Fields to sort TigerJawLevel2s by. The order in which sorts are applied is not guaranteed when specifying many fields in one TigerJawLevel2Sort object."
+"""
+Fields to sort TigerJawLevel2s by. The order in which sorts are applied is not guaranteed when specifying many fields in one TigerJawLevel2Sort object.
+"""
 input TigerJawLevel2Sort {
   id: SortDirection
+}
+
+type TigerJawLevel2TigerJawLevel2Part1Part1AggregationSelection {
+  count: Int!
+  node: TigerJawLevel2TigerJawLevel2Part1Part1NodeAggregateSelection
+}
+
+type TigerJawLevel2TigerJawLevel2Part1Part1NodeAggregateSelection {
+  id: IDAggregateSelection!
 }
 
 input TigerJawLevel2UpdateInput {
@@ -520,11 +500,11 @@ input TigerJawLevel2Where {
   id_CONTAINS: ID
   id_ENDS_WITH: ID
   id_IN: [ID]
-  id_NOT: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_CONTAINS: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_ENDS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_IN: [ID] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_STARTS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_CONTAINS: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_ENDS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_IN: [ID] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_STARTS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id_STARTS_WITH: ID
   part1: TigerJawLevel2Part1Where
   part1Aggregate: TigerJawLevel2Part1AggregateInput
@@ -533,14 +513,24 @@ input TigerJawLevel2Where {
   part1_NOT: TigerJawLevel2Part1Where
 }
 
+type TigerJawLevel2sConnection {
+  edges: [TigerJawLevel2Edge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
 input TigerOptions {
   limit: Int
   offset: Int
-  "Specify one or more TigerSort objects to sort Tigers by. The sorts will be applied in the order in which they are arranged in the array."
+  """
+  Specify one or more TigerSort objects to sort Tigers by. The sorts will be applied in the order in which they are arranged in the array.
+  """
   sort: [TigerSort!]
 }
 
-"Fields to sort Tigers by. The order in which sorts are applied is not guaranteed when specifying many fields in one TigerSort object."
+"""
+Fields to sort Tigers by. The order in which sorts are applied is not guaranteed when specifying many fields in one TigerSort object.
+"""
 input TigerSort {
   x: SortDirection
 }
@@ -561,10 +551,41 @@ input TigerWhere {
   x_IN: [Int]
   x_LT: Int
   x_LTE: Int
-  x_NOT: Int @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  x_NOT_IN: [Int] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  x_NOT: Int @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  x_NOT_IN: [Int] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
+type TigersConnection {
+  edges: [TigerEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"""
+Information about the number of nodes and relationships created and deleted during an update mutation
+"""
+type UpdateInfo {
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesCreated: Int!
+  nodesDeleted: Int!
+  relationshipsCreated: Int!
+  relationshipsDeleted: Int!
+}
+
+type UpdateTigerJawLevel2Part1sMutationResponse {
+  info: UpdateInfo!
+  tigerJawLevel2Part1s: [TigerJawLevel2Part1!]!
+}
+
+type UpdateTigerJawLevel2sMutationResponse {
+  info: UpdateInfo!
+  tigerJawLevel2s: [TigerJawLevel2!]!
+}
+
+type UpdateTigersMutationResponse {
+  info: UpdateInfo!
+  tigers: [Tiger!]!
+}
 ----
 
 '''

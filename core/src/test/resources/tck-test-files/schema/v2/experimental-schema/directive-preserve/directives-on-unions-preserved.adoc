@@ -23,16 +23,6 @@ type User {
 }
 ----
 
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{
-  "experimental": true
-}
-----
-
 == Augmented schema
 
 .Augmented Schema
@@ -43,8 +33,6 @@ schema {
   mutation: Mutation
 }
 
-union Content = Blog | Post
-
 type Blog {
   posts(directed: Boolean = true, options: PostOptions, where: PostWhere): [Post!]!
   postsAggregate(directed: Boolean = true, where: PostWhere): BlogPostPostsAggregationSelection
@@ -54,190 +42,7 @@ type Blog {
 
 type BlogAggregateSelection {
   count: Int!
-  title: StringAggregateSelectionNullable!
-}
-
-type BlogEdge {
-  cursor: String!
-  node: Blog!
-}
-
-type BlogPostPostsAggregationSelection {
-  count: Int!
-  node: BlogPostPostsNodeAggregateSelection
-}
-
-type BlogPostPostsNodeAggregateSelection {
-  content: StringAggregateSelectionNullable!
-}
-
-type BlogPostsConnection {
-  edges: [BlogPostsRelationship!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type BlogPostsRelationship {
-  cursor: String!
-  node: Post!
-}
-
-type BlogsConnection {
-  edges: [BlogEdge!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type CreateBlogsMutationResponse {
-  blogs: [Blog!]!
-  info: CreateInfo!
-}
-
-"Information about the number of nodes and relationships created during a create mutation"
-type CreateInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
-  nodesCreated: Int!
-  relationshipsCreated: Int!
-}
-
-type CreatePostsMutationResponse {
-  info: CreateInfo!
-  posts: [Post!]!
-}
-
-type CreateUsersMutationResponse {
-  info: CreateInfo!
-  users: [User!]!
-}
-
-"Information about the number of nodes and relationships deleted during a delete mutation"
-type DeleteInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
-  nodesDeleted: Int!
-  relationshipsDeleted: Int!
-}
-
-type Mutation {
-  createBlogs(input: [BlogCreateInput!]!): CreateBlogsMutationResponse!
-  createPosts(input: [PostCreateInput!]!): CreatePostsMutationResponse!
-  createUsers(input: [UserCreateInput!]!): CreateUsersMutationResponse!
-  deleteBlogs(delete: BlogDeleteInput, where: BlogWhere): DeleteInfo!
-  deletePosts(where: PostWhere): DeleteInfo!
-  deleteUsers(delete: UserDeleteInput, where: UserWhere): DeleteInfo!
-  updateBlogs(connect: BlogConnectInput, create: BlogRelationInput, delete: BlogDeleteInput, disconnect: BlogDisconnectInput, update: BlogUpdateInput, where: BlogWhere): UpdateBlogsMutationResponse!
-  updatePosts(update: PostUpdateInput, where: PostWhere): UpdatePostsMutationResponse!
-  updateUsers(connect: UserConnectInput, create: UserRelationInput, delete: UserDeleteInput, disconnect: UserDisconnectInput, update: UserUpdateInput, where: UserWhere): UpdateUsersMutationResponse!
-}
-
-"Pagination information (Relay)"
-type PageInfo {
-  endCursor: String
-  hasNextPage: Boolean!
-  hasPreviousPage: Boolean!
-  startCursor: String
-}
-
-type Post {
-  content: String @deprecated(reason : "Do not use post.content")
-}
-
-type PostAggregateSelection {
-  content: StringAggregateSelectionNullable!
-  count: Int!
-}
-
-type PostEdge {
-  cursor: String!
-  node: Post!
-}
-
-type PostsConnection {
-  edges: [PostEdge!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type Query {
-  blogs(options: BlogOptions, where: BlogWhere): [Blog!]!
-  blogsAggregate(where: BlogWhere): BlogAggregateSelection!
-  blogsConnection(after: String, first: Int, sort: [BlogSort], where: BlogWhere): BlogsConnection!
-  contents(options: QueryOptions, where: ContentWhere): [Content!]!
-  posts(options: PostOptions, where: PostWhere): [Post!]!
-  postsAggregate(where: PostWhere): PostAggregateSelection!
-  postsConnection(after: String, first: Int, sort: [PostSort], where: PostWhere): PostsConnection!
-  users(options: UserOptions, where: UserWhere): [User!]!
-  usersAggregate(where: UserWhere): UserAggregateSelection!
-  usersConnection(after: String, first: Int, sort: [UserSort], where: UserWhere): UsersConnection!
-}
-
-type StringAggregateSelectionNullable {
-  longest: String
-  shortest: String
-}
-
-type UpdateBlogsMutationResponse {
-  blogs: [Blog!]!
-  info: UpdateInfo!
-}
-
-"Information about the number of nodes and relationships created and deleted during an update mutation"
-type UpdateInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
-  nodesCreated: Int!
-  nodesDeleted: Int!
-  relationshipsCreated: Int!
-  relationshipsDeleted: Int!
-}
-
-type UpdatePostsMutationResponse {
-  info: UpdateInfo!
-  posts: [Post!]!
-}
-
-type UpdateUsersMutationResponse {
-  info: UpdateInfo!
-  users: [User!]!
-}
-
-type User {
-  content(directed: Boolean = true, options: QueryOptions, where: ContentWhere): [Content!]! @deprecated(reason : "Do not use user.content")
-  contentConnection(after: String, directed: Boolean = true, first: Int, where: UserContentConnectionWhere): UserContentConnection! @deprecated(reason : "Do not use user.content")
-  name: String
-}
-
-type UserAggregateSelection {
-  count: Int!
-  name: StringAggregateSelectionNullable!
-}
-
-type UserContentConnection {
-  edges: [UserContentRelationship!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type UserContentRelationship {
-  cursor: String!
-  node: Content!
-}
-
-type UserEdge {
-  cursor: String!
-  node: User!
-}
-
-type UsersConnection {
-  edges: [UserEdge!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-"An enum for sorting in either ascending or descending order."
-enum SortDirection {
-  "Sort by field values in ascending order."
-  ASC
-  "Sort by field values in descending order."
-  DESC
+  title: StringAggregateSelection!
 }
 
 input BlogConnectInput {
@@ -261,11 +66,27 @@ input BlogDisconnectInput {
   posts: [BlogPostsDisconnectFieldInput!]
 }
 
+type BlogEdge {
+  cursor: String!
+  node: Blog!
+}
+
 input BlogOptions {
   limit: Int
   offset: Int
-  "Specify one or more BlogSort objects to sort Blogs by. The sorts will be applied in the order in which they are arranged in the array."
+  """
+  Specify one or more BlogSort objects to sort Blogs by. The sorts will be applied in the order in which they are arranged in the array.
+  """
   sort: [BlogSort!]
+}
+
+type BlogPostPostsAggregationSelection {
+  count: Int!
+  node: BlogPostPostsNodeAggregateSelection
+}
+
+type BlogPostPostsNodeAggregateSelection {
+  content: StringAggregateSelection!
 }
 
 input BlogPostsAggregateInput {
@@ -281,9 +102,17 @@ input BlogPostsAggregateInput {
 }
 
 input BlogPostsConnectFieldInput {
-  "Whether or not to overwrite any matching relationship with the new properties."
+  """
+  Whether or not to overwrite any matching relationship with the new properties.
+  """
   overwrite: Boolean! = true
   where: PostConnectWhere
+}
+
+type BlogPostsConnection {
+  edges: [BlogPostsRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
 }
 
 input BlogPostsConnectionSort {
@@ -295,7 +124,7 @@ input BlogPostsConnectionWhere {
   NOT: BlogPostsConnectionWhere
   OR: [BlogPostsConnectionWhere!]
   node: PostWhere
-  node_NOT: PostWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  node_NOT: PostWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input BlogPostsCreateFieldInput {
@@ -319,41 +148,46 @@ input BlogPostsNodeAggregationWhereInput {
   AND: [BlogPostsNodeAggregationWhereInput!]
   NOT: BlogPostsNodeAggregationWhereInput
   OR: [BlogPostsNodeAggregationWhereInput!]
-  content_AVERAGE_EQUAL: Float @deprecated(reason : "Do not use post.content")
-  content_AVERAGE_GT: Float @deprecated(reason : "Do not use post.content")
-  content_AVERAGE_GTE: Float @deprecated(reason : "Do not use post.content")
-  content_AVERAGE_LENGTH_EQUAL: Float @deprecated(reason : "Do not use post.content")
-  content_AVERAGE_LENGTH_GT: Float @deprecated(reason : "Do not use post.content")
-  content_AVERAGE_LENGTH_GTE: Float @deprecated(reason : "Do not use post.content")
-  content_AVERAGE_LENGTH_LT: Float @deprecated(reason : "Do not use post.content")
-  content_AVERAGE_LENGTH_LTE: Float @deprecated(reason : "Do not use post.content")
-  content_AVERAGE_LT: Float @deprecated(reason : "Do not use post.content")
-  content_AVERAGE_LTE: Float @deprecated(reason : "Do not use post.content")
-  content_EQUAL: String @deprecated(reason : "Do not use post.content")
-  content_GT: Int @deprecated(reason : "Do not use post.content")
-  content_GTE: Int @deprecated(reason : "Do not use post.content")
-  content_LONGEST_EQUAL: Int @deprecated(reason : "Do not use post.content")
-  content_LONGEST_GT: Int @deprecated(reason : "Do not use post.content")
-  content_LONGEST_GTE: Int @deprecated(reason : "Do not use post.content")
-  content_LONGEST_LENGTH_EQUAL: Int @deprecated(reason : "Do not use post.content")
-  content_LONGEST_LENGTH_GT: Int @deprecated(reason : "Do not use post.content")
-  content_LONGEST_LENGTH_GTE: Int @deprecated(reason : "Do not use post.content")
-  content_LONGEST_LENGTH_LT: Int @deprecated(reason : "Do not use post.content")
-  content_LONGEST_LENGTH_LTE: Int @deprecated(reason : "Do not use post.content")
-  content_LONGEST_LT: Int @deprecated(reason : "Do not use post.content")
-  content_LONGEST_LTE: Int @deprecated(reason : "Do not use post.content")
-  content_LT: Int @deprecated(reason : "Do not use post.content")
-  content_LTE: Int @deprecated(reason : "Do not use post.content")
-  content_SHORTEST_EQUAL: Int @deprecated(reason : "Do not use post.content")
-  content_SHORTEST_GT: Int @deprecated(reason : "Do not use post.content")
-  content_SHORTEST_GTE: Int @deprecated(reason : "Do not use post.content")
-  content_SHORTEST_LENGTH_EQUAL: Int @deprecated(reason : "Do not use post.content")
-  content_SHORTEST_LENGTH_GT: Int @deprecated(reason : "Do not use post.content")
-  content_SHORTEST_LENGTH_GTE: Int @deprecated(reason : "Do not use post.content")
-  content_SHORTEST_LENGTH_LT: Int @deprecated(reason : "Do not use post.content")
-  content_SHORTEST_LENGTH_LTE: Int @deprecated(reason : "Do not use post.content")
-  content_SHORTEST_LT: Int @deprecated(reason : "Do not use post.content")
-  content_SHORTEST_LTE: Int @deprecated(reason : "Do not use post.content")
+  content_AVERAGE_EQUAL: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  content_AVERAGE_GT: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  content_AVERAGE_GTE: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  content_AVERAGE_LENGTH_EQUAL: Float @deprecated(reason: "Do not use post.content")
+  content_AVERAGE_LENGTH_GT: Float @deprecated(reason: "Do not use post.content")
+  content_AVERAGE_LENGTH_GTE: Float @deprecated(reason: "Do not use post.content")
+  content_AVERAGE_LENGTH_LT: Float @deprecated(reason: "Do not use post.content")
+  content_AVERAGE_LENGTH_LTE: Float @deprecated(reason: "Do not use post.content")
+  content_AVERAGE_LT: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  content_AVERAGE_LTE: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  content_EQUAL: String @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  content_GT: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  content_GTE: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  content_LONGEST_EQUAL: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  content_LONGEST_GT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  content_LONGEST_GTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  content_LONGEST_LENGTH_EQUAL: Int @deprecated(reason: "Do not use post.content")
+  content_LONGEST_LENGTH_GT: Int @deprecated(reason: "Do not use post.content")
+  content_LONGEST_LENGTH_GTE: Int @deprecated(reason: "Do not use post.content")
+  content_LONGEST_LENGTH_LT: Int @deprecated(reason: "Do not use post.content")
+  content_LONGEST_LENGTH_LTE: Int @deprecated(reason: "Do not use post.content")
+  content_LONGEST_LT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  content_LONGEST_LTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  content_LT: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  content_LTE: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  content_SHORTEST_EQUAL: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  content_SHORTEST_GT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  content_SHORTEST_GTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  content_SHORTEST_LENGTH_EQUAL: Int @deprecated(reason: "Do not use post.content")
+  content_SHORTEST_LENGTH_GT: Int @deprecated(reason: "Do not use post.content")
+  content_SHORTEST_LENGTH_GTE: Int @deprecated(reason: "Do not use post.content")
+  content_SHORTEST_LENGTH_LT: Int @deprecated(reason: "Do not use post.content")
+  content_SHORTEST_LENGTH_LTE: Int @deprecated(reason: "Do not use post.content")
+  content_SHORTEST_LT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  content_SHORTEST_LTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+}
+
+type BlogPostsRelationship {
+  cursor: String!
+  node: Post!
 }
 
 input BlogPostsUpdateConnectionInput {
@@ -373,7 +207,9 @@ input BlogRelationInput {
   posts: [BlogPostsCreateFieldInput!]
 }
 
-"Fields to sort Blogs by. The order in which sorts are applied is not guaranteed when specifying many fields in one BlogSort object."
+"""
+Fields to sort Blogs by. The order in which sorts are applied is not guaranteed when specifying many fields in one BlogSort object.
+"""
 input BlogSort {
   title: SortDirection
 }
@@ -387,42 +223,120 @@ input BlogWhere {
   AND: [BlogWhere!]
   NOT: BlogWhere
   OR: [BlogWhere!]
-  posts: PostWhere @deprecated(reason : "Use `posts_SOME` instead.")
+  posts: PostWhere @deprecated(reason: "Use `posts_SOME` instead.")
   postsAggregate: BlogPostsAggregateInput
-  postsConnection: BlogPostsConnectionWhere @deprecated(reason : "Use `postsConnection_SOME` instead.")
-  "Return Blogs where all of the related BlogPostsConnections match this filter"
+  postsConnection: BlogPostsConnectionWhere @deprecated(reason: "Use `postsConnection_SOME` instead.")
+  """
+  Return Blogs where all of the related BlogPostsConnections match this filter
+  """
   postsConnection_ALL: BlogPostsConnectionWhere
-  "Return Blogs where none of the related BlogPostsConnections match this filter"
+  """
+  Return Blogs where none of the related BlogPostsConnections match this filter
+  """
   postsConnection_NONE: BlogPostsConnectionWhere
-  postsConnection_NOT: BlogPostsConnectionWhere @deprecated(reason : "Use `postsConnection_NONE` instead.")
-  "Return Blogs where one of the related BlogPostsConnections match this filter"
+  postsConnection_NOT: BlogPostsConnectionWhere @deprecated(reason: "Use `postsConnection_NONE` instead.")
+  """
+  Return Blogs where one of the related BlogPostsConnections match this filter
+  """
   postsConnection_SINGLE: BlogPostsConnectionWhere
-  "Return Blogs where some of the related BlogPostsConnections match this filter"
+  """
+  Return Blogs where some of the related BlogPostsConnections match this filter
+  """
   postsConnection_SOME: BlogPostsConnectionWhere
-  "Return Blogs where all of the related Posts match this filter"
+  """Return Blogs where all of the related Posts match this filter"""
   posts_ALL: PostWhere
-  "Return Blogs where none of the related Posts match this filter"
+  """Return Blogs where none of the related Posts match this filter"""
   posts_NONE: PostWhere
-  posts_NOT: PostWhere @deprecated(reason : "Use `posts_NONE` instead.")
-  "Return Blogs where one of the related Posts match this filter"
+  posts_NOT: PostWhere @deprecated(reason: "Use `posts_NONE` instead.")
+  """Return Blogs where one of the related Posts match this filter"""
   posts_SINGLE: PostWhere
-  "Return Blogs where some of the related Posts match this filter"
+  """Return Blogs where some of the related Posts match this filter"""
   posts_SOME: PostWhere
   title: String
   title_CONTAINS: String
   title_ENDS_WITH: String
   title_IN: [String]
-  title_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_IN: [String] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_IN: [String] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   title_STARTS_WITH: String
 }
+
+type BlogsConnection {
+  edges: [BlogEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+union Content = Blog | Post
 
 input ContentWhere {
   Blog: BlogWhere
   Post: PostWhere
+}
+
+type CreateBlogsMutationResponse {
+  blogs: [Blog!]!
+  info: CreateInfo!
+}
+
+"""
+Information about the number of nodes and relationships created during a create mutation
+"""
+type CreateInfo {
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesCreated: Int!
+  relationshipsCreated: Int!
+}
+
+type CreatePostsMutationResponse {
+  info: CreateInfo!
+  posts: [Post!]!
+}
+
+type CreateUsersMutationResponse {
+  info: CreateInfo!
+  users: [User!]!
+}
+
+"""
+Information about the number of nodes and relationships deleted during a delete mutation
+"""
+type DeleteInfo {
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
+type Mutation {
+  createBlogs(input: [BlogCreateInput!]!): CreateBlogsMutationResponse!
+  createPosts(input: [PostCreateInput!]!): CreatePostsMutationResponse!
+  createUsers(input: [UserCreateInput!]!): CreateUsersMutationResponse!
+  deleteBlogs(delete: BlogDeleteInput, where: BlogWhere): DeleteInfo!
+  deletePosts(where: PostWhere): DeleteInfo!
+  deleteUsers(delete: UserDeleteInput, where: UserWhere): DeleteInfo!
+  updateBlogs(connect: BlogConnectInput, create: BlogRelationInput, delete: BlogDeleteInput, disconnect: BlogDisconnectInput, update: BlogUpdateInput, where: BlogWhere): UpdateBlogsMutationResponse!
+  updatePosts(update: PostUpdateInput, where: PostWhere): UpdatePostsMutationResponse!
+  updateUsers(connect: UserConnectInput, create: UserRelationInput, delete: UserDeleteInput, disconnect: UserDisconnectInput, update: UserUpdateInput, where: UserWhere): UpdateUsersMutationResponse!
+}
+
+"""Pagination information (Relay)"""
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Post {
+  content: String @deprecated(reason: "Do not use post.content")
+}
+
+type PostAggregateSelection {
+  content: StringAggregateSelection!
+  count: Int!
 }
 
 input PostConnectWhere {
@@ -430,49 +344,127 @@ input PostConnectWhere {
 }
 
 input PostCreateInput {
-  content: String @deprecated(reason : "Do not use post.content")
+  content: String @deprecated(reason: "Do not use post.content")
+}
+
+type PostEdge {
+  cursor: String!
+  node: Post!
 }
 
 input PostOptions {
   limit: Int
   offset: Int
-  "Specify one or more PostSort objects to sort Posts by. The sorts will be applied in the order in which they are arranged in the array."
+  """
+  Specify one or more PostSort objects to sort Posts by. The sorts will be applied in the order in which they are arranged in the array.
+  """
   sort: [PostSort!]
 }
 
-"Fields to sort Posts by. The order in which sorts are applied is not guaranteed when specifying many fields in one PostSort object."
+"""
+Fields to sort Posts by. The order in which sorts are applied is not guaranteed when specifying many fields in one PostSort object.
+"""
 input PostSort {
-  content: SortDirection @deprecated(reason : "Do not use post.content")
+  content: SortDirection @deprecated(reason: "Do not use post.content")
 }
 
 input PostUpdateInput {
-  content: String @deprecated(reason : "Do not use post.content")
+  content: String @deprecated(reason: "Do not use post.content")
 }
 
 input PostWhere {
   AND: [PostWhere!]
   NOT: PostWhere
   OR: [PostWhere!]
-  content: String @deprecated(reason : "Do not use post.content")
-  content_CONTAINS: String @deprecated(reason : "Do not use post.content")
-  content_ENDS_WITH: String @deprecated(reason : "Do not use post.content")
-  content_IN: [String] @deprecated(reason : "Do not use post.content")
-  content_NOT: String @deprecated(reason : "Do not use post.content")
-  content_NOT_CONTAINS: String @deprecated(reason : "Do not use post.content")
-  content_NOT_ENDS_WITH: String @deprecated(reason : "Do not use post.content")
-  content_NOT_IN: [String] @deprecated(reason : "Do not use post.content")
-  content_NOT_STARTS_WITH: String @deprecated(reason : "Do not use post.content")
-  content_STARTS_WITH: String @deprecated(reason : "Do not use post.content")
+  content: String @deprecated(reason: "Do not use post.content")
+  content_CONTAINS: String @deprecated(reason: "Do not use post.content")
+  content_ENDS_WITH: String @deprecated(reason: "Do not use post.content")
+  content_IN: [String] @deprecated(reason: "Do not use post.content")
+  content_NOT: String @deprecated(reason: "Do not use post.content")
+  content_NOT_CONTAINS: String @deprecated(reason: "Do not use post.content")
+  content_NOT_ENDS_WITH: String @deprecated(reason: "Do not use post.content")
+  content_NOT_IN: [String] @deprecated(reason: "Do not use post.content")
+  content_NOT_STARTS_WITH: String @deprecated(reason: "Do not use post.content")
+  content_STARTS_WITH: String @deprecated(reason: "Do not use post.content")
 }
 
-"Input type for options that can be specified on a query operation."
+type PostsConnection {
+  edges: [PostEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Query {
+  blogs(options: BlogOptions, where: BlogWhere): [Blog!]!
+  blogsAggregate(where: BlogWhere): BlogAggregateSelection!
+  blogsConnection(after: String, first: Int, sort: [BlogSort], where: BlogWhere): BlogsConnection!
+  contents(options: QueryOptions, where: ContentWhere): [Content!]!
+  posts(options: PostOptions, where: PostWhere): [Post!]!
+  postsAggregate(where: PostWhere): PostAggregateSelection!
+  postsConnection(after: String, first: Int, sort: [PostSort], where: PostWhere): PostsConnection!
+  users(options: UserOptions, where: UserWhere): [User!]!
+  usersAggregate(where: UserWhere): UserAggregateSelection!
+  usersConnection(after: String, first: Int, sort: [UserSort], where: UserWhere): UsersConnection!
+}
+
+"""Input type for options that can be specified on a query operation."""
 input QueryOptions {
   limit: Int
   offset: Int
 }
 
+"""An enum for sorting in either ascending or descending order."""
+enum SortDirection {
+  """Sort by field values in ascending order."""
+  ASC
+  """Sort by field values in descending order."""
+  DESC
+}
+
+type StringAggregateSelection {
+  longest: String
+  shortest: String
+}
+
+type UpdateBlogsMutationResponse {
+  blogs: [Blog!]!
+  info: UpdateInfo!
+}
+
+"""
+Information about the number of nodes and relationships created and deleted during an update mutation
+"""
+type UpdateInfo {
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesCreated: Int!
+  nodesDeleted: Int!
+  relationshipsCreated: Int!
+  relationshipsDeleted: Int!
+}
+
+type UpdatePostsMutationResponse {
+  info: UpdateInfo!
+  posts: [Post!]!
+}
+
+type UpdateUsersMutationResponse {
+  info: UpdateInfo!
+  users: [User!]!
+}
+
+type User {
+  content(directed: Boolean = true, options: QueryOptions, where: ContentWhere): [Content!]! @deprecated(reason: "Do not use user.content")
+  contentConnection(after: String, directed: Boolean = true, first: Int, where: UserContentConnectionWhere): UserContentConnection! @deprecated(reason: "Do not use user.content")
+  name: String
+}
+
+type UserAggregateSelection {
+  count: Int!
+  name: StringAggregateSelection!
+}
+
 input UserConnectInput {
-  content: UserContentConnectInput @deprecated(reason : "Do not use user.content")
+  content: UserContentConnectInput @deprecated(reason: "Do not use user.content")
 }
 
 input UserContentBlogConnectFieldInput {
@@ -485,7 +477,7 @@ input UserContentBlogConnectionWhere {
   NOT: UserContentBlogConnectionWhere
   OR: [UserContentBlogConnectionWhere!]
   node: BlogWhere
-  node_NOT: BlogWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  node_NOT: BlogWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input UserContentBlogCreateFieldInput {
@@ -521,8 +513,14 @@ input UserContentBlogUpdateFieldInput {
 }
 
 input UserContentConnectInput {
-  Blog: [UserContentBlogConnectFieldInput!]
-  Post: [UserContentPostConnectFieldInput!]
+  Blog: [UserContentBlogConnectFieldInput!] @deprecated(reason: "Do not use user.content")
+  Post: [UserContentPostConnectFieldInput!] @deprecated(reason: "Do not use user.content")
+}
+
+type UserContentConnection {
+  edges: [UserContentRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
 }
 
 input UserContentConnectionWhere {
@@ -531,23 +529,23 @@ input UserContentConnectionWhere {
 }
 
 input UserContentCreateFieldInput {
-  Blog: [UserContentBlogCreateFieldInput!]
-  Post: [UserContentPostCreateFieldInput!]
+  Blog: [UserContentBlogCreateFieldInput!] @deprecated(reason: "Do not use user.content")
+  Post: [UserContentPostCreateFieldInput!] @deprecated(reason: "Do not use user.content")
 }
 
 input UserContentCreateInput {
-  Blog: UserContentBlogFieldInput
-  Post: UserContentPostFieldInput
+  Blog: UserContentBlogFieldInput @deprecated(reason: "Do not use user.content")
+  Post: UserContentPostFieldInput @deprecated(reason: "Do not use user.content")
 }
 
 input UserContentDeleteInput {
-  Blog: [UserContentBlogDeleteFieldInput!]
-  Post: [UserContentPostDeleteFieldInput!]
+  Blog: [UserContentBlogDeleteFieldInput!] @deprecated(reason: "Do not use user.content")
+  Post: [UserContentPostDeleteFieldInput!] @deprecated(reason: "Do not use user.content")
 }
 
 input UserContentDisconnectInput {
-  Blog: [UserContentBlogDisconnectFieldInput!]
-  Post: [UserContentPostDisconnectFieldInput!]
+  Blog: [UserContentBlogDisconnectFieldInput!] @deprecated(reason: "Do not use user.content")
+  Post: [UserContentPostDisconnectFieldInput!] @deprecated(reason: "Do not use user.content")
 }
 
 input UserContentPostConnectFieldInput {
@@ -559,7 +557,7 @@ input UserContentPostConnectionWhere {
   NOT: UserContentPostConnectionWhere
   OR: [UserContentPostConnectionWhere!]
   node: PostWhere
-  node_NOT: PostWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  node_NOT: PostWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input UserContentPostCreateFieldInput {
@@ -592,42 +590,56 @@ input UserContentPostUpdateFieldInput {
   where: UserContentPostConnectionWhere
 }
 
+type UserContentRelationship {
+  cursor: String!
+  node: Content!
+}
+
 input UserContentUpdateInput {
-  Blog: [UserContentBlogUpdateFieldInput!]
-  Post: [UserContentPostUpdateFieldInput!]
+  Blog: [UserContentBlogUpdateFieldInput!] @deprecated(reason: "Do not use user.content")
+  Post: [UserContentPostUpdateFieldInput!] @deprecated(reason: "Do not use user.content")
 }
 
 input UserCreateInput {
-  content: UserContentCreateInput @deprecated(reason : "Do not use user.content")
+  content: UserContentCreateInput @deprecated(reason: "Do not use user.content")
   name: String
 }
 
 input UserDeleteInput {
-  content: UserContentDeleteInput @deprecated(reason : "Do not use user.content")
+  content: UserContentDeleteInput @deprecated(reason: "Do not use user.content")
 }
 
 input UserDisconnectInput {
-  content: UserContentDisconnectInput @deprecated(reason : "Do not use user.content")
+  content: UserContentDisconnectInput @deprecated(reason: "Do not use user.content")
+}
+
+type UserEdge {
+  cursor: String!
+  node: User!
 }
 
 input UserOptions {
   limit: Int
   offset: Int
-  "Specify one or more UserSort objects to sort Users by. The sorts will be applied in the order in which they are arranged in the array."
+  """
+  Specify one or more UserSort objects to sort Users by. The sorts will be applied in the order in which they are arranged in the array.
+  """
   sort: [UserSort!]
 }
 
 input UserRelationInput {
-  content: UserContentCreateFieldInput @deprecated(reason : "Do not use user.content")
+  content: UserContentCreateFieldInput @deprecated(reason: "Do not use user.content")
 }
 
-"Fields to sort Users by. The order in which sorts are applied is not guaranteed when specifying many fields in one UserSort object."
+"""
+Fields to sort Users by. The order in which sorts are applied is not guaranteed when specifying many fields in one UserSort object.
+"""
 input UserSort {
   name: SortDirection
 }
 
 input UserUpdateInput {
-  content: UserContentUpdateInput @deprecated(reason : "Do not use user.content")
+  content: UserContentUpdateInput @deprecated(reason: "Do not use user.content")
   name: String
 }
 
@@ -635,38 +647,51 @@ input UserWhere {
   AND: [UserWhere!]
   NOT: UserWhere
   OR: [UserWhere!]
-  content: ContentWhere @deprecated(reason : "Do not use user.content")
-  contentConnection: UserContentConnectionWhere @deprecated(reason : "Do not use user.content")
-  "Return Users where all of the related UserContentConnections match this filter"
-  contentConnection_ALL: UserContentConnectionWhere @deprecated(reason : "Do not use user.content")
-  "Return Users where none of the related UserContentConnections match this filter"
-  contentConnection_NONE: UserContentConnectionWhere @deprecated(reason : "Do not use user.content")
-  contentConnection_NOT: UserContentConnectionWhere @deprecated(reason : "Do not use user.content")
-  "Return Users where one of the related UserContentConnections match this filter"
-  contentConnection_SINGLE: UserContentConnectionWhere @deprecated(reason : "Do not use user.content")
-  "Return Users where some of the related UserContentConnections match this filter"
-  contentConnection_SOME: UserContentConnectionWhere @deprecated(reason : "Do not use user.content")
-  "Return Users where all of the related Contents match this filter"
-  content_ALL: ContentWhere @deprecated(reason : "Do not use user.content")
-  "Return Users where none of the related Contents match this filter"
-  content_NONE: ContentWhere @deprecated(reason : "Do not use user.content")
-  content_NOT: ContentWhere @deprecated(reason : "Do not use user.content")
-  "Return Users where one of the related Contents match this filter"
-  content_SINGLE: ContentWhere @deprecated(reason : "Do not use user.content")
-  "Return Users where some of the related Contents match this filter"
-  content_SOME: ContentWhere @deprecated(reason : "Do not use user.content")
+  content: ContentWhere @deprecated(reason: "Use `content_SOME` instead.")
+  contentConnection: UserContentConnectionWhere @deprecated(reason: "Use `contentConnection_SOME` instead.")
+  """
+  Return Users where all of the related UserContentConnections match this filter
+  """
+  contentConnection_ALL: UserContentConnectionWhere @deprecated(reason: "Do not use user.content")
+  """
+  Return Users where none of the related UserContentConnections match this filter
+  """
+  contentConnection_NONE: UserContentConnectionWhere @deprecated(reason: "Do not use user.content")
+  contentConnection_NOT: UserContentConnectionWhere @deprecated(reason: "Use `contentConnection_NONE` instead.")
+  """
+  Return Users where one of the related UserContentConnections match this filter
+  """
+  contentConnection_SINGLE: UserContentConnectionWhere @deprecated(reason: "Do not use user.content")
+  """
+  Return Users where some of the related UserContentConnections match this filter
+  """
+  contentConnection_SOME: UserContentConnectionWhere @deprecated(reason: "Do not use user.content")
+  """Return Users where all of the related Contents match this filter"""
+  content_ALL: ContentWhere @deprecated(reason: "Do not use user.content")
+  """Return Users where none of the related Contents match this filter"""
+  content_NONE: ContentWhere @deprecated(reason: "Do not use user.content")
+  content_NOT: ContentWhere @deprecated(reason: "Use `content_NONE` instead.")
+  """Return Users where one of the related Contents match this filter"""
+  content_SINGLE: ContentWhere @deprecated(reason: "Do not use user.content")
+  """Return Users where some of the related Contents match this filter"""
+  content_SOME: ContentWhere @deprecated(reason: "Do not use user.content")
   name: String
   name_CONTAINS: String
   name_ENDS_WITH: String
   name_IN: [String]
-  name_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_IN: [String] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_IN: [String] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   name_STARTS_WITH: String
 }
 
+type UsersConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
 ----
 
 '''

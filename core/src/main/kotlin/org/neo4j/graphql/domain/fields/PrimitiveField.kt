@@ -6,7 +6,6 @@ import org.neo4j.graphql.domain.TypeMeta
 import org.neo4j.graphql.domain.directives.FieldAnnotations
 import org.neo4j.graphql.domain.directives.PopulatedByDirective
 import org.neo4j.graphql.domain.predicates.definitions.AggregationPredicateDefinition
-import org.neo4j.graphql.isRequired
 import org.neo4j.graphql.name
 
 /**
@@ -38,8 +37,5 @@ open class PrimitiveField(
         AggregationPredicateDefinition.create(this)
     }
 
-    fun getAggregationSelectionLibraryTypeName(): String {
-        val suffix = if (typeMeta.type.isRequired()) "NonNullable" else "Nullable"
-        return "${typeMeta.type.name()}AggregateSelection$suffix"
-    }
+    fun getAggregationSelectionLibraryTypeName(): String = "${typeMeta.type.name()}AggregateSelection"
 }

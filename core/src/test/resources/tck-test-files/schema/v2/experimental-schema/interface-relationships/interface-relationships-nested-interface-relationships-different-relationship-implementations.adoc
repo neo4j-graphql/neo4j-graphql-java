@@ -1,0 +1,1222 @@
+:toc:
+
+= Interface Relationships -> Interface Relationships - nested interface relationships - different relationship implementations
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+interface Interface1 {
+  field1: String!
+  interface2: [Interface2!]! @declareRelationship
+}
+
+interface Interface2 {
+  field2: String
+}
+
+type Type1Interface1 implements Interface1 {
+  field1: String!
+  interface2: [Interface2!]! @relationship(type: "INTERFACE_TWO", direction: OUT, properties: "Type1Props")
+}
+
+type Type2Interface1 implements Interface1 {
+  field1: String!
+  interface2: [Interface2!]! @relationship(type: "INTERFACE_TWO", direction: OUT, properties: "Type2Props")
+}
+
+type Type1Interface2 implements Interface2 {
+  field2: String!
+}
+
+type Type2Interface2 implements Interface2 {
+  field2: String!
+}
+
+type Type1 {
+  field1: String!
+  interface1: [Interface1!]! @relationship(type: "INTERFACE_ONE", direction: OUT)
+}
+
+type Type1Props @relationshipProperties {
+  type1Field: Int!
+}
+
+type Type2Props @relationshipProperties {
+  type2Field: Int!
+}
+----
+
+== Augmented schema
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+"""
+Information about the number of nodes and relationships created during a create mutation
+"""
+type CreateInfo {
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesCreated: Int!
+  relationshipsCreated: Int!
+}
+
+type CreateType1Interface1sMutationResponse {
+  info: CreateInfo!
+  type1Interface1s: [Type1Interface1!]!
+}
+
+type CreateType1Interface2sMutationResponse {
+  info: CreateInfo!
+  type1Interface2s: [Type1Interface2!]!
+}
+
+type CreateType1sMutationResponse {
+  info: CreateInfo!
+  type1s: [Type1!]!
+}
+
+type CreateType2Interface1sMutationResponse {
+  info: CreateInfo!
+  type2Interface1s: [Type2Interface1!]!
+}
+
+type CreateType2Interface2sMutationResponse {
+  info: CreateInfo!
+  type2Interface2s: [Type2Interface2!]!
+}
+
+"""
+Information about the number of nodes and relationships deleted during a delete mutation
+"""
+type DeleteInfo {
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
+type IntAggregateSelection {
+  average: Float
+  max: Int
+  min: Int
+  sum: Int
+}
+
+interface Interface1 {
+  field1: String!
+  interface2(options: Interface2Options, where: Interface2Where): [Interface2!]!
+  interface2Connection(after: String, first: Int, sort: [Interface1Interface2ConnectionSort!], where: Interface1Interface2ConnectionWhere): Interface1Interface2Connection!
+}
+
+type Interface1AggregateSelection {
+  count: Int!
+  field1: StringAggregateSelection!
+}
+
+input Interface1ConnectInput {
+  interface2: [Interface1Interface2ConnectFieldInput!]
+}
+
+input Interface1ConnectWhere {
+  node: Interface1Where!
+}
+
+input Interface1CreateInput {
+  Type1Interface1: Type1Interface1CreateInput
+  Type2Interface1: Type2Interface1CreateInput
+}
+
+input Interface1DeleteInput {
+  interface2: [Interface1Interface2DeleteFieldInput!]
+}
+
+input Interface1DisconnectInput {
+  interface2: [Interface1Interface2DisconnectFieldInput!]
+}
+
+type Interface1Edge {
+  cursor: String!
+  node: Interface1!
+}
+
+enum Interface1Implementation {
+  Type1Interface1
+  Type2Interface1
+}
+
+input Interface1Interface2ConnectFieldInput {
+  edge: Interface1Interface2EdgeCreateInput!
+  where: Interface2ConnectWhere
+}
+
+type Interface1Interface2Connection {
+  edges: [Interface1Interface2Relationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+input Interface1Interface2ConnectionSort {
+  edge: Interface1Interface2EdgeSort
+  node: Interface2Sort
+}
+
+input Interface1Interface2ConnectionWhere {
+  AND: [Interface1Interface2ConnectionWhere!]
+  NOT: Interface1Interface2ConnectionWhere
+  OR: [Interface1Interface2ConnectionWhere!]
+  edge: Interface1Interface2EdgeWhere
+  edge_NOT: Interface1Interface2EdgeWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  node: Interface2Where
+  node_NOT: Interface2Where @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+}
+
+input Interface1Interface2CreateFieldInput {
+  edge: Interface1Interface2EdgeCreateInput!
+  node: Interface2CreateInput!
+}
+
+input Interface1Interface2DeleteFieldInput {
+  where: Interface1Interface2ConnectionWhere
+}
+
+input Interface1Interface2DisconnectFieldInput {
+  where: Interface1Interface2ConnectionWhere
+}
+
+input Interface1Interface2EdgeCreateInput {
+  """
+  Relationship properties when source node is of type:
+  * Type1Interface1
+  """
+  Type1Props: Type1PropsCreateInput!
+  """
+  Relationship properties when source node is of type:
+  * Type2Interface1
+  """
+  Type2Props: Type2PropsCreateInput!
+}
+
+input Interface1Interface2EdgeSort {
+  """
+  Relationship properties when source node is of type:
+  * Type1Interface1
+  """
+  Type1Props: Type1PropsSort
+  """
+  Relationship properties when source node is of type:
+  * Type2Interface1
+  """
+  Type2Props: Type2PropsSort
+}
+
+input Interface1Interface2EdgeUpdateInput {
+  """
+  Relationship properties when source node is of type:
+  * Type1Interface1
+  """
+  Type1Props: Type1PropsUpdateInput
+  """
+  Relationship properties when source node is of type:
+  * Type2Interface1
+  """
+  Type2Props: Type2PropsUpdateInput
+}
+
+input Interface1Interface2EdgeWhere {
+  """
+  Relationship properties when source node is of type:
+  * Type1Interface1
+  """
+  Type1Props: Type1PropsWhere
+  """
+  Relationship properties when source node is of type:
+  * Type2Interface1
+  """
+  Type2Props: Type2PropsWhere
+}
+
+type Interface1Interface2Relationship {
+  cursor: String!
+  node: Interface2!
+  properties: Interface1Interface2RelationshipProperties!
+}
+
+union Interface1Interface2RelationshipProperties = Type1Props | Type2Props
+
+input Interface1Interface2UpdateConnectionInput {
+  edge: Interface1Interface2EdgeUpdateInput
+  node: Interface2UpdateInput
+}
+
+input Interface1Interface2UpdateFieldInput {
+  connect: [Interface1Interface2ConnectFieldInput!]
+  create: [Interface1Interface2CreateFieldInput!]
+  delete: [Interface1Interface2DeleteFieldInput!]
+  disconnect: [Interface1Interface2DisconnectFieldInput!]
+  update: Interface1Interface2UpdateConnectionInput
+  where: Interface1Interface2ConnectionWhere
+}
+
+input Interface1Options {
+  limit: Int
+  offset: Int
+  """
+  Specify one or more Interface1Sort objects to sort Interface1s by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [Interface1Sort]
+}
+
+"""
+Fields to sort Interface1s by. The order in which sorts are applied is not guaranteed when specifying many fields in one Interface1Sort object.
+"""
+input Interface1Sort {
+  field1: SortDirection
+}
+
+input Interface1UpdateInput {
+  field1: String
+  interface2: [Interface1Interface2UpdateFieldInput!]
+}
+
+input Interface1Where {
+  AND: [Interface1Where!]
+  NOT: Interface1Where
+  OR: [Interface1Where!]
+  field1: String
+  field1_CONTAINS: String
+  field1_ENDS_WITH: String
+  field1_IN: [String!]
+  field1_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field1_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field1_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field1_NOT_IN: [String!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field1_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field1_STARTS_WITH: String
+  interface2: Interface2Where @deprecated(reason: "Use `interface2_SOME` instead.")
+  interface2Connection: Interface1Interface2ConnectionWhere @deprecated(reason: "Use `interface2Connection_SOME` instead.")
+  """
+  Return Interface1s where all of the related Interface1Interface2Connections match this filter
+  """
+  interface2Connection_ALL: Interface1Interface2ConnectionWhere
+  """
+  Return Interface1s where none of the related Interface1Interface2Connections match this filter
+  """
+  interface2Connection_NONE: Interface1Interface2ConnectionWhere
+  interface2Connection_NOT: Interface1Interface2ConnectionWhere @deprecated(reason: "Use `interface2Connection_NONE` instead.")
+  """
+  Return Interface1s where one of the related Interface1Interface2Connections match this filter
+  """
+  interface2Connection_SINGLE: Interface1Interface2ConnectionWhere
+  """
+  Return Interface1s where some of the related Interface1Interface2Connections match this filter
+  """
+  interface2Connection_SOME: Interface1Interface2ConnectionWhere
+  """
+  Return Interface1s where all of the related Interface2s match this filter
+  """
+  interface2_ALL: Interface2Where
+  """
+  Return Interface1s where none of the related Interface2s match this filter
+  """
+  interface2_NONE: Interface2Where
+  interface2_NOT: Interface2Where @deprecated(reason: "Use `interface2_NONE` instead.")
+  """
+  Return Interface1s where one of the related Interface2s match this filter
+  """
+  interface2_SINGLE: Interface2Where
+  """
+  Return Interface1s where some of the related Interface2s match this filter
+  """
+  interface2_SOME: Interface2Where
+  typename_IN: [Interface1Implementation!]
+}
+
+type Interface1sConnection {
+  edges: [Interface1Edge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+interface Interface2 {
+  field2: String
+}
+
+type Interface2AggregateSelection {
+  count: Int!
+  field2: StringAggregateSelection!
+}
+
+input Interface2ConnectWhere {
+  node: Interface2Where!
+}
+
+input Interface2CreateInput {
+  Type1Interface2: Type1Interface2CreateInput
+  Type2Interface2: Type2Interface2CreateInput
+}
+
+type Interface2Edge {
+  cursor: String!
+  node: Interface2!
+}
+
+enum Interface2Implementation {
+  Type1Interface2
+  Type2Interface2
+}
+
+input Interface2Options {
+  limit: Int
+  offset: Int
+  """
+  Specify one or more Interface2Sort objects to sort Interface2s by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [Interface2Sort]
+}
+
+"""
+Fields to sort Interface2s by. The order in which sorts are applied is not guaranteed when specifying many fields in one Interface2Sort object.
+"""
+input Interface2Sort {
+  field2: SortDirection
+}
+
+input Interface2UpdateInput {
+  field2: String
+}
+
+input Interface2Where {
+  AND: [Interface2Where!]
+  NOT: Interface2Where
+  OR: [Interface2Where!]
+  field2: String
+  field2_CONTAINS: String
+  field2_ENDS_WITH: String
+  field2_IN: [String]
+  field2_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field2_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field2_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field2_NOT_IN: [String] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field2_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field2_STARTS_WITH: String
+  typename_IN: [Interface2Implementation!]
+}
+
+type Interface2sConnection {
+  edges: [Interface2Edge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Mutation {
+  createType1Interface1s(input: [Type1Interface1CreateInput!]!): CreateType1Interface1sMutationResponse!
+  createType1Interface2s(input: [Type1Interface2CreateInput!]!): CreateType1Interface2sMutationResponse!
+  createType1s(input: [Type1CreateInput!]!): CreateType1sMutationResponse!
+  createType2Interface1s(input: [Type2Interface1CreateInput!]!): CreateType2Interface1sMutationResponse!
+  createType2Interface2s(input: [Type2Interface2CreateInput!]!): CreateType2Interface2sMutationResponse!
+  deleteType1Interface1s(delete: Type1Interface1DeleteInput, where: Type1Interface1Where): DeleteInfo!
+  deleteType1Interface2s(where: Type1Interface2Where): DeleteInfo!
+  deleteType1s(delete: Type1DeleteInput, where: Type1Where): DeleteInfo!
+  deleteType2Interface1s(delete: Type2Interface1DeleteInput, where: Type2Interface1Where): DeleteInfo!
+  deleteType2Interface2s(where: Type2Interface2Where): DeleteInfo!
+  updateType1Interface1s(connect: Type1Interface1ConnectInput, create: Type1Interface1RelationInput, delete: Type1Interface1DeleteInput, disconnect: Type1Interface1DisconnectInput, update: Type1Interface1UpdateInput, where: Type1Interface1Where): UpdateType1Interface1sMutationResponse!
+  updateType1Interface2s(update: Type1Interface2UpdateInput, where: Type1Interface2Where): UpdateType1Interface2sMutationResponse!
+  updateType1s(connect: Type1ConnectInput, create: Type1RelationInput, delete: Type1DeleteInput, disconnect: Type1DisconnectInput, update: Type1UpdateInput, where: Type1Where): UpdateType1sMutationResponse!
+  updateType2Interface1s(connect: Type2Interface1ConnectInput, create: Type2Interface1RelationInput, delete: Type2Interface1DeleteInput, disconnect: Type2Interface1DisconnectInput, update: Type2Interface1UpdateInput, where: Type2Interface1Where): UpdateType2Interface1sMutationResponse!
+  updateType2Interface2s(update: Type2Interface2UpdateInput, where: Type2Interface2Where): UpdateType2Interface2sMutationResponse!
+}
+
+"""Pagination information (Relay)"""
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  interface1s(options: Interface1Options, where: Interface1Where): [Interface1!]!
+  interface1sAggregate(where: Interface1Where): Interface1AggregateSelection!
+  interface1sConnection(after: String, first: Int, sort: [Interface1Sort], where: Interface1Where): Interface1sConnection!
+  interface2s(options: Interface2Options, where: Interface2Where): [Interface2!]!
+  interface2sAggregate(where: Interface2Where): Interface2AggregateSelection!
+  interface2sConnection(after: String, first: Int, sort: [Interface2Sort], where: Interface2Where): Interface2sConnection!
+  type1Interface1s(options: Type1Interface1Options, where: Type1Interface1Where): [Type1Interface1!]!
+  type1Interface1sAggregate(where: Type1Interface1Where): Type1Interface1AggregateSelection!
+  type1Interface1sConnection(after: String, first: Int, sort: [Type1Interface1Sort], where: Type1Interface1Where): Type1Interface1sConnection!
+  type1Interface2s(options: Type1Interface2Options, where: Type1Interface2Where): [Type1Interface2!]!
+  type1Interface2sAggregate(where: Type1Interface2Where): Type1Interface2AggregateSelection!
+  type1Interface2sConnection(after: String, first: Int, sort: [Type1Interface2Sort], where: Type1Interface2Where): Type1Interface2sConnection!
+  type1s(options: Type1Options, where: Type1Where): [Type1!]!
+  type1sAggregate(where: Type1Where): Type1AggregateSelection!
+  type1sConnection(after: String, first: Int, sort: [Type1Sort], where: Type1Where): Type1sConnection!
+  type2Interface1s(options: Type2Interface1Options, where: Type2Interface1Where): [Type2Interface1!]!
+  type2Interface1sAggregate(where: Type2Interface1Where): Type2Interface1AggregateSelection!
+  type2Interface1sConnection(after: String, first: Int, sort: [Type2Interface1Sort], where: Type2Interface1Where): Type2Interface1sConnection!
+  type2Interface2s(options: Type2Interface2Options, where: Type2Interface2Where): [Type2Interface2!]!
+  type2Interface2sAggregate(where: Type2Interface2Where): Type2Interface2AggregateSelection!
+  type2Interface2sConnection(after: String, first: Int, sort: [Type2Interface2Sort], where: Type2Interface2Where): Type2Interface2sConnection!
+}
+
+"""An enum for sorting in either ascending or descending order."""
+enum SortDirection {
+  """Sort by field values in ascending order."""
+  ASC
+  """Sort by field values in descending order."""
+  DESC
+}
+
+type StringAggregateSelection {
+  longest: String
+  shortest: String
+}
+
+type Type1 {
+  field1: String!
+  interface1(directed: Boolean = true, options: Interface1Options, where: Interface1Where): [Interface1!]!
+  interface1Aggregate(directed: Boolean = true, where: Interface1Where): Type1Interface1Interface1AggregationSelection
+  interface1Connection(after: String, directed: Boolean = true, first: Int, sort: [Type1Interface1ConnectionSort!], where: Type1Interface1ConnectionWhere): Type1Interface1Connection!
+}
+
+type Type1AggregateSelection {
+  count: Int!
+  field1: StringAggregateSelection!
+}
+
+input Type1ConnectInput {
+  interface1: [Type1Interface1ConnectFieldInput!]
+}
+
+input Type1CreateInput {
+  field1: String!
+  interface1: Type1Interface1FieldInput
+}
+
+input Type1DeleteInput {
+  interface1: [Type1Interface1DeleteFieldInput!]
+}
+
+input Type1DisconnectInput {
+  interface1: [Type1Interface1DisconnectFieldInput!]
+}
+
+type Type1Edge {
+  cursor: String!
+  node: Type1!
+}
+
+type Type1Interface1 implements Interface1 {
+  field1: String!
+  interface2(directed: Boolean = true, options: Interface2Options, where: Interface2Where): [Interface2!]!
+  interface2Aggregate(directed: Boolean = true, where: Interface2Where): Type1Interface1Interface2Interface2AggregationSelection
+  interface2Connection(after: String, directed: Boolean = true, first: Int, sort: [Interface1Interface2ConnectionSort!], where: Interface1Interface2ConnectionWhere): Interface1Interface2Connection!
+}
+
+type Type1Interface1AggregateSelection {
+  count: Int!
+  field1: StringAggregateSelection!
+}
+
+input Type1Interface1ConnectFieldInput {
+  connect: Interface1ConnectInput
+  where: Interface1ConnectWhere
+}
+
+input Type1Interface1ConnectInput {
+  interface2: [Type1Interface1Interface2ConnectFieldInput!]
+}
+
+type Type1Interface1Connection {
+  edges: [Type1Interface1Relationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+input Type1Interface1ConnectionSort {
+  node: Interface1Sort
+}
+
+input Type1Interface1ConnectionWhere {
+  AND: [Type1Interface1ConnectionWhere!]
+  NOT: Type1Interface1ConnectionWhere
+  OR: [Type1Interface1ConnectionWhere!]
+  node: Interface1Where
+  node_NOT: Interface1Where @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+}
+
+input Type1Interface1CreateFieldInput {
+  node: Interface1CreateInput!
+}
+
+input Type1Interface1CreateInput {
+  field1: String!
+  interface2: Type1Interface1Interface2FieldInput
+}
+
+input Type1Interface1DeleteFieldInput {
+  delete: Interface1DeleteInput
+  where: Type1Interface1ConnectionWhere
+}
+
+input Type1Interface1DeleteInput {
+  interface2: [Type1Interface1Interface2DeleteFieldInput!]
+}
+
+input Type1Interface1DisconnectFieldInput {
+  disconnect: Interface1DisconnectInput
+  where: Type1Interface1ConnectionWhere
+}
+
+input Type1Interface1DisconnectInput {
+  interface2: [Type1Interface1Interface2DisconnectFieldInput!]
+}
+
+type Type1Interface1Edge {
+  cursor: String!
+  node: Type1Interface1!
+}
+
+input Type1Interface1FieldInput {
+  connect: [Type1Interface1ConnectFieldInput!]
+  create: [Type1Interface1CreateFieldInput!]
+}
+
+type Type1Interface1Interface1AggregationSelection {
+  count: Int!
+  node: Type1Interface1Interface1NodeAggregateSelection
+}
+
+type Type1Interface1Interface1NodeAggregateSelection {
+  field1: StringAggregateSelection!
+}
+
+input Type1Interface1Interface2ConnectFieldInput {
+  edge: Type1PropsCreateInput!
+  where: Interface2ConnectWhere
+}
+
+input Type1Interface1Interface2CreateFieldInput {
+  edge: Type1PropsCreateInput!
+  node: Interface2CreateInput!
+}
+
+input Type1Interface1Interface2DeleteFieldInput {
+  where: Interface1Interface2ConnectionWhere
+}
+
+input Type1Interface1Interface2DisconnectFieldInput {
+  where: Interface1Interface2ConnectionWhere
+}
+
+input Type1Interface1Interface2FieldInput {
+  connect: [Type1Interface1Interface2ConnectFieldInput!]
+  create: [Type1Interface1Interface2CreateFieldInput!]
+}
+
+type Type1Interface1Interface2Interface2AggregationSelection {
+  count: Int!
+  edge: Type1Interface1Interface2Interface2EdgeAggregateSelection
+  node: Type1Interface1Interface2Interface2NodeAggregateSelection
+}
+
+type Type1Interface1Interface2Interface2EdgeAggregateSelection {
+  type1Field: IntAggregateSelection!
+}
+
+type Type1Interface1Interface2Interface2NodeAggregateSelection {
+  field2: StringAggregateSelection!
+}
+
+input Type1Interface1Interface2UpdateConnectionInput {
+  edge: Type1PropsUpdateInput
+  node: Interface2UpdateInput
+}
+
+input Type1Interface1Interface2UpdateFieldInput {
+  connect: [Type1Interface1Interface2ConnectFieldInput!]
+  create: [Type1Interface1Interface2CreateFieldInput!]
+  delete: [Type1Interface1Interface2DeleteFieldInput!]
+  disconnect: [Type1Interface1Interface2DisconnectFieldInput!]
+  update: Type1Interface1Interface2UpdateConnectionInput
+  where: Interface1Interface2ConnectionWhere
+}
+
+input Type1Interface1Options {
+  limit: Int
+  offset: Int
+  """
+  Specify one or more Type1Interface1Sort objects to sort Type1Interface1s by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [Type1Interface1Sort!]
+}
+
+input Type1Interface1RelationInput {
+  interface2: [Type1Interface1Interface2CreateFieldInput!]
+}
+
+type Type1Interface1Relationship {
+  cursor: String!
+  node: Interface1!
+}
+
+"""
+Fields to sort Type1Interface1s by. The order in which sorts are applied is not guaranteed when specifying many fields in one Type1Interface1Sort object.
+"""
+input Type1Interface1Sort {
+  field1: SortDirection
+}
+
+input Type1Interface1UpdateConnectionInput {
+  node: Interface1UpdateInput
+}
+
+input Type1Interface1UpdateFieldInput {
+  connect: [Type1Interface1ConnectFieldInput!]
+  create: [Type1Interface1CreateFieldInput!]
+  delete: [Type1Interface1DeleteFieldInput!]
+  disconnect: [Type1Interface1DisconnectFieldInput!]
+  update: Type1Interface1UpdateConnectionInput
+  where: Type1Interface1ConnectionWhere
+}
+
+input Type1Interface1UpdateInput {
+  field1: String
+  interface2: [Type1Interface1Interface2UpdateFieldInput!]
+}
+
+input Type1Interface1Where {
+  AND: [Type1Interface1Where!]
+  NOT: Type1Interface1Where
+  OR: [Type1Interface1Where!]
+  field1: String
+  field1_CONTAINS: String
+  field1_ENDS_WITH: String
+  field1_IN: [String!]
+  field1_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field1_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field1_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field1_NOT_IN: [String!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field1_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field1_STARTS_WITH: String
+  interface2: Interface2Where @deprecated(reason: "Use `interface2_SOME` instead.")
+  interface2Connection: Interface1Interface2ConnectionWhere @deprecated(reason: "Use `interface2Connection_SOME` instead.")
+  """
+  Return Type1Interface1s where all of the related Interface1Interface2Connections match this filter
+  """
+  interface2Connection_ALL: Interface1Interface2ConnectionWhere
+  """
+  Return Type1Interface1s where none of the related Interface1Interface2Connections match this filter
+  """
+  interface2Connection_NONE: Interface1Interface2ConnectionWhere
+  interface2Connection_NOT: Interface1Interface2ConnectionWhere @deprecated(reason: "Use `interface2Connection_NONE` instead.")
+  """
+  Return Type1Interface1s where one of the related Interface1Interface2Connections match this filter
+  """
+  interface2Connection_SINGLE: Interface1Interface2ConnectionWhere
+  """
+  Return Type1Interface1s where some of the related Interface1Interface2Connections match this filter
+  """
+  interface2Connection_SOME: Interface1Interface2ConnectionWhere
+  """
+  Return Type1Interface1s where all of the related Interface2s match this filter
+  """
+  interface2_ALL: Interface2Where
+  """
+  Return Type1Interface1s where none of the related Interface2s match this filter
+  """
+  interface2_NONE: Interface2Where
+  interface2_NOT: Interface2Where @deprecated(reason: "Use `interface2_NONE` instead.")
+  """
+  Return Type1Interface1s where one of the related Interface2s match this filter
+  """
+  interface2_SINGLE: Interface2Where
+  """
+  Return Type1Interface1s where some of the related Interface2s match this filter
+  """
+  interface2_SOME: Interface2Where
+}
+
+type Type1Interface1sConnection {
+  edges: [Type1Interface1Edge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Type1Interface2 implements Interface2 {
+  field2: String!
+}
+
+type Type1Interface2AggregateSelection {
+  count: Int!
+  field2: StringAggregateSelection!
+}
+
+input Type1Interface2CreateInput {
+  field2: String!
+}
+
+type Type1Interface2Edge {
+  cursor: String!
+  node: Type1Interface2!
+}
+
+input Type1Interface2Options {
+  limit: Int
+  offset: Int
+  """
+  Specify one or more Type1Interface2Sort objects to sort Type1Interface2s by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [Type1Interface2Sort!]
+}
+
+"""
+Fields to sort Type1Interface2s by. The order in which sorts are applied is not guaranteed when specifying many fields in one Type1Interface2Sort object.
+"""
+input Type1Interface2Sort {
+  field2: SortDirection
+}
+
+input Type1Interface2UpdateInput {
+  field2: String
+}
+
+input Type1Interface2Where {
+  AND: [Type1Interface2Where!]
+  NOT: Type1Interface2Where
+  OR: [Type1Interface2Where!]
+  field2: String
+  field2_CONTAINS: String
+  field2_ENDS_WITH: String
+  field2_IN: [String!]
+  field2_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field2_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field2_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field2_NOT_IN: [String!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field2_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field2_STARTS_WITH: String
+}
+
+type Type1Interface2sConnection {
+  edges: [Type1Interface2Edge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+input Type1Options {
+  limit: Int
+  offset: Int
+  """
+  Specify one or more Type1Sort objects to sort Type1s by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [Type1Sort!]
+}
+
+"""
+The edge properties for the following fields:
+* Type1Interface1.interface2
+"""
+type Type1Props {
+  type1Field: Int!
+}
+
+input Type1PropsCreateInput {
+  type1Field: Int!
+}
+
+input Type1PropsSort {
+  type1Field: SortDirection
+}
+
+input Type1PropsUpdateInput {
+  type1Field: Int
+  type1Field_DECREMENT: Int
+  type1Field_INCREMENT: Int
+}
+
+input Type1PropsWhere {
+  AND: [Type1PropsWhere!]
+  NOT: Type1PropsWhere
+  OR: [Type1PropsWhere!]
+  type1Field: Int
+  type1Field_GT: Int
+  type1Field_GTE: Int
+  type1Field_IN: [Int!]
+  type1Field_LT: Int
+  type1Field_LTE: Int
+  type1Field_NOT: Int @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  type1Field_NOT_IN: [Int!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+}
+
+input Type1RelationInput {
+  interface1: [Type1Interface1CreateFieldInput!]
+}
+
+"""
+Fields to sort Type1s by. The order in which sorts are applied is not guaranteed when specifying many fields in one Type1Sort object.
+"""
+input Type1Sort {
+  field1: SortDirection
+}
+
+input Type1UpdateInput {
+  field1: String
+  interface1: [Type1Interface1UpdateFieldInput!]
+}
+
+input Type1Where {
+  AND: [Type1Where!]
+  NOT: Type1Where
+  OR: [Type1Where!]
+  field1: String
+  field1_CONTAINS: String
+  field1_ENDS_WITH: String
+  field1_IN: [String!]
+  field1_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field1_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field1_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field1_NOT_IN: [String!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field1_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field1_STARTS_WITH: String
+  interface1: Interface1Where @deprecated(reason: "Use `interface1_SOME` instead.")
+  interface1Connection: Type1Interface1ConnectionWhere @deprecated(reason: "Use `interface1Connection_SOME` instead.")
+  """
+  Return Type1s where all of the related Type1Interface1Connections match this filter
+  """
+  interface1Connection_ALL: Type1Interface1ConnectionWhere
+  """
+  Return Type1s where none of the related Type1Interface1Connections match this filter
+  """
+  interface1Connection_NONE: Type1Interface1ConnectionWhere
+  interface1Connection_NOT: Type1Interface1ConnectionWhere @deprecated(reason: "Use `interface1Connection_NONE` instead.")
+  """
+  Return Type1s where one of the related Type1Interface1Connections match this filter
+  """
+  interface1Connection_SINGLE: Type1Interface1ConnectionWhere
+  """
+  Return Type1s where some of the related Type1Interface1Connections match this filter
+  """
+  interface1Connection_SOME: Type1Interface1ConnectionWhere
+  """Return Type1s where all of the related Interface1s match this filter"""
+  interface1_ALL: Interface1Where
+  """Return Type1s where none of the related Interface1s match this filter"""
+  interface1_NONE: Interface1Where
+  interface1_NOT: Interface1Where @deprecated(reason: "Use `interface1_NONE` instead.")
+  """Return Type1s where one of the related Interface1s match this filter"""
+  interface1_SINGLE: Interface1Where
+  """Return Type1s where some of the related Interface1s match this filter"""
+  interface1_SOME: Interface1Where
+}
+
+type Type1sConnection {
+  edges: [Type1Edge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Type2Interface1 implements Interface1 {
+  field1: String!
+  interface2(directed: Boolean = true, options: Interface2Options, where: Interface2Where): [Interface2!]!
+  interface2Aggregate(directed: Boolean = true, where: Interface2Where): Type2Interface1Interface2Interface2AggregationSelection
+  interface2Connection(after: String, directed: Boolean = true, first: Int, sort: [Interface1Interface2ConnectionSort!], where: Interface1Interface2ConnectionWhere): Interface1Interface2Connection!
+}
+
+type Type2Interface1AggregateSelection {
+  count: Int!
+  field1: StringAggregateSelection!
+}
+
+input Type2Interface1ConnectInput {
+  interface2: [Type2Interface1Interface2ConnectFieldInput!]
+}
+
+input Type2Interface1CreateInput {
+  field1: String!
+  interface2: Type2Interface1Interface2FieldInput
+}
+
+input Type2Interface1DeleteInput {
+  interface2: [Type2Interface1Interface2DeleteFieldInput!]
+}
+
+input Type2Interface1DisconnectInput {
+  interface2: [Type2Interface1Interface2DisconnectFieldInput!]
+}
+
+type Type2Interface1Edge {
+  cursor: String!
+  node: Type2Interface1!
+}
+
+input Type2Interface1Interface2ConnectFieldInput {
+  edge: Type2PropsCreateInput!
+  where: Interface2ConnectWhere
+}
+
+input Type2Interface1Interface2CreateFieldInput {
+  edge: Type2PropsCreateInput!
+  node: Interface2CreateInput!
+}
+
+input Type2Interface1Interface2DeleteFieldInput {
+  where: Interface1Interface2ConnectionWhere
+}
+
+input Type2Interface1Interface2DisconnectFieldInput {
+  where: Interface1Interface2ConnectionWhere
+}
+
+input Type2Interface1Interface2FieldInput {
+  connect: [Type2Interface1Interface2ConnectFieldInput!]
+  create: [Type2Interface1Interface2CreateFieldInput!]
+}
+
+type Type2Interface1Interface2Interface2AggregationSelection {
+  count: Int!
+  edge: Type2Interface1Interface2Interface2EdgeAggregateSelection
+  node: Type2Interface1Interface2Interface2NodeAggregateSelection
+}
+
+type Type2Interface1Interface2Interface2EdgeAggregateSelection {
+  type2Field: IntAggregateSelection!
+}
+
+type Type2Interface1Interface2Interface2NodeAggregateSelection {
+  field2: StringAggregateSelection!
+}
+
+input Type2Interface1Interface2UpdateConnectionInput {
+  edge: Type2PropsUpdateInput
+  node: Interface2UpdateInput
+}
+
+input Type2Interface1Interface2UpdateFieldInput {
+  connect: [Type2Interface1Interface2ConnectFieldInput!]
+  create: [Type2Interface1Interface2CreateFieldInput!]
+  delete: [Type2Interface1Interface2DeleteFieldInput!]
+  disconnect: [Type2Interface1Interface2DisconnectFieldInput!]
+  update: Type2Interface1Interface2UpdateConnectionInput
+  where: Interface1Interface2ConnectionWhere
+}
+
+input Type2Interface1Options {
+  limit: Int
+  offset: Int
+  """
+  Specify one or more Type2Interface1Sort objects to sort Type2Interface1s by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [Type2Interface1Sort!]
+}
+
+input Type2Interface1RelationInput {
+  interface2: [Type2Interface1Interface2CreateFieldInput!]
+}
+
+"""
+Fields to sort Type2Interface1s by. The order in which sorts are applied is not guaranteed when specifying many fields in one Type2Interface1Sort object.
+"""
+input Type2Interface1Sort {
+  field1: SortDirection
+}
+
+input Type2Interface1UpdateInput {
+  field1: String
+  interface2: [Type2Interface1Interface2UpdateFieldInput!]
+}
+
+input Type2Interface1Where {
+  AND: [Type2Interface1Where!]
+  NOT: Type2Interface1Where
+  OR: [Type2Interface1Where!]
+  field1: String
+  field1_CONTAINS: String
+  field1_ENDS_WITH: String
+  field1_IN: [String!]
+  field1_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field1_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field1_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field1_NOT_IN: [String!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field1_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field1_STARTS_WITH: String
+  interface2: Interface2Where @deprecated(reason: "Use `interface2_SOME` instead.")
+  interface2Connection: Interface1Interface2ConnectionWhere @deprecated(reason: "Use `interface2Connection_SOME` instead.")
+  """
+  Return Type2Interface1s where all of the related Interface1Interface2Connections match this filter
+  """
+  interface2Connection_ALL: Interface1Interface2ConnectionWhere
+  """
+  Return Type2Interface1s where none of the related Interface1Interface2Connections match this filter
+  """
+  interface2Connection_NONE: Interface1Interface2ConnectionWhere
+  interface2Connection_NOT: Interface1Interface2ConnectionWhere @deprecated(reason: "Use `interface2Connection_NONE` instead.")
+  """
+  Return Type2Interface1s where one of the related Interface1Interface2Connections match this filter
+  """
+  interface2Connection_SINGLE: Interface1Interface2ConnectionWhere
+  """
+  Return Type2Interface1s where some of the related Interface1Interface2Connections match this filter
+  """
+  interface2Connection_SOME: Interface1Interface2ConnectionWhere
+  """
+  Return Type2Interface1s where all of the related Interface2s match this filter
+  """
+  interface2_ALL: Interface2Where
+  """
+  Return Type2Interface1s where none of the related Interface2s match this filter
+  """
+  interface2_NONE: Interface2Where
+  interface2_NOT: Interface2Where @deprecated(reason: "Use `interface2_NONE` instead.")
+  """
+  Return Type2Interface1s where one of the related Interface2s match this filter
+  """
+  interface2_SINGLE: Interface2Where
+  """
+  Return Type2Interface1s where some of the related Interface2s match this filter
+  """
+  interface2_SOME: Interface2Where
+}
+
+type Type2Interface1sConnection {
+  edges: [Type2Interface1Edge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Type2Interface2 implements Interface2 {
+  field2: String!
+}
+
+type Type2Interface2AggregateSelection {
+  count: Int!
+  field2: StringAggregateSelection!
+}
+
+input Type2Interface2CreateInput {
+  field2: String!
+}
+
+type Type2Interface2Edge {
+  cursor: String!
+  node: Type2Interface2!
+}
+
+input Type2Interface2Options {
+  limit: Int
+  offset: Int
+  """
+  Specify one or more Type2Interface2Sort objects to sort Type2Interface2s by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [Type2Interface2Sort!]
+}
+
+"""
+Fields to sort Type2Interface2s by. The order in which sorts are applied is not guaranteed when specifying many fields in one Type2Interface2Sort object.
+"""
+input Type2Interface2Sort {
+  field2: SortDirection
+}
+
+input Type2Interface2UpdateInput {
+  field2: String
+}
+
+input Type2Interface2Where {
+  AND: [Type2Interface2Where!]
+  NOT: Type2Interface2Where
+  OR: [Type2Interface2Where!]
+  field2: String
+  field2_CONTAINS: String
+  field2_ENDS_WITH: String
+  field2_IN: [String!]
+  field2_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field2_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field2_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field2_NOT_IN: [String!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field2_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  field2_STARTS_WITH: String
+}
+
+type Type2Interface2sConnection {
+  edges: [Type2Interface2Edge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"""
+The edge properties for the following fields:
+* Type2Interface1.interface2
+"""
+type Type2Props {
+  type2Field: Int!
+}
+
+input Type2PropsCreateInput {
+  type2Field: Int!
+}
+
+input Type2PropsSort {
+  type2Field: SortDirection
+}
+
+input Type2PropsUpdateInput {
+  type2Field: Int
+  type2Field_DECREMENT: Int
+  type2Field_INCREMENT: Int
+}
+
+input Type2PropsWhere {
+  AND: [Type2PropsWhere!]
+  NOT: Type2PropsWhere
+  OR: [Type2PropsWhere!]
+  type2Field: Int
+  type2Field_GT: Int
+  type2Field_GTE: Int
+  type2Field_IN: [Int!]
+  type2Field_LT: Int
+  type2Field_LTE: Int
+  type2Field_NOT: Int @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  type2Field_NOT_IN: [Int!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+}
+
+"""
+Information about the number of nodes and relationships created and deleted during an update mutation
+"""
+type UpdateInfo {
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesCreated: Int!
+  nodesDeleted: Int!
+  relationshipsCreated: Int!
+  relationshipsDeleted: Int!
+}
+
+type UpdateType1Interface1sMutationResponse {
+  info: UpdateInfo!
+  type1Interface1s: [Type1Interface1!]!
+}
+
+type UpdateType1Interface2sMutationResponse {
+  info: UpdateInfo!
+  type1Interface2s: [Type1Interface2!]!
+}
+
+type UpdateType1sMutationResponse {
+  info: UpdateInfo!
+  type1s: [Type1!]!
+}
+
+type UpdateType2Interface1sMutationResponse {
+  info: UpdateInfo!
+  type2Interface1s: [Type2Interface1!]!
+}
+
+type UpdateType2Interface2sMutationResponse {
+  info: UpdateInfo!
+  type2Interface2s: [Type2Interface2!]!
+}
+----
+
+'''

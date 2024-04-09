@@ -36,7 +36,7 @@ class ReadResolver internal constructor(
     class Factory(ctx: AugmentationContext) : AugmentationHandler(ctx), AugmentationHandler.EntityAugmentation {
 
         override fun augmentEntity(entity: Entity): List<AugmentedField> {
-            if (entity.annotations.query?.read == false || (!ctx.schemaConfig.experimental && entity !is Node)) {
+            if (entity.annotations.query?.read == false) {
                 return emptyList()
             }
             val nodeType = entity.extractOnTarget(

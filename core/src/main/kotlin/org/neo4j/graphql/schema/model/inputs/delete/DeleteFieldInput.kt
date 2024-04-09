@@ -6,6 +6,7 @@ import org.neo4j.graphql.domain.Interface
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.RelationshipProperties
 import org.neo4j.graphql.domain.Union
+import org.neo4j.graphql.domain.fields.RelationBaseField
 import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.schema.AugmentationBase
 import org.neo4j.graphql.schema.AugmentationContext
@@ -35,7 +36,7 @@ sealed interface DeleteFieldInput {
 
         object Augmentation : AugmentationBase {
             fun generateFieldDeleteFieldInputIT(
-                rel: RelationField,
+                rel: RelationBaseField,
                 node: Node,
                 ctx: AugmentationContext
             ) =
@@ -72,7 +73,7 @@ sealed interface DeleteFieldInput {
 
         object Augmentation : AugmentationBase {
             fun generateFieldDeleteIT(
-                rel: RelationField,
+                rel: RelationBaseField,
                 interfaze: Interface,
                 ctx: AugmentationContext
             ) = ctx.getOrCreateInputObjectType(rel.namings.getDeleteFieldInputTypeName(interfaze)) { fields, _ ->
@@ -80,8 +81,6 @@ sealed interface DeleteFieldInput {
                 ctx.addInterfaceField(
                     interfaze,
                     interfaze.namings.deleteInputTypeName,
-                    interfaze.namings.whereOnImplementationsDeleteInputTypeName,
-                    { node -> DeleteInput.NodeDeleteInput.Augmentation.generateContainerDeleteInputIT(node, ctx) },
                     RelationFieldBaseAugmentation::generateFieldDeleteIT
                 )
                     ?.let { fields += inputValue(Constants.DELETE_FIELD, it.asType()) }

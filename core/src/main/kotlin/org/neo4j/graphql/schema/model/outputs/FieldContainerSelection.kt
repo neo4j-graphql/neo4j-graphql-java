@@ -3,7 +3,7 @@ package org.neo4j.graphql.schema.model.outputs
 import graphql.language.FieldDefinition
 import org.neo4j.graphql.domain.fields.BaseField
 import org.neo4j.graphql.domain.fields.ConnectionField
-import org.neo4j.graphql.domain.fields.RelationField
+import org.neo4j.graphql.domain.fields.RelationBaseField
 import org.neo4j.graphql.schema.AugmentationBase
 import org.neo4j.graphql.schema.AugmentationContext
 import org.neo4j.graphql.schema.model.inputs.field_arguments.ConnectionFieldInputArgs
@@ -24,7 +24,7 @@ sealed class FieldContainerSelection {
             }
 
             // TODO https://github.com/neo4j/graphql/issues/869
-            if (field is RelationField) {
+            if (field is RelationBaseField) {
                 args += RelationFieldInputArgs.Augmentation.getFieldArguments(field, ctx)
             } else if (field is ConnectionField) {
                 args += ConnectionFieldInputArgs.Augmentation.getFieldArguments(field, ctx)

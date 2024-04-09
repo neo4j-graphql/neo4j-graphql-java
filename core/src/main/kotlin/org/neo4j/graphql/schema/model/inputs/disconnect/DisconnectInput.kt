@@ -26,9 +26,9 @@ sealed class DisconnectInput private constructor(implementingType: ImplementingT
             fun generateContainerDisconnectInputIT(node: Node, ctx: AugmentationContext) =
                 ctx.getOrCreateRelationInputObjectType(
                     node.namings.disconnectInputTypeName,
-                    node.relationFields,
+                    node.relationBaseFields,
                     RelationFieldBaseAugmentation::generateFieldDisconnectIT,
-                    condition = { it.annotations.relationship?.isDisconnectAllowed != false },
+                    condition = { it.annotations.relationshipBaseDirective?.isDisconnectAllowed != false },
                 )
         }
     }

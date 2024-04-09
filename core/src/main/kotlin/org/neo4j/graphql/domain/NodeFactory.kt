@@ -24,17 +24,19 @@ object NodeFactory {
         schemaConfig: SchemaConfig,
         jwtShape: Node?,
         schema: Schema,
-    ): Node {
+    ): Node? {
 
         val schemeDirectives =
             typeDefinitionRegistry.schemaExtensionDefinitions?.map { it.directives }?.flatten() ?: emptyList()
         val annotations = Annotations(schemeDirectives + definition.directives, jwtShape)
+        if (annotations.relationshipProperties != null) {
+            return null
+        }
         val interfaces = definition.implements.mapNotNull { interfaceFactory(it.name()) }
         val fields = FieldFactory.createFields(
             definition,
             typeDefinitionRegistry,
             relationshipPropertiesFactory,
-            interfaceFactory,
             schemaConfig
         )
         annotations.fulltext?.validate(definition, fields)
@@ -49,8 +51,6 @@ object NodeFactory {
             annotations,
             schema,
         )
-        node.annotations.authorization?.initWhere(node)
-        fields.forEach { it.annotations.authorization?.initWhere(node) }
         return node
     }
 

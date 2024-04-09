@@ -4,6 +4,7 @@ import graphql.language.BooleanValue
 import graphql.language.InputValueDefinition
 import org.neo4j.graphql.Constants
 import org.neo4j.graphql.asType
+import org.neo4j.graphql.domain.fields.RelationBaseField
 import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.schema.AugmentationBase
 import org.neo4j.graphql.schema.AugmentationContext
@@ -24,7 +25,7 @@ class RelationFieldInputArgs(field: RelationField, data: Dict) {
 
     object Augmentation : AugmentationBase {
 
-        fun getFieldArguments(field: RelationField, ctx: AugmentationContext): List<InputValueDefinition> {
+        fun getFieldArguments(field: RelationBaseField, ctx: AugmentationContext): List<InputValueDefinition> {
             val args = mutableListOf<InputValueDefinition>()
 
             WhereInput.Augmentation
@@ -42,8 +43,8 @@ class RelationFieldInputArgs(field: RelationField, data: Dict) {
             return args
         }
 
-        fun directedArgument(relationshipField: RelationField): InputValueDefinition? =
-            when (relationshipField.queryDirection) {
+        fun directedArgument(relationshipField: RelationBaseField): InputValueDefinition? =
+            when ((relationshipField as? RelationField)?.queryDirection) {
                 RelationField.QueryDirection.DEFAULT_DIRECTED -> true
                 RelationField.QueryDirection.DEFAULT_UNDIRECTED -> false
                 else -> null

@@ -8,10 +8,10 @@ class ConnectionField(
     fieldName: String,
     typeMeta: TypeMeta,
     annotations: FieldAnnotations,
-    val relationshipField: RelationField
+    val relationshipField: RelationBaseField
 ) : BaseField(fieldName, typeMeta, annotations) {
-    val relationshipTypeName: String get() = relationshipField.relationshipTypeName
-    val properties: RelationshipProperties? get() = relationshipField.properties
+
+    val properties: RelationshipProperties? get() = (relationshipField as? RelationField)?.properties
 
     override val dbPropertyName get() = relationshipField.dbPropertyName
 }

@@ -19,19 +19,22 @@ class ConnectionSort(data: Dict) {
         fun generateConnectionSortIT(field: ConnectionField, ctx: AugmentationContext) =
             ctx.getOrCreateInputObjectType(field.relationshipField.namings.connectionSortInputTypename) { fields, _ ->
 
-                generatePropertySortIT(field, ctx)
-                    ?.let { fields += inputValue(Constants.EDGE_FIELD, it.asType()) }
+                generatePropertySortIT(field.interfaceField as? ConnectionField ?: field, ctx)
+                    ?.let { fields += inputValue(Constants.EDGE_FIELD, it) }
 
                 field.relationshipField.implementingType
                     ?.let { SortInput.Companion.Augmentation.generateSortIT(it, ctx) }
                     ?.let { fields += inputValue(Constants.NODE_FIELD, it.asType()) }
             }
 
-        private fun generatePropertySortIT(field: ConnectionField, ctx: AugmentationContext) =
-            ctx.getOrCreateInputObjectType(field.relationshipField.namings.sortInputTypeName) { fields, _ ->
-                field.relationshipField.properties?.fields?.forEach {
+        private fun generatePropertySortIT(field: ConnectionField, ctx: AugmentationContext) = ctx.getEdgeInputField(
+            field.relationshipField,
+            { it.namings.sortInputTypeName }) {
+            ctx.getOrCreateInputObjectType(it.namings.sortInputTypeName) { fields, _ ->
+                it.properties?.fields?.forEach {
                     fields += inputValue(it.fieldName, Constants.Types.SortDirection)
                 }
             }
+        }
     }
 }

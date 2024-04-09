@@ -33,10 +33,7 @@ class AggregateResolver private constructor(
     class Factory(ctx: AugmentationContext) : AugmentationHandler(ctx), AugmentationHandler.EntityAugmentation {
 
         override fun augmentEntity(entity: Entity): List<AugmentedField> {
-            if (entity !is ImplementingType
-                || entity.annotations.query?.aggregate == false
-                || (!ctx.schemaConfig.experimental && entity !is Node)
-            ) {
+            if (entity !is ImplementingType || entity.annotations.query?.aggregate == false) {
                 return emptyList()
             }
             val aggregationSelection = AggregationSelection.Augmentation.addAggregationSelectionType(entity, ctx)

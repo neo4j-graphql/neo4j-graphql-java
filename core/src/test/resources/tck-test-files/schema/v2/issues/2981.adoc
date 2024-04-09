@@ -35,8 +35,6 @@ schema {
   mutation: Mutation
 }
 
-union BookTitle = BookTitle_EN | BookTitle_SV
-
 type Book {
   isbn: String!
   originalTitle: String!
@@ -46,216 +44,8 @@ type Book {
 
 type BookAggregateSelection {
   count: Int!
-  isbn: StringAggregateSelectionNonNullable!
-  originalTitle: StringAggregateSelectionNonNullable!
-}
-
-type BookEdge {
-  cursor: String!
-  node: Book!
-}
-
-type BookTitleEnsConnection {
-  edges: [BookTitle_ENEdge!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type BookTitleSvsConnection {
-  edges: [BookTitle_SVEdge!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type BookTitle_EN {
-  book(directed: Boolean = true, options: BookOptions, where: BookWhere): Book!
-  bookAggregate(directed: Boolean = true, where: BookWhere): BookTitle_ENBookBookAggregationSelection
-  bookConnection(after: String, directed: Boolean = true, first: Int, sort: [BookTitle_ENBookConnectionSort!], where: BookTitle_ENBookConnectionWhere): BookTitle_ENBookConnection!
-  value: String!
-}
-
-type BookTitle_ENAggregateSelection {
-  count: Int!
-  value: StringAggregateSelectionNonNullable!
-}
-
-type BookTitle_ENBookBookAggregationSelection {
-  count: Int!
-  node: BookTitle_ENBookBookNodeAggregateSelection
-}
-
-type BookTitle_ENBookBookNodeAggregateSelection {
-  isbn: StringAggregateSelectionNonNullable!
-  originalTitle: StringAggregateSelectionNonNullable!
-}
-
-type BookTitle_ENBookConnection {
-  edges: [BookTitle_ENBookRelationship!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type BookTitle_ENBookRelationship {
-  cursor: String!
-  node: Book!
-}
-
-type BookTitle_ENEdge {
-  cursor: String!
-  node: BookTitle_EN!
-}
-
-type BookTitle_SV {
-  book(directed: Boolean = true, options: BookOptions, where: BookWhere): Book!
-  bookAggregate(directed: Boolean = true, where: BookWhere): BookTitle_SVBookBookAggregationSelection
-  bookConnection(after: String, directed: Boolean = true, first: Int, sort: [BookTitle_SVBookConnectionSort!], where: BookTitle_SVBookConnectionWhere): BookTitle_SVBookConnection!
-  value: String!
-}
-
-type BookTitle_SVAggregateSelection {
-  count: Int!
-  value: StringAggregateSelectionNonNullable!
-}
-
-type BookTitle_SVBookBookAggregationSelection {
-  count: Int!
-  node: BookTitle_SVBookBookNodeAggregateSelection
-}
-
-type BookTitle_SVBookBookNodeAggregateSelection {
-  isbn: StringAggregateSelectionNonNullable!
-  originalTitle: StringAggregateSelectionNonNullable!
-}
-
-type BookTitle_SVBookConnection {
-  edges: [BookTitle_SVBookRelationship!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type BookTitle_SVBookRelationship {
-  cursor: String!
-  node: Book!
-}
-
-type BookTitle_SVEdge {
-  cursor: String!
-  node: BookTitle_SV!
-}
-
-type BookTranslatedTitleConnection {
-  edges: [BookTranslatedTitleRelationship!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type BookTranslatedTitleRelationship {
-  cursor: String!
-  node: BookTitle!
-}
-
-type BooksConnection {
-  edges: [BookEdge!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type CreateBookTitleEnsMutationResponse {
-  bookTitleEns: [BookTitle_EN!]!
-  info: CreateInfo!
-}
-
-type CreateBookTitleSvsMutationResponse {
-  bookTitleSvs: [BookTitle_SV!]!
-  info: CreateInfo!
-}
-
-type CreateBooksMutationResponse {
-  books: [Book!]!
-  info: CreateInfo!
-}
-
-"Information about the number of nodes and relationships created during a create mutation"
-type CreateInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
-  nodesCreated: Int!
-  relationshipsCreated: Int!
-}
-
-"Information about the number of nodes and relationships deleted during a delete mutation"
-type DeleteInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
-  nodesDeleted: Int!
-  relationshipsDeleted: Int!
-}
-
-type Mutation {
-  createBookTitleEns(input: [BookTitle_ENCreateInput!]!): CreateBookTitleEnsMutationResponse!
-  createBookTitleSvs(input: [BookTitle_SVCreateInput!]!): CreateBookTitleSvsMutationResponse!
-  createBooks(input: [BookCreateInput!]!): CreateBooksMutationResponse!
-  deleteBookTitleEns(delete: BookTitle_ENDeleteInput, where: BookTitle_ENWhere): DeleteInfo!
-  deleteBookTitleSvs(delete: BookTitle_SVDeleteInput, where: BookTitle_SVWhere): DeleteInfo!
-  deleteBooks(delete: BookDeleteInput, where: BookWhere): DeleteInfo!
-  updateBookTitleEns(connect: BookTitle_ENConnectInput, create: BookTitle_ENRelationInput, delete: BookTitle_ENDeleteInput, disconnect: BookTitle_ENDisconnectInput, update: BookTitle_ENUpdateInput, where: BookTitle_ENWhere): UpdateBookTitleEnsMutationResponse!
-  updateBookTitleSvs(connect: BookTitle_SVConnectInput, create: BookTitle_SVRelationInput, delete: BookTitle_SVDeleteInput, disconnect: BookTitle_SVDisconnectInput, update: BookTitle_SVUpdateInput, where: BookTitle_SVWhere): UpdateBookTitleSvsMutationResponse!
-  updateBooks(connect: BookConnectInput, create: BookRelationInput, delete: BookDeleteInput, disconnect: BookDisconnectInput, update: BookUpdateInput, where: BookWhere): UpdateBooksMutationResponse!
-}
-
-"Pagination information (Relay)"
-type PageInfo {
-  endCursor: String
-  hasNextPage: Boolean!
-  hasPreviousPage: Boolean!
-  startCursor: String
-}
-
-type Query {
-  bookTitleEns(options: BookTitle_ENOptions, where: BookTitle_ENWhere): [BookTitle_EN!]!
-  bookTitleEnsAggregate(where: BookTitle_ENWhere): BookTitle_ENAggregateSelection!
-  bookTitleEnsConnection(after: String, first: Int, sort: [BookTitle_ENSort], where: BookTitle_ENWhere): BookTitleEnsConnection!
-  bookTitleSvs(options: BookTitle_SVOptions, where: BookTitle_SVWhere): [BookTitle_SV!]!
-  bookTitleSvsAggregate(where: BookTitle_SVWhere): BookTitle_SVAggregateSelection!
-  bookTitleSvsConnection(after: String, first: Int, sort: [BookTitle_SVSort], where: BookTitle_SVWhere): BookTitleSvsConnection!
-  books(options: BookOptions, where: BookWhere): [Book!]!
-  booksAggregate(where: BookWhere): BookAggregateSelection!
-  booksConnection(after: String, first: Int, sort: [BookSort], where: BookWhere): BooksConnection!
-}
-
-type StringAggregateSelectionNonNullable {
-  longest: String!
-  shortest: String!
-}
-
-type UpdateBookTitleEnsMutationResponse {
-  bookTitleEns: [BookTitle_EN!]!
-  info: UpdateInfo!
-}
-
-type UpdateBookTitleSvsMutationResponse {
-  bookTitleSvs: [BookTitle_SV!]!
-  info: UpdateInfo!
-}
-
-type UpdateBooksMutationResponse {
-  books: [Book!]!
-  info: UpdateInfo!
-}
-
-"Information about the number of nodes and relationships created and deleted during an update mutation"
-type UpdateInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
-  nodesCreated: Int!
-  nodesDeleted: Int!
-  relationshipsCreated: Int!
-  relationshipsDeleted: Int!
-}
-
-"An enum for sorting in either ascending or descending order."
-enum SortDirection {
-  "Sort by field values in ascending order."
-  ASC
-  "Sort by field values in descending order."
-  DESC
+  isbn: StringAggregateSelection!
+  originalTitle: StringAggregateSelection!
 }
 
 input BookConnectInput {
@@ -280,10 +70,17 @@ input BookDisconnectInput {
   translatedTitle: BookTranslatedTitleDisconnectInput
 }
 
+type BookEdge {
+  cursor: String!
+  node: Book!
+}
+
 input BookOptions {
   limit: Int
   offset: Int
-  "Specify one or more BookSort objects to sort Books by. The sorts will be applied in the order in which they are arranged in the array."
+  """
+  Specify one or more BookSort objects to sort Books by. The sorts will be applied in the order in which they are arranged in the array.
+  """
   sort: [BookSort!]
 }
 
@@ -291,15 +88,43 @@ input BookRelationInput {
   translatedTitle: BookTranslatedTitleCreateFieldInput
 }
 
-"Fields to sort Books by. The order in which sorts are applied is not guaranteed when specifying many fields in one BookSort object."
+"""
+Fields to sort Books by. The order in which sorts are applied is not guaranteed when specifying many fields in one BookSort object.
+"""
 input BookSort {
   isbn: SortDirection
   originalTitle: SortDirection
 }
 
+union BookTitle = BookTitle_EN | BookTitle_SV
+
+type BookTitleEnsConnection {
+  edges: [BookTitle_ENEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type BookTitleSvsConnection {
+  edges: [BookTitle_SVEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
 input BookTitleWhere {
   BookTitle_EN: BookTitle_ENWhere
   BookTitle_SV: BookTitle_SVWhere
+}
+
+type BookTitle_EN {
+  book(directed: Boolean = true, options: BookOptions, where: BookWhere): Book!
+  bookAggregate(directed: Boolean = true, where: BookWhere): BookTitle_ENBookBookAggregationSelection
+  bookConnection(after: String, directed: Boolean = true, first: Int, sort: [BookTitle_ENBookConnectionSort!], where: BookTitle_ENBookConnectionWhere): BookTitle_ENBookConnection!
+  value: String!
+}
+
+type BookTitle_ENAggregateSelection {
+  count: Int!
+  value: StringAggregateSelection!
 }
 
 input BookTitle_ENBookAggregateInput {
@@ -314,11 +139,29 @@ input BookTitle_ENBookAggregateInput {
   node: BookTitle_ENBookNodeAggregationWhereInput
 }
 
+type BookTitle_ENBookBookAggregationSelection {
+  count: Int!
+  node: BookTitle_ENBookBookNodeAggregateSelection
+}
+
+type BookTitle_ENBookBookNodeAggregateSelection {
+  isbn: StringAggregateSelection!
+  originalTitle: StringAggregateSelection!
+}
+
 input BookTitle_ENBookConnectFieldInput {
   connect: BookConnectInput
-  "Whether or not to overwrite any matching relationship with the new properties."
+  """
+  Whether or not to overwrite any matching relationship with the new properties.
+  """
   overwrite: Boolean! = true
   where: BookConnectWhere
+}
+
+type BookTitle_ENBookConnection {
+  edges: [BookTitle_ENBookRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
 }
 
 input BookTitle_ENBookConnectionSort {
@@ -330,7 +173,7 @@ input BookTitle_ENBookConnectionWhere {
   NOT: BookTitle_ENBookConnectionWhere
   OR: [BookTitle_ENBookConnectionWhere!]
   node: BookWhere
-  node_NOT: BookWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  node_NOT: BookWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input BookTitle_ENBookCreateFieldInput {
@@ -356,76 +199,81 @@ input BookTitle_ENBookNodeAggregationWhereInput {
   AND: [BookTitle_ENBookNodeAggregationWhereInput!]
   NOT: BookTitle_ENBookNodeAggregationWhereInput
   OR: [BookTitle_ENBookNodeAggregationWhereInput!]
-  isbn_AVERAGE_EQUAL: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  isbn_AVERAGE_GT: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  isbn_AVERAGE_GTE: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  isbn_AVERAGE_EQUAL: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  isbn_AVERAGE_GT: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  isbn_AVERAGE_GTE: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
   isbn_AVERAGE_LENGTH_EQUAL: Float
   isbn_AVERAGE_LENGTH_GT: Float
   isbn_AVERAGE_LENGTH_GTE: Float
   isbn_AVERAGE_LENGTH_LT: Float
   isbn_AVERAGE_LENGTH_LTE: Float
-  isbn_AVERAGE_LT: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  isbn_AVERAGE_LTE: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  isbn_EQUAL: String @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  isbn_GT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  isbn_GTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  isbn_LONGEST_EQUAL: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  isbn_LONGEST_GT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  isbn_LONGEST_GTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  isbn_AVERAGE_LT: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  isbn_AVERAGE_LTE: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  isbn_EQUAL: String @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  isbn_GT: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  isbn_GTE: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  isbn_LONGEST_EQUAL: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  isbn_LONGEST_GT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  isbn_LONGEST_GTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
   isbn_LONGEST_LENGTH_EQUAL: Int
   isbn_LONGEST_LENGTH_GT: Int
   isbn_LONGEST_LENGTH_GTE: Int
   isbn_LONGEST_LENGTH_LT: Int
   isbn_LONGEST_LENGTH_LTE: Int
-  isbn_LONGEST_LT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  isbn_LONGEST_LTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  isbn_LT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  isbn_LTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  isbn_SHORTEST_EQUAL: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  isbn_SHORTEST_GT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  isbn_SHORTEST_GTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  isbn_LONGEST_LT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  isbn_LONGEST_LTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  isbn_LT: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  isbn_LTE: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  isbn_SHORTEST_EQUAL: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  isbn_SHORTEST_GT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  isbn_SHORTEST_GTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
   isbn_SHORTEST_LENGTH_EQUAL: Int
   isbn_SHORTEST_LENGTH_GT: Int
   isbn_SHORTEST_LENGTH_GTE: Int
   isbn_SHORTEST_LENGTH_LT: Int
   isbn_SHORTEST_LENGTH_LTE: Int
-  isbn_SHORTEST_LT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  isbn_SHORTEST_LTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  originalTitle_AVERAGE_EQUAL: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  originalTitle_AVERAGE_GT: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  originalTitle_AVERAGE_GTE: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  isbn_SHORTEST_LT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  isbn_SHORTEST_LTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  originalTitle_AVERAGE_EQUAL: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  originalTitle_AVERAGE_GT: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  originalTitle_AVERAGE_GTE: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
   originalTitle_AVERAGE_LENGTH_EQUAL: Float
   originalTitle_AVERAGE_LENGTH_GT: Float
   originalTitle_AVERAGE_LENGTH_GTE: Float
   originalTitle_AVERAGE_LENGTH_LT: Float
   originalTitle_AVERAGE_LENGTH_LTE: Float
-  originalTitle_AVERAGE_LT: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  originalTitle_AVERAGE_LTE: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  originalTitle_EQUAL: String @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  originalTitle_GT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  originalTitle_GTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  originalTitle_LONGEST_EQUAL: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  originalTitle_LONGEST_GT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  originalTitle_LONGEST_GTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  originalTitle_AVERAGE_LT: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  originalTitle_AVERAGE_LTE: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  originalTitle_EQUAL: String @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  originalTitle_GT: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  originalTitle_GTE: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  originalTitle_LONGEST_EQUAL: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  originalTitle_LONGEST_GT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  originalTitle_LONGEST_GTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
   originalTitle_LONGEST_LENGTH_EQUAL: Int
   originalTitle_LONGEST_LENGTH_GT: Int
   originalTitle_LONGEST_LENGTH_GTE: Int
   originalTitle_LONGEST_LENGTH_LT: Int
   originalTitle_LONGEST_LENGTH_LTE: Int
-  originalTitle_LONGEST_LT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  originalTitle_LONGEST_LTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  originalTitle_LT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  originalTitle_LTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  originalTitle_SHORTEST_EQUAL: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  originalTitle_SHORTEST_GT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  originalTitle_SHORTEST_GTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  originalTitle_LONGEST_LT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  originalTitle_LONGEST_LTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  originalTitle_LT: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  originalTitle_LTE: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  originalTitle_SHORTEST_EQUAL: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  originalTitle_SHORTEST_GT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  originalTitle_SHORTEST_GTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
   originalTitle_SHORTEST_LENGTH_EQUAL: Int
   originalTitle_SHORTEST_LENGTH_GT: Int
   originalTitle_SHORTEST_LENGTH_GTE: Int
   originalTitle_SHORTEST_LENGTH_LT: Int
   originalTitle_SHORTEST_LENGTH_LTE: Int
-  originalTitle_SHORTEST_LT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  originalTitle_SHORTEST_LTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  originalTitle_SHORTEST_LT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  originalTitle_SHORTEST_LTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+}
+
+type BookTitle_ENBookRelationship {
+  cursor: String!
+  node: Book!
 }
 
 input BookTitle_ENBookUpdateConnectionInput {
@@ -462,10 +310,17 @@ input BookTitle_ENDisconnectInput {
   book: BookTitle_ENBookDisconnectFieldInput
 }
 
+type BookTitle_ENEdge {
+  cursor: String!
+  node: BookTitle_EN!
+}
+
 input BookTitle_ENOptions {
   limit: Int
   offset: Int
-  "Specify one or more BookTitle_ENSort objects to sort BookTitleEns by. The sorts will be applied in the order in which they are arranged in the array."
+  """
+  Specify one or more BookTitle_ENSort objects to sort BookTitleEns by. The sorts will be applied in the order in which they are arranged in the array.
+  """
   sort: [BookTitle_ENSort!]
 }
 
@@ -473,7 +328,9 @@ input BookTitle_ENRelationInput {
   book: BookTitle_ENBookCreateFieldInput
 }
 
-"Fields to sort BookTitleEns by. The order in which sorts are applied is not guaranteed when specifying many fields in one BookTitle_ENSort object."
+"""
+Fields to sort BookTitleEns by. The order in which sorts are applied is not guaranteed when specifying many fields in one BookTitle_ENSort object.
+"""
 input BookTitle_ENSort {
   value: SortDirection
 }
@@ -496,12 +353,24 @@ input BookTitle_ENWhere {
   value_CONTAINS: String
   value_ENDS_WITH: String
   value_IN: [String!]
-  value_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  value_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  value_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  value_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  value_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  value_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  value_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  value_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  value_NOT_IN: [String!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  value_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   value_STARTS_WITH: String
+}
+
+type BookTitle_SV {
+  book(directed: Boolean = true, options: BookOptions, where: BookWhere): Book!
+  bookAggregate(directed: Boolean = true, where: BookWhere): BookTitle_SVBookBookAggregationSelection
+  bookConnection(after: String, directed: Boolean = true, first: Int, sort: [BookTitle_SVBookConnectionSort!], where: BookTitle_SVBookConnectionWhere): BookTitle_SVBookConnection!
+  value: String!
+}
+
+type BookTitle_SVAggregateSelection {
+  count: Int!
+  value: StringAggregateSelection!
 }
 
 input BookTitle_SVBookAggregateInput {
@@ -516,11 +385,29 @@ input BookTitle_SVBookAggregateInput {
   node: BookTitle_SVBookNodeAggregationWhereInput
 }
 
+type BookTitle_SVBookBookAggregationSelection {
+  count: Int!
+  node: BookTitle_SVBookBookNodeAggregateSelection
+}
+
+type BookTitle_SVBookBookNodeAggregateSelection {
+  isbn: StringAggregateSelection!
+  originalTitle: StringAggregateSelection!
+}
+
 input BookTitle_SVBookConnectFieldInput {
   connect: BookConnectInput
-  "Whether or not to overwrite any matching relationship with the new properties."
+  """
+  Whether or not to overwrite any matching relationship with the new properties.
+  """
   overwrite: Boolean! = true
   where: BookConnectWhere
+}
+
+type BookTitle_SVBookConnection {
+  edges: [BookTitle_SVBookRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
 }
 
 input BookTitle_SVBookConnectionSort {
@@ -532,7 +419,7 @@ input BookTitle_SVBookConnectionWhere {
   NOT: BookTitle_SVBookConnectionWhere
   OR: [BookTitle_SVBookConnectionWhere!]
   node: BookWhere
-  node_NOT: BookWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  node_NOT: BookWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input BookTitle_SVBookCreateFieldInput {
@@ -558,76 +445,81 @@ input BookTitle_SVBookNodeAggregationWhereInput {
   AND: [BookTitle_SVBookNodeAggregationWhereInput!]
   NOT: BookTitle_SVBookNodeAggregationWhereInput
   OR: [BookTitle_SVBookNodeAggregationWhereInput!]
-  isbn_AVERAGE_EQUAL: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  isbn_AVERAGE_GT: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  isbn_AVERAGE_GTE: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  isbn_AVERAGE_EQUAL: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  isbn_AVERAGE_GT: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  isbn_AVERAGE_GTE: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
   isbn_AVERAGE_LENGTH_EQUAL: Float
   isbn_AVERAGE_LENGTH_GT: Float
   isbn_AVERAGE_LENGTH_GTE: Float
   isbn_AVERAGE_LENGTH_LT: Float
   isbn_AVERAGE_LENGTH_LTE: Float
-  isbn_AVERAGE_LT: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  isbn_AVERAGE_LTE: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  isbn_EQUAL: String @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  isbn_GT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  isbn_GTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  isbn_LONGEST_EQUAL: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  isbn_LONGEST_GT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  isbn_LONGEST_GTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  isbn_AVERAGE_LT: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  isbn_AVERAGE_LTE: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  isbn_EQUAL: String @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  isbn_GT: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  isbn_GTE: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  isbn_LONGEST_EQUAL: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  isbn_LONGEST_GT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  isbn_LONGEST_GTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
   isbn_LONGEST_LENGTH_EQUAL: Int
   isbn_LONGEST_LENGTH_GT: Int
   isbn_LONGEST_LENGTH_GTE: Int
   isbn_LONGEST_LENGTH_LT: Int
   isbn_LONGEST_LENGTH_LTE: Int
-  isbn_LONGEST_LT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  isbn_LONGEST_LTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  isbn_LT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  isbn_LTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  isbn_SHORTEST_EQUAL: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  isbn_SHORTEST_GT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  isbn_SHORTEST_GTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  isbn_LONGEST_LT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  isbn_LONGEST_LTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  isbn_LT: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  isbn_LTE: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  isbn_SHORTEST_EQUAL: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  isbn_SHORTEST_GT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  isbn_SHORTEST_GTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
   isbn_SHORTEST_LENGTH_EQUAL: Int
   isbn_SHORTEST_LENGTH_GT: Int
   isbn_SHORTEST_LENGTH_GTE: Int
   isbn_SHORTEST_LENGTH_LT: Int
   isbn_SHORTEST_LENGTH_LTE: Int
-  isbn_SHORTEST_LT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  isbn_SHORTEST_LTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  originalTitle_AVERAGE_EQUAL: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  originalTitle_AVERAGE_GT: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  originalTitle_AVERAGE_GTE: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  isbn_SHORTEST_LT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  isbn_SHORTEST_LTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  originalTitle_AVERAGE_EQUAL: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  originalTitle_AVERAGE_GT: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  originalTitle_AVERAGE_GTE: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
   originalTitle_AVERAGE_LENGTH_EQUAL: Float
   originalTitle_AVERAGE_LENGTH_GT: Float
   originalTitle_AVERAGE_LENGTH_GTE: Float
   originalTitle_AVERAGE_LENGTH_LT: Float
   originalTitle_AVERAGE_LENGTH_LTE: Float
-  originalTitle_AVERAGE_LT: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  originalTitle_AVERAGE_LTE: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  originalTitle_EQUAL: String @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  originalTitle_GT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  originalTitle_GTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  originalTitle_LONGEST_EQUAL: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  originalTitle_LONGEST_GT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  originalTitle_LONGEST_GTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  originalTitle_AVERAGE_LT: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  originalTitle_AVERAGE_LTE: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  originalTitle_EQUAL: String @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  originalTitle_GT: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  originalTitle_GTE: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  originalTitle_LONGEST_EQUAL: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  originalTitle_LONGEST_GT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  originalTitle_LONGEST_GTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
   originalTitle_LONGEST_LENGTH_EQUAL: Int
   originalTitle_LONGEST_LENGTH_GT: Int
   originalTitle_LONGEST_LENGTH_GTE: Int
   originalTitle_LONGEST_LENGTH_LT: Int
   originalTitle_LONGEST_LENGTH_LTE: Int
-  originalTitle_LONGEST_LT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  originalTitle_LONGEST_LTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  originalTitle_LT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  originalTitle_LTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  originalTitle_SHORTEST_EQUAL: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  originalTitle_SHORTEST_GT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  originalTitle_SHORTEST_GTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  originalTitle_LONGEST_LT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  originalTitle_LONGEST_LTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  originalTitle_LT: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  originalTitle_LTE: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  originalTitle_SHORTEST_EQUAL: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  originalTitle_SHORTEST_GT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  originalTitle_SHORTEST_GTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
   originalTitle_SHORTEST_LENGTH_EQUAL: Int
   originalTitle_SHORTEST_LENGTH_GT: Int
   originalTitle_SHORTEST_LENGTH_GTE: Int
   originalTitle_SHORTEST_LENGTH_LT: Int
   originalTitle_SHORTEST_LENGTH_LTE: Int
-  originalTitle_SHORTEST_LT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  originalTitle_SHORTEST_LTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  originalTitle_SHORTEST_LT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  originalTitle_SHORTEST_LTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+}
+
+type BookTitle_SVBookRelationship {
+  cursor: String!
+  node: Book!
 }
 
 input BookTitle_SVBookUpdateConnectionInput {
@@ -664,10 +556,17 @@ input BookTitle_SVDisconnectInput {
   book: BookTitle_SVBookDisconnectFieldInput
 }
 
+type BookTitle_SVEdge {
+  cursor: String!
+  node: BookTitle_SV!
+}
+
 input BookTitle_SVOptions {
   limit: Int
   offset: Int
-  "Specify one or more BookTitle_SVSort objects to sort BookTitleSvs by. The sorts will be applied in the order in which they are arranged in the array."
+  """
+  Specify one or more BookTitle_SVSort objects to sort BookTitleSvs by. The sorts will be applied in the order in which they are arranged in the array.
+  """
   sort: [BookTitle_SVSort!]
 }
 
@@ -675,7 +574,9 @@ input BookTitle_SVRelationInput {
   book: BookTitle_SVBookCreateFieldInput
 }
 
-"Fields to sort BookTitleSvs by. The order in which sorts are applied is not guaranteed when specifying many fields in one BookTitle_SVSort object."
+"""
+Fields to sort BookTitleSvs by. The order in which sorts are applied is not guaranteed when specifying many fields in one BookTitle_SVSort object.
+"""
 input BookTitle_SVSort {
   value: SortDirection
 }
@@ -698,11 +599,11 @@ input BookTitle_SVWhere {
   value_CONTAINS: String
   value_ENDS_WITH: String
   value_IN: [String!]
-  value_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  value_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  value_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  value_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  value_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  value_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  value_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  value_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  value_NOT_IN: [String!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  value_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   value_STARTS_WITH: String
 }
 
@@ -716,7 +617,7 @@ input BookTranslatedTitleBookTitle_ENConnectionWhere {
   NOT: BookTranslatedTitleBookTitle_ENConnectionWhere
   OR: [BookTranslatedTitleBookTitle_ENConnectionWhere!]
   node: BookTitle_ENWhere
-  node_NOT: BookTitle_ENWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  node_NOT: BookTitle_ENWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input BookTranslatedTitleBookTitle_ENCreateFieldInput {
@@ -761,7 +662,7 @@ input BookTranslatedTitleBookTitle_SVConnectionWhere {
   NOT: BookTranslatedTitleBookTitle_SVConnectionWhere
   OR: [BookTranslatedTitleBookTitle_SVConnectionWhere!]
   node: BookTitle_SVWhere
-  node_NOT: BookTitle_SVWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  node_NOT: BookTitle_SVWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input BookTranslatedTitleBookTitle_SVCreateFieldInput {
@@ -801,6 +702,12 @@ input BookTranslatedTitleConnectInput {
   BookTitle_SV: BookTranslatedTitleBookTitle_SVConnectFieldInput
 }
 
+type BookTranslatedTitleConnection {
+  edges: [BookTranslatedTitleRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
 input BookTranslatedTitleConnectionWhere {
   BookTitle_EN: BookTranslatedTitleBookTitle_ENConnectionWhere
   BookTitle_SV: BookTranslatedTitleBookTitle_SVConnectionWhere
@@ -826,6 +733,11 @@ input BookTranslatedTitleDisconnectInput {
   BookTitle_SV: BookTranslatedTitleBookTitle_SVDisconnectFieldInput
 }
 
+type BookTranslatedTitleRelationship {
+  cursor: String!
+  node: BookTitle!
+}
+
 input BookTranslatedTitleUpdateInput {
   BookTitle_EN: BookTranslatedTitleBookTitle_ENUpdateFieldInput
   BookTitle_SV: BookTranslatedTitleBookTitle_SVUpdateFieldInput
@@ -845,32 +757,144 @@ input BookWhere {
   isbn_CONTAINS: String
   isbn_ENDS_WITH: String
   isbn_IN: [String!]
-  isbn_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  isbn_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  isbn_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  isbn_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  isbn_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  isbn_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  isbn_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  isbn_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  isbn_NOT_IN: [String!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  isbn_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   isbn_STARTS_WITH: String
   originalTitle: String
   originalTitle_CONTAINS: String
   originalTitle_ENDS_WITH: String
   originalTitle_IN: [String!]
-  originalTitle_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  originalTitle_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  originalTitle_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  originalTitle_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  originalTitle_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  originalTitle_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  originalTitle_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  originalTitle_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  originalTitle_NOT_IN: [String!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  originalTitle_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   originalTitle_STARTS_WITH: String
+  translatedTitle: BookTitleWhere
   translatedTitleConnection: BookTranslatedTitleConnectionWhere
   translatedTitleConnection_NOT: BookTranslatedTitleConnectionWhere
+  translatedTitle_NOT: BookTitleWhere
 }
 
-"Input type for options that can be specified on a query operation."
+type BooksConnection {
+  edges: [BookEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type CreateBookTitleEnsMutationResponse {
+  bookTitleEns: [BookTitle_EN!]!
+  info: CreateInfo!
+}
+
+type CreateBookTitleSvsMutationResponse {
+  bookTitleSvs: [BookTitle_SV!]!
+  info: CreateInfo!
+}
+
+type CreateBooksMutationResponse {
+  books: [Book!]!
+  info: CreateInfo!
+}
+
+"""
+Information about the number of nodes and relationships created during a create mutation
+"""
+type CreateInfo {
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesCreated: Int!
+  relationshipsCreated: Int!
+}
+
+"""
+Information about the number of nodes and relationships deleted during a delete mutation
+"""
+type DeleteInfo {
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
+type Mutation {
+  createBookTitleEns(input: [BookTitle_ENCreateInput!]!): CreateBookTitleEnsMutationResponse!
+  createBookTitleSvs(input: [BookTitle_SVCreateInput!]!): CreateBookTitleSvsMutationResponse!
+  createBooks(input: [BookCreateInput!]!): CreateBooksMutationResponse!
+  deleteBookTitleEns(delete: BookTitle_ENDeleteInput, where: BookTitle_ENWhere): DeleteInfo!
+  deleteBookTitleSvs(delete: BookTitle_SVDeleteInput, where: BookTitle_SVWhere): DeleteInfo!
+  deleteBooks(delete: BookDeleteInput, where: BookWhere): DeleteInfo!
+  updateBookTitleEns(connect: BookTitle_ENConnectInput, create: BookTitle_ENRelationInput, delete: BookTitle_ENDeleteInput, disconnect: BookTitle_ENDisconnectInput, update: BookTitle_ENUpdateInput, where: BookTitle_ENWhere): UpdateBookTitleEnsMutationResponse!
+  updateBookTitleSvs(connect: BookTitle_SVConnectInput, create: BookTitle_SVRelationInput, delete: BookTitle_SVDeleteInput, disconnect: BookTitle_SVDisconnectInput, update: BookTitle_SVUpdateInput, where: BookTitle_SVWhere): UpdateBookTitleSvsMutationResponse!
+  updateBooks(connect: BookConnectInput, create: BookRelationInput, delete: BookDeleteInput, disconnect: BookDisconnectInput, update: BookUpdateInput, where: BookWhere): UpdateBooksMutationResponse!
+}
+
+"""Pagination information (Relay)"""
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  bookTitleEns(options: BookTitle_ENOptions, where: BookTitle_ENWhere): [BookTitle_EN!]!
+  bookTitleEnsAggregate(where: BookTitle_ENWhere): BookTitle_ENAggregateSelection!
+  bookTitleEnsConnection(after: String, first: Int, sort: [BookTitle_ENSort], where: BookTitle_ENWhere): BookTitleEnsConnection!
+  bookTitleSvs(options: BookTitle_SVOptions, where: BookTitle_SVWhere): [BookTitle_SV!]!
+  bookTitleSvsAggregate(where: BookTitle_SVWhere): BookTitle_SVAggregateSelection!
+  bookTitleSvsConnection(after: String, first: Int, sort: [BookTitle_SVSort], where: BookTitle_SVWhere): BookTitleSvsConnection!
+  bookTitles(options: QueryOptions, where: BookTitleWhere): [BookTitle!]!
+  books(options: BookOptions, where: BookWhere): [Book!]!
+  booksAggregate(where: BookWhere): BookAggregateSelection!
+  booksConnection(after: String, first: Int, sort: [BookSort], where: BookWhere): BooksConnection!
+}
+
+"""Input type for options that can be specified on a query operation."""
 input QueryOptions {
   limit: Int
   offset: Int
 }
 
+"""An enum for sorting in either ascending or descending order."""
+enum SortDirection {
+  """Sort by field values in ascending order."""
+  ASC
+  """Sort by field values in descending order."""
+  DESC
+}
+
+type StringAggregateSelection {
+  longest: String
+  shortest: String
+}
+
+type UpdateBookTitleEnsMutationResponse {
+  bookTitleEns: [BookTitle_EN!]!
+  info: UpdateInfo!
+}
+
+type UpdateBookTitleSvsMutationResponse {
+  bookTitleSvs: [BookTitle_SV!]!
+  info: UpdateInfo!
+}
+
+type UpdateBooksMutationResponse {
+  books: [Book!]!
+  info: UpdateInfo!
+}
+
+"""
+Information about the number of nodes and relationships created and deleted during an update mutation
+"""
+type UpdateInfo {
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesCreated: Int!
+  nodesDeleted: Int!
+  relationshipsCreated: Int!
+  relationshipsDeleted: Int!
+}
 ----
 
 '''

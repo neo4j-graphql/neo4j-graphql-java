@@ -29,16 +29,16 @@ schema {
   mutation: Mutation
 }
 
-union Search = Genre | Movie
-
 type CreateGenresMutationResponse {
   genres: [Genre!]!
   info: CreateInfo!
 }
 
-"Information about the number of nodes and relationships created during a create mutation"
+"""
+Information about the number of nodes and relationships created during a create mutation
+"""
 type CreateInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   relationshipsCreated: Int!
 }
@@ -48,9 +48,11 @@ type CreateMoviesMutationResponse {
   movies: [Movie!]!
 }
 
-"Information about the number of nodes and relationships deleted during a delete mutation"
+"""
+Information about the number of nodes and relationships deleted during a delete mutation
+"""
 type DeleteInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesDeleted: Int!
   relationshipsDeleted: Int!
 }
@@ -61,110 +63,7 @@ type Genre {
 
 type GenreAggregateSelection {
   count: Int!
-  id: IDAggregateSelectionNullable!
-}
-
-type GenreEdge {
-  cursor: String!
-  node: Genre!
-}
-
-type GenresConnection {
-  edges: [GenreEdge!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type IDAggregateSelectionNullable {
-  longest: ID
-  shortest: ID
-}
-
-type Movie {
-  id: ID
-  search(directed: Boolean = true, options: QueryOptions, where: SearchWhere): [Search!]!
-  searchConnection(after: String, directed: Boolean = true, first: Int, where: MovieSearchConnectionWhere): MovieSearchConnection!
-  searchNoDirective: Search
-}
-
-type MovieAggregateSelection {
-  count: Int!
-  id: IDAggregateSelectionNullable!
-}
-
-type MovieEdge {
-  cursor: String!
-  node: Movie!
-}
-
-type MovieSearchConnection {
-  edges: [MovieSearchRelationship!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type MovieSearchRelationship {
-  cursor: String!
-  node: Search!
-}
-
-type MoviesConnection {
-  edges: [MovieEdge!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type Mutation {
-  createGenres(input: [GenreCreateInput!]!): CreateGenresMutationResponse!
-  createMovies(input: [MovieCreateInput!]!): CreateMoviesMutationResponse!
-  deleteGenres(where: GenreWhere): DeleteInfo!
-  deleteMovies(delete: MovieDeleteInput, where: MovieWhere): DeleteInfo!
-  updateGenres(update: GenreUpdateInput, where: GenreWhere): UpdateGenresMutationResponse!
-  updateMovies(connect: MovieConnectInput, create: MovieRelationInput, delete: MovieDeleteInput, disconnect: MovieDisconnectInput, update: MovieUpdateInput, where: MovieWhere): UpdateMoviesMutationResponse!
-}
-
-"Pagination information (Relay)"
-type PageInfo {
-  endCursor: String
-  hasNextPage: Boolean!
-  hasPreviousPage: Boolean!
-  startCursor: String
-}
-
-type Query {
-  genres(options: GenreOptions, where: GenreWhere): [Genre!]!
-  genresAggregate(where: GenreWhere): GenreAggregateSelection!
-  genresConnection(after: String, first: Int, sort: [GenreSort], where: GenreWhere): GenresConnection!
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesAggregate(where: MovieWhere): MovieAggregateSelection!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
-}
-
-type UpdateGenresMutationResponse {
-  genres: [Genre!]!
-  info: UpdateInfo!
-}
-
-"Information about the number of nodes and relationships created and deleted during an update mutation"
-type UpdateInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
-  nodesCreated: Int!
-  nodesDeleted: Int!
-  relationshipsCreated: Int!
-  relationshipsDeleted: Int!
-}
-
-type UpdateMoviesMutationResponse {
-  info: UpdateInfo!
-  movies: [Movie!]!
-}
-
-"An enum for sorting in either ascending or descending order."
-enum SortDirection {
-  "Sort by field values in ascending order."
-  ASC
-  "Sort by field values in descending order."
-  DESC
+  id: IDAggregateSelection!
 }
 
 input GenreConnectWhere {
@@ -175,14 +74,23 @@ input GenreCreateInput {
   id: ID
 }
 
+type GenreEdge {
+  cursor: String!
+  node: Genre!
+}
+
 input GenreOptions {
   limit: Int
   offset: Int
-  "Specify one or more GenreSort objects to sort Genres by. The sorts will be applied in the order in which they are arranged in the array."
+  """
+  Specify one or more GenreSort objects to sort Genres by. The sorts will be applied in the order in which they are arranged in the array.
+  """
   sort: [GenreSort!]
 }
 
-"Fields to sort Genres by. The order in which sorts are applied is not guaranteed when specifying many fields in one GenreSort object."
+"""
+Fields to sort Genres by. The order in which sorts are applied is not guaranteed when specifying many fields in one GenreSort object.
+"""
 input GenreSort {
   id: SortDirection
 }
@@ -199,12 +107,35 @@ input GenreWhere {
   id_CONTAINS: ID
   id_ENDS_WITH: ID
   id_IN: [ID]
-  id_NOT: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_CONTAINS: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_ENDS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_IN: [ID] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_STARTS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_CONTAINS: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_ENDS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_IN: [ID] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_STARTS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id_STARTS_WITH: ID
+}
+
+type GenresConnection {
+  edges: [GenreEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type IDAggregateSelection {
+  longest: ID
+  shortest: ID
+}
+
+type Movie {
+  id: ID
+  search(directed: Boolean = true, options: QueryOptions, where: SearchWhere): [Search!]!
+  searchConnection(after: String, directed: Boolean = true, first: Int, where: MovieSearchConnectionWhere): MovieSearchConnection!
+  searchNoDirective: Search
+}
+
+type MovieAggregateSelection {
+  count: Int!
+  id: IDAggregateSelection!
 }
 
 input MovieConnectInput {
@@ -228,10 +159,17 @@ input MovieDisconnectInput {
   search: MovieSearchDisconnectInput
 }
 
+type MovieEdge {
+  cursor: String!
+  node: Movie!
+}
+
 input MovieOptions {
   limit: Int
   offset: Int
-  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
+  """
+  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
+  """
   sort: [MovieSort!]
 }
 
@@ -242,6 +180,12 @@ input MovieRelationInput {
 input MovieSearchConnectInput {
   Genre: [MovieSearchGenreConnectFieldInput!]
   Movie: [MovieSearchMovieConnectFieldInput!]
+}
+
+type MovieSearchConnection {
+  edges: [MovieSearchRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
 }
 
 input MovieSearchConnectionWhere {
@@ -278,7 +222,7 @@ input MovieSearchGenreConnectionWhere {
   NOT: MovieSearchGenreConnectionWhere
   OR: [MovieSearchGenreConnectionWhere!]
   node: GenreWhere
-  node_NOT: GenreWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  node_NOT: GenreWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input MovieSearchGenreCreateFieldInput {
@@ -321,7 +265,7 @@ input MovieSearchMovieConnectionWhere {
   NOT: MovieSearchMovieConnectionWhere
   OR: [MovieSearchMovieConnectionWhere!]
   node: MovieWhere
-  node_NOT: MovieWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  node_NOT: MovieWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input MovieSearchMovieCreateFieldInput {
@@ -356,12 +300,19 @@ input MovieSearchMovieUpdateFieldInput {
   where: MovieSearchMovieConnectionWhere
 }
 
+type MovieSearchRelationship {
+  cursor: String!
+  node: Search!
+}
+
 input MovieSearchUpdateInput {
   Genre: [MovieSearchGenreUpdateFieldInput!]
   Movie: [MovieSearchMovieUpdateFieldInput!]
 }
 
-"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+"""
+Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object.
+"""
 input MovieSort {
   id: SortDirection
 }
@@ -379,35 +330,116 @@ input MovieWhere {
   id_CONTAINS: ID
   id_ENDS_WITH: ID
   id_IN: [ID]
-  id_NOT: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_CONTAINS: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_ENDS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_IN: [ID] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_STARTS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_CONTAINS: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_ENDS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_IN: [ID] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_STARTS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id_STARTS_WITH: ID
-  searchConnection: MovieSearchConnectionWhere @deprecated(reason : "Use `searchConnection_SOME` instead.")
-  "Return Movies where all of the related MovieSearchConnections match this filter"
+  search: SearchWhere @deprecated(reason: "Use `search_SOME` instead.")
+  searchConnection: MovieSearchConnectionWhere @deprecated(reason: "Use `searchConnection_SOME` instead.")
+  """
+  Return Movies where all of the related MovieSearchConnections match this filter
+  """
   searchConnection_ALL: MovieSearchConnectionWhere
-  "Return Movies where none of the related MovieSearchConnections match this filter"
+  """
+  Return Movies where none of the related MovieSearchConnections match this filter
+  """
   searchConnection_NONE: MovieSearchConnectionWhere
-  searchConnection_NOT: MovieSearchConnectionWhere @deprecated(reason : "Use `searchConnection_NONE` instead.")
-  "Return Movies where one of the related MovieSearchConnections match this filter"
+  searchConnection_NOT: MovieSearchConnectionWhere @deprecated(reason: "Use `searchConnection_NONE` instead.")
+  """
+  Return Movies where one of the related MovieSearchConnections match this filter
+  """
   searchConnection_SINGLE: MovieSearchConnectionWhere
-  "Return Movies where some of the related MovieSearchConnections match this filter"
+  """
+  Return Movies where some of the related MovieSearchConnections match this filter
+  """
   searchConnection_SOME: MovieSearchConnectionWhere
+  """Return Movies where all of the related Searches match this filter"""
+  search_ALL: SearchWhere
+  """Return Movies where none of the related Searches match this filter"""
+  search_NONE: SearchWhere
+  search_NOT: SearchWhere @deprecated(reason: "Use `search_NONE` instead.")
+  """Return Movies where one of the related Searches match this filter"""
+  search_SINGLE: SearchWhere
+  """Return Movies where some of the related Searches match this filter"""
+  search_SOME: SearchWhere
 }
 
-"Input type for options that can be specified on a query operation."
+type MoviesConnection {
+  edges: [MovieEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Mutation {
+  createGenres(input: [GenreCreateInput!]!): CreateGenresMutationResponse!
+  createMovies(input: [MovieCreateInput!]!): CreateMoviesMutationResponse!
+  deleteGenres(where: GenreWhere): DeleteInfo!
+  deleteMovies(delete: MovieDeleteInput, where: MovieWhere): DeleteInfo!
+  updateGenres(update: GenreUpdateInput, where: GenreWhere): UpdateGenresMutationResponse!
+  updateMovies(connect: MovieConnectInput, create: MovieRelationInput, delete: MovieDeleteInput, disconnect: MovieDisconnectInput, update: MovieUpdateInput, where: MovieWhere): UpdateMoviesMutationResponse!
+}
+
+"""Pagination information (Relay)"""
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  genres(options: GenreOptions, where: GenreWhere): [Genre!]!
+  genresAggregate(where: GenreWhere): GenreAggregateSelection!
+  genresConnection(after: String, first: Int, sort: [GenreSort], where: GenreWhere): GenresConnection!
+  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
+  moviesAggregate(where: MovieWhere): MovieAggregateSelection!
+  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
+  searches(options: QueryOptions, where: SearchWhere): [Search!]!
+}
+
+"""Input type for options that can be specified on a query operation."""
 input QueryOptions {
   limit: Int
   offset: Int
 }
+
+union Search = Genre | Movie
 
 input SearchWhere {
   Genre: GenreWhere
   Movie: MovieWhere
 }
 
+"""An enum for sorting in either ascending or descending order."""
+enum SortDirection {
+  """Sort by field values in ascending order."""
+  ASC
+  """Sort by field values in descending order."""
+  DESC
+}
+
+type UpdateGenresMutationResponse {
+  genres: [Genre!]!
+  info: UpdateInfo!
+}
+
+"""
+Information about the number of nodes and relationships created and deleted during an update mutation
+"""
+type UpdateInfo {
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesCreated: Int!
+  nodesDeleted: Int!
+  relationshipsCreated: Int!
+  relationshipsDeleted: Int!
+}
+
+type UpdateMoviesMutationResponse {
+  info: UpdateInfo!
+  movies: [Movie!]!
+}
 ----
 
 '''

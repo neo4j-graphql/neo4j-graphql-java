@@ -9,27 +9,27 @@
 type Movie implements Production @subscription(events: []) {
   title: String!
   id: ID @unique
-  director: Creature!
+  director: Creature! @relationship(type: "DIRECTED", direction: IN)
 }
 
 type Series implements Production {
   title: String!
   episode: Int!
   id: ID @unique
-  director: Creature!
+  director: Creature! @relationship(type: "DIRECTED", direction: IN)
 }
 
 interface Production {
   id: ID
-  director: Creature! @relationship(type: "DIRECTED", direction: IN)
+  director: Creature! @declareRelationship
 }
 
 type Person implements Creature {
-  movies: Production!
+  movies: Production! @relationship(type: "DIRECTED", direction: OUT)
 }
 
 interface Creature {
-  movies: Production! @relationship(type: "DIRECTED", direction: OUT)
+  movies: Production! @declareRelationship
 }
 ----
 
@@ -39,7 +39,6 @@ interface Creature {
 [source,json,schema-config=true]
 ----
 {
-  "experimental": true,
   "features": {
     "subscriptions": true
   }
@@ -57,24 +56,11 @@ schema {
   subscription: Subscription
 }
 
-interface Creature {
-  movies(directed: Boolean = true, options: ProductionOptions, where: ProductionWhere): Production!
-  moviesConnection(after: String, directed: Boolean = true, first: Int, sort: [CreatureMoviesConnectionSort!], where: CreatureMoviesConnectionWhere): CreatureMoviesConnection!
-}
-
-interface Production {
-  director(directed: Boolean = true, options: CreatureOptions, where: CreatureWhere): Creature!
-  directorConnection(after: String, directed: Boolean = true, first: Int, where: ProductionDirectorConnectionWhere): ProductionDirectorConnection!
-  id: ID
-}
-
-interface ProductionEventPayload {
-  id: ID
-}
-
-"Information about the number of nodes and relationships created during a create mutation"
+"""
+Information about the number of nodes and relationships created during a create mutation
+"""
 type CreateInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   relationshipsCreated: Int!
 }
@@ -94,325 +80,16 @@ type CreateSeriesMutationResponse {
   series: [Series!]!
 }
 
+interface Creature {
+  movies(options: ProductionOptions, where: ProductionWhere): Production!
+  moviesConnection(after: String, first: Int, sort: [CreatureMoviesConnectionSort!], where: CreatureMoviesConnectionWhere): CreatureMoviesConnection!
+}
+
 type CreatureAggregateSelection {
   count: Int!
 }
 
-type CreatureMoviesConnection {
-  edges: [CreatureMoviesRelationship!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type CreatureMoviesRelationship {
-  cursor: String!
-  node: Production!
-}
-
-"Information about the number of nodes and relationships deleted during a delete mutation"
-type DeleteInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
-  nodesDeleted: Int!
-  relationshipsDeleted: Int!
-}
-
-type IDAggregateSelectionNullable {
-  longest: ID
-  shortest: ID
-}
-
-type IntAggregateSelectionNonNullable {
-  average: Float!
-  max: Int!
-  min: Int!
-  sum: Int!
-}
-
-type Movie implements Production {
-  director(directed: Boolean = true, options: CreatureOptions, where: CreatureWhere): Creature!
-  directorAggregate(directed: Boolean = true, where: CreatureWhere): MovieCreatureDirectorAggregationSelection
-  directorConnection(after: String, directed: Boolean = true, first: Int, where: ProductionDirectorConnectionWhere): ProductionDirectorConnection!
-  id: ID
-  title: String!
-}
-
-type MovieAggregateSelection {
-  count: Int!
-  id: IDAggregateSelectionNullable!
-  title: StringAggregateSelectionNonNullable!
-}
-
-type MovieCreatureDirectorAggregationSelection {
-  count: Int!
-}
-
-type MovieEdge {
-  cursor: String!
-  node: Movie!
-}
-
-type MoviesConnection {
-  edges: [MovieEdge!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type Mutation {
-  createMovies(input: [MovieCreateInput!]!): CreateMoviesMutationResponse!
-  createPeople(input: [PersonCreateInput!]!): CreatePeopleMutationResponse!
-  createSeries(input: [SeriesCreateInput!]!): CreateSeriesMutationResponse!
-  deleteMovies(delete: MovieDeleteInput, where: MovieWhere): DeleteInfo!
-  deletePeople(delete: PersonDeleteInput, where: PersonWhere): DeleteInfo!
-  deleteSeries(delete: SeriesDeleteInput, where: SeriesWhere): DeleteInfo!
-  updateMovies(connect: MovieConnectInput, create: MovieRelationInput, delete: MovieDeleteInput, disconnect: MovieDisconnectInput, update: MovieUpdateInput, where: MovieWhere): UpdateMoviesMutationResponse!
-  updatePeople(connect: PersonConnectInput, create: PersonRelationInput, delete: PersonDeleteInput, disconnect: PersonDisconnectInput, update: PersonUpdateInput, where: PersonWhere): UpdatePeopleMutationResponse!
-  updateSeries(connect: SeriesConnectInput, create: SeriesRelationInput, delete: SeriesDeleteInput, disconnect: SeriesDisconnectInput, update: SeriesUpdateInput, where: SeriesWhere): UpdateSeriesMutationResponse!
-}
-
-"Pagination information (Relay)"
-type PageInfo {
-  endCursor: String
-  hasNextPage: Boolean!
-  hasPreviousPage: Boolean!
-  startCursor: String
-}
-
-type PeopleConnection {
-  edges: [PersonEdge!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type Person implements Creature {
-  movies(directed: Boolean = true, options: ProductionOptions, where: ProductionWhere): Production!
-  moviesAggregate(directed: Boolean = true, where: ProductionWhere): PersonProductionMoviesAggregationSelection
-  moviesConnection(after: String, directed: Boolean = true, first: Int, sort: [CreatureMoviesConnectionSort!], where: CreatureMoviesConnectionWhere): CreatureMoviesConnection!
-}
-
-type PersonAggregateSelection {
-  count: Int!
-}
-
-type PersonConnectedRelationships {
-  movies: PersonMoviesConnectedRelationship
-}
-
-type PersonCreatedEvent {
-  event: EventType!
-  timestamp: Float!
-}
-
-type PersonDeletedEvent {
-  event: EventType!
-  timestamp: Float!
-}
-
-type PersonEdge {
-  cursor: String!
-  node: Person!
-}
-
-type PersonMoviesConnectedRelationship {
-  node: ProductionEventPayload!
-}
-
-type PersonProductionMoviesAggregationSelection {
-  count: Int!
-  node: PersonProductionMoviesNodeAggregateSelection
-}
-
-type PersonProductionMoviesNodeAggregateSelection {
-  id: IDAggregateSelectionNullable!
-}
-
-type PersonRelationshipCreatedEvent {
-  createdRelationship: PersonConnectedRelationships!
-  event: EventType!
-  timestamp: Float!
-}
-
-type PersonRelationshipDeletedEvent {
-  deletedRelationship: PersonConnectedRelationships!
-  event: EventType!
-  timestamp: Float!
-}
-
-type PersonUpdatedEvent {
-  event: EventType!
-  timestamp: Float!
-}
-
-type ProductionAggregateSelection {
-  count: Int!
-  id: IDAggregateSelectionNullable!
-}
-
-type ProductionDirectorConnection {
-  edges: [ProductionDirectorRelationship!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type ProductionDirectorRelationship {
-  cursor: String!
-  node: Creature!
-}
-
-type Query {
-  creatures(options: CreatureOptions, where: CreatureWhere): [Creature!]!
-  creaturesAggregate(where: CreatureWhere): CreatureAggregateSelection!
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesAggregate(where: MovieWhere): MovieAggregateSelection!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
-  people(options: PersonOptions, where: PersonWhere): [Person!]!
-  peopleAggregate(where: PersonWhere): PersonAggregateSelection!
-  peopleConnection(after: String, first: Int, where: PersonWhere): PeopleConnection!
-  productions(options: ProductionOptions, where: ProductionWhere): [Production!]!
-  productionsAggregate(where: ProductionWhere): ProductionAggregateSelection!
-  series(options: SeriesOptions, where: SeriesWhere): [Series!]!
-  seriesAggregate(where: SeriesWhere): SeriesAggregateSelection!
-  seriesConnection(after: String, first: Int, sort: [SeriesSort], where: SeriesWhere): SeriesConnection!
-}
-
-type Series implements Production {
-  director(directed: Boolean = true, options: CreatureOptions, where: CreatureWhere): Creature!
-  directorAggregate(directed: Boolean = true, where: CreatureWhere): SeriesCreatureDirectorAggregationSelection
-  directorConnection(after: String, directed: Boolean = true, first: Int, where: ProductionDirectorConnectionWhere): ProductionDirectorConnection!
-  episode: Int!
-  id: ID
-  title: String!
-}
-
-type SeriesAggregateSelection {
-  count: Int!
-  episode: IntAggregateSelectionNonNullable!
-  id: IDAggregateSelectionNullable!
-  title: StringAggregateSelectionNonNullable!
-}
-
-type SeriesConnection {
-  edges: [SeriesEdge!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type SeriesCreatedEvent {
-  createdSeries: SeriesEventPayload!
-  event: EventType!
-  timestamp: Float!
-}
-
-type SeriesCreatureDirectorAggregationSelection {
-  count: Int!
-}
-
-type SeriesDeletedEvent {
-  deletedSeries: SeriesEventPayload!
-  event: EventType!
-  timestamp: Float!
-}
-
-type SeriesEdge {
-  cursor: String!
-  node: Series!
-}
-
-type SeriesEventPayload implements ProductionEventPayload {
-  episode: Int!
-  id: ID
-  title: String!
-}
-
-type SeriesRelationshipCreatedEvent {
-  event: EventType!
-  relationshipFieldName: String!
-  series: SeriesEventPayload!
-  timestamp: Float!
-}
-
-type SeriesRelationshipDeletedEvent {
-  event: EventType!
-  relationshipFieldName: String!
-  series: SeriesEventPayload!
-  timestamp: Float!
-}
-
-type SeriesUpdatedEvent {
-  event: EventType!
-  previousState: SeriesEventPayload!
-  timestamp: Float!
-  updatedSeries: SeriesEventPayload!
-}
-
-type StringAggregateSelectionNonNullable {
-  longest: String!
-  shortest: String!
-}
-
-type Subscription {
-  personCreated: PersonCreatedEvent!
-  personDeleted: PersonDeletedEvent!
-  personRelationshipCreated(where: PersonRelationshipCreatedSubscriptionWhere): PersonRelationshipCreatedEvent!
-  personRelationshipDeleted(where: PersonRelationshipDeletedSubscriptionWhere): PersonRelationshipDeletedEvent!
-  personUpdated: PersonUpdatedEvent!
-  seriesCreated(where: SeriesSubscriptionWhere): SeriesCreatedEvent!
-  seriesDeleted(where: SeriesSubscriptionWhere): SeriesDeletedEvent!
-  seriesRelationshipCreated(where: SeriesRelationshipCreatedSubscriptionWhere): SeriesRelationshipCreatedEvent!
-  seriesRelationshipDeleted(where: SeriesRelationshipDeletedSubscriptionWhere): SeriesRelationshipDeletedEvent!
-  seriesUpdated(where: SeriesSubscriptionWhere): SeriesUpdatedEvent!
-}
-
-"Information about the number of nodes and relationships created and deleted during an update mutation"
-type UpdateInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
-  nodesCreated: Int!
-  nodesDeleted: Int!
-  relationshipsCreated: Int!
-  relationshipsDeleted: Int!
-}
-
-type UpdateMoviesMutationResponse {
-  info: UpdateInfo!
-  movies: [Movie!]!
-}
-
-type UpdatePeopleMutationResponse {
-  info: UpdateInfo!
-  people: [Person!]!
-}
-
-type UpdateSeriesMutationResponse {
-  info: UpdateInfo!
-  series: [Series!]!
-}
-
-enum CreatureImplementation {
-  Person
-}
-
-enum EventType {
-  CREATE
-  CREATE_RELATIONSHIP
-  DELETE
-  DELETE_RELATIONSHIP
-  UPDATE
-}
-
-enum ProductionImplementation {
-  Movie
-  Series
-}
-
-"An enum for sorting in either ascending or descending order."
-enum SortDirection {
-  "Sort by field values in ascending order."
-  ASC
-  "Sort by field values in descending order."
-  DESC
-}
-
 input CreatureConnectInput {
-  _on: CreatureImplementationsConnectInput
   movies: CreatureMoviesConnectFieldInput
 }
 
@@ -425,34 +102,31 @@ input CreatureCreateInput {
 }
 
 input CreatureDeleteInput {
-  _on: CreatureImplementationsDeleteInput
   movies: CreatureMoviesDeleteFieldInput
 }
 
 input CreatureDisconnectInput {
-  _on: CreatureImplementationsDisconnectInput
   movies: CreatureMoviesDisconnectFieldInput
 }
 
-input CreatureImplementationsConnectInput {
-  Person: [PersonConnectInput!]
+type CreatureEdge {
+  cursor: String!
+  node: Creature!
 }
 
-input CreatureImplementationsDeleteInput {
-  Person: [PersonDeleteInput!]
-}
-
-input CreatureImplementationsDisconnectInput {
-  Person: [PersonDisconnectInput!]
-}
-
-input CreatureImplementationsUpdateInput {
-  Person: PersonUpdateInput
+enum CreatureImplementation {
+  Person
 }
 
 input CreatureMoviesConnectFieldInput {
   connect: ProductionConnectInput
   where: ProductionConnectWhere
+}
+
+type CreatureMoviesConnection {
+  edges: [CreatureMoviesRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
 }
 
 input CreatureMoviesConnectionSort {
@@ -464,7 +138,7 @@ input CreatureMoviesConnectionWhere {
   NOT: CreatureMoviesConnectionWhere
   OR: [CreatureMoviesConnectionWhere!]
   node: ProductionWhere
-  node_NOT: ProductionWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  node_NOT: ProductionWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input CreatureMoviesCreateFieldInput {
@@ -481,9 +155,9 @@ input CreatureMoviesDisconnectFieldInput {
   where: CreatureMoviesConnectionWhere
 }
 
-input CreatureMoviesFieldInput {
-  connect: CreatureMoviesConnectFieldInput
-  create: CreatureMoviesCreateFieldInput
+type CreatureMoviesRelationship {
+  cursor: String!
+  node: Production!
 }
 
 input CreatureMoviesUpdateConnectionInput {
@@ -505,7 +179,6 @@ input CreatureOptions {
 }
 
 input CreatureUpdateInput {
-  _on: CreatureImplementationsUpdateInput
   movies: CreatureMoviesUpdateFieldInput
 }
 
@@ -513,9 +186,60 @@ input CreatureWhere {
   AND: [CreatureWhere!]
   NOT: CreatureWhere
   OR: [CreatureWhere!]
+  movies: ProductionWhere
   moviesConnection: CreatureMoviesConnectionWhere
   moviesConnection_NOT: CreatureMoviesConnectionWhere
+  movies_NOT: ProductionWhere
   typename_IN: [CreatureImplementation!]
+}
+
+type CreaturesConnection {
+  edges: [CreatureEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"""
+Information about the number of nodes and relationships deleted during a delete mutation
+"""
+type DeleteInfo {
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
+enum EventType {
+  CREATE
+  CREATE_RELATIONSHIP
+  DELETE
+  DELETE_RELATIONSHIP
+  UPDATE
+}
+
+type IDAggregateSelection {
+  longest: ID
+  shortest: ID
+}
+
+type IntAggregateSelection {
+  average: Float
+  max: Int
+  min: Int
+  sum: Int
+}
+
+type Movie implements Production {
+  director(directed: Boolean = true, options: CreatureOptions, where: CreatureWhere): Creature!
+  directorAggregate(directed: Boolean = true, where: CreatureWhere): MovieCreatureDirectorAggregationSelection
+  directorConnection(after: String, directed: Boolean = true, first: Int, where: ProductionDirectorConnectionWhere): ProductionDirectorConnection!
+  id: ID
+  title: String!
+}
+
+type MovieAggregateSelection {
+  count: Int!
+  id: IDAggregateSelection!
+  title: StringAggregateSelection!
 }
 
 input MovieConnectInput {
@@ -523,9 +247,13 @@ input MovieConnectInput {
 }
 
 input MovieCreateInput {
-  director: ProductionDirectorFieldInput
+  director: MovieDirectorFieldInput
   id: ID
   title: String!
+}
+
+type MovieCreatureDirectorAggregationSelection {
+  count: Int!
 }
 
 input MovieDeleteInput {
@@ -551,6 +279,11 @@ input MovieDirectorDisconnectFieldInput {
   where: ProductionDirectorConnectionWhere
 }
 
+input MovieDirectorFieldInput {
+  connect: MovieDirectorConnectFieldInput
+  create: MovieDirectorCreateFieldInput
+}
+
 input MovieDirectorUpdateConnectionInput {
   node: CreatureUpdateInput
 }
@@ -568,10 +301,17 @@ input MovieDisconnectInput {
   director: MovieDirectorDisconnectFieldInput
 }
 
+type MovieEdge {
+  cursor: String!
+  node: Movie!
+}
+
 input MovieOptions {
   limit: Int
   offset: Int
-  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
+  """
+  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
+  """
   sort: [MovieSort!]
 }
 
@@ -579,7 +319,9 @@ input MovieRelationInput {
   director: MovieDirectorCreateFieldInput
 }
 
-"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+"""
+Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object.
+"""
 input MovieSort {
   id: SortDirection
   title: SortDirection
@@ -595,49 +337,116 @@ input MovieWhere {
   AND: [MovieWhere!]
   NOT: MovieWhere
   OR: [MovieWhere!]
+  director: CreatureWhere
   directorConnection: ProductionDirectorConnectionWhere
   directorConnection_NOT: ProductionDirectorConnectionWhere
+  director_NOT: CreatureWhere
   id: ID
   id_CONTAINS: ID
   id_ENDS_WITH: ID
   id_IN: [ID]
-  id_NOT: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_CONTAINS: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_ENDS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_IN: [ID] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_STARTS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_CONTAINS: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_ENDS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_IN: [ID] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_STARTS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id_STARTS_WITH: ID
   title: String
   title_CONTAINS: String
   title_ENDS_WITH: String
   title_IN: [String!]
-  title_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_IN: [String!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   title_STARTS_WITH: String
+}
+
+type MoviesConnection {
+  edges: [MovieEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Mutation {
+  createMovies(input: [MovieCreateInput!]!): CreateMoviesMutationResponse!
+  createPeople(input: [PersonCreateInput!]!): CreatePeopleMutationResponse!
+  createSeries(input: [SeriesCreateInput!]!): CreateSeriesMutationResponse!
+  deleteMovies(delete: MovieDeleteInput, where: MovieWhere): DeleteInfo!
+  deletePeople(delete: PersonDeleteInput, where: PersonWhere): DeleteInfo!
+  deleteSeries(delete: SeriesDeleteInput, where: SeriesWhere): DeleteInfo!
+  updateMovies(connect: MovieConnectInput, create: MovieRelationInput, delete: MovieDeleteInput, disconnect: MovieDisconnectInput, update: MovieUpdateInput, where: MovieWhere): UpdateMoviesMutationResponse!
+  updatePeople(connect: PersonConnectInput, create: PersonRelationInput, delete: PersonDeleteInput, disconnect: PersonDisconnectInput, update: PersonUpdateInput, where: PersonWhere): UpdatePeopleMutationResponse!
+  updateSeries(connect: SeriesConnectInput, create: SeriesRelationInput, delete: SeriesDeleteInput, disconnect: SeriesDisconnectInput, update: SeriesUpdateInput, where: SeriesWhere): UpdateSeriesMutationResponse!
+}
+
+"""Pagination information (Relay)"""
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type PeopleConnection {
+  edges: [PersonEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Person implements Creature {
+  movies(directed: Boolean = true, options: ProductionOptions, where: ProductionWhere): Production!
+  moviesAggregate(directed: Boolean = true, where: ProductionWhere): PersonProductionMoviesAggregationSelection
+  moviesConnection(after: String, directed: Boolean = true, first: Int, sort: [CreatureMoviesConnectionSort!], where: CreatureMoviesConnectionWhere): CreatureMoviesConnection!
+}
+
+type PersonAggregateSelection {
+  count: Int!
 }
 
 input PersonConnectInput {
   movies: PersonMoviesConnectFieldInput
 }
 
+type PersonConnectedRelationships {
+  movies: PersonMoviesConnectedRelationship
+}
+
 input PersonCreateInput {
-  movies: CreatureMoviesFieldInput
+  movies: PersonMoviesFieldInput
+}
+
+type PersonCreatedEvent {
+  event: EventType!
+  timestamp: Float!
 }
 
 input PersonDeleteInput {
   movies: PersonMoviesDeleteFieldInput
 }
 
+type PersonDeletedEvent {
+  event: EventType!
+  timestamp: Float!
+}
+
 input PersonDisconnectInput {
   movies: PersonMoviesDisconnectFieldInput
+}
+
+type PersonEdge {
+  cursor: String!
+  node: Person!
 }
 
 input PersonMoviesConnectFieldInput {
   connect: ProductionConnectInput
   where: ProductionConnectWhere
+}
+
+type PersonMoviesConnectedRelationship {
+  node: ProductionEventPayload!
 }
 
 input PersonMoviesCreateFieldInput {
@@ -652,6 +461,11 @@ input PersonMoviesDeleteFieldInput {
 input PersonMoviesDisconnectFieldInput {
   disconnect: ProductionDisconnectInput
   where: CreatureMoviesConnectionWhere
+}
+
+input PersonMoviesFieldInput {
+  connect: PersonMoviesConnectFieldInput
+  create: PersonMoviesCreateFieldInput
 }
 
 input PersonMoviesRelationshipSubscriptionWhere {
@@ -676,8 +490,23 @@ input PersonOptions {
   offset: Int
 }
 
+type PersonProductionMoviesAggregationSelection {
+  count: Int!
+  node: PersonProductionMoviesNodeAggregateSelection
+}
+
+type PersonProductionMoviesNodeAggregateSelection {
+  id: IDAggregateSelection!
+}
+
 input PersonRelationInput {
   movies: PersonMoviesCreateFieldInput
+}
+
+type PersonRelationshipCreatedEvent {
+  createdRelationship: PersonConnectedRelationships!
+  event: EventType!
+  timestamp: Float!
 }
 
 input PersonRelationshipCreatedSubscriptionWhere {
@@ -685,6 +514,12 @@ input PersonRelationshipCreatedSubscriptionWhere {
   NOT: PersonRelationshipCreatedSubscriptionWhere
   OR: [PersonRelationshipCreatedSubscriptionWhere!]
   createdRelationship: PersonRelationshipsSubscriptionWhere
+}
+
+type PersonRelationshipDeletedEvent {
+  deletedRelationship: PersonConnectedRelationships!
+  event: EventType!
+  timestamp: Float!
 }
 
 input PersonRelationshipDeletedSubscriptionWhere {
@@ -702,16 +537,33 @@ input PersonUpdateInput {
   movies: PersonMoviesUpdateFieldInput
 }
 
+type PersonUpdatedEvent {
+  event: EventType!
+  timestamp: Float!
+}
+
 input PersonWhere {
   AND: [PersonWhere!]
   NOT: PersonWhere
   OR: [PersonWhere!]
+  movies: ProductionWhere
   moviesConnection: CreatureMoviesConnectionWhere
   moviesConnection_NOT: CreatureMoviesConnectionWhere
+  movies_NOT: ProductionWhere
+}
+
+interface Production {
+  director(options: CreatureOptions, where: CreatureWhere): Creature!
+  directorConnection(after: String, first: Int, where: ProductionDirectorConnectionWhere): ProductionDirectorConnection!
+  id: ID
+}
+
+type ProductionAggregateSelection {
+  count: Int!
+  id: IDAggregateSelection!
 }
 
 input ProductionConnectInput {
-  _on: ProductionImplementationsConnectInput
   director: ProductionDirectorConnectFieldInput
 }
 
@@ -725,7 +577,6 @@ input ProductionCreateInput {
 }
 
 input ProductionDeleteInput {
-  _on: ProductionImplementationsDeleteInput
   director: ProductionDirectorDeleteFieldInput
 }
 
@@ -734,12 +585,18 @@ input ProductionDirectorConnectFieldInput {
   where: CreatureConnectWhere
 }
 
+type ProductionDirectorConnection {
+  edges: [ProductionDirectorRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
 input ProductionDirectorConnectionWhere {
   AND: [ProductionDirectorConnectionWhere!]
   NOT: ProductionDirectorConnectionWhere
   OR: [ProductionDirectorConnectionWhere!]
   node: CreatureWhere
-  node_NOT: CreatureWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  node_NOT: CreatureWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input ProductionDirectorCreateFieldInput {
@@ -756,9 +613,9 @@ input ProductionDirectorDisconnectFieldInput {
   where: ProductionDirectorConnectionWhere
 }
 
-input ProductionDirectorFieldInput {
-  connect: ProductionDirectorConnectFieldInput
-  create: ProductionDirectorCreateFieldInput
+type ProductionDirectorRelationship {
+  cursor: String!
+  node: Creature!
 }
 
 input ProductionDirectorUpdateConnectionInput {
@@ -775,38 +632,35 @@ input ProductionDirectorUpdateFieldInput {
 }
 
 input ProductionDisconnectInput {
-  _on: ProductionImplementationsDisconnectInput
   director: ProductionDirectorDisconnectFieldInput
 }
 
-input ProductionImplementationsConnectInput {
-  Movie: [MovieConnectInput!]
-  Series: [SeriesConnectInput!]
+type ProductionEdge {
+  cursor: String!
+  node: Production!
 }
 
-input ProductionImplementationsDeleteInput {
-  Movie: [MovieDeleteInput!]
-  Series: [SeriesDeleteInput!]
+interface ProductionEventPayload {
+  id: ID
 }
 
-input ProductionImplementationsDisconnectInput {
-  Movie: [MovieDisconnectInput!]
-  Series: [SeriesDisconnectInput!]
-}
-
-input ProductionImplementationsUpdateInput {
-  Movie: MovieUpdateInput
-  Series: SeriesUpdateInput
+enum ProductionImplementation {
+  Movie
+  Series
 }
 
 input ProductionOptions {
   limit: Int
   offset: Int
-  "Specify one or more ProductionSort objects to sort Productions by. The sorts will be applied in the order in which they are arranged in the array."
+  """
+  Specify one or more ProductionSort objects to sort Productions by. The sorts will be applied in the order in which they are arranged in the array.
+  """
   sort: [ProductionSort]
 }
 
-"Fields to sort Productions by. The order in which sorts are applied is not guaranteed when specifying many fields in one ProductionSort object."
+"""
+Fields to sort Productions by. The order in which sorts are applied is not guaranteed when specifying many fields in one ProductionSort object.
+"""
 input ProductionSort {
   id: SortDirection
 }
@@ -819,17 +673,16 @@ input ProductionSubscriptionWhere {
   id_CONTAINS: ID
   id_ENDS_WITH: ID
   id_IN: [ID]
-  id_NOT: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_CONTAINS: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_ENDS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_IN: [ID] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_STARTS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_CONTAINS: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_ENDS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_IN: [ID] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_STARTS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id_STARTS_WITH: ID
   typename_IN: [ProductionImplementation!]
 }
 
 input ProductionUpdateInput {
-  _on: ProductionImplementationsUpdateInput
   director: ProductionDirectorUpdateFieldInput
   id: ID
 }
@@ -838,34 +691,98 @@ input ProductionWhere {
   AND: [ProductionWhere!]
   NOT: ProductionWhere
   OR: [ProductionWhere!]
+  director: CreatureWhere
   directorConnection: ProductionDirectorConnectionWhere
   directorConnection_NOT: ProductionDirectorConnectionWhere
+  director_NOT: CreatureWhere
   id: ID
   id_CONTAINS: ID
   id_ENDS_WITH: ID
   id_IN: [ID]
-  id_NOT: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_CONTAINS: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_ENDS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_IN: [ID] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_STARTS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_CONTAINS: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_ENDS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_IN: [ID] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_STARTS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id_STARTS_WITH: ID
   typename_IN: [ProductionImplementation!]
+}
+
+type ProductionsConnection {
+  edges: [ProductionEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Query {
+  creatures(options: CreatureOptions, where: CreatureWhere): [Creature!]!
+  creaturesAggregate(where: CreatureWhere): CreatureAggregateSelection!
+  creaturesConnection(after: String, first: Int, where: CreatureWhere): CreaturesConnection!
+  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
+  moviesAggregate(where: MovieWhere): MovieAggregateSelection!
+  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
+  people(options: PersonOptions, where: PersonWhere): [Person!]!
+  peopleAggregate(where: PersonWhere): PersonAggregateSelection!
+  peopleConnection(after: String, first: Int, where: PersonWhere): PeopleConnection!
+  productions(options: ProductionOptions, where: ProductionWhere): [Production!]!
+  productionsAggregate(where: ProductionWhere): ProductionAggregateSelection!
+  productionsConnection(after: String, first: Int, sort: [ProductionSort], where: ProductionWhere): ProductionsConnection!
+  series(options: SeriesOptions, where: SeriesWhere): [Series!]!
+  seriesAggregate(where: SeriesWhere): SeriesAggregateSelection!
+  seriesConnection(after: String, first: Int, sort: [SeriesSort], where: SeriesWhere): SeriesConnection!
+}
+
+type Series implements Production {
+  director(directed: Boolean = true, options: CreatureOptions, where: CreatureWhere): Creature!
+  directorAggregate(directed: Boolean = true, where: CreatureWhere): SeriesCreatureDirectorAggregationSelection
+  directorConnection(after: String, directed: Boolean = true, first: Int, where: ProductionDirectorConnectionWhere): ProductionDirectorConnection!
+  episode: Int!
+  id: ID
+  title: String!
+}
+
+type SeriesAggregateSelection {
+  count: Int!
+  episode: IntAggregateSelection!
+  id: IDAggregateSelection!
+  title: StringAggregateSelection!
 }
 
 input SeriesConnectInput {
   director: SeriesDirectorConnectFieldInput
 }
 
+type SeriesConnection {
+  edges: [SeriesEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
 input SeriesCreateInput {
-  director: ProductionDirectorFieldInput
+  director: SeriesDirectorFieldInput
   episode: Int!
   id: ID
   title: String!
 }
 
+type SeriesCreatedEvent {
+  createdSeries: SeriesEventPayload!
+  event: EventType!
+  timestamp: Float!
+}
+
+type SeriesCreatureDirectorAggregationSelection {
+  count: Int!
+}
+
 input SeriesDeleteInput {
   director: SeriesDirectorDeleteFieldInput
+}
+
+type SeriesDeletedEvent {
+  deletedSeries: SeriesEventPayload!
+  event: EventType!
+  timestamp: Float!
 }
 
 input SeriesDirectorConnectFieldInput {
@@ -887,6 +804,11 @@ input SeriesDirectorDisconnectFieldInput {
   where: ProductionDirectorConnectionWhere
 }
 
+input SeriesDirectorFieldInput {
+  connect: SeriesDirectorConnectFieldInput
+  create: SeriesDirectorCreateFieldInput
+}
+
 input SeriesDirectorUpdateConnectionInput {
   node: CreatureUpdateInput
 }
@@ -904,15 +826,35 @@ input SeriesDisconnectInput {
   director: SeriesDirectorDisconnectFieldInput
 }
 
+type SeriesEdge {
+  cursor: String!
+  node: Series!
+}
+
+type SeriesEventPayload implements ProductionEventPayload {
+  episode: Int!
+  id: ID
+  title: String!
+}
+
 input SeriesOptions {
   limit: Int
   offset: Int
-  "Specify one or more SeriesSort objects to sort Series by. The sorts will be applied in the order in which they are arranged in the array."
+  """
+  Specify one or more SeriesSort objects to sort Series by. The sorts will be applied in the order in which they are arranged in the array.
+  """
   sort: [SeriesSort!]
 }
 
 input SeriesRelationInput {
   director: SeriesDirectorCreateFieldInput
+}
+
+type SeriesRelationshipCreatedEvent {
+  event: EventType!
+  relationshipFieldName: String!
+  series: SeriesEventPayload!
+  timestamp: Float!
 }
 
 input SeriesRelationshipCreatedSubscriptionWhere {
@@ -922,6 +864,13 @@ input SeriesRelationshipCreatedSubscriptionWhere {
   series: SeriesSubscriptionWhere
 }
 
+type SeriesRelationshipDeletedEvent {
+  event: EventType!
+  relationshipFieldName: String!
+  series: SeriesEventPayload!
+  timestamp: Float!
+}
+
 input SeriesRelationshipDeletedSubscriptionWhere {
   AND: [SeriesRelationshipDeletedSubscriptionWhere!]
   NOT: SeriesRelationshipDeletedSubscriptionWhere
@@ -929,7 +878,9 @@ input SeriesRelationshipDeletedSubscriptionWhere {
   series: SeriesSubscriptionWhere
 }
 
-"Fields to sort Series by. The order in which sorts are applied is not guaranteed when specifying many fields in one SeriesSort object."
+"""
+Fields to sort Series by. The order in which sorts are applied is not guaranteed when specifying many fields in one SeriesSort object.
+"""
 input SeriesSort {
   episode: SortDirection
   id: SortDirection
@@ -946,27 +897,27 @@ input SeriesSubscriptionWhere {
   episode_IN: [Int!]
   episode_LT: Int
   episode_LTE: Int
-  episode_NOT: Int @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  episode_NOT_IN: [Int!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  episode_NOT: Int @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  episode_NOT_IN: [Int!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id: ID
   id_CONTAINS: ID
   id_ENDS_WITH: ID
   id_IN: [ID]
-  id_NOT: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_CONTAINS: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_ENDS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_IN: [ID] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_STARTS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_CONTAINS: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_ENDS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_IN: [ID] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_STARTS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id_STARTS_WITH: ID
   title: String
   title_CONTAINS: String
   title_ENDS_WITH: String
   title_IN: [String!]
-  title_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_IN: [String!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   title_STARTS_WITH: String
 }
 
@@ -979,42 +930,102 @@ input SeriesUpdateInput {
   title: String
 }
 
+type SeriesUpdatedEvent {
+  event: EventType!
+  previousState: SeriesEventPayload!
+  timestamp: Float!
+  updatedSeries: SeriesEventPayload!
+}
+
 input SeriesWhere {
   AND: [SeriesWhere!]
   NOT: SeriesWhere
   OR: [SeriesWhere!]
+  director: CreatureWhere
   directorConnection: ProductionDirectorConnectionWhere
   directorConnection_NOT: ProductionDirectorConnectionWhere
+  director_NOT: CreatureWhere
   episode: Int
   episode_GT: Int
   episode_GTE: Int
   episode_IN: [Int!]
   episode_LT: Int
   episode_LTE: Int
-  episode_NOT: Int @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  episode_NOT_IN: [Int!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  episode_NOT: Int @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  episode_NOT_IN: [Int!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id: ID
   id_CONTAINS: ID
   id_ENDS_WITH: ID
   id_IN: [ID]
-  id_NOT: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_CONTAINS: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_ENDS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_IN: [ID] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_STARTS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_CONTAINS: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_ENDS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_IN: [ID] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_STARTS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id_STARTS_WITH: ID
   title: String
   title_CONTAINS: String
   title_ENDS_WITH: String
   title_IN: [String!]
-  title_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_IN: [String!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  title_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   title_STARTS_WITH: String
 }
 
+"""An enum for sorting in either ascending or descending order."""
+enum SortDirection {
+  """Sort by field values in ascending order."""
+  ASC
+  """Sort by field values in descending order."""
+  DESC
+}
+
+type StringAggregateSelection {
+  longest: String
+  shortest: String
+}
+
+type Subscription {
+  personCreated: PersonCreatedEvent!
+  personDeleted: PersonDeletedEvent!
+  personRelationshipCreated(where: PersonRelationshipCreatedSubscriptionWhere): PersonRelationshipCreatedEvent!
+  personRelationshipDeleted(where: PersonRelationshipDeletedSubscriptionWhere): PersonRelationshipDeletedEvent!
+  personUpdated: PersonUpdatedEvent!
+  seriesCreated(where: SeriesSubscriptionWhere): SeriesCreatedEvent!
+  seriesDeleted(where: SeriesSubscriptionWhere): SeriesDeletedEvent!
+  seriesRelationshipCreated(where: SeriesRelationshipCreatedSubscriptionWhere): SeriesRelationshipCreatedEvent!
+  seriesRelationshipDeleted(where: SeriesRelationshipDeletedSubscriptionWhere): SeriesRelationshipDeletedEvent!
+  seriesUpdated(where: SeriesSubscriptionWhere): SeriesUpdatedEvent!
+}
+
+"""
+Information about the number of nodes and relationships created and deleted during an update mutation
+"""
+type UpdateInfo {
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesCreated: Int!
+  nodesDeleted: Int!
+  relationshipsCreated: Int!
+  relationshipsDeleted: Int!
+}
+
+type UpdateMoviesMutationResponse {
+  info: UpdateInfo!
+  movies: [Movie!]!
+}
+
+type UpdatePeopleMutationResponse {
+  info: UpdateInfo!
+  people: [Person!]!
+}
+
+type UpdateSeriesMutationResponse {
+  info: UpdateInfo!
+  series: [Series!]!
+}
 ----
 
 '''

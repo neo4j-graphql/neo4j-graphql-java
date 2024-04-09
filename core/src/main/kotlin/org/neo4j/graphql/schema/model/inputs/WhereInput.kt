@@ -6,7 +6,7 @@ import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.*
 import org.neo4j.graphql.domain.fields.BaseField
 import org.neo4j.graphql.domain.fields.ConnectionField
-import org.neo4j.graphql.domain.fields.RelationField
+import org.neo4j.graphql.domain.fields.RelationBaseField
 import org.neo4j.graphql.domain.fields.ScalarField
 import org.neo4j.graphql.schema.AugmentationBase
 import org.neo4j.graphql.schema.AugmentationContext
@@ -57,17 +57,13 @@ interface WhereInput {
         object Augmentation : AugmentationBase {
 
             // TODO rename to edge
-            fun generateRelationPropertiesWhereIT(relationField: RelationField, ctx: AugmentationContext): String? {
-                val properties = relationField.properties
-                return if (properties == null) {
-                    null
-                } else {
-                    ctx.getOrCreateInputObjectType(relationField.namings.whereInputTypeName) { fields, name ->
+            fun generateRelationPropertiesWhereIT(relationField: RelationBaseField, ctx: AugmentationContext) =
+                ctx.getEdgeInputField(relationField, { it.namings.whereInputTypeName }) {
+                    ctx.getOrCreateInputObjectType(it.namings.whereInputTypeName) { fields, name ->
                         fields += FieldContainerWhereInput.Augmentation
-                            .getWhereFields(name, properties.fields, ctx)
+                            .getWhereFields(name, it.properties?.fields ?: emptyList(), ctx)
                     }
                 }
-            }
         }
     }
 
@@ -78,6 +74,7 @@ interface WhereInput {
     ) : FieldContainerWhereInput<InterfaceWhereInput>(data, interfaze, { InterfaceWhereInput(interfaze, it) }) {
 
         //TODO remove
+        @Deprecated("Do not use any longer")
         val on = data.nestedDict(Constants.ON)?.let {
             PerNodeInput(interfaze, it, { node, value -> NodeWhereInput(node, value.toDict()) })
         }
@@ -103,25 +100,12 @@ interface WhereInput {
         object Augmentation : AugmentationBase {
             fun generateFieldWhereIT(interfaze: Interface, ctx: AugmentationContext): String? =
                 ctx.getOrCreateInputObjectType(interfaze.namings.whereInputTypeName) { fields, name ->
-
-                    if (ctx.schemaConfig.experimental) {
-                        ctx.addTypenameEnum(interfaze, fields)
-                    } else {
-                        ctx.addOnField(interfaze,
-                            interfaze.namings.whereOnImplementationsWhereInputTypeName,
-                            fields,
-                            asList = false,
-                            { node -> NodeWhereInput.Augmentation.generateWhereIT(node, ctx) })
-                    }
-
-
                     fields += FieldContainerWhereInput.Augmentation.getWhereFields(
                         name,
                         interfaze.fields,
                         ctx,
-                        isInterface = true
+                        interfaze,
                     )
-
                 }
 
         }
@@ -138,7 +122,7 @@ interface WhereInput {
             .mapNotNull { (key, value) -> fieldContainer.createPredicate(key, value) }
 
 
-        val relationAggregate: Map<RelationField, AggregateInput> = data
+        val relationAggregate: Map<RelationBaseField, AggregateInput> = data
             .mapNotNull { (key, value) ->
                 val field = fieldContainer.relationAggregationFields[key] ?: return@mapNotNull null
                 field to (AggregateInput.create(field, value) ?: return@mapNotNull null)
@@ -167,9 +151,12 @@ interface WhereInput {
                 whereName: String,
                 fieldList: List<BaseField>,
                 ctx: AugmentationContext,
-                isInterface: Boolean = false,
+                interfaze: Interface? = null
             ): List<InputValueDefinition> {
                 val result = mutableListOf<InputValueDefinition>()
+                if (interfaze != null) {
+                    ctx.addTypenameEnum(interfaze, result)
+                }
                 fieldList.forEach { field ->
                     if (field is ScalarField && field.isFilterableByValue()) {
                         field.predicateDefinitions.values.forEach {
@@ -182,10 +169,8 @@ interface WhereInput {
                     if (field.annotations.relayId != null) {
                         result += inputValue(Constants.ID_FIELD, Constants.Types.ID)
                     }
-                    if (field is RelationField) {
-                        if ((field.node != null || (field.union != null && ctx.schemaConfig.experimental))
-//                            && !isInterface
-                        ) {
+                    if (field is RelationBaseField) {
+                        if (field.node != null || field.union != null) {
                             // TODO REVIEW Darrell why not for union or interfaces https://github.com/neo4j/graphql/issues/810
                             if (field.isFilterableByValue()) {
                                 WhereInput.Augmentation.generateWhereOfFieldIT(field, ctx)?.let { where ->
@@ -221,7 +206,7 @@ interface WhereInput {
                         }
                     }
                 }
-                addNestingWhereFields(whereName, result, ctx, isInterface)
+                addNestingWhereFields(whereName, result)
                 return result
             }
         }
@@ -237,14 +222,14 @@ interface WhereInput {
                 null -> null
             }
 
-        fun create(field: RelationField, data: Dict) = field.extractOnTarget(
+        fun create(field: RelationBaseField, data: Dict) = field.extractOnTarget(
             onImplementingType = { create(it, data) },
             onUnion = { UnionWhereInput(it, data) },
         )
     }
 
     object Augmentation : AugmentationBase {
-        fun generateWhereOfFieldIT(field: RelationField, ctx: AugmentationContext): String? =
+        fun generateWhereOfFieldIT(field: RelationBaseField, ctx: AugmentationContext): String? =
             ctx.getTypeFromRelationField(field, RelationFieldBaseAugmentation::generateFieldWhereIT)
 
         fun generateWhereIT(entity: Entity, ctx: AugmentationContext): String? = entity
@@ -254,13 +239,8 @@ interface WhereInput {
                 { union -> UnionWhereInput.Augmentation.generateWhereIT(union, ctx) }
             )
 
-        fun addNestingWhereFields(
-            name: String,
-            fields: MutableList<InputValueDefinition>,
-            ctx: AugmentationContext,
-            isInterface: Boolean = false
-        ) {
-            if (fields.isNotEmpty() && (!isInterface || ctx.schemaConfig.experimental)) {
+        fun addNestingWhereFields(name: String, fields: MutableList<InputValueDefinition>) {
+            if (fields.isNotEmpty()) {
                 val listType = ListType(name.asRequiredType())
                 fields += inputValue(Constants.OR, listType)
                 fields += inputValue(Constants.AND, listType)

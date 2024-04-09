@@ -7,7 +7,7 @@
 [source,graphql,schema=true]
 ----
 interface UserInterface {
-  customResolver: String @customResolver
+  customResolver: String
 }
 
 type User implements UserInterface {
@@ -15,7 +15,7 @@ type User implements UserInterface {
   username: String!
   password: String!
   nickname: String! @customResolver
-  customResolver: String
+  customResolver: String @customResolver
 }
 ----
 
@@ -29,13 +29,11 @@ schema {
   mutation: Mutation
 }
 
-interface UserInterface {
-  customResolver: String
-}
-
-"Information about the number of nodes and relationships created during a create mutation"
+"""
+Information about the number of nodes and relationships created during a create mutation
+"""
 type CreateInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   relationshipsCreated: Int!
 }
@@ -45,16 +43,18 @@ type CreateUsersMutationResponse {
   users: [User!]!
 }
 
-"Information about the number of nodes and relationships deleted during a delete mutation"
+"""
+Information about the number of nodes and relationships deleted during a delete mutation
+"""
 type DeleteInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesDeleted: Int!
   relationshipsDeleted: Int!
 }
 
-type IDAggregateSelectionNonNullable {
-  longest: ID!
-  shortest: ID!
+type IDAggregateSelection {
+  longest: ID
+  shortest: ID
 }
 
 type Mutation {
@@ -63,7 +63,7 @@ type Mutation {
   updateUsers(update: UserUpdateInput, where: UserWhere): UpdateUsersMutationResponse!
 }
 
-"Pagination information (Relay)"
+"""Pagination information (Relay)"""
 type PageInfo {
   endCursor: String
   hasNextPage: Boolean!
@@ -72,19 +72,32 @@ type PageInfo {
 }
 
 type Query {
+  userInterfaces(options: UserInterfaceOptions, where: UserInterfaceWhere): [UserInterface!]!
+  userInterfacesAggregate(where: UserInterfaceWhere): UserInterfaceAggregateSelection!
+  userInterfacesConnection(after: String, first: Int, sort: [UserInterfaceSort], where: UserInterfaceWhere): UserInterfacesConnection!
   users(options: UserOptions, where: UserWhere): [User!]!
   usersAggregate(where: UserWhere): UserAggregateSelection!
   usersConnection(after: String, first: Int, sort: [UserSort], where: UserWhere): UsersConnection!
 }
 
-type StringAggregateSelectionNonNullable {
-  longest: String!
-  shortest: String!
+"""An enum for sorting in either ascending or descending order."""
+enum SortDirection {
+  """Sort by field values in ascending order."""
+  ASC
+  """Sort by field values in descending order."""
+  DESC
 }
 
-"Information about the number of nodes and relationships created and deleted during an update mutation"
+type StringAggregateSelection {
+  longest: String
+  shortest: String
+}
+
+"""
+Information about the number of nodes and relationships created and deleted during an update mutation
+"""
 type UpdateInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   nodesDeleted: Int!
   relationshipsCreated: Int!
@@ -106,28 +119,9 @@ type User implements UserInterface {
 
 type UserAggregateSelection {
   count: Int!
-  id: IDAggregateSelectionNonNullable!
-  password: StringAggregateSelectionNonNullable!
-  username: StringAggregateSelectionNonNullable!
-}
-
-type UserEdge {
-  cursor: String!
-  node: User!
-}
-
-type UsersConnection {
-  edges: [UserEdge!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-"An enum for sorting in either ascending or descending order."
-enum SortDirection {
-  "Sort by field values in ascending order."
-  ASC
-  "Sort by field values in descending order."
-  DESC
+  id: IDAggregateSelection!
+  password: StringAggregateSelection!
+  username: StringAggregateSelection!
 }
 
 input UserCreateInput {
@@ -136,14 +130,80 @@ input UserCreateInput {
   username: String!
 }
 
+type UserEdge {
+  cursor: String!
+  node: User!
+}
+
+interface UserInterface {
+  customResolver: String
+}
+
+type UserInterfaceAggregateSelection {
+  count: Int!
+  customResolver: StringAggregateSelection!
+}
+
+type UserInterfaceEdge {
+  cursor: String!
+  node: UserInterface!
+}
+
+enum UserInterfaceImplementation {
+  User
+}
+
+input UserInterfaceOptions {
+  limit: Int
+  offset: Int
+  """
+  Specify one or more UserInterfaceSort objects to sort UserInterfaces by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [UserInterfaceSort]
+}
+
+"""
+Fields to sort UserInterfaces by. The order in which sorts are applied is not guaranteed when specifying many fields in one UserInterfaceSort object.
+"""
+input UserInterfaceSort {
+  customResolver: SortDirection
+}
+
+input UserInterfaceWhere {
+  AND: [UserInterfaceWhere!]
+  NOT: UserInterfaceWhere
+  OR: [UserInterfaceWhere!]
+  customResolver: String
+  customResolver_CONTAINS: String
+  customResolver_ENDS_WITH: String
+  customResolver_IN: [String]
+  customResolver_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  customResolver_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  customResolver_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  customResolver_NOT_IN: [String] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  customResolver_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  customResolver_STARTS_WITH: String
+  typename_IN: [UserInterfaceImplementation!]
+}
+
+type UserInterfacesConnection {
+  edges: [UserInterfaceEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
 input UserOptions {
   limit: Int
   offset: Int
-  "Specify one or more UserSort objects to sort Users by. The sorts will be applied in the order in which they are arranged in the array."
+  """
+  Specify one or more UserSort objects to sort Users by. The sorts will be applied in the order in which they are arranged in the array.
+  """
   sort: [UserSort!]
 }
 
-"Fields to sort Users by. The order in which sorts are applied is not guaranteed when specifying many fields in one UserSort object."
+"""
+Fields to sort Users by. The order in which sorts are applied is not guaranteed when specifying many fields in one UserSort object.
+"""
 input UserSort {
   id: SortDirection
   password: SortDirection
@@ -164,34 +224,39 @@ input UserWhere {
   id_CONTAINS: ID
   id_ENDS_WITH: ID
   id_IN: [ID!]
-  id_NOT: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_CONTAINS: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_ENDS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_IN: [ID!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_STARTS_WITH: ID @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_CONTAINS: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_ENDS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_IN: [ID!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_STARTS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id_STARTS_WITH: ID
   password: String
   password_CONTAINS: String
   password_ENDS_WITH: String
   password_IN: [String!]
-  password_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  password_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  password_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  password_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  password_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  password_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  password_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  password_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  password_NOT_IN: [String!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  password_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   password_STARTS_WITH: String
   username: String
   username_CONTAINS: String
   username_ENDS_WITH: String
   username_IN: [String!]
-  username_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  username_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  username_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  username_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  username_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  username_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  username_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  username_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  username_NOT_IN: [String!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  username_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   username_STARTS_WITH: String
 }
 
+type UsersConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
 ----
 
 '''

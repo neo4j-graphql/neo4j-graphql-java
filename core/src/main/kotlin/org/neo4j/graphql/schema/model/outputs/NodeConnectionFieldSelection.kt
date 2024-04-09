@@ -14,10 +14,10 @@ class NodeConnectionFieldSelection {
     object Augmentation : AugmentationBase {
 
         fun generateConnectionOT(field: ConnectionField, ctx: AugmentationContext) =
-            ctx.getOrCreateObjectType(field.typeMeta.type.name()) { fields, _ ->
+            ctx.getOrCreateObjectType(field.relationshipField.namings.connectionFieldTypename) { fields, _ ->
 
                 NodeConnectionEdgeFieldSelection.Augmentation
-                    .generateRelationshipSelection(field, ctx)
+                    .generateRelationshipSelection(field.interfaceField as? ConnectionField ?: field, ctx)
                     .let { fields += field(Constants.EDGES_FIELD, NonNullType(ListType(it.asRequiredType()))) }
 
                 fields += field(Constants.TOTAL_COUNT, NonNullType(Constants.Types.Int))

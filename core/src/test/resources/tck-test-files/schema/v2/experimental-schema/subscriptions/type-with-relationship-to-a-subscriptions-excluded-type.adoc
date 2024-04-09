@@ -24,7 +24,6 @@ type Agreement {
 [source,json,schema-config=true]
 ----
 {
-  "experimental": true,
   "features": {
     "subscriptions": true
   }
@@ -52,12 +51,22 @@ type Agreement {
 
 type AgreementAggregateSelection {
   count: Int!
-  id: IntAggregateSelectionNonNullable!
-  name: StringAggregateSelectionNullable!
+  id: IntAggregateSelection!
+  name: StringAggregateSelection!
+}
+
+input AgreementConnectInput {
+  owner: AgreementOwnerConnectFieldInput
 }
 
 type AgreementConnectedRelationships {
   owner: AgreementOwnerConnectedRelationship
+}
+
+input AgreementCreateInput {
+  id: Int!
+  name: String
+  owner: AgreementOwnerFieldInput
 }
 
 type AgreementCreatedEvent {
@@ -66,10 +75,18 @@ type AgreementCreatedEvent {
   timestamp: Float!
 }
 
+input AgreementDeleteInput {
+  owner: AgreementOwnerDeleteFieldInput
+}
+
 type AgreementDeletedEvent {
   deletedAgreement: AgreementEventPayload!
   event: EventType!
   timestamp: Float!
+}
+
+input AgreementDisconnectInput {
+  owner: AgreementOwnerDisconnectFieldInput
 }
 
 type AgreementEdge {
@@ -82,206 +99,12 @@ type AgreementEventPayload {
   name: String
 }
 
-type AgreementOwnerConnectedRelationship {
-  node: UserEventPayload!
-}
-
-type AgreementOwnerConnection {
-  edges: [AgreementOwnerRelationship!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type AgreementOwnerRelationship {
-  cursor: String!
-  node: User!
-}
-
-type AgreementRelationshipCreatedEvent {
-  agreement: AgreementEventPayload!
-  createdRelationship: AgreementConnectedRelationships!
-  event: EventType!
-  relationshipFieldName: String!
-  timestamp: Float!
-}
-
-type AgreementRelationshipDeletedEvent {
-  agreement: AgreementEventPayload!
-  deletedRelationship: AgreementConnectedRelationships!
-  event: EventType!
-  relationshipFieldName: String!
-  timestamp: Float!
-}
-
-type AgreementUpdatedEvent {
-  event: EventType!
-  previousState: AgreementEventPayload!
-  timestamp: Float!
-  updatedAgreement: AgreementEventPayload!
-}
-
-type AgreementUserOwnerAggregationSelection {
-  count: Int!
-  node: AgreementUserOwnerNodeAggregateSelection
-}
-
-type AgreementUserOwnerNodeAggregateSelection {
-  name: StringAggregateSelectionNullable!
-  username: StringAggregateSelectionNonNullable!
-}
-
-type AgreementsConnection {
-  edges: [AgreementEdge!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type CreateAgreementsMutationResponse {
-  agreements: [Agreement!]!
-  info: CreateInfo!
-}
-
-"Information about the number of nodes and relationships created during a create mutation"
-type CreateInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
-  nodesCreated: Int!
-  relationshipsCreated: Int!
-}
-
-"Information about the number of nodes and relationships deleted during a delete mutation"
-type DeleteInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
-  nodesDeleted: Int!
-  relationshipsDeleted: Int!
-}
-
-type IntAggregateSelectionNonNullable {
-  average: Float!
-  max: Int!
-  min: Int!
-  sum: Int!
-}
-
-type Mutation {
-  createAgreements(input: [AgreementCreateInput!]!): CreateAgreementsMutationResponse!
-  deleteAgreements(delete: AgreementDeleteInput, where: AgreementWhere): DeleteInfo!
-  updateAgreements(connect: AgreementConnectInput, create: AgreementRelationInput, delete: AgreementDeleteInput, disconnect: AgreementDisconnectInput, update: AgreementUpdateInput, where: AgreementWhere): UpdateAgreementsMutationResponse!
-}
-
-"Pagination information (Relay)"
-type PageInfo {
-  endCursor: String
-  hasNextPage: Boolean!
-  hasPreviousPage: Boolean!
-  startCursor: String
-}
-
-type Query {
-  agreements(options: AgreementOptions, where: AgreementWhere): [Agreement!]!
-  agreementsAggregate(where: AgreementWhere): AgreementAggregateSelection!
-  agreementsConnection(after: String, first: Int, sort: [AgreementSort], where: AgreementWhere): AgreementsConnection!
-  users(options: UserOptions, where: UserWhere): [User!]!
-  usersAggregate(where: UserWhere): UserAggregateSelection!
-  usersConnection(after: String, first: Int, sort: [UserSort], where: UserWhere): UsersConnection!
-}
-
-type StringAggregateSelectionNonNullable {
-  longest: String!
-  shortest: String!
-}
-
-type StringAggregateSelectionNullable {
-  longest: String
-  shortest: String
-}
-
-type Subscription {
-  agreementCreated(where: AgreementSubscriptionWhere): AgreementCreatedEvent!
-  agreementDeleted(where: AgreementSubscriptionWhere): AgreementDeletedEvent!
-  agreementRelationshipCreated(where: AgreementRelationshipCreatedSubscriptionWhere): AgreementRelationshipCreatedEvent!
-  agreementRelationshipDeleted(where: AgreementRelationshipDeletedSubscriptionWhere): AgreementRelationshipDeletedEvent!
-  agreementUpdated(where: AgreementSubscriptionWhere): AgreementUpdatedEvent!
-}
-
-type UpdateAgreementsMutationResponse {
-  agreements: [Agreement!]!
-  info: UpdateInfo!
-}
-
-"Information about the number of nodes and relationships created and deleted during an update mutation"
-type UpdateInfo {
-  bookmark: String @deprecated(reason : "This field has been deprecated because bookmarks are now handled by the driver.")
-  nodesCreated: Int!
-  nodesDeleted: Int!
-  relationshipsCreated: Int!
-  relationshipsDeleted: Int!
-}
-
-type User {
-  name: String
-  username: String!
-}
-
-type UserAggregateSelection {
-  count: Int!
-  name: StringAggregateSelectionNullable!
-  username: StringAggregateSelectionNonNullable!
-}
-
-type UserEdge {
-  cursor: String!
-  node: User!
-}
-
-type UserEventPayload {
-  name: String
-  username: String!
-}
-
-type UsersConnection {
-  edges: [UserEdge!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-enum EventType {
-  CREATE
-  CREATE_RELATIONSHIP
-  DELETE
-  DELETE_RELATIONSHIP
-  UPDATE
-}
-
-"An enum for sorting in either ascending or descending order."
-enum SortDirection {
-  "Sort by field values in ascending order."
-  ASC
-  "Sort by field values in descending order."
-  DESC
-}
-
-input AgreementConnectInput {
-  owner: AgreementOwnerConnectFieldInput
-}
-
-input AgreementCreateInput {
-  id: Int!
-  name: String
-  owner: AgreementOwnerFieldInput
-}
-
-input AgreementDeleteInput {
-  owner: AgreementOwnerDeleteFieldInput
-}
-
-input AgreementDisconnectInput {
-  owner: AgreementOwnerDisconnectFieldInput
-}
-
 input AgreementOptions {
   limit: Int
   offset: Int
-  "Specify one or more AgreementSort objects to sort Agreements by. The sorts will be applied in the order in which they are arranged in the array."
+  """
+  Specify one or more AgreementSort objects to sort Agreements by. The sorts will be applied in the order in which they are arranged in the array.
+  """
   sort: [AgreementSort!]
 }
 
@@ -298,9 +121,21 @@ input AgreementOwnerAggregateInput {
 }
 
 input AgreementOwnerConnectFieldInput {
-  "Whether or not to overwrite any matching relationship with the new properties."
+  """
+  Whether or not to overwrite any matching relationship with the new properties.
+  """
   overwrite: Boolean! = true
   where: UserConnectWhere
+}
+
+type AgreementOwnerConnectedRelationship {
+  node: UserEventPayload!
+}
+
+type AgreementOwnerConnection {
+  edges: [AgreementOwnerRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
 }
 
 input AgreementOwnerConnectionSort {
@@ -312,7 +147,7 @@ input AgreementOwnerConnectionWhere {
   NOT: AgreementOwnerConnectionWhere
   OR: [AgreementOwnerConnectionWhere!]
   node: UserWhere
-  node_NOT: UserWhere @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  node_NOT: UserWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input AgreementOwnerCreateFieldInput {
@@ -336,76 +171,81 @@ input AgreementOwnerNodeAggregationWhereInput {
   AND: [AgreementOwnerNodeAggregationWhereInput!]
   NOT: AgreementOwnerNodeAggregationWhereInput
   OR: [AgreementOwnerNodeAggregationWhereInput!]
-  name_AVERAGE_EQUAL: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_AVERAGE_GT: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_AVERAGE_GTE: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_AVERAGE_EQUAL: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_AVERAGE_GT: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_AVERAGE_GTE: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
   name_AVERAGE_LENGTH_EQUAL: Float
   name_AVERAGE_LENGTH_GT: Float
   name_AVERAGE_LENGTH_GTE: Float
   name_AVERAGE_LENGTH_LT: Float
   name_AVERAGE_LENGTH_LTE: Float
-  name_AVERAGE_LT: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_AVERAGE_LTE: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_EQUAL: String @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  name_GT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  name_GTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  name_LONGEST_EQUAL: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_LONGEST_GT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_LONGEST_GTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_AVERAGE_LT: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_AVERAGE_LTE: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_EQUAL: String @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_GT: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_GTE: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_LONGEST_EQUAL: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_LONGEST_GT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_LONGEST_GTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
   name_LONGEST_LENGTH_EQUAL: Int
   name_LONGEST_LENGTH_GT: Int
   name_LONGEST_LENGTH_GTE: Int
   name_LONGEST_LENGTH_LT: Int
   name_LONGEST_LENGTH_LTE: Int
-  name_LONGEST_LT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_LONGEST_LTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_LT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  name_LTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  name_SHORTEST_EQUAL: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_SHORTEST_GT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_SHORTEST_GTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_LONGEST_LT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_LONGEST_LTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_LT: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_LTE: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  name_SHORTEST_EQUAL: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_SHORTEST_GT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_SHORTEST_GTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
   name_SHORTEST_LENGTH_EQUAL: Int
   name_SHORTEST_LENGTH_GT: Int
   name_SHORTEST_LENGTH_GTE: Int
   name_SHORTEST_LENGTH_LT: Int
   name_SHORTEST_LENGTH_LTE: Int
-  name_SHORTEST_LT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  name_SHORTEST_LTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  username_AVERAGE_EQUAL: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  username_AVERAGE_GT: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  username_AVERAGE_GTE: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  name_SHORTEST_LT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  name_SHORTEST_LTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  username_AVERAGE_EQUAL: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  username_AVERAGE_GT: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  username_AVERAGE_GTE: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
   username_AVERAGE_LENGTH_EQUAL: Float
   username_AVERAGE_LENGTH_GT: Float
   username_AVERAGE_LENGTH_GTE: Float
   username_AVERAGE_LENGTH_LT: Float
   username_AVERAGE_LENGTH_LTE: Float
-  username_AVERAGE_LT: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  username_AVERAGE_LTE: Float @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  username_EQUAL: String @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  username_GT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  username_GTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  username_LONGEST_EQUAL: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  username_LONGEST_GT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  username_LONGEST_GTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  username_AVERAGE_LT: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  username_AVERAGE_LTE: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  username_EQUAL: String @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  username_GT: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  username_GTE: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  username_LONGEST_EQUAL: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  username_LONGEST_GT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  username_LONGEST_GTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
   username_LONGEST_LENGTH_EQUAL: Int
   username_LONGEST_LENGTH_GT: Int
   username_LONGEST_LENGTH_GTE: Int
   username_LONGEST_LENGTH_LT: Int
   username_LONGEST_LENGTH_LTE: Int
-  username_LONGEST_LT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  username_LONGEST_LTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  username_LT: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  username_LTE: Int @deprecated(reason : "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  username_SHORTEST_EQUAL: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  username_SHORTEST_GT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  username_SHORTEST_GTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  username_LONGEST_LT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  username_LONGEST_LTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  username_LT: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  username_LTE: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
+  username_SHORTEST_EQUAL: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  username_SHORTEST_GT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  username_SHORTEST_GTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
   username_SHORTEST_LENGTH_EQUAL: Int
   username_SHORTEST_LENGTH_GT: Int
   username_SHORTEST_LENGTH_GTE: Int
   username_SHORTEST_LENGTH_LT: Int
   username_SHORTEST_LENGTH_LTE: Int
-  username_SHORTEST_LT: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
-  username_SHORTEST_LTE: Int @deprecated(reason : "Please use the explicit _LENGTH version for string aggregation.")
+  username_SHORTEST_LT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+  username_SHORTEST_LTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
+}
+
+type AgreementOwnerRelationship {
+  cursor: String!
+  node: User!
 }
 
 input AgreementOwnerRelationshipSubscriptionWhere {
@@ -429,12 +269,28 @@ input AgreementRelationInput {
   owner: AgreementOwnerCreateFieldInput
 }
 
+type AgreementRelationshipCreatedEvent {
+  agreement: AgreementEventPayload!
+  createdRelationship: AgreementConnectedRelationships!
+  event: EventType!
+  relationshipFieldName: String!
+  timestamp: Float!
+}
+
 input AgreementRelationshipCreatedSubscriptionWhere {
   AND: [AgreementRelationshipCreatedSubscriptionWhere!]
   NOT: AgreementRelationshipCreatedSubscriptionWhere
   OR: [AgreementRelationshipCreatedSubscriptionWhere!]
   agreement: AgreementSubscriptionWhere
   createdRelationship: AgreementRelationshipsSubscriptionWhere
+}
+
+type AgreementRelationshipDeletedEvent {
+  agreement: AgreementEventPayload!
+  deletedRelationship: AgreementConnectedRelationships!
+  event: EventType!
+  relationshipFieldName: String!
+  timestamp: Float!
 }
 
 input AgreementRelationshipDeletedSubscriptionWhere {
@@ -449,7 +305,9 @@ input AgreementRelationshipsSubscriptionWhere {
   owner: AgreementOwnerRelationshipSubscriptionWhere
 }
 
-"Fields to sort Agreements by. The order in which sorts are applied is not guaranteed when specifying many fields in one AgreementSort object."
+"""
+Fields to sort Agreements by. The order in which sorts are applied is not guaranteed when specifying many fields in one AgreementSort object.
+"""
 input AgreementSort {
   id: SortDirection
   name: SortDirection
@@ -465,17 +323,17 @@ input AgreementSubscriptionWhere {
   id_IN: [Int!]
   id_LT: Int
   id_LTE: Int
-  id_NOT: Int @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_IN: [Int!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT: Int @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_IN: [Int!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   name: String
   name_CONTAINS: String
   name_ENDS_WITH: String
   name_IN: [String]
-  name_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_IN: [String] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_IN: [String] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   name_STARTS_WITH: String
 }
 
@@ -485,6 +343,23 @@ input AgreementUpdateInput {
   id_INCREMENT: Int
   name: String
   owner: AgreementOwnerUpdateFieldInput
+}
+
+type AgreementUpdatedEvent {
+  event: EventType!
+  previousState: AgreementEventPayload!
+  timestamp: Float!
+  updatedAgreement: AgreementEventPayload!
+}
+
+type AgreementUserOwnerAggregationSelection {
+  count: Int!
+  node: AgreementUserOwnerNodeAggregateSelection
+}
+
+type AgreementUserOwnerNodeAggregateSelection {
+  name: StringAggregateSelection!
+  username: StringAggregateSelection!
 }
 
 input AgreementWhere {
@@ -497,23 +372,138 @@ input AgreementWhere {
   id_IN: [Int!]
   id_LT: Int
   id_LTE: Int
-  id_NOT: Int @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_IN: [Int!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT: Int @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  id_NOT_IN: [Int!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   name: String
   name_CONTAINS: String
   name_ENDS_WITH: String
   name_IN: [String]
-  name_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_IN: [String] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_IN: [String] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   name_STARTS_WITH: String
   owner: UserWhere
   ownerAggregate: AgreementOwnerAggregateInput
   ownerConnection: AgreementOwnerConnectionWhere
   ownerConnection_NOT: AgreementOwnerConnectionWhere
   owner_NOT: UserWhere
+}
+
+type AgreementsConnection {
+  edges: [AgreementEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type CreateAgreementsMutationResponse {
+  agreements: [Agreement!]!
+  info: CreateInfo!
+}
+
+"""
+Information about the number of nodes and relationships created during a create mutation
+"""
+type CreateInfo {
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesCreated: Int!
+  relationshipsCreated: Int!
+}
+
+"""
+Information about the number of nodes and relationships deleted during a delete mutation
+"""
+type DeleteInfo {
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
+enum EventType {
+  CREATE
+  CREATE_RELATIONSHIP
+  DELETE
+  DELETE_RELATIONSHIP
+  UPDATE
+}
+
+type IntAggregateSelection {
+  average: Float
+  max: Int
+  min: Int
+  sum: Int
+}
+
+type Mutation {
+  createAgreements(input: [AgreementCreateInput!]!): CreateAgreementsMutationResponse!
+  deleteAgreements(delete: AgreementDeleteInput, where: AgreementWhere): DeleteInfo!
+  updateAgreements(connect: AgreementConnectInput, create: AgreementRelationInput, delete: AgreementDeleteInput, disconnect: AgreementDisconnectInput, update: AgreementUpdateInput, where: AgreementWhere): UpdateAgreementsMutationResponse!
+}
+
+"""Pagination information (Relay)"""
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  agreements(options: AgreementOptions, where: AgreementWhere): [Agreement!]!
+  agreementsAggregate(where: AgreementWhere): AgreementAggregateSelection!
+  agreementsConnection(after: String, first: Int, sort: [AgreementSort], where: AgreementWhere): AgreementsConnection!
+  users(options: UserOptions, where: UserWhere): [User!]!
+  usersAggregate(where: UserWhere): UserAggregateSelection!
+  usersConnection(after: String, first: Int, sort: [UserSort], where: UserWhere): UsersConnection!
+}
+
+"""An enum for sorting in either ascending or descending order."""
+enum SortDirection {
+  """Sort by field values in ascending order."""
+  ASC
+  """Sort by field values in descending order."""
+  DESC
+}
+
+type StringAggregateSelection {
+  longest: String
+  shortest: String
+}
+
+type Subscription {
+  agreementCreated(where: AgreementSubscriptionWhere): AgreementCreatedEvent!
+  agreementDeleted(where: AgreementSubscriptionWhere): AgreementDeletedEvent!
+  agreementRelationshipCreated(where: AgreementRelationshipCreatedSubscriptionWhere): AgreementRelationshipCreatedEvent!
+  agreementRelationshipDeleted(where: AgreementRelationshipDeletedSubscriptionWhere): AgreementRelationshipDeletedEvent!
+  agreementUpdated(where: AgreementSubscriptionWhere): AgreementUpdatedEvent!
+}
+
+type UpdateAgreementsMutationResponse {
+  agreements: [Agreement!]!
+  info: UpdateInfo!
+}
+
+"""
+Information about the number of nodes and relationships created and deleted during an update mutation
+"""
+type UpdateInfo {
+  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
+  nodesCreated: Int!
+  nodesDeleted: Int!
+  relationshipsCreated: Int!
+  relationshipsDeleted: Int!
+}
+
+type User {
+  name: String
+  username: String!
+}
+
+type UserAggregateSelection {
+  count: Int!
+  name: StringAggregateSelection!
+  username: StringAggregateSelection!
 }
 
 input UserConnectWhere {
@@ -525,14 +515,28 @@ input UserCreateInput {
   username: String!
 }
 
+type UserEdge {
+  cursor: String!
+  node: User!
+}
+
+type UserEventPayload {
+  name: String
+  username: String!
+}
+
 input UserOptions {
   limit: Int
   offset: Int
-  "Specify one or more UserSort objects to sort Users by. The sorts will be applied in the order in which they are arranged in the array."
+  """
+  Specify one or more UserSort objects to sort Users by. The sorts will be applied in the order in which they are arranged in the array.
+  """
   sort: [UserSort!]
 }
 
-"Fields to sort Users by. The order in which sorts are applied is not guaranteed when specifying many fields in one UserSort object."
+"""
+Fields to sort Users by. The order in which sorts are applied is not guaranteed when specifying many fields in one UserSort object.
+"""
 input UserSort {
   name: SortDirection
   username: SortDirection
@@ -546,21 +550,21 @@ input UserSubscriptionWhere {
   name_CONTAINS: String
   name_ENDS_WITH: String
   name_IN: [String]
-  name_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_IN: [String] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_IN: [String] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   name_STARTS_WITH: String
   username: String
   username_CONTAINS: String
   username_ENDS_WITH: String
   username_IN: [String!]
-  username_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  username_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  username_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  username_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  username_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  username_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  username_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  username_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  username_NOT_IN: [String!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  username_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   username_STARTS_WITH: String
 }
 
@@ -577,24 +581,29 @@ input UserWhere {
   name_CONTAINS: String
   name_ENDS_WITH: String
   name_IN: [String]
-  name_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_IN: [String] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_IN: [String] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  name_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   name_STARTS_WITH: String
   username: String
   username_CONTAINS: String
   username_ENDS_WITH: String
   username_IN: [String!]
-  username_NOT: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  username_NOT_CONTAINS: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  username_NOT_ENDS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  username_NOT_IN: [String!] @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  username_NOT_STARTS_WITH: String @deprecated(reason : "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  username_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  username_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  username_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  username_NOT_IN: [String!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
+  username_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   username_STARTS_WITH: String
 }
 
+type UsersConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
 ----
 
 '''

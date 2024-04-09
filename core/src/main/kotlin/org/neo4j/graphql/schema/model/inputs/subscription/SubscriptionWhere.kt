@@ -32,16 +32,7 @@ interface SubscriptionWhere {
                         .getWhereFields(name, interfaze.fields.filterIsInstance<ScalarField>(), ctx)
 
                     if (fields.isNotEmpty()) {
-                        // TODO create ticket for adding this filtering for subscriptions as well
-                        if (ctx.schemaConfig.experimental) {
-                            ctx.addTypenameEnum(interfaze, fields)
-                        } else {
-                            ctx.addOnField(interfaze,
-                                interfaze.namings.implementationsSubscriptionWhereInputTypeName,
-                                fields,
-                                asList = false,
-                                { node -> NodeSubscriptionWhere.Augmentation.generateWhereIT(node, ctx) })
-                        }
+                        ctx.addTypenameEnum(interfaze, fields)
                     }
                 }
         }
