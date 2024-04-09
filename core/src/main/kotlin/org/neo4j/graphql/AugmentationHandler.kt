@@ -291,7 +291,7 @@ abstract class AugmentationHandler(
 
     fun ImplementingTypeDefinition<*>.getScalarFields(): List<FieldDefinition> = fieldDefinitions
         .filterNot { it.isIgnored() }
-        .filter { it.type.inner().isScalar() || it.type.inner().isNeo4jType() }
+        .filter { it.type.inner().isScalar() || it.type.inner().isNeo4jType() || it.type.inner().isEnum() }
         .sortedByDescending { it.type.inner().isID() }
 
     fun ImplementingTypeDefinition<*>.getFieldDefinition(name: String) = this.fieldDefinitions
@@ -304,6 +304,7 @@ abstract class AugmentationHandler(
 
     fun Type<*>.resolve(): TypeDefinition<*>? = getTypeFromAnyRegistry(name())
     fun Type<*>.isScalar(): Boolean = resolve() is ScalarTypeDefinition
+    fun Type<*>.isEnum(): Boolean = resolve() is EnumTypeDefinition
     private fun Type<*>.isNeo4jType(): Boolean = name()
         ?.takeIf {
             !ScalarInfo.GRAPHQL_SPECIFICATION_SCALARS_DEFINITIONS.containsKey(it)
