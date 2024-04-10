@@ -1,5 +1,5 @@
 = JVM Library to translate GraphQL queries and mutations to Neo4j's Cypher
-:version: 1.8.0
+:version: 1.9.0
 :toc:
 :toclevels: 1
 :toc-title: Quick Links
