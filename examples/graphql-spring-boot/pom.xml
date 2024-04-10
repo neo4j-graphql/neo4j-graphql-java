@@ -50,7 +50,7 @@
         <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j-graphql-java</artifactId>
-            <version>1.9.0</version>
+            <version>1.9.1-SNAPSHOT</version>
         </dependency>
 
 
