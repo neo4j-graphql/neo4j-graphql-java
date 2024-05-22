@@ -4,6 +4,8 @@
 :toclevels: 1
 :toc-title: Quick Links
 
+NOTE: This is a https://neo4j.com/labs/[Neo4j Labs Project^], it is not supported by Neo4j engineering or support and developed on an best-effort basis. It is also not functionally equivalent to the https://github.com/neo4j/graphql[neo4j-graphql (Javascript) library and API^] even as we try to stay close to it. Please use the official library for a JavaScript based GraphQL Middleware for production use-cases.
+
 This is a https://graphql.org[GraphQL] to https://neo4j.com/developer/cypher[Cypher] transpiler written in Kotlin.
 
 License: Apache 2.
