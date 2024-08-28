@@ -15,227 +15,11 @@ type Post {
   likes: [User!]! @relationship(type: "LIKES", direction: IN, properties: "Likes")
 }
 
-interface Likes @relationshipProperties {
+type Likes @relationshipProperties {
   someLocalTime: LocalTime
   someLocalTimeAlias: LocalTime @alias(property: "_someLocalTimeAlias")
 }
 ----
-== EQUAL
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  posts(where: {likesAggregate: {edge: {someLocalTime_EQUAL: "12:00:00"}}}) {
-    content
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0": "12:00:00"
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Post)
-CALL {
-    WITH this
-    MATCH (this)<-[this0:LIKES]-(this1:User)
-    RETURN any(var2 IN collect(this0.someLocalTime) WHERE var2 = $param0) AS var3
-}
-WITH *
-WHERE var3 = true
-RETURN this { .content } AS this
-----
-
-'''
-
-== EQUAL with alias
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  posts(where: {likesAggregate: {edge: {someLocalTimeAlias_EQUAL: "12:00:00"}}}) {
-    content
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0": "12:00:00"
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Post)
-CALL {
-    WITH this
-    MATCH (this)<-[this0:LIKES]-(this1:User)
-    RETURN any(var2 IN collect(this0._someLocalTimeAlias) WHERE var2 = $param0) AS var3
-}
-WITH *
-WHERE var3 = true
-RETURN this { .content } AS this
-----
-
-'''
-
-== GT
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  posts(where: {likesAggregate: {edge: {someLocalTime_GT: "12:00:00"}}}) {
-    content
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0": "12:00:00"
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Post)
-CALL {
-    WITH this
-    MATCH (this)<-[this0:LIKES]-(this1:User)
-    RETURN any(var2 IN collect(this0.someLocalTime) WHERE var2 > $param0) AS var3
-}
-WITH *
-WHERE var3 = true
-RETURN this { .content } AS this
-----
-
-'''
-
-== GTE
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  posts(where: {likesAggregate: {edge: {someLocalTime_GTE: "12:00:00"}}}) {
-    content
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0": "12:00:00"
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Post)
-CALL {
-    WITH this
-    MATCH (this)<-[this0:LIKES]-(this1:User)
-    RETURN any(var2 IN collect(this0.someLocalTime) WHERE var2 >= $param0) AS var3
-}
-WITH *
-WHERE var3 = true
-RETURN this { .content } AS this
-----
-
-'''
-
-== LT
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  posts(where: {likesAggregate: {edge: {someLocalTime_LT: "12:00:00"}}}) {
-    content
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0": "12:00:00"
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Post)
-CALL {
-    WITH this
-    MATCH (this)<-[this0:LIKES]-(this1:User)
-    RETURN any(var2 IN collect(this0.someLocalTime) WHERE var2 < $param0) AS var3
-}
-WITH *
-WHERE var3 = true
-RETURN this { .content } AS this
-----
-
-'''
-
-== LTE
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  posts(where: {likesAggregate: {edge: {someLocalTime_LTE: "12:00:00"}}}) {
-    content
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0": "12:00:00"
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Post)
-CALL {
-    WITH this
-    MATCH (this)<-[this0:LIKES]-(this1:User)
-    RETURN any(var2 IN collect(this0.someLocalTime) WHERE var2 <= $param0) AS var3
-}
-WITH *
-WHERE var3 = true
-RETURN this { .content } AS this
-----
-
-'''
-
 == MAX_EQUAL
 
 .GraphQL-Query
@@ -444,6 +228,44 @@ CALL {
     WITH this
     MATCH (this)<-[this0:LIKES]-(this1:User)
     RETURN min(this0.someLocalTime) = $param0 AS var2
+}
+WITH *
+WHERE var2 = true
+RETURN this { .content } AS this
+----
+
+'''
+
+== MIN_EQUAL with alias
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  posts(
+    where: {likesAggregate: {edge: {someLocalTimeAlias_MIN_EQUAL: "12:00:00"}}}
+  ) {
+    content
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "12:00:00"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Post)
+CALL {
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN min(this0._someLocalTimeAlias) = $param0 AS var2
 }
 WITH *
 WHERE var2 = true

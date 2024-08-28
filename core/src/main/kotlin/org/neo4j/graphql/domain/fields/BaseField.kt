@@ -5,6 +5,7 @@ import graphql.language.Description
 import graphql.language.InputValueDefinition
 import org.neo4j.graphql.domain.*
 import org.neo4j.graphql.domain.directives.FieldAnnotations
+import org.neo4j.graphql.domain.directives.PopulatedByDirective
 import org.neo4j.graphql.domain.directives.TimestampDirective
 import org.neo4j.graphql.isRequired
 
@@ -89,15 +90,26 @@ sealed class BaseField(
         isNonGeneratedField()
                 && annotations.settable?.onCreate != false
                 && !timestampCreateIsGenerated()
+                && !this.populatedByCreateIsGenerated()
 
     fun isUpdateInputField() =
         isNonGeneratedField()
                 && annotations.settable?.onUpdate != false
                 && !timestampUpdateIsGenerated()
+                && !this.populatedByUpdateIsGenerated()
+
+    private fun populatedByCreateIsGenerated() = annotations.populatedBy
+        ?.operations
+        ?.contains(PopulatedByDirective.PopulatedByOperation.CREATE) == true
+
+    private fun populatedByUpdateIsGenerated() = annotations.populatedBy
+        ?.operations
+        ?.contains(PopulatedByDirective.PopulatedByOperation.UPDATE) == true
 
     open fun isAggregationFilterable() = !isCustomResolvable() && !isCypher()
             && annotations.filterable?.byAggregate != false
 
     open fun isEventPayloadField() = false
     fun isFilterableByValue() = annotations.filterable?.byValue != false
+    fun isFilterableByAggregate() = annotations.filterable?.byAggregate != false
 }

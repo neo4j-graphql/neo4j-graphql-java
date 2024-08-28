@@ -55,27 +55,29 @@ object CreateFieldAggregation {
 
         val relationship = relationField.createQueryDslRelation(dslNode, targetRef, args.directed)
             .named("edge")
-        val matchWherePattern = Cypher
-            .with(dslNode)
-            .match(relationship)
-            .let {
-                when {
-                    where != null && preComputedSubqueries.isNotEmpty() -> it.withSubQueries(preComputedSubqueries)
-                        .with(Cypher.asterisk())
-                        .where(where)
+        val matchWherePattern = {
+            Cypher
+                .with(dslNode)
+                .match(relationship)
+                .let {
+                    when {
+                        where != null && preComputedSubqueries.isNotEmpty() -> it.withSubQueries(preComputedSubqueries)
+                            .with(Cypher.asterisk())
+                            .where(where)
 
-                    where != null -> it.where(where)
+                        where != null -> it.where(where)
 
-                    else -> it
+                        else -> it
+                    }
                 }
-            }
+        }
 
         val projections = mutableListOf<Any>()
 
         aggregationFields.count.takeIf { it.isNotEmpty() }?.let {
             val countRef = queryContext.getNextVariable(prefix.extend("var"))
             projections.addAll(it.project(countRef))
-            subQueries += matchWherePattern
+            subQueries += matchWherePattern()
                 .returning(Cypher.count(targetRef).`as`(countRef))
                 .build()
         }
@@ -111,7 +113,9 @@ object CreateFieldAggregation {
 
     fun getAggregationProjectionAndSubqueries(
         prefix: ChainString,
-        matchPattern: StatementBuilder.OngoingReading,
+        // TODO: currently ongoing readings are not immutable, so we need to create a new one for each subquery
+        //  replace function-parameter by reading after https://github.com/neo4j-contrib/cypher-dsl/issues/907 is fixed
+        matchPatternFactory: ()->StatementBuilder.OngoingReading,
         targetRef: PropertyContainer,
         fields: AggregationSelectionFields,
         subQueries: MutableList<Statement>,
@@ -135,7 +139,7 @@ object CreateFieldAggregation {
                 val innerProjection = when (field.typeMeta.type.name()) {
                     Constants.STRING -> {
                         val list = Cypher.name("list")
-                        subQueries += matchPattern
+                        subQueries += matchPatternFactory()
                             .with(targetRef)
                             .orderBy(Cypher.size(property)).descending()
                             .with(Cypher.collect(property).`as`(list))
@@ -153,7 +157,7 @@ object CreateFieldAggregation {
                     Constants.DATE_TIME -> dateTimeAggregationProjection(nestedSelection, property)
                     else -> defaultAggregationProjection(nestedSelection, property, number = false)
                 }
-                subQueries += matchPattern.returning(innerProjection.`as`(fieldRef)).build()
+                subQueries += matchPatternFactory().returning(innerProjection.`as`(fieldRef)).build()
             }
         return projection
     }

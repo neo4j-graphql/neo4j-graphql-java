@@ -24,7 +24,7 @@ type User {
 [source,graphql]
 ----
 query Query {
-  groups(where: {hasGroupUser: {hasGroup: {name_IN: ["Group A"]}}}) {
+  groups(where: {hasGroupUser_SOME: {hasGroup: {name_IN: ["Group A"]}}}) {
     name
   }
 }
@@ -59,7 +59,7 @@ RETURN this { .name } AS this
 [source,graphql]
 ----
 query Query {
-  groups(where: {hasGroupUser: {hasRequiredGroup: {name_IN: ["Group A"]}}}) {
+  groups(where: {hasGroupUser_SOME: {hasRequiredGroup: {name_IN: ["Group A"]}}}) {
     name
   }
 }

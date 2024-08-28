@@ -24,7 +24,7 @@ type Movie {
 [source,graphql]
 ----
 {
-  movies(where: {title_NOT: null}) {
+  movies(where: {NOT: {title: null}}) {
     title
   }
 }
@@ -40,7 +40,7 @@ type Movie {
 [source,cypher]
 ----
 MATCH (this:Movie)
-WHERE this.title IS NOT NULL
+WHERE NOT (this.title IS NULL)
 RETURN this { .title } AS this
 ----
 
@@ -80,7 +80,7 @@ RETURN this { .title } AS this
 [source,graphql]
 ----
 {
-  movies(where: {actors_NOT: null}) {
+  movies(where: {NOT: {actors_SOME: null}}) {
     title
   }
 }
@@ -96,9 +96,9 @@ RETURN this { .title } AS this
 [source,cypher]
 ----
 MATCH (this:Movie)
-WHERE EXISTS {
+WHERE NOT (NOT (EXISTS {
     MATCH (this)<-[:ACTED_IN]-(this0:Actor)
-}
+}))
 RETURN this { .title } AS this
 ----
 
@@ -110,7 +110,7 @@ RETURN this { .title } AS this
 [source,graphql]
 ----
 {
-  movies(where: {actors: null}) {
+  movies(where: {actors_SOME: null}) {
     title
   }
 }

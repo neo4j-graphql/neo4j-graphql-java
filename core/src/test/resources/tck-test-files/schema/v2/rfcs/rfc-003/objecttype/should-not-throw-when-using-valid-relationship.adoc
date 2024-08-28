@@ -39,7 +39,6 @@ schema {
 Information about the number of nodes and relationships created during a create mutation
 """
 type CreateInfo {
-  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   relationshipsCreated: Int!
 }
@@ -68,7 +67,6 @@ type CreateThirdTargetsMutationResponse {
 Information about the number of nodes and relationships deleted during a delete mutation
 """
 type DeleteInfo {
-  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesDeleted: Int!
   relationshipsDeleted: Int!
 }
@@ -187,11 +185,6 @@ input SecondTargetWhere {
   id_CONTAINS: ID
   id_ENDS_WITH: ID
   id_IN: [ID]
-  id_NOT: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_CONTAINS: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_ENDS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_IN: [ID] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_STARTS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id_STARTS_WITH: ID
 }
 
@@ -289,7 +282,6 @@ input SourceTarget1AggregateInput {
   count_GTE: Int
   count_LT: Int
   count_LTE: Int
-  node: SourceTarget1NodeAggregationWhereInput
 }
 
 input SourceTarget1ConnectFieldInput {
@@ -324,7 +316,6 @@ input SourceTarget1ConnectionWhere {
   NOT: SourceTarget1ConnectionWhere
   OR: [SourceTarget1ConnectionWhere!]
   node: SecondTargetWhere
-  node_NOT: SecondTargetWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input SourceTarget1CreateFieldInput {
@@ -343,13 +334,6 @@ input SourceTarget1FieldInput {
   connect: SourceTarget1ConnectFieldInput
   connectOrCreate: SourceTarget1ConnectOrCreateFieldInput
   create: SourceTarget1CreateFieldInput
-}
-
-input SourceTarget1NodeAggregationWhereInput {
-  AND: [SourceTarget1NodeAggregationWhereInput!]
-  NOT: SourceTarget1NodeAggregationWhereInput
-  OR: [SourceTarget1NodeAggregationWhereInput!]
-  id_EQUAL: ID @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
 }
 
 type SourceTarget1Relationship {
@@ -380,7 +364,6 @@ input SourceTarget2AggregateInput {
   count_GTE: Int
   count_LT: Int
   count_LTE: Int
-  node: SourceTarget2NodeAggregationWhereInput
 }
 
 input SourceTarget2ConnectFieldInput {
@@ -415,7 +398,6 @@ input SourceTarget2ConnectionWhere {
   NOT: SourceTarget2ConnectionWhere
   OR: [SourceTarget2ConnectionWhere!]
   node: ThirdTargetWhere
-  node_NOT: ThirdTargetWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input SourceTarget2CreateFieldInput {
@@ -434,13 +416,6 @@ input SourceTarget2FieldInput {
   connect: SourceTarget2ConnectFieldInput
   connectOrCreate: SourceTarget2ConnectOrCreateFieldInput
   create: SourceTarget2CreateFieldInput
-}
-
-input SourceTarget2NodeAggregationWhereInput {
-  AND: [SourceTarget2NodeAggregationWhereInput!]
-  NOT: SourceTarget2NodeAggregationWhereInput
-  OR: [SourceTarget2NodeAggregationWhereInput!]
-  id_EQUAL: ID @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
 }
 
 type SourceTarget2Relationship {
@@ -480,7 +455,6 @@ input SourceTargetsAggregateInput {
   count_GTE: Int
   count_LT: Int
   count_LTE: Int
-  node: SourceTargetsNodeAggregationWhereInput
 }
 
 input SourceTargetsConnectFieldInput {
@@ -515,7 +489,6 @@ input SourceTargetsConnectionWhere {
   NOT: SourceTargetsConnectionWhere
   OR: [SourceTargetsConnectionWhere!]
   node: TargetWhere
-  node_NOT: TargetWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input SourceTargetsCreateFieldInput {
@@ -534,13 +507,6 @@ input SourceTargetsFieldInput {
   connect: [SourceTargetsConnectFieldInput!]
   connectOrCreate: [SourceTargetsConnectOrCreateFieldInput!]
   create: [SourceTargetsCreateFieldInput!]
-}
-
-input SourceTargetsNodeAggregationWhereInput {
-  AND: [SourceTargetsNodeAggregationWhereInput!]
-  NOT: SourceTargetsNodeAggregationWhereInput
-  OR: [SourceTargetsNodeAggregationWhereInput!]
-  id_EQUAL: ID @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
 }
 
 type SourceTargetsRelationship {
@@ -591,9 +557,7 @@ input SourceWhere {
   target2Connection: SourceTarget2ConnectionWhere
   target2Connection_NOT: SourceTarget2ConnectionWhere
   target2_NOT: ThirdTargetWhere
-  targets: TargetWhere @deprecated(reason: "Use `targets_SOME` instead.")
   targetsAggregate: SourceTargetsAggregateInput
-  targetsConnection: SourceTargetsConnectionWhere @deprecated(reason: "Use `targetsConnection_SOME` instead.")
   """
   Return Sources where all of the related SourceTargetsConnections match this filter
   """
@@ -602,7 +566,6 @@ input SourceWhere {
   Return Sources where none of the related SourceTargetsConnections match this filter
   """
   targetsConnection_NONE: SourceTargetsConnectionWhere
-  targetsConnection_NOT: SourceTargetsConnectionWhere @deprecated(reason: "Use `targetsConnection_NONE` instead.")
   """
   Return Sources where one of the related SourceTargetsConnections match this filter
   """
@@ -615,7 +578,6 @@ input SourceWhere {
   targets_ALL: TargetWhere
   """Return Sources where none of the related Targets match this filter"""
   targets_NONE: TargetWhere
-  targets_NOT: TargetWhere @deprecated(reason: "Use `targets_NONE` instead.")
   """Return Sources where one of the related Targets match this filter"""
   targets_SINGLE: TargetWhere
   """Return Sources where some of the related Targets match this filter"""
@@ -699,11 +661,6 @@ input TargetWhere {
   id_CONTAINS: ID
   id_ENDS_WITH: ID
   id_IN: [ID]
-  id_NOT: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_CONTAINS: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_ENDS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_IN: [ID] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_STARTS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id_STARTS_WITH: ID
 }
 
@@ -784,11 +741,6 @@ input ThirdTargetWhere {
   id_CONTAINS: ID
   id_ENDS_WITH: ID
   id_IN: [ID]
-  id_NOT: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_CONTAINS: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_ENDS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_IN: [ID] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_STARTS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id_STARTS_WITH: ID
 }
 
@@ -802,7 +754,6 @@ type ThirdTargetsConnection {
 Information about the number of nodes and relationships created and deleted during an update mutation
 """
 type UpdateInfo {
-  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   nodesDeleted: Int!
   relationshipsCreated: Int!

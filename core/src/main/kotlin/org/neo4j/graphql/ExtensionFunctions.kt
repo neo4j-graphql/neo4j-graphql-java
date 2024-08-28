@@ -5,6 +5,8 @@ import graphql.schema.GraphQLOutputType
 import org.neo4j.cypherdsl.core.*
 import org.neo4j.cypherdsl.core.Node
 import org.neo4j.cypherdsl.core.StatementBuilder.*
+import org.neo4j.graphql.domain.Interface
+import org.neo4j.graphql.domain.fields.RelationDeclarationField
 import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.schema.model.inputs.Dict
 import org.neo4j.graphql.schema.model.inputs.options.OptionsInput
@@ -23,7 +25,7 @@ fun queryParameter(value: Any?, vararg parts: String?): Parameter<*> {
     return org.neo4j.cypherdsl.core.Cypher.parameter(name).withValue(value?.toJavaValue())
 }
 
-fun Expression.collect(type: GraphQLOutputType) = if (type.isList()) Functions.collect(this) else this
+fun Expression.collect(type: GraphQLOutputType) = if (type.isList()) Cypher.collect(this) else this
 fun OngoingReading.withSubQueries(subQueries: List<Statement>?) =
     subQueries?.fold(this, { it, sub -> it.call(sub) }) ?: this
 
@@ -38,8 +40,8 @@ fun normalizeName(vararg parts: String?) =
 fun normalizeName2(vararg parts: String?) = parts.filter { it?.isNotBlank() == true }.joinToString("_")
 
 fun PropertyContainer.id(): FunctionInvocation = when (this) {
-    is Node -> Functions.id(this)
-    is Relationship -> Functions.id(this)
+    is Node -> Cypher.elementId(this)
+    is Relationship -> Cypher.elementId(this)
     else -> throw IllegalArgumentException("Id can only be retrieved for Nodes or Relationships")
 }
 
@@ -63,9 +65,20 @@ fun Collection<Condition?>.foldWithAnd(): Condition? = this
     .filterNotNull()
     .takeIf { it.isNotEmpty() }
     ?.let { conditions ->
-        var result = Conditions.noCondition()
+        var result = Cypher.noCondition()
         conditions.forEach {
             result = result and it
+        }
+        result
+    }
+
+fun Collection<Condition?>.foldWithOr(): Condition? = this
+    .filterNotNull()
+    .takeIf { it.isNotEmpty() }
+    ?.let { conditions ->
+        var result = Cypher.noCondition()
+        conditions.forEach {
+            result = result or it
         }
         result
     }
@@ -232,3 +245,14 @@ fun Any?.toDict() = Dict.create(this) ?: Dict.EMPTY
 fun Iterable<Any?>.toDict(): List<Dict> = this.mapNotNull { Dict.create(it) }
 
 fun String.toDeprecatedDirective() = Directive("deprecated", listOf(Argument("reason", StringValue(this))))
+
+
+fun List<Interface>.getFieldDeclaringRelationship(fieldName: String): RelationDeclarationField? {
+    return this.firstNotNullOfOrNull { interfaze ->
+        // first look at parent interfaces
+        interfaze.interfaces.getFieldDeclaringRelationship(fieldName)
+        // then look at the current interface
+            ?: (interfaze.getField(fieldName) as? RelationDeclarationField)?.root
+    }
+}
+

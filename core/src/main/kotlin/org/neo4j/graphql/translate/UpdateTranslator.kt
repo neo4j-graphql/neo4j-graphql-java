@@ -1,6 +1,7 @@
 package org.neo4j.graphql.translate
 
 import org.neo4j.cypherdsl.core.*
+import org.neo4j.cypherdsl.core.StatementBuilder.BuildableStatement
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.directives.AuthorizationDirective
 import org.neo4j.graphql.domain.fields.RelationField
@@ -407,12 +408,6 @@ class UpdateTranslator(
 
             // TODO subscription 232
         }
-
-        return result
-            .returning(
-                Functions.count(Cypher.asterisk())
-                    .`as`(ChainString(schemaConfig, "update", _varName).resolveName())
-            )
-            .build()
+        return (result as BuildableStatement<*>).build()
     }
 }

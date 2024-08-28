@@ -18,7 +18,7 @@ type Post {
 type User {
   id: ID
   name: String
-  password: String @authentication(operations: [READ, CREATE, UPDATE])
+  password: String
   posts: [Post!]! @relationship(type: "HAS_POST", direction: OUT)
 }
 
@@ -499,9 +499,10 @@ CALL {
         MATCH (this)-[:HAS_HISTORY]->(h:History) RETURN h
     }
     WITH h AS this0
-    RETURN collect(this0 { .url }) AS this0
+    WITH this0 { .url } AS this0
+    RETURN collect(this0) AS var1
 }
-RETURN this { history: this0 } AS this
+RETURN this { history: var1 } AS this
 ----
 
 '''

@@ -24,6 +24,7 @@ sealed class ImplementingTypeNames(
     override val rootTypeFieldNames get() = ImplementingTypeRootTypeFieldNames()
 
     open inner class ImplementingTypeRootTypeFieldNames : RootTypeFieldNames() {
+        val connection get() = "${plural}Connection"
         val create get() = "create${pascalCasePlural}"
         val update get() = "update${pascalCasePlural}"
         val delete get() = "delete${pascalCasePlural}"

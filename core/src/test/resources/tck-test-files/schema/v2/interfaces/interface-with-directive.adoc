@@ -41,7 +41,6 @@ directive @something(something: String) on INTERFACE
 Information about the number of nodes and relationships created during a create mutation
 """
 type CreateInfo {
-  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   relationshipsCreated: Int!
 }
@@ -55,7 +54,6 @@ type CreateMoviesMutationResponse {
 Information about the number of nodes and relationships deleted during a delete mutation
 """
 type DeleteInfo {
-  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesDeleted: Int!
   relationshipsDeleted: Int!
 }
@@ -123,7 +121,6 @@ input MovieMoviesAggregateInput {
   count_GTE: Int
   count_LT: Int
   count_LTE: Int
-  node: MovieMoviesNodeAggregationWhereInput
 }
 
 input MovieMoviesConnectFieldInput {
@@ -142,13 +139,6 @@ input MovieMoviesCreateFieldInput {
 input MovieMoviesFieldInput {
   connect: [MovieMoviesConnectFieldInput!]
   create: [MovieMoviesCreateFieldInput!]
-}
-
-input MovieMoviesNodeAggregationWhereInput {
-  AND: [MovieMoviesNodeAggregationWhereInput!]
-  NOT: MovieMoviesNodeAggregationWhereInput
-  OR: [MovieMoviesNodeAggregationWhereInput!]
-  id_EQUAL: ID @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
 }
 
 input MovieMoviesUpdateConnectionInput {
@@ -194,7 +184,6 @@ input MovieNodeMoviesAggregateInput {
   count_GTE: Int
   count_LT: Int
   count_LTE: Int
-  node: MovieNodeMoviesNodeAggregationWhereInput
 }
 
 type MovieNodeMoviesConnection {
@@ -212,7 +201,6 @@ input MovieNodeMoviesConnectionWhere {
   NOT: MovieNodeMoviesConnectionWhere
   OR: [MovieNodeMoviesConnectionWhere!]
   node: MovieWhere
-  node_NOT: MovieWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input MovieNodeMoviesDeleteFieldInput {
@@ -223,13 +211,6 @@ input MovieNodeMoviesDeleteFieldInput {
 input MovieNodeMoviesDisconnectFieldInput {
   disconnect: MovieDisconnectInput
   where: MovieNodeMoviesConnectionWhere
-}
-
-input MovieNodeMoviesNodeAggregationWhereInput {
-  AND: [MovieNodeMoviesNodeAggregationWhereInput!]
-  NOT: MovieNodeMoviesNodeAggregationWhereInput
-  OR: [MovieNodeMoviesNodeAggregationWhereInput!]
-  id_EQUAL: ID @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
 }
 
 type MovieNodeMoviesRelationship {
@@ -261,15 +242,8 @@ input MovieNodeWhere {
   id_CONTAINS: ID
   id_ENDS_WITH: ID
   id_IN: [ID]
-  id_NOT: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_CONTAINS: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_ENDS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_IN: [ID] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_STARTS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id_STARTS_WITH: ID
-  movies: MovieWhere @deprecated(reason: "Use `movies_SOME` instead.")
   moviesAggregate: MovieNodeMoviesAggregateInput
-  moviesConnection: MovieNodeMoviesConnectionWhere @deprecated(reason: "Use `moviesConnection_SOME` instead.")
   """
   Return MovieNodes where all of the related MovieNodeMoviesConnections match this filter
   """
@@ -278,7 +252,6 @@ input MovieNodeWhere {
   Return MovieNodes where none of the related MovieNodeMoviesConnections match this filter
   """
   moviesConnection_NONE: MovieNodeMoviesConnectionWhere
-  moviesConnection_NOT: MovieNodeMoviesConnectionWhere @deprecated(reason: "Use `moviesConnection_NONE` instead.")
   """
   Return MovieNodes where one of the related MovieNodeMoviesConnections match this filter
   """
@@ -291,7 +264,6 @@ input MovieNodeWhere {
   movies_ALL: MovieWhere
   """Return MovieNodes where none of the related Movies match this filter"""
   movies_NONE: MovieWhere
-  movies_NOT: MovieWhere @deprecated(reason: "Use `movies_NONE` instead.")
   """Return MovieNodes where one of the related Movies match this filter"""
   movies_SINGLE: MovieWhere
   """Return MovieNodes where some of the related Movies match this filter"""
@@ -338,15 +310,8 @@ input MovieWhere {
   id_CONTAINS: ID
   id_ENDS_WITH: ID
   id_IN: [ID]
-  id_NOT: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_CONTAINS: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_ENDS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_IN: [ID] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_STARTS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id_STARTS_WITH: ID
-  movies: MovieWhere @deprecated(reason: "Use `movies_SOME` instead.")
   moviesAggregate: MovieMoviesAggregateInput
-  moviesConnection: MovieNodeMoviesConnectionWhere @deprecated(reason: "Use `moviesConnection_SOME` instead.")
   """
   Return Movies where all of the related MovieNodeMoviesConnections match this filter
   """
@@ -355,7 +320,6 @@ input MovieWhere {
   Return Movies where none of the related MovieNodeMoviesConnections match this filter
   """
   moviesConnection_NONE: MovieNodeMoviesConnectionWhere
-  moviesConnection_NOT: MovieNodeMoviesConnectionWhere @deprecated(reason: "Use `moviesConnection_NONE` instead.")
   """
   Return Movies where one of the related MovieNodeMoviesConnections match this filter
   """
@@ -368,7 +332,6 @@ input MovieWhere {
   movies_ALL: MovieWhere
   """Return Movies where none of the related Movies match this filter"""
   movies_NONE: MovieWhere
-  movies_NOT: MovieWhere @deprecated(reason: "Use `movies_NONE` instead.")
   """Return Movies where one of the related Movies match this filter"""
   movies_SINGLE: MovieWhere
   """Return Movies where some of the related Movies match this filter"""
@@ -416,7 +379,6 @@ enum SortDirection {
 Information about the number of nodes and relationships created and deleted during an update mutation
 """
 type UpdateInfo {
-  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   nodesDeleted: Int!
   relationshipsCreated: Int!

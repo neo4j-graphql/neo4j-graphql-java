@@ -1,6 +1,7 @@
 package org.neo4j.graphql.translate
 
 import org.neo4j.cypherdsl.core.*
+import org.neo4j.cypherdsl.core.StatementBuilder.BuildableStatement
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
@@ -93,7 +94,8 @@ class ConnectTranslator(
             subQuery = addRelationshipValidation(node, relatedNode, subQuery)
         }
 
-        subQuery = addNestedConnects(node, relatedNode, nodeName, connect,
+        subQuery = addNestedConnects(
+            node, relatedNode, nodeName, connect,
             subQuery
                 .with(*nestedWithVars.toTypedArray()) // TODO remove with
         )
@@ -103,19 +105,21 @@ class ConnectTranslator(
                 .apocValidate(it, Constants.AUTH_FORBIDDEN_ERROR)
         }
 
-        return subQuery
-            .withSubQueries(nestedSubQueries)
-            .returning(
-                Functions.count(Cypher.asterisk())
-                    .`as`(
-                        ChainString(
-                            schemaConfig,
-                            "connect",
-                            varName,
-                            relatedNode
-                        ).resolveName()
-                    )  // TODO why this alias?
-            )
+        val ongoingReading = subQuery.withSubQueries(nestedSubQueries)
+        if (ongoingReading is BuildableStatement<*>) {
+            return ongoingReading.build()
+        }
+        return ongoingReading.returning(
+            Cypher.count(Cypher.asterisk())
+                .`as`(
+                    ChainString(
+                        schemaConfig,
+                        "connect",
+                        varName,
+                        relatedNode
+                    ).resolveName()
+                )  // TODO why this alias?
+        )
             .build()
     }
 
@@ -181,8 +185,8 @@ class ConnectTranslator(
         baseName: ChainString,
         connect: ImplementingTypeConnectFieldInput
     ): Statement {
-        val connectedNodes = Functions.collect(nodeName).`as`("connectedNodes")
-        val parentNodes = Functions.collect(parentVar).`as`("parentNodes")
+        val connectedNodes = Cypher.collect(nodeName).`as`("connectedNodes")
+        val parentNodes = Cypher.collect(parentVar).`as`("parentNodes")
         val unwoundedParents = Cypher.anyNode(parentVar.requiredSymbolicName)
         val unwoundedConnections = Cypher.anyNode(nodeName.requiredSymbolicName)
 
@@ -210,10 +214,8 @@ class ConnectTranslator(
                     .unwind(connectedNodes).`as`(unwoundedConnections.requiredSymbolicName)
                     .merge(createDslRelation)
                     .let { merge -> edgeSet?.let { merge.set(it) } ?: merge }
-                    .returning(Functions.count(Cypher.asterisk()).`as`("_"))
                     .build()
             )
-            .returning(Functions.count(Cypher.asterisk()).`as`("_"))
             .build()
     }
 

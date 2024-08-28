@@ -76,7 +76,7 @@ sealed class FieldContainer<T : BaseField>(val fields: List<T>) {
     }
 
     val relationAggregationFields: Map<String, RelationBaseField> by lazy {
-        relationBaseFields.filter { it.target is Node }
+        relationBaseFields.filter { it.target is ImplementingType }
             .map { it.namings.aggregateTypeName to it }
             .toMap()
     }

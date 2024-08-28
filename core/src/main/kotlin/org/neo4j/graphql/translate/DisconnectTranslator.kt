@@ -1,6 +1,7 @@
 package org.neo4j.graphql.translate
 
 import org.neo4j.cypherdsl.core.*
+import org.neo4j.cypherdsl.core.StatementBuilder.BuildableStatement
 import org.neo4j.cypherdsl.core.StatementBuilder.OngoingReading
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.directives.AuthDirective
@@ -142,10 +143,9 @@ class DisconnectTranslator(
             }
             .call(
                 Cypher.with(endNode, dslRelation, parentVar)
-                    .with(Functions.collect(endNode).`as`(endNode.requiredSymbolicName), dslRelation, parentVar)
+                    .with(Cypher.collect(endNode).`as`(endNode.requiredSymbolicName), dslRelation, parentVar)
                     .unwind(endNode.requiredSymbolicName).`as`(x) // TODO use only for subscriptions?
                     .delete(dslRelation)
-                    .returning(Functions.count(Cypher.asterisk()).`as`("_"))
                     .build()
             )
 
@@ -222,21 +222,13 @@ class DisconnectTranslator(
             }
         }
 
-        return (call as OngoingReading)
+        val reading = (call as OngoingReading)
             .let { query ->
                 postAuth?.let { query.apocValidate(it, Constants.AUTH_FORBIDDEN_ERROR) } ?: query
             }
-            .returning(
-                Functions.count(Cypher.asterisk())
-                    .`as`(
-                        ChainString(
-                            schemaConfig,
-                            "disconnect",
-                            varName,
-                            relatedNode
-                        ).resolveName()
-                    ) // TODO why this alias?
-            )
-            .build()
+        if (reading is BuildableStatement<*>){
+            return reading.build()
+        }
+        TODO()
     }
 }

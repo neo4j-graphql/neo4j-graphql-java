@@ -513,7 +513,7 @@ RETURN this { .title } AS this
 [source,graphql]
 ----
 {
-  movies(where: {id_NOT: "123"}) {
+  movies(where: {NOT: {id: "123"}}) {
     id
   }
 }
@@ -543,7 +543,7 @@ RETURN this { .id } AS this
 [source,graphql]
 ----
 {
-  movies(where: {id_NOT_CONTAINS: "123"}) {
+  movies(where: {NOT: {id_CONTAINS: "123"}}) {
     id
   }
 }
@@ -573,7 +573,7 @@ RETURN this { .id } AS this
 [source,graphql]
 ----
 {
-  movies(where: {id_NOT_ENDS_WITH: "123"}) {
+  movies(where: {NOT: {id_ENDS_WITH: "123"}}) {
     id
   }
 }
@@ -603,7 +603,7 @@ RETURN this { .id } AS this
 [source,graphql]
 ----
 {
-  movies(where: {id_NOT_IN: ["123"]}) {
+  movies(where: {NOT: {id_IN: ["123"]}}) {
     id
   }
 }
@@ -635,7 +635,7 @@ RETURN this { .id } AS this
 [source,graphql]
 ----
 {
-  movies(where: {id_NOT_STARTS_WITH: "123"}) {
+  movies(where: {NOT: {id_STARTS_WITH: "123"}}) {
     id
   }
 }
@@ -727,7 +727,7 @@ RETURN this { .id } AS this
 [source,graphql]
 ----
 {
-  movies(where: {genresConnection: {node: {name: "some genre"}}}) {
+  movies(where: {genresConnection_SOME: {node: {name: "some genre"}}}) {
     actorCount
   }
 }
@@ -760,7 +760,7 @@ RETURN this { .actorCount } AS this
 [source,graphql]
 ----
 {
-  movies(where: {genresConnection_NOT: {node: {name: "some genre"}}}) {
+  movies(where: {NOT: {genresConnection_SOME: {node: {name: "some genre"}}}}) {
     actorCount
   }
 }
@@ -931,7 +931,7 @@ RETURN this { .actorCount } AS this
 [source,graphql]
 ----
 {
-  movies(where: {genres: {name: "some genre"}}) {
+  movies(where: {genres_SOME: {name: "some genre"}}) {
     actorCount
   }
 }
@@ -964,7 +964,7 @@ RETURN this { .actorCount } AS this
 [source,graphql]
 ----
 {
-  movies(where: {genres_NOT: {name: "some genre"}}) {
+  movies(where: {NOT: {genres_SOME: {name: "some genre"}}}) {
     actorCount
   }
 }

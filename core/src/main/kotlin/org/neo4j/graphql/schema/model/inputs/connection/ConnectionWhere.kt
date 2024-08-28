@@ -14,11 +14,7 @@ import org.neo4j.graphql.schema.model.inputs.NestedWhere
 import org.neo4j.graphql.schema.model.inputs.PerNodeInput
 import org.neo4j.graphql.schema.model.inputs.WhereInput
 import org.neo4j.graphql.schema.relations.RelationFieldBaseAugmentation
-import org.neo4j.graphql.toDeprecatedDirective
 import org.neo4j.graphql.toDict
-
-private val NEGATION_DEPRECATED =
-    "Negation filters will be deprecated, use the NOT operator to achieve the same behavior".toDeprecatedDirective()
 
 sealed interface ConnectionWhere {
 
@@ -48,12 +44,7 @@ sealed interface ConnectionWhere {
             ) {
                 WhereInput.EdgeWhereInput.Augmentation
                     .generateRelationPropertiesWhereIT((rel.interfaceField as? RelationBaseField) ?: rel, ctx)
-                    ?.let {
-                        fields += inputValue(Constants.EDGE_FIELD, it)
-                        fields += inputValue(Constants.EDGE_FIELD + "_NOT", it) {
-                            directive(NEGATION_DEPRECATED)
-                        }
-                    }
+                    ?.let { fields += inputValue(Constants.EDGE_FIELD, it) }
 
             }
         }
@@ -78,9 +69,6 @@ sealed interface ConnectionWhere {
                     WhereInput.NodeWhereInput.Augmentation.generateWhereIT(node, ctx)
                         ?.let {
                             fields += inputValue(Constants.NODE_FIELD, it.asType())
-                            fields += inputValue(Constants.NODE_FIELD + "_NOT", it.asType()) {
-                                directive(NEGATION_DEPRECATED)
-                            }
                         }
 
                     ImplementingTypeConnectionWhere.Augmentation.addEdgePredicates(rel, ctx, fields)
@@ -112,9 +100,6 @@ sealed interface ConnectionWhere {
                 ctx.getOrCreateInputObjectType(rel.namings.getConnectionWhereTypename(interfaze)) { fields, connectionWhereName ->
                     WhereInput.InterfaceWhereInput.Augmentation.generateFieldWhereIT(interfaze, ctx)?.let {
                         fields += inputValue(Constants.NODE_FIELD, it.asType())
-                        fields += inputValue(Constants.NODE_FIELD + "_NOT", it.asType()) {
-                            directive(NEGATION_DEPRECATED)
-                        }
                     }
 
                     ImplementingTypeConnectionWhere.Augmentation.addEdgePredicates(rel, ctx, fields)
@@ -150,7 +135,7 @@ sealed interface ConnectionWhere {
 
         fun generateConnectionWhereIT(field: ConnectionField, ctx: AugmentationContext): String? =
             ctx.getTypeFromRelationField(
-                field.relationshipField,
+                field.relationshipField.declarationOrSelf,
                 RelationFieldBaseAugmentation::generateFieldConnectionWhereIT
             )
     }

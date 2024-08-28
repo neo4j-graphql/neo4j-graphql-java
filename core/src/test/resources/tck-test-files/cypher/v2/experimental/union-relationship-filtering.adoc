@@ -26,18 +26,8 @@ type Actor {
   actedIn: [Production!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
 }
 
-interface ActedIn @relationshipProperties {
+type ActedIn @relationshipProperties {
   screenTime: Int
-}
-----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{
-  "experimental": true
 }
 ----
 == Filtering on nested-level relationship unions

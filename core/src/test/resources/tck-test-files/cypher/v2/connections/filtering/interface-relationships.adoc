@@ -1,0 +1,214 @@
+:toc:
+
+= interface relationships with aliased fields
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+interface Production {
+  title: String!
+}
+
+type Movie implements Production {
+  title: String! @alias(property: "movieTitle")
+  runtime: Int!
+}
+
+type Series implements Production {
+  title: String! @alias(property: "seriesTitle")
+  episodes: Int!
+}
+
+type ActedIn @relationshipProperties {
+  screenTime: Int!
+}
+
+type Actor {
+  name: String!
+  currentlyActingIn: Production @relationship(type: "CURRENTLY_ACTING_IN", direction: OUT)
+  actedIn: [Production!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
+}
+
+type ProtectedActor @authorization(validate: [{where: {node: {actedInConnection_SOME: {node: {title: "$jwt.title"}}}}}]) {
+  name: String! @alias(property: "dbName")
+  actedIn: [Production!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
+}
+----
+== auth
+
+.GraphQL-Query
+[source,graphql]
+----
+query ProtectedActors {
+  protectedActors {
+    name
+    actedIn {
+      title
+      ... on Movie {
+        runtime
+      }
+      ... on Series {
+        episodes
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated": false,
+  "jwt": {}
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:ProtectedActor)
+WITH *
+WHERE apoc.util.validatePredicate(NOT ($isAuthenticated = true AND size([(this)-[this1:ACTED_IN]->(this0) WHERE (($jwt.title IS NOT NULL AND CASE
+    WHEN this0:Movie THEN this0.movieTitle
+    WHEN this0:Series THEN this0.seriesTitle
+    ELSE this0.title
+END = $jwt.title) AND (this0:Movie OR this0:Series)) | 1]) > 0), "@neo4j/graphql/FORBIDDEN", [0])
+CALL {
+    WITH this
+    CALL {
+        WITH *
+        MATCH (this)-[this2:ACTED_IN]->(this3:Movie)
+        WITH this3 { .runtime, title: this3.movieTitle, __resolveType: "Movie", __id: id(this3) } AS this3
+        RETURN this3 AS var4
+        UNION
+        WITH *
+        MATCH (this)-[this5:ACTED_IN]->(this6:Series)
+        WITH this6 { .episodes, title: this6.seriesTitle, __resolveType: "Series", __id: id(this6) } AS this6
+        RETURN this6 AS var4
+    }
+    WITH var4
+    RETURN collect(var4) AS var4
+}
+RETURN this { name: this.dbName, actedIn: var4 } AS this
+----
+
+'''
+
+== delete
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation deleteActors($title: String) {
+  deleteActors(where: {actedInConnection_SOME: {node: {title: $title}}}) {
+    nodesDeleted
+    relationshipsDeleted
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "title": "movieTitle2"
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "movieTitle2"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+WHERE EXISTS {
+    MATCH (this)-[this0:ACTED_IN]->(this1)
+    WHERE (CASE
+        WHEN this1:Movie THEN this1.movieTitle
+        WHEN this1:Series THEN this1.seriesTitle
+        ELSE this1.title
+    END = $param0 AND (this1:Movie OR this1:Series))
+}
+DETACH DELETE this
+----
+
+'''
+
+== should read and return interface relationship fields with interface relationship filter SOME
+
+.GraphQL-Query
+[source,graphql]
+----
+query Actors($title: String) {
+  actors(where: {actedInConnection_SOME: {node: {title: $title}}}) {
+    name
+    actedIn {
+      title
+      ... on Movie {
+        runtime
+      }
+      ... on Series {
+        episodes
+      }
+    }
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "title": "movieTitle2"
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "movieTitle2"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+WHERE EXISTS {
+    MATCH (this)-[this0:ACTED_IN]->(this1)
+    WHERE (CASE
+        WHEN this1:Movie THEN this1.movieTitle
+        WHEN this1:Series THEN this1.seriesTitle
+        ELSE this1.title
+    END = $param0 AND (this1:Movie OR this1:Series))
+}
+CALL {
+    WITH this
+    CALL {
+        WITH *
+        MATCH (this)-[this2:ACTED_IN]->(this3:Movie)
+        WITH this3 { .runtime, title: this3.movieTitle, __resolveType: "Movie", __id: id(this3) } AS this3
+        RETURN this3 AS var4
+        UNION
+        WITH *
+        MATCH (this)-[this5:ACTED_IN]->(this6:Series)
+        WITH this6 { .episodes, title: this6.seriesTitle, __resolveType: "Series", __id: id(this6) } AS this6
+        RETURN this6 AS var4
+    }
+    WITH var4
+    RETURN collect(var4) AS var4
+}
+RETURN this { .name, actedIn: var4 } AS this
+----
+
+'''
+

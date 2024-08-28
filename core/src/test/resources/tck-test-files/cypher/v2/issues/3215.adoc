@@ -17,7 +17,7 @@ type Actor {
 [source,graphql]
 ----
 query MyQuery($name: String) {
-  actors(where: {age_GT: 25, name_NOT: $name}) {
+  actors(where: {age_GT: 25, NOT: {name: $name}}) {
     name
     age
   }

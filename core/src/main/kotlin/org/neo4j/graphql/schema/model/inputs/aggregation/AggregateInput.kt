@@ -2,7 +2,7 @@ package org.neo4j.graphql.schema.model.inputs.aggregation
 
 import org.neo4j.graphql.Constants
 import org.neo4j.graphql.asType
-import org.neo4j.graphql.domain.Node
+import org.neo4j.graphql.domain.ImplementingType
 import org.neo4j.graphql.domain.RelationshipProperties
 import org.neo4j.graphql.domain.fields.RelationBaseField
 import org.neo4j.graphql.domain.predicates.ExpressionPredicate
@@ -14,9 +14,10 @@ import org.neo4j.graphql.schema.model.inputs.NestedWhere
 import org.neo4j.graphql.schema.model.inputs.WhereInput
 import org.neo4j.graphql.toDict
 
-class AggregateInput(node: Node, properties: RelationshipProperties?, data: Dict) : NestedWhere<AggregateInput>(
+class AggregateInput(implementingType: ImplementingType, properties: RelationshipProperties?, data: Dict) :
+    NestedWhere<AggregateInput>(
     data,
-    { AggregateInput(node, properties, it) }) {
+        { AggregateInput(implementingType, properties, it) }) {
 
     //    val countPredicates = COUNT_PREDICATES
 //        .mapNotNull { (key, op) ->
@@ -29,7 +30,7 @@ class AggregateInput(node: Node, properties: RelationshipProperties?, data: Dict
         COUNT_PREDICATES[key]?.let { op -> ExpressionPredicate(key, op.conditionCreator, numberValue) }
     }
 
-    val node = data.nestedDict(Constants.NODE_FIELD)?.let { AggregationWhereInput(node, it) }
+    val node = data.nestedDict(Constants.NODE_FIELD)?.let { AggregationWhereInput(implementingType, it) }
 
     val edge = properties
         ?.let { props -> data.nestedDict(Constants.EDGE_FIELD)?.let { AggregationWhereInput(props, it) } }
@@ -51,8 +52,7 @@ class AggregateInput(node: Node, properties: RelationshipProperties?, data: Dict
                 return null
             }
             return field.extractOnTarget(
-                onNode = { AggregateInput(it, field.properties, value.toDict()) },
-                onInterface = { error("interfaces are not supported for aggregation") },
+                onImplementingType = { AggregateInput(it, field.properties, value.toDict()) },
                 onUnion = { error("unions are not supported for aggregation") },
             )
         }
@@ -74,7 +74,7 @@ class AggregateInput(node: Node, properties: RelationshipProperties?, data: Dict
                 AggregationWhereInput.Augmentation
                     .generateWhereAggregationInputTypeForContainer(
                         rel.namings.nodeAggregationWhereInputTypeName,
-                        rel.node?.fields?.filter { it.isAggregationFilterable() },
+                        rel.implementingType?.fields?.filter { it.isAggregationFilterable() },
                         ctx
                     )
                     ?.let { fields += inputValue(Constants.NODE_FIELD, it.asType()) }

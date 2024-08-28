@@ -1,0 +1,243 @@
+:toc:
+
+= Top level aggregation interfaces with Auth
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type JWT @jwt {
+  roles: [String!]!
+}
+
+interface Production {
+  title: String!
+  cost: Float!
+}
+
+type Movie implements Production @authorization(filter: [{where: {jwt: {roles_INCLUDES: "movie_aggregator"}}}]) {
+  title: String!
+  cost: Float!
+  runtime: Int!
+}
+
+type Series implements Production @authorization(filter: [{where: {jwt: {roles_INCLUDES: "series_aggregator"}}}]) {
+  title: String! @authorization(filter: [{operations: [AGGREGATE], where: {jwt: {roles_INCLUDES: "series_title_aggregator"}}}])
+  cost: Float!
+  episodes: Int!
+}
+
+type ActedIn @relationshipProperties {
+  screenTime: Int!
+}
+
+type Actor {
+  name: String!
+  actedIn: [Production!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
+}
+----
+== top level count
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  productionsAggregate {
+    count
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [],
+    "jwt": {
+      "roles": []
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated": true,
+  "jwt": {
+    "roles": []
+  },
+  "param2": "movie_aggregator",
+  "param3": "series_aggregator"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+    CALL {
+        MATCH (this0:Movie)
+        WHERE ($isAuthenticated = true AND ($jwt.roles IS NOT NULL AND $param2 IN $jwt.roles))
+        RETURN this0 AS node
+        UNION
+        MATCH (this1:Series)
+        WHERE ($isAuthenticated = true AND ($jwt.roles IS NOT NULL AND $param3 IN $jwt.roles))
+        RETURN this1 AS node
+    }
+    RETURN count(node) AS this2
+}
+RETURN { count: this2 }
+----
+
+'''
+
+== top level count and string fields
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  productionsAggregate {
+    count
+    title {
+      longest
+      shortest
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [],
+    "jwt": {
+      "roles": []
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated": true,
+  "jwt": {
+    "roles": []
+  },
+  "param2": "movie_aggregator",
+  "param3": "series_aggregator",
+  "param4": "series_title_aggregator",
+  "param5": "movie_aggregator",
+  "param6": "series_aggregator",
+  "param7": "series_title_aggregator"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+    CALL {
+        MATCH (this0:Movie)
+        WHERE ($isAuthenticated = true AND ($jwt.roles IS NOT NULL AND $param2 IN $jwt.roles))
+        RETURN this0 AS node
+        UNION
+        MATCH (this1:Series)
+        WHERE (($isAuthenticated = true AND ($jwt.roles IS NOT NULL AND $param3 IN $jwt.roles)) AND ($isAuthenticated = true AND ($jwt.roles IS NOT NULL AND $param4 IN $jwt.roles)))
+        RETURN this1 AS node
+    }
+    RETURN count(node) AS this2
+}
+CALL {
+    CALL {
+        MATCH (this3:Movie)
+        WHERE ($isAuthenticated = true AND ($jwt.roles IS NOT NULL AND $param5 IN $jwt.roles))
+        RETURN this3 AS node
+        UNION
+        MATCH (this4:Series)
+        WHERE (($isAuthenticated = true AND ($jwt.roles IS NOT NULL AND $param6 IN $jwt.roles)) AND ($isAuthenticated = true AND ($jwt.roles IS NOT NULL AND $param7 IN $jwt.roles)))
+        RETURN this4 AS node
+    }
+    WITH node
+    ORDER BY size(node.title) DESC
+    WITH collect(node.title) AS list
+    RETURN { longest: head(list), shortest: last(list) } AS this5
+}
+RETURN { count: this2, title: this5 }
+----
+
+'''
+
+== top level non interface count and string fields
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesAggregate {
+    count
+    title {
+      longest
+      shortest
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [],
+    "jwt": {
+      "roles": []
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated": true,
+  "jwt": {
+    "roles": []
+  },
+  "param2": "movie_aggregator",
+  "param3": "movie_aggregator"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+    MATCH (this:Movie)
+    WHERE ($isAuthenticated = true AND ($jwt.roles IS NOT NULL AND $param2 IN $jwt.roles))
+    RETURN count(this) AS var0
+}
+CALL {
+    MATCH (this:Movie)
+    WHERE ($isAuthenticated = true AND ($jwt.roles IS NOT NULL AND $param3 IN $jwt.roles))
+    WITH this
+    ORDER BY size(this.title) DESC
+    WITH collect(this.title) AS list
+    RETURN { longest: head(list), shortest: last(list) } AS var1
+}
+RETURN { count: var0, title: var1 }
+----
+
+'''
+

@@ -8,10 +8,10 @@
 ----
 interface Show {
   title: String!
-  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN, properties: "ActedIn")
+  actors: [Actor!]! @declareRelationship
 }
 
-type Movie implements Show @limit(default: 3, max: 10) {
+type Movie implements Show {
   title: String!
   cost: Float
   runtime: Int
@@ -21,7 +21,7 @@ type Movie implements Show @limit(default: 3, max: 10) {
 type Series implements Show {
   title: String!
   episodes: Int
-  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN, properties: "ActedIn")
+  actors: [Actor!]! @relationship(type: "STARRED_IN", direction: IN, properties: "StarredIn")
 }
 
 type Actor {
@@ -29,41 +29,25 @@ type Actor {
   actedIn: [Show!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
 }
 
-interface ActedIn @relationshipProperties {
+type ActedIn @relationshipProperties {
   screenTime: Int
 }
-----
 
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{
-  "experimental": true
+type StarredIn @relationshipProperties {
+  episodes: Int
 }
 ----
-== Logical operator filter (top level)
+== Connection nested operator filter + typename_IN + logical (nested field)
 
 .GraphQL-Query
 [source,graphql]
 ----
-query actedInWhere {
-  shows(where: {OR: [{title: "The Office"}, {title: "The Office 2"}]}) {
-    title
-  }
-}
-----
-
-.Query Context
-[source,json,query-config=true]
-----
 {
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [],
-    "jwt": {
-      "roles": []
+  actors(
+    where: {actedInConnection_SOME: {node: {typename_IN: [Movie], actorsConnection_SOME: {OR: [{node: {name: "Keanu Reeves"}}, {node: {name: "Keanu Reeves"}}]}}}}
+  ) {
+    actedIn {
+      title
     }
   }
 }
@@ -73,10 +57,68 @@ query actedInWhere {
 [source,json]
 ----
 {
-  "param0": "The Office",
-  "param1": "The Office 2",
-  "param2": "The Office",
-  "param3": "The Office 2"
+  "param0": "Keanu Reeves",
+  "param1": "Keanu Reeves",
+  "param2": "Keanu Reeves",
+  "param3": "Keanu Reeves"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+WHERE (EXISTS {
+    MATCH (this)-[this0:ACTED_IN]->(this1:Movie)
+    WHERE (this1:Movie AND EXISTS {
+        MATCH (this1)<-[this2:ACTED_IN]-(this3:Actor)
+        WHERE (this3.name = $param0 OR this3.name = $param1)
+    })
+} OR EXISTS {
+    MATCH (this)-[this4:ACTED_IN]->(this5:Series)
+    WHERE (this5:Movie AND EXISTS {
+        MATCH (this5)<-[this6:STARRED_IN]-(this7:Actor)
+        WHERE (this7.name = $param2 OR this7.name = $param3)
+    })
+})
+CALL {
+    WITH this
+    CALL {
+        WITH *
+        MATCH (this)-[this8:ACTED_IN]->(this9:Movie)
+        WITH this9 { .title, __resolveType: "Movie", __id: id(this9) } AS this9
+        RETURN this9 AS var10
+        UNION
+        WITH *
+        MATCH (this)-[this11:ACTED_IN]->(this12:Series)
+        WITH this12 { .title, __resolveType: "Series", __id: id(this12) } AS this12
+        RETURN this12 AS var10
+    }
+    WITH var10
+    RETURN collect(var10) AS var10
+}
+RETURN this { actedIn: var10 } AS this
+----
+
+'''
+
+== Connection operator edge filter
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  shows(where: {actorsConnection_SOME: {edge: {ActedIn: {screenTime: 100}}}}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": 100
 }
 ----
 
@@ -85,14 +127,16 @@ query actedInWhere {
 ----
 CALL {
     MATCH (this0:Movie)
-    WHERE (this0.title = $param0 OR this0.title = $param1)
+    WHERE EXISTS {
+        MATCH (this0)<-[this1:ACTED_IN]-(this2:Actor)
+        WHERE this1.screenTime = $param0
+    }
     WITH this0 { .title, __resolveType: "Movie", __id: id(this0) } AS this0
     RETURN this0 AS this
     UNION
-    MATCH (this1:Series)
-    WHERE (this1.title = $param2 OR this1.title = $param3)
-    WITH this1 { .title, __resolveType: "Series", __id: id(this1) } AS this1
-    RETURN this1 AS this
+    MATCH (this3:Series)
+    WITH this3 { .title, __resolveType: "Series", __id: id(this3) } AS this3
+    RETURN this3 AS this
 }
 WITH this
 RETURN this AS this
@@ -100,7 +144,313 @@ RETURN this AS this
 
 '''
 
-== Logical operator filter on relationship
+== Connection operator edge filter + node filter
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  shows(
+    where: {actorsConnection_SOME: {edge: {ActedIn: {screenTime: 100}}, node: {name: "Keanu Reeves"}}}
+  ) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "Keanu Reeves",
+  "param1": 100,
+  "param2": "Keanu Reeves"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+    MATCH (this0:Movie)
+    WHERE EXISTS {
+        MATCH (this0)<-[this1:ACTED_IN]-(this2:Actor)
+        WHERE (this2.name = $param0 AND this1.screenTime = $param1)
+    }
+    WITH this0 { .title, __resolveType: "Movie", __id: id(this0) } AS this0
+    RETURN this0 AS this
+    UNION
+    MATCH (this3:Series)
+    WHERE EXISTS {
+        MATCH (this3)<-[this4:STARRED_IN]-(this5:Actor)
+        WHERE this5.name = $param2
+    }
+    WITH this3 { .title, __resolveType: "Series", __id: id(this3) } AS this3
+    RETURN this3 AS this
+}
+WITH this
+RETURN this AS this
+----
+
+'''
+
+== Connection operator filter
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  shows(where: {actorsConnection_SOME: {node: {name: "Keanu Reeves"}}}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "Keanu Reeves",
+  "param1": "Keanu Reeves"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+    MATCH (this0:Movie)
+    WHERE EXISTS {
+        MATCH (this0)<-[this1:ACTED_IN]-(this2:Actor)
+        WHERE this2.name = $param0
+    }
+    WITH this0 { .title, __resolveType: "Movie", __id: id(this0) } AS this0
+    RETURN this0 AS this
+    UNION
+    MATCH (this3:Series)
+    WHERE EXISTS {
+        MATCH (this3)<-[this4:STARRED_IN]-(this5:Actor)
+        WHERE this5.name = $param1
+    }
+    WITH this3 { .title, __resolveType: "Series", __id: id(this3) } AS this3
+    RETURN this3 AS this
+}
+WITH this
+RETURN this AS this
+----
+
+'''
+
+== Connection operator filter + typename_IN
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  shows(
+    where: {typename_IN: [Movie], actorsConnection_SOME: {node: {name: "Keanu Reeves"}}}
+  ) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "Keanu Reeves",
+  "param1": "Keanu Reeves"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+    MATCH (this0:Movie)
+    WHERE (this0:Movie AND EXISTS {
+        MATCH (this0)<-[this1:ACTED_IN]-(this2:Actor)
+        WHERE this2.name = $param0
+    })
+    WITH this0 { .title, __resolveType: "Movie", __id: id(this0) } AS this0
+    RETURN this0 AS this
+    UNION
+    MATCH (this3:Series)
+    WHERE (this3:Movie AND EXISTS {
+        MATCH (this3)<-[this4:STARRED_IN]-(this5:Actor)
+        WHERE this5.name = $param1
+    })
+    WITH this3 { .title, __resolveType: "Series", __id: id(this3) } AS this3
+    RETURN this3 AS this
+}
+WITH this
+RETURN this AS this
+----
+
+'''
+
+== Connection operator filter + typename_IN + logical
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  shows(
+    where: {OR: [{typename_IN: [Movie]}, {actorsConnection_SOME: {node: {name: "Keanu Reeves"}}}]}
+  ) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "Keanu Reeves",
+  "param1": "Keanu Reeves"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+    MATCH (this0:Movie)
+    WHERE (this0:Movie OR EXISTS {
+        MATCH (this0)<-[this1:ACTED_IN]-(this2:Actor)
+        WHERE this2.name = $param0
+    })
+    WITH this0 { .title, __resolveType: "Movie", __id: id(this0) } AS this0
+    RETURN this0 AS this
+    UNION
+    MATCH (this3:Series)
+    WHERE (this3:Movie OR EXISTS {
+        MATCH (this3)<-[this4:STARRED_IN]-(this5:Actor)
+        WHERE this5.name = $param1
+    })
+    WITH this3 { .title, __resolveType: "Series", __id: id(this3) } AS this3
+    RETURN this3 AS this
+}
+WITH this
+RETURN this AS this
+----
+
+'''
+
+== Connection operator filter + typename_IN + logical (nested field)
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  actors {
+    actedIn(
+      where: {typename_IN: [Movie], actorsConnection_SOME: {OR: [{node: {name: "Keanu Reeves"}}, {node: {name: "Keanu Reeves"}}]}}
+    ) {
+      title
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "Keanu Reeves",
+  "param1": "Keanu Reeves",
+  "param2": "Keanu Reeves",
+  "param3": "Keanu Reeves"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+CALL {
+    WITH this
+    CALL {
+        WITH *
+        MATCH (this)-[this0:ACTED_IN]->(this1:Movie)
+        WHERE (this1:Movie AND EXISTS {
+            MATCH (this1)<-[this2:ACTED_IN]-(this3:Actor)
+            WHERE (this3.name = $param0 OR this3.name = $param1)
+        })
+        WITH this1 { .title, __resolveType: "Movie", __id: id(this1) } AS this1
+        RETURN this1 AS var4
+        UNION
+        WITH *
+        MATCH (this)-[this5:ACTED_IN]->(this6:Series)
+        WHERE (this6:Movie AND EXISTS {
+            MATCH (this6)<-[this7:STARRED_IN]-(this8:Actor)
+            WHERE (this8.name = $param2 OR this8.name = $param3)
+        })
+        WITH this6 { .title, __resolveType: "Series", __id: id(this6) } AS this6
+        RETURN this6 AS var4
+    }
+    WITH var4
+    RETURN collect(var4) AS var4
+}
+RETURN this { actedIn: var4 } AS this
+----
+
+'''
+
+== Connection operator node filter + logical
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  shows(
+    where: {actorsConnection_SOME: {OR: [{node: {name: "Keanu Reeves"}}, {node: {name: "Keanu Reeves"}}]}}
+  ) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "Keanu Reeves",
+  "param1": "Keanu Reeves",
+  "param2": "Keanu Reeves",
+  "param3": "Keanu Reeves"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+    MATCH (this0:Movie)
+    WHERE EXISTS {
+        MATCH (this0)<-[this1:ACTED_IN]-(this2:Actor)
+        WHERE (this2.name = $param0 OR this2.name = $param1)
+    }
+    WITH this0 { .title, __resolveType: "Movie", __id: id(this0) } AS this0
+    RETURN this0 AS this
+    UNION
+    MATCH (this3:Series)
+    WHERE EXISTS {
+        MATCH (this3)<-[this4:STARRED_IN]-(this5:Actor)
+        WHERE (this5.name = $param2 OR this5.name = $param3)
+    }
+    WITH this3 { .title, __resolveType: "Series", __id: id(this3) } AS this3
+    RETURN this3 AS this
+}
+WITH this
+RETURN this AS this
+----
+
+'''
+
+== Logical operator filter (nested field)
 
 .GraphQL-Query
 [source,graphql]
@@ -109,20 +459,6 @@ query actedInWhere {
   actors {
     actedIn(where: {OR: [{title: "The Office"}, {title: "The Office 2"}]}) {
       title
-    }
-  }
-}
-----
-
-.Query Context
-[source,json,query-config=true]
-----
-{
-  "auth": {
-    "isAuthenticated": true,
-    "roles": [],
-    "jwt": {
-      "roles": []
     }
   }
 }
@@ -162,6 +498,252 @@ CALL {
     RETURN collect(var2) AS var2
 }
 RETURN this { actedIn: var2 } AS this
+----
+
+'''
+
+== Logical operator filter (top level)
+
+.GraphQL-Query
+[source,graphql]
+----
+query actedInWhere {
+  shows(where: {OR: [{title: "The Office"}, {title: "The Office 2"}]}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "The Office",
+  "param1": "The Office 2",
+  "param2": "The Office",
+  "param3": "The Office 2"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+    MATCH (this0:Movie)
+    WHERE (this0.title = $param0 OR this0.title = $param1)
+    WITH this0 { .title, __resolveType: "Movie", __id: id(this0) } AS this0
+    RETURN this0 AS this
+    UNION
+    MATCH (this1:Series)
+    WHERE (this1.title = $param2 OR this1.title = $param3)
+    WITH this1 { .title, __resolveType: "Series", __id: id(this1) } AS this1
+    RETURN this1 AS this
+}
+WITH this
+RETURN this AS this
+----
+
+'''
+
+== Relationship operator filter
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  shows(where: {actors_SOME: {name: "Keanu Reeves"}}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "Keanu Reeves",
+  "param1": "Keanu Reeves"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+    MATCH (this0:Movie)
+    WHERE EXISTS {
+        MATCH (this0)<-[:ACTED_IN]-(this1:Actor)
+        WHERE this1.name = $param0
+    }
+    WITH this0 { .title, __resolveType: "Movie", __id: id(this0) } AS this0
+    RETURN this0 AS this
+    UNION
+    MATCH (this2:Series)
+    WHERE EXISTS {
+        MATCH (this2)<-[:STARRED_IN]-(this3:Actor)
+        WHERE this3.name = $param1
+    }
+    WITH this2 { .title, __resolveType: "Series", __id: id(this2) } AS this2
+    RETURN this2 AS this
+}
+WITH this
+RETURN this AS this
+----
+
+'''
+
+== Relationship operator filter + typename_IN
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  shows(where: {typename_IN: [Movie], actors_SOME: {name: "Keanu Reeves"}}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "Keanu Reeves",
+  "param1": "Keanu Reeves"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+    MATCH (this0:Movie)
+    WHERE (this0:Movie AND EXISTS {
+        MATCH (this0)<-[:ACTED_IN]-(this1:Actor)
+        WHERE this1.name = $param0
+    })
+    WITH this0 { .title, __resolveType: "Movie", __id: id(this0) } AS this0
+    RETURN this0 AS this
+    UNION
+    MATCH (this2:Series)
+    WHERE (this2:Movie AND EXISTS {
+        MATCH (this2)<-[:STARRED_IN]-(this3:Actor)
+        WHERE this3.name = $param1
+    })
+    WITH this2 { .title, __resolveType: "Series", __id: id(this2) } AS this2
+    RETURN this2 AS this
+}
+WITH this
+RETURN this AS this
+----
+
+'''
+
+== Relationship operator filter + typename_IN + logical
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  shows(
+    where: {OR: [{typename_IN: [Movie]}, {actors_SOME: {name: "Keanu Reeves"}}]}
+  ) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "Keanu Reeves",
+  "param1": "Keanu Reeves"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+    MATCH (this0:Movie)
+    WHERE (this0:Movie OR EXISTS {
+        MATCH (this0)<-[:ACTED_IN]-(this1:Actor)
+        WHERE this1.name = $param0
+    })
+    WITH this0 { .title, __resolveType: "Movie", __id: id(this0) } AS this0
+    RETURN this0 AS this
+    UNION
+    MATCH (this2:Series)
+    WHERE (this2:Movie OR EXISTS {
+        MATCH (this2)<-[:STARRED_IN]-(this3:Actor)
+        WHERE this3.name = $param1
+    })
+    WITH this2 { .title, __resolveType: "Series", __id: id(this2) } AS this2
+    RETURN this2 AS this
+}
+WITH this
+RETURN this AS this
+----
+
+'''
+
+== Relationship operator filter + typename_IN + logical (nested field)
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  actors {
+    actedIn(
+      where: {typename_IN: [Movie], actorsConnection_SOME: {OR: [{node: {name: "Keanu Reeves"}}, {node: {name: "Keanu Reeves"}}]}}
+    ) {
+      title
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "Keanu Reeves",
+  "param1": "Keanu Reeves",
+  "param2": "Keanu Reeves",
+  "param3": "Keanu Reeves"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+CALL {
+    WITH this
+    CALL {
+        WITH *
+        MATCH (this)-[this0:ACTED_IN]->(this1:Movie)
+        WHERE (this1:Movie AND EXISTS {
+            MATCH (this1)<-[this2:ACTED_IN]-(this3:Actor)
+            WHERE (this3.name = $param0 OR this3.name = $param1)
+        })
+        WITH this1 { .title, __resolveType: "Movie", __id: id(this1) } AS this1
+        RETURN this1 AS var4
+        UNION
+        WITH *
+        MATCH (this)-[this5:ACTED_IN]->(this6:Series)
+        WHERE (this6:Movie AND EXISTS {
+            MATCH (this6)<-[this7:STARRED_IN]-(this8:Actor)
+            WHERE (this8.name = $param2 OR this8.name = $param3)
+        })
+        WITH this6 { .title, __resolveType: "Series", __id: id(this6) } AS this6
+        RETURN this6 AS var4
+    }
+    WITH var4
+    RETURN collect(var4) AS var4
+}
+RETURN this { actedIn: var4 } AS this
 ----
 
 '''

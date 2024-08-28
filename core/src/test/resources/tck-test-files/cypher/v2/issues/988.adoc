@@ -23,7 +23,7 @@ type Manufacturer {
   current: Boolean!
 }
 
-interface RelationProps @relationshipProperties {
+type RelationProps @relationshipProperties {
   current: Boolean!
 }
 ----
@@ -38,7 +38,9 @@ query getSeriesWithRelationFilters($where: SeriesWhere = {current: true}) {
     current
     manufacturerConnection {
       edges {
-        current
+        properties {
+          current
+        }
         node {
           name
         }
@@ -46,7 +48,9 @@ query getSeriesWithRelationFilters($where: SeriesWhere = {current: true}) {
     }
     brandConnection {
       edges {
-        current
+        properties {
+          current
+        }
         node {
           name
         }
@@ -66,7 +70,7 @@ query getSeriesWithRelationFilters($where: SeriesWhere = {current: true}) {
       {
         "OR": [
           {
-            "manufacturerConnection": {
+            "manufacturerConnection_SOME": {
               "edge": {
                 "current": true
               },
@@ -76,7 +80,7 @@ query getSeriesWithRelationFilters($where: SeriesWhere = {current: true}) {
             }
           },
           {
-            "manufacturerConnection": {
+            "manufacturerConnection_SOME": {
               "edge": {
                 "current": false
               },
@@ -90,7 +94,7 @@ query getSeriesWithRelationFilters($where: SeriesWhere = {current: true}) {
       {
         "OR": [
           {
-            "brandConnection": {
+            "brandConnection_SOME": {
               "edge": {
                 "current": true
               },
@@ -143,7 +147,7 @@ CALL {
         WITH edges
         UNWIND edges AS edge
         WITH edge.node AS this7, edge.relationship AS this6
-        RETURN collect({ current: this6.current, node: { name: this7.name } }) AS var8
+        RETURN collect({ properties: { current: this6.current, __resolveType: "RelationProps" }, node: { name: this7.name, __resolveType: "Manufacturer" } }) AS var8
     }
     RETURN { edges: var8, totalCount: totalCount } AS var9
 }
@@ -156,7 +160,7 @@ CALL {
         WITH edges
         UNWIND edges AS edge
         WITH edge.node AS this11, edge.relationship AS this10
-        RETURN collect({ current: this10.current, node: { name: this11.name } }) AS var12
+        RETURN collect({ properties: { current: this10.current, __resolveType: "RelationProps" }, node: { name: this11.name, __resolveType: "Brand" } }) AS var12
     }
     RETURN { edges: var12, totalCount: totalCount } AS var13
 }

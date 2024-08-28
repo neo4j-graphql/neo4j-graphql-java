@@ -12,7 +12,7 @@ class NodeConnectionEdgeFieldSelection : FieldContainerSelection() {
     object Augmentation : AugmentationBase {
 
         fun generateRelationshipSelection(field: ConnectionField, ctx: AugmentationContext): String =
-            ctx.getOrCreateObjectType(field.relationshipField.namings.relationshipFieldTypename2) { fields, _ ->
+            ctx.getOrCreateObjectType(field.relationshipField.namings.relationshipFieldTypename) { fields, _ ->
 
                 fields += field(Constants.CURSOR_FIELD, Constants.Types.String.makeRequired())
 
@@ -36,7 +36,7 @@ class NodeConnectionEdgeFieldSelection : FieldContainerSelection() {
                 }
                     ?.let { fields += field(Constants.PROPERTIES_FIELD, it.asRequiredType()) }
             }
-                ?: throw IllegalStateException("Expected ${field.relationshipField.namings.relationshipFieldTypename2} to have fields")
+                ?: throw IllegalStateException("Expected ${field.relationshipField.namings.relationshipFieldTypename} to have fields")
 
         private fun generateEdgeRelationshipSelection(
             properties: RelationshipProperties?,

@@ -1,7 +1,6 @@
 package org.neo4j.graphql.translate.projection
 
 import org.neo4j.cypherdsl.core.Cypher
-import org.neo4j.cypherdsl.core.Functions
 import org.neo4j.cypherdsl.core.PropertyContainer
 import org.neo4j.graphql.Constants
 import org.neo4j.graphql.QueryContext
@@ -49,7 +48,7 @@ fun projectScalarField(
     }
 
     if (field is TemporalField && field.typeMeta.type.name() == Constants.DATE_TIME) {
-        result += createDatetimeExpression(field, Functions.toString(property))
+        result += createDatetimeExpression(field, Cypher.toString(property))
         return result
     }
 

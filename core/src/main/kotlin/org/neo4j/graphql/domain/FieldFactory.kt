@@ -21,10 +21,15 @@ object FieldFactory {
         typeDefinitionRegistry: TypeDefinitionRegistry,
         relationshipPropertiesFactory: (name: String) -> RelationshipProperties?,
         schemaConfig: SchemaConfig,
+        interfaces: List<Interface> = emptyList()
     ): List<BaseField> {
         val result = mutableListOf<BaseField>()
 
         obj.fieldDefinitions.forEach { field ->
+
+            val fieldDeclaringRelationship = interfaces.getFieldDeclaringRelationship(field.name)
+
+
             val annotations = Annotations(field.directives, jwtShape = null)
             if (annotations.private != null) return@forEach
             val typeMeta = TypeMeta.create(field)
@@ -38,7 +43,7 @@ object FieldFactory {
 
             val baseField: BaseField
 
-            if (annotations.relationship != null || annotations.declareRelationship != null) {
+            if (annotations.relationship != null || annotations.declareRelationship != null || fieldDeclaringRelationship != null) {
 
                 var connectionPrefix = obj.name
                 if (obj.implements.isNotEmpty()) {
@@ -61,11 +66,10 @@ object FieldFactory {
                         field.name,
                         typeMeta,
                         annotations,
-                        properties,
-                        connectionPrefix
+                        properties
                     )
-                } else if (annotations.declareRelationship != null) {
-                    RelationDeclarationField(field.name, typeMeta, annotations, connectionPrefix)
+                } else if (annotations.declareRelationship != null || fieldDeclaringRelationship != null) {
+                    RelationDeclarationField(field.name, typeMeta, annotations, fieldDeclaringRelationship)
                 } else {
                     error("Unknown relationship directive")
                 }

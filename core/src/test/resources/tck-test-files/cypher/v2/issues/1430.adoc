@@ -13,7 +13,7 @@ type ABCE {
 }
 
 interface InterfaceMom {
-  id: ID @id
+  id: ID
   name: String
 }
 

@@ -4,6 +4,7 @@ import graphql.language.Comment
 import graphql.language.Description
 import org.neo4j.graphql.domain.directives.InterfaceAnnotations
 import org.neo4j.graphql.domain.fields.BaseField
+import org.neo4j.graphql.domain.fields.RelationBaseField
 import org.neo4j.graphql.domain.fields.RelationDeclarationField
 import org.neo4j.graphql.domain.naming.InterfaceNames
 

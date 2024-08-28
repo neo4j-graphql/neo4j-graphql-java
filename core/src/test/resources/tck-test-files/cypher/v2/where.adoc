@@ -401,7 +401,7 @@ RETURN this { .title } AS this
 [source,graphql]
 ----
 {
-  movies(where: {title_NOT: null}) {
+  movies(where: {NOT: {title: null}}) {
     title
   }
 }
@@ -417,7 +417,7 @@ RETURN this { .title } AS this
 [source,cypher]
 ----
 MATCH (this:Movie)
-WHERE this.title IS NOT NULL
+WHERE NOT (this.title IS NULL)
 RETURN this { .title } AS this
 ----
 

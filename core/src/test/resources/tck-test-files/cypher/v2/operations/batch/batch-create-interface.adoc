@@ -35,7 +35,7 @@ type Website {
   address: String
 }
 
-interface ActedIn @relationshipProperties {
+type ActedIn @relationshipProperties {
   year: Int
 }
 ----

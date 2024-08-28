@@ -19,7 +19,7 @@ type Person {
   directed: [Movie!]! @relationship(type: "DIRECTED", direction: OUT)
 }
 
-interface ActedIn @relationshipProperties {
+type ActedIn @relationshipProperties {
   year: Int
 }
 ----

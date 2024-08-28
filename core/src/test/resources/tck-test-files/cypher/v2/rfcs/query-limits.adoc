@@ -73,7 +73,7 @@ CALL {
         WITH *
         
         LIMIT $param1
-        RETURN collect({ node: { id: this1.id } }) AS var2
+        RETURN collect({ node: { id: this1.id, __resolveType: "Person" } }) AS var2
     }
     RETURN { edges: var2, totalCount: totalCount } AS var3
 }
@@ -125,7 +125,7 @@ CALL {
         WITH *
         
         LIMIT $param0
-        RETURN collect({ node: { id: this1.id } }) AS var2
+        RETURN collect({ node: { id: this1.id, __resolveType: "Show" } }) AS var2
     }
     RETURN { edges: var2, totalCount: totalCount } AS var3
 }
@@ -181,7 +181,7 @@ CALL {
         WITH *
         
         LIMIT $param1
-        RETURN collect({ node: { id: this1.id } }) AS var2
+        RETURN collect({ node: { id: this1.id, __resolveType: "Person" } }) AS var2
     }
     RETURN { edges: var2, totalCount: totalCount } AS var3
 }

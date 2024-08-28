@@ -9,7 +9,7 @@
 interface Content {
   id: ID
   content: String
-  creator: User! @relationship(type: "HAS_CONTENT", direction: IN)
+  creator: User! @declareRelationship
 }
 
 type User {
@@ -21,13 +21,13 @@ type User {
 type Comment implements Content {
   id: ID
   content: String
-  creator: User!
+  creator: User! @relationship(type: "HAS_CONTENT", direction: IN)
 }
 
 type Post implements Content @authorization(filter: [{operations: [READ, UPDATE, DELETE, CREATE_RELATIONSHIP, DELETE_RELATIONSHIP], where: {node: {creator: {id: "$jwt.sub"}}}}]) {
   id: ID
   content: String
-  creator: User!
+  creator: User! @relationship(type: "HAS_CONTENT", direction: IN)
 }
 
 extend type User @authorization(filter: [{operations: [READ, UPDATE, DELETE, CREATE_RELATIONSHIP, DELETE_RELATIONSHIP], where: {node: {id: "$jwt.sub"}}}])

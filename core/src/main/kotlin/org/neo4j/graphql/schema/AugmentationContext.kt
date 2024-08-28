@@ -53,36 +53,42 @@ class AugmentationContext(
         val typeResolver: (name: String) -> DEF?,
         val factory: (name: String, fields: List<FIELD>, init: BUILDER) -> DEF
     ) {
-        val knownTypes = mutableSetOf<String>()
         val emptyTypes = mutableSetOf<String>()
+        val stack = mutableListOf<String>()
 
         fun getOrCreateType(
             name: String,
             init: BUILDER,
-            initFields: (fields: MutableList<FIELD>, name: String) -> Unit
+            initFields: (fields: MutableList<FIELD>, name: String) -> Unit,
         ): String? {
             if (emptyTypes.contains(name)) {
                 return null
             }
-            if (knownTypes.contains(name)) {
-                // TODO we should use futures here, so we can handle null names, which we do not know at this point of time
+            val type = typeResolver(name)
+            if (type != null) {
                 return name
             }
-            val type = typeResolver(name)
-            return when (type != null) {
-                true -> type
-                else -> {
-                    val fields = mutableListOf<FIELD>()
-                    knownTypes.add(name)
-                    initFields(fields, name)
-                    if (fields.isNotEmpty()) {
-                        factory(name, fields, init).also { typeDefinitionRegistry.add(it) }
-                    } else {
+            if (stack.contains(name)) {
+                return name
+            }
+            try {
+                stack.add(name)
+                val fields = mutableListOf<FIELD>()
+                initFields(fields, name)
+                return when {
+                    fields.isNotEmpty() -> factory(name, fields, init)
+                        .also { typeDefinitionRegistry.add(it) }
+                        .name
+
+                    else -> {
                         emptyTypes.add(name)
                         null
                     }
                 }
-            }?.name
+            } finally {
+                stack.removeLast()
+            }
+
         }
     }
 
@@ -239,19 +245,6 @@ class AugmentationContext(
         addAdditionalFields?.invoke(fields)
     }
 
-    @Deprecated("Do not use any longer")
-    fun addOnField(
-        interfaze: Interface,
-        name: String,
-        fields: MutableList<InputValueDefinition>,
-        asList: Boolean,
-        getNodeType: (Node) -> String?
-    ) {
-        generateImplementationDelegate(interfaze, name, asList = asList, getNodeType)?.let {
-            fields += inputValue(Constants.ON, it.asType())
-        }
-    }
-
     fun addTypenameEnum(
         interfaze: Interface,
         fields: MutableList<InputValueDefinition>,
@@ -294,7 +287,7 @@ class AugmentationContext(
         is RelationField -> onRelationField(relationField)?.asType(relationField.properties?.let(required) ?: false)
         is RelationDeclarationField -> {
             getOrCreateInputObjectType(getDeclarationName(relationField), initFields = { fields, _ ->
-                relationField.relationshipImplementations.groupBy<RelationField, String?> { it.properties?.typeName }
+                relationField.relationshipImplementations.groupBy { it.properties?.typeName }
                     .forEach { (propsTypeName, rels) ->
                         if (propsTypeName == null) {
                             return@forEach
@@ -309,7 +302,7 @@ class AugmentationContext(
                                 }
                             }
                     }
-            })?.asType(relationField.relationshipImplementations.mapNotNull { it.properties }.all(required))
+            })?.asType(relationField.relationshipImplementations.mapNotNull { it.properties }.any(required))
         }
     }
 }

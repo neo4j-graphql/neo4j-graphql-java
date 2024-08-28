@@ -5,7 +5,6 @@ import org.neo4j.graphql.domain.ImplementingType
 import org.neo4j.graphql.domain.Union
 import org.neo4j.graphql.domain.directives.FieldAnnotations
 import org.neo4j.graphql.domain.fields.RelationBaseField
-import org.neo4j.graphql.domain.fields.RelationField
 
 sealed class RelationshipBaseNames<T : RelationBaseField>(
     val relationship: T,
@@ -17,25 +16,19 @@ sealed class RelationshipBaseNames<T : RelationBaseField>(
     protected abstract val fieldInputPrefixForTypename: String
     val prefixForTypenameWithInheritance: String
         get() {
-            var prefix = relationship.getOwnerName()
-            if (relationship is RelationField && relationship.inheritedFrom != null) {
-                prefix += relationship.inheritedFrom
-            }
+            val prefix = relationship.declarationOrSelf.getOwnerName()
             return prefix + relationship.fieldName.capitalize()
         }
 
-    private val prefixForConnectionTypename get() = "${relationship.connectionPrefix}${relationship.fieldName.capitalize()}"
-
     protected val prefixForTypename get() = "${relationship.getOwnerName()}${relationship.fieldName.capitalize()}"
 
-    val connectionFieldTypename get() = "${prefixForConnectionTypename}Connection"
+    val connectionFieldTypename get() = "${prefixForTypenameWithInheritance}Connection"
 
     val connectionSortInputTypename get() = "${connectionFieldTypename}Sort"
 
     val connectionWhereInputTypename get() = "${connectionFieldTypename}Where"
 
     val relationshipFieldTypename get() = "${prefixForTypenameWithInheritance}Relationship"
-    val relationshipFieldTypename2 get() = "${prefixForConnectionTypename}Relationship"
 
     fun getFieldInputTypeName(target: ImplementingType) =
         "$prefixForTypename${target.useNameIfFieldIsUnion()}FieldInput"
@@ -55,10 +48,10 @@ sealed class RelationshipBaseNames<T : RelationBaseField>(
     fun getDisconnectFieldInputTypeName(target: ImplementingType) =
         "$fieldInputPrefixForTypename${target.useNameIfFieldIsUnion()}DisconnectFieldInput"
 
-    val connectOrCreateInputTypeName get() = "${prefixForTypenameWithInheritance}ConnectOrCreateInput"
+    val connectOrCreateInputTypeName get() = "${prefixForTypename}ConnectOrCreateInput"
 
     fun getConnectOrCreateFieldInputTypeName(target: ImplementingType) =
-        "$prefixForConnectionTypename${target.useNameIfFieldIsUnion()}ConnectOrCreateFieldInput"
+        "$prefixForTypename${target.useNameIfFieldIsUnion()}ConnectOrCreateFieldInput"
 
     fun getConnectOrCreateOnCreateFieldInputTypeName(target: ImplementingType) =
         "${getConnectOrCreateFieldInputTypeName(target)}OnCreate"
@@ -66,7 +59,7 @@ sealed class RelationshipBaseNames<T : RelationBaseField>(
     val connectionFieldName get() = "${prefixForTypenameWithInheritance}Connection"
 
     fun getConnectionWhereTypename(target: ImplementingType) =
-        "$prefixForConnectionTypename${target.useNameIfFieldIsUnion()}ConnectionWhere"
+        "$prefixForTypenameWithInheritance${target.useNameIfFieldIsUnion()}ConnectionWhere"
 
     fun getUpdateConnectionInputTypename(target: ImplementingType) =
         "$prefixForTypename${target.useNameIfFieldIsUnion()}UpdateConnectionInput"
@@ -91,19 +84,19 @@ sealed class RelationshipBaseNames<T : RelationBaseField>(
     fun getToUnionSubscriptionWhereInputTypeName(target: ImplementingType) =
         "$prefixForTypename${target.useNameIfFieldIsUnion()}SubscriptionWhere"
 
-    val unionConnectionUnionWhereTypeName get() = "${prefixForConnectionTypename.capitalize()}ConnectionWhere"
+    val unionConnectionUnionWhereTypeName get() = "${prefixForTypenameWithInheritance.capitalize()}ConnectionWhere"
 
-    val unionConnectInputTypeName get() = "${prefixForConnectionTypename.capitalize()}ConnectInput"
+    val unionConnectInputTypeName get() = "${prefixForTypename.capitalize()}ConnectInput"
 
-    val unionDeleteInputTypeName get() = "${prefixForConnectionTypename.capitalize()}DeleteInput"
+    val unionDeleteInputTypeName get() = "${prefixForTypename.capitalize()}DeleteInput"
 
-    val unionDisconnectInputTypeName get() = "${prefixForConnectionTypename.capitalize()}DisconnectInput"
+    val unionDisconnectInputTypeName get() = "${prefixForTypename.capitalize()}DisconnectInput"
 
-    val unionCreateInputTypeName get() = "${prefixForConnectionTypename.capitalize()}CreateInput"
+    val unionCreateInputTypeName get() = "${prefixForTypename.capitalize()}CreateInput"
 
-    val unionCreateFieldInputTypeName get() = "${prefixForConnectionTypename.capitalize()}CreateFieldInput"
+    val unionCreateFieldInputTypeName get() = "${prefixForTypename.capitalize()}CreateFieldInput"
 
-    val unionUpdateInputTypeName get() = "${prefixForConnectionTypename.capitalize()}UpdateInput"
+    val unionUpdateInputTypeName get() = "${prefixForTypename.capitalize()}UpdateInput"
 
     val createInputTypeName get() = "${edgePrefix}CreateInput"
 

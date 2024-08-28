@@ -22,13 +22,13 @@ type Series {
   distribution: [DistributionHouse!]! @relationship(type: "DISTRIBUTED_BY", direction: IN)
 }
 
-interface ActedIn @relationshipProperties {
+type ActedIn @relationshipProperties {
   role: String!
 }
 
 interface Actor {
   name: String!
-  actedIn: [Production!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
+  actedIn: [Production!]! @declareRelationship
 }
 
 type MaleActor implements Actor {

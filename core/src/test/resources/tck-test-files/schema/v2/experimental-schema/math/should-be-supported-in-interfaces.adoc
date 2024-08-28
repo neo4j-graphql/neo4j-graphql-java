@@ -36,7 +36,6 @@ schema {
 Information about the number of nodes and relationships created during a create mutation
 """
 type CreateInfo {
-  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   relationshipsCreated: Int!
 }
@@ -55,7 +54,6 @@ type CreatePeopleMutationResponse {
 Information about the number of nodes and relationships deleted during a delete mutation
 """
 type DeleteInfo {
-  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesDeleted: Int!
   relationshipsDeleted: Int!
 }
@@ -155,11 +153,6 @@ input MovieWhere {
   id_CONTAINS: ID
   id_ENDS_WITH: ID
   id_IN: [ID]
-  id_NOT: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_CONTAINS: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_ENDS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_IN: [ID] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_STARTS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id_STARTS_WITH: ID
   viewers: Int
   viewers_GT: Int
@@ -167,11 +160,7 @@ input MovieWhere {
   viewers_IN: [Int!]
   viewers_LT: Int
   viewers_LTE: Int
-  viewers_NOT: Int @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  viewers_NOT_IN: [Int!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  workers: PersonWhere @deprecated(reason: "Use `workers_SOME` instead.")
   workersAggregate: MovieWorkersAggregateInput
-  workersConnection: MovieWorkersConnectionWhere @deprecated(reason: "Use `workersConnection_SOME` instead.")
   """
   Return Movies where all of the related MovieWorkersConnections match this filter
   """
@@ -180,7 +169,6 @@ input MovieWhere {
   Return Movies where none of the related MovieWorkersConnections match this filter
   """
   workersConnection_NONE: MovieWorkersConnectionWhere
-  workersConnection_NOT: MovieWorkersConnectionWhere @deprecated(reason: "Use `workersConnection_NONE` instead.")
   """
   Return Movies where one of the related MovieWorkersConnections match this filter
   """
@@ -193,7 +181,6 @@ input MovieWhere {
   workers_ALL: PersonWhere
   """Return Movies where none of the related People match this filter"""
   workers_NONE: PersonWhere
-  workers_NOT: PersonWhere @deprecated(reason: "Use `workers_NONE` instead.")
   """Return Movies where one of the related People match this filter"""
   workers_SINGLE: PersonWhere
   """Return Movies where some of the related People match this filter"""
@@ -236,7 +223,6 @@ input MovieWorkersConnectionWhere {
   NOT: MovieWorkersConnectionWhere
   OR: [MovieWorkersConnectionWhere!]
   node: PersonWhere
-  node_NOT: PersonWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input MovieWorkersCreateFieldInput {
@@ -262,41 +248,21 @@ input MovieWorkersNodeAggregationWhereInput {
   AND: [MovieWorkersNodeAggregationWhereInput!]
   NOT: MovieWorkersNodeAggregationWhereInput
   OR: [MovieWorkersNodeAggregationWhereInput!]
-  name_AVERAGE_EQUAL: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
-  name_AVERAGE_GT: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
-  name_AVERAGE_GTE: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
   name_AVERAGE_LENGTH_EQUAL: Float
   name_AVERAGE_LENGTH_GT: Float
   name_AVERAGE_LENGTH_GTE: Float
   name_AVERAGE_LENGTH_LT: Float
   name_AVERAGE_LENGTH_LTE: Float
-  name_AVERAGE_LT: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
-  name_AVERAGE_LTE: Float @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
-  name_EQUAL: String @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  name_GT: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  name_GTE: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  name_LONGEST_EQUAL: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
-  name_LONGEST_GT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
-  name_LONGEST_GTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
   name_LONGEST_LENGTH_EQUAL: Int
   name_LONGEST_LENGTH_GT: Int
   name_LONGEST_LENGTH_GTE: Int
   name_LONGEST_LENGTH_LT: Int
   name_LONGEST_LENGTH_LTE: Int
-  name_LONGEST_LT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
-  name_LONGEST_LTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
-  name_LT: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  name_LTE: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  name_SHORTEST_EQUAL: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
-  name_SHORTEST_GT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
-  name_SHORTEST_GTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
   name_SHORTEST_LENGTH_EQUAL: Int
   name_SHORTEST_LENGTH_GT: Int
   name_SHORTEST_LENGTH_GTE: Int
   name_SHORTEST_LENGTH_LT: Int
   name_SHORTEST_LENGTH_LTE: Int
-  name_SHORTEST_LT: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
-  name_SHORTEST_LTE: Int @deprecated(reason: "Please use the explicit _LENGTH version for string aggregation.")
 }
 
 type MovieWorkersRelationship {
@@ -426,14 +392,8 @@ input PersonWhere {
   name_CONTAINS: String
   name_ENDS_WITH: String
   name_IN: [String!]
-  name_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_IN: [String!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   name_STARTS_WITH: String
-  worksInProduction: ProductionWhere @deprecated(reason: "Use `worksInProduction_SOME` instead.")
-  worksInProductionConnection: PersonWorksInProductionConnectionWhere @deprecated(reason: "Use `worksInProductionConnection_SOME` instead.")
+  worksInProductionAggregate: PersonWorksInProductionAggregateInput
   """
   Return People where all of the related PersonWorksInProductionConnections match this filter
   """
@@ -442,7 +402,6 @@ input PersonWhere {
   Return People where none of the related PersonWorksInProductionConnections match this filter
   """
   worksInProductionConnection_NONE: PersonWorksInProductionConnectionWhere
-  worksInProductionConnection_NOT: PersonWorksInProductionConnectionWhere @deprecated(reason: "Use `worksInProductionConnection_NONE` instead.")
   """
   Return People where one of the related PersonWorksInProductionConnections match this filter
   """
@@ -455,11 +414,22 @@ input PersonWhere {
   worksInProduction_ALL: ProductionWhere
   """Return People where none of the related Productions match this filter"""
   worksInProduction_NONE: ProductionWhere
-  worksInProduction_NOT: ProductionWhere @deprecated(reason: "Use `worksInProduction_NONE` instead.")
   """Return People where one of the related Productions match this filter"""
   worksInProduction_SINGLE: ProductionWhere
   """Return People where some of the related Productions match this filter"""
   worksInProduction_SOME: ProductionWhere
+}
+
+input PersonWorksInProductionAggregateInput {
+  AND: [PersonWorksInProductionAggregateInput!]
+  NOT: PersonWorksInProductionAggregateInput
+  OR: [PersonWorksInProductionAggregateInput!]
+  count: Int
+  count_GT: Int
+  count_GTE: Int
+  count_LT: Int
+  count_LTE: Int
+  node: PersonWorksInProductionNodeAggregationWhereInput
 }
 
 input PersonWorksInProductionConnectFieldInput {
@@ -481,7 +451,6 @@ input PersonWorksInProductionConnectionWhere {
   NOT: PersonWorksInProductionConnectionWhere
   OR: [PersonWorksInProductionConnectionWhere!]
   node: ProductionWhere
-  node_NOT: ProductionWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input PersonWorksInProductionCreateFieldInput {
@@ -499,6 +468,32 @@ input PersonWorksInProductionDisconnectFieldInput {
 input PersonWorksInProductionFieldInput {
   connect: [PersonWorksInProductionConnectFieldInput!]
   create: [PersonWorksInProductionCreateFieldInput!]
+}
+
+input PersonWorksInProductionNodeAggregationWhereInput {
+  AND: [PersonWorksInProductionNodeAggregationWhereInput!]
+  NOT: PersonWorksInProductionNodeAggregationWhereInput
+  OR: [PersonWorksInProductionNodeAggregationWhereInput!]
+  viewers_AVERAGE_EQUAL: Float
+  viewers_AVERAGE_GT: Float
+  viewers_AVERAGE_GTE: Float
+  viewers_AVERAGE_LT: Float
+  viewers_AVERAGE_LTE: Float
+  viewers_MAX_EQUAL: Int
+  viewers_MAX_GT: Int
+  viewers_MAX_GTE: Int
+  viewers_MAX_LT: Int
+  viewers_MAX_LTE: Int
+  viewers_MIN_EQUAL: Int
+  viewers_MIN_GT: Int
+  viewers_MIN_GTE: Int
+  viewers_MIN_LT: Int
+  viewers_MIN_LTE: Int
+  viewers_SUM_EQUAL: Int
+  viewers_SUM_GT: Int
+  viewers_SUM_GTE: Int
+  viewers_SUM_LT: Int
+  viewers_SUM_LTE: Int
 }
 
 type PersonWorksInProductionRelationship {
@@ -578,8 +573,6 @@ input ProductionWhere {
   viewers_IN: [Int!]
   viewers_LT: Int
   viewers_LTE: Int
-  viewers_NOT: Int @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  viewers_NOT_IN: [Int!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 type ProductionsConnection {
@@ -617,7 +610,6 @@ type StringAggregateSelection {
 Information about the number of nodes and relationships created and deleted during an update mutation
 """
 type UpdateInfo {
-  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   nodesDeleted: Int!
   relationshipsCreated: Int!

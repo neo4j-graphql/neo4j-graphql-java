@@ -27,10 +27,7 @@ type JWT @jwt {
   roles: [String!]!
 }
 
-extend schema @authentication {
-  query: Query
-  mutation: Mutation
-}
+extend schema @authentication
 ----
 == should generate valid cypher on nested aggregation with combined rules
 

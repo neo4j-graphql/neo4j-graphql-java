@@ -22,7 +22,7 @@ type Series implements Production {
 
 extend type Series @authorization(validate: [{when: BEFORE, where: {node: {episodes: "$jwt.sub"}}}])
 
-interface ActedIn @relationshipProperties {
+type ActedIn @relationshipProperties {
   screenTime: Int!
 }
 

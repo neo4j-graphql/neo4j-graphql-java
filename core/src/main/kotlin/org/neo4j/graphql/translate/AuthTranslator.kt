@@ -1,9 +1,7 @@
 package org.neo4j.graphql.translate
 
 import org.neo4j.cypherdsl.core.Condition
-import org.neo4j.cypherdsl.core.Conditions
 import org.neo4j.cypherdsl.core.Cypher
-import org.neo4j.cypherdsl.core.Predicates
 import org.neo4j.graphql.*
 import org.neo4j.graphql.Constants.AUTH_UNAUTHENTICATED_ERROR
 import org.neo4j.graphql.Constants.OR
@@ -118,10 +116,10 @@ class AuthTranslator(
 
         val r = Cypher.name("r")
         val rr = Cypher.name("rr")
-        return Predicates.any(r)
+        return Cypher.any(r)
             .`in`(Cypher.listOf(authRule.roles.map { it.asCypherLiteral() })) // TODO should we provide the list as param?
             .where(
-                Predicates.any(rr)
+                Cypher.any(rr)
                     .`in`(Cypher.parameter("auth", queryContext.auth).property("roles"))
                     .where(rr.eq(r))
             )
@@ -197,7 +195,7 @@ class AuthTranslator(
                 }
 
                 val allowCondition = when (paramValue) {
-                    null -> Conditions.isFalse() // todo undefined vs null
+                    null -> Cypher.isFalse() // todo undefined vs null
 //                        null -> varName.property(authableField.dbPropertyName).isNull
                     else -> {
                         val property = varName.property(authableField.dbPropertyName)
@@ -222,7 +220,7 @@ class AuthTranslator(
                 val namedEnd = end.named("auth_this" + ruleIndex)
 //                val namedEnd = end.named(chainStr.resolveName())
 
-                var authPredicate = Conditions.noCondition()
+                var authPredicate = Cypher.noCondition()
                 (value as Map<*, *>).forEach { (k, v) ->
                     authPredicate = authPredicate.and(
                         createAuthPredicate(
@@ -239,9 +237,9 @@ class AuthTranslator(
 //                val  cond = Cypher.name("cond")
                 val cond = namedEnd.requiredSymbolicName
                 val o = if (useAnyPredicate) {
-                    Predicates.any(cond)
+                    Cypher.any(cond)
                 } else {
-                    Predicates.all(cond)
+                    Cypher.all(cond)
                 }
 //                TODO check if we can use this
 //                    .`in`(Cypher.listBasedOn(relationField.createDslRelation(varName, namedEnd)).returning(authPredicate))
@@ -253,7 +251,7 @@ class AuthTranslator(
                     .where(authPredicate)
 
                 val relationCondition =
-                    Predicates.exists(relationField.createDslRelation(varName, end)).and(o)
+                    Cypher.exists(relationField.createDslRelation(varName, end)).and(o)
                 condition = condition?.and(relationCondition) ?: relationCondition
             }
         }

@@ -6,7 +6,7 @@
 
 [source,graphql,schema=true]
 ----
-type Movie @fulltext(indexes: [{name: "MovieTitle", fields: ["title"]}]) @authorization(validate: [{when: [BEFORE], where: {node: {directorConnection_ALL: {edge: {year: 2020}}}}}]) {
+type Movie @fulltext(indexes: [{indexName: "MovieTitle", fields: ["title"]}]) @authorization(validate: [{when: [BEFORE], where: {node: {directorConnection_ALL: {edge: {year: 2020}}}}}]) {
   title: String
   director: [Person!]! @relationship(type: "DIRECTED", direction: IN, properties: "Directed")
 }
@@ -15,7 +15,7 @@ type Person {
   id: ID
 }
 
-interface Directed @relationshipProperties {
+type Directed @relationshipProperties {
   year: Int
 }
 ----

@@ -240,8 +240,8 @@ object CreateConnectionClause {
         val edgesList = Cypher.name("edges")
         val totalCount = Cypher.name("totalCount")
 
-        return this.with(Functions.collect(edgeItem).`as`(edgesList))
-            .with(edgesList as IdentifiableElement, Functions.size(edgesList).`as`(totalCount))
+        return this.with(Cypher.collect(edgeItem).`as`(edgesList))
+            .with(edgesList as IdentifiableElement, Cypher.size(edgesList).`as`(totalCount))
             .let {
                 if (order != null) {
                     if (skipNestedSubquery) {
@@ -249,7 +249,7 @@ object CreateConnectionClause {
                             .unwind(edgesList).`as`(edgeItem)
                             .with(edgeItem, totalCount)
                             .applySortingSkipAndLimit(order, queryContext)
-                            .with(Functions.collect(edgeItem).`as`(edgesList) as IdentifiableElement, totalCount)
+                            .with(Cypher.collect(edgeItem).`as`(edgesList) as IdentifiableElement, totalCount)
                     } else {
                         val sortedEdges = queryContext.getNextVariable(prefix.appendOnPrevious("var"))
                         it.call(
@@ -258,7 +258,7 @@ object CreateConnectionClause {
                                 .unwind(edgesList).`as`(edgeItem)
                                 .with(edgeItem)
                                 .applySortingSkipAndLimit(order, queryContext, prefix.appendOnPrevious("param"))
-                                .returning(Functions.collect(edgeItem).`as`(sortedEdges))
+                                .returning(Cypher.collect(edgeItem).`as`(sortedEdges))
                                 .build()
                         )
                             .with(sortedEdges.`as`(edgesList) as IdentifiableElement, totalCount)
@@ -415,7 +415,7 @@ object CreateConnectionClause {
         val edges = connection[Constants.EDGES_FIELD]
         if (edges != null) {
             val relationshipFieldsByTypeName =
-                edges.fieldsByTypeName[field.relationshipField.namings.relationshipFieldTypename2]
+                edges.fieldsByTypeName[field.relationshipField.namings.relationshipFieldTypename]
             val relationshipProperties = relationshipFieldsByTypeName
                 ?.toMutableMap()
                 ?.also {

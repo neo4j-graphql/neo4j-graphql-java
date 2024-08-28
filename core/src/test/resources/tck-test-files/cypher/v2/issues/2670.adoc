@@ -22,7 +22,7 @@ type Series {
   genres: [Genre!]! @relationship(type: "IN_GENRE", direction: OUT, properties: "InGenre")
 }
 
-interface InGenre @relationshipProperties {
+type InGenre @relationshipProperties {
   intValue: Int!
 }
 ----
@@ -33,7 +33,7 @@ interface InGenre @relationshipProperties {
 ----
 {
   movies(
-    where: {genresConnection: {node: {moviesAggregate: {count: 3}}}, genresAggregate: {count: 1}}
+    where: {genresConnection_SOME: {node: {moviesAggregate: {count: 3}}}, genresAggregate: {count: 1}}
   ) {
     title
   }
@@ -44,8 +44,8 @@ interface InGenre @relationshipProperties {
 [source,json]
 ----
 {
-  "param0": 1,
-  "param1": 3
+  "param0": 3,
+  "param1": 1
 }
 ----
 
@@ -56,22 +56,22 @@ MATCH (this:Movie)
 CALL {
     WITH this
     MATCH (this)-[this0:IN_GENRE]->(this1:Genre)
-    RETURN count(this1) = $param0 AS var2
+    CALL {
+        WITH this1
+        MATCH (this1)<-[this2:IN_GENRE]-(this3:Movie)
+        RETURN count(this3) = $param0 AS var4
+    }
+    WITH *
+    WHERE var4 = true
+    RETURN count(this1) > 0 AS var5
 }
 CALL {
     WITH this
-    MATCH (this)-[this3:IN_GENRE]->(this4:Genre)
-    CALL {
-        WITH this4
-        MATCH (this4)<-[this5:IN_GENRE]-(this6:Movie)
-        RETURN count(this6) = $param1 AS var7
-    }
-    WITH *
-    WHERE var7 = true
-    RETURN count(this4) > 0 AS var8
+    MATCH (this)-[this6:IN_GENRE]->(this7:Genre)
+    RETURN count(this7) = $param1 AS var8
 }
 WITH *
-WHERE (var2 = true AND var8 = true)
+WHERE (var5 = true AND var8 = true)
 RETURN this { .title } AS this
 ----
 
@@ -84,7 +84,7 @@ RETURN this { .title } AS this
 ----
 {
   movies(
-    where: {genresConnection: {AND: [{node: {moviesAggregate: {count: 2}}}, {node: {seriesAggregate: {node: {name_SHORTEST_EQUAL: 1}}}}]}}
+    where: {genresConnection_SOME: {AND: [{node: {moviesAggregate: {count: 2}}}, {node: {seriesAggregate: {node: {name_SHORTEST_LENGTH_EQUAL: 1}}}}]}}
   ) {
     title
   }
@@ -135,7 +135,7 @@ RETURN this { .title } AS this
 ----
 {
   movies(
-    where: {genresConnection: {node: {moviesAggregate: {count: 2}, seriesAggregate: {node: {name_SHORTEST_EQUAL: 983}}}}}
+    where: {genresConnection_SOME: {node: {moviesAggregate: {count: 2}, seriesAggregate: {node: {name_SHORTEST_LENGTH_EQUAL: 983}}}}}
   ) {
     title
   }
@@ -186,7 +186,7 @@ RETURN this { .title } AS this
 ----
 {
   movies(
-    where: {genresConnection: {OR: [{node: {moviesAggregate: {count: 3}}}, {node: {seriesAggregate: {node: {name_SHORTEST_EQUAL: 983}}}}]}}
+    where: {genresConnection_SOME: {OR: [{node: {moviesAggregate: {count: 3}}}, {node: {seriesAggregate: {node: {name_SHORTEST_LENGTH_EQUAL: 983}}}}]}}
   ) {
     title
   }
@@ -335,7 +335,9 @@ RETURN this { .title } AS this
 [source,graphql]
 ----
 {
-  movies(where: {genresConnection_NOT: {node: {moviesAggregate: {count: 2}}}}) {
+  movies(
+    where: {NOT: {genresConnection_SOME: {node: {moviesAggregate: {count: 2}}}}}
+  ) {
     title
   }
 }
@@ -366,7 +368,7 @@ CALL {
     RETURN count(this1) > 0 AS var5
 }
 WITH *
-WHERE var5 = false
+WHERE NOT (var5 = true)
 RETURN this { .title } AS this
 ----
 
@@ -464,7 +466,7 @@ RETURN this { .title } AS this
 [source,graphql]
 ----
 {
-  movies(where: {genresConnection: {node: {moviesAggregate: {count: 2}}}}) {
+  movies(where: {genresConnection_SOME: {node: {moviesAggregate: {count: 2}}}}) {
     title
   }
 }
@@ -507,7 +509,7 @@ RETURN this { .title } AS this
 [source,graphql]
 ----
 {
-  movies(where: {genresConnection: {node: {moviesAggregate: {count_GT: 2}}}}) {
+  movies(where: {genresConnection_SOME: {node: {moviesAggregate: {count_GT: 2}}}}) {
     title
   }
 }
@@ -550,7 +552,7 @@ RETURN this { .title } AS this
 [source,graphql]
 ----
 {
-  movies(where: {genresConnection: {node: {moviesAggregate: {count_LT: 3}}}}) {
+  movies(where: {genresConnection_SOME: {node: {moviesAggregate: {count_LT: 3}}}}) {
     title
   }
 }
@@ -594,7 +596,7 @@ RETURN this { .title } AS this
 ----
 {
   movies(
-    where: {genresConnection: {node: {moviesAggregate: {edge: {intValue_MAX_LT: 983}}}}}
+    where: {genresConnection_SOME: {node: {moviesAggregate: {edge: {intValue_MAX_LT: 983}}}}}
   ) {
     title
   }
@@ -639,7 +641,7 @@ RETURN this { .title } AS this
 ----
 {
   movies(
-    where: {genresConnection: {node: {moviesAggregate: {edge: {intValue_MIN_EQUAL: 1}}}}}
+    where: {genresConnection_SOME: {node: {moviesAggregate: {edge: {intValue_MIN_EQUAL: 1}}}}}
   ) {
     title
   }
@@ -684,7 +686,7 @@ RETURN this { .title } AS this
 ----
 {
   movies(
-    where: {genresConnection: {node: {moviesAggregate: {node: {title_AVERAGE_EQUAL: 1}}}}}
+    where: {genresConnection_SOME: {node: {moviesAggregate: {node: {title_AVERAGE_LENGTH_EQUAL: 1}}}}}
   ) {
     title
   }
@@ -729,7 +731,7 @@ RETURN this { .title } AS this
 ----
 {
   movies(
-    where: {genresConnection: {node: {moviesAggregate: {node: {title_SHORTEST_EQUAL: 5}}}}}
+    where: {genresConnection_SOME: {node: {moviesAggregate: {node: {title_SHORTEST_LENGTH_EQUAL: 5}}}}}
   ) {
     title
   }

@@ -13,17 +13,17 @@ type Place {
 
 interface Publication {
   name: String
-  activity: [Place!]! @relationship(type: "ACTIVITY", direction: OUT)
+  activity: [Place!]! @declareRelationship
 }
 
 type Post implements Publication {
   name: String
-  activity: [Place!]!
+  activity: [Place!]! @relationship(type: "ACTIVITY", direction: OUT)
 }
 
 type Story implements Publication {
   name: String
-  activity: [Place!]!
+  activity: [Place!]! @relationship(type: "ACTIVITY", direction: OUT)
 }
 ----
 == sort should be correct when querying interface relationship field

@@ -4,6 +4,7 @@ import org.neo4j.cypherdsl.core.*
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.FieldContainer
 import org.neo4j.graphql.domain.fields.HasCoalesceValue
+import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.domain.predicates.ConnectionFieldPredicate
 import org.neo4j.graphql.domain.predicates.RelationFieldPredicate
 import org.neo4j.graphql.domain.predicates.ScalarFieldPredicate
@@ -19,7 +20,7 @@ import org.neo4j.graphql.translate.WhereResult
 fun createWhere(
     node: FieldContainer<*>?,
     whereInput: WhereInput?,
-    propertyContainer: HasProperties,
+    propertyContainer: PropertyAccessor,
     chainStr: ChainString? = null,
     schemaConfig: SchemaConfig,
     queryContext: QueryContext,
@@ -47,11 +48,17 @@ fun createWhere(
             queryContext,
             usePrefix
         )
-        TODO()
-//        val relation = field.createDslRelation(propertyContainer, endNode)
-//        val cond = op.createRelationCondition(relation, nestedCondition)
-//
-//        return WhereResult(cond)
+        if (preComputedSubQueries.isNotEmpty()) {
+            TODO()
+        }
+
+        if (field is RelationField) {
+            val relation = field.createDslRelation(propertyContainer, endNode)
+            val cond = op.createRelationCondition(relation, nestedCondition)
+            return WhereResult(cond)
+        } else {
+            TODO()
+        }
     }
 
     fun resolveConnectionCondition(predicate: ConnectionFieldPredicate): WhereResult {
@@ -89,23 +96,28 @@ fun createWhere(
                 op.suffix // TODO duplicate op
             )
 
-            TODO()
-//            val relation = relationField.createDslRelation(propertyContainer, endNode).named("edge")
-//
-//            val (nestedCondition, preComputedSubQueries) = createConnectionWhere(
-//                whereInput,
-//                refNode,
-//                endNode,
-//                relationField,
-//                relation,
-//                parameterPrefix,
-//                schemaConfig,
-//                queryContext,
-//                usePrefix
-//            )
-//
-//            val cond = op.createRelationCondition(relation, nestedCondition)
-//            result = result and cond
+            if (relationField is RelationField) {
+                val relation = relationField.createDslRelation(propertyContainer, endNode).named("edge")
+
+                val (nestedCondition, preComputedSubQueries) = createConnectionWhere(
+                    whereInput,
+                    refNode,
+                    endNode,
+                    relationField,
+                    relation,
+                    parameterPrefix,
+                    schemaConfig,
+                    queryContext,
+                    usePrefix
+                )
+                if (preComputedSubQueries.isNotEmpty()) {
+                    TODO()
+                }
+                val cond = op.createRelationCondition(relation, nestedCondition)
+                result = result and cond
+            } else {
+                TODO()
+            }
         }
         return WhereResult(result, subQueries)
     }

@@ -5,17 +5,13 @@ import org.neo4j.graphql.domain.directives.FieldAnnotations
 import org.neo4j.graphql.domain.naming.RelationshipBaseNames
 import org.neo4j.graphql.domain.predicates.RelationOperator
 import org.neo4j.graphql.domain.predicates.definitions.RelationPredicateDefinition
+import org.neo4j.graphql.getFieldDeclaringRelationship
 import org.neo4j.graphql.isList
 
 sealed class RelationBaseField(
     fieldName: String,
     typeMeta: TypeMeta,
     annotations: FieldAnnotations,
-    /**
-     * The node or interface name. If the filed is defined in an interface, the prefix will have the interface's name
-     */
-    // TODO remove?
-    val connectionPrefix: String,
 ) : BaseField(
     fieldName,
     typeMeta,
@@ -36,7 +32,13 @@ sealed class RelationBaseField(
     val interfaze get() = target as? Interface
 
     open val properties: RelationshipProperties? = null
-    val relationshipBaseDirective get() = requireNotNull(annotations.relationshipBaseDirective)
+    open val relationshipBaseDirective get() = requireNotNull(annotations.relationshipBaseDirective)
+
+    val declaration by lazy {
+        (owner as ImplementingType).interfaces.getFieldDeclaringRelationship(fieldName)
+    }
+
+    val declarationOrSelf get() = declaration ?: this
 
     override fun getRequiredNode(name: String) = getNode(name)
         ?: throw IllegalArgumentException("unknown implementation $name for ${this.getOwnerName()}.$fieldName")

@@ -46,7 +46,7 @@ extend type Transaction @mutation(operations: [CREATE, UPDATE])
 
 extend type Transaction @authentication
 
-extend type Transaction @authorization(validate: [{operations: [CREATE, CREATE_RELATIONSHIP], where: {OR: [{jwt: {roles_INCLUDES: "store-owner"}}, {jwt: {roles_INCLUDES: "employee"}}], node: {store: {id: "$jwt.store"}}}}], filter: [{where: {jwt: {roles_INCLUDES: "admin"}}}, {where: {OR: [{jwt: {roles_INCLUDES: "store-owner"}}, {jwt: {roles_INCLUDES: "employee"}}], node: {store: {id: "$jwt.store"}}}}])
+extend type Transaction @authorization(validate: [{operations: [CREATE, CREATE_RELATIONSHIP], where: {OR: [{jwt: {roles_INCLUDES: "store-owner"}}, {jwt: {roles_INCLUDES: "employee"}}], node: {store: {id: "$jwt.store"}}}}])
 
 extend type Transaction @authorization(filter: [{where: {jwt: {roles_INCLUDES: "admin"}}}, {where: {OR: [{jwt: {roles_INCLUDES: "store-owner"}}, {jwt: {roles_INCLUDES: "employee"}}], node: {store: {id: "$jwt.store"}}}}])
 
@@ -54,7 +54,7 @@ extend type TransactionItem @mutation(operations: [CREATE, UPDATE])
 
 extend type TransactionItem @authentication
 
-extend type TransactionItem @authorization(validate: [{operations: [CREATE, CREATE_RELATIONSHIP], where: {OR: [{jwt: {roles_INCLUDES: "store-owner"}}, {jwt: {roles_INCLUDES: "employee"}}], node: {transaction: {store: {id: "$jwt.store"}}}}}], filter: [{where: {jwt: {roles_INCLUDES: "admin"}}}, {where: {OR: [{jwt: {roles_INCLUDES: "store-owner"}}, {jwt: {roles_INCLUDES: "employee"}}], node: {transaction: {store: {id: "$jwt.store"}}}}}])
+extend type TransactionItem @authorization(validate: [{operations: [CREATE, CREATE_RELATIONSHIP], where: {OR: [{jwt: {roles_INCLUDES: "store-owner"}}, {jwt: {roles_INCLUDES: "employee"}}], node: {transaction: {store: {id: "$jwt.store"}}}}}])
 
 extend type TransactionItem @authorization(filter: [{where: {jwt: {roles_INCLUDES: "admin"}}}, {where: {OR: [{jwt: {roles_INCLUDES: "store-owner"}}, {jwt: {roles_INCLUDES: "employee"}}], node: {transaction: {store: {id: "$jwt.store"}}}}}])
 ----
@@ -198,6 +198,7 @@ RETURN this0
 }
 CALL {
     WITH this0
+    WITH *
     CALL {
         WITH this0
         MATCH (this0)-[create_this0:ITEM_TRANSACTED]->(create_this1:Transaction)

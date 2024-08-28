@@ -105,8 +105,8 @@ class CreateTranslator(
 
         refNodes.forEach { refNode ->
             val (v, unionTypeName) = when (value) {
-                is CreateFieldInput.UnionFieldInput -> value.getDataForNode(refNode) to field.fieldName
-                is CreateFieldInput.ImplementingTypeFieldInput -> value to field.fieldName.takeIf { field.isInterface }
+                is CreateFieldInput.UnionFieldInput -> value.getDataForNode(refNode) to refNode.name
+                is CreateFieldInput.ImplementingTypeFieldInput -> value to refNode.name.takeIf { field.isInterface }
             }
             v?.create?.let { creates ->
                 creates.forEachIndexed { index, create ->

@@ -9,7 +9,6 @@ import org.neo4j.graphql.schema.AugmentationContext
 import org.neo4j.graphql.schema.model.inputs.Dict
 import org.neo4j.graphql.schema.model.inputs.NestedWhere
 import org.neo4j.graphql.schema.model.inputs.WhereInput
-import org.neo4j.graphql.toDeprecatedDirective
 
 class AggregationWhereInput(
     fieldContainer: FieldContainer<*>,
@@ -38,11 +37,7 @@ class AggregationWhereInput(
                     ?.flatMap { it.aggregationPredicates.entries }
                     ?.forEach { (name, def) ->
                         fields += inputValue(name, def.type) {
-                            (def.field.deprecatedDirective ?: def.deprecated?.toDeprecatedDirective())?.let {
-                                directive(
-                                    it
-                                )
-                            }
+                            def.field.deprecatedDirective?.let { directive(it) }
                         }
                     }
 

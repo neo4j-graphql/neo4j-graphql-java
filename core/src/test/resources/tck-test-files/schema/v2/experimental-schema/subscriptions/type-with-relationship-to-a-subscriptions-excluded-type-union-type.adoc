@@ -59,7 +59,6 @@ input ActorWhere {
 Information about the number of nodes and relationships created during a create mutation
 """
 type CreateInfo {
-  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   relationshipsCreated: Int!
 }
@@ -83,7 +82,6 @@ type CreateStarsMutationResponse {
 Information about the number of nodes and relationships deleted during a delete mutation
 """
 type DeleteInfo {
-  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesDeleted: Int!
   relationshipsDeleted: Int!
 }
@@ -170,7 +168,6 @@ input MovieActorsPersonConnectionWhere {
   NOT: MovieActorsPersonConnectionWhere
   OR: [MovieActorsPersonConnectionWhere!]
   node: PersonWhere
-  node_NOT: PersonWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input MovieActorsPersonCreateFieldInput {
@@ -220,7 +217,6 @@ input MovieActorsStarConnectionWhere {
   NOT: MovieActorsStarConnectionWhere
   OR: [MovieActorsStarConnectionWhere!]
   node: StarWhere
-  node_NOT: StarWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input MovieActorsStarCreateFieldInput {
@@ -376,28 +372,18 @@ input MovieSubscriptionWhere {
   actorCount_IN: [Int]
   actorCount_LT: Int
   actorCount_LTE: Int
-  actorCount_NOT: Int @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  actorCount_NOT_IN: [Int] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   averageRating: Float
   averageRating_GT: Float
   averageRating_GTE: Float
   averageRating_IN: [Float]
   averageRating_LT: Float
   averageRating_LTE: Float
-  averageRating_NOT: Float @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  averageRating_NOT_IN: [Float] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id: ID
   id_CONTAINS: ID
   id_ENDS_WITH: ID
   id_IN: [ID]
-  id_NOT: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_CONTAINS: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_ENDS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_IN: [ID] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_STARTS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id_STARTS_WITH: ID
   isActive: Boolean
-  isActive_NOT: Boolean @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input MovieUpdateInput {
@@ -431,10 +417,6 @@ input MovieWhere {
   actorCount_IN: [Int]
   actorCount_LT: Int
   actorCount_LTE: Int
-  actorCount_NOT: Int @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  actorCount_NOT_IN: [Int] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  actors: ActorWhere @deprecated(reason: "Use `actors_SOME` instead.")
-  actorsConnection: MovieActorsConnectionWhere @deprecated(reason: "Use `actorsConnection_SOME` instead.")
   """
   Return Movies where all of the related MovieActorsConnections match this filter
   """
@@ -443,7 +425,6 @@ input MovieWhere {
   Return Movies where none of the related MovieActorsConnections match this filter
   """
   actorsConnection_NONE: MovieActorsConnectionWhere
-  actorsConnection_NOT: MovieActorsConnectionWhere @deprecated(reason: "Use `actorsConnection_NONE` instead.")
   """
   Return Movies where one of the related MovieActorsConnections match this filter
   """
@@ -456,7 +437,6 @@ input MovieWhere {
   actors_ALL: ActorWhere
   """Return Movies where none of the related Actors match this filter"""
   actors_NONE: ActorWhere
-  actors_NOT: ActorWhere @deprecated(reason: "Use `actors_NONE` instead.")
   """Return Movies where one of the related Actors match this filter"""
   actors_SINGLE: ActorWhere
   """Return Movies where some of the related Actors match this filter"""
@@ -467,20 +447,12 @@ input MovieWhere {
   averageRating_IN: [Float]
   averageRating_LT: Float
   averageRating_LTE: Float
-  averageRating_NOT: Float @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  averageRating_NOT_IN: [Float] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id: ID
   id_CONTAINS: ID
   id_ENDS_WITH: ID
   id_IN: [ID]
-  id_NOT: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_CONTAINS: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_ENDS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_IN: [ID] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_STARTS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id_STARTS_WITH: ID
   isActive: Boolean
-  isActive_NOT: Boolean @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 type MoviesConnection {
@@ -615,7 +587,6 @@ input PersonMoviesConnectionWhere {
   NOT: PersonMoviesConnectionWhere
   OR: [PersonMoviesConnectionWhere!]
   node: MovieWhere
-  node_NOT: MovieWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input PersonMoviesCreateFieldInput {
@@ -646,11 +617,6 @@ input PersonMoviesNodeAggregationWhereInput {
   actorCount_AVERAGE_GTE: Float
   actorCount_AVERAGE_LT: Float
   actorCount_AVERAGE_LTE: Float
-  actorCount_EQUAL: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  actorCount_GT: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  actorCount_GTE: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  actorCount_LT: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  actorCount_LTE: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
   actorCount_MAX_EQUAL: Int
   actorCount_MAX_GT: Int
   actorCount_MAX_GTE: Int
@@ -671,11 +637,6 @@ input PersonMoviesNodeAggregationWhereInput {
   averageRating_AVERAGE_GTE: Float
   averageRating_AVERAGE_LT: Float
   averageRating_AVERAGE_LTE: Float
-  averageRating_EQUAL: Float @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  averageRating_GT: Float @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  averageRating_GTE: Float @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  averageRating_LT: Float @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  averageRating_LTE: Float @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
   averageRating_MAX_EQUAL: Float
   averageRating_MAX_GT: Float
   averageRating_MAX_GTE: Float
@@ -691,7 +652,6 @@ input PersonMoviesNodeAggregationWhereInput {
   averageRating_SUM_GTE: Float
   averageRating_SUM_LT: Float
   averageRating_SUM_LTE: Float
-  id_EQUAL: ID @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
 }
 
 type PersonMoviesRelationship {
@@ -768,9 +728,7 @@ input PersonWhere {
   AND: [PersonWhere!]
   NOT: PersonWhere
   OR: [PersonWhere!]
-  movies: MovieWhere @deprecated(reason: "Use `movies_SOME` instead.")
   moviesAggregate: PersonMoviesAggregateInput
-  moviesConnection: PersonMoviesConnectionWhere @deprecated(reason: "Use `moviesConnection_SOME` instead.")
   """
   Return People where all of the related PersonMoviesConnections match this filter
   """
@@ -779,7 +737,6 @@ input PersonWhere {
   Return People where none of the related PersonMoviesConnections match this filter
   """
   moviesConnection_NONE: PersonMoviesConnectionWhere
-  moviesConnection_NOT: PersonMoviesConnectionWhere @deprecated(reason: "Use `moviesConnection_NONE` instead.")
   """
   Return People where one of the related PersonMoviesConnections match this filter
   """
@@ -792,7 +749,6 @@ input PersonWhere {
   movies_ALL: MovieWhere
   """Return People where none of the related Movies match this filter"""
   movies_NONE: MovieWhere
-  movies_NOT: MovieWhere @deprecated(reason: "Use `movies_NONE` instead.")
   """Return People where one of the related Movies match this filter"""
   movies_SINGLE: MovieWhere
   """Return People where some of the related Movies match this filter"""
@@ -908,7 +864,6 @@ input StarMoviesConnectionWhere {
   NOT: StarMoviesConnectionWhere
   OR: [StarMoviesConnectionWhere!]
   node: MovieWhere
-  node_NOT: MovieWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input StarMoviesCreateFieldInput {
@@ -939,11 +894,6 @@ input StarMoviesNodeAggregationWhereInput {
   actorCount_AVERAGE_GTE: Float
   actorCount_AVERAGE_LT: Float
   actorCount_AVERAGE_LTE: Float
-  actorCount_EQUAL: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  actorCount_GT: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  actorCount_GTE: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  actorCount_LT: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  actorCount_LTE: Int @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
   actorCount_MAX_EQUAL: Int
   actorCount_MAX_GT: Int
   actorCount_MAX_GTE: Int
@@ -964,11 +914,6 @@ input StarMoviesNodeAggregationWhereInput {
   averageRating_AVERAGE_GTE: Float
   averageRating_AVERAGE_LT: Float
   averageRating_AVERAGE_LTE: Float
-  averageRating_EQUAL: Float @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  averageRating_GT: Float @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  averageRating_GTE: Float @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  averageRating_LT: Float @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
-  averageRating_LTE: Float @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
   averageRating_MAX_EQUAL: Float
   averageRating_MAX_GT: Float
   averageRating_MAX_GTE: Float
@@ -984,7 +929,6 @@ input StarMoviesNodeAggregationWhereInput {
   averageRating_SUM_GTE: Float
   averageRating_SUM_LT: Float
   averageRating_SUM_LTE: Float
-  id_EQUAL: ID @deprecated(reason: "Aggregation filters that are not relying on an aggregating function will be deprecated.")
 }
 
 type StarMoviesRelationship {
@@ -1022,9 +966,7 @@ input StarWhere {
   AND: [StarWhere!]
   NOT: StarWhere
   OR: [StarWhere!]
-  movies: MovieWhere @deprecated(reason: "Use `movies_SOME` instead.")
   moviesAggregate: StarMoviesAggregateInput
-  moviesConnection: StarMoviesConnectionWhere @deprecated(reason: "Use `moviesConnection_SOME` instead.")
   """
   Return Stars where all of the related StarMoviesConnections match this filter
   """
@@ -1033,7 +975,6 @@ input StarWhere {
   Return Stars where none of the related StarMoviesConnections match this filter
   """
   moviesConnection_NONE: StarMoviesConnectionWhere
-  moviesConnection_NOT: StarMoviesConnectionWhere @deprecated(reason: "Use `moviesConnection_NONE` instead.")
   """
   Return Stars where one of the related StarMoviesConnections match this filter
   """
@@ -1046,7 +987,6 @@ input StarWhere {
   movies_ALL: MovieWhere
   """Return Stars where none of the related Movies match this filter"""
   movies_NONE: MovieWhere
-  movies_NOT: MovieWhere @deprecated(reason: "Use `movies_NONE` instead.")
   """Return Stars where one of the related Movies match this filter"""
   movies_SINGLE: MovieWhere
   """Return Stars where some of the related Movies match this filter"""
@@ -1076,7 +1016,6 @@ type Subscription {
 Information about the number of nodes and relationships created and deleted during an update mutation
 """
 type UpdateInfo {
-  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   nodesDeleted: Int!
   relationshipsCreated: Int!

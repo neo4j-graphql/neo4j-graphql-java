@@ -21,17 +21,7 @@ sealed class DisconnectInput private constructor(implementingType: ImplementingT
         { field, value -> DisconnectFieldInput.create(field, value) }
     ) {
 
-    class NodeDisconnectInput(node: Node, data: Dict) : DisconnectInput(node, data) {
-        object Augmentation : AugmentationBase {
-            fun generateContainerDisconnectInputIT(node: Node, ctx: AugmentationContext) =
-                ctx.getOrCreateRelationInputObjectType(
-                    node.namings.disconnectInputTypeName,
-                    node.relationBaseFields,
-                    RelationFieldBaseAugmentation::generateFieldDisconnectIT,
-                    condition = { it.annotations.relationshipBaseDirective?.isDisconnectAllowed != false },
-                )
-        }
-    }
+    class NodeDisconnectInput(node: Node, data: Dict) : DisconnectInput(node, data)
 
     class InterfaceDisconnectInput(interfaze: Interface, data: Dict) : DisconnectInput(interfaze, data) {
 
@@ -43,6 +33,16 @@ sealed class DisconnectInput private constructor(implementingType: ImplementingT
         }
 
         fun getCommonFields(implementation: Node) = on.getCommonFields(implementation, data, ::NodeDisconnectInput)
+    }
+
+    object Augmentation : AugmentationBase {
+        fun generateContainerDisconnectInputIT(node: ImplementingType, ctx: AugmentationContext) =
+            ctx.getOrCreateRelationInputObjectType(
+                node.namings.disconnectInputTypeName,
+                node.relationBaseFields,
+                RelationFieldBaseAugmentation::generateFieldDisconnectIT,
+                condition = { it.annotations.relationshipBaseDirective?.isDisconnectAllowed != false },
+            )
     }
 
     companion object {

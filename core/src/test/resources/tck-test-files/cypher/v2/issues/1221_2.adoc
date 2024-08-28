@@ -22,7 +22,7 @@ type NameDetails @mutation(operations: []) @query(read: false, aggregate: false)
   fullName: String!
 }
 
-interface RelationProps @relationshipProperties {
+type RelationProps @relationshipProperties {
   current: Boolean!
 }
 
@@ -39,7 +39,7 @@ type MasterData {
 ----
 {
   mains(
-    where: {current: true, mainConnection_SINGLE: {node: {architectureConnection: {node: {nameDetailsConnection: {node: {fullName: "MHA"}}}}}}}
+    where: {current: true, mainConnection_SINGLE: {node: {architectureConnection_SOME: {node: {nameDetailsConnection: {node: {fullName: "MHA"}}}}}}}
   ) {
     id
     mainConnection(where: {edge: {current: true}}) {
@@ -115,15 +115,15 @@ CALL {
                         WITH edges
                         UNWIND edges AS edge
                         WITH edge.node AS this11, edge.relationship AS this10
-                        RETURN collect({ node: { fullName: this11.fullName } }) AS var12
+                        RETURN collect({ node: { fullName: this11.fullName, __resolveType: "NameDetails" } }) AS var12
                     }
                     RETURN { edges: var12, totalCount: totalCount } AS var13
                 }
-                RETURN collect({ node: { nameDetailsConnection: var13 } }) AS var14
+                RETURN collect({ node: { nameDetailsConnection: var13, __resolveType: "MasterData" } }) AS var14
             }
             RETURN { edges: var14, totalCount: totalCount } AS var15
         }
-        RETURN collect({ node: { architectureConnection: var15 } }) AS var16
+        RETURN collect({ node: { architectureConnection: var15, __resolveType: "Series" } }) AS var16
     }
     RETURN { edges: var16, totalCount: totalCount } AS var17
 }

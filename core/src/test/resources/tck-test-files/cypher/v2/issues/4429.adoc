@@ -16,25 +16,25 @@ type User @authorization(validate: [{where: {node: {userId: "$jwt.id"}}, operati
   adminAccess: [Tenant!]! @relationship(type: "ADMIN_IN", direction: OUT)
 }
 
-type Tenant @authorization(validate: [{where: {node: {admins: {userId: "$jwt.id"}}}}]) {
+type Tenant @authorization(validate: [{where: {node: {admins_SOME: {userId: "$jwt.id"}}}}]) {
   id: ID! @id
   admins: [User!]! @relationship(type: "ADMIN_IN", direction: IN)
   settings: Settings @relationship(type: "VEHICLECARD_OWNER", direction: IN)
 }
 
-type Settings @authorization(validate: [{where: {node: {tenant: {admins: {userId: "$jwt.id"}}}}}]) {
+type Settings @authorization(validate: [{where: {node: {tenant: {admins_SOME: {userId: "$jwt.id"}}}}}]) {
   id: ID! @id
   openingDays: [OpeningDay!]! @relationship(type: "VALID_GARAGES", direction: OUT)
   tenant: Tenant! @relationship(type: "VEHICLECARD_OWNER", direction: OUT)
 }
 
-type OpeningDay @authorization(validate: [{where: {node: {settings: {tenant: {admins: {userId: "$jwt.id"}}}}}}]) {
+type OpeningDay @authorization(validate: [{where: {node: {settings: {tenant: {admins_SOME: {userId: "$jwt.id"}}}}}}]) {
   id: ID! @id
   settings: Settings @relationship(type: "VALID_GARAGES", direction: IN)
   open: [OpeningHoursInterval!]! @relationship(type: "HAS_OPEN_INTERVALS", direction: OUT)
 }
 
-type OpeningHoursInterval @authorization(validate: [{where: {node: {openingDay: {settings: {tenant: {admins: {userId: "$jwt.id"}}}}}}}]) {
+type OpeningHoursInterval @authorization(validate: [{where: {node: {openingDay: {settings: {tenant: {admins_SOME: {userId: "$jwt.id"}}}}}}}]) {
   name: String
   openingDay: OpeningDay! @relationship(type: "HAS_OPEN_INTERVALS", direction: IN)
   createdAt: DateTime! @timestamp(operations: [CREATE])

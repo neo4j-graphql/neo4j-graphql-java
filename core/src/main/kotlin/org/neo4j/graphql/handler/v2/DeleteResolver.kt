@@ -54,7 +54,7 @@ class DeleteResolver private constructor(
         class Augmentation(val node: Node, val ctx: AugmentationContext) : ArgumentsAugmentation {
 
             override fun augmentArguments(args: MutableList<InputValueDefinition>) {
-                DeleteInput.NodeDeleteInput.Augmentation
+                DeleteInput.Augmentation
                     .generateContainerDeleteInputIT(node, ctx)?.let {
                         args += inputValue(Constants.DELETE_FIELD, it.asType())
                     }

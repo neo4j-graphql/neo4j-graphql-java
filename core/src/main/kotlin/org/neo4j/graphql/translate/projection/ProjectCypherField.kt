@@ -79,8 +79,8 @@ fun projectCypherField(
         referenceUnion != null -> {
 
             val unionConditions = referenceUnion.nodes.values
-                .map { Conditions.hasLabelsOrType(statementResultVariable, *it.allLabels(queryContext).toTypedArray()) }
-                .fold(Conditions.noCondition(), Condition::or)
+                .map { Cypher.hasLabelsOrType(statementResultVariable, *it.allLabels(queryContext).toTypedArray()) }
+                .fold(Cypher.noCondition(), Condition::or)
 
             ongoingReading = ongoingReading
                 .with(Cypher.asterisk())
@@ -110,7 +110,7 @@ fun projectCypherField(
                     }
 
                     val labelsPredicate =
-                        Conditions.hasLabelsOrType(
+                        Cypher.hasLabelsOrType(
                             statementResultVariable,
                             *refNode.allLabels(queryContext).toTypedArray()
                         )
@@ -130,10 +130,10 @@ fun projectCypherField(
         }
     }
 
-    val finalProjection = Functions.collect(projection).let {
+    val finalProjection = Cypher.collect(projection).let {
         when {
             expectMultipleValues -> it
-            else -> Functions.head(it)
+            else -> Cypher.head(it)
         }
     }
 

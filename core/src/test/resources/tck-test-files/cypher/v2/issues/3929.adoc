@@ -26,10 +26,7 @@ type Person @authorization(validate: [{where: {node: {creator: {id: "$jwt.uid"}}
   group: Group! @relationship(type: "MEMBER_OF", direction: OUT)
 }
 
-extend schema @authentication {
-  query: Query
-  mutation: Mutation
-}
+extend schema @authentication
 ----
 == should not add an authorization check for connects coming from create
 

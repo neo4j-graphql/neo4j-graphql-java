@@ -26,7 +26,7 @@ mutation SwapSides {
   updateUsers(
     where: {name: "Luke Skywalker"}
     connect: {activeOrganization: {where: {node: {id: "test-id"}}}}
-    disconnect: {activeOrganization: {where: {node: {id_NOT: "test-id"}}}}
+    disconnect: {activeOrganization: {where: {node: {NOT: {id: "test-id"}}}}}
   ) {
     users {
       id
@@ -48,7 +48,9 @@ mutation SwapSides {
         "activeOrganization": {
           "where": {
             "node": {
-              "id_NOT": "test-id"
+              "NOT": {
+                "id": "test-id"
+              }
             }
           }
         }

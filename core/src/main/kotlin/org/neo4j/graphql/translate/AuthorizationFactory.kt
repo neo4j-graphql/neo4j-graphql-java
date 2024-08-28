@@ -19,7 +19,7 @@ object AuthorizationFactory {
         context: QueryContext,
         vararg operations: AuthorizationDirective.AuthorizationOperation,
     ): WhereResult {
-
+        val validationConditions = mutableListOf<Condition>()
         var authorizationFilters =
             createAuthFilterRule(node, node.annotations.authorization, dslNode, schemaConfig, context, *operations)
         var authorizationValidate =
@@ -32,6 +32,7 @@ object AuthorizationFactory {
                 AuthorizationDirective.AuthorizationValidateStage.BEFORE,
                 *operations
             )
+                .also { it.predicate?.let { validationConditions.add(it) } }
 
         fields?.forEach { field ->
             authorizationFilters = authorizationFilters and createAuthFilterRule(
@@ -52,9 +53,12 @@ object AuthorizationFactory {
                 AuthorizationDirective.AuthorizationValidateStage.BEFORE,
                 *operations
             )
+                .also { it.predicate?.let { validationConditions.add(it) } }
         }
-        val condition = authorizationValidate.predicate
-            ?.let { it.apocValidatePredicate() }
+        val condition =
+            // TODO use alternative:
+            //  authorizationValidate.predicate?.let { it.apocValidatePredicate() }
+            validationConditions.map { it.apocValidatePredicate() }.foldWithAnd()
             ?.let { authorizationFilters.predicate and it } ?: authorizationFilters.predicate
         val subqeries = authorizationFilters.preComputedSubQueries + authorizationValidate.preComputedSubQueries
         return WhereResult(condition, subqeries)

@@ -1,0 +1,156 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/4741
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Opportunity {
+  country: String!
+  listsOlis: [ListOli!]! @relationship(type: "HAS_LIST", direction: OUT)
+}
+
+type ListOli {
+  name: String!
+}
+----
+== Filters by relationship aggregation
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  opportunitiesConnection(first: 10, where: {listsOlisAggregate: {count_GT: 1}}) {
+    edges {
+      node {
+        country
+        listsOlisConnection {
+          totalCount
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": 1,
+  "param1": 10
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this0:Opportunity)
+CALL {
+    WITH this0
+    MATCH (this0)-[this1:HAS_LIST]->(this2:ListOli)
+    RETURN count(this2) > $param0 AS var3
+}
+WITH *
+WHERE var3 = true
+WITH collect({ node: this0 }) AS edges
+WITH edges, size(edges) AS totalCount
+CALL {
+    WITH edges
+    UNWIND edges AS edge
+    WITH edge.node AS this0
+    WITH *
+    
+    LIMIT $param1
+    CALL {
+        WITH this0
+        MATCH (this0)-[this4:HAS_LIST]->(this5:ListOli)
+        WITH collect({ node: this5, relationship: this4 }) AS edges
+        WITH edges, size(edges) AS totalCount
+        CALL {
+            WITH edges
+            UNWIND edges AS edge
+            WITH edge.node AS this5, edge.relationship AS this4
+            RETURN collect({ node: { __id: id(this5), __resolveType: "ListOli" } }) AS var6
+        }
+        RETURN { edges: var6, totalCount: totalCount } AS var7
+    }
+    RETURN collect({ node: { country: this0.country, listsOlisConnection: var7, __resolveType: "Opportunity" } }) AS var8
+}
+RETURN { edges: var8, totalCount: totalCount } AS this
+----
+
+'''
+
+== Filters by relationship aggregation node
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  opportunitiesConnection(
+    first: 10
+    where: {listsOlisAggregate: {node: {name_SHORTEST_LENGTH_LT: 1}}}
+  ) {
+    edges {
+      node {
+        country
+        listsOlisConnection {
+          totalCount
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": 1,
+  "param1": 10
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this0:Opportunity)
+CALL {
+    WITH this0
+    MATCH (this0)-[this1:HAS_LIST]->(this2:ListOli)
+    RETURN min(size(this2.name)) < $param0 AS var3
+}
+WITH *
+WHERE var3 = true
+WITH collect({ node: this0 }) AS edges
+WITH edges, size(edges) AS totalCount
+CALL {
+    WITH edges
+    UNWIND edges AS edge
+    WITH edge.node AS this0
+    WITH *
+    
+    LIMIT $param1
+    CALL {
+        WITH this0
+        MATCH (this0)-[this4:HAS_LIST]->(this5:ListOli)
+        WITH collect({ node: this5, relationship: this4 }) AS edges
+        WITH edges, size(edges) AS totalCount
+        CALL {
+            WITH edges
+            UNWIND edges AS edge
+            WITH edge.node AS this5, edge.relationship AS this4
+            RETURN collect({ node: { __id: id(this5), __resolveType: "ListOli" } }) AS var6
+        }
+        RETURN { edges: var6, totalCount: totalCount } AS var7
+    }
+    RETURN collect({ node: { country: this0.country, listsOlisConnection: var7, __resolveType: "Opportunity" } }) AS var8
+}
+RETURN { edges: var8, totalCount: totalCount } AS this
+----
+
+'''
+

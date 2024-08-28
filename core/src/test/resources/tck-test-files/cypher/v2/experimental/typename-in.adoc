@@ -29,23 +29,13 @@ type Cartoon implements Production {
   cartoonist: String!
 }
 
-interface ActedIn @relationshipProperties {
+type ActedIn @relationshipProperties {
   screenTime: Int!
 }
 
 type Actor {
   name: String!
   actedIn: [Production!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
-}
-----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{
-  "experimental": true
 }
 ----
 == aggregation
@@ -75,13 +65,13 @@ type Actor {
 ----
 CALL {
     CALL {
-        MATCH (this0:Movie)
+        MATCH (this0:Cartoon)
         RETURN this0 AS node
         UNION
-        MATCH (this1:Series)
+        MATCH (this1:Movie)
         RETURN this1 AS node
         UNION
-        MATCH (this2:Cartoon)
+        MATCH (this2:Series)
         RETURN this2 AS node
     }
     WITH *
@@ -127,21 +117,21 @@ CALL {
     WITH this
     CALL {
         WITH *
-        MATCH (this)-[this0:ACTED_IN]->(this1:Movie)
+        MATCH (this)-[this0:ACTED_IN]->(this1:Cartoon)
         WHERE ((this1.title = $param0 AND this1:Series) OR this1:Movie)
-        WITH this1 { .title, __resolveType: "Movie", __id: id(this1) } AS this1
+        WITH this1 { .title, __resolveType: "Cartoon", __id: id(this1) } AS this1
         RETURN this1 AS var2
         UNION
         WITH *
-        MATCH (this)-[this3:ACTED_IN]->(this4:Series)
+        MATCH (this)-[this3:ACTED_IN]->(this4:Movie)
         WHERE ((this4.title = $param1 AND this4:Series) OR this4:Movie)
-        WITH this4 { .title, __resolveType: "Series", __id: id(this4) } AS this4
+        WITH this4 { .title, __resolveType: "Movie", __id: id(this4) } AS this4
         RETURN this4 AS var2
         UNION
         WITH *
-        MATCH (this)-[this5:ACTED_IN]->(this6:Cartoon)
+        MATCH (this)-[this5:ACTED_IN]->(this6:Series)
         WHERE ((this6.title = $param2 AND this6:Series) OR this6:Movie)
-        WITH this6 { .title, __resolveType: "Cartoon", __id: id(this6) } AS this6
+        WITH this6 { .title, __resolveType: "Series", __id: id(this6) } AS this6
         RETURN this6 AS var2
     }
     WITH var2
@@ -180,15 +170,15 @@ CALL {
     WITH this
     CALL {
         WITH this
-        MATCH (this)-[this0:ACTED_IN]->(this1:Movie)
+        MATCH (this)-[this0:ACTED_IN]->(this1:Cartoon)
         RETURN this1 AS node, this0 AS edge
         UNION
         WITH this
-        MATCH (this)-[this2:ACTED_IN]->(this3:Series)
+        MATCH (this)-[this2:ACTED_IN]->(this3:Movie)
         RETURN this3 AS node, this2 AS edge
         UNION
         WITH this
-        MATCH (this)-[this4:ACTED_IN]->(this5:Cartoon)
+        MATCH (this)-[this4:ACTED_IN]->(this5:Series)
         RETURN this5 AS node, this4 AS edge
     }
     WITH *
@@ -228,19 +218,19 @@ RETURN this { actedInAggregate: { count: this6 } } AS this
 [source,cypher]
 ----
 CALL {
-    MATCH (this0:Movie)
+    MATCH (this0:Cartoon)
     WHERE ((this0.title = $param0 AND this0:Series) OR this0:Movie)
-    WITH this0 { .title, __resolveType: "Movie", __id: id(this0) } AS this0
+    WITH this0 { .title, __resolveType: "Cartoon", __id: id(this0) } AS this0
     RETURN this0 AS this
     UNION
-    MATCH (this1:Series)
+    MATCH (this1:Movie)
     WHERE ((this1.title = $param1 AND this1:Series) OR this1:Movie)
-    WITH this1 { .title, __resolveType: "Series", __id: id(this1) } AS this1
+    WITH this1 { .title, __resolveType: "Movie", __id: id(this1) } AS this1
     RETURN this1 AS this
     UNION
-    MATCH (this2:Cartoon)
+    MATCH (this2:Series)
     WHERE ((this2.title = $param2 AND this2:Series) OR this2:Movie)
-    WITH this2 { .title, __resolveType: "Cartoon", __id: id(this2) } AS this2
+    WITH this2 { .title, __resolveType: "Series", __id: id(this2) } AS this2
     RETURN this2 AS this
 }
 WITH this
@@ -280,24 +270,24 @@ RETURN this AS this
 MATCH (this:Actor)
 WHERE EXISTS {
     MATCH (this)-[this0:ACTED_IN]->(this1)
-    WHERE ((this0.screenTime = $param0 OR (this1.title = $param1 OR this1:Series)) AND (this1:Movie OR this1:Series OR this1:Cartoon))
+    WHERE ((this0.screenTime = $param0 OR (this1.title = $param1 OR this1:Series)) AND (this1:Cartoon OR this1:Movie OR this1:Series))
 }
 CALL {
     WITH this
     CALL {
         WITH *
-        MATCH (this)-[this2:ACTED_IN]->(this3:Movie)
-        WITH this3 { .title, __resolveType: "Movie", __id: id(this3) } AS this3
+        MATCH (this)-[this2:ACTED_IN]->(this3:Cartoon)
+        WITH this3 { .title, __resolveType: "Cartoon", __id: id(this3) } AS this3
         RETURN this3 AS var4
         UNION
         WITH *
-        MATCH (this)-[this5:ACTED_IN]->(this6:Series)
-        WITH this6 { .title, __resolveType: "Series", __id: id(this6) } AS this6
+        MATCH (this)-[this5:ACTED_IN]->(this6:Movie)
+        WITH this6 { .title, __resolveType: "Movie", __id: id(this6) } AS this6
         RETURN this6 AS var4
         UNION
         WITH *
-        MATCH (this)-[this7:ACTED_IN]->(this8:Cartoon)
-        WITH this8 { .title, __resolveType: "Cartoon", __id: id(this8) } AS this8
+        MATCH (this)-[this7:ACTED_IN]->(this8:Series)
+        WITH this8 { .title, __resolveType: "Series", __id: id(this8) } AS this8
         RETURN this8 AS var4
     }
     WITH var4

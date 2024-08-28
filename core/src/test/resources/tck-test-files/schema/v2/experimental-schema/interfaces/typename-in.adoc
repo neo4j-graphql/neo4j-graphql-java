@@ -46,6 +46,18 @@ type Actor {
   name: String!
 }
 
+input ActorActedInAggregateInput {
+  AND: [ActorActedInAggregateInput!]
+  NOT: ActorActedInAggregateInput
+  OR: [ActorActedInAggregateInput!]
+  count: Int
+  count_GT: Int
+  count_GTE: Int
+  count_LT: Int
+  count_LTE: Int
+  node: ActorActedInNodeAggregationWhereInput
+}
+
 input ActorActedInConnectFieldInput {
   where: ProductionConnectWhere
 }
@@ -65,7 +77,6 @@ input ActorActedInConnectionWhere {
   NOT: ActorActedInConnectionWhere
   OR: [ActorActedInConnectionWhere!]
   node: ProductionWhere
-  node_NOT: ProductionWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input ActorActedInCreateFieldInput {
@@ -83,6 +94,47 @@ input ActorActedInDisconnectFieldInput {
 input ActorActedInFieldInput {
   connect: [ActorActedInConnectFieldInput!]
   create: [ActorActedInCreateFieldInput!]
+}
+
+input ActorActedInNodeAggregationWhereInput {
+  AND: [ActorActedInNodeAggregationWhereInput!]
+  NOT: ActorActedInNodeAggregationWhereInput
+  OR: [ActorActedInNodeAggregationWhereInput!]
+  cost_AVERAGE_EQUAL: Float
+  cost_AVERAGE_GT: Float
+  cost_AVERAGE_GTE: Float
+  cost_AVERAGE_LT: Float
+  cost_AVERAGE_LTE: Float
+  cost_MAX_EQUAL: Float
+  cost_MAX_GT: Float
+  cost_MAX_GTE: Float
+  cost_MAX_LT: Float
+  cost_MAX_LTE: Float
+  cost_MIN_EQUAL: Float
+  cost_MIN_GT: Float
+  cost_MIN_GTE: Float
+  cost_MIN_LT: Float
+  cost_MIN_LTE: Float
+  cost_SUM_EQUAL: Float
+  cost_SUM_GT: Float
+  cost_SUM_GTE: Float
+  cost_SUM_LT: Float
+  cost_SUM_LTE: Float
+  title_AVERAGE_LENGTH_EQUAL: Float
+  title_AVERAGE_LENGTH_GT: Float
+  title_AVERAGE_LENGTH_GTE: Float
+  title_AVERAGE_LENGTH_LT: Float
+  title_AVERAGE_LENGTH_LTE: Float
+  title_LONGEST_LENGTH_EQUAL: Int
+  title_LONGEST_LENGTH_GT: Int
+  title_LONGEST_LENGTH_GTE: Int
+  title_LONGEST_LENGTH_LT: Int
+  title_LONGEST_LENGTH_LTE: Int
+  title_SHORTEST_LENGTH_EQUAL: Int
+  title_SHORTEST_LENGTH_GT: Int
+  title_SHORTEST_LENGTH_GTE: Int
+  title_SHORTEST_LENGTH_LT: Int
+  title_SHORTEST_LENGTH_LTE: Int
 }
 
 type ActorActedInRelationship {
@@ -169,8 +221,7 @@ input ActorWhere {
   AND: [ActorWhere!]
   NOT: ActorWhere
   OR: [ActorWhere!]
-  actedIn: ProductionWhere @deprecated(reason: "Use `actedIn_SOME` instead.")
-  actedInConnection: ActorActedInConnectionWhere @deprecated(reason: "Use `actedInConnection_SOME` instead.")
+  actedInAggregate: ActorActedInAggregateInput
   """
   Return Actors where all of the related ActorActedInConnections match this filter
   """
@@ -179,7 +230,6 @@ input ActorWhere {
   Return Actors where none of the related ActorActedInConnections match this filter
   """
   actedInConnection_NONE: ActorActedInConnectionWhere
-  actedInConnection_NOT: ActorActedInConnectionWhere @deprecated(reason: "Use `actedInConnection_NONE` instead.")
   """
   Return Actors where one of the related ActorActedInConnections match this filter
   """
@@ -192,7 +242,6 @@ input ActorWhere {
   actedIn_ALL: ProductionWhere
   """Return Actors where none of the related Productions match this filter"""
   actedIn_NONE: ProductionWhere
-  actedIn_NOT: ProductionWhere @deprecated(reason: "Use `actedIn_NONE` instead.")
   """Return Actors where one of the related Productions match this filter"""
   actedIn_SINGLE: ProductionWhere
   """Return Actors where some of the related Productions match this filter"""
@@ -201,11 +250,6 @@ input ActorWhere {
   name_CONTAINS: String
   name_ENDS_WITH: String
   name_IN: [String!]
-  name_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_IN: [String!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   name_STARTS_WITH: String
 }
 
@@ -224,7 +268,6 @@ type CreateActorsMutationResponse {
 Information about the number of nodes and relationships created during a create mutation
 """
 type CreateInfo {
-  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   relationshipsCreated: Int!
 }
@@ -243,7 +286,6 @@ type CreateSeriesMutationResponse {
 Information about the number of nodes and relationships deleted during a delete mutation
 """
 type DeleteInfo {
-  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesDeleted: Int!
   relationshipsDeleted: Int!
 }
@@ -326,25 +368,16 @@ input MovieWhere {
   cost_IN: [Float!]
   cost_LT: Float
   cost_LTE: Float
-  cost_NOT: Float @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  cost_NOT_IN: [Float!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   runtime: Int
   runtime_GT: Int
   runtime_GTE: Int
   runtime_IN: [Int!]
   runtime_LT: Int
   runtime_LTE: Int
-  runtime_NOT: Int @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  runtime_NOT_IN: [Int!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   title: String
   title_CONTAINS: String
   title_ENDS_WITH: String
   title_IN: [String!]
-  title_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_IN: [String!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   title_STARTS_WITH: String
 }
 
@@ -440,17 +473,10 @@ input ProductionWhere {
   cost_IN: [Float!]
   cost_LT: Float
   cost_LTE: Float
-  cost_NOT: Float @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  cost_NOT_IN: [Float!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   title: String
   title_CONTAINS: String
   title_ENDS_WITH: String
   title_IN: [String!]
-  title_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_IN: [String!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   title_STARTS_WITH: String
   typename_IN: [ProductionImplementation!]
 }
@@ -546,25 +572,16 @@ input SeriesWhere {
   cost_IN: [Float!]
   cost_LT: Float
   cost_LTE: Float
-  cost_NOT: Float @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  cost_NOT_IN: [Float!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   episodes: Int
   episodes_GT: Int
   episodes_GTE: Int
   episodes_IN: [Int!]
   episodes_LT: Int
   episodes_LTE: Int
-  episodes_NOT: Int @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  episodes_NOT_IN: [Int!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   title: String
   title_CONTAINS: String
   title_ENDS_WITH: String
   title_IN: [String!]
-  title_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_IN: [String!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  title_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   title_STARTS_WITH: String
 }
 
@@ -590,7 +607,6 @@ type UpdateActorsMutationResponse {
 Information about the number of nodes and relationships created and deleted during an update mutation
 """
 type UpdateInfo {
-  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   nodesDeleted: Int!
   relationshipsCreated: Int!

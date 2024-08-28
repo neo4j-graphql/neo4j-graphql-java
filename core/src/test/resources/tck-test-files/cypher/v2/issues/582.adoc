@@ -12,7 +12,7 @@ type Entity {
   type: String!
 }
 
-interface Edge @relationshipProperties {
+type Edge @relationshipProperties {
   type: String!
 }
 ----
@@ -34,10 +34,10 @@ query ($where: EntityWhere) {
 {
   "where": {
     "type": "Cat",
-    "childrenConnection": {
+    "childrenConnection_SOME": {
       "node": {
         "type": "Dog",
-        "parentsConnection": {
+        "parentsConnection_SOME": {
           "node": {
             "type": "Bird"
           }
@@ -92,13 +92,13 @@ query ($where: EntityWhere) {
 {
   "where": {
     "type": "Cat",
-    "childrenConnection": {
+    "childrenConnection_SOME": {
       "node": {
         "type": "Dog",
-        "parentsConnection": {
+        "parentsConnection_SOME": {
           "node": {
             "type": "Bird",
-            "childrenConnection": {
+            "childrenConnection_SOME": {
               "node": {
                 "type": "Fish"
               }

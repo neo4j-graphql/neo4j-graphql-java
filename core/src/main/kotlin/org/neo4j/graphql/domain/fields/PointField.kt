@@ -5,7 +5,6 @@ import graphql.language.NonNullType
 import graphql.language.TypeName
 import org.neo4j.cypherdsl.core.Cypher
 import org.neo4j.cypherdsl.core.Expression
-import org.neo4j.cypherdsl.core.Functions
 import org.neo4j.graphql.Constants
 import org.neo4j.graphql.SchemaConfig
 import org.neo4j.graphql.domain.TypeMeta
@@ -37,12 +36,8 @@ class PointField(
     private fun initPredicates(): Map<String, ScalarPredicateDefinition> {
         val result = mutableMapOf<String, ScalarPredicateDefinition>()
             .add(FieldOperator.EQUAL)
-            .add(FieldOperator.NOT_EQUAL)
         if (typeMeta.type.isList()) {
-            result
-                .addIncludesResolver(FieldOperator.INCLUDES)
-                .addIncludesResolver(FieldOperator.NOT_INCLUDES)
-
+            result.addIncludesResolver(FieldOperator.INCLUDES)
         } else {
             result
                 .addDistanceResolver(FieldOperator.LT)
@@ -51,7 +46,6 @@ class PointField(
                 .addDistanceResolver(FieldOperator.GTE)
                 .addDistanceResolver(FieldOperator.EQUAL, "DISTANCE")
                 .addInResolver(FieldOperator.IN)
-                .addInResolver(FieldOperator.NOT_IN)
         }
 
         return result
@@ -65,7 +59,7 @@ class PointField(
             suffix,
             { property, parameter ->
                 op.conditionCreator(
-                    Functions.distance(property, Functions.point(parameter.property("point"))),
+                    Cypher.distance(property, Cypher.point(parameter.property("point"))),
                     parameter.property("distance")
                 )
             },
@@ -79,7 +73,7 @@ class PointField(
             op.suffix,
             { property, parameter ->
                 val p = Cypher.name("p")
-                val paramPointArray = Cypher.listWith(p).`in`(parameter).returning(Functions.point(p))
+                val paramPointArray = Cypher.listWith(p).`in`(parameter).returning(Cypher.point(p))
                 op.conditionCreator(property, paramPointArray)
             },
             { _, _ -> TODO() },
@@ -91,7 +85,7 @@ class PointField(
         return this.add(
             op.suffix,
             { property, parameter ->
-                val paramPoint = Functions.point(parameter)
+                val paramPoint = Cypher.point(parameter)
                 op.conditionCreator(property, paramPoint)
             },
             { _, _ -> TODO() },
@@ -101,9 +95,9 @@ class PointField(
 
     override fun convertInputToCypher(input: Expression): Expression = if (typeMeta.type.isList()) {
         val point = Cypher.name("p")
-        Cypher.listWith(point).`in`(input).returning(Functions.point(point))
+        Cypher.listWith(point).`in`(input).returning(Cypher.point(point))
     } else {
-        Functions.point(input)
+        Cypher.point(input)
     }
 
     fun parseSelection(rt: IResolveTree) = type.selectionFactory(rt)

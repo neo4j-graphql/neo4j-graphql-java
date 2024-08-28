@@ -1,0 +1,792 @@
+:toc:
+
+= Cypher directive on union
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Actor {
+  name: String
+  year: Int
+  movies(title: String): [Movie] @cypher(statement: """
+  MATCH (m:Movie {title: $title})
+  RETURN m
+  """, columnName: "m")
+  tvShows(title: String): [Movie] @cypher(statement: """
+  MATCH (t:TVShow {title: $title})
+  RETURN t
+  """, columnName: "t")
+  moviesOrTVShows(title: String): [MovieOrTVShow] @cypher(statement: """
+  MATCH (n)
+  WHERE (n:TVShow OR n:Movie) AND ($title IS NULL OR n.title = $title)
+  RETURN n
+  """, columnName: "n")
+  randomNumber: Int @cypher(statement: """RETURN rand() as res""", columnName: "res")
+}
+
+union MovieOrTVShow = Movie | TVShow
+
+type TVShow {
+  id: ID
+  title: String
+  numSeasons: Int
+  actors: [Actor!]! @cypher(statement: """
+  MATCH (a:Actor)
+  RETURN a
+  """, columnName: "a")
+  topActor: Actor @cypher(statement: """
+  MATCH (a:Actor)
+  RETURN a
+  """, columnName: "a")
+}
+
+type Movie {
+  id: ID
+  title: String
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
+  topActor: Actor @relationship(type: "ACTED_IN", direction: IN)
+}
+
+type Query {
+  moviesOrTVShows(title: String): [MovieOrTVShow] @cypher(statement: """
+  MATCH (n)
+  WHERE (n:TVShow OR n:Movie) AND ($title IS NULL OR n.title = $title)
+  RETURN n
+  """, columnName: "n")
+  movieOrTVShow(title: String): MovieOrTVShow @cypher(statement: """
+  MATCH (n)
+  WHERE (n:TVShow OR n:Movie) AND ($title IS NULL OR n.title = $title)
+  RETURN n
+  LIMIT 1
+  """, columnName: "n")
+}
+----
+== simple top-level field with nested cypher union
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  actors {
+    moviesOrTVShows(title: "The Matrix") {
+      ... on Movie {
+        title
+        actors(where: {name: "Keanu Reeves"}) {
+          name
+        }
+      }
+      ... on TVShow {
+        title
+        actors {
+          name
+          movies(title: "The Matrix") {
+            title
+          }
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "The Matrix",
+  "param1": "Keanu Reeves",
+  "param2": "The Matrix"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+CALL {
+    WITH this
+    CALL {
+        WITH this
+        WITH this AS this
+        MATCH (n)
+        WHERE (n:TVShow OR n:Movie) AND ($param0 IS NULL OR n.title = $param0)
+        RETURN n
+    }
+    WITH n AS this0
+    CALL {
+        WITH this0
+        CALL {
+            WITH *
+            MATCH (this0)
+            WHERE this0:Movie
+            CALL {
+                WITH this0
+                MATCH (this0)<-[this1:ACTED_IN]-(this2:Actor)
+                WHERE this2.name = $param1
+                WITH this2 { .name } AS this2
+                RETURN collect(this2) AS var3
+            }
+            WITH this0 { .title, actors: var3, __resolveType: "Movie", __id: id(this0) } AS this0
+            RETURN this0 AS var4
+            UNION
+            WITH *
+            MATCH (this0)
+            WHERE this0:TVShow
+            CALL {
+                WITH this0
+                CALL {
+                    WITH this0
+                    WITH this0 AS this
+                    MATCH (a:Actor)
+                    RETURN a
+                }
+                WITH a AS this5
+                CALL {
+                    WITH this5
+                    CALL {
+                        WITH this5
+                        WITH this5 AS this
+                        MATCH (m:Movie {title: $param2})
+                        RETURN m
+                    }
+                    WITH m AS this6
+                    WITH this6 { .title } AS this6
+                    RETURN collect(this6) AS var7
+                }
+                WITH this5 { .name, movies: var7 } AS this5
+                RETURN collect(this5) AS var8
+            }
+            WITH this0 { .title, actors: var8, __resolveType: "TVShow", __id: id(this0) } AS this0
+            RETURN this0 AS var4
+        }
+        RETURN var4
+    }
+    RETURN collect(var4) AS this0
+}
+RETURN this { moviesOrTVShows: this0 } AS this
+----
+
+'''
+
+== top-level single union
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movieOrTVShow(title: "The Matrix") {
+    ... on Movie {
+      title
+    }
+    ... on TVShow {
+      title
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "The Matrix"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+    MATCH (n)
+    WHERE (n:TVShow OR n:Movie) AND ($param0 IS NULL OR n.title = $param0)
+    RETURN n
+    LIMIT 1
+}
+WITH n AS this0
+CALL {
+    WITH this0
+    CALL {
+        WITH *
+        MATCH (this0)
+        WHERE this0:Movie
+        WITH this0 { .title, __resolveType: "Movie", __id: id(this0) } AS this0
+        RETURN this0 AS var1
+        UNION
+        WITH *
+        MATCH (this0)
+        WHERE this0:TVShow
+        WITH this0 { .title, __resolveType: "TVShow", __id: id(this0) } AS this0
+        RETURN this0 AS var1
+    }
+    RETURN var1
+}
+RETURN var1 AS this0
+----
+
+'''
+
+== top-level single union when only typename is returned
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movieOrTVShow(title: "The Matrix") {
+    __typename
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "The Matrix"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+    MATCH (n)
+    WHERE (n:TVShow OR n:Movie) AND ($param0 IS NULL OR n.title = $param0)
+    RETURN n
+    LIMIT 1
+}
+WITH n AS this0
+CALL {
+    WITH this0
+    CALL {
+        WITH *
+        MATCH (this0)
+        WHERE this0:Movie
+        WITH this0 { __resolveType: "Movie", __id: id(this0) } AS this0
+        RETURN this0 AS var1
+        UNION
+        WITH *
+        MATCH (this0)
+        WHERE this0:TVShow
+        WITH this0 { __resolveType: "TVShow", __id: id(this0) } AS this0
+        RETURN this0 AS var1
+    }
+    RETURN var1
+}
+RETURN var1 AS this0
+----
+
+'''
+
+== top-level single union with nested projection
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movieOrTVShow(title: "The Matrix") {
+    ... on Movie {
+      title
+      actors {
+        name
+      }
+      topActor {
+        name
+      }
+    }
+    ... on TVShow {
+      title
+      actors {
+        name
+      }
+      topActor {
+        name
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "The Matrix"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+    MATCH (n)
+    WHERE (n:TVShow OR n:Movie) AND ($param0 IS NULL OR n.title = $param0)
+    RETURN n
+    LIMIT 1
+}
+WITH n AS this0
+CALL {
+    WITH this0
+    CALL {
+        WITH *
+        MATCH (this0)
+        WHERE this0:Movie
+        CALL {
+            WITH this0
+            MATCH (this0)<-[this1:ACTED_IN]-(this2:Actor)
+            WITH this2 { .name } AS this2
+            RETURN collect(this2) AS var3
+        }
+        CALL {
+            WITH this0
+            MATCH (this0)<-[this4:ACTED_IN]-(this5:Actor)
+            WITH this5 { .name } AS this5
+            RETURN head(collect(this5)) AS var6
+        }
+        WITH this0 { .title, actors: var3, topActor: var6, __resolveType: "Movie", __id: id(this0) } AS this0
+        RETURN this0 AS var7
+        UNION
+        WITH *
+        MATCH (this0)
+        WHERE this0:TVShow
+        CALL {
+            WITH this0
+            CALL {
+                WITH this0
+                WITH this0 AS this
+                MATCH (a:Actor)
+                RETURN a
+            }
+            WITH a AS this8
+            WITH this8 { .name } AS this8
+            RETURN collect(this8) AS var9
+        }
+        CALL {
+            WITH this0
+            CALL {
+                WITH this0
+                WITH this0 AS this
+                MATCH (a:Actor)
+                RETURN a
+            }
+            WITH a AS this10
+            WITH this10 { .name } AS this10
+            RETURN head(collect(this10)) AS var11
+        }
+        WITH this0 { .title, actors: var9, topActor: var11, __resolveType: "TVShow", __id: id(this0) } AS this0
+        RETURN this0 AS var7
+    }
+    RETURN var7
+}
+RETURN var7 AS this0
+----
+
+'''
+
+== top-level single union with nested relationship parameters
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesOrTVShows(title: "The Matrix") {
+    ... on Movie {
+      title
+      actors(where: {name: "Keanu Reeves"}) {
+        name
+      }
+    }
+    ... on TVShow {
+      title
+      actors {
+        name
+        movies(title: "The Matrix") {
+          title
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "The Matrix",
+  "param1": "Keanu Reeves",
+  "param2": "The Matrix"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+    MATCH (n)
+    WHERE (n:TVShow OR n:Movie) AND ($param0 IS NULL OR n.title = $param0)
+    RETURN n
+}
+WITH n AS this0
+CALL {
+    WITH this0
+    CALL {
+        WITH *
+        MATCH (this0)
+        WHERE this0:Movie
+        CALL {
+            WITH this0
+            MATCH (this0)<-[this1:ACTED_IN]-(this2:Actor)
+            WHERE this2.name = $param1
+            WITH this2 { .name } AS this2
+            RETURN collect(this2) AS var3
+        }
+        WITH this0 { .title, actors: var3, __resolveType: "Movie", __id: id(this0) } AS this0
+        RETURN this0 AS var4
+        UNION
+        WITH *
+        MATCH (this0)
+        WHERE this0:TVShow
+        CALL {
+            WITH this0
+            CALL {
+                WITH this0
+                WITH this0 AS this
+                MATCH (a:Actor)
+                RETURN a
+            }
+            WITH a AS this5
+            CALL {
+                WITH this5
+                CALL {
+                    WITH this5
+                    WITH this5 AS this
+                    MATCH (m:Movie {title: $param2})
+                    RETURN m
+                }
+                WITH m AS this6
+                WITH this6 { .title } AS this6
+                RETURN collect(this6) AS var7
+            }
+            WITH this5 { .name, movies: var7 } AS this5
+            RETURN collect(this5) AS var8
+        }
+        WITH this0 { .title, actors: var8, __resolveType: "TVShow", __id: id(this0) } AS this0
+        RETURN this0 AS var4
+    }
+    RETURN var4
+}
+RETURN var4 AS this0
+----
+
+'''
+
+== top-level union
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesOrTVShows(title: "The Matrix") {
+    ... on Movie {
+      title
+    }
+    ... on TVShow {
+      title
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "The Matrix"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+    MATCH (n)
+    WHERE (n:TVShow OR n:Movie) AND ($param0 IS NULL OR n.title = $param0)
+    RETURN n
+}
+WITH n AS this0
+CALL {
+    WITH this0
+    CALL {
+        WITH *
+        MATCH (this0)
+        WHERE this0:Movie
+        WITH this0 { .title, __resolveType: "Movie", __id: id(this0) } AS this0
+        RETURN this0 AS var1
+        UNION
+        WITH *
+        MATCH (this0)
+        WHERE this0:TVShow
+        WITH this0 { .title, __resolveType: "TVShow", __id: id(this0) } AS this0
+        RETURN this0 AS var1
+    }
+    RETURN var1
+}
+RETURN var1 AS this0
+----
+
+'''
+
+== top-level union when only typename is returned
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesOrTVShows(title: "The Matrix") {
+    __typename
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "The Matrix"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+    MATCH (n)
+    WHERE (n:TVShow OR n:Movie) AND ($param0 IS NULL OR n.title = $param0)
+    RETURN n
+}
+WITH n AS this0
+CALL {
+    WITH this0
+    CALL {
+        WITH *
+        MATCH (this0)
+        WHERE this0:Movie
+        WITH this0 { __resolveType: "Movie", __id: id(this0) } AS this0
+        RETURN this0 AS var1
+        UNION
+        WITH *
+        MATCH (this0)
+        WHERE this0:TVShow
+        WITH this0 { __resolveType: "TVShow", __id: id(this0) } AS this0
+        RETURN this0 AS var1
+    }
+    RETURN var1
+}
+RETURN var1 AS this0
+----
+
+'''
+
+== top-level union with nested projection
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesOrTVShows(title: "The Matrix") {
+    ... on Movie {
+      title
+      actors {
+        name
+      }
+      topActor {
+        name
+      }
+    }
+    ... on TVShow {
+      title
+      actors {
+        name
+      }
+      topActor {
+        name
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "The Matrix"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+    MATCH (n)
+    WHERE (n:TVShow OR n:Movie) AND ($param0 IS NULL OR n.title = $param0)
+    RETURN n
+}
+WITH n AS this0
+CALL {
+    WITH this0
+    CALL {
+        WITH *
+        MATCH (this0)
+        WHERE this0:Movie
+        CALL {
+            WITH this0
+            MATCH (this0)<-[this1:ACTED_IN]-(this2:Actor)
+            WITH this2 { .name } AS this2
+            RETURN collect(this2) AS var3
+        }
+        CALL {
+            WITH this0
+            MATCH (this0)<-[this4:ACTED_IN]-(this5:Actor)
+            WITH this5 { .name } AS this5
+            RETURN head(collect(this5)) AS var6
+        }
+        WITH this0 { .title, actors: var3, topActor: var6, __resolveType: "Movie", __id: id(this0) } AS this0
+        RETURN this0 AS var7
+        UNION
+        WITH *
+        MATCH (this0)
+        WHERE this0:TVShow
+        CALL {
+            WITH this0
+            CALL {
+                WITH this0
+                WITH this0 AS this
+                MATCH (a:Actor)
+                RETURN a
+            }
+            WITH a AS this8
+            WITH this8 { .name } AS this8
+            RETURN collect(this8) AS var9
+        }
+        CALL {
+            WITH this0
+            CALL {
+                WITH this0
+                WITH this0 AS this
+                MATCH (a:Actor)
+                RETURN a
+            }
+            WITH a AS this10
+            WITH this10 { .name } AS this10
+            RETURN head(collect(this10)) AS var11
+        }
+        WITH this0 { .title, actors: var9, topActor: var11, __resolveType: "TVShow", __id: id(this0) } AS this0
+        RETURN this0 AS var7
+    }
+    RETURN var7
+}
+RETURN var7 AS this0
+----
+
+'''
+
+== top-level union with nested relationship parameters
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesOrTVShows(title: "The Matrix") {
+    ... on Movie {
+      title
+      actors(where: {name: "Keanu Reeves"}) {
+        name
+      }
+    }
+    ... on TVShow {
+      title
+      actors {
+        name
+        movies(title: "The Matrix") {
+          title
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "The Matrix",
+  "param1": "Keanu Reeves",
+  "param2": "The Matrix"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+    MATCH (n)
+    WHERE (n:TVShow OR n:Movie) AND ($param0 IS NULL OR n.title = $param0)
+    RETURN n
+}
+WITH n AS this0
+CALL {
+    WITH this0
+    CALL {
+        WITH *
+        MATCH (this0)
+        WHERE this0:Movie
+        CALL {
+            WITH this0
+            MATCH (this0)<-[this1:ACTED_IN]-(this2:Actor)
+            WHERE this2.name = $param1
+            WITH this2 { .name } AS this2
+            RETURN collect(this2) AS var3
+        }
+        WITH this0 { .title, actors: var3, __resolveType: "Movie", __id: id(this0) } AS this0
+        RETURN this0 AS var4
+        UNION
+        WITH *
+        MATCH (this0)
+        WHERE this0:TVShow
+        CALL {
+            WITH this0
+            CALL {
+                WITH this0
+                WITH this0 AS this
+                MATCH (a:Actor)
+                RETURN a
+            }
+            WITH a AS this5
+            CALL {
+                WITH this5
+                CALL {
+                    WITH this5
+                    WITH this5 AS this
+                    MATCH (m:Movie {title: $param2})
+                    RETURN m
+                }
+                WITH m AS this6
+                WITH this6 { .title } AS this6
+                RETURN collect(this6) AS var7
+            }
+            WITH this5 { .name, movies: var7 } AS this5
+            RETURN collect(this5) AS var8
+        }
+        WITH this0 { .title, actors: var8, __resolveType: "TVShow", __id: id(this0) } AS this0
+        RETURN this0 AS var4
+    }
+    RETURN var4
+}
+RETURN var4 AS this0
+----
+
+'''
+

@@ -97,7 +97,7 @@ fun createInterfaceProjectionAndParams(
     }
 
     return if (field.typeMeta.type.isList()) {
-        ongoingReading.returning(Functions.collect(returnVariable).`as`(returnVariable))
+        ongoingReading.returning(Cypher.collect(returnVariable).`as`(returnVariable))
     } else {
         ongoingReading.returning(fieldName.`as`(returnVariable))
     }.build()

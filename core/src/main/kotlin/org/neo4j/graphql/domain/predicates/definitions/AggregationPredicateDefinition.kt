@@ -2,8 +2,11 @@ package org.neo4j.graphql.domain.predicates.definitions
 
 import graphql.language.Type
 import org.neo4j.cypherdsl.core.*
-import org.neo4j.graphql.*
+import org.neo4j.graphql.Constants
 import org.neo4j.graphql.domain.fields.PrimitiveField
+import org.neo4j.graphql.inner
+import org.neo4j.graphql.isList
+import org.neo4j.graphql.name
 
 data class AggregationPredicateDefinition(
     override val name: String,
@@ -11,33 +14,12 @@ data class AggregationPredicateDefinition(
     private val method: Method,
     private val operator: Operator,
     val type: Type<*>,
-    // TODO remove deprecated
-    val deprecated: String? = null
 ) : PredicateDefinition {
-    fun createCondition(lhs: Expression, rhs: Expression, ctx: QueryContext): Condition {
-        val convertedRhs = wrapExpression(rhs)
-        return when (method) {
-            Method.NONE -> {
-                val variable = ctx.getNextVariable()
-                Cypher.any(variable).`in`(Cypher.collect(method.functionCreator(field.typeMeta.type, operator, lhs)))
-                    .where(
-                    operator.conditionCreator(
-                        wrapExpression(variable),
-                        convertedRhs
-                    )
-                )
-            }
-
-            else -> operator.conditionCreator(
-                wrapExpression(
-                    method.functionCreator(
-                        field.typeMeta.type,
-                        operator,
-                        lhs
-                    )
-                ), convertedRhs
-            )
-        }
+    fun createCondition(lhs: Expression, rhs: Expression): Condition {
+        return operator.conditionCreator(
+            wrapExpression(method.functionCreator(field.typeMeta.type, operator, lhs)),
+            wrapExpression(rhs)
+        )
     }
 
     private fun wrapExpression(expression: Expression): Expression = if (type.name() == Constants.DURATION) {
@@ -51,24 +33,7 @@ data class AggregationPredicateDefinition(
         val functionCreator: (Type<*>, Operator, Expression) -> Expression,
         val typeConverter: ((Type<*>, op: Operator) -> Type<*>) = { type, _ -> type.inner() },
         val condition: (Type<*>) -> Boolean = { true },
-        val deprecation: (Type<*>) -> String? = { null }
     ) {
-        @Deprecated("Please use the explicit _LENGTH version for string aggregation.")
-        NONE(
-            "",
-            { type, op, exp ->
-                if (op == Operator.EQUAL || type.name() != Constants.STRING) exp else Cypher.size(exp)
-            },
-            typeConverter = { type, op ->
-                when (type.name()) {
-                    //TODO why this inconsistency? https://github.com/neo4j/graphql/issues/2661
-                    Constants.STRING -> if (op == Operator.EQUAL) Constants.Types.String else Constants.Types.Int
-                    else -> type.inner()
-                }
-            },
-            condition = { AGGREGATION_TYPES.contains(it.name()) },
-            deprecation = { "Aggregation filters that are not relying on an aggregating function will be deprecated." }
-        ),
         AVERAGE(
             "AVERAGE",
             { type, _, exp ->
@@ -81,17 +46,11 @@ data class AggregationPredicateDefinition(
                 }
             },
             condition = { AGGREGATION_AVERAGE_TYPES.contains(it.name()) },
-            deprecation = { if (it.name() == Constants.STRING) "Please use the explicit _LENGTH version for string aggregation." else null }
         ),
-        AVERAGE_LENGTH(
-            "AVERAGE_LENGTH",
-            { _, _, exp -> Cypher.avg(Cypher.size(exp)) },
-            typeConverter = { _, _ -> Constants.Types.Float },
-            condition = { it.name() == Constants.STRING }),
         SUM(
             "SUM",
             { _, _, exp -> Cypher.sum(exp) },
-            condition = { AGGREGATION_AVERAGE_TYPES.contains(it.name()) && it.name() != Constants.STRING && it.name() != Constants.DURATION }),
+            condition = { AGGREGATION_AVERAGE_TYPES.contains(it.name()) && it.name() != Constants.DURATION }),
         MIN(
             "MIN",
             { _, _, exp -> Cypher.min(exp) },
@@ -102,24 +61,11 @@ data class AggregationPredicateDefinition(
             { _, _, exp -> Cypher.max(exp) },
             condition = { AGGREGATION_TYPES.contains(it.name()) && it.name() != Constants.STRING && it.name() != Constants.ID }
         ),
-
-        @Deprecated("Please use the explicit _LENGTH version for string aggregation.")
-        LONGEST(
-            "LONGEST",
-            { _, _, exp -> Cypher.max(Cypher.size(exp)) },
-            typeConverter = { _, _ -> Constants.Types.Int },
-            condition = { it.name() == Constants.STRING },
-            deprecation = { "Please use the explicit _LENGTH version for string aggregation." }
-        ),
-
-        @Deprecated("Please use the explicit _LENGTH version for string aggregation.")
-        SHORTEST(
-            "SHORTEST",
-            { _, _, exp -> Cypher.min(Cypher.size(exp)) },
-            typeConverter = { _, _ -> Constants.Types.Int },
-            condition = { it.name() == Constants.STRING },
-            deprecation = { "Please use the explicit _LENGTH version for string aggregation." }
-        ),
+        AVERAGE_LENGTH(
+            "AVERAGE_LENGTH",
+            { _, _, exp -> Cypher.avg(Cypher.size(exp)) },
+            typeConverter = { _, _ -> Constants.Types.Float },
+            condition = { it.name() == Constants.STRING }),
         LONGEST_LENGTH(
             "LONGEST_LENGTH",
             { _, _, exp -> Cypher.max(Cypher.size(exp)) },
@@ -148,7 +94,6 @@ data class AggregationPredicateDefinition(
 
     companion object {
         private val AGGREGATION_AVERAGE_TYPES = setOf(
-            Constants.STRING,
             Constants.INT,
             Constants.FLOAT,
             Constants.BIG_INT,
@@ -181,7 +126,6 @@ data class AggregationPredicateDefinition(
                         name to AggregationPredicateDefinition(
                             name, field, method, op,
                             method.typeConverter(field.typeMeta.type, op),
-                            method.deprecation(field.typeMeta.type)
                         )
                     }
             }

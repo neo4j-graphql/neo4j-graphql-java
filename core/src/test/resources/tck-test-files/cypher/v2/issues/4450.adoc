@@ -22,7 +22,7 @@ type Location {
   scenes: [Scene!]! @relationship(type: "AT_LOCATION", direction: IN)
 }
 
-interface ActorScene @relationshipProperties {
+type ActorScene @relationshipProperties {
   cut: Boolean
 }
 ----

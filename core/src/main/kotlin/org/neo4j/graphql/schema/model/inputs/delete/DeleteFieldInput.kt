@@ -47,8 +47,13 @@ sealed interface DeleteFieldInput {
                         .generateFieldConnectionWhereIT(rel, node, ctx)
                         ?.let { fields += inputValue(Constants.WHERE, it.asType()) }
 
-                    DeleteInput.NodeDeleteInput.Augmentation
-                        .generateContainerDeleteInputIT(node, ctx)
+                    rel.declarationOrSelf.extractOnTarget(
+                        onImplementingType = {
+                            DeleteInput.Augmentation
+                                .generateContainerDeleteInputIT(it, ctx)
+                        },
+                        onUnion = { DeleteInput.Augmentation.generateContainerDeleteInputIT(node, ctx) }
+                    )
                         ?.let { fields += inputValue(Constants.DELETE_FIELD, it.asType()) }
                 }
         }

@@ -42,12 +42,19 @@ directive @cypher(
   columnName: String!
 ) on FIELD_DEFINITION
 
+"Instructs neo4j-graphql-java that any type that implements this interface must annotate this field with the `@relationship` directive. Allows for nested reading operations in the Interface top level query and opens up the ability to create and connect on this field."
+directive @declareRelationship(
+  "Prevent all but these operations from being generated for this relationship"
+  nestedOperations: [RelationshipNestedOperations!]! = [CREATE, UPDATE, DELETE, CONNECT, DISCONNECT, CONNECT_OR_CREATE]
+  "Prevent aggregation for this relationship"
+  aggregate: Boolean = true
+) on FIELD_DEFINITION
+
 "Instructs neo4j-graphql-java to set the specified value as the default value in the CreateInput type for the object type in which this directive is used."
 directive @default(
   "The default value to use. Must be a scalar type and must match the type of the field with which this directive decorates."
   value: ScalarType!
 ) on FIELD_DEFINITION
-
 
 "Instructs neo4j-graphql-java to generate filters for this field."
 directive @filterable(

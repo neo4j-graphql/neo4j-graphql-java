@@ -25,7 +25,7 @@ type UserDemographics {
 [source,graphql]
 ----
 {
-  users(where: {demographics: {type: "Gender", value: "Female"}}) {
+  users(where: {demographics_SOME: {type: "Gender", value: "Female"}}) {
     uid
     demographics {
       type
@@ -70,7 +70,7 @@ RETURN this { .uid, demographics: var3 } AS this
 ----
 {
   users(
-    where: {demographics: {OR: [{type: "Gender", value: "Female"}, {type: "State"}, {type: "Age"}]}}
+    where: {demographics_SOME: {OR: [{type: "Gender", value: "Female"}, {type: "State"}, {type: "Age"}]}}
   ) {
     uid
     demographics {

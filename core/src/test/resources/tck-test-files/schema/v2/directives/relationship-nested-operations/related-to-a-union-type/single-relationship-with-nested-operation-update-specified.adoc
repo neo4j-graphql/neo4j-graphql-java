@@ -36,7 +36,6 @@ schema {
 Information about the number of nodes and relationships created during a create mutation
 """
 type CreateInfo {
-  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   relationshipsCreated: Int!
 }
@@ -60,7 +59,6 @@ type CreatePersonTwosMutationResponse {
 Information about the number of nodes and relationships deleted during a delete mutation
 """
 type DeleteInfo {
-  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesDeleted: Int!
   relationshipsDeleted: Int!
 }
@@ -92,7 +90,6 @@ input MovieActorsPersonOneConnectionWhere {
   NOT: MovieActorsPersonOneConnectionWhere
   OR: [MovieActorsPersonOneConnectionWhere!]
   node: PersonOneWhere
-  node_NOT: PersonOneWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input MovieActorsPersonOneUpdateConnectionInput {
@@ -109,7 +106,6 @@ input MovieActorsPersonTwoConnectionWhere {
   NOT: MovieActorsPersonTwoConnectionWhere
   OR: [MovieActorsPersonTwoConnectionWhere!]
   node: PersonTwoWhere
-  node_NOT: PersonTwoWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input MovieActorsPersonTwoUpdateConnectionInput {
@@ -170,8 +166,6 @@ input MovieWhere {
   AND: [MovieWhere!]
   NOT: MovieWhere
   OR: [MovieWhere!]
-  actors: PersonWhere @deprecated(reason: "Use `actors_SOME` instead.")
-  actorsConnection: MovieActorsConnectionWhere @deprecated(reason: "Use `actorsConnection_SOME` instead.")
   """
   Return Movies where all of the related MovieActorsConnections match this filter
   """
@@ -180,7 +174,6 @@ input MovieWhere {
   Return Movies where none of the related MovieActorsConnections match this filter
   """
   actorsConnection_NONE: MovieActorsConnectionWhere
-  actorsConnection_NOT: MovieActorsConnectionWhere @deprecated(reason: "Use `actorsConnection_NONE` instead.")
   """
   Return Movies where one of the related MovieActorsConnections match this filter
   """
@@ -193,7 +186,6 @@ input MovieWhere {
   actors_ALL: PersonWhere
   """Return Movies where none of the related People match this filter"""
   actors_NONE: PersonWhere
-  actors_NOT: PersonWhere @deprecated(reason: "Use `actors_NONE` instead.")
   """Return Movies where one of the related People match this filter"""
   actors_SINGLE: PersonWhere
   """Return Movies where some of the related People match this filter"""
@@ -202,11 +194,6 @@ input MovieWhere {
   id_CONTAINS: ID
   id_ENDS_WITH: ID
   id_IN: [ID]
-  id_NOT: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_CONTAINS: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_ENDS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_IN: [ID] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  id_NOT_STARTS_WITH: ID @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   id_STARTS_WITH: ID
 }
 
@@ -284,11 +271,6 @@ input PersonOneWhere {
   name_CONTAINS: String
   name_ENDS_WITH: String
   name_IN: [String]
-  name_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_IN: [String] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   name_STARTS_WITH: String
 }
 
@@ -344,11 +326,6 @@ input PersonTwoWhere {
   nameTwo_CONTAINS: String
   nameTwo_ENDS_WITH: String
   nameTwo_IN: [String]
-  nameTwo_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  nameTwo_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  nameTwo_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  nameTwo_NOT_IN: [String] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  nameTwo_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   nameTwo_STARTS_WITH: String
 }
 
@@ -399,7 +376,6 @@ type StringAggregateSelection {
 Information about the number of nodes and relationships created and deleted during an update mutation
 """
 type UpdateInfo {
-  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   nodesDeleted: Int!
   relationshipsCreated: Int!

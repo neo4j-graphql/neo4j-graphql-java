@@ -26,13 +26,13 @@ type Series implements Production {
   distribution: [DistributionHouse!]! @relationship(type: "DISTRIBUTED_BY", direction: IN)
 }
 
-interface ActedIn @relationshipProperties {
+type ActedIn @relationshipProperties {
   role: String!
 }
 
 interface Actor {
   name: String!
-  actedIn: [Production!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
+  actedIn: [Production!]! @declareRelationship
 }
 
 type MaleActor implements Actor {
@@ -92,21 +92,21 @@ type Netflix implements DistributionHouse {
 MATCH (this:Film)
 WHERE EXISTS {
     MATCH (this)<-[this0:DISTRIBUTED_BY]-(this1)
-    WHERE (this1.name = $param0 AND (this1:Dishney OR this1:Prime OR this1:Netflix))
+    WHERE (this1.name = $param0 AND (this1:Dishney OR this1:Netflix OR this1:Prime))
 }
 RETURN this { .title } AS this
 ----
 
 '''
 
-== should use the correct node label for connection rel when defined in node _on - Dishney label
+== should not use a node label so it covers all nodes implementing the interface for connection rel (inside logical)
 
 .GraphQL-Query
 [source,graphql]
 ----
 {
   movies(
-    where: {OR: [{distributionConnection_SOME: {node: {_on: {Dishney: {}}, name: "test2"}}}]}
+    where: {distributionConnection_SOME: {node: {OR: [{name: "test4"}, {name: "test1"}]}}}
   ) {
     title
   }
@@ -117,7 +117,8 @@ RETURN this { .title } AS this
 [source,json]
 ----
 {
-  "param0": "test2"
+  "param0": "test4",
+  "param1": "test1"
 }
 ----
 
@@ -126,78 +127,8 @@ RETURN this { .title } AS this
 ----
 MATCH (this:Film)
 WHERE EXISTS {
-    MATCH (this)<-[this0:DISTRIBUTED_BY]-(this1:Dishney)
-    WHERE this1.name = $param0
-}
-RETURN this { .title } AS this
-----
-
-'''
-
-== should use the correct node label for connection rel when defined in node _on - Netflix label
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  movies(
-    where: {OR: [{distributionConnection_SOME: {node: {_on: {Netflix: {}}, name: "test"}}}]}
-  ) {
-    title
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0": "test"
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Film)
-WHERE EXISTS {
-    MATCH (this)<-[this0:DISTRIBUTED_BY]-(this1:Netflix)
-    WHERE this1.name = $param0
-}
-RETURN this { .title } AS this
-----
-
-'''
-
-== should use the correct node label for connection rel when defined in node _on - without OR operator
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  movies(
-    where: {distributionConnection_SOME: {node: {_on: {Dishney: {}}, name: "test3"}}}
-  ) {
-    title
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0": "test3"
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Film)
-WHERE EXISTS {
-    MATCH (this)<-[this0:DISTRIBUTED_BY]-(this1:Dishney)
-    WHERE this1.name = $param0
+    MATCH (this)<-[this0:DISTRIBUTED_BY]-(this1)
+    WHERE ((this1.name = $param0 OR this1.name = $param1) AND (this1:Dishney OR this1:Netflix OR this1:Prime))
 }
 RETURN this { .title } AS this
 ----

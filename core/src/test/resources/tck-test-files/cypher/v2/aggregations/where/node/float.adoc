@@ -52,6 +52,42 @@ RETURN this { .content } AS this
 
 '''
 
+== AVERAGE_EQUAL with alias
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  posts(where: {likesAggregate: {node: {someFloatAlias_AVERAGE_EQUAL: 10}}}) {
+    content
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": 10
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Post)
+CALL {
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN avg(this1._someFloatAlias) = $param0 AS var2
+}
+WITH *
+WHERE var2 = true
+RETURN this { .content } AS this
+----
+
+'''
+
 == AVERAGE_GT
 
 .GraphQL-Query
@@ -191,222 +227,6 @@ CALL {
 }
 WITH *
 WHERE var2 = true
-RETURN this { .content } AS this
-----
-
-'''
-
-== EQUAL
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  posts(where: {likesAggregate: {node: {someFloat_EQUAL: 10}}}) {
-    content
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0": 10
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Post)
-CALL {
-    WITH this
-    MATCH (this)<-[this0:LIKES]-(this1:User)
-    RETURN any(var2 IN collect(this1.someFloat) WHERE var2 = $param0) AS var3
-}
-WITH *
-WHERE var3 = true
-RETURN this { .content } AS this
-----
-
-'''
-
-== EQUAL with alias
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  posts(where: {likesAggregate: {node: {someFloatAlias_EQUAL: 10}}}) {
-    content
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0": 10
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Post)
-CALL {
-    WITH this
-    MATCH (this)<-[this0:LIKES]-(this1:User)
-    RETURN any(var2 IN collect(this1._someFloatAlias) WHERE var2 = $param0) AS var3
-}
-WITH *
-WHERE var3 = true
-RETURN this { .content } AS this
-----
-
-'''
-
-== GT
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  posts(where: {likesAggregate: {node: {someFloat_GT: 10}}}) {
-    content
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0": 10
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Post)
-CALL {
-    WITH this
-    MATCH (this)<-[this0:LIKES]-(this1:User)
-    RETURN any(var2 IN collect(this1.someFloat) WHERE var2 > $param0) AS var3
-}
-WITH *
-WHERE var3 = true
-RETURN this { .content } AS this
-----
-
-'''
-
-== GTE
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  posts(where: {likesAggregate: {node: {someFloat_GTE: 10}}}) {
-    content
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0": 10
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Post)
-CALL {
-    WITH this
-    MATCH (this)<-[this0:LIKES]-(this1:User)
-    RETURN any(var2 IN collect(this1.someFloat) WHERE var2 >= $param0) AS var3
-}
-WITH *
-WHERE var3 = true
-RETURN this { .content } AS this
-----
-
-'''
-
-== LT
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  posts(where: {likesAggregate: {node: {someFloat_LT: 10}}}) {
-    content
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0": 10
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Post)
-CALL {
-    WITH this
-    MATCH (this)<-[this0:LIKES]-(this1:User)
-    RETURN any(var2 IN collect(this1.someFloat) WHERE var2 < $param0) AS var3
-}
-WITH *
-WHERE var3 = true
-RETURN this { .content } AS this
-----
-
-'''
-
-== LTE
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  posts(where: {likesAggregate: {node: {someFloat_LTE: 10}}}) {
-    content
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0": 10
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Post)
-CALL {
-    WITH this
-    MATCH (this)<-[this0:LIKES]-(this1:User)
-    RETURN any(var2 IN collect(this1.someFloat) WHERE var2 <= $param0) AS var3
-}
-WITH *
-WHERE var3 = true
 RETURN this { .content } AS this
 ----
 

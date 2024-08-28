@@ -53,7 +53,6 @@ schema {
 Information about the number of nodes and relationships created during a create mutation
 """
 type CreateInfo {
-  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   relationshipsCreated: Int!
 }
@@ -87,7 +86,6 @@ type CreateType2Interface2sMutationResponse {
 Information about the number of nodes and relationships deleted during a delete mutation
 """
 type DeleteInfo {
-  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesDeleted: Int!
   relationshipsDeleted: Int!
 }
@@ -134,6 +132,18 @@ enum Interface1Implementation {
   Type2Interface1
 }
 
+input Interface1Interface2AggregateInput {
+  AND: [Interface1Interface2AggregateInput!]
+  NOT: Interface1Interface2AggregateInput
+  OR: [Interface1Interface2AggregateInput!]
+  count: Int
+  count_GT: Int
+  count_GTE: Int
+  count_LT: Int
+  count_LTE: Int
+  node: Interface1Interface2NodeAggregationWhereInput
+}
+
 input Interface1Interface2ConnectFieldInput {
   where: Interface2ConnectWhere
 }
@@ -153,7 +163,6 @@ input Interface1Interface2ConnectionWhere {
   NOT: Interface1Interface2ConnectionWhere
   OR: [Interface1Interface2ConnectionWhere!]
   node: Interface2Where
-  node_NOT: Interface2Where @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input Interface1Interface2CreateFieldInput {
@@ -166,6 +175,27 @@ input Interface1Interface2DeleteFieldInput {
 
 input Interface1Interface2DisconnectFieldInput {
   where: Interface1Interface2ConnectionWhere
+}
+
+input Interface1Interface2NodeAggregationWhereInput {
+  AND: [Interface1Interface2NodeAggregationWhereInput!]
+  NOT: Interface1Interface2NodeAggregationWhereInput
+  OR: [Interface1Interface2NodeAggregationWhereInput!]
+  field2_AVERAGE_LENGTH_EQUAL: Float
+  field2_AVERAGE_LENGTH_GT: Float
+  field2_AVERAGE_LENGTH_GTE: Float
+  field2_AVERAGE_LENGTH_LT: Float
+  field2_AVERAGE_LENGTH_LTE: Float
+  field2_LONGEST_LENGTH_EQUAL: Int
+  field2_LONGEST_LENGTH_GT: Int
+  field2_LONGEST_LENGTH_GTE: Int
+  field2_LONGEST_LENGTH_LT: Int
+  field2_LONGEST_LENGTH_LTE: Int
+  field2_SHORTEST_LENGTH_EQUAL: Int
+  field2_SHORTEST_LENGTH_GT: Int
+  field2_SHORTEST_LENGTH_GTE: Int
+  field2_SHORTEST_LENGTH_LT: Int
+  field2_SHORTEST_LENGTH_LTE: Int
 }
 
 type Interface1Interface2Relationship {
@@ -215,14 +245,8 @@ input Interface1Where {
   field1_CONTAINS: String
   field1_ENDS_WITH: String
   field1_IN: [String!]
-  field1_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  field1_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  field1_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  field1_NOT_IN: [String!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  field1_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   field1_STARTS_WITH: String
-  interface2: Interface2Where @deprecated(reason: "Use `interface2_SOME` instead.")
-  interface2Connection: Interface1Interface2ConnectionWhere @deprecated(reason: "Use `interface2Connection_SOME` instead.")
+  interface2Aggregate: Interface1Interface2AggregateInput
   """
   Return Interface1s where all of the related Interface1Interface2Connections match this filter
   """
@@ -231,7 +255,6 @@ input Interface1Where {
   Return Interface1s where none of the related Interface1Interface2Connections match this filter
   """
   interface2Connection_NONE: Interface1Interface2ConnectionWhere
-  interface2Connection_NOT: Interface1Interface2ConnectionWhere @deprecated(reason: "Use `interface2Connection_NONE` instead.")
   """
   Return Interface1s where one of the related Interface1Interface2Connections match this filter
   """
@@ -248,7 +271,6 @@ input Interface1Where {
   Return Interface1s where none of the related Interface2s match this filter
   """
   interface2_NONE: Interface2Where
-  interface2_NOT: Interface2Where @deprecated(reason: "Use `interface2_NONE` instead.")
   """
   Return Interface1s where one of the related Interface2s match this filter
   """
@@ -322,11 +344,6 @@ input Interface2Where {
   field2_CONTAINS: String
   field2_ENDS_WITH: String
   field2_IN: [String]
-  field2_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  field2_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  field2_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  field2_NOT_IN: [String] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  field2_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   field2_STARTS_WITH: String
   typename_IN: [Interface2Implementation!]
 }
@@ -441,6 +458,18 @@ type Type1Interface1 implements Interface1 {
   interface2Connection(after: String, directed: Boolean = true, first: Int, sort: [Interface1Interface2ConnectionSort!], where: Interface1Interface2ConnectionWhere): Interface1Interface2Connection!
 }
 
+input Type1Interface1AggregateInput {
+  AND: [Type1Interface1AggregateInput!]
+  NOT: Type1Interface1AggregateInput
+  OR: [Type1Interface1AggregateInput!]
+  count: Int
+  count_GT: Int
+  count_GTE: Int
+  count_LT: Int
+  count_LTE: Int
+  node: Type1Interface1NodeAggregationWhereInput
+}
+
 type Type1Interface1AggregateSelection {
   count: Int!
   field1: StringAggregateSelection!
@@ -470,7 +499,6 @@ input Type1Interface1ConnectionWhere {
   NOT: Type1Interface1ConnectionWhere
   OR: [Type1Interface1ConnectionWhere!]
   node: Interface1Where
-  node_NOT: Interface1Where @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input Type1Interface1CreateFieldInput {
@@ -519,6 +547,18 @@ type Type1Interface1Interface1NodeAggregateSelection {
   field1: StringAggregateSelection!
 }
 
+input Type1Interface1Interface2AggregateInput {
+  AND: [Type1Interface1Interface2AggregateInput!]
+  NOT: Type1Interface1Interface2AggregateInput
+  OR: [Type1Interface1Interface2AggregateInput!]
+  count: Int
+  count_GT: Int
+  count_GTE: Int
+  count_LT: Int
+  count_LTE: Int
+  node: Type1Interface1Interface2NodeAggregationWhereInput
+}
+
 input Type1Interface1Interface2ConnectFieldInput {
   where: Interface2ConnectWhere
 }
@@ -549,6 +589,27 @@ type Type1Interface1Interface2Interface2NodeAggregateSelection {
   field2: StringAggregateSelection!
 }
 
+input Type1Interface1Interface2NodeAggregationWhereInput {
+  AND: [Type1Interface1Interface2NodeAggregationWhereInput!]
+  NOT: Type1Interface1Interface2NodeAggregationWhereInput
+  OR: [Type1Interface1Interface2NodeAggregationWhereInput!]
+  field2_AVERAGE_LENGTH_EQUAL: Float
+  field2_AVERAGE_LENGTH_GT: Float
+  field2_AVERAGE_LENGTH_GTE: Float
+  field2_AVERAGE_LENGTH_LT: Float
+  field2_AVERAGE_LENGTH_LTE: Float
+  field2_LONGEST_LENGTH_EQUAL: Int
+  field2_LONGEST_LENGTH_GT: Int
+  field2_LONGEST_LENGTH_GTE: Int
+  field2_LONGEST_LENGTH_LT: Int
+  field2_LONGEST_LENGTH_LTE: Int
+  field2_SHORTEST_LENGTH_EQUAL: Int
+  field2_SHORTEST_LENGTH_GT: Int
+  field2_SHORTEST_LENGTH_GTE: Int
+  field2_SHORTEST_LENGTH_LT: Int
+  field2_SHORTEST_LENGTH_LTE: Int
+}
+
 input Type1Interface1Interface2UpdateConnectionInput {
   node: Interface2UpdateInput
 }
@@ -560,6 +621,27 @@ input Type1Interface1Interface2UpdateFieldInput {
   disconnect: [Type1Interface1Interface2DisconnectFieldInput!]
   update: Type1Interface1Interface2UpdateConnectionInput
   where: Interface1Interface2ConnectionWhere
+}
+
+input Type1Interface1NodeAggregationWhereInput {
+  AND: [Type1Interface1NodeAggregationWhereInput!]
+  NOT: Type1Interface1NodeAggregationWhereInput
+  OR: [Type1Interface1NodeAggregationWhereInput!]
+  field1_AVERAGE_LENGTH_EQUAL: Float
+  field1_AVERAGE_LENGTH_GT: Float
+  field1_AVERAGE_LENGTH_GTE: Float
+  field1_AVERAGE_LENGTH_LT: Float
+  field1_AVERAGE_LENGTH_LTE: Float
+  field1_LONGEST_LENGTH_EQUAL: Int
+  field1_LONGEST_LENGTH_GT: Int
+  field1_LONGEST_LENGTH_GTE: Int
+  field1_LONGEST_LENGTH_LT: Int
+  field1_LONGEST_LENGTH_LTE: Int
+  field1_SHORTEST_LENGTH_EQUAL: Int
+  field1_SHORTEST_LENGTH_GT: Int
+  field1_SHORTEST_LENGTH_GTE: Int
+  field1_SHORTEST_LENGTH_LT: Int
+  field1_SHORTEST_LENGTH_LTE: Int
 }
 
 input Type1Interface1Options {
@@ -613,14 +695,8 @@ input Type1Interface1Where {
   field1_CONTAINS: String
   field1_ENDS_WITH: String
   field1_IN: [String!]
-  field1_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  field1_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  field1_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  field1_NOT_IN: [String!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  field1_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   field1_STARTS_WITH: String
-  interface2: Interface2Where @deprecated(reason: "Use `interface2_SOME` instead.")
-  interface2Connection: Interface1Interface2ConnectionWhere @deprecated(reason: "Use `interface2Connection_SOME` instead.")
+  interface2Aggregate: Type1Interface1Interface2AggregateInput
   """
   Return Type1Interface1s where all of the related Interface1Interface2Connections match this filter
   """
@@ -629,7 +705,6 @@ input Type1Interface1Where {
   Return Type1Interface1s where none of the related Interface1Interface2Connections match this filter
   """
   interface2Connection_NONE: Interface1Interface2ConnectionWhere
-  interface2Connection_NOT: Interface1Interface2ConnectionWhere @deprecated(reason: "Use `interface2Connection_NONE` instead.")
   """
   Return Type1Interface1s where one of the related Interface1Interface2Connections match this filter
   """
@@ -646,7 +721,6 @@ input Type1Interface1Where {
   Return Type1Interface1s where none of the related Interface2s match this filter
   """
   interface2_NONE: Interface2Where
-  interface2_NOT: Interface2Where @deprecated(reason: "Use `interface2_NONE` instead.")
   """
   Return Type1Interface1s where one of the related Interface2s match this filter
   """
@@ -709,11 +783,6 @@ input Type1Interface2Where {
   field2_CONTAINS: String
   field2_ENDS_WITH: String
   field2_IN: [String!]
-  field2_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  field2_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  field2_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  field2_NOT_IN: [String!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  field2_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   field2_STARTS_WITH: String
 }
 
@@ -756,14 +825,8 @@ input Type1Where {
   field1_CONTAINS: String
   field1_ENDS_WITH: String
   field1_IN: [String!]
-  field1_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  field1_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  field1_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  field1_NOT_IN: [String!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  field1_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   field1_STARTS_WITH: String
-  interface1: Interface1Where @deprecated(reason: "Use `interface1_SOME` instead.")
-  interface1Connection: Type1Interface1ConnectionWhere @deprecated(reason: "Use `interface1Connection_SOME` instead.")
+  interface1Aggregate: Type1Interface1AggregateInput
   """
   Return Type1s where all of the related Type1Interface1Connections match this filter
   """
@@ -772,7 +835,6 @@ input Type1Where {
   Return Type1s where none of the related Type1Interface1Connections match this filter
   """
   interface1Connection_NONE: Type1Interface1ConnectionWhere
-  interface1Connection_NOT: Type1Interface1ConnectionWhere @deprecated(reason: "Use `interface1Connection_NONE` instead.")
   """
   Return Type1s where one of the related Type1Interface1Connections match this filter
   """
@@ -785,7 +847,6 @@ input Type1Where {
   interface1_ALL: Interface1Where
   """Return Type1s where none of the related Interface1s match this filter"""
   interface1_NONE: Interface1Where
-  interface1_NOT: Interface1Where @deprecated(reason: "Use `interface1_NONE` instead.")
   """Return Type1s where one of the related Interface1s match this filter"""
   interface1_SINGLE: Interface1Where
   """Return Type1s where some of the related Interface1s match this filter"""
@@ -832,6 +893,18 @@ type Type2Interface1Edge {
   node: Type2Interface1!
 }
 
+input Type2Interface1Interface2AggregateInput {
+  AND: [Type2Interface1Interface2AggregateInput!]
+  NOT: Type2Interface1Interface2AggregateInput
+  OR: [Type2Interface1Interface2AggregateInput!]
+  count: Int
+  count_GT: Int
+  count_GTE: Int
+  count_LT: Int
+  count_LTE: Int
+  node: Type2Interface1Interface2NodeAggregationWhereInput
+}
+
 input Type2Interface1Interface2ConnectFieldInput {
   where: Interface2ConnectWhere
 }
@@ -860,6 +933,27 @@ type Type2Interface1Interface2Interface2AggregationSelection {
 
 type Type2Interface1Interface2Interface2NodeAggregateSelection {
   field2: StringAggregateSelection!
+}
+
+input Type2Interface1Interface2NodeAggregationWhereInput {
+  AND: [Type2Interface1Interface2NodeAggregationWhereInput!]
+  NOT: Type2Interface1Interface2NodeAggregationWhereInput
+  OR: [Type2Interface1Interface2NodeAggregationWhereInput!]
+  field2_AVERAGE_LENGTH_EQUAL: Float
+  field2_AVERAGE_LENGTH_GT: Float
+  field2_AVERAGE_LENGTH_GTE: Float
+  field2_AVERAGE_LENGTH_LT: Float
+  field2_AVERAGE_LENGTH_LTE: Float
+  field2_LONGEST_LENGTH_EQUAL: Int
+  field2_LONGEST_LENGTH_GT: Int
+  field2_LONGEST_LENGTH_GTE: Int
+  field2_LONGEST_LENGTH_LT: Int
+  field2_LONGEST_LENGTH_LTE: Int
+  field2_SHORTEST_LENGTH_EQUAL: Int
+  field2_SHORTEST_LENGTH_GT: Int
+  field2_SHORTEST_LENGTH_GTE: Int
+  field2_SHORTEST_LENGTH_LT: Int
+  field2_SHORTEST_LENGTH_LTE: Int
 }
 
 input Type2Interface1Interface2UpdateConnectionInput {
@@ -908,14 +1002,8 @@ input Type2Interface1Where {
   field1_CONTAINS: String
   field1_ENDS_WITH: String
   field1_IN: [String!]
-  field1_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  field1_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  field1_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  field1_NOT_IN: [String!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  field1_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   field1_STARTS_WITH: String
-  interface2: Interface2Where @deprecated(reason: "Use `interface2_SOME` instead.")
-  interface2Connection: Interface1Interface2ConnectionWhere @deprecated(reason: "Use `interface2Connection_SOME` instead.")
+  interface2Aggregate: Type2Interface1Interface2AggregateInput
   """
   Return Type2Interface1s where all of the related Interface1Interface2Connections match this filter
   """
@@ -924,7 +1012,6 @@ input Type2Interface1Where {
   Return Type2Interface1s where none of the related Interface1Interface2Connections match this filter
   """
   interface2Connection_NONE: Interface1Interface2ConnectionWhere
-  interface2Connection_NOT: Interface1Interface2ConnectionWhere @deprecated(reason: "Use `interface2Connection_NONE` instead.")
   """
   Return Type2Interface1s where one of the related Interface1Interface2Connections match this filter
   """
@@ -941,7 +1028,6 @@ input Type2Interface1Where {
   Return Type2Interface1s where none of the related Interface2s match this filter
   """
   interface2_NONE: Interface2Where
-  interface2_NOT: Interface2Where @deprecated(reason: "Use `interface2_NONE` instead.")
   """
   Return Type2Interface1s where one of the related Interface2s match this filter
   """
@@ -1004,11 +1090,6 @@ input Type2Interface2Where {
   field2_CONTAINS: String
   field2_ENDS_WITH: String
   field2_IN: [String!]
-  field2_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  field2_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  field2_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  field2_NOT_IN: [String!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  field2_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   field2_STARTS_WITH: String
 }
 
@@ -1022,7 +1103,6 @@ type Type2Interface2sConnection {
 Information about the number of nodes and relationships created and deleted during an update mutation
 """
 type UpdateInfo {
-  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   nodesDeleted: Int!
   relationshipsCreated: Int!

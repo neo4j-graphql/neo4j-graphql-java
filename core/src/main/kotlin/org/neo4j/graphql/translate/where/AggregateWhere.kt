@@ -4,6 +4,7 @@ import org.neo4j.cypherdsl.core.*
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.fields.HasCoalesceValue
 import org.neo4j.graphql.domain.fields.RelationBaseField
+import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.domain.predicates.AggregationFieldPredicate
 import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.schema.model.inputs.aggregation.AggregateInput
@@ -18,26 +19,43 @@ class AggregateWhere(val schemaConfig: SchemaConfig, val queryContext: QueryCont
         node: Node,
         input: AggregateInput
     ): WhereResult {
-        val targetNode = field.node ?: error("expecting node on relation target for aggregation")
-        val relName =
-            queryContext.getNextVariable(chainStr) // TODO cleanup relName is taken before name of aggregationTarget b/c of js naming
-        val aggregationTarget = targetNode.asCypherNode(queryContext).named(queryContext.getNextVariable(chainStr))
-        TODO()
-//        val cypherRelation = field.createDslRelation(node, aggregationTarget).named(relName)
-//
-//        val condition = aggregateWhere(input, aggregationTarget, cypherRelation)
-//            ?: return WhereResult.EMPTY
-//
-//        val operationVar = queryContext.getNextVariable()
-//        return WhereResult(
-//            operationVar.eq(true.asCypherLiteral()), listOf(
-//                Cypher
-//                    .with(node)
-//                    .match(cypherRelation)
-//                    .returning(condition.`as`(operationVar))
-//                    .build()
-//            )
-//        )
+        val (aggregationTarget, additionalConditions) = field.extractOnTarget(
+            onNode = {
+                it.asCypherNode(queryContext).named(queryContext.getNextVariable(chainStr)) to Cypher.noCondition()
+            },
+            onInterface = {
+                val target = Cypher.anyNode(queryContext.getNextVariable(chainStr))
+                target to it.implementations.values
+                    .map { target.hasLabels(*it.allLabels(queryContext).toTypedArray()) }
+                    .foldWithOr()
+            },
+            onUnion = { error("unions are not supported for aggregation") }
+        )
+
+        // TODO cleanup relName is taken before name of aggregationTarget b/c of js naming
+        val relName = queryContext.getNextVariable(chainStr)
+
+        if (field is RelationField) {
+
+            val cypherRelation = field.createDslRelation(node, aggregationTarget).named(relName)
+
+            val condition = aggregateWhere(input, aggregationTarget, cypherRelation)
+                ?: return WhereResult.EMPTY
+
+            val operationVar = queryContext.getNextVariable()
+            return WhereResult(
+                operationVar.eq(true.asCypherLiteral()), listOf(
+                    Cypher
+                        .with(node)
+                        .match(cypherRelation)
+                        .optionalWhere(additionalConditions)
+                        .returning(condition.`as`(operationVar))
+                        .build()
+                )
+            )
+        } else {
+            TODO()
+        }
     }
 
     private fun aggregateWhere(
@@ -95,11 +113,11 @@ class AggregateWhere(val schemaConfig: SchemaConfig, val queryContext: QueryCont
             (field as? HasCoalesceValue)
                 ?.coalesceValue
                 ?.toJavaValue()
-                ?.let { Functions.coalesce(dbProperty, it.asCypherLiteral()) }
+                ?.let { Cypher.coalesce(dbProperty, it.asCypherLiteral()) }
                 ?: dbProperty
         val rhs: Expression = queryContext
             .getNextParam(predicate.value)
             .let { field.convertInputToCypher(it) }
-        return predicate.resolver.createCondition(property, rhs, queryContext)
+        return predicate.resolver.createCondition(property, rhs)
     }
 }

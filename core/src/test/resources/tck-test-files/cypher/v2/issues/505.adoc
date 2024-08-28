@@ -14,7 +14,7 @@ type User {
   createdPages: [Page!]! @relationship(type: "CREATED_PAGE", direction: OUT)
 }
 
-type Workspace @authorization(filter: [{operations: [READ], where: {OR: [{node: {members: {authId: "$jwt.sub"}}}, {node: {admins: {authId: "$jwt.sub"}}}]}}]) @mutation(operations: [DELETE]) {
+type Workspace @authorization(filter: [{operations: [READ], where: {OR: [{node: {members_SOME: {authId: "$jwt.sub"}}}, {node: {admins_SOME: {authId: "$jwt.sub"}}}]}}]) @mutation(operations: [DELETE]) {
   id: ID!
   name: String!
   members: [User!]! @relationship(type: "MEMBER_OF", direction: IN)
@@ -22,7 +22,7 @@ type Workspace @authorization(filter: [{operations: [READ], where: {OR: [{node: 
   pages: [Page!]! @relationship(type: "HAS_PAGE", direction: OUT)
 }
 
-type Page @authorization(filter: [{operations: [READ], where: {node: {OR: [{owner: {authId: "$jwt.sub"}}, {AND: [{shared: true}, {workspace: {OR: [{members: {authId: "$jwt.sub"}}, {admins: {authId: "$jwt.sub"}}]}}]}]}}}]) {
+type Page @authorization(filter: [{operations: [READ], where: {node: {OR: [{owner: {authId: "$jwt.sub"}}, {AND: [{shared: true}, {workspace: {OR: [{members_SOME: {authId: "$jwt.sub"}}, {admins_SOME: {authId: "$jwt.sub"}}]}}]}]}}}]) {
   id: ID!
   shared: Boolean! @default(value: false)
   owner: User! @relationship(type: "CREATED_PAGE", direction: IN)
@@ -146,7 +146,6 @@ CALL {
     OPTIONAL MATCH (this1)<-[:HAS_PAGE]-(this3:Workspace)
     WITH *, count(this3) AS workspaceCount
     WITH *
-    WITH *
     WHERE ($isAuthenticated = true AND ((ownerCount <> 0 AND ($jwt.sub IS NOT NULL AND this2.authId = $jwt.sub)) OR (($param3 IS NOT NULL AND this1.shared = $param3) AND (workspaceCount <> 0 AND (size([(this3)<-[:MEMBER_OF]-(this4:User) WHERE ($jwt.sub IS NOT NULL AND this4.authId = $jwt.sub) | 1]) > 0 OR size([(this3)-[:HAS_ADMIN]->(this5:User) WHERE ($jwt.sub IS NOT NULL AND this5.authId = $jwt.sub) | 1]) > 0)))))
     WITH this1 { .id } AS this1
     RETURN collect(this1) AS var6
@@ -195,7 +194,6 @@ CALL {
     WITH *, count(this4) AS ownerCount
     OPTIONAL MATCH (this3)<-[:HAS_PAGE]-(this5:Workspace)
     WITH *, count(this5) AS workspaceCount
-    WITH *
     WITH *
     WHERE ($isAuthenticated = true AND ((ownerCount <> 0 AND ($jwt.sub IS NOT NULL AND this4.authId = $jwt.sub)) OR (($param3 IS NOT NULL AND this3.shared = $param3) AND (workspaceCount <> 0 AND (size([(this5)<-[:MEMBER_OF]-(this6:User) WHERE ($jwt.sub IS NOT NULL AND this6.authId = $jwt.sub) | 1]) > 0 OR size([(this5)-[:HAS_ADMIN]->(this7:User) WHERE ($jwt.sub IS NOT NULL AND this7.authId = $jwt.sub) | 1]) > 0)))))
     WITH this3 { .id } AS this3

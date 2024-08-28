@@ -62,7 +62,7 @@ mutation {
 CALL {
 CREATE (this0:Movie)
 SET this0.title = $this0_title
-WITH *
+WITH this0
 CALL {
 	WITH this0
 	OPTIONAL MATCH (this0_search_Genre_connect0_node:Genre)
@@ -82,11 +82,7 @@ WITH this0, this0_search_Genre_connect0_node
 }
 RETURN this0
 }
-CALL {
-    WITH this0
-    RETURN this0 { .title } AS create_var0
-}
-RETURN [create_var0] AS data
+RETURN [this0 { .title }] AS data
 ----
 
 '''
@@ -136,7 +132,7 @@ mutation {
 ----
 MATCH (this:Movie)
 WHERE this.title = $param0
-WITH *
+WITH this
 CALL {
 	WITH this
 	OPTIONAL MATCH (this_connect_search_Genre0_node:Genre)
@@ -206,17 +202,13 @@ CALL {
 CREATE (this0:Movie)
 SET this0.title = $this0_title
 
-WITH *
+WITH this0
 CREATE (this0_search_Genre0_node:Genre)
 SET this0_search_Genre0_node.name = $this0_search_Genre0_node_name
 MERGE (this0)-[:SEARCH]->(this0_search_Genre0_node)
 RETURN this0
 }
-CALL {
-    WITH this0
-    RETURN this0 { .title } AS create_var0
-}
-RETURN [create_var0] AS data
+RETURN [this0 { .title }] AS data
 ----
 
 '''
@@ -665,7 +657,7 @@ CALL {
         RETURN this4 AS var2
     }
     WITH var2
-    
+
     SKIP $param5
     LIMIT $param6
     RETURN collect(var2) AS var2
@@ -819,10 +811,10 @@ CALL {
 	WITH this
 	MATCH (this)-[this_search0_relationship:SEARCH]->(this_search_Genre0:Genre)
 	WHERE this_search_Genre0.name = $updateMovies_args_update_search_Genre0_where_this_search_Genre0param0
-	
-	
+
+
 	SET this_search_Genre0.name = $this_update_search_Genre0_name
-	
+
 	RETURN count(*) AS update_this_search_Genre0
 }
 

@@ -6,6 +6,8 @@ import graphql.language.ListType
 import graphql.schema.DataFetchingEnvironment
 import org.neo4j.cypherdsl.core.Statement
 import org.neo4j.graphql.*
+import org.neo4j.graphql.domain.Entity
+import org.neo4j.graphql.domain.ImplementingType
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.handler.BaseDataFetcher
 import org.neo4j.graphql.schema.ArgumentsAugmentation
@@ -23,43 +25,46 @@ import org.neo4j.graphql.schema.model.outputs.root_connection.RootNodeConnection
  */
 class ConnectionResolver private constructor(
     schemaConfig: SchemaConfig,
-    val node: Node
+    val implementingType: ImplementingType
 ) : BaseDataFetcher(schemaConfig) {
 
-    class Factory(ctx: AugmentationContext) : AugmentationHandler(ctx), AugmentationHandler.NodeAugmentation {
+    class Factory(ctx: AugmentationContext) : AugmentationHandler(ctx), AugmentationHandler.EntityAugmentation {
 
-        override fun augmentNode(node: Node): List<AugmentedField> {
-            if (node.annotations.query?.read == false) {
+        override fun augmentEntity(entity: Entity): List<AugmentedField> {
+            if (entity !is ImplementingType || entity.annotations.query?.read == false) {
                 return emptyList()
             }
-            val nodeConnectionType = RootNodeConnectionSelection.Augmentation.generateNodeConnectionOT(node, ctx)
+
+            val nodeConnectionType =
+                RootNodeConnectionSelection.Augmentation.generateImplementingTypeConnectionOT(entity, ctx)
             val coordinates = addQueryField(
-                node.namings.rootTypeFieldNames.connection,
+                entity.namings.rootTypeFieldNames.connection,
                 nodeConnectionType.asRequiredType(),
-                InputArguments.Augmentation(node, ctx)
+                InputArguments.Augmentation(entity, ctx)
             )
-            return AugmentedField(coordinates, ConnectionResolver(ctx.schemaConfig, node)).wrapList()
+            return AugmentedField(coordinates, ConnectionResolver(ctx.schemaConfig, entity)).wrapList()
         }
     }
 
     private class InputArguments(node: Node, args: Dict) {
 
-        class Augmentation(val node: Node, val ctx: AugmentationContext) : ArgumentsAugmentation {
+        class Augmentation(val implementingType: ImplementingType, val ctx: AugmentationContext) :
+            ArgumentsAugmentation {
             override fun augmentArguments(args: MutableList<InputValueDefinition>) {
 
-                WhereInput.NodeWhereInput.Augmentation
-                    .generateWhereIT(node, ctx)
+                WhereInput.Augmentation
+                    .generateWhereIT(implementingType, ctx)
                     ?.let { args += inputValue(Constants.WHERE, it.asType()) }
 
                 SortInput.Companion.Augmentation
-                    .generateSortIT(node, ctx)
+                    .generateSortIT(implementingType, ctx)
                     ?.let { args += inputValue(Constants.SORT, ListType(it.asType())) }
 
                 args += inputValue(Constants.FIRST, Constants.Types.Int)
                 args += inputValue(Constants.AFTER, Constants.Types.String)
 
-                if (node.annotations.fulltext != null) {
-                    FulltextInput.Augmentation.generateFulltextInput(node, ctx)
+                if (implementingType is Node && implementingType.annotations.fulltext != null) {
+                    FulltextInput.Augmentation.generateFulltextInput(implementingType, ctx)
                         ?.let {
                             args += inputValue(Constants.FULLTEXT, it.asType()) {
                                 description("Query a full-text index. Allows for the aggregation of results, but does not return the query score. Use the root full-text query fields if you require the score.".asDescription())

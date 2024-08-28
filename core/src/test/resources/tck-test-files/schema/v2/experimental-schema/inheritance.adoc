@@ -77,6 +77,19 @@ type ActorEdge {
   node: Actor!
 }
 
+input ActorFriendsAggregateInput {
+  AND: [ActorFriendsAggregateInput!]
+  NOT: ActorFriendsAggregateInput
+  OR: [ActorFriendsAggregateInput!]
+  count: Int
+  count_GT: Int
+  count_GTE: Int
+  count_LT: Int
+  count_LTE: Int
+  edge: FriendsWithAggregationWhereInput
+  node: ActorFriendsNodeAggregationWhereInput
+}
+
 input ActorFriendsConnectFieldInput {
   connect: PersonConnectInput
   edge: FriendsWithCreateInput
@@ -101,6 +114,27 @@ input ActorFriendsDisconnectFieldInput {
 input ActorFriendsFieldInput {
   connect: [ActorFriendsConnectFieldInput!]
   create: [ActorFriendsCreateFieldInput!]
+}
+
+input ActorFriendsNodeAggregationWhereInput {
+  AND: [ActorFriendsNodeAggregationWhereInput!]
+  NOT: ActorFriendsNodeAggregationWhereInput
+  OR: [ActorFriendsNodeAggregationWhereInput!]
+  name_AVERAGE_LENGTH_EQUAL: Float
+  name_AVERAGE_LENGTH_GT: Float
+  name_AVERAGE_LENGTH_GTE: Float
+  name_AVERAGE_LENGTH_LT: Float
+  name_AVERAGE_LENGTH_LTE: Float
+  name_LONGEST_LENGTH_EQUAL: Int
+  name_LONGEST_LENGTH_GT: Int
+  name_LONGEST_LENGTH_GTE: Int
+  name_LONGEST_LENGTH_LT: Int
+  name_LONGEST_LENGTH_LTE: Int
+  name_SHORTEST_LENGTH_EQUAL: Int
+  name_SHORTEST_LENGTH_GT: Int
+  name_SHORTEST_LENGTH_GTE: Int
+  name_SHORTEST_LENGTH_LT: Int
+  name_SHORTEST_LENGTH_LTE: Int
 }
 
 input ActorFriendsUpdateConnectionInput {
@@ -160,8 +194,7 @@ input ActorWhere {
   AND: [ActorWhere!]
   NOT: ActorWhere
   OR: [ActorWhere!]
-  friends: PersonWhere @deprecated(reason: "Use `friends_SOME` instead.")
-  friendsConnection: PersonFriendsConnectionWhere @deprecated(reason: "Use `friendsConnection_SOME` instead.")
+  friendsAggregate: ActorFriendsAggregateInput
   """
   Return Actors where all of the related PersonFriendsConnections match this filter
   """
@@ -170,7 +203,6 @@ input ActorWhere {
   Return Actors where none of the related PersonFriendsConnections match this filter
   """
   friendsConnection_NONE: PersonFriendsConnectionWhere
-  friendsConnection_NOT: PersonFriendsConnectionWhere @deprecated(reason: "Use `friendsConnection_NONE` instead.")
   """
   Return Actors where one of the related PersonFriendsConnections match this filter
   """
@@ -183,7 +215,6 @@ input ActorWhere {
   friends_ALL: PersonWhere
   """Return Actors where none of the related People match this filter"""
   friends_NONE: PersonWhere
-  friends_NOT: PersonWhere @deprecated(reason: "Use `friends_NONE` instead.")
   """Return Actors where one of the related People match this filter"""
   friends_SINGLE: PersonWhere
   """Return Actors where some of the related People match this filter"""
@@ -192,11 +223,6 @@ input ActorWhere {
   name_CONTAINS: String
   name_ENDS_WITH: String
   name_IN: [String]
-  name_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_IN: [String] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   name_STARTS_WITH: String
 }
 
@@ -215,7 +241,6 @@ type CreateActorsMutationResponse {
 Information about the number of nodes and relationships created during a create mutation
 """
 type CreateInfo {
-  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   relationshipsCreated: Int!
 }
@@ -224,7 +249,6 @@ type CreateInfo {
 Information about the number of nodes and relationships deleted during a delete mutation
 """
 type DeleteInfo {
-  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesDeleted: Int!
   relationshipsDeleted: Int!
 }
@@ -235,6 +259,32 @@ The edge properties for the following fields:
 """
 type FriendsWith {
   since: Int
+}
+
+input FriendsWithAggregationWhereInput {
+  AND: [FriendsWithAggregationWhereInput!]
+  NOT: FriendsWithAggregationWhereInput
+  OR: [FriendsWithAggregationWhereInput!]
+  since_AVERAGE_EQUAL: Float
+  since_AVERAGE_GT: Float
+  since_AVERAGE_GTE: Float
+  since_AVERAGE_LT: Float
+  since_AVERAGE_LTE: Float
+  since_MAX_EQUAL: Int
+  since_MAX_GT: Int
+  since_MAX_GTE: Int
+  since_MAX_LT: Int
+  since_MAX_LTE: Int
+  since_MIN_EQUAL: Int
+  since_MIN_GT: Int
+  since_MIN_GTE: Int
+  since_MIN_LT: Int
+  since_MIN_LTE: Int
+  since_SUM_EQUAL: Int
+  since_SUM_GT: Int
+  since_SUM_GTE: Int
+  since_SUM_LT: Int
+  since_SUM_LTE: Int
 }
 
 input FriendsWithCreateInput {
@@ -261,8 +311,6 @@ input FriendsWithWhere {
   since_IN: [Int]
   since_LT: Int
   since_LTE: Int
-  since_NOT: Int @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  since_NOT_IN: [Int] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 type IntAggregateSelection {
@@ -328,6 +376,19 @@ type PersonEdge {
   node: Person!
 }
 
+input PersonFriendsAggregateInput {
+  AND: [PersonFriendsAggregateInput!]
+  NOT: PersonFriendsAggregateInput
+  OR: [PersonFriendsAggregateInput!]
+  count: Int
+  count_GT: Int
+  count_GTE: Int
+  count_LT: Int
+  count_LTE: Int
+  edge: PersonFriendsEdgeAggregationWhereInput
+  node: PersonFriendsNodeAggregationWhereInput
+}
+
 input PersonFriendsConnectFieldInput {
   connect: PersonConnectInput
   edge: PersonFriendsEdgeCreateInput
@@ -350,9 +411,7 @@ input PersonFriendsConnectionWhere {
   NOT: PersonFriendsConnectionWhere
   OR: [PersonFriendsConnectionWhere!]
   edge: PersonFriendsEdgeWhere
-  edge_NOT: PersonFriendsEdgeWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   node: PersonWhere
-  node_NOT: PersonWhere @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 input PersonFriendsCreateFieldInput {
@@ -368,6 +427,14 @@ input PersonFriendsDeleteFieldInput {
 input PersonFriendsDisconnectFieldInput {
   disconnect: PersonDisconnectInput
   where: PersonFriendsConnectionWhere
+}
+
+input PersonFriendsEdgeAggregationWhereInput {
+  """
+  Relationship properties when source node is of type:
+  * Actor
+  """
+  FriendsWith: FriendsWithAggregationWhereInput
 }
 
 input PersonFriendsEdgeCreateInput {
@@ -400,6 +467,27 @@ input PersonFriendsEdgeWhere {
   * Actor
   """
   FriendsWith: FriendsWithWhere
+}
+
+input PersonFriendsNodeAggregationWhereInput {
+  AND: [PersonFriendsNodeAggregationWhereInput!]
+  NOT: PersonFriendsNodeAggregationWhereInput
+  OR: [PersonFriendsNodeAggregationWhereInput!]
+  name_AVERAGE_LENGTH_EQUAL: Float
+  name_AVERAGE_LENGTH_GT: Float
+  name_AVERAGE_LENGTH_GTE: Float
+  name_AVERAGE_LENGTH_LT: Float
+  name_AVERAGE_LENGTH_LTE: Float
+  name_LONGEST_LENGTH_EQUAL: Int
+  name_LONGEST_LENGTH_GT: Int
+  name_LONGEST_LENGTH_GTE: Int
+  name_LONGEST_LENGTH_LT: Int
+  name_LONGEST_LENGTH_LTE: Int
+  name_SHORTEST_LENGTH_EQUAL: Int
+  name_SHORTEST_LENGTH_GT: Int
+  name_SHORTEST_LENGTH_GTE: Int
+  name_SHORTEST_LENGTH_LT: Int
+  name_SHORTEST_LENGTH_LTE: Int
 }
 
 type PersonFriendsRelationship {
@@ -453,8 +541,7 @@ input PersonWhere {
   AND: [PersonWhere!]
   NOT: PersonWhere
   OR: [PersonWhere!]
-  friends: PersonWhere @deprecated(reason: "Use `friends_SOME` instead.")
-  friendsConnection: PersonFriendsConnectionWhere @deprecated(reason: "Use `friendsConnection_SOME` instead.")
+  friendsAggregate: PersonFriendsAggregateInput
   """
   Return People where all of the related PersonFriendsConnections match this filter
   """
@@ -463,7 +550,6 @@ input PersonWhere {
   Return People where none of the related PersonFriendsConnections match this filter
   """
   friendsConnection_NONE: PersonFriendsConnectionWhere
-  friendsConnection_NOT: PersonFriendsConnectionWhere @deprecated(reason: "Use `friendsConnection_NONE` instead.")
   """
   Return People where one of the related PersonFriendsConnections match this filter
   """
@@ -476,7 +562,6 @@ input PersonWhere {
   friends_ALL: PersonWhere
   """Return People where none of the related People match this filter"""
   friends_NONE: PersonWhere
-  friends_NOT: PersonWhere @deprecated(reason: "Use `friends_NONE` instead.")
   """Return People where one of the related People match this filter"""
   friends_SINGLE: PersonWhere
   """Return People where some of the related People match this filter"""
@@ -485,11 +570,6 @@ input PersonWhere {
   name_CONTAINS: String
   name_ENDS_WITH: String
   name_IN: [String]
-  name_NOT: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_CONTAINS: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_ENDS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_IN: [String] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  name_NOT_STARTS_WITH: String @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
   name_STARTS_WITH: String
   typename_IN: [PersonImplementation!]
 }
@@ -525,7 +605,6 @@ type UpdateActorsMutationResponse {
 Information about the number of nodes and relationships created and deleted during an update mutation
 """
 type UpdateInfo {
-  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   nodesDeleted: Int!
   relationshipsCreated: Int!

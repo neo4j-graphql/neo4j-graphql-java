@@ -24,7 +24,7 @@ type dcterms_title @node(labels: ["dcterms_title", "property"]) @mutation(operat
 {
   frbrWorks(
     options: {limit: 10000}
-    where: {dcterms__title: {value_CONTAINS: "0777"}}
+    where: {dcterms__title_SOME: {value_CONTAINS: "0777"}}
   ) {
     iri
     dcterms__title(where: {value_CONTAINS: "0777"}) {

@@ -112,7 +112,7 @@ END } AS this
 [source,graphql]
 ----
 {
-  pointContainers(where: {point_NOT_IN: [{longitude: 1.0, latitude: 2.0}]}) {
+  pointContainers(where: {NOT: {point_IN: [{longitude: 1.0, latitude: 2.0}]}}) {
     point {
       longitude
       latitude
@@ -154,7 +154,7 @@ END } AS this
 [source,graphql]
 ----
 {
-  pointContainers(where: {point_NOT: {longitude: 1.0, latitude: 2.0}}) {
+  pointContainers(where: {NOT: {point: {longitude: 1.0, latitude: 2.0}}}) {
     point {
       longitude
       latitude

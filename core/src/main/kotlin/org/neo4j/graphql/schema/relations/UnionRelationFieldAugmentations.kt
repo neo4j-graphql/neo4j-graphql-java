@@ -6,7 +6,6 @@ import org.neo4j.graphql.asType
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.Union
 import org.neo4j.graphql.domain.fields.RelationBaseField
-import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.isList
 import org.neo4j.graphql.schema.AugmentationContext
 import org.neo4j.graphql.schema.model.inputs.WhereInput
@@ -32,7 +31,7 @@ class UnionRelationFieldAugmentations(
 
     private val isArray: Boolean = rel.typeMeta.type.isList()
 
-    override fun generateFieldCreateIT() = (rel as? RelationField)?.let {
+    override fun generateFieldCreateIT() =
         ctx.getOrCreateInputObjectType(rel.namings.unionCreateInputTypeName) { fields, _ ->
             unionNodes.forEach { node ->
                 CreateFieldInput.NodeFieldInput.Augmentation
@@ -41,9 +40,8 @@ class UnionRelationFieldAugmentations(
                     }
             }
         }
-    }
 
-    override fun generateFieldConnectIT() = (rel as? RelationField)?.let {
+    override fun generateFieldConnectIT() =
         ctx.getOrCreateInputObjectType(rel.namings.unionConnectInputTypeName) { fields, _ ->
             unionNodes.forEach { node ->
                 NodeConnectFieldInput.Augmentation
@@ -52,9 +50,8 @@ class UnionRelationFieldAugmentations(
                     }
             }
         }
-    }
 
-    override fun generateFieldDeleteIT() = (rel as? RelationField)?.let {
+    override fun generateFieldDeleteIT() =
         ctx.getOrCreateInputObjectType(rel.namings.unionDeleteInputTypeName) { fields, _ ->
             unionNodes.forEach { node ->
                 DeleteFieldInput.NodeDeleteFieldInput.Augmentation
@@ -63,9 +60,9 @@ class UnionRelationFieldAugmentations(
                     }
             }
         }
-    }
 
-    override fun generateFieldDisconnectIT() = (rel as? RelationField)?.let {
+
+    override fun generateFieldDisconnectIT() =
         ctx.getOrCreateInputObjectType(rel.namings.unionDisconnectInputTypeName) { fields, _ ->
             unionNodes.forEach { node ->
                 DisconnectFieldInput.NodeDisconnectFieldInput.Augmentation
@@ -74,9 +71,9 @@ class UnionRelationFieldAugmentations(
                     }
             }
         }
-    }
 
-    override fun generateFieldRelationCreateIT() = (rel as? RelationField)?.let {
+
+    override fun generateFieldRelationCreateIT() =
         ctx.getOrCreateInputObjectType(rel.namings.unionCreateFieldInputTypeName) { fields, _ ->
             unionNodes.forEach { node ->
                 RelationFieldInput.NodeCreateCreateFieldInput.Augmentation
@@ -85,9 +82,9 @@ class UnionRelationFieldAugmentations(
                     }
             }
         }
-    }
 
-    override fun generateFieldUpdateIT() = (rel as? RelationField)?.let {
+
+    override fun generateFieldUpdateIT() =
         ctx.getOrCreateInputObjectType(rel.namings.unionUpdateInputTypeName) { fields, _ ->
             unionNodes.forEach { node ->
                 UpdateFieldInput.NodeUpdateFieldInput.Augmentation
@@ -96,11 +93,10 @@ class UnionRelationFieldAugmentations(
                     }
             }
         }
-    }
 
     override fun generateFieldWhereIT() = WhereInput.UnionWhereInput.Augmentation.generateWhereIT(union, ctx)
 
-    override fun generateFieldConnectionWhereIT() = (rel as? RelationField)?.let {
+    override fun generateFieldConnectionWhereIT() =
         ctx.getOrCreateInputObjectType(rel.namings.unionConnectionUnionWhereTypeName) { fields, _ ->
             unionNodes.forEach { node ->
                 ConnectionWhere.NodeConnectionWhere.Augmentation
@@ -108,9 +104,8 @@ class UnionRelationFieldAugmentations(
                     ?.let { fields += ctx.inputValue(node.name, it.asType()) }
             }
         }
-    }
 
-    override fun generateFieldConnectOrCreateIT() = (rel as? RelationField)?.let {
+    override fun generateFieldConnectOrCreateIT() =
         ctx.getOrCreateInputObjectType(rel.namings.connectOrCreateInputTypeName) { fields, _ ->
             unionNodes.forEach { node ->
                 ConnectOrCreateFieldInput.NodeConnectOrCreateFieldInput.Augmentation
@@ -119,7 +114,6 @@ class UnionRelationFieldAugmentations(
                     }
             }
         }
-    }
 
     protected fun String.wrapType() = when {
         isArray -> ListType(this.asRequiredType())

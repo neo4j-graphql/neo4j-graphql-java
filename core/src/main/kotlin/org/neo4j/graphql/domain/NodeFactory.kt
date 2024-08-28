@@ -37,7 +37,8 @@ object NodeFactory {
             definition,
             typeDefinitionRegistry,
             relationshipPropertiesFactory,
-            schemaConfig
+            schemaConfig,
+            interfaces
         )
         annotations.fulltext?.validate(definition, fields)
         annotations.limit?.validate(definition.name)

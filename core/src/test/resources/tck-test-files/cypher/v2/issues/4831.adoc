@@ -1,0 +1,323 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/4831
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Test {
+  testBoolean(value: Boolean): Boolean @cypher(statement: "RETURN $value as value", columnName: "value")
+  testString(value: String): String @cypher(statement: "RETURN $value as value", columnName: "value")
+}
+----
+== Boolean
+
+=== the parameter should be false when the cypher argument is false
+
+.GraphQL-Query
+[source,graphql]
+----
+query ExampleQuery {
+  tests {
+    testBoolean(value: false)
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": false
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Test)
+CALL {
+    WITH this
+    CALL {
+        WITH this
+        WITH this AS this
+        RETURN $param0 as value
+    }
+    WITH value AS this0
+    RETURN this0 AS var1
+}
+RETURN this { testBoolean: var1 } AS this
+----
+
+'''
+
+=== the parameter should be NULL when the cypher argument is not passed
+
+.GraphQL-Query
+[source,graphql]
+----
+query ExampleQuery {
+  tests {
+    testBoolean
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Test)
+CALL {
+    WITH this
+    CALL {
+        WITH this
+        WITH this AS this
+        RETURN NULL as value
+    }
+    WITH value AS this0
+    RETURN this0 AS var1
+}
+RETURN this { testBoolean: var1 } AS this
+----
+
+'''
+
+=== the parameter should be NULL when the cypher argument passed is NULL
+
+.GraphQL-Query
+[source,graphql]
+----
+query ExampleQuery {
+  tests {
+    testBoolean(value: null)
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Test)
+CALL {
+    WITH this
+    CALL {
+        WITH this
+        WITH this AS this
+        RETURN NULL as value
+    }
+    WITH value AS this0
+    RETURN this0 AS var1
+}
+RETURN this { testBoolean: var1 } AS this
+----
+
+'''
+
+=== the parameter should be true when the cypher argument is true
+
+.GraphQL-Query
+[source,graphql]
+----
+query ExampleQuery {
+  tests {
+    testBoolean(value: true)
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": true
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Test)
+CALL {
+    WITH this
+    CALL {
+        WITH this
+        WITH this AS this
+        RETURN $param0 as value
+    }
+    WITH value AS this0
+    RETURN this0 AS var1
+}
+RETURN this { testBoolean: var1 } AS this
+----
+
+'''
+
+
+== String
+
+=== the parameter should be 'some-string' when the cypher argument is 'some-string'
+
+.GraphQL-Query
+[source,graphql]
+----
+query ExampleQuery {
+  tests {
+    testString(value: "some-string")
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "some-string"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Test)
+CALL {
+    WITH this
+    CALL {
+        WITH this
+        WITH this AS this
+        RETURN $param0 as value
+    }
+    WITH value AS this0
+    RETURN this0 AS var1
+}
+RETURN this { testString: var1 } AS this
+----
+
+'''
+
+=== the parameter should be an empty string when the cypher argument is an empty string
+
+.GraphQL-Query
+[source,graphql]
+----
+query ExampleQuery {
+  tests {
+    testString(value: "")
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": ""
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Test)
+CALL {
+    WITH this
+    CALL {
+        WITH this
+        WITH this AS this
+        RETURN $param0 as value
+    }
+    WITH value AS this0
+    RETURN this0 AS var1
+}
+RETURN this { testString: var1 } AS this
+----
+
+'''
+
+=== the parameter should be NULL when the cypher argument is not passed
+
+.GraphQL-Query
+[source,graphql]
+----
+query ExampleQuery {
+  tests {
+    testString
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Test)
+CALL {
+    WITH this
+    CALL {
+        WITH this
+        WITH this AS this
+        RETURN NULL as value
+    }
+    WITH value AS this0
+    RETURN this0 AS var1
+}
+RETURN this { testString: var1 } AS this
+----
+
+'''
+
+=== the parameter should be NULL when the cypher argument passed is NULL
+
+.GraphQL-Query
+[source,graphql]
+----
+query ExampleQuery {
+  tests {
+    testString(value: null)
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Test)
+CALL {
+    WITH this
+    CALL {
+        WITH this
+        WITH this AS this
+        RETURN NULL as value
+    }
+    WITH value AS this0
+    RETURN this0 AS var1
+}
+RETURN this { testString: var1 } AS this
+----
+
+'''
+
+

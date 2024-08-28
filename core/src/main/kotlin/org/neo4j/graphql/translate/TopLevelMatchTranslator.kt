@@ -11,6 +11,7 @@ import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.schema.model.inputs.WhereInput
 import org.neo4j.graphql.schema.model.inputs.filter.FulltextPerIndex
 import org.neo4j.graphql.translate.where.createWhere
+import org.neo4j.graphql.utils.ObjectFieldSelection
 import org.neo4j.graphql.withSubQueries
 
 class TopLevelMatchTranslator(
@@ -25,7 +26,8 @@ class TopLevelMatchTranslator(
         fulltextInput: FulltextPerIndex?,
         where: WhereInput?,
         authOperation: AuthorizationDirective.AuthorizationOperation,
-        additionalPredicates: Condition? = null
+        additionalPredicates: Condition? = null,
+        selection: ObjectFieldSelection<*,*>? = null,
     ): OngoingReading {
 
         val varName = ChainString(schemaConfig, cypherNode)
@@ -42,7 +44,7 @@ class TopLevelMatchTranslator(
         whereCondition = whereCondition and AuthorizationFactory.getAuthConditions(
             node,
             cypherNode,
-            null, // TODO fields
+            selection?.getSelectedFields(node),
             schemaConfig,
             queryContext,
             authOperation
@@ -76,7 +78,7 @@ class TopLevelMatchTranslator(
             )
             .yield(thisName, scoreName)
 
-        var cond = Conditions.noCondition()
+        var cond = Cypher.noCondition()
         // TODO remove this? https://github.com/neo4j/graphql/issues/1189
         if (node.additionalLabels.isNotEmpty()) {
             // TODO add Functions.labels(#symbolicName) // node.hasLabels()

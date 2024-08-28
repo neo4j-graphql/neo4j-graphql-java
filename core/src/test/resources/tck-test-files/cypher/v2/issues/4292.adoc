@@ -45,39 +45,39 @@ enum InviteeStatus {
 }
 
 interface Invitee {
-  id: ID! @id
+  id: ID!
   email: String!
   name: String
-  creator: User! @relationship(type: "CREATOR_OF", direction: IN)
-  group: Group! @relationship(type: "ADMIN_OF", direction: OUT)
-  status: InviteeStatus! @default(value: INVITED)
-  user: User @relationship(type: "IS_USER", direction: OUT)
+  creator: User! @declareRelationship
+  group: Group! @declareRelationship
+  status: InviteeStatus!
+  user: User @declareRelationship
   role: InviteeRole!
 }
 
 type Admin implements Invitee {
-  id: ID! @unique
-  group: Group!
-  creator: User!
+  id: ID! @unique @id
+  group: Group! @relationship(type: "ADMIN_OF", direction: OUT)
+  creator: User! @relationship(type: "CREATOR_OF", direction: IN)
   email: String!
   name: String
-  status: InviteeStatus!
-  user: User
+  status: InviteeStatus! @default(value: INVITED)
+  user: User @relationship(type: "IS_USER", direction: OUT)
   role: InviteeRole! @default(value: ADMIN)
 }
 
 type Contributor implements Invitee {
-  id: ID! @unique
+  id: ID! @unique @id
   group: Group! @relationship(type: "CONTRIBUTOR_TO", direction: OUT)
-  creator: User!
+  creator: User! @relationship(type: "CREATOR_OF", direction: IN)
   email: String!
   name: String
-  status: InviteeStatus!
-  user: User
+  status: InviteeStatus! @default(value: INVITED)
+  user: User @relationship(type: "IS_USER", direction: OUT)
   role: InviteeRole! @default(value: CONTRIBUTOR)
 }
 
-interface PartnerOf @relationshipProperties {
+type PartnerOf @relationshipProperties {
   id: ID! @id
   firstDay: Date
   lastDay: Date
@@ -108,9 +108,11 @@ query Groups {
       name
       partnersConnection {
         edges {
-          active
-          firstDay
-          lastDay
+          properties {
+            active
+            firstDay
+            lastDay
+          }
         }
       }
     }
@@ -168,7 +170,6 @@ CALL {
     WITH *, count(this3) AS groupCount
     OPTIONAL MATCH (this1)-[:MEMBER_OF]->(this4:Group)
     WITH *, count(this4) AS groupCount
-    WITH *
     CALL {
         WITH this1
         MATCH (this1)-[:MEMBER_OF]->(this5:Group)
@@ -209,7 +210,7 @@ CALL {
             WITH edges
             UNWIND edges AS edge
             WITH edge.node AS this13, edge.relationship AS this12
-            RETURN collect({ active: this12.active, firstDay: this12.firstDay, lastDay: this12.lastDay, node: { __resolveType: "Person", __id: id(this13) } }) AS var25
+            RETURN collect({ properties: { active: this12.active, firstDay: this12.firstDay, lastDay: this12.lastDay, __resolveType: "PartnerOf" }, node: { __id: id(this13), __resolveType: "Person" } }) AS var25
         }
         RETURN { edges: var25, totalCount: totalCount } AS var26
     }

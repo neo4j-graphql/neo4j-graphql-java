@@ -15,239 +15,11 @@ type Post {
   likes: [User!]! @relationship(type: "LIKES", direction: IN, properties: "Likes")
 }
 
-interface Likes @relationshipProperties {
+type Likes @relationshipProperties {
   someDateTime: DateTime
   someDateTimeAlias: DateTime @alias(property: "_someDateTimeAlias")
 }
 ----
-== EQUAL
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  posts(
-    where: {likesAggregate: {edge: {someDateTime_EQUAL: "2021-09-25T12:51:24.037Z"}}}
-  ) {
-    content
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0": "2021-09-25T12:51:24.037000000Z"
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Post)
-CALL {
-    WITH this
-    MATCH (this)<-[this0:LIKES]-(this1:User)
-    RETURN any(var2 IN collect(this0.someDateTime) WHERE var2 = $param0) AS var3
-}
-WITH *
-WHERE var3 = true
-RETURN this { .content } AS this
-----
-
-'''
-
-== EQUAL with alias
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  posts(
-    where: {likesAggregate: {edge: {someDateTimeAlias_EQUAL: "2021-09-25T12:51:24.037Z"}}}
-  ) {
-    content
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0": "2021-09-25T12:51:24.037000000Z"
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Post)
-CALL {
-    WITH this
-    MATCH (this)<-[this0:LIKES]-(this1:User)
-    RETURN any(var2 IN collect(this0._someDateTimeAlias) WHERE var2 = $param0) AS var3
-}
-WITH *
-WHERE var3 = true
-RETURN this { .content } AS this
-----
-
-'''
-
-== GT
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  posts(
-    where: {likesAggregate: {edge: {someDateTime_GT: "2021-09-25T12:51:24.037Z"}}}
-  ) {
-    content
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0": "2021-09-25T12:51:24.037000000Z"
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Post)
-CALL {
-    WITH this
-    MATCH (this)<-[this0:LIKES]-(this1:User)
-    RETURN any(var2 IN collect(this0.someDateTime) WHERE var2 > $param0) AS var3
-}
-WITH *
-WHERE var3 = true
-RETURN this { .content } AS this
-----
-
-'''
-
-== GTE
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  posts(
-    where: {likesAggregate: {edge: {someDateTime_GTE: "2021-09-25T12:51:24.037Z"}}}
-  ) {
-    content
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0": "2021-09-25T12:51:24.037000000Z"
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Post)
-CALL {
-    WITH this
-    MATCH (this)<-[this0:LIKES]-(this1:User)
-    RETURN any(var2 IN collect(this0.someDateTime) WHERE var2 >= $param0) AS var3
-}
-WITH *
-WHERE var3 = true
-RETURN this { .content } AS this
-----
-
-'''
-
-== LT
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  posts(
-    where: {likesAggregate: {edge: {someDateTime_LT: "2021-09-25T12:51:24.037Z"}}}
-  ) {
-    content
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0": "2021-09-25T12:51:24.037000000Z"
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Post)
-CALL {
-    WITH this
-    MATCH (this)<-[this0:LIKES]-(this1:User)
-    RETURN any(var2 IN collect(this0.someDateTime) WHERE var2 < $param0) AS var3
-}
-WITH *
-WHERE var3 = true
-RETURN this { .content } AS this
-----
-
-'''
-
-== LTE
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  posts(
-    where: {likesAggregate: {edge: {someDateTime_LTE: "2021-09-25T12:51:24.037Z"}}}
-  ) {
-    content
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0": "2021-09-25T12:51:24.037000000Z"
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Post)
-CALL {
-    WITH this
-    MATCH (this)<-[this0:LIKES]-(this1:User)
-    RETURN any(var2 IN collect(this0.someDateTime) WHERE var2 <= $param0) AS var3
-}
-WITH *
-WHERE var3 = true
-RETURN this { .content } AS this
-----
-
-'''
-
 == MAX_EQUAL
 
 .GraphQL-Query
@@ -278,6 +50,44 @@ CALL {
     WITH this
     MATCH (this)<-[this0:LIKES]-(this1:User)
     RETURN max(this0.someDateTime) = $param0 AS var2
+}
+WITH *
+WHERE var2 = true
+RETURN this { .content } AS this
+----
+
+'''
+
+== MAX_EQUAL with alias
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  posts(
+    where: {likesAggregate: {edge: {someDateTimeAlias_MAX_EQUAL: "2021-09-25T12:51:24.037Z"}}}
+  ) {
+    content
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "2021-09-25T12:51:24.037000000Z"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Post)
+CALL {
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1:User)
+    RETURN max(this0._someDateTimeAlias) = $param0 AS var2
 }
 WITH *
 WHERE var2 = true

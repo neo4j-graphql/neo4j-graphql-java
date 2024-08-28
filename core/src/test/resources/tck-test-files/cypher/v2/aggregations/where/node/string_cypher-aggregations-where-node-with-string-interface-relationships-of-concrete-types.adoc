@@ -1,0 +1,583 @@
+:toc:
+
+= Cypher Aggregations where node with String interface relationships of concrete types
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+interface Human {
+  name: String!
+  someStringAlias: String
+}
+
+type User implements Human @node(labels: ["User", "Employee"]) {
+  name: String!
+  someStringAlias: String @alias(property: "_someStringAlias")
+}
+
+type Person implements Human {
+  name: String!
+  someStringAlias: String
+}
+
+type Post {
+  content: String!
+  likes: [Human!]! @relationship(type: "LIKES", direction: IN)
+}
+----
+== AVERAGE_LENGTH_EQUAL
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  posts(where: {likesAggregate: {node: {name_AVERAGE_LENGTH_EQUAL: 10}}}) {
+    content
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": 10
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Post)
+CALL {
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1)
+    WHERE (this1:Person OR this1:User:Employee)
+    RETURN avg(size(this1.name)) = $param0 AS var2
+}
+WITH *
+WHERE var2 = true
+RETURN this { .content } AS this
+----
+
+'''
+
+== AVERAGE_LENGTH_GT
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  posts(where: {likesAggregate: {node: {name_AVERAGE_LENGTH_GT: 10}}}) {
+    content
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": 10
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Post)
+CALL {
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1)
+    WHERE (this1:Person OR this1:User:Employee)
+    RETURN avg(size(this1.name)) > $param0 AS var2
+}
+WITH *
+WHERE var2 = true
+RETURN this { .content } AS this
+----
+
+'''
+
+== AVERAGE_LENGTH_GTE
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  posts(where: {likesAggregate: {node: {name_AVERAGE_LENGTH_GTE: 10}}}) {
+    content
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": 10
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Post)
+CALL {
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1)
+    WHERE (this1:Person OR this1:User:Employee)
+    RETURN avg(size(this1.name)) >= $param0 AS var2
+}
+WITH *
+WHERE var2 = true
+RETURN this { .content } AS this
+----
+
+'''
+
+== AVERAGE_LENGTH_LT
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  posts(where: {likesAggregate: {node: {name_AVERAGE_LENGTH_LT: 10}}}) {
+    content
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": 10
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Post)
+CALL {
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1)
+    WHERE (this1:Person OR this1:User:Employee)
+    RETURN avg(size(this1.name)) < $param0 AS var2
+}
+WITH *
+WHERE var2 = true
+RETURN this { .content } AS this
+----
+
+'''
+
+== AVERAGE_LENGTH_LTE
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  posts(where: {likesAggregate: {node: {name_AVERAGE_LENGTH_LTE: 10}}}) {
+    content
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": 10
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Post)
+CALL {
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1)
+    WHERE (this1:Person OR this1:User:Employee)
+    RETURN avg(size(this1.name)) <= $param0 AS var2
+}
+WITH *
+WHERE var2 = true
+RETURN this { .content } AS this
+----
+
+'''
+
+== LONGEST_LENGTH_EQUAL
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  posts(where: {likesAggregate: {node: {name_LONGEST_LENGTH_EQUAL: 10}}}) {
+    content
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": 10
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Post)
+CALL {
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1)
+    WHERE (this1:Person OR this1:User:Employee)
+    RETURN max(size(this1.name)) = $param0 AS var2
+}
+WITH *
+WHERE var2 = true
+RETURN this { .content } AS this
+----
+
+'''
+
+== LONGEST_LENGTH_GT
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  posts(where: {likesAggregate: {node: {name_LONGEST_LENGTH_GT: 10}}}) {
+    content
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": 10
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Post)
+CALL {
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1)
+    WHERE (this1:Person OR this1:User:Employee)
+    RETURN max(size(this1.name)) > $param0 AS var2
+}
+WITH *
+WHERE var2 = true
+RETURN this { .content } AS this
+----
+
+'''
+
+== LONGEST_LENGTH_GTE
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  posts(where: {likesAggregate: {node: {name_LONGEST_LENGTH_GTE: 10}}}) {
+    content
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": 10
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Post)
+CALL {
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1)
+    WHERE (this1:Person OR this1:User:Employee)
+    RETURN max(size(this1.name)) >= $param0 AS var2
+}
+WITH *
+WHERE var2 = true
+RETURN this { .content } AS this
+----
+
+'''
+
+== LONGEST_LENGTH_LT
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  posts(where: {likesAggregate: {node: {name_LONGEST_LENGTH_LT: 10}}}) {
+    content
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": 10
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Post)
+CALL {
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1)
+    WHERE (this1:Person OR this1:User:Employee)
+    RETURN max(size(this1.name)) < $param0 AS var2
+}
+WITH *
+WHERE var2 = true
+RETURN this { .content } AS this
+----
+
+'''
+
+== LONGEST_LENGTH_LTE
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  posts(where: {likesAggregate: {node: {name_LONGEST_LENGTH_LTE: 10}}}) {
+    content
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": 10
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Post)
+CALL {
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1)
+    WHERE (this1:Person OR this1:User:Employee)
+    RETURN max(size(this1.name)) <= $param0 AS var2
+}
+WITH *
+WHERE var2 = true
+RETURN this { .content } AS this
+----
+
+'''
+
+== SHORTEST_LENGTH_EQUAL
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  posts(where: {likesAggregate: {node: {name_SHORTEST_LENGTH_EQUAL: 10}}}) {
+    content
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": 10
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Post)
+CALL {
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1)
+    WHERE (this1:Person OR this1:User:Employee)
+    RETURN min(size(this1.name)) = $param0 AS var2
+}
+WITH *
+WHERE var2 = true
+RETURN this { .content } AS this
+----
+
+'''
+
+== SHORTEST_LENGTH_GT
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  posts(where: {likesAggregate: {node: {name_SHORTEST_LENGTH_GT: 10}}}) {
+    content
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": 10
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Post)
+CALL {
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1)
+    WHERE (this1:Person OR this1:User:Employee)
+    RETURN min(size(this1.name)) > $param0 AS var2
+}
+WITH *
+WHERE var2 = true
+RETURN this { .content } AS this
+----
+
+'''
+
+== SHORTEST_LENGTH_GTE
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  posts(where: {likesAggregate: {node: {name_SHORTEST_LENGTH_GTE: 10}}}) {
+    content
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": 10
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Post)
+CALL {
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1)
+    WHERE (this1:Person OR this1:User:Employee)
+    RETURN min(size(this1.name)) >= $param0 AS var2
+}
+WITH *
+WHERE var2 = true
+RETURN this { .content } AS this
+----
+
+'''
+
+== SHORTEST_LENGTH_LT
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  posts(where: {likesAggregate: {node: {name_SHORTEST_LENGTH_LT: 10}}}) {
+    content
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": 10
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Post)
+CALL {
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1)
+    WHERE (this1:Person OR this1:User:Employee)
+    RETURN min(size(this1.name)) < $param0 AS var2
+}
+WITH *
+WHERE var2 = true
+RETURN this { .content } AS this
+----
+
+'''
+
+== SHORTEST_LENGTH_LTE
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  posts(where: {likesAggregate: {node: {name_SHORTEST_LENGTH_LTE: 10}}}) {
+    content
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": 10
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Post)
+CALL {
+    WITH this
+    MATCH (this)<-[this0:LIKES]-(this1)
+    WHERE (this1:Person OR this1:User:Employee)
+    RETURN min(size(this1.name)) <= $param0 AS var2
+}
+WITH *
+WHERE var2 = true
+RETURN this { .content } AS this
+----
+
+'''
+

@@ -1,7 +1,6 @@
 package org.neo4j.graphql.translate
 
 import org.neo4j.cypherdsl.core.Cypher
-import org.neo4j.cypherdsl.core.Functions
 import org.neo4j.cypherdsl.core.Statement
 import org.neo4j.graphql.*
 import org.neo4j.graphql.Constants.RELATIONSHIP_REQUIREMENT_PREFIX
@@ -35,7 +34,7 @@ object RelationshipValidationTranslator {
 
         Cypher.with(varName)
             .match(dslRelation)
-            .with(Functions.count(dslRelation.requiredSymbolicName).`as`(c))
+            .with(Cypher.count(dslRelation.requiredSymbolicName).`as`(c))
             .apocValidate(predicate, errorMessage)
             .returning(c.`as`(ChainString(schemaConfig, relVarName, "ignored").resolveName()))
             .build()

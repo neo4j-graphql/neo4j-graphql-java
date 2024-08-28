@@ -18,11 +18,11 @@ data class RelationPredicateDefinition(
 ) : PredicateDefinition {
 
     val description: Description?
-        get() = if (operator.list && operator.deprecatedAlternative == null) {
+        get() = if (operator.list) {
             val plural = (this.field.owner as? ImplementingType)?.pluralKeepCase ?: this.field.getOwnerName()
             val relatedName = if (connection) {
                 // TODO really this name?
-                EnglischInflector.getPlural(this.field.connectionField.typeMeta.type.name())
+                EnglischInflector.getPlural(this.field.namings.connectionFieldTypename)
             } else this.field.extractOnTarget(
                 onImplementingType = { it.pluralKeepCase },
                 onUnion = { it.pluralKeepCase }
@@ -31,17 +31,4 @@ data class RelationPredicateDefinition(
         } else {
             null
         }
-
-    val deprecated: Directive?
-        get() = if (operator.deprecatedAlternative != null) {
-            val baseField = if (connection) {
-                this.field.connectionField
-            } else {
-                this.field
-            }
-            "Use `${baseField.fieldName}_${operator.deprecatedAlternative}` instead.".toDeprecatedDirective()
-        } else {
-            null
-        }
-
 }

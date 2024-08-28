@@ -64,9 +64,10 @@ CALL {
         WITH this2 { .name } AS this2
         RETURN collect(this2) AS var3
     }
-    RETURN collect(this0 { .title, actors: var3 }) AS this0
+    WITH this0 { .title, actors: var3 } AS this0
+    RETURN collect(this0) AS var4
 }
-RETURN this { custom: this0 } AS this
+RETURN this { custom: var4 } AS this
 ----
 
 '''

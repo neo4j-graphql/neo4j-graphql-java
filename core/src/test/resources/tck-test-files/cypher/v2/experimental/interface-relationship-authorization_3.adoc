@@ -1,0 +1,93 @@
+:toc:
+
+= Interface filtering on authorization rules
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type JWT @jwt {
+  roles: [String]
+  groups: [String]
+}
+
+interface Show {
+  title: String!
+  actors: [Actor!]! @declareRelationship
+}
+
+type Movie implements Show {
+  title: String!
+  cost: Float
+  runtime: Int
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN, properties: "ActedIn")
+}
+
+type Series implements Show {
+  title: String!
+  episodes: Int
+  actors: [Actor!]! @relationship(type: "STARRED_IN", direction: IN, properties: "StarredIn")
+}
+
+type Actor {
+  name: String!
+  actedIn: [Show!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
+}
+
+type ActedIn @relationshipProperties {
+  screenTime: Int
+}
+
+type StarredIn @relationshipProperties {
+  episodes: Int
+}
+
+extend type Actor @authorization(validate: [{when: [BEFORE], operations: [READ], where: {node: {actedInConnection_SINGLE: {node: {actorsConnection_SINGLE: {node: {name: "Keanu Reeves"}}}}}}}])
+----
+== Connection operator filter SINGLE should be applied exactly once
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  actors {
+    name
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "auth": {
+    "isAuthenticated": true,
+    "roles": [],
+    "jwt": {
+      "roles": []
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "isAuthenticated": true,
+  "param1": "Keanu Reeves",
+  "param2": "Keanu Reeves"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+WITH *
+WHERE apoc.util.validatePredicate(NOT ($isAuthenticated = true AND (single(this1 IN [(this)-[this3:ACTED_IN]->(this1:Movie) WHERE single(this0 IN [(this1)<-[this2:ACTED_IN]-(this0:Actor) WHERE ($param1 IS NOT NULL AND this0.name = $param1) | 1] WHERE true) | 1] WHERE true) XOR single(this5 IN [(this)-[this7:ACTED_IN]->(this5:Series) WHERE single(this4 IN [(this5)<-[this6:STARRED_IN]-(this4:Actor) WHERE ($param2 IS NOT NULL AND this4.name = $param2) | 1] WHERE true) | 1] WHERE true))), "@neo4j/graphql/FORBIDDEN", [0])
+RETURN this { .name } AS this
+----
+
+'''
+

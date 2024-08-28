@@ -27,10 +27,7 @@ type Movie implements Search @node(labels: ["Film"]) {
 ----
 {
   movies(where: {title: "some title"}) {
-    search(
-      where: {_on: {Movie: {title: "The Matrix"}, Genre: {name: "Horror"}}}
-      options: {offset: 1, limit: 10}
-    ) {
+    search(where: {name: "Horror"}, options: {offset: 1, limit: 10}) {
       ... on Movie {
         title
       }
@@ -48,7 +45,7 @@ type Movie implements Search @node(labels: ["Film"]) {
 {
   "param0": "some title",
   "param1": "Horror",
-  "param2": "The Matrix",
+  "param2": "Horror",
   "param3": 1,
   "param4": 10
 }
@@ -70,7 +67,7 @@ CALL {
         UNION
         WITH *
         MATCH (this)-[this3:SEARCH]->(this4:Film)
-        WHERE this4.title = $param2
+        WHERE this4.name = $param2
         WITH this4 { .title, __resolveType: "Movie", __id: id(this4) } AS this4
         RETURN this4 AS var2
     }

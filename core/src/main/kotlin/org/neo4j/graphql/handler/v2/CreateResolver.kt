@@ -197,7 +197,7 @@ class CreateResolver private constructor(
         return Cypher.unwind(param).`as`(unwindVar)
             .call(create)
             .withSubQueries(projection.allSubQueries)
-            .returning(Functions.collect(currentNode.project(projection.projection)).`as`("data"))
+            .returning(Cypher.collect(currentNode.project(projection.projection)).`as`("data"))
             .build()
     }
 
@@ -367,7 +367,7 @@ class CreateResolver private constructor(
                     it
                 }
             }
-            .returning(Functions.collect(Cypher.literalNull()).`as`("_"))
+            .returning(Cypher.collect(Cypher.literalNull()).`as`("_"))
             .build()
     }
 

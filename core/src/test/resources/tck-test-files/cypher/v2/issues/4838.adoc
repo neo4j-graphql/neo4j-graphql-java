@@ -1,0 +1,140 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/4838
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Test {
+  test: Boolean! @cypher(statement: "RETURN true AS value", columnName: "value")
+}
+
+type ParentTest {
+  tests: [Test!]! @relationship(type: "REL", direction: OUT)
+}
+----
+== Empty input flag should be ignored on creation
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation Mutation {
+  createTests(input: {_emptyInput: true}) {
+    tests {
+      test
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "create_param0": [
+    {}
+  ]
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+UNWIND $create_param0 AS create_var0
+CALL {
+    WITH create_var0
+    CREATE (create_this1:Test)
+    
+    RETURN create_this1
+}
+CALL {
+    WITH create_this1
+    CALL {
+        WITH create_this1
+        WITH create_this1 AS this
+        RETURN true AS value
+    }
+    WITH value AS create_this2
+    RETURN create_this2 AS create_var3
+}
+RETURN collect(create_this1 { test: create_var3 }) AS data
+----
+
+'''
+
+== Empty input flag should be ignored on nested creation
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  createParentTests(input: {tests: {create: {node: {_emptyInput: true}}}}) {
+    parentTests {
+      tests {
+        test
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "create_param0": [
+    {
+      "tests": {
+        "create": [
+          {
+            "node": {}
+          }
+        ]
+      }
+    }
+  ]
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+UNWIND $create_param0 AS create_var0
+CALL {
+    WITH create_var0
+    CREATE (create_this1:ParentTest)
+    WITH create_this1, create_var0
+    CALL {
+        WITH create_this1, create_var0
+        UNWIND create_var0.tests.create AS create_var2
+        WITH create_var2.node AS create_var3, create_var2.edge AS create_var4, create_this1
+        CREATE (create_this5:Test)
+        MERGE (create_this1)-[create_this6:REL]->(create_this5)
+        
+        RETURN collect(NULL) AS create_var7
+    }
+    
+    RETURN create_this1
+}
+CALL {
+    WITH create_this1
+    MATCH (create_this1)-[create_this8:REL]->(create_this9:Test)
+    CALL {
+        WITH create_this9
+        CALL {
+            WITH create_this9
+            WITH create_this9 AS this
+            RETURN true AS value
+        }
+        WITH value AS create_this10
+        RETURN create_this10 AS create_var11
+    }
+    WITH create_this9 { test: create_var11 } AS create_this9
+    RETURN collect(create_this9) AS create_var12
+}
+RETURN collect(create_this1 { tests: create_var12 }) AS data
+----
+
+'''
+

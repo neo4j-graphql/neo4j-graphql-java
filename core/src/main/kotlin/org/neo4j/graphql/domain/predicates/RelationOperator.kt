@@ -9,24 +9,11 @@ enum class RelationOperator(
     val suffix: String?,
     val list: Boolean,
     private val wrapInNotIfNeeded: (where: Condition) -> Condition = { it },
-    val deprecatedAlternative: RelationOperator? = null,
 ) {
     ALL("ALL", list = true),
     NONE("NONE", list = true, wrapInNotIfNeeded = { it.not() }),
     SINGLE("SINGLE", list = true),
     SOME("SOME", list = true),
-
-    //TODO remove https://github.com/neo4j/graphql/issues/144
-    LIST_NOT(
-        "NOT",
-        list = true,
-        wrapInNotIfNeeded = { it.not() },
-        deprecatedAlternative = NONE
-    ),
-
-    //TODO remove https://github.com/neo4j/graphql/issues/144
-    LIST_EQ(null, list = true, deprecatedAlternative = SOME),
-
     NOT_EQUAL("NOT", list = false, wrapInNotIfNeeded = { it.not() }),
     EQUAL(null, list = false);
 

@@ -43,7 +43,6 @@ input CartesianPointInput {
 Information about the number of nodes and relationships created during a create mutation
 """
 type CreateInfo {
-  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   relationshipsCreated: Int!
 }
@@ -57,7 +56,6 @@ type CreateMachinesMutationResponse {
 Information about the number of nodes and relationships deleted during a delete mutation
 """
 type DeleteInfo {
-  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesDeleted: Int!
   relationshipsDeleted: Int!
 }
@@ -96,8 +94,6 @@ input MachineWhere {
   OR: [MachineWhere!]
   partLocations: [CartesianPointInput!]
   partLocations_INCLUDES: CartesianPointInput
-  partLocations_NOT: [CartesianPointInput!] @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
-  partLocations_NOT_INCLUDES: CartesianPointInput @deprecated(reason: "Negation filters will be deprecated, use the NOT operator to achieve the same behavior")
 }
 
 type MachinesConnection {
@@ -130,7 +126,6 @@ type Query {
 Information about the number of nodes and relationships created and deleted during an update mutation
 """
 type UpdateInfo {
-  bookmark: String @deprecated(reason: "This field has been deprecated because bookmarks are now handled by the driver.")
   nodesCreated: Int!
   nodesDeleted: Int!
   relationshipsCreated: Int!

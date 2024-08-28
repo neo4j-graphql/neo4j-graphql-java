@@ -16,7 +16,7 @@ type Actor {
   movies: [Movie!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: OUT)
 }
 
-interface ActedIn @relationshipProperties {
+type ActedIn @relationshipProperties {
   role: String!
   screenTime: Int!
 }
@@ -33,8 +33,10 @@ interface ActedIn @relationshipProperties {
       where: {edge: {OR: [{role_ENDS_WITH: "Gump"}, {screenTime_LT: 60}]}}
     ) {
       edges {
-        role
-        screenTime
+        properties {
+          role
+          screenTime
+        }
         node {
           name
         }
@@ -67,7 +69,7 @@ CALL {
         WITH edges
         UNWIND edges AS edge
         WITH edge.node AS this1, edge.relationship AS this0
-        RETURN collect({ role: this0.role, screenTime: this0.screenTime, node: { name: this1.name } }) AS var2
+        RETURN collect({ properties: { role: this0.role, screenTime: this0.screenTime, __resolveType: "ActedIn" }, node: { name: this1.name, __resolveType: "Actor" } }) AS var2
     }
     RETURN { edges: var2, totalCount: totalCount } AS var3
 }
@@ -83,7 +85,7 @@ RETURN this { .title, actorsConnection: var3 } AS this
 ----
 {
   movies(
-    where: {actorsConnection: {OR: [{node: {name: "Harry"}}, {edge: {role: "Tom"}}]}}
+    where: {actorsConnection_SOME: {OR: [{node: {name: "Harry"}}, {edge: {role: "Tom"}}]}}
   ) {
     title
   }

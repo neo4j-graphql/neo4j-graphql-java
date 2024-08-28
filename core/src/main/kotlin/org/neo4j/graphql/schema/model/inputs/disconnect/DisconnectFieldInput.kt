@@ -48,8 +48,13 @@ sealed interface DisconnectFieldInput {
                         .generateFieldConnectionWhereIT(rel, node, ctx)
                         ?.let { fields += inputValue(Constants.WHERE, it.asType()) }
 
-                    DisconnectInput.NodeDisconnectInput.Augmentation
-                        .generateContainerDisconnectInputIT(node, ctx)
+                    rel.declarationOrSelf.extractOnTarget(
+                        onImplementingType = {
+                            DisconnectInput.Augmentation
+                                .generateContainerDisconnectInputIT(it, ctx)
+                        },
+                        onUnion = { DisconnectInput.Augmentation.generateContainerDisconnectInputIT(node, ctx) }
+                    )
                         ?.let { fields += inputValue(Constants.DISCONNECT_FIELD, it.asType()) }
                 }
         }

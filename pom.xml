@@ -32,7 +32,8 @@
         <!--            TODO set correct version
                 <neo4j-cypher-dsl.version>2023.0.0</neo4j-cypher-dsl.version>
         -->
-        <neo4j-cypher-dsl.version>9999-SNAPSHOT</neo4j-cypher-dsl.version>
+<!--        <neo4j-cypher-dsl.version>9999-SNAPSHOT</neo4j-cypher-dsl.version>-->
+        <neo4j-cypher-dsl.version>2024.0.3</neo4j-cypher-dsl.version>
     </properties>
 
     <modules>

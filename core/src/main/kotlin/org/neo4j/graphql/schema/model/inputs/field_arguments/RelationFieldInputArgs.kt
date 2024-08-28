@@ -29,10 +29,10 @@ class RelationFieldInputArgs(field: RelationField, data: Dict) {
             val args = mutableListOf<InputValueDefinition>()
 
             WhereInput.Augmentation
-                .generateWhereOfFieldIT(field, ctx)
+                .generateWhereOfFieldIT(field.declarationOrSelf, ctx)
                 ?.let { args += inputValue(Constants.WHERE, it.asType()) }
 
-            val optionType = field.extractOnTarget(
+            val optionType = (field.declarationOrSelf).extractOnTarget(
                 onImplementingType = { OptionsInput.Augmentation.generateOptionsIT(it, ctx).asType() },
                 onUnion = { Constants.Types.QueryOptions },
             )

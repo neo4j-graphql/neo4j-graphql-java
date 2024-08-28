@@ -4,6 +4,7 @@ import org.neo4j.cypherdsl.core.*
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.AuthDirective
+import org.neo4j.graphql.domain.directives.AuthorizationDirective
 import org.neo4j.graphql.domain.fields.*
 import org.neo4j.graphql.handler.utils.ChainString
 import org.neo4j.graphql.schema.model.inputs.WhereInput
@@ -120,7 +121,7 @@ class ProjectionTranslator {
                     referenceNodes.forEach { refNode ->
                         var labelCondition: Condition? = null
                         refNode.allLabels(queryContext).forEach {
-                            labelCondition = labelCondition and it.asCypherLiteral().`in`(Functions.labels(endNode))
+                            labelCondition = labelCondition and it.asCypherLiteral().`in`(Cypher.labels(endNode))
                         }
                         labelCondition?.let { unionConditions = unionConditions or it }
 
@@ -168,7 +169,7 @@ class ProjectionTranslator {
                         .`in`(
                             Cypher.listBasedOn(rel)
                                 .where(unionConditions)
-                                .returning(Functions.head(unionProjection.reduce { acc, expression -> acc.add(expression) }))
+                                .returning(Cypher.head(unionProjection.reduce { acc, expression -> acc.add(expression) }))
                         )
                         .where(p.isNotNull)
                         .returning()
@@ -178,7 +179,7 @@ class ProjectionTranslator {
                     projections += if (isArray) {
                         unionParts
                     } else {
-                        Functions.head(unionParts)
+                        Cypher.head(unionParts)
                     }
 
                 } else {
@@ -192,10 +193,13 @@ class ProjectionTranslator {
                     )
                     val rel = nodeField.createQueryDslRelation(
                         Cypher.anyNode(varName.requiredSymbolicName), // TODO use varName https://github.com/neo4j-contrib/cypher-dsl/issues/595
-                        endNode, arguments.directed)
-                        .named(queryContext.getNextVariable(
-                            chainStr?.appendOnPrevious("this")
-                            ?:ChainString(schemaConfig, varName))
+                        endNode, arguments.directed
+                    )
+                        .named(
+                            queryContext.getNextVariable(
+                                chainStr?.appendOnPrevious("this")
+                                    ?: ChainString(schemaConfig, varName)
+                            )
                         )
 
                     //TODO harmonize with union?
@@ -232,8 +236,9 @@ class ProjectionTranslator {
                             .withSubQueries(recurse.allSubQueries + nodeSubQueries)
                             .with(endNode.project(recurse.projection).`as`(ref))
                             .applySortingSkipAndLimit(endNode, arguments.options, recurse.sortFields, queryContext)
-                            .returning(Functions.collect(ref)
-                                .let { collect -> if (isArray) collect else Functions.head(collect) }
+                            .returning(
+                                Cypher.collect(ref)
+                                .let { collect -> if (isArray) collect else Cypher.head(collect) }
                                 .`as`(ref)
                             )
                             .build()
@@ -318,22 +323,17 @@ class ProjectionTranslator {
             subQueries.addAll(whereResult.preComputedSubQueries)
         }
 
-        AuthTranslator(schemaConfig, context, where = AuthTranslator.AuthOptions(varName, node, chainStr))
-            .createAuth(node.auth, AuthDirective.AuthOperation.READ)
-            ?.let { condition = condition and it }
-
-        AuthTranslator(
+       AuthorizationFactory.getAuthConditions(
+            node,
+            varName,
+            null,
             schemaConfig,
             context,
-            allow = AuthTranslator.AuthOptions(varName, node, chainStr),
-            noParamPrefix = true
-        )
-            .createAuth(node.auth, AuthDirective.AuthOperation.READ)
-            .apocValidatePredicate(Constants.AUTH_FORBIDDEN_ERROR)
-            ?.let { condition = condition and it }
-
-        authValidate.apocValidatePredicate(Constants.AUTH_FORBIDDEN_ERROR)
-            ?.let { condition = condition and it }
+            AuthorizationDirective.AuthorizationOperation.READ
+        ).let {
+            it.predicate?.let { condition = condition and it }
+            subQueries.addAll(it.preComputedSubQueries)
+        }
 
         return WhereResult(condition, subQueries)
     }

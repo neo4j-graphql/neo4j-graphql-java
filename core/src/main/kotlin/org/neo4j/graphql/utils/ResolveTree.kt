@@ -4,6 +4,8 @@ import graphql.schema.DataFetchingEnvironment
 import graphql.schema.DataFetchingFieldSelectionSet
 import graphql.schema.SelectedField
 import org.neo4j.graphql.aliasOrName
+import org.neo4j.graphql.domain.ImplementingType
+import org.neo4j.graphql.domain.fields.BaseField
 import org.neo4j.graphql.schema.model.inputs.Dict
 
 open class ObjectFieldSelection<SELECTION, ARGS>(
@@ -57,6 +59,21 @@ interface IResolveTree {
         val selection = selectionConverter(this)
         val args = argsConverter(this)
         return ObjectFieldSelection(this, selection, args)
+    }
+
+    fun getSelectedFields(implementingType: ImplementingType): List<BaseField> {
+        val result = mutableMapOf<String, BaseField?>()
+        fieldsByTypeName[implementingType.name]?.values?.forEach { rt ->
+            result.computeIfAbsent(rt.name) { implementingType.getField(rt.name) }
+        }
+        implementingType.interfaces.forEach { interfaze ->
+            fieldsByTypeName[interfaze.name]?.values?.forEach { rt ->
+                result.computeIfAbsent(rt.name) { interfaze.getField(rt.name) }
+            }
+        }
+        return result
+            .values
+            .filterNotNull()
     }
 }
 

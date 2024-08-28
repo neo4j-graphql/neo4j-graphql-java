@@ -20,7 +20,7 @@ fun initBoundSchema(schema: String): GraphQLSchema {
 
     val dataFetchingInterceptor = object : DataFetchingInterceptor {
         override fun fetchData(env: DataFetchingEnvironment, delegate: DataFetcher<OldCypher>): Any {
-            env.graphQlContext.setQueryContext(QueryContext(neo4jDialect = Dialect.DEFAULT))
+            env.graphQlContext.setQueryContext(QueryContext(neo4jDialect = Dialect.NEO4J_4))
             val (cypher, params, type, variable) = delegate.get(env)
             return driver.session().use { session ->
                 val result = session.run(cypher, params.mapValues { toBoltValue(it.value) })

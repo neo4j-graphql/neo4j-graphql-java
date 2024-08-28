@@ -16,26 +16,26 @@ type User @authorization(validate: [{where: {node: {userId: "$jwt.id"}}, operati
   adminAccess: [Tenant!]! @relationship(type: "ADMIN_IN", direction: OUT)
 }
 
-type Tenant @authorization(validate: [{where: {node: {admins: {userId: "$jwt.id"}}}}, {where: {jwt: {roles_INCLUDES: "overlord"}}}]) {
+type Tenant @authorization(validate: [{where: {node: {admins_SOME: {userId: "$jwt.id"}}}}, {where: {jwt: {roles_INCLUDES: "overlord"}}}]) {
   id: ID! @id
   settings: Settings! @relationship(type: "HAS_SETTINGS", direction: OUT)
   admins: [User!]! @relationship(type: "ADMIN_IN", direction: IN)
 }
 
-type Settings @authorization(validate: [{where: {node: {tenant: {admins: {userId: "$jwt.id"}}}}}, {where: {jwt: {roles_INCLUDES: "overlord"}}}]) {
+type Settings @authorization(validate: [{where: {node: {tenant: {admins_SOME: {userId: "$jwt.id"}}}}}, {where: {jwt: {roles_INCLUDES: "overlord"}}}]) {
   id: ID! @id
   tenant: Tenant! @relationship(type: "HAS_SETTINGS", direction: IN)
   openingDays: [OpeningDay!]! @relationship(type: "VALID_OPENING_DAYS", direction: OUT)
   name: String
 }
 
-type OpeningDay @authorization(validate: [{where: {node: {settings: {tenant: {admins: {userId: "$jwt.id"}}}}}}]) {
+type OpeningDay @authorization(validate: [{where: {node: {settings: {tenant: {admins_SOME: {userId: "$jwt.id"}}}}}}]) {
   settings: Settings @relationship(type: "VALID_OPENING_DAYS", direction: IN)
   id: ID! @id
   name: String
 }
 
-type LOL @authorization(validate: [{where: {node: {host: {admins: {userId: "$jwt.id"}}}}}]) {
+type LOL @authorization(validate: [{where: {node: {host: {admins_SOME: {userId: "$jwt.id"}}}}}]) {
   host: Tenant! @relationship(type: "HOSTED_BY", direction: OUT)
   openingDays: [OpeningDay!]! @relationship(type: "HAS_OPENING_DAY", direction: OUT)
 }

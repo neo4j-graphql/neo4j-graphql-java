@@ -34,7 +34,7 @@ type Text {
 [source,graphql]
 ----
 {
-  journalists(where: {keywordsConnection: {Emoji: {node: {type: "Smile"}}}}) {
+  journalists(where: {keywordsConnection_SOME: {Emoji: {node: {type: "Smile"}}}}) {
     name
     keywords {
       ... on Emoji {
@@ -94,7 +94,7 @@ RETURN this { .name, keywords: var4 } AS this
 [source,graphql]
 ----
 {
-  journalists(where: {keywordsConnection_NOT: {Emoji: {node: {type: "Smile"}}}}) {
+  journalists(where: {keywordsConnection_NONE: {Emoji: {node: {type: "Smile"}}}}) {
     name
     keywords {
       ... on Emoji {

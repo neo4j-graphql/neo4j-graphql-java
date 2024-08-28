@@ -65,7 +65,7 @@ fun createConnectOrCreate(
         .merge(dslRelation)
         .conditionalBlock(onEdgeCreationProperties != null) { it.onCreate().set(onEdgeCreationProperties) }
         .apocValidateNew(authCondition, Constants.AUTH_FORBIDDEN_ERROR)
-        .returning(Functions.count(Cypher.asterisk()).`as`("_"))
+        .returning(Cypher.count(Cypher.asterisk()).`as`("_"))
         .build()
 }
 

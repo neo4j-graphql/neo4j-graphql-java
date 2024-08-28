@@ -1,0 +1,67 @@
+:toc:
+
+= create
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Director {
+  id: ID!
+}
+
+type Movie {
+  id: ID!
+  director: Director @relationship(type: "DIRECTED", direction: IN)
+}
+----
+== should add length validation when creating a node with a non required relationship
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  createMovies(input: [{id: "movieId-1"}]) {
+    info {
+      nodesCreated
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "create_param0": [
+    {
+      "id": "movieId-1"
+    }
+  ]
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+UNWIND $create_param0 AS create_var0
+CALL {
+    WITH create_var0
+    CREATE (create_this1:Movie)
+    SET
+        create_this1.id = create_var0.id
+    WITH create_this1
+    CALL {
+    	WITH create_this1
+    	MATCH (create_this1)<-[create_this1_director_Director_unique:DIRECTED]-(:Director)
+    	WITH count(create_this1_director_Director_unique) as c
+    	WHERE apoc.util.validatePredicate(NOT (c <= 1), '@neo4j/graphql/RELATIONSHIP-REQUIREDMovie.director must be less than or equal to one', [0])
+    	RETURN c AS create_this1_director_Director_unique_ignored
+    }
+    RETURN create_this1
+}
+RETURN "Query cannot conclude with CALL"
+----
+
+'''
+

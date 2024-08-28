@@ -42,7 +42,7 @@ interface WhereInput {
 
             fun generateWhereIT(node: Node, ctx: AugmentationContext): String? =
                 ctx.getOrCreateInputObjectType(node.namings.whereInputTypeName) { fields, name ->
-                    fields += FieldContainerWhereInput.Augmentation.getWhereFields(name, node.fields, ctx)
+                    FieldContainerWhereInput.Augmentation.addWhereFields(name, node.fields, ctx, fields)
                 }
         }
     }
@@ -60,8 +60,8 @@ interface WhereInput {
             fun generateRelationPropertiesWhereIT(relationField: RelationBaseField, ctx: AugmentationContext) =
                 ctx.getEdgeInputField(relationField, { it.namings.whereInputTypeName }) {
                     ctx.getOrCreateInputObjectType(it.namings.whereInputTypeName) { fields, name ->
-                        fields += FieldContainerWhereInput.Augmentation
-                            .getWhereFields(name, it.properties?.fields ?: emptyList(), ctx)
+                        FieldContainerWhereInput.Augmentation
+                            .addWhereFields(name, it.properties?.fields ?: emptyList(), ctx, fields)
                     }
                 }
         }
@@ -100,10 +100,11 @@ interface WhereInput {
         object Augmentation : AugmentationBase {
             fun generateFieldWhereIT(interfaze: Interface, ctx: AugmentationContext): String? =
                 ctx.getOrCreateInputObjectType(interfaze.namings.whereInputTypeName) { fields, name ->
-                    fields += FieldContainerWhereInput.Augmentation.getWhereFields(
+                    FieldContainerWhereInput.Augmentation.addWhereFields(
                         name,
                         interfaze.fields,
                         ctx,
+                        fields,
                         interfaze,
                     )
                 }
@@ -147,46 +148,45 @@ interface WhereInput {
         }
 
         object Augmentation : AugmentationBase {
-            fun getWhereFields(
+            fun addWhereFields(
                 whereName: String,
                 fieldList: List<BaseField>,
                 ctx: AugmentationContext,
+                fields: MutableList<InputValueDefinition>,
                 interfaze: Interface? = null
-            ): List<InputValueDefinition> {
-                val result = mutableListOf<InputValueDefinition>()
+            ) {
                 if (interfaze != null) {
-                    ctx.addTypenameEnum(interfaze, result)
+                    ctx.addTypenameEnum(interfaze, fields)
                 }
                 fieldList.forEach { field ->
                     if (field is ScalarField && field.isFilterableByValue()) {
                         field.predicateDefinitions.values.forEach {
-                            result += inputValue(it.name, it.type) {
+                            fields += inputValue(it.name, it.type) {
                                 (field.deprecatedDirective ?: it.deprecated?.toDeprecatedDirective())
                                     ?.let { directive(it) }
                             }
                         }
                     }
                     if (field.annotations.relayId != null) {
-                        result += inputValue(Constants.ID_FIELD, Constants.Types.ID)
+                        fields += inputValue(Constants.ID_FIELD, Constants.Types.ID)
                     }
                     if (field is RelationBaseField) {
-                        if (field.node != null || field.union != null) {
-                            // TODO REVIEW Darrell why not for union or interfaces https://github.com/neo4j/graphql/issues/810
-                            if (field.isFilterableByValue()) {
-                                WhereInput.Augmentation.generateWhereOfFieldIT(field, ctx)?.let { where ->
-                                    field.predicateDefinitions.values.filterNot { it.connection }
-                                        .forEach { predicateDefinition ->
-                                            result += inputValue(predicateDefinition.name, where.asType()) {
-                                                (field.deprecatedDirective ?: predicateDefinition.deprecated)
-                                                    ?.let { directive(it) }
-                                                predicateDefinition.description?.let { description(it) }
-                                            }
+                        if (field.isFilterableByValue()) {
+                            WhereInput.Augmentation.generateWhereOfFieldIT(field, ctx)?.let { where ->
+                                field.predicateDefinitions.values.filterNot { it.connection }
+                                    .forEach { predicateDefinition ->
+                                        fields += inputValue(predicateDefinition.name, where.asType()) {
+                                            field.deprecatedDirective?.let { directive(it) }
+                                            predicateDefinition.description?.let { description(it) }
                                         }
-                                }
+                                    }
                             }
-                            if (field.node != null) {
+                        }
+                        if (field.isFilterableByAggregate()) {
+                            if (field.implementingType != null) {
+                                // TODO should be field.declarationOrSelf
                                 AggregateInput.Augmentation.generateAggregateInputIT(field, ctx)?.let {
-                                    result += inputValue(field.namings.aggregateTypeName, it.asType()) {
+                                    fields += inputValue(field.namings.aggregateTypeName, it.asType()) {
                                         field.deprecatedDirective?.let { directive(it) }
                                     }
                                 }
@@ -197,17 +197,15 @@ interface WhereInput {
                         ConnectionWhere.Augmentation.generateConnectionWhereIT(field, ctx)?.let { where ->
                             field.relationshipField.predicateDefinitions.values.filter { it.connection }
                                 .forEach { predicateDefinition ->
-                                    result += inputValue(predicateDefinition.name, where.asType()) {
-                                        (field.deprecatedDirective ?: predicateDefinition.deprecated)
-                                            ?.let { directive(it) }
+                                    fields += inputValue(predicateDefinition.name, where.asType()) {
+                                        field.deprecatedDirective?.let { directive(it) }
                                         predicateDefinition.description?.let { description(it) }
                                     }
                                 }
                         }
                     }
                 }
-                addNestingWhereFields(whereName, result)
-                return result
+                addNestingWhereFields(whereName, fields)
             }
         }
     }

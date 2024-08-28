@@ -122,7 +122,8 @@ class ReadResolver internal constructor(
                 null,
                 input.where,
                 AuthorizationDirective.AuthorizationOperation.READ,
-                authPredicates
+                authPredicates,
+                selection
             )
 
 

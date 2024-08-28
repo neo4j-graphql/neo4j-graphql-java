@@ -84,14 +84,16 @@ class AggregateResolver private constructor(
         val dslNode = implementingType.asCypherNode(queryContext, variable)
 
 // TODO harmonize with read
-        var ongoingReading = TopLevelMatchTranslator(schemaConfig, env.variables, queryContext)
-            .translateTopLevelMatch(
-                implementingType,
-                dslNode,
-                null,
-                arguments.where,
-                AuthorizationDirective.AuthorizationOperation.AGGREGATE
-            )
+        var ongoingReading = {
+            TopLevelMatchTranslator(schemaConfig, env.variables, queryContext)
+                .translateTopLevelMatch(
+                    implementingType,
+                    dslNode,
+                    null,
+                    arguments.where,
+                    AuthorizationDirective.AuthorizationOperation.AGGREGATE
+                )
+        }
 //            .let { reading ->
 //                AuthTranslator(
 //                    schemaConfig,
@@ -111,7 +113,7 @@ class AggregateResolver private constructor(
 
         if (selection.count.isNotEmpty()) {
             val fieldRef = queryContext.getNextVariable()
-            subqueries += ongoingReading.returning(Cypher.count(dslNode).`as`(fieldRef)).build()
+            subqueries += ongoingReading().returning(Cypher.count(dslNode).`as`(fieldRef)).build()
             selection.count.forEach {
                 projection += it.aliasOrName
                 projection += fieldRef
@@ -189,9 +191,9 @@ class AggregateResolver private constructor(
 //            projection.addAll(fieldSelection.project(Cypher.mapOf(*thisProjections.toTypedArray())))
 //        }
 
-        authValidate?.let {
-            ongoingReading = ongoingReading.apocValidate(it, Constants.AUTH_FORBIDDEN_ERROR)
-        }
+//        authValidate?.let {
+//            ongoingReading = ongoingReading().apocValidate(it, Constants.AUTH_FORBIDDEN_ERROR)
+//        }
 
 
         return Cypher.call(subqueries.first())

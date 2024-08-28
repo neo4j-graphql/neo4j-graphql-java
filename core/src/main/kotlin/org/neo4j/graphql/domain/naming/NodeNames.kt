@@ -18,12 +18,6 @@ class NodeNames(
     val connectionFieldTypename get() = "${name}Connection"
     val relationshipFieldTypename get() = "${name}Edge"
 
-    override val rootTypeFieldNames get() = NodeRootTypeFieldNames()
-
-    inner class NodeRootTypeFieldNames : ImplementingTypeRootTypeFieldNames() {
-        val connection get() = "${plural}Connection"
-    }
-
     val fulltextTypeNames get() = FulltextTypeNames()
 
     inner class FulltextTypeNames {

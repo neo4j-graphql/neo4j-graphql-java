@@ -16,7 +16,7 @@ type Actor {
   movies: [Movie!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: OUT)
 }
 
-interface ActedIn @relationshipProperties {
+type ActedIn @relationshipProperties {
   screenTime: Int!
   location: Point!
 }
@@ -33,10 +33,12 @@ interface ActedIn @relationshipProperties {
       where: {edge: {location_DISTANCE: {point: {longitude: 1.0, latitude: 2.0}, distance: 3.0}}}
     ) {
       edges {
-        screenTime
-        location {
-          latitude
-          longitude
+        properties {
+          screenTime
+          location {
+            latitude
+            longitude
+          }
         }
         node {
           name
@@ -75,10 +77,10 @@ CALL {
         WITH edges
         UNWIND edges AS edge
         WITH edge.node AS this1, edge.relationship AS this0
-        RETURN collect({ screenTime: this0.screenTime, location: CASE
+        RETURN collect({ properties: { screenTime: this0.screenTime, location: CASE
             WHEN this0.location IS NOT NULL THEN { point: this0.location }
             ELSE NULL
-        END, node: { name: this1.name } }) AS var2
+        END, __resolveType: "ActedIn" }, node: { name: this1.name, __resolveType: "Actor" } }) AS var2
     }
     RETURN { edges: var2, totalCount: totalCount } AS var3
 }

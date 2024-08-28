@@ -16,12 +16,10 @@ class RelationField(
     typeMeta: TypeMeta,
     annotations: FieldAnnotations,
     override val properties: RelationshipProperties?,
-    connectionPrefix: String,
 ) : RelationBaseField(
     fieldName,
     typeMeta,
     annotations,
-    connectionPrefix
 ) {
 
     override val namings = RelationshipNames(this, annotations)

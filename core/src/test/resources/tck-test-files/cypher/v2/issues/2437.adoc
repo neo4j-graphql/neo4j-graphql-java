@@ -91,7 +91,7 @@ CALL {
         WITH *
         
         LIMIT $param2
-        RETURN collect({ node: { uuid: this1.uuid } }) AS var2
+        RETURN collect({ node: { uuid: this1.uuid, __resolveType: "Valuation" } }) AS var2
     }
     RETURN { edges: var2, totalCount: totalCount } AS var3
 }

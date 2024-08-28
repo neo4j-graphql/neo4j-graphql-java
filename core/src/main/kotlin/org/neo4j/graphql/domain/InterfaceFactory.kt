@@ -32,7 +32,8 @@ object InterfaceFactory {
                 definition,
                 typeDefinitionRegistry,
                 relationshipPropertiesFactory,
-                schemaConfig
+                schemaConfig,
+                interfaces
             ),
             interfaces,
             annotations,

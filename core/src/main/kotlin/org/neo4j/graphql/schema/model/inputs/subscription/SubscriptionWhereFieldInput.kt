@@ -44,8 +44,8 @@ interface SubscriptionWhereFieldInput {
             ): String? {
                 val properties = rel.properties ?: return null
                 return ctx.getOrCreateInputObjectType(rel.namings.edgeSubscriptionWhereInputTypeName) { fields, name ->
-                    fields += WhereInput.FieldContainerWhereInput.Augmentation
-                        .getWhereFields(name, properties.fields, ctx)
+                    WhereInput.FieldContainerWhereInput.Augmentation
+                        .addWhereFields(name, properties.fields, ctx, fields)
                 }
             }
         }

@@ -24,23 +24,13 @@ type Series implements Production {
   episodes: Int!
 }
 
-interface ActedIn @relationshipProperties {
+type ActedIn @relationshipProperties {
   screenTime: Int!
 }
 
 type Actor {
   name: String!
   actedIn: [Production!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
-}
-----
-
-== Configuration
-
-.Configuration
-[source,json,schema-config=true]
-----
-{
-  "experimental": true
 }
 ----
 == Count with OR operator and string aggregation

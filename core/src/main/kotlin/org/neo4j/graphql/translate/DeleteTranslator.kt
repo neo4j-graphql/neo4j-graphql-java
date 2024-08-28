@@ -2,7 +2,6 @@ package org.neo4j.graphql.translate
 
 import org.neo4j.cypherdsl.core.Cypher
 import org.neo4j.cypherdsl.core.ExposesWith
-import org.neo4j.cypherdsl.core.Functions
 import org.neo4j.cypherdsl.core.SymbolicName
 import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Node
@@ -136,12 +135,11 @@ fun createDeleteAndParams(
         val nodeToDelete = Cypher.name(endNodeName.extend("to", "delete").resolveName())
 
         val x = Cypher.name("x")
-        exposesWith.with(withVars + Functions.collectDistinct(endNode).`as`(nodeToDelete))
+        exposesWith.with(withVars + Cypher.collectDistinct(endNode).`as`(nodeToDelete))
             .call(
                 Cypher.with(nodeToDelete)
                     .unwind(nodeToDelete).`as`(x)
                     .detachDelete(x)
-                    .returning(Functions.count(Cypher.asterisk()).`as`("_"))
                     .build()
             )
     }

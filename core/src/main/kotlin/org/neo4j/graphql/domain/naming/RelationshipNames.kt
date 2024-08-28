@@ -15,9 +15,12 @@ class RelationshipNames(
     override val edgePrefix
         get() = relationship.properties?.typeName ?: "__ERROR__" // TODO find better way to handle this
 
-    override val fieldInputPrefixForTypename
-        get() = (relationship.getOwnerName().takeIf { relationship.target is Interface }
-            ?: relationship.connectionPrefix) + relationship.fieldName.capitalize()
+    override val fieldInputPrefixForTypename: String
+        get() {
+            val prefix = (relationship.getOwnerName().takeIf { relationship.target is Interface }
+                ?: relationship.declarationOrSelf.getOwnerName())
+            return prefix + relationship.fieldName.capitalize()
+        }
 
     val subscriptionWhereInputTypeName get() = "${prefixForTypename}RelationshipSubscriptionWhere"
 

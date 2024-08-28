@@ -22,18 +22,7 @@ sealed class DeleteInput private constructor(implementingType: ImplementingType,
     ) {
 
 
-    class NodeDeleteInput(node: Node, data: Dict) : DeleteInput(node, data) {
-
-        object Augmentation : AugmentationBase {
-            fun generateContainerDeleteInputIT(node: Node, ctx: AugmentationContext) =
-                ctx.getOrCreateRelationInputObjectType(
-                    node.namings.deleteInputTypeName,
-                    node.relationBaseFields,
-                    RelationFieldBaseAugmentation::generateFieldDeleteIT,
-                    condition = { it.annotations.relationshipBaseDirective?.isDeleteAllowed != false },
-                )
-        }
-    }
+    class NodeDeleteInput(node: Node, data: Dict) : DeleteInput(node, data)
 
     class InterfaceDeleteInput(interfaze: Interface, data: Dict) : DeleteInput(interfaze, data) {
 
@@ -45,6 +34,16 @@ sealed class DeleteInput private constructor(implementingType: ImplementingType,
         }
 
         fun getCommonFields(implementation: Node) = on.getCommonFields(implementation, data, ::NodeDeleteInput)
+    }
+
+    object Augmentation : AugmentationBase {
+        fun generateContainerDeleteInputIT(node: ImplementingType, ctx: AugmentationContext) =
+            ctx.getOrCreateRelationInputObjectType(
+                node.namings.deleteInputTypeName,
+                node.relationBaseFields,
+                RelationFieldBaseAugmentation::generateFieldDeleteIT,
+                condition = { it.annotations.relationshipBaseDirective?.isDeleteAllowed != false },
+            )
     }
 
     companion object {

@@ -22,7 +22,7 @@ type Series {
   genres: [Genre!]! @relationship(type: "IN_GENRE", direction: OUT, properties: "InGenre")
 }
 
-interface InGenre @relationshipProperties {
+type InGenre @relationshipProperties {
   intValue: Int!
 }
 ----
@@ -175,7 +175,7 @@ RETURN this { .title } AS this
 ----
 {
   movies(
-    where: {genres: {moviesAggregate: {count: 3}}, genresAggregate: {count: 1}}
+    where: {genres_SOME: {moviesAggregate: {count: 3}}, genresAggregate: {count: 1}}
   ) {
     title
   }
@@ -226,7 +226,7 @@ RETURN this { .title } AS this
 ----
 {
   movies(
-    where: {genres: {AND: [{moviesAggregate: {count: 2}}, {seriesAggregate: {node: {name_SHORTEST_EQUAL: 1}}}]}}
+    where: {genres_SOME: {AND: [{moviesAggregate: {count: 2}}, {seriesAggregate: {node: {name_SHORTEST_LENGTH_EQUAL: 1}}}]}}
   ) {
     title
   }
@@ -277,7 +277,7 @@ RETURN this { .title } AS this
 ----
 {
   movies(
-    where: {genres: {moviesAggregate: {count: 2}, seriesAggregate: {node: {name_SHORTEST_EQUAL: 1}}}}
+    where: {genres_SOME: {moviesAggregate: {count: 2}, seriesAggregate: {node: {name_SHORTEST_LENGTH_EQUAL: 1}}}}
   ) {
     title
   }
@@ -328,7 +328,7 @@ RETURN this { .title } AS this
 ----
 {
   movies(
-    where: {genres: {OR: [{moviesAggregate: {count: 3}}, {seriesAggregate: {node: {name_SHORTEST_EQUAL: 1}}}]}}
+    where: {genres_SOME: {OR: [{moviesAggregate: {count: 3}}, {seriesAggregate: {node: {name_SHORTEST_LENGTH_EQUAL: 1}}}]}}
   ) {
     title
   }
@@ -477,7 +477,7 @@ RETURN this { .title } AS this
 [source,graphql]
 ----
 {
-  movies(where: {genres_NOT: {moviesAggregate: {count: 2}}}) {
+  movies(where: {NOT: {genres_SOME: {moviesAggregate: {count: 2}}}}) {
     title
   }
 }
@@ -508,7 +508,7 @@ CALL {
     RETURN count(this0) > 0 AS var4
 }
 WITH *
-WHERE var4 = false
+WHERE NOT (var4 = true)
 RETURN this { .title } AS this
 ----
 
@@ -606,7 +606,7 @@ RETURN this { .title } AS this
 [source,graphql]
 ----
 {
-  movies(where: {genres: {moviesAggregate: {count: 2}}}) {
+  movies(where: {genres_SOME: {moviesAggregate: {count: 2}}}) {
     title
   }
 }
@@ -649,7 +649,7 @@ RETURN this { .title } AS this
 [source,graphql]
 ----
 {
-  movies(where: {genres: {moviesAggregate: {count_GT: 2}}}) {
+  movies(where: {genres_SOME: {moviesAggregate: {count_GT: 2}}}) {
     title
   }
 }
@@ -692,7 +692,7 @@ RETURN this { .title } AS this
 [source,graphql]
 ----
 {
-  movies(where: {genres: {moviesAggregate: {count_LT: 3}}}) {
+  movies(where: {genres_SOME: {moviesAggregate: {count_LT: 3}}}) {
     title
   }
 }
@@ -735,7 +735,7 @@ RETURN this { .title } AS this
 [source,graphql]
 ----
 {
-  movies(where: {genres: {moviesAggregate: {edge: {intValue_MAX_LT: 1}}}}) {
+  movies(where: {genres_SOME: {moviesAggregate: {edge: {intValue_MAX_LT: 1}}}}) {
     title
   }
 }
@@ -778,7 +778,7 @@ RETURN this { .title } AS this
 [source,graphql]
 ----
 {
-  movies(where: {genres: {moviesAggregate: {edge: {intValue_MIN_EQUAL: 1}}}}) {
+  movies(where: {genres_SOME: {moviesAggregate: {edge: {intValue_MIN_EQUAL: 1}}}}) {
     title
   }
 }
@@ -821,7 +821,9 @@ RETURN this { .title } AS this
 [source,graphql]
 ----
 {
-  movies(where: {genres: {moviesAggregate: {node: {title_AVERAGE_EQUAL: 1}}}}) {
+  movies(
+    where: {genres_SOME: {moviesAggregate: {node: {title_AVERAGE_LENGTH_EQUAL: 1}}}}
+  ) {
     title
   }
 }
@@ -864,7 +866,9 @@ RETURN this { .title } AS this
 [source,graphql]
 ----
 {
-  movies(where: {genres: {moviesAggregate: {node: {title_SHORTEST_EQUAL: 1}}}}) {
+  movies(
+    where: {genres_SOME: {moviesAggregate: {node: {title_SHORTEST_LENGTH_EQUAL: 1}}}}
+  ) {
     title
   }
 }

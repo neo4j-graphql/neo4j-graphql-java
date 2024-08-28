@@ -42,7 +42,7 @@ type Query {
 [source,json]
 ----
 {
-  "title": "The Matrix"
+  "param0": "The Matrix"
 }
 ----
 
@@ -50,18 +50,18 @@ type Query {
 [source,cypher]
 ----
 CALL {
-MATCH (m:Movie {title: $title})
-RETURN m
+    MATCH (m:Movie {title: $param0})
+    RETURN m
 }
-WITH m as this
-
+WITH m AS this0
 CALL {
-    WITH this
-    MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
-    WITH this1 { .name } AS this1
-    RETURN collect(this1) AS var2
+    WITH this0
+    MATCH (this0)<-[this1:ACTED_IN]-(this2:Actor)
+    WITH this2 { .name } AS this2
+    RETURN collect(this2) AS var3
 }
-RETURN this { .title, actors: var2 } AS this
+WITH this0 { .title, actors: var3 } AS this0
+RETURN this0 AS this
 ----
 
 '''
@@ -85,7 +85,7 @@ RETURN this { .title, actors: var2 } AS this
 [source,json]
 ----
 {
-  "title": "The Matrix"
+  "param0": "The Matrix"
 }
 ----
 
@@ -93,18 +93,18 @@ RETURN this { .title, actors: var2 } AS this
 [source,cypher]
 ----
 CALL {
-MATCH (m:Movie {title: $title})
-RETURN m
+    MATCH (m:Movie {title: $param0})
+    RETURN m
 }
-WITH m as this
-
+WITH m AS this0
 CALL {
-    WITH this
-    MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
-    WITH this1 { .name } AS this1
-    RETURN collect(this1) AS var2
+    WITH this0
+    MATCH (this0)<-[this1:ACTED_IN]-(this2:Actor)
+    WITH this2 { .name } AS this2
+    RETURN collect(this2) AS var3
 }
-RETURN this { .title, actors: var2 } AS this
+WITH this0 { .title, actors: var3 } AS this0
+RETURN this0 AS this
 ----
 
 '''

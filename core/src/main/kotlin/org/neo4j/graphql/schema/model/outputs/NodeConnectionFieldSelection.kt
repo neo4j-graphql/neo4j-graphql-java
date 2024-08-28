@@ -17,7 +17,9 @@ class NodeConnectionFieldSelection {
             ctx.getOrCreateObjectType(field.relationshipField.namings.connectionFieldTypename) { fields, _ ->
 
                 NodeConnectionEdgeFieldSelection.Augmentation
-                    .generateRelationshipSelection(field.interfaceField as? ConnectionField ?: field, ctx)
+                    // TODO should we use this instead?
+                     .generateRelationshipSelection(field.interfaceField as? ConnectionField ?: field, ctx)
+//                    .generateRelationshipSelection(field, ctx)
                     .let { fields += field(Constants.EDGES_FIELD, NonNullType(ListType(it.asRequiredType()))) }
 
                 fields += field(Constants.TOTAL_COUNT, NonNullType(Constants.Types.Int))

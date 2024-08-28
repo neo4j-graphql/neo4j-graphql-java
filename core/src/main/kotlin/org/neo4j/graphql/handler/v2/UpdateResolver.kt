@@ -93,7 +93,7 @@ class UpdateResolver private constructor(
                     .generateContainerConnectInputIT(node, ctx)
                     ?.let { args += inputValue(Constants.CONNECT_FIELD, it.asType()) }
 
-                DisconnectInput.NodeDisconnectInput.Augmentation
+                DisconnectInput.Augmentation
                     .generateContainerDisconnectInputIT(node, ctx)
                     ?.let { args += inputValue(Constants.DISCONNECT_FIELD, it.asType()) }
 
@@ -101,7 +101,7 @@ class UpdateResolver private constructor(
                     .generateContainerRelationCreateInputIT(node, ctx)
                     ?.let { args += inputValue(Constants.CREATE_FIELD, it.asType()) }
 
-                DeleteInput.NodeDeleteInput.Augmentation
+                DeleteInput.Augmentation
                     .generateContainerDeleteInputIT(node, ctx)
                     ?.let { args += inputValue(Constants.DELETE_FIELD, it.asType()) }
 
@@ -358,7 +358,7 @@ class UpdateResolver private constructor(
             }
             .returning(
                 *listOfNotNull(
-                    projection?.let { Functions.collectDistinct(dslNode.project(it.projection)).`as`(Constants.DATA) },
+                    projection?.let { Cypher.collectDistinct(dslNode.project(it.projection)).`as`(Constants.DATA) },
 //                    TODO subscription
                 ).toTypedArray()
             )

@@ -16,7 +16,7 @@ type Actor {
   movies: [Movie!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: OUT)
 }
 
-interface ActedIn @relationshipProperties {
+type ActedIn @relationshipProperties {
   screenTime: Int!
 }
 ----
@@ -30,7 +30,9 @@ interface ActedIn @relationshipProperties {
     title
     actorsConnection(where: {edge: {screenTime_GT: 60}}) {
       edges {
-        screenTime
+        properties {
+          screenTime
+        }
         node {
           name
         }
@@ -62,7 +64,7 @@ CALL {
         WITH edges
         UNWIND edges AS edge
         WITH edge.node AS this1, edge.relationship AS this0
-        RETURN collect({ screenTime: this0.screenTime, node: { name: this1.name } }) AS var2
+        RETURN collect({ properties: { screenTime: this0.screenTime, __resolveType: "ActedIn" }, node: { name: this1.name, __resolveType: "Actor" } }) AS var2
     }
     RETURN { edges: var2, totalCount: totalCount } AS var3
 }
@@ -81,7 +83,9 @@ RETURN this { .title, actorsConnection: var3 } AS this
     title
     actorsConnection(where: {edge: {screenTime_GTE: 60}}) {
       edges {
-        screenTime
+        properties {
+          screenTime
+        }
         node {
           name
         }
@@ -113,7 +117,7 @@ CALL {
         WITH edges
         UNWIND edges AS edge
         WITH edge.node AS this1, edge.relationship AS this0
-        RETURN collect({ screenTime: this0.screenTime, node: { name: this1.name } }) AS var2
+        RETURN collect({ properties: { screenTime: this0.screenTime, __resolveType: "ActedIn" }, node: { name: this1.name, __resolveType: "Actor" } }) AS var2
     }
     RETURN { edges: var2, totalCount: totalCount } AS var3
 }
@@ -132,7 +136,9 @@ RETURN this { .title, actorsConnection: var3 } AS this
     title
     actorsConnection(where: {edge: {screenTime_LT: 60}}) {
       edges {
-        screenTime
+        properties {
+          screenTime
+        }
         node {
           name
         }
@@ -164,7 +170,7 @@ CALL {
         WITH edges
         UNWIND edges AS edge
         WITH edge.node AS this1, edge.relationship AS this0
-        RETURN collect({ screenTime: this0.screenTime, node: { name: this1.name } }) AS var2
+        RETURN collect({ properties: { screenTime: this0.screenTime, __resolveType: "ActedIn" }, node: { name: this1.name, __resolveType: "Actor" } }) AS var2
     }
     RETURN { edges: var2, totalCount: totalCount } AS var3
 }
@@ -183,7 +189,9 @@ RETURN this { .title, actorsConnection: var3 } AS this
     title
     actorsConnection(where: {edge: {screenTime_LTE: 60}}) {
       edges {
-        screenTime
+        properties {
+          screenTime
+        }
         node {
           name
         }
@@ -215,7 +223,7 @@ CALL {
         WITH edges
         UNWIND edges AS edge
         WITH edge.node AS this1, edge.relationship AS this0
-        RETURN collect({ screenTime: this0.screenTime, node: { name: this1.name } }) AS var2
+        RETURN collect({ properties: { screenTime: this0.screenTime, __resolveType: "ActedIn" }, node: { name: this1.name, __resolveType: "Actor" } }) AS var2
     }
     RETURN { edges: var2, totalCount: totalCount } AS var3
 }

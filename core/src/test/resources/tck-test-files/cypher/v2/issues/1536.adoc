@@ -17,7 +17,7 @@ type OtherNode {
 }
 
 interface MyInterface {
-  id: ID! @id
+  id: ID!
 }
 
 type MyImplementation implements MyInterface {

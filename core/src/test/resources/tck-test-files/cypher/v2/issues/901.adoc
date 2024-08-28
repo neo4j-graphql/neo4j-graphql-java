@@ -13,7 +13,7 @@ type Series {
   manufacturer: Series @relationship(type: "HAS_MANUFACTURER", direction: OUT, properties: "Properties")
 }
 
-interface Properties @relationshipProperties {
+type Properties @relationshipProperties {
   current: Boolean
 }
 ----

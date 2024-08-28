@@ -22,10 +22,7 @@ type Person @authorization(filter: [{where: {node: {creator: {id: "$jwt.uid"}}}}
   family: Family! @relationship(type: "MEMBER_OF", direction: OUT)
 }
 
-extend schema @authentication {
-  query: Query
-  mutation: Mutation
-}
+extend schema @authentication
 ----
 == query with nested aggregate count
 
