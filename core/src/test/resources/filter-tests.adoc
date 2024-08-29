@@ -467,7 +467,6 @@ RETURN person {
 }
 ----
 
-
 .Cypher
 [source,cypher]
 ----
@@ -541,7 +540,6 @@ RETURN person {
 ----
 { }
 ----
-
 
 .Cypher
 [source,cypher]
@@ -2036,6 +2034,7 @@ RETURN person {
 '''
 
 === Filter string _matches_
+
 .GraphQL-Query
 [source,graphql]
 ----

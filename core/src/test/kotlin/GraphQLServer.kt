@@ -48,7 +48,11 @@ fun main() {
             } as Map<String, Any?>
         }.also { println(it) }
 
-    val driver = GraphDatabase.driver("bolt://localhost", AuthTokens.basic("neo4j", "test"), Config.builder().withoutEncryption().build())
+    val driver = GraphDatabase.driver(
+        "bolt://localhost",
+        AuthTokens.basic("neo4j", "test"),
+        Config.builder().withoutEncryption().build()
+    )
 
     val graphQLSchema = SchemaBuilder.buildSchema(schema, dataFetchingInterceptor = object : DataFetchingInterceptor {
         override fun fetchData(env: DataFetchingEnvironment, delegate: DataFetcher<OldCypher>): Any? {
@@ -59,8 +63,11 @@ fun main() {
                 try {
                     val result = session.run(cypher, Values.value(params))
                     when {
-                        type?.isList() == true -> result.stream().map { it[variable].asObject() }.collect(Collectors.toList())
-                        else -> result.stream().map { it[variable].asObject() }.findFirst().orElse(emptyMap<String, Any>())
+                        type?.isList() == true -> result.stream().map { it[variable].asObject() }
+                            .collect(Collectors.toList())
+
+                        else -> result.stream().map { it[variable].asObject() }.findFirst()
+                            .orElse(emptyMap<String, Any>())
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -83,19 +90,24 @@ fun main() {
                     schema.execute(query).let { println(mapper.writeValueAsString(it));it }
                 } else {
                     try {
-                        val queryContext = QueryContext(optimizedQuery = setOf(QueryContext.OptimizationStrategy.FILTER_AS_MATCH))
-                        schema.execute(ExecutionInput
-                            .newExecutionInput()
-                            .query(query)
-                            .graphQLContext(mapOf(QueryContext.KEY to queryContext))
-                            .variables(params(payload))
-                            .build())
+                        val queryContext =
+                            QueryContext(optimizedQuery = setOf(QueryContext.OptimizationStrategy.FILTER_AS_MATCH))
+                        schema.execute(
+                            ExecutionInput
+                                .newExecutionInput()
+                                .query(query)
+                                .graphQLContext(mapOf(QueryContext.KEY to queryContext))
+                                .variables(params(payload))
+                                .build()
+                        )
                     } catch (e: OptimizedQueryException) {
-                        schema.execute(ExecutionInput
-                            .newExecutionInput()
-                            .query(query)
-                            .variables(params(payload))
-                            .build())
+                        schema.execute(
+                            ExecutionInput
+                                .newExecutionInput()
+                                .query(query)
+                                .variables(params(payload))
+                                .build()
+                        )
                     }
                 }
                 req.sendResponse(response)

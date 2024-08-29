@@ -4,8 +4,8 @@ import graphql.language.InterfaceTypeDefinition
 import graphql.language.UnionTypeDefinition
 import graphql.schema.GraphQLScalarType
 import graphql.schema.GraphQLSchema
-import graphql.schema.diff.DiffSet
 import graphql.schema.diff.SchemaDiff
+import graphql.schema.diff.SchemaDiffSet
 import graphql.schema.diff.reporting.CapturingReporter
 import graphql.schema.idl.*
 import org.assertj.core.api.Assertions.assertThat
@@ -112,10 +112,9 @@ class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite(fileName, TES
         )
 
         fun diff(augmentedSchema: GraphQLSchema, expected: GraphQLSchema) {
-            val diffSet = DiffSet.diffSet(augmentedSchema, expected)
+            val diffSet = SchemaDiffSet.diffSetFromIntrospection(augmentedSchema, expected)
             val capture = CapturingReporter()
-            SchemaDiff(SchemaDiff.Options.defaultOptions().enforceDirectives())
-                .diffSchema(diffSet, capture)
+            SchemaDiff().diffSchema(diffSet, capture)
             assertThat(capture.dangers).isEmpty()
             assertThat(capture.breakages).isEmpty()
         }

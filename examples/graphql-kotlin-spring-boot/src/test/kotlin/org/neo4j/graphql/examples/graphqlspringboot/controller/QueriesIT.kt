@@ -109,7 +109,7 @@ internal class QueriesIT(
 
     companion object {
         @Container
-        private val neo4jServer = Neo4jContainer<Nothing>("neo4j:5.18.0")
+        private val neo4jServer = Neo4jContainer<Nothing>("neo4j:5.23.0")
 
     }
 
@@ -117,9 +117,9 @@ internal class QueriesIT(
     open class Config {
 
         @Bean
-        open fun neo4jConnectionDetails() = object :Neo4jConnectionDetails {
+        open fun neo4jConnectionDetails() = object : Neo4jConnectionDetails {
             override fun getUri(): URI = URI.create(neo4jServer.boltUrl)
-            override fun getAuthToken(): AuthToken = AuthTokens.basic("neo4j",neo4jServer.adminPassword)
+            override fun getAuthToken(): AuthToken = AuthTokens.basic("neo4j", neo4jServer.adminPassword)
         }
 
     }

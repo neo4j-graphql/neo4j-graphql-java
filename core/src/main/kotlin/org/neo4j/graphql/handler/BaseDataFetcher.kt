@@ -32,7 +32,7 @@ abstract class BaseDataFetcher(protected val schemaConfig: SchemaConfig) : DataF
                 .newConfig()
                 .withIndentStyle(Configuration.IndentStyle.TAB)
                 .withPrettyPrint(true)
-            .withDialect(dialect)
+                .withDialect(dialect)
                 .build()
         ).render(statement)
 

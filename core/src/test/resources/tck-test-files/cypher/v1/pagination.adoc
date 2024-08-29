@@ -4,7 +4,6 @@
 
 Tests for queries including reserved arguments `skip` and `limit`.
 
-
 == Inputs
 
 [source,graphql,schema=true]
@@ -26,7 +25,6 @@ input ActorOptions {
   skip: Int = 0
 }
 ----
-
 
 == Configuration
 

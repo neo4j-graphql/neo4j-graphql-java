@@ -17,11 +17,9 @@ data class QueryContext @JvmOverloads constructor(
      */
     val optimizedQuery: Set<OptimizationStrategy>? = null,
 
-    // TODO USE own enum and map it
-    val neo4jDialect: Dialect = Dialect.NEO4J_5,
+    var neo4jDialect: Dialect = Dialect.NEO4J_5,
 
     val contextParams: Map<String, Any?>? = emptyMap(),
-
 
     val auth: AuthParams? = AuthParams()
 ) {

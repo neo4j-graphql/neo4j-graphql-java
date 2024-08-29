@@ -7,7 +7,7 @@ import org.neo4j.cypherdsl.core.renderer.Dialect;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.SessionConfig;
-import org.neo4j.graphql.Cypher;
+import org.neo4j.graphql.OldCypher;
 import org.neo4j.graphql.DataFetchingInterceptor;
 import org.neo4j.graphql.QueryContext;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,7 +41,7 @@ public class Neo4jConfiguration {
             queryContext.setNeo4jDialect(Dialect.NEO4J_5);
             env.getGraphQlContext().put(QueryContext.KEY, queryContext);
 
-            Cypher cypher = delegate.get(env);
+            OldCypher cypher = delegate.get(env);
             return driver.session(SessionConfig.forDatabase(database)).executeWrite(tx -> {
                 Map<String, Object> boltParams = new HashMap<>(cypher.getParams());
                 boltParams.replaceAll((key, value) -> toBoltValue(value));

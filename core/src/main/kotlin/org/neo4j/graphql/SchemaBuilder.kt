@@ -375,15 +375,15 @@ class SchemaBuilder(
                 ).build()
         )
 
-//        var schemaDefinition = typeDefinitionRegistry.schemaDefinition().unwrap()
+//        if (schemaDefinition != null) {
 //        if (schemaDefinition != null) {
 //            // otherwise, adding a transform schema would fail
-//            typeDefinitionRegistry.remove(schemaDefinition)
+//            enhancedRegistry.remove(schemaDefinition)
 //        } else {
 //            schemaDefinition = SchemaDefinition.newSchemaDefinition().build()
 //        }
-
-//        typeDefinitionRegistry.add(schemaDefinition!!.transform {
+//
+//        enhancedRegistry.add(schemaDefinition.transform {
 //            it.operationTypeDefinition(
 //                OperationTypeDefinition
 //                    .newOperationTypeDefinition()

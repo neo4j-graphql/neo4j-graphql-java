@@ -8,15 +8,16 @@ import java.util.stream.Stream
 
 object TestUtils {
 
-    fun createTestsInPath(path: String, factory: (testFile: String) -> Stream<DynamicNode>): Stream<DynamicNode>? = Files
-        .list(Paths.get("src/test/resources/$path"))
-        .sorted()
-        .map {
-            val tests = if (Files.isDirectory(it)) {
-                createTestsInPath("$path/${it.fileName}", factory)
-            } else {
-                factory("$path/${it.fileName}")
+    fun createTestsInPath(path: String, factory: (testFile: String) -> Stream<DynamicNode>): Stream<DynamicNode>? =
+        Files
+            .list(Paths.get("src/test/resources/$path"))
+            .sorted()
+            .map {
+                val tests = if (Files.isDirectory(it)) {
+                    createTestsInPath("$path/${it.fileName}", factory)
+                } else {
+                    factory("$path/${it.fileName}")
+                }
+                DynamicContainer.dynamicContainer(it.fileName.toString(), it.toUri(), tests)
             }
-            DynamicContainer.dynamicContainer(it.fileName.toString(), it.toUri(), tests)
-        }
 }

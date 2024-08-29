@@ -373,7 +373,8 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
 
         private val PARSE_OPTIONS = Options.newOptions()
             .createSortedMaps(true)
-            .alwaysCreateRelationshipsLTR(true)
+            // TODO enable after https://github.com/neo4j/cypher-dsl/issues/1059 is solved
+            //  .alwaysCreateRelationshipsLTR(true)
             .build()
 
         private fun assertCypherParams(expected: Map<String, Any?>, actual: Map<String, Any?>) {
@@ -385,9 +386,21 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
 
         private fun assertCypherParam(expected: Any?, actual: Any?) {
             when (expected) {
-                is Int -> if (actual is Double) {
-                    Assertions.assertThat(actual).isEqualTo(expected.toDouble())
-                    return
+                is Int -> when (actual) {
+                    is Double -> {
+                        Assertions.assertThat(actual).isEqualTo(expected.toDouble())
+                        return
+                    }
+
+                    is Long -> {
+                        Assertions.assertThat(actual).isEqualTo(expected.toLong())
+                        return
+                    }
+
+                    is BigInteger -> {
+                        Assertions.assertThat(actual).isEqualTo(expected.toBigInteger())
+                        return
+                    }
                 }
 
                 is String -> {
@@ -412,11 +425,14 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
                         return
                     } catch (ignore: DateTimeParseException) {
                     }
-                    parseDuration(expected)?.let { expectedDuration ->
-                        parseDuration(actual as String)?.let { actualDuration ->
-                            Assertions.assertThat(actualDuration).isEqualTo(expectedDuration)
-                            return
+                    try {
+                        parseDuration(expected)?.let { expectedDuration ->
+                            parseDuration(actual as String)?.let { actualDuration ->
+                                Assertions.assertThat(actualDuration).isEqualTo(expectedDuration)
+                                return
+                            }
                         }
+                    } catch (ignore: DateTimeParseException) {
                     }
                 }
 

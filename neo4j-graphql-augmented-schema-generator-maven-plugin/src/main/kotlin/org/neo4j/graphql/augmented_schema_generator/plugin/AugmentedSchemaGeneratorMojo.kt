@@ -46,12 +46,13 @@ class AugmentedSchemaGeneratorMojo : AbstractMojo() {
     @Throws(MojoExecutionException::class)
     override fun execute() {
         val includedFiles: Array<String> = fileSetManager.getIncludedFiles(fileset)
-        val schemaPrinter = SchemaPrinter(SchemaPrinter.Options
-            .defaultOptions()
-            .includeDirectives(true)
-            .includeScalarTypes(true)
-            .includeSchemaDefinition(true)
-            .includeIntrospectionTypes(false)
+        val schemaPrinter = SchemaPrinter(
+            SchemaPrinter.Options
+                .defaultOptions()
+                .includeDirectives(true)
+                .includeScalarTypes(true)
+                .includeSchemaDefinition(true)
+                .includeIntrospectionTypes(false)
         )
 
         includedFiles.forEach { file ->

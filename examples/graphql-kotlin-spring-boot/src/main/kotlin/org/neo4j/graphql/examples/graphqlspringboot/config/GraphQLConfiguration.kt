@@ -1,9 +1,9 @@
 package org.neo4j.graphql.examples.graphqlspringboot.config
 
+import com.expediagroup.graphql.generator.SchemaGenerator
 import com.expediagroup.graphql.generator.SchemaGeneratorConfig
 import com.expediagroup.graphql.generator.TopLevelObject
 import com.expediagroup.graphql.generator.extensions.print
-import com.expediagroup.graphql.generator.SchemaGenerator
 import com.expediagroup.graphql.server.operations.Mutation
 import com.expediagroup.graphql.server.operations.Query
 import com.expediagroup.graphql.server.operations.Subscription
@@ -35,8 +35,8 @@ open class GraphQLConfiguration {
      */
     @Bean
     open fun neo4jSchema(
-            @Value("classpath:schema.graphql") graphQl: Resource,
-            @Autowired(required = false) dataFetchingInterceptor: DataFetchingInterceptor
+        @Value("classpath:schema.graphql") graphQl: Resource,
+        @Autowired(required = false) dataFetchingInterceptor: DataFetchingInterceptor
     ): GraphQLSchema {
         val schema = graphQl.inputStream.bufferedReader().use { it.readText() }
         return SchemaBuilder.buildSchema(schema, SchemaConfig(), dataFetchingInterceptor)
@@ -47,17 +47,17 @@ open class GraphQLConfiguration {
      */
     @Bean
     open fun springSchema(
-            queries: Optional<List<Query>>,
-            mutations: Optional<List<Mutation>>,
-            subscriptions: Optional<List<Subscription>>,
-            schemaConfig: SchemaGeneratorConfig
+        queries: Optional<List<Query>>,
+        mutations: Optional<List<Mutation>>,
+        subscriptions: Optional<List<Subscription>>,
+        schemaConfig: SchemaGeneratorConfig
     ): GraphQLSchema {
         val generator = SchemaGenerator(schemaConfig)
         return generator.use {
             it.generateSchema(
-                    queries = queries.orElse(emptyList()).toTopLevelObjects(),
-                    mutations = mutations.orElse(emptyList()).toTopLevelObjects(),
-                    subscriptions = subscriptions.orElse(emptyList()).toTopLevelObjects()
+                queries = queries.orElse(emptyList()).toTopLevelObjects(),
+                mutations = mutations.orElse(emptyList()).toTopLevelObjects(),
+                subscriptions = subscriptions.orElse(emptyList()).toTopLevelObjects()
             )
         }
     }

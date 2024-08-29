@@ -180,7 +180,8 @@ fun Value<*>.toJavaValue(): Any? = when (this) {
 fun FieldDefinition.isIgnored(): Boolean = hasDirective(DirectiveConstants.IGNORE)
 
 fun TypeDefinitionRegistry.queryType() = this.getTypeByName<ObjectTypeDefinition>(this.queryTypeName())
-fun TypeDefinitionRegistry.mutationType() = this.getTypeByName<ObjectTypeDefinition>(this.mutationTypeName())
+fun TypeDefinitionRegistry.mutationType() =
+    this.getTypeByName<ObjectTypeDefinition>(this.mutationTypeName())
 fun TypeDefinitionRegistry.subscriptionType() = this.getTypeByName<ObjectTypeDefinition>(this.subscriptionTypeName())
 fun TypeDefinitionRegistry.queryTypeName() = this.getOperationType("query") ?: "Query"
 fun TypeDefinitionRegistry.mutationTypeName() = this.getOperationType("mutation") ?: "Mutation"
