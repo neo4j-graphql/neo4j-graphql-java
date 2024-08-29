@@ -63,7 +63,8 @@ class CypherTests {
     fun `translator-tests3`() = CypherTestSuite("translator-tests3.adoc", neo4j).generateTests()
 
     @TestFactory
-    fun `translator-tests-custom-scalars`() = CypherTestSuite("translator-tests-custom-scalars.adoc", neo4j).generateTests()
+    fun `translator-tests-custom-scalars`() =
+        CypherTestSuite("translator-tests-custom-scalars.adoc", neo4j).generateTests()
 
     @TestFactory
     fun `optimized-query-for-filter`() = CypherTestSuite("optimized-query-for-filter.adoc", neo4j).generateTests()
@@ -72,10 +73,11 @@ class CypherTests {
     fun `custom-fields`() = CypherTestSuite("custom-fields.adoc", neo4j).generateTests()
 
     @TestFactory
-    fun `test issues`() =  createTestsInPath("issues", { CypherTestSuite(it, neo4j).generateTests() })
+    fun `test issues`() = createTestsInPath("issues", { CypherTestSuite(it, neo4j).generateTests() })
 
     @TestFactory
-    fun `new cypher tck tests`() = createTestsInPath("tck-test-files/cypher", { CypherTestSuite(it, neo4j).generateTests() })
+    fun `new cypher tck tests`() =
+        createTestsInPath("tck-test-files/cypher", { CypherTestSuite(it, neo4j).generateTests() })
 
     companion object {
         private val INTEGRATION_TESTS = System.getProperty("neo4j-graphql-java.integration-tests", "false") == "true"

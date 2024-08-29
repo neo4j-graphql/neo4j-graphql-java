@@ -12,7 +12,11 @@ class Translator(val schema: GraphQLSchema) {
 
     @JvmOverloads
     @Throws(OptimizedQueryException::class)
-    fun translate(query: String, params: Map<String, Any?> = emptyMap(), ctx: QueryContext = QueryContext()): List<Cypher> {
+    fun translate(
+        query: String,
+        params: Map<String, Any?> = emptyMap(),
+        ctx: QueryContext = QueryContext()
+    ): List<Cypher> {
         val cypherHolder = CypherHolder()
         val executionInput = ExecutionInput.newExecutionInput()
             .query(query)
@@ -28,7 +32,7 @@ class Translator(val schema: GraphQLSchema) {
                 is TypeMismatchError, // expected since we return cypher here instead of the correct json
                 is NonNullableFieldWasNullError, // expected since the returned cypher does not match the shape of the graphql type
                 is SerializationError // expected since the returned cypher does not match the shape of the graphql type
-                -> {
+                    -> {
                     // ignore
                 }
                 // generic error handling

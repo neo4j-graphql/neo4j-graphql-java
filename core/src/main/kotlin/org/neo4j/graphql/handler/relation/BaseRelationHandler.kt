@@ -14,29 +14,30 @@ import org.neo4j.graphql.handler.BaseDataFetcherForContainer
 /**
  * This is a base class for all handler acting on relations / edges
  */
-abstract class BaseRelationHandler(private val prefix: String, schemaConfig: SchemaConfig) : BaseDataFetcherForContainer(schemaConfig) {
+abstract class BaseRelationHandler(private val prefix: String, schemaConfig: SchemaConfig) :
+    BaseDataFetcherForContainer(schemaConfig) {
 
     lateinit var relation: RelationshipInfo<GraphQLFieldsContainer>
     lateinit var startId: RelatedField
     lateinit var endId: RelatedField
 
     data class RelatedField(
-            val argumentName: String,
-            val field: GraphQLFieldDefinition,
-            val declaringType: GraphQLFieldsContainer
+        val argumentName: String,
+        val field: GraphQLFieldDefinition,
+        val declaringType: GraphQLFieldsContainer
     )
 
     abstract class BaseRelationFactory(
-            private val prefix: String,
-            schemaConfig: SchemaConfig,
-            typeDefinitionRegistry: TypeDefinitionRegistry,
-            neo4jTypeDefinitionRegistry: TypeDefinitionRegistry
+        private val prefix: String,
+        schemaConfig: SchemaConfig,
+        typeDefinitionRegistry: TypeDefinitionRegistry,
+        neo4jTypeDefinitionRegistry: TypeDefinitionRegistry
     ) : AugmentationHandler(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry) {
 
         protected fun buildFieldDefinition(
-                source: ImplementingTypeDefinition<*>,
-                targetField: FieldDefinition,
-                nullableResult: Boolean
+            source: ImplementingTypeDefinition<*>,
+            targetField: FieldDefinition,
+            nullableResult: Boolean
         ): FieldDefinition.Builder? {
 
             val (sourceIdField, _) = getRelationFields(source, targetField) ?: return null
@@ -83,7 +84,10 @@ abstract class BaseRelationHandler(private val prefix: String, schemaConfig: Sch
             return true
         }
 
-        final override fun createDataFetcher(operationType: OperationType, fieldDefinition: FieldDefinition): DataFetcher<Cypher>? {
+        final override fun createDataFetcher(
+            operationType: OperationType,
+            fieldDefinition: FieldDefinition
+        ): DataFetcher<Cypher>? {
             if (operationType != OperationType.MUTATION) {
                 return null
             }
@@ -103,7 +107,7 @@ abstract class BaseRelationHandler(private val prefix: String, schemaConfig: Sch
                 .removePrefix(p)
                 .decapitalize()
                 .let { sourceType.getFieldDefinition(it) }
-                    ?: return null
+                ?: return null
             if (!canHandleField(targetField)) {
                 return null
             }
@@ -117,7 +121,7 @@ abstract class BaseRelationHandler(private val prefix: String, schemaConfig: Sch
 
         private fun ImplementingTypeDefinition<*>.hasRelationshipFor(name: String): Boolean {
             val field = getFieldDefinition(name)
-                    ?: throw IllegalArgumentException("$name is not defined on ${this.name}")
+                ?: throw IllegalArgumentException("$name is not defined on ${this.name}")
             val fieldObjectType = field.type.inner().resolve() as? ImplementingTypeDefinition<*> ?: return false
 
             val target = getDirectiveArgument<String>(DirectiveConstants.RELATION, DirectiveConstants.RELATION_TO, null)
@@ -132,7 +136,10 @@ abstract class BaseRelationHandler(private val prefix: String, schemaConfig: Sch
 
         abstract fun createDataFetcher(): DataFetcher<Cypher>?
 
-        private fun getRelationFields(source: ImplementingTypeDefinition<*>, targetField: FieldDefinition): Pair<FieldDefinition, FieldDefinition>? {
+        private fun getRelationFields(
+            source: ImplementingTypeDefinition<*>,
+            targetField: FieldDefinition
+        ): Pair<FieldDefinition, FieldDefinition>? {
             val targetType = targetField.type.inner().resolve() as? ImplementingTypeDefinition<*> ?: return null
             val sourceIdField = source.getIdField()
             val targetIdField = targetType.getIdField()
@@ -159,18 +166,19 @@ abstract class BaseRelationHandler(private val prefix: String, schemaConfig: Sch
             .removePrefix(p)
             .decapitalize()
             .let {
-                type.getRelevantFieldDefinition(it) ?: throw IllegalStateException("Cannot find field $it on type ${type.name}")
+                type.getRelevantFieldDefinition(it)
+                    ?: throw IllegalStateException("Cannot find field $it on type ${type.name}")
             }
 
 
         relation = type.relationshipFor(targetField.name)
-                ?: throw IllegalStateException("Cannot resolve relationship for ${targetField.name} on type ${type.name}")
+            ?: throw IllegalStateException("Cannot resolve relationship for ${targetField.name} on type ${type.name}")
 
         val targetType = targetField.type.getInnerFieldsContainer()
         val sourceIdField = type.getIdField()
-                ?: throw IllegalStateException("Cannot find id field for type ${type.name}")
+            ?: throw IllegalStateException("Cannot find id field for type ${type.name}")
         val targetIdField = targetType.getIdField()
-                ?: throw IllegalStateException("Cannot find id field for type ${targetType.name}")
+            ?: throw IllegalStateException("Cannot find id field for type ${targetType.name}")
         startId = RelatedField(sourceIdField.name, sourceIdField, type)
         endId = RelatedField(targetField.name, targetIdField, targetType)
     }
@@ -188,10 +196,12 @@ abstract class BaseRelationHandler(private val prefix: String, schemaConfig: Sch
         if (!arguments.containsKey(idField.argumentName)) {
             throw IllegalArgumentException("No ID for the ${if (start) "start" else "end"} Type provided, ${idField.argumentName} is required")
         }
-        val (rel, where) = getSelectQuery(relFieldName, idField.declaringType.label(), arguments[idField.argumentName],
-                idField.field, false)
+        val (rel, where) = getSelectQuery(
+            relFieldName, idField.declaringType.label(), arguments[idField.argumentName],
+            idField.field, false
+        )
         return (rel as? Node
-                ?: throw IllegalStateException("Expected type to be of type node")) to where
+            ?: throw IllegalStateException("Expected type to be of type node")) to where
     }
 
 }

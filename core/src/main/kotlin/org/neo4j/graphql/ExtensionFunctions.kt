@@ -17,9 +17,11 @@ fun queryParameter(value: Any?, vararg parts: String?): Parameter<*> {
 }
 
 fun Expression.collect(type: GraphQLOutputType) = if (type.isList()) Cypher.collect(this) else this
-fun StatementBuilder.OngoingReading.withSubQueries(subQueries: List<Statement>) = subQueries.fold(this, { it, sub -> it.call(sub) })
+fun StatementBuilder.OngoingReading.withSubQueries(subQueries: List<Statement>) =
+    subQueries.fold(this, { it, sub -> it.call(sub) })
 
-fun normalizeName(vararg parts: String?) = parts.mapNotNull { it?.capitalize() }.filter { it.isNotBlank() }.joinToString("").decapitalize()
+fun normalizeName(vararg parts: String?) =
+    parts.mapNotNull { it?.capitalize() }.filter { it.isNotBlank() }.joinToString("").decapitalize()
 
 fun PropertyContainer.id(): FunctionInvocation = when (this) {
     is Node -> elementId(this)
@@ -33,7 +35,9 @@ fun <T> Optional<T>.unwrap(): T? = orElse(null)
 
 fun String.asDescription() = Description(this, null, this.contains("\n"))
 
-fun String.capitalize(): String = replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+fun String.capitalize(): String =
+    replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+
 fun String.decapitalize(): String = replaceFirstChar { it.lowercase(Locale.getDefault()) }
 fun String.toUpperCase(): String = uppercase(Locale.getDefault())
 fun String.toLowerCase(): String = lowercase(Locale.getDefault())

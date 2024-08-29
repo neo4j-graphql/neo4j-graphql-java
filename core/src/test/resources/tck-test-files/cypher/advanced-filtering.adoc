@@ -113,7 +113,6 @@ RETURN movie {
 }
 ----
 
-
 .Expected Cypher params
 [source,json]
 ----
@@ -377,7 +376,6 @@ RETURN movie {
   "whereMovieActorCountLt" : 123
 }
 ----
-
 
 .Expected Cypher output
 [source,cypher]
@@ -679,7 +677,6 @@ RETURN movie {
   "whereMovieGenreName" : "some genre"
 }
 ----
-
 
 .Expected Cypher output
 [source,cypher]

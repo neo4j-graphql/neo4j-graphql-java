@@ -26,7 +26,7 @@ fun initBoundSchema(schema: String): GraphQLSchema {
 
                 } else {
                     result.list().map { record -> record.get(variable).asObject() }.firstOrNull()
-                            ?: emptyMap<String, Any>()
+                        ?: emptyMap<String, Any>()
                 }
             }
         }
@@ -35,12 +35,14 @@ fun initBoundSchema(schema: String): GraphQLSchema {
 }
 
 fun main() {
-    @Language("GraphQL") val schema = initBoundSchema("""
+    @Language("GraphQL") val schema = initBoundSchema(
+        """
         type Movie {
           movieId: ID!
           title: String
         }
-    """.trimIndent())
+    """.trimIndent()
+    )
     val graphql = GraphQL.newGraphQL(schema).build()
     val movies = graphql.execute("{ movie { title }}")
 }

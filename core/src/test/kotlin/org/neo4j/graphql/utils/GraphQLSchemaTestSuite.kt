@@ -22,24 +22,29 @@ import java.util.*
 import java.util.regex.Pattern
 
 class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite(
-        fileName,
-        listOf(SCHEMA_CONFIG_MARKER, GRAPHQL_MARKER)
+    fileName,
+    listOf(SCHEMA_CONFIG_MARKER, GRAPHQL_MARKER)
 ) {
 
-    override fun testFactory(title: String, globalBlocks: Map<String, List<ParsedBlock>>, codeBlocks: Map<String, List<ParsedBlock>>, ignore: Boolean): List<DynamicNode> {
+    override fun testFactory(
+        title: String,
+        globalBlocks: Map<String, List<ParsedBlock>>,
+        codeBlocks: Map<String, List<ParsedBlock>>,
+        ignore: Boolean
+    ): List<DynamicNode> {
         val targetSchemaBlock = codeBlocks[GRAPHQL_MARKER]?.first()
         val compareSchemaTest = DynamicTest.dynamicTest("compare schema", targetSchemaBlock?.uri) {
             val configBlock = codeBlocks[SCHEMA_CONFIG_MARKER]?.first()
             val config = configBlock?.code()?.let { MAPPER.readValue(it, SchemaConfig::class.java) } ?: SchemaConfig()
 
             val targetSchema = targetSchemaBlock?.code()
-                    ?: throw IllegalStateException("missing graphql for $title")
+                ?: throw IllegalStateException("missing graphql for $title")
 
             var augmentedSchema: GraphQLSchema? = null
             var expectedSchema: GraphQLSchema? = null
             try {
                 val schema = globalBlocks[SCHEMA_MARKER]?.first()?.code()
-                        ?: throw IllegalStateException("Schema should be defined")
+                    ?: throw IllegalStateException("Schema should be defined")
                 augmentedSchema = SchemaBuilder.buildSchema(schema, config)
                 val schemaParser = SchemaParser()
 
@@ -53,11 +58,12 @@ class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite(
                     .scalars()
                     .filterNot { entry -> ScalarInfo.GRAPHQL_SPECIFICATION_SCALARS_DEFINITIONS.containsKey(entry.key) }
                     .forEach { (name, definition) ->
-                        runtimeWiring.scalar(GraphQLScalarType.newScalar()
-                            .name(name)
-                            .definition(definition)
-                            .coercing(NoOpCoercing)
-                            .build()
+                        runtimeWiring.scalar(
+                            GraphQLScalarType.newScalar()
+                                .name(name)
+                                .definition(definition)
+                                .coercing(NoOpCoercing)
+                                .build()
                         )
                     }
                 expectedSchema = schemaGenerator.makeExecutableSchema(reg, runtimeWiring.build())
@@ -75,9 +81,9 @@ class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite(
                     val actualSchema = SCHEMA_PRINTER.print(augmentedSchema)
                     targetSchemaBlock.adjustedCode = actualSchema
                     throw AssertionFailedError("augmented schema differs for '$title'",
-                            expectedSchema?.let { SCHEMA_PRINTER.print(it) } ?: targetSchema,
-                            actualSchema,
-                            e)
+                        expectedSchema?.let { SCHEMA_PRINTER.print(it) } ?: targetSchema,
+                        actualSchema,
+                        e)
 
                 }
             }
@@ -89,11 +95,12 @@ class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite(
         private const val GRAPHQL_MARKER = "[source,graphql]"
         private val METHOD_PATTERN = Pattern.compile("(add|delete|update|merge|create)(.*)")
 
-        private val SCHEMA_PRINTER = SchemaPrinter(SchemaPrinter.Options.defaultOptions()
-            .includeDirectives(false)
-            .includeScalarTypes(true)
-            .includeSchemaDefinition(true)
-            .includeIntrospectionTypes(false)
+        private val SCHEMA_PRINTER = SchemaPrinter(
+            SchemaPrinter.Options.defaultOptions()
+                .includeDirectives(false)
+                .includeScalarTypes(true)
+                .includeSchemaDefinition(true)
+                .includeIntrospectionTypes(false)
         )
 
         fun GraphQLType.splitName(): Pair<String?, String> {

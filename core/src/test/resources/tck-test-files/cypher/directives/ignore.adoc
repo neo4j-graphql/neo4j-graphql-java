@@ -4,7 +4,6 @@
 
 Tests that the @ignore directive works as expected.
 
-
 == Inputs
 
 [source,graphql,schema=true]

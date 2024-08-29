@@ -11,15 +11,15 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v2
-        with :
-          fetch-depth : 0
-      - name : Build Changelog
-        id : build_changelog
-        uses : mikepenz/release-changelog-builder-action@v1
-        with :
-          configuration : ".github/workflows/changelog-configuration.json"
-        env :
-          GITHUB_TOKEN : ${{ secrets.GITHUB_TOKEN }}
+        with:
+          fetch-depth: 0
+      - name: Build Changelog
+        id: build_changelog
+        uses: mikepenz/release-changelog-builder-action@v1
+        with:
+          configuration: ".github/workflows/changelog-configuration.json"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: update release
         id: update_release
         uses: tubone24/update_release@v1.2.0
