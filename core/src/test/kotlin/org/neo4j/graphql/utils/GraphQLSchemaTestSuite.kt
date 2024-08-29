@@ -1,9 +1,9 @@
 package org.neo4j.graphql.utils
 
 import graphql.language.InterfaceTypeDefinition
+import graphql.language.UnionTypeDefinition
 import graphql.schema.GraphQLScalarType
 import graphql.schema.GraphQLSchema
-import graphql.schema.GraphQLType
 import graphql.schema.diff.SchemaDiff
 import graphql.schema.diff.SchemaDiffSet
 import graphql.schema.diff.reporting.CapturingReporter
@@ -16,15 +16,10 @@ import org.junit.jupiter.api.DynamicTest
 import org.neo4j.graphql.NoOpCoercing
 import org.neo4j.graphql.SchemaBuilder
 import org.neo4j.graphql.SchemaConfig
-import org.neo4j.graphql.requiredName
 import org.opentest4j.AssertionFailedError
 import java.util.*
-import java.util.regex.Pattern
 
-class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite(
-    fileName,
-    listOf(SCHEMA_CONFIG_MARKER, GRAPHQL_MARKER)
-) {
+class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite(fileName, TEST_CASE_MARKERS) {
 
     override fun testFactory(
         title: String,
@@ -33,6 +28,12 @@ class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite(
         ignore: Boolean
     ): List<DynamicNode> {
         val targetSchemaBlock = codeBlocks[GRAPHQL_MARKER]?.first()
+        targetSchemaBlock?.let {
+            try {
+                it.reformattedCode = SCHEMA_PRINTER.print(createMockSchema(it.code()))
+            } catch (ignore: Exception) {
+            }
+        }
         val compareSchemaTest = DynamicTest.dynamicTest("compare schema", targetSchemaBlock?.uri) {
             val configBlock = codeBlocks[SCHEMA_CONFIG_MARKER]?.first()
             val config = configBlock?.code()?.let { MAPPER.readValue(it, SchemaConfig::class.java) } ?: SchemaConfig()
@@ -46,27 +47,7 @@ class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite(
                 val schema = globalBlocks[SCHEMA_MARKER]?.first()?.code()
                     ?: throw IllegalStateException("Schema should be defined")
                 augmentedSchema = SchemaBuilder.buildSchema(schema, config)
-                val schemaParser = SchemaParser()
-
-                val reg = schemaParser.parse(targetSchema)
-                val schemaGenerator = SchemaGenerator()
-                val runtimeWiring = RuntimeWiring.newRuntimeWiring()
-                reg
-                    .getTypes(InterfaceTypeDefinition::class.java)
-                    .forEach { typeDefinition -> runtimeWiring.type(typeDefinition.name) { it.typeResolver { null } } }
-                reg
-                    .scalars()
-                    .filterNot { entry -> ScalarInfo.GRAPHQL_SPECIFICATION_SCALARS_DEFINITIONS.containsKey(entry.key) }
-                    .forEach { (name, definition) ->
-                        runtimeWiring.scalar(
-                            GraphQLScalarType.newScalar()
-                                .name(name)
-                                .definition(definition)
-                                .coercing(NoOpCoercing)
-                                .build()
-                        )
-                    }
-                expectedSchema = schemaGenerator.makeExecutableSchema(reg, runtimeWiring.build())
+                expectedSchema = createMockSchema(targetSchema)
 
                 diff(expectedSchema, augmentedSchema)
                 diff(augmentedSchema, expectedSchema)
@@ -91,9 +72,33 @@ class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite(
         return Collections.singletonList(compareSchemaTest)
     }
 
+    private fun createMockSchema(targetSchema: String): GraphQLSchema {
+        val schemaParser = SchemaParser()
+
+        val reg = schemaParser.parse(targetSchema)
+        val schemaGenerator = SchemaGenerator()
+        val runtimeWiring = RuntimeWiring.newRuntimeWiring()
+        (reg.getTypes(InterfaceTypeDefinition::class.java)
+                + reg.getTypes(UnionTypeDefinition::class.java))
+            .forEach { typeDefinition -> runtimeWiring.type(typeDefinition.name) { it.typeResolver { null } } }
+        reg
+            .scalars()
+            .filterNot { entry -> ScalarInfo.GRAPHQL_SPECIFICATION_SCALARS_DEFINITIONS.containsKey(entry.key) }
+            .forEach { (name, definition) ->
+                runtimeWiring.scalar(
+                    GraphQLScalarType.newScalar()
+                        .name(name)
+                        .definition(definition)
+                        .coercing(NoOpCoercing)
+                        .build()
+                )
+            }
+        return schemaGenerator.makeExecutableSchema(reg, runtimeWiring.build())
+    }
+
     companion object {
         private const val GRAPHQL_MARKER = "[source,graphql]"
-        private val METHOD_PATTERN = Pattern.compile("(add|delete|update|merge|create)(.*)")
+        private val TEST_CASE_MARKERS: List<String> = listOf(SCHEMA_CONFIG_MARKER, GRAPHQL_MARKER)
 
         private val SCHEMA_PRINTER = SchemaPrinter(
             SchemaPrinter.Options.defaultOptions()
@@ -102,15 +107,6 @@ class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite(
                 .includeSchemaDefinition(true)
                 .includeIntrospectionTypes(false)
         )
-
-        fun GraphQLType.splitName(): Pair<String?, String> {
-            val m = METHOD_PATTERN.matcher(this.requiredName())
-            return if (m.find()) {
-                m.group(1) to m.group(2).lowercase()
-            } else {
-                null to this.requiredName().lowercase()
-            }
-        }
 
         fun diff(augmentedSchema: GraphQLSchema, expected: GraphQLSchema) {
             val diffSet = SchemaDiffSet.diffSetFromIntrospection(augmentedSchema, expected)
