@@ -79,13 +79,13 @@ fun GraphQLType.name(): String? = (this as? GraphQLNamedType)?.name
 fun GraphQLType.isList() = this is GraphQLList || (this is GraphQLNonNull && this.wrappedType is GraphQLList)
 
 fun GraphQLFieldsContainer.isRelationType() =
-    (this as? GraphQLDirectiveContainer)?.getDirective(DirectiveConstants.RELATION) != null
+    (this as? GraphQLDirectiveContainer)?.getAppliedDirective(DirectiveConstants.RELATION) != null
 
 
 fun GraphQLFieldsContainer.label(): String = when {
     this.isRelationType() ->
         (this as? GraphQLDirectiveContainer)
-            ?.getDirective(DirectiveConstants.RELATION)
+            ?.getAppliedDirective(DirectiveConstants.RELATION)
             ?.getArgument(RELATION_NAME)?.argumentValue?.value?.toJavaValue()?.toString()
             ?: this.name
 
@@ -115,7 +115,7 @@ fun <T> GraphQLDirectiveContainer.getDirectiveArgument(
     argumentName: String,
     defaultValue: T?
 ): T? =
-    getDirective(directiveName)?.getArgument(argumentName, defaultValue) ?: defaultValue
+    getAppliedDirective(directiveName)?.getArgument(argumentName, defaultValue) ?: defaultValue
 
 @Suppress("UNCHECKED_CAST")
 fun <T> DirectivesContainer<*>.getDirectiveArgument(
@@ -136,7 +136,6 @@ fun <T> DirectivesContainer<*>.getDirectiveArgument(
 
 fun DirectivesContainer<*>.getDirective(name: String): Directive? = directives.firstOrNull { it.name == name }
 
-@Suppress("UNCHECKED_CAST")
 fun <T> DirectivesContainer<*>.getMandatoryDirectiveArgument(
     typeRegistry: TypeDefinitionRegistry,
     directiveName: String,
@@ -146,16 +145,16 @@ fun <T> DirectivesContainer<*>.getMandatoryDirectiveArgument(
     getDirectiveArgument(typeRegistry, directiveName, argumentName, defaultValue)
         ?: throw IllegalStateException("No default value for @${directiveName}::$argumentName")
 
-fun <T> GraphQLDirective.getMandatoryArgument(argumentName: String, defaultValue: T? = null): T =
+fun <T> GraphQLAppliedDirective.getMandatoryArgument(argumentName: String, defaultValue: T? = null): T =
     this.getArgument(argumentName, defaultValue)
         ?: throw IllegalStateException(argumentName + " is required for @${this.name}")
 
-fun <T> GraphQLDirective.getArgument(argumentName: String, defaultValue: T? = null): T? {
+fun <T> GraphQLAppliedDirective.getArgument(argumentName: String, defaultValue: T? = null): T? {
     val argument = getArgument(argumentName)
     @Suppress("UNCHECKED_CAST")
     return when {
         argument.argumentValue.isSet && argument.argumentValue.value != null -> argument.argumentValue.value?.toJavaValue() as T?
-        argument.argumentDefaultValue.isSet -> argument.argumentDefaultValue.value?.toJavaValue() as T?
+        argument.definition?.value != null -> argument.definition?.value?.toJavaValue() as T?
         else -> defaultValue ?: throw IllegalStateException("No default value for @${this.name}::$argumentName")
     }
 }

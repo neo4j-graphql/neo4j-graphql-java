@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.7.6</version>
+        <version>3.2.4</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
@@ -17,8 +17,8 @@
     <description>Example for using neo4j-graphql-java with Spring Boot</description>
 
     <properties>
-        <java.version>11</java.version>
-        <testcontainers.version>1.17.6</testcontainers.version>
+        <java.version>17</java.version>
+        <testcontainers.version>1.19.7</testcontainers.version>
     </properties>
 
     <dependencies>
@@ -36,17 +36,21 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-neo4j</artifactId>
+        </dependency>
 
         <!-- neo4j driver + the neo4j-graphql-java library -->
         <dependency>
             <groupId>org.neo4j.driver</groupId>
-            <artifactId>neo4j-java-driver-spring-boot-starter</artifactId>
-            <version>4.3.6.0</version>
+            <artifactId>neo4j-java-driver</artifactId>
+            <version>5.18.0</version>
         </dependency>
         <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j-graphql-java</artifactId>
-            <version>1.7.1-SNAPSHOT</version>
+            <version>1.9.1-SNAPSHOT</version>
         </dependency>
 
 

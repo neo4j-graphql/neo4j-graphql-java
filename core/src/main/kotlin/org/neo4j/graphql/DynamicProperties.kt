@@ -1,8 +1,11 @@
 package org.neo4j.graphql
 
 import graphql.Assert
+import graphql.GraphQLContext
+import graphql.execution.CoercedVariables
 import graphql.language.*
 import graphql.schema.*
+import java.util.*
 
 object DynamicProperties {
 
@@ -10,18 +13,23 @@ object DynamicProperties {
         .name("DynamicProperties")
         .coercing(object : Coercing<Any, Any> {
             @Throws(CoercingSerializeException::class)
-            override fun serialize(input: Any): Any {
-                return input
-            }
-
-            @Throws(CoercingParseValueException::class)
-            override fun parseValue(input: Any): Any {
+            override fun serialize(input: Any, graphQLContext: GraphQLContext, locale: Locale): Any {
                 return input
             }
 
             @Throws(CoercingParseLiteralException::class)
-            override fun parseLiteral(o: Any): Any {
-                return parse(o, emptyMap())
+            override fun parseValue(input: Any, graphQLContext: GraphQLContext, locale: Locale): Any {
+                return input
+            }
+
+            @Throws(CoercingParseLiteralException::class)
+            override fun parseLiteral(
+                input: Value<*>,
+                variables: CoercedVariables,
+                graphQLContext: GraphQLContext,
+                locale: Locale
+            ): Any {
+                return parse(input, emptyMap())
             }
         })
         .build()

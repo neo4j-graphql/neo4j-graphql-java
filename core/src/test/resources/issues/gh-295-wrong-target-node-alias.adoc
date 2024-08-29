@@ -1,0 +1,86 @@
+:toc:
+
+= GitHub Issue #295: Wrong node name used for end node in rich relationship
+
+== Schema
+
+[source,graphql,schema=true]
+----
+type Person{
+    name: String
+    age: Int
+    rel_has_target_book: [Person_HAS_Target_Book]
+}
+
+type Book{
+    name: String
+    price: Int
+}
+
+type Person_HAS_Target_Book @relation(name: "HAS", from: "source", to: "target", direction: OUT) {
+    name: String
+    source: Person
+    target: Book
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+  "queryOptionStyle": "INPUT_TYPE",
+  "useWhereFilter": true
+}
+----
+
+== Query
+
+.GraphQL-Query
+[source,graphql]
+----
+query{
+  person{
+    name
+    rel_has_target_book(where:{name: "Foo", target:{name:"Book 1"}}){
+      target{
+        name
+      }
+    }
+  }
+}
+----
+
+.Cypher Params
+[source,json]
+----
+{
+  "personRel_has_target_bookTargetName" : "Book 1",
+  "wherePersonRel_has_target_bookName" : "Foo"
+}
+----
+
+.Cypher
+[source,cypher]
+----
+MATCH (person:Person)
+CALL {
+	WITH person
+	MATCH (person)-[personRel_has_target_book:HAS]->(personRel_has_target_bookTarget:Book)
+	WHERE (personRel_has_target_book.name = $wherePersonRel_has_target_bookName
+		AND personRel_has_target_bookTarget.name = $personRel_has_target_bookTargetName)
+	RETURN collect(personRel_has_target_book {
+		target: personRel_has_target_bookTarget {
+			.name
+		}
+	}) AS personRel_has_target_book
+}
+RETURN person {
+	.name,
+	rel_has_target_book: personRel_has_target_book
+} AS person
+----
+
+'''
+

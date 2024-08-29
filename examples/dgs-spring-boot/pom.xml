@@ -5,19 +5,19 @@
     <parent>
         <groupId>org.neo4j</groupId>
         <artifactId>neo4j-graphql-java-examples</artifactId>
-        <version>1.7.1-SNAPSHOT</version>
+        <version>1.9.1-SNAPSHOT</version>
     </parent>
 
     <groupId>org.neo4j.graphql.examples</groupId>
     <artifactId>dgs-spring-boot</artifactId>
 
     <name>Example - dgs-spring-boot</name>
-    <description>Example for using neo4j-graphql-java with Spring Boot and Netflix Domain Graph Service (DGS)</description>
+    <description>Example for using neo4j-graphql-java with Spring Boot and Netflix Domain Graph Service (DGS)
+    </description>
 
     <properties>
-        <testcontainers.version>1.17.6</testcontainers.version>
-        <spring-boot.version>2.7.6</spring-boot.version>
-        <graphql-java.version>19.2</graphql-java.version>
+        <testcontainers.version>1.19.7</testcontainers.version>
+        <spring-boot.version>3.2.4</spring-boot.version>
     </properties>
 
     <dependencies>
@@ -31,28 +31,33 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
+        <dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>javax.annotation-api</artifactId>
+            <version>1.3.2</version>
+        </dependency>
 
         <!-- neo4j driver + the neo4j-graphql-java library -->
         <dependency>
             <groupId>org.neo4j.driver</groupId>
-            <artifactId>neo4j-java-driver-spring-boot-starter</artifactId>
-            <version>4.3.6.0</version>
+            <artifactId>neo4j-java-driver</artifactId>
+            <version>5.18.0</version>
         </dependency>
         <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j-graphql-java</artifactId>
-            <version>1.7.1-SNAPSHOT</version>
+            <version>1.9.1-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.netflix.graphql.dgs</groupId>
             <artifactId>graphql-dgs-spring-boot-starter</artifactId>
-            <version>5.5.0</version>
+            <version>8.5.5</version>
         </dependency>
         <dependency>
             <groupId>com.netflix.graphql.dgs.codegen</groupId>
-            <artifactId>graphql-dgs-codegen-client-core</artifactId>
-            <version>5.1.17</version>
+            <artifactId>graphql-dgs-codegen-shared-core</artifactId>
+            <version>6.1.5</version>
         </dependency>
 
         <!-- Kotlin dependencies -->
@@ -92,11 +97,6 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>com.graphql-java</groupId>
-                <artifactId>graphql-java</artifactId>
-                <version>${graphql-java.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
                 <version>${spring-boot.version}</version>
@@ -126,7 +126,7 @@
             <plugin>
                 <groupId>org.neo4j</groupId>
                 <artifactId>neo4j-graphql-augmented-schema-generator-maven-plugin</artifactId>
-                <version>1.7.1-SNAPSHOT</version>
+                <version>1.9.1-SNAPSHOT</version>
                 <executions>
                     <execution>
                         <goals>
@@ -153,7 +153,7 @@
             <plugin>
                 <groupId>io.github.deweyjose</groupId>
                 <artifactId>graphqlcodegen-maven-plugin</artifactId>
-                <version>1.14</version>
+                <version>1.60.1</version>
                 <executions>
                     <execution>
                         <goals>

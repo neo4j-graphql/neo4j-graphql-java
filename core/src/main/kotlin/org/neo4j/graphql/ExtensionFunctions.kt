@@ -3,6 +3,8 @@ package org.neo4j.graphql
 import graphql.language.*
 import graphql.schema.GraphQLOutputType
 import org.neo4j.cypherdsl.core.*
+import org.neo4j.cypherdsl.core.Cypher
+import org.neo4j.cypherdsl.core.Cypher.elementId
 import org.neo4j.cypherdsl.core.Node
 import org.neo4j.cypherdsl.core.StatementBuilder.*
 import org.neo4j.graphql.domain.Interface
@@ -22,7 +24,7 @@ fun queryParameter(value: Any?, vararg parts: String?): Parameter<*> {
         is VariableReference -> value.name
         else -> normalizeName2(*parts)
     }
-    return org.neo4j.cypherdsl.core.Cypher.parameter(name).withValue(value?.toJavaValue())
+    return Cypher.parameter(name).withValue(value?.toJavaValue())
 }
 
 fun Expression.collect(type: GraphQLOutputType) = if (type.isList()) Cypher.collect(this) else this
@@ -40,8 +42,8 @@ fun normalizeName(vararg parts: String?) =
 fun normalizeName2(vararg parts: String?) = parts.filter { it?.isNotBlank() == true }.joinToString("_")
 
 fun PropertyContainer.id(): FunctionInvocation = when (this) {
-    is Node -> Cypher.elementId(this)
-    is Relationship -> Cypher.elementId(this)
+    is Node -> elementId(this)
+    is Relationship -> elementId(this)
     else -> throw IllegalArgumentException("Id can only be retrieved for Nodes or Relationships")
 }
 

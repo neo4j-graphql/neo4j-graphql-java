@@ -35,11 +35,13 @@ open class GraphQLConfiguration {
     fun postConstruct() {
         val schema = graphQl.inputStream.bufferedReader().use { it.readText() }
         val typeDefinitionRegistry = SchemaParser().parse(schema)
-        schemaBuilder = SchemaBuilder(typeDefinitionRegistry, SchemaConfig(
+        schemaBuilder = SchemaBuilder(
+            typeDefinitionRegistry, SchemaConfig(
                 pluralizeFields = true,
                 useWhereFilter = true,
                 queryOptionStyle = SchemaConfig.InputStyle.INPUT_TYPE,
-                mutation = SchemaConfig.CRUDConfig(enabled = false))
+                mutation = SchemaConfig.CRUDConfig(enabled = false)
+            )
         )
         schemaBuilder.augmentTypes()
     }
@@ -50,7 +52,10 @@ open class GraphQLConfiguration {
     }
 
     @DgsCodeRegistry
-    fun codeRegistry(codeRegistryBuilder: GraphQLCodeRegistry.Builder, registry: TypeDefinitionRegistry): GraphQLCodeRegistry.Builder {
+    fun codeRegistry(
+        codeRegistryBuilder: GraphQLCodeRegistry.Builder,
+        registry: TypeDefinitionRegistry
+    ): GraphQLCodeRegistry.Builder {
         schemaBuilder.registerDataFetcher(codeRegistryBuilder, dataFetchingInterceptor, registry)
         return codeRegistryBuilder
     }

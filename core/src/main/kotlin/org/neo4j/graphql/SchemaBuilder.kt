@@ -157,7 +157,6 @@ class SchemaBuilder(
                     is ImplementingTypeDefinition -> typeDefinition.fieldDefinitions
                         .flatMap { fieldDefinition -> fieldDefinition.inputValueDefinitions.map { it.type } + fieldDefinition.type } +
                             typeDefinition.implements
-
                     is InputObjectTypeDefinition -> typeDefinition.inputValueDefinitions.map { it.type }
                     else -> emptyList()
                 }

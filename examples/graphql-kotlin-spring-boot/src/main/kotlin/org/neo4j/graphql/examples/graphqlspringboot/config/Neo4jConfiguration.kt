@@ -31,7 +31,7 @@ open class Neo4jConfiguration {
 
                 val (cypher, params, type, variable) = delegate.get(env)
 
-                return driver.session().writeTransaction { tx ->
+                return driver.session().executeWrite { tx ->
                     val boltParams = params.mapValues { toBoltValue(it.value) }
                     val result = tx.run(cypher, boltParams)
                     if (isListType(type)) {
