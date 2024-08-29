@@ -28,6 +28,7 @@
         <neo4j.version>5.23.0</neo4j.version>
         <neo4j-apoc.version>5.23.0</neo4j-apoc.version>
         <junit-jupiter.version>5.11.0</junit-jupiter.version>
+        <neo4j-cypher-dsl.version>2024.0.3</neo4j-cypher-dsl.version>
     </properties>
 
     <modules>

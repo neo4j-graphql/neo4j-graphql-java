@@ -17,7 +17,7 @@ type Query {
   person : [Person]
   p2: [Person] @cypher(statement:"MATCH (p:Person) RETURN p")
   p3(name:String): Person @cypher(statement:"MATCH (p:Person) WHERE p.name = name RETURN p")
-  getUser(userId: ID): UserData @cypher(statement: "MATCH (u:User{id: {userId}})-[:CREATED_MAP]->(m:Map) WITH collect({id: m.id, name: m.name}) AS mapsCreated, u RETURN {firstName: u.firstName, lastName: u.lastName, organization: u.organization, mapsCreated: mapsCreated}", passThrough:true)
+  getUser(userId: ID): UserData @cypher(statement: "MATCH (u:User{id: userId})-[:CREATED_MAP]->(m:Map) WITH collect({id: m.id, name: m.name}) AS mapsCreated, u RETURN {firstName: u.firstName, lastName: u.lastName, organization: u.organization, mapsCreated: mapsCreated}", passThrough:true)
 }
 type Mutation {
   createPerson(name:String): Person @cypher(statement:"CREATE (p:Person) SET p.name = name RETURN p")
@@ -408,7 +408,7 @@ query queriesRootQuery {
 ----
 CALL {
 	WITH $userUserId AS userId
-	MATCH (u:User{id: {userId}})-[:CREATED_MAP]->(m:Map) WITH collect({id: m.id, name: m.name}) AS mapsCreated, u RETURN {firstName: u.firstName, lastName: u.lastName, organization: u.organization, mapsCreated: mapsCreated} AS user LIMIT 1
+	MATCH (u:User{id: userId})-[:CREATED_MAP]->(m:Map) WITH collect({id: m.id, name: m.name}) AS mapsCreated, u RETURN {firstName: u.firstName, lastName: u.lastName, organization: u.organization, mapsCreated: mapsCreated} AS user LIMIT 1
 }
 RETURN user AS user
 ----
