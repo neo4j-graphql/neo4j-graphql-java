@@ -3,17 +3,17 @@ package org.neo4j.graphql
 import org.neo4j.cypherdsl.core.renderer.Dialect
 
 data class QueryContext @JvmOverloads constructor(
-        /**
-         * if true the <code>__typename</code> will always be returned for interfaces, no matter if it was queried or not
-         */
-        var queryTypeOfInterfaces: Boolean = false,
+    /**
+     * if true the <code>__typename</code> will always be returned for interfaces, no matter if it was queried or not
+     */
+    var queryTypeOfInterfaces: Boolean = false,
 
-        /**
-         * If set alternative approaches for query translation will be used
-         */
-        var optimizedQuery: Set<OptimizationStrategy>? = null,
+    /**
+     * If set alternative approaches for query translation will be used
+     */
+    var optimizedQuery: Set<OptimizationStrategy>? = null,
 
-        var neo4jDialect: Dialect = Dialect.NEO4J_5
+    var neo4jDialect: Dialect = Dialect.NEO4J_5
 
 ) {
     enum class OptimizationStrategy {

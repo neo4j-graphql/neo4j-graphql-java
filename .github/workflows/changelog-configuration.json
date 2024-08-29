@@ -1,46 +1,59 @@
 {
-  "max_tags_to_fetch": 200,
-  "max_pull_requests": 200,
-  "max_back_track_time_days": 365,
-  "exclude_merge_branches": [],
-  "sort": "ASC",
-  "template": "${{CHANGELOG}}",
-  "pr_template": "* ${{TITLE}} by @${{AUTHOR}} (#${{NUMBER}})",
-  "empty_template": "- no changes",
-  "categories": [
+  "max_tags_to_fetch" : 200,
+  "max_pull_requests" : 200,
+  "max_back_track_time_days" : 365,
+  "exclude_merge_branches" : [],
+  "sort" : "ASC",
+  "template" : "${{CHANGELOG}}",
+  "pr_template" : "* ${{TITLE}} by @${{AUTHOR}} (#${{NUMBER}})",
+  "empty_template" : "- no changes",
+  "categories" : [
     {
-      "title": "## Features",
-      "labels": ["feature", "enhancement"]
+      "title" : "## Features",
+      "labels" : [
+        "feature",
+        "enhancement"
+      ]
     },
     {
-      "title": "## API-Alignment\n\nAdjust API to match as much as possible to the one of [@neo4j/graphql](https://github.com/neo4j/graphql)",
-      "labels": ["API-Alignment"]
+      "title" : "## API-Alignment\n\nAdjust API to match as much as possible to the one of [@neo4j/graphql](https://github.com/neo4j/graphql)",
+      "labels" : [
+        "API-Alignment"
+      ]
     },
     {
-      "title": "## Fixes",
-      "labels": ["fix"]
+      "title" : "## Fixes",
+      "labels" : [
+        "fix"
+      ]
     },
     {
-      "title": "## Documentation",
-      "labels": ["doc"]
+      "title" : "## Documentation",
+      "labels" : [
+        "doc"
+      ]
     },
     {
-      "title": "## Tests",
-      "labels": ["test"]
+      "title" : "## Tests",
+      "labels" : [
+        "test"
+      ]
     },
     {
-      "title": "## Updated dependencies",
-      "labels": ["dependencies"]
+      "title" : "## Updated dependencies",
+      "labels" : [
+        "dependencies"
+      ]
     }
   ],
-  "ignore_labels": [
+  "ignore_labels" : [
     "ignore"
   ],
-  "label_extractor": [  ],
-  "duplicate_filter": null,
-  "transformers": [],
-  "tag_resolver": {
-    "method": "semver"
+  "label_extractor" : [],
+  "duplicate_filter" : null,
+  "transformers" : [],
+  "tag_resolver" : {
+    "method" : "semver"
   },
-  "base_branches": []
+  "base_branches" : []
 }

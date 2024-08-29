@@ -23,9 +23,10 @@ class DeleteHandler private constructor(schemaConfig: SchemaConfig) : BaseDataFe
     private lateinit var idField: GraphQLFieldDefinition
     private var isRelation: Boolean = false
 
-    class Factory(schemaConfig: SchemaConfig,
-            typeDefinitionRegistry: TypeDefinitionRegistry,
-            neo4jTypeDefinitionRegistry: TypeDefinitionRegistry
+    class Factory(
+        schemaConfig: SchemaConfig,
+        typeDefinitionRegistry: TypeDefinitionRegistry,
+        neo4jTypeDefinitionRegistry: TypeDefinitionRegistry
     ) : AugmentationHandler(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry) {
 
         override fun augmentType(type: ImplementingTypeDefinition<*>) {
@@ -41,7 +42,10 @@ class DeleteHandler private constructor(schemaConfig: SchemaConfig) : BaseDataFe
             addMutationField(fieldDefinition)
         }
 
-        override fun createDataFetcher(operationType: OperationType, fieldDefinition: FieldDefinition): DataFetcher<Cypher>? {
+        override fun createDataFetcher(
+            operationType: OperationType,
+            fieldDefinition: FieldDefinition
+        ): DataFetcher<Cypher>? {
             if (operationType != OperationType.MUTATION) {
                 return null
             }
@@ -80,12 +84,12 @@ class DeleteHandler private constructor(schemaConfig: SchemaConfig) : BaseDataFe
         val (propertyContainer, where) = getSelectQuery(variable, type.label(), idArg, idField, isRelation)
         val select = if (isRelation) {
             val rel = propertyContainer as? Relationship
-                    ?: throw IllegalStateException("Expect a Relationship but got ${propertyContainer.javaClass.name}")
+                ?: throw IllegalStateException("Expect a Relationship but got ${propertyContainer.javaClass.name}")
             org.neo4j.cypherdsl.core.Cypher.match(rel)
                 .where(where)
         } else {
             val node = propertyContainer as? Node
-                    ?: throw IllegalStateException("Expect a Node but got ${propertyContainer.javaClass.name}")
+                ?: throw IllegalStateException("Expect a Node but got ${propertyContainer.javaClass.name}")
             org.neo4j.cypherdsl.core.Cypher.match(node)
                 .where(where)
         }

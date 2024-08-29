@@ -14,9 +14,10 @@ import org.neo4j.graphql.*
  */
 class CreateRelationHandler private constructor(schemaConfig: SchemaConfig) : BaseRelationHandler("add", schemaConfig) {
 
-    class Factory(schemaConfig: SchemaConfig,
-            typeDefinitionRegistry: TypeDefinitionRegistry,
-            neo4jTypeDefinitionRegistry: TypeDefinitionRegistry
+    class Factory(
+        schemaConfig: SchemaConfig,
+        typeDefinitionRegistry: TypeDefinitionRegistry,
+        neo4jTypeDefinitionRegistry: TypeDefinitionRegistry
     ) : BaseRelationFactory("add", schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry) {
 
         override fun augmentType(type: ImplementingTypeDefinition<*>) {
@@ -28,7 +29,13 @@ class CreateRelationHandler private constructor(schemaConfig: SchemaConfig) : Ba
             val richRelationTypes = typeDefinitionRegistry.types().values
                 .filterIsInstance<ImplementingTypeDefinition<*>>()
                 .filter { it.getDirective(DirectiveConstants.RELATION) != null }
-                .associate { it.getDirectiveArgument<String>(DirectiveConstants.RELATION, DirectiveConstants.RELATION_NAME, null)!! to it.name }
+                .associate {
+                    it.getDirectiveArgument<String>(
+                        DirectiveConstants.RELATION,
+                        DirectiveConstants.RELATION_NAME,
+                        null
+                    )!! to it.name
+                }
 
 
             type.fieldDefinitions
@@ -38,7 +45,11 @@ class CreateRelationHandler private constructor(schemaConfig: SchemaConfig) : Ba
                         ?.let { builder ->
 
                             val relationType = targetField
-                                .getDirectiveArgument<String>(DirectiveConstants.RELATION, DirectiveConstants.RELATION_NAME, null)
+                                .getDirectiveArgument<String>(
+                                    DirectiveConstants.RELATION,
+                                    DirectiveConstants.RELATION_NAME,
+                                    null
+                                )
                                 ?.let { it -> (richRelationTypes[it]) }
                                 ?.let { typeDefinitionRegistry.getUnwrappedType(it) as? ImplementingTypeDefinition }
 

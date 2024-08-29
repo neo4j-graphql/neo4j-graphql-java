@@ -5,6 +5,6 @@ org:
       authentication:
         username: movies
         password: movies
-      config :
-        encrypted : true
+      config:
+        encrypted: true
 database: movies

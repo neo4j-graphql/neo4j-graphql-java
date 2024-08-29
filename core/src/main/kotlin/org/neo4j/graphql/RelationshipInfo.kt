@@ -10,12 +10,12 @@ import org.neo4j.cypherdsl.core.Relationship
 import org.neo4j.cypherdsl.core.SymbolicName
 
 data class RelationshipInfo<TYPE>(
-        val type: TYPE,
-        val typeName: String,
-        val relType: String,
-        val direction: RelationDirection,
-        val startField: String,
-        val endField: String
+    val type: TYPE,
+    val typeName: String,
+    val relType: String,
+    val direction: RelationDirection,
+    val startField: String,
+    val endField: String
 ) {
 
     enum class RelationDirection {
@@ -32,34 +32,57 @@ data class RelationshipInfo<TYPE>(
     }
 
     companion object {
-        fun create(type: GraphQLFieldsContainer): RelationshipInfo<GraphQLFieldsContainer>? = (type as? GraphQLDirectiveContainer)
-            ?.getAppliedDirective(DirectiveConstants.RELATION)
-            ?.let { relDirective -> create(type, relDirective) }
+        fun create(type: GraphQLFieldsContainer): RelationshipInfo<GraphQLFieldsContainer>? =
+            (type as? GraphQLDirectiveContainer)
+                ?.getAppliedDirective(DirectiveConstants.RELATION)
+                ?.let { relDirective -> create(type, relDirective) }
 
-        fun create(type: GraphQLFieldsContainer, relDirective: GraphQLAppliedDirective): RelationshipInfo<GraphQLFieldsContainer> {
+        fun create(
+            type: GraphQLFieldsContainer,
+            relDirective: GraphQLAppliedDirective
+        ): RelationshipInfo<GraphQLFieldsContainer> {
             val relType = relDirective.getArgument(DirectiveConstants.RELATION_NAME, "")!!
             val direction = relDirective.getArgument<String>(DirectiveConstants.RELATION_DIRECTION, null)
                 ?.let { RelationDirection.valueOf(it) }
-                    ?: RelationDirection.OUT
+                ?: RelationDirection.OUT
 
             return RelationshipInfo(
-                    type,
-                    type.name,
-                    relType,
-                    direction,
-                    relDirective.getMandatoryArgument(DirectiveConstants.RELATION_FROM),
-                    relDirective.getMandatoryArgument(DirectiveConstants.RELATION_TO)
+                type,
+                type.name,
+                relType,
+                direction,
+                relDirective.getMandatoryArgument(DirectiveConstants.RELATION_FROM),
+                relDirective.getMandatoryArgument(DirectiveConstants.RELATION_TO)
             )
         }
 
-        fun create(type: ImplementingTypeDefinition<*>, registry: TypeDefinitionRegistry): RelationshipInfo<ImplementingTypeDefinition<*>>? {
-            val relType = type.getDirectiveArgument<String>(registry, DirectiveConstants.RELATION, DirectiveConstants.RELATION_NAME)
-                    ?: return null
-            val startField = type.getMandatoryDirectiveArgument<String>(registry, DirectiveConstants.RELATION, DirectiveConstants.RELATION_FROM)
-            val endField = type.getMandatoryDirectiveArgument<String>(registry, DirectiveConstants.RELATION, DirectiveConstants.RELATION_TO)
-            val direction = type.getDirectiveArgument<String>(registry, DirectiveConstants.RELATION, DirectiveConstants.RELATION_DIRECTION)
+        fun create(
+            type: ImplementingTypeDefinition<*>,
+            registry: TypeDefinitionRegistry
+        ): RelationshipInfo<ImplementingTypeDefinition<*>>? {
+            val relType = type.getDirectiveArgument<String>(
+                registry,
+                DirectiveConstants.RELATION,
+                DirectiveConstants.RELATION_NAME
+            )
+                ?: return null
+            val startField = type.getMandatoryDirectiveArgument<String>(
+                registry,
+                DirectiveConstants.RELATION,
+                DirectiveConstants.RELATION_FROM
+            )
+            val endField = type.getMandatoryDirectiveArgument<String>(
+                registry,
+                DirectiveConstants.RELATION,
+                DirectiveConstants.RELATION_TO
+            )
+            val direction = type.getDirectiveArgument<String>(
+                registry,
+                DirectiveConstants.RELATION,
+                DirectiveConstants.RELATION_DIRECTION
+            )
                 ?.let { RelationDirection.valueOf(it) }
-                    ?: RelationDirection.OUT
+                ?: RelationDirection.OUT
             return RelationshipInfo(type, type.name, relType, direction, startField, endField)
         }
     }

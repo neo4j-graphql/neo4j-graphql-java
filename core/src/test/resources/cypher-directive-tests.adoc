@@ -415,7 +415,6 @@ RETURN user AS user
 
 '''
 
-
 === pass through directives result in field
 
 .GraphQL-Query

@@ -117,9 +117,9 @@ internal class QueriesIT(
     open class Config {
 
         @Bean
-        open fun neo4jConnectionDetails() = object :Neo4jConnectionDetails {
+        open fun neo4jConnectionDetails() = object : Neo4jConnectionDetails {
             override fun getUri(): URI = URI.create(neo4jServer.boltUrl)
-            override fun getAuthToken(): AuthToken = AuthTokens.basic("neo4j",neo4jServer.adminPassword)
+            override fun getAuthToken(): AuthToken = AuthTokens.basic("neo4j", neo4jServer.adminPassword)
         }
 
     }

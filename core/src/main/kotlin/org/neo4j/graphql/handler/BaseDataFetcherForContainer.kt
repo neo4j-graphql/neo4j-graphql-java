@@ -22,7 +22,7 @@ abstract class BaseDataFetcherForContainer(schemaConfig: SchemaConfig) : BaseDat
 
     override fun initDataFetcher(fieldDefinition: GraphQLFieldDefinition, parentType: GraphQLType) {
         type = fieldDefinition.type.inner() as? GraphQLFieldsContainer
-                ?: throw IllegalStateException("expect type of field ${parentType.name()}.${fieldDefinition.name} to be GraphQLFieldsContainer, but was ${fieldDefinition.type.name()}")
+            ?: throw IllegalStateException("expect type of field ${parentType.name()}.${fieldDefinition.name} to be GraphQLFieldsContainer, but was ${fieldDefinition.type.name()}")
         fieldDefinition
             .arguments
             .filterNot { listOf(FIRST, OFFSET, ORDER_BY, NATIVE_ID, OPTIONS).contains(it.name) }
@@ -36,17 +36,19 @@ abstract class BaseDataFetcherForContainer(schemaConfig: SchemaConfig) : BaseDat
                 val dynamicPrefix = field.dynamicPrefix()
                 propertyFields[field.name] = when {
                     dynamicPrefix != null -> dynamicPrefixCallback(field, dynamicPrefix)
-                    field.isNeo4jType() || (schemaConfig.useTemporalScalars && field.isNeo4jTemporalType()) -> neo4jTypeCallback(field)
+                    field.isNeo4jType() || (schemaConfig.useTemporalScalars && field.isNeo4jTemporalType()) -> {
+                        neo4jTypeCallback(field)
+                    }
                     else -> defaultCallback(field)
                 }
             }
     }
 
     private fun defaultCallback(field: GraphQLFieldDefinition) =
-            { value: Any? ->
-                val propertyName = field.propertyName()
-                listOf(PropertyAccessor(propertyName) { variable -> queryParameter(value, variable, field.name) })
-            }
+        { value: Any? ->
+            val propertyName = field.propertyName()
+            listOf(PropertyAccessor(propertyName) { variable -> queryParameter(value, variable, field.name) })
+        }
 
     private fun neo4jTypeCallback(field: GraphQLFieldDefinition): (Any) -> List<PropertyAccessor> {
         val converter = getNeo4jTypeConverter(field)
@@ -54,20 +56,20 @@ abstract class BaseDataFetcherForContainer(schemaConfig: SchemaConfig) : BaseDat
     }
 
     private fun dynamicPrefixCallback(field: GraphQLFieldDefinition, dynamicPrefix: String) =
-            { value: Any ->
-                // maps each property of the map to the node
-                (value as? Map<*, *>)?.map { (key, value) ->
-                    PropertyAccessor(
-                            "$dynamicPrefix${key}"
-                    ) { variable -> queryParameter(value, variable, "${field.name}${(key as String).capitalize()}") }
-                }
+        { value: Any ->
+            // maps each property of the map to the node
+            (value as? Map<*, *>)?.map { (key, value) ->
+                PropertyAccessor(
+                    "$dynamicPrefix${key}"
+                ) { variable -> queryParameter(value, variable, "${field.name}${(key as String).capitalize()}") }
             }
+        }
 
 
     protected fun properties(variable: String, arguments: Map<String, Any>): Array<Any> =
-            preparePredicateArguments(arguments)
-                .flatMap { listOf(it.propertyName, it.toExpression(variable)) }
-                .toTypedArray()
+        preparePredicateArguments(arguments)
+            .flatMap { listOf(it.propertyName, it.toExpression(variable)) }
+            .toTypedArray()
 
     private fun preparePredicateArguments(arguments: Map<String, Any>): List<PropertyAccessor> {
         val predicates = arguments
@@ -85,11 +87,11 @@ abstract class BaseDataFetcherForContainer(schemaConfig: SchemaConfig) : BaseDat
 
     companion object {
         fun getSelectQuery(
-                variable: String,
-                label: String?,
-                idProperty: Argument?,
-                idField: GraphQLFieldDefinition,
-                isRelation: Boolean
+            variable: String,
+            label: String?,
+            idProperty: Argument?,
+            idField: GraphQLFieldDefinition,
+            isRelation: Boolean
         ): Pair<PropertyContainer, Condition> {
             return when {
                 idProperty != null -> {
@@ -114,6 +116,7 @@ abstract class BaseDataFetcherForContainer(schemaConfig: SchemaConfig) : BaseDat
                         }
                     }
                 }
+
                 else -> throw IllegalArgumentException("Could not generate selection for ${if (isRelation) "Relation" else "Node"} $label b/c of missing ID field")
             }
         }
@@ -124,8 +127,8 @@ abstract class BaseDataFetcherForContainer(schemaConfig: SchemaConfig) : BaseDat
      * @param accessorFactory a factory for crating an expression to access the property
      */
     class PropertyAccessor(
-            val propertyName: String,
-            private val accessorFactory: (variable: String) -> Expression
+        val propertyName: String,
+        private val accessorFactory: (variable: String) -> Expression
     ) {
 
         fun toExpression(variable: String): Expression {

@@ -13,5 +13,6 @@ class AugmentationTests {
     fun `schema-operations-tests`() = GraphQLSchemaTestSuite("schema-operations-tests.adoc").generateTests()
 
     @TestFactory
-    fun `schema augmentation tests`() = createTestsInPath("tck-test-files/schema", { GraphQLSchemaTestSuite(it).generateTests() })
+    fun `schema augmentation tests`() =
+        createTestsInPath("tck-test-files/schema", { GraphQLSchemaTestSuite(it).generateTests() })
 }

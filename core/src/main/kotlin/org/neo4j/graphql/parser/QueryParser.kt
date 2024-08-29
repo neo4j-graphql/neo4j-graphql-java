@@ -15,45 +15,56 @@ typealias CypherDSL = org.neo4j.cypherdsl.core.Cypher
  * An internal representation of all the filtering passed to a graphql field
  */
 class ParsedQuery(
-        val fieldPredicates: List<FieldPredicate>,
-        val relationPredicates: List<RelationPredicate>,
-        val or: List<*>? = null,
-        val and: List<*>? = null
+    val fieldPredicates: List<FieldPredicate>,
+    val relationPredicates: List<RelationPredicate>,
+    val or: List<*>? = null,
+    val and: List<*>? = null
 ) {
 
-    fun getFieldConditions(propertyContainer: PropertyContainer, variablePrefix: String, variableSuffix: String, schemaConfig: SchemaConfig): Condition =
-            fieldPredicates
-                .flatMap { it.createCondition(propertyContainer, variablePrefix, variableSuffix, schemaConfig) }
-                .reduceOrNull { result, condition -> result.and(condition) }
-                    ?: noCondition()
+    fun getFieldConditions(
+        propertyContainer: PropertyContainer,
+        variablePrefix: String,
+        variableSuffix: String,
+        schemaConfig: SchemaConfig
+    ): Condition =
+        fieldPredicates
+            .flatMap { it.createCondition(propertyContainer, variablePrefix, variableSuffix, schemaConfig) }
+            .reduceOrNull { result, condition -> result.and(condition) }
+            ?: noCondition()
 }
 
 abstract class Predicate<T>(
-        val op: T,
-        val value: Any?,
-        val normalizedName: String,
-        val index: Int)
+    val op: T,
+    val value: Any?,
+    val normalizedName: String,
+    val index: Int
+)
 
 /**
  * Predicates on a nodes' or relations' property
  */
 class FieldPredicate(
-        op: FieldOperator,
-        value: Any?,
-        val fieldDefinition: GraphQLFieldDefinition,
-        index: Int
+    op: FieldOperator,
+    value: Any?,
+    val fieldDefinition: GraphQLFieldDefinition,
+    index: Int
 ) : Predicate<FieldOperator>(op, value, normalizeName(fieldDefinition.name, op.suffix.toCamelCase()), index) {
 
-    fun createCondition(propertyContainer: PropertyContainer, variablePrefix: String, variableSuffix: String, schemaConfig: SchemaConfig) =
-            op.resolveCondition(
-                    variablePrefix,
-                    normalizedName,
-                    propertyContainer,
-                    fieldDefinition,
-                    value,
-                    schemaConfig,
-                    variableSuffix
-            )
+    fun createCondition(
+        propertyContainer: PropertyContainer,
+        variablePrefix: String,
+        variableSuffix: String,
+        schemaConfig: SchemaConfig
+    ) =
+        op.resolveCondition(
+            variablePrefix,
+            normalizedName,
+            propertyContainer,
+            fieldDefinition,
+            value,
+            schemaConfig,
+            variableSuffix
+        )
 
 }
 
@@ -62,11 +73,11 @@ class FieldPredicate(
  */
 
 class RelationPredicate(
-        type: GraphQLFieldsContainer,
-        op: RelationOperator,
-        value: Any?,
-        val fieldDefinition: GraphQLFieldDefinition,
-        index: Int
+    type: GraphQLFieldsContainer,
+    op: RelationOperator,
+    value: Any?,
+    val fieldDefinition: GraphQLFieldDefinition,
+    index: Int
 ) : Predicate<RelationOperator>(op, value, normalizeName(fieldDefinition.name, op.suffix.toCamelCase()), index) {
 
     val relationshipInfo = type.relationshipFor(fieldDefinition.name)!!
@@ -75,8 +86,10 @@ class RelationPredicate(
     fun createRelation(start: Node): Relationship = relationshipInfo.createRelation(start, relNode)
 
     fun createExistsCondition(propertyContainer: PropertyContainer): Condition {
-        val relation = createRelation(propertyContainer as? Node
-                ?: throw IllegalStateException("""propertyContainer is expected to be a Node but was ${propertyContainer.javaClass.name}"""))
+        val relation = createRelation(
+            propertyContainer as? Node
+                ?: throw IllegalStateException("""propertyContainer is expected to be a Node but was ${propertyContainer.javaClass.name}""")
+        )
         val condition = CypherDSL.match(relation).asCondition()
         return when (op) {
             RelationOperator.NOT -> condition
@@ -98,11 +111,11 @@ object QueryParser {
             .toMap(mutableMapOf())
         val or = queriedFields.remove("OR")?.second?.let {
             (it as? List<*>)
-                    ?: throw IllegalArgumentException("OR on type `${type.name}` is expected to be a list")
+                ?: throw IllegalArgumentException("OR on type `${type.name}` is expected to be a list")
         }
         val and = queriedFields.remove("AND")?.second?.let {
             (it as? List<*>)
-                    ?: throw IllegalArgumentException("AND on type `${type.name}` is expected to be a list")
+                ?: throw IllegalArgumentException("AND on type `${type.name}` is expected to be a list")
         }
         return createParsedQuery(queriedFields, type, or, and)
     }
@@ -110,7 +123,11 @@ object QueryParser {
     /**
      * This parser takes all non-filter arguments of a graphql-field and transform it to the internal [ParsedQuery]-representation
      */
-    fun parseArguments(arguments: Map<String, Any>, fieldDefinition: GraphQLFieldDefinition, type: GraphQLFieldsContainer): ParsedQuery {
+    fun parseArguments(
+        arguments: Map<String, Any>,
+        fieldDefinition: GraphQLFieldDefinition,
+        type: GraphQLFieldsContainer
+    ): ParsedQuery {
         // Map of all queried fields
         // we remove all matching fields from this map, so we can ensure that only known fields got queried
         val queriedFields = arguments
@@ -131,10 +148,10 @@ object QueryParser {
 
 
     private fun createParsedQuery(
-            queriedFields: MutableMap<String, Pair<Int, Any?>>,
-            type: GraphQLFieldsContainer,
-            or: List<*>? = null,
-            and: List<*>? = null
+        queriedFields: MutableMap<String, Pair<Int, Any?>>,
+        type: GraphQLFieldsContainer,
+        or: List<*>? = null,
+        and: List<*>? = null
     ): ParsedQuery {
         // find all matching fields
         val fieldPredicates = mutableListOf<FieldPredicate>()
@@ -175,9 +192,9 @@ object QueryParser {
         }
 
         return ParsedQuery(
-                fieldPredicates.sortedBy(Predicate<*>::index),
-                relationPredicates.sortedBy(Predicate<*>::index),
-                or, and
+            fieldPredicates.sortedBy(Predicate<*>::index),
+            relationPredicates.sortedBy(Predicate<*>::index),
+            or, and
         )
     }
 }

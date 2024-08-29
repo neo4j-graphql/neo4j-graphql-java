@@ -17,26 +17,30 @@ class TranslatorExceptionTests : AsciiDocTestSuite("translator-tests1.adoc") {
     override fun schemaTestFactory(schema: String): List<DynamicNode> {
         val translator = Translator(SchemaBuilder.buildSchema(schema))
         return listOf(
-                DynamicTest.dynamicTest("unknownType") {
-                    Assertions.assertThrows(InvalidQueryException::class.java) {
-                        translator.translate("""
+            DynamicTest.dynamicTest("unknownType") {
+                Assertions.assertThrows(InvalidQueryException::class.java) {
+                    translator.translate(
+                        """
                         {
                           company {
                             name
                           }
                         }
-                        """)
-                    }
-                },
-                DynamicTest.dynamicTest("mutation") {
-                    Assertions.assertThrows(InvalidQueryException::class.java) {
-                        translator.translate("""
+                        """
+                    )
+                }
+            },
+            DynamicTest.dynamicTest("mutation") {
+                Assertions.assertThrows(InvalidQueryException::class.java) {
+                    translator.translate(
+                        """
                         {
                           createPerson()
                         }
-                        """.trimIndent())
-                    }
+                        """.trimIndent()
+                    )
                 }
+            }
 
         )
     }

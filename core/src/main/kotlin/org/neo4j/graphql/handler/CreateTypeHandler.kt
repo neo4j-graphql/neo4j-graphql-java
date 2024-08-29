@@ -17,9 +17,10 @@ import org.neo4j.graphql.*
  */
 class CreateTypeHandler private constructor(schemaConfig: SchemaConfig) : BaseDataFetcherForContainer(schemaConfig) {
 
-    class Factory(schemaConfig: SchemaConfig,
-            typeDefinitionRegistry: TypeDefinitionRegistry,
-            neo4jTypeDefinitionRegistry: TypeDefinitionRegistry
+    class Factory(
+        schemaConfig: SchemaConfig,
+        typeDefinitionRegistry: TypeDefinitionRegistry,
+        neo4jTypeDefinitionRegistry: TypeDefinitionRegistry
     ) : AugmentationHandler(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry) {
 
         override fun augmentType(type: ImplementingTypeDefinition<*>) {
@@ -33,7 +34,10 @@ class CreateTypeHandler private constructor(schemaConfig: SchemaConfig) : BaseDa
             addMutationField(fieldDefinition)
         }
 
-        override fun createDataFetcher(operationType: OperationType, fieldDefinition: FieldDefinition): DataFetcher<Cypher>? {
+        override fun createDataFetcher(
+            operationType: OperationType,
+            fieldDefinition: FieldDefinition
+        ): DataFetcher<Cypher>? {
             if (operationType != OperationType.MUTATION) {
                 return null
             }

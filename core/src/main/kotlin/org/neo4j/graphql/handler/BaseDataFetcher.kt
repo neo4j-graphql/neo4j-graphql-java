@@ -21,17 +21,18 @@ abstract class BaseDataFetcher(schemaConfig: SchemaConfig) : ProjectionBase(sche
 
     override fun get(env: DataFetchingEnvironment): Cypher {
         val field = env.mergedField?.singleField
-                ?: throw IllegalAccessException("expect one filed in environment.mergedField")
+            ?: throw IllegalAccessException("expect one filed in environment.mergedField")
         val variable = field.aliasOrName().decapitalize()
         prepareDataFetcher(env.fieldDefinition, env.parentType)
         val statement = generateCypher(variable, field, env)
         val dialect = env.queryContext().neo4jDialect
-        val query = Renderer.getRenderer(Configuration
-            .newConfig()
-            .withIndentStyle(Configuration.IndentStyle.TAB)
-            .withPrettyPrint(true)
-            .withDialect(dialect)
-            .build()
+        val query = Renderer.getRenderer(
+            Configuration
+                .newConfig()
+                .withIndentStyle(Configuration.IndentStyle.TAB)
+                .withPrettyPrint(true)
+                .withDialect(dialect)
+                .build()
         ).render(statement)
 
         val params = statement.catalog.parameters.mapValues { (_, value) ->
