@@ -8,7 +8,7 @@ import org.neo4j.cypherdsl.core.*
 import org.neo4j.cypherdsl.core.Cypher
 import org.slf4j.LoggerFactory
 
-private fun createArrayPredicate(factory: (SymbolicName) -> Predicates.OngoingListBasedPredicateFunction) =
+private fun createArrayPredicate(factory: (SymbolicName) -> OngoingListBasedPredicateFunction) =
     { lhs: Expression, rhs: Expression ->
         val x: SymbolicName = Cypher.name("x")
         factory(x).`in`(lhs).where(x.`in`(rhs))

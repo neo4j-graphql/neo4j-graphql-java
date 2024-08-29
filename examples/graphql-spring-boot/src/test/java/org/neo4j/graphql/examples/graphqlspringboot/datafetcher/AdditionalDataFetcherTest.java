@@ -33,15 +33,16 @@ class AdditionalDataFetcherTest {
     private Driver driver;
 
     @Container
-    private static final Neo4jContainer<?> neo4jServer = new Neo4jContainer<>("neo4j:5.18.0");
+    private static final Neo4jContainer<?> neo4jServer = new Neo4jContainer<>("neo4j:5.23.0");
 
 
     @BeforeEach
     public void setup() {
-        driver.session().run(
-                "CREATE (:Movie {title:'The Matrix', released:1999, tagline:'Welcome to the Real World'})\n" +
-                        "CREATE (:Movie {title:'The Matrix Reloaded', released:2003, tagline:'Free your mind'})\n" +
-                        "CREATE (:Movie {title:'The Matrix Revolutions', released:2003, tagline:'Everything that hasa beginning has an end'})");
+        driver.session().run("""
+                CREATE (:Movie {title:'The Matrix', released:1999, tagline:'Welcome to the Real World'})
+                CREATE (:Movie {title:'The Matrix Reloaded', released:2003, tagline:'Free your mind'})
+                CREATE (:Movie {title:'The Matrix Revolutions', released:2003, tagline:'Everything that hasa beginning has an end'})
+                """);
     }
 
     @AfterEach
