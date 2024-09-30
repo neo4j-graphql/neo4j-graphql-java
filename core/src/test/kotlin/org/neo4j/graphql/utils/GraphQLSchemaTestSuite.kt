@@ -46,7 +46,7 @@ class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite(fileName, TES
             try {
                 val schema = globalBlocks[SCHEMA_MARKER]?.first()?.code()
                     ?: throw IllegalStateException("Schema should be defined")
-                augmentedSchema = SchemaBuilder.buildSchema(schema, config)
+                augmentedSchema = SchemaBuilder.buildSchema(schema, config, addLibraryDirectivesToSchema = false)
                 expectedSchema = createMockSchema(targetSchema)
 
                 diff(expectedSchema, augmentedSchema)
@@ -102,10 +102,13 @@ class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite(fileName, TES
 
         private val SCHEMA_PRINTER = SchemaPrinter(
             SchemaPrinter.Options.defaultOptions()
-                .includeDirectives(false)
                 .includeScalarTypes(true)
                 .includeSchemaDefinition(true)
                 .includeIntrospectionTypes(false)
+                .includeDirectiveDefinition {
+                    // skip printing of graphql native directives
+                    setOf("deprecated", "include", "oneOf", "skip", "specifiedBy").contains(it).not()
+                }
         )
 
         fun diff(augmentedSchema: GraphQLSchema, expected: GraphQLSchema) {

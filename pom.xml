@@ -23,15 +23,17 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>17</java.version>
-        <kotlin.version>1.9.24</kotlin.version>
+        <kotlin.version>1.9.25</kotlin.version>
         <kotlin.compiler.jvmTarget>${java.version}</kotlin.compiler.jvmTarget>
         <neo4j.version>5.23.0</neo4j.version>
         <neo4j-apoc.version>5.23.0</neo4j-apoc.version>
         <junit-jupiter.version>5.11.0</junit-jupiter.version>
-        <neo4j-cypher-dsl.version>2024.0.3</neo4j-cypher-dsl.version>
+        <neo4j-cypher-dsl.version>2024.2.0</neo4j-cypher-dsl.version>
     </properties>
 
     <modules>
+        <module>neo4j-graphql-neo4j-adapter-api</module>
+        <module>neo4j-graphql-neo4j-driver-adapter</module>
         <module>core</module>
         <module>neo4j-graphql-augmented-schema-generator-maven-plugin</module>
         <module>examples</module>
@@ -142,7 +144,7 @@
             <plugin>
                 <groupId>org.jetbrains.dokka</groupId>
                 <artifactId>dokka-maven-plugin</artifactId>
-                <version>1.7.10</version>
+                <version>1.9.20</version>
                 <executions>
                     <execution>
                         <phase>prepare-package</phase>

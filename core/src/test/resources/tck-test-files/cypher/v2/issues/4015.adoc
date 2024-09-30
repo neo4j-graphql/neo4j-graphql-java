@@ -1,0 +1,86 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/4015
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
+}
+
+type Actor {
+  name: String!
+  surname: String
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+----
+
+== should return all the selected node fields
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    actorsConnection {
+      edges {
+        node {
+          surname
+        }
+        no: node {
+          name
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+	WITH this
+	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
+	WITH collect( {
+		node: actor0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS actor0, edge.relationship AS actedIn0
+		RETURN collect( {
+			node: {
+				__resolveType: 'Actor',
+				surname: actor0.surname
+			},
+			no: {
+				__resolveType: 'Actor',
+				name: actor0.name
+			}
+		}) AS actorsConnectionEdges
+	}
+	RETURN {
+		edges: actorsConnectionEdges,
+		totalCount: totalCount
+	} AS actorsConnection
+}
+RETURN this {
+	actorsConnection: actorsConnection
+} AS this
+----
+
+'''
+

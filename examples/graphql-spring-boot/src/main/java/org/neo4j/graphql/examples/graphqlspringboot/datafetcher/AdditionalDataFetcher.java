@@ -9,6 +9,7 @@ import org.springframework.stereotype.Controller;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Controller
 class AdditionalDataFetcher {
@@ -21,7 +22,7 @@ class AdditionalDataFetcher {
     @SchemaMapping(typeName = "Movie", field = "javaData")
     public List<JavaData> javaData(DataFetchingEnvironment env) {
         //noinspection unchecked
-        Object title = ((Map<String, Object>) env.getSource()).get("title");
+        Object title = ((Map<String, Object>) Objects.requireNonNull(env.getSource())).get("title");
         return Collections.singletonList(new JavaData("test " + title));
     }
 

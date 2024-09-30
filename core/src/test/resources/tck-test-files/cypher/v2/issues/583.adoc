@@ -1,0 +1,107 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/583
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+interface Show {
+  title: String
+}
+
+interface Awardable {
+  awardsGiven: Int!
+}
+
+type Actor implements Awardable {
+  name: String
+  awardsGiven: Int!
+  actedIn: [Show!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+
+type Movie implements Show & Awardable {
+  title: String
+  awardsGiven: Int!
+}
+
+type Series implements Show & Awardable {
+  title: String
+  awardsGiven: Int!
+}
+
+type ShortFilm implements Show {
+  title: String
+}
+----
+
+== Should resolve properties from common interface
+
+.GraphQL-Query
+[source,graphql]
+----
+query shows {
+  actors {
+    name
+    __typename
+    actedIn {
+      title
+      ... on Awardable {
+        awardsGiven
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[actedIn0:ACTED_IN]->(movie0:Movie)
+		WITH movie0 {
+			__resolveType: 'Movie',
+			__id: elementId(movie0),
+			.title,
+			.awardsGiven
+		} AS movie0
+		RETURN movie0 AS actedIn UNION
+		WITH *
+		MATCH (this)-[actedIn1:ACTED_IN]->(series0:Series)
+		WITH series0 {
+			__resolveType: 'Series',
+			__id: elementId(series0),
+			.title,
+			.awardsGiven
+		} AS series0
+		RETURN series0 AS actedIn UNION
+		WITH *
+		MATCH (this)-[actedIn2:ACTED_IN]->(shortFilm0:ShortFilm)
+		WITH shortFilm0 {
+			__resolveType: 'ShortFilm',
+			__id: elementId(shortFilm0),
+			.title
+		} AS shortFilm0
+		RETURN shortFilm0 AS actedIn
+	}
+	WITH actedIn
+	RETURN collect(actedIn) AS actedIn
+}
+RETURN this {
+	.name,
+	actedIn: actedIn
+} AS this
+----
+
+'''
+

@@ -1,0 +1,122 @@
+:toc:
+
+= Simple Cypher tests
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  id: ID
+  title: String
+}
+----
+
+== Multi selection, Movie by title
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {title: "River Runs Through It, A"}) {
+    id
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "River Runs Through It, A"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+RETURN this {
+	.id,
+	.title
+} AS this
+----
+
+'''
+
+== Multi selection, Movie by title via variable
+
+.GraphQL-Query
+[source,graphql]
+----
+query ($title: String) {
+  movies(where: {title: $title}) {
+    id
+    title
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "title": "some title"
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "some title"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+RETURN this {
+	.id,
+	.title
+} AS this
+----
+
+'''
+
+== Single selection, Movie by title
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {title: "River Runs Through It, A"}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "River Runs Through It, A"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+RETURN this {
+	.title
+} AS this
+----
+
+'''
+

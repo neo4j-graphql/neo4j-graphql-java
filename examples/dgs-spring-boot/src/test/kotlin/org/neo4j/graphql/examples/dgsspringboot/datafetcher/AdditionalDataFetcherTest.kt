@@ -2,7 +2,6 @@ package org.neo4j.graphql.examples.dgsspringboot.datafetcher
 
 import com.jayway.jsonpath.TypeRef
 import com.netflix.graphql.dgs.DgsQueryExecutor
-import com.netflix.graphql.dgs.client.codegen.GraphQLQueryRequest
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -10,9 +9,8 @@ import org.junit.jupiter.api.Test
 import org.neo4j.driver.AuthToken
 import org.neo4j.driver.AuthTokens
 import org.neo4j.driver.Driver
+import org.neo4j.graphql.examples.dgsspringboot.types.DgsClient
 import org.neo4j.graphql.examples.dgsspringboot.types.DgsConstants
-import org.neo4j.graphql.examples.dgsspringboot.types.client.MoviesGraphQLQuery
-import org.neo4j.graphql.examples.dgsspringboot.types.client.MoviesProjectionRoot
 import org.neo4j.graphql.examples.dgsspringboot.types.types.Movie
 import org.neo4j.graphql.examples.dgsspringboot.types.types.MovieOptions
 import org.neo4j.graphql.examples.dgsspringboot.types.types.MovieSort
@@ -59,33 +57,30 @@ internal class AdditionalDataFetcherTest(
 
     @Test
     fun testHybridDataFetcher() {
-
-        val graphQLQueryRequest = GraphQLQueryRequest(
-            MoviesGraphQLQuery.newRequest()
-                .options(MovieOptions(sort = listOf(MovieSort(title = SortDirection.DESC))))
-                .build(),
-            MoviesProjectionRoot().also { movie ->
-                movie.title()
-                movie.bar()
-                movie.javaData().also { javaData ->
-                    javaData.name()
+        val request = DgsClient.buildQuery {
+            movies(options = MovieOptions(sort = listOf(MovieSort(title = SortDirection.DESC)))) {
+                bar
+                javaData {
+                    name
                 }
             }
-        )
+        }
 
-        val request = graphQLQueryRequest.serialize()
         Assertions.assertThat(request)
             .isEqualTo(
                 """
                 {
+                  __typename
                   movies(options: {sort : [{title : DESC}]}) {
-                    title
+                    __typename
                     bar
                     javaData {
+                      __typename
                       name
                     }
                   }
-                }""".trimIndent()
+                }
+                """.trimIndent() + "\n"
             )
 
         val response = dgsQueryExecutor.executeAndGetDocumentContext(request)
@@ -95,30 +90,34 @@ internal class AdditionalDataFetcherTest(
             """
         {
           "data": {
+            "__typename": "Query",
             "movies": [
               {
-                "title": "The Matrix Revolutions",
+                "__typename": "Movie",
                 "bar": "foo",
                 "javaData": [
                   {
+                    "__typename": "JavaData",
                     "name": "test The Matrix Revolutions"
                   }
                 ]
               },
               {
-                "title": "The Matrix Reloaded",
+                "__typename": "Movie",
                 "bar": "foo",
                 "javaData": [
                   {
+                    "__typename": "JavaData",
                     "name": "test The Matrix Reloaded"
                   }
                 ]
               },
               {
-                "title": "The Matrix",
+                "__typename": "Movie",
                 "bar": "foo",
                 "javaData": [
                   {
+                    "__typename": "JavaData",
                     "name": "test The Matrix"
                   }
                 ]

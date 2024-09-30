@@ -43,6 +43,11 @@
 
         <!-- neo4j driver + the neo4j-graphql-java library -->
         <dependency>
+            <groupId>org.neo4j</groupId>
+            <artifactId>neo4j-graphql-neo4j-driver-adapter</artifactId>
+            <version>2.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
             <groupId>org.neo4j.driver</groupId>
             <artifactId>neo4j-java-driver</artifactId>
             <version>5.23.0</version>

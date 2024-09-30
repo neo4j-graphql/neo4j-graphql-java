@@ -1,21 +1,112 @@
-directive @relation(name:String, direction: RelationDirection = OUT, from: String = "from", to: String = "to") on FIELD_DEFINITION | OBJECT
-
-directive @cypher(
-
-  # Arguments on the field are passed to the Cypher statement and can be used by name.
-  # They must not be prefixed by `$` since they are no longer parameters.
-  # Just use the same name as the fields' argument.
-  # The current node is passed to the statement as `this`.
-  # The statement should contain exactly one return expression without any alias.
-  # Input types are supported, they appear as `Map` type in your Cypher statement.
-  statement:String,
-
-  # if true, passes the sole responsibility for the nested query result for the field to your Cypher query.
-  # You will have to provide all data/structure required by client queries.
-  # Otherwise, we assume if you return object-types that you will return the appropriate nodes from your statement.
-  passThrough: Boolean = false
+"Instructs neo4j-graphql-java to map a GraphQL field to a Neo4j node or relationship property."
+directive @alias(
+  "The name of the Neo4j property"
+  property:String!
 ) on FIELD_DEFINITION
 
-directive @property(name:String) on FIELD_DEFINITION
-directive @dynamic(prefix:String = "properties.") on FIELD_DEFINITION
-directive @ignore on FIELD_DEFINITION
+"Instructs neo4j-graphql-java to wrap the property in a coalesce() function during queries, using the single value specified."
+directive @coalesce(
+  "The value to use in the coalesce() function. Must be a scalar type and must match the type of the field with which this directive decorates."
+  value: ScalarType!
+) on FIELD_DEFINITION
+
+"Informs neo4j-graphql-java that a field will be resolved by a custom resolver, and allows specification of any field dependencies."
+directive @customResolver(
+  "Fields that the custom resolver will depend on. These are passed as an object to the first argument of the custom resolver."
+  requires: String
+) on FIELD_DEFINITION
+
+"Instructs neo4j-graphql-java to set the specified value as the default value in the CreateInput type for the object type in which this directive is used."
+directive @default(
+  "The default value to use. Must be a scalar type and must match the type of the field with which this directive decorates."
+  value: ScalarType!
+) on FIELD_DEFINITION
+
+"Instructs neo4j-graphql-java to generate filters for this field."
+directive @filterable(
+  "Generates filters for this field"
+  byValue: Boolean! = true,
+) on FIELD_DEFINITION
+
+"Enables the autogeneration of UUID values for an ID field. The field becomes immutable."
+directive @id on FIELD_DEFINITION
+
+"Instructs neo4j-graphql-java to inject limit values into a query."
+directive @limit(
+  "If no limit argument is supplied on query will fallback to this value."
+  default: Int,
+  "Maximum limit to be used for queries."
+  max: Int
+) on OBJECT | INTERFACE
+
+"Informs neo4j-graphql-java of node metadata"
+directive @node(
+  "The labels to map this GraphQL type to in the Neo4j database",
+  labels: [String!]
+) on OBJECT
+
+"Instructs neo4j-graphql-java to use the given value as the plural of the type name."
+directive @plural(
+  "The value to use as the plural of the type name."
+  value: String!
+) on OBJECT | INTERFACE | UNION
+
+# TODO remove?
+"Instructs neo4j-graphql-java to only expose a field through the Neo4j GraphQL OGM."
+directive @private on FIELD_DEFINITION
+
+"Instructs neo4j-graphql-java to exclude read or aggregate operations from the query root type."
+directive @query(
+  "Disable/Enabled read operations from query root type"
+  read: Boolean! = true
+) on OBJECT | SCHEMA | INTERFACE | UNION
+
+"Instructs neo4j-graphql-java to treat this field as a relationship. Opens up the ability to create and connect on this field."
+directive @relationship(
+  type:String!,
+  "Valid and default directions for this relationship."
+  queryDirection: RelationshipQueryDirection! = DEFAULT_DIRECTED,
+  direction: RelationshipDirection!,
+  "The name of the interface containing the properties for this relationship."
+  properties: String
+) on FIELD_DEFINITION
+
+"Required to differentiate between interfaces for relationship properties, and otherwise."
+directive @relationshipProperties on OBJECT
+
+"Mark the field to be used as the global node identifier for Relay. This field will be backed by a unique node property constraint."
+directive @relayId on FIELD_DEFINITION
+
+"Instructs neo4j-graphql-java to generate this field for selectable types."
+directive @selectable(
+  "Generates this field on read and subscribe operations."
+  onRead: Boolean! = true
+) on FIELD_DEFINITION
+
+scalar Object
+
+scalar ScalarType
+
+enum RelationshipDirection {
+  IN
+  OUT
+}
+
+enum RelationshipQueryDirection {
+  "All queries will be **directed** by default, but users may perform undirected queries."
+  DEFAULT_DIRECTED
+  "All queries will be **undirected** by default, but users may perform directed queries."
+  DEFAULT_UNDIRECTED
+  "Only directed queries can be perform on this relationship."
+  DIRECTED_ONLY
+  "Only undirected queries can be perform on this relationship."
+  UNDIRECTED_ONLY
+}
+
+"Limit options."
+input LimitInput {
+  "If no limit argument is supplied on query will fallback to this value."
+  default: Int
+  "Maximum limit to be used for queries."
+  max: Int
+}

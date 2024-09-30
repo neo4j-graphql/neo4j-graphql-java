@@ -1,0 +1,151 @@
+:toc:
+
+= Label in Node directive
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Actor @node(labels: ["Person"]) {
+  name: String
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+
+type Movie @node(labels: ["Film"]) {
+  id: ID
+  title: String
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
+}
+----
+
+== Select movie and actor with custom labels
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    title
+    actors {
+      name
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Film)
+CALL {
+	WITH this
+	MATCH (actor0:Person)-[actedIn0:ACTED_IN]->(this)
+	WITH actor0 {
+		.name
+	} AS actors
+	RETURN collect(actors) AS actors
+}
+RETURN this {
+	.title,
+	actors: actors
+} AS this
+----
+
+'''
+
+== Select movie and actor with custom labels using Relay connection
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    title
+    actorsConnection {
+      edges {
+        node {
+          name
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Film)
+CALL {
+	WITH this
+	MATCH (actor0:Person)-[actedIn0:ACTED_IN]->(this)
+	WITH collect( {
+		node: actor0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS actor0, edge.relationship AS actedIn0
+		RETURN collect( {
+			node: {
+				__resolveType: 'Actor',
+				name: actor0.name
+			}
+		}) AS actorsConnectionEdges
+	}
+	RETURN {
+		edges: actorsConnectionEdges,
+		totalCount: totalCount
+	} AS actorsConnection
+}
+RETURN this {
+	.title,
+	actorsConnection: actorsConnection
+} AS this
+----
+
+'''
+
+== Select Movie with label Film
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Film)
+RETURN this {
+	.title
+} AS this
+----
+
+'''
+

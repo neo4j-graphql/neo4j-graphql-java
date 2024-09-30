@@ -1,0 +1,268 @@
+:toc:
+
+= Root Connection Query tests
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  id: ID
+  title: String
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
+}
+
+type Actor {
+  name: String
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+----
+
+== should apply limit and sort before return
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesConnection(first: 20, sort: [{title: ASC}]) {
+    edges {
+      node {
+        title
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 20
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WITH collect( {
+	node: this
+}) AS edges
+WITH edges, size(edges) AS totalCount
+CALL {
+	WITH edges
+	UNWIND edges AS edge
+	WITH edge.node AS this
+	WITH * ORDER BY this.title ASC LIMIT $param0
+	RETURN collect( {
+		node: {
+			__resolveType: 'Movie',
+			title: this.title
+		}
+	}) AS edges0
+}
+RETURN {
+	edges: edges0,
+	totalCount: totalCount
+} AS this
+----
+
+'''
+
+== should apply limit, sort, and filter correctly when all three are used
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesConnection(
+    first: 20
+    where: {title_CONTAINS: "Matrix"}
+    sort: [{title: ASC}]
+  ) {
+    edges {
+      node {
+        title
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "Matrix",
+  "param1" : 20
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title CONTAINS $param0
+WITH collect( {
+	node: this
+}) AS edges
+WITH edges, size(edges) AS totalCount
+CALL {
+	WITH edges
+	UNWIND edges AS edge
+	WITH edge.node AS this
+	WITH * ORDER BY this.title ASC LIMIT $param1
+	RETURN collect( {
+		node: {
+			__resolveType: 'Movie',
+			title: this.title
+		}
+	}) AS edges0
+}
+RETURN {
+	edges: edges0,
+	totalCount: totalCount
+} AS this
+----
+
+'''
+
+== should correctly place any connection strings
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesConnection(first: 20, sort: [{title: ASC}]) {
+    edges {
+      node {
+        title
+        actorsConnection {
+          totalCount
+          edges {
+            node {
+              name
+            }
+          }
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 20
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WITH collect( {
+	node: this
+}) AS edges
+WITH edges, size(edges) AS totalCount
+CALL {
+	WITH edges
+	UNWIND edges AS edge
+	WITH edge.node AS this
+	WITH * ORDER BY this.title ASC LIMIT $param0
+	CALL {
+		WITH this
+		MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
+		WITH collect( {
+			node: actor0,
+			relationship: actedIn0
+		}) AS edges
+		WITH edges, size(edges) AS totalCount
+		CALL {
+			WITH edges
+			UNWIND edges AS edge
+			WITH edge.node AS actor0, edge.relationship AS actedIn0
+			RETURN collect( {
+				node: {
+					__resolveType: 'Actor',
+					name: actor0.name
+				}
+			}) AS actorsConnectionEdges
+		}
+		RETURN {
+			edges: actorsConnectionEdges,
+			totalCount: totalCount
+		} AS actorsConnection
+	}
+	RETURN collect( {
+		node: {
+			__resolveType: 'Movie',
+			title: this.title,
+			actorsConnection: actorsConnection
+		}
+	}) AS edges0
+}
+RETURN {
+	edges: edges0,
+	totalCount: totalCount
+} AS this
+----
+
+'''
+
+== Simple selection, Movie by title
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesConnection(where: {title: "River Runs Through It, A"}) {
+    totalCount
+    edges {
+      node {
+        title
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "River Runs Through It, A"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+WITH collect( {
+	node: this
+}) AS edges
+WITH edges, size(edges) AS totalCount
+CALL {
+	WITH edges
+	UNWIND edges AS edge
+	WITH edge.node AS this
+	RETURN collect( {
+		node: {
+			__resolveType: 'Movie',
+			title: this.title
+		}
+	}) AS edges0
+}
+RETURN {
+	edges: edges0,
+	totalCount: totalCount
+} AS this
+----
+
+'''
+

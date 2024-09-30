@@ -1,0 +1,37 @@
+:toc:
+
+= @query directive -> on SCHEMA -> should disable read and aggregate
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Actor {
+  name: String
+}
+
+type Movie {
+  title: String
+}
+
+extend schema @query(read: false) {
+  query: Query
+}
+----
+
+== Augmented schema
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+}
+
+type Query {
+  _empty: Boolean
+}
+
+----
+
+'''

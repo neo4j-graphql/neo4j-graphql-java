@@ -1,0 +1,228 @@
+:toc:
+
+= Directive-preserve -> Directives on relations preserved
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String
+  year: Int
+  imdbRating: Float
+  genres: [Genre!]! @relationship(type: "IN_GENRE", direction: OUT) @deprecated(reason: "Do not use")
+}
+
+type Genre {
+  name: String
+  movies: [Movie!]! @relationship(type: "IN_GENRE", direction: IN)
+}
+----
+
+== Augmented schema
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+}
+
+type Genre {
+  movies(directed: Boolean = true, options: MovieOptions, where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, directed: Boolean = true, first: Int, sort: [GenreMoviesConnectionSort!], where: GenreMoviesConnectionWhere): GenreMoviesConnection!
+  name: String
+}
+
+type GenreEdge {
+  cursor: String!
+  node: Genre!
+}
+
+type GenreMoviesConnection {
+  edges: [GenreMoviesRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type GenreMoviesRelationship {
+  cursor: String!
+  node: Movie!
+}
+
+type GenresConnection {
+  edges: [GenreEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Movie {
+  genres(directed: Boolean = true, options: GenreOptions, where: GenreWhere): [Genre!]! @deprecated(reason : "Do not use")
+  genresConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieGenresConnectionSort!], where: MovieGenresConnectionWhere): MovieGenresConnection! @deprecated(reason : "Do not use")
+  imdbRating: Float
+  title: String
+  year: Int
+}
+
+type MovieEdge {
+  cursor: String!
+  node: Movie!
+}
+
+type MovieGenresConnection {
+  edges: [MovieGenresRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type MovieGenresRelationship {
+  cursor: String!
+  node: Genre!
+}
+
+type MoviesConnection {
+  edges: [MovieEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  genres(options: GenreOptions, where: GenreWhere): [Genre!]!
+  genresConnection(after: String, first: Int, sort: [GenreSort], where: GenreWhere): GenresConnection!
+  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
+}
+
+"An enum for sorting in either ascending or descending order."
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+input GenreMoviesConnectionSort {
+  node: MovieSort
+}
+
+input GenreMoviesConnectionWhere {
+  AND: [GenreMoviesConnectionWhere!]
+  NOT: GenreMoviesConnectionWhere
+  OR: [GenreMoviesConnectionWhere!]
+  node: MovieWhere
+}
+
+input GenreOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more GenreSort objects to sort Genres by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [GenreSort!]
+}
+
+"Fields to sort Genres by. The order in which sorts are applied is not guaranteed when specifying many fields in one GenreSort object."
+input GenreSort {
+  name: SortDirection
+}
+
+input GenreWhere {
+  AND: [GenreWhere!]
+  NOT: GenreWhere
+  OR: [GenreWhere!]
+  "Return Genres where all of the related GenreMoviesConnections match this filter"
+  moviesConnection_ALL: GenreMoviesConnectionWhere
+  "Return Genres where none of the related GenreMoviesConnections match this filter"
+  moviesConnection_NONE: GenreMoviesConnectionWhere
+  "Return Genres where one of the related GenreMoviesConnections match this filter"
+  moviesConnection_SINGLE: GenreMoviesConnectionWhere
+  "Return Genres where some of the related GenreMoviesConnections match this filter"
+  moviesConnection_SOME: GenreMoviesConnectionWhere
+  "Return Genres where all of the related Movies match this filter"
+  movies_ALL: MovieWhere
+  "Return Genres where none of the related Movies match this filter"
+  movies_NONE: MovieWhere
+  "Return Genres where one of the related Movies match this filter"
+  movies_SINGLE: MovieWhere
+  "Return Genres where some of the related Movies match this filter"
+  movies_SOME: MovieWhere
+  name: String
+  name_CONTAINS: String
+  name_ENDS_WITH: String
+  name_IN: [String]
+  name_STARTS_WITH: String
+}
+
+input MovieGenresConnectionSort {
+  node: GenreSort
+}
+
+input MovieGenresConnectionWhere {
+  AND: [MovieGenresConnectionWhere!]
+  NOT: MovieGenresConnectionWhere
+  OR: [MovieGenresConnectionWhere!]
+  node: GenreWhere
+}
+
+input MovieOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [MovieSort!]
+}
+
+"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+input MovieSort {
+  imdbRating: SortDirection
+  title: SortDirection
+  year: SortDirection
+}
+
+input MovieWhere {
+  AND: [MovieWhere!]
+  NOT: MovieWhere
+  OR: [MovieWhere!]
+  "Return Movies where all of the related MovieGenresConnections match this filter"
+  genresConnection_ALL: MovieGenresConnectionWhere @deprecated(reason : "Do not use")
+  "Return Movies where none of the related MovieGenresConnections match this filter"
+  genresConnection_NONE: MovieGenresConnectionWhere @deprecated(reason : "Do not use")
+  "Return Movies where one of the related MovieGenresConnections match this filter"
+  genresConnection_SINGLE: MovieGenresConnectionWhere @deprecated(reason : "Do not use")
+  "Return Movies where some of the related MovieGenresConnections match this filter"
+  genresConnection_SOME: MovieGenresConnectionWhere @deprecated(reason : "Do not use")
+  "Return Movies where all of the related Genres match this filter"
+  genres_ALL: GenreWhere @deprecated(reason : "Do not use")
+  "Return Movies where none of the related Genres match this filter"
+  genres_NONE: GenreWhere @deprecated(reason : "Do not use")
+  "Return Movies where one of the related Genres match this filter"
+  genres_SINGLE: GenreWhere @deprecated(reason : "Do not use")
+  "Return Movies where some of the related Genres match this filter"
+  genres_SOME: GenreWhere @deprecated(reason : "Do not use")
+  imdbRating: Float
+  imdbRating_GT: Float
+  imdbRating_GTE: Float
+  imdbRating_IN: [Float]
+  imdbRating_LT: Float
+  imdbRating_LTE: Float
+  title: String
+  title_CONTAINS: String
+  title_ENDS_WITH: String
+  title_IN: [String]
+  title_STARTS_WITH: String
+  year: Int
+  year_GT: Int
+  year_GTE: Int
+  year_IN: [Int]
+  year_LT: Int
+  year_LTE: Int
+}
+
+----
+
+'''

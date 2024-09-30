@@ -1,0 +1,51 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/4667
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type MyThing {
+  id: ID! @id
+  stuff: MyStuff @relationship(type: "THE_STUFF", direction: OUT)
+}
+
+type MyStuff {
+  id: ID! @id
+  thing: MyThing @relationship(type: "THE_STUFF", direction: IN)
+}
+----
+
+== when passed null as an argument of a relationship filter should check that a relationship does not exist
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  myThings(where: {stuff: null}) {
+    id
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:MyThing)
+WHERE NOT (EXISTS {
+	MATCH (this)-[:THE_STUFF]->(this0:MyStuff)
+})
+RETURN this {
+	.id
+} AS this
+----
+
+'''
+

@@ -1,0 +1,69 @@
+:toc:
+
+= Cypher coalesce()
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+enum Status {
+  ACTIVE
+  INACTIVE
+}
+
+type Movie {
+  id: ID
+  status: Status @coalesce(value: ACTIVE)
+}
+----
+
+== Configuration
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+  "features": {
+    "filters": {
+      "String": {
+        "MATCHES": true
+      }
+    }
+  }
+}
+----
+
+== Coalesce with enum in match
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {status: ACTIVE}) {
+    id
+    status
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "ACTIVE"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE coalesce(this.status, 'ACTIVE') = $param0
+RETURN this {
+	.id,
+	.status
+} AS this
+----
+
+'''
+

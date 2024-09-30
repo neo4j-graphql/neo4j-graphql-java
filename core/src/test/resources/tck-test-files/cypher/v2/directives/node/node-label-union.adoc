@@ -1,0 +1,91 @@
+:toc:
+
+= Node directive with unions
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+union Search = Genre | Movie
+
+type Genre @node(labels: ["Category", "ExtraLabel1", "ExtraLabel2"]) {
+  name: String
+}
+
+type Movie @node(labels: ["Film"]) {
+  title: String
+  search: [Search!]! @relationship(type: "SEARCH", direction: OUT)
+}
+----
+
+== Read Unions
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {title: "some title"}) {
+    search(
+      where: {Movie: {title: "The Matrix"}, Genre: {name: "Horror"}}
+      options: {offset: 1, limit: 10}
+    ) {
+      ... on Movie {
+        title
+      }
+      ... on Genre {
+        name
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "some title",
+  "param1" : "Horror",
+  "param2" : "The Matrix",
+  "param3" : 1,
+  "param4" : 10
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Film)
+WHERE this.title = $param0
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[search1:SEARCH]->(genre0:Category:ExtraLabel1:ExtraLabel2)
+		WHERE genre0.name = $param1
+		WITH genre0 {
+			__resolveType: 'Genre',
+			__id: elementId(genre0),
+			.name
+		} AS genre0
+		RETURN genre0 AS search0 UNION
+		WITH *
+		MATCH (this)-[search2:SEARCH]->(movie0:Film)
+		WHERE movie0.title = $param2
+		WITH movie0 {
+			__resolveType: 'Movie',
+			__id: elementId(movie0),
+			.title
+		} AS movie0
+		RETURN movie0 AS search0
+	}
+	WITH search0 SKIP $param3 LIMIT $param4
+	RETURN collect(search0) AS search0
+}
+RETURN this {
+	search: search0
+} AS this
+----
+
+'''
+

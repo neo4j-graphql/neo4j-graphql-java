@@ -18,7 +18,7 @@ class AdditionalDataFetcher {
     @DgsData(parentType = DgsConstants.MOVIE.TYPE_NAME, field = DgsConstants.MOVIE.JavaData)
     fun javaData(env: DataFetchingEnvironment): List<JavaData> {
         val title = env.getSource<Map<String, *>>()?.get("title")
-        return Collections.singletonList(JavaData("test $title"))
+        return Collections.singletonList(JavaData { "test $title" })
     }
 
     @DgsData(parentType = DgsConstants.QUERY.TYPE_NAME, field = DgsConstants.QUERY.Other)

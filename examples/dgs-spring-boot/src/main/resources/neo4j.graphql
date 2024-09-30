@@ -1,3 +1,10 @@
 type Movie {
   title: String
+  bar: String @customResolver
+  javaData: [JavaData!] @customResolver(requires: "title")
+}
+
+# Since this type is referenced by the Movie type, we need to provide its type definition in this file
+type JavaData @query(read: false) {
+  name: String
 }

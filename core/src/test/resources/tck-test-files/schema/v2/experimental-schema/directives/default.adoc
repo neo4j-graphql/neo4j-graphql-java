@@ -1,0 +1,216 @@
+:toc:
+
+= @default directive -> sets default values in schema
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+interface UserInterface {
+  fromInterface: String!
+  toBeOverridden: String!
+}
+
+type User implements UserInterface {
+  id: ID! @default(value: "00000000-00000000-00000000-00000000")
+  name: String! @default(value: "Jane Smith")
+  verified: Boolean! @default(value: false)
+  numberOfFriends: Int! @default(value: 0)
+  rating: Float! @default(value: 0.0)
+  verifiedDate: DateTime! @default(value: "1970-01-01T00:00:00.000Z")
+  fromInterface: String! @default(value: "Interface default value")
+  toBeOverridden: String! @default(value: "Overridden value")
+  location: Location! @default(value: HERE)
+}
+
+enum Location {
+  HERE
+  THERE
+  EVERYWHERE
+}
+----
+
+== Augmented schema
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+}
+
+interface UserInterface {
+  fromInterface: String!
+  toBeOverridden: String!
+}
+
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  userInterfaces(options: UserInterfaceOptions, where: UserInterfaceWhere): [UserInterface!]!
+  userInterfacesConnection(after: String, first: Int, sort: [UserInterfaceSort], where: UserInterfaceWhere): UserInterfacesConnection!
+  users(options: UserOptions, where: UserWhere): [User!]!
+  usersConnection(after: String, first: Int, sort: [UserSort], where: UserWhere): UsersConnection!
+}
+
+type User implements UserInterface {
+  fromInterface: String!
+  id: ID!
+  location: Location!
+  name: String!
+  numberOfFriends: Int!
+  rating: Float!
+  toBeOverridden: String!
+  verified: Boolean!
+  verifiedDate: DateTime!
+}
+
+type UserEdge {
+  cursor: String!
+  node: User!
+}
+
+type UserInterfaceEdge {
+  cursor: String!
+  node: UserInterface!
+}
+
+type UserInterfacesConnection {
+  edges: [UserInterfaceEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type UsersConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+enum Location {
+  EVERYWHERE
+  HERE
+  THERE
+}
+
+"An enum for sorting in either ascending or descending order."
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+enum UserInterfaceImplementation {
+  User
+}
+
+"A date and time, represented as an ISO-8601 string"
+scalar DateTime
+
+input UserInterfaceOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more UserInterfaceSort objects to sort UserInterfaces by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [UserInterfaceSort]
+}
+
+"Fields to sort UserInterfaces by. The order in which sorts are applied is not guaranteed when specifying many fields in one UserInterfaceSort object."
+input UserInterfaceSort {
+  fromInterface: SortDirection
+  toBeOverridden: SortDirection
+}
+
+input UserInterfaceWhere {
+  AND: [UserInterfaceWhere!]
+  NOT: UserInterfaceWhere
+  OR: [UserInterfaceWhere!]
+  fromInterface: String
+  fromInterface_CONTAINS: String
+  fromInterface_ENDS_WITH: String
+  fromInterface_IN: [String!]
+  fromInterface_STARTS_WITH: String
+  toBeOverridden: String
+  toBeOverridden_CONTAINS: String
+  toBeOverridden_ENDS_WITH: String
+  toBeOverridden_IN: [String!]
+  toBeOverridden_STARTS_WITH: String
+  typename_IN: [UserInterfaceImplementation!]
+}
+
+input UserOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more UserSort objects to sort Users by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [UserSort!]
+}
+
+"Fields to sort Users by. The order in which sorts are applied is not guaranteed when specifying many fields in one UserSort object."
+input UserSort {
+  fromInterface: SortDirection
+  id: SortDirection
+  location: SortDirection
+  name: SortDirection
+  numberOfFriends: SortDirection
+  rating: SortDirection
+  toBeOverridden: SortDirection
+  verified: SortDirection
+  verifiedDate: SortDirection
+}
+
+input UserWhere {
+  AND: [UserWhere!]
+  NOT: UserWhere
+  OR: [UserWhere!]
+  fromInterface: String
+  fromInterface_CONTAINS: String
+  fromInterface_ENDS_WITH: String
+  fromInterface_IN: [String!]
+  fromInterface_STARTS_WITH: String
+  id: ID
+  id_CONTAINS: ID
+  id_ENDS_WITH: ID
+  id_IN: [ID!]
+  id_STARTS_WITH: ID
+  location: Location
+  location_IN: [Location!]
+  name: String
+  name_CONTAINS: String
+  name_ENDS_WITH: String
+  name_IN: [String!]
+  name_STARTS_WITH: String
+  numberOfFriends: Int
+  numberOfFriends_GT: Int
+  numberOfFriends_GTE: Int
+  numberOfFriends_IN: [Int!]
+  numberOfFriends_LT: Int
+  numberOfFriends_LTE: Int
+  rating: Float
+  rating_GT: Float
+  rating_GTE: Float
+  rating_IN: [Float!]
+  rating_LT: Float
+  rating_LTE: Float
+  toBeOverridden: String
+  toBeOverridden_CONTAINS: String
+  toBeOverridden_ENDS_WITH: String
+  toBeOverridden_IN: [String!]
+  toBeOverridden_STARTS_WITH: String
+  verified: Boolean
+  verifiedDate: DateTime
+  verifiedDate_GT: DateTime
+  verifiedDate_GTE: DateTime
+  verifiedDate_IN: [DateTime!]
+  verifiedDate_LT: DateTime
+  verifiedDate_LTE: DateTime
+}
+
+----
+
+'''

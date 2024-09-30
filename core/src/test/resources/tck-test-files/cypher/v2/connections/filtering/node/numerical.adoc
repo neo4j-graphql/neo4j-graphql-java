@@ -1,0 +1,316 @@
+:toc:
+
+= Cypher -> Connections -> Filtering -> Node -> Numerical
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: IN)
+}
+
+type Actor {
+  name: String!
+  age: Int!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: OUT)
+}
+
+type ActedIn @relationshipProperties {
+  screenTime: Int!
+}
+----
+
+== GT
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    title
+    actorsConnection(where: {node: {age_GT: 60}}) {
+      edges {
+        properties {
+          screenTime
+        }
+        node {
+          name
+          age
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 60
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+	WITH this
+	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
+	WHERE actor0.age > $param0
+	WITH collect( {
+		node: actor0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS actor0, edge.relationship AS actedIn0
+		RETURN collect( {
+			properties: {
+				__resolveType: 'ActedIn',
+				screenTime: actedIn0.screenTime
+			},
+			node: {
+				__resolveType: 'Actor',
+				name: actor0.name,
+				age: actor0.age
+			}
+		}) AS actorsConnectionEdges
+	}
+	RETURN {
+		edges: actorsConnectionEdges,
+		totalCount: totalCount
+	} AS actorsConnection
+}
+RETURN this {
+	.title,
+	actorsConnection: actorsConnection
+} AS this
+----
+
+'''
+
+== GTE
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    title
+    actorsConnection(where: {node: {age_GTE: 60}}) {
+      edges {
+        properties {
+          screenTime
+        }
+        node {
+          name
+          age
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 60
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+	WITH this
+	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
+	WHERE actor0.age >= $param0
+	WITH collect( {
+		node: actor0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS actor0, edge.relationship AS actedIn0
+		RETURN collect( {
+			properties: {
+				__resolveType: 'ActedIn',
+				screenTime: actedIn0.screenTime
+			},
+			node: {
+				__resolveType: 'Actor',
+				name: actor0.name,
+				age: actor0.age
+			}
+		}) AS actorsConnectionEdges
+	}
+	RETURN {
+		edges: actorsConnectionEdges,
+		totalCount: totalCount
+	} AS actorsConnection
+}
+RETURN this {
+	.title,
+	actorsConnection: actorsConnection
+} AS this
+----
+
+'''
+
+== LT
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    title
+    actorsConnection(where: {node: {age_LT: 60}}) {
+      edges {
+        properties {
+          screenTime
+        }
+        node {
+          name
+          age
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 60
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+	WITH this
+	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
+	WHERE actor0.age < $param0
+	WITH collect( {
+		node: actor0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS actor0, edge.relationship AS actedIn0
+		RETURN collect( {
+			properties: {
+				__resolveType: 'ActedIn',
+				screenTime: actedIn0.screenTime
+			},
+			node: {
+				__resolveType: 'Actor',
+				name: actor0.name,
+				age: actor0.age
+			}
+		}) AS actorsConnectionEdges
+	}
+	RETURN {
+		edges: actorsConnectionEdges,
+		totalCount: totalCount
+	} AS actorsConnection
+}
+RETURN this {
+	.title,
+	actorsConnection: actorsConnection
+} AS this
+----
+
+'''
+
+== LTE
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    title
+    actorsConnection(where: {node: {age_LTE: 60}}) {
+      edges {
+        properties {
+          screenTime
+        }
+        node {
+          name
+          age
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 60
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+	WITH this
+	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
+	WHERE actor0.age <= $param0
+	WITH collect( {
+		node: actor0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS actor0, edge.relationship AS actedIn0
+		RETURN collect( {
+			properties: {
+				__resolveType: 'ActedIn',
+				screenTime: actedIn0.screenTime
+			},
+			node: {
+				__resolveType: 'Actor',
+				name: actor0.name,
+				age: actor0.age
+			}
+		}) AS actorsConnectionEdges
+	}
+	RETURN {
+		edges: actorsConnectionEdges,
+		totalCount: totalCount
+	} AS actorsConnection
+}
+RETURN this {
+	.title,
+	actorsConnection: actorsConnection
+} AS this
+----
+
+'''
+

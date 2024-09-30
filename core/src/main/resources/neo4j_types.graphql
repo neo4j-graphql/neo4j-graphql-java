@@ -1,118 +1,139 @@
-enum RelationDirection {
-  IN
-  OUT
-  BOTH
-}
-
+"An enum for sorting in either ascending or descending order."
 enum SortDirection {
-  """Sort by field values in ascending order."""
+  "Sort by field values in ascending order."
   ASC
-  """Sort by field values in descending order."""
+  "Sort by field values in descending order."
   DESC
 }
 
-scalar DynamicProperties
-
-type _Neo4jTime {
-  hour: Int
-  minute: Int
-  second: Int
-  millisecond: Int
-  microsecond: Int
-  nanosecond: Int
-  timezone: String
-  formatted: String
+#Pagination information (Relay)
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
 }
 
-type _Neo4jDate {
-  year: Int
-  month: Int
-  day: Int
-  formatted: String
-}
+"A point in a coordinate system."
+type Point {
+  """
+  The first element of the Coordinate for geographic CRS, degrees East of the prime meridian
+  Range -180.0 to 180.0
+  """
+  longitude: Float!
 
-type _Neo4jDateTime {
-  year: Int
-  month: Int
-  day: Int
-  hour: Int
-  minute: Int
-  second: Int
-  millisecond: Int
-  microsecond: Int
-  nanosecond: Int
-  timezone: String
-  formatted: String
-}
+  """
+  The second element of the Coordinate for geographic CRS, degrees North of the equator
+  Range -90.0 to 90.0
+  """
+  latitude: Float!
 
-type _Neo4jLocalTime {
-  hour: Int
-  minute: Int
-  second: Int
-  millisecond: Int
-  microsecond: Int
-  nanosecond: Int
-  formatted: String
-}
-
-type _Neo4jLocalDateTime {
-  year: Int
-  month: Int
-  day: Int
-  hour: Int
-  minute: Int
-  second: Int
-  millisecond: Int
-  microsecond: Int
-  nanosecond: Int
-  formatted: String
-}
-
-type _Neo4jPoint{
-  # The first element of the Coordinate
-  x: Float
-
-  # The second element of the Coordinate
-  y: Float
-
-  # The third element of the Coordinate
-  z: Float
-
-  # The first element of the Coordinate for geographic CRS, degrees East of the prime meridian
-  # Range -180.0 to 180.0
-  longitude: Float
-
-  # The second element of the Coordinate for geographic CRS, degrees North of the equator
-  # Range -90.0 to 90.0
-  latitude: Float
-
-  # The third element of the Coordinate for geographic CRS, meters above the ellipsoid defined by the datum (WGS-84)
+  "The third element of the Coordinate for geographic CRS, meters above the ellipsoid defined by the datum (WGS-84)"
   height: Float
 
-  # The coordinate reference systems (CRS)
-  # -------------------------------------
-  # posible values:
-  # * `wgs-84`: A 2D geographic point in the WGS 84 CRS is specified in one of two ways:
-  #   * longitude and latitude (if these are specified, and the crs is not, then the crs is assumed to be WGS-84)
-  #   * x and y (in this case the crs must be specified, or will be assumed to be Cartesian)
-  # * `wgs-84-3d`: A 3D geographic point in the WGS 84 CRS is specified one of in two ways:
-  #   * longitude, latitude and either height or z (if these are specified, and the crs is not, then the crs is assumed to be WGS-84-3D)
-  #   * x, y and z (in this case the crs must be specified, or will be assumed to be Cartesian-3D)
-  # * `cartesian`: A 2D point in the Cartesian CRS is specified with a map containing x and y coordinate values
-  # * `cartesian-3d`: A 3D point in the Cartesian CRS is specified with a map containing x, y and z coordinate values
-  crs: String
+  """
+  The coordinate reference systems (CRS)
+  -------------------------------------
+  possible values:
+  * `wgs-84`: A 2D geographic point in the WGS 84 CRS is specified by: longitude and latitude
+  * `wgs-84-3d`: A 3D geographic point in the WGS 84 CRS is specified by longitude, latitude and height
+  """
+  crs: String!
 
-  # The internal Neo4j ID for the CRS
-  # One of:
-  # * `4326`: represents CRS `wgs-84`
-  # * `4979`: represents CRS `wgs-84-3d`
-  # * `7203`: represents CRS `cartesian`
-  # * `9157`: represents CRS `cartesian-3d`
-  srid: Int
+  """
+  The internal Neo4j ID for the CRS
+  One of:
+  * `4326`: represents CRS `wgs-84`
+  * `4979`: represents CRS `wgs-84-3d`
+  """
+  srid: Int!
 }
 
+"Input type for a point"
+input PointInput {
+  """
+  The first element of the Coordinate for geographic CRS, degrees East of the prime meridian
+  Range -180.0 to 180.0
+  """
+  longitude: Float!
+
+  """
+  The second element of the Coordinate for geographic CRS, degrees North of the equator
+  Range -90.0 to 90.0
+  """
+  latitude: Float!
+
+  "The third element of the Coordinate for geographic CRS, meters above the ellipsoid defined by the datum (WGS-84)"
+  height: Float
+}
+
+"Input type for a point with a distance"
+input PointDistance {
+  point: PointInput!
+  "The distance in metres to be used when comparing two points"
+  distance: Float!
+}
+
+"A point in a two- or three-dimensional Cartesian coordinate system or in a three-dimensional cylindrical coordinate system."
+type CartesianPoint {
+  x: Float!
+  y: Float!
+  z: Float
+
+  """
+  The coordinate reference systems (CRS)
+  -------------------------------------
+  possible values:
+  * `cartesian`: A 2D point in the Cartesian CRS is specified with a map containing x and y coordinate values
+  * `cartesian-3d`: A 3D point in the Cartesian CRS is specified with a map containing x, y and z coordinate values
+  """
+  crs: String!
+
+  """
+  The internal Neo4j ID for the CRS
+  One of:
+  * `7203`: represents CRS `cartesian`
+  * `9157`: represents CRS `cartesian-3d`
+  """
+  srid: Int!
+}
+
+"Input type for a cartesian point"
+input CartesianPointInput{
+  x: Float!
+  y: Float!
+  z: Float
+}
+
+"Input type for a cartesian point with a distance"
+input CartesianPointDistance {
+  point: CartesianPointInput!
+  distance: Float!
+}
+
+"Input type for options that can be specified on a query operation."
+input QueryOptions {
+  limit: Int
+  offset: Int
+}
+
+"A date, represented as a 'yyyy-mm-dd' string"
 scalar Date
+
+"A time, represented as an RFC3339 time string"
 scalar Time
+
+"A local time, represented as a time string without timezone information"
 scalar LocalTime
+
+"A date and time, represented as an ISO-8601 string"
 scalar DateTime
+
+"A local datetime, represented as 'YYYY-MM-DDTHH:MM:SS'"
 scalar LocalDateTime
+
+"A BigInt value up to 64 bits in size, which can be a number or a string if used inline, or a string only if used as a variable. Always returned as a string."
+scalar BigInt
+
+"A duration, represented as an ISO 8601 duration string"
+scalar Duration

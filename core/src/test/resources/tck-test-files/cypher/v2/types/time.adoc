@@ -1,0 +1,78 @@
+:toc:
+
+= Cypher Time
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  id: ID
+  time: Time
+}
+----
+
+== GTE Read
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {time_GTE: "13:45:33.250"}) {
+    time
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "13:45:33.250"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.time >= $param0
+RETURN this {
+	.time
+} AS this
+----
+
+'''
+
+== Simple Read
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {time: "12:00:00"}) {
+    time
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "12:00:00"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.time = $param0
+RETURN this {
+	.time
+} AS this
+----
+
+'''
+

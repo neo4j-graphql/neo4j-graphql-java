@@ -1,0 +1,84 @@
+:toc:
+
+= Undirected relationships
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+union Content = Blog | Post
+
+type Blog {
+  title: String
+  posts: [Post!]! @relationship(type: "HAS_POST", direction: OUT)
+}
+
+type Post {
+  content: String
+}
+
+type User {
+  name: String
+  content: [Content!]! @relationship(type: "HAS_CONTENT", direction: OUT)
+}
+----
+
+== undirected with unions
+
+.GraphQL-Query
+[source,graphql]
+----
+query Users {
+  users {
+    content(directed: false) {
+      ... on Blog {
+        title
+      }
+      ... on Post {
+        content
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[hasContent0:HAS_CONTENT]-(blog0:Blog)
+		WITH blog0 {
+			__resolveType: 'Blog',
+			__id: elementId(blog0),
+			.title
+		} AS blog0
+		RETURN blog0 AS content0 UNION
+		WITH *
+		MATCH (this)-[hasContent1:HAS_CONTENT]-(post0:Post)
+		WITH post0 {
+			__resolveType: 'Post',
+			__id: elementId(post0),
+			.content
+		} AS post0
+		RETURN post0 AS content0
+	}
+	WITH content0
+	RETURN collect(content0) AS content0
+}
+RETURN this {
+	content: content0
+} AS this
+----
+
+'''
+

@@ -1,0 +1,188 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/1348
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+interface Product {
+  productTitle: String!
+  releatsTo: [Product!]!
+}
+
+type Series implements Product {
+  productTitle: String!
+  releatsTo: [Product!]! @relationship(type: "RELATES_TO", direction: OUT, queryDirection: DEFAULT_UNDIRECTED)
+  seasons: [Season!]!
+}
+
+type Season implements Product {
+  productTitle: String!
+  releatsTo: [Product!]! @relationship(type: "RELATES_TO", direction: OUT, queryDirection: DEFAULT_UNDIRECTED)
+  seasonNumber: Int
+  episodes: [ProgrammeItem!]!
+}
+
+type ProgrammeItem implements Product {
+  productTitle: String!
+  releatsTo: [Product!]! @relationship(type: "RELATES_TO", direction: OUT, queryDirection: DEFAULT_UNDIRECTED)
+  episodeNumber: Int
+}
+----
+
+== should also return node with no relationship in result set
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  programmeItems {
+    productTitle
+    episodeNumber
+    releatsTo {
+      __typename
+      productTitle
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:ProgrammeItem)
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[relatesTo0:RELATES_TO]-(programmeItem0:ProgrammeItem)
+		WITH programmeItem0 {
+			__resolveType: 'ProgrammeItem',
+			__id: elementId(programmeItem0),
+			.productTitle
+		} AS programmeItem0
+		RETURN programmeItem0 AS releatsTo UNION
+		WITH *
+		MATCH (this)-[relatesTo1:RELATES_TO]-(season0:Season)
+		WITH season0 {
+			__resolveType: 'Season',
+			__id: elementId(season0),
+			.productTitle
+		} AS season0
+		RETURN season0 AS releatsTo UNION
+		WITH *
+		MATCH (this)-[relatesTo2:RELATES_TO]-(series0:Series)
+		WITH series0 {
+			__resolveType: 'Series',
+			__id: elementId(series0),
+			.productTitle
+		} AS series0
+		RETURN series0 AS releatsTo
+	}
+	WITH releatsTo
+	RETURN collect(releatsTo) AS releatsTo
+}
+RETURN this {
+	.productTitle,
+	.episodeNumber,
+	releatsTo: releatsTo
+} AS this
+----
+
+'''
+
+== should return node with no relationship (edge) in result set, as Relay connection
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  programmeItems {
+    productTitle
+    episodeNumber
+    releatsToConnection {
+      edges {
+        node {
+          ... on ProgrammeItem {
+            productTitle
+          }
+          ... on Season {
+            productTitle
+          }
+          ... on Series {
+            productTitle
+          }
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:ProgrammeItem)
+CALL {
+	WITH this
+	CALL {
+		WITH this
+		MATCH (this)-[relatesTo0:RELATES_TO]-(programmeItem0:ProgrammeItem)
+		WITH {
+			node: {
+				__resolveType: 'ProgrammeItem',
+				productTitle: programmeItem0.productTitle,
+				__id: elementId(programmeItem0)
+			}
+		} AS edge
+		RETURN edge UNION
+		WITH this
+		MATCH (this)-[relatesTo1:RELATES_TO]-(season0:Season)
+		WITH {
+			node: {
+				__resolveType: 'Season',
+				productTitle: season0.productTitle,
+				__id: elementId(season0)
+			}
+		} AS edge
+		RETURN edge UNION
+		WITH this
+		MATCH (this)-[relatesTo2:RELATES_TO]-(series0:Series)
+		WITH {
+			node: {
+				__resolveType: 'Series',
+				productTitle: series0.productTitle,
+				__id: elementId(series0)
+			}
+		} AS edge
+		RETURN edge
+	}
+	WITH collect(edge) AS edges
+	WITH edges, size(edges) AS totalCount
+	RETURN {
+		edges: edges,
+		totalCount: totalCount
+	} AS releatsToConnection
+}
+RETURN this {
+	.productTitle,
+	.episodeNumber,
+	releatsToConnection: releatsToConnection
+} AS this
+----
+
+'''
+

@@ -1,6 +1,6 @@
 extend type Movie {
-  bar: String @ignore
-  javaData: [JavaData!] @ignore
+  bar: String @customResolver
+  javaData: [JavaData!] @customResolver
 }
 
 type JavaData {

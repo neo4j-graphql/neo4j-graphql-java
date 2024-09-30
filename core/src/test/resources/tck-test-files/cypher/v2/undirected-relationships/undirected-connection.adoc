@@ -1,0 +1,69 @@
+:toc:
+
+= Undirected connections
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type User {
+  name: String!
+  friends: [User!]! @relationship(type: "FRIENDS_WITH", direction: OUT)
+}
+----
+
+== query with undirected aggregation
+
+.GraphQL-Query
+[source,graphql]
+----
+query FriendsAggregate {
+  users {
+    friendsConnection(directed: false) {
+      totalCount
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+CALL {
+	WITH this
+	MATCH (this)-[friendsWith0:FRIENDS_WITH]-(user0:User)
+	WITH collect( {
+		node: user0,
+		relationship: friendsWith0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS user0, edge.relationship AS friendsWith0
+		RETURN collect( {
+			node: {
+				__id: elementId(user0),
+				__resolveType: 'User'
+			}
+		}) AS friendsConnectionEdges
+	}
+	RETURN {
+		edges: friendsConnectionEdges,
+		totalCount: totalCount
+	} AS friendsConnection
+}
+RETURN this {
+	friendsConnection: friendsConnection
+} AS this
+----
+
+'''
+

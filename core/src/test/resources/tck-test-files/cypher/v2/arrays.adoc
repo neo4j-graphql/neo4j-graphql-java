@@ -1,0 +1,48 @@
+:toc:
+
+= Cypher Arrays
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+  ratings: [Float!]!
+}
+----
+
+== WHERE INCLUDES
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {ratings_INCLUDES: 4.0}) {
+    title
+    ratings
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 4
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE $param0 IN this.ratings
+RETURN this {
+	.title,
+	.ratings
+} AS this
+----
+
+'''
+

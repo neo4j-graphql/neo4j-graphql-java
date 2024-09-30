@@ -9,9 +9,11 @@ import com.expediagroup.graphql.server.operations.Query
 import com.expediagroup.graphql.server.operations.Subscription
 import graphql.schema.GraphQLObjectType
 import graphql.schema.GraphQLSchema
-import org.neo4j.graphql.DataFetchingInterceptor
+import org.neo4j.driver.Driver
 import org.neo4j.graphql.SchemaBuilder
 import org.neo4j.graphql.SchemaConfig
+import org.neo4j.graphql.driver.adapter.Neo4jAdapter
+import org.neo4j.graphql.driver.adapter.Neo4jDriverAdapter
 import org.slf4j.LoggerFactory
 import org.springframework.aop.framework.Advised
 import org.springframework.aop.support.AopUtils
@@ -30,16 +32,21 @@ import java.util.*
 open class GraphQLConfiguration {
     private val logger = LoggerFactory.getLogger(GraphQLConfiguration::class.java)
 
+    @Bean
+    open fun neo4jAdapter(driver: Driver): Neo4jAdapter {
+        return Neo4jDriverAdapter(driver, Neo4jAdapter.Dialect.NEO4J_5)
+    }
+
     /**
      * This generates the augmented neo4j schema
      */
     @Bean
     open fun neo4jSchema(
         @Value("classpath:schema.graphql") graphQl: Resource,
-        @Autowired(required = false) dataFetchingInterceptor: DataFetchingInterceptor
+        @Autowired neo4jAdapter: Neo4jAdapter,
     ): GraphQLSchema {
         val schema = graphQl.inputStream.bufferedReader().use { it.readText() }
-        return SchemaBuilder.buildSchema(schema, SchemaConfig(), dataFetchingInterceptor)
+        return SchemaBuilder.buildSchema(schema, SchemaConfig(), neo4jAdapter)
     }
 
     /**
@@ -108,11 +115,11 @@ open class GraphQLConfiguration {
 
     // This was copied over from {@link com.expediagroup.graphql.spring.extensions.generatorExtensions.kt }
     private fun List<Any>.toTopLevelObjects() = this.map {
-        val klazz = if (AopUtils.isAopProxy(it) && it is Advised) {
+        val clazz = if (AopUtils.isAopProxy(it) && it is Advised) {
             it.targetSource.target!!::class
         } else {
             it::class
         }
-        TopLevelObject(it, klazz)
+        TopLevelObject(it, clazz)
     }
 }

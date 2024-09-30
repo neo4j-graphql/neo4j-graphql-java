@@ -1,29 +1,20 @@
 package org.neo4j.graphql
 
 import graphql.GraphQLContext
-import graphql.Scalars
 import graphql.language.*
-import graphql.language.TypeDefinition
 import graphql.schema.*
 import graphql.schema.idl.TypeDefinitionRegistry
-import org.neo4j.cypherdsl.core.SymbolicName
-import org.neo4j.graphql.DirectiveConstants.Companion.CYPHER
-import org.neo4j.graphql.DirectiveConstants.Companion.CYPHER_PASS_THROUGH
-import org.neo4j.graphql.DirectiveConstants.Companion.CYPHER_STATEMENT
-import org.neo4j.graphql.DirectiveConstants.Companion.DYNAMIC
-import org.neo4j.graphql.DirectiveConstants.Companion.DYNAMIC_PREFIX
-import org.neo4j.graphql.DirectiveConstants.Companion.PROPERTY
-import org.neo4j.graphql.DirectiveConstants.Companion.PROPERTY_NAME
-import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_NAME
-import org.neo4j.graphql.DirectiveConstants.Companion.RELATION_TO
-import org.neo4j.graphql.handler.projection.ProjectionBase
-import org.slf4j.LoggerFactory
+import org.neo4j.cypherdsl.core.Cypher
+import org.neo4j.graphql.domain.directives.Annotations
+import kotlin.reflect.KProperty1
 
-fun Type<*>.name(): String? = if (this.inner() is TypeName) (this.inner() as TypeName).name else null
-fun Type<*>.inner(): Type<*> = when (this) {
+fun Type<*>.name(): String = this.inner().name
+
+fun Type<*>.inner(): TypeName = when (this) {
     is ListType -> this.type.inner()
     is NonNullType -> this.type.inner()
-    else -> this
+    is TypeName -> this
+    else -> throw IllegalStateException("Inner type is expected to hava a name")
 }
 
 fun Type<*>.isList(): Boolean = when (this) {
@@ -32,176 +23,50 @@ fun Type<*>.isList(): Boolean = when (this) {
     else -> false
 }
 
-fun GraphQLType.inner(): GraphQLType = when (this) {
-    is GraphQLList -> this.wrappedType.inner()
-    is GraphQLNonNull -> this.wrappedType.inner()
+fun Type<*>.isRequired(): Boolean = when (this) {
+    is NonNullType -> true
+    else -> false
+}
+
+fun String.asRequiredType() = asType(true)
+fun String.asType(required: Boolean = false) = TypeName(this).makeRequired(required)
+fun String.wrapLike(type: Type<*>) = TypeName(this).wrapLike(type)
+fun TypeName.wrapLike(type: Type<*>): Type<*> = when (type) {
+    is ListType -> this.wrapLike(type.type).List
+    is NonNullType -> this.wrapLike(type.type).NonNull
+    is TypeName -> this
+    else -> throw IllegalStateException("Unknown type")
+}
+
+val String.NonNull get() = asType(true)
+val String.List get() = asType().List
+
+val Type<*>.NonNull
+    get() = when (this) {
+        is NonNullType -> this
+        else -> NonNullType(this)
+    }
+
+val Type<*>.List
+    get() = when (this) {
+        is ListType -> this
+        else -> ListType(this)
+    }
+
+fun TypeName.makeRequired(required: Boolean = true): Type<*> = when (required) {
+    true -> this.NonNull
     else -> this
 }
 
-fun GraphQLType.name(): String? = (this as? GraphQLNamedType)?.name
-fun GraphQLType.requiredName(): String =
-    requireNotNull(name()) { "name is required but cannot be determined for " + this.javaClass }
+fun Type<*>.isListElementRequired(): Boolean = when (this) {
+    is ListType -> type is NonNullType
+    is NonNullType -> type.isListElementRequired()
+    else -> false
+}
 
 fun GraphQLType.isList() = this is GraphQLList || (this is GraphQLNonNull && this.wrappedType is GraphQLList)
-fun GraphQLType.isNeo4jType() = this.innerName().startsWith("_Neo4j")
-fun GraphQLType.isNeo4jTemporalType() = NEO4j_TEMPORAL_TYPES.contains(this.innerName())
 
-fun TypeDefinition<*>.isNeo4jSpatialType() = this.name.startsWith("_Neo4jPoint")
-
-fun GraphQLFieldDefinition.isNeo4jType(): Boolean = this.type.isNeo4jType()
-fun GraphQLFieldDefinition.isNeo4jTemporalType(): Boolean = this.type.isNeo4jTemporalType()
-
-fun GraphQLFieldDefinition.isRelationship() =
-    !type.isNeo4jType() && this.type.inner().let { it is GraphQLFieldsContainer }
-
-fun GraphQLFieldsContainer.isRelationType() =
-    (this as? GraphQLDirectiveContainer)?.getAppliedDirective(DirectiveConstants.RELATION) != null
-
-fun GraphQLFieldsContainer.relationshipFor(name: String): RelationshipInfo<GraphQLFieldsContainer>? {
-    val field = getRelevantFieldDefinition(name)
-        ?: throw IllegalArgumentException("$name is not defined on ${this.name}")
-    val fieldObjectType = field.type.inner() as? GraphQLImplementingType ?: return null
-
-    val (relDirective, inverse) = if (isRelationType()) {
-        val typeName = this.name
-        (this as? GraphQLDirectiveContainer)
-            ?.getAppliedDirective(DirectiveConstants.RELATION)?.let {
-                // do inverse mapping, if the current type  is the `to` mapping of the relation
-                it to (fieldObjectType.getRelevantFieldDefinition(
-                    it.getArgument(
-                        RELATION_TO,
-                        null as String?
-                    )
-                )?.name == typeName)
-            }
-            ?: throw IllegalStateException("Type ${this.name} needs an @relation directive")
-    } else {
-        (fieldObjectType as? GraphQLDirectiveContainer)
-            ?.getAppliedDirective(DirectiveConstants.RELATION)?.let { it to true }
-            ?: field.getAppliedDirective(DirectiveConstants.RELATION)?.let { it to false }
-            ?: throw IllegalStateException("Field $field needs an @relation directive")
-    }
-
-    val relInfo = RelationshipInfo.create(fieldObjectType, relDirective)
-
-    return if (inverse) relInfo.copy(
-        direction = relInfo.direction.invert(),
-        startField = relInfo.endField,
-        endField = relInfo.startField
-    ) else relInfo
-}
-
-fun GraphQLFieldsContainer.getValidTypeLabels(schema: GraphQLSchema): List<String> {
-    if (this is GraphQLObjectType) {
-        return listOf(this.label())
-    }
-    if (this is GraphQLInterfaceType) {
-        return schema.getImplementations(this)
-            .mapNotNull { it.label() }
-    }
-    return emptyList()
-}
-
-fun GraphQLFieldsContainer.label(): String = when {
-    this.isRelationType() ->
-        (this as? GraphQLDirectiveContainer)
-            ?.getAppliedDirective(DirectiveConstants.RELATION)
-            ?.getArgument(RELATION_NAME)?.argumentValue?.value?.toJavaValue()?.toString()
-            ?: this.name
-
-    else -> name
-}
-
-fun GraphQLFieldsContainer.relationship(): RelationshipInfo<GraphQLFieldsContainer>? = RelationshipInfo.create(this)
-
-fun GraphQLType.ref(): GraphQLType = when (this) {
-    is GraphQLNonNull -> GraphQLNonNull(this.wrappedType.ref())
-    is GraphQLList -> GraphQLList(this.wrappedType.ref())
-    is GraphQLScalarType -> this
-    is GraphQLEnumType -> this
-    is GraphQLTypeReference -> this
-    else -> GraphQLTypeReference(name())
-}
-
-fun Field.aliasOrName(): String = (this.alias ?: this.name)
 fun SelectedField.aliasOrName(): String = (this.alias ?: this.name)
-fun SelectedField.contextualize(variable: String) = variable + this.aliasOrName().capitalize()
-fun SelectedField.contextualize(variable: SymbolicName) = variable.value + this.aliasOrName().capitalize()
-
-fun GraphQLType.innerName(): String = inner().name()
-    ?: throw IllegalStateException("inner name cannot be retrieved for " + this.javaClass)
-
-fun GraphQLFieldDefinition.propertyName() = getDirectiveArgument(PROPERTY, PROPERTY_NAME, this.name)!!
-
-fun GraphQLFieldDefinition.dynamicPrefix(): String? = getDirectiveArgument(DYNAMIC, DYNAMIC_PREFIX, null as String?)
-fun GraphQLType.getInnerFieldsContainer() = inner() as? GraphQLFieldsContainer
-    ?: throw IllegalArgumentException("${this.innerName()} is neither an object nor an interface")
-
-fun <T> GraphQLDirectiveContainer.getDirectiveArgument(
-    directiveName: String,
-    argumentName: String,
-    defaultValue: T?
-): T? =
-    getAppliedDirective(directiveName)?.getArgument(argumentName, defaultValue) ?: defaultValue
-
-@Suppress("UNCHECKED_CAST")
-fun <T> DirectivesContainer<*>.getDirectiveArgument(
-    typeRegistry: TypeDefinitionRegistry,
-    directiveName: String,
-    argumentName: String,
-    defaultValue: T? = null
-): T? {
-    return (getDirective(directiveName) ?: return defaultValue)
-        .getArgument(argumentName)?.value?.toJavaValue() as T?
-        ?: typeRegistry.getDirectiveDefinition(directiveName)
-            ?.unwrap()
-            ?.inputValueDefinitions
-            ?.find { inputValueDefinition -> inputValueDefinition.name == argumentName }
-            ?.defaultValue?.toJavaValue() as T?
-        ?: defaultValue
-}
-
-fun DirectivesContainer<*>.getDirective(name: String): Directive? = directives.firstOrNull { it.name == name }
-
-fun <T> DirectivesContainer<*>.getMandatoryDirectiveArgument(
-    typeRegistry: TypeDefinitionRegistry,
-    directiveName: String,
-    argumentName: String,
-    defaultValue: T? = null
-): T =
-    getDirectiveArgument(typeRegistry, directiveName, argumentName, defaultValue)
-        ?: throw IllegalStateException("No default value for @${directiveName}::$argumentName")
-
-fun <T> GraphQLAppliedDirective.getMandatoryArgument(argumentName: String, defaultValue: T? = null): T =
-    this.getArgument(argumentName, defaultValue)
-        ?: throw IllegalStateException(argumentName + " is required for @${this.name}")
-
-fun <T> GraphQLAppliedDirective.getArgument(argumentName: String, defaultValue: T? = null): T? {
-    val argument = getArgument(argumentName)
-    @Suppress("UNCHECKED_CAST")
-    return when {
-        argument.argumentValue.isSet && argument.argumentValue.value != null -> argument.argumentValue.value?.toJavaValue() as T?
-        argument.definition?.value != null -> argument.definition?.value?.toJavaValue() as T?
-        else -> defaultValue ?: throw IllegalStateException("No default value for @${this.name}::$argumentName")
-    }
-}
-
-fun GraphQLFieldDefinition.cypherDirective(): CypherDirective? = getAppliedDirective(CYPHER)?.let {
-    val originalStatement = it.getMandatoryArgument<String>(CYPHER_STATEMENT)
-    // Arguments on the field are passed to the Cypher statement and can be used by name.
-    // They must not be prefixed by $ since they are no longer parameters. Just use the same name as the fields' argument.
-    val rewrittenStatement = originalStatement.replace(Regex("\\\$([_a-zA-Z]\\w*)"), "$1")
-    if (originalStatement != rewrittenStatement) {
-        LoggerFactory.getLogger(CypherDirective::class.java)
-            .warn(
-                "The field arguments used in the directives statement must not contain parameters. The statement was replaced. Please adjust your GraphQl Schema.\n\tGot        : {}\n\tReplaced by: {}\n\tField      : {} ({})",
-                originalStatement, rewrittenStatement, this.name, this.definition?.sourceLocation
-            )
-    }
-    CypherDirective(rewrittenStatement, it.getMandatoryArgument(CYPHER_PASS_THROUGH, false))
-}
-
-data class CypherDirective(val statement: String, val passThrough: Boolean)
 
 fun Any.toJavaValue() = when (this) {
     is Value<*> -> this.toJavaValue()
@@ -221,77 +86,67 @@ fun Value<*>.toJavaValue(): Any? = when (this) {
     else -> throw IllegalStateException("Unhandled value $this")
 }
 
-fun GraphQLFieldDefinition.isID() = this.type.inner() == Scalars.GraphQLID
-fun GraphQLFieldDefinition.isNativeId() = this.name == ProjectionBase.NATIVE_ID
-fun GraphQLFieldDefinition.isIgnored() = getDirective(DirectiveConstants.IGNORE) != null
-fun FieldDefinition.isIgnored(): Boolean = hasDirective(DirectiveConstants.IGNORE)
+fun TypeDefinitionRegistry.queryType() = this.getTypeByName<ObjectTypeDefinition>(this.queryTypeName())
+fun TypeDefinitionRegistry.mutationType() =
+    this.getTypeByName<ObjectTypeDefinition>(this.mutationTypeName())
 
-fun GraphQLFieldsContainer.getIdField() = this.getRelevantFieldDefinitions().find { it.isID() }
-
-/**
- * Returns the field definitions which are not ignored
- */
-fun GraphQLFieldsContainer.getRelevantFieldDefinitions() = this.fieldDefinitions.filterNot { it.isIgnored() }
-
-/**
- * Returns the field definition if it is not ignored
- */
-fun GraphQLFieldsContainer.getRelevantFieldDefinition(name: String?) =
-    this.getFieldDefinition(name)?.takeIf { !it.isIgnored() }
-
-
-fun InputObjectTypeDefinition.Builder.addFilterField(
-    fieldName: String,
-    isList: Boolean,
-    filterType: String,
-    description: Description? = null
-) {
-    val wrappedType: Type<*> = when {
-        isList -> ListType(TypeName(filterType))
-        else -> TypeName(filterType)
-    }
-    val inputField = InputValueDefinition.newInputValueDefinition()
-        .name(fieldName)
-        .type(wrappedType)
-    if (description != null) {
-        inputField.description(description)
-    }
-
-    this.inputValueDefinition(inputField.build())
-}
-
-fun InputObjectTypeDefinition.Builder.addArrayFilterField(
-    fieldName: String,
-    filterType: String,
-    description: Description? = null
-) {
-    val inputField = InputValueDefinition.newInputValueDefinition()
-        .name(fieldName)
-        .type(ListType(NonNullType(TypeName(filterType))))
-    if (description != null) {
-        inputField.description(description)
-    }
-
-    this.inputValueDefinition(inputField.build())
-}
-
+fun TypeDefinitionRegistry.subscriptionType() = this.getTypeByName<ObjectTypeDefinition>(this.subscriptionTypeName())
 fun TypeDefinitionRegistry.queryTypeName() = this.getOperationType("query") ?: "Query"
 fun TypeDefinitionRegistry.mutationTypeName() = this.getOperationType("mutation") ?: "Mutation"
 fun TypeDefinitionRegistry.subscriptionTypeName() = this.getOperationType("subscription") ?: "Subscription"
 fun TypeDefinitionRegistry.getOperationType(name: String) =
     this.schemaDefinition().unwrap()?.operationTypeDefinitions?.firstOrNull { it.name == name }?.typeName?.name
 
-fun DataFetchingEnvironment.typeAsContainer() = this.fieldDefinition.type.inner() as? GraphQLFieldsContainer
-    ?: throw IllegalStateException("expect type of field ${this.logField()} to be GraphQLFieldsContainer, but was ${this.fieldDefinition.type.name()}")
+fun DataFetchingEnvironment.queryContext(): QueryContext =
+    this.graphQlContext.get<QueryContext?>(QueryContext.KEY)
+        ?: run {
+            val queryContext = QueryContext()
+            this.graphQlContext.put(QueryContext.KEY, queryContext)
+            queryContext
+        }
 
-fun DataFetchingEnvironment.logField() = "${this.parentType.name()}.${this.fieldDefinition.name}"
-fun DataFetchingEnvironment.queryContext(): QueryContext = this.graphQlContext.get(QueryContext.KEY) ?: QueryContext()
 fun GraphQLContext.setQueryContext(ctx: QueryContext): GraphQLContext {
     this.put(QueryContext.KEY, ctx)
     return this
 }
 
-val TypeInt = TypeName("Int")
-val TypeFloat = TypeName("Float")
-val TypeBoolean = TypeName("Boolean")
-val TypeID = TypeName("ID")
+
+fun ObjectValue.get(name: String): Value<Value<*>>? = this.objectFields.firstOrNull { it.name == name }?.value
+
+fun <T : Any?> Directive.readArgument(prop: KProperty1<*, T>): T? = readArgument(prop) {
+    @Suppress("UNCHECKED_CAST")
+    it.toJavaValue() as T?
+}
+
+fun <T : Any?> Directive.readArgument(prop: KProperty1<*, T>, transformer: (v: Value<*>) -> T?): T? {
+    return this.getArgument(prop.name)?.let { transformer.invoke(it.value) }
+}
+
+fun <T : Any?> Directive.readRequiredArgument(prop: KProperty1<*, T>): T = readRequiredArgument(prop) {
+    @Suppress("UNCHECKED_CAST")
+    it.toJavaValue() as T?
+}
+
+fun <T : Any?> Directive.readRequiredArgument(prop: KProperty1<*, T>, transformer: (v: Value<*>) -> T?): T =
+    readArgument(prop, transformer)
+        ?: throw IllegalArgumentException("@${this.name} is missing the required argument ${prop.name}")
+
+
+fun TypeDefinitionRegistry.getUnwrappedType(name: String?): TypeDefinition<TypeDefinition<*>>? =
+    getType(name)?.unwrap()
+
+inline fun <reified T : TypeDefinition<*>> TypeDefinitionRegistry.getTypeByName(name: String): T? =
+    this.getType(name, T::class.java)?.unwrap()
+
+fun ImplementingTypeDefinition<*>.getField(name: String): FieldDefinition? = fieldDefinitions.find { it.name == name }
+
+fun TypeDefinitionRegistry.replace(definition: SDLDefinition<*>) {
+    this.remove(definition)
+    this.add(definition)
+}
+
+fun NodeDirectivesBuilder.addNonLibDirectives(directivesContainer: DirectivesContainer<*>) {
+    this.directives(directivesContainer.directives.filterNot { Annotations.LIBRARY_DIRECTIVES.contains(it.name) })
+}
+
+inline fun <reified T> T.asCypherLiteral() = Cypher.literalOf<T>(this)

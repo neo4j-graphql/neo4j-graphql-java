@@ -1,0 +1,90 @@
+:toc:
+
+= Node directive with additionalLabels
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Actor @node(labels: ["Actor", "Person"]) {
+  name: String
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+
+type Movie @node(labels: ["Film", "Multimedia"]) {
+  id: ID
+  title: String
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
+}
+----
+
+== Select movie and actor with additional labels
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    title
+    actors {
+      name
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Film:Multimedia)
+CALL {
+	WITH this
+	MATCH (actor0:Actor:Person)-[actedIn0:ACTED_IN]->(this)
+	WITH actor0 {
+		.name
+	} AS actors
+	RETURN collect(actors) AS actors
+}
+RETURN this {
+	.title,
+	actors: actors
+} AS this
+----
+
+'''
+
+== Select Movie with additional labels
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Film:Multimedia)
+RETURN this {
+	.title
+} AS this
+----
+
+'''
+

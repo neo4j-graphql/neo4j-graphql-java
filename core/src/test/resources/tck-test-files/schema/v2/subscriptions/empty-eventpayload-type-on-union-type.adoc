@@ -1,0 +1,313 @@
+:toc:
+
+= Subscriptions -> Empty EventPayload type on Union type
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  id: ID
+  actorCount: Int
+  averageRating: Float
+  isActive: Boolean
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
+}
+
+union Actor = Star | Person
+
+type Star {
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+
+type Person {
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+----
+
+== Augmented schema
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+}
+
+union Actor = Person | Star
+
+type Movie {
+  actorCount: Int
+  actors(directed: Boolean = true, options: QueryOptions, where: ActorWhere): [Actor!]!
+  actorsConnection(after: String, directed: Boolean = true, first: Int, where: MovieActorsConnectionWhere): MovieActorsConnection!
+  averageRating: Float
+  id: ID
+  isActive: Boolean
+}
+
+type MovieActorsConnection {
+  edges: [MovieActorsRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type MovieActorsRelationship {
+  cursor: String!
+  node: Actor!
+}
+
+type MovieEdge {
+  cursor: String!
+  node: Movie!
+}
+
+type MoviesConnection {
+  edges: [MovieEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type PeopleConnection {
+  edges: [PersonEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Person {
+  movies(directed: Boolean = true, options: MovieOptions, where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, directed: Boolean = true, first: Int, sort: [PersonMoviesConnectionSort!], where: PersonMoviesConnectionWhere): PersonMoviesConnection!
+}
+
+type PersonEdge {
+  cursor: String!
+  node: Person!
+}
+
+type PersonMoviesConnection {
+  edges: [PersonMoviesRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type PersonMoviesRelationship {
+  cursor: String!
+  node: Movie!
+}
+
+type Query {
+  actors(options: QueryOptions, where: ActorWhere): [Actor!]!
+  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
+  people(options: PersonOptions, where: PersonWhere): [Person!]!
+  peopleConnection(after: String, first: Int, where: PersonWhere): PeopleConnection!
+  stars(options: StarOptions, where: StarWhere): [Star!]!
+  starsConnection(after: String, first: Int, where: StarWhere): StarsConnection!
+}
+
+type Star {
+  movies(directed: Boolean = true, options: MovieOptions, where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, directed: Boolean = true, first: Int, sort: [StarMoviesConnectionSort!], where: StarMoviesConnectionWhere): StarMoviesConnection!
+}
+
+type StarEdge {
+  cursor: String!
+  node: Star!
+}
+
+type StarMoviesConnection {
+  edges: [StarMoviesRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type StarMoviesRelationship {
+  cursor: String!
+  node: Movie!
+}
+
+type StarsConnection {
+  edges: [StarEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"An enum for sorting in either ascending or descending order."
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+input ActorWhere {
+  Person: PersonWhere
+  Star: StarWhere
+}
+
+input MovieActorsConnectionWhere {
+  Person: MovieActorsPersonConnectionWhere
+  Star: MovieActorsStarConnectionWhere
+}
+
+input MovieActorsPersonConnectionWhere {
+  AND: [MovieActorsPersonConnectionWhere!]
+  NOT: MovieActorsPersonConnectionWhere
+  OR: [MovieActorsPersonConnectionWhere!]
+  node: PersonWhere
+}
+
+input MovieActorsStarConnectionWhere {
+  AND: [MovieActorsStarConnectionWhere!]
+  NOT: MovieActorsStarConnectionWhere
+  OR: [MovieActorsStarConnectionWhere!]
+  node: StarWhere
+}
+
+input MovieOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [MovieSort!]
+}
+
+"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+input MovieSort {
+  actorCount: SortDirection
+  averageRating: SortDirection
+  id: SortDirection
+  isActive: SortDirection
+}
+
+input MovieWhere {
+  AND: [MovieWhere!]
+  NOT: MovieWhere
+  OR: [MovieWhere!]
+  actorCount: Int
+  actorCount_GT: Int
+  actorCount_GTE: Int
+  actorCount_IN: [Int]
+  actorCount_LT: Int
+  actorCount_LTE: Int
+  "Return Movies where all of the related MovieActorsConnections match this filter"
+  actorsConnection_ALL: MovieActorsConnectionWhere
+  "Return Movies where none of the related MovieActorsConnections match this filter"
+  actorsConnection_NONE: MovieActorsConnectionWhere
+  "Return Movies where one of the related MovieActorsConnections match this filter"
+  actorsConnection_SINGLE: MovieActorsConnectionWhere
+  "Return Movies where some of the related MovieActorsConnections match this filter"
+  actorsConnection_SOME: MovieActorsConnectionWhere
+  "Return Movies where all of the related Actors match this filter"
+  actors_ALL: ActorWhere
+  "Return Movies where none of the related Actors match this filter"
+  actors_NONE: ActorWhere
+  "Return Movies where one of the related Actors match this filter"
+  actors_SINGLE: ActorWhere
+  "Return Movies where some of the related Actors match this filter"
+  actors_SOME: ActorWhere
+  averageRating: Float
+  averageRating_GT: Float
+  averageRating_GTE: Float
+  averageRating_IN: [Float]
+  averageRating_LT: Float
+  averageRating_LTE: Float
+  id: ID
+  id_CONTAINS: ID
+  id_ENDS_WITH: ID
+  id_IN: [ID]
+  id_STARTS_WITH: ID
+  isActive: Boolean
+}
+
+input PersonMoviesConnectionSort {
+  node: MovieSort
+}
+
+input PersonMoviesConnectionWhere {
+  AND: [PersonMoviesConnectionWhere!]
+  NOT: PersonMoviesConnectionWhere
+  OR: [PersonMoviesConnectionWhere!]
+  node: MovieWhere
+}
+
+input PersonOptions {
+  limit: Int
+  offset: Int
+}
+
+input PersonWhere {
+  AND: [PersonWhere!]
+  NOT: PersonWhere
+  OR: [PersonWhere!]
+  "Return People where all of the related PersonMoviesConnections match this filter"
+  moviesConnection_ALL: PersonMoviesConnectionWhere
+  "Return People where none of the related PersonMoviesConnections match this filter"
+  moviesConnection_NONE: PersonMoviesConnectionWhere
+  "Return People where one of the related PersonMoviesConnections match this filter"
+  moviesConnection_SINGLE: PersonMoviesConnectionWhere
+  "Return People where some of the related PersonMoviesConnections match this filter"
+  moviesConnection_SOME: PersonMoviesConnectionWhere
+  "Return People where all of the related Movies match this filter"
+  movies_ALL: MovieWhere
+  "Return People where none of the related Movies match this filter"
+  movies_NONE: MovieWhere
+  "Return People where one of the related Movies match this filter"
+  movies_SINGLE: MovieWhere
+  "Return People where some of the related Movies match this filter"
+  movies_SOME: MovieWhere
+}
+
+"Input type for options that can be specified on a query operation."
+input QueryOptions {
+  limit: Int
+  offset: Int
+}
+
+input StarMoviesConnectionSort {
+  node: MovieSort
+}
+
+input StarMoviesConnectionWhere {
+  AND: [StarMoviesConnectionWhere!]
+  NOT: StarMoviesConnectionWhere
+  OR: [StarMoviesConnectionWhere!]
+  node: MovieWhere
+}
+
+input StarOptions {
+  limit: Int
+  offset: Int
+}
+
+input StarWhere {
+  AND: [StarWhere!]
+  NOT: StarWhere
+  OR: [StarWhere!]
+  "Return Stars where all of the related StarMoviesConnections match this filter"
+  moviesConnection_ALL: StarMoviesConnectionWhere
+  "Return Stars where none of the related StarMoviesConnections match this filter"
+  moviesConnection_NONE: StarMoviesConnectionWhere
+  "Return Stars where one of the related StarMoviesConnections match this filter"
+  moviesConnection_SINGLE: StarMoviesConnectionWhere
+  "Return Stars where some of the related StarMoviesConnections match this filter"
+  moviesConnection_SOME: StarMoviesConnectionWhere
+  "Return Stars where all of the related Movies match this filter"
+  movies_ALL: MovieWhere
+  "Return Stars where none of the related Movies match this filter"
+  movies_NONE: MovieWhere
+  "Return Stars where one of the related Movies match this filter"
+  movies_SINGLE: MovieWhere
+  "Return Stars where some of the related Movies match this filter"
+  movies_SOME: MovieWhere
+}
+
+----
+
+'''

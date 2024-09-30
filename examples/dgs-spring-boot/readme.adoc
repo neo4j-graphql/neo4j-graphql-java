@@ -22,7 +22,8 @@ With This in place you can
 2. run the link:src/main/kotlin/org/neo4j/graphql/examples/dgsspringboot/DgsSpringBootApplication.kt[spring boot application]
 3. open http://localhost:8080/graphiql to run some graphql queries e.g. try:
 
-```graphql
+[source,graphql]
+----
 query{
   other
   movies (options: {limit: 3}){
@@ -33,7 +34,7 @@ query{
     }
   }
 }
-```
+----
 
 === What's next
 

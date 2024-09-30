@@ -1,0 +1,92 @@
+:toc:
+
+= Directive-preserve -> Custom directives preserved
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+directive @preservedTopLevel(string: String, int: Int, float: Float, boolean: Boolean) on OBJECT
+
+directive @preservedFieldLevel(string: String, int: Int, float: Float, boolean: Boolean) on FIELD_DEFINITION
+
+type Movie @preservedTopLevel {
+  id: ID @preservedFieldLevel(string: "str", int: 12, float: 1.2, boolean: true)
+}
+----
+
+== Augmented schema
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+}
+
+directive @preservedFieldLevel(boolean: Boolean, float: Float, int: Int, string: String) on FIELD_DEFINITION
+
+directive @preservedTopLevel(boolean: Boolean, float: Float, int: Int, string: String) on OBJECT
+
+type Movie @preservedTopLevel {
+  id: ID @preservedFieldLevel(boolean : true, float : 1.2, int : 12, string : "str")
+}
+
+type MovieEdge {
+  cursor: String!
+  node: Movie!
+}
+
+type MoviesConnection {
+  edges: [MovieEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
+}
+
+"An enum for sorting in either ascending or descending order."
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+input MovieOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [MovieSort!]
+}
+
+"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+input MovieSort {
+  id: SortDirection
+}
+
+input MovieWhere {
+  AND: [MovieWhere!]
+  NOT: MovieWhere
+  OR: [MovieWhere!]
+  id: ID
+  id_CONTAINS: ID
+  id_ENDS_WITH: ID
+  id_IN: [ID]
+  id_STARTS_WITH: ID
+}
+
+----
+
+'''

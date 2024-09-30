@@ -1,35 +1,33 @@
 package demo
 
-// Simplistic GraphQL Server using SparkJava
-// curl -H content-type:application/json -d'{"query": "{ movie { title, released }}"}' http://localhost:4567/graphql
-// GraphiQL: https://neo4j-graphql.github.io/graphiql4all/index.html?graphqlEndpoint=http%3A%2F%2Flocalhost%3A4567%2Fgraphql&query=query%20%7B%0A%20%20movie%20%7B%20title%7D%0A%7D
-
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
 import graphql.ExecutionInput
 import graphql.GraphQL
-import graphql.schema.DataFetcher
-import graphql.schema.DataFetchingEnvironment
 import org.neo4j.driver.AuthTokens
 import org.neo4j.driver.Config
 import org.neo4j.driver.GraphDatabase
-import org.neo4j.driver.Values
-import org.neo4j.graphql.*
+import org.neo4j.graphql.QueryContext
+import org.neo4j.graphql.SchemaBuilder
+import org.neo4j.graphql.driver.adapter.Neo4jAdapter
+import org.neo4j.graphql.driver.adapter.Neo4jDriverAdapter
 import java.net.InetSocketAddress
-import java.util.stream.Collectors
 
 
 const val schema = """
+type Role @relationshipProperties {
+   roles: [String]
+}
 type Person {
-  name: ID!
+  name: String
   born: Int
-  actedIn: [Movie] @relation(name:"ACTED_IN")
+  movies: [Movie] @relationship(type:"ACTED_IN", direction: OUT, properties: Role)
 }
 type Movie {
-  title: ID!
+  title: String
   released: Int
-  tagline: String
+  characters: [Person] @relationship(type:"ACTED_IN", direction: IN, properties: Role)
 }
 """
 
@@ -50,29 +48,16 @@ fun main() {
 
     val driver = GraphDatabase.driver(
         "bolt://localhost",
-        AuthTokens.basic("neo4j", "test"),
+        AuthTokens.basic("neo4j", "test1234"),
         Config.builder().withoutEncryption().build()
     )
-
-    val graphQLSchema = SchemaBuilder.buildSchema(schema, dataFetchingInterceptor = object : DataFetchingInterceptor {
-        override fun fetchData(env: DataFetchingEnvironment, delegate: DataFetcher<Cypher>): Any? {
-            val (cypher, params, type, variable) = delegate.get(env)
+    val neo4jAdapter = Neo4jDriverAdapter(driver, Neo4jAdapter.Dialect.NEO4J_5)
+    val graphQLSchema = SchemaBuilder.buildSchema(schema, neo4jAdapter = object : Neo4jAdapter {
+        override fun getDialect() = neo4jAdapter.getDialect()
+        override fun executeQuery(cypher: String, params: Map<String, *>): List<Map<String, *>> {
             println(cypher)
             println(params)
-            return driver.session().use { session ->
-                try {
-                    val result = session.run(cypher, Values.value(params))
-                    when {
-                        type?.isList() == true -> result.stream().map { it[variable].asObject() }
-                            .collect(Collectors.toList())
-
-                        else -> result.stream().map { it[variable].asObject() }.findFirst()
-                            .orElse(emptyMap<String, Any>())
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-            }
+            return neo4jAdapter.executeQuery(cypher, params)
         }
     })
 
@@ -89,32 +74,23 @@ fun main() {
                 val response = if (query.contains("__schema")) {
                     schema.execute(query).let { println(mapper.writeValueAsString(it));it }
                 } else {
-                    try {
-                        val queryContext =
-                            QueryContext(optimizedQuery = setOf(QueryContext.OptimizationStrategy.FILTER_AS_MATCH))
-                        schema.execute(
-                            ExecutionInput
-                                .newExecutionInput()
-                                .query(query)
-                                .graphQLContext(mapOf(QueryContext.KEY to queryContext))
-                                .variables(params(payload))
-                                .build()
-                        )
-                    } catch (e: OptimizedQueryException) {
-                        schema.execute(
-                            ExecutionInput
-                                .newExecutionInput()
-                                .query(query)
-                                .variables(params(payload))
-                                .build()
-                        )
-                    }
+                    val queryContext = QueryContext()
+                    schema.execute(
+                        ExecutionInput
+                            .newExecutionInput()
+                            .query(query)
+                            .graphQLContext(mapOf(QueryContext.KEY to queryContext))
+                            .variables(params(payload))
+                            .build()
+                    )
                 }
                 req.sendResponse(response)
             }
         }
     }
     server.start()
+
+    println("Api can be accessed via http://localhost:${server.address.port}/graphql")
 
 }
 

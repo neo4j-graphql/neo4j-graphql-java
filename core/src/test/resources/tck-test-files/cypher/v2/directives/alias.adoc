@@ -1,0 +1,144 @@
+:toc:
+
+= Cypher alias directive
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Actor {
+  name: String!
+  city: String @alias(property: "cityPropInDb")
+  actedIn: [Movie!]! @relationship(direction: OUT, type: "ACTED_IN", properties: "ActorActedInProps")
+}
+
+type Movie {
+  title: String!
+  rating: Float @alias(property: "ratingPropInDb")
+}
+
+type ActorActedInProps @relationshipProperties {
+  character: String! @alias(property: "characterPropInDb")
+  screenTime: Int
+}
+----
+
+== Simple relation
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  actors {
+    name
+    city
+    actedIn {
+      title
+      rating
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+CALL {
+	WITH this
+	MATCH (this)-[actedIn0:ACTED_IN]->(movie0:Movie)
+	WITH movie0 {
+		.title,
+		rating: movie0.ratingPropInDb
+	} AS actedIn
+	RETURN collect(actedIn) AS actedIn
+}
+RETURN this {
+	.name,
+	city: this.cityPropInDb,
+	actedIn: actedIn
+} AS this
+----
+
+'''
+
+== With relationship properties
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  actors {
+    name
+    city
+    actedInConnection {
+      edges {
+        properties {
+          character
+          screenTime
+        }
+        node {
+          title
+          rating
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+CALL {
+	WITH this
+	MATCH (this)-[actedIn0:ACTED_IN]->(movie0:Movie)
+	WITH collect( {
+		node: movie0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS movie0, edge.relationship AS actedIn0
+		RETURN collect( {
+			properties: {
+				__resolveType: 'ActorActedInProps',
+				character: actedIn0.characterPropInDb,
+				screenTime: actedIn0.screenTime
+			},
+			node: {
+				__resolveType: 'Movie',
+				title: movie0.title,
+				rating: movie0.ratingPropInDb
+			}
+		}) AS actedInConnectionEdges
+	}
+	RETURN {
+		edges: actedInConnectionEdges,
+		totalCount: totalCount
+	} AS actedInConnection
+}
+RETURN this {
+	.name,
+	city: this.cityPropInDb,
+	actedInConnection: actedInConnection
+} AS this
+----
+
+'''
+

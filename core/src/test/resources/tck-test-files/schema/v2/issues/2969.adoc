@@ -1,0 +1,206 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/2969 -> authorAggregate should not be generated
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Post {
+  content: String!
+  author: User! @relationship(type: "HAS_AUTHOR", direction: OUT)
+}
+
+type User {
+  id: ID!
+  name: String!
+  posts: [Post!]! @relationship(type: "HAS_AUTHOR", direction: IN)
+}
+----
+
+== Augmented schema
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+}
+
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Post {
+  author(directed: Boolean = true, options: UserOptions, where: UserWhere): User!
+  authorConnection(after: String, directed: Boolean = true, first: Int, sort: [PostAuthorConnectionSort!], where: PostAuthorConnectionWhere): PostAuthorConnection!
+  content: String!
+}
+
+type PostAuthorConnection {
+  edges: [PostAuthorRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type PostAuthorRelationship {
+  cursor: String!
+  node: User!
+}
+
+type PostEdge {
+  cursor: String!
+  node: Post!
+}
+
+type PostsConnection {
+  edges: [PostEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Query {
+  posts(options: PostOptions, where: PostWhere): [Post!]!
+  postsConnection(after: String, first: Int, sort: [PostSort], where: PostWhere): PostsConnection!
+  users(options: UserOptions, where: UserWhere): [User!]!
+  usersConnection(after: String, first: Int, sort: [UserSort], where: UserWhere): UsersConnection!
+}
+
+type User {
+  id: ID!
+  name: String!
+  posts(directed: Boolean = true, options: PostOptions, where: PostWhere): [Post!]!
+  postsConnection(after: String, directed: Boolean = true, first: Int, sort: [UserPostsConnectionSort!], where: UserPostsConnectionWhere): UserPostsConnection!
+}
+
+type UserEdge {
+  cursor: String!
+  node: User!
+}
+
+type UserPostsConnection {
+  edges: [UserPostsRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type UserPostsRelationship {
+  cursor: String!
+  node: Post!
+}
+
+type UsersConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"An enum for sorting in either ascending or descending order."
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+input PostAuthorConnectionSort {
+  node: UserSort
+}
+
+input PostAuthorConnectionWhere {
+  AND: [PostAuthorConnectionWhere!]
+  NOT: PostAuthorConnectionWhere
+  OR: [PostAuthorConnectionWhere!]
+  node: UserWhere
+}
+
+input PostOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more PostSort objects to sort Posts by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [PostSort!]
+}
+
+"Fields to sort Posts by. The order in which sorts are applied is not guaranteed when specifying many fields in one PostSort object."
+input PostSort {
+  content: SortDirection
+}
+
+input PostWhere {
+  AND: [PostWhere!]
+  NOT: PostWhere
+  OR: [PostWhere!]
+  author: UserWhere
+  authorConnection: PostAuthorConnectionWhere
+  authorConnection_NOT: PostAuthorConnectionWhere
+  author_NOT: UserWhere
+  content: String
+  content_CONTAINS: String
+  content_ENDS_WITH: String
+  content_IN: [String!]
+  content_STARTS_WITH: String
+}
+
+input UserOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more UserSort objects to sort Users by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [UserSort!]
+}
+
+input UserPostsConnectionSort {
+  node: PostSort
+}
+
+input UserPostsConnectionWhere {
+  AND: [UserPostsConnectionWhere!]
+  NOT: UserPostsConnectionWhere
+  OR: [UserPostsConnectionWhere!]
+  node: PostWhere
+}
+
+"Fields to sort Users by. The order in which sorts are applied is not guaranteed when specifying many fields in one UserSort object."
+input UserSort {
+  id: SortDirection
+  name: SortDirection
+}
+
+input UserWhere {
+  AND: [UserWhere!]
+  NOT: UserWhere
+  OR: [UserWhere!]
+  id: ID
+  id_CONTAINS: ID
+  id_ENDS_WITH: ID
+  id_IN: [ID!]
+  id_STARTS_WITH: ID
+  name: String
+  name_CONTAINS: String
+  name_ENDS_WITH: String
+  name_IN: [String!]
+  name_STARTS_WITH: String
+  "Return Users where all of the related UserPostsConnections match this filter"
+  postsConnection_ALL: UserPostsConnectionWhere
+  "Return Users where none of the related UserPostsConnections match this filter"
+  postsConnection_NONE: UserPostsConnectionWhere
+  "Return Users where one of the related UserPostsConnections match this filter"
+  postsConnection_SINGLE: UserPostsConnectionWhere
+  "Return Users where some of the related UserPostsConnections match this filter"
+  postsConnection_SOME: UserPostsConnectionWhere
+  "Return Users where all of the related Posts match this filter"
+  posts_ALL: PostWhere
+  "Return Users where none of the related Posts match this filter"
+  posts_NONE: PostWhere
+  "Return Users where one of the related Posts match this filter"
+  posts_SINGLE: PostWhere
+  "Return Users where some of the related Posts match this filter"
+  posts_SOME: PostWhere
+}
+
+----
+
+'''

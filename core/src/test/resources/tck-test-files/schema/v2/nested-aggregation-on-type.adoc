@@ -1,0 +1,218 @@
+:toc:
+
+= nested aggregation on interface -> should generate the correct schema
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+  cost: Float!
+  runtime: Int!
+}
+
+type ActedIn @relationshipProperties {
+  screenTime: Int!
+}
+
+type Actor {
+  name: String!
+  actedIn: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
+}
+----
+
+== Augmented schema
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+}
+
+"""
+The edge properties for the following fields:
+* Actor.actedIn
+"""
+type ActedIn {
+  screenTime: Int!
+}
+
+type Actor {
+  actedIn(directed: Boolean = true, options: MovieOptions, where: MovieWhere): [Movie!]!
+  actedInConnection(after: String, directed: Boolean = true, first: Int, sort: [ActorActedInConnectionSort!], where: ActorActedInConnectionWhere): ActorActedInConnection!
+  name: String!
+}
+
+type ActorActedInConnection {
+  edges: [ActorActedInRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ActorActedInRelationship {
+  cursor: String!
+  node: Movie!
+  properties: ActedIn!
+}
+
+type ActorEdge {
+  cursor: String!
+  node: Actor!
+}
+
+type ActorsConnection {
+  edges: [ActorEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Movie {
+  cost: Float!
+  runtime: Int!
+  title: String!
+}
+
+type MovieEdge {
+  cursor: String!
+  node: Movie!
+}
+
+type MoviesConnection {
+  edges: [MovieEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  actors(options: ActorOptions, where: ActorWhere): [Actor!]!
+  actorsConnection(after: String, first: Int, sort: [ActorSort], where: ActorWhere): ActorsConnection!
+  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
+}
+
+"An enum for sorting in either ascending or descending order."
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+input ActedInSort {
+  screenTime: SortDirection
+}
+
+input ActedInWhere {
+  AND: [ActedInWhere!]
+  NOT: ActedInWhere
+  OR: [ActedInWhere!]
+  screenTime: Int
+  screenTime_GT: Int
+  screenTime_GTE: Int
+  screenTime_IN: [Int!]
+  screenTime_LT: Int
+  screenTime_LTE: Int
+}
+
+input ActorActedInConnectionSort {
+  edge: ActedInSort
+  node: MovieSort
+}
+
+input ActorActedInConnectionWhere {
+  AND: [ActorActedInConnectionWhere!]
+  NOT: ActorActedInConnectionWhere
+  OR: [ActorActedInConnectionWhere!]
+  edge: ActedInWhere
+  node: MovieWhere
+}
+
+input ActorOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more ActorSort objects to sort Actors by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [ActorSort!]
+}
+
+"Fields to sort Actors by. The order in which sorts are applied is not guaranteed when specifying many fields in one ActorSort object."
+input ActorSort {
+  name: SortDirection
+}
+
+input ActorWhere {
+  AND: [ActorWhere!]
+  NOT: ActorWhere
+  OR: [ActorWhere!]
+  "Return Actors where all of the related ActorActedInConnections match this filter"
+  actedInConnection_ALL: ActorActedInConnectionWhere
+  "Return Actors where none of the related ActorActedInConnections match this filter"
+  actedInConnection_NONE: ActorActedInConnectionWhere
+  "Return Actors where one of the related ActorActedInConnections match this filter"
+  actedInConnection_SINGLE: ActorActedInConnectionWhere
+  "Return Actors where some of the related ActorActedInConnections match this filter"
+  actedInConnection_SOME: ActorActedInConnectionWhere
+  "Return Actors where all of the related Movies match this filter"
+  actedIn_ALL: MovieWhere
+  "Return Actors where none of the related Movies match this filter"
+  actedIn_NONE: MovieWhere
+  "Return Actors where one of the related Movies match this filter"
+  actedIn_SINGLE: MovieWhere
+  "Return Actors where some of the related Movies match this filter"
+  actedIn_SOME: MovieWhere
+  name: String
+  name_CONTAINS: String
+  name_ENDS_WITH: String
+  name_IN: [String!]
+  name_STARTS_WITH: String
+}
+
+input MovieOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [MovieSort!]
+}
+
+"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+input MovieSort {
+  cost: SortDirection
+  runtime: SortDirection
+  title: SortDirection
+}
+
+input MovieWhere {
+  AND: [MovieWhere!]
+  NOT: MovieWhere
+  OR: [MovieWhere!]
+  cost: Float
+  cost_GT: Float
+  cost_GTE: Float
+  cost_IN: [Float!]
+  cost_LT: Float
+  cost_LTE: Float
+  runtime: Int
+  runtime_GT: Int
+  runtime_GTE: Int
+  runtime_IN: [Int!]
+  runtime_LT: Int
+  runtime_LTE: Int
+  title: String
+  title_CONTAINS: String
+  title_ENDS_WITH: String
+  title_IN: [String!]
+  title_STARTS_WITH: String
+}
+
+----
+
+'''

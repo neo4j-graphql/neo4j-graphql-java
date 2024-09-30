@@ -1,0 +1,192 @@
+:toc:
+
+= Connections Alias
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: IN)
+}
+
+type Actor {
+  name: String!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: OUT)
+}
+
+type ActedIn @relationshipProperties {
+  screenTime: Int!
+}
+----
+
+== Alias Top Level Connection Field
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    actors: actorsConnection {
+      totalCount
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+	WITH this
+	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
+	WITH collect( {
+		node: actor0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS actor0, edge.relationship AS actedIn0
+		RETURN collect( {
+			node: {
+				__id: elementId(actor0),
+				__resolveType: 'Actor'
+			}
+		}) AS actorsEdges
+	}
+	RETURN {
+		edges: actorsEdges,
+		totalCount: totalCount
+	} AS actors
+}
+RETURN this {
+	actors: actors
+} AS this
+----
+
+'''
+
+== Alias Top Level Connection Field Multiple Times
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {title: "Forrest Gump"}) {
+    title
+    hanks: actorsConnection(where: {node: {name: "Tom Hanks"}}) {
+      edges {
+        properties {
+          screenTime
+        }
+        node {
+          name
+        }
+      }
+    }
+    jenny: actorsConnection(where: {node: {name: "Robin Wright"}}) {
+      edges {
+        properties {
+          screenTime
+        }
+        node {
+          name
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "Forrest Gump",
+  "param1" : "Tom Hanks",
+  "param2" : "Robin Wright"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+CALL {
+	WITH this
+	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
+	WHERE actor0.name = $param1
+	WITH collect( {
+		node: actor0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS actor0, edge.relationship AS actedIn0
+		RETURN collect( {
+			properties: {
+				__resolveType: 'ActedIn',
+				screenTime: actedIn0.screenTime
+			},
+			node: {
+				__resolveType: 'Actor',
+				name: actor0.name
+			}
+		}) AS hanksEdges
+	}
+	RETURN {
+		edges: hanksEdges,
+		totalCount: totalCount
+	} AS hanks
+}
+CALL {
+	WITH this
+	MATCH (actor1:Actor)-[actedIn1:ACTED_IN]->(this)
+	WHERE actor1.name = $param2
+	WITH collect( {
+		node: actor1,
+		relationship: actedIn1
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS actor1, edge.relationship AS actedIn1
+		RETURN collect( {
+			properties: {
+				__resolveType: 'ActedIn',
+				screenTime: actedIn1.screenTime
+			},
+			node: {
+				__resolveType: 'Actor',
+				name: actor1.name
+			}
+		}) AS jennyEdges
+	}
+	RETURN {
+		edges: jennyEdges,
+		totalCount: totalCount
+	} AS jenny
+}
+RETURN this {
+	.title,
+	hanks: hanks,
+	jenny: jenny
+} AS this
+----
+
+'''
+

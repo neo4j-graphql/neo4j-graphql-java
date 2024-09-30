@@ -1,0 +1,127 @@
+:toc:
+
+= Cypher BigInt
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type File {
+  name: String!
+  size: BigInt!
+}
+----
+
+== Querying with BigInt as string in AST
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  files(where: {size: "9223372036854775807"}) {
+    name
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : {
+    "low" : -1,
+    "high" : 2147483647
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:File)
+WHERE this.size = $param0
+RETURN this {
+	.name
+} AS this
+----
+
+'''
+
+== Querying with BigInt as string in variables
+
+.GraphQL-Query
+[source,graphql]
+----
+query Files($size: BigInt) {
+  files(where: {size: $size}) {
+    name
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "size": "9223372036854775807"
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : {
+    "low" : -1,
+    "high" : 2147483647
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:File)
+WHERE this.size = $param0
+RETURN this {
+	.name
+} AS this
+----
+
+'''
+
+== Querying with native BigInt in AST
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  files(where: {size: 9223372036854775807}) {
+    name
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : {
+    "low" : -1,
+    "high" : 2147483647
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:File)
+WHERE this.size = $param0
+RETURN this {
+	.name
+} AS this
+----
+
+'''
+

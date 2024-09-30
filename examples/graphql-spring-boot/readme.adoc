@@ -4,10 +4,6 @@
 
 This example uses the https://docs.spring.io/spring-graphql/docs/1.0.0-SNAPSHOT/reference/html/[Springs new GraphQL library]
 
-In the link:src/main/java/org/neo4j/graphql/examples/graphqlspringboot/config/Neo4jConfiguration.java[Neo4jConfiguration]
-a DataFetchingInterceptor is created, which will be bound to all fields augmented by the neo4j-graphql-library.
-Its purpose is the execution of the cypher query and the transformation of the query result.
-
 In the link:src/main/java/org/neo4j/graphql/examples/graphqlspringboot/config/GraphQLConfiguration.java[GraphQLConfiguration]
 the type definitions of link:src/main/resources/neo4j.graphql[schema] are loaded and augmented.
 
@@ -22,7 +18,8 @@ With This in place you can
 2. run the link:src/main/java/org/neo4j/graphql/examples/graphqlspringboot/GraphqlSpringBootApplication.java[spring boot application]
 3. open http://localhost:8080/graphiql to run some graphql queries e.g. try:
 
-```graphql
+[source,graphql]
+----
 query{
   other
   movies (options: {limit: 3}){
@@ -33,4 +30,4 @@ query{
     }
   }
 }
-```
+----

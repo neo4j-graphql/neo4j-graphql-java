@@ -1,0 +1,101 @@
+:toc:
+
+= Cypher -> Connections -> Filtering -> Relationship -> Temporal
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: IN)
+}
+
+type Actor {
+  name: String!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: OUT)
+}
+
+type ActedIn @relationshipProperties {
+  startDate: Date
+  endDateTime: DateTime
+}
+----
+
+== GT and LT
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    title
+    actorsConnection(
+      where: {edge: {startDate_GT: "2000-01-01", endDateTime_LT: "2010-01-01T00:00:00.000Z"}}
+    ) {
+      edges {
+        properties {
+          startDate
+          endDateTime
+        }
+        node {
+          name
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "2000-01-01",
+  "param1" : "2010-01-01T00:00:00.000Z"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+	WITH this
+	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
+	WHERE (actedIn0.startDate > $param0
+		AND actedIn0.endDateTime < $param1)
+	WITH collect( {
+		node: actor0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS actor0, edge.relationship AS actedIn0
+		RETURN collect( {
+			properties: {
+				__resolveType: 'ActedIn',
+				startDate: actedIn0.startDate,
+				endDateTime: apoc.date.convertFormat(toString(actedIn0.endDateTime), 'iso_zoned_date_time', 'iso_offset_date_time')
+			},
+			node: {
+				__resolveType: 'Actor',
+				name: actor0.name
+			}
+		}) AS actorsConnectionEdges
+	}
+	RETURN {
+		edges: actorsConnectionEdges,
+		totalCount: totalCount
+	} AS actorsConnection
+}
+RETURN this {
+	.title,
+	actorsConnection: actorsConnection
+} AS this
+----
+
+'''
+

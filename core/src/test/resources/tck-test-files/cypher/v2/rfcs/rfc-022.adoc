@@ -1,0 +1,132 @@
+:toc:
+
+= no auth
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+  released: Int
+  actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN, properties: "ActedIn")
+  directors: [Person!]! @relationship(type: "DIRECTED", direction: IN)
+}
+
+type Person {
+  name: String!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
+  directed: [Movie!]! @relationship(type: "DIRECTED", direction: OUT)
+}
+
+type ActedIn @relationshipProperties {
+  year: Int
+}
+----
+
+== Double nested query
+
+.GraphQL-Query
+[source,graphql]
+----
+query Query {
+  movies(where: {released: 1999}) {
+    title
+    actors(where: {name: "Keanu Reeves"}) {
+      name
+      directed {
+        title
+        released
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 1999,
+  "param1" : "Keanu Reeves"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.released = $param0
+CALL {
+	WITH this
+	MATCH (person0:Person)-[actedIn0:ACTED_IN]->(this)
+	WHERE person0.name = $param1
+	CALL {
+		WITH person0
+		MATCH (person0)-[directed0:DIRECTED]->(movie0:Movie)
+		WITH movie0 {
+			.title,
+			.released
+		} AS directed
+		RETURN collect(directed) AS directed
+	}
+	WITH person0 {
+		.name,
+		directed: directed
+	} AS actors
+	RETURN collect(actors) AS actors
+}
+RETURN this {
+	.title,
+	actors: actors
+} AS this
+----
+
+'''
+
+== Nested query
+
+.GraphQL-Query
+[source,graphql]
+----
+query Query {
+  movies(where: {released: 1999}) {
+    title
+    actors(where: {name: "Keanu Reeves"}) {
+      name
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 1999,
+  "param1" : "Keanu Reeves"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.released = $param0
+CALL {
+	WITH this
+	MATCH (person0:Person)-[actedIn0:ACTED_IN]->(this)
+	WHERE person0.name = $param1
+	WITH person0 {
+		.name
+	} AS actors
+	RETURN collect(actors) AS actors
+}
+RETURN this {
+	.title,
+	actors: actors
+} AS this
+----
+
+'''
+

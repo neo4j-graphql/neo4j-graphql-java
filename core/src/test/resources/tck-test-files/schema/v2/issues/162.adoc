@@ -1,0 +1,231 @@
+:toc:
+
+= 162 -> 2 instances of DeleteInput type created
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Tiger {
+  x: Int
+}
+
+type TigerJawLevel2 {
+  id: ID
+  part1: TigerJawLevel2Part1! @relationship(type: "REL1", direction: OUT)
+}
+
+type TigerJawLevel2Part1 {
+  id: ID
+  tiger: Tiger! @relationship(type: "REL2", direction: OUT)
+}
+----
+
+== Augmented schema
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+}
+
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  tigerJawLevel2Part1s(options: TigerJawLevel2Part1Options, where: TigerJawLevel2Part1Where): [TigerJawLevel2Part1!]!
+  tigerJawLevel2Part1sConnection(after: String, first: Int, sort: [TigerJawLevel2Part1Sort], where: TigerJawLevel2Part1Where): TigerJawLevel2Part1sConnection!
+  tigerJawLevel2s(options: TigerJawLevel2Options, where: TigerJawLevel2Where): [TigerJawLevel2!]!
+  tigerJawLevel2sConnection(after: String, first: Int, sort: [TigerJawLevel2Sort], where: TigerJawLevel2Where): TigerJawLevel2sConnection!
+  tigers(options: TigerOptions, where: TigerWhere): [Tiger!]!
+  tigersConnection(after: String, first: Int, sort: [TigerSort], where: TigerWhere): TigersConnection!
+}
+
+type Tiger {
+  x: Int
+}
+
+type TigerEdge {
+  cursor: String!
+  node: Tiger!
+}
+
+type TigerJawLevel2 {
+  id: ID
+  part1(directed: Boolean = true, options: TigerJawLevel2Part1Options, where: TigerJawLevel2Part1Where): TigerJawLevel2Part1!
+  part1Connection(after: String, directed: Boolean = true, first: Int, sort: [TigerJawLevel2Part1ConnectionSort!], where: TigerJawLevel2Part1ConnectionWhere): TigerJawLevel2Part1Connection!
+}
+
+type TigerJawLevel2Edge {
+  cursor: String!
+  node: TigerJawLevel2!
+}
+
+type TigerJawLevel2Part1 {
+  id: ID
+  tiger(directed: Boolean = true, options: TigerOptions, where: TigerWhere): Tiger!
+  tigerConnection(after: String, directed: Boolean = true, first: Int, sort: [TigerJawLevel2Part1TigerConnectionSort!], where: TigerJawLevel2Part1TigerConnectionWhere): TigerJawLevel2Part1TigerConnection!
+}
+
+type TigerJawLevel2Part1Connection {
+  edges: [TigerJawLevel2Part1Relationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type TigerJawLevel2Part1Edge {
+  cursor: String!
+  node: TigerJawLevel2Part1!
+}
+
+type TigerJawLevel2Part1Relationship {
+  cursor: String!
+  node: TigerJawLevel2Part1!
+}
+
+type TigerJawLevel2Part1TigerConnection {
+  edges: [TigerJawLevel2Part1TigerRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type TigerJawLevel2Part1TigerRelationship {
+  cursor: String!
+  node: Tiger!
+}
+
+type TigerJawLevel2Part1sConnection {
+  edges: [TigerJawLevel2Part1Edge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type TigerJawLevel2sConnection {
+  edges: [TigerJawLevel2Edge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type TigersConnection {
+  edges: [TigerEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"An enum for sorting in either ascending or descending order."
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+input TigerJawLevel2Options {
+  limit: Int
+  offset: Int
+  "Specify one or more TigerJawLevel2Sort objects to sort TigerJawLevel2s by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [TigerJawLevel2Sort!]
+}
+
+input TigerJawLevel2Part1ConnectionSort {
+  node: TigerJawLevel2Part1Sort
+}
+
+input TigerJawLevel2Part1ConnectionWhere {
+  AND: [TigerJawLevel2Part1ConnectionWhere!]
+  NOT: TigerJawLevel2Part1ConnectionWhere
+  OR: [TigerJawLevel2Part1ConnectionWhere!]
+  node: TigerJawLevel2Part1Where
+}
+
+input TigerJawLevel2Part1Options {
+  limit: Int
+  offset: Int
+  "Specify one or more TigerJawLevel2Part1Sort objects to sort TigerJawLevel2Part1s by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [TigerJawLevel2Part1Sort!]
+}
+
+"Fields to sort TigerJawLevel2Part1s by. The order in which sorts are applied is not guaranteed when specifying many fields in one TigerJawLevel2Part1Sort object."
+input TigerJawLevel2Part1Sort {
+  id: SortDirection
+}
+
+input TigerJawLevel2Part1TigerConnectionSort {
+  node: TigerSort
+}
+
+input TigerJawLevel2Part1TigerConnectionWhere {
+  AND: [TigerJawLevel2Part1TigerConnectionWhere!]
+  NOT: TigerJawLevel2Part1TigerConnectionWhere
+  OR: [TigerJawLevel2Part1TigerConnectionWhere!]
+  node: TigerWhere
+}
+
+input TigerJawLevel2Part1Where {
+  AND: [TigerJawLevel2Part1Where!]
+  NOT: TigerJawLevel2Part1Where
+  OR: [TigerJawLevel2Part1Where!]
+  id: ID
+  id_CONTAINS: ID
+  id_ENDS_WITH: ID
+  id_IN: [ID]
+  id_STARTS_WITH: ID
+  tiger: TigerWhere
+  tigerConnection: TigerJawLevel2Part1TigerConnectionWhere
+  tigerConnection_NOT: TigerJawLevel2Part1TigerConnectionWhere
+  tiger_NOT: TigerWhere
+}
+
+"Fields to sort TigerJawLevel2s by. The order in which sorts are applied is not guaranteed when specifying many fields in one TigerJawLevel2Sort object."
+input TigerJawLevel2Sort {
+  id: SortDirection
+}
+
+input TigerJawLevel2Where {
+  AND: [TigerJawLevel2Where!]
+  NOT: TigerJawLevel2Where
+  OR: [TigerJawLevel2Where!]
+  id: ID
+  id_CONTAINS: ID
+  id_ENDS_WITH: ID
+  id_IN: [ID]
+  id_STARTS_WITH: ID
+  part1: TigerJawLevel2Part1Where
+  part1Connection: TigerJawLevel2Part1ConnectionWhere
+  part1Connection_NOT: TigerJawLevel2Part1ConnectionWhere
+  part1_NOT: TigerJawLevel2Part1Where
+}
+
+input TigerOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more TigerSort objects to sort Tigers by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [TigerSort!]
+}
+
+"Fields to sort Tigers by. The order in which sorts are applied is not guaranteed when specifying many fields in one TigerSort object."
+input TigerSort {
+  x: SortDirection
+}
+
+input TigerWhere {
+  AND: [TigerWhere!]
+  NOT: TigerWhere
+  OR: [TigerWhere!]
+  x: Int
+  x_GT: Int
+  x_GTE: Int
+  x_IN: [Int]
+  x_LT: Int
+  x_LTE: Int
+}
+
+----
+
+'''

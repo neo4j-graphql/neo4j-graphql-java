@@ -1,0 +1,216 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/3394
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Employee {
+  products: [Product!]! @relationship(type: "CAN_ACCESS", direction: OUT)
+}
+
+type Product {
+  id: String! @alias(property: "fg_item_id")
+  description: String!
+  partNumber: ID! @alias(property: "fg_item")
+}
+----
+
+== should sort by aliased field
+
+.GraphQL-Query
+[source,graphql]
+----
+query listProducts {
+  products(options: {sort: {partNumber: DESC}}) {
+    id
+    partNumber
+    description
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Product)
+WITH * ORDER BY this.fg_item DESC
+RETURN this {
+	id: this.fg_item_id,
+	partNumber: this.fg_item,
+	.description
+} AS this
+----
+
+'''
+
+== should sort by aliased field in relationship
+
+.GraphQL-Query
+[source,graphql]
+----
+query listProducts {
+  employees {
+    products(options: {sort: {partNumber: DESC}}) {
+      id
+      partNumber
+      description
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Employee)
+CALL {
+	WITH this
+	MATCH (this)-[canAccess0:CAN_ACCESS]->(product0:Product)
+	WITH product0 {
+		id: product0.fg_item_id,
+		partNumber: product0.fg_item,
+		.description
+	} AS products ORDER BY products.partNumber DESC
+	RETURN collect(products) AS products
+}
+RETURN this {
+	products: products
+} AS this
+----
+
+'''
+
+== Connection sort
+
+=== should sort by aliased field in connection
+
+.GraphQL-Query
+[source,graphql]
+----
+query listProducts {
+  productsConnection(sort: {partNumber: DESC}) {
+    edges {
+      node {
+        id
+        partNumber
+        description
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Product)
+WITH collect( {
+	node: this
+}) AS edges
+WITH edges, size(edges) AS totalCount
+CALL {
+	WITH edges
+	UNWIND edges AS edge
+	WITH edge.node AS this
+	WITH * ORDER BY this.fg_item DESC
+	RETURN collect( {
+		node: {
+			__resolveType: 'Product',
+			id: this.fg_item_id,
+			partNumber: this.fg_item,
+			description: this.description
+		}
+	}) AS edges0
+}
+RETURN {
+	edges: edges0,
+	totalCount: totalCount
+} AS this
+----
+
+'''
+
+=== should sort by aliased field in nested connection
+
+.GraphQL-Query
+[source,graphql]
+----
+query listProducts {
+  employees {
+    productsConnection(sort: {node: {partNumber: DESC}}) {
+      edges {
+        node {
+          id
+          partNumber
+          description
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Employee)
+CALL {
+	WITH this
+	MATCH (this)-[canAccess0:CAN_ACCESS]->(product0:Product)
+	WITH collect( {
+		node: product0,
+		relationship: canAccess0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS product0, edge.relationship AS canAccess0 ORDER BY product0.fg_item DESC
+		RETURN collect( {
+			node: {
+				__resolveType: 'Product',
+				id: product0.fg_item_id,
+				partNumber: product0.fg_item,
+				description: product0.description
+			}
+		}) AS productsConnectionEdges
+	}
+	RETURN {
+		edges: productsConnectionEdges,
+		totalCount: totalCount
+	} AS productsConnection
+}
+RETURN this {
+	productsConnection: productsConnection
+} AS this
+----
+
+'''
+
+

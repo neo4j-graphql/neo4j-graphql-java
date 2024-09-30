@@ -1,0 +1,51 @@
+:toc:
+
+= Cypher NULL
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Actor {
+  name: String
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+
+type Movie {
+  id: ID
+  title: String
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
+  isFavorite: Boolean
+}
+----
+
+== Simple IS NULL
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {title: null}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title IS NULL
+RETURN this {
+	.title
+} AS this
+----
+
+'''
+

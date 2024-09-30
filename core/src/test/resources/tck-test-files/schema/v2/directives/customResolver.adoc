@@ -1,0 +1,153 @@
+:toc:
+
+= @customResolver directive -> passes fields directly through with no generation
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+interface UserInterface {
+  customResolver: String
+}
+
+type User implements UserInterface {
+  id: ID!
+  username: String!
+  password: String!
+  nickname: String! @customResolver
+  customResolver: String @customResolver
+}
+----
+
+== Augmented schema
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+}
+
+interface UserInterface {
+  customResolver: String
+}
+
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  userInterfaces(options: UserInterfaceOptions, where: UserInterfaceWhere): [UserInterface!]!
+  userInterfacesConnection(after: String, first: Int, sort: [UserInterfaceSort], where: UserInterfaceWhere): UserInterfacesConnection!
+  users(options: UserOptions, where: UserWhere): [User!]!
+  usersConnection(after: String, first: Int, sort: [UserSort], where: UserWhere): UsersConnection!
+}
+
+type User implements UserInterface {
+  customResolver: String
+  id: ID!
+  nickname: String!
+  password: String!
+  username: String!
+}
+
+type UserEdge {
+  cursor: String!
+  node: User!
+}
+
+type UserInterfaceEdge {
+  cursor: String!
+  node: UserInterface!
+}
+
+type UserInterfacesConnection {
+  edges: [UserInterfaceEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type UsersConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"An enum for sorting in either ascending or descending order."
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+enum UserInterfaceImplementation {
+  User
+}
+
+input UserInterfaceOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more UserInterfaceSort objects to sort UserInterfaces by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [UserInterfaceSort]
+}
+
+"Fields to sort UserInterfaces by. The order in which sorts are applied is not guaranteed when specifying many fields in one UserInterfaceSort object."
+input UserInterfaceSort {
+  customResolver: SortDirection
+}
+
+input UserInterfaceWhere {
+  AND: [UserInterfaceWhere!]
+  NOT: UserInterfaceWhere
+  OR: [UserInterfaceWhere!]
+  customResolver: String
+  customResolver_CONTAINS: String
+  customResolver_ENDS_WITH: String
+  customResolver_IN: [String]
+  customResolver_STARTS_WITH: String
+  typename_IN: [UserInterfaceImplementation!]
+}
+
+input UserOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more UserSort objects to sort Users by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [UserSort!]
+}
+
+"Fields to sort Users by. The order in which sorts are applied is not guaranteed when specifying many fields in one UserSort object."
+input UserSort {
+  id: SortDirection
+  password: SortDirection
+  username: SortDirection
+}
+
+input UserWhere {
+  AND: [UserWhere!]
+  NOT: UserWhere
+  OR: [UserWhere!]
+  id: ID
+  id_CONTAINS: ID
+  id_ENDS_WITH: ID
+  id_IN: [ID!]
+  id_STARTS_WITH: ID
+  password: String
+  password_CONTAINS: String
+  password_ENDS_WITH: String
+  password_IN: [String!]
+  password_STARTS_WITH: String
+  username: String
+  username_CONTAINS: String
+  username_ENDS_WITH: String
+  username_IN: [String!]
+  username_STARTS_WITH: String
+}
+
+----
+
+'''

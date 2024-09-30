@@ -1,0 +1,207 @@
+:toc:
+
+= Algebraic -> Operators should be presents in nested updates
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  id: ID
+  viewers: Int!
+  directedBy: Director @relationship(type: "DIRECTS", direction: IN)
+}
+
+type Director {
+  lastName: String!
+  directs: [Movie!]! @relationship(type: "DIRECTS", direction: OUT)
+}
+----
+
+== Augmented schema
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+}
+
+type Director {
+  directs(directed: Boolean = true, options: MovieOptions, where: MovieWhere): [Movie!]!
+  directsConnection(after: String, directed: Boolean = true, first: Int, sort: [DirectorDirectsConnectionSort!], where: DirectorDirectsConnectionWhere): DirectorDirectsConnection!
+  lastName: String!
+}
+
+type DirectorDirectsConnection {
+  edges: [DirectorDirectsRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type DirectorDirectsRelationship {
+  cursor: String!
+  node: Movie!
+}
+
+type DirectorEdge {
+  cursor: String!
+  node: Director!
+}
+
+type DirectorsConnection {
+  edges: [DirectorEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Movie {
+  directedBy(directed: Boolean = true, options: DirectorOptions, where: DirectorWhere): Director
+  directedByConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieDirectedByConnectionSort!], where: MovieDirectedByConnectionWhere): MovieDirectedByConnection!
+  id: ID
+  viewers: Int!
+}
+
+type MovieDirectedByConnection {
+  edges: [MovieDirectedByRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type MovieDirectedByRelationship {
+  cursor: String!
+  node: Director!
+}
+
+type MovieEdge {
+  cursor: String!
+  node: Movie!
+}
+
+type MoviesConnection {
+  edges: [MovieEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  directors(options: DirectorOptions, where: DirectorWhere): [Director!]!
+  directorsConnection(after: String, first: Int, sort: [DirectorSort], where: DirectorWhere): DirectorsConnection!
+  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
+}
+
+"An enum for sorting in either ascending or descending order."
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+input DirectorDirectsConnectionSort {
+  node: MovieSort
+}
+
+input DirectorDirectsConnectionWhere {
+  AND: [DirectorDirectsConnectionWhere!]
+  NOT: DirectorDirectsConnectionWhere
+  OR: [DirectorDirectsConnectionWhere!]
+  node: MovieWhere
+}
+
+input DirectorOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more DirectorSort objects to sort Directors by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [DirectorSort!]
+}
+
+"Fields to sort Directors by. The order in which sorts are applied is not guaranteed when specifying many fields in one DirectorSort object."
+input DirectorSort {
+  lastName: SortDirection
+}
+
+input DirectorWhere {
+  AND: [DirectorWhere!]
+  NOT: DirectorWhere
+  OR: [DirectorWhere!]
+  "Return Directors where all of the related DirectorDirectsConnections match this filter"
+  directsConnection_ALL: DirectorDirectsConnectionWhere
+  "Return Directors where none of the related DirectorDirectsConnections match this filter"
+  directsConnection_NONE: DirectorDirectsConnectionWhere
+  "Return Directors where one of the related DirectorDirectsConnections match this filter"
+  directsConnection_SINGLE: DirectorDirectsConnectionWhere
+  "Return Directors where some of the related DirectorDirectsConnections match this filter"
+  directsConnection_SOME: DirectorDirectsConnectionWhere
+  "Return Directors where all of the related Movies match this filter"
+  directs_ALL: MovieWhere
+  "Return Directors where none of the related Movies match this filter"
+  directs_NONE: MovieWhere
+  "Return Directors where one of the related Movies match this filter"
+  directs_SINGLE: MovieWhere
+  "Return Directors where some of the related Movies match this filter"
+  directs_SOME: MovieWhere
+  lastName: String
+  lastName_CONTAINS: String
+  lastName_ENDS_WITH: String
+  lastName_IN: [String!]
+  lastName_STARTS_WITH: String
+}
+
+input MovieDirectedByConnectionSort {
+  node: DirectorSort
+}
+
+input MovieDirectedByConnectionWhere {
+  AND: [MovieDirectedByConnectionWhere!]
+  NOT: MovieDirectedByConnectionWhere
+  OR: [MovieDirectedByConnectionWhere!]
+  node: DirectorWhere
+}
+
+input MovieOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [MovieSort!]
+}
+
+"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+input MovieSort {
+  id: SortDirection
+  viewers: SortDirection
+}
+
+input MovieWhere {
+  AND: [MovieWhere!]
+  NOT: MovieWhere
+  OR: [MovieWhere!]
+  directedBy: DirectorWhere
+  directedByConnection: MovieDirectedByConnectionWhere
+  directedByConnection_NOT: MovieDirectedByConnectionWhere
+  directedBy_NOT: DirectorWhere
+  id: ID
+  id_CONTAINS: ID
+  id_ENDS_WITH: ID
+  id_IN: [ID]
+  id_STARTS_WITH: ID
+  viewers: Int
+  viewers_GT: Int
+  viewers_GTE: Int
+  viewers_IN: [Int!]
+  viewers_LT: Int
+  viewers_LTE: Int
+}
+
+----
+
+'''

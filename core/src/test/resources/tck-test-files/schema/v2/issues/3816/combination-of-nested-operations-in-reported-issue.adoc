@@ -1,0 +1,198 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/3816 -> Combination of nested operations in reported issue
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  name: String!
+  genre: Genre! @relationship(type: "HAS_GENRE", direction: OUT, nestedOperations: [CONNECT, DISCONNECT])
+}
+
+type Genre {
+  name: String!
+  movies: [Movie!]! @relationship(type: "HAS_GENRE", direction: IN)
+}
+----
+
+== Augmented schema
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+}
+
+type Genre {
+  movies(directed: Boolean = true, options: MovieOptions, where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, directed: Boolean = true, first: Int, sort: [GenreMoviesConnectionSort!], where: GenreMoviesConnectionWhere): GenreMoviesConnection!
+  name: String!
+}
+
+type GenreEdge {
+  cursor: String!
+  node: Genre!
+}
+
+type GenreMoviesConnection {
+  edges: [GenreMoviesRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type GenreMoviesRelationship {
+  cursor: String!
+  node: Movie!
+}
+
+type GenresConnection {
+  edges: [GenreEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Movie {
+  genre(directed: Boolean = true, options: GenreOptions, where: GenreWhere): Genre!
+  genreConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieGenreConnectionSort!], where: MovieGenreConnectionWhere): MovieGenreConnection!
+  name: String!
+}
+
+type MovieEdge {
+  cursor: String!
+  node: Movie!
+}
+
+type MovieGenreConnection {
+  edges: [MovieGenreRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type MovieGenreRelationship {
+  cursor: String!
+  node: Genre!
+}
+
+type MoviesConnection {
+  edges: [MovieEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  genres(options: GenreOptions, where: GenreWhere): [Genre!]!
+  genresConnection(after: String, first: Int, sort: [GenreSort], where: GenreWhere): GenresConnection!
+  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
+}
+
+"An enum for sorting in either ascending or descending order."
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+input GenreMoviesConnectionSort {
+  node: MovieSort
+}
+
+input GenreMoviesConnectionWhere {
+  AND: [GenreMoviesConnectionWhere!]
+  NOT: GenreMoviesConnectionWhere
+  OR: [GenreMoviesConnectionWhere!]
+  node: MovieWhere
+}
+
+input GenreOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more GenreSort objects to sort Genres by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [GenreSort!]
+}
+
+"Fields to sort Genres by. The order in which sorts are applied is not guaranteed when specifying many fields in one GenreSort object."
+input GenreSort {
+  name: SortDirection
+}
+
+input GenreWhere {
+  AND: [GenreWhere!]
+  NOT: GenreWhere
+  OR: [GenreWhere!]
+  "Return Genres where all of the related GenreMoviesConnections match this filter"
+  moviesConnection_ALL: GenreMoviesConnectionWhere
+  "Return Genres where none of the related GenreMoviesConnections match this filter"
+  moviesConnection_NONE: GenreMoviesConnectionWhere
+  "Return Genres where one of the related GenreMoviesConnections match this filter"
+  moviesConnection_SINGLE: GenreMoviesConnectionWhere
+  "Return Genres where some of the related GenreMoviesConnections match this filter"
+  moviesConnection_SOME: GenreMoviesConnectionWhere
+  "Return Genres where all of the related Movies match this filter"
+  movies_ALL: MovieWhere
+  "Return Genres where none of the related Movies match this filter"
+  movies_NONE: MovieWhere
+  "Return Genres where one of the related Movies match this filter"
+  movies_SINGLE: MovieWhere
+  "Return Genres where some of the related Movies match this filter"
+  movies_SOME: MovieWhere
+  name: String
+  name_CONTAINS: String
+  name_ENDS_WITH: String
+  name_IN: [String!]
+  name_STARTS_WITH: String
+}
+
+input MovieGenreConnectionSort {
+  node: GenreSort
+}
+
+input MovieGenreConnectionWhere {
+  AND: [MovieGenreConnectionWhere!]
+  NOT: MovieGenreConnectionWhere
+  OR: [MovieGenreConnectionWhere!]
+  node: GenreWhere
+}
+
+input MovieOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [MovieSort!]
+}
+
+"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+input MovieSort {
+  name: SortDirection
+}
+
+input MovieWhere {
+  AND: [MovieWhere!]
+  NOT: MovieWhere
+  OR: [MovieWhere!]
+  genre: GenreWhere
+  genreConnection: MovieGenreConnectionWhere
+  genreConnection_NOT: MovieGenreConnectionWhere
+  genre_NOT: GenreWhere
+  name: String
+  name_CONTAINS: String
+  name_ENDS_WITH: String
+  name_IN: [String!]
+  name_STARTS_WITH: String
+}
+
+----
+
+'''

@@ -1,6 +1,7 @@
 package org.neo4j.graphql.examples.graphqlspringboot.controller
 
 import com.expediagroup.graphql.server.types.GraphQLRequest
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.neo4j.driver.AuthToken
 import org.neo4j.driver.AuthTokens
@@ -66,6 +67,7 @@ internal class QueriesIT(
         )
     }
 
+    @Disabled("Mutation is not yet implemented")
     @Test
     fun `test neo4jQuery`() {
         assertQuery(

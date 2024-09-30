@@ -4,7 +4,7 @@
 :toclevels: 1
 :toc-title: Quick Links
 
-NOTE: This is a https://neo4j.com/labs/[Neo4j Labs Project^], it is not supported by Neo4j engineering or support and developed on an best-effort basis.
+NOTE: This is a https://neo4j.com/labs/[Neo4j Labs Project^], it is not supported by Neo4j engineering or support and developed on a best-effort basis.
 It is also not functionally equivalent to the https://github.com/neo4j/graphql[neo4j-graphql (Javascript) library and API^] even as we try to stay close to it.
 Please use the official library for a JavaScript based GraphQL Middleware for production use-cases.
 
@@ -16,12 +16,10 @@ License: Apache 2.
 
 This library
 
-1. parses a GraphQL schema and
-2. uses the information of the annotated schema to translate _GraphQL_ queries and parameters into _Cypher_ queries and parameters.
+1. uses a GraphQL schema definition that is annotated with and concrete neo4j-graphql-java directives to generate a schema that is augmented with additional query fields and mutations.
+2. generates a Graphql schema that uses special data-fetchers that translate the GraphQL queries and mutations into Cypher queries and runs these queries against a Neo4j database.
 
-Those Cypher queries can then be executed, e.g. via the Neo4j-Java-Driver (or other JVM drivers) against the graph database and the results can be returned directly to the caller.
-
-The request, result and error handling is not part of this library, but we provide demo programs on how to use it in different languages.
+The database to be used can be configured when creating the Schema via the `SchemaBuilder` by providing a concrete `Neo4jAdapter` implementation.
 
 NOTE: All the <<features,supported features>> are listed and explained below, more detailed docs will be added in time.
 
@@ -33,10 +31,6 @@ For complex examples take a look at our link:examples/readme.adoc[example projec
 
 Since the javascript pendant of this library (neo4j-graphql-js) has majored into a neo4j product, we want to migrate our augmented schema, to match as much as possible to the one of the https://github.com/neo4j/graphql[`@neo4j/graphql`].
 Therefore, we created a https://github.com/neo4j-graphql/neo4j-graphql-java/issues?q=label%3AAPI-Alignment[list of issues to track progress].
-
-We will try to make the migration as smooth as possible.
-For this purpose we will support the old, and the new way of schema augmentation until the next major release.
-To already test the new features, you can enable them via link:core/src/main/kotlin/org/neo4j/graphql/SchemaConfig.kt[some setting in the `SchemaConfig`]
 
 == FAQ
 
@@ -69,105 +63,39 @@ The basic usage should be:
 
 [source,kotlin]
 ----
-val schema =
-        """
-        type Person {
-            name: ID!
-            age: Int
+    val driver: Driver = GraphDatabase.driver(
+        "bolt://localhost",
+        AuthTokens.basic("neo4j", "test")
+    )
+    val neo4jAdapter = Neo4jDriverAdapter(driver, Neo4jAdapter.Dialect.NEO4J_5)
+
+    @Language("GraphQL") val sdl = """
+        type Movie {
+          movieId: ID!
+          title: String
         }
-        # Optional if you use generated queries
-        type Query {
-            person : [Person]
-            personByName(name:ID) : Person
-        }"""
+    """.trimIndent()
 
-val query = """ { p:personByName(name:"Joe") { age } } """
+    val schema = SchemaBuilder.buildSchema(sdl, neo4jAdapter = neo4jAdapter)
+    val graphql = GraphQL.newGraphQL(schema).build()
+    val movies = graphql.execute("{ movies { title }}")
+    println(movies.toSpecification())
 
-val schema = SchemaBuilder.buildSchema(idl)
-val ctx = QueryContext()
-val (cypher, params) = Translator(schema).translate(query, params, ctx)
-
-// generated Cypher
-cypher == "MATCH (p:Person) WHERE p.name = $pName RETURN p {.age} as p"
+// generates and executes the following cypher:
+//  "MATCH (this:Movie) RETURN this { .title } AS this"
 ----
 
 You find more usage examples in the:
 
-* link:core/src/test/resources/movie-tests.adoc[Movie TCK]
-* link:core/src/test/resources/filter-tests.adoc[Filter TCK]
-* link:core/src/test/resources/cypher-directive-tests.adoc[Cypher Directive TCK]
-* link:core/src/test/resources/property-tests.adoc[Property TCK]
-* link:core/src/test/resources/translator-tests1.adoc[Translator 1 TCK]
-* link:core/src/test/resources/translator-tests2.adoc[Translator 2 TCK]
-* link:core/src/test/resources/translator-tests3.adoc[Translator 3 TCK]
-* link:core/src/test/resources/translator-tests-custom-scalars.adoc[Translator custom scalars TCK]
-* link:core/src/test/resources/optimized-query-for-filter.adoc[Alternative Filter TCK]
+* link:core/src/test/resources/tck-test-files/cypher/v2[Cypher TCK Tests]
+* link:core/src/test/resources/tck-test-files/schema/v2[Schema TCK Tests]
 
 == Demo
 
-Here is a minimalistic example in Groovy using the Neo4j-Java driver and Spark-Java as webserver.
-It is running against a Neo4j instance at `bolt://localhost` (username: `neo4j`, password: `s3cr3t`) containing the `:play movies` graph.
+You can use the link:core/src/test/kotlin/GraphQLServer.kt[GraphQL Demo Server] to play around with the library.
+It is running against a Neo4j instance at `bolt://localhost` (username: `neo4j`, password: `test`) containing the `:play movies` graph.
 
-(You can also use a link:core/src/test/kotlin/GraphQLServer.kt[Kotlin based server example].)
-
-In case you wand to bind the neo4j driver directly to the graphql schema you can
-link:core/src/test/kotlin/DataFetcherInterceptorDemo.kt[use the DataFetchingInterceptor to
-intercept the cypher queries].
-
-[source,groovy,subs=attributes]
-----
-// Simplistic GraphQL Server using SparkJava
-@Grapes([
-  @Grab('com.sparkjava:spark-core:2.7.2'),
-  @Grab('org.neo4j.driver:neo4j-java-driver:1.7.2'),
-  @Grab('com.google.code.gson:gson:2.8.5'),
-  @Grab('org.neo4j:neo4j-graphql-java:{version}')
-])
-
-import spark.*
-import static spark.Spark.*
-import com.google.gson.Gson
-import org.neo4j.graphql.*
-import org.neo4j.driver.v1.*
-
-schema = """
-type Person {
-  name: ID!
-  born: Int
-  actedIn: [Movie] @relation(name:"ACTED_IN")
-}
-type Movie {
-  title: ID!
-  released: Int
-  tagline: String
-}
-type Query {
-    person : [Person]
-}
-"""
-
-gson = new Gson()
-render = (ResponseTransformer)gson.&toJson
-def query(value) { gson.fromJson(value,Map.class)["query"] }
-
-graphql = new Translator(SchemaBuilder.buildSchema(schema))
-def translate(query) { graphql.translate(query) }
-
-driver = GraphDatabase.driver("bolt://localhost",AuthTokens.basic("neo4j","s3cr3t"))
-def run(cypher) { driver.session().withCloseable {
-     it.run(cypher.query, Values.value(cypher.params)).list{ it.asMap() }}}
-
-post("/graphql","application/json", { req, res ->  run(translate(query(req.body())).first()) }, render);
-----
-// include::docs/Server.groovy[]
-
-Run the example with:
-
-----
-groovy docs/Server.groovy
-----
-
-and use http://localhost:4567/graphql as your GraphQL URL.
+Use http://localhost:4567/graphql as your GraphQL URL.
 
 It uses a schema of:
 
@@ -176,15 +104,12 @@ It uses a schema of:
 type Person {
   name: ID!
   born: Int
-  actedIn: [Movie] @relation(name:"ACTED_IN")
+  actedIn: [Movie] @relationship(type:"ACTED_IN", direction: OUT)
 }
 type Movie {
   title: ID!
   released: Int
   tagline: String
-}
-type Query {
-    person : [Person]
 }
 ----
 
@@ -193,35 +118,31 @@ And can run queries like:
 [source,graphql]
 ----
 {
-  person(first:3) {
+    people(options: {limit: 3}) {
     name
     born
-    actedIn(first:2) {
+    actedIn(options: {limit: 2}) {
       title
     }
   }
 }
 ----
 
-image::docs/graphiql.jpg[]
-
 You can also test it with `curl`
 
 ----
-curl -XPOST http://localhost:4567/graphql -d'{"query":"{person {name}}"}'
+curl -XPOST http://localhost:4567/graphql -d'{"query":"{people {name}}"}'
 ----
-
-This example doesn't handle introspection queries, but the one in the test directory does.
 
 == Advanced Queries
 
 .Filter, Sorting, Paging support
 ----
 {
-  person(filter: {name_starts_with: "L"}, orderBy: "born_asc", first: 5, offset: 2) {
+  people(where: {name_STARTS_WITH: "L"}, options: { sort: [{name: ASC}], limit: 5, offset: 2} ) {
     name
     born
-    actedIn(first: 1) {
+    actedIn(options: {limit: 1}) {
       title
     }
   }
@@ -230,12 +151,11 @@ This example doesn't handle introspection queries, but the one in the test direc
 
 ----
 {
-  person(filter: {name_starts_with: "J", born_gte: 1970}, first:2) {
+  people(where: {name_STARTS_WITH: "J", born_GTE: 1970}, options: { limit: 2} ) {
     name
     born
-    actedIn(first:1) {
+    actedIn(options: {limit: 1}) {
       title
-      released
     }
   }
 }
@@ -246,7 +166,9 @@ This example doesn't handle introspection queries, but the one in the test direc
 
 === Current
 
-* parse SDL schema
+* querying nodes, interfaces and unions
+* querying connections
+
 * resolve query fields via result types
 * handle arguments as equality comparisons for top level and nested fields
 * handle relationships via @relation directive on schema fields
@@ -283,9 +205,8 @@ Otherwise, we assume if you return object-types that you will return the appropr
 === Parse SDL schema
 
 * Currently, schemas with object types, enums, fragments and Query types are parsed and handled.
-* `@relation` directives on fields and types for rich relationships
-* `@cypher` directives on fields and top-level query and mutation fields.
-* The configurable augmentation auto-generates queries and mutations (create,update,delete) for all types.
+* `@relationship` directives on fields and types for rich relationships
+* The configurable augmentation auto-generates queries for all types.
 * Supports the built-in scalars for GraphQL.
 * For arguments input types in many places and filters from GraphCool/Prisma.
 
@@ -310,38 +231,10 @@ type Person {
 === Neo4j 5.x support
 
 This library supports queries for both neo4j `4.x` and `5.x`.
-By default, the neo4j 5 dialect is enabled.
-The dialect can be changed via `QueryContext`.
+The Dialect is seth through the used `Neo4jAdapter` implementation.
 
-.Example of changing the dialect via Translator
-[source,kotlin]
-----
-var query
-    val ctx = QueryContext(neo4jDialect = Dialect.DEFAULT) //  Dialect.DEFAULT matches to neo4j version < 5.x
-    query = translator.translate(query, params, ctx)
-----
 
-=== Handle Arguments as Equality Comparisons for Top Level and Nested Fields
-
-If you add a simple argument to your top-level query or nested related fields, those will be translated to direct equality comparisons.
-
-[source,graphql]
-----
-person(name:"Joe", age:42) {
-   name
-}
-----
-
-to an equivalent of
-
-[source,cypher]
-----
-MATCH (person:Person) WHERE person.name = 'Joe' AND person.age = 42 RETURN person { .name } AS person
-----
-
-The literal values are turned into Cypher query parameters.
-
-=== Handle Relationships via @relation Directive on Schema Fields
+=== Handle Relationships via @relationship Directive on Schema Fields
 
 If you want to represent a relationship from the graph in GraphQL you have to add a `@relation` directive which contains the relationship-type and the direction.
 The default direction for a relationship is 'OUT'.
@@ -352,13 +245,13 @@ So you can use different domain names in your GraphQL fields that are independen
 ----
 type Person {
   name : String
-  actedIn: [Movie] @relation(name:"ACTED_IN", direction:OUT)
+  actedIn: [Movie] @relationship(type:"ACTED_IN", direction:OUT)
 }
 ----
 
 [source,graphql]
 ----
-person(name:"Keanu Reeves") {
+people(where: {name:"Keanu Reeves"}) {
   name
   actedIn {
     title
@@ -366,18 +259,17 @@ person(name:"Keanu Reeves") {
 }
 ----
 
-NOTE: We use Neo4j's _pattern comprehensions_ to represent nested graph patterns in Cypher.
-This will be updated to subqueries from 4.1
+=== Handle pagination
 
-=== Handle first, offset Arguments
-
-To support pagination `first` is translated to `LIMIT` in Cypher and `offset` into `SKIP`
+To support pagination `limit` is translated to `LIMIT` in Cypher and `offset` into `SKIP`
 For nested queries these are converted into slices for arrays.
 
 [source,graphql]
 ----
-person(offset: 5, first:10) {
-  name
+{
+  people(options: { limit: 10, offset: 5 }) {
+    name
+  }
 }
 ----
 
@@ -390,51 +282,9 @@ MATCH (person:Person) RETURN person { .name }  AS person SKIP 5 LIMIT 10
 
 The default Neo4j Cypher types are handled both as argument types as well as field types.
 
-NOTE: Spatial is not yet covered.
-
-=== Usage of ID
-
-Each type is expected to have exactly one filed of type `ID` defined.
-If the field is named `_id`, it is interpreted as the database internal graph ID.
-
-So there are 3 cases:
-
-.Case 1: Only the _ID_ field exists
-[source,graphql]
-----
-type User {
-  email: ID!
-  name: String!
-}
-----
-
-.Case 2: Only the _ID_ field exists interpreted as internal ID
-[source,graphql]
-----
-type User {
-  _id: ID!
-  email: String!
-  name: String!
-}
-----
-
-.Case 3: An _ID_ field exists but the internal ID is propagated as well
-[source,graphql]
-----
-type User {
-  _id: Int!
-  email: ID!
-  name: String!
-}
-----
-
-IMPORTANT: For the auto generated queries and mutations the `ID` field is used as _primary key_.
-
-TIP: You should create a unique constraint on the `ID` fields
-
 === Parameter Support
 
-GraphQL parameter's are passed onto Cypher, these are resolved correctly when used within the GraphQL query.
+GraphQL parameters are passed onto Cypher, these are resolved correctly when used within the GraphQL query.
 
 === Parametrization
 
@@ -442,8 +292,10 @@ For query injection prevention and caching purposes, literal values are translat
 
 [source,graphql]
 ----
-person(name:"Joe", age:42, first:10) {
+{
+  people(where: {name:"Joe", born_GT: 1942}, options: { limit: 10 }) {
    name
+  }
 }
 ----
 
@@ -451,13 +303,14 @@ to
 
 [source,cypher]
 ----
-MATCH (person:Person)
-WHERE person.name = $personName AND person.age = $personAge
-RETURN person { .name } AS person
-LIMIT $first
+MATCH (this:Person)
+WHERE (this.name = $param0
+	AND this.born > $param1)
+WITH * LIMIT $param2
+RETURN this {
+	.name
+} AS this
 ----
-
-Those parameters are returned as part of the `Cypher` type that's returned from the `translate()`-method.
 
 === Aliases
 
@@ -467,9 +320,9 @@ For example:
 
 [source,graphql]
 ----
-query {
-  jane: person(name:"Jane") { name, age }
-  joe: person(name:"Joe") { name, age }
+{
+  jane: people(where: {name:"Jane"}) { name, born }
+  joe: people(where: {name:"Joe"}) { name, born }
 }
 ----
 
@@ -479,62 +332,66 @@ This is more of a technical feature, both types of fragments are resolved intern
 
 === Sorting (top-level)
 
-We support sorting via an `orderBy` argument, which takes an Enum or String value of `fieldName_asc` or `fieldName_desc`.
+We support sorting via the `options::sort` argument, which takes an array of sort items each defining the filed and the direction to sort by.
 
 [source,graphql]
 ----
-query {
-  person(orderBy:[name_asc, age_desc]) {
-     name
-     age
+{
+  people(options: { sort:  [{name: ASC}, {born: DESC}]}) {
+    name
+    born
   }
 }
 ----
 
 [source,cypher]
 ----
-MATCH (person:Person)
-RETURN person { .name, .age } AS person
-
-ORDER BY person.name ASC, person.age DESC
+MATCH (this:Person)
+WITH * ORDER BY this.name ASC, this.born DESC
+RETURN this {
+	.name,
+	.born
+} AS this
 ----
 
-NOTE: We don't yet support ordering on nested relationship fields.
+=== Handle Rich Relationships via @relationship Directive on Schema Types
 
-=== Handle Rich Relationships via @relation Directive on Schema Types
-
-To represent rich relationship types with properties, a `@relation` directive is supported on an object type.
+To represent rich relationship types with properties, a `@relationship` directive is supported on an object type.
 
 In our example it would be the `Role` type.
 
 [source,graphql]
 ----
-type Role @relation(name:"ACTED_IN", from:"actor", to:"movie") {
-   actor: Person
-   movie: Movie
+type Role @relationshipProperties {
    roles: [String]
 }
 type Person {
   name: String
   born: Int
-  roles: [Role]
+  movies: [Movie] @relationship(type:"ACTED_IN", direction: OUT, properties: Role)
 }
 type Movie {
   title: String
   released: Int
-  characters: [Role]
+  characters: [Person] @relationship(type:"ACTED_IN", direction: IN, properties: Role)
 }
 ----
 
 [source,graphql]
 ----
-person(name:"Keanu Reeves") {
-   roles {
-      roles
-      movie {
-        title
+{
+    people(where: {name:"Keanu Reeves"} ){
+      moviesConnection {
+        edges {
+          properties {
+            roles
+          }
+          node {
+            title
+          }
+        }
       }
-   }
+    }
 }
 ----
 
@@ -544,13 +401,11 @@ person(name:"Keanu Reeves") {
 Filters are a powerful way of selecting a subset of data.
 Inspired by the https://www.graph.cool/docs/reference/graphql-api/query-api-nia9nushae[graph.cool/Prisma filter approach^], our filters work the same way.
 
-These filters are documented in detail in the https://grandstack.io/docs/graphql-filtering [GRANDstack docs^].
-
-We use nested input types for arbitrary filtering on query types and fields.
+These filters are documented in detail in the https://neo4j.com/docs/graphql/current/queries-aggregations/filtering/[Neo4j GraphQL Library].
 
 [source,graphql]
 ----
-{ Company(filter: { AND: { name_contains: "Ne", country_in ["SE"]}}) { name } }
+{ company(where: { AND: { name_CONTAINS: "Ne", country_IN: ["SE"]}}) { name } }
 ----
 
 You can also apply nested filter on relations, which use suffixes like `("",not,some, none, single, every)`
@@ -558,33 +413,14 @@ You can also apply nested filter on relations, which use suffixes like `("",not,
 [source,graphql]
 ----
 { Company(filter: {
-    employees_none { name_contains: "Jan"},
-    employees_some: { gender_in : [female]},
-    company_not: null })
+    employees_NONE { name_contains: "Jan"},
+    employees_SOME: { gender_IN : [female]},
+    NOT: { company: null } })
     {
       name
     }
 }
 ----
-
-==== Optimized Filters
-
-If you encounter performance problems with the cypher queries generated for the filter, you can activate an alternative algorithm using:
-
-[source,kotlin]
-----
-var query
-try {
-    val ctx = QueryContext(optimizedQuery = setOf(QueryContext.OptimizationStrategy.FILTER_AS_MATCH))
-    query = translator.translate(query, params, ctx)
-} catch (e: OptimizedQueryException) {
-    query = translator.translate(query, params)
-}
-----
-
-If no query can be generated by the alternative algorithm, an `OptimizedQueryException` is thrown, so that a fallback to the actual algorithm can be used.
-
-link:core/src/test/resources/optimized-query-for-filter.adoc[Examples of the alternative algorithm] can be seen in the tests.
 
 === Inline and Named Fragments
 
@@ -612,140 +448,15 @@ query {
 }
 ----
 
-=== @cypher Directives
-
-With `@cypher` directives you can add the power of Cypher to your GraphQL API.
-
-It allows you, without code to *compute field values* using complex queries.
-
-You can also write your own, *custom top-level queries and mutations* using Cypher.
-
-Arguments on the field are passed to the Cypher statement and can be used by name.
-They must not be prefixed by `$` since they are no longer parameters.
-Just use the same name as the field's argument.
-The current node is passed to the statement as `this`.
-The statement should contain exactly one return expression without any alias.
-
-Input types are supported, they appear as `Map` type in your Cypher statement.
-
-NOTE: Those Cypher directive queries are only included in the generated Cypher statement if the field or query is included in the GraphQL query.
-
-==== On Fields
-
-.@cypher directive on a field
-[source,graphql]
-----
-type Movie {
-  title: String
-  released: Int
-  similar(limit:Int=10): [Movie] @cypher(statement:
-        """
-        MATCH (this)-->(:Genre)<--(sim)
-        WITH sim, count(*) as c ORDER BY c DESC LIMIT limit
-        RETURN sim
-        """)
-}
-----
-
-Here the `this`-variable is bound to the current movie.
-You can use it to navigate the graph and collect data.
-The `limit` variable is passed to the query as parameter.
-
-==== On Queries
-
-Similarly, you can use the `@cypher` directive with a top-level query.
-
-.@cypher directive on query
-[source,graphql]
-----
-type Query {
-   person(name:String) Person @cypher("MATCH (p:Person) WHERE p.name = name RETURN p")
-}
-----
-
-You can also return arrays from your query, the statements on query fields should be read-only queries.
-
-==== On Mutations
-
-You can do the same for mutations, just with updating Cypher statements.
-
-.@cypher directive on mutation
-[source,graphql]
-----
-type Mutation {
-   createPerson(name:String, age:Int) Person @cypher("CREATE (p:Person) SET p.name = name, p.age = age RETURN p")
-}
-----
-
-You can use more complex statements for creating these entities or even subgraphs.
-
-NOTE: The common CRUD mutations and queries are auto-generated, see below.
-
 === Auto Generated Queries and Mutations
 
 To reduce the amount of boilerplate code you have to write, we auto-generate generate top-level CRUD queries and mutations for all types.
 
-This is configurable via the API, you can:
+This is configurable via https://neo4j.com/docs/graphql/current/directives/#_schema_configuration[directives].
 
-* disable auto-generation (for mutations/queries)
-* disable per type
-* disable mutations per operation (create,delete,update)
-* configure capitalization of top level generated fields
+Please consult the link:core/src/test/resources/tck-test-files/schema/v2/[Augmentation Tests] to see all currently supported features.
 
-For a schema like this:
-
-[source,graphql]
-----
-type Person {
-   id:ID!
-   name: String
-   age: Int
-   movies: [Movie]
-}
-----
-
-It would auto-generate quite a lot of things:
-
-* a query: `person(id:ID, name:String , age: Int, _id: Int, filter:_PersonFilter, orderBy:_PersonOrdering, first:Int, offset:Int) : [Person]`
-* a `_PersonOrdering` enum, for the `orderBy` argument with all fields for `_asc` and `_desc` sort order
-* a `_PersonInput` for creating Person objects
-* a `_PersonFilter` for the `filter` argument, which is a deeply nested input object (see <<filters>>)
-* mutations for:
-** createPerson: `createPerson(id:ID!, name:String, age: Int) : Person`
-** mergePerson:  `mergePerson(id:ID!,  name:String, age:Int) : Person`
-** updatePerson: `updatePerson(id:ID!, name:String, age:Int) : Person`
-** deletePerson: `deletePerson(id:ID!) : Person`
-** addPersonMovies: `addPersonMovies(id:ID!,movies:[ID!]!) : Person`
-** deletePersonMovies: `deletePersonMovies(id:ID!,movies:[ID!]!) : Person`
-
-You can then use those in your GraphQL queries like this:
-
-[source,graphql]
-----
-query { person(age:42, orderBy:name_asc) {
-   id
-   name
-   age
-}
-----
-
-or
-
-[source,graphql]
-----
-mutation {
-  createPerson(id: "34920n9qw0", name:"Jane Doe", age:42) {
-    id
-    name
-    age
-  }
-}
-----
-
-You find more examples in the link:core/src/test/resources/augmentation-tests.adoc[Augmentation Tests]
-and the link:core/src/test/resources/custom-fields.adoc[Custom queries and mutations Tests]
-
-== Build time schema augmentation
+== Build-time schema augmentation
 
 Sometimes you need the possibility to generate the augmented schema at compile time.
 To achieve this, we provide a maven plugin which can be used as follows:
@@ -763,12 +474,11 @@ To achieve this, we provide a maven plugin which can be used as follows:
             </goals>
             <configuration>
                 <schemaConfig> <!--1-->
-                    <pluralizeFields>true</pluralizeFields>
-                    <useWhereFilter>true</useWhereFilter>
-                    <queryOptionStyle>INPUT_TYPE</queryOptionStyle>
-                    <mutation>
-                        <enabled>false</enabled>
-                    </mutation>
+                    <features>
+                        <String>
+                            <MATCHES>true</MATCHES>
+                        </String>
+                    </features>
                 </schemaConfig>
                 <outputDirectory>${project.build.directory}/augmented-schema</outputDirectory>
                 <fileset> <!--2-->

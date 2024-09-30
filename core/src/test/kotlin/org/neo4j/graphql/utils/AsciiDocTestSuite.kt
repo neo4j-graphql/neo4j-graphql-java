@@ -58,6 +58,12 @@ open class AsciiDocTestSuite(
         var end: Int? = null
         var adjustedCode: String? = null
         var reformattedCode: String? = null
+        var semanticEqual = false
+
+        /**
+         * update only if other (tandem) is also updated
+         */
+        var tandemUpdate: ParsedBlock? = null
         val code: StringBuilder = StringBuilder()
 
         fun code() = code.trim().toString()
@@ -206,7 +212,14 @@ open class AsciiDocTestSuite(
     }
 
     private fun writeAdjustedTestFile() {
-        val content = generateAdjustedFileContent()
+        val content = generateAdjustedFileContent({ block ->
+            block.adjustedCode.takeIf {
+                when {
+                    UPDATE_SEMANTIC_EQUALLY_BLOCKS -> block.semanticEqual && (block.tandemUpdate?.semanticEqual ?: true)
+                    else -> true
+                }
+            }
+        })
         FileWriter(File("src/test/resources/", fileName)).use {
             it.write(content)
         }
@@ -296,6 +309,8 @@ open class AsciiDocTestSuite(
         val GENERATE_TEST_FILE_DIFF = System.getProperty("neo4j-graphql-java.generate-test-file-diff", "true") == "true"
         val REFORMAT_TEST_FILE = System.getProperty("neo4j-graphql-java.reformat", "false") == "true"
         val UPDATE_TEST_FILE = System.getProperty("neo4j-graphql-java.update-test-file", "false") == "true"
+        val UPDATE_SEMANTIC_EQUALLY_BLOCKS =
+            System.getProperty("neo4j-graphql-java.update-semantic-equally-blocks", "false") == "true"
         val MAPPER = ObjectMapper().registerKotlinModule()
         val HEADLINE_PATTERN: Pattern = Pattern.compile("^(=+) (.*)$")
 

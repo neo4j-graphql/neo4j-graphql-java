@@ -1,0 +1,111 @@
+:toc:
+
+= Cypher -> Connections -> Filtering -> Relationship -> Points
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: IN)
+}
+
+type Actor {
+  name: String!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: OUT)
+}
+
+type ActedIn @relationshipProperties {
+  screenTime: Int!
+  location: Point!
+}
+----
+
+== DISTANCE
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    title
+    actorsConnection(
+      where: {edge: {location_DISTANCE: {point: {longitude: 1.0, latitude: 2.0}, distance: 3.0}}}
+    ) {
+      edges {
+        properties {
+          screenTime
+          location {
+            latitude
+            longitude
+          }
+        }
+        node {
+          name
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : {
+    "point" : {
+      "longitude" : 1.0,
+      "latitude" : 2.0
+    },
+    "distance" : 3.0
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+	WITH this
+	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
+	WHERE point.distance(actedIn0.location, point($param0.point)) = $param0.distance
+	WITH collect( {
+		node: actor0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS actor0, edge.relationship AS actedIn0
+		RETURN collect( {
+			properties: {
+				__resolveType: 'ActedIn',
+				screenTime: actedIn0.screenTime,
+				location: CASE WHEN actedIn0.location IS NOT NULL THEN {
+					latitude: actedIn0.location.latitude,
+					longitude: actedIn0.location.longitude
+				} ELSE NULL END
+			},
+			node: {
+				__resolveType: 'Actor',
+				name: actor0.name
+			}
+		}) AS actorsConnectionEdges
+	}
+	RETURN {
+		edges: actorsConnectionEdges,
+		totalCount: totalCount
+	} AS actorsConnection
+}
+RETURN this {
+	.title,
+	actorsConnection: actorsConnection
+} AS this
+----
+
+'''
+

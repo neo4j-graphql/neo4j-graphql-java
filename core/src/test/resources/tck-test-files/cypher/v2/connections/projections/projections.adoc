@@ -1,0 +1,478 @@
+:toc:
+
+= Relay Cursor Connection projections
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+union Production = Movie | Series
+
+type Movie {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
+}
+
+type Series {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
+}
+
+type Actor {
+  name: String!
+  productions: [Production!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+----
+
+== edges and totalCount returned if pageInfo asked for
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {title: "Forrest Gump"}) {
+    title
+    actorsConnection {
+      pageInfo {
+        startCursor
+        endCursor
+        hasNextPage
+        hasPreviousPage
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "Forrest Gump"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+CALL {
+	WITH this
+	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
+	WITH collect( {
+		node: actor0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS actor0, edge.relationship AS actedIn0
+		RETURN collect( {
+			node: {
+				__id: elementId(actor0),
+				__resolveType: 'Actor'
+			}
+		}) AS actorsConnectionEdges
+	}
+	RETURN {
+		edges: actorsConnectionEdges,
+		totalCount: totalCount
+	} AS actorsConnection
+}
+RETURN this {
+	.title,
+	actorsConnection: actorsConnection
+} AS this
+----
+
+'''
+
+== edges and totalCount returned if pageInfo asked for on a union
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  actors(where: {name: "Tom Hanks"}) {
+    name
+    productionsConnection {
+      pageInfo {
+        startCursor
+        endCursor
+        hasNextPage
+        hasPreviousPage
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "Tom Hanks"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+WHERE this.name = $param0
+CALL {
+	WITH this
+	CALL {
+		WITH this
+		MATCH (this)-[actedIn0:ACTED_IN]->(movie0:Movie)
+		WITH {
+			node: {
+				__id: elementId(movie0),
+				__resolveType: 'Movie'
+			}
+		} AS edge
+		RETURN edge UNION
+		WITH this
+		MATCH (this)-[actedIn1:ACTED_IN]->(series0:Series)
+		WITH {
+			node: {
+				__id: elementId(series0),
+				__resolveType: 'Series'
+			}
+		} AS edge
+		RETURN edge
+	}
+	WITH collect(edge) AS edges
+	WITH edges, size(edges) AS totalCount
+	RETURN {
+		edges: edges,
+		totalCount: totalCount
+	} AS productionsConnection
+}
+RETURN this {
+	.name,
+	productionsConnection: productionsConnection
+} AS this
+----
+
+'''
+
+== edges not returned if not asked for
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {title: "Forrest Gump"}) {
+    title
+    actorsConnection {
+      totalCount
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "Forrest Gump"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+CALL {
+	WITH this
+	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
+	WITH collect( {
+		node: actor0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS actor0, edge.relationship AS actedIn0
+		RETURN collect( {
+			node: {
+				__id: elementId(actor0),
+				__resolveType: 'Actor'
+			}
+		}) AS actorsConnectionEdges
+	}
+	RETURN {
+		edges: actorsConnectionEdges,
+		totalCount: totalCount
+	} AS actorsConnection
+}
+RETURN this {
+	.title,
+	actorsConnection: actorsConnection
+} AS this
+----
+
+'''
+
+== edges not returned if not asked for on a union
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  actors(where: {name: "Tom Hanks"}) {
+    name
+    productionsConnection {
+      totalCount
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "Tom Hanks"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+WHERE this.name = $param0
+CALL {
+	WITH this
+	CALL {
+		WITH this
+		MATCH (this)-[actedIn0:ACTED_IN]->(movie0:Movie)
+		WITH {
+			node: {
+				__id: elementId(movie0),
+				__resolveType: 'Movie'
+			}
+		} AS edge
+		RETURN edge UNION
+		WITH this
+		MATCH (this)-[actedIn1:ACTED_IN]->(series0:Series)
+		WITH {
+			node: {
+				__id: elementId(series0),
+				__resolveType: 'Series'
+			}
+		} AS edge
+		RETURN edge
+	}
+	WITH collect(edge) AS edges
+	WITH edges, size(edges) AS totalCount
+	RETURN {
+		edges: edges,
+		totalCount: totalCount
+	} AS productionsConnection
+}
+RETURN this {
+	.name,
+	productionsConnection: productionsConnection
+} AS this
+----
+
+'''
+
+== Minimal edges returned if not asked for with pagination arguments
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {title: "Forrest Gump"}) {
+    title
+    actorsConnection(first: 5) {
+      totalCount
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "Forrest Gump",
+  "param1" : 5
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+CALL {
+	WITH this
+	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
+	WITH collect( {
+		node: actor0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS actor0, edge.relationship AS actedIn0 LIMIT $param1
+		RETURN collect( {
+			node: {
+				__id: elementId(actor0),
+				__resolveType: 'Actor'
+			}
+		}) AS actorsConnectionEdges
+	}
+	RETURN {
+		edges: actorsConnectionEdges,
+		totalCount: totalCount
+	} AS actorsConnection
+}
+RETURN this {
+	.title,
+	actorsConnection: actorsConnection
+} AS this
+----
+
+'''
+
+== totalCount is calculated and returned if asked for with edges
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {title: "Forrest Gump"}) {
+    title
+    actorsConnection {
+      totalCount
+      edges {
+        node {
+          name
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "Forrest Gump"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+CALL {
+	WITH this
+	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
+	WITH collect( {
+		node: actor0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS actor0, edge.relationship AS actedIn0
+		RETURN collect( {
+			node: {
+				__resolveType: 'Actor',
+				name: actor0.name
+			}
+		}) AS actorsConnectionEdges
+	}
+	RETURN {
+		edges: actorsConnectionEdges,
+		totalCount: totalCount
+	} AS actorsConnection
+}
+RETURN this {
+	.title,
+	actorsConnection: actorsConnection
+} AS this
+----
+
+'''
+
+== totalCount is calculated and returned if asked for with edges with pagination arguments
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {title: "Forrest Gump"}) {
+    title
+    actorsConnection(first: 5) {
+      totalCount
+      edges {
+        node {
+          name
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "Forrest Gump",
+  "param1" : 5
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+CALL {
+	WITH this
+	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
+	WITH collect( {
+		node: actor0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS actor0, edge.relationship AS actedIn0 LIMIT $param1
+		RETURN collect( {
+			node: {
+				__resolveType: 'Actor',
+				name: actor0.name
+			}
+		}) AS actorsConnectionEdges
+	}
+	RETURN {
+		edges: actorsConnectionEdges,
+		totalCount: totalCount
+	} AS actorsConnection
+}
+RETURN this {
+	.title,
+	actorsConnection: actorsConnection
+} AS this
+----
+
+'''
+

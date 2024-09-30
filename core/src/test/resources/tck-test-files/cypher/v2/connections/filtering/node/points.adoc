@@ -1,0 +1,111 @@
+:toc:
+
+= Cypher -> Connections -> Filtering -> Node -> Points
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: IN)
+}
+
+type Actor {
+  name: String!
+  currentLocation: Point!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: OUT)
+}
+
+type ActedIn @relationshipProperties {
+  screenTime: Int!
+}
+----
+
+== DISTANCE
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    title
+    actorsConnection(
+      where: {node: {currentLocation_DISTANCE: {point: {longitude: 1.0, latitude: 2.0}, distance: 3.0}}}
+    ) {
+      edges {
+        properties {
+          screenTime
+        }
+        node {
+          name
+          currentLocation {
+            latitude
+            longitude
+          }
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : {
+    "point" : {
+      "longitude" : 1.0,
+      "latitude" : 2.0
+    },
+    "distance" : 3.0
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+	WITH this
+	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
+	WHERE point.distance(actor0.currentLocation, point($param0.point)) = $param0.distance
+	WITH collect( {
+		node: actor0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS actor0, edge.relationship AS actedIn0
+		RETURN collect( {
+			properties: {
+				__resolveType: 'ActedIn',
+				screenTime: actedIn0.screenTime
+			},
+			node: {
+				__resolveType: 'Actor',
+				name: actor0.name,
+				currentLocation: CASE WHEN actor0.currentLocation IS NOT NULL THEN {
+					latitude: actor0.currentLocation.latitude,
+					longitude: actor0.currentLocation.longitude
+				} ELSE NULL END
+			}
+		}) AS actorsConnectionEdges
+	}
+	RETURN {
+		edges: actorsConnectionEdges,
+		totalCount: totalCount
+	} AS actorsConnection
+}
+RETURN this {
+	.title,
+	actorsConnection: actorsConnection
+} AS this
+----
+
+'''
+

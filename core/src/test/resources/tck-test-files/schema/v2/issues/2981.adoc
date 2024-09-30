@@ -1,0 +1,291 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/2981 -> BookTranslatedTitleCreateFieldInput fields should not be of type List
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Book {
+  originalTitle: String!
+  translatedTitle: BookTitle @relationship(type: "TRANSLATED_BOOK_TITLE", direction: IN)
+  isbn: String!
+}
+
+union BookTitle = BookTitle_SV | BookTitle_EN
+
+type BookTitle_SV {
+  book: Book! @relationship(type: "TRANSLATED_BOOK_TITLE", direction: OUT)
+  value: String!
+}
+
+type BookTitle_EN {
+  book: Book! @relationship(type: "TRANSLATED_BOOK_TITLE", direction: OUT)
+  value: String!
+}
+----
+
+== Augmented schema
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+}
+
+union BookTitle = BookTitle_EN | BookTitle_SV
+
+type Book {
+  isbn: String!
+  originalTitle: String!
+  translatedTitle(directed: Boolean = true, options: QueryOptions, where: BookTitleWhere): BookTitle
+  translatedTitleConnection(after: String, directed: Boolean = true, first: Int, where: BookTranslatedTitleConnectionWhere): BookTranslatedTitleConnection!
+}
+
+type BookEdge {
+  cursor: String!
+  node: Book!
+}
+
+type BookTitleEnsConnection {
+  edges: [BookTitle_ENEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type BookTitleSvsConnection {
+  edges: [BookTitle_SVEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type BookTitle_EN {
+  book(directed: Boolean = true, options: BookOptions, where: BookWhere): Book!
+  bookConnection(after: String, directed: Boolean = true, first: Int, sort: [BookTitle_ENBookConnectionSort!], where: BookTitle_ENBookConnectionWhere): BookTitle_ENBookConnection!
+  value: String!
+}
+
+type BookTitle_ENBookConnection {
+  edges: [BookTitle_ENBookRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type BookTitle_ENBookRelationship {
+  cursor: String!
+  node: Book!
+}
+
+type BookTitle_ENEdge {
+  cursor: String!
+  node: BookTitle_EN!
+}
+
+type BookTitle_SV {
+  book(directed: Boolean = true, options: BookOptions, where: BookWhere): Book!
+  bookConnection(after: String, directed: Boolean = true, first: Int, sort: [BookTitle_SVBookConnectionSort!], where: BookTitle_SVBookConnectionWhere): BookTitle_SVBookConnection!
+  value: String!
+}
+
+type BookTitle_SVBookConnection {
+  edges: [BookTitle_SVBookRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type BookTitle_SVBookRelationship {
+  cursor: String!
+  node: Book!
+}
+
+type BookTitle_SVEdge {
+  cursor: String!
+  node: BookTitle_SV!
+}
+
+type BookTranslatedTitleConnection {
+  edges: [BookTranslatedTitleRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type BookTranslatedTitleRelationship {
+  cursor: String!
+  node: BookTitle!
+}
+
+type BooksConnection {
+  edges: [BookEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  bookTitleEns(options: BookTitle_ENOptions, where: BookTitle_ENWhere): [BookTitle_EN!]!
+  bookTitleEnsConnection(after: String, first: Int, sort: [BookTitle_ENSort], where: BookTitle_ENWhere): BookTitleEnsConnection!
+  bookTitleSvs(options: BookTitle_SVOptions, where: BookTitle_SVWhere): [BookTitle_SV!]!
+  bookTitleSvsConnection(after: String, first: Int, sort: [BookTitle_SVSort], where: BookTitle_SVWhere): BookTitleSvsConnection!
+  bookTitles(options: QueryOptions, where: BookTitleWhere): [BookTitle!]!
+  books(options: BookOptions, where: BookWhere): [Book!]!
+  booksConnection(after: String, first: Int, sort: [BookSort], where: BookWhere): BooksConnection!
+}
+
+"An enum for sorting in either ascending or descending order."
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+input BookOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more BookSort objects to sort Books by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [BookSort!]
+}
+
+"Fields to sort Books by. The order in which sorts are applied is not guaranteed when specifying many fields in one BookSort object."
+input BookSort {
+  isbn: SortDirection
+  originalTitle: SortDirection
+}
+
+input BookTitleWhere {
+  BookTitle_EN: BookTitle_ENWhere
+  BookTitle_SV: BookTitle_SVWhere
+}
+
+input BookTitle_ENBookConnectionSort {
+  node: BookSort
+}
+
+input BookTitle_ENBookConnectionWhere {
+  AND: [BookTitle_ENBookConnectionWhere!]
+  NOT: BookTitle_ENBookConnectionWhere
+  OR: [BookTitle_ENBookConnectionWhere!]
+  node: BookWhere
+}
+
+input BookTitle_ENOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more BookTitle_ENSort objects to sort BookTitleEns by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [BookTitle_ENSort!]
+}
+
+"Fields to sort BookTitleEns by. The order in which sorts are applied is not guaranteed when specifying many fields in one BookTitle_ENSort object."
+input BookTitle_ENSort {
+  value: SortDirection
+}
+
+input BookTitle_ENWhere {
+  AND: [BookTitle_ENWhere!]
+  NOT: BookTitle_ENWhere
+  OR: [BookTitle_ENWhere!]
+  book: BookWhere
+  bookConnection: BookTitle_ENBookConnectionWhere
+  bookConnection_NOT: BookTitle_ENBookConnectionWhere
+  book_NOT: BookWhere
+  value: String
+  value_CONTAINS: String
+  value_ENDS_WITH: String
+  value_IN: [String!]
+  value_STARTS_WITH: String
+}
+
+input BookTitle_SVBookConnectionSort {
+  node: BookSort
+}
+
+input BookTitle_SVBookConnectionWhere {
+  AND: [BookTitle_SVBookConnectionWhere!]
+  NOT: BookTitle_SVBookConnectionWhere
+  OR: [BookTitle_SVBookConnectionWhere!]
+  node: BookWhere
+}
+
+input BookTitle_SVOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more BookTitle_SVSort objects to sort BookTitleSvs by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [BookTitle_SVSort!]
+}
+
+"Fields to sort BookTitleSvs by. The order in which sorts are applied is not guaranteed when specifying many fields in one BookTitle_SVSort object."
+input BookTitle_SVSort {
+  value: SortDirection
+}
+
+input BookTitle_SVWhere {
+  AND: [BookTitle_SVWhere!]
+  NOT: BookTitle_SVWhere
+  OR: [BookTitle_SVWhere!]
+  book: BookWhere
+  bookConnection: BookTitle_SVBookConnectionWhere
+  bookConnection_NOT: BookTitle_SVBookConnectionWhere
+  book_NOT: BookWhere
+  value: String
+  value_CONTAINS: String
+  value_ENDS_WITH: String
+  value_IN: [String!]
+  value_STARTS_WITH: String
+}
+
+input BookTranslatedTitleBookTitle_ENConnectionWhere {
+  AND: [BookTranslatedTitleBookTitle_ENConnectionWhere!]
+  NOT: BookTranslatedTitleBookTitle_ENConnectionWhere
+  OR: [BookTranslatedTitleBookTitle_ENConnectionWhere!]
+  node: BookTitle_ENWhere
+}
+
+input BookTranslatedTitleBookTitle_SVConnectionWhere {
+  AND: [BookTranslatedTitleBookTitle_SVConnectionWhere!]
+  NOT: BookTranslatedTitleBookTitle_SVConnectionWhere
+  OR: [BookTranslatedTitleBookTitle_SVConnectionWhere!]
+  node: BookTitle_SVWhere
+}
+
+input BookTranslatedTitleConnectionWhere {
+  BookTitle_EN: BookTranslatedTitleBookTitle_ENConnectionWhere
+  BookTitle_SV: BookTranslatedTitleBookTitle_SVConnectionWhere
+}
+
+input BookWhere {
+  AND: [BookWhere!]
+  NOT: BookWhere
+  OR: [BookWhere!]
+  isbn: String
+  isbn_CONTAINS: String
+  isbn_ENDS_WITH: String
+  isbn_IN: [String!]
+  isbn_STARTS_WITH: String
+  originalTitle: String
+  originalTitle_CONTAINS: String
+  originalTitle_ENDS_WITH: String
+  originalTitle_IN: [String!]
+  originalTitle_STARTS_WITH: String
+  translatedTitle: BookTitleWhere
+  translatedTitleConnection: BookTranslatedTitleConnectionWhere
+  translatedTitleConnection_NOT: BookTranslatedTitleConnectionWhere
+  translatedTitle_NOT: BookTitleWhere
+}
+
+"Input type for options that can be specified on a query operation."
+input QueryOptions {
+  limit: Int
+  offset: Int
+}
+
+----
+
+'''

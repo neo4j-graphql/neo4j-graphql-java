@@ -1,0 +1,210 @@
+:toc:
+
+= Relationship nested operations -> Related to a concrete type -> Two relationships with nested operations specified on one
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Person {
+  name: String
+}
+
+type Movie {
+  id: ID
+  actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN)
+  producers: [Person!]! @relationship(type: "PRODUCED", direction: IN, nestedOperations: [DISCONNECT])
+}
+----
+
+== Augmented schema
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+}
+
+type Movie {
+  actors(directed: Boolean = true, options: PersonOptions, where: PersonWhere): [Person!]!
+  actorsConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
+  id: ID
+  producers(directed: Boolean = true, options: PersonOptions, where: PersonWhere): [Person!]!
+  producersConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieProducersConnectionSort!], where: MovieProducersConnectionWhere): MovieProducersConnection!
+}
+
+type MovieActorsConnection {
+  edges: [MovieActorsRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type MovieActorsRelationship {
+  cursor: String!
+  node: Person!
+}
+
+type MovieEdge {
+  cursor: String!
+  node: Movie!
+}
+
+type MovieProducersConnection {
+  edges: [MovieProducersRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type MovieProducersRelationship {
+  cursor: String!
+  node: Person!
+}
+
+type MoviesConnection {
+  edges: [MovieEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type PeopleConnection {
+  edges: [PersonEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Person {
+  name: String
+}
+
+type PersonEdge {
+  cursor: String!
+  node: Person!
+}
+
+type Query {
+  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
+  people(options: PersonOptions, where: PersonWhere): [Person!]!
+  peopleConnection(after: String, first: Int, sort: [PersonSort], where: PersonWhere): PeopleConnection!
+}
+
+"An enum for sorting in either ascending or descending order."
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+input MovieActorsConnectionSort {
+  node: PersonSort
+}
+
+input MovieActorsConnectionWhere {
+  AND: [MovieActorsConnectionWhere!]
+  NOT: MovieActorsConnectionWhere
+  OR: [MovieActorsConnectionWhere!]
+  node: PersonWhere
+}
+
+input MovieOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [MovieSort!]
+}
+
+input MovieProducersConnectionSort {
+  node: PersonSort
+}
+
+input MovieProducersConnectionWhere {
+  AND: [MovieProducersConnectionWhere!]
+  NOT: MovieProducersConnectionWhere
+  OR: [MovieProducersConnectionWhere!]
+  node: PersonWhere
+}
+
+"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+input MovieSort {
+  id: SortDirection
+}
+
+input MovieWhere {
+  AND: [MovieWhere!]
+  NOT: MovieWhere
+  OR: [MovieWhere!]
+  "Return Movies where all of the related MovieActorsConnections match this filter"
+  actorsConnection_ALL: MovieActorsConnectionWhere
+  "Return Movies where none of the related MovieActorsConnections match this filter"
+  actorsConnection_NONE: MovieActorsConnectionWhere
+  "Return Movies where one of the related MovieActorsConnections match this filter"
+  actorsConnection_SINGLE: MovieActorsConnectionWhere
+  "Return Movies where some of the related MovieActorsConnections match this filter"
+  actorsConnection_SOME: MovieActorsConnectionWhere
+  "Return Movies where all of the related People match this filter"
+  actors_ALL: PersonWhere
+  "Return Movies where none of the related People match this filter"
+  actors_NONE: PersonWhere
+  "Return Movies where one of the related People match this filter"
+  actors_SINGLE: PersonWhere
+  "Return Movies where some of the related People match this filter"
+  actors_SOME: PersonWhere
+  id: ID
+  id_CONTAINS: ID
+  id_ENDS_WITH: ID
+  id_IN: [ID]
+  id_STARTS_WITH: ID
+  "Return Movies where all of the related MovieProducersConnections match this filter"
+  producersConnection_ALL: MovieProducersConnectionWhere
+  "Return Movies where none of the related MovieProducersConnections match this filter"
+  producersConnection_NONE: MovieProducersConnectionWhere
+  "Return Movies where one of the related MovieProducersConnections match this filter"
+  producersConnection_SINGLE: MovieProducersConnectionWhere
+  "Return Movies where some of the related MovieProducersConnections match this filter"
+  producersConnection_SOME: MovieProducersConnectionWhere
+  "Return Movies where all of the related People match this filter"
+  producers_ALL: PersonWhere
+  "Return Movies where none of the related People match this filter"
+  producers_NONE: PersonWhere
+  "Return Movies where one of the related People match this filter"
+  producers_SINGLE: PersonWhere
+  "Return Movies where some of the related People match this filter"
+  producers_SOME: PersonWhere
+}
+
+input PersonOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more PersonSort objects to sort People by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [PersonSort!]
+}
+
+"Fields to sort People by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonSort object."
+input PersonSort {
+  name: SortDirection
+}
+
+input PersonWhere {
+  AND: [PersonWhere!]
+  NOT: PersonWhere
+  OR: [PersonWhere!]
+  name: String
+  name_CONTAINS: String
+  name_ENDS_WITH: String
+  name_IN: [String]
+  name_STARTS_WITH: String
+}
+
+----
+
+'''

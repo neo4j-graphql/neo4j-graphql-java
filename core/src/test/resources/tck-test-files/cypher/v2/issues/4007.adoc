@@ -1,0 +1,78 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/4007
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
+}
+
+type Actor {
+  name: String!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+----
+
+== should return name from aliased selection
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  m: movies {
+    t: actorsConnection {
+      e: edges {
+        n: node {
+          na: name
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+	WITH this
+	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
+	WITH collect( {
+		node: actor0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS actor0, edge.relationship AS actedIn0
+		RETURN collect( {
+			n: {
+				__resolveType: 'Actor',
+				na: actor0.name
+			}
+		}) AS tEdges
+	}
+	RETURN {
+		edges: tEdges,
+		totalCount: totalCount
+	} AS t
+}
+RETURN this {
+	t: t
+} AS this
+----
+
+'''
+

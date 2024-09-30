@@ -1,0 +1,91 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/2925
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Group {
+  name: String
+  hasGroupUser: [User!]! @relationship(type: "HAS_GROUP", direction: IN)
+  hasRequiredGroupUser: [User!]! @relationship(type: "HAS_REQUIRED_GROUP", direction: IN)
+}
+
+type User {
+  name: String
+  hasGroup: Group @relationship(type: "HAS_GROUP", direction: OUT)
+  hasRequiredGroup: Group! @relationship(type: "HAS_REQUIRED_GROUP", direction: OUT)
+}
+----
+
+== should query relationship
+
+.GraphQL-Query
+[source,graphql]
+----
+query Query {
+  users(where: {hasGroup: {name_IN: ["Group A"]}}) {
+    name
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : [ "Group A" ]
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+WHERE EXISTS {
+	MATCH (this)-[:HAS_GROUP]->(this0:Group)
+	WHERE this0.name IN $param0
+}
+RETURN this {
+	.name
+} AS this
+----
+
+'''
+
+== should query required relationship
+
+.GraphQL-Query
+[source,graphql]
+----
+query Query {
+  users(where: {hasRequiredGroup: {name_IN: ["Group A"]}}) {
+    name
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : [ "Group A" ]
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+WHERE EXISTS {
+	MATCH (this)-[:HAS_REQUIRED_GROUP]->(this0:Group)
+	WHERE this0.name IN $param0
+}
+RETURN this {
+	.name
+} AS this
+----
+
+'''
+

@@ -1,0 +1,259 @@
+:toc:
+
+= typename_IN
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+interface Production {
+  title: String!
+  cost: Float!
+}
+
+type Movie implements Production {
+  title: String!
+  cost: Float!
+  runtime: Int!
+}
+
+type Series implements Production {
+  title: String!
+  cost: Float!
+  episodes: Int!
+}
+
+type Cartoon implements Production {
+  title: String!
+  cost: Float!
+  cartoonist: String!
+}
+
+type ActedIn @relationshipProperties {
+  screenTime: Int!
+}
+
+type Actor {
+  name: String!
+  actedIn: [Production!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
+}
+----
+
+== nested
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  actors {
+    actedIn(
+      where: {OR: [{AND: [{title: "The Matrix"}, {typename_IN: [Series]}]}, {typename_IN: [Movie]}]}
+    ) {
+      title
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "The Matrix",
+  "param1" : "The Matrix",
+  "param2" : "The Matrix"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[actedIn0:ACTED_IN]->(cartoon0:Cartoon)
+		WHERE ((cartoon0.title = $param0
+				AND cartoon0:Series)
+			OR cartoon0:Movie)
+		WITH cartoon0 {
+			__resolveType: 'Cartoon',
+			__id: elementId(cartoon0),
+			.title
+		} AS cartoon0
+		RETURN cartoon0 AS actedIn UNION
+		WITH *
+		MATCH (this)-[actedIn1:ACTED_IN]->(movie0:Movie)
+		WHERE ((movie0.title = $param1
+				AND movie0:Series)
+			OR movie0:Movie)
+		WITH movie0 {
+			__resolveType: 'Movie',
+			__id: elementId(movie0),
+			.title
+		} AS movie0
+		RETURN movie0 AS actedIn UNION
+		WITH *
+		MATCH (this)-[actedIn2:ACTED_IN]->(series0:Series)
+		WHERE ((series0.title = $param2
+				AND series0:Series)
+			OR series0:Movie)
+		WITH series0 {
+			__resolveType: 'Series',
+			__id: elementId(series0),
+			.title
+		} AS series0
+		RETURN series0 AS actedIn
+	}
+	WITH actedIn
+	RETURN collect(actedIn) AS actedIn
+}
+RETURN this {
+	actedIn: actedIn
+} AS this
+----
+
+'''
+
+== top-level
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  productions(
+    where: {OR: [{AND: [{title: "The Matrix"}, {typename_IN: [Series]}]}, {typename_IN: [Movie]}]}
+  ) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "The Matrix",
+  "param1" : "The Matrix",
+  "param2" : "The Matrix"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+	MATCH (cartoon0:Cartoon)
+	WHERE ((cartoon0.title = $param0
+			AND cartoon0:Series)
+		OR cartoon0:Movie)
+	WITH cartoon0 {
+		__resolveType: 'Cartoon',
+		__id: elementId(cartoon0),
+		.title
+	} AS cartoon0
+	RETURN cartoon0 AS this UNION
+	MATCH (movie0:Movie)
+	WHERE ((movie0.title = $param1
+			AND movie0:Series)
+		OR movie0:Movie)
+	WITH movie0 {
+		__resolveType: 'Movie',
+		__id: elementId(movie0),
+		.title
+	} AS movie0
+	RETURN movie0 AS this UNION
+	MATCH (series0:Series)
+	WHERE ((series0.title = $param2
+			AND series0:Series)
+		OR series0:Movie)
+	WITH series0 {
+		__resolveType: 'Series',
+		__id: elementId(series0),
+		.title
+	} AS series0
+	RETURN series0 AS this
+}
+WITH this
+RETURN this AS this
+----
+
+'''
+
+== top-level + connection where
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  actors(
+    where: {actedInConnection_SOME: {OR: [{edge: {screenTime: 2}}, {node: {OR: [{title: "The Matrix"}, {typename_IN: [Series]}]}}]}}
+  ) {
+    actedIn {
+      title
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 2,
+  "param1" : "The Matrix"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+WHERE EXISTS {
+	MATCH (this)-[edge:ACTED_IN]->(this0)
+	WHERE ((edge.screenTime = $param0
+			OR (this0.title = $param1
+				OR this0:Series))
+		AND (this0:Cartoon
+			OR this0:Movie
+			OR this0:Series))
+}
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[actedIn0:ACTED_IN]->(cartoon0:Cartoon)
+		WITH cartoon0 {
+			__resolveType: 'Cartoon',
+			__id: elementId(cartoon0),
+			.title
+		} AS cartoon0
+		RETURN cartoon0 AS actedIn UNION
+		WITH *
+		MATCH (this)-[actedIn1:ACTED_IN]->(movie0:Movie)
+		WITH movie0 {
+			__resolveType: 'Movie',
+			__id: elementId(movie0),
+			.title
+		} AS movie0
+		RETURN movie0 AS actedIn UNION
+		WITH *
+		MATCH (this)-[actedIn2:ACTED_IN]->(series0:Series)
+		WITH series0 {
+			__resolveType: 'Series',
+			__id: elementId(series0),
+			.title
+		} AS series0
+		RETURN series0 AS actedIn
+	}
+	WITH actedIn
+	RETURN collect(actedIn) AS actedIn
+}
+RETURN this {
+	actedIn: actedIn
+} AS this
+----
+
+'''
+

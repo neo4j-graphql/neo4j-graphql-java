@@ -1,0 +1,182 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/1614 -> should include enumFields on relationships
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+enum CrewPositionType {
+  BoomOperator
+  Gaffer
+  KeyGrip
+}
+
+type CrewPosition @relationshipProperties {
+  position: CrewPositionType
+}
+
+type Movie {
+  name: String!
+}
+
+type CrewMember {
+  movies: Movie! @relationship(type: "WORKED_ON", direction: OUT, properties: "CrewPosition")
+}
+----
+
+== Augmented schema
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+}
+
+type CrewMember {
+  movies(directed: Boolean = true, options: MovieOptions, where: MovieWhere): Movie!
+  moviesConnection(after: String, directed: Boolean = true, first: Int, sort: [CrewMemberMoviesConnectionSort!], where: CrewMemberMoviesConnectionWhere): CrewMemberMoviesConnection!
+}
+
+type CrewMemberEdge {
+  cursor: String!
+  node: CrewMember!
+}
+
+type CrewMemberMoviesConnection {
+  edges: [CrewMemberMoviesRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type CrewMemberMoviesRelationship {
+  cursor: String!
+  node: Movie!
+  properties: CrewPosition!
+}
+
+type CrewMembersConnection {
+  edges: [CrewMemberEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"""
+The edge properties for the following fields:
+* CrewMember.movies
+"""
+type CrewPosition {
+  position: CrewPositionType
+}
+
+type Movie {
+  name: String!
+}
+
+type MovieEdge {
+  cursor: String!
+  node: Movie!
+}
+
+type MoviesConnection {
+  edges: [MovieEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  crewMembers(options: CrewMemberOptions, where: CrewMemberWhere): [CrewMember!]!
+  crewMembersConnection(after: String, first: Int, where: CrewMemberWhere): CrewMembersConnection!
+  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
+}
+
+enum CrewPositionType {
+  BoomOperator
+  Gaffer
+  KeyGrip
+}
+
+"An enum for sorting in either ascending or descending order."
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+input CrewMemberMoviesConnectionSort {
+  edge: CrewPositionSort
+  node: MovieSort
+}
+
+input CrewMemberMoviesConnectionWhere {
+  AND: [CrewMemberMoviesConnectionWhere!]
+  NOT: CrewMemberMoviesConnectionWhere
+  OR: [CrewMemberMoviesConnectionWhere!]
+  edge: CrewPositionWhere
+  node: MovieWhere
+}
+
+input CrewMemberOptions {
+  limit: Int
+  offset: Int
+}
+
+input CrewMemberWhere {
+  AND: [CrewMemberWhere!]
+  NOT: CrewMemberWhere
+  OR: [CrewMemberWhere!]
+  movies: MovieWhere
+  moviesConnection: CrewMemberMoviesConnectionWhere
+  moviesConnection_NOT: CrewMemberMoviesConnectionWhere
+  movies_NOT: MovieWhere
+}
+
+input CrewPositionSort {
+  position: SortDirection
+}
+
+input CrewPositionWhere {
+  AND: [CrewPositionWhere!]
+  NOT: CrewPositionWhere
+  OR: [CrewPositionWhere!]
+  position: CrewPositionType
+  position_IN: [CrewPositionType]
+}
+
+input MovieOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [MovieSort!]
+}
+
+"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+input MovieSort {
+  name: SortDirection
+}
+
+input MovieWhere {
+  AND: [MovieWhere!]
+  NOT: MovieWhere
+  OR: [MovieWhere!]
+  name: String
+  name_CONTAINS: String
+  name_ENDS_WITH: String
+  name_IN: [String!]
+  name_STARTS_WITH: String
+}
+
+----
+
+'''

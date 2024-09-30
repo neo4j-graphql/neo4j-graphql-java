@@ -8,9 +8,8 @@ import graphql.schema.GraphQLCodeRegistry
 import graphql.schema.idl.RuntimeWiring
 import graphql.schema.idl.SchemaParser
 import graphql.schema.idl.TypeDefinitionRegistry
-import org.neo4j.graphql.DataFetchingInterceptor
 import org.neo4j.graphql.SchemaBuilder
-import org.neo4j.graphql.SchemaConfig
+import org.neo4j.graphql.driver.adapter.Neo4jAdapter
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.io.Resource
@@ -27,7 +26,7 @@ open class GraphQLConfiguration {
     lateinit var graphQl: Resource
 
     @Autowired(required = false)
-    lateinit var dataFetchingInterceptor: DataFetchingInterceptor
+    lateinit var neo4jAdapter: Neo4jAdapter
 
     private lateinit var schemaBuilder: SchemaBuilder
 
@@ -35,14 +34,7 @@ open class GraphQLConfiguration {
     fun postConstruct() {
         val schema = graphQl.inputStream.bufferedReader().use { it.readText() }
         val typeDefinitionRegistry = SchemaParser().parse(schema)
-        schemaBuilder = SchemaBuilder(
-            typeDefinitionRegistry, SchemaConfig(
-                pluralizeFields = true,
-                useWhereFilter = true,
-                queryOptionStyle = SchemaConfig.InputStyle.INPUT_TYPE,
-                mutation = SchemaConfig.CRUDConfig(enabled = false)
-            )
-        )
+        schemaBuilder = SchemaBuilder(typeDefinitionRegistry)
         schemaBuilder.augmentTypes()
     }
 
@@ -54,9 +46,9 @@ open class GraphQLConfiguration {
     @DgsCodeRegistry
     fun codeRegistry(
         codeRegistryBuilder: GraphQLCodeRegistry.Builder,
-        registry: TypeDefinitionRegistry
+        registry: TypeDefinitionRegistry,
     ): GraphQLCodeRegistry.Builder {
-        schemaBuilder.registerDataFetcher(codeRegistryBuilder, dataFetchingInterceptor, registry)
+        schemaBuilder.registerNeo4jAdapter(codeRegistryBuilder, neo4jAdapter)
         return codeRegistryBuilder
     }
 

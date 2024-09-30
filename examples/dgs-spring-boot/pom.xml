@@ -39,6 +39,11 @@
 
         <!-- neo4j driver + the neo4j-graphql-java library -->
         <dependency>
+            <groupId>org.neo4j</groupId>
+            <artifactId>neo4j-graphql-neo4j-driver-adapter</artifactId>
+            <version>2.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
             <groupId>org.neo4j.driver</groupId>
             <artifactId>neo4j-java-driver</artifactId>
             <version>5.23.0</version>
@@ -68,10 +73,7 @@
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-reflect</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-stdlib-jdk8</artifactId>
+            <version>${kotlin.version}</version>
         </dependency>
 
         <!-- Test dependencies -->
@@ -116,6 +118,7 @@
             <plugin>
                 <groupId>org.jetbrains.kotlin</groupId>
                 <artifactId>kotlin-maven-plugin</artifactId>
+                <version>${kotlin.version}</version>
                 <configuration>
                     <sourceDirs>
                         <source>src/main/kotlin</source>
@@ -133,14 +136,6 @@
                             <goal>generate-schema</goal>
                         </goals>
                         <configuration>
-                            <schemaConfig>
-                                <pluralizeFields>true</pluralizeFields>
-                                <useWhereFilter>true</useWhereFilter>
-                                <queryOptionStyle>INPUT_TYPE</queryOptionStyle>
-                                <mutation>
-                                    <enabled>false</enabled>
-                                </mutation>
-                            </schemaConfig>
                             <outputDirectory>${project.build.directory}/augmented-schema</outputDirectory>
                             <fileset>
                                 <directory>${project.basedir}/src/main/resources</directory>
@@ -165,7 +160,9 @@
                                 <param>target/augmented-schema/neo4j.graphql</param>
                             </schemaPaths>
                             <language>kotlin</language>
-                            <generateClient>true</generateClient>
+                            <generateClientApi>true</generateClientApi>
+                            <generateKotlinClosureProjections>true</generateKotlinClosureProjections>
+                            <generateKotlinNullableClasses>true</generateKotlinNullableClasses>
                             <generateDataTypes>true</generateDataTypes>
                             <packageName>org.neo4j.graphql.examples.dgsspringboot.types</packageName>
                         </configuration>

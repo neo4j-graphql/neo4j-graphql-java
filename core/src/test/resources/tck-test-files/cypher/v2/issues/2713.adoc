@@ -1,0 +1,68 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/2713
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String
+  genres: [Genre!]! @relationship(type: "IN_GENRE", direction: OUT, properties: "InGenre")
+}
+
+type Genre {
+  name: String
+  movies: [Movie!]! @relationship(type: "IN_GENRE", direction: IN, properties: "InGenre")
+  series: [Series!]! @relationship(type: "IN_GENRE", direction: IN, properties: "InGenre")
+}
+
+type Series {
+  name: String!
+  genres: [Genre!]! @relationship(type: "IN_GENRE", direction: OUT, properties: "InGenre")
+}
+
+type InGenre @relationshipProperties {
+  intValue: Int!
+}
+----
+
+== should not find genresConnection_ALL by genre title
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {genresConnection_ALL: {node: {name: "Thriller"}}}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "Thriller"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE (EXISTS {
+		MATCH (this)-[edge:IN_GENRE]->(this0:Genre)
+		WHERE this0.name = $param0
+	}
+	AND NOT (EXISTS {
+		MATCH (this)-[edge:IN_GENRE]->(this0:Genre)
+		WHERE NOT (this0.name = $param0)
+	}))
+RETURN this {
+	.title
+} AS this
+----
+
+'''
+

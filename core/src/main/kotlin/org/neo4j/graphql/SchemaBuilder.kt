@@ -7,12 +7,18 @@ import graphql.schema.idl.ScalarInfo.GRAPHQL_SPECIFICATION_SCALARS_DEFINITIONS
 import graphql.schema.idl.SchemaGenerator
 import graphql.schema.idl.SchemaParser
 import graphql.schema.idl.TypeDefinitionRegistry
-import org.neo4j.graphql.AugmentationHandler.OperationType
-import org.neo4j.graphql.handler.*
-import org.neo4j.graphql.handler.projection.ProjectionBase
-import org.neo4j.graphql.handler.relation.CreateRelationHandler
-import org.neo4j.graphql.handler.relation.CreateRelationTypeHandler
-import org.neo4j.graphql.handler.relation.DeleteRelationHandler
+import org.neo4j.graphql.domain.Interface
+import org.neo4j.graphql.domain.Model
+import org.neo4j.graphql.domain.directives.Annotations.Companion.LIBRARY_DIRECTIVES
+import org.neo4j.graphql.domain.fields.RelationField
+import org.neo4j.graphql.driver.adapter.Neo4jAdapter
+import org.neo4j.graphql.handler.ConnectionResolver
+import org.neo4j.graphql.handler.ReadResolver
+import org.neo4j.graphql.scalars.BigIntScalar
+import org.neo4j.graphql.schema.AugmentationContext
+import org.neo4j.graphql.schema.AugmentationHandler
+import org.neo4j.graphql.schema.model.outputs.InterfaceSelection
+import org.neo4j.graphql.schema.model.outputs.NodeSelection
 
 /**
  * A class for augmenting a type definition registry and generate the corresponding data fetcher.
@@ -23,11 +29,11 @@ import org.neo4j.graphql.handler.relation.DeleteRelationHandler
  * 1. [augmentTypes]
  * 2. [registerScalars]
  * 3. [registerTypeNameResolver]
- * 4. [registerDataFetcher]
+ * 4. [registerNeo4jAdapter]
  *
  * Each of these steps can be called manually to enhance an existing [TypeDefinitionRegistry]
  */
-class SchemaBuilder(
+class SchemaBuilder @JvmOverloads constructor(
     val typeDefinitionRegistry: TypeDefinitionRegistry,
     val schemaConfig: SchemaConfig = SchemaConfig()
 ) {
@@ -35,43 +41,43 @@ class SchemaBuilder(
     companion object {
         /**
          * @param sdl the schema to augment
+         * @param neo4jAdapter the adapter to run the generated cypher queries
          * @param config defines how the schema should get augmented
-         * @param dataFetchingInterceptor since this library registers dataFetcher for its augmented methods, these data
-         * fetchers may be called by other resolver. This interceptor will let you convert a cypher query into real data.
          */
         @JvmStatic
         @JvmOverloads
         fun buildSchema(
             sdl: String,
             config: SchemaConfig = SchemaConfig(),
-            dataFetchingInterceptor: DataFetchingInterceptor? = null
+            neo4jAdapter: Neo4jAdapter = Neo4jAdapter.NO_OP,
+            addLibraryDirectivesToSchema: Boolean = true,
         ): GraphQLSchema {
             val schemaParser = SchemaParser()
             val typeDefinitionRegistry = schemaParser.parse(sdl)
-            return buildSchema(typeDefinitionRegistry, config, dataFetchingInterceptor)
+            return buildSchema(typeDefinitionRegistry, config, neo4jAdapter, addLibraryDirectivesToSchema)
         }
 
         /**
          * @param typeDefinitionRegistry a registry containing all the types, that should be augmented
          * @param config defines how the schema should get augmented
-         * @param dataFetchingInterceptor since this library registers dataFetcher for its augmented methods, these data
-         * fetchers may be called by other resolver. This interceptor will let you convert a cypher query into real data.
+         * @param neo4jAdapter the adapter to run the generated cypher queries
          */
         @JvmStatic
         @JvmOverloads
         fun buildSchema(
             typeDefinitionRegistry: TypeDefinitionRegistry,
             config: SchemaConfig = SchemaConfig(),
-            dataFetchingInterceptor: DataFetchingInterceptor? = null
+            neo4jAdapter: Neo4jAdapter,
+            addLibraryDirectivesToSchema: Boolean = true,
         ): GraphQLSchema {
 
             val builder = RuntimeWiring.newRuntimeWiring()
             val codeRegistryBuilder = GraphQLCodeRegistry.newCodeRegistry()
             val schemaBuilder = SchemaBuilder(typeDefinitionRegistry, config)
-            schemaBuilder.augmentTypes()
+            schemaBuilder.augmentTypes(addLibraryDirectivesToSchema)
             schemaBuilder.registerScalars(builder)
             schemaBuilder.registerTypeNameResolver(builder)
-            schemaBuilder.registerDataFetcher(codeRegistryBuilder, dataFetchingInterceptor)
+            schemaBuilder.registerNeo4jAdapter(codeRegistryBuilder, neo4jAdapter)
 
             return SchemaGenerator().makeExecutableSchema(
                 typeDefinitionRegistry,
@@ -81,64 +87,77 @@ class SchemaBuilder(
     }
 
     private val handler: List<AugmentationHandler>
-    private val neo4jTypeDefinitionRegistry: TypeDefinitionRegistry
+    private val neo4jTypeDefinitionRegistry: TypeDefinitionRegistry = getNeo4jEnhancements()
+    private val augmentedFields = mutableListOf<AugmentationHandler.AugmentedField>()
+    private val ctx = AugmentationContext(schemaConfig, typeDefinitionRegistry)
 
     init {
-        neo4jTypeDefinitionRegistry = getNeo4jEnhancements()
-        ensureRootQueryTypeExists(typeDefinitionRegistry)
         handler = mutableListOf(
-            CypherDirectiveHandler.Factory(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry),
-            AugmentFieldHandler(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry)
+            ReadResolver.Factory(ctx),
+            ConnectionResolver.Factory(ctx),
         )
-        if (schemaConfig.query.enabled) {
-            handler.add(QueryHandler.Factory(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry))
-        }
-        if (schemaConfig.mutation.enabled) {
-            handler += listOf(
-                MergeOrUpdateHandler.Factory(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry),
-                DeleteHandler.Factory(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry),
-                CreateTypeHandler.Factory(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry),
-                DeleteRelationHandler.Factory(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry),
-                CreateRelationTypeHandler.Factory(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry),
-                CreateRelationHandler.Factory(schemaConfig, typeDefinitionRegistry, neo4jTypeDefinitionRegistry)
-            )
-        }
     }
 
 
     /**
      * Generated additionally query and mutation fields according to the types present in the [typeDefinitionRegistry].
      * This method will also augment relation fields, so filtering and sorting is available for them
+     *
+     * @param addLibraryDirectivesToSchema if set to true, the library directives will be added to the schema. Default: true
      */
-    fun augmentTypes() {
-        val queryTypeName = typeDefinitionRegistry.queryTypeName()
-        val mutationTypeName = typeDefinitionRegistry.mutationTypeName()
-        val subscriptionTypeName = typeDefinitionRegistry.subscriptionTypeName()
+    @JvmOverloads
+    fun augmentTypes(addLibraryDirectivesToSchema: Boolean = true) {
+        val model = Model.createModel(typeDefinitionRegistry, schemaConfig)
 
-        typeDefinitionRegistry.types().values
-            .filterIsInstance<ImplementingTypeDefinition<*>>()
-            .filter { it.name != queryTypeName && it.name != mutationTypeName && it.name != subscriptionTypeName }
-            .forEach { type -> handler.forEach { h -> h.augmentType(type) } }
+        // remove type definition for node since it will be added while augmenting the schema
+        model.nodes
+            .mapNotNull { typeDefinitionRegistry.getTypeByName<ObjectTypeDefinition>(it.name) }
+            .forEach { typeDefinitionRegistry.remove(it) }
 
-        // in a second run we enhance all the root fields
-        typeDefinitionRegistry.types().values
-            .filterIsInstance<ImplementingTypeDefinition<*>>()
-            .filter { it.name == queryTypeName || it.name == mutationTypeName || it.name == subscriptionTypeName }
-            .forEach { type -> handler.forEach { h -> h.augmentType(type) } }
+        model.interfaces
+            .mapNotNull { typeDefinitionRegistry.getTypeByName<InterfaceTypeDefinition>(it.name) }
+            .forEach { typeDefinitionRegistry.remove(it) }
 
+        model.relationship
+            .mapNotNull { it.properties?.typeName }
+            .mapNotNull { typeDefinitionRegistry.getTypeByName<ObjectTypeDefinition>(it) }
+            .forEach { typeDefinitionRegistry.remove(it) }
+
+        augmentedFields += handler.filterIsInstance<AugmentationHandler.NodeAugmentation>()
+            .flatMap { h -> model.nodes.flatMap(h::augmentNode) }
+        augmentedFields += handler.filterIsInstance<AugmentationHandler.EntityAugmentation>()
+            .flatMap { h -> model.entities.flatMap(h::augmentEntity) }
+        augmentedFields += handler.filterIsInstance<AugmentationHandler.ModelAugmentation>()
+            .flatMap { h -> h.augmentModel(model) }
+
+        removeLibraryDirectivesFromInterfaces()
+        removeLibraryDirectivesFromUnions()
+        removeLibraryDirectivesFromRootTypes()
+        removeLibraryDirectivesFromSchemaTypes()
+
+        ensureAllReferencedNodesExists(model)
+        ensureAllReferencedInterfacesExists(model)
+        ensureReferencedLibraryTypesExists(addLibraryDirectivesToSchema)
+        ensureRootQueryTypeExists()
+    }
+
+    private fun ensureReferencedLibraryTypesExists(addLibraryDirectivesToSchema: Boolean) {
         val types = mutableListOf<Type<*>>()
-        neo4jTypeDefinitionRegistry.directiveDefinitions.values
-            .filterNot { typeDefinitionRegistry.getDirectiveDefinition(it.name).isPresent }
-            .forEach { directiveDefinition ->
-                typeDefinitionRegistry.add(directiveDefinition)
-                directiveDefinition.inputValueDefinitions.forEach { types.add(it.type) }
-            }
+        if (addLibraryDirectivesToSchema) {
+            neo4jTypeDefinitionRegistry.directiveDefinitions.values
+                .filterNot { typeDefinitionRegistry.getDirectiveDefinition(it.name).isPresent }
+                .forEach { directiveDefinition ->
+                    typeDefinitionRegistry.add(directiveDefinition)
+                    directiveDefinition.inputValueDefinitions.forEach { types.add(it.type) }
+                }
+        }
         typeDefinitionRegistry.types()
             .values
             .flatMap { typeDefinition ->
                 when (typeDefinition) {
                     is ImplementingTypeDefinition -> typeDefinition.fieldDefinitions
-                        .flatMap { fieldDefinition -> fieldDefinition.inputValueDefinitions.map { it.type } + fieldDefinition.type }
+                        .flatMap { fieldDefinition -> fieldDefinition.inputValueDefinitions.map { it.type } + fieldDefinition.type } +
+                            typeDefinition.implements
 
                     is InputObjectTypeDefinition -> typeDefinition.inputValueDefinitions.map { it.type }
                     else -> emptyList()
@@ -150,19 +169,90 @@ class SchemaBuilder(
             .filterNot { typeDefinitionRegistry.hasType(it) }
             .mapNotNull { neo4jTypeDefinitionRegistry.getType(it).unwrap() }
             .forEach { typeDefinitionRegistry.add(it) }
+    }
 
+    private fun ensureAllReferencedInterfacesExists(model: Model) {
+        model.nodes
+            .flatMap { node ->
+                node.interfaces +
+                        node.fields.filterIsInstance<RelationField>()
+                            .map { it.target }
+                            .filterIsInstance<Interface>() +
+                        node.interfaces.flatMap { it.interfaces }
+            }
+            .distinctBy { it.name }
+            .forEach { InterfaceSelection.Augmentation.generateInterfaceSelection(it, ctx) }
+    }
 
-        if (typeDefinitionRegistry.getType(mutationTypeName).isPresent) {
-            typeDefinitionRegistry.schemaDefinition().ifPresent { schemaDefinition ->
-                typeDefinitionRegistry.remove(schemaDefinition)
-                typeDefinitionRegistry.add(schemaDefinition.transform {
-                    val ops = schemaDefinition.operationTypeDefinitions.toMutableList()
-                    if (ops.find { it.name == "mutation" } == null) {
-                        ops.add(OperationTypeDefinition("mutation", TypeName(mutationTypeName)))
-                    }
-                    it.operationTypeDefinitions(ops)
+    private fun removeLibraryDirectivesFromInterfaces() {
+        typeDefinitionRegistry.getTypes(InterfaceTypeDefinition::class.java).forEach { interfaceTypeDefinition ->
+            typeDefinitionRegistry.replace(interfaceTypeDefinition.transform { builder ->
+                builder.addNonLibDirectives(interfaceTypeDefinition)
+                builder.definitions(interfaceTypeDefinition.fieldDefinitions.map { field ->
+                    field.transform { fieldBuilder -> fieldBuilder.addNonLibDirectives(field) }
+                })
+            })
+        }
+    }
+
+    private fun removeLibraryDirectivesFromUnions() {
+        typeDefinitionRegistry.getTypes(UnionTypeDefinition::class.java).forEach { unionTypeDefinition ->
+            typeDefinitionRegistry.replace(unionTypeDefinition.transform { builder ->
+                builder.addNonLibDirectives(unionTypeDefinition)
+            })
+        }
+    }
+
+    private fun removeLibraryDirectivesFromRootTypes() {
+        listOf(
+            typeDefinitionRegistry.queryType(),
+            typeDefinitionRegistry.mutationType(),
+            typeDefinitionRegistry.subscriptionType(),
+        )
+            .filterNotNull()
+            .forEach { obj ->
+                typeDefinitionRegistry.replace(obj.transform { objBuilder ->
+                    objBuilder.addNonLibDirectives(obj)
+                    objBuilder.fieldDefinitions(obj.fieldDefinitions.map { field ->
+                        field.transform { fieldBuilder -> fieldBuilder.addNonLibDirectives(field) }
+                    })
                 })
             }
+    }
+
+    private fun removeLibraryDirectivesFromSchemaTypes() {
+        typeDefinitionRegistry.schemaExtensionDefinitions.forEach { obj ->
+            typeDefinitionRegistry.remove(obj)
+            typeDefinitionRegistry.add(obj.transformExtension { objBuilder ->
+                objBuilder.directives(obj.directives.filterNot { LIBRARY_DIRECTIVES.contains(it.name) })
+            })
+        }
+        typeDefinitionRegistry.schemaDefinition()?.unwrap()?.let { obj ->
+            typeDefinitionRegistry.replace(obj.transform { objBuilder ->
+                objBuilder.directives(obj.directives.filterNot { LIBRARY_DIRECTIVES.contains(it.name) })
+
+            })
+        }
+    }
+
+    private fun ensureAllReferencedNodesExists(model: Model) {
+        val nodesByName = model.nodes.associateBy { it.name }
+
+        var typesToCheck = typeDefinitionRegistry.getTypes(ImplementingTypeDefinition::class.java)
+            .map { it.name }
+            .toSet()
+        while (typesToCheck.isNotEmpty()) {
+            typesToCheck = typesToCheck
+                .mapNotNull { typeDefinitionRegistry.getUnwrappedType(it) }
+                .filterIsInstance<ImplementingTypeDefinition<*>>()
+                .flatMap { it.fieldDefinitions }
+                .asSequence()
+                .map { it.type.name() }
+                .filter { typeDefinitionRegistry.getTypeByName<ObjectTypeDefinition>(it) == null }
+                .mapNotNull { nodesByName[it] }
+                .onEach { NodeSelection.Augmentation.generateNodeSelection(it, ctx) }
+                .map { it.name }
+                .toSet()
         }
     }
 
@@ -175,10 +265,14 @@ class SchemaBuilder(
             .filterNot { entry -> GRAPHQL_SPECIFICATION_SCALARS_DEFINITIONS.containsKey(entry.key) }
             .forEach { (name, definition) ->
                 val scalar = when (name) {
-                    "DynamicProperties" -> DynamicProperties.INSTANCE
+                    Constants.BIG_INT -> BigIntScalar.INSTANCE
                     else -> GraphQLScalarType.newScalar()
                         .name(name)
-                        .description(definition.description?.getContent() ?: "Scalar $name")
+                        .description(
+                            definition.description?.getContent()
+                                ?: definition.comments?.joinToString("\n") { it.getContent() }
+                                    ?.takeIf { it.isNotBlank() }
+                        )
                         .withDirectives(*definition.directives.filterIsInstance<GraphQLDirective>().toTypedArray())
                         .definition(definition)
                         .coercing(NoOpCoercing)
@@ -193,13 +287,13 @@ class SchemaBuilder(
      * @param builder a builder to create a runtime wiring
      */
     fun registerTypeNameResolver(builder: RuntimeWiring.Builder) {
-        typeDefinitionRegistry
-            .getTypes(InterfaceTypeDefinition::class.java)
+        (typeDefinitionRegistry.getTypes(InterfaceTypeDefinition::class.java)
+                + typeDefinitionRegistry.getTypes(UnionTypeDefinition::class.java))
             .forEach { typeDefinition ->
                 builder.type(typeDefinition.name) {
                     it.typeResolver { env ->
                         (env.getObject() as? Map<String, Any>)
-                            ?.let { data -> data[ProjectionBase.TYPE_NAME] as? String }
+                            ?.let { data -> data[Constants.TYPE_NAME] as? String }
                             ?.let { typeName -> env.schema.getObjectType(typeName) }
                     }
                 }
@@ -207,118 +301,53 @@ class SchemaBuilder(
     }
 
     /**
-     * Register data fetcher in a [GraphQLCodeRegistry][@param codeRegistryBuilder].
-     * The data fetcher of this library generate a cypher query and if provided use the dataFetchingInterceptor to run this cypher against a neo4j db.
+     * Register data fetcher in the [GraphQLCodeRegistry.Builder][@param codeRegistryBuilder]
      * @param codeRegistryBuilder a builder to create a code registry
-     * @param dataFetchingInterceptor a function to convert a cypher string into an object by calling the neo4j db
+     * @param neo4jAdapter the adapter to run the generated cypher queries
      */
-    @JvmOverloads
-    fun registerDataFetcher(
+    fun registerNeo4jAdapter(
         codeRegistryBuilder: GraphQLCodeRegistry.Builder,
-        dataFetchingInterceptor: DataFetchingInterceptor?,
-        typeDefinitionRegistry: TypeDefinitionRegistry = this.typeDefinitionRegistry
+        neo4jAdapter: Neo4jAdapter,
     ) {
-        if (dataFetchingInterceptor != null) {
-            codeRegistryBuilder.defaultDataFetcher { AliasPropertyDataFetcher() }
-        }
-        addDataFetcher(
-            typeDefinitionRegistry.queryTypeName(),
-            OperationType.QUERY,
-            dataFetchingInterceptor,
-            codeRegistryBuilder
-        )
-        addDataFetcher(
-            typeDefinitionRegistry.mutationTypeName(),
-            OperationType.MUTATION,
-            dataFetchingInterceptor,
-            codeRegistryBuilder
-        )
-    }
-
-    private fun addDataFetcher(
-        parentType: String,
-        operationType: OperationType,
-        dataFetchingInterceptor: DataFetchingInterceptor?,
-        codeRegistryBuilder: GraphQLCodeRegistry.Builder
-    ) {
-        typeDefinitionRegistry.getType(parentType)?.unwrap()
-            ?.let { it as? ObjectTypeDefinition }
-            ?.fieldDefinitions
-            ?.filterNot { it.isIgnored() }
-            ?.forEach { field ->
-                handler.forEach { h ->
-                    h.createDataFetcher(operationType, field)?.let { dataFetcher ->
-                        val interceptedDataFetcher: DataFetcher<*> = dataFetchingInterceptor?.let {
-                            DataFetcher { env -> dataFetchingInterceptor.fetchData(env, dataFetcher) }
-                        } ?: dataFetcher
-                        codeRegistryBuilder.dataFetcher(
-                            FieldCoordinates.coordinates(parentType, field.name),
-                            interceptedDataFetcher
-                        )
-                    }
+        codeRegistryBuilder.defaultDataFetcher { AliasPropertyDataFetcher() }
+        augmentedFields.forEach { augmentedField ->
+            val interceptedDataFetcher: DataFetcher<*> = DataFetcher { env ->
+                val neo4jDialect = neo4jAdapter.getDialect()
+                env.graphQlContext.setQueryContext(QueryContext(neo4jDialect = neo4jDialect))
+                val (cypher, params, type, variable) = augmentedField.dataFetcher.get(env)
+                val result = neo4jAdapter.executeQuery(cypher, params)
+                return@DataFetcher if (type?.isList() == true) {
+                    result.map { it[variable] }
+                } else {
+                    result.map { it[variable] }
+                        .firstOrNull() ?: emptyMap<String, Any>()
                 }
             }
+            codeRegistryBuilder.dataFetcher(augmentedField.coordinates, interceptedDataFetcher)
+        }
     }
 
-    private fun ensureRootQueryTypeExists(enhancedRegistry: TypeDefinitionRegistry) {
-        var schemaDefinition = enhancedRegistry.schemaDefinition().orElse(null)
-        if (schemaDefinition?.operationTypeDefinitions?.find { it.name == "query" } != null) {
+    private fun ensureRootQueryTypeExists() {
+        if (typeDefinitionRegistry.queryType() != null) {
             return
         }
-
-        enhancedRegistry.add(ObjectTypeDefinition.newObjectTypeDefinition().name("Query").build())
-
-        if (schemaDefinition != null) {
-            // otherwise, adding a transform schema would fail
-            enhancedRegistry.remove(schemaDefinition)
-        } else {
-            schemaDefinition = SchemaDefinition.newSchemaDefinition().build()
-        }
-
-        enhancedRegistry.add(schemaDefinition.transform {
-            it.operationTypeDefinition(
-                OperationTypeDefinition
-                    .newOperationTypeDefinition()
-                    .name("query")
-                    .typeName(TypeName("Query"))
-                    .build()
-            )
-        })
+        typeDefinitionRegistry.add(
+            ObjectTypeDefinition.newObjectTypeDefinition().name("Query")
+                .fieldDefinition(
+                    FieldDefinition
+                        .newFieldDefinition()
+                        .name("_empty")
+                        .type(Constants.Types.Boolean)
+                        .build()
+                ).build()
+        )
     }
 
     private fun getNeo4jEnhancements(): TypeDefinitionRegistry {
         val directivesSdl = javaClass.getResource("/neo4j_types.graphql")?.readText() +
                 javaClass.getResource("/lib_directives.graphql")?.readText()
         val typeDefinitionRegistry = SchemaParser().parse(directivesSdl)
-        neo4jTypeDefinitions
-            .forEach {
-                val type = typeDefinitionRegistry.getType(it.typeDefinition)
-                    .orElseThrow { IllegalStateException("type ${it.typeDefinition} not found") }
-                        as ObjectTypeDefinition
-                addInputType(typeDefinitionRegistry, it.inputDefinition, type.fieldDefinitions)
-            }
         return typeDefinitionRegistry
-    }
-
-    private fun addInputType(
-        typeDefinitionRegistry: TypeDefinitionRegistry,
-        inputName: String,
-        relevantFields: List<FieldDefinition>
-    ): String {
-        if (typeDefinitionRegistry.getType(inputName).isPresent) {
-            return inputName
-        }
-        val inputType = InputObjectTypeDefinition.newInputObjectDefinition()
-            .name(inputName)
-            .inputValueDefinitions(relevantFields.map {
-                InputValueDefinition.newInputValueDefinition()
-                    .name(it.name)
-                    .type(it.type)
-                    .build()
-            })
-            .build()
-        typeDefinitionRegistry.add(inputType)
-        return inputName
     }
 
     class AliasPropertyDataFetcher : DataFetcher<Any> {

@@ -1,9 +1,10 @@
 package org.neo4j.graphql.utils
 
+import demo.org.neo4j.graphql.utils.InvalidQueryException
 import graphql.ExecutionInput
 import graphql.GraphQL
-import graphql.schema.DataFetcher
-import graphql.schema.DataFetchingEnvironment
+import graphql.GraphQLError
+import graphql.execution.NonNullableFieldWasNullError
 import graphql.schema.GraphQLSchema
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.InstanceOfAssertFactories
@@ -11,19 +12,20 @@ import org.junit.jupiter.api.Assumptions
 import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.DynamicTest
 import org.neo4j.cypherdsl.core.renderer.Configuration
+import org.neo4j.cypherdsl.core.renderer.Dialect
 import org.neo4j.cypherdsl.core.renderer.Renderer
 import org.neo4j.cypherdsl.parser.CypherParser
 import org.neo4j.cypherdsl.parser.Options
 import org.neo4j.driver.internal.InternalIsoDuration
 import org.neo4j.driver.types.IsoDuration
-import org.neo4j.graphql.*
+import org.neo4j.graphql.QueryContext
+import org.neo4j.graphql.SchemaBuilder
+import org.neo4j.graphql.SchemaConfig
+import org.neo4j.graphql.driver.adapter.Neo4jAdapter
 import org.neo4j.harness.Neo4j
 import org.opentest4j.AssertionFailedError
 import java.math.BigInteger
-import java.time.Duration
-import java.time.LocalTime
-import java.time.Period
-import java.time.ZonedDateTime
+import java.time.*
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.util.*
@@ -37,6 +39,8 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
     TEST_CASE_MARKERS,
     GLOBAL_MARKERS
 ) {
+
+    data class CypherResult(val query: String, val params: Map<String, Any?>)
 
     override fun testFactory(
         title: String,
@@ -78,6 +82,7 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
                 val query = Renderer.getRenderer(
                     Configuration
                         .newConfig()
+                        .withDialect(Dialect.NEO4J_5)
                         .withIndentStyle(Configuration.IndentStyle.TAB)
                         .withPrettyPrint(true)
                         .build()
@@ -102,7 +107,7 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
     private fun createSchema(
         globalBlocks: Map<String, List<ParsedBlock>>,
         codeBlocks: Map<String, List<ParsedBlock>>,
-        dataFetchingInterceptor: DataFetchingInterceptor? = null
+        neo4jAdapter: Neo4jAdapter = Neo4jAdapter.NO_OP
     ): GraphQLSchema {
         val schemaString = globalBlocks[SCHEMA_MARKER]?.firstOrNull()?.code()
             ?: throw IllegalStateException("Schema should be defined")
@@ -110,17 +115,27 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
             ?: globalBlocks[SCHEMA_CONFIG_MARKER]?.firstOrNull())?.code()
             ?.let { return@let MAPPER.readValue(it, SchemaConfig::class.java) }
             ?: SchemaConfig()
-        return SchemaBuilder.buildSchema(schemaString, schemaConfig, dataFetchingInterceptor)
+        return SchemaBuilder.buildSchema(schemaString, schemaConfig, neo4jAdapter)
     }
 
     private fun createTransformationTask(
         title: String,
         globalBlocks: Map<String, List<ParsedBlock>>,
         codeBlocks: Map<String, List<ParsedBlock>>
-    ): () -> List<Cypher> {
+    ): () -> List<CypherResult> {
         val transformationTask = FutureTask {
 
-            val schema = createSchema(globalBlocks, codeBlocks)
+            val cypherResults = mutableListOf<CypherResult>()
+
+            val schema = createSchema(globalBlocks, codeBlocks, object : Neo4jAdapter {
+
+                override fun getDialect(): Neo4jAdapter.Dialect = Neo4jAdapter.Dialect.NEO4J_5
+
+                override fun executeQuery(cypher: String, params: Map<String, Any?>): List<Map<String, Any?>> {
+                    cypherResults.add(CypherResult(cypher, params))
+                    return emptyList()
+                }
+            })
 
             val request = codeBlocks[GRAPHQL_MARKER]?.firstOrNull()?.code()
                 ?: throw IllegalStateException("missing graphql for $title")
@@ -132,8 +147,24 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
                 ?.let<String, QueryContext?> { config -> return@let MAPPER.readValue(config, QueryContext::class.java) }
                 ?: QueryContext()
 
-            Translator(schema)
-                .translate(request, requestParams, queryContext)
+            val gql: GraphQL = GraphQL.newGraphQL(schema).build()
+            val executionInput = ExecutionInput.newExecutionInput()
+                .query(request)
+                .variables(requestParams)
+                .graphQLContext(mapOf(QueryContext.KEY to queryContext))
+                .build()
+            val result = gql.execute(executionInput)
+            result.errors?.forEach {
+                when (it) {
+                    is NonNullableFieldWasNullError, // expected since we always return en empty list
+                        -> {
+                        // ignore
+                    }
+                    // generic error handling
+                    is GraphQLError -> throw InvalidQueryException(it)
+                }
+            }
+            cypherResults
         }
         return {
             transformationTask.run()
@@ -141,12 +172,12 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
         }
     }
 
-    private fun printGeneratedQuery(result: () -> List<Cypher>): DynamicTest =
+    private fun printGeneratedQuery(result: () -> List<CypherResult>): DynamicTest =
         DynamicTest.dynamicTest("Generated query") {
             result().forEach { println(it) }
         }
 
-    private fun printReplacedParameter(result: () -> List<Cypher>): DynamicTest =
+    private fun printReplacedParameter(result: () -> List<CypherResult>): DynamicTest =
         DynamicTest.dynamicTest("Generated query with params replaced") {
             result().forEach {
                 var queryWithReplacedParams = it.query
@@ -164,19 +195,14 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
     private fun testCypher(
         title: String,
         cypherBlocks: List<ParsedBlock>,
-        result: () -> List<Cypher>
+        result: () -> List<CypherResult>
     ): List<DynamicTest> = cypherBlocks.mapIndexed { index, cypherBlock ->
         var name = "Test Cypher"
         if (cypherBlocks.size > 1) {
             name += " (${index + 1})"
         }
         DynamicTest.dynamicTest(name, cypherBlock.uri) {
-            val cfg = Configuration.newConfig()
-                .withPrettyPrint(true)
-                .withGeneratedNames(true)
-                .build()
-            val renderer = Renderer.getRenderer(cfg)
-
+            val renderer = Renderer.getRenderer(RENDER_OPTIONS)
             val cypher = cypherBlock.code()
             val expectedNormalized = renderer.render(CypherParser.parse(cypher, PARSE_OPTIONS))
             val actual = (result().getOrNull(index)?.query
@@ -197,12 +223,13 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
                 // TODO
                 //  throw AssertionFailedError("Cypher does not match", cypher, actual)
             }
+            cypherBlock.semanticEqual = true
         }
     }
 
     private fun testCypherParams(
         codeBlocks: Map<String, List<ParsedBlock>>,
-        result: () -> List<Cypher>
+        result: () -> List<CypherResult>
     ): List<DynamicTest> {
         val cypherParamsBlocks = getOrCreateBlocks(codeBlocks, CYPHER_PARAMS_MARKER, "Cypher Params")
 
@@ -230,7 +257,8 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
                     cypherParamsBlock.adjustedCode = actualParamsJson
                 }
 
-                val expectedRenamedParameters = codeBlocks[CYPHER_MARKER]?.get(index)?.code()
+                val cypherCodeBlock = codeBlocks[CYPHER_MARKER]?.get(index)
+                val expectedRenamedParameters = cypherCodeBlock?.code()
                     ?.let { CypherParser.parse(it, PARSE_OPTIONS).catalog.renamedParameters }
 
                 if (expectedRenamedParameters != null) {
@@ -242,35 +270,40 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
                         actualRenamedParameters[expectedRenamedParameters[k]] ?: k
                     }
                     assertCypherParams(remappedExpectedCypherParams, params)
+                    cypherCodeBlock.tandemUpdate = cypherParamsBlock
+                    cypherParamsBlock.tandemUpdate = cypherCodeBlock
                 } else {
                     assertCypherParams(expectedCypherParams, params)
                 }
+                cypherParamsBlock.semanticEqual = true
             }
         }
     }
 
-    private fun setupDataFetchingInterceptor(testData: ParsedBlock): DataFetchingInterceptor {
-        return object : DataFetchingInterceptor {
-            override fun fetchData(env: DataFetchingEnvironment, delegate: DataFetcher<Cypher>): Any? = neo4j
-                ?.defaultDatabaseService()?.let { db ->
-                    db.executeTransactionally("MATCH (n) DETACH DELETE n")
-                    if (testData.code().isNotBlank()) {
-                        testData.code()
-                            .split(";")
-                            .filter { it.isNotBlank() }
-                            .forEach { db.executeTransactionally(it) }
-                    }
-                    val (cypher, params, type, variable) = delegate.get(env)
-                    return db.executeTransactionally(cypher, params) { result ->
-                        result.stream().map { it[variable] }.let {
-                            when {
-                                type?.isList() == true -> it.toList()
-                                else -> it.findFirst().orElse(null)
-                            }
-                        }
-
-                    }
+    private fun setupNeo4jAdapter(testData: ParsedBlock): Neo4jAdapter {
+        return object : Neo4jAdapter {
+            override fun executeQuery(cypher: String, params: Map<String, Any?>): List<Map<String, Any?>> {
+                if (neo4j == null) {
+                    return emptyList()
                 }
+                val db = neo4j.defaultDatabaseService()
+
+                // cleanup the database
+                db.executeTransactionally("MATCH (n) DETACH DELETE n")
+
+                // load the test data
+                if (testData.code().isNotBlank()) {
+                    testData.code()
+                        .split(";")
+                        .filter { it.isNotBlank() }
+                        .forEach { db.executeTransactionally(it) }
+                }
+
+                // execute the query
+                return db.executeTransactionally(cypher, params) { result ->
+                    result.stream().toList()
+                }
+            }
         }
     }
 
@@ -282,7 +315,7 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
         response: ParsedBlock,
         ignoreOrder: Boolean
     ): DynamicNode = DynamicTest.dynamicTest("Integration Test", response.uri) {
-        val dataFetchingInterceptor = setupDataFetchingInterceptor(testData)
+        val neo4jAdapter = setupNeo4jAdapter(testData)
         val request = codeBlocks[GRAPHQL_MARKER]?.firstOrNull()?.code()
             ?: throw IllegalStateException("missing graphql for $title")
 
@@ -294,7 +327,7 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
             ?: QueryContext()
 
 
-        val schema = createSchema(globalBlocks, codeBlocks, dataFetchingInterceptor)
+        val schema = createSchema(globalBlocks, codeBlocks, neo4jAdapter)
         val graphql = GraphQL.newGraphQL(schema).build()
         val result = graphql.execute(
             ExecutionInput.newExecutionInput()
@@ -373,8 +406,18 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
 
         private val PARSE_OPTIONS = Options.newOptions()
             .createSortedMaps(true)
-            // TODO enable after https://github.com/neo4j/cypher-dsl/issues/1059 is solved
-            //  .alwaysCreateRelationshipsLTR(true)
+            .alwaysCreateRelationshipsLTR(true)
+            .build()
+
+        private val RENDER_OPTIONS = Configuration.newConfig()
+            .withPrettyPrint(true)
+            .withGeneratedNames(
+                setOf(
+                    Configuration.GeneratedNames.ALL_ALIASES,
+                    Configuration.GeneratedNames.PARAMETER_NAMES,
+                    Configuration.GeneratedNames.ENTITY_NAMES,
+                )
+            )
             .build()
 
         private fun assertCypherParams(expected: Map<String, Any?>, actual: Map<String, Any?>) {
@@ -407,6 +450,13 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
                     try {
                         val expectedDate = ZonedDateTime.parse(expected)
                         val actualDate = ZonedDateTime.parse(actual as String)
+                        Assertions.assertThat(actualDate).isEqualTo(expectedDate)
+                        return
+                    } catch (ignore: DateTimeParseException) {
+                    }
+                    try {
+                        val expectedDate = LocalDateTime.parse(expected)
+                        val actualDate = LocalDateTime.parse(actual as String)
                         Assertions.assertThat(actualDate).isEqualTo(expectedDate)
                         return
                     } catch (ignore: DateTimeParseException) {
@@ -453,6 +503,13 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
                             }
                             return
                         }
+                    }
+                    if (actual is Map<*, *>) {
+                        Assertions.assertThat(actual).hasSize(expected.count())
+                        expected.forEach { key, value ->
+                            assertCypherParam(value, actual.get(key))
+                        }
+                        return
                     }
                 }
 

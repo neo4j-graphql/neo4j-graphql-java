@@ -1,0 +1,71 @@
+:toc:
+
+= https://github.com/neo4j/graphql/issues/1779
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Person {
+  name: String
+  age: Int
+  attends: [School!]! @relationship(type: "attends", direction: OUT)
+}
+
+type School {
+  name: String
+  students: [Person!]! @relationship(type: "attends", direction: IN)
+}
+----
+
+== EXISTS should not be within return clause
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  people {
+    name
+    attends(where: {students_ALL: {age_GT: 23}}) {
+      name
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 23
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Person)
+CALL {
+	WITH this
+	MATCH (this)-[attends0:attends]->(school0:School)
+	WHERE (EXISTS {
+			MATCH (school00:Person)-[:attends]->(school0)
+			WHERE school00.age > $param0
+		}
+		AND NOT (EXISTS {
+			MATCH (school00:Person)-[:attends]->(school0)
+			WHERE NOT (school00.age > $param0)
+		}))
+	WITH school0 {
+		.name
+	} AS attends
+	RETURN collect(attends) AS attends
+}
+RETURN this {
+	.name,
+	attends: attends
+} AS this
+----
+
+'''
+
