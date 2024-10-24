@@ -29,6 +29,7 @@ type Movie {
 ----
 schema {
   query: Query
+  mutation: Mutation
 }
 
 interface Person {
@@ -64,6 +65,12 @@ type ActorsConnection {
   totalCount: Int!
 }
 
+"Information about the number of nodes and relationships deleted during a delete mutation"
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
 type Movie {
   actors(directed: Boolean = true, options: PersonOptions, where: PersonWhere): [Person!]!
   actorsConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
@@ -90,6 +97,11 @@ type MoviesConnection {
   edges: [MovieEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
+}
+
+type Mutation {
+  deleteActors(where: ActorWhere): DeleteInfo!
+  deleteMovies(where: MovieWhere): DeleteInfo!
 }
 
 "Pagination information (Relay)"

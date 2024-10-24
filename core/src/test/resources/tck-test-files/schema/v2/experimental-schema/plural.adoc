@@ -29,6 +29,7 @@ union Pet @plural(value: "petties") = Dog | Cat
 ----
 schema {
   query: Query
+  mutation: Mutation
 }
 
 interface Animal {
@@ -63,6 +64,12 @@ type CatsConnection {
   totalCount: Int!
 }
 
+"Information about the number of nodes and relationships deleted during a delete mutation"
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
 type Dog implements Animal {
   breed: String
   name: String
@@ -77,6 +84,11 @@ type DogsConnection {
   edges: [DogEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
+}
+
+type Mutation {
+  deleteCats(where: CatWhere): DeleteInfo!
+  deleteDogs(where: DogWhere): DeleteInfo!
 }
 
 "Pagination information (Relay)"

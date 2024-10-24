@@ -30,6 +30,7 @@ type User {
 ----
 schema {
   query: Query
+  mutation: Mutation
 }
 
 union Content = Blog | Post
@@ -60,6 +61,18 @@ type BlogsConnection {
   edges: [BlogEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
+}
+
+"Information about the number of nodes and relationships deleted during a delete mutation"
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
+type Mutation {
+  deleteBlogs(where: BlogWhere): DeleteInfo!
+  deletePosts(where: PostWhere): DeleteInfo!
+  deleteUsers(where: UserWhere): DeleteInfo!
 }
 
 "Pagination information (Relay)"

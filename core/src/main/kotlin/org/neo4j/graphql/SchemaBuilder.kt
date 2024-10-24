@@ -13,6 +13,7 @@ import org.neo4j.graphql.domain.directives.Annotations.Companion.LIBRARY_DIRECTI
 import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.driver.adapter.Neo4jAdapter
 import org.neo4j.graphql.handler.ConnectionResolver
+import org.neo4j.graphql.handler.DeleteResolver
 import org.neo4j.graphql.handler.ReadResolver
 import org.neo4j.graphql.scalars.BigIntScalar
 import org.neo4j.graphql.schema.AugmentationContext
@@ -29,7 +30,7 @@ import org.neo4j.graphql.schema.model.outputs.NodeSelection
  * 1. [augmentTypes]
  * 2. [registerScalars]
  * 3. [registerTypeNameResolver]
- * 4. [registerNeo4jAdapter]
+ * 4. [registerDataFetcher]
  *
  * Each of these steps can be called manually to enhance an existing [TypeDefinitionRegistry]
  */
@@ -94,6 +95,7 @@ class SchemaBuilder @JvmOverloads constructor(
     init {
         handler = mutableListOf(
             ReadResolver.Factory(ctx),
+            DeleteResolver.Factory(ctx),
             ConnectionResolver.Factory(ctx),
         )
     }
@@ -310,20 +312,11 @@ class SchemaBuilder @JvmOverloads constructor(
         neo4jAdapter: Neo4jAdapter,
     ) {
         codeRegistryBuilder.defaultDataFetcher { AliasPropertyDataFetcher() }
-        augmentedFields.forEach { augmentedField ->
-            val interceptedDataFetcher: DataFetcher<*> = DataFetcher { env ->
-                val neo4jDialect = neo4jAdapter.getDialect()
-                env.graphQlContext.setQueryContext(QueryContext(neo4jDialect = neo4jDialect))
-                val (cypher, params, type, variable) = augmentedField.dataFetcher.get(env)
-                val result = neo4jAdapter.executeQuery(cypher, params)
-                return@DataFetcher if (type?.isList() == true) {
-                    result.map { it[variable] }
-                } else {
-                    result.map { it[variable] }
-                        .firstOrNull() ?: emptyMap<String, Any>()
-                }
-            }
-            codeRegistryBuilder.dataFetcher(augmentedField.coordinates, interceptedDataFetcher)
+        augmentedFields.forEach { (coordinates, dataFetcher) ->
+            codeRegistryBuilder.dataFetcher(coordinates, DataFetcher { env ->
+                env.graphQlContext.put(Neo4jAdapter.CONTEXT_KEY, neo4jAdapter)
+                dataFetcher.get(env)
+            })
         }
     }
 

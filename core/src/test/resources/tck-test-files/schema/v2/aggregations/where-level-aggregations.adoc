@@ -45,6 +45,13 @@ type Likes @relationshipProperties {
 ----
 schema {
   query: Query
+  mutation: Mutation
+}
+
+"Information about the number of nodes and relationships deleted during a delete mutation"
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
 }
 
 """
@@ -62,6 +69,11 @@ type Likes {
   someLocalTime: LocalTime
   someString: String
   someTime: Time
+}
+
+type Mutation {
+  deletePosts(where: PostWhere): DeleteInfo!
+  deleteUsers(where: UserWhere): DeleteInfo!
 }
 
 "Pagination information (Relay)"

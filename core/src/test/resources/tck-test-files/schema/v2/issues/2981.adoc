@@ -32,6 +32,7 @@ type BookTitle_EN {
 ----
 schema {
   query: Query
+  mutation: Mutation
 }
 
 union BookTitle = BookTitle_EN | BookTitle_SV
@@ -119,6 +120,18 @@ type BooksConnection {
   edges: [BookEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
+}
+
+"Information about the number of nodes and relationships deleted during a delete mutation"
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
+type Mutation {
+  deleteBookTitleEns(where: BookTitle_ENWhere): DeleteInfo!
+  deleteBookTitleSvs(where: BookTitle_SVWhere): DeleteInfo!
+  deleteBooks(where: BookWhere): DeleteInfo!
 }
 
 "Pagination information (Relay)"

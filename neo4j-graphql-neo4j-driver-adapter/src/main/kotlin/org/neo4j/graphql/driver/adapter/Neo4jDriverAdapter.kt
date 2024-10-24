@@ -13,11 +13,22 @@ class Neo4jDriverAdapter @JvmOverloads constructor(
 
     override fun getDialect() = dialect
 
-    override fun executeQuery(cypher: String, params: Map<String, Any?>): List<Map<String, Any?>> {
+    override fun executeQuery(cypher: String, params: Map<String, Any?>): Neo4jAdapter.QueryResult {
         return driver.session(SessionConfig.forDatabase(database)).use { session ->
-            session.run(cypher, params.mapValues { toBoltValue(it.value) })
+            val result = session.run(cypher, params.mapValues { toBoltValue(it.value) })
+            val data = result
                 .list()
                 .map { it.asMap() }
+            val counters = result.consume().counters()
+            Neo4jAdapter.QueryResult(
+                data = data,
+                statistics = Neo4jAdapter.QueryStatistics(
+                    nodesCreated = counters.nodesCreated(),
+                    nodesDeleted = counters.nodesDeleted(),
+                    relationshipsCreated = counters.relationshipsCreated(),
+                    relationshipsDeleted = counters.relationshipsDeleted(),
+                )
+            )
         }
     }
 

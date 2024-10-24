@@ -6,6 +6,14 @@ enum SortDirection {
   DESC
 }
 
+"""
+Information about the number of nodes and relationships deleted during a delete mutation
+"""
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
 #Pagination information (Relay)
 type PageInfo {
   endCursor: String

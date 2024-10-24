@@ -80,6 +80,7 @@ object Constants {
         val String = TypeName(STRING)
         val Boolean = TypeName("Boolean")
 
+        val DeleteInfo = TypeName("DeleteInfo")
         val PageInfo = TypeName("PageInfo")
         val QueryOptions = TypeName("QueryOptions")
         val SortDirection = TypeName("SortDirection")

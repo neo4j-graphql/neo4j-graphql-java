@@ -25,10 +25,21 @@ type User implements UserInterface {
 ----
 schema {
   query: Query
+  mutation: Mutation
 }
 
 interface UserInterface {
   id: ID
+}
+
+"Information about the number of nodes and relationships deleted during a delete mutation"
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
+type Mutation {
+  deleteUsers(where: UserWhere): DeleteInfo!
 }
 
 "Pagination information (Relay)"

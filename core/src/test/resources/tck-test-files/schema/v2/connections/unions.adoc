@@ -35,6 +35,7 @@ type Wrote @relationshipProperties {
 ----
 schema {
   query: Query
+  mutation: Mutation
 }
 
 union Publication = Book | Journal
@@ -97,6 +98,12 @@ type BooksConnection {
   totalCount: Int!
 }
 
+"Information about the number of nodes and relationships deleted during a delete mutation"
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
 type Journal {
   author(directed: Boolean = true, options: AuthorOptions, where: AuthorWhere): [Author!]!
   authorConnection(after: String, directed: Boolean = true, first: Int, sort: [JournalAuthorConnectionSort!], where: JournalAuthorConnectionWhere): JournalAuthorConnection!
@@ -124,6 +131,12 @@ type JournalsConnection {
   edges: [JournalEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
+}
+
+type Mutation {
+  deleteAuthors(where: AuthorWhere): DeleteInfo!
+  deleteBooks(where: BookWhere): DeleteInfo!
+  deleteJournals(where: JournalWhere): DeleteInfo!
 }
 
 "Pagination information (Relay)"

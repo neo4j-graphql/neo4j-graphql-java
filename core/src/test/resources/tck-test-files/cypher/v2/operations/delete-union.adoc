@@ -1,0 +1,78 @@
+:toc:
+
+= Cypher Delete - union
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Episode {
+  runtime: Int!
+  series: Series! @relationship(type: "HAS_EPISODE", direction: IN)
+}
+
+union Production = Movie | Series
+
+union Worker = ScreenWriter | StuntPerformer
+
+type ScreenWriter {
+  name: String
+}
+
+type StuntPerformer {
+  name: String!
+  workedOn: [Production!]! @relationship(type: "WORKED_ON", direction: OUT)
+}
+
+type Movie {
+  title: String!
+  runtime: Int!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN, properties: "ActedIn")
+  workers: [Worker!]! @relationship(type: "WORKED_ON", direction: IN)
+}
+
+type Series {
+  title: String!
+  episodes: [Episode!]! @relationship(type: "HAS_EPISODE", direction: OUT)
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN, properties: "ActedIn")
+}
+
+type Actor {
+  name: String!
+  actedIn: [Production!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
+}
+
+type ActedIn @relationshipProperties {
+  screenTime: Int!
+}
+----
+
+== Simple Delete
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  deleteActors(where: {name: "Keanu"}) {
+    nodesDeleted
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "Keanu"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+WHERE this.name = $param0 DETACH DELETE this
+----
+
+'''
+

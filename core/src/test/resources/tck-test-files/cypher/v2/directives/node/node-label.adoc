@@ -18,6 +18,35 @@ type Movie @node(labels: ["Film"]) {
 }
 ----
 
+== Delete Movie with custom label
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  deleteMovies(where: {id: "123"}) {
+    nodesDeleted
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "123"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Film)
+WHERE this.id = $param0 DETACH DELETE this
+----
+
+'''
+
 == Select movie and actor with custom labels
 
 .GraphQL-Query

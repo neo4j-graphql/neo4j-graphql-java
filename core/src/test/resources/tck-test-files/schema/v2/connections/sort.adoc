@@ -23,6 +23,18 @@ type Node2 {
 ----
 schema {
   query: Query
+  mutation: Mutation
+}
+
+"Information about the number of nodes and relationships deleted during a delete mutation"
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
+type Mutation {
+  deleteNode1s(where: Node1Where): DeleteInfo!
+  deleteNode2s(where: Node2Where): DeleteInfo!
 }
 
 type Node1 {

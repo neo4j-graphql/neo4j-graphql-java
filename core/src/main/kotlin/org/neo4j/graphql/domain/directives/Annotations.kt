@@ -15,6 +15,7 @@ interface EntityAnnotations : CommonAnnotations {
 
 interface ImplementingTypeAnnotations : EntityAnnotations {
     val limit: LimitDirective?
+    val mutation: MutationDirective?
 }
 
 interface NodeAnnotations : ImplementingTypeAnnotations {
@@ -82,6 +83,8 @@ class Annotations(
     override val id: IdDirective? = parse(Annotations::id) { IdDirective.INSTANCE }
 
     override val limit: LimitDirective? = parse(Annotations::limit, LimitDirective::create)
+
+    override val mutation: MutationDirective? = parse(Annotations::mutation, MutationDirective::create)
 
     override val node: NodeDirective? = parse(Annotations::node, NodeDirective::create)
 

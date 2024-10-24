@@ -22,11 +22,18 @@ type Movie @preservedTopLevel {
 ----
 schema {
   query: Query
+  mutation: Mutation
 }
 
 directive @preservedFieldLevel(boolean: Boolean, float: Float, int: Int, string: String) on FIELD_DEFINITION
 
 directive @preservedTopLevel(boolean: Boolean, float: Float, int: Int, string: String) on OBJECT
+
+"Information about the number of nodes and relationships deleted during a delete mutation"
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
 
 type Movie @preservedTopLevel {
   id: ID @preservedFieldLevel(boolean : true, float : 1.2, int : 12, string : "str")
@@ -41,6 +48,10 @@ type MoviesConnection {
   edges: [MovieEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
+}
+
+type Mutation {
+  deleteMovies(where: MovieWhere): DeleteInfo!
 }
 
 "Pagination information (Relay)"

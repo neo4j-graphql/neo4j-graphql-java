@@ -18,6 +18,7 @@ type Machine {
 ----
 schema {
   query: Query
+  mutation: Mutation
 }
 
 "A point in a two- or three-dimensional Cartesian coordinate system or in a three-dimensional cylindrical coordinate system."
@@ -42,6 +43,12 @@ type CartesianPoint {
   z: Float
 }
 
+"Information about the number of nodes and relationships deleted during a delete mutation"
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
 type Machine {
   partLocation: CartesianPoint!
 }
@@ -55,6 +62,10 @@ type MachinesConnection {
   edges: [MachineEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
+}
+
+type Mutation {
+  deleteMachines(where: MachineWhere): DeleteInfo!
 }
 
 "Pagination information (Relay)"

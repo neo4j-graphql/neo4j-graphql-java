@@ -18,6 +18,35 @@ type Movie @node(labels: ["Film", "Multimedia"]) {
 }
 ----
 
+== Delete Movie with additional additionalLabels
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  deleteMovies(where: {id: "123"}) {
+    nodesDeleted
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "123"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Film:Multimedia)
+WHERE this.id = $param0 DETACH DELETE this
+----
+
+'''
+
 == Select movie and actor with additional labels
 
 .GraphQL-Query

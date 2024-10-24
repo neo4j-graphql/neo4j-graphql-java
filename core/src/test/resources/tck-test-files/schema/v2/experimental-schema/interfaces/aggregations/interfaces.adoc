@@ -25,11 +25,18 @@ type Movie implements Production {
 ----
 schema {
   query: Query
+  mutation: Mutation
 }
 
 interface Production {
   cost: Float!
   title: String!
+}
+
+"Information about the number of nodes and relationships deleted during a delete mutation"
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
 }
 
 type Movie implements Production {
@@ -47,6 +54,10 @@ type MoviesConnection {
   edges: [MovieEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
+}
+
+type Mutation {
+  deleteMovies(where: MovieWhere): DeleteInfo!
 }
 
 "Pagination information (Relay)"

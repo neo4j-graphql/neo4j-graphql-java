@@ -32,6 +32,7 @@ type CrewMember {
 ----
 schema {
   query: Query
+  mutation: Mutation
 }
 
 type CrewMember {
@@ -70,6 +71,12 @@ type CrewPosition {
   position: CrewPositionType
 }
 
+"Information about the number of nodes and relationships deleted during a delete mutation"
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
 type Movie {
   name: String!
 }
@@ -83,6 +90,11 @@ type MoviesConnection {
   edges: [MovieEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
+}
+
+type Mutation {
+  deleteCrewMembers(where: CrewMemberWhere): DeleteInfo!
+  deleteMovies(where: MovieWhere): DeleteInfo!
 }
 
 "Pagination information (Relay)"

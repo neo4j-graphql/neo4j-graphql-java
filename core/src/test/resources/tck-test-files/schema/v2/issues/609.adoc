@@ -18,6 +18,13 @@ type Deprecated {
 ----
 schema {
   query: Query
+  mutation: Mutation
+}
+
+"Information about the number of nodes and relationships deleted during a delete mutation"
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
 }
 
 type Deprecated {
@@ -33,6 +40,10 @@ type DeprecatedsConnection {
   edges: [DeprecatedEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
+}
+
+type Mutation {
+  deleteDeprecateds(where: DeprecatedWhere): DeleteInfo!
 }
 
 "Pagination information (Relay)"

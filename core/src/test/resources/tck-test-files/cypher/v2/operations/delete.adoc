@@ -1,0 +1,49 @@
+:toc:
+
+= Cypher Delete
+
+== Source schema
+
+[source,graphql,schema=true]
+----
+type Actor {
+  name: String
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+
+type Movie {
+  id: ID
+  title: String
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
+}
+----
+
+== Simple Delete
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  deleteMovies(where: {id: "123"}) {
+    nodesDeleted
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "123"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.id = $param0 DETACH DELETE this
+----
+
+'''
+

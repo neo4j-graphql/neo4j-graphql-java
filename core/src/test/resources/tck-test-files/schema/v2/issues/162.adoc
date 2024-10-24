@@ -28,6 +28,19 @@ type TigerJawLevel2Part1 {
 ----
 schema {
   query: Query
+  mutation: Mutation
+}
+
+"Information about the number of nodes and relationships deleted during a delete mutation"
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
+type Mutation {
+  deleteTigerJawLevel2Part1s(where: TigerJawLevel2Part1Where): DeleteInfo!
+  deleteTigerJawLevel2s(where: TigerJawLevel2Where): DeleteInfo!
+  deleteTigers(where: TigerWhere): DeleteInfo!
 }
 
 "Pagination information (Relay)"

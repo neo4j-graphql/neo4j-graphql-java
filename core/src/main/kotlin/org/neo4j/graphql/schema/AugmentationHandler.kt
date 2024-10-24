@@ -33,7 +33,7 @@ internal abstract class AugmentationHandler(val ctx: AugmentationContext) : Augm
 
     internal data class AugmentedField(
         val coordinates: FieldCoordinates,
-        val dataFetcher: DataFetcher<CypherDataFetcherResult>,
+        val dataFetcher: DataFetcher<*>,
     )
 
     fun addQueryField(
@@ -47,6 +47,24 @@ internal abstract class AugmentationHandler(val ctx: AugmentationContext) : Augm
         val queryTypeName = typeDefinitionRegistry.queryTypeName()
         addOperation(queryTypeName, fieldDefinition)
         return FieldCoordinates.coordinates(queryTypeName, fieldDefinition.name)
+    }
+
+    fun addMutationField(
+        name: String,
+        type: Type<*>,
+        args: ArgumentsAugmentation
+    ): FieldCoordinates? {
+        val argList = args.getAugmentedArguments()
+        if (argList.isEmpty()) {
+            return null
+        }
+        return addMutationField(field(name, type, argList))
+    }
+
+    private fun addMutationField(fieldDefinition: FieldDefinition): FieldCoordinates {
+        val mutationTypeName = typeDefinitionRegistry.mutationTypeName()
+        addOperation(mutationTypeName, fieldDefinition)
+        return FieldCoordinates.coordinates(mutationTypeName, fieldDefinition.name)
     }
 
     /**

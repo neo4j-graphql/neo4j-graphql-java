@@ -39,6 +39,14 @@ directive @limit(
   max: Int
 ) on OBJECT | INTERFACE
 
+
+"Instructs neo4j-graphql-java to exclude create, delete or update operations from the mutation root type."
+directive @mutation(
+  "Describe operations available for this type"
+  operations: [MutationFields!]! = [ DELETE ]
+) on OBJECT | INTERFACE
+
+
 "Informs neo4j-graphql-java of node metadata"
 directive @node(
   "The labels to map this GraphQL type to in the Neo4j database",
@@ -109,4 +117,8 @@ input LimitInput {
   default: Int
   "Maximum limit to be used for queries."
   max: Int
+}
+
+enum MutationFields {
+  DELETE
 }

@@ -19,6 +19,13 @@ type File {
 ----
 schema {
   query: Query
+  mutation: Mutation
+}
+
+"Information about the number of nodes and relationships deleted during a delete mutation"
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
 }
 
 type File {
@@ -35,6 +42,10 @@ type FilesConnection {
   edges: [FileEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
+}
+
+type Mutation {
+  deleteFiles(where: FileWhere): DeleteInfo!
 }
 
 "Pagination information (Relay)"

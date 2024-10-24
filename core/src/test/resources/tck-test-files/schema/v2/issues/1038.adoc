@@ -24,6 +24,7 @@ type DNSZone {
 ----
 schema {
   query: Query
+  mutation: Mutation
 }
 
 type AWSAccount {
@@ -52,10 +53,21 @@ type DNSZoneEdge {
   node: DNSZone!
 }
 
+"Information about the number of nodes and relationships deleted during a delete mutation"
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
 type DnsZonesConnection {
   edges: [DNSZoneEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
+}
+
+type Mutation {
+  deleteAwsAccounts(where: AWSAccountWhere): DeleteInfo!
+  deleteDnsZones(where: DNSZoneWhere): DeleteInfo!
 }
 
 "Pagination information (Relay)"

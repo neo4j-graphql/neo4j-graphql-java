@@ -131,9 +131,9 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
 
                 override fun getDialect(): Neo4jAdapter.Dialect = Neo4jAdapter.Dialect.NEO4J_5
 
-                override fun executeQuery(cypher: String, params: Map<String, Any?>): List<Map<String, Any?>> {
+                override fun executeQuery(cypher: String, params: Map<String, Any?>): Neo4jAdapter.QueryResult {
                     cypherResults.add(CypherResult(cypher, params))
-                    return emptyList()
+                    return Neo4jAdapter.QueryResult.EMPTY
                 }
             })
 
@@ -282,9 +282,9 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
 
     private fun setupNeo4jAdapter(testData: ParsedBlock): Neo4jAdapter {
         return object : Neo4jAdapter {
-            override fun executeQuery(cypher: String, params: Map<String, Any?>): List<Map<String, Any?>> {
+            override fun executeQuery(cypher: String, params: Map<String, Any?>): Neo4jAdapter.QueryResult {
                 if (neo4j == null) {
-                    return emptyList()
+                    return Neo4jAdapter.QueryResult.EMPTY
                 }
                 val db = neo4j.defaultDatabaseService()
 
@@ -301,7 +301,17 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
 
                 // execute the query
                 return db.executeTransactionally(cypher, params) { result ->
-                    result.stream().toList()
+                    val data = result.stream().toList()
+                    val statistics = result.queryStatistics
+                    Neo4jAdapter.QueryResult(
+                        data,
+                        Neo4jAdapter.QueryStatistics(
+                            statistics.nodesCreated,
+                            statistics.nodesDeleted,
+                            statistics.relationshipsCreated,
+                            statistics.relationshipsDeleted
+                        )
+                    )
                 }
             }
         }

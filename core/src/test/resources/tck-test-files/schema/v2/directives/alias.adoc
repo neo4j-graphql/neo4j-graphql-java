@@ -30,6 +30,7 @@ type ActorActedInProps @relationshipProperties {
 ----
 schema {
   query: Query
+  mutation: Mutation
 }
 
 type Actor {
@@ -71,6 +72,12 @@ type ActorsConnection {
   totalCount: Int!
 }
 
+"Information about the number of nodes and relationships deleted during a delete mutation"
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
 type Movie {
   rating: Float
   title: String!
@@ -85,6 +92,11 @@ type MoviesConnection {
   edges: [MovieEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
+}
+
+type Mutation {
+  deleteActors(where: ActorWhere): DeleteInfo!
+  deleteMovies(where: MovieWhere): DeleteInfo!
 }
 
 "Pagination information (Relay)"
