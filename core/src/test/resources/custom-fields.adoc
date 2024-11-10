@@ -2,8 +2,9 @@
 
 = Custom queries and mutations
 
-== Schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Person {
@@ -41,8 +42,7 @@ type MutationType {
 }
 ----
 
-== Schema Configuration
-
+.Schema Configuration
 [source,json,schema-config=true]
 ----
 {

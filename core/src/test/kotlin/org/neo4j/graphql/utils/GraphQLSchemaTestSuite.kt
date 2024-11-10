@@ -1,5 +1,7 @@
 package org.neo4j.graphql.utils
 
+import demo.org.neo4j.graphql.utils.asciidoc.ast.CodeBlock
+import demo.org.neo4j.graphql.utils.asciidoc.ast.Section
 import graphql.language.InterfaceTypeDefinition
 import graphql.language.UnionTypeDefinition
 import graphql.schema.GraphQLScalarType
@@ -9,6 +11,7 @@ import graphql.schema.diff.SchemaDiffSet
 import graphql.schema.diff.reporting.CapturingReporter
 import graphql.schema.idl.*
 import org.assertj.core.api.Assertions.assertThat
+import org.bouncycastle.asn1.x500.style.RFC4519Style.title
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assumptions
 import org.junit.jupiter.api.DynamicNode
@@ -19,48 +22,58 @@ import org.neo4j.graphql.SchemaConfig
 import org.opentest4j.AssertionFailedError
 import java.util.*
 
-class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite(fileName, TEST_CASE_MARKERS) {
+class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite<GraphQLSchemaTestSuite.TestCase>(
+    fileName,
+    listOf(
+        matcher("graphql", exactly = true, setter = TestCase::augmentedSchema),
+    )
+) {
 
-    override fun testFactory(
-        title: String,
-        globalBlocks: Map<String, List<ParsedBlock>>,
-        codeBlocks: Map<String, List<ParsedBlock>>,
-        ignore: Boolean
-    ): List<DynamicNode> {
-        val targetSchemaBlock = codeBlocks[GRAPHQL_MARKER]?.first()
+    data class TestCase(
+        var schema: CodeBlock,
+        var schemaConfig: CodeBlock?,
+        var augmentedSchema: CodeBlock? = null,
+    )
+
+    override fun createTestCase(section: Section): TestCase? {
+        val schema = findSetupCodeBlocks(section, "graphql", mapOf("schema" to "true")).firstOrNull() ?: return null
+        val schemaConfig = findSetupCodeBlocks(section, "json", mapOf("schema-config" to "true")).firstOrNull()
+        return TestCase(schema, schemaConfig)
+    }
+
+    override fun createTests(testCase: TestCase, section: Section, ignoreReason: String?): List<DynamicNode> {
+        val targetSchemaBlock = testCase.augmentedSchema
         targetSchemaBlock?.let {
             try {
-                it.reformattedCode = SCHEMA_PRINTER.print(createMockSchema(it.code()))
+                it.reformattedContent = SCHEMA_PRINTER.print(createMockSchema(it.content))
             } catch (ignore: Exception) {
             }
         }
         val compareSchemaTest = DynamicTest.dynamicTest("compare schema", targetSchemaBlock?.uri) {
-            val configBlock = codeBlocks[SCHEMA_CONFIG_MARKER]?.first()
-            val config = configBlock?.code()?.let { MAPPER.readValue(it, SchemaConfig::class.java) } ?: SchemaConfig()
+            val configBlock = testCase.schemaConfig
+            val config = configBlock?.content?.let { MAPPER.readValue(it, SchemaConfig::class.java) } ?: SchemaConfig()
 
-            val targetSchema = targetSchemaBlock?.code()
-                ?: throw IllegalStateException("missing graphql for $title")
+            val targetSchema = targetSchemaBlock?.content ?: error("missing graphql for ${section.title}")
 
             var augmentedSchema: GraphQLSchema? = null
             var expectedSchema: GraphQLSchema? = null
             try {
-                val schema = globalBlocks[SCHEMA_MARKER]?.first()?.code()
-                    ?: throw IllegalStateException("Schema should be defined")
+                val schema = testCase.schema.content
                 augmentedSchema = SchemaBuilder.buildSchema(schema, config)
                 expectedSchema = createMockSchema(targetSchema)
 
                 diff(expectedSchema, augmentedSchema)
                 diff(augmentedSchema, expectedSchema)
-                targetSchemaBlock.adjustedCode = SCHEMA_PRINTER.print(augmentedSchema)
+                targetSchemaBlock.generatedContent = SCHEMA_PRINTER.print(augmentedSchema)
             } catch (e: Throwable) {
-                if (ignore) {
-                    Assumptions.assumeFalse(true, e.message)
+                if (ignoreReason != null) {
+                    Assumptions.assumeFalse(true) { "$ignoreReason ${e.message}" }
                 } else {
                     if (augmentedSchema == null) {
                         Assertions.fail<Throwable>(e)
                     }
                     val actualSchema = SCHEMA_PRINTER.print(augmentedSchema)
-                    targetSchemaBlock.adjustedCode = actualSchema
+                    targetSchemaBlock.generatedContent = actualSchema
                     throw AssertionFailedError("augmented schema differs for '$title'",
                         expectedSchema?.let { SCHEMA_PRINTER.print(it) } ?: targetSchema,
                         actualSchema,
@@ -71,6 +84,7 @@ class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite(fileName, TES
         }
         return Collections.singletonList(compareSchemaTest)
     }
+
 
     private fun createMockSchema(targetSchema: String): GraphQLSchema {
         val schemaParser = SchemaParser()
@@ -97,8 +111,6 @@ class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite(fileName, TES
     }
 
     companion object {
-        private const val GRAPHQL_MARKER = "[source,graphql]"
-        private val TEST_CASE_MARKERS: List<String> = listOf(SCHEMA_CONFIG_MARKER, GRAPHQL_MARKER)
 
         private val SCHEMA_PRINTER = SchemaPrinter(
             SchemaPrinter.Options.defaultOptions()

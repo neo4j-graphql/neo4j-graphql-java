@@ -2,8 +2,9 @@
 
 = GitHub Issue #210: Nested filters are not working
 
-== Schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 interface Period {
@@ -18,8 +19,6 @@ type Week implements Period {
    in: [Period] @relation(name: "IN_PERIOD", direction: OUT)
 }
 ----
-
-== Configuration
 
 .Configuration
 [source,json,schema-config=true]
