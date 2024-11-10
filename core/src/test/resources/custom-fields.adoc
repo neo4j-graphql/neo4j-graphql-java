@@ -50,8 +50,7 @@ type MutationType {
 }
 ----
 
-== Test Data
-
+.Test Data
 [source,cypher,test-data=true]
 ----
 CREATE (:Person {name:'Jane'}), (:Person {name:'John'})
@@ -97,8 +96,7 @@ RETURN createPerson {
 
 '''
 
-== Test Data
-
+.Test Data
 [source,cypher,test-data=true]
 ----
 CREATE (:Person {name:'Jane'}), (:Person {name:'John'})

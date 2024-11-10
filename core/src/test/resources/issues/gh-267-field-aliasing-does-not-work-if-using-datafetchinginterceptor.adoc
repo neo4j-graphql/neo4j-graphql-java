@@ -2,12 +2,11 @@
 
 = Field aliasing does not work if using DataFetchingInterceptor
 
-== Issue
-
 https://github.com/neo4j-graphql/neo4j-graphql-java/issues/267
 
-== Schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Movie {

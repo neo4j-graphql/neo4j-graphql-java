@@ -4,8 +4,9 @@
 
 Tests for queries using `options::useWhereFilter`
 
-== Inputs
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Actor {
@@ -20,8 +21,6 @@ type Movie {
     isFavorite: Boolean
 }
 ----
-
-== Configuration
 
 .Configuration
 [source,json,schema-config=true]

@@ -179,7 +179,11 @@ abstract class AsciiDocTestSuite<T>(
         if (!GENERATE_TEST_FILE_DIFF && !UPDATE_TEST_FILE) {
             return null
         }
-        val codeBlock = CodeBlock.parseMeta(insertPoint.parent, insertPoint.uri, marker).also { it.caption = headline }
+        val codeBlock = CodeBlock.parseMeta(insertPoint.parent, insertPoint.uri, marker)
+            .apply {
+                caption = headline
+                content = ""
+            }
         codeBlock.start = (insertPoint.end ?: error("no start for block defined")) + 6
         knownBlocks += codeBlock
         return codeBlock
@@ -227,7 +231,7 @@ abstract class AsciiDocTestSuite<T>(
                 result.addAll(findCodeBlocks(currentSection, language, fiter))
                 currentSection.blocks
                     .filterIsInstance<Section>()
-                    .filter { it.title == "Setup" || it.title == "Schema" }
+                    .filter { it.title == "Setup" }
                     .forEach { result.addAll(findCodeBlocks(it, language, fiter)) }
                 currentSection = currentSection.parent
             }

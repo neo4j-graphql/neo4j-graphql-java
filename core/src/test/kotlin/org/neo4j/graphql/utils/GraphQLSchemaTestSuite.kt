@@ -49,11 +49,14 @@ class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite<GraphQLSchema
             } catch (ignore: Exception) {
             }
         }
+        if (targetSchemaBlock == null) {
+            return emptyList()
+        }
         val compareSchemaTest = DynamicTest.dynamicTest("compare schema", targetSchemaBlock?.uri) {
             val configBlock = testCase.schemaConfig
             val config = configBlock?.content?.let { MAPPER.readValue(it, SchemaConfig::class.java) } ?: SchemaConfig()
 
-            val targetSchema = targetSchemaBlock?.content ?: error("missing graphql for ${section.title}")
+            val targetSchema = targetSchemaBlock.content
 
             var augmentedSchema: GraphQLSchema? = null
             var expectedSchema: GraphQLSchema? = null

@@ -2,8 +2,9 @@
 
 = Cypher Directive Computing Relationship Type To Field Test
 
-== Schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Role @relation(name:"ACTED_IN", from:"actor", to:"movie") {

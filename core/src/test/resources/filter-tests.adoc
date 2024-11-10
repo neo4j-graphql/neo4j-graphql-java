@@ -2,8 +2,9 @@
 
 = Filter Test TCK
 
-== Schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 enum Gender { female, male }
@@ -36,8 +37,7 @@ type PersonSkills @relation(name: "HAS_SKILL", from: "person", to: "skill") {
 }
 ----
 
-== Test Data
-
+.Test Data
 [source,cypher,test-data=true]
 ----
 CREATE (c:Company {name: 'ACME'})

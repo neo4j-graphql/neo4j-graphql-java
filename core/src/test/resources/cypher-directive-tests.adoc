@@ -2,8 +2,9 @@
 
 = Cypher Directive Test
 
-== Schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Person {

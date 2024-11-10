@@ -2,8 +2,9 @@
 
 = Relationship Tests TCK
 
-== Schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Team {

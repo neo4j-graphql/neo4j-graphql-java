@@ -2,8 +2,9 @@
 
 = GitHub Issue #299: Incorrect mutation translation for IDs with @property
 
-== Schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Person {

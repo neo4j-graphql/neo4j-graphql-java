@@ -2,12 +2,11 @@
 
 = Querying multiple root fields
 
-== Issue
-
 https://github.com/neo4j-graphql/neo4j-graphql-java/issues/265
 
-== Schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Movie {

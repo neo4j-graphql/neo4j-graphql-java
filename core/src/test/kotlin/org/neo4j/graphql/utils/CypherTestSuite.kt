@@ -37,7 +37,7 @@ import java.util.regex.Pattern
 class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTestSuite<CypherTestSuite.TestCase>(
     fileName,
     listOf(
-        matcher("cypher") { t, c -> t.cypher.add(c) },
+        matcher("cypher", exactly = true) { t, c -> t.cypher.add(c) },
         matcher("json", exactly = true) { t, c -> t.cypherParams.add(c) },
         matcher("graphql", exactly = true, setter = TestCase::graphqlRequest),
         matcher("json", mapOf("request" to "true"), setter = TestCase::graphqlRequestVariables),
@@ -61,7 +61,7 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
     override fun createTestCase(section: Section): TestCase? {
         val schema = findSetupCodeBlocks(section, "graphql", mapOf("schema" to "true")).firstOrNull() ?: return null
         val schemaConfig = findSetupCodeBlocks(section, "json", mapOf("schema-config" to "true")).firstOrNull()
-        val testData = findSetupCodeBlocks(section, "json", mapOf("test-data" to "true"))
+        val testData = findSetupCodeBlocks(section, "cypher", mapOf("test-data" to "true"))
 
         return TestCase(schema, schemaConfig, testData)
     }
@@ -110,6 +110,7 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
             (testCase.cypherParams.takeIf { it.isNotEmpty() }
                 ?: createCodeBlock(testCase.cypher.first(), CYPHER_PARAMS_MARKER, "Cypher Params")?.let { listOf(it) }
                 ?: emptyList())
+                .filter { it.content.isNotBlank() }
                 .forEach { params ->
                     val cypherParams = params.content.parseJsonMap()
                     params.reformattedContent = MAPPER
@@ -205,7 +206,7 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
                 cypherBlock.generatedContent = actual
             }
             if (actualNormalized != expectedNormalized) {
-                val  splitter =
+                val splitter =
                     "\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n~  source query\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n"
                 throw AssertionFailedError(
                     "Cypher does not match",

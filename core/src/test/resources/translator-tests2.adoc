@@ -2,8 +2,9 @@
 
 = Translator Tests
 
-== Schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type User {

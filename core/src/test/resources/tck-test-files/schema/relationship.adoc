@@ -4,8 +4,9 @@
 
 Tests that the provided typeDefs return the correct schema (with relationships).
 
-== Inputs
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Actor {
@@ -17,8 +18,6 @@ type Movie {
     actors: [Actor]! @relation(name: "ACTED_IN", direction: IN)
 }
 ----
-
-== Configuration
 
 .Configuration
 [source,json,schema-config=true]
