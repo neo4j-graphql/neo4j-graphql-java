@@ -28,7 +28,7 @@ type Movie {
 [source,json]
 ----
 {
-  "param0" : "13:45:33.250"
+  "param0" : "13:45:33.250Z"
 }
 ----
 
@@ -60,7 +60,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "12:00:00"
+  "param0" : "12:00Z"
 }
 ----
 

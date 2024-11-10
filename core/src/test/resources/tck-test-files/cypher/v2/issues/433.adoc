@@ -59,7 +59,7 @@ CALL {
 		WITH edge.node AS person0, edge.relationship AS actedIn0
 		RETURN collect( {
 			node: {
-				__resolveType: 'Person',
+				__typename: 'Person',
 				name: person0.name
 			}
 		}) AS actorsConnectionEdges

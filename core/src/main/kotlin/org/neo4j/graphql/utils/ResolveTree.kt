@@ -5,6 +5,7 @@ import graphql.schema.DataFetchingFieldSelectionSet
 import graphql.schema.SelectedField
 import org.neo4j.graphql.aliasOrName
 import org.neo4j.graphql.schema.model.inputs.Dict
+import kotlin.reflect.KProperty1
 
 interface IResolveTree {
     val name: String
@@ -16,6 +17,12 @@ interface IResolveTree {
 
     fun getFieldOfType(typeName: String, fieldName: String) =
         this.fieldsByTypeName[typeName]?.values?.filter { it.name == fieldName } ?: emptyList()
+
+    fun getFieldOfType(typeName: String, fieldName: KProperty1<*, List<IResolveTree>>): List<IResolveTree> =
+        getFieldOfType(typeName, fieldName) { it }
+
+    fun <T> getFieldOfType(typeName: String, fieldName: KProperty1<*, List<T>>, transformer: (IResolveTree)-> T): List<T> =
+        getFieldOfType(typeName, fieldName.name).map(transformer)
 }
 
 class SelectionOfType(

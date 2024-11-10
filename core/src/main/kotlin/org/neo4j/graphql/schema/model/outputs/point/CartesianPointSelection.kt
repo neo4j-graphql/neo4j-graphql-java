@@ -6,25 +6,48 @@ import org.neo4j.graphql.Constants
 import org.neo4j.graphql.asCypherLiteral
 import org.neo4j.graphql.utils.IResolveTree
 
-class CartesianPointSelection(selection: IResolveTree) : BasePointSelection(selection) {
+class CartesianPointSelection(
+    selection: IResolveTree,
+    crs: List<IResolveTree>,
+    srid: List<IResolveTree>,
+    val x: List<IResolveTree>,
+    val y: List<IResolveTree>,
+    val z: List<IResolveTree>,
+) : BasePointSelection<PointSelection>(TYPE_NAME, selection, crs, srid) {
 
-    val x = selection.getFieldOfType(Constants.POINT_TYPE, Constants.X)
+    override val relevantFields =
+        super.relevantFields + listOf(
+            CartesianPointSelection::x,
+            CartesianPointSelection::y,
+            CartesianPointSelection::z
+        ).map { it.name }
 
-    val y = selection.getFieldOfType(Constants.POINT_TYPE, Constants.Y)
-
-    val z = selection.getFieldOfType(Constants.POINT_TYPE, Constants.Z)
-
-    override val relevantFields = super.relevantFields + setOf(Constants.X, Constants.Y, Constants.Z)
     override fun ensureValidity(name: String, point: Expression): Expression {
-        return if (name == Constants.Z) {
+        return if (name == CartesianPointSelection::z.name) {
             Cypher.caseExpression().`when`(
-                point.property(Constants.SRID)
+                point.property(BasePointSelection<*>::srid.name)
                     .isEqualTo(Constants.SpatialReferenceIdentifier.cartesian_3D.asCypherLiteral())
             )
                 .then(point.property(name))
                 .elseDefault(Cypher.literalNull())
         } else {
             point.property(name)
+        }
+    }
+
+    companion object {
+
+        val TYPE_NAME = Constants.Types.CARTESIAN_POINT.name
+
+        fun parse(selection: IResolveTree): CartesianPointSelection {
+            return CartesianPointSelection(
+                selection,
+                selection.getFieldOfType(TYPE_NAME, CartesianPointSelection::crs),
+                selection.getFieldOfType(TYPE_NAME, CartesianPointSelection::srid),
+                selection.getFieldOfType(TYPE_NAME, CartesianPointSelection::x),
+                selection.getFieldOfType(TYPE_NAME, CartesianPointSelection::y),
+                selection.getFieldOfType(TYPE_NAME, CartesianPointSelection::z),
+            )
         }
     }
 }

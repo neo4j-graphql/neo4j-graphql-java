@@ -1,6 +1,7 @@
 package org.neo4j.graphql.utils
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.intellij.rt.execution.junit.FileComparisonFailure
 import demo.org.neo4j.graphql.utils.asciidoc.AsciiDocParser
@@ -21,6 +22,7 @@ import kotlin.reflect.KMutableProperty1
 abstract class AsciiDocTestSuite<T>(
     private val fileName: String,
     private val relevantBlocks: List<CodeBlockMatcher<T>>,
+    private val createMissingBlocks: Boolean = true
 ) {
 
     abstract class CodeBlockMatcher<T>(
@@ -188,7 +190,7 @@ abstract class AsciiDocTestSuite<T>(
         headline: String,
         attributes: Map<String, String?> = emptyMap()
     ): CodeBlock? {
-        if (!GENERATE_TEST_FILE_DIFF && !UPDATE_TEST_FILE) {
+        if (!createMissingBlocks || (!GENERATE_TEST_FILE_DIFF && !UPDATE_TEST_FILE)) {
             return null
         }
         val codeBlock = CodeBlock(insertPoint.uri, language, insertPoint.parent, attributes)
@@ -211,7 +213,10 @@ abstract class AsciiDocTestSuite<T>(
         val UPDATE_TEST_FILE = System.getProperty("neo4j-graphql-java.update-test-file", "false") == "true"
         val UPDATE_SEMANTIC_EQUALLY_BLOCKS =
             System.getProperty("neo4j-graphql-java.update-semantic-equally-blocks", "false") == "true"
-        val MAPPER = ObjectMapper().registerKotlinModule()
+        val MAPPER = ObjectMapper()
+            .registerKotlinModule()
+            .registerModules(JavaTimeModule())
+            .disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
 
         fun String.parseJsonMap(): Map<String, Any?> = this.let {
             @Suppress("UNCHECKED_CAST")

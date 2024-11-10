@@ -13,8 +13,11 @@ import org.neo4j.graphql.domain.directives.Annotations.Companion.LIBRARY_DIRECTI
 import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.driver.adapter.Neo4jAdapter
 import org.neo4j.graphql.handler.ConnectionResolver
+import org.neo4j.graphql.handler.ImplementingTypeConnectionFieldResolver
 import org.neo4j.graphql.handler.ReadResolver
 import org.neo4j.graphql.scalars.BigIntScalar
+import org.neo4j.graphql.scalars.DurationScalar
+import org.neo4j.graphql.scalars.TemporalScalar
 import org.neo4j.graphql.schema.AugmentationContext
 import org.neo4j.graphql.schema.AugmentationHandler
 import org.neo4j.graphql.schema.model.outputs.InterfaceSelection
@@ -95,6 +98,7 @@ class SchemaBuilder @JvmOverloads constructor(
         handler = mutableListOf(
             ReadResolver.Factory(ctx),
             ConnectionResolver.Factory(ctx),
+            ImplementingTypeConnectionFieldResolver.Factory(ctx)
         )
     }
 
@@ -266,6 +270,12 @@ class SchemaBuilder @JvmOverloads constructor(
             .forEach { (name, definition) ->
                 val scalar = when (name) {
                     Constants.BIG_INT -> BigIntScalar.INSTANCE
+                    Constants.DATE -> TemporalScalar.DATE
+                    Constants.TIME -> TemporalScalar.TIME
+                    Constants.LOCAL_TIME -> TemporalScalar.LOCAL_TIME
+                    Constants.DATE_TIME -> TemporalScalar.DATE_TIME
+                    Constants.LOCAL_DATE_TIME -> TemporalScalar.LOCAL_DATE_TIME
+                    Constants.DURATION -> DurationScalar.INSTANCE
                     else -> GraphQLScalarType.newScalar()
                         .name(name)
                         .description(
@@ -310,20 +320,11 @@ class SchemaBuilder @JvmOverloads constructor(
         neo4jAdapter: Neo4jAdapter,
     ) {
         codeRegistryBuilder.defaultDataFetcher { AliasPropertyDataFetcher() }
-        augmentedFields.forEach { augmentedField ->
-            val interceptedDataFetcher: DataFetcher<*> = DataFetcher { env ->
-                val neo4jDialect = neo4jAdapter.getDialect()
-                env.graphQlContext.setQueryContext(QueryContext(neo4jDialect = neo4jDialect))
-                val (cypher, params, type, variable) = augmentedField.dataFetcher.get(env)
-                val result = neo4jAdapter.executeQuery(cypher, params)
-                return@DataFetcher if (type?.isList() == true) {
-                    result.map { it[variable] }
-                } else {
-                    result.map { it[variable] }
-                        .firstOrNull() ?: emptyMap<String, Any>()
-                }
-            }
-            codeRegistryBuilder.dataFetcher(augmentedField.coordinates, interceptedDataFetcher)
+        augmentedFields.forEach { (coordinates, dataFetcher) ->
+            codeRegistryBuilder.dataFetcher(coordinates, DataFetcher { env ->
+                env.graphQlContext.put(Neo4jAdapter.CONTEXT_KEY, neo4jAdapter)
+                dataFetcher.get(env)
+            })
         }
     }
 

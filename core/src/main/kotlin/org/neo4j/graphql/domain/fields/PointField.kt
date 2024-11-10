@@ -103,9 +103,9 @@ class PointField(
 
     enum class CoordinateType(
         internal val inputType: TypeName,
-        internal val selectionFactory: (IResolveTree) -> BasePointSelection
+        internal val selectionFactory: (IResolveTree) -> BasePointSelection<*>
     ) {
-        GEOGRAPHIC(Constants.Types.PointDistance, ::PointSelection),
-        CARTESIAN(Constants.Types.CartesianPointDistance, ::CartesianPointSelection)
+        GEOGRAPHIC(Constants.Types.PointDistance, PointSelection::parse),
+        CARTESIAN(Constants.Types.CartesianPointDistance, CartesianPointSelection::parse)
     }
 }

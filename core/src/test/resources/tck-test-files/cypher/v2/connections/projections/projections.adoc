@@ -72,7 +72,7 @@ CALL {
 		RETURN collect( {
 			node: {
 				__id: elementId(actor0),
-				__resolveType: 'Actor'
+				__typename: 'Actor'
 			}
 		}) AS actorsConnectionEdges
 	}
@@ -130,7 +130,7 @@ CALL {
 		WITH {
 			node: {
 				__id: elementId(movie0),
-				__resolveType: 'Movie'
+				__typename: 'Movie'
 			}
 		} AS edge
 		RETURN edge UNION
@@ -139,7 +139,7 @@ CALL {
 		WITH {
 			node: {
 				__id: elementId(series0),
-				__resolveType: 'Series'
+				__typename: 'Series'
 			}
 		} AS edge
 		RETURN edge
@@ -202,7 +202,7 @@ CALL {
 		RETURN collect( {
 			node: {
 				__id: elementId(actor0),
-				__resolveType: 'Actor'
+				__typename: 'Actor'
 			}
 		}) AS actorsConnectionEdges
 	}
@@ -255,7 +255,7 @@ CALL {
 		WITH {
 			node: {
 				__id: elementId(movie0),
-				__resolveType: 'Movie'
+				__typename: 'Movie'
 			}
 		} AS edge
 		RETURN edge UNION
@@ -264,7 +264,7 @@ CALL {
 		WITH {
 			node: {
 				__id: elementId(series0),
-				__resolveType: 'Series'
+				__typename: 'Series'
 			}
 		} AS edge
 		RETURN edge
@@ -328,7 +328,7 @@ CALL {
 		RETURN collect( {
 			node: {
 				__id: elementId(actor0),
-				__resolveType: 'Actor'
+				__typename: 'Actor'
 			}
 		}) AS actorsConnectionEdges
 	}
@@ -392,7 +392,7 @@ CALL {
 		WITH edge.node AS actor0, edge.relationship AS actedIn0
 		RETURN collect( {
 			node: {
-				__resolveType: 'Actor',
+				__typename: 'Actor',
 				name: actor0.name
 			}
 		}) AS actorsConnectionEdges
@@ -458,7 +458,7 @@ CALL {
 		WITH edge.node AS actor0, edge.relationship AS actedIn0 LIMIT $param1
 		RETURN collect( {
 			node: {
-				__resolveType: 'Actor',
+				__typename: 'Actor',
 				name: actor0.name
 			}
 		}) AS actorsConnectionEdges

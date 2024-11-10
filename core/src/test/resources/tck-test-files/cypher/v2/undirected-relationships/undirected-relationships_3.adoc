@@ -63,7 +63,7 @@ CALL {
 		WITH *
 		MATCH (this)-[actedIn0:ACTED_IN]-(movie0:Movie)
 		WITH movie0 {
-			__resolveType: 'Movie',
+			__typename: 'Movie',
 			__id: elementId(movie0),
 			.title
 		} AS movie0
@@ -71,7 +71,7 @@ CALL {
 		WITH *
 		MATCH (this)-[actedIn1:ACTED_IN]-(series0:Series)
 		WITH series0 {
-			__resolveType: 'Series',
+			__typename: 'Series',
 			__id: elementId(series0),
 			.title
 		} AS series0

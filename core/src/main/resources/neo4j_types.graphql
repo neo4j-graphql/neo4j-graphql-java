@@ -6,14 +6,6 @@ enum SortDirection {
   DESC
 }
 
-#Pagination information (Relay)
-type PageInfo {
-  endCursor: String
-  hasNextPage: Boolean!
-  hasPreviousPage: Boolean!
-  startCursor: String
-}
-
 "A point in a coordinate system."
 type Point {
   """

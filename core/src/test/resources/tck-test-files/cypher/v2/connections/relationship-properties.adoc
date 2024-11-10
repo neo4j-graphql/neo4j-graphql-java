@@ -71,11 +71,11 @@ CALL {
 		WITH edge.node AS actor0, edge.relationship AS actedIn0
 		RETURN collect( {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				screenTime: actedIn0.screenTime
 			},
 			node: {
-				__resolveType: 'Actor',
+				__typename: 'Actor',
 				name: actor0.name
 			}
 		}) AS actorsConnectionEdges
@@ -142,11 +142,11 @@ CALL {
 		WITH edge.node AS actor0, edge.relationship AS actedIn0 ORDER BY actedIn0.screenTime DESC
 		RETURN collect( {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				screenTime: actedIn0.screenTime
 			},
 			node: {
-				__resolveType: 'Actor',
+				__typename: 'Actor',
 				name: actor0.name
 			}
 		}) AS actorsConnectionEdges
@@ -209,11 +209,11 @@ CALL {
 		WITH edge.node AS actor0, edge.relationship AS actedIn0 ORDER BY actedIn0.year DESC, actor0.name ASC
 		RETURN collect( {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				year: actedIn0.year
 			},
 			node: {
-				__resolveType: 'Actor',
+				__typename: 'Actor',
 				name: actor0.name
 			}
 		}) AS actorsConnectionEdges
@@ -275,11 +275,11 @@ CALL {
 		WITH edge.node AS actor0, edge.relationship AS actedIn0 ORDER BY actor0.name ASC, actedIn0.year DESC
 		RETURN collect( {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				year: actedIn0.year
 			},
 			node: {
-				__resolveType: 'Actor',
+				__typename: 'Actor',
 				name: actor0.name
 			}
 		}) AS actorsConnectionEdges
@@ -347,11 +347,11 @@ CALL {
 		WITH edge.node AS actor0, edge.relationship AS actedIn0
 		RETURN collect( {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				screenTime: actedIn0.screenTime
 			},
 			node: {
-				__resolveType: 'Actor',
+				__typename: 'Actor',
 				name: actor0.name
 			}
 		}) AS actorsConnectionEdges
@@ -462,11 +462,11 @@ CALL {
 						WITH edge.node AS actor1, edge.relationship AS actedIn2
 						RETURN collect( {
 							properties: {
-								__resolveType: 'ActedIn',
+								__typename: 'ActedIn',
 								screenTime: actedIn2.screenTime
 							},
 							node: {
-								__resolveType: 'Actor',
+								__typename: 'Actor',
 								name: actor1.name
 							}
 						}) AS actorsConnectionEdges
@@ -478,11 +478,11 @@ CALL {
 				}
 				RETURN collect( {
 					properties: {
-						__resolveType: 'ActedIn',
+						__typename: 'ActedIn',
 						screenTime: actedIn1.screenTime
 					},
 					node: {
-						__resolveType: 'Movie',
+						__typename: 'Movie',
 						title: movie0.title,
 						actorsConnection: actorsConnection
 					}
@@ -495,11 +495,11 @@ CALL {
 		}
 		RETURN collect( {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				screenTime: actedIn0.screenTime
 			},
 			node: {
-				__resolveType: 'Actor',
+				__typename: 'Actor',
 				name: actor0.name,
 				moviesConnection: moviesConnection
 			}
@@ -589,11 +589,11 @@ CALL {
 				WITH edge.node AS movie0, edge.relationship AS actedIn1
 				RETURN collect( {
 					properties: {
-						__resolveType: 'ActedIn',
+						__typename: 'ActedIn',
 						screenTime: actedIn1.screenTime
 					},
 					node: {
-						__resolveType: 'Movie',
+						__typename: 'Movie',
 						title: movie0.title
 					}
 				}) AS moviesConnectionEdges
@@ -605,11 +605,11 @@ CALL {
 		}
 		RETURN collect( {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				screenTime: actedIn0.screenTime
 			},
 			node: {
-				__resolveType: 'Actor',
+				__typename: 'Actor',
 				name: actor0.name,
 				moviesConnection: moviesConnection
 			}

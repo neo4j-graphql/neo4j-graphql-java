@@ -1,7 +1,6 @@
 package org.neo4j.graphql
 
-import apoc.coll.Coll
-import apoc.cypher.CypherFunctions
+import apoc.date.Date
 import demo.org.neo4j.graphql.utils.TestUtils.createTestsInPath
 import org.junit.jupiter.api.*
 import org.neo4j.graphql.utils.CypherTestSuite
@@ -19,10 +18,7 @@ class CypherTests {
         if (INTEGRATION_TESTS) {
             neo4j = Neo4jBuilders
                 .newInProcessBuilder(Path.of("target/test-db"))
-                .withProcedure(apoc.cypher.Cypher::class.java)
-                .withFunction(CypherFunctions::class.java)
-                .withProcedure(Coll::class.java)
-                .withFunction(Coll::class.java)
+                .withFunction(Date::class.java)
                 .build()
         }
     }
@@ -88,6 +84,10 @@ class CypherTests {
     @TestFactory
     fun `new cypher tck tests v2`() =
         createTestsInPath("tck-test-files/cypher/v2", { CypherTestSuite(it, neo4j).generateTests() })
+
+    @TestFactory
+    fun `integration-tests`() =
+        createTestsInPath("integration-test-files", { CypherTestSuite(it, neo4j, createMissingBlocks = false).generateTests() })
 
     companion object {
         private val INTEGRATION_TESTS = System.getProperty("neo4j-graphql-java.integration-tests", "false") == "true"

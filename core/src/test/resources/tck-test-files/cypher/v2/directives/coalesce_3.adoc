@@ -67,7 +67,7 @@ CALL {
 		WITH edge.node AS movie0, edge.relationship AS actedIn0
 		RETURN collect( {
 			node: {
-				__resolveType: 'Movie',
+				__typename: 'Movie',
 				id: movie0.id,
 				statuses: movie0.statuses
 			}

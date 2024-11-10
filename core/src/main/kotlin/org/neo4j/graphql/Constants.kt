@@ -4,6 +4,7 @@ import graphql.language.TypeName
 import org.neo4j.graphql.domain.directives.RelationshipDirective
 
 object Constants {
+    const val TYPE_NAME = "__typename"
 
     const val JS_COMPATIBILITY: Boolean = true
     const val ID_FIELD = "id"
@@ -26,17 +27,8 @@ object Constants {
     const val RELATIONSHIP_FIELD = "relationship"
     const val TYPENAME_IN = "typename_IN"
 
-    const val RESOLVE_TYPE = "__resolveType"
+    const val RESOLVE_TYPE = TYPE_NAME
     const val RESOLVE_ID = "__id"
-
-    const val X = "x"
-    const val Y = "y"
-    const val Z = "z"
-    const val LONGITUDE = "longitude"
-    const val LATITUDE = "latitude"
-    const val HEIGHT = "height"
-    const val CRS = "crs"
-    const val SRID = "srid"
 
     const val POINT_TYPE = "Point"
     const val CARTESIAN_POINT_TYPE = "CartesianPoint"
@@ -68,8 +60,6 @@ object Constants {
         RelationshipDirective.NAME,
     )
 
-    const val TYPE_NAME = "__typename"
-
     const val OPTIONS = "options"
     const val WHERE = "where"
 
@@ -85,6 +75,9 @@ object Constants {
         val SortDirection = TypeName("SortDirection")
         val PointDistance = TypeName("PointDistance")
         val CartesianPointDistance = TypeName("CartesianPointDistance")
+
+        val POINT = TypeName(POINT_TYPE)
+        val CARTESIAN_POINT = TypeName(CARTESIAN_POINT_TYPE)
     }
 
 

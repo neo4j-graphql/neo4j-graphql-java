@@ -329,7 +329,7 @@ private fun createEdgeProjection(
     val nodeSortProperties = args.options.sort.flatMap { it.node?.keys ?: emptyList() }
     if (edgeSortProperties.isNotEmpty() || nodeSortProperties.isNotEmpty()) {
         adjustedResolveTree = adjustedResolveTree.extend {
-            select(Constants.EDGES_FIELD, field.relationshipField.namings.connectionFieldName) {
+            select(Constants.EDGES_FIELD, field.relationshipField.namings.connectionFieldTypename) {
                 if (edgeSortProperties.isNotEmpty()) {
                     select(Constants.PROPERTIES_FIELD, field.relationshipField.namings.relationshipFieldTypename) {
                         edgeSortProperties.forEach { name ->
@@ -348,7 +348,7 @@ private fun createEdgeProjection(
         }
     }
 
-    val connection = adjustedResolveTree.fieldsByTypeName[field.relationshipField.namings.connectionFieldName]
+    val connection = adjustedResolveTree.fieldsByTypeName[field.relationshipField.namings.connectionFieldTypename]
         ?: return ProjectionTranslator.Projection.EMPTY
 
     connection.forEachField(Constants.EDGES_FIELD) { edges ->

@@ -40,7 +40,10 @@ fun createWhere(
         val nodes = field.extractOnTarget(
             { node -> listOf(node) },
             { interfaze -> interfaze.implementations.values },
-            { union -> union.nodes.values }
+            { union ->
+                val dataPerNode = (predicate.where as WhereInput.UnionWhereInput).dataPerNode
+                if (dataPerNode.isEmpty()) union.nodes.values else dataPerNode.keys
+            }
         )
 
         var allConditions: Condition? = null

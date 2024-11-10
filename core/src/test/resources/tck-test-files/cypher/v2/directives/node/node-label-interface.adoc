@@ -64,7 +64,7 @@ CALL {
 		MATCH (this)-[search0:SEARCH]->(genre0:Category:ExtraLabel1:ExtraLabel2)
 		WHERE genre0.name = $param1
 		WITH genre0 {
-			__resolveType: 'Genre',
+			__typename: 'Genre',
 			__id: elementId(genre0),
 			.name
 		} AS genre0
@@ -73,7 +73,7 @@ CALL {
 		MATCH (this)-[search1:SEARCH]->(movie0:Film)
 		WHERE movie0.name = $param2
 		WITH movie0 {
-			__resolveType: 'Movie',
+			__typename: 'Movie',
 			__id: elementId(movie0),
 			.title
 		} AS movie0

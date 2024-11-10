@@ -43,8 +43,8 @@ query ($rangeStart: DateTime, $rangeEnd: DateTime, $activity: String) {
 [source,json]
 ----
 {
-  "param0" : "2021-07-18T00:00:00+0100",
-  "param1" : "2021-07-18T23:59:59+0100"
+  "param0" : "2021-07-18T00:00:00+01:00",
+  "param1" : "2021-07-18T23:59:59+01:00"
 }
 ----
 
@@ -90,8 +90,8 @@ query ($rangeStart: DateTime, $rangeEnd: DateTime, $activity: String) {
 [source,json]
 ----
 {
-  "param0" : "2021-07-18T00:00:00+0100",
-  "param1" : "2021-07-18T23:59:59+0100"
+  "param0" : "2021-07-18T00:00:00+01:00",
+  "param1" : "2021-07-18T23:59:59+01:00"
 }
 ----
 

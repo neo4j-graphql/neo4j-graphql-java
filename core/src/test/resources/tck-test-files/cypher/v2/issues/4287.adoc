@@ -75,7 +75,7 @@ CALL {
 			OR movie0.title = $param1)
 		WITH {
 			node: {
-				__resolveType: 'Movie',
+				__typename: 'Movie',
 				title: movie0.title,
 				__id: elementId(movie0)
 			}
@@ -87,7 +87,7 @@ CALL {
 			OR series0.title = $param3)
 		WITH {
 			node: {
-				__resolveType: 'Series',
+				__typename: 'Series',
 				title: series0.title,
 				__id: elementId(series0)
 			}

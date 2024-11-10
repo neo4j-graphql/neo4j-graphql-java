@@ -28,7 +28,7 @@ sealed class RelationshipBaseNames<T : RelationBaseField>(
 
     val relationshipFieldTypename get() = "${prefixForTypenameWithInheritance}Relationship"
 
-    val connectionFieldName get() = "${prefixForTypenameWithInheritance}Connection"
+    val connectionFieldName get() = "${relationship.fieldName}Connection"
 
     fun getConnectionWhereTypename(target: ImplementingType) =
         "$prefixForTypenameWithInheritance${target.useNameIfFieldIsUnion()}ConnectionWhere"

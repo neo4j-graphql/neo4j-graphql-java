@@ -58,7 +58,7 @@ CALL {
 		WITH *
 		MATCH (this)-[hasContent0:HAS_CONTENT]-(blog0:Blog)
 		WITH blog0 {
-			__resolveType: 'Blog',
+			__typename: 'Blog',
 			__id: elementId(blog0),
 			.title
 		} AS blog0
@@ -66,7 +66,7 @@ CALL {
 		WITH *
 		MATCH (this)-[hasContent1:HAS_CONTENT]-(post0:Post)
 		WITH post0 {
-			__resolveType: 'Post',
+			__typename: 'Post',
 			__id: elementId(post0),
 			.content
 		} AS post0

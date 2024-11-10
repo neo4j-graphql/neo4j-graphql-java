@@ -1,30 +1,39 @@
 package org.neo4j.graphql.schema.model.outputs
 
-import org.neo4j.graphql.*
+import org.neo4j.graphql.Constants
+import org.neo4j.graphql.NonNull
+import org.neo4j.graphql.asDescription
+import org.neo4j.graphql.asRequiredType
 import org.neo4j.graphql.domain.RelationshipProperties
 import org.neo4j.graphql.domain.fields.ConnectionField
 import org.neo4j.graphql.schema.AugmentationBase
 import org.neo4j.graphql.schema.AugmentationContext
+import org.neo4j.graphql.utils.IResolveTree
 
-data object NodeConnectionEdgeFieldSelection : FieldContainerSelection() {
+class NodeConnectionEdgeFieldSelection(
+    selection: IResolveTree,
+    val cursor: List<IResolveTree>,
+    val node: List<IResolveTree>,
+    val properties: List<IResolveTree>,
+) : BaseSelection<NodeConnectionFieldSelection>(selection), FieldContainerSelection {
 
     object Augmentation : AugmentationBase {
 
         fun generateRelationshipSelection(field: ConnectionField, ctx: AugmentationContext): String =
             ctx.getOrCreateObjectType(field.relationshipField.namings.relationshipFieldTypename) { fields, _ ->
 
-                fields += field(Constants.CURSOR_FIELD, Constants.Types.String.makeRequired())
+                fields += field(NodeConnectionEdgeFieldSelection::cursor, Constants.Types.String.NonNull)
 
                 field.relationshipField.extractOnTarget(
                     onNode = { NodeSelection.Augmentation.generateNodeSelection(it, ctx) },
                     onInterface = { InterfaceSelection.Augmentation.generateInterfaceSelection(it, ctx) },
                     onUnion = { it.name }
                 )?.let {
-                    fields += field(Constants.NODE_FIELD, it.asType(required = true))
+                    fields += field(NodeConnectionEdgeFieldSelection::node, it.asRequiredType())
                 }
 
                 field.properties?.let { generateEdgeRelationshipSelection(it, ctx) }
-                    ?.let { fields += field(Constants.PROPERTIES_FIELD, it.asRequiredType()) }
+                    ?.let { fields += field(NodeConnectionEdgeFieldSelection::properties, it.asRequiredType()) }
             }
                 ?: throw IllegalStateException("Expected ${field.relationshipField.namings.relationshipFieldTypename} to have fields")
 
@@ -52,5 +61,18 @@ data object NodeConnectionEdgeFieldSelection : FieldContainerSelection() {
                 })
         }
 
+    }
+
+    companion object {
+
+        fun parse(field: ConnectionField, selection: IResolveTree): NodeConnectionEdgeFieldSelection {
+            val typeName = field.relationshipField.namings.relationshipFieldTypename
+            return NodeConnectionEdgeFieldSelection(
+                selection,
+                selection.getFieldOfType(typeName, NodeConnectionEdgeFieldSelection::cursor),
+                selection.getFieldOfType(typeName, NodeConnectionEdgeFieldSelection::node),
+                selection.getFieldOfType(typeName, NodeConnectionEdgeFieldSelection::properties),
+            )
+        }
     }
 }

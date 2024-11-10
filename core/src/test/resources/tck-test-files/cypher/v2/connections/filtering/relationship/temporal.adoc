@@ -52,7 +52,7 @@ type ActedIn @relationshipProperties {
 ----
 {
   "param0" : "2000-01-01",
-  "param1" : "2010-01-01T00:00:00.000Z"
+  "param1" : "2010-01-01T00:00:00Z"
 }
 ----
 
@@ -76,12 +76,12 @@ CALL {
 		WITH edge.node AS actor0, edge.relationship AS actedIn0
 		RETURN collect( {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				startDate: actedIn0.startDate,
 				endDateTime: apoc.date.convertFormat(toString(actedIn0.endDateTime), 'iso_zoned_date_time', 'iso_offset_date_time')
 			},
 			node: {
-				__resolveType: 'Actor',
+				__typename: 'Actor',
 				name: actor0.name
 			}
 		}) AS actorsConnectionEdges

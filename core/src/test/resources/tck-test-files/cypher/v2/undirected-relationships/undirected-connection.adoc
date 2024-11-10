@@ -51,7 +51,7 @@ CALL {
 		RETURN collect( {
 			node: {
 				__id: elementId(user0),
-				__resolveType: 'User'
+				__typename: 'User'
 			}
 		}) AS friendsConnectionEdges
 	}

@@ -79,11 +79,11 @@ CALL {
 		WHERE movie0.title STARTS WITH $param0
 		WITH {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				screenTime: actedIn0.screenTime
 			},
 			node: {
-				__resolveType: 'Movie',
+				__typename: 'Movie',
 				title: movie0.title,
 				runtime: movie0.runtime,
 				__id: elementId(movie0)
@@ -95,11 +95,11 @@ CALL {
 		WHERE series0.title STARTS WITH $param1
 		WITH {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				screenTime: actedIn1.screenTime
 			},
 			node: {
-				__resolveType: 'Series',
+				__typename: 'Series',
 				title: series0.title,
 				episodes: series0.episodes,
 				__id: elementId(series0)
@@ -167,11 +167,11 @@ CALL {
 		MATCH (this)-[actedIn0:ACTED_IN]->(movie0:Movie)
 		WITH {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				screenTime: actedIn0.screenTime
 			},
 			node: {
-				__resolveType: 'Movie',
+				__typename: 'Movie',
 				title: movie0.title,
 				runtime: movie0.runtime,
 				__id: elementId(movie0)
@@ -182,11 +182,11 @@ CALL {
 		MATCH (this)-[actedIn1:ACTED_IN]->(series0:Series)
 		WITH {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				screenTime: actedIn1.screenTime
 			},
 			node: {
-				__resolveType: 'Series',
+				__typename: 'Series',
 				title: series0.title,
 				episodes: series0.episodes,
 				__id: elementId(series0)
@@ -258,11 +258,11 @@ CALL {
 		WHERE actedIn0.screenTime > $param0
 		WITH {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				screenTime: actedIn0.screenTime
 			},
 			node: {
-				__resolveType: 'Movie',
+				__typename: 'Movie',
 				title: movie0.title,
 				runtime: movie0.runtime,
 				__id: elementId(movie0)
@@ -274,11 +274,11 @@ CALL {
 		WHERE actedIn1.screenTime > $param1
 		WITH {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				screenTime: actedIn1.screenTime
 			},
 			node: {
-				__resolveType: 'Series',
+				__typename: 'Series',
 				title: series0.title,
 				episodes: series0.episodes,
 				__id: elementId(series0)
@@ -350,11 +350,11 @@ CALL {
 		MATCH (this)-[actedIn0:ACTED_IN]->(movie0:Movie)
 		WITH {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				screenTime: actedIn0.screenTime
 			},
 			node: {
-				__resolveType: 'Movie',
+				__typename: 'Movie',
 				title: movie0.title,
 				runtime: movie0.runtime,
 				__id: elementId(movie0)
@@ -365,11 +365,11 @@ CALL {
 		MATCH (this)-[actedIn1:ACTED_IN]->(series0:Series)
 		WITH {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				screenTime: actedIn1.screenTime
 			},
 			node: {
-				__resolveType: 'Series',
+				__typename: 'Series',
 				title: series0.title,
 				episodes: series0.episodes,
 				__id: elementId(series0)
@@ -443,11 +443,11 @@ CALL {
 		MATCH (this)-[actedIn0:ACTED_IN]->(movie0:Movie)
 		WITH {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				screenTime: actedIn0.screenTime
 			},
 			node: {
-				__resolveType: 'Movie',
+				__typename: 'Movie',
 				title: movie0.title,
 				runtime: movie0.runtime,
 				__id: elementId(movie0)
@@ -458,11 +458,11 @@ CALL {
 		MATCH (this)-[actedIn1:ACTED_IN]->(series0:Series)
 		WITH {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				screenTime: actedIn1.screenTime
 			},
 			node: {
-				__resolveType: 'Series',
+				__typename: 'Series',
 				title: series0.title,
 				episodes: series0.episodes,
 				__id: elementId(series0)
@@ -535,11 +535,11 @@ CALL {
 		MATCH (this)-[actedIn0:ACTED_IN]->(movie0:Movie)
 		WITH {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				screenTime: actedIn0.screenTime
 			},
 			node: {
-				__resolveType: 'Movie',
+				__typename: 'Movie',
 				title: movie0.title,
 				runtime: movie0.runtime,
 				__id: elementId(movie0)
@@ -550,11 +550,11 @@ CALL {
 		MATCH (this)-[actedIn1:ACTED_IN]->(series0:Series)
 		WITH {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				screenTime: actedIn1.screenTime
 			},
 			node: {
-				__resolveType: 'Series',
+				__typename: 'Series',
 				title: series0.title,
 				episodes: series0.episodes,
 				__id: elementId(series0)
@@ -627,11 +627,11 @@ CALL {
 		MATCH (this)-[actedIn0:ACTED_IN]->(movie0:Movie)
 		WITH {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				screenTime: actedIn0.screenTime
 			},
 			node: {
-				__resolveType: 'Movie',
+				__typename: 'Movie',
 				runtime: movie0.runtime,
 				title: movie0.title,
 				__id: elementId(movie0)
@@ -642,11 +642,11 @@ CALL {
 		MATCH (this)-[actedIn1:ACTED_IN]->(series0:Series)
 		WITH {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				screenTime: actedIn1.screenTime
 			},
 			node: {
-				__resolveType: 'Series',
+				__typename: 'Series',
 				episodes: series0.episodes,
 				title: series0.title,
 				__id: elementId(series0)

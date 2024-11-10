@@ -83,7 +83,7 @@ CALL {
 		WITH edge.node AS actor0, edge.relationship AS actedIn0
 		RETURN collect( {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				screenTime: actedIn0.screenTime,
 				location: CASE WHEN actedIn0.location IS NOT NULL THEN {
 					latitude: actedIn0.location.latitude,
@@ -91,7 +91,7 @@ CALL {
 				} ELSE NULL END
 			},
 			node: {
-				__resolveType: 'Actor',
+				__typename: 'Actor',
 				name: actor0.name
 			}
 		}) AS actorsConnectionEdges

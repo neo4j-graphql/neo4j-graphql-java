@@ -73,7 +73,7 @@ internal class ReadResolver internal constructor(
         }
     }
 
-    override fun generateCypher(variable: String, env: DataFetchingEnvironment): Statement {
+    override fun generateCypher(env: DataFetchingEnvironment): Statement {
         val queryContext = env.queryContext()
 
         val resolveTree = ResolveTree.resolve(env)
@@ -82,7 +82,7 @@ internal class ReadResolver internal constructor(
             { node ->
                 val input = InputArguments(node, resolveTree.args)
 
-                val dslNode = node.asCypherNode(queryContext, variable)
+                val dslNode = node.asCypherNode(queryContext, RESULT_VARIABLE)
 
 
                 val optionsInput = input.options.merge(node)
@@ -94,7 +94,6 @@ internal class ReadResolver internal constructor(
                         input.where,
                         additionalPredicates = null,
                     )
-
 
                 val projection = ProjectionTranslator()
                     .createProjectionAndParams(
@@ -114,10 +113,10 @@ internal class ReadResolver internal constructor(
                     .build()
             },
             { interfaze ->
-                createUnionRead(interfaze.implementations.values, resolveTree, interfaze, variable, queryContext)
+                createUnionRead(interfaze.implementations.values, resolveTree, interfaze, queryContext)
             },
             { union ->
-                createUnionRead(union.nodes.values, resolveTree, union, variable, queryContext)
+                createUnionRead(union.nodes.values, resolveTree, union, queryContext)
             }
         )
     }
@@ -126,7 +125,6 @@ internal class ReadResolver internal constructor(
         nodes: Collection<Node>,
         resolveTree: ResolveTree,
         entity: Entity,
-        variable: String,
         queryContext: QueryContext
     ): ResultStatement {
         val input = InputArguments(entity, resolveTree.args)
@@ -134,14 +132,14 @@ internal class ReadResolver internal constructor(
         val unionQueries = createUnionQueries(
             nodes,
             resolveTree,
-            Cypher.name(variable),
+            Cypher.name(RESULT_VARIABLE),
             queryContext,
             schemaConfig,
             input.where,
             { node -> Cypher.match(node) }
         )
 
-        val returnVariable = Cypher.name(variable)
+        val returnVariable = Cypher.name(RESULT_VARIABLE)
 
         val ongoingReading: StatementBuilder.OngoingReading = when {
             unionQueries.size > 1 -> Cypher.call(Cypher.union(unionQueries))
@@ -151,7 +149,7 @@ internal class ReadResolver internal constructor(
         return ongoingReading
             .with(returnVariable)
             .applySortingSkipAndLimit(returnVariable, input.options.merge(entity as? ImplementingType), queryContext)
-            .returning(returnVariable.`as`(variable))
+            .returning(returnVariable.`as`(RESULT_VARIABLE))
             .build()
     }
 }

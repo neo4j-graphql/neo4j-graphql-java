@@ -6,13 +6,25 @@ import graphql.execution.CoercedVariables
 import graphql.language.*
 import graphql.schema.*
 import org.neo4j.graphql.Constants
+import java.time.Duration
+import java.time.Period
+import java.time.format.DateTimeParseException
+import java.time.temporal.TemporalAmount
 import java.util.*
 
-object BigIntScalar {
+object DurationScalar {
 
     val INSTANCE: GraphQLScalarType = GraphQLScalarType.newScalar()
-        .name(Constants.BIG_INT)
-        .coercing(object : Coercing<Number, String> {
+        .name(Constants.DURATION)
+        .coercing(object : Coercing<TemporalAmount, String> {
+
+            private fun  parse(value: String): TemporalAmount {
+                try {
+                    return Duration.parse(value)
+                } catch (e: DateTimeParseException){
+                    return Period.parse(value)
+                }
+            }
 
             @Throws(CoercingSerializeException::class)
             override fun serialize(dataFetcherResult: Any, graphQLContext: GraphQLContext, locale: Locale): String {
@@ -20,14 +32,11 @@ object BigIntScalar {
             }
 
             @Throws(CoercingParseValueException::class)
-            override fun parseValue(input: Any, graphQLContext: GraphQLContext, locale: Locale): Number? {
+            override fun parseValue(input: Any, graphQLContext: GraphQLContext, locale: Locale): TemporalAmount? {
                 return when (input) {
-                    is StringValue -> input.value.toLong()
-                    is FloatValue -> input.value.toLong()
-                    is IntValue -> input.value.toLong()
-                    is String -> input.toLong()
-                    is Float, is Int, is Long -> input as Number
-                    else -> Assert.assertShouldNeverHappen("Only string or number is expected")
+                    is StringValue -> parse(input.value)
+                    is String -> parse(input)
+                    else -> Assert.assertShouldNeverHappen("Only string is expected")
                 }
             }
 
@@ -37,7 +46,7 @@ object BigIntScalar {
                 variables: CoercedVariables,
                 graphQLContext: GraphQLContext,
                 locale: Locale
-            ): Number? {
+            ): TemporalAmount? {
                 return parseValue(input, graphQLContext, locale)
             }
         })

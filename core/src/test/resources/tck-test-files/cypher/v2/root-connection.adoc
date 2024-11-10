@@ -57,7 +57,7 @@ CALL {
 	WITH * ORDER BY this.title ASC LIMIT $param0
 	RETURN collect( {
 		node: {
-			__resolveType: 'Movie',
+			__typename: 'Movie',
 			title: this.title
 		}
 	}) AS edges0
@@ -115,7 +115,7 @@ CALL {
 	WITH * ORDER BY this.title ASC LIMIT $param1
 	RETURN collect( {
 		node: {
-			__resolveType: 'Movie',
+			__typename: 'Movie',
 			title: this.title
 		}
 	}) AS edges0
@@ -187,7 +187,7 @@ CALL {
 			WITH edge.node AS actor0, edge.relationship AS actedIn0
 			RETURN collect( {
 				node: {
-					__resolveType: 'Actor',
+					__typename: 'Actor',
 					name: actor0.name
 				}
 			}) AS actorsConnectionEdges
@@ -199,7 +199,7 @@ CALL {
 	}
 	RETURN collect( {
 		node: {
-			__resolveType: 'Movie',
+			__typename: 'Movie',
 			title: this.title,
 			actorsConnection: actorsConnection
 		}
@@ -253,7 +253,7 @@ CALL {
 	WITH edge.node AS this
 	RETURN collect( {
 		node: {
-			__resolveType: 'Movie',
+			__typename: 'Movie',
 			title: this.title
 		}
 	}) AS edges0

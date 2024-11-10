@@ -135,7 +135,7 @@ CALL {
 	WITH * ORDER BY this.fg_item DESC
 	RETURN collect( {
 		node: {
-			__resolveType: 'Product',
+			__typename: 'Product',
 			id: this.fg_item_id,
 			partNumber: this.fg_item,
 			description: this.description
@@ -194,7 +194,7 @@ CALL {
 		WITH edge.node AS product0, edge.relationship AS canAccess0 ORDER BY product0.fg_item DESC
 		RETURN collect( {
 			node: {
-				__resolveType: 'Product',
+				__typename: 'Product',
 				id: product0.fg_item_id,
 				partNumber: product0.fg_item,
 				description: product0.description

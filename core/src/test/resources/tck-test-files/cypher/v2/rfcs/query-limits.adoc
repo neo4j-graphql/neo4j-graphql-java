@@ -74,7 +74,7 @@ CALL {
 		WITH edge.node AS person0, edge.relationship AS actedIn0 LIMIT $param0
 		RETURN collect( {
 			node: {
-				__resolveType: 'Person',
+				__typename: 'Person',
 				id: person0.id
 			}
 		}) AS actorsConnectionEdges
@@ -137,7 +137,7 @@ CALL {
 		WITH edge.node AS show0, edge.relationship AS partOf0 LIMIT $param0
 		RETURN collect( {
 			node: {
-				__resolveType: 'Show',
+				__typename: 'Show',
 				id: show0.id
 			}
 		}) AS showsConnectionEdges
@@ -202,7 +202,7 @@ CALL {
 		WITH edge.node AS person0, edge.relationship AS actedIn0 LIMIT $param0
 		RETURN collect( {
 			node: {
-				__resolveType: 'Person',
+				__typename: 'Person',
 				id: person0.id
 			}
 		}) AS actorsConnectionEdges

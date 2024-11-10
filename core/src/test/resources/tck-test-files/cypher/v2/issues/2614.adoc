@@ -67,7 +67,7 @@ CALL {
 		MATCH (this)-[actedIn0:ACTED_IN]->(movie0:Film)
 		WHERE movie0.title = $param0
 		WITH movie0 {
-			__resolveType: 'Movie',
+			__typename: 'Movie',
 			__id: elementId(movie0),
 			.title
 		} AS movie0
@@ -76,7 +76,7 @@ CALL {
 		MATCH (this)-[actedIn1:ACTED_IN]->(series0:Series)
 		WHERE series0.title = $param1
 		WITH series0 {
-			__resolveType: 'Series',
+			__typename: 'Series',
 			__id: elementId(series0),
 			.title
 		} AS series0

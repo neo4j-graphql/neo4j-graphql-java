@@ -10,7 +10,7 @@ import org.neo4j.graphql.schema.model.inputs.field_arguments.ConnectionFieldInpu
 import org.neo4j.graphql.schema.model.inputs.field_arguments.RelationFieldInputArgs
 import org.neo4j.graphql.wrapLike
 
-sealed class FieldContainerSelection {
+sealed interface FieldContainerSelection {
 
     object Augmentation : AugmentationBase {
 

@@ -72,11 +72,11 @@ CALL {
 		MATCH (this)-[wrote0:WROTE]->(book0:Book)
 		WITH {
 			properties: {
-				__resolveType: 'Wrote',
+				__typename: 'Wrote',
 				words: wrote0.words
 			},
 			node: {
-				__resolveType: 'Book',
+				__typename: 'Book',
 				title: book0.title,
 				__id: elementId(book0)
 			}
@@ -86,11 +86,11 @@ CALL {
 		MATCH (this)-[wrote1:WROTE]->(journal0:Journal)
 		WITH {
 			properties: {
-				__resolveType: 'Wrote',
+				__typename: 'Wrote',
 				words: wrote1.words
 			},
 			node: {
-				__resolveType: 'Journal',
+				__typename: 'Journal',
 				subject: journal0.subject,
 				__id: elementId(journal0)
 			}
@@ -156,11 +156,11 @@ CALL {
 		MATCH (this)-[wrote0:WROTE]->(book0:Book)
 		WITH {
 			properties: {
-				__resolveType: 'Wrote',
+				__typename: 'Wrote',
 				words: wrote0.words
 			},
 			node: {
-				__resolveType: 'Book',
+				__typename: 'Book',
 				title: book0.title,
 				__id: elementId(book0)
 			}
@@ -170,11 +170,11 @@ CALL {
 		MATCH (this)-[wrote1:WROTE]->(journal0:Journal)
 		WITH {
 			properties: {
-				__resolveType: 'Wrote',
+				__typename: 'Wrote',
 				words: wrote1.words
 			},
 			node: {
-				__resolveType: 'Journal',
+				__typename: 'Journal',
 				subject: journal0.subject,
 				__id: elementId(journal0)
 			}
@@ -252,11 +252,11 @@ CALL {
 		WHERE book0.title = $param0
 		WITH {
 			properties: {
-				__resolveType: 'Wrote',
+				__typename: 'Wrote',
 				words: wrote0.words
 			},
 			node: {
-				__resolveType: 'Book',
+				__typename: 'Book',
 				title: book0.title,
 				__id: elementId(book0)
 			}
@@ -267,11 +267,11 @@ CALL {
 		WHERE journal0.subject = $param1
 		WITH {
 			properties: {
-				__resolveType: 'Wrote',
+				__typename: 'Wrote',
 				words: wrote1.words
 			},
 			node: {
-				__resolveType: 'Journal',
+				__typename: 'Journal',
 				subject: journal0.subject,
 				__id: elementId(journal0)
 			}
@@ -346,11 +346,11 @@ CALL {
 			AND wrote0.words = $param1)
 		WITH {
 			properties: {
-				__resolveType: 'Wrote',
+				__typename: 'Wrote',
 				words: wrote0.words
 			},
 			node: {
-				__resolveType: 'Book',
+				__typename: 'Book',
 				title: book0.title,
 				__id: elementId(book0)
 			}
@@ -362,11 +362,11 @@ CALL {
 			AND wrote1.words = $param3)
 		WITH {
 			properties: {
-				__resolveType: 'Wrote',
+				__typename: 'Wrote',
 				words: wrote1.words
 			},
 			node: {
-				__resolveType: 'Journal',
+				__typename: 'Journal',
 				subject: journal0.subject,
 				__id: elementId(journal0)
 			}
@@ -438,11 +438,11 @@ CALL {
 		WHERE wrote0.words = $param0
 		WITH {
 			properties: {
-				__resolveType: 'Wrote',
+				__typename: 'Wrote',
 				words: wrote0.words
 			},
 			node: {
-				__resolveType: 'Book',
+				__typename: 'Book',
 				title: book0.title,
 				__id: elementId(book0)
 			}
@@ -453,11 +453,11 @@ CALL {
 		WHERE wrote1.words = $param1
 		WITH {
 			properties: {
-				__resolveType: 'Wrote',
+				__typename: 'Wrote',
 				words: wrote1.words
 			},
 			node: {
-				__resolveType: 'Journal',
+				__typename: 'Journal',
 				subject: journal0.subject,
 				__id: elementId(journal0)
 			}

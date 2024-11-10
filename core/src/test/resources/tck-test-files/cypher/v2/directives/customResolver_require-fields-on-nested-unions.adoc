@@ -91,7 +91,7 @@ CALL {
 		WITH *
 		MATCH (this)-[wrote0:WROTE]->(book0:Book)
 		WITH book0 {
-			__resolveType: 'Book',
+			__typename: 'Book',
 			__id: elementId(book0),
 			.title
 		} AS book0
@@ -99,7 +99,7 @@ CALL {
 		WITH *
 		MATCH (this)-[wrote1:WROTE]->(journal0:Journal)
 		WITH journal0 {
-			__resolveType: 'Journal',
+			__typename: 'Journal',
 			__id: elementId(journal0),
 			.subject
 		} AS journal0
@@ -144,7 +144,7 @@ CALL {
 		WITH *
 		MATCH (this)-[wrote0:WROTE]->(book0:Book)
 		WITH book0 {
-			__resolveType: 'Book',
+			__typename: 'Book',
 			__id: elementId(book0),
 			.title
 		} AS book0
@@ -152,7 +152,7 @@ CALL {
 		WITH *
 		MATCH (this)-[wrote1:WROTE]->(journal0:Journal)
 		WITH journal0 {
-			__resolveType: 'Journal',
+			__typename: 'Journal',
 			__id: elementId(journal0),
 			.subject
 		} AS journal0
@@ -202,7 +202,7 @@ CALL {
 		WITH *
 		MATCH (this)-[wrote0:WROTE]->(book0:Book)
 		WITH book0 {
-			__resolveType: 'Book',
+			__typename: 'Book',
 			__id: elementId(book0),
 			.title
 		} AS book0
@@ -210,7 +210,7 @@ CALL {
 		WITH *
 		MATCH (this)-[wrote1:WROTE]->(journal0:Journal)
 		WITH journal0 {
-			__resolveType: 'Journal',
+			__typename: 'Journal',
 			__id: elementId(journal0),
 			.subject
 		} AS journal0

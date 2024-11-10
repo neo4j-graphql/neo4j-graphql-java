@@ -78,7 +78,7 @@ CALL {
 				AND cartoon0:Series)
 			OR cartoon0:Movie)
 		WITH cartoon0 {
-			__resolveType: 'Cartoon',
+			__typename: 'Cartoon',
 			__id: elementId(cartoon0),
 			.title
 		} AS cartoon0
@@ -89,7 +89,7 @@ CALL {
 				AND movie0:Series)
 			OR movie0:Movie)
 		WITH movie0 {
-			__resolveType: 'Movie',
+			__typename: 'Movie',
 			__id: elementId(movie0),
 			.title
 		} AS movie0
@@ -100,7 +100,7 @@ CALL {
 				AND series0:Series)
 			OR series0:Movie)
 		WITH series0 {
-			__resolveType: 'Series',
+			__typename: 'Series',
 			__id: elementId(series0),
 			.title
 		} AS series0
@@ -149,7 +149,7 @@ CALL {
 			AND cartoon0:Series)
 		OR cartoon0:Movie)
 	WITH cartoon0 {
-		__resolveType: 'Cartoon',
+		__typename: 'Cartoon',
 		__id: elementId(cartoon0),
 		.title
 	} AS cartoon0
@@ -159,7 +159,7 @@ CALL {
 			AND movie0:Series)
 		OR movie0:Movie)
 	WITH movie0 {
-		__resolveType: 'Movie',
+		__typename: 'Movie',
 		__id: elementId(movie0),
 		.title
 	} AS movie0
@@ -169,7 +169,7 @@ CALL {
 			AND series0:Series)
 		OR series0:Movie)
 	WITH series0 {
-		__resolveType: 'Series',
+		__typename: 'Series',
 		__id: elementId(series0),
 		.title
 	} AS series0
@@ -225,7 +225,7 @@ CALL {
 		WITH *
 		MATCH (this)-[actedIn0:ACTED_IN]->(cartoon0:Cartoon)
 		WITH cartoon0 {
-			__resolveType: 'Cartoon',
+			__typename: 'Cartoon',
 			__id: elementId(cartoon0),
 			.title
 		} AS cartoon0
@@ -233,7 +233,7 @@ CALL {
 		WITH *
 		MATCH (this)-[actedIn1:ACTED_IN]->(movie0:Movie)
 		WITH movie0 {
-			__resolveType: 'Movie',
+			__typename: 'Movie',
 			__id: elementId(movie0),
 			.title
 		} AS movie0
@@ -241,7 +241,7 @@ CALL {
 		WITH *
 		MATCH (this)-[actedIn2:ACTED_IN]->(series0:Series)
 		WITH series0 {
-			__resolveType: 'Series',
+			__typename: 'Series',
 			__id: elementId(series0),
 			.title
 		} AS series0

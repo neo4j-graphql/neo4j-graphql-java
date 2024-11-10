@@ -117,12 +117,12 @@ CALL {
 		WITH edge.node AS movie0, edge.relationship AS actedIn0
 		RETURN collect( {
 			properties: {
-				__resolveType: 'ActorActedInProps',
+				__typename: 'ActorActedInProps',
 				character: actedIn0.characterPropInDb,
 				screenTime: actedIn0.screenTime
 			},
 			node: {
-				__resolveType: 'Movie',
+				__typename: 'Movie',
 				title: movie0.title,
 				rating: movie0.ratingPropInDb
 			}

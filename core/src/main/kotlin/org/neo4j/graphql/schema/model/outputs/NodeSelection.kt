@@ -7,7 +7,7 @@ import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.schema.AugmentationBase
 import org.neo4j.graphql.schema.AugmentationContext
 
-data object NodeSelection : FieldContainerSelection() {
+data object NodeSelection : FieldContainerSelection {
 
     object Augmentation : AugmentationBase {
 
