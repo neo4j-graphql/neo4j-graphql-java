@@ -2,8 +2,9 @@
 
 = GitHub Issue #295: Wrong node name used for end node in rich relationship
 
-== Schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Person{
@@ -23,8 +24,6 @@ type Person_HAS_Target_Book @relation(name: "HAS", from: "source", to: "target",
     target: Book
 }
 ----
-
-== Configuration
 
 .Configuration
 [source,json,schema-config=true]

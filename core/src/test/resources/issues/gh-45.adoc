@@ -2,8 +2,9 @@
 
 = GitHub Issue #45: A schema for tree-like structure fails with duplicate fields
 
-== Schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Category {

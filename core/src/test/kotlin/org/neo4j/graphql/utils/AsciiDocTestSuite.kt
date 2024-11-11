@@ -3,41 +3,117 @@ package org.neo4j.graphql.utils
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.intellij.rt.execution.junit.FileComparisonFailure
+import demo.org.neo4j.graphql.utils.asciidoc.AsciiDocParser
+import demo.org.neo4j.graphql.utils.asciidoc.ast.*
 import org.junit.jupiter.api.DynamicContainer
 import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.DynamicTest
 import java.io.File
 import java.io.FileWriter
-import java.net.URI
 import java.util.*
-import java.util.regex.Pattern
 import java.util.stream.Stream
-import javax.ws.rs.core.UriBuilder
+import kotlin.reflect.KMutableProperty1
 
 /**
  * @param fileName the name of the test file
- * @param testCaseMarkers the markers for the test case
- * @param globalMarkers the markers for global blocks
+ * @param relevantBlocks a list of pairs of filter functions and properties to set the found code blocks
  */
-open class AsciiDocTestSuite(
+abstract class AsciiDocTestSuite<T>(
     private val fileName: String,
-    private val testCaseMarkers: List<String> = emptyList(),
-    private val globalMarkers: List<String> = listOf(SCHEMA_MARKER)
+    private val relevantBlocks: List<CodeBlockMatcher<T>>,
 ) {
+
+    abstract class CodeBlockMatcher<T>(
+        val language: String,
+        val filter: Map<String, String?> = emptyMap(),
+        val exactly: Boolean = false
+    ) {
+        abstract fun set(testData: T, codeBlock: CodeBlock)
+    }
+
 
     private val srcLocation = File("src/test/resources/", fileName).toURI()
 
-    private val fileContent: StringBuilder = StringBuilder()
+    private val document = AsciiDocParser(fileName).parse()
 
     /**
-     * all parsed blocks of the test file
+     * all parsed code blocks of the test file
      */
-    private val knownBlocks: MutableList<ParsedBlock> = mutableListOf()
+    private val knownBlocks = collectBlocks(document).toMutableList()
 
     fun generateTests(): Stream<DynamicNode> {
-        val stream = FileParser().parse()
-        return if (FLATTEN_TESTS) flatten(stream, "$fileName:") else stream
+        val tests = createTestsOfSection(document).toMutableList()
+
+        if (UPDATE_TEST_FILE) {
+            // this test prints out the adjusted test file
+            tests += DynamicTest.dynamicTest(
+                "Write updated Testfile",
+                srcLocation,
+                this@AsciiDocTestSuite::writeAdjustedTestFile
+            )
+        } else if (REFORMAT_TEST_FILE) {
+            tests += DynamicTest.dynamicTest("Reformat Testfile", srcLocation, this@AsciiDocTestSuite::reformatTestFile)
+        } else if (GENERATE_TEST_FILE_DIFF) {
+            // this test prints out the adjusted test file
+            tests += DynamicTest.dynamicTest(
+                "Adjusted Tests",
+                srcLocation,
+                this@AsciiDocTestSuite::printAdjustedTestFile
+            )
+        }
+
+        return if (FLATTEN_TESTS) flatten(tests.stream(), "$fileName:") else tests.stream()
     }
+
+    private fun createTestsOfSection(section: Section, parentIgnoreReason: String? = null): List<DynamicNode> {
+
+        val tests = mutableListOf<DynamicNode>()
+        var testCase = createTestCase(section)
+        var ignoreReason: String? = null
+        for (node in section.blocks) {
+            when (node) {
+                is CodeBlock -> {
+                    for (matcher in relevantBlocks) {
+                        if (testCase != null && node.matches(matcher.language, matcher.filter, matcher.exactly)) {
+                            matcher.set(testCase, node)
+                        }
+                    }
+
+
+                }
+
+                is Block -> {
+                    val blockContent = node.content.trim()
+                    if (blockContent.startsWith("CAUTION:")) {
+                        ignoreReason = blockContent.substring("CAUTION:".length).trim()
+                    }
+                }
+
+                is ThematicBreak -> {
+                    if (testCase != null) {
+                        tests += createTests(testCase, section, ignoreReason ?: parentIgnoreReason)
+                    }
+                    ignoreReason = null
+                    testCase = createTestCase(section) ?: continue
+                }
+
+                is Section -> {
+                    val nestedTests = createTestsOfSection(node, ignoreReason ?: parentIgnoreReason)
+                    if (nestedTests.isNotEmpty()) {
+                        tests += DynamicContainer.dynamicContainer(node.title, node.uri, nestedTests.stream())
+                    }
+                }
+            }
+        }
+        if (testCase != null) {
+            tests += createTests(testCase, section, ignoreReason ?: parentIgnoreReason)
+        }
+        return tests
+    }
+
+    abstract fun createTestCase(section: Section): T?
+
+    abstract fun createTests(testCase: T, section: Section, ignoreReason: String?): List<DynamicNode>
 
     private fun flatten(stream: Stream<out DynamicNode>, name: String): Stream<DynamicNode> {
         return stream.flatMap {
@@ -49,171 +125,16 @@ open class AsciiDocTestSuite(
         }
     }
 
-    class ParsedBlock(
-        val marker: String,
-        val uri: URI,
-        var headline: String? = null
-    ) {
-        var start: Int? = null
-        var end: Int? = null
-        var adjustedCode: String? = null
-        var reformattedCode: String? = null
-        var semanticEqual = false
-
-        /**
-         * update only if other (tandem) is also updated
-         */
-        var tandemUpdate: ParsedBlock? = null
-        val code: StringBuilder = StringBuilder()
-
-        fun code() = code.trim().toString()
-    }
-
-    private inner class FileParser {
-
-        private var root: DocumentLevel? = null
-        private var currentDocumentLevel: DocumentLevel? = null
-        private var currentDepth = 0
-
-        private val globalCodeBlocks = mutableMapOf<String, MutableList<ParsedBlock>>()
-        private var codeBlocksOfTest = mutableMapOf<String, MutableList<ParsedBlock>>()
-
-        fun parse(): Stream<DynamicNode> {
-            val file = File(AsciiDocTestSuite::class.java.getResource("/$fileName")?.toURI()!!)
-            val lines = file.readLines()
-
-            var title: String? = null
-            var currentBlock: ParsedBlock? = null
-            var globalDone = false
-
-            var ignore = false
-            var inside = false
-            var offset = 0
-
-            loop@ for ((lineNr, line) in lines.withIndex()) {
-                fileContent.append(line).append('\n')
-                if (line.startsWith("#") || line.startsWith("//")) {
-                    offset += line.length + 1
-                    continue
-                }
-                val headlineMatcher = HEADLINE_PATTERN.matcher(line)
-
-                when {
-                    !globalDone && globalMarkers.contains(line) -> currentBlock =
-                        startBlock(line, lineNr, globalCodeBlocks)
-
-                    testCaseMarkers.contains(line) -> {
-                        globalDone = true
-                        currentBlock = startBlock(line, lineNr, codeBlocksOfTest)
-                    }
-
-                    line == "'''" -> {
-                        createTests(title, lineNr, ignore)
-                        currentBlock = null
-                        ignore = false
-                    }
-
-                    line == "----" -> {
-                        inside = !inside
-                        if (inside) {
-
-                            currentBlock?.start = offset + line.length + 1
-
-                        } else if (currentBlock != null) {
-
-                            currentBlock.end = offset
-                            when (currentBlock.marker) {
-
-                                SCHEMA_MARKER -> {
-                                    val schemaTests = schemaTestFactory(currentBlock.code())
-                                    currentDocumentLevel?.tests?.add(schemaTests)
-                                    if (testCaseMarkers.isEmpty()) {
-                                        break@loop
-                                    }
-                                }
-                            }
-
-                        }
-                    }
-
-                    headlineMatcher.matches() -> {
-                        val depth = headlineMatcher.group(1).length
-                        title = headlineMatcher.group(2)
-                        val uri = UriBuilder.fromUri(srcLocation).queryParam("line", lineNr + 1).build()
-                        handleHeadline(title, uri, depth)
-                    }
-
-                    line.startsWith("CAUTION:") -> ignore = true
-
-                    inside -> currentBlock?.code?.append(line)?.append("\n")
-
-                }
-                offset += line.length + 1 // +1 b/c of newline
-            }
-
-            if (UPDATE_TEST_FILE) {
-                // this test prints out the adjusted test file
-                root?.afterTests?.add(
-                    DynamicTest.dynamicTest(
-                        "Write updated Testfile",
-                        srcLocation,
-                        this@AsciiDocTestSuite::writeAdjustedTestFile
-                    )
-                )
-            } else if (REFORMAT_TEST_FILE) {
-                root?.afterTests?.add(
-                    DynamicTest.dynamicTest("Reformat Testfile", srcLocation, this@AsciiDocTestSuite::reformatTestFile)
-                )
-            } else if (GENERATE_TEST_FILE_DIFF) {
-                // this test prints out the adjusted test file
-                root?.afterTests?.add(
-                    DynamicTest.dynamicTest(
-                        "Adjusted Tests",
-                        srcLocation,
-                        this@AsciiDocTestSuite::printAdjustedTestFile
-                    )
-                )
-            }
-            return root?.generateTests() ?: Stream.empty()
+    private fun collectBlocks(node: StructuralNode): List<CodeBlock> {
+        return when (node) {
+            is CodeBlock -> listOf(node)
+            else -> node.blocks.flatMap { collectBlocks(it) }
         }
-
-        private fun createTests(title: String?, lineNr: Int, ignore: Boolean) {
-            if (codeBlocksOfTest.isEmpty()) {
-                throw IllegalStateException("no code blocks for tests (line $lineNr)")
-            }
-            val tests = testFactory(
-                title ?: throw IllegalStateException("Title should be defined (line $lineNr)"),
-                globalCodeBlocks,
-                codeBlocksOfTest,
-                ignore
-            )
-            currentDocumentLevel?.tests?.add(tests)
-            codeBlocksOfTest = mutableMapOf()
-        }
-
-        private fun handleHeadline(title: String, uri: URI, depth: Int) {
-            if (root == null) {
-                root = DocumentLevel(null, title, uri)
-                currentDocumentLevel = root
-            } else {
-                val parent = when {
-                    depth > currentDepth -> currentDocumentLevel
-                    depth == currentDepth -> currentDocumentLevel?.parent
-                        ?: throw IllegalStateException("cannot create sub-level on null")
-
-                    else -> currentDocumentLevel?.parent?.parent
-                        ?: throw IllegalStateException("cannot create sub-level on null")
-                }
-                currentDocumentLevel = DocumentLevel(parent, title, uri)
-            }
-            currentDepth = depth
-        }
-
     }
 
     private fun writeAdjustedTestFile() {
         val content = generateAdjustedFileContent({ block ->
-            block.adjustedCode.takeIf {
+            block.generatedContent.takeIf {
                 when {
                     UPDATE_SEMANTIC_EQUALLY_BLOCKS -> block.semanticEqual && (block.tandemUpdate?.semanticEqual ?: true)
                     else -> true
@@ -226,7 +147,7 @@ open class AsciiDocTestSuite(
     }
 
     private fun reformatTestFile() {
-        val content = generateAdjustedFileContent { it.reformattedCode }
+        val content = generateAdjustedFileContent { it.reformattedContent }
         FileWriter(File("src/test/resources/", fileName)).use {
             it.write(content)
         }
@@ -234,26 +155,25 @@ open class AsciiDocTestSuite(
 
     private fun printAdjustedTestFile() {
         val rebuildTest = generateAdjustedFileContent()
-        if (!Objects.equals(rebuildTest, fileContent.toString())) {
+        if (!Objects.equals(rebuildTest, document.content)) {
             // This special exception will be handled by intellij so that you can diff directly with the file
             throw FileComparisonFailure(
-                null, fileContent.toString(), rebuildTest,
+                null, document.content, rebuildTest,
                 File("src/test/resources/", fileName).absolutePath, null
             )
         }
     }
 
-    private fun generateAdjustedFileContent(extractor: (ParsedBlock) -> String? = { it.adjustedCode }): String {
-        knownBlocks.sortWith(compareByDescending<ParsedBlock> { it.start }
-            .thenByDescending { testCaseMarkers.indexOf(it.marker) })
-        val rebuildTest = StringBuffer(fileContent)
+    private fun generateAdjustedFileContent(extractor: (CodeBlock) -> String? = { it.generatedContent }): String {
+        knownBlocks.sortWith(compareByDescending { it.start })
+        val rebuildTest = StringBuffer(document.content)
         knownBlocks.filter { extractor(it) != null }
             .forEach { block ->
-                val start = block.start ?: throw IllegalArgumentException("unknown start position")
+                val start = block.start ?: error("unknown start position")
                 if (block.end == null) {
                     rebuildTest.insert(
                         start,
-                        ".${block.headline}\n${block.marker}\n----\n${extractor(block)}\n----\n\n"
+                        ".${block.caption}\n${block.marker}\n----\n${extractor(block)}\n----\n\n"
                     )
                 } else {
                     rebuildTest.replace(start, block.end!!, extractor(block) + "\n")
@@ -262,43 +182,23 @@ open class AsciiDocTestSuite(
         return rebuildTest.toString()
     }
 
-    fun startBlock(marker: String, lineIndex: Int, blocks: MutableMap<String, MutableList<ParsedBlock>>): ParsedBlock {
-        val uri = UriBuilder.fromUri(srcLocation).queryParam("line", lineIndex + 1).build()
-        val block = ParsedBlock(marker, uri)
-        knownBlocks += block
-        blocks.computeIfAbsent(marker) { mutableListOf() }.add(block)
-        return block
-    }
-
-    protected open fun testFactory(
-        title: String,
-        globalBlocks: Map<String, List<ParsedBlock>>,
-        codeBlocks: Map<String, List<ParsedBlock>>,
-        ignore: Boolean
-    ): List<DynamicNode> {
-        return emptyList()
-    }
-
-    protected open fun schemaTestFactory(schema: String): List<DynamicNode> {
-        return emptyList()
-    }
-
-    protected fun getOrCreateBlocks(
-        codeBlocks: Map<String, List<ParsedBlock>>,
-        marker: String,
-        headline: String
-    ): List<ParsedBlock> {
-        val blocks = codeBlocks[marker]?.toMutableList() ?: mutableListOf()
-        if (blocks.isEmpty() && (GENERATE_TEST_FILE_DIFF || UPDATE_TEST_FILE)) {
-            val insertPoints = testCaseMarkers.indexOf(marker).let { testCaseMarkers.subList(0, it).asReversed() }
-            val insertPoint = insertPoints.mapNotNull { codeBlocks[it]?.firstOrNull() }.firstOrNull()
-                ?: throw IllegalArgumentException("none of the insert points $insertPoints found in $fileName")
-            val block = ParsedBlock(marker, insertPoint.uri, headline)
-            block.start = (insertPoint.end ?: throw IllegalStateException("no start for block defined")) + 6
-            knownBlocks += blocks
-            blocks += block
+    fun createCodeBlock(
+        insertPoint: CodeBlock,
+        language: String,
+        headline: String,
+        attributes: Map<String, String?> = emptyMap()
+    ): CodeBlock? {
+        if (!GENERATE_TEST_FILE_DIFF && !UPDATE_TEST_FILE) {
+            return null
         }
-        return blocks
+        val codeBlock = CodeBlock(insertPoint.uri, language, insertPoint.parent, attributes)
+            .apply {
+                caption = headline
+                content = ""
+            }
+        codeBlock.start = (insertPoint.end ?: error("no start for block defined")) + 6
+        knownBlocks += codeBlock
+        return codeBlock
     }
 
     companion object {
@@ -312,67 +212,66 @@ open class AsciiDocTestSuite(
         val UPDATE_SEMANTIC_EQUALLY_BLOCKS =
             System.getProperty("neo4j-graphql-java.update-semantic-equally-blocks", "false") == "true"
         val MAPPER = ObjectMapper().registerKotlinModule()
-        val HEADLINE_PATTERN: Pattern = Pattern.compile("^(=+) (.*)$")
-
-        const val SCHEMA_MARKER = "[source,graphql,schema=true]"
-        const val SCHEMA_CONFIG_MARKER = "[source,json,schema-config=true]"
-
-        class DocumentLevel(
-            val parent: DocumentLevel?,
-            val name: String,
-            private val testSourceUri: URI
-        ) {
-            private val children = mutableListOf<DocumentLevel>()
-            val tests = mutableListOf<List<DynamicNode>>()
-            val afterTests = mutableListOf<DynamicNode>()
-
-            init {
-                parent?.children?.add(this)
-            }
-
-            fun generateTests(): Stream<DynamicNode> {
-                val streamBuilder = Stream.builder<DynamicNode>()
-                if (tests.size > 1) {
-                    if (children.isNotEmpty()) {
-                        streamBuilder.add(
-                            DynamicContainer.dynamicContainer(
-                                name,
-                                testSourceUri,
-                                children.stream().flatMap { it.generateTests() })
-                        )
-                    }
-                    for ((index, test) in tests.withIndex()) {
-                        streamBuilder.add(
-                            DynamicContainer.dynamicContainer(
-                                name + " " + (index + 1),
-                                testSourceUri,
-                                test.stream()
-                            )
-                        )
-                    }
-                } else {
-                    val nodes = Stream.concat(
-                        tests.stream().flatMap { it.stream() },
-                        children.stream().flatMap { it.generateTests() }
-                    )
-                    streamBuilder.add(DynamicContainer.dynamicContainer(name, testSourceUri, nodes))
-                }
-                afterTests.forEach { streamBuilder.add(it) }
-                return streamBuilder.build()
-            }
-        }
 
         fun String.parseJsonMap(): Map<String, Any?> = this.let {
             @Suppress("UNCHECKED_CAST")
             MAPPER.readValue(this, Map::class.java) as Map<String, Any?>
         }
 
-        fun String.normalize(): String = this
-            .replace(Regex("\\s+"), " ")
-            .replace(Regex(",(\\S)"), ", $1")
-            .replace(Regex("\\{(\\S)"), "{ $1")
-            .replace(Regex("(\\S)}"), "$1 }")
-            .replace(Regex(":(\\S)"), ": $1")
+
+        /**
+         * Find all directly nested code blocks of a given section matching the language and filter
+         */
+        private fun findCodeBlocks(
+            section: Section,
+            language: String,
+            filter: Map<String, String?> = emptyMap()
+        ): List<CodeBlock> =
+            section.blocks
+                .filterIsInstance<CodeBlock>()
+                .filter { it.matches(language, filter) }
+
+        /**
+         * Find all setup blocks for a given section, including the setup blocks of the parent sections
+         */
+        fun findSetupCodeBlocks(
+            section: Section,
+            language: String,
+            fiter: Map<String, String?> = emptyMap()
+        ): List<CodeBlock> {
+            val result = mutableListOf<CodeBlock>()
+            var currentSection: Section? = section
+            while (currentSection != null) {
+                result.addAll(findCodeBlocks(currentSection, language, fiter))
+                currentSection.blocks
+                    .filterIsInstance<Section>()
+                    .filter { it.title == "Setup" }
+                    .forEach { result.addAll(findCodeBlocks(it, language, fiter)) }
+                currentSection = currentSection.parent
+            }
+            return result
+        }
+
+        fun <T> matcher(
+            language: String,
+            filter: Map<String, String?> = emptyMap(),
+            exactly: Boolean = false,
+            setter: KMutableProperty1<T, CodeBlock?>
+        ): CodeBlockMatcher<T> =
+            matcher(language, filter, exactly) { testData, codeBlock -> setter.set(testData, codeBlock) }
+
+        fun <T> matcher(
+            language: String,
+            filter: Map<String, String?> = emptyMap(),
+            exactly: Boolean = false,
+            setter: (T, CodeBlock) -> Unit
+        ): CodeBlockMatcher<T> =
+            object : CodeBlockMatcher<T>(language, filter, exactly) {
+                override fun set(testData: T, codeBlock: CodeBlock) {
+                    setter(testData, codeBlock)
+                }
+            }
+
     }
 
 }

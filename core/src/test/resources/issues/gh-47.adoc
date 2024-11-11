@@ -2,8 +2,9 @@
 
 = GitHub Issue #47: lack of filtering for null values
 
-== Schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Company {

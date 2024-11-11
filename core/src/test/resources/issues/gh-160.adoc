@@ -2,8 +2,9 @@
 
 = GitHub Issue #160: Incorrect query translation for @property
 
-== Schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type User {

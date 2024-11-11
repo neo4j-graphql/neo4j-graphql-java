@@ -2,8 +2,9 @@
 
 = Translator Tests
 
-== Schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type User {
@@ -18,8 +19,7 @@ type Referral @relation (name:"REFERRED_BY", from:"referredBy", to: "user", dire
 }
 ----
 
-== Test Data
-
+.Test Data
 [source,cypher,test-data=true]
 ----
 CREATE

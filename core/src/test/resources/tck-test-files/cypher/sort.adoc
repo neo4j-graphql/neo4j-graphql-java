@@ -4,8 +4,9 @@
 
 Tests for queries including reserved arguments `skip` and `limit`.
 
-== Inputs
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Movie {
@@ -30,8 +31,6 @@ input GenreSort {
     name: SortDirection
 }
 ----
-
-== Configuration
 
 .Configuration
 [source,json,schema-config=true]

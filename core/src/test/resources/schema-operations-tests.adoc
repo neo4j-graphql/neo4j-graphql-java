@@ -2,8 +2,9 @@
 
 = Schema operations tests
 
-== Schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Person { name: String }

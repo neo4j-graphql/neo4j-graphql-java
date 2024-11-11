@@ -4,8 +4,9 @@
 
 Tests that the provided typeDefs return the correct schema.
 
-== Inputs
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Movie {
@@ -13,8 +14,6 @@ type Movie {
     ratings: [Float!]
 }
 ----
-
-== Configuration
 
 .Configuration
 [source,json,schema-config=true]
