@@ -2,8 +2,9 @@
 
 = Movie Test TCK
 
-== Schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Movie {

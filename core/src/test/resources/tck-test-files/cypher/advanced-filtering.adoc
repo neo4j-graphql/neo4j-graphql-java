@@ -4,8 +4,9 @@
 
 Tests advanced filtering.
 
-== Inputs
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Movie {
@@ -24,9 +25,7 @@ type Genre {
 }
 ----
 
-== Configuration
-
-.Configuration
+.Schema Configuration
 [source,json,schema-config=true]
 ----
 {

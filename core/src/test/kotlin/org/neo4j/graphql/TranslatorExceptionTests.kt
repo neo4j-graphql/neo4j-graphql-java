@@ -1,5 +1,7 @@
 package org.neo4j.graphql
 
+import demo.org.neo4j.graphql.utils.asciidoc.ast.CodeBlock
+import demo.org.neo4j.graphql.utils.asciidoc.ast.Section
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.DynamicTest
@@ -7,41 +9,44 @@ import org.junit.jupiter.api.TestFactory
 import org.neo4j.graphql.utils.AsciiDocTestSuite
 import java.util.stream.Stream
 
-class TranslatorExceptionTests : AsciiDocTestSuite("translator-tests1.adoc") {
+class TranslatorExceptionTests : AsciiDocTestSuite<CodeBlock>("translator-tests1.adoc", emptyList()) {
 
-    @TestFactory
-    fun createTests(): Stream<DynamicNode> {
-        return generateTests()
+    override fun createTestCase(section: Section): CodeBlock? {
+        return findSetupCodeBlocks(section, "graphql", mapOf("schema" to "true")).firstOrNull() ?: return null
     }
 
-    override fun schemaTestFactory(schema: String): List<DynamicNode> {
-        val translator = Translator(SchemaBuilder.buildSchema(schema))
+    override fun createTests(testCase: CodeBlock, section: Section, ignoreReason: String?): List<DynamicNode> {
+        if (section.title != "Tests") {
+            return emptyList()
+        }
         return listOf(
             DynamicTest.dynamicTest("unknownType") {
                 Assertions.assertThrows(InvalidQueryException::class.java) {
-                    translator.translate(
+                    Translator(SchemaBuilder.buildSchema(testCase.content)).translate(
                         """
-                        {
-                          company {
-                            name
-                          }
-                        }
-                        """
+                    {
+                      company {
+                        name
+                      }
+                    }
+                    """
                     )
                 }
             },
             DynamicTest.dynamicTest("mutation") {
                 Assertions.assertThrows(InvalidQueryException::class.java) {
-                    translator.translate(
+                    Translator(SchemaBuilder.buildSchema(testCase.content)).translate(
                         """
-                        {
-                          createPerson()
-                        }
-                        """.trimIndent()
+                    {
+                      createPerson()
+                    }
+                    """.trimIndent()
                     )
                 }
             }
-
         )
     }
+
+    @TestFactory
+    fun createTests(): Stream<DynamicNode> = generateTests()
 }

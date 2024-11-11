@@ -4,8 +4,9 @@
 
 Tests for queries including reserved arguments `skip` and `limit`.
 
-== Inputs
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Movie {
@@ -25,8 +26,6 @@ input ActorOptions {
   skip: Int = 0
 }
 ----
-
-== Configuration
 
 .Configuration
 [source,json,schema-config=true]

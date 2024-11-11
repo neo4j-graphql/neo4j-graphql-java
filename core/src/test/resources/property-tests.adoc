@@ -2,8 +2,9 @@
 
 = Property Tests
 
-== Schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Person {

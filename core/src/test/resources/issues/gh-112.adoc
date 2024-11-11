@@ -2,8 +2,9 @@
 
 = GitHub Issue #112: deleting bidirectional relationships
 
-== Schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type User
@@ -14,8 +15,7 @@ type User
 }
 ----
 
-== Test Data
-
+.Test Data
 [source,cypher,test-data=true]
 ----
 CREATE

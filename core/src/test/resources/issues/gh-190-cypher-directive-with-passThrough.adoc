@@ -2,8 +2,9 @@
 
 = GitHub Issue #190: cypher directive with passThrough
 
-== Schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Query {
@@ -23,6 +24,7 @@ type MapsCreated {
 }
 ----
 
+.Test Data
 [source,cypher,test-data=true]
 ----
 CREATE

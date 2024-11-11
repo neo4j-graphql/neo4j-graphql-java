@@ -2,8 +2,9 @@
 
 = GitHub Issue #85: not-supported cypher directive with scalar result
 
-== Schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Movie {
@@ -28,8 +29,7 @@ type Mutation {
 }
 ----
 
-== Test Data
-
+.Test Data
 [source,cypher,test-data=true]
 ----
 CREATE (:User:Person{ name: 'Andreas' });

@@ -4,8 +4,9 @@
 
 Tests DateTime operations.
 
-== Schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Movie {
@@ -13,8 +14,6 @@ type Movie {
     datetime: DateTime
 }
 ----
-
-== Configuration
 
 .Configuration
 [source,json,schema-config=true]
@@ -27,8 +26,7 @@ type Movie {
 }
 ----
 
-== Test Data
-
+.Test Data
 [source,cypher,test-data=true]
 ----
 CREATE

@@ -2,8 +2,9 @@
 
 = Augmentation Tests
 
-== Schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 interface HasMovies { movies:[Movie] }

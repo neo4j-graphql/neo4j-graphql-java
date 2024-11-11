@@ -4,8 +4,9 @@
 
 Tests that the provided typeDefs return the correct schema.
 
-== Inputs
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Movie {
@@ -15,8 +16,6 @@ type Movie {
     isActive: Boolean
 }
 ----
-
-== Configuration
 
 .Configuration
 [source,json,schema-config=true]

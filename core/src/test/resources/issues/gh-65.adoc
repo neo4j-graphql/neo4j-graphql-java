@@ -2,8 +2,9 @@
 
 = GitHub Issue #65: Filtering on children through parent fields generates logically invalid cypher
 
-== Schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type SurveyTemplate{
@@ -17,8 +18,7 @@ type SurveyResponse{
 }
 ----
 
-== Test Data
-
+.Test Data
 [source,cypher,test-data=true]
 ----
 CREATE (tA:SurveyTemplate{ uid: 'a' })

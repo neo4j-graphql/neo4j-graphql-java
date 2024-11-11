@@ -4,8 +4,9 @@
 
 Tests that the @ignore directive works as expected.
 
-== Inputs
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type User {
@@ -15,8 +16,6 @@ type User {
     nickname: String! @ignore
 }
 ----
-
-== Configuration
 
 .Configuration
 [source,json,schema-config=true]
