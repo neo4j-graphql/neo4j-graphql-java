@@ -87,7 +87,8 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
             val testData = testCase.testData.firstOrNull()
             var response = testCase.graphqlResponse
             if (response == null) {
-                response = createCodeBlock(testCase.graphqlRequest!!, GRAPHQL_RESPONSE_MARKER, "GraphQL-Response")
+                response =
+                    createCodeBlock(testCase.graphqlRequest!!, "json", "GraphQL-Response", mapOf("response" to "true"))
                 testCase.graphqlResponse = response
             }
             if (testData != null && response != null) {
@@ -108,7 +109,7 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
             }
 
             (testCase.cypherParams.takeIf { it.isNotEmpty() }
-                ?: createCodeBlock(testCase.cypher.first(), CYPHER_PARAMS_MARKER, "Cypher Params")?.let { listOf(it) }
+                ?: createCodeBlock(testCase.cypher.first(), "json", "Cypher Params")?.let { listOf(it) }
                 ?: emptyList())
                 .filter { it.content.isNotBlank() }
                 .forEach { params ->
@@ -363,10 +364,6 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
     companion object {
         private val DEBUG = System.getProperty("neo4j-graphql-java.debug", "false") == "true"
         private val CONVERT_NUMBER = System.getProperty("neo4j-graphql-java.convert-number", "true") == "true"
-
-        private const val GRAPHQL_RESPONSE_MARKER = "[source,json,response=true]"
-        private const val CYPHER_PARAMS_MARKER = "[source,json]"
-
 
         private val DURATION_PATTERN: Pattern = Pattern.compile("^P(.*?)(?:T(.*))?$")
 

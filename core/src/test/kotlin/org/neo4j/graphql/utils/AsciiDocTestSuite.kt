@@ -175,11 +175,16 @@ abstract class AsciiDocTestSuite<T>(
         return rebuildTest.toString()
     }
 
-    fun createCodeBlock(insertPoint: CodeBlock, marker: String, headline: String): CodeBlock? {
+    fun createCodeBlock(
+        insertPoint: CodeBlock,
+        language: String,
+        headline: String,
+        attributes: Map<String, String?> = emptyMap()
+    ): CodeBlock? {
         if (!GENERATE_TEST_FILE_DIFF && !UPDATE_TEST_FILE) {
             return null
         }
-        val codeBlock = CodeBlock.parseMeta(insertPoint.parent, insertPoint.uri, marker)
+        val codeBlock = CodeBlock(insertPoint.uri, language, insertPoint.parent, attributes)
             .apply {
                 caption = headline
                 content = ""

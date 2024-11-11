@@ -36,24 +36,4 @@ class CodeBlock(
     fun matches(language: String, filter: Map<String, String?> = emptyMap(), exactly: Boolean = false) =
         this.language == language && filter.all { (k, v) -> attributes[k] == v } && (!exactly || attributes.size == filter.size)
 
-
-    companion object {
-
-        fun parseMeta(parent: Section, uri: URI, meta: String): CodeBlock {
-            if (!meta.startsWith("[source,")) {
-                error("Invalid code block meta: $meta")
-            }
-
-            val parts = meta.substring(8, meta.indexOf("]")).trim().split(",")
-            val language = parts[0]
-            val attributes = parts.slice(1..<parts.size).map {
-                val attributeParts = it.split("=")
-                attributeParts[0] to attributeParts.getOrNull(1)
-            }.toMap()
-
-            return CodeBlock(uri, language, parent, attributes)
-        }
-
-    }
-
 }

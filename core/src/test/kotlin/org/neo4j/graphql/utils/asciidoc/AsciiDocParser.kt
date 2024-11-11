@@ -63,7 +63,15 @@ class AsciiDocParser(
                 line.startsWith("[source,") -> {
                     addBlock(content)
                     val uri = UriBuilder.fromUri(srcLocation).queryParam("line", lineNr + 1).build()
-                    currentCodeBlock = CodeBlock.parseMeta(currentSection, uri, line).also {
+
+                    val parts = line.substring(8, line.indexOf("]")).trim().split(",")
+                    val language = parts[0]
+                    val attributes = parts.slice(1..<parts.size).map {
+                        val attributeParts = it.split("=")
+                        attributeParts[0] to attributeParts.getOrNull(1)
+                    }.toMap()
+
+                    currentCodeBlock = CodeBlock(uri, language, currentSection, attributes).also {
                         it.caption = caption
                         currentSection.blocks.add(it)
                     }
