@@ -1,0 +1,943 @@
+:toc:
+:toclevels: 42
+
+= https://github.com/neo4j/graphql/issues/2820
+
+== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+interface Production {
+  title: String!
+}
+
+type Movie implements Production {
+  title: String!
+}
+
+type Series implements Production {
+  title: String!
+}
+
+union ProductionUnion = Movie | Series
+
+type Actor {
+  name: String!
+  actedIn: [Production!]! @relationship(type: "ACTED_IN", direction: OUT)
+  actedInUnion: [ProductionUnion!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (a:Actor { name: "Actor" })
+ CREATE (a)-[:ACTED_IN]->(:Movie { title: "House" })
+ CREATE (a)-[:ACTED_IN]->(:Series { title: "House" })
+ CREATE (a)-[:ACTED_IN]->(:Movie { title: "Friends" })
+ CREATE (a)-[:ACTED_IN]->(:Series { title: "Friends" })
+----
+
+== interface count and amount should be correct
+
+=== should return total count 4
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  actors {
+    actedInConnection {
+      totalCount
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+CALL {
+	WITH this
+	CALL {
+		WITH this
+		MATCH (this)-[actedIn0:ACTED_IN]->(movie0:Movie)
+		WITH {
+			node: {
+				__id: elementId(movie0),
+				__typename: 'Movie'
+			}
+		} AS edge
+		RETURN edge UNION
+		WITH this
+		MATCH (this)-[actedIn1:ACTED_IN]->(series0:Series)
+		WITH {
+			node: {
+				__id: elementId(series0),
+				__typename: 'Series'
+			}
+		} AS edge
+		RETURN edge
+	}
+	WITH collect(edge) AS edges
+	WITH edges, size(edges) AS totalCount
+	RETURN {
+		edges: edges,
+		totalCount: totalCount
+	} AS actedInConnection
+}
+RETURN this {
+	actedInConnection: actedInConnection
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "actors": [
+    {
+      "actedInConnection": {
+        "totalCount": 4
+      }
+    }
+  ]
+}
+----
+
+'''
+
+=== should return interface members in Connection
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  actors {
+    actedInConnection {
+      totalCount
+      edges {
+        node {
+          __typename
+          title
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+CALL {
+	WITH this
+	CALL {
+		WITH this
+		MATCH (this)-[actedIn0:ACTED_IN]->(movie0:Movie)
+		WITH {
+			node: {
+				__typename: 'Movie',
+				title: movie0.title,
+				__id: elementId(movie0)
+			}
+		} AS edge
+		RETURN edge UNION
+		WITH this
+		MATCH (this)-[actedIn1:ACTED_IN]->(series0:Series)
+		WITH {
+			node: {
+				__typename: 'Series',
+				title: series0.title,
+				__id: elementId(series0)
+			}
+		} AS edge
+		RETURN edge
+	}
+	WITH collect(edge) AS edges
+	WITH edges, size(edges) AS totalCount
+	RETURN {
+		edges: edges,
+		totalCount: totalCount
+	} AS actedInConnection
+}
+RETURN this {
+	actedInConnection: actedInConnection
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "actors": [
+    {
+      "actedInConnection": {
+        "totalCount": 4,
+        "edges": [
+          {
+            "node": {
+              "__typename": "Movie",
+              "title": "House"
+            }
+          },
+          {
+            "node": {
+              "__typename": "Movie",
+              "title": "Friends"
+            }
+          },
+          {
+            "node": {
+              "__typename": "Series",
+              "title": "House"
+            }
+          },
+          {
+            "node": {
+              "__typename": "Series",
+              "title": "Friends"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+----
+
+'''
+
+=== should return interface members in Connection without querying title
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  actors {
+    actedInConnection {
+      totalCount
+      edges {
+        node {
+          __typename
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+CALL {
+	WITH this
+	CALL {
+		WITH this
+		MATCH (this)-[actedIn0:ACTED_IN]->(movie0:Movie)
+		WITH {
+			node: {
+				__typename: 'Movie',
+				__id: elementId(movie0)
+			}
+		} AS edge
+		RETURN edge UNION
+		WITH this
+		MATCH (this)-[actedIn1:ACTED_IN]->(series0:Series)
+		WITH {
+			node: {
+				__typename: 'Series',
+				__id: elementId(series0)
+			}
+		} AS edge
+		RETURN edge
+	}
+	WITH collect(edge) AS edges
+	WITH edges, size(edges) AS totalCount
+	RETURN {
+		edges: edges,
+		totalCount: totalCount
+	} AS actedInConnection
+}
+RETURN this {
+	actedInConnection: actedInConnection
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "actors": [
+    {
+      "actedInConnection": {
+        "totalCount": 4,
+        "edges": [
+          {
+            "node": {
+              "__typename": "Movie"
+            }
+          },
+          {
+            "node": {
+              "__typename": "Movie"
+            }
+          },
+          {
+            "node": {
+              "__typename": "Series"
+            }
+          },
+          {
+            "node": {
+              "__typename": "Series"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+----
+
+'''
+
+=== should return interface members in normal field
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  actors {
+    actedIn {
+      __typename
+      title
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[actedIn0:ACTED_IN]->(movie0:Movie)
+		WITH movie0 {
+			__typename: 'Movie',
+			__id: elementId(movie0),
+			.title
+		} AS movie0
+		RETURN movie0 AS actedIn UNION
+		WITH *
+		MATCH (this)-[actedIn1:ACTED_IN]->(series0:Series)
+		WITH series0 {
+			__typename: 'Series',
+			__id: elementId(series0),
+			.title
+		} AS series0
+		RETURN series0 AS actedIn
+	}
+	WITH actedIn
+	RETURN collect(actedIn) AS actedIn
+}
+RETURN this {
+	actedIn: actedIn
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "actors": [
+    {
+      "actedIn": [
+        {
+          "__typename": "Movie",
+          "title": "House"
+        },
+        {
+          "__typename": "Movie",
+          "title": "Friends"
+        },
+        {
+          "__typename": "Series",
+          "title": "House"
+        },
+        {
+          "__typename": "Series",
+          "title": "Friends"
+        }
+      ]
+    }
+  ]
+}
+----
+
+'''
+
+=== should return interface members in normal field without querying title
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  actors {
+    actedIn {
+      __typename
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[actedIn0:ACTED_IN]->(movie0:Movie)
+		WITH movie0 {
+			__typename: 'Movie',
+			__id: elementId(movie0)
+		} AS movie0
+		RETURN movie0 AS actedIn UNION
+		WITH *
+		MATCH (this)-[actedIn1:ACTED_IN]->(series0:Series)
+		WITH series0 {
+			__typename: 'Series',
+			__id: elementId(series0)
+		} AS series0
+		RETURN series0 AS actedIn
+	}
+	WITH actedIn
+	RETURN collect(actedIn) AS actedIn
+}
+RETURN this {
+	actedIn: actedIn
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "actors": [
+    {
+      "actedIn": [
+        {
+          "__typename": "Movie"
+        },
+        {
+          "__typename": "Movie"
+        },
+        {
+          "__typename": "Series"
+        },
+        {
+          "__typename": "Series"
+        }
+      ]
+    }
+  ]
+}
+----
+
+'''
+
+== union count and amount should be correct
+
+=== should return total count 4
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  actors {
+    actedInUnionConnection {
+      totalCount
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+CALL {
+	WITH this
+	CALL {
+		WITH this
+		MATCH (this)-[actedIn0:ACTED_IN]->(movie0:Movie)
+		WITH {
+			node: {
+				__id: elementId(movie0),
+				__typename: 'Movie'
+			}
+		} AS edge
+		RETURN edge UNION
+		WITH this
+		MATCH (this)-[actedIn1:ACTED_IN]->(series0:Series)
+		WITH {
+			node: {
+				__id: elementId(series0),
+				__typename: 'Series'
+			}
+		} AS edge
+		RETURN edge
+	}
+	WITH collect(edge) AS edges
+	WITH edges, size(edges) AS totalCount
+	RETURN {
+		edges: edges,
+		totalCount: totalCount
+	} AS actedInUnionConnection
+}
+RETURN this {
+	actedInUnionConnection: actedInUnionConnection
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "actors": [
+    {
+      "actedInUnionConnection": {
+        "totalCount": 4
+      }
+    }
+  ]
+}
+----
+
+'''
+
+=== should return interface members in Connection
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  actors {
+    actedInUnionConnection {
+      totalCount
+      edges {
+        node {
+          __typename
+          ... on Movie {
+            title
+          }
+          ... on Series {
+            title
+          }
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+CALL {
+	WITH this
+	CALL {
+		WITH this
+		MATCH (this)-[actedIn0:ACTED_IN]->(movie0:Movie)
+		WITH {
+			node: {
+				__typename: 'Movie',
+				title: movie0.title,
+				__id: elementId(movie0)
+			}
+		} AS edge
+		RETURN edge UNION
+		WITH this
+		MATCH (this)-[actedIn1:ACTED_IN]->(series0:Series)
+		WITH {
+			node: {
+				__typename: 'Series',
+				title: series0.title,
+				__id: elementId(series0)
+			}
+		} AS edge
+		RETURN edge
+	}
+	WITH collect(edge) AS edges
+	WITH edges, size(edges) AS totalCount
+	RETURN {
+		edges: edges,
+		totalCount: totalCount
+	} AS actedInUnionConnection
+}
+RETURN this {
+	actedInUnionConnection: actedInUnionConnection
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "actors": [
+    {
+      "actedInUnionConnection": {
+        "totalCount": 4,
+        "edges": [
+          {
+            "node": {
+              "__typename": "Movie",
+              "title": "House"
+            }
+          },
+          {
+            "node": {
+              "__typename": "Movie",
+              "title": "Friends"
+            }
+          },
+          {
+            "node": {
+              "__typename": "Series",
+              "title": "Friends"
+            }
+          },
+          {
+            "node": {
+              "__typename": "Series",
+              "title": "House"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+----
+
+'''
+
+=== should return interface members in Connection without querying title
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  actors {
+    actedInUnionConnection {
+      totalCount
+      edges {
+        node {
+          __typename
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+CALL {
+	WITH this
+	CALL {
+		WITH this
+		MATCH (this)-[actedIn0:ACTED_IN]->(movie0:Movie)
+		WITH {
+			node: {
+				__typename: 'Movie',
+				__id: elementId(movie0)
+			}
+		} AS edge
+		RETURN edge UNION
+		WITH this
+		MATCH (this)-[actedIn1:ACTED_IN]->(series0:Series)
+		WITH {
+			node: {
+				__typename: 'Series',
+				__id: elementId(series0)
+			}
+		} AS edge
+		RETURN edge
+	}
+	WITH collect(edge) AS edges
+	WITH edges, size(edges) AS totalCount
+	RETURN {
+		edges: edges,
+		totalCount: totalCount
+	} AS actedInUnionConnection
+}
+RETURN this {
+	actedInUnionConnection: actedInUnionConnection
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "actors": [
+    {
+      "actedInUnionConnection": {
+        "totalCount": 4,
+        "edges": [
+          {
+            "node": {
+              "__typename": "Movie"
+            }
+          },
+          {
+            "node": {
+              "__typename": "Movie"
+            }
+          },
+          {
+            "node": {
+              "__typename": "Series"
+            }
+          },
+          {
+            "node": {
+              "__typename": "Series"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+----
+
+'''
+
+=== should return interface members in normal field
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  actors {
+    actedInUnion {
+      __typename
+      ... on Movie {
+        title
+      }
+      ... on Series {
+        title
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[actedIn0:ACTED_IN]->(movie0:Movie)
+		WITH movie0 {
+			__typename: 'Movie',
+			__id: elementId(movie0),
+			.title
+		} AS movie0
+		RETURN movie0 AS actedInUnion0 UNION
+		WITH *
+		MATCH (this)-[actedIn1:ACTED_IN]->(series0:Series)
+		WITH series0 {
+			__typename: 'Series',
+			__id: elementId(series0),
+			.title
+		} AS series0
+		RETURN series0 AS actedInUnion0
+	}
+	WITH actedInUnion0
+	RETURN collect(actedInUnion0) AS actedInUnion0
+}
+RETURN this {
+	actedInUnion: actedInUnion0
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "actors": [
+    {
+      "actedInUnion": [
+        {
+          "__typename": "Movie",
+          "title": "House"
+        },
+        {
+          "__typename": "Movie",
+          "title": "Friends"
+        },
+        {
+          "__typename": "Series",
+          "title": "House"
+        },
+        {
+          "__typename": "Series",
+          "title": "Friends"
+        }
+      ]
+    }
+  ]
+}
+----
+
+'''
+
+=== should return interface members in normal field without querying title
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  actors {
+    actedInUnion {
+      __typename
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[actedIn0:ACTED_IN]->(movie0:Movie)
+		WITH movie0 {
+			__typename: 'Movie',
+			__id: elementId(movie0)
+		} AS movie0
+		RETURN movie0 AS actedInUnion0 UNION
+		WITH *
+		MATCH (this)-[actedIn1:ACTED_IN]->(series0:Series)
+		WITH series0 {
+			__typename: 'Series',
+			__id: elementId(series0)
+		} AS series0
+		RETURN series0 AS actedInUnion0
+	}
+	WITH actedInUnion0
+	RETURN collect(actedInUnion0) AS actedInUnion0
+}
+RETURN this {
+	actedInUnion: actedInUnion0
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "actors": [
+    {
+      "actedInUnion": [
+        {
+          "__typename": "Movie"
+        },
+        {
+          "__typename": "Movie"
+        },
+        {
+          "__typename": "Series"
+        },
+        {
+          "__typename": "Series"
+        }
+      ]
+    }
+  ]
+}
+----
+
+'''
+

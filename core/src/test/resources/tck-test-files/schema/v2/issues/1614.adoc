@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
-= https://github.com/neo4j/graphql/issues/1614 -> should include enumFields on relationships
+= https://github.com/neo4j/graphql/issues/1614
 
-== Source schema
+== should include enumFields on relationships
 
+.Schema
 [source,graphql,schema=true]
 ----
 enum CrewPositionType {
@@ -24,8 +26,6 @@ type CrewMember {
   movies: Movie! @relationship(type: "WORKED_ON", direction: OUT, properties: "CrewPosition")
 }
 ----
-
-== Augmented schema
 
 .Augmented Schema
 [source,graphql]
@@ -180,3 +180,4 @@ input MovieWhere {
 ----
 
 '''
+

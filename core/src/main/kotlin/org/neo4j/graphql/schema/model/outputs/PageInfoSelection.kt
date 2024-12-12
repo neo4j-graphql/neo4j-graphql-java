@@ -2,6 +2,7 @@ package org.neo4j.graphql.schema.model.outputs
 
 import org.neo4j.graphql.Constants
 import org.neo4j.graphql.NonNull
+import org.neo4j.graphql.asDescription
 import org.neo4j.graphql.schema.AugmentationBase
 import org.neo4j.graphql.schema.AugmentationContext
 import org.neo4j.graphql.utils.IResolveTree
@@ -18,7 +19,9 @@ class PageInfoSelection(
     object Augmentation : AugmentationBase {
 
         fun generateNodeSelection(ctx: AugmentationContext) =
-            ctx.getOrCreateObjectType(TYPE_NAME) { fields, _ ->
+            ctx.getOrCreateObjectType(
+                TYPE_NAME,
+                { description("Pagination information (Relay)".asDescription()) }) { fields, _ ->
                 fields += field(PageInfoSelection::startCursor, Constants.Types.String)
                 fields += field(PageInfoSelection::endCursor, Constants.Types.String)
                 fields += field(PageInfoSelection::hasNextPage, Constants.Types.Boolean.NonNull)

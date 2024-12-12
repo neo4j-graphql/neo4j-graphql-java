@@ -1,0 +1,86 @@
+:toc:
+:toclevels: 42
+
+= query options
+
+== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+type Actor {
+  name: String
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: IN)
+}
+
+type Movie {
+  id: ID!
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+----
+
+== queries should work with runtime set to interpreted
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (:Movie {id: "RandomString1"}), (:Movie {id: "RandomString1"}), (:Movie {id: "RandomString1"})
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query ($id: ID) {
+  movies(where: {id: $id}) {
+    id
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "id": "RandomString1"
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "RandomString1"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.id = $param0
+RETURN this {
+	.id
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies": [
+    {
+      "id": "RandomString1"
+    },
+    {
+      "id": "RandomString1"
+    },
+    {
+      "id": "RandomString1"
+    }
+  ]
+}
+----
+
+'''
+

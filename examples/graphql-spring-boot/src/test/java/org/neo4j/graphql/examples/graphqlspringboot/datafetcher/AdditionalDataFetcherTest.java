@@ -33,7 +33,7 @@ class AdditionalDataFetcherTest {
     private Driver driver;
 
     @Container
-    private static final Neo4jContainer<?> neo4jServer = new Neo4jContainer<>("neo4j:5.23.0");
+    private static final Neo4jContainer<?> neo4jServer = new Neo4jContainer<>("neo4j:5.24.0");
 
 
     @BeforeEach

@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = Cypher -> Connections -> Filtering -> Composite
 
-== Source schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Movie {
@@ -188,7 +190,7 @@ RETURN this {
 
 '''
 
-== Composite NOT with complex nested filters
+== Composite OR (edge and node)
 
 .GraphQL-Query
 [source,graphql]
@@ -197,7 +199,7 @@ RETURN this {
   movies(where: {title: "Forrest Gump"}) {
     title
     actorsConnection(
-      where: {NOT: {AND: [{OR: [{node: {AND: [{firstName: "Tom"}, {lastName: "Hanks"}]}}, {edge: {AND: [{screenTime_GT: 30}, {screenTime_LT: 90}]}}]}, {node: {AND: [{firstName: "Tommy"}, {lastName: "Ford"}]}}]}}
+      where: {OR: [{node: {AND: [{firstName: "Tom"}, {lastName: "Hanks"}]}}, {edge: {AND: [{screenTime_GT: 30}, {screenTime_LT: 90}]}}]}
     ) {
       edges {
         properties {
@@ -221,9 +223,7 @@ RETURN this {
   "param1" : "Tom",
   "param2" : "Hanks",
   "param3" : 30,
-  "param4" : 90,
-  "param5" : "Tommy",
-  "param6" : "Ford"
+  "param4" : 90
 }
 ----
 
@@ -235,12 +235,10 @@ WHERE this.title = $param0
 CALL {
 	WITH this
 	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
-	WHERE NOT ((((actor0.firstName = $param1
-				AND actor0.lastName = $param2)
-			OR (actedIn0.screenTime > $param3
-				AND actedIn0.screenTime < $param4))
-		AND actor0.firstName = $param5
-		AND actor0.lastName = $param6))
+	WHERE ((actor0.firstName = $param1
+			AND actor0.lastName = $param2)
+		OR (actedIn0.screenTime > $param3
+			AND actedIn0.screenTime < $param4))
 	WITH collect( {
 		node: actor0,
 		relationship: actedIn0
@@ -358,7 +356,7 @@ RETURN this {
 
 '''
 
-== Composite OR (edge and node)
+== Composite NOT with complex nested filters
 
 .GraphQL-Query
 [source,graphql]
@@ -367,7 +365,7 @@ RETURN this {
   movies(where: {title: "Forrest Gump"}) {
     title
     actorsConnection(
-      where: {OR: [{node: {AND: [{firstName: "Tom"}, {lastName: "Hanks"}]}}, {edge: {AND: [{screenTime_GT: 30}, {screenTime_LT: 90}]}}]}
+      where: {NOT: {AND: [{OR: [{node: {AND: [{firstName: "Tom"}, {lastName: "Hanks"}]}}, {edge: {AND: [{screenTime_GT: 30}, {screenTime_LT: 90}]}}]}, {node: {AND: [{firstName: "Tommy"}, {lastName: "Ford"}]}}]}}
     ) {
       edges {
         properties {
@@ -391,7 +389,9 @@ RETURN this {
   "param1" : "Tom",
   "param2" : "Hanks",
   "param3" : 30,
-  "param4" : 90
+  "param4" : 90,
+  "param5" : "Tommy",
+  "param6" : "Ford"
 }
 ----
 
@@ -403,10 +403,12 @@ WHERE this.title = $param0
 CALL {
 	WITH this
 	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
-	WHERE ((actor0.firstName = $param1
-			AND actor0.lastName = $param2)
-		OR (actedIn0.screenTime > $param3
-			AND actedIn0.screenTime < $param4))
+	WHERE NOT ((((actor0.firstName = $param1
+				AND actor0.lastName = $param2)
+			OR (actedIn0.screenTime > $param3
+				AND actedIn0.screenTime < $param4))
+		AND actor0.firstName = $param5
+		AND actor0.lastName = $param6))
 	WITH collect( {
 		node: actor0,
 		relationship: actedIn0

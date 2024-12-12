@@ -1,0 +1,66 @@
+:toc:
+:toclevels: 42
+
+= Date
+
+== find
+
+=== should find a movie (with a Date)
+
+.Schema
+[source,graphql,schema=true]
+----
+type Movie {
+  date: Date
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (m:Movie)
+ SET m.date = date("2024-12-01")
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {date: "2024-12-01T15:46:32.522Z"}) {
+    date
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "2024-12-01"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.date = $param0
+RETURN this {
+	.date
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies": [
+    {
+      "date": "2024-12-01"
+    }
+  ]
+}
+----
+
+'''
+

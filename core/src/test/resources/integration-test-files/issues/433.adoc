@@ -1,0 +1,109 @@
+:toc:
+:toclevels: 42
+
+= https://github.com/neo4j/graphql/issues/433
+
+== should recreate issue and return correct data
+
+.Schema
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String
+  actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN)
+}
+
+type Person {
+  name: String
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (:Movie {title: "RandomString1"})<-[:ACTED_IN]-(:Person {name: "RandomString2"})
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {title: "RandomString1"}) {
+    title
+    actorsConnection(where: {}) {
+      edges {
+        node {
+          name
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "RandomString1"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+CALL {
+	WITH this
+	MATCH (person0:Person)-[actedIn0:ACTED_IN]->(this)
+	WITH collect( {
+		node: person0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS person0, edge.relationship AS actedIn0
+		RETURN collect( {
+			node: {
+				__typename: 'Person',
+				name: person0.name
+			}
+		}) AS actorsConnectionEdges
+	}
+	RETURN {
+		edges: actorsConnectionEdges,
+		totalCount: totalCount
+	} AS actorsConnection
+}
+RETURN this {
+	.title,
+	actorsConnection: actorsConnection
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies": [
+    {
+      "title": "RandomString1",
+      "actorsConnection": {
+        "edges": [
+          {
+            "node": {
+              "name": "RandomString2"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+----
+
+'''
+

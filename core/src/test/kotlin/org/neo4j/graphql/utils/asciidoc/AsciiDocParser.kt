@@ -1,6 +1,7 @@
 package demo.org.neo4j.graphql.utils.asciidoc
 
 import demo.org.neo4j.graphql.utils.asciidoc.ast.*
+import org.apache.commons.csv.CSVFormat
 import java.io.File
 import java.net.URI
 import java.util.regex.Pattern
@@ -23,6 +24,7 @@ class AsciiDocParser(
         var title: String?
 
         var insideCodeblock = false
+        var insideTable = false
         var offset = 0
 
         val fileContent = StringBuilder()
@@ -33,6 +35,7 @@ class AsciiDocParser(
         var caption: String? = null
 
         var currentCodeBlock: CodeBlock? = null
+        var currentTable: Table? = null
         var content = StringBuilder()
 
 
@@ -60,6 +63,23 @@ class AsciiDocParser(
                     caption = line.substring(1).trim()
                 }
 
+                line.startsWith("[%header,format=csv") -> {
+                    addBlock(content)
+                    val uri = UriBuilder.fromUri(srcLocation).queryParam("line", lineNr + 1).build()
+
+                    val parts = line.substring(19, line.indexOf("]")).trim().split(",")
+                    val attributes = parts.slice(0..<parts.size).map {
+                        val attributeParts = it.split("=")
+                        attributeParts[0] to attributeParts.getOrNull(1)
+                    }.toMap()
+
+                    currentTable = Table(uri, currentSection, attributes).also {
+                        it.caption = caption
+                        currentSection.blocks.add(it)
+                    }
+                    caption = null
+                }
+
                 line.startsWith("[source,") -> {
                     addBlock(content)
                     val uri = UriBuilder.fromUri(srcLocation).queryParam("line", lineNr + 1).build()
@@ -81,6 +101,22 @@ class AsciiDocParser(
                 line == "'''" -> {
                     addBlock(content)
                     currentSection.blocks.add(ThematicBreak())
+                }
+
+                line == "|===" -> {
+                    insideTable = !insideTable
+                    if (insideTable) {
+                        currentTable?.start = offset + line.length + 1
+                        content = StringBuilder()
+                    } else if (currentTable != null) {
+                        currentTable.end = offset
+                        currentTable.records = CSVFormat.Builder.create().setHeader()
+                            .setSkipHeaderRecord(true)
+                            .build()
+                            .parse(content.toString().trim().reader()).use { it.records }
+                        currentTable = null
+                        content = StringBuilder()
+                    }
                 }
 
                 line == "----" -> {

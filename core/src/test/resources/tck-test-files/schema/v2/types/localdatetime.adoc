@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
-= Localdatetime -> LocalDateTime
+= Localdatetime
 
-== Source schema
+== LocalDateTime
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Movie {
@@ -11,8 +13,6 @@ type Movie {
   localDT: LocalDateTime
 }
 ----
-
-== Augmented schema
 
 .Augmented Schema
 [source,graphql]
@@ -94,3 +94,4 @@ input MovieWhere {
 ----
 
 '''
+

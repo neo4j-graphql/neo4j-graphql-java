@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
-= Datetime -> DateTime
+= Datetime
 
-== Source schema
+== DateTime
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Movie {
@@ -11,8 +13,6 @@ type Movie {
   datetime: DateTime
 }
 ----
-
-== Augmented schema
 
 .Augmented Schema
 [source,graphql]
@@ -94,3 +94,4 @@ input MovieWhere {
 ----
 
 '''
+

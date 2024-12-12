@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
-= https://github.com/neo4j/graphql/issues/2981 -> BookTranslatedTitleCreateFieldInput fields should not be of type List
+= https://github.com/neo4j/graphql/issues/2981
 
-== Source schema
+== BookTranslatedTitleCreateFieldInput fields should not be of type List
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Book {
@@ -24,8 +26,6 @@ type BookTitle_EN {
   value: String!
 }
 ----
-
-== Augmented schema
 
 .Augmented Schema
 [source,graphql]
@@ -289,3 +289,4 @@ input QueryOptions {
 ----
 
 '''
+

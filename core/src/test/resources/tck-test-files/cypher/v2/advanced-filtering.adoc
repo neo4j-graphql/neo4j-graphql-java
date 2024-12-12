@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = Cypher Advanced Filtering
 
-== Source schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Movie {
@@ -20,8 +22,6 @@ type Genre {
   movies: [Movie!]! @relationship(type: "IN_GENRE", direction: IN)
 }
 ----
-
-== Configuration
 
 .Configuration
 [source,json,schema-config=true]
@@ -43,6 +43,70 @@ type Genre {
   }
 }
 ----
+
+== IN
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {_id_IN: ["123"]}) {
+    _id
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : [ "123" ]
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this._id IN $param0
+RETURN this {
+	._id
+} AS this
+----
+
+'''
+
+== REGEX
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {id_MATCHES: "(?i)123.*"}) {
+    id
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "(?i)123.*"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.id =~ $param0
+RETURN this {
+	.id
+} AS this
+----
+
+'''
 
 == CONTAINS
 
@@ -69,6 +133,38 @@ type Genre {
 ----
 MATCH (this:Movie)
 WHERE this.id CONTAINS $param0
+RETURN this {
+	.id
+} AS this
+----
+
+'''
+
+== STARTS_WITH
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {id_STARTS_WITH: "123"}) {
+    id
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "123"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.id STARTS WITH $param0
 RETURN this {
 	.id
 } AS this
@@ -103,236 +199,6 @@ MATCH (this:Movie)
 WHERE this.id ENDS WITH $param0
 RETURN this {
 	.id
-} AS this
-----
-
-'''
-
-== GT
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  movies(where: {actorCount_GT: 123}) {
-    actorCount
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0" : 123
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Movie)
-WHERE this.actorCount > $param0
-RETURN this {
-	.actorCount
-} AS this
-----
-
-'''
-
-== GT BigInt
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  movies(where: {budget_GT: 9223372036854775000}) {
-    budget
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0" : {
-    "low" : -808,
-    "high" : 2147483647
-  }
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Movie)
-WHERE this.budget > $param0
-RETURN this {
-	.budget
-} AS this
-----
-
-'''
-
-== GT String
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  movies(where: {title_GT: "The Matrix Revolutions"}) {
-    title
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0" : "The Matrix Revolutions"
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Movie)
-WHERE this.title > $param0
-RETURN this {
-	.title
-} AS this
-----
-
-'''
-
-== GTE
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  movies(where: {actorCount_GTE: 123}) {
-    actorCount
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0" : 123
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Movie)
-WHERE this.actorCount >= $param0
-RETURN this {
-	.actorCount
-} AS this
-----
-
-'''
-
-== GTE BigInt
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  movies(where: {budget_GTE: 9223372036854775000}) {
-    budget
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0" : {
-    "low" : -808,
-    "high" : 2147483647
-  }
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Movie)
-WHERE this.budget >= $param0
-RETURN this {
-	.budget
-} AS this
-----
-
-'''
-
-== GTE String
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  movies(where: {title_GTE: "The Matrix Revolutions"}) {
-    title
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0" : "The Matrix Revolutions"
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Movie)
-WHERE this.title >= $param0
-RETURN this {
-	.title
-} AS this
-----
-
-'''
-
-== IN
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  movies(where: {_id_IN: ["123"]}) {
-    _id
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0" : [ "123" ]
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Movie)
-WHERE this._id IN $param0
-RETURN this {
-	._id
 } AS this
 ----
 
@@ -536,81 +402,13 @@ RETURN this {
 
 '''
 
-== REGEX
+== GT
 
 .GraphQL-Query
 [source,graphql]
 ----
 {
-  movies(where: {id_MATCHES: "(?i)123.*"}) {
-    id
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0" : "(?i)123.*"
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Movie)
-WHERE this.id =~ $param0
-RETURN this {
-	.id
-} AS this
-----
-
-'''
-
-== STARTS_WITH
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  movies(where: {id_STARTS_WITH: "123"}) {
-    id
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0" : "123"
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Movie)
-WHERE this.id STARTS WITH $param0
-RETURN this {
-	.id
-} AS this
-----
-
-'''
-
-== Connections
-
-=== List Predicates
-
-==== ALL
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  movies(where: {genresConnection_ALL: {node: {name: "some genre"}}}) {
+  movies(where: {actorCount_GT: 123}) {
     actorCount
   }
 }
@@ -620,7 +418,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "some genre"
+  "param0" : 123
 }
 ----
 
@@ -628,14 +426,7 @@ RETURN this {
 [source,cypher]
 ----
 MATCH (this:Movie)
-WHERE (EXISTS {
-		MATCH (this)-[edge:IN_GENRE]->(this0:Genre)
-		WHERE this0.name = $param0
-	}
-	AND NOT (EXISTS {
-		MATCH (this)-[edge:IN_GENRE]->(this0:Genre)
-		WHERE NOT (this0.name = $param0)
-	}))
+WHERE this.actorCount > $param0
 RETURN this {
 	.actorCount
 } AS this
@@ -643,13 +434,80 @@ RETURN this {
 
 '''
 
-==== NONE
+== GT BigInt
 
 .GraphQL-Query
 [source,graphql]
 ----
 {
-  movies(where: {genresConnection_NONE: {node: {name: "some genre"}}}) {
+  movies(where: {budget_GT: 9223372036854775000}) {
+    budget
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : {
+    "low" : -808,
+    "high" : 2147483647
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.budget > $param0
+RETURN this {
+	.budget
+} AS this
+----
+
+'''
+
+== GT String
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {title_GT: "The Matrix Revolutions"}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "The Matrix Revolutions"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title > $param0
+RETURN this {
+	.title
+} AS this
+----
+
+'''
+
+== GTE
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {actorCount_GTE: 123}) {
     actorCount
   }
 }
@@ -659,7 +517,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "some genre"
+  "param0" : 123
 }
 ----
 
@@ -667,10 +525,7 @@ RETURN this {
 [source,cypher]
 ----
 MATCH (this:Movie)
-WHERE NOT (EXISTS {
-	MATCH (this)-[edge:IN_GENRE]->(this0:Genre)
-	WHERE this0.name = $param0
-})
+WHERE this.actorCount >= $param0
 RETURN this {
 	.actorCount
 } AS this
@@ -678,14 +533,14 @@ RETURN this {
 
 '''
 
-==== SINGLE
+== GTE BigInt
 
 .GraphQL-Query
 [source,graphql]
 ----
 {
-  movies(where: {genresConnection_SINGLE: {node: {name: "some genre"}}}) {
-    actorCount
+  movies(where: {budget_GTE: 9223372036854775000}) {
+    budget
   }
 }
 ----
@@ -694,7 +549,10 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "some genre"
+  "param0" : {
+    "low" : -808,
+    "high" : 2147483647
+  }
 }
 ----
 
@@ -702,24 +560,22 @@ RETURN this {
 [source,cypher]
 ----
 MATCH (this:Movie)
-WHERE single(ignore IN [(this)-[edge:IN_GENRE]->(this0:Genre)
-WHERE this0.name = $param0 | 1]
-WHERE true)
+WHERE this.budget >= $param0
 RETURN this {
-	.actorCount
+	.budget
 } AS this
 ----
 
 '''
 
-==== SOME
+== GTE String
 
 .GraphQL-Query
 [source,graphql]
 ----
 {
-  movies(where: {genresConnection_SOME: {node: {name: "some genre"}}}) {
-    actorCount
+  movies(where: {title_GTE: "The Matrix Revolutions"}) {
+    title
   }
 }
 ----
@@ -728,7 +584,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "some genre"
+  "param0" : "The Matrix Revolutions"
 }
 ----
 
@@ -736,12 +592,9 @@ RETURN this {
 [source,cypher]
 ----
 MATCH (this:Movie)
-WHERE EXISTS {
-	MATCH (this)-[edge:IN_GENRE]->(this0:Genre)
-	WHERE this0.name = $param0
-}
+WHERE this.title >= $param0
 RETURN this {
-	.actorCount
+	.title
 } AS this
 ----
 
@@ -894,5 +747,150 @@ RETURN this {
 
 '''
 
+== Connections
 
+=== List Predicates
+
+==== ALL
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {genresConnection_ALL: {node: {name: "some genre"}}}) {
+    actorCount
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "some genre"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE (EXISTS {
+		MATCH (this)-[edge:IN_GENRE]->(this0:Genre)
+		WHERE this0.name = $param0
+	}
+	AND NOT (EXISTS {
+		MATCH (this)-[edge:IN_GENRE]->(this0:Genre)
+		WHERE NOT (this0.name = $param0)
+	}))
+RETURN this {
+	.actorCount
+} AS this
+----
+
+'''
+
+==== NONE
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {genresConnection_NONE: {node: {name: "some genre"}}}) {
+    actorCount
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "some genre"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE NOT (EXISTS {
+	MATCH (this)-[edge:IN_GENRE]->(this0:Genre)
+	WHERE this0.name = $param0
+})
+RETURN this {
+	.actorCount
+} AS this
+----
+
+'''
+
+==== SINGLE
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {genresConnection_SINGLE: {node: {name: "some genre"}}}) {
+    actorCount
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "some genre"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE single(ignore IN [(this)-[edge:IN_GENRE]->(this0:Genre)
+WHERE this0.name = $param0 | 1]
+WHERE true)
+RETURN this {
+	.actorCount
+} AS this
+----
+
+'''
+
+==== SOME
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {genresConnection_SOME: {node: {name: "some genre"}}}) {
+    actorCount
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "some genre"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE EXISTS {
+	MATCH (this)-[edge:IN_GENRE]->(this0:Genre)
+	WHERE this0.name = $param0
+}
+RETURN this {
+	.actorCount
+} AS this
+----
+
+'''
 

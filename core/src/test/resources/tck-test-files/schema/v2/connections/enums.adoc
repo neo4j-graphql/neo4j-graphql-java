@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
-= Enums -> Enum Relationship Properties
+= Enums
 
-== Source schema
+== Enum Relationship Properties
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Actor {
@@ -25,8 +27,6 @@ type ActedIn @relationshipProperties {
   roleType: RoleType!
 }
 ----
-
-== Augmented schema
 
 .Augmented Schema
 [source,graphql]
@@ -249,3 +249,4 @@ input MovieWhere {
 ----
 
 '''
+

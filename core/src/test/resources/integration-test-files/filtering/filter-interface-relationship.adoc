@@ -1,0 +1,613 @@
+:toc:
+:toclevels: 42
+
+= interface relationships
+
+== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+interface Production {
+  title: String!
+}
+
+type Movie implements Production {
+  title: String!
+  runtime: Int!
+}
+
+type Series implements Production {
+  title: String!
+  episodes: Int!
+}
+
+type ActedIn @relationshipProperties {
+  screenTime: Int!
+}
+
+type Actor {
+  name: String!
+  currentlyActingIn: Production @relationship(type: "CURRENTLY_ACTING_IN", direction: OUT)
+  actedIn: [Production!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
+}
+----
+
+== should read and return interface relationship fields with interface relationship filter SOME
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (a:Actor { name: "RandomString1" })
+ CREATE (a)-[:ACTED_IN { screenTime: 9448 }]->(:Movie { title: "RandomString3", runtime:96406 })
+ CREATE (a)-[:ACTED_IN { screenTime: 3167 }]->(:Series { title: "RandomString5", episodes: 56834 })
+ CREATE (a2:Actor { name: "RandomString2" })
+ CREATE (a2)-[:ACTED_IN { screenTime: 9448 }]->(:Movie { title: "RandomString4", runtime:96406 })
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query Actors($title: String) {
+  actors(where: {actedIn_SOME: {title: $title}}) {
+    name
+    actedIn {
+      title
+      ... on Movie {
+        runtime
+      }
+      ... on Series {
+        episodes
+      }
+    }
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "title": "RandomString4"
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "RandomString4",
+  "param1": "RandomString4"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+WHERE (EXISTS {
+		MATCH (this)-[:ACTED_IN]->(this0:Movie)
+		WHERE this0.title = $param0
+	}
+	OR EXISTS {
+		MATCH (this)-[:ACTED_IN]->(this1:Series)
+		WHERE this1.title = $param1
+	})
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[actedIn0:ACTED_IN]->(movie0:Movie)
+		WITH movie0 {
+			__typename: 'Movie',
+			__id: elementId(movie0),
+			.title,
+			.runtime
+		} AS movie0
+		RETURN movie0 AS actedIn UNION
+		WITH *
+		MATCH (this)-[actedIn1:ACTED_IN]->(series0:Series)
+		WITH series0 {
+			__typename: 'Series',
+			__id: elementId(series0),
+			.title,
+			.episodes
+		} AS series0
+		RETURN series0 AS actedIn
+	}
+	WITH actedIn
+	RETURN collect(actedIn) AS actedIn
+}
+RETURN this {
+	.name,
+	actedIn: actedIn
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "actors": [
+    {
+      "name": "RandomString2",
+      "actedIn": [
+        {
+          "title": "RandomString4",
+          "runtime": 96406
+        }
+      ]
+    }
+  ]
+}
+----
+
+'''
+
+== should read and return interface relationship fields with interface relationship filter ALL (both implementations in the input and DB)
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (a:Actor { name: "RandomString1" })
+ CREATE (m:Movie { title: "RandomString3", runtime:47026 })
+ CREATE (a)-[:ACTED_IN { screenTime: 85740 }]->(m)
+ CREATE (a)-[:ACTED_IN { screenTime: 96705 }]->(:Series { title: "RandomString4", episodes: 3093 })
+ CREATE (a2:Actor { name: "RandomString2" })
+ CREATE (a2)-[:ACTED_IN { screenTime: 85740 }]->(m)
+ CREATE (a2)-[:ACTED_IN { screenTime: 96705 }]->(:Series { title: "RandomString3", episodes: 3093 })
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query Actors($title: String) {
+  actors(where: {actedIn_ALL: {title: $title}}) {
+    name
+    actedIn {
+      title
+      ... on Movie {
+        runtime
+      }
+      ... on Series {
+        episodes
+      }
+    }
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "title": "RandomString3"
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "RandomString3",
+  "param1": "RandomString3"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+WHERE (EXISTS {
+		MATCH (this)-[:ACTED_IN]->(this0:Movie)
+		WHERE this0.title = $param0
+	}
+	AND NOT (EXISTS {
+		MATCH (this)-[:ACTED_IN]->(this0:Movie)
+		WHERE NOT (this0.title = $param0)
+	})
+	AND EXISTS {
+		MATCH (this)-[:ACTED_IN]->(this1:Series)
+		WHERE this1.title = $param1
+	}
+	AND NOT (EXISTS {
+		MATCH (this)-[:ACTED_IN]->(this1:Series)
+		WHERE NOT (this1.title = $param1)
+	}))
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[actedIn0:ACTED_IN]->(movie0:Movie)
+		WITH movie0 {
+			__typename: 'Movie',
+			__id: elementId(movie0),
+			.title,
+			.runtime
+		} AS movie0
+		RETURN movie0 AS actedIn UNION
+		WITH *
+		MATCH (this)-[actedIn1:ACTED_IN]->(series0:Series)
+		WITH series0 {
+			__typename: 'Series',
+			__id: elementId(series0),
+			.title,
+			.episodes
+		} AS series0
+		RETURN series0 AS actedIn
+	}
+	WITH actedIn
+	RETURN collect(actedIn) AS actedIn
+}
+RETURN this {
+	.name,
+	actedIn: actedIn
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "actors": [
+    {
+      "name": "RandomString2",
+      "actedIn": [
+        {
+          "title": "RandomString3",
+          "runtime": 47026
+        },
+        {
+          "title": "RandomString3",
+          "episodes": 3093
+        }
+      ]
+    }
+  ]
+}
+----
+
+'''
+
+== should read and return interface relationship fields with interface relationship filter ALL (both implementations in the input and one out of two in DB)
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (a:Actor { name: "RandomString1" })
+ CREATE (m:Movie { title: "RandomString3", runtime:46474 })
+ CREATE (a)-[:ACTED_IN { screenTime: 95753 }]->(m)
+ CREATE (a)-[:ACTED_IN { screenTime: 76273 }]->(:Series { title: "RandomString4", episodes: 8658 })
+ CREATE (a2:Actor { name: "RandomString2" })
+ CREATE (a2)-[:ACTED_IN { screenTime: 95753 }]->(m)
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query Actors($title: String) {
+  actors(where: {actedIn_ALL: {title: $title}}) {
+    name
+    actedIn {
+      title
+      ... on Movie {
+        runtime
+      }
+      ... on Series {
+        episodes
+      }
+    }
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "title": "RandomString3"
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "RandomString3",
+  "param1": "RandomString3"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+WHERE (EXISTS {
+		MATCH (this)-[:ACTED_IN]->(this0:Movie)
+		WHERE this0.title = $param0
+	}
+	AND NOT (EXISTS {
+		MATCH (this)-[:ACTED_IN]->(this0:Movie)
+		WHERE NOT (this0.title = $param0)
+	})
+	AND EXISTS {
+		MATCH (this)-[:ACTED_IN]->(this1:Series)
+		WHERE this1.title = $param1
+	}
+	AND NOT (EXISTS {
+		MATCH (this)-[:ACTED_IN]->(this1:Series)
+		WHERE NOT (this1.title = $param1)
+	}))
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[actedIn0:ACTED_IN]->(movie0:Movie)
+		WITH movie0 {
+			__typename: 'Movie',
+			__id: elementId(movie0),
+			.title,
+			.runtime
+		} AS movie0
+		RETURN movie0 AS actedIn UNION
+		WITH *
+		MATCH (this)-[actedIn1:ACTED_IN]->(series0:Series)
+		WITH series0 {
+			__typename: 'Series',
+			__id: elementId(series0),
+			.title,
+			.episodes
+		} AS series0
+		RETURN series0 AS actedIn
+	}
+	WITH actedIn
+	RETURN collect(actedIn) AS actedIn
+}
+RETURN this {
+	.name,
+	actedIn: actedIn
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "actors": []
+}
+----
+
+'''
+
+== should read and return interface relationship fields with interface relationship filter SINGLE
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (a:Actor { name: "RandomString1" })
+ CREATE (m:Movie { title: "RandomString3", runtime:51686 })
+ CREATE (a)-[:ACTED_IN { screenTime: 60481 }]->(m)
+ CREATE (a)-[:ACTED_IN { screenTime: 75798 }]->(:Series { title: "RandomString5", episodes: 18888 })
+ CREATE (a2:Actor { name: "RandomString2" })
+ CREATE (a2)-[:ACTED_IN { screenTime: 60481 }]->(:Movie { title: "RandomString4", runtime:51686 })
+ CREATE (a2)-[:ACTED_IN { screenTime: 60481 }]->(m)
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query Actors($title: String) {
+  actors(where: {actedIn_SINGLE: {title: $title}}) {
+    name
+    actedIn {
+      title
+      ... on Movie {
+        runtime
+      }
+      ... on Series {
+        episodes
+      }
+    }
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "title": "RandomString4"
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "RandomString4",
+  "param1": "RandomString4"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+WHERE (single(ignore IN [(this)-[:ACTED_IN]->(this0:Movie)
+	WHERE this0.title = $param0 | 1]
+	WHERE true)
+	XOR single(ignore IN [(this)-[:ACTED_IN]->(this1:Series)
+	WHERE this1.title = $param1 | 1]
+	WHERE true))
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[actedIn0:ACTED_IN]->(movie0:Movie)
+		WITH movie0 {
+			__typename: 'Movie',
+			__id: elementId(movie0),
+			.title,
+			.runtime
+		} AS movie0
+		RETURN movie0 AS actedIn UNION
+		WITH *
+		MATCH (this)-[actedIn1:ACTED_IN]->(series0:Series)
+		WITH series0 {
+			__typename: 'Series',
+			__id: elementId(series0),
+			.title,
+			.episodes
+		} AS series0
+		RETURN series0 AS actedIn
+	}
+	WITH actedIn
+	RETURN collect(actedIn) AS actedIn
+}
+RETURN this {
+	.name,
+	actedIn: actedIn
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "actors": [
+    {
+      "name": "RandomString2",
+      "actedIn": [
+        {
+          "title": "RandomString3",
+          "runtime": 51686
+        },
+        {
+          "title": "RandomString4",
+          "runtime": 51686
+        }
+      ]
+    }
+  ]
+}
+----
+
+'''
+
+== should read and return interface relationship fields with interface relationship filter NONE
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (a:Actor { name: "RandomString1" })
+ CREATE (m:Movie { title: "RandomString3", runtime:13985 })
+ CREATE (a)-[:ACTED_IN { screenTime: 20492 }]->(m)
+ CREATE (a)-[:ACTED_IN { screenTime: 70112 }]->(:Series { title: "RandomString5", episodes: 4471 })
+ CREATE (a2:Actor { name: "RandomString2" })
+ CREATE (a2)-[:ACTED_IN { screenTime: 20492 }]->(:Movie { title: "RandomString4", runtime:13985 })
+ CREATE (a2)-[:ACTED_IN { screenTime: 20492 }]->(m)
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query Actors($title: String) {
+  actors(where: {actedIn_NONE: {title: $title}}) {
+    name
+    actedIn {
+      title
+      ... on Movie {
+        runtime
+      }
+      ... on Series {
+        episodes
+      }
+    }
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "title": "RandomString4"
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "RandomString4",
+  "param1": "RandomString4"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+WHERE (NOT (EXISTS {
+		MATCH (this)-[:ACTED_IN]->(this0:Movie)
+		WHERE this0.title = $param0
+	})
+	AND NOT (EXISTS {
+		MATCH (this)-[:ACTED_IN]->(this1:Series)
+		WHERE this1.title = $param1
+	}))
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[actedIn0:ACTED_IN]->(movie0:Movie)
+		WITH movie0 {
+			__typename: 'Movie',
+			__id: elementId(movie0),
+			.title,
+			.runtime
+		} AS movie0
+		RETURN movie0 AS actedIn UNION
+		WITH *
+		MATCH (this)-[actedIn1:ACTED_IN]->(series0:Series)
+		WITH series0 {
+			__typename: 'Series',
+			__id: elementId(series0),
+			.title,
+			.episodes
+		} AS series0
+		RETURN series0 AS actedIn
+	}
+	WITH actedIn
+	RETURN collect(actedIn) AS actedIn
+}
+RETURN this {
+	.name,
+	actedIn: actedIn
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "actors": [
+    {
+      "name": "RandomString1",
+      "actedIn": [
+        {
+          "title": "RandomString3",
+          "runtime": 13985
+        },
+        {
+          "title": "RandomString5",
+          "episodes": 4471
+        }
+      ]
+    }
+  ]
+}
+----
+
+'''
+

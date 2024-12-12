@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = tck/rfcs/query-limits
 
-== Source schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Movie @limit(default: 3, max: 5) {
@@ -25,7 +27,215 @@ type Festival {
 }
 ----
 
+== Top Level Query Limits
+
+=== should limit the top level query with default value
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    id
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 3
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WITH * LIMIT $param0
+RETURN this {
+	.id
+} AS this
+----
+
+'''
+
+=== should limit the top level query with max value if not default is available
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  shows {
+    id
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 2
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Show)
+WITH * LIMIT $param0
+RETURN this {
+	.id
+} AS this
+----
+
+'''
+
+=== should limit the top level query with max value the option given is higher
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  shows(options: {limit: 5}) {
+    id
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 2
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Show)
+WITH * LIMIT $param0
+RETURN this {
+	.id
+} AS this
+----
+
+'''
+
 == Field Level Query Limits
+
+=== should limit the normal field level query
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    id
+    actors {
+      id
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 2,
+  "param1" : 3
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WITH * LIMIT $param1
+CALL {
+	WITH this
+	MATCH (person0:Person)-[actedIn0:ACTED_IN]->(this)
+	WITH person0 {
+		.id
+	} AS actors LIMIT $param0
+	RETURN collect(actors) AS actors
+}
+RETURN this {
+	.id,
+	actors: actors
+} AS this
+----
+
+'''
+
+=== should limit the connection field level query
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    id
+    actorsConnection {
+      edges {
+        node {
+          id
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 2,
+  "param1" : 3
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WITH * LIMIT $param1
+CALL {
+	WITH this
+	MATCH (person0:Person)-[actedIn0:ACTED_IN]->(this)
+	WITH collect( {
+		node: person0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS person0, edge.relationship AS actedIn0 LIMIT $param0
+		RETURN collect( {
+			node: {
+				__typename: 'Person',
+				id: person0.id
+			}
+		}) AS actorsConnectionEdges
+	}
+	RETURN {
+		edges: actorsConnectionEdges,
+		totalCount: totalCount
+	} AS actorsConnection
+}
+RETURN this {
+	.id,
+	actorsConnection: actorsConnection
+} AS this
+----
+
+'''
 
 === should extend the limit to the connection field if `first` provided
 
@@ -155,116 +365,6 @@ RETURN this {
 
 '''
 
-=== should limit the connection field level query
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  movies {
-    id
-    actorsConnection {
-      edges {
-        node {
-          id
-        }
-      }
-    }
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0" : 2,
-  "param1" : 3
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Movie)
-WITH * LIMIT $param1
-CALL {
-	WITH this
-	MATCH (person0:Person)-[actedIn0:ACTED_IN]->(this)
-	WITH collect( {
-		node: person0,
-		relationship: actedIn0
-	}) AS edges
-	WITH edges, size(edges) AS totalCount
-	CALL {
-		WITH edges
-		UNWIND edges AS edge
-		WITH edge.node AS person0, edge.relationship AS actedIn0 LIMIT $param0
-		RETURN collect( {
-			node: {
-				__typename: 'Person',
-				id: person0.id
-			}
-		}) AS actorsConnectionEdges
-	}
-	RETURN {
-		edges: actorsConnectionEdges,
-		totalCount: totalCount
-	} AS actorsConnection
-}
-RETURN this {
-	.id,
-	actorsConnection: actorsConnection
-} AS this
-----
-
-'''
-
-=== should limit the normal field level query
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  movies {
-    id
-    actors {
-      id
-    }
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0" : 2,
-  "param1" : 3
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Movie)
-WITH * LIMIT $param1
-CALL {
-	WITH this
-	MATCH (person0:Person)-[actedIn0:ACTED_IN]->(this)
-	WITH person0 {
-		.id
-	} AS actors LIMIT $param0
-	RETURN collect(actors) AS actors
-}
-RETURN this {
-	.id,
-	actors: actors
-} AS this
-----
-
-'''
-
 === should limit the relationship field level query
 
 .GraphQL-Query
@@ -309,103 +409,4 @@ RETURN this {
 ----
 
 '''
-
-== Top Level Query Limits
-
-=== should limit the top level query with default value
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  movies {
-    id
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0" : 3
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Movie)
-WITH * LIMIT $param0
-RETURN this {
-	.id
-} AS this
-----
-
-'''
-
-=== should limit the top level query with max value if not default is available
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  shows {
-    id
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0" : 2
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Show)
-WITH * LIMIT $param0
-RETURN this {
-	.id
-} AS this
-----
-
-'''
-
-=== should limit the top level query with max value the option given is higher
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  shows(options: {limit: 5}) {
-    id
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0" : 2
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Show)
-WITH * LIMIT $param0
-RETURN this {
-	.id
-} AS this
-----
-
-'''
-
 

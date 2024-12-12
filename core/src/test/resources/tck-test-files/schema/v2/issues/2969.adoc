@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
-= https://github.com/neo4j/graphql/issues/2969 -> authorAggregate should not be generated
+= https://github.com/neo4j/graphql/issues/2969
 
-== Source schema
+== authorAggregate should not be generated
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Post {
@@ -17,8 +19,6 @@ type User {
   posts: [Post!]! @relationship(type: "HAS_AUTHOR", direction: IN)
 }
 ----
-
-== Augmented schema
 
 .Augmented Schema
 [source,graphql]
@@ -204,3 +204,4 @@ input UserWhere {
 ----
 
 '''
+

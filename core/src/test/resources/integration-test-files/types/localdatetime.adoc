@@ -1,0 +1,545 @@
+:toc:
+:toclevels: 42
+
+= LocalDateTime
+
+== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+type Movie {
+  id: ID!
+  localDT: LocalDateTime
+  localDTs: [LocalDateTime!]
+}
+----
+
+== filter
+
+=== should filter based on localDT equality
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (movie:Movie)
+ SET movie = {id: "RandomString1", localDT: localdatetime("2024-09-17T11:49:48.322000000")}
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query ($localDT: LocalDateTime!) {
+  movies(where: {localDT: $localDT}) {
+    id
+    localDT
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "localDT": "2024-09-17T11:49:48.322"
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "2024-09-17T11:49:48.322"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.localDT = $param0
+RETURN this {
+	.id,
+	.localDT
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies" : [ {
+    "id" : "RandomString1",
+    "localDT" : "2024-09-17T11:49:48.322"
+  } ]
+}
+----
+
+'''
+
+=== should filter based on localDT comparison, for filter LT
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (future:Movie)
+ SET future = {id: "RandomString1", localDT: localdatetime("2025-02-18T18:10:55.462000000")}
+ CREATE (present:Movie)
+ SET present = {id: "RandomString2", localDT: localdatetime("2024-12-01T15:45:34.296000000")}
+ CREATE (past:Movie)
+ SET past = {id: "RandomString3", localDT: localdatetime("2022-08-29T10:21:43.108000000")}
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query ($where: MovieWhere!) {
+  movies(where: $where, options: {sort: [{localDT: ASC}]}) {
+    id
+    localDT
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "where": {
+    "id_IN": [
+      "RandomString1",
+      "RandomString2",
+      "RandomString3"
+    ],
+    "localDT_LT": "2024-12-01T15:45:34.296"
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : [ "RandomString1", "RandomString2", "RandomString3" ],
+  "param1" : "2024-12-01T15:45:34.296"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE (this.id IN $param0
+	AND this.localDT < $param1)
+WITH * ORDER BY this.localDT ASC
+RETURN this {
+	.id,
+	.localDT
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies" : [ {
+    "id" : "RandomString3",
+    "localDT" : "2022-08-29T10:21:43.108"
+  } ]
+}
+----
+
+'''
+
+=== should filter based on localDT comparison, for filter LTE
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (future:Movie)
+ SET future = {id: "RandomString1", localDT: localdatetime("2025-02-18T18:10:55.462000000")}
+ CREATE (present:Movie)
+ SET present = {id: "RandomString2", localDT: localdatetime("2024-12-01T15:45:34.404000000")}
+ CREATE (past:Movie)
+ SET past = {id: "RandomString3", localDT: localdatetime("2022-08-29T10:21:43.108000000")}
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query ($where: MovieWhere!) {
+  movies(where: $where, options: {sort: [{localDT: ASC}]}) {
+    id
+    localDT
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "where": {
+    "id_IN": [
+      "RandomString1",
+      "RandomString2",
+      "RandomString3"
+    ],
+    "localDT_LTE": "2024-12-01T15:45:34.404"
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : [ "RandomString1", "RandomString2", "RandomString3" ],
+  "param1" : "2024-12-01T15:45:34.404"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE (this.id IN $param0
+	AND this.localDT <= $param1)
+WITH * ORDER BY this.localDT ASC
+RETURN this {
+	.id,
+	.localDT
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies" : [ {
+    "id" : "RandomString3",
+    "localDT" : "2022-08-29T10:21:43.108"
+  }, {
+    "id" : "RandomString2",
+    "localDT" : "2024-12-01T15:45:34.404"
+  } ]
+}
+----
+
+'''
+
+=== should filter based on localDT comparison, for filter GT
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (future:Movie)
+ SET future = {id: "RandomString1", localDT: localdatetime("2025-02-18T18:10:55.462000000")}
+ CREATE (present:Movie)
+ SET present = {id: "RandomString2", localDT: localdatetime("2024-12-01T15:45:34.459000000")}
+ CREATE (past:Movie)
+ SET past = {id: "RandomString3", localDT: localdatetime("2022-08-29T10:21:43.108000000")}
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query ($where: MovieWhere!) {
+  movies(where: $where, options: {sort: [{localDT: ASC}]}) {
+    id
+    localDT
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "where": {
+    "id_IN": [
+      "RandomString1",
+      "RandomString2",
+      "RandomString3"
+    ],
+    "localDT_GT": "2024-12-01T15:45:34.459"
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : [ "RandomString1", "RandomString2", "RandomString3" ],
+  "param1" : "2024-12-01T15:45:34.459"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE (this.id IN $param0
+	AND this.localDT > $param1)
+WITH * ORDER BY this.localDT ASC
+RETURN this {
+	.id,
+	.localDT
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies" : [ {
+    "id" : "RandomString1",
+    "localDT" : "2025-02-18T18:10:55.462"
+  } ]
+}
+----
+
+'''
+
+=== should filter based on localDT comparison, for filter GTE
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (future:Movie)
+ SET future = {id: "RandomString1", localDT: localdatetime("2025-02-18T18:10:55.462000000")}
+ CREATE (present:Movie)
+ SET present = {id: "RandomString2", localDT: localdatetime("2024-12-01T15:45:34.514000000")}
+ CREATE (past:Movie)
+ SET past = {id: "RandomString3", localDT: localdatetime("2022-08-29T10:21:43.108000000")}
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query ($where: MovieWhere!) {
+  movies(where: $where, options: {sort: [{localDT: ASC}]}) {
+    id
+    localDT
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "where": {
+    "id_IN": [
+      "RandomString1",
+      "RandomString2",
+      "RandomString3"
+    ],
+    "localDT_GTE": "2024-12-01T15:45:34.514"
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : [ "RandomString1", "RandomString2", "RandomString3" ],
+  "param1" : "2024-12-01T15:45:34.514"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE (this.id IN $param0
+	AND this.localDT >= $param1)
+WITH * ORDER BY this.localDT ASC
+RETURN this {
+	.id,
+	.localDT
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies" : [ {
+    "id" : "RandomString2",
+    "localDT" : "2024-12-01T15:45:34.514"
+  }, {
+    "id" : "RandomString1",
+    "localDT" : "2025-02-18T18:10:55.462"
+  } ]
+}
+----
+
+'''
+
+== sorting
+
+=== should sort based on localDT, sorting by ASC
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (future:Movie)
+ SET future = {id: "RandomString1", localDT: localdatetime("2025-08-10T05:25:26.654000000")}
+ CREATE (present:Movie)
+ SET present = {id: "RandomString2", localDT: localdatetime("2024-12-01T15:45:34.595000000")}
+ CREATE (past:Movie)
+ SET past = {id: "RandomString3", localDT: localdatetime("2023-10-05T14:58:45.170000000")}
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query ($futureId: ID!, $presentId: ID!, $pastId: ID!, $sort: SortDirection!) {
+  movies(
+    where: {id_IN: [$futureId, $presentId, $pastId]}
+    options: {sort: [{localDT: $sort}]}
+  ) {
+    id
+    localDT
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "futureId": "RandomString1",
+  "presentId": "RandomString2",
+  "pastId": "RandomString3",
+  "sort": "ASC"
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": [
+    "RandomString1",
+    "RandomString2",
+    "RandomString3"
+  ]
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.id IN $param0
+WITH * ORDER BY this.localDT ASC
+RETURN this {
+	.id,
+	.localDT
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies" : [ {
+    "id" : "RandomString3",
+    "localDT" : "2023-10-05T14:58:45.170"
+  }, {
+    "id" : "RandomString2",
+    "localDT" : "2024-12-01T15:45:34.595"
+  }, {
+    "id" : "RandomString1",
+    "localDT" : "2025-08-10T05:25:26.654"
+  } ]
+}
+----
+
+'''
+
+=== should sort based on localDT, sorting by DESC
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (future:Movie)
+ SET future = {id: "RandomString1", localDT: localdatetime("2025-08-10T05:25:26.654000000")}
+ CREATE (present:Movie)
+ SET present = {id: "RandomString2", localDT: localdatetime("2024-12-01T15:45:34.695000000")}
+ CREATE (past:Movie)
+ SET past = {id: "RandomString3", localDT: localdatetime("2023-10-05T14:58:45.170000000")}
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query ($futureId: ID!, $presentId: ID!, $pastId: ID!, $sort: SortDirection!) {
+  movies(
+    where: {id_IN: [$futureId, $presentId, $pastId]}
+    options: {sort: [{localDT: $sort}]}
+  ) {
+    id
+    localDT
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "futureId": "RandomString1",
+  "presentId": "RandomString2",
+  "pastId": "RandomString3",
+  "sort": "DESC"
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": [
+    "RandomString1",
+    "RandomString2",
+    "RandomString3"
+  ]
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.id IN $param0
+WITH * ORDER BY this.localDT DESC
+RETURN this {
+	.id,
+	.localDT
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies" : [ {
+    "id" : "RandomString1",
+    "localDT" : "2025-08-10T05:25:26.654"
+  }, {
+    "id" : "RandomString2",
+    "localDT" : "2024-12-01T15:45:34.695"
+  }, {
+    "id" : "RandomString3",
+    "localDT" : "2023-10-05T14:58:45.170"
+  } ]
+}
+----
+
+'''
+

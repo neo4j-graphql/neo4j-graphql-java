@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
-= Scalar -> Scalars
+= Scalar
 
-== Source schema
+== Scalars
 
+.Schema
 [source,graphql,schema=true]
 ----
 scalar CustomScalar
@@ -15,8 +17,6 @@ type Movie {
   myRequiredCustomArrayScalar: [CustomScalar!]!
 }
 ----
-
-== Augmented schema
 
 .Augmented Schema
 [source,graphql]
@@ -99,3 +99,4 @@ input MovieWhere {
 ----
 
 '''
+

@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = Arrays
 
-== Source schema
+== Arrays
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Movie {
@@ -12,8 +14,6 @@ type Movie {
   averageRating: Float!
 }
 ----
-
-== Augmented schema
 
 .Augmented Schema
 [source,graphql]
@@ -95,3 +95,4 @@ input MovieWhere {
 ----
 
 '''
+

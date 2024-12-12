@@ -1,0 +1,112 @@
+:toc:
+:toclevels: 42
+
+= Connections Filtering
+
+== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
+}
+
+type Actor {
+  name: String!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+----
+
+== allows for NOT boolean operators on connection projection filters
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (movie:Movie {title: "My title"})
+					CREATE (actorOne:Actor {name: "Arthur"})
+					CREATE (actorTwo:Actor {name: "Zaphod"})
+					CREATE (actorOne)-[:ACTED_IN]->(movie)<-[:ACTED_IN]-(actorTwo)
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    actorsConnection(where: {NOT: {node: {name: "Arthur"}}}) {
+      edges {
+        node {
+          name
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "Arthur"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+	WITH this
+	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
+	WHERE NOT (actor0.name = $param0)
+	WITH collect( {
+		node: actor0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS actor0, edge.relationship AS actedIn0
+		RETURN collect( {
+			node: {
+				__typename: 'Actor',
+				name: actor0.name
+			}
+		}) AS actorsConnectionEdges
+	}
+	RETURN {
+		edges: actorsConnectionEdges,
+		totalCount: totalCount
+	} AS actorsConnection
+}
+RETURN this {
+	actorsConnection: actorsConnection
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies": [
+    {
+      "actorsConnection": {
+        "edges": [
+          {
+            "node": {
+              "name": "Zaphod"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+----
+
+'''
+

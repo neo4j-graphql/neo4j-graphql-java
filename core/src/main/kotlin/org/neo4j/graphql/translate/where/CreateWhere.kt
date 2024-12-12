@@ -9,6 +9,7 @@ import org.neo4j.graphql.domain.fields.HasCoalesceValue
 import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.domain.predicates.ConnectionFieldPredicate
 import org.neo4j.graphql.domain.predicates.RelationFieldPredicate
+import org.neo4j.graphql.domain.predicates.RelationOperator
 import org.neo4j.graphql.domain.predicates.ScalarFieldPredicate
 import org.neo4j.graphql.schema.model.inputs.WhereInput
 import org.neo4j.graphql.schema.model.inputs.connection.ConnectionWhere
@@ -71,8 +72,14 @@ fun createWhere(
             if (field is RelationField) {
                 val relation = field.createDslRelation(propertyContainer, endNode)
                 val cond = op.createRelationCondition(relation, nestedCondition)
-                allConditions = allConditions and cond.let {
+
+                val condition = cond.let {
                     if (predicate.where == null) it.not() else it
+                }
+                allConditions = when (op) {
+                    RelationOperator.SOME -> allConditions or condition
+                    RelationOperator.SINGLE -> allConditions xor condition
+                    else -> allConditions and condition
                 }
             } else {
                 TODO()

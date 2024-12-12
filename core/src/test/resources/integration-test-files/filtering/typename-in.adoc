@@ -1,0 +1,234 @@
+:toc:
+:toclevels: 42
+
+= typename_IN
+
+== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+interface Production {
+  title: String!
+  cost: Float!
+}
+
+type Movie implements Production {
+  title: String!
+  cost: Float!
+  runtime: Int!
+}
+
+type Series implements Production {
+  title: String!
+  cost: Float!
+  episodes: Int!
+}
+
+type Cartoon implements Production {
+  title: String!
+  cost: Float!
+  cartoonist: String!
+}
+
+type ActedIn @relationshipProperties {
+  screenTime: Int!
+}
+
+type Actor {
+  name: String!
+  actedIn: [Production!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE(a:Actor { name: "Keanu" })
+ CREATE(a)-[:ACTED_IN]->(m:Movie { title: "The Matrix" })
+ CREATE(a)-[:ACTED_IN]->(s:Series { title: "The Matrix animated series" })
+ CREATE(a)-[:ACTED_IN]->(c:Cartoon { title: "Matrix the cartoon" })
+----
+
+== top-level
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  productions(
+    where: {OR: [{AND: [{title: "The Matrix"}, {typename_IN: [Movie]}]}, {typename_IN: [Series]}]}
+  ) {
+    __typename
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "The Matrix",
+  "param1": "The Matrix",
+  "param2": "The Matrix"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+	MATCH (cartoon0:Cartoon)
+	WHERE ((cartoon0.title = $param0
+			AND cartoon0:Movie)
+		OR cartoon0:Series)
+	WITH cartoon0 {
+		__typename: 'Cartoon',
+		__id: elementId(cartoon0),
+		.title
+	} AS cartoon0
+	RETURN cartoon0 AS this UNION
+	MATCH (movie0:Movie)
+	WHERE ((movie0.title = $param1
+			AND movie0:Movie)
+		OR movie0:Series)
+	WITH movie0 {
+		__typename: 'Movie',
+		__id: elementId(movie0),
+		.title
+	} AS movie0
+	RETURN movie0 AS this UNION
+	MATCH (series0:Series)
+	WHERE ((series0.title = $param2
+			AND series0:Movie)
+		OR series0:Series)
+	WITH series0 {
+		__typename: 'Series',
+		__id: elementId(series0),
+		.title
+	} AS series0
+	RETURN series0 AS this
+}
+WITH this
+RETURN this AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "productions": [
+    {
+      "__typename": "Movie",
+      "title": "The Matrix"
+    },
+    {
+      "__typename": "Series",
+      "title": "The Matrix animated series"
+    }
+  ]
+}
+----
+
+'''
+
+== nested
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  actors {
+    actedIn(
+      where: {OR: [{AND: [{title: "The Matrix"}, {typename_IN: [Movie]}]}, {typename_IN: [Series]}]}
+    ) {
+      __typename
+      title
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "The Matrix",
+  "param1": "The Matrix",
+  "param2": "The Matrix"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[actedIn0:ACTED_IN]->(cartoon0:Cartoon)
+		WHERE ((cartoon0.title = $param0
+				AND cartoon0:Movie)
+			OR cartoon0:Series)
+		WITH cartoon0 {
+			__typename: 'Cartoon',
+			__id: elementId(cartoon0),
+			.title
+		} AS cartoon0
+		RETURN cartoon0 AS actedIn UNION
+		WITH *
+		MATCH (this)-[actedIn1:ACTED_IN]->(movie0:Movie)
+		WHERE ((movie0.title = $param1
+				AND movie0:Movie)
+			OR movie0:Series)
+		WITH movie0 {
+			__typename: 'Movie',
+			__id: elementId(movie0),
+			.title
+		} AS movie0
+		RETURN movie0 AS actedIn UNION
+		WITH *
+		MATCH (this)-[actedIn2:ACTED_IN]->(series0:Series)
+		WHERE ((series0.title = $param2
+				AND series0:Movie)
+			OR series0:Series)
+		WITH series0 {
+			__typename: 'Series',
+			__id: elementId(series0),
+			.title
+		} AS series0
+		RETURN series0 AS actedIn
+	}
+	WITH actedIn
+	RETURN collect(actedIn) AS actedIn
+}
+RETURN this {
+	actedIn: actedIn
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "actors": [
+    {
+      "actedIn": [
+        {
+          "__typename": "Movie",
+          "title": "The Matrix"
+        },
+        {
+          "__typename": "Series",
+          "title": "The Matrix animated series"
+        }
+      ]
+    }
+  ]
+}
+----
+
+'''
+

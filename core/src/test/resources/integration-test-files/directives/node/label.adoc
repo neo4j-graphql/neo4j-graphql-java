@@ -1,0 +1,62 @@
+:toc:
+:toclevels: 42
+
+= Node directive labels
+
+== Setup
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (m:Film {title: "The Matrix",year:1999})
+----
+
+== custom labels
+
+.Schema
+[source,graphql,schema=true]
+----
+type Movie @node(labels: ["Film"]) {
+  id: ID
+  title: String
+}
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Film)
+RETURN this {
+	.title
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies": [
+    {
+      "title": "The Matrix"
+    }
+  ]
+}
+----
+
+'''

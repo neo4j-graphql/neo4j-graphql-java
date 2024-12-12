@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = https://github.com/neo4j/graphql/issues/4450
 
-== Source schema
+== filtering through a connection to a many-to-1 relationship should work
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Actor {
@@ -26,8 +28,6 @@ type ActorScene @relationshipProperties {
   cut: Boolean
 }
 ----
-
-== filtering through a connection to a many-to-1 relationship should work
 
 .GraphQL-Query
 [source,graphql]

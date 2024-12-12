@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
-= Interface Relationships -> Interface Relationships - single
+= Interface Relationships
 
-== Source schema
+== Interface Relationships - single
 
+.Schema
 [source,graphql,schema=true]
 ----
 interface Production {
@@ -29,8 +31,6 @@ type Actor {
   actedIn: [Production!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
 }
 ----
-
-== Augmented schema
 
 .Augmented Schema
 [source,graphql]
@@ -310,3 +310,4 @@ input SeriesWhere {
 ----
 
 '''
+

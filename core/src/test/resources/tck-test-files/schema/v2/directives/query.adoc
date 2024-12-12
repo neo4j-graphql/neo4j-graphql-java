@@ -1,0 +1,176 @@
+:toc:
+:toclevels: 42
+
+= @query directive
+
+== on SCHEMA
+
+=== default arguments should disable aggregation
+
+.Schema
+[source,graphql,schema=true]
+----
+type Actor {
+  username: String!
+  password: String!
+}
+
+type Movie {
+  title: String
+}
+
+extend schema @query {
+  query: Query
+}
+----
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+}
+
+type Actor {
+  password: String!
+  username: String!
+}
+
+type ActorEdge {
+  cursor: String!
+  node: Actor!
+}
+
+type ActorsConnection {
+  edges: [ActorEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Movie {
+  title: String
+}
+
+type MovieEdge {
+  cursor: String!
+  node: Movie!
+}
+
+type MoviesConnection {
+  edges: [MovieEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  actors(options: ActorOptions, where: ActorWhere): [Actor!]!
+  actorsConnection(after: String, first: Int, sort: [ActorSort], where: ActorWhere): ActorsConnection!
+  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
+}
+
+"An enum for sorting in either ascending or descending order."
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+input ActorOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more ActorSort objects to sort Actors by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [ActorSort!]
+}
+
+"Fields to sort Actors by. The order in which sorts are applied is not guaranteed when specifying many fields in one ActorSort object."
+input ActorSort {
+  password: SortDirection
+  username: SortDirection
+}
+
+input ActorWhere {
+  AND: [ActorWhere!]
+  NOT: ActorWhere
+  OR: [ActorWhere!]
+  password: String
+  password_CONTAINS: String
+  password_ENDS_WITH: String
+  password_IN: [String!]
+  password_STARTS_WITH: String
+  username: String
+  username_CONTAINS: String
+  username_ENDS_WITH: String
+  username_IN: [String!]
+  username_STARTS_WITH: String
+}
+
+input MovieOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [MovieSort!]
+}
+
+"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+input MovieSort {
+  title: SortDirection
+}
+
+input MovieWhere {
+  AND: [MovieWhere!]
+  NOT: MovieWhere
+  OR: [MovieWhere!]
+  title: String
+  title_CONTAINS: String
+  title_ENDS_WITH: String
+  title_IN: [String]
+  title_STARTS_WITH: String
+}
+
+----
+
+'''
+
+=== should disable read and aggregate
+
+.Schema
+[source,graphql,schema=true]
+----
+type Actor {
+  name: String
+}
+
+type Movie {
+  title: String
+}
+
+extend schema @query(read: false) {
+  query: Query
+}
+----
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+}
+
+type Query {
+  _empty: Boolean
+}
+
+----
+
+'''
+

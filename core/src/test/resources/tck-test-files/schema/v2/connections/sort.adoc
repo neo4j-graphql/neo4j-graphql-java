@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
-= Sort -> sort argument is not present when nothing to sort
+= Sort
 
-== Source schema
+== sort argument is not present when nothing to sort
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Node1 {
@@ -15,8 +17,6 @@ type Node2 {
   relatedTo: [Node1!]! @relationship(type: "RELATED_TO", direction: OUT)
 }
 ----
-
-== Augmented schema
 
 .Augmented Schema
 [source,graphql]
@@ -190,3 +190,4 @@ input Node2Where {
 ----
 
 '''
+

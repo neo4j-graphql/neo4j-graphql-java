@@ -1,17 +1,17 @@
 :toc:
+:toclevels: 42
 
-= 609 -> @deprecated directive should remain in output
+= 609
 
-== Source schema
+== @deprecated directive should remain in output
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Deprecated {
   deprecatedField: String @deprecated
 }
 ----
-
-== Augmented schema
 
 .Augmented Schema
 [source,graphql]
@@ -82,3 +82,4 @@ input DeprecatedWhere {
 ----
 
 '''
+

@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = Cypher NULL
 
-== Source schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Actor {

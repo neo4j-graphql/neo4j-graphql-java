@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
-= Plural option -> Plural on interface and union
+= Plural option
 
-== Source schema
+== Plural on interface and union
 
+.Schema
 [source,graphql,schema=true]
 ----
 interface Animal @plural(value: "animales") {
@@ -21,8 +23,6 @@ type Cat {
 
 union Pet @plural(value: "petties") = Dog | Cat
 ----
-
-== Augmented schema
 
 .Augmented Schema
 [source,graphql]
@@ -199,3 +199,4 @@ input QueryOptions {
 ----
 
 '''
+

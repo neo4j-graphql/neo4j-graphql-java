@@ -1,0 +1,149 @@
+:toc:
+:toclevels: 42
+
+= https://github.com/neo4j/graphql/issues/2262
+
+== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+type Component {
+  uuid: String
+  upstreamProcess: Process @relationship(type: "OUTPUT", direction: IN)
+  downstreamProcesses: [Process!]! @relationship(type: "INPUT", direction: OUT)
+}
+
+type Process {
+  uuid: String
+  componentOutputs: [Component!]! @relationship(type: "OUTPUT", direction: OUT)
+  componentInputs: [Component!]! @relationship(type: "INPUT", direction: IN)
+}
+----
+
+== nested update with create while using subscriptions should generate valid Cypher
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE(:Component {uuid: "c1"})<-[:OUTPUT]-(:Process {uuid: "p1"})
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query ComponentsProcesses {
+  components(where: {uuid: "c1"}) {
+    uuid
+    upstreamProcessConnection {
+      edges {
+        node {
+          uuid
+          componentInputsConnection(sort: [{node: {uuid: DESC}}]) {
+            edges {
+              node {
+                uuid
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "c1"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Component)
+WHERE this.uuid = $param0
+CALL {
+	WITH this
+	MATCH (process0:Process)-[output0:OUTPUT]->(this)
+	WITH collect( {
+		node: process0,
+		relationship: output0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS process0, edge.relationship AS output0
+		CALL {
+			WITH process0
+			MATCH (component0:Component)-[input0:INPUT]->(process0)
+			WITH collect( {
+				node: component0,
+				relationship: input0
+			}) AS edges
+			WITH edges, size(edges) AS totalCount
+			CALL {
+				WITH edges
+				UNWIND edges AS edge
+				WITH edge.node AS component0, edge.relationship AS input0 ORDER BY component0.uuid DESC
+				RETURN collect( {
+					node: {
+						__typename: 'Component',
+						uuid: component0.uuid
+					}
+				}) AS componentInputsConnectionEdges
+			}
+			RETURN {
+				edges: componentInputsConnectionEdges,
+				totalCount: totalCount
+			} AS componentInputsConnection
+		}
+		RETURN collect( {
+			node: {
+				__typename: 'Process',
+				uuid: process0.uuid,
+				componentInputsConnection: componentInputsConnection
+			}
+		}) AS upstreamProcessConnectionEdges
+	}
+	RETURN {
+		edges: upstreamProcessConnectionEdges,
+		totalCount: totalCount
+	} AS upstreamProcessConnection
+}
+RETURN this {
+	.uuid,
+	upstreamProcessConnection: upstreamProcessConnection
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "components": [
+    {
+      "uuid": "c1",
+      "upstreamProcessConnection": {
+        "edges": [
+          {
+            "node": {
+              "uuid": "p1",
+              "componentInputsConnection": {
+                "edges": []
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+----
+
+'''
+

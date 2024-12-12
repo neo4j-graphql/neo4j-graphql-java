@@ -1,0 +1,833 @@
+:toc:
+:toclevels: 42
+
+= Startup Validation
+
+== should not throw an error for valid type defs when running startup validation
+
+.Schema
+[source,graphql,schema=true]
+----
+type User {
+  id: ID!
+  firstName: String!
+  lastName: String!
+}
+----
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+}
+
+"""Pagination information (Relay)"""
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  users(options: UserOptions, where: UserWhere): [User!]!
+  usersConnection(after: String, first: Int, sort: [UserSort], where: UserWhere): UsersConnection!
+}
+
+"""An enum for sorting in either ascending or descending order."""
+enum SortDirection {
+  """Sort by field values in ascending order."""
+  ASC
+  """Sort by field values in descending order."""
+  DESC
+}
+
+type User {
+  firstName: String!
+  id: ID!
+  lastName: String!
+}
+
+type UserEdge {
+  cursor: String!
+  node: User!
+}
+
+input UserOptions {
+  limit: Int
+  offset: Int
+  """
+  Specify one or more UserSort objects to sort Users by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [UserSort!]
+}
+
+"""
+Fields to sort Users by. The order in which sorts are applied is not guaranteed when specifying many fields in one UserSort object.
+"""
+input UserSort {
+  firstName: SortDirection
+  id: SortDirection
+  lastName: SortDirection
+}
+
+input UserWhere {
+  AND: [UserWhere!]
+  NOT: UserWhere
+  OR: [UserWhere!]
+  firstName: String
+  firstName_CONTAINS: String
+  firstName_ENDS_WITH: String
+  firstName_IN: [String!]
+  firstName_STARTS_WITH: String
+  id: ID
+  id_CONTAINS: ID
+  id_ENDS_WITH: ID
+  id_IN: [ID!]
+  id_STARTS_WITH: ID
+  lastName: String
+  lastName_CONTAINS: String
+  lastName_ENDS_WITH: String
+  lastName_IN: [String!]
+  lastName_STARTS_WITH: String
+}
+
+type UsersConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+----
+
+'''
+
+== should not throw an error for invalid type defs when validate is false
+
+.Schema
+[source,graphql,schema=true]
+----
+type Point {
+  latitude: Float!
+  longitude: Float!
+}
+----
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+}
+
+"""Pagination information (Relay)"""
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Point {
+  latitude: Float!
+  longitude: Float!
+}
+
+type PointEdge {
+  cursor: String!
+  node: Point!
+}
+
+input PointOptions {
+  limit: Int
+  offset: Int
+  """
+  Specify one or more PointSort objects to sort Points by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [PointSort!]
+}
+
+"""
+Fields to sort Points by. The order in which sorts are applied is not guaranteed when specifying many fields in one PointSort object.
+"""
+input PointSort {
+  latitude: SortDirection
+  longitude: SortDirection
+}
+
+input PointWhere {
+  AND: [PointWhere!]
+  NOT: PointWhere
+  OR: [PointWhere!]
+  latitude: Float
+  latitude_GT: Float
+  latitude_GTE: Float
+  latitude_IN: [Float!]
+  latitude_LT: Float
+  latitude_LTE: Float
+  longitude: Float
+  longitude_GT: Float
+  longitude_GTE: Float
+  longitude_IN: [Float!]
+  longitude_LT: Float
+  longitude_LTE: Float
+}
+
+type PointsConnection {
+  edges: [PointEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Query {
+  points(options: PointOptions, where: PointWhere): [Point!]!
+  pointsConnection(after: String, first: Int, sort: [PointSort], where: PointWhere): PointsConnection!
+}
+
+"""An enum for sorting in either ascending or descending order."""
+enum SortDirection {
+  """Sort by field values in ascending order."""
+  ASC
+  """Sort by field values in descending order."""
+  DESC
+}
+----
+
+'''
+
+== @customResolver
+
+=== should warn for missing custom resolvers
+
+.Schema
+[source,graphql,schema=true]
+----
+type User {
+  id: ID!
+  firstName: String!
+  lastName: String!
+  fullName: String @customResolver(requires: "firstName lastName")
+}
+----
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+}
+
+"""Pagination information (Relay)"""
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  users(options: UserOptions, where: UserWhere): [User!]!
+  usersConnection(after: String, first: Int, sort: [UserSort], where: UserWhere): UsersConnection!
+}
+
+"""An enum for sorting in either ascending or descending order."""
+enum SortDirection {
+  """Sort by field values in ascending order."""
+  ASC
+  """Sort by field values in descending order."""
+  DESC
+}
+
+type User {
+  firstName: String!
+  fullName: String
+  id: ID!
+  lastName: String!
+}
+
+type UserEdge {
+  cursor: String!
+  node: User!
+}
+
+input UserOptions {
+  limit: Int
+  offset: Int
+  """
+  Specify one or more UserSort objects to sort Users by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [UserSort!]
+}
+
+"""
+Fields to sort Users by. The order in which sorts are applied is not guaranteed when specifying many fields in one UserSort object.
+"""
+input UserSort {
+  firstName: SortDirection
+  id: SortDirection
+  lastName: SortDirection
+}
+
+input UserWhere {
+  AND: [UserWhere!]
+  NOT: UserWhere
+  OR: [UserWhere!]
+  firstName: String
+  firstName_CONTAINS: String
+  firstName_ENDS_WITH: String
+  firstName_IN: [String!]
+  firstName_STARTS_WITH: String
+  id: ID
+  id_CONTAINS: ID
+  id_ENDS_WITH: ID
+  id_IN: [ID!]
+  id_STARTS_WITH: ID
+  lastName: String
+  lastName_CONTAINS: String
+  lastName_ENDS_WITH: String
+  lastName_IN: [String!]
+  lastName_STARTS_WITH: String
+}
+
+type UsersConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+----
+
+'''
+
+=== should throw no errors when validate is false, but warn for custom resolvers
+
+.Schema
+[source,graphql,schema=true]
+----
+type User {
+  id: ID!
+  firstName: String!
+  lastName: String!
+  fullName: String @customResolver(requires: "firstName lastName")
+}
+
+type Point {
+  latitude: Float!
+  longitude: Float!
+}
+----
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+}
+
+"""Pagination information (Relay)"""
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Point {
+  latitude: Float!
+  longitude: Float!
+}
+
+type PointEdge {
+  cursor: String!
+  node: Point!
+}
+
+input PointOptions {
+  limit: Int
+  offset: Int
+  """
+  Specify one or more PointSort objects to sort Points by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [PointSort!]
+}
+
+"""
+Fields to sort Points by. The order in which sorts are applied is not guaranteed when specifying many fields in one PointSort object.
+"""
+input PointSort {
+  latitude: SortDirection
+  longitude: SortDirection
+}
+
+input PointWhere {
+  AND: [PointWhere!]
+  NOT: PointWhere
+  OR: [PointWhere!]
+  latitude: Float
+  latitude_GT: Float
+  latitude_GTE: Float
+  latitude_IN: [Float!]
+  latitude_LT: Float
+  latitude_LTE: Float
+  longitude: Float
+  longitude_GT: Float
+  longitude_GTE: Float
+  longitude_IN: [Float!]
+  longitude_LT: Float
+  longitude_LTE: Float
+}
+
+type PointsConnection {
+  edges: [PointEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Query {
+  points(options: PointOptions, where: PointWhere): [Point!]!
+  pointsConnection(after: String, first: Int, sort: [PointSort], where: PointWhere): PointsConnection!
+  users(options: UserOptions, where: UserWhere): [User!]!
+  usersConnection(after: String, first: Int, sort: [UserSort], where: UserWhere): UsersConnection!
+}
+
+"""An enum for sorting in either ascending or descending order."""
+enum SortDirection {
+  """Sort by field values in ascending order."""
+  ASC
+  """Sort by field values in descending order."""
+  DESC
+}
+
+type User {
+  firstName: String!
+  fullName: String
+  id: ID!
+  lastName: String!
+}
+
+type UserEdge {
+  cursor: String!
+  node: User!
+}
+
+input UserOptions {
+  limit: Int
+  offset: Int
+  """
+  Specify one or more UserSort objects to sort Users by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [UserSort!]
+}
+
+"""
+Fields to sort Users by. The order in which sorts are applied is not guaranteed when specifying many fields in one UserSort object.
+"""
+input UserSort {
+  firstName: SortDirection
+  id: SortDirection
+  lastName: SortDirection
+}
+
+input UserWhere {
+  AND: [UserWhere!]
+  NOT: UserWhere
+  OR: [UserWhere!]
+  firstName: String
+  firstName_CONTAINS: String
+  firstName_ENDS_WITH: String
+  firstName_IN: [String!]
+  firstName_STARTS_WITH: String
+  id: ID
+  id_CONTAINS: ID
+  id_ENDS_WITH: ID
+  id_IN: [ID!]
+  id_STARTS_WITH: ID
+  lastName: String
+  lastName_CONTAINS: String
+  lastName_ENDS_WITH: String
+  lastName_IN: [String!]
+  lastName_STARTS_WITH: String
+}
+
+type UsersConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+----
+
+'''
+
+== should not throw an error for duplicate relationship fields validate is false
+
+.Schema
+[source,graphql,schema=true]
+----
+type User {
+  id: ID!
+  firstName: String!
+  lastName: String!
+  friend1: User! @relationship(type: "FRIENDS_WITH", direction: IN)
+  friend2: User! @relationship(type: "FRIENDS_WITH", direction: IN)
+}
+----
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+}
+
+"""Pagination information (Relay)"""
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  users(options: UserOptions, where: UserWhere): [User!]!
+  usersConnection(after: String, first: Int, sort: [UserSort], where: UserWhere): UsersConnection!
+}
+
+"""An enum for sorting in either ascending or descending order."""
+enum SortDirection {
+  """Sort by field values in ascending order."""
+  ASC
+  """Sort by field values in descending order."""
+  DESC
+}
+
+type User {
+  firstName: String!
+  friend1(directed: Boolean = true, options: UserOptions, where: UserWhere): User!
+  friend1Connection(after: String, directed: Boolean = true, first: Int, sort: [UserFriend1ConnectionSort!], where: UserFriend1ConnectionWhere): UserFriend1Connection!
+  friend2(directed: Boolean = true, options: UserOptions, where: UserWhere): User!
+  friend2Connection(after: String, directed: Boolean = true, first: Int, sort: [UserFriend2ConnectionSort!], where: UserFriend2ConnectionWhere): UserFriend2Connection!
+  id: ID!
+  lastName: String!
+}
+
+type UserEdge {
+  cursor: String!
+  node: User!
+}
+
+type UserFriend1Connection {
+  edges: [UserFriend1Relationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+input UserFriend1ConnectionSort {
+  node: UserSort
+}
+
+input UserFriend1ConnectionWhere {
+  AND: [UserFriend1ConnectionWhere!]
+  NOT: UserFriend1ConnectionWhere
+  OR: [UserFriend1ConnectionWhere!]
+  node: UserWhere
+}
+
+type UserFriend1Relationship {
+  cursor: String!
+  node: User!
+}
+
+type UserFriend2Connection {
+  edges: [UserFriend2Relationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+input UserFriend2ConnectionSort {
+  node: UserSort
+}
+
+input UserFriend2ConnectionWhere {
+  AND: [UserFriend2ConnectionWhere!]
+  NOT: UserFriend2ConnectionWhere
+  OR: [UserFriend2ConnectionWhere!]
+  node: UserWhere
+}
+
+type UserFriend2Relationship {
+  cursor: String!
+  node: User!
+}
+
+input UserOptions {
+  limit: Int
+  offset: Int
+  """
+  Specify one or more UserSort objects to sort Users by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [UserSort!]
+}
+
+"""
+Fields to sort Users by. The order in which sorts are applied is not guaranteed when specifying many fields in one UserSort object.
+"""
+input UserSort {
+  firstName: SortDirection
+  id: SortDirection
+  lastName: SortDirection
+}
+
+input UserWhere {
+  AND: [UserWhere!]
+  NOT: UserWhere
+  OR: [UserWhere!]
+  firstName: String
+  firstName_CONTAINS: String
+  firstName_ENDS_WITH: String
+  firstName_IN: [String!]
+  firstName_STARTS_WITH: String
+  friend1: UserWhere
+  friend1Connection: UserFriend1ConnectionWhere
+  friend1Connection_NOT: UserFriend1ConnectionWhere
+  friend1_NOT: UserWhere
+  friend2: UserWhere
+  friend2Connection: UserFriend2ConnectionWhere
+  friend2Connection_NOT: UserFriend2ConnectionWhere
+  friend2_NOT: UserWhere
+  id: ID
+  id_CONTAINS: ID
+  id_ENDS_WITH: ID
+  id_IN: [ID!]
+  id_STARTS_WITH: ID
+  lastName: String
+  lastName_CONTAINS: String
+  lastName_ENDS_WITH: String
+  lastName_IN: [String!]
+  lastName_STARTS_WITH: String
+}
+
+type UsersConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+----
+
+'''
+
+== should throw no errors when validate is false
+
+.Schema
+[source,graphql,schema=true]
+----
+type User {
+  id: ID!
+  firstName: String!
+  lastName: String!
+  fullName: String @customResolver(requires: "firstName lastName")
+  friend1: User! @relationship(type: "FRIENDS_WITH", direction: IN)
+  friend2: User! @relationship(type: "FRIENDS_WITH", direction: IN)
+}
+
+type Point {
+  latitude: Float!
+  longitude: Float!
+}
+----
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+}
+
+"""Pagination information (Relay)"""
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Point {
+  latitude: Float!
+  longitude: Float!
+}
+
+type PointEdge {
+  cursor: String!
+  node: Point!
+}
+
+input PointOptions {
+  limit: Int
+  offset: Int
+  """
+  Specify one or more PointSort objects to sort Points by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [PointSort!]
+}
+
+"""
+Fields to sort Points by. The order in which sorts are applied is not guaranteed when specifying many fields in one PointSort object.
+"""
+input PointSort {
+  latitude: SortDirection
+  longitude: SortDirection
+}
+
+input PointWhere {
+  AND: [PointWhere!]
+  NOT: PointWhere
+  OR: [PointWhere!]
+  latitude: Float
+  latitude_GT: Float
+  latitude_GTE: Float
+  latitude_IN: [Float!]
+  latitude_LT: Float
+  latitude_LTE: Float
+  longitude: Float
+  longitude_GT: Float
+  longitude_GTE: Float
+  longitude_IN: [Float!]
+  longitude_LT: Float
+  longitude_LTE: Float
+}
+
+type PointsConnection {
+  edges: [PointEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Query {
+  points(options: PointOptions, where: PointWhere): [Point!]!
+  pointsConnection(after: String, first: Int, sort: [PointSort], where: PointWhere): PointsConnection!
+  users(options: UserOptions, where: UserWhere): [User!]!
+  usersConnection(after: String, first: Int, sort: [UserSort], where: UserWhere): UsersConnection!
+}
+
+"""An enum for sorting in either ascending or descending order."""
+enum SortDirection {
+  """Sort by field values in ascending order."""
+  ASC
+  """Sort by field values in descending order."""
+  DESC
+}
+
+type User {
+  firstName: String!
+  friend1(directed: Boolean = true, options: UserOptions, where: UserWhere): User!
+  friend1Connection(after: String, directed: Boolean = true, first: Int, sort: [UserFriend1ConnectionSort!], where: UserFriend1ConnectionWhere): UserFriend1Connection!
+  friend2(directed: Boolean = true, options: UserOptions, where: UserWhere): User!
+  friend2Connection(after: String, directed: Boolean = true, first: Int, sort: [UserFriend2ConnectionSort!], where: UserFriend2ConnectionWhere): UserFriend2Connection!
+  fullName: String
+  id: ID!
+  lastName: String!
+}
+
+type UserEdge {
+  cursor: String!
+  node: User!
+}
+
+type UserFriend1Connection {
+  edges: [UserFriend1Relationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+input UserFriend1ConnectionSort {
+  node: UserSort
+}
+
+input UserFriend1ConnectionWhere {
+  AND: [UserFriend1ConnectionWhere!]
+  NOT: UserFriend1ConnectionWhere
+  OR: [UserFriend1ConnectionWhere!]
+  node: UserWhere
+}
+
+type UserFriend1Relationship {
+  cursor: String!
+  node: User!
+}
+
+type UserFriend2Connection {
+  edges: [UserFriend2Relationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+input UserFriend2ConnectionSort {
+  node: UserSort
+}
+
+input UserFriend2ConnectionWhere {
+  AND: [UserFriend2ConnectionWhere!]
+  NOT: UserFriend2ConnectionWhere
+  OR: [UserFriend2ConnectionWhere!]
+  node: UserWhere
+}
+
+type UserFriend2Relationship {
+  cursor: String!
+  node: User!
+}
+
+input UserOptions {
+  limit: Int
+  offset: Int
+  """
+  Specify one or more UserSort objects to sort Users by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [UserSort!]
+}
+
+"""
+Fields to sort Users by. The order in which sorts are applied is not guaranteed when specifying many fields in one UserSort object.
+"""
+input UserSort {
+  firstName: SortDirection
+  id: SortDirection
+  lastName: SortDirection
+}
+
+input UserWhere {
+  AND: [UserWhere!]
+  NOT: UserWhere
+  OR: [UserWhere!]
+  firstName: String
+  firstName_CONTAINS: String
+  firstName_ENDS_WITH: String
+  firstName_IN: [String!]
+  firstName_STARTS_WITH: String
+  friend1: UserWhere
+  friend1Connection: UserFriend1ConnectionWhere
+  friend1Connection_NOT: UserFriend1ConnectionWhere
+  friend1_NOT: UserWhere
+  friend2: UserWhere
+  friend2Connection: UserFriend2ConnectionWhere
+  friend2Connection_NOT: UserFriend2ConnectionWhere
+  friend2_NOT: UserWhere
+  id: ID
+  id_CONTAINS: ID
+  id_ENDS_WITH: ID
+  id_IN: [ID!]
+  id_STARTS_WITH: ID
+  lastName: String
+  lastName_CONTAINS: String
+  lastName_ENDS_WITH: String
+  lastName_IN: [String!]
+  lastName_STARTS_WITH: String
+}
+
+type UsersConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+----
+
+'''
+

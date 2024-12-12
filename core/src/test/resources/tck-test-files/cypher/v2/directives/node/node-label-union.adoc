@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = Node directive with unions
 
-== Source schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 union Search = Genre | Movie

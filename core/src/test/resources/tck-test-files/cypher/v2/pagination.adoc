@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = Cypher pagination tests
 
-== Source schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Movie {
@@ -11,6 +13,38 @@ type Movie {
   title: String
 }
 ----
+
+== Skipping
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(options: {offset: 1}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 1
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WITH * SKIP $param0
+RETURN this {
+	.title
+} AS this
+----
+
+'''
 
 == Limit
 
@@ -157,38 +191,6 @@ query ($offset: Int, $limit: Int, $title: String) {
 MATCH (this:Movie)
 WHERE this.title = $param0
 WITH * SKIP $param1 LIMIT $param2
-RETURN this {
-	.title
-} AS this
-----
-
-'''
-
-== Skipping
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  movies(options: {offset: 1}) {
-    title
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0" : 1
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Movie)
-WITH * SKIP $param0
 RETURN this {
 	.title
 } AS this

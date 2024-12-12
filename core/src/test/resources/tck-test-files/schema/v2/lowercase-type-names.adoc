@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
-= lower case type names -> should generate a valid schema
+= lower case type names
 
-== Source schema
+== should generate a valid schema
 
+.Schema
 [source,graphql,schema=true]
 ----
 type movie {
@@ -21,8 +23,6 @@ type actor {
   movies: [movie!]! @relationship(type: "ACTED_IN", direction: OUT)
 }
 ----
-
-== Augmented schema
 
 .Augmented Schema
 [source,graphql]
@@ -255,3 +255,4 @@ input movieWhere {
 ----
 
 '''
+

@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = https://github.com/neo4j/graphql/issues/4287
 
-== Source schema
+== filter by logical operator on interface connection
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Actor {
@@ -29,8 +31,6 @@ type Series implements Production {
   episodes: Int
 }
 ----
-
-== filter by logical operator on interface connection
 
 .GraphQL-Query
 [source,graphql]

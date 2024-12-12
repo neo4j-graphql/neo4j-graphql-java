@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = https://github.com/neo4j/graphql/issues/4667
 
-== Source schema
+== when passed null as an argument of a relationship filter should check that a relationship does not exist
 
+.Schema
 [source,graphql,schema=true]
 ----
 type MyThing {
@@ -16,8 +18,6 @@ type MyStuff {
   thing: MyThing @relationship(type: "THE_STUFF", direction: IN)
 }
 ----
-
-== when passed null as an argument of a relationship filter should check that a relationship does not exist
 
 .GraphQL-Query
 [source,graphql]

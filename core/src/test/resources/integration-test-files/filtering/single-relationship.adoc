@@ -1,0 +1,154 @@
+:toc:
+:toclevels: 42
+
+= Single relationship (1-*) filtering
+
+== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+type Person {
+  name: String!
+  actedIn: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
+  directedMovies: [Movie!]! @relationship(type: "DIRECTED", direction: OUT)
+  producedMovies: [Movie!]! @relationship(type: "PRODUCED", direction: OUT)
+}
+
+type Movie {
+  title: String!
+  actors: [Person!]! @relationship(type: "ACTED_IN", direction: OUT)
+  director: Person! @relationship(type: "DIRECTED", direction: IN)
+  producer: Person @relationship(type: "PRODUCED", direction: IN)
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (:Movie {title: "The Matrix", released: 1999})
+ CREATE (:Movie {title: "The Italian Job", released: 1969})
+ CREATE (:Movie {title: "The Italian Job", released: 2003})
+ CREATE (:Movie {title: "The Lion King", released: 1994})
+----
+
+== Filter on required and optional relationships
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE(jw:Person {name: "Jon Wu"})
+ CREATE(:Movie {title: "Hard Target"})<-[:DIRECTED]-(jw)
+ CREATE(cb:Movie {title: "Chi bi"})<-[:DIRECTED]-(jw)
+ CREATE(cb)<-[:PRODUCED]-(jw)
+ CREATE(m:Movie {title: "Avatar"})<-[:DIRECTED]-(:Person {name: "Richie McFamous"})
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(
+    where: {OR: [{director: {name: "Jon Wu"}}, {producer: {name: "Jon Wu"}}]}
+  ) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "Jon Wu",
+  "param1": "Jon Wu"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE (EXISTS {
+		MATCH (this0:Person)-[:DIRECTED]->(this)
+		WHERE this0.name = $param0
+	}
+	OR EXISTS {
+		MATCH (this1:Person)-[:PRODUCED]->(this)
+		WHERE this1.name = $param1
+	})
+RETURN this {
+	.title
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies": [
+    {
+      "title": "Hard Target"
+    },
+    {
+      "title": "Chi bi"
+    }
+  ]
+}
+----
+
+'''
+
+== Filter on optional relationships without results
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE(jw:Person {name: "Jon Wu"})
+ CREATE(:Movie {title: "Hard Target"})<-[:DIRECTED]-(jw)
+ CREATE(cb:Movie {title: "Chi bi"})<-[:DIRECTED]-(jw)
+ CREATE(cb)<-[:PRODUCED]-(jw)
+ CREATE(m:Movie {title: "Avatar"})<-[:DIRECTED]-(:Person {name: "Richie McFamous"})
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {producer: {name: "Uw Noj"}}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "Uw Noj"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE EXISTS {
+	MATCH (this0:Person)-[:PRODUCED]->(this)
+	WHERE this0.name = $param0
+}
+RETURN this {
+	.title
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies": []
+}
+----
+
+'''
+

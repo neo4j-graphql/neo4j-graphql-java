@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = #360
 
-== Source schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Event {

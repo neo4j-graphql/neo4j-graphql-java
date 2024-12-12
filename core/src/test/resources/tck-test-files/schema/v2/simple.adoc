@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = Simple
 
-== Source schema
+== Simple
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Movie {
@@ -13,8 +15,6 @@ type Movie {
   isActive: Boolean
 }
 ----
-
-== Augmented schema
 
 .Augmented Schema
 [source,graphql]
@@ -104,3 +104,4 @@ input MovieWhere {
 ----
 
 '''
+

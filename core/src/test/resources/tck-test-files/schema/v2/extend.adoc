@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = Extend
 
-== Source schema
+== Extend
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Movie {
@@ -14,8 +16,6 @@ extend type Movie {
   name: String
 }
 ----
-
-== Augmented schema
 
 .Augmented Schema
 [source,graphql]
@@ -93,3 +93,4 @@ input MovieWhere {
 ----
 
 '''
+

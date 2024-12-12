@@ -39,7 +39,8 @@ fun createConnectionClause(
         },
         onInterface = {
             createConnectionClauseForMultipleNodes(
-                it.implementations.values, arguments,
+                it.implementations.values,
+                arguments,
                 resolveTree,
                 field,
                 context,
@@ -48,9 +49,15 @@ fun createConnectionClause(
                 returnVariable,
             )
         },
-        onUnion = {
+        onUnion = { union ->
+            val unionConnectionWhere = arguments.where as? ConnectionWhere.UnionConnectionWhere
+            var nodes = union.nodes.values
+            if (unionConnectionWhere != null) {
+                nodes = nodes.filter { !unionConnectionWhere.getDataForNode(it)?.predicates.isNullOrEmpty() }
+            }
             createConnectionClauseForMultipleNodes(
-                it.nodes.values, arguments,
+                nodes,
+                arguments,
                 resolveTree,
                 field,
                 context,
@@ -98,7 +105,7 @@ private fun createConnectionClauseForMultipleNodes(
     var targetEdges = edges
     return Cypher
         .with(nodeVariable)
-        .call(Cypher.union(subQueries))
+        .call(subQueries.union())
         .with(Cypher.collect(collectUnionVariable).`as`(edges))
         .with(edges, Cypher.size(edges).`as`(totalCount))
         .let {

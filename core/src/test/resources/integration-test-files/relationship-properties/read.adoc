@@ -1,0 +1,152 @@
+:toc:
+:toclevels: 42
+
+= Relationship properties - read
+
+== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: IN)
+}
+
+type Actor {
+  name: String!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: OUT)
+}
+
+type ActedIn @relationshipProperties {
+  screenTime: Int!
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (:Actor { name: 'aRandomString2' })-[:ACTED_IN { screenTime: 105 }]->(m:Movie { title: 'RandomString1'})
+ CREATE (m)<-[:ACTED_IN { screenTime: 105 }]-(:Actor { name: 'bRandomString3' })
+ CREATE (m)<-[:ACTED_IN { screenTime: 5 }]-(:Actor { name: 'cRandomString4' })
+----
+
+== Projecting node and relationship properties with no arguments
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {title: "RandomString1"}) {
+    title
+    actorsConnection {
+      totalCount
+      edges {
+        properties {
+          screenTime
+        }
+        node {
+          name
+        }
+      }
+      pageInfo {
+        hasNextPage
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "RandomString1"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+CALL {
+	WITH this
+	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
+	WITH collect( {
+		node: actor0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS actor0, edge.relationship AS actedIn0
+		RETURN collect( {
+			properties: {
+				__typename: 'ActedIn',
+				screenTime: actedIn0.screenTime
+			},
+			node: {
+				__typename: 'Actor',
+				name: actor0.name
+			}
+		}) AS actorsConnectionEdges
+	}
+	RETURN {
+		edges: actorsConnectionEdges,
+		totalCount: totalCount
+	} AS actorsConnection
+}
+RETURN this {
+	.title,
+	actorsConnection: actorsConnection
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "movies": [
+    {
+      "title": "RandomString1",
+      "actorsConnection": {
+        "totalCount": 3,
+        "edges": [
+          {
+            "properties": {
+              "screenTime": 105
+            },
+            "node": {
+              "name": "aRandomString2"
+            }
+          },
+          {
+            "properties": {
+              "screenTime": 105
+            },
+            "node": {
+              "name": "bRandomString3"
+            }
+          },
+          {
+            "properties": {
+              "screenTime": 5
+            },
+            "node": {
+              "name": "cRandomString4"
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      }
+    }
+  ]
+}
+----
+
+'''
+

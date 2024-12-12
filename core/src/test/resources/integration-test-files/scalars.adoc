@@ -1,0 +1,64 @@
+:toc:
+:toclevels: 42
+
+= scalars
+
+== should serialize a id correctly
+
+.Schema
+[source,graphql,schema=true]
+----
+type Movie {
+  id: ID
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (m:Movie {id: "986"})
+ RETURN m {.id} as m
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {id: 986}) {
+    id
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "986"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.id = $param0
+RETURN this {
+	.id
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies": [
+    {
+      "id": "986"
+    }
+  ]
+}
+----
+
+'''
+

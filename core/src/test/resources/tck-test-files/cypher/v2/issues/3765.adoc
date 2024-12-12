@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = https://github.com/neo4j/graphql/issues/3765
 
-== Source schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type User {
@@ -24,13 +26,13 @@ type likesProperties @relationshipProperties {
 
 == property filters
 
-=== explicit NOT with an implicit AND
+=== implicit AND
 
 .GraphQL-Query
 [source,graphql]
 ----
 {
-  posts(where: {NOT: {content: "stuff", alternateContent: "stuff2"}}) {
+  posts(where: {content: "stuff", alternateContent: "stuff2"}) {
     content
   }
 }
@@ -49,8 +51,8 @@ type likesProperties @relationshipProperties {
 [source,cypher]
 ----
 MATCH (this:Post)
-WHERE NOT ((this.content = $param0
-	AND this.alternateContent = $param1))
+WHERE (this.content = $param0
+	AND this.alternateContent = $param1)
 RETURN this {
 	.content
 } AS this
@@ -96,13 +98,13 @@ RETURN this {
 
 '''
 
-=== implicit AND
+=== explicit NOT with an implicit AND
 
 .GraphQL-Query
 [source,graphql]
 ----
 {
-  posts(where: {content: "stuff", alternateContent: "stuff2"}) {
+  posts(where: {NOT: {content: "stuff", alternateContent: "stuff2"}}) {
     content
   }
 }
@@ -121,8 +123,8 @@ RETURN this {
 [source,cypher]
 ----
 MATCH (this:Post)
-WHERE (this.content = $param0
-	AND this.alternateContent = $param1)
+WHERE NOT ((this.content = $param0
+	AND this.alternateContent = $param1))
 RETURN this {
 	.content
 } AS this
@@ -131,57 +133,6 @@ RETURN this {
 '''
 
 == relationship filters
-
-=== explicit OR outside relationship filters
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  posts(
-    where: {OR: [{likes_SOME: {name: "stuff"}}, {likes_ALL: {otherName: "stuff2"}}, {likes_SOME: {otherName: "stuff3"}}]}
-  ) {
-    content
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0" : "stuff",
-  "param1" : "stuff2",
-  "param2" : "stuff3"
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Post)
-WHERE (EXISTS {
-		MATCH (this0:User)-[:LIKES]->(this)
-		WHERE this0.name = $param0
-	}
-	OR (EXISTS {
-			MATCH (this1:User)-[:LIKES]->(this)
-			WHERE this1.otherName = $param1
-		}
-		AND NOT (EXISTS {
-			MATCH (this1:User)-[:LIKES]->(this)
-			WHERE NOT (this1.otherName = $param1)
-		}))
-	OR EXISTS {
-		MATCH (this2:User)-[:LIKES]->(this)
-		WHERE this2.otherName = $param2
-	})
-RETURN this {
-	.content
-} AS this
-----
-
-'''
 
 === implicit AND  inside relationship filter
 
@@ -264,4 +215,54 @@ RETURN this {
 
 '''
 
+=== explicit OR outside relationship filters
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  posts(
+    where: {OR: [{likes_SOME: {name: "stuff"}}, {likes_ALL: {otherName: "stuff2"}}, {likes_SOME: {otherName: "stuff3"}}]}
+  ) {
+    content
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "stuff",
+  "param1" : "stuff2",
+  "param2" : "stuff3"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Post)
+WHERE (EXISTS {
+		MATCH (this0:User)-[:LIKES]->(this)
+		WHERE this0.name = $param0
+	}
+	OR (EXISTS {
+			MATCH (this1:User)-[:LIKES]->(this)
+			WHERE this1.otherName = $param1
+		}
+		AND NOT (EXISTS {
+			MATCH (this1:User)-[:LIKES]->(this)
+			WHERE NOT (this1.otherName = $param1)
+		}))
+	OR EXISTS {
+		MATCH (this2:User)-[:LIKES]->(this)
+		WHERE this2.otherName = $param2
+	})
+RETURN this {
+	.content
+} AS this
+----
+
+'''
 

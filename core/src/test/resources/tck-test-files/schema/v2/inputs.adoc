@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = Inputs
 
-== Source schema
+== Inputs
 
+.Schema
 [source,graphql,schema=true]
 ----
 input NodeInput {
@@ -18,8 +20,6 @@ type Query {
   name(input: NodeInput): String
 }
 ----
-
-== Augmented schema
 
 .Augmented Schema
 [source,graphql]
@@ -95,3 +95,4 @@ input NodeInput {
 ----
 
 '''
+

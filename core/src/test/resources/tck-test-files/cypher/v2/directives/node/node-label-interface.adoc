@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = Node directive with interface
 
-== Source schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 interface Search {

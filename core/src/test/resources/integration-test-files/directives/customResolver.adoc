@@ -1,0 +1,2507 @@
+:toc:
+:toclevels: 42
+
+== @customResolver directive
+
+=== Scalar fields
+
+==== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+type User {
+  id: ID!
+  firstName: String!
+  lastName: String!
+  fullName: String @customResolver(requires: "firstName lastName")
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (user:User) SET user = {id: "An-ID", firstName: "someFirstName", lastName: "a second name!"}
+----
+
+.CustomResolver
+[source,kotlin]
+----
+include::../../../kotlin/org/neo4j/graphql/custom_resolver/ScalarFieldCustomResolver.kt[]
+----
+
+==== removes a field from all but its object type, and resolves with a custom resolver
+
+.GraphQL-Query
+[source,graphql]
+----
+query User($userId: ID!) {
+  users(where: {id: $userId}) {
+    id
+    firstName
+    lastName
+    fullName
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "userId": "An-ID"
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "An-ID"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+WHERE this.id = $param0
+RETURN this {
+	.id,
+	.firstName,
+	.lastName
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "users": [
+    {
+      "id": "An-ID",
+      "firstName": "someFirstName",
+      "lastName": "a second name!",
+      "fullName": "someFirstName a second name!"
+    }
+  ]
+}
+----
+
+'''
+
+==== resolves field with custom resolver without required fields in selection set
+
+.GraphQL-Query
+[source,graphql]
+----
+query User($userId: ID!) {
+  users(where: {id: $userId}) {
+    id
+    fullName
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "userId": "An-ID"
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "An-ID"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+WHERE this.id = $param0
+RETURN this {
+	.id,
+	.firstName,
+	.lastName
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "users": [
+    {
+      "id": "An-ID",
+      "fullName": "someFirstName a second name!"
+    }
+  ]
+}
+----
+
+'''
+
+==== resolves field with custom resolver with required field(s) aliased in selection set
+
+.GraphQL-Query
+[source,graphql]
+----
+query User($userId: ID!) {
+  users(where: {id: $userId}) {
+    id
+    f: firstName
+    fullName
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "userId": "An-ID"
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "An-ID"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+WHERE this.id = $param0
+RETURN this {
+	.id,
+	f: this.firstName,
+	.firstName,
+	.lastName
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "users": [
+    {
+      "id": "An-ID",
+      "f": "someFirstName",
+      "fullName": "someFirstName a second name!"
+    }
+  ]
+}
+----
+
+'''
+
+=== Custom resolver checks
+
+==== Check throws error if customResolver is not provided
+
+.Schema
+[source,graphql,schema=true]
+----
+type User {
+  id: ID!
+  firstName: String!
+  lastName: String!
+  fullName: String @customResolver(requires: "firstName lastName")
+}
+----
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+}
+
+"""Pagination information (Relay)"""
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  users(options: UserOptions, where: UserWhere): [User!]!
+  usersConnection(after: String, first: Int, sort: [UserSort], where: UserWhere): UsersConnection!
+}
+
+"""An enum for sorting in either ascending or descending order."""
+enum SortDirection {
+  """Sort by field values in ascending order."""
+  ASC
+  """Sort by field values in descending order."""
+  DESC
+}
+
+type User {
+  firstName: String!
+  fullName: String
+  id: ID!
+  lastName: String!
+}
+
+type UserEdge {
+  cursor: String!
+  node: User!
+}
+
+input UserOptions {
+  limit: Int
+  offset: Int
+  """
+  Specify one or more UserSort objects to sort Users by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [UserSort!]
+}
+
+"""
+Fields to sort Users by. The order in which sorts are applied is not guaranteed when specifying many fields in one UserSort object.
+"""
+input UserSort {
+  firstName: SortDirection
+  id: SortDirection
+  lastName: SortDirection
+}
+
+input UserWhere {
+  AND: [UserWhere!]
+  NOT: UserWhere
+  OR: [UserWhere!]
+  firstName: String
+  firstName_CONTAINS: String
+  firstName_ENDS_WITH: String
+  firstName_IN: [String!]
+  firstName_STARTS_WITH: String
+  id: ID
+  id_CONTAINS: ID
+  id_ENDS_WITH: ID
+  id_IN: [ID!]
+  id_STARTS_WITH: ID
+  lastName: String
+  lastName_CONTAINS: String
+  lastName_ENDS_WITH: String
+  lastName_IN: [String!]
+  lastName_STARTS_WITH: String
+}
+
+type UsersConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+----
+
+'''
+
+== Related Fields
+
+=== should be able to require a field from a related type
+
+.Schema
+[source,graphql,schema=true]
+----
+type Address {
+  street: String!
+  city: String!
+}
+
+type User {
+  id: ID!
+  firstName: String!
+  lastName: String!
+  address: Address @relationship(type: "LIVES_AT", direction: OUT)
+  fullName: String @customResolver(requires: "firstName lastName address { city }")
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (user:User)-[:LIVES_AT]->(addr:Address) SET user = {id: "1", firstName: "First", lastName: "Last"}, addr = {city: "some city", street: "some street"}
+----
+
+.CustomResolver
+[source,kotlin]
+----
+include::../../../kotlin/org/neo4j/graphql/custom_resolver/ComplexFieldCustomResolver.kt[]
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query User {
+  users {
+    fullName
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+CALL {
+	WITH this
+	MATCH (this)-[livesAt0:LIVES_AT]->(address0:Address)
+	WITH address0 {
+		.city
+	} AS address
+	RETURN head(collect(address)) AS address
+}
+RETURN this {
+	.firstName,
+	.lastName,
+	address: address
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "users": [
+    {
+      "fullName": "First Last from some city"
+    }
+  ]
+}
+----
+
+'''
+
+=== should fetch required fields when other fields are also selected
+
+.Schema
+[source,graphql,schema=true]
+----
+type Address {
+  street: String!
+  city: String!
+}
+
+type User {
+  id: ID!
+  firstName: String!
+  lastName: String!
+  address: Address @relationship(type: "LIVES_AT", direction: OUT)
+  fullName: String @customResolver(requires: "firstName lastName address { city }")
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (user:User)-[:LIVES_AT]->(addr:Address) SET user = {id: "1", firstName: "First", lastName: "Last"}, addr = {city: "some city", street: "some street"}
+----
+
+.CustomResolver
+[source,kotlin]
+----
+include::../../../kotlin/org/neo4j/graphql/custom_resolver/ComplexFieldCustomResolver.kt[]
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query User {
+  users {
+    id
+    fullName
+    address {
+      street
+      city
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+CALL {
+	WITH this
+	MATCH (this)-[livesAt0:LIVES_AT]->(address0:Address)
+	WITH address0 {
+		.street,
+		.city
+	} AS address
+	RETURN head(collect(address)) AS address
+}
+RETURN this {
+	.id,
+	address: address,
+	.firstName,
+	.lastName
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "users": [
+    {
+      "id": "1",
+      "fullName": "First Last from some city",
+      "address": {
+        "street": "some street",
+        "city": "some city"
+      }
+    }
+  ]
+}
+----
+
+'''
+
+=== should fetch customResolver fields over multiple users
+
+.Schema
+[source,graphql,schema=true]
+----
+type Address {
+  street: String!
+  city: String!
+}
+
+type User {
+  id: ID!
+  firstName: String!
+  lastName: String!
+  address: Address @relationship(type: "LIVES_AT", direction: OUT)
+  fullName: String @customResolver(requires: "firstName lastName address { city }")
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (user1:User)-[:LIVES_AT]->(addr1:Address) SET user1 = {id: "1", firstName: "First", lastName: "Last"}, addr1 = {city: "some city", street: "some street"}
+ CREATE (user2:User)-[:LIVES_AT]->(addr2:Address) SET user2 = {id: "2", firstName: "New First", lastName: "new-last"}, addr2 = {city: "another-city", street: "another-street"}
+----
+
+.CustomResolver
+[source,kotlin]
+----
+include::../../../kotlin/org/neo4j/graphql/custom_resolver/ComplexFieldCustomResolver.kt[]
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query User {
+  users {
+    id
+    fullName
+    address {
+      street
+      city
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+CALL {
+	WITH this
+	MATCH (this)-[livesAt0:LIVES_AT]->(address0:Address)
+	WITH address0 {
+		.street,
+		.city
+	} AS address
+	RETURN head(collect(address)) AS address
+}
+RETURN this {
+	.id,
+	address: address,
+	.firstName,
+	.lastName
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "users": [
+    {
+      "id": "1",
+      "fullName": "First Last from some city",
+      "address": {
+        "street": "some street",
+        "city": "some city"
+      }
+    },
+    {
+      "id": "2",
+      "fullName": "New First new-last from another-city",
+      "address": {
+        "street": "another-street",
+        "city": "another-city"
+      }
+    }
+  ]
+}
+----
+
+'''
+
+=== should select related fields when not selected last
+
+.Schema
+[source,graphql,schema=true]
+----
+type Address {
+  street: String!
+  city: String!
+}
+
+type User {
+  id: ID!
+  firstName: String!
+  lastName: String!
+  address: Address @relationship(type: "LIVES_AT", direction: OUT)
+  fullName: String @customResolver(requires: "firstName address { city } lastName")
+}
+----
+
+.CustomResolver
+[source,kotlin]
+----
+include::../../../kotlin/org/neo4j/graphql/custom_resolver/ComplexFieldCustomResolver.kt[]
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (user1:User)-[:LIVES_AT]->(addr1:Address) SET user1 = {id: "1", firstName: "First", lastName: "Last"}, addr1 = {city: "some city", street: "some street"}
+ CREATE (user2:User)-[:LIVES_AT]->(addr2:Address) SET user2 = {id: "2", firstName: "New First", lastName: "new-last"}, addr2 = {city: "another-city", street: "another-street"}
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query User {
+  users {
+    id
+    fullName
+    address {
+      street
+      city
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+CALL {
+	WITH this
+	MATCH (this)-[livesAt0:LIVES_AT]->(address0:Address)
+	WITH address0 {
+		.street,
+		.city
+	} AS address
+	RETURN head(collect(address)) AS address
+}
+RETURN this {
+	.id,
+	address: address,
+	.firstName,
+	.lastName
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "users": [
+    {
+      "id": "1",
+      "fullName": "First Last from some city",
+      "address": {
+        "street": "some street",
+        "city": "some city"
+      }
+    },
+    {
+      "id": "2",
+      "fullName": "New First new-last from another-city",
+      "address": {
+        "street": "another-street",
+        "city": "another-city"
+      }
+    }
+  ]
+}
+----
+
+'''
+
+=== should select fields from double nested related nodes
+
+.Schema
+[source,graphql,schema=true]
+----
+type City {
+  name: String!
+  population: Int
+}
+
+type Address {
+  street: String!
+  city: City! @relationship(type: "IN_CITY", direction: OUT)
+}
+
+type User {
+  id: ID!
+  firstName: String!
+  lastName: String!
+  address: Address @relationship(type: "LIVES_AT", direction: OUT)
+  fullName: String @customResolver(requires: "firstName lastName address { city { name population } }")
+}
+----
+
+.CustomResolver
+[source,kotlin]
+----
+include::../../../kotlin/org/neo4j/graphql/custom_resolver/ComplexFieldCustomResolver2.kt[]
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (user1:User)-[:LIVES_AT]->(addr1:Address)-[:IN_CITY]->(city1:City)
+ SET user1 = {id: "1", firstName: "First", lastName: "Last"}, addr1 = {city: "some city", street: "some street"}, city1 = {name: "city1 name!", population: 8947975}
+ CREATE (user2:User)-[:LIVES_AT]->(addr2:Address)-[:IN_CITY]->(city2:City)
+ SET user2 = {id: "2", firstName: "New First", lastName: "new-last"}, addr2 = {city: "another-city", street: "another-street"}, city2 = {name: "city2 name?", population: 74}
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query User {
+  users {
+    fullName
+    address {
+      street
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+CALL {
+	WITH this
+	MATCH (this)-[livesAt0:LIVES_AT]->(address0:Address)
+	CALL {
+		WITH address0
+		MATCH (address0)-[inCity0:IN_CITY]->(city0:City)
+		WITH city0 {
+			.name,
+			.population
+		} AS city
+		RETURN head(collect(city)) AS city
+	}
+	WITH address0 {
+		.street,
+		city: city
+	} AS address
+	RETURN head(collect(address)) AS address
+}
+RETURN this {
+	address: address,
+	.firstName,
+	.lastName
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "users": [
+    {
+      "fullName": "First Last from city1 name! with population of 8947975",
+      "address": {
+        "street": "some street"
+      }
+    },
+    {
+      "fullName": "New First new-last from city2 name? with population of 74",
+      "address": {
+        "street": "another-street"
+      }
+    }
+  ]
+}
+----
+
+'''
+
+=== should select fields from triple nested related nodes
+
+.Schema
+[source,graphql,schema=true]
+----
+type State {
+  someValue: Int!
+}
+
+type City {
+  name: String!
+  population: Int
+  state: State! @relationship(type: "IN_STATE", direction: OUT)
+}
+
+type Address {
+  street: String!
+  city: City! @relationship(type: "IN_CITY", direction: OUT)
+}
+
+type User {
+  id: ID!
+  firstName: String!
+  lastName: String!
+  address: Address @relationship(type: "LIVES_AT", direction: OUT)
+  fullName: String @customResolver(requires: "firstName lastName address { city { name state { someValue } population } }")
+}
+----
+
+.CustomResolver
+[source,kotlin]
+----
+include::../../../kotlin/org/neo4j/graphql/custom_resolver/ComplexFieldCustomResolver3.kt[]
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (user1:User)-[:LIVES_AT]->(addr1:Address)-[:IN_CITY]->(city1:City)
+ -[:IN_STATE]->(state:State)
+ SET user1 = {id: "1", firstName: "First", lastName: "Last"}, addr1 = {city: "some city", street: "some street"}, city1 = {name: "city1 name!", population: 8947975}, state = {someValue: 4797}
+ CREATE (user2:User)-[:LIVES_AT]->(addr2:Address)-[:IN_CITY]->(city2:City)
+ -[:IN_STATE]->(state)
+ SET user2 = {id: "2", firstName: "New First", lastName: "new-last"}, addr2 = {city: "another-city", street: "another-street"}, city2 = {name: "city2 name?", population: 74}
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query User {
+  users {
+    fullName
+    address {
+      street
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+CALL {
+	WITH this
+	MATCH (this)-[livesAt0:LIVES_AT]->(address0:Address)
+	CALL {
+		WITH address0
+		MATCH (address0)-[inCity0:IN_CITY]->(city0:City)
+		CALL {
+			WITH city0
+			MATCH (city0)-[inState0:IN_STATE]->(state0:State)
+			WITH state0 {
+				.someValue
+			} AS state
+			RETURN head(collect(state)) AS state
+		}
+		WITH city0 {
+			.name,
+			state: state,
+			.population
+		} AS city
+		RETURN head(collect(city)) AS city
+	}
+	WITH address0 {
+		.street,
+		city: city
+	} AS address
+	RETURN head(collect(address)) AS address
+}
+RETURN this {
+	address: address,
+	.firstName,
+	.lastName
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "users": [
+    {
+      "fullName": "First Last from city1 name! with population of 8947975 with 4797",
+      "address": {
+        "street": "some street"
+      }
+    },
+    {
+      "fullName": "New First new-last from city2 name? with population of 74 with 4797",
+      "address": {
+        "street": "another-street"
+      }
+    }
+  ]
+}
+----
+
+'''
+
+=== should be able to require fields from a related union
+
+.Schema
+[source,graphql,schema=true]
+----
+union Publication = Book | Journal
+
+type Author {
+  name: String!
+  publications: [Publication!]! @relationship(type: "WROTE", direction: OUT)
+  publicationsWithAuthor: [String!]! @customResolver(requires: "name publications { ...on Book { title } ... on Journal { subject } }")
+}
+
+type Book {
+  title: String!
+  author: Author! @relationship(type: "WROTE", direction: IN)
+}
+
+type Journal {
+  subject: String!
+  author: Author! @relationship(type: "WROTE", direction: IN)
+}
+----
+
+.CustomResolver
+[source,kotlin]
+----
+include::../../../kotlin/org/neo4j/graphql/custom_resolver/ArrayFieldCustomResolver.kt[]
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (author1:Author)-[:WROTE]->(book1:Book) SET author1 = {name: "some-author-name"}, book1 = {title: "a book name", publicationYear: 12}
+ CREATE (author2:Author)-[:WROTE]->(journal1:Journal) SET author2 = {name: "another author name"}, journal1 = {subject: "a subject", publicationYear: 573}
+ CREATE (author2)-[:WROTE]->(journal2:Journal) SET journal2 = {subject: "a second subject", publicationYear: 9087}
+ CREATE (author2)-[:WROTE]->(book2:Book) SET book2 = {title: "another-book-name", publicationYear: 1074}
+ CREATE (author1)-[:WROTE]->(journal1)
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query Author {
+  authors {
+    publicationsWithAuthor
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Author)
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[wrote0:WROTE]->(book0:Book)
+		WITH book0 {
+			__typename: 'Book',
+			__id: elementId(book0),
+			.title
+		} AS book0
+		RETURN book0 AS publications0 UNION
+		WITH *
+		MATCH (this)-[wrote1:WROTE]->(journal0:Journal)
+		WITH journal0 {
+			__typename: 'Journal',
+			__id: elementId(journal0),
+			.subject
+		} AS journal0
+		RETURN journal0 AS publications0
+	}
+	WITH publications0
+	RETURN collect(publications0) AS publications0
+}
+RETURN this {
+	.name,
+	publications: publications0
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "authors" : [ {
+    "publicationsWithAuthor" : [ "a book name by some-author-name", "a subject by some-author-name" ]
+  }, {
+    "publicationsWithAuthor" : [ "another-book-name by another author name", "a second subject by another author name", "a subject by another author name" ]
+  } ]
+}
+----
+
+'''
+
+=== should select @alias fields
+
+.Schema
+[source,graphql,schema=true]
+----
+type City {
+  name: String!
+  population: Int @alias(property: "cityPopulation")
+}
+
+type Address {
+  street: String!
+  city: City! @relationship(type: "IN_CITY", direction: OUT)
+}
+
+type User {
+  id: ID!
+  firstName: String! @alias(property: "first")
+  lastName: String!
+  address: Address @relationship(type: "LIVES_AT", direction: OUT)
+  fullName: String @customResolver(requires: "firstName lastName address { city { name population } }")
+}
+----
+
+.CustomResolver
+[source,kotlin]
+----
+include::../../../kotlin/org/neo4j/graphql/custom_resolver/ComplexFieldCustomResolver2.kt[]
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (user1:User)-[:LIVES_AT]->(addr1:Address)-[:IN_CITY]->(city1:City)
+ SET user1 = {id: "1", first: "First", lastName: "Last"}, addr1 = {city: "some city", street: "some street"}, city1 = {name: "city1 name!", cityPopulation: 8947975}
+ CREATE (user2:User)-[:LIVES_AT]->(addr2:Address)-[:IN_CITY]->(city2:City)
+ SET user2 = {id: "2", first: "New First", lastName: "new-last"}, addr2 = {city: "another-city", street: "another-street"}, city2 = {name: "city2 name?", cityPopulation: 74}
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query User {
+  users {
+    firstName
+    fullName
+    address {
+      street
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+CALL {
+	WITH this
+	MATCH (this)-[livesAt0:LIVES_AT]->(address0:Address)
+	CALL {
+		WITH address0
+		MATCH (address0)-[inCity0:IN_CITY]->(city0:City)
+		WITH city0 {
+			.name,
+			population: city0.cityPopulation
+		} AS city
+		RETURN head(collect(city)) AS city
+	}
+	WITH address0 {
+		.street,
+		city: city
+	} AS address
+	RETURN head(collect(address)) AS address
+}
+RETURN this {
+	firstName: this.first,
+	address: address,
+	.lastName
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "users" : [ {
+    "firstName" : "New First",
+    "fullName" : "New First new-last from city2 name? with population of 74",
+    "address" : {
+      "street" : "another-street"
+    }
+  }, {
+    "firstName" : "First",
+    "fullName" : "First Last from city1 name! with population of 8947975",
+    "address" : {
+      "street" : "some street"
+    }
+  } ]
+}
+----
+
+'''
+
+=== should be able to require fields from a related interface
+
+.Schema
+[source,graphql,schema=true]
+----
+interface Publication {
+  publicationYear: Int!
+}
+
+type Author {
+  name: String!
+  publications: [Publication!]! @relationship(type: "WROTE", direction: OUT)
+  publicationsWithAuthor: [String!]! @customResolver(requires: "name publications { publicationYear ...on Book { title } ... on Journal { subject } }")
+}
+
+type Book implements Publication {
+  title: String!
+  publicationYear: Int!
+  author: [Author!]! @relationship(type: "WROTE", direction: IN)
+}
+
+type Journal implements Publication {
+  subject: String!
+  publicationYear: Int!
+  author: [Author!]! @relationship(type: "WROTE", direction: IN)
+}
+----
+
+.CustomResolver
+[source,kotlin]
+----
+include::../../../kotlin/org/neo4j/graphql/custom_resolver/ArrayFieldCustomResolver2.kt[]
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (author1:Author)-[:WROTE]->(book1:Book) SET author1 = {name: "some-author-name"}, book1 = {title: "a book name", publicationYear: 12}
+ CREATE (author2:Author)-[:WROTE]->(journal1:Journal) SET author2 = {name: "another author name"}, journal1 = {subject: "a subject", publicationYear: 573}
+ CREATE (author1)-[:WROTE]->(journal1)
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query Author {
+  authors {
+    publicationsWithAuthor
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Author)
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[wrote0:WROTE]->(book0:Book)
+		WITH book0 {
+			__typename: 'Book',
+			__id: elementId(book0),
+			.title,
+			.publicationYear
+		} AS book0
+		RETURN book0 AS publications UNION
+		WITH *
+		MATCH (this)-[wrote1:WROTE]->(journal0:Journal)
+		WITH journal0 {
+			__typename: 'Journal',
+			__id: elementId(journal0),
+			.subject,
+			.publicationYear
+		} AS journal0
+		RETURN journal0 AS publications
+	}
+	WITH publications
+	RETURN collect(publications) AS publications
+}
+RETURN this {
+	.name,
+	publications: publications
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "authors" : [ {
+    "publicationsWithAuthor" : [ "a subject by another author name in 573" ]
+  }, {
+    "publicationsWithAuthor" : [ "a book name by some-author-name in 12", "a subject by some-author-name in 573" ]
+  } ]
+}
+----
+
+'''
+
+=== should be able to require fields from a nested related interface
+
+.Schema
+[source,graphql,schema=true]
+----
+interface Publication {
+  publicationYear: Int!
+}
+
+type User {
+  id: ID!
+  firstName: String!
+  lastName: String!
+  followedAuthors: [Author!]! @relationship(type: "FOLLOWS", direction: OUT)
+  customResolverField: Int @customResolver(requires: "followedAuthors { name publications { publicationYear ...on Book { title } ... on Journal { subject } } } firstName")
+}
+
+type Author {
+  name: String!
+  publications: [Publication!]! @relationship(type: "WROTE", direction: OUT)
+}
+
+type Book implements Publication {
+  title: String!
+  publicationYear: Int!
+  author: [Author!]! @relationship(type: "WROTE", direction: IN)
+}
+
+type Journal implements Publication {
+  subject: String!
+  publicationYear: Int!
+  author: [Author!]! @relationship(type: "WROTE", direction: IN)
+}
+----
+
+.CustomResolver
+[source,kotlin]
+----
+include::../../../kotlin/org/neo4j/graphql/custom_resolver/FieldFromInterfaceCustomResolver.kt[]
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (user1:User)-[:FOLLOWS]->(author1:Author)-[:WROTE]->(book1:Book)
+ SET user1 = {id: "1", firstName: "First", lastName: "Last"}, author1 = {name: "some-author-name"}, book1 = {title: "a book name", publicationYear: 12}
+ CREATE (user1)-[:FOLLOWS]->(author2:Author)-[:WROTE]->(journal1:Journal) SET author2 = {name: "another author name"}, journal1 = {subject: "a subject", publicationYear: 573}
+ CREATE (author1)-[:WROTE]->(journal1)
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query User {
+  users {
+    customResolverField
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+CALL {
+	WITH this
+	MATCH (this)-[follows0:FOLLOWS]->(author0:Author)
+	CALL {
+		WITH author0
+		CALL {
+			WITH *
+			MATCH (author0)-[wrote0:WROTE]->(book0:Book)
+			WITH book0 {
+				__typename: 'Book',
+				__id: elementId(book0),
+				.title,
+				.publicationYear
+			} AS book0
+			RETURN book0 AS publications UNION
+			WITH *
+			MATCH (author0)-[wrote1:WROTE]->(journal0:Journal)
+			WITH journal0 {
+				__typename: 'Journal',
+				__id: elementId(journal0),
+				.subject,
+				.publicationYear
+			} AS journal0
+			RETURN journal0 AS publications
+		}
+		WITH publications
+		RETURN collect(publications) AS publications
+	}
+	WITH author0 {
+		.name,
+		publications: publications
+	} AS followedAuthors
+	RETURN collect(followedAuthors) AS followedAuthors
+}
+RETURN this {
+	followedAuthors: followedAuthors,
+	.firstName
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "users": [
+    {
+      "customResolverField": 1216
+    }
+  ]
+}
+----
+
+'''
+
+=== should be able to require fields from a nested related union
+
+.Schema
+[source,graphql,schema=true]
+----
+type User {
+  id: ID!
+  firstName: String!
+  lastName: String!
+  followedAuthors: [Author!]! @relationship(type: "FOLLOWS", direction: OUT)
+  customResolverField: Int @customResolver(requires: "followedAuthors { name publications { ...on Book { title } ... on Journal { subject } } } firstName")
+}
+
+union Publication = Book | Journal
+
+type Author {
+  name: String!
+  publications: [Publication!]! @relationship(type: "WROTE", direction: OUT)
+}
+
+type Book {
+  title: String!
+  author: Author! @relationship(type: "WROTE", direction: IN)
+}
+
+type Journal {
+  subject: String!
+  author: Author! @relationship(type: "WROTE", direction: IN)
+}
+----
+
+.CustomResolver
+[source,kotlin]
+----
+include::../../../kotlin/org/neo4j/graphql/custom_resolver/FieldFromUnionCustomResolver.kt[]
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (user1:User)-[:FOLLOWS]->(author1:Author)-[:WROTE]->(book1:Book)
+ SET user1 = {id: "1", firstName: "First", lastName: "Last"}, author1 = {name: "some-author-name"}, book1 = {title: "a book name", publicationYear: 12}
+ CREATE (user1)-[:FOLLOWS]->(author2:Author)-[:WROTE]->(journal1:Journal) SET author2 = {name: "another author name"}, journal1 = {subject: "a subject", publicationYear: 573}
+ CREATE (author1)-[:WROTE]->(journal1)
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query User {
+  users {
+    customResolverField
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+CALL {
+	WITH this
+	MATCH (this)-[follows0:FOLLOWS]->(author0:Author)
+	CALL {
+		WITH author0
+		CALL {
+			WITH *
+			MATCH (author0)-[wrote0:WROTE]->(book0:Book)
+			WITH book0 {
+				__typename: 'Book',
+				__id: elementId(book0),
+				.title
+			} AS book0
+			RETURN book0 AS publications0 UNION
+			WITH *
+			MATCH (author0)-[wrote1:WROTE]->(journal0:Journal)
+			WITH journal0 {
+				__typename: 'Journal',
+				__id: elementId(journal0),
+				.subject
+			} AS journal0
+			RETURN journal0 AS publications0
+		}
+		WITH publications0
+		RETURN collect(publications0) AS publications0
+	}
+	WITH author0 {
+		.name,
+		publications: publications0
+	} AS followedAuthors
+	RETURN collect(followedAuthors) AS followedAuthors
+}
+RETURN this {
+	followedAuthors: followedAuthors,
+	.firstName
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "users": [
+    {
+      "customResolverField": 58
+    }
+  ]
+}
+----
+
+'''
+
+=== should not throw an error if there is another @customResolver field on the same type that is not required
+
+.Schema
+[source,graphql,schema=true]
+----
+interface Publication {
+  publicationYear: Int!
+}
+
+type User {
+  id: ID!
+  firstName: String!
+  lastName: String! @customResolver
+  followedAuthors: [Author!]! @relationship(type: "FOLLOWS", direction: OUT)
+  customResolverField: Int @customResolver(requires: "followedAuthors { name publications { publicationYear ...on Book { title } ... on Journal { subject } } } firstName")
+}
+
+type Author {
+  name: String!
+  publications: [Publication!]! @relationship(type: "WROTE", direction: OUT)
+}
+
+type Book implements Publication {
+  title: String!
+  publicationYear: Int!
+  author: [Author!]! @relationship(type: "WROTE", direction: IN)
+}
+
+type Journal implements Publication {
+  subject: String!
+  publicationYear: Int!
+  author: [Author!]! @relationship(type: "WROTE", direction: IN)
+}
+----
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+}
+
+type Author {
+  name: String!
+  publications(directed: Boolean = true, options: PublicationOptions, where: PublicationWhere): [Publication!]!
+  publicationsConnection(after: String, directed: Boolean = true, first: Int, sort: [AuthorPublicationsConnectionSort!], where: AuthorPublicationsConnectionWhere): AuthorPublicationsConnection!
+}
+
+type AuthorEdge {
+  cursor: String!
+  node: Author!
+}
+
+input AuthorOptions {
+  limit: Int
+  offset: Int
+  """
+  Specify one or more AuthorSort objects to sort Authors by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [AuthorSort!]
+}
+
+type AuthorPublicationsConnection {
+  edges: [AuthorPublicationsRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+input AuthorPublicationsConnectionSort {
+  node: PublicationSort
+}
+
+input AuthorPublicationsConnectionWhere {
+  AND: [AuthorPublicationsConnectionWhere!]
+  NOT: AuthorPublicationsConnectionWhere
+  OR: [AuthorPublicationsConnectionWhere!]
+  node: PublicationWhere
+}
+
+type AuthorPublicationsRelationship {
+  cursor: String!
+  node: Publication!
+}
+
+"""
+Fields to sort Authors by. The order in which sorts are applied is not guaranteed when specifying many fields in one AuthorSort object.
+"""
+input AuthorSort {
+  name: SortDirection
+}
+
+input AuthorWhere {
+  AND: [AuthorWhere!]
+  NOT: AuthorWhere
+  OR: [AuthorWhere!]
+  name: String
+  name_CONTAINS: String
+  name_ENDS_WITH: String
+  name_IN: [String!]
+  name_STARTS_WITH: String
+  """
+  Return Authors where all of the related AuthorPublicationsConnections match this filter
+  """
+  publicationsConnection_ALL: AuthorPublicationsConnectionWhere
+  """
+  Return Authors where none of the related AuthorPublicationsConnections match this filter
+  """
+  publicationsConnection_NONE: AuthorPublicationsConnectionWhere
+  """
+  Return Authors where one of the related AuthorPublicationsConnections match this filter
+  """
+  publicationsConnection_SINGLE: AuthorPublicationsConnectionWhere
+  """
+  Return Authors where some of the related AuthorPublicationsConnections match this filter
+  """
+  publicationsConnection_SOME: AuthorPublicationsConnectionWhere
+  """Return Authors where all of the related Publications match this filter"""
+  publications_ALL: PublicationWhere
+  """
+  Return Authors where none of the related Publications match this filter
+  """
+  publications_NONE: PublicationWhere
+  """Return Authors where one of the related Publications match this filter"""
+  publications_SINGLE: PublicationWhere
+  """
+  Return Authors where some of the related Publications match this filter
+  """
+  publications_SOME: PublicationWhere
+}
+
+type AuthorsConnection {
+  edges: [AuthorEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Book implements Publication {
+  author(directed: Boolean = true, options: AuthorOptions, where: AuthorWhere): [Author!]!
+  authorConnection(after: String, directed: Boolean = true, first: Int, sort: [BookAuthorConnectionSort!], where: BookAuthorConnectionWhere): BookAuthorConnection!
+  publicationYear: Int!
+  title: String!
+}
+
+type BookAuthorConnection {
+  edges: [BookAuthorRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+input BookAuthorConnectionSort {
+  node: AuthorSort
+}
+
+input BookAuthorConnectionWhere {
+  AND: [BookAuthorConnectionWhere!]
+  NOT: BookAuthorConnectionWhere
+  OR: [BookAuthorConnectionWhere!]
+  node: AuthorWhere
+}
+
+type BookAuthorRelationship {
+  cursor: String!
+  node: Author!
+}
+
+type BookEdge {
+  cursor: String!
+  node: Book!
+}
+
+input BookOptions {
+  limit: Int
+  offset: Int
+  """
+  Specify one or more BookSort objects to sort Books by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [BookSort!]
+}
+
+"""
+Fields to sort Books by. The order in which sorts are applied is not guaranteed when specifying many fields in one BookSort object.
+"""
+input BookSort {
+  publicationYear: SortDirection
+  title: SortDirection
+}
+
+input BookWhere {
+  AND: [BookWhere!]
+  NOT: BookWhere
+  OR: [BookWhere!]
+  """
+  Return Books where all of the related BookAuthorConnections match this filter
+  """
+  authorConnection_ALL: BookAuthorConnectionWhere
+  """
+  Return Books where none of the related BookAuthorConnections match this filter
+  """
+  authorConnection_NONE: BookAuthorConnectionWhere
+  """
+  Return Books where one of the related BookAuthorConnections match this filter
+  """
+  authorConnection_SINGLE: BookAuthorConnectionWhere
+  """
+  Return Books where some of the related BookAuthorConnections match this filter
+  """
+  authorConnection_SOME: BookAuthorConnectionWhere
+  """Return Books where all of the related Authors match this filter"""
+  author_ALL: AuthorWhere
+  """Return Books where none of the related Authors match this filter"""
+  author_NONE: AuthorWhere
+  """Return Books where one of the related Authors match this filter"""
+  author_SINGLE: AuthorWhere
+  """Return Books where some of the related Authors match this filter"""
+  author_SOME: AuthorWhere
+  publicationYear: Int
+  publicationYear_GT: Int
+  publicationYear_GTE: Int
+  publicationYear_IN: [Int!]
+  publicationYear_LT: Int
+  publicationYear_LTE: Int
+  title: String
+  title_CONTAINS: String
+  title_ENDS_WITH: String
+  title_IN: [String!]
+  title_STARTS_WITH: String
+}
+
+type BooksConnection {
+  edges: [BookEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Journal implements Publication {
+  author(directed: Boolean = true, options: AuthorOptions, where: AuthorWhere): [Author!]!
+  authorConnection(after: String, directed: Boolean = true, first: Int, sort: [JournalAuthorConnectionSort!], where: JournalAuthorConnectionWhere): JournalAuthorConnection!
+  publicationYear: Int!
+  subject: String!
+}
+
+type JournalAuthorConnection {
+  edges: [JournalAuthorRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+input JournalAuthorConnectionSort {
+  node: AuthorSort
+}
+
+input JournalAuthorConnectionWhere {
+  AND: [JournalAuthorConnectionWhere!]
+  NOT: JournalAuthorConnectionWhere
+  OR: [JournalAuthorConnectionWhere!]
+  node: AuthorWhere
+}
+
+type JournalAuthorRelationship {
+  cursor: String!
+  node: Author!
+}
+
+type JournalEdge {
+  cursor: String!
+  node: Journal!
+}
+
+input JournalOptions {
+  limit: Int
+  offset: Int
+  """
+  Specify one or more JournalSort objects to sort Journals by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [JournalSort!]
+}
+
+"""
+Fields to sort Journals by. The order in which sorts are applied is not guaranteed when specifying many fields in one JournalSort object.
+"""
+input JournalSort {
+  publicationYear: SortDirection
+  subject: SortDirection
+}
+
+input JournalWhere {
+  AND: [JournalWhere!]
+  NOT: JournalWhere
+  OR: [JournalWhere!]
+  """
+  Return Journals where all of the related JournalAuthorConnections match this filter
+  """
+  authorConnection_ALL: JournalAuthorConnectionWhere
+  """
+  Return Journals where none of the related JournalAuthorConnections match this filter
+  """
+  authorConnection_NONE: JournalAuthorConnectionWhere
+  """
+  Return Journals where one of the related JournalAuthorConnections match this filter
+  """
+  authorConnection_SINGLE: JournalAuthorConnectionWhere
+  """
+  Return Journals where some of the related JournalAuthorConnections match this filter
+  """
+  authorConnection_SOME: JournalAuthorConnectionWhere
+  """Return Journals where all of the related Authors match this filter"""
+  author_ALL: AuthorWhere
+  """Return Journals where none of the related Authors match this filter"""
+  author_NONE: AuthorWhere
+  """Return Journals where one of the related Authors match this filter"""
+  author_SINGLE: AuthorWhere
+  """Return Journals where some of the related Authors match this filter"""
+  author_SOME: AuthorWhere
+  publicationYear: Int
+  publicationYear_GT: Int
+  publicationYear_GTE: Int
+  publicationYear_IN: [Int!]
+  publicationYear_LT: Int
+  publicationYear_LTE: Int
+  subject: String
+  subject_CONTAINS: String
+  subject_ENDS_WITH: String
+  subject_IN: [String!]
+  subject_STARTS_WITH: String
+}
+
+type JournalsConnection {
+  edges: [JournalEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"""Pagination information (Relay)"""
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+interface Publication {
+  publicationYear: Int!
+}
+
+type PublicationEdge {
+  cursor: String!
+  node: Publication!
+}
+
+enum PublicationImplementation {
+  Book
+  Journal
+}
+
+input PublicationOptions {
+  limit: Int
+  offset: Int
+  """
+  Specify one or more PublicationSort objects to sort Publications by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [PublicationSort]
+}
+
+"""
+Fields to sort Publications by. The order in which sorts are applied is not guaranteed when specifying many fields in one PublicationSort object.
+"""
+input PublicationSort {
+  publicationYear: SortDirection
+}
+
+input PublicationWhere {
+  AND: [PublicationWhere!]
+  NOT: PublicationWhere
+  OR: [PublicationWhere!]
+  publicationYear: Int
+  publicationYear_GT: Int
+  publicationYear_GTE: Int
+  publicationYear_IN: [Int!]
+  publicationYear_LT: Int
+  publicationYear_LTE: Int
+  typename_IN: [PublicationImplementation!]
+}
+
+type PublicationsConnection {
+  edges: [PublicationEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Query {
+  authors(options: AuthorOptions, where: AuthorWhere): [Author!]!
+  authorsConnection(after: String, first: Int, sort: [AuthorSort], where: AuthorWhere): AuthorsConnection!
+  books(options: BookOptions, where: BookWhere): [Book!]!
+  booksConnection(after: String, first: Int, sort: [BookSort], where: BookWhere): BooksConnection!
+  journals(options: JournalOptions, where: JournalWhere): [Journal!]!
+  journalsConnection(after: String, first: Int, sort: [JournalSort], where: JournalWhere): JournalsConnection!
+  publications(options: PublicationOptions, where: PublicationWhere): [Publication!]!
+  publicationsConnection(after: String, first: Int, sort: [PublicationSort], where: PublicationWhere): PublicationsConnection!
+  users(options: UserOptions, where: UserWhere): [User!]!
+  usersConnection(after: String, first: Int, sort: [UserSort], where: UserWhere): UsersConnection!
+}
+
+"""An enum for sorting in either ascending or descending order."""
+enum SortDirection {
+  """Sort by field values in ascending order."""
+  ASC
+  """Sort by field values in descending order."""
+  DESC
+}
+
+type User {
+  customResolverField: Int
+  firstName: String!
+  followedAuthors(directed: Boolean = true, options: AuthorOptions, where: AuthorWhere): [Author!]!
+  followedAuthorsConnection(after: String, directed: Boolean = true, first: Int, sort: [UserFollowedAuthorsConnectionSort!], where: UserFollowedAuthorsConnectionWhere): UserFollowedAuthorsConnection!
+  id: ID!
+  lastName: String!
+}
+
+type UserEdge {
+  cursor: String!
+  node: User!
+}
+
+type UserFollowedAuthorsConnection {
+  edges: [UserFollowedAuthorsRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+input UserFollowedAuthorsConnectionSort {
+  node: AuthorSort
+}
+
+input UserFollowedAuthorsConnectionWhere {
+  AND: [UserFollowedAuthorsConnectionWhere!]
+  NOT: UserFollowedAuthorsConnectionWhere
+  OR: [UserFollowedAuthorsConnectionWhere!]
+  node: AuthorWhere
+}
+
+type UserFollowedAuthorsRelationship {
+  cursor: String!
+  node: Author!
+}
+
+input UserOptions {
+  limit: Int
+  offset: Int
+  """
+  Specify one or more UserSort objects to sort Users by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [UserSort!]
+}
+
+"""
+Fields to sort Users by. The order in which sorts are applied is not guaranteed when specifying many fields in one UserSort object.
+"""
+input UserSort {
+  firstName: SortDirection
+  id: SortDirection
+}
+
+input UserWhere {
+  AND: [UserWhere!]
+  NOT: UserWhere
+  OR: [UserWhere!]
+  firstName: String
+  firstName_CONTAINS: String
+  firstName_ENDS_WITH: String
+  firstName_IN: [String!]
+  firstName_STARTS_WITH: String
+  """
+  Return Users where all of the related UserFollowedAuthorsConnections match this filter
+  """
+  followedAuthorsConnection_ALL: UserFollowedAuthorsConnectionWhere
+  """
+  Return Users where none of the related UserFollowedAuthorsConnections match this filter
+  """
+  followedAuthorsConnection_NONE: UserFollowedAuthorsConnectionWhere
+  """
+  Return Users where one of the related UserFollowedAuthorsConnections match this filter
+  """
+  followedAuthorsConnection_SINGLE: UserFollowedAuthorsConnectionWhere
+  """
+  Return Users where some of the related UserFollowedAuthorsConnections match this filter
+  """
+  followedAuthorsConnection_SOME: UserFollowedAuthorsConnectionWhere
+  """Return Users where all of the related Authors match this filter"""
+  followedAuthors_ALL: AuthorWhere
+  """Return Users where none of the related Authors match this filter"""
+  followedAuthors_NONE: AuthorWhere
+  """Return Users where one of the related Authors match this filter"""
+  followedAuthors_SINGLE: AuthorWhere
+  """Return Users where some of the related Authors match this filter"""
+  followedAuthors_SOME: AuthorWhere
+  id: ID
+  id_CONTAINS: ID
+  id_ENDS_WITH: ID
+  id_IN: [ID!]
+  id_STARTS_WITH: ID
+}
+
+type UsersConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+----
+
+'''
+
+=== should not throw an error if there is another @customResolver field on a different implementation of the same interface when using ...on
+
+.Schema
+[source,graphql,schema=true]
+----
+interface Publication {
+  publicationYear: Int!
+}
+
+type User {
+  id: ID!
+  firstName: String!
+  lastName: String!
+  followedAuthors: [Author!]! @relationship(type: "FOLLOWS", direction: OUT)
+  customResolverField: Int @customResolver(requires: "followedAuthors { name publications { ...on Book { title publicationYear } ... on Journal { subject } } } firstName")
+}
+
+type Author {
+  name: String!
+  publications: [Publication!]! @relationship(type: "WROTE", direction: OUT)
+}
+
+type Book implements Publication {
+  title: String!
+  publicationYear: Int!
+  author: [Author!]! @relationship(type: "WROTE", direction: IN)
+}
+
+type Journal implements Publication {
+  subject: String!
+  publicationYear: Int! @customResolver
+  author: [Author!]! @relationship(type: "WROTE", direction: IN)
+}
+----
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+}
+
+type Author {
+  name: String!
+  publications(directed: Boolean = true, options: PublicationOptions, where: PublicationWhere): [Publication!]!
+  publicationsConnection(after: String, directed: Boolean = true, first: Int, sort: [AuthorPublicationsConnectionSort!], where: AuthorPublicationsConnectionWhere): AuthorPublicationsConnection!
+}
+
+type AuthorEdge {
+  cursor: String!
+  node: Author!
+}
+
+input AuthorOptions {
+  limit: Int
+  offset: Int
+  """
+  Specify one or more AuthorSort objects to sort Authors by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [AuthorSort!]
+}
+
+type AuthorPublicationsConnection {
+  edges: [AuthorPublicationsRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+input AuthorPublicationsConnectionSort {
+  node: PublicationSort
+}
+
+input AuthorPublicationsConnectionWhere {
+  AND: [AuthorPublicationsConnectionWhere!]
+  NOT: AuthorPublicationsConnectionWhere
+  OR: [AuthorPublicationsConnectionWhere!]
+  node: PublicationWhere
+}
+
+type AuthorPublicationsRelationship {
+  cursor: String!
+  node: Publication!
+}
+
+"""
+Fields to sort Authors by. The order in which sorts are applied is not guaranteed when specifying many fields in one AuthorSort object.
+"""
+input AuthorSort {
+  name: SortDirection
+}
+
+input AuthorWhere {
+  AND: [AuthorWhere!]
+  NOT: AuthorWhere
+  OR: [AuthorWhere!]
+  name: String
+  name_CONTAINS: String
+  name_ENDS_WITH: String
+  name_IN: [String!]
+  name_STARTS_WITH: String
+  """
+  Return Authors where all of the related AuthorPublicationsConnections match this filter
+  """
+  publicationsConnection_ALL: AuthorPublicationsConnectionWhere
+  """
+  Return Authors where none of the related AuthorPublicationsConnections match this filter
+  """
+  publicationsConnection_NONE: AuthorPublicationsConnectionWhere
+  """
+  Return Authors where one of the related AuthorPublicationsConnections match this filter
+  """
+  publicationsConnection_SINGLE: AuthorPublicationsConnectionWhere
+  """
+  Return Authors where some of the related AuthorPublicationsConnections match this filter
+  """
+  publicationsConnection_SOME: AuthorPublicationsConnectionWhere
+  """Return Authors where all of the related Publications match this filter"""
+  publications_ALL: PublicationWhere
+  """
+  Return Authors where none of the related Publications match this filter
+  """
+  publications_NONE: PublicationWhere
+  """Return Authors where one of the related Publications match this filter"""
+  publications_SINGLE: PublicationWhere
+  """
+  Return Authors where some of the related Publications match this filter
+  """
+  publications_SOME: PublicationWhere
+}
+
+type AuthorsConnection {
+  edges: [AuthorEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Book implements Publication {
+  author(directed: Boolean = true, options: AuthorOptions, where: AuthorWhere): [Author!]!
+  authorConnection(after: String, directed: Boolean = true, first: Int, sort: [BookAuthorConnectionSort!], where: BookAuthorConnectionWhere): BookAuthorConnection!
+  publicationYear: Int!
+  title: String!
+}
+
+type BookAuthorConnection {
+  edges: [BookAuthorRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+input BookAuthorConnectionSort {
+  node: AuthorSort
+}
+
+input BookAuthorConnectionWhere {
+  AND: [BookAuthorConnectionWhere!]
+  NOT: BookAuthorConnectionWhere
+  OR: [BookAuthorConnectionWhere!]
+  node: AuthorWhere
+}
+
+type BookAuthorRelationship {
+  cursor: String!
+  node: Author!
+}
+
+type BookEdge {
+  cursor: String!
+  node: Book!
+}
+
+input BookOptions {
+  limit: Int
+  offset: Int
+  """
+  Specify one or more BookSort objects to sort Books by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [BookSort!]
+}
+
+"""
+Fields to sort Books by. The order in which sorts are applied is not guaranteed when specifying many fields in one BookSort object.
+"""
+input BookSort {
+  publicationYear: SortDirection
+  title: SortDirection
+}
+
+input BookWhere {
+  AND: [BookWhere!]
+  NOT: BookWhere
+  OR: [BookWhere!]
+  """
+  Return Books where all of the related BookAuthorConnections match this filter
+  """
+  authorConnection_ALL: BookAuthorConnectionWhere
+  """
+  Return Books where none of the related BookAuthorConnections match this filter
+  """
+  authorConnection_NONE: BookAuthorConnectionWhere
+  """
+  Return Books where one of the related BookAuthorConnections match this filter
+  """
+  authorConnection_SINGLE: BookAuthorConnectionWhere
+  """
+  Return Books where some of the related BookAuthorConnections match this filter
+  """
+  authorConnection_SOME: BookAuthorConnectionWhere
+  """Return Books where all of the related Authors match this filter"""
+  author_ALL: AuthorWhere
+  """Return Books where none of the related Authors match this filter"""
+  author_NONE: AuthorWhere
+  """Return Books where one of the related Authors match this filter"""
+  author_SINGLE: AuthorWhere
+  """Return Books where some of the related Authors match this filter"""
+  author_SOME: AuthorWhere
+  publicationYear: Int
+  publicationYear_GT: Int
+  publicationYear_GTE: Int
+  publicationYear_IN: [Int!]
+  publicationYear_LT: Int
+  publicationYear_LTE: Int
+  title: String
+  title_CONTAINS: String
+  title_ENDS_WITH: String
+  title_IN: [String!]
+  title_STARTS_WITH: String
+}
+
+type BooksConnection {
+  edges: [BookEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Journal implements Publication {
+  author(directed: Boolean = true, options: AuthorOptions, where: AuthorWhere): [Author!]!
+  authorConnection(after: String, directed: Boolean = true, first: Int, sort: [JournalAuthorConnectionSort!], where: JournalAuthorConnectionWhere): JournalAuthorConnection!
+  publicationYear: Int!
+  subject: String!
+}
+
+type JournalAuthorConnection {
+  edges: [JournalAuthorRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+input JournalAuthorConnectionSort {
+  node: AuthorSort
+}
+
+input JournalAuthorConnectionWhere {
+  AND: [JournalAuthorConnectionWhere!]
+  NOT: JournalAuthorConnectionWhere
+  OR: [JournalAuthorConnectionWhere!]
+  node: AuthorWhere
+}
+
+type JournalAuthorRelationship {
+  cursor: String!
+  node: Author!
+}
+
+type JournalEdge {
+  cursor: String!
+  node: Journal!
+}
+
+input JournalOptions {
+  limit: Int
+  offset: Int
+  """
+  Specify one or more JournalSort objects to sort Journals by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [JournalSort!]
+}
+
+"""
+Fields to sort Journals by. The order in which sorts are applied is not guaranteed when specifying many fields in one JournalSort object.
+"""
+input JournalSort {
+  subject: SortDirection
+}
+
+input JournalWhere {
+  AND: [JournalWhere!]
+  NOT: JournalWhere
+  OR: [JournalWhere!]
+  """
+  Return Journals where all of the related JournalAuthorConnections match this filter
+  """
+  authorConnection_ALL: JournalAuthorConnectionWhere
+  """
+  Return Journals where none of the related JournalAuthorConnections match this filter
+  """
+  authorConnection_NONE: JournalAuthorConnectionWhere
+  """
+  Return Journals where one of the related JournalAuthorConnections match this filter
+  """
+  authorConnection_SINGLE: JournalAuthorConnectionWhere
+  """
+  Return Journals where some of the related JournalAuthorConnections match this filter
+  """
+  authorConnection_SOME: JournalAuthorConnectionWhere
+  """Return Journals where all of the related Authors match this filter"""
+  author_ALL: AuthorWhere
+  """Return Journals where none of the related Authors match this filter"""
+  author_NONE: AuthorWhere
+  """Return Journals where one of the related Authors match this filter"""
+  author_SINGLE: AuthorWhere
+  """Return Journals where some of the related Authors match this filter"""
+  author_SOME: AuthorWhere
+  subject: String
+  subject_CONTAINS: String
+  subject_ENDS_WITH: String
+  subject_IN: [String!]
+  subject_STARTS_WITH: String
+}
+
+type JournalsConnection {
+  edges: [JournalEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"""Pagination information (Relay)"""
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+interface Publication {
+  publicationYear: Int!
+}
+
+type PublicationEdge {
+  cursor: String!
+  node: Publication!
+}
+
+enum PublicationImplementation {
+  Book
+  Journal
+}
+
+input PublicationOptions {
+  limit: Int
+  offset: Int
+  """
+  Specify one or more PublicationSort objects to sort Publications by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [PublicationSort]
+}
+
+"""
+Fields to sort Publications by. The order in which sorts are applied is not guaranteed when specifying many fields in one PublicationSort object.
+"""
+input PublicationSort {
+  publicationYear: SortDirection
+}
+
+input PublicationWhere {
+  AND: [PublicationWhere!]
+  NOT: PublicationWhere
+  OR: [PublicationWhere!]
+  publicationYear: Int
+  publicationYear_GT: Int
+  publicationYear_GTE: Int
+  publicationYear_IN: [Int!]
+  publicationYear_LT: Int
+  publicationYear_LTE: Int
+  typename_IN: [PublicationImplementation!]
+}
+
+type PublicationsConnection {
+  edges: [PublicationEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Query {
+  authors(options: AuthorOptions, where: AuthorWhere): [Author!]!
+  authorsConnection(after: String, first: Int, sort: [AuthorSort], where: AuthorWhere): AuthorsConnection!
+  books(options: BookOptions, where: BookWhere): [Book!]!
+  booksConnection(after: String, first: Int, sort: [BookSort], where: BookWhere): BooksConnection!
+  journals(options: JournalOptions, where: JournalWhere): [Journal!]!
+  journalsConnection(after: String, first: Int, sort: [JournalSort], where: JournalWhere): JournalsConnection!
+  publications(options: PublicationOptions, where: PublicationWhere): [Publication!]!
+  publicationsConnection(after: String, first: Int, sort: [PublicationSort], where: PublicationWhere): PublicationsConnection!
+  users(options: UserOptions, where: UserWhere): [User!]!
+  usersConnection(after: String, first: Int, sort: [UserSort], where: UserWhere): UsersConnection!
+}
+
+"""An enum for sorting in either ascending or descending order."""
+enum SortDirection {
+  """Sort by field values in ascending order."""
+  ASC
+  """Sort by field values in descending order."""
+  DESC
+}
+
+type User {
+  customResolverField: Int
+  firstName: String!
+  followedAuthors(directed: Boolean = true, options: AuthorOptions, where: AuthorWhere): [Author!]!
+  followedAuthorsConnection(after: String, directed: Boolean = true, first: Int, sort: [UserFollowedAuthorsConnectionSort!], where: UserFollowedAuthorsConnectionWhere): UserFollowedAuthorsConnection!
+  id: ID!
+  lastName: String!
+}
+
+type UserEdge {
+  cursor: String!
+  node: User!
+}
+
+type UserFollowedAuthorsConnection {
+  edges: [UserFollowedAuthorsRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+input UserFollowedAuthorsConnectionSort {
+  node: AuthorSort
+}
+
+input UserFollowedAuthorsConnectionWhere {
+  AND: [UserFollowedAuthorsConnectionWhere!]
+  NOT: UserFollowedAuthorsConnectionWhere
+  OR: [UserFollowedAuthorsConnectionWhere!]
+  node: AuthorWhere
+}
+
+type UserFollowedAuthorsRelationship {
+  cursor: String!
+  node: Author!
+}
+
+input UserOptions {
+  limit: Int
+  offset: Int
+  """
+  Specify one or more UserSort objects to sort Users by. The sorts will be applied in the order in which they are arranged in the array.
+  """
+  sort: [UserSort!]
+}
+
+"""
+Fields to sort Users by. The order in which sorts are applied is not guaranteed when specifying many fields in one UserSort object.
+"""
+input UserSort {
+  firstName: SortDirection
+  id: SortDirection
+  lastName: SortDirection
+}
+
+input UserWhere {
+  AND: [UserWhere!]
+  NOT: UserWhere
+  OR: [UserWhere!]
+  firstName: String
+  firstName_CONTAINS: String
+  firstName_ENDS_WITH: String
+  firstName_IN: [String!]
+  firstName_STARTS_WITH: String
+  """
+  Return Users where all of the related UserFollowedAuthorsConnections match this filter
+  """
+  followedAuthorsConnection_ALL: UserFollowedAuthorsConnectionWhere
+  """
+  Return Users where none of the related UserFollowedAuthorsConnections match this filter
+  """
+  followedAuthorsConnection_NONE: UserFollowedAuthorsConnectionWhere
+  """
+  Return Users where one of the related UserFollowedAuthorsConnections match this filter
+  """
+  followedAuthorsConnection_SINGLE: UserFollowedAuthorsConnectionWhere
+  """
+  Return Users where some of the related UserFollowedAuthorsConnections match this filter
+  """
+  followedAuthorsConnection_SOME: UserFollowedAuthorsConnectionWhere
+  """Return Users where all of the related Authors match this filter"""
+  followedAuthors_ALL: AuthorWhere
+  """Return Users where none of the related Authors match this filter"""
+  followedAuthors_NONE: AuthorWhere
+  """Return Users where one of the related Authors match this filter"""
+  followedAuthors_SINGLE: AuthorWhere
+  """Return Users where some of the related Authors match this filter"""
+  followedAuthors_SOME: AuthorWhere
+  id: ID
+  id_CONTAINS: ID
+  id_ENDS_WITH: ID
+  id_IN: [ID!]
+  id_STARTS_WITH: ID
+  lastName: String
+  lastName_CONTAINS: String
+  lastName_ENDS_WITH: String
+  lastName_IN: [String!]
+  lastName_STARTS_WITH: String
+}
+
+type UsersConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+----
+
+'''
+

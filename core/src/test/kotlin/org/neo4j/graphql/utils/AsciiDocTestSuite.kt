@@ -1,6 +1,10 @@
 package org.neo4j.graphql.utils
 
+import com.fasterxml.jackson.core.JsonGenerator
+import com.fasterxml.jackson.databind.JsonSerializer
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializerProvider
+import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.intellij.rt.execution.junit.FileComparisonFailure
@@ -11,6 +15,7 @@ import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.DynamicTest
 import java.io.File
 import java.io.FileWriter
+import java.time.temporal.TemporalAmount
 import java.util.*
 import java.util.stream.Stream
 import kotlin.reflect.KMutableProperty1
@@ -34,7 +39,7 @@ abstract class AsciiDocTestSuite<T>(
     }
 
 
-    private val srcLocation = File("src/test/resources/", fileName).toURI()
+    protected val srcLocation = File("src/test/resources/", fileName).toURI()
 
     private val document = AsciiDocParser(fileName).parse()
 
@@ -84,6 +89,12 @@ abstract class AsciiDocTestSuite<T>(
 
                 }
 
+                is Table -> {
+                    if (testCase != null){
+                        setTableData(testCase, node)
+                    }
+                }
+
                 is Block -> {
                     val blockContent = node.content.trim()
                     if (blockContent.startsWith("CAUTION:")) {
@@ -116,6 +127,8 @@ abstract class AsciiDocTestSuite<T>(
     abstract fun createTestCase(section: Section): T?
 
     abstract fun createTests(testCase: T, section: Section, ignoreReason: String?): List<DynamicNode>
+
+    open fun setTableData(testCase: T, table: Table) {}
 
     private fun flatten(stream: Stream<out DynamicNode>, name: String): Stream<DynamicNode> {
         return stream.flatMap {
@@ -216,7 +229,14 @@ abstract class AsciiDocTestSuite<T>(
         val MAPPER = ObjectMapper()
             .registerKotlinModule()
             .registerModules(JavaTimeModule())
+            .registerModule(SimpleModule().addSerializer(TemporalAmount::class.java, object : JsonSerializer<TemporalAmount?>() {
+                override fun serialize(value: TemporalAmount?, gen: JsonGenerator?, serializers: SerializerProvider?) {
+                    gen?.writeString(value.toString())
+                }
+            }))
             .disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+            .disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DURATIONS_AS_TIMESTAMPS)
+
 
         fun String.parseJsonMap(): Map<String, Any?> = this.let {
             @Suppress("UNCHECKED_CAST")

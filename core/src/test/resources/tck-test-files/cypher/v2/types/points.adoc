@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = Cypher Points
 
-== Source schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type PointContainer {
@@ -11,49 +13,6 @@ type PointContainer {
   points: [Point]
 }
 ----
-
-== Simple Points INCLUDES query
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  pointContainers(where: {points_INCLUDES: {longitude: 1.0, latitude: 2.0}}) {
-    points {
-      longitude
-      latitude
-      crs
-    }
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0" : {
-    "longitude" : 1.0,
-    "latitude" : 2.0
-  }
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:PointContainer)
-WHERE point($param0) IN this.points
-RETURN this {
-	points: CASE WHEN this.points IS NOT NULL THEN [p_var0 IN this.points | {
-		longitude: p_var0.longitude,
-		latitude: p_var0.latitude,
-		crs: p_var0.crs
-	}] ELSE NULL END
-} AS this
-----
-
-'''
 
 == Simple Points query
 
@@ -76,8 +35,8 @@ RETURN this {
 ----
 {
   "param0" : [ {
-    "longitude" : 1.0,
-    "latitude" : 2.0
+    "longitude" : 1,
+    "latitude" : 2
   } ]
 }
 ----
@@ -87,6 +46,49 @@ RETURN this {
 ----
 MATCH (this:PointContainer)
 WHERE this.points = [p IN $param0 | point(p)]
+RETURN this {
+	points: CASE WHEN this.points IS NOT NULL THEN [p_var0 IN this.points | {
+		longitude: p_var0.longitude,
+		latitude: p_var0.latitude,
+		crs: p_var0.crs
+	}] ELSE NULL END
+} AS this
+----
+
+'''
+
+== Simple Points INCLUDES query
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  pointContainers(where: {points_INCLUDES: {longitude: 1.0, latitude: 2.0}}) {
+    points {
+      longitude
+      latitude
+      crs
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : {
+    "longitude" : 1,
+    "latitude" : 2
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:PointContainer)
+WHERE point($param0) IN this.points
 RETURN this {
 	points: CASE WHEN this.points IS NOT NULL THEN [p_var0 IN this.points | {
 		longitude: p_var0.longitude,

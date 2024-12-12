@@ -1,9 +1,13 @@
 :toc:
+:toclevels: 42
 
-= union
+= https://github.com/neo4j/graphql/issues/3215
 
-== Source schema
+== union
 
+=== Setup
+
+.Schema
 [source,graphql,schema=true]
 ----
 type Actor {
@@ -12,7 +16,7 @@ type Actor {
 }
 ----
 
-== should ignore undefined parameters on boolean NOT
+=== should ignore undefined parameters on boolean NOT
 
 .GraphQL-Query
 [source,graphql]

@@ -38,10 +38,19 @@ import org.neo4j.graphql.schema.model.outputs.NodeSelection
  */
 class SchemaBuilder @JvmOverloads constructor(
     val typeDefinitionRegistry: TypeDefinitionRegistry,
-    val schemaConfig: SchemaConfig = SchemaConfig()
+    val schemaConfig: SchemaConfig = SchemaConfig(),
 ) {
 
     companion object {
+
+        @JvmStatic
+        @JvmOverloads
+        fun fromSchema(sdl: String, config: SchemaConfig = SchemaConfig()): SchemaBuilder {
+            val schemaParser = SchemaParser()
+            val typeDefinitionRegistry = schemaParser.parse(sdl)
+            return SchemaBuilder(typeDefinitionRegistry, config)
+        }
+
         /**
          * @param sdl the schema to augment
          * @param neo4jAdapter the adapter to run the generated cypher queries
@@ -54,45 +63,20 @@ class SchemaBuilder @JvmOverloads constructor(
             config: SchemaConfig = SchemaConfig(),
             neo4jAdapter: Neo4jAdapter = Neo4jAdapter.NO_OP,
             addLibraryDirectivesToSchema: Boolean = true,
-        ): GraphQLSchema {
-            val schemaParser = SchemaParser()
-            val typeDefinitionRegistry = schemaParser.parse(sdl)
-            return buildSchema(typeDefinitionRegistry, config, neo4jAdapter, addLibraryDirectivesToSchema)
-        }
-
-        /**
-         * @param typeDefinitionRegistry a registry containing all the types, that should be augmented
-         * @param config defines how the schema should get augmented
-         * @param neo4jAdapter the adapter to run the generated cypher queries
-         */
-        @JvmStatic
-        @JvmOverloads
-        fun buildSchema(
-            typeDefinitionRegistry: TypeDefinitionRegistry,
-            config: SchemaConfig = SchemaConfig(),
-            neo4jAdapter: Neo4jAdapter,
-            addLibraryDirectivesToSchema: Boolean = true,
-        ): GraphQLSchema {
-
-            val builder = RuntimeWiring.newRuntimeWiring()
-            val codeRegistryBuilder = GraphQLCodeRegistry.newCodeRegistry()
-            val schemaBuilder = SchemaBuilder(typeDefinitionRegistry, config)
-            schemaBuilder.augmentTypes(addLibraryDirectivesToSchema)
-            schemaBuilder.registerScalars(builder)
-            schemaBuilder.registerTypeNameResolver(builder)
-            schemaBuilder.registerNeo4jAdapter(codeRegistryBuilder, neo4jAdapter)
-
-            return SchemaGenerator().makeExecutableSchema(
-                typeDefinitionRegistry,
-                builder.codeRegistry(codeRegistryBuilder).build()
-            )
-        }
+        ): GraphQLSchema = fromSchema(sdl, config)
+            .withNeo4jAdapter(neo4jAdapter)
+            .addLibraryDirectivesToSchema(addLibraryDirectivesToSchema)
+            .build()
     }
 
     private val handler: List<AugmentationHandler>
     private val neo4jTypeDefinitionRegistry: TypeDefinitionRegistry = getNeo4jEnhancements()
     private val augmentedFields = mutableListOf<AugmentationHandler.AugmentedField>()
     private val ctx = AugmentationContext(schemaConfig, typeDefinitionRegistry)
+    private var addLibraryDirectivesToSchema: Boolean = false;
+    private var codeRegistryBuilder: GraphQLCodeRegistry.Builder? = null
+    private var runtimeWiringBuilder: RuntimeWiring.Builder? = null
+    private var neo4jAdapter: Neo4jAdapter = Neo4jAdapter.NO_OP
 
     init {
         handler = mutableListOf(
@@ -100,6 +84,42 @@ class SchemaBuilder @JvmOverloads constructor(
             ConnectionResolver.Factory(ctx),
             ImplementingTypeConnectionFieldResolver.Factory(ctx)
         )
+    }
+
+    fun addLibraryDirectivesToSchema(addLibraryDirectivesToSchema: Boolean): SchemaBuilder {
+        this.addLibraryDirectivesToSchema = addLibraryDirectivesToSchema
+        return this
+    }
+
+    fun withCodeRegistryBuilder(codeRegistryBuilder: GraphQLCodeRegistry.Builder): SchemaBuilder {
+        this.codeRegistryBuilder = codeRegistryBuilder
+        return this
+    }
+
+    fun withRuntimeWiringBuilder(runtimeWiring: RuntimeWiring.Builder): SchemaBuilder {
+        this.runtimeWiringBuilder = runtimeWiring
+        return this
+    }
+
+    fun withNeo4jAdapter(neo4jAdapter: Neo4jAdapter): SchemaBuilder {
+        this.neo4jAdapter = neo4jAdapter
+        return this
+    }
+
+    fun build(): GraphQLSchema {
+        augmentTypes(addLibraryDirectivesToSchema)
+        val runtimeWiringBuilder = this.runtimeWiringBuilder ?: RuntimeWiring.newRuntimeWiring()
+        registerScalars(runtimeWiringBuilder)
+        registerTypeNameResolver(runtimeWiringBuilder)
+
+        val codeRegistryBuilder = this.codeRegistryBuilder ?: GraphQLCodeRegistry.newCodeRegistry()
+        registerNeo4jAdapter(codeRegistryBuilder, neo4jAdapter)
+
+        return SchemaGenerator().makeExecutableSchema(
+            typeDefinitionRegistry,
+            runtimeWiringBuilder.codeRegistry(codeRegistryBuilder).build()
+        )
+
     }
 
 

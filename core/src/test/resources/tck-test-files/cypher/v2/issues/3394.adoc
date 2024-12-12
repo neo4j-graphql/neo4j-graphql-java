@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = https://github.com/neo4j/graphql/issues/3394
 
-== Source schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Employee {
@@ -212,5 +214,4 @@ RETURN this {
 ----
 
 '''
-
 

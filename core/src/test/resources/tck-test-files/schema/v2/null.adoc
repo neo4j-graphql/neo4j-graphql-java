@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
-= Null -> Simple
+= Null
 
-== Source schema
+== Simple
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Movie {
@@ -22,8 +24,6 @@ type Movie {
   createdAts: [DateTime!]!
 }
 ----
-
-== Augmented schema
 
 .Augmented Schema
 [source,graphql]
@@ -211,3 +211,4 @@ input PointInput {
 ----
 
 '''
+

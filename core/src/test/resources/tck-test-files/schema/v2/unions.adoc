@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = Unions
 
-== Source schema
+== Unions
 
+.Schema
 [source,graphql,schema=true]
 ----
 union Search = Movie | Genre
@@ -18,8 +20,6 @@ type Movie {
   searchNoDirective: Search
 }
 ----
-
-== Augmented schema
 
 .Augmented Schema
 [source,graphql]
@@ -193,3 +193,4 @@ input SearchWhere {
 ----
 
 '''
+

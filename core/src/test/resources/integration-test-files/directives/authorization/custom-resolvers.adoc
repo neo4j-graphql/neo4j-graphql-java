@@ -1,0 +1,151 @@
+:toc:
+:toclevels: 42
+
+= auth/custom-resolvers
+
+== auth-injection
+
+=== should inject auth in context of custom Query
+
+.Schema
+[source,graphql,schema=true]
+----
+type User {
+  id: ID
+}
+
+type Query {
+  me: User
+}
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  me {
+    id
+  }
+}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "me": {
+    "id": "RandomString1"
+  }
+}
+----
+
+'''
+
+=== should inject auth in context of custom Mutation
+
+.Schema
+[source,graphql,schema=true]
+----
+type User {
+  id: ID
+}
+
+type Mutation {
+  me: User
+}
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+mutation {
+  me {
+    id
+  }
+}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "me": {
+    "id": "RandomString1"
+  }
+}
+----
+
+'''
+
+=== should inject auth in context of custom Field resolver
+
+.Schema
+[source,graphql,schema=true]
+----
+type User {
+  customId: ID
+}
+
+type Query {
+  me: User
+}
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  me {
+    customId
+  }
+}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "me": {
+    "customId": "RandomString1"
+  }
+}
+----
+
+'''
+
+=== should inject auth in context of custom Query when decoded JWT passed in
+
+.Schema
+[source,graphql,schema=true]
+----
+type User {
+  id: ID
+}
+
+type Query {
+  me: User
+}
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  me {
+    id
+  }
+}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "me": {
+    "id": "RandomString1"
+  }
+}
+----
+
+'''
+

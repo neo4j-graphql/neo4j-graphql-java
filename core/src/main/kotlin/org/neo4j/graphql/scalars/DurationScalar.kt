@@ -6,24 +6,17 @@ import graphql.execution.CoercedVariables
 import graphql.language.*
 import graphql.schema.*
 import org.neo4j.graphql.Constants
-import java.time.Duration
-import java.time.Period
-import java.time.format.DateTimeParseException
-import java.time.temporal.TemporalAmount
+import org.threeten.extra.PeriodDuration
 import java.util.*
 
 object DurationScalar {
 
     val INSTANCE: GraphQLScalarType = GraphQLScalarType.newScalar()
         .name(Constants.DURATION)
-        .coercing(object : Coercing<TemporalAmount, String> {
+        .coercing(object : Coercing<PeriodDuration, String> {
 
-            private fun  parse(value: String): TemporalAmount {
-                try {
-                    return Duration.parse(value)
-                } catch (e: DateTimeParseException){
-                    return Period.parse(value)
-                }
+            private fun parse(value: String): PeriodDuration {
+                return PeriodDuration.parse(value)
             }
 
             @Throws(CoercingSerializeException::class)
@@ -32,7 +25,7 @@ object DurationScalar {
             }
 
             @Throws(CoercingParseValueException::class)
-            override fun parseValue(input: Any, graphQLContext: GraphQLContext, locale: Locale): TemporalAmount? {
+            override fun parseValue(input: Any, graphQLContext: GraphQLContext, locale: Locale): PeriodDuration? {
                 return when (input) {
                     is StringValue -> parse(input.value)
                     is String -> parse(input)
@@ -46,7 +39,7 @@ object DurationScalar {
                 variables: CoercedVariables,
                 graphQLContext: GraphQLContext,
                 locale: Locale
-            ): TemporalAmount? {
+            ): PeriodDuration? {
                 return parseValue(input, graphQLContext, locale)
             }
         })

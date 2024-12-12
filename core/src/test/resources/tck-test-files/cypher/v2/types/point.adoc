@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = Cypher Points
 
-== Source schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type PointContainer {
@@ -11,49 +13,6 @@ type PointContainer {
   point: Point
 }
 ----
-
-== Simple Point IN query
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  pointContainers(where: {point_IN: [{longitude: 1.0, latitude: 2.0}]}) {
-    point {
-      longitude
-      latitude
-      crs
-    }
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0" : [ {
-    "longitude" : 1.0,
-    "latitude" : 2.0
-  } ]
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:PointContainer)
-WHERE this.point IN [p IN $param0 | point(p)]
-RETURN this {
-	point: CASE WHEN this.point IS NOT NULL THEN {
-		longitude: this.point.longitude,
-		latitude: this.point.latitude,
-		crs: this.point.crs
-	} ELSE NULL END
-} AS this
-----
-
-'''
 
 == Simple Point query
 
@@ -76,8 +35,8 @@ RETURN this {
 ----
 {
   "param0" : {
-    "longitude" : 1.0,
-    "latitude" : 2.0
+    "longitude" : 1,
+    "latitude" : 2
   }
 }
 ----
@@ -98,16 +57,59 @@ RETURN this {
 
 '''
 
+== Simple Point IN query
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  pointContainers(where: {point_IN: [{longitude: 1.0, latitude: 2.0}]}) {
+    point {
+      longitude
+      latitude
+      crs
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : [ {
+    "longitude" : 1,
+    "latitude" : 2
+  } ]
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:PointContainer)
+WHERE this.point IN [p IN $param0 | point(p)]
+RETURN this {
+	point: CASE WHEN this.point IS NOT NULL THEN {
+		longitude: this.point.longitude,
+		latitude: this.point.latitude,
+		crs: this.point.crs
+	} ELSE NULL END
+} AS this
+----
+
+'''
+
 == tests using describe or point.describe
 
-=== Simple Point DISTANCE query
+=== Simple Point LT query
 
 .GraphQL-Query
 [source,graphql]
 ----
 {
   pointContainers(
-    where: {point_DISTANCE: {point: {longitude: 1.1, latitude: 2.2}, distance: 3.3}}
+    where: {point_LT: {point: {longitude: 1.1, latitude: 2.2}, distance: 3.3}}
   ) {
     point {
       longitude
@@ -135,7 +137,53 @@ RETURN this {
 [source,cypher]
 ----
 MATCH (this:PointContainer)
-WHERE point.distance(this.point, point($param0.point)) = $param0.distance
+WHERE point.distance(this.point, point($param0.point)) < $param0.distance
+RETURN this {
+	point: CASE WHEN this.point IS NOT NULL THEN {
+		longitude: this.point.longitude,
+		latitude: this.point.latitude
+	} ELSE NULL END
+} AS this
+----
+
+'''
+
+=== Simple Point LTE query
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  pointContainers(
+    where: {point_LTE: {point: {longitude: 1.1, latitude: 2.2}, distance: 3.3}}
+  ) {
+    point {
+      longitude
+      latitude
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : {
+    "point" : {
+      "longitude" : 1.1,
+      "latitude" : 2.2
+    },
+    "distance" : 3.3
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:PointContainer)
+WHERE point.distance(this.point, point($param0.point)) <= $param0.distance
 RETURN this {
 	point: CASE WHEN this.point IS NOT NULL THEN {
 		longitude: this.point.longitude,
@@ -238,14 +286,14 @@ RETURN this {
 
 '''
 
-=== Simple Point LT query
+=== Simple Point DISTANCE query
 
 .GraphQL-Query
 [source,graphql]
 ----
 {
   pointContainers(
-    where: {point_LT: {point: {longitude: 1.1, latitude: 2.2}, distance: 3.3}}
+    where: {point_DISTANCE: {point: {longitude: 1.1, latitude: 2.2}, distance: 3.3}}
   ) {
     point {
       longitude
@@ -273,7 +321,7 @@ RETURN this {
 [source,cypher]
 ----
 MATCH (this:PointContainer)
-WHERE point.distance(this.point, point($param0.point)) < $param0.distance
+WHERE point.distance(this.point, point($param0.point)) = $param0.distance
 RETURN this {
 	point: CASE WHEN this.point IS NOT NULL THEN {
 		longitude: this.point.longitude,
@@ -283,51 +331,4 @@ RETURN this {
 ----
 
 '''
-
-=== Simple Point LTE query
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  pointContainers(
-    where: {point_LTE: {point: {longitude: 1.1, latitude: 2.2}, distance: 3.3}}
-  ) {
-    point {
-      longitude
-      latitude
-    }
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0" : {
-    "point" : {
-      "longitude" : 1.1,
-      "latitude" : 2.2
-    },
-    "distance" : 3.3
-  }
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:PointContainer)
-WHERE point.distance(this.point, point($param0.point)) <= $param0.distance
-RETURN this {
-	point: CASE WHEN this.point IS NOT NULL THEN {
-		longitude: this.point.longitude,
-		latitude: this.point.latitude
-	} ELSE NULL END
-} AS this
-----
-
-'''
-
 

@@ -30,6 +30,8 @@ fun String.toLowerCase(): String = lowercase(Locale.getDefault())
 
 infix fun Condition?.and(rhs: Condition) = this?.and(rhs) ?: rhs
 infix fun Condition?.or(rhs: Condition) = this?.or(rhs) ?: rhs
+infix fun Condition?.xor(rhs: Condition) = this?.xor(rhs) ?: rhs
+
 fun Collection<Condition?>.foldWithAnd(): Condition? = this
     .filterNotNull()
     .takeIf { it.isNotEmpty() }
@@ -169,3 +171,4 @@ fun Iterable<Any?>.toDict(): List<Dict> = this.mapNotNull { Dict.create(it) }
 
 fun String.toDeprecatedDirective() = Directive("deprecated", listOf(Argument("reason", StringValue(this))))
 
+fun Collection<Statement>.union(): Statement = if (this.size == 1) this.first() else Cypher.union(this)

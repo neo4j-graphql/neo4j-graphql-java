@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = Cypher -> Connections -> Filtering -> Relationship -> String
 
-== Source schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Movie {
@@ -21,8 +23,6 @@ type ActedIn @relationshipProperties {
   screenTime: Int!
 }
 ----
-
-== Configuration
 
 .Configuration
 [source,json,schema-config=true]
@@ -76,6 +76,77 @@ CALL {
 	WITH this
 	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
 	WHERE actedIn0.role CONTAINS $param0
+	WITH collect( {
+		node: actor0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS actor0, edge.relationship AS actedIn0
+		RETURN collect( {
+			properties: {
+				__typename: 'ActedIn',
+				role: actedIn0.role
+			},
+			node: {
+				__typename: 'Actor',
+				name: actor0.name
+			}
+		}) AS actorsConnectionEdges
+	}
+	RETURN {
+		edges: actorsConnectionEdges,
+		totalCount: totalCount
+	} AS actorsConnection
+}
+RETURN this {
+	.title,
+	actorsConnection: actorsConnection
+} AS this
+----
+
+'''
+
+== STARTS_WITH
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    title
+    actorsConnection(where: {edge: {role_STARTS_WITH: "Forrest"}}) {
+      edges {
+        properties {
+          role
+        }
+        node {
+          name
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "Forrest"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+	WITH this
+	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
+	WHERE actedIn0.role STARTS WITH $param0
 	WITH collect( {
 		node: actor0,
 		relationship: actedIn0
@@ -218,77 +289,6 @@ CALL {
 	WITH this
 	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
 	WHERE actedIn0.role =~ $param0
-	WITH collect( {
-		node: actor0,
-		relationship: actedIn0
-	}) AS edges
-	WITH edges, size(edges) AS totalCount
-	CALL {
-		WITH edges
-		UNWIND edges AS edge
-		WITH edge.node AS actor0, edge.relationship AS actedIn0
-		RETURN collect( {
-			properties: {
-				__typename: 'ActedIn',
-				role: actedIn0.role
-			},
-			node: {
-				__typename: 'Actor',
-				name: actor0.name
-			}
-		}) AS actorsConnectionEdges
-	}
-	RETURN {
-		edges: actorsConnectionEdges,
-		totalCount: totalCount
-	} AS actorsConnection
-}
-RETURN this {
-	.title,
-	actorsConnection: actorsConnection
-} AS this
-----
-
-'''
-
-== STARTS_WITH
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  movies {
-    title
-    actorsConnection(where: {edge: {role_STARTS_WITH: "Forrest"}}) {
-      edges {
-        properties {
-          role
-        }
-        node {
-          name
-        }
-      }
-    }
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0" : "Forrest"
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Movie)
-CALL {
-	WITH this
-	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
-	WHERE actedIn0.role STARTS WITH $param0
 	WITH collect( {
 		node: actor0,
 		relationship: actedIn0

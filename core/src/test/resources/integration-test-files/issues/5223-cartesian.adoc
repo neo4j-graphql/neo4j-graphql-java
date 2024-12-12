@@ -1,0 +1,398 @@
+:toc:
+:toclevels: 42
+
+= https://github.com/neo4j/graphql/issues/5223, Cartesian
+
+== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+type Location @node {
+  id: ID!
+  pointCoordinates: CartesianPoint!
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (:Location { id: "1", pointCoordinates: point({x: -14221.955504767046, y: 6711533.711877272})})
+ CREATE (:Location { id: "2", pointCoordinates: point({x: 1391088.9885668862, y: 5146427.7652232265})})
+ CREATE (:Location { id: "3", pointCoordinates: point({x: 261848.15527273554, y: 6250566.54904563, z: 21})})
+----
+
+== should not fail when srid is queried
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  locations {
+    id
+    pointCoordinates {
+      x
+      y
+      z
+      crs
+      srid
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Location)
+RETURN this {
+	.id,
+	pointCoordinates: CASE WHEN this.pointCoordinates IS NOT NULL THEN {
+		x: this.pointCoordinates.x,
+		y: this.pointCoordinates.y,
+		z: CASE WHEN this.pointCoordinates.srid = 9157 THEN this.pointCoordinates.z ELSE NULL END,
+		crs: this.pointCoordinates.crs,
+		srid: this.pointCoordinates.srid
+	} ELSE NULL END
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "locations": [
+    {
+      "id": "1",
+      "pointCoordinates": {
+        "x": -14221.955504767046,
+        "y": 6711533.711877272,
+        "z": null,
+        "crs": "cartesian",
+        "srid": 7203
+      }
+    },
+    {
+      "id": "2",
+      "pointCoordinates": {
+        "x": 1391088.9885668862,
+        "y": 5146427.7652232265,
+        "z": null,
+        "crs": "cartesian",
+        "srid": 7203
+      }
+    },
+    {
+      "id": "3",
+      "pointCoordinates": {
+        "x": 261848.15527273554,
+        "y": 6250566.54904563,
+        "z": 21,
+        "crs": "cartesian-3d",
+        "srid": 9157
+      }
+    }
+  ]
+}
+----
+
+'''
+
+== should not fail when srid is queried, Connection
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  locationsConnection {
+    edges {
+      node {
+        id
+        pointCoordinates {
+          x
+          y
+          z
+          crs
+          srid
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Location)
+WITH collect( {
+	node: this
+}) AS edges
+WITH edges, size(edges) AS totalCount
+CALL {
+	WITH edges
+	UNWIND edges AS edge
+	WITH edge.node AS this
+	RETURN collect( {
+		node: {
+			__typename: 'Location',
+			id: this.id,
+			pointCoordinates: CASE WHEN this.pointCoordinates IS NOT NULL THEN {
+				x: this.pointCoordinates.x,
+				y: this.pointCoordinates.y,
+				z: CASE WHEN this.pointCoordinates.srid = 9157 THEN this.pointCoordinates.z ELSE NULL END,
+				crs: this.pointCoordinates.crs,
+				srid: this.pointCoordinates.srid
+			} ELSE NULL END
+		}
+	}) AS edges0
+}
+RETURN {
+	edges: edges0,
+	totalCount: totalCount
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "locationsConnection": {
+    "edges": [
+      {
+        "node": {
+          "id": "1",
+          "pointCoordinates": {
+            "x": -14221.955504767046,
+            "y": 6711533.711877272,
+            "z": null,
+            "crs": "cartesian",
+            "srid": 7203
+          }
+        }
+      },
+      {
+        "node": {
+          "id": "2",
+          "pointCoordinates": {
+            "x": 1391088.9885668862,
+            "y": 5146427.7652232265,
+            "z": null,
+            "crs": "cartesian",
+            "srid": 7203
+          }
+        }
+      },
+      {
+        "node": {
+          "id": "3",
+          "pointCoordinates": {
+            "x": 261848.15527273554,
+            "y": 6250566.54904563,
+            "z": 21,
+            "crs": "cartesian-3d",
+            "srid": 9157
+          }
+        }
+      }
+    ]
+  }
+}
+----
+
+'''
+
+== should not fail when srid is not queried
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  locations {
+    id
+    pointCoordinates {
+      x
+      y
+      z
+      crs
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Location)
+RETURN this {
+	.id,
+	pointCoordinates: CASE WHEN this.pointCoordinates IS NOT NULL THEN {
+		x: this.pointCoordinates.x,
+		y: this.pointCoordinates.y,
+		z: CASE WHEN this.pointCoordinates.srid = 9157 THEN this.pointCoordinates.z ELSE NULL END,
+		crs: this.pointCoordinates.crs
+	} ELSE NULL END
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "locations": [
+    {
+      "id": "1",
+      "pointCoordinates": {
+        "x": -14221.955504767046,
+        "y": 6711533.711877272,
+        "z": null,
+        "crs": "cartesian"
+      }
+    },
+    {
+      "id": "2",
+      "pointCoordinates": {
+        "x": 1391088.9885668862,
+        "y": 5146427.7652232265,
+        "z": null,
+        "crs": "cartesian"
+      }
+    },
+    {
+      "id": "3",
+      "pointCoordinates": {
+        "x": 261848.15527273554,
+        "y": 6250566.54904563,
+        "z": 21,
+        "crs": "cartesian-3d"
+      }
+    }
+  ]
+}
+----
+
+'''
+
+== should not fail when srid is not queried, Connection
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  locationsConnection {
+    edges {
+      node {
+        id
+        pointCoordinates {
+          x
+          y
+          z
+          crs
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Location)
+WITH collect( {
+	node: this
+}) AS edges
+WITH edges, size(edges) AS totalCount
+CALL {
+	WITH edges
+	UNWIND edges AS edge
+	WITH edge.node AS this
+	RETURN collect( {
+		node: {
+			__typename: 'Location',
+			id: this.id,
+			pointCoordinates: CASE WHEN this.pointCoordinates IS NOT NULL THEN {
+				x: this.pointCoordinates.x,
+				y: this.pointCoordinates.y,
+				z: CASE WHEN this.pointCoordinates.srid = 9157 THEN this.pointCoordinates.z ELSE NULL END,
+				crs: this.pointCoordinates.crs
+			} ELSE NULL END
+		}
+	}) AS edges0
+}
+RETURN {
+	edges: edges0,
+	totalCount: totalCount
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "locationsConnection": {
+    "edges": [
+      {
+        "node": {
+          "id": "1",
+          "pointCoordinates": {
+            "x": -14221.955504767046,
+            "y": 6711533.711877272,
+            "z": null,
+            "crs": "cartesian"
+          }
+        }
+      },
+      {
+        "node": {
+          "id": "2",
+          "pointCoordinates": {
+            "x": 1391088.9885668862,
+            "y": 5146427.7652232265,
+            "z": null,
+            "crs": "cartesian"
+          }
+        }
+      },
+      {
+        "node": {
+          "id": "3",
+          "pointCoordinates": {
+            "x": 261848.15527273554,
+            "y": 6250566.54904563,
+            "z": 21,
+            "crs": "cartesian-3d"
+          }
+        }
+      }
+    ]
+  }
+}
+----
+
+'''
+

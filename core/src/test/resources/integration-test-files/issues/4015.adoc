@@ -1,0 +1,134 @@
+:toc:
+:toclevels: 42
+
+= https://github.com/neo4j/graphql/issues/4007
+
+== should return all the selected node fields
+
+.Schema
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
+}
+
+type Actor {
+  name: String!
+  surname: String
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (m:Movie {title: "RandomString1"})
+ CREATE (m)<-[:ACTED_IN]-(:Actor {name: "name1", surname: "surname1"})
+ CREATE (m)<-[:ACTED_IN]-(:Actor {name: "name2", surname: "surname2"})
+ CREATE (m)<-[:ACTED_IN]-(:Actor {name: "name3", surname: "surname3"})
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    actorsConnection {
+      edges {
+        node {
+          surname
+        }
+        no: node {
+          name
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+	WITH this
+	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
+	WITH collect( {
+		node: actor0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS actor0, edge.relationship AS actedIn0
+		RETURN collect( {
+			node: {
+				__typename: 'Actor',
+				surname: actor0.surname
+			},
+			no: {
+				__typename: 'Actor',
+				name: actor0.name
+			}
+		}) AS actorsConnectionEdges
+	}
+	RETURN {
+		edges: actorsConnectionEdges,
+		totalCount: totalCount
+	} AS actorsConnection
+}
+RETURN this {
+	actorsConnection: actorsConnection
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "movies": [
+    {
+      "actorsConnection": {
+        "edges": [
+          {
+            "node": {
+              "surname": "surname1"
+            },
+            "no": {
+              "name": "name1"
+            }
+          },
+          {
+            "node": {
+              "surname": "surname3"
+            },
+            "no": {
+              "name": "name3"
+            }
+          },
+          {
+            "node": {
+              "surname": "surname2"
+            },
+            "no": {
+              "name": "name2"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+----
+
+'''
+

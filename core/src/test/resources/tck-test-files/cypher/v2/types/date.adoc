@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = Cypher Date
 
-== Source schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Movie {
@@ -11,38 +13,6 @@ type Movie {
   date: Date
 }
 ----
-
-== GTE Read
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  movies(where: {date_GTE: "1980-04-08"}) {
-    date
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0" : "1980-04-08"
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Movie)
-WHERE this.date >= $param0
-RETURN this {
-	.date
-} AS this
-----
-
-'''
 
 == Simple Read
 
@@ -69,6 +39,38 @@ RETURN this {
 ----
 MATCH (this:Movie)
 WHERE this.date = $param0
+RETURN this {
+	.date
+} AS this
+----
+
+'''
+
+== GTE Read
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {date_GTE: "1980-04-08"}) {
+    date
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "1980-04-08"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.date >= $param0
 RETURN this {
 	.date
 } AS this

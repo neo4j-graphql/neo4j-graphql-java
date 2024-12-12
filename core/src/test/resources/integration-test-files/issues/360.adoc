@@ -1,0 +1,204 @@
+:toc:
+:toclevels: 42
+
+= https://github.com/neo4j/graphql/issues/360
+
+== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+type Event {
+  id: ID!
+  name: String
+  start: DateTime
+  end: DateTime
+  activity: String
+}
+----
+
+== should return all nodes when AND is used and members are optional
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (:Event {id: "A", name: "name1", start: datetime(), end: datetime()})
+ CREATE (:Event {id: "B", name: "name2", start: datetime(), end: datetime()})
+ CREATE (:Event {id: "C", name: "name3", start: datetime(), end: datetime()})
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query ($rangeStart: DateTime, $rangeEnd: DateTime, $activity: String) {
+  events(
+    where: {AND: [{start_GTE: $rangeStart}, {start_LTE: $rangeEnd}, {activity: $activity}]}
+  ) {
+    id
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Event)
+RETURN this {
+	.id
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "events": [
+    {
+      "id": "A"
+    },
+    {
+      "id": "B"
+    },
+    {
+      "id": "C"
+    }
+  ]
+}
+----
+
+'''
+
+== should return all nodes when OR is used and members are optional
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (:Event {id: "A", name: "name1", start: datetime(), end: datetime()})
+ CREATE (:Event {id: "B", name: "name2", start: datetime(), end: datetime()})
+ CREATE (:Event {id: "C", name: "name3", start: datetime(), end: datetime()})
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query ($rangeStart: DateTime, $rangeEnd: DateTime, $activity: String) {
+  events(
+    where: {OR: [{start_GTE: $rangeStart}, {start_LTE: $rangeEnd}, {activity: $activity}]}
+  ) {
+    id
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Event)
+RETURN this {
+	.id
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "events": [
+    {
+      "id": "A"
+    },
+    {
+      "id": "B"
+    },
+    {
+      "id": "C"
+    }
+  ]
+}
+----
+
+'''
+
+== should recreate given test in issue and return correct results
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (:Event {id: "A", name: "name1", start: datetime("2024-12-01T15:47:19.274Z"), end: datetime("2024-12-01T15:47:19.274Z")})
+ CREATE (:Event {id: "B", name: "name2", start: datetime("2024-12-01T15:47:19.274Z"), end: datetime("2024-12-01T15:47:19.274Z")})
+ CREATE (:Event {id: "C", name: "name3", start: datetime(), end: datetime()})
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query ($rangeStart: DateTime, $rangeEnd: DateTime, $activity: String) {
+  events(
+    where: {OR: [{start_GTE: $rangeStart}, {start_LTE: $rangeEnd}, {activity: $activity}]}
+  ) {
+    id
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "rangeStart": "2024-12-01T15:47:19.274Z",
+  "rangeEnd": "2024-12-01T15:47:19.274Z"
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "2024-12-01T15:47:19.274Z",
+  "param1" : "2024-12-01T15:47:19.274Z"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Event)
+WHERE (this.start >= $param0
+	OR this.start <= $param1)
+RETURN this {
+	.id
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "events": [
+    {
+      "id": "A"
+    },
+    {
+      "id": "B"
+    },
+    {
+      "id": "C"
+    }
+  ]
+}
+----
+
+'''
+

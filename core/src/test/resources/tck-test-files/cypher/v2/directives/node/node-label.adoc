@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = Label in Node directive
 
-== Source schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Actor @node(labels: ["Person"]) {
@@ -17,6 +19,35 @@ type Movie @node(labels: ["Film"]) {
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
 }
 ----
+
+== Select Movie with label Film
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Film)
+RETURN this {
+	.title
+} AS this
+----
+
+'''
 
 == Select movie and actor with custom labels
 
@@ -115,35 +146,6 @@ CALL {
 RETURN this {
 	.title,
 	actorsConnection: actorsConnection
-} AS this
-----
-
-'''
-
-== Select Movie with label Film
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  movies {
-    title
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{ }
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Film)
-RETURN this {
-	.title
 } AS this
 ----
 

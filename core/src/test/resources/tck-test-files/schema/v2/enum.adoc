@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
-= Enum -> Enums
+= Enum
 
-== Source schema
+== Enums
 
+.Schema
 [source,graphql,schema=true]
 ----
 enum Status {
@@ -16,8 +18,6 @@ type Movie {
   status: Status
 }
 ----
-
-== Augmented schema
 
 .Augmented Schema
 [source,graphql]
@@ -91,3 +91,4 @@ input MovieWhere {
 ----
 
 '''
+

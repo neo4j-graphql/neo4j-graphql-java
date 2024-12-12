@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = Union relationship filtering operations
 
-== Source schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 union Production = Movie | Series
@@ -30,48 +32,6 @@ type ActedIn @relationshipProperties {
   screenTime: Int
 }
 ----
-
-== Filtering on nested-level relationship unions
-
-.GraphQL-Query
-[source,graphql]
-----
-query actedInWhere {
-  actors(
-    where: {actedIn_SOME: {Movie: {title_CONTAINS: "The Office"}, Series: {title_ENDS_WITH: "Office"}}}
-  ) {
-    name
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0" : "The Office",
-  "param1" : "Office"
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Actor)
-WHERE (EXISTS {
-		MATCH (this)-[:ACTED_IN]->(this0:Movie)
-		WHERE this0.title CONTAINS $param0
-	}
-	AND EXISTS {
-		MATCH (this)-[:ACTED_IN]->(this1:Series)
-		WHERE this1.title ENDS WITH $param1
-	})
-RETURN this {
-	.name
-} AS this
-----
-
-'''
 
 == Union filter (top level)
 
@@ -124,6 +84,48 @@ CALL {
 }
 WITH this
 RETURN this AS this
+----
+
+'''
+
+== Filtering on nested-level relationship unions
+
+.GraphQL-Query
+[source,graphql]
+----
+query actedInWhere {
+  actors(
+    where: {actedIn_SOME: {Movie: {title_CONTAINS: "The Office"}, Series: {title_ENDS_WITH: "Office"}}}
+  ) {
+    name
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "The Office",
+  "param1" : "Office"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+WHERE (EXISTS {
+		MATCH (this)-[:ACTED_IN]->(this0:Movie)
+		WHERE this0.title CONTAINS $param0
+	}
+	OR EXISTS {
+		MATCH (this)-[:ACTED_IN]->(this1:Series)
+		WHERE this1.title ENDS WITH $param1
+	})
+RETURN this {
+	.name
+} AS this
 ----
 
 '''
