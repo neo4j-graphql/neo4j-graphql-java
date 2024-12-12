@@ -37,13 +37,6 @@ open class BaseSelection<T : BaseSelection<T>>(
             prop.get(selection).forEach { field -> result[field.aliasOrName] = nestedProjection(field) }
         }
 
-//        fun <R: BaseSelection<R>> field(prop: KProperty1<R, List<BaseSelection<R>>>, value: BaseSelection<R>.() -> Unit) {
-//            prop.get(selection).forEach { field -> result[field.aliasOrName] = value() }
-//        }
-
-//        fun project(value: BaseSelection<*>.() -> Any?) {
-//            prop.get(selection).forEach { field -> result[field.aliasOrName] = value(BaseSelection()) }
-//        }
     }
 
 }

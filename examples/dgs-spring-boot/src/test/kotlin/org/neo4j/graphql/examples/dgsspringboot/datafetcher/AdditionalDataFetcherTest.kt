@@ -145,6 +145,6 @@ internal class AdditionalDataFetcherTest(
 
     companion object {
         @Container
-        private val neo4jServer = Neo4jContainer<Nothing>("neo4j:5.24.0")
+        private val neo4jServer = Neo4jContainer<Nothing>("neo4j:5.24.1")
     }
 }
