@@ -25,7 +25,7 @@ import kotlin.reflect.KMutableProperty1
  * @param relevantBlocks a list of pairs of filter functions and properties to set the found code blocks
  */
 abstract class AsciiDocTestSuite<T>(
-    private val fileName: String,
+    protected val fileName: String,
     private val relevantBlocks: List<CodeBlockMatcher<T>>,
     private val createMissingBlocks: Boolean = true
 ) {
@@ -69,7 +69,12 @@ abstract class AsciiDocTestSuite<T>(
             )
         }
 
+        addAdditionalTests(tests)
+
         return if (FLATTEN_TESTS) flatten(tests.stream(), "$fileName:") else tests.stream()
+    }
+
+    open fun addAdditionalTests(tests: MutableList<DynamicNode>) {
     }
 
     private fun createTestsOfSection(section: Section, parentIgnoreReason: String? = null): List<DynamicNode> {
@@ -90,7 +95,7 @@ abstract class AsciiDocTestSuite<T>(
                 }
 
                 is Table -> {
-                    if (testCase != null){
+                    if (testCase != null) {
                         setTableData(testCase, node)
                     }
                 }
@@ -148,21 +153,17 @@ abstract class AsciiDocTestSuite<T>(
     }
 
     private fun writeAdjustedTestFile() {
-        val content = generateAdjustedFileContent({ block ->
-            block.generatedContent.takeIf {
-                when {
-                    UPDATE_SEMANTIC_EQUALLY_BLOCKS -> block.semanticEqual && (block.tandemUpdate?.semanticEqual ?: true)
-                    else -> true
-                }
-            }
-        })
+        val content = generateAdjustedFileContent(
+            { it.generatedContent },
+            { !UPDATE_SEMANTIC_EQUALLY_BLOCKS || (it.semanticEqual && (it.tandemUpdate?.semanticEqual ?: true)) }
+        )
         FileWriter(File("src/test/resources/", fileName)).use {
             it.write(content)
         }
     }
 
     private fun reformatTestFile() {
-        val content = generateAdjustedFileContent { it.reformattedContent }
+        val content = generateAdjustedFileContent({ it.reformattedContent })
         FileWriter(File("src/test/resources/", fileName)).use {
             it.write(content)
         }
@@ -179,19 +180,25 @@ abstract class AsciiDocTestSuite<T>(
         }
     }
 
-    private fun generateAdjustedFileContent(extractor: (CodeBlock) -> String? = { it.generatedContent }): String {
+    protected fun generateAdjustedFileContent(
+        extractor: (CodeBlock) -> String? = { it.generatedContent },
+        matcher: (CodeBlock) -> Boolean = { extractor(it) != null }
+    ): String {
         knownBlocks.sortWith(compareByDescending { it.start })
         val rebuildTest = StringBuffer(document.content)
-        knownBlocks.filter { extractor(it) != null }
+        knownBlocks.filter { matcher(it) }
             .forEach { block ->
                 val start = block.start ?: error("unknown start position")
                 if (block.end == null) {
                     rebuildTest.insert(
                         start,
-                        ".${block.caption}\n${block.marker}\n----\n${extractor(block)}\n----\n\n"
+                        ".${block.caption}\n${block.adjustedMarker}\n----\n${extractor(block)}\n----\n\n"
                     )
                 } else {
                     rebuildTest.replace(start, block.end!!, extractor(block) + "\n")
+                    if (block.markerStart != null) {
+                        rebuildTest.replace(block.markerStart!!, block.markerEnd!!, block.adjustedMarker)
+                    }
                 }
             }
         return rebuildTest.toString()
@@ -221,7 +228,8 @@ abstract class AsciiDocTestSuite<T>(
          * to find broken tests easy by its console output, enable this feature
          */
         val FLATTEN_TESTS = System.getProperty("neo4j-graphql-java.flatten-tests", "false") == "true"
-        val GENERATE_TEST_FILE_DIFF = System.getProperty("neo4j-graphql-java.generate-test-file-diff", "false") == "true"
+        val GENERATE_TEST_FILE_DIFF =
+            System.getProperty("neo4j-graphql-java.generate-test-file-diff", "false") == "true"
         val REFORMAT_TEST_FILE = System.getProperty("neo4j-graphql-java.reformat", "false") == "true"
         val UPDATE_TEST_FILE = System.getProperty("neo4j-graphql-java.update-test-file", "false") == "true"
         val UPDATE_SEMANTIC_EQUALLY_BLOCKS =
@@ -229,11 +237,19 @@ abstract class AsciiDocTestSuite<T>(
         val MAPPER = ObjectMapper()
             .registerKotlinModule()
             .registerModules(JavaTimeModule())
-            .registerModule(SimpleModule().addSerializer(TemporalAmount::class.java, object : JsonSerializer<TemporalAmount?>() {
-                override fun serialize(value: TemporalAmount?, gen: JsonGenerator?, serializers: SerializerProvider?) {
-                    gen?.writeString(value.toString())
-                }
-            }))
+            .registerModule(
+                SimpleModule().addSerializer(
+                    TemporalAmount::class.java,
+                    object : JsonSerializer<TemporalAmount?>() {
+                        override fun serialize(
+                            value: TemporalAmount?,
+                            gen: JsonGenerator?,
+                            serializers: SerializerProvider?
+                        ) {
+                            gen?.writeString(value.toString())
+                        }
+                    })
+            )
             .disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             .disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DURATIONS_AS_TIMESTAMPS)
 

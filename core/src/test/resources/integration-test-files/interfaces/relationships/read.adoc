@@ -115,7 +115,7 @@ RETURN this {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "actors": [
@@ -439,7 +439,7 @@ RETURN this {
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "actors": [

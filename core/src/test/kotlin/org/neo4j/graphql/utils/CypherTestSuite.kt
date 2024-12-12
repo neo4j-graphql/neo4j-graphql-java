@@ -1,5 +1,6 @@
 package org.neo4j.graphql.utils
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.jayway.jsonpath.JsonPath
 import demo.org.neo4j.graphql.utils.InvalidQueryException
 import demo.org.neo4j.graphql.utils.asciidoc.ast.CodeBlock
@@ -35,6 +36,7 @@ import org.neo4j.graphql.scalars.TemporalScalar
 import org.opentest4j.AssertionFailedError
 import org.threeten.extra.PeriodDuration
 import java.io.File
+import java.io.FileWriter
 import java.math.BigInteger
 import java.time.*
 import java.time.format.DateTimeFormatter
@@ -43,7 +45,6 @@ import java.time.temporal.TemporalAccessor
 import java.util.*
 import java.util.concurrent.FutureTask
 import java.util.function.Consumer
-import java.util.regex.Pattern
 import kotlin.reflect.full.findAnnotation
 
 class CypherTestSuite(fileName: String, val driver: Driver? = null, createMissingBlocks: Boolean = true) :
@@ -91,6 +92,12 @@ class CypherTestSuite(fileName: String, val driver: Driver? = null, createMissin
         }
     }
 
+    override fun addAdditionalTests(tests: MutableList<DynamicNode>) {
+        if (ADD_IGNORE_ORDER_TO_INTEGRATION_TESTS) {
+            tests += DynamicTest.dynamicTest("Create ignore-order", srcLocation, this::reformatMarker)
+        }
+    }
+
     override fun createTests(testCase: TestCase, section: Section, ignoreReason: String?): List<DynamicNode> {
         if (testCase.graphqlRequest == null) {
             return emptyList()
@@ -104,6 +111,18 @@ class CypherTestSuite(fileName: String, val driver: Driver? = null, createMissin
         val result = createTransformationTask(testCase)
 
         val tests = mutableListOf<DynamicNode>()
+
+        if (ADD_IGNORE_ORDER_TO_INTEGRATION_TESTS) {
+            val hasOrder = testCase.cypher.any { it.content.contains("ORDER BY") }
+            val graphqlResponse = testCase.graphqlResponse
+            if (!hasOrder && graphqlResponse != null
+                && hasArrayWithMoreThenOneItems(MAPPER.readValue<Any>(graphqlResponse.content))
+            ) {
+                graphqlResponse.adjustedAttributes = graphqlResponse.attributes.toMutableMap()
+                    .also { it["ignore-order"] = null }
+            }
+        }
+
         if (DEBUG) {
             tests.add(printGeneratedQuery(result))
             tests.add(printReplacedParameter(result))
@@ -151,6 +170,22 @@ class CypherTestSuite(fileName: String, val driver: Driver? = null, createMissin
         tests.addAll(testCypherParams(testCase.cypher, testCase.cypherParams, result))
 
         return tests
+    }
+
+    private fun hasArrayWithMoreThenOneItems(value: Any): Boolean {
+        when (value) {
+            is Map<*, *> -> {
+                return value.any {
+                    val mapValue = it.value
+                    mapValue != null && hasArrayWithMoreThenOneItems(mapValue)
+                }
+            }
+
+            is Collection<*> -> {
+                return value.size > 1 || value.filterNotNull().any { hasArrayWithMoreThenOneItems(it) }
+            }
+        }
+        return false
     }
 
     private fun createSchema(
@@ -509,11 +544,17 @@ class CypherTestSuite(fileName: String, val driver: Driver? = null, createMissin
         }
     }
 
+
+    private fun reformatMarker() {
+        val content = generateAdjustedFileContent({ it.content }, { it.adjustedAttributes != null })
+        FileWriter(File("src/test/resources/", fileName)).use { it.write(content) }
+    }
+
     companion object {
         private val DEBUG = System.getProperty("neo4j-graphql-java.debug", "false") == "true"
         private val CONVERT_NUMBER = System.getProperty("neo4j-graphql-java.convert-number", "true") == "true"
-
-        private val DURATION_PATTERN: Pattern = Pattern.compile("^P(.*?)(?:T(.*))?$")
+        private val ADD_IGNORE_ORDER_TO_INTEGRATION_TESTS =
+            System.getProperty("neo4j-graphql-java.add-ignore-order-to-integration-tests", "false") == "true"
 
         private val PARSE_OPTIONS = Options.newOptions()
             .createSortedMaps(true)

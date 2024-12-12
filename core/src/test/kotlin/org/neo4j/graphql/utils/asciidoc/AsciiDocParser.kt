@@ -93,6 +93,8 @@ class AsciiDocParser(
 
                     currentCodeBlock = CodeBlock(uri, language, currentSection, attributes).also {
                         it.caption = caption
+                        it.markerStart = offset
+                        it.markerEnd = offset + line.length
                         currentSection.blocks.add(it)
                     }
                     caption = null

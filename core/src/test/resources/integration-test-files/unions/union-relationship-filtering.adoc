@@ -104,7 +104,7 @@ RETURN this AS this
 ----
 
 .GraphQL-Response
-[source,json,response=true]
+[source,json,response=true,ignore-order]
 ----
 {
   "productions": [

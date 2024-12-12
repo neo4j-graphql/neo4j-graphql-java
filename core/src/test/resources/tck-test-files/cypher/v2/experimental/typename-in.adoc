@@ -138,8 +138,8 @@ MATCH (this:Actor)
 WHERE EXISTS {
 	MATCH (this)-[edge:ACTED_IN]->(this0)
 	WHERE ((edge.screenTime = $param0
-			OR (this0.title = $param1
-				OR this0:Series))
+			OR this0.title = $param1
+			OR this0:Series)
 		AND (this0:Cartoon
 			OR this0:Movie
 			OR this0:Series))
