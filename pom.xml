@@ -171,8 +171,10 @@
                     <skipTag>true</skipTag>
                     <pushRemote>false</pushRemote>
                     <gitFlowConfig>
-                        <developmentBranch>master</developmentBranch>
+                        <productionBranch>master-v2</productionBranch>
+                        <developmentBranch>master-v2</developmentBranch>
                     </gitFlowConfig>
+                    <argLine>-P-create-test-file-diff</argLine>
                     <releaseMergeFFOnly>true</releaseMergeFFOnly>
                     <commitMessages>
                         <releaseStartMessage>Update versions for release @{version}</releaseStartMessage>
