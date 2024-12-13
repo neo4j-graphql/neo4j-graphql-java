@@ -1,0 +1,322 @@
+:toc:
+:toclevels: 42
+
+= https://github.com/neo4j/graphql/issues/4532
+
+== order-by relationship property
+
+=== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+type Inventory {
+  id: ID
+  children: [Scenario!]! @relationship(type: "HasChildren", properties: "InventoryChildRelation", direction: OUT)
+}
+
+type Scenario {
+  id: ID
+}
+
+type InventoryChildRelation @relationshipProperties {
+  order: Int
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE(i:Inventory {id: "i1"})
+ CREATE(i)-[:HasChildren { order: 3 }]->(c1:Scenario { id: "c3"})
+ CREATE(i)-[:HasChildren { order: 1 }]->(c2:Scenario { id: "c1"})
+ CREATE(i)-[:HasChildren { order: 2 }]->(c3:Scenario { id: "c2"})
+
+ CREATE(:Inventory {id: "i2"})
+----
+
+=== should return all elements when ordering by nested connection
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  inventories {
+    id
+    childrenConnection(sort: {edge: {order: ASC}}) {
+      edges {
+        properties {
+          order
+        }
+        node {
+          id
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Inventory)
+CALL {
+	WITH this
+	MATCH (this)-[haschildren0:HasChildren]->(scenario0:Scenario)
+	WITH collect( {
+		node: scenario0,
+		relationship: haschildren0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS scenario0, edge.relationship AS haschildren0 ORDER BY haschildren0.order ASC
+		RETURN collect( {
+			properties: {
+				__typename: 'InventoryChildRelation',
+				order: haschildren0.order
+			},
+			node: {
+				__typename: 'Scenario',
+				id: scenario0.id
+			}
+		}) AS childrenConnectionEdges
+	}
+	RETURN {
+		edges: childrenConnectionEdges,
+		totalCount: totalCount
+	} AS childrenConnection
+}
+RETURN this {
+	.id,
+	childrenConnection: childrenConnection
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "inventories": [
+    {
+      "id": "i2",
+      "childrenConnection": {
+        "edges": []
+      }
+    },
+    {
+      "id": "i1",
+      "childrenConnection": {
+        "edges": [
+          {
+            "properties": {
+              "order": 1
+            },
+            "node": {
+              "id": "c1"
+            }
+          },
+          {
+            "properties": {
+              "order": 2
+            },
+            "node": {
+              "id": "c2"
+            }
+          },
+          {
+            "properties": {
+              "order": 3
+            },
+            "node": {
+              "id": "c3"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+----
+
+'''
+
+== order-by relationship property on interface node target
+
+=== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+type Inventory {
+  id: ID
+  children: [Scenario!]! @relationship(type: "HasChildren", properties: "InventoryChildRelation", direction: OUT)
+}
+
+interface Scenario {
+  id: ID
+}
+
+type Image implements Scenario {
+  id: ID
+}
+
+type Video implements Scenario {
+  id: ID
+}
+
+type InventoryChildRelation @relationshipProperties {
+  order: Int
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE(i:Inventory {id: "i1"})
+ CREATE(i)-[:HasChildren { order: 3 }]->(c1:Image { id: "c3"})
+ CREATE(i)-[:HasChildren { order: 1 }]->(c2:Video { id: "c1"})
+ CREATE(i)-[:HasChildren { order: 2 }]->(c3:Video { id: "c2"})
+
+ CREATE(:Inventory {id: "i2"})
+----
+
+=== should return all elements when ordering by nested connection on an interface target
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  inventories {
+    id
+    childrenConnection(sort: {edge: {order: ASC}}) {
+      edges {
+        properties {
+          order
+        }
+        node {
+          id
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Inventory)
+CALL {
+	WITH this
+	CALL {
+		WITH this
+		MATCH (this)-[haschildren0:HasChildren]->(image0:Image)
+		WITH {
+			properties: {
+				__typename: 'InventoryChildRelation',
+				order: haschildren0.order
+			},
+			node: {
+				__typename: 'Image',
+				id: image0.id,
+				__id: elementId(image0)
+			}
+		} AS edge
+		RETURN edge UNION
+		WITH this
+		MATCH (this)-[haschildren1:HasChildren]->(video0:Video)
+		WITH {
+			properties: {
+				__typename: 'InventoryChildRelation',
+				order: haschildren1.order
+			},
+			node: {
+				__typename: 'Video',
+				id: video0.id,
+				__id: elementId(video0)
+			}
+		} AS edge
+		RETURN edge
+	}
+	WITH collect(edge) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge ORDER BY edge.properties.order ASC
+		RETURN collect(edge) AS sortedEdges0
+	}
+	RETURN {
+		edges: sortedEdges0,
+		totalCount: totalCount
+	} AS childrenConnection
+}
+RETURN this {
+	.id,
+	childrenConnection: childrenConnection
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "inventories": [
+    {
+      "id": "i1",
+      "childrenConnection": {
+        "edges": [
+          {
+            "properties": {
+              "order": 1
+            },
+            "node": {
+              "id": "c1"
+            }
+          },
+          {
+            "properties": {
+              "order": 2
+            },
+            "node": {
+              "id": "c2"
+            }
+          },
+          {
+            "properties": {
+              "order": 3
+            },
+            "node": {
+              "id": "c3"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "i2",
+      "childrenConnection": {
+        "edges": []
+      }
+    }
+  ]
+}
+----
+
+'''
+

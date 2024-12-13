@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
-= https://github.com/neo4j/graphql/issues/1038 -> AWSAccount and DNSZone should be cased correctly
+= https://github.com/neo4j/graphql/issues/1038
 
-== Source schema
+== AWSAccount and DNSZone should be cased correctly
 
+.Schema
 [source,graphql,schema=true]
 ----
 type AWSAccount {
@@ -16,8 +18,6 @@ type DNSZone {
   zoneType: String
 }
 ----
-
-== Augmented schema
 
 .Augmented Schema
 [source,graphql]
@@ -142,3 +142,4 @@ input DNSZoneWhere {
 ----
 
 '''
+

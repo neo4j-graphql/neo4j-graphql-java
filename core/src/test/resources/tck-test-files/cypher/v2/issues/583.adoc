@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = https://github.com/neo4j/graphql/issues/583
 
-== Source schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 interface Show {
@@ -70,7 +72,7 @@ CALL {
 		WITH *
 		MATCH (this)-[actedIn0:ACTED_IN]->(movie0:Movie)
 		WITH movie0 {
-			__resolveType: 'Movie',
+			__typename: 'Movie',
 			__id: elementId(movie0),
 			.title,
 			.awardsGiven
@@ -79,7 +81,7 @@ CALL {
 		WITH *
 		MATCH (this)-[actedIn1:ACTED_IN]->(series0:Series)
 		WITH series0 {
-			__resolveType: 'Series',
+			__typename: 'Series',
 			__id: elementId(series0),
 			.title,
 			.awardsGiven
@@ -88,7 +90,7 @@ CALL {
 		WITH *
 		MATCH (this)-[actedIn2:ACTED_IN]->(shortFilm0:ShortFilm)
 		WITH shortFilm0 {
-			__resolveType: 'ShortFilm',
+			__typename: 'ShortFilm',
 			__id: elementId(shortFilm0),
 			.title
 		} AS shortFilm0

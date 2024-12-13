@@ -1,0 +1,204 @@
+:toc:
+:toclevels: 42
+
+= @coalesce directive
+
+== allows querying with null properties without affecting the returned result
+
+.Schema
+[source,graphql,schema=true]
+----
+type Movie {
+  id: ID!
+  classification: String @coalesce(value: "Unrated")
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (:Movie {id: "RandomString1"})
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {classification: "Unrated"}) {
+    id
+    classification
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "Unrated"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE coalesce(this.classification, 'Unrated') = $param0
+RETURN this {
+	.id,
+	.classification
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies": [
+    {
+      "id": "RandomString1",
+      "classification": null
+    }
+  ]
+}
+----
+
+'''
+
+== with enum values
+
+.Schema
+[source,graphql,schema=true]
+----
+enum Status {
+  ACTIVE
+  INACTIVE
+}
+
+type Movie {
+  id: ID
+  status: Status @coalesce(value: ACTIVE)
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (:Movie {id: "RandomString1"})
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {status: ACTIVE}) {
+    id
+    status
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "ACTIVE"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE coalesce(this.status, 'ACTIVE') = $param0
+RETURN this {
+	.id,
+	.status
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies": [
+    {
+      "id": "RandomString1",
+      "status": null
+    }
+  ]
+}
+----
+
+'''
+
+== with enum list values
+
+.Schema
+[source,graphql,schema=true]
+----
+enum Status {
+  ACTIVE
+  INACTIVE
+}
+
+type Movie {
+  id: ID
+  statuses: [Status!] @coalesce(value: [ACTIVE, INACTIVE])
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (:Movie {id: "RandomString1"})
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {statuses: [ACTIVE, INACTIVE]}) {
+    id
+    statuses
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": [
+    "ACTIVE",
+    "INACTIVE"
+  ]
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE coalesce(this.statuses, ['ACTIVE', 'INACTIVE']) = $param0
+RETURN this {
+	.id,
+	.statuses
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies": [
+    {
+      "id": "RandomString1",
+      "statuses": null
+    }
+  ]
+}
+----
+
+'''
+

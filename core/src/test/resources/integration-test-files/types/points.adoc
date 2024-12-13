@@ -1,0 +1,137 @@
+:toc:
+:toclevels: 42
+
+= [Point]
+
+== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+type Route {
+  id: String!
+  waypoints: [Point!]!
+}
+----
+
+== enables query of a node with multiple wgs-84-3d points
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CALL {
+ CREATE (r:Route)
+ SET r.id = "dd320626-cc23-4938-9f33-ba624a3a3e8d"
+ SET r.waypoints = [p in [{longitude: 146.1568, latitude: -54.6132, height: 0.03157347836531699}, {longitude: 146.1568, latitude: -54.6132, height: 0.03157347836531699}, {longitude: 146.1568, latitude: -54.6132, height: 0.03157347836531699}, {longitude: 146.1568, latitude: -54.6132, height: 0.03157347836531699}, {longitude: 146.1568, latitude: -54.6132, height: 0.03157347836531699}, {longitude: 146.1568, latitude: -54.6132, height: 0.03157347836531699}, {longitude: 146.1568, latitude: -54.6132, height: 0.03157347836531699}] | point(p)]
+ RETURN r
+ }
+
+ RETURN r { .id, .waypoints } AS r
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query Routes($id: String!) {
+  routes(where: {id: $id}) {
+    id
+    waypoints {
+      latitude
+      longitude
+      height
+      crs
+    }
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "id": "dd320626-cc23-4938-9f33-ba624a3a3e8d"
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "dd320626-cc23-4938-9f33-ba624a3a3e8d"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Route)
+WHERE this.id = $param0
+RETURN this {
+	.id,
+	waypoints: CASE WHEN this.waypoints IS NOT NULL THEN [p_var0 IN this.waypoints | {
+		latitude: p_var0.latitude,
+		longitude: p_var0.longitude,
+		height: CASE WHEN p_var0.srid = 4979 THEN p_var0.height ELSE NULL END,
+		crs: p_var0.crs
+	}] ELSE NULL END
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "routes": [
+    {
+      "id": "dd320626-cc23-4938-9f33-ba624a3a3e8d",
+      "waypoints": [
+        {
+          "latitude": -54.6132,
+          "longitude": 146.1568,
+          "height": 0.03157347836531699,
+          "crs": "wgs-84-3d"
+        },
+        {
+          "latitude": -54.6132,
+          "longitude": 146.1568,
+          "height": 0.03157347836531699,
+          "crs": "wgs-84-3d"
+        },
+        {
+          "latitude": -54.6132,
+          "longitude": 146.1568,
+          "height": 0.03157347836531699,
+          "crs": "wgs-84-3d"
+        },
+        {
+          "latitude": -54.6132,
+          "longitude": 146.1568,
+          "height": 0.03157347836531699,
+          "crs": "wgs-84-3d"
+        },
+        {
+          "latitude": -54.6132,
+          "longitude": 146.1568,
+          "height": 0.03157347836531699,
+          "crs": "wgs-84-3d"
+        },
+        {
+          "latitude": -54.6132,
+          "longitude": 146.1568,
+          "height": 0.03157347836531699,
+          "crs": "wgs-84-3d"
+        },
+        {
+          "latitude": -54.6132,
+          "longitude": 146.1568,
+          "height": 0.03157347836531699,
+          "crs": "wgs-84-3d"
+        }
+      ]
+    }
+  ]
+}
+----
+
+'''
+

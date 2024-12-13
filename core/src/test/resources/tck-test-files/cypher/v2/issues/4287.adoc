@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = https://github.com/neo4j/graphql/issues/4287
 
-== Source schema
+== filter by logical operator on interface connection
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Actor {
@@ -29,8 +31,6 @@ type Series implements Production {
   episodes: Int
 }
 ----
-
-== filter by logical operator on interface connection
 
 .GraphQL-Query
 [source,graphql]
@@ -75,7 +75,7 @@ CALL {
 			OR movie0.title = $param1)
 		WITH {
 			node: {
-				__resolveType: 'Movie',
+				__typename: 'Movie',
 				title: movie0.title,
 				__id: elementId(movie0)
 			}
@@ -87,7 +87,7 @@ CALL {
 			OR series0.title = $param3)
 		WITH {
 			node: {
-				__resolveType: 'Series',
+				__typename: 'Series',
 				title: series0.title,
 				__id: elementId(series0)
 			}

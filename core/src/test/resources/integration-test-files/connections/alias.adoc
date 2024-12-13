@@ -1,0 +1,1651 @@
+:toc:
+:toclevels: 42
+
+= Connections Alias
+
+== should alias top level connection field and return correct totalCount
+
+.Schema
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
+}
+
+type Actor {
+  name: String!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (m:Movie {title: "RandomString1"})
+ CREATE (m)<-[:ACTED_IN]-(:Actor)
+ CREATE (m)<-[:ACTED_IN]-(:Actor)
+ CREATE (m)<-[:ACTED_IN]-(:Actor)
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {title: "RandomString1"}) {
+    actors: actorsConnection {
+      totalCount
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "RandomString1"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+CALL {
+	WITH this
+	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
+	WITH collect( {
+		node: actor0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS actor0, edge.relationship AS actedIn0
+		RETURN collect( {
+			node: {
+				__id: elementId(actor0),
+				__typename: 'Actor'
+			}
+		}) AS actorsEdges
+	}
+	RETURN {
+		edges: actorsEdges,
+		totalCount: totalCount
+	} AS actors
+}
+RETURN this {
+	actors: actors
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies": [
+    {
+      "actors": {
+        "totalCount": 3
+      }
+    }
+  ]
+}
+----
+
+'''
+
+== should alias totalCount
+
+.Schema
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
+}
+
+type Actor {
+  name: String!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (m:Movie {title: "RandomString1"})
+ CREATE (m)<-[:ACTED_IN]-(:Actor)
+ CREATE (m)<-[:ACTED_IN]-(:Actor)
+ CREATE (m)<-[:ACTED_IN]-(:Actor)
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {title: "RandomString1"}) {
+    actorsConnection {
+      count: totalCount
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "RandomString1"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+CALL {
+	WITH this
+	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
+	WITH collect( {
+		node: actor0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS actor0, edge.relationship AS actedIn0
+		RETURN collect( {
+			node: {
+				__id: elementId(actor0),
+				__typename: 'Actor'
+			}
+		}) AS actorsConnectionEdges
+	}
+	RETURN {
+		edges: actorsConnectionEdges,
+		totalCount: totalCount
+	} AS actorsConnection
+}
+RETURN this {
+	actorsConnection: actorsConnection
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies": [
+    {
+      "actorsConnection": {
+        "count": 3
+      }
+    }
+  ]
+}
+----
+
+'''
+
+== should alias pageInfo top level key
+
+.Schema
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
+}
+
+type Actor {
+  name: String!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (m:Movie {title: "RandomString1"})
+ CREATE (m)<-[:ACTED_IN]-(:Actor)
+ CREATE (m)<-[:ACTED_IN]-(:Actor)
+ CREATE (m)<-[:ACTED_IN]-(:Actor)
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {title: "RandomString1"}) {
+    actorsConnection {
+      pi: pageInfo {
+        hasNextPage
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "RandomString1"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+CALL {
+	WITH this
+	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
+	WITH collect( {
+		node: actor0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS actor0, edge.relationship AS actedIn0
+		RETURN collect( {
+			node: {
+				__id: elementId(actor0),
+				__typename: 'Actor'
+			}
+		}) AS actorsConnectionEdges
+	}
+	RETURN {
+		edges: actorsConnectionEdges,
+		totalCount: totalCount
+	} AS actorsConnection
+}
+RETURN this {
+	actorsConnection: actorsConnection
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies": [
+    {
+      "actorsConnection": {
+        "pi": {
+          "hasNextPage": false
+        }
+      }
+    }
+  ]
+}
+----
+
+'''
+
+== should alias startCursor
+
+.Schema
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
+}
+
+type Actor {
+  name: String!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (m:Movie {title: "RandomString1"})
+ CREATE (m)<-[:ACTED_IN]-(:Actor)
+ CREATE (m)<-[:ACTED_IN]-(:Actor)
+ CREATE (m)<-[:ACTED_IN]-(:Actor)
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {title: "RandomString1"}) {
+    actorsConnection {
+      pageInfo {
+        sc: startCursor
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "RandomString1"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+CALL {
+	WITH this
+	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
+	WITH collect( {
+		node: actor0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS actor0, edge.relationship AS actedIn0
+		RETURN collect( {
+			node: {
+				__id: elementId(actor0),
+				__typename: 'Actor'
+			}
+		}) AS actorsConnectionEdges
+	}
+	RETURN {
+		edges: actorsConnectionEdges,
+		totalCount: totalCount
+	} AS actorsConnection
+}
+RETURN this {
+	actorsConnection: actorsConnection
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies": [
+    {
+      "actorsConnection": {
+        "pageInfo": {
+          "sc": "YXJyYXljb25uZWN0aW9uOjA="
+        }
+      }
+    }
+  ]
+}
+----
+
+'''
+
+== should alias endCursor
+
+.Schema
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
+}
+
+type Actor {
+  name: String!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (m:Movie {title: "RandomString1"})
+ CREATE (m)<-[:ACTED_IN]-(:Actor)
+ CREATE (m)<-[:ACTED_IN]-(:Actor)
+ CREATE (m)<-[:ACTED_IN]-(:Actor)
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {title: "RandomString1"}) {
+    actorsConnection {
+      pageInfo {
+        ec: endCursor
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "RandomString1"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+CALL {
+	WITH this
+	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
+	WITH collect( {
+		node: actor0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS actor0, edge.relationship AS actedIn0
+		RETURN collect( {
+			node: {
+				__id: elementId(actor0),
+				__typename: 'Actor'
+			}
+		}) AS actorsConnectionEdges
+	}
+	RETURN {
+		edges: actorsConnectionEdges,
+		totalCount: totalCount
+	} AS actorsConnection
+}
+RETURN this {
+	actorsConnection: actorsConnection
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies": [
+    {
+      "actorsConnection": {
+        "pageInfo": {
+          "ec": "YXJyYXljb25uZWN0aW9uOjI="
+        }
+      }
+    }
+  ]
+}
+----
+
+'''
+
+== should alias hasPreviousPage
+
+.Schema
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
+}
+
+type Actor {
+  name: String!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (m:Movie {title: "RandomString1"})
+ CREATE (m)<-[:ACTED_IN]-(:Actor)
+ CREATE (m)<-[:ACTED_IN]-(:Actor)
+ CREATE (m)<-[:ACTED_IN]-(:Actor)
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {title: "RandomString1"}) {
+    actorsConnection {
+      pageInfo {
+        hPP: hasPreviousPage
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "RandomString1"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+CALL {
+	WITH this
+	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
+	WITH collect( {
+		node: actor0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS actor0, edge.relationship AS actedIn0
+		RETURN collect( {
+			node: {
+				__id: elementId(actor0),
+				__typename: 'Actor'
+			}
+		}) AS actorsConnectionEdges
+	}
+	RETURN {
+		edges: actorsConnectionEdges,
+		totalCount: totalCount
+	} AS actorsConnection
+}
+RETURN this {
+	actorsConnection: actorsConnection
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies": [
+    {
+      "actorsConnection": {
+        "pageInfo": {
+          "hPP": false
+        }
+      }
+    }
+  ]
+}
+----
+
+'''
+
+== should alias hasNextPage
+
+.Schema
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
+}
+
+type Actor {
+  name: String!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (m:Movie {title: "RandomString1"})
+ CREATE (m)<-[:ACTED_IN]-(:Actor {name: "A"})
+ CREATE (m)<-[:ACTED_IN]-(:Actor {name: "B"})
+ CREATE (m)<-[:ACTED_IN]-(:Actor {name: "C"})
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {title: "RandomString1"}) {
+    actorsConnection(first: 1) {
+      pageInfo {
+        hNP: hasNextPage
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "RandomString1",
+  "param1": 1
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+CALL {
+	WITH this
+	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
+	WITH collect( {
+		node: actor0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS actor0, edge.relationship AS actedIn0 LIMIT $param1
+		RETURN collect( {
+			node: {
+				__id: elementId(actor0),
+				__typename: 'Actor'
+			}
+		}) AS actorsConnectionEdges
+	}
+	RETURN {
+		edges: actorsConnectionEdges,
+		totalCount: totalCount
+	} AS actorsConnection
+}
+RETURN this {
+	actorsConnection: actorsConnection
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies": [
+    {
+      "actorsConnection": {
+        "pageInfo": {
+          "hNP": true
+        }
+      }
+    }
+  ]
+}
+----
+
+'''
+
+== should alias the top level edges key
+
+.Schema
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
+}
+
+type Actor {
+  name: String!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (m:Movie {title: "RandomString1"})
+ CREATE (m)<-[:ACTED_IN]-(:Actor {name: "A"})
+ CREATE (m)<-[:ACTED_IN]-(:Actor {name: "B"})
+ CREATE (m)<-[:ACTED_IN]-(:Actor {name: "C"})
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {title: "RandomString1"}) {
+    actorsConnection(first: 1) {
+      e: edges {
+        cursor
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "RandomString1",
+  "param1": 1
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+CALL {
+	WITH this
+	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
+	WITH collect( {
+		node: actor0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS actor0, edge.relationship AS actedIn0 LIMIT $param1
+		RETURN collect( {
+			node: {
+				__id: elementId(actor0),
+				__typename: 'Actor'
+			}
+		}) AS actorsConnectionEdges
+	}
+	RETURN {
+		edges: actorsConnectionEdges,
+		totalCount: totalCount
+	} AS actorsConnection
+}
+RETURN this {
+	actorsConnection: actorsConnection
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies": [
+    {
+      "actorsConnection": {
+        "e": [
+          {
+            "cursor": "YXJyYXljb25uZWN0aW9uOjA="
+          }
+        ]
+      }
+    }
+  ]
+}
+----
+
+'''
+
+== should alias cursor
+
+.Schema
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
+}
+
+type Actor {
+  name: String!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (m:Movie {title: "RandomString1"})
+ CREATE (m)<-[:ACTED_IN]-(:Actor {name: "A"})
+ CREATE (m)<-[:ACTED_IN]-(:Actor {name: "B"})
+ CREATE (m)<-[:ACTED_IN]-(:Actor {name: "C"})
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {title: "RandomString1"}) {
+    actorsConnection(first: 1) {
+      edges {
+        c: cursor
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "RandomString1",
+  "param1": 1
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+CALL {
+	WITH this
+	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
+	WITH collect( {
+		node: actor0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS actor0, edge.relationship AS actedIn0 LIMIT $param1
+		RETURN collect( {
+			node: {
+				__id: elementId(actor0),
+				__typename: 'Actor'
+			}
+		}) AS actorsConnectionEdges
+	}
+	RETURN {
+		edges: actorsConnectionEdges,
+		totalCount: totalCount
+	} AS actorsConnection
+}
+RETURN this {
+	actorsConnection: actorsConnection
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies": [
+    {
+      "actorsConnection": {
+        "edges": [
+          {
+            "c": "YXJyYXljb25uZWN0aW9uOjA="
+          }
+        ]
+      }
+    }
+  ]
+}
+----
+
+'''
+
+== should alias the top level node key
+
+.Schema
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
+}
+
+type Actor {
+  name: String!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (m:Movie {title: "RandomString1"})
+ CREATE (m)<-[:ACTED_IN]-(:Actor {name: "A"})
+ CREATE (m)<-[:ACTED_IN]-(:Actor {name: "B"})
+ CREATE (m)<-[:ACTED_IN]-(:Actor {name: "C"})
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {title: "RandomString1"}) {
+    actorsConnection(first: 1) {
+      edges {
+        n: node {
+          name
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "RandomString1",
+  "param1": 1
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+CALL {
+	WITH this
+	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
+	WITH collect( {
+		node: actor0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS actor0, edge.relationship AS actedIn0 LIMIT $param1
+		RETURN collect( {
+			n: {
+				__typename: 'Actor',
+				name: actor0.name
+			}
+		}) AS actorsConnectionEdges
+	}
+	RETURN {
+		edges: actorsConnectionEdges,
+		totalCount: totalCount
+	} AS actorsConnection
+}
+RETURN this {
+	actorsConnection: actorsConnection
+} AS this
+----
+
+.GraphQL-Response Assertions
+[%header,format=csv,response=true]
+|===
+Path,Condition,Expected Value
+movies.size(),==,1
+movies[0].actorsConnection.edges.size(),==,1
+movies[0].actorsConnection.edges[0].n.name,notEmpty,
+|===
+
+'''
+
+== should alias a property on the node
+
+.Schema
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
+}
+
+type Actor {
+  name: String!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (m:Movie {title: "RandomString1"})
+ CREATE (m)<-[:ACTED_IN]-(:Actor {name: "A"})
+ CREATE (m)<-[:ACTED_IN]-(:Actor {name: "B"})
+ CREATE (m)<-[:ACTED_IN]-(:Actor {name: "C"})
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {title: "RandomString1"}) {
+    actorsConnection(first: 1) {
+      edges {
+        node {
+          n: name
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "RandomString1",
+  "param1": 1
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+CALL {
+	WITH this
+	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
+	WITH collect( {
+		node: actor0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS actor0, edge.relationship AS actedIn0 LIMIT $param1
+		RETURN collect( {
+			node: {
+				__typename: 'Actor',
+				n: actor0.name
+			}
+		}) AS actorsConnectionEdges
+	}
+	RETURN {
+		edges: actorsConnectionEdges,
+		totalCount: totalCount
+	} AS actorsConnection
+}
+RETURN this {
+	actorsConnection: actorsConnection
+} AS this
+----
+
+.GraphQL-Response Assertions
+[%header,format=csv,response=true]
+|===
+Path,Condition,Expected Value
+movies.size(),==,1
+movies[0].actorsConnection.edges.size(),==,1
+movies[0].actorsConnection.edges[0].node.n,notEmpty,
+|===
+
+'''
+
+== should alias a property on the relationship
+
+.Schema
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN, properties: "ActedIn")
+}
+
+type Actor {
+  name: String!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
+}
+
+type ActedIn @relationshipProperties {
+  roles: [String]!
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (m:Movie {title: "RandomString1"})
+ CREATE (m)<-[:ACTED_IN {roles: ["R1"]}]-(:Actor {name: "A"})
+ CREATE (m)<-[:ACTED_IN {roles: ["R2"]}]-(:Actor {name: "B"})
+ CREATE (m)<-[:ACTED_IN {roles: ["R3"]}]-(:Actor {name: "B"})
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {title: "RandomString1"}) {
+    actorsConnection(first: 1) {
+      edges {
+        r: properties {
+          r: roles
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "RandomString1",
+  "param1": 1
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+CALL {
+	WITH this
+	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
+	WITH collect( {
+		node: actor0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS actor0, edge.relationship AS actedIn0 LIMIT $param1
+		RETURN collect( {
+			r: {
+				__typename: 'ActedIn',
+				r: actedIn0.roles
+			}
+		}) AS actorsConnectionEdges
+	}
+	RETURN {
+		edges: actorsConnectionEdges,
+		totalCount: totalCount
+	} AS actorsConnection
+}
+RETURN this {
+	actorsConnection: actorsConnection
+} AS this
+----
+
+.GraphQL-Response Assertions
+[%header,format=csv,response=true]
+|===
+Path,Condition,Expected Value
+movies.size(),==,1
+movies[0].actorsConnection.edges.size(),==,1
+movies[0].actorsConnection.edges[0].r.r,notEmpty,
+|===
+
+'''
+
+== should alias many keys on a connection
+
+.Schema
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN, properties: "ActedIn")
+}
+
+type Actor {
+  name: String!
+}
+
+type ActedIn @relationshipProperties {
+  roles: [String]!
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (m:Movie {title: "RandomString1"})
+ CREATE (m)<-[:ACTED_IN {roles: ["RandomString3"]}]-(:Actor {name: "RandomString2"})
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {title: "RandomString1"}) {
+    title
+    connection: actorsConnection {
+      tC: totalCount
+      edges {
+        n: node {
+          n: name
+        }
+        p: properties {
+          r: roles
+        }
+      }
+      page: pageInfo {
+        hNP: hasNextPage
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "RandomString1"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+CALL {
+	WITH this
+	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
+	WITH collect( {
+		node: actor0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS actor0, edge.relationship AS actedIn0
+		RETURN collect( {
+			p: {
+				__typename: 'ActedIn',
+				r: actedIn0.roles
+			},
+			n: {
+				__typename: 'Actor',
+				n: actor0.name
+			}
+		}) AS connectionEdges
+	}
+	RETURN {
+		edges: connectionEdges,
+		totalCount: totalCount
+	} AS connection
+}
+RETURN this {
+	.title,
+	connection: connection
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies": [
+    {
+      "title": "RandomString1",
+      "connection": {
+        "tC": 1,
+        "edges": [
+          {
+            "n": {
+              "n": "RandomString2"
+            },
+            "p": {
+              "r": [
+                "RandomString3"
+              ]
+            }
+          }
+        ],
+        "page": {
+          "hNP": false
+        }
+      }
+    }
+  ]
+}
+----
+
+'''
+
+== should allow multiple aliases on the same connection
+
+.Schema
+[source,graphql,schema=true]
+----
+type Post {
+  title: String!
+  comments: [Comment!]! @relationship(type: "HAS_COMMENT", direction: OUT)
+}
+
+type Comment {
+  flag: Boolean!
+  post: Post! @relationship(type: "HAS_COMMENT", direction: IN)
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (post:Post {title: "RandomString1"})
+ FOREACH(flag in [true, true, false] |
+ CREATE (:Comment {flag: flag})<-[:HAS_COMMENT]-(post)
+ )
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  posts(where: {title: "RandomString1"}) {
+    flagged: commentsConnection(where: {node: {flag: true}}) {
+      edges {
+        node {
+          flag
+        }
+      }
+    }
+    unflagged: commentsConnection(where: {node: {flag: false}}) {
+      edges {
+        node {
+          flag
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "RandomString1",
+  "param1": true,
+  "param2": false
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Post)
+WHERE this.title = $param0
+CALL {
+	WITH this
+	MATCH (this)-[hasComment0:HAS_COMMENT]->(comment0:Comment)
+	WHERE comment0.flag = $param1
+	WITH collect( {
+		node: comment0,
+		relationship: hasComment0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS comment0, edge.relationship AS hasComment0
+		RETURN collect( {
+			node: {
+				__typename: 'Comment',
+				flag: comment0.flag
+			}
+		}) AS flaggedEdges
+	}
+	RETURN {
+		edges: flaggedEdges,
+		totalCount: totalCount
+	} AS flagged
+}
+CALL {
+	WITH this
+	MATCH (this)-[hasComment1:HAS_COMMENT]->(comment1:Comment)
+	WHERE comment1.flag = $param2
+	WITH collect( {
+		node: comment1,
+		relationship: hasComment1
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS comment1, edge.relationship AS hasComment1
+		RETURN collect( {
+			node: {
+				__typename: 'Comment',
+				flag: comment1.flag
+			}
+		}) AS unflaggedEdges
+	}
+	RETURN {
+		edges: unflaggedEdges,
+		totalCount: totalCount
+	} AS unflagged
+}
+RETURN this {
+	flagged: flagged,
+	unflagged: unflagged
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "posts": [
+    {
+      "flagged": {
+        "edges": [
+          {
+            "node": {
+              "flag": true
+            }
+          },
+          {
+            "node": {
+              "flag": true
+            }
+          }
+        ]
+      },
+      "unflagged": {
+        "edges": [
+          {
+            "node": {
+              "flag": false
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+----
+
+'''
+
+== should allow alias on nested connections
+
+.Schema
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: IN)
+}
+
+type Actor {
+  name: String!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: OUT)
+}
+
+type ActedIn @relationshipProperties {
+  screenTime: Int!
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (movie:Movie {title: "The Matrix"})
+ CREATE (actor:Actor {name: "Keanu Reeves"})
+ CREATE (actor)-[:ACTED_IN {screenTime: 120}]->(movie)
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {title: "The Matrix"}) {
+    title
+    actorsConnection(where: {node: {name: "Keanu Reeves"}}) {
+      edges {
+        properties {
+          screenTime
+        }
+        node {
+          name
+          b: moviesConnection(where: {node: {title: "The Matrix"}}) {
+            edges {
+              node {
+                title
+                a: actors {
+                  name
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "The Matrix",
+  "param1": "Keanu Reeves",
+  "param2": "The Matrix"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+CALL {
+	WITH this
+	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
+	WHERE actor0.name = $param1
+	WITH collect( {
+		node: actor0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS actor0, edge.relationship AS actedIn0
+		CALL {
+			WITH actor0
+			MATCH (actor0)-[actedIn1:ACTED_IN]->(movie0:Movie)
+			WHERE movie0.title = $param2
+			WITH collect( {
+				node: movie0,
+				relationship: actedIn1
+			}) AS edges
+			WITH edges, size(edges) AS totalCount
+			CALL {
+				WITH edges
+				UNWIND edges AS edge
+				WITH edge.node AS movie0, edge.relationship AS actedIn1
+				CALL {
+					WITH movie0
+					MATCH (actor1:Actor)-[actedIn2:ACTED_IN]->(movie0)
+					WITH actor1 {
+						.name
+					} AS a
+					RETURN collect(a) AS a
+				}
+				RETURN collect( {
+					node: {
+						__typename: 'Movie',
+						title: movie0.title,
+						a: a
+					}
+				}) AS bEdges
+			}
+			RETURN {
+				edges: bEdges,
+				totalCount: totalCount
+			} AS b
+		}
+		RETURN collect( {
+			properties: {
+				__typename: 'ActedIn',
+				screenTime: actedIn0.screenTime
+			},
+			node: {
+				__typename: 'Actor',
+				name: actor0.name,
+				b: b
+			}
+		}) AS actorsConnectionEdges
+	}
+	RETURN {
+		edges: actorsConnectionEdges,
+		totalCount: totalCount
+	} AS actorsConnection
+}
+RETURN this {
+	.title,
+	actorsConnection: actorsConnection
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies": [
+    {
+      "title": "The Matrix",
+      "actorsConnection": {
+        "edges": [
+          {
+            "properties": {
+              "screenTime": 120
+            },
+            "node": {
+              "name": "Keanu Reeves",
+              "b": {
+                "edges": [
+                  {
+                    "node": {
+                      "title": "The Matrix",
+                      "a": [
+                        {
+                          "name": "Keanu Reeves"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+----
+
+'''
+

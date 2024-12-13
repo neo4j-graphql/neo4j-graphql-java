@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
-= Relationship-properties -> Relationship Properties
+= Relationship-properties
 
-== Source schema
+== Relationship Properties
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Actor {
@@ -22,8 +24,6 @@ type ActedIn @relationshipProperties {
   leadRole: Boolean!
 }
 ----
-
-== Augmented schema
 
 .Augmented Schema
 [source,graphql]
@@ -259,3 +259,4 @@ input MovieWhere {
 ----
 
 '''
+

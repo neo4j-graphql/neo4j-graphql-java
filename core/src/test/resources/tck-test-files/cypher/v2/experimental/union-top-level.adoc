@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = Union top level operations
 
-== Source schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 union Search = Genre | Movie
@@ -47,14 +49,14 @@ type Movie {
 CALL {
 	MATCH (genre0:Genre)
 	WITH genre0 {
-		__resolveType: 'Genre',
+		__typename: 'Genre',
 		__id: elementId(genre0),
 		.name
 	} AS genre0
 	RETURN genre0 AS this UNION
 	MATCH (movie0:Movie)
 	WITH movie0 {
-		__resolveType: 'Movie',
+		__typename: 'Movie',
 		__id: elementId(movie0),
 		.title
 	} AS movie0
@@ -100,7 +102,7 @@ RETURN this AS this
 CALL {
 	MATCH (genre0:Genre)
 	WITH genre0 {
-		__resolveType: 'Genre',
+		__typename: 'Genre',
 		__id: elementId(genre0),
 		.name
 	} AS genre0
@@ -112,7 +114,7 @@ CALL {
 			WITH *
 			MATCH (movie0)-[search1:SEARCH]->(genre1:Genre)
 			WITH genre1 {
-				__resolveType: 'Genre',
+				__typename: 'Genre',
 				__id: elementId(genre1),
 				.name
 			} AS genre1
@@ -120,7 +122,7 @@ CALL {
 			WITH *
 			MATCH (movie0)-[search2:SEARCH]->(movie1:Movie)
 			WITH movie1 {
-				__resolveType: 'Movie',
+				__typename: 'Movie',
 				__id: elementId(movie1)
 			} AS movie1
 			RETURN movie1 AS search0
@@ -129,7 +131,7 @@ CALL {
 		RETURN collect(search0) AS search0
 	}
 	WITH movie0 {
-		__resolveType: 'Movie',
+		__typename: 'Movie',
 		__id: elementId(movie0),
 		.title,
 		search: search0

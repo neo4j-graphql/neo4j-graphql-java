@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = Node directive with additionalLabels
 
-== Source schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Actor @node(labels: ["Actor", "Person"]) {
@@ -17,6 +19,35 @@ type Movie @node(labels: ["Film", "Multimedia"]) {
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
 }
 ----
+
+== Select Movie with additional labels
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Film:Multimedia)
+RETURN this {
+	.title
+} AS this
+----
+
+'''
 
 == Select movie and actor with additional labels
 
@@ -54,35 +85,6 @@ CALL {
 RETURN this {
 	.title,
 	actors: actors
-} AS this
-----
-
-'''
-
-== Select Movie with additional labels
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  movies {
-    title
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{ }
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Film:Multimedia)
-RETURN this {
-	.title
 } AS this
 ----
 

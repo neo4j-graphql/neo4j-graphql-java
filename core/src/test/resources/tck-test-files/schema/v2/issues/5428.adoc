@@ -1,17 +1,17 @@
 :toc:
+:toclevels: 42
 
-= https://github.com/neo4j/graphql/issues/5428 -> Non plural value in should not be pluralized
+= https://github.com/neo4j/graphql/issues/5428
 
-== Source schema
+== Non plural value in should not be pluralized
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Test @plural(value: "Test") {
   Name: String
 }
 ----
-
-== Augmented schema
 
 .Augmented Schema
 [source,graphql]
@@ -82,3 +82,4 @@ input TestWhere {
 ----
 
 '''
+

@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
-= Pluralize consistency -> Schema with underscore types
+= Pluralize consistency
 
-== Source schema
+== Schema with underscore types
 
+.Schema
 [source,graphql,schema=true]
 ----
 type super_user {
@@ -15,8 +17,6 @@ type super_friend {
   name: String!
 }
 ----
-
-== Augmented schema
 
 .Augmented Schema
 [source,graphql]
@@ -167,3 +167,4 @@ input super_userWhere {
 ----
 
 '''
+

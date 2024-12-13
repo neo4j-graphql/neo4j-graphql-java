@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = Undirected connections
 
-== Source schema
+== query with undirected aggregation
 
+.Schema
 [source,graphql,schema=true]
 ----
 type User {
@@ -11,8 +13,6 @@ type User {
   friends: [User!]! @relationship(type: "FRIENDS_WITH", direction: OUT)
 }
 ----
-
-== query with undirected aggregation
 
 .GraphQL-Query
 [source,graphql]
@@ -51,7 +51,7 @@ CALL {
 		RETURN collect( {
 			node: {
 				__id: elementId(user0),
-				__resolveType: 'User'
+				__typename: 'User'
 			}
 		}) AS friendsConnectionEdges
 	}

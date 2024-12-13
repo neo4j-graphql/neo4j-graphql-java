@@ -1,0 +1,125 @@
+:toc:
+:toclevels: 42
+
+= https://github.com/neo4j/graphql/issues/4196
+
+== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+type Foo {
+  name: String
+  bars: [Bar!]! @relationship(type: "relatesTo", direction: OUT)
+}
+
+type Bar {
+  name: String
+  foobars: [FooBar!]! @relationship(type: "relatesTo", direction: OUT)
+}
+
+type FooBar {
+  name: String
+  bars: [FooBar!]! @relationship(type: "relatesTo", direction: IN)
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+MERGE (:Foo {name: "A"})-[:relatesTo]->(b1:Bar {name: "bar1"})
+ MERGE (:Foo {name: "B"})
+ MERGE (:Foo {name: "C"})-[:relatesTo]->(b3:Bar {name: "bar3"})
+ MERGE (b1)-[:relatesTo]->(:FooBar {name: "a"})
+ MERGE (b3)-[:relatesTo]->(:FooBar {name: "b"})
+----
+
+== querying multiple nested nodes should be sorted correctly
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  foos(options: {sort: {name: ASC}}) {
+    name
+    bars {
+      foobars {
+        name
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Foo)
+WITH * ORDER BY this.name ASC
+CALL {
+	WITH this
+	MATCH (this)-[relatesto0:relatesTo]->(bar0:Bar)
+	CALL {
+		WITH bar0
+		MATCH (bar0)-[relatesto1:relatesTo]->(fooBar0:FooBar)
+		WITH fooBar0 {
+			.name
+		} AS foobars
+		RETURN collect(foobars) AS foobars
+	}
+	WITH bar0 {
+		foobars: foobars
+	} AS bars
+	RETURN collect(bars) AS bars
+}
+RETURN this {
+	.name,
+	bars: bars
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "foos": [
+    {
+      "name": "A",
+      "bars": [
+        {
+          "foobars": [
+            {
+              "name": "a"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "B",
+      "bars": []
+    },
+    {
+      "name": "C",
+      "bars": [
+        {
+          "foobars": [
+            {
+              "name": "b"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+----
+
+'''
+

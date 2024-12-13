@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = Cypher LocalDateTime
 
-== Source schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Movie {
@@ -11,38 +13,6 @@ type Movie {
   localDT: LocalDateTime
 }
 ----
-
-== GTE Read
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  movies(where: {localDT_GTE: "2010-08-23T13:45:33.250"}) {
-    localDT
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0" : "2010-08-23T13:45:33.250"
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Movie)
-WHERE this.localDT >= $param0
-RETURN this {
-	.localDT
-} AS this
-----
-
-'''
 
 == Simple Read
 
@@ -69,6 +39,38 @@ RETURN this {
 ----
 MATCH (this:Movie)
 WHERE this.localDT = $param0
+RETURN this {
+	.localDT
+} AS this
+----
+
+'''
+
+== GTE Read
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {localDT_GTE: "2010-08-23T13:45:33.250"}) {
+    localDT
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "2010-08-23T13:45:33.25"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.localDT >= $param0
 RETURN this {
 	.localDT
 } AS this

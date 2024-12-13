@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
-= 162 -> 2 instances of DeleteInput type created
+= 162
 
-== Source schema
+== 2 instances of DeleteInput type created
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Tiger {
@@ -20,8 +22,6 @@ type TigerJawLevel2Part1 {
   tiger: Tiger! @relationship(type: "REL2", direction: OUT)
 }
 ----
-
-== Augmented schema
 
 .Augmented Schema
 [source,graphql]
@@ -229,3 +229,4 @@ input TigerWhere {
 ----
 
 '''
+

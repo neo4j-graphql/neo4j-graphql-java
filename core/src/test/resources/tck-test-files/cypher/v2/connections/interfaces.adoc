@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = Cypher -> Connections -> Interfaces
 
-== Source schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 interface Production {
@@ -29,6 +31,93 @@ type Actor {
   actedIn: [Production!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
 }
 ----
+
+== Projecting interface node and relationship properties with no arguments
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  actors {
+    name
+    actedInConnection {
+      edges {
+        properties {
+          screenTime
+        }
+        node {
+          title
+          ... on Movie {
+            runtime
+          }
+          ... on Series {
+            episodes
+          }
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+CALL {
+	WITH this
+	CALL {
+		WITH this
+		MATCH (this)-[actedIn0:ACTED_IN]->(movie0:Movie)
+		WITH {
+			properties: {
+				__typename: 'ActedIn',
+				screenTime: actedIn0.screenTime
+			},
+			node: {
+				__typename: 'Movie',
+				title: movie0.title,
+				runtime: movie0.runtime,
+				__id: elementId(movie0)
+			}
+		} AS edge
+		RETURN edge UNION
+		WITH this
+		MATCH (this)-[actedIn1:ACTED_IN]->(series0:Series)
+		WITH {
+			properties: {
+				__typename: 'ActedIn',
+				screenTime: actedIn1.screenTime
+			},
+			node: {
+				__typename: 'Series',
+				title: series0.title,
+				episodes: series0.episodes,
+				__id: elementId(series0)
+			}
+		} AS edge
+		RETURN edge
+	}
+	WITH collect(edge) AS edges
+	WITH edges, size(edges) AS totalCount
+	RETURN {
+		edges: edges,
+		totalCount: totalCount
+	} AS actedInConnection
+}
+RETURN this {
+	.name,
+	actedInConnection: actedInConnection
+} AS this
+----
+
+'''
 
 == Projecting interface node and relationship properties with common where argument
 
@@ -79,11 +168,11 @@ CALL {
 		WHERE movie0.title STARTS WITH $param0
 		WITH {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				screenTime: actedIn0.screenTime
 			},
 			node: {
-				__resolveType: 'Movie',
+				__typename: 'Movie',
 				title: movie0.title,
 				runtime: movie0.runtime,
 				__id: elementId(movie0)
@@ -95,98 +184,11 @@ CALL {
 		WHERE series0.title STARTS WITH $param1
 		WITH {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				screenTime: actedIn1.screenTime
 			},
 			node: {
-				__resolveType: 'Series',
-				title: series0.title,
-				episodes: series0.episodes,
-				__id: elementId(series0)
-			}
-		} AS edge
-		RETURN edge
-	}
-	WITH collect(edge) AS edges
-	WITH edges, size(edges) AS totalCount
-	RETURN {
-		edges: edges,
-		totalCount: totalCount
-	} AS actedInConnection
-}
-RETURN this {
-	.name,
-	actedInConnection: actedInConnection
-} AS this
-----
-
-'''
-
-== Projecting interface node and relationship properties with no arguments
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  actors {
-    name
-    actedInConnection {
-      edges {
-        properties {
-          screenTime
-        }
-        node {
-          title
-          ... on Movie {
-            runtime
-          }
-          ... on Series {
-            episodes
-          }
-        }
-      }
-    }
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{ }
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Actor)
-CALL {
-	WITH this
-	CALL {
-		WITH this
-		MATCH (this)-[actedIn0:ACTED_IN]->(movie0:Movie)
-		WITH {
-			properties: {
-				__resolveType: 'ActedIn',
-				screenTime: actedIn0.screenTime
-			},
-			node: {
-				__resolveType: 'Movie',
-				title: movie0.title,
-				runtime: movie0.runtime,
-				__id: elementId(movie0)
-			}
-		} AS edge
-		RETURN edge UNION
-		WITH this
-		MATCH (this)-[actedIn1:ACTED_IN]->(series0:Series)
-		WITH {
-			properties: {
-				__resolveType: 'ActedIn',
-				screenTime: actedIn1.screenTime
-			},
-			node: {
-				__resolveType: 'Series',
+				__typename: 'Series',
 				title: series0.title,
 				episodes: series0.episodes,
 				__id: elementId(series0)
@@ -258,11 +260,11 @@ CALL {
 		WHERE actedIn0.screenTime > $param0
 		WITH {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				screenTime: actedIn0.screenTime
 			},
 			node: {
-				__resolveType: 'Movie',
+				__typename: 'Movie',
 				title: movie0.title,
 				runtime: movie0.runtime,
 				__id: elementId(movie0)
@@ -274,11 +276,11 @@ CALL {
 		WHERE actedIn1.screenTime > $param1
 		WITH {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				screenTime: actedIn1.screenTime
 			},
 			node: {
-				__resolveType: 'Series',
+				__typename: 'Series',
 				title: series0.title,
 				episodes: series0.episodes,
 				__id: elementId(series0)
@@ -350,11 +352,11 @@ CALL {
 		MATCH (this)-[actedIn0:ACTED_IN]->(movie0:Movie)
 		WITH {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				screenTime: actedIn0.screenTime
 			},
 			node: {
-				__resolveType: 'Movie',
+				__typename: 'Movie',
 				title: movie0.title,
 				runtime: movie0.runtime,
 				__id: elementId(movie0)
@@ -365,11 +367,11 @@ CALL {
 		MATCH (this)-[actedIn1:ACTED_IN]->(series0:Series)
 		WITH {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				screenTime: actedIn1.screenTime
 			},
 			node: {
-				__resolveType: 'Series',
+				__typename: 'Series',
 				title: series0.title,
 				episodes: series0.episodes,
 				__id: elementId(series0)
@@ -443,11 +445,11 @@ CALL {
 		MATCH (this)-[actedIn0:ACTED_IN]->(movie0:Movie)
 		WITH {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				screenTime: actedIn0.screenTime
 			},
 			node: {
-				__resolveType: 'Movie',
+				__typename: 'Movie',
 				title: movie0.title,
 				runtime: movie0.runtime,
 				__id: elementId(movie0)
@@ -458,11 +460,11 @@ CALL {
 		MATCH (this)-[actedIn1:ACTED_IN]->(series0:Series)
 		WITH {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				screenTime: actedIn1.screenTime
 			},
 			node: {
-				__resolveType: 'Series',
+				__typename: 'Series',
 				title: series0.title,
 				episodes: series0.episodes,
 				__id: elementId(series0)
@@ -535,11 +537,11 @@ CALL {
 		MATCH (this)-[actedIn0:ACTED_IN]->(movie0:Movie)
 		WITH {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				screenTime: actedIn0.screenTime
 			},
 			node: {
-				__resolveType: 'Movie',
+				__typename: 'Movie',
 				title: movie0.title,
 				runtime: movie0.runtime,
 				__id: elementId(movie0)
@@ -550,11 +552,11 @@ CALL {
 		MATCH (this)-[actedIn1:ACTED_IN]->(series0:Series)
 		WITH {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				screenTime: actedIn1.screenTime
 			},
 			node: {
-				__resolveType: 'Series',
+				__typename: 'Series',
 				title: series0.title,
 				episodes: series0.episodes,
 				__id: elementId(series0)
@@ -627,11 +629,11 @@ CALL {
 		MATCH (this)-[actedIn0:ACTED_IN]->(movie0:Movie)
 		WITH {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				screenTime: actedIn0.screenTime
 			},
 			node: {
-				__resolveType: 'Movie',
+				__typename: 'Movie',
 				runtime: movie0.runtime,
 				title: movie0.title,
 				__id: elementId(movie0)
@@ -642,11 +644,11 @@ CALL {
 		MATCH (this)-[actedIn1:ACTED_IN]->(series0:Series)
 		WITH {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				screenTime: actedIn1.screenTime
 			},
 			node: {
-				__resolveType: 'Series',
+				__typename: 'Series',
 				episodes: series0.episodes,
 				title: series0.title,
 				__id: elementId(series0)
@@ -674,6 +676,4 @@ RETURN this {
 ----
 
 '''
-
-
 

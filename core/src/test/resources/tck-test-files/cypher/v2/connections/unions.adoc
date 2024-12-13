@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = Cypher -> Connections -> Unions
 
-== Source schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 union Publication = Book | Journal
@@ -72,11 +74,11 @@ CALL {
 		MATCH (this)-[wrote0:WROTE]->(book0:Book)
 		WITH {
 			properties: {
-				__resolveType: 'Wrote',
+				__typename: 'Wrote',
 				words: wrote0.words
 			},
 			node: {
-				__resolveType: 'Book',
+				__typename: 'Book',
 				title: book0.title,
 				__id: elementId(book0)
 			}
@@ -86,11 +88,11 @@ CALL {
 		MATCH (this)-[wrote1:WROTE]->(journal0:Journal)
 		WITH {
 			properties: {
-				__resolveType: 'Wrote',
+				__typename: 'Wrote',
 				words: wrote1.words
 			},
 			node: {
-				__resolveType: 'Journal',
+				__typename: 'Journal',
 				subject: journal0.subject,
 				__id: elementId(journal0)
 			}
@@ -101,96 +103,6 @@ CALL {
 	WITH edges, size(edges) AS totalCount
 	RETURN {
 		edges: edges,
-		totalCount: totalCount
-	} AS publicationsConnection
-}
-RETURN this {
-	.name,
-	publicationsConnection: publicationsConnection
-} AS this
-----
-
-'''
-
-== Projecting union node and relationship properties with sort argument
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  authors {
-    name
-    publicationsConnection(sort: [{edge: {words: ASC}}]) {
-      edges {
-        properties {
-          words
-        }
-        node {
-          ... on Book {
-            title
-          }
-          ... on Journal {
-            subject
-          }
-        }
-      }
-    }
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{ }
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Author)
-CALL {
-	WITH this
-	CALL {
-		WITH this
-		MATCH (this)-[wrote0:WROTE]->(book0:Book)
-		WITH {
-			properties: {
-				__resolveType: 'Wrote',
-				words: wrote0.words
-			},
-			node: {
-				__resolveType: 'Book',
-				title: book0.title,
-				__id: elementId(book0)
-			}
-		} AS edge
-		RETURN edge UNION
-		WITH this
-		MATCH (this)-[wrote1:WROTE]->(journal0:Journal)
-		WITH {
-			properties: {
-				__resolveType: 'Wrote',
-				words: wrote1.words
-			},
-			node: {
-				__resolveType: 'Journal',
-				subject: journal0.subject,
-				__id: elementId(journal0)
-			}
-		} AS edge
-		RETURN edge
-	}
-	WITH collect(edge) AS edges
-	WITH edges, size(edges) AS totalCount
-	CALL {
-		WITH edges
-		UNWIND edges AS edge
-		WITH edge ORDER BY edge.properties.words ASC
-		RETURN collect(edge) AS sortedEdges0
-	}
-	RETURN {
-		edges: sortedEdges0,
 		totalCount: totalCount
 	} AS publicationsConnection
 }
@@ -252,11 +164,11 @@ CALL {
 		WHERE book0.title = $param0
 		WITH {
 			properties: {
-				__resolveType: 'Wrote',
+				__typename: 'Wrote',
 				words: wrote0.words
 			},
 			node: {
-				__resolveType: 'Book',
+				__typename: 'Book',
 				title: book0.title,
 				__id: elementId(book0)
 			}
@@ -267,11 +179,102 @@ CALL {
 		WHERE journal0.subject = $param1
 		WITH {
 			properties: {
-				__resolveType: 'Wrote',
+				__typename: 'Wrote',
 				words: wrote1.words
 			},
 			node: {
-				__resolveType: 'Journal',
+				__typename: 'Journal',
+				subject: journal0.subject,
+				__id: elementId(journal0)
+			}
+		} AS edge
+		RETURN edge
+	}
+	WITH collect(edge) AS edges
+	WITH edges, size(edges) AS totalCount
+	RETURN {
+		edges: edges,
+		totalCount: totalCount
+	} AS publicationsConnection
+}
+RETURN this {
+	.name,
+	publicationsConnection: publicationsConnection
+} AS this
+----
+
+'''
+
+== Projecting union node and relationship properties with where relationship argument
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  authors {
+    name
+    publicationsConnection(
+      where: {Book: {edge: {words: 1000}}, Journal: {edge: {words: 2000}}}
+    ) {
+      edges {
+        properties {
+          words
+        }
+        node {
+          ... on Book {
+            title
+          }
+          ... on Journal {
+            subject
+          }
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 1000,
+  "param1" : 2000
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Author)
+CALL {
+	WITH this
+	CALL {
+		WITH this
+		MATCH (this)-[wrote0:WROTE]->(book0:Book)
+		WHERE wrote0.words = $param0
+		WITH {
+			properties: {
+				__typename: 'Wrote',
+				words: wrote0.words
+			},
+			node: {
+				__typename: 'Book',
+				title: book0.title,
+				__id: elementId(book0)
+			}
+		} AS edge
+		RETURN edge UNION
+		WITH this
+		MATCH (this)-[wrote1:WROTE]->(journal0:Journal)
+		WHERE wrote1.words = $param1
+		WITH {
+			properties: {
+				__typename: 'Wrote',
+				words: wrote1.words
+			},
+			node: {
+				__typename: 'Journal',
 				subject: journal0.subject,
 				__id: elementId(journal0)
 			}
@@ -346,11 +349,11 @@ CALL {
 			AND wrote0.words = $param1)
 		WITH {
 			properties: {
-				__resolveType: 'Wrote',
+				__typename: 'Wrote',
 				words: wrote0.words
 			},
 			node: {
-				__resolveType: 'Book',
+				__typename: 'Book',
 				title: book0.title,
 				__id: elementId(book0)
 			}
@@ -362,11 +365,11 @@ CALL {
 			AND wrote1.words = $param3)
 		WITH {
 			properties: {
-				__resolveType: 'Wrote',
+				__typename: 'Wrote',
 				words: wrote1.words
 			},
 			node: {
-				__resolveType: 'Journal',
+				__typename: 'Journal',
 				subject: journal0.subject,
 				__id: elementId(journal0)
 			}
@@ -388,7 +391,7 @@ RETURN this {
 
 '''
 
-== Projecting union node and relationship properties with where relationship argument
+== Projecting union node and relationship properties with sort argument
 
 .GraphQL-Query
 [source,graphql]
@@ -396,9 +399,7 @@ RETURN this {
 {
   authors {
     name
-    publicationsConnection(
-      where: {Book: {edge: {words: 1000}}, Journal: {edge: {words: 2000}}}
-    ) {
+    publicationsConnection(sort: [{edge: {words: ASC}}]) {
       edges {
         properties {
           words
@@ -420,10 +421,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{
-  "param0" : 1000,
-  "param1" : 2000
-}
+{ }
 ----
 
 .Expected Cypher output
@@ -435,14 +433,13 @@ CALL {
 	CALL {
 		WITH this
 		MATCH (this)-[wrote0:WROTE]->(book0:Book)
-		WHERE wrote0.words = $param0
 		WITH {
 			properties: {
-				__resolveType: 'Wrote',
+				__typename: 'Wrote',
 				words: wrote0.words
 			},
 			node: {
-				__resolveType: 'Book',
+				__typename: 'Book',
 				title: book0.title,
 				__id: elementId(book0)
 			}
@@ -450,14 +447,13 @@ CALL {
 		RETURN edge UNION
 		WITH this
 		MATCH (this)-[wrote1:WROTE]->(journal0:Journal)
-		WHERE wrote1.words = $param1
 		WITH {
 			properties: {
-				__resolveType: 'Wrote',
+				__typename: 'Wrote',
 				words: wrote1.words
 			},
 			node: {
-				__resolveType: 'Journal',
+				__typename: 'Journal',
 				subject: journal0.subject,
 				__id: elementId(journal0)
 			}
@@ -466,8 +462,14 @@ CALL {
 	}
 	WITH collect(edge) AS edges
 	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge ORDER BY edge.properties.words ASC
+		RETURN collect(edge) AS sortedEdges0
+	}
 	RETURN {
-		edges: edges,
+		edges: sortedEdges0,
 		totalCount: totalCount
 	} AS publicationsConnection
 }

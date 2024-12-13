@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
-= @customResolver directive -> passes fields directly through with no generation
+= @customResolver directive
 
-== Source schema
+== passes fields directly through with no generation
 
+.Schema
 [source,graphql,schema=true]
 ----
 interface UserInterface {
@@ -18,8 +20,6 @@ type User implements UserInterface {
   customResolver: String @customResolver
 }
 ----
-
-== Augmented schema
 
 .Augmented Schema
 [source,graphql]
@@ -151,3 +151,4 @@ input UserWhere {
 ----
 
 '''
+

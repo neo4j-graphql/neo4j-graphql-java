@@ -1,0 +1,119 @@
+:toc:
+:toclevels: 42
+
+= 587: Dates in edges can cause wrongly generated cypher
+
+== should not throw when returning a date in an edge
+
+.Schema
+[source,graphql,schema=true]
+----
+type Genre {
+  id: ID!
+  movies: [Movie!]! @relationship(type: "MOVIE", direction: OUT)
+}
+
+type Movie {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTOR", direction: OUT)
+}
+
+type Actor {
+  name: String!
+  birthday: DateTime!
+  movie: Movie! @relationship(type: "ACTOR", direction: IN)
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (genre:Genre { id: "RandomString1" })
+ CREATE (movie:Movie { title: "RandomString2" })
+ CREATE (actor:Actor { name: "RandomString3", birthday: datetime("2021-11-16T10:53:20.200000000Z")})
+ CREATE (genre)-[:Movie]->(movie)-[:Actor { role: "Name" }]->(actor)
+ RETURN actor
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  genres(where: {id: "RandomString1"}) {
+    movies {
+      actorsConnection {
+        edges {
+          node {
+            birthday
+          }
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "RandomString1"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Genre)
+WHERE this.id = $param0
+CALL {
+	WITH this
+	MATCH (this)-[movie1:MOVIE]->(movie0:Movie)
+	CALL {
+		WITH movie0
+		MATCH (movie0)-[actor1:ACTOR]->(actor0:Actor)
+		WITH collect( {
+			node: actor0,
+			relationship: actor1
+		}) AS edges
+		WITH edges, size(edges) AS totalCount
+		CALL {
+			WITH edges
+			UNWIND edges AS edge
+			WITH edge.node AS actor0, edge.relationship AS actor1
+			RETURN collect( {
+				node: {
+					__typename: 'Actor',
+					birthday: apoc.date.convertFormat(toString(actor0.birthday), 'iso_zoned_date_time', 'iso_offset_date_time')
+				}
+			}) AS actorsConnectionEdges
+		}
+		RETURN {
+			edges: actorsConnectionEdges,
+			totalCount: totalCount
+		} AS actorsConnection
+	}
+	WITH movie0 {
+		actorsConnection: actorsConnection
+	} AS movies
+	RETURN collect(movies) AS movies
+}
+RETURN this {
+	movies: movies
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "genres": [
+    {
+      "movies": []
+    }
+  ]
+}
+----
+
+'''
+

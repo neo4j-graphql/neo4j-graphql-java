@@ -1,0 +1,103 @@
+:toc:
+:toclevels: 42
+
+= https://github.com/neo4j/graphql/issues/1683
+
+== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+type System {
+  code: String!
+  updatesData: [GovernedData!]! @relationship(type: "UPDATED_BY", direction: IN)
+}
+
+type GovernedData {
+  code: String!
+  updatedBy: [System!]! @relationship(type: "UPDATED_BY", direction: OUT)
+}
+----
+
+== should return top level entity, even if no connections exist
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (s:System { code: "arthur" });
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  systems {
+    code
+    updatesDataConnection {
+      edges {
+        node {
+          code
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:System)
+CALL {
+	WITH this
+	MATCH (governedData0:GovernedData)-[updatedBy0:UPDATED_BY]->(this)
+	WITH collect( {
+		node: governedData0,
+		relationship: updatedBy0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS governedData0, edge.relationship AS updatedBy0
+		RETURN collect( {
+			node: {
+				__typename: 'GovernedData',
+				code: governedData0.code
+			}
+		}) AS updatesDataConnectionEdges
+	}
+	RETURN {
+		edges: updatesDataConnectionEdges,
+		totalCount: totalCount
+	} AS updatesDataConnection
+}
+RETURN this {
+	.code,
+	updatesDataConnection: updatesDataConnection
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "systems": [
+    {
+      "code": "arthur",
+      "updatesDataConnection": {
+        "edges": []
+      }
+    }
+  ]
+}
+----
+
+'''
+

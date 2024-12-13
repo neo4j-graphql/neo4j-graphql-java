@@ -1,9 +1,13 @@
 :toc:
+:toclevels: 42
 
-= no auth
+= tck/rfs/022 subquery projection
 
-== Source schema
+== no auth
 
+=== Setup
+
+.Schema
 [source,graphql,schema=true]
 ----
 type Movie {
@@ -24,7 +28,53 @@ type ActedIn @relationshipProperties {
 }
 ----
 
-== Double nested query
+=== Nested query
+
+.GraphQL-Query
+[source,graphql]
+----
+query Query {
+  movies(where: {released: 1999}) {
+    title
+    actors(where: {name: "Keanu Reeves"}) {
+      name
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 1999,
+  "param1" : "Keanu Reeves"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.released = $param0
+CALL {
+	WITH this
+	MATCH (person0:Person)-[actedIn0:ACTED_IN]->(this)
+	WHERE person0.name = $param1
+	WITH person0 {
+		.name
+	} AS actors
+	RETURN collect(actors) AS actors
+}
+RETURN this {
+	.title,
+	actors: actors
+} AS this
+----
+
+'''
+
+=== Double nested query
 
 .GraphQL-Query
 [source,graphql]
@@ -73,52 +123,6 @@ CALL {
 	WITH person0 {
 		.name,
 		directed: directed
-	} AS actors
-	RETURN collect(actors) AS actors
-}
-RETURN this {
-	.title,
-	actors: actors
-} AS this
-----
-
-'''
-
-== Nested query
-
-.GraphQL-Query
-[source,graphql]
-----
-query Query {
-  movies(where: {released: 1999}) {
-    title
-    actors(where: {name: "Keanu Reeves"}) {
-      name
-    }
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0" : 1999,
-  "param1" : "Keanu Reeves"
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Movie)
-WHERE this.released = $param0
-CALL {
-	WITH this
-	MATCH (person0:Person)-[actedIn0:ACTED_IN]->(this)
-	WHERE person0.name = $param1
-	WITH person0 {
-		.name
 	} AS actors
 	RETURN collect(actors) AS actors
 }

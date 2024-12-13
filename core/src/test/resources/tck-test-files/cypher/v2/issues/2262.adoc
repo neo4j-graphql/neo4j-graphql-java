@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = https://github.com/neo4j/graphql/issues/2262
 
-== Source schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Component {
@@ -84,7 +86,7 @@ CALL {
 				WITH edge.node AS component0, edge.relationship AS input0 ORDER BY component0.uuid DESC
 				RETURN collect( {
 					node: {
-						__resolveType: 'Component',
+						__typename: 'Component',
 						uuid: component0.uuid
 					}
 				}) AS componentInputsConnectionEdges
@@ -96,7 +98,7 @@ CALL {
 		}
 		RETURN collect( {
 			node: {
-				__resolveType: 'Process',
+				__typename: 'Process',
 				uuid: process0.uuid,
 				componentInputsConnection: componentInputsConnection
 			}

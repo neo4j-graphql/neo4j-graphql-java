@@ -1,0 +1,355 @@
+:toc:
+:toclevels: 42
+
+= Custom Scalar Filtering
+
+== Single Value Custom Scalar
+
+=== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+scalar CustomScalar
+
+type Movie {
+  property: CustomScalar
+}
+----
+
+=== Filter IN CustomScalar - expect return value
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (:Movie {property: "someValue"})
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {property_IN: ["someValue", "foo", "bar"]}) {
+    property
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": [
+    "someValue",
+    "foo",
+    "bar"
+  ]
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.property IN $param0
+RETURN this {
+	.property
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies": [
+    {
+      "property": "someValue"
+    }
+  ]
+}
+----
+
+'''
+
+=== Filter IN CustomScalar - expect array of return values
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (:Movie {property: "someValue"})
+ CREATE (:Movie {property: "someOtherValue"})
+ CREATE (:Movie {property: "foo"})
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {property_IN: ["someValue", "someOtherValue"]}) {
+    property
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": [
+    "someValue",
+    "someOtherValue"
+  ]
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.property IN $param0
+RETURN this {
+	.property
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "movies": [
+    {
+      "property": "someValue"
+    },
+    {
+      "property": "someOtherValue"
+    }
+  ]
+}
+----
+
+'''
+
+=== Filter IN CustomScalar - expect no return values
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (:Movie {property: "someValue"})
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {property_IN: ["someUnknownValue"]}) {
+    property
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": [
+    "someUnknownValue"
+  ]
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.property IN $param0
+RETURN this {
+	.property
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies": []
+}
+----
+
+'''
+
+== List Custom Scalar Filtering
+
+=== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+scalar CustomListScalar
+
+type Movie {
+  property: [CustomListScalar!]
+}
+----
+
+=== Filter INCLUDES CustomListScalar - expect return value
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (:Movie {property: ["val1", "val2", "val3"]})
+ CREATE (:Movie {property: ["foo", "bar"]})
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {property_INCLUDES: val1}) {
+    property
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "val1"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE $param0 IN this.property
+RETURN this {
+	.property
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "movies": [
+    {
+      "property": [
+        "val1",
+        "val2",
+        "val3"
+      ]
+    }
+  ]
+}
+----
+
+'''
+
+=== Filter INCLUDES CustomListScalar - expect array of return values
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (:Movie {property: ["val1", "val2", "val3"]})
+ CREATE (:Movie {property: ["val1"]})
+ CREATE (:Movie {property: ["foo", "bar"]})
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {property_INCLUDES: val1}) {
+    property
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "val1"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE $param0 IN this.property
+RETURN this {
+	.property
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "movies": [
+    {
+      "property": [
+        "val1",
+        "val2",
+        "val3"
+      ]
+    },
+    {
+      "property": [
+        "val1"
+      ]
+    }
+  ]
+}
+----
+
+'''
+
+=== Filter INCLUDES CustomListScalar - expect no return values
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (:Movie {property: ["val1", "val2", "val3"]})
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {property_INCLUDES: f}) {
+    property
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "f"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE $param0 IN this.property
+RETURN this {
+	.property
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies": []
+}
+----
+
+'''
+

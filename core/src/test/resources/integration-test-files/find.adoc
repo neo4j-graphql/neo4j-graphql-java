@@ -1,0 +1,597 @@
+:toc:
+:toclevels: 42
+
+= find
+
+== should find Movie by id
+
+.Schema
+[source,graphql,schema=true]
+----
+type Actor {
+  name: String
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: IN)
+}
+
+type Movie {
+  id: ID!
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (:Movie {id: "RandomString1"}), (:Movie {id: "RandomString1"}), (:Movie {id: "RandomString1"})
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query ($id: ID) {
+  movies(where: {id: $id}) {
+    id
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "id": "RandomString1"
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "RandomString1"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.id = $param0
+RETURN this {
+	.id
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "movies": [
+    {
+      "id": "RandomString1"
+    },
+    {
+      "id": "RandomString1"
+    },
+    {
+      "id": "RandomString1"
+    }
+  ]
+}
+----
+
+'''
+
+== should find Move by id and limit
+
+.Schema
+[source,graphql,schema=true]
+----
+type Actor {
+  name: String
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: IN)
+}
+
+type Movie {
+  id: ID!
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (:Movie {id: "RandomString1"}), (:Movie {id: "RandomString1"}), (:Movie {id: "RandomString1"})
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query ($id: ID) {
+  movies(where: {id: $id}, options: {limit: 2}) {
+    id
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "id": "RandomString1"
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "RandomString1",
+  "param1": 2
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.id = $param0
+WITH * LIMIT $param1
+RETURN this {
+	.id
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "movies": [
+    {
+      "id": "RandomString1"
+    },
+    {
+      "id": "RandomString1"
+    }
+  ]
+}
+----
+
+'''
+
+== should find Movie IN ids
+
+.Schema
+[source,graphql,schema=true]
+----
+type Actor {
+  name: String
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: IN)
+}
+
+type Movie {
+  id: ID!
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (:Movie {id: "RandomString1"}), (:Movie {id: "RandomString2"}), (:Movie {id: "RandomString3"})
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query ($ids: [ID!]) {
+  movies(where: {id_IN: $ids}) {
+    id
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "ids": [
+    "RandomString1",
+    "RandomString2",
+    "RandomString3"
+  ]
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": [
+    "RandomString1",
+    "RandomString2",
+    "RandomString3"
+  ]
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.id IN $param0
+RETURN this {
+	.id
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "movies": [
+    {
+      "id": "RandomString2"
+    },
+    {
+      "id": "RandomString3"
+    },
+    {
+      "id": "RandomString1"
+    }
+  ]
+}
+----
+
+'''
+
+== should find Movie IN ids with one other param
+
+.Schema
+[source,graphql,schema=true]
+----
+type Actor {
+  name: String
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: IN)
+}
+
+type Movie {
+  id: ID!
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (:User {id: "RandomString1", title: "RandomString4"}), (:User {id: "RandomString2", title: "RandomString4"}), (:User {id: "RandomString3", title: "RandomString4"})
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query ($ids: [ID!], $title: String) {
+  movies(where: {id_IN: $ids, title: $title}) {
+    id
+    title
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "ids": [
+    "RandomString1",
+    "RandomString2",
+    "RandomString3"
+  ],
+  "title": "RandomString4"
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": [
+    "RandomString1",
+    "RandomString2",
+    "RandomString3"
+  ],
+  "param1": "RandomString4"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE (this.id IN $param0
+	AND this.title = $param1)
+RETURN this {
+	.id,
+	.title
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies": []
+}
+----
+
+'''
+
+== should find Movie IN id and many Movie.actor IN id
+
+.Schema
+[source,graphql,schema=true]
+----
+type Actor {
+  id: ID!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: IN)
+}
+
+type Movie {
+  id: ID!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (:Movie {id: "RandomString1"})-[:ACTED_IN]->(:Actor {id: "RandomString4"}),
+ (:Movie {id: "RandomString2"})-[:ACTED_IN]->(:Actor {id: "RandomString5"}),
+ (:Movie {id: "RandomString3"})-[:ACTED_IN]->(:Actor {id: "RandomString6"})
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query ($movieIds: [ID!], $actorIds: [ID!]) {
+  movies(where: {id_IN: $movieIds}) {
+    id
+    actors(where: {id_IN: $actorIds}) {
+      id
+      movies {
+        id
+        actors {
+          id
+        }
+      }
+    }
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "movieIds": [
+    "RandomString1",
+    "RandomString2",
+    "RandomString3"
+  ],
+  "actorIds": [
+    "RandomString4",
+    "RandomString5",
+    "RandomString6"
+  ]
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": [
+    "RandomString1",
+    "RandomString2",
+    "RandomString3"
+  ],
+  "param1": [
+    "RandomString4",
+    "RandomString5",
+    "RandomString6"
+  ]
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.id IN $param0
+CALL {
+	WITH this
+	MATCH (this)-[actedIn0:ACTED_IN]->(actor0:Actor)
+	WHERE actor0.id IN $param1
+	CALL {
+		WITH actor0
+		MATCH (movie0:Movie)-[actedIn1:ACTED_IN]->(actor0)
+		CALL {
+			WITH movie0
+			MATCH (movie0)-[actedIn2:ACTED_IN]->(actor1:Actor)
+			WITH actor1 {
+				.id
+			} AS actors
+			RETURN collect(actors) AS actors
+		}
+		WITH movie0 {
+			.id,
+			actors: actors
+		} AS movies
+		RETURN collect(movies) AS movies
+	}
+	WITH actor0 {
+		.id,
+		movies: movies
+	} AS actors
+	RETURN collect(actors) AS actors
+}
+RETURN this {
+	.id,
+	actors: actors
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "movies": [
+    {
+      "id": "RandomString3",
+      "actors": [
+        {
+          "id": "RandomString6",
+          "movies": [
+            {
+              "id": "RandomString3",
+              "actors": [
+                {
+                  "id": "RandomString6"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "RandomString1",
+      "actors": [
+        {
+          "id": "RandomString4",
+          "movies": [
+            {
+              "id": "RandomString1",
+              "actors": [
+                {
+                  "id": "RandomString4"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "RandomString2",
+      "actors": [
+        {
+          "id": "RandomString5",
+          "movies": [
+            {
+              "id": "RandomString2",
+              "actors": [
+                {
+                  "id": "RandomString5"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+----
+
+'''
+
+== should use OR and find Movie by id or title
+
+.Schema
+[source,graphql,schema=true]
+----
+type Actor {
+  name: String
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: IN)
+}
+
+type Movie {
+  id: ID!
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: OUT)
+  mainActor: Actor! @relationship(type: "MAIN_ACTOR", direction: OUT)
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (:Movie {id: "RandomString1", title: "RandomString2"})
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query ($movieWhere: MovieWhere) {
+  movies(where: $movieWhere) {
+    id
+    title
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "movieWhere": {
+    "OR": [
+      {
+        "title": "RandomString2",
+        "id": "RandomString1"
+      }
+    ]
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "RandomString1",
+  "param1": "RandomString2"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE (this.id = $param0
+	AND this.title = $param1)
+RETURN this {
+	.id,
+	.title
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies": [
+    {
+      "id": "RandomString1",
+      "title": "RandomString2"
+    }
+  ]
+}
+----
+
+'''
+

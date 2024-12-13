@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
-= nested aggregation on interface -> should generate the correct schema
+= nested aggregation on interface
 
-== Source schema
+== should generate the correct schema
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Movie {
@@ -21,8 +23,6 @@ type Actor {
   actedIn: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
 }
 ----
-
-== Augmented schema
 
 .Augmented Schema
 [source,graphql]
@@ -216,3 +216,4 @@ input MovieWhere {
 ----
 
 '''
+

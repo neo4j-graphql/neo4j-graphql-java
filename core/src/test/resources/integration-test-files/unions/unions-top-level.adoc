@@ -1,0 +1,225 @@
+:toc:
+:toclevels: 42
+
+== Top-level union query fields
+
+=== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+union Search = Genre | Movie
+
+type Genre {
+  name: String
+}
+
+type Movie {
+  title: String
+  search: [Search!]! @relationship(type: "SEARCH", direction: OUT)
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (m:Movie {title: "The Matrix"})
+ CREATE (g:Genre {name: "Action"})
+ MERGE (m)-[:SEARCH]->(m)
+ MERGE (m)-[:SEARCH]->(g)
+----
+
+=== should read top-level simple query on union
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  searches {
+    ... on Genre {
+      name
+    }
+    ... on Movie {
+      title
+      search {
+        ... on Genre {
+          name
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+	MATCH (genre0:Genre)
+	WITH genre0 {
+		__typename: 'Genre',
+		__id: elementId(genre0),
+		.name
+	} AS genre0
+	RETURN genre0 AS this UNION
+	MATCH (movie0:Movie)
+	CALL {
+		WITH movie0
+		CALL {
+			WITH *
+			MATCH (movie0)-[search1:SEARCH]->(genre1:Genre)
+			WITH genre1 {
+				__typename: 'Genre',
+				__id: elementId(genre1),
+				.name
+			} AS genre1
+			RETURN genre1 AS search0 UNION
+			WITH *
+			MATCH (movie0)-[search2:SEARCH]->(movie1:Movie)
+			WITH movie1 {
+				__typename: 'Movie',
+				__id: elementId(movie1)
+			} AS movie1
+			RETURN movie1 AS search0
+		}
+		WITH search0
+		RETURN collect(search0) AS search0
+	}
+	WITH movie0 {
+		__typename: 'Movie',
+		__id: elementId(movie0),
+		.title,
+		search: search0
+	} AS movie0
+	RETURN movie0 AS this
+}
+WITH this
+RETURN this AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "searches": [
+    {
+      "name": "Action"
+    },
+    {
+      "title": "The Matrix",
+      "search": [
+        {
+          "name": "Action"
+        },
+        {}
+      ]
+    }
+  ]
+}
+----
+
+'''
+
+=== should read top-level simple query on union sorted
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  searches(options: {limit: 1, offset: 1}) {
+    ... on Genre {
+      name
+    }
+    ... on Movie {
+      title
+      search {
+        ... on Genre {
+          name
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": 1,
+  "param1": 1
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+	MATCH (genre0:Genre)
+	WITH genre0 {
+		__typename: 'Genre',
+		__id: elementId(genre0),
+		.name
+	} AS genre0
+	RETURN genre0 AS this UNION
+	MATCH (movie0:Movie)
+	CALL {
+		WITH movie0
+		CALL {
+			WITH *
+			MATCH (movie0)-[search1:SEARCH]->(genre1:Genre)
+			WITH genre1 {
+				__typename: 'Genre',
+				__id: elementId(genre1),
+				.name
+			} AS genre1
+			RETURN genre1 AS search0 UNION
+			WITH *
+			MATCH (movie0)-[search2:SEARCH]->(movie1:Movie)
+			WITH movie1 {
+				__typename: 'Movie',
+				__id: elementId(movie1)
+			} AS movie1
+			RETURN movie1 AS search0
+		}
+		WITH search0
+		RETURN collect(search0) AS search0
+	}
+	WITH movie0 {
+		__typename: 'Movie',
+		__id: elementId(movie0),
+		.title,
+		search: search0
+	} AS movie0
+	RETURN movie0 AS this
+}
+WITH this SKIP $param0 LIMIT $param1
+RETURN this AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "searches": [
+    {
+      "title": "The Matrix",
+      "search": [
+        {
+          "name": "Action"
+        },
+        {}
+      ]
+    }
+  ]
+}
+----
+
+'''
+

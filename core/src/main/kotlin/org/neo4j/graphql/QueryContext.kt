@@ -3,12 +3,9 @@ package org.neo4j.graphql
 import org.neo4j.cypherdsl.core.Cypher
 import org.neo4j.cypherdsl.core.Parameter
 import org.neo4j.graphql.domain.fields.RelationField
-import org.neo4j.graphql.driver.adapter.Neo4jAdapter.Dialect
 import java.util.concurrent.atomic.AtomicInteger
 
 data class QueryContext @JvmOverloads constructor(
-    var neo4jDialect: Dialect = Dialect.NEO4J_5,
-
     val contextParams: Map<String, Any?>? = emptyMap(),
 ) {
 

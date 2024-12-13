@@ -1,0 +1,89 @@
+:toc:
+:toclevels: 42
+
+= Filtering Operations
+
+== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+type Person {
+  name: String!
+  age: Int!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: IN)
+}
+
+type Movie {
+  title: String!
+  released: Int!
+  actors: [Person!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (:Movie {title: "The Matrix", released: 1999})
+ CREATE (:Movie {title: "The Italian Job", released: 1969})
+ CREATE (:Movie {title: "The Italian Job", released: 2003})
+ CREATE (:Movie {title: "The Lion King", released: 1994})
+----
+
+== Combine AND and OR operations
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(
+    where: {OR: [{title: "The Italian Job", released: 2003}, {title: "The Lion King"}]}
+  ) {
+    title
+    released
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "The Italian Job",
+  "param1": 2003,
+  "param2": "The Lion King"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE ((this.title = $param0
+		AND this.released = $param1)
+	OR this.title = $param2)
+RETURN this {
+	.title,
+	.released
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "movies": [
+    {
+      "title": "The Italian Job",
+      "released": 2003
+    },
+    {
+      "title": "The Lion King",
+      "released": 1994
+    }
+  ]
+}
+----
+
+'''
+

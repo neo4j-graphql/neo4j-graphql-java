@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = Interface Relationships
 
-== Source schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 interface Production {
@@ -30,6 +32,195 @@ type Actor {
   actedIn: [Production!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
 }
 ----
+
+== Simple Interface Relationship Query
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  actors {
+    actedIn {
+      title
+      ... on Movie {
+        runtime
+      }
+      ... on Series {
+        episodes
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[actedIn0:ACTED_IN]->(movie0:Movie)
+		WITH movie0 {
+			__typename: 'Movie',
+			__id: elementId(movie0),
+			.title,
+			.runtime
+		} AS movie0
+		RETURN movie0 AS actedIn UNION
+		WITH *
+		MATCH (this)-[actedIn1:ACTED_IN]->(series0:Series)
+		WITH series0 {
+			__typename: 'Series',
+			__id: elementId(series0),
+			.title,
+			.episodes
+		} AS series0
+		RETURN series0 AS actedIn
+	}
+	WITH actedIn
+	RETURN collect(actedIn) AS actedIn
+}
+RETURN this {
+	actedIn: actedIn
+} AS this
+----
+
+'''
+
+== Simple Interface Relationship Query For Non-Array Field
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  actors {
+    currentlyActingIn {
+      title
+      ... on Movie {
+        runtime
+      }
+      ... on Series {
+        episodes
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[currentlyActingIn0:CURRENTLY_ACTING_IN]->(movie0:Movie)
+		WITH movie0 {
+			__typename: 'Movie',
+			__id: elementId(movie0),
+			.title,
+			.runtime
+		} AS movie0
+		RETURN movie0 AS currentlyActingIn UNION
+		WITH *
+		MATCH (this)-[currentlyActingIn1:CURRENTLY_ACTING_IN]->(series0:Series)
+		WITH series0 {
+			__typename: 'Series',
+			__id: elementId(series0),
+			.title,
+			.episodes
+		} AS series0
+		RETURN series0 AS currentlyActingIn
+	}
+	WITH currentlyActingIn
+	RETURN head(collect(currentlyActingIn)) AS currentlyActingIn
+}
+RETURN this {
+	currentlyActingIn: currentlyActingIn
+} AS this
+----
+
+'''
+
+== Simple Interface Relationship Query with offset and limit
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  actors {
+    actedIn(options: {offset: 5, limit: 10, sort: [{title: DESC}]}) {
+      title
+      ... on Movie {
+        runtime
+      }
+      ... on Series {
+        episodes
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 5,
+  "param1" : 10
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[actedIn0:ACTED_IN]->(movie0:Movie)
+		WITH movie0 {
+			__typename: 'Movie',
+			__id: elementId(movie0),
+			.title,
+			.runtime
+		} AS movie0
+		RETURN movie0 AS actedIn UNION
+		WITH *
+		MATCH (this)-[actedIn1:ACTED_IN]->(series0:Series)
+		WITH series0 {
+			__typename: 'Series',
+			__id: elementId(series0),
+			.title,
+			.episodes
+		} AS series0
+		RETURN series0 AS actedIn
+	}
+	WITH actedIn ORDER BY actedIn.title DESC SKIP $param0 LIMIT $param1
+	RETURN collect(actedIn) AS actedIn
+}
+RETURN this {
+	actedIn: actedIn
+} AS this
+----
+
+'''
 
 == Interface Relationship Query through connection
 
@@ -75,11 +266,11 @@ CALL {
 		MATCH (this)-[actedIn0:ACTED_IN]->(movie0:Movie)
 		WITH {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				screenTime: actedIn0.screenTime
 			},
 			node: {
-				__resolveType: 'Movie',
+				__typename: 'Movie',
 				title: movie0.title,
 				runtime: movie0.runtime,
 				__id: elementId(movie0)
@@ -90,11 +281,11 @@ CALL {
 		MATCH (this)-[actedIn1:ACTED_IN]->(series0:Series)
 		WITH {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				screenTime: actedIn1.screenTime
 			},
 			node: {
-				__resolveType: 'Series',
+				__typename: 'Series',
 				title: series0.title,
 				episodes: series0.episodes,
 				__id: elementId(series0)
@@ -169,11 +360,11 @@ CALL {
 			AND actedIn0.screenTime > $param1)
 		WITH {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				screenTime: actedIn0.screenTime
 			},
 			node: {
-				__resolveType: 'Movie',
+				__typename: 'Movie',
 				title: movie0.title,
 				runtime: movie0.runtime,
 				__id: elementId(movie0)
@@ -186,11 +377,11 @@ CALL {
 			AND actedIn1.screenTime > $param3)
 		WITH {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				screenTime: actedIn1.screenTime
 			},
 			node: {
-				__resolveType: 'Series',
+				__typename: 'Series',
 				title: series0.title,
 				episodes: series0.episodes,
 				__id: elementId(series0)
@@ -207,195 +398,6 @@ CALL {
 }
 RETURN this {
 	actedInConnection: actedInConnection
-} AS this
-----
-
-'''
-
-== Simple Interface Relationship Query
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  actors {
-    actedIn {
-      title
-      ... on Movie {
-        runtime
-      }
-      ... on Series {
-        episodes
-      }
-    }
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{ }
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Actor)
-CALL {
-	WITH this
-	CALL {
-		WITH *
-		MATCH (this)-[actedIn0:ACTED_IN]->(movie0:Movie)
-		WITH movie0 {
-			__resolveType: 'Movie',
-			__id: elementId(movie0),
-			.title,
-			.runtime
-		} AS movie0
-		RETURN movie0 AS actedIn UNION
-		WITH *
-		MATCH (this)-[actedIn1:ACTED_IN]->(series0:Series)
-		WITH series0 {
-			__resolveType: 'Series',
-			__id: elementId(series0),
-			.title,
-			.episodes
-		} AS series0
-		RETURN series0 AS actedIn
-	}
-	WITH actedIn
-	RETURN collect(actedIn) AS actedIn
-}
-RETURN this {
-	actedIn: actedIn
-} AS this
-----
-
-'''
-
-== Simple Interface Relationship Query For Non-Array Field
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  actors {
-    currentlyActingIn {
-      title
-      ... on Movie {
-        runtime
-      }
-      ... on Series {
-        episodes
-      }
-    }
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{ }
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Actor)
-CALL {
-	WITH this
-	CALL {
-		WITH *
-		MATCH (this)-[currentlyActingIn0:CURRENTLY_ACTING_IN]->(movie0:Movie)
-		WITH movie0 {
-			__resolveType: 'Movie',
-			__id: elementId(movie0),
-			.title,
-			.runtime
-		} AS movie0
-		RETURN movie0 AS currentlyActingIn UNION
-		WITH *
-		MATCH (this)-[currentlyActingIn1:CURRENTLY_ACTING_IN]->(series0:Series)
-		WITH series0 {
-			__resolveType: 'Series',
-			__id: elementId(series0),
-			.title,
-			.episodes
-		} AS series0
-		RETURN series0 AS currentlyActingIn
-	}
-	WITH currentlyActingIn
-	RETURN head(collect(currentlyActingIn)) AS currentlyActingIn
-}
-RETURN this {
-	currentlyActingIn: currentlyActingIn
-} AS this
-----
-
-'''
-
-== Simple Interface Relationship Query with offset and limit
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  actors {
-    actedIn(options: {offset: 5, limit: 10, sort: [{title: DESC}]}) {
-      title
-      ... on Movie {
-        runtime
-      }
-      ... on Series {
-        episodes
-      }
-    }
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0" : 5,
-  "param1" : 10
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Actor)
-CALL {
-	WITH this
-	CALL {
-		WITH *
-		MATCH (this)-[actedIn0:ACTED_IN]->(movie0:Movie)
-		WITH movie0 {
-			__resolveType: 'Movie',
-			__id: elementId(movie0),
-			.title,
-			.runtime
-		} AS movie0
-		RETURN movie0 AS actedIn UNION
-		WITH *
-		MATCH (this)-[actedIn1:ACTED_IN]->(series0:Series)
-		WITH series0 {
-			__resolveType: 'Series',
-			__id: elementId(series0),
-			.title,
-			.episodes
-		} AS series0
-		RETURN series0 AS actedIn
-	}
-	WITH actedIn ORDER BY actedIn.title DESC SKIP $param0 LIMIT $param1
-	RETURN collect(actedIn) AS actedIn
-}
-RETURN this {
-	actedIn: actedIn
 } AS this
 ----
 

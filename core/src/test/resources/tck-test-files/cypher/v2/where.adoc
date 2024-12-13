@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = Cypher WHERE
 
-== Source schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Actor {
@@ -18,140 +20,6 @@ type Movie {
   isFavorite: Boolean
 }
 ----
-
-== Nested AND
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  movies(where: {AND: [{AND: [{title: "some title"}]}]}) {
-    title
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0" : "some title"
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Movie)
-WHERE this.title = $param0
-RETURN this {
-	.title
-} AS this
-----
-
-'''
-
-== Nested AND and OR
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  movies(where: {AND: [{OR: [{title: "some title"}, {isFavorite: true}], id: 2}]}) {
-    title
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0" : "some title",
-  "param1" : true,
-  "param2" : "2"
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Movie)
-WHERE ((this.title = $param0
-		OR this.isFavorite = $param1)
-	AND this.id = $param2)
-RETURN this {
-	.title
-} AS this
-----
-
-'''
-
-== Nested AND with multiple properties
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  movies(where: {AND: [{AND: [{title: "some title"}, {title: "another title"}]}]}) {
-    title
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0" : "some title",
-  "param1" : "another title"
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Movie)
-WHERE (this.title = $param0
-	AND this.title = $param1)
-RETURN this {
-	.title
-} AS this
-----
-
-'''
-
-== Nested OR
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  movies(where: {OR: [{OR: [{title: "some title"}]}]}) {
-    title
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0" : "some title"
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Movie)
-WHERE this.title = $param0
-RETURN this {
-	.title
-} AS this
-----
-
-'''
 
 == Simple
 
@@ -262,13 +130,13 @@ RETURN this {
 
 '''
 
-== Simple NOT
+== Nested AND
 
 .GraphQL-Query
 [source,graphql]
 ----
 {
-  movies(where: {NOT: {title: "some title"}}) {
+  movies(where: {AND: [{AND: [{title: "some title"}]}]}) {
     title
   }
 }
@@ -286,7 +154,7 @@ RETURN this {
 [source,cypher]
 ----
 MATCH (this:Movie)
-WHERE NOT (this.title = $param0)
+WHERE this.title = $param0
 RETURN this {
 	.title
 } AS this
@@ -294,13 +162,13 @@ RETURN this {
 
 '''
 
-== Simple NOT, implicit AND
+== Nested AND with multiple properties
 
 .GraphQL-Query
 [source,graphql]
 ----
 {
-  movies(where: {NOT: {title: "some title", isFavorite: false}}) {
+  movies(where: {AND: [{AND: [{title: "some title"}, {title: "another title"}]}]}) {
     title
   }
 }
@@ -311,7 +179,7 @@ RETURN this {
 ----
 {
   "param0" : "some title",
-  "param1" : false
+  "param1" : "another title"
 }
 ----
 
@@ -319,8 +187,76 @@ RETURN this {
 [source,cypher]
 ----
 MATCH (this:Movie)
-WHERE NOT ((this.title = $param0
-	AND this.isFavorite = $param1))
+WHERE (this.title = $param0
+	AND this.title = $param1)
+RETURN this {
+	.title
+} AS this
+----
+
+'''
+
+== Nested AND and OR
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {AND: [{OR: [{title: "some title"}, {isFavorite: true}], id: 2}]}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "some title",
+  "param1" : true,
+  "param2" : "2"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE ((this.title = $param0
+		OR this.isFavorite = $param1)
+	AND this.id = $param2)
+RETURN this {
+	.title
+} AS this
+----
+
+'''
+
+== Super Nested AND
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {AND: [{AND: [{AND: [{title: "some title"}]}]}]}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "some title"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
 RETURN this {
 	.title
 } AS this
@@ -360,13 +296,13 @@ RETURN this {
 
 '''
 
-== Super Nested AND
+== Nested OR
 
 .GraphQL-Query
 [source,graphql]
 ----
 {
-  movies(where: {AND: [{AND: [{AND: [{title: "some title"}]}]}]}) {
+  movies(where: {OR: [{OR: [{title: "some title"}]}]}) {
     title
   }
 }
@@ -456,4 +392,69 @@ RETURN this {
 
 '''
 
+== Simple NOT
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {NOT: {title: "some title"}}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "some title"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE NOT (this.title = $param0)
+RETURN this {
+	.title
+} AS this
+----
+
+'''
+
+== Simple NOT, implicit AND
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {NOT: {title: "some title", isFavorite: false}}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "some title",
+  "param1" : false
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE NOT ((this.title = $param0
+	AND this.isFavorite = $param1))
+RETURN this {
+	.title
+} AS this
+----
+
+'''
 

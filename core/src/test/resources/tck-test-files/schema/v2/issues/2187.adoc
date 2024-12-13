@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
-= https://github.com/neo4j/graphql/issues/2187 -> Deprecated directive should be present on genres in generated schema
+= https://github.com/neo4j/graphql/issues/2187
 
-== Source schema
+== Deprecated directive should be present on genres in generated schema
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Movie {
@@ -18,8 +20,6 @@ type Genre {
   movies: [Movie!]! @relationship(type: "IN_GENRE", direction: IN)
 }
 ----
-
-== Augmented schema
 
 .Augmented Schema
 [source,graphql]
@@ -226,3 +226,4 @@ input MovieWhere {
 ----
 
 '''
+

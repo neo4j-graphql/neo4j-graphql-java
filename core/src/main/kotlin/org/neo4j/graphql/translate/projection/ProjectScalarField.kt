@@ -29,13 +29,13 @@ fun projectScalarField(
             val projectionVar = queryContext.getNextVariable("p_var")
             Cypher.listWith(projectionVar).`in`(property).returning(
                 pointSelection
-                    .project(projectionVar)
+                    .cypherProject(projectionVar)
                     ?.let { Cypher.mapOf(*it.toTypedArray()) }
                     ?: error("expected at leas one selected field")
             )
         } else {
             pointSelection
-                .project(property)
+                .cypherProject(property)
                 ?.let { Cypher.mapOf(*it.toTypedArray()) }
                 ?: error("expected at leas one selected field")
         }

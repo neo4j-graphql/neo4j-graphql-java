@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = tck/rfcs/query-limits
 
-== Source schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Movie @limit(default: 3, max: 5) {
@@ -24,291 +26,6 @@ type Festival {
   shows: [Show!]! @relationship(type: "PART_OF", direction: IN)
 }
 ----
-
-== Field Level Query Limits
-
-=== should extend the limit to the connection field if `first` provided
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  movies {
-    id
-    actorsConnection(first: 4) {
-      edges {
-        node {
-          id
-        }
-      }
-    }
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0" : 4,
-  "param1" : 3
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Movie)
-WITH * LIMIT $param1
-CALL {
-	WITH this
-	MATCH (person0:Person)-[actedIn0:ACTED_IN]->(this)
-	WITH collect( {
-		node: person0,
-		relationship: actedIn0
-	}) AS edges
-	WITH edges, size(edges) AS totalCount
-	CALL {
-		WITH edges
-		UNWIND edges AS edge
-		WITH edge.node AS person0, edge.relationship AS actedIn0 LIMIT $param0
-		RETURN collect( {
-			node: {
-				__resolveType: 'Person',
-				id: person0.id
-			}
-		}) AS actorsConnectionEdges
-	}
-	RETURN {
-		edges: actorsConnectionEdges,
-		totalCount: totalCount
-	} AS actorsConnection
-}
-RETURN this {
-	.id,
-	actorsConnection: actorsConnection
-} AS this
-----
-
-'''
-
-=== should extend the limit to the connection field if `first` provided, honouring the `max` argument
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  festivals {
-    name
-    showsConnection(first: 3) {
-      edges {
-        node {
-          id
-        }
-      }
-    }
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0" : 2
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Festival)
-CALL {
-	WITH this
-	MATCH (show0:Show)-[partOf0:PART_OF]->(this)
-	WITH collect( {
-		node: show0,
-		relationship: partOf0
-	}) AS edges
-	WITH edges, size(edges) AS totalCount
-	CALL {
-		WITH edges
-		UNWIND edges AS edge
-		WITH edge.node AS show0, edge.relationship AS partOf0 LIMIT $param0
-		RETURN collect( {
-			node: {
-				__resolveType: 'Show',
-				id: show0.id
-			}
-		}) AS showsConnectionEdges
-	}
-	RETURN {
-		edges: showsConnectionEdges,
-		totalCount: totalCount
-	} AS showsConnection
-}
-RETURN this {
-	.name,
-	showsConnection: showsConnection
-} AS this
-----
-
-'''
-
-=== should limit the connection field level query
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  movies {
-    id
-    actorsConnection {
-      edges {
-        node {
-          id
-        }
-      }
-    }
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0" : 2,
-  "param1" : 3
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Movie)
-WITH * LIMIT $param1
-CALL {
-	WITH this
-	MATCH (person0:Person)-[actedIn0:ACTED_IN]->(this)
-	WITH collect( {
-		node: person0,
-		relationship: actedIn0
-	}) AS edges
-	WITH edges, size(edges) AS totalCount
-	CALL {
-		WITH edges
-		UNWIND edges AS edge
-		WITH edge.node AS person0, edge.relationship AS actedIn0 LIMIT $param0
-		RETURN collect( {
-			node: {
-				__resolveType: 'Person',
-				id: person0.id
-			}
-		}) AS actorsConnectionEdges
-	}
-	RETURN {
-		edges: actorsConnectionEdges,
-		totalCount: totalCount
-	} AS actorsConnection
-}
-RETURN this {
-	.id,
-	actorsConnection: actorsConnection
-} AS this
-----
-
-'''
-
-=== should limit the normal field level query
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  movies {
-    id
-    actors {
-      id
-    }
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0" : 2,
-  "param1" : 3
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Movie)
-WITH * LIMIT $param1
-CALL {
-	WITH this
-	MATCH (person0:Person)-[actedIn0:ACTED_IN]->(this)
-	WITH person0 {
-		.id
-	} AS actors LIMIT $param0
-	RETURN collect(actors) AS actors
-}
-RETURN this {
-	.id,
-	actors: actors
-} AS this
-----
-
-'''
-
-=== should limit the relationship field level query
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  movies {
-    id
-    actors {
-      id
-    }
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0" : 2,
-  "param1" : 3
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Movie)
-WITH * LIMIT $param1
-CALL {
-	WITH this
-	MATCH (person0:Person)-[actedIn0:ACTED_IN]->(this)
-	WITH person0 {
-		.id
-	} AS actors LIMIT $param0
-	RETURN collect(actors) AS actors
-}
-RETURN this {
-	.id,
-	actors: actors
-} AS this
-----
-
-'''
 
 == Top Level Query Limits
 
@@ -408,4 +125,288 @@ RETURN this {
 
 '''
 
+== Field Level Query Limits
+
+=== should limit the normal field level query
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    id
+    actors {
+      id
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 2,
+  "param1" : 3
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WITH * LIMIT $param1
+CALL {
+	WITH this
+	MATCH (person0:Person)-[actedIn0:ACTED_IN]->(this)
+	WITH person0 {
+		.id
+	} AS actors LIMIT $param0
+	RETURN collect(actors) AS actors
+}
+RETURN this {
+	.id,
+	actors: actors
+} AS this
+----
+
+'''
+
+=== should limit the connection field level query
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    id
+    actorsConnection {
+      edges {
+        node {
+          id
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 2,
+  "param1" : 3
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WITH * LIMIT $param1
+CALL {
+	WITH this
+	MATCH (person0:Person)-[actedIn0:ACTED_IN]->(this)
+	WITH collect( {
+		node: person0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS person0, edge.relationship AS actedIn0 LIMIT $param0
+		RETURN collect( {
+			node: {
+				__typename: 'Person',
+				id: person0.id
+			}
+		}) AS actorsConnectionEdges
+	}
+	RETURN {
+		edges: actorsConnectionEdges,
+		totalCount: totalCount
+	} AS actorsConnection
+}
+RETURN this {
+	.id,
+	actorsConnection: actorsConnection
+} AS this
+----
+
+'''
+
+=== should extend the limit to the connection field if `first` provided
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    id
+    actorsConnection(first: 4) {
+      edges {
+        node {
+          id
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 4,
+  "param1" : 3
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WITH * LIMIT $param1
+CALL {
+	WITH this
+	MATCH (person0:Person)-[actedIn0:ACTED_IN]->(this)
+	WITH collect( {
+		node: person0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS person0, edge.relationship AS actedIn0 LIMIT $param0
+		RETURN collect( {
+			node: {
+				__typename: 'Person',
+				id: person0.id
+			}
+		}) AS actorsConnectionEdges
+	}
+	RETURN {
+		edges: actorsConnectionEdges,
+		totalCount: totalCount
+	} AS actorsConnection
+}
+RETURN this {
+	.id,
+	actorsConnection: actorsConnection
+} AS this
+----
+
+'''
+
+=== should extend the limit to the connection field if `first` provided, honouring the `max` argument
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  festivals {
+    name
+    showsConnection(first: 3) {
+      edges {
+        node {
+          id
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 2
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Festival)
+CALL {
+	WITH this
+	MATCH (show0:Show)-[partOf0:PART_OF]->(this)
+	WITH collect( {
+		node: show0,
+		relationship: partOf0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS show0, edge.relationship AS partOf0 LIMIT $param0
+		RETURN collect( {
+			node: {
+				__typename: 'Show',
+				id: show0.id
+			}
+		}) AS showsConnectionEdges
+	}
+	RETURN {
+		edges: showsConnectionEdges,
+		totalCount: totalCount
+	} AS showsConnection
+}
+RETURN this {
+	.name,
+	showsConnection: showsConnection
+} AS this
+----
+
+'''
+
+=== should limit the relationship field level query
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    id
+    actors {
+      id
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 2,
+  "param1" : 3
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WITH * LIMIT $param1
+CALL {
+	WITH this
+	MATCH (person0:Person)-[actedIn0:ACTED_IN]->(this)
+	WITH person0 {
+		.id
+	} AS actors LIMIT $param0
+	RETURN collect(actors) AS actors
+}
+RETURN this {
+	.id,
+	actors: actors
+} AS this
+----
+
+'''
 

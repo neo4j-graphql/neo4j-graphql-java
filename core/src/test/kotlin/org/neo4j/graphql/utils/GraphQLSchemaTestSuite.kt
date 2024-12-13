@@ -52,7 +52,7 @@ class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite<GraphQLSchema
         if (targetSchemaBlock == null) {
             return emptyList()
         }
-        val compareSchemaTest = DynamicTest.dynamicTest("compare schema", targetSchemaBlock?.uri) {
+        val compareSchemaTest = DynamicTest.dynamicTest("compare schema", targetSchemaBlock.uri) {
             val configBlock = testCase.schemaConfig
             val config = configBlock?.content?.let { MAPPER.readValue(it, SchemaConfig::class.java) } ?: SchemaConfig()
 

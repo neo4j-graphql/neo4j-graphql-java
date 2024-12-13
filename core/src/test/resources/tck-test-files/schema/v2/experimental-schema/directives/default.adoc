@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
-= @default directive -> sets default values in schema
+= @default directive
 
-== Source schema
+== sets default values in schema
 
+.Schema
 [source,graphql,schema=true]
 ----
 interface UserInterface {
@@ -29,8 +31,6 @@ enum Location {
   EVERYWHERE
 }
 ----
-
-== Augmented schema
 
 .Augmented Schema
 [source,graphql]
@@ -214,3 +214,4 @@ input UserWhere {
 ----
 
 '''
+

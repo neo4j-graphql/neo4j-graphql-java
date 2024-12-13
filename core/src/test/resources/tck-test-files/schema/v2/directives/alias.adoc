@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
-= Alias -> Custom Directive Simple
+= Alias
 
-== Source schema
+== Custom Directive Simple
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Actor {
@@ -22,8 +24,6 @@ type ActorActedInProps @relationshipProperties {
   screenTime: Int
 }
 ----
-
-== Augmented schema
 
 .Augmented Schema
 [source,graphql]
@@ -223,3 +223,4 @@ input MovieWhere {
 ----
 
 '''
+

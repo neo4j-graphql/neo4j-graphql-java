@@ -1,0 +1,418 @@
+:toc:
+:toclevels: 42
+
+= unions
+
+== read Unions with missing types
+
+.Schema
+[source,graphql,schema=true]
+----
+union Search = Genre | Movie
+
+type Genre {
+  name: String
+}
+
+type Movie {
+  title: String
+  search: [Search!]! @relationship(type: "SEARCH", direction: OUT)
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (m:Movie {title: "RandomString1"})
+ CREATE (g:Genre {name: "RandomString2"})
+ MERGE (m)-[:SEARCH]->(m)
+ MERGE (m)-[:SEARCH]->(g)
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies {
+    search {
+      ... on Genre {
+        name
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[search1:SEARCH]->(genre0:Genre)
+		WITH genre0 {
+			__typename: 'Genre',
+			__id: elementId(genre0),
+			.name
+		} AS genre0
+		RETURN genre0 AS search0 UNION
+		WITH *
+		MATCH (this)-[search2:SEARCH]->(movie0:Movie)
+		WITH movie0 {
+			__typename: 'Movie',
+			__id: elementId(movie0)
+		} AS movie0
+		RETURN movie0 AS search0
+	}
+	WITH search0
+	RETURN collect(search0) AS search0
+}
+RETURN this {
+	search: search0
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "movies": [
+    {
+      "search": [
+        {
+          "name": "RandomString2"
+        },
+        {}
+      ]
+    }
+  ]
+}
+----
+
+'''
+
+== should read and return unions
+
+.Schema
+[source,graphql,schema=true]
+----
+union Search = Genre | Movie
+
+type Genre {
+  name: String
+}
+
+type Movie {
+  title: String
+  search: [Search!]! @relationship(type: "SEARCH", direction: OUT)
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (m:Movie {title: "RandomString1"})
+ CREATE (g:Genre {name: "RandomString2"})
+ MERGE (m)-[:SEARCH]->(m)
+ MERGE (m)-[:SEARCH]->(g)
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {title: "RandomString1"}) {
+    search {
+      __typename
+      ... on Movie {
+        title
+      }
+      ... on Genre {
+        name
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "RandomString1"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[search1:SEARCH]->(genre0:Genre)
+		WITH genre0 {
+			__typename: 'Genre',
+			__id: elementId(genre0),
+			.name
+		} AS genre0
+		RETURN genre0 AS search0 UNION
+		WITH *
+		MATCH (this)-[search2:SEARCH]->(movie0:Movie)
+		WITH movie0 {
+			__typename: 'Movie',
+			__id: elementId(movie0),
+			.title
+		} AS movie0
+		RETURN movie0 AS search0
+	}
+	WITH search0
+	RETURN collect(search0) AS search0
+}
+RETURN this {
+	search: search0
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "movies": [
+    {
+      "search": [
+        {
+          "__typename": "Genre",
+          "name": "RandomString2"
+        },
+        {
+          "__typename": "Movie",
+          "title": "RandomString1"
+        }
+      ]
+    }
+  ]
+}
+----
+
+'''
+
+== should read and return correct union members with where argument
+
+.Schema
+[source,graphql,schema=true]
+----
+union Search = Movie | Genre
+
+type Genre {
+  name: String
+}
+
+type Movie {
+  title: String
+  search: [Search!]! @relationship(type: "SEARCH", direction: OUT)
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (m:Movie {title: "RandomString1"})
+ CREATE (g1:Genre {name: "RandomString2"})
+ CREATE (g2:Genre {name: "RandomString3"})
+ MERGE (m)-[:SEARCH]->(m)
+ MERGE (m)-[:SEARCH]->(g1)
+ MERGE (m)-[:SEARCH]->(g2)
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {title: "RandomString1"}) {
+    search(where: {Genre: {name: "RandomString2"}}) {
+      __typename
+      ... on Movie {
+        title
+      }
+      ... on Genre {
+        name
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "RandomString1",
+  "param1": "RandomString2"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+CALL {
+    WITH this
+    CALL {
+        WITH *
+        MATCH (this)-[this0:SEARCH]->(this1:Genre)
+        WHERE this1.name = $param1
+        WITH this1 { .name, __typename: "Genre", __id: toString(id(this1)) } AS this1
+        RETURN this1 AS var2
+    }
+    WITH var2
+    RETURN collect(var2) AS var2
+}
+RETURN this { search: var2 } AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies": [
+    {
+      "search": [
+        {
+          "__typename": "Genre",
+          "name": "RandomString2"
+        }
+      ]
+    }
+  ]
+}
+----
+
+'''
+
+== should read and return unions with sort and limit
+
+.Schema
+[source,graphql,schema=true]
+----
+union Search = Movie | Genre
+
+type Genre {
+  name: String
+}
+
+type Movie {
+  title: String
+  search: [Search!]! @relationship(type: "SEARCH", direction: OUT)
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (m:Movie {title: "originalMovie"})
+ CREATE (m1:Movie {title: "movie1"})
+ CREATE (m2:Movie {title: "movie2"})
+ CREATE (g1:Genre {name: "genre1"})
+ CREATE (g2:Genre {name: "genre2"})
+ MERGE (m)-[:SEARCH]->(m1)
+ MERGE (m)-[:SEARCH]->(m2)
+ MERGE (m)-[:SEARCH]->(g1)
+ MERGE (m)-[:SEARCH]->(g2)
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {title: "originalMovie"}) {
+    search(options: {offset: 1, limit: 3}) {
+      ... on Movie {
+        title
+      }
+      ... on Genre {
+        name
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "originalMovie",
+  "param1": 1,
+  "param2": 3
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[search1:SEARCH]->(genre0:Genre)
+		WITH genre0 {
+			__typename: 'Genre',
+			__id: elementId(genre0),
+			.name
+		} AS genre0
+		RETURN genre0 AS search0 UNION
+		WITH *
+		MATCH (this)-[search2:SEARCH]->(movie0:Movie)
+		WITH movie0 {
+			__typename: 'Movie',
+			__id: elementId(movie0),
+			.title
+		} AS movie0
+		RETURN movie0 AS search0
+	}
+	WITH search0 SKIP $param1 LIMIT $param2
+	RETURN collect(search0) AS search0
+}
+RETURN this {
+	search: search0
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "movies": [
+    {
+      "search": [
+        {
+          "name": "genre1"
+        },
+        {
+          "title": "movie1"
+        },
+        {
+          "title": "movie2"
+        }
+      ]
+    }
+  ]
+}
+----
+
+'''
+

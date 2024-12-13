@@ -1,12 +1,19 @@
 package org.neo4j.graphql.utils
 
+import com.fasterxml.jackson.module.kotlin.readValue
+import com.jayway.jsonpath.JsonPath
+import demo.org.neo4j.graphql.utils.InvalidQueryException
 import demo.org.neo4j.graphql.utils.asciidoc.ast.CodeBlock
 import demo.org.neo4j.graphql.utils.asciidoc.ast.Section
-import demo.org.neo4j.graphql.utils.InvalidQueryException
+import demo.org.neo4j.graphql.utils.asciidoc.ast.Table
+import graphql.ExceptionWhileDataFetching
 import graphql.ExecutionInput
 import graphql.GraphQL
 import graphql.GraphQLError
 import graphql.execution.NonNullableFieldWasNullError
+import graphql.schema.DataFetcher
+import graphql.schema.FieldCoordinates
+import graphql.schema.GraphQLCodeRegistry
 import graphql.schema.GraphQLSchema
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.InstanceOfAssertFactories
@@ -18,45 +25,53 @@ import org.neo4j.cypherdsl.core.renderer.Dialect
 import org.neo4j.cypherdsl.core.renderer.Renderer
 import org.neo4j.cypherdsl.parser.CypherParser
 import org.neo4j.cypherdsl.parser.Options
-import org.neo4j.driver.internal.InternalIsoDuration
-import org.neo4j.driver.types.IsoDuration
+import org.neo4j.driver.Driver
 import org.neo4j.graphql.QueryContext
 import org.neo4j.graphql.SchemaBuilder
 import org.neo4j.graphql.SchemaConfig
+import org.neo4j.graphql.custom_resolver.TestDataFetcher
 import org.neo4j.graphql.driver.adapter.Neo4jAdapter
-import org.neo4j.harness.Neo4j
+import org.neo4j.graphql.driver.adapter.Neo4jDriverAdapter
+import org.neo4j.graphql.scalars.TemporalScalar
 import org.opentest4j.AssertionFailedError
+import org.threeten.extra.PeriodDuration
+import java.io.File
+import java.io.FileWriter
 import java.math.BigInteger
 import java.time.*
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
+import java.time.temporal.TemporalAccessor
 import java.util.*
 import java.util.concurrent.FutureTask
 import java.util.function.Consumer
-import java.util.regex.Matcher
-import java.util.regex.Pattern
+import kotlin.reflect.full.findAnnotation
 
-class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTestSuite<CypherTestSuite.TestCase>(
-    fileName,
-    listOf(
-        matcher("cypher", exactly = true) { t, c -> t.cypher.add(c) },
-        matcher("json", exactly = true) { t, c -> t.cypherParams.add(c) },
-        matcher("graphql", exactly = true, setter = TestCase::graphqlRequest),
-        matcher("json", mapOf("request" to "true"), setter = TestCase::graphqlRequestVariables),
-        matcher("json", mapOf("response" to "true"), setter = TestCase::graphqlResponse),
-        matcher("json", mapOf("query-config" to "true"), setter = TestCase::queryConfig),
-    )
-) {
+class CypherTestSuite(fileName: String, val driver: Driver? = null, createMissingBlocks: Boolean = true) :
+    AsciiDocTestSuite<CypherTestSuite.TestCase>(
+        fileName,
+        listOf(
+            matcher("cypher", exactly = true) { t, c -> t.cypher.add(c) },
+            matcher("json", exactly = true) { t, c -> t.cypherParams.add(c) },
+            matcher("graphql", exactly = true, setter = TestCase::graphqlRequest),
+            matcher("json", mapOf("request" to "true"), setter = TestCase::graphqlRequestVariables),
+            matcher("json", mapOf("response" to "true"), setter = TestCase::graphqlResponse),
+            matcher("json", mapOf("query-config" to "true"), setter = TestCase::queryConfig),
+        ),
+        createMissingBlocks,
+    ) {
 
     data class TestCase(
         var schema: CodeBlock,
         var schemaConfig: CodeBlock?,
         var testData: List<CodeBlock>,
+        var customResolver: CodeBlock?,
         var cypher: MutableList<CodeBlock> = mutableListOf(),
         var cypherParams: MutableList<CodeBlock> = mutableListOf(),
         var graphqlRequest: CodeBlock? = null,
         var graphqlRequestVariables: CodeBlock? = null,
         var graphqlResponse: CodeBlock? = null,
+        var graphqlResponseAssertions: Table? = null,
         var queryConfig: CodeBlock? = null,
     )
 
@@ -66,8 +81,21 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
         val schema = findSetupCodeBlocks(section, "graphql", mapOf("schema" to "true")).firstOrNull() ?: return null
         val schemaConfig = findSetupCodeBlocks(section, "json", mapOf("schema-config" to "true")).firstOrNull()
         val testData = findSetupCodeBlocks(section, "cypher", mapOf("test-data" to "true"))
+        val customResolver = findSetupCodeBlocks(section, "kotlin").firstOrNull()
 
-        return TestCase(schema, schemaConfig, testData)
+        return TestCase(schema, schemaConfig, testData, customResolver)
+    }
+
+    override fun setTableData(testCase: TestCase, table: Table) {
+        if (table.attributes.containsKey("response")) {
+            testCase.graphqlResponseAssertions = table
+        }
+    }
+
+    override fun addAdditionalTests(tests: MutableList<DynamicNode>) {
+        if (ADD_IGNORE_ORDER_TO_INTEGRATION_TESTS) {
+            tests += DynamicTest.dynamicTest("Create ignore-order", srcLocation, this::reformatMarker)
+        }
     }
 
     override fun createTests(testCase: TestCase, section: Section, ignoreReason: String?): List<DynamicNode> {
@@ -83,19 +111,32 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
         val result = createTransformationTask(testCase)
 
         val tests = mutableListOf<DynamicNode>()
+
+        if (ADD_IGNORE_ORDER_TO_INTEGRATION_TESTS) {
+            val hasOrder = testCase.cypher.any { it.content.contains("ORDER BY") }
+            val graphqlResponse = testCase.graphqlResponse
+            if (!hasOrder && graphqlResponse != null
+                && hasArrayWithMoreThenOneItems(MAPPER.readValue<Any>(graphqlResponse.content))
+            ) {
+                graphqlResponse.adjustedAttributes = graphqlResponse.attributes.toMutableMap()
+                    .also { it["ignore-order"] = null }
+            }
+        }
+
         if (DEBUG) {
             tests.add(printGeneratedQuery(result))
             tests.add(printReplacedParameter(result))
         }
-        if (neo4j != null) {
+        if (driver != null) {
             val testData = testCase.testData.firstOrNull()
+            val responseAssertions = testCase.graphqlResponseAssertions
             var response = testCase.graphqlResponse
-            if (response == null) {
+            if (responseAssertions == null && response == null) {
                 response =
                     createCodeBlock(testCase.graphqlRequest!!, "json", "GraphQL-Response", mapOf("response" to "true"))
                 testCase.graphqlResponse = response
             }
-            if (testData != null && response != null) {
+            if (testData != null && response != null || responseAssertions != null) {
                 tests.add(integrationTest(section.title, testCase))
             }
         }
@@ -131,16 +172,63 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
         return tests
     }
 
+    private fun hasArrayWithMoreThenOneItems(value: Any): Boolean {
+        when (value) {
+            is Map<*, *> -> {
+                return value.any {
+                    val mapValue = it.value
+                    mapValue != null && hasArrayWithMoreThenOneItems(mapValue)
+                }
+            }
+
+            is Collection<*> -> {
+                return value.size > 1 || value.filterNotNull().any { hasArrayWithMoreThenOneItems(it) }
+            }
+        }
+        return false
+    }
+
     private fun createSchema(
         schemaBlock: CodeBlock,
         schemaConfigBlock: CodeBlock?,
+        customResolver: CodeBlock?,
         neo4jAdapter: Neo4jAdapter = Neo4jAdapter.NO_OP
     ): GraphQLSchema {
         val schemaString = schemaBlock.content
         val schemaConfig = schemaConfigBlock?.content
             ?.let { return@let MAPPER.readValue(it, SchemaConfig::class.java) }
             ?: SchemaConfig()
-        return SchemaBuilder.buildSchema(schemaString, schemaConfig, neo4jAdapter)
+        val codeRegistryBuilder = GraphQLCodeRegistry.newCodeRegistry()
+
+        customResolver?.let { registerTestResolver(it, codeRegistryBuilder) }
+
+        return SchemaBuilder.fromSchema(schemaString, schemaConfig)
+            .withNeo4jAdapter(neo4jAdapter)
+            .withCodeRegistryBuilder(codeRegistryBuilder)
+            .build()
+    }
+
+    private fun registerTestResolver(
+        customResolver: CodeBlock,
+        codeRegistryBuilder: GraphQLCodeRegistry.Builder
+    ) {
+        val path = customResolver.content.removePrefix("include::").replace("[]", "")
+        if (path == customResolver.content) {
+            error("Custom resolver must be an include statement")
+        }
+        val resolvedFile = srcLocation.resolve(path)
+        val className = File(resolvedFile)
+            .toRelativeString(File("src/test/kotlin").absoluteFile)
+            .replace(".kt", "")
+            .replace("/", ".")
+
+        val clazz = Class.forName(className).kotlin
+        clazz.findAnnotation<TestDataFetcher>()?.let { annot ->
+            codeRegistryBuilder.dataFetcher(
+                FieldCoordinates.coordinates(annot.type, annot.field),
+                clazz.objectInstance as DataFetcher<*>
+            )
+        }
     }
 
     private fun createTransformationTask(testCase: TestCase): () -> List<CypherResult> {
@@ -148,15 +236,23 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
 
             val cypherResults = mutableListOf<CypherResult>()
 
-            val schema = createSchema(testCase.schema, testCase.schemaConfig, object : Neo4jAdapter {
+            val schema =
+                createSchema(
+                    testCase.schema,
+                    testCase.schemaConfig,
+                    testCase.customResolver,
+                    object : Neo4jAdapter {
 
-                override fun getDialect(): Neo4jAdapter.Dialect = Neo4jAdapter.Dialect.NEO4J_5
+                        override fun getDialect(): Neo4jAdapter.Dialect = Neo4jAdapter.Dialect.NEO4J_5
 
-                override fun executeQuery(cypher: String, params: Map<String, Any?>): List<Map<String, Any?>> {
-                    cypherResults.add(CypherResult(cypher, params))
-                    return emptyList()
-                }
-            })
+                        override fun executeQuery(
+                            cypher: String,
+                            params: Map<String, Any?>
+                        ): List<Map<String, Any?>> {
+                            cypherResults.add(CypherResult(cypher, params))
+                            return emptyList()
+                        }
+                    })
 
             val request = testCase.graphqlRequest!!.content
 
@@ -164,7 +260,12 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
                 ?: emptyMap()
 
             val queryContext = testCase.queryConfig?.content
-                ?.let<String, QueryContext?> { config -> return@let MAPPER.readValue(config, QueryContext::class.java) }
+                ?.let<String, QueryContext?> { config ->
+                    return@let MAPPER.readValue(
+                        config,
+                        QueryContext::class.java
+                    )
+                }
                 ?: QueryContext()
 
             val gql: GraphQL = GraphQL.newGraphQL(schema).build()
@@ -203,7 +304,10 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
                 var queryWithReplacedParams = it.query
                 it.params.forEach { (key, value) ->
                     queryWithReplacedParams =
-                        queryWithReplacedParams.replace("$$key", if (value is String) "'$value'" else value.toString())
+                        queryWithReplacedParams.replace(
+                            "$$key",
+                            if (value is String) "'$value'" else value.toString()
+                        )
                 }
                 println()
                 println("Generated query with params replaced")
@@ -224,7 +328,8 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
         DynamicTest.dynamicTest(name, cypherBlock.uri) {
             val renderer = Renderer.getRenderer(RENDER_OPTIONS)
             val cypher = cypherBlock.content
-            val expectedNormalized = renderer.render(CypherParser.parse(cypher, PARSE_OPTIONS))
+            val expectedNormalized =
+                if (cypher.isNotBlank()) renderer.render(CypherParser.parse(cypher, PARSE_OPTIONS)) else ""
             val actual = (result().getOrNull(index)?.query
                 ?: throw IllegalStateException("missing cypher query for $title ($index)"))
             val actualNormalized = renderer.render(CypherParser.parse(actual, PARSE_OPTIONS))
@@ -299,51 +404,50 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
         }
     }
 
-    private fun setupNeo4jAdapter(testData: CodeBlock?): Neo4jAdapter {
-        return object : Neo4jAdapter {
-            override fun executeQuery(cypher: String, params: Map<String, Any?>): List<Map<String, Any?>> {
-                if (neo4j == null) {
-                    return emptyList()
-                }
-                val db = neo4j.defaultDatabaseService()
-
-                // cleanup the database
-                db.executeTransactionally("MATCH (n) DETACH DELETE n")
-
-                // load the test data
-                testData?.content
-                    ?.split(";")
-                    ?.filter { it.isNotBlank() }
-                    ?.forEach { db.executeTransactionally(it) }
-
-                // execute the query
-                return db.executeTransactionally(cypher, params) { result ->
-                    result.stream().toList()
-                }
-            }
-        }
-    }
-
     private fun integrationTest(
         title: String,
         testCase: TestCase,
     ): DynamicNode {
         val graphqlResponse = testCase.graphqlResponse
-            ?: error("missing graphql response for $title")
+        val graphqlResponseAssertions = testCase.graphqlResponseAssertions
 
-        return DynamicTest.dynamicTest("Integration Test", graphqlResponse.uri) {
-            val neo4jAdapter = setupNeo4jAdapter(testCase.testData.firstOrNull())
+        val uri = graphqlResponseAssertions?.uri ?: graphqlResponse?.uri
+        ?: error("missing graphql response for $title")
+
+        return DynamicTest.dynamicTest("Integration Test", uri) {
+            val neo4jAdapter = if (driver == null) {
+                Neo4jAdapter.NO_OP
+            } else {
+                driver.session().use { session ->
+                    // clear the database
+                    session.run("MATCH (n) DETACH DELETE n")
+
+                    // import test data
+                    testCase.testData.firstOrNull()?.content
+                        ?.split(";")
+                        ?.filter { it.isNotBlank() }
+                        ?.forEach { query -> session.run(query) }
+                }
+                Neo4jDriverAdapter(driver)
+            }
+
             val request = testCase.graphqlRequest?.content
                 ?: error("missing graphql for $title")
 
-            val requestParams = testCase.graphqlRequestVariables?.content?.parseJsonMap() ?: emptyMap()
+            val requestParams =
+                testCase.graphqlRequestVariables?.content?.parseJsonMap() ?: emptyMap()
 
             val queryContext = testCase.queryConfig?.content
-                ?.let<String, QueryContext?> { config -> return@let MAPPER.readValue(config, QueryContext::class.java) }
+                ?.let<String, QueryContext?> { config ->
+                    return@let MAPPER.readValue(
+                        config,
+                        QueryContext::class.java
+                    )
+                }
                 ?: QueryContext()
 
 
-            val schema = createSchema(testCase.schema, testCase.schemaConfig, neo4jAdapter)
+            val schema = createSchema(testCase.schema, testCase.schemaConfig, testCase.customResolver, neo4jAdapter)
             val graphql = GraphQL.newGraphQL(schema).build()
             val result = graphql.execute(
                 ExecutionInput.newExecutionInput()
@@ -352,25 +456,71 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
                     .graphQLContext(mapOf(QueryContext.KEY to queryContext))
                     .build()
             )
-            Assertions.assertThat(result.errors).isEmpty()
+            if (result.errors.isNotEmpty()) {
+                val exception =
+                    result.errors.filterIsInstance<java.lang.RuntimeException>().firstOrNull()
+                        ?: result.errors.filterIsInstance<ExceptionWhileDataFetching>().firstOrNull()?.exception
+
+                Assertions.fail<Any>(result.errors.joinToString("\n") { it.message }, exception)
+            }
+
 
             val values = result?.getData<Any>()
 
-            if (graphqlResponse.content.isEmpty()) {
-                val actualCode = MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(values)
-                graphqlResponse.generatedContent = actualCode
-            } else {
-                val expected = fixNumbers(graphqlResponse.content.parseJsonMap())
-                val actual = fixNumber(values)
-                if (!Objects.equals(expected, actual)) {
+            if (graphqlResponseAssertions != null) {
+                assertWithJsonPath(graphqlResponseAssertions, values)
+            } else if (graphqlResponse != null) {
+
+                if (graphqlResponse.content.isEmpty()) {
                     val actualCode = MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(values)
                     graphqlResponse.generatedContent = actualCode
-                }
-                if (graphqlResponse.attributes.containsKey("ignore-order")) {
-                    assertEqualIgnoreOrder(expected, actual)
                 } else {
-                    Assertions.assertThat(actual).isEqualTo(expected)
+                    val expected = fixNumbers(graphqlResponse.content.parseJsonMap())
+                    val actual = fixNumber(values)
+                    if (!Objects.equals(expected, actual)) {
+                        val actualCode = MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(values)
+                        graphqlResponse.generatedContent = actualCode
+                    }
+                    if (graphqlResponse.attributes.containsKey("ignore-order")) {
+                        assertEqualIgnoreOrder(expected, actual)
+                    } else {
+                        Assertions.assertThat(actual).isEqualTo(expected)
+                    }
                 }
+            }
+        }
+    }
+
+    private fun assertWithJsonPath(table: Table, result: Any?) {
+        for (record in table.records) {
+            val jsonPath = record.get("Path")
+            val condition = record.get("Condition")
+            val expectedValue = record.get("Expected Value")
+
+            val actualValue = JsonPath.read<Any>(result, jsonPath)
+
+            // try to convert the expected value to the type of the current value
+            val typedExpectedValue = if (expectedValue.isNullOrBlank()) {
+                null
+            } else when (actualValue) {
+                is Int -> expectedValue.toInt()
+                else -> expectedValue
+            }
+
+            val assertion = Assertions.assertThat(actualValue).describedAs(jsonPath)
+            when (condition) {
+                "==" -> assertion.isEqualTo(typedExpectedValue)
+                "notEmpty" -> {
+                    if (actualValue is Collection<*>) {
+                        assertion.asInstanceOf(InstanceOfAssertFactories.COLLECTION).isNotEmpty()
+                    } else if (actualValue is String) {
+                        assertion.asInstanceOf(InstanceOfAssertFactories.STRING).isNotEmpty()
+                    } else {
+                        TODO()
+                    }
+                }
+
+                else -> TODO("$condition not implemented")
             }
         }
     }
@@ -394,11 +544,17 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
         }
     }
 
+
+    private fun reformatMarker() {
+        val content = generateAdjustedFileContent({ it.content }, { it.adjustedAttributes != null })
+        FileWriter(File("src/test/resources/", fileName)).use { it.write(content) }
+    }
+
     companion object {
         private val DEBUG = System.getProperty("neo4j-graphql-java.debug", "false") == "true"
         private val CONVERT_NUMBER = System.getProperty("neo4j-graphql-java.convert-number", "true") == "true"
-
-        private val DURATION_PATTERN: Pattern = Pattern.compile("^P(.*?)(?:T(.*))?$")
+        private val ADD_IGNORE_ORDER_TO_INTEGRATION_TESTS =
+            System.getProperty("neo4j-graphql-java.add-ignore-order-to-integration-tests", "false") == "true"
 
         private val PARSE_OPTIONS = Options.newOptions()
             .createSortedMaps(true)
@@ -443,6 +599,12 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
                 }
 
                 is String -> {
+                    when (actual) {
+                        is TemporalAccessor -> {
+                            Assertions.assertThat(actual).isEqualTo(TemporalScalar.parse(expected))
+                            return
+                        }
+                    }
                     try {
                         val expectedDate = ZonedDateTime.parse(expected)
                         val actualDate = ZonedDateTime.parse(actual as String)
@@ -458,8 +620,8 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
                     } catch (ignore: DateTimeParseException) {
                     }
                     try {
-                        val expectedTime = LocalTime.parse(expected, DateTimeFormatter.ISO_TIME)
-                        val actualTime = LocalTime.parse(actual as String)
+                        val expectedTime = LocalDate.parse(expected, DateTimeFormatter.ISO_DATE)
+                        val actualTime = LocalDate.parse(actual as String)
                         Assertions.assertThat(actualTime).isEqualTo(expectedTime)
                         return
                     } catch (ignore: DateTimeParseException) {
@@ -472,11 +634,19 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
                     } catch (ignore: DateTimeParseException) {
                     }
                     try {
-                        parseDuration(expected)?.let { expectedDuration ->
-                            parseDuration(actual as String)?.let { actualDuration ->
-                                Assertions.assertThat(actualDuration).isEqualTo(expectedDuration)
-                                return
+                        PeriodDuration.parse(expected)?.let { expectedDuration ->
+                            when (actual) {
+                                is PeriodDuration -> Assertions.assertThat(actual).isEqualTo(expectedDuration)
+                                is Period -> Assertions.assertThat(PeriodDuration.of(actual))
+                                    .isEqualTo(expectedDuration)
+
+                                is Duration -> Assertions.assertThat(PeriodDuration.of(actual))
+                                    .isEqualTo(expectedDuration)
+
+                                is String -> Assertions.assertThat(actual).isEqualTo(expected)
+                                else -> Assertions.fail<Any>("Unexpected type ${actual!!::class.java}")
                             }
+                            return
                         }
                     } catch (ignore: DateTimeParseException) {
                     }
@@ -550,19 +720,5 @@ class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTest
             CONVERT_NUMBER && this == toLong().toDouble() -> toLong()
             else -> this
         }
-
-        private fun parseDuration(text: String): IsoDuration? {
-            val matcher: Matcher = DURATION_PATTERN.matcher(text)
-            if (!matcher.find()) {
-                return null
-            }
-            val periodString = matcher.group(1)
-            val timeString = matcher.group(2)
-            val period = if (!periodString.isNullOrBlank()) Period.parse("P$periodString") else Period.ZERO
-            val duration = if (!timeString.isNullOrBlank()) Duration.parse("PT$timeString") else Duration.ZERO
-            return InternalIsoDuration(period.toTotalMonths(), period.days.toLong(), duration.seconds, duration.nano)
-        }
-
-
     }
 }

@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
-= Unions -> Relationship Properties
+= Unions
 
-== Source schema
+== Relationship Properties
 
+.Schema
 [source,graphql,schema=true]
 ----
 union Publication = Book | Journal
@@ -27,8 +29,6 @@ type Wrote @relationshipProperties {
   words: Int!
 }
 ----
-
-== Augmented schema
 
 .Augmented Schema
 [source,graphql]
@@ -360,3 +360,4 @@ input WroteWhere {
 ----
 
 '''
+

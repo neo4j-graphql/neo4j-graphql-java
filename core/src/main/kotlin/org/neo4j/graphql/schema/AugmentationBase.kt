@@ -3,6 +3,7 @@ package org.neo4j.graphql.schema
 import graphql.language.FieldDefinition
 import graphql.language.InputValueDefinition
 import graphql.language.Type
+import kotlin.reflect.KProperty1
 
 interface AugmentationBase {
 
@@ -17,6 +18,13 @@ interface AugmentationBase {
         init?.let { input.it() }
         return input.build()
     }
+
+    fun field(
+        name: KProperty1<*, *>,
+        type: Type<*>,
+        args: List<InputValueDefinition>? = emptyList(),
+        init: (FieldDefinition.Builder.() -> Unit)? = null
+    ): FieldDefinition = field(name.name, type, args, init)
 
     fun field(
         name: String,

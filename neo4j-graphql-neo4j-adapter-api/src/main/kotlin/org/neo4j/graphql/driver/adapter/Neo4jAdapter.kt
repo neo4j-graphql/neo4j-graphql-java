@@ -14,6 +14,8 @@ interface Neo4jAdapter {
     fun executeQuery(cypher: String, params: Map<String, Any?>): List<Map<String, Any?>>
 
     companion object {
+        const val CONTEXT_KEY = "neo4jAdapter"
+
         val NO_OP = object : Neo4jAdapter {
             override fun executeQuery(cypher: String, params: Map<String, Any?>): List<Map<String, Any?>> {
                 return emptyList()

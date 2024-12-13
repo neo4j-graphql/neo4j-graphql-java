@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = Root Connection Query tests
 
-== Source schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Movie {
@@ -17,6 +19,59 @@ type Actor {
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
 }
 ----
+
+== Simple selection, Movie by title
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  moviesConnection(where: {title: "River Runs Through It, A"}) {
+    totalCount
+    edges {
+      node {
+        title
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "River Runs Through It, A"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+WITH collect( {
+	node: this
+}) AS edges
+WITH edges, size(edges) AS totalCount
+CALL {
+	WITH edges
+	UNWIND edges AS edge
+	WITH edge.node AS this
+	RETURN collect( {
+		node: {
+			__typename: 'Movie',
+			title: this.title
+		}
+	}) AS edges0
+}
+RETURN {
+	edges: edges0,
+	totalCount: totalCount
+} AS this
+----
+
+'''
 
 == should apply limit and sort before return
 
@@ -57,7 +112,7 @@ CALL {
 	WITH * ORDER BY this.title ASC LIMIT $param0
 	RETURN collect( {
 		node: {
-			__resolveType: 'Movie',
+			__typename: 'Movie',
 			title: this.title
 		}
 	}) AS edges0
@@ -115,7 +170,7 @@ CALL {
 	WITH * ORDER BY this.title ASC LIMIT $param1
 	RETURN collect( {
 		node: {
-			__resolveType: 'Movie',
+			__typename: 'Movie',
 			title: this.title
 		}
 	}) AS edges0
@@ -187,7 +242,7 @@ CALL {
 			WITH edge.node AS actor0, edge.relationship AS actedIn0
 			RETURN collect( {
 				node: {
-					__resolveType: 'Actor',
+					__typename: 'Actor',
 					name: actor0.name
 				}
 			}) AS actorsConnectionEdges
@@ -199,62 +254,9 @@ CALL {
 	}
 	RETURN collect( {
 		node: {
-			__resolveType: 'Movie',
+			__typename: 'Movie',
 			title: this.title,
 			actorsConnection: actorsConnection
-		}
-	}) AS edges0
-}
-RETURN {
-	edges: edges0,
-	totalCount: totalCount
-} AS this
-----
-
-'''
-
-== Simple selection, Movie by title
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  moviesConnection(where: {title: "River Runs Through It, A"}) {
-    totalCount
-    edges {
-      node {
-        title
-      }
-    }
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0" : "River Runs Through It, A"
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Movie)
-WHERE this.title = $param0
-WITH collect( {
-	node: this
-}) AS edges
-WITH edges, size(edges) AS totalCount
-CALL {
-	WITH edges
-	UNWIND edges AS edge
-	WITH edge.node AS this
-	RETURN collect( {
-		node: {
-			__resolveType: 'Movie',
-			title: this.title
 		}
 	}) AS edges0
 }

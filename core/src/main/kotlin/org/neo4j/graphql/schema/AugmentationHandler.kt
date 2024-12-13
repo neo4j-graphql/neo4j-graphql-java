@@ -33,7 +33,7 @@ internal abstract class AugmentationHandler(val ctx: AugmentationContext) : Augm
 
     internal data class AugmentedField(
         val coordinates: FieldCoordinates,
-        val dataFetcher: DataFetcher<CypherDataFetcherResult>,
+        val dataFetcher: DataFetcher<*>,
     )
 
     fun addQueryField(

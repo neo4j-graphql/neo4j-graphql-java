@@ -23,8 +23,8 @@ object BigIntScalar {
             override fun parseValue(input: Any, graphQLContext: GraphQLContext, locale: Locale): Number? {
                 return when (input) {
                     is StringValue -> input.value.toLong()
-                    is FloatValue -> input.value
-                    is IntValue -> input.value
+                    is FloatValue -> input.value.toLong()
+                    is IntValue -> input.value.toLong()
                     is String -> input.toLong()
                     is Float, is Int, is Long -> input as Number
                     else -> Assert.assertShouldNeverHappen("Only string or number is expected")

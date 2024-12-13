@@ -1,0 +1,83 @@
+:toc:
+:toclevels: 42
+
+= https://github.com/neo4j/graphql/issues/402
+
+== should recreate test and return correct data
+
+.Schema
+[source,graphql,schema=true]
+----
+type Event {
+  id: ID!
+  area: Area! @relationship(type: "HAPPENS_IN", direction: OUT)
+}
+
+type Area {
+  id: ID!
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (:Event {id: "RandomString1"})-[:HAPPENS_IN]->(:Area {id: "RandomString2"})
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query ($area: [ID!]) {
+  events(where: {id: "RandomString1", area: {id_IN: $area}}) {
+    id
+    area {
+      id
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "RandomString1"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Event)
+WHERE this.id = $param0
+CALL {
+	WITH this
+	MATCH (this)-[happensIn0:HAPPENS_IN]->(area0:Area)
+	WITH area0 {
+		.id
+	} AS area
+	RETURN head(collect(area)) AS area
+}
+RETURN this {
+	.id,
+	area: area
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "events": [
+    {
+      "id": "RandomString1",
+      "area": {
+        "id": "RandomString2"
+      }
+    }
+  ]
+}
+----
+
+'''
+

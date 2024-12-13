@@ -1,0 +1,120 @@
+:toc:
+:toclevels: 42
+
+= https://github.com/neo4j/graphql/issues/4007
+
+== should return name from aliased selection
+
+.Schema
+[source,graphql,schema=true]
+----
+type Movie {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
+}
+
+type Actor {
+  name: String!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (m:Movie {title: "RandomString1"})
+ CREATE (m)<-[:ACTED_IN]-(:Actor {name: "A"})
+ CREATE (m)<-[:ACTED_IN]-(:Actor {name: "B"})
+ CREATE (m)<-[:ACTED_IN]-(:Actor {name: "C"})
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  m: movies(where: {title: "RandomString1"}) {
+    t: actorsConnection {
+      e: edges {
+        no: node {
+          ne: name
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "RandomString1"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+CALL {
+	WITH this
+	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
+	WITH collect( {
+		node: actor0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS actor0, edge.relationship AS actedIn0
+		RETURN collect( {
+			no: {
+				__typename: 'Actor',
+				ne: actor0.name
+			}
+		}) AS tEdges
+	}
+	RETURN {
+		edges: tEdges,
+		totalCount: totalCount
+	} AS t
+}
+RETURN this {
+	t: t
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "m": [
+    {
+      "t": {
+        "e": [
+          {
+            "no": {
+              "ne": "A"
+            }
+          },
+          {
+            "no": {
+              "ne": "B"
+            }
+          },
+          {
+            "no": {
+              "ne": "C"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+----
+
+'''
+

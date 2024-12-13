@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = https://github.com/neo4j/graphql/issues/4532
 
-== Source schema
+== connections to interfaces with sort
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Inventory {
@@ -27,8 +29,6 @@ type InventoryChildRelation @relationshipProperties {
   order: Int
 }
 ----
-
-== connections to interfaces with sort
 
 .GraphQL-Query
 [source,graphql]
@@ -67,11 +67,11 @@ CALL {
 		MATCH (this)-[haschildren0:HasChildren]->(image0:Image)
 		WITH {
 			properties: {
-				__resolveType: 'InventoryChildRelation',
+				__typename: 'InventoryChildRelation',
 				order: haschildren0.order
 			},
 			node: {
-				__resolveType: 'Image',
+				__typename: 'Image',
 				id: image0.id,
 				__id: elementId(image0)
 			}
@@ -81,11 +81,11 @@ CALL {
 		MATCH (this)-[haschildren1:HasChildren]->(video0:Video)
 		WITH {
 			properties: {
-				__resolveType: 'InventoryChildRelation',
+				__typename: 'InventoryChildRelation',
 				order: haschildren1.order
 			},
 			node: {
-				__resolveType: 'Video',
+				__typename: 'Video',
 				id: video0.id,
 				__id: elementId(video0)
 			}

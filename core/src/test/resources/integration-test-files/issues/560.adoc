@@ -1,0 +1,147 @@
+:toc:
+:toclevels: 42
+
+= https://github.com/neo4j/graphql/issues/560
+
+== should not throw when Point is null
+
+.Schema
+[source,graphql,schema=true]
+----
+type Log {
+  id: ID!
+  location: Point
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (j:Log { id: "RandomString1" })
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  logs {
+    id
+    location {
+      longitude
+      latitude
+      height
+      crs
+      srid
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Log)
+RETURN this {
+	.id,
+	location: CASE WHEN this.location IS NOT NULL THEN {
+		longitude: this.location.longitude,
+		latitude: this.location.latitude,
+		height: CASE WHEN this.location.srid = 4979 THEN this.location.height ELSE NULL END,
+		crs: this.location.crs,
+		srid: this.location.srid
+	} ELSE NULL END
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "logs": [
+    {
+      "id": "RandomString1",
+      "location": null
+    }
+  ]
+}
+----
+
+'''
+
+== should not throw when CartesianPoint is null
+
+.Schema
+[source,graphql,schema=true]
+----
+type Log {
+  id: ID!
+  location: CartesianPoint
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (j:Log { id: "RandomString1" })
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  logs {
+    id
+    location {
+      x
+      y
+      z
+      crs
+      srid
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Log)
+RETURN this {
+	.id,
+	location: CASE WHEN this.location IS NOT NULL THEN {
+		x: this.location.x,
+		y: this.location.y,
+		z: CASE WHEN this.location.srid = 9157 THEN this.location.z ELSE NULL END,
+		crs: this.location.crs,
+		srid: this.location.srid
+	} ELSE NULL END
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "logs": [
+    {
+      "id": "RandomString1",
+      "location": null
+    }
+  ]
+}
+----
+
+'''
+

@@ -1,0 +1,458 @@
+:toc:
+:toclevels: 42
+
+= Point
+
+== Point
+
+.Schema
+[source,graphql,schema=true]
+----
+type Movie {
+  filmedAt: Point!
+}
+----
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+}
+
+type Movie {
+  filmedAt: Point!
+}
+
+type MovieEdge {
+  cursor: String!
+  node: Movie!
+}
+
+type MoviesConnection {
+  edges: [MovieEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+"A point in a coordinate system."
+type Point {
+  """
+  The coordinate reference systems (CRS)
+  -------------------------------------
+  possible values:
+  * `wgs-84`: A 2D geographic point in the WGS 84 CRS is specified by: longitude and latitude
+  * `wgs-84-3d`: A 3D geographic point in the WGS 84 CRS is specified by longitude, latitude and height
+  """
+  crs: String!
+  "The third element of the Coordinate for geographic CRS, meters above the ellipsoid defined by the datum (WGS-84)"
+  height: Float
+  """
+  The second element of the Coordinate for geographic CRS, degrees North of the equator
+  Range -90.0 to 90.0
+  """
+  latitude: Float!
+  """
+  The first element of the Coordinate for geographic CRS, degrees East of the prime meridian
+  Range -180.0 to 180.0
+  """
+  longitude: Float!
+  """
+  The internal Neo4j ID for the CRS
+  One of:
+  * `4326`: represents CRS `wgs-84`
+  * `4979`: represents CRS `wgs-84-3d`
+  """
+  srid: Int!
+}
+
+type Query {
+  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
+}
+
+"An enum for sorting in either ascending or descending order."
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+input MovieOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [MovieSort!]
+}
+
+"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+input MovieSort {
+  filmedAt: SortDirection
+}
+
+input MovieWhere {
+  AND: [MovieWhere!]
+  NOT: MovieWhere
+  OR: [MovieWhere!]
+  filmedAt: PointInput
+  filmedAt_DISTANCE: PointDistance
+  filmedAt_GT: PointDistance
+  filmedAt_GTE: PointDistance
+  filmedAt_IN: [PointInput!]
+  filmedAt_LT: PointDistance
+  filmedAt_LTE: PointDistance
+}
+
+"Input type for a point with a distance"
+input PointDistance {
+  "The distance in metres to be used when comparing two points"
+  distance: Float!
+  point: PointInput!
+}
+
+"Input type for a point"
+input PointInput {
+  "The third element of the Coordinate for geographic CRS, meters above the ellipsoid defined by the datum (WGS-84)"
+  height: Float
+  """
+  The second element of the Coordinate for geographic CRS, degrees North of the equator
+  Range -90.0 to 90.0
+  """
+  latitude: Float!
+  """
+  The first element of the Coordinate for geographic CRS, degrees East of the prime meridian
+  Range -180.0 to 180.0
+  """
+  longitude: Float!
+}
+
+----
+
+'''
+
+== CartesianPoint
+
+.Schema
+[source,graphql,schema=true]
+----
+type Machine {
+  partLocation: CartesianPoint!
+}
+----
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+}
+
+"A point in a two- or three-dimensional Cartesian coordinate system or in a three-dimensional cylindrical coordinate system."
+type CartesianPoint {
+  """
+  The coordinate reference systems (CRS)
+  -------------------------------------
+  possible values:
+  * `cartesian`: A 2D point in the Cartesian CRS is specified with a map containing x and y coordinate values
+  * `cartesian-3d`: A 3D point in the Cartesian CRS is specified with a map containing x, y and z coordinate values
+  """
+  crs: String!
+  """
+  The internal Neo4j ID for the CRS
+  One of:
+  * `7203`: represents CRS `cartesian`
+  * `9157`: represents CRS `cartesian-3d`
+  """
+  srid: Int!
+  x: Float!
+  y: Float!
+  z: Float
+}
+
+type Machine {
+  partLocation: CartesianPoint!
+}
+
+type MachineEdge {
+  cursor: String!
+  node: Machine!
+}
+
+type MachinesConnection {
+  edges: [MachineEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  machines(options: MachineOptions, where: MachineWhere): [Machine!]!
+  machinesConnection(after: String, first: Int, sort: [MachineSort], where: MachineWhere): MachinesConnection!
+}
+
+"An enum for sorting in either ascending or descending order."
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+"Input type for a cartesian point with a distance"
+input CartesianPointDistance {
+  distance: Float!
+  point: CartesianPointInput!
+}
+
+"Input type for a cartesian point"
+input CartesianPointInput {
+  x: Float!
+  y: Float!
+  z: Float
+}
+
+input MachineOptions {
+  limit: Int
+  offset: Int
+  "Specify one or more MachineSort objects to sort Machines by. The sorts will be applied in the order in which they are arranged in the array."
+  sort: [MachineSort!]
+}
+
+"Fields to sort Machines by. The order in which sorts are applied is not guaranteed when specifying many fields in one MachineSort object."
+input MachineSort {
+  partLocation: SortDirection
+}
+
+input MachineWhere {
+  AND: [MachineWhere!]
+  NOT: MachineWhere
+  OR: [MachineWhere!]
+  partLocation: CartesianPointInput
+  partLocation_DISTANCE: CartesianPointDistance
+  partLocation_GT: CartesianPointDistance
+  partLocation_GTE: CartesianPointDistance
+  partLocation_IN: [CartesianPointInput!]
+  partLocation_LT: CartesianPointDistance
+  partLocation_LTE: CartesianPointDistance
+}
+
+----
+
+'''
+
+== Points
+
+.Schema
+[source,graphql,schema=true]
+----
+type Movie {
+  filmedAt: [Point!]!
+}
+----
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+}
+
+type Movie {
+  filmedAt: [Point!]!
+}
+
+type MovieEdge {
+  cursor: String!
+  node: Movie!
+}
+
+type MoviesConnection {
+  edges: [MovieEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+"A point in a coordinate system."
+type Point {
+  """
+  The coordinate reference systems (CRS)
+  -------------------------------------
+  possible values:
+  * `wgs-84`: A 2D geographic point in the WGS 84 CRS is specified by: longitude and latitude
+  * `wgs-84-3d`: A 3D geographic point in the WGS 84 CRS is specified by longitude, latitude and height
+  """
+  crs: String!
+  "The third element of the Coordinate for geographic CRS, meters above the ellipsoid defined by the datum (WGS-84)"
+  height: Float
+  """
+  The second element of the Coordinate for geographic CRS, degrees North of the equator
+  Range -90.0 to 90.0
+  """
+  latitude: Float!
+  """
+  The first element of the Coordinate for geographic CRS, degrees East of the prime meridian
+  Range -180.0 to 180.0
+  """
+  longitude: Float!
+  """
+  The internal Neo4j ID for the CRS
+  One of:
+  * `4326`: represents CRS `wgs-84`
+  * `4979`: represents CRS `wgs-84-3d`
+  """
+  srid: Int!
+}
+
+type Query {
+  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, where: MovieWhere): MoviesConnection!
+}
+
+input MovieOptions {
+  limit: Int
+  offset: Int
+}
+
+input MovieWhere {
+  AND: [MovieWhere!]
+  NOT: MovieWhere
+  OR: [MovieWhere!]
+  filmedAt: [PointInput!]
+  filmedAt_INCLUDES: PointInput
+}
+
+"Input type for a point"
+input PointInput {
+  "The third element of the Coordinate for geographic CRS, meters above the ellipsoid defined by the datum (WGS-84)"
+  height: Float
+  """
+  The second element of the Coordinate for geographic CRS, degrees North of the equator
+  Range -90.0 to 90.0
+  """
+  latitude: Float!
+  """
+  The first element of the Coordinate for geographic CRS, degrees East of the prime meridian
+  Range -180.0 to 180.0
+  """
+  longitude: Float!
+}
+
+----
+
+'''
+
+== CartesianPoints
+
+.Schema
+[source,graphql,schema=true]
+----
+type Machine {
+  partLocations: [CartesianPoint!]!
+}
+----
+
+.Augmented Schema
+[source,graphql]
+----
+schema {
+  query: Query
+}
+
+"A point in a two- or three-dimensional Cartesian coordinate system or in a three-dimensional cylindrical coordinate system."
+type CartesianPoint {
+  """
+  The coordinate reference systems (CRS)
+  -------------------------------------
+  possible values:
+  * `cartesian`: A 2D point in the Cartesian CRS is specified with a map containing x and y coordinate values
+  * `cartesian-3d`: A 3D point in the Cartesian CRS is specified with a map containing x, y and z coordinate values
+  """
+  crs: String!
+  """
+  The internal Neo4j ID for the CRS
+  One of:
+  * `7203`: represents CRS `cartesian`
+  * `9157`: represents CRS `cartesian-3d`
+  """
+  srid: Int!
+  x: Float!
+  y: Float!
+  z: Float
+}
+
+type Machine {
+  partLocations: [CartesianPoint!]!
+}
+
+type MachineEdge {
+  cursor: String!
+  node: Machine!
+}
+
+type MachinesConnection {
+  edges: [MachineEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  machines(options: MachineOptions, where: MachineWhere): [Machine!]!
+  machinesConnection(after: String, first: Int, where: MachineWhere): MachinesConnection!
+}
+
+"Input type for a cartesian point"
+input CartesianPointInput {
+  x: Float!
+  y: Float!
+  z: Float
+}
+
+input MachineOptions {
+  limit: Int
+  offset: Int
+}
+
+input MachineWhere {
+  AND: [MachineWhere!]
+  NOT: MachineWhere
+  OR: [MachineWhere!]
+  partLocations: [CartesianPointInput!]
+  partLocations_INCLUDES: CartesianPointInput
+}
+
+----
+
+'''
+

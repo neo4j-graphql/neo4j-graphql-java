@@ -16,6 +16,7 @@ import org.neo4j.graphql.translate.projection.createInterfaceProjectionAndParams
 import org.neo4j.graphql.translate.projection.projectScalarField
 import org.neo4j.graphql.translate.where.createWhere
 import org.neo4j.graphql.utils.ResolveTree
+import org.neo4j.graphql.utils.SelectionOfType
 
 class ProjectionTranslator {
 
@@ -41,19 +42,27 @@ class ProjectionTranslator {
         }
 
         var selectedFields = resolveTree?.fieldsByTypeName?.get(node.name)
-            ?: return Projection(projection = projections)
 
-        selectedFields.values.forEach { field ->
-            val nodeField = node.getField(field.name) as? ComputedField ?: return@forEach
-            nodeField.annotations.customResolver?.requires?.run {
-                selectedFields = selectedFields.merge(this)
+        for (it in node.interfaces) {
+            val interfaceSelection = resolveTree?.fieldsByTypeName?.get(it.name)
+            if (selectedFields == null) {
+                selectedFields = interfaceSelection
+            } else if (interfaceSelection != null) {
+                selectedFields = selectedFields.merge(interfaceSelection)
             }
+        }
+        var requiredSelection: SelectionOfType = selectedFields ?: return Projection(projection = projections)
+
+        requiredSelection.values.forEach { field ->
+            val requirements = (node.getField(field.name) as? ComputedField)?.annotations?.customResolver?.requires
+                ?: return@forEach
+            requiredSelection = requiredSelection.merge(requirements)
         }
 
         val subQueries = mutableListOf<Statement>()
         val subQueriesBeforeSort = mutableListOf<Statement>()
 
-        selectedFields.values.forEach { field ->
+        requiredSelection.values.forEach { field ->
             val alias = field.aliasOrName
             val nodeField = node.getField(field.name) ?: return@forEach
 
@@ -72,8 +81,13 @@ class ProjectionTranslator {
                     projections += returnVariable
 
                 } else if (nodeField.isUnion) {
+                    val unionWhere = arguments.where as? WhereInput.UnionWhereInput
 
-                    val referenceNodes = requireNotNull(nodeField.union).nodes.values
+                    var referenceNodes = requireNotNull(nodeField.union).nodes.values
+                    if (unionWhere != null) {
+                        referenceNodes =
+                            referenceNodes.filter { !unionWhere.getDataForNode(it)?.predicates.isNullOrEmpty() }
+                    }
                     val aliasVar = queryContext.getNextVariable(alias)
 
                     val unionSubQueries = referenceNodes.map { refNode ->
@@ -114,7 +128,7 @@ class ProjectionTranslator {
                     }
 
                     subQueries += Cypher.with(varName)
-                        .call(Cypher.union(unionSubQueries))
+                        .call(unionSubQueries.union())
                         .with(aliasVar) // TODO remove
                         .applySortingSkipAndLimit(aliasVar, arguments.options, queryContext)
                         .returning(Cypher.collect(aliasVar).`as`(aliasVar))

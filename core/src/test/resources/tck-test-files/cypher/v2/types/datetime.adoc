@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = Cypher DateTime
 
-== Source schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Movie {
@@ -28,7 +30,7 @@ type Movie {
 [source,json]
 ----
 {
-  "param0" : "1970-01-01T00:00:00.000Z"
+  "param0" : "1970-01-01T00:00:00Z"
 }
 ----
 

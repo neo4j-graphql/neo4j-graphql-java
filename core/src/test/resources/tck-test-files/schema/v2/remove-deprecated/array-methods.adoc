@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
-= Arrays Methods -> Array of Float and Array of Actor relationships
+= Arrays Methods
 
-== Source schema
+== Array of Float and Array of Actor relationships
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Actor {
@@ -22,8 +24,6 @@ type ActedIn @relationshipProperties {
   pay: [Float]
 }
 ----
-
-== Augmented schema
 
 .Augmented Schema
 [source,graphql]
@@ -252,3 +252,4 @@ input MovieWhere {
 ----
 
 '''
+

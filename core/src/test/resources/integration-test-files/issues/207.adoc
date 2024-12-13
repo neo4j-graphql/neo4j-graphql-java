@@ -1,0 +1,60 @@
+:toc:
+:toclevels: 42
+
+= https://github.com/neo4j/graphql/issues/207
+
+== __resolveType resolvers are correctly evaluated
+
+.Schema
+[source,graphql,schema=true]
+----
+union Result = Book | Author
+
+type Book {
+  title: String
+}
+
+type Author {
+  name: String
+}
+
+type Query {
+  search: [Result]
+}
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+query GetSearchResults {
+  search {
+    __typename
+    ... on Book {
+      title
+    }
+    ... on Author {
+      name
+    }
+  }
+}
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "search": [
+    {
+      "__typename": "Book",
+      "title": "GraphQL Unions for Dummies"
+    },
+    {
+      "__typename": "Author",
+      "name": "Darrell"
+    }
+  ]
+}
+----
+
+'''
+

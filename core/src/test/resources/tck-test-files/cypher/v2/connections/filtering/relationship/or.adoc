@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = Cypher -> Connections -> Filtering -> Relationship -> OR
 
-== Source schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Movie {
@@ -76,12 +78,12 @@ CALL {
 		WITH edge.node AS actor0, edge.relationship AS actedIn0
 		RETURN collect( {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				role: actedIn0.role,
 				screenTime: actedIn0.screenTime
 			},
 			node: {
-				__resolveType: 'Actor',
+				__typename: 'Actor',
 				name: actor0.name
 			}
 		}) AS actorsConnectionEdges

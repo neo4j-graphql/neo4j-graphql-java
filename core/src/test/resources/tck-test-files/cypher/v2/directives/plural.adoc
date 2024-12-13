@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = Plural directive
 
-== Source schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Tech @plural(value: "Techs") {
@@ -11,13 +13,13 @@ type Tech @plural(value: "Techs") {
 }
 ----
 
-== Query with aliases
+== Select Tech with plural techs
 
 .GraphQL-Query
 [source,graphql]
 ----
 {
-  technologies: techs {
+  techs {
     name
   }
 }
@@ -40,13 +42,13 @@ RETURN this {
 
 '''
 
-== Select Tech with plural techs
+== Query with aliases
 
 .GraphQL-Query
 [source,graphql]
 ----
 {
-  techs {
+  technologies: techs {
     name
   }
 }

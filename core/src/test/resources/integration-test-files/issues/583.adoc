@@ -1,0 +1,161 @@
+:toc:
+:toclevels: 42
+
+= https://github.com/neo4j/graphql/issues/583
+
+== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+interface Show {
+  title: String
+}
+
+interface Awardable {
+  awardsGiven: Int!
+}
+
+type Actor implements Awardable {
+  id: ID!
+  name: String
+  awardsGiven: Int!
+  actedIn: [Show!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+
+type Movie implements Show & Awardable {
+  title: String
+  awardsGiven: Int!
+}
+
+type Series implements Show & Awardable {
+  title: String
+  awardsGiven: Int!
+}
+
+type ShortFilm implements Show {
+  title: String
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (actor:Actor:Test)
+ SET actor = {id: "RandomString1", name: "aaa", awardsGiven: 0}
+ CREATE (actor)-[:ACTED_IN]->(series:Series:Test)
+ SET series = {title: "stranger who", awardsGiven: 2}
+ CREATE (actor)-[:ACTED_IN]->(movie:Movie:Test)
+ SET movie = {title: "doctor things", awardsGiven: 42}
+ CREATE (actor)-[:ACTED_IN]->(shortFilm:ShortFilm:Test)
+ SET shortFilm = {title: "all too well"}
+----
+
+== should project all interfaces of node
+
+.GraphQL-Query
+[source,graphql]
+----
+query ($actorId: ID!) {
+  actors(where: {id: $actorId}) {
+    id
+    name
+    actedIn {
+      title
+      ... on Awardable {
+        awardsGiven
+      }
+    }
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "actorId": "RandomString1"
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "RandomString1"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+WHERE this.id = $param0
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[actedIn0:ACTED_IN]->(movie0:Movie)
+		WITH movie0 {
+			__typename: 'Movie',
+			__id: elementId(movie0),
+			.title,
+			.awardsGiven
+		} AS movie0
+		RETURN movie0 AS actedIn UNION
+		WITH *
+		MATCH (this)-[actedIn1:ACTED_IN]->(series0:Series)
+		WITH series0 {
+			__typename: 'Series',
+			__id: elementId(series0),
+			.title,
+			.awardsGiven
+		} AS series0
+		RETURN series0 AS actedIn UNION
+		WITH *
+		MATCH (this)-[actedIn2:ACTED_IN]->(shortFilm0:ShortFilm)
+		WITH shortFilm0 {
+			__typename: 'ShortFilm',
+			__id: elementId(shortFilm0),
+			.title
+		} AS shortFilm0
+		RETURN shortFilm0 AS actedIn
+	}
+	WITH actedIn
+	RETURN collect(actedIn) AS actedIn
+}
+RETURN this {
+	.id,
+	.name,
+	actedIn: actedIn
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "actors": [
+    {
+      "id": "RandomString1",
+      "name": "aaa",
+      "actedIn": [
+        {
+          "title": "doctor things",
+          "awardsGiven": 42
+        },
+        {
+          "title": "stranger who",
+          "awardsGiven": 2
+        },
+        {
+          "title": "all too well"
+        }
+      ]
+    }
+  ]
+}
+----
+
+'''
+

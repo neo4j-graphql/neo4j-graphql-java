@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = Cypher LocalTime
 
-== Source schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Movie {
@@ -11,38 +13,6 @@ type Movie {
   time: LocalTime
 }
 ----
-
-== GTE Read
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  movies(where: {time_GTE: "13:45:33.250"}) {
-    time
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0" : "13:45:33.250"
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Movie)
-WHERE this.time >= $param0
-RETURN this {
-	.time
-} AS this
-----
-
-'''
 
 == Simple Read
 
@@ -69,6 +39,38 @@ RETURN this {
 ----
 MATCH (this:Movie)
 WHERE this.time = $param0
+RETURN this {
+	.time
+} AS this
+----
+
+'''
+
+== GTE Read
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  movies(where: {time_GTE: "13:45:33.250"}) {
+    time
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "13:45:33.25"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.time >= $param0
 RETURN this {
 	.time
 } AS this

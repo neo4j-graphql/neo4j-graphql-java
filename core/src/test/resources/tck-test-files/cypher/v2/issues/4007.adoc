@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = https://github.com/neo4j/graphql/issues/4007
 
-== Source schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Movie {
@@ -59,7 +61,7 @@ CALL {
 		WITH edge.node AS actor0, edge.relationship AS actedIn0
 		RETURN collect( {
 			n: {
-				__resolveType: 'Actor',
+				__typename: 'Actor',
 				na: actor0.name
 			}
 		}) AS tEdges

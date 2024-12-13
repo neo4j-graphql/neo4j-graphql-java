@@ -1,0 +1,351 @@
+:toc:
+:toclevels: 42
+
+= https://github.com/neo4j/graphql/issues/3394
+
+== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+type Employee {
+  products: [Product!]! @relationship(type: "CAN_ACCESS", direction: OUT)
+}
+
+type Product {
+  id: String! @alias(property: "fg_item_id")
+  description: String!
+  partNumber: ID! @alias(property: "fg_item")
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (e:Employee {fg_item_id: "p1", description: "a p1", fg_item: "part1"})
+ CREATE (p1:Product {fg_item_id: "p1", description: "a p1", fg_item: "part1"})
+ CREATE (p2:Product {fg_item_id: "p2", description: "a p2", fg_item: "part2"})
+
+ CREATE (e)-[:CAN_ACCESS]->(p1)
+ CREATE (e)-[:CAN_ACCESS]->(p2)
+----
+
+== should sort elements by aliased field
+
+.GraphQL-Query
+[source,graphql]
+----
+query listProducts {
+  products(options: {sort: {partNumber: DESC}}) {
+    id
+    partNumber
+    description
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Product)
+WITH * ORDER BY this.fg_item DESC
+RETURN this {
+	id: this.fg_item_id,
+	partNumber: this.fg_item,
+	.description
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "products": [
+    {
+      "id": "p2",
+      "partNumber": "part2",
+      "description": "a p2"
+    },
+    {
+      "id": "p1",
+      "partNumber": "part1",
+      "description": "a p1"
+    }
+  ]
+}
+----
+
+'''
+
+== should sort elements by aliased field in relationship
+
+.GraphQL-Query
+[source,graphql]
+----
+query listProducts {
+  employees {
+    products(options: {sort: {partNumber: DESC}}) {
+      id
+      partNumber
+      description
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Employee)
+CALL {
+	WITH this
+	MATCH (this)-[canAccess0:CAN_ACCESS]->(product0:Product)
+	WITH product0 {
+		id: product0.fg_item_id,
+		partNumber: product0.fg_item,
+		.description
+	} AS products ORDER BY products.partNumber DESC
+	RETURN collect(products) AS products
+}
+RETURN this {
+	products: products
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "employees": [
+    {
+      "products": [
+        {
+          "id": "p2",
+          "partNumber": "part2",
+          "description": "a p2"
+        },
+        {
+          "id": "p1",
+          "partNumber": "part1",
+          "description": "a p1"
+        }
+      ]
+    }
+  ]
+}
+----
+
+'''
+
+== Connection sort
+
+=== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+type Employee {
+  products: [Product!]! @relationship(type: "CAN_ACCESS", direction: OUT)
+}
+
+type Product {
+  id: String! @alias(property: "fg_item_id")
+  description: String!
+  partNumber: ID! @alias(property: "fg_item")
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (e:Employee {fg_item_id: "p1", description: "a p1", fg_item: "part1"})
+ CREATE (p1:Product {fg_item_id: "p1", description: "a p1", fg_item: "part1"})
+ CREATE (p2:Product {fg_item_id: "p2", description: "a p2", fg_item: "part2"})
+
+ CREATE (e)-[:CAN_ACCESS]->(p1)
+ CREATE (e)-[:CAN_ACCESS]->(p2)
+----
+
+=== should sort elements by aliased field in connection
+
+.GraphQL-Query
+[source,graphql]
+----
+query listProducts {
+  productsConnection(sort: {partNumber: DESC}) {
+    edges {
+      node {
+        id
+        partNumber
+        description
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Product)
+WITH collect( {
+	node: this
+}) AS edges
+WITH edges, size(edges) AS totalCount
+CALL {
+	WITH edges
+	UNWIND edges AS edge
+	WITH edge.node AS this
+	WITH * ORDER BY this.fg_item DESC
+	RETURN collect( {
+		node: {
+			__typename: 'Product',
+			id: this.fg_item_id,
+			partNumber: this.fg_item,
+			description: this.description
+		}
+	}) AS edges0
+}
+RETURN {
+	edges: edges0,
+	totalCount: totalCount
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "productsConnection": {
+    "edges": [
+      {
+        "node": {
+          "id": "p2",
+          "partNumber": "part2",
+          "description": "a p2"
+        }
+      },
+      {
+        "node": {
+          "id": "p1",
+          "partNumber": "part1",
+          "description": "a p1"
+        }
+      }
+    ]
+  }
+}
+----
+
+'''
+
+=== should sort elements by aliased field in nested  connection
+
+.GraphQL-Query
+[source,graphql]
+----
+query listProducts {
+  employees {
+    productsConnection(sort: {node: {partNumber: DESC}}) {
+      edges {
+        node {
+          id
+          partNumber
+          description
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Employee)
+CALL {
+	WITH this
+	MATCH (this)-[canAccess0:CAN_ACCESS]->(product0:Product)
+	WITH collect( {
+		node: product0,
+		relationship: canAccess0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS product0, edge.relationship AS canAccess0 ORDER BY product0.fg_item DESC
+		RETURN collect( {
+			node: {
+				__typename: 'Product',
+				id: product0.fg_item_id,
+				partNumber: product0.fg_item,
+				description: product0.description
+			}
+		}) AS productsConnectionEdges
+	}
+	RETURN {
+		edges: productsConnectionEdges,
+		totalCount: totalCount
+	} AS productsConnection
+}
+RETURN this {
+	productsConnection: productsConnection
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "employees": [
+    {
+      "productsConnection": {
+        "edges": [
+          {
+            "node": {
+              "id": "p2",
+              "partNumber": "part2",
+              "description": "a p2"
+            }
+          },
+          {
+            "node": {
+              "id": "p1",
+              "partNumber": "part1",
+              "description": "a p1"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+----
+
+'''
+

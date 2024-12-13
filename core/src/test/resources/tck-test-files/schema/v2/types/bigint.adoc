@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
-= Bigint -> BigInt
+= Bigint
 
-== Source schema
+== BigInt
 
+.Schema
 [source,graphql,schema=true]
 ----
 type File {
@@ -11,8 +13,6 @@ type File {
   size: BigInt!
 }
 ----
-
-== Augmented schema
 
 .Augmented Schema
 [source,graphql]
@@ -94,3 +94,4 @@ input FileWhere {
 ----
 
 '''
+

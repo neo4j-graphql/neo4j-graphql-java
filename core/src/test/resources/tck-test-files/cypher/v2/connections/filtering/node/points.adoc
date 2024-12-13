@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = Cypher -> Connections -> Filtering -> Node -> Points
 
-== Source schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type Movie {
@@ -83,11 +85,11 @@ CALL {
 		WITH edge.node AS actor0, edge.relationship AS actedIn0
 		RETURN collect( {
 			properties: {
-				__resolveType: 'ActedIn',
+				__typename: 'ActedIn',
 				screenTime: actedIn0.screenTime
 			},
 			node: {
-				__resolveType: 'Actor',
+				__typename: 'Actor',
 				name: actor0.name,
 				currentLocation: CASE WHEN actor0.currentLocation IS NOT NULL THEN {
 					latitude: actor0.currentLocation.latitude,

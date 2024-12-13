@@ -4,7 +4,7 @@ import org.neo4j.graphql.asType
 import org.neo4j.graphql.domain.Interface
 import org.neo4j.graphql.schema.AugmentationContext
 
-data object InterfaceSelection : FieldContainerSelection() {
+data object InterfaceSelection : FieldContainerSelection {
 
     object Augmentation {
 

@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = https://github.com/neo4j/graphql/issues/1348
 
-== Source schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 interface Product {
@@ -64,7 +66,7 @@ CALL {
 		WITH *
 		MATCH (this)-[relatesTo0:RELATES_TO]-(programmeItem0:ProgrammeItem)
 		WITH programmeItem0 {
-			__resolveType: 'ProgrammeItem',
+			__typename: 'ProgrammeItem',
 			__id: elementId(programmeItem0),
 			.productTitle
 		} AS programmeItem0
@@ -72,7 +74,7 @@ CALL {
 		WITH *
 		MATCH (this)-[relatesTo1:RELATES_TO]-(season0:Season)
 		WITH season0 {
-			__resolveType: 'Season',
+			__typename: 'Season',
 			__id: elementId(season0),
 			.productTitle
 		} AS season0
@@ -80,7 +82,7 @@ CALL {
 		WITH *
 		MATCH (this)-[relatesTo2:RELATES_TO]-(series0:Series)
 		WITH series0 {
-			__resolveType: 'Series',
+			__typename: 'Series',
 			__id: elementId(series0),
 			.productTitle
 		} AS series0
@@ -143,7 +145,7 @@ CALL {
 		MATCH (this)-[relatesTo0:RELATES_TO]-(programmeItem0:ProgrammeItem)
 		WITH {
 			node: {
-				__resolveType: 'ProgrammeItem',
+				__typename: 'ProgrammeItem',
 				productTitle: programmeItem0.productTitle,
 				__id: elementId(programmeItem0)
 			}
@@ -153,7 +155,7 @@ CALL {
 		MATCH (this)-[relatesTo1:RELATES_TO]-(season0:Season)
 		WITH {
 			node: {
-				__resolveType: 'Season',
+				__typename: 'Season',
 				productTitle: season0.productTitle,
 				__id: elementId(season0)
 			}
@@ -163,7 +165,7 @@ CALL {
 		MATCH (this)-[relatesTo2:RELATES_TO]-(series0:Series)
 		WITH {
 			node: {
-				__resolveType: 'Series',
+				__typename: 'Series',
 				productTitle: series0.productTitle,
 				__id: elementId(series0)
 			}

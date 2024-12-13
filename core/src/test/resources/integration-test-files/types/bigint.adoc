@@ -1,0 +1,131 @@
+:toc:
+:toclevels: 42
+
+= BigInt
+
+== read
+
+=== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+type File {
+  name: String!
+  size: BigInt!
+}
+----
+
+=== should successfully query an node with a BigInt property
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (f:File)
+ SET f.name = "RandomString1"
+ SET f.size = 9223372036854775807
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  files(where: {name: "RandomString1"}) {
+    name
+    size
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "RandomString1"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:File)
+WHERE this.name = $param0
+RETURN this {
+	.name,
+	.size
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "files": [
+    {
+      "name": "RandomString1",
+      "size": "9223372036854775807"
+    }
+  ]
+}
+----
+
+'''
+
+=== should successfully query an node with a BigInt property using in where
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (f:File)
+ SET f.name = "RandomString1"
+ SET f.size = 8323372036854775807
+----
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  files(where: {size: 8323372036854775807}) {
+    name
+    size
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": {
+    "low": -1239023617,
+    "high": 1937936068
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:File)
+WHERE this.size = $param0
+RETURN this {
+	.name,
+	.size
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "files": [
+    {
+      "name": "RandomString1",
+      "size": "8323372036854775807"
+    }
+  ]
+}
+----
+
+'''
+

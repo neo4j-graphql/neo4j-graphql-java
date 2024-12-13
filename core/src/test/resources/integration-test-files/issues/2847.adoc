@@ -1,0 +1,92 @@
+:toc:
+:toclevels: 42
+
+= https://github.com/neo4j/graphql/issues/2847
+
+== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+interface Product {
+  name: String!
+}
+
+type Movie implements Product {
+  name: String!
+}
+
+type Actor {
+  name: String!
+  product: Product @relationship(type: "HAS_PRODUCT", direction: OUT)
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (c:Actor)
+ SET c.name = "Keanu"
+----
+
+== should returns actors even without any related product
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  actors {
+    name
+    product {
+      name
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[hasProduct0:HAS_PRODUCT]->(movie0:Movie)
+		WITH movie0 {
+			__typename: 'Movie',
+			__id: elementId(movie0),
+			.name
+		} AS movie0
+		RETURN movie0 AS product
+	}
+	WITH product
+	RETURN head(collect(product)) AS product
+}
+RETURN this {
+	.name,
+	product: product
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "actors": [
+    {
+      "name": "Keanu",
+      "product": null
+    }
+  ]
+}
+----
+
+'''
+

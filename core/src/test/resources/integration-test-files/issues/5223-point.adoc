@@ -1,0 +1,394 @@
+:toc:
+:toclevels: 42
+
+= https://github.com/neo4j/graphql/issues/5223, Point
+
+== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+type Location @node {
+  id: ID!
+  pointCoordinates: Point!
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (:Location { id: "1", pointCoordinates: point({longitude: -0.127758, latitude: 51.507351})})
+ CREATE (:Location { id: "2", pointCoordinates: point({longitude: 12.496365, latitude: 41.902782})})
+ CREATE (:Location { id: "3", pointCoordinates: point({longitude: 2.352222, latitude: 48.856613, height: 21})})
+----
+
+== should not fail when srid is queried
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  locations {
+    id
+    pointCoordinates {
+      latitude
+      longitude
+      height
+      crs
+      srid
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Location)
+RETURN this {
+	.id,
+	pointCoordinates: CASE WHEN this.pointCoordinates IS NOT NULL THEN {
+		latitude: this.pointCoordinates.latitude,
+		longitude: this.pointCoordinates.longitude,
+		height: CASE WHEN this.pointCoordinates.srid = 4979 THEN this.pointCoordinates.height ELSE NULL END,
+		crs: this.pointCoordinates.crs,
+		srid: this.pointCoordinates.srid
+	} ELSE NULL END
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "locations": [
+    {
+      "id": "1",
+      "pointCoordinates": {
+        "latitude": 51.507351,
+        "longitude": -0.127758,
+        "height": null,
+        "crs": "wgs-84",
+        "srid": 4326
+      }
+    },
+    {
+      "id": "2",
+      "pointCoordinates": {
+        "latitude": 41.902782,
+        "longitude": 12.496365,
+        "height": null,
+        "crs": "wgs-84",
+        "srid": 4326
+      }
+    },
+    {
+      "id": "3",
+      "pointCoordinates": {
+        "latitude": 48.856613,
+        "longitude": 2.352222,
+        "height": 21,
+        "crs": "wgs-84-3d",
+        "srid": 4979
+      }
+    }
+  ]
+}
+----
+
+'''
+
+== should not fail when srid is queried, Connection
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  locationsConnection {
+    edges {
+      node {
+        id
+        pointCoordinates {
+          latitude
+          longitude
+          height
+          crs
+          srid
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Location)
+WITH collect( {
+	node: this
+}) AS edges
+WITH edges, size(edges) AS totalCount
+CALL {
+	WITH edges
+	UNWIND edges AS edge
+	WITH edge.node AS this
+	RETURN collect( {
+		node: {
+			__typename: 'Location',
+			id: this.id,
+			pointCoordinates: CASE WHEN this.pointCoordinates IS NOT NULL THEN {
+				latitude: this.pointCoordinates.latitude,
+				longitude: this.pointCoordinates.longitude,
+				height: CASE WHEN this.pointCoordinates.srid = 4979 THEN this.pointCoordinates.height ELSE NULL END,
+				crs: this.pointCoordinates.crs,
+				srid: this.pointCoordinates.srid
+			} ELSE NULL END
+		}
+	}) AS edges0
+}
+RETURN {
+	edges: edges0,
+	totalCount: totalCount
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "locationsConnection": {
+    "edges": [
+      {
+        "node": {
+          "id": "1",
+          "pointCoordinates": {
+            "latitude": 51.507351,
+            "longitude": -0.127758,
+            "height": null,
+            "crs": "wgs-84",
+            "srid": 4326
+          }
+        }
+      },
+      {
+        "node": {
+          "id": "2",
+          "pointCoordinates": {
+            "latitude": 41.902782,
+            "longitude": 12.496365,
+            "height": null,
+            "crs": "wgs-84",
+            "srid": 4326
+          }
+        }
+      },
+      {
+        "node": {
+          "id": "3",
+          "pointCoordinates": {
+            "latitude": 48.856613,
+            "longitude": 2.352222,
+            "height": 21,
+            "crs": "wgs-84-3d",
+            "srid": 4979
+          }
+        }
+      }
+    ]
+  }
+}
+----
+
+'''
+
+== should not fail when srid is not queried
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  locations {
+    id
+    pointCoordinates {
+      latitude
+      longitude
+      height
+      crs
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Location)
+RETURN this {
+	.id,
+	pointCoordinates: CASE WHEN this.pointCoordinates IS NOT NULL THEN {
+		latitude: this.pointCoordinates.latitude,
+		longitude: this.pointCoordinates.longitude,
+		height: CASE WHEN this.pointCoordinates.srid = 4979 THEN this.pointCoordinates.height ELSE NULL END,
+		crs: this.pointCoordinates.crs
+	} ELSE NULL END
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "locations": [
+    {
+      "id": "1",
+      "pointCoordinates": {
+        "latitude": 51.507351,
+        "longitude": -0.127758,
+        "height": null,
+        "crs": "wgs-84"
+      }
+    },
+    {
+      "id": "2",
+      "pointCoordinates": {
+        "latitude": 41.902782,
+        "longitude": 12.496365,
+        "height": null,
+        "crs": "wgs-84"
+      }
+    },
+    {
+      "id": "3",
+      "pointCoordinates": {
+        "latitude": 48.856613,
+        "longitude": 2.352222,
+        "height": 21,
+        "crs": "wgs-84-3d"
+      }
+    }
+  ]
+}
+----
+
+'''
+
+== should not fail when srid is not queried, Connection
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  locationsConnection {
+    edges {
+      node {
+        id
+        pointCoordinates {
+          latitude
+          longitude
+          height
+          crs
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Location)
+WITH collect( {
+	node: this
+}) AS edges
+WITH edges, size(edges) AS totalCount
+CALL {
+	WITH edges
+	UNWIND edges AS edge
+	WITH edge.node AS this
+	RETURN collect( {
+		node: {
+			__typename: 'Location',
+			id: this.id,
+			pointCoordinates: CASE WHEN this.pointCoordinates IS NOT NULL THEN {
+				latitude: this.pointCoordinates.latitude,
+				longitude: this.pointCoordinates.longitude,
+				height: CASE WHEN this.pointCoordinates.srid = 4979 THEN this.pointCoordinates.height ELSE NULL END,
+				crs: this.pointCoordinates.crs
+			} ELSE NULL END
+		}
+	}) AS edges0
+}
+RETURN {
+	edges: edges0,
+	totalCount: totalCount
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "locationsConnection" : {
+    "edges" : [ {
+      "node" : {
+        "id" : "1",
+        "pointCoordinates" : {
+          "latitude" : 51.507351,
+          "longitude" : -0.127758,
+          "height" : null,
+          "crs" : "wgs-84"
+        }
+      }
+    }, {
+      "node" : {
+        "id" : "2",
+        "pointCoordinates" : {
+          "latitude" : 41.902782,
+          "longitude" : 12.496365,
+          "height" : null,
+          "crs" : "wgs-84"
+        }
+      }
+    }, {
+      "node" : {
+        "id" : "3",
+        "pointCoordinates" : {
+          "latitude" : 48.856613,
+          "longitude" : 2.352222,
+          "height" : 21.0,
+          "crs" : "wgs-84-3d"
+        }
+      }
+    } ]
+  }
+}
+----
+
+'''
+

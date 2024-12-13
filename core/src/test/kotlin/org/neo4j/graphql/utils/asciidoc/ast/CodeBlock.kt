@@ -11,6 +11,8 @@ class CodeBlock(
 
     var caption: String? = null
 
+    var markerStart: Int? = null
+    var markerEnd: Int? = null
     var start: Int? = null
     var end: Int? = null
 
@@ -33,11 +35,15 @@ class CodeBlock(
      */
     var tandemUpdate: CodeBlock? = null
 
-    val marker: String
-        get() = "[source,$language${attributes.map { ",${it.key}${it.value?.let { "=${it}" } ?: ""}" }.joinToString()}]"
+    var adjustedAttributes: MutableMap<String, String?>? = null
+
+    val adjustedMarker: String
+        get() = "[source,$language${
+            (adjustedAttributes ?: attributes).map { ",${it.key}${it.value?.let { "=${it}" } ?: ""}" }.joinToString("")
+        }]"
 
     override fun toString(): String {
-        return "CodeBlock(language='$language', attributes=$attributes)"
+        return "CodeBlock(language='$language', attributes=$attributes${adjustedAttributes?.let { ", adjustedAttributes=$it" } ?: ""})"
     }
 
     fun matches(language: String, filter: Map<String, String?> = emptyMap(), exactly: Boolean = false) =

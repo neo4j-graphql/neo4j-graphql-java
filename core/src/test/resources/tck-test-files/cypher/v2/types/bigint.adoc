@@ -1,9 +1,11 @@
 :toc:
+:toclevels: 42
 
 = Cypher BigInt
 
-== Source schema
+== Setup
 
+.Schema
 [source,graphql,schema=true]
 ----
 type File {
@@ -11,6 +13,41 @@ type File {
   size: BigInt!
 }
 ----
+
+== Querying with native BigInt in AST
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  files(where: {size: 9223372036854775807}) {
+    name
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : {
+    "low" : -1,
+    "high" : 2147483647
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:File)
+WHERE this.size = $param0
+RETURN this {
+	.name
+} AS this
+----
+
+'''
 
 == Querying with BigInt as string in AST
 
@@ -64,41 +101,6 @@ query Files($size: BigInt) {
 ----
 {
   "size": "9223372036854775807"
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0" : {
-    "low" : -1,
-    "high" : 2147483647
-  }
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:File)
-WHERE this.size = $param0
-RETURN this {
-	.name
-} AS this
-----
-
-'''
-
-== Querying with native BigInt in AST
-
-.GraphQL-Query
-[source,graphql]
-----
-{
-  files(where: {size: 9223372036854775807}) {
-    name
-  }
 }
 ----
 

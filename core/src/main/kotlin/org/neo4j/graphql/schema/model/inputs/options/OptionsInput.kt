@@ -10,6 +10,7 @@ import org.neo4j.graphql.domain.directives.LimitDirective
 import org.neo4j.graphql.schema.AugmentationBase
 import org.neo4j.graphql.schema.AugmentationContext
 import org.neo4j.graphql.schema.model.inputs.Dict
+import org.neo4j.graphql.utils.PagingUtils
 
 data class OptionsInput<SORT>(
     val limit: Int? = null,
@@ -66,10 +67,9 @@ data class OptionsInput<SORT>(
         ) = OptionsInput(
             map.nestedObject(limitName) as? Int,
             when (offsetName) {
-                Constants.AFTER -> (map.nestedObject(offsetName) as? String)?.let {
-                    TODO("implement navigation by cursor")
-                }
-
+                Constants.AFTER -> (map.nestedObject(offsetName) as? String)
+                    ?.let { PagingUtils.getOffsetFromCursor(it) }
+                    ?.let { it + 1 }
                 else -> map.nestedObject(offsetName) as? Int
             },
             if (sortFactory == null) emptyList() else map.nestedDictList(sortName).map { sortFactory(it) }

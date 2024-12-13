@@ -83,7 +83,7 @@ internal class ConnectionResolver private constructor(
         }
     }
 
-    override fun generateCypher(variable: String, env: DataFetchingEnvironment): Statement {
+    override fun generateCypher(env: DataFetchingEnvironment): Statement {
         val queryContext = env.queryContext()
         if (implementingType !is Node) {
             TODO()
@@ -95,7 +95,7 @@ internal class ConnectionResolver private constructor(
 
         val input = InputArguments(node, resolveTree.args)
 
-        val dslNode = node.asCypherNode(queryContext, variable)
+        val dslNode = node.asCypherNode(queryContext, RESULT_VARIABLE)
 
         val ongoingReading = TopLevelMatchTranslator(schemaConfig, env.variables, queryContext)
             .translateTopLevelMatch(
@@ -184,7 +184,7 @@ internal class ConnectionResolver private constructor(
             )
             .with(edges, Cypher.size(edges).`as`(totalCount))
             .withSubQueries(subQueries)
-            .returning(Cypher.mapOf(*topProjection.toTypedArray()).`as`(variable))
+            .returning(Cypher.mapOf(*topProjection.toTypedArray()).`as`(RESULT_VARIABLE))
             .build()
     }
 }

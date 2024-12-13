@@ -1,0 +1,893 @@
+:toc:
+:toclevels: 42
+
+= @customResolver directive
+
+== Require fields on same type
+
+=== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+type User {
+  firstName: String!
+  lastName: String!
+  fullName: String! @customResolver(requires: "firstName lastName")
+}
+----
+
+=== should not fetch required fields if @customResolver field is not selected
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  users {
+    firstName
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+RETURN this {
+	.firstName
+} AS this
+----
+
+'''
+
+=== should not over fetch when all required fields are manually selected
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  users {
+    firstName
+    lastName
+    fullName
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+RETURN this {
+	.firstName,
+	.lastName
+} AS this
+----
+
+'''
+
+=== should not over fetch when some required fields are manually selected
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  users {
+    firstName
+    fullName
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+RETURN this {
+	.firstName,
+	.lastName
+} AS this
+----
+
+'''
+
+=== should not over fetch when no required fields are manually selected
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  users {
+    fullName
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+RETURN this {
+	.firstName,
+	.lastName
+} AS this
+----
+
+'''
+
+== No required fields
+
+=== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+type User {
+  firstName: String!
+  lastName: String!
+  fullName: String! @customResolver
+}
+----
+
+=== should not over fetch when other fields are manually selected
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  users {
+    firstName
+    fullName
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+RETURN this {
+	.firstName
+} AS this
+----
+
+'''
+
+=== should not over fetch when no other fields are manually selected
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  users {
+    fullName
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+RETURN this {
+} AS this
+----
+
+'''
+
+== Require fields on nested types
+
+=== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+type City {
+  name: String!
+  population: Int
+}
+
+type Address {
+  street: String!
+  city: City! @relationship(type: "IN_CITY", direction: OUT)
+}
+
+type User {
+  id: ID!
+  firstName: String!
+  lastName: String!
+  address: Address @relationship(type: "LIVES_AT", direction: OUT)
+  fullName: String @customResolver(requires: "firstName lastName address { city { name population } }")
+}
+----
+
+=== should not over fetch when all required fields are manually selected
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  users {
+    firstName
+    lastName
+    fullName
+    address {
+      city {
+        name
+        population
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+CALL {
+	WITH this
+	MATCH (this)-[livesAt0:LIVES_AT]->(address0:Address)
+	CALL {
+		WITH address0
+		MATCH (address0)-[inCity0:IN_CITY]->(city0:City)
+		WITH city0 {
+			.name,
+			.population
+		} AS city
+		RETURN head(collect(city)) AS city
+	}
+	WITH address0 {
+		city: city
+	} AS address
+	RETURN head(collect(address)) AS address
+}
+RETURN this {
+	.firstName,
+	.lastName,
+	address: address
+} AS this
+----
+
+'''
+
+=== should not fetch required fields if @customResolver field is not selected
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  users {
+    firstName
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+RETURN this {
+	.firstName
+} AS this
+----
+
+'''
+
+=== should not over fetch when some required fields are manually selected
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  users {
+    lastName
+    fullName
+    address {
+      city {
+        population
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+CALL {
+	WITH this
+	MATCH (this)-[livesAt0:LIVES_AT]->(address0:Address)
+	CALL {
+		WITH address0
+		MATCH (address0)-[inCity0:IN_CITY]->(city0:City)
+		WITH city0 {
+			.population,
+			.name
+		} AS city
+		RETURN head(collect(city)) AS city
+	}
+	WITH address0 {
+		city: city
+	} AS address
+	RETURN head(collect(address)) AS address
+}
+RETURN this {
+	.lastName,
+	address: address,
+	.firstName
+} AS this
+----
+
+'''
+
+=== should not over fetch when no required fields are manually selected
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  users {
+    fullName
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+CALL {
+	WITH this
+	MATCH (this)-[livesAt0:LIVES_AT]->(address0:Address)
+	CALL {
+		WITH address0
+		MATCH (address0)-[inCity0:IN_CITY]->(city0:City)
+		WITH city0 {
+			.name,
+			.population
+		} AS city
+		RETURN head(collect(city)) AS city
+	}
+	WITH address0 {
+		city: city
+	} AS address
+	RETURN head(collect(address)) AS address
+}
+RETURN this {
+	.firstName,
+	.lastName,
+	address: address
+} AS this
+----
+
+'''
+
+== Require fields on nested unions
+
+=== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+union Publication = Book | Journal
+
+type Author {
+  name: String!
+  publications: [Publication!]! @relationship(type: "WROTE", direction: OUT)
+  publicationsWithAuthor: [String!]! @customResolver(requires: "name publications { ...on Book { title } ... on Journal { subject } }")
+}
+
+type Book {
+  title: String!
+  author: Author! @relationship(type: "WROTE", direction: IN)
+}
+
+type Journal {
+  subject: String!
+  author: Author! @relationship(type: "WROTE", direction: IN)
+}
+----
+
+=== should not over fetch when all required fields are manually selected
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  authors {
+    name
+    publicationsWithAuthor
+    publications {
+      ... on Book {
+        title
+      }
+      ... on Journal {
+        subject
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Author)
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[wrote0:WROTE]->(book0:Book)
+		WITH book0 {
+			__typename: 'Book',
+			__id: elementId(book0),
+			.title
+		} AS book0
+		RETURN book0 AS publications0 UNION
+		WITH *
+		MATCH (this)-[wrote1:WROTE]->(journal0:Journal)
+		WITH journal0 {
+			__typename: 'Journal',
+			__id: elementId(journal0),
+			.subject
+		} AS journal0
+		RETURN journal0 AS publications0
+	}
+	WITH publications0
+	RETURN collect(publications0) AS publications0
+}
+RETURN this {
+	.name,
+	publications: publications0
+} AS this
+----
+
+'''
+
+=== should not fetch required fields if @customResolver field is not selected
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  authors {
+    name
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Author)
+RETURN this {
+	.name
+} AS this
+----
+
+'''
+
+=== should not over fetch when some required fields are manually selected
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  authors {
+    publicationsWithAuthor
+    publications {
+      ... on Book {
+        title
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Author)
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[wrote0:WROTE]->(book0:Book)
+		WITH book0 {
+			__typename: 'Book',
+			__id: elementId(book0),
+			.title
+		} AS book0
+		RETURN book0 AS publications0 UNION
+		WITH *
+		MATCH (this)-[wrote1:WROTE]->(journal0:Journal)
+		WITH journal0 {
+			__typename: 'Journal',
+			__id: elementId(journal0),
+			.subject
+		} AS journal0
+		RETURN journal0 AS publications0
+	}
+	WITH publications0
+	RETURN collect(publications0) AS publications0
+}
+RETURN this {
+	publications: publications0,
+	.name
+} AS this
+----
+
+'''
+
+=== should not over fetch when no required fields are manually selected
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  authors {
+    publicationsWithAuthor
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Author)
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[wrote0:WROTE]->(book0:Book)
+		WITH book0 {
+			__typename: 'Book',
+			__id: elementId(book0),
+			.title
+		} AS book0
+		RETURN book0 AS publications0 UNION
+		WITH *
+		MATCH (this)-[wrote1:WROTE]->(journal0:Journal)
+		WITH journal0 {
+			__typename: 'Journal',
+			__id: elementId(journal0),
+			.subject
+		} AS journal0
+		RETURN journal0 AS publications0
+	}
+	WITH publications0
+	RETURN collect(publications0) AS publications0
+}
+RETURN this {
+	.name,
+	publications: publications0
+} AS this
+----
+
+'''
+
+== Require fields on nested interfaces
+
+=== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+interface Publication {
+  publicationYear: Int!
+}
+
+type Author {
+  name: String!
+  publications: [Publication!]! @relationship(type: "WROTE", direction: OUT)
+  publicationsWithAuthor: [String!]! @customResolver(requires: "name publications { publicationYear ...on Book { title } ... on Journal { subject } }")
+}
+
+type Book implements Publication {
+  title: String!
+  publicationYear: Int!
+  author: [Author!]! @relationship(type: "WROTE", direction: IN)
+}
+
+type Journal implements Publication {
+  subject: String!
+  publicationYear: Int!
+  author: [Author!]! @relationship(type: "WROTE", direction: IN)
+}
+----
+
+=== should not over fetch when all required fields are manually selected
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  authors {
+    name
+    publicationsWithAuthor
+    publications {
+      publicationYear
+      ... on Book {
+        title
+      }
+      ... on Journal {
+        subject
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Author)
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[wrote0:WROTE]->(book0:Book)
+		WITH book0 {
+			__typename: 'Book',
+			__id: elementId(book0),
+			.publicationYear,
+			.title
+		} AS book0
+		RETURN book0 AS publications UNION
+		WITH *
+		MATCH (this)-[wrote1:WROTE]->(journal0:Journal)
+		WITH journal0 {
+			__typename: 'Journal',
+			__id: elementId(journal0),
+			.publicationYear,
+			.subject
+		} AS journal0
+		RETURN journal0 AS publications
+	}
+	WITH publications
+	RETURN collect(publications) AS publications
+}
+RETURN this {
+	.name,
+	publications: publications
+} AS this
+----
+
+'''
+
+=== should not fetch required fields if @customResolver field is not selected
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  authors {
+    name
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Author)
+RETURN this {
+	.name
+} AS this
+----
+
+'''
+
+=== should not over fetch when some required fields are manually selected
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  authors {
+    publicationsWithAuthor
+    publications {
+      ... on Book {
+        title
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Author)
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[wrote0:WROTE]->(book0:Book)
+		WITH book0 {
+			__typename: 'Book',
+			__id: elementId(book0),
+			.title,
+			.publicationYear
+		} AS book0
+		RETURN book0 AS publications UNION
+		WITH *
+		MATCH (this)-[wrote1:WROTE]->(journal0:Journal)
+		WITH journal0 {
+			__typename: 'Journal',
+			__id: elementId(journal0),
+			.subject,
+			.publicationYear
+		} AS journal0
+		RETURN journal0 AS publications
+	}
+	WITH publications
+	RETURN collect(publications) AS publications
+}
+RETURN this {
+	publications: publications,
+	.name
+} AS this
+----
+
+'''
+
+=== should not over fetch when no required fields are manually selected
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  authors {
+    publicationsWithAuthor
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Author)
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[wrote0:WROTE]->(book0:Book)
+		WITH book0 {
+			__typename: 'Book',
+			__id: elementId(book0),
+			.title,
+			.publicationYear
+		} AS book0
+		RETURN book0 AS publications UNION
+		WITH *
+		MATCH (this)-[wrote1:WROTE]->(journal0:Journal)
+		WITH journal0 {
+			__typename: 'Journal',
+			__id: elementId(journal0),
+			.subject,
+			.publicationYear
+		} AS journal0
+		RETURN journal0 AS publications
+	}
+	WITH publications
+	RETURN collect(publications) AS publications
+}
+RETURN this {
+	.name,
+	publications: publications
+} AS this
+----
+
+'''
+

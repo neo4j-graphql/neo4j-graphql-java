@@ -1,0 +1,172 @@
+:toc:
+:toclevels: 42
+
+= Union filtering
+
+== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+union Production = Movie | Series
+
+type Movie {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN, properties: "ActedIn")
+}
+
+type Series {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN, properties: "ActedIn")
+}
+
+type Actor {
+  name: String!
+  actedIn: [Production!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
+}
+
+type ActedIn @relationshipProperties {
+  screenTime: Int!
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE(m1:Movie { title: "The Office" })
+ CREATE(m2:Movie { title: "The Office 2" })
+ CREATE(m3:Movie { title: "NOT The Office 2" })
+ CREATE(s1:Series { title: "The Office 2" })
+ CREATE(s2:Series { title: "NOT The Office" })
+ CREATE(a1:Actor {name: "Keanu"})
+ CREATE(a2:Actor {name: "Michael"})
+ CREATE(a3:Actor {name: "John"})
+ MERGE(a1)-[:ACTED_IN]->(m1)
+ MERGE(a1)-[:ACTED_IN]->(s2)
+ MERGE(a2)-[:ACTED_IN]->(m2)
+ MERGE(a2)-[:ACTED_IN]->(m3)
+ MERGE(a2)-[:ACTED_IN]->(s1)
+ MERGE(a3)-[:ACTED_IN]->(s1)
+ MERGE(a3)-[:ACTED_IN]->(s2)
+----
+
+== allow for filtering on top-level union relationships
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  productions(
+    where: {Movie: {title: "The Office"}, Series: {title: "The Office 2"}}
+  ) {
+    ... on Movie {
+      title
+    }
+    ... on Series {
+      title
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "The Office",
+  "param1": "The Office 2"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+	MATCH (movie0:Movie)
+	WHERE movie0.title = $param0
+	WITH movie0 {
+		__typename: 'Movie',
+		__id: elementId(movie0),
+		.title
+	} AS movie0
+	RETURN movie0 AS this UNION
+	MATCH (series0:Series)
+	WHERE series0.title = $param1
+	WITH series0 {
+		__typename: 'Series',
+		__id: elementId(series0),
+		.title
+	} AS series0
+	RETURN series0 AS this
+}
+WITH this
+RETURN this AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "productions": [
+    {
+      "title": "The Office"
+    },
+    {
+      "title": "The Office 2"
+    }
+  ]
+}
+----
+
+'''
+
+== allow for filtering on nested-level relationship unions
+
+.GraphQL-Query
+[source,graphql]
+----
+{
+  actors(where: {actedIn_SOME: {Movie: {title_CONTAINS: "Office"}}}) {
+    name
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "Office"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+WHERE EXISTS {
+	MATCH (this)-[:ACTED_IN]->(this0:Movie)
+	WHERE this0.title CONTAINS $param0
+}
+RETURN this {
+	.name
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "actors": [
+    {
+      "name": "Michael"
+    },
+    {
+      "name": "Keanu"
+    }
+  ]
+}
+----
+
+'''
+
