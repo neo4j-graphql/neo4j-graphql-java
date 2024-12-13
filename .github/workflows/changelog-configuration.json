@@ -55,5 +55,5 @@
   "tag_resolver" : {
     "method" : "semver"
   },
-  "base_branches" : []
+  "base_branches" : ["master-v2"]
 }
