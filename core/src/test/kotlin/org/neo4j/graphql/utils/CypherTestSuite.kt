@@ -527,16 +527,22 @@ class CypherTestSuite(fileName: String, val driver: Driver? = null, createMissin
 
     private fun assertEqualIgnoreOrder(expected: Any?, actual: Any?) {
         when (expected) {
-            is Map<*, *> -> Assertions.assertThat(actual).asInstanceOf(InstanceOfAssertFactories.MAP)
-                .hasSize(expected.size)
-                .containsOnlyKeys(*expected.keys.toTypedArray())
-                .satisfies(Consumer { it.forEach { (key, value) -> assertEqualIgnoreOrder(expected[key], value) } })
+            is Map<*, *> -> {
+                val mapAssert = Assertions.assertThat(actual).asInstanceOf(InstanceOfAssertFactories.MAP)
+                    .hasSize(expected.size)
+                    .containsOnlyKeys(*expected.keys.toTypedArray())
+                expected.forEach { (key, value) ->
+                    mapAssert.extractingByKey(key)
+                        .satisfies(Consumer { assertEqualIgnoreOrder(value, (actual as Map<*, *>)[key]) })
+                }
+            }
 
             is Collection<*> -> {
                 val assertions: List<Consumer<Any>> =
                     expected.map { e -> Consumer<Any> { a -> assertEqualIgnoreOrder(e, a) } }
                 Assertions.assertThat(actual).asInstanceOf(InstanceOfAssertFactories.LIST)
                     .hasSize(expected.size)
+                    .withFailMessage { "Expecting actual:\n  ${actual}\n to satisfy\n  ${expected}\n in any order." }
                     .satisfiesExactlyInAnyOrder(*assertions.toTypedArray())
             }
 
