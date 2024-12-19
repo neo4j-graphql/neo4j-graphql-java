@@ -38,7 +38,7 @@ type Actor {
 == should generate the correct schema
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -337,13 +337,11 @@ input SeriesWhere {
 }
 
 ----
-
-'''
 
 == aggregate false should generate the correct schema without aggregations
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -642,6 +640,3 @@ input SeriesWhere {
 }
 
 ----
-
-'''
-

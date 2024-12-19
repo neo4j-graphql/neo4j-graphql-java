@@ -19,7 +19,7 @@ type Actor {
 === should ignore undefined parameters on boolean NOT
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query MyQuery($name: String) {
   actors(where: {age_GT: 25, NOT: {name: $name}}) {
@@ -47,6 +47,3 @@ RETURN this {
 	.age
 } AS this
 ----
-
-'''
-

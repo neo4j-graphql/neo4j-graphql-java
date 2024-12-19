@@ -16,7 +16,7 @@ type Query {
 == should allow for a matrix input
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   test(fields: [["first"], ["second"]])
@@ -27,9 +27,6 @@ type Query {
 [source,json,response=true]
 ----
 {
-  "test": "Hello World first,second"
+  "test" : "Hello World first,second"
 }
 ----
-
-'''
-

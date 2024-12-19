@@ -22,7 +22,7 @@ type Product {
 == should sort by aliased field
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query listProducts {
   products(options: {sort: {partNumber: DESC}}) {
@@ -51,12 +51,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == should sort by aliased field in relationship
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query listProducts {
   employees {
@@ -94,14 +92,12 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Connection sort
 
 === should sort by aliased field in connection
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query listProducts {
   productsConnection(sort: {partNumber: DESC}) {
@@ -150,12 +146,10 @@ RETURN {
 } AS this
 ----
 
-'''
-
 === should sort by aliased field in nested connection
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query listProducts {
   employees {
@@ -212,6 +206,3 @@ RETURN this {
 	productsConnection: productsConnection
 } AS this
 ----
-
-'''
-

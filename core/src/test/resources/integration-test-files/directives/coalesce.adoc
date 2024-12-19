@@ -21,7 +21,7 @@ CREATE (:Movie {id: "RandomString1"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {classification: "Unrated"}) {
@@ -35,7 +35,7 @@ CREATE (:Movie {id: "RandomString1"})
 [source,json]
 ----
 {
-  "param0": "Unrated"
+  "param0" : "Unrated"
 }
 ----
 
@@ -54,16 +54,12 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "id": "RandomString1",
-      "classification": null
-    }
-  ]
+  "movies" : [ {
+    "id" : "RandomString1",
+    "classification" : null
+  } ]
 }
 ----
-
-'''
 
 == with enum values
 
@@ -88,7 +84,7 @@ CREATE (:Movie {id: "RandomString1"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {status: ACTIVE}) {
@@ -102,7 +98,7 @@ CREATE (:Movie {id: "RandomString1"})
 [source,json]
 ----
 {
-  "param0": "ACTIVE"
+  "param0" : "ACTIVE"
 }
 ----
 
@@ -121,16 +117,12 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "id": "RandomString1",
-      "status": null
-    }
-  ]
+  "movies" : [ {
+    "id" : "RandomString1",
+    "status" : null
+  } ]
 }
 ----
-
-'''
 
 == with enum list values
 
@@ -155,7 +147,7 @@ CREATE (:Movie {id: "RandomString1"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {statuses: [ACTIVE, INACTIVE]}) {
@@ -169,10 +161,7 @@ CREATE (:Movie {id: "RandomString1"})
 [source,json]
 ----
 {
-  "param0": [
-    "ACTIVE",
-    "INACTIVE"
-  ]
+  "param0" : [ "ACTIVE", "INACTIVE" ]
 }
 ----
 
@@ -191,14 +180,9 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "id": "RandomString1",
-      "statuses": null
-    }
-  ]
+  "movies" : [ {
+    "id" : "RandomString1",
+    "statuses" : null
+  } ]
 }
 ----
-
-'''
-

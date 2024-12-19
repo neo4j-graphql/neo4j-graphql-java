@@ -15,7 +15,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -90,8 +90,6 @@ input MovieWhere {
 
 ----
 
-'''
-
 == BigInt fields should be extended with Increment/Decrement operators
 
 .Schema
@@ -104,7 +102,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -182,8 +180,6 @@ input MovieWhere {
 
 ----
 
-'''
-
 == Float fields should be extended with Add/Subtract/Multiply/Divide operators
 
 .Schema
@@ -196,7 +192,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -271,8 +267,6 @@ input MovieWhere {
 
 ----
 
-'''
-
 == Operators should be presents in nested updates
 
 .Schema
@@ -291,7 +285,7 @@ type Director {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -474,8 +468,6 @@ input MovieWhere {
 
 ----
 
-'''
-
 == Should be supported in interfaces
 
 .Schema
@@ -498,7 +490,7 @@ type Person {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -739,8 +731,6 @@ input ProductionWhere {
 
 ----
 
-'''
-
 == Should be supported in Relationship properties
 
 .Schema
@@ -763,7 +753,7 @@ type ActedIn @relationshipProperties {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -984,6 +974,3 @@ input PersonWhere {
 }
 
 ----
-
-'''
-

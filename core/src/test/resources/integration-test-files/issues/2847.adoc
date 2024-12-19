@@ -32,7 +32,7 @@ CREATE (c:Actor)
 == should returns actors even without any related product
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   actors {
@@ -47,7 +47,7 @@ CREATE (c:Actor)
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -79,14 +79,9 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "actors": [
-    {
-      "name": "Keanu",
-      "product": null
-    }
-  ]
+  "actors" : [ {
+    "name" : "Keanu",
+    "product" : null
+  } ]
 }
 ----
-
-'''
-

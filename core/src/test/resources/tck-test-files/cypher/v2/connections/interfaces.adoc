@@ -35,7 +35,7 @@ type Actor {
 == Projecting interface node and relationship properties with no arguments
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   actors {
@@ -117,12 +117,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Projecting interface node and relationship properties with common where argument
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   actors {
@@ -209,12 +207,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Projecting interface node and relationship properties with where relationship argument
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   actors {
@@ -301,8 +297,6 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Projecting interface node and relationship properties with sort argument
 
 === field in selection set
@@ -310,7 +304,7 @@ RETURN this {
 ==== on edge
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   actors {
@@ -398,12 +392,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 ==== on node
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   actors {
@@ -490,15 +482,13 @@ RETURN this {
 	actedInConnection: actedInConnection
 } AS this
 ----
-
-'''
 
 === field not in selection set
 
 ==== on edge
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   actors {
@@ -583,12 +573,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 ==== on node
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   actors {
@@ -674,6 +662,3 @@ RETURN this {
 	actedInConnection: actedInConnection
 } AS this
 ----
-
-'''
-

@@ -23,7 +23,7 @@ type Movie @node(labels: ["Film"]) {
 == Read Unions
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "some title"}) {
@@ -88,6 +88,3 @@ RETURN this {
 	search: search0
 } AS this
 ----
-
-'''
-

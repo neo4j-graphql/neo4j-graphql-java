@@ -33,7 +33,7 @@ CREATE (e:Employee {fg_item_id: "p1", description: "a p1", fg_item: "part1"})
 == should sort elements by aliased field
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query listProducts {
   products(options: {sort: {partNumber: DESC}}) {
@@ -47,7 +47,7 @@ query listProducts {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -66,27 +66,22 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "products": [
-    {
-      "id": "p2",
-      "partNumber": "part2",
-      "description": "a p2"
-    },
-    {
-      "id": "p1",
-      "partNumber": "part1",
-      "description": "a p1"
-    }
-  ]
+  "products" : [ {
+    "id" : "p2",
+    "partNumber" : "part2",
+    "description" : "a p2"
+  }, {
+    "id" : "p1",
+    "partNumber" : "part1",
+    "description" : "a p1"
+  } ]
 }
 ----
-
-'''
 
 == should sort elements by aliased field in relationship
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query listProducts {
   employees {
@@ -102,7 +97,7 @@ query listProducts {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -128,26 +123,19 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "employees": [
-    {
-      "products": [
-        {
-          "id": "p2",
-          "partNumber": "part2",
-          "description": "a p2"
-        },
-        {
-          "id": "p1",
-          "partNumber": "part1",
-          "description": "a p1"
-        }
-      ]
-    }
-  ]
+  "employees" : [ {
+    "products" : [ {
+      "id" : "p2",
+      "partNumber" : "part2",
+      "description" : "a p2"
+    }, {
+      "id" : "p1",
+      "partNumber" : "part1",
+      "description" : "a p1"
+    } ]
+  } ]
 }
 ----
-
-'''
 
 == Connection sort
 
@@ -181,7 +169,7 @@ CREATE (e:Employee {fg_item_id: "p1", description: "a p1", fg_item: "part1"})
 === should sort elements by aliased field in connection
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query listProducts {
   productsConnection(sort: {partNumber: DESC}) {
@@ -199,7 +187,7 @@ query listProducts {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -234,33 +222,28 @@ RETURN {
 [source,json,response=true]
 ----
 {
-  "productsConnection": {
-    "edges": [
-      {
-        "node": {
-          "id": "p2",
-          "partNumber": "part2",
-          "description": "a p2"
-        }
-      },
-      {
-        "node": {
-          "id": "p1",
-          "partNumber": "part1",
-          "description": "a p1"
-        }
+  "productsConnection" : {
+    "edges" : [ {
+      "node" : {
+        "id" : "p2",
+        "partNumber" : "part2",
+        "description" : "a p2"
       }
-    ]
+    }, {
+      "node" : {
+        "id" : "p1",
+        "partNumber" : "part1",
+        "description" : "a p1"
+      }
+    } ]
   }
 }
 ----
 
-'''
-
 === should sort elements by aliased field in nested  connection
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query listProducts {
   employees {
@@ -280,7 +263,7 @@ query listProducts {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -322,30 +305,22 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "employees": [
-    {
-      "productsConnection": {
-        "edges": [
-          {
-            "node": {
-              "id": "p2",
-              "partNumber": "part2",
-              "description": "a p2"
-            }
-          },
-          {
-            "node": {
-              "id": "p1",
-              "partNumber": "part1",
-              "description": "a p1"
-            }
-          }
-        ]
-      }
+  "employees" : [ {
+    "productsConnection" : {
+      "edges" : [ {
+        "node" : {
+          "id" : "p2",
+          "partNumber" : "part2",
+          "description" : "a p2"
+        }
+      }, {
+        "node" : {
+          "id" : "p1",
+          "partNumber" : "part1",
+          "description" : "a p1"
+        }
+      } ]
     }
-  ]
+  } ]
 }
 ----
-
-'''
-

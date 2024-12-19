@@ -24,7 +24,7 @@ type Movie {
 == Simple IS NULL
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: null}) {
@@ -48,6 +48,3 @@ RETURN this {
 	.title
 } AS this
 ----
-
-'''
-

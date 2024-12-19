@@ -36,7 +36,7 @@ CREATE (c:Movie { id: "1", title: "Matrix" })-[:HAS_GENRE]->(:Genre { id: "10", 
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query Genres {
   genres(where: {moviesConnection_SOME: {node: {title: "Matrix"}}}) {
@@ -49,7 +49,7 @@ query Genres {
 [source,json]
 ----
 {
-  "param0": "Matrix"
+  "param0" : "Matrix"
 }
 ----
 
@@ -71,16 +71,10 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "genres": [
-    {
-      "name": "Sci-fi"
-    },
-    {
-      "name": "Action"
-    }
-  ]
+  "genres" : [ {
+    "name" : "Sci-fi"
+  }, {
+    "name" : "Action"
+  } ]
 }
 ----
-
-'''
-

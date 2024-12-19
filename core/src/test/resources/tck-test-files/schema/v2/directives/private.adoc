@@ -21,7 +21,7 @@ type User implements UserInterface {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -133,8 +133,6 @@ input UserWhere {
 
 ----
 
-'''
-
 == private is not inherited
 
 .Schema
@@ -153,7 +151,7 @@ type User implements UserInterface {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -271,6 +269,3 @@ input UserWhere {
 }
 
 ----
-
-'''
-

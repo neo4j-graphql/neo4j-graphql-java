@@ -16,15 +16,15 @@ type Movie {
 .Test Data
 [source,cypher,test-data=true]
 ----
-CREATE (m:Movie {id: "986"})
+CREATE (m:Movie {id: "42"})
  RETURN m {.id} as m
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
-  movies(where: {id: 986}) {
+  movies(where: {id: 42}) {
     id
   }
 }
@@ -34,7 +34,7 @@ CREATE (m:Movie {id: "986"})
 [source,json]
 ----
 {
-  "param0": "986"
+  "param0" : "42"
 }
 ----
 
@@ -52,13 +52,8 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "id": "986"
-    }
-  ]
+  "movies" : [ {
+    "id" : "42"
+  } ]
 }
 ----
-
-'''
-

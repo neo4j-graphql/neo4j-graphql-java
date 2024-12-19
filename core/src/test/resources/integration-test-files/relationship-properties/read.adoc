@@ -34,7 +34,7 @@ CREATE (:Actor { name: 'aRandomString2' })-[:ACTED_IN { screenTime: 105 }]->(m:M
 == Projecting node and relationship properties with no arguments
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "RandomString1"}) {
@@ -61,7 +61,7 @@ CREATE (:Actor { name: 'aRandomString2' })-[:ACTED_IN { screenTime: 105 }]->(m:M
 [source,json]
 ----
 {
-  "param0": "RandomString1"
+  "param0" : "RandomString1"
 }
 ----
 
@@ -108,45 +108,36 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "movies": [
-    {
-      "title": "RandomString1",
-      "actorsConnection": {
-        "totalCount": 3,
-        "edges": [
-          {
-            "properties": {
-              "screenTime": 105
-            },
-            "node": {
-              "name": "aRandomString2"
-            }
-          },
-          {
-            "properties": {
-              "screenTime": 105
-            },
-            "node": {
-              "name": "bRandomString3"
-            }
-          },
-          {
-            "properties": {
-              "screenTime": 5
-            },
-            "node": {
-              "name": "cRandomString4"
-            }
-          }
-        ],
-        "pageInfo": {
-          "hasNextPage": false
+  "movies" : [ {
+    "title" : "RandomString1",
+    "actorsConnection" : {
+      "totalCount" : 3,
+      "edges" : [ {
+        "properties" : {
+          "screenTime" : 105
+        },
+        "node" : {
+          "name" : "aRandomString2"
         }
+      }, {
+        "properties" : {
+          "screenTime" : 105
+        },
+        "node" : {
+          "name" : "bRandomString3"
+        }
+      }, {
+        "properties" : {
+          "screenTime" : 5
+        },
+        "node" : {
+          "name" : "cRandomString4"
+        }
+      } ],
+      "pageInfo" : {
+        "hasNextPage" : false
       }
     }
-  ]
+  } ]
 }
 ----
-
-'''
-

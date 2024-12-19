@@ -23,7 +23,7 @@ type School {
 == EXISTS should not be within return clause
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   people {
@@ -68,6 +68,3 @@ RETURN this {
 	attends: attends
 } AS this
 ----
-
-'''
-

@@ -17,7 +17,7 @@ type Movie {
 == Skipping
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(options: {offset: 1}) {
@@ -44,12 +44,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Limit
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(options: {limit: 1}) {
@@ -76,12 +74,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Skip + Limit
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(options: {limit: 1, offset: 2}) {
@@ -109,12 +105,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Skip + Limit as variables
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($offset: Int, $limit: Int) {
   movies(options: {limit: $limit, offset: $offset}) {
@@ -127,8 +121,8 @@ query ($offset: Int, $limit: Int) {
 [source,json,request=true]
 ----
 {
-  "offset": 0,
-  "limit": 0
+  "limit" : 0,
+  "offset" : 0
 }
 ----
 
@@ -151,12 +145,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Skip + Limit with other variables
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($offset: Int, $limit: Int, $title: String) {
   movies(options: {limit: $limit, offset: $offset}, where: {title: $title}) {
@@ -169,9 +161,9 @@ query ($offset: Int, $limit: Int, $title: String) {
 [source,json,request=true]
 ----
 {
-  "limit": 1,
-  "offset": 2,
-  "title": "some title"
+  "limit" : 1,
+  "offset" : 2,
+  "title" : "some title"
 }
 ----
 
@@ -195,6 +187,3 @@ RETURN this {
 	.title
 } AS this
 ----
-
-'''
-

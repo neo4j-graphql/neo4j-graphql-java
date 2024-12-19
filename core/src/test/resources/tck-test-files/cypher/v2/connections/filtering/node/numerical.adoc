@@ -27,7 +27,7 @@ type ActedIn @relationshipProperties {
 == LT
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies {
@@ -95,12 +95,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == LTE
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies {
@@ -168,12 +166,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == GT
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies {
@@ -241,12 +237,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == GTE
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies {
@@ -313,6 +307,3 @@ RETURN this {
 	actorsConnection: actorsConnection
 } AS this
 ----
-
-'''
-

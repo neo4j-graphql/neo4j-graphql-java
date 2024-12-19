@@ -19,14 +19,14 @@ type Movie {
 [source,cypher,test-data=true]
 ----
 CREATE (m:Movie)
- SET m.datetime = datetime("2024-12-01T15:46:12.637000000Z")
+ SET m.datetime = datetime("2024-12-24T18:42:24.123000000Z")
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
-  movies(where: {datetime: "2024-12-01T15:46:12.637Z"}) {
+  movies(where: {datetime: "2024-12-24T18:42:24.123Z"}) {
     datetime
   }
 }
@@ -36,7 +36,7 @@ CREATE (m:Movie)
 [source,json]
 ----
 {
-  "param0" : "2024-12-01T15:46:12.637Z"
+  "param0" : "2024-12-24T18:42:24.123Z"
 }
 ----
 
@@ -54,15 +54,11 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "datetime": "2024-12-01T15:46:12.637Z"
-    }
-  ]
+  "movies" : [ {
+    "datetime" : "2024-12-24T18:42:24.123Z"
+  } ]
 }
 ----
-
-'''
 
 === should find a movie (with a DateTime created with a timezone)
 
@@ -80,11 +76,11 @@ type Movie {
 ----
 CREATE (m:Movie)
  SET m.name = "Movie"
- SET m.datetime = datetime("2024-12-01T15:46:12.702[Etc/UTC]")
+ SET m.datetime = datetime("2024-12-24T18:42:24.123[Etc/UTC]")
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {name: "Movie"}) {
@@ -97,7 +93,7 @@ CREATE (m:Movie)
 [source,json]
 ----
 {
-  "param0": "Movie"
+  "param0" : "Movie"
 }
 ----
 
@@ -115,13 +111,8 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "datetime": "2024-12-01T15:46:12.702Z"
-    }
-  ]
+  "movies" : [ {
+    "datetime" : "2024-12-24T18:42:24.123Z"
+  } ]
 }
 ----
-
-'''
-

@@ -36,7 +36,7 @@ type Movie {
 === Simple
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query($title: String, $isFavorite: Boolean) {
     movie(where: { title: $title, isFavorite: $isFavorite }) {
@@ -76,7 +76,7 @@ RETURN movie {
 === Simple AND
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     movie(where: { AND: [{ title: "some title" }] }) {
@@ -108,7 +108,7 @@ RETURN movie {
 === Nested AND
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     movie(where: { AND: [{ AND: [{ title: "some title" }] }] }) {
@@ -140,7 +140,7 @@ RETURN movie {
 === Super Nested AND
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     movie(where: { AND: [{ AND: [{ AND: [{ title: "some title" }] }] }] }) {
@@ -172,7 +172,7 @@ RETURN movie {
 === Simple OR
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     movie(where: { OR: [{ title: "some title" }] }) {
@@ -204,7 +204,7 @@ RETURN movie {
 === Nested OR
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     movie(where: { OR: [{ OR: [{ title: "some title" }] }] }) {
@@ -236,7 +236,7 @@ RETURN movie {
 === Super Nested OR
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     movie(where: { OR: [{ OR: [{ OR: [{ title: "some title" }] }] }] }) {
@@ -268,7 +268,7 @@ RETURN movie {
 === Simple IN
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     movie(where: { title_in: ["some title"] }) {

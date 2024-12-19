@@ -36,7 +36,7 @@ CREATE (c:Movie { id: "1", title: "Matrix" })-[:HAS_GENRE]->(:Genre { id: "10", 
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query MoviesConnection {
   moviesConnection {
@@ -48,7 +48,7 @@ query MoviesConnection {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -68,11 +68,8 @@ RETURN {
 [source,json,response=true]
 ----
 {
-  "moviesConnection": {
-    "totalCount": 2
+  "moviesConnection" : {
+    "totalCount" : 2
   }
 }
 ----
-
-'''
-

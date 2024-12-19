@@ -23,10 +23,10 @@ type Movie {
 [source,json,schema-config=true]
 ----
 {
-  "features": {
-    "filters": {
-      "String": {
-        "MATCHES": true
+  "features" : {
+    "filters" : {
+      "String" : {
+        "MATCHES" : true
       }
     }
   }
@@ -34,7 +34,7 @@ type Movie {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {status: ACTIVE}) {
@@ -63,8 +63,6 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Coalesce with enum in projection
 
 .Schema
@@ -89,10 +87,10 @@ type Actor {
 [source,json,schema-config=true]
 ----
 {
-  "features": {
-    "filters": {
-      "String": {
-        "MATCHES": true
+  "features" : {
+    "filters" : {
+      "String" : {
+        "MATCHES" : true
       }
     }
   }
@@ -100,7 +98,7 @@ type Actor {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query Actors {
   actors {
@@ -159,8 +157,6 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Coalesce with enum list in projection
 
 .Schema
@@ -182,7 +178,7 @@ type Actor {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query Actors {
   actors {
@@ -240,6 +236,3 @@ RETURN this {
 	moviesConnection: moviesConnection
 } AS this
 ----
-
-'''
-

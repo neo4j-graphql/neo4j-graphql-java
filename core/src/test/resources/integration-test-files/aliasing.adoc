@@ -25,7 +25,7 @@ CREATE (movie:Movie)
 == should correctly alias an ID field
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($id: ID!) {
   movies(where: {id: $id}) {
@@ -40,7 +40,7 @@ query ($id: ID!) {
 [source,json,request=true]
 ----
 {
-  "id": "RandomString1"
+  "id" : "RandomString1"
 }
 ----
 
@@ -48,7 +48,7 @@ query ($id: ID!) {
 [source,json]
 ----
 {
-  "param0": "RandomString1"
+  "param0" : "RandomString1"
 }
 ----
 
@@ -68,22 +68,18 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "aliased": "RandomString1",
-      "budget": 63,
-      "boxOffice": 465.3
-    }
-  ]
+  "movies" : [ {
+    "aliased" : "RandomString1",
+    "budget" : 63,
+    "boxOffice" : 465.3
+  } ]
 }
 ----
-
-'''
 
 == should correctly alias an Int field
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($id: ID!) {
   movies(where: {id: $id}) {
@@ -98,7 +94,7 @@ query ($id: ID!) {
 [source,json,request=true]
 ----
 {
-  "id": "RandomString1"
+  "id" : "RandomString1"
 }
 ----
 
@@ -106,7 +102,7 @@ query ($id: ID!) {
 [source,json]
 ----
 {
-  "param0": "RandomString1"
+  "param0" : "RandomString1"
 }
 ----
 
@@ -126,22 +122,18 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "id": "RandomString1",
-      "aliased": 63,
-      "boxOffice": 465.3
-    }
-  ]
+  "movies" : [ {
+    "id" : "RandomString1",
+    "aliased" : 63,
+    "boxOffice" : 465.3
+  } ]
 }
 ----
-
-'''
 
 == should correctly alias an Float field
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($id: ID!) {
   movies(where: {id: $id}) {
@@ -156,7 +148,7 @@ query ($id: ID!) {
 [source,json,request=true]
 ----
 {
-  "id": "RandomString1"
+  "id" : "RandomString1"
 }
 ----
 
@@ -164,7 +156,7 @@ query ($id: ID!) {
 [source,json]
 ----
 {
-  "param0": "RandomString1"
+  "param0" : "RandomString1"
 }
 ----
 
@@ -184,15 +176,10 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "id": "RandomString1",
-      "budget": 63,
-      "aliased": 465.3
-    }
-  ]
+  "movies" : [ {
+    "id" : "RandomString1",
+    "budget" : 63,
+    "aliased" : 465.3
+  } ]
 }
 ----
-
-'''
-

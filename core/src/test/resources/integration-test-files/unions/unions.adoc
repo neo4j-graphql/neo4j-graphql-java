@@ -30,7 +30,7 @@ CREATE (m:Movie {title: "RandomString1"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies {
@@ -46,7 +46,7 @@ CREATE (m:Movie {title: "RandomString1"})
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -84,20 +84,13 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "movies": [
-    {
-      "search": [
-        {
-          "name": "RandomString2"
-        },
-        {}
-      ]
-    }
-  ]
+  "movies" : [ {
+    "search" : [ {
+      "name" : "RandomString2"
+    }, { } ]
+  } ]
 }
 ----
-
-'''
 
 == should read and return unions
 
@@ -126,7 +119,7 @@ CREATE (m:Movie {title: "RandomString1"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "RandomString1"}) {
@@ -147,7 +140,7 @@ CREATE (m:Movie {title: "RandomString1"})
 [source,json]
 ----
 {
-  "param0": "RandomString1"
+  "param0" : "RandomString1"
 }
 ----
 
@@ -188,24 +181,17 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "movies": [
-    {
-      "search": [
-        {
-          "__typename": "Genre",
-          "name": "RandomString2"
-        },
-        {
-          "__typename": "Movie",
-          "title": "RandomString1"
-        }
-      ]
-    }
-  ]
+  "movies" : [ {
+    "search" : [ {
+      "__typename" : "Genre",
+      "name" : "RandomString2"
+    }, {
+      "__typename" : "Movie",
+      "title" : "RandomString1"
+    } ]
+  } ]
 }
 ----
-
-'''
 
 == should read and return correct union members with where argument
 
@@ -236,7 +222,7 @@ CREATE (m:Movie {title: "RandomString1"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "RandomString1"}) {
@@ -257,8 +243,8 @@ CREATE (m:Movie {title: "RandomString1"})
 [source,json]
 ----
 {
-  "param0": "RandomString1",
-  "param1": "RandomString2"
+  "param0" : "RandomString1",
+  "param1" : "RandomString2"
 }
 ----
 
@@ -268,38 +254,38 @@ CREATE (m:Movie {title: "RandomString1"})
 MATCH (this:Movie)
 WHERE this.title = $param0
 CALL {
-    WITH this
-    CALL {
-        WITH *
-        MATCH (this)-[this0:SEARCH]->(this1:Genre)
-        WHERE this1.name = $param1
-        WITH this1 { .name, __typename: "Genre", __id: toString(id(this1)) } AS this1
-        RETURN this1 AS var2
-    }
-    WITH var2
-    RETURN collect(var2) AS var2
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[this0:SEARCH]->(this1:Genre)
+		WHERE this1.name = $param1
+		WITH this1 {
+			.name,
+			__typename: 'Genre',
+			__id: toString(id(this1))
+		} AS this1
+		RETURN this1 AS var2
+	}
+	WITH var2
+	RETURN collect(var2) AS var2
 }
-RETURN this { search: var2 } AS this
+RETURN this {
+	search: var2
+} AS this
 ----
 
 .GraphQL-Response
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "search": [
-        {
-          "__typename": "Genre",
-          "name": "RandomString2"
-        }
-      ]
-    }
-  ]
+  "movies" : [ {
+    "search" : [ {
+      "__typename" : "Genre",
+      "name" : "RandomString2"
+    } ]
+  } ]
 }
 ----
-
-'''
 
 == should read and return unions with sort and limit
 
@@ -333,7 +319,7 @@ CREATE (m:Movie {title: "originalMovie"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "originalMovie"}) {
@@ -353,9 +339,9 @@ CREATE (m:Movie {title: "originalMovie"})
 [source,json]
 ----
 {
-  "param0": "originalMovie",
-  "param1": 1,
-  "param2": 3
+  "param0" : "originalMovie",
+  "param1" : 1,
+  "param2" : 3
 }
 ----
 
@@ -392,27 +378,12 @@ RETURN this {
 } AS this
 ----
 
-.GraphQL-Response
-[source,json,response=true,ignore-order]
-----
-{
-  "movies": [
-    {
-      "search": [
-        {
-          "name": "genre1"
-        },
-        {
-          "title": "movie1"
-        },
-        {
-          "title": "movie2"
-        }
-      ]
-    }
-  ]
-}
-----
-
-'''
-
+.GraphQL-Response Assertions
+[%header,format=csv,response=true]
+|===
+Path,Condition,Expected Value
+movies.size(),==,1
+movies[0].search.size(),==,3
+length($.movies[0].search[?(@.name)]),>=,1
+length($.movies[0].search[?(@.title)]),>=,1
+|===

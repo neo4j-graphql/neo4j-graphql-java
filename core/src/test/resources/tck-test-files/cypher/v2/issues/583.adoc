@@ -40,7 +40,7 @@ type ShortFilm implements Show {
 == Should resolve properties from common interface
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query shows {
   actors {
@@ -104,6 +104,3 @@ RETURN this {
 	actedIn: actedIn
 } AS this
 ----
-
-'''
-

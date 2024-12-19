@@ -57,7 +57,7 @@ type Review @relation(name:"REVIEWED", to: "movie") {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movie(filter: {
@@ -121,7 +121,7 @@ CAUTION: *Not yet implemented*
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movie(filter: {
@@ -189,7 +189,7 @@ RETURN movie { .title } AS movie
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movie(filter: {
@@ -250,7 +250,7 @@ RETURN movie {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movie(filter: {
@@ -315,7 +315,7 @@ CAUTION: *Not yet implemented*
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movie(filter: {
@@ -425,7 +425,7 @@ RETURN movie { .title } AS movie
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movie(filter: {
@@ -498,7 +498,7 @@ RETURN movie {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movie(filter: {
@@ -555,7 +555,7 @@ RETURN movie {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movie(filter: {
@@ -609,7 +609,7 @@ RETURN movie {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movie(filter: {
@@ -695,7 +695,7 @@ RETURN movie {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movie(filter: {
@@ -781,7 +781,7 @@ RETURN movie {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movie(filter: {
@@ -835,7 +835,7 @@ RETURN movie {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movie(filter: {
@@ -915,7 +915,7 @@ RETURN movie {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   person(filter:{ location_not: null}){
@@ -952,7 +952,7 @@ RETURN person {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   person(filter:{ location: null}){
@@ -989,7 +989,7 @@ RETURN person {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   person(filter:{ location_not: {longitude: 3, latitude: 3}}){
@@ -1030,7 +1030,7 @@ RETURN person {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   person(filter:{ location_distance_lt: { distance: 3, point: {longitude: 1, latitude:2, height: 3}}}){

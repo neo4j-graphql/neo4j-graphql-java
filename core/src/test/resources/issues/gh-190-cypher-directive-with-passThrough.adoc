@@ -43,7 +43,7 @@ CREATE
 === Query projected data
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query getUser {
   user: getUser(userId: "u1") {

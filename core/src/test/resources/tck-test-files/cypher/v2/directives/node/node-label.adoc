@@ -23,7 +23,7 @@ type Movie @node(labels: ["Film"]) {
 == Select Movie with label Film
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies {
@@ -47,12 +47,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Select movie and actor with custom labels
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies {
@@ -88,12 +86,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Select movie and actor with custom labels using Relay connection
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies {
@@ -148,6 +144,3 @@ RETURN this {
 	actorsConnection: actorsConnection
 } AS this
 ----
-
-'''
-

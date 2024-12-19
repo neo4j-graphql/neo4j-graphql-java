@@ -25,7 +25,7 @@ union Pet @plural(value: "petties") = Dog | Cat
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -197,6 +197,3 @@ input QueryOptions {
 }
 
 ----
-
-'''
-

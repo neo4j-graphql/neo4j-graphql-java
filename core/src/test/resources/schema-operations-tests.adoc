@@ -30,7 +30,7 @@ schema {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: CustomQueryType
@@ -128,7 +128,7 @@ input _PersonFilter {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: CustomQueryType

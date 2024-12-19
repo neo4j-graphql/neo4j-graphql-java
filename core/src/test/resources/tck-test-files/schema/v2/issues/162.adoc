@@ -24,7 +24,7 @@ type TigerJawLevel2Part1 {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -227,6 +227,3 @@ input TigerWhere {
 }
 
 ----
-
-'''
-

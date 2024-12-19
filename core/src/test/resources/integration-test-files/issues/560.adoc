@@ -21,7 +21,7 @@ CREATE (j:Log { id: "RandomString1" })
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   logs {
@@ -40,7 +40,7 @@ CREATE (j:Log { id: "RandomString1" })
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -63,16 +63,12 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "logs": [
-    {
-      "id": "RandomString1",
-      "location": null
-    }
-  ]
+  "logs" : [ {
+    "id" : "RandomString1",
+    "location" : null
+  } ]
 }
 ----
-
-'''
 
 == should not throw when CartesianPoint is null
 
@@ -92,7 +88,7 @@ CREATE (j:Log { id: "RandomString1" })
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   logs {
@@ -111,7 +107,7 @@ CREATE (j:Log { id: "RandomString1" })
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -134,14 +130,9 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "logs": [
-    {
-      "id": "RandomString1",
-      "location": null
-    }
-  ]
+  "logs" : [ {
+    "id" : "RandomString1",
+    "location" : null
+  } ]
 }
 ----
-
-'''
-

@@ -21,7 +21,7 @@ type Movie {
 == Merge Mutation
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation {
   mergePerson(id: "test-id", name: "test-name") {
@@ -59,7 +59,7 @@ RETURN mergePerson {
 == Update Mutation
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation {
   updatePerson(id: "test-id", name: "other-test-name") {
@@ -97,7 +97,7 @@ RETURN updatePerson {
 == Delete Mutation
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation {
   deletePerson(id: "test-id") {
@@ -131,7 +131,7 @@ RETURN deletePerson AS deletePerson
 == Add Relationship Mutation
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation {
   addPersonActedIn(id: "test-id", actedIn: "test-movie") {
@@ -170,7 +170,7 @@ RETURN addPersonActedIn {
 == Delete Relationship Mutation
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation {
   deletePersonActedIn(id: "test-id", actedIn: "test-movie") {

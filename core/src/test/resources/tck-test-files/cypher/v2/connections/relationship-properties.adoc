@@ -27,7 +27,7 @@ type ActedIn @relationshipProperties {
 == Projecting node and relationship properties with no arguments
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "Forrest Gump"}) {
@@ -93,12 +93,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Projecting node and relationship properties with where argument
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "Forrest Gump"}) {
@@ -166,12 +164,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Projecting node and relationship properties with sort argument
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "Forrest Gump"}) {
@@ -237,12 +233,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Projecting node and relationship properties with sort argument ordered edge first
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies {
@@ -303,12 +297,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Projecting node and relationship properties with sort argument ordered node first
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies {
@@ -369,12 +361,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Projecting twice nested node and relationship properties with no arguments
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "Forrest Gump"}) {
@@ -479,12 +469,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Projecting thrice nested node and relationship properties with no arguments
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "Forrest Gump"}) {
@@ -627,6 +615,3 @@ RETURN this {
 	actorsConnection: actorsConnection
 } AS this
 ----
-
-'''
-

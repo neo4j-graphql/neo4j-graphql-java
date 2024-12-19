@@ -18,7 +18,7 @@ type Category {
 == Add Parent
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation {
   addCategoryParentCategory(id: "1", parentCategory: "2") {
@@ -57,7 +57,7 @@ RETURN addCategoryParentCategory {
 == Add sub categories
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation {
   addCategorySubCategories(id: "2", subCategories: ["3", "4"]) {

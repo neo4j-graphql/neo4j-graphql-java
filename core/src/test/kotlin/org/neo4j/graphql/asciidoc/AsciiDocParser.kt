@@ -1,26 +1,30 @@
 package org.neo4j.graphql.asciidoc
 
-import org.neo4j.graphql.asciidoc.ast.*
 import org.apache.commons.csv.CSVFormat
-import java.io.File
+import org.neo4j.graphql.asciidoc.ast.*
 import java.net.URI
+import java.nio.file.Path
 import java.util.regex.Pattern
 import javax.ws.rs.core.UriBuilder
+import kotlin.io.path.readLines
 
 class AsciiDocParser(
-    fileName: String
+    private val file: Path
 ) {
 
-    private val file = File(AsciiDocParser::class.java.getResource("/$fileName")?.toURI()!!)
-    private val srcLocation = File("src/test/resources/", fileName).toURI()
-
-    private var root = Document(srcLocation)
+    private var root = Document(file.toUri())
     private var currentSection: Section = root
     private var currentDepth: Int = 0
 
-
     fun parse(): Document {
-        val lines = file.readLines()
+        return parseLines(file.readLines())
+    }
+
+    fun parseContent(content: String): Document {
+        return parseLines(content.lines())
+    }
+
+    private fun parseLines(lines: List<String>): Document {
         var title: String?
 
         var insideCodeblock = false
@@ -29,7 +33,7 @@ class AsciiDocParser(
 
         val fileContent = StringBuilder()
 
-        root = Document(srcLocation)
+        root = Document(file.toUri())
         currentSection = root
         currentDepth = 0
         var caption: String? = null
@@ -42,11 +46,6 @@ class AsciiDocParser(
         loop@ for ((lineNr, line) in lines.withIndex()) {
             fileContent.append(line).append('\n')
 
-            if (line.startsWith("#") || line.startsWith("//")) {
-                offset += line.length + 1
-                continue
-            }
-
             val headlineMatcher = HEADLINE_PATTERN.matcher(line)
 
             when {
@@ -55,7 +54,7 @@ class AsciiDocParser(
                     addBlock(content)
                     val depth = headlineMatcher.group(1).length
                     title = headlineMatcher.group(2)
-                    val uri = UriBuilder.fromUri(srcLocation).queryParam("line", lineNr + 1).build()
+                    val uri = uriWithLineNr(lineNr)
                     startSection(title, uri, depth)
                 }
 
@@ -65,10 +64,10 @@ class AsciiDocParser(
 
                 line.startsWith("[%header,format=csv") -> {
                     addBlock(content)
-                    val uri = UriBuilder.fromUri(srcLocation).queryParam("line", lineNr + 1).build()
+                    val uri = uriWithLineNr(lineNr)
 
-                    val parts = line.substring(19, line.indexOf("]")).trim().split(",")
-                    val attributes = parts.slice(0..<parts.size).map {
+                    val parts = line.substring(19, line.indexOf("]")).trim().split(",").filter { it.isNotBlank() }
+                    val attributes = parts.slice(parts.indices).map {
                         val attributeParts = it.split("=")
                         attributeParts[0] to attributeParts.getOrNull(1)
                     }.toMap()
@@ -82,7 +81,7 @@ class AsciiDocParser(
 
                 line.startsWith("[source,") -> {
                     addBlock(content)
-                    val uri = UriBuilder.fromUri(srcLocation).queryParam("line", lineNr + 1).build()
+                    val uri = uriWithLineNr(lineNr)
 
                     val parts = line.substring(8, line.indexOf("]")).trim().split(",")
                     val language = parts[0]
@@ -93,8 +92,6 @@ class AsciiDocParser(
 
                     currentCodeBlock = CodeBlock(uri, language, currentSection, attributes).also {
                         it.caption = caption
-                        it.markerStart = offset
-                        it.markerEnd = offset + line.length
                         currentSection.blocks.add(it)
                     }
                     caption = null
@@ -124,10 +121,8 @@ class AsciiDocParser(
                 line == "----" -> {
                     insideCodeblock = !insideCodeblock
                     if (insideCodeblock) {
-                        currentCodeBlock?.start = offset + line.length + 1
                         content = StringBuilder()
                     } else if (currentCodeBlock != null) {
-                        currentCodeBlock.end = offset
                         currentCodeBlock.content = content.toString().trim()
                         currentCodeBlock = null
                         content = StringBuilder()
@@ -145,10 +140,13 @@ class AsciiDocParser(
         return root
     }
 
+    private fun uriWithLineNr(lineNr: Int): URI =
+        UriBuilder.fromUri(file.toUri()).queryParam("line", lineNr + 1).build()
+
     private fun addBlock(content: StringBuilder) {
         val str = content.toString()
-        if (str.trim().isNotEmpty()) {
-            currentSection.let { it.blocks.add(Block(it, str)) }
+        if (str.isNotBlank()) {
+            currentSection.let { it.blocks.add(Block(it, str.trimEnd())) }
         }
         content.clear()
     }

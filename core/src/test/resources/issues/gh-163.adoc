@@ -27,7 +27,7 @@ type Movie {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query {
   person(name:"test") {
@@ -65,7 +65,7 @@ RETURN person {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query {
   person(name:"test", filter: { born_gt: 1970, actedIn_none: { title: "Unforgiven" }}) {

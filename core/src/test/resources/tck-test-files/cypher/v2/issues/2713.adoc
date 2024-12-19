@@ -32,7 +32,7 @@ type InGenre @relationshipProperties {
 == should not find genresConnection_ALL by genre title
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {genresConnection_ALL: {node: {name: "Thriller"}}}) {
@@ -65,6 +65,3 @@ RETURN this {
 	.title
 } AS this
 ----
-
-'''
-

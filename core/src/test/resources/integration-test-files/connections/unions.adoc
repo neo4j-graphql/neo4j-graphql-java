@@ -42,7 +42,7 @@ CREATE (author:Author {name: "Charles Dickens"})
 == Projecting node and relationship properties with no arguments
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($authorName: String) {
   authors(where: {name: $authorName}) {
@@ -70,7 +70,7 @@ query ($authorName: String) {
 [source,json,request=true]
 ----
 {
-  "authorName": "Charles Dickens"
+  "authorName" : "Charles Dickens"
 }
 ----
 
@@ -78,7 +78,7 @@ query ($authorName: String) {
 [source,json]
 ----
 {
-  "param0": "Charles Dickens"
+  "param0" : "Charles Dickens"
 }
 ----
 
@@ -136,48 +136,40 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "authors": [
-    {
-      "name": "Charles Dickens",
-      "publicationsConnection": {
-        "edges": [
-          {
-            "properties": {
-              "words": 30953
-            },
-            "node": {
-              "title": "A Christmas Carol"
-            }
-          },
-          {
-            "properties": {
-              "words": 167543
-            },
-            "node": {
-              "title": "Oliver Twist"
-            }
-          },
-          {
-            "properties": {
-              "words": 3413
-            },
-            "node": {
-              "subject": "Master Humphrey's Clock"
-            }
-          }
-        ]
-      }
+  "authors" : [ {
+    "name" : "Charles Dickens",
+    "publicationsConnection" : {
+      "edges" : [ {
+        "properties" : {
+          "words" : 30953
+        },
+        "node" : {
+          "title" : "A Christmas Carol"
+        }
+      }, {
+        "properties" : {
+          "words" : 167543
+        },
+        "node" : {
+          "title" : "Oliver Twist"
+        }
+      }, {
+        "properties" : {
+          "words" : 3413
+        },
+        "node" : {
+          "subject" : "Master Humphrey's Clock"
+        }
+      } ]
     }
-  ]
+  } ]
 }
 ----
-
-'''
 
 == Projecting node and relationship properties with sort argument
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($authorName: String) {
   authors(where: {name: $authorName}) {
@@ -205,7 +197,7 @@ query ($authorName: String) {
 [source,json,request=true]
 ----
 {
-  "authorName": "Charles Dickens"
+  "authorName" : "Charles Dickens"
 }
 ----
 
@@ -213,7 +205,7 @@ query ($authorName: String) {
 [source,json]
 ----
 {
-  "param0": "Charles Dickens"
+  "param0" : "Charles Dickens"
 }
 ----
 
@@ -277,48 +269,40 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "authors": [
-    {
-      "name": "Charles Dickens",
-      "publicationsConnection": {
-        "edges": [
-          {
-            "properties": {
-              "words": 3413
-            },
-            "node": {
-              "subject": "Master Humphrey's Clock"
-            }
-          },
-          {
-            "properties": {
-              "words": 30953
-            },
-            "node": {
-              "title": "A Christmas Carol"
-            }
-          },
-          {
-            "properties": {
-              "words": 167543
-            },
-            "node": {
-              "title": "Oliver Twist"
-            }
-          }
-        ]
-      }
+  "authors" : [ {
+    "name" : "Charles Dickens",
+    "publicationsConnection" : {
+      "edges" : [ {
+        "properties" : {
+          "words" : 3413
+        },
+        "node" : {
+          "subject" : "Master Humphrey's Clock"
+        }
+      }, {
+        "properties" : {
+          "words" : 30953
+        },
+        "node" : {
+          "title" : "A Christmas Carol"
+        }
+      }, {
+        "properties" : {
+          "words" : 167543
+        },
+        "node" : {
+          "title" : "Oliver Twist"
+        }
+      } ]
     }
-  ]
+  } ]
 }
 ----
-
-'''
 
 == Projecting node and relationship properties with pagination
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($authorName: String, $after: String) {
   authors(where: {name: $authorName}) {
@@ -351,7 +335,7 @@ query ($authorName: String, $after: String) {
 [source,json,request=true]
 ----
 {
-  "authorName": "Charles Dickens"
+  "authorName" : "Charles Dickens"
 }
 ----
 
@@ -359,8 +343,8 @@ query ($authorName: String, $after: String) {
 [source,json]
 ----
 {
-  "param0": "Charles Dickens",
-  "param1": 2
+  "param0" : "Charles Dickens",
+  "param1" : 2
 }
 ----
 
@@ -424,43 +408,38 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "authors": [
-    {
-      "name": "Charles Dickens",
-      "publicationsConnection": {
-        "pageInfo": {
-          "hasNextPage": true,
-          "hasPreviousPage": false,
-          "endCursor": "YXJyYXljb25uZWN0aW9uOjE="
+  "authors" : [ {
+    "name" : "Charles Dickens",
+    "publicationsConnection" : {
+      "pageInfo" : {
+        "hasNextPage" : true,
+        "hasPreviousPage" : false,
+        "endCursor" : "YXJyYXljb25uZWN0aW9uOjE="
+      },
+      "edges" : [ {
+        "properties" : {
+          "words" : 3413
         },
-        "edges": [
-          {
-            "properties": {
-              "words": 3413
-            },
-            "node": {
-              "subject": "Master Humphrey's Clock"
-            }
-          },
-          {
-            "properties": {
-              "words": 30953
-            },
-            "node": {
-              "title": "A Christmas Carol"
-            }
-          }
-        ]
-      }
+        "node" : {
+          "subject" : "Master Humphrey's Clock"
+        }
+      }, {
+        "properties" : {
+          "words" : 30953
+        },
+        "node" : {
+          "title" : "A Christmas Carol"
+        }
+      } ]
     }
-  ]
+  } ]
 }
 ----
 
 '''
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($authorName: String, $after: String) {
   authors(where: {name: $authorName}) {
@@ -493,8 +472,8 @@ query ($authorName: String, $after: String) {
 [source,json,request=true]
 ----
 {
-  "authorName": "Charles Dickens",
-  "after": "YXJyYXljb25uZWN0aW9uOjE="
+  "after" : "YXJyYXljb25uZWN0aW9uOjE=",
+  "authorName" : "Charles Dickens"
 }
 ----
 
@@ -568,37 +547,31 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "authors": [
-    {
-      "name": "Charles Dickens",
-      "publicationsConnection": {
-        "pageInfo": {
-          "hasNextPage": false,
-          "hasPreviousPage": true,
-          "endCursor": "YXJyYXljb25uZWN0aW9uOjI="
+  "authors" : [ {
+    "name" : "Charles Dickens",
+    "publicationsConnection" : {
+      "pageInfo" : {
+        "hasNextPage" : false,
+        "hasPreviousPage" : true,
+        "endCursor" : "YXJyYXljb25uZWN0aW9uOjI="
+      },
+      "edges" : [ {
+        "properties" : {
+          "words" : 167543
         },
-        "edges": [
-          {
-            "properties": {
-              "words": 167543
-            },
-            "node": {
-              "title": "Oliver Twist"
-            }
-          }
-        ]
-      }
+        "node" : {
+          "title" : "Oliver Twist"
+        }
+      } ]
     }
-  ]
+  } ]
 }
 ----
-
-'''
 
 == Projecting node and relationship properties for one union member with no arguments
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($authorName: String) {
   authors(where: {name: $authorName}) {
@@ -623,7 +596,7 @@ query ($authorName: String) {
 [source,json,request=true]
 ----
 {
-  "authorName": "Charles Dickens"
+  "authorName" : "Charles Dickens"
 }
 ----
 
@@ -631,7 +604,7 @@ query ($authorName: String) {
 [source,json]
 ----
 {
-  "param0": "Charles Dickens"
+  "param0" : "Charles Dickens"
 }
 ----
 
@@ -716,12 +689,10 @@ RETURN this {
 }
 ----
 
-'''
-
 == With where argument on node with node in database
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($authorName: String, $bookTitle: String) {
   authors(where: {name: $authorName}) {
@@ -746,8 +717,8 @@ query ($authorName: String, $bookTitle: String) {
 [source,json,request=true]
 ----
 {
-  "authorName": "Charles Dickens",
-  "bookTitle": "Oliver Twist"
+  "authorName" : "Charles Dickens",
+  "bookTitle" : "Oliver Twist"
 }
 ----
 
@@ -755,8 +726,8 @@ query ($authorName: String, $bookTitle: String) {
 [source,json]
 ----
 {
-  "param0": "Charles Dickens",
-  "param1": "Oliver Twist"
+  "param0" : "Charles Dickens",
+  "param1" : "Oliver Twist"
 }
 ----
 
@@ -801,32 +772,26 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "authors": [
-    {
-      "name": "Charles Dickens",
-      "publicationsConnection": {
-        "edges": [
-          {
-            "properties": {
-              "words": 167543
-            },
-            "node": {
-              "title": "Oliver Twist"
-            }
-          }
-        ]
-      }
+  "authors" : [ {
+    "name" : "Charles Dickens",
+    "publicationsConnection" : {
+      "edges" : [ {
+        "properties" : {
+          "words" : 167543
+        },
+        "node" : {
+          "title" : "Oliver Twist"
+        }
+      } ]
     }
-  ]
+  } ]
 }
 ----
-
-'''
 
 == With where argument on all nodes with all in database
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($authorName: String, $bookTitle: String, $journalSubject: String) {
   authors(where: {name: $authorName}) {
@@ -858,9 +823,9 @@ query ($authorName: String, $bookTitle: String, $journalSubject: String) {
 [source,json,request=true]
 ----
 {
-  "authorName": "Charles Dickens",
-  "bookTitle": "Oliver Twist",
-  "journalSubject": "Master Humphrey's Clock"
+  "authorName" : "Charles Dickens",
+  "bookTitle" : "Oliver Twist",
+  "journalSubject" : "Master Humphrey's Clock"
 }
 ----
 
@@ -868,9 +833,9 @@ query ($authorName: String, $bookTitle: String, $journalSubject: String) {
 [source,json]
 ----
 {
-  "param0": "Charles Dickens",
-  "param1": "Oliver Twist",
-  "param2": "Master Humphrey's Clock"
+  "param0" : "Charles Dickens",
+  "param1" : "Oliver Twist",
+  "param2" : "Master Humphrey's Clock"
 }
 ----
 
@@ -930,43 +895,36 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "authors": [
-    {
-      "name": "Charles Dickens",
-      "publicationsConnection": {
-        "totalCount": 2,
-        "edges": [
-          {
-            "properties": {
-              "words": 167543
-            },
-            "node": {
-              "__typename": "Book",
-              "title": "Oliver Twist"
-            }
-          },
-          {
-            "properties": {
-              "words": 3413
-            },
-            "node": {
-              "__typename": "Journal",
-              "subject": "Master Humphrey's Clock"
-            }
-          }
-        ]
-      }
+  "authors" : [ {
+    "name" : "Charles Dickens",
+    "publicationsConnection" : {
+      "totalCount" : 2,
+      "edges" : [ {
+        "properties" : {
+          "words" : 167543
+        },
+        "node" : {
+          "__typename" : "Book",
+          "title" : "Oliver Twist"
+        }
+      }, {
+        "properties" : {
+          "words" : 3413
+        },
+        "node" : {
+          "__typename" : "Journal",
+          "subject" : "Master Humphrey's Clock"
+        }
+      } ]
     }
-  ]
+  } ]
 }
 ----
-
-'''
 
 == With where argument on relationship with relationship in database
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($authorName: String, $bookWordCount: Int) {
   authors(where: {name: $authorName}) {
@@ -991,8 +949,8 @@ query ($authorName: String, $bookWordCount: Int) {
 [source,json,request=true]
 ----
 {
-  "authorName": "Charles Dickens",
-  "bookWordCount": 167543
+  "authorName" : "Charles Dickens",
+  "bookWordCount" : 167543
 }
 ----
 
@@ -1000,8 +958,8 @@ query ($authorName: String, $bookWordCount: Int) {
 [source,json]
 ----
 {
-  "param0": "Charles Dickens",
-  "param1": 167543
+  "param0" : "Charles Dickens",
+  "param1" : 167543
 }
 ----
 
@@ -1046,32 +1004,26 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "authors": [
-    {
-      "name": "Charles Dickens",
-      "publicationsConnection": {
-        "edges": [
-          {
-            "properties": {
-              "words": 167543
-            },
-            "node": {
-              "title": "Oliver Twist"
-            }
-          }
-        ]
-      }
+  "authors" : [ {
+    "name" : "Charles Dickens",
+    "publicationsConnection" : {
+      "edges" : [ {
+        "properties" : {
+          "words" : 167543
+        },
+        "node" : {
+          "title" : "Oliver Twist"
+        }
+      } ]
     }
-  ]
+  } ]
 }
 ----
-
-'''
 
 == With where argument on all edges with all in database
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($authorName: String, $bookWordCount: Int, $journalWordCount: Int) {
   authors(where: {name: $authorName}) {
@@ -1103,9 +1055,9 @@ query ($authorName: String, $bookWordCount: Int, $journalWordCount: Int) {
 [source,json,request=true]
 ----
 {
-  "authorName": "Charles Dickens",
-  "bookWordCount": 167543,
-  "journalWordCount": 3413
+  "authorName" : "Charles Dickens",
+  "bookWordCount" : 167543,
+  "journalWordCount" : 3413
 }
 ----
 
@@ -1113,9 +1065,9 @@ query ($authorName: String, $bookWordCount: Int, $journalWordCount: Int) {
 [source,json]
 ----
 {
-  "param0": "Charles Dickens",
-  "param1": 167543,
-  "param2": 3413
+  "param0" : "Charles Dickens",
+  "param1" : 167543,
+  "param2" : 3413
 }
 ----
 
@@ -1175,43 +1127,36 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "authors": [
-    {
-      "name": "Charles Dickens",
-      "publicationsConnection": {
-        "totalCount": 2,
-        "edges": [
-          {
-            "properties": {
-              "words": 167543
-            },
-            "node": {
-              "__typename": "Book",
-              "title": "Oliver Twist"
-            }
-          },
-          {
-            "properties": {
-              "words": 3413
-            },
-            "node": {
-              "__typename": "Journal",
-              "subject": "Master Humphrey's Clock"
-            }
-          }
-        ]
-      }
+  "authors" : [ {
+    "name" : "Charles Dickens",
+    "publicationsConnection" : {
+      "totalCount" : 2,
+      "edges" : [ {
+        "properties" : {
+          "words" : 167543
+        },
+        "node" : {
+          "__typename" : "Book",
+          "title" : "Oliver Twist"
+        }
+      }, {
+        "properties" : {
+          "words" : 3413
+        },
+        "node" : {
+          "__typename" : "Journal",
+          "subject" : "Master Humphrey's Clock"
+        }
+      } ]
     }
-  ]
+  } ]
 }
 ----
-
-'''
 
 == With where argument on relationship and node
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($authorName: String, $bookWordCount: Int, $bookTitle: String) {
   authors(where: {name: $authorName}) {
@@ -1238,9 +1183,9 @@ query ($authorName: String, $bookWordCount: Int, $bookTitle: String) {
 [source,json,request=true]
 ----
 {
-  "authorName": "Charles Dickens",
-  "bookWordCount": 167543,
-  "bookTitle": "Oliver Twist"
+  "authorName" : "Charles Dickens",
+  "bookTitle" : "Oliver Twist",
+  "bookWordCount" : 167543
 }
 ----
 
@@ -1248,9 +1193,9 @@ query ($authorName: String, $bookWordCount: Int, $bookTitle: String) {
 [source,json]
 ----
 {
-  "param0": "Charles Dickens",
-  "param1": "Oliver Twist",
-  "param2": 167543
+  "param0" : "Charles Dickens",
+  "param1" : "Oliver Twist",
+  "param2" : 167543
 }
 ----
 
@@ -1296,25 +1241,18 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "authors": [
-    {
-      "name": "Charles Dickens",
-      "publicationsConnection": {
-        "edges": [
-          {
-            "properties": {
-              "words": 167543
-            },
-            "node": {
-              "title": "Oliver Twist"
-            }
-          }
-        ]
-      }
+  "authors" : [ {
+    "name" : "Charles Dickens",
+    "publicationsConnection" : {
+      "edges" : [ {
+        "properties" : {
+          "words" : 167543
+        },
+        "node" : {
+          "title" : "Oliver Twist"
+        }
+      } ]
     }
-  ]
+  } ]
 }
 ----
-
-'''
-

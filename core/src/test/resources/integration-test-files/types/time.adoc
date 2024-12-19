@@ -26,7 +26,7 @@ CREATE (movie:Movie)
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($time: Time!) {
   movies(where: {time: $time}) {
@@ -40,7 +40,7 @@ query ($time: Time!) {
 [source,json,request=true]
 ----
 {
-  "time": "11:49:48.322Z"
+  "time" : "11:49:48.322Z"
 }
 ----
 
@@ -74,8 +74,6 @@ RETURN this {
 }
 ----
 
-'''
-
 === should filter based on time comparison for filter: LT
 
 .Test Data
@@ -90,7 +88,7 @@ CREATE (future:Movie)
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($where: MovieWhere!) {
   movies(where: $where, options: {sort: [{time: ASC}]}) {
@@ -104,13 +102,9 @@ query ($where: MovieWhere!) {
 [source,json,request=true]
 ----
 {
-  "where": {
-    "id_IN": [
-      "RandomString1",
-      "RandomString2",
-      "RandomString3"
-    ],
-    "time_LT": "12:00:00"
+  "where" : {
+    "id_IN" : [ "RandomString1", "RandomString2", "RandomString3" ],
+    "time_LT" : "12:00:00"
   }
 }
 ----
@@ -148,8 +142,6 @@ RETURN this {
 }
 ----
 
-'''
-
 === should filter based on time comparison for filter: LTE
 
 .Test Data
@@ -164,7 +156,7 @@ CREATE (future:Movie)
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($where: MovieWhere!) {
   movies(where: $where, options: {sort: [{time: ASC}]}) {
@@ -178,13 +170,9 @@ query ($where: MovieWhere!) {
 [source,json,request=true]
 ----
 {
-  "where": {
-    "id_IN": [
-      "RandomString1",
-      "RandomString2",
-      "RandomString3"
-    ],
-    "time_LTE": "12:00:00"
+  "where" : {
+    "id_IN" : [ "RandomString1", "RandomString2", "RandomString3" ],
+    "time_LTE" : "12:00:00"
   }
 }
 ----
@@ -225,8 +213,6 @@ RETURN this {
 }
 ----
 
-'''
-
 === should filter based on time comparison for filter: GT
 
 .Test Data
@@ -241,7 +227,7 @@ CREATE (future:Movie)
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($where: MovieWhere!) {
   movies(where: $where, options: {sort: [{time: ASC}]}) {
@@ -255,13 +241,9 @@ query ($where: MovieWhere!) {
 [source,json,request=true]
 ----
 {
-  "where": {
-    "id_IN": [
-      "RandomString1",
-      "RandomString2",
-      "RandomString3"
-    ],
-    "time_GT": "12:00:00"
+  "where" : {
+    "id_IN" : [ "RandomString1", "RandomString2", "RandomString3" ],
+    "time_GT" : "12:00:00"
   }
 }
 ----
@@ -299,8 +281,6 @@ RETURN this {
 }
 ----
 
-'''
-
 === should filter based on time comparison for filter: GTE
 
 .Test Data
@@ -315,7 +295,7 @@ CREATE (future:Movie)
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($where: MovieWhere!) {
   movies(where: $where, options: {sort: [{time: ASC}]}) {
@@ -329,13 +309,9 @@ query ($where: MovieWhere!) {
 [source,json,request=true]
 ----
 {
-  "where": {
-    "id_IN": [
-      "RandomString1",
-      "RandomString2",
-      "RandomString3"
-    ],
-    "time_GTE": "12:00:00"
+  "where" : {
+    "id_IN" : [ "RandomString1", "RandomString2", "RandomString3" ],
+    "time_GTE" : "12:00:00"
   }
 }
 ----
@@ -376,8 +352,6 @@ RETURN this {
 }
 ----
 
-'''
-
 == sorting
 
 === Setup
@@ -405,7 +379,7 @@ CREATE (future:Movie)
 === should sort based on time, sorted by: ASC
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($futureId: ID!, $presentId: ID!, $pastId: ID!, $sort: SortDirection!) {
   movies(
@@ -422,10 +396,10 @@ query ($futureId: ID!, $presentId: ID!, $pastId: ID!, $sort: SortDirection!) {
 [source,json,request=true]
 ----
 {
-  "futureId": "RandomString1",
-  "presentId": "RandomString2",
-  "pastId": "RandomString3",
-  "sort": "ASC"
+  "futureId" : "RandomString1",
+  "pastId" : "RandomString3",
+  "presentId" : "RandomString2",
+  "sort" : "ASC"
 }
 ----
 
@@ -433,11 +407,7 @@ query ($futureId: ID!, $presentId: ID!, $pastId: ID!, $sort: SortDirection!) {
 [source,json]
 ----
 {
-  "param0": [
-    "RandomString1",
-    "RandomString2",
-    "RandomString3"
-  ]
+  "param0" : [ "RandomString1", "RandomString2", "RandomString3" ]
 }
 ----
 
@@ -470,12 +440,10 @@ RETURN this {
 }
 ----
 
-'''
-
 === should sort based on time, sorted by: DESC
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($futureId: ID!, $presentId: ID!, $pastId: ID!, $sort: SortDirection!) {
   movies(
@@ -492,10 +460,10 @@ query ($futureId: ID!, $presentId: ID!, $pastId: ID!, $sort: SortDirection!) {
 [source,json,request=true]
 ----
 {
-  "futureId": "RandomString1",
-  "presentId": "RandomString2",
-  "pastId": "RandomString3",
-  "sort": "DESC"
+  "futureId" : "RandomString1",
+  "pastId" : "RandomString3",
+  "presentId" : "RandomString2",
+  "sort" : "DESC"
 }
 ----
 
@@ -503,11 +471,7 @@ query ($futureId: ID!, $presentId: ID!, $pastId: ID!, $sort: SortDirection!) {
 [source,json]
 ----
 {
-  "param0": [
-    "RandomString1",
-    "RandomString2",
-    "RandomString3"
-  ]
+  "param0" : [ "RandomString1", "RandomString2", "RandomString3" ]
 }
 ----
 
@@ -539,6 +503,3 @@ RETURN this {
   } ]
 }
 ----
-
-'''
-

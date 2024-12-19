@@ -15,7 +15,7 @@ type User {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -122,8 +122,6 @@ input UserWhere {
 
 ----
 
-'''
-
 == DIRECTED_ONLY
 
 .Schema
@@ -136,7 +134,7 @@ type User {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -242,8 +240,6 @@ input UserWhere {
 }
 
 ----
-
-'''
 
 == UNDIRECTED_ONLY
 
@@ -257,7 +253,7 @@ type User {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -363,6 +359,3 @@ input UserWhere {
 }
 
 ----
-
-'''
-

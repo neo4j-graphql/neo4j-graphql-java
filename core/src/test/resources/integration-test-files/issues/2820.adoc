@@ -44,7 +44,7 @@ CREATE (a:Actor { name: "Actor" })
 === should return total count 4
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   actors {
@@ -58,7 +58,7 @@ CREATE (a:Actor { name: "Actor" })
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -103,22 +103,18 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "actors": [
-    {
-      "actedInConnection": {
-        "totalCount": 4
-      }
+  "actors" : [ {
+    "actedInConnection" : {
+      "totalCount" : 4
     }
-  ]
+  } ]
 }
 ----
-
-'''
 
 === should return interface members in Connection
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   actors {
@@ -138,7 +134,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -185,48 +181,39 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "actors": [
-    {
-      "actedInConnection": {
-        "totalCount": 4,
-        "edges": [
-          {
-            "node": {
-              "__typename": "Movie",
-              "title": "House"
-            }
-          },
-          {
-            "node": {
-              "__typename": "Movie",
-              "title": "Friends"
-            }
-          },
-          {
-            "node": {
-              "__typename": "Series",
-              "title": "House"
-            }
-          },
-          {
-            "node": {
-              "__typename": "Series",
-              "title": "Friends"
-            }
-          }
-        ]
-      }
+  "actors" : [ {
+    "actedInConnection" : {
+      "totalCount" : 4,
+      "edges" : [ {
+        "node" : {
+          "__typename" : "Movie",
+          "title" : "House"
+        }
+      }, {
+        "node" : {
+          "__typename" : "Movie",
+          "title" : "Friends"
+        }
+      }, {
+        "node" : {
+          "__typename" : "Series",
+          "title" : "House"
+        }
+      }, {
+        "node" : {
+          "__typename" : "Series",
+          "title" : "Friends"
+        }
+      } ]
     }
-  ]
+  } ]
 }
 ----
-
-'''
 
 === should return interface members in Connection without querying title
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   actors {
@@ -245,7 +232,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -290,44 +277,35 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "actors": [
-    {
-      "actedInConnection": {
-        "totalCount": 4,
-        "edges": [
-          {
-            "node": {
-              "__typename": "Movie"
-            }
-          },
-          {
-            "node": {
-              "__typename": "Movie"
-            }
-          },
-          {
-            "node": {
-              "__typename": "Series"
-            }
-          },
-          {
-            "node": {
-              "__typename": "Series"
-            }
-          }
-        ]
-      }
+  "actors" : [ {
+    "actedInConnection" : {
+      "totalCount" : 4,
+      "edges" : [ {
+        "node" : {
+          "__typename" : "Movie"
+        }
+      }, {
+        "node" : {
+          "__typename" : "Movie"
+        }
+      }, {
+        "node" : {
+          "__typename" : "Series"
+        }
+      }, {
+        "node" : {
+          "__typename" : "Series"
+        }
+      } ]
     }
-  ]
+  } ]
 }
 ----
-
-'''
 
 === should return interface members in normal field
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   actors {
@@ -342,7 +320,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -381,37 +359,28 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "actors": [
-    {
-      "actedIn": [
-        {
-          "__typename": "Movie",
-          "title": "House"
-        },
-        {
-          "__typename": "Movie",
-          "title": "Friends"
-        },
-        {
-          "__typename": "Series",
-          "title": "House"
-        },
-        {
-          "__typename": "Series",
-          "title": "Friends"
-        }
-      ]
-    }
-  ]
+  "actors" : [ {
+    "actedIn" : [ {
+      "__typename" : "Movie",
+      "title" : "House"
+    }, {
+      "__typename" : "Movie",
+      "title" : "Friends"
+    }, {
+      "__typename" : "Series",
+      "title" : "House"
+    }, {
+      "__typename" : "Series",
+      "title" : "Friends"
+    } ]
+  } ]
 }
 ----
-
-'''
 
 === should return interface members in normal field without querying title
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   actors {
@@ -425,7 +394,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -462,35 +431,26 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "actors": [
-    {
-      "actedIn": [
-        {
-          "__typename": "Movie"
-        },
-        {
-          "__typename": "Movie"
-        },
-        {
-          "__typename": "Series"
-        },
-        {
-          "__typename": "Series"
-        }
-      ]
-    }
-  ]
+  "actors" : [ {
+    "actedIn" : [ {
+      "__typename" : "Movie"
+    }, {
+      "__typename" : "Movie"
+    }, {
+      "__typename" : "Series"
+    }, {
+      "__typename" : "Series"
+    } ]
+  } ]
 }
 ----
-
-'''
 
 == union count and amount should be correct
 
 === should return total count 4
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   actors {
@@ -504,7 +464,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -549,22 +509,18 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "actors": [
-    {
-      "actedInUnionConnection": {
-        "totalCount": 4
-      }
+  "actors" : [ {
+    "actedInUnionConnection" : {
+      "totalCount" : 4
     }
-  ]
+  } ]
 }
 ----
-
-'''
 
 === should return interface members in Connection
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   actors {
@@ -589,7 +545,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -636,48 +592,39 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "actors": [
-    {
-      "actedInUnionConnection": {
-        "totalCount": 4,
-        "edges": [
-          {
-            "node": {
-              "__typename": "Movie",
-              "title": "House"
-            }
-          },
-          {
-            "node": {
-              "__typename": "Movie",
-              "title": "Friends"
-            }
-          },
-          {
-            "node": {
-              "__typename": "Series",
-              "title": "Friends"
-            }
-          },
-          {
-            "node": {
-              "__typename": "Series",
-              "title": "House"
-            }
-          }
-        ]
-      }
+  "actors" : [ {
+    "actedInUnionConnection" : {
+      "totalCount" : 4,
+      "edges" : [ {
+        "node" : {
+          "__typename" : "Movie",
+          "title" : "House"
+        }
+      }, {
+        "node" : {
+          "__typename" : "Movie",
+          "title" : "Friends"
+        }
+      }, {
+        "node" : {
+          "__typename" : "Series",
+          "title" : "Friends"
+        }
+      }, {
+        "node" : {
+          "__typename" : "Series",
+          "title" : "House"
+        }
+      } ]
     }
-  ]
+  } ]
 }
 ----
-
-'''
 
 === should return interface members in Connection without querying title
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   actors {
@@ -696,7 +643,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -741,44 +688,35 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "actors": [
-    {
-      "actedInUnionConnection": {
-        "totalCount": 4,
-        "edges": [
-          {
-            "node": {
-              "__typename": "Movie"
-            }
-          },
-          {
-            "node": {
-              "__typename": "Movie"
-            }
-          },
-          {
-            "node": {
-              "__typename": "Series"
-            }
-          },
-          {
-            "node": {
-              "__typename": "Series"
-            }
-          }
-        ]
-      }
+  "actors" : [ {
+    "actedInUnionConnection" : {
+      "totalCount" : 4,
+      "edges" : [ {
+        "node" : {
+          "__typename" : "Movie"
+        }
+      }, {
+        "node" : {
+          "__typename" : "Movie"
+        }
+      }, {
+        "node" : {
+          "__typename" : "Series"
+        }
+      }, {
+        "node" : {
+          "__typename" : "Series"
+        }
+      } ]
     }
-  ]
+  } ]
 }
 ----
-
-'''
 
 === should return interface members in normal field
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   actors {
@@ -798,7 +736,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -837,37 +775,28 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "actors": [
-    {
-      "actedInUnion": [
-        {
-          "__typename": "Movie",
-          "title": "House"
-        },
-        {
-          "__typename": "Movie",
-          "title": "Friends"
-        },
-        {
-          "__typename": "Series",
-          "title": "House"
-        },
-        {
-          "__typename": "Series",
-          "title": "Friends"
-        }
-      ]
-    }
-  ]
+  "actors" : [ {
+    "actedInUnion" : [ {
+      "__typename" : "Movie",
+      "title" : "House"
+    }, {
+      "__typename" : "Movie",
+      "title" : "Friends"
+    }, {
+      "__typename" : "Series",
+      "title" : "House"
+    }, {
+      "__typename" : "Series",
+      "title" : "Friends"
+    } ]
+  } ]
 }
 ----
-
-'''
 
 === should return interface members in normal field without querying title
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   actors {
@@ -881,7 +810,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -918,26 +847,16 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "actors": [
-    {
-      "actedInUnion": [
-        {
-          "__typename": "Movie"
-        },
-        {
-          "__typename": "Movie"
-        },
-        {
-          "__typename": "Series"
-        },
-        {
-          "__typename": "Series"
-        }
-      ]
-    }
-  ]
+  "actors" : [ {
+    "actedInUnion" : [ {
+      "__typename" : "Movie"
+    }, {
+      "__typename" : "Movie"
+    }, {
+      "__typename" : "Series"
+    }, {
+      "__typename" : "Series"
+    } ]
+  } ]
 }
 ----
-
-'''
-

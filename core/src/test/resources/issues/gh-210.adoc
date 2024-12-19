@@ -31,7 +31,7 @@ type Week implements Period {
 == Test
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
    Week(

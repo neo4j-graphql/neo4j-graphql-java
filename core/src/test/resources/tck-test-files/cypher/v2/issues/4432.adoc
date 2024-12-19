@@ -31,7 +31,7 @@ type InventoryChildRelation @relationshipProperties {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   inventories {
@@ -110,6 +110,3 @@ RETURN this {
 	childrenConnection: childrenConnection
 } AS this
 ----
-
-'''
-

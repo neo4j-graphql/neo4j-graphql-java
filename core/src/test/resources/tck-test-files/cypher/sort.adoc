@@ -47,7 +47,7 @@ input GenreSort {
 === Simple Sort
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     movies(options: { sort: [{ id: DESC }] }) {
@@ -76,7 +76,7 @@ RETURN movies {
 === Multi Sort
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     movies(options: { sort: [{ id: DESC }, { title: ASC }] }) {
@@ -105,7 +105,7 @@ RETURN movies {
 === Sort with skip limit & with other variables
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query($title: String, $skip: Int, $limit: Int, $sort: [MovieSort!]) {
     movies(
@@ -159,7 +159,7 @@ RETURN movies {
 === Default values
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     genres {
@@ -190,7 +190,7 @@ RETURN genres {
 === Simple Sort
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     movies {
@@ -229,7 +229,7 @@ RETURN movies {
 === Multi Sort
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     movies {
@@ -268,7 +268,7 @@ RETURN movies {
 === Sort with skip limit & with other variables
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query($name: String, $skip: Int, $limit: Int, $sort: [GenreSort!]) {
     movies {
@@ -334,7 +334,7 @@ RETURN movies {
 === Default values
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     movies {

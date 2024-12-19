@@ -39,7 +39,7 @@ type Genre {
 === IN
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     movie(where: { id_in: ["123"] }) {
@@ -71,7 +71,7 @@ RETURN movie {
 === REGEX
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     movie(where: { id_matches: "(?i)123.*" }) {
@@ -103,7 +103,7 @@ RETURN movie {
 === NOT
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     movie(where: { id_not: "123" }) {
@@ -135,7 +135,7 @@ RETURN movie {
 === NOT_IN
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     movie(where: { id_not_in: ["123"] }) {
@@ -167,7 +167,7 @@ RETURN movie {
 === CONTAINS
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     movie(where: { id_contains: "123" }) {
@@ -199,7 +199,7 @@ RETURN movie {
 === NOT_CONTAINS
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     movie(where: { id_not_contains: "123" }) {
@@ -231,7 +231,7 @@ RETURN movie {
 === STARTS_WITH
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     movie(where: { id_starts_with: "123" }) {
@@ -263,7 +263,7 @@ RETURN movie {
 === NOT_STARTS_WITH
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     movie(where: { id_not_starts_with: "123" }) {
@@ -295,7 +295,7 @@ RETURN movie {
 === ENDS_WITH
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     movie(where: { id_ends_with: "123" }) {
@@ -327,7 +327,7 @@ RETURN movie {
 === NOT_ENDS_WITH
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     movie(where: { id_not_ends_with: "123" }) {
@@ -359,7 +359,7 @@ RETURN movie {
 === LT
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     movie(where: { actorCount_lt: 123 }) {
@@ -393,7 +393,7 @@ RETURN movie {
 CAUTION: *Not yet implemented*
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     movie(where: { budget_lt: 9223372036854775807 }) {
@@ -426,7 +426,7 @@ RETURN this { .budget } as this
 === LTE
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     movie(where: { actorCount_lte: 123 }) {
@@ -460,7 +460,7 @@ RETURN movie {
 CAUTION: *Not yet implemented*
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     movie(where: { budget_lte: 9223372036854775807 }) {
@@ -493,7 +493,7 @@ RETURN this { .budget } as this
 === GT
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     movie(where: { actorCount_gt: 123 }) {
@@ -527,7 +527,7 @@ RETURN movie {
 CAUTION: *Not yet implemented*
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     movie(where: { budget_gt: 9223372036854775000 }) {
@@ -560,7 +560,7 @@ RETURN this { .budget } as this
 === GTE
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     movie(where: { actorCount_gte: 123 }) {
@@ -594,7 +594,7 @@ RETURN movie {
 CAUTION: *Not yet implemented*
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     movie(where: { budget_gte: 9223372036854775000 }) {
@@ -627,7 +627,7 @@ RETURN this { .budget } as this
 === Relationship equality
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     movie(where: { genres: { name: "some genre" } }) {
@@ -660,7 +660,7 @@ RETURN movie {
 === Relationship NOT
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     movie(where: { genres_not: { name: "some genre" } }) {

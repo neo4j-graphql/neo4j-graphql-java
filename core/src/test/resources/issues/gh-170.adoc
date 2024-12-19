@@ -41,7 +41,7 @@ CREATE
 == Query
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query {
     r: rated( filter: {rating_gte : 3}) {

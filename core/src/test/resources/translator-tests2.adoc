@@ -24,7 +24,7 @@ type Referral @relation (name:"REFERRED_BY", from:"user", to: "referredBy" ) {
 === relation with same types
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {user(name:"Jane") {
   name

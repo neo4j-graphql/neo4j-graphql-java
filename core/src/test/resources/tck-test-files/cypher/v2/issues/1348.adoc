@@ -36,7 +36,7 @@ type ProgrammeItem implements Product {
 == should also return node with no relationship in result set
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   programmeItems {
@@ -98,12 +98,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == should return node with no relationship (edge) in result set, as Relay connection
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   programmeItems {
@@ -185,6 +183,3 @@ RETURN this {
 	releatsToConnection: releatsToConnection
 } AS this
 ----
-
-'''
-

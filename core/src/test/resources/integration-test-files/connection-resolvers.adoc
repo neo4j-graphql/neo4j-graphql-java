@@ -34,7 +34,7 @@ CREATE (:Movie { id: "RandomString1" })
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query GetMovie($movieId: ID) {
   movies(where: {id: $movieId}) {
@@ -56,7 +56,7 @@ query GetMovie($movieId: ID) {
 [source,json,request=true]
 ----
 {
-  "movieId": "RandomString1"
+  "movieId" : "RandomString1"
 }
 ----
 
@@ -64,7 +64,7 @@ query GetMovie($movieId: ID) {
 [source,json]
 ----
 {
-  "param0": "RandomString1"
+  "param0" : "RandomString1"
 }
 ----
 
@@ -107,22 +107,17 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "id": "RandomString1",
-      "actorsConnection": {
-        "totalCount": 0,
-        "pageInfo": {
-          "startCursor": null,
-          "endCursor": null,
-          "hasNextPage": false,
-          "hasPreviousPage": false
-        }
+  "movies" : [ {
+    "id" : "RandomString1",
+    "actorsConnection" : {
+      "totalCount" : 0,
+      "pageInfo" : {
+        "startCursor" : null,
+        "endCursor" : null,
+        "hasNextPage" : false,
+        "hasPreviousPage" : false
       }
     }
-  ]
+  } ]
 }
 ----
-
-'''
-

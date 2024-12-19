@@ -54,7 +54,7 @@ CREATE
 == Mutation
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query {
     person(name: "Kevin Bacon") {

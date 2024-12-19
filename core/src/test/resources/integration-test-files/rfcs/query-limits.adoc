@@ -24,7 +24,7 @@ WITH [1,2,3,4,5] AS iterate
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies {
@@ -37,7 +37,7 @@ WITH [1,2,3,4,5] AS iterate
 [source,json]
 ----
 {
-  "param0": 2
+  "param0" : 2
 }
 ----
 
@@ -55,16 +55,10 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "movies": [
-    {
-      "id": "A"
-    },
-    {
-      "id": "A"
-    }
-  ]
+  "movies" : [ {
+    "id" : "A"
+  }, {
+    "id" : "A"
+  } ]
 }
 ----
-
-'''
-

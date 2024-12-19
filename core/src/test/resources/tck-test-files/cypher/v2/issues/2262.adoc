@@ -24,7 +24,7 @@ type Process {
 == query nested relations under a root connection field
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ComponentsProcesses {
   components(where: {uuid: "c1"}) {
@@ -114,6 +114,3 @@ RETURN this {
 	upstreamProcessConnection: upstreamProcessConnection
 } AS this
 ----
-
-'''
-

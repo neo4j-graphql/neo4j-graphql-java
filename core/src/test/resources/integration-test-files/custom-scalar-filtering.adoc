@@ -26,7 +26,7 @@ CREATE (:Movie {property: "someValue"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {property_IN: ["someValue", "foo", "bar"]}) {
@@ -39,11 +39,7 @@ CREATE (:Movie {property: "someValue"})
 [source,json]
 ----
 {
-  "param0": [
-    "someValue",
-    "foo",
-    "bar"
-  ]
+  "param0" : [ "someValue", "foo", "bar" ]
 }
 ----
 
@@ -61,15 +57,11 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "property": "someValue"
-    }
-  ]
+  "movies" : [ {
+    "property" : "someValue"
+  } ]
 }
 ----
-
-'''
 
 === Filter IN CustomScalar - expect array of return values
 
@@ -82,7 +74,7 @@ CREATE (:Movie {property: "someValue"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {property_IN: ["someValue", "someOtherValue"]}) {
@@ -95,10 +87,7 @@ CREATE (:Movie {property: "someValue"})
 [source,json]
 ----
 {
-  "param0": [
-    "someValue",
-    "someOtherValue"
-  ]
+  "param0" : [ "someValue", "someOtherValue" ]
 }
 ----
 
@@ -116,18 +105,13 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "movies": [
-    {
-      "property": "someValue"
-    },
-    {
-      "property": "someOtherValue"
-    }
-  ]
+  "movies" : [ {
+    "property" : "someValue"
+  }, {
+    "property" : "someOtherValue"
+  } ]
 }
 ----
-
-'''
 
 === Filter IN CustomScalar - expect no return values
 
@@ -138,7 +122,7 @@ CREATE (:Movie {property: "someValue"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {property_IN: ["someUnknownValue"]}) {
@@ -151,9 +135,7 @@ CREATE (:Movie {property: "someValue"})
 [source,json]
 ----
 {
-  "param0": [
-    "someUnknownValue"
-  ]
+  "param0" : [ "someUnknownValue" ]
 }
 ----
 
@@ -171,11 +153,9 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": []
+  "movies" : [ ]
 }
 ----
-
-'''
 
 == List Custom Scalar Filtering
 
@@ -201,7 +181,7 @@ CREATE (:Movie {property: ["val1", "val2", "val3"]})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {property_INCLUDES: val1}) {
@@ -214,7 +194,7 @@ CREATE (:Movie {property: ["val1", "val2", "val3"]})
 [source,json]
 ----
 {
-  "param0": "val1"
+  "param0" : "val1"
 }
 ----
 
@@ -232,19 +212,11 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "movies": [
-    {
-      "property": [
-        "val1",
-        "val2",
-        "val3"
-      ]
-    }
-  ]
+  "movies" : [ {
+    "property" : [ "val1", "val2", "val3" ]
+  } ]
 }
 ----
-
-'''
 
 === Filter INCLUDES CustomListScalar - expect array of return values
 
@@ -257,7 +229,7 @@ CREATE (:Movie {property: ["val1", "val2", "val3"]})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {property_INCLUDES: val1}) {
@@ -270,7 +242,7 @@ CREATE (:Movie {property: ["val1", "val2", "val3"]})
 [source,json]
 ----
 {
-  "param0": "val1"
+  "param0" : "val1"
 }
 ----
 
@@ -288,24 +260,13 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "movies": [
-    {
-      "property": [
-        "val1",
-        "val2",
-        "val3"
-      ]
-    },
-    {
-      "property": [
-        "val1"
-      ]
-    }
-  ]
+  "movies" : [ {
+    "property" : [ "val1", "val2", "val3" ]
+  }, {
+    "property" : [ "val1" ]
+  } ]
 }
 ----
-
-'''
 
 === Filter INCLUDES CustomListScalar - expect no return values
 
@@ -316,7 +277,7 @@ CREATE (:Movie {property: ["val1", "val2", "val3"]})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {property_INCLUDES: f}) {
@@ -329,7 +290,7 @@ CREATE (:Movie {property: ["val1", "val2", "val3"]})
 [source,json]
 ----
 {
-  "param0": "f"
+  "param0" : "f"
 }
 ----
 
@@ -347,9 +308,6 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": []
+  "movies" : [ ]
 }
 ----
-
-'''
-

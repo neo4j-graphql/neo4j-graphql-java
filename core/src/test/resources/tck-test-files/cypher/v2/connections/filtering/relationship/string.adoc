@@ -28,10 +28,10 @@ type ActedIn @relationshipProperties {
 [source,json,schema-config=true]
 ----
 {
-  "features": {
-    "filters": {
-      "String": {
-        "MATCHES": true
+  "features" : {
+    "filters" : {
+      "String" : {
+        "MATCHES" : true
       }
     }
   }
@@ -41,7 +41,7 @@ type ActedIn @relationshipProperties {
 == CONTAINS
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies {
@@ -107,12 +107,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == STARTS_WITH
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies {
@@ -178,12 +176,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == ENDS_WITH
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies {
@@ -249,12 +245,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == MATCHES
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies {
@@ -319,6 +313,3 @@ RETURN this {
 	actorsConnection: actorsConnection
 } AS this
 ----
-
-'''
-

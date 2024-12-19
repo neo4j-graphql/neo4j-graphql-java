@@ -29,7 +29,7 @@ CREATE (u:User {id: "1234", name: "arthur"})
 == should return topic count
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   users(where: {id: "1234"}) {
@@ -43,43 +43,17 @@ CREATE (u:User {id: "1234", name: "arthur"})
 }
 ----
 
-.Expected Cypher params
-[source,json]
-----
-{
-  "param0": "1234"
-}
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:User)
-WHERE this.id = $param0
-RETURN this {
-	.id,
-	.name
-} AS this
-----
-
 .GraphQL-Response
 [source,json,response=true]
 ----
 {
-  "users": [
-    {
-      "id": "1234",
-      "name": "arthur"
-    }
-  ],
-  "businesses": [
-    {
-      "id": "1234",
-      "name": "ford"
-    }
-  ]
+  "businesses" : [ {
+    "id" : "1234",
+    "name" : "ford"
+  } ],
+  "users" : [ {
+    "id" : "1234",
+    "name" : "arthur"
+  } ]
 }
 ----
-
-'''
-

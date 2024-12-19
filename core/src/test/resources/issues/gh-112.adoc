@@ -29,7 +29,7 @@ CREATE
 == Query
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query user( $uuid: ID ){
   user(uuid: $uuid) {
@@ -99,7 +99,7 @@ RETURN user {
 == Delete relation no matter of direction
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation {
   deleteUserAssociates(uuid: "2", associates: ["1", "3"]) {

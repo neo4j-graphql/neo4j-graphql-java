@@ -25,7 +25,7 @@ CREATE (:Event {id: "RandomString1"})-[:HAPPENS_IN]->(:Area {id: "RandomString2"
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($area: [ID!]) {
   events(where: {id: "RandomString1", area: {id_IN: $area}}) {
@@ -41,7 +41,7 @@ query ($area: [ID!]) {
 [source,json]
 ----
 {
-  "param0": "RandomString1"
+  "param0" : "RandomString1"
 }
 ----
 
@@ -68,16 +68,11 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "events": [
-    {
-      "id": "RandomString1",
-      "area": {
-        "id": "RandomString2"
-      }
+  "events" : [ {
+    "id" : "RandomString1",
+    "area" : {
+      "id" : "RandomString2"
     }
-  ]
+  } ]
 }
 ----
-
-'''
-

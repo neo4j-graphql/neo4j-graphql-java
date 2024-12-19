@@ -1,9 +1,9 @@
 :toc:
 :toclevels: 42
 
-== Top-level union query fields
+= Top-level union query fields
 
-=== Setup
+== Setup
 
 .Schema
 [source,graphql,schema=true]
@@ -29,10 +29,10 @@ CREATE (m:Movie {title: "The Matrix"})
  MERGE (m)-[:SEARCH]->(g)
 ----
 
-=== should read top-level simple query on union
+== should read top-level simple query on union
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   searches {
@@ -54,7 +54,7 @@ CREATE (m:Movie {title: "The Matrix"})
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -107,29 +107,21 @@ RETURN this AS this
 [source,json,response=true,ignore-order]
 ----
 {
-  "searches": [
-    {
-      "name": "Action"
-    },
-    {
-      "title": "The Matrix",
-      "search": [
-        {
-          "name": "Action"
-        },
-        {}
-      ]
-    }
-  ]
+  "searches" : [ {
+    "name" : "Action"
+  }, {
+    "title" : "The Matrix",
+    "search" : [ {
+      "name" : "Action"
+    }, { } ]
+  } ]
 }
 ----
 
-'''
-
-=== should read top-level simple query on union sorted
+== should read top-level simple query on union sorted
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   searches(options: {limit: 1, offset: 1}) {
@@ -152,8 +144,8 @@ RETURN this AS this
 [source,json]
 ----
 {
-  "param0": 1,
-  "param1": 1
+  "param0" : 1,
+  "param1" : 1
 }
 ----
 
@@ -207,19 +199,11 @@ RETURN this AS this
 [source,json,response=true,ignore-order]
 ----
 {
-  "searches": [
-    {
-      "title": "The Matrix",
-      "search": [
-        {
-          "name": "Action"
-        },
-        {}
-      ]
-    }
-  ]
+  "searches" : [ {
+    "title" : "The Matrix",
+    "search" : [ {
+      "name" : "Action"
+    }, { } ]
+  } ]
 }
 ----
-
-'''
-

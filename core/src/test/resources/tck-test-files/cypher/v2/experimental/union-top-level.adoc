@@ -23,7 +23,7 @@ type Movie {
 == Read union
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   searches {
@@ -66,12 +66,10 @@ WITH this
 RETURN this AS this
 ----
 
-'''
-
 == Read union with relationship on member type
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   searches {
@@ -141,6 +139,3 @@ CALL {
 WITH this
 RETURN this AS this
 ----
-
-'''
-

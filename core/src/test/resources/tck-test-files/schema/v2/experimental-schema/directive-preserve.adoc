@@ -18,7 +18,7 @@ type Movie @preservedTopLevel {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -89,8 +89,6 @@ input MovieWhere {
 
 ----
 
-'''
-
 == Directives on relations preserved
 
 .Schema
@@ -110,7 +108,7 @@ type Genre {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -313,8 +311,6 @@ input MovieWhere {
 
 ----
 
-'''
-
 == Directives on implemented interface relations preserved - field not declared relationship
 
 .Schema
@@ -348,7 +344,7 @@ type Actor {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -712,8 +708,6 @@ input SeriesWhere {
 
 ----
 
-'''
-
 == Directives on base interface preserved
 
 .Schema
@@ -747,7 +741,7 @@ type Actor {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -1111,8 +1105,6 @@ input SeriesWhere {
 
 ----
 
-'''
-
 == Directives on unions preserved
 
 .Schema
@@ -1136,7 +1128,7 @@ type User {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -1384,6 +1376,3 @@ input UserWhere {
 }
 
 ----
-
-'''
-

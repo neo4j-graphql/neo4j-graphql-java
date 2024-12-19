@@ -24,7 +24,7 @@ type Movie {
 == Simple
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($title: String, $isFavorite: Boolean) {
   movies(where: {title: $title, isFavorite: $isFavorite}) {
@@ -37,8 +37,8 @@ query ($title: String, $isFavorite: Boolean) {
 [source,json,request=true]
 ----
 {
-  "title": "some title",
-  "isFavorite": true
+  "isFavorite" : true,
+  "title" : "some title"
 }
 ----
 
@@ -62,12 +62,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Simple AND
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {AND: [{title: "some title"}]}) {
@@ -94,12 +92,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Simple AND with multiple parameters
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {AND: [{title: "some title"}, {isFavorite: true}]}) {
@@ -128,12 +124,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Nested AND
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {AND: [{AND: [{title: "some title"}]}]}) {
@@ -160,12 +154,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Nested AND with multiple properties
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {AND: [{AND: [{title: "some title"}, {title: "another title"}]}]}) {
@@ -194,12 +186,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Nested AND and OR
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {AND: [{OR: [{title: "some title"}, {isFavorite: true}], id: 2}]}) {
@@ -230,12 +220,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Super Nested AND
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {AND: [{AND: [{AND: [{title: "some title"}]}]}]}) {
@@ -262,12 +250,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Simple OR
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {OR: [{title: "some title"}]}) {
@@ -294,12 +280,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Nested OR
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {OR: [{OR: [{title: "some title"}]}]}) {
@@ -326,12 +310,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Super Nested OR
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {OR: [{OR: [{OR: [{title: "some title"}]}]}]}) {
@@ -358,14 +340,12 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Where with null
 
 === Match with NULL in where
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: null}) {
@@ -390,12 +370,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Simple NOT
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {NOT: {title: "some title"}}) {
@@ -422,12 +400,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Simple NOT, implicit AND
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {NOT: {title: "some title", isFavorite: false}}) {
@@ -455,6 +431,3 @@ RETURN this {
 	.title
 } AS this
 ----
-
-'''
-

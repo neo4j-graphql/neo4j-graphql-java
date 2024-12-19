@@ -37,7 +37,7 @@ CREATE
 === relation with same types changed direction
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {user( filter: {name_in: ["Jane", "Thomas"]}) {
   name

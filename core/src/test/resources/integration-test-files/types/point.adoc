@@ -36,7 +36,7 @@ CALL {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query Photographs($longitude: Float!, $latitude: Float!, $height: Float) {
   photographs(
@@ -58,9 +58,9 @@ query Photographs($longitude: Float!, $latitude: Float!, $height: Float) {
 [source,json,request=true]
 ----
 {
-  "longitude": 125.6358,
-  "latitude": -7.2045,
-  "height": 0.6950517320074141
+  "height" : 0.6950517320074141,
+  "latitude" : -7.2045,
+  "longitude" : 125.6358
 }
 ----
 
@@ -68,10 +68,10 @@ query Photographs($longitude: Float!, $latitude: Float!, $height: Float) {
 [source,json]
 ----
 {
-  "param0": {
-    "longitude": 125.6358,
-    "latitude": -7.2045,
-    "height": 0.6950517320074141
+  "param0" : {
+    "longitude" : 125.6358,
+    "latitude" : -7.2045,
+    "height" : 0.6950517320074141
   }
 }
 ----
@@ -97,20 +97,15 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "photographs": [
-    {
-      "id": "3019fe82-5231-4103-8662-39c1fcc7d50c",
-      "size": 99119,
-      "location": {
-        "latitude": -7.2045,
-        "longitude": 125.6358,
-        "height": 0.6950517320074141,
-        "crs": "wgs-84-3d"
-      }
+  "photographs" : [ {
+    "id" : "3019fe82-5231-4103-8662-39c1fcc7d50c",
+    "size" : 99119,
+    "location" : {
+      "latitude" : -7.2045,
+      "longitude" : 125.6358,
+      "height" : 0.6950517320074141,
+      "crs" : "wgs-84-3d"
     }
-  ]
+  } ]
 }
 ----
-
-'''
-

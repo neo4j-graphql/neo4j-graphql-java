@@ -30,7 +30,7 @@ CREATE(:Component {uuid: "c1"})<-[:OUTPUT]-(:Process {uuid: "p1"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ComponentsProcesses {
   components(where: {uuid: "c1"}) {
@@ -57,7 +57,7 @@ query ComponentsProcesses {
 [source,json]
 ----
 {
-  "param0": "c1"
+  "param0" : "c1"
 }
 ----
 
@@ -125,25 +125,18 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "components": [
-    {
-      "uuid": "c1",
-      "upstreamProcessConnection": {
-        "edges": [
-          {
-            "node": {
-              "uuid": "p1",
-              "componentInputsConnection": {
-                "edges": []
-              }
-            }
+  "components" : [ {
+    "uuid" : "c1",
+    "upstreamProcessConnection" : {
+      "edges" : [ {
+        "node" : {
+          "uuid" : "p1",
+          "componentInputsConnection" : {
+            "edges" : [ ]
           }
-        ]
-      }
+        }
+      } ]
     }
-  ]
+  } ]
 }
 ----
-
-'''
-

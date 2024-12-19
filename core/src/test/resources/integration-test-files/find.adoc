@@ -27,7 +27,7 @@ CREATE (:Movie {id: "RandomString1"}), (:Movie {id: "RandomString1"}), (:Movie {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($id: ID) {
   movies(where: {id: $id}) {
@@ -40,7 +40,7 @@ query ($id: ID) {
 [source,json,request=true]
 ----
 {
-  "id": "RandomString1"
+  "id" : "RandomString1"
 }
 ----
 
@@ -48,7 +48,7 @@ query ($id: ID) {
 [source,json]
 ----
 {
-  "param0": "RandomString1"
+  "param0" : "RandomString1"
 }
 ----
 
@@ -66,21 +66,15 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "movies": [
-    {
-      "id": "RandomString1"
-    },
-    {
-      "id": "RandomString1"
-    },
-    {
-      "id": "RandomString1"
-    }
-  ]
+  "movies" : [ {
+    "id" : "RandomString1"
+  }, {
+    "id" : "RandomString1"
+  }, {
+    "id" : "RandomString1"
+  } ]
 }
 ----
-
-'''
 
 == should find Move by id and limit
 
@@ -106,7 +100,7 @@ CREATE (:Movie {id: "RandomString1"}), (:Movie {id: "RandomString1"}), (:Movie {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($id: ID) {
   movies(where: {id: $id}, options: {limit: 2}) {
@@ -119,7 +113,7 @@ query ($id: ID) {
 [source,json,request=true]
 ----
 {
-  "id": "RandomString1"
+  "id" : "RandomString1"
 }
 ----
 
@@ -127,8 +121,8 @@ query ($id: ID) {
 [source,json]
 ----
 {
-  "param0": "RandomString1",
-  "param1": 2
+  "param0" : "RandomString1",
+  "param1" : 2
 }
 ----
 
@@ -147,18 +141,13 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "movies": [
-    {
-      "id": "RandomString1"
-    },
-    {
-      "id": "RandomString1"
-    }
-  ]
+  "movies" : [ {
+    "id" : "RandomString1"
+  }, {
+    "id" : "RandomString1"
+  } ]
 }
 ----
-
-'''
 
 == should find Movie IN ids
 
@@ -184,7 +173,7 @@ CREATE (:Movie {id: "RandomString1"}), (:Movie {id: "RandomString2"}), (:Movie {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($ids: [ID!]) {
   movies(where: {id_IN: $ids}) {
@@ -197,11 +186,7 @@ query ($ids: [ID!]) {
 [source,json,request=true]
 ----
 {
-  "ids": [
-    "RandomString1",
-    "RandomString2",
-    "RandomString3"
-  ]
+  "ids" : [ "RandomString1", "RandomString2", "RandomString3" ]
 }
 ----
 
@@ -209,11 +194,7 @@ query ($ids: [ID!]) {
 [source,json]
 ----
 {
-  "param0": [
-    "RandomString1",
-    "RandomString2",
-    "RandomString3"
-  ]
+  "param0" : [ "RandomString1", "RandomString2", "RandomString3" ]
 }
 ----
 
@@ -231,21 +212,15 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "movies": [
-    {
-      "id": "RandomString2"
-    },
-    {
-      "id": "RandomString3"
-    },
-    {
-      "id": "RandomString1"
-    }
-  ]
+  "movies" : [ {
+    "id" : "RandomString2"
+  }, {
+    "id" : "RandomString3"
+  }, {
+    "id" : "RandomString1"
+  } ]
 }
 ----
-
-'''
 
 == should find Movie IN ids with one other param
 
@@ -271,7 +246,7 @@ CREATE (:User {id: "RandomString1", title: "RandomString4"}), (:User {id: "Rando
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($ids: [ID!], $title: String) {
   movies(where: {id_IN: $ids, title: $title}) {
@@ -285,12 +260,8 @@ query ($ids: [ID!], $title: String) {
 [source,json,request=true]
 ----
 {
-  "ids": [
-    "RandomString1",
-    "RandomString2",
-    "RandomString3"
-  ],
-  "title": "RandomString4"
+  "ids" : [ "RandomString1", "RandomString2", "RandomString3" ],
+  "title" : "RandomString4"
 }
 ----
 
@@ -298,12 +269,8 @@ query ($ids: [ID!], $title: String) {
 [source,json]
 ----
 {
-  "param0": [
-    "RandomString1",
-    "RandomString2",
-    "RandomString3"
-  ],
-  "param1": "RandomString4"
+  "param0" : [ "RandomString1", "RandomString2", "RandomString3" ],
+  "param1" : "RandomString4"
 }
 ----
 
@@ -323,11 +290,9 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": []
+  "movies" : [ ]
 }
 ----
-
-'''
 
 == should find Movie IN id and many Movie.actor IN id
 
@@ -354,7 +319,7 @@ CREATE (:Movie {id: "RandomString1"})-[:ACTED_IN]->(:Actor {id: "RandomString4"}
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($movieIds: [ID!], $actorIds: [ID!]) {
   movies(where: {id_IN: $movieIds}) {
@@ -376,16 +341,8 @@ query ($movieIds: [ID!], $actorIds: [ID!]) {
 [source,json,request=true]
 ----
 {
-  "movieIds": [
-    "RandomString1",
-    "RandomString2",
-    "RandomString3"
-  ],
-  "actorIds": [
-    "RandomString4",
-    "RandomString5",
-    "RandomString6"
-  ]
+  "actorIds" : [ "RandomString4", "RandomString5", "RandomString6" ],
+  "movieIds" : [ "RandomString1", "RandomString2", "RandomString3" ]
 }
 ----
 
@@ -393,16 +350,8 @@ query ($movieIds: [ID!], $actorIds: [ID!]) {
 [source,json]
 ----
 {
-  "param0": [
-    "RandomString1",
-    "RandomString2",
-    "RandomString3"
-  ],
-  "param1": [
-    "RandomString4",
-    "RandomString5",
-    "RandomString6"
-  ]
+  "param0" : [ "RandomString1", "RandomString2", "RandomString3" ],
+  "param1" : [ "RandomString4", "RandomString5", "RandomString6" ]
 }
 ----
 
@@ -448,66 +397,42 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "movies": [
-    {
-      "id": "RandomString3",
-      "actors": [
-        {
-          "id": "RandomString6",
-          "movies": [
-            {
-              "id": "RandomString3",
-              "actors": [
-                {
-                  "id": "RandomString6"
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "RandomString1",
-      "actors": [
-        {
-          "id": "RandomString4",
-          "movies": [
-            {
-              "id": "RandomString1",
-              "actors": [
-                {
-                  "id": "RandomString4"
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "RandomString2",
-      "actors": [
-        {
-          "id": "RandomString5",
-          "movies": [
-            {
-              "id": "RandomString2",
-              "actors": [
-                {
-                  "id": "RandomString5"
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    }
-  ]
+  "movies" : [ {
+    "id" : "RandomString3",
+    "actors" : [ {
+      "id" : "RandomString6",
+      "movies" : [ {
+        "id" : "RandomString3",
+        "actors" : [ {
+          "id" : "RandomString6"
+        } ]
+      } ]
+    } ]
+  }, {
+    "id" : "RandomString1",
+    "actors" : [ {
+      "id" : "RandomString4",
+      "movies" : [ {
+        "id" : "RandomString1",
+        "actors" : [ {
+          "id" : "RandomString4"
+        } ]
+      } ]
+    } ]
+  }, {
+    "id" : "RandomString2",
+    "actors" : [ {
+      "id" : "RandomString5",
+      "movies" : [ {
+        "id" : "RandomString2",
+        "actors" : [ {
+          "id" : "RandomString5"
+        } ]
+      } ]
+    } ]
+  } ]
 }
 ----
-
-'''
 
 == should use OR and find Movie by id or title
 
@@ -534,7 +459,7 @@ CREATE (:Movie {id: "RandomString1", title: "RandomString2"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($movieWhere: MovieWhere) {
   movies(where: $movieWhere) {
@@ -548,13 +473,11 @@ query ($movieWhere: MovieWhere) {
 [source,json,request=true]
 ----
 {
-  "movieWhere": {
-    "OR": [
-      {
-        "title": "RandomString2",
-        "id": "RandomString1"
-      }
-    ]
+  "movieWhere" : {
+    "OR" : [ {
+      "title" : "RandomString2",
+      "id" : "RandomString1"
+    } ]
   }
 }
 ----
@@ -563,8 +486,8 @@ query ($movieWhere: MovieWhere) {
 [source,json]
 ----
 {
-  "param0": "RandomString1",
-  "param1": "RandomString2"
+  "param0" : "RandomString1",
+  "param1" : "RandomString2"
 }
 ----
 
@@ -584,14 +507,9 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "id": "RandomString1",
-      "title": "RandomString2"
-    }
-  ]
+  "movies" : [ {
+    "id" : "RandomString1",
+    "title" : "RandomString2"
+  } ]
 }
 ----
-
-'''
-

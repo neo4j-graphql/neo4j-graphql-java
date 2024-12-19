@@ -20,7 +20,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -173,8 +173,6 @@ input MovieWhere {
 }
 
 ----
-
-'''
 
 == snapshot tests
 
@@ -195,7 +193,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -348,8 +346,6 @@ input MovieWhere {
 }
 
 ----
-
-'''
 
 === on INTERFACE
 
@@ -375,7 +371,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -581,8 +577,6 @@ input PersonWhere {
 
 ----
 
-'''
-
 === on UNION
 
 ==== aggregate argument set as false, (no-op as abstract does not support aggregation)
@@ -608,7 +602,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -823,6 +817,3 @@ input QueryOptions {
 }
 
 ----
-
-'''
-

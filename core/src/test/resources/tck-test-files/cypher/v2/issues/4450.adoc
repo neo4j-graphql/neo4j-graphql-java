@@ -30,7 +30,7 @@ type ActorScene @relationshipProperties {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   actors(
@@ -66,6 +66,3 @@ RETURN this {
 	.name
 } AS this
 ----
-
-'''
-

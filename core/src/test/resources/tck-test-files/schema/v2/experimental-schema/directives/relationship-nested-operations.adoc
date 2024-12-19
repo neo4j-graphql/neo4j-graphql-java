@@ -21,7 +21,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -167,8 +167,6 @@ input PersonWhere {
 }
 
 ----
-
-'''
 
 === Single relationship with nested operation CREATE specified
 
@@ -186,7 +184,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -332,8 +330,6 @@ input PersonWhere {
 }
 
 ----
-
-'''
 
 === Single relationship with nested operation CONNECT specified
 
@@ -351,7 +347,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -497,8 +493,6 @@ input PersonWhere {
 }
 
 ----
-
-'''
 
 === Single relationship with nested operation UPDATE specified
 
@@ -516,7 +510,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -662,8 +656,6 @@ input PersonWhere {
 }
 
 ----
-
-'''
 
 === Single relationship with nested operation DELETE specified
 
@@ -681,7 +673,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -827,8 +819,6 @@ input PersonWhere {
 }
 
 ----
-
-'''
 
 === Single relationship with nested operation DISCONNECT specified
 
@@ -846,7 +836,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -992,8 +982,6 @@ input PersonWhere {
 }
 
 ----
-
-'''
 
 === Should not generate any nested operations if only CONNECT_OR_CREATE is specified and the related type does not have a unique field
 
@@ -1011,7 +999,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -1157,8 +1145,6 @@ input PersonWhere {
 }
 
 ----
-
-'''
 
 === Two relationships with nested operations specified on one
 
@@ -1177,7 +1163,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -1363,8 +1349,6 @@ input PersonWhere {
 }
 
 ----
-
-'''
 
 === Two relationships with nested operations specified on both
 
@@ -1383,7 +1367,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -1569,8 +1553,6 @@ input PersonWhere {
 }
 
 ----
-
-'''
 
 == Related to a union type
 
@@ -1596,7 +1578,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -1804,8 +1786,6 @@ input QueryOptions {
 }
 
 ----
-
-'''
 
 === Single relationship with nested operation CREATE specified
 
@@ -1829,7 +1809,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -2037,8 +2017,6 @@ input QueryOptions {
 }
 
 ----
-
-'''
 
 === Single relationship with nested operation CONNECT specified
 
@@ -2062,7 +2040,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -2270,8 +2248,6 @@ input QueryOptions {
 }
 
 ----
-
-'''
 
 === Single relationship with nested operation UPDATE specified
 
@@ -2295,7 +2271,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -2503,8 +2479,6 @@ input QueryOptions {
 }
 
 ----
-
-'''
 
 === Single relationship with nested operation DELETE specified
 
@@ -2528,7 +2502,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -2736,8 +2710,6 @@ input QueryOptions {
 }
 
 ----
-
-'''
 
 === Single relationship with nested operation DISCONNECT specified
 
@@ -2761,7 +2733,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -2969,8 +2941,6 @@ input QueryOptions {
 }
 
 ----
-
-'''
 
 === Should not generate any nested operations if only CONNECT_OR_CREATE is specified and the related type does not have a unique field
 
@@ -2994,7 +2964,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -3202,8 +3172,6 @@ input QueryOptions {
 }
 
 ----
-
-'''
 
 === Two relationships with nested operations specified on one
 
@@ -3228,7 +3196,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -3484,8 +3452,6 @@ input QueryOptions {
 }
 
 ----
-
-'''
 
 === Two relationships with nested operations specified on both
 
@@ -3510,7 +3476,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -3766,8 +3732,6 @@ input QueryOptions {
 }
 
 ----
-
-'''
 
 == Related to an interface type
 
@@ -3796,7 +3760,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -4031,8 +3995,6 @@ input PersonWhere {
 }
 
 ----
-
-'''
 
 === Single relationship with nested operation CREATE specified
 
@@ -4059,7 +4021,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -4294,8 +4256,6 @@ input PersonWhere {
 }
 
 ----
-
-'''
 
 === Single relationship with nested operation CONNECT specified
 
@@ -4322,7 +4282,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -4557,8 +4517,6 @@ input PersonWhere {
 }
 
 ----
-
-'''
 
 === Single relationship with nested operation UPDATE specified
 
@@ -4585,7 +4543,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -4820,8 +4778,6 @@ input PersonWhere {
 }
 
 ----
-
-'''
 
 === Single relationship with nested operation DELETE specified
 
@@ -4848,7 +4804,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -5083,8 +5039,6 @@ input PersonWhere {
 }
 
 ----
-
-'''
 
 === Single relationship with nested operation DISCONNECT specified
 
@@ -5111,7 +5065,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -5346,8 +5300,6 @@ input PersonWhere {
 }
 
 ----
-
-'''
 
 === Two relationships with nested operations specified on one
 
@@ -5375,7 +5327,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -5650,8 +5602,6 @@ input PersonWhere {
 }
 
 ----
-
-'''
 
 === Two relationships with nested operations specified on both
 
@@ -5679,7 +5629,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -5954,6 +5904,3 @@ input PersonWhere {
 }
 
 ----
-
-'''
-

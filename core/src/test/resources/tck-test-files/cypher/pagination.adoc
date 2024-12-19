@@ -42,7 +42,7 @@ input ActorOptions {
 === Skipping
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     movies(options: { skip: 1 }) {
@@ -73,7 +73,7 @@ RETURN movies {
 === Limit
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     movies(options: { limit: 1 }) {
@@ -104,7 +104,7 @@ RETURN movies {
 === Skip + Limit
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     movies(options: { limit: 1, skip: 2  }) {
@@ -136,7 +136,7 @@ RETURN movies {
 === Skip + Limit as variables
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query($skip: Int, $limit: Int) {
     movies(options: { limit: $limit, skip: $skip }) {
@@ -177,7 +177,7 @@ RETURN movies {
 === Skip + Limit with other variables
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query($skip: Int, $limit: Int, $title: String) {
     movies(
@@ -224,7 +224,7 @@ RETURN movies {
 === Default values
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     actors {
@@ -258,7 +258,7 @@ RETURN actors {
 === Skipping
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     actors {
@@ -303,7 +303,7 @@ RETURN actors {
 === Limit
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     actors {
@@ -348,7 +348,7 @@ RETURN actors {
 === Skip + Limit
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     actors {
@@ -394,7 +394,7 @@ RETURN actors {
 === Skip + Limit as variables
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query($skip: Int, $limit: Int) {
     actors {
@@ -449,7 +449,7 @@ RETURN actors {
 === Skip + Limit with other variables
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query($skip: Int, $limit: Int, $title: String) {
     actors {
@@ -510,7 +510,7 @@ RETURN actors {
 === Default values
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     movies {

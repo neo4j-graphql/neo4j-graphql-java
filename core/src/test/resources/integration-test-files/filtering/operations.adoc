@@ -33,7 +33,7 @@ CREATE (:Movie {title: "The Matrix", released: 1999})
 == Combine AND and OR operations
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(
@@ -49,9 +49,9 @@ CREATE (:Movie {title: "The Matrix", released: 1999})
 [source,json]
 ----
 {
-  "param0": "The Italian Job",
-  "param1": 2003,
-  "param2": "The Lion King"
+  "param0" : "The Italian Job",
+  "param1" : 2003,
+  "param2" : "The Lion King"
 }
 ----
 
@@ -72,18 +72,12 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "movies": [
-    {
-      "title": "The Italian Job",
-      "released": 2003
-    },
-    {
-      "title": "The Lion King",
-      "released": 1994
-    }
-  ]
+  "movies" : [ {
+    "title" : "The Italian Job",
+    "released" : 2003
+  }, {
+    "title" : "The Lion King",
+    "released" : 1994
+  } ]
 }
 ----
-
-'''
-

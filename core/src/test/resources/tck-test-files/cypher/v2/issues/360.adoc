@@ -20,7 +20,7 @@ type Event {
 == Should exclude undefined members in AND
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($rangeStart: DateTime, $rangeEnd: DateTime, $activity: String) {
   events(
@@ -36,8 +36,8 @@ query ($rangeStart: DateTime, $rangeEnd: DateTime, $activity: String) {
 [source,json,request=true]
 ----
 {
-  "rangeStart": "2021-07-18T00:00:00+0100",
-  "rangeEnd": "2021-07-18T23:59:59+0100"
+  "rangeEnd" : "2021-07-18T23:59:59+0100",
+  "rangeStart" : "2021-07-18T00:00:00+0100"
 }
 ----
 
@@ -62,12 +62,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Should exclude undefined members in OR
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($rangeStart: DateTime, $rangeEnd: DateTime, $activity: String) {
   events(
@@ -83,8 +81,8 @@ query ($rangeStart: DateTime, $rangeEnd: DateTime, $activity: String) {
 [source,json,request=true]
 ----
 {
-  "rangeStart": "2021-07-18T00:00:00+0100",
-  "rangeEnd": "2021-07-18T23:59:59+0100"
+  "rangeEnd" : "2021-07-18T23:59:59+0100",
+  "rangeStart" : "2021-07-18T00:00:00+0100"
 }
 ----
 
@@ -108,6 +106,3 @@ RETURN this {
 	.activity
 } AS this
 ----
-
-'''
-

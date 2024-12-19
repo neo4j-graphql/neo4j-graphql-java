@@ -32,7 +32,7 @@ CREATE (m:Movie{ title: 'movie 1' }),
 == Queries
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query {
   movieAlias: movie {

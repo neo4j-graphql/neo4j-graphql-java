@@ -29,7 +29,7 @@ type MyStuff {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   myThings(where: {stuff: null}) {
@@ -44,7 +44,7 @@ type MyStuff {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -72,14 +72,9 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "myThings": [
-    {
-      "id": "B",
-      "stuff": null
-    }
-  ]
+  "myThings" : [ {
+    "id" : "B",
+    "stuff" : null
+  } ]
 }
 ----
-
-'''
-

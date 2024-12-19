@@ -47,7 +47,7 @@ schema {
 === Simple Cypher Directive on Field
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person { name }}
 ----
@@ -77,7 +77,7 @@ RETURN person {
 === render cypher query directive params args
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query($pname:String) { p3(name:$pname) { id }}
 ----
@@ -113,7 +113,7 @@ RETURN p3 {
 === render cypher field directive with params defaults
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person { age }}
 ----
@@ -155,7 +155,7 @@ RETURN person {
 === render cypher query directive
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { p2 { id }}
 ----
@@ -188,7 +188,7 @@ RETURN p2 {
 === render cypher mutation directive
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation { person: createPerson(name:"Joe") { id }}
 ----
@@ -224,7 +224,7 @@ RETURN person {
 === render cypher field directive with params
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person { age(mult:25) }}
 ----
@@ -266,7 +266,7 @@ RETURN person {
 === render cypher field directive nested
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person { friends { id } }}
 ----
@@ -308,7 +308,7 @@ RETURN person {
 === render cypher query directive params
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { p3(name:"Jane") { id }}
 ----
@@ -344,7 +344,7 @@ RETURN p3 {
 === render cypher field directive scalar
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person { name }}
 ----
@@ -380,7 +380,7 @@ RETURN person {
 === pass through directives' result in query
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query queriesRootQuery {
   user: getUser(userId: "123") {
@@ -419,7 +419,7 @@ RETURN user AS user
 === pass through directives result in field
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query queriesRootQuery {
   person { id, data { firstName } }

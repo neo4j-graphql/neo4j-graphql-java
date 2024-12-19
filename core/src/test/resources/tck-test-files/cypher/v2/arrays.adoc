@@ -17,7 +17,7 @@ type Movie {
 == WHERE INCLUDES
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {ratings_INCLUDES: 4.0}) {
@@ -45,6 +45,3 @@ RETURN this {
 	.ratings
 } AS this
 ----
-
-'''
-

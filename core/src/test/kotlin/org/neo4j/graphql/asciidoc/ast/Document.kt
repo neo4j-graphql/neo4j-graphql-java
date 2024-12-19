@@ -8,4 +8,12 @@ class Document(
 
     lateinit var content: String
 
+    override fun buildContent(contentExtractor: (CodeBlock) -> String): String {
+        val builder = StringBuilder()
+        blocks.forEach {
+            builder.append(it.buildContent(contentExtractor))
+        }
+        return builder.toString()
+    }
+
 }

@@ -36,7 +36,7 @@ type ActedIn @relationshipProperties {
 == Union filter (top level)
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query actedInWhere {
   productions(
@@ -86,12 +86,10 @@ WITH this
 RETURN this AS this
 ----
 
-'''
-
 == Filtering on nested-level relationship unions
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query actedInWhere {
   actors(
@@ -127,6 +125,3 @@ RETURN this {
 	.name
 } AS this
 ----
-
-'''
-

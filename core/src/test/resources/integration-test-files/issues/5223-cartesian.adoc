@@ -25,7 +25,7 @@ CREATE (:Location { id: "1", pointCoordinates: point({x: -14221.955504767046, y:
 == should not fail when srid is queried
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   locations {
@@ -44,7 +44,7 @@ CREATE (:Location { id: "1", pointCoordinates: point({x: -14221.955504767046, y:
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -67,47 +67,41 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "locations": [
-    {
-      "id": "1",
-      "pointCoordinates": {
-        "x": -14221.955504767046,
-        "y": 6711533.711877272,
-        "z": null,
-        "crs": "cartesian",
-        "srid": 7203
-      }
-    },
-    {
-      "id": "2",
-      "pointCoordinates": {
-        "x": 1391088.9885668862,
-        "y": 5146427.7652232265,
-        "z": null,
-        "crs": "cartesian",
-        "srid": 7203
-      }
-    },
-    {
-      "id": "3",
-      "pointCoordinates": {
-        "x": 261848.15527273554,
-        "y": 6250566.54904563,
-        "z": 21,
-        "crs": "cartesian-3d",
-        "srid": 9157
-      }
+  "locations" : [ {
+    "id" : "2",
+    "pointCoordinates" : {
+      "x" : 1391088.9885668862,
+      "y" : 5146427.7652232265,
+      "z" : null,
+      "crs" : "cartesian",
+      "srid" : 7203
     }
-  ]
+  }, {
+    "id" : "3",
+    "pointCoordinates" : {
+      "x" : 261848.15527273554,
+      "y" : 6250566.54904563,
+      "z" : 21.0,
+      "crs" : "cartesian-3d",
+      "srid" : 9157
+    }
+  }, {
+    "id" : "1",
+    "pointCoordinates" : {
+      "x" : -14221.955504767046,
+      "y" : 6711533.711877272,
+      "z" : null,
+      "crs" : "cartesian",
+      "srid" : 7203
+    }
+  } ]
 }
 ----
-
-'''
 
 == should not fail when srid is queried, Connection
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   locationsConnection {
@@ -130,7 +124,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -169,55 +163,49 @@ RETURN {
 [source,json,response=true,ignore-order]
 ----
 {
-  "locationsConnection": {
-    "edges": [
-      {
-        "node": {
-          "id": "1",
-          "pointCoordinates": {
-            "x": -14221.955504767046,
-            "y": 6711533.711877272,
-            "z": null,
-            "crs": "cartesian",
-            "srid": 7203
-          }
-        }
-      },
-      {
-        "node": {
-          "id": "2",
-          "pointCoordinates": {
-            "x": 1391088.9885668862,
-            "y": 5146427.7652232265,
-            "z": null,
-            "crs": "cartesian",
-            "srid": 7203
-          }
-        }
-      },
-      {
-        "node": {
-          "id": "3",
-          "pointCoordinates": {
-            "x": 261848.15527273554,
-            "y": 6250566.54904563,
-            "z": 21,
-            "crs": "cartesian-3d",
-            "srid": 9157
-          }
+  "locationsConnection" : {
+    "edges" : [ {
+      "node" : {
+        "id" : "2",
+        "pointCoordinates" : {
+          "x" : 1391088.9885668862,
+          "y" : 5146427.7652232265,
+          "z" : null,
+          "crs" : "cartesian",
+          "srid" : 7203
         }
       }
-    ]
+    }, {
+      "node" : {
+        "id" : "3",
+        "pointCoordinates" : {
+          "x" : 261848.15527273554,
+          "y" : 6250566.54904563,
+          "z" : 21.0,
+          "crs" : "cartesian-3d",
+          "srid" : 9157
+        }
+      }
+    }, {
+      "node" : {
+        "id" : "1",
+        "pointCoordinates" : {
+          "x" : -14221.955504767046,
+          "y" : 6711533.711877272,
+          "z" : null,
+          "crs" : "cartesian",
+          "srid" : 7203
+        }
+      }
+    } ]
   }
 }
 ----
 
-'''
-
 == should not fail when srid is not queried
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   locations {
@@ -235,7 +223,7 @@ RETURN {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -257,44 +245,38 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "locations": [
-    {
-      "id": "1",
-      "pointCoordinates": {
-        "x": -14221.955504767046,
-        "y": 6711533.711877272,
-        "z": null,
-        "crs": "cartesian"
-      }
-    },
-    {
-      "id": "2",
-      "pointCoordinates": {
-        "x": 1391088.9885668862,
-        "y": 5146427.7652232265,
-        "z": null,
-        "crs": "cartesian"
-      }
-    },
-    {
-      "id": "3",
-      "pointCoordinates": {
-        "x": 261848.15527273554,
-        "y": 6250566.54904563,
-        "z": 21,
-        "crs": "cartesian-3d"
-      }
+  "locations" : [ {
+    "id" : "2",
+    "pointCoordinates" : {
+      "x" : 1391088.9885668862,
+      "y" : 5146427.7652232265,
+      "z" : null,
+      "crs" : "cartesian"
     }
-  ]
+  }, {
+    "id" : "1",
+    "pointCoordinates" : {
+      "x" : -14221.955504767046,
+      "y" : 6711533.711877272,
+      "z" : null,
+      "crs" : "cartesian"
+    }
+  }, {
+    "id" : "3",
+    "pointCoordinates" : {
+      "x" : 261848.15527273554,
+      "y" : 6250566.54904563,
+      "z" : 21.0,
+      "crs" : "cartesian-3d"
+    }
+  } ]
 }
 ----
-
-'''
 
 == should not fail when srid is not queried, Connection
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   locationsConnection {
@@ -316,7 +298,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -354,45 +336,38 @@ RETURN {
 [source,json,response=true,ignore-order]
 ----
 {
-  "locationsConnection": {
-    "edges": [
-      {
-        "node": {
-          "id": "1",
-          "pointCoordinates": {
-            "x": -14221.955504767046,
-            "y": 6711533.711877272,
-            "z": null,
-            "crs": "cartesian"
-          }
-        }
-      },
-      {
-        "node": {
-          "id": "2",
-          "pointCoordinates": {
-            "x": 1391088.9885668862,
-            "y": 5146427.7652232265,
-            "z": null,
-            "crs": "cartesian"
-          }
-        }
-      },
-      {
-        "node": {
-          "id": "3",
-          "pointCoordinates": {
-            "x": 261848.15527273554,
-            "y": 6250566.54904563,
-            "z": 21,
-            "crs": "cartesian-3d"
-          }
+  "locationsConnection" : {
+    "edges" : [ {
+      "node" : {
+        "id" : "1",
+        "pointCoordinates" : {
+          "x" : -14221.955504767046,
+          "y" : 6711533.711877272,
+          "z" : null,
+          "crs" : "cartesian"
         }
       }
-    ]
+    }, {
+      "node" : {
+        "id" : "2",
+        "pointCoordinates" : {
+          "x" : 1391088.9885668862,
+          "y" : 5146427.7652232265,
+          "z" : null,
+          "crs" : "cartesian"
+        }
+      }
+    }, {
+      "node" : {
+        "id" : "3",
+        "pointCoordinates" : {
+          "x" : 261848.15527273554,
+          "y" : 6250566.54904563,
+          "z" : 21.0,
+          "crs" : "cartesian-3d"
+        }
+      }
+    } ]
   }
 }
 ----
-
-'''
-

@@ -34,7 +34,7 @@ CREATE (movie:Movie {title: "Forrest Gump"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "Forrest Gump"}) {
@@ -67,8 +67,8 @@ CREATE (movie:Movie {title: "Forrest Gump"})
 [source,json]
 ----
 {
-  "param0": "Forrest Gump",
-  "param1": "Tom Hanks"
+  "param0" : "Forrest Gump",
+  "param1" : "Tom Hanks"
 }
 ----
 
@@ -150,41 +150,31 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "title": "Forrest Gump",
-      "actorsConnection": {
-        "edges": [
-          {
-            "properties": {
-              "screenTime": 120
-            },
-            "node": {
-              "name": "Tom Hanks",
-              "moviesConnection": {
-                "edges": [
-                  {
-                    "node": {
-                      "title": "Forrest Gump",
-                      "actors": [
-                        {
-                          "name": "Tom Hanks"
-                        }
-                      ]
-                    }
-                  }
-                ]
+  "movies" : [ {
+    "title" : "Forrest Gump",
+    "actorsConnection" : {
+      "edges" : [ {
+        "properties" : {
+          "screenTime" : 120
+        },
+        "node" : {
+          "name" : "Tom Hanks",
+          "moviesConnection" : {
+            "edges" : [ {
+              "node" : {
+                "title" : "Forrest Gump",
+                "actors" : [ {
+                  "name" : "Tom Hanks"
+                } ]
               }
-            }
+            } ]
           }
-        ]
-      }
+        }
+      } ]
     }
-  ]
+  } ]
 }
 ----
-
-'''
 
 == should allow where clause on nested connections
 
@@ -197,7 +187,7 @@ CREATE (movie:Movie {title: "Forrest Gump"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "Forrest Gump"}) {
@@ -230,9 +220,9 @@ CREATE (movie:Movie {title: "Forrest Gump"})
 [source,json]
 ----
 {
-  "param0": "Forrest Gump",
-  "param1": "Tom Hanks",
-  "param2": "Forrest Gump"
+  "param0" : "Forrest Gump",
+  "param1" : "Tom Hanks",
+  "param2" : "Forrest Gump"
 }
 ----
 
@@ -315,39 +305,28 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "title": "Forrest Gump",
-      "actorsConnection": {
-        "edges": [
-          {
-            "properties": {
-              "screenTime": 120
-            },
-            "node": {
-              "name": "Tom Hanks",
-              "moviesConnection": {
-                "edges": [
-                  {
-                    "node": {
-                      "title": "Forrest Gump",
-                      "actors": [
-                        {
-                          "name": "Tom Hanks"
-                        }
-                      ]
-                    }
-                  }
-                ]
+  "movies" : [ {
+    "title" : "Forrest Gump",
+    "actorsConnection" : {
+      "edges" : [ {
+        "properties" : {
+          "screenTime" : 120
+        },
+        "node" : {
+          "name" : "Tom Hanks",
+          "moviesConnection" : {
+            "edges" : [ {
+              "node" : {
+                "title" : "Forrest Gump",
+                "actors" : [ {
+                  "name" : "Tom Hanks"
+                } ]
               }
-            }
+            } ]
           }
-        ]
-      }
+        }
+      } ]
     }
-  ]
+  } ]
 }
 ----
-
-'''
-

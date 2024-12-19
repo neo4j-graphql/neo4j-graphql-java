@@ -30,7 +30,7 @@ type User {
 == Output
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query

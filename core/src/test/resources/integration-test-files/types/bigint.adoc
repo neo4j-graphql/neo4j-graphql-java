@@ -27,7 +27,7 @@ CREATE (f:File)
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   files(where: {name: "RandomString1"}) {
@@ -41,7 +41,7 @@ CREATE (f:File)
 [source,json]
 ----
 {
-  "param0": "RandomString1"
+  "param0" : "RandomString1"
 }
 ----
 
@@ -60,16 +60,12 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "files": [
-    {
-      "name": "RandomString1",
-      "size": "9223372036854775807"
-    }
-  ]
+  "files" : [ {
+    "name" : "RandomString1",
+    "size" : "9223372036854775807"
+  } ]
 }
 ----
-
-'''
 
 === should successfully query an node with a BigInt property using in where
 
@@ -82,7 +78,7 @@ CREATE (f:File)
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   files(where: {size: 8323372036854775807}) {
@@ -96,10 +92,7 @@ CREATE (f:File)
 [source,json]
 ----
 {
-  "param0": {
-    "low": -1239023617,
-    "high": 1937936068
-  }
+  "param0" : 8323372036854775807
 }
 ----
 
@@ -118,14 +111,9 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "files": [
-    {
-      "name": "RandomString1",
-      "size": "8323372036854775807"
-    }
-  ]
+  "files" : [ {
+    "name" : "RandomString1",
+    "size" : "8323372036854775807"
+  } ]
 }
 ----
-
-'''
-

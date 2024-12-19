@@ -20,7 +20,7 @@ type Genre {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -194,8 +194,6 @@ input MovieWhere {
 }
 
 ----
-
-'''
 
 == No nested operations in one type
 
@@ -214,7 +212,7 @@ type Genre {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -388,6 +386,3 @@ input MovieWhere {
 }
 
 ----
-
-'''
-

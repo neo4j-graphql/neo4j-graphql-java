@@ -17,7 +17,7 @@ type PointContainer {
 == Simple Points query
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   pointContainers(where: {points: [{longitude: 1.0, latitude: 2.0}]}) {
@@ -55,12 +55,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Simple Points INCLUDES query
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   pointContainers(where: {points_INCLUDES: {longitude: 1.0, latitude: 2.0}}) {
@@ -97,6 +95,3 @@ RETURN this {
 	}] ELSE NULL END
 } AS this
 ----
-
-'''
-
