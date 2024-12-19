@@ -1,15 +1,15 @@
 package org.neo4j.graphql
 
-import demo.org.neo4j.graphql.utils.asciidoc.ast.CodeBlock
-import demo.org.neo4j.graphql.utils.asciidoc.ast.Section
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.TestFactory
-import org.neo4j.graphql.utils.AsciiDocTestSuite
+import org.neo4j.graphql.asciidoc.ast.CodeBlock
+import org.neo4j.graphql.asciidoc.ast.Section
+import org.neo4j.graphql.factories.AsciiDocTestFactory
 import java.util.stream.Stream
 
-class TranslatorExceptionTests : AsciiDocTestSuite<CodeBlock>("translator-tests1.adoc", emptyList()) {
+class TranslatorExceptionTests : AsciiDocTestFactory<CodeBlock>("translator-tests1.adoc", emptyList()) {
 
     override fun createTestCase(section: Section): CodeBlock? {
         return findSetupCodeBlocks(section, "graphql", mapOf("schema" to "true")).firstOrNull() ?: return null
