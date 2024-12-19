@@ -92,7 +92,7 @@ You find more usage examples in the:
 
 == Demo
 
-You can use the link:core/src/test/kotlin/GraphQLServer.kt[GraphQL Demo Server] to play around with the library.
+You can use the link:core/src/test/kotlin/demo/GraphQLServer.kt[GraphQL Demo Server] to play around with the library.
 It is running against a Neo4j instance at `bolt://localhost` (username: `neo4j`, password: `test`) containing the `:play movies` graph.
 
 Use http://localhost:4567/graphql as your GraphQL URL.

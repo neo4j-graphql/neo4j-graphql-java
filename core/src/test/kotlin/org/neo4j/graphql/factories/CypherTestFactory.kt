@@ -1,11 +1,7 @@
-package org.neo4j.graphql.utils
+package org.neo4j.graphql.factories
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.jayway.jsonpath.JsonPath
-import demo.org.neo4j.graphql.utils.InvalidQueryException
-import demo.org.neo4j.graphql.utils.asciidoc.ast.CodeBlock
-import demo.org.neo4j.graphql.utils.asciidoc.ast.Section
-import demo.org.neo4j.graphql.utils.asciidoc.ast.Table
 import graphql.ExceptionWhileDataFetching
 import graphql.ExecutionInput
 import graphql.GraphQL
@@ -29,10 +25,14 @@ import org.neo4j.driver.Driver
 import org.neo4j.graphql.QueryContext
 import org.neo4j.graphql.SchemaBuilder
 import org.neo4j.graphql.SchemaConfig
+import org.neo4j.graphql.asciidoc.ast.CodeBlock
+import org.neo4j.graphql.asciidoc.ast.Section
+import org.neo4j.graphql.asciidoc.ast.Table
 import org.neo4j.graphql.custom_resolver.TestDataFetcher
 import org.neo4j.graphql.driver.adapter.Neo4jAdapter
 import org.neo4j.graphql.driver.adapter.Neo4jDriverAdapter
 import org.neo4j.graphql.scalars.TemporalScalar
+import org.neo4j.graphql.utils.InvalidQueryException
 import org.opentest4j.AssertionFailedError
 import org.threeten.extra.PeriodDuration
 import java.io.File
@@ -47,8 +47,8 @@ import java.util.concurrent.FutureTask
 import java.util.function.Consumer
 import kotlin.reflect.full.findAnnotation
 
-class CypherTestSuite(fileName: String, val driver: Driver? = null, createMissingBlocks: Boolean = true) :
-    AsciiDocTestSuite<CypherTestSuite.TestCase>(
+class CypherTestFactory(fileName: String, val driver: Driver? = null, createMissingBlocks: Boolean = true) :
+    AsciiDocTestFactory<CypherTestFactory.TestCase>(
         fileName,
         listOf(
             matcher("cypher", exactly = true) { t, c -> t.cypher.add(c) },

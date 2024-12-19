@@ -1,12 +1,12 @@
 package org.neo4j.graphql
 
 import apoc.date.Date
-import demo.org.neo4j.graphql.utils.TestUtils.createTestsInPath
 import org.junit.jupiter.api.*
 import org.neo4j.driver.AuthTokens
 import org.neo4j.driver.Driver
 import org.neo4j.driver.GraphDatabase
-import org.neo4j.graphql.utils.CypherTestSuite
+import org.neo4j.graphql.factories.CypherTestFactory
+import org.neo4j.graphql.utils.TestUtils.createTestsInPath
 import org.neo4j.harness.Neo4j
 import org.neo4j.harness.Neo4jBuilders
 import java.nio.file.Path
@@ -37,66 +37,66 @@ class CypherTests {
 
     @Disabled("This test is disabled because it is not yet migrated")
     @TestFactory
-    fun `cypher-directive-tests`() = CypherTestSuite("cypher-directive-tests.adoc", driver).generateTests()
+    fun `cypher-directive-tests`() = CypherTestFactory("cypher-directive-tests.adoc", driver).generateTests()
 
     @Disabled("This test is disabled because it is not yet migrated")
     @TestFactory
-    fun `dynamic-property-tests`() = CypherTestSuite("dynamic-property-tests.adoc", driver).generateTests()
+    fun `dynamic-property-tests`() = CypherTestFactory("dynamic-property-tests.adoc", driver).generateTests()
 
     @Disabled("This test is disabled because it is not yet migrated")
     @TestFactory
-    fun `filter-tests`() = CypherTestSuite("filter-tests.adoc", driver).generateTests()
+    fun `filter-tests`() = CypherTestFactory("filter-tests.adoc", driver).generateTests()
 
     @Disabled("This test is disabled because it is not yet migrated")
     @TestFactory
-    fun `relationship-tests`() = CypherTestSuite("relationship-tests.adoc", driver).generateTests()
+    fun `relationship-tests`() = CypherTestFactory("relationship-tests.adoc", driver).generateTests()
 
     @Disabled("This test is disabled because it is not yet migrated")
     @TestFactory
-    fun `movie-tests`() = CypherTestSuite("movie-tests.adoc", driver).generateTests()
+    fun `movie-tests`() = CypherTestFactory("movie-tests.adoc", driver).generateTests()
 
     @Disabled("This test is disabled because it is not yet migrated")
     @TestFactory
-    fun `property-tests`() = CypherTestSuite("property-tests.adoc", driver).generateTests()
+    fun `property-tests`() = CypherTestFactory("property-tests.adoc", driver).generateTests()
 
     @Disabled("This test is disabled because it is not yet migrated")
     @TestFactory
-    fun `translator-tests1`() = CypherTestSuite("translator-tests1.adoc", driver).generateTests()
+    fun `translator-tests1`() = CypherTestFactory("translator-tests1.adoc", driver).generateTests()
 
     @Disabled("This test is disabled because it is not yet migrated")
     @TestFactory
-    fun `translator-tests2`() = CypherTestSuite("translator-tests2.adoc", driver).generateTests()
+    fun `translator-tests2`() = CypherTestFactory("translator-tests2.adoc", driver).generateTests()
 
     @Disabled("This test is disabled because it is not yet migrated")
     @TestFactory
-    fun `translator-tests3`() = CypherTestSuite("translator-tests3.adoc", driver).generateTests()
+    fun `translator-tests3`() = CypherTestFactory("translator-tests3.adoc", driver).generateTests()
 
     @Disabled("This test is disabled because it is not yet migrated")
     @TestFactory
     fun `translator-tests-custom-scalars`() =
-        CypherTestSuite("translator-tests-custom-scalars.adoc", driver).generateTests()
+        CypherTestFactory("translator-tests-custom-scalars.adoc", driver).generateTests()
 
     @Disabled("This test is disabled because it is not yet migrated")
     @TestFactory
-    fun `optimized-query-for-filter`() = CypherTestSuite("optimized-query-for-filter.adoc", driver).generateTests()
+    fun `optimized-query-for-filter`() = CypherTestFactory("optimized-query-for-filter.adoc", driver).generateTests()
 
     @Disabled("This test is disabled because it is not yet migrated")
     @TestFactory
-    fun `custom-fields`() = CypherTestSuite("custom-fields.adoc", driver).generateTests()
+    fun `custom-fields`() = CypherTestFactory("custom-fields.adoc", driver).generateTests()
 
     @Disabled("This test is disabled because it is not yet migrated")
     @TestFactory
-    fun `test issues`() = createTestsInPath("issues", { CypherTestSuite(it, driver).generateTests() })
+    fun `test issues`() = createTestsInPath("issues", { CypherTestFactory(it, driver).generateTests() })
 
     @TestFactory
     fun `new cypher tck tests v2`() =
-        createTestsInPath("tck-test-files/cypher/v2", { CypherTestSuite(it, driver).generateTests() })
+        createTestsInPath("tck-test-files/cypher/v2", { CypherTestFactory(it, driver).generateTests() })
 
     @TestFactory
     fun `integration-tests`() =
         createTestsInPath(
             "integration-test-files",
-            { CypherTestSuite(it, driver, createMissingBlocks = false).generateTests() })
+            { CypherTestFactory(it, driver, createMissingBlocks = false).generateTests() })
 
     companion object {
         private val INTEGRATION_TESTS = System.getProperty("neo4j-graphql-java.integration-tests", "false") == "true"

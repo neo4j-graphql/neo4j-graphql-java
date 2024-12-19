@@ -1,7 +1,5 @@
-package org.neo4j.graphql.utils
+package org.neo4j.graphql.factories
 
-import demo.org.neo4j.graphql.utils.asciidoc.ast.CodeBlock
-import demo.org.neo4j.graphql.utils.asciidoc.ast.Section
 import graphql.language.InterfaceTypeDefinition
 import graphql.language.UnionTypeDefinition
 import graphql.schema.GraphQLScalarType
@@ -19,10 +17,12 @@ import org.junit.jupiter.api.DynamicTest
 import org.neo4j.graphql.NoOpCoercing
 import org.neo4j.graphql.SchemaBuilder
 import org.neo4j.graphql.SchemaConfig
+import org.neo4j.graphql.asciidoc.ast.CodeBlock
+import org.neo4j.graphql.asciidoc.ast.Section
 import org.opentest4j.AssertionFailedError
 import java.util.*
 
-class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite<GraphQLSchemaTestSuite.TestCase>(
+class GraphQLSchemaTestFactory(fileName: String) : AsciiDocTestFactory<GraphQLSchemaTestFactory.TestCase>(
     fileName,
     listOf(
         matcher("graphql", exactly = true, setter = TestCase::augmentedSchema),
@@ -77,7 +77,8 @@ class GraphQLSchemaTestSuite(fileName: String) : AsciiDocTestSuite<GraphQLSchema
                     }
                     val actualSchema = SCHEMA_PRINTER.print(augmentedSchema)
                     targetSchemaBlock.generatedContent = actualSchema
-                    throw AssertionFailedError("augmented schema differs for '$title'",
+                    throw AssertionFailedError(
+                        "augmented schema differs for '$title'",
                         expectedSchema?.let { SCHEMA_PRINTER.print(it) } ?: targetSchema,
                         actualSchema,
                         e)

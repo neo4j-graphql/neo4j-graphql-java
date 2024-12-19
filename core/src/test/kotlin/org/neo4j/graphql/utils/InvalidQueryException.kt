@@ -1,4 +1,4 @@
-package demo.org.neo4j.graphql.utils
+package org.neo4j.graphql.utils
 
 import graphql.GraphQLError
 
