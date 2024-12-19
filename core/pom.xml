@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.neo4j</groupId>
         <artifactId>neo4j-graphql-java-parent</artifactId>
-        <version>2.0.0-alpha</version>
+        <version>2.0.1-alpha-SNAPSHOT</version>
     </parent>
 
     <artifactId>neo4j-graphql-java</artifactId>
@@ -18,12 +18,12 @@
         <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j-graphql-neo4j-adapter-api</artifactId>
-            <version>2.0.0-alpha</version>
+            <version>2.0.1-alpha-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j-graphql-neo4j-driver-adapter</artifactId>
-            <version>2.0.0-alpha</version>
+            <version>2.0.1-alpha-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
