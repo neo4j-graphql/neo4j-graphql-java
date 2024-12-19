@@ -21,7 +21,7 @@ type Movie implements Production {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -157,8 +157,6 @@ input ProductionWhere {
 
 ----
 
-'''
-
 == Interfaces With Relationships
 
 .Schema
@@ -192,7 +190,7 @@ type Actor {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -491,6 +489,3 @@ input SeriesWhere {
 }
 
 ----
-
-'''
-

@@ -45,7 +45,7 @@ CREATE (a:Actor { name: "Someone" })
 == filter by logical operator on interface connection
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   actors {
@@ -67,10 +67,10 @@ CREATE (a:Actor { name: "Someone" })
 [source,json]
 ----
 {
-  "param0": "something",
-  "param1": "whatever",
-  "param2": "something",
-  "param3": "whatever"
+  "param0" : "something",
+  "param1" : "whatever",
+  "param2" : "something",
+  "param3" : "whatever"
 }
 ----
 
@@ -122,28 +122,20 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "actors": [
-    {
-      "actedInConnection": {
-        "edges": [
-          {
-            "node": {
-              "__typename": "Movie",
-              "title": "something"
-            }
-          },
-          {
-            "node": {
-              "__typename": "Series",
-              "title": "whatever"
-            }
-          }
-        ]
-      }
+  "actors" : [ {
+    "actedInConnection" : {
+      "edges" : [ {
+        "node" : {
+          "__typename" : "Movie",
+          "title" : "something"
+        }
+      }, {
+        "node" : {
+          "__typename" : "Series",
+          "title" : "whatever"
+        }
+      } ]
     }
-  ]
+  } ]
 }
 ----
-
-'''
-

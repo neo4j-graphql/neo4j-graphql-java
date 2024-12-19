@@ -23,7 +23,7 @@ type Actor {
 == Simple selection, Movie by title
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   moviesConnection(where: {title: "River Runs Through It, A"}) {
@@ -71,12 +71,10 @@ RETURN {
 } AS this
 ----
 
-'''
-
 == should apply limit and sort before return
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   moviesConnection(first: 20, sort: [{title: ASC}]) {
@@ -123,12 +121,10 @@ RETURN {
 } AS this
 ----
 
-'''
-
 == should apply limit, sort, and filter correctly when all three are used
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   moviesConnection(
@@ -181,12 +177,10 @@ RETURN {
 } AS this
 ----
 
-'''
-
 == should correctly place any connection strings
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   moviesConnection(first: 20, sort: [{title: ASC}]) {
@@ -265,6 +259,3 @@ RETURN {
 	totalCount: totalCount
 } AS this
 ----
-
-'''
-

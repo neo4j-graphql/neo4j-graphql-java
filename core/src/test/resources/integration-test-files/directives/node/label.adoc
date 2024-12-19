@@ -23,7 +23,7 @@ type Movie @node(labels: ["Film"]) {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies {
@@ -35,7 +35,7 @@ type Movie @node(labels: ["Film"]) {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -51,12 +51,8 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "title": "The Matrix"
-    }
-  ]
+  "movies" : [ {
+    "title" : "The Matrix"
+  } ]
 }
 ----
-
-'''

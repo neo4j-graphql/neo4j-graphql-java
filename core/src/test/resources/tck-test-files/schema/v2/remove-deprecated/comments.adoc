@@ -27,7 +27,7 @@ type Movie {
   averageRating: Float
   """
   Is the movie active?
-  
+
   This is measured based on annual profit.
   """
   isActive: Boolean
@@ -37,7 +37,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -149,8 +149,6 @@ input MovieWhere {
 
 ----
 
-'''
-
 == Relationship
 
 === Simple
@@ -170,7 +168,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -318,8 +316,6 @@ input MovieWhere {
 
 ----
 
-'''
-
 === Interface
 
 .Schema
@@ -351,7 +347,7 @@ type Actor {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -628,8 +624,6 @@ input SeriesWhere {
 
 ----
 
-'''
-
 === Unions
 
 .Schema
@@ -649,7 +643,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -818,6 +812,3 @@ input SearchWhere {
 }
 
 ----
-
-'''
-

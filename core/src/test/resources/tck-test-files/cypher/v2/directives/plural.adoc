@@ -16,7 +16,7 @@ type Tech @plural(value: "Techs") {
 == Select Tech with plural techs
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   techs {
@@ -40,12 +40,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Query with aliases
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   technologies: techs {
@@ -68,6 +66,3 @@ RETURN this {
 	.name
 } AS this
 ----
-
-'''
-

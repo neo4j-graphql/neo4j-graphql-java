@@ -54,7 +54,7 @@ CREATE (actor:Actor:Test)
 == should project all interfaces of node
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($actorId: ID!) {
   actors(where: {id: $actorId}) {
@@ -74,7 +74,7 @@ query ($actorId: ID!) {
 [source,json,request=true]
 ----
 {
-  "actorId": "RandomString1"
+  "actorId" : "RandomString1"
 }
 ----
 
@@ -82,7 +82,7 @@ query ($actorId: ID!) {
 [source,json]
 ----
 {
-  "param0": "RandomString1"
+  "param0" : "RandomString1"
 }
 ----
 
@@ -135,27 +135,18 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "actors": [
-    {
-      "id": "RandomString1",
-      "name": "aaa",
-      "actedIn": [
-        {
-          "title": "doctor things",
-          "awardsGiven": 42
-        },
-        {
-          "title": "stranger who",
-          "awardsGiven": 2
-        },
-        {
-          "title": "all too well"
-        }
-      ]
-    }
-  ]
+  "actors" : [ {
+    "id" : "RandomString1",
+    "name" : "aaa",
+    "actedIn" : [ {
+      "title" : "doctor things",
+      "awardsGiven" : 42
+    }, {
+      "title" : "stranger who",
+      "awardsGiven" : 2
+    }, {
+      "title" : "all too well"
+    } ]
+  } ]
 }
 ----
-
-'''
-

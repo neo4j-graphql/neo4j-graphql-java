@@ -31,7 +31,7 @@ CREATE (movie:Movie {title: "My title"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies {
@@ -50,7 +50,7 @@ CREATE (movie:Movie {title: "My title"})
 [source,json]
 ----
 {
-  "param0": "Arthur"
+  "param0" : "Arthur"
 }
 ----
 
@@ -92,21 +92,14 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "actorsConnection": {
-        "edges": [
-          {
-            "node": {
-              "name": "Zaphod"
-            }
-          }
-        ]
-      }
+  "movies" : [ {
+    "actorsConnection" : {
+      "edges" : [ {
+        "node" : {
+          "name" : "Zaphod"
+        }
+      } ]
     }
-  ]
+  } ]
 }
 ----
-
-'''
-

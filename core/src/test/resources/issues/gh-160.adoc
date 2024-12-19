@@ -16,7 +16,7 @@ type User {
 == Issue
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query {
   user(filter: {uuid:"test-uuid"}) {

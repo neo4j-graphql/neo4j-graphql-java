@@ -28,7 +28,7 @@ type ActorActedInProps @relationshipProperties {
 == Simple relation
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   actors {
@@ -68,12 +68,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == With relationship properties
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   actors {
@@ -141,6 +139,3 @@ RETURN this {
 	actedInConnection: actedInConnection
 } AS this
 ----
-
-'''
-

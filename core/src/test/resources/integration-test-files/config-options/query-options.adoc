@@ -29,7 +29,7 @@ CREATE (:Movie {id: "RandomString1"}), (:Movie {id: "RandomString1"}), (:Movie {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($id: ID) {
   movies(where: {id: $id}) {
@@ -42,7 +42,7 @@ query ($id: ID) {
 [source,json,request=true]
 ----
 {
-  "id": "RandomString1"
+  "id" : "RandomString1"
 }
 ----
 
@@ -50,7 +50,7 @@ query ($id: ID) {
 [source,json]
 ----
 {
-  "param0": "RandomString1"
+  "param0" : "RandomString1"
 }
 ----
 
@@ -68,19 +68,12 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "movies": [
-    {
-      "id": "RandomString1"
-    },
-    {
-      "id": "RandomString1"
-    },
-    {
-      "id": "RandomString1"
-    }
-  ]
+  "movies" : [ {
+    "id" : "RandomString1"
+  }, {
+    "id" : "RandomString1"
+  }, {
+    "id" : "RandomString1"
+  } ]
 }
 ----
-
-'''
-

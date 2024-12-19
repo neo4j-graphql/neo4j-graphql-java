@@ -26,7 +26,7 @@ type Movie implements Search @node(labels: ["Film"]) {
 == Read Interface
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "some title"}) {
@@ -88,6 +88,3 @@ RETURN this {
 	search: search
 } AS this
 ----
-
-'''
-

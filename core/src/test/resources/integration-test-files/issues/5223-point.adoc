@@ -25,7 +25,7 @@ CREATE (:Location { id: "1", pointCoordinates: point({longitude: -0.127758, lati
 == should not fail when srid is queried
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   locations {
@@ -44,7 +44,7 @@ CREATE (:Location { id: "1", pointCoordinates: point({longitude: -0.127758, lati
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -67,47 +67,41 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "locations": [
-    {
-      "id": "1",
-      "pointCoordinates": {
-        "latitude": 51.507351,
-        "longitude": -0.127758,
-        "height": null,
-        "crs": "wgs-84",
-        "srid": 4326
-      }
-    },
-    {
-      "id": "2",
-      "pointCoordinates": {
-        "latitude": 41.902782,
-        "longitude": 12.496365,
-        "height": null,
-        "crs": "wgs-84",
-        "srid": 4326
-      }
-    },
-    {
-      "id": "3",
-      "pointCoordinates": {
-        "latitude": 48.856613,
-        "longitude": 2.352222,
-        "height": 21,
-        "crs": "wgs-84-3d",
-        "srid": 4979
-      }
+  "locations" : [ {
+    "id" : "1",
+    "pointCoordinates" : {
+      "latitude" : 51.507351,
+      "longitude" : -0.127758,
+      "height" : null,
+      "crs" : "wgs-84",
+      "srid" : 4326
     }
-  ]
+  }, {
+    "id" : "2",
+    "pointCoordinates" : {
+      "latitude" : 41.902782,
+      "longitude" : 12.496365,
+      "height" : null,
+      "crs" : "wgs-84",
+      "srid" : 4326
+    }
+  }, {
+    "id" : "3",
+    "pointCoordinates" : {
+      "latitude" : 48.856613,
+      "longitude" : 2.352222,
+      "height" : 21.0,
+      "crs" : "wgs-84-3d",
+      "srid" : 4979
+    }
+  } ]
 }
 ----
-
-'''
 
 == should not fail when srid is queried, Connection
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   locationsConnection {
@@ -130,7 +124,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -169,55 +163,49 @@ RETURN {
 [source,json,response=true,ignore-order]
 ----
 {
-  "locationsConnection": {
-    "edges": [
-      {
-        "node": {
-          "id": "1",
-          "pointCoordinates": {
-            "latitude": 51.507351,
-            "longitude": -0.127758,
-            "height": null,
-            "crs": "wgs-84",
-            "srid": 4326
-          }
-        }
-      },
-      {
-        "node": {
-          "id": "2",
-          "pointCoordinates": {
-            "latitude": 41.902782,
-            "longitude": 12.496365,
-            "height": null,
-            "crs": "wgs-84",
-            "srid": 4326
-          }
-        }
-      },
-      {
-        "node": {
-          "id": "3",
-          "pointCoordinates": {
-            "latitude": 48.856613,
-            "longitude": 2.352222,
-            "height": 21,
-            "crs": "wgs-84-3d",
-            "srid": 4979
-          }
+  "locationsConnection" : {
+    "edges" : [ {
+      "node" : {
+        "id" : "1",
+        "pointCoordinates" : {
+          "latitude" : 51.507351,
+          "longitude" : -0.127758,
+          "height" : null,
+          "crs" : "wgs-84",
+          "srid" : 4326
         }
       }
-    ]
+    }, {
+      "node" : {
+        "id" : "2",
+        "pointCoordinates" : {
+          "latitude" : 41.902782,
+          "longitude" : 12.496365,
+          "height" : null,
+          "crs" : "wgs-84",
+          "srid" : 4326
+        }
+      }
+    }, {
+      "node" : {
+        "id" : "3",
+        "pointCoordinates" : {
+          "latitude" : 48.856613,
+          "longitude" : 2.352222,
+          "height" : 21.0,
+          "crs" : "wgs-84-3d",
+          "srid" : 4979
+        }
+      }
+    } ]
   }
 }
 ----
 
-'''
-
 == should not fail when srid is not queried
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   locations {
@@ -235,7 +223,7 @@ RETURN {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -257,44 +245,38 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "locations": [
-    {
-      "id": "1",
-      "pointCoordinates": {
-        "latitude": 51.507351,
-        "longitude": -0.127758,
-        "height": null,
-        "crs": "wgs-84"
-      }
-    },
-    {
-      "id": "2",
-      "pointCoordinates": {
-        "latitude": 41.902782,
-        "longitude": 12.496365,
-        "height": null,
-        "crs": "wgs-84"
-      }
-    },
-    {
-      "id": "3",
-      "pointCoordinates": {
-        "latitude": 48.856613,
-        "longitude": 2.352222,
-        "height": 21,
-        "crs": "wgs-84-3d"
-      }
+  "locations" : [ {
+    "id" : "1",
+    "pointCoordinates" : {
+      "latitude" : 51.507351,
+      "longitude" : -0.127758,
+      "height" : null,
+      "crs" : "wgs-84"
     }
-  ]
+  }, {
+    "id" : "2",
+    "pointCoordinates" : {
+      "latitude" : 41.902782,
+      "longitude" : 12.496365,
+      "height" : null,
+      "crs" : "wgs-84"
+    }
+  }, {
+    "id" : "3",
+    "pointCoordinates" : {
+      "latitude" : 48.856613,
+      "longitude" : 2.352222,
+      "height" : 21.0,
+      "crs" : "wgs-84-3d"
+    }
+  } ]
 }
 ----
-
-'''
 
 == should not fail when srid is not queried, Connection
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   locationsConnection {
@@ -316,7 +298,7 @@ RETURN this {
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -389,6 +371,3 @@ RETURN {
   }
 }
 ----
-
-'''
-

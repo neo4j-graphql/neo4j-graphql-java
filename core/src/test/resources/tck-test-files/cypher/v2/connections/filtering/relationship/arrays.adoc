@@ -27,7 +27,7 @@ type ActedIn @relationshipProperties {
 == IN
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies {
@@ -93,12 +93,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == INCLUDES
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies {
@@ -165,6 +163,3 @@ RETURN this {
 	actorsConnection: actorsConnection
 } AS this
 ----
-
-'''
-

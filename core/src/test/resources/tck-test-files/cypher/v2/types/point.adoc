@@ -17,7 +17,7 @@ type PointContainer {
 == Simple Point query
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   pointContainers(where: {point: {longitude: 1.0, latitude: 2.0}}) {
@@ -55,12 +55,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Simple Point IN query
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   pointContainers(where: {point_IN: [{longitude: 1.0, latitude: 2.0}]}) {
@@ -98,14 +96,12 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == tests using describe or point.describe
 
 === Simple Point LT query
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   pointContainers(
@@ -146,12 +142,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 === Simple Point LTE query
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   pointContainers(
@@ -192,12 +186,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 === Simple Point GT query
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   pointContainers(
@@ -238,12 +230,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 === Simple Point GTE query
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   pointContainers(
@@ -284,12 +274,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 === Simple Point DISTANCE query
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   pointContainers(
@@ -329,6 +317,3 @@ RETURN this {
 	} ELSE NULL END
 } AS this
 ----
-
-'''
-

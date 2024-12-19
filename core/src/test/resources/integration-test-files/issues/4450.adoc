@@ -38,7 +38,7 @@ CREATE (:Actor {name: "actor-1"})-[:IN_SCENE {cut: true}]->(:Scene {number: 1})-
 == filtering through a connection to a many-to-1 relationship should work
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   actors(
@@ -53,8 +53,8 @@ CREATE (:Actor {name: "actor-1"})-[:IN_SCENE {cut: true}]->(:Scene {number: 1})-
 [source,json]
 ----
 {
-  "param0": "test",
-  "param1": true
+  "param0" : "test",
+  "param1" : true
 }
 ----
 
@@ -79,13 +79,8 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "actors": [
-    {
-      "name": "actor-1"
-    }
-  ]
+  "actors" : [ {
+    "name" : "actor-1"
+  } ]
 }
 ----
-
-'''
-

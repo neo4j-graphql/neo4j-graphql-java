@@ -11,11 +11,6 @@ class CodeBlock(
 
     var caption: String? = null
 
-    var markerStart: Int? = null
-    var markerEnd: Int? = null
-    var start: Int? = null
-    var end: Int? = null
-
     lateinit var content: String
 
     /**
@@ -49,4 +44,15 @@ class CodeBlock(
     fun matches(language: String, filter: Map<String, String?> = emptyMap(), exactly: Boolean = false) =
         this.language == language && filter.all { (k, v) -> attributes[k] == v } && (!exactly || attributes.size == filter.size)
 
+    override fun buildContent(contentExtractor: (CodeBlock) -> String): String {
+        val builder = StringBuilder()
+        caption?.let {
+            builder.append("\n.${it}\n")
+        }
+        builder.append(adjustedMarker)
+        builder.append("\n----\n")
+        builder.append(contentExtractor(this))
+        builder.append("\n----\n")
+        return builder.toString()
+    }
 }

@@ -33,7 +33,7 @@ type Movie {
 === Simple Cypher Directive on Field
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query {
   person {

@@ -36,7 +36,7 @@ type Actor {
 == Simple Interface Relationship Query
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   actors {
@@ -93,12 +93,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Simple Interface Relationship Query For Non-Array Field
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   actors {
@@ -155,12 +153,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Simple Interface Relationship Query with offset and limit
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   actors {
@@ -220,12 +216,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Interface Relationship Query through connection
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   actors {
@@ -305,12 +299,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Interface Relationship Query through connection with where
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   actors {
@@ -400,6 +392,3 @@ RETURN this {
 	actedInConnection: actedInConnection
 } AS this
 ----
-
-'''
-

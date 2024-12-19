@@ -37,7 +37,7 @@ type Person_HAS_Target_Book @relation(name: "HAS", from: "source", to: "target",
 == Query
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query{
   person{

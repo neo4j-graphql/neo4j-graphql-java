@@ -29,7 +29,7 @@ type Actor {
 == edges not returned if not asked for
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "Forrest Gump"}) {
@@ -83,13 +83,11 @@ RETURN this {
 	actorsConnection: actorsConnection
 } AS this
 ----
-
-'''
 
 == edges and totalCount returned if pageInfo asked for
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "Forrest Gump"}) {
@@ -148,13 +146,11 @@ RETURN this {
 	actorsConnection: actorsConnection
 } AS this
 ----
-
-'''
 
 == Minimal edges returned if not asked for with pagination arguments
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "Forrest Gump"}) {
@@ -210,12 +206,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == edges not returned if not asked for on a union
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   actors(where: {name: "Tom Hanks"}) {
@@ -275,12 +269,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == edges and totalCount returned if pageInfo asked for on a union
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   actors(where: {name: "Tom Hanks"}) {
@@ -345,12 +337,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == totalCount is calculated and returned if asked for with edges
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "Forrest Gump"}) {
@@ -410,12 +400,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == totalCount is calculated and returned if asked for with edges with pagination arguments
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "Forrest Gump"}) {
@@ -475,6 +463,3 @@ RETURN this {
 	actorsConnection: actorsConnection
 } AS this
 ----
-
-'''
-

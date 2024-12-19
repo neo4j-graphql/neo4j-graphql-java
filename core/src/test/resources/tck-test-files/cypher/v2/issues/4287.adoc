@@ -33,7 +33,7 @@ type Series implements Production {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   actors {
@@ -105,6 +105,3 @@ RETURN this {
 	actedInConnection: actedInConnection
 } AS this
 ----
-
-'''
-

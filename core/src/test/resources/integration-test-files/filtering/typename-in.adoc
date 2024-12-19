@@ -53,7 +53,7 @@ CREATE(a:Actor { name: "Keanu" })
 == top-level
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   productions(
@@ -69,9 +69,9 @@ CREATE(a:Actor { name: "Keanu" })
 [source,json]
 ----
 {
-  "param0": "The Matrix",
-  "param1": "The Matrix",
-  "param2": "The Matrix"
+  "param0" : "The Matrix",
+  "param1" : "The Matrix",
+  "param2" : "The Matrix"
 }
 ----
 
@@ -118,25 +118,20 @@ RETURN this AS this
 [source,json,response=true,ignore-order]
 ----
 {
-  "productions": [
-    {
-      "__typename": "Movie",
-      "title": "The Matrix"
-    },
-    {
-      "__typename": "Series",
-      "title": "The Matrix animated series"
-    }
-  ]
+  "productions" : [ {
+    "__typename" : "Movie",
+    "title" : "The Matrix"
+  }, {
+    "__typename" : "Series",
+    "title" : "The Matrix animated series"
+  } ]
 }
 ----
-
-'''
 
 == nested
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   actors {
@@ -154,9 +149,9 @@ RETURN this AS this
 [source,json]
 ----
 {
-  "param0": "The Matrix",
-  "param1": "The Matrix",
-  "param2": "The Matrix"
+  "param0" : "The Matrix",
+  "param1" : "The Matrix",
+  "param2" : "The Matrix"
 }
 ----
 
@@ -213,22 +208,14 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "actors": [
-    {
-      "actedIn": [
-        {
-          "__typename": "Movie",
-          "title": "The Matrix"
-        },
-        {
-          "__typename": "Series",
-          "title": "The Matrix animated series"
-        }
-      ]
-    }
-  ]
+  "actors" : [ {
+    "actedIn" : [ {
+      "__typename" : "Movie",
+      "title" : "The Matrix"
+    }, {
+      "__typename" : "Series",
+      "title" : "The Matrix animated series"
+    } ]
+  } ]
 }
 ----
-
-'''
-

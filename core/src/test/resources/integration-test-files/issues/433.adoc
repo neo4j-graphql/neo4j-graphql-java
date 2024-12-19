@@ -25,7 +25,7 @@ CREATE (:Movie {title: "RandomString1"})<-[:ACTED_IN]-(:Person {name: "RandomStr
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "RandomString1"}) {
@@ -45,7 +45,7 @@ CREATE (:Movie {title: "RandomString1"})<-[:ACTED_IN]-(:Person {name: "RandomStr
 [source,json]
 ----
 {
-  "param0": "RandomString1"
+  "param0" : "RandomString1"
 }
 ----
 
@@ -88,22 +88,15 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "title": "RandomString1",
-      "actorsConnection": {
-        "edges": [
-          {
-            "node": {
-              "name": "RandomString2"
-            }
-          }
-        ]
-      }
+  "movies" : [ {
+    "title" : "RandomString1",
+    "actorsConnection" : {
+      "edges" : [ {
+        "node" : {
+          "name" : "RandomString2"
+        }
+      } ]
     }
-  ]
+  } ]
 }
 ----
-
-'''
-

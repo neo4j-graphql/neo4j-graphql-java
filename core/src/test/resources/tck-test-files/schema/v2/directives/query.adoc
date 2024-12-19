@@ -25,7 +25,7 @@ extend schema @query {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -139,8 +139,6 @@ input MovieWhere {
 
 ----
 
-'''
-
 === should disable read and aggregate
 
 .Schema
@@ -160,7 +158,7 @@ extend schema @query(read: false) {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -171,6 +169,3 @@ type Query {
 }
 
 ----
-
-'''
-

@@ -23,7 +23,7 @@ type Movie @node(labels: ["Film", "Multimedia"]) {
 == Select Movie with additional labels
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies {
@@ -47,12 +47,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Select movie and actor with additional labels
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies {
@@ -87,6 +85,3 @@ RETURN this {
 	actors: actors
 } AS this
 ----
-
-'''
-

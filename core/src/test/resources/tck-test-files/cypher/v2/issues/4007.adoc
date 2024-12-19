@@ -22,7 +22,7 @@ type Actor {
 == should return name from aliased selection
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   m: movies {
@@ -75,6 +75,3 @@ RETURN this {
 	t: t
 } AS this
 ----
-
-'''
-

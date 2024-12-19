@@ -39,7 +39,7 @@ CREATE (:Movie{ title: 'Forrest Gump' });
 == Mutation
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation {
     r: rateMovie(movie:"Forrest Gump", user:"Andreas", rating: 5)

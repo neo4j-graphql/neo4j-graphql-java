@@ -22,7 +22,7 @@ type Actor {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -188,8 +188,6 @@ input MovieWhere {
 
 ----
 
-'''
-
 == Empty EventPayload type
 
 .Schema
@@ -209,7 +207,7 @@ type Actor {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -398,8 +396,6 @@ input MovieWhere {
 
 ----
 
-'''
-
 == Empty EventPayload type on Union type
 
 .Schema
@@ -425,7 +421,7 @@ type Person {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -707,8 +703,6 @@ input StarWhere {
 
 ----
 
-'''
-
 == Empty EventPayload type, but @relationshipProperty exists
 
 .Schema
@@ -732,7 +726,7 @@ type Actor {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -950,6 +944,3 @@ input MovieWhere {
 }
 
 ----
-
-'''
-

@@ -15,7 +15,7 @@ type User {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query FriendsAggregate {
   users {
@@ -64,6 +64,3 @@ RETURN this {
 	friendsConnection: friendsConnection
 } AS this
 ----
-
-'''
-

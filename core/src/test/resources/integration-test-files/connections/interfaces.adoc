@@ -44,7 +44,7 @@ CREATE (actor:Actor {name: "Jason Momoa"})
 == Projecting node and relationship properties with no arguments
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query Actors($name: String) {
   actors(where: {name: $name}) {
@@ -73,7 +73,7 @@ query Actors($name: String) {
 [source,json,request=true]
 ----
 {
-  "name": "Jason Momoa"
+  "name" : "Jason Momoa"
 }
 ----
 
@@ -81,7 +81,7 @@ query Actors($name: String) {
 [source,json]
 ----
 {
-  "param0": "Jason Momoa"
+  "param0" : "Jason Momoa"
 }
 ----
 
@@ -174,12 +174,10 @@ RETURN this {
 }
 ----
 
-'''
-
 == Projecting node and relationship properties with shared where argument
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query Actors($name: String) {
   actors(where: {name: $name}) {
@@ -208,7 +206,7 @@ query Actors($name: String) {
 [source,json,request=true]
 ----
 {
-  "name": "Jason Momoa"
+  "name" : "Jason Momoa"
 }
 ----
 
@@ -216,9 +214,9 @@ query Actors($name: String) {
 [source,json]
 ----
 {
-  "param0": "Jason Momoa",
-  "param1": "Game of Thrones",
-  "param2": "Game of Thrones"
+  "param0" : "Jason Momoa",
+  "param1" : "Game of Thrones",
+  "param2" : "Game of Thrones"
 }
 ----
 
@@ -280,33 +278,27 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "actors": [
-    {
-      "name": "Jason Momoa",
-      "actedInConnection": {
-        "edges": [
-          {
-            "properties": {
-              "screenTime": 858
-            },
-            "node": {
-              "title": "Game of Thrones",
-              "episodes": 73
-            }
-          }
-        ]
-      }
+  "actors" : [ {
+    "name" : "Jason Momoa",
+    "actedInConnection" : {
+      "edges" : [ {
+        "properties" : {
+          "screenTime" : 858
+        },
+        "node" : {
+          "title" : "Game of Thrones",
+          "episodes" : 73
+        }
+      } ]
     }
-  ]
+  } ]
 }
 ----
-
-'''
 
 == Projecting node and relationship properties with sort argument
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query Actors($name: String) {
   actors(where: {name: $name}) {
@@ -335,7 +327,7 @@ query Actors($name: String) {
 [source,json,request=true]
 ----
 {
-  "name": "Jason Momoa"
+  "name" : "Jason Momoa"
 }
 ----
 
@@ -343,7 +335,7 @@ query Actors($name: String) {
 [source,json]
 ----
 {
-  "param0": "Jason Momoa"
+  "param0" : "Jason Momoa"
 }
 ----
 
@@ -409,51 +401,43 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "actors": [
-    {
-      "name": "Jason Momoa",
-      "actedInConnection": {
-        "edges": [
-          {
-            "properties": {
-              "screenTime": 858
-            },
-            "node": {
-              "title": "Game of Thrones",
-              "episodes": 73
-            }
-          },
-          {
-            "properties": {
-              "screenTime": 120
-            },
-            "node": {
-              "title": "Aquaman",
-              "runtime": 144
-            }
-          },
-          {
-            "properties": {
-              "screenTime": 90
-            },
-            "node": {
-              "title": "Dune",
-              "runtime": 155
-            }
-          }
-        ]
-      }
+  "actors" : [ {
+    "name" : "Jason Momoa",
+    "actedInConnection" : {
+      "edges" : [ {
+        "properties" : {
+          "screenTime" : 858
+        },
+        "node" : {
+          "title" : "Game of Thrones",
+          "episodes" : 73
+        }
+      }, {
+        "properties" : {
+          "screenTime" : 120
+        },
+        "node" : {
+          "title" : "Aquaman",
+          "runtime" : 144
+        }
+      }, {
+        "properties" : {
+          "screenTime" : 90
+        },
+        "node" : {
+          "title" : "Dune",
+          "runtime" : 155
+        }
+      } ]
     }
-  ]
+  } ]
 }
 ----
-
-'''
 
 == Projecting node and relationship properties with pagination
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query Actors($name: String, $after: String) {
   actors(where: {name: $name}) {
@@ -487,7 +471,7 @@ query Actors($name: String, $after: String) {
 [source,json,request=true]
 ----
 {
-  "name": "Jason Momoa"
+  "name" : "Jason Momoa"
 }
 ----
 
@@ -495,8 +479,8 @@ query Actors($name: String, $after: String) {
 [source,json]
 ----
 {
-  "param0": "Jason Momoa",
-  "param1": 2
+  "param0" : "Jason Momoa",
+  "param1" : 2
 }
 ----
 
@@ -562,45 +546,40 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "actors": [
-    {
-      "name": "Jason Momoa",
-      "actedInConnection": {
-        "pageInfo": {
-          "hasNextPage": true,
-          "hasPreviousPage": false,
-          "endCursor": "YXJyYXljb25uZWN0aW9uOjE="
+  "actors" : [ {
+    "name" : "Jason Momoa",
+    "actedInConnection" : {
+      "pageInfo" : {
+        "hasNextPage" : true,
+        "hasPreviousPage" : false,
+        "endCursor" : "YXJyYXljb25uZWN0aW9uOjE="
+      },
+      "edges" : [ {
+        "properties" : {
+          "screenTime" : 858
         },
-        "edges": [
-          {
-            "properties": {
-              "screenTime": 858
-            },
-            "node": {
-              "title": "Game of Thrones",
-              "episodes": 73
-            }
-          },
-          {
-            "properties": {
-              "screenTime": 120
-            },
-            "node": {
-              "title": "Aquaman",
-              "runtime": 144
-            }
-          }
-        ]
-      }
+        "node" : {
+          "title" : "Game of Thrones",
+          "episodes" : 73
+        }
+      }, {
+        "properties" : {
+          "screenTime" : 120
+        },
+        "node" : {
+          "title" : "Aquaman",
+          "runtime" : 144
+        }
+      } ]
     }
-  ]
+  } ]
 }
 ----
 
 '''
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query Actors($name: String, $after: String) {
   actors(where: {name: $name}) {
@@ -634,8 +613,8 @@ query Actors($name: String, $after: String) {
 [source,json,request=true]
 ----
 {
-  "name": "Jason Momoa",
-  "after": "YXJyYXljb25uZWN0aW9uOjE="
+  "after" : "YXJyYXljb25uZWN0aW9uOjE=",
+  "name" : "Jason Momoa"
 }
 ----
 
@@ -711,38 +690,32 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "actors": [
-    {
-      "name": "Jason Momoa",
-      "actedInConnection": {
-        "pageInfo": {
-          "hasNextPage": false,
-          "hasPreviousPage": true,
-          "endCursor": "YXJyYXljb25uZWN0aW9uOjI="
+  "actors" : [ {
+    "name" : "Jason Momoa",
+    "actedInConnection" : {
+      "pageInfo" : {
+        "hasNextPage" : false,
+        "hasPreviousPage" : true,
+        "endCursor" : "YXJyYXljb25uZWN0aW9uOjI="
+      },
+      "edges" : [ {
+        "properties" : {
+          "screenTime" : 90
         },
-        "edges": [
-          {
-            "properties": {
-              "screenTime": 90
-            },
-            "node": {
-              "title": "Dune",
-              "runtime": 155
-            }
-          }
-        ]
-      }
+        "node" : {
+          "title" : "Dune",
+          "runtime" : 155
+        }
+      } ]
     }
-  ]
+  } ]
 }
 ----
-
-'''
 
 == With where argument for shared field on node with node in database
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query Actors($name: String, $title: String) {
   actors(where: {name: $name}) {
@@ -771,8 +744,8 @@ query Actors($name: String, $title: String) {
 [source,json,request=true]
 ----
 {
-  "name": "Jason Momoa",
-  "title": "Dune"
+  "name" : "Jason Momoa",
+  "title" : "Dune"
 }
 ----
 
@@ -780,9 +753,9 @@ query Actors($name: String, $title: String) {
 [source,json]
 ----
 {
-  "param0": "Jason Momoa",
-  "param1": "Dune",
-  "param2": "Dune"
+  "param0" : "Jason Momoa",
+  "param1" : "Dune",
+  "param2" : "Dune"
 }
 ----
 
@@ -844,26 +817,19 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "actors": [
-    {
-      "name": "Jason Momoa",
-      "actedInConnection": {
-        "edges": [
-          {
-            "properties": {
-              "screenTime": 90
-            },
-            "node": {
-              "title": "Dune",
-              "runtime": 155
-            }
-          }
-        ]
-      }
+  "actors" : [ {
+    "name" : "Jason Momoa",
+    "actedInConnection" : {
+      "edges" : [ {
+        "properties" : {
+          "screenTime" : 90
+        },
+        "node" : {
+          "title" : "Dune",
+          "runtime" : 155
+        }
+      } ]
     }
-  ]
+  } ]
 }
 ----
-
-'''
-

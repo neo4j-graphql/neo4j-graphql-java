@@ -21,7 +21,7 @@ type Area {
 == Should ignore the empty array and not include any where
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($area: [ID!]) {
   events(where: {area: {id_IN: $area}}) {
@@ -56,6 +56,3 @@ RETURN this {
 	area: area
 } AS this
 ----
-
-'''
-

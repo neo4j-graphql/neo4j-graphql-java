@@ -117,7 +117,7 @@ type Mutation {
 === Top Level Query
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query {
   Movie {
@@ -146,7 +146,7 @@ RETURN movie {
 === Query Single Object
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   MovieById(movieId: "18") {
@@ -178,7 +178,7 @@ RETURN movieById {
 === Basic Query with Parameter
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {  Movie(title: "River Runs Through It, A")  {  title }  }
 ----
@@ -206,7 +206,7 @@ RETURN movie {
 === Paging
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   Movie(title: "River Runs Through It, A", first: 1, offset: 1) {
@@ -242,7 +242,7 @@ RETURN movie {
 === Query Single Relation
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   MovieById(movieId: "3100") {
@@ -285,7 +285,7 @@ RETURN movieById {
 === Query Single Object and Array of Object Relations
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   MovieById(movieId: "3100") {
@@ -342,7 +342,7 @@ RETURN movieById {
 === Relationship Expansion
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   Movie(title: "River Runs Through It, A") {
@@ -388,7 +388,7 @@ RETURN movie {
 === Projection with sub-paging
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   Movie(title: "River Runs Through It, A") {
@@ -434,7 +434,7 @@ RETURN movie {
 === Subquery Cypher Directive
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   Movie {
@@ -481,7 +481,7 @@ RETURN movie {
 === Subquery Cypher Directive Paging
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   Movie {
@@ -528,7 +528,7 @@ RETURN movie {
 === Handle Cypher Directive on Query Type
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   GenresBySubstring(substring:"Action") {
@@ -576,7 +576,7 @@ RETURN genresBySubstring {
 === Handle Cypher directive on Mutation type
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation someMutation {
   createGenre(name: "Wildlife Documentary") {
@@ -610,7 +610,7 @@ RETURN createGenre {
 === Query using Inline Fragment
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   Movie(title: "River Runs Through It, A") {
@@ -663,7 +663,7 @@ RETURN movie {
 === Deeply nested object query
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   Movie(title: "River Runs Through It, A") {
@@ -768,7 +768,7 @@ RETURN movie {
 === Should merge an actor by the userId
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation {
   actor: mergeActor(userId: "1", name: "Andrea") {
@@ -806,7 +806,7 @@ RETURN actor {
 === Should auto generate `add` relationship mutations for arrays
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation {
   add: addMovieGenres(movieId: 1, genres: ["Action", "Fantasy"]) {
@@ -844,7 +844,7 @@ RETURN add {
 === Should auto generate `delete` relationship mutations for arrays
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation {
   del: deleteMovieGenres(movieId: 1, genres: ["Action", "Fantasy"]) {
@@ -882,7 +882,7 @@ RETURN del {
 === Should auto generate `add` relationship mutations
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation {
   add: addMoviePublishedBy(movieId: 1, publishedBy: "Company") {
@@ -921,7 +921,7 @@ RETURN add {
 === Should auto generate `delete` relationship mutations
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation {
   del: deleteMoviePublishedBy(movieId: 1, publishedBy: "Company") {
@@ -960,7 +960,7 @@ RETURN del {
 === Should auto generate `add` recursive relationship mutations for arrays
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation {
   add: addUserKnows(userId: 1, knows: [10, 23]) {
@@ -1000,7 +1000,7 @@ RETURN add {
 === Descending, top level
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   Movie(year: 2010, orderBy:title_desc, first: 10) {
@@ -1033,7 +1033,7 @@ RETURN movie {
 === Descending, number
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {  Movie(orderBy:year_desc, first:10)  {  title }  }
 ----
@@ -1060,7 +1060,7 @@ RETURN movie {
 === Deeply nested orderBy
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   Movie(orderBy:title_desc) {
@@ -1116,7 +1116,7 @@ RETURN movie {
 === Deeply nested query using temporal orderBy
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   User(orderBy: born_desc){
@@ -1184,7 +1184,7 @@ RETURN user {
 === Find all relations
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { rated(_id:1){
     rating
@@ -1217,7 +1217,7 @@ RETURN rated {
 === Create relation
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation {
   createRated(from_userId: "1", to_movieId: "2", rating: 5) {
@@ -1259,7 +1259,7 @@ RETURN createRated {
 === Mutate relation
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation {
  updateRated(_id:1, rating: 5){
@@ -1296,7 +1296,7 @@ RETURN updateRated {
 === create relation
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation {
  addGenreMovies(name:"Action", movies: ["m1"]){
@@ -1334,7 +1334,7 @@ RETURN addGenreMovies {
 == create object with multiple labels
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation {
  createUser(userId:1){
@@ -1373,7 +1373,7 @@ RETURN createUser {
 === User born extraction
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query {
   User {
@@ -1408,7 +1408,7 @@ RETURN user {
 === User born query filter with multiple fields
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query {
   User(born: {formatted: "2015-06-24T12:50:35.556000000+01:00", year: 2015 }) {
@@ -1446,7 +1446,7 @@ RETURN user {
 === Merge Actor with born field formatted
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation {
   actor: mergeActor(userId: "1", name: "Andrea", born: { formatted: "2015-06-24T12:50:35.556000000+01:00" }) {
@@ -1488,7 +1488,7 @@ RETURN actor {
 === Create Actor with born field formatted
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation {
   actor: createActor(userId: "1", name: "Andrea", born: { formatted: "2015-06-24T12:50:35.556000000+01:00" }) {
@@ -1528,7 +1528,7 @@ RETURN actor {
 === Merge Actor with born field object
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation {
   actor: mergeActor(userId: "1", name: "Andrea", born: { year: 2018
@@ -1588,7 +1588,7 @@ RETURN actor {
 === Create Actor with born field object
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation {
   actor: createActor(userId: "1", name: "Andrea", born: { year: 2018
@@ -1656,7 +1656,7 @@ RETURN actor {
 === delete node by id
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation{
   deleteMovie(movieId:"id"){
@@ -1690,7 +1690,7 @@ RETURN deleteMovie AS deleteMovie
 === delete node by native id
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation{
   deleteState(_id: 1){
@@ -1723,7 +1723,7 @@ RETURN deleteState AS deleteState
 === delete relation by native id
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation{
   deleteRated(_id: 1){

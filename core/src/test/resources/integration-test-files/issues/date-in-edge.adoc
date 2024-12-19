@@ -36,7 +36,7 @@ CREATE (genre:Genre { id: "RandomString1" })
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   genres(where: {id: "RandomString1"}) {
@@ -57,7 +57,7 @@ CREATE (genre:Genre { id: "RandomString1" })
 [source,json]
 ----
 {
-  "param0": "RandomString1"
+  "param0" : "RandomString1"
 }
 ----
 
@@ -107,13 +107,8 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "genres": [
-    {
-      "movies": []
-    }
-  ]
+  "genres" : [ {
+    "movies" : [ ]
+  } ]
 }
 ----
-
-'''
-

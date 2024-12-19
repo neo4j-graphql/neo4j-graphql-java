@@ -30,7 +30,7 @@ CREATE (m:Movie {title: "RandomString1"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies {
@@ -51,7 +51,7 @@ CREATE (m:Movie {title: "RandomString1"})
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -95,40 +95,31 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "movies": [
-    {
-      "actorsConnection": {
-        "edges": [
-          {
-            "node": {
-              "surname": "surname1"
-            },
-            "no": {
-              "name": "name1"
-            }
-          },
-          {
-            "node": {
-              "surname": "surname3"
-            },
-            "no": {
-              "name": "name3"
-            }
-          },
-          {
-            "node": {
-              "surname": "surname2"
-            },
-            "no": {
-              "name": "name2"
-            }
-          }
-        ]
-      }
+  "movies" : [ {
+    "actorsConnection" : {
+      "edges" : [ {
+        "node" : {
+          "surname" : "surname1"
+        },
+        "no" : {
+          "name" : "name1"
+        }
+      }, {
+        "node" : {
+          "surname" : "surname3"
+        },
+        "no" : {
+          "name" : "name3"
+        }
+      }, {
+        "node" : {
+          "surname" : "surname2"
+        },
+        "no" : {
+          "name" : "name2"
+        }
+      } ]
     }
-  ]
+  } ]
 }
 ----
-
-'''
-

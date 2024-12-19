@@ -53,7 +53,7 @@ CREATE(m1:Movie { title: "The Office" })
 == allow for filtering on top-level union relationships
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   productions(
@@ -73,8 +73,8 @@ CREATE(m1:Movie { title: "The Office" })
 [source,json]
 ----
 {
-  "param0": "The Office",
-  "param1": "The Office 2"
+  "param0" : "The Office",
+  "param1" : "The Office 2"
 }
 ----
 
@@ -107,23 +107,18 @@ RETURN this AS this
 [source,json,response=true,ignore-order]
 ----
 {
-  "productions": [
-    {
-      "title": "The Office"
-    },
-    {
-      "title": "The Office 2"
-    }
-  ]
+  "productions" : [ {
+    "title" : "The Office"
+  }, {
+    "title" : "The Office 2"
+  } ]
 }
 ----
-
-'''
 
 == allow for filtering on nested-level relationship unions
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   actors(where: {actedIn_SOME: {Movie: {title_CONTAINS: "Office"}}}) {
@@ -136,7 +131,7 @@ RETURN this AS this
 [source,json]
 ----
 {
-  "param0": "Office"
+  "param0" : "Office"
 }
 ----
 
@@ -157,16 +152,10 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "actors": [
-    {
-      "name": "Michael"
-    },
-    {
-      "name": "Keanu"
-    }
-  ]
+  "actors" : [ {
+    "name" : "Michael"
+  }, {
+    "name" : "Keanu"
+  } ]
 }
 ----
-
-'''
-

@@ -411,6 +411,7 @@ ij_asciidoc_blank_lines_after_header = 1
 ij_asciidoc_blank_lines_keep_after_header = 1
 ij_asciidoc_formatting_enabled = true
 ij_asciidoc_one_sentence_per_line = true
+trim_trailing_whitespace = false
 
 [{*.ant,*.fo,*.fxml,*.jhm,*.jnlp,*.jrxml,*.pom,*.qrc,*.rng,*.tld,*.wadl,*.wsdd,*.wsdl,*.xjb,*.xml,*.xsd,*.xsl,*.xslt,*.xul,phpunit.xml.dist}]
 ij_xml_align_attributes = true

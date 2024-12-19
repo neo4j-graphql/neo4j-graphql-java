@@ -28,7 +28,7 @@ CREATE (s:System { code: "arthur" });
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   systems {
@@ -47,7 +47,7 @@ CREATE (s:System { code: "arthur" });
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -88,16 +88,11 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "systems": [
-    {
-      "code": "arthur",
-      "updatesDataConnection": {
-        "edges": []
-      }
+  "systems" : [ {
+    "code" : "arthur",
+    "updatesDataConnection" : {
+      "edges" : [ ]
     }
-  ]
+  } ]
 }
 ----
-
-'''
-

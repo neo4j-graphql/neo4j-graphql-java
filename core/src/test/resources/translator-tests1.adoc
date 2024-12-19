@@ -59,7 +59,7 @@ type Query {
 === order by query single
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
  { person:person(orderBy:[name_asc]) { age } }
 ----
@@ -84,7 +84,7 @@ RETURN person {
 === rich relationship
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person { name born { date to { name } } } }
 ----
@@ -120,7 +120,7 @@ RETURN person {
 === nested query multi
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person { name age livedIn { name } } }
 ----
@@ -154,7 +154,7 @@ RETURN person {
 === inline fragment
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
  query { person { ... on Person { name } } }
 ----
@@ -179,7 +179,7 @@ RETURN person {
 === simple query offset
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
  { person:person(offset:3) { age } }
 ----
@@ -206,7 +206,7 @@ RETURN person {
 === query offset as variable
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query getPersons($offset: Int){
   person(offset: $offset) {
@@ -245,7 +245,7 @@ RETURN person {
 === nested query
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person { name age livesIn { name } } }
 ----
@@ -279,7 +279,7 @@ RETURN person {
 === simple query
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person { name age } }
 ----
@@ -305,7 +305,7 @@ RETURN person {
 === named fragment
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
  query { person { ...name } } fragment name on Person { name }
 ----
@@ -330,7 +330,7 @@ RETURN person {
 === rich relationship custom field names
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person { name died { date where { name } } } }
 ----
@@ -366,7 +366,7 @@ RETURN person {
 === rich relationship 2nd hop
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person { name born { date to { name founded { name } } } } }
 ----
@@ -410,7 +410,7 @@ RETURN person {
 === rich relationship 3 rd hop
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person { name born { date to { name founded { name born { date to { name } } } } } } }
 ----
@@ -465,7 +465,7 @@ RETURN person {
 === nested query parameter
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person { name age livedIn(name:"Berlin") { name } } }
 ----
@@ -502,7 +502,7 @@ RETURN person {
 === order by query two
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
  { person:person(orderBy:[age_desc, name_asc]) { age } }
 ----
@@ -527,7 +527,7 @@ RETURN person {
 === order by with underscore
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
  { location(orderBy:[sort_Arg_desc]) { name } }
 ----
@@ -552,7 +552,7 @@ RETURN location {
 === named fragment multi field
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
   fragment details on Person { name, age } query { person { ...details } }
 ----
@@ -578,7 +578,7 @@ RETURN person {
 === simple query alias
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
  { foo:person {
      n:name
@@ -606,7 +606,7 @@ RETURN foo {
 === simple query first
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
  { person:person(first:2) { age } }
 ----
@@ -633,7 +633,7 @@ RETURN person {
 === simple query where
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
  { person:personByName(name:"Joe") { age } }
 ----
@@ -661,7 +661,7 @@ RETURN person {
 === nested query slice offset
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person { livedIn(offset:3) { name } } }
 ----
@@ -696,7 +696,7 @@ RETURN person {
 === nested query slice first
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person { livedIn(first:2) { name } } }
 ----
@@ -731,7 +731,7 @@ RETURN person {
 === nested query 2 nd hop
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person { name age livesIn { name founded {name}} } }
 ----
@@ -773,7 +773,7 @@ RETURN person {
 === inline fragment multi fields
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query { person { ... on Person { name,age } } }
 ----
@@ -799,7 +799,7 @@ RETURN person {
 === simple query first offset
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
  { person:person(first:2,offset:3) { age } }
 ----
@@ -827,7 +827,7 @@ RETURN person {
 === nested query slice first offset
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person { livedIn(first:2,offset:3) { name } } }
 ----
@@ -863,7 +863,7 @@ RETURN person {
 === nested query slice first offset
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { location { name __typename } }
 ----
@@ -891,7 +891,7 @@ RETURN location {
 === introspection
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   person {
@@ -935,7 +935,7 @@ RETURN person {
 === inline fragments on interfaces
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   location {
@@ -976,7 +976,7 @@ RETURN location {
 === fragments on interfaces
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query {
   location {
@@ -1020,7 +1020,7 @@ RETURN location {
 === query spatial types
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query {
   person(location:{longitude: 1, latitude: 2 }){
@@ -1066,7 +1066,7 @@ RETURN person {
 === mutate spatial types
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation{
   createPerson(name:"Test2", location:{x: 1, y: 2, z: 3, crs: "wgs-84-3d"}){
@@ -1127,7 +1127,7 @@ RETURN createPerson {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   location {

@@ -44,7 +44,7 @@ CREATE (a:Actor { name: "RandomString1" })
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query Actors($title: String) {
   actors(where: {actedIn_SOME: {Movie: {title: $title}}}) {
@@ -67,7 +67,7 @@ query Actors($title: String) {
 [source,json,request=true]
 ----
 {
-  "title": "RandomString4"
+  "title" : "RandomString4"
 }
 ----
 
@@ -75,7 +75,7 @@ query Actors($title: String) {
 [source,json]
 ----
 {
-  "param0": "RandomString4"
+  "param0" : "RandomString4"
 }
 ----
 
@@ -122,21 +122,15 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "actors": [
-    {
-      "name": "RandomString2",
-      "actedIn": [
-        {
-          "title": "RandomString4",
-          "runtime": 18723
-        }
-      ]
-    }
-  ]
+  "actors" : [ {
+    "name" : "RandomString2",
+    "actedIn" : [ {
+      "title" : "RandomString4",
+      "runtime" : 18723
+    } ]
+  } ]
 }
 ----
-
-'''
 
 == should read and return union relationship fields with union relationship filter ALL (one out of two implementations in the input and DB)
 
@@ -152,7 +146,7 @@ CREATE (a:Actor { name: "RandomString1" })
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query Actors($title: String) {
   actors(where: {actedIn_ALL: {Movie: {title: $title}}}) {
@@ -175,7 +169,7 @@ query Actors($title: String) {
 [source,json,request=true]
 ----
 {
-  "title": "RandomString3"
+  "title" : "RandomString3"
 }
 ----
 
@@ -183,7 +177,7 @@ query Actors($title: String) {
 [source,json]
 ----
 {
-  "param0": "RandomString3"
+  "param0" : "RandomString3"
 }
 ----
 
@@ -234,34 +228,24 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "actors": [
-    {
-      "name": "RandomString1",
-      "actedIn": [
-        {
-          "title": "RandomString3",
-          "runtime": 61632
-        },
-        {
-          "title": "RandomString4",
-          "episodes": 61753
-        }
-      ]
-    },
-    {
-      "name": "RandomString2",
-      "actedIn": [
-        {
-          "title": "RandomString3",
-          "runtime": 61632
-        }
-      ]
-    }
-  ]
+  "actors" : [ {
+    "name" : "RandomString1",
+    "actedIn" : [ {
+      "title" : "RandomString3",
+      "runtime" : 61632
+    }, {
+      "title" : "RandomString4",
+      "episodes" : 61753
+    } ]
+  }, {
+    "name" : "RandomString2",
+    "actedIn" : [ {
+      "title" : "RandomString3",
+      "runtime" : 61632
+    } ]
+  } ]
 }
 ----
-
-'''
 
 == should read and return union relationship fields with union relationship filter ALL (both implementations in the input and DB)
 
@@ -278,7 +262,7 @@ CREATE (a:Actor { name: "RandomString1" })
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query Actors($title: String) {
   actors(where: {actedIn_ALL: {Movie: {title: $title}, Series: {title: $title}}}) {
@@ -301,7 +285,7 @@ query Actors($title: String) {
 [source,json,request=true]
 ----
 {
-  "title": "RandomString3"
+  "title" : "RandomString3"
 }
 ----
 
@@ -309,8 +293,8 @@ query Actors($title: String) {
 [source,json]
 ----
 {
-  "param0": "RandomString3",
-  "param1": "RandomString3"
+  "param0" : "RandomString3",
+  "param1" : "RandomString3"
 }
 ----
 
@@ -369,25 +353,18 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "actors": [
-    {
-      "name": "RandomString2",
-      "actedIn": [
-        {
-          "title": "RandomString3",
-          "runtime": 25423
-        },
-        {
-          "title": "RandomString3",
-          "episodes": 36248
-        }
-      ]
-    }
-  ]
+  "actors" : [ {
+    "name" : "RandomString2",
+    "actedIn" : [ {
+      "title" : "RandomString3",
+      "runtime" : 25423
+    }, {
+      "title" : "RandomString3",
+      "episodes" : 36248
+    } ]
+  } ]
 }
 ----
-
-'''
 
 == should read and return union relationship fields with union relationship filter ALL (both implementations in the input and one out of two in DB)
 
@@ -403,7 +380,7 @@ CREATE (a:Actor { name: "RandomString1" })
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query Actors($title: String) {
   actors(where: {actedIn_ALL: {Movie: {title: $title}, Series: {title: $title}}}) {
@@ -426,7 +403,7 @@ query Actors($title: String) {
 [source,json,request=true]
 ----
 {
-  "title": "RandomString3"
+  "title" : "RandomString3"
 }
 ----
 
@@ -434,8 +411,8 @@ query Actors($title: String) {
 [source,json]
 ----
 {
-  "param0": "RandomString3",
-  "param1": "RandomString3"
+  "param0" : "RandomString3",
+  "param1" : "RandomString3"
 }
 ----
 
@@ -494,11 +471,9 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "actors": []
+  "actors" : [ ]
 }
 ----
-
-'''
 
 == should read and return interface relationship fields with interface relationship filter SINGLE
 
@@ -515,7 +490,7 @@ CREATE (a:Actor { name: "RandomString1" })
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query Actors($title: String) {
   actors(where: {actedIn_SINGLE: {Movie: {title: $title}}}) {
@@ -538,7 +513,7 @@ query Actors($title: String) {
 [source,json,request=true]
 ----
 {
-  "title": "RandomString4"
+  "title" : "RandomString4"
 }
 ----
 
@@ -546,7 +521,7 @@ query Actors($title: String) {
 [source,json]
 ----
 {
-  "param0": "RandomString4"
+  "param0" : "RandomString4"
 }
 ----
 
@@ -592,25 +567,18 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "actors": [
-    {
-      "name": "RandomString2",
-      "actedIn": [
-        {
-          "title": "RandomString4",
-          "runtime": 55815
-        },
-        {
-          "title": "RandomString3",
-          "runtime": 55815
-        }
-      ]
-    }
-  ]
+  "actors" : [ {
+    "name" : "RandomString2",
+    "actedIn" : [ {
+      "title" : "RandomString4",
+      "runtime" : 55815
+    }, {
+      "title" : "RandomString3",
+      "runtime" : 55815
+    } ]
+  } ]
 }
 ----
-
-'''
 
 == should read and return interface relationship fields with interface relationship filter NONE
 
@@ -627,7 +595,7 @@ CREATE (a:Actor { name: "RandomString1" })
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query Actors($title: String) {
   actors(where: {actedIn_NONE: {Movie: {title: $title}, Series: {title: $title}}}) {
@@ -650,7 +618,7 @@ query Actors($title: String) {
 [source,json,request=true]
 ----
 {
-  "title": "RandomString4"
+  "title" : "RandomString4"
 }
 ----
 
@@ -658,8 +626,8 @@ query Actors($title: String) {
 [source,json]
 ----
 {
-  "param0": "RandomString4",
-  "param1": "RandomString4"
+  "param0" : "RandomString4",
+  "param1" : "RandomString4"
 }
 ----
 
@@ -710,23 +678,15 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "actors": [
-    {
-      "name": "RandomString1",
-      "actedIn": [
-        {
-          "title": "RandomString3",
-          "runtime": 9931
-        },
-        {
-          "title": "RandomString5",
-          "episodes": 15912
-        }
-      ]
-    }
-  ]
+  "actors" : [ {
+    "name" : "RandomString1",
+    "actedIn" : [ {
+      "title" : "RandomString3",
+      "runtime" : 9931
+    }, {
+      "title" : "RandomString5",
+      "episodes" : 15912
+    } ]
+  } ]
 }
 ----
-
-'''
-

@@ -27,7 +27,7 @@ type ActedIn @relationshipProperties {
 == Composite
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "Forrest Gump"}) {
@@ -105,12 +105,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Composite NOT
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "Forrest Gump"}) {
@@ -188,12 +186,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Composite OR (edge and node)
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "Forrest Gump"}) {
@@ -271,12 +267,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Composite NOT with nested OR (edge and node)
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "Forrest Gump"}) {
@@ -354,12 +348,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Composite NOT with complex nested filters
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "Forrest Gump"}) {
@@ -440,6 +432,3 @@ RETURN this {
 	actorsConnection: actorsConnection
 } AS this
 ----
-
-'''
-

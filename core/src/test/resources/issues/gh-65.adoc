@@ -35,7 +35,7 @@ CREATE (tB)-[:SURVEY_RESPONSE]->(rX);
 == Issue
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   surveyResponse(filter: {surveyTemplate: {uid: "a"}}){

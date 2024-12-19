@@ -17,7 +17,7 @@ type Movie {
 == Simple Read
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {time: "12:00:00"}) {
@@ -44,12 +44,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == GTE Read
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {time_GTE: "13:45:33.250"}) {
@@ -75,6 +73,3 @@ RETURN this {
 	.time
 } AS this
 ----
-
-'''
-

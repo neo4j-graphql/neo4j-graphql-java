@@ -32,7 +32,7 @@ CREATE (personA:Person { name: "A", age: 24 })-[:ATTENDS]->(schoolOld:School { n
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   people {
@@ -48,7 +48,7 @@ CREATE (personA:Person { name: "A", age: 24 })-[:ATTENDS]->(schoolOld:School { n
 [source,json]
 ----
 {
-  "param0": 23
+  "param0" : 23
 }
 ----
 
@@ -82,34 +82,22 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "people": [
-    {
-      "name": "A",
-      "attends": [
-        {
-          "name": "Old"
-        }
-      ]
-    },
-    {
-      "name": "C",
-      "attends": []
-    },
-    {
-      "name": "D",
-      "attends": []
-    },
-    {
-      "name": "B",
-      "attends": [
-        {
-          "name": "Old"
-        }
-      ]
-    }
-  ]
+  "people" : [ {
+    "name" : "A",
+    "attends" : [ {
+      "name" : "Old"
+    } ]
+  }, {
+    "name" : "C",
+    "attends" : [ ]
+  }, {
+    "name" : "D",
+    "attends" : [ ]
+  }, {
+    "name" : "B",
+    "attends" : [ {
+      "name" : "Old"
+    } ]
+  } ]
 }
 ----
-
-'''
-

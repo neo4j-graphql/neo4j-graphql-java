@@ -15,7 +15,7 @@ type User {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   users {
@@ -63,8 +63,6 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == undirected with unions
 
 .Schema
@@ -88,7 +86,7 @@ type User {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query Users {
   users {
@@ -142,8 +140,6 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == undirected with interfaces
 
 .Schema
@@ -177,7 +173,7 @@ type Actor {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query Actors {
   actors {
@@ -225,6 +221,3 @@ RETURN this {
 	actedIn: actedIn
 } AS this
 ----
-
-'''
-

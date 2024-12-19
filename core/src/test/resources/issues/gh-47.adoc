@@ -15,7 +15,7 @@ type Company {
 == Filter null
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   company (name: null) {
@@ -45,7 +45,7 @@ RETURN company {
 == Filter not null
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   company (name_not: null) {
@@ -75,7 +75,7 @@ RETURN company {
 == Filter null via variable
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query filter($name: String) {
   company (name: $name) {
@@ -111,7 +111,7 @@ RETURN company {
 == Filter not null via variable
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query filter($name: String) {
   company (name_not: $name) {

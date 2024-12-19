@@ -26,7 +26,7 @@ type ActedIn @relationshipProperties {
 == Equality
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies {
@@ -91,6 +91,3 @@ RETURN this {
 	actorsConnection: actorsConnection
 } AS this
 ----
-
-'''
-

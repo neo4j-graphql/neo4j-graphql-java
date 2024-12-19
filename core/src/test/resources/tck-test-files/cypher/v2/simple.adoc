@@ -17,7 +17,7 @@ type Movie {
 == Single selection, Movie by title
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "River Runs Through It, A"}) {
@@ -44,12 +44,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Multi selection, Movie by title
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "River Runs Through It, A"}) {
@@ -78,12 +76,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Multi selection, Movie by title via variable
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($title: String) {
   movies(where: {title: $title}) {
@@ -97,7 +93,7 @@ query ($title: String) {
 [source,json,request=true]
 ----
 {
-  "title": "some title"
+  "title" : "some title"
 }
 ----
 
@@ -119,6 +115,3 @@ RETURN this {
 	.title
 } AS this
 ----
-
-'''
-

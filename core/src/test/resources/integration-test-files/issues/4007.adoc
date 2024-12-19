@@ -29,7 +29,7 @@ CREATE (m:Movie {title: "RandomString1"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   m: movies(where: {title: "RandomString1"}) {
@@ -48,7 +48,7 @@ CREATE (m:Movie {title: "RandomString1"})
 [source,json]
 ----
 {
-  "param0": "RandomString1"
+  "param0" : "RandomString1"
 }
 ----
 
@@ -90,31 +90,22 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "m": [
-    {
-      "t": {
-        "e": [
-          {
-            "no": {
-              "ne": "A"
-            }
-          },
-          {
-            "no": {
-              "ne": "B"
-            }
-          },
-          {
-            "no": {
-              "ne": "C"
-            }
-          }
-        ]
-      }
+  "m" : [ {
+    "t" : {
+      "e" : [ {
+        "no" : {
+          "ne" : "A"
+        }
+      }, {
+        "no" : {
+          "ne" : "B"
+        }
+      }, {
+        "no" : {
+          "ne" : "C"
+        }
+      } ]
     }
-  ]
+  } ]
 }
 ----
-
-'''
-

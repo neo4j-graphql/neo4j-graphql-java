@@ -24,7 +24,7 @@ CREATE (:Movie {property: "RandomString1"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(
@@ -39,11 +39,7 @@ CREATE (:Movie {property: "RandomString1"})
 [source,json]
 ----
 {
-  "param0": [
-    "RandomString1",
-    "RandomString2",
-    "RandomString3"
-  ]
+  "param0" : [ "RandomString1", "RandomString2", "RandomString3" ]
 }
 ----
 
@@ -61,15 +57,11 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "property": "RandomString1"
-    }
-  ]
+  "movies" : [ {
+    "property" : "RandomString1"
+  } ]
 }
 ----
-
-'''
 
 === should find Movies REGEX
 
@@ -77,10 +69,10 @@ RETURN this {
 [source,json,schema-config=true]
 ----
 {
-  "features": {
-    "filters": {
-      "ID": {
-        "MATCHES": true
+  "features" : {
+    "filters" : {
+      "ID" : {
+        "MATCHES" : true
       }
     }
   }
@@ -94,7 +86,7 @@ CREATE (:Movie {property: "RandomString1RandomString1"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {property_MATCHES: "(?i)RandomString1.*"}) {
@@ -107,7 +99,7 @@ CREATE (:Movie {property: "RandomString1RandomString1"})
 [source,json]
 ----
 {
-  "param0": "(?i)RandomString1.*"
+  "param0" : "(?i)RandomString1.*"
 }
 ----
 
@@ -125,15 +117,11 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "property": "RandomString1RandomString1"
-    }
-  ]
+  "movies" : [ {
+    "property" : "RandomString1RandomString1"
+  } ]
 }
 ----
-
-'''
 
 === should find Movies CONTAINS string
 
@@ -146,7 +134,7 @@ CREATE (:Movie {property: "RandomString1RandomString1"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {property_CONTAINS: "RandomString1"}) {
@@ -159,7 +147,7 @@ CREATE (:Movie {property: "RandomString1RandomString1"})
 [source,json]
 ----
 {
-  "param0": "RandomString1"
+  "param0" : "RandomString1"
 }
 ----
 
@@ -177,21 +165,15 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "movies": [
-    {
-      "property": "RandomString1RandomString1"
-    },
-    {
-      "property": "RandomString1RandomString1"
-    },
-    {
-      "property": "RandomString1RandomString1"
-    }
-  ]
+  "movies" : [ {
+    "property" : "RandomString1RandomString1"
+  }, {
+    "property" : "RandomString1RandomString1"
+  }, {
+    "property" : "RandomString1RandomString1"
+  } ]
 }
 ----
-
-'''
 
 === should find Movies STARTS_WITH string
 
@@ -204,7 +186,7 @@ CREATE (:Movie {property: "RandomString1RandomString1"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {property_STARTS_WITH: "RandomString1"}) {
@@ -217,7 +199,7 @@ CREATE (:Movie {property: "RandomString1RandomString1"})
 [source,json]
 ----
 {
-  "param0": "RandomString1"
+  "param0" : "RandomString1"
 }
 ----
 
@@ -235,21 +217,15 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "movies": [
-    {
-      "property": "RandomString1RandomString1"
-    },
-    {
-      "property": "RandomString1RandomString1"
-    },
-    {
-      "property": "RandomString1RandomString1"
-    }
-  ]
+  "movies" : [ {
+    "property" : "RandomString1RandomString1"
+  }, {
+    "property" : "RandomString1RandomString1"
+  }, {
+    "property" : "RandomString1RandomString1"
+  } ]
 }
 ----
-
-'''
 
 === should find Movies ENDS_WITH string
 
@@ -262,7 +238,7 @@ CREATE (:Movie {property: "RandomString1"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {property_ENDS_WITH: "RandomString1"}) {
@@ -275,7 +251,7 @@ CREATE (:Movie {property: "RandomString1"})
 [source,json]
 ----
 {
-  "param0": "RandomString1"
+  "param0" : "RandomString1"
 }
 ----
 
@@ -293,18 +269,13 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "movies": [
-    {
-      "property": "RandomString1"
-    },
-    {
-      "property": "RandomString1RandomString1"
-    }
-  ]
+  "movies" : [ {
+    "property" : "RandomString1"
+  }, {
+    "property" : "RandomString1RandomString1"
+  } ]
 }
 ----
-
-'''
 
 == String Filtering
 
@@ -327,7 +298,7 @@ CREATE (:Movie {property: "RandomString1"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(
@@ -342,11 +313,7 @@ CREATE (:Movie {property: "RandomString1"})
 [source,json]
 ----
 {
-  "param0": [
-    "RandomString1",
-    "RandomString2",
-    "RandomString3"
-  ]
+  "param0" : [ "RandomString1", "RandomString2", "RandomString3" ]
 }
 ----
 
@@ -364,15 +331,11 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "property": "RandomString1"
-    }
-  ]
+  "movies" : [ {
+    "property" : "RandomString1"
+  } ]
 }
 ----
-
-'''
 
 === should find Movies REGEX
 
@@ -380,10 +343,10 @@ RETURN this {
 [source,json,schema-config=true]
 ----
 {
-  "features": {
-    "filters": {
-      "String": {
-        "MATCHES": true
+  "features" : {
+    "filters" : {
+      "String" : {
+        "MATCHES" : true
       }
     }
   }
@@ -397,7 +360,7 @@ CREATE (:Movie {property: "RandomString1RandomString1"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {property_MATCHES: "(?i)RandomString1.*"}) {
@@ -410,7 +373,7 @@ CREATE (:Movie {property: "RandomString1RandomString1"})
 [source,json]
 ----
 {
-  "param0": "(?i)RandomString1.*"
+  "param0" : "(?i)RandomString1.*"
 }
 ----
 
@@ -428,15 +391,11 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "property": "RandomString1RandomString1"
-    }
-  ]
+  "movies" : [ {
+    "property" : "RandomString1RandomString1"
+  } ]
 }
 ----
-
-'''
 
 === should find Movies CONTAINS string
 
@@ -449,7 +408,7 @@ CREATE (:Movie {property: "RandomString1RandomString1"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {property_CONTAINS: "RandomString1"}) {
@@ -462,7 +421,7 @@ CREATE (:Movie {property: "RandomString1RandomString1"})
 [source,json]
 ----
 {
-  "param0": "RandomString1"
+  "param0" : "RandomString1"
 }
 ----
 
@@ -480,21 +439,15 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "movies": [
-    {
-      "property": "RandomString1RandomString1"
-    },
-    {
-      "property": "RandomString1RandomString1"
-    },
-    {
-      "property": "RandomString1RandomString1"
-    }
-  ]
+  "movies" : [ {
+    "property" : "RandomString1RandomString1"
+  }, {
+    "property" : "RandomString1RandomString1"
+  }, {
+    "property" : "RandomString1RandomString1"
+  } ]
 }
 ----
-
-'''
 
 === should find Movies STARTS_WITH string
 
@@ -507,7 +460,7 @@ CREATE (:Movie {property: "RandomString1RandomString1"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {property_STARTS_WITH: "RandomString1"}) {
@@ -520,7 +473,7 @@ CREATE (:Movie {property: "RandomString1RandomString1"})
 [source,json]
 ----
 {
-  "param0": "RandomString1"
+  "param0" : "RandomString1"
 }
 ----
 
@@ -538,21 +491,15 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "movies": [
-    {
-      "property": "RandomString1RandomString1"
-    },
-    {
-      "property": "RandomString1RandomString1"
-    },
-    {
-      "property": "RandomString1RandomString1"
-    }
-  ]
+  "movies" : [ {
+    "property" : "RandomString1RandomString1"
+  }, {
+    "property" : "RandomString1RandomString1"
+  }, {
+    "property" : "RandomString1RandomString1"
+  } ]
 }
 ----
-
-'''
 
 === should find Movies ENDS_WITH string
 
@@ -565,7 +512,7 @@ CREATE (:Movie {property: "RandomString1"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {property_ENDS_WITH: "RandomString1"}) {
@@ -578,7 +525,7 @@ CREATE (:Movie {property: "RandomString1"})
 [source,json]
 ----
 {
-  "param0": "RandomString1"
+  "param0" : "RandomString1"
 }
 ----
 
@@ -596,18 +543,13 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "movies": [
-    {
-      "property": "RandomString1"
-    },
-    {
-      "property": "RandomString1RandomString1"
-    }
-  ]
+  "movies" : [ {
+    "property" : "RandomString1"
+  }, {
+    "property" : "RandomString1RandomString1"
+  } ]
 }
 ----
-
-'''
 
 == String Filtering
 
@@ -625,13 +567,13 @@ type Movie {
 [source,json,schema-config=true]
 ----
 {
-  "features": {
-    "filters": {
-      "String": {
-        "LT": true,
-        "GT": true,
-        "LTE": true,
-        "GTE": true
+  "features" : {
+    "filters" : {
+      "String" : {
+        "LT" : true,
+        "GT" : true,
+        "LTE" : true,
+        "GTE" : true
       }
     }
   }
@@ -650,7 +592,7 @@ CREATE (:Movie {title: "The Animatrix"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title_GT: "The Matrix"}) {
@@ -663,7 +605,7 @@ CREATE (:Movie {title: "The Animatrix"})
 [source,json]
 ----
 {
-  "param0": "The Matrix"
+  "param0" : "The Matrix"
 }
 ----
 
@@ -681,18 +623,13 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "movies": [
-    {
-      "title": "The Matrix Reloaded"
-    },
-    {
-      "title": "The Matrix Revolutions"
-    }
-  ]
+  "movies" : [ {
+    "title" : "The Matrix Reloaded"
+  }, {
+    "title" : "The Matrix Revolutions"
+  } ]
 }
 ----
-
-'''
 
 === should find Movies LT string
 
@@ -706,7 +643,7 @@ CREATE (:Movie {title: "The Matrix"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title_LT: "The Matrix Revolutions"}) {
@@ -719,7 +656,7 @@ CREATE (:Movie {title: "The Matrix"})
 [source,json]
 ----
 {
-  "param0": "The Matrix Revolutions"
+  "param0" : "The Matrix Revolutions"
 }
 ----
 
@@ -737,21 +674,15 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "movies": [
-    {
-      "title": "The Matrix"
-    },
-    {
-      "title": "The Matrix Reloaded"
-    },
-    {
-      "title": "The Matrix Resurrections"
-    }
-  ]
+  "movies" : [ {
+    "title" : "The Matrix"
+  }, {
+    "title" : "The Matrix Reloaded"
+  }, {
+    "title" : "The Matrix Resurrections"
+  } ]
 }
 ----
-
-'''
 
 === should find Movies GTE string
 
@@ -765,7 +696,7 @@ CREATE (:Movie {title: "The Animatrix"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title_GTE: "The Matrix"}) {
@@ -778,7 +709,7 @@ CREATE (:Movie {title: "The Animatrix"})
 [source,json]
 ----
 {
-  "param0": "The Matrix"
+  "param0" : "The Matrix"
 }
 ----
 
@@ -796,21 +727,15 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "movies": [
-    {
-      "title": "The Matrix"
-    },
-    {
-      "title": "The Matrix Reloaded"
-    },
-    {
-      "title": "The Matrix Revolutions"
-    }
-  ]
+  "movies" : [ {
+    "title" : "The Matrix"
+  }, {
+    "title" : "The Matrix Reloaded"
+  }, {
+    "title" : "The Matrix Revolutions"
+  } ]
 }
 ----
-
-'''
 
 === should find Movies LTE string
 
@@ -824,7 +749,7 @@ CREATE (:Movie {title: "The Matrix"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title_LTE: "The Matrix Revolutions"}) {
@@ -837,7 +762,7 @@ CREATE (:Movie {title: "The Matrix"})
 [source,json]
 ----
 {
-  "param0": "The Matrix Revolutions"
+  "param0" : "The Matrix Revolutions"
 }
 ----
 
@@ -855,24 +780,17 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "movies": [
-    {
-      "title": "The Matrix"
-    },
-    {
-      "title": "The Matrix Reloaded"
-    },
-    {
-      "title": "The Matrix Revolutions"
-    },
-    {
-      "title": "The Matrix Resurrections"
-    }
-  ]
+  "movies" : [ {
+    "title" : "The Matrix"
+  }, {
+    "title" : "The Matrix Reloaded"
+  }, {
+    "title" : "The Matrix Revolutions"
+  }, {
+    "title" : "The Matrix Resurrections"
+  } ]
 }
 ----
-
-'''
 
 == Int Filtering
 
@@ -891,14 +809,14 @@ type Movie {
 .Test Data
 [source,cypher,test-data=true]
 ----
-CREATE (:Movie {property: 3931})
+CREATE (:Movie {property: 42})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
-  movies(where: {property_IN: [3931, 3813, 1484]}) {
+  movies(where: {property_IN: [42, 84, 69]}) {
     property
   }
 }
@@ -908,11 +826,7 @@ CREATE (:Movie {property: 3931})
 [source,json]
 ----
 {
-  "param0": [
-    3931,
-    3813,
-    1484
-  ]
+  "param0" : [ 42, 84, 69 ]
 }
 ----
 
@@ -930,27 +844,23 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "property": 3931
-    }
-  ]
+  "movies" : [ {
+    "property" : 42
+  } ]
 }
 ----
-
-'''
 
 === should find Movies LT number
 
 .Test Data
 [source,cypher,test-data=true]
 ----
-CREATE (:Movie {property: 1962})
+CREATE (:Movie {property: 42})
  CREATE (:Movie {property: -1})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {property_LT: 0}) {
@@ -963,7 +873,7 @@ CREATE (:Movie {property: 1962})
 [source,json]
 ----
 {
-  "param0": 0
+  "param0" : 0
 }
 ----
 
@@ -981,30 +891,26 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "property": -1
-    }
-  ]
+  "movies" : [ {
+    "property" : -1
+  } ]
 }
 ----
-
-'''
 
 === should find Movies LTE number
 
 .Test Data
 [source,cypher,test-data=true]
 ----
-CREATE (:Movie {property: 73})
+CREATE (:Movie {property: 42})
  CREATE (:Movie {property: -1})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
-  movies(where: {property_LTE: 73}) {
+  movies(where: {property_LTE: 42}) {
     property
   }
 }
@@ -1014,7 +920,7 @@ CREATE (:Movie {property: 73})
 [source,json]
 ----
 {
-  "param0": 73
+  "param0" : 42
 }
 ----
 
@@ -1032,33 +938,28 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "movies": [
-    {
-      "property": -1
-    },
-    {
-      "property": 73
-    }
-  ]
+  "movies" : [ {
+    "property" : 42
+  }, {
+    "property" : -1
+  } ]
 }
 ----
-
-'''
 
 === should find Movies GT number
 
 .Test Data
 [source,cypher,test-data=true]
 ----
-CREATE (:Movie {property: 3996})
- CREATE (:Movie {property: 3997})
+CREATE (:Movie {property: 42})
+ CREATE (:Movie {property: 43})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
-  movies(where: {property_GT: 3996}) {
+  movies(where: {property_GT: 42}) {
     property
   }
 }
@@ -1068,7 +969,7 @@ CREATE (:Movie {property: 3996})
 [source,json]
 ----
 {
-  "param0": 3996
+  "param0" : 42
 }
 ----
 
@@ -1086,30 +987,26 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "property": 3997
-    }
-  ]
+  "movies" : [ {
+    "property" : 43
+  } ]
 }
 ----
-
-'''
 
 === should find Movies GTE number
 
 .Test Data
 [source,cypher,test-data=true]
 ----
-CREATE (:Movie {property: 926})
- CREATE (:Movie {property: 927})
+CREATE (:Movie {property: 42})
+ CREATE (:Movie {property: 43})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
-  movies(where: {property_GTE: 926}) {
+  movies(where: {property_GTE: 42}) {
     property
   }
 }
@@ -1119,7 +1016,7 @@ CREATE (:Movie {property: 926})
 [source,json]
 ----
 {
-  "param0": 926
+  "param0" : 42
 }
 ----
 
@@ -1137,18 +1034,13 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "movies": [
-    {
-      "property": 926
-    },
-    {
-      "property": 927
-    }
-  ]
+  "movies" : [ {
+    "property" : 42
+  }, {
+    "property" : 43
+  } ]
 }
 ----
-
-'''
 
 == Float Filtering
 
@@ -1167,14 +1059,14 @@ type Movie {
 .Test Data
 [source,cypher,test-data=true]
 ----
-CREATE (:Movie {property: 3370.5})
+CREATE (:Movie {property: 4.2})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
-  movies(where: {property_IN: [3370.5, 6229.5, 4440.5]}) {
+  movies(where: {property_IN: [4.2, 8.4, 6.9]}) {
     property
   }
 }
@@ -1184,11 +1076,7 @@ CREATE (:Movie {property: 3370.5})
 [source,json]
 ----
 {
-  "param0": [
-    3370.5,
-    6229.5,
-    4440.5
-  ]
+  "param0" : [ 4.2, 8.4, 6.9 ]
 }
 ----
 
@@ -1206,27 +1094,23 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "property": 3370.5
-    }
-  ]
+  "movies" : [ {
+    "property" : 4.2
+  } ]
 }
 ----
-
-'''
 
 === should find Movies LT number
 
 .Test Data
 [source,cypher,test-data=true]
 ----
-CREATE (:Movie {property: 3609.5})
+CREATE (:Movie {property: 4.2})
  CREATE (:Movie {property: -1})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {property_LT: 0}) {
@@ -1239,7 +1123,7 @@ CREATE (:Movie {property: 3609.5})
 [source,json]
 ----
 {
-  "param0": 0
+  "param0" : 0
 }
 ----
 
@@ -1257,30 +1141,26 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "property": -1
-    }
-  ]
+  "movies" : [ {
+    "property" : -1.0
+  } ]
 }
 ----
-
-'''
 
 === should find Movies LTE number
 
 .Test Data
 [source,cypher,test-data=true]
 ----
-CREATE (:Movie {property: 5016.5})
+CREATE (:Movie {property: 4.2})
  CREATE (:Movie {property: -1})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
-  movies(where: {property_LTE: 5016.5}) {
+  movies(where: {property_LTE: 4.2}) {
     property
   }
 }
@@ -1290,7 +1170,7 @@ CREATE (:Movie {property: 5016.5})
 [source,json]
 ----
 {
-  "param0": 5016.5
+  "param0" : 4.2
 }
 ----
 
@@ -1308,33 +1188,28 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "movies": [
-    {
-      "property": 5016.5
-    },
-    {
-      "property": -1
-    }
-  ]
+  "movies" : [ {
+    "property" : 4.2
+  }, {
+    "property" : -1.0
+  } ]
 }
 ----
-
-'''
 
 === should find Movies GT number
 
 .Test Data
 [source,cypher,test-data=true]
 ----
-CREATE (:Movie {property: 6420.5})
- CREATE (:Movie {property: 6421.5})
+CREATE (:Movie {property: 4.2})
+ CREATE (:Movie {property: 5.2})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
-  movies(where: {property_GT: 6420.5}) {
+  movies(where: {property_GT: 4.2}) {
     property
   }
 }
@@ -1344,7 +1219,7 @@ CREATE (:Movie {property: 6420.5})
 [source,json]
 ----
 {
-  "param0": 6420.5
+  "param0" : 4.2
 }
 ----
 
@@ -1362,30 +1237,26 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "property": 6421.5
-    }
-  ]
+  "movies" : [ {
+    "property" : 5.2
+  } ]
 }
 ----
-
-'''
 
 === should find Movies GTE number
 
 .Test Data
 [source,cypher,test-data=true]
 ----
-CREATE (:Movie {property: 4565.5})
- CREATE (:Movie {property: 4566.5})
+CREATE (:Movie {property: 4.2})
+ CREATE (:Movie {property: 5.2})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
-  movies(where: {property_GTE: 4565.5}) {
+  movies(where: {property_GTE: 4.2}) {
     property
   }
 }
@@ -1395,7 +1266,7 @@ CREATE (:Movie {property: 4565.5})
 [source,json]
 ----
 {
-  "param0": 4565.5
+  "param0" : 4.2
 }
 ----
 
@@ -1413,18 +1284,13 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "movies": [
-    {
-      "property": 4565.5
-    },
-    {
-      "property": 4566.5
-    }
-  ]
+  "movies" : [ {
+    "property" : 4.2
+  }, {
+    "property" : 5.2
+  } ]
 }
 ----
-
-'''
 
 == Boolean Filtering
 
@@ -1447,7 +1313,7 @@ CREATE (:Movie {property: false})
 === should find Movies equality equality
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {property: false}) {
@@ -1460,7 +1326,7 @@ CREATE (:Movie {property: false})
 [source,json]
 ----
 {
-  "param0": false
+  "param0" : false
 }
 ----
 
@@ -1478,13 +1344,8 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "property": false
-    }
-  ]
+  "movies" : [ {
+    "property" : false
+  } ]
 }
 ----
-
-'''
-

@@ -33,7 +33,7 @@ type Wrote @relationshipProperties {
 == Projecting union node and relationship properties with no arguments
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   authors {
@@ -112,12 +112,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Projecting union node and relationship properties with where argument
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   authors {
@@ -203,12 +201,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Projecting union node and relationship properties with where relationship argument
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   authors {
@@ -294,12 +290,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Projecting union node and relationship properties with where node and relationship argument
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   authors {
@@ -389,12 +383,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Projecting union node and relationship properties with sort argument
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   authors {
@@ -478,6 +470,3 @@ RETURN this {
 	publicationsConnection: publicationsConnection
 } AS this
 ----
-
-'''
-

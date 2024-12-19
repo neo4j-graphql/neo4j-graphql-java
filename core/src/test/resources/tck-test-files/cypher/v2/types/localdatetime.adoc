@@ -17,7 +17,7 @@ type Movie {
 == Simple Read
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {localDT: "2003-09-14T12:00:00"}) {
@@ -44,12 +44,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == GTE Read
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {localDT_GTE: "2010-08-23T13:45:33.250"}) {
@@ -75,6 +73,3 @@ RETURN this {
 	.localDT
 } AS this
 ----
-
-'''
-

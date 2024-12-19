@@ -20,7 +20,7 @@ type MyStuff {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   myThings(where: {stuff: null}) {
@@ -46,6 +46,3 @@ RETURN this {
 	.id
 } AS this
 ----
-
-'''
-

@@ -32,7 +32,7 @@ type User {
 === Ignore field for cypher
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
     users {

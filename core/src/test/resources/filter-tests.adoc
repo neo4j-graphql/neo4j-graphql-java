@@ -80,7 +80,7 @@ SET p = props
 === Filter array _includes_some_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { hobbies_includes_some: ["Cycling", "Reading"] }) { name hobbies }}
 ----
@@ -125,7 +125,7 @@ RETURN person {
 === Filter array _includes_all_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { hobbies_includes_all: ["Cycling", "Reading"] }) { name hobbies }}
 ----
@@ -164,7 +164,7 @@ RETURN person {
 === Filter array _includes_none
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { hobbies_includes_none: ["Dancing"] }) { name hobbies }}
 ----
@@ -203,7 +203,7 @@ RETURN person {
 === Filter array _includes_single
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { hobbies_includes_single: ["Dancing"] }) { name hobbies }}
 ----
@@ -245,7 +245,7 @@ RETURN person {
 === Filter array _eq_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { hobbies: ["Cycling", "Reading"] }) { name hobbies }}
 ----
@@ -283,7 +283,7 @@ RETURN person {
 === Filter array _not_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { hobbies_not: ["Cycling", "Reading"] }) { name hobbies }}
 ----
@@ -326,7 +326,7 @@ RETURN person {
 === Filter enum _eq_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { gender: male }) { name }}
 ----
@@ -364,7 +364,7 @@ RETURN person {
 === Filter enum _not_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { gender_not: male }) { name }}
 ----
@@ -404,7 +404,7 @@ RETURN person {
 === Filter enum _not_in_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { gender_not_in: [male] }) { name }}
 ----
@@ -444,7 +444,7 @@ RETURN person {
 === Filter enum _in_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { gender_in: [male] }) { name }}
 ----
@@ -482,7 +482,7 @@ RETURN person {
 === Filter enum _null_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { gender: null }) { name }}
 ----
@@ -516,7 +516,7 @@ RETURN person {
 === Filter enum _not_null_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { gender_not: null }) { name }}
 ----
@@ -558,7 +558,7 @@ RETURN person {
 === Filter id _eq_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { id: "jane" }) { name }}
 ----
@@ -596,7 +596,7 @@ RETURN person {
 === Filter id _starts_with_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { id_starts_with: "ja" }) { name }}
 ----
@@ -634,7 +634,7 @@ RETURN person {
 === Filter id _not_starts_with_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { id_not_starts_with: "ja" }) { name }}
 ----
@@ -674,7 +674,7 @@ RETURN person {
 === Filter id _ends_with_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { id_ends_with: "ne" }) { name }}
 ----
@@ -712,7 +712,7 @@ RETURN person {
 === Filter id _not_ends_with_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { id_not_ends_with: "ne" }) { name }}
 ----
@@ -752,7 +752,7 @@ RETURN person {
 === Filter id _matches_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { id_matches:"ja.*" }) { name }}
 ----
@@ -790,7 +790,7 @@ RETURN person {
 === Filter id _contains_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { id_contains: "an" }) { name }}
 ----
@@ -828,7 +828,7 @@ RETURN person {
 === Filter id _not_contains_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { id_not_contains: "an" }) { name }}
 ----
@@ -868,7 +868,7 @@ RETURN person {
 === Filter id _in_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { id_in: ["jane"] }) { name }}
 ----
@@ -906,7 +906,7 @@ RETURN person {
 === Filter id _not_in_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { id_not_in: ["joe"] }) { name }}
 ----
@@ -946,7 +946,7 @@ RETURN person {
 === Filter id _not_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { id_not: "joe" }) { name }}
 ----
@@ -988,7 +988,7 @@ RETURN person {
 === filter _@nativeId_ _eq_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { company(filter: { _id: 1 }) { name, _id }}
 ----
@@ -1017,7 +1017,7 @@ RETURN company {
 === filter _@nativeId_ _in_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { company(filter: { _id_in: [1,2] }) { name, _id }}
 ----
@@ -1046,7 +1046,7 @@ RETURN company {
 === filter _@nativeId_ _not_in_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { company(filter: { _id_not_in: [1,2] }) { name, _id }}
 ----
@@ -1075,7 +1075,7 @@ RETURN company {
 === filter _@nativeId_ _not_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { company(filter: { _id_not: 1 }) { name, _id }}
 ----
@@ -1106,7 +1106,7 @@ RETURN company {
 === Filter number _eq_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { age: 38 }) { name }}
 ----
@@ -1144,7 +1144,7 @@ RETURN person {
 === Filter number _in_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { age_in: [38] }) { name }}
 ----
@@ -1182,7 +1182,7 @@ RETURN person {
 === Filter number _not_in_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { age_not_in: [38] }) { name }}
 ----
@@ -1222,7 +1222,7 @@ RETURN person {
 === Filter number _lte_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { age_lte: 40 }) { name }}
 ----
@@ -1262,7 +1262,7 @@ RETURN person {
 === Filter number _lt_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { age_lt: 40 }) { name }}
 ----
@@ -1302,7 +1302,7 @@ RETURN person {
 === Filter number _gt_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { age_gt: 40 }) { name }}
 ----
@@ -1340,7 +1340,7 @@ RETURN person {
 === Filter number _gte_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { age_gte: 40 }) { name }}
 ----
@@ -1378,7 +1378,7 @@ RETURN person {
 === Filter number _null_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { age: null }) { name }}
 ----
@@ -1412,7 +1412,7 @@ RETURN person {
 === Filter number _not_null_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { age_not: null }) { name }}
 ----
@@ -1454,7 +1454,7 @@ RETURN person {
 === Filter float _eq_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { height: 1.75 }) { name }}
 ----
@@ -1492,7 +1492,7 @@ RETURN person {
 === Filter float _not_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { height_not: 1.75 }) { name }}
 ----
@@ -1532,7 +1532,7 @@ RETURN person {
 === Filter float _in_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { height_in: [1.75] }) { name }}
 ----
@@ -1570,7 +1570,7 @@ RETURN person {
 === Filter float _not_in_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { height_not_in: [1.75] }) { name }}
 ----
@@ -1610,7 +1610,7 @@ RETURN person {
 === Filter float _lte_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { height_lte: 1.80 }) { name }}
 ----
@@ -1650,7 +1650,7 @@ RETURN person {
 === Filter float _lt_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { height_lt: 1.80 }) { name }}
 ----
@@ -1690,7 +1690,7 @@ RETURN person {
 === Filter float _gte_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { height_gte: 1.80 }) { name }}
 ----
@@ -1728,7 +1728,7 @@ RETURN person {
 === Filter float _gt_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { height_gt: 1.80 }) { name }}
 ----
@@ -1766,7 +1766,7 @@ RETURN person {
 === Filter float _null_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { height: null }) { name }}
 ----
@@ -1800,7 +1800,7 @@ RETURN person {
 === Filter float _not_null_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { height_not: null }) { name }}
 ----
@@ -1842,7 +1842,7 @@ RETURN person {
 === Filter string _eq_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { name: "Jane" }) { name }}
 ----
@@ -1880,7 +1880,7 @@ RETURN person {
 === Filter string _starts_with_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { name_starts_with: "Ja" }) { name }}
 ----
@@ -1918,7 +1918,7 @@ RETURN person {
 === Filter string _not_starts_with_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { name_not_starts_with: "Ja" }) { name }}
 ----
@@ -1958,7 +1958,7 @@ RETURN person {
 === Filter string _ends_with_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { name_ends_with: "ne" }) { name }}
 ----
@@ -1996,7 +1996,7 @@ RETURN person {
 === Filter string _not_ends_with_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { name_not_ends_with: "ne" }) { name }}
 ----
@@ -2036,7 +2036,7 @@ RETURN person {
 === Filter string _matches_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { name_matches: "Ja.*" }) { name }}
 ----
@@ -2074,7 +2074,7 @@ RETURN person {
 === Filter string _contains_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { name_contains: "an" }) { name }}
 ----
@@ -2112,7 +2112,7 @@ RETURN person {
 === Filter string _not_contains_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { name_not_contains: "an" }) { name }}
 ----
@@ -2152,7 +2152,7 @@ RETURN person {
 === Filter string _in_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { name_in: ["Jane"] }) { name }}
 ----
@@ -2190,7 +2190,7 @@ RETURN person {
 === Filter string _not_in_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { name_not_in: ["Joe"] }) { name }}
 ----
@@ -2230,7 +2230,7 @@ RETURN person {
 === Filter string _not_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { name_not: "Joe" }) { name }}
 ----
@@ -2270,7 +2270,7 @@ RETURN person {
 === Filter string _null_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { name: null }) { name }}
 ----
@@ -2304,7 +2304,7 @@ RETURN person {
 === Filter string _not_null_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { name_not: null }) { name }}
 ----
@@ -2346,7 +2346,7 @@ RETURN person {
 === Filter boolean _eq_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { fun: true }) { name }}
 ----
@@ -2386,7 +2386,7 @@ RETURN person {
 === Filter boolean _not_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { fun_not: true }) { name }}
 ----
@@ -2424,7 +2424,7 @@ RETURN person {
 === Filter boolean _null_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { fun: null }) { name }}
 ----
@@ -2458,7 +2458,7 @@ RETURN person {
 === Filter boolean _not_null_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { fun_not: null }) { name }}
 ----
@@ -2500,7 +2500,7 @@ RETURN person {
 === Filter spatial _eq_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { location: {longitude: 1, latitude: 2} }) { name }}
 ----
@@ -2540,7 +2540,7 @@ RETURN person {
 === Filter spatial _not_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { location_not: {longitude: 1, latitude: 2} }) { name }}
 ----
@@ -2580,7 +2580,7 @@ RETURN person {
 === Filter spatial _null_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { location: null }) { name }}
 ----
@@ -2616,7 +2616,7 @@ RETURN person {
 === Filter spatial _not_null_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { location_not: null }) { name }}
 ----
@@ -2654,7 +2654,7 @@ RETURN person {
 === Filter spatial _distance eq_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   person(filter:{ location_distance: { distance: 3, point: {longitude: 1, latitude:2, height: 3}}}){
@@ -2701,7 +2701,7 @@ RETURN person {
 === Filter spatial _distance lt_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   person(filter:{ location_distance_lt: { distance: 3, point: {longitude: 1, latitude:2, height: 3}}}){
@@ -2750,7 +2750,7 @@ RETURN person {
 === Filter spatial _distance lte_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   person(filter:{ location_distance_lte: { distance: 3, point: {longitude: 1, latitude:2, height: 3}}}){
@@ -2799,7 +2799,7 @@ RETURN person {
 === Filter spatial _distance gt_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   person(filter:{ location_distance_gt: { distance: 3, point: {longitude: 1, latitude:2, height: 3}}}){
@@ -2848,7 +2848,7 @@ RETURN person {
 === Filter spatial _distance gte_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   person(filter:{ location_distance_gte: { distance: 3, point: {longitude: 1, latitude:2, height: 3}}}){
@@ -2899,7 +2899,7 @@ RETURN person {
 === Filter _null_ on relation
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { company: null }) { name }}
 ----
@@ -2929,7 +2929,7 @@ RETURN person {
 === Filter _not null_ on relation
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { company_not: null }) { name }}
 ----
@@ -2967,7 +2967,7 @@ RETURN person {
 === Filter _AND_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { AND: [{ fun: true, name: "Jane"}]  }) { name }}
 ----
@@ -3005,7 +3005,7 @@ RETURN person {
 '''
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { AND: [{ fun: true},{name: "Jane"}]  }) { name }}
 ----
@@ -3047,7 +3047,7 @@ RETURN person {
 ==== Multiple fields
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { OR: [{ fun: false, name_not: "Jane"}]  }) { name }}
 ----
@@ -3087,7 +3087,7 @@ RETURN person {
 ==== Same field multiple values
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { OR: [{ name: "Jane"}, { name: "Joe"}]  }) { name }}
 ----
@@ -3129,7 +3129,7 @@ RETURN person {
 ==== Multiple fields + array
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { OR: [{ fun: true},{name_in: ["Jane"]}]  }) { name }}
 ----
@@ -3171,7 +3171,7 @@ RETURN person {
 === Complex filter
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { OR: [{ AND: [{fun: true},{height:1.75}]},{name_in: ["Jane"]}]  }) { name }}
 ----
@@ -3215,7 +3215,7 @@ RETURN person {
 === Filter object _some_ (cypher _ANY_)
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { p: company(filter: { employees_some : { name : "Jane" } }) { name }}
 ----
@@ -3252,7 +3252,7 @@ RETURN p {
 '''
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { p: company(filter: { employees_some : { name : "Jill" } }) { name }}
 ----
@@ -3291,7 +3291,7 @@ RETURN p {
 === Filter object _every_ (cypher _ALL_)
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { p: company(filter: { employees_every : { name : "Jill" } }) { name }}
 ----
@@ -3330,7 +3330,7 @@ RETURN p {
 === Filter object _none_ (cypher _NONE_)
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { p: company(filter: { employees_none : { name : "Jane" } }) { name }}
 ----
@@ -3367,7 +3367,7 @@ RETURN p {
 '''
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { p: company(filter: { employees_none : { name : "Jill" } }) { name }}
 ----
@@ -3406,7 +3406,7 @@ RETURN p {
 === Filter object _single_ (cypher _SINGLE_)
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { p: company(filter: { employees_single : { name : "Jill" } }) { name }}
 ----
@@ -3445,7 +3445,7 @@ RETURN p {
 === Filter object _null_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { p: person(filter: { company : null }) { name }}
 ----
@@ -3481,7 +3481,7 @@ RETURN p {
 === Filter object _not_null_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { p: person(filter: { company_not : null }) { name }}
 ----
@@ -3523,7 +3523,7 @@ RETURN p {
 === Filter object whose parent is relationship
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person { skills(filter: {skill: {name_starts_with: "F"}}) { skill { name } proficiencyLevel }}}
 ----
@@ -3561,7 +3561,7 @@ RETURN person {
 === Cascaded filter object string _eq_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { company : { name : "ACME" } }) { name }}
 ----
@@ -3602,7 +3602,7 @@ RETURN person {
 === Cascaded filter object _not_ string _eq_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { person(filter: { company_not : { name : "ACME" } }) { name }}
 ----
@@ -3641,7 +3641,7 @@ RETURN person {
 === Cascaded filter object string _in_
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { p: company(filter: { employees : { name_in : ["Jane","Joe"] } }) { name }}
 ----
@@ -3680,7 +3680,7 @@ RETURN p {
 === Cascaded logical operator filter on object
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { p: company { employees(filter: { OR: [{ name: "Jane" },{name:"Joe"}]}) { name }}}
 ----
@@ -3735,7 +3735,7 @@ RETURN p {
 === Filter as variable
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query filterQuery($filter: _PersonFilter) { person(filter: $filter) { name }}
 ----
@@ -3789,7 +3789,7 @@ RETURN person {
 === Variable pass through
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query filterQuery($name: String) { person(filter: {name : $name}) { name }}
 ----
@@ -3833,7 +3833,7 @@ RETURN person {
 === Handle _null_ via variable
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query filterQuery($name: String) { person(filter: {name : $name}) { name }}
 ----
@@ -3873,7 +3873,7 @@ RETURN person {
 === Handle _not_null_ via variable
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query filterQuery($name: String) { person(filter: {name_not : $name}) { name }}
 ----
@@ -3921,7 +3921,7 @@ RETURN person {
 === Filter with alias
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 { p: company { employees(filter: { name: "Jane" }) { name }}}
 ----

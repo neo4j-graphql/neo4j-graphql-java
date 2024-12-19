@@ -38,7 +38,7 @@ CREATE(i:Inventory {id: "i1"})
 === should return all elements when ordering by nested connection
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   inventories {
@@ -60,7 +60,7 @@ CREATE(i:Inventory {id: "i1"})
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -105,49 +105,40 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "inventories": [
-    {
-      "id": "i2",
-      "childrenConnection": {
-        "edges": []
-      }
-    },
-    {
-      "id": "i1",
-      "childrenConnection": {
-        "edges": [
-          {
-            "properties": {
-              "order": 1
-            },
-            "node": {
-              "id": "c1"
-            }
-          },
-          {
-            "properties": {
-              "order": 2
-            },
-            "node": {
-              "id": "c2"
-            }
-          },
-          {
-            "properties": {
-              "order": 3
-            },
-            "node": {
-              "id": "c3"
-            }
-          }
-        ]
-      }
+  "inventories" : [ {
+    "id" : "i2",
+    "childrenConnection" : {
+      "edges" : [ ]
     }
-  ]
+  }, {
+    "id" : "i1",
+    "childrenConnection" : {
+      "edges" : [ {
+        "properties" : {
+          "order" : 1
+        },
+        "node" : {
+          "id" : "c1"
+        }
+      }, {
+        "properties" : {
+          "order" : 2
+        },
+        "node" : {
+          "id" : "c2"
+        }
+      }, {
+        "properties" : {
+          "order" : 3
+        },
+        "node" : {
+          "id" : "c3"
+        }
+      } ]
+    }
+  } ]
 }
 ----
-
-'''
 
 == order-by relationship property on interface node target
 
@@ -192,7 +183,7 @@ CREATE(i:Inventory {id: "i1"})
 === should return all elements when ordering by nested connection on an interface target
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   inventories {
@@ -214,7 +205,7 @@ CREATE(i:Inventory {id: "i1"})
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -276,47 +267,37 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "inventories": [
-    {
-      "id": "i1",
-      "childrenConnection": {
-        "edges": [
-          {
-            "properties": {
-              "order": 1
-            },
-            "node": {
-              "id": "c1"
-            }
-          },
-          {
-            "properties": {
-              "order": 2
-            },
-            "node": {
-              "id": "c2"
-            }
-          },
-          {
-            "properties": {
-              "order": 3
-            },
-            "node": {
-              "id": "c3"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "id": "i2",
-      "childrenConnection": {
-        "edges": []
-      }
+  "inventories" : [ {
+    "id" : "i1",
+    "childrenConnection" : {
+      "edges" : [ {
+        "properties" : {
+          "order" : 1
+        },
+        "node" : {
+          "id" : "c1"
+        }
+      }, {
+        "properties" : {
+          "order" : 2
+        },
+        "node" : {
+          "id" : "c2"
+        }
+      }, {
+        "properties" : {
+          "order" : 3
+        },
+        "node" : {
+          "id" : "c3"
+        }
+      } ]
     }
-  ]
+  }, {
+    "id" : "i2",
+    "childrenConnection" : {
+      "edges" : [ ]
+    }
+  } ]
 }
 ----
-
-'''
-

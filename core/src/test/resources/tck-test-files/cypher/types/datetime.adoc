@@ -41,7 +41,7 @@ CREATE
 === Simple Read
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query {
     movies(where: { datetime: "1970-01-01T00:00:00.000Z" }) {
@@ -86,7 +86,7 @@ RETURN movies {
 === Complex Read
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query {
     movies(
@@ -139,7 +139,7 @@ RETURN movies {
 === Simple Create
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation {
     createMovie(datetime: "1970-01-01T00:00:00.000Z", id: "m4") {
@@ -188,7 +188,7 @@ RETURN createMovie {
 === Simple Update
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation {
     updateMovie(id: "m1", datetime: "2000-01-01T00:00:00.000Z") {

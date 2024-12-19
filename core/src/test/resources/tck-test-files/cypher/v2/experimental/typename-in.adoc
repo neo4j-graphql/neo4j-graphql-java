@@ -44,7 +44,7 @@ type Actor {
 == top-level
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   productions(
@@ -104,12 +104,10 @@ WITH this
 RETURN this AS this
 ----
 
-'''
-
 == top-level + connection where
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   actors(
@@ -180,12 +178,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == nested
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   actors {
@@ -256,6 +252,3 @@ RETURN this {
 	actedIn: actedIn
 } AS this
 ----
-
-'''
-

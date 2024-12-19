@@ -27,7 +27,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -250,8 +250,6 @@ input PersonWhere {
 
 ----
 
-'''
-
 == snapshot tests
 
 === on SCALAR
@@ -274,7 +272,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -467,8 +465,6 @@ input MovieWhere {
 }
 
 ----
-
-'''
 
 === on RELATIONSHIP FIELD
 
@@ -490,7 +486,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -683,8 +679,6 @@ input MovieWhere {
 }
 
 ----
-
-'''
 
 ==== enable only value filters
 
@@ -704,7 +698,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -897,8 +891,6 @@ input MovieWhere {
 }
 
 ----
-
-'''
 
 === on INTERFACE RELATIONSHIP FIELD, (aggregation does not exists on abstract types)
 
@@ -924,7 +916,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -1162,8 +1154,6 @@ input PersonWhere {
 }
 
 ----
-
-'''
 
 ==== enable only value filters
 
@@ -1187,7 +1177,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -1425,8 +1415,6 @@ input PersonWhere {
 }
 
 ----
-
-'''
 
 === on UNION RELATIONSHIP FIELD, (aggregation does not exists on abstract types)
 
@@ -1456,7 +1444,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -1758,8 +1746,6 @@ input QueryOptions {
 }
 
 ----
-
-'''
 
 ==== enable only value filters
 
@@ -1787,7 +1773,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -2089,6 +2075,3 @@ input QueryOptions {
 }
 
 ----
-
-'''
-

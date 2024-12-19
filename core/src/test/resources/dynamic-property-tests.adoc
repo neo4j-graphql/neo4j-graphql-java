@@ -28,7 +28,7 @@ type Knows @relation(name:"KNOWS", from: "source", to: "knows"){
 === load dynamic properties
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   person(id:"32") {
@@ -104,7 +104,7 @@ RETURN person {
 === update dynamic properties
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation {
   updatePerson(id:32, json: {foo: "bar", x: 42}) {
@@ -144,7 +144,7 @@ RETURN updatePerson {
 === merge dynamic properties
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation {
   mergePerson(id:32, json: {foo: "bar", x: 42}) {
@@ -184,7 +184,7 @@ RETURN mergePerson {
 === create relation with dynamic properties
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation {
   createKnows(source_id:2, knows_id: 3, json: {foo: "bar"}) {
@@ -228,7 +228,7 @@ RETURN createKnows {
 === update relation with dynamic properties
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation {
   updateKnows(_id:2, json: {foo: "bar"}) {
@@ -265,7 +265,7 @@ RETURN updateKnows {
 === update relation with dynamic properties
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation {
   mergeKnows(_id:2, json: {foo: "bar"}) {

@@ -46,7 +46,7 @@ CREATE (a:Actor { name: "RandomString1" })
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query Actors($title: String) {
   actors(where: {actedIn_SOME: {title: $title}}) {
@@ -68,7 +68,7 @@ query Actors($title: String) {
 [source,json,request=true]
 ----
 {
-  "title": "RandomString4"
+  "title" : "RandomString4"
 }
 ----
 
@@ -76,8 +76,8 @@ query Actors($title: String) {
 [source,json]
 ----
 {
-  "param0": "RandomString4",
-  "param1": "RandomString4"
+  "param0" : "RandomString4",
+  "param1" : "RandomString4"
 }
 ----
 
@@ -128,21 +128,15 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "actors": [
-    {
-      "name": "RandomString2",
-      "actedIn": [
-        {
-          "title": "RandomString4",
-          "runtime": 96406
-        }
-      ]
-    }
-  ]
+  "actors" : [ {
+    "name" : "RandomString2",
+    "actedIn" : [ {
+      "title" : "RandomString4",
+      "runtime" : 96406
+    } ]
+  } ]
 }
 ----
-
-'''
 
 == should read and return interface relationship fields with interface relationship filter ALL (both implementations in the input and DB)
 
@@ -159,7 +153,7 @@ CREATE (a:Actor { name: "RandomString1" })
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query Actors($title: String) {
   actors(where: {actedIn_ALL: {title: $title}}) {
@@ -181,7 +175,7 @@ query Actors($title: String) {
 [source,json,request=true]
 ----
 {
-  "title": "RandomString3"
+  "title" : "RandomString3"
 }
 ----
 
@@ -189,8 +183,8 @@ query Actors($title: String) {
 [source,json]
 ----
 {
-  "param0": "RandomString3",
-  "param1": "RandomString3"
+  "param0" : "RandomString3",
+  "param1" : "RandomString3"
 }
 ----
 
@@ -249,25 +243,18 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "actors": [
-    {
-      "name": "RandomString2",
-      "actedIn": [
-        {
-          "title": "RandomString3",
-          "runtime": 47026
-        },
-        {
-          "title": "RandomString3",
-          "episodes": 3093
-        }
-      ]
-    }
-  ]
+  "actors" : [ {
+    "name" : "RandomString2",
+    "actedIn" : [ {
+      "title" : "RandomString3",
+      "runtime" : 47026
+    }, {
+      "title" : "RandomString3",
+      "episodes" : 3093
+    } ]
+  } ]
 }
 ----
-
-'''
 
 == should read and return interface relationship fields with interface relationship filter ALL (both implementations in the input and one out of two in DB)
 
@@ -283,7 +270,7 @@ CREATE (a:Actor { name: "RandomString1" })
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query Actors($title: String) {
   actors(where: {actedIn_ALL: {title: $title}}) {
@@ -305,7 +292,7 @@ query Actors($title: String) {
 [source,json,request=true]
 ----
 {
-  "title": "RandomString3"
+  "title" : "RandomString3"
 }
 ----
 
@@ -313,8 +300,8 @@ query Actors($title: String) {
 [source,json]
 ----
 {
-  "param0": "RandomString3",
-  "param1": "RandomString3"
+  "param0" : "RandomString3",
+  "param1" : "RandomString3"
 }
 ----
 
@@ -373,11 +360,9 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "actors": []
+  "actors" : [ ]
 }
 ----
-
-'''
 
 == should read and return interface relationship fields with interface relationship filter SINGLE
 
@@ -394,7 +379,7 @@ CREATE (a:Actor { name: "RandomString1" })
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query Actors($title: String) {
   actors(where: {actedIn_SINGLE: {title: $title}}) {
@@ -416,7 +401,7 @@ query Actors($title: String) {
 [source,json,request=true]
 ----
 {
-  "title": "RandomString4"
+  "title" : "RandomString4"
 }
 ----
 
@@ -424,8 +409,8 @@ query Actors($title: String) {
 [source,json]
 ----
 {
-  "param0": "RandomString4",
-  "param1": "RandomString4"
+  "param0" : "RandomString4",
+  "param1" : "RandomString4"
 }
 ----
 
@@ -474,25 +459,18 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "actors": [
-    {
-      "name": "RandomString2",
-      "actedIn": [
-        {
-          "title": "RandomString3",
-          "runtime": 51686
-        },
-        {
-          "title": "RandomString4",
-          "runtime": 51686
-        }
-      ]
-    }
-  ]
+  "actors" : [ {
+    "name" : "RandomString2",
+    "actedIn" : [ {
+      "title" : "RandomString3",
+      "runtime" : 51686
+    }, {
+      "title" : "RandomString4",
+      "runtime" : 51686
+    } ]
+  } ]
 }
 ----
-
-'''
 
 == should read and return interface relationship fields with interface relationship filter NONE
 
@@ -509,7 +487,7 @@ CREATE (a:Actor { name: "RandomString1" })
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query Actors($title: String) {
   actors(where: {actedIn_NONE: {title: $title}}) {
@@ -531,7 +509,7 @@ query Actors($title: String) {
 [source,json,request=true]
 ----
 {
-  "title": "RandomString4"
+  "title" : "RandomString4"
 }
 ----
 
@@ -539,8 +517,8 @@ query Actors($title: String) {
 [source,json]
 ----
 {
-  "param0": "RandomString4",
-  "param1": "RandomString4"
+  "param0" : "RandomString4",
+  "param1" : "RandomString4"
 }
 ----
 
@@ -591,23 +569,15 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "actors": [
-    {
-      "name": "RandomString1",
-      "actedIn": [
-        {
-          "title": "RandomString3",
-          "runtime": 13985
-        },
-        {
-          "title": "RandomString5",
-          "episodes": 4471
-        }
-      ]
-    }
-  ]
+  "actors" : [ {
+    "name" : "RandomString1",
+    "actedIn" : [ {
+      "title" : "RandomString3",
+      "runtime" : 13985
+    }, {
+      "title" : "RandomString5",
+      "episodes" : 4471
+    } ]
+  } ]
 }
 ----
-
-'''
-

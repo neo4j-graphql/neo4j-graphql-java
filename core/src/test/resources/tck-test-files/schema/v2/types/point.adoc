@@ -14,7 +14,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -137,8 +137,6 @@ input PointInput {
 
 ----
 
-'''
-
 == CartesianPoint
 
 .Schema
@@ -150,7 +148,7 @@ type Machine {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -254,8 +252,6 @@ input MachineWhere {
 
 ----
 
-'''
-
 == Points
 
 .Schema
@@ -267,7 +263,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -363,8 +359,6 @@ input PointInput {
 
 ----
 
-'''
-
 == CartesianPoints
 
 .Schema
@@ -376,7 +370,7 @@ type Machine {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -453,6 +447,3 @@ input MachineWhere {
 }
 
 ----
-
-'''
-

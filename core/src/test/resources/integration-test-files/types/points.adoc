@@ -30,7 +30,7 @@ CALL {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query Routes($id: String!) {
   routes(where: {id: $id}) {
@@ -49,7 +49,7 @@ query Routes($id: String!) {
 [source,json,request=true]
 ----
 {
-  "id": "dd320626-cc23-4938-9f33-ba624a3a3e8d"
+  "id" : "dd320626-cc23-4938-9f33-ba624a3a3e8d"
 }
 ----
 
@@ -57,7 +57,7 @@ query Routes($id: String!) {
 [source,json]
 ----
 {
-  "param0": "dd320626-cc23-4938-9f33-ba624a3a3e8d"
+  "param0" : "dd320626-cc23-4938-9f33-ba624a3a3e8d"
 }
 ----
 
@@ -81,57 +81,44 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "routes": [
-    {
-      "id": "dd320626-cc23-4938-9f33-ba624a3a3e8d",
-      "waypoints": [
-        {
-          "latitude": -54.6132,
-          "longitude": 146.1568,
-          "height": 0.03157347836531699,
-          "crs": "wgs-84-3d"
-        },
-        {
-          "latitude": -54.6132,
-          "longitude": 146.1568,
-          "height": 0.03157347836531699,
-          "crs": "wgs-84-3d"
-        },
-        {
-          "latitude": -54.6132,
-          "longitude": 146.1568,
-          "height": 0.03157347836531699,
-          "crs": "wgs-84-3d"
-        },
-        {
-          "latitude": -54.6132,
-          "longitude": 146.1568,
-          "height": 0.03157347836531699,
-          "crs": "wgs-84-3d"
-        },
-        {
-          "latitude": -54.6132,
-          "longitude": 146.1568,
-          "height": 0.03157347836531699,
-          "crs": "wgs-84-3d"
-        },
-        {
-          "latitude": -54.6132,
-          "longitude": 146.1568,
-          "height": 0.03157347836531699,
-          "crs": "wgs-84-3d"
-        },
-        {
-          "latitude": -54.6132,
-          "longitude": 146.1568,
-          "height": 0.03157347836531699,
-          "crs": "wgs-84-3d"
-        }
-      ]
-    }
-  ]
+  "routes" : [ {
+    "id" : "dd320626-cc23-4938-9f33-ba624a3a3e8d",
+    "waypoints" : [ {
+      "latitude" : -54.6132,
+      "longitude" : 146.1568,
+      "height" : 0.03157347836531699,
+      "crs" : "wgs-84-3d"
+    }, {
+      "latitude" : -54.6132,
+      "longitude" : 146.1568,
+      "height" : 0.03157347836531699,
+      "crs" : "wgs-84-3d"
+    }, {
+      "latitude" : -54.6132,
+      "longitude" : 146.1568,
+      "height" : 0.03157347836531699,
+      "crs" : "wgs-84-3d"
+    }, {
+      "latitude" : -54.6132,
+      "longitude" : 146.1568,
+      "height" : 0.03157347836531699,
+      "crs" : "wgs-84-3d"
+    }, {
+      "latitude" : -54.6132,
+      "longitude" : 146.1568,
+      "height" : 0.03157347836531699,
+      "crs" : "wgs-84-3d"
+    }, {
+      "latitude" : -54.6132,
+      "longitude" : 146.1568,
+      "height" : 0.03157347836531699,
+      "crs" : "wgs-84-3d"
+    }, {
+      "latitude" : -54.6132,
+      "longitude" : 146.1568,
+      "height" : 0.03157347836531699,
+      "crs" : "wgs-84-3d"
+    } ]
+  } ]
 }
 ----
-
-'''
-

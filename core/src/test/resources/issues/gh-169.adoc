@@ -27,7 +27,7 @@ enum _ActorOrdering {
 == Test default values on relation field
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movie {
@@ -69,7 +69,7 @@ RETURN movie {
 == Test customized values on relation field
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movie {
@@ -111,7 +111,7 @@ RETURN movie {
 == Test default values on root field
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   test {
@@ -143,7 +143,7 @@ RETURN test {
 == Test customized values on root field
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   test(first: 5, offset: 2, orderBy: [name_desc]) {

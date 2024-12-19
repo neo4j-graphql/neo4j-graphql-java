@@ -29,7 +29,7 @@ CREATE (m:Movie {title: "RandomString1"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "RandomString1"}) {
@@ -44,7 +44,7 @@ CREATE (m:Movie {title: "RandomString1"})
 [source,json]
 ----
 {
-  "param0": "RandomString1"
+  "param0" : "RandomString1"
 }
 ----
 
@@ -86,17 +86,13 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "actors": {
-        "totalCount": 3
-      }
+  "movies" : [ {
+    "actors" : {
+      "totalCount" : 3
     }
-  ]
+  } ]
 }
 ----
-
-'''
 
 == should alias totalCount
 
@@ -124,7 +120,7 @@ CREATE (m:Movie {title: "RandomString1"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "RandomString1"}) {
@@ -139,7 +135,7 @@ CREATE (m:Movie {title: "RandomString1"})
 [source,json]
 ----
 {
-  "param0": "RandomString1"
+  "param0" : "RandomString1"
 }
 ----
 
@@ -181,17 +177,13 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "actorsConnection": {
-        "count": 3
-      }
+  "movies" : [ {
+    "actorsConnection" : {
+      "count" : 3
     }
-  ]
+  } ]
 }
 ----
-
-'''
 
 == should alias pageInfo top level key
 
@@ -219,7 +211,7 @@ CREATE (m:Movie {title: "RandomString1"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "RandomString1"}) {
@@ -236,7 +228,7 @@ CREATE (m:Movie {title: "RandomString1"})
 [source,json]
 ----
 {
-  "param0": "RandomString1"
+  "param0" : "RandomString1"
 }
 ----
 
@@ -278,19 +270,15 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "actorsConnection": {
-        "pi": {
-          "hasNextPage": false
-        }
+  "movies" : [ {
+    "actorsConnection" : {
+      "pi" : {
+        "hasNextPage" : false
       }
     }
-  ]
+  } ]
 }
 ----
-
-'''
 
 == should alias startCursor
 
@@ -318,7 +306,7 @@ CREATE (m:Movie {title: "RandomString1"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "RandomString1"}) {
@@ -335,7 +323,7 @@ CREATE (m:Movie {title: "RandomString1"})
 [source,json]
 ----
 {
-  "param0": "RandomString1"
+  "param0" : "RandomString1"
 }
 ----
 
@@ -377,19 +365,15 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "actorsConnection": {
-        "pageInfo": {
-          "sc": "YXJyYXljb25uZWN0aW9uOjA="
-        }
+  "movies" : [ {
+    "actorsConnection" : {
+      "pageInfo" : {
+        "sc" : "YXJyYXljb25uZWN0aW9uOjA="
       }
     }
-  ]
+  } ]
 }
 ----
-
-'''
 
 == should alias endCursor
 
@@ -417,7 +401,7 @@ CREATE (m:Movie {title: "RandomString1"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "RandomString1"}) {
@@ -434,7 +418,7 @@ CREATE (m:Movie {title: "RandomString1"})
 [source,json]
 ----
 {
-  "param0": "RandomString1"
+  "param0" : "RandomString1"
 }
 ----
 
@@ -476,19 +460,15 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "actorsConnection": {
-        "pageInfo": {
-          "ec": "YXJyYXljb25uZWN0aW9uOjI="
-        }
+  "movies" : [ {
+    "actorsConnection" : {
+      "pageInfo" : {
+        "ec" : "YXJyYXljb25uZWN0aW9uOjI="
       }
     }
-  ]
+  } ]
 }
 ----
-
-'''
 
 == should alias hasPreviousPage
 
@@ -516,7 +496,7 @@ CREATE (m:Movie {title: "RandomString1"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "RandomString1"}) {
@@ -533,7 +513,7 @@ CREATE (m:Movie {title: "RandomString1"})
 [source,json]
 ----
 {
-  "param0": "RandomString1"
+  "param0" : "RandomString1"
 }
 ----
 
@@ -575,19 +555,15 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "actorsConnection": {
-        "pageInfo": {
-          "hPP": false
-        }
+  "movies" : [ {
+    "actorsConnection" : {
+      "pageInfo" : {
+        "hPP" : false
       }
     }
-  ]
+  } ]
 }
 ----
-
-'''
 
 == should alias hasNextPage
 
@@ -615,7 +591,7 @@ CREATE (m:Movie {title: "RandomString1"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "RandomString1"}) {
@@ -632,8 +608,8 @@ CREATE (m:Movie {title: "RandomString1"})
 [source,json]
 ----
 {
-  "param0": "RandomString1",
-  "param1": 1
+  "param0" : "RandomString1",
+  "param1" : 1
 }
 ----
 
@@ -675,19 +651,15 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "actorsConnection": {
-        "pageInfo": {
-          "hNP": true
-        }
+  "movies" : [ {
+    "actorsConnection" : {
+      "pageInfo" : {
+        "hNP" : true
       }
     }
-  ]
+  } ]
 }
 ----
-
-'''
 
 == should alias the top level edges key
 
@@ -715,7 +687,7 @@ CREATE (m:Movie {title: "RandomString1"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "RandomString1"}) {
@@ -732,8 +704,8 @@ CREATE (m:Movie {title: "RandomString1"})
 [source,json]
 ----
 {
-  "param0": "RandomString1",
-  "param1": 1
+  "param0" : "RandomString1",
+  "param1" : 1
 }
 ----
 
@@ -775,21 +747,15 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "actorsConnection": {
-        "e": [
-          {
-            "cursor": "YXJyYXljb25uZWN0aW9uOjA="
-          }
-        ]
-      }
+  "movies" : [ {
+    "actorsConnection" : {
+      "e" : [ {
+        "cursor" : "YXJyYXljb25uZWN0aW9uOjA="
+      } ]
     }
-  ]
+  } ]
 }
 ----
-
-'''
 
 == should alias cursor
 
@@ -817,7 +783,7 @@ CREATE (m:Movie {title: "RandomString1"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "RandomString1"}) {
@@ -834,8 +800,8 @@ CREATE (m:Movie {title: "RandomString1"})
 [source,json]
 ----
 {
-  "param0": "RandomString1",
-  "param1": 1
+  "param0" : "RandomString1",
+  "param1" : 1
 }
 ----
 
@@ -877,21 +843,15 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "actorsConnection": {
-        "edges": [
-          {
-            "c": "YXJyYXljb25uZWN0aW9uOjA="
-          }
-        ]
-      }
+  "movies" : [ {
+    "actorsConnection" : {
+      "edges" : [ {
+        "c" : "YXJyYXljb25uZWN0aW9uOjA="
+      } ]
     }
-  ]
+  } ]
 }
 ----
-
-'''
 
 == should alias the top level node key
 
@@ -919,7 +879,7 @@ CREATE (m:Movie {title: "RandomString1"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "RandomString1"}) {
@@ -938,8 +898,8 @@ CREATE (m:Movie {title: "RandomString1"})
 [source,json]
 ----
 {
-  "param0": "RandomString1",
-  "param1": 1
+  "param0" : "RandomString1",
+  "param1" : 1
 }
 ----
 
@@ -986,8 +946,6 @@ movies[0].actorsConnection.edges.size(),==,1
 movies[0].actorsConnection.edges[0].n.name,notEmpty,
 |===
 
-'''
-
 == should alias a property on the node
 
 .Schema
@@ -1014,7 +972,7 @@ CREATE (m:Movie {title: "RandomString1"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "RandomString1"}) {
@@ -1033,8 +991,8 @@ CREATE (m:Movie {title: "RandomString1"})
 [source,json]
 ----
 {
-  "param0": "RandomString1",
-  "param1": 1
+  "param0" : "RandomString1",
+  "param1" : 1
 }
 ----
 
@@ -1081,8 +1039,6 @@ movies[0].actorsConnection.edges.size(),==,1
 movies[0].actorsConnection.edges[0].node.n,notEmpty,
 |===
 
-'''
-
 == should alias a property on the relationship
 
 .Schema
@@ -1113,7 +1069,7 @@ CREATE (m:Movie {title: "RandomString1"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "RandomString1"}) {
@@ -1132,8 +1088,8 @@ CREATE (m:Movie {title: "RandomString1"})
 [source,json]
 ----
 {
-  "param0": "RandomString1",
-  "param1": 1
+  "param0" : "RandomString1",
+  "param1" : 1
 }
 ----
 
@@ -1180,8 +1136,6 @@ movies[0].actorsConnection.edges.size(),==,1
 movies[0].actorsConnection.edges[0].r.r,notEmpty,
 |===
 
-'''
-
 == should alias many keys on a connection
 
 .Schema
@@ -1209,7 +1163,7 @@ CREATE (m:Movie {title: "RandomString1"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "RandomString1"}) {
@@ -1236,7 +1190,7 @@ CREATE (m:Movie {title: "RandomString1"})
 [source,json]
 ----
 {
-  "param0": "RandomString1"
+  "param0" : "RandomString1"
 }
 ----
 
@@ -1283,33 +1237,25 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "title": "RandomString1",
-      "connection": {
-        "tC": 1,
-        "edges": [
-          {
-            "n": {
-              "n": "RandomString2"
-            },
-            "p": {
-              "r": [
-                "RandomString3"
-              ]
-            }
-          }
-        ],
-        "page": {
-          "hNP": false
+  "movies" : [ {
+    "title" : "RandomString1",
+    "connection" : {
+      "tC" : 1,
+      "edges" : [ {
+        "n" : {
+          "n" : "RandomString2"
+        },
+        "p" : {
+          "r" : [ "RandomString3" ]
         }
+      } ],
+      "page" : {
+        "hNP" : false
       }
     }
-  ]
+  } ]
 }
 ----
-
-'''
 
 == should allow multiple aliases on the same connection
 
@@ -1337,7 +1283,7 @@ CREATE (post:Post {title: "RandomString1"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   posts(where: {title: "RandomString1"}) {
@@ -1363,9 +1309,9 @@ CREATE (post:Post {title: "RandomString1"})
 [source,json]
 ----
 {
-  "param0": "RandomString1",
-  "param1": true,
-  "param2": false
+  "param0" : "RandomString1",
+  "param1" : true,
+  "param2" : false
 }
 ----
 
@@ -1434,37 +1380,28 @@ RETURN this {
 [source,json,response=true,ignore-order]
 ----
 {
-  "posts": [
-    {
-      "flagged": {
-        "edges": [
-          {
-            "node": {
-              "flag": true
-            }
-          },
-          {
-            "node": {
-              "flag": true
-            }
-          }
-        ]
-      },
-      "unflagged": {
-        "edges": [
-          {
-            "node": {
-              "flag": false
-            }
-          }
-        ]
-      }
+  "posts" : [ {
+    "flagged" : {
+      "edges" : [ {
+        "node" : {
+          "flag" : true
+        }
+      }, {
+        "node" : {
+          "flag" : true
+        }
+      } ]
+    },
+    "unflagged" : {
+      "edges" : [ {
+        "node" : {
+          "flag" : false
+        }
+      } ]
     }
-  ]
+  } ]
 }
 ----
-
-'''
 
 == should allow alias on nested connections
 
@@ -1495,7 +1432,7 @@ CREATE (movie:Movie {title: "The Matrix"})
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "The Matrix"}) {
@@ -1528,9 +1465,9 @@ CREATE (movie:Movie {title: "The Matrix"})
 [source,json]
 ----
 {
-  "param0": "The Matrix",
-  "param1": "Keanu Reeves",
-  "param2": "The Matrix"
+  "param0" : "The Matrix",
+  "param1" : "Keanu Reeves",
+  "param2" : "The Matrix"
 }
 ----
 
@@ -1613,39 +1550,28 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "title": "The Matrix",
-      "actorsConnection": {
-        "edges": [
-          {
-            "properties": {
-              "screenTime": 120
-            },
-            "node": {
-              "name": "Keanu Reeves",
-              "b": {
-                "edges": [
-                  {
-                    "node": {
-                      "title": "The Matrix",
-                      "a": [
-                        {
-                          "name": "Keanu Reeves"
-                        }
-                      ]
-                    }
-                  }
-                ]
+  "movies" : [ {
+    "title" : "The Matrix",
+    "actorsConnection" : {
+      "edges" : [ {
+        "properties" : {
+          "screenTime" : 120
+        },
+        "node" : {
+          "name" : "Keanu Reeves",
+          "b" : {
+            "edges" : [ {
+              "node" : {
+                "title" : "The Matrix",
+                "a" : [ {
+                  "name" : "Keanu Reeves"
+                } ]
               }
-            }
+            } ]
           }
-        ]
-      }
+        }
+      } ]
     }
-  ]
+  } ]
 }
 ----
-
-'''
-

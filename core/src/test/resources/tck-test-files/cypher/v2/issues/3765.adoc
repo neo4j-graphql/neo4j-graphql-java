@@ -29,7 +29,7 @@ type likesProperties @relationshipProperties {
 === implicit AND
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   posts(where: {content: "stuff", alternateContent: "stuff2"}) {
@@ -58,12 +58,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 === explicit OR with an implicit AND
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   posts(
@@ -96,12 +94,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 === explicit NOT with an implicit AND
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   posts(where: {NOT: {content: "stuff", alternateContent: "stuff2"}}) {
@@ -130,14 +126,12 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == relationship filters
 
 === implicit AND  inside relationship filter
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   posts(where: {likes_SOME: {name: "stuff", otherName: "stuff2"}}) {
@@ -169,12 +163,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 === implicit AND outside relationship filters
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   posts(where: {likes_SOME: {name: "stuff"}, likes_ALL: {otherName: "stuff2"}}) {
@@ -213,12 +205,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 === explicit OR outside relationship filters
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   posts(
@@ -263,6 +253,3 @@ RETURN this {
 	.content
 } AS this
 ----
-
-'''
-

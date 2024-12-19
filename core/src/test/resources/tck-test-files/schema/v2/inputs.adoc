@@ -22,7 +22,7 @@ type Query {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -93,6 +93,3 @@ input NodeInput {
 }
 
 ----
-
-'''
-

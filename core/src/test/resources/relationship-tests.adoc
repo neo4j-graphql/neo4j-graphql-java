@@ -47,7 +47,7 @@ type CategoryAssignment @relation(from: "child", to: "parent", name: "HAS_PARENT
 === add incoming relationship
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation{
   addTeamPlayers(id:1, players: [2]){
@@ -85,7 +85,7 @@ RETURN addTeamPlayers {
 === delete incoming relationship
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation{
   deleteTeamPlayers(id:1, players: [2]){
@@ -123,7 +123,7 @@ RETURN deleteTeamPlayers {
 === add outgoing relationship
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation{
   addPlayerTeams(id:1, teams: [2]){
@@ -161,7 +161,7 @@ RETURN addPlayerTeams {
 === delete outgoing relationship
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation{
   deletePlayerTeams(id:1, teams: [2]){
@@ -199,7 +199,7 @@ RETURN deletePlayerTeams {
 === create relationship
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation{
   createMembership(player_id: 1, team_id: 2, prop: "foo"){
@@ -243,7 +243,7 @@ RETURN createMembership {
 === query incoming node
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   team{
@@ -281,7 +281,7 @@ RETURN team {
 === query outgoing node
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   player{
@@ -319,7 +319,7 @@ RETURN player {
 === query incoming relation
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   team{
@@ -365,7 +365,7 @@ RETURN team {
 === query outgoing relation
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   player{
@@ -415,7 +415,7 @@ RETURN player {
 ==== add incoming relationship
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation{
   addCategoryParentCategory(name: "child", parentCategory: "parent", prop: "foo"){
@@ -454,7 +454,7 @@ RETURN addCategoryParentCategory {
 ==== delete incoming relationship
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation{
   deleteCategoryParentCategory(name:"child", parentCategory: "parent") {
@@ -493,7 +493,7 @@ RETURN deleteCategoryParentCategory {
 ==== add outgoing relationship
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation{
   addCategoryChildCategories(name: "parent", childCategories: ["child1", "child2"], prop: "foo") {
@@ -531,7 +531,7 @@ RETURN addCategoryChildCategories {
 ==== delete outgoing relationship
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation{
   deleteCategoryChildCategories(name: "parent", childCategories:["child1", "child2"] ) {
@@ -569,7 +569,7 @@ RETURN deleteCategoryChildCategories {
 ==== create relationship
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation{
   createCategoryAssignment(parent_name: "parent", child_name: "child", prop: "foo"){
@@ -613,7 +613,7 @@ RETURN createCategoryAssignment {
 ==== query incoming node
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   category{
@@ -651,7 +651,7 @@ RETURN category {
 ==== query outgoing node
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   category{
@@ -689,7 +689,7 @@ RETURN category {
 ==== query incoming relation
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   category{
@@ -733,7 +733,7 @@ RETURN category {
 ==== query outgoing relation
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   category {

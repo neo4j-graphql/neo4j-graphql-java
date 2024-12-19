@@ -31,7 +31,7 @@ type ActedIn @relationshipProperties {
 === Nested query
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query Query {
   movies(where: {released: 1999}) {
@@ -72,12 +72,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 === Double nested query
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query Query {
   movies(where: {released: 1999}) {
@@ -131,6 +129,3 @@ RETURN this {
 	actors: actors
 } AS this
 ----
-
-'''
-

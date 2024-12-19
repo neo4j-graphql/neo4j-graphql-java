@@ -29,7 +29,7 @@ type Genre {
 == should be able to return all the genres related to the Matrix movie using connection fields
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query Genres {
   genres(where: {moviesConnection_ALL: {node: {title: "Matrix"}}}) {
@@ -64,6 +64,3 @@ RETURN this {
 	.name
 } AS this
 ----
-
-'''
-

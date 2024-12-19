@@ -20,7 +20,7 @@ type User {
 === should not fetch required fields if @customResolver field is not selected
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   users {
@@ -44,12 +44,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 === should not over fetch when all required fields are manually selected
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   users {
@@ -76,12 +74,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 === should not over fetch when some required fields are manually selected
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   users {
@@ -107,12 +103,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 === should not over fetch when no required fields are manually selected
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   users {
@@ -137,8 +131,6 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == No required fields
 
 === Setup
@@ -156,7 +148,7 @@ type User {
 === should not over fetch when other fields are manually selected
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   users {
@@ -181,12 +173,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 === should not over fetch when no other fields are manually selected
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   users {
@@ -208,8 +198,6 @@ MATCH (this:User)
 RETURN this {
 } AS this
 ----
-
-'''
 
 == Require fields on nested types
 
@@ -240,7 +228,7 @@ type User {
 === should not over fetch when all required fields are manually selected
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   users {
@@ -291,12 +279,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 === should not fetch required fields if @customResolver field is not selected
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   users {
@@ -320,12 +306,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 === should not over fetch when some required fields are manually selected
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   users {
@@ -374,12 +358,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 === should not over fetch when no required fields are manually selected
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   users {
@@ -422,8 +404,6 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Require fields on nested unions
 
 === Setup
@@ -453,7 +433,7 @@ type Journal {
 === should not over fetch when all required fields are manually selected
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   authors {
@@ -510,12 +490,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 === should not fetch required fields if @customResolver field is not selected
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   authors {
@@ -539,12 +517,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 === should not over fetch when some required fields are manually selected
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   authors {
@@ -597,12 +573,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 === should not over fetch when no required fields are manually selected
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   authors {
@@ -650,8 +624,6 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Require fields on nested interfaces
 
 === Setup
@@ -685,7 +657,7 @@ type Journal implements Publication {
 === should not over fetch when all required fields are manually selected
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   authors {
@@ -745,12 +717,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 === should not fetch required fields if @customResolver field is not selected
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   authors {
@@ -774,12 +744,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 === should not over fetch when some required fields are manually selected
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   authors {
@@ -834,12 +802,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 === should not over fetch when no required fields are manually selected
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   authors {
@@ -888,6 +854,3 @@ RETURN this {
 	publications: publications
 } AS this
 ----
-
-'''
-

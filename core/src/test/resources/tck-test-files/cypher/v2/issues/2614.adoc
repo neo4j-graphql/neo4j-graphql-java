@@ -38,7 +38,7 @@ type Actor {
 == should use the provided node directive label in the call subquery
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query GetProductionsMovie {
   actors {
@@ -91,6 +91,3 @@ RETURN this {
 	actedIn: actedIn
 } AS this
 ----
-
-'''
-

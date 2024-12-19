@@ -17,13 +17,13 @@ type Movie {
 [source,json,schema-config=true]
 ----
 {
-  "features": {
-    "filters": {
-      "String": {
-        "LT": true,
-        "GT": true,
-        "GTE": true,
-        "LTE": true
+  "features" : {
+    "filters" : {
+      "String" : {
+        "LT" : true,
+        "GT" : true,
+        "GTE" : true,
+        "LTE" : true
       }
     }
   }
@@ -31,7 +31,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -102,8 +102,6 @@ input MovieWhere {
 
 ----
 
-'''
-
 == String comparators should not be present if not explicitly defined in the configuration
 
 .Schema
@@ -115,7 +113,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -182,8 +180,6 @@ input MovieWhere {
 
 ----
 
-'''
-
 == If String comparators are partially defined, then only the defined ones should be present
 
 .Schema
@@ -198,12 +194,12 @@ type Movie {
 [source,json,schema-config=true]
 ----
 {
-  "features": {
-    "filters": {
-      "String": {
-        "LT": true,
-        "GT": true,
-        "LTE": false
+  "features" : {
+    "filters" : {
+      "String" : {
+        "LT" : true,
+        "GT" : true,
+        "LTE" : false
       }
     }
   }
@@ -211,7 +207,7 @@ type Movie {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -280,8 +276,6 @@ input MovieWhere {
 
 ----
 
-'''
-
 == string comparator relationship and relationship properties
 
 .Schema
@@ -306,13 +300,13 @@ type Actor {
 [source,json,schema-config=true]
 ----
 {
-  "features": {
-    "filters": {
-      "String": {
-        "LT": true,
-        "GT": true,
-        "LTE": true,
-        "GTE": true
+  "features" : {
+    "filters" : {
+      "String" : {
+        "LT" : true,
+        "GT" : true,
+        "LTE" : true,
+        "GTE" : true
       }
     }
   }
@@ -320,7 +314,7 @@ type Actor {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -548,6 +542,3 @@ input MovieWhere {
 }
 
 ----
-
-'''
-

@@ -21,7 +21,7 @@ type Person {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query {
   person(first:10) {

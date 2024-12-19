@@ -17,7 +17,7 @@ type File {
 == Querying with native BigInt in AST
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   files(where: {size: 9223372036854775807}) {
@@ -30,10 +30,7 @@ type File {
 [source,json]
 ----
 {
-  "param0" : {
-    "low" : -1,
-    "high" : 2147483647
-  }
+  "param0" : 9223372036854775807
 }
 ----
 
@@ -47,12 +44,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Querying with BigInt as string in AST
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   files(where: {size: "9223372036854775807"}) {
@@ -65,10 +60,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : {
-    "low" : -1,
-    "high" : 2147483647
-  }
+  "param0" : 9223372036854775807
 }
 ----
 
@@ -82,12 +74,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Querying with BigInt as string in variables
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query Files($size: BigInt) {
   files(where: {size: $size}) {
@@ -100,7 +90,7 @@ query Files($size: BigInt) {
 [source,json,request=true]
 ----
 {
-  "size": "9223372036854775807"
+  "size" : "9223372036854775807"
 }
 ----
 
@@ -108,10 +98,7 @@ query Files($size: BigInt) {
 [source,json]
 ----
 {
-  "param0" : {
-    "low" : -1,
-    "high" : 2147483647
-  }
+  "param0" : 9223372036854775807
 }
 ----
 
@@ -124,6 +111,3 @@ RETURN this {
 	.name
 } AS this
 ----
-
-'''
-

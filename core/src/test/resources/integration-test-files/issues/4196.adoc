@@ -37,7 +37,7 @@ MERGE (:Foo {name: "A"})-[:relatesTo]->(b1:Bar {name: "bar1"})
 == querying multiple nested nodes should be sorted correctly
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   foos(options: {sort: {name: ASC}}) {
@@ -54,7 +54,7 @@ MERGE (:Foo {name: "A"})-[:relatesTo]->(b1:Bar {name: "bar1"})
 .Expected Cypher params
 [source,json]
 ----
-{}
+{ }
 ----
 
 .Expected Cypher output
@@ -88,38 +88,23 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "foos": [
-    {
-      "name": "A",
-      "bars": [
-        {
-          "foobars": [
-            {
-              "name": "a"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "B",
-      "bars": []
-    },
-    {
-      "name": "C",
-      "bars": [
-        {
-          "foobars": [
-            {
-              "name": "b"
-            }
-          ]
-        }
-      ]
-    }
-  ]
+  "foos" : [ {
+    "name" : "A",
+    "bars" : [ {
+      "foobars" : [ {
+        "name" : "a"
+      } ]
+    } ]
+  }, {
+    "name" : "B",
+    "bars" : [ ]
+  }, {
+    "name" : "C",
+    "bars" : [ {
+      "foobars" : [ {
+        "name" : "b"
+      } ]
+    } ]
+  } ]
 }
 ----
-
-'''
-

@@ -24,7 +24,7 @@ type Query {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query GetSearchResults {
   search {
@@ -43,18 +43,12 @@ query GetSearchResults {
 [source,json,response=true,ignore-order]
 ----
 {
-  "search": [
-    {
-      "__typename": "Book",
-      "title": "GraphQL Unions for Dummies"
-    },
-    {
-      "__typename": "Author",
-      "name": "Darrell"
-    }
-  ]
+  "search" : [ {
+    "__typename" : "Book",
+    "title" : "GraphQL Unions for Dummies"
+  }, {
+    "__typename" : "Author",
+    "name" : "Darrell"
+  } ]
 }
 ----
-
-'''
-

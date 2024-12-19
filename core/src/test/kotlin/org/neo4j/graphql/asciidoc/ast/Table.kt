@@ -16,4 +16,22 @@ class Table(
     var start: Int? = null
     var end: Int? = null
 
+    override fun buildContent(contentExtractor: (CodeBlock) -> String): String {
+        val builder = StringBuilder()
+        caption?.let {
+            builder.append("\n.${it}\n")
+        }
+        builder.append("[%header,format=csv")
+        attributes.forEach { (k, v) ->
+            builder.append(",${k}=${v}")
+        }
+        builder.append("]\n|===\n")
+        builder.append(records.first().parser.headerNames.joinToString(",")).append("\n")
+        records.forEach { record ->
+            builder.append(record.joinToString(",")).append("\n")
+        }
+        builder.append("|===\n")
+        return builder.toString()
+    }
+
 }

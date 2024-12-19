@@ -26,7 +26,7 @@ CREATE (movie:Movie)
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($id: ID!, $duration: Duration!) {
   movies(where: {id: $id, duration: $duration}) {
@@ -40,8 +40,8 @@ query ($id: ID!, $duration: Duration!) {
 [source,json,request=true]
 ----
 {
-  "id": "RandomString1",
-  "duration": "P4D"
+  "duration" : "P4D",
+  "id" : "RandomString1"
 }
 ----
 
@@ -70,16 +70,12 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "id": "RandomString1",
-      "duration": "P0M4DT0S"
-    }
-  ]
+  "movies" : [ {
+    "id" : "RandomString1",
+    "duration" : "P0M4DT0S"
+  } ]
 }
 ----
-
-'''
 
 === should filter based on duration comparison, for filter: LT
 
@@ -95,7 +91,7 @@ CREATE (long:Movie)
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($where: MovieWhere!) {
   movies(where: $where, options: {sort: [{duration: ASC}]}) {
@@ -109,13 +105,9 @@ query ($where: MovieWhere!) {
 [source,json,request=true]
 ----
 {
-  "where": {
-    "id_IN": [
-      "RandomString1",
-      "RandomString2",
-      "RandomString3"
-    ],
-    "duration_LT": "P2M"
+  "where" : {
+    "id_IN" : [ "RandomString1", "RandomString2", "RandomString3" ],
+    "duration_LT" : "P2M"
   }
 }
 ----
@@ -146,16 +138,12 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "id": "RandomString3",
-      "duration": "P0M2DT0S"
-    }
-  ]
+  "movies" : [ {
+    "id" : "RandomString3",
+    "duration" : "P0M2DT0S"
+  } ]
 }
 ----
-
-'''
 
 === should filter based on duration comparison, for filter: LTE
 
@@ -171,7 +159,7 @@ CREATE (long:Movie)
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($where: MovieWhere!) {
   movies(where: $where, options: {sort: [{duration: ASC}]}) {
@@ -185,13 +173,9 @@ query ($where: MovieWhere!) {
 [source,json,request=true]
 ----
 {
-  "where": {
-    "id_IN": [
-      "RandomString1",
-      "RandomString2",
-      "RandomString3"
-    ],
-    "duration_LTE": "P2M"
+  "where" : {
+    "id_IN" : [ "RandomString1", "RandomString2", "RandomString3" ],
+    "duration_LTE" : "P2M"
   }
 }
 ----
@@ -222,20 +206,15 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "id": "RandomString3",
-      "duration": "P0M2DT0S"
-    },
-    {
-      "id": "RandomString2",
-      "duration": "P2M0DT0S"
-    }
-  ]
+  "movies" : [ {
+    "id" : "RandomString3",
+    "duration" : "P0M2DT0S"
+  }, {
+    "id" : "RandomString2",
+    "duration" : "P2M0DT0S"
+  } ]
 }
 ----
-
-'''
 
 === should filter based on duration comparison, for filter: GT
 
@@ -251,7 +230,7 @@ CREATE (long:Movie)
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($where: MovieWhere!) {
   movies(where: $where, options: {sort: [{duration: ASC}]}) {
@@ -265,13 +244,9 @@ query ($where: MovieWhere!) {
 [source,json,request=true]
 ----
 {
-  "where": {
-    "id_IN": [
-      "RandomString1",
-      "RandomString2",
-      "RandomString3"
-    ],
-    "duration_GT": "P2M"
+  "where" : {
+    "id_IN" : [ "RandomString1", "RandomString2", "RandomString3" ],
+    "duration_GT" : "P2M"
   }
 }
 ----
@@ -302,16 +277,12 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "id": "RandomString1",
-      "duration": "P24M0DT0S"
-    }
-  ]
+  "movies" : [ {
+    "id" : "RandomString1",
+    "duration" : "P24M0DT0S"
+  } ]
 }
 ----
-
-'''
 
 === should filter based on duration comparison, for filter: GTE
 
@@ -327,7 +298,7 @@ CREATE (long:Movie)
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query ($where: MovieWhere!) {
   movies(where: $where, options: {sort: [{duration: ASC}]}) {
@@ -341,13 +312,9 @@ query ($where: MovieWhere!) {
 [source,json,request=true]
 ----
 {
-  "where": {
-    "id_IN": [
-      "RandomString1",
-      "RandomString2",
-      "RandomString3"
-    ],
-    "duration_GTE": "P2M"
+  "where" : {
+    "id_IN" : [ "RandomString1", "RandomString2", "RandomString3" ],
+    "duration_GTE" : "P2M"
   }
 }
 ----
@@ -378,18 +345,12 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "id": "RandomString2",
-      "duration": "P2M0DT0S"
-    },
-    {
-      "id": "RandomString1",
-      "duration": "P24M0DT0S"
-    }
-  ]
+  "movies" : [ {
+    "id" : "RandomString2",
+    "duration" : "P2M0DT0S"
+  }, {
+    "id" : "RandomString1",
+    "duration" : "P24M0DT0S"
+  } ]
 }
 ----
-
-'''
-

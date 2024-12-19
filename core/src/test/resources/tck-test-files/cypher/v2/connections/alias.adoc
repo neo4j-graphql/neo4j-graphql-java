@@ -26,7 +26,7 @@ type ActedIn @relationshipProperties {
 == Alias Top Level Connection Field
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies {
@@ -76,12 +76,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == Alias Top Level Connection Field Multiple Times
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movies(where: {title: "Forrest Gump"}) {
@@ -189,6 +187,3 @@ RETURN this {
 	jenny: jenny
 } AS this
 ----
-
-'''
-

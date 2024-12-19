@@ -20,7 +20,7 @@ type Query {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   me {
@@ -33,13 +33,11 @@ type Query {
 [source,json,response=true]
 ----
 {
-  "me": {
-    "id": "RandomString1"
+  "me" : {
+    "id" : "RandomString1"
   }
 }
 ----
-
-'''
 
 === should inject auth in context of custom Mutation
 
@@ -56,7 +54,7 @@ type Mutation {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation {
   me {
@@ -69,13 +67,11 @@ mutation {
 [source,json,response=true]
 ----
 {
-  "me": {
-    "id": "RandomString1"
+  "me" : {
+    "id" : "RandomString1"
   }
 }
 ----
-
-'''
 
 === should inject auth in context of custom Field resolver
 
@@ -92,7 +88,7 @@ type Query {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   me {
@@ -105,13 +101,11 @@ type Query {
 [source,json,response=true]
 ----
 {
-  "me": {
-    "customId": "RandomString1"
+  "me" : {
+    "customId" : "RandomString1"
   }
 }
 ----
-
-'''
 
 === should inject auth in context of custom Query when decoded JWT passed in
 
@@ -128,7 +122,7 @@ type Query {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   me {
@@ -141,11 +135,8 @@ type Query {
 [source,json,response=true]
 ----
 {
-  "me": {
-    "id": "RandomString1"
+  "me" : {
+    "id" : "RandomString1"
   }
 }
 ----
-
-'''
-

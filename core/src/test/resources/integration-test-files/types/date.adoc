@@ -19,14 +19,14 @@ type Movie {
 [source,cypher,test-data=true]
 ----
 CREATE (m:Movie)
- SET m.date = date("2024-12-01")
+ SET m.date = date("2024-12-24")
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
-  movies(where: {date: "2024-12-01T15:46:32.522Z"}) {
+  movies(where: {date: "2024-12-24T18:00:00.000Z"}) {
     date
   }
 }
@@ -36,7 +36,7 @@ CREATE (m:Movie)
 [source,json]
 ----
 {
-  "param0": "2024-12-01"
+  "param0" : "2024-12-24"
 }
 ----
 
@@ -54,13 +54,8 @@ RETURN this {
 [source,json,response=true]
 ----
 {
-  "movies": [
-    {
-      "date": "2024-12-01"
-    }
-  ]
+  "movies" : [ {
+    "date" : "2024-12-24"
+  } ]
 }
 ----
-
-'''
-

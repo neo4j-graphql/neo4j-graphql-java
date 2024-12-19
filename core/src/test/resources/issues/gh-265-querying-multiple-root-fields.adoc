@@ -28,7 +28,7 @@ CREATE
 == Queries
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query {
   movie {

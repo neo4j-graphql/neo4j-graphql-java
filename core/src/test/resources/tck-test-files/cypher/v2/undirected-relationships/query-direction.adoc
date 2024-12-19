@@ -15,7 +15,7 @@ type User {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   users {
@@ -63,8 +63,6 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == query with directed and undirected relationships with a DEFAULT_DIRECTED
 
 .Schema
@@ -77,7 +75,7 @@ type User {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   users {
@@ -125,8 +123,6 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == query with a DIRECTED_ONLY relationship
 
 .Schema
@@ -139,7 +135,7 @@ type User {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   users {
@@ -175,8 +171,6 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == query with a UNDIRECTED_ONLY relationship
 
 .Schema
@@ -189,7 +183,7 @@ type User {
 ----
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   users {
@@ -224,6 +218,3 @@ RETURN this {
 	friends: friends
 } AS this
 ----
-
-'''
-

@@ -20,7 +20,7 @@ type Movie {
 === Create
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation {
   createMovie(title:"Forrest Gump", released: 1994) {
@@ -58,7 +58,7 @@ RETURN createMovie {
 === Update
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation {
   updateMovie(_id: 1, released: 1995) {
@@ -97,7 +97,7 @@ RETURN updateMovie {
 === Merge
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation {
   mergeMovie(_id: 1, released: 1995) {
@@ -136,7 +136,7 @@ RETURN mergeMovie {
 === Merge null
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 mutation {
   updateMovie(_id: 1, released: null) {
@@ -175,7 +175,7 @@ RETURN updateMovie {
 === Find
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movie(released: 1994) {
@@ -209,7 +209,7 @@ RETURN movie {
 === Filter
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   movie(filter:{released_gte: 1994}) {

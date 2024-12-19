@@ -21,7 +21,7 @@ type Pet {
 == query friends name not null
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   person (filter: { friends: { name_not: null } }) {
@@ -52,7 +52,7 @@ RETURN person {
 == query friends not null
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   person (filter: { friends_not: null }) {
@@ -84,7 +84,7 @@ RETURN person {
 == query friends null
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   person (filter: { friends: null }) {
@@ -116,7 +116,7 @@ RETURN person {
 == query friends name not null
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 {
   person (filter: { friends: { name_not: null } }) {

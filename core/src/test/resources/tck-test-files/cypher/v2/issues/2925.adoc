@@ -24,7 +24,7 @@ type User {
 == should query relationship
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query Query {
   users(where: {hasGroup: {name_IN: ["Group A"]}}) {
@@ -54,12 +54,10 @@ RETURN this {
 } AS this
 ----
 
-'''
-
 == should query required relationship
 
 .GraphQL-Query
-[source,graphql]
+[source,graphql,request=true]
 ----
 query Query {
   users(where: {hasRequiredGroup: {name_IN: ["Group A"]}}) {
@@ -88,6 +86,3 @@ RETURN this {
 	.name
 } AS this
 ----
-
-'''
-

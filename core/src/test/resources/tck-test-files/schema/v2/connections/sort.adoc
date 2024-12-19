@@ -19,7 +19,7 @@ type Node2 {
 ----
 
 .Augmented Schema
-[source,graphql]
+[source,graphql,augmented=true]
 ----
 schema {
   query: Query
@@ -188,6 +188,3 @@ input Node2Where {
 }
 
 ----
-
-'''
-
