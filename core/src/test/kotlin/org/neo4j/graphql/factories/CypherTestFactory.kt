@@ -1,7 +1,5 @@
-package org.neo4j.graphql.utils
+package org.neo4j.graphql.factories
 
-import demo.org.neo4j.graphql.utils.asciidoc.ast.CodeBlock
-import demo.org.neo4j.graphql.utils.asciidoc.ast.Section
 import graphql.ExecutionInput
 import graphql.GraphQL
 import graphql.schema.DataFetcher
@@ -19,6 +17,8 @@ import org.neo4j.cypherdsl.parser.Options
 import org.neo4j.driver.internal.InternalIsoDuration
 import org.neo4j.driver.types.IsoDuration
 import org.neo4j.graphql.*
+import org.neo4j.graphql.asciidoc.ast.CodeBlock
+import org.neo4j.graphql.asciidoc.ast.Section
 import org.neo4j.harness.Neo4j
 import org.opentest4j.AssertionFailedError
 import java.math.BigInteger
@@ -34,7 +34,7 @@ import java.util.function.Consumer
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
-class CypherTestSuite(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTestSuite<CypherTestSuite.TestCase>(
+class CypherTestFactory(fileName: String, val neo4j: Neo4j? = null) : AsciiDocTestFactory<CypherTestFactory.TestCase>(
     fileName,
     listOf(
         matcher("cypher", exactly = true) { t, c -> t.cypher.add(c) },

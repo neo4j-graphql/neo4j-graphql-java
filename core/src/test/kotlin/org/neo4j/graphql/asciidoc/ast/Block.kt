@@ -1,4 +1,4 @@
-package demo.org.neo4j.graphql.utils.asciidoc.ast
+package org.neo4j.graphql.asciidoc.ast
 
 class Block(
     parent: StructuralNode,

@@ -1,6 +1,6 @@
-package demo.org.neo4j.graphql.utils.asciidoc
+package org.neo4j.graphql.asciidoc
 
-import demo.org.neo4j.graphql.utils.asciidoc.ast.*
+import org.neo4j.graphql.asciidoc.ast.*
 import java.io.File
 import java.net.URI
 import java.util.regex.Pattern

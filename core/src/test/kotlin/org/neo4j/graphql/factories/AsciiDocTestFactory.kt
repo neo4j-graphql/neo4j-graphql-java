@@ -1,13 +1,13 @@
-package org.neo4j.graphql.utils
+package org.neo4j.graphql.factories
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.intellij.rt.execution.junit.FileComparisonFailure
-import demo.org.neo4j.graphql.utils.asciidoc.AsciiDocParser
-import demo.org.neo4j.graphql.utils.asciidoc.ast.*
 import org.junit.jupiter.api.DynamicContainer
 import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.DynamicTest
+import org.neo4j.graphql.asciidoc.AsciiDocParser
+import org.neo4j.graphql.asciidoc.ast.*
 import java.io.File
 import java.io.FileWriter
 import java.util.*
@@ -18,7 +18,7 @@ import kotlin.reflect.KMutableProperty1
  * @param fileName the name of the test file
  * @param relevantBlocks a list of pairs of filter functions and properties to set the found code blocks
  */
-abstract class AsciiDocTestSuite<T>(
+abstract class AsciiDocTestFactory<T>(
     private val fileName: String,
     private val relevantBlocks: List<CodeBlockMatcher<T>>,
 ) {
@@ -49,16 +49,16 @@ abstract class AsciiDocTestSuite<T>(
             tests += DynamicTest.dynamicTest(
                 "Write updated Testfile",
                 srcLocation,
-                this@AsciiDocTestSuite::writeAdjustedTestFile
+                this@AsciiDocTestFactory::writeAdjustedTestFile
             )
         } else if (REFORMAT_TEST_FILE) {
-            tests += DynamicTest.dynamicTest("Reformat Testfile", srcLocation, this@AsciiDocTestSuite::reformatTestFile)
+            tests += DynamicTest.dynamicTest("Reformat Testfile", srcLocation, this@AsciiDocTestFactory::reformatTestFile)
         } else if (GENERATE_TEST_FILE_DIFF) {
             // this test prints out the adjusted test file
             tests += DynamicTest.dynamicTest(
                 "Adjusted Tests",
                 srcLocation,
-                this@AsciiDocTestSuite::printAdjustedTestFile
+                this@AsciiDocTestFactory::printAdjustedTestFile
             )
         }
 

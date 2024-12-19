@@ -108,7 +108,7 @@ You find more usage examples in the:
 Here is a minimalistic example in Groovy using the Neo4j-Java driver and Spark-Java as webserver.
 It is running against a Neo4j instance at `bolt://localhost` (username: `neo4j`, password: `s3cr3t`) containing the `:play movies` graph.
 
-(You can also use a link:core/src/test/kotlin/GraphQLServer.kt[Kotlin based server example].)
+(You can also use a link:core/src/test/kotlin/demo/GraphQLServer.kt[Kotlin based server example].)
 
 In case you wand to bind the neo4j driver directly to the graphql schema you can
 link:core/src/test/kotlin/DataFetcherInterceptorDemo.kt[use the DataFetchingInterceptor to
