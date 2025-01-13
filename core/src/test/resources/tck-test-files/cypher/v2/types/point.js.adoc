@@ -9,7 +9,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type PointContainer {
+type PointContainer @node {
   id: String
   point: Point
 }
@@ -21,7 +21,7 @@ type PointContainer {
 [source,graphql,request=true]
 ----
 {
-  pointContainers(where: {point: {longitude: 1.0, latitude: 2.0}}) {
+  pointContainers(where: {point_EQ: {longitude: 1.0, latitude: 2.0}}) {
     point {
       longitude
       latitude
@@ -47,10 +47,41 @@ type PointContainer {
 ----
 MATCH (this:PointContainer)
 WHERE this.point = point($param0)
-RETURN this { point: CASE
-    WHEN this.point IS NOT NULL THEN { point: this.point, crs: this.point.crs }
-    ELSE NULL
-END } AS this
+RETURN this { .point } AS this
+----
+
+== Simple Point NOT query
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  pointContainers(where: {NOT: {point_EQ: {longitude: 1.0, latitude: 2.0}}}) {
+    point {
+      longitude
+      latitude
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": {
+    "longitude": 1,
+    "latitude": 2
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:PointContainer)
+WHERE NOT (this.point = point($param0))
+RETURN this { .point } AS this
 ----
 
 == Simple Point IN query
@@ -87,10 +118,7 @@ END } AS this
 ----
 MATCH (this:PointContainer)
 WHERE this.point IN [var0 IN $param0 | point(var0)]
-RETURN this { point: CASE
-    WHEN this.point IS NOT NULL THEN { point: this.point, crs: this.point.crs }
-    ELSE NULL
-END } AS this
+RETURN this { .point } AS this
 ----
 
 == tests using describe or point.describe
@@ -131,10 +159,7 @@ END } AS this
 ----
 MATCH (this:PointContainer)
 WHERE point.distance(this.point, point($param0.point)) < $param0.distance
-RETURN this { point: CASE
-    WHEN this.point IS NOT NULL THEN { point: this.point }
-    ELSE NULL
-END } AS this
+RETURN this { .point } AS this
 ----
 
 === Simple Point LTE query
@@ -173,10 +198,7 @@ END } AS this
 ----
 MATCH (this:PointContainer)
 WHERE point.distance(this.point, point($param0.point)) <= $param0.distance
-RETURN this { point: CASE
-    WHEN this.point IS NOT NULL THEN { point: this.point }
-    ELSE NULL
-END } AS this
+RETURN this { .point } AS this
 ----
 
 === Simple Point GT query
@@ -215,10 +237,7 @@ END } AS this
 ----
 MATCH (this:PointContainer)
 WHERE point.distance(this.point, point($param0.point)) > $param0.distance
-RETURN this { point: CASE
-    WHEN this.point IS NOT NULL THEN { point: this.point }
-    ELSE NULL
-END } AS this
+RETURN this { .point } AS this
 ----
 
 === Simple Point GTE query
@@ -257,10 +276,7 @@ END } AS this
 ----
 MATCH (this:PointContainer)
 WHERE point.distance(this.point, point($param0.point)) >= $param0.distance
-RETURN this { point: CASE
-    WHEN this.point IS NOT NULL THEN { point: this.point }
-    ELSE NULL
-END } AS this
+RETURN this { .point } AS this
 ----
 
 === Simple Point DISTANCE query
@@ -299,8 +315,5 @@ END } AS this
 ----
 MATCH (this:PointContainer)
 WHERE point.distance(this.point, point($param0.point)) = $param0.distance
-RETURN this { point: CASE
-    WHEN this.point IS NOT NULL THEN { point: this.point }
-    ELSE NULL
-END } AS this
+RETURN this { .point } AS this
 ----

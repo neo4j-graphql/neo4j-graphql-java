@@ -37,6 +37,7 @@ abstract class ScalarField(
             }
 
         val result = mutableMapOf<String, ScalarPredicateDefinition>()
+            .add(FieldOperator.IMPLICIT_EQUAL, resolver, deprecated = "Please use the explicit _EQ version")
             .add(FieldOperator.EQUAL, resolver)
         if (fieldType == Constants.BOOLEAN) {
             return result

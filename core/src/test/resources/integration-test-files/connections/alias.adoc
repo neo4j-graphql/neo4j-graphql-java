@@ -8,12 +8,12 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   title: String!
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
 }
 
-type Actor {
+type Actor @node {
   name: String!
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
 }
@@ -32,7 +32,7 @@ CREATE (m:Movie {title: "RandomString1"})
 [source,graphql,request=true]
 ----
 {
-  movies(where: {title: "RandomString1"}) {
+  movies(where: {title_EQ: "RandomString1"}) {
     actors: actorsConnection {
       totalCount
     }
@@ -99,12 +99,12 @@ RETURN this {
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   title: String!
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
 }
 
-type Actor {
+type Actor @node {
   name: String!
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
 }
@@ -123,7 +123,7 @@ CREATE (m:Movie {title: "RandomString1"})
 [source,graphql,request=true]
 ----
 {
-  movies(where: {title: "RandomString1"}) {
+  movies(where: {title_EQ: "RandomString1"}) {
     actorsConnection {
       count: totalCount
     }
@@ -190,12 +190,12 @@ RETURN this {
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   title: String!
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
 }
 
-type Actor {
+type Actor @node {
   name: String!
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
 }
@@ -214,7 +214,7 @@ CREATE (m:Movie {title: "RandomString1"})
 [source,graphql,request=true]
 ----
 {
-  movies(where: {title: "RandomString1"}) {
+  movies(where: {title_EQ: "RandomString1"}) {
     actorsConnection {
       pi: pageInfo {
         hasNextPage
@@ -285,12 +285,12 @@ RETURN this {
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   title: String!
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
 }
 
-type Actor {
+type Actor @node {
   name: String!
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
 }
@@ -309,7 +309,7 @@ CREATE (m:Movie {title: "RandomString1"})
 [source,graphql,request=true]
 ----
 {
-  movies(where: {title: "RandomString1"}) {
+  movies(where: {title_EQ: "RandomString1"}) {
     actorsConnection {
       pageInfo {
         sc: startCursor
@@ -380,12 +380,12 @@ RETURN this {
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   title: String!
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
 }
 
-type Actor {
+type Actor @node {
   name: String!
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
 }
@@ -404,7 +404,7 @@ CREATE (m:Movie {title: "RandomString1"})
 [source,graphql,request=true]
 ----
 {
-  movies(where: {title: "RandomString1"}) {
+  movies(where: {title_EQ: "RandomString1"}) {
     actorsConnection {
       pageInfo {
         ec: endCursor
@@ -475,12 +475,12 @@ RETURN this {
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   title: String!
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
 }
 
-type Actor {
+type Actor @node {
   name: String!
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
 }
@@ -499,7 +499,7 @@ CREATE (m:Movie {title: "RandomString1"})
 [source,graphql,request=true]
 ----
 {
-  movies(where: {title: "RandomString1"}) {
+  movies(where: {title_EQ: "RandomString1"}) {
     actorsConnection {
       pageInfo {
         hPP: hasPreviousPage
@@ -570,12 +570,12 @@ RETURN this {
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   title: String!
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
 }
 
-type Actor {
+type Actor @node {
   name: String!
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
 }
@@ -594,7 +594,7 @@ CREATE (m:Movie {title: "RandomString1"})
 [source,graphql,request=true]
 ----
 {
-  movies(where: {title: "RandomString1"}) {
+  movies(where: {title_EQ: "RandomString1"}) {
     actorsConnection(first: 1) {
       pageInfo {
         hNP: hasNextPage
@@ -666,12 +666,12 @@ RETURN this {
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   title: String!
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
 }
 
-type Actor {
+type Actor @node {
   name: String!
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
 }
@@ -690,7 +690,7 @@ CREATE (m:Movie {title: "RandomString1"})
 [source,graphql,request=true]
 ----
 {
-  movies(where: {title: "RandomString1"}) {
+  movies(where: {title_EQ: "RandomString1"}) {
     actorsConnection(first: 1) {
       e: edges {
         cursor
@@ -762,12 +762,12 @@ RETURN this {
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   title: String!
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
 }
 
-type Actor {
+type Actor @node {
   name: String!
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
 }
@@ -786,7 +786,7 @@ CREATE (m:Movie {title: "RandomString1"})
 [source,graphql,request=true]
 ----
 {
-  movies(where: {title: "RandomString1"}) {
+  movies(where: {title_EQ: "RandomString1"}) {
     actorsConnection(first: 1) {
       edges {
         c: cursor
@@ -858,12 +858,12 @@ RETURN this {
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   title: String!
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
 }
 
-type Actor {
+type Actor @node {
   name: String!
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
 }
@@ -882,7 +882,7 @@ CREATE (m:Movie {title: "RandomString1"})
 [source,graphql,request=true]
 ----
 {
-  movies(where: {title: "RandomString1"}) {
+  movies(where: {title_EQ: "RandomString1"}) {
     actorsConnection(first: 1) {
       edges {
         n: node {
@@ -951,12 +951,12 @@ movies[0].actorsConnection.edges[0].n.name,notEmpty,
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   title: String!
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
 }
 
-type Actor {
+type Actor @node {
   name: String!
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
 }
@@ -975,7 +975,7 @@ CREATE (m:Movie {title: "RandomString1"})
 [source,graphql,request=true]
 ----
 {
-  movies(where: {title: "RandomString1"}) {
+  movies(where: {title_EQ: "RandomString1"}) {
     actorsConnection(first: 1) {
       edges {
         node {
@@ -1044,12 +1044,12 @@ movies[0].actorsConnection.edges[0].node.n,notEmpty,
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   title: String!
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN, properties: "ActedIn")
 }
 
-type Actor {
+type Actor @node {
   name: String!
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
 }
@@ -1072,7 +1072,7 @@ CREATE (m:Movie {title: "RandomString1"})
 [source,graphql,request=true]
 ----
 {
-  movies(where: {title: "RandomString1"}) {
+  movies(where: {title_EQ: "RandomString1"}) {
     actorsConnection(first: 1) {
       edges {
         r: properties {
@@ -1141,12 +1141,12 @@ movies[0].actorsConnection.edges[0].r.r,notEmpty,
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   title: String!
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN, properties: "ActedIn")
 }
 
-type Actor {
+type Actor @node {
   name: String!
 }
 
@@ -1166,7 +1166,7 @@ CREATE (m:Movie {title: "RandomString1"})
 [source,graphql,request=true]
 ----
 {
-  movies(where: {title: "RandomString1"}) {
+  movies(where: {title_EQ: "RandomString1"}) {
     title
     connection: actorsConnection {
       tC: totalCount
@@ -1262,12 +1262,12 @@ RETURN this {
 .Schema
 [source,graphql,schema=true]
 ----
-type Post {
+type Post @node {
   title: String!
   comments: [Comment!]! @relationship(type: "HAS_COMMENT", direction: OUT)
 }
 
-type Comment {
+type Comment @node {
   flag: Boolean!
   post: Post! @relationship(type: "HAS_COMMENT", direction: IN)
 }
@@ -1286,15 +1286,15 @@ CREATE (post:Post {title: "RandomString1"})
 [source,graphql,request=true]
 ----
 {
-  posts(where: {title: "RandomString1"}) {
-    flagged: commentsConnection(where: {node: {flag: true}}) {
+  posts(where: {title_EQ: "RandomString1"}) {
+    flagged: commentsConnection(where: {node: {flag_EQ: true}}) {
       edges {
         node {
           flag
         }
       }
     }
-    unflagged: commentsConnection(where: {node: {flag: false}}) {
+    unflagged: commentsConnection(where: {node: {flag_EQ: false}}) {
       edges {
         node {
           flag
@@ -1408,12 +1408,12 @@ RETURN this {
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   title: String!
   actors: [Actor!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: IN)
 }
 
-type Actor {
+type Actor @node {
   name: String!
   movies: [Movie!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: OUT)
 }
@@ -1435,16 +1435,16 @@ CREATE (movie:Movie {title: "The Matrix"})
 [source,graphql,request=true]
 ----
 {
-  movies(where: {title: "The Matrix"}) {
+  movies(where: {title_EQ: "The Matrix"}) {
     title
-    actorsConnection(where: {node: {name: "Keanu Reeves"}}) {
+    actorsConnection(where: {node: {name_EQ: "Keanu Reeves"}}) {
       edges {
         properties {
           screenTime
         }
         node {
           name
-          b: moviesConnection(where: {node: {title: "The Matrix"}}) {
+          b: moviesConnection(where: {node: {title_EQ: "The Matrix"}}) {
             edges {
               node {
                 title

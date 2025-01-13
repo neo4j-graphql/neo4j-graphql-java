@@ -18,6 +18,7 @@ import org.neo4j.graphql.schema.model.inputs.options.SortInput
 import org.neo4j.graphql.schema.model.outputs.root_connection.RootNodeConnectionSelection
 import org.neo4j.graphql.translate.ProjectionTranslator
 import org.neo4j.graphql.translate.TopLevelMatchTranslator
+import org.neo4j.graphql.utils.PagingUtils
 import org.neo4j.graphql.utils.ResolveTree
 
 /**
@@ -75,7 +76,7 @@ internal class ConnectionResolver private constructor(
 
                 SortInput.Companion.Augmentation
                     .generateSortIT(implementingType, ctx)
-                    ?.let { args += inputValue(Constants.SORT, it.List) }
+                    ?.let { args += inputValue(Constants.SORT, it.NonNull.List) }
 
                 args += inputValue(Constants.FIRST, Constants.Types.Int)
                 args += inputValue(Constants.AFTER, Constants.Types.String)
@@ -119,10 +120,6 @@ internal class ConnectionResolver private constructor(
 
             val alias = queryContext.getNextVariable(edgesSelection.aliasOrName)
 
-
-            edgeSelection?.forEachField(Constants.CURSOR_FIELD) {
-                TODO()
-            }
             val subQueriesBeforeSort = mutableListOf<Statement>()
             val subQueriesAfterSort = mutableListOf<Statement>()
 
@@ -186,5 +183,35 @@ internal class ConnectionResolver private constructor(
             .withSubQueries(subQueries)
             .returning(Cypher.mapOf(*topProjection.toTypedArray()).`as`(RESULT_VARIABLE))
             .build()
+    }
+
+    override fun mapResult(env: DataFetchingEnvironment, result: List<Map<String, Any?>>): Any {
+        val data = result.map { it[RESULT_VARIABLE] }.firstOrNull() ?: return emptyMap<String, Any>()
+
+        val resolveTree = ResolveTree.resolve(env)
+
+        val mutableData = (data as? Map<*, *>)?.toMutableMap() ?: return data
+
+        val connectionSelection = resolveTree.fieldsByTypeName[implementingType.namings.rootTypeSelection.connection]
+        connectionSelection?.forEachField(Constants.EDGES_FIELD) { edgesSelection ->
+            val edgeSelection = edgesSelection.fieldsByTypeName[implementingType.namings.rootTypeSelection.edge]
+
+            mutableData[edgesSelection.aliasOrName] = mutableData[edgesSelection.aliasOrName]?.let {
+                if (it !is List<*>) {
+                    return@forEachField
+                }
+                val input = InputArguments(implementingType, resolveTree.args)
+                val sliceStart = (input.options.offset ?: -1) + 1
+
+                it.mapIndexed{ index, edge ->
+                    val mutableEdge = (edge as? Map<*, *>)?.toMutableMap() ?: return@mapIndexed edge
+                    edgeSelection?.forEachField(Constants.CURSOR_FIELD) {
+                        mutableEdge[it.aliasOrName] = PagingUtils.createCursor(sliceStart + index)
+                    }
+                    mutableEdge
+                }
+            }
+        }
+        return mutableData
     }
 }

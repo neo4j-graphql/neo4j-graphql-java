@@ -14,21 +14,27 @@ data class QueryContext @JvmOverloads constructor(
     private var paramKeysPerValues = mutableMapOf<String, MutableMap<Any?, Parameter<*>>>()
 
     fun resolve(string: String): String {
-        return contextParams?.let { params ->
-            CONTEXT_VARIABLE_PATTERN.replace(string) {
-                val path = it.groups[1] ?: it.groups[2] ?: throw IllegalStateException("expected a group")
-                val parts = path.value.split(".")
-                var o: Any = params
-                for (part in parts) {
-                    if (o is Map<*, *>) {
-                        o = o[part] ?: return@replace ""
+        return CONTEXT_VARIABLE_PATTERN.replace(string) {
+            val path = it.groups[1] ?: it.groups[2] ?: throw IllegalStateException("expected a group")
+            val parts = path.value.split(".")
+            var o: Any? = null
+            for ((index, part) in parts.withIndex()) {
+                if (index == 0) {
+                    if (part == "context") {
+                        o = contextParams
+                        continue
                     } else {
-                        TODO("only maps are currently supported")
+                        TODO("query context does not provide a `$part`")
                     }
                 }
-                return@replace o.toString()
+                if (o is Map<*, *>) {
+                    o = o[part] ?: return@replace ""
+                } else {
+                    TODO("only maps are currently supported")
+                }
             }
-        } ?: string
+            return@replace o.toString()
+        }
     }
 
     fun getNextVariable(relationField: RelationField) = getNextVariable(
@@ -61,6 +67,8 @@ data class QueryContext @JvmOverloads constructor(
         const val KEY = "Neo4jGraphQLQueryContext"
 
         private const val PATH_PATTERN = "([a-zA-Z_][a-zA-Z_0-9]*(?:.[a-zA-Z_][a-zA-Z_0-9]*)*)"
+
+        // matches ${path} or $path
         private val CONTEXT_VARIABLE_PATTERN = Regex("\\\$(?:\\{$PATH_PATTERN}|$PATH_PATTERN)")
     }
 }

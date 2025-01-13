@@ -9,12 +9,12 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Node1 {
+type Node1 @node {
   property: String!
   relatedTo: [Node2!]! @relationship(type: "RELATED_TO", direction: OUT)
 }
 
-type Node2 {
+type Node2 @node {
   relatedTo: [Node1!]! @relationship(type: "RELATED_TO", direction: OUT)
 }
 ----
@@ -28,22 +28,13 @@ schema {
 
 type Node1 {
   property: String!
-  relatedTo(directed: Boolean = true, options: Node2Options, where: Node2Where): [Node2!]!
-  relatedToConnection(after: String, directed: Boolean = true, first: Int, where: Node1RelatedToConnectionWhere): Node1RelatedToConnection!
+  relatedTo(limit: Int, offset: Int, where: Node2Where): [Node2!]!
+  relatedToConnection(after: String, first: Int, where: Node1RelatedToConnectionWhere): Node1RelatedToConnection!
 }
 
 type Node1Edge {
   cursor: String!
   node: Node1!
-}
-
-input Node1Options {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more Node1Sort objects to sort Node1s by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [Node1Sort!]
 }
 
 type Node1RelatedToConnection {
@@ -75,9 +66,10 @@ input Node1Where {
   AND: [Node1Where!]
   NOT: Node1Where
   OR: [Node1Where!]
-  property: String
+  property: String @deprecated(reason: "Please use the explicit _EQ version")
   property_CONTAINS: String
   property_ENDS_WITH: String
+  property_EQ: String
   property_IN: [String!]
   property_STARTS_WITH: String
   """
@@ -113,18 +105,13 @@ type Node1sConnection {
 }
 
 type Node2 {
-  relatedTo(directed: Boolean = true, options: Node1Options, where: Node1Where): [Node1!]!
-  relatedToConnection(after: String, directed: Boolean = true, first: Int, sort: [Node2RelatedToConnectionSort!], where: Node2RelatedToConnectionWhere): Node2RelatedToConnection!
+  relatedTo(limit: Int, offset: Int, sort: [Node1Sort!], where: Node1Where): [Node1!]!
+  relatedToConnection(after: String, first: Int, sort: [Node2RelatedToConnectionSort!], where: Node2RelatedToConnectionWhere): Node2RelatedToConnection!
 }
 
 type Node2Edge {
   cursor: String!
   node: Node2!
-}
-
-input Node2Options {
-  limit: Int
-  offset: Int
 }
 
 type Node2RelatedToConnection {
@@ -194,9 +181,9 @@ type PageInfo {
 }
 
 type Query {
-  node1s(options: Node1Options, where: Node1Where): [Node1!]!
-  node1sConnection(after: String, first: Int, sort: [Node1Sort], where: Node1Where): Node1sConnection!
-  node2s(options: Node2Options, where: Node2Where): [Node2!]!
+  node1s(limit: Int, offset: Int, sort: [Node1Sort!], where: Node1Where): [Node1!]!
+  node1sConnection(after: String, first: Int, sort: [Node1Sort!], where: Node1Where): Node1sConnection!
+  node2s(limit: Int, offset: Int, where: Node2Where): [Node2!]!
   node2sConnection(after: String, first: Int, where: Node2Where): Node2sConnection!
 }
 

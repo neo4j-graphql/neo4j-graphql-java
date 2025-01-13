@@ -8,7 +8,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Part {
+type Part @node {
   id: String!
   locations: [CartesianPoint!]!
 }
@@ -33,7 +33,7 @@ CALL {
 [source,graphql,request=true]
 ----
 query Parts($id: String!) {
-  parts(where: {id: $id}) {
+  parts(where: {id_EQ: $id}) {
     id
     locations {
       y
@@ -147,7 +147,7 @@ CALL {
 [source,graphql,request=true]
 ----
 query Parts($id: String!) {
-  parts(where: {id: $id}) {
+  parts(where: {id_EQ: $id}) {
     id
     locations {
       y

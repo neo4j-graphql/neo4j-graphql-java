@@ -9,7 +9,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type movie {
+type movie @node {
   name: String
   year: Int
   createdAt: DateTime
@@ -17,7 +17,7 @@ type movie {
   actors: [actor!]! @relationship(type: "ACTED_IN", direction: IN)
 }
 
-type actor {
+type actor @node {
   name: String
   year: Int
   createdAt: DateTime
@@ -56,10 +56,10 @@ type PageInfo {
 }
 
 type Query {
-  actors(options: actorOptions, where: actorWhere): [actor!]!
-  actorsConnection(after: String, first: Int, sort: [actorSort], where: actorWhere): ActorsConnection!
-  movies(options: movieOptions, where: movieWhere): [movie!]!
-  moviesConnection(after: String, first: Int, sort: [movieSort], where: movieWhere): MoviesConnection!
+  actors(limit: Int, offset: Int, sort: [actorSort!], where: actorWhere): [actor!]!
+  actorsConnection(after: String, first: Int, sort: [actorSort!], where: actorWhere): ActorsConnection!
+  movies(limit: Int, offset: Int, sort: [movieSort!], where: movieWhere): [movie!]!
+  moviesConnection(after: String, first: Int, sort: [movieSort!], where: movieWhere): MoviesConnection!
 }
 
 """An enum for sorting in either ascending or descending order."""
@@ -72,8 +72,8 @@ enum SortDirection {
 
 type actor {
   createdAt: DateTime
-  movies(directed: Boolean = true, options: movieOptions, where: movieWhere): [movie!]!
-  moviesConnection(after: String, directed: Boolean = true, first: Int, sort: [actorMoviesConnectionSort!], where: actorMoviesConnectionWhere): actorMoviesConnection!
+  movies(limit: Int, offset: Int, sort: [movieSort!], where: movieWhere): [movie!]!
+  moviesConnection(after: String, first: Int, sort: [actorMoviesConnectionSort!], where: actorMoviesConnectionWhere): actorMoviesConnection!
   name: String
   year: Int
 }
@@ -105,15 +105,6 @@ type actorMoviesRelationship {
   node: movie!
 }
 
-input actorOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more actorSort objects to sort Actors by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [actorSort!]
-}
-
 """
 Fields to sort Actors by. The order in which sorts are applied is not guaranteed when specifying many fields in one actorSort object.
 """
@@ -127,7 +118,8 @@ input actorWhere {
   AND: [actorWhere!]
   NOT: actorWhere
   OR: [actorWhere!]
-  createdAt: DateTime
+  createdAt: DateTime @deprecated(reason: "Please use the explicit _EQ version")
+  createdAt_EQ: DateTime
   createdAt_GT: DateTime
   createdAt_GTE: DateTime
   createdAt_IN: [DateTime]
@@ -157,12 +149,14 @@ input actorWhere {
   movies_SINGLE: movieWhere
   """Return actors where some of the related movies match this filter"""
   movies_SOME: movieWhere
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
-  year: Int
+  year: Int @deprecated(reason: "Please use the explicit _EQ version")
+  year_EQ: Int
   year_GT: Int
   year_GTE: Int
   year_IN: [Int]
@@ -171,8 +165,8 @@ input actorWhere {
 }
 
 type movie {
-  actors(directed: Boolean = true, options: actorOptions, where: actorWhere): [actor!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, sort: [movieActorsConnectionSort!], where: movieActorsConnectionWhere): movieActorsConnection!
+  actors(limit: Int, offset: Int, sort: [actorSort!], where: actorWhere): [actor!]!
+  actorsConnection(after: String, first: Int, sort: [movieActorsConnectionSort!], where: movieActorsConnectionWhere): movieActorsConnection!
   createdAt: DateTime
   name: String
   testId: String
@@ -204,15 +198,6 @@ type movieActorsRelationship {
 type movieEdge {
   cursor: String!
   node: movie!
-}
-
-input movieOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more movieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [movieSort!]
 }
 
 """
@@ -253,23 +238,27 @@ input movieWhere {
   actors_SINGLE: actorWhere
   """Return movies where some of the related actors match this filter"""
   actors_SOME: actorWhere
-  createdAt: DateTime
+  createdAt: DateTime @deprecated(reason: "Please use the explicit _EQ version")
+  createdAt_EQ: DateTime
   createdAt_GT: DateTime
   createdAt_GTE: DateTime
   createdAt_IN: [DateTime]
   createdAt_LT: DateTime
   createdAt_LTE: DateTime
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
-  testId: String
+  testId: String @deprecated(reason: "Please use the explicit _EQ version")
   testId_CONTAINS: String
   testId_ENDS_WITH: String
+  testId_EQ: String
   testId_IN: [String]
   testId_STARTS_WITH: String
-  year: Int
+  year: Int @deprecated(reason: "Please use the explicit _EQ version")
+  year_EQ: Int
   year_GT: Int
   year_GTE: Int
   year_IN: [Int]

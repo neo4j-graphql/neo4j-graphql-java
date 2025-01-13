@@ -18,11 +18,11 @@ type CrewPosition @relationshipProperties {
   position: CrewPositionType
 }
 
-type Movie {
+type Movie @node {
   name: String!
 }
 
-type CrewMember {
+type CrewMember @node {
   movies: Movie! @relationship(type: "WORKED_ON", direction: OUT, properties: "CrewPosition")
 }
 ----
@@ -35,8 +35,8 @@ schema {
 }
 
 type CrewMember {
-  movies(directed: Boolean = true, options: MovieOptions, where: MovieWhere): Movie!
-  moviesConnection(after: String, directed: Boolean = true, first: Int, sort: [CrewMemberMoviesConnectionSort!], where: CrewMemberMoviesConnectionWhere): CrewMemberMoviesConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): Movie!
+  moviesConnection(after: String, first: Int, sort: [CrewMemberMoviesConnectionSort!], where: CrewMemberMoviesConnectionWhere): CrewMemberMoviesConnection!
 }
 
 type CrewMemberEdge {
@@ -94,10 +94,10 @@ type PageInfo {
 }
 
 type Query {
-  crewMembers(options: CrewMemberOptions, where: CrewMemberWhere): [CrewMember!]!
+  crewMembers(limit: Int, offset: Int, where: CrewMemberWhere): [CrewMember!]!
   crewMembersConnection(after: String, first: Int, where: CrewMemberWhere): CrewMembersConnection!
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
 }
 
 enum CrewPositionType {
@@ -127,19 +127,12 @@ input CrewMemberMoviesConnectionWhere {
   node: MovieWhere
 }
 
-input CrewMemberOptions {
-  limit: Int
-  offset: Int
-}
-
 input CrewMemberWhere {
   AND: [CrewMemberWhere!]
   NOT: CrewMemberWhere
   OR: [CrewMemberWhere!]
   movies: MovieWhere
   moviesConnection: CrewMemberMoviesConnectionWhere
-  moviesConnection_NOT: CrewMemberMoviesConnectionWhere
-  movies_NOT: MovieWhere
 }
 
 input CrewPositionSort {
@@ -150,15 +143,9 @@ input CrewPositionWhere {
   AND: [CrewPositionWhere!]
   NOT: CrewPositionWhere
   OR: [CrewPositionWhere!]
-  position: CrewPositionType
+  position: CrewPositionType @deprecated(reason : "Please use the explicit _EQ version")
+  position_EQ: CrewPositionType
   position_IN: [CrewPositionType]
-}
-
-input MovieOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [MovieSort!]
 }
 
 "Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
@@ -170,9 +157,10 @@ input MovieWhere {
   AND: [MovieWhere!]
   NOT: MovieWhere
   OR: [MovieWhere!]
-  name: String
+  name: String @deprecated(reason : "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String!]
   name_STARTS_WITH: String
 }

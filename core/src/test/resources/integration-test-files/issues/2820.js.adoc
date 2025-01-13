@@ -13,17 +13,17 @@ interface Production {
   title: String!
 }
 
-type Movie implements Production {
+type Movie implements Production @node {
   title: String!
 }
 
-type Series implements Production {
+type Series implements Production @node {
   title: String!
 }
 
 union ProductionUnion = Movie | Series
 
-type Actor {
+type Actor @node {
   name: String!
   actedIn: [Production!]! @relationship(type: "ACTED_IN", direction: OUT)
   actedInUnion: [ProductionUnion!]! @relationship(type: "ACTED_IN", direction: OUT)
@@ -174,13 +174,13 @@ RETURN this { actedInConnection: var4 } AS this
           {
             "node": {
               "__typename": "Series",
-              "title": "Friends"
+              "title": "House"
             }
           },
           {
             "node": {
               "__typename": "Series",
-              "title": "House"
+              "title": "Friends"
             }
           }
         ]
@@ -328,11 +328,11 @@ RETURN this { actedIn: var2 } AS this
       "actedIn": [
         {
           "__typename": "Movie",
-          "title": "Friends"
+          "title": "House"
         },
         {
           "__typename": "Movie",
-          "title": "House"
+          "title": "Friends"
         },
         {
           "__typename": "Series",
@@ -722,11 +722,11 @@ RETURN this { actedInUnion: var2 } AS this
         },
         {
           "__typename": "Series",
-          "title": "Friends"
+          "title": "House"
         },
         {
           "__typename": "Series",
-          "title": "House"
+          "title": "Friends"
         }
       ]
     }

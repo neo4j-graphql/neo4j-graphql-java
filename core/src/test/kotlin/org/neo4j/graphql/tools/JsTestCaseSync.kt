@@ -12,13 +12,15 @@ import org.neo4j.graphql.utils.JsonUtils.parseJson
 import org.neo4j.graphql.utils.SchemaUtils
 import org.neo4j.graphql.utils.TestUtils.IS_TEMPLATE
 import org.neo4j.graphql.utils.TestUtils.IS_TEST_FILE
-import org.neo4j.graphql.utils.TestUtils.TEST_RESOURCES
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.reflect.KProperty1
 
+/**
+ * Synchronizes code blocks from the template file to the test file.
+ */
 object JsTestCaseSync : AsciidocReformater() {
 
 
@@ -71,7 +73,7 @@ object JsTestCaseSync : AsciidocReformater() {
         // else compare the content of the test file with the template diff
 
         // execute `git show HEAD:file` to get the content of the file in the HEAD commit
-        val previousSourceContent = runGitCommand("git show HEAD:core/$TEST_RESOURCES$file")
+        val previousSourceContent = runGitCommand("git show HEAD:core/$file")
         if (previousSourceContent.isEmpty()) {
             println("File not found in HEAD: $file")
             return
@@ -429,7 +431,7 @@ object JsTestCaseSync : AsciidocReformater() {
             return
         }
 
-        TODO("target file does not contain a response assertions")
+        targetSection.addAfter(null, currentResponse)
     }
 
     private fun extractTestCases(section: Section): List<TestCase> {

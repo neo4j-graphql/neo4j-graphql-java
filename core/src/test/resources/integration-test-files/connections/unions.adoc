@@ -10,17 +10,17 @@
 ----
 union Publication = Book | Journal
 
-type Author {
+type Author @node {
   name: String!
   publications: [Publication!]! @relationship(type: "WROTE", direction: OUT, properties: "Wrote")
 }
 
-type Book {
+type Book @node {
   title: String!
   author: [Author!]! @relationship(type: "WROTE", direction: IN, properties: "Wrote")
 }
 
-type Journal {
+type Journal @node {
   subject: String!
   author: [Author!]! @relationship(type: "WROTE", direction: IN, properties: "Wrote")
 }
@@ -45,7 +45,7 @@ CREATE (author:Author {name: "Charles Dickens"})
 [source,graphql,request=true]
 ----
 query ($authorName: String) {
-  authors(where: {name: $authorName}) {
+  authors(where: {name_EQ: $authorName}) {
     name
     publicationsConnection {
       edges {
@@ -172,7 +172,7 @@ RETURN this {
 [source,graphql,request=true]
 ----
 query ($authorName: String) {
-  authors(where: {name: $authorName}) {
+  authors(where: {name_EQ: $authorName}) {
     name
     publicationsConnection(sort: [{edge: {words: ASC}}]) {
       edges {
@@ -305,7 +305,7 @@ RETURN this {
 [source,graphql,request=true]
 ----
 query ($authorName: String, $after: String) {
-  authors(where: {name: $authorName}) {
+  authors(where: {name_EQ: $authorName}) {
     name
     publicationsConnection(first: 2, after: $after, sort: [{edge: {words: ASC}}]) {
       pageInfo {
@@ -442,7 +442,7 @@ RETURN this {
 [source,graphql,request=true]
 ----
 query ($authorName: String, $after: String) {
-  authors(where: {name: $authorName}) {
+  authors(where: {name_EQ: $authorName}) {
     name
     publicationsConnection(first: 2, after: $after, sort: [{edge: {words: ASC}}]) {
       pageInfo {
@@ -574,7 +574,7 @@ RETURN this {
 [source,graphql,request=true]
 ----
 query ($authorName: String) {
-  authors(where: {name: $authorName}) {
+  authors(where: {name_EQ: $authorName}) {
     name
     publicationsConnection {
       edges {
@@ -695,9 +695,9 @@ RETURN this {
 [source,graphql,request=true]
 ----
 query ($authorName: String, $bookTitle: String) {
-  authors(where: {name: $authorName}) {
+  authors(where: {name_EQ: $authorName}) {
     name
-    publicationsConnection(where: {Book: {node: {title: $bookTitle}}}) {
+    publicationsConnection(where: {Book: {node: {title_EQ: $bookTitle}}}) {
       edges {
         properties {
           words
@@ -788,16 +788,115 @@ RETURN this {
 }
 ----
 
+== With where argument on node with node not in database
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+query ($authorName: String, $bookTitle: String) {
+  authors(where: {name_EQ: $authorName}) {
+    name
+    publicationsConnection(where: {Book: {node: {NOT: {title_EQ: $bookTitle}}}}) {
+      edges {
+        properties {
+          words
+        }
+        node {
+          ... on Book {
+            title
+          }
+        }
+      }
+    }
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "authorName" : "Charles Dickens",
+  "bookTitle" : "Oliver Twist"
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "Charles Dickens",
+  "param1" : "Oliver Twist"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Author)
+WHERE this.name = $param0
+CALL {
+	WITH this
+	CALL {
+		WITH this
+		MATCH (this)-[wrote0:WROTE]->(book0:Book)
+		WHERE NOT (book0.title = $param1)
+		WITH {
+			properties: {
+				__typename: 'Wrote',
+				words: wrote0.words
+			},
+			node: {
+				__typename: 'Book',
+				title: book0.title,
+				__id: elementId(book0)
+			}
+		} AS edge
+		RETURN edge
+	}
+	WITH collect(edge) AS edges
+	WITH edges, size(edges) AS totalCount
+	RETURN {
+		edges: edges,
+		totalCount: totalCount
+	} AS publicationsConnection
+}
+RETURN this {
+	.name,
+	publicationsConnection: publicationsConnection
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "authors" : [ {
+    "name" : "Charles Dickens",
+    "publicationsConnection" : {
+      "edges" : [ {
+        "properties" : {
+          "words" : 30953
+        },
+        "node" : {
+          "title" : "A Christmas Carol"
+        }
+      } ]
+    }
+  } ]
+}
+----
+
 == With where argument on all nodes with all in database
 
 .GraphQL-Query
 [source,graphql,request=true]
 ----
 query ($authorName: String, $bookTitle: String, $journalSubject: String) {
-  authors(where: {name: $authorName}) {
+  authors(where: {name_EQ: $authorName}) {
     name
     publicationsConnection(
-      where: {Book: {node: {title: $bookTitle}}, Journal: {node: {subject: $journalSubject}}}
+      where: {Book: {node: {title_EQ: $bookTitle}}, Journal: {node: {subject_EQ: $journalSubject}}}
     ) {
       totalCount
       edges {
@@ -921,15 +1020,140 @@ RETURN this {
 }
 ----
 
+== With where argument on all nodes with only one in database
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+query ($authorName: String, $bookTitle: String, $journalSubject: String) {
+  authors(where: {name_EQ: $authorName}) {
+    name
+    publicationsConnection(
+      where: {Book: {node: {title_EQ: $bookTitle}}, Journal: {node: {NOT: {subject_EQ: $journalSubject}}}}
+    ) {
+      totalCount
+      edges {
+        properties {
+          words
+        }
+        node {
+          __typename
+          ... on Book {
+            title
+          }
+          ... on Journal {
+            subject
+          }
+        }
+      }
+    }
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "authorName" : "Charles Dickens",
+  "bookTitle" : "Oliver Twist",
+  "journalSubject" : "Master Humphrey's Clock"
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "Charles Dickens",
+  "param1" : "Oliver Twist",
+  "param2" : "Master Humphrey's Clock"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Author)
+WHERE this.name = $param0
+CALL {
+	WITH this
+	CALL {
+		WITH this
+		MATCH (this)-[wrote0:WROTE]->(book0:Book)
+		WHERE book0.title = $param1
+		WITH {
+			properties: {
+				__typename: 'Wrote',
+				words: wrote0.words
+			},
+			node: {
+				__typename: 'Book',
+				title: book0.title,
+				__id: elementId(book0)
+			}
+		} AS edge
+		RETURN edge UNION
+		WITH this
+		MATCH (this)-[wrote1:WROTE]->(journal0:Journal)
+		WHERE NOT (journal0.subject = $param2)
+		WITH {
+			properties: {
+				__typename: 'Wrote',
+				words: wrote1.words
+			},
+			node: {
+				__typename: 'Journal',
+				subject: journal0.subject,
+				__id: elementId(journal0)
+			}
+		} AS edge
+		RETURN edge
+	}
+	WITH collect(edge) AS edges
+	WITH edges, size(edges) AS totalCount
+	RETURN {
+		edges: edges,
+		totalCount: totalCount
+	} AS publicationsConnection
+}
+RETURN this {
+	.name,
+	publicationsConnection: publicationsConnection
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "authors" : [ {
+    "name" : "Charles Dickens",
+    "publicationsConnection" : {
+      "totalCount" : 1,
+      "edges" : [ {
+        "properties" : {
+          "words" : 167543
+        },
+        "node" : {
+          "__typename" : "Book",
+          "title" : "Oliver Twist"
+        }
+      } ]
+    }
+  } ]
+}
+----
+
 == With where argument on relationship with relationship in database
 
 .GraphQL-Query
 [source,graphql,request=true]
 ----
 query ($authorName: String, $bookWordCount: Int) {
-  authors(where: {name: $authorName}) {
+  authors(where: {name_EQ: $authorName}) {
     name
-    publicationsConnection(where: {Book: {edge: {words: $bookWordCount}}}) {
+    publicationsConnection(where: {Book: {edge: {words_EQ: $bookWordCount}}}) {
       edges {
         properties {
           words
@@ -1020,16 +1244,115 @@ RETURN this {
 }
 ----
 
+== With where argument on relationship with relationship not in database
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+query ($authorName: String, $bookWordCount: Int) {
+  authors(where: {name_EQ: $authorName}) {
+    name
+    publicationsConnection(where: {Book: {edge: {NOT: {words_EQ: $bookWordCount}}}}) {
+      edges {
+        properties {
+          words
+        }
+        node {
+          ... on Book {
+            title
+          }
+        }
+      }
+    }
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "authorName" : "Charles Dickens",
+  "bookWordCount" : 167543
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "Charles Dickens",
+  "param1" : 167543
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Author)
+WHERE this.name = $param0
+CALL {
+	WITH this
+	CALL {
+		WITH this
+		MATCH (this)-[wrote0:WROTE]->(book0:Book)
+		WHERE NOT (wrote0.words = $param1)
+		WITH {
+			properties: {
+				__typename: 'Wrote',
+				words: wrote0.words
+			},
+			node: {
+				__typename: 'Book',
+				title: book0.title,
+				__id: elementId(book0)
+			}
+		} AS edge
+		RETURN edge
+	}
+	WITH collect(edge) AS edges
+	WITH edges, size(edges) AS totalCount
+	RETURN {
+		edges: edges,
+		totalCount: totalCount
+	} AS publicationsConnection
+}
+RETURN this {
+	.name,
+	publicationsConnection: publicationsConnection
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "authors" : [ {
+    "name" : "Charles Dickens",
+    "publicationsConnection" : {
+      "edges" : [ {
+        "properties" : {
+          "words" : 30953
+        },
+        "node" : {
+          "title" : "A Christmas Carol"
+        }
+      } ]
+    }
+  } ]
+}
+----
+
 == With where argument on all edges with all in database
 
 .GraphQL-Query
 [source,graphql,request=true]
 ----
 query ($authorName: String, $bookWordCount: Int, $journalWordCount: Int) {
-  authors(where: {name: $authorName}) {
+  authors(where: {name_EQ: $authorName}) {
     name
     publicationsConnection(
-      where: {Book: {edge: {words: $bookWordCount}}, Journal: {edge: {words: $journalWordCount}}}
+      where: {Book: {edge: {words_EQ: $bookWordCount}}, Journal: {edge: {words_EQ: $journalWordCount}}}
     ) {
       totalCount
       edges {
@@ -1153,16 +1476,141 @@ RETURN this {
 }
 ----
 
+== With where argument on all edges with only one in database
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+query ($authorName: String, $bookWordCount: Int, $journalWordCount: Int) {
+  authors(where: {name_EQ: $authorName}) {
+    name
+    publicationsConnection(
+      where: {Book: {edge: {words_EQ: $bookWordCount}}, Journal: {edge: {NOT: {words_EQ: $journalWordCount}}}}
+    ) {
+      totalCount
+      edges {
+        properties {
+          words
+        }
+        node {
+          __typename
+          ... on Book {
+            title
+          }
+          ... on Journal {
+            subject
+          }
+        }
+      }
+    }
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "authorName" : "Charles Dickens",
+  "bookWordCount" : 167543,
+  "journalWordCount" : 3413
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "Charles Dickens",
+  "param1" : 167543,
+  "param2" : 3413
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Author)
+WHERE this.name = $param0
+CALL {
+	WITH this
+	CALL {
+		WITH this
+		MATCH (this)-[wrote0:WROTE]->(book0:Book)
+		WHERE wrote0.words = $param1
+		WITH {
+			properties: {
+				__typename: 'Wrote',
+				words: wrote0.words
+			},
+			node: {
+				__typename: 'Book',
+				title: book0.title,
+				__id: elementId(book0)
+			}
+		} AS edge
+		RETURN edge UNION
+		WITH this
+		MATCH (this)-[wrote1:WROTE]->(journal0:Journal)
+		WHERE NOT (wrote1.words = $param2)
+		WITH {
+			properties: {
+				__typename: 'Wrote',
+				words: wrote1.words
+			},
+			node: {
+				__typename: 'Journal',
+				subject: journal0.subject,
+				__id: elementId(journal0)
+			}
+		} AS edge
+		RETURN edge
+	}
+	WITH collect(edge) AS edges
+	WITH edges, size(edges) AS totalCount
+	RETURN {
+		edges: edges,
+		totalCount: totalCount
+	} AS publicationsConnection
+}
+RETURN this {
+	.name,
+	publicationsConnection: publicationsConnection
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "authors" : [ {
+    "name" : "Charles Dickens",
+    "publicationsConnection" : {
+      "totalCount" : 1,
+      "edges" : [ {
+        "properties" : {
+          "words" : 167543
+        },
+        "node" : {
+          "__typename" : "Book",
+          "title" : "Oliver Twist"
+        }
+      } ]
+    }
+  } ]
+}
+----
+
 == With where argument on relationship and node
 
 .GraphQL-Query
 [source,graphql,request=true]
 ----
 query ($authorName: String, $bookWordCount: Int, $bookTitle: String) {
-  authors(where: {name: $authorName}) {
+  authors(where: {name_EQ: $authorName}) {
     name
     publicationsConnection(
-      where: {Book: {edge: {words: $bookWordCount}, node: {title: $bookTitle}}}
+      where: {Book: {edge: {words_EQ: $bookWordCount}, node: {title_EQ: $bookTitle}}}
     ) {
       edges {
         properties {

@@ -8,7 +8,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type PointContainer {
+type PointContainer @node {
   id: String
   points: [Point]
 }
@@ -20,7 +20,7 @@ type PointContainer {
 [source,graphql,request=true]
 ----
 {
-  pointContainers(where: {points: [{longitude: 1.0, latitude: 2.0}]}) {
+  pointContainers(where: {points_EQ: [{longitude: 1.0, latitude: 2.0}]}) {
     points {
       longitude
       latitude
@@ -35,8 +35,8 @@ type PointContainer {
 ----
 {
   "param0" : [ {
-    "longitude" : 1,
-    "latitude" : 2
+    "longitude" : 1.0,
+    "latitude" : 2.0
   } ]
 }
 ----
@@ -51,6 +51,45 @@ RETURN this {
 		longitude: p_var0.longitude,
 		latitude: p_var0.latitude,
 		crs: p_var0.crs
+	}] ELSE NULL END
+} AS this
+----
+
+== Simple Points NOT query
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  pointContainers(where: {NOT: {points_EQ: [{longitude: 1.0, latitude: 2.0}]}}) {
+    points {
+      longitude
+      latitude
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : [ {
+    "longitude" : 1.0,
+    "latitude" : 2.0
+  } ]
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:PointContainer)
+WHERE NOT (this.points = [p IN $param0 | point(p)])
+RETURN this {
+	points: CASE WHEN this.points IS NOT NULL THEN [p_var0 IN this.points | {
+		longitude: p_var0.longitude,
+		latitude: p_var0.latitude
 	}] ELSE NULL END
 } AS this
 ----
@@ -76,8 +115,8 @@ RETURN this {
 ----
 {
   "param0" : {
-    "longitude" : 1,
-    "latitude" : 2
+    "longitude" : 1.0,
+    "latitude" : 2.0
   }
 }
 ----

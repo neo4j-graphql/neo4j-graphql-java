@@ -1,0 +1,204 @@
+:toc:
+:toclevels: 42
+
+= https://github.com/neo4j/graphql/issues/988
+
+== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+type Series @node {
+  name: String
+  current: Boolean!
+  manufacturer: [Manufacturer!]! @relationship(type: "MANUFACTURER", properties: "RelationProps", direction: OUT)
+  brand: [Brand!]! @relationship(type: "BRAND", properties: "RelationProps", direction: OUT)
+}
+
+type Brand @node {
+  name: String
+  current: Boolean!
+}
+
+type Manufacturer @node {
+  name: String
+  current: Boolean!
+}
+
+type RelationProps @relationshipProperties {
+  current: Boolean!
+}
+----
+
+== where with multiple filters and params
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+query getSeriesWithRelationFilters($where: SeriesWhere = {current: true}) {
+  series(where: $where) {
+    name
+    current
+    manufacturerConnection {
+      edges {
+        properties {
+          current
+        }
+        node {
+          name
+        }
+      }
+    }
+    brandConnection {
+      edges {
+        properties {
+          current
+        }
+        node {
+          name
+        }
+      }
+    }
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "where" : {
+    "current_EQ" : true,
+    "AND" : [ {
+      "OR" : [ {
+        "manufacturerConnection_SOME" : {
+          "edge" : {
+            "current_EQ" : true
+          },
+          "node" : {
+            "name_EQ" : "C"
+          }
+        }
+      }, {
+        "manufacturerConnection_SOME" : {
+          "edge" : {
+            "current_EQ" : false
+          },
+          "node" : {
+            "name_EQ" : "AM"
+          }
+        }
+      } ]
+    }, {
+      "OR" : [ {
+        "brandConnection_SOME" : {
+          "edge" : {
+            "current_EQ" : true
+          },
+          "node" : {
+            "name_EQ" : "smart"
+          }
+        }
+      } ]
+    } ]
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "C",
+  "param1" : true,
+  "param2" : "AM",
+  "param3" : false,
+  "param4" : "smart",
+  "param5" : true,
+  "param6" : true
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Series)
+WHERE ((EXISTS {
+			MATCH (this)-[edge0:MANUFACTURER]->(this0:Manufacturer)
+			WHERE (this0.name = $param0
+				AND edge0.current = $param1)
+		}
+		OR EXISTS {
+			MATCH (this)-[edge1:MANUFACTURER]->(this1:Manufacturer)
+			WHERE (this1.name = $param2
+				AND edge1.current = $param3)
+		})
+	AND EXISTS {
+		MATCH (this)-[edge2:BRAND]->(this2:Brand)
+		WHERE (this2.name = $param4
+			AND edge2.current = $param5)
+	}
+	AND this.current = $param6)
+CALL {
+	WITH this
+	MATCH (this)-[manufacturer1:MANUFACTURER]->(manufacturer0:Manufacturer)
+	WITH collect( {
+		node: manufacturer0,
+		relationship: manufacturer1
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS manufacturer0, edge.relationship AS manufacturer1
+		RETURN collect( {
+			properties: {
+				__typename: 'RelationProps',
+				current: manufacturer1.current
+			},
+			node: {
+				__typename: 'Manufacturer',
+				name: manufacturer0.name
+			}
+		}) AS manufacturerConnectionEdges
+	}
+	RETURN {
+		edges: manufacturerConnectionEdges,
+		totalCount: totalCount
+	} AS manufacturerConnection
+}
+CALL {
+	WITH this
+	MATCH (this)-[brand1:BRAND]->(brand0:Brand)
+	WITH collect( {
+		node: brand0,
+		relationship: brand1
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS brand0, edge.relationship AS brand1
+		RETURN collect( {
+			properties: {
+				__typename: 'RelationProps',
+				current: brand1.current
+			},
+			node: {
+				__typename: 'Brand',
+				name: brand0.name
+			}
+		}) AS brandConnectionEdges
+	}
+	RETURN {
+		edges: brandConnectionEdges,
+		totalCount: totalCount
+	} AS brandConnection
+}
+RETURN this {
+	.name,
+	.current,
+	manufacturerConnection: manufacturerConnection,
+	brandConnection: brandConnection
+} AS this
+----

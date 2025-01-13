@@ -1,0 +1,313 @@
+:toc:
+:toclevels: 42
+
+= Mixed nesting
+
+== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+type Movie @node {
+  title: String!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: IN)
+}
+
+type Actor @node {
+  name: String!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: OUT)
+}
+
+type ActedIn @relationshipProperties {
+  screenTime: Int!
+}
+----
+
+== Connection -> Relationship
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies(where: {title_EQ: "Forrest Gump"}) {
+    title
+    actorsConnection(where: {node: {name_EQ: "Tom Hanks"}}) {
+      edges {
+        properties {
+          screenTime
+        }
+        node {
+          name
+          movies(where: {NOT: {title_EQ: "Forrest Gump"}}) {
+            title
+          }
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "Forrest Gump",
+  "param1" : "Tom Hanks",
+  "param2" : "Forrest Gump"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+CALL {
+	WITH this
+	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
+	WHERE actor0.name = $param1
+	WITH collect( {
+		node: actor0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS actor0, edge.relationship AS actedIn0
+		CALL {
+			WITH actor0
+			MATCH (actor0)-[actedIn1:ACTED_IN]->(movie0:Movie)
+			WHERE NOT (movie0.title = $param2)
+			WITH movie0 {
+				.title
+			} AS movies
+			RETURN collect(movies) AS movies
+		}
+		RETURN collect( {
+			properties: {
+				__typename: 'ActedIn',
+				screenTime: actedIn0.screenTime
+			},
+			node: {
+				__typename: 'Actor',
+				name: actor0.name,
+				movies: movies
+			}
+		}) AS actorsConnectionEdges
+	}
+	RETURN {
+		edges: actorsConnectionEdges,
+		totalCount: totalCount
+	} AS actorsConnection
+}
+RETURN this {
+	.title,
+	actorsConnection: actorsConnection
+} AS this
+----
+
+== Connection -> Connection -> Relationship
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies(where: {title_EQ: "Forrest Gump"}) {
+    title
+    actorsConnection(where: {node: {name_EQ: "Tom Hanks"}}) {
+      edges {
+        properties {
+          screenTime
+        }
+        node {
+          name
+          moviesConnection(where: {node: {NOT: {title_EQ: "Forrest Gump"}}}) {
+            edges {
+              node {
+                title
+                actors(where: {NOT: {name_EQ: "Tom Hanks"}}) {
+                  name
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "Forrest Gump",
+  "param1" : "Tom Hanks",
+  "param2" : "Forrest Gump",
+  "param3" : "Tom Hanks"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+CALL {
+	WITH this
+	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
+	WHERE actor0.name = $param1
+	WITH collect( {
+		node: actor0,
+		relationship: actedIn0
+	}) AS edges
+	WITH edges, size(edges) AS totalCount
+	CALL {
+		WITH edges
+		UNWIND edges AS edge
+		WITH edge.node AS actor0, edge.relationship AS actedIn0
+		CALL {
+			WITH actor0
+			MATCH (actor0)-[actedIn1:ACTED_IN]->(movie0:Movie)
+			WHERE NOT (movie0.title = $param2)
+			WITH collect( {
+				node: movie0,
+				relationship: actedIn1
+			}) AS edges
+			WITH edges, size(edges) AS totalCount
+			CALL {
+				WITH edges
+				UNWIND edges AS edge
+				WITH edge.node AS movie0, edge.relationship AS actedIn1
+				CALL {
+					WITH movie0
+					MATCH (actor1:Actor)-[actedIn2:ACTED_IN]->(movie0)
+					WHERE NOT (actor1.name = $param3)
+					WITH actor1 {
+						.name
+					} AS actors
+					RETURN collect(actors) AS actors
+				}
+				RETURN collect( {
+					node: {
+						__typename: 'Movie',
+						title: movie0.title,
+						actors: actors
+					}
+				}) AS moviesConnectionEdges
+			}
+			RETURN {
+				edges: moviesConnectionEdges,
+				totalCount: totalCount
+			} AS moviesConnection
+		}
+		RETURN collect( {
+			properties: {
+				__typename: 'ActedIn',
+				screenTime: actedIn0.screenTime
+			},
+			node: {
+				__typename: 'Actor',
+				name: actor0.name,
+				moviesConnection: moviesConnection
+			}
+		}) AS actorsConnectionEdges
+	}
+	RETURN {
+		edges: actorsConnectionEdges,
+		totalCount: totalCount
+	} AS actorsConnection
+}
+RETURN this {
+	.title,
+	actorsConnection: actorsConnection
+} AS this
+----
+
+== Relationship -> Connection
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies(where: {title_EQ: "Forrest Gump"}) {
+    title
+    actors(where: {name_EQ: "Tom Hanks"}) {
+      name
+      moviesConnection(where: {node: {NOT: {title_EQ: "Forrest Gump"}}}) {
+        edges {
+          properties {
+            screenTime
+          }
+          node {
+            title
+          }
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "Forrest Gump",
+  "param1" : "Forrest Gump",
+  "param2" : "Tom Hanks"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+CALL {
+	WITH this
+	MATCH (actor0:Actor)-[actedIn0:ACTED_IN]->(this)
+	WHERE actor0.name = $param2
+	CALL {
+		WITH actor0
+		MATCH (actor0)-[actedIn1:ACTED_IN]->(movie0:Movie)
+		WHERE NOT (movie0.title = $param1)
+		WITH collect( {
+			node: movie0,
+			relationship: actedIn1
+		}) AS edges
+		WITH edges, size(edges) AS totalCount
+		CALL {
+			WITH edges
+			UNWIND edges AS edge
+			WITH edge.node AS movie0, edge.relationship AS actedIn1
+			RETURN collect( {
+				properties: {
+					__typename: 'ActedIn',
+					screenTime: actedIn1.screenTime
+				},
+				node: {
+					__typename: 'Movie',
+					title: movie0.title
+				}
+			}) AS moviesConnectionEdges
+		}
+		RETURN {
+			edges: moviesConnectionEdges,
+			totalCount: totalCount
+		} AS moviesConnection
+	}
+	WITH actor0 {
+		.name,
+		moviesConnection: moviesConnection
+	} AS actors
+	RETURN collect(actors) AS actors
+}
+RETURN this {
+	.title,
+	actors: actors
+} AS this
+----

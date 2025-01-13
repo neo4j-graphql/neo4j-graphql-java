@@ -9,7 +9,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Event {
+type Event @node {
   id: ID!
   name: String
   start: DateTime
@@ -33,7 +33,7 @@ CREATE (:Event {id: "A", name: "name1", start: datetime(), end: datetime()})
 ----
 query ($rangeStart: DateTime, $rangeEnd: DateTime, $activity: String) {
   events(
-    where: {AND: [{start_GTE: $rangeStart}, {start_LTE: $rangeEnd}, {activity: $activity}]}
+    where: {AND: [{start_GTE: $rangeStart}, {start_LTE: $rangeEnd}, {activity_EQ: $activity}]}
   ) {
     id
   }
@@ -86,7 +86,7 @@ CREATE (:Event {id: "A", name: "name1", start: datetime(), end: datetime()})
 ----
 query ($rangeStart: DateTime, $rangeEnd: DateTime, $activity: String) {
   events(
-    where: {OR: [{start_GTE: $rangeStart}, {start_LTE: $rangeEnd}, {activity: $activity}]}
+    where: {OR: [{start_GTE: $rangeStart}, {start_LTE: $rangeEnd}, {activity_EQ: $activity}]}
   ) {
     id
   }
@@ -112,10 +112,10 @@ RETURN this { .id } AS this
 {
   "events": [
     {
-      "id": "A"
+      "id": "B"
     },
     {
-      "id": "B"
+      "id": "A"
     },
     {
       "id": "C"
@@ -139,7 +139,7 @@ CREATE (:Event {id: "A", name: "name1", start: datetime("2024-12-24T18:42:24.123
 ----
 query ($rangeStart: DateTime, $rangeEnd: DateTime, $activity: String) {
   events(
-    where: {OR: [{start_GTE: $rangeStart}, {start_LTE: $rangeEnd}, {activity: $activity}]}
+    where: {OR: [{start_GTE: $rangeStart}, {start_LTE: $rangeEnd}, {activity_EQ: $activity}]}
   ) {
     id
   }
@@ -178,13 +178,13 @@ RETURN this { .id } AS this
 {
   "events": [
     {
-      "id": "C"
-    },
-    {
       "id": "B"
     },
     {
       "id": "A"
+    },
+    {
+      "id": "C"
     }
   ]
 }

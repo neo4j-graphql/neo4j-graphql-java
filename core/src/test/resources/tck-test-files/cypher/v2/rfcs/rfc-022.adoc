@@ -10,14 +10,14 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   title: String!
   released: Int
   actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN, properties: "ActedIn")
   directors: [Person!]! @relationship(type: "DIRECTED", direction: IN)
 }
 
-type Person {
+type Person @node {
   name: String!
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
   directed: [Movie!]! @relationship(type: "DIRECTED", direction: OUT)
@@ -34,9 +34,9 @@ type ActedIn @relationshipProperties {
 [source,graphql,request=true]
 ----
 query Query {
-  movies(where: {released: 1999}) {
+  movies(where: {released_EQ: 1999}) {
     title
-    actors(where: {name: "Keanu Reeves"}) {
+    actors(where: {name_EQ: "Keanu Reeves"}) {
       name
     }
   }
@@ -78,9 +78,9 @@ RETURN this {
 [source,graphql,request=true]
 ----
 query Query {
-  movies(where: {released: 1999}) {
+  movies(where: {released_EQ: 1999}) {
     title
-    actors(where: {name: "Keanu Reeves"}) {
+    actors(where: {name_EQ: "Keanu Reeves"}) {
       name
       directed {
         title

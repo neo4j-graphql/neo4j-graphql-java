@@ -9,7 +9,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Part {
+type Part @node {
   serial: String!
   location: CartesianPoint!
 }
@@ -34,7 +34,7 @@ CALL {
 [source,graphql,request=true]
 ----
 query Parts($serial: String!) {
-  parts(where: {serial: $serial}) {
+  parts(where: {serial_EQ: $serial}) {
     serial
     location {
       x
@@ -67,10 +67,7 @@ query Parts($serial: String!) {
 ----
 MATCH (this:Part)
 WHERE this.serial = $param0
-RETURN this { .serial, location: CASE
-    WHEN this.location IS NOT NULL THEN { point: this.location, crs: this.location.crs }
-    ELSE NULL
-END } AS this
+RETURN this { .serial, .location } AS this
 ----
 
 .GraphQL-Response
@@ -110,7 +107,7 @@ CALL {
 [source,graphql,request=true]
 ----
 query Parts($serial: String!) {
-  parts(where: {serial: $serial}) {
+  parts(where: {serial_EQ: $serial}) {
     serial
     location {
       x
@@ -143,10 +140,7 @@ query Parts($serial: String!) {
 ----
 MATCH (this:Part)
 WHERE this.serial = $param0
-RETURN this { .serial, location: CASE
-    WHEN this.location IS NOT NULL THEN { point: this.location, crs: this.location.crs }
-    ELSE NULL
-END } AS this
+RETURN this { .serial, .location } AS this
 ----
 
 .GraphQL-Response

@@ -1,0 +1,191 @@
+:toc:
+:toclevels: 42
+
+= https://github.com/neo4j/graphql/issues/190
+
+== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+type User @node {
+  client_id: String
+  uid: String
+  demographics: [UserDemographics!]! @relationship(type: "HAS_DEMOGRAPHIC", direction: OUT)
+}
+
+type UserDemographics @node {
+  client_id: String
+  type: String
+  value: String
+  users: [User!]! @relationship(type: "HAS_DEMOGRAPHIC", direction: IN)
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (user1:User {uid: 'user1'}),(user2:User {uid: 'user2'}),(female:UserDemographics{type:'Gender',value:'Female'}),(male:UserDemographics{type:'Gender',value:'Male'}),(age:UserDemographics{type:'Age',value:'50+'}),(state:UserDemographics{type:'State',value:'VIC'})
+ CREATE (user1)-[:HAS_DEMOGRAPHIC]->(female)
+ CREATE (user2)-[:HAS_DEMOGRAPHIC]->(male)
+ CREATE (user1)-[:HAS_DEMOGRAPHIC]->(age)
+ CREATE (user2)-[:HAS_DEMOGRAPHIC]->(age)
+ CREATE (user1)-[:HAS_DEMOGRAPHIC]->(state)
+ CREATE (user2)-[:HAS_DEMOGRAPHIC]->(state)
+----
+
+== Example 1
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  users(where: {demographics_SOME: {type_EQ: "Gender", value_EQ: "Female"}}) {
+    uid
+    demographics {
+      type
+      value
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "Gender",
+  "param1" : "Female"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+WHERE EXISTS {
+	MATCH (this)-[:HAS_DEMOGRAPHIC]->(this0:UserDemographics)
+	WHERE (this0.type = $param0
+		AND this0.value = $param1)
+}
+CALL {
+	WITH this
+	MATCH (this)-[hasDemographic0:HAS_DEMOGRAPHIC]->(userDemographics0:UserDemographics)
+	WITH userDemographics0 {
+		.type,
+		.value
+	} AS demographics
+	RETURN collect(demographics) AS demographics
+}
+RETURN this {
+	.uid,
+	demographics: demographics
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "users" : [ {
+    "uid" : "user1",
+    "demographics" : [ {
+      "type" : "Gender",
+      "value" : "Female"
+    }, {
+      "type" : "Age",
+      "value" : "50+"
+    }, {
+      "type" : "State",
+      "value" : "VIC"
+    } ]
+  } ]
+}
+----
+
+== Example 2
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  users(
+    where: {demographics_SOME: {OR: [{type_EQ: "Gender", value_EQ: "Female"}, {type_EQ: "State"}, {type_EQ: "Age"}]}}
+  ) {
+    uid
+    demographics {
+      type
+      value
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "Gender",
+  "param1" : "Female",
+  "param2" : "State",
+  "param3" : "Age"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+WHERE EXISTS {
+	MATCH (this)-[:HAS_DEMOGRAPHIC]->(this0:UserDemographics)
+	WHERE ((this0.type = $param0
+			AND this0.value = $param1)
+		OR this0.type = $param2
+		OR this0.type = $param3)
+}
+CALL {
+	WITH this
+	MATCH (this)-[hasDemographic0:HAS_DEMOGRAPHIC]->(userDemographics0:UserDemographics)
+	WITH userDemographics0 {
+		.type,
+		.value
+	} AS demographics
+	RETURN collect(demographics) AS demographics
+}
+RETURN this {
+	.uid,
+	demographics: demographics
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "users" : [ {
+    "uid" : "user1",
+    "demographics" : [ {
+      "type" : "Gender",
+      "value" : "Female"
+    }, {
+      "type" : "Age",
+      "value" : "50+"
+    }, {
+      "type" : "State",
+      "value" : "VIC"
+    } ]
+  }, {
+    "uid" : "user2",
+    "demographics" : [ {
+      "type" : "Age",
+      "value" : "50+"
+    }, {
+      "type" : "Gender",
+      "value" : "Male"
+    }, {
+      "type" : "State",
+      "value" : "VIC"
+    } ]
+  } ]
+}
+----

@@ -9,12 +9,12 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   title: String
   actors: [Person!]! @relationship(type: "ACTED_IN", direction: OUT)
 }
 
-type Person {
+type Person @node {
   name: String
 }
 ----

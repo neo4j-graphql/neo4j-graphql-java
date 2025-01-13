@@ -3,95 +3,6 @@
 
 = unions
 
-== read Unions with missing types
-
-.Schema
-[source,graphql,schema=true]
-----
-union Search = Genre | Movie
-
-type Genre {
-  name: String
-}
-
-type Movie {
-  title: String
-  search: [Search!]! @relationship(type: "SEARCH", direction: OUT)
-}
-----
-
-.Test Data
-[source,cypher,test-data=true]
-----
-CREATE (m:Movie {title: "RandomString1"})
- CREATE (g:Genre {name: "RandomString2"})
- MERGE (m)-[:SEARCH]->(m)
- MERGE (m)-[:SEARCH]->(g)
-----
-
-.GraphQL-Query
-[source,graphql,request=true]
-----
-{
-  movies {
-    search {
-      ... on Genre {
-        name
-      }
-    }
-  }
-}
-----
-
-.Expected Cypher params
-[source,json]
-----
-{ }
-----
-
-.Expected Cypher output
-[source,cypher]
-----
-MATCH (this:Movie)
-CALL {
-	WITH this
-	CALL {
-		WITH *
-		MATCH (this)-[search1:SEARCH]->(genre0:Genre)
-		WITH genre0 {
-			__typename: 'Genre',
-			__id: elementId(genre0),
-			.name
-		} AS genre0
-		RETURN genre0 AS search0 UNION
-		WITH *
-		MATCH (this)-[search2:SEARCH]->(movie0:Movie)
-		WITH movie0 {
-			__typename: 'Movie',
-			__id: elementId(movie0)
-		} AS movie0
-		RETURN movie0 AS search0
-	}
-	WITH search0
-	RETURN collect(search0) AS search0
-}
-RETURN this {
-	search: search0
-} AS this
-----
-
-.GraphQL-Response
-[source,json,response=true,ignore-order]
-----
-{
-  "movies" : [ {
-    "search" : [ {
-      "name" : "RandomString2"
-    }, { } ]
-  } ]
-}
-----
-
 == should read and return unions
 
 .Schema
@@ -99,11 +10,11 @@ RETURN this {
 ----
 union Search = Genre | Movie
 
-type Genre {
+type Genre @node {
   name: String
 }
 
-type Movie {
+type Movie @node {
   title: String
   search: [Search!]! @relationship(type: "SEARCH", direction: OUT)
 }
@@ -122,7 +33,7 @@ CREATE (m:Movie {title: "RandomString1"})
 [source,graphql,request=true]
 ----
 {
-  movies(where: {title: "RandomString1"}) {
+  movies(where: {title_EQ: "RandomString1"}) {
     search {
       __typename
       ... on Movie {
@@ -200,11 +111,11 @@ RETURN this {
 ----
 union Search = Movie | Genre
 
-type Genre {
+type Genre @node {
   name: String
 }
 
-type Movie {
+type Movie @node {
   title: String
   search: [Search!]! @relationship(type: "SEARCH", direction: OUT)
 }
@@ -225,8 +136,8 @@ CREATE (m:Movie {title: "RandomString1"})
 [source,graphql,request=true]
 ----
 {
-  movies(where: {title: "RandomString1"}) {
-    search(where: {Genre: {name: "RandomString2"}}) {
+  movies(where: {title_EQ: "RandomString1"}) {
+    search(where: {Genre: {name_EQ: "RandomString2"}}) {
       __typename
       ... on Movie {
         title
@@ -257,20 +168,20 @@ CALL {
 	WITH this
 	CALL {
 		WITH *
-		MATCH (this)-[this0:SEARCH]->(this1:Genre)
-		WHERE this1.name = $param1
-		WITH this1 {
-			.name,
+		MATCH (this)-[search1:SEARCH]->(genre0:Genre)
+		WHERE genre0.name = $param1
+		WITH genre0 {
 			__typename: 'Genre',
-			__id: toString(id(this1))
-		} AS this1
-		RETURN this1 AS var2
+			__id: elementId(genre0),
+			.name
+		} AS genre0
+		RETURN genre0 AS search0
 	}
-	WITH var2
-	RETURN collect(var2) AS var2
+	WITH search0
+	RETURN collect(search0) AS search0
 }
 RETURN this {
-	search: var2
+	search: search0
 } AS this
 ----
 
@@ -294,11 +205,11 @@ RETURN this {
 ----
 union Search = Movie | Genre
 
-type Genre {
+type Genre @node {
   name: String
 }
 
-type Movie {
+type Movie @node {
   title: String
   search: [Search!]! @relationship(type: "SEARCH", direction: OUT)
 }
@@ -322,8 +233,8 @@ CREATE (m:Movie {title: "originalMovie"})
 [source,graphql,request=true]
 ----
 {
-  movies(where: {title: "originalMovie"}) {
-    search(options: {offset: 1, limit: 3}) {
+  movies(where: {title_EQ: "originalMovie"}) {
+    search(offset: 1, limit: 3) {
       ... on Movie {
         title
       }

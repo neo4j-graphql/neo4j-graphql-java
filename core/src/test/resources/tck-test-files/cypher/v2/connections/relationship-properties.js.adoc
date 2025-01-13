@@ -9,12 +9,12 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   title: String!
   actors: [Actor!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: IN)
 }
 
-type Actor {
+type Actor @node {
   name: String!
   movies: [Movie!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: OUT)
 }
@@ -31,7 +31,7 @@ type ActedIn @relationshipProperties {
 [source,graphql,request=true]
 ----
 {
-  movies(where: {title: "Forrest Gump"}) {
+  movies(where: {title_EQ: "Forrest Gump"}) {
     title
     actorsConnection {
       edges {
@@ -82,9 +82,9 @@ RETURN this { .title, actorsConnection: var3 } AS this
 [source,graphql,request=true]
 ----
 {
-  movies(where: {title: "Forrest Gump"}) {
+  movies(where: {title_EQ: "Forrest Gump"}) {
     title
-    actorsConnection(where: {node: {name: "Tom Hanks"}}) {
+    actorsConnection(where: {node: {name_EQ: "Tom Hanks"}}) {
       edges {
         properties {
           screenTime
@@ -135,7 +135,7 @@ RETURN this { .title, actorsConnection: var3 } AS this
 [source,graphql,request=true]
 ----
 {
-  movies(where: {title: "Forrest Gump"}) {
+  movies(where: {title_EQ: "Forrest Gump"}) {
     title
     actorsConnection(sort: {edge: {screenTime: DESC}}) {
       edges {
@@ -286,7 +286,7 @@ RETURN this { actorsConnection: var3 } AS this
 [source,graphql,request=true]
 ----
 {
-  movies(where: {title: "Forrest Gump"}) {
+  movies(where: {title_EQ: "Forrest Gump"}) {
     title
     actorsConnection {
       edges {
@@ -360,7 +360,7 @@ RETURN this { .title, actorsConnection: var7 } AS this
 [source,graphql,request=true]
 ----
 {
-  movies(where: {title: "Forrest Gump"}) {
+  movies(where: {title_EQ: "Forrest Gump"}) {
     title
     actorsConnection {
       edges {

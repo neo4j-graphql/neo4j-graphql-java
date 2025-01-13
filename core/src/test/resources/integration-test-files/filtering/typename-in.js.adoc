@@ -14,19 +14,19 @@ interface Production {
   cost: Float!
 }
 
-type Movie implements Production {
+type Movie implements Production @node {
   title: String!
   cost: Float!
   runtime: Int!
 }
 
-type Series implements Production {
+type Series implements Production @node {
   title: String!
   cost: Float!
   episodes: Int!
 }
 
-type Cartoon implements Production {
+type Cartoon implements Production @node {
   title: String!
   cost: Float!
   cartoonist: String!
@@ -36,7 +36,7 @@ type ActedIn @relationshipProperties {
   screenTime: Int!
 }
 
-type Actor {
+type Actor @node {
   name: String!
   actedIn: [Production!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
 }
@@ -58,7 +58,7 @@ CREATE(a:Actor { name: "Keanu" })
 ----
 {
   productions(
-    where: {OR: [{AND: [{title: "The Matrix"}, {typename_IN: [Movie]}]}, {typename_IN: [Series]}]}
+    where: {OR: [{AND: [{title_EQ: "The Matrix"}, {typename: [Movie]}]}, {typename: [Series]}]}
   ) {
     __typename
     title
@@ -124,7 +124,7 @@ RETURN this AS this
 {
   actors {
     actedIn(
-      where: {OR: [{AND: [{title: "The Matrix"}, {typename_IN: [Movie]}]}, {typename_IN: [Series]}]}
+      where: {OR: [{AND: [{title_EQ: "The Matrix"}, {typename: [Movie]}]}, {typename: [Series]}]}
     ) {
       __typename
       title

@@ -9,7 +9,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Photograph {
+type Photograph @node {
   id: String!
   size: Int!
   location: Point!
@@ -17,6 +17,296 @@ type Photograph {
 
 type Query {
   custom: String!
+}
+----
+
+== enables query of a node with a wgs-84 point
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CALL {
+ CREATE (p:Photograph)
+ SET p.id = "f8a5a58a-7380-4a39-9103-07a2c0528d8e"
+ SET p.size = 31364
+ SET p.location = point({longitude: 62.5196, latitude: -41.1021})
+ RETURN p
+ }
+
+ RETURN p { .id, .size, .location } AS p
+----
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+query Photographs($longitude: Float!, $latitude: Float!) {
+  photographs(where: {location_EQ: {longitude: $longitude, latitude: $latitude}}) {
+    id
+    size
+    location {
+      latitude
+      longitude
+      height
+      crs
+    }
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "longitude": 62.5196,
+  "latitude": -41.1021
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": {
+    "longitude": 62.5196,
+    "latitude": -41.1021
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Photograph)
+WHERE this.location = point($param0)
+RETURN this { .id, .size, .location } AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "photographs": [
+    {
+      "id": "f8a5a58a-7380-4a39-9103-07a2c0528d8e",
+      "size": 31364,
+      "location": {
+        "latitude": -41.1021,
+        "longitude": 62.5196,
+        "height": null,
+        "crs": "wgs-84"
+      }
+    }
+  ]
+}
+----
+
+'''
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+query Photographs($locations: [PointInput!]) {
+  photographs(where: {location_IN: $locations}) {
+    id
+    size
+    location {
+      latitude
+      longitude
+      height
+      crs
+    }
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "locations": [
+    {
+      "longitude": 62.5196,
+      "latitude": -41.1021
+    },
+    {
+      "longitude": -156.8208,
+      "latitude": 64.9108
+    }
+  ]
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": {
+    "longitude": 62.5196,
+    "latitude": -41.1021
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Photograph)
+WHERE this.location = point($param0)
+RETURN this { .id, .size, .location } AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "photographs": [
+    {
+      "id": "f8a5a58a-7380-4a39-9103-07a2c0528d8e",
+      "size": 31364,
+      "location": {
+        "latitude": -41.1021,
+        "longitude": 62.5196,
+        "height": null,
+        "crs": "wgs-84"
+      }
+    }
+  ]
+}
+----
+
+'''
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+query Photographs($longitude: Float!, $latitude: Float!) {
+  photographs(
+    where: {location_LT: {point: {longitude: $longitude, latitude: $latitude}, distance: 1000000}}
+  ) {
+    id
+    size
+    location {
+      latitude
+      longitude
+      height
+      crs
+    }
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "longitude": 62.5196,
+  "latitude": -40.1021
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": {
+    "longitude": 62.5196,
+    "latitude": -41.1021
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Photograph)
+WHERE this.location = point($param0)
+RETURN this { .id, .size, .location } AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "photographs": [
+    {
+      "id": "f8a5a58a-7380-4a39-9103-07a2c0528d8e",
+      "size": 31364,
+      "location": {
+        "latitude": -41.1021,
+        "longitude": 62.5196,
+        "height": null,
+        "crs": "wgs-84"
+      }
+    }
+  ]
+}
+----
+
+'''
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+query Photographs($longitude: Float!, $latitude: Float!) {
+  photographs(
+    where: {location_GT: {point: {longitude: $longitude, latitude: $latitude}, distance: 1}}
+  ) {
+    id
+    size
+    location {
+      latitude
+      longitude
+      height
+      crs
+    }
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "longitude": 62.5196,
+  "latitude": -40.1021
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": {
+    "longitude": 62.5196,
+    "latitude": -41.1021
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Photograph)
+WHERE this.location = point($param0)
+RETURN this { .id, .size, .location } AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "photographs": [
+    {
+      "id": "f8a5a58a-7380-4a39-9103-07a2c0528d8e",
+      "size": 31364,
+      "location": {
+        "latitude": -41.1021,
+        "longitude": 62.5196,
+        "height": null,
+        "crs": "wgs-84"
+      }
+    }
+  ]
 }
 ----
 
@@ -41,7 +331,7 @@ CALL {
 ----
 query Photographs($longitude: Float!, $latitude: Float!, $height: Float) {
   photographs(
-    where: {location: {longitude: $longitude, latitude: $latitude, height: $height}}
+    where: {location_EQ: {longitude: $longitude, latitude: $latitude, height: $height}}
   ) {
     id
     size
@@ -82,10 +372,7 @@ query Photographs($longitude: Float!, $latitude: Float!, $height: Float) {
 ----
 MATCH (this:Photograph)
 WHERE this.location = point($param0)
-RETURN this { .id, .size, location: CASE
-    WHEN this.location IS NOT NULL THEN { point: this.location, crs: this.location.crs }
-    ELSE NULL
-END } AS this
+RETURN this { .id, .size, .location } AS this
 ----
 
 .GraphQL-Response

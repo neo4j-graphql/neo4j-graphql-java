@@ -9,7 +9,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Event {
+type Event @node {
   id: ID!
   name: String
   start: DateTime
@@ -25,7 +25,7 @@ type Event {
 ----
 query ($rangeStart: DateTime, $rangeEnd: DateTime, $activity: String) {
   events(
-    where: {AND: [{start_GTE: $rangeStart}, {start_LTE: $rangeEnd}, {activity: $activity}]}
+    where: {AND: [{start_GTE: $rangeStart}, {start_LTE: $rangeEnd}, {activity_EQ: $activity}]}
   ) {
     start
     activity
@@ -66,7 +66,7 @@ RETURN this { .activity, start: apoc.date.convertFormat(toString(this.start), "i
 ----
 query ($rangeStart: DateTime, $rangeEnd: DateTime, $activity: String) {
   events(
-    where: {OR: [{start_GTE: $rangeStart}, {start_LTE: $rangeEnd}, {activity: $activity}]}
+    where: {OR: [{start_GTE: $rangeStart}, {start_LTE: $rangeEnd}, {activity_EQ: $activity}]}
   ) {
     start
     activity

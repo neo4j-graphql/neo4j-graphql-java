@@ -22,7 +22,7 @@ object NodeFactory {
         val schemeDirectives =
             typeDefinitionRegistry.schemaExtensionDefinitions?.map { it.directives }?.flatten() ?: emptyList()
         val annotations = Annotations(schemeDirectives + definition.directives, typeDefinitionRegistry, definition.name)
-        if (annotations.relationshipProperties != null) {
+        if (annotations.node == null || annotations.relationshipProperties != null) {
             return null
         }
         val interfaces = definition.implements.mapNotNull { interfaceFactory(it.name()) }

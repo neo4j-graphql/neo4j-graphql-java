@@ -35,7 +35,7 @@ fun createInterfaceProjectionAndParams(
         whereInput
     ) { relatedNode ->
 
-        val pattern = field.createQueryDslRelation(nodeVariable, relatedNode, arguments.directed)
+        val pattern = field.createQueryDslRelation(nodeVariable, relatedNode)
             .named(queryContext.getNextVariable(field))
 
         Cypher

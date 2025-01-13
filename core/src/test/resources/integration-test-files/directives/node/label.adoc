@@ -56,3 +56,107 @@ RETURN this {
   } ]
 }
 ----
+
+== custom context labels
+
+.Schema
+[source,graphql,schema=true]
+----
+type Movie @node(labels: ["$context.filmLabel"]) {
+  id: ID
+  title: String
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams" : {
+    "filmLabel" : "Film"
+  }
+}
+----
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Film)
+RETURN this {
+	.title
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "movies" : [ {
+    "title" : "The Matrix"
+  } ]
+}
+----
+
+== custom jwt labels
+
+CAUTION: This functionality is not jet implemented
+
+.Schema
+[source,graphql,schema=true]
+----
+type Movie @node(labels: ["$jwt.filmLabel"]) {
+  id: ID
+  title: String
+}
+----
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Film)
+RETURN this {
+	.title
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies" : [ {
+    "title" : "The Matrix"
+  } ]
+}
+----

@@ -12,12 +12,12 @@ interface Production {
   title: String!
 }
 
-type Movie implements Production {
+type Movie implements Production @node {
   title: String!
   runtime: Int!
 }
 
-type Series implements Production {
+type Series implements Production @node {
   title: String!
   episodes: Int!
 }
@@ -26,7 +26,7 @@ type ActedIn @relationshipProperties {
   screenTime: Int!
 }
 
-type Actor {
+type Actor @node {
   name: String!
   currentlyActingIn: Production @relationship(type: "CURRENTLY_ACTING_IN", direction: OUT)
   actedIn: [Production!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
@@ -47,7 +47,7 @@ CREATE (a:Actor { name: "RandomString1" })
 [source,graphql,request=true]
 ----
 query Actors($name: String) {
-  actors(where: {name: $name}) {
+  actors(where: {name_EQ: $name}) {
     name
     actedIn {
       title
@@ -145,9 +145,9 @@ CREATE (a:Actor { name: "RandomString1" })
 [source,graphql,request=true]
 ----
 query Actors($name: String) {
-  actors(where: {name: $name}) {
+  actors(where: {name_EQ: $name}) {
     name
-    actedIn(options: {sort: [{title: DESC}]}) {
+    actedIn(sort: [{title: DESC}]) {
       title
       ... on Movie {
         runtime
@@ -250,7 +250,7 @@ CREATE (a:Actor { name: "RandomString1" })
 [source,graphql,request=true]
 ----
 query Actors($name: String) {
-  actors(where: {name: $name}) {
+  actors(where: {name_EQ: $name}) {
     name
     currentlyActingIn {
       title
@@ -346,9 +346,9 @@ CREATE (a:Actor { name: "RandomString1" })
 [source,graphql,request=true]
 ----
 query Actors($name: String, $title: String) {
-  actors(where: {name: $name}) {
+  actors(where: {name_EQ: $name}) {
     name
-    actedIn(where: {title: $title}) {
+    actedIn(where: {title_EQ: $title}) {
       title
       ... on Movie {
         runtime

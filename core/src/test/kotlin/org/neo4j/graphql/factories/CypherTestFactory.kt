@@ -65,12 +65,12 @@ class CypherTestFactory(file: Path, private val driver: Driver? = null, createMi
             val testData = testCase.setup.testData.firstOrNull()
             val responseAssertions = testCase.graphqlResponseAssertions
             var response = testCase.graphqlResponse
-            if (responseAssertions == null && response == null) {
-                response =
-                    createCodeBlock(testCase.graphqlRequest!!, "json", "GraphQL-Response", mapOf("response" to "true"))
-                testCase.graphqlResponse = response
-            }
-            if (testData != null && response != null || responseAssertions != null) {
+            if (testData != null && (response != null || GENERATE_TEST_FILE_DIFF) || responseAssertions != null) {
+                if (responseAssertions == null && response == null) {
+                    response =
+                        createCodeBlock(testCase.graphqlRequest!!, "json", "GraphQL-Response", mapOf("response" to "true"))
+                    testCase.graphqlResponse = response
+                }
                 tests.add(integrationTest(section.title, testCase))
             }
         }
@@ -354,7 +354,10 @@ class CypherTestFactory(file: Path, private val driver: Driver? = null, createMi
     }
 
     class InvalidQueryException(@Suppress("MemberVisibilityCanBePrivate") val error: GraphQLError) :
-        RuntimeException(error.message)
+        RuntimeException(error.message, when (error) {
+            is ExceptionWhileDataFetching -> error.exception
+            else -> null
+        })
 
     companion object {
         private val DEBUG = System.getProperty("neo4j-graphql-java.debug", "false") == "true"

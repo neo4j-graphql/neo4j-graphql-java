@@ -8,12 +8,12 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type System {
+type System @node {
   code: String!
   updatesData: [GovernedData!]! @relationship(type: "UPDATED_BY", direction: IN)
 }
 
-type GovernedData {
+type GovernedData @node {
   code: String!
   updatedBy: [System!]! @relationship(type: "UPDATED_BY", direction: OUT)
 }

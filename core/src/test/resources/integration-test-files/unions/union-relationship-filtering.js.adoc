@@ -11,17 +11,17 @@
 ----
 union Production = Movie | Series
 
-type Movie {
+type Movie @node {
   title: String!
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN, properties: "ActedIn")
 }
 
-type Series {
+type Series @node {
   title: String!
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN, properties: "ActedIn")
 }
 
-type Actor {
+type Actor @node {
   name: String!
   actedIn: [Production!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
 }
@@ -58,7 +58,7 @@ CREATE(m1:Movie { title: "The Office" })
 ----
 {
   productions(
-    where: {Movie: {title: "The Office"}, Series: {title: "The Office 2"}}
+    where: {Movie: {title_EQ: "The Office"}, Series: {title_EQ: "The Office 2"}}
   ) {
     ... on Movie {
       title

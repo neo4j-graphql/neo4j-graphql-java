@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="org.neo4j.graphql.tools.JsTestCaseSync" type="JetRunConfigurationType" nameIsGenerated="true">
+  <configuration default="false" name="JsTestCaseSync" type="JetRunConfigurationType" nameIsGenerated="true">
     <option name="MAIN_CLASS_NAME" value="org.neo4j.graphql.tools.JsTestCaseSync" />
     <module name="neo4j-graphql-java" />
     <shortenClasspath name="NONE" />

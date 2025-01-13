@@ -11,7 +11,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type User {
+type User @node {
   id: ID!
   firstName: String!
   lastName: String!
@@ -31,7 +31,7 @@ CREATE (user:User) SET user = {id: "An-ID", firstName: "someFirstName", lastName
 [source,graphql,request=true]
 ----
 query User($userId: ID!) {
-  users(where: {id: $userId}) {
+  users(where: {id_EQ: $userId}) {
     id
     firstName
     lastName
@@ -61,7 +61,7 @@ query User($userId: ID!) {
 ----
 MATCH (this:User)
 WHERE this.id = $param0
-RETURN this { .id, .firstName, .lastName, .fullName } AS this
+RETURN this { .id, .firstName, .lastName } AS this
 ----
 
 .GraphQL-Response
@@ -85,7 +85,7 @@ RETURN this { .id, .firstName, .lastName, .fullName } AS this
 [source,graphql,request=true]
 ----
 query User($userId: ID!) {
-  users(where: {id: $userId}) {
+  users(where: {id_EQ: $userId}) {
     id
     fullName
   }
@@ -113,7 +113,7 @@ query User($userId: ID!) {
 ----
 MATCH (this:User)
 WHERE this.id = $param0
-RETURN this { .id, .fullName, .firstName, .lastName } AS this
+RETURN this { .id, .firstName, .lastName } AS this
 ----
 
 .GraphQL-Response
@@ -135,7 +135,7 @@ RETURN this { .id, .fullName, .firstName, .lastName } AS this
 [source,graphql,request=true]
 ----
 query User($userId: ID!) {
-  users(where: {id: $userId}) {
+  users(where: {id_EQ: $userId}) {
     id
     f: firstName
     fullName
@@ -164,7 +164,7 @@ query User($userId: ID!) {
 ----
 MATCH (this:User)
 WHERE this.id = $param0
-RETURN this { .id, .fullName, .firstName, .lastName, f: this.firstName } AS this
+RETURN this { .id, .firstName, .lastName, f: this.firstName } AS this
 ----
 
 .GraphQL-Response
@@ -188,12 +188,12 @@ RETURN this { .id, .fullName, .firstName, .lastName, f: this.firstName } AS this
 .Schema
 [source,graphql,schema=true]
 ----
-type Address {
+type Address @node {
   street: String!
   city: String!
 }
 
-type User {
+type User @node {
   id: ID!
   firstName: String!
   lastName: String!
@@ -234,7 +234,7 @@ CALL {
     WITH this1 { .city } AS this1
     RETURN head(collect(this1)) AS var2
 }
-RETURN this { .fullName, .firstName, .lastName, address: var2 } AS this
+RETURN this { .firstName, .lastName, address: var2 } AS this
 ----
 
 .GraphQL-Response
@@ -254,12 +254,12 @@ RETURN this { .fullName, .firstName, .lastName, address: var2 } AS this
 .Schema
 [source,graphql,schema=true]
 ----
-type Address {
+type Address @node {
   street: String!
   city: String!
 }
 
-type User {
+type User @node {
   id: ID!
   firstName: String!
   lastName: String!
@@ -305,7 +305,7 @@ CALL {
     WITH this1 { .street, .city } AS this1
     RETURN head(collect(this1)) AS var2
 }
-RETURN this { .id, .fullName, .firstName, .lastName, address: var2 } AS this
+RETURN this { .id, .firstName, .lastName, address: var2 } AS this
 ----
 
 .GraphQL-Response
@@ -330,12 +330,12 @@ RETURN this { .id, .fullName, .firstName, .lastName, address: var2 } AS this
 .Schema
 [source,graphql,schema=true]
 ----
-type Address {
+type Address @node {
   street: String!
   city: String!
 }
 
-type User {
+type User @node {
   id: ID!
   firstName: String!
   lastName: String!
@@ -382,7 +382,7 @@ CALL {
     WITH this1 { .street, .city } AS this1
     RETURN head(collect(this1)) AS var2
 }
-RETURN this { .id, .fullName, .firstName, .lastName, address: var2 } AS this
+RETURN this { .id, .firstName, .lastName, address: var2 } AS this
 ----
 
 .GraphQL-Response
@@ -415,12 +415,12 @@ RETURN this { .id, .fullName, .firstName, .lastName, address: var2 } AS this
 .Schema
 [source,graphql,schema=true]
 ----
-type Address {
+type Address @node {
   street: String!
   city: String!
 }
 
-type User {
+type User @node {
   id: ID!
   firstName: String!
   lastName: String!
@@ -467,7 +467,7 @@ CALL {
     WITH this1 { .street, .city } AS this1
     RETURN head(collect(this1)) AS var2
 }
-RETURN this { .id, .fullName, .firstName, .lastName, address: var2 } AS this
+RETURN this { .id, .firstName, .lastName, address: var2 } AS this
 ----
 
 .GraphQL-Response
@@ -500,17 +500,17 @@ RETURN this { .id, .fullName, .firstName, .lastName, address: var2 } AS this
 .Schema
 [source,graphql,schema=true]
 ----
-type City {
+type City @node {
   name: String!
   population: Int
 }
 
-type Address {
+type Address @node {
   street: String!
   city: City! @relationship(type: "IN_CITY", direction: OUT)
 }
 
-type User {
+type User @node {
   id: ID!
   firstName: String!
   lastName: String!
@@ -563,7 +563,7 @@ CALL {
     WITH this1 { .street, city: var4 } AS this1
     RETURN head(collect(this1)) AS var5
 }
-RETURN this { .fullName, .firstName, .lastName, address: var5 } AS this
+RETURN this { .firstName, .lastName, address: var5 } AS this
 ----
 
 .GraphQL-Response
@@ -592,22 +592,22 @@ RETURN this { .fullName, .firstName, .lastName, address: var5 } AS this
 .Schema
 [source,graphql,schema=true]
 ----
-type State {
+type State @node {
   someValue: Int!
 }
 
-type City {
+type City @node {
   name: String!
   population: Int
   state: State! @relationship(type: "IN_STATE", direction: OUT)
 }
 
-type Address {
+type Address @node {
   street: String!
   city: City! @relationship(type: "IN_CITY", direction: OUT)
 }
 
-type User {
+type User @node {
   id: ID!
   firstName: String!
   lastName: String!
@@ -668,7 +668,7 @@ CALL {
     WITH this1 { .street, city: var7 } AS this1
     RETURN head(collect(this1)) AS var8
 }
-RETURN this { .fullName, .firstName, .lastName, address: var8 } AS this
+RETURN this { .firstName, .lastName, address: var8 } AS this
 ----
 
 .GraphQL-Response
@@ -699,18 +699,18 @@ RETURN this { .fullName, .firstName, .lastName, address: var8 } AS this
 ----
 union Publication = Book | Journal
 
-type Author {
+type Author @node {
   name: String!
   publications: [Publication!]! @relationship(type: "WROTE", direction: OUT)
   publicationsWithAuthor: [String!]! @customResolver(requires: "name publications { ...on Book { title } ... on Journal { subject } }")
 }
 
-type Book {
+type Book @node {
   title: String!
   author: Author! @relationship(type: "WROTE", direction: IN)
 }
 
-type Journal {
+type Journal @node {
   subject: String!
   author: Author! @relationship(type: "WROTE", direction: IN)
 }
@@ -762,7 +762,7 @@ CALL {
     WITH var2
     RETURN collect(var2) AS var2
 }
-RETURN this { .publicationsWithAuthor, .name, publications: var2 } AS this
+RETURN this { .name, publications: var2 } AS this
 ----
 
 .GraphQL-Response
@@ -792,17 +792,17 @@ RETURN this { .publicationsWithAuthor, .name, publications: var2 } AS this
 .Schema
 [source,graphql,schema=true]
 ----
-type City {
+type City @node {
   name: String!
   population: Int @alias(property: "cityPopulation")
 }
 
-type Address {
+type Address @node {
   street: String!
   city: City! @relationship(type: "IN_CITY", direction: OUT)
 }
 
-type User {
+type User @node {
   id: ID!
   firstName: String! @alias(property: "first")
   lastName: String!
@@ -856,7 +856,7 @@ CALL {
     WITH this1 { .street, city: var4 } AS this1
     RETURN head(collect(this1)) AS var5
 }
-RETURN this { .fullName, .lastName, firstName: this.first, address: var5 } AS this
+RETURN this { .lastName, firstName: this.first, address: var5 } AS this
 ----
 
 .GraphQL-Response
@@ -865,17 +865,17 @@ RETURN this { .fullName, .lastName, firstName: this.first, address: var5 } AS th
 {
   "users": [
     {
-      "firstName": "First",
-      "fullName": "First Last from city1 name! with population of 8947975",
-      "address": {
-        "street": "some street"
-      }
-    },
-    {
       "firstName": "New First",
       "fullName": "New First new-last from city2 name? with population of 74",
       "address": {
         "street": "another-street"
+      }
+    },
+    {
+      "firstName": "First",
+      "fullName": "First Last from city1 name! with population of 8947975",
+      "address": {
+        "street": "some street"
       }
     }
   ]
@@ -891,19 +891,19 @@ interface Publication {
   publicationYear: Int!
 }
 
-type Author {
+type Author @node {
   name: String!
   publications: [Publication!]! @relationship(type: "WROTE", direction: OUT)
   publicationsWithAuthor: [String!]! @customResolver(requires: "name publications { publicationYear ...on Book { title } ... on Journal { subject } }")
 }
 
-type Book implements Publication {
+type Book implements Publication @node {
   title: String!
   publicationYear: Int!
   author: [Author!]! @relationship(type: "WROTE", direction: IN)
 }
 
-type Journal implements Publication {
+type Journal implements Publication @node {
   subject: String!
   publicationYear: Int!
   author: [Author!]! @relationship(type: "WROTE", direction: IN)
@@ -954,7 +954,7 @@ CALL {
     WITH var2
     RETURN collect(var2) AS var2
 }
-RETURN this { .publicationsWithAuthor, .name, publications: var2 } AS this
+RETURN this { .name, publications: var2 } AS this
 ----
 
 .GraphQL-Response
@@ -986,7 +986,7 @@ interface Publication {
   publicationYear: Int!
 }
 
-type User {
+type User @node {
   id: ID!
   firstName: String!
   lastName: String!
@@ -994,18 +994,18 @@ type User {
   customResolverField: Int @customResolver(requires: "followedAuthors { name publications { publicationYear ...on Book { title } ... on Journal { subject } } } firstName")
 }
 
-type Author {
+type Author @node {
   name: String!
   publications: [Publication!]! @relationship(type: "WROTE", direction: OUT)
 }
 
-type Book implements Publication {
+type Book implements Publication @node {
   title: String!
   publicationYear: Int!
   author: [Author!]! @relationship(type: "WROTE", direction: IN)
 }
 
-type Journal implements Publication {
+type Journal implements Publication @node {
   subject: String!
   publicationYear: Int!
   author: [Author!]! @relationship(type: "WROTE", direction: IN)
@@ -1063,7 +1063,7 @@ CALL {
     WITH this1 { .name, publications: var4 } AS this1
     RETURN collect(this1) AS var7
 }
-RETURN this { .customResolverField, .firstName, followedAuthors: var7 } AS this
+RETURN this { .firstName, followedAuthors: var7 } AS this
 ----
 
 .GraphQL-Response
@@ -1083,7 +1083,7 @@ RETURN this { .customResolverField, .firstName, followedAuthors: var7 } AS this
 .Schema
 [source,graphql,schema=true]
 ----
-type User {
+type User @node {
   id: ID!
   firstName: String!
   lastName: String!
@@ -1093,17 +1093,17 @@ type User {
 
 union Publication = Book | Journal
 
-type Author {
+type Author @node {
   name: String!
   publications: [Publication!]! @relationship(type: "WROTE", direction: OUT)
 }
 
-type Book {
+type Book @node {
   title: String!
   author: Author! @relationship(type: "WROTE", direction: IN)
 }
 
-type Journal {
+type Journal @node {
   subject: String!
   author: Author! @relationship(type: "WROTE", direction: IN)
 }
@@ -1160,7 +1160,7 @@ CALL {
     WITH this1 { .name, publications: var4 } AS this1
     RETURN collect(this1) AS var7
 }
-RETURN this { .customResolverField, .firstName, followedAuthors: var7 } AS this
+RETURN this { .firstName, followedAuthors: var7 } AS this
 ----
 
 .GraphQL-Response

@@ -2,20 +2,20 @@
 :toc:
 :toclevels: 42
 
-= Top-level union query fields
+== Top-level union query fields
 
-== Setup
+=== Setup
 
 .Schema
 [source,graphql,schema=true]
 ----
 union Search = Genre | Movie
 
-type Genre {
+type Genre @node {
   name: String
 }
 
-type Movie {
+type Movie @node {
   title: String
   search: [Search!]! @relationship(type: "SEARCH", direction: OUT)
 }
@@ -30,7 +30,7 @@ CREATE (m:Movie {title: "The Matrix"})
  MERGE (m)-[:SEARCH]->(g)
 ----
 
-== should read top-level simple query on union
+=== should read top-level simple query on union
 
 .GraphQL-Query
 [source,graphql,request=true]
@@ -111,13 +111,237 @@ RETURN this AS this
 }
 ----
 
-== should read top-level simple query on union sorted
+=== should read top-level simple query on union with filters
 
 .GraphQL-Query
 [source,graphql,request=true]
 ----
 {
-  searches(options: {limit: 1, offset: 1}) {
+  searches(where: {Movie: {NOT: {title_EQ: "The Matrix"}}, Genre: {}}) {
+    ... on Genre {
+      name
+    }
+    ... on Movie {
+      title
+      search {
+        ... on Genre {
+          name
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "The Matrix"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+    MATCH (this0:Genre)
+    WITH this0 { .name, __typename: "Genre", __id: toString(id(this0)) } AS this0
+    RETURN this0 AS this
+    UNION
+    MATCH (this1:Movie)
+    WHERE NOT (this1.title = $param0)
+    CALL {
+        WITH this1
+        CALL {
+            WITH *
+            MATCH (this1)-[this2:SEARCH]->(this3:Genre)
+            WITH this3 { .name, __typename: "Genre", __id: toString(id(this3)) } AS this3
+            RETURN this3 AS var4
+            UNION
+            WITH *
+            MATCH (this1)-[this5:SEARCH]->(this6:Movie)
+            WITH this6 { __typename: "Movie", __id: toString(id(this6)) } AS this6
+            RETURN this6 AS var4
+        }
+        WITH var4
+        RETURN collect(var4) AS var4
+    }
+    WITH this1 { .title, search: var4, __typename: "Movie", __id: toString(id(this1)) } AS this1
+    RETURN this1 AS this
+}
+WITH this
+RETURN this AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "searches": [
+    {
+      "name": "Action"
+    }
+  ]
+}
+----
+
+=== should read top-level simple query on union with filters - only specifying a filter for one constituent automatically filters-out the other constituents from the return data
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  searches(where: {Movie: {NOT: {title_EQ: "The Matrix"}}}) {
+    ... on Genre {
+      name
+    }
+    ... on Movie {
+      title
+      search {
+        ... on Genre {
+          name
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "The Matrix"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+    MATCH (this0:Movie)
+    WHERE NOT (this0.title = $param0)
+    CALL {
+        WITH this0
+        CALL {
+            WITH *
+            MATCH (this0)-[this1:SEARCH]->(this2:Genre)
+            WITH this2 { .name, __typename: "Genre", __id: toString(id(this2)) } AS this2
+            RETURN this2 AS var3
+            UNION
+            WITH *
+            MATCH (this0)-[this4:SEARCH]->(this5:Movie)
+            WITH this5 { __typename: "Movie", __id: toString(id(this5)) } AS this5
+            RETURN this5 AS var3
+        }
+        WITH var3
+        RETURN collect(var3) AS var3
+    }
+    WITH this0 { .title, search: var3, __typename: "Movie", __id: toString(id(this0)) } AS this0
+    RETURN this0 AS this
+}
+WITH this
+RETURN this AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "searches": []
+}
+----
+
+=== should read top-level simple query on union with filters on relationship field
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  searches(
+    where: {Movie: {searchConnection_SOME: {Genre: {node: {name_EQ: "Action"}}}}}
+  ) {
+    ... on Genre {
+      name
+    }
+    ... on Movie {
+      title
+      search {
+        ... on Genre {
+          name
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "Action"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+CALL {
+    MATCH (this0:Movie)
+    WHERE EXISTS {
+        MATCH (this0)-[this1:SEARCH]->(this2:Genre)
+        WHERE this2.name = $param0
+    }
+    CALL {
+        WITH this0
+        CALL {
+            WITH *
+            MATCH (this0)-[this3:SEARCH]->(this4:Genre)
+            WITH this4 { .name, __typename: "Genre", __id: toString(id(this4)) } AS this4
+            RETURN this4 AS var5
+            UNION
+            WITH *
+            MATCH (this0)-[this6:SEARCH]->(this7:Movie)
+            WITH this7 { __typename: "Movie", __id: toString(id(this7)) } AS this7
+            RETURN this7 AS var5
+        }
+        WITH var5
+        RETURN collect(var5) AS var5
+    }
+    WITH this0 { .title, search: var5, __typename: "Movie", __id: toString(id(this0)) } AS this0
+    RETURN this0 AS this
+}
+WITH this
+RETURN this AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "searches": [
+    {
+      "title": "The Matrix",
+      "search": [
+        {
+          "name": "Action"
+        },
+        {}
+      ]
+    }
+  ]
+}
+----
+
+=== should read top-level simple query on union sorted
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  searches(limit: 1, offset: 1) {
     ... on Genre {
       name
     }

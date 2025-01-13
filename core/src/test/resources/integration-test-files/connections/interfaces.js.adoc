@@ -13,12 +13,12 @@ interface Production {
   title: String!
 }
 
-type Movie implements Production {
+type Movie implements Production @node {
   title: String!
   runtime: Int!
 }
 
-type Series implements Production {
+type Series implements Production @node {
   title: String!
   episodes: Int!
 }
@@ -27,7 +27,7 @@ type ActedIn @relationshipProperties {
   screenTime: Int!
 }
 
-type Actor {
+type Actor @node {
   name: String!
   actedIn: [Production!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
 }
@@ -48,7 +48,7 @@ CREATE (actor:Actor {name: "Jason Momoa"})
 [source,graphql,request=true]
 ----
 query Actors($name: String) {
-  actors(where: {name: $name}) {
+  actors(where: {name_EQ: $name}) {
     name
     actedInConnection {
       edges {
@@ -160,9 +160,9 @@ RETURN this { .name, actedInConnection: var4 } AS this
 [source,graphql,request=true]
 ----
 query Actors($name: String) {
-  actors(where: {name: $name}) {
+  actors(where: {name_EQ: $name}) {
     name
-    actedInConnection(where: {node: {title: "Game of Thrones"}}) {
+    actedInConnection(where: {node: {title_EQ: "Game of Thrones"}}) {
       edges {
         properties {
           screenTime
@@ -258,7 +258,7 @@ RETURN this { .name, actedInConnection: var4 } AS this
 [source,graphql,request=true]
 ----
 query Actors($name: String) {
-  actors(where: {name: $name}) {
+  actors(where: {name_EQ: $name}) {
     name
     actedInConnection(sort: [{edge: {screenTime: DESC}}]) {
       edges {
@@ -377,7 +377,7 @@ RETURN this { .name, actedInConnection: var5 } AS this
 [source,graphql,request=true]
 ----
 query Actors($name: String, $after: String) {
-  actors(where: {name: $name}) {
+  actors(where: {name_EQ: $name}) {
     name
     actedInConnection(first: 2, after: $after, sort: {edge: {screenTime: DESC}}) {
       pageInfo {
@@ -499,7 +499,7 @@ RETURN this { .name, actedInConnection: var5 } AS this
 [source,graphql,request=true]
 ----
 query Actors($name: String, $after: String) {
-  actors(where: {name: $name}) {
+  actors(where: {name_EQ: $name}) {
     name
     actedInConnection(first: 2, after: $after, sort: {edge: {screenTime: DESC}}) {
       pageInfo {
@@ -613,9 +613,9 @@ RETURN this { .name, actedInConnection: var5 } AS this
 [source,graphql,request=true]
 ----
 query Actors($name: String, $title: String) {
-  actors(where: {name: $name}) {
+  actors(where: {name_EQ: $name}) {
     name
-    actedInConnection(where: {node: {title: $title}}) {
+    actedInConnection(where: {node: {title_EQ: $title}}) {
       edges {
         properties {
           screenTime

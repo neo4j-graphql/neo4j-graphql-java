@@ -10,7 +10,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type File {
+type File @node {
   name: String!
   size: BigInt!
 }
@@ -30,7 +30,7 @@ CREATE (f:File)
 [source,graphql,request=true]
 ----
 {
-  files(where: {name: "RandomString1"}) {
+  files(where: {name_EQ: "RandomString1"}) {
     name
     size
   }
@@ -81,7 +81,7 @@ CREATE (f:File)
 [source,graphql,request=true]
 ----
 {
-  files(where: {size: 8323372036854775807}) {
+  files(where: {size_EQ: 8323372036854775807}) {
     name
     size
   }

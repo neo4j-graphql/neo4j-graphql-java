@@ -8,7 +8,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type File {
+type File @node {
   name: String!
   size: BigInt!
 }
@@ -20,7 +20,7 @@ type File {
 [source,graphql,request=true]
 ----
 {
-  files(where: {size: 9223372036854775807}) {
+  files(where: {size_EQ: 9223372036854775807}) {
     name
   }
 }
@@ -50,7 +50,7 @@ RETURN this {
 [source,graphql,request=true]
 ----
 {
-  files(where: {size: "9223372036854775807"}) {
+  files(where: {size_EQ: "9223372036854775807"}) {
     name
   }
 }
@@ -80,7 +80,7 @@ RETURN this {
 [source,graphql,request=true]
 ----
 query Files($size: BigInt) {
-  files(where: {size: $size}) {
+  files(where: {size_EQ: $size}) {
     name
   }
 }

@@ -52,10 +52,7 @@ CREATE (:Location { id: "1", pointCoordinates: point({x: -14221.955504767046, y:
 [source,cypher]
 ----
 MATCH (this:Location)
-RETURN this { .id, pointCoordinates: CASE
-    WHEN this.pointCoordinates IS NOT NULL THEN { point: this.pointCoordinates, crs: this.pointCoordinates.crs }
-    ELSE NULL
-END } AS this
+RETURN this { .id, .pointCoordinates } AS this
 ----
 
 .GraphQL-Response
@@ -88,7 +85,7 @@ END } AS this
       "pointCoordinates": {
         "x": 261848.15527273554,
         "y": 6250566.54904563,
-        "z": 21,
+        "z": 21.0,
         "crs": "cartesian-3d",
         "srid": 9157
       }
@@ -136,10 +133,7 @@ CALL {
     WITH edges
     UNWIND edges AS edge
     WITH edge.node AS this0
-    RETURN collect({ node: { id: this0.id, pointCoordinates: CASE
-        WHEN this0.pointCoordinates IS NOT NULL THEN { point: this0.pointCoordinates, crs: this0.pointCoordinates.crs }
-        ELSE NULL
-    END, __typename: "Location" } }) AS var1
+    RETURN collect({ node: { id: this0.id, pointCoordinates: this0.pointCoordinates, __typename: "Location" } }) AS var1
 }
 RETURN { edges: var1, totalCount: totalCount } AS this
 ----
@@ -180,7 +174,7 @@ RETURN { edges: var1, totalCount: totalCount } AS this
           "pointCoordinates": {
             "x": 261848.15527273554,
             "y": 6250566.54904563,
-            "z": 21,
+            "z": 21.0,
             "crs": "cartesian-3d",
             "srid": 9157
           }
@@ -219,10 +213,7 @@ RETURN { edges: var1, totalCount: totalCount } AS this
 [source,cypher]
 ----
 MATCH (this:Location)
-RETURN this { .id, pointCoordinates: CASE
-    WHEN this.pointCoordinates IS NOT NULL THEN { point: this.pointCoordinates, crs: this.pointCoordinates.crs }
-    ELSE NULL
-END } AS this
+RETURN this { .id, .pointCoordinates } AS this
 ----
 
 .GraphQL-Response
@@ -253,7 +244,7 @@ END } AS this
       "pointCoordinates": {
         "x": 261848.15527273554,
         "y": 6250566.54904563,
-        "z": 21,
+        "z": 21.0,
         "crs": "cartesian-3d"
       }
     }
@@ -299,10 +290,7 @@ CALL {
     WITH edges
     UNWIND edges AS edge
     WITH edge.node AS this0
-    RETURN collect({ node: { id: this0.id, pointCoordinates: CASE
-        WHEN this0.pointCoordinates IS NOT NULL THEN { point: this0.pointCoordinates, crs: this0.pointCoordinates.crs }
-        ELSE NULL
-    END, __typename: "Location" } }) AS var1
+    RETURN collect({ node: { id: this0.id, pointCoordinates: this0.pointCoordinates, __typename: "Location" } }) AS var1
 }
 RETURN { edges: var1, totalCount: totalCount } AS this
 ----
@@ -326,23 +314,23 @@ RETURN { edges: var1, totalCount: totalCount } AS this
       },
       {
         "node": {
-          "id": "3",
-          "pointCoordinates": {
-            "x": 261848.15527273554,
-            "y": 6250566.54904563,
-            "z": 21,
-            "crs": "cartesian-3d"
-          }
-        }
-      },
-      {
-        "node": {
           "id": "2",
           "pointCoordinates": {
             "x": 1391088.9885668862,
             "y": 5146427.7652232265,
             "z": null,
             "crs": "cartesian"
+          }
+        }
+      },
+      {
+        "node": {
+          "id": "3",
+          "pointCoordinates": {
+            "x": 261848.15527273554,
+            "y": 6250566.54904563,
+            "z": 21.0,
+            "crs": "cartesian-3d"
           }
         }
       }

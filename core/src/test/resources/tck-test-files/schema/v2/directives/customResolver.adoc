@@ -12,7 +12,7 @@ interface UserInterface {
   customResolver: String
 }
 
-type User implements UserInterface {
+type User implements UserInterface @node {
   id: ID!
   username: String!
   password: String!
@@ -41,10 +41,10 @@ type PageInfo {
 }
 
 type Query {
-  userInterfaces(options: UserInterfaceOptions, where: UserInterfaceWhere): [UserInterface!]!
-  userInterfacesConnection(after: String, first: Int, sort: [UserInterfaceSort], where: UserInterfaceWhere): UserInterfacesConnection!
-  users(options: UserOptions, where: UserWhere): [User!]!
-  usersConnection(after: String, first: Int, sort: [UserSort], where: UserWhere): UsersConnection!
+  userInterfaces(limit: Int, offset: Int, sort: [UserInterfaceSort!], where: UserInterfaceWhere): [UserInterface!]!
+  userInterfacesConnection(after: String, first: Int, sort: [UserInterfaceSort!], where: UserInterfaceWhere): UserInterfacesConnection!
+  users(limit: Int, offset: Int, sort: [UserSort!], where: UserWhere): [User!]!
+  usersConnection(after: String, first: Int, sort: [UserSort!], where: UserWhere): UsersConnection!
 }
 
 type User implements UserInterface {
@@ -89,13 +89,6 @@ enum UserInterfaceImplementation {
   User
 }
 
-input UserInterfaceOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more UserInterfaceSort objects to sort UserInterfaces by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [UserInterfaceSort]
-}
-
 "Fields to sort UserInterfaces by. The order in which sorts are applied is not guaranteed when specifying many fields in one UserInterfaceSort object."
 input UserInterfaceSort {
   customResolver: SortDirection
@@ -105,19 +98,13 @@ input UserInterfaceWhere {
   AND: [UserInterfaceWhere!]
   NOT: UserInterfaceWhere
   OR: [UserInterfaceWhere!]
-  customResolver: String
+  customResolver: String @deprecated(reason : "Please use the explicit _EQ version")
   customResolver_CONTAINS: String
   customResolver_ENDS_WITH: String
+  customResolver_EQ: String
   customResolver_IN: [String]
   customResolver_STARTS_WITH: String
-  typename_IN: [UserInterfaceImplementation!]
-}
-
-input UserOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more UserSort objects to sort Users by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [UserSort!]
+  typename: [UserInterfaceImplementation!]
 }
 
 "Fields to sort Users by. The order in which sorts are applied is not guaranteed when specifying many fields in one UserSort object."
@@ -131,19 +118,22 @@ input UserWhere {
   AND: [UserWhere!]
   NOT: UserWhere
   OR: [UserWhere!]
-  id: ID
+  id: ID @deprecated(reason : "Please use the explicit _EQ version")
   id_CONTAINS: ID
   id_ENDS_WITH: ID
+  id_EQ: ID
   id_IN: [ID!]
   id_STARTS_WITH: ID
-  password: String
+  password: String @deprecated(reason : "Please use the explicit _EQ version")
   password_CONTAINS: String
   password_ENDS_WITH: String
+  password_EQ: String
   password_IN: [String!]
   password_STARTS_WITH: String
-  username: String
+  username: String @deprecated(reason : "Please use the explicit _EQ version")
   username_CONTAINS: String
   username_ENDS_WITH: String
+  username_EQ: String
   username_IN: [String!]
   username_STARTS_WITH: String
 }

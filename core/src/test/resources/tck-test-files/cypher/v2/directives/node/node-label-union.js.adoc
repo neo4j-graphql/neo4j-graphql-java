@@ -27,10 +27,11 @@ type Movie @node(labels: ["Film"]) {
 [source,graphql,request=true]
 ----
 {
-  movies(where: {title: "some title"}) {
+  movies(where: {title_EQ: "some title"}) {
     search(
-      where: {Movie: {title: "The Matrix"}, Genre: {name: "Horror"}}
-      options: {offset: 1, limit: 10}
+      where: {Movie: {title_EQ: "The Matrix"}, Genre: {name_EQ: "Horror"}}
+      offset: 1
+      limit: 10
     ) {
       ... on Movie {
         title

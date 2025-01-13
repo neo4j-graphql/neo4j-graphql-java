@@ -12,6 +12,7 @@ import org.neo4j.graphql.translate.ProjectionTranslator
 import org.neo4j.graphql.translate.projection.projectScalarField
 import org.neo4j.graphql.translate.where.createConnectionWhere
 import org.neo4j.graphql.utils.ResolveTree
+import org.neo4j.graphql.utils.filterOnlyRequestedNodes
 
 fun createConnectionClause(
     resolveTree: ResolveTree,
@@ -53,7 +54,7 @@ fun createConnectionClause(
             val unionConnectionWhere = arguments.where as? ConnectionWhere.UnionConnectionWhere
             var nodes = union.nodes.values
             if (unionConnectionWhere != null) {
-                nodes = nodes.filter { !unionConnectionWhere.getDataForNode(it)?.predicates.isNullOrEmpty() }
+                nodes = filterOnlyRequestedNodes(nodes, unionConnectionWhere)
             }
             createConnectionClauseForMultipleNodes(
                 nodes,
@@ -158,7 +159,7 @@ private fun createConnectionClauseForSingleNode(
     val endNode =
         relatedNode.asCypherNode(queryContext, queryContext.getNextVariable(relatedNode))
 
-    val rel = relField.createQueryDslRelation(startNode, endNode, args.directed)
+    val rel = relField.createQueryDslRelation(startNode, endNode)
         .named(queryContext.getNextVariable(relField))
     val whereInput = when (args.where) {
         is ConnectionWhere.ImplementingTypeConnectionWhere<*> -> args.where
@@ -265,7 +266,7 @@ private fun createEdgeSubquery(
 
     val endNode = relatedNode.asCypherNode(queryContext, queryContext.getNextVariable(relatedNode))
 
-    val rel = relField.createQueryDslRelation(startNode, endNode, args.directed)
+    val rel = relField.createQueryDslRelation(startNode, endNode)
         .named(queryContext.getNextVariable(relField))
 
     val whereInput = when (args.where) {

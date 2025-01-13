@@ -1,15 +1,18 @@
 package org.neo4j.graphql.schema.model.inputs.options
 
-import org.neo4j.graphql.*
+import graphql.language.InputValueDefinition
+import org.neo4j.graphql.Constants
+import org.neo4j.graphql.List
+import org.neo4j.graphql.asRequiredType
 import org.neo4j.graphql.domain.Entity
 import org.neo4j.graphql.domain.FieldContainer
 import org.neo4j.graphql.domain.ImplementingType
-import org.neo4j.graphql.domain.Node
 import org.neo4j.graphql.domain.directives.ImplementingTypeAnnotations
 import org.neo4j.graphql.domain.directives.LimitDirective
 import org.neo4j.graphql.schema.AugmentationBase
 import org.neo4j.graphql.schema.AugmentationContext
 import org.neo4j.graphql.schema.model.inputs.Dict
+import org.neo4j.graphql.toDict
 import org.neo4j.graphql.utils.PagingUtils
 
 data class OptionsInput<SORT>(
@@ -70,6 +73,7 @@ data class OptionsInput<SORT>(
                 Constants.AFTER -> (map.nestedObject(offsetName) as? String)
                     ?.let { PagingUtils.getOffsetFromCursor(it) }
                     ?.let { it + 1 }
+
                 else -> map.nestedObject(offsetName) as? Int
             },
             if (sortFactory == null) emptyList() else map.nestedDictList(sortName).map { sortFactory(it) }
@@ -78,26 +82,27 @@ data class OptionsInput<SORT>(
 
     object Augmentation : AugmentationBase {
 
-        fun generateOptionsIT(implementingType: ImplementingType, ctx: AugmentationContext) =
-            ctx.getOrCreateInputObjectType(implementingType.namings.optionsInputTypeName) { fields, _ ->
-                fields += inputValue(Constants.LIMIT, Constants.Types.Int)
-                fields += inputValue(Constants.OFFSET, Constants.Types.Int)
+        fun generateOptionsArguments(
+            entity: Entity,
+            ctx: AugmentationContext
+        ): List<InputValueDefinition> {
+            val arguments = mutableListOf<InputValueDefinition>()
+
+            arguments += inputValue(Constants.LIMIT, Constants.Types.Int)
+            arguments += inputValue(Constants.OFFSET, Constants.Types.Int)
+
+            if (entity is ImplementingType) {
                 SortInput.Companion.Augmentation
-                    .generateSortIT(implementingType, ctx)
+                    .generateSortIT(entity, ctx)
                     ?.let {
-                        fields += inputValue(
-                            Constants.SORT,
-                            // TODO make all required, this is only for api alignment
-                            it.asType(required = implementingType is Node).List
-                        ) {
-                            description("Specify one or more ${implementingType.name}Sort objects to sort ${implementingType.pascalCasePlural} by. The sorts will be applied in the order in which they are arranged in the array.".asDescription())
+                        arguments += inputValue(Constants.SORT, it.asRequiredType().List) {
+                            // TODO add in typescript
+                            // description("Specify one or more ${entity.name}Sort objects to sort ${entity.pascalCasePlural} by. The sorts will be applied in the order in which they are arranged in the array.".asDescription())
                         }
                     }
-            } ?: throw IllegalStateException("at least the paging fields should be present")
+            }
+            return arguments
+        }
 
-        fun generateOptionsIT(entity: Entity, ctx: AugmentationContext): String = entity.extractOnTarget(
-            { generateOptionsIT(it, ctx) },
-            { Constants.Types.QueryOptions.name }
-        )
     }
 }

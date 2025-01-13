@@ -8,7 +8,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   id: ID
   title: String
 }
@@ -20,7 +20,7 @@ type Movie {
 [source,graphql,request=true]
 ----
 {
-  movies(where: {title: "River Runs Through It, A"}) {
+  movies(where: {title_EQ: "River Runs Through It, A"}) {
     title
   }
 }
@@ -50,7 +50,7 @@ RETURN this {
 [source,graphql,request=true]
 ----
 {
-  movies(where: {title: "River Runs Through It, A"}) {
+  movies(where: {title_EQ: "River Runs Through It, A"}) {
     id
     title
   }
@@ -82,7 +82,7 @@ RETURN this {
 [source,graphql,request=true]
 ----
 query ($title: String) {
-  movies(where: {title: $title}) {
+  movies(where: {title_EQ: $title}) {
     id
     title
   }

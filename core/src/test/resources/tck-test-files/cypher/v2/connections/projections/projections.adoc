@@ -10,17 +10,17 @@
 ----
 union Production = Movie | Series
 
-type Movie {
+type Movie @node {
   title: String!
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
 }
 
-type Series {
+type Series @node {
   title: String!
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
 }
 
-type Actor {
+type Actor @node {
   name: String!
   productions: [Production!]! @relationship(type: "ACTED_IN", direction: OUT)
 }
@@ -32,7 +32,7 @@ type Actor {
 [source,graphql,request=true]
 ----
 {
-  movies(where: {title: "Forrest Gump"}) {
+  movies(where: {title_EQ: "Forrest Gump"}) {
     title
     actorsConnection {
       totalCount
@@ -90,7 +90,7 @@ RETURN this {
 [source,graphql,request=true]
 ----
 {
-  movies(where: {title: "Forrest Gump"}) {
+  movies(where: {title_EQ: "Forrest Gump"}) {
     title
     actorsConnection {
       pageInfo {
@@ -153,7 +153,7 @@ RETURN this {
 [source,graphql,request=true]
 ----
 {
-  movies(where: {title: "Forrest Gump"}) {
+  movies(where: {title_EQ: "Forrest Gump"}) {
     title
     actorsConnection(first: 5) {
       totalCount
@@ -212,7 +212,7 @@ RETURN this {
 [source,graphql,request=true]
 ----
 {
-  actors(where: {name: "Tom Hanks"}) {
+  actors(where: {name_EQ: "Tom Hanks"}) {
     name
     productionsConnection {
       totalCount
@@ -275,7 +275,7 @@ RETURN this {
 [source,graphql,request=true]
 ----
 {
-  actors(where: {name: "Tom Hanks"}) {
+  actors(where: {name_EQ: "Tom Hanks"}) {
     name
     productionsConnection {
       pageInfo {
@@ -343,7 +343,7 @@ RETURN this {
 [source,graphql,request=true]
 ----
 {
-  movies(where: {title: "Forrest Gump"}) {
+  movies(where: {title_EQ: "Forrest Gump"}) {
     title
     actorsConnection {
       totalCount
@@ -406,7 +406,7 @@ RETURN this {
 [source,graphql,request=true]
 ----
 {
-  movies(where: {title: "Forrest Gump"}) {
+  movies(where: {title_EQ: "Forrest Gump"}) {
     title
     actorsConnection(first: 5) {
       totalCount

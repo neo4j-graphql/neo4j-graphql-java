@@ -8,13 +8,13 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Group {
+type Group @node {
   name: String
   hasGroupUser: [User!]! @relationship(type: "HAS_GROUP", direction: IN)
   hasRequiredGroupUser: [User!]! @relationship(type: "HAS_REQUIRED_GROUP", direction: IN)
 }
 
-type User {
+type User @node {
   name: String
   hasGroup: Group @relationship(type: "HAS_GROUP", direction: OUT)
   hasRequiredGroup: Group! @relationship(type: "HAS_REQUIRED_GROUP", direction: OUT)
@@ -81,6 +81,78 @@ MATCH (this:User)
 WHERE EXISTS {
 	MATCH (this)-[:HAS_REQUIRED_GROUP]->(this0:Group)
 	WHERE this0.name IN $param0
+}
+RETURN this {
+	.name
+} AS this
+----
+
+== should query nested required relationship
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+query Query {
+  groups(where: {hasGroupUser_SOME: {hasRequiredGroup: {name_IN: ["Group A"]}}}) {
+    name
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : [ "Group A" ]
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Group)
+WHERE EXISTS {
+	MATCH (this0:User)-[:HAS_GROUP]->(this)
+	WHERE EXISTS {
+		MATCH (this0)-[:HAS_REQUIRED_GROUP]->(this00:Group)
+		WHERE this00.name IN $param0
+	}
+}
+RETURN this {
+	.name
+} AS this
+----
+
+== should query nested relationship
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+query Query {
+  groups(where: {hasGroupUser_SOME: {hasGroup: {name_IN: ["Group A"]}}}) {
+    name
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : [ "Group A" ]
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Group)
+WHERE EXISTS {
+	MATCH (this0:User)-[:HAS_GROUP]->(this)
+	WHERE EXISTS {
+		MATCH (this0)-[:HAS_GROUP]->(this00:Group)
+		WHERE this00.name IN $param0
+	}
 }
 RETURN this {
 	.name

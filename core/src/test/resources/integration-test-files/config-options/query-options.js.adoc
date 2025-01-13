@@ -9,12 +9,12 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Actor {
+type Actor @node {
   name: String
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: IN)
 }
 
-type Movie {
+type Movie @node {
   id: ID!
   title: String!
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: OUT)
@@ -33,7 +33,7 @@ CREATE (:Movie {id: "RandomString1"}), (:Movie {id: "RandomString1"}), (:Movie {
 [source,graphql,request=true]
 ----
 query ($id: ID) {
-  movies(where: {id: $id}) {
+  movies(where: {id_EQ: $id}) {
     id
   }
 }

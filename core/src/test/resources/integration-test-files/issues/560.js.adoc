@@ -9,7 +9,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Log {
+type Log @node {
   id: ID!
   location: Point
 }
@@ -48,10 +48,7 @@ CREATE (j:Log { id: "RandomString1" })
 [source,cypher]
 ----
 MATCH (this:Log)
-RETURN this { .id, location: CASE
-    WHEN this.location IS NOT NULL THEN { point: this.location, crs: this.location.crs }
-    ELSE NULL
-END } AS this
+RETURN this { .id, .location } AS this
 ----
 
 .GraphQL-Response
@@ -72,7 +69,7 @@ END } AS this
 .Schema
 [source,graphql,schema=true]
 ----
-type Log {
+type Log @node {
   id: ID!
   location: CartesianPoint
 }
@@ -111,10 +108,7 @@ CREATE (j:Log { id: "RandomString1" })
 [source,cypher]
 ----
 MATCH (this:Log)
-RETURN this { .id, location: CASE
-    WHEN this.location IS NOT NULL THEN { point: this.location, crs: this.location.crs }
-    ELSE NULL
-END } AS this
+RETURN this { .id, .location } AS this
 ----
 
 .GraphQL-Response

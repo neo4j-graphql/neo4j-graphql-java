@@ -17,6 +17,7 @@ import org.neo4j.graphql.translate.projection.projectScalarField
 import org.neo4j.graphql.translate.where.createWhere
 import org.neo4j.graphql.utils.ResolveTree
 import org.neo4j.graphql.utils.SelectionOfType
+import org.neo4j.graphql.utils.filterOnlyRequestedNodes
 
 class ProjectionTranslator {
 
@@ -85,15 +86,14 @@ class ProjectionTranslator {
 
                     var referenceNodes = requireNotNull(nodeField.union).nodes.values
                     if (unionWhere != null) {
-                        referenceNodes =
-                            referenceNodes.filter { !unionWhere.getDataForNode(it)?.predicates.isNullOrEmpty() }
+                        referenceNodes = filterOnlyRequestedNodes(referenceNodes, unionWhere)
                     }
                     val aliasVar = queryContext.getNextVariable(alias)
 
                     val unionSubQueries = referenceNodes.map { refNode ->
                         val endNode = refNode.asCypherNode(queryContext, queryContext.getNextVariable(refNode))
                         val nodeResult = endNode.requiredSymbolicName
-                        val rel = nodeField.createQueryDslRelation(varName, endNode, arguments.directed)
+                        val rel = nodeField.createQueryDslRelation(varName, endNode)
                             .named(queryContext.getNextVariable(nodeField))
 
                         val whereInput = arguments.where as WhereInput.UnionWhereInput?
@@ -148,7 +148,7 @@ class ProjectionTranslator {
 
                     val endNode =
                         referenceNode!!.asCypherNode(queryContext, queryContext.getNextVariable(referenceNode))
-                    val rel = nodeField.createQueryDslRelation(varName, endNode, arguments.directed)
+                    val rel = nodeField.createQueryDslRelation(varName, endNode)
                         .named(queryContext.getNextVariable(nodeField))
 
                     //TODO harmonize with union?

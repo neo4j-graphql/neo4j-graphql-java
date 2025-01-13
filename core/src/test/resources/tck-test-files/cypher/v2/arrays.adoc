@@ -8,7 +8,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   title: String!
   ratings: [Float!]!
 }
@@ -31,7 +31,7 @@ type Movie {
 [source,json]
 ----
 {
-  "param0" : 4
+  "param0" : 4.0
 }
 ----
 

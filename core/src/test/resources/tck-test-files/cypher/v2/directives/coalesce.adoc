@@ -13,7 +13,7 @@ enum Status {
   INACTIVE
 }
 
-type Movie {
+type Movie @node {
   id: ID
   status: Status @coalesce(value: ACTIVE)
 }
@@ -37,7 +37,7 @@ type Movie {
 [source,graphql,request=true]
 ----
 {
-  movies(where: {status: ACTIVE}) {
+  movies(where: {status_EQ: ACTIVE}) {
     id
     status
   }
@@ -73,12 +73,12 @@ enum Status {
   INACTIVE
 }
 
-type Movie {
+type Movie @node {
   id: ID
   status: Status @coalesce(value: ACTIVE)
 }
 
-type Actor {
+type Actor @node {
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
 }
 ----
@@ -102,7 +102,7 @@ type Actor {
 ----
 query Actors {
   actors {
-    moviesConnection(where: {node: {status: ACTIVE}}) {
+    moviesConnection(where: {node: {status_EQ: ACTIVE}}) {
       edges {
         node {
           id
@@ -167,12 +167,12 @@ enum Status {
   INACTIVE
 }
 
-type Movie {
+type Movie @node {
   id: ID
   statuses: [Status!]! @coalesce(value: [ACTIVE, INACTIVE])
 }
 
-type Actor {
+type Actor @node {
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
 }
 ----
@@ -182,7 +182,7 @@ type Actor {
 ----
 query Actors {
   actors {
-    moviesConnection(where: {node: {statuses: [ACTIVE, INACTIVE]}}) {
+    moviesConnection(where: {node: {statuses_EQ: [ACTIVE, INACTIVE]}}) {
       edges {
         node {
           id
@@ -234,5 +234,96 @@ CALL {
 }
 RETURN this {
 	moviesConnection: moviesConnection
+} AS this
+----
+
+== Simple coalesce
+
+.Schema
+[source,graphql,schema=true]
+----
+interface UserInterface {
+  fromInterface: String!
+  toBeOverridden: String!
+}
+
+type User implements UserInterface @node {
+  id: ID! @coalesce(value: "00000000-00000000-00000000-00000000")
+  name: String! @coalesce(value: "Jane Smith")
+  verified: Boolean! @coalesce(value: false)
+  numberOfFriends: Int! @coalesce(value: 0)
+  rating: Float! @coalesce(value: 2.5)
+  fromInterface: String!
+  toBeOverridden: String! @coalesce(value: "Overridden")
+}
+----
+
+.Configuration
+[source,json,schema-config=true]
+----
+{
+  "features" : {
+    "filters" : {
+      "String" : {
+        "MATCHES" : true
+      }
+    }
+  }
+}
+----
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+query ($id: ID, $name: String, $verified: Boolean, $numberOfFriends: Int, $rating: Float, $fromInterface: String, $toBeOverridden: String) {
+  users(
+    where: {id_EQ: $id, name_MATCHES: $name, NOT: {verified_EQ: $verified}, numberOfFriends_GT: $numberOfFriends, rating_LT: $rating, fromInterface_EQ: $fromInterface, toBeOverridden_EQ: $toBeOverridden}
+  ) {
+    name
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "fromInterface" : "Some string",
+  "id" : "Some ID",
+  "name" : "Some name",
+  "numberOfFriends" : 10,
+  "rating" : 3.5,
+  "toBeOverridden" : "Some string",
+  "verified" : true
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : true,
+  "param1" : "Some ID",
+  "param2" : "Some name",
+  "param3" : 10,
+  "param4" : 3.5,
+  "param5" : "Some string",
+  "param6" : "Some string"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:User)
+WHERE (NOT (coalesce(this.verified, false) = $param0)
+	AND coalesce(this.id, '00000000-00000000-00000000-00000000') = $param1
+	AND coalesce(this.name, 'Jane Smith') =~ $param2
+	AND coalesce(this.numberOfFriends, 0) > $param3
+	AND coalesce(this.rating, 2.5) < $param4
+	AND this.fromInterface = $param5
+	AND coalesce(this.toBeOverridden, 'Overridden') = $param6)
+RETURN this {
+	.name
 } AS this
 ----

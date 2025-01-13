@@ -9,12 +9,12 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Actor {
+type Actor @node {
   name: String
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: IN)
 }
 
-type Movie {
+type Movie @node {
   id: ID!
   title: String!
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: OUT)
@@ -31,7 +31,7 @@ CREATE (:Movie {id: "RandomString1"}), (:Movie {id: "RandomString1"}), (:Movie {
 [source,graphql,request=true]
 ----
 query ($id: ID) {
-  movies(where: {id: $id}) {
+  movies(where: {id_EQ: $id}) {
     id
   }
 }
@@ -84,12 +84,12 @@ RETURN this { .id } AS this
 .Schema
 [source,graphql,schema=true]
 ----
-type Actor {
+type Actor @node {
   name: String
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: IN)
 }
 
-type Movie {
+type Movie @node {
   id: ID!
   title: String!
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: OUT)
@@ -106,7 +106,7 @@ CREATE (:Movie {id: "RandomString1"}), (:Movie {id: "RandomString1"}), (:Movie {
 [source,graphql,request=true]
 ----
 query ($id: ID) {
-  movies(where: {id: $id}, options: {limit: 2}) {
+  movies(where: {id_EQ: $id}, limit: 2) {
     id
   }
 }
@@ -160,12 +160,12 @@ RETURN this { .id } AS this
 .Schema
 [source,graphql,schema=true]
 ----
-type Actor {
+type Actor @node {
   name: String
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: IN)
 }
 
-type Movie {
+type Movie @node {
   id: ID!
   title: String!
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: OUT)
@@ -226,13 +226,13 @@ RETURN this { .id } AS this
 {
   "movies": [
     {
+      "id": "RandomString3"
+    },
+    {
       "id": "RandomString1"
     },
     {
       "id": "RandomString2"
-    },
-    {
-      "id": "RandomString3"
     }
   ]
 }
@@ -243,12 +243,12 @@ RETURN this { .id } AS this
 .Schema
 [source,graphql,schema=true]
 ----
-type Actor {
+type Actor @node {
   name: String
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: IN)
 }
 
-type Movie {
+type Movie @node {
   id: ID!
   title: String!
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: OUT)
@@ -265,7 +265,7 @@ CREATE (:User {id: "RandomString1", title: "RandomString4"}), (:User {id: "Rando
 [source,graphql,request=true]
 ----
 query ($ids: [ID!], $title: String) {
-  movies(where: {id_IN: $ids, title: $title}) {
+  movies(where: {id_IN: $ids, title_EQ: $title}) {
     id
     title
   }
@@ -319,12 +319,12 @@ RETURN this { .id, .title } AS this
 .Schema
 [source,graphql,schema=true]
 ----
-type Actor {
+type Actor @node {
   id: ID!
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: IN)
 }
 
-type Movie {
+type Movie @node {
   id: ID!
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: OUT)
 }
@@ -424,6 +424,24 @@ RETURN this { .id, actors: var8 } AS this
 {
   "movies": [
     {
+      "id": "RandomString2",
+      "actors": [
+        {
+          "id": "RandomString5",
+          "movies": [
+            {
+              "id": "RandomString2",
+              "actors": [
+                {
+                  "id": "RandomString5"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
       "id": "RandomString3",
       "actors": [
         {
@@ -458,24 +476,6 @@ RETURN this { .id, actors: var8 } AS this
           ]
         }
       ]
-    },
-    {
-      "id": "RandomString2",
-      "actors": [
-        {
-          "id": "RandomString5",
-          "movies": [
-            {
-              "id": "RandomString2",
-              "actors": [
-                {
-                  "id": "RandomString5"
-                }
-              ]
-            }
-          ]
-        }
-      ]
     }
   ]
 }
@@ -486,12 +486,12 @@ RETURN this { .id, actors: var8 } AS this
 .Schema
 [source,graphql,schema=true]
 ----
-type Actor {
+type Actor @node {
   name: String
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: IN)
 }
 
-type Movie {
+type Movie @node {
   id: ID!
   title: String!
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: OUT)
@@ -523,8 +523,8 @@ query ($movieWhere: MovieWhere) {
   "movieWhere": {
     "OR": [
       {
-        "title": "RandomString2",
-        "id": "RandomString1"
+        "title_EQ": "RandomString2",
+        "id_EQ": "RandomString1"
       }
     ]
   }

@@ -13,13 +13,13 @@ interface Production {
   title: String
 }
 
-type Movie implements Production {
+type Movie implements Production @node {
   id: ID
   title: String
   genres: [Genre!]! @relationship(type: "HAS_GENRE", direction: OUT)
 }
 
-type Genre {
+type Genre @node {
   name: String
   movies: [Production!]! @relationship(type: "HAS_GENRE", direction: IN)
 }
@@ -39,7 +39,7 @@ CREATE (c:Movie { id: "1", title: "Matrix" })-[:HAS_GENRE]->(:Genre { id: "10", 
 [source,graphql,request=true]
 ----
 query Genres {
-  genres(where: {moviesConnection_SOME: {node: {title: "Matrix"}}}) {
+  genres(where: {moviesConnection_SOME: {node: {title_EQ: "Matrix"}}}) {
     name
   }
 }
@@ -58,7 +58,7 @@ query Genres {
 ----
 MATCH (this:Genre)
 WHERE EXISTS {
-	MATCH (this0)-[edge:HAS_GENRE]->(this)
+	MATCH (this0)-[edge0:HAS_GENRE]->(this)
 	WHERE (this0.title = $param0
 		AND this0:Movie)
 }

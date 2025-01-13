@@ -9,13 +9,13 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Person {
+type Person @node {
   name: String!
   age: Int!
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: IN)
 }
 
-type Movie {
+type Movie @node {
   title: String!
   released: Int!
   actors: [Person!]! @relationship(type: "ACTED_IN", direction: OUT)
@@ -38,7 +38,7 @@ CREATE (:Movie {title: "The Matrix", released: 1999})
 ----
 {
   movies(
-    where: {OR: [{title: "The Italian Job", released: 2003}, {title: "The Lion King"}]}
+    where: {OR: [{title_EQ: "The Italian Job", released_EQ: 2003}, {title_EQ: "The Lion King"}]}
   ) {
     title
     released

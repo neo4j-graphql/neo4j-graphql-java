@@ -8,7 +8,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Log {
+type Log @node {
   id: ID!
   location: Point
 }
@@ -75,7 +75,7 @@ RETURN this {
 .Schema
 [source,graphql,schema=true]
 ----
-type Log {
+type Log @node {
   id: ID!
   location: CartesianPoint
 }

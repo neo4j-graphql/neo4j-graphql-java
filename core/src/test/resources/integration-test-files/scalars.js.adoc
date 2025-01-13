@@ -9,7 +9,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   id: ID
 }
 ----
@@ -25,7 +25,7 @@ CREATE (m:Movie {id: "42"})
 [source,graphql,request=true]
 ----
 {
-  movies(where: {id: 42}) {
+  movies(where: {id_EQ: 42}) {
     id
   }
 }

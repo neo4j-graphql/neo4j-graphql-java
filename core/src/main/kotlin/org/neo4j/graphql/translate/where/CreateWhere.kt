@@ -70,7 +70,7 @@ fun createWhere(
             }
 
             if (field is RelationField) {
-                val relation = field.createDslRelation(propertyContainer, endNode)
+                val relation = field.createQueryDslRelation(propertyContainer, endNode)
                 val cond = op.createRelationCondition(relation, nestedCondition)
 
                 val condition = cond.let {
@@ -79,7 +79,13 @@ fun createWhere(
                 allConditions = when (op) {
                     RelationOperator.SOME -> allConditions or condition
                     RelationOperator.SINGLE -> allConditions xor condition
-                    else -> allConditions and condition
+                    RelationOperator.ALL -> allConditions and condition
+                    RelationOperator.NONE -> allConditions and condition
+                    RelationOperator.EQUAL -> if (where is WhereInput.InterfaceWhereInput)
+                        // relation matches if any of the interfaces' implementations match
+                        allConditions or condition
+                    else
+                        allConditions and condition
                 }
             } else {
                 TODO()
@@ -100,32 +106,33 @@ fun createWhere(
         val relationField = field.relationshipField
 
         val nodeEntries = when (where) {
-            is ConnectionWhere.UnionConnectionWhere -> where.dataPerNode.mapKeys { propertyContainer.name() }
-            is ConnectionWhere.ImplementingTypeConnectionWhere<*> ->
-                // TODO can we use the name somehow else
-                mapOf(relationField.type.name() to where)
-
+            is ConnectionWhere.UnionConnectionWhere -> where.dataPerNode.values
+            is ConnectionWhere.ImplementingTypeConnectionWhere<*> -> where.wrapList()
             else -> throw IllegalStateException("Unsupported where type")
         }
         var result: Condition? = null
 
         val subQueries = mutableListOf<Statement>()
-        nodeEntries.forEach { (nodeName, whereInput) ->
+        nodeEntries.forEach { whereInput ->
 
             val implementingType: ImplementingType
             val endNode: Node
-            if (whereInput is ConnectionWhere.InterfaceConnectionWhere) {
-                implementingType = whereInput.interfaze
-                endNode = Cypher.anyNode(queryContext.getNextVariable(propertyContainer.name()))
-            } else {
-                implementingType = relationField.getNode(nodeName)
-                    ?: throw IllegalArgumentException("Cannot find referenced node $nodeName")
-                endNode =
-                    implementingType.asCypherNode(queryContext)
-                        .named(queryContext.getNextVariable(propertyContainer.name()))
+            when (whereInput) {
+                is ConnectionWhere.InterfaceConnectionWhere -> {
+                    implementingType = whereInput.interfaze
+                    endNode = Cypher.anyNode(queryContext.getNextVariable(propertyContainer.name()))
+                }
+
+                is ConnectionWhere.NodeConnectionWhere -> {
+                    implementingType = whereInput.node
+                    endNode =
+                        implementingType.asCypherNode(queryContext)
+                            .named(queryContext.getNextVariable(propertyContainer.name()))
+                }
             }
 
-            val relation = relationField.createDslRelation(propertyContainer, endNode).named("edge")
+            val relation = relationField.createQueryDslRelation(propertyContainer, endNode)
+                .named(queryContext.getNextVariable("edge"))
 
             var (nestedCondition, preComputedSubQueries) = createConnectionWhere(
                 whereInput,

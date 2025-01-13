@@ -8,7 +8,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   id: ID!
   classification: String @coalesce(value: "Unrated")
 }
@@ -24,7 +24,7 @@ CREATE (:Movie {id: "RandomString1"})
 [source,graphql,request=true]
 ----
 {
-  movies(where: {classification: "Unrated"}) {
+  movies(where: {classification_EQ: "Unrated"}) {
     id
     classification
   }
@@ -71,7 +71,7 @@ enum Status {
   INACTIVE
 }
 
-type Movie {
+type Movie @node {
   id: ID
   status: Status @coalesce(value: ACTIVE)
 }
@@ -87,7 +87,7 @@ CREATE (:Movie {id: "RandomString1"})
 [source,graphql,request=true]
 ----
 {
-  movies(where: {status: ACTIVE}) {
+  movies(where: {status_EQ: ACTIVE}) {
     id
     status
   }
@@ -134,7 +134,7 @@ enum Status {
   INACTIVE
 }
 
-type Movie {
+type Movie @node {
   id: ID
   statuses: [Status!] @coalesce(value: [ACTIVE, INACTIVE])
 }
@@ -150,7 +150,7 @@ CREATE (:Movie {id: "RandomString1"})
 [source,graphql,request=true]
 ----
 {
-  movies(where: {statuses: [ACTIVE, INACTIVE]}) {
+  movies(where: {statuses_EQ: [ACTIVE, INACTIVE]}) {
     id
     statuses
   }

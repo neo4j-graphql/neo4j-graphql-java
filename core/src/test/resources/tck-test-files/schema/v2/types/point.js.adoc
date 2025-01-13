@@ -9,7 +9,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   filmedAt: Point!
 }
 ----
@@ -30,15 +30,6 @@ type MovieEdge {
   node: Movie!
 }
 
-input MovieOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [MovieSort!]
-}
-
 """
 Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object.
 """
@@ -50,8 +41,9 @@ input MovieWhere {
   AND: [MovieWhere!]
   NOT: MovieWhere
   OR: [MovieWhere!]
-  filmedAt: PointInput
+  filmedAt: PointInput @deprecated(reason: "Please use the explicit _EQ version")
   filmedAt_DISTANCE: PointDistance
+  filmedAt_EQ: PointInput
   filmedAt_GT: PointDistance
   filmedAt_GTE: PointDistance
   filmedAt_IN: [PointInput!]
@@ -132,8 +124,8 @@ input PointInput {
 }
 
 type Query {
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
 }
 
 """An enum for sorting in either ascending or descending order."""
@@ -150,7 +142,7 @@ enum SortDirection {
 .Schema
 [source,graphql,schema=true]
 ----
-type Machine {
+type Machine @node {
   partLocation: CartesianPoint!
 }
 ----
@@ -208,15 +200,6 @@ type MachineEdge {
   node: Machine!
 }
 
-input MachineOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more MachineSort objects to sort Machines by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [MachineSort!]
-}
-
 """
 Fields to sort Machines by. The order in which sorts are applied is not guaranteed when specifying many fields in one MachineSort object.
 """
@@ -228,8 +211,9 @@ input MachineWhere {
   AND: [MachineWhere!]
   NOT: MachineWhere
   OR: [MachineWhere!]
-  partLocation: CartesianPointInput
+  partLocation: CartesianPointInput @deprecated(reason: "Please use the explicit _EQ version")
   partLocation_DISTANCE: CartesianPointDistance
+  partLocation_EQ: CartesianPointInput
   partLocation_GT: CartesianPointDistance
   partLocation_GTE: CartesianPointDistance
   partLocation_IN: [CartesianPointInput!]
@@ -252,8 +236,8 @@ type PageInfo {
 }
 
 type Query {
-  machines(options: MachineOptions, where: MachineWhere): [Machine!]!
-  machinesConnection(after: String, first: Int, sort: [MachineSort], where: MachineWhere): MachinesConnection!
+  machines(limit: Int, offset: Int, sort: [MachineSort!], where: MachineWhere): [Machine!]!
+  machinesConnection(after: String, first: Int, sort: [MachineSort!], where: MachineWhere): MachinesConnection!
 }
 
 """An enum for sorting in either ascending or descending order."""
@@ -270,7 +254,7 @@ enum SortDirection {
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   filmedAt: [Point!]!
 }
 ----
@@ -291,16 +275,12 @@ type MovieEdge {
   node: Movie!
 }
 
-input MovieOptions {
-  limit: Int
-  offset: Int
-}
-
 input MovieWhere {
   AND: [MovieWhere!]
   NOT: MovieWhere
   OR: [MovieWhere!]
-  filmedAt: [PointInput!]
+  filmedAt: [PointInput!] @deprecated(reason: "Please use the explicit _EQ version")
+  filmedAt_EQ: [PointInput!]
   filmedAt_INCLUDES: PointInput
 }
 
@@ -370,7 +350,7 @@ input PointInput {
 }
 
 type Query {
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
+  movies(limit: Int, offset: Int, where: MovieWhere): [Movie!]!
   moviesConnection(after: String, first: Int, where: MovieWhere): MoviesConnection!
 }
 ----
@@ -380,7 +360,7 @@ type Query {
 .Schema
 [source,graphql,schema=true]
 ----
-type Machine {
+type Machine @node {
   partLocations: [CartesianPoint!]!
 }
 ----
@@ -432,16 +412,12 @@ type MachineEdge {
   node: Machine!
 }
 
-input MachineOptions {
-  limit: Int
-  offset: Int
-}
-
 input MachineWhere {
   AND: [MachineWhere!]
   NOT: MachineWhere
   OR: [MachineWhere!]
-  partLocations: [CartesianPointInput!]
+  partLocations: [CartesianPointInput!] @deprecated(reason: "Please use the explicit _EQ version")
+  partLocations_EQ: [CartesianPointInput!]
   partLocations_INCLUDES: CartesianPointInput
 }
 
@@ -460,7 +436,7 @@ type PageInfo {
 }
 
 type Query {
-  machines(options: MachineOptions, where: MachineWhere): [Machine!]!
+  machines(limit: Int, offset: Int, where: MachineWhere): [Machine!]!
   machinesConnection(after: String, first: Int, where: MachineWhere): MachinesConnection!
 }
 ----

@@ -10,7 +10,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   property: ID
 }
 ----
@@ -123,6 +123,53 @@ RETURN this {
 }
 ----
 
+=== should find Movies NOT string
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (:Movie {property: "RandomString1"})
+ CREATE (:Movie {property: "RandomString2"})
+----
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies(where: {NOT: {property_EQ: "RandomString2"}}) {
+    property
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "RandomString2"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE NOT (this.property = $param0)
+RETURN this {
+	.property
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies" : [ {
+    "property" : "RandomString1"
+  } ]
+}
+----
+
 === should find Movies CONTAINS string
 
 .Test Data
@@ -284,7 +331,7 @@ RETURN this {
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   property: String
 }
 ----
@@ -397,6 +444,53 @@ RETURN this {
 }
 ----
 
+=== should find Movies NOT string
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (:Movie {property: "RandomString1"})
+ CREATE (:Movie {property: "RandomString2"})
+----
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies(where: {NOT: {property_EQ: "RandomString2"}}) {
+    property
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "RandomString2"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE NOT (this.property = $param0)
+RETURN this {
+	.property
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies" : [ {
+    "property" : "RandomString1"
+  } ]
+}
+----
+
 === should find Movies CONTAINS string
 
 .Test Data
@@ -558,7 +652,7 @@ RETURN this {
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   title: String
 }
 ----
@@ -577,6 +671,104 @@ type Movie {
       }
     }
   }
+}
+----
+
+=== should find Movies EQ string
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (:Movie {title: "The Animatrix"})
+ CREATE (:Movie {title: "The Matrix"})
+ CREATE (:Movie {title: "The Matrix Reloaded"})
+ CREATE (:Movie {title: "The Matrix Revolutions"})
+----
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies(where: {title_EQ: "The Matrix"}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "The Matrix"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+RETURN this {
+	.title
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies" : [ {
+    "title" : "The Matrix"
+  } ]
+}
+----
+
+=== should find Movies implicit EQ string
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (:Movie {title: "The Animatrix"})
+ CREATE (:Movie {title: "The Matrix"})
+ CREATE (:Movie {title: "The Matrix Reloaded"})
+ CREATE (:Movie {title: "The Matrix Revolutions"})
+----
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies(where: {title_EQ: "The Matrix"}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "The Matrix"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+RETURN this {
+	.title
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies" : [ {
+    "title" : "The Matrix"
+  } ]
 }
 ----
 
@@ -793,16 +985,6 @@ RETURN this {
 ----
 
 == Int Filtering
-
-=== Setup
-
-.Schema
-[source,graphql,schema=true]
-----
-type Movie {
-  property: Int
-}
-----
 
 === should find Movies IN numbers
 
@@ -1042,6 +1224,63 @@ RETURN this {
 }
 ----
 
+=== should find Movies NOT number
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies(where: {NOT: {property_EQ: 84}}) {
+    property
+  }
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE NOT (this.property = $param0)
+RETURN this {
+	.property
+} AS this
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 84
+}
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies" : [ {
+    "property" : 42
+  } ]
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (:Movie {property: 42})
+ CREATE (:Movie {property: 84})
+----
+
+=== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+type Movie @node {
+  property: Int
+}
+----
+
 == Float Filtering
 
 === Setup
@@ -1049,8 +1288,55 @@ RETURN this {
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   property: Float
+}
+----
+
+=== should find Movies NOT number
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (:Movie {property: 4.2})
+ CREATE (:Movie {property: 8.4})
+----
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies(where: {NOT: {property_EQ: 8.4}}) {
+    property
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 8.4
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE NOT (this.property = $param0)
+RETURN this {
+	.property
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies" : [ {
+    "property" : 4.2
+  } ]
 }
 ----
 
@@ -1123,7 +1409,7 @@ CREATE (:Movie {property: 4.2})
 [source,json]
 ----
 {
-  "param0" : 0
+  "param0" : 0.0
 }
 ----
 
@@ -1299,7 +1585,7 @@ RETURN this {
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   property: Boolean
 }
 ----
@@ -1316,7 +1602,7 @@ CREATE (:Movie {property: false})
 [source,graphql,request=true]
 ----
 {
-  movies(where: {property: false}) {
+  movies(where: {property_EQ: false}) {
     property
   }
 }
@@ -1346,6 +1632,697 @@ RETURN this {
 {
   "movies" : [ {
     "property" : false
+  } ]
+}
+----
+
+=== should find Movies NOT boolean
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies(where: {NOT: {property_EQ: false}}) {
+    property
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : false
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE NOT (this.property = $param0)
+RETURN this {
+	.property
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies" : [ ]
+}
+----
+
+== NULL Filtering
+
+=== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+type Movie @node {
+  id: String!
+  optional: String
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (:Movie {id: "RandomString1"})
+ CREATE (:Movie {id: "RandomString2", optional: "RandomString3"})
+----
+
+=== should work for non-existence
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies(where: {optional_EQ: null}) {
+    id
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.optional IS NULL
+RETURN this {
+	.id
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies" : [ {
+    "id" : "RandomString1"
+  } ]
+}
+----
+
+=== should work for existence
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies(where: {NOT: {optional_EQ: null}}) {
+    id
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.optional IS NOT NULL
+RETURN this {
+	.id
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies" : [ {
+    "id" : "RandomString2"
+  } ]
+}
+----
+
+== Relationship/Connection Filtering
+
+=== equality
+
+==== should find using relationship equality on node
+
+.Schema
+[source,graphql,schema=true]
+----
+type Movie @node {
+  id: ID
+  genres: [Genre!]! @relationship(type: "IN_GENRE", direction: OUT)
+}
+
+type Genre @node {
+  id: ID
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (root:Movie {id: "RandomString1"})
+ CREATE (:Movie {id: "RandomString3"})
+ CREATE (relation:Genre {id: "RandomString2"})
+ CREATE (:Genre {id: "RandomString3"})
+ MERGE (root)-[:IN_GENRE]->(relation)
+----
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies(where: {genres_SOME: {id_EQ: "RandomString2"}}) {
+    id
+    genres {
+      id
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "RandomString2"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE EXISTS {
+	MATCH (this)-[:IN_GENRE]->(this0:Genre)
+	WHERE this0.id = $param0
+}
+CALL {
+	WITH this
+	MATCH (this)-[inGenre0:IN_GENRE]->(genre0:Genre)
+	WITH genre0 {
+		.id
+	} AS genres
+	RETURN collect(genres) AS genres
+}
+RETURN this {
+	.id,
+	genres: genres
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies" : [ {
+    "id" : "RandomString1",
+    "genres" : [ {
+      "id" : "RandomString2"
+    } ]
+  } ]
+}
+----
+
+==== should find using equality on node using connection
+
+.Schema
+[source,graphql,schema=true]
+----
+type Movie @node {
+  id: ID
+  genres: [Genre!]! @relationship(type: "IN_GENRE", direction: OUT)
+}
+
+type Genre @node {
+  id: ID
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (:Movie {id: "RandomString1"})-[:IN_GENRE]->(:Genre {id:"RandomString2"})
+----
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies(where: {genresConnection_SOME: {node: {id_EQ: "RandomString2"}}}) {
+    id
+    genres {
+      id
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "RandomString2"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE EXISTS {
+	MATCH (this)-[edge0:IN_GENRE]->(this0:Genre)
+	WHERE this0.id = $param0
+}
+CALL {
+	WITH this
+	MATCH (this)-[inGenre0:IN_GENRE]->(genre0:Genre)
+	WITH genre0 {
+		.id
+	} AS genres
+	RETURN collect(genres) AS genres
+}
+RETURN this {
+	.id,
+	genres: genres
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies" : [ {
+    "id" : "RandomString1",
+    "genres" : [ {
+      "id" : "RandomString2"
+    } ]
+  } ]
+}
+----
+
+==== should find using equality on relationship using connection
+
+.Schema
+[source,graphql,schema=true]
+----
+type Movie @node {
+  id: ID
+  genres: [Genre!]! @relationship(type: "IN_GENRE", direction: OUT, properties: "ActedIn")
+}
+
+type Genre @node {
+  id: ID
+}
+
+type ActedIn @relationshipProperties {
+  id: String
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (movie:Movie {id: "RandomString1"})-[:IN_GENRE {id:"RandomString3"}]->(:Genre {id:"RandomString2"})
+----
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies(where: {genresConnection_SOME: {edge: {id_EQ: "RandomString3"}}}) {
+    id
+    genres {
+      id
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "RandomString3"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE EXISTS {
+	MATCH (this)-[edge0:IN_GENRE]->(this0:Genre)
+	WHERE edge0.id = $param0
+}
+CALL {
+	WITH this
+	MATCH (this)-[inGenre0:IN_GENRE]->(genre0:Genre)
+	WITH genre0 {
+		.id
+	} AS genres
+	RETURN collect(genres) AS genres
+}
+RETURN this {
+	.id,
+	genres: genres
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies" : [ {
+    "id" : "RandomString1",
+    "genres" : [ {
+      "id" : "RandomString2"
+    } ]
+  } ]
+}
+----
+
+==== should find relationship and node property equality using connection
+
+.Schema
+[source,graphql,schema=true]
+----
+type Movie @node {
+  id: ID
+  genres: [Genre!]! @relationship(type: "IN_GENRE", direction: OUT, properties: "ActedIn")
+}
+
+type Genre @node {
+  id: ID
+}
+
+type ActedIn @relationshipProperties {
+  id: String
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (:Movie {id: "RandomString1"})-[:IN_GENRE {id:"RandomString3"}]->(:Genre {id:"RandomString2"})
+----
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies(
+    where: {genresConnection_SOME: {node: {id_EQ: "RandomString2"}, edge: {id_EQ: "RandomString3"}}}
+  ) {
+    id
+    genres {
+      id
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "RandomString2",
+  "param1" : "RandomString3"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE EXISTS {
+	MATCH (this)-[edge0:IN_GENRE]->(this0:Genre)
+	WHERE (this0.id = $param0
+		AND edge0.id = $param1)
+}
+CALL {
+	WITH this
+	MATCH (this)-[inGenre0:IN_GENRE]->(genre0:Genre)
+	WITH genre0 {
+		.id
+	} AS genres
+	RETURN collect(genres) AS genres
+}
+RETURN this {
+	.id,
+	genres: genres
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies" : [ {
+    "id" : "RandomString1",
+    "genres" : [ {
+      "id" : "RandomString2"
+    } ]
+  } ]
+}
+----
+
+=== NOT
+
+==== should find using NOT on relationship
+
+.Schema
+[source,graphql,schema=true]
+----
+type Movie @node {
+  id: ID
+  genres: [Genre!]! @relationship(type: "IN_GENRE", direction: OUT)
+}
+
+type Genre @node {
+  id: ID
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (root1:Movie {id: "RandomString1"})
+ CREATE (root2:Movie {id: "RandomString2"})
+ CREATE (relation1:Genre {id: "RandomString3"})
+ CREATE (relation2:Genre {id: "RandomString4"})
+ MERGE (root1)-[:IN_GENRE]->(relation1)
+ MERGE (root2)-[:IN_GENRE]->(relation2)
+----
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies(where: {NOT: {genres_SOME: {id_EQ: "RandomString4"}}}) {
+    id
+    genres {
+      id
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "RandomString4"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE NOT (EXISTS {
+	MATCH (this)-[:IN_GENRE]->(this0:Genre)
+	WHERE this0.id = $param0
+})
+CALL {
+	WITH this
+	MATCH (this)-[inGenre0:IN_GENRE]->(genre0:Genre)
+	WITH genre0 {
+		.id
+	} AS genres
+	RETURN collect(genres) AS genres
+}
+RETURN this {
+	.id,
+	genres: genres
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies" : [ {
+    "id" : "RandomString1",
+    "genres" : [ {
+      "id" : "RandomString3"
+    } ]
+  } ]
+}
+----
+
+==== should find using relationship properties and connections
+
+.Schema
+[source,graphql,schema=true]
+----
+type Movie @node {
+  id: ID
+  genres: [Genre!]! @relationship(type: "IN_GENRE", direction: OUT, properties: "ActedIn")
+}
+
+type Genre @node {
+  id: ID
+}
+
+type ActedIn @relationshipProperties {
+  id: ID
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (:Movie {id: "RandomString1"})-[:IN_GENRE {id: "RandomString5"}]->(:Genre {id: "RandomString3"})
+ CREATE (:Movie {id: "RandomString2"})-[:IN_GENRE {id: "A"}]->(:Genre {id: "RandomString4"})
+----
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies(where: {genresConnection_NONE: {edge: {id_EQ: "RandomString5"}}}) {
+    id
+    genres {
+      id
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "RandomString5"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE NOT (EXISTS {
+	MATCH (this)-[edge0:IN_GENRE]->(this0:Genre)
+	WHERE edge0.id = $param0
+})
+CALL {
+	WITH this
+	MATCH (this)-[inGenre0:IN_GENRE]->(genre0:Genre)
+	WITH genre0 {
+		.id
+	} AS genres
+	RETURN collect(genres) AS genres
+}
+RETURN this {
+	.id,
+	genres: genres
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies" : [ {
+    "id" : "RandomString2",
+    "genres" : [ {
+      "id" : "RandomString4"
+    } ]
+  } ]
+}
+----
+
+=== should test for not null
+
+.Schema
+[source,graphql,schema=true]
+----
+type Movie @node {
+  id: ID
+  genres: [Genre!]! @relationship(type: "IN_GENRE", direction: OUT)
+}
+
+type Genre @node {
+  id: ID
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (root:Movie {id: "RandomString1"})
+ CREATE (:Movie {id: "RandomString3"})
+ CREATE (relation:Genre {id: "RandomString2"})
+ CREATE (:Genre {id: "RandomString3"})
+ MERGE (root)-[:IN_GENRE]->(relation)
+----
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies(where: {genres_SOME: null}) {
+    id
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE NOT (EXISTS {
+	MATCH (this)-[:IN_GENRE]->(this0:Genre)
+})
+RETURN this {
+	.id
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies" : [ {
+    "id" : "RandomString3"
   } ]
 }
 ----

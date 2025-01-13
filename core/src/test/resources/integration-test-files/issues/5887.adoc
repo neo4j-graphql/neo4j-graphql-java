@@ -1,0 +1,442 @@
+:toc:
+:toclevels: 42
+
+== https://github.com/neo4j/graphql/issues/5887
+
+=== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+interface Base {
+  id: ID!
+}
+
+type A implements Base @node {
+  id: ID!
+}
+
+type B implements Base @node {
+  id: ID!
+}
+
+type Test @node {
+  base: Base! @relationship(type: "HAS", direction: OUT)
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (:Test)-[:HAS]->(:A {id: "1"})
+ CREATE (:Test)-[:HAS]->(:B {id: "2"})
+----
+
+=== should return relationship when first interface matches
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  tests(where: {base: {id: "1"}}) {
+    base {
+      id
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "1",
+  "param1" : "1"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Test)
+WHERE (EXISTS {
+		MATCH (this)-[:HAS]->(this0:A)
+		WHERE this0.id = $param0
+	}
+	OR EXISTS {
+		MATCH (this)-[:HAS]->(this1:B)
+		WHERE this1.id = $param1
+	})
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[has0:HAS]->(a0:A)
+		WITH a0 {
+			__typename: 'A',
+			__id: elementId(a0),
+			.id
+		} AS a0
+		RETURN a0 AS base UNION
+		WITH *
+		MATCH (this)-[has1:HAS]->(b0:B)
+		WITH b0 {
+			__typename: 'B',
+			__id: elementId(b0),
+			.id
+		} AS b0
+		RETURN b0 AS base
+	}
+	WITH base
+	RETURN head(collect(base)) AS base
+}
+RETURN this {
+	base: base
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "tests" : [ {
+    "base" : {
+      "id" : "1"
+    }
+  } ]
+}
+----
+
+=== should return relationship when second interface matches
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  tests(where: {base: {id: "2"}}) {
+    base {
+      id
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "2",
+  "param1" : "2"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Test)
+WHERE (EXISTS {
+		MATCH (this)-[:HAS]->(this0:A)
+		WHERE this0.id = $param0
+	}
+	OR EXISTS {
+		MATCH (this)-[:HAS]->(this1:B)
+		WHERE this1.id = $param1
+	})
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[has0:HAS]->(a0:A)
+		WITH a0 {
+			__typename: 'A',
+			__id: elementId(a0),
+			.id
+		} AS a0
+		RETURN a0 AS base UNION
+		WITH *
+		MATCH (this)-[has1:HAS]->(b0:B)
+		WITH b0 {
+			__typename: 'B',
+			__id: elementId(b0),
+			.id
+		} AS b0
+		RETURN b0 AS base
+	}
+	WITH base
+	RETURN head(collect(base)) AS base
+}
+RETURN this {
+	base: base
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "tests" : [ {
+    "base" : {
+      "id" : "2"
+    }
+  } ]
+}
+----
+
+=== should not return relationship when no interface match
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  tests(where: {base: {id: "x"}}) {
+    base {
+      id
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "x",
+  "param1" : "x"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Test)
+WHERE (EXISTS {
+		MATCH (this)-[:HAS]->(this0:A)
+		WHERE this0.id = $param0
+	}
+	OR EXISTS {
+		MATCH (this)-[:HAS]->(this1:B)
+		WHERE this1.id = $param1
+	})
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[has0:HAS]->(a0:A)
+		WITH a0 {
+			__typename: 'A',
+			__id: elementId(a0),
+			.id
+		} AS a0
+		RETURN a0 AS base UNION
+		WITH *
+		MATCH (this)-[has1:HAS]->(b0:B)
+		WITH b0 {
+			__typename: 'B',
+			__id: elementId(b0),
+			.id
+		} AS b0
+		RETURN b0 AS base
+	}
+	WITH base
+	RETURN head(collect(base)) AS base
+}
+RETURN this {
+	base: base
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "tests" : [ ]
+}
+----
+
+== https://github.com/neo4j/graphql/issues/5887 list relationship
+
+=== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+type House @node {
+  address: String!
+  animals: [Animal!]! @relationship(type: "LIVES_IN", direction: IN)
+}
+
+interface Animal {
+  name: String!
+}
+
+type Dog implements Animal @node {
+  name: String!
+}
+
+type Cat implements Animal @node {
+  name: String!
+}
+----
+
+=== should return relationship when first interface match
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (:Dog {name: "Roxy"})-[:LIVES_IN]->(h:House {address: "Toulouse"})
+ CREATE (:Cat {name: "Nala"})-[:LIVES_IN]->(h)
+----
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  houses(where: {animals_SOME: {name_EQ: "Roxy"}}) {
+    address
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "Roxy",
+  "param1" : "Roxy"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:House)
+WHERE (EXISTS {
+		MATCH (this0:Cat)-[:LIVES_IN]->(this)
+		WHERE this0.name = $param0
+	}
+	OR EXISTS {
+		MATCH (this1:Dog)-[:LIVES_IN]->(this)
+		WHERE this1.name = $param1
+	})
+RETURN this {
+	.address
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "houses" : [ {
+    "address" : "Toulouse"
+  } ]
+}
+----
+
+=== should return relationship when second interface match
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (:Dog {name: "Roxy"})-[:LIVES_IN]->(h:House {address: "Toulouse"})
+ CREATE (:Cat {name: "Nala"})-[:LIVES_IN]->(h)
+----
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  houses(where: {animals_SOME: {name_EQ: "Nala"}}) {
+    address
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "Nala",
+  "param1" : "Nala"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:House)
+WHERE (EXISTS {
+		MATCH (this0:Cat)-[:LIVES_IN]->(this)
+		WHERE this0.name = $param0
+	}
+	OR EXISTS {
+		MATCH (this1:Dog)-[:LIVES_IN]->(this)
+		WHERE this1.name = $param1
+	})
+RETURN this {
+	.address
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "houses" : [ {
+    "address" : "Toulouse"
+  } ]
+}
+----
+
+=== should not return relationship when no interface match
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (:Dog {name: "Roxy"})-[:LIVES_IN]->(h:House {address: "Toulouse"})
+ CREATE (:Cat {name: "Nala"})-[:LIVES_IN]->(h)
+----
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  houses(where: {animals_SOME: {name_EQ: "Other"}}) {
+    address
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "Other",
+  "param1" : "Other"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:House)
+WHERE (EXISTS {
+		MATCH (this0:Cat)-[:LIVES_IN]->(this)
+		WHERE this0.name = $param0
+	}
+	OR EXISTS {
+		MATCH (this1:Dog)-[:LIVES_IN]->(this)
+		WHERE this1.name = $param1
+	})
+RETURN this {
+	.address
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "houses" : [ ]
+}
+----

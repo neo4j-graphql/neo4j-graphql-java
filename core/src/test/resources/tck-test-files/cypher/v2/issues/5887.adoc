@@ -1,0 +1,215 @@
+:toc:
+:toclevels: 42
+
+= https://github.com/neo4j/graphql/issues/5887
+
+== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+interface Base {
+  id: ID!
+}
+
+type A implements Base @node {
+  id: ID!
+}
+
+type B implements Base @node {
+  id: ID!
+}
+
+type Test @node {
+  base: Base! @relationship(type: "HAS", direction: OUT)
+}
+----
+
+== should return relationship when first interface match
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  tests(where: {base: {id: "1"}}) {
+    base {
+      id
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "1",
+  "param1" : "1"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Test)
+WHERE (EXISTS {
+		MATCH (this)-[:HAS]->(this0:A)
+		WHERE this0.id = $param0
+	}
+	OR EXISTS {
+		MATCH (this)-[:HAS]->(this1:B)
+		WHERE this1.id = $param1
+	})
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[has0:HAS]->(a0:A)
+		WITH a0 {
+			__typename: 'A',
+			__id: elementId(a0),
+			.id
+		} AS a0
+		RETURN a0 AS base UNION
+		WITH *
+		MATCH (this)-[has1:HAS]->(b0:B)
+		WITH b0 {
+			__typename: 'B',
+			__id: elementId(b0),
+			.id
+		} AS b0
+		RETURN b0 AS base
+	}
+	WITH base
+	RETURN head(collect(base)) AS base
+}
+RETURN this {
+	base: base
+} AS this
+----
+
+== should return relationship when second interface match
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  tests(where: {base: {id: "2"}}) {
+    base {
+      id
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "2",
+  "param1" : "2"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Test)
+WHERE (EXISTS {
+		MATCH (this)-[:HAS]->(this0:A)
+		WHERE this0.id = $param0
+	}
+	OR EXISTS {
+		MATCH (this)-[:HAS]->(this1:B)
+		WHERE this1.id = $param1
+	})
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[has0:HAS]->(a0:A)
+		WITH a0 {
+			__typename: 'A',
+			__id: elementId(a0),
+			.id
+		} AS a0
+		RETURN a0 AS base UNION
+		WITH *
+		MATCH (this)-[has1:HAS]->(b0:B)
+		WITH b0 {
+			__typename: 'B',
+			__id: elementId(b0),
+			.id
+		} AS b0
+		RETURN b0 AS base
+	}
+	WITH base
+	RETURN head(collect(base)) AS base
+}
+RETURN this {
+	base: base
+} AS this
+----
+
+== should not return relationship when no interface match
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  tests(where: {base: {id: "x"}}) {
+    base {
+      id
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "x",
+  "param1" : "x"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Test)
+WHERE (EXISTS {
+		MATCH (this)-[:HAS]->(this0:A)
+		WHERE this0.id = $param0
+	}
+	OR EXISTS {
+		MATCH (this)-[:HAS]->(this1:B)
+		WHERE this1.id = $param1
+	})
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[has0:HAS]->(a0:A)
+		WITH a0 {
+			__typename: 'A',
+			__id: elementId(a0),
+			.id
+		} AS a0
+		RETURN a0 AS base UNION
+		WITH *
+		MATCH (this)-[has1:HAS]->(b0:B)
+		WITH b0 {
+			__typename: 'B',
+			__id: elementId(b0),
+			.id
+		} AS b0
+		RETURN b0 AS base
+	}
+	WITH base
+	RETURN head(collect(base)) AS base
+}
+RETURN this {
+	base: base
+} AS this
+----

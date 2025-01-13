@@ -8,7 +8,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   id: ID
   time: LocalTime
 }
@@ -20,7 +20,7 @@ type Movie {
 [source,graphql,request=true]
 ----
 {
-  movies(where: {time: "12:00:00"}) {
+  movies(where: {time_EQ: "12:00:00"}) {
     time
   }
 }

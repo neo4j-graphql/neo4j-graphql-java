@@ -8,7 +8,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Book {
+type Book @node {
   originalTitle: String!
   translatedTitle: BookTitle @relationship(type: "TRANSLATED_BOOK_TITLE", direction: IN)
   isbn: String!
@@ -16,12 +16,12 @@ type Book {
 
 union BookTitle = BookTitle_SV | BookTitle_EN
 
-type BookTitle_SV {
+type BookTitle_SV @node {
   book: Book! @relationship(type: "TRANSLATED_BOOK_TITLE", direction: OUT)
   value: String!
 }
 
-type BookTitle_EN {
+type BookTitle_EN @node {
   book: Book! @relationship(type: "TRANSLATED_BOOK_TITLE", direction: OUT)
   value: String!
 }
@@ -39,8 +39,8 @@ union BookTitle = BookTitle_EN | BookTitle_SV
 type Book {
   isbn: String!
   originalTitle: String!
-  translatedTitle(directed: Boolean = true, options: QueryOptions, where: BookTitleWhere): BookTitle
-  translatedTitleConnection(after: String, directed: Boolean = true, first: Int, where: BookTranslatedTitleConnectionWhere): BookTranslatedTitleConnection!
+  translatedTitle(limit: Int, offset: Int, where: BookTitleWhere): BookTitle
+  translatedTitleConnection(after: String, first: Int, where: BookTranslatedTitleConnectionWhere): BookTranslatedTitleConnection!
 }
 
 type BookEdge {
@@ -61,8 +61,8 @@ type BookTitleSvsConnection {
 }
 
 type BookTitle_EN {
-  book(directed: Boolean = true, options: BookOptions, where: BookWhere): Book!
-  bookConnection(after: String, directed: Boolean = true, first: Int, sort: [BookTitle_ENBookConnectionSort!], where: BookTitle_ENBookConnectionWhere): BookTitle_ENBookConnection!
+  book(limit: Int, offset: Int, sort: [BookSort!], where: BookWhere): Book!
+  bookConnection(after: String, first: Int, sort: [BookTitle_ENBookConnectionSort!], where: BookTitle_ENBookConnectionWhere): BookTitle_ENBookConnection!
   value: String!
 }
 
@@ -83,8 +83,8 @@ type BookTitle_ENEdge {
 }
 
 type BookTitle_SV {
-  book(directed: Boolean = true, options: BookOptions, where: BookWhere): Book!
-  bookConnection(after: String, directed: Boolean = true, first: Int, sort: [BookTitle_SVBookConnectionSort!], where: BookTitle_SVBookConnectionWhere): BookTitle_SVBookConnection!
+  book(limit: Int, offset: Int, sort: [BookSort!], where: BookWhere): Book!
+  bookConnection(after: String, first: Int, sort: [BookTitle_SVBookConnectionSort!], where: BookTitle_SVBookConnectionWhere): BookTitle_SVBookConnection!
   value: String!
 }
 
@@ -130,13 +130,13 @@ type PageInfo {
 }
 
 type Query {
-  bookTitleEns(options: BookTitle_ENOptions, where: BookTitle_ENWhere): [BookTitle_EN!]!
-  bookTitleEnsConnection(after: String, first: Int, sort: [BookTitle_ENSort], where: BookTitle_ENWhere): BookTitleEnsConnection!
-  bookTitleSvs(options: BookTitle_SVOptions, where: BookTitle_SVWhere): [BookTitle_SV!]!
-  bookTitleSvsConnection(after: String, first: Int, sort: [BookTitle_SVSort], where: BookTitle_SVWhere): BookTitleSvsConnection!
-  bookTitles(options: QueryOptions, where: BookTitleWhere): [BookTitle!]!
-  books(options: BookOptions, where: BookWhere): [Book!]!
-  booksConnection(after: String, first: Int, sort: [BookSort], where: BookWhere): BooksConnection!
+  bookTitleEns(limit: Int, offset: Int, sort: [BookTitle_ENSort!], where: BookTitle_ENWhere): [BookTitle_EN!]!
+  bookTitleEnsConnection(after: String, first: Int, sort: [BookTitle_ENSort!], where: BookTitle_ENWhere): BookTitleEnsConnection!
+  bookTitleSvs(limit: Int, offset: Int, sort: [BookTitle_SVSort!], where: BookTitle_SVWhere): [BookTitle_SV!]!
+  bookTitleSvsConnection(after: String, first: Int, sort: [BookTitle_SVSort!], where: BookTitle_SVWhere): BookTitleSvsConnection!
+  bookTitles(limit: Int, offset: Int, where: BookTitleWhere): [BookTitle!]!
+  books(limit: Int, offset: Int, sort: [BookSort!], where: BookWhere): [Book!]!
+  booksConnection(after: String, first: Int, sort: [BookSort!], where: BookWhere): BooksConnection!
 }
 
 "An enum for sorting in either ascending or descending order."
@@ -145,13 +145,6 @@ enum SortDirection {
   ASC
   "Sort by field values in descending order."
   DESC
-}
-
-input BookOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more BookSort objects to sort Books by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [BookSort!]
 }
 
 "Fields to sort Books by. The order in which sorts are applied is not guaranteed when specifying many fields in one BookSort object."
@@ -176,13 +169,6 @@ input BookTitle_ENBookConnectionWhere {
   node: BookWhere
 }
 
-input BookTitle_ENOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more BookTitle_ENSort objects to sort BookTitleEns by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [BookTitle_ENSort!]
-}
-
 "Fields to sort BookTitleEns by. The order in which sorts are applied is not guaranteed when specifying many fields in one BookTitle_ENSort object."
 input BookTitle_ENSort {
   value: SortDirection
@@ -194,11 +180,10 @@ input BookTitle_ENWhere {
   OR: [BookTitle_ENWhere!]
   book: BookWhere
   bookConnection: BookTitle_ENBookConnectionWhere
-  bookConnection_NOT: BookTitle_ENBookConnectionWhere
-  book_NOT: BookWhere
-  value: String
+  value: String @deprecated(reason : "Please use the explicit _EQ version")
   value_CONTAINS: String
   value_ENDS_WITH: String
+  value_EQ: String
   value_IN: [String!]
   value_STARTS_WITH: String
 }
@@ -214,13 +199,6 @@ input BookTitle_SVBookConnectionWhere {
   node: BookWhere
 }
 
-input BookTitle_SVOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more BookTitle_SVSort objects to sort BookTitleSvs by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [BookTitle_SVSort!]
-}
-
 "Fields to sort BookTitleSvs by. The order in which sorts are applied is not guaranteed when specifying many fields in one BookTitle_SVSort object."
 input BookTitle_SVSort {
   value: SortDirection
@@ -232,11 +210,10 @@ input BookTitle_SVWhere {
   OR: [BookTitle_SVWhere!]
   book: BookWhere
   bookConnection: BookTitle_SVBookConnectionWhere
-  bookConnection_NOT: BookTitle_SVBookConnectionWhere
-  book_NOT: BookWhere
-  value: String
+  value: String @deprecated(reason : "Please use the explicit _EQ version")
   value_CONTAINS: String
   value_ENDS_WITH: String
+  value_EQ: String
   value_IN: [String!]
   value_STARTS_WITH: String
 }
@@ -264,26 +241,20 @@ input BookWhere {
   AND: [BookWhere!]
   NOT: BookWhere
   OR: [BookWhere!]
-  isbn: String
+  isbn: String @deprecated(reason : "Please use the explicit _EQ version")
   isbn_CONTAINS: String
   isbn_ENDS_WITH: String
+  isbn_EQ: String
   isbn_IN: [String!]
   isbn_STARTS_WITH: String
-  originalTitle: String
+  originalTitle: String @deprecated(reason : "Please use the explicit _EQ version")
   originalTitle_CONTAINS: String
   originalTitle_ENDS_WITH: String
+  originalTitle_EQ: String
   originalTitle_IN: [String!]
   originalTitle_STARTS_WITH: String
   translatedTitle: BookTitleWhere
   translatedTitleConnection: BookTranslatedTitleConnectionWhere
-  translatedTitleConnection_NOT: BookTranslatedTitleConnectionWhere
-  translatedTitle_NOT: BookTitleWhere
-}
-
-"Input type for options that can be specified on a query operation."
-input QueryOptions {
-  limit: Int
-  offset: Int
 }
 
 ----

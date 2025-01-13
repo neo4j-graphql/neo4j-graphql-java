@@ -10,7 +10,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie @limit(default: 2) {
+type Movie @limit(default: 2) @node {
   id: ID!
 }
 ----

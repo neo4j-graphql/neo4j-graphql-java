@@ -52,10 +52,7 @@ CREATE (:Location { id: "1", pointCoordinates: point({longitude: -0.127758, lati
 [source,cypher]
 ----
 MATCH (this:Location)
-RETURN this { .id, pointCoordinates: CASE
-    WHEN this.pointCoordinates IS NOT NULL THEN { point: this.pointCoordinates, crs: this.pointCoordinates.crs }
-    ELSE NULL
-END } AS this
+RETURN this { .id, .pointCoordinates } AS this
 ----
 
 .GraphQL-Response
@@ -88,7 +85,7 @@ END } AS this
       "pointCoordinates": {
         "latitude": 48.856613,
         "longitude": 2.352222,
-        "height": 21,
+        "height": 21.0,
         "crs": "wgs-84-3d",
         "srid": 4979
       }
@@ -136,10 +133,7 @@ CALL {
     WITH edges
     UNWIND edges AS edge
     WITH edge.node AS this0
-    RETURN collect({ node: { id: this0.id, pointCoordinates: CASE
-        WHEN this0.pointCoordinates IS NOT NULL THEN { point: this0.pointCoordinates, crs: this0.pointCoordinates.crs }
-        ELSE NULL
-    END, __typename: "Location" } }) AS var1
+    RETURN collect({ node: { id: this0.id, pointCoordinates: this0.pointCoordinates, __typename: "Location" } }) AS var1
 }
 RETURN { edges: var1, totalCount: totalCount } AS this
 ----
@@ -180,7 +174,7 @@ RETURN { edges: var1, totalCount: totalCount } AS this
           "pointCoordinates": {
             "latitude": 48.856613,
             "longitude": 2.352222,
-            "height": 21,
+            "height": 21.0,
             "crs": "wgs-84-3d",
             "srid": 4979
           }
@@ -219,10 +213,7 @@ RETURN { edges: var1, totalCount: totalCount } AS this
 [source,cypher]
 ----
 MATCH (this:Location)
-RETURN this { .id, pointCoordinates: CASE
-    WHEN this.pointCoordinates IS NOT NULL THEN { point: this.pointCoordinates, crs: this.pointCoordinates.crs }
-    ELSE NULL
-END } AS this
+RETURN this { .id, .pointCoordinates } AS this
 ----
 
 .GraphQL-Response
@@ -253,7 +244,7 @@ END } AS this
       "pointCoordinates": {
         "latitude": 48.856613,
         "longitude": 2.352222,
-        "height": 21,
+        "height": 21.0,
         "crs": "wgs-84-3d"
       }
     }
@@ -299,10 +290,7 @@ CALL {
     WITH edges
     UNWIND edges AS edge
     WITH edge.node AS this0
-    RETURN collect({ node: { id: this0.id, pointCoordinates: CASE
-        WHEN this0.pointCoordinates IS NOT NULL THEN { point: this0.pointCoordinates, crs: this0.pointCoordinates.crs }
-        ELSE NULL
-    END, __typename: "Location" } }) AS var1
+    RETURN collect({ node: { id: this0.id, pointCoordinates: this0.pointCoordinates, __typename: "Location" } }) AS var1
 }
 RETURN { edges: var1, totalCount: totalCount } AS this
 ----
@@ -319,7 +307,7 @@ RETURN { edges: var1, totalCount: totalCount } AS this
           "pointCoordinates": {
             "latitude": 48.856613,
             "longitude": 2.352222,
-            "height": 21,
+            "height": 21.0,
             "crs": "wgs-84-3d"
           }
         }

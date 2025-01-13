@@ -15,6 +15,9 @@ import org.neo4j.graphql.utils.TestUtils.TEST_RESOURCES
 import java.nio.file.*
 import java.nio.file.attribute.BasicFileAttributes
 
+/**
+ * This class reformats the content of the test files.
+ */
 open class AsciidocReformater {
 
     fun run() {

@@ -8,7 +8,6 @@ sealed class ImplementingTypeNames(
 ) : EntityNames(name, annotations) {
 
     val connectOrCreateWhereInputTypeName get() = "${name}ConnectOrCreateWhere"
-    val optionsInputTypeName get() = "${name}Options"
     val sortInputTypeName get() = "${name}Sort"
     override val rootTypeFieldNames get() = ImplementingTypeRootTypeFieldNames()
     val rootTypeSelection get() = ImplementingTypeRootTypeSelection()

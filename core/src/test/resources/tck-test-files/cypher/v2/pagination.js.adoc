@@ -9,7 +9,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   id: ID
   title: String
 }
@@ -21,7 +21,7 @@ type Movie {
 [source,graphql,request=true]
 ----
 {
-  movies(options: {offset: 1}) {
+  movies(offset: 1) {
     title
   }
 }
@@ -51,7 +51,7 @@ RETURN this { .title } AS this
 [source,graphql,request=true]
 ----
 {
-  movies(options: {limit: 1}) {
+  movies(limit: 1) {
     title
   }
 }
@@ -81,7 +81,7 @@ RETURN this { .title } AS this
 [source,graphql,request=true]
 ----
 {
-  movies(options: {limit: 1, offset: 2}) {
+  movies(limit: 1, offset: 2) {
     title
   }
 }
@@ -113,7 +113,7 @@ RETURN this { .title } AS this
 [source,graphql,request=true]
 ----
 query ($offset: Int, $limit: Int) {
-  movies(options: {limit: $limit, offset: $offset}) {
+  movies(limit: $limit, offset: $offset) {
     title
   }
 }
@@ -154,7 +154,7 @@ RETURN this { .title } AS this
 [source,graphql,request=true]
 ----
 query ($offset: Int, $limit: Int, $title: String) {
-  movies(options: {limit: $limit, offset: $offset}, where: {title: $title}) {
+  movies(limit: $limit, offset: $offset, where: {title_EQ: $title}) {
     title
   }
 }

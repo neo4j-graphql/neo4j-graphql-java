@@ -9,14 +9,279 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   title: String!
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
 }
 
-type Actor {
+type Actor @node {
   name: String!
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+----
+
+== should allow where clause on relationship property of node
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (movie:Movie {title: "My title"})
+					CREATE (actorOne:Actor {name: "Arthur"})
+					CREATE (actorTwo:Actor {name: "Zaphod"})
+					CREATE (actorOne)-[:ACTED_IN]->(movie)<-[:ACTED_IN]-(actorTwo)
+----
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+query ($movieTitle: String!) {
+  movies(where: {title_EQ: $movieTitle}) {
+    actorsConnection(where: {node: {movies_SOME: {title_EQ: $movieTitle}}}) {
+      edges {
+        node {
+          name
+        }
+      }
+    }
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "movieTitle": "My title"
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "My title",
+  "param1": "My title"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+CALL {
+    WITH this
+    MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
+    WHERE EXISTS {
+        MATCH (this1)-[:ACTED_IN]->(this2:Movie)
+        WHERE this2.title = $param1
+    }
+    WITH collect({ node: this1, relationship: this0 }) AS edges
+    WITH edges, size(edges) AS totalCount
+    CALL {
+        WITH edges
+        UNWIND edges AS edge
+        WITH edge.node AS this1, edge.relationship AS this0
+        RETURN collect({ node: { name: this1.name, __typename: "Actor" } }) AS var3
+    }
+    RETURN { edges: var3, totalCount: totalCount } AS var4
+}
+RETURN this { actorsConnection: var4 } AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies": [
+    {
+      "actorsConnection": {
+        "edges": [
+          {
+            "node": {
+              "name": "Arthur"
+            }
+          },
+          {
+            "node": {
+              "name": "Zaphod"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+----
+
+== allows for OR boolean operators on nested connections filters
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (movie:Movie {title: "My title"})
+					CREATE (actorOne:Actor {name: "Arthur"})
+					CREATE (actorTwo:Actor {name: "Zaphod"})
+					CREATE (actorOne)-[:ACTED_IN]->(movie)<-[:ACTED_IN]-(actorTwo)
+----
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies(
+    where: {actorsConnection_SOME: {OR: [{node: {name_EQ: "Arthur"}}, {node: {name_EQ: "Zaphod"}}]}}
+  ) {
+    actorsConnection {
+      edges {
+        node {
+          name
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "Arthur",
+  "param1": "Zaphod"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE EXISTS {
+    MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
+    WHERE (this1.name = $param0 OR this1.name = $param1)
+}
+CALL {
+    WITH this
+    MATCH (this)<-[this2:ACTED_IN]-(this3:Actor)
+    WITH collect({ node: this3, relationship: this2 }) AS edges
+    WITH edges, size(edges) AS totalCount
+    CALL {
+        WITH edges
+        UNWIND edges AS edge
+        WITH edge.node AS this3, edge.relationship AS this2
+        RETURN collect({ node: { name: this3.name, __typename: "Actor" } }) AS var4
+    }
+    RETURN { edges: var4, totalCount: totalCount } AS var5
+}
+RETURN this { actorsConnection: var5 } AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies": [
+    {
+      "actorsConnection": {
+        "edges": [
+          {
+            "node": {
+              "name": "Arthur"
+            }
+          },
+          {
+            "node": {
+              "name": "Zaphod"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+----
+
+== allows for NOT boolean operators on nested connections filters
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (movie:Movie {title: "My title"})
+					CREATE (actorOne:Actor {name: "Arthur"})
+					CREATE (actorTwo:Actor {name: "Zaphod"})
+					CREATE (actorOne)-[:ACTED_IN]->(movie)<-[:ACTED_IN]-(actorTwo)
+----
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies(where: {actorsConnection_SOME: {NOT: {node: {name_EQ: "Arthur"}}}}) {
+    actorsConnection {
+      edges {
+        node {
+          name
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "Arthur"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE EXISTS {
+    MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
+    WHERE NOT (this1.name = $param0)
+}
+CALL {
+    WITH this
+    MATCH (this)<-[this2:ACTED_IN]-(this3:Actor)
+    WITH collect({ node: this3, relationship: this2 }) AS edges
+    WITH edges, size(edges) AS totalCount
+    CALL {
+        WITH edges
+        UNWIND edges AS edge
+        WITH edge.node AS this3, edge.relationship AS this2
+        RETURN collect({ node: { name: this3.name, __typename: "Actor" } }) AS var4
+    }
+    RETURN { edges: var4, totalCount: totalCount } AS var5
+}
+RETURN this { actorsConnection: var5 } AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "movies": [
+    {
+      "actorsConnection": {
+        "edges": [
+          {
+            "node": {
+              "name": "Arthur"
+            }
+          },
+          {
+            "node": {
+              "name": "Zaphod"
+            }
+          }
+        ]
+      }
+    }
+  ]
 }
 ----
 
@@ -36,7 +301,7 @@ CREATE (movie:Movie {title: "My title"})
 ----
 {
   movies {
-    actorsConnection(where: {NOT: {node: {name: "Arthur"}}}) {
+    actorsConnection(where: {NOT: {node: {name_EQ: "Arthur"}}}) {
       edges {
         node {
           name

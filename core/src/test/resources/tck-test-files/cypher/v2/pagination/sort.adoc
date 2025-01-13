@@ -1,0 +1,229 @@
+:toc:
+:toclevels: 42
+
+= Sort
+
+== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+type Movie @node {
+  id: ID!
+  title: String!
+  runtime: Int!
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
+  genres: [Genre!]! @relationship(type: "HAS_GENRE", direction: OUT)
+}
+
+type Genre @node {
+  id: ID
+  name: String
+}
+
+type Series @node {
+  id: ID!
+  title: String!
+  episodes: Int!
+}
+
+type Actor @node {
+  id: ID!
+  name: String!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+----
+
+== should sort and project
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies(sort: [{id: ASC}]) {
+    id
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WITH * ORDER BY this.id ASC
+RETURN this {
+	.id,
+	.title
+} AS this
+----
+
+== should sort and project, DESC
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies(sort: [{id: DESC}]) {
+    id
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WITH * ORDER BY this.id DESC
+RETURN this {
+	.id,
+	.title
+} AS this
+----
+
+== should sort and project aliased fields
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies(sort: [{id: DESC}]) {
+    aliased: id
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WITH * ORDER BY this.id DESC
+RETURN this {
+	aliased: this.id,
+	.title
+} AS this
+----
+
+== should sort with multiple criteria
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies(sort: [{id: DESC}, {title: ASC}]) {
+    id
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WITH * ORDER BY this.id DESC, this.title ASC
+RETURN this {
+	.id,
+	.title
+} AS this
+----
+
+== should sort related fields
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies {
+    genres(sort: [{name: ASC}]) {
+      name
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+	WITH this
+	MATCH (this)-[hasGenre0:HAS_GENRE]->(genre0:Genre)
+	WITH genre0 {
+		.name
+	} AS genres ORDER BY genres.name ASC
+	RETURN collect(genres) AS genres
+}
+RETURN this {
+	genres: genres
+} AS this
+----
+
+== should sort related fields, DESC
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies {
+    genres(sort: [{name: DESC}]) {
+      name
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+	WITH this
+	MATCH (this)-[hasGenre0:HAS_GENRE]->(genre0:Genre)
+	WITH genre0 {
+		.name
+	} AS genres ORDER BY genres.name DESC
+	RETURN collect(genres) AS genres
+}
+RETURN this {
+	genres: genres
+} AS this
+----

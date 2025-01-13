@@ -9,11 +9,11 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Employee {
+type Employee @node {
   products: [Product!]! @relationship(type: "CAN_ACCESS", direction: OUT)
 }
 
-type Product {
+type Product @node {
   id: String! @alias(property: "fg_item_id")
   description: String!
   partNumber: ID! @alias(property: "fg_item")
@@ -26,7 +26,7 @@ type Product {
 [source,graphql,request=true]
 ----
 query listProducts {
-  products(options: {sort: {partNumber: DESC}}) {
+  products(sort: {partNumber: DESC}) {
     id
     partNumber
     description
@@ -56,7 +56,7 @@ RETURN this { .description, id: this.fg_item_id, partNumber: this.fg_item } AS t
 ----
 query listProducts {
   employees {
-    products(options: {sort: {partNumber: DESC}}) {
+    products(sort: {partNumber: DESC}) {
       id
       partNumber
       description
