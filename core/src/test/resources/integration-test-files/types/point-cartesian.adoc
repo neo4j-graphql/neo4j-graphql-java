@@ -8,7 +8,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Part {
+type Part @node {
   serial: String!
   location: CartesianPoint!
 }
@@ -33,7 +33,7 @@ CALL {
 [source,graphql,request=true]
 ----
 query Parts($serial: String!) {
-  parts(where: {serial: $serial}) {
+  parts(where: {serial_EQ: $serial}) {
     serial
     location {
       x
@@ -112,7 +112,7 @@ CALL {
 [source,graphql,request=true]
 ----
 query Parts($serial: String!) {
-  parts(where: {serial: $serial}) {
+  parts(where: {serial_EQ: $serial}) {
     serial
     location {
       x

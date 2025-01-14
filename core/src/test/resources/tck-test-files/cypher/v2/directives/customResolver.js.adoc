@@ -11,7 +11,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type User {
+type User @node {
   firstName: String!
   lastName: String!
   fullName: String! @customResolver(requires: "firstName lastName")
@@ -67,7 +67,7 @@ RETURN this { .firstName } AS this
 [source,cypher]
 ----
 MATCH (this:User)
-RETURN this { .firstName, .lastName, .fullName } AS this
+RETURN this { .firstName, .lastName } AS this
 ----
 
 === should not over fetch when some required fields are manually selected
@@ -93,7 +93,7 @@ RETURN this { .firstName, .lastName, .fullName } AS this
 [source,cypher]
 ----
 MATCH (this:User)
-RETURN this { .firstName, .fullName, .lastName } AS this
+RETURN this { .firstName, .lastName } AS this
 ----
 
 === should not over fetch when no required fields are manually selected
@@ -118,7 +118,7 @@ RETURN this { .firstName, .fullName, .lastName } AS this
 [source,cypher]
 ----
 MATCH (this:User)
-RETURN this { .fullName, .firstName, .lastName } AS this
+RETURN this { .firstName, .lastName } AS this
 ----
 
 == No required fields
@@ -128,7 +128,7 @@ RETURN this { .fullName, .firstName, .lastName } AS this
 .Schema
 [source,graphql,schema=true]
 ----
-type User {
+type User @node {
   firstName: String!
   lastName: String!
   fullName: String! @customResolver
@@ -158,7 +158,7 @@ type User {
 [source,cypher]
 ----
 MATCH (this:User)
-RETURN this { .firstName, .fullName } AS this
+RETURN this { .firstName } AS this
 ----
 
 === should not over fetch when no other fields are manually selected
@@ -183,7 +183,7 @@ RETURN this { .firstName, .fullName } AS this
 [source,cypher]
 ----
 MATCH (this:User)
-RETURN this { .fullName } AS this
+RETURN this {  } AS this
 ----
 
 == Require fields on nested types
@@ -193,17 +193,17 @@ RETURN this { .fullName } AS this
 .Schema
 [source,graphql,schema=true]
 ----
-type City {
+type City @node {
   name: String!
   population: Int
 }
 
-type Address {
+type Address @node {
   street: String!
   city: City! @relationship(type: "IN_CITY", direction: OUT)
 }
 
-type User {
+type User @node {
   id: ID!
   firstName: String!
   lastName: String!
@@ -254,7 +254,7 @@ CALL {
     WITH this1 { city: var4 } AS this1
     RETURN head(collect(this1)) AS var5
 }
-RETURN this { .firstName, .lastName, .fullName, address: var5 } AS this
+RETURN this { .firstName, .lastName, address: var5 } AS this
 ----
 
 === should not fetch required fields if @customResolver field is not selected
@@ -322,7 +322,7 @@ CALL {
     WITH this1 { city: var4 } AS this1
     RETURN head(collect(this1)) AS var5
 }
-RETURN this { .lastName, .fullName, .firstName, address: var5 } AS this
+RETURN this { .lastName, .firstName, address: var5 } AS this
 ----
 
 === should not over fetch when no required fields are manually selected
@@ -359,7 +359,7 @@ CALL {
     WITH this1 { city: var4 } AS this1
     RETURN head(collect(this1)) AS var5
 }
-RETURN this { .fullName, .firstName, .lastName, address: var5 } AS this
+RETURN this { .firstName, .lastName, address: var5 } AS this
 ----
 
 == Require fields on nested unions
@@ -371,18 +371,18 @@ RETURN this { .fullName, .firstName, .lastName, address: var5 } AS this
 ----
 union Publication = Book | Journal
 
-type Author {
+type Author @node {
   name: String!
   publications: [Publication!]! @relationship(type: "WROTE", direction: OUT)
   publicationsWithAuthor: [String!]! @customResolver(requires: "name publications { ...on Book { title } ... on Journal { subject } }")
 }
 
-type Book {
+type Book @node {
   title: String!
   author: Author! @relationship(type: "WROTE", direction: IN)
 }
 
-type Journal {
+type Journal @node {
   subject: String!
   author: Author! @relationship(type: "WROTE", direction: IN)
 }
@@ -435,7 +435,7 @@ CALL {
     WITH var2
     RETURN collect(var2) AS var2
 }
-RETURN this { .name, .publicationsWithAuthor, publications: var2 } AS this
+RETURN this { .name, publications: var2 } AS this
 ----
 
 === should not fetch required fields if @customResolver field is not selected
@@ -506,7 +506,7 @@ CALL {
     WITH var2
     RETURN collect(var2) AS var2
 }
-RETURN this { .publicationsWithAuthor, .name, publications: var2 } AS this
+RETURN this { .name, publications: var2 } AS this
 ----
 
 === should not over fetch when no required fields are manually selected
@@ -547,7 +547,7 @@ CALL {
     WITH var2
     RETURN collect(var2) AS var2
 }
-RETURN this { .publicationsWithAuthor, .name, publications: var2 } AS this
+RETURN this { .name, publications: var2 } AS this
 ----
 
 == Require fields on nested interfaces
@@ -561,19 +561,19 @@ interface Publication {
   publicationYear: Int!
 }
 
-type Author {
+type Author @node {
   name: String!
   publications: [Publication!]! @relationship(type: "WROTE", direction: OUT)
   publicationsWithAuthor: [String!]! @customResolver(requires: "name publications { publicationYear ...on Book { title } ... on Journal { subject } }")
 }
 
-type Book implements Publication {
+type Book implements Publication @node {
   title: String!
   publicationYear: Int!
   author: [Author!]! @relationship(type: "WROTE", direction: IN)
 }
 
-type Journal implements Publication {
+type Journal implements Publication @node {
   subject: String!
   publicationYear: Int!
   author: [Author!]! @relationship(type: "WROTE", direction: IN)
@@ -628,7 +628,7 @@ CALL {
     WITH var2
     RETURN collect(var2) AS var2
 }
-RETURN this { .name, .publicationsWithAuthor, publications: var2 } AS this
+RETURN this { .name, publications: var2 } AS this
 ----
 
 === should not fetch required fields if @customResolver field is not selected
@@ -699,7 +699,7 @@ CALL {
     WITH var2
     RETURN collect(var2) AS var2
 }
-RETURN this { .publicationsWithAuthor, .name, publications: var2 } AS this
+RETURN this { .name, publications: var2 } AS this
 ----
 
 === should not over fetch when no required fields are manually selected
@@ -740,5 +740,5 @@ CALL {
     WITH var2
     RETURN collect(var2) AS var2
 }
-RETURN this { .publicationsWithAuthor, .name, publications: var2 } AS this
+RETURN this { .name, publications: var2 } AS this
 ----

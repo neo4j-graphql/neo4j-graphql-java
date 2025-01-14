@@ -9,7 +9,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   id: ID!
   time: LocalTime
   times: [LocalTime!]
@@ -31,7 +31,7 @@ CREATE (movie:Movie)
 [source,graphql,request=true]
 ----
 query ($time: LocalTime!) {
-  movies(where: {time: $time}) {
+  movies(where: {time_EQ: $time}) {
     id
     time
   }
@@ -93,7 +93,7 @@ CREATE (future:Movie)
 [source,graphql,request=true]
 ----
 query ($where: MovieWhere!) {
-  movies(where: $where, options: {sort: [{time: ASC}]}) {
+  movies(where: $where, sort: [{time: ASC}]) {
     id
     time
   }
@@ -168,7 +168,7 @@ CREATE (future:Movie)
 [source,graphql,request=true]
 ----
 query ($where: MovieWhere!) {
-  movies(where: $where, options: {sort: [{time: ASC}]}) {
+  movies(where: $where, sort: [{time: ASC}]) {
     id
     time
   }
@@ -247,7 +247,7 @@ CREATE (future:Movie)
 [source,graphql,request=true]
 ----
 query ($where: MovieWhere!) {
-  movies(where: $where, options: {sort: [{time: ASC}]}) {
+  movies(where: $where, sort: [{time: ASC}]) {
     id
     time
   }
@@ -322,7 +322,7 @@ CREATE (future:Movie)
 [source,graphql,request=true]
 ----
 query ($where: MovieWhere!) {
-  movies(where: $where, options: {sort: [{time: ASC}]}) {
+  movies(where: $where, sort: [{time: ASC}]) {
     id
     time
   }
@@ -403,10 +403,7 @@ CREATE (future:Movie)
 [source,graphql,request=true]
 ----
 query ($futureId: ID!, $presentId: ID!, $pastId: ID!, $sort: SortDirection!) {
-  movies(
-    where: {id_IN: [$futureId, $presentId, $pastId]}
-    options: {sort: [{time: $sort}]}
-  ) {
+  movies(where: {id_IN: [$futureId, $presentId, $pastId]}, sort: [{time: $sort}]) {
     id
     time
   }
@@ -484,10 +481,7 @@ CREATE (future:Movie)
 [source,graphql,request=true]
 ----
 query ($futureId: ID!, $presentId: ID!, $pastId: ID!, $sort: SortDirection!) {
-  movies(
-    where: {id_IN: [$futureId, $presentId, $pastId]}
-    options: {sort: [{time: $sort}]}
-  ) {
+  movies(where: {id_IN: [$futureId, $presentId, $pastId]}, sort: [{time: $sort}]) {
     id
     time
   }

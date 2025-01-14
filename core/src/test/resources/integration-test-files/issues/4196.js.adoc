@@ -9,17 +9,17 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Foo {
+type Foo @node {
   name: String
   bars: [Bar!]! @relationship(type: "relatesTo", direction: OUT)
 }
 
-type Bar {
+type Bar @node {
   name: String
   foobars: [FooBar!]! @relationship(type: "relatesTo", direction: OUT)
 }
 
-type FooBar {
+type FooBar @node {
   name: String
   bars: [FooBar!]! @relationship(type: "relatesTo", direction: IN)
 }
@@ -41,7 +41,7 @@ MERGE (:Foo {name: "A"})-[:relatesTo]->(b1:Bar {name: "bar1"})
 [source,graphql,request=true]
 ----
 {
-  foos(options: {sort: {name: ASC}}) {
+  foos(sort: {name: ASC}) {
     name
     bars {
       foobars {

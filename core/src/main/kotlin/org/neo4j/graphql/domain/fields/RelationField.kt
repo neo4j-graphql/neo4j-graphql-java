@@ -41,39 +41,22 @@ class RelationField(
     }
 
     enum class QueryDirection {
-        DEFAULT_DIRECTED,
-        DEFAULT_UNDIRECTED,
-        DIRECTED_ONLY,
-        UNDIRECTED_ONLY,
+        DIRECTED,
+        UNDIRECTED,
     }
 
     fun createQueryDslRelation(
         start: Node,
         end: Node,
-        directed: Boolean?,
     ): Relationship {
-        val useDirected = when (queryDirection) {
-            QueryDirection.DEFAULT_DIRECTED -> directed ?: true
-            QueryDirection.DEFAULT_UNDIRECTED -> directed ?: false
-            QueryDirection.DIRECTED_ONLY -> {
-                check(directed == null || directed == true, { "Invalid direction in 'DIRECTED_ONLY' relationship" })
-                true
+        return when (queryDirection) {
+            QueryDirection.DIRECTED -> when (direction) {
+                Direction.IN -> end.relationshipTo(start, relationType)
+                Direction.OUT -> start.relationshipTo(end, relationType)
             }
 
-            QueryDirection.UNDIRECTED_ONLY -> {
-                check(directed == null || directed == false, { "Invalid direction in 'UNDIRECTED_ONLY' relationship" })
-                false
-            }
+            QueryDirection.UNDIRECTED -> start.relationshipBetween(end, relationType)
         }
-        if (useDirected) {
-            return createDslRelation(start, end)
-        }
-        return start.relationshipBetween(end, relationType)
     }
-
-    fun createDslRelation(start: Node, end: Node, name: String? = null): Relationship = when (direction) {
-        Direction.IN -> end.relationshipTo(start, relationType)
-        Direction.OUT -> start.relationshipTo(end, relationType)
-    }.let { if (name != null) it.named(name) else it }
 
 }

@@ -9,12 +9,12 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   name: String!
   genre: Genre! @relationship(type: "HAS_GENRE", direction: OUT, nestedOperations: [CONNECT, DISCONNECT])
 }
 
-type Genre {
+type Genre @node {
   name: String!
   movies: [Movie!]! @relationship(type: "HAS_GENRE", direction: IN)
 }
@@ -28,8 +28,8 @@ schema {
 }
 
 type Genre {
-  movies(directed: Boolean = true, options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, directed: Boolean = true, first: Int, sort: [GenreMoviesConnectionSort!], where: GenreMoviesConnectionWhere): GenreMoviesConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [GenreMoviesConnectionSort!], where: GenreMoviesConnectionWhere): GenreMoviesConnection!
   name: String!
 }
 
@@ -58,15 +58,6 @@ input GenreMoviesConnectionWhere {
 type GenreMoviesRelationship {
   cursor: String!
   node: Movie!
-}
-
-input GenreOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more GenreSort objects to sort Genres by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [GenreSort!]
 }
 
 """
@@ -104,9 +95,10 @@ input GenreWhere {
   movies_SINGLE: MovieWhere
   """Return Genres where some of the related Movies match this filter"""
   movies_SOME: MovieWhere
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String!]
   name_STARTS_WITH: String
 }
@@ -118,8 +110,8 @@ type GenresConnection {
 }
 
 type Movie {
-  genre(directed: Boolean = true, options: GenreOptions, where: GenreWhere): Genre!
-  genreConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieGenreConnectionSort!], where: MovieGenreConnectionWhere): MovieGenreConnection!
+  genre(limit: Int, offset: Int, sort: [GenreSort!], where: GenreWhere): Genre!
+  genreConnection(after: String, first: Int, sort: [MovieGenreConnectionSort!], where: MovieGenreConnectionWhere): MovieGenreConnection!
   name: String!
 }
 
@@ -150,15 +142,6 @@ type MovieGenreRelationship {
   node: Genre!
 }
 
-input MovieOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [MovieSort!]
-}
-
 """
 Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object.
 """
@@ -172,11 +155,10 @@ input MovieWhere {
   OR: [MovieWhere!]
   genre: GenreWhere
   genreConnection: MovieGenreConnectionWhere
-  genreConnection_NOT: MovieGenreConnectionWhere
-  genre_NOT: GenreWhere
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String!]
   name_STARTS_WITH: String
 }
@@ -196,10 +178,10 @@ type PageInfo {
 }
 
 type Query {
-  genres(options: GenreOptions, where: GenreWhere): [Genre!]!
-  genresConnection(after: String, first: Int, sort: [GenreSort], where: GenreWhere): GenresConnection!
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
+  genres(limit: Int, offset: Int, sort: [GenreSort!], where: GenreWhere): [Genre!]!
+  genresConnection(after: String, first: Int, sort: [GenreSort!], where: GenreWhere): GenresConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
 }
 
 """An enum for sorting in either ascending or descending order."""
@@ -216,12 +198,12 @@ enum SortDirection {
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   name: String!
   genre: Genre! @relationship(type: "HAS_GENRE", direction: OUT, nestedOperations: [])
 }
 
-type Genre {
+type Genre @node {
   name: String!
   movies: [Movie!]! @relationship(type: "HAS_GENRE", direction: IN)
 }
@@ -235,8 +217,8 @@ schema {
 }
 
 type Genre {
-  movies(directed: Boolean = true, options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, directed: Boolean = true, first: Int, sort: [GenreMoviesConnectionSort!], where: GenreMoviesConnectionWhere): GenreMoviesConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [GenreMoviesConnectionSort!], where: GenreMoviesConnectionWhere): GenreMoviesConnection!
   name: String!
 }
 
@@ -265,15 +247,6 @@ input GenreMoviesConnectionWhere {
 type GenreMoviesRelationship {
   cursor: String!
   node: Movie!
-}
-
-input GenreOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more GenreSort objects to sort Genres by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [GenreSort!]
 }
 
 """
@@ -311,9 +284,10 @@ input GenreWhere {
   movies_SINGLE: MovieWhere
   """Return Genres where some of the related Movies match this filter"""
   movies_SOME: MovieWhere
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String!]
   name_STARTS_WITH: String
 }
@@ -325,8 +299,8 @@ type GenresConnection {
 }
 
 type Movie {
-  genre(directed: Boolean = true, options: GenreOptions, where: GenreWhere): Genre!
-  genreConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieGenreConnectionSort!], where: MovieGenreConnectionWhere): MovieGenreConnection!
+  genre(limit: Int, offset: Int, sort: [GenreSort!], where: GenreWhere): Genre!
+  genreConnection(after: String, first: Int, sort: [MovieGenreConnectionSort!], where: MovieGenreConnectionWhere): MovieGenreConnection!
   name: String!
 }
 
@@ -357,15 +331,6 @@ type MovieGenreRelationship {
   node: Genre!
 }
 
-input MovieOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [MovieSort!]
-}
-
 """
 Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object.
 """
@@ -379,11 +344,10 @@ input MovieWhere {
   OR: [MovieWhere!]
   genre: GenreWhere
   genreConnection: MovieGenreConnectionWhere
-  genreConnection_NOT: MovieGenreConnectionWhere
-  genre_NOT: GenreWhere
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String!]
   name_STARTS_WITH: String
 }
@@ -403,10 +367,10 @@ type PageInfo {
 }
 
 type Query {
-  genres(options: GenreOptions, where: GenreWhere): [Genre!]!
-  genresConnection(after: String, first: Int, sort: [GenreSort], where: GenreWhere): GenresConnection!
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
+  genres(limit: Int, offset: Int, sort: [GenreSort!], where: GenreWhere): [Genre!]!
+  genresConnection(after: String, first: Int, sort: [GenreSort!], where: GenreWhere): GenresConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
 }
 
 """An enum for sorting in either ascending or descending order."""

@@ -10,7 +10,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   datetime: DateTime
 }
 ----
@@ -26,7 +26,7 @@ CREATE (m:Movie)
 [source,graphql,request=true]
 ----
 {
-  movies(where: {datetime: "2024-12-24T18:42:24.123Z"}) {
+  movies(where: {datetime_EQ: "2024-12-24T18:42:24.123Z"}) {
     datetime
   }
 }
@@ -65,7 +65,7 @@ RETURN this {
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   name: String
   datetime: DateTime
 }
@@ -83,7 +83,7 @@ CREATE (m:Movie)
 [source,graphql,request=true]
 ----
 {
-  movies(where: {name: "Movie"}) {
+  movies(where: {name_EQ: "Movie"}) {
     datetime
   }
 }

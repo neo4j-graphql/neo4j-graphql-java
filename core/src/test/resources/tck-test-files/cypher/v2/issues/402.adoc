@@ -8,12 +8,12 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Event {
+type Event @node {
   id: ID!
   area: Area! @relationship(type: "HAPPENS_IN", direction: OUT)
 }
 
-type Area {
+type Area @node {
   id: ID!
 }
 ----

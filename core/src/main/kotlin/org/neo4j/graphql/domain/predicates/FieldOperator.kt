@@ -9,7 +9,11 @@ enum class FieldOperator(
     val conditionCreator: (Expression, Expression) -> Condition,
     val conditionEvaluator: (Any?, Any?) -> Boolean,
 ) {
-    EQUAL("",
+    IMPLICIT_EQUAL("",
+        { lhs, rhs -> if (rhs == Cypher.literalNull()) lhs.isNull else lhs.eq(rhs) },
+        { lhs, rhs -> lhs == rhs }
+    ),
+    EQUAL("EQ",
         { lhs, rhs -> if (rhs == Cypher.literalNull()) lhs.isNull else lhs.eq(rhs) },
         { lhs, rhs -> lhs == rhs }
     ),

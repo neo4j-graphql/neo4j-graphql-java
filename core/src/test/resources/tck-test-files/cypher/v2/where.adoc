@@ -8,12 +8,12 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Actor {
+type Actor @node {
   name: String
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
 }
 
-type Movie {
+type Movie @node {
   id: ID
   title: String
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
@@ -27,7 +27,7 @@ type Movie {
 [source,graphql,request=true]
 ----
 query ($title: String, $isFavorite: Boolean) {
-  movies(where: {title: $title, isFavorite: $isFavorite}) {
+  movies(where: {title_EQ: $title, isFavorite_EQ: $isFavorite}) {
     title
   }
 }
@@ -68,7 +68,7 @@ RETURN this {
 [source,graphql,request=true]
 ----
 {
-  movies(where: {AND: [{title: "some title"}]}) {
+  movies(where: {AND: [{title_EQ: "some title"}]}) {
     title
   }
 }
@@ -98,7 +98,7 @@ RETURN this {
 [source,graphql,request=true]
 ----
 {
-  movies(where: {AND: [{title: "some title"}, {isFavorite: true}]}) {
+  movies(where: {AND: [{title_EQ: "some title"}, {isFavorite_EQ: true}]}) {
     title
   }
 }
@@ -130,7 +130,7 @@ RETURN this {
 [source,graphql,request=true]
 ----
 {
-  movies(where: {AND: [{AND: [{title: "some title"}]}]}) {
+  movies(where: {AND: [{AND: [{title_EQ: "some title"}]}]}) {
     title
   }
 }
@@ -160,7 +160,9 @@ RETURN this {
 [source,graphql,request=true]
 ----
 {
-  movies(where: {AND: [{AND: [{title: "some title"}, {title: "another title"}]}]}) {
+  movies(
+    where: {AND: [{AND: [{title_EQ: "some title"}, {title_EQ: "another title"}]}]}
+  ) {
     title
   }
 }
@@ -192,7 +194,9 @@ RETURN this {
 [source,graphql,request=true]
 ----
 {
-  movies(where: {AND: [{OR: [{title: "some title"}, {isFavorite: true}], id: 2}]}) {
+  movies(
+    where: {AND: [{OR: [{title_EQ: "some title"}, {isFavorite_EQ: true}], id_EQ: 2}]}
+  ) {
     title
   }
 }
@@ -226,7 +230,7 @@ RETURN this {
 [source,graphql,request=true]
 ----
 {
-  movies(where: {AND: [{AND: [{AND: [{title: "some title"}]}]}]}) {
+  movies(where: {AND: [{AND: [{AND: [{title_EQ: "some title"}]}]}]}) {
     title
   }
 }
@@ -256,7 +260,7 @@ RETURN this {
 [source,graphql,request=true]
 ----
 {
-  movies(where: {OR: [{title: "some title"}]}) {
+  movies(where: {OR: [{title_EQ: "some title"}]}) {
     title
   }
 }
@@ -286,7 +290,7 @@ RETURN this {
 [source,graphql,request=true]
 ----
 {
-  movies(where: {OR: [{OR: [{title: "some title"}]}]}) {
+  movies(where: {OR: [{OR: [{title_EQ: "some title"}]}]}) {
     title
   }
 }
@@ -316,7 +320,7 @@ RETURN this {
 [source,graphql,request=true]
 ----
 {
-  movies(where: {OR: [{OR: [{OR: [{title: "some title"}]}]}]}) {
+  movies(where: {OR: [{OR: [{OR: [{title_EQ: "some title"}]}]}]}) {
     title
   }
 }
@@ -348,7 +352,7 @@ RETURN this {
 [source,graphql,request=true]
 ----
 {
-  movies(where: {title: null}) {
+  movies(where: {title_EQ: null}) {
     title
   }
 }
@@ -370,13 +374,41 @@ RETURN this {
 } AS this
 ----
 
+=== Match with not NULL in where
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies(where: {NOT: {title_EQ: null}}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title IS NOT NULL
+RETURN this {
+	.title
+} AS this
+----
+
 == Simple NOT
 
 .GraphQL-Query
 [source,graphql,request=true]
 ----
 {
-  movies(where: {NOT: {title: "some title"}}) {
+  movies(where: {NOT: {title_EQ: "some title"}}) {
     title
   }
 }
@@ -406,7 +438,7 @@ RETURN this {
 [source,graphql,request=true]
 ----
 {
-  movies(where: {NOT: {title: "some title", isFavorite: false}}) {
+  movies(where: {NOT: {title_EQ: "some title", isFavorite_EQ: false}}) {
     title
   }
 }

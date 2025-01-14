@@ -20,7 +20,7 @@ enum Genre {
 }
 
 """A type describing a movie."""
-type Movie {
+type Movie @node {
   id: ID
   "The number of actors who acted in the movie."
   actorCount: Int
@@ -76,15 +76,6 @@ type MovieEdge {
   node: Movie!
 }
 
-input MovieOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [MovieSort!]
-}
-
 """
 Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object.
 """
@@ -101,28 +92,34 @@ input MovieWhere {
   AND: [MovieWhere!]
   NOT: MovieWhere
   OR: [MovieWhere!]
-  actorCount: Int
+  actorCount: Int @deprecated(reason: "Please use the explicit _EQ version")
+  actorCount_EQ: Int
   actorCount_GT: Int
   actorCount_GTE: Int
   actorCount_IN: [Int]
   actorCount_LT: Int
   actorCount_LTE: Int
-  averageRating: Float
+  averageRating: Float @deprecated(reason: "Please use the explicit _EQ version")
+  averageRating_EQ: Float
   averageRating_GT: Float
   averageRating_GTE: Float
   averageRating_IN: [Float]
   averageRating_LT: Float
   averageRating_LTE: Float
-  customScalar: CustomScalar
+  customScalar: CustomScalar @deprecated(reason: "Please use the explicit _EQ version")
+  customScalar_EQ: CustomScalar
   customScalar_IN: [CustomScalar]
-  genre: Genre
+  genre: Genre @deprecated(reason: "Please use the explicit _EQ version")
+  genre_EQ: Genre
   genre_IN: [Genre]
-  id: ID
+  id: ID @deprecated(reason: "Please use the explicit _EQ version")
   id_CONTAINS: ID
   id_ENDS_WITH: ID
+  id_EQ: ID
   id_IN: [ID]
   id_STARTS_WITH: ID
-  isActive: Boolean
+  isActive: Boolean @deprecated(reason: "Please use the explicit _EQ version")
+  isActive_EQ: Boolean
 }
 
 type MoviesConnection {
@@ -140,8 +137,8 @@ type PageInfo {
 }
 
 type Query {
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
 }
 
 """An enum for sorting in either ascending or descending order."""
@@ -160,11 +157,11 @@ enum SortDirection {
 .Schema
 [source,graphql,schema=true]
 ----
-type Actor {
+type Actor @node {
   name: String
 }
 
-type Movie {
+type Movie @node {
   id: ID
   "Actors in Movie"
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
@@ -187,15 +184,6 @@ type ActorEdge {
   node: Actor!
 }
 
-input ActorOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more ActorSort objects to sort Actors by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [ActorSort!]
-}
-
 """
 Fields to sort Actors by. The order in which sorts are applied is not guaranteed when specifying many fields in one ActorSort object.
 """
@@ -207,9 +195,10 @@ input ActorWhere {
   AND: [ActorWhere!]
   NOT: ActorWhere
   OR: [ActorWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
 }
@@ -222,8 +211,8 @@ type ActorsConnection {
 
 type Movie {
   """Actors in Movie"""
-  actors(directed: Boolean = true, options: ActorOptions, where: ActorWhere): [Actor!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
+  actors(limit: Int, offset: Int, sort: [ActorSort!], where: ActorWhere): [Actor!]!
+  actorsConnection(after: String, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
   id: ID
 }
 
@@ -252,15 +241,6 @@ type MovieActorsRelationship {
 type MovieEdge {
   cursor: String!
   node: Movie!
-}
-
-input MovieOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [MovieSort!]
 }
 
 """
@@ -298,9 +278,10 @@ input MovieWhere {
   actors_SINGLE: ActorWhere
   """Return Movies where some of the related Actors match this filter"""
   actors_SOME: ActorWhere
-  id: ID
+  id: ID @deprecated(reason: "Please use the explicit _EQ version")
   id_CONTAINS: ID
   id_ENDS_WITH: ID
+  id_EQ: ID
   id_IN: [ID]
   id_STARTS_WITH: ID
 }
@@ -320,10 +301,10 @@ type PageInfo {
 }
 
 type Query {
-  actors(options: ActorOptions, where: ActorWhere): [Actor!]!
-  actorsConnection(after: String, first: Int, sort: [ActorSort], where: ActorWhere): ActorsConnection!
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
+  actors(limit: Int, offset: Int, sort: [ActorSort!], where: ActorWhere): [Actor!]!
+  actorsConnection(after: String, first: Int, sort: [ActorSort!], where: ActorWhere): ActorsConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
 }
 
 """An enum for sorting in either ascending or descending order."""
@@ -344,12 +325,12 @@ interface Production {
   title: String!
 }
 
-type Movie implements Production {
+type Movie implements Production @node {
   title: String!
   runtime: Int!
 }
 
-type Series implements Production {
+type Series implements Production @node {
   title: String!
   episodes: Int!
 }
@@ -358,7 +339,7 @@ type ActedIn @relationshipProperties {
   screenTime: Int!
 }
 
-type Actor {
+type Actor @node {
   name: String!
   "Acted in Production"
   actedIn: [Production!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
@@ -388,7 +369,8 @@ input ActedInWhere {
   AND: [ActedInWhere!]
   NOT: ActedInWhere
   OR: [ActedInWhere!]
-  screenTime: Int
+  screenTime: Int @deprecated(reason: "Please use the explicit _EQ version")
+  screenTime_EQ: Int
   screenTime_GT: Int
   screenTime_GTE: Int
   screenTime_IN: [Int!]
@@ -398,8 +380,8 @@ input ActedInWhere {
 
 type Actor {
   """Acted in Production"""
-  actedIn(directed: Boolean = true, options: ProductionOptions, where: ProductionWhere): [Production!]!
-  actedInConnection(after: String, directed: Boolean = true, first: Int, sort: [ActorActedInConnectionSort!], where: ActorActedInConnectionWhere): ActorActedInConnection!
+  actedIn(limit: Int, offset: Int, sort: [ProductionSort!], where: ProductionWhere): [Production!]!
+  actedInConnection(after: String, first: Int, sort: [ActorActedInConnectionSort!], where: ActorActedInConnectionWhere): ActorActedInConnection!
   name: String!
 }
 
@@ -431,15 +413,6 @@ type ActorActedInRelationship {
 type ActorEdge {
   cursor: String!
   node: Actor!
-}
-
-input ActorOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more ActorSort objects to sort Actors by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [ActorSort!]
 }
 
 """
@@ -477,9 +450,10 @@ input ActorWhere {
   actedIn_SINGLE: ProductionWhere
   """Return Actors where some of the related Productions match this filter"""
   actedIn_SOME: ProductionWhere
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String!]
   name_STARTS_WITH: String
 }
@@ -500,15 +474,6 @@ type MovieEdge {
   node: Movie!
 }
 
-input MovieOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [MovieSort!]
-}
-
 """
 Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object.
 """
@@ -521,15 +486,17 @@ input MovieWhere {
   AND: [MovieWhere!]
   NOT: MovieWhere
   OR: [MovieWhere!]
-  runtime: Int
+  runtime: Int @deprecated(reason: "Please use the explicit _EQ version")
+  runtime_EQ: Int
   runtime_GT: Int
   runtime_GTE: Int
   runtime_IN: [Int!]
   runtime_LT: Int
   runtime_LTE: Int
-  title: String
+  title: String @deprecated(reason: "Please use the explicit _EQ version")
   title_CONTAINS: String
   title_ENDS_WITH: String
+  title_EQ: String
   title_IN: [String!]
   title_STARTS_WITH: String
 }
@@ -562,15 +529,6 @@ enum ProductionImplementation {
   Series
 }
 
-input ProductionOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more ProductionSort objects to sort Productions by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [ProductionSort]
-}
-
 """
 Fields to sort Productions by. The order in which sorts are applied is not guaranteed when specifying many fields in one ProductionSort object.
 """
@@ -582,12 +540,13 @@ input ProductionWhere {
   AND: [ProductionWhere!]
   NOT: ProductionWhere
   OR: [ProductionWhere!]
-  title: String
+  title: String @deprecated(reason: "Please use the explicit _EQ version")
   title_CONTAINS: String
   title_ENDS_WITH: String
+  title_EQ: String
   title_IN: [String!]
   title_STARTS_WITH: String
-  typename_IN: [ProductionImplementation!]
+  typename: [ProductionImplementation!]
 }
 
 type ProductionsConnection {
@@ -597,14 +556,14 @@ type ProductionsConnection {
 }
 
 type Query {
-  actors(options: ActorOptions, where: ActorWhere): [Actor!]!
-  actorsConnection(after: String, first: Int, sort: [ActorSort], where: ActorWhere): ActorsConnection!
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
-  productions(options: ProductionOptions, where: ProductionWhere): [Production!]!
-  productionsConnection(after: String, first: Int, sort: [ProductionSort], where: ProductionWhere): ProductionsConnection!
-  series(options: SeriesOptions, where: SeriesWhere): [Series!]!
-  seriesConnection(after: String, first: Int, sort: [SeriesSort], where: SeriesWhere): SeriesConnection!
+  actors(limit: Int, offset: Int, sort: [ActorSort!], where: ActorWhere): [Actor!]!
+  actorsConnection(after: String, first: Int, sort: [ActorSort!], where: ActorWhere): ActorsConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+  productions(limit: Int, offset: Int, sort: [ProductionSort!], where: ProductionWhere): [Production!]!
+  productionsConnection(after: String, first: Int, sort: [ProductionSort!], where: ProductionWhere): ProductionsConnection!
+  series(limit: Int, offset: Int, sort: [SeriesSort!], where: SeriesWhere): [Series!]!
+  seriesConnection(after: String, first: Int, sort: [SeriesSort!], where: SeriesWhere): SeriesConnection!
 }
 
 type Series implements Production {
@@ -623,15 +582,6 @@ type SeriesEdge {
   node: Series!
 }
 
-input SeriesOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more SeriesSort objects to sort Series by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [SeriesSort!]
-}
-
 """
 Fields to sort Series by. The order in which sorts are applied is not guaranteed when specifying many fields in one SeriesSort object.
 """
@@ -644,15 +594,17 @@ input SeriesWhere {
   AND: [SeriesWhere!]
   NOT: SeriesWhere
   OR: [SeriesWhere!]
-  episodes: Int
+  episodes: Int @deprecated(reason: "Please use the explicit _EQ version")
+  episodes_EQ: Int
   episodes_GT: Int
   episodes_GTE: Int
   episodes_IN: [Int!]
   episodes_LT: Int
   episodes_LTE: Int
-  title: String
+  title: String @deprecated(reason: "Please use the explicit _EQ version")
   title_CONTAINS: String
   title_ENDS_WITH: String
+  title_EQ: String
   title_IN: [String!]
   title_STARTS_WITH: String
 }
@@ -673,11 +625,11 @@ enum SortDirection {
 ----
 union Search = Movie | Genre
 
-type Genre {
+type Genre @node {
   id: ID
 }
 
-type Movie {
+type Movie @node {
   id: ID
   search: [Search!]! @relationship(type: "SEARCH", direction: OUT)
   searchNoDirective: Search
@@ -700,15 +652,6 @@ type GenreEdge {
   node: Genre!
 }
 
-input GenreOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more GenreSort objects to sort Genres by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [GenreSort!]
-}
-
 """
 Fields to sort Genres by. The order in which sorts are applied is not guaranteed when specifying many fields in one GenreSort object.
 """
@@ -720,9 +663,10 @@ input GenreWhere {
   AND: [GenreWhere!]
   NOT: GenreWhere
   OR: [GenreWhere!]
-  id: ID
+  id: ID @deprecated(reason: "Please use the explicit _EQ version")
   id_CONTAINS: ID
   id_ENDS_WITH: ID
+  id_EQ: ID
   id_IN: [ID]
   id_STARTS_WITH: ID
 }
@@ -735,23 +679,14 @@ type GenresConnection {
 
 type Movie {
   id: ID
-  search(directed: Boolean = true, options: QueryOptions, where: SearchWhere): [Search!]!
-  searchConnection(after: String, directed: Boolean = true, first: Int, where: MovieSearchConnectionWhere): MovieSearchConnection!
+  search(limit: Int, offset: Int, where: SearchWhere): [Search!]!
+  searchConnection(after: String, first: Int, where: MovieSearchConnectionWhere): MovieSearchConnection!
   searchNoDirective: Search
 }
 
 type MovieEdge {
   cursor: String!
   node: Movie!
-}
-
-input MovieOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [MovieSort!]
 }
 
 type MovieSearchConnection {
@@ -795,9 +730,10 @@ input MovieWhere {
   AND: [MovieWhere!]
   NOT: MovieWhere
   OR: [MovieWhere!]
-  id: ID
+  id: ID @deprecated(reason: "Please use the explicit _EQ version")
   id_CONTAINS: ID
   id_ENDS_WITH: ID
+  id_EQ: ID
   id_IN: [ID]
   id_STARTS_WITH: ID
   """
@@ -841,17 +777,11 @@ type PageInfo {
 }
 
 type Query {
-  genres(options: GenreOptions, where: GenreWhere): [Genre!]!
-  genresConnection(after: String, first: Int, sort: [GenreSort], where: GenreWhere): GenresConnection!
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
-  searches(options: QueryOptions, where: SearchWhere): [Search!]!
-}
-
-"""Input type for options that can be specified on a query operation."""
-input QueryOptions {
-  limit: Int
-  offset: Int
+  genres(limit: Int, offset: Int, sort: [GenreSort!], where: GenreWhere): [Genre!]!
+  genresConnection(after: String, first: Int, sort: [GenreSort!], where: GenreWhere): GenresConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+  searches(limit: Int, offset: Int, where: SearchWhere): [Search!]!
 }
 
 union Search = Genre | Movie

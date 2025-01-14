@@ -9,9 +9,356 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Route {
+type Route @node {
   id: String!
   waypoints: [Point!]!
+}
+----
+
+== enables query of a node with multiple wgs-84 points
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CALL {
+ CREATE (r:Route)
+ SET r.id = "25c4676e-1e38-4b1b-b156-6a7e28c8013e"
+ SET r.waypoints = [p in [{longitude: 34.1879, latitude: 30.5402}, {longitude: 34.1879, latitude: 30.5402}, {longitude: 34.1879, latitude: 30.5402}, {longitude: 34.1879, latitude: 30.5402}, {longitude: 34.1879, latitude: 30.5402}, {longitude: 34.1879, latitude: 30.5402}, {longitude: 34.1879, latitude: 30.5402}, {longitude: 34.1879, latitude: 30.5402}, {longitude: 34.1879, latitude: 30.5402}] | point(p)]
+ RETURN r
+ }
+
+ RETURN r { .id, .waypoints } AS r
+----
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+query Routes($waypoints: [PointInput!]) {
+  routes(where: {waypoints_EQ: $waypoints}) {
+    id
+    waypoints {
+      latitude
+      longitude
+      height
+      crs
+    }
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "waypoints": [
+    {
+      "longitude": 34.1879,
+      "latitude": 30.5402
+    },
+    {
+      "longitude": 34.1879,
+      "latitude": 30.5402
+    },
+    {
+      "longitude": 34.1879,
+      "latitude": 30.5402
+    },
+    {
+      "longitude": 34.1879,
+      "latitude": 30.5402
+    },
+    {
+      "longitude": 34.1879,
+      "latitude": 30.5402
+    },
+    {
+      "longitude": 34.1879,
+      "latitude": 30.5402
+    },
+    {
+      "longitude": 34.1879,
+      "latitude": 30.5402
+    },
+    {
+      "longitude": 34.1879,
+      "latitude": 30.5402
+    },
+    {
+      "longitude": 34.1879,
+      "latitude": 30.5402
+    }
+  ]
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": [
+    {
+      "longitude": 34.1879,
+      "latitude": 30.5402
+    },
+    {
+      "longitude": 34.1879,
+      "latitude": 30.5402
+    },
+    {
+      "longitude": 34.1879,
+      "latitude": 30.5402
+    },
+    {
+      "longitude": 34.1879,
+      "latitude": 30.5402
+    },
+    {
+      "longitude": 34.1879,
+      "latitude": 30.5402
+    },
+    {
+      "longitude": 34.1879,
+      "latitude": 30.5402
+    },
+    {
+      "longitude": 34.1879,
+      "latitude": 30.5402
+    },
+    {
+      "longitude": 34.1879,
+      "latitude": 30.5402
+    },
+    {
+      "longitude": 34.1879,
+      "latitude": 30.5402
+    }
+  ]
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Route)
+WHERE this.waypoints = [var0 IN $param0 | point(var0)]
+RETURN this { .id, .waypoints } AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "routes": [
+    {
+      "id": "25c4676e-1e38-4b1b-b156-6a7e28c8013e",
+      "waypoints": [
+        {
+          "latitude": 30.5402,
+          "longitude": 34.1879,
+          "height": null,
+          "crs": "wgs-84"
+        },
+        {
+          "latitude": 30.5402,
+          "longitude": 34.1879,
+          "height": null,
+          "crs": "wgs-84"
+        },
+        {
+          "latitude": 30.5402,
+          "longitude": 34.1879,
+          "height": null,
+          "crs": "wgs-84"
+        },
+        {
+          "latitude": 30.5402,
+          "longitude": 34.1879,
+          "height": null,
+          "crs": "wgs-84"
+        },
+        {
+          "latitude": 30.5402,
+          "longitude": 34.1879,
+          "height": null,
+          "crs": "wgs-84"
+        },
+        {
+          "latitude": 30.5402,
+          "longitude": 34.1879,
+          "height": null,
+          "crs": "wgs-84"
+        },
+        {
+          "latitude": 30.5402,
+          "longitude": 34.1879,
+          "height": null,
+          "crs": "wgs-84"
+        },
+        {
+          "latitude": 30.5402,
+          "longitude": 34.1879,
+          "height": null,
+          "crs": "wgs-84"
+        },
+        {
+          "latitude": 30.5402,
+          "longitude": 34.1879,
+          "height": null,
+          "crs": "wgs-84"
+        }
+      ]
+    }
+  ]
+}
+----
+
+'''
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+query RoutesIncludes($waypoint: PointInput) {
+  routes(where: {waypoints_INCLUDES: $waypoint}) {
+    id
+    waypoints {
+      latitude
+      longitude
+      height
+      crs
+    }
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "waypoint": {
+    "longitude": 34.1879,
+    "latitude": 30.5402
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": [
+    {
+      "longitude": 34.1879,
+      "latitude": 30.5402
+    },
+    {
+      "longitude": 34.1879,
+      "latitude": 30.5402
+    },
+    {
+      "longitude": 34.1879,
+      "latitude": 30.5402
+    },
+    {
+      "longitude": 34.1879,
+      "latitude": 30.5402
+    },
+    {
+      "longitude": 34.1879,
+      "latitude": 30.5402
+    },
+    {
+      "longitude": 34.1879,
+      "latitude": 30.5402
+    },
+    {
+      "longitude": 34.1879,
+      "latitude": 30.5402
+    },
+    {
+      "longitude": 34.1879,
+      "latitude": 30.5402
+    },
+    {
+      "longitude": 34.1879,
+      "latitude": 30.5402
+    }
+  ]
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Route)
+WHERE this.waypoints = [var0 IN $param0 | point(var0)]
+RETURN this { .id, .waypoints } AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "routes": [
+    {
+      "id": "25c4676e-1e38-4b1b-b156-6a7e28c8013e",
+      "waypoints": [
+        {
+          "latitude": 30.5402,
+          "longitude": 34.1879,
+          "height": null,
+          "crs": "wgs-84"
+        },
+        {
+          "latitude": 30.5402,
+          "longitude": 34.1879,
+          "height": null,
+          "crs": "wgs-84"
+        },
+        {
+          "latitude": 30.5402,
+          "longitude": 34.1879,
+          "height": null,
+          "crs": "wgs-84"
+        },
+        {
+          "latitude": 30.5402,
+          "longitude": 34.1879,
+          "height": null,
+          "crs": "wgs-84"
+        },
+        {
+          "latitude": 30.5402,
+          "longitude": 34.1879,
+          "height": null,
+          "crs": "wgs-84"
+        },
+        {
+          "latitude": 30.5402,
+          "longitude": 34.1879,
+          "height": null,
+          "crs": "wgs-84"
+        },
+        {
+          "latitude": 30.5402,
+          "longitude": 34.1879,
+          "height": null,
+          "crs": "wgs-84"
+        },
+        {
+          "latitude": 30.5402,
+          "longitude": 34.1879,
+          "height": null,
+          "crs": "wgs-84"
+        },
+        {
+          "latitude": 30.5402,
+          "longitude": 34.1879,
+          "height": null,
+          "crs": "wgs-84"
+        }
+      ]
+    }
+  ]
 }
 ----
 
@@ -34,7 +381,7 @@ CALL {
 [source,graphql,request=true]
 ----
 query Routes($id: String!) {
-  routes(where: {id: $id}) {
+  routes(where: {id_EQ: $id}) {
     id
     waypoints {
       latitude
@@ -67,10 +414,7 @@ query Routes($id: String!) {
 ----
 MATCH (this:Route)
 WHERE this.id = $param0
-RETURN this { .id, waypoints: CASE
-    WHEN this.waypoints IS NOT NULL THEN [var0 IN this.waypoints | { point: var0, crs: var0.crs }]
-    ELSE NULL
-END } AS this
+RETURN this { .id, .waypoints } AS this
 ----
 
 .GraphQL-Response

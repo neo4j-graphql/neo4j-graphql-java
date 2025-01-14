@@ -9,7 +9,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Actor {
+type Actor @node {
   name: String
   actedIn: [Production!]! @relationship(type: "ACTED_IN", properties: "actedIn", direction: OUT)
 }
@@ -22,12 +22,12 @@ interface Production {
   title: String
 }
 
-type Movie implements Production {
+type Movie implements Production @node {
   title: String
   runtime: Int
 }
 
-type Series implements Production {
+type Series implements Production @node {
   title: String
   episodes: Int
 }
@@ -39,7 +39,7 @@ type Series implements Production {
 {
   actors {
     actedInConnection(
-      where: {OR: [{node: {title: "something"}}, {node: {title: "whatever"}}]}
+      where: {OR: [{node: {title_EQ: "something"}}, {node: {title_EQ: "whatever"}}]}
     ) {
       edges {
         node {

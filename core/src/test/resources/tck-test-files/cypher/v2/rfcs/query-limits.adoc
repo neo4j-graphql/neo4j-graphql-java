@@ -8,20 +8,20 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie @limit(default: 3, max: 5) {
+type Movie @limit(default: 3, max: 5) @node {
   id: ID!
   actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN)
 }
 
-type Person @limit(default: 2) {
+type Person @limit(default: 2) @node {
   id: ID!
 }
 
-type Show @limit(max: 2) {
+type Show @limit(max: 2) @node {
   id: ID!
 }
 
-type Festival {
+type Festival @node {
   name: String!
   shows: [Show!]! @relationship(type: "PART_OF", direction: IN)
 }
@@ -95,7 +95,7 @@ RETURN this {
 [source,graphql,request=true]
 ----
 {
-  shows(options: {limit: 5}) {
+  shows(limit: 5) {
     id
   }
 }

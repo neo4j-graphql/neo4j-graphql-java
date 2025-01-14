@@ -1,0 +1,150 @@
+:toc:
+:toclevels: 42
+
+= #582
+
+== Setup
+
+.Schema
+[source,graphql,schema=true]
+----
+type Entity @node {
+  children: [Entity!]! @relationship(type: "EDGE", properties: "Edge", direction: OUT)
+  parents: [Entity!]! @relationship(type: "EDGE", properties: "Edge", direction: IN)
+  type: String!
+}
+
+type Edge @relationshipProperties {
+  type: String!
+}
+----
+
+== should be able to nest connection where inputs
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+query ($where: EntityWhere) {
+  entities(where: $where) {
+    type
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "where" : {
+    "type_EQ" : "Cat",
+    "childrenConnection_SOME" : {
+      "node" : {
+        "type_EQ" : "Dog",
+        "parentsConnection_SOME" : {
+          "node" : {
+            "type_EQ" : "Bird"
+          }
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "Bird",
+  "param1" : "Dog",
+  "param2" : "Cat"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Entity)
+WHERE (EXISTS {
+		MATCH (this)-[edge0:EDGE]->(this0:Entity)
+		WHERE (EXISTS {
+				MATCH (this00:Entity)-[edge1:EDGE]->(this0)
+				WHERE this00.type = $param0
+			}
+			AND this0.type = $param1)
+	}
+	AND this.type = $param2)
+RETURN this {
+	.type
+} AS this
+----
+
+== should be able to nest connection where inputs down more levels
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+query ($where: EntityWhere) {
+  entities(where: $where) {
+    type
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "where" : {
+    "type_EQ" : "Cat",
+    "childrenConnection_SOME" : {
+      "node" : {
+        "type_EQ" : "Dog",
+        "parentsConnection_SOME" : {
+          "node" : {
+            "type_EQ" : "Bird",
+            "childrenConnection_SOME" : {
+              "node" : {
+                "type_EQ" : "Fish"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "Fish",
+  "param1" : "Bird",
+  "param2" : "Dog",
+  "param3" : "Cat"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Entity)
+WHERE (EXISTS {
+		MATCH (this)-[edge0:EDGE]->(this0:Entity)
+		WHERE (EXISTS {
+				MATCH (this00:Entity)-[edge1:EDGE]->(this0)
+				WHERE (EXISTS {
+						MATCH (this00)-[edge2:EDGE]->(this000:Entity)
+						WHERE this000.type = $param0
+					}
+					AND this00.type = $param1)
+			}
+			AND this0.type = $param2)
+	}
+	AND this.type = $param3)
+RETURN this {
+	.type
+} AS this
+----

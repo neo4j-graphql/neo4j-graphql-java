@@ -9,12 +9,12 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   title: String!
   actors: [Actor!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: IN)
 }
 
-type Actor {
+type Actor @node {
   name: String!
   movies: [Movie!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: OUT)
 }
@@ -38,9 +38,9 @@ CREATE (movie:Movie {title: "Forrest Gump"})
 [source,graphql,request=true]
 ----
 {
-  movies(where: {title: "Forrest Gump"}) {
+  movies(where: {title_EQ: "Forrest Gump"}) {
     title
-    actorsConnection(where: {node: {name: "Tom Hanks"}}) {
+    actorsConnection(where: {node: {name_EQ: "Tom Hanks"}}) {
       edges {
         properties {
           screenTime
@@ -166,16 +166,16 @@ CREATE (movie:Movie {title: "Forrest Gump"})
 [source,graphql,request=true]
 ----
 {
-  movies(where: {title: "Forrest Gump"}) {
+  movies(where: {title_EQ: "Forrest Gump"}) {
     title
-    actorsConnection(where: {node: {name: "Tom Hanks"}}) {
+    actorsConnection(where: {node: {name_EQ: "Tom Hanks"}}) {
       edges {
         properties {
           screenTime
         }
         node {
           name
-          moviesConnection(where: {node: {title: "Forrest Gump"}}) {
+          moviesConnection(where: {node: {title_EQ: "Forrest Gump"}}) {
             edges {
               node {
                 title

@@ -9,7 +9,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   id: ID!
   ids: [ID!]!
   name: String!
@@ -57,15 +57,6 @@ type MovieEdge {
   node: Movie!
 }
 
-input MovieOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [MovieSort!]
-}
-
 """
 Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object.
 """
@@ -82,53 +73,66 @@ input MovieWhere {
   AND: [MovieWhere!]
   NOT: MovieWhere
   OR: [MovieWhere!]
-  actorCount: Int
+  actorCount: Int @deprecated(reason: "Please use the explicit _EQ version")
+  actorCount_EQ: Int
   actorCount_GT: Int
   actorCount_GTE: Int
   actorCount_IN: [Int!]
   actorCount_LT: Int
   actorCount_LTE: Int
-  actorCounts: [Int!]
+  actorCounts: [Int!] @deprecated(reason: "Please use the explicit _EQ version")
+  actorCounts_EQ: [Int!]
   actorCounts_INCLUDES: Int
-  averageRating: Float
+  averageRating: Float @deprecated(reason: "Please use the explicit _EQ version")
+  averageRating_EQ: Float
   averageRating_GT: Float
   averageRating_GTE: Float
   averageRating_IN: [Float!]
   averageRating_LT: Float
   averageRating_LTE: Float
-  averageRatings: [Float!]
+  averageRatings: [Float!] @deprecated(reason: "Please use the explicit _EQ version")
+  averageRatings_EQ: [Float!]
   averageRatings_INCLUDES: Float
-  createdAt: DateTime
+  createdAt: DateTime @deprecated(reason: "Please use the explicit _EQ version")
+  createdAt_EQ: DateTime
   createdAt_GT: DateTime
   createdAt_GTE: DateTime
   createdAt_IN: [DateTime!]
   createdAt_LT: DateTime
   createdAt_LTE: DateTime
-  createdAts: [DateTime!]
+  createdAts: [DateTime!] @deprecated(reason: "Please use the explicit _EQ version")
+  createdAts_EQ: [DateTime!]
   createdAts_INCLUDES: DateTime
-  filmedAt: PointInput
+  filmedAt: PointInput @deprecated(reason: "Please use the explicit _EQ version")
   filmedAt_DISTANCE: PointDistance
+  filmedAt_EQ: PointInput
   filmedAt_GT: PointDistance
   filmedAt_GTE: PointDistance
   filmedAt_IN: [PointInput!]
   filmedAt_LT: PointDistance
   filmedAt_LTE: PointDistance
-  filmedAts: [PointInput!]
+  filmedAts: [PointInput!] @deprecated(reason: "Please use the explicit _EQ version")
+  filmedAts_EQ: [PointInput!]
   filmedAts_INCLUDES: PointInput
-  id: ID
+  id: ID @deprecated(reason: "Please use the explicit _EQ version")
   id_CONTAINS: ID
   id_ENDS_WITH: ID
+  id_EQ: ID
   id_IN: [ID!]
   id_STARTS_WITH: ID
-  ids: [ID!]
+  ids: [ID!] @deprecated(reason: "Please use the explicit _EQ version")
+  ids_EQ: [ID!]
   ids_INCLUDES: ID
-  isActives: [Boolean!]
-  name: String
+  isActives: [Boolean!] @deprecated(reason: "Please use the explicit _EQ version")
+  isActives_EQ: [Boolean!]
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String!]
   name_STARTS_WITH: String
-  names: [String!]
+  names: [String!] @deprecated(reason: "Please use the explicit _EQ version")
+  names_EQ: [String!]
   names_INCLUDES: String
 }
 
@@ -205,8 +209,8 @@ input PointInput {
 }
 
 type Query {
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
 }
 
 """An enum for sorting in either ascending or descending order."""

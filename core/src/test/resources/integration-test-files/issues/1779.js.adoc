@@ -9,13 +9,13 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Person {
+type Person @node {
   name: String
   age: Int
   attends: [School!]! @relationship(type: "ATTENDS", direction: OUT)
 }
 
-type School {
+type School @node {
   name: String
   students: [Person!]! @relationship(type: "ATTENDS", direction: IN)
 }
@@ -79,18 +79,6 @@ RETURN this { .name, attends: var3 } AS this
 {
   "people": [
     {
-      "name": "B",
-      "attends": [
-        {
-          "name": "Old"
-        }
-      ]
-    },
-    {
-      "name": "C",
-      "attends": []
-    },
-    {
       "name": "A",
       "attends": [
         {
@@ -100,6 +88,18 @@ RETURN this { .name, attends: var3 } AS this
     },
     {
       "name": "D",
+      "attends": []
+    },
+    {
+      "name": "B",
+      "attends": [
+        {
+          "name": "Old"
+        }
+      ]
+    },
+    {
+      "name": "C",
       "attends": []
     }
   ]

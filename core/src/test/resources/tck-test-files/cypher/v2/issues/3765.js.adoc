@@ -9,12 +9,12 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type User {
+type User @node {
   name: String!
   otherName: String
 }
 
-type Post {
+type Post @node {
   content: String!
   alternateContent: String!
   likes: [User!]! @relationship(type: "LIKES", direction: IN, properties: "likesProperties")
@@ -33,7 +33,7 @@ type likesProperties @relationshipProperties {
 [source,graphql,request=true]
 ----
 {
-  posts(where: {content: "stuff", alternateContent: "stuff2"}) {
+  posts(where: {content_EQ: "stuff", alternateContent_EQ: "stuff2"}) {
     content
   }
 }
@@ -63,7 +63,7 @@ RETURN this { .content } AS this
 ----
 {
   posts(
-    where: {OR: [{content: "stuff", alternateContent: "stuff2"}, {content: "stuff3"}]}
+    where: {OR: [{content_EQ: "stuff", alternateContent_EQ: "stuff2"}, {content_EQ: "stuff3"}]}
   ) {
     content
   }
@@ -94,7 +94,7 @@ RETURN this { .content } AS this
 [source,graphql,request=true]
 ----
 {
-  posts(where: {NOT: {content: "stuff", alternateContent: "stuff2"}}) {
+  posts(where: {NOT: {content_EQ: "stuff", alternateContent_EQ: "stuff2"}}) {
     content
   }
 }
@@ -125,7 +125,7 @@ RETURN this { .content } AS this
 [source,graphql,request=true]
 ----
 {
-  posts(where: {likes_SOME: {name: "stuff", otherName: "stuff2"}}) {
+  posts(where: {likes_SOME: {name_EQ: "stuff", otherName_EQ: "stuff2"}}) {
     content
   }
 }
@@ -157,7 +157,9 @@ RETURN this { .content } AS this
 [source,graphql,request=true]
 ----
 {
-  posts(where: {likes_SOME: {name: "stuff"}, likes_ALL: {otherName: "stuff2"}}) {
+  posts(
+    where: {likes_SOME: {name_EQ: "stuff"}, likes_ALL: {otherName_EQ: "stuff2"}}
+  ) {
     content
   }
 }
@@ -196,7 +198,7 @@ RETURN this { .content } AS this
 ----
 {
   posts(
-    where: {OR: [{likes_SOME: {name: "stuff"}}, {likes_ALL: {otherName: "stuff2"}}, {likes_SOME: {otherName: "stuff3"}}]}
+    where: {OR: [{likes_SOME: {name_EQ: "stuff"}}, {likes_ALL: {otherName_EQ: "stuff2"}}, {likes_SOME: {otherName_EQ: "stuff3"}}]}
   ) {
     content
   }

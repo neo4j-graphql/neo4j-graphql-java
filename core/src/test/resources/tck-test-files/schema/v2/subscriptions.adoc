@@ -8,7 +8,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   id: ID
   actorCount: Int
   averageRating: Float
@@ -16,7 +16,7 @@ type Movie {
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
 }
 
-type Actor {
+type Actor @node {
   name: String!
 }
 ----
@@ -45,8 +45,8 @@ type ActorsConnection {
 
 type Movie {
   actorCount: Int
-  actors(directed: Boolean = true, options: ActorOptions, where: ActorWhere): [Actor!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
+  actors(limit: Int, offset: Int, sort: [ActorSort!], where: ActorWhere): [Actor!]!
+  actorsConnection(after: String, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
   averageRating: Float
   id: ID
   isActive: Boolean
@@ -83,10 +83,10 @@ type PageInfo {
 }
 
 type Query {
-  actors(options: ActorOptions, where: ActorWhere): [Actor!]!
-  actorsConnection(after: String, first: Int, sort: [ActorSort], where: ActorWhere): ActorsConnection!
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
+  actors(limit: Int, offset: Int, sort: [ActorSort!], where: ActorWhere): [Actor!]!
+  actorsConnection(after: String, first: Int, sort: [ActorSort!], where: ActorWhere): ActorsConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
 }
 
 "An enum for sorting in either ascending or descending order."
@@ -95,13 +95,6 @@ enum SortDirection {
   ASC
   "Sort by field values in descending order."
   DESC
-}
-
-input ActorOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more ActorSort objects to sort Actors by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [ActorSort!]
 }
 
 "Fields to sort Actors by. The order in which sorts are applied is not guaranteed when specifying many fields in one ActorSort object."
@@ -113,9 +106,10 @@ input ActorWhere {
   AND: [ActorWhere!]
   NOT: ActorWhere
   OR: [ActorWhere!]
-  name: String
+  name: String @deprecated(reason : "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String!]
   name_STARTS_WITH: String
 }
@@ -131,13 +125,6 @@ input MovieActorsConnectionWhere {
   node: ActorWhere
 }
 
-input MovieOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [MovieSort!]
-}
-
 "Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
 input MovieSort {
   actorCount: SortDirection
@@ -150,7 +137,8 @@ input MovieWhere {
   AND: [MovieWhere!]
   NOT: MovieWhere
   OR: [MovieWhere!]
-  actorCount: Int
+  actorCount: Int @deprecated(reason : "Please use the explicit _EQ version")
+  actorCount_EQ: Int
   actorCount_GT: Int
   actorCount_GTE: Int
   actorCount_IN: [Int]
@@ -172,18 +160,21 @@ input MovieWhere {
   actors_SINGLE: ActorWhere
   "Return Movies where some of the related Actors match this filter"
   actors_SOME: ActorWhere
-  averageRating: Float
+  averageRating: Float @deprecated(reason : "Please use the explicit _EQ version")
+  averageRating_EQ: Float
   averageRating_GT: Float
   averageRating_GTE: Float
   averageRating_IN: [Float]
   averageRating_LT: Float
   averageRating_LTE: Float
-  id: ID
+  id: ID @deprecated(reason : "Please use the explicit _EQ version")
   id_CONTAINS: ID
   id_ENDS_WITH: ID
+  id_EQ: ID
   id_IN: [ID]
   id_STARTS_WITH: ID
-  isActive: Boolean
+  isActive: Boolean @deprecated(reason : "Please use the explicit _EQ version")
+  isActive_EQ: Boolean
 }
 
 ----
@@ -193,7 +184,7 @@ input MovieWhere {
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   id: ID
   actorCount: Int
   averageRating: Float
@@ -201,7 +192,7 @@ type Movie {
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
 }
 
-type Actor {
+type Actor @node {
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
 }
 ----
@@ -214,8 +205,8 @@ schema {
 }
 
 type Actor {
-  movies(directed: Boolean = true, options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, directed: Boolean = true, first: Int, sort: [ActorMoviesConnectionSort!], where: ActorMoviesConnectionWhere): ActorMoviesConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [ActorMoviesConnectionSort!], where: ActorMoviesConnectionWhere): ActorMoviesConnection!
 }
 
 type ActorEdge {
@@ -242,8 +233,8 @@ type ActorsConnection {
 
 type Movie {
   actorCount: Int
-  actors(directed: Boolean = true, options: ActorOptions, where: ActorWhere): [Actor!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, where: MovieActorsConnectionWhere): MovieActorsConnection!
+  actors(limit: Int, offset: Int, where: ActorWhere): [Actor!]!
+  actorsConnection(after: String, first: Int, where: MovieActorsConnectionWhere): MovieActorsConnection!
   averageRating: Float
   id: ID
   isActive: Boolean
@@ -280,10 +271,10 @@ type PageInfo {
 }
 
 type Query {
-  actors(options: ActorOptions, where: ActorWhere): [Actor!]!
+  actors(limit: Int, offset: Int, where: ActorWhere): [Actor!]!
   actorsConnection(after: String, first: Int, where: ActorWhere): ActorsConnection!
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
 }
 
 "An enum for sorting in either ascending or descending order."
@@ -303,11 +294,6 @@ input ActorMoviesConnectionWhere {
   NOT: ActorMoviesConnectionWhere
   OR: [ActorMoviesConnectionWhere!]
   node: MovieWhere
-}
-
-input ActorOptions {
-  limit: Int
-  offset: Int
 }
 
 input ActorWhere {
@@ -339,13 +325,6 @@ input MovieActorsConnectionWhere {
   node: ActorWhere
 }
 
-input MovieOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [MovieSort!]
-}
-
 "Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
 input MovieSort {
   actorCount: SortDirection
@@ -358,7 +337,8 @@ input MovieWhere {
   AND: [MovieWhere!]
   NOT: MovieWhere
   OR: [MovieWhere!]
-  actorCount: Int
+  actorCount: Int @deprecated(reason : "Please use the explicit _EQ version")
+  actorCount_EQ: Int
   actorCount_GT: Int
   actorCount_GTE: Int
   actorCount_IN: [Int]
@@ -380,18 +360,21 @@ input MovieWhere {
   actors_SINGLE: ActorWhere
   "Return Movies where some of the related Actors match this filter"
   actors_SOME: ActorWhere
-  averageRating: Float
+  averageRating: Float @deprecated(reason : "Please use the explicit _EQ version")
+  averageRating_EQ: Float
   averageRating_GT: Float
   averageRating_GTE: Float
   averageRating_IN: [Float]
   averageRating_LT: Float
   averageRating_LTE: Float
-  id: ID
+  id: ID @deprecated(reason : "Please use the explicit _EQ version")
   id_CONTAINS: ID
   id_ENDS_WITH: ID
+  id_EQ: ID
   id_IN: [ID]
   id_STARTS_WITH: ID
-  isActive: Boolean
+  isActive: Boolean @deprecated(reason : "Please use the explicit _EQ version")
+  isActive_EQ: Boolean
 }
 
 ----
@@ -401,7 +384,7 @@ input MovieWhere {
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   id: ID
   actorCount: Int
   averageRating: Float
@@ -411,11 +394,11 @@ type Movie {
 
 union Actor = Star | Person
 
-type Star {
+type Star @node {
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
 }
 
-type Person {
+type Person @node {
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
 }
 ----
@@ -431,8 +414,8 @@ union Actor = Person | Star
 
 type Movie {
   actorCount: Int
-  actors(directed: Boolean = true, options: QueryOptions, where: ActorWhere): [Actor!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, where: MovieActorsConnectionWhere): MovieActorsConnection!
+  actors(limit: Int, offset: Int, where: ActorWhere): [Actor!]!
+  actorsConnection(after: String, first: Int, where: MovieActorsConnectionWhere): MovieActorsConnection!
   averageRating: Float
   id: ID
   isActive: Boolean
@@ -475,8 +458,8 @@ type PeopleConnection {
 }
 
 type Person {
-  movies(directed: Boolean = true, options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, directed: Boolean = true, first: Int, sort: [PersonMoviesConnectionSort!], where: PersonMoviesConnectionWhere): PersonMoviesConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [PersonMoviesConnectionSort!], where: PersonMoviesConnectionWhere): PersonMoviesConnection!
 }
 
 type PersonEdge {
@@ -496,18 +479,18 @@ type PersonMoviesRelationship {
 }
 
 type Query {
-  actors(options: QueryOptions, where: ActorWhere): [Actor!]!
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
-  people(options: PersonOptions, where: PersonWhere): [Person!]!
+  actors(limit: Int, offset: Int, where: ActorWhere): [Actor!]!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+  people(limit: Int, offset: Int, where: PersonWhere): [Person!]!
   peopleConnection(after: String, first: Int, where: PersonWhere): PeopleConnection!
-  stars(options: StarOptions, where: StarWhere): [Star!]!
+  stars(limit: Int, offset: Int, where: StarWhere): [Star!]!
   starsConnection(after: String, first: Int, where: StarWhere): StarsConnection!
 }
 
 type Star {
-  movies(directed: Boolean = true, options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, directed: Boolean = true, first: Int, sort: [StarMoviesConnectionSort!], where: StarMoviesConnectionWhere): StarMoviesConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [StarMoviesConnectionSort!], where: StarMoviesConnectionWhere): StarMoviesConnection!
 }
 
 type StarEdge {
@@ -564,13 +547,6 @@ input MovieActorsStarConnectionWhere {
   node: StarWhere
 }
 
-input MovieOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [MovieSort!]
-}
-
 "Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
 input MovieSort {
   actorCount: SortDirection
@@ -583,7 +559,8 @@ input MovieWhere {
   AND: [MovieWhere!]
   NOT: MovieWhere
   OR: [MovieWhere!]
-  actorCount: Int
+  actorCount: Int @deprecated(reason : "Please use the explicit _EQ version")
+  actorCount_EQ: Int
   actorCount_GT: Int
   actorCount_GTE: Int
   actorCount_IN: [Int]
@@ -605,18 +582,21 @@ input MovieWhere {
   actors_SINGLE: ActorWhere
   "Return Movies where some of the related Actors match this filter"
   actors_SOME: ActorWhere
-  averageRating: Float
+  averageRating: Float @deprecated(reason : "Please use the explicit _EQ version")
+  averageRating_EQ: Float
   averageRating_GT: Float
   averageRating_GTE: Float
   averageRating_IN: [Float]
   averageRating_LT: Float
   averageRating_LTE: Float
-  id: ID
+  id: ID @deprecated(reason : "Please use the explicit _EQ version")
   id_CONTAINS: ID
   id_ENDS_WITH: ID
+  id_EQ: ID
   id_IN: [ID]
   id_STARTS_WITH: ID
-  isActive: Boolean
+  isActive: Boolean @deprecated(reason : "Please use the explicit _EQ version")
+  isActive_EQ: Boolean
 }
 
 input PersonMoviesConnectionSort {
@@ -628,11 +608,6 @@ input PersonMoviesConnectionWhere {
   NOT: PersonMoviesConnectionWhere
   OR: [PersonMoviesConnectionWhere!]
   node: MovieWhere
-}
-
-input PersonOptions {
-  limit: Int
-  offset: Int
 }
 
 input PersonWhere {
@@ -657,12 +632,6 @@ input PersonWhere {
   movies_SOME: MovieWhere
 }
 
-"Input type for options that can be specified on a query operation."
-input QueryOptions {
-  limit: Int
-  offset: Int
-}
-
 input StarMoviesConnectionSort {
   node: MovieSort
 }
@@ -672,11 +641,6 @@ input StarMoviesConnectionWhere {
   NOT: StarMoviesConnectionWhere
   OR: [StarMoviesConnectionWhere!]
   node: MovieWhere
-}
-
-input StarOptions {
-  limit: Int
-  offset: Int
 }
 
 input StarWhere {
@@ -708,7 +672,7 @@ input StarWhere {
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   id: ID
   actorCount: Int
   averageRating: Float
@@ -720,7 +684,7 @@ type ActedIn @relationshipProperties {
   screenTime: Int!
 }
 
-type Actor {
+type Actor @node {
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
 }
 ----
@@ -741,8 +705,8 @@ type ActedIn {
 }
 
 type Actor {
-  movies(directed: Boolean = true, options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, directed: Boolean = true, first: Int, sort: [ActorMoviesConnectionSort!], where: ActorMoviesConnectionWhere): ActorMoviesConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [ActorMoviesConnectionSort!], where: ActorMoviesConnectionWhere): ActorMoviesConnection!
 }
 
 type ActorEdge {
@@ -769,8 +733,8 @@ type ActorsConnection {
 
 type Movie {
   actorCount: Int
-  actors(directed: Boolean = true, options: ActorOptions, where: ActorWhere): [Actor!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
+  actors(limit: Int, offset: Int, where: ActorWhere): [Actor!]!
+  actorsConnection(after: String, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
   averageRating: Float
   id: ID
   isActive: Boolean
@@ -808,10 +772,10 @@ type PageInfo {
 }
 
 type Query {
-  actors(options: ActorOptions, where: ActorWhere): [Actor!]!
+  actors(limit: Int, offset: Int, where: ActorWhere): [Actor!]!
   actorsConnection(after: String, first: Int, where: ActorWhere): ActorsConnection!
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
 }
 
 "An enum for sorting in either ascending or descending order."
@@ -830,7 +794,8 @@ input ActedInWhere {
   AND: [ActedInWhere!]
   NOT: ActedInWhere
   OR: [ActedInWhere!]
-  screenTime: Int
+  screenTime: Int @deprecated(reason : "Please use the explicit _EQ version")
+  screenTime_EQ: Int
   screenTime_GT: Int
   screenTime_GTE: Int
   screenTime_IN: [Int!]
@@ -847,11 +812,6 @@ input ActorMoviesConnectionWhere {
   NOT: ActorMoviesConnectionWhere
   OR: [ActorMoviesConnectionWhere!]
   node: MovieWhere
-}
-
-input ActorOptions {
-  limit: Int
-  offset: Int
 }
 
 input ActorWhere {
@@ -888,13 +848,6 @@ input MovieActorsConnectionWhere {
   node: ActorWhere
 }
 
-input MovieOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [MovieSort!]
-}
-
 "Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
 input MovieSort {
   actorCount: SortDirection
@@ -907,7 +860,8 @@ input MovieWhere {
   AND: [MovieWhere!]
   NOT: MovieWhere
   OR: [MovieWhere!]
-  actorCount: Int
+  actorCount: Int @deprecated(reason : "Please use the explicit _EQ version")
+  actorCount_EQ: Int
   actorCount_GT: Int
   actorCount_GTE: Int
   actorCount_IN: [Int]
@@ -929,18 +883,21 @@ input MovieWhere {
   actors_SINGLE: ActorWhere
   "Return Movies where some of the related Actors match this filter"
   actors_SOME: ActorWhere
-  averageRating: Float
+  averageRating: Float @deprecated(reason : "Please use the explicit _EQ version")
+  averageRating_EQ: Float
   averageRating_GT: Float
   averageRating_GTE: Float
   averageRating_IN: [Float]
   averageRating_LT: Float
   averageRating_LTE: Float
-  id: ID
+  id: ID @deprecated(reason : "Please use the explicit _EQ version")
   id_CONTAINS: ID
   id_ENDS_WITH: ID
+  id_EQ: ID
   id_IN: [ID]
   id_STARTS_WITH: ID
-  isActive: Boolean
+  isActive: Boolean @deprecated(reason : "Please use the explicit _EQ version")
+  isActive_EQ: Boolean
 }
 
 ----

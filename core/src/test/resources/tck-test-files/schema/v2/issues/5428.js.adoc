@@ -9,7 +9,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Test @plural(value: "Test") {
+type Test @plural(value: "Test") @node {
   Name: String
 }
 ----
@@ -30,8 +30,8 @@ type PageInfo {
 }
 
 type Query {
-  test(options: TestOptions, where: TestWhere): [Test!]!
-  testConnection(after: String, first: Int, sort: [TestSort], where: TestWhere): TestConnection!
+  test(limit: Int, offset: Int, sort: [TestSort!], where: TestWhere): [Test!]!
+  testConnection(after: String, first: Int, sort: [TestSort!], where: TestWhere): TestConnection!
 }
 
 """An enum for sorting in either ascending or descending order."""
@@ -57,15 +57,6 @@ type TestEdge {
   node: Test!
 }
 
-input TestOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more TestSort objects to sort Test by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [TestSort!]
-}
-
 """
 Fields to sort Test by. The order in which sorts are applied is not guaranteed when specifying many fields in one TestSort object.
 """
@@ -76,9 +67,10 @@ input TestSort {
 input TestWhere {
   AND: [TestWhere!]
   NOT: TestWhere
-  Name: String
+  Name: String @deprecated(reason: "Please use the explicit _EQ version")
   Name_CONTAINS: String
   Name_ENDS_WITH: String
+  Name_EQ: String
   Name_IN: [String]
   Name_STARTS_WITH: String
   OR: [TestWhere!]

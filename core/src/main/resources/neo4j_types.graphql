@@ -103,12 +103,6 @@ input CartesianPointDistance {
   distance: Float!
 }
 
-"Input type for options that can be specified on a query operation."
-input QueryOptions {
-  limit: Int
-  offset: Int
-}
-
 "A date, represented as a 'yyyy-mm-dd' string"
 scalar Date
 

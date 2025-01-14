@@ -9,12 +9,12 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Actor {
+type Actor @node {
   name: String!
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
 }
 
-type Movie {
+type Movie @node {
   title: String!
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN, properties: "ActedIn")
 }
@@ -53,13 +53,14 @@ input ActedInWhere {
   AND: [ActedInWhere!]
   NOT: ActedInWhere
   OR: [ActedInWhere!]
-  roleType: RoleType
+  roleType: RoleType @deprecated(reason: "Please use the explicit _EQ version")
+  roleType_EQ: RoleType
   roleType_IN: [RoleType!]
 }
 
 type Actor {
-  movies(directed: Boolean = true, options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, directed: Boolean = true, first: Int, sort: [ActorMoviesConnectionSort!], where: ActorMoviesConnectionWhere): ActorMoviesConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [ActorMoviesConnectionSort!], where: ActorMoviesConnectionWhere): ActorMoviesConnection!
   name: String!
 }
 
@@ -91,15 +92,6 @@ type ActorMoviesRelationship {
   cursor: String!
   node: Movie!
   properties: ActedIn!
-}
-
-input ActorOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more ActorSort objects to sort Actors by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [ActorSort!]
 }
 
 """
@@ -137,9 +129,10 @@ input ActorWhere {
   movies_SINGLE: MovieWhere
   """Return Actors where some of the related Movies match this filter"""
   movies_SOME: MovieWhere
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String!]
   name_STARTS_WITH: String
 }
@@ -151,8 +144,8 @@ type ActorsConnection {
 }
 
 type Movie {
-  actors(directed: Boolean = true, options: ActorOptions, where: ActorWhere): [Actor!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
+  actors(limit: Int, offset: Int, sort: [ActorSort!], where: ActorWhere): [Actor!]!
+  actorsConnection(after: String, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
   title: String!
 }
 
@@ -184,15 +177,6 @@ type MovieActorsRelationship {
 type MovieEdge {
   cursor: String!
   node: Movie!
-}
-
-input MovieOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [MovieSort!]
 }
 
 """
@@ -230,9 +214,10 @@ input MovieWhere {
   actors_SINGLE: ActorWhere
   """Return Movies where some of the related Actors match this filter"""
   actors_SOME: ActorWhere
-  title: String
+  title: String @deprecated(reason: "Please use the explicit _EQ version")
   title_CONTAINS: String
   title_ENDS_WITH: String
+  title_EQ: String
   title_IN: [String!]
   title_STARTS_WITH: String
 }
@@ -252,10 +237,10 @@ type PageInfo {
 }
 
 type Query {
-  actors(options: ActorOptions, where: ActorWhere): [Actor!]!
-  actorsConnection(after: String, first: Int, sort: [ActorSort], where: ActorWhere): ActorsConnection!
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
+  actors(limit: Int, offset: Int, sort: [ActorSort!], where: ActorWhere): [Actor!]!
+  actorsConnection(after: String, first: Int, sort: [ActorSort!], where: ActorWhere): ActorsConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
 }
 
 enum RoleType {

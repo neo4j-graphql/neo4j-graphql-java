@@ -9,12 +9,12 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type MyThing {
+type MyThing @node {
   id: ID! @id
   stuff: MyStuff @relationship(type: "THE_STUFF", direction: OUT)
 }
 
-type MyStuff {
+type MyStuff @node {
   id: ID! @id
   thing: MyThing @relationship(type: "THE_STUFF", direction: IN)
 }

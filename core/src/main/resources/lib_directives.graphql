@@ -65,7 +65,7 @@ directive @query(
 directive @relationship(
   type:String!,
   "Valid and default directions for this relationship."
-  queryDirection: RelationshipQueryDirection! = DEFAULT_DIRECTED,
+  queryDirection: RelationshipQueryDirection! = DIRECTED,
   direction: RelationshipDirection!,
   "The name of the interface containing the properties for this relationship."
   properties: String
@@ -93,14 +93,8 @@ enum RelationshipDirection {
 }
 
 enum RelationshipQueryDirection {
-  "All queries will be **directed** by default, but users may perform undirected queries."
-  DEFAULT_DIRECTED
-  "All queries will be **undirected** by default, but users may perform directed queries."
-  DEFAULT_UNDIRECTED
-  "Only directed queries can be perform on this relationship."
-  DIRECTED_ONLY
-  "Only undirected queries can be perform on this relationship."
-  UNDIRECTED_ONLY
+  DIRECTED
+  UNDIRECTED
 }
 
 "Limit options."

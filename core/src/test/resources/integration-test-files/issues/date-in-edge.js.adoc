@@ -9,17 +9,17 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Genre {
+type Genre @node {
   id: ID!
   movies: [Movie!]! @relationship(type: "MOVIE", direction: OUT)
 }
 
-type Movie {
+type Movie @node {
   title: String!
   actors: [Actor!]! @relationship(type: "ACTOR", direction: OUT)
 }
 
-type Actor {
+type Actor @node {
   name: String!
   birthday: DateTime!
   movie: Movie! @relationship(type: "ACTOR", direction: IN)
@@ -40,7 +40,7 @@ CREATE (genre:Genre { id: "RandomString1" })
 [source,graphql,request=true]
 ----
 {
-  genres(where: {id: "RandomString1"}) {
+  genres(where: {id_EQ: "RandomString1"}) {
     movies {
       actorsConnection {
         edges {

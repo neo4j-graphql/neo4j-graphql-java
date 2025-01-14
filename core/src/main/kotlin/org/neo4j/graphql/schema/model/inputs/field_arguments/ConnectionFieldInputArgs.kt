@@ -26,8 +26,6 @@ class ConnectionFieldInputArgs(field: ConnectionField, data: Dict) {
         sortFactory = { ConnectionSort(field, it) }
     )
 
-    val directed = data.nestedObject(Constants.DIRECTED) as? Boolean
-
     object Augmentation : AugmentationBase {
 
         fun getFieldArguments(field: ConnectionField, ctx: AugmentationContext): List<InputValueDefinition> {
@@ -39,8 +37,6 @@ class ConnectionFieldInputArgs(field: ConnectionField, data: Dict) {
 
             args += inputValue(Constants.FIRST, Constants.Types.Int)
             args += inputValue(Constants.AFTER, Constants.Types.String)
-
-            RelationFieldInputArgs.Augmentation.directedArgument(field.relationshipField)?.let { args += it }
 
             ConnectionSort.Augmentation
                 .generateConnectionSortIT(field, ctx)

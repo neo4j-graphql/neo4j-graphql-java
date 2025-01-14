@@ -14,20 +14,20 @@ interface Product {
   releatsTo: [Product!]!
 }
 
-type Series implements Product {
+type Series implements Product @node {
   productTitle: String!
   releatsTo: [Product!]! @relationship(type: "RELATES_TO", direction: OUT, queryDirection: DEFAULT_UNDIRECTED)
   seasons: [Season!]!
 }
 
-type Season implements Product {
+type Season implements Product @node {
   productTitle: String!
   releatsTo: [Product!]! @relationship(type: "RELATES_TO", direction: OUT, queryDirection: DEFAULT_UNDIRECTED)
   seasonNumber: Int
   episodes: [ProgrammeItem!]!
 }
 
-type ProgrammeItem implements Product {
+type ProgrammeItem implements Product @node {
   productTitle: String!
   releatsTo: [Product!]! @relationship(type: "RELATES_TO", direction: OUT, queryDirection: DEFAULT_UNDIRECTED)
   episodeNumber: Int
@@ -65,17 +65,17 @@ CALL {
     WITH this
     CALL {
         WITH *
-        MATCH (this)-[this0:RELATES_TO]-(this1:ProgrammeItem)
+        MATCH (this)-[this0:RELATES_TO]->(this1:ProgrammeItem)
         WITH this1 { .productTitle, __typename: "ProgrammeItem", __id: toString(id(this1)) } AS this1
         RETURN this1 AS var2
         UNION
         WITH *
-        MATCH (this)-[this3:RELATES_TO]-(this4:Season)
+        MATCH (this)-[this3:RELATES_TO]->(this4:Season)
         WITH this4 { .productTitle, __typename: "Season", __id: toString(id(this4)) } AS this4
         RETURN this4 AS var2
         UNION
         WITH *
-        MATCH (this)-[this5:RELATES_TO]-(this6:Series)
+        MATCH (this)-[this5:RELATES_TO]->(this6:Series)
         WITH this6 { .productTitle, __typename: "Series", __id: toString(id(this6)) } AS this6
         RETURN this6 AS var2
     }

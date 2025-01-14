@@ -8,12 +8,12 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Actor {
+type Actor @node {
   name: String
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
 }
 
-type Movie {
+type Movie @node {
   id: ID
   title: String
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
@@ -27,7 +27,7 @@ type Movie {
 [source,graphql,request=true]
 ----
 {
-  movies(where: {title: null}) {
+  movies(where: {title_EQ: null}) {
     title
   }
 }
@@ -44,6 +44,94 @@ type Movie {
 ----
 MATCH (this:Movie)
 WHERE this.title IS NULL
+RETURN this {
+	.title
+} AS this
+----
+
+== Simple relationship IS NOT NULL
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies(where: {NOT: {actors_SOME: null}}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE NOT (NOT (EXISTS {
+	MATCH (this0:Actor)-[:ACTED_IN]->(this)
+}))
+RETURN this {
+	.title
+} AS this
+----
+
+== Simple relationship IS NULL
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies(where: {actors_SOME: null}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE NOT (EXISTS {
+	MATCH (this0:Actor)-[:ACTED_IN]->(this)
+})
+RETURN this {
+	.title
+} AS this
+----
+
+== Simple IS NOT NULL
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies(where: {NOT: {title_EQ: null}}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title IS NOT NULL
 RETURN this {
 	.title
 } AS this

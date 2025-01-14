@@ -9,7 +9,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   _id: ID
   id: ID
   title: String
@@ -18,7 +18,7 @@ type Movie {
   genres: [Genre!]! @relationship(type: "IN_GENRE", direction: OUT)
 }
 
-type Genre {
+type Genre @node {
   name: String
   movies: [Movie!]! @relationship(type: "IN_GENRE", direction: IN)
 }
@@ -43,6 +43,62 @@ type Genre {
     }
   }
 }
+----
+
+== implicit EQ
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies(where: {title_EQ: "The Matrix"}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "The Matrix"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+RETURN this { .title } AS this
+----
+
+== EQ
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies(where: {title_EQ: "The Matrix"}) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "The Matrix"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.title = $param0
+RETURN this { .title } AS this
 ----
 
 == IN
@@ -100,6 +156,34 @@ RETURN this { ._id } AS this
 ----
 MATCH (this:Movie)
 WHERE this.id =~ $param0
+RETURN this { .id } AS this
+----
+
+== NOT
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies(where: {NOT: {id_EQ: "123"}}) {
+    id
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "123"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE NOT (this.id = $param0)
 RETURN this { .id } AS this
 ----
 
@@ -525,6 +609,68 @@ RETURN this { .title } AS this
 
 == Relationships
 
+=== equality
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies(where: {genres_SOME: {name_EQ: "some genre"}}) {
+    actorCount
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "some genre"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE EXISTS {
+    MATCH (this)-[:IN_GENRE]->(this0:Genre)
+    WHERE this0.name = $param0
+}
+RETURN this { .actorCount } AS this
+----
+
+=== NONE
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies(where: {genres_NONE: {name_EQ: "some genre"}}) {
+    actorCount
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "some genre"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE NOT (EXISTS {
+    MATCH (this)-[:IN_GENRE]->(this0:Genre)
+    WHERE this0.name = $param0
+})
+RETURN this { .actorCount } AS this
+----
+
 === List Predicates
 
 ==== ALL
@@ -533,7 +679,7 @@ RETURN this { .title } AS this
 [source,graphql,request=true]
 ----
 {
-  movies(where: {genres_ALL: {name: "some genre"}}) {
+  movies(where: {genres_ALL: {name_EQ: "some genre"}}) {
     actorCount
   }
 }
@@ -567,7 +713,7 @@ RETURN this { .actorCount } AS this
 [source,graphql,request=true]
 ----
 {
-  movies(where: {genres_NONE: {name: "some genre"}}) {
+  movies(where: {genres_NONE: {name_EQ: "some genre"}}) {
     actorCount
   }
 }
@@ -598,7 +744,7 @@ RETURN this { .actorCount } AS this
 [source,graphql,request=true]
 ----
 {
-  movies(where: {genres_SINGLE: {name: "some genre"}}) {
+  movies(where: {genres_SINGLE: {name_EQ: "some genre"}}) {
     actorCount
   }
 }
@@ -626,7 +772,7 @@ RETURN this { .actorCount } AS this
 [source,graphql,request=true]
 ----
 {
-  movies(where: {genres_SOME: {name: "some genre"}}) {
+  movies(where: {genres_SOME: {name_EQ: "some genre"}}) {
     actorCount
   }
 }
@@ -653,6 +799,68 @@ RETURN this { .actorCount } AS this
 
 == Connections
 
+=== Node and relationship properties equality
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies(where: {genresConnection_SOME: {node: {name_EQ: "some genre"}}}) {
+    actorCount
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "some genre"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE EXISTS {
+    MATCH (this)-[this0:IN_GENRE]->(this1:Genre)
+    WHERE this1.name = $param0
+}
+RETURN this { .actorCount } AS this
+----
+
+=== Node and relationship properties NONE
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies(where: {genresConnection_NONE: {node: {name_EQ: "some genre"}}}) {
+    actorCount
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "some genre"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE NOT (EXISTS {
+    MATCH (this)-[this0:IN_GENRE]->(this1:Genre)
+    WHERE this1.name = $param0
+})
+RETURN this { .actorCount } AS this
+----
+
 === List Predicates
 
 ==== ALL
@@ -661,7 +869,7 @@ RETURN this { .actorCount } AS this
 [source,graphql,request=true]
 ----
 {
-  movies(where: {genresConnection_ALL: {node: {name: "some genre"}}}) {
+  movies(where: {genresConnection_ALL: {node: {name_EQ: "some genre"}}}) {
     actorCount
   }
 }
@@ -695,7 +903,7 @@ RETURN this { .actorCount } AS this
 [source,graphql,request=true]
 ----
 {
-  movies(where: {genresConnection_NONE: {node: {name: "some genre"}}}) {
+  movies(where: {genresConnection_NONE: {node: {name_EQ: "some genre"}}}) {
     actorCount
   }
 }
@@ -726,7 +934,7 @@ RETURN this { .actorCount } AS this
 [source,graphql,request=true]
 ----
 {
-  movies(where: {genresConnection_SINGLE: {node: {name: "some genre"}}}) {
+  movies(where: {genresConnection_SINGLE: {node: {name_EQ: "some genre"}}}) {
     actorCount
   }
 }
@@ -754,7 +962,7 @@ RETURN this { .actorCount } AS this
 [source,graphql,request=true]
 ----
 {
-  movies(where: {genresConnection_SOME: {node: {name: "some genre"}}}) {
+  movies(where: {genresConnection_SOME: {node: {name_EQ: "some genre"}}}) {
     actorCount
   }
 }

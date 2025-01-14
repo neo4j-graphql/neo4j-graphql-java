@@ -9,12 +9,12 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type super_user {
+type super_user @node {
   name: String!
   my_friend: [super_friend!]! @relationship(type: "FRIEND", direction: OUT)
 }
 
-type super_friend {
+type super_friend @node {
   name: String!
 }
 ----
@@ -35,10 +35,10 @@ type PageInfo {
 }
 
 type Query {
-  superFriends(options: super_friendOptions, where: super_friendWhere): [super_friend!]!
-  superFriendsConnection(after: String, first: Int, sort: [super_friendSort], where: super_friendWhere): SuperFriendsConnection!
-  superUsers(options: super_userOptions, where: super_userWhere): [super_user!]!
-  superUsersConnection(after: String, first: Int, sort: [super_userSort], where: super_userWhere): SuperUsersConnection!
+  superFriends(limit: Int, offset: Int, sort: [super_friendSort!], where: super_friendWhere): [super_friend!]!
+  superFriendsConnection(after: String, first: Int, sort: [super_friendSort!], where: super_friendWhere): SuperFriendsConnection!
+  superUsers(limit: Int, offset: Int, sort: [super_userSort!], where: super_userWhere): [super_user!]!
+  superUsersConnection(after: String, first: Int, sort: [super_userSort!], where: super_userWhere): SuperUsersConnection!
 }
 
 """An enum for sorting in either ascending or descending order."""
@@ -70,15 +70,6 @@ type super_friendEdge {
   node: super_friend!
 }
 
-input super_friendOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more super_friendSort objects to sort SuperFriends by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [super_friendSort!]
-}
-
 """
 Fields to sort SuperFriends by. The order in which sorts are applied is not guaranteed when specifying many fields in one super_friendSort object.
 """
@@ -90,16 +81,17 @@ input super_friendWhere {
   AND: [super_friendWhere!]
   NOT: super_friendWhere
   OR: [super_friendWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String!]
   name_STARTS_WITH: String
 }
 
 type super_user {
-  my_friend(directed: Boolean = true, options: super_friendOptions, where: super_friendWhere): [super_friend!]!
-  my_friendConnection(after: String, directed: Boolean = true, first: Int, sort: [super_userMy_friendConnectionSort!], where: super_userMy_friendConnectionWhere): super_userMy_friendConnection!
+  my_friend(limit: Int, offset: Int, sort: [super_friendSort!], where: super_friendWhere): [super_friend!]!
+  my_friendConnection(after: String, first: Int, sort: [super_userMy_friendConnectionSort!], where: super_userMy_friendConnectionWhere): super_userMy_friendConnection!
   name: String!
 }
 
@@ -128,15 +120,6 @@ input super_userMy_friendConnectionWhere {
 type super_userMy_friendRelationship {
   cursor: String!
   node: super_friend!
-}
-
-input super_userOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more super_userSort objects to sort SuperUsers by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [super_userSort!]
 }
 
 """
@@ -182,9 +165,10 @@ input super_userWhere {
   Return super_users where some of the related super_friends match this filter
   """
   my_friend_SOME: super_friendWhere
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String!]
   name_STARTS_WITH: String
 }

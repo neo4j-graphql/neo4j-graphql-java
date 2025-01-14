@@ -26,7 +26,7 @@ class RelationshipDirective private constructor(
 
             val queryDirection =
                 directive.readArgument(RelationshipDirective::queryDirection) { RelationField.QueryDirection.valueOf((it as EnumValue).name) }
-                    ?: RelationField.QueryDirection.DEFAULT_DIRECTED
+                    ?: RelationField.QueryDirection.DIRECTED
 
             return RelationshipDirective(direction, type, properties, queryDirection)
         }

@@ -8,13 +8,13 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Person {
+type Person @node {
   name: String
   age: Int
   attends: [School!]! @relationship(type: "ATTENDS", direction: OUT)
 }
 
-type School {
+type School @node {
   name: String
   students: [Person!]! @relationship(type: "ATTENDS", direction: IN)
 }

@@ -8,12 +8,12 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Event {
+type Event @node {
   id: ID!
   area: Area! @relationship(type: "HAPPENS_IN", direction: OUT)
 }
 
-type Area {
+type Area @node {
   id: ID!
 }
 ----
@@ -28,7 +28,7 @@ CREATE (:Event {id: "RandomString1"})-[:HAPPENS_IN]->(:Area {id: "RandomString2"
 [source,graphql,request=true]
 ----
 query ($area: [ID!]) {
-  events(where: {id: "RandomString1", area: {id_IN: $area}}) {
+  events(where: {id_EQ: "RandomString1", area: {id_IN: $area}}) {
     id
     area {
       id

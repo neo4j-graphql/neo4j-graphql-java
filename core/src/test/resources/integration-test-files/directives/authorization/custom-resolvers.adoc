@@ -10,7 +10,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type User {
+type User @node {
   id: ID
 }
 
@@ -44,7 +44,7 @@ type Query {
 .Schema
 [source,graphql,schema=true]
 ----
-type User {
+type User @node {
   id: ID
 }
 
@@ -78,7 +78,7 @@ mutation {
 .Schema
 [source,graphql,schema=true]
 ----
-type User {
+type User @node {
   customId: ID
 }
 
@@ -112,7 +112,7 @@ type Query {
 .Schema
 [source,graphql,schema=true]
 ----
-type User {
+type User @node {
   id: ID
 }
 
@@ -137,6 +137,20 @@ type Query {
 {
   "me" : {
     "id" : "RandomString1"
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "contextParams" : {
+    "jwt" : {
+      "sub" : "RandomString1",
+      "name" : "John Doe",
+      "iat" : 1516239022
+    }
   }
 }
 ----

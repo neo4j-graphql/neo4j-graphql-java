@@ -9,12 +9,12 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   title: String!
   actors: [Actor!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: IN)
 }
 
-type Actor {
+type Actor @node {
   name: String!
   currentLocation: Point!
   movies: [Movie!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: OUT)
@@ -81,10 +81,7 @@ CALL {
         WITH edges
         UNWIND edges AS edge
         WITH edge.node AS this1, edge.relationship AS this0
-        RETURN collect({ properties: { screenTime: this0.screenTime, __typename: "ActedIn" }, node: { name: this1.name, currentLocation: CASE
-            WHEN this1.currentLocation IS NOT NULL THEN { point: this1.currentLocation }
-            ELSE NULL
-        END, __typename: "Actor" } }) AS var2
+        RETURN collect({ properties: { screenTime: this0.screenTime, __typename: "ActedIn" }, node: { name: this1.name, currentLocation: this1.currentLocation, __typename: "Actor" } }) AS var2
     }
     RETURN { edges: var2, totalCount: totalCount } AS var3
 }

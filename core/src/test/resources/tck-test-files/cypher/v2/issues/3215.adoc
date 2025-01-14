@@ -10,10 +10,42 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Actor {
+type Actor @node {
   name: String!
   age: Int!
 }
+----
+
+=== should ignore undefined parameters on NOT fields
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+query MyQuery($name: String) {
+  actors(where: {age_GT: 25, NOT: {name_EQ: $name}}) {
+    name
+    age
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : 25
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Actor)
+WHERE this.age > $param0
+RETURN this {
+	.name,
+	.age
+} AS this
 ----
 
 === should ignore undefined parameters on boolean NOT

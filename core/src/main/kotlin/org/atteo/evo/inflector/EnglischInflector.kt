@@ -8,6 +8,7 @@ object EnglischInflector : English() {
         workaround_irregular("person", "people")
         // TODO
         workaround_irregular("two", "twos")
+        workaround_irregular("aircraft", "aircraft")
     }
 
     private fun workaround_irregular(singular: String, plural: String) {

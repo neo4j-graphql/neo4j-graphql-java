@@ -8,12 +8,12 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type AWSAccount {
+type AWSAccount @node {
   code: String
   accountName: String
 }
 
-type DNSZone {
+type DNSZone @node {
   awsId: String
   zoneType: String
 }
@@ -67,10 +67,10 @@ type PageInfo {
 }
 
 type Query {
-  awsAccounts(options: AWSAccountOptions, where: AWSAccountWhere): [AWSAccount!]!
-  awsAccountsConnection(after: String, first: Int, sort: [AWSAccountSort], where: AWSAccountWhere): AwsAccountsConnection!
-  dnsZones(options: DNSZoneOptions, where: DNSZoneWhere): [DNSZone!]!
-  dnsZonesConnection(after: String, first: Int, sort: [DNSZoneSort], where: DNSZoneWhere): DnsZonesConnection!
+  awsAccounts(limit: Int, offset: Int, sort: [AWSAccountSort!], where: AWSAccountWhere): [AWSAccount!]!
+  awsAccountsConnection(after: String, first: Int, sort: [AWSAccountSort!], where: AWSAccountWhere): AwsAccountsConnection!
+  dnsZones(limit: Int, offset: Int, sort: [DNSZoneSort!], where: DNSZoneWhere): [DNSZone!]!
+  dnsZonesConnection(after: String, first: Int, sort: [DNSZoneSort!], where: DNSZoneWhere): DnsZonesConnection!
 }
 
 "An enum for sorting in either ascending or descending order."
@@ -79,13 +79,6 @@ enum SortDirection {
   ASC
   "Sort by field values in descending order."
   DESC
-}
-
-input AWSAccountOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more AWSAccountSort objects to sort AwsAccounts by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [AWSAccountSort!]
 }
 
 "Fields to sort AwsAccounts by. The order in which sorts are applied is not guaranteed when specifying many fields in one AWSAccountSort object."
@@ -98,23 +91,18 @@ input AWSAccountWhere {
   AND: [AWSAccountWhere!]
   NOT: AWSAccountWhere
   OR: [AWSAccountWhere!]
-  accountName: String
+  accountName: String @deprecated(reason : "Please use the explicit _EQ version")
   accountName_CONTAINS: String
   accountName_ENDS_WITH: String
+  accountName_EQ: String
   accountName_IN: [String]
   accountName_STARTS_WITH: String
-  code: String
+  code: String @deprecated(reason : "Please use the explicit _EQ version")
   code_CONTAINS: String
   code_ENDS_WITH: String
+  code_EQ: String
   code_IN: [String]
   code_STARTS_WITH: String
-}
-
-input DNSZoneOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more DNSZoneSort objects to sort DnsZones by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [DNSZoneSort!]
 }
 
 "Fields to sort DnsZones by. The order in which sorts are applied is not guaranteed when specifying many fields in one DNSZoneSort object."
@@ -127,14 +115,16 @@ input DNSZoneWhere {
   AND: [DNSZoneWhere!]
   NOT: DNSZoneWhere
   OR: [DNSZoneWhere!]
-  awsId: String
+  awsId: String @deprecated(reason : "Please use the explicit _EQ version")
   awsId_CONTAINS: String
   awsId_ENDS_WITH: String
+  awsId_EQ: String
   awsId_IN: [String]
   awsId_STARTS_WITH: String
-  zoneType: String
+  zoneType: String @deprecated(reason : "Please use the explicit _EQ version")
   zoneType_CONTAINS: String
   zoneType_ENDS_WITH: String
+  zoneType_EQ: String
   zoneType_IN: [String]
   zoneType_STARTS_WITH: String
 }

@@ -11,7 +11,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   id: ID!
   duration: Duration!
 }
@@ -30,7 +30,7 @@ CREATE (movie:Movie)
 [source,graphql,request=true]
 ----
 query ($id: ID!, $duration: Duration!) {
-  movies(where: {id: $id, duration: $duration}) {
+  movies(where: {id_EQ: $id, duration_EQ: $duration}) {
     id
     duration
   }
@@ -93,7 +93,7 @@ CREATE (long:Movie)
 [source,graphql,request=true]
 ----
 query ($where: MovieWhere!) {
-  movies(where: $where, options: {sort: [{duration: ASC}]}) {
+  movies(where: $where, sort: [{duration: ASC}]) {
     id
     duration
   }
@@ -168,7 +168,7 @@ CREATE (long:Movie)
 [source,graphql,request=true]
 ----
 query ($where: MovieWhere!) {
-  movies(where: $where, options: {sort: [{duration: ASC}]}) {
+  movies(where: $where, sort: [{duration: ASC}]) {
     id
     duration
   }
@@ -247,7 +247,7 @@ CREATE (long:Movie)
 [source,graphql,request=true]
 ----
 query ($where: MovieWhere!) {
-  movies(where: $where, options: {sort: [{duration: ASC}]}) {
+  movies(where: $where, sort: [{duration: ASC}]) {
     id
     duration
   }
@@ -322,7 +322,7 @@ CREATE (long:Movie)
 [source,graphql,request=true]
 ----
 query ($where: MovieWhere!) {
-  movies(where: $where, options: {sort: [{duration: ASC}]}) {
+  movies(where: $where, sort: [{duration: ASC}]) {
     id
     duration
   }

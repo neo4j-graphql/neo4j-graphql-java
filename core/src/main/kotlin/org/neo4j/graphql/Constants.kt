@@ -25,7 +25,7 @@ object Constants {
     const val CURSOR_FIELD = "cursor"
     const val NODE_FIELD = "node"
     const val RELATIONSHIP_FIELD = "relationship"
-    const val TYPENAME_IN = "typename_IN"
+    const val TYPENAME_IN = "typename"
 
     const val RESOLVE_TYPE = TYPE_NAME
     const val RESOLVE_ID = "__id"
@@ -60,7 +60,6 @@ object Constants {
         RelationshipDirective.NAME,
     )
 
-    const val OPTIONS = "options"
     const val WHERE = "where"
 
     object Types {
@@ -71,7 +70,6 @@ object Constants {
         val Boolean = TypeName("Boolean")
 
         val PageInfo = TypeName("PageInfo")
-        val QueryOptions = TypeName("QueryOptions")
         val SortDirection = TypeName("SortDirection")
         val PointDistance = TypeName("PointDistance")
         val CartesianPointDistance = TypeName("CartesianPointDistance")

@@ -8,12 +8,12 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   title: String!
   runtime: Int!
 }
 
-type Series {
+type Series @node {
   title: String!
   episodes: Int!
 }
@@ -24,7 +24,7 @@ type ActedIn @relationshipProperties {
   screenTime: Int!
 }
 
-type Actor {
+type Actor @node {
   name: String!
   currentlyActingIn: Production @relationship(type: "CURRENTLY_ACTING_IN", direction: OUT)
   actedIn: [Production!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
@@ -47,7 +47,7 @@ CREATE (a:Actor { name: "RandomString1" })
 [source,graphql,request=true]
 ----
 query Actors($title: String) {
-  actors(where: {actedIn_SOME: {Movie: {title: $title}}}) {
+  actors(where: {actedIn_SOME: {Movie: {title_EQ: $title}}}) {
     name
     actedIn {
       ... on Movie {
@@ -149,7 +149,7 @@ CREATE (a:Actor { name: "RandomString1" })
 [source,graphql,request=true]
 ----
 query Actors($title: String) {
-  actors(where: {actedIn_ALL: {Movie: {title: $title}}}) {
+  actors(where: {actedIn_ALL: {Movie: {title_EQ: $title}}}) {
     name
     actedIn {
       ... on Movie {
@@ -265,7 +265,9 @@ CREATE (a:Actor { name: "RandomString1" })
 [source,graphql,request=true]
 ----
 query Actors($title: String) {
-  actors(where: {actedIn_ALL: {Movie: {title: $title}, Series: {title: $title}}}) {
+  actors(
+    where: {actedIn_ALL: {Movie: {title_EQ: $title}, Series: {title_EQ: $title}}}
+  ) {
     name
     actedIn {
       ... on Movie {
@@ -383,7 +385,9 @@ CREATE (a:Actor { name: "RandomString1" })
 [source,graphql,request=true]
 ----
 query Actors($title: String) {
-  actors(where: {actedIn_ALL: {Movie: {title: $title}, Series: {title: $title}}}) {
+  actors(
+    where: {actedIn_ALL: {Movie: {title_EQ: $title}, Series: {title_EQ: $title}}}
+  ) {
     name
     actedIn {
       ... on Movie {
@@ -493,7 +497,7 @@ CREATE (a:Actor { name: "RandomString1" })
 [source,graphql,request=true]
 ----
 query Actors($title: String) {
-  actors(where: {actedIn_SINGLE: {Movie: {title: $title}}}) {
+  actors(where: {actedIn_SINGLE: {Movie: {title_EQ: $title}}}) {
     name
     actedIn {
       ... on Movie {
@@ -598,7 +602,9 @@ CREATE (a:Actor { name: "RandomString1" })
 [source,graphql,request=true]
 ----
 query Actors($title: String) {
-  actors(where: {actedIn_NONE: {Movie: {title: $title}, Series: {title: $title}}}) {
+  actors(
+    where: {actedIn_NONE: {Movie: {title_EQ: $title}, Series: {title_EQ: $title}}}
+  ) {
     name
     actedIn {
       ... on Movie {

@@ -8,12 +8,12 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   title: String!
   actors: [Actor!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: IN)
 }
 
-type Actor {
+type Actor @node {
   name: String!
   movies: [Movie!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: OUT)
 }
@@ -37,7 +37,7 @@ CREATE (:Actor { name: 'aRandomString2' })-[:ACTED_IN { screenTime: 105 }]->(m:M
 [source,graphql,request=true]
 ----
 {
-  movies(where: {title: "RandomString1"}) {
+  movies(where: {title_EQ: "RandomString1"}) {
     title
     actorsConnection {
       totalCount

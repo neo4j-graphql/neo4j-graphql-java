@@ -14,6 +14,7 @@ import org.neo4j.graphql.schema.ArgumentsAugmentation
 import org.neo4j.graphql.schema.AugmentationContext
 import org.neo4j.graphql.schema.AugmentationHandler
 import org.neo4j.graphql.schema.model.inputs.Dict
+import org.neo4j.graphql.schema.model.inputs.PerNodeInput
 import org.neo4j.graphql.schema.model.inputs.WhereInput
 import org.neo4j.graphql.schema.model.inputs.options.OptionsInput
 import org.neo4j.graphql.schema.model.outputs.NodeSelection
@@ -21,6 +22,7 @@ import org.neo4j.graphql.translate.ProjectionTranslator
 import org.neo4j.graphql.translate.TopLevelMatchTranslator
 import org.neo4j.graphql.translate.projection.createUnionQueries
 import org.neo4j.graphql.utils.ResolveTree
+import org.neo4j.graphql.utils.filterOnlyRequestedNodes
 
 /**
  * This class handles all the logic related to the querying of nodes.
@@ -58,7 +60,7 @@ internal class ReadResolver internal constructor(
         val where = args.nestedDict(Constants.WHERE)
             ?.let { WhereInput.create(entity, it) }
 
-        val options = OptionsInput.create(entity as? ImplementingType, args.nestedDict(Constants.OPTIONS))
+        val options = OptionsInput.create(entity as? ImplementingType, args)
 
         class Augmentation(val entity: Entity, val ctx: AugmentationContext) : ArgumentsAugmentation {
             override fun augmentArguments(args: MutableList<InputValueDefinition>) {
@@ -66,9 +68,8 @@ internal class ReadResolver internal constructor(
                 WhereInput.Augmentation.generateWhereIT(entity, ctx)
                     ?.let { args += inputValue(Constants.WHERE, it.asType()) }
 
-                OptionsInput.Augmentation
-                    .generateOptionsIT(entity, ctx)
-                    .let { args += inputValue(Constants.OPTIONS, it.asType()) }
+                args += OptionsInput.Augmentation
+                    .generateOptionsArguments(entity, ctx)
             }
         }
     }
@@ -130,7 +131,7 @@ internal class ReadResolver internal constructor(
         val input = InputArguments(entity, resolveTree.args)
 
         val unionQueries = createUnionQueries(
-            nodes,
+            if (input.where is PerNodeInput<*>) filterOnlyRequestedNodes(nodes, input.where) else nodes,
             resolveTree,
             Cypher.name(RESULT_VARIABLE),
             queryContext,

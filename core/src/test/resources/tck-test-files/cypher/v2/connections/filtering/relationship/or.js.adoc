@@ -9,12 +9,12 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   title: String!
   actors: [Actor!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: IN)
 }
 
-type Actor {
+type Actor @node {
   name: String!
   movies: [Movie!]! @relationship(type: "ACTED_IN", properties: "ActedIn", direction: OUT)
 }
@@ -78,4 +78,38 @@ CALL {
     RETURN { edges: var2, totalCount: totalCount } AS var3
 }
 RETURN this { .title, actorsConnection: var3 } AS this
+----
+
+== OR between edge and node
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies(
+    where: {actorsConnection_SOME: {OR: [{node: {name_EQ: "Harry"}}, {edge: {role_EQ: "Tom"}}]}}
+  ) {
+    title
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0": "Harry",
+  "param1": "Tom"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE EXISTS {
+    MATCH (this)<-[this0:ACTED_IN]-(this1:Actor)
+    WHERE (this1.name = $param0 OR this0.role = $param1)
+}
+RETURN this { .title } AS this
 ----

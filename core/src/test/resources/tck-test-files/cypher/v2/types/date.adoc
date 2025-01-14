@@ -8,7 +8,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   id: ID
   date: Date
 }
@@ -20,7 +20,7 @@ type Movie {
 [source,graphql,request=true]
 ----
 {
-  movies(where: {date: "1970-01-01"}) {
+  movies(where: {date_EQ: "1970-01-01"}) {
     date
   }
 }

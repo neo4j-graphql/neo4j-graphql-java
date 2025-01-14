@@ -9,14 +9,14 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   title: String @deprecated(reason: "Do not use title")
   year: Int
   imdbRating: Float
   genres: [Genre!]! @relationship(type: "IN_GENRE", direction: OUT) @deprecated(reason: "Do not use genre")
 }
 
-type Genre {
+type Genre @node {
   name: String
   movies: [Movie!]! @relationship(type: "IN_GENRE", direction: IN)
 }
@@ -30,8 +30,8 @@ schema {
 }
 
 type Genre {
-  movies(directed: Boolean = true, options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, directed: Boolean = true, first: Int, sort: [GenreMoviesConnectionSort!], where: GenreMoviesConnectionWhere): GenreMoviesConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [GenreMoviesConnectionSort!], where: GenreMoviesConnectionWhere): GenreMoviesConnection!
   name: String
 }
 
@@ -60,15 +60,6 @@ input GenreMoviesConnectionWhere {
 type GenreMoviesRelationship {
   cursor: String!
   node: Movie!
-}
-
-input GenreOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more GenreSort objects to sort Genres by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [GenreSort!]
 }
 
 """
@@ -106,9 +97,10 @@ input GenreWhere {
   movies_SINGLE: MovieWhere
   """Return Genres where some of the related Movies match this filter"""
   movies_SOME: MovieWhere
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
 }
@@ -120,8 +112,8 @@ type GenresConnection {
 }
 
 type Movie {
-  genres(directed: Boolean = true, options: GenreOptions, where: GenreWhere): [Genre!]! @deprecated(reason: "Do not use genre")
-  genresConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieGenresConnectionSort!], where: MovieGenresConnectionWhere): MovieGenresConnection! @deprecated(reason: "Do not use genre")
+  genres(limit: Int, offset: Int, sort: [GenreSort!], where: GenreWhere): [Genre!]! @deprecated(reason: "Do not use genre")
+  genresConnection(after: String, first: Int, sort: [MovieGenresConnectionSort!], where: MovieGenresConnectionWhere): MovieGenresConnection! @deprecated(reason: "Do not use genre")
   imdbRating: Float
   title: String @deprecated(reason: "Do not use title")
   year: Int
@@ -152,15 +144,6 @@ input MovieGenresConnectionWhere {
 type MovieGenresRelationship {
   cursor: String!
   node: Genre!
-}
-
-input MovieOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [MovieSort!]
 }
 
 """
@@ -200,7 +183,8 @@ input MovieWhere {
   genres_SINGLE: GenreWhere @deprecated(reason: "Do not use genre")
   """Return Movies where some of the related Genres match this filter"""
   genres_SOME: GenreWhere @deprecated(reason: "Do not use genre")
-  imdbRating: Float
+  imdbRating: Float @deprecated(reason: "Please use the explicit _EQ version")
+  imdbRating_EQ: Float
   imdbRating_GT: Float
   imdbRating_GTE: Float
   imdbRating_IN: [Float]
@@ -209,9 +193,11 @@ input MovieWhere {
   title: String @deprecated(reason: "Do not use title")
   title_CONTAINS: String @deprecated(reason: "Do not use title")
   title_ENDS_WITH: String @deprecated(reason: "Do not use title")
+  title_EQ: String @deprecated(reason: "Do not use title")
   title_IN: [String] @deprecated(reason: "Do not use title")
   title_STARTS_WITH: String @deprecated(reason: "Do not use title")
-  year: Int
+  year: Int @deprecated(reason: "Please use the explicit _EQ version")
+  year_EQ: Int
   year_GT: Int
   year_GTE: Int
   year_IN: [Int]
@@ -234,10 +220,10 @@ type PageInfo {
 }
 
 type Query {
-  genres(options: GenreOptions, where: GenreWhere): [Genre!]!
-  genresConnection(after: String, first: Int, sort: [GenreSort], where: GenreWhere): GenresConnection!
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
+  genres(limit: Int, offset: Int, sort: [GenreSort!], where: GenreWhere): [Genre!]!
+  genresConnection(after: String, first: Int, sort: [GenreSort!], where: GenreWhere): GenresConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
 }
 
 """An enum for sorting in either ascending or descending order."""

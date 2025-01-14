@@ -8,12 +8,12 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type User {
+type User @node {
   id: String
   name: String
 }
 
-type Business {
+type Business @node {
   id: String
   name: String
 }
@@ -32,11 +32,11 @@ CREATE (u:User {id: "1234", name: "arthur"})
 [source,graphql,request=true]
 ----
 {
-  users(where: {id: "1234"}) {
+  users(where: {id_EQ: "1234"}) {
     id
     name
   }
-  businesses(where: {id: "1234"}) {
+  businesses(where: {id_EQ: "1234"}) {
     id
     name
   }

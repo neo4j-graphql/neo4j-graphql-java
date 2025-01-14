@@ -37,7 +37,7 @@ class Node(
     }
 
     fun asCypherNode(queryContext: QueryContext?, name: String? = null) =
-        Cypher.node(mainLabel, additionalLabels(queryContext)).let {
+        Cypher.node(mapLabelWithContext(mainLabel, queryContext), additionalLabels(queryContext)).let {
             when {
                 name != null -> it.named(name)
                 else -> it
@@ -45,7 +45,7 @@ class Node(
         }
 
     fun asCypherNode(queryContext: QueryContext?, name: SymbolicName) =
-        Cypher.node(mainLabel, additionalLabels(queryContext)).named(name)
+        Cypher.node(mapLabelWithContext(mainLabel, queryContext), additionalLabels(queryContext)).named(name)
 
 }
 

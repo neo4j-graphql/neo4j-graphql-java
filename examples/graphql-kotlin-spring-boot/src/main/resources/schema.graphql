@@ -1,10 +1,10 @@
-type Team {
+type Team @node {
   id: ID!
   name: String!
   players: [Player!]! @relationship(type: "MEMBER_OF", direction: IN, properties: "Membership")
 }
 
-type Player {
+type Player @node {
   id: ID!
   name: String!
   teams: [Team!] @relationship(type: "MEMBER_OF", direction: OUT, properties: "Membership")

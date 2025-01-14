@@ -8,7 +8,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Tech @plural(value: "Techs") {
+type Tech @plural(value: "Techs") @node {
   name: String
 }
 ----

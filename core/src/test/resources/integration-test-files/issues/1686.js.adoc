@@ -14,13 +14,13 @@ interface Production {
   title: String
 }
 
-type Movie implements Production {
+type Movie implements Production @node {
   id: ID
   title: String
   genres: [Genre!]! @relationship(type: "HAS_GENRE", direction: OUT)
 }
 
-type Genre {
+type Genre @node {
   name: String
   movies: [Production!]! @relationship(type: "HAS_GENRE", direction: IN)
 }

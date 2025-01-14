@@ -8,7 +8,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   id: ID!
   budget: Int!
   boxOffice: Float!
@@ -28,7 +28,7 @@ CREATE (movie:Movie)
 [source,graphql,request=true]
 ----
 query ($id: ID!) {
-  movies(where: {id: $id}) {
+  movies(where: {id_EQ: $id}) {
     aliased: id
     budget
     boxOffice
@@ -82,7 +82,7 @@ RETURN this {
 [source,graphql,request=true]
 ----
 query ($id: ID!) {
-  movies(where: {id: $id}) {
+  movies(where: {id_EQ: $id}) {
     id
     aliased: budget
     boxOffice
@@ -136,7 +136,7 @@ RETURN this {
 [source,graphql,request=true]
 ----
 query ($id: ID!) {
-  movies(where: {id: $id}) {
+  movies(where: {id_EQ: $id}) {
     id
     budget
     aliased: boxOffice

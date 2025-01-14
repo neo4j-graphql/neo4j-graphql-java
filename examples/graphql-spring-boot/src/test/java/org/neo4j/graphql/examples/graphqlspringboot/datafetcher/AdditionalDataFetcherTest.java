@@ -55,7 +55,7 @@ class AdditionalDataFetcherTest {
         this.graphQlTester.document("""
                         query {
                           other
-                          movies(options: { limit: 3, offset: null }) {
+                          movies(limit: 3) {
                             title
                             bar
                             javaData {

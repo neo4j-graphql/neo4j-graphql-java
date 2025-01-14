@@ -8,7 +8,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Movie {
+type Movie @node {
   id: ID!
   localDT: LocalDateTime
   localDTs: [LocalDateTime!]
@@ -30,7 +30,7 @@ CREATE (movie:Movie)
 [source,graphql,request=true]
 ----
 query ($localDT: LocalDateTime!) {
-  movies(where: {localDT: $localDT}) {
+  movies(where: {localDT_EQ: $localDT}) {
     id
     localDT
   }
@@ -92,7 +92,7 @@ CREATE (future:Movie)
 [source,graphql,request=true]
 ----
 query ($where: MovieWhere!) {
-  movies(where: $where, options: {sort: [{localDT: ASC}]}) {
+  movies(where: $where, sort: [{localDT: ASC}]) {
     id
     localDT
   }
@@ -115,7 +115,7 @@ query ($where: MovieWhere!) {
 ----
 {
   "param0" : [ "RandomString1", "RandomString2", "RandomString3" ],
-  "param1" : "2024-12-24T18:42:24.123000000"
+  "param1" : "2024-12-24T18:42:24.123"
 }
 ----
 
@@ -160,7 +160,7 @@ CREATE (future:Movie)
 [source,graphql,request=true]
 ----
 query ($where: MovieWhere!) {
-  movies(where: $where, options: {sort: [{localDT: ASC}]}) {
+  movies(where: $where, sort: [{localDT: ASC}]) {
     id
     localDT
   }
@@ -231,7 +231,7 @@ CREATE (future:Movie)
 [source,graphql,request=true]
 ----
 query ($where: MovieWhere!) {
-  movies(where: $where, options: {sort: [{localDT: ASC}]}) {
+  movies(where: $where, sort: [{localDT: ASC}]) {
     id
     localDT
   }
@@ -299,7 +299,7 @@ CREATE (future:Movie)
 [source,graphql,request=true]
 ----
 query ($where: MovieWhere!) {
-  movies(where: $where, options: {sort: [{localDT: ASC}]}) {
+  movies(where: $where, sort: [{localDT: ASC}]) {
     id
     localDT
   }
@@ -374,7 +374,7 @@ CREATE (future:Movie)
 query ($futureId: ID!, $presentId: ID!, $pastId: ID!, $sort: SortDirection!) {
   movies(
     where: {id_IN: [$futureId, $presentId, $pastId]}
-    options: {sort: [{localDT: $sort}]}
+    sort: [{localDT: $sort}]
   ) {
     id
     localDT
@@ -449,7 +449,7 @@ CREATE (future:Movie)
 query ($futureId: ID!, $presentId: ID!, $pastId: ID!, $sort: SortDirection!) {
   movies(
     where: {id_IN: [$futureId, $presentId, $pastId]}
-    options: {sort: [{localDT: $sort}]}
+    sort: [{localDT: $sort}]
   ) {
     id
     localDT

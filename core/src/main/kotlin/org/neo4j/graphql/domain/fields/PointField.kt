@@ -31,12 +31,13 @@ class PointField(
     override val predicateDefinitions: Map<String, ScalarPredicateDefinition> = initPredicates()
     override val whereType
         get() = when (coordinateType) {
-            CoordinateType.GEOGRAPHIC -> POINT_INPUT_TYPE.asType()
-            CoordinateType.CARTESIAN -> CARTESIAN_POINT_INPUT_TYPE.asType()
+            CoordinateType.GEOGRAPHIC -> TypeName(POINT_INPUT_TYPE)
+            CoordinateType.CARTESIAN -> TypeName(CARTESIAN_POINT_INPUT_TYPE)
         }
 
     private fun initPredicates(): Map<String, ScalarPredicateDefinition> {
         val result = mutableMapOf<String, ScalarPredicateDefinition>()
+            .add(FieldOperator.IMPLICIT_EQUAL, deprecated = "Please use the explicit _EQ version")
             .add(FieldOperator.EQUAL)
         if (isList()) {
             result.addIncludesResolver(FieldOperator.INCLUDES)
@@ -77,7 +78,7 @@ class PointField(
                 val paramPointArray = Cypher.listWith(p).`in`(parameter).returning(Cypher.point(p))
                 op.conditionCreator(property, paramPointArray)
             },
-            type = whereType.NonNull.List
+            type = whereType.makeRequired(type.isRequired()).List
         )
     }
 
@@ -88,7 +89,7 @@ class PointField(
                 val paramPoint = Cypher.point(parameter)
                 op.conditionCreator(property, paramPoint)
             },
-            type = whereType.inner()
+            type = whereType
         )
     }
 

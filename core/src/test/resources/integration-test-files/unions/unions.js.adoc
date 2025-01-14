@@ -11,11 +11,11 @@
 ----
 union Search = Genre | Movie
 
-type Genre {
+type Genre @node {
   name: String
 }
 
-type Movie {
+type Movie @node {
   title: String
   search: [Search!]! @relationship(type: "SEARCH", direction: OUT)
 }
@@ -97,11 +97,11 @@ RETURN this { search: var2 } AS this
 ----
 union Search = Genre | Movie
 
-type Genre {
+type Genre @node {
   name: String
 }
 
-type Movie {
+type Movie @node {
   title: String
   search: [Search!]! @relationship(type: "SEARCH", direction: OUT)
 }
@@ -120,7 +120,7 @@ CREATE (m:Movie {title: "RandomString1"})
 [source,graphql,request=true]
 ----
 {
-  movies(where: {title: "RandomString1"}) {
+  movies(where: {title_EQ: "RandomString1"}) {
     search {
       __typename
       ... on Movie {
@@ -194,11 +194,11 @@ RETURN this { search: var2 } AS this
 ----
 union Search = Movie | Genre
 
-type Genre {
+type Genre @node {
   name: String
 }
 
-type Movie {
+type Movie @node {
   title: String
   search: [Search!]! @relationship(type: "SEARCH", direction: OUT)
 }
@@ -219,8 +219,8 @@ CREATE (m:Movie {title: "RandomString1"})
 [source,graphql,request=true]
 ----
 {
-  movies(where: {title: "RandomString1"}) {
-    search(where: {Genre: {name: "RandomString2"}}) {
+  movies(where: {title_EQ: "RandomString1"}) {
+    search(where: {Genre: {name_EQ: "RandomString2"}}) {
       __typename
       ... on Movie {
         title
@@ -286,11 +286,11 @@ RETURN this { search: var2 } AS this
 ----
 union Search = Movie | Genre
 
-type Genre {
+type Genre @node {
   name: String
 }
 
-type Movie {
+type Movie @node {
   title: String
   search: [Search!]! @relationship(type: "SEARCH", direction: OUT)
 }
@@ -314,8 +314,8 @@ CREATE (m:Movie {title: "originalMovie"})
 [source,graphql,request=true]
 ----
 {
-  movies(where: {title: "originalMovie"}) {
-    search(options: {offset: 1, limit: 3}) {
+  movies(where: {title_EQ: "originalMovie"}) {
+    search(offset: 1, limit: 3) {
       ... on Movie {
         title
       }
@@ -375,10 +375,10 @@ RETURN this { search: var2 } AS this
           "name": "genre2"
         },
         {
-          "title": "movie2"
+          "title": "movie1"
         },
         {
-          "title": "movie1"
+          "title": "movie2"
         }
       ]
     }

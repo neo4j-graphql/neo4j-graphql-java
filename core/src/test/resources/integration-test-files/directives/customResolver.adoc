@@ -10,7 +10,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type User {
+type User @node {
   id: ID!
   firstName: String!
   lastName: String!
@@ -36,7 +36,7 @@ include::../../../kotlin/org/neo4j/graphql/custom_resolver/ScalarFieldCustomReso
 [source,graphql,request=true]
 ----
 query User($userId: ID!) {
-  users(where: {id: $userId}) {
+  users(where: {id_EQ: $userId}) {
     id
     firstName
     lastName
@@ -92,7 +92,7 @@ RETURN this {
 [source,graphql,request=true]
 ----
 query User($userId: ID!) {
-  users(where: {id: $userId}) {
+  users(where: {id_EQ: $userId}) {
     id
     fullName
   }
@@ -144,7 +144,7 @@ RETURN this {
 [source,graphql,request=true]
 ----
 query User($userId: ID!) {
-  users(where: {id: $userId}) {
+  users(where: {id_EQ: $userId}) {
     id
     f: firstName
     fullName
@@ -200,12 +200,12 @@ RETURN this {
 .Schema
 [source,graphql,schema=true]
 ----
-type Address {
+type Address @node {
   street: String!
   city: String!
 }
 
-type User {
+type User @node {
   id: ID!
   firstName: String!
   lastName: String!
@@ -276,12 +276,12 @@ RETURN this {
 .Schema
 [source,graphql,schema=true]
 ----
-type Address {
+type Address @node {
   street: String!
   city: String!
 }
 
-type User {
+type User @node {
   id: ID!
   firstName: String!
   lastName: String!
@@ -364,12 +364,12 @@ RETURN this {
 .Schema
 [source,graphql,schema=true]
 ----
-type Address {
+type Address @node {
   street: String!
   city: String!
 }
 
-type User {
+type User @node {
   id: ID!
   firstName: String!
   lastName: String!
@@ -460,12 +460,12 @@ RETURN this {
 .Schema
 [source,graphql,schema=true]
 ----
-type Address {
+type Address @node {
   street: String!
   city: String!
 }
 
-type User {
+type User @node {
   id: ID!
   firstName: String!
   lastName: String!
@@ -556,17 +556,17 @@ RETURN this {
 .Schema
 [source,graphql,schema=true]
 ----
-type City {
+type City @node {
   name: String!
   population: Int
 }
 
-type Address {
+type Address @node {
   street: String!
   city: City! @relationship(type: "IN_CITY", direction: OUT)
 }
 
-type User {
+type User @node {
   id: ID!
   firstName: String!
   lastName: String!
@@ -661,22 +661,22 @@ RETURN this {
 .Schema
 [source,graphql,schema=true]
 ----
-type State {
+type State @node {
   someValue: Int!
 }
 
-type City {
+type City @node {
   name: String!
   population: Int
   state: State! @relationship(type: "IN_STATE", direction: OUT)
 }
 
-type Address {
+type Address @node {
   street: String!
   city: City! @relationship(type: "IN_CITY", direction: OUT)
 }
 
-type User {
+type User @node {
   id: ID!
   firstName: String!
   lastName: String!
@@ -784,18 +784,18 @@ RETURN this {
 ----
 union Publication = Book | Journal
 
-type Author {
+type Author @node {
   name: String!
   publications: [Publication!]! @relationship(type: "WROTE", direction: OUT)
   publicationsWithAuthor: [String!]! @customResolver(requires: "name publications { ...on Book { title } ... on Journal { subject } }")
 }
 
-type Book {
+type Book @node {
   title: String!
   author: Author! @relationship(type: "WROTE", direction: IN)
 }
 
-type Journal {
+type Journal @node {
   subject: String!
   author: Author! @relationship(type: "WROTE", direction: IN)
 }
@@ -883,17 +883,17 @@ RETURN this {
 .Schema
 [source,graphql,schema=true]
 ----
-type City {
+type City @node {
   name: String!
   population: Int @alias(property: "cityPopulation")
 }
 
-type Address {
+type Address @node {
   street: String!
   city: City! @relationship(type: "IN_CITY", direction: OUT)
 }
 
-type User {
+type User @node {
   id: ID!
   firstName: String! @alias(property: "first")
   lastName: String!
@@ -995,19 +995,19 @@ interface Publication {
   publicationYear: Int!
 }
 
-type Author {
+type Author @node {
   name: String!
   publications: [Publication!]! @relationship(type: "WROTE", direction: OUT)
   publicationsWithAuthor: [String!]! @customResolver(requires: "name publications { publicationYear ...on Book { title } ... on Journal { subject } }")
 }
 
-type Book implements Publication {
+type Book implements Publication @node {
   title: String!
   publicationYear: Int!
   author: [Author!]! @relationship(type: "WROTE", direction: IN)
 }
 
-type Journal implements Publication {
+type Journal implements Publication @node {
   subject: String!
   publicationYear: Int!
   author: [Author!]! @relationship(type: "WROTE", direction: IN)
@@ -1100,7 +1100,7 @@ interface Publication {
   publicationYear: Int!
 }
 
-type User {
+type User @node {
   id: ID!
   firstName: String!
   lastName: String!
@@ -1108,18 +1108,18 @@ type User {
   customResolverField: Int @customResolver(requires: "followedAuthors { name publications { publicationYear ...on Book { title } ... on Journal { subject } } } firstName")
 }
 
-type Author {
+type Author @node {
   name: String!
   publications: [Publication!]! @relationship(type: "WROTE", direction: OUT)
 }
 
-type Book implements Publication {
+type Book implements Publication @node {
   title: String!
   publicationYear: Int!
   author: [Author!]! @relationship(type: "WROTE", direction: IN)
 }
 
-type Journal implements Publication {
+type Journal implements Publication @node {
   subject: String!
   publicationYear: Int!
   author: [Author!]! @relationship(type: "WROTE", direction: IN)
@@ -1216,7 +1216,7 @@ RETURN this {
 .Schema
 [source,graphql,schema=true]
 ----
-type User {
+type User @node {
   id: ID!
   firstName: String!
   lastName: String!
@@ -1226,17 +1226,17 @@ type User {
 
 union Publication = Book | Journal
 
-type Author {
+type Author @node {
   name: String!
   publications: [Publication!]! @relationship(type: "WROTE", direction: OUT)
 }
 
-type Book {
+type Book @node {
   title: String!
   author: Author! @relationship(type: "WROTE", direction: IN)
 }
 
-type Journal {
+type Journal @node {
   subject: String!
   author: Author! @relationship(type: "WROTE", direction: IN)
 }

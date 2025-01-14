@@ -11,11 +11,11 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Person {
+type Person @node {
   name: String
 }
 
-type Movie {
+type Movie @node {
   id: ID
   actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN, nestedOperations: [])
 }
@@ -29,8 +29,8 @@ schema {
 }
 
 type Movie {
-  actors(directed: Boolean = true, options: PersonOptions, where: PersonWhere): [Person!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
+  actors(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  actorsConnection(after: String, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
   id: ID
 }
 
@@ -59,15 +59,6 @@ type MovieActorsRelationship {
 type MovieEdge {
   cursor: String!
   node: Movie!
-}
-
-input MovieOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [MovieSort!]
 }
 
 """
@@ -105,9 +96,10 @@ input MovieWhere {
   actors_SINGLE: PersonWhere
   """Return Movies where some of the related People match this filter"""
   actors_SOME: PersonWhere
-  id: ID
+  id: ID @deprecated(reason: "Please use the explicit _EQ version")
   id_CONTAINS: ID
   id_ENDS_WITH: ID
+  id_EQ: ID
   id_IN: [ID]
   id_STARTS_WITH: ID
 }
@@ -141,15 +133,6 @@ type PersonEdge {
   node: Person!
 }
 
-input PersonOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonSort objects to sort People by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonSort!]
-}
-
 """
 Fields to sort People by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonSort object.
 """
@@ -161,18 +144,19 @@ input PersonWhere {
   AND: [PersonWhere!]
   NOT: PersonWhere
   OR: [PersonWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
 }
 
 type Query {
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
-  people(options: PersonOptions, where: PersonWhere): [Person!]!
-  peopleConnection(after: String, first: Int, sort: [PersonSort], where: PersonWhere): PeopleConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+  people(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  peopleConnection(after: String, first: Int, sort: [PersonSort!], where: PersonWhere): PeopleConnection!
 }
 
 """An enum for sorting in either ascending or descending order."""
@@ -189,11 +173,11 @@ enum SortDirection {
 .Schema
 [source,graphql,schema=true]
 ----
-type Person {
+type Person @node {
   name: String
 }
 
-type Movie {
+type Movie @node {
   id: ID
   actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN, nestedOperations: [CREATE])
 }
@@ -207,8 +191,8 @@ schema {
 }
 
 type Movie {
-  actors(directed: Boolean = true, options: PersonOptions, where: PersonWhere): [Person!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
+  actors(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  actorsConnection(after: String, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
   id: ID
 }
 
@@ -237,15 +221,6 @@ type MovieActorsRelationship {
 type MovieEdge {
   cursor: String!
   node: Movie!
-}
-
-input MovieOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [MovieSort!]
 }
 
 """
@@ -283,9 +258,10 @@ input MovieWhere {
   actors_SINGLE: PersonWhere
   """Return Movies where some of the related People match this filter"""
   actors_SOME: PersonWhere
-  id: ID
+  id: ID @deprecated(reason: "Please use the explicit _EQ version")
   id_CONTAINS: ID
   id_ENDS_WITH: ID
+  id_EQ: ID
   id_IN: [ID]
   id_STARTS_WITH: ID
 }
@@ -319,15 +295,6 @@ type PersonEdge {
   node: Person!
 }
 
-input PersonOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonSort objects to sort People by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonSort!]
-}
-
 """
 Fields to sort People by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonSort object.
 """
@@ -339,18 +306,19 @@ input PersonWhere {
   AND: [PersonWhere!]
   NOT: PersonWhere
   OR: [PersonWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
 }
 
 type Query {
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
-  people(options: PersonOptions, where: PersonWhere): [Person!]!
-  peopleConnection(after: String, first: Int, sort: [PersonSort], where: PersonWhere): PeopleConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+  people(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  peopleConnection(after: String, first: Int, sort: [PersonSort!], where: PersonWhere): PeopleConnection!
 }
 
 """An enum for sorting in either ascending or descending order."""
@@ -367,11 +335,11 @@ enum SortDirection {
 .Schema
 [source,graphql,schema=true]
 ----
-type Person {
+type Person @node {
   name: String
 }
 
-type Movie {
+type Movie @node {
   id: ID
   actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN, nestedOperations: [CONNECT])
 }
@@ -385,8 +353,8 @@ schema {
 }
 
 type Movie {
-  actors(directed: Boolean = true, options: PersonOptions, where: PersonWhere): [Person!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
+  actors(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  actorsConnection(after: String, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
   id: ID
 }
 
@@ -415,15 +383,6 @@ type MovieActorsRelationship {
 type MovieEdge {
   cursor: String!
   node: Movie!
-}
-
-input MovieOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [MovieSort!]
 }
 
 """
@@ -461,9 +420,10 @@ input MovieWhere {
   actors_SINGLE: PersonWhere
   """Return Movies where some of the related People match this filter"""
   actors_SOME: PersonWhere
-  id: ID
+  id: ID @deprecated(reason: "Please use the explicit _EQ version")
   id_CONTAINS: ID
   id_ENDS_WITH: ID
+  id_EQ: ID
   id_IN: [ID]
   id_STARTS_WITH: ID
 }
@@ -497,15 +457,6 @@ type PersonEdge {
   node: Person!
 }
 
-input PersonOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonSort objects to sort People by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonSort!]
-}
-
 """
 Fields to sort People by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonSort object.
 """
@@ -517,18 +468,19 @@ input PersonWhere {
   AND: [PersonWhere!]
   NOT: PersonWhere
   OR: [PersonWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
 }
 
 type Query {
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
-  people(options: PersonOptions, where: PersonWhere): [Person!]!
-  peopleConnection(after: String, first: Int, sort: [PersonSort], where: PersonWhere): PeopleConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+  people(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  peopleConnection(after: String, first: Int, sort: [PersonSort!], where: PersonWhere): PeopleConnection!
 }
 
 """An enum for sorting in either ascending or descending order."""
@@ -545,11 +497,11 @@ enum SortDirection {
 .Schema
 [source,graphql,schema=true]
 ----
-type Person {
+type Person @node {
   name: String
 }
 
-type Movie {
+type Movie @node {
   id: ID
   actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN, nestedOperations: [UPDATE])
 }
@@ -563,8 +515,8 @@ schema {
 }
 
 type Movie {
-  actors(directed: Boolean = true, options: PersonOptions, where: PersonWhere): [Person!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
+  actors(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  actorsConnection(after: String, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
   id: ID
 }
 
@@ -593,15 +545,6 @@ type MovieActorsRelationship {
 type MovieEdge {
   cursor: String!
   node: Movie!
-}
-
-input MovieOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [MovieSort!]
 }
 
 """
@@ -639,9 +582,10 @@ input MovieWhere {
   actors_SINGLE: PersonWhere
   """Return Movies where some of the related People match this filter"""
   actors_SOME: PersonWhere
-  id: ID
+  id: ID @deprecated(reason: "Please use the explicit _EQ version")
   id_CONTAINS: ID
   id_ENDS_WITH: ID
+  id_EQ: ID
   id_IN: [ID]
   id_STARTS_WITH: ID
 }
@@ -675,15 +619,6 @@ type PersonEdge {
   node: Person!
 }
 
-input PersonOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonSort objects to sort People by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonSort!]
-}
-
 """
 Fields to sort People by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonSort object.
 """
@@ -695,18 +630,19 @@ input PersonWhere {
   AND: [PersonWhere!]
   NOT: PersonWhere
   OR: [PersonWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
 }
 
 type Query {
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
-  people(options: PersonOptions, where: PersonWhere): [Person!]!
-  peopleConnection(after: String, first: Int, sort: [PersonSort], where: PersonWhere): PeopleConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+  people(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  peopleConnection(after: String, first: Int, sort: [PersonSort!], where: PersonWhere): PeopleConnection!
 }
 
 """An enum for sorting in either ascending or descending order."""
@@ -723,11 +659,11 @@ enum SortDirection {
 .Schema
 [source,graphql,schema=true]
 ----
-type Person {
+type Person @node {
   name: String
 }
 
-type Movie {
+type Movie @node {
   id: ID
   actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN, nestedOperations: [DELETE])
 }
@@ -741,8 +677,8 @@ schema {
 }
 
 type Movie {
-  actors(directed: Boolean = true, options: PersonOptions, where: PersonWhere): [Person!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
+  actors(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  actorsConnection(after: String, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
   id: ID
 }
 
@@ -771,15 +707,6 @@ type MovieActorsRelationship {
 type MovieEdge {
   cursor: String!
   node: Movie!
-}
-
-input MovieOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [MovieSort!]
 }
 
 """
@@ -817,9 +744,10 @@ input MovieWhere {
   actors_SINGLE: PersonWhere
   """Return Movies where some of the related People match this filter"""
   actors_SOME: PersonWhere
-  id: ID
+  id: ID @deprecated(reason: "Please use the explicit _EQ version")
   id_CONTAINS: ID
   id_ENDS_WITH: ID
+  id_EQ: ID
   id_IN: [ID]
   id_STARTS_WITH: ID
 }
@@ -853,15 +781,6 @@ type PersonEdge {
   node: Person!
 }
 
-input PersonOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonSort objects to sort People by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonSort!]
-}
-
 """
 Fields to sort People by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonSort object.
 """
@@ -873,18 +792,19 @@ input PersonWhere {
   AND: [PersonWhere!]
   NOT: PersonWhere
   OR: [PersonWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
 }
 
 type Query {
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
-  people(options: PersonOptions, where: PersonWhere): [Person!]!
-  peopleConnection(after: String, first: Int, sort: [PersonSort], where: PersonWhere): PeopleConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+  people(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  peopleConnection(after: String, first: Int, sort: [PersonSort!], where: PersonWhere): PeopleConnection!
 }
 
 """An enum for sorting in either ascending or descending order."""
@@ -901,11 +821,11 @@ enum SortDirection {
 .Schema
 [source,graphql,schema=true]
 ----
-type Person {
+type Person @node {
   name: String
 }
 
-type Movie {
+type Movie @node {
   id: ID
   actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN, nestedOperations: [DISCONNECT])
 }
@@ -919,8 +839,8 @@ schema {
 }
 
 type Movie {
-  actors(directed: Boolean = true, options: PersonOptions, where: PersonWhere): [Person!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
+  actors(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  actorsConnection(after: String, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
   id: ID
 }
 
@@ -949,15 +869,6 @@ type MovieActorsRelationship {
 type MovieEdge {
   cursor: String!
   node: Movie!
-}
-
-input MovieOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [MovieSort!]
 }
 
 """
@@ -995,9 +906,10 @@ input MovieWhere {
   actors_SINGLE: PersonWhere
   """Return Movies where some of the related People match this filter"""
   actors_SOME: PersonWhere
-  id: ID
+  id: ID @deprecated(reason: "Please use the explicit _EQ version")
   id_CONTAINS: ID
   id_ENDS_WITH: ID
+  id_EQ: ID
   id_IN: [ID]
   id_STARTS_WITH: ID
 }
@@ -1031,15 +943,6 @@ type PersonEdge {
   node: Person!
 }
 
-input PersonOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonSort objects to sort People by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonSort!]
-}
-
 """
 Fields to sort People by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonSort object.
 """
@@ -1051,18 +954,19 @@ input PersonWhere {
   AND: [PersonWhere!]
   NOT: PersonWhere
   OR: [PersonWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
 }
 
 type Query {
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
-  people(options: PersonOptions, where: PersonWhere): [Person!]!
-  peopleConnection(after: String, first: Int, sort: [PersonSort], where: PersonWhere): PeopleConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+  people(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  peopleConnection(after: String, first: Int, sort: [PersonSort!], where: PersonWhere): PeopleConnection!
 }
 
 """An enum for sorting in either ascending or descending order."""
@@ -1079,11 +983,11 @@ enum SortDirection {
 .Schema
 [source,graphql,schema=true]
 ----
-type Person {
+type Person @node {
   name: String
 }
 
-type Movie {
+type Movie @node {
   id: ID
   actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN, nestedOperations: [CONNECT_OR_CREATE])
 }
@@ -1097,8 +1001,8 @@ schema {
 }
 
 type Movie {
-  actors(directed: Boolean = true, options: PersonOptions, where: PersonWhere): [Person!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
+  actors(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  actorsConnection(after: String, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
   id: ID
 }
 
@@ -1127,15 +1031,6 @@ type MovieActorsRelationship {
 type MovieEdge {
   cursor: String!
   node: Movie!
-}
-
-input MovieOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [MovieSort!]
 }
 
 """
@@ -1173,9 +1068,10 @@ input MovieWhere {
   actors_SINGLE: PersonWhere
   """Return Movies where some of the related People match this filter"""
   actors_SOME: PersonWhere
-  id: ID
+  id: ID @deprecated(reason: "Please use the explicit _EQ version")
   id_CONTAINS: ID
   id_ENDS_WITH: ID
+  id_EQ: ID
   id_IN: [ID]
   id_STARTS_WITH: ID
 }
@@ -1209,15 +1105,6 @@ type PersonEdge {
   node: Person!
 }
 
-input PersonOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonSort objects to sort People by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonSort!]
-}
-
 """
 Fields to sort People by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonSort object.
 """
@@ -1229,18 +1116,19 @@ input PersonWhere {
   AND: [PersonWhere!]
   NOT: PersonWhere
   OR: [PersonWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
 }
 
 type Query {
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
-  people(options: PersonOptions, where: PersonWhere): [Person!]!
-  peopleConnection(after: String, first: Int, sort: [PersonSort], where: PersonWhere): PeopleConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+  people(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  peopleConnection(after: String, first: Int, sort: [PersonSort!], where: PersonWhere): PeopleConnection!
 }
 
 """An enum for sorting in either ascending or descending order."""
@@ -1257,11 +1145,11 @@ enum SortDirection {
 .Schema
 [source,graphql,schema=true]
 ----
-type Person {
+type Person @node {
   name: String
 }
 
-type Movie {
+type Movie @node {
   id: ID
   actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN)
   producers: [Person!]! @relationship(type: "PRODUCED", direction: IN, nestedOperations: [DISCONNECT])
@@ -1276,11 +1164,11 @@ schema {
 }
 
 type Movie {
-  actors(directed: Boolean = true, options: PersonOptions, where: PersonWhere): [Person!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
+  actors(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  actorsConnection(after: String, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
   id: ID
-  producers(directed: Boolean = true, options: PersonOptions, where: PersonWhere): [Person!]!
-  producersConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieProducersConnectionSort!], where: MovieProducersConnectionWhere): MovieProducersConnection!
+  producers(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  producersConnection(after: String, first: Int, sort: [MovieProducersConnectionSort!], where: MovieProducersConnectionWhere): MovieProducersConnection!
 }
 
 type MovieActorsConnection {
@@ -1308,15 +1196,6 @@ type MovieActorsRelationship {
 type MovieEdge {
   cursor: String!
   node: Movie!
-}
-
-input MovieOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [MovieSort!]
 }
 
 type MovieProducersConnection {
@@ -1376,9 +1255,10 @@ input MovieWhere {
   actors_SINGLE: PersonWhere
   """Return Movies where some of the related People match this filter"""
   actors_SOME: PersonWhere
-  id: ID
+  id: ID @deprecated(reason: "Please use the explicit _EQ version")
   id_CONTAINS: ID
   id_ENDS_WITH: ID
+  id_EQ: ID
   id_IN: [ID]
   id_STARTS_WITH: ID
   """
@@ -1436,15 +1316,6 @@ type PersonEdge {
   node: Person!
 }
 
-input PersonOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonSort objects to sort People by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonSort!]
-}
-
 """
 Fields to sort People by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonSort object.
 """
@@ -1456,18 +1327,19 @@ input PersonWhere {
   AND: [PersonWhere!]
   NOT: PersonWhere
   OR: [PersonWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
 }
 
 type Query {
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
-  people(options: PersonOptions, where: PersonWhere): [Person!]!
-  peopleConnection(after: String, first: Int, sort: [PersonSort], where: PersonWhere): PeopleConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+  people(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  peopleConnection(after: String, first: Int, sort: [PersonSort!], where: PersonWhere): PeopleConnection!
 }
 
 """An enum for sorting in either ascending or descending order."""
@@ -1484,11 +1356,11 @@ enum SortDirection {
 .Schema
 [source,graphql,schema=true]
 ----
-type Person {
+type Person @node {
   name: String
 }
 
-type Movie {
+type Movie @node {
   id: ID
   actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN, nestedOperations: [CREATE])
   producers: [Person!]! @relationship(type: "PRODUCED", direction: IN, nestedOperations: [DISCONNECT])
@@ -1503,11 +1375,11 @@ schema {
 }
 
 type Movie {
-  actors(directed: Boolean = true, options: PersonOptions, where: PersonWhere): [Person!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
+  actors(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  actorsConnection(after: String, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
   id: ID
-  producers(directed: Boolean = true, options: PersonOptions, where: PersonWhere): [Person!]!
-  producersConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieProducersConnectionSort!], where: MovieProducersConnectionWhere): MovieProducersConnection!
+  producers(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  producersConnection(after: String, first: Int, sort: [MovieProducersConnectionSort!], where: MovieProducersConnectionWhere): MovieProducersConnection!
 }
 
 type MovieActorsConnection {
@@ -1535,15 +1407,6 @@ type MovieActorsRelationship {
 type MovieEdge {
   cursor: String!
   node: Movie!
-}
-
-input MovieOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [MovieSort!]
 }
 
 type MovieProducersConnection {
@@ -1603,9 +1466,10 @@ input MovieWhere {
   actors_SINGLE: PersonWhere
   """Return Movies where some of the related People match this filter"""
   actors_SOME: PersonWhere
-  id: ID
+  id: ID @deprecated(reason: "Please use the explicit _EQ version")
   id_CONTAINS: ID
   id_ENDS_WITH: ID
+  id_EQ: ID
   id_IN: [ID]
   id_STARTS_WITH: ID
   """
@@ -1663,15 +1527,6 @@ type PersonEdge {
   node: Person!
 }
 
-input PersonOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonSort objects to sort People by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonSort!]
-}
-
 """
 Fields to sort People by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonSort object.
 """
@@ -1683,18 +1538,19 @@ input PersonWhere {
   AND: [PersonWhere!]
   NOT: PersonWhere
   OR: [PersonWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
 }
 
 type Query {
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
-  people(options: PersonOptions, where: PersonWhere): [Person!]!
-  peopleConnection(after: String, first: Int, sort: [PersonSort], where: PersonWhere): PeopleConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+  people(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  peopleConnection(after: String, first: Int, sort: [PersonSort!], where: PersonWhere): PeopleConnection!
 }
 
 """An enum for sorting in either ascending or descending order."""
@@ -1713,17 +1569,17 @@ enum SortDirection {
 .Schema
 [source,graphql,schema=true]
 ----
-type PersonOne {
+type PersonOne @node {
   name: String
 }
 
-type PersonTwo {
+type PersonTwo @node {
   nameTwo: String
 }
 
 union Person = PersonOne | PersonTwo
 
-type Movie {
+type Movie @node {
   id: ID
   actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN, nestedOperations: [])
 }
@@ -1737,8 +1593,8 @@ schema {
 }
 
 type Movie {
-  actors(directed: Boolean = true, options: QueryOptions, where: PersonWhere): [Person!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, where: MovieActorsConnectionWhere): MovieActorsConnection!
+  actors(limit: Int, offset: Int, where: PersonWhere): [Person!]!
+  actorsConnection(after: String, first: Int, where: MovieActorsConnectionWhere): MovieActorsConnection!
   id: ID
 }
 
@@ -1777,15 +1633,6 @@ type MovieEdge {
   node: Movie!
 }
 
-input MovieOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [MovieSort!]
-}
-
 """
 Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object.
 """
@@ -1821,9 +1668,10 @@ input MovieWhere {
   actors_SINGLE: PersonWhere
   """Return Movies where some of the related People match this filter"""
   actors_SOME: PersonWhere
-  id: ID
+  id: ID @deprecated(reason: "Please use the explicit _EQ version")
   id_CONTAINS: ID
   id_ENDS_WITH: ID
+  id_EQ: ID
   id_IN: [ID]
   id_STARTS_WITH: ID
 }
@@ -1853,15 +1701,6 @@ type PersonOneEdge {
   node: PersonOne!
 }
 
-input PersonOneOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonOneSort objects to sort PersonOnes by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonOneSort!]
-}
-
 """
 Fields to sort PersonOnes by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonOneSort object.
 """
@@ -1873,9 +1712,10 @@ input PersonOneWhere {
   AND: [PersonOneWhere!]
   NOT: PersonOneWhere
   OR: [PersonOneWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
 }
@@ -1895,15 +1735,6 @@ type PersonTwoEdge {
   node: PersonTwo!
 }
 
-input PersonTwoOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonTwoSort objects to sort PersonTwos by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonTwoSort!]
-}
-
 """
 Fields to sort PersonTwos by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonTwoSort object.
 """
@@ -1915,9 +1746,10 @@ input PersonTwoWhere {
   AND: [PersonTwoWhere!]
   NOT: PersonTwoWhere
   OR: [PersonTwoWhere!]
-  nameTwo: String
+  nameTwo: String @deprecated(reason: "Please use the explicit _EQ version")
   nameTwo_CONTAINS: String
   nameTwo_ENDS_WITH: String
+  nameTwo_EQ: String
   nameTwo_IN: [String]
   nameTwo_STARTS_WITH: String
 }
@@ -1934,19 +1766,13 @@ input PersonWhere {
 }
 
 type Query {
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
-  people(options: QueryOptions, where: PersonWhere): [Person!]!
-  personOnes(options: PersonOneOptions, where: PersonOneWhere): [PersonOne!]!
-  personOnesConnection(after: String, first: Int, sort: [PersonOneSort], where: PersonOneWhere): PersonOnesConnection!
-  personTwos(options: PersonTwoOptions, where: PersonTwoWhere): [PersonTwo!]!
-  personTwosConnection(after: String, first: Int, sort: [PersonTwoSort], where: PersonTwoWhere): PersonTwosConnection!
-}
-
-"""Input type for options that can be specified on a query operation."""
-input QueryOptions {
-  limit: Int
-  offset: Int
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+  people(limit: Int, offset: Int, where: PersonWhere): [Person!]!
+  personOnes(limit: Int, offset: Int, sort: [PersonOneSort!], where: PersonOneWhere): [PersonOne!]!
+  personOnesConnection(after: String, first: Int, sort: [PersonOneSort!], where: PersonOneWhere): PersonOnesConnection!
+  personTwos(limit: Int, offset: Int, sort: [PersonTwoSort!], where: PersonTwoWhere): [PersonTwo!]!
+  personTwosConnection(after: String, first: Int, sort: [PersonTwoSort!], where: PersonTwoWhere): PersonTwosConnection!
 }
 
 """An enum for sorting in either ascending or descending order."""
@@ -1963,17 +1789,17 @@ enum SortDirection {
 .Schema
 [source,graphql,schema=true]
 ----
-type PersonOne {
+type PersonOne @node {
   name: String
 }
 
-type PersonTwo {
+type PersonTwo @node {
   nameTwo: String
 }
 
 union Person = PersonOne | PersonTwo
 
-type Movie {
+type Movie @node {
   id: ID
   actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN, nestedOperations: [CREATE])
 }
@@ -1987,8 +1813,8 @@ schema {
 }
 
 type Movie {
-  actors(directed: Boolean = true, options: QueryOptions, where: PersonWhere): [Person!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, where: MovieActorsConnectionWhere): MovieActorsConnection!
+  actors(limit: Int, offset: Int, where: PersonWhere): [Person!]!
+  actorsConnection(after: String, first: Int, where: MovieActorsConnectionWhere): MovieActorsConnection!
   id: ID
 }
 
@@ -2027,15 +1853,6 @@ type MovieEdge {
   node: Movie!
 }
 
-input MovieOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [MovieSort!]
-}
-
 """
 Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object.
 """
@@ -2071,9 +1888,10 @@ input MovieWhere {
   actors_SINGLE: PersonWhere
   """Return Movies where some of the related People match this filter"""
   actors_SOME: PersonWhere
-  id: ID
+  id: ID @deprecated(reason: "Please use the explicit _EQ version")
   id_CONTAINS: ID
   id_ENDS_WITH: ID
+  id_EQ: ID
   id_IN: [ID]
   id_STARTS_WITH: ID
 }
@@ -2103,15 +1921,6 @@ type PersonOneEdge {
   node: PersonOne!
 }
 
-input PersonOneOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonOneSort objects to sort PersonOnes by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonOneSort!]
-}
-
 """
 Fields to sort PersonOnes by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonOneSort object.
 """
@@ -2123,9 +1932,10 @@ input PersonOneWhere {
   AND: [PersonOneWhere!]
   NOT: PersonOneWhere
   OR: [PersonOneWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
 }
@@ -2145,15 +1955,6 @@ type PersonTwoEdge {
   node: PersonTwo!
 }
 
-input PersonTwoOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonTwoSort objects to sort PersonTwos by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonTwoSort!]
-}
-
 """
 Fields to sort PersonTwos by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonTwoSort object.
 """
@@ -2165,9 +1966,10 @@ input PersonTwoWhere {
   AND: [PersonTwoWhere!]
   NOT: PersonTwoWhere
   OR: [PersonTwoWhere!]
-  nameTwo: String
+  nameTwo: String @deprecated(reason: "Please use the explicit _EQ version")
   nameTwo_CONTAINS: String
   nameTwo_ENDS_WITH: String
+  nameTwo_EQ: String
   nameTwo_IN: [String]
   nameTwo_STARTS_WITH: String
 }
@@ -2184,19 +1986,13 @@ input PersonWhere {
 }
 
 type Query {
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
-  people(options: QueryOptions, where: PersonWhere): [Person!]!
-  personOnes(options: PersonOneOptions, where: PersonOneWhere): [PersonOne!]!
-  personOnesConnection(after: String, first: Int, sort: [PersonOneSort], where: PersonOneWhere): PersonOnesConnection!
-  personTwos(options: PersonTwoOptions, where: PersonTwoWhere): [PersonTwo!]!
-  personTwosConnection(after: String, first: Int, sort: [PersonTwoSort], where: PersonTwoWhere): PersonTwosConnection!
-}
-
-"""Input type for options that can be specified on a query operation."""
-input QueryOptions {
-  limit: Int
-  offset: Int
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+  people(limit: Int, offset: Int, where: PersonWhere): [Person!]!
+  personOnes(limit: Int, offset: Int, sort: [PersonOneSort!], where: PersonOneWhere): [PersonOne!]!
+  personOnesConnection(after: String, first: Int, sort: [PersonOneSort!], where: PersonOneWhere): PersonOnesConnection!
+  personTwos(limit: Int, offset: Int, sort: [PersonTwoSort!], where: PersonTwoWhere): [PersonTwo!]!
+  personTwosConnection(after: String, first: Int, sort: [PersonTwoSort!], where: PersonTwoWhere): PersonTwosConnection!
 }
 
 """An enum for sorting in either ascending or descending order."""
@@ -2213,17 +2009,17 @@ enum SortDirection {
 .Schema
 [source,graphql,schema=true]
 ----
-type PersonOne {
+type PersonOne @node {
   name: String
 }
 
-type PersonTwo {
+type PersonTwo @node {
   nameTwo: String
 }
 
 union Person = PersonOne | PersonTwo
 
-type Movie {
+type Movie @node {
   id: ID
   actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN, nestedOperations: [CONNECT])
 }
@@ -2237,8 +2033,8 @@ schema {
 }
 
 type Movie {
-  actors(directed: Boolean = true, options: QueryOptions, where: PersonWhere): [Person!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, where: MovieActorsConnectionWhere): MovieActorsConnection!
+  actors(limit: Int, offset: Int, where: PersonWhere): [Person!]!
+  actorsConnection(after: String, first: Int, where: MovieActorsConnectionWhere): MovieActorsConnection!
   id: ID
 }
 
@@ -2277,15 +2073,6 @@ type MovieEdge {
   node: Movie!
 }
 
-input MovieOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [MovieSort!]
-}
-
 """
 Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object.
 """
@@ -2321,9 +2108,10 @@ input MovieWhere {
   actors_SINGLE: PersonWhere
   """Return Movies where some of the related People match this filter"""
   actors_SOME: PersonWhere
-  id: ID
+  id: ID @deprecated(reason: "Please use the explicit _EQ version")
   id_CONTAINS: ID
   id_ENDS_WITH: ID
+  id_EQ: ID
   id_IN: [ID]
   id_STARTS_WITH: ID
 }
@@ -2353,15 +2141,6 @@ type PersonOneEdge {
   node: PersonOne!
 }
 
-input PersonOneOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonOneSort objects to sort PersonOnes by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonOneSort!]
-}
-
 """
 Fields to sort PersonOnes by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonOneSort object.
 """
@@ -2373,9 +2152,10 @@ input PersonOneWhere {
   AND: [PersonOneWhere!]
   NOT: PersonOneWhere
   OR: [PersonOneWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
 }
@@ -2395,15 +2175,6 @@ type PersonTwoEdge {
   node: PersonTwo!
 }
 
-input PersonTwoOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonTwoSort objects to sort PersonTwos by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonTwoSort!]
-}
-
 """
 Fields to sort PersonTwos by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonTwoSort object.
 """
@@ -2415,9 +2186,10 @@ input PersonTwoWhere {
   AND: [PersonTwoWhere!]
   NOT: PersonTwoWhere
   OR: [PersonTwoWhere!]
-  nameTwo: String
+  nameTwo: String @deprecated(reason: "Please use the explicit _EQ version")
   nameTwo_CONTAINS: String
   nameTwo_ENDS_WITH: String
+  nameTwo_EQ: String
   nameTwo_IN: [String]
   nameTwo_STARTS_WITH: String
 }
@@ -2434,19 +2206,13 @@ input PersonWhere {
 }
 
 type Query {
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
-  people(options: QueryOptions, where: PersonWhere): [Person!]!
-  personOnes(options: PersonOneOptions, where: PersonOneWhere): [PersonOne!]!
-  personOnesConnection(after: String, first: Int, sort: [PersonOneSort], where: PersonOneWhere): PersonOnesConnection!
-  personTwos(options: PersonTwoOptions, where: PersonTwoWhere): [PersonTwo!]!
-  personTwosConnection(after: String, first: Int, sort: [PersonTwoSort], where: PersonTwoWhere): PersonTwosConnection!
-}
-
-"""Input type for options that can be specified on a query operation."""
-input QueryOptions {
-  limit: Int
-  offset: Int
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+  people(limit: Int, offset: Int, where: PersonWhere): [Person!]!
+  personOnes(limit: Int, offset: Int, sort: [PersonOneSort!], where: PersonOneWhere): [PersonOne!]!
+  personOnesConnection(after: String, first: Int, sort: [PersonOneSort!], where: PersonOneWhere): PersonOnesConnection!
+  personTwos(limit: Int, offset: Int, sort: [PersonTwoSort!], where: PersonTwoWhere): [PersonTwo!]!
+  personTwosConnection(after: String, first: Int, sort: [PersonTwoSort!], where: PersonTwoWhere): PersonTwosConnection!
 }
 
 """An enum for sorting in either ascending or descending order."""
@@ -2463,17 +2229,17 @@ enum SortDirection {
 .Schema
 [source,graphql,schema=true]
 ----
-type PersonOne {
+type PersonOne @node {
   name: String
 }
 
-type PersonTwo {
+type PersonTwo @node {
   nameTwo: String
 }
 
 union Person = PersonOne | PersonTwo
 
-type Movie {
+type Movie @node {
   id: ID
   actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN, nestedOperations: [UPDATE])
 }
@@ -2487,8 +2253,8 @@ schema {
 }
 
 type Movie {
-  actors(directed: Boolean = true, options: QueryOptions, where: PersonWhere): [Person!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, where: MovieActorsConnectionWhere): MovieActorsConnection!
+  actors(limit: Int, offset: Int, where: PersonWhere): [Person!]!
+  actorsConnection(after: String, first: Int, where: MovieActorsConnectionWhere): MovieActorsConnection!
   id: ID
 }
 
@@ -2527,15 +2293,6 @@ type MovieEdge {
   node: Movie!
 }
 
-input MovieOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [MovieSort!]
-}
-
 """
 Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object.
 """
@@ -2571,9 +2328,10 @@ input MovieWhere {
   actors_SINGLE: PersonWhere
   """Return Movies where some of the related People match this filter"""
   actors_SOME: PersonWhere
-  id: ID
+  id: ID @deprecated(reason: "Please use the explicit _EQ version")
   id_CONTAINS: ID
   id_ENDS_WITH: ID
+  id_EQ: ID
   id_IN: [ID]
   id_STARTS_WITH: ID
 }
@@ -2603,15 +2361,6 @@ type PersonOneEdge {
   node: PersonOne!
 }
 
-input PersonOneOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonOneSort objects to sort PersonOnes by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonOneSort!]
-}
-
 """
 Fields to sort PersonOnes by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonOneSort object.
 """
@@ -2623,9 +2372,10 @@ input PersonOneWhere {
   AND: [PersonOneWhere!]
   NOT: PersonOneWhere
   OR: [PersonOneWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
 }
@@ -2645,15 +2395,6 @@ type PersonTwoEdge {
   node: PersonTwo!
 }
 
-input PersonTwoOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonTwoSort objects to sort PersonTwos by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonTwoSort!]
-}
-
 """
 Fields to sort PersonTwos by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonTwoSort object.
 """
@@ -2665,9 +2406,10 @@ input PersonTwoWhere {
   AND: [PersonTwoWhere!]
   NOT: PersonTwoWhere
   OR: [PersonTwoWhere!]
-  nameTwo: String
+  nameTwo: String @deprecated(reason: "Please use the explicit _EQ version")
   nameTwo_CONTAINS: String
   nameTwo_ENDS_WITH: String
+  nameTwo_EQ: String
   nameTwo_IN: [String]
   nameTwo_STARTS_WITH: String
 }
@@ -2684,19 +2426,13 @@ input PersonWhere {
 }
 
 type Query {
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
-  people(options: QueryOptions, where: PersonWhere): [Person!]!
-  personOnes(options: PersonOneOptions, where: PersonOneWhere): [PersonOne!]!
-  personOnesConnection(after: String, first: Int, sort: [PersonOneSort], where: PersonOneWhere): PersonOnesConnection!
-  personTwos(options: PersonTwoOptions, where: PersonTwoWhere): [PersonTwo!]!
-  personTwosConnection(after: String, first: Int, sort: [PersonTwoSort], where: PersonTwoWhere): PersonTwosConnection!
-}
-
-"""Input type for options that can be specified on a query operation."""
-input QueryOptions {
-  limit: Int
-  offset: Int
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+  people(limit: Int, offset: Int, where: PersonWhere): [Person!]!
+  personOnes(limit: Int, offset: Int, sort: [PersonOneSort!], where: PersonOneWhere): [PersonOne!]!
+  personOnesConnection(after: String, first: Int, sort: [PersonOneSort!], where: PersonOneWhere): PersonOnesConnection!
+  personTwos(limit: Int, offset: Int, sort: [PersonTwoSort!], where: PersonTwoWhere): [PersonTwo!]!
+  personTwosConnection(after: String, first: Int, sort: [PersonTwoSort!], where: PersonTwoWhere): PersonTwosConnection!
 }
 
 """An enum for sorting in either ascending or descending order."""
@@ -2713,17 +2449,17 @@ enum SortDirection {
 .Schema
 [source,graphql,schema=true]
 ----
-type PersonOne {
+type PersonOne @node {
   name: String
 }
 
-type PersonTwo {
+type PersonTwo @node {
   nameTwo: String
 }
 
 union Person = PersonOne | PersonTwo
 
-type Movie {
+type Movie @node {
   id: ID
   actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN, nestedOperations: [DELETE])
 }
@@ -2737,8 +2473,8 @@ schema {
 }
 
 type Movie {
-  actors(directed: Boolean = true, options: QueryOptions, where: PersonWhere): [Person!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, where: MovieActorsConnectionWhere): MovieActorsConnection!
+  actors(limit: Int, offset: Int, where: PersonWhere): [Person!]!
+  actorsConnection(after: String, first: Int, where: MovieActorsConnectionWhere): MovieActorsConnection!
   id: ID
 }
 
@@ -2777,15 +2513,6 @@ type MovieEdge {
   node: Movie!
 }
 
-input MovieOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [MovieSort!]
-}
-
 """
 Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object.
 """
@@ -2821,9 +2548,10 @@ input MovieWhere {
   actors_SINGLE: PersonWhere
   """Return Movies where some of the related People match this filter"""
   actors_SOME: PersonWhere
-  id: ID
+  id: ID @deprecated(reason: "Please use the explicit _EQ version")
   id_CONTAINS: ID
   id_ENDS_WITH: ID
+  id_EQ: ID
   id_IN: [ID]
   id_STARTS_WITH: ID
 }
@@ -2853,15 +2581,6 @@ type PersonOneEdge {
   node: PersonOne!
 }
 
-input PersonOneOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonOneSort objects to sort PersonOnes by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonOneSort!]
-}
-
 """
 Fields to sort PersonOnes by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonOneSort object.
 """
@@ -2873,9 +2592,10 @@ input PersonOneWhere {
   AND: [PersonOneWhere!]
   NOT: PersonOneWhere
   OR: [PersonOneWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
 }
@@ -2895,15 +2615,6 @@ type PersonTwoEdge {
   node: PersonTwo!
 }
 
-input PersonTwoOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonTwoSort objects to sort PersonTwos by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonTwoSort!]
-}
-
 """
 Fields to sort PersonTwos by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonTwoSort object.
 """
@@ -2915,9 +2626,10 @@ input PersonTwoWhere {
   AND: [PersonTwoWhere!]
   NOT: PersonTwoWhere
   OR: [PersonTwoWhere!]
-  nameTwo: String
+  nameTwo: String @deprecated(reason: "Please use the explicit _EQ version")
   nameTwo_CONTAINS: String
   nameTwo_ENDS_WITH: String
+  nameTwo_EQ: String
   nameTwo_IN: [String]
   nameTwo_STARTS_WITH: String
 }
@@ -2934,19 +2646,13 @@ input PersonWhere {
 }
 
 type Query {
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
-  people(options: QueryOptions, where: PersonWhere): [Person!]!
-  personOnes(options: PersonOneOptions, where: PersonOneWhere): [PersonOne!]!
-  personOnesConnection(after: String, first: Int, sort: [PersonOneSort], where: PersonOneWhere): PersonOnesConnection!
-  personTwos(options: PersonTwoOptions, where: PersonTwoWhere): [PersonTwo!]!
-  personTwosConnection(after: String, first: Int, sort: [PersonTwoSort], where: PersonTwoWhere): PersonTwosConnection!
-}
-
-"""Input type for options that can be specified on a query operation."""
-input QueryOptions {
-  limit: Int
-  offset: Int
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+  people(limit: Int, offset: Int, where: PersonWhere): [Person!]!
+  personOnes(limit: Int, offset: Int, sort: [PersonOneSort!], where: PersonOneWhere): [PersonOne!]!
+  personOnesConnection(after: String, first: Int, sort: [PersonOneSort!], where: PersonOneWhere): PersonOnesConnection!
+  personTwos(limit: Int, offset: Int, sort: [PersonTwoSort!], where: PersonTwoWhere): [PersonTwo!]!
+  personTwosConnection(after: String, first: Int, sort: [PersonTwoSort!], where: PersonTwoWhere): PersonTwosConnection!
 }
 
 """An enum for sorting in either ascending or descending order."""
@@ -2963,17 +2669,17 @@ enum SortDirection {
 .Schema
 [source,graphql,schema=true]
 ----
-type PersonOne {
+type PersonOne @node {
   name: String
 }
 
-type PersonTwo {
+type PersonTwo @node {
   nameTwo: String
 }
 
 union Person = PersonOne | PersonTwo
 
-type Movie {
+type Movie @node {
   id: ID
   actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN, nestedOperations: [DISCONNECT])
 }
@@ -2987,8 +2693,8 @@ schema {
 }
 
 type Movie {
-  actors(directed: Boolean = true, options: QueryOptions, where: PersonWhere): [Person!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, where: MovieActorsConnectionWhere): MovieActorsConnection!
+  actors(limit: Int, offset: Int, where: PersonWhere): [Person!]!
+  actorsConnection(after: String, first: Int, where: MovieActorsConnectionWhere): MovieActorsConnection!
   id: ID
 }
 
@@ -3027,15 +2733,6 @@ type MovieEdge {
   node: Movie!
 }
 
-input MovieOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [MovieSort!]
-}
-
 """
 Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object.
 """
@@ -3071,9 +2768,10 @@ input MovieWhere {
   actors_SINGLE: PersonWhere
   """Return Movies where some of the related People match this filter"""
   actors_SOME: PersonWhere
-  id: ID
+  id: ID @deprecated(reason: "Please use the explicit _EQ version")
   id_CONTAINS: ID
   id_ENDS_WITH: ID
+  id_EQ: ID
   id_IN: [ID]
   id_STARTS_WITH: ID
 }
@@ -3103,15 +2801,6 @@ type PersonOneEdge {
   node: PersonOne!
 }
 
-input PersonOneOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonOneSort objects to sort PersonOnes by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonOneSort!]
-}
-
 """
 Fields to sort PersonOnes by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonOneSort object.
 """
@@ -3123,9 +2812,10 @@ input PersonOneWhere {
   AND: [PersonOneWhere!]
   NOT: PersonOneWhere
   OR: [PersonOneWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
 }
@@ -3145,15 +2835,6 @@ type PersonTwoEdge {
   node: PersonTwo!
 }
 
-input PersonTwoOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonTwoSort objects to sort PersonTwos by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonTwoSort!]
-}
-
 """
 Fields to sort PersonTwos by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonTwoSort object.
 """
@@ -3165,9 +2846,10 @@ input PersonTwoWhere {
   AND: [PersonTwoWhere!]
   NOT: PersonTwoWhere
   OR: [PersonTwoWhere!]
-  nameTwo: String
+  nameTwo: String @deprecated(reason: "Please use the explicit _EQ version")
   nameTwo_CONTAINS: String
   nameTwo_ENDS_WITH: String
+  nameTwo_EQ: String
   nameTwo_IN: [String]
   nameTwo_STARTS_WITH: String
 }
@@ -3184,19 +2866,13 @@ input PersonWhere {
 }
 
 type Query {
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
-  people(options: QueryOptions, where: PersonWhere): [Person!]!
-  personOnes(options: PersonOneOptions, where: PersonOneWhere): [PersonOne!]!
-  personOnesConnection(after: String, first: Int, sort: [PersonOneSort], where: PersonOneWhere): PersonOnesConnection!
-  personTwos(options: PersonTwoOptions, where: PersonTwoWhere): [PersonTwo!]!
-  personTwosConnection(after: String, first: Int, sort: [PersonTwoSort], where: PersonTwoWhere): PersonTwosConnection!
-}
-
-"""Input type for options that can be specified on a query operation."""
-input QueryOptions {
-  limit: Int
-  offset: Int
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+  people(limit: Int, offset: Int, where: PersonWhere): [Person!]!
+  personOnes(limit: Int, offset: Int, sort: [PersonOneSort!], where: PersonOneWhere): [PersonOne!]!
+  personOnesConnection(after: String, first: Int, sort: [PersonOneSort!], where: PersonOneWhere): PersonOnesConnection!
+  personTwos(limit: Int, offset: Int, sort: [PersonTwoSort!], where: PersonTwoWhere): [PersonTwo!]!
+  personTwosConnection(after: String, first: Int, sort: [PersonTwoSort!], where: PersonTwoWhere): PersonTwosConnection!
 }
 
 """An enum for sorting in either ascending or descending order."""
@@ -3213,17 +2889,17 @@ enum SortDirection {
 .Schema
 [source,graphql,schema=true]
 ----
-type PersonOne {
+type PersonOne @node {
   name: String
 }
 
-type PersonTwo {
+type PersonTwo @node {
   nameTwo: String
 }
 
 union Person = PersonOne | PersonTwo
 
-type Movie {
+type Movie @node {
   id: ID
   actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN, nestedOperations: [CONNECT_OR_CREATE])
 }
@@ -3237,8 +2913,8 @@ schema {
 }
 
 type Movie {
-  actors(directed: Boolean = true, options: QueryOptions, where: PersonWhere): [Person!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, where: MovieActorsConnectionWhere): MovieActorsConnection!
+  actors(limit: Int, offset: Int, where: PersonWhere): [Person!]!
+  actorsConnection(after: String, first: Int, where: MovieActorsConnectionWhere): MovieActorsConnection!
   id: ID
 }
 
@@ -3277,15 +2953,6 @@ type MovieEdge {
   node: Movie!
 }
 
-input MovieOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [MovieSort!]
-}
-
 """
 Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object.
 """
@@ -3321,9 +2988,10 @@ input MovieWhere {
   actors_SINGLE: PersonWhere
   """Return Movies where some of the related People match this filter"""
   actors_SOME: PersonWhere
-  id: ID
+  id: ID @deprecated(reason: "Please use the explicit _EQ version")
   id_CONTAINS: ID
   id_ENDS_WITH: ID
+  id_EQ: ID
   id_IN: [ID]
   id_STARTS_WITH: ID
 }
@@ -3353,15 +3021,6 @@ type PersonOneEdge {
   node: PersonOne!
 }
 
-input PersonOneOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonOneSort objects to sort PersonOnes by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonOneSort!]
-}
-
 """
 Fields to sort PersonOnes by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonOneSort object.
 """
@@ -3373,9 +3032,10 @@ input PersonOneWhere {
   AND: [PersonOneWhere!]
   NOT: PersonOneWhere
   OR: [PersonOneWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
 }
@@ -3395,15 +3055,6 @@ type PersonTwoEdge {
   node: PersonTwo!
 }
 
-input PersonTwoOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonTwoSort objects to sort PersonTwos by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonTwoSort!]
-}
-
 """
 Fields to sort PersonTwos by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonTwoSort object.
 """
@@ -3415,9 +3066,10 @@ input PersonTwoWhere {
   AND: [PersonTwoWhere!]
   NOT: PersonTwoWhere
   OR: [PersonTwoWhere!]
-  nameTwo: String
+  nameTwo: String @deprecated(reason: "Please use the explicit _EQ version")
   nameTwo_CONTAINS: String
   nameTwo_ENDS_WITH: String
+  nameTwo_EQ: String
   nameTwo_IN: [String]
   nameTwo_STARTS_WITH: String
 }
@@ -3434,19 +3086,13 @@ input PersonWhere {
 }
 
 type Query {
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
-  people(options: QueryOptions, where: PersonWhere): [Person!]!
-  personOnes(options: PersonOneOptions, where: PersonOneWhere): [PersonOne!]!
-  personOnesConnection(after: String, first: Int, sort: [PersonOneSort], where: PersonOneWhere): PersonOnesConnection!
-  personTwos(options: PersonTwoOptions, where: PersonTwoWhere): [PersonTwo!]!
-  personTwosConnection(after: String, first: Int, sort: [PersonTwoSort], where: PersonTwoWhere): PersonTwosConnection!
-}
-
-"""Input type for options that can be specified on a query operation."""
-input QueryOptions {
-  limit: Int
-  offset: Int
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+  people(limit: Int, offset: Int, where: PersonWhere): [Person!]!
+  personOnes(limit: Int, offset: Int, sort: [PersonOneSort!], where: PersonOneWhere): [PersonOne!]!
+  personOnesConnection(after: String, first: Int, sort: [PersonOneSort!], where: PersonOneWhere): PersonOnesConnection!
+  personTwos(limit: Int, offset: Int, sort: [PersonTwoSort!], where: PersonTwoWhere): [PersonTwo!]!
+  personTwosConnection(after: String, first: Int, sort: [PersonTwoSort!], where: PersonTwoWhere): PersonTwosConnection!
 }
 
 """An enum for sorting in either ascending or descending order."""
@@ -3463,17 +3109,17 @@ enum SortDirection {
 .Schema
 [source,graphql,schema=true]
 ----
-type PersonOne {
+type PersonOne @node {
   name: String
 }
 
-type PersonTwo {
+type PersonTwo @node {
   nameTwo: String
 }
 
 union Person = PersonOne | PersonTwo
 
-type Movie {
+type Movie @node {
   id: ID
   actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN)
   producers: [Person!]! @relationship(type: "PRODUCED", direction: IN, nestedOperations: [DISCONNECT])
@@ -3488,11 +3134,11 @@ schema {
 }
 
 type Movie {
-  actors(directed: Boolean = true, options: QueryOptions, where: PersonWhere): [Person!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, where: MovieActorsConnectionWhere): MovieActorsConnection!
+  actors(limit: Int, offset: Int, where: PersonWhere): [Person!]!
+  actorsConnection(after: String, first: Int, where: MovieActorsConnectionWhere): MovieActorsConnection!
   id: ID
-  producers(directed: Boolean = true, options: QueryOptions, where: PersonWhere): [Person!]!
-  producersConnection(after: String, directed: Boolean = true, first: Int, where: MovieProducersConnectionWhere): MovieProducersConnection!
+  producers(limit: Int, offset: Int, where: PersonWhere): [Person!]!
+  producersConnection(after: String, first: Int, where: MovieProducersConnectionWhere): MovieProducersConnection!
 }
 
 type MovieActorsConnection {
@@ -3528,15 +3174,6 @@ type MovieActorsRelationship {
 type MovieEdge {
   cursor: String!
   node: Movie!
-}
-
-input MovieOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [MovieSort!]
 }
 
 type MovieProducersConnection {
@@ -3604,9 +3241,10 @@ input MovieWhere {
   actors_SINGLE: PersonWhere
   """Return Movies where some of the related People match this filter"""
   actors_SOME: PersonWhere
-  id: ID
+  id: ID @deprecated(reason: "Please use the explicit _EQ version")
   id_CONTAINS: ID
   id_ENDS_WITH: ID
+  id_EQ: ID
   id_IN: [ID]
   id_STARTS_WITH: ID
   """
@@ -3660,15 +3298,6 @@ type PersonOneEdge {
   node: PersonOne!
 }
 
-input PersonOneOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonOneSort objects to sort PersonOnes by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonOneSort!]
-}
-
 """
 Fields to sort PersonOnes by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonOneSort object.
 """
@@ -3680,9 +3309,10 @@ input PersonOneWhere {
   AND: [PersonOneWhere!]
   NOT: PersonOneWhere
   OR: [PersonOneWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
 }
@@ -3702,15 +3332,6 @@ type PersonTwoEdge {
   node: PersonTwo!
 }
 
-input PersonTwoOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonTwoSort objects to sort PersonTwos by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonTwoSort!]
-}
-
 """
 Fields to sort PersonTwos by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonTwoSort object.
 """
@@ -3722,9 +3343,10 @@ input PersonTwoWhere {
   AND: [PersonTwoWhere!]
   NOT: PersonTwoWhere
   OR: [PersonTwoWhere!]
-  nameTwo: String
+  nameTwo: String @deprecated(reason: "Please use the explicit _EQ version")
   nameTwo_CONTAINS: String
   nameTwo_ENDS_WITH: String
+  nameTwo_EQ: String
   nameTwo_IN: [String]
   nameTwo_STARTS_WITH: String
 }
@@ -3741,19 +3363,13 @@ input PersonWhere {
 }
 
 type Query {
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
-  people(options: QueryOptions, where: PersonWhere): [Person!]!
-  personOnes(options: PersonOneOptions, where: PersonOneWhere): [PersonOne!]!
-  personOnesConnection(after: String, first: Int, sort: [PersonOneSort], where: PersonOneWhere): PersonOnesConnection!
-  personTwos(options: PersonTwoOptions, where: PersonTwoWhere): [PersonTwo!]!
-  personTwosConnection(after: String, first: Int, sort: [PersonTwoSort], where: PersonTwoWhere): PersonTwosConnection!
-}
-
-"""Input type for options that can be specified on a query operation."""
-input QueryOptions {
-  limit: Int
-  offset: Int
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+  people(limit: Int, offset: Int, where: PersonWhere): [Person!]!
+  personOnes(limit: Int, offset: Int, sort: [PersonOneSort!], where: PersonOneWhere): [PersonOne!]!
+  personOnesConnection(after: String, first: Int, sort: [PersonOneSort!], where: PersonOneWhere): PersonOnesConnection!
+  personTwos(limit: Int, offset: Int, sort: [PersonTwoSort!], where: PersonTwoWhere): [PersonTwo!]!
+  personTwosConnection(after: String, first: Int, sort: [PersonTwoSort!], where: PersonTwoWhere): PersonTwosConnection!
 }
 
 """An enum for sorting in either ascending or descending order."""
@@ -3770,17 +3386,17 @@ enum SortDirection {
 .Schema
 [source,graphql,schema=true]
 ----
-type PersonOne {
+type PersonOne @node {
   name: String
 }
 
-type PersonTwo {
+type PersonTwo @node {
   nameTwo: String
 }
 
 union Person = PersonOne | PersonTwo
 
-type Movie {
+type Movie @node {
   id: ID
   actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN, nestedOperations: [CREATE])
   producers: [Person!]! @relationship(type: "PRODUCED", direction: IN, nestedOperations: [DISCONNECT])
@@ -3795,11 +3411,11 @@ schema {
 }
 
 type Movie {
-  actors(directed: Boolean = true, options: QueryOptions, where: PersonWhere): [Person!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, where: MovieActorsConnectionWhere): MovieActorsConnection!
+  actors(limit: Int, offset: Int, where: PersonWhere): [Person!]!
+  actorsConnection(after: String, first: Int, where: MovieActorsConnectionWhere): MovieActorsConnection!
   id: ID
-  producers(directed: Boolean = true, options: QueryOptions, where: PersonWhere): [Person!]!
-  producersConnection(after: String, directed: Boolean = true, first: Int, where: MovieProducersConnectionWhere): MovieProducersConnection!
+  producers(limit: Int, offset: Int, where: PersonWhere): [Person!]!
+  producersConnection(after: String, first: Int, where: MovieProducersConnectionWhere): MovieProducersConnection!
 }
 
 type MovieActorsConnection {
@@ -3835,15 +3451,6 @@ type MovieActorsRelationship {
 type MovieEdge {
   cursor: String!
   node: Movie!
-}
-
-input MovieOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [MovieSort!]
 }
 
 type MovieProducersConnection {
@@ -3911,9 +3518,10 @@ input MovieWhere {
   actors_SINGLE: PersonWhere
   """Return Movies where some of the related People match this filter"""
   actors_SOME: PersonWhere
-  id: ID
+  id: ID @deprecated(reason: "Please use the explicit _EQ version")
   id_CONTAINS: ID
   id_ENDS_WITH: ID
+  id_EQ: ID
   id_IN: [ID]
   id_STARTS_WITH: ID
   """
@@ -3967,15 +3575,6 @@ type PersonOneEdge {
   node: PersonOne!
 }
 
-input PersonOneOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonOneSort objects to sort PersonOnes by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonOneSort!]
-}
-
 """
 Fields to sort PersonOnes by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonOneSort object.
 """
@@ -3987,9 +3586,10 @@ input PersonOneWhere {
   AND: [PersonOneWhere!]
   NOT: PersonOneWhere
   OR: [PersonOneWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
 }
@@ -4009,15 +3609,6 @@ type PersonTwoEdge {
   node: PersonTwo!
 }
 
-input PersonTwoOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonTwoSort objects to sort PersonTwos by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonTwoSort!]
-}
-
 """
 Fields to sort PersonTwos by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonTwoSort object.
 """
@@ -4029,9 +3620,10 @@ input PersonTwoWhere {
   AND: [PersonTwoWhere!]
   NOT: PersonTwoWhere
   OR: [PersonTwoWhere!]
-  nameTwo: String
+  nameTwo: String @deprecated(reason: "Please use the explicit _EQ version")
   nameTwo_CONTAINS: String
   nameTwo_ENDS_WITH: String
+  nameTwo_EQ: String
   nameTwo_IN: [String]
   nameTwo_STARTS_WITH: String
 }
@@ -4048,19 +3640,13 @@ input PersonWhere {
 }
 
 type Query {
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
-  people(options: QueryOptions, where: PersonWhere): [Person!]!
-  personOnes(options: PersonOneOptions, where: PersonOneWhere): [PersonOne!]!
-  personOnesConnection(after: String, first: Int, sort: [PersonOneSort], where: PersonOneWhere): PersonOnesConnection!
-  personTwos(options: PersonTwoOptions, where: PersonTwoWhere): [PersonTwo!]!
-  personTwosConnection(after: String, first: Int, sort: [PersonTwoSort], where: PersonTwoWhere): PersonTwosConnection!
-}
-
-"""Input type for options that can be specified on a query operation."""
-input QueryOptions {
-  limit: Int
-  offset: Int
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+  people(limit: Int, offset: Int, where: PersonWhere): [Person!]!
+  personOnes(limit: Int, offset: Int, sort: [PersonOneSort!], where: PersonOneWhere): [PersonOne!]!
+  personOnesConnection(after: String, first: Int, sort: [PersonOneSort!], where: PersonOneWhere): PersonOnesConnection!
+  personTwos(limit: Int, offset: Int, sort: [PersonTwoSort!], where: PersonTwoWhere): [PersonTwo!]!
+  personTwosConnection(after: String, first: Int, sort: [PersonTwoSort!], where: PersonTwoWhere): PersonTwosConnection!
 }
 
 """An enum for sorting in either ascending or descending order."""
@@ -4083,16 +3669,16 @@ interface Person {
   name: String
 }
 
-type PersonOne implements Person {
+type PersonOne implements Person @node {
   name: String
   someExtraProp: [Int!]!
 }
 
-type PersonTwo implements Person {
+type PersonTwo implements Person @node {
   name: String
 }
 
-type Movie {
+type Movie @node {
   id: ID
   actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN, nestedOperations: [])
 }
@@ -4106,8 +3692,8 @@ schema {
 }
 
 type Movie {
-  actors(directed: Boolean = true, options: PersonOptions, where: PersonWhere): [Person!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
+  actors(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  actorsConnection(after: String, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
   id: ID
 }
 
@@ -4136,15 +3722,6 @@ type MovieActorsRelationship {
 type MovieEdge {
   cursor: String!
   node: Movie!
-}
-
-input MovieOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [MovieSort!]
 }
 
 """
@@ -4182,9 +3759,10 @@ input MovieWhere {
   actors_SINGLE: PersonWhere
   """Return Movies where some of the related People match this filter"""
   actors_SOME: PersonWhere
-  id: ID
+  id: ID @deprecated(reason: "Please use the explicit _EQ version")
   id_CONTAINS: ID
   id_ENDS_WITH: ID
+  id_EQ: ID
   id_IN: [ID]
   id_STARTS_WITH: ID
 }
@@ -4233,15 +3811,6 @@ type PersonOneEdge {
   node: PersonOne!
 }
 
-input PersonOneOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonOneSort objects to sort PersonOnes by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonOneSort!]
-}
-
 """
 Fields to sort PersonOnes by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonOneSort object.
 """
@@ -4253,12 +3822,14 @@ input PersonOneWhere {
   AND: [PersonOneWhere!]
   NOT: PersonOneWhere
   OR: [PersonOneWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
-  someExtraProp: [Int!]
+  someExtraProp: [Int!] @deprecated(reason: "Please use the explicit _EQ version")
+  someExtraProp_EQ: [Int!]
   someExtraProp_INCLUDES: Int
 }
 
@@ -4266,15 +3837,6 @@ type PersonOnesConnection {
   edges: [PersonOneEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
-}
-
-input PersonOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonSort objects to sort People by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonSort]
 }
 
 """
@@ -4293,15 +3855,6 @@ type PersonTwoEdge {
   node: PersonTwo!
 }
 
-input PersonTwoOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonTwoSort objects to sort PersonTwos by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonTwoSort!]
-}
-
 """
 Fields to sort PersonTwos by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonTwoSort object.
 """
@@ -4313,9 +3866,10 @@ input PersonTwoWhere {
   AND: [PersonTwoWhere!]
   NOT: PersonTwoWhere
   OR: [PersonTwoWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
 }
@@ -4330,23 +3884,24 @@ input PersonWhere {
   AND: [PersonWhere!]
   NOT: PersonWhere
   OR: [PersonWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
-  typename_IN: [PersonImplementation!]
+  typename: [PersonImplementation!]
 }
 
 type Query {
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
-  people(options: PersonOptions, where: PersonWhere): [Person!]!
-  peopleConnection(after: String, first: Int, sort: [PersonSort], where: PersonWhere): PeopleConnection!
-  personOnes(options: PersonOneOptions, where: PersonOneWhere): [PersonOne!]!
-  personOnesConnection(after: String, first: Int, sort: [PersonOneSort], where: PersonOneWhere): PersonOnesConnection!
-  personTwos(options: PersonTwoOptions, where: PersonTwoWhere): [PersonTwo!]!
-  personTwosConnection(after: String, first: Int, sort: [PersonTwoSort], where: PersonTwoWhere): PersonTwosConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+  people(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  peopleConnection(after: String, first: Int, sort: [PersonSort!], where: PersonWhere): PeopleConnection!
+  personOnes(limit: Int, offset: Int, sort: [PersonOneSort!], where: PersonOneWhere): [PersonOne!]!
+  personOnesConnection(after: String, first: Int, sort: [PersonOneSort!], where: PersonOneWhere): PersonOnesConnection!
+  personTwos(limit: Int, offset: Int, sort: [PersonTwoSort!], where: PersonTwoWhere): [PersonTwo!]!
+  personTwosConnection(after: String, first: Int, sort: [PersonTwoSort!], where: PersonTwoWhere): PersonTwosConnection!
 }
 
 """An enum for sorting in either ascending or descending order."""
@@ -4367,16 +3922,16 @@ interface Person {
   name: String
 }
 
-type PersonOne implements Person {
+type PersonOne implements Person @node {
   name: String
   someExtraProp: [Int!]!
 }
 
-type PersonTwo implements Person {
+type PersonTwo implements Person @node {
   name: String
 }
 
-type Movie {
+type Movie @node {
   id: ID
   actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN, nestedOperations: [CREATE])
 }
@@ -4390,8 +3945,8 @@ schema {
 }
 
 type Movie {
-  actors(directed: Boolean = true, options: PersonOptions, where: PersonWhere): [Person!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
+  actors(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  actorsConnection(after: String, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
   id: ID
 }
 
@@ -4420,15 +3975,6 @@ type MovieActorsRelationship {
 type MovieEdge {
   cursor: String!
   node: Movie!
-}
-
-input MovieOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [MovieSort!]
 }
 
 """
@@ -4466,9 +4012,10 @@ input MovieWhere {
   actors_SINGLE: PersonWhere
   """Return Movies where some of the related People match this filter"""
   actors_SOME: PersonWhere
-  id: ID
+  id: ID @deprecated(reason: "Please use the explicit _EQ version")
   id_CONTAINS: ID
   id_ENDS_WITH: ID
+  id_EQ: ID
   id_IN: [ID]
   id_STARTS_WITH: ID
 }
@@ -4517,15 +4064,6 @@ type PersonOneEdge {
   node: PersonOne!
 }
 
-input PersonOneOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonOneSort objects to sort PersonOnes by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonOneSort!]
-}
-
 """
 Fields to sort PersonOnes by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonOneSort object.
 """
@@ -4537,12 +4075,14 @@ input PersonOneWhere {
   AND: [PersonOneWhere!]
   NOT: PersonOneWhere
   OR: [PersonOneWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
-  someExtraProp: [Int!]
+  someExtraProp: [Int!] @deprecated(reason: "Please use the explicit _EQ version")
+  someExtraProp_EQ: [Int!]
   someExtraProp_INCLUDES: Int
 }
 
@@ -4550,15 +4090,6 @@ type PersonOnesConnection {
   edges: [PersonOneEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
-}
-
-input PersonOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonSort objects to sort People by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonSort]
 }
 
 """
@@ -4577,15 +4108,6 @@ type PersonTwoEdge {
   node: PersonTwo!
 }
 
-input PersonTwoOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonTwoSort objects to sort PersonTwos by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonTwoSort!]
-}
-
 """
 Fields to sort PersonTwos by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonTwoSort object.
 """
@@ -4597,9 +4119,10 @@ input PersonTwoWhere {
   AND: [PersonTwoWhere!]
   NOT: PersonTwoWhere
   OR: [PersonTwoWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
 }
@@ -4614,23 +4137,24 @@ input PersonWhere {
   AND: [PersonWhere!]
   NOT: PersonWhere
   OR: [PersonWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
-  typename_IN: [PersonImplementation!]
+  typename: [PersonImplementation!]
 }
 
 type Query {
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
-  people(options: PersonOptions, where: PersonWhere): [Person!]!
-  peopleConnection(after: String, first: Int, sort: [PersonSort], where: PersonWhere): PeopleConnection!
-  personOnes(options: PersonOneOptions, where: PersonOneWhere): [PersonOne!]!
-  personOnesConnection(after: String, first: Int, sort: [PersonOneSort], where: PersonOneWhere): PersonOnesConnection!
-  personTwos(options: PersonTwoOptions, where: PersonTwoWhere): [PersonTwo!]!
-  personTwosConnection(after: String, first: Int, sort: [PersonTwoSort], where: PersonTwoWhere): PersonTwosConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+  people(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  peopleConnection(after: String, first: Int, sort: [PersonSort!], where: PersonWhere): PeopleConnection!
+  personOnes(limit: Int, offset: Int, sort: [PersonOneSort!], where: PersonOneWhere): [PersonOne!]!
+  personOnesConnection(after: String, first: Int, sort: [PersonOneSort!], where: PersonOneWhere): PersonOnesConnection!
+  personTwos(limit: Int, offset: Int, sort: [PersonTwoSort!], where: PersonTwoWhere): [PersonTwo!]!
+  personTwosConnection(after: String, first: Int, sort: [PersonTwoSort!], where: PersonTwoWhere): PersonTwosConnection!
 }
 
 """An enum for sorting in either ascending or descending order."""
@@ -4651,16 +4175,16 @@ interface Person {
   name: String
 }
 
-type PersonOne implements Person {
+type PersonOne implements Person @node {
   name: String
   someExtraProp: [Int!]!
 }
 
-type PersonTwo implements Person {
+type PersonTwo implements Person @node {
   name: String
 }
 
-type Movie {
+type Movie @node {
   id: ID
   actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN, nestedOperations: [CONNECT])
 }
@@ -4674,8 +4198,8 @@ schema {
 }
 
 type Movie {
-  actors(directed: Boolean = true, options: PersonOptions, where: PersonWhere): [Person!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
+  actors(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  actorsConnection(after: String, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
   id: ID
 }
 
@@ -4704,15 +4228,6 @@ type MovieActorsRelationship {
 type MovieEdge {
   cursor: String!
   node: Movie!
-}
-
-input MovieOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [MovieSort!]
 }
 
 """
@@ -4750,9 +4265,10 @@ input MovieWhere {
   actors_SINGLE: PersonWhere
   """Return Movies where some of the related People match this filter"""
   actors_SOME: PersonWhere
-  id: ID
+  id: ID @deprecated(reason: "Please use the explicit _EQ version")
   id_CONTAINS: ID
   id_ENDS_WITH: ID
+  id_EQ: ID
   id_IN: [ID]
   id_STARTS_WITH: ID
 }
@@ -4801,15 +4317,6 @@ type PersonOneEdge {
   node: PersonOne!
 }
 
-input PersonOneOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonOneSort objects to sort PersonOnes by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonOneSort!]
-}
-
 """
 Fields to sort PersonOnes by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonOneSort object.
 """
@@ -4821,12 +4328,14 @@ input PersonOneWhere {
   AND: [PersonOneWhere!]
   NOT: PersonOneWhere
   OR: [PersonOneWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
-  someExtraProp: [Int!]
+  someExtraProp: [Int!] @deprecated(reason: "Please use the explicit _EQ version")
+  someExtraProp_EQ: [Int!]
   someExtraProp_INCLUDES: Int
 }
 
@@ -4834,15 +4343,6 @@ type PersonOnesConnection {
   edges: [PersonOneEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
-}
-
-input PersonOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonSort objects to sort People by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonSort]
 }
 
 """
@@ -4861,15 +4361,6 @@ type PersonTwoEdge {
   node: PersonTwo!
 }
 
-input PersonTwoOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonTwoSort objects to sort PersonTwos by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonTwoSort!]
-}
-
 """
 Fields to sort PersonTwos by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonTwoSort object.
 """
@@ -4881,9 +4372,10 @@ input PersonTwoWhere {
   AND: [PersonTwoWhere!]
   NOT: PersonTwoWhere
   OR: [PersonTwoWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
 }
@@ -4898,23 +4390,24 @@ input PersonWhere {
   AND: [PersonWhere!]
   NOT: PersonWhere
   OR: [PersonWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
-  typename_IN: [PersonImplementation!]
+  typename: [PersonImplementation!]
 }
 
 type Query {
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
-  people(options: PersonOptions, where: PersonWhere): [Person!]!
-  peopleConnection(after: String, first: Int, sort: [PersonSort], where: PersonWhere): PeopleConnection!
-  personOnes(options: PersonOneOptions, where: PersonOneWhere): [PersonOne!]!
-  personOnesConnection(after: String, first: Int, sort: [PersonOneSort], where: PersonOneWhere): PersonOnesConnection!
-  personTwos(options: PersonTwoOptions, where: PersonTwoWhere): [PersonTwo!]!
-  personTwosConnection(after: String, first: Int, sort: [PersonTwoSort], where: PersonTwoWhere): PersonTwosConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+  people(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  peopleConnection(after: String, first: Int, sort: [PersonSort!], where: PersonWhere): PeopleConnection!
+  personOnes(limit: Int, offset: Int, sort: [PersonOneSort!], where: PersonOneWhere): [PersonOne!]!
+  personOnesConnection(after: String, first: Int, sort: [PersonOneSort!], where: PersonOneWhere): PersonOnesConnection!
+  personTwos(limit: Int, offset: Int, sort: [PersonTwoSort!], where: PersonTwoWhere): [PersonTwo!]!
+  personTwosConnection(after: String, first: Int, sort: [PersonTwoSort!], where: PersonTwoWhere): PersonTwosConnection!
 }
 
 """An enum for sorting in either ascending or descending order."""
@@ -4935,16 +4428,16 @@ interface Person {
   name: String
 }
 
-type PersonOne implements Person {
+type PersonOne implements Person @node {
   name: String
   someExtraProp: [Int!]!
 }
 
-type PersonTwo implements Person {
+type PersonTwo implements Person @node {
   name: String
 }
 
-type Movie {
+type Movie @node {
   id: ID
   actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN, nestedOperations: [UPDATE])
 }
@@ -4958,8 +4451,8 @@ schema {
 }
 
 type Movie {
-  actors(directed: Boolean = true, options: PersonOptions, where: PersonWhere): [Person!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
+  actors(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  actorsConnection(after: String, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
   id: ID
 }
 
@@ -4988,15 +4481,6 @@ type MovieActorsRelationship {
 type MovieEdge {
   cursor: String!
   node: Movie!
-}
-
-input MovieOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [MovieSort!]
 }
 
 """
@@ -5034,9 +4518,10 @@ input MovieWhere {
   actors_SINGLE: PersonWhere
   """Return Movies where some of the related People match this filter"""
   actors_SOME: PersonWhere
-  id: ID
+  id: ID @deprecated(reason: "Please use the explicit _EQ version")
   id_CONTAINS: ID
   id_ENDS_WITH: ID
+  id_EQ: ID
   id_IN: [ID]
   id_STARTS_WITH: ID
 }
@@ -5085,15 +4570,6 @@ type PersonOneEdge {
   node: PersonOne!
 }
 
-input PersonOneOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonOneSort objects to sort PersonOnes by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonOneSort!]
-}
-
 """
 Fields to sort PersonOnes by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonOneSort object.
 """
@@ -5105,12 +4581,14 @@ input PersonOneWhere {
   AND: [PersonOneWhere!]
   NOT: PersonOneWhere
   OR: [PersonOneWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
-  someExtraProp: [Int!]
+  someExtraProp: [Int!] @deprecated(reason: "Please use the explicit _EQ version")
+  someExtraProp_EQ: [Int!]
   someExtraProp_INCLUDES: Int
 }
 
@@ -5118,15 +4596,6 @@ type PersonOnesConnection {
   edges: [PersonOneEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
-}
-
-input PersonOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonSort objects to sort People by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonSort]
 }
 
 """
@@ -5145,15 +4614,6 @@ type PersonTwoEdge {
   node: PersonTwo!
 }
 
-input PersonTwoOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonTwoSort objects to sort PersonTwos by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonTwoSort!]
-}
-
 """
 Fields to sort PersonTwos by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonTwoSort object.
 """
@@ -5165,9 +4625,10 @@ input PersonTwoWhere {
   AND: [PersonTwoWhere!]
   NOT: PersonTwoWhere
   OR: [PersonTwoWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
 }
@@ -5182,23 +4643,24 @@ input PersonWhere {
   AND: [PersonWhere!]
   NOT: PersonWhere
   OR: [PersonWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
-  typename_IN: [PersonImplementation!]
+  typename: [PersonImplementation!]
 }
 
 type Query {
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
-  people(options: PersonOptions, where: PersonWhere): [Person!]!
-  peopleConnection(after: String, first: Int, sort: [PersonSort], where: PersonWhere): PeopleConnection!
-  personOnes(options: PersonOneOptions, where: PersonOneWhere): [PersonOne!]!
-  personOnesConnection(after: String, first: Int, sort: [PersonOneSort], where: PersonOneWhere): PersonOnesConnection!
-  personTwos(options: PersonTwoOptions, where: PersonTwoWhere): [PersonTwo!]!
-  personTwosConnection(after: String, first: Int, sort: [PersonTwoSort], where: PersonTwoWhere): PersonTwosConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+  people(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  peopleConnection(after: String, first: Int, sort: [PersonSort!], where: PersonWhere): PeopleConnection!
+  personOnes(limit: Int, offset: Int, sort: [PersonOneSort!], where: PersonOneWhere): [PersonOne!]!
+  personOnesConnection(after: String, first: Int, sort: [PersonOneSort!], where: PersonOneWhere): PersonOnesConnection!
+  personTwos(limit: Int, offset: Int, sort: [PersonTwoSort!], where: PersonTwoWhere): [PersonTwo!]!
+  personTwosConnection(after: String, first: Int, sort: [PersonTwoSort!], where: PersonTwoWhere): PersonTwosConnection!
 }
 
 """An enum for sorting in either ascending or descending order."""
@@ -5219,16 +4681,16 @@ interface Person {
   name: String
 }
 
-type PersonOne implements Person {
+type PersonOne implements Person @node {
   name: String
   someExtraProp: [Int!]!
 }
 
-type PersonTwo implements Person {
+type PersonTwo implements Person @node {
   name: String
 }
 
-type Movie {
+type Movie @node {
   id: ID
   actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN, nestedOperations: [DELETE])
 }
@@ -5242,8 +4704,8 @@ schema {
 }
 
 type Movie {
-  actors(directed: Boolean = true, options: PersonOptions, where: PersonWhere): [Person!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
+  actors(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  actorsConnection(after: String, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
   id: ID
 }
 
@@ -5272,15 +4734,6 @@ type MovieActorsRelationship {
 type MovieEdge {
   cursor: String!
   node: Movie!
-}
-
-input MovieOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [MovieSort!]
 }
 
 """
@@ -5318,9 +4771,10 @@ input MovieWhere {
   actors_SINGLE: PersonWhere
   """Return Movies where some of the related People match this filter"""
   actors_SOME: PersonWhere
-  id: ID
+  id: ID @deprecated(reason: "Please use the explicit _EQ version")
   id_CONTAINS: ID
   id_ENDS_WITH: ID
+  id_EQ: ID
   id_IN: [ID]
   id_STARTS_WITH: ID
 }
@@ -5369,15 +4823,6 @@ type PersonOneEdge {
   node: PersonOne!
 }
 
-input PersonOneOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonOneSort objects to sort PersonOnes by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonOneSort!]
-}
-
 """
 Fields to sort PersonOnes by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonOneSort object.
 """
@@ -5389,12 +4834,14 @@ input PersonOneWhere {
   AND: [PersonOneWhere!]
   NOT: PersonOneWhere
   OR: [PersonOneWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
-  someExtraProp: [Int!]
+  someExtraProp: [Int!] @deprecated(reason: "Please use the explicit _EQ version")
+  someExtraProp_EQ: [Int!]
   someExtraProp_INCLUDES: Int
 }
 
@@ -5402,15 +4849,6 @@ type PersonOnesConnection {
   edges: [PersonOneEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
-}
-
-input PersonOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonSort objects to sort People by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonSort]
 }
 
 """
@@ -5429,15 +4867,6 @@ type PersonTwoEdge {
   node: PersonTwo!
 }
 
-input PersonTwoOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonTwoSort objects to sort PersonTwos by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonTwoSort!]
-}
-
 """
 Fields to sort PersonTwos by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonTwoSort object.
 """
@@ -5449,9 +4878,10 @@ input PersonTwoWhere {
   AND: [PersonTwoWhere!]
   NOT: PersonTwoWhere
   OR: [PersonTwoWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
 }
@@ -5466,23 +4896,24 @@ input PersonWhere {
   AND: [PersonWhere!]
   NOT: PersonWhere
   OR: [PersonWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
-  typename_IN: [PersonImplementation!]
+  typename: [PersonImplementation!]
 }
 
 type Query {
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
-  people(options: PersonOptions, where: PersonWhere): [Person!]!
-  peopleConnection(after: String, first: Int, sort: [PersonSort], where: PersonWhere): PeopleConnection!
-  personOnes(options: PersonOneOptions, where: PersonOneWhere): [PersonOne!]!
-  personOnesConnection(after: String, first: Int, sort: [PersonOneSort], where: PersonOneWhere): PersonOnesConnection!
-  personTwos(options: PersonTwoOptions, where: PersonTwoWhere): [PersonTwo!]!
-  personTwosConnection(after: String, first: Int, sort: [PersonTwoSort], where: PersonTwoWhere): PersonTwosConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+  people(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  peopleConnection(after: String, first: Int, sort: [PersonSort!], where: PersonWhere): PeopleConnection!
+  personOnes(limit: Int, offset: Int, sort: [PersonOneSort!], where: PersonOneWhere): [PersonOne!]!
+  personOnesConnection(after: String, first: Int, sort: [PersonOneSort!], where: PersonOneWhere): PersonOnesConnection!
+  personTwos(limit: Int, offset: Int, sort: [PersonTwoSort!], where: PersonTwoWhere): [PersonTwo!]!
+  personTwosConnection(after: String, first: Int, sort: [PersonTwoSort!], where: PersonTwoWhere): PersonTwosConnection!
 }
 
 """An enum for sorting in either ascending or descending order."""
@@ -5503,16 +4934,16 @@ interface Person {
   name: String
 }
 
-type PersonOne implements Person {
+type PersonOne implements Person @node {
   name: String
   someExtraProp: [Int!]!
 }
 
-type PersonTwo implements Person {
+type PersonTwo implements Person @node {
   name: String
 }
 
-type Movie {
+type Movie @node {
   id: ID
   actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN, nestedOperations: [DISCONNECT])
 }
@@ -5526,8 +4957,8 @@ schema {
 }
 
 type Movie {
-  actors(directed: Boolean = true, options: PersonOptions, where: PersonWhere): [Person!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
+  actors(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  actorsConnection(after: String, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
   id: ID
 }
 
@@ -5556,15 +4987,6 @@ type MovieActorsRelationship {
 type MovieEdge {
   cursor: String!
   node: Movie!
-}
-
-input MovieOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [MovieSort!]
 }
 
 """
@@ -5602,9 +5024,10 @@ input MovieWhere {
   actors_SINGLE: PersonWhere
   """Return Movies where some of the related People match this filter"""
   actors_SOME: PersonWhere
-  id: ID
+  id: ID @deprecated(reason: "Please use the explicit _EQ version")
   id_CONTAINS: ID
   id_ENDS_WITH: ID
+  id_EQ: ID
   id_IN: [ID]
   id_STARTS_WITH: ID
 }
@@ -5653,15 +5076,6 @@ type PersonOneEdge {
   node: PersonOne!
 }
 
-input PersonOneOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonOneSort objects to sort PersonOnes by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonOneSort!]
-}
-
 """
 Fields to sort PersonOnes by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonOneSort object.
 """
@@ -5673,12 +5087,14 @@ input PersonOneWhere {
   AND: [PersonOneWhere!]
   NOT: PersonOneWhere
   OR: [PersonOneWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
-  someExtraProp: [Int!]
+  someExtraProp: [Int!] @deprecated(reason: "Please use the explicit _EQ version")
+  someExtraProp_EQ: [Int!]
   someExtraProp_INCLUDES: Int
 }
 
@@ -5686,15 +5102,6 @@ type PersonOnesConnection {
   edges: [PersonOneEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
-}
-
-input PersonOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonSort objects to sort People by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonSort]
 }
 
 """
@@ -5713,15 +5120,6 @@ type PersonTwoEdge {
   node: PersonTwo!
 }
 
-input PersonTwoOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonTwoSort objects to sort PersonTwos by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonTwoSort!]
-}
-
 """
 Fields to sort PersonTwos by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonTwoSort object.
 """
@@ -5733,9 +5131,10 @@ input PersonTwoWhere {
   AND: [PersonTwoWhere!]
   NOT: PersonTwoWhere
   OR: [PersonTwoWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
 }
@@ -5750,23 +5149,24 @@ input PersonWhere {
   AND: [PersonWhere!]
   NOT: PersonWhere
   OR: [PersonWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
-  typename_IN: [PersonImplementation!]
+  typename: [PersonImplementation!]
 }
 
 type Query {
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
-  people(options: PersonOptions, where: PersonWhere): [Person!]!
-  peopleConnection(after: String, first: Int, sort: [PersonSort], where: PersonWhere): PeopleConnection!
-  personOnes(options: PersonOneOptions, where: PersonOneWhere): [PersonOne!]!
-  personOnesConnection(after: String, first: Int, sort: [PersonOneSort], where: PersonOneWhere): PersonOnesConnection!
-  personTwos(options: PersonTwoOptions, where: PersonTwoWhere): [PersonTwo!]!
-  personTwosConnection(after: String, first: Int, sort: [PersonTwoSort], where: PersonTwoWhere): PersonTwosConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+  people(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  peopleConnection(after: String, first: Int, sort: [PersonSort!], where: PersonWhere): PeopleConnection!
+  personOnes(limit: Int, offset: Int, sort: [PersonOneSort!], where: PersonOneWhere): [PersonOne!]!
+  personOnesConnection(after: String, first: Int, sort: [PersonOneSort!], where: PersonOneWhere): PersonOnesConnection!
+  personTwos(limit: Int, offset: Int, sort: [PersonTwoSort!], where: PersonTwoWhere): [PersonTwo!]!
+  personTwosConnection(after: String, first: Int, sort: [PersonTwoSort!], where: PersonTwoWhere): PersonTwosConnection!
 }
 
 """An enum for sorting in either ascending or descending order."""
@@ -5787,16 +5187,16 @@ interface Person {
   name: String
 }
 
-type PersonOne implements Person {
+type PersonOne implements Person @node {
   name: String
   someExtraProp: [Int!]!
 }
 
-type PersonTwo implements Person {
+type PersonTwo implements Person @node {
   name: String
 }
 
-type Movie {
+type Movie @node {
   id: ID
   actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN)
   producers: [Person!]! @relationship(type: "PRODUCED", direction: IN, nestedOperations: [DISCONNECT])
@@ -5811,11 +5211,11 @@ schema {
 }
 
 type Movie {
-  actors(directed: Boolean = true, options: PersonOptions, where: PersonWhere): [Person!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
+  actors(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  actorsConnection(after: String, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
   id: ID
-  producers(directed: Boolean = true, options: PersonOptions, where: PersonWhere): [Person!]!
-  producersConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieProducersConnectionSort!], where: MovieProducersConnectionWhere): MovieProducersConnection!
+  producers(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  producersConnection(after: String, first: Int, sort: [MovieProducersConnectionSort!], where: MovieProducersConnectionWhere): MovieProducersConnection!
 }
 
 type MovieActorsConnection {
@@ -5843,15 +5243,6 @@ type MovieActorsRelationship {
 type MovieEdge {
   cursor: String!
   node: Movie!
-}
-
-input MovieOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [MovieSort!]
 }
 
 type MovieProducersConnection {
@@ -5911,9 +5302,10 @@ input MovieWhere {
   actors_SINGLE: PersonWhere
   """Return Movies where some of the related People match this filter"""
   actors_SOME: PersonWhere
-  id: ID
+  id: ID @deprecated(reason: "Please use the explicit _EQ version")
   id_CONTAINS: ID
   id_ENDS_WITH: ID
+  id_EQ: ID
   id_IN: [ID]
   id_STARTS_WITH: ID
   """
@@ -5986,15 +5378,6 @@ type PersonOneEdge {
   node: PersonOne!
 }
 
-input PersonOneOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonOneSort objects to sort PersonOnes by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonOneSort!]
-}
-
 """
 Fields to sort PersonOnes by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonOneSort object.
 """
@@ -6006,12 +5389,14 @@ input PersonOneWhere {
   AND: [PersonOneWhere!]
   NOT: PersonOneWhere
   OR: [PersonOneWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
-  someExtraProp: [Int!]
+  someExtraProp: [Int!] @deprecated(reason: "Please use the explicit _EQ version")
+  someExtraProp_EQ: [Int!]
   someExtraProp_INCLUDES: Int
 }
 
@@ -6019,15 +5404,6 @@ type PersonOnesConnection {
   edges: [PersonOneEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
-}
-
-input PersonOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonSort objects to sort People by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonSort]
 }
 
 """
@@ -6046,15 +5422,6 @@ type PersonTwoEdge {
   node: PersonTwo!
 }
 
-input PersonTwoOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonTwoSort objects to sort PersonTwos by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonTwoSort!]
-}
-
 """
 Fields to sort PersonTwos by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonTwoSort object.
 """
@@ -6066,9 +5433,10 @@ input PersonTwoWhere {
   AND: [PersonTwoWhere!]
   NOT: PersonTwoWhere
   OR: [PersonTwoWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
 }
@@ -6083,23 +5451,24 @@ input PersonWhere {
   AND: [PersonWhere!]
   NOT: PersonWhere
   OR: [PersonWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
-  typename_IN: [PersonImplementation!]
+  typename: [PersonImplementation!]
 }
 
 type Query {
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
-  people(options: PersonOptions, where: PersonWhere): [Person!]!
-  peopleConnection(after: String, first: Int, sort: [PersonSort], where: PersonWhere): PeopleConnection!
-  personOnes(options: PersonOneOptions, where: PersonOneWhere): [PersonOne!]!
-  personOnesConnection(after: String, first: Int, sort: [PersonOneSort], where: PersonOneWhere): PersonOnesConnection!
-  personTwos(options: PersonTwoOptions, where: PersonTwoWhere): [PersonTwo!]!
-  personTwosConnection(after: String, first: Int, sort: [PersonTwoSort], where: PersonTwoWhere): PersonTwosConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+  people(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  peopleConnection(after: String, first: Int, sort: [PersonSort!], where: PersonWhere): PeopleConnection!
+  personOnes(limit: Int, offset: Int, sort: [PersonOneSort!], where: PersonOneWhere): [PersonOne!]!
+  personOnesConnection(after: String, first: Int, sort: [PersonOneSort!], where: PersonOneWhere): PersonOnesConnection!
+  personTwos(limit: Int, offset: Int, sort: [PersonTwoSort!], where: PersonTwoWhere): [PersonTwo!]!
+  personTwosConnection(after: String, first: Int, sort: [PersonTwoSort!], where: PersonTwoWhere): PersonTwosConnection!
 }
 
 """An enum for sorting in either ascending or descending order."""
@@ -6120,16 +5489,16 @@ interface Person {
   name: String
 }
 
-type PersonOne implements Person {
+type PersonOne implements Person @node {
   name: String
   someExtraProp: [Int!]!
 }
 
-type PersonTwo implements Person {
+type PersonTwo implements Person @node {
   name: String
 }
 
-type Movie {
+type Movie @node {
   id: ID
   actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN, nestedOperations: [CREATE, DELETE])
   producers: [Person!]! @relationship(type: "PRODUCED", direction: IN, nestedOperations: [DISCONNECT])
@@ -6144,11 +5513,11 @@ schema {
 }
 
 type Movie {
-  actors(directed: Boolean = true, options: PersonOptions, where: PersonWhere): [Person!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
+  actors(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  actorsConnection(after: String, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
   id: ID
-  producers(directed: Boolean = true, options: PersonOptions, where: PersonWhere): [Person!]!
-  producersConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieProducersConnectionSort!], where: MovieProducersConnectionWhere): MovieProducersConnection!
+  producers(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  producersConnection(after: String, first: Int, sort: [MovieProducersConnectionSort!], where: MovieProducersConnectionWhere): MovieProducersConnection!
 }
 
 type MovieActorsConnection {
@@ -6176,15 +5545,6 @@ type MovieActorsRelationship {
 type MovieEdge {
   cursor: String!
   node: Movie!
-}
-
-input MovieOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [MovieSort!]
 }
 
 type MovieProducersConnection {
@@ -6244,9 +5604,10 @@ input MovieWhere {
   actors_SINGLE: PersonWhere
   """Return Movies where some of the related People match this filter"""
   actors_SOME: PersonWhere
-  id: ID
+  id: ID @deprecated(reason: "Please use the explicit _EQ version")
   id_CONTAINS: ID
   id_ENDS_WITH: ID
+  id_EQ: ID
   id_IN: [ID]
   id_STARTS_WITH: ID
   """
@@ -6319,15 +5680,6 @@ type PersonOneEdge {
   node: PersonOne!
 }
 
-input PersonOneOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonOneSort objects to sort PersonOnes by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonOneSort!]
-}
-
 """
 Fields to sort PersonOnes by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonOneSort object.
 """
@@ -6339,12 +5691,14 @@ input PersonOneWhere {
   AND: [PersonOneWhere!]
   NOT: PersonOneWhere
   OR: [PersonOneWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
-  someExtraProp: [Int!]
+  someExtraProp: [Int!] @deprecated(reason: "Please use the explicit _EQ version")
+  someExtraProp_EQ: [Int!]
   someExtraProp_INCLUDES: Int
 }
 
@@ -6352,15 +5706,6 @@ type PersonOnesConnection {
   edges: [PersonOneEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
-}
-
-input PersonOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonSort objects to sort People by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonSort]
 }
 
 """
@@ -6379,15 +5724,6 @@ type PersonTwoEdge {
   node: PersonTwo!
 }
 
-input PersonTwoOptions {
-  limit: Int
-  offset: Int
-  """
-  Specify one or more PersonTwoSort objects to sort PersonTwos by. The sorts will be applied in the order in which they are arranged in the array.
-  """
-  sort: [PersonTwoSort!]
-}
-
 """
 Fields to sort PersonTwos by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonTwoSort object.
 """
@@ -6399,9 +5735,10 @@ input PersonTwoWhere {
   AND: [PersonTwoWhere!]
   NOT: PersonTwoWhere
   OR: [PersonTwoWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
 }
@@ -6416,23 +5753,24 @@ input PersonWhere {
   AND: [PersonWhere!]
   NOT: PersonWhere
   OR: [PersonWhere!]
-  name: String
+  name: String @deprecated(reason: "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String]
   name_STARTS_WITH: String
-  typename_IN: [PersonImplementation!]
+  typename: [PersonImplementation!]
 }
 
 type Query {
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
-  people(options: PersonOptions, where: PersonWhere): [Person!]!
-  peopleConnection(after: String, first: Int, sort: [PersonSort], where: PersonWhere): PeopleConnection!
-  personOnes(options: PersonOneOptions, where: PersonOneWhere): [PersonOne!]!
-  personOnesConnection(after: String, first: Int, sort: [PersonOneSort], where: PersonOneWhere): PersonOnesConnection!
-  personTwos(options: PersonTwoOptions, where: PersonTwoWhere): [PersonTwo!]!
-  personTwosConnection(after: String, first: Int, sort: [PersonTwoSort], where: PersonTwoWhere): PersonTwosConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+  people(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  peopleConnection(after: String, first: Int, sort: [PersonSort!], where: PersonWhere): PeopleConnection!
+  personOnes(limit: Int, offset: Int, sort: [PersonOneSort!], where: PersonOneWhere): [PersonOne!]!
+  personOnesConnection(after: String, first: Int, sort: [PersonOneSort!], where: PersonOneWhere): PersonOnesConnection!
+  personTwos(limit: Int, offset: Int, sort: [PersonTwoSort!], where: PersonTwoWhere): [PersonTwo!]!
+  personTwosConnection(after: String, first: Int, sort: [PersonTwoSort!], where: PersonTwoWhere): PersonTwosConnection!
 }
 
 """An enum for sorting in either ascending or descending order."""

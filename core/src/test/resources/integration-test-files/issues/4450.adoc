@@ -8,18 +8,18 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Actor {
+type Actor @node {
   name: String
   scene: [Scene!]! @relationship(type: "IN_SCENE", properties: "ActorScene", direction: OUT)
 }
 
-type Scene {
+type Scene @node {
   number: Int
   actors: [Actor!]! @relationship(type: "IN_SCENE", properties: "ActorScene", direction: IN)
   location: Location! @relationship(type: "AT_LOCATION", direction: OUT)
 }
 
-type Location {
+type Location @node {
   city: String
   scenes: [Scene!]! @relationship(type: "AT_LOCATION", direction: IN)
 }
@@ -42,7 +42,7 @@ CREATE (:Actor {name: "actor-1"})-[:IN_SCENE {cut: true}]->(:Scene {number: 1})-
 ----
 {
   actors(
-    where: {sceneConnection_SOME: {edge: {cut: true}, node: {location: {city: "test"}}}}
+    where: {sceneConnection_SOME: {edge: {cut_EQ: true}, node: {location: {city_EQ: "test"}}}}
   ) {
     name
   }
@@ -63,12 +63,12 @@ CREATE (:Actor {name: "actor-1"})-[:IN_SCENE {cut: true}]->(:Scene {number: 1})-
 ----
 MATCH (this:Actor)
 WHERE EXISTS {
-	MATCH (this)-[edge:IN_SCENE]->(this0:Scene)
+	MATCH (this)-[edge0:IN_SCENE]->(this0:Scene)
 	WHERE (EXISTS {
 			MATCH (this0)-[:AT_LOCATION]->(this00:Location)
 			WHERE this00.city = $param0
 		}
-		AND edge.cut = $param1)
+		AND edge0.cut = $param1)
 }
 RETURN this {
 	.name

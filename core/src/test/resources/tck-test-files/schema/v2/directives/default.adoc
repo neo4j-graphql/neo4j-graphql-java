@@ -13,7 +13,7 @@ interface UserInterface {
   toBeOverridden: String!
 }
 
-type User implements UserInterface {
+type User implements UserInterface @node {
   id: ID! @default(value: "00000000-00000000-00000000-00000000")
   name: String! @default(value: "Jane Smith")
   verified: Boolean! @default(value: false)
@@ -53,10 +53,10 @@ type PageInfo {
 }
 
 type Query {
-  userInterfaces(options: UserInterfaceOptions, where: UserInterfaceWhere): [UserInterface!]!
-  userInterfacesConnection(after: String, first: Int, sort: [UserInterfaceSort], where: UserInterfaceWhere): UserInterfacesConnection!
-  users(options: UserOptions, where: UserWhere): [User!]!
-  usersConnection(after: String, first: Int, sort: [UserSort], where: UserWhere): UsersConnection!
+  userInterfaces(limit: Int, offset: Int, sort: [UserInterfaceSort!], where: UserInterfaceWhere): [UserInterface!]!
+  userInterfacesConnection(after: String, first: Int, sort: [UserInterfaceSort!], where: UserInterfaceWhere): UserInterfacesConnection!
+  users(limit: Int, offset: Int, sort: [UserSort!], where: UserWhere): [User!]!
+  usersConnection(after: String, first: Int, sort: [UserSort!], where: UserWhere): UsersConnection!
 }
 
 type User implements UserInterface {
@@ -114,13 +114,6 @@ enum UserInterfaceImplementation {
 "A date and time, represented as an ISO-8601 string"
 scalar DateTime
 
-input UserInterfaceOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more UserInterfaceSort objects to sort UserInterfaces by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [UserInterfaceSort]
-}
-
 "Fields to sort UserInterfaces by. The order in which sorts are applied is not guaranteed when specifying many fields in one UserInterfaceSort object."
 input UserInterfaceSort {
   fromInterface: SortDirection
@@ -131,24 +124,19 @@ input UserInterfaceWhere {
   AND: [UserInterfaceWhere!]
   NOT: UserInterfaceWhere
   OR: [UserInterfaceWhere!]
-  fromInterface: String
+  fromInterface: String @deprecated(reason : "Please use the explicit _EQ version")
   fromInterface_CONTAINS: String
   fromInterface_ENDS_WITH: String
+  fromInterface_EQ: String
   fromInterface_IN: [String!]
   fromInterface_STARTS_WITH: String
-  toBeOverridden: String
+  toBeOverridden: String @deprecated(reason : "Please use the explicit _EQ version")
   toBeOverridden_CONTAINS: String
   toBeOverridden_ENDS_WITH: String
+  toBeOverridden_EQ: String
   toBeOverridden_IN: [String!]
   toBeOverridden_STARTS_WITH: String
-  typename_IN: [UserInterfaceImplementation!]
-}
-
-input UserOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more UserSort objects to sort Users by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [UserSort!]
+  typename: [UserInterfaceImplementation!]
 }
 
 "Fields to sort Users by. The order in which sorts are applied is not guaranteed when specifying many fields in one UserSort object."
@@ -168,47 +156,56 @@ input UserWhere {
   AND: [UserWhere!]
   NOT: UserWhere
   OR: [UserWhere!]
-  fromInterface: String
+  fromInterface: String @deprecated(reason : "Please use the explicit _EQ version")
   fromInterface_CONTAINS: String
   fromInterface_ENDS_WITH: String
+  fromInterface_EQ: String
   fromInterface_IN: [String!]
   fromInterface_STARTS_WITH: String
-  id: ID
+  id: ID @deprecated(reason : "Please use the explicit _EQ version")
   id_CONTAINS: ID
   id_ENDS_WITH: ID
+  id_EQ: ID
   id_IN: [ID!]
   id_STARTS_WITH: ID
-  location: Location
+  location: Location @deprecated(reason : "Please use the explicit _EQ version")
+  location_EQ: Location
   location_IN: [Location!]
-  name: String
+  name: String @deprecated(reason : "Please use the explicit _EQ version")
   name_CONTAINS: String
   name_ENDS_WITH: String
+  name_EQ: String
   name_IN: [String!]
   name_STARTS_WITH: String
-  numberOfFriends: Int
+  numberOfFriends: Int @deprecated(reason : "Please use the explicit _EQ version")
+  numberOfFriends_EQ: Int
   numberOfFriends_GT: Int
   numberOfFriends_GTE: Int
   numberOfFriends_IN: [Int!]
   numberOfFriends_LT: Int
   numberOfFriends_LTE: Int
-  rating: Float
+  rating: Float @deprecated(reason : "Please use the explicit _EQ version")
+  rating_EQ: Float
   rating_GT: Float
   rating_GTE: Float
   rating_IN: [Float!]
   rating_LT: Float
   rating_LTE: Float
-  toBeOverridden: String
+  toBeOverridden: String @deprecated(reason : "Please use the explicit _EQ version")
   toBeOverridden_CONTAINS: String
   toBeOverridden_ENDS_WITH: String
+  toBeOverridden_EQ: String
   toBeOverridden_IN: [String!]
   toBeOverridden_STARTS_WITH: String
-  verified: Boolean
-  verifiedDate: DateTime
+  verified: Boolean @deprecated(reason : "Please use the explicit _EQ version")
+  verifiedDate: DateTime @deprecated(reason : "Please use the explicit _EQ version")
+  verifiedDate_EQ: DateTime
   verifiedDate_GT: DateTime
   verifiedDate_GTE: DateTime
   verifiedDate_IN: [DateTime!]
   verifiedDate_LT: DateTime
   verifiedDate_LTE: DateTime
+  verified_EQ: Boolean
 }
 
 ----

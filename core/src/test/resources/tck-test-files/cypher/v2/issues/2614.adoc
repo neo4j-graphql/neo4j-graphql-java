@@ -19,7 +19,7 @@ type Movie implements Production @node(labels: ["Film"]) {
   runtime: Int!
 }
 
-type Series implements Production {
+type Series implements Production @node {
   title: String!
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN, properties: "ActedIn")
   episodes: Int!
@@ -29,7 +29,7 @@ type ActedIn @relationshipProperties {
   role: String!
 }
 
-type Actor {
+type Actor @node {
   name: String!
   actedIn: [Production!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
 }
@@ -42,7 +42,7 @@ type Actor {
 ----
 query GetProductionsMovie {
   actors {
-    actedIn(where: {title: "Test Movie"}) {
+    actedIn(where: {title_EQ: "Test Movie"}) {
       title
     }
   }

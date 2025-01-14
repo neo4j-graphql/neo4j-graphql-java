@@ -14,7 +14,6 @@ enum class RelationOperator(
     NONE("NONE", list = true, wrapInNotIfNeeded = { it.not() }),
     SINGLE("SINGLE", list = true),
     SOME("SOME", list = true),
-    NOT_EQUAL("NOT", list = false, wrapInNotIfNeeded = { it.not() }),
     EQUAL(null, list = false);
 
     fun createRelationCondition(

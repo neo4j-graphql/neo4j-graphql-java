@@ -39,6 +39,12 @@ internal abstract class BaseDataFetcher(protected val schemaConfig: SchemaConfig
         }
 
         val result = neo4jAdapter.executeQuery(query, params)
+        return mapResult(env, result)
+    }
+
+    protected abstract fun generateCypher(env: DataFetchingEnvironment): Statement
+
+    protected open fun mapResult(env: DataFetchingEnvironment, result: List<Map<String, Any?>>): Any {
         return if (env.fieldDefinition.type?.isList() == true) {
             result.map { it[RESULT_VARIABLE] }
         } else {
@@ -46,8 +52,6 @@ internal abstract class BaseDataFetcher(protected val schemaConfig: SchemaConfig
                 .firstOrNull() ?: emptyMap<String, Any>()
         }
     }
-
-    protected abstract fun generateCypher(env: DataFetchingEnvironment): Statement
 
     companion object {
         const val RESULT_VARIABLE = "this"

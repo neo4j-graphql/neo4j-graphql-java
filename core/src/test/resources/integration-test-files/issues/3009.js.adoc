@@ -9,7 +9,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type User {
+type User @node {
   joinedAt: Date!
 }
 ----
@@ -41,7 +41,7 @@ type User {
 .Schema
 [source,graphql,schema=true]
 ----
-type User {
+type User @node {
   joinedAt: DateTime!
 }
 ----

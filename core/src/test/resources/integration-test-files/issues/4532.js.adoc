@@ -11,12 +11,12 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Inventory {
+type Inventory @node {
   id: ID
   children: [Scenario!]! @relationship(type: "HasChildren", properties: "InventoryChildRelation", direction: OUT)
 }
 
-type Scenario {
+type Scenario @node {
   id: ID
 }
 
@@ -139,7 +139,7 @@ RETURN this { .id, childrenConnection: var3 } AS this
 .Schema
 [source,graphql,schema=true]
 ----
-type Inventory {
+type Inventory @node {
   id: ID
   children: [Scenario!]! @relationship(type: "HasChildren", properties: "InventoryChildRelation", direction: OUT)
 }
@@ -148,11 +148,11 @@ interface Scenario {
   id: ID
 }
 
-type Image implements Scenario {
+type Image implements Scenario @node {
   id: ID
 }
 
-type Video implements Scenario {
+type Video implements Scenario @node {
   id: ID
 }
 

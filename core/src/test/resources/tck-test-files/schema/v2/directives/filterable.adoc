@@ -10,7 +10,7 @@
 .Schema
 [source,graphql,schema=true]
 ----
-type Actor implements Person {
+type Actor implements Person @node {
   username: String!
   password: String!
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
@@ -20,7 +20,7 @@ interface Person {
   username: String!
 }
 
-type Movie {
+type Movie @node {
   title: String
   actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN) @filterable(byValue: false)
 }
@@ -38,8 +38,8 @@ interface Person {
 }
 
 type Actor implements Person {
-  movies(directed: Boolean = true, options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, directed: Boolean = true, first: Int, sort: [ActorMoviesConnectionSort!], where: ActorMoviesConnectionWhere): ActorMoviesConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [ActorMoviesConnectionSort!], where: ActorMoviesConnectionWhere): ActorMoviesConnection!
   password: String!
   username: String!
 }
@@ -67,8 +67,8 @@ type ActorsConnection {
 }
 
 type Movie {
-  actors(directed: Boolean = true, options: PersonOptions, where: PersonWhere): [Person!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
+  actors(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  actorsConnection(after: String, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
   title: String
 }
 
@@ -114,12 +114,12 @@ type PersonEdge {
 }
 
 type Query {
-  actors(options: ActorOptions, where: ActorWhere): [Actor!]!
-  actorsConnection(after: String, first: Int, sort: [ActorSort], where: ActorWhere): ActorsConnection!
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
-  people(options: PersonOptions, where: PersonWhere): [Person!]!
-  peopleConnection(after: String, first: Int, sort: [PersonSort], where: PersonWhere): PeopleConnection!
+  actors(limit: Int, offset: Int, sort: [ActorSort!], where: ActorWhere): [Actor!]!
+  actorsConnection(after: String, first: Int, sort: [ActorSort!], where: ActorWhere): ActorsConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+  people(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  peopleConnection(after: String, first: Int, sort: [PersonSort!], where: PersonWhere): PeopleConnection!
 }
 
 enum PersonImplementation {
@@ -143,13 +143,6 @@ input ActorMoviesConnectionWhere {
   NOT: ActorMoviesConnectionWhere
   OR: [ActorMoviesConnectionWhere!]
   node: MovieWhere
-}
-
-input ActorOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more ActorSort objects to sort Actors by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [ActorSort!]
 }
 
 "Fields to sort Actors by. The order in which sorts are applied is not guaranteed when specifying many fields in one ActorSort object."
@@ -178,14 +171,16 @@ input ActorWhere {
   movies_SINGLE: MovieWhere
   "Return Actors where some of the related Movies match this filter"
   movies_SOME: MovieWhere
-  password: String
+  password: String @deprecated(reason : "Please use the explicit _EQ version")
   password_CONTAINS: String
   password_ENDS_WITH: String
+  password_EQ: String
   password_IN: [String!]
   password_STARTS_WITH: String
-  username: String
+  username: String @deprecated(reason : "Please use the explicit _EQ version")
   username_CONTAINS: String
   username_ENDS_WITH: String
+  username_EQ: String
   username_IN: [String!]
   username_STARTS_WITH: String
 }
@@ -201,13 +196,6 @@ input MovieActorsConnectionWhere {
   node: PersonWhere
 }
 
-input MovieOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [MovieSort!]
-}
-
 "Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
 input MovieSort {
   title: SortDirection
@@ -217,18 +205,12 @@ input MovieWhere {
   AND: [MovieWhere!]
   NOT: MovieWhere
   OR: [MovieWhere!]
-  title: String
+  title: String @deprecated(reason : "Please use the explicit _EQ version")
   title_CONTAINS: String
   title_ENDS_WITH: String
+  title_EQ: String
   title_IN: [String]
   title_STARTS_WITH: String
-}
-
-input PersonOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more PersonSort objects to sort People by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [PersonSort]
 }
 
 "Fields to sort People by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonSort object."
@@ -240,12 +222,1117 @@ input PersonWhere {
   AND: [PersonWhere!]
   NOT: PersonWhere
   OR: [PersonWhere!]
-  typename_IN: [PersonImplementation!]
-  username: String
+  typename: [PersonImplementation!]
+  username: String @deprecated(reason : "Please use the explicit _EQ version")
   username_CONTAINS: String
   username_ENDS_WITH: String
+  username_EQ: String
   username_IN: [String!]
   username_STARTS_WITH: String
+}
+
+----
+
+=== default arguments should disable aggregation
+
+.Schema
+[source,graphql,schema=true]
+----
+type Actor implements Person @node {
+  username: String!
+  password: String!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+
+interface Person {
+  username: String!
+}
+
+type Movie @node {
+  title: String
+  actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN) @filterable
+}
+----
+
+.Augmented Schema
+[source,graphql,augmented=true]
+----
+schema {
+  query: Query
+}
+
+interface Person {
+  username: String!
+}
+
+type Actor implements Person {
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [ActorMoviesConnectionSort!], where: ActorMoviesConnectionWhere): ActorMoviesConnection!
+  password: String!
+  username: String!
+}
+
+type ActorEdge {
+  cursor: String!
+  node: Actor!
+}
+
+type ActorMoviesConnection {
+  edges: [ActorMoviesRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ActorMoviesRelationship {
+  cursor: String!
+  node: Movie!
+}
+
+type ActorsConnection {
+  edges: [ActorEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Movie {
+  actors(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  actorsConnection(after: String, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
+  title: String
+}
+
+type MovieActorsConnection {
+  edges: [MovieActorsRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type MovieActorsRelationship {
+  cursor: String!
+  node: Person!
+}
+
+type MovieEdge {
+  cursor: String!
+  node: Movie!
+}
+
+type MoviesConnection {
+  edges: [MovieEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type PeopleConnection {
+  edges: [PersonEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type PersonEdge {
+  cursor: String!
+  node: Person!
+}
+
+type Query {
+  actors(limit: Int, offset: Int, sort: [ActorSort!], where: ActorWhere): [Actor!]!
+  actorsConnection(after: String, first: Int, sort: [ActorSort!], where: ActorWhere): ActorsConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+  people(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  peopleConnection(after: String, first: Int, sort: [PersonSort!], where: PersonWhere): PeopleConnection!
+}
+
+enum PersonImplementation {
+  Actor
+}
+
+"An enum for sorting in either ascending or descending order."
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+input ActorMoviesConnectionSort {
+  node: MovieSort
+}
+
+input ActorMoviesConnectionWhere {
+  AND: [ActorMoviesConnectionWhere!]
+  NOT: ActorMoviesConnectionWhere
+  OR: [ActorMoviesConnectionWhere!]
+  node: MovieWhere
+}
+
+"Fields to sort Actors by. The order in which sorts are applied is not guaranteed when specifying many fields in one ActorSort object."
+input ActorSort {
+  password: SortDirection
+  username: SortDirection
+}
+
+input ActorWhere {
+  AND: [ActorWhere!]
+  NOT: ActorWhere
+  OR: [ActorWhere!]
+  "Return Actors where all of the related ActorMoviesConnections match this filter"
+  moviesConnection_ALL: ActorMoviesConnectionWhere
+  "Return Actors where none of the related ActorMoviesConnections match this filter"
+  moviesConnection_NONE: ActorMoviesConnectionWhere
+  "Return Actors where one of the related ActorMoviesConnections match this filter"
+  moviesConnection_SINGLE: ActorMoviesConnectionWhere
+  "Return Actors where some of the related ActorMoviesConnections match this filter"
+  moviesConnection_SOME: ActorMoviesConnectionWhere
+  "Return Actors where all of the related Movies match this filter"
+  movies_ALL: MovieWhere
+  "Return Actors where none of the related Movies match this filter"
+  movies_NONE: MovieWhere
+  "Return Actors where one of the related Movies match this filter"
+  movies_SINGLE: MovieWhere
+  "Return Actors where some of the related Movies match this filter"
+  movies_SOME: MovieWhere
+  password: String @deprecated(reason : "Please use the explicit _EQ version")
+  password_CONTAINS: String
+  password_ENDS_WITH: String
+  password_EQ: String
+  password_IN: [String!]
+  password_STARTS_WITH: String
+  username: String @deprecated(reason : "Please use the explicit _EQ version")
+  username_CONTAINS: String
+  username_ENDS_WITH: String
+  username_EQ: String
+  username_IN: [String!]
+  username_STARTS_WITH: String
+}
+
+input MovieActorsConnectionSort {
+  node: PersonSort
+}
+
+input MovieActorsConnectionWhere {
+  AND: [MovieActorsConnectionWhere!]
+  NOT: MovieActorsConnectionWhere
+  OR: [MovieActorsConnectionWhere!]
+  node: PersonWhere
+}
+
+"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+input MovieSort {
+  title: SortDirection
+}
+
+input MovieWhere {
+  AND: [MovieWhere!]
+  NOT: MovieWhere
+  OR: [MovieWhere!]
+  "Return Movies where all of the related MovieActorsConnections match this filter"
+  actorsConnection_ALL: MovieActorsConnectionWhere
+  "Return Movies where none of the related MovieActorsConnections match this filter"
+  actorsConnection_NONE: MovieActorsConnectionWhere
+  "Return Movies where one of the related MovieActorsConnections match this filter"
+  actorsConnection_SINGLE: MovieActorsConnectionWhere
+  "Return Movies where some of the related MovieActorsConnections match this filter"
+  actorsConnection_SOME: MovieActorsConnectionWhere
+  "Return Movies where all of the related People match this filter"
+  actors_ALL: PersonWhere
+  "Return Movies where none of the related People match this filter"
+  actors_NONE: PersonWhere
+  "Return Movies where one of the related People match this filter"
+  actors_SINGLE: PersonWhere
+  "Return Movies where some of the related People match this filter"
+  actors_SOME: PersonWhere
+  title: String @deprecated(reason : "Please use the explicit _EQ version")
+  title_CONTAINS: String
+  title_ENDS_WITH: String
+  title_EQ: String
+  title_IN: [String]
+  title_STARTS_WITH: String
+}
+
+"Fields to sort People by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonSort object."
+input PersonSort {
+  username: SortDirection
+}
+
+input PersonWhere {
+  AND: [PersonWhere!]
+  NOT: PersonWhere
+  OR: [PersonWhere!]
+  typename: [PersonImplementation!]
+  username: String @deprecated(reason : "Please use the explicit _EQ version")
+  username_CONTAINS: String
+  username_ENDS_WITH: String
+  username_EQ: String
+  username_IN: [String!]
+  username_STARTS_WITH: String
+}
+
+----
+
+=== enable only value filters
+
+.Schema
+[source,graphql,schema=true]
+----
+type Actor implements Person @node {
+  username: String!
+  password: String!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+
+interface Person {
+  username: String!
+}
+
+type Movie @node {
+  title: String
+  actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN) @filterable(byValue: true)
+}
+----
+
+.Augmented Schema
+[source,graphql,augmented=true]
+----
+schema {
+  query: Query
+}
+
+interface Person {
+  username: String!
+}
+
+type Actor implements Person {
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [ActorMoviesConnectionSort!], where: ActorMoviesConnectionWhere): ActorMoviesConnection!
+  password: String!
+  username: String!
+}
+
+type ActorEdge {
+  cursor: String!
+  node: Actor!
+}
+
+type ActorMoviesConnection {
+  edges: [ActorMoviesRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ActorMoviesRelationship {
+  cursor: String!
+  node: Movie!
+}
+
+type ActorsConnection {
+  edges: [ActorEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Movie {
+  actors(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  actorsConnection(after: String, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
+  title: String
+}
+
+type MovieActorsConnection {
+  edges: [MovieActorsRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type MovieActorsRelationship {
+  cursor: String!
+  node: Person!
+}
+
+type MovieEdge {
+  cursor: String!
+  node: Movie!
+}
+
+type MoviesConnection {
+  edges: [MovieEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type PeopleConnection {
+  edges: [PersonEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type PersonEdge {
+  cursor: String!
+  node: Person!
+}
+
+type Query {
+  actors(limit: Int, offset: Int, sort: [ActorSort!], where: ActorWhere): [Actor!]!
+  actorsConnection(after: String, first: Int, sort: [ActorSort!], where: ActorWhere): ActorsConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+  people(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  peopleConnection(after: String, first: Int, sort: [PersonSort!], where: PersonWhere): PeopleConnection!
+}
+
+enum PersonImplementation {
+  Actor
+}
+
+"An enum for sorting in either ascending or descending order."
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+input ActorMoviesConnectionSort {
+  node: MovieSort
+}
+
+input ActorMoviesConnectionWhere {
+  AND: [ActorMoviesConnectionWhere!]
+  NOT: ActorMoviesConnectionWhere
+  OR: [ActorMoviesConnectionWhere!]
+  node: MovieWhere
+}
+
+"Fields to sort Actors by. The order in which sorts are applied is not guaranteed when specifying many fields in one ActorSort object."
+input ActorSort {
+  password: SortDirection
+  username: SortDirection
+}
+
+input ActorWhere {
+  AND: [ActorWhere!]
+  NOT: ActorWhere
+  OR: [ActorWhere!]
+  "Return Actors where all of the related ActorMoviesConnections match this filter"
+  moviesConnection_ALL: ActorMoviesConnectionWhere
+  "Return Actors where none of the related ActorMoviesConnections match this filter"
+  moviesConnection_NONE: ActorMoviesConnectionWhere
+  "Return Actors where one of the related ActorMoviesConnections match this filter"
+  moviesConnection_SINGLE: ActorMoviesConnectionWhere
+  "Return Actors where some of the related ActorMoviesConnections match this filter"
+  moviesConnection_SOME: ActorMoviesConnectionWhere
+  "Return Actors where all of the related Movies match this filter"
+  movies_ALL: MovieWhere
+  "Return Actors where none of the related Movies match this filter"
+  movies_NONE: MovieWhere
+  "Return Actors where one of the related Movies match this filter"
+  movies_SINGLE: MovieWhere
+  "Return Actors where some of the related Movies match this filter"
+  movies_SOME: MovieWhere
+  password: String @deprecated(reason : "Please use the explicit _EQ version")
+  password_CONTAINS: String
+  password_ENDS_WITH: String
+  password_EQ: String
+  password_IN: [String!]
+  password_STARTS_WITH: String
+  username: String @deprecated(reason : "Please use the explicit _EQ version")
+  username_CONTAINS: String
+  username_ENDS_WITH: String
+  username_EQ: String
+  username_IN: [String!]
+  username_STARTS_WITH: String
+}
+
+input MovieActorsConnectionSort {
+  node: PersonSort
+}
+
+input MovieActorsConnectionWhere {
+  AND: [MovieActorsConnectionWhere!]
+  NOT: MovieActorsConnectionWhere
+  OR: [MovieActorsConnectionWhere!]
+  node: PersonWhere
+}
+
+"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+input MovieSort {
+  title: SortDirection
+}
+
+input MovieWhere {
+  AND: [MovieWhere!]
+  NOT: MovieWhere
+  OR: [MovieWhere!]
+  "Return Movies where all of the related MovieActorsConnections match this filter"
+  actorsConnection_ALL: MovieActorsConnectionWhere
+  "Return Movies where none of the related MovieActorsConnections match this filter"
+  actorsConnection_NONE: MovieActorsConnectionWhere
+  "Return Movies where one of the related MovieActorsConnections match this filter"
+  actorsConnection_SINGLE: MovieActorsConnectionWhere
+  "Return Movies where some of the related MovieActorsConnections match this filter"
+  actorsConnection_SOME: MovieActorsConnectionWhere
+  "Return Movies where all of the related People match this filter"
+  actors_ALL: PersonWhere
+  "Return Movies where none of the related People match this filter"
+  actors_NONE: PersonWhere
+  "Return Movies where one of the related People match this filter"
+  actors_SINGLE: PersonWhere
+  "Return Movies where some of the related People match this filter"
+  actors_SOME: PersonWhere
+  title: String @deprecated(reason : "Please use the explicit _EQ version")
+  title_CONTAINS: String
+  title_ENDS_WITH: String
+  title_EQ: String
+  title_IN: [String]
+  title_STARTS_WITH: String
+}
+
+"Fields to sort People by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonSort object."
+input PersonSort {
+  username: SortDirection
+}
+
+input PersonWhere {
+  AND: [PersonWhere!]
+  NOT: PersonWhere
+  OR: [PersonWhere!]
+  typename: [PersonImplementation!]
+  username: String @deprecated(reason : "Please use the explicit _EQ version")
+  username_CONTAINS: String
+  username_ENDS_WITH: String
+  username_EQ: String
+  username_IN: [String!]
+  username_STARTS_WITH: String
+}
+
+----
+
+== on UNION RELATIONSHIP FIELD, (aggregation are no generated for abstract types)
+
+=== default arguments should disable aggregation
+
+.Schema
+[source,graphql,schema=true]
+----
+type Actor @node {
+  username: String!
+  password: String!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+
+type Appearance @node {
+  username: String!
+  password: String!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+
+union Person = Actor | Appearance
+
+type Movie @node {
+  title: String
+  actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN) @filterable
+}
+----
+
+.Augmented Schema
+[source,graphql,augmented=true]
+----
+schema {
+  query: Query
+}
+
+union Person = Actor | Appearance
+
+type Actor {
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [ActorMoviesConnectionSort!], where: ActorMoviesConnectionWhere): ActorMoviesConnection!
+  password: String!
+  username: String!
+}
+
+type ActorEdge {
+  cursor: String!
+  node: Actor!
+}
+
+type ActorMoviesConnection {
+  edges: [ActorMoviesRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ActorMoviesRelationship {
+  cursor: String!
+  node: Movie!
+}
+
+type ActorsConnection {
+  edges: [ActorEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Appearance {
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [AppearanceMoviesConnectionSort!], where: AppearanceMoviesConnectionWhere): AppearanceMoviesConnection!
+  password: String!
+  username: String!
+}
+
+type AppearanceEdge {
+  cursor: String!
+  node: Appearance!
+}
+
+type AppearanceMoviesConnection {
+  edges: [AppearanceMoviesRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type AppearanceMoviesRelationship {
+  cursor: String!
+  node: Movie!
+}
+
+type AppearancesConnection {
+  edges: [AppearanceEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Movie {
+  actors(limit: Int, offset: Int, where: PersonWhere): [Person!]!
+  actorsConnection(after: String, first: Int, where: MovieActorsConnectionWhere): MovieActorsConnection!
+  title: String
+}
+
+type MovieActorsConnection {
+  edges: [MovieActorsRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type MovieActorsRelationship {
+  cursor: String!
+  node: Person!
+}
+
+type MovieEdge {
+  cursor: String!
+  node: Movie!
+}
+
+type MoviesConnection {
+  edges: [MovieEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  actors(limit: Int, offset: Int, sort: [ActorSort!], where: ActorWhere): [Actor!]!
+  actorsConnection(after: String, first: Int, sort: [ActorSort!], where: ActorWhere): ActorsConnection!
+  appearances(limit: Int, offset: Int, sort: [AppearanceSort!], where: AppearanceWhere): [Appearance!]!
+  appearancesConnection(after: String, first: Int, sort: [AppearanceSort!], where: AppearanceWhere): AppearancesConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+  people(limit: Int, offset: Int, where: PersonWhere): [Person!]!
+}
+
+"An enum for sorting in either ascending or descending order."
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+input ActorMoviesConnectionSort {
+  node: MovieSort
+}
+
+input ActorMoviesConnectionWhere {
+  AND: [ActorMoviesConnectionWhere!]
+  NOT: ActorMoviesConnectionWhere
+  OR: [ActorMoviesConnectionWhere!]
+  node: MovieWhere
+}
+
+"Fields to sort Actors by. The order in which sorts are applied is not guaranteed when specifying many fields in one ActorSort object."
+input ActorSort {
+  password: SortDirection
+  username: SortDirection
+}
+
+input ActorWhere {
+  AND: [ActorWhere!]
+  NOT: ActorWhere
+  OR: [ActorWhere!]
+  "Return Actors where all of the related ActorMoviesConnections match this filter"
+  moviesConnection_ALL: ActorMoviesConnectionWhere
+  "Return Actors where none of the related ActorMoviesConnections match this filter"
+  moviesConnection_NONE: ActorMoviesConnectionWhere
+  "Return Actors where one of the related ActorMoviesConnections match this filter"
+  moviesConnection_SINGLE: ActorMoviesConnectionWhere
+  "Return Actors where some of the related ActorMoviesConnections match this filter"
+  moviesConnection_SOME: ActorMoviesConnectionWhere
+  "Return Actors where all of the related Movies match this filter"
+  movies_ALL: MovieWhere
+  "Return Actors where none of the related Movies match this filter"
+  movies_NONE: MovieWhere
+  "Return Actors where one of the related Movies match this filter"
+  movies_SINGLE: MovieWhere
+  "Return Actors where some of the related Movies match this filter"
+  movies_SOME: MovieWhere
+  password: String @deprecated(reason : "Please use the explicit _EQ version")
+  password_CONTAINS: String
+  password_ENDS_WITH: String
+  password_EQ: String
+  password_IN: [String!]
+  password_STARTS_WITH: String
+  username: String @deprecated(reason : "Please use the explicit _EQ version")
+  username_CONTAINS: String
+  username_ENDS_WITH: String
+  username_EQ: String
+  username_IN: [String!]
+  username_STARTS_WITH: String
+}
+
+input AppearanceMoviesConnectionSort {
+  node: MovieSort
+}
+
+input AppearanceMoviesConnectionWhere {
+  AND: [AppearanceMoviesConnectionWhere!]
+  NOT: AppearanceMoviesConnectionWhere
+  OR: [AppearanceMoviesConnectionWhere!]
+  node: MovieWhere
+}
+
+"Fields to sort Appearances by. The order in which sorts are applied is not guaranteed when specifying many fields in one AppearanceSort object."
+input AppearanceSort {
+  password: SortDirection
+  username: SortDirection
+}
+
+input AppearanceWhere {
+  AND: [AppearanceWhere!]
+  NOT: AppearanceWhere
+  OR: [AppearanceWhere!]
+  "Return Appearances where all of the related AppearanceMoviesConnections match this filter"
+  moviesConnection_ALL: AppearanceMoviesConnectionWhere
+  "Return Appearances where none of the related AppearanceMoviesConnections match this filter"
+  moviesConnection_NONE: AppearanceMoviesConnectionWhere
+  "Return Appearances where one of the related AppearanceMoviesConnections match this filter"
+  moviesConnection_SINGLE: AppearanceMoviesConnectionWhere
+  "Return Appearances where some of the related AppearanceMoviesConnections match this filter"
+  moviesConnection_SOME: AppearanceMoviesConnectionWhere
+  "Return Appearances where all of the related Movies match this filter"
+  movies_ALL: MovieWhere
+  "Return Appearances where none of the related Movies match this filter"
+  movies_NONE: MovieWhere
+  "Return Appearances where one of the related Movies match this filter"
+  movies_SINGLE: MovieWhere
+  "Return Appearances where some of the related Movies match this filter"
+  movies_SOME: MovieWhere
+  password: String @deprecated(reason : "Please use the explicit _EQ version")
+  password_CONTAINS: String
+  password_ENDS_WITH: String
+  password_EQ: String
+  password_IN: [String!]
+  password_STARTS_WITH: String
+  username: String @deprecated(reason : "Please use the explicit _EQ version")
+  username_CONTAINS: String
+  username_ENDS_WITH: String
+  username_EQ: String
+  username_IN: [String!]
+  username_STARTS_WITH: String
+}
+
+input MovieActorsActorConnectionWhere {
+  AND: [MovieActorsActorConnectionWhere!]
+  NOT: MovieActorsActorConnectionWhere
+  OR: [MovieActorsActorConnectionWhere!]
+  node: ActorWhere
+}
+
+input MovieActorsAppearanceConnectionWhere {
+  AND: [MovieActorsAppearanceConnectionWhere!]
+  NOT: MovieActorsAppearanceConnectionWhere
+  OR: [MovieActorsAppearanceConnectionWhere!]
+  node: AppearanceWhere
+}
+
+input MovieActorsConnectionWhere {
+  Actor: MovieActorsActorConnectionWhere
+  Appearance: MovieActorsAppearanceConnectionWhere
+}
+
+"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+input MovieSort {
+  title: SortDirection
+}
+
+input MovieWhere {
+  AND: [MovieWhere!]
+  NOT: MovieWhere
+  OR: [MovieWhere!]
+  "Return Movies where all of the related MovieActorsConnections match this filter"
+  actorsConnection_ALL: MovieActorsConnectionWhere
+  "Return Movies where none of the related MovieActorsConnections match this filter"
+  actorsConnection_NONE: MovieActorsConnectionWhere
+  "Return Movies where one of the related MovieActorsConnections match this filter"
+  actorsConnection_SINGLE: MovieActorsConnectionWhere
+  "Return Movies where some of the related MovieActorsConnections match this filter"
+  actorsConnection_SOME: MovieActorsConnectionWhere
+  "Return Movies where all of the related People match this filter"
+  actors_ALL: PersonWhere
+  "Return Movies where none of the related People match this filter"
+  actors_NONE: PersonWhere
+  "Return Movies where one of the related People match this filter"
+  actors_SINGLE: PersonWhere
+  "Return Movies where some of the related People match this filter"
+  actors_SOME: PersonWhere
+  title: String @deprecated(reason : "Please use the explicit _EQ version")
+  title_CONTAINS: String
+  title_ENDS_WITH: String
+  title_EQ: String
+  title_IN: [String]
+  title_STARTS_WITH: String
+}
+
+input PersonWhere {
+  Actor: ActorWhere
+  Appearance: AppearanceWhere
+}
+
+----
+
+=== enable only value filters
+
+.Schema
+[source,graphql,schema=true]
+----
+type Actor @node {
+  username: String!
+  password: String!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+
+type Appearance @node {
+  username: String!
+  password: String!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+
+union Person = Actor | Appearance
+
+type Movie @node {
+  title: String
+  actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN) @filterable(byValue: true)
+}
+----
+
+.Augmented Schema
+[source,graphql,augmented=true]
+----
+schema {
+  query: Query
+}
+
+union Person = Actor | Appearance
+
+type Actor {
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [ActorMoviesConnectionSort!], where: ActorMoviesConnectionWhere): ActorMoviesConnection!
+  password: String!
+  username: String!
+}
+
+type ActorEdge {
+  cursor: String!
+  node: Actor!
+}
+
+type ActorMoviesConnection {
+  edges: [ActorMoviesRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ActorMoviesRelationship {
+  cursor: String!
+  node: Movie!
+}
+
+type ActorsConnection {
+  edges: [ActorEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Appearance {
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [AppearanceMoviesConnectionSort!], where: AppearanceMoviesConnectionWhere): AppearanceMoviesConnection!
+  password: String!
+  username: String!
+}
+
+type AppearanceEdge {
+  cursor: String!
+  node: Appearance!
+}
+
+type AppearanceMoviesConnection {
+  edges: [AppearanceMoviesRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type AppearanceMoviesRelationship {
+  cursor: String!
+  node: Movie!
+}
+
+type AppearancesConnection {
+  edges: [AppearanceEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Movie {
+  actors(limit: Int, offset: Int, where: PersonWhere): [Person!]!
+  actorsConnection(after: String, first: Int, where: MovieActorsConnectionWhere): MovieActorsConnection!
+  title: String
+}
+
+type MovieActorsConnection {
+  edges: [MovieActorsRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type MovieActorsRelationship {
+  cursor: String!
+  node: Person!
+}
+
+type MovieEdge {
+  cursor: String!
+  node: Movie!
+}
+
+type MoviesConnection {
+  edges: [MovieEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  actors(limit: Int, offset: Int, sort: [ActorSort!], where: ActorWhere): [Actor!]!
+  actorsConnection(after: String, first: Int, sort: [ActorSort!], where: ActorWhere): ActorsConnection!
+  appearances(limit: Int, offset: Int, sort: [AppearanceSort!], where: AppearanceWhere): [Appearance!]!
+  appearancesConnection(after: String, first: Int, sort: [AppearanceSort!], where: AppearanceWhere): AppearancesConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+  people(limit: Int, offset: Int, where: PersonWhere): [Person!]!
+}
+
+"An enum for sorting in either ascending or descending order."
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+input ActorMoviesConnectionSort {
+  node: MovieSort
+}
+
+input ActorMoviesConnectionWhere {
+  AND: [ActorMoviesConnectionWhere!]
+  NOT: ActorMoviesConnectionWhere
+  OR: [ActorMoviesConnectionWhere!]
+  node: MovieWhere
+}
+
+"Fields to sort Actors by. The order in which sorts are applied is not guaranteed when specifying many fields in one ActorSort object."
+input ActorSort {
+  password: SortDirection
+  username: SortDirection
+}
+
+input ActorWhere {
+  AND: [ActorWhere!]
+  NOT: ActorWhere
+  OR: [ActorWhere!]
+  "Return Actors where all of the related ActorMoviesConnections match this filter"
+  moviesConnection_ALL: ActorMoviesConnectionWhere
+  "Return Actors where none of the related ActorMoviesConnections match this filter"
+  moviesConnection_NONE: ActorMoviesConnectionWhere
+  "Return Actors where one of the related ActorMoviesConnections match this filter"
+  moviesConnection_SINGLE: ActorMoviesConnectionWhere
+  "Return Actors where some of the related ActorMoviesConnections match this filter"
+  moviesConnection_SOME: ActorMoviesConnectionWhere
+  "Return Actors where all of the related Movies match this filter"
+  movies_ALL: MovieWhere
+  "Return Actors where none of the related Movies match this filter"
+  movies_NONE: MovieWhere
+  "Return Actors where one of the related Movies match this filter"
+  movies_SINGLE: MovieWhere
+  "Return Actors where some of the related Movies match this filter"
+  movies_SOME: MovieWhere
+  password: String @deprecated(reason : "Please use the explicit _EQ version")
+  password_CONTAINS: String
+  password_ENDS_WITH: String
+  password_EQ: String
+  password_IN: [String!]
+  password_STARTS_WITH: String
+  username: String @deprecated(reason : "Please use the explicit _EQ version")
+  username_CONTAINS: String
+  username_ENDS_WITH: String
+  username_EQ: String
+  username_IN: [String!]
+  username_STARTS_WITH: String
+}
+
+input AppearanceMoviesConnectionSort {
+  node: MovieSort
+}
+
+input AppearanceMoviesConnectionWhere {
+  AND: [AppearanceMoviesConnectionWhere!]
+  NOT: AppearanceMoviesConnectionWhere
+  OR: [AppearanceMoviesConnectionWhere!]
+  node: MovieWhere
+}
+
+"Fields to sort Appearances by. The order in which sorts are applied is not guaranteed when specifying many fields in one AppearanceSort object."
+input AppearanceSort {
+  password: SortDirection
+  username: SortDirection
+}
+
+input AppearanceWhere {
+  AND: [AppearanceWhere!]
+  NOT: AppearanceWhere
+  OR: [AppearanceWhere!]
+  "Return Appearances where all of the related AppearanceMoviesConnections match this filter"
+  moviesConnection_ALL: AppearanceMoviesConnectionWhere
+  "Return Appearances where none of the related AppearanceMoviesConnections match this filter"
+  moviesConnection_NONE: AppearanceMoviesConnectionWhere
+  "Return Appearances where one of the related AppearanceMoviesConnections match this filter"
+  moviesConnection_SINGLE: AppearanceMoviesConnectionWhere
+  "Return Appearances where some of the related AppearanceMoviesConnections match this filter"
+  moviesConnection_SOME: AppearanceMoviesConnectionWhere
+  "Return Appearances where all of the related Movies match this filter"
+  movies_ALL: MovieWhere
+  "Return Appearances where none of the related Movies match this filter"
+  movies_NONE: MovieWhere
+  "Return Appearances where one of the related Movies match this filter"
+  movies_SINGLE: MovieWhere
+  "Return Appearances where some of the related Movies match this filter"
+  movies_SOME: MovieWhere
+  password: String @deprecated(reason : "Please use the explicit _EQ version")
+  password_CONTAINS: String
+  password_ENDS_WITH: String
+  password_EQ: String
+  password_IN: [String!]
+  password_STARTS_WITH: String
+  username: String @deprecated(reason : "Please use the explicit _EQ version")
+  username_CONTAINS: String
+  username_ENDS_WITH: String
+  username_EQ: String
+  username_IN: [String!]
+  username_STARTS_WITH: String
+}
+
+input MovieActorsActorConnectionWhere {
+  AND: [MovieActorsActorConnectionWhere!]
+  NOT: MovieActorsActorConnectionWhere
+  OR: [MovieActorsActorConnectionWhere!]
+  node: ActorWhere
+}
+
+input MovieActorsAppearanceConnectionWhere {
+  AND: [MovieActorsAppearanceConnectionWhere!]
+  NOT: MovieActorsAppearanceConnectionWhere
+  OR: [MovieActorsAppearanceConnectionWhere!]
+  node: AppearanceWhere
+}
+
+input MovieActorsConnectionWhere {
+  Actor: MovieActorsActorConnectionWhere
+  Appearance: MovieActorsAppearanceConnectionWhere
+}
+
+"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+input MovieSort {
+  title: SortDirection
+}
+
+input MovieWhere {
+  AND: [MovieWhere!]
+  NOT: MovieWhere
+  OR: [MovieWhere!]
+  "Return Movies where all of the related MovieActorsConnections match this filter"
+  actorsConnection_ALL: MovieActorsConnectionWhere
+  "Return Movies where none of the related MovieActorsConnections match this filter"
+  actorsConnection_NONE: MovieActorsConnectionWhere
+  "Return Movies where one of the related MovieActorsConnections match this filter"
+  actorsConnection_SINGLE: MovieActorsConnectionWhere
+  "Return Movies where some of the related MovieActorsConnections match this filter"
+  actorsConnection_SOME: MovieActorsConnectionWhere
+  "Return Movies where all of the related People match this filter"
+  actors_ALL: PersonWhere
+  "Return Movies where none of the related People match this filter"
+  actors_NONE: PersonWhere
+  "Return Movies where one of the related People match this filter"
+  actors_SINGLE: PersonWhere
+  "Return Movies where some of the related People match this filter"
+  actors_SOME: PersonWhere
+  title: String @deprecated(reason : "Please use the explicit _EQ version")
+  title_CONTAINS: String
+  title_ENDS_WITH: String
+  title_EQ: String
+  title_IN: [String]
+  title_STARTS_WITH: String
+}
+
+input PersonWhere {
+  Actor: ActorWhere
+  Appearance: AppearanceWhere
 }
 
 ----
@@ -259,13 +1346,13 @@ input PersonWhere {
 .Schema
 [source,graphql,schema=true]
 ----
-type Actor {
+type Actor @node {
   username: String!
   password: String!
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
 }
 
-type Movie {
+type Movie @node {
   title: String @filterable
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN)
 }
@@ -279,8 +1366,8 @@ schema {
 }
 
 type Actor {
-  movies(directed: Boolean = true, options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, directed: Boolean = true, first: Int, sort: [ActorMoviesConnectionSort!], where: ActorMoviesConnectionWhere): ActorMoviesConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [ActorMoviesConnectionSort!], where: ActorMoviesConnectionWhere): ActorMoviesConnection!
   password: String!
   username: String!
 }
@@ -308,8 +1395,8 @@ type ActorsConnection {
 }
 
 type Movie {
-  actors(directed: Boolean = true, options: ActorOptions, where: ActorWhere): [Actor!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
+  actors(limit: Int, offset: Int, sort: [ActorSort!], where: ActorWhere): [Actor!]!
+  actorsConnection(after: String, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
   title: String
 }
 
@@ -344,10 +1431,10 @@ type PageInfo {
 }
 
 type Query {
-  actors(options: ActorOptions, where: ActorWhere): [Actor!]!
-  actorsConnection(after: String, first: Int, sort: [ActorSort], where: ActorWhere): ActorsConnection!
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
+  actors(limit: Int, offset: Int, sort: [ActorSort!], where: ActorWhere): [Actor!]!
+  actorsConnection(after: String, first: Int, sort: [ActorSort!], where: ActorWhere): ActorsConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
 }
 
 "An enum for sorting in either ascending or descending order."
@@ -367,13 +1454,6 @@ input ActorMoviesConnectionWhere {
   NOT: ActorMoviesConnectionWhere
   OR: [ActorMoviesConnectionWhere!]
   node: MovieWhere
-}
-
-input ActorOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more ActorSort objects to sort Actors by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [ActorSort!]
 }
 
 "Fields to sort Actors by. The order in which sorts are applied is not guaranteed when specifying many fields in one ActorSort object."
@@ -402,14 +1482,16 @@ input ActorWhere {
   movies_SINGLE: MovieWhere
   "Return Actors where some of the related Movies match this filter"
   movies_SOME: MovieWhere
-  password: String
+  password: String @deprecated(reason : "Please use the explicit _EQ version")
   password_CONTAINS: String
   password_ENDS_WITH: String
+  password_EQ: String
   password_IN: [String!]
   password_STARTS_WITH: String
-  username: String
+  username: String @deprecated(reason : "Please use the explicit _EQ version")
   username_CONTAINS: String
   username_ENDS_WITH: String
+  username_EQ: String
   username_IN: [String!]
   username_STARTS_WITH: String
 }
@@ -423,13 +1505,6 @@ input MovieActorsConnectionWhere {
   NOT: MovieActorsConnectionWhere
   OR: [MovieActorsConnectionWhere!]
   node: ActorWhere
-}
-
-input MovieOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [MovieSort!]
 }
 
 "Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
@@ -457,9 +1532,10 @@ input MovieWhere {
   actors_SINGLE: ActorWhere
   "Return Movies where some of the related Actors match this filter"
   actors_SOME: ActorWhere
-  title: String
+  title: String @deprecated(reason : "Please use the explicit _EQ version")
   title_CONTAINS: String
   title_ENDS_WITH: String
+  title_EQ: String
   title_IN: [String]
   title_STARTS_WITH: String
 }
@@ -473,13 +1549,13 @@ input MovieWhere {
 .Schema
 [source,graphql,schema=true]
 ----
-type Actor {
+type Actor @node {
   username: String!
   password: String!
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
 }
 
-type Movie {
+type Movie @node {
   title: String
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN) @filterable
 }
@@ -493,8 +1569,8 @@ schema {
 }
 
 type Actor {
-  movies(directed: Boolean = true, options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, directed: Boolean = true, first: Int, sort: [ActorMoviesConnectionSort!], where: ActorMoviesConnectionWhere): ActorMoviesConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [ActorMoviesConnectionSort!], where: ActorMoviesConnectionWhere): ActorMoviesConnection!
   password: String!
   username: String!
 }
@@ -522,8 +1598,8 @@ type ActorsConnection {
 }
 
 type Movie {
-  actors(directed: Boolean = true, options: ActorOptions, where: ActorWhere): [Actor!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
+  actors(limit: Int, offset: Int, sort: [ActorSort!], where: ActorWhere): [Actor!]!
+  actorsConnection(after: String, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
   title: String
 }
 
@@ -558,10 +1634,10 @@ type PageInfo {
 }
 
 type Query {
-  actors(options: ActorOptions, where: ActorWhere): [Actor!]!
-  actorsConnection(after: String, first: Int, sort: [ActorSort], where: ActorWhere): ActorsConnection!
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
+  actors(limit: Int, offset: Int, sort: [ActorSort!], where: ActorWhere): [Actor!]!
+  actorsConnection(after: String, first: Int, sort: [ActorSort!], where: ActorWhere): ActorsConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
 }
 
 "An enum for sorting in either ascending or descending order."
@@ -581,13 +1657,6 @@ input ActorMoviesConnectionWhere {
   NOT: ActorMoviesConnectionWhere
   OR: [ActorMoviesConnectionWhere!]
   node: MovieWhere
-}
-
-input ActorOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more ActorSort objects to sort Actors by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [ActorSort!]
 }
 
 "Fields to sort Actors by. The order in which sorts are applied is not guaranteed when specifying many fields in one ActorSort object."
@@ -616,14 +1685,16 @@ input ActorWhere {
   movies_SINGLE: MovieWhere
   "Return Actors where some of the related Movies match this filter"
   movies_SOME: MovieWhere
-  password: String
+  password: String @deprecated(reason : "Please use the explicit _EQ version")
   password_CONTAINS: String
   password_ENDS_WITH: String
+  password_EQ: String
   password_IN: [String!]
   password_STARTS_WITH: String
-  username: String
+  username: String @deprecated(reason : "Please use the explicit _EQ version")
   username_CONTAINS: String
   username_ENDS_WITH: String
+  username_EQ: String
   username_IN: [String!]
   username_STARTS_WITH: String
 }
@@ -637,13 +1708,6 @@ input MovieActorsConnectionWhere {
   NOT: MovieActorsConnectionWhere
   OR: [MovieActorsConnectionWhere!]
   node: ActorWhere
-}
-
-input MovieOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [MovieSort!]
 }
 
 "Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
@@ -671,9 +1735,10 @@ input MovieWhere {
   actors_SINGLE: ActorWhere
   "Return Movies where some of the related Actors match this filter"
   actors_SOME: ActorWhere
-  title: String
+  title: String @deprecated(reason : "Please use the explicit _EQ version")
   title_CONTAINS: String
   title_ENDS_WITH: String
+  title_EQ: String
   title_IN: [String]
   title_STARTS_WITH: String
 }
@@ -685,13 +1750,13 @@ input MovieWhere {
 .Schema
 [source,graphql,schema=true]
 ----
-type Actor {
+type Actor @node {
   username: String!
   password: String!
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
 }
 
-type Movie {
+type Movie @node {
   title: String
   actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN) @filterable(byValue: true)
 }
@@ -705,8 +1770,8 @@ schema {
 }
 
 type Actor {
-  movies(directed: Boolean = true, options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, directed: Boolean = true, first: Int, sort: [ActorMoviesConnectionSort!], where: ActorMoviesConnectionWhere): ActorMoviesConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [ActorMoviesConnectionSort!], where: ActorMoviesConnectionWhere): ActorMoviesConnection!
   password: String!
   username: String!
 }
@@ -734,8 +1799,8 @@ type ActorsConnection {
 }
 
 type Movie {
-  actors(directed: Boolean = true, options: ActorOptions, where: ActorWhere): [Actor!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
+  actors(limit: Int, offset: Int, sort: [ActorSort!], where: ActorWhere): [Actor!]!
+  actorsConnection(after: String, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
   title: String
 }
 
@@ -770,10 +1835,10 @@ type PageInfo {
 }
 
 type Query {
-  actors(options: ActorOptions, where: ActorWhere): [Actor!]!
-  actorsConnection(after: String, first: Int, sort: [ActorSort], where: ActorWhere): ActorsConnection!
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
+  actors(limit: Int, offset: Int, sort: [ActorSort!], where: ActorWhere): [Actor!]!
+  actorsConnection(after: String, first: Int, sort: [ActorSort!], where: ActorWhere): ActorsConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
 }
 
 "An enum for sorting in either ascending or descending order."
@@ -793,13 +1858,6 @@ input ActorMoviesConnectionWhere {
   NOT: ActorMoviesConnectionWhere
   OR: [ActorMoviesConnectionWhere!]
   node: MovieWhere
-}
-
-input ActorOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more ActorSort objects to sort Actors by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [ActorSort!]
 }
 
 "Fields to sort Actors by. The order in which sorts are applied is not guaranteed when specifying many fields in one ActorSort object."
@@ -828,14 +1886,16 @@ input ActorWhere {
   movies_SINGLE: MovieWhere
   "Return Actors where some of the related Movies match this filter"
   movies_SOME: MovieWhere
-  password: String
+  password: String @deprecated(reason : "Please use the explicit _EQ version")
   password_CONTAINS: String
   password_ENDS_WITH: String
+  password_EQ: String
   password_IN: [String!]
   password_STARTS_WITH: String
-  username: String
+  username: String @deprecated(reason : "Please use the explicit _EQ version")
   username_CONTAINS: String
   username_ENDS_WITH: String
+  username_EQ: String
   username_IN: [String!]
   username_STARTS_WITH: String
 }
@@ -849,13 +1909,6 @@ input MovieActorsConnectionWhere {
   NOT: MovieActorsConnectionWhere
   OR: [MovieActorsConnectionWhere!]
   node: ActorWhere
-}
-
-input MovieOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [MovieSort!]
 }
 
 "Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
@@ -883,9 +1936,10 @@ input MovieWhere {
   actors_SINGLE: ActorWhere
   "Return Movies where some of the related Actors match this filter"
   actors_SOME: ActorWhere
-  title: String
+  title: String @deprecated(reason : "Please use the explicit _EQ version")
   title_CONTAINS: String
   title_ENDS_WITH: String
+  title_EQ: String
   title_IN: [String]
   title_STARTS_WITH: String
 }
@@ -899,7 +1953,7 @@ input MovieWhere {
 .Schema
 [source,graphql,schema=true]
 ----
-type Actor implements Person {
+type Actor implements Person @node {
   username: String!
   password: String!
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
@@ -909,7 +1963,7 @@ interface Person {
   username: String!
 }
 
-type Movie {
+type Movie @node {
   title: String
   actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN) @filterable
 }
@@ -927,8 +1981,8 @@ interface Person {
 }
 
 type Actor implements Person {
-  movies(directed: Boolean = true, options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, directed: Boolean = true, first: Int, sort: [ActorMoviesConnectionSort!], where: ActorMoviesConnectionWhere): ActorMoviesConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [ActorMoviesConnectionSort!], where: ActorMoviesConnectionWhere): ActorMoviesConnection!
   password: String!
   username: String!
 }
@@ -956,8 +2010,8 @@ type ActorsConnection {
 }
 
 type Movie {
-  actors(directed: Boolean = true, options: PersonOptions, where: PersonWhere): [Person!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
+  actors(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  actorsConnection(after: String, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
   title: String
 }
 
@@ -1003,12 +2057,12 @@ type PersonEdge {
 }
 
 type Query {
-  actors(options: ActorOptions, where: ActorWhere): [Actor!]!
-  actorsConnection(after: String, first: Int, sort: [ActorSort], where: ActorWhere): ActorsConnection!
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
-  people(options: PersonOptions, where: PersonWhere): [Person!]!
-  peopleConnection(after: String, first: Int, sort: [PersonSort], where: PersonWhere): PeopleConnection!
+  actors(limit: Int, offset: Int, sort: [ActorSort!], where: ActorWhere): [Actor!]!
+  actorsConnection(after: String, first: Int, sort: [ActorSort!], where: ActorWhere): ActorsConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+  people(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  peopleConnection(after: String, first: Int, sort: [PersonSort!], where: PersonWhere): PeopleConnection!
 }
 
 enum PersonImplementation {
@@ -1032,13 +2086,6 @@ input ActorMoviesConnectionWhere {
   NOT: ActorMoviesConnectionWhere
   OR: [ActorMoviesConnectionWhere!]
   node: MovieWhere
-}
-
-input ActorOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more ActorSort objects to sort Actors by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [ActorSort!]
 }
 
 "Fields to sort Actors by. The order in which sorts are applied is not guaranteed when specifying many fields in one ActorSort object."
@@ -1067,14 +2114,16 @@ input ActorWhere {
   movies_SINGLE: MovieWhere
   "Return Actors where some of the related Movies match this filter"
   movies_SOME: MovieWhere
-  password: String
+  password: String @deprecated(reason : "Please use the explicit _EQ version")
   password_CONTAINS: String
   password_ENDS_WITH: String
+  password_EQ: String
   password_IN: [String!]
   password_STARTS_WITH: String
-  username: String
+  username: String @deprecated(reason : "Please use the explicit _EQ version")
   username_CONTAINS: String
   username_ENDS_WITH: String
+  username_EQ: String
   username_IN: [String!]
   username_STARTS_WITH: String
 }
@@ -1088,13 +2137,6 @@ input MovieActorsConnectionWhere {
   NOT: MovieActorsConnectionWhere
   OR: [MovieActorsConnectionWhere!]
   node: PersonWhere
-}
-
-input MovieOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [MovieSort!]
 }
 
 "Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
@@ -1122,18 +2164,12 @@ input MovieWhere {
   actors_SINGLE: PersonWhere
   "Return Movies where some of the related People match this filter"
   actors_SOME: PersonWhere
-  title: String
+  title: String @deprecated(reason : "Please use the explicit _EQ version")
   title_CONTAINS: String
   title_ENDS_WITH: String
+  title_EQ: String
   title_IN: [String]
   title_STARTS_WITH: String
-}
-
-input PersonOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more PersonSort objects to sort People by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [PersonSort]
 }
 
 "Fields to sort People by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonSort object."
@@ -1145,10 +2181,11 @@ input PersonWhere {
   AND: [PersonWhere!]
   NOT: PersonWhere
   OR: [PersonWhere!]
-  typename_IN: [PersonImplementation!]
-  username: String
+  typename: [PersonImplementation!]
+  username: String @deprecated(reason : "Please use the explicit _EQ version")
   username_CONTAINS: String
   username_ENDS_WITH: String
+  username_EQ: String
   username_IN: [String!]
   username_STARTS_WITH: String
 }
@@ -1160,7 +2197,7 @@ input PersonWhere {
 .Schema
 [source,graphql,schema=true]
 ----
-type Actor implements Person {
+type Actor implements Person @node {
   username: String!
   password: String!
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
@@ -1170,7 +2207,7 @@ interface Person {
   username: String!
 }
 
-type Movie {
+type Movie @node {
   title: String
   actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN) @filterable(byValue: true)
 }
@@ -1188,8 +2225,8 @@ interface Person {
 }
 
 type Actor implements Person {
-  movies(directed: Boolean = true, options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, directed: Boolean = true, first: Int, sort: [ActorMoviesConnectionSort!], where: ActorMoviesConnectionWhere): ActorMoviesConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [ActorMoviesConnectionSort!], where: ActorMoviesConnectionWhere): ActorMoviesConnection!
   password: String!
   username: String!
 }
@@ -1217,8 +2254,8 @@ type ActorsConnection {
 }
 
 type Movie {
-  actors(directed: Boolean = true, options: PersonOptions, where: PersonWhere): [Person!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
+  actors(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  actorsConnection(after: String, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
   title: String
 }
 
@@ -1264,12 +2301,12 @@ type PersonEdge {
 }
 
 type Query {
-  actors(options: ActorOptions, where: ActorWhere): [Actor!]!
-  actorsConnection(after: String, first: Int, sort: [ActorSort], where: ActorWhere): ActorsConnection!
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
-  people(options: PersonOptions, where: PersonWhere): [Person!]!
-  peopleConnection(after: String, first: Int, sort: [PersonSort], where: PersonWhere): PeopleConnection!
+  actors(limit: Int, offset: Int, sort: [ActorSort!], where: ActorWhere): [Actor!]!
+  actorsConnection(after: String, first: Int, sort: [ActorSort!], where: ActorWhere): ActorsConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+  people(limit: Int, offset: Int, sort: [PersonSort!], where: PersonWhere): [Person!]!
+  peopleConnection(after: String, first: Int, sort: [PersonSort!], where: PersonWhere): PeopleConnection!
 }
 
 enum PersonImplementation {
@@ -1293,13 +2330,6 @@ input ActorMoviesConnectionWhere {
   NOT: ActorMoviesConnectionWhere
   OR: [ActorMoviesConnectionWhere!]
   node: MovieWhere
-}
-
-input ActorOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more ActorSort objects to sort Actors by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [ActorSort!]
 }
 
 "Fields to sort Actors by. The order in which sorts are applied is not guaranteed when specifying many fields in one ActorSort object."
@@ -1328,14 +2358,16 @@ input ActorWhere {
   movies_SINGLE: MovieWhere
   "Return Actors where some of the related Movies match this filter"
   movies_SOME: MovieWhere
-  password: String
+  password: String @deprecated(reason : "Please use the explicit _EQ version")
   password_CONTAINS: String
   password_ENDS_WITH: String
+  password_EQ: String
   password_IN: [String!]
   password_STARTS_WITH: String
-  username: String
+  username: String @deprecated(reason : "Please use the explicit _EQ version")
   username_CONTAINS: String
   username_ENDS_WITH: String
+  username_EQ: String
   username_IN: [String!]
   username_STARTS_WITH: String
 }
@@ -1349,13 +2381,6 @@ input MovieActorsConnectionWhere {
   NOT: MovieActorsConnectionWhere
   OR: [MovieActorsConnectionWhere!]
   node: PersonWhere
-}
-
-input MovieOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [MovieSort!]
 }
 
 "Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
@@ -1383,18 +2408,12 @@ input MovieWhere {
   actors_SINGLE: PersonWhere
   "Return Movies where some of the related People match this filter"
   actors_SOME: PersonWhere
-  title: String
+  title: String @deprecated(reason : "Please use the explicit _EQ version")
   title_CONTAINS: String
   title_ENDS_WITH: String
+  title_EQ: String
   title_IN: [String]
   title_STARTS_WITH: String
-}
-
-input PersonOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more PersonSort objects to sort People by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [PersonSort]
 }
 
 "Fields to sort People by. The order in which sorts are applied is not guaranteed when specifying many fields in one PersonSort object."
@@ -1406,10 +2425,11 @@ input PersonWhere {
   AND: [PersonWhere!]
   NOT: PersonWhere
   OR: [PersonWhere!]
-  typename_IN: [PersonImplementation!]
-  username: String
+  typename: [PersonImplementation!]
+  username: String @deprecated(reason : "Please use the explicit _EQ version")
   username_CONTAINS: String
   username_ENDS_WITH: String
+  username_EQ: String
   username_IN: [String!]
   username_STARTS_WITH: String
 }
@@ -1423,13 +2443,13 @@ input PersonWhere {
 .Schema
 [source,graphql,schema=true]
 ----
-type Actor {
+type Actor @node {
   username: String!
   password: String!
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
 }
 
-type Appearance {
+type Appearance @node {
   username: String!
   password: String!
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
@@ -1437,7 +2457,7 @@ type Appearance {
 
 union Person = Actor | Appearance
 
-type Movie {
+type Movie @node {
   title: String
   actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN) @filterable
 }
@@ -1453,8 +2473,8 @@ schema {
 union Person = Actor | Appearance
 
 type Actor {
-  movies(directed: Boolean = true, options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, directed: Boolean = true, first: Int, sort: [ActorMoviesConnectionSort!], where: ActorMoviesConnectionWhere): ActorMoviesConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [ActorMoviesConnectionSort!], where: ActorMoviesConnectionWhere): ActorMoviesConnection!
   password: String!
   username: String!
 }
@@ -1482,8 +2502,8 @@ type ActorsConnection {
 }
 
 type Appearance {
-  movies(directed: Boolean = true, options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, directed: Boolean = true, first: Int, sort: [AppearanceMoviesConnectionSort!], where: AppearanceMoviesConnectionWhere): AppearanceMoviesConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [AppearanceMoviesConnectionSort!], where: AppearanceMoviesConnectionWhere): AppearanceMoviesConnection!
   password: String!
   username: String!
 }
@@ -1511,8 +2531,8 @@ type AppearancesConnection {
 }
 
 type Movie {
-  actors(directed: Boolean = true, options: QueryOptions, where: PersonWhere): [Person!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, where: MovieActorsConnectionWhere): MovieActorsConnection!
+  actors(limit: Int, offset: Int, where: PersonWhere): [Person!]!
+  actorsConnection(after: String, first: Int, where: MovieActorsConnectionWhere): MovieActorsConnection!
   title: String
 }
 
@@ -1547,13 +2567,13 @@ type PageInfo {
 }
 
 type Query {
-  actors(options: ActorOptions, where: ActorWhere): [Actor!]!
-  actorsConnection(after: String, first: Int, sort: [ActorSort], where: ActorWhere): ActorsConnection!
-  appearances(options: AppearanceOptions, where: AppearanceWhere): [Appearance!]!
-  appearancesConnection(after: String, first: Int, sort: [AppearanceSort], where: AppearanceWhere): AppearancesConnection!
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
-  people(options: QueryOptions, where: PersonWhere): [Person!]!
+  actors(limit: Int, offset: Int, sort: [ActorSort!], where: ActorWhere): [Actor!]!
+  actorsConnection(after: String, first: Int, sort: [ActorSort!], where: ActorWhere): ActorsConnection!
+  appearances(limit: Int, offset: Int, sort: [AppearanceSort!], where: AppearanceWhere): [Appearance!]!
+  appearancesConnection(after: String, first: Int, sort: [AppearanceSort!], where: AppearanceWhere): AppearancesConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+  people(limit: Int, offset: Int, where: PersonWhere): [Person!]!
 }
 
 "An enum for sorting in either ascending or descending order."
@@ -1573,13 +2593,6 @@ input ActorMoviesConnectionWhere {
   NOT: ActorMoviesConnectionWhere
   OR: [ActorMoviesConnectionWhere!]
   node: MovieWhere
-}
-
-input ActorOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more ActorSort objects to sort Actors by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [ActorSort!]
 }
 
 "Fields to sort Actors by. The order in which sorts are applied is not guaranteed when specifying many fields in one ActorSort object."
@@ -1608,14 +2621,16 @@ input ActorWhere {
   movies_SINGLE: MovieWhere
   "Return Actors where some of the related Movies match this filter"
   movies_SOME: MovieWhere
-  password: String
+  password: String @deprecated(reason : "Please use the explicit _EQ version")
   password_CONTAINS: String
   password_ENDS_WITH: String
+  password_EQ: String
   password_IN: [String!]
   password_STARTS_WITH: String
-  username: String
+  username: String @deprecated(reason : "Please use the explicit _EQ version")
   username_CONTAINS: String
   username_ENDS_WITH: String
+  username_EQ: String
   username_IN: [String!]
   username_STARTS_WITH: String
 }
@@ -1629,13 +2644,6 @@ input AppearanceMoviesConnectionWhere {
   NOT: AppearanceMoviesConnectionWhere
   OR: [AppearanceMoviesConnectionWhere!]
   node: MovieWhere
-}
-
-input AppearanceOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more AppearanceSort objects to sort Appearances by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [AppearanceSort!]
 }
 
 "Fields to sort Appearances by. The order in which sorts are applied is not guaranteed when specifying many fields in one AppearanceSort object."
@@ -1664,14 +2672,16 @@ input AppearanceWhere {
   movies_SINGLE: MovieWhere
   "Return Appearances where some of the related Movies match this filter"
   movies_SOME: MovieWhere
-  password: String
+  password: String @deprecated(reason : "Please use the explicit _EQ version")
   password_CONTAINS: String
   password_ENDS_WITH: String
+  password_EQ: String
   password_IN: [String!]
   password_STARTS_WITH: String
-  username: String
+  username: String @deprecated(reason : "Please use the explicit _EQ version")
   username_CONTAINS: String
   username_ENDS_WITH: String
+  username_EQ: String
   username_IN: [String!]
   username_STARTS_WITH: String
 }
@@ -1693,13 +2703,6 @@ input MovieActorsAppearanceConnectionWhere {
 input MovieActorsConnectionWhere {
   Actor: MovieActorsActorConnectionWhere
   Appearance: MovieActorsAppearanceConnectionWhere
-}
-
-input MovieOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [MovieSort!]
 }
 
 "Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
@@ -1727,9 +2730,10 @@ input MovieWhere {
   actors_SINGLE: PersonWhere
   "Return Movies where some of the related People match this filter"
   actors_SOME: PersonWhere
-  title: String
+  title: String @deprecated(reason : "Please use the explicit _EQ version")
   title_CONTAINS: String
   title_ENDS_WITH: String
+  title_EQ: String
   title_IN: [String]
   title_STARTS_WITH: String
 }
@@ -1739,12 +2743,6 @@ input PersonWhere {
   Appearance: AppearanceWhere
 }
 
-"Input type for options that can be specified on a query operation."
-input QueryOptions {
-  limit: Int
-  offset: Int
-}
-
 ----
 
 ==== enable only value filters
@@ -1752,13 +2750,13 @@ input QueryOptions {
 .Schema
 [source,graphql,schema=true]
 ----
-type Actor {
+type Actor @node {
   username: String!
   password: String!
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
 }
 
-type Appearance {
+type Appearance @node {
   username: String!
   password: String!
   movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
@@ -1766,7 +2764,7 @@ type Appearance {
 
 union Person = Actor | Appearance
 
-type Movie {
+type Movie @node {
   title: String
   actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN) @filterable(byValue: true)
 }
@@ -1782,8 +2780,8 @@ schema {
 union Person = Actor | Appearance
 
 type Actor {
-  movies(directed: Boolean = true, options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, directed: Boolean = true, first: Int, sort: [ActorMoviesConnectionSort!], where: ActorMoviesConnectionWhere): ActorMoviesConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [ActorMoviesConnectionSort!], where: ActorMoviesConnectionWhere): ActorMoviesConnection!
   password: String!
   username: String!
 }
@@ -1811,8 +2809,8 @@ type ActorsConnection {
 }
 
 type Appearance {
-  movies(directed: Boolean = true, options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, directed: Boolean = true, first: Int, sort: [AppearanceMoviesConnectionSort!], where: AppearanceMoviesConnectionWhere): AppearanceMoviesConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [AppearanceMoviesConnectionSort!], where: AppearanceMoviesConnectionWhere): AppearanceMoviesConnection!
   password: String!
   username: String!
 }
@@ -1840,8 +2838,8 @@ type AppearancesConnection {
 }
 
 type Movie {
-  actors(directed: Boolean = true, options: QueryOptions, where: PersonWhere): [Person!]!
-  actorsConnection(after: String, directed: Boolean = true, first: Int, where: MovieActorsConnectionWhere): MovieActorsConnection!
+  actors(limit: Int, offset: Int, where: PersonWhere): [Person!]!
+  actorsConnection(after: String, first: Int, where: MovieActorsConnectionWhere): MovieActorsConnection!
   title: String
 }
 
@@ -1876,13 +2874,13 @@ type PageInfo {
 }
 
 type Query {
-  actors(options: ActorOptions, where: ActorWhere): [Actor!]!
-  actorsConnection(after: String, first: Int, sort: [ActorSort], where: ActorWhere): ActorsConnection!
-  appearances(options: AppearanceOptions, where: AppearanceWhere): [Appearance!]!
-  appearancesConnection(after: String, first: Int, sort: [AppearanceSort], where: AppearanceWhere): AppearancesConnection!
-  movies(options: MovieOptions, where: MovieWhere): [Movie!]!
-  moviesConnection(after: String, first: Int, sort: [MovieSort], where: MovieWhere): MoviesConnection!
-  people(options: QueryOptions, where: PersonWhere): [Person!]!
+  actors(limit: Int, offset: Int, sort: [ActorSort!], where: ActorWhere): [Actor!]!
+  actorsConnection(after: String, first: Int, sort: [ActorSort!], where: ActorWhere): ActorsConnection!
+  appearances(limit: Int, offset: Int, sort: [AppearanceSort!], where: AppearanceWhere): [Appearance!]!
+  appearancesConnection(after: String, first: Int, sort: [AppearanceSort!], where: AppearanceWhere): AppearancesConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+  people(limit: Int, offset: Int, where: PersonWhere): [Person!]!
 }
 
 "An enum for sorting in either ascending or descending order."
@@ -1902,13 +2900,6 @@ input ActorMoviesConnectionWhere {
   NOT: ActorMoviesConnectionWhere
   OR: [ActorMoviesConnectionWhere!]
   node: MovieWhere
-}
-
-input ActorOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more ActorSort objects to sort Actors by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [ActorSort!]
 }
 
 "Fields to sort Actors by. The order in which sorts are applied is not guaranteed when specifying many fields in one ActorSort object."
@@ -1937,14 +2928,16 @@ input ActorWhere {
   movies_SINGLE: MovieWhere
   "Return Actors where some of the related Movies match this filter"
   movies_SOME: MovieWhere
-  password: String
+  password: String @deprecated(reason : "Please use the explicit _EQ version")
   password_CONTAINS: String
   password_ENDS_WITH: String
+  password_EQ: String
   password_IN: [String!]
   password_STARTS_WITH: String
-  username: String
+  username: String @deprecated(reason : "Please use the explicit _EQ version")
   username_CONTAINS: String
   username_ENDS_WITH: String
+  username_EQ: String
   username_IN: [String!]
   username_STARTS_WITH: String
 }
@@ -1958,13 +2951,6 @@ input AppearanceMoviesConnectionWhere {
   NOT: AppearanceMoviesConnectionWhere
   OR: [AppearanceMoviesConnectionWhere!]
   node: MovieWhere
-}
-
-input AppearanceOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more AppearanceSort objects to sort Appearances by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [AppearanceSort!]
 }
 
 "Fields to sort Appearances by. The order in which sorts are applied is not guaranteed when specifying many fields in one AppearanceSort object."
@@ -1993,14 +2979,16 @@ input AppearanceWhere {
   movies_SINGLE: MovieWhere
   "Return Appearances where some of the related Movies match this filter"
   movies_SOME: MovieWhere
-  password: String
+  password: String @deprecated(reason : "Please use the explicit _EQ version")
   password_CONTAINS: String
   password_ENDS_WITH: String
+  password_EQ: String
   password_IN: [String!]
   password_STARTS_WITH: String
-  username: String
+  username: String @deprecated(reason : "Please use the explicit _EQ version")
   username_CONTAINS: String
   username_ENDS_WITH: String
+  username_EQ: String
   username_IN: [String!]
   username_STARTS_WITH: String
 }
@@ -2022,13 +3010,6 @@ input MovieActorsAppearanceConnectionWhere {
 input MovieActorsConnectionWhere {
   Actor: MovieActorsActorConnectionWhere
   Appearance: MovieActorsAppearanceConnectionWhere
-}
-
-input MovieOptions {
-  limit: Int
-  offset: Int
-  "Specify one or more MovieSort objects to sort Movies by. The sorts will be applied in the order in which they are arranged in the array."
-  sort: [MovieSort!]
 }
 
 "Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
@@ -2056,9 +3037,10 @@ input MovieWhere {
   actors_SINGLE: PersonWhere
   "Return Movies where some of the related People match this filter"
   actors_SOME: PersonWhere
-  title: String
+  title: String @deprecated(reason : "Please use the explicit _EQ version")
   title_CONTAINS: String
   title_ENDS_WITH: String
+  title_EQ: String
   title_IN: [String]
   title_STARTS_WITH: String
 }
@@ -2068,10 +3050,408 @@ input PersonWhere {
   Appearance: AppearanceWhere
 }
 
-"Input type for options that can be specified on a query operation."
-input QueryOptions {
-  limit: Int
-  offset: Int
+----
+
+== on RELATIONSHIP FIELD
+
+=== default arguments should disable aggregation
+
+.Schema
+[source,graphql,schema=true]
+----
+type Actor @node {
+  username: String!
+  password: String!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+
+type Movie @node {
+  title: String
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN) @filterable
+}
+----
+
+.Augmented Schema
+[source,graphql,augmented=true]
+----
+schema {
+  query: Query
+}
+
+type Actor {
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [ActorMoviesConnectionSort!], where: ActorMoviesConnectionWhere): ActorMoviesConnection!
+  password: String!
+  username: String!
+}
+
+type ActorEdge {
+  cursor: String!
+  node: Actor!
+}
+
+type ActorMoviesConnection {
+  edges: [ActorMoviesRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ActorMoviesRelationship {
+  cursor: String!
+  node: Movie!
+}
+
+type ActorsConnection {
+  edges: [ActorEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Movie {
+  actors(limit: Int, offset: Int, sort: [ActorSort!], where: ActorWhere): [Actor!]!
+  actorsConnection(after: String, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
+  title: String
+}
+
+type MovieActorsConnection {
+  edges: [MovieActorsRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type MovieActorsRelationship {
+  cursor: String!
+  node: Actor!
+}
+
+type MovieEdge {
+  cursor: String!
+  node: Movie!
+}
+
+type MoviesConnection {
+  edges: [MovieEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  actors(limit: Int, offset: Int, sort: [ActorSort!], where: ActorWhere): [Actor!]!
+  actorsConnection(after: String, first: Int, sort: [ActorSort!], where: ActorWhere): ActorsConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+}
+
+"An enum for sorting in either ascending or descending order."
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+input ActorMoviesConnectionSort {
+  node: MovieSort
+}
+
+input ActorMoviesConnectionWhere {
+  AND: [ActorMoviesConnectionWhere!]
+  NOT: ActorMoviesConnectionWhere
+  OR: [ActorMoviesConnectionWhere!]
+  node: MovieWhere
+}
+
+"Fields to sort Actors by. The order in which sorts are applied is not guaranteed when specifying many fields in one ActorSort object."
+input ActorSort {
+  password: SortDirection
+  username: SortDirection
+}
+
+input ActorWhere {
+  AND: [ActorWhere!]
+  NOT: ActorWhere
+  OR: [ActorWhere!]
+  "Return Actors where all of the related ActorMoviesConnections match this filter"
+  moviesConnection_ALL: ActorMoviesConnectionWhere
+  "Return Actors where none of the related ActorMoviesConnections match this filter"
+  moviesConnection_NONE: ActorMoviesConnectionWhere
+  "Return Actors where one of the related ActorMoviesConnections match this filter"
+  moviesConnection_SINGLE: ActorMoviesConnectionWhere
+  "Return Actors where some of the related ActorMoviesConnections match this filter"
+  moviesConnection_SOME: ActorMoviesConnectionWhere
+  "Return Actors where all of the related Movies match this filter"
+  movies_ALL: MovieWhere
+  "Return Actors where none of the related Movies match this filter"
+  movies_NONE: MovieWhere
+  "Return Actors where one of the related Movies match this filter"
+  movies_SINGLE: MovieWhere
+  "Return Actors where some of the related Movies match this filter"
+  movies_SOME: MovieWhere
+  password: String @deprecated(reason : "Please use the explicit _EQ version")
+  password_CONTAINS: String
+  password_ENDS_WITH: String
+  password_EQ: String
+  password_IN: [String!]
+  password_STARTS_WITH: String
+  username: String @deprecated(reason : "Please use the explicit _EQ version")
+  username_CONTAINS: String
+  username_ENDS_WITH: String
+  username_EQ: String
+  username_IN: [String!]
+  username_STARTS_WITH: String
+}
+
+input MovieActorsConnectionSort {
+  node: ActorSort
+}
+
+input MovieActorsConnectionWhere {
+  AND: [MovieActorsConnectionWhere!]
+  NOT: MovieActorsConnectionWhere
+  OR: [MovieActorsConnectionWhere!]
+  node: ActorWhere
+}
+
+"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+input MovieSort {
+  title: SortDirection
+}
+
+input MovieWhere {
+  AND: [MovieWhere!]
+  NOT: MovieWhere
+  OR: [MovieWhere!]
+  "Return Movies where all of the related MovieActorsConnections match this filter"
+  actorsConnection_ALL: MovieActorsConnectionWhere
+  "Return Movies where none of the related MovieActorsConnections match this filter"
+  actorsConnection_NONE: MovieActorsConnectionWhere
+  "Return Movies where one of the related MovieActorsConnections match this filter"
+  actorsConnection_SINGLE: MovieActorsConnectionWhere
+  "Return Movies where some of the related MovieActorsConnections match this filter"
+  actorsConnection_SOME: MovieActorsConnectionWhere
+  "Return Movies where all of the related Actors match this filter"
+  actors_ALL: ActorWhere
+  "Return Movies where none of the related Actors match this filter"
+  actors_NONE: ActorWhere
+  "Return Movies where one of the related Actors match this filter"
+  actors_SINGLE: ActorWhere
+  "Return Movies where some of the related Actors match this filter"
+  actors_SOME: ActorWhere
+  title: String @deprecated(reason : "Please use the explicit _EQ version")
+  title_CONTAINS: String
+  title_ENDS_WITH: String
+  title_EQ: String
+  title_IN: [String]
+  title_STARTS_WITH: String
+}
+
+----
+
+=== enable only value filters
+
+.Schema
+[source,graphql,schema=true]
+----
+type Actor @node {
+  username: String!
+  password: String!
+  movies: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT)
+}
+
+type Movie @node {
+  title: String
+  actors: [Actor!]! @relationship(type: "ACTED_IN", direction: IN) @filterable(byValue: true)
+}
+----
+
+.Augmented Schema
+[source,graphql,augmented=true]
+----
+schema {
+  query: Query
+}
+
+type Actor {
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [ActorMoviesConnectionSort!], where: ActorMoviesConnectionWhere): ActorMoviesConnection!
+  password: String!
+  username: String!
+}
+
+type ActorEdge {
+  cursor: String!
+  node: Actor!
+}
+
+type ActorMoviesConnection {
+  edges: [ActorMoviesRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ActorMoviesRelationship {
+  cursor: String!
+  node: Movie!
+}
+
+type ActorsConnection {
+  edges: [ActorEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Movie {
+  actors(limit: Int, offset: Int, sort: [ActorSort!], where: ActorWhere): [Actor!]!
+  actorsConnection(after: String, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
+  title: String
+}
+
+type MovieActorsConnection {
+  edges: [MovieActorsRelationship!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type MovieActorsRelationship {
+  cursor: String!
+  node: Actor!
+}
+
+type MovieEdge {
+  cursor: String!
+  node: Movie!
+}
+
+type MoviesConnection {
+  edges: [MovieEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  actors(limit: Int, offset: Int, sort: [ActorSort!], where: ActorWhere): [Actor!]!
+  actorsConnection(after: String, first: Int, sort: [ActorSort!], where: ActorWhere): ActorsConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+}
+
+"An enum for sorting in either ascending or descending order."
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+input ActorMoviesConnectionSort {
+  node: MovieSort
+}
+
+input ActorMoviesConnectionWhere {
+  AND: [ActorMoviesConnectionWhere!]
+  NOT: ActorMoviesConnectionWhere
+  OR: [ActorMoviesConnectionWhere!]
+  node: MovieWhere
+}
+
+"Fields to sort Actors by. The order in which sorts are applied is not guaranteed when specifying many fields in one ActorSort object."
+input ActorSort {
+  password: SortDirection
+  username: SortDirection
+}
+
+input ActorWhere {
+  AND: [ActorWhere!]
+  NOT: ActorWhere
+  OR: [ActorWhere!]
+  "Return Actors where all of the related ActorMoviesConnections match this filter"
+  moviesConnection_ALL: ActorMoviesConnectionWhere
+  "Return Actors where none of the related ActorMoviesConnections match this filter"
+  moviesConnection_NONE: ActorMoviesConnectionWhere
+  "Return Actors where one of the related ActorMoviesConnections match this filter"
+  moviesConnection_SINGLE: ActorMoviesConnectionWhere
+  "Return Actors where some of the related ActorMoviesConnections match this filter"
+  moviesConnection_SOME: ActorMoviesConnectionWhere
+  "Return Actors where all of the related Movies match this filter"
+  movies_ALL: MovieWhere
+  "Return Actors where none of the related Movies match this filter"
+  movies_NONE: MovieWhere
+  "Return Actors where one of the related Movies match this filter"
+  movies_SINGLE: MovieWhere
+  "Return Actors where some of the related Movies match this filter"
+  movies_SOME: MovieWhere
+  password: String @deprecated(reason : "Please use the explicit _EQ version")
+  password_CONTAINS: String
+  password_ENDS_WITH: String
+  password_EQ: String
+  password_IN: [String!]
+  password_STARTS_WITH: String
+  username: String @deprecated(reason : "Please use the explicit _EQ version")
+  username_CONTAINS: String
+  username_ENDS_WITH: String
+  username_EQ: String
+  username_IN: [String!]
+  username_STARTS_WITH: String
+}
+
+input MovieActorsConnectionSort {
+  node: ActorSort
+}
+
+input MovieActorsConnectionWhere {
+  AND: [MovieActorsConnectionWhere!]
+  NOT: MovieActorsConnectionWhere
+  OR: [MovieActorsConnectionWhere!]
+  node: ActorWhere
+}
+
+"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+input MovieSort {
+  title: SortDirection
+}
+
+input MovieWhere {
+  AND: [MovieWhere!]
+  NOT: MovieWhere
+  OR: [MovieWhere!]
+  "Return Movies where all of the related MovieActorsConnections match this filter"
+  actorsConnection_ALL: MovieActorsConnectionWhere
+  "Return Movies where none of the related MovieActorsConnections match this filter"
+  actorsConnection_NONE: MovieActorsConnectionWhere
+  "Return Movies where one of the related MovieActorsConnections match this filter"
+  actorsConnection_SINGLE: MovieActorsConnectionWhere
+  "Return Movies where some of the related MovieActorsConnections match this filter"
+  actorsConnection_SOME: MovieActorsConnectionWhere
+  "Return Movies where all of the related Actors match this filter"
+  actors_ALL: ActorWhere
+  "Return Movies where none of the related Actors match this filter"
+  actors_NONE: ActorWhere
+  "Return Movies where one of the related Actors match this filter"
+  actors_SINGLE: ActorWhere
+  "Return Movies where some of the related Actors match this filter"
+  actors_SOME: ActorWhere
+  title: String @deprecated(reason : "Please use the explicit _EQ version")
+  title_CONTAINS: String
+  title_ENDS_WITH: String
+  title_EQ: String
+  title_IN: [String]
+  title_STARTS_WITH: String
 }
 
 ----
