@@ -20,6 +20,15 @@ type Foo @node {
 ----
 schema {
   query: Query
+  mutation: Mutation
+}
+
+"""
+Information about the number of nodes and relationships deleted during a delete mutation
+"""
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
 }
 
 type Foo {
@@ -66,6 +75,10 @@ type FoosConnection {
   edges: [FooEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
+}
+
+type Mutation {
+  deleteFoos(where: FooWhere): DeleteInfo!
 }
 
 """Pagination information (Relay)"""

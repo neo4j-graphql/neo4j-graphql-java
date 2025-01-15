@@ -23,11 +23,20 @@ type Movie @preservedTopLevel @node {
 ----
 schema {
   query: Query
+  mutation: Mutation
 }
 
 directive @preservedFieldLevel(boolean: Boolean, float: Float, int: Int, string: String) on FIELD_DEFINITION
 
 directive @preservedTopLevel(boolean: Boolean, float: Float, int: Int, string: String) on OBJECT
+
+"""
+Information about the number of nodes and relationships deleted during a delete mutation
+"""
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
 
 type Movie @preservedTopLevel {
   id: ID @preservedFieldLevel(string: "str", int: 12, float: 1.2, boolean: true)
@@ -61,6 +70,10 @@ type MoviesConnection {
   edges: [MovieEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
+}
+
+type Mutation {
+  deleteMovies(where: MovieWhere): DeleteInfo!
 }
 
 """Pagination information (Relay)"""
@@ -108,6 +121,15 @@ type Genre @node {
 ----
 schema {
   query: Query
+  mutation: Mutation
+}
+
+"""
+Information about the number of nodes and relationships deleted during a delete mutation
+"""
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
 }
 
 type Genre {
@@ -292,6 +314,11 @@ type MoviesConnection {
   totalCount: Int!
 }
 
+type Mutation {
+  deleteGenres(where: GenreWhere): DeleteInfo!
+  deleteMovies(where: MovieWhere): DeleteInfo!
+}
+
 """Pagination information (Relay)"""
 type PageInfo {
   endCursor: String
@@ -353,6 +380,7 @@ type Actor @node {
 ----
 schema {
   query: Query
+  mutation: Mutation
 }
 
 """
@@ -466,6 +494,14 @@ type ActorsConnection {
   totalCount: Int!
 }
 
+"""
+Information about the number of nodes and relationships deleted during a delete mutation
+"""
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
 type Movie implements Production {
   actors(limit: Int, offset: Int, sort: [ActorSort!], where: ActorWhere): [Actor!]! @deprecated(reason: "Do not use")
   actorsConnection(after: String, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection! @deprecated(reason: "Do not use")
@@ -558,6 +594,12 @@ type MoviesConnection {
   edges: [MovieEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
+}
+
+type Mutation {
+  deleteActors(where: ActorWhere): DeleteInfo!
+  deleteMovies(where: MovieWhere): DeleteInfo!
+  deleteSeries(where: SeriesWhere): DeleteInfo!
 }
 
 """Pagination information (Relay)"""
@@ -760,6 +802,7 @@ type Actor @node {
 ----
 schema {
   query: Query
+  mutation: Mutation
 }
 
 """
@@ -873,6 +916,14 @@ type ActorsConnection {
   totalCount: Int!
 }
 
+"""
+Information about the number of nodes and relationships deleted during a delete mutation
+"""
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
 type Movie implements Production {
   actors(limit: Int, offset: Int, sort: [ActorSort!], where: ActorWhere): [Actor!]!
   actorsConnection(after: String, first: Int, sort: [MovieActorsConnectionSort!], where: MovieActorsConnectionWhere): MovieActorsConnection!
@@ -965,6 +1016,12 @@ type MoviesConnection {
   edges: [MovieEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
+}
+
+type Mutation {
+  deleteActors(where: ActorWhere): DeleteInfo!
+  deleteMovies(where: MovieWhere): DeleteInfo!
+  deleteSeries(where: SeriesWhere): DeleteInfo!
 }
 
 """Pagination information (Relay)"""
@@ -1157,6 +1214,7 @@ type User @node {
 ----
 schema {
   query: Query
+  mutation: Mutation
 }
 
 type Blog {
@@ -1246,6 +1304,20 @@ union Content = Blog | Post
 input ContentWhere {
   Blog: BlogWhere
   Post: PostWhere
+}
+
+"""
+Information about the number of nodes and relationships deleted during a delete mutation
+"""
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
+type Mutation {
+  deleteBlogs(where: BlogWhere): DeleteInfo!
+  deletePosts(where: PostWhere): DeleteInfo!
+  deleteUsers(where: UserWhere): DeleteInfo!
 }
 
 """Pagination information (Relay)"""

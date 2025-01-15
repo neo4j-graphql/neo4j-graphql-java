@@ -18,22 +18,23 @@ enum class RelationOperator(
 
     fun createRelationCondition(
         relationship: Relationship,
-        nestedCondition: Condition?
+        nestedCondition: Condition?,
+        singelton: Boolean = false,
     ): Condition {
         val inner = nestedCondition ?: Cypher.noCondition()
         val match = Cypher.match(relationship)
-        val condition = when (this) {
-            ALL ->
+        val condition = when  {
+            this == SINGLE || singelton ->
+                Cypher.single(Cypher.name("ignore"))
+                    .`in`(Cypher.listBasedOn(relationship).where(inner).returning(1.asCypherLiteral()))
+                    .where(Cypher.literalTrue().asCondition())
+            this == ALL ->
                 match.let {
                     it.where(inner).asCondition()
                         // Testing "ALL" requires testing that at least one element exists and that no elements not matching the filter exists
                         .and(it.where(inner.not()).asCondition().not())
                 }
 
-            SINGLE ->
-                Cypher.single(Cypher.name("ignore"))
-                    .`in`(Cypher.listBasedOn(relationship).where(inner).returning(1.asCypherLiteral()))
-                    .where(Cypher.literalTrue().asCondition())
 
             else -> match.where(inner).asCondition()
         }

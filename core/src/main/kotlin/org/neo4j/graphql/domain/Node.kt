@@ -29,7 +29,7 @@ class Node(
         additionalLabels.map { mapLabelWithContext(it, queryContext) }
 
     private fun mapLabelWithContext(label: String, context: QueryContext?): String {
-        return context?.resolve(label) ?: label
+        return context?.resolve(label, useCypherParams = true) ?: label
     }
 
     override fun toString(): String {

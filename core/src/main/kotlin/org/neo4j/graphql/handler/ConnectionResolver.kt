@@ -8,6 +8,7 @@ import org.neo4j.graphql.*
 import org.neo4j.graphql.domain.Entity
 import org.neo4j.graphql.domain.ImplementingType
 import org.neo4j.graphql.domain.Node
+import org.neo4j.graphql.driver.adapter.Neo4jAdapter.QueryResult
 import org.neo4j.graphql.schema.ArgumentsAugmentation
 import org.neo4j.graphql.schema.AugmentationContext
 import org.neo4j.graphql.schema.AugmentationHandler
@@ -185,8 +186,8 @@ internal class ConnectionResolver private constructor(
             .build()
     }
 
-    override fun mapResult(env: DataFetchingEnvironment, result: List<Map<String, Any?>>): Any {
-        val data = result.map { it[RESULT_VARIABLE] }.firstOrNull() ?: return emptyMap<String, Any>()
+    override fun mapResult(env: DataFetchingEnvironment, result: QueryResult): Any {
+        val data = result.data.map { it[RESULT_VARIABLE] }.firstOrNull() ?: return emptyMap<String, Any>()
 
         val resolveTree = ResolveTree.resolve(env)
 

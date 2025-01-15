@@ -144,3 +144,60 @@ RETURN this {
 	actorsConnection: actorsConnection
 } AS this
 ----
+
+== Admin Deletes Post
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+mutation {
+  deleteMovies(where: {actors_SOME: {name_EQ: "tom"}}) {
+    nodesDeleted
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "tom"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Film)
+WHERE EXISTS {
+	MATCH (this)<-[:ACTED_IN]-(this0:Person)
+	WHERE this0.name = $param0
+} DETACH DELETE this
+----
+
+== Delete Movie with custom label
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+mutation {
+  deleteMovies(where: {id_EQ: "123"}) {
+    nodesDeleted
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "123"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Film)
+WHERE this.id = $param0 DETACH DELETE this
+----

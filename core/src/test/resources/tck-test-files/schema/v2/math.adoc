@@ -19,6 +19,13 @@ type Movie @node {
 ----
 schema {
   query: Query
+  mutation: Mutation
+}
+
+"Information about the number of nodes and relationships deleted during a delete mutation"
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
 }
 
 type Movie {
@@ -35,6 +42,10 @@ type MoviesConnection {
   edges: [MovieEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
+}
+
+type Mutation {
+  deleteMovies(where: MovieWhere): DeleteInfo!
 }
 
 "Pagination information (Relay)"
@@ -101,6 +112,13 @@ type Movie @node {
 ----
 schema {
   query: Query
+  mutation: Mutation
+}
+
+"Information about the number of nodes and relationships deleted during a delete mutation"
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
 }
 
 type Movie {
@@ -117,6 +135,10 @@ type MoviesConnection {
   edges: [MovieEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
+}
+
+type Mutation {
+  deleteMovies(where: MovieWhere): DeleteInfo!
 }
 
 "Pagination information (Relay)"
@@ -186,6 +208,13 @@ type Movie @node {
 ----
 schema {
   query: Query
+  mutation: Mutation
+}
+
+"Information about the number of nodes and relationships deleted during a delete mutation"
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
 }
 
 type Movie {
@@ -202,6 +231,10 @@ type MoviesConnection {
   edges: [MovieEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
+}
+
+type Mutation {
+  deleteMovies(where: MovieWhere): DeleteInfo!
 }
 
 "Pagination information (Relay)"
@@ -274,6 +307,13 @@ type Director @node {
 ----
 schema {
   query: Query
+  mutation: Mutation
+}
+
+"Information about the number of nodes and relationships deleted during a delete mutation"
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
 }
 
 type Director {
@@ -331,6 +371,11 @@ type MoviesConnection {
   edges: [MovieEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
+}
+
+type Mutation {
+  deleteDirectors(where: DirectorWhere): DeleteInfo!
+  deleteMovies(where: MovieWhere): DeleteInfo!
 }
 
 "Pagination information (Relay)"
@@ -466,10 +511,17 @@ type Person @node {
 ----
 schema {
   query: Query
+  mutation: Mutation
 }
 
 interface Production {
   viewers: Int!
+}
+
+"Information about the number of nodes and relationships deleted during a delete mutation"
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
 }
 
 type Movie implements Production {
@@ -499,6 +551,11 @@ type MoviesConnection {
   edges: [MovieEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
+}
+
+type Mutation {
+  deleteMovies(where: MovieWhere): DeleteInfo!
+  deletePeople(where: PersonWhere): DeleteInfo!
 }
 
 "Pagination information (Relay)"
@@ -712,6 +769,7 @@ type ActedIn @relationshipProperties {
 ----
 schema {
   query: Query
+  mutation: Mutation
 }
 
 """
@@ -722,6 +780,12 @@ The edge properties for the following fields:
 type ActedIn {
   pay: Float
   roles: [String!]
+}
+
+"Information about the number of nodes and relationships deleted during a delete mutation"
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
 }
 
 type Movie {
@@ -751,6 +815,11 @@ type MoviesConnection {
   edges: [MovieEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
+}
+
+type Mutation {
+  deleteMovies(where: MovieWhere): DeleteInfo!
+  deletePeople(where: PersonWhere): DeleteInfo!
 }
 
 "Pagination information (Relay)"

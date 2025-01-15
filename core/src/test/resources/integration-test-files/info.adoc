@@ -1,0 +1,59 @@
+:toc:
+:toclevels: 42
+
+= info
+
+== should return info from a delete mutation
+
+.Schema
+[source,graphql,schema=true]
+----
+type Movie @node {
+  id: ID!
+}
+----
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+mutation ($id: ID!) {
+  deleteMovies(where: {id_EQ: $id}) {
+    nodesDeleted
+    relationshipsDeleted
+  }
+}
+----
+
+.GraphQL params input
+[source,json,request=true]
+----
+{
+  "id" : "RandomString1"
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "RandomString1"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+WHERE this.id = $param0 DETACH DELETE this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "deleteMovies" : {
+    "nodesDeleted" : 0,
+    "relationshipsDeleted" : 0
+  }
+}
+----

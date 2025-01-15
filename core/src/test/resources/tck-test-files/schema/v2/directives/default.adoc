@@ -37,11 +37,22 @@ enum Location {
 ----
 schema {
   query: Query
+  mutation: Mutation
 }
 
 interface UserInterface {
   fromInterface: String!
   toBeOverridden: String!
+}
+
+"Information about the number of nodes and relationships deleted during a delete mutation"
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
+type Mutation {
+  deleteUsers(where: UserWhere): DeleteInfo!
 }
 
 "Pagination information (Relay)"

@@ -1,0 +1,366 @@
+:toc:
+:toclevels: 42
+
+= @mutation directive
+
+== on OBJECT
+
+=== should not throw an Error when is mixed with @query
+
+.Schema
+[source,graphql,schema=true]
+----
+type Actor @node {
+  name: String
+}
+
+type Movie @query(read: true) @mutation(operations: []) @node {
+  title: String
+}
+----
+
+.Augmented Schema
+[source,graphql,augmented=true]
+----
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type Actor {
+  name: String
+}
+
+type ActorEdge {
+  cursor: String!
+  node: Actor!
+}
+
+type ActorsConnection {
+  edges: [ActorEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"Information about the number of nodes and relationships deleted during a delete mutation"
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
+
+type Movie {
+  title: String
+}
+
+type MovieEdge {
+  cursor: String!
+  node: Movie!
+}
+
+type MoviesConnection {
+  edges: [MovieEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Mutation {
+  deleteActors(where: ActorWhere): DeleteInfo!
+}
+
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  actors(limit: Int, offset: Int, sort: [ActorSort!], where: ActorWhere): [Actor!]!
+  actorsConnection(after: String, first: Int, sort: [ActorSort!], where: ActorWhere): ActorsConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+}
+
+"An enum for sorting in either ascending or descending order."
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+"Fields to sort Actors by. The order in which sorts are applied is not guaranteed when specifying many fields in one ActorSort object."
+input ActorSort {
+  name: SortDirection
+}
+
+input ActorWhere {
+  AND: [ActorWhere!]
+  NOT: ActorWhere
+  OR: [ActorWhere!]
+  name: String @deprecated(reason : "Please use the explicit _EQ version")
+  name_CONTAINS: String
+  name_ENDS_WITH: String
+  name_EQ: String
+  name_IN: [String]
+  name_STARTS_WITH: String
+}
+
+"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+input MovieSort {
+  title: SortDirection
+}
+
+input MovieWhere {
+  AND: [MovieWhere!]
+  NOT: MovieWhere
+  OR: [MovieWhere!]
+  title: String @deprecated(reason : "Please use the explicit _EQ version")
+  title_CONTAINS: String
+  title_ENDS_WITH: String
+  title_EQ: String
+  title_IN: [String]
+  title_STARTS_WITH: String
+}
+
+----
+
+== on SCHEMA
+
+=== should disable CREATE, DELETE, UPDATE
+
+.Schema
+[source,graphql,schema=true]
+----
+type Actor @node {
+  username: String!
+  password: String!
+}
+
+type Movie @node {
+  title: String
+}
+
+extend schema @mutation(operations: []) {
+  query: Query
+}
+----
+
+.Augmented Schema
+[source,graphql,augmented=true]
+----
+schema {
+  query: Query
+}
+
+type Actor {
+  password: String!
+  username: String!
+}
+
+type ActorEdge {
+  cursor: String!
+  node: Actor!
+}
+
+type ActorsConnection {
+  edges: [ActorEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Movie {
+  title: String
+}
+
+type MovieEdge {
+  cursor: String!
+  node: Movie!
+}
+
+type MoviesConnection {
+  edges: [MovieEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  actors(limit: Int, offset: Int, sort: [ActorSort!], where: ActorWhere): [Actor!]!
+  actorsConnection(after: String, first: Int, sort: [ActorSort!], where: ActorWhere): ActorsConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+}
+
+"An enum for sorting in either ascending or descending order."
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+"Fields to sort Actors by. The order in which sorts are applied is not guaranteed when specifying many fields in one ActorSort object."
+input ActorSort {
+  password: SortDirection
+  username: SortDirection
+}
+
+input ActorWhere {
+  AND: [ActorWhere!]
+  NOT: ActorWhere
+  OR: [ActorWhere!]
+  password: String @deprecated(reason : "Please use the explicit _EQ version")
+  password_CONTAINS: String
+  password_ENDS_WITH: String
+  password_EQ: String
+  password_IN: [String!]
+  password_STARTS_WITH: String
+  username: String @deprecated(reason : "Please use the explicit _EQ version")
+  username_CONTAINS: String
+  username_ENDS_WITH: String
+  username_EQ: String
+  username_IN: [String!]
+  username_STARTS_WITH: String
+}
+
+"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+input MovieSort {
+  title: SortDirection
+}
+
+input MovieWhere {
+  AND: [MovieWhere!]
+  NOT: MovieWhere
+  OR: [MovieWhere!]
+  title: String @deprecated(reason : "Please use the explicit _EQ version")
+  title_CONTAINS: String
+  title_ENDS_WITH: String
+  title_EQ: String
+  title_IN: [String]
+  title_STARTS_WITH: String
+}
+
+----
+
+=== should not throw an Error when is mixed with @query
+
+.Schema
+[source,graphql,schema=true]
+----
+type Actor @node {
+  name: String
+}
+
+type Movie @node {
+  title: String
+}
+
+extend schema @query(read: true) @mutation(operations: []) {
+  query: Query
+}
+----
+
+.Augmented Schema
+[source,graphql,augmented=true]
+----
+schema {
+  query: Query
+}
+
+type Actor {
+  name: String
+}
+
+type ActorEdge {
+  cursor: String!
+  node: Actor!
+}
+
+type ActorsConnection {
+  edges: [ActorEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Movie {
+  title: String
+}
+
+type MovieEdge {
+  cursor: String!
+  node: Movie!
+}
+
+type MoviesConnection {
+  edges: [MovieEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"Pagination information (Relay)"
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  actors(limit: Int, offset: Int, sort: [ActorSort!], where: ActorWhere): [Actor!]!
+  actorsConnection(after: String, first: Int, sort: [ActorSort!], where: ActorWhere): ActorsConnection!
+  movies(limit: Int, offset: Int, sort: [MovieSort!], where: MovieWhere): [Movie!]!
+  moviesConnection(after: String, first: Int, sort: [MovieSort!], where: MovieWhere): MoviesConnection!
+}
+
+"An enum for sorting in either ascending or descending order."
+enum SortDirection {
+  "Sort by field values in ascending order."
+  ASC
+  "Sort by field values in descending order."
+  DESC
+}
+
+"Fields to sort Actors by. The order in which sorts are applied is not guaranteed when specifying many fields in one ActorSort object."
+input ActorSort {
+  name: SortDirection
+}
+
+input ActorWhere {
+  AND: [ActorWhere!]
+  NOT: ActorWhere
+  OR: [ActorWhere!]
+  name: String @deprecated(reason : "Please use the explicit _EQ version")
+  name_CONTAINS: String
+  name_ENDS_WITH: String
+  name_EQ: String
+  name_IN: [String]
+  name_STARTS_WITH: String
+}
+
+"Fields to sort Movies by. The order in which sorts are applied is not guaranteed when specifying many fields in one MovieSort object."
+input MovieSort {
+  title: SortDirection
+}
+
+input MovieWhere {
+  AND: [MovieWhere!]
+  NOT: MovieWhere
+  OR: [MovieWhere!]
+  title: String @deprecated(reason : "Please use the explicit _EQ version")
+  title_CONTAINS: String
+  title_ENDS_WITH: String
+  title_EQ: String
+  title_IN: [String]
+  title_STARTS_WITH: String
+}
+
+----

@@ -85,3 +85,30 @@ RETURN this {
 	actors: actors
 } AS this
 ----
+
+== Delete Movie with additional additionalLabels
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+mutation {
+  deleteMovies(where: {id_EQ: "123"}) {
+    nodesDeleted
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "123"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Film:Multimedia)
+WHERE this.id = $param0 DETACH DELETE this
+----

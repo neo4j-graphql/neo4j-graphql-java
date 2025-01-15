@@ -298,3 +298,92 @@ movies[0].search.size(),==,3
 length($.movies[0].search[?(@.name)]),>=,1
 length($.movies[0].search[?(@.title)]),>=,1
 |===
+
+== read Unions with missing types
+
+.Schema
+[source,graphql,schema=true]
+----
+union Search = Genre | Movie
+
+type Genre @node {
+  name: String
+}
+
+type Movie @node {
+  title: String
+  search: [Search!]! @relationship(type: "SEARCH", direction: OUT)
+}
+----
+
+.Test Data
+[source,cypher,test-data=true]
+----
+CREATE (m:Movie {title: "RandomString1"})
+ CREATE (g:Genre {name: "RandomString2"})
+ MERGE (m)-[:SEARCH]->(m)
+ MERGE (m)-[:SEARCH]->(g)
+----
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  movies {
+    search {
+      ... on Genre {
+        name
+      }
+    }
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Movie)
+CALL {
+	WITH this
+	CALL {
+		WITH *
+		MATCH (this)-[this0:SEARCH]->(this1:Genre)
+		WITH this1 {
+			.name,
+			__typename: 'Genre',
+			__id: toString(id(this1))
+		} AS this1
+		RETURN this1 AS var2 UNION
+		WITH *
+		MATCH (this)-[this3:SEARCH]->(this4:Movie)
+		WITH this4 {
+			__typename: 'Movie',
+			__id: toString(id(this4))
+		} AS this4
+		RETURN this4 AS var2
+	}
+	WITH var2
+	RETURN collect(var2) AS var2
+}
+RETURN this {
+	search: var2
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true,ignore-order]
+----
+{
+  "movies" : [ {
+    "search" : [ {
+      "name" : "RandomString2"
+    }, { } ]
+  } ]
+}
+----

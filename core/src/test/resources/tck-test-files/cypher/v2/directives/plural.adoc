@@ -40,6 +40,33 @@ RETURN this {
 } AS this
 ----
 
+== Delete Tech with plural techs using aggregation
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+mutation {
+  deleteTechs(where: {name_EQ: "Matrix"}) {
+    nodesDeleted
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{
+  "param0" : "Matrix"
+}
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Tech)
+WHERE this.name = $param0 DETACH DELETE this
+----
+
 == Query with aliases
 
 .GraphQL-Query

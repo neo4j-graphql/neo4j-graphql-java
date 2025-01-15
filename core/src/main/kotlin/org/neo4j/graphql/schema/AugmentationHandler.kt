@@ -49,6 +49,24 @@ internal abstract class AugmentationHandler(val ctx: AugmentationContext) : Augm
         return FieldCoordinates.coordinates(queryTypeName, fieldDefinition.name)
     }
 
+    fun addMutationField(
+        name: String,
+        type: Type<*>,
+        args: ArgumentsAugmentation
+    ): FieldCoordinates? {
+        val argList = args.getAugmentedArguments()
+        if (argList.isEmpty()) {
+            return null
+        }
+        return addMutationField(field(name, type, argList))
+    }
+
+    private fun addMutationField(fieldDefinition: FieldDefinition): FieldCoordinates {
+        val mutationTypeName = typeDefinitionRegistry.mutationTypeName()
+        addOperation(mutationTypeName, fieldDefinition)
+        return FieldCoordinates.coordinates(mutationTypeName, fieldDefinition.name)
+    }
+
     /**
      * add the given operation to the corresponding rootType
      */

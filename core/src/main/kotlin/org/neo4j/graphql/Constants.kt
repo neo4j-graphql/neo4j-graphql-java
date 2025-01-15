@@ -69,6 +69,7 @@ object Constants {
         val String = TypeName(STRING)
         val Boolean = TypeName("Boolean")
 
+        val DeleteInfo = TypeName("DeleteInfo")
         val PageInfo = TypeName("PageInfo")
         val SortDirection = TypeName("SortDirection")
         val PointDistance = TypeName("PointDistance")

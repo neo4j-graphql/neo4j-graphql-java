@@ -20,7 +20,11 @@ object SchemaUtils {
             }
     )
 
-    fun prettyPrintSchema(schema: String): String = SCHEMA_PRINTER.print(createMockSchema(schema))
+    fun prettyPrintSchema(schema: String): String = try {
+        prettyPrintSchema(createMockSchema(schema))
+    } catch (ignore: Exception) {
+        schema
+    }
 
     fun prettyPrintSchema(schema: GraphQLSchema?): String = SCHEMA_PRINTER.print(schema)
 

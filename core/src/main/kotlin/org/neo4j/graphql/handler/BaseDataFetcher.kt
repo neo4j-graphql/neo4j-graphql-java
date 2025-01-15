@@ -9,6 +9,7 @@ import org.neo4j.cypherdsl.core.renderer.Dialect
 import org.neo4j.cypherdsl.core.renderer.Renderer
 import org.neo4j.graphql.SchemaConfig
 import org.neo4j.graphql.driver.adapter.Neo4jAdapter
+import org.neo4j.graphql.driver.adapter.Neo4jAdapter.QueryResult
 import org.neo4j.graphql.isList
 
 /**
@@ -44,11 +45,11 @@ internal abstract class BaseDataFetcher(protected val schemaConfig: SchemaConfig
 
     protected abstract fun generateCypher(env: DataFetchingEnvironment): Statement
 
-    protected open fun mapResult(env: DataFetchingEnvironment, result: List<Map<String, Any?>>): Any {
+    protected open fun mapResult(env: DataFetchingEnvironment, result: QueryResult): Any {
         return if (env.fieldDefinition.type?.isList() == true) {
-            result.map { it[RESULT_VARIABLE] }
+            result.data.map { it[RESULT_VARIABLE] }
         } else {
-            result.map { it[RESULT_VARIABLE] }
+            result.data.map { it[RESULT_VARIABLE] }
                 .firstOrNull() ?: emptyMap<String, Any>()
         }
     }

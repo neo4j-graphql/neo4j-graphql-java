@@ -14,6 +14,7 @@ sealed class ImplementingTypeNames(
 
     open inner class ImplementingTypeRootTypeFieldNames : RootTypeFieldNames() {
         val connection get() = "${plural}Connection"
+        val delete get() = "delete${pascalCasePlural}"
     }
 
     open inner class ImplementingTypeRootTypeSelection {

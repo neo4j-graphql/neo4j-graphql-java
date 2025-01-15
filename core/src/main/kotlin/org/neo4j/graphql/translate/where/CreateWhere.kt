@@ -71,7 +71,7 @@ fun createWhere(
 
             if (field is RelationField) {
                 val relation = field.createQueryDslRelation(propertyContainer, endNode)
-                val cond = op.createRelationCondition(relation, nestedCondition)
+                val cond = op.createRelationCondition(relation, nestedCondition, singelton = !field.isList())
 
                 val condition = cond.let {
                     if (predicate.where == null) it.not() else it
@@ -152,7 +152,7 @@ fun createWhere(
                 for (implementation in implementingType.implementations.values) {
                     lableConditions = lableConditions or Cypher.hasLabelsOrType(
                         endNode.requiredSymbolicName,
-                        queryContext.resolve(implementation.name)
+                        queryContext.resolve(implementation.name, useCypherParams = true)
                     )
                 }
                 if (lableConditions != null) {
@@ -235,7 +235,7 @@ fun createWhere(
             labelCondition =
                 labelCondition or Cypher.hasLabelsOrType(
                     (propertyContainer as Node).requiredSymbolicName,
-                    queryContext.resolve(typeName)
+                    queryContext.resolve(typeName, useCypherParams = true)
                 )
         }
         if (labelCondition != null) {

@@ -54,7 +54,7 @@ fun main() {
     val neo4jAdapter = Neo4jDriverAdapter(driver, Neo4jAdapter.Dialect.NEO4J_5)
     val graphQLSchema = SchemaBuilder.buildSchema(schema, neo4jAdapter = object : Neo4jAdapter {
         override fun getDialect() = neo4jAdapter.getDialect()
-        override fun executeQuery(cypher: String, params: Map<String, *>): List<Map<String, *>> {
+        override fun executeQuery(cypher: String, params: Map<String, *>): Neo4jAdapter.QueryResult {
             println(cypher)
             println(params)
             return neo4jAdapter.executeQuery(cypher, params)

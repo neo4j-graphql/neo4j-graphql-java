@@ -132,9 +132,9 @@ class CypherTestFactory(file: Path, private val driver: Driver? = null, createMi
                 override fun executeQuery(
                     cypher: String,
                     params: Map<String, Any?>
-                ): List<Map<String, Any?>> {
+                ): Neo4jAdapter.QueryResult {
                     cypherResults.add(CypherResult(cypher, params))
-                    return emptyList()
+                    return Neo4jAdapter.QueryResult.EMPTY
                 }
             })
 

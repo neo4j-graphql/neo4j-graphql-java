@@ -13,6 +13,7 @@ import org.neo4j.graphql.domain.directives.Annotations.Companion.LIBRARY_DIRECTI
 import org.neo4j.graphql.domain.fields.RelationField
 import org.neo4j.graphql.driver.adapter.Neo4jAdapter
 import org.neo4j.graphql.handler.ConnectionResolver
+import org.neo4j.graphql.handler.DeleteResolver
 import org.neo4j.graphql.handler.ImplementingTypeConnectionFieldResolver
 import org.neo4j.graphql.handler.ReadResolver
 import org.neo4j.graphql.scalars.BigIntScalar
@@ -81,6 +82,7 @@ class SchemaBuilder @JvmOverloads constructor(
     init {
         handler = mutableListOf(
             ReadResolver.Factory(ctx),
+            DeleteResolver.Factory(ctx),
             ConnectionResolver.Factory(ctx),
             ImplementingTypeConnectionFieldResolver.Factory(ctx)
         )

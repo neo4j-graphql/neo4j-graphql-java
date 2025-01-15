@@ -7,34 +7,58 @@ import java.util.concurrent.atomic.AtomicInteger
 
 data class QueryContext @JvmOverloads constructor(
     val contextParams: Map<String, Any?>? = emptyMap(),
+    /**
+     * Parameters to be used when querying with Cypher.
+     *
+     * To be used with directives such as `@node`, and can be used directly as named here.
+     */
+    val cypherParams: Map<String, Any?>? = emptyMap(),
 ) {
 
     private var varCounter = mutableMapOf<String, AtomicInteger>()
     private var paramCounter = mutableMapOf<String, AtomicInteger>()
     private var paramKeysPerValues = mutableMapOf<String, MutableMap<Any?, Parameter<*>>>()
 
-    fun resolve(string: String): String {
+    fun resolve(string: String, useCypherParams: Boolean = false): String {
+        val lookups = listOfNotNull(
+            contextParams,
+            cypherParams?.takeIf { useCypherParams }
+        )
+        return resolve(string, lookups)
+    }
+
+    private fun resolve(string: String, lookups: List<Map<String, Any?>?>): String {
         return CONTEXT_VARIABLE_PATTERN.replace(string) {
             val path = it.groups[1] ?: it.groups[2] ?: throw IllegalStateException("expected a group")
             val parts = path.value.split(".")
-            var o: Any? = null
-            for ((index, part) in parts.withIndex()) {
-                if (index == 0) {
-                    if (part == "context") {
-                        o = contextParams
-                        continue
-                    } else {
-                        TODO("query context does not provide a `$part`")
-                    }
-                }
-                if (o is Map<*, *>) {
-                    o = o[part] ?: return@replace ""
-                } else {
-                    TODO("only maps are currently supported")
+            for (lookup in lookups) {
+                val value = getValue(parts, lookup)
+                if (value != null) {
+                    return@replace value.toString()
                 }
             }
-            return@replace o.toString()
+            return@replace ""
         }
+    }
+
+    private fun getValue(parts: List<String>, root: Map<String, Any?>?): Any? {
+        var o: Any? = null
+        for ((index, part) in parts.withIndex()) {
+            if (index == 0) {
+                if (part == "context") {
+                    o = root
+                    continue
+                } else {
+                    o = root
+                }
+            }
+            if (o is Map<*, *>) {
+                o = o[part] ?: return null
+            } else {
+                TODO("only maps are currently supported")
+            }
+        }
+        return o
     }
 
     fun getNextVariable(relationField: RelationField) = getNextVariable(

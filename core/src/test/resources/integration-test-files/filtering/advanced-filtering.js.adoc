@@ -40,7 +40,11 @@ CREATE (:Movie {property: "RandomString1"})
 [source,json]
 ----
 {
-  "param0" : [ "RandomString1", "RandomString2", "RandomString3" ]
+  "param0": [
+    "RandomString1",
+    "RandomString2",
+    "RandomString3"
+  ]
 }
 ----
 
@@ -49,18 +53,18 @@ CREATE (:Movie {property: "RandomString1"})
 ----
 MATCH (this:Movie)
 WHERE this.property IN $param0
-RETURN this {
-	.property
-} AS this
+RETURN this { .property } AS this
 ----
 
 .GraphQL-Response
 [source,json,response=true]
 ----
 {
-  "movies" : [ {
-    "property" : "RandomString1"
-  } ]
+  "movies": [
+    {
+      "property": "RandomString1"
+    }
+  ]
 }
 ----
 
@@ -1109,9 +1113,11 @@ RETURN this { .property } AS this
 [source,json,response=true]
 ----
 {
-  "movies" : [ {
-    "property" : 42
-  } ]
+  "movies": [
+    {
+      "property": 42
+    }
+  ]
 }
 ----
 
@@ -1332,7 +1338,7 @@ CREATE (:Movie {property: 42})
 [source,json]
 ----
 {
-  "param0" : 42
+  "param0": 42
 }
 ----
 
@@ -1341,13 +1347,11 @@ CREATE (:Movie {property: 42})
 ----
 MATCH (this:Movie)
 WHERE this.property >= $param0
-RETURN this {
-	.property
-} AS this
+RETURN this { .property } AS this
 ----
 
 .GraphQL-Response
-[source,json,response=true,ignore-order]
+[source,json,response=true]
 ----
 {
   "movies": [

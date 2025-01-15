@@ -24,9 +24,18 @@ type Movie @node {
 ----
 schema {
   query: Query
+  mutation: Mutation
 }
 
 scalar CustomScalar
+
+"""
+Information about the number of nodes and relationships deleted during a delete mutation
+"""
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
 
 type Movie {
   id: ID
@@ -73,6 +82,10 @@ type MoviesConnection {
   edges: [MovieEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
+}
+
+type Mutation {
+  deleteMovies(where: MovieWhere): DeleteInfo!
 }
 
 """Pagination information (Relay)"""

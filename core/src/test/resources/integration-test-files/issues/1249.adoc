@@ -1,0 +1,126 @@
+:toc:
+:toclevels: 42
+
+= https://github.com/neo4j/graphql/issues/1249
+
+== should pass the cypherParams from the context correctly at the top level translate
+
+.Schema
+[source,graphql,schema=true]
+----
+type Bulk @mutation(operations: []) @node(labels: ["Bulk", "$tenant"]) {
+  id: ID!
+  supplierMaterialNumber: String!
+  material: Material! @relationship(type: "MATERIAL_BULK", direction: OUT)
+}
+
+type Material @mutation(operations: []) @node {
+  id: ID!
+  itemNumber: String!
+  suppliers: [Supplier!]! @relationship(type: "MATERIAL_SUPPLIER", properties: "RelationMaterialSupplier", direction: OUT)
+}
+
+type Supplier @mutation(operations: []) @node {
+  id: ID!
+  name: String
+  supplierId: String!
+}
+
+type RelationMaterialSupplier @relationshipProperties {
+  supplierMaterialNumber: String!
+}
+----
+
+.GraphQL-Query
+[source,graphql,request=true]
+----
+{
+  bulks {
+    supplierMaterialNumber
+    material {
+      id
+      suppliersConnection {
+        edges {
+          properties {
+            supplierMaterialNumber
+          }
+          node {
+            supplierId
+          }
+        }
+      }
+    }
+  }
+}
+----
+
+.Query Context
+[source,json,query-config=true]
+----
+{
+  "cypherParams" : {
+    "tenant" : "BULK"
+  }
+}
+----
+
+.Expected Cypher params
+[source,json]
+----
+{ }
+----
+
+.Expected Cypher output
+[source,cypher]
+----
+MATCH (this:Bulk:BULK)
+CALL {
+	WITH this
+	MATCH (this)-[materialBulk0:MATERIAL_BULK]->(material0:Material)
+	CALL {
+		WITH material0
+		MATCH (material0)-[materialSupplier0:MATERIAL_SUPPLIER]->(supplier0:Supplier)
+		WITH collect( {
+			node: supplier0,
+			relationship: materialSupplier0
+		}) AS edges
+		WITH edges, size(edges) AS totalCount
+		CALL {
+			WITH edges
+			UNWIND edges AS edge
+			WITH edge.node AS supplier0, edge.relationship AS materialSupplier0
+			RETURN collect( {
+				properties: {
+					__typename: 'RelationMaterialSupplier',
+					supplierMaterialNumber: materialSupplier0.supplierMaterialNumber
+				},
+				node: {
+					__typename: 'Supplier',
+					supplierId: supplier0.supplierId
+				}
+			}) AS suppliersConnectionEdges
+		}
+		RETURN {
+			edges: suppliersConnectionEdges,
+			totalCount: totalCount
+		} AS suppliersConnection
+	}
+	WITH material0 {
+		.id,
+		suppliersConnection: suppliersConnection
+	} AS material
+	RETURN head(collect(material)) AS material
+}
+RETURN this {
+	.supplierMaterialNumber,
+	material: material
+} AS this
+----
+
+.GraphQL-Response
+[source,json,response=true]
+----
+{
+  "bulks" : [ ]
+}
+----

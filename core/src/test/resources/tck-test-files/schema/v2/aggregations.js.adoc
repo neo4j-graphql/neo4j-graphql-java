@@ -29,6 +29,7 @@ type Movie @node {
 ----
 schema {
   query: Query
+  mutation: Mutation
 }
 
 """
@@ -38,6 +39,14 @@ scalar BigInt
 
 """A date and time, represented as an ISO-8601 string"""
 scalar DateTime
+
+"""
+Information about the number of nodes and relationships deleted during a delete mutation
+"""
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
 
 """A duration, represented as an ISO 8601 duration string"""
 scalar Duration
@@ -172,6 +181,10 @@ type MoviesConnection {
   totalCount: Int!
 }
 
+type Mutation {
+  deleteMovies(where: MovieWhere): DeleteInfo!
+}
+
 """Pagination information (Relay)"""
 type PageInfo {
   endCursor: String
@@ -239,6 +252,7 @@ type Likes @relationshipProperties {
 ----
 schema {
   query: Query
+  mutation: Mutation
 }
 
 """
@@ -248,6 +262,14 @@ scalar BigInt
 
 """A date and time, represented as an ISO-8601 string"""
 scalar DateTime
+
+"""
+Information about the number of nodes and relationships deleted during a delete mutation
+"""
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
 
 """A duration, represented as an ISO 8601 duration string"""
 scalar Duration
@@ -363,6 +385,11 @@ scalar LocalDateTime
 A local time, represented as a time string without timezone information
 """
 scalar LocalTime
+
+type Mutation {
+  deletePosts(where: PostWhere): DeleteInfo!
+  deleteUsers(where: UserWhere): DeleteInfo!
+}
 
 """Pagination information (Relay)"""
 type PageInfo {

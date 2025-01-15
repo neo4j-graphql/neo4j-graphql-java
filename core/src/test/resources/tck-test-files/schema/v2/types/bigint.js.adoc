@@ -20,12 +20,21 @@ type File @node {
 ----
 schema {
   query: Query
+  mutation: Mutation
 }
 
 """
 A BigInt value up to 64 bits in size, which can be a number or a string if used inline, or a string only if used as a variable. Always returned as a string.
 """
 scalar BigInt
+
+"""
+Information about the number of nodes and relationships deleted during a delete mutation
+"""
+type DeleteInfo {
+  nodesDeleted: Int!
+  relationshipsDeleted: Int!
+}
 
 type File {
   name: String!
@@ -68,6 +77,10 @@ type FilesConnection {
   edges: [FileEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
+}
+
+type Mutation {
+  deleteFiles(where: FileWhere): DeleteInfo!
 }
 
 """Pagination information (Relay)"""

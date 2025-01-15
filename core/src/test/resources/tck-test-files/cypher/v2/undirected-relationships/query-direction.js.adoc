@@ -35,7 +35,7 @@ type User @node {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
@@ -43,17 +43,12 @@ type User @node {
 ----
 MATCH (this:User)
 CALL {
-	WITH this
-	MATCH (this)-[this0:FRIENDS_WITH]->(this1:User)
-	WITH this1 {
-		.name
-	} AS this1
-	RETURN collect(this1) AS var2
+    WITH this
+    MATCH (this)-[this0:FRIENDS_WITH]->(this1:User)
+    WITH this1 { .name } AS this1
+    RETURN collect(this1) AS var2
 }
-RETURN this {
-	.name,
-	friends: var2
-} AS this
+RETURN this { .name, friends: var2 } AS this
 ----
 
 === query with filter
@@ -75,7 +70,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "John Smith"
+  "param0": "John Smith"
 }
 ----
 
@@ -84,21 +79,16 @@ RETURN this {
 ----
 MATCH (this:User)
 WHERE EXISTS {
-	MATCH (this)-[:FRIENDS_WITH]->(this0:User)
-	WHERE this0.name = $param0
+    MATCH (this)-[:FRIENDS_WITH]->(this0:User)
+    WHERE this0.name = $param0
 }
 CALL {
-	WITH this
-	MATCH (this)-[this1:FRIENDS_WITH]->(this2:User)
-	WITH this2 {
-		.name
-	} AS this2
-	RETURN collect(this2) AS var3
+    WITH this
+    MATCH (this)-[this1:FRIENDS_WITH]->(this2:User)
+    WITH this2 { .name } AS this2
+    RETURN collect(this2) AS var3
 }
-RETURN this {
-	.name,
-	friends: var3
-} AS this
+RETURN this { .name, friends: var3 } AS this
 ----
 
 == UNDIRECTED
@@ -132,7 +122,7 @@ type User @node {
 .Expected Cypher params
 [source,json]
 ----
-{ }
+{}
 ----
 
 .Expected Cypher output
@@ -140,17 +130,12 @@ type User @node {
 ----
 MATCH (this:User)
 CALL {
-	WITH this
-	MATCH (this)-[this0:FRIENDS_WITH]-(this1:User)
-	WITH this1 {
-		.name
-	} AS this1
-	RETURN collect(this1) AS var2
+    WITH this
+    MATCH (this)-[this0:FRIENDS_WITH]-(this1:User)
+    WITH this1 { .name } AS this1
+    RETURN collect(this1) AS var2
 }
-RETURN this {
-	.name,
-	friends: var2
-} AS this
+RETURN this { .name, friends: var2 } AS this
 ----
 
 === query with filter
@@ -172,7 +157,7 @@ RETURN this {
 [source,json]
 ----
 {
-  "param0" : "John Smith"
+  "param0": "John Smith"
 }
 ----
 
@@ -181,19 +166,14 @@ RETURN this {
 ----
 MATCH (this:User)
 WHERE EXISTS {
-	MATCH (this)-[:FRIENDS_WITH]-(this0:User)
-	WHERE this0.name = $param0
+    MATCH (this)-[:FRIENDS_WITH]-(this0:User)
+    WHERE this0.name = $param0
 }
 CALL {
-	WITH this
-	MATCH (this)-[this1:FRIENDS_WITH]-(this2:User)
-	WITH this2 {
-		.name
-	} AS this2
-	RETURN collect(this2) AS var3
+    WITH this
+    MATCH (this)-[this1:FRIENDS_WITH]-(this2:User)
+    WITH this2 { .name } AS this2
+    RETURN collect(this2) AS var3
 }
-RETURN this {
-	.name,
-	friends: var3
-} AS this
+RETURN this { .name, friends: var3 } AS this
 ----
